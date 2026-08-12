@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>As-mine — Chauffeur privé haut de gamme</title>
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://api-adresse.data.gouv.fr https://router.project-osrm.org; frame-ancestors 'self';">
+<meta name="description" content="As-mine — chauffeur privé haut de gamme à Paris et en Île-de-France. Réservation instantanée, prix fixe, ponctualité garantie.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite:#121212;
+    --panel:#1A1A1A;
+    --panel-2:#202020;
+    --line:#2B2B2B;
+    --gold:#D4AF37;
+    --gold-soft:#E8CE7B;
+    --gold-dim:#8A7128;
+    --ivory:#F4F1EA;
+    --muted:#9C9A93;
+    --green:#3DDC84;
+    --red:#E5484D;
+  }
+  *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+  html,body{background:var(--graphite);color:var(--ivory);font-family:'Inter',sans-serif;overscroll-behavior-y:none;}
+  .font-display{font-family:'Playfair Display',serif;}
+  .font-mono{font-family:'JetBrains Mono',monospace;}
+  ::-webkit-scrollbar{width:0px;height:0px;}
+  .no-select{-webkit-user-select:none;user-select:none;}
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeSlide .28s ease both;}
+  @keyframes fadeSlide{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .tab-underline{position:relative;}
+  .tab-underline.active{background:var(--panel-2);color:var(--gold-soft);}
+  .pulse-dot{position:relative;}
+  .pulse-dot::before{content:'';position:absolute;inset:-4px;border-radius:9999px;background:var(--green);opacity:.35;animation:pulseRing 1.8s ease-out infinite;}
+  @keyframes pulseRing{0%{transform:scale(.6);opacity:.5;}100%{transform:scale(2.2);opacity:0;}}
+  .gold-btn{background:linear-gradient(180deg,var(--gold-soft),var(--gold));color:#141210;font-weight:600;}
+  .gold-btn:active{transform:scale(.98);}
+  .gold-btn:disabled{opacity:.45;filter:grayscale(.3);}
+  .card-line{border:1px solid var(--line);}
+  .accordion-content{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+  .route-svg path{stroke-dasharray:400;stroke-dashoffset:400;animation:drawRoute 1.4s ease forwards;}
+  @keyframes drawRoute{to{stroke-dashoffset:0;}}
+  input[type=range]{-webkit-appearance:none;background:transparent;}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:4px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;margin-top:-10px;width:24px;height:24px;border-radius:9999px;background:var(--gold);border:3px solid #121212;box-shadow:0 0 0 1px var(--gold-dim);}
+  .modal-backdrop{background:rgba(8,8,8,.72);backdrop-filter:blur(3px);}
+  [dir="rtl"] .flip-x{transform:scaleX(-1);}
+  .install-toast{animation:toastIn .4s ease both;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(100%);}to{opacity:1;transform:translateY(0);}}
+  .skeleton-shimmer{background:linear-gradient(90deg,var(--panel) 25%,var(--panel-2) 50%,var(--panel) 75%);background-size:200% 100%;animation:shimmer 1.3s linear infinite;}
+  @keyframes shimmer{to{background-position:-200% 0;}}
+  .suggest-list{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;overflow:hidden;z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.5);}
+  .suggest-item{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--line);cursor:pointer;}
+  .suggest-item:last-child{border-bottom:none;}
+  .suggest-item:active,.suggest-item:hover{background:#262523;}
+  .suggest-item b{color:var(--gold-soft);font-weight:600;}
+  .veh-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);transition:border-color .2s,transform .15s;}
+  .veh-card:active{transform:scale(.985);}
+  .veh-card.selected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+  .pay-toggle{border:1px solid var(--line);border-radius:14px;background:var(--panel);}
+  .pay-toggle.selected{border-color:var(--gold);background:#211d10;}
+  .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:10px;padding:6px 0;flex:1;}
+  .nav-item.active{color:var(--gold);}
+  .chip-price{border:1px solid var(--line);border-radius:12px;padding:10px 8px;background:var(--panel-2);text-align:center;}
+  .chip-price:active{transform:scale(.96);}
+  .loader-ring{width:56px;height:56px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:9999px;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .faq-caret{transition:transform .25s ease;}
+  .faq-open .faq-caret{transform:rotate(180deg);}
+  .field-float:focus + label, .field-float:not(:placeholder-shown) + label{color:var(--gold-soft);}
+
+  /* Accessibility: visible keyboard focus */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--gold); outline-offset:2px; border-radius:6px;
+  }
+  .suggest-item[aria-selected="true"]{background:#262523;}
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+    .route-svg path{stroke-dashoffset:0;}
+  }
+
+  .honeypot-field{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+
+  /* Stepper */
+  .stepper{display:flex;align-items:center;gap:0;margin-bottom:1.25rem;}
+  .stepper .step{display:flex;align-items:center;gap:6px;flex:1;}
+  .step-dot{width:22px;height:22px;border-radius:9999px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);flex-shrink:0;}
+  .step.done .step-dot{background:var(--gold);border-color:var(--gold);color:#141210;}
+  .step.current .step-dot{border-color:var(--gold);color:var(--gold-soft);}
+  .step-label{font-size:10px;color:var(--muted);}
+  .step.done .step-label, .step.current .step-label{color:var(--ivory);}
+  .step-line{flex:1;height:1px;background:var(--line);margin:0 4px;}
+  .step-line.done{background:var(--gold);}
+
+  /* Extras chips */
+  .extra-chip{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel-2);text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .extra-chip.selected{border-color:var(--gold);background:#211d10;}
+  .extra-chip .box{width:18px;height:18px;border:1.5px solid var(--line);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .extra-chip.selected .box{background:var(--gold);border-color:var(--gold);}
+
+  /* Consent granular toggle */
+  .switch{width:38px;height:22px;border-radius:9999px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0;}
+  .switch.on{background:var(--gold);}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:9999px;background:var(--ivory);transition:transform .2s;}
+  .switch.on::after{transform:translateX(16px);}
+  [dir="rtl"] .switch::after{left:auto;right:2px;}
+  [dir="rtl"] .switch.on::after{transform:translateX(-16px);}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ===================== HEADER ===================== -->
+<header class="fixed top-0 left-0 right-0 z-40 bg-[#121212]/90 backdrop-blur border-b border-[#2B2B2B]">
+  <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 2 L23 8 V18 L13 24 L3 18 V8 Z" stroke="#D4AF37" stroke-width="1.3"/><circle cx="13" cy="13" r="3" fill="#D4AF37"/></svg>
+      <span class="font-display text-xl tracking-wide" style="color:var(--ivory)">AS-MINE</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="driversBadge" class="flex items-center gap-1.5 text-xs text-[#9C9A93]">
+        <span class="pulse-dot w-2 h-2 rounded-full bg-[#3DDC84]"></span>
+        <span data-i18n="drivers_available">Chauffeurs disponibles</span>
+      </button>
+      <select id="langSelect" class="bg-[#1A1A1A] border border-[#2B2B2B] text-xs rounded-full px-2.5 py-1.5 text-[var(--ivory)] outline-none">
+        <option value="fr">🇫🇷 FR</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="tr">🇹🇷 TR</option>
+        <option value="ar">🇸🇦 AR</option>
+        <option value="zh">🇨🇳 ZH</option>
+        <option value="es">🇪🇸 ES</option>
+        <option value="de">🇩🇪 DE</option>
+        <option value="it">🇮🇹 IT</option>
+        <option value="ru">🇷🇺 RU</option>
+        <option value="pt">🇵🇹 PT</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-md mx-auto pt-20 pb-28 px-4">
+
+  <!-- ===================== SCREEN: HOME ===================== -->
+  <section id="screen-home" class="screen active">
+    <div class="mb-2 flex items-center gap-1.5 text-xs text-[var(--gold)] font-mono uppercase tracking-widest">
+      <span data-i18n="tagline">Chauffeur privé — Paris & Île-de-France</span>
+    </div>
+    <h1 class="font-display text-3xl leading-tight mb-3" data-i18n="hero_title">L'excellence, à chaque trajet.</h1>
+    <p class="text-sm text-[var(--muted)] mb-5" data-i18n="hero_sub">Réservez un chauffeur professionnel en moins de deux minutes. Prix fixe, ponctualité garantie, confirmation instantanée.</p>
+
+    <svg class="w-full h-28 mb-6" viewBox="0 0 400 100" fill="none">
+      <line x1="20" y1="70" x2="380" y2="70" stroke="#2B2B2B" stroke-width="1"/>
+      <path class="route-svg" d="M30 70 C 120 70, 140 20, 200 20 S 300 70, 370 70" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="30" cy="70" r="5" fill="#F4F1EA"/>
+      <circle cx="370" cy="70" r="6" fill="#D4AF37"/>
+    </svg>
+
+    <!-- Booking card -->
+    <div class="rounded-2xl bg-[var(--panel)] card-line p-4 shadow-xl mb-6">
+      <div class="grid grid-cols-2 gap-1 mb-4 bg-[#141414] rounded-full p-1" role="tablist" aria-label="Type de réservation">
+        <button id="tabSimple" role="tab" aria-selected="true" class="tab-underline active py-2.5 rounded-full text-sm font-medium" data-i18n="tab_simple">Trajet Simple</button>
+        <button id="tabDisposal" role="tab" aria-selected="false" class="tab-underline py-2.5 rounded-full text-sm font-medium text-[var(--muted)]" data-i18n="tab_disposal">Mise à Disposition</button>
+      </div>
+
+      <!-- SIMPLE TRIP FORM -->
+      <div id="formSimple" class="space-y-3">
+        <input type="text" name="website" class="honeypot-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="relative">
+          <input id="pickup" autocomplete="off" type="text" placeholder=" " role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="pickupList" class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_pickup">Adresse de départ</label>
+          <div id="pickupList" class="suggest-list hidden" role="listbox"></div>
+        </div>
+        <div class="relative">
+          <input id="dropoff" autocomplete="off" type="text" placeholder=" " role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="dropoffList" class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_dropoff">Adresse d'arrivée</label>
+          <div id="dropoffList" class="suggest-list hidden" role="listbox"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="relative">
+            <input id="dateSimple" type="date" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_date">Date</label>
+          </div>
+          <div class="relative">
+            <select id="timeSimple" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none appearance-none"></select>
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_time">Heure</label>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flip-x" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="relative">
+          <input id="promoSimple" type="text" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none uppercase">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_promo">Code promo (optionnel)</label>
+        </div>
+      </div>
+
+      <!-- DISPOSAL FORM -->
+      <div id="formDisposal" class="space-y-3 hidden">
+        <input type="text" name="website" class="honeypot-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="relative">
+          <input id="pickupDisp" autocomplete="off" type="text" placeholder=" " role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="pickupDispList" class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_pickup_disp">Lieu de prise en charge</label>
+          <div id="pickupDispList" class="suggest-list hidden" role="listbox"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="relative">
+            <input id="dateDisp" type="date" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_date">Date</label>
+          </div>
+          <div class="relative">
+            <select id="timeDisp" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none appearance-none"></select>
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_time">Heure</label>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flip-x" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="pt-2">
+          <div class="flex justify-between text-xs text-[var(--muted)] mb-1">
+            <span data-i18n="label_duration">Durée de mise à disposition</span>
+            <span id="durationVal" class="text-[var(--gold)] font-mono font-medium">3 h</span>
+          </div>
+          <input id="durationRange" type="range" min="1" max="12" value="3" class="w-full" aria-label="Durée en heures">
+        </div>
+        <div class="relative">
+          <input id="promoDisp" type="text" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none uppercase">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_promo">Code promo (optionnel)</label>
+        </div>
+      </div>
+
+      <p id="formError" class="text-xs text-[var(--red)] mt-3 hidden"></p>
+
+      <button id="btnSearch" class="gold-btn w-full mt-5 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-transform shadow-lg">
+        <span data-i18n="btn_search">Voir les tarifs</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M5 12h14M13 6l6 6-6 6" stroke="#141210" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Promo airport card -->
+    <button id="promoAirports" class="w-full rounded-2xl card-line bg-[var(--panel)] p-4 flex items-center justify-between text-left mb-4">
+      <div>
+        <p class="text-xs text-[var(--gold)] font-mono uppercase tracking-widest mb-1" data-i18n="airports_eyebrow">Forfaits fixes</p>
+        <p class="font-display text-lg" data-i18n="airports_title">Aéroports Paris & Beauvais</p>
+        <p class="text-xs text-[var(--muted)]" data-i18n="airports_sub">CDG · Orly · Beauvais — prix bloqué, zéro surprise.</p>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="flip-x shrink-0 ml-3"><path d="M9 6l6 6-6 6" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </section>
+
+  <!-- ===================== SCREEN: AIRPORTS ===================== -->
+  <section id="screen-airports" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
+    <h2 class="font-display text-2xl mb-1" data-i18n="airports_title">Aéroports Paris & Beauvais</h2>
+    <p class="text-sm text-[var(--muted)] mb-5" data-i18n="airports_sub">CDG · Orly · Beauvais — prix bloqué, zéro surprise.</p>
+
+    <div class="rounded-2xl bg-[var(--panel)] card-line p-4 mb-4">
+      <div class="relative mb-3">
+        <input id="addressAirport" autocomplete="off" type="text" placeholder=" " role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="addressAirportList" class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+        <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_address_complement">Votre adresse à Paris / IDF</label>
+        <div id="addressAirportList" class="suggest-list hidden" role="listbox"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="relative">
+          <input id="dateAirport" type="date" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_date">Date</label>
+        </div>
+        <div class="relative">
+          <select id="timeAirport" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none appearance-none"></select>
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_time">Heure</label>
+          <svg class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flip-x" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-1 bg-[#141414] rounded-full p-1">
+        <button id="dirToAirport" class="tab-underline active py-2 rounded-full text-xs font-medium" data-i18n="dir_to_airport">Paris → Aéroport</button>
+        <button id="dirFromAirport" class="tab-underline py-2 rounded-full text-xs font-medium text-[var(--muted)]" data-i18n="dir_from_airport">Aéroport → Paris</button>
+      </div>
+    </div>
+
+    <div id="airportCards" class="space-y-3"></div>
+  </section>
+
+  <!-- ===================== SCREEN: VEHICLES ===================== -->
+  <section id="screen-vehicles" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
+    <div class="stepper" id="stepperVehicles" aria-hidden="true"></div>
+    <h2 class="font-display text-2xl mb-1" data-i18n="vehicles_title">Choisissez votre véhicule</h2>
+    <p id="vehiclesSub" class="text-sm text-[var(--muted)] mb-1"></p>
+    <p id="nightNote" class="text-xs text-[var(--gold-soft)] mb-2 hidden" data-i18n="night_surcharge_note">Majoration nuit/week-end de +20% appliquée automatiquement et affichée en toute transparence.</p>
+    <p id="vatNote" class="text-xs text-[var(--muted)] mb-5" data-i18n="vat_note">Prix TTC, TVA 10% incluse (transport de personnes).</p>
+    <div id="routeSkeleton" class="hidden space-y-3 mb-6">
+      <div class="skeleton-shimmer h-20 rounded-2xl"></div>
+      <div class="skeleton-shimmer h-20 rounded-2xl"></div>
+    </div>
+    <div id="vehicleCards" class="space-y-3 mb-6"></div>
+    <button id="btnToPayment" disabled class="gold-btn w-full py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+      <span data-i18n="btn_continue">Continuer</span>
+    </button>
+  </section>
+
+  <!-- ===================== SCREEN: PAYMENT ===================== -->
+  <section id="screen-payment" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-vehicles">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
+    <div class="stepper" id="stepperPayment" aria-hidden="true"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display text-2xl" data-i18n="summary_title">Récapitulatif</h2>
+      <button id="btnEditTrip" class="text-xs text-[var(--gold-soft)] underline" data-i18n="edit_trip">Modifier</button>
+    </div>
+
+    <div id="tripSummary" class="rounded-2xl bg-[var(--panel)] card-line p-4 mb-4 text-sm space-y-2"></div>
+
+    <div class="rounded-2xl bg-[var(--panel)] card-line p-4 mb-4">
+      <p class="text-xs text-[var(--gold)] uppercase tracking-widest font-mono mb-3" data-i18n="promo_title">Code promo</p>
+      <div class="flex gap-2">
+        <input id="promoPayment" type="text" placeholder=" " class="flex-1 bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 py-2.5 text-sm outline-none uppercase" data-i18n-placeholder="label_promo">
+        <button id="btnApplyPromo" class="px-4 rounded-xl border border-[var(--gold)] text-[var(--gold-soft)] text-xs font-medium" data-i18n="promo_apply">Appliquer</button>
+      </div>
+      <p id="promoMsg" class="text-xs mt-2 hidden"></p>
+    </div>
+
+    <div class="rounded-2xl bg-[var(--panel)] card-line p-4 mb-4">
+      <p class="text-xs text-[var(--gold)] uppercase tracking-widest font-mono mb-3" data-i18n="client_info">Vos informations</p>
+      <div class="space-y-3">
+        <input type="text" name="website" class="honeypot-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="relative">
+          <input id="clientName" type="text" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="full_name">Nom complet</label>
+        </div>
+        <div class="relative">
+          <input id="clientPhone" type="tel" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="phone_number">Téléphone (avec indicatif)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl bg-[var(--panel)] card-line p-4 mb-4">
+      <p class="text-xs text-[var(--gold)] uppercase tracking-widest font-mono mb-3" data-i18n="payment_title">Paiement</p>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button id="payCard" class="pay-toggle selected py-3 rounded-xl flex flex-col items-center gap-1">
+          <span class="text-lg">💳</span>
+          <span class="text-xs font-medium" data-i18n="pay_card">Carte Bancaire</span>
+        </button>
+        <button id="payPaypal" class="pay-toggle py-3 rounded-xl flex flex-col items-center gap-1">
+          <span class="text-lg">🅿️</span>
+          <span class="text-xs font-medium" data-i18n="pay_paypal">PayPal</span>
+        </button>
+      </div>
+
+      <div id="cardFields" class="space-y-3">
+        <div class="relative">
+          <input id="cardName" type="text" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="card_name">Nom sur la carte</label>
+        </div>
+        <div class="relative">
+          <input id="cardNumber" type="text" inputmode="numeric" maxlength="19" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none font-mono">
+          <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="card_number">Numéro de carte</label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="relative">
+            <input id="cardExpiry" type="text" inputmode="numeric" maxlength="5" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none font-mono">
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="card_expiry">MM/AA</label>
+          </div>
+          <div class="relative">
+            <input id="cardCvc" type="text" inputmode="numeric" maxlength="3" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none font-mono">
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="card_cvc">CVC</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="btnConfirmPay" class="gold-btn w-full py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+      <span data-i18n="btn_confirm_pay">Confirmer et Payer</span>
+    </button>
+  </section>
+
+  <!-- ===================== SCREEN: CONFIRMATION ===================== -->
+  <section id="screen-confirmation" class="screen">
+    <div class="flex flex-col items-center text-center pt-10">
+      <div class="w-16 h-16 rounded-full bg-[#1c2a20] border border-[var(--green)] flex items-center justify-center mb-5">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#3DDC84" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 class="font-display text-2xl mb-2" data-i18n="confirmation_title">Réservation confirmée</h2>
+      <p class="text-sm text-[var(--muted)] mb-4" data-i18n="confirmation_sub">Votre chauffeur As-mine vous attend. Le récapitulatif a été envoyé sur WhatsApp.</p>
+      <p class="font-mono text-xs text-[var(--gold)] mb-8"><span data-i18n="confirmation_ref">Référence</span> : <span id="confRef"></span></p>
+      <button id="btnNewBooking" class="gold-btn px-6 py-3 rounded-xl text-sm" data-i18n="btn_new_booking">Nouvelle réservation</button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: FAQ ===================== -->
+  <section id="screen-faq" class="screen">
+    <h2 class="font-display text-2xl mb-5" data-i18n="faq_title">Questions fréquentes</h2>
+    <div id="faqList" class="space-y-2 mb-8"></div>
+    <div class="rounded-2xl bg-[var(--panel)] card-line p-4 space-y-3">
+      <p class="text-xs text-[var(--gold)] uppercase tracking-widest font-mono" data-i18n="legal_title">Informations légales</p>
+      <button class="btn-legal flex items-center justify-between w-full text-sm" data-doc="cgv">
+        <span data-i18n="legal_cgv">Conditions Générales de Vente</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M9 6l6 6-6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn-legal flex items-center justify-between w-full text-sm" data-doc="mentions">
+        <span data-i18n="legal_mentions">Mentions légales</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M9 6l6 6-6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn-legal flex items-center justify-between w-full text-sm" data-doc="privacy">
+        <span data-i18n="legal_privacy">Politique de confidentialité</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M9 6l6 6-6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: LEGAL DOC ===================== -->
+  <section id="screen-legal" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-faq">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
+    <h2 id="legalDocTitle" class="font-display text-2xl mb-4"></h2>
+    <div id="legalDocBody" class="text-sm text-[var(--muted)] leading-relaxed space-y-3 whitespace-pre-line"></div>
+  </section>
+
+  <!-- ===================== SCREEN: HISTORY (session only) ===================== -->
+  <section id="screen-history" class="screen">
+    <h2 class="font-display text-2xl mb-1" data-i18n="history_title">Mes trajets</h2>
+    <p class="text-xs text-[var(--muted)] mb-5" data-i18n="history_note">Historique de cette session uniquement — non conservé après fermeture.</p>
+    <div id="historyList" class="space-y-3"></div>
+    <p id="historyEmpty" class="text-xs text-[var(--muted)] text-center mt-8" data-i18n="history_empty">Aucun trajet pour l'instant.</p>
+  </section>
+
+</main>
+
+<!-- ===================== BOTTOM NAV ===================== -->
+<nav class="fixed bottom-0 left-0 right-0 z-40 bg-[#121212]/95 backdrop-blur border-t border-[#2B2B2B]">
+  <div class="max-w-md mx-auto flex px-2">
+    <button class="nav-item active" data-target="screen-home">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8M5 10v10h14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="nav_home">Accueil</span>
+    </button>
+    <button class="nav-item" data-target="screen-airports">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 16l20-6-2-3-8 2-4-6-2 1 2 6-6 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span data-i18n="nav_airports">Aéroports</span>
+    </button>
+    <button class="nav-item" data-target="screen-history">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 5v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="nav_history">Trajets</span>
+    </button>
+    <button class="nav-item" data-target="screen-faq">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.7-2.5 1.8-2.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="17" r=".9" fill="currentColor"/></svg>
+      <span data-i18n="nav_faq">Aide</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===================== INSTALL BUTTON ===================== -->
+<button id="installBtn" class="hidden fixed bottom-20 right-4 z-40 gold-btn text-xs px-4 py-2.5 rounded-full shadow-2xl items-center gap-2">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="#141210" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span data-i18n="install_app">Installer l'application</span>
+</button>
+<div id="installToast" class="hidden install-toast fixed bottom-20 left-4 right-4 z-50 max-w-md mx-auto bg-[var(--panel-2)] border border-[var(--gold)] rounded-xl px-4 py-3 text-xs text-center" data-i18n="install_toast">Application ajoutée à l'écran d'accueil.</div>
+
+<!-- ===================== COOKIE BANNER (RGPD granulaire) ===================== -->
+<div id="cookieBanner" class="hidden fixed bottom-16 left-0 right-0 z-50 px-4">
+  <div class="max-w-md mx-auto bg-[var(--panel-2)] border border-[var(--line)] rounded-2xl p-4 shadow-2xl">
+    <p class="text-[11px] text-[var(--muted)] mb-3" data-i18n="cookie_text">Nous utilisons des cookies pour améliorer votre expérience de réservation. Conforme RGPD.</p>
+
+    <div id="cookieDetails" class="hidden space-y-2.5 mb-3 border-t border-[var(--line)] pt-3">
+      <div class="flex items-center justify-between">
+        <div class="pr-2">
+          <p class="text-xs font-medium" data-i18n="cookie_essential">Essentiels</p>
+          <p class="text-[10px] text-[var(--muted)]" data-i18n="cookie_essential_desc">Nécessaires au fonctionnement du site. Toujours actifs.</p>
+        </div>
+        <div class="switch on" aria-hidden="true"></div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="pr-2">
+          <p class="text-xs font-medium" data-i18n="cookie_analytics">Statistiques</p>
+          <p class="text-[10px] text-[var(--muted)]" data-i18n="cookie_analytics_desc">Nous aident à comprendre l'usage du site.</p>
+        </div>
+        <button id="toggleAnalytics" class="switch" role="switch" aria-checked="false"></button>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="pr-2">
+          <p class="text-xs font-medium" data-i18n="cookie_marketing">Marketing</p>
+          <p class="text-[10px] text-[var(--muted)]" data-i18n="cookie_marketing_desc">Utilisés pour des offres personnalisées.</p>
+        </div>
+        <button id="toggleMarketing" class="switch" role="switch" aria-checked="false"></button>
+      </div>
+      <button id="cookieSave" class="w-full text-[11px] py-2 rounded-full border border-[var(--gold)] text-[var(--gold-soft)]" data-i18n="cookie_save">Enregistrer mes choix</button>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="cookieCustomize" class="text-[11px] px-3 py-2 rounded-full border border-[var(--line)] text-[var(--muted)] flex-1" data-i18n="cookie_customize">Personnaliser</button>
+      <button id="cookieReject" class="text-[11px] px-3 py-2 rounded-full border border-[var(--line)] text-[var(--muted)] flex-1" data-i18n="cookie_reject">Refuser</button>
+      <button id="cookieAccept" class="gold-btn text-[11px] px-3 py-2 rounded-full flex-1" data-i18n="cookie_accept">Accepter tout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LOADER OVERLAY ===================== -->
+<div id="loaderOverlay" class="hidden fixed inset-0 z-[60] modal-backdrop flex items-center justify-center">
+  <div class="flex flex-col items-center gap-4">
+    <div class="loader-ring"></div>
+    <p class="text-xs text-[var(--muted)]" data-i18n="processing">Traitement du paiement…</p>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   AS-MINE — CONFIGURATION GLOBALE
+   ===================================================================== */
+const WHATSAPP_NUMBER = "33XXXXXXXXX"; // <-- Numéro WhatsApp de la flotte As-mine (format international sans +)
+
+/* =====================================================================
+   I18N — 10 LANGUES
+   ===================================================================== */
+const I18N = {
+fr:{drivers_available:"Chauffeurs disponibles",tagline:"Chauffeur privé — Paris & Île-de-France",hero_title:"L'excellence, à chaque trajet.",hero_sub:"Réservez un chauffeur professionnel en moins de deux minutes. Prix fixe, ponctualité garantie, confirmation instantanée.",tab_simple:"Trajet Simple",tab_disposal:"Mise à Disposition",label_pickup:"Adresse de départ",label_dropoff:"Adresse d'arrivée",label_date:"Date",label_time:"Heure",label_pickup_disp:"Lieu de prise en charge",label_duration:"Durée de mise à disposition",btn_search:"Voir les tarifs",airports_eyebrow:"Forfaits fixes",airports_title:"Aéroports Paris & Beauvais",airports_sub:"CDG · Orly · Beauvais — prix bloqué, zéro surprise.",label_address_complement:"Votre adresse à Paris / IDF",dir_to_airport:"Paris → Aéroport",dir_from_airport:"Aéroport → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Berline Éco",veh_premium:"Berline Premium",veh_van_eco:"Van Éco",veh_van_premium:"Van Premium",vehicles_title:"Choisissez votre véhicule",vehicles_sub_simple:"Trajet estimé à",vehicles_sub_disposal:"Mise à disposition —",btn_continue:"Continuer",price_from:"à partir de",night_surcharge_note:"Majoration nuit/week-end de +20% appliquée automatiquement et affichée en toute transparence.",back:"Retour",summary_title:"Récapitulatif",trip_type_simple:"Trajet simple",trip_type_disposal:"Mise à disposition",trip_type_airport:"Forfait aéroport",client_info:"Vos informations",full_name:"Nom complet",phone_number:"Téléphone (avec indicatif)",payment_title:"Paiement",pay_card:"Carte Bancaire",pay_paypal:"PayPal",card_number:"Numéro de carte",card_expiry:"MM/AA",card_cvc:"CVC",card_name:"Nom sur la carte",btn_confirm_pay:"Confirmer et Payer",processing:"Traitement du paiement…",confirmation_title:"Réservation confirmée",confirmation_sub:"Votre chauffeur As-mine vous attend. Le récapitulatif a été envoyé sur WhatsApp.",confirmation_ref:"Référence",btn_new_booking:"Nouvelle réservation",faq_title:"Questions fréquentes",faq_q1:"Puis-je transporter des bagages volumineux ?",faq_a1:"Oui, précisez-le lors de la réservation : nos berlines acceptent 2 valises cabine + 2 bagages, nos vans jusqu'à 6 grandes valises.",faq_q2:"Le chauffeur m'attend-il avec une pancarte ?",faq_a2:"Systématiquement pour les prises en charge en aéroport ou en gare, avec votre nom inscrit lisiblement.",faq_q3:"Puis-je annuler sans frais ?",faq_a3:"Toute annulation effectuée plus de 60 minutes avant l'heure prévue est intégralement remboursée, sans aucun frais.",cookie_text:"Nous utilisons des cookies pour améliorer votre expérience de réservation. Conforme RGPD.",cookie_accept:"Accepter",cookie_reject:"Refuser",install_app:"Installer l'application",install_toast:"Application ajoutée à l'écran d'accueil.",distance_label:"Distance estimée",duration_label_h:"h",select_placeholder:"Tapez une adresse…",no_results:"Aucune adresse trouvée",nav_home:"Accueil",nav_airports:"Aéroports",nav_faq:"Aide",wa_ref:"Réf",wa_status:"Statut",wa_paid:"PAYÉ",wa_client:"Client",wa_phone:"Téléphone",wa_trip:"Trajet",wa_vehicle:"Véhicule",wa_total:"Prix total TTC",wa_thanks:"Merci de votre confiance. Votre chauffeur vous contactera avant la prise en charge.",wa_from:"Départ",wa_to:"Arrivée",wa_date:"Date",wa_time:"Heure",wa_duration:"Durée",field_required:"Merci de renseigner tous les champs requis.",
+label_promo:"Code promo (optionnel)",extra_pets:"🐾 Animal (+5€)",extra_child_seat:"🧸 Siège enfant (+5€)",vat_note:"Prix TTC, TVA 10% incluse (transport de personnes).",edit_trip:"Modifier",promo_title:"Code promo",promo_apply:"Appliquer",promo_valid:"Code appliqué avec succès.",promo_invalid:"Code promo invalide ou expiré.",step_trip:"Trajet",step_vehicle:"Véhicule",step_payment:"Paiement",legal_title:"Informations légales",legal_cgv:"Conditions Générales de Vente",legal_mentions:"Mentions légales",legal_privacy:"Politique de confidentialité",nav_history:"Trajets",history_title:"Mes trajets",history_note:"Historique de cette session uniquement — non conservé après fermeture.",history_empty:"Aucun trajet pour l'instant.",cookie_essential:"Essentiels",cookie_essential_desc:"Nécessaires au fonctionnement du site. Toujours actifs.",cookie_analytics:"Statistiques",cookie_analytics_desc:"Nous aident à comprendre l'usage du site.",cookie_marketing:"Marketing",cookie_marketing_desc:"Utilisés pour des offres personnalisées.",cookie_customize:"Personnaliser",cookie_save:"Enregistrer mes choix",error_future_time:"Merci de choisir une date et une heure dans le futur.",error_route:"Impossible de calculer l'itinéraire, merci de vérifier les adresses.",wa_extras:"Options",wa_promo:"Code promo",wa_ht:"Prix HT",wa_vat:"TVA (10%)",
+legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — AS-MINE CHAUFFEURS\n\n1. Objet\nLes présentes conditions régissent la réservation et l'exécution de prestations de transport de personnes avec chauffeur (VTC) proposées par As-mine.\n\n2. Réservation et prix\nLe prix affiché lors de la réservation est ferme et définitif pour les forfaits aéroports. Pour les trajets simples et les mises à disposition, le prix est calculé automatiquement selon la distance, la durée et d'éventuelles majorations nuit/week-end, affichées avant paiement.\n\n3. Annulation\nToute annulation effectuée plus de 60 minutes avant l'heure de prise en charge prévue est intégralement remboursée. Passé ce délai, des frais peuvent s'appliquer.\n\n4. Paiement\nLe paiement s'effectue en ligne par carte bancaire ou PayPal au moment de la confirmation de la réservation.\n\n5. Responsabilité\nAs-mine s'engage à fournir un service ponctuel et professionnel. La société décline toute responsabilité en cas de force majeure (conditions météorologiques, embouteillages exceptionnels, grèves).\n\n6. Litiges\nLes présentes conditions sont soumises au droit français. Tout litige relève de la compétence des tribunaux français.\n\n[Document type à faire valider par un professionnel du droit avant mise en production.]",
+legal_mentions_body:"MENTIONS LÉGALES\n\nÉditeur du site\nAs-mine Chauffeurs\nForme juridique : [À compléter]\nSIRET : [À compléter]\nLicence VTC n° : [À compléter — obligatoire pour l'exercice de l'activité VTC en France]\nSiège social : [Adresse à compléter]\nDirecteur de la publication : [À compléter]\n\nHébergement\n[Nom et adresse de l'hébergeur à compléter]\n\nContact\nWhatsApp : voir bouton de réservation\nEmail : [À compléter]\n\n[Ces informations doivent être complétées avec les données réelles de la société avant toute mise en ligne, conformément à la loi pour la confiance dans l'économie numérique (LCEN).]",
+legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\n1. Données collectées\nNom, téléphone, adresses de départ et d'arrivée, informations de paiement (traitées par un prestataire tiers sécurisé, jamais stockées par As-mine).\n\n2. Finalité\nCes données sont utilisées exclusivement pour organiser et exécuter votre course, et vous contacter avant la prise en charge.\n\n3. Conservation\nLes données de réservation sont conservées le temps nécessaire à la prestation et aux obligations légales (comptabilité), puis supprimées.\n\n4. Droits RGPD\nConformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement et de portabilité de vos données. Pour exercer ces droits, contactez-nous via WhatsApp ou par email.\n\n5. Cookies\nDes cookies essentiels sont utilisés pour le fonctionnement du site. Des cookies statistiques et marketing ne sont déposés qu'avec votre consentement explicite, modifiable à tout moment.\n\n[Document type à faire valider par un professionnel du droit avant mise en production.]"},
+en:{drivers_available:"Drivers available",tagline:"Private chauffeur — Paris & Greater Paris",hero_title:"Excellence, on every ride.",hero_sub:"Book a professional chauffeur in under two minutes. Fixed price, guaranteed punctuality, instant confirmation.",tab_simple:"Single Trip",tab_disposal:"Hourly Hire",label_pickup:"Pickup address",label_dropoff:"Drop-off address",label_date:"Date",label_time:"Time",label_pickup_disp:"Pickup location",label_duration:"Hire duration",btn_search:"See fares",airports_eyebrow:"Fixed packages",airports_title:"Paris & Beauvais Airports",airports_sub:"CDG · Orly · Beauvais — locked price, zero surprise.",label_address_complement:"Your address in Paris / IDF",dir_to_airport:"Paris → Airport",dir_from_airport:"Airport → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Eco Sedan",veh_premium:"Premium Sedan",veh_van_eco:"Eco Van",veh_van_premium:"Premium Van",vehicles_title:"Choose your vehicle",vehicles_sub_simple:"Estimated trip of",vehicles_sub_disposal:"Hourly hire —",btn_continue:"Continue",price_from:"from",night_surcharge_note:"A +20% night/weekend surcharge is applied automatically and shown transparently.",back:"Back",summary_title:"Summary",trip_type_simple:"Single trip",trip_type_disposal:"Hourly hire",trip_type_airport:"Airport package",client_info:"Your details",full_name:"Full name",phone_number:"Phone (with country code)",payment_title:"Payment",pay_card:"Credit Card",pay_paypal:"PayPal",card_number:"Card number",card_expiry:"MM/YY",card_cvc:"CVC",card_name:"Name on card",btn_confirm_pay:"Confirm and Pay",processing:"Processing payment…",confirmation_title:"Booking confirmed",confirmation_sub:"Your As-mine chauffeur is expecting you. The summary was sent on WhatsApp.",confirmation_ref:"Reference",btn_new_booking:"New booking",faq_title:"Frequently asked questions",faq_q1:"Can I bring large luggage?",faq_a1:"Yes, just mention it when booking: sedans take 2 cabin bags + 2 suitcases, vans up to 6 large suitcases.",faq_q2:"Will the driver hold a name sign?",faq_a2:"Always for airport and station pickups, with your name clearly displayed.",faq_q3:"Can I cancel for free?",faq_a3:"Any cancellation made more than 60 minutes before the scheduled time is fully refunded, at no cost.",cookie_text:"We use cookies to improve your booking experience. GDPR compliant.",cookie_accept:"Accept",cookie_reject:"Reject",install_app:"Install the app",install_toast:"App added to your home screen.",distance_label:"Estimated distance",duration_label_h:"h",select_placeholder:"Type an address…",no_results:"No address found",nav_home:"Home",nav_airports:"Airports",nav_faq:"Help",wa_ref:"Ref",wa_status:"Status",wa_paid:"PAID",wa_client:"Client",wa_phone:"Phone",wa_trip:"Trip",wa_vehicle:"Vehicle",wa_total:"Total price",wa_thanks:"Thank you for your trust. Your driver will contact you before pickup.",wa_from:"From",wa_to:"To",wa_date:"Date",wa_time:"Time",wa_duration:"Duration",field_required:"Please fill in all required fields.",
+label_promo:"Promo code (optional)",extra_pets:"🐾 Pet (+€5)",extra_child_seat:"🧸 Child seat (+€5)",vat_note:"Price incl. VAT, 10% included (passenger transport).",edit_trip:"Edit",promo_title:"Promo code",promo_apply:"Apply",promo_valid:"Code applied successfully.",promo_invalid:"Invalid or expired promo code.",step_trip:"Trip",step_vehicle:"Vehicle",step_payment:"Payment",legal_title:"Legal information",legal_cgv:"Terms and Conditions",legal_mentions:"Legal notice",legal_privacy:"Privacy policy",nav_history:"Trips",history_title:"My trips",history_note:"This session's history only — not kept after closing.",history_empty:"No trips yet.",cookie_essential:"Essential",cookie_essential_desc:"Required for the site to work. Always active.",cookie_analytics:"Analytics",cookie_analytics_desc:"Help us understand how the site is used.",cookie_marketing:"Marketing",cookie_marketing_desc:"Used for personalised offers.",cookie_customize:"Customise",cookie_save:"Save my choices",error_future_time:"Please choose a date and time in the future.",error_route:"Unable to calculate the route, please check the addresses.",wa_extras:"Options",wa_promo:"Promo code",wa_ht:"Price excl. VAT",wa_vat:"VAT (10%)",
+legal_cgv_body:"TERMS AND CONDITIONS — AS-MINE CHAUFFEURS\n\n1. Purpose\nThese terms govern the booking and delivery of chauffeur-driven passenger transport services (VTC) offered by As-mine.\n\n2. Booking and pricing\nThe price shown at booking is fixed and final for airport packages. For single trips and hourly hire, the price is calculated automatically based on distance, duration and any night/weekend surcharge, shown before payment.\n\n3. Cancellation\nAny cancellation made more than 60 minutes before the scheduled pickup time is fully refunded. After this window, fees may apply.\n\n4. Payment\nPayment is made online by credit card or PayPal when the booking is confirmed.\n\n5. Liability\nAs-mine is committed to providing a punctual, professional service. The company declines liability in cases of force majeure (weather, exceptional traffic, strikes).\n\n6. Disputes\nThese terms are governed by French law. Any dispute falls under the jurisdiction of French courts.\n\n[Template document — to be validated by a legal professional before production use.]",
+legal_mentions_body:"LEGAL NOTICE\n\nPublisher\nAs-mine Chauffeurs\nLegal form: [To be completed]\nCompany registration number: [To be completed]\nVTC licence no.: [To be completed — mandatory to operate as a private hire driver in France]\nRegistered office: [Address to be completed]\nPublication director: [To be completed]\n\nHosting\n[Host name and address to be completed]\n\nContact\nWhatsApp: see booking button\nEmail: [To be completed]\n\n[This information must be completed with the company's real details before going live.]",
+legal_privacy_body:"PRIVACY POLICY\n\n1. Data collected\nName, phone number, pickup and drop-off addresses, payment information (processed by a secure third-party provider, never stored by As-mine).\n\n2. Purpose\nThis data is used solely to organise and carry out your ride, and to contact you before pickup.\n\n3. Retention\nBooking data is kept for as long as necessary to deliver the service and meet legal obligations (accounting), then deleted.\n\n4. Your rights\nUnder GDPR, you have the right to access, rectify, erase and port your data. To exercise these rights, contact us via WhatsApp or email.\n\n5. Cookies\nEssential cookies are used for the site to function. Analytics and marketing cookies are only set with your explicit consent, which you can change at any time.\n\n[Template document — to be validated by a legal professional before production use.]"},
+tr:{drivers_available:"Şoförler müsait",tagline:"Özel şoför — Paris & Île-de-France",hero_title:"Her yolculukta mükemmellik.",hero_sub:"İki dakikadan kısa sürede profesyonel şoför ayırtın. Sabit fiyat, garantili dakiklik, anında onay.",tab_simple:"Tek Sefer",tab_disposal:"Saatlik Kiralama",label_pickup:"Alış adresi",label_dropoff:"Varış adresi",label_date:"Tarih",label_time:"Saat",label_pickup_disp:"Alım noktası",label_duration:"Kiralama süresi",btn_search:"Fiyatları gör",airports_eyebrow:"Sabit paketler",airports_title:"Paris & Beauvais Havalimanları",airports_sub:"CDG · Orly · Beauvais — sabit fiyat, sürpriz yok.",label_address_complement:"Paris / IDF adresiniz",dir_to_airport:"Paris → Havalimanı",dir_from_airport:"Havalimanı → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Ekonomi Sedan",veh_premium:"Premium Sedan",veh_van_eco:"Ekonomi Van",veh_van_premium:"Premium Van",vehicles_title:"Aracınızı seçin",vehicles_sub_simple:"Tahmini mesafe",vehicles_sub_disposal:"Saatlik kiralama —",btn_continue:"Devam et",price_from:"başlangıç",night_surcharge_note:"Gece/hafta sonu için otomatik %20 ek ücret şeffaf şekilde gösterilir.",back:"Geri",summary_title:"Özet",trip_type_simple:"Tek sefer",trip_type_disposal:"Saatlik kiralama",trip_type_airport:"Havalimanı paketi",client_info:"Bilgileriniz",full_name:"Ad soyad",phone_number:"Telefon (ülke koduyla)",payment_title:"Ödeme",pay_card:"Kredi Kartı",pay_paypal:"PayPal",card_number:"Kart numarası",card_expiry:"AA/YY",card_cvc:"CVC",card_name:"Kart üzerindeki isim",btn_confirm_pay:"Onayla ve Öde",processing:"Ödeme işleniyor…",confirmation_title:"Rezervasyon onaylandı",confirmation_sub:"As-mine şoförünüz sizi bekliyor. Özet WhatsApp'a gönderildi.",confirmation_ref:"Referans",btn_new_booking:"Yeni rezervasyon",faq_title:"Sıkça sorulan sorular",faq_q1:"Büyük bagaj taşıyabilir miyim?",faq_a1:"Evet, rezervasyonda belirtin: sedanlar 2 kabin + 2 valiz, vanlar 6 büyük valize kadar alır.",faq_q2:"Şoför isim tabelasıyla bekler mi?",faq_a2:"Havalimanı ve gar alımlarında adınız net şekilde yazılı olarak her zaman bekler.",faq_q3:"Ücretsiz iptal edebilir miyim?",faq_a3:"Planlanan saatten 60 dakikadan fazla önce yapılan iptaller tamamen ücretsiz olarak iade edilir.",cookie_text:"Rezervasyon deneyiminizi geliştirmek için çerezler kullanıyoruz. GDPR uyumlu.",cookie_accept:"Kabul et",cookie_reject:"Reddet",install_app:"Uygulamayı yükle",install_toast:"Uygulama ana ekrana eklendi.",distance_label:"Tahmini mesafe",duration_label_h:"sa",select_placeholder:"Bir adres yazın…",no_results:"Adres bulunamadı",nav_home:"Ana Sayfa",nav_airports:"Havalimanları",nav_faq:"Yardım",wa_ref:"Ref",wa_status:"Durum",wa_paid:"ÖDENDİ",wa_client:"Müşteri",wa_phone:"Telefon",wa_trip:"Yolculuk",wa_vehicle:"Araç",wa_total:"Toplam fiyat",wa_thanks:"Güveniniz için teşekkürler. Şoförünüz alımdan önce sizinle iletişime geçecek.",wa_from:"Kalkış",wa_to:"Varış",wa_date:"Tarih",wa_time:"Saat",wa_duration:"Süre",field_required:"Lütfen tüm gerekli alanları doldurun."},
+ar:{drivers_available:"السائقون متاحون",tagline:"سائق خاص — باريس والضواحي",hero_title:"التميز في كل رحلة.",hero_sub:"احجز سائقًا محترفًا في أقل من دقيقتين. سعر ثابت، التزام مضمون بالمواعيد، تأكيد فوري.",tab_simple:"رحلة بسيطة",tab_disposal:"استئجار بالساعة",label_pickup:"عنوان الانطلاق",label_dropoff:"عنوان الوصول",label_date:"التاريخ",label_time:"الوقت",label_pickup_disp:"مكان الالتقاء",label_duration:"مدة الاستئجار",btn_search:"عرض الأسعار",airports_eyebrow:"باقات ثابتة",airports_title:"مطارات باريس وبوفيه",airports_sub:"شارل ديغول · أورلي · بوفيه — سعر ثابت بدون مفاجآت.",label_address_complement:"عنوانك في باريس / الضواحي",dir_to_airport:"باريس ← المطار",dir_from_airport:"المطار ← باريس",airport_cdg:"رواسي - شارل ديغول",airport_orly:"باريس - أورلي",airport_beauvais:"بوفيه - تييه",veh_eco:"سيدان اقتصادية",veh_premium:"سيدان بريميوم",veh_van_eco:"فان اقتصادي",veh_van_premium:"فان بريميوم",vehicles_title:"اختر مركبتك",vehicles_sub_simple:"مسافة تقديرية",vehicles_sub_disposal:"استئجار بالساعة —",btn_continue:"متابعة",price_from:"ابتداءً من",night_surcharge_note:"تُطبَّق زيادة ٢٠٪ ليلاً/في عطلة نهاية الأسبوع تلقائياً وتُعرض بكل شفافية.",back:"رجوع",summary_title:"الملخص",trip_type_simple:"رحلة بسيطة",trip_type_disposal:"استئجار بالساعة",trip_type_airport:"باقة مطار",client_info:"بياناتك",full_name:"الاسم الكامل",phone_number:"الهاتف (مع رمز الدولة)",payment_title:"الدفع",pay_card:"بطاقة ائتمان",pay_paypal:"باي بال",card_number:"رقم البطاقة",card_expiry:"شهر/سنة",card_cvc:"CVC",card_name:"الاسم على البطاقة",btn_confirm_pay:"تأكيد والدفع",processing:"جاري معالجة الدفع…",confirmation_title:"تم تأكيد الحجز",confirmation_sub:"سائق As-mine بانتظارك. تم إرسال الملخص عبر واتساب.",confirmation_ref:"المرجع",btn_new_booking:"حجز جديد",faq_title:"الأسئلة الشائعة",faq_q1:"هل يمكنني حمل أمتعة كبيرة؟",faq_a1:"نعم، وضّح ذلك عند الحجز: السيدان تتسع لحقيبتي يد وحقيبتين، والفان حتى 6 حقائب كبيرة.",faq_q2:"هل ينتظرني السائق بلافتة باسمي؟",faq_a2:"دائماً عند الاستقبال من المطار أو المحطة، مع اسمك مكتوباً بوضوح.",faq_q3:"هل يمكنني الإلغاء بدون رسوم؟",faq_a3:"أي إلغاء يتم قبل 60 دقيقة من الموعد المحدد يُسترد بالكامل دون أي رسوم.",cookie_text:"نستخدم ملفات تعريف الارتباط لتحسين تجربة الحجز لديك. متوافق مع اللائحة الأوروبية.",cookie_accept:"قبول",cookie_reject:"رفض",install_app:"تثبيت التطبيق",install_toast:"تمت إضافة التطبيق إلى الشاشة الرئيسية.",distance_label:"المسافة التقديرية",duration_label_h:"سا",select_placeholder:"اكتب عنواناً…",no_results:"لم يتم العثور على عنوان",nav_home:"الرئيسية",nav_airports:"المطارات",nav_faq:"المساعدة",wa_ref:"المرجع",wa_status:"الحالة",wa_paid:"مدفوع",wa_client:"العميل",wa_phone:"الهاتف",wa_trip:"الرحلة",wa_vehicle:"المركبة",wa_total:"السعر الإجمالي",wa_thanks:"شكراً لثقتك. سيتواصل معك السائق قبل الاستقبال.",wa_from:"من",wa_to:"إلى",wa_date:"التاريخ",wa_time:"الوقت",wa_duration:"المدة",field_required:"يرجى ملء جميع الحقول المطلوبة."},
+zh:{drivers_available:"司机可用",tagline:"专属司机 — 巴黎及大巴黎地区",hero_title:"每一程，皆为卓越。",hero_sub:"两分钟内预订专业司机。固定价格，准时保证，即时确认。",tab_simple:"单程",tab_disposal:"按小时包车",label_pickup:"出发地址",label_dropoff:"到达地址",label_date:"日期",label_time:"时间",label_pickup_disp:"接送地点",label_duration:"包车时长",btn_search:"查看价格",airports_eyebrow:"固定套餐",airports_title:"巴黎及博韦机场",airports_sub:"戴高乐 · 奥利 · 博韦 — 价格锁定，无隐藏费用。",label_address_complement:"您在巴黎/大区的地址",dir_to_airport:"巴黎 → 机场",dir_from_airport:"机场 → 巴黎",airport_cdg:"戴高乐机场",airport_orly:"奥利机场",airport_beauvais:"博韦机场",veh_eco:"经济轿车",veh_premium:"高级轿车",veh_van_eco:"经济商务车",veh_van_premium:"高级商务车",vehicles_title:"选择您的车辆",vehicles_sub_simple:"预计行程",vehicles_sub_disposal:"按小时包车 —",btn_continue:"继续",price_from:"起价",night_surcharge_note:"夜间/周末自动加收20%附加费，全程透明显示。",back:"返回",summary_title:"订单摘要",trip_type_simple:"单程",trip_type_disposal:"按小时包车",trip_type_airport:"机场套餐",client_info:"您的信息",full_name:"姓名",phone_number:"电话（含国家代码）",payment_title:"支付方式",pay_card:"信用卡",pay_paypal:"PayPal",card_number:"卡号",card_expiry:"月/年",card_cvc:"安全码",card_name:"持卡人姓名",btn_confirm_pay:"确认并支付",processing:"正在处理付款…",confirmation_title:"预订已确认",confirmation_sub:"您的As-mine司机正在等候。摘要已发送至WhatsApp。",confirmation_ref:"订单编号",btn_new_booking:"新建预订",faq_title:"常见问题",faq_q1:"可以携带大件行李吗？",faq_a1:"可以，请在预订时说明：轿车可载2件随身+2件行李箱，商务车最多6件大行李箱。",faq_q2:"司机会举牌接机吗？",faq_a2:"机场及车站接送均会清晰举出您的姓名牌。",faq_q3:"可以免费取消吗？",faq_a3:"预定时间前60分钟以上取消可全额退款，无任何费用。",cookie_text:"我们使用Cookie以改善您的预订体验，符合GDPR规定。",cookie_accept:"接受",cookie_reject:"拒绝",install_app:"安装应用",install_toast:"应用已添加到主屏幕。",distance_label:"预计距离",duration_label_h:"小时",select_placeholder:"输入地址…",no_results:"未找到地址",nav_home:"首页",nav_airports:"机场",nav_faq:"帮助",wa_ref:"编号",wa_status:"状态",wa_paid:"已支付",wa_client:"客户",wa_phone:"电话",wa_trip:"行程",wa_vehicle:"车辆",wa_total:"总价",wa_thanks:"感谢您的信任，司机将在接送前与您联系。",wa_from:"出发",wa_to:"到达",wa_date:"日期",wa_time:"时间",wa_duration:"时长",field_required:"请填写所有必填字段。"},
+es:{drivers_available:"Conductores disponibles",tagline:"Chófer privado — París e Isla de Francia",hero_title:"La excelencia, en cada trayecto.",hero_sub:"Reserve un chófer profesional en menos de dos minutos. Precio fijo, puntualidad garantizada, confirmación instantánea.",tab_simple:"Trayecto Simple",tab_disposal:"Alquiler por Horas",label_pickup:"Dirección de recogida",label_dropoff:"Dirección de destino",label_date:"Fecha",label_time:"Hora",label_pickup_disp:"Lugar de recogida",label_duration:"Duración del alquiler",btn_search:"Ver tarifas",airports_eyebrow:"Tarifas fijas",airports_title:"Aeropuertos de París y Beauvais",airports_sub:"CDG · Orly · Beauvais — precio cerrado, sin sorpresas.",label_address_complement:"Su dirección en París / IDF",dir_to_airport:"París → Aeropuerto",dir_from_airport:"Aeropuerto → París",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"París - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Sedán Eco",veh_premium:"Sedán Premium",veh_van_eco:"Furgoneta Eco",veh_van_premium:"Furgoneta Premium",vehicles_title:"Elija su vehículo",vehicles_sub_simple:"Trayecto estimado de",vehicles_sub_disposal:"Alquiler por horas —",btn_continue:"Continuar",price_from:"desde",night_surcharge_note:"Recargo nocturno/fin de semana del +20% aplicado automáticamente y mostrado con total transparencia.",back:"Volver",summary_title:"Resumen",trip_type_simple:"Trayecto simple",trip_type_disposal:"Alquiler por horas",trip_type_airport:"Tarifa aeropuerto",client_info:"Sus datos",full_name:"Nombre completo",phone_number:"Teléfono (con prefijo)",payment_title:"Pago",pay_card:"Tarjeta Bancaria",pay_paypal:"PayPal",card_number:"Número de tarjeta",card_expiry:"MM/AA",card_cvc:"CVC",card_name:"Nombre en la tarjeta",btn_confirm_pay:"Confirmar y Pagar",processing:"Procesando el pago…",confirmation_title:"Reserva confirmada",confirmation_sub:"Su chófer As-mine le espera. El resumen se envió por WhatsApp.",confirmation_ref:"Referencia",btn_new_booking:"Nueva reserva",faq_title:"Preguntas frecuentes",faq_q1:"¿Puedo llevar equipaje voluminoso?",faq_a1:"Sí, indíquelo al reservar: los sedanes admiten 2 maletas de cabina + 2 maletas, las furgonetas hasta 6 maletas grandes.",faq_q2:"¿El chófer me espera con un cartel?",faq_a2:"Siempre en recogidas de aeropuerto o estación, con su nombre claramente visible.",faq_q3:"¿Puedo cancelar sin coste?",faq_a3:"Toda cancelación realizada con más de 60 minutos de antelación se reembolsa íntegramente, sin coste alguno.",cookie_text:"Usamos cookies para mejorar su experiencia de reserva. Conforme al RGPD.",cookie_accept:"Aceptar",cookie_reject:"Rechazar",install_app:"Instalar la aplicación",install_toast:"Aplicación añadida a la pantalla de inicio.",distance_label:"Distancia estimada",duration_label_h:"h",select_placeholder:"Escriba una dirección…",no_results:"No se encontró ninguna dirección",nav_home:"Inicio",nav_airports:"Aeropuertos",nav_faq:"Ayuda",wa_ref:"Ref",wa_status:"Estado",wa_paid:"PAGADO",wa_client:"Cliente",wa_phone:"Teléfono",wa_trip:"Trayecto",wa_vehicle:"Vehículo",wa_total:"Precio total",wa_thanks:"Gracias por su confianza. Su chófer le contactará antes de la recogida.",wa_from:"Salida",wa_to:"Llegada",wa_date:"Fecha",wa_time:"Hora",wa_duration:"Duración",field_required:"Por favor complete todos los campos requeridos."},
+de:{drivers_available:"Fahrer verfügbar",tagline:"Privatchauffeur — Paris & Île-de-France",hero_title:"Exzellenz bei jeder Fahrt.",hero_sub:"Buchen Sie in unter zwei Minuten einen professionellen Chauffeur. Festpreis, garantierte Pünktlichkeit, sofortige Bestätigung.",tab_simple:"Einzelfahrt",tab_disposal:"Stundenweise Miete",label_pickup:"Abholadresse",label_dropoff:"Zieladresse",label_date:"Datum",label_time:"Uhrzeit",label_pickup_disp:"Abholort",label_duration:"Mietdauer",btn_search:"Preise ansehen",airports_eyebrow:"Festpreise",airports_title:"Flughäfen Paris & Beauvais",airports_sub:"CDG · Orly · Beauvais — Festpreis, keine Überraschungen.",label_address_complement:"Ihre Adresse in Paris / IDF",dir_to_airport:"Paris → Flughafen",dir_from_airport:"Flughafen → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Limousine Eco",veh_premium:"Limousine Premium",veh_van_eco:"Van Eco",veh_van_premium:"Van Premium",vehicles_title:"Wählen Sie Ihr Fahrzeug",vehicles_sub_simple:"Geschätzte Strecke",vehicles_sub_disposal:"Stundenweise Miete —",btn_continue:"Weiter",price_from:"ab",night_surcharge_note:"Nacht-/Wochenendzuschlag von +20% wird automatisch berechnet und transparent angezeigt.",back:"Zurück",summary_title:"Zusammenfassung",trip_type_simple:"Einzelfahrt",trip_type_disposal:"Stundenweise Miete",trip_type_airport:"Flughafenpaket",client_info:"Ihre Angaben",full_name:"Vollständiger Name",phone_number:"Telefon (mit Vorwahl)",payment_title:"Zahlung",pay_card:"Kreditkarte",pay_paypal:"PayPal",card_number:"Kartennummer",card_expiry:"MM/JJ",card_cvc:"CVC",card_name:"Name auf der Karte",btn_confirm_pay:"Bestätigen und Zahlen",processing:"Zahlung wird verarbeitet…",confirmation_title:"Buchung bestätigt",confirmation_sub:"Ihr As-mine-Chauffeur erwartet Sie. Die Zusammenfassung wurde per WhatsApp gesendet.",confirmation_ref:"Referenz",btn_new_booking:"Neue Buchung",faq_title:"Häufige Fragen",faq_q1:"Kann ich sperriges Gepäck mitnehmen?",faq_a1:"Ja, geben Sie es bei der Buchung an: Limousinen fassen 2 Handgepäck + 2 Koffer, Vans bis zu 6 große Koffer.",faq_q2:"Wartet der Fahrer mit einem Namensschild?",faq_a2:"Immer bei Abholungen am Flughafen oder Bahnhof, mit gut lesbarem Namen.",faq_q3:"Kann ich kostenlos stornieren?",faq_a3:"Jede Stornierung mehr als 60 Minuten vor der geplanten Zeit wird vollständig und kostenlos erstattet.",cookie_text:"Wir verwenden Cookies, um Ihr Buchungserlebnis zu verbessern. DSGVO-konform.",cookie_accept:"Akzeptieren",cookie_reject:"Ablehnen",install_app:"App installieren",install_toast:"App zum Startbildschirm hinzugefügt.",distance_label:"Geschätzte Entfernung",duration_label_h:"Std",select_placeholder:"Adresse eingeben…",no_results:"Keine Adresse gefunden",nav_home:"Start",nav_airports:"Flughäfen",nav_faq:"Hilfe",wa_ref:"Ref",wa_status:"Status",wa_paid:"BEZAHLT",wa_client:"Kunde",wa_phone:"Telefon",wa_trip:"Fahrt",wa_vehicle:"Fahrzeug",wa_total:"Gesamtpreis",wa_thanks:"Vielen Dank für Ihr Vertrauen. Ihr Fahrer meldet sich vor der Abholung.",wa_from:"Von",wa_to:"Nach",wa_date:"Datum",wa_time:"Uhrzeit",wa_duration:"Dauer",field_required:"Bitte füllen Sie alle Pflichtfelder aus."},
+it:{drivers_available:"Autisti disponibili",tagline:"Autista privato — Parigi e Île-de-France",hero_title:"L'eccellenza, in ogni tragitto.",hero_sub:"Prenota un autista professionista in meno di due minuti. Prezzo fisso, puntualità garantita, conferma immediata.",tab_simple:"Corsa Singola",tab_disposal:"Noleggio a Ore",label_pickup:"Indirizzo di partenza",label_dropoff:"Indirizzo di arrivo",label_date:"Data",label_time:"Ora",label_pickup_disp:"Luogo di prelievo",label_duration:"Durata del noleggio",btn_search:"Vedi le tariffe",airports_eyebrow:"Tariffe fisse",airports_title:"Aeroporti Parigi e Beauvais",airports_sub:"CDG · Orly · Beauvais — prezzo bloccato, zero sorprese.",label_address_complement:"Il tuo indirizzo a Parigi / IDF",dir_to_airport:"Parigi → Aeroporto",dir_from_airport:"Aeroporto → Parigi",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Parigi - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Berlina Eco",veh_premium:"Berlina Premium",veh_van_eco:"Van Eco",veh_van_premium:"Van Premium",vehicles_title:"Scegli il tuo veicolo",vehicles_sub_simple:"Tragitto stimato di",vehicles_sub_disposal:"Noleggio a ore —",btn_continue:"Continua",price_from:"a partire da",night_surcharge_note:"Supplemento notte/weekend del +20% applicato automaticamente e mostrato in totale trasparenza.",back:"Indietro",summary_title:"Riepilogo",trip_type_simple:"Corsa singola",trip_type_disposal:"Noleggio a ore",trip_type_airport:"Pacchetto aeroporto",client_info:"I tuoi dati",full_name:"Nome completo",phone_number:"Telefono (con prefisso)",payment_title:"Pagamento",pay_card:"Carta di Credito",pay_paypal:"PayPal",card_number:"Numero carta",card_expiry:"MM/AA",card_cvc:"CVC",card_name:"Nome sulla carta",btn_confirm_pay:"Conferma e Paga",processing:"Elaborazione del pagamento…",confirmation_title:"Prenotazione confermata",confirmation_sub:"Il tuo autista As-mine ti aspetta. Il riepilogo è stato inviato su WhatsApp.",confirmation_ref:"Riferimento",btn_new_booking:"Nuova prenotazione",faq_title:"Domande frequenti",faq_q1:"Posso portare bagagli ingombranti?",faq_a1:"Sì, indicalo in fase di prenotazione: le berline accettano 2 bagagli a mano + 2 valigie, i van fino a 6 valigie grandi.",faq_q2:"L'autista mi aspetta con un cartello?",faq_a2:"Sempre per i prelievi in aeroporto o stazione, con il tuo nome scritto chiaramente.",faq_q3:"Posso cancellare senza costi?",faq_a3:"Ogni cancellazione effettuata più di 60 minuti prima dell'orario previsto viene rimborsata integralmente, senza alcun costo.",cookie_text:"Utilizziamo i cookie per migliorare la tua esperienza di prenotazione. Conforme al GDPR.",cookie_accept:"Accetta",cookie_reject:"Rifiuta",install_app:"Installa l'app",install_toast:"App aggiunta alla schermata principale.",distance_label:"Distanza stimata",duration_label_h:"h",select_placeholder:"Digita un indirizzo…",no_results:"Nessun indirizzo trovato",nav_home:"Home",nav_airports:"Aeroporti",nav_faq:"Aiuto",wa_ref:"Rif",wa_status:"Stato",wa_paid:"PAGATO",wa_client:"Cliente",wa_phone:"Telefono",wa_trip:"Tragitto",wa_vehicle:"Veicolo",wa_total:"Prezzo totale",wa_thanks:"Grazie per la fiducia. Il tuo autista ti contatterà prima del prelievo.",wa_from:"Partenza",wa_to:"Arrivo",wa_date:"Data",wa_time:"Ora",wa_duration:"Durata",field_required:"Si prega di compilare tutti i campi richiesti."},
+ru:{drivers_available:"Водители доступны",tagline:"Личный водитель — Париж и Иль-де-Франс",hero_title:"Совершенство в каждой поездке.",hero_sub:"Забронируйте профессионального водителя менее чем за две минуты. Фиксированная цена, гарантированная пунктуальность, мгновенное подтверждение.",tab_simple:"Разовая поездка",tab_disposal:"Почасовая аренда",label_pickup:"Адрес отправления",label_dropoff:"Адрес прибытия",label_date:"Дата",label_time:"Время",label_pickup_disp:"Место посадки",label_duration:"Продолжительность аренды",btn_search:"Смотреть тарифы",airports_eyebrow:"Фиксированные тарифы",airports_title:"Аэропорты Парижа и Бове",airports_sub:"CDG · Орли · Бове — фиксированная цена, без сюрпризов.",label_address_complement:"Ваш адрес в Париже / Иль-де-Франс",dir_to_airport:"Париж → Аэропорт",dir_from_airport:"Аэропорт → Париж",airport_cdg:"Руасси - Шарль де Голль",airport_orly:"Париж - Орли",airport_beauvais:"Бове - Тийе",veh_eco:"Седан Эко",veh_premium:"Седан Премиум",veh_van_eco:"Вэн Эко",veh_van_premium:"Вэн Премиум",vehicles_title:"Выберите автомобиль",vehicles_sub_simple:"Примерное расстояние",vehicles_sub_disposal:"Почасовая аренда —",btn_continue:"Продолжить",price_from:"от",night_surcharge_note:"Ночная/выходная надбавка +20% применяется автоматически и отображается прозрачно.",back:"Назад",summary_title:"Сводка",trip_type_simple:"Разовая поездка",trip_type_disposal:"Почасовая аренда",trip_type_airport:"Аэропортовый тариф",client_info:"Ваши данные",full_name:"Полное имя",phone_number:"Телефон (с кодом страны)",payment_title:"Оплата",pay_card:"Банковская карта",pay_paypal:"PayPal",card_number:"Номер карты",card_expiry:"ММ/ГГ",card_cvc:"CVC",card_name:"Имя на карте",btn_confirm_pay:"Подтвердить и оплатить",processing:"Обработка платежа…",confirmation_title:"Бронирование подтверждено",confirmation_sub:"Ваш водитель As-mine ждёт вас. Сводка отправлена в WhatsApp.",confirmation_ref:"Номер брони",btn_new_booking:"Новое бронирование",faq_title:"Часто задаваемые вопросы",faq_q1:"Можно ли провезти крупный багаж?",faq_a1:"Да, укажите это при бронировании: седаны вмещают 2 ручные клади + 2 чемодана, вэны — до 6 больших чемоданов.",faq_q2:"Ждёт ли водитель с табличкой?",faq_a2:"Всегда при встрече в аэропорту или на вокзале, с чётко написанным именем.",faq_q3:"Можно ли отменить бесплатно?",faq_a3:"Любая отмена более чем за 60 минут до назначенного времени полностью возмещается без каких-либо затрат.",cookie_text:"Мы используем файлы cookie для улучшения вашего опыта бронирования. Соответствует GDPR.",cookie_accept:"Принять",cookie_reject:"Отклонить",install_app:"Установить приложение",install_toast:"Приложение добавлено на главный экран.",distance_label:"Примерное расстояние",duration_label_h:"ч",select_placeholder:"Введите адрес…",no_results:"Адрес не найден",nav_home:"Главная",nav_airports:"Аэропорты",nav_faq:"Помощь",wa_ref:"Номер",wa_status:"Статус",wa_paid:"ОПЛАЧЕНО",wa_client:"Клиент",wa_phone:"Телефон",wa_trip:"Поездка",wa_vehicle:"Автомобиль",wa_total:"Итоговая цена",wa_thanks:"Спасибо за доверие. Водитель свяжется с вами перед посадкой.",wa_from:"Откуда",wa_to:"Куда",wa_date:"Дата",wa_time:"Время",wa_duration:"Продолжительность",field_required:"Пожалуйста, заполните все обязательные поля."},
+pt:{drivers_available:"Motoristas disponíveis",tagline:"Motorista privado — Paris e Île-de-France",hero_title:"Excelência, em cada trajeto.",hero_sub:"Reserve um motorista profissional em menos de dois minutos. Preço fixo, pontualidade garantida, confirmação instantânea.",tab_simple:"Viagem Simples",tab_disposal:"Aluguer por Hora",label_pickup:"Endereço de partida",label_dropoff:"Endereço de chegada",label_date:"Data",label_time:"Hora",label_pickup_disp:"Local de recolha",label_duration:"Duração do aluguer",btn_search:"Ver tarifas",airports_eyebrow:"Tarifas fixas",airports_title:"Aeroportos de Paris e Beauvais",airports_sub:"CDG · Orly · Beauvais — preço fixo, sem surpresas.",label_address_complement:"O seu endereço em Paris / IDF",dir_to_airport:"Paris → Aeroporto",dir_from_airport:"Aeroporto → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_eco:"Sedan Eco",veh_premium:"Sedan Premium",veh_van_eco:"Van Eco",veh_van_premium:"Van Premium",vehicles_title:"Escolha o seu veículo",vehicles_sub_simple:"Trajeto estimado de",vehicles_sub_disposal:"Aluguer por hora —",btn_continue:"Continuar",price_from:"a partir de",night_surcharge_note:"Sobretaxa noturna/fim de semana de +20% aplicada automaticamente e mostrada com total transparência.",back:"Voltar",summary_title:"Resumo",trip_type_simple:"Viagem simples",trip_type_disposal:"Aluguer por hora",trip_type_airport:"Pacote aeroporto",client_info:"Os seus dados",full_name:"Nome completo",phone_number:"Telefone (com indicativo)",payment_title:"Pagamento",pay_card:"Cartão de Crédito",pay_paypal:"PayPal",card_number:"Número do cartão",card_expiry:"MM/AA",card_cvc:"CVC",card_name:"Nome no cartão",btn_confirm_pay:"Confirmar e Pagar",processing:"A processar o pagamento…",confirmation_title:"Reserva confirmada",confirmation_sub:"O seu motorista As-mine está à sua espera. O resumo foi enviado via WhatsApp.",confirmation_ref:"Referência",btn_new_booking:"Nova reserva",faq_title:"Perguntas frequentes",faq_q1:"Posso levar bagagem volumosa?",faq_a1:"Sim, indique na reserva: os sedans levam 2 malas de cabine + 2 malas, as vans até 6 malas grandes.",faq_q2:"O motorista espera com um cartaz?",faq_a2:"Sempre nas recolhas em aeroporto ou estação, com o seu nome bem visível.",faq_q3:"Posso cancelar sem custos?",faq_a3:"Qualquer cancelamento feito com mais de 60 minutos de antecedência é totalmente reembolsado, sem qualquer custo.",cookie_text:"Utilizamos cookies para melhorar a sua experiência de reserva. Em conformidade com o RGPD.",cookie_accept:"Aceitar",cookie_reject:"Rejeitar",install_app:"Instalar a aplicação",install_toast:"Aplicação adicionada ao ecrã principal.",distance_label:"Distância estimada",duration_label_h:"h",select_placeholder:"Escreva um endereço…",no_results:"Nenhum endereço encontrado",nav_home:"Início",nav_airports:"Aeroportos",nav_faq:"Ajuda",wa_ref:"Ref",wa_status:"Estado",wa_paid:"PAGO",wa_client:"Cliente",wa_phone:"Telefone",wa_trip:"Trajeto",wa_vehicle:"Veículo",wa_total:"Preço total",wa_thanks:"Obrigado pela confiança. O seu motorista contactá-lo-á antes da recolha.",wa_from:"Partida",wa_to:"Chegada",wa_date:"Data",wa_time:"Hora",wa_duration:"Duração",field_required:"Por favor preencha todos os campos obrigatórios."}
+};
+const RTL_LANGS = ["ar"];
+let currentLang = "fr";
+function t(key){
+  return (I18N[currentLang] && I18N[currentLang][key])
+    || (I18N.en && I18N.en[key])
+    || I18N.fr[key]
+    || key;
+}
+
+/* =====================================================================
+   VEHICLES & PRICING DATA
+   ===================================================================== */
+const VEHICLES = [
+  {key:"eco",        nameKey:"veh_eco",        base:5.00,  perKm:1.50, hourly:50, icon:"🚗"},
+  {key:"premium",     nameKey:"veh_premium",    base:10.00, perKm:2.20, hourly:75, icon:"🚘"},
+  {key:"vanEco",      nameKey:"veh_van_eco",    base:10.00, perKm:2.50, hourly:70, icon:"🚐"},
+  {key:"vanPremium",  nameKey:"veh_van_premium",base:15.00, perKm:3.50, hourly:95, icon:"🚙"}
+];
+const PROMO_CODES = { "BIENVENUE10": 0.10, "VIP15": 0.15 };
+const VAT_RATE = 0.10; // TVA transport de personnes (France)
+const AIRPORTS = {
+  cdg:{nameKey:"airport_cdg", address:"Aéroport Roissy-Charles de Gaulle, 95700 Roissy-en-France", lat:49.0097, lon:2.5479, prices:{eco:56,premium:75,vanEco:85,vanPremium:110}},
+  orly:{nameKey:"airport_orly", address:"Aéroport de Paris-Orly, 94390 Orly", lat:48.7262, lon:2.3652, prices:{eco:45,premium:60,vanEco:70,vanPremium:90}},
+  beauvais:{nameKey:"airport_beauvais", address:"Aéroport de Beauvais-Tillé, 60000 Tillé", lat:49.4544, lon:2.1128, prices:{eco:130,premium:160,vanEco:170,vanPremium:210}}
+};
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const state = {
+  tripType: "simple", // simple | disposal | airport
+  pickup: null, dropoff: null,
+  date: "", time: "",
+  duration: 3,
+  airportKey: null, airportDirection: "to",
+  distanceKm: 0,
+  vehicle: null,
+  price: 0,
+  priceBeforePromo: 0,
+  isNight: false,
+  paymentMethod: "card",
+  promoCode: null,
+  promoDiscount: 0
+};
+const sessionHistory = []; // in-memory only — reset on reload (no persistent storage in this artifact)
+const consent = { essential:true, analytics:false, marketing:false, decided:false };
+function trackEvent(name, data){
+  // Analytics stub — wire this to a real provider (GA4, Plausible, PostHog…) server-side/CMP-aware in production.
+  if(consent.analytics || name==="consent_update"){ console.log("[as-mine:event]", name, data||{}); }
+}
+
+/* =====================================================================
+   HELPERS: distance, night surcharge, currency
+   ===================================================================== */
+function toRad(v){ return v * Math.PI / 180; }
+function haversineKm(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function isNightOrWeekend(dateStr,timeStr){
+  if(!dateStr || !timeStr) return false;
+  const d = new Date(dateStr+"T"+timeStr);
+  if(isNaN(d)) return false;
+  const day = d.getDay(); // 0 Sun, 6 Sat
+  const hour = d.getHours();
+  return day===0 || day===6 || hour>=21 || hour<6;
+}
+function eur(n){ return n.toLocaleString(currentLang==="en"?"en-GB":currentLang, {minimumFractionDigits:2, maximumFractionDigits:2}) + " €"; }
+function debounce(fn,delay){ let tm; return (...a)=>{ clearTimeout(tm); tm=setTimeout(()=>fn(...a),delay); }; }
+
+/* =====================================================================
+   ADDRESS AUTOCOMPLETE — api-adresse.data.gouv.fr with simulated fallback
+   ===================================================================== */
+const STREET_TYPES=["Rue","Avenue","Boulevard","Place","Impasse","Allée","Quai","Chemin"];
+const STREET_NAMES=["de la Paix","Victor Hugo","Saint-Honoré","de Rivoli","Montaigne","des Champs-Élysées","de la République","du Général de Gaulle","Pasteur","de la Gare","de Passy","Raymond Poincaré","Jean Jaurès","de la Mairie","des Écoles","du Marché","Gabriel Péri","de Verdun","Anatole France","Aristide Briand"];
+const CITIES=[
+  {name:"Paris",cp:"75001",lat:48.8606,lon:2.3376},
+  {name:"Argenteuil",cp:"95100",lat:48.9478,lon:2.2467},
+  {name:"Neuilly-sur-Seine",cp:"92200",lat:48.8846,lon:2.2698},
+  {name:"Boulogne-Billancourt",cp:"92100",lat:48.8352,lon:2.2410},
+  {name:"Levallois-Perret",cp:"92300",lat:48.8926,lon:2.2879},
+  {name:"Versailles",cp:"78000",lat:48.8049,lon:2.1204},
+  {name:"Saint-Denis",cp:"93200",lat:48.9362,lon:2.3574},
+  {name:"Nanterre",cp:"92000",lat:48.8924,lon:2.2069},
+  {name:"Créteil",cp:"94000",lat:48.7904,lon:2.4556},
+  {name:"Colombes",cp:"92700",lat:48.9231,lon:2.2540},
+  {name:"Asnières-sur-Seine",cp:"92600",lat:48.9106,lon:2.2856},
+  {name:"Courbevoie",cp:"92400",lat:48.8975,lon:2.2560},
+  {name:"Rueil-Malmaison",cp:"92500",lat:48.8779,lon:2.1806},
+  {name:"Aubervilliers",cp:"93300",lat:48.9145,lon:2.3833},
+  {name:"Champigny-sur-Marne",cp:"94500",lat:48.8177,lon:2.5152},
+  {name:"Saint-Maur-des-Fossés",cp:"94100",lat:48.7994,lon:2.4924},
+  {name:"Drancy",cp:"93700",lat:48.9244,lon:2.4453},
+  {name:"Issy-les-Moulineaux",cp:"92130",lat:48.8241,lon:2.2734},
+  {name:"Noisy-le-Grand",cp:"93160",lat:48.8489,lon:2.5514},
+  {name:"Cergy",cp:"95000",lat:49.0359,lon:2.0761},
+  {name:"Antony",cp:"92160",lat:48.7539,lon:2.2977},
+  {name:"Vitry-sur-Seine",cp:"94400",lat:48.7876,lon:2.3931},
+  {name:"Clichy",cp:"92110",lat:48.9042,lon:2.3059},
+  {name:"Ivry-sur-Seine",cp:"94200",lat:48.8137,lon:2.3855},
+  {name:"Montreuil",cp:"93100",lat:48.8637,lon:2.4432},
+  {name:"Sarcelles",cp:"95200",lat:48.9967,lon:2.3811},
+  {name:"Meaux",cp:"77100",lat:48.9602,lon:2.8788},
+  {name:"Melun",cp:"77000",lat:48.5396,lon:2.6598},
+  {name:"Évry-Courcouronnes",cp:"91000",lat:48.6247,lon:2.4297},
+  {name:"Pontoise",cp:"95000",lat:49.0508,lon:2.1017},
+  {name:"Mantes-la-Jolie",cp:"78200",lat:48.9906,lon:1.7167},
+  {name:"Poissy",cp:"78300",lat:48.9282,lon:2.0453},
+  {name:"Sartrouville",cp:"78500",lat:48.9367,lon:2.1653},
+  {name:"Gennevilliers",cp:"92230",lat:48.9333,lon:2.2947},
+  {name:"Bobigny",cp:"93000",lat:48.9077,lon:2.4394},
+  {name:"Épinay-sur-Seine",cp:"93800",lat:48.9539,lon:2.3106},
+  {name:"Lyon",cp:"69001",lat:45.7640,lon:4.8357},
+  {name:"Marseille",cp:"13001",lat:43.2965,lon:5.3698},
+  {name:"Bordeaux",cp:"33000",lat:44.8378,lon:-0.5792},
+  {name:"Lille",cp:"59000",lat:50.6292,lon:3.0573},
+  {name:"Nice",cp:"06000",lat:43.7102,lon:7.2620}
+];
+function normalizeStr(s){
+  return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
+function findCityMatches(query){
+  const q = normalizeStr(query);
+  if(!q) return [];
+  // Priority 1: city name starts with what the user typed (best UX for progressive typing)
+  let matches = CITIES.filter(c=>normalizeStr(c.name).startsWith(q));
+  if(matches.length) return matches;
+  // Priority 2: the query contains a full city name (e.g. "12 rue de la paix argenteuil")
+  matches = CITIES.filter(c=>q.includes(normalizeStr(c.name)));
+  if(matches.length) return matches;
+  // Priority 3: the city name contains the query as a substring (typo-tolerant, partial word)
+  matches = CITIES.filter(c=>normalizeStr(c.name).includes(q));
+  return matches;
+}
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))>>>0; } return h; }
+function simulateAddressSuggestions(query){
+  const h = hashStr(query);
+  const cityMatches = findCityMatches(query);
+  const out=[];
+  if(cityMatches.length>0){
+    // The user is typing a recognizable city (or an address within it): generate real-looking
+    // streets specifically inside that city rather than random unrelated suburbs.
+    const pool = cityMatches.slice(0,3);
+    const primary = pool[0];
+    out.push({ label: `${primary.name}, ${primary.cp} ${primary.name}`, lat: primary.lat, lon: primary.lon });
+    for(let i=0;i<4;i++){
+      const city = pool[i % pool.length];
+      const number = 1 + ((h + i*17) % 120);
+      const street = STREET_NAMES[(h+i)%STREET_NAMES.length];
+      const type = STREET_TYPES[(h+i*3)%STREET_TYPES.length];
+      const jitter = ((h+i)%100)/150000;
+      out.push({
+        label: `${number} ${type} ${street}, ${city.cp} ${city.name}`,
+        lat: city.lat + jitter,
+        lon: city.lon + jitter
+      });
+    }
+    return out;
+  }
+  // No recognizable city in the query: fall back to a broader, varied sample so the
+  // list still feels realistic while the user keeps typing.
+  for(let i=0;i<5;i++){
+    const number = 1 + ((h + i*17) % 120);
+    const street = STREET_NAMES[(h+i)%STREET_NAMES.length];
+    const type = STREET_TYPES[(h+i*3)%STREET_TYPES.length];
+    const city = CITIES[(h+i*7)%CITIES.length];
+    const jitter = ((h+i)%100)/100000;
+    out.push({
+      label: `${number} ${type} ${street}, ${city.cp} ${city.name}`,
+      lat: city.lat + jitter,
+      lon: city.lon + jitter
+    });
+  }
+  return out;
+}
+const addressCache = new Map(); // simple client-side cache to reduce API calls / basic rate-limiting
+async function fetchAddressSuggestions(query){
+  if(!query || query.trim().length<3) return [];
+  const cacheKey = query.trim().toLowerCase();
+  if(addressCache.has(cacheKey)){
+    console.log(`[as-mine] "${query}" → résultat en cache (${addressCache.get(cacheKey).length} adresses)`);
+    return addressCache.get(cacheKey);
+  }
+  const apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=8&autocomplete=1`;
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 6000);
+    console.log(`[as-mine] Requête BAN (annuaire national des adresses) →`, apiUrl);
+    const res = await fetch(apiUrl, {signal:controller.signal});
+    clearTimeout(timeout);
+    if(!res.ok) throw new Error(`Réponse HTTP ${res.status}`);
+    const data = await res.json();
+    if(data && Array.isArray(data.features) && data.features.length>0){
+      const results = data.features.map(f=>({
+        label: f.properties.label,
+        lat: f.geometry.coordinates[1],
+        lon: f.geometry.coordinates[0]
+      }));
+      console.log(`[as-mine] BAN OK — ${results.length} adresses réelles trouvées pour "${query}"`);
+      addressCache.set(cacheKey, results);
+      return results;
+    }
+    console.warn(`[as-mine] BAN a répondu mais sans résultat pour "${query}" — repli local.`);
+    const results = simulateAddressSuggestions(query);
+    addressCache.set(cacheKey, results);
+    return results;
+  }catch(err){
+    console.warn(`[as-mine] Échec de l'appel à l'annuaire national (${err.name}: ${err.message}). Repli sur la base locale — vérifiez la console réseau (onglet Network) si ce message persiste : cela indique généralement un blocage réseau/CORS de l'environnement d'aperçu, pas un bug du code.`);
+    const results = simulateAddressSuggestions(query);
+    addressCache.set(cacheKey, results);
+    return results;
+  }
+}
+
+/* Real driving distance via OSRM public API, with haversine fallback if unreachable */
+async function fetchRouteDistanceKm(pickup, dropoff){
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 4000);
+    const url = `https://router.project-osrm.org/route/v1/driving/${pickup.lon},${pickup.lat};${dropoff.lon},${dropoff.lat}?overview=false`;
+    const res = await fetch(url, {signal:controller.signal});
+    clearTimeout(timeout);
+    if(!res.ok) throw new Error("route unavailable");
+    const data = await res.json();
+    if(data && data.routes && data.routes[0]){
+      return { km: data.routes[0].distance/1000, min: Math.round(data.routes[0].duration/60), estimated:false };
+    }
+    throw new Error("no route");
+  }catch(err){
+    // Fallback: straight-line distance with a realistic road-network correction factor
+    const km = haversineKm(pickup.lat,pickup.lon,dropoff.lat,dropoff.lon) * 1.3;
+    return { km, min: Math.round(km/0.55), estimated:true };
+  }
+}
+function renderSuggestList(listEl, items, onSelect, inputEl){
+  listEl.innerHTML="";
+  if(items.length===0){
+    listEl.innerHTML = `<div class="suggest-item text-[var(--muted)]" role="status">${t("no_results")}</div>`;
+  }else{
+    items.forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "suggest-item";
+      div.setAttribute("role","option");
+      div.setAttribute("tabindex","0");
+      div.textContent = item.label;
+      const pick=()=>onSelect(item);
+      div.addEventListener("click", pick);
+      div.addEventListener("keydown",(e)=>{ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); pick(); } });
+      listEl.appendChild(div);
+    });
+  }
+  listEl.classList.remove("hidden");
+  if(inputEl) inputEl.setAttribute("aria-expanded","true");
+}
+function attachAutocomplete(inputEl, listEl, onSelected){
+  const run = debounce(async ()=>{
+    const q = inputEl.value;
+    if(q.trim().length<3){ listEl.classList.add("hidden"); inputEl.setAttribute("aria-expanded","false"); return; }
+    const items = await fetchAddressSuggestions(q);
+    renderSuggestList(listEl, items, (item)=>{
+      inputEl.value = item.label;
+      listEl.classList.add("hidden");
+      inputEl.setAttribute("aria-expanded","false");
+      onSelected(item);
+    }, inputEl);
+  }, 300);
+  inputEl.addEventListener("input", run);
+  inputEl.addEventListener("focus", ()=>{ if(inputEl.value.trim().length>=3) run(); });
+  document.addEventListener("click",(e)=>{
+    if(!inputEl.contains(e.target) && !listEl.contains(e.target)){ listEl.classList.add("hidden"); inputEl.setAttribute("aria-expanded","false"); }
+  });
+}
+
+/* =====================================================================
+   SCREEN NAVIGATION
+   ===================================================================== */
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.target===id));
+  window.scrollTo({top:0, behavior:"instant"});
+}
+document.querySelectorAll(".nav-item, .btn-back, #promoAirports").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    const target = el.dataset.target || "screen-airports";
+    showScreen(target);
+  });
+});
+
+/* =====================================================================
+   HOME: TAB SWITCH (Simple / Disposal)
+   ===================================================================== */
+const tabSimple=document.getElementById("tabSimple"), tabDisposal=document.getElementById("tabDisposal");
+const formSimple=document.getElementById("formSimple"), formDisposal=document.getElementById("formDisposal");
+tabSimple.addEventListener("click", ()=>{
+  state.tripType="simple";
+  tabSimple.classList.add("active"); tabDisposal.classList.remove("active");
+  tabSimple.setAttribute("aria-selected","true"); tabDisposal.setAttribute("aria-selected","false");
+  formSimple.classList.remove("hidden"); formDisposal.classList.add("hidden");
+});
+tabDisposal.addEventListener("click", ()=>{
+  state.tripType="disposal";
+  tabDisposal.classList.add("active"); tabSimple.classList.remove("active");
+  tabDisposal.setAttribute("aria-selected","true"); tabSimple.setAttribute("aria-selected","false");
+  formDisposal.classList.remove("hidden"); formSimple.classList.add("hidden");
+});
+
+/* Autocomplete bindings */
+attachAutocomplete(document.getElementById("pickup"), document.getElementById("pickupList"), (item)=>{ state.pickup=item; });
+attachAutocomplete(document.getElementById("dropoff"), document.getElementById("dropoffList"), (item)=>{ state.dropoff=item; });
+attachAutocomplete(document.getElementById("pickupDisp"), document.getElementById("pickupDispList"), (item)=>{ state.pickup=item; });
+attachAutocomplete(document.getElementById("addressAirport"), document.getElementById("addressAirportList"), (item)=>{ state.airportComplementAddress=item; });
+
+/* Duration slider */
+const durationRange=document.getElementById("durationRange"), durationVal=document.getElementById("durationVal");
+durationRange.addEventListener("input", ()=>{
+  state.duration = parseInt(durationRange.value,10);
+  durationVal.textContent = `${state.duration} ${t("duration_label_h")}`;
+});
+
+/* Set default date = today (min) */
+const today = new Date().toISOString().slice(0,10);
+["dateSimple","dateDisp","dateAirport"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.min = today;
+  el.value = today;
+});
+
+/* =====================================================================
+   TIME SLOTS — 15-minute increments, minimum 20-minute lead time for today
+   ===================================================================== */
+function generateTimeSlots(dateStr){
+  const dayStart = new Date(dateStr+"T00:00:00");
+  const minTime = new Date(Date.now() + 20*60000);
+  let minMinutes = 0;
+  if(minTime.getTime() > dayStart.getTime()){
+    minMinutes = Math.ceil((minTime.getTime()-dayStart.getTime())/60000/15)*15;
+  }
+  const slots=[];
+  for(let m=0; m<24*60; m+=15){
+    if(m < minMinutes) continue;
+    const hh=String(Math.floor(m/60)).padStart(2,"0"), mm=String(m%60).padStart(2,"0");
+    slots.push(`${hh}:${mm}`);
+  }
+  return slots;
+}
+function populateTimeSelect(selectEl, dateStr){
+  const prev = selectEl.value;
+  const slots = generateTimeSlots(dateStr);
+  if(slots.length===0){
+    selectEl.innerHTML = `<option value="">—</option>`;
+    selectEl.disabled = true;
+    return;
+  }
+  selectEl.disabled = false;
+  selectEl.innerHTML = slots.map(s=>`<option value="${s}">${s}</option>`).join("");
+  selectEl.value = slots.includes(prev) ? prev : slots[0];
+}
+function wireDateTimePair(dateId, timeId){
+  const dateEl=document.getElementById(dateId), timeEl=document.getElementById(timeId);
+  function refresh(){
+    if(generateTimeSlots(dateEl.value).length===0){
+      const next=new Date(dateEl.value+"T00:00:00"); next.setDate(next.getDate()+1);
+      dateEl.value = next.toISOString().slice(0,10);
+    }
+    populateTimeSelect(timeEl, dateEl.value);
+  }
+  refresh();
+  dateEl.addEventListener("change", refresh);
+}
+wireDateTimePair("dateSimple","timeSimple");
+wireDateTimePair("dateDisp","timeDisp");
+wireDateTimePair("dateAirport","timeAirport");
+
+/* =====================================================================
+   SEARCH (Simple / Disposal) → VEHICLE SCREEN
+   ===================================================================== */
+function isFutureDateTime(dateStr,timeStr){
+  if(!dateStr || !timeStr) return false;
+  const d = new Date(dateStr+"T"+timeStr);
+  if(isNaN(d)) return false;
+  return d.getTime() >= (Date.now() - 60000); // small tolerance
+}
+const btnSearchEl = document.getElementById("btnSearch");
+btnSearchEl.addEventListener("click", async ()=>{
+  const errEl=document.getElementById("formError");
+  errEl.classList.add("hidden");
+
+  // Honeypot anti-bot check (silently ignore submission if filled)
+  const activeForm = state.tripType==="simple" ? formSimple : formDisposal;
+  const honeypot = activeForm.querySelector('input[name="website"]');
+  if(honeypot && honeypot.value.trim() !== "") return;
+
+  if(state.tripType==="simple"){
+    state.date=document.getElementById("dateSimple").value;
+    state.time=document.getElementById("timeSimple").value;
+    if(!state.pickup || !state.dropoff || !state.date || !state.time){
+      errEl.textContent=t("field_required"); errEl.classList.remove("hidden"); return;
+    }
+    if(!isFutureDateTime(state.date,state.time)){
+      errEl.textContent=t("error_future_time"); errEl.classList.remove("hidden"); return;
+    }
+    btnSearchEl.disabled=true;
+    const routeBtnLabel = btnSearchEl.querySelector("span").textContent;
+    btnSearchEl.querySelector("span").textContent = "…";
+    const route = await fetchRouteDistanceKm(state.pickup, state.dropoff);
+    btnSearchEl.disabled=false;
+    btnSearchEl.querySelector("span").textContent = routeBtnLabel;
+    state.distanceKm = route.km;
+    state.distanceEstimated = route.estimated;
+    state.isNight = isNightOrWeekend(state.date,state.time);
+    state.promoCode = (document.getElementById("promoSimple").value || "").trim().toUpperCase() || null;
+  }else{
+    state.date=document.getElementById("dateDisp").value;
+    state.time=document.getElementById("timeDisp").value;
+    if(!state.pickup || !state.date || !state.time){
+      errEl.textContent=t("field_required"); errEl.classList.remove("hidden"); return;
+    }
+    if(!isFutureDateTime(state.date,state.time)){
+      errEl.textContent=t("error_future_time"); errEl.classList.remove("hidden"); return;
+    }
+    state.isNight = isNightOrWeekend(state.date,state.time);
+    state.promoCode = (document.getElementById("promoDisp").value || "").trim().toUpperCase() || null;
+  }
+  state.airportKey=null;
+  trackEvent("view_vehicles", {tripType:state.tripType});
+  renderVehicleScreen();
+  showScreen("screen-vehicles");
+});
+
+/* =====================================================================
+   VEHICLE SCREEN RENDER
+   ===================================================================== */
+function applyPromo(price){
+  if(state.promoCode && PROMO_CODES[state.promoCode]){
+    state.promoDiscount = PROMO_CODES[state.promoCode];
+    return price * (1 - state.promoDiscount);
+  }
+  state.promoDiscount = 0;
+  return price;
+}
+function priceForVehicle(v){
+  let base;
+  if(state.tripType==="simple"){
+    base = v.base + v.perKm*state.distanceKm;
+    if(state.isNight) base *= 1.2;
+  }else{
+    base = v.hourly * state.duration;
+    if(state.isNight) base *= 1.2;
+  }
+  return base;
+}
+function renderStepper(el, active){
+  const steps = [t("step_trip"), t("step_vehicle"), t("step_payment")];
+  el.innerHTML = steps.map((label,i)=>{
+    const idx=i+1;
+    const cls = idx<active ? "done" : (idx===active ? "current" : "");
+    const dot = idx<active ? "✓" : idx;
+    const line = i<steps.length-1 ? `<div class="step-line ${idx<active?'done':''}"></div>` : "";
+    return `<div class="step ${cls}"><div class="step-dot">${dot}</div><span class="step-label hidden sm:inline">${label}</span></div>${line}`;
+  }).join("");
+}
+function renderVehicleScreen(){
+  renderStepper(document.getElementById("stepperVehicles"), 2);
+  const sub=document.getElementById("vehiclesSub");
+  const nightNote=document.getElementById("nightNote");
+  if(state.tripType==="simple"){
+    const approx = state.distanceEstimated ? " (≈)" : "";
+    sub.textContent = `${t("vehicles_sub_simple")} ${state.distanceKm.toFixed(1)} km${approx}`;
+  }else{
+    sub.textContent = `${t("vehicles_sub_disposal")} ${state.duration} ${t("duration_label_h")}`;
+  }
+  nightNote.classList.toggle("hidden", !state.isNight);
+
+  const wrap=document.getElementById("vehicleCards");
+  wrap.innerHTML="";
+  state.vehicle=null;
+  document.getElementById("btnToPayment").disabled=true;
+
+  VEHICLES.forEach(v=>{
+    const priceRaw = priceForVehicle(v);
+    const price = applyPromo(priceRaw);
+    const card=document.createElement("button");
+    card.className="veh-card w-full p-4 flex items-center justify-between text-left";
+    card.dataset.key=v.key;
+    card.innerHTML = `
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">${v.icon}</span>
+        <div>
+          <p class="font-medium text-sm">${t(v.nameKey)}</p>
+          <p class="text-[11px] text-[var(--muted)]">${t("price_from")}</p>
+        </div>
+      </div>
+      <p class="font-mono text-[var(--gold)] font-semibold">${eur(price)}</p>
+    `;
+    card.addEventListener("click", ()=>{
+      wrap.querySelectorAll(".veh-card").forEach(c=>c.classList.remove("selected"));
+      card.classList.add("selected");
+      state.vehicle=v.key;
+      state.priceBeforePromo=priceRaw;
+      state.price=price;
+      document.getElementById("btnToPayment").disabled=false;
+      trackEvent("select_vehicle", {vehicle:v.key, price});
+    });
+    wrap.appendChild(card);
+  });
+}
+document.getElementById("btnToPayment").addEventListener("click", ()=>{
+  renderPaymentScreen();
+  showScreen("screen-payment");
+});
+
+/* =====================================================================
+   AIRPORTS SCREEN
+   ===================================================================== */
+const dirToBtn=document.getElementById("dirToAirport"), dirFromBtn=document.getElementById("dirFromAirport");
+dirToBtn.addEventListener("click", ()=>{ state.airportDirection="to"; dirToBtn.classList.add("active"); dirFromBtn.classList.remove("active"); });
+dirFromBtn.addEventListener("click", ()=>{ state.airportDirection="from"; dirFromBtn.classList.add("active"); dirToBtn.classList.remove("active"); });
+
+function renderAirportCards(){
+  const wrap=document.getElementById("airportCards");
+  wrap.innerHTML="";
+  Object.entries(AIRPORTS).forEach(([key,ap])=>{
+    const card=document.createElement("div");
+    card.className="rounded-2xl bg-[var(--panel)] card-line p-4";
+    card.innerHTML = `
+      <p class="font-display text-lg mb-3">${t(ap.nameKey)}</p>
+      <div class="grid grid-cols-2 gap-2">
+        ${VEHICLES.map(v=>`
+          <button class="chip-price airport-chip" data-airport="${key}" data-vehicle="${v.key}">
+            <p class="text-[11px] text-[var(--muted)] mb-1">${t(v.nameKey)}</p>
+            <p class="font-mono text-[var(--gold)] font-semibold text-sm">${eur(ap.prices[v.key])}</p>
+          </button>
+        `).join("")}
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll(".airport-chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const apKey=btn.dataset.airport, vKey=btn.dataset.vehicle;
+      const ap=AIRPORTS[apKey];
+      state.tripType="airport";
+      state.airportKey=apKey;
+      state.vehicle=vKey;
+      state.priceBeforePromo=ap.prices[vKey];
+      state.price=ap.prices[vKey]; // forfait bloqué : ni majoration, ni extras, ni promo
+      state.promoCode=null; state.promoDiscount=0;
+      state.date=document.getElementById("dateAirport").value;
+      state.time=document.getElementById("timeAirport").value;
+      state.isNight=false;
+      trackEvent("select_airport_package", {airport:apKey, vehicle:vKey});
+      const complement = state.airportComplementAddress || {label: document.getElementById("addressAirport").value || "—", lat:48.8566, lon:2.3522};
+      if(state.airportDirection==="to"){
+        state.pickup = complement;
+        state.dropoff = {label: ap.address, lat: ap.lat, lon: ap.lon};
+      }else{
+        state.pickup = {label: ap.address, lat: ap.lat, lon: ap.lon};
+        state.dropoff = complement;
+      }
+      renderPaymentScreen();
+      showScreen("screen-payment");
+    });
+  });
+}
+renderAirportCards();
+
+/* =====================================================================
+   PAYMENT SCREEN
+   ===================================================================== */
+function tripTypeLabel(){
+  if(state.tripType==="simple") return t("trip_type_simple");
+  if(state.tripType==="disposal") return t("trip_type_disposal");
+  return t("trip_type_airport");
+}
+function updateTripSummary(){
+  const wrap=document.getElementById("tripSummary");
+  const vName = VEHICLES.find(v=>v.key===state.vehicle);
+  let rows = `<div class="flex justify-between"><span class="text-[var(--muted)]">${tripTypeLabel()}</span><span class="font-medium">${t(vName.nameKey)}</span></div>`;
+  rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_from")}</span><span class="text-right max-w-[60%]">${state.pickup ? state.pickup.label : "—"}</span></div>`;
+  rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_to")}</span><span class="text-right max-w-[60%]">${state.dropoff ? state.dropoff.label : "—"}</span></div>`;
+  rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_date")}</span><span>${state.date} — ${state.time}</span></div>`;
+  if(state.tripType==="disposal"){
+    rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_duration")}</span><span>${state.duration} ${t("duration_label_h")}</span></div>`;
+  }
+  if(state.tripType==="simple"){
+    rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("distance_label")}</span><span>${state.distanceKm.toFixed(1)} km${state.distanceEstimated?" (≈)":""}</span></div>`;
+  }
+  if(state.promoCode && state.promoDiscount>0){
+    rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_promo")}</span><span class="text-[var(--green)]">${state.promoCode} (-${Math.round(state.promoDiscount*100)}%)</span></div>`;
+  }
+  rows += `<div class="border-t border-[var(--line)] my-2"></div>`;
+  const ht = state.price / (1+VAT_RATE);
+  const vat = state.price - ht;
+  rows += `<div class="flex justify-between text-xs text-[var(--muted)]"><span>${t("wa_ht")}</span><span class="font-mono">${eur(ht)}</span></div>`;
+  rows += `<div class="flex justify-between text-xs text-[var(--muted)] mb-1"><span>${t("wa_vat")}</span><span class="font-mono">${eur(vat)}</span></div>`;
+  rows += `<div class="flex justify-between text-base"><span class="font-medium">${t("wa_total")}</span><span class="font-mono text-[var(--gold)] font-bold">${eur(state.price)}</span></div>`;
+  wrap.innerHTML = rows;
+}
+function renderPaymentScreen(){
+  renderStepper(document.getElementById("stepperPayment"), 3);
+  updateTripSummary();
+  const promoInput = document.getElementById("promoPayment");
+  promoInput.value = state.promoCode || "";
+  document.getElementById("promoMsg").classList.add("hidden");
+  const disablePromo = state.tripType==="airport";
+  promoInput.disabled = disablePromo;
+  document.getElementById("btnApplyPromo").disabled = disablePromo;
+  trackEvent("view_payment", {tripType:state.tripType, price:state.price});
+}
+
+/* Edit trip: go back to booking form without losing entered data */
+document.getElementById("btnEditTrip").addEventListener("click", ()=>{
+  showScreen(state.tripType==="airport" ? "screen-airports" : "screen-home");
+});
+
+/* Promo code applied from the payment screen (after vehicle already chosen) */
+document.getElementById("btnApplyPromo").addEventListener("click", ()=>{
+  const code = document.getElementById("promoPayment").value.trim().toUpperCase();
+  const msg = document.getElementById("promoMsg");
+  state.promoCode = code || null;
+  const base = state.priceBeforePromo || state.price;
+  const newPrice = applyPromo(base);
+  msg.classList.remove("hidden");
+  if(code && PROMO_CODES[code]){
+    msg.textContent = t("promo_valid");
+    msg.className = "text-xs mt-2 text-[var(--green)]";
+  }else if(code){
+    msg.textContent = t("promo_invalid");
+    msg.className = "text-xs mt-2 text-[var(--red)]";
+    state.promoDiscount = 0;
+  }else{
+    msg.classList.add("hidden");
+  }
+  state.price = newPrice;
+  updateTripSummary();
+});
+
+/* Payment method toggle */
+const payCard=document.getElementById("payCard"), payPaypal=document.getElementById("payPaypal"), cardFields=document.getElementById("cardFields");
+payCard.addEventListener("click", ()=>{ state.paymentMethod="card"; payCard.classList.add("selected"); payPaypal.classList.remove("selected"); cardFields.classList.remove("hidden"); });
+payPaypal.addEventListener("click", ()=>{ state.paymentMethod="paypal"; payPaypal.classList.add("selected"); payCard.classList.remove("selected"); cardFields.classList.add("hidden"); });
+
+/* Card input masks */
+const cardNumber=document.getElementById("cardNumber");
+cardNumber.addEventListener("input", ()=>{
+  let v=cardNumber.value.replace(/\D/g,"").slice(0,16);
+  cardNumber.value = v.replace(/(\d{4})(?=\d)/g,"$1 ");
+});
+const cardExpiry=document.getElementById("cardExpiry");
+cardExpiry.addEventListener("input", ()=>{
+  let v=cardExpiry.value.replace(/\D/g,"").slice(0,4);
+  if(v.length>=3) v = v.slice(0,2)+"/"+v.slice(2);
+  cardExpiry.value=v;
+});
+const cardCvc=document.getElementById("cardCvc");
+cardCvc.addEventListener("input", ()=>{ cardCvc.value = cardCvc.value.replace(/\D/g,"").slice(0,3); });
+
+/* =====================================================================
+   CONFIRM & PAY → WHATSAPP
+   ===================================================================== */
+function buildWhatsAppMessage(ref){
+  const vName = t(VEHICLES.find(v=>v.key===state.vehicle).nameKey);
+  const clientName = document.getElementById("clientName").value || "—";
+  const clientPhone = document.getElementById("clientPhone").value || "—";
+  let lines = [];
+  lines.push("AS-MINE CHAUFFEURS");
+  lines.push(`${t("wa_ref")}: ${ref}`);
+  lines.push(`${t("wa_status")}: ✅ ${t("wa_paid")}`);
+  lines.push("");
+  lines.push(`${t("wa_client")}: ${clientName}`);
+  lines.push(`${t("wa_phone")}: ${clientPhone}`);
+  lines.push("");
+  lines.push(`${t("wa_trip")} (${tripTypeLabel()}):`);
+  lines.push(`${t("wa_from")}: ${state.pickup ? state.pickup.label : "—"}`);
+  lines.push(`${t("wa_to")}: ${state.dropoff ? state.dropoff.label : "—"}`);
+  lines.push(`${t("wa_date")}: ${state.date}   ${t("wa_time")}: ${state.time}`);
+  if(state.tripType==="disposal") lines.push(`${t("wa_duration")}: ${state.duration} ${t("duration_label_h")}`);
+  if(state.promoCode && state.promoDiscount>0) lines.push(`${t("wa_promo")}: ${state.promoCode} (-${Math.round(state.promoDiscount*100)}%)`);
+  lines.push("");
+  lines.push(`${t("wa_vehicle")}: ${vName}`);
+  lines.push(`${t("wa_total")}: ${eur(state.price)}`);
+  lines.push("");
+  lines.push(t("wa_thanks"));
+  return lines.join("\n");
+}
+document.getElementById("btnConfirmPay").addEventListener("click", ()=>{
+  // Honeypot anti-bot check
+  const honeypot = document.querySelector('#screen-payment input[name="website"]');
+  if(honeypot && honeypot.value.trim() !== "") return;
+
+  const name=document.getElementById("clientName").value.trim();
+  const phone=document.getElementById("clientPhone").value.trim();
+  if(!name || !phone){ alert(t("field_required")); return; }
+  const phoneOk = /^[+0-9 ()-]{6,20}$/.test(phone);
+  if(!phoneOk){ alert(t("field_required")); return; }
+  if(state.paymentMethod==="card"){
+    const num=cardNumber.value.replace(/\s/g,"");
+    if(num.length<16 || cardExpiry.value.length<5 || cardCvc.value.length<3 || !document.getElementById("cardName").value.trim()){
+      alert(t("field_required")); return;
+    }
+  }
+  trackEvent("confirm_payment", {tripType:state.tripType, vehicle:state.vehicle, price:state.price, method:state.paymentMethod});
+  const loader=document.getElementById("loaderOverlay");
+  loader.classList.remove("hidden");
+  loader.classList.add("flex");
+  setTimeout(()=>{
+    loader.classList.add("hidden");
+    loader.classList.remove("flex");
+    const ref = "ASM-" + Date.now().toString().slice(-6);
+    document.getElementById("confRef").textContent = ref;
+    const msg = buildWhatsAppMessage(ref);
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+
+    // Session-only trip history (in-memory; not persisted, per artifact storage constraints)
+    sessionHistory.unshift({
+      ref, tripType:state.tripType, vehicle:state.vehicle, price:state.price,
+      pickup: state.pickup ? state.pickup.label : "—",
+      dropoff: state.dropoff ? state.dropoff.label : "—",
+      date: state.date, time: state.time
+    });
+    renderHistory();
+    trackEvent("booking_confirmed", {ref, price:state.price});
+    showScreen("screen-confirmation");
+  }, 1500);
+});
+document.getElementById("btnNewBooking").addEventListener("click", ()=>{
+  state.pickup=null; state.dropoff=null; state.vehicle=null; state.price=0; state.airportKey=null;
+  state.promoCode=null; state.promoDiscount=0;
+  document.getElementById("pickup").value=""; document.getElementById("dropoff").value=""; document.getElementById("pickupDisp").value="";
+  document.getElementById("promoSimple").value=""; document.getElementById("promoDisp").value="";
+  document.getElementById("clientName").value=""; document.getElementById("clientPhone").value="";
+  cardNumber.value=""; cardExpiry.value=""; cardCvc.value=""; document.getElementById("cardName").value="";
+  showScreen("screen-home");
+});
+
+/* =====================================================================
+   SESSION TRIP HISTORY
+   ===================================================================== */
+function renderHistory(){
+  const wrap=document.getElementById("historyList");
+  const empty=document.getElementById("historyEmpty");
+  wrap.innerHTML="";
+  empty.classList.toggle("hidden", sessionHistory.length>0);
+  sessionHistory.forEach(h=>{
+    const vName = t(VEHICLES.find(v=>v.key===h.vehicle).nameKey);
+    const div=document.createElement("div");
+    div.className="rounded-2xl bg-[var(--panel)] card-line p-4 text-sm";
+    div.innerHTML = `
+      <div class="flex justify-between mb-1"><span class="font-mono text-xs text-[var(--gold)]">${h.ref}</span><span class="font-mono text-[var(--gold)] font-semibold">${eur(h.price)}</span></div>
+      <p class="text-xs text-[var(--muted)] mb-0.5">${vName} — ${h.date} ${h.time}</p>
+      <p class="text-xs">${h.pickup} → ${h.dropoff}</p>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+/* =====================================================================
+   LEGAL SCREEN
+   ===================================================================== */
+let currentLegalDoc = null;
+document.querySelectorAll(".btn-legal").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const doc=btn.dataset.doc;
+    currentLegalDoc = doc;
+    const map = { cgv:["legal_cgv","legal_cgv_body"], mentions:["legal_mentions","legal_mentions_body"], privacy:["legal_privacy","legal_privacy_body"] };
+    const [titleKey, bodyKey] = map[doc];
+    document.getElementById("legalDocTitle").textContent = t(titleKey);
+    document.getElementById("legalDocBody").textContent = t(bodyKey);
+    showScreen("screen-legal");
+  });
+});
+
+/* =====================================================================
+   FAQ ACCORDION
+   ===================================================================== */
+const FAQ_ITEMS = [
+  {q:"faq_q1", a:"faq_a1"},
+  {q:"faq_q2", a:"faq_a2"},
+  {q:"faq_q3", a:"faq_a3"}
+];
+function renderFAQ(){
+  const wrap=document.getElementById("faqList");
+  wrap.innerHTML="";
+  FAQ_ITEMS.forEach((item,idx)=>{
+    const box=document.createElement("div");
+    box.className="rounded-2xl bg-[var(--panel)] card-line overflow-hidden";
+    box.innerHTML = `
+      <button class="faq-toggle w-full flex items-center justify-between p-4 text-left" data-idx="${idx}">
+        <span class="text-sm font-medium pr-3">${t(item.q)}</span>
+        <svg class="faq-caret shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="accordion-content px-4">
+        <p class="text-xs text-[var(--muted)] pb-4">${t(item.a)}</p>
+      </div>
+    `;
+    wrap.appendChild(box);
+  });
+  wrap.querySelectorAll(".faq-toggle").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const box=btn.parentElement;
+      const content=box.querySelector(".accordion-content");
+      const isOpen=box.classList.contains("faq-open");
+      wrap.querySelectorAll(".faq-open").forEach(o=>{ o.classList.remove("faq-open"); o.querySelector(".accordion-content").style.maxHeight=null; });
+      if(!isOpen){ box.classList.add("faq-open"); content.style.maxHeight = content.scrollHeight+"px"; }
+    });
+  });
+}
+
+/* =====================================================================
+   LANGUAGE SWITCHING (persists all state)
+   ===================================================================== */
+function applyLanguage(lang){
+  currentLang = I18N[lang] ? lang : "fr";
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = RTL_LANGS.includes(currentLang) ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.dataset.i18n;
+    el.textContent = t(key);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+    el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
+  });
+  // Re-render dynamic content that isn't tagged with data-i18n
+  renderAirportCards();
+  renderFAQ();
+  renderHistory();
+  if(document.getElementById("screen-vehicles").classList.contains("active")) renderVehicleScreen();
+  if(document.getElementById("screen-payment").classList.contains("active")) updateTripSummary();
+  if(document.getElementById("screen-legal").classList.contains("active") && currentLegalDoc){
+    document.querySelector(`.btn-legal[data-doc="${currentLegalDoc}"]`).click();
+  }
+  durationVal.textContent = `${state.duration} ${t("duration_label_h")}`;
+}
+document.getElementById("langSelect").addEventListener("change", (e)=>applyLanguage(e.target.value));
+
+/* =====================================================================
+   INSTALL PWA (simulation)
+   ===================================================================== */
+const installBtn=document.getElementById("installBtn"), installToast=document.getElementById("installToast");
+if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+  installBtn.classList.remove("hidden");
+  installBtn.classList.add("flex");
+}
+installBtn.addEventListener("click", ()=>{
+  installBtn.classList.add("hidden");
+  installToast.classList.remove("hidden");
+  setTimeout(()=>installToast.classList.add("hidden"), 3000);
+});
+
+/* =====================================================================
+   COOKIE BANNER — RGPD granulaire (essentiel / statistiques / marketing)
+   Note: consentement conservé en mémoire pour la session uniquement.
+   En production, ce choix doit être stocké (cookie technique dédié)
+   et respecté par tout script tiers (analytics, pixels marketing…).
+   ===================================================================== */
+const cookieBanner=document.getElementById("cookieBanner");
+const cookieDetails=document.getElementById("cookieDetails");
+const toggleAnalytics=document.getElementById("toggleAnalytics");
+const toggleMarketing=document.getElementById("toggleMarketing");
+setTimeout(()=>{ if(!consent.decided) cookieBanner.classList.remove("hidden"); }, 1200);
+
+document.getElementById("cookieCustomize").addEventListener("click", ()=>{
+  cookieDetails.classList.toggle("hidden");
+});
+toggleAnalytics.addEventListener("click", ()=>{
+  consent.analytics=!consent.analytics;
+  toggleAnalytics.classList.toggle("on", consent.analytics);
+  toggleAnalytics.setAttribute("aria-checked", String(consent.analytics));
+});
+toggleMarketing.addEventListener("click", ()=>{
+  consent.marketing=!consent.marketing;
+  toggleMarketing.classList.toggle("on", consent.marketing);
+  toggleMarketing.setAttribute("aria-checked", String(consent.marketing));
+});
+function closeCookieBanner(){
+  consent.decided=true;
+  cookieBanner.classList.add("hidden");
+  trackEvent("consent_update", {analytics:consent.analytics, marketing:consent.marketing});
+}
+document.getElementById("cookieAccept").addEventListener("click", ()=>{
+  consent.analytics=true; consent.marketing=true;
+  toggleAnalytics.classList.add("on"); toggleMarketing.classList.add("on");
+  closeCookieBanner();
+});
+document.getElementById("cookieReject").addEventListener("click", ()=>{
+  consent.analytics=false; consent.marketing=false;
+  toggleAnalytics.classList.remove("on"); toggleMarketing.classList.remove("on");
+  closeCookieBanner();
+});
+document.getElementById("cookieSave").addEventListener("click", closeCookieBanner);
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+renderFAQ();
+renderHistory();
+(function initLanguage(){
+  const browserLang = (navigator.language || "fr").slice(0,2).toLowerCase();
+  const initialLang = I18N[browserLang] ? browserLang : "fr";
+  document.getElementById("langSelect").value = initialLang;
+  applyLanguage(initialLang);
+})();
+</script>
+</body>
+</html>
