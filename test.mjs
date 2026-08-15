@@ -21,20 +21,20 @@ await page.waitForTimeout(1200);
 check('page chargée', await page.locator('#screen-home').isVisible());
 
 // 2. Traductions : passage en turc, aucune chaîne française ne doit rester
-await page.selectOption('#langSelect', 'tr');
+await page.selectOption('#langSelect', 'es');
 await page.waitForTimeout(300);
-check('langue TR appliquée', (await page.locator('h1').textContent()).includes('mükemmellik'));
+check('langue ES appliquée', (await page.locator('h1').textContent()).includes('excelencia'));
 await page.locator('.nav-item[data-target="screen-faq"]').click();
 await page.waitForTimeout(200);
 const faqTxt = await page.locator('#screen-faq').textContent();
-check('FAQ traduite en TR (pas de repli FR)',
-  faqTxt.includes('Yasal bilgiler') && !faqTxt.includes('Informations légales'),
+check('FAQ traduite en ES (pas de repli FR)',
+  faqTxt.includes('Información legal') && !faqTxt.includes('Informations légales'),
   faqTxt.slice(0, 60));
 
 // 3. Note de langue sur les documents juridiques
 await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(200);
-check('note « documents en FR/EN » affichée en TR', await page.locator('#legalLangNote').isVisible());
+check('note « documents en FR/EN » affichée en ES', await page.locator('#legalLangNote').isVisible());
 
 await page.selectOption('#langSelect', 'fr');
 await page.waitForTimeout(300);
