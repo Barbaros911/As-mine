@@ -110,9 +110,19 @@ check('manifest.webmanifest servi', mres.ok());
 const sres = await page.request.get(BASE + '/sw.js');
 check('sw.js servi', sres.ok());
 
-// 12. En-tête : pas de débordement horizontal sur mobile
+// 12. Pas de débordement horizontal sur mobile, dans les deux sens de lecture.
+// L'arabe se lit de droite à gauche : un élément caché hors écran à gauche
+// (le champ anti-robot) y créait plus de 10 000 px de défilement.
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
-check('pas de débordement horizontal (390px)', !overflow);
+check('pas de débordement horizontal (390px, FR)', !overflow);
+
+await page.selectOption('#langSelect', 'ar');
+await page.waitForTimeout(400);
+const oRtl = await page.evaluate(() => ({
+  doc: document.documentElement.scrollWidth, win: window.innerWidth, dir: document.documentElement.dir
+}));
+check('pas de débordement horizontal (390px, AR droite-à-gauche)',
+  oRtl.dir === 'rtl' && oRtl.doc <= oRtl.win + 1, oRtl.doc + 'px pour ' + oRtl.win + 'px');
 
 await browser.close();
 
