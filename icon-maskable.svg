@@ -1,0 +1,8 @@
+<!-- Version « maskable » : le contenu tient dans la zone sûre centrale (80%),
+     pour que le rognage circulaire d'Android ne coupe pas le logo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#121212"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#D4AF37" stroke-width="13"/>
+  <text x="256" y="308" font-family="Georgia, 'Times New Roman', serif" font-size="138"
+        font-weight="600" fill="#D4AF37" text-anchor="middle" letter-spacing="3">AS</text>
+</svg>

@@ -1,0 +1,100 @@
+import { chromium } from 'playwright';
+
+const BASE = 'http://127.0.0.1:8099';
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const errors = [];
+page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
+
+const ok = [], ko = [];
+const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
+
+await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(800);
+await page.selectOption('#langSelect','fr');
+await page.waitForTimeout(400);
+
+async function pickAddress(field, text) {
+  await page.fill(field, '');
+  await page.type(field, text, { delay: 25 });
+  await page.waitForTimeout(1500);
+  const list = '#' + field.slice(1) + 'List';
+  await page.locator(list + ' [role=option]').first().click();
+  await page.waitForTimeout(200);
+}
+
+// --- Parcours trajet simple ---
+await pickAddress('#pickup', 'Argenteuil');
+await pickAddress('#dropoff', 'Versailles');
+const d = new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10);
+await page.fill('#dateSimple', d);
+await page.waitForTimeout(300);
+await page.locator('#btnSearch').click();
+await page.waitForTimeout(2500);
+
+check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
+const nbVeh = await page.locator('#vehicleCards .veh-card').count();
+check('4 véhicules proposés', nbVeh === 4, nbVeh + '');
+const sub = await page.locator('#vehiclesSub').textContent();
+check('distance calculée', /\d/.test(sub), sub);
+
+// Prix cohérents et croissants
+const prix = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
+check('tarifs affichés', prix.length === 4, prix.join(' | '));
+
+await page.locator('#vehicleCards .veh-card').first().click();
+await page.waitForTimeout(200);
+check('bouton Continuer activé après choix', !(await page.locator('#btnToPayment').isDisabled()));
+await page.locator('#btnToPayment').click();
+await page.waitForTimeout(500);
+
+check('écran paiement atteint', await page.locator('#screen-payment').isVisible());
+const recap = await page.locator('#tripSummary').textContent();
+check('récapitulatif rempli', recap.includes('Argenteuil') && recap.includes('TVA'), recap.slice(0, 80));
+
+// PayPal non configuré → message honnête, pas un bouton mort
+check('message « paiement non activé » affiché', await page.locator('#paymentNotConfigured').isVisible());
+
+// Passagers : le récapitulatif suit
+await page.fill('#paxChildren', '2');
+await page.waitForTimeout(300);
+check('récapitulatif suit les passagers', (await page.locator('#tripSummary').textContent()).includes('2'));
+
+// Code promo appliqué depuis l'écran de paiement
+const avant = await page.locator('#tripSummary').textContent();
+await page.fill('#promoPayment', 'BIENVENUE10');
+await page.locator('#btnApplyPromo').click();
+await page.waitForTimeout(300);
+const msg = await page.locator('#promoMsg').textContent();
+check('code promo valide reconnu (malgré le hachage)', msg.includes('succès'), msg);
+const apres = await page.locator('#tripSummary').textContent();
+check('prix recalculé après promo', avant !== apres);
+
+await page.fill('#promoPayment', 'NIMPORTEQUOI');
+await page.locator('#btnApplyPromo').click();
+await page.waitForTimeout(300);
+check('code promo invalide rejeté', (await page.locator('#promoMsg').textContent()).includes('invalide'));
+
+// --- Mise à disposition ---
+await page.locator('#btnEditTrip').click();
+await page.waitForTimeout(300);
+await page.locator('#tabDisposal').click();
+await pickAddress('#pickupDisp', 'Neuilly');
+await page.fill('#dateDisp', d);
+await page.waitForTimeout(300);
+await page.locator('#btnSearch').click();
+await page.waitForTimeout(1200);
+check('mise à disposition → écran véhicules', await page.locator('#screen-vehicles').isVisible());
+check('durée affichée', (await page.locator('#vehiclesSub').textContent()).includes('3'));
+
+// --- Historique ---
+await page.locator('.nav-item[data-target="screen-history"]').click();
+await page.waitForTimeout(300);
+check('écran historique accessible', await page.locator('#screen-history').isVisible());
+
+await browser.close();
+console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
+ok.forEach(t => console.log('  ✔ ' + t));
+if (ko.length) { console.log('\n=== ÉCHECS (' + ko.length + ') ==='); ko.forEach(t => console.log('  ✘ ' + t)); }
+if (errors.length) { console.log('\n=== ERREURS JS ==='); [...new Set(errors)].forEach(e => console.log('  ! ' + e)); }
+process.exit(ko.length || errors.length ? 1 : 0);
