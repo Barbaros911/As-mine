@@ -1,0 +1,51 @@
+name: Publier le site
+
+# Publie le site à chaque modification de la branche principale.
+# « enablement: true » active GitHub Pages automatiquement au premier passage :
+# aucun réglage manuel n'est nécessaire dans les paramètres du dépôt.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Une seule publication à la fois ; on ne coupe pas une publication en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Configurer et activer GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Préparer les fichiers du site
+        run: |
+          mkdir -p site
+          cp index.html manifest.webmanifest sw.js icon.svg icon-maskable.svg site/
+          # Empêche Jekyll de réinterpréter les fichiers
+          touch site/.nojekyll
+
+      - name: Téléverser le site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Mettre en ligne
+        id: deploiement
+        uses: actions/deploy-pages@v4
