@@ -87,10 +87,17 @@ await page.waitForTimeout(1200);
 check('mise à disposition → écran véhicules', await page.locator('#screen-vehicles').isVisible());
 check('durée affichée', (await page.locator('#vehiclesSub').textContent()).includes('3'));
 
-// --- Historique ---
-await page.locator('.nav-item[data-target="screen-history"]').click();
+// --- Écran QR et documents légaux ---
+await page.locator('.nav-item[data-target="screen-qr"]').click();
+await page.waitForTimeout(400);
+check('écran QR accessible', await page.locator('#screen-qr').isVisible());
+check('code QR généré', (await page.locator('#qrImg').getAttribute('src')).includes('qrserver'));
+check('trois documents légaux présents', (await page.locator('.btn-legal').count()) === 3);
+await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(300);
-check('écran historique accessible', await page.locator('#screen-history').isVisible());
+const cgv = await page.locator('#legalDocBody').textContent();
+check('CGV : 60 minutes d\'attente offertes', cgv.includes('60 minutes'));
+check('CGV : plus de mention des 45 minutes', !cgv.includes('45 minutes'));
 
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
