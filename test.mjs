@@ -85,18 +85,23 @@ await page.locator('#pickup').press('Escape');
 await page.waitForTimeout(150);
 await page.locator('.nav-item[data-target="screen-airports"]').click();
 await page.waitForTimeout(300);
-await page.locator('#airportCards .airport-chip').first().click();
+check('étape 1 : trois aéroports proposés', (await page.locator('#airportChoice button').count()) === 3);
+await page.locator('#airportChoice button').first().click();
 await page.waitForTimeout(300);
-check('forfait aéroport bloqué sans adresse',
-  await page.locator('#screen-airports').isVisible() && !(await page.locator('#screen-payment').isVisible()));
+check('étape 2 : formulaire affiché après le choix', await page.locator('#airportForm').isVisible());
+check('étape 1 masquée', !(await page.locator('#airportChoice').isVisible()));
+await page.locator('#btnAirportSearch').click();
+await page.waitForTimeout(400);
+check('forfait bloqué sans adresse',
+  (await page.locator('#airportError').textContent()).length > 0 && !(await page.locator('#screen-vehicles').isVisible()));
 
 // 9. Le terminal choisi survit à un changement de langue
-await page.selectOption('#terminalSelect-cdg', 'Terminal 2E');
+await page.selectOption('#terminalSelect', 'Terminal 2E');
 await page.selectOption('#langSelect', 'es');
 await page.waitForTimeout(400);
 check('terminal conservé après changement de langue',
-  (await page.inputValue('#terminalSelect-cdg')) === 'Terminal 2E',
-  await page.inputValue('#terminalSelect-cdg'));
+  (await page.inputValue('#terminalSelect')) === 'Terminal 2E',
+  await page.inputValue('#terminalSelect'));
 await page.selectOption('#langSelect', 'fr');
 await page.waitForTimeout(300);
 
