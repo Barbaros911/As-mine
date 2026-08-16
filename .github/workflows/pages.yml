@@ -37,7 +37,7 @@ jobs:
       - name: Préparer les fichiers du site
         run: |
           mkdir -p site
-          cp index.html manifest.webmanifest sw.js icon.svg icon-maskable.svg site/
+          cp index.html manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml site/
           # Empêche Jekyll de réinterpréter les fichiers
           touch site/.nojekyll
 
