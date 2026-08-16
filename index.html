@@ -114,6 +114,28 @@
      la page large de plus de 10 000 px. On le masque sans le déplacer. */
   .honeypot-field{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;}
 
+  /* « hidden » porte du comportement, pas seulement du style : les champs
+     passager, le bandeau cookies, le bon de réservation ou l'avertissement de
+     paiement s'appuient dessus. Si le CDN Tailwind est lent ou bloqué (réseau
+     d'entreprise, bloqueur de publicité), la classe n'existe pas et tout
+     s'affiche d'un coup. On la définit donc ici, sans dépendre du CDN. */
+  .hidden{display:none;}
+
+  /* Impression du bon de réservation : seul le bon sort, en noir sur blanc,
+     sans en-tête, sans navigation et sans le bouton d'impression lui-même. */
+  @media print{
+    header, nav, #installBtn, #cookieBanner, #btnPrintVoucher, .btn-back,
+    #appToast, #installToast{display:none !important;}
+    html,body{background:#fff !important;color:#111 !important;}
+    main{padding:0 !important;max-width:none !important;}
+    .screen{display:none !important;}
+    .screen#screen-voucher{display:block !important;animation:none !important;}
+    #voucherBody{border:1px solid #999 !important;background:#fff !important;color:#111 !important;}
+    #voucherBody .text-\[var\(--muted\)\]{color:#555 !important;}
+    #voucherBody p{color:#111 !important;}
+    .font-display{color:#111 !important;}
+  }
+
   /* Stepper */
   .stepper{display:flex;align-items:center;gap:0;margin-bottom:1.25rem;}
   .stepper .step{display:flex;align-items:center;gap:6px;flex:1;}
@@ -202,11 +224,13 @@
           </button>
           <div id="pickupList" class="suggest-list hidden" role="listbox"></div>
         </div>
+        <div id="pickupFavourites" class="hidden flex flex-wrap gap-1.5 -mt-1" aria-label="Adresses enregistrées"></div>
         <div class="relative">
           <input id="dropoff" autocomplete="off" type="text" placeholder=" " role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="dropoffList" class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
           <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="label_dropoff">Adresse d'arrivée</label>
           <div id="dropoffList" class="suggest-list hidden" role="listbox"></div>
         </div>
+        <div id="dropoffFavourites" class="hidden flex flex-wrap gap-1.5 -mt-1" aria-label="Adresses enregistrées"></div>
         <div class="grid grid-cols-2 gap-3">
           <div class="relative">
             <input id="dateSimple" type="date" class="w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
@@ -308,10 +332,15 @@
           <svg class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flip-x" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-1 bg-[#141414] rounded-full p-1">
+      <div class="grid grid-cols-2 gap-1 bg-[#141414] rounded-full p-1 mb-3">
         <button id="dirToAirport" class="tab-underline active py-2 rounded-full text-xs font-medium" data-i18n="dir_to_airport">Paris → Aéroport</button>
         <button id="dirFromAirport" class="tab-underline py-2 rounded-full text-xs font-medium" data-i18n="dir_from_airport">Aéroport → Paris</button>
       </div>
+      <div class="relative">
+        <input id="flightNumber" type="text" placeholder=" " autocomplete="off" class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none uppercase" aria-describedby="flightHelp">
+        <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="flight_number">Numéro de vol (recommandé)</label>
+      </div>
+      <p id="flightHelp" class="text-[11px] text-[var(--muted)] mt-1.5" data-i18n="flight_help">Transmis au chauffeur pour qu'il suive votre vol et adapte l'heure en cas de retard.</p>
     </div>
 
     <div id="airportCards" class="space-y-3"></div>
@@ -374,6 +403,23 @@
           <input id="clientPhone" type="tel" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
           <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="phone_number">Téléphone (avec indicatif)</label>
         </div>
+
+        <!-- Usage courant en clientèle affaires : un assistant réserve pour un tiers.
+             Le chauffeur doit alors savoir qui il attend, et qui appeler. -->
+        <label class="flex items-center gap-2.5 text-xs text-[var(--muted)] cursor-pointer pt-1">
+          <input id="forSomeoneElse" type="checkbox" class="w-4 h-4 accent-[var(--gold)]">
+          <span data-i18n="booking_for_other">Je réserve pour quelqu'un d'autre</span>
+        </label>
+        <div id="passengerFields" class="hidden space-y-3">
+          <div class="relative">
+            <input id="passengerName" type="text" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="passenger_name">Nom du passager</label>
+          </div>
+          <div class="relative">
+            <input id="passengerPhone" type="tel" placeholder=" " class="field-float w-full bg-[#141414] border border-[#2B2B2B] focus:border-[var(--gold)] rounded-xl px-3.5 pt-4 pb-2 text-sm outline-none">
+            <label class="absolute left-3.5 top-1 text-[10px] text-[var(--muted)]" data-i18n="passenger_phone">Téléphone du passager</label>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -424,11 +470,35 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#141210" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/></svg>
           <span data-i18n="confirm_whatsapp_cta">Envoyer le récapitulatif sur WhatsApp</span>
         </a>
-        <button id="btnCopySummary" class="w-full py-2.5 rounded-xl border border-[var(--gold)] text-[var(--gold-soft)] text-xs" data-i18n="copy_summary">Copier le récapitulatif</button>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnCopySummary" class="py-2.5 rounded-xl border border-[var(--gold)] text-[var(--gold-soft)] text-xs" data-i18n="copy_summary">Copier le récapitulatif</button>
+          <a id="btnEmailSummary" href="#" class="py-2.5 rounded-xl border border-[var(--gold)] text-[var(--gold-soft)] text-xs flex items-center justify-center" data-i18n="email_confirm">Recevoir par email</a>
+        </div>
       </div>
+
+      <button id="btnOpenVoucher" class="w-full rounded-2xl card-line bg-[var(--panel)] p-4 flex items-center justify-between text-left mb-6">
+        <div>
+          <p class="text-xs text-[var(--gold)] uppercase tracking-widest font-mono mb-1" data-i18n="voucher_title">Bon de réservation</p>
+          <p class="text-xs text-[var(--muted)]" data-i18n="voucher_open">Voir le bon de réservation</p>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="flip-x shrink-0 ml-3"><path d="M9 6l6 6-6 6" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
 
       <button id="btnNewBooking" class="gold-btn px-6 py-3 rounded-xl text-sm" data-i18n="btn_new_booking">Nouvelle réservation</button>
     </div>
+  </section>
+
+  <!-- ===================== SCREEN: BON DE RÉSERVATION ===================== -->
+  <section id="screen-voucher" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-confirmation">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
+    <h2 class="font-display text-2xl mb-1" data-i18n="voucher_title">Bon de réservation</h2>
+    <p class="text-xs text-[var(--muted)] mb-4" data-i18n="voucher_keep">Conservez ce bon : il peut vous être demandé lors d'un contrôle.</p>
+    <p id="voucherIncomplete" class="hidden text-xs text-[var(--red)] border border-[var(--red)] rounded-xl px-3 py-2 mb-4"></p>
+    <div id="voucherBody" class="rounded-2xl bg-[var(--panel)] card-line p-4 text-sm space-y-4"></div>
+    <button id="btnPrintVoucher" class="gold-btn w-full mt-4 py-3 rounded-xl text-sm" data-i18n="voucher_print">Imprimer ou enregistrer en PDF</button>
   </section>
 
   <!-- ===================== SCREEN: FAQ ===================== -->
@@ -585,6 +655,36 @@ document.getElementById("whatsappUsBtn").href = `https://wa.me/${WHATSAPP_NUMBER
 const PAYPAL_CLIENT_ID = "YOUR_PAYPAL_CLIENT_ID"; // <-- Remplace par ton Client ID PayPal (compte Business gratuit sur developer.paypal.com → My Apps & Credentials)
 
 /* =====================================================================
+   IDENTITÉ DE L'OPÉRATEUR — À COMPLÉTER AVANT TOUTE COURSE RÉELLE
+   ---------------------------------------------------------------------
+   L'arrêté du 6 août 2025 impose de remettre au client un bon de
+   réservation portant ces mentions. Tant que les champs restent vides,
+   l'application génère le bon mais l'affiche comme incomplet : c'est
+   volontaire, pour que le manque soit visible plutôt que silencieux.
+
+   Le numéro EVTC est celui de votre inscription au registre des
+   exploitants VTC (récépissé délivré par la préfecture).
+   ===================================================================== */
+const OPERATEUR = {
+  raisonSociale: "",   // ex. "AS-MINE SASU"
+  formeJuridique: "",  // ex. "SASU au capital de 1 000 €"
+  adresse: "",         // ex. "12 rue de la Paix, 75002 Paris"
+  siret: "",           // 14 chiffres
+  evtc: "",            // n° d'inscription au registre VTC (EVTC…)
+  tva: "",             // n° de TVA intracommunautaire, si assujetti
+  telephone: "+33 7 59 31 24 33",
+  email: ""            // ex. "contact@as-mine.fr"
+};
+/* Chauffeur affecté à la course. Si votre flotte compte plusieurs
+   chauffeurs, laissez vide : le bon indiquera « communiqué avant la prise
+   en charge » et vous compléterez au moment de l'affectation. */
+const CHAUFFEUR = { nom: "", carteProfessionnelle: "" };
+
+function operateurComplet(){
+  return !!(OPERATEUR.raisonSociale && OPERATEUR.adresse && OPERATEUR.siret && OPERATEUR.evtc);
+}
+
+/* =====================================================================
    I18N — 10 LANGUES
    ===================================================================== */
 const I18N = {
@@ -595,7 +695,8 @@ legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — AS-MINE CHAUFFEURS\n\nDerni�
 legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : As-mine\nRaison sociale : [À compléter]\nForme juridique : [À compléter — ex. auto-entrepreneur, SASU, EURL]\nCapital social : [À compléter, le cas échéant]\nSIRET : [À compléter]\nRCS / RM : [À compléter]\nN° de TVA intracommunautaire : [À compléter, le cas échéant]\nSiège social : [Adresse complète à compléter]\nDirecteur de la publication : [Nom à compléter]\n\nHébergement du site\n[Nom, raison sociale et adresse de l'hébergeur à compléter]\n\nContact\nWhatsApp / téléphone : voir bouton d'appel sur le site\nEmail : [À compléter]\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'As-mine, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nMédiation de la consommation\nConformément aux articles L616-1 et R616-1 du Code de la consommation, le Client peut recourir, en cas de litige non résolu directement avec As-mine, au médiateur de la consommation suivant : [nom, adresse et site du médiateur à compléter].\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.\n\n[Ces informations doivent impérativement être complétées avec les données réelles et vérifiées de la société avant toute mise en ligne commerciale, conformément à la loi n°2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN).]",
 legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : [date à compléter]\n\n1. Responsable du traitement\nLe responsable du traitement des données collectées via le Service est As-mine, dont les coordonnées figurent dans les Mentions légales. [Coordonnées d'un délégué à la protection des données à ajouter si désigné.]\n\n2. Données collectées\n— Données d'identification : nom, numéro de téléphone\n— Données de réservation : adresses de départ et d'arrivée, date, heure, nombre de passagers et de bagages, terminal aéroport le cas échéant\n— Données de paiement : traitées exclusivement par PayPal (prestataire de paiement tiers) ; As-mine ne collecte ni ne stocke aucune donnée bancaire\n— Données de localisation : uniquement si le Client active volontairement la fonction « Me localiser »\n— Données de navigation : cookies statistiques et marketing, uniquement avec consentement\n\n3. Finalités et bases légales\n— Traitement et exécution de la réservation : exécution du contrat\n— Contact avant la prise en charge : exécution du contrat\n— Amélioration du service : intérêt légitime ou consentement selon le cas\n— Prospection commerciale, le cas échéant : consentement de l'utilisateur\n\n4. Destinataires des données\nLes données sont destinées au chauffeur affecté à la course, et transmises à PayPal pour le traitement du paiement. PayPal peut être amené à transférer des données vers les États-Unis dans le cadre de garanties appropriées (clauses contractuelles types de la Commission européenne). Aucune donnée n'est vendue à des tiers.\n\n5. Durée de conservation\nLes données de réservation sont conservées le temps nécessaire à l'exécution de la prestation, puis archivées pendant la durée légale de conservation des documents comptables (10 ans pour les factures). Les données enregistrées localement sur l'appareil utilisé pour réserver (répertoire client) peuvent être supprimées à tout moment sur simple demande.\n\n6. Cookies\nDes cookies strictement nécessaires au fonctionnement du site sont toujours actifs. Des cookies de mesure d'audience et marketing ne sont déposés qu'avec le consentement explicite du Client, recueilli via le bandeau de gestion des cookies, modifiable à tout moment.\n\n7. Sécurité\nAs-mine met en œuvre les mesures techniques et organisationnelles raisonnables pour protéger les données contre tout accès non autorisé, altération ou perte.\n\n8. Droits du Client\nConformément au RGPD et à la loi Informatique et Libertés, le Client dispose d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de ses données. Ces droits s'exercent via WhatsApp ou par email à [adresse à compléter].\n\n9. Réclamation\nEn cas de désaccord sur le traitement de ses données, le Client peut introduire une réclamation auprès de la CNIL (www.cnil.fr).\n\n[Modèle de document à faire valider par un professionnel du droit avant mise en production.]",
 legal_lang_note:"Documents disponibles en français et en anglais.",confirm_whatsapp_cta:"Envoyer le récapitulatif sur WhatsApp",confirm_whatsapp_note:"Si WhatsApp ne s'est pas ouvert automatiquement, utilisez ce bouton.",copy_summary:"Copier le récapitulatif",copied:"Copié !",error_address_select:"Merci de choisir une adresse dans la liste proposée.",install_ios_hint:"Appuyez sur Partager puis « Sur l'écran d'accueil ».",
-pax_adult_one:"adulte",pax_adult_many:"adultes",pax_child_one:"enfant",pax_child_many:"enfants",pax_bag_one:"bagage",pax_bag_many:"bagages"},
+pax_adult_one:"adulte",pax_adult_many:"adultes",pax_child_one:"enfant",pax_child_many:"enfants",pax_bag_one:"bagage",pax_bag_many:"bagages",
+flight_number:"Numéro de vol (recommandé)",flight_help:"Transmis au chauffeur pour qu'il suive votre vol et adapte l'heure en cas de retard.",booking_for_other:"Je réserve pour quelqu'un d'autre",passenger_name:"Nom du passager",passenger_phone:"Téléphone du passager",voucher_title:"Bon de réservation",voucher_open:"Voir le bon de réservation",voucher_print:"Imprimer ou enregistrer en PDF",voucher_operator:"Opérateur",voucher_driver:"Chauffeur",voucher_driver_tbd:"Communiqué avant la prise en charge",voucher_booked_at:"Réservation effectuée le",voucher_keep:"Conservez ce bon : il peut vous être demandé lors d'un contrôle.",voucher_payment_method:"Mode de paiement",voucher_paid_online:"Payé en ligne (PayPal)",voucher_incomplete:"Bon incomplet : les informations de l'opérateur ne sont pas encore renseignées.",email_confirm:"Recevoir par email",fav_save:"Enregistrer cette adresse",fav_saved:"Adresse enregistrée",fav_title:"Adresses enregistrées",wa_flight:"Vol",wa_passenger:"Passager"},
 en:{drivers_available:"Drivers available",tagline:"Private chauffeur — Paris & Greater Paris",hero_title:"Excellence, on every ride.",hero_sub:"Book a professional chauffeur in under two minutes. Fixed price, guaranteed punctuality, instant confirmation.",tab_simple:"Single Trip",tab_disposal:"Hourly Hire",label_pickup:"Pickup address",label_dropoff:"Drop-off address",label_date:"Date",label_time:"Time",label_pickup_disp:"Pickup location",label_duration:"Hire duration",btn_search:"See fares",airports_eyebrow:"Fixed packages",airports_title:"Paris & Beauvais Airports",airports_sub:"CDG · Orly · Beauvais — locked price, zero surprise.",label_address_complement:"Your address in Paris / IDF",dir_to_airport:"Paris → Airport",dir_from_airport:"Airport → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_berline:"Sedan",veh_berline_vip:"VIP Sedan",veh_van:"Van",veh_van_vip:"VIP Van",vehicles_title:"Choose your vehicle",vehicles_sub_simple:"Estimated trip of",vehicles_sub_disposal:"Hourly hire —",btn_continue:"Continue",price_from:"from",night_surcharge_note:"A +20% night/weekend surcharge is applied automatically and shown transparently.",back:"Back",summary_title:"Summary",trip_type_simple:"Single trip",trip_type_disposal:"Hourly hire",trip_type_airport:"Airport package",client_info:"Your details",full_name:"Full name",phone_number:"Phone (with country code)",payment_title:"Payment",processing:"Processing payment…",confirmation_title:"Booking confirmed",confirmation_sub:"Your As-mine chauffeur is expecting you. The summary was sent on WhatsApp.",confirmation_ref:"Reference",btn_new_booking:"New booking",faq_title:"Frequently asked questions",faq_q1:"Can I bring large luggage?",faq_a1:"Yes, just mention it when booking: sedans take 2 cabin bags + 2 suitcases, vans up to 6 large suitcases.",faq_q2:"Will the driver hold a name sign?",faq_a2:"Always for airport and station pickups, with your name clearly displayed.",faq_q3:"Can I cancel for free?",faq_a3:"Any cancellation made more than 60 minutes before the scheduled time is fully refunded, at no cost.",cookie_text:"We use cookies to improve your booking experience. GDPR compliant.",cookie_accept:"Accept",cookie_reject:"Reject",install_app:"Install the app",install_toast:"App added to your home screen.",distance_label:"Estimated distance",duration_label_h:"h",no_results:"No address found",nav_home:"Home",nav_airports:"Airports",nav_faq:"Help",wa_ref:"Ref",wa_status:"Status",wa_paid:"PAID",wa_client:"Client",wa_phone:"Phone",wa_trip:"Trip",wa_vehicle:"Vehicle",wa_total:"Total price",wa_thanks:"Thank you for your trust. Your driver will contact you before pickup.",wa_from:"From",wa_to:"To",wa_date:"Date",wa_time:"Time",wa_duration:"Duration",field_required:"Please fill in all required fields.",
 label_promo:"Promo code (optional)",vat_note:"Price incl. VAT, 10% included (passenger transport).",edit_trip:"Edit",promo_title:"Promo code",promo_apply:"Apply",promo_valid:"Code applied successfully.",promo_invalid:"Invalid or expired promo code.",step_trip:"Trip",step_vehicle:"Vehicle",step_payment:"Payment",legal_title:"Legal information",legal_cgv:"Terms and Conditions",legal_mentions:"Legal notice",legal_privacy:"Privacy policy",nav_history:"Trips",history_title:"My trips",history_note:"This session's history only — not kept after closing.",history_empty:"No trips yet.",cookie_essential:"Essential",cookie_essential_desc:"Required for the site to work. Always active.",cookie_analytics:"Analytics",cookie_analytics_desc:"Help us understand how the site is used.",cookie_marketing:"Marketing",cookie_marketing_desc:"Used for personalised offers.",cookie_customize:"Customise",cookie_save:"Save my choices",error_future_time:"Please choose a date and time in the future.",wa_promo:"Promo code",wa_ht:"Price excl. VAT",wa_vat:"VAT (10%)",
 qr_eyebrow:"Share",qr_title:"App QR code",qr_copy:"Copy link",qr_close:"Close",qr_copied:"Link copied!",terminal_label:"Terminal",wa_terminal:"Terminal",passengers_title:"Passengers & luggage",adults_label:"Adults",children_label:"Children",luggage_label:"Luggage",locate_me:"Locate me",geoloc_error:"Location unavailable. Check your browser permissions.",payment_secure_note:"Secure payment — your card details never pass through this site, they're handled directly by PayPal.",payment_not_configured:"Online payment isn't enabled yet — configuration in progress.",payment_error:"Payment could not be completed. Please try again or contact the driver.",
@@ -603,19 +704,24 @@ legal_cgv_body:"TERMS AND CONDITIONS — AS-MINE CHAUFFEURS\n\nLast updated: [da
 legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: As-mine\nCompany name: [To be completed]\nLegal form: [To be completed — e.g. sole trader, SASU, EURL]\nShare capital: [To be completed, if applicable]\nCompany registration number (SIRET): [To be completed]\nVAT number: [To be completed, if applicable]\nRegistered office: [Full address to be completed]\nPublication director: [Name to be completed]\n\nHosting\n[Host name, company and address to be completed]\n\nContact\nWhatsApp / phone: see call button on the site\nEmail: [To be completed]\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of As-mine unless stated otherwise, and may not be reproduced without prior authorisation.\n\nConsumer mediation\nUnder Articles L616-1 and R616-1 of the French Consumer Code, the Client may refer any unresolved dispute to the following consumer mediator: [mediator's name, address and website to complete].\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.\n\n[This information must be completed with the company's real, verified details before any commercial launch, in accordance with French law n°2004-575 (LCEN).]",
 legal_privacy_body:"PRIVACY POLICY\n\nLast updated: [date to complete]\n\n1. Data controller\nThe controller of data collected via the Service is As-mine, whose contact details appear in the Legal Notice. [DPO contact details to add if appointed.]\n\n2. Data collected\n— Identification data: name, phone number\n— Booking data: pickup and drop-off addresses, date, time, number of passengers and luggage, airport terminal where applicable\n— Payment data: processed exclusively by PayPal (third-party payment provider); As-mine never collects or stores banking data\n— Location data: only if the Client voluntarily activates the \"Locate me\" feature\n— Browsing data: analytics and marketing cookies, only with consent\n\n3. Purposes and legal bases\n— Processing and delivering the booking: performance of the contract\n— Contacting the Client before pickup: performance of the contract\n— Service improvement: legitimate interest or consent as applicable\n— Marketing, where applicable: user consent\n\n4. Data recipients\nData is shared with the driver assigned to the ride, and transmitted to PayPal for payment processing. PayPal may transfer data to the United States under appropriate safeguards (European Commission standard contractual clauses). No data is sold to third parties.\n\n5. Retention period\nBooking data is kept for as long as necessary to deliver the service, then archived for the legal accounting retention period (10 years for invoices). Data saved locally on the device used to book (client directory) can be deleted at any time on request.\n\n6. Cookies\nStrictly necessary cookies are always active. Analytics and marketing cookies are only set with the Client's explicit consent, collected via the cookie banner, and changeable at any time.\n\n7. Security\nAs-mine implements reasonable technical and organisational measures to protect data against unauthorised access, alteration or loss.\n\n8. Client rights\nUnder GDPR, the Client has the right to access, rectify, erase, restrict, object to, and port their data. These rights can be exercised via WhatsApp or email to [address to complete].\n\n9. Complaints\nIn case of disagreement over data processing, the Client may lodge a complaint with the CNIL (www.cnil.fr).\n\n[Template document — to be validated by a legal professional before production use.]",
 legal_lang_note:"Legal documents are available in French and English only.",confirm_whatsapp_cta:"Send the summary on WhatsApp",confirm_whatsapp_note:"If WhatsApp didn't open automatically, use this button.",copy_summary:"Copy the summary",copied:"Copied!",error_address_select:"Please pick an address from the list.",install_ios_hint:"Tap Share, then 'Add to Home Screen'.",
-pax_adult_one:"adult",pax_adult_many:"adults",pax_child_one:"child",pax_child_many:"children",pax_bag_one:"bag",pax_bag_many:"bags"},
+pax_adult_one:"adult",pax_adult_many:"adults",pax_child_one:"child",pax_child_many:"children",pax_bag_one:"bag",pax_bag_many:"bags",
+flight_number:"Flight number (recommended)",flight_help:"Passed to your chauffeur so they can track your flight and adjust for delays.",booking_for_other:"I'm booking for someone else",passenger_name:"Passenger name",passenger_phone:"Passenger phone",voucher_title:"Booking voucher",voucher_open:"View the booking voucher",voucher_print:"Print or save as PDF",voucher_operator:"Operator",voucher_driver:"Chauffeur",voucher_driver_tbd:"Confirmed before pickup",voucher_booked_at:"Booked on",voucher_keep:"Keep this voucher: it may be requested during an inspection.",voucher_payment_method:"Payment method",voucher_paid_online:"Paid online (PayPal)",voucher_incomplete:"Incomplete voucher: the operator's details have not been filled in yet.",email_confirm:"Send by email",fav_save:"Save this address",fav_saved:"Address saved",fav_title:"Saved addresses",wa_flight:"Flight",wa_passenger:"Passenger"},
 ar:{drivers_available:"السائقون متاحون",tagline:"سائق خاص — باريس والضواحي",hero_title:"التميز في كل رحلة.",hero_sub:"احجز سائقًا محترفًا في أقل من دقيقتين. سعر ثابت، التزام مضمون بالمواعيد، تأكيد فوري.",tab_simple:"رحلة بسيطة",tab_disposal:"استئجار بالساعة",label_pickup:"عنوان الانطلاق",label_dropoff:"عنوان الوصول",label_date:"التاريخ",label_time:"الوقت",label_pickup_disp:"مكان الالتقاء",label_duration:"مدة الاستئجار",btn_search:"عرض الأسعار",airports_eyebrow:"باقات ثابتة",airports_title:"مطارات باريس وبوفيه",airports_sub:"شارل ديغول · أورلي · بوفيه — سعر ثابت بدون مفاجآت.",label_address_complement:"عنوانك في باريس / الضواحي",dir_to_airport:"باريس ← المطار",dir_from_airport:"المطار ← باريس",airport_cdg:"رواسي - شارل ديغول",airport_orly:"باريس - أورلي",airport_beauvais:"بوفيه - تييه",veh_berline:"سيدان",veh_berline_vip:"سيدان VIP",veh_van:"فان",veh_van_vip:"فان VIP",vehicles_title:"اختر مركبتك",vehicles_sub_simple:"مسافة تقديرية",vehicles_sub_disposal:"استئجار بالساعة —",btn_continue:"متابعة",price_from:"ابتداءً من",night_surcharge_note:"تُطبَّق زيادة ٢٠٪ ليلاً/في عطلة نهاية الأسبوع تلقائياً وتُعرض بكل شفافية.",back:"رجوع",summary_title:"الملخص",trip_type_simple:"رحلة بسيطة",trip_type_disposal:"استئجار بالساعة",trip_type_airport:"باقة مطار",client_info:"بياناتك",full_name:"الاسم الكامل",phone_number:"الهاتف (مع رمز الدولة)",payment_title:"الدفع",processing:"جاري معالجة الدفع…",confirmation_title:"تم تأكيد الحجز",confirmation_sub:"سائق As-mine بانتظارك. تم إرسال الملخص عبر واتساب.",confirmation_ref:"المرجع",btn_new_booking:"حجز جديد",faq_title:"الأسئلة الشائعة",faq_q1:"هل يمكنني حمل أمتعة كبيرة؟",faq_a1:"نعم، وضّح ذلك عند الحجز: السيدان تتسع لحقيبتي يد وحقيبتين، والفان حتى 6 حقائب كبيرة.",faq_q2:"هل ينتظرني السائق بلافتة باسمي؟",faq_a2:"دائماً عند الاستقبال من المطار أو المحطة، مع اسمك مكتوباً بوضوح.",faq_q3:"هل يمكنني الإلغاء بدون رسوم؟",faq_a3:"أي إلغاء يتم قبل 60 دقيقة من الموعد المحدد يُسترد بالكامل دون أي رسوم.",cookie_text:"نستخدم ملفات تعريف الارتباط لتحسين تجربة الحجز لديك. متوافق مع اللائحة الأوروبية.",cookie_accept:"قبول",cookie_reject:"رفض",install_app:"تثبيت التطبيق",install_toast:"تمت إضافة التطبيق إلى الشاشة الرئيسية.",distance_label:"المسافة التقديرية",duration_label_h:"سا",no_results:"لم يتم العثور على عنوان",nav_home:"الرئيسية",nav_airports:"المطارات",nav_faq:"المساعدة",wa_ref:"المرجع",wa_status:"الحالة",wa_paid:"مدفوع",wa_client:"العميل",wa_phone:"الهاتف",wa_trip:"الرحلة",wa_vehicle:"المركبة",wa_total:"السعر الإجمالي",wa_thanks:"شكراً لثقتك. سيتواصل معك السائق قبل الاستقبال.",wa_from:"من",wa_to:"إلى",wa_date:"التاريخ",wa_time:"الوقت",wa_duration:"المدة",field_required:"يرجى ملء جميع الحقول المطلوبة.",
 label_promo:"رمز ترويجي (اختياري)",vat_note:"الأسعار شاملة ضريبة القيمة المضافة 10% (نقل الركاب).",edit_trip:"تعديل",promo_title:"رمز ترويجي",promo_apply:"تطبيق",promo_valid:"تم تطبيق الرمز بنجاح.",promo_invalid:"رمز غير صالح أو منتهي الصلاحية.",step_trip:"الرحلة",step_vehicle:"المركبة",step_payment:"الدفع",legal_title:"معلومات قانونية",legal_cgv:"الشروط والأحكام العامة",legal_mentions:"إشعار قانوني",legal_privacy:"سياسة الخصوصية",nav_history:"الرحلات",history_title:"رحلاتي",history_note:"سجل هذه الجلسة فقط — لا يُحفظ بعد الإغلاق.",history_empty:"لا توجد رحلات حتى الآن.",cookie_essential:"أساسية",cookie_essential_desc:"ضرورية لعمل الموقع. مفعّلة دائماً.",cookie_analytics:"إحصائيات",cookie_analytics_desc:"تساعدنا على فهم كيفية استخدام الموقع.",cookie_marketing:"تسويق",cookie_marketing_desc:"تُستخدم لتقديم عروض مخصصة.",cookie_customize:"تخصيص",cookie_save:"حفظ اختياراتي",error_future_time:"يرجى اختيار تاريخ ووقت في المستقبل.",wa_promo:"رمز ترويجي",wa_ht:"السعر قبل الضريبة",wa_vat:"ضريبة القيمة المضافة (10%)",qr_eyebrow:"مشاركة",qr_title:"رمز QR للتطبيق",qr_copy:"نسخ الرابط",qr_close:"إغلاق",qr_copied:"تم نسخ الرابط!",terminal_label:"المبنى",wa_terminal:"المبنى",passengers_title:"الركاب والأمتعة",adults_label:"بالغون",children_label:"أطفال",luggage_label:"أمتعة",locate_me:"تحديد موقعي",geoloc_error:"تعذّر تحديد الموقع. تحقق من أذونات المتصفح.",payment_secure_note:"دفع آمن — بيانات بطاقتك لا تمر عبر هذا الموقع، بل تعالجها PayPal مباشرة.",payment_not_configured:"الدفع الإلكتروني غير مفعّل بعد — قيد الإعداد.",payment_error:"تعذّر إتمام الدفع. يرجى المحاولة مرة أخرى أو الاتصال بالسائق.",legal_lang_note:"المستندات القانونية متوفرة بالفرنسية والإنجليزية فقط.",confirm_whatsapp_cta:"إرسال الملخص عبر واتساب",confirm_whatsapp_note:"إذا لم يفتح واتساب تلقائياً، استخدم هذا الزر.",copy_summary:"نسخ الملخص",copied:"تم النسخ!",error_address_select:"يرجى اختيار عنوان من القائمة.",install_ios_hint:"اضغط على مشاركة ثم « إضافة إلى الشاشة الرئيسية ».",
-pax_adult_one:"بالغ",pax_adult_many:"بالغين",pax_child_one:"طفل",pax_child_many:"أطفال",pax_bag_one:"حقيبة",pax_bag_many:"حقائب"},
+pax_adult_one:"بالغ",pax_adult_many:"بالغين",pax_child_one:"طفل",pax_child_many:"أطفال",pax_bag_one:"حقيبة",pax_bag_many:"حقائب",
+flight_number:"رقم الرحلة (مستحسن)",flight_help:"يُرسل إلى السائق ليتابع رحلتك ويعدّل الموعد عند التأخير.",booking_for_other:"أحجز لشخص آخر",passenger_name:"اسم الراكب",passenger_phone:"هاتف الراكب",voucher_title:"سند الحجز",voucher_open:"عرض سند الحجز",voucher_print:"طباعة أو حفظ بصيغة PDF",voucher_operator:"المشغّل",voucher_driver:"السائق",voucher_driver_tbd:"يُبلَّغ قبل الاستقبال",voucher_booked_at:"تم الحجز في",voucher_keep:"احتفظ بهذا السند: قد يُطلب منك عند التفتيش.",voucher_payment_method:"طريقة الدفع",voucher_paid_online:"مدفوع إلكترونياً (PayPal)",voucher_incomplete:"سند غير مكتمل: بيانات المشغّل غير مُدخلة بعد.",email_confirm:"الإرسال بالبريد الإلكتروني",fav_save:"حفظ هذا العنوان",fav_saved:"تم حفظ العنوان",fav_title:"العناوين المحفوظة",wa_flight:"الرحلة",wa_passenger:"الراكب"},
 zh:{drivers_available:"司机可用",tagline:"专属司机 — 巴黎及大巴黎地区",hero_title:"每一程，皆为卓越。",hero_sub:"两分钟内预订专业司机。固定价格，准时保证，即时确认。",tab_simple:"单程",tab_disposal:"按小时包车",label_pickup:"出发地址",label_dropoff:"到达地址",label_date:"日期",label_time:"时间",label_pickup_disp:"接送地点",label_duration:"包车时长",btn_search:"查看价格",airports_eyebrow:"固定套餐",airports_title:"巴黎及博韦机场",airports_sub:"戴高乐 · 奥利 · 博韦 — 价格锁定，无隐藏费用。",label_address_complement:"您在巴黎/大区的地址",dir_to_airport:"巴黎 → 机场",dir_from_airport:"机场 → 巴黎",airport_cdg:"戴高乐机场",airport_orly:"奥利机场",airport_beauvais:"博韦机场",veh_berline:"轿车",veh_berline_vip:"轿车VIP",veh_van:"商务车",veh_van_vip:"商务车VIP",vehicles_title:"选择您的车辆",vehicles_sub_simple:"预计行程",vehicles_sub_disposal:"按小时包车 —",btn_continue:"继续",price_from:"起价",night_surcharge_note:"夜间/周末自动加收20%附加费，全程透明显示。",back:"返回",summary_title:"订单摘要",trip_type_simple:"单程",trip_type_disposal:"按小时包车",trip_type_airport:"机场套餐",client_info:"您的信息",full_name:"姓名",phone_number:"电话（含国家代码）",payment_title:"支付方式",processing:"正在处理付款…",confirmation_title:"预订已确认",confirmation_sub:"您的As-mine司机正在等候。摘要已发送至WhatsApp。",confirmation_ref:"订单编号",btn_new_booking:"新建预订",faq_title:"常见问题",faq_q1:"可以携带大件行李吗？",faq_a1:"可以，请在预订时说明：轿车可载2件随身+2件行李箱，商务车最多6件大行李箱。",faq_q2:"司机会举牌接机吗？",faq_a2:"机场及车站接送均会清晰举出您的姓名牌。",faq_q3:"可以免费取消吗？",faq_a3:"预定时间前60分钟以上取消可全额退款，无任何费用。",cookie_text:"我们使用Cookie以改善您的预订体验，符合GDPR规定。",cookie_accept:"接受",cookie_reject:"拒绝",install_app:"安装应用",install_toast:"应用已添加到主屏幕。",distance_label:"预计距离",duration_label_h:"小时",no_results:"未找到地址",nav_home:"首页",nav_airports:"机场",nav_faq:"帮助",wa_ref:"编号",wa_status:"状态",wa_paid:"已支付",wa_client:"客户",wa_phone:"电话",wa_trip:"行程",wa_vehicle:"车辆",wa_total:"总价",wa_thanks:"感谢您的信任，司机将在接送前与您联系。",wa_from:"出发",wa_to:"到达",wa_date:"日期",wa_time:"时间",wa_duration:"时长",field_required:"请填写所有必填字段。",
 label_promo:"优惠码（可选）",vat_note:"价格含10%增值税（客运）。",edit_trip:"修改",promo_title:"优惠码",promo_apply:"应用",promo_valid:"优惠码已成功应用。",promo_invalid:"优惠码无效或已过期。",step_trip:"行程",step_vehicle:"车辆",step_payment:"支付",legal_title:"法律信息",legal_cgv:"销售条款",legal_mentions:"法律声明",legal_privacy:"隐私政策",nav_history:"行程",history_title:"我的行程",history_note:"仅本次会话的记录 — 关闭后不保留。",history_empty:"暂无行程。",cookie_essential:"必要",cookie_essential_desc:"网站运行所必需，始终启用。",cookie_analytics:"统计",cookie_analytics_desc:"帮助我们了解网站的使用情况。",cookie_marketing:"营销",cookie_marketing_desc:"用于个性化优惠。",cookie_customize:"自定义",cookie_save:"保存我的选择",error_future_time:"请选择将来的日期和时间。",wa_promo:"优惠码",wa_ht:"不含税价格",wa_vat:"增值税（10%）",qr_eyebrow:"分享",qr_title:"应用二维码",qr_copy:"复制链接",qr_close:"关闭",qr_copied:"链接已复制！",terminal_label:"航站楼",wa_terminal:"航站楼",passengers_title:"乘客与行李",adults_label:"成人",children_label:"儿童",luggage_label:"行李",locate_me:"定位我的位置",geoloc_error:"无法定位。请检查浏览器权限。",payment_secure_note:"安全支付 — 您的银行卡信息不经过本网站，由PayPal直接处理。",payment_not_configured:"在线支付尚未启用 — 配置中。",payment_error:"支付未能完成。请重试或联系司机。",legal_lang_note:"法律文件仅提供法语和英语版本。",confirm_whatsapp_cta:"通过WhatsApp发送摘要",confirm_whatsapp_note:"如果WhatsApp没有自动打开，请使用此按钮。",copy_summary:"复制摘要",copied:"已复制！",error_address_select:"请从列表中选择一个地址。",install_ios_hint:"点击分享，然后选择「添加到主屏幕」。",
-pax_adult_one:"位成人",pax_adult_many:"位成人",pax_child_one:"位儿童",pax_child_many:"位儿童",pax_bag_one:"件行李",pax_bag_many:"件行李"},
+pax_adult_one:"位成人",pax_adult_many:"位成人",pax_child_one:"位儿童",pax_child_many:"位儿童",pax_bag_one:"件行李",pax_bag_many:"件行李",
+flight_number:"航班号（建议填写）",flight_help:"将转达司机，以便跟踪您的航班并在延误时调整时间。",booking_for_other:"我为他人预订",passenger_name:"乘客姓名",passenger_phone:"乘客电话",voucher_title:"预订凭证",voucher_open:"查看预订凭证",voucher_print:"打印或另存为PDF",voucher_operator:"运营方",voucher_driver:"司机",voucher_driver_tbd:"接送前告知",voucher_booked_at:"预订时间",voucher_keep:"请保留此凭证：检查时可能需要出示。",voucher_payment_method:"支付方式",voucher_paid_online:"已在线支付（PayPal）",voucher_incomplete:"凭证不完整：运营方信息尚未填写。",email_confirm:"通过邮件接收",fav_save:"保存此地址",fav_saved:"地址已保存",fav_title:"已保存的地址",wa_flight:"航班",wa_passenger:"乘客"},
 es:{drivers_available:"Conductores disponibles",tagline:"Chófer privado — París e Isla de Francia",hero_title:"La excelencia, en cada trayecto.",hero_sub:"Reserve un chófer profesional en menos de dos minutos. Precio fijo, puntualidad garantizada, confirmación instantánea.",tab_simple:"Trayecto Simple",tab_disposal:"Alquiler por Horas",label_pickup:"Dirección de recogida",label_dropoff:"Dirección de destino",label_date:"Fecha",label_time:"Hora",label_pickup_disp:"Lugar de recogida",label_duration:"Duración del alquiler",btn_search:"Ver tarifas",airports_eyebrow:"Tarifas fijas",airports_title:"Aeropuertos de París y Beauvais",airports_sub:"CDG · Orly · Beauvais — precio cerrado, sin sorpresas.",label_address_complement:"Su dirección en París / IDF",dir_to_airport:"París → Aeropuerto",dir_from_airport:"Aeropuerto → París",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"París - Orly",airport_beauvais:"Beauvais - Tillé",veh_berline:"Sedán",veh_berline_vip:"Sedán VIP",veh_van:"Furgoneta",veh_van_vip:"Furgoneta VIP",vehicles_title:"Elija su vehículo",vehicles_sub_simple:"Trayecto estimado de",vehicles_sub_disposal:"Alquiler por horas —",btn_continue:"Continuar",price_from:"desde",night_surcharge_note:"Recargo nocturno/fin de semana del +20% aplicado automáticamente y mostrado con total transparencia.",back:"Volver",summary_title:"Resumen",trip_type_simple:"Trayecto simple",trip_type_disposal:"Alquiler por horas",trip_type_airport:"Tarifa aeropuerto",client_info:"Sus datos",full_name:"Nombre completo",phone_number:"Teléfono (con prefijo)",payment_title:"Pago",processing:"Procesando el pago…",confirmation_title:"Reserva confirmada",confirmation_sub:"Su chófer As-mine le espera. El resumen se envió por WhatsApp.",confirmation_ref:"Referencia",btn_new_booking:"Nueva reserva",faq_title:"Preguntas frecuentes",faq_q1:"¿Puedo llevar equipaje voluminoso?",faq_a1:"Sí, indíquelo al reservar: los sedanes admiten 2 maletas de cabina + 2 maletas, las furgonetas hasta 6 maletas grandes.",faq_q2:"¿El chófer me espera con un cartel?",faq_a2:"Siempre en recogidas de aeropuerto o estación, con su nombre claramente visible.",faq_q3:"¿Puedo cancelar sin coste?",faq_a3:"Toda cancelación realizada con más de 60 minutos de antelación se reembolsa íntegramente, sin coste alguno.",cookie_text:"Usamos cookies para mejorar su experiencia de reserva. Conforme al RGPD.",cookie_accept:"Aceptar",cookie_reject:"Rechazar",install_app:"Instalar la aplicación",install_toast:"Aplicación añadida a la pantalla de inicio.",distance_label:"Distancia estimada",duration_label_h:"h",no_results:"No se encontró ninguna dirección",nav_home:"Inicio",nav_airports:"Aeropuertos",nav_faq:"Ayuda",wa_ref:"Ref",wa_status:"Estado",wa_paid:"PAGADO",wa_client:"Cliente",wa_phone:"Teléfono",wa_trip:"Trayecto",wa_vehicle:"Vehículo",wa_total:"Precio total",wa_thanks:"Gracias por su confianza. Su chófer le contactará antes de la recogida.",wa_from:"Salida",wa_to:"Llegada",wa_date:"Fecha",wa_time:"Hora",wa_duration:"Duración",field_required:"Por favor complete todos los campos requeridos.",
 label_promo:"Código promocional (opcional)",vat_note:"Precio con IVA del 10% incluido (transporte de pasajeros).",edit_trip:"Modificar",promo_title:"Código promocional",promo_apply:"Aplicar",promo_valid:"Código aplicado correctamente.",promo_invalid:"Código promocional no válido o caducado.",step_trip:"Trayecto",step_vehicle:"Vehículo",step_payment:"Pago",legal_title:"Información legal",legal_cgv:"Condiciones Generales de Venta",legal_mentions:"Aviso legal",legal_privacy:"Política de privacidad",nav_history:"Trayectos",history_title:"Mis trayectos",history_note:"Historial de esta sesión únicamente — no se conserva tras cerrar.",history_empty:"Aún no hay trayectos.",cookie_essential:"Esenciales",cookie_essential_desc:"Necesarias para el funcionamiento del sitio. Siempre activas.",cookie_analytics:"Estadísticas",cookie_analytics_desc:"Nos ayudan a entender el uso del sitio.",cookie_marketing:"Marketing",cookie_marketing_desc:"Se utilizan para ofertas personalizadas.",cookie_customize:"Personalizar",cookie_save:"Guardar mis preferencias",error_future_time:"Elija una fecha y hora futuras.",wa_promo:"Código promocional",wa_ht:"Precio sin IVA",wa_vat:"IVA (10%)",qr_eyebrow:"Compartir",qr_title:"Código QR de la aplicación",qr_copy:"Copiar el enlace",qr_close:"Cerrar",qr_copied:"¡Enlace copiado!",terminal_label:"Terminal",wa_terminal:"Terminal",passengers_title:"Pasajeros y equipaje",adults_label:"Adultos",children_label:"Niños",luggage_label:"Equipaje",locate_me:"Localizarme",geoloc_error:"No se pudo obtener la ubicación. Compruebe los permisos del navegador.",payment_secure_note:"Pago seguro — los datos de su tarjeta nunca pasan por este sitio, los gestiona directamente PayPal.",payment_not_configured:"El pago en línea aún no está activado — configuración en curso.",payment_error:"No se pudo completar el pago. Inténtelo de nuevo o contacte con el chófer.",legal_lang_note:"Documentos legales disponibles únicamente en francés e inglés.",confirm_whatsapp_cta:"Enviar el resumen por WhatsApp",confirm_whatsapp_note:"Si WhatsApp no se ha abierto automáticamente, use este botón.",copy_summary:"Copiar el resumen",copied:"¡Copiado!",error_address_select:"Elija una dirección de la lista.",install_ios_hint:"Pulse Compartir y luego «Añadir a pantalla de inicio».",
-pax_adult_one:"adulto",pax_adult_many:"adultos",pax_child_one:"niño",pax_child_many:"niños",pax_bag_one:"maleta",pax_bag_many:"maletas"},
+pax_adult_one:"adulto",pax_adult_many:"adultos",pax_child_one:"niño",pax_child_many:"niños",pax_bag_one:"maleta",pax_bag_many:"maletas",
+flight_number:"Número de vuelo (recomendado)",flight_help:"Se transmite al chófer para que siga su vuelo y ajuste la hora si hay retraso.",booking_for_other:"Reservo para otra persona",passenger_name:"Nombre del pasajero",passenger_phone:"Teléfono del pasajero",voucher_title:"Bono de reserva",voucher_open:"Ver el bono de reserva",voucher_print:"Imprimir o guardar en PDF",voucher_operator:"Operador",voucher_driver:"Chófer",voucher_driver_tbd:"Comunicado antes de la recogida",voucher_booked_at:"Reserva realizada el",voucher_keep:"Conserve este bono: puede solicitarse en un control.",voucher_payment_method:"Forma de pago",voucher_paid_online:"Pagado en línea (PayPal)",voucher_incomplete:"Bono incompleto: faltan los datos del operador.",email_confirm:"Recibir por email",fav_save:"Guardar esta dirección",fav_saved:"Dirección guardada",fav_title:"Direcciones guardadas",wa_flight:"Vuelo",wa_passenger:"Pasajero"},
 pt:{drivers_available:"Motoristas disponíveis",tagline:"Motorista privado — Paris e Île-de-France",hero_title:"Excelência, em cada trajeto.",hero_sub:"Reserve um motorista profissional em menos de dois minutos. Preço fixo, pontualidade garantida, confirmação instantânea.",tab_simple:"Viagem Simples",tab_disposal:"Aluguer por Hora",label_pickup:"Endereço de partida",label_dropoff:"Endereço de chegada",label_date:"Data",label_time:"Hora",label_pickup_disp:"Local de recolha",label_duration:"Duração do aluguer",btn_search:"Ver tarifas",airports_eyebrow:"Tarifas fixas",airports_title:"Aeroportos de Paris e Beauvais",airports_sub:"CDG · Orly · Beauvais — preço fixo, sem surpresas.",label_address_complement:"O seu endereço em Paris / IDF",dir_to_airport:"Paris → Aeroporto",dir_from_airport:"Aeroporto → Paris",airport_cdg:"Roissy - Charles de Gaulle",airport_orly:"Paris - Orly",airport_beauvais:"Beauvais - Tillé",veh_berline:"Sedan",veh_berline_vip:"Sedan VIP",veh_van:"Van",veh_van_vip:"Van VIP",vehicles_title:"Escolha o seu veículo",vehicles_sub_simple:"Trajeto estimado de",vehicles_sub_disposal:"Aluguer por hora —",btn_continue:"Continuar",price_from:"a partir de",night_surcharge_note:"Sobretaxa noturna/fim de semana de +20% aplicada automaticamente e mostrada com total transparência.",back:"Voltar",summary_title:"Resumo",trip_type_simple:"Viagem simples",trip_type_disposal:"Aluguer por hora",trip_type_airport:"Pacote aeroporto",client_info:"Os seus dados",full_name:"Nome completo",phone_number:"Telefone (com indicativo)",payment_title:"Pagamento",processing:"A processar o pagamento…",confirmation_title:"Reserva confirmada",confirmation_sub:"O seu motorista As-mine está à sua espera. O resumo foi enviado via WhatsApp.",confirmation_ref:"Referência",btn_new_booking:"Nova reserva",faq_title:"Perguntas frequentes",faq_q1:"Posso levar bagagem volumosa?",faq_a1:"Sim, indique na reserva: os sedans levam 2 malas de cabine + 2 malas, as vans até 6 malas grandes.",faq_q2:"O motorista espera com um cartaz?",faq_a2:"Sempre nas recolhas em aeroporto ou estação, com o seu nome bem visível.",faq_q3:"Posso cancelar sem custos?",faq_a3:"Qualquer cancelamento feito com mais de 60 minutos de antecedência é totalmente reembolsado, sem qualquer custo.",cookie_text:"Utilizamos cookies para melhorar a sua experiência de reserva. Em conformidade com o RGPD.",cookie_accept:"Aceitar",cookie_reject:"Rejeitar",install_app:"Instalar a aplicação",install_toast:"Aplicação adicionada ao ecrã principal.",distance_label:"Distância estimada",duration_label_h:"h",no_results:"Nenhum endereço encontrado",nav_home:"Início",nav_airports:"Aeroportos",nav_faq:"Ajuda",wa_ref:"Ref",wa_status:"Estado",wa_paid:"PAGO",wa_client:"Cliente",wa_phone:"Telefone",wa_trip:"Trajeto",wa_vehicle:"Veículo",wa_total:"Preço total",wa_thanks:"Obrigado pela confiança. O seu motorista contactá-lo-á antes da recolha.",wa_from:"Partida",wa_to:"Chegada",wa_date:"Data",wa_time:"Hora",wa_duration:"Duração",field_required:"Por favor preencha todos os campos obrigatórios.",
 label_promo:"Código promocional (opcional)",vat_note:"Preço com IVA de 10% incluído (transporte de passageiros).",edit_trip:"Modificar",promo_title:"Código promocional",promo_apply:"Aplicar",promo_valid:"Código aplicado com sucesso.",promo_invalid:"Código promocional inválido ou expirado.",step_trip:"Trajeto",step_vehicle:"Veículo",step_payment:"Pagamento",legal_title:"Informações legais",legal_cgv:"Condições Gerais de Venda",legal_mentions:"Aviso legal",legal_privacy:"Política de privacidade",nav_history:"Trajetos",history_title:"Os meus trajetos",history_note:"Histórico apenas desta sessão — não é conservado após fechar.",history_empty:"Ainda não há trajetos.",cookie_essential:"Essenciais",cookie_essential_desc:"Necessários ao funcionamento do site. Sempre ativos.",cookie_analytics:"Estatísticas",cookie_analytics_desc:"Ajudam-nos a compreender a utilização do site.",cookie_marketing:"Marketing",cookie_marketing_desc:"Utilizados para ofertas personalizadas.",cookie_customize:"Personalizar",cookie_save:"Guardar as minhas escolhas",error_future_time:"Escolha uma data e hora futuras.",wa_promo:"Código promocional",wa_ht:"Preço sem IVA",wa_vat:"IVA (10%)",qr_eyebrow:"Partilhar",qr_title:"Código QR da aplicação",qr_copy:"Copiar a ligação",qr_close:"Fechar",qr_copied:"Ligação copiada!",terminal_label:"Terminal",wa_terminal:"Terminal",passengers_title:"Passageiros e bagagem",adults_label:"Adultos",children_label:"Crianças",luggage_label:"Bagagem",locate_me:"Localizar-me",geoloc_error:"Não foi possível obter a localização. Verifique as permissões do navegador.",payment_secure_note:"Pagamento seguro — os dados do seu cartão nunca passam por este site, são tratados diretamente pelo PayPal.",payment_not_configured:"O pagamento online ainda não está ativo — configuração em curso.",payment_error:"Não foi possível concluir o pagamento. Tente novamente ou contacte o motorista.",legal_lang_note:"Documentos legais disponíveis apenas em francês e inglês.",confirm_whatsapp_cta:"Enviar o resumo por WhatsApp",confirm_whatsapp_note:"Se o WhatsApp não abriu automaticamente, use este botão.",copy_summary:"Copiar o resumo",copied:"Copiado!",error_address_select:"Escolha um endereço da lista.",install_ios_hint:"Toque em Partilhar e depois «Adicionar ao ecrã principal».",
-pax_adult_one:"adulto",pax_adult_many:"adultos",pax_child_one:"criança",pax_child_many:"crianças",pax_bag_one:"mala",pax_bag_many:"malas"},
+pax_adult_one:"adulto",pax_adult_many:"adultos",pax_child_one:"criança",pax_child_many:"crianças",pax_bag_one:"mala",pax_bag_many:"malas",
+flight_number:"Número do voo (recomendado)",flight_help:"Transmitido ao motorista para que acompanhe o seu voo e ajuste a hora em caso de atraso.",booking_for_other:"Estou a reservar para outra pessoa",passenger_name:"Nome do passageiro",passenger_phone:"Telefone do passageiro",voucher_title:"Comprovativo de reserva",voucher_open:"Ver o comprovativo de reserva",voucher_print:"Imprimir ou guardar em PDF",voucher_operator:"Operador",voucher_driver:"Motorista",voucher_driver_tbd:"Comunicado antes da recolha",voucher_booked_at:"Reserva efetuada a",voucher_keep:"Guarde este comprovativo: pode ser pedido num controlo.",voucher_payment_method:"Forma de pagamento",voucher_paid_online:"Pago online (PayPal)",voucher_incomplete:"Comprovativo incompleto: faltam os dados do operador.",email_confirm:"Receber por email",fav_save:"Guardar este endereço",fav_saved:"Endereço guardado",fav_title:"Endereços guardados",wa_flight:"Voo",wa_passenger:"Passageiro"},
 };
 const RTL_LANGS = ["ar"];
 let currentLang = "fr";
@@ -690,7 +796,11 @@ const state = {
   promoDiscount: 0,
   adults: 1,
   children: 0,
-  luggage: 0
+  luggage: 0,
+  flightNumber: null,
+  passengerName: null,
+  passengerPhone: null,
+  bookedAt: null
 };
 /* Client-side customer directory (persisted on this device only — no backend/server exists
    for this static site, so this cannot sync across devices). Keyed by phone number. */
@@ -1188,6 +1298,50 @@ function attachAutocomplete(inputEl, listEl, onSelected){
 }
 
 /* =====================================================================
+   ADRESSES ENREGISTRÉES
+   Le client tape souvent les deux ou trois mêmes adresses (domicile,
+   bureau, hôtel). Elles sont conservées sur l'appareil uniquement,
+   comme le répertoire client : aucun serveur n'existe pour les
+   synchroniser d'un téléphone à l'autre.
+   ===================================================================== */
+function loadFavourites(){
+  try{ return JSON.parse(localStorage.getItem("asmine_addresses")||"[]"); }catch(e){ return []; }
+}
+function saveFavourite(item){
+  if(!item || !item.label) return;
+  try{
+    const list = loadFavourites().filter(a=>a.label !== item.label);
+    list.unshift({label:item.label, lat:item.lat, lon:item.lon});
+    localStorage.setItem("asmine_addresses", JSON.stringify(list.slice(0,6)));
+  }catch(e){ /* stockage refusé : la fonctionnalité est simplement absente */ }
+}
+/* Affiche les adresses enregistrées sous un champ, en boutons cliquables */
+function attachFavourites(inputEl, containerEl, autocomplete, onSelected){
+  function render(){
+    const list = loadFavourites();
+    containerEl.innerHTML = "";
+    if(!list.length){ containerEl.classList.add("hidden"); return; }
+    containerEl.classList.remove("hidden");
+    list.forEach(a=>{
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="text-[11px] px-2.5 py-1.5 rounded-full border border-[var(--line)] text-[var(--muted)] truncate max-w-[48%]";
+      b.textContent=a.label;
+      b.title=a.label;
+      b.addEventListener("click", ()=>{
+        inputEl.value=a.label;
+        if(autocomplete) autocomplete.setChosen(a.label);
+        onSelected(a);
+      });
+      containerEl.appendChild(b);
+    });
+  }
+  render();
+  containerEl.dataset.bound = "1";
+  return { refresh: render };
+}
+
+/* =====================================================================
    SCREEN NAVIGATION
    ===================================================================== */
 function showScreen(id){
@@ -1221,18 +1375,23 @@ document.querySelectorAll(".nav-item, .btn-back, #promoAirports").forEach(el=>{
    ===================================================================== */
 const tabSimple=document.getElementById("tabSimple"), tabDisposal=document.getElementById("tabDisposal");
 const formSimple=document.getElementById("formSimple"), formDisposal=document.getElementById("formDisposal");
-tabSimple.addEventListener("click", ()=>{
-  state.tripType="simple";
-  tabSimple.classList.add("active"); tabDisposal.classList.remove("active");
-  tabSimple.setAttribute("aria-selected","true"); tabDisposal.setAttribute("aria-selected","false");
-  formSimple.classList.remove("hidden"); formDisposal.classList.add("hidden");
-});
-tabDisposal.addEventListener("click", ()=>{
-  state.tripType="disposal";
-  tabDisposal.classList.add("active"); tabSimple.classList.remove("active");
-  tabDisposal.setAttribute("aria-selected","true"); tabSimple.setAttribute("aria-selected","false");
-  formDisposal.classList.remove("hidden"); formSimple.classList.add("hidden");
-});
+/* Un seul endroit décide de l'onglet actif et du type de course. Auparavant
+   chaque gestionnaire le faisait dans son coin, si bien qu'après une
+   réservation aéroport le formulaire d'accueil affichait « Trajet Simple »
+   alors que l'application était restée en mode « Mise à disposition » : le
+   bouton « Voir les tarifs » réclamait alors des champs invisibles. */
+function selectTripTab(type){
+  const simple = type === "simple";
+  state.tripType = simple ? "simple" : "disposal";
+  tabSimple.classList.toggle("active", simple);
+  tabDisposal.classList.toggle("active", !simple);
+  tabSimple.setAttribute("aria-selected", String(simple));
+  tabDisposal.setAttribute("aria-selected", String(!simple));
+  formSimple.classList.toggle("hidden", !simple);
+  formDisposal.classList.toggle("hidden", simple);
+}
+tabSimple.addEventListener("click", ()=>selectTripTab("simple"));
+tabDisposal.addEventListener("click", ()=>selectTripTab("disposal"));
 
 /* Autocomplete bindings */
 const acPickup     = attachAutocomplete(document.getElementById("pickup"), document.getElementById("pickupList"), (item)=>{ state.pickup=item; });
@@ -1276,6 +1435,15 @@ function wireLocateButton(btnId, inputId, onSelected, autocomplete){
 wireLocateButton("locateBtnPickup", "pickup", (item)=>{ state.pickup=item; }, acPickup);
 wireLocateButton("locateBtnPickupDisp", "pickupDisp", (item)=>{ state.pickup=item; }, acPickupDisp);
 wireLocateButton("locateBtnAirport", "addressAirport", (item)=>{ state.airportComplementAddress=item; }, acAirport);
+
+/* Adresses enregistrées sous les champs départ et arrivée */
+const favPickup = attachFavourites(
+  document.getElementById("pickup"), document.getElementById("pickupFavourites"),
+  acPickup, (item)=>{ state.pickup=item; });
+const favDropoff = attachFavourites(
+  document.getElementById("dropoff"), document.getElementById("dropoffFavourites"),
+  acDropoff, (item)=>{ state.dropoff=item; });
+function refreshFavourites(){ favPickup.refresh(); favDropoff.refresh(); }
 
 /* =====================================================================
    TRIP MAP — small Leaflet/OpenStreetMap preview of pickup & drop-off
@@ -1434,6 +1602,7 @@ btnSearchEl.addEventListener("click", async ()=>{
   }
   state.airportKey=null;
   state.terminal=null;
+  state.flightNumber=null;
   trackEvent("view_vehicles", {tripType:state.tripType});
   renderVehicleScreen();
   showScreen("screen-vehicles");
@@ -1595,6 +1764,7 @@ function renderAirportCards(){
       state.promoCode=null; state.promoDiscount=0;
       state.date=date;
       state.time=time;
+      state.flightNumber=(document.getElementById("flightNumber").value||"").trim().toUpperCase()||null;
       state.isNight=false;
       state.distanceKm=0; state.distanceEstimated=false;
       trackEvent("select_airport_package", {airport:apKey, vehicle:vKey});
@@ -1630,6 +1800,12 @@ function updateTripSummary(){
   rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("passengers_title")}</span><span>${paxLine()}</span></div>`;
   if(state.tripType==="airport" && state.terminal){
     rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("terminal_label")}</span><span>${escapeHtml(state.terminal)}</span></div>`;
+  }
+  if(state.flightNumber){
+    rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_flight")}</span><span class="font-mono">${escapeHtml(state.flightNumber)}</span></div>`;
+  }
+  if(state.passengerName){
+    rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_passenger")}</span><span class="text-right max-w-[60%]">${escapeHtml(state.passengerName)}</span></div>`;
   }
   if(state.tripType==="disposal"){
     rows += `<div class="flex justify-between"><span class="text-[var(--muted)]">${t("wa_duration")}</span><span>${state.duration} ${t("duration_label_h")}</span></div>`;
@@ -1704,6 +1880,25 @@ document.getElementById("clientPhone").addEventListener("blur", ()=>{
   if(dir[phone]) nameField.value = dir[phone].name;
 });
 
+/* Réservation pour un tiers : le chauffeur doit savoir qui il attend */
+document.getElementById("forSomeoneElse").addEventListener("change", (e)=>{
+  const wrap=document.getElementById("passengerFields");
+  wrap.classList.toggle("hidden", !e.target.checked);
+  if(!e.target.checked){
+    document.getElementById("passengerName").value="";
+    document.getElementById("passengerPhone").value="";
+    state.passengerName=null; state.passengerPhone=null;
+    updateTripSummary();
+  }
+});
+["passengerName","passengerPhone"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", ()=>{
+    state.passengerName = document.getElementById("passengerName").value.trim() || null;
+    state.passengerPhone = document.getElementById("passengerPhone").value.trim() || null;
+    updateTripSummary();
+  });
+});
+
 /* Passenger / luggage counters — kept in sync with state so the summary updates live */
 ["paxAdults","paxChildren","paxLuggage"].forEach(id=>{
   document.getElementById(id).addEventListener("input", ()=>{
@@ -1731,12 +1926,16 @@ function buildWhatsAppMessage(ref, paypalOrderId){
   lines.push("");
   lines.push(`${t("wa_client")}: ${clientName}`);
   lines.push(`${t("wa_phone")}: ${clientPhone}`);
+  if(state.passengerName){
+    lines.push(`${t("wa_passenger")}: ${state.passengerName}${state.passengerPhone?` — ${state.passengerPhone}`:""}`);
+  }
   lines.push("");
   lines.push(`${t("wa_trip")} (${tripTypeLabel()}):`);
   lines.push(`${t("wa_from")}: ${state.pickup ? state.pickup.label : "—"}`);
   lines.push(`${t("wa_to")}: ${state.dropoff ? state.dropoff.label : "—"}`);
   lines.push(`${t("wa_date")}: ${state.date}   ${t("wa_time")}: ${state.time}`);
   if(state.tripType==="airport" && state.terminal) lines.push(`${t("wa_terminal")}: ${state.terminal}`);
+  if(state.flightNumber) lines.push(`${t("wa_flight")}: ${state.flightNumber}`);
   lines.push(`${t("passengers_title")}: ${paxLine()}`);
   if(state.tripType==="disposal") lines.push(`${t("wa_duration")}: ${state.duration} ${t("duration_label_h")}`);
   if(state.promoCode && state.promoDiscount>0) lines.push(`${t("wa_promo")}: ${state.promoCode} (-${Math.round(state.promoDiscount*100)}%)`);
@@ -1753,17 +1952,132 @@ function buildWhatsAppMessage(ref, paypalOrderId){
    de l'écran de confirmation (renvoi WhatsApp, copie du texte). */
 let lastBookingMessage = "", lastBookingUrl = "";
 
+/* =====================================================================
+   BON DE RÉSERVATION
+   L'arrêté du 6 août 2025 impose de remettre au client un bon portant
+   l'identité de l'opérateur et son n° d'inscription au registre VTC,
+   l'identité du chauffeur, celle du client, le détail de la course et
+   les conditions financières. Le bon doit être conservé 3 ans — cette
+   conservation demande un serveur ; voir le README.
+   ===================================================================== */
+function voucherData(ref, paypalOrderId){
+  const v = VEHICLES.find(x=>x.key===state.vehicle);
+  const booker = document.getElementById("clientName").value.trim();
+  const bookerPhone = document.getElementById("clientPhone").value.trim();
+  return {
+    ref,
+    bookedAt: state.bookedAt || new Date(),
+    operateur: OPERATEUR,
+    chauffeur: CHAUFFEUR,
+    client: { nom: booker, telephone: bookerPhone },
+    passager: state.passengerName ? { nom: state.passengerName, telephone: state.passengerPhone || bookerPhone } : null,
+    course: {
+      type: tripTypeLabel(),
+      depart: state.pickup ? state.pickup.label : "—",
+      arrivee: state.dropoff ? state.dropoff.label : "—",
+      date: state.date, heure: state.time,
+      terminal: state.terminal, vol: state.flightNumber,
+      duree: state.tripType==="disposal" ? state.duration : null,
+      vehicule: v ? t(v.nameKey) : "—",
+      passagers: paxLine()
+    },
+    prix: { total: state.price, ht: state.price/(1+VAT_RATE), tva: state.price - state.price/(1+VAT_RATE),
+            promo: state.promoDiscount>0 ? state.promoCode : null,
+            paiement: paypalOrderId ? `${t("voucher_paid_online")} — ${paypalOrderId}` : t("voucher_paid_online") }
+  };
+}
+
+function renderVoucher(d){
+  const dt = d.bookedAt instanceof Date ? d.bookedAt : new Date(d.bookedAt);
+  const fmtDate = dt.toLocaleString(currentLang==="en"?"en-GB":currentLang);
+  const inc = document.getElementById("voucherIncomplete");
+  if(operateurComplet()){
+    inc.classList.add("hidden");
+  }else{
+    inc.textContent = t("voucher_incomplete");
+    inc.classList.remove("hidden");
+  }
+  const row = (label, value) => value
+    ? `<div class="flex justify-between gap-3"><span class="text-[var(--muted)]">${escapeHtml(label)}</span><span class="text-right">${escapeHtml(value)}</span></div>`
+    : "";
+  const section = (titre, contenu) =>
+    `<div><p class="text-[10px] uppercase tracking-widest font-mono text-[var(--gold)] mb-2">${escapeHtml(titre)}</p>
+      <div class="space-y-1">${contenu}</div></div>`;
+  const manquant = "—";
+  const op = d.operateur;
+
+  let html = "";
+  html += `<div class="flex justify-between items-baseline border-b border-[var(--line)] pb-3">
+    <span class="font-display text-lg">${escapeHtml(t("voucher_title"))}</span>
+    <span class="font-mono text-[var(--gold)]">${escapeHtml(d.ref)}</span></div>`;
+
+  html += section(t("voucher_operator"), [
+    row(t("full_name"), op.raisonSociale || manquant),
+    row("SIRET", op.siret || manquant),
+    row("N° EVTC", op.evtc || manquant),
+    row(t("wa_from"), op.adresse || manquant),
+    row(t("wa_phone"), op.telephone || manquant)
+  ].join(""));
+
+  html += section(t("voucher_driver"), [
+    row(t("full_name"), d.chauffeur.nom || t("voucher_driver_tbd")),
+    row("N° carte pro.", d.chauffeur.carteProfessionnelle || t("voucher_driver_tbd"))
+  ].join(""));
+
+  html += section(t("wa_client"), [
+    row(t("full_name"), d.client.nom || manquant),
+    row(t("wa_phone"), d.client.telephone || manquant),
+    d.passager ? row(t("wa_passenger"), `${d.passager.nom} — ${d.passager.telephone}`) : ""
+  ].join(""));
+
+  html += section(t("wa_trip"), [
+    row(t("summary_title"), d.course.type),
+    row(t("wa_from"), d.course.depart),
+    row(t("wa_to"), d.course.arrivee),
+    row(t("wa_date"), `${d.course.date} — ${d.course.heure}`),
+    row(t("terminal_label"), d.course.terminal),
+    row(t("wa_flight"), d.course.vol),
+    d.course.duree ? row(t("wa_duration"), `${d.course.duree} ${t("duration_label_h")}`) : "",
+    row(t("wa_vehicle"), d.course.vehicule),
+    row(t("passengers_title"), d.course.passagers),
+    row(t("voucher_booked_at"), fmtDate)
+  ].join(""));
+
+  html += section(t("payment_title"), [
+    row(t("wa_ht"), eur(d.prix.ht)),
+    row(t("wa_vat"), eur(d.prix.tva)),
+    row(t("wa_total"), eur(d.prix.total)),
+    d.prix.promo ? row(t("wa_promo"), d.prix.promo) : "",
+    row(t("voucher_payment_method"), d.prix.paiement)
+  ].join(""));
+
+  document.getElementById("voucherBody").innerHTML = html;
+}
+
+let lastVoucher = null;
+document.getElementById("btnOpenVoucher").addEventListener("click", ()=>{
+  if(lastVoucher) renderVoucher(lastVoucher);
+  showScreen("screen-voucher");
+});
+document.getElementById("btnPrintVoucher").addEventListener("click", ()=>window.print());
+
 function finalizeBooking(paypalOrderId){
   const name=document.getElementById("clientName").value.trim();
   const phone=document.getElementById("clientPhone").value.trim();
   trackEvent("confirm_payment", {tripType:state.tripType, vehicle:state.vehicle, price:state.price, paypalOrderId});
   const ref = "ASM-" + Date.now().toString().slice(-6);
+  state.bookedAt = new Date();
   document.getElementById("confRef").textContent = ref;
   const msg = buildWhatsAppMessage(ref, paypalOrderId);
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
   lastBookingMessage = msg;
   lastBookingUrl = url;
+  lastVoucher = voucherData(ref, paypalOrderId);
   document.getElementById("btnResendWhatsapp").href = url;
+  // Secours supplémentaire : le même récapitulatif par email, via l'application
+  // de messagerie du client (aucun serveur d'envoi n'existe sur un site statique).
+  document.getElementById("btnEmailSummary").href =
+    `mailto:${OPERATEUR.email || ""}?subject=${encodeURIComponent(`${t("voucher_title")} ${ref}`)}&body=${encodeURIComponent(msg)}`;
   // window.open() appelé après un await est très souvent bloqué (Safari iOS en
   // particulier) : le client a payé mais le chauffeur ne reçoit rien. On tente
   // quand même l'ouverture automatique, et l'écran de confirmation propose
@@ -1773,6 +2087,10 @@ function finalizeBooking(paypalOrderId){
     trackEvent("whatsapp_popup_blocked", {ref});
   }
   saveClientToDirectory(name, phone);
+  // Les adresses réellement utilisées deviennent des raccourcis pour la prochaine fois
+  saveFavourite(state.pickup);
+  saveFavourite(state.dropoff);
+  refreshFavourites();
   sessionHistory.unshift({
     ref, tripType:state.tripType, vehicle:state.vehicle, price:state.price,
     pickup: state.pickup ? state.pickup.label : "—",
@@ -1888,8 +2206,14 @@ document.getElementById("btnNewBooking").addEventListener("click", ()=>{
   state.distanceKm=0; state.distanceEstimated=false;
   state.promoCode=null; state.promoDiscount=0;
   state.adults=1; state.children=0; state.luggage=0;
-  ["pickup","dropoff","pickupDisp","addressAirport","promoSimple","promoDisp","promoPayment","clientName","clientPhone"]
+  state.flightNumber=null; state.passengerName=null; state.passengerPhone=null; state.bookedAt=null;
+  ["pickup","dropoff","pickupDisp","addressAirport","promoSimple","promoDisp","promoPayment",
+   "clientName","clientPhone","flightNumber","passengerName","passengerPhone"]
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  document.getElementById("forSomeoneElse").checked=false;
+  document.getElementById("passengerFields").classList.add("hidden");
+  lastVoucher=null;
+  selectTripTab("simple"); // remet le formulaire d'accueil dans un état cohérent
   document.getElementById("paxAdults").value=1; document.getElementById("paxChildren").value=0; document.getElementById("paxLuggage").value=0;
   lastBookingMessage=""; lastBookingUrl="";
   showScreen("screen-home");
