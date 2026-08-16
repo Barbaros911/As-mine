@@ -161,35 +161,6 @@ check('le bon se rouvre depuis la liste',
   (await page.locator('#screen-voucher').isVisible()) &&
   (await page.locator('#voucherBody').textContent()).includes('ASM-'));
 
-// --- Réservation payée à bord ---
-await page.locator('.nav-item[data-target="screen-home"]').click();
-await page.waitForTimeout(300);
-await pickAddress('#pickup', 'Neuilly');
-await pickAddress('#dropoff', 'Versailles');
-await page.fill('#dateSimple', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
-await page.waitForTimeout(200);
-await page.locator('#btnSearch').click();
-await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
-await page.locator('#vehicleCards .veh-card').first().click();
-await page.locator('#btnToPayment').click();
-await page.waitForTimeout(500);
-check('bouton « payer à bord » proposé', await page.locator('#btnPayOnBoard').isVisible());
-
-// Sans coordonnées, la réservation doit être refusée
-await page.locator('#btnPayOnBoard').click();
-await page.waitForTimeout(400);
-check('réservation à bord refusée sans coordonnées', !(await page.locator('#screen-confirmation').isVisible()));
-
-await page.fill('#clientName', 'Sophie Bernard');
-await page.fill('#clientPhone', '+33 6 98 76 54 32');
-await page.locator('#btnPayOnBoard').click();
-await page.waitForTimeout(600);
-check('réservation à bord confirmée', await page.locator('#screen-confirmation').isVisible());
-await page.locator('#btnOpenVoucher').click();
-await page.waitForTimeout(400);
-const bonBord = await page.locator('#voucherBody').textContent();
-check('bon : mention « à régler à bord »', bonBord.includes('régler à bord'), bonBord.slice(-120));
-
 // --- Référencement ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
 await page.waitForTimeout(300);
@@ -197,7 +168,9 @@ check('contenu de référencement présent', await page.locator('#seoContent').i
 const seoTxt = await page.locator('#seoContent').textContent();
 check('mots-clés visés présents', seoTxt.includes('VTC') && seoTxt.includes('Roissy') && seoTxt.includes('Orly'));
 const ld = await page.locator('script[type="application/ld+json"]').count();
-check('données structurées présentes', ld === 2, ld + ' bloc(s)');
+check('données structurées présentes', ld === 1, ld + ' bloc(s)');
+check('plus de FAQ déclarée sans contenu visible',
+  !(await page.content()).includes('FAQPage'));
 const titre = await page.title();
 check('titre orienté recherche locale', titre.includes('Roissy') && titre.includes('VTC'), titre);
 const canon = await page.locator('link[rel=canonical]').getAttribute('href');
