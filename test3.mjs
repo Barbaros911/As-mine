@@ -28,15 +28,24 @@ async function pickAddress(field, text) {
 // --- Forfait aéroport avec numéro de vol ---
 await page.locator('.nav-item[data-target="screen-airports"]').click();
 await page.waitForTimeout(300);
+await page.locator('#airportChoice button').first().click();
+await page.waitForTimeout(300);
 check('champ numéro de vol présent', await page.locator('#flightNumber').isVisible());
 
 await pickAddress('#addressAirport', 'Neuilly');
 await page.fill('#dateAirport', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
 await page.waitForTimeout(300);
 await page.fill('#flightNumber', 'af1234');
-await page.selectOption('#terminalSelect-cdg', 'Terminal 2E');
-await page.locator('#airportCards .airport-chip').first().click();
-await page.waitForTimeout(600);
+await page.selectOption('#terminalSelect', 'Terminal 2E');
+await page.locator('#btnAirportSearch').click();
+await page.waitForTimeout(800);
+check('écran véhicules atteint avec tarifs forfaitaires', await page.locator('#screen-vehicles').isVisible());
+const tarifs = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
+check('forfait CDG : 56 € pour la berline', tarifs[0].includes('56'), tarifs.join(' | '));
+await page.locator('#vehicleCards .veh-card').first().click();
+await page.waitForTimeout(200);
+await page.locator('#btnToPayment').click();
+await page.waitForTimeout(500);
 
 check('écran paiement atteint', await page.locator('#screen-payment').isVisible());
 let recap = await page.locator('#tripSummary').textContent();
@@ -113,6 +122,44 @@ if (nbFav > 0) {
   check('raccourci accepté comme adresse valide', await page.locator('#screen-vehicles').isVisible(),
     await page.locator('#formError').textContent());
 }
+
+// --- Forfait détecté automatiquement depuis l'accueil ---
+await page.locator('.nav-item[data-target="screen-home"]').click();
+await page.waitForTimeout(300);
+await page.fill('#pickup', '');
+await page.type('#pickup', 'Argenteuil', { delay: 20 });
+await page.waitForTimeout(1500);
+await page.locator('#pickupList [role=option]').first().click();
+await page.fill('#dropoff', '');
+await page.type('#dropoff', 'cdg', { delay: 20 });
+await page.waitForTimeout(1800);
+const optCdg = await page.locator('#dropoffList [role=option]').count();
+check('terminaux CDG proposés à la saisie', optCdg > 0, optCdg + ' option(s)');
+await page.locator('#dropoffList [role=option]').first().click();
+await page.waitForTimeout(200);
+await page.fill('#dateSimple', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
+await page.waitForTimeout(200);
+await page.locator('#btnSearch').click();
+await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+const sousTitre = await page.locator('#vehiclesSub').textContent();
+check('adresse aéroport bascule sur le forfait', sousTitre.includes('Forfait'), sousTitre);
+const tarifsAuto = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
+check('prix forfaitaire appliqué, pas le kilométrique', tarifsAuto[0].includes('56'), tarifsAuto.join(' | '));
+
+// --- Trace des courses ---
+await page.locator('.nav-item[data-target="screen-home"]').click();
+await page.waitForTimeout(400);
+check('raccourci « Mes réservations » affiché', await page.locator('#btnMyBookings').isVisible());
+await page.locator('#btnMyBookings').click();
+await page.waitForTimeout(400);
+check('écran des réservations atteint', await page.locator('#screen-bookings').isVisible());
+const nbCourses = await page.locator('#bookingsList button').count();
+check('course passée listée', nbCourses > 0, nbCourses + ' course(s)');
+await page.locator('#bookingsList button').first().click();
+await page.waitForTimeout(400);
+check('le bon se rouvre depuis la liste',
+  (await page.locator('#screen-voucher').isVisible()) &&
+  (await page.locator('#voucherBody').textContent()).includes('ASM-'));
 
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
