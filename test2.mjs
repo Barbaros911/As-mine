@@ -97,7 +97,8 @@ await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(300);
 const cgv = await page.locator('#legalDocBody').textContent();
 check('CGV : 60 minutes d\'attente offertes', cgv.includes('60 minutes'));
-check('CGV : plus de mention des 45 minutes', !cgv.includes('45 minutes'));
+check('CGV : plus de promesse de remboursement intégral', !cgv.includes('intégralement remboursée'));
+check('CGV : conditions d\'annulation à compléter signalées', cgv.includes('à compléter'));
 
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
