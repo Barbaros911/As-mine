@@ -24,12 +24,12 @@ check('page chargée', await page.locator('#screen-home').isVisible());
 await page.selectOption('#langSelect', 'es');
 await page.waitForTimeout(300);
 check('langue ES appliquée', (await page.locator('h1').textContent()).includes('excelencia'));
-await page.locator('.nav-item[data-target="screen-faq"]').click();
+await page.locator('.nav-item[data-target="screen-qr"]').click();
 await page.waitForTimeout(200);
-const faqTxt = await page.locator('#screen-faq').textContent();
-check('FAQ traduite en ES (pas de repli FR)',
-  faqTxt.includes('Información legal') && !faqTxt.includes('Informations légales'),
-  faqTxt.slice(0, 60));
+const qrTxt = await page.locator('#screen-qr').textContent();
+check('écran QR traduit en ES (pas de repli FR)',
+  qrTxt.includes('Información legal') && !qrTxt.includes('Informations légales'),
+  qrTxt.slice(0, 60));
 
 // 3. Note de langue sur les documents juridiques
 await page.locator('.btn-legal[data-doc="cgv"]').click();
