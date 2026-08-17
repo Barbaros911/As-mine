@@ -118,6 +118,11 @@ await page.waitForTimeout(300);
 fact = await page.locator('#voucherBody').textContent();
 check('facture : le numéro ne change pas à la réouverture',
   (fact.match(/AS-\d{4}-\d{4}/)||[''])[0] === numero1, numero1);
+check('outils de facturation affichés', await page.locator('#invoiceTools').isVisible());
+check('rappel du poste unique', (await page.locator('#invoiceTools').textContent()).includes('depuis cet appareil'));
+const csv = await page.evaluate(() => registreFacturesCsv());
+check('registre CSV : en-tête', csv.startsWith('"Numero";"Date facture"'), csv.split('\r\n')[0].slice(0,40));
+check('registre CSV : la facture émise y figure', csv.includes(numero1));
 await page.locator('#tabVoucher').click();
 await page.waitForTimeout(200);
 
