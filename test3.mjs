@@ -161,6 +161,31 @@ check('le bon se rouvre depuis la liste',
   (await page.locator('#screen-voucher').isVisible()) &&
   (await page.locator('#voucherBody').textContent()).includes('ASM-'));
 
+// --- Réservation réglée au chauffeur ---
+await page.locator('.nav-item[data-target="screen-home"]').click();
+await page.waitForTimeout(300);
+await pickAddress('#pickup', 'Neuilly');
+await pickAddress('#dropoff', 'Versailles');
+await page.fill('#dateSimple', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
+await page.waitForTimeout(200);
+await page.locator('#btnSearch').click();
+await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+await page.locator('#vehicleCards .veh-card').first().click();
+await page.locator('#btnToPayment').click();
+await page.waitForTimeout(500);
+await page.locator('#btnPayOnBoard').click();
+await page.waitForTimeout(400);
+check('réservation refusée sans coordonnées', !(await page.locator('#screen-confirmation').isVisible()));
+await page.fill('#clientName', 'Sophie Bernard');
+await page.fill('#clientPhone', '+33 6 98 76 54 32');
+await page.locator('#btnPayOnBoard').click();
+await page.waitForTimeout(600);
+check('réservation confirmée', await page.locator('#screen-confirmation').isVisible());
+await page.locator('#btnOpenVoucher').click();
+await page.waitForTimeout(400);
+const bonBord = await page.locator('#voucherBody').textContent();
+check('bon : mention « à régler à bord »', bonBord.includes('régler à bord'), bonBord.slice(-100));
+
 // --- Référencement ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
 await page.waitForTimeout(300);
