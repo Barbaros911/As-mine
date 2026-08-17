@@ -57,7 +57,7 @@ check('bouton de réservation proposé', await page.locator('#btnPayOnBoard').is
 check('bouton mis en avant faute de paiement en ligne',
   (await page.locator('#btnPayOnBoard').getAttribute('class')).includes('gold-btn'));
 check('libellé « Confirmer ma réservation »',
-  (await page.locator('#payOnBoardLabel').textContent()).includes('Confirmer'));
+  (await page.locator('#btnPayOnBoard').textContent()).includes('Confirmer'));
 
 // Passagers : le récapitulatif suit
 await page.fill('#paxChildren', '2');
@@ -101,8 +101,9 @@ await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(300);
 const cgv = await page.locator('#legalDocBody').textContent();
 check('CGV : 60 minutes d\'attente offertes', cgv.includes('60 minutes'));
-check('CGV : plus de promesse de remboursement intégral', !cgv.includes('intégralement remboursée'));
-check('CGV : conditions d\'annulation à compléter signalées', cgv.includes('à compléter'));
+check('CGV : annulation sans frais au-delà de 60 minutes', cgv.includes('plus de 60 minutes') && cgv.includes('sans frais'));
+check('CGV : règlement au chauffeur, pas en ligne', cgv.includes('directement auprès du chauffeur'));
+check('CGV : plus aucune mention de PayPal', !cgv.includes('PayPal'));
 
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
