@@ -98,6 +98,29 @@ check('bon : mention d\'intermédiaire', bon.includes('met en relation'));
 check('bon : avertissement opérateur incomplet',
   await page.locator('#voucherIncomplete').isVisible());
 
+// --- Facture ---
+check('onglet facture proposé', await page.locator('#tabInvoice').isVisible());
+check('titre de l\'écran : bon', (await page.locator('#docTitle').textContent()).includes('Bon'));
+await page.locator('#tabInvoice').click();
+await page.waitForTimeout(400);
+let fact = await page.locator('#voucherBody').textContent();
+check('facture : numéro séquentiel', /AS-\d{4}-\d{4}/.test(fact), (fact.match(/AS-\d{4}-\d{4}/)||[''])[0]);
+check('facture : mention TVA 10%', fact.includes('TVA 10%'));
+check('titre de l\'écran : facture', (await page.locator('#docTitle').textContent()).includes('Facture'));
+check('facture : montants HT et TTC', fact.includes('Prix HT') && fact.includes('Prix total'));
+check('facture : émetteur manquant signalé', await page.locator('#voucherIncomplete').isVisible());
+const numero1 = (fact.match(/AS-\d{4}-\d{4}/)||[''])[0];
+// Rouvrir la facture ne doit pas consommer un nouveau numéro
+await page.locator('#tabVoucher').click();
+await page.waitForTimeout(200);
+await page.locator('#tabInvoice').click();
+await page.waitForTimeout(300);
+fact = await page.locator('#voucherBody').textContent();
+check('facture : le numéro ne change pas à la réouverture',
+  (fact.match(/AS-\d{4}-\d{4}/)||[''])[0] === numero1, numero1);
+await page.locator('#tabVoucher').click();
+await page.waitForTimeout(200);
+
 // --- Adresses enregistrées ---
 // Retour depuis le bon vers l'écran de confirmation
 await page.locator('#screen-voucher .btn-back').click();
