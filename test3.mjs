@@ -75,7 +75,7 @@ await page.fill('#passengerName', 'Paul Martin');
 await page.waitForTimeout(300);
 
 // --- Bon de réservation : on simule une réservation payée ---
-await page.evaluate(() => finalizeBooking('TEST-ORDER-123'));
+await page.evaluate(() => finalizeBooking());
 await page.waitForTimeout(500);
 check('écran de confirmation atteint', await page.locator('#screen-confirmation').isVisible());
 check('bouton email présent', await page.locator('#btnEmailSummary').isVisible());
@@ -92,8 +92,9 @@ check('bon : identité du client', bon.includes('Marie Durand'));
 check('bon : passager distinct', bon.includes('Paul Martin'));
 check('bon : trajet', bon.includes('Terminal 2E') && bon.includes('AF1234'));
 check('bon : prix TTC et TVA', bon.includes('TVA') && /€/.test(bon));
-check('bon : mode de paiement avec référence PayPal', bon.includes('TEST-ORDER-123'));
-check('bon : chauffeur à compléter signalé', bon.includes('Communiqué avant la prise en charge'));
+check('bon : règlement à bord', bon.includes('régler à bord'));
+check('bon : transporteur à compléter signalé', bon.includes('Communiqué avant la prise en charge'));
+check('bon : mention d\'intermédiaire', bon.includes('met en relation'));
 check('bon : avertissement opérateur incomplet',
   await page.locator('#voucherIncomplete').isVisible());
 

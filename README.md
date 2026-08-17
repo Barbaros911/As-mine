@@ -8,7 +8,7 @@ le service worker. Aucun serveur n'est nécessaire pour l'héberger.
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | Toute l'application : interface, styles, traductions, tarification, paiement |
+| `index.html` | Toute l'application : interface, styles, traductions, tarification |
 | `manifest.webmanifest` | Déclaration PWA (nom, couleurs, icônes) |
 | `icon.svg`, `icon-maskable.svg` | Icônes d'installation |
 | `sw.js` | Service worker : consultation hors ligne |
@@ -20,37 +20,31 @@ workflow `.github/workflows/pages.yml` : **https://barbaros911.github.io/As-mine
 
 Ces points ne sont pas des bugs : ce sont des informations ou des services
 extérieurs qui n'existent pas encore. Tant qu'ils ne sont pas réglés,
-l'application fonctionne mais **aucune réservation ne peut être payée**.
+le site fonctionne, mais les documents remis aux clients restent incomplets.
 
-### 0. Renseigner l'identité de l'opérateur — obligation légale
+### 0. Renseigner l'identité et les chauffeurs — obligation légale
 
-En haut d'`index.html`, l'objet `OPERATEUR` attend votre raison sociale, votre
-adresse, votre SIRET et votre **numéro d'inscription au registre VTC (EVTC)**.
-L'objet `CHAUFFEUR` attend le nom et le numéro de carte professionnelle du
-chauffeur affecté.
+En haut d'`index.html`, trois objets attendent vos informations :
 
-L'arrêté du 6 août 2025 impose de remettre au client un bon de réservation
-portant ces mentions. L'application le génère déjà (écran « Bon de
-réservation », imprimable ou enregistrable en PDF), mais **tant que ces champs
-sont vides le bon s'affiche comme incomplet** — c'est volontaire, pour que le
-manque soit visible.
+- **`EDITEUR`** — qui édite le site. Tout site commercial doit identifier son
+  éditeur (loi LCEN), même s'il n'est qu'un intermédiaire.
+- **`CHAUFFEURS`** — votre réseau. Chaque chauffeur exerce sous sa propre
+  licence : ce sont **son** SIRET, **son** numéro EVTC et **sa** carte
+  professionnelle qui figurent sur le bon de réservation, puisque c'est lui
+  qui exécute le transport.
+- **`AVIS`** — les avis clients. **N'y inscrivez que des avis réellement
+  reçus.** Publier de faux avis est une pratique commerciale trompeuse
+  (article L132-2 du Code de la consommation : jusqu'à 2 ans
+  d'emprisonnement et 300 000 € d'amende, portés à 10 % du chiffre
+  d'affaires). Tant que la liste est vide, la section reste invisible et
+  aucune note n'est déclarée à Google.
+
+Le bon de réservation distingue le **transporteur** (le chauffeur, avec ses
+références) et l'**intermédiaire** (le site). Tant que le chauffeur affecté
+n'est pas identifié, le bon s'affiche comme incomplet.
 
 Attention : le bon doit être **conservé 3 ans**. Un site statique ne peut pas
-le faire ; aujourd'hui seul le client détient son exemplaire. Cette
-conservation demande un serveur (voir le point 3).
-
-### 1. Activer PayPal — bloquant
-
-Dans `index.html`, remplacer :
-
-```js
-const PAYPAL_CLIENT_ID = "YOUR_PAYPAL_CLIENT_ID";
-```
-
-par l'identifiant obtenu sur [developer.paypal.com](https://developer.paypal.com)
-(compte Business gratuit → *My Apps & Credentials* → *Live*).
-Tant que cette ligne n'est pas modifiée, l'écran de paiement affiche
-« paiement non encore activé » — c'est volontaire, plutôt qu'un bouton mort.
+le faire ; aujourd'hui seul le client détient son exemplaire.
 
 ### 2. Compléter les mentions légales — obligation légale
 
@@ -60,16 +54,11 @@ de la consommation. La loi LCEN impose ces informations sur tout site
 commercial. Les trois documents (CGV, mentions légales, confidentialité) sont
 des modèles : **les faire relire par un juriste** avant la mise en ligne.
 
-### 3. Le prix est calculé dans le navigateur — risque financier
+### 3. Le prix affiché est calculé dans le navigateur
 
-`createOrder` envoie à PayPal le montant calculé côté client. Une personne
-techniquement avertie peut modifier ce montant dans les outils de développement
-et payer 1 € au lieu de 130 €.
-
-**Un site statique ne peut pas empêcher cela.** La correction demande un petit
-serveur qui recalcule le prix et crée la commande PayPal lui-même. Tant que ce
-serveur n'existe pas, il faut vérifier le montant réellement encaissé dans le
-tableau de bord PayPal avant d'envoyer un chauffeur.
+Une personne techniquement avertie peut modifier le prix affiché dans les
+outils de développement. Le risque est aujourd'hui limité, puisque le chauffeur
+encaisse lui-même et voit le montant sur le bon : c'est lui qui fait foi.
 
 Les codes promo sont dans le même cas : ils sont désormais stockés sous forme
 d'empreinte (on ne peut plus les lire dans le code source), mais ce n'est que
@@ -114,9 +103,9 @@ supplémentaire nécessaire) :
 
 ```bash
 npx http-server -p 8099 -s .
-node test.mjs      # interface, traductions, accessibilité, validations (17)
-node test2.mjs     # parcours complet de réservation (15)
-node test3.mjs     # bon de réservation, vol, passager tiers, adresses (26)
+node test.mjs      # interface, traductions, accessibilité, validations (20)
+node test2.mjs     # parcours complet de réservation, CGV (23)
+node test3.mjs     # bon, vol, passager tiers, adresses, référencement (46)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -126,7 +115,8 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
 
 ## Notes de fonctionnement
 
-- **Traductions** : 11 langues, toutes complètes pour l'interface. Les trois
+- **Traductions** : 6 langues (français, anglais, espagnol, portugais, arabe,
+  chinois), toutes complètes pour l'interface. Les trois
   documents juridiques restent en français et en anglais uniquement — un
   contrat mal traduit n'engage pas correctement. Un encart le signale aux
   clients dans les autres langues.
@@ -139,11 +129,11 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   ce qui est annoncé au client à l'écran.
 - **Répertoire client** : enregistré en `localStorage`, sur l'appareil
   uniquement. Il ne se synchronise pas entre téléphone et ordinateur.
-- **Après paiement** : l'application tente d'ouvrir WhatsApp automatiquement.
-  Safari sur iPhone bloque souvent cette ouverture ; l'écran de confirmation
-  propose donc un bouton de renvoi, une copie du récapitulatif et un envoi par
-  email. L'email ouvre l'application de messagerie du client : sans serveur,
-  aucun envoi automatique n'est possible.
+- **Transmission de la réservation** : c'est le point faible connu. La course
+  n'arrive au chauffeur que si le client envoie le message WhatsApp qui
+  s'ouvre après confirmation. L'écran de confirmation le dit explicitement et
+  propose un bouton de renvoi, une copie du récapitulatif et un envoi par
+  email. Une transmission réellement automatique demande un serveur.
 - **Adresses enregistrées** : les adresses réellement utilisées deviennent des
   raccourcis sous les champs départ et arrivée, sur l'appareil uniquement.
 - **Numéro de vol** : saisi sur l'écran aéroport, il est repris dans le
@@ -159,6 +149,7 @@ Comparaison faite avec les services de référence du chauffeur haut de gamme :
   Demande un serveur et la position du chauffeur.
 - **Aller-retour en une seule réservation**, fréquent sur les transferts
   aéroport ; aujourd'hui il faut réserver deux fois.
-- **Temps d'attente offert** : les CGV annoncent 45 minutes, la référence du
-  marché en offre 60 à l'aéroport. C'est une décision commerciale, pas
-  technique — à trancher par l'exploitant.
+- **Facture** : le bon de réservation n'est pas une facture. Le chauffeur doit
+  remettre au client une facture à son nom, avec un numéro séquentiel.
+- **Transmission automatique des réservations** vers votre téléphone, sans
+  dépendre du geste du client. Demande un serveur.
