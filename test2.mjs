@@ -52,8 +52,12 @@ check('écran paiement atteint', await page.locator('#screen-payment').isVisible
 const recap = await page.locator('#tripSummary').textContent();
 check('récapitulatif rempli', recap.includes('Argenteuil') && recap.includes('TVA'), recap.slice(0, 80));
 
-// PayPal non configuré → message honnête, pas un bouton mort
-check('message « paiement non activé » affiché', await page.locator('#paymentNotConfigured').isVisible());
+// Sans paiement en ligne, réserver avec règlement à bord est l'action principale
+check('bouton de réservation proposé', await page.locator('#btnPayOnBoard').isVisible());
+check('bouton mis en avant faute de paiement en ligne',
+  (await page.locator('#btnPayOnBoard').getAttribute('class')).includes('gold-btn'));
+check('libellé « Confirmer ma réservation »',
+  (await page.locator('#payOnBoardLabel').textContent()).includes('Confirmer'));
 
 // Passagers : le récapitulatif suit
 await page.fill('#paxChildren', '2');
