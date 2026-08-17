@@ -78,6 +78,8 @@ await page.waitForTimeout(300);
 await page.evaluate(() => finalizeBooking());
 await page.waitForTimeout(500);
 check('écran de confirmation atteint', await page.locator('#screen-confirmation').isVisible());
+check('le client voit « Demande envoyée », pas une réservation ferme',
+  (await page.locator('#screen-confirmation h2').textContent()).includes('Demande'));
 check('bouton email présent', await page.locator('#btnEmailSummary').isVisible());
 const mailto = await page.locator('#btnEmailSummary').getAttribute('href');
 check('lien email correctement formé', mailto.startsWith('mailto:') && mailto.includes('ASM-'), mailto.slice(0, 60));
@@ -93,8 +95,18 @@ check('bon : passager distinct', bon.includes('Paul Martin'));
 check('bon : trajet', bon.includes('Terminal 2E') && bon.includes('AF1234'));
 check('bon : prix TTC et TVA', bon.includes('TVA') && /€/.test(bon));
 check('bon : règlement à bord', bon.includes('régler à bord'));
-check('bon : transporteur à compléter signalé', bon.includes('Communiqué avant la prise en charge'));
 check('bon : mention d\'intermédiaire', bon.includes('met en relation'));
+check('bon : aucune information chauffeur', !bon.includes('N° carte pro.'));
+check('bon : en attente de confirmation', bon.includes('En attente de confirmation'));
+
+// L'exploitant confirme la course
+check('bouton de confirmation proposé', await page.locator('#btnConfirmRide').isVisible());
+await page.locator('#btnConfirmRide').click();
+await page.waitForTimeout(400);
+const bonConf = await page.locator('#voucherBody').textContent();
+check('bon : course confirmée après validation', bonConf.includes('Course confirmée'));
+check('bouton bascule sur annulation',
+  (await page.locator('#btnConfirmRide').textContent()).includes('Annuler'));
 check('bon : avertissement opérateur incomplet',
   await page.locator('#voucherIncomplete').isVisible());
 
@@ -109,6 +121,8 @@ check('facture : mention TVA 10%', fact.includes('TVA 10%'));
 check('titre de l\'écran : facture', (await page.locator('#docTitle').textContent()).includes('Facture'));
 check('facture : montants HT et TTC', fact.includes('Prix HT') && fact.includes('Prix total'));
 check('facture : émetteur manquant signalé', await page.locator('#voucherIncomplete').isVisible());
+check('facture : le chauffeur y figure, contrairement au bon',
+  fact.includes('Émetteur') || fact.includes('émetteur'));
 const numero1 = (fact.match(/AS-\d{4}-\d{4}/)||[''])[0];
 // Rouvrir la facture ne doit pas consommer un nouveau numéro
 await page.locator('#tabVoucher').click();
