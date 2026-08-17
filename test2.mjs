@@ -96,7 +96,7 @@ await page.locator('.nav-item[data-target="screen-qr"]').click();
 await page.waitForTimeout(400);
 check('écran QR accessible', await page.locator('#screen-qr').isVisible());
 check('code QR généré', (await page.locator('#qrImg').getAttribute('src')).includes('qrserver'));
-check('trois documents légaux présents', (await page.locator('.btn-legal').count()) === 3);
+check('quatre documents légaux présents', (await page.locator('.btn-legal').count()) === 4);
 await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(300);
 const cgv = await page.locator('#legalDocBody').textContent();
