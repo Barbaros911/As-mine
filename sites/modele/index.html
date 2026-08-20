@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modèle de site</title>
+<meta name="description" content="Point de départ pour un nouveau site, à copier et modifier.">
+<!-- Ce dossier est un site indépendant. Il ne partage rien avec As-mine :
+     copiez-le, renommez-le, et modifiez librement ce fichier.
+     Gardez toutes les ressources (images, styles) dans ce dossier, appelées
+     en chemin relatif : ./photo.jpg — jamais /photo.jpg -->
+<style>
+  :root{
+    --fond:#ffffff; --texte:#16181d; --doux:#5b6270;
+    --trait:#e4e7ec; --accent:#1f5eff; --carte:#f7f8fa;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --fond:#101216; --texte:#f2f4f7; --doux:#a0a7b4;
+      --trait:#262a32; --accent:#7fa2ff; --carte:#181b21;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--fond); color:var(--texte);
+    font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .page{max-width:44rem; margin:0 auto; padding:4rem 1.25rem 5rem}
+  h1{font-size:clamp(1.9rem,6vw,2.75rem); line-height:1.15; letter-spacing:-.02em; margin:0 0 .6rem}
+  .chapeau{color:var(--doux); font-size:1.075rem; margin:0 0 2.5rem}
+  h2{font-size:1.2rem; margin:2.5rem 0 .75rem; letter-spacing:-.01em}
+  p{margin:0 0 1rem}
+  .carte{
+    background:var(--carte); border:1px solid var(--trait);
+    border-radius:12px; padding:1.25rem 1.4rem; margin:0 0 1rem;
+  }
+  code{
+    background:var(--carte); border:1px solid var(--trait);
+    border-radius:5px; padding:.12em .4em; font-size:.9em;
+  }
+  a{color:var(--accent)}
+  footer{
+    margin-top:3.5rem; padding-top:1.5rem; border-top:1px solid var(--trait);
+    color:var(--doux); font-size:.9rem;
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <h1>Modèle de site</h1>
+  <p class="chapeau">
+    Cette page est un point de départ vide. Copiez le dossier qui la contient,
+    renommez-le, et remplacez ce contenu par le vôtre.
+  </p>
+
+  <h2>Créer votre site à partir de celui-ci</h2>
+  <div class="carte">
+    <p>
+      Dupliquez <code>sites/modele/</code> sous le nom de votre choix, par
+      exemple <code>sites/mon-site/</code>. Il sera publié à l'adresse
+      <code>…/As-mine/mon-site/</code> dès le prochain envoi sur
+      <code>main</code>.
+    </p>
+    <p style="margin:0">
+      Les images et les fichiers que vous ajoutez doivent rester dans ce
+      dossier et être appelés en chemin relatif — <code>./photo.jpg</code> —
+      pour que le site reste autonome.
+    </p>
+  </div>
+
+  <h2>As-mine n'est pas concernée</h2>
+  <p>
+    L'application de réservation vit à la racine du dépôt et garde son adresse.
+    Ajouter, modifier ou supprimer un site dans <code>sites/</code> ne la
+    touche jamais.
+  </p>
+
+  <footer>
+    Modèle — remplacez ce pied de page par vos mentions.
+  </footer>
+
+</main>
+</body>
+</html>

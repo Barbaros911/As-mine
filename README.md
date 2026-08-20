@@ -16,6 +16,32 @@ le service worker. Aucun serveur n'est nécessaire pour l'héberger.
 Le site est publié automatiquement à chaque modification de `main`, par le
 workflow `.github/workflows/pages.yml` : **https://barbaros911.github.io/As-mine/**
 
+## Ajouter d'autres sites, sans toucher à As-mine
+
+As-mine occupe la racine du dépôt et garde son adresse. Pour publier un autre
+site à côté d'elle, il suffit de créer un dossier dans `sites/` :
+
+| Dossier | Adresse publiée |
+|---|---|
+| *(racine)* | `.../As-mine/` — As-mine |
+| `sites/modele/` | `.../As-mine/modele/` |
+| `sites/mon-site/` | `.../As-mine/mon-site/` |
+
+Le plus simple est de copier `sites/modele/`, de renommer la copie et de
+modifier son `index.html`. Chaque site est autonome : ses fichiers restent
+dans son dossier et s'appellent en chemin relatif (`./photo.jpg`).
+
+Trois garde-fous protègent As-mine :
+
+- la racine est copiée **avant** les sites, donc aucun site ne peut l'écraser ;
+- un dossier qui porterait le nom d'un fichier d'As-mine (`index.html`,
+  `sw.js`…) fait échouer la publication au lieu de passer en silence ;
+- le service worker d'As-mine ignore les autres sites : il ne met pas leurs
+  pages en cache et ne leur substitue jamais la sienne hors ligne.
+
+Supprimer un dossier de `sites/` retire ce seul site. Détails dans
+[`sites/README.md`](sites/README.md).
+
 ## À faire avant une mise en ligne commerciale
 
 Ces points ne sont pas des bugs : ce sont des informations ou des services

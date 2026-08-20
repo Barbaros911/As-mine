@@ -41,6 +41,27 @@ jobs:
           # Empêche Jekyll de réinterpréter les fichiers
           touch site/.nojekyll
 
+      - name: Ajouter les autres sites
+        run: |
+          # Chaque dossier de « sites/ » devient un site indépendant, publié à
+          # l'adresse .../As-mine/<nom>/. La racine — As-mine — est copiée
+          # avant, et rien ici ne peut l'écraser : un dossier portant le nom
+          # d'un de ses fichiers fait échouer la publication.
+          [ -d sites ] || exit 0
+          reserves="index.html manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml"
+          for dossier in sites/*/; do
+            [ -d "$dossier" ] || continue
+            nom=$(basename "$dossier")
+            for reserve in $reserves; do
+              if [ "$nom" = "$reserve" ]; then
+                echo "::error::Le dossier sites/$nom porte le nom d'un fichier d'As-mine. Renommez-le : il écraserait le site principal."
+                exit 1
+              fi
+            done
+            echo "Publication du site « $nom » sur /$nom/"
+            cp -r "$dossier" "site/$nom"
+          done
+
       - name: Téléverser le site
         uses: actions/upload-pages-artifact@v3
         with:

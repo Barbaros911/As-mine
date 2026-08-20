@@ -12,6 +12,20 @@
    — Les appels d'API (adresses, itinéraire, PayPal, QR) ne sont JAMAIS mis
      en cache : un tarif ou un paiement doit toujours partir en direct.
    ===================================================================== */
+/* Racine d'As-mine (« /As-mine/ » en ligne). Le service worker est enregistré
+   à cette adresse : il contrôle donc aussi les sites voisins publiés dans des
+   sous-dossiers. Il doit les laisser passer, sans les mettre en cache ni leur
+   servir la page d'As-mine hors ligne. */
+const BASE = new URL("./", self.location).pathname;
+
+/* Vrai si la requête vise un site voisin plutôt qu'As-mine elle-même :
+   même origine, sous la racine, mais dans un sous-dossier. */
+function siteVoisin(url) {
+  if (url.origin !== self.location.origin) return false;
+  if (!url.pathname.startsWith(BASE)) return false;
+  return url.pathname.slice(BASE.length).includes("/");
+}
+
 const CACHE = "asmine-v1";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"];
 
@@ -47,6 +61,7 @@ self.addEventListener("fetch", (event) => {
   try { url = new URL(req.url); } catch (e) { return; }
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
   if (NO_CACHE_HOSTS.includes(url.hostname)) return; // laissé au réseau, sans interception
+  if (siteVoisin(url)) return; // un autre site du dépôt : ne lui appartient pas
 
   // Document HTML : réseau d'abord, cache en secours (hors ligne)
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
