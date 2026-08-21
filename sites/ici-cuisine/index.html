@@ -2,425 +2,1266 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ici Cuisine — Votre coin de cuisine | Liège</title>
-<meta name="description" content="Cuisines équipées d'occasion, livrées et installées à Liège.">
-<!-- Maquette de présentation : on demande aux moteurs de recherche de
-     l'ignorer, pour qu'elle n'apparaisse pas dans Google à la place du vrai
-     site du client. Retirer cette ligne le jour de la mise en ligne réelle. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Ici Cuisine — Cuisines d'occasion livrées et installées | Liège</title>
+<meta name="description" content="Cuisines équipées d'occasion, contrôlées, livrées et installées à Liège et en province. Jusqu'à -70 % du prix neuf. Rue du Moulin 320, Bressoux.">
+
+<!-- =====================================================================
+     MAQUETTE DE PRÉSENTATION
+     Tant que le client n'a pas validé, on demande aux moteurs de recherche
+     d'ignorer cette page : elle contient de vraies coordonnées et ne doit
+     pas sortir dans Google à la place du site officiel.
+     >>> LE JOUR DE LA MISE EN LIGNE : supprimer la ligne « robots »
+         ci-dessous, et remplacer l'adresse « canonical » par le vrai domaine.
+     ===================================================================== -->
 <meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://barbaros911.github.io/As-mine/ici-cuisine/">
+
+<!-- Partage sur Facebook et Messenger : c'est de là que vient le trafic. -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_BE">
+<meta property="og:site_name" content="Ici Cuisine">
+<meta property="og:title" content="Ici Cuisine — Cuisines d'occasion livrées et installées">
+<meta property="og:description" content="Des cuisines équipées complètes, contrôlées, livrées et posées chez vous. Liège et province.">
+<meta property="og:url" content="https://barbaros911.github.io/As-mine/ici-cuisine/">
+<meta property="og:image" content="https://barbaros911.github.io/As-mine/ici-cuisine/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#D0121B">
+
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --red:#D6202B;
-    --red-dark:#A9161F;
-    --black:#0E0E0E;
-    --white:#FFFFFF;
-    --grey:#F3F1EC;
-    --grey-mid:#8A857C;
-    --line: rgba(14,14,14,0.12);
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:var(--white);
-    color:var(--black);
-    font-family:'Inter', sans-serif;
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-  }
-  h1,h2,h3{font-family:'Poppins', sans-serif; font-weight:800; line-height:1.08;}
-  .label{
-    font-family:'Archivo', sans-serif; font-weight:700;
-    text-transform:uppercase; letter-spacing:0.14em; font-size:0.72rem;
-  }
-  a{color:inherit; text-decoration:none;}
-  .wrap{max-width:1140px; margin:0 auto; padding:0 28px;}
+/* =====================================================================
+   ICI CUISINE — feuille de style unique
+   Couleurs reprises du logo : rouge, noir, blanc cassé.
+   Le motif de flèche descendante du logo sert de séparateur de section.
+   ===================================================================== */
+:root{
+  --rouge:#D0121B;
+  --rouge-fonce:#9E0D14;
+  --noir:#111111;
+  --encre:#3A3A3A;
+  --gris:#726C64;
+  --creme:#F5F3EF;
+  --blanc:#FFFFFF;
+  --trait:rgba(17,17,17,.12);
+  --ombre:0 1px 2px rgba(17,17,17,.05), 0 8px 24px rgba(17,17,17,.07);
+  --rayon:4px;
+  --large:1180px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth; scroll-padding-top:84px;}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+}
+body{
+  background:var(--blanc); color:var(--encre);
+  font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Poppins',system-ui,sans-serif; color:var(--noir); line-height:1.12; letter-spacing:-.015em;}
+h1{font-weight:800; font-size:clamp(2.1rem,5.2vw,3.5rem);}
+h2{font-weight:800; font-size:clamp(1.65rem,3.6vw,2.35rem);}
+h3{font-weight:700; font-size:1.08rem; letter-spacing:-.005em;}
+p{color:var(--encre);}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+:focus-visible{outline:3px solid var(--rouge); outline-offset:3px;}
 
-  /* chevron signature — echoes the logo's red arrow under the cabinet drawing */
-  .chevron{
-    width:0; height:0;
-    border-left:14px solid transparent;
-    border-right:14px solid transparent;
-    border-top:14px solid var(--red);
-    display:inline-block;
-  }
-  .chevron-row{display:flex; gap:6px; align-items:center;}
-  .chevron-divider{
-    height:26px; width:100%;
-    background:
-      linear-gradient(135deg, transparent 49%, var(--red) 50%) 0 0/26px 26px repeat-x;
-  }
+.wrap{max-width:var(--large); margin:0 auto; padding:0 24px;}
+.section{padding:clamp(56px,7vw,92px) 0;}
+.section--creme{background:var(--creme);}
+.section--noir{background:var(--noir); color:#DAD6D0;}
+.section--noir h2,.section--noir h3{color:var(--blanc);}
+.section--noir p{color:#B8B3AC;}
 
-  /* NAV */
-  header.site{
-    position:sticky; top:0; z-index:50;
-    background:var(--white);
-    border-bottom:3px solid var(--black);
-  }
-  .nav{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 28px; max-width:1140px; margin:0 auto;
-  }
-  .logo{
-    display:flex; align-items:center; gap:10px;
-    font-family:'Archivo', sans-serif; font-weight:800; font-size:1.3rem;
-    letter-spacing:0.05em; text-transform:uppercase;
-  }
-  .logo .ici{color:var(--red);}
-  .navlinks{display:flex; gap:30px; font-family:'Archivo', sans-serif; font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em;}
-  .navlinks a{border-bottom:2px solid transparent; padding-bottom:3px; transition:border-color .2s;}
-  .navlinks a:hover{border-color:var(--red);}
-  .nav-cta{
-    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;
-    background:var(--black); color:var(--white); padding:11px 20px;
-  }
-  .nav-cta:hover{background:var(--red);}
+.kicker{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.16em; color:var(--rouge);
+  display:flex; align-items:center; gap:10px; margin-bottom:14px;
+}
+.kicker::before{content:""; width:22px; height:2px; background:var(--rouge); flex-shrink:0;}
+.tete{max-width:640px; margin-bottom:clamp(32px,4vw,52px);}
+.tete p{margin-top:14px; font-size:1.05rem; color:var(--gris);}
+.section--noir .tete p{color:#B8B3AC;}
 
-  /* HERO */
-  .hero{
-    background:var(--black); color:var(--white);
-    padding:64px 0 0; position:relative; overflow:hidden;
-  }
-  .hero-inner{
-    display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center;
-    padding-bottom:56px;
-  }
-  .tagline-tag{
-    display:inline-flex; align-items:center; gap:8px;
-    background:var(--red); color:var(--white);
-    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.72rem;
-    text-transform:uppercase; letter-spacing:0.1em;
-    padding:7px 14px; margin-bottom:24px;
-  }
-  .hero h1{
-    font-size:clamp(2.3rem,5vw,3.4rem); color:var(--white); margin-bottom:20px;
-  }
-  .hero h1 .accent{color:var(--red);}
-  .hero p.lead{
-    font-size:1.06rem; color:#cfcac2; max-width:42ch; margin-bottom:30px;
-  }
-  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
-  .btn{
-    display:inline-block; padding:14px 26px;
-    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.82rem;
-    text-transform:uppercase; letter-spacing:0.05em;
-    transition:transform .15s ease, background .2s, color .2s;
-  }
-  .btn-primary{background:var(--red); color:var(--white);}
-  .btn-primary:hover{background:var(--white); color:var(--black); transform:translateY(-2px);}
-  .btn-ghost{border:1.5px solid rgba(255,255,255,0.4); color:var(--white);}
-  .btn-ghost:hover{border-color:var(--red); color:var(--red);}
+/* ---------- boutons ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.82rem;
+  text-transform:uppercase; letter-spacing:.06em;
+  padding:15px 26px; border:2px solid transparent; border-radius:var(--rayon);
+  cursor:pointer; transition:background .18s, color .18s, border-color .18s, transform .12s;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn--rouge{background:var(--rouge); color:var(--blanc);}
+.btn--rouge:hover{background:var(--rouge-fonce);}
+.btn--noir{background:var(--noir); color:var(--blanc);}
+.btn--noir:hover{background:var(--rouge);}
+.btn--ligne{border-color:var(--noir); color:var(--noir);}
+.btn--ligne:hover{background:var(--noir); color:var(--blanc);}
+.btn--clair{border-color:rgba(255,255,255,.45); color:var(--blanc);}
+.btn--clair:hover{background:var(--blanc); color:var(--noir); border-color:var(--blanc);}
+.btn--vert{background:#1FA855; color:var(--blanc);}
+.btn--vert:hover{background:#17853F;}
+.btn svg{width:17px; height:17px; flex-shrink:0;}
 
-  /* hero graphic block */
-  .hero-graphic{
-    position:relative; aspect-ratio:1/0.95;
-    background:var(--white); border:3px solid var(--white);
+/* ---------- en-tête ---------- */
+.entete{
+  position:sticky; top:0; z-index:60; background:var(--blanc);
+  border-bottom:1px solid var(--trait);
+}
+.entete__barre{
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  max-width:var(--large); margin:0 auto; padding:12px 24px;
+}
+.logo{display:flex; align-items:center; gap:11px;}
+.logo__mot{display:flex; flex-direction:column; line-height:1;}
+.logo__nom{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:800; font-size:1.16rem;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--noir);
+}
+.logo__nom span{color:var(--rouge);}
+.logo__sous{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:600; font-size:.52rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--gris); margin-top:4px;
+}
+.menu{display:flex; gap:26px; font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.76rem; text-transform:uppercase; letter-spacing:.07em;}
+.menu a{padding:6px 0; border-bottom:2px solid transparent; color:var(--noir); white-space:nowrap; transition:border-color .18s, color .18s;}
+.menu a:hover{border-color:var(--rouge); color:var(--rouge);}
+.entete__actions{display:flex; align-items:center; gap:10px;}
+.tel-entete{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.86rem;
+  color:var(--noir); letter-spacing:.02em; white-space:nowrap;
+}
+.tel-entete:hover{color:var(--rouge);}
+.burger{
+  display:none; background:none; border:1.5px solid var(--trait); border-radius:var(--rayon);
+  padding:9px 11px; cursor:pointer;
+}
+.burger span{display:block; width:19px; height:2px; background:var(--noir); margin:4px 0;}
+
+/* ---------- flèche du logo, en séparateur ---------- */
+.fleches{
+  height:20px;
+  background:linear-gradient(135deg,transparent 49.5%,var(--rouge) 50%) 0 0/20px 20px repeat-x;
+}
+.fleches--claires{background:linear-gradient(135deg,transparent 49.5%,var(--creme) 50%) 0 0/20px 20px repeat-x;}
+
+/* ---------- accroche ---------- */
+.accroche{background:var(--noir); color:var(--blanc); position:relative; overflow:hidden;}
+.accroche::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(62% 78% at 78% 8%, rgba(208,18,27,.30), transparent 62%);
+  pointer-events:none;
+}
+.accroche__grille{
+  position:relative; display:grid; grid-template-columns:1.08fr .92fr;
+  gap:clamp(28px,4vw,56px); align-items:center;
+  padding:clamp(48px,6vw,78px) 0 clamp(44px,5vw,66px);
+}
+.etiquette{
+  display:inline-flex; align-items:center; gap:8px; background:var(--rouge); color:var(--blanc);
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.7rem;
+  text-transform:uppercase; letter-spacing:.13em; padding:8px 15px; margin-bottom:22px;
+}
+.accroche h1{color:var(--blanc);}
+.accroche h1 em{font-style:normal; color:var(--rouge);}
+.accroche__texte{font-size:1.08rem; color:#C9C4BD; max-width:46ch; margin:20px 0 30px;}
+.accroche__ctas{display:flex; gap:12px; flex-wrap:wrap;}
+.accroche__preuve{
+  display:flex; flex-wrap:wrap; gap:10px 30px; margin-top:32px;
+  padding-top:24px; border-top:1px solid rgba(255,255,255,.16);
+}
+.preuve{display:flex; align-items:center; gap:9px; font-size:.88rem; color:#C9C4BD;}
+.preuve svg{width:17px; height:17px; color:var(--rouge); flex-shrink:0;}
+
+/* dessin du logo, repris en illustration */
+.vitrine{background:var(--blanc); padding:26px; box-shadow:var(--ombre);}
+.vitrine__cadre{border:1.5px solid var(--noir); padding:26px 20px 20px; text-align:center;}
+.vitrine__titre{
+  font-family:'Poppins',sans-serif; font-weight:700; font-size:1.24rem;
+  color:var(--noir); margin-bottom:16px; letter-spacing:-.01em;
+}
+.vitrine svg{width:100%; height:auto; max-height:190px;}
+.vitrine__pied{
+  margin-top:14px; padding-top:12px; border-top:1px solid var(--trait);
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.6rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--gris);
+}
+
+/* ---------- bandeau de confiance ---------- */
+.bandeau{background:var(--rouge); color:var(--blanc);}
+.bandeau__grille{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  background:rgba(255,255,255,.22);
+}
+.bandeau__case{background:var(--rouge); padding:22px 20px; text-align:center;}
+.bandeau__chiffre{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:800; font-size:1.5rem;
+  letter-spacing:-.01em; display:block;
+}
+.bandeau__mot{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:600; font-size:.68rem;
+  text-transform:uppercase; letter-spacing:.11em; opacity:.9; margin-top:3px; display:block;
+}
+
+/* ---------- étapes ---------- */
+.etapes{display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-top:2px solid var(--noir);}
+.etape{padding:28px 26px 28px 0; border-right:1px solid var(--trait);}
+.etape:last-child{border-right:none; padding-right:0;}
+.etape__num{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:800; font-size:2.1rem;
+  color:var(--rouge); line-height:1; margin-bottom:10px;
+}
+.etape p{font-size:.94rem; color:var(--gris); margin-top:7px;}
+
+/* ---------- stock ---------- */
+.filtres{display:flex; flex-wrap:wrap; gap:9px; margin-bottom:28px;}
+.filtre{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.73rem;
+  text-transform:uppercase; letter-spacing:.06em;
+  padding:10px 17px; border:1.5px solid var(--trait); background:var(--blanc);
+  color:var(--noir); border-radius:var(--rayon); cursor:pointer;
+  transition:background .16s, color .16s, border-color .16s;
+}
+.filtre:hover{border-color:var(--noir);}
+.filtre[aria-pressed="true"]{background:var(--noir); color:var(--blanc); border-color:var(--noir);}
+.stock{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+.cuisine{
+  background:var(--blanc); border:1px solid var(--trait); border-radius:var(--rayon);
+  overflow:hidden; display:flex; flex-direction:column;
+  transition:box-shadow .2s, transform .2s;
+}
+.cuisine:hover{box-shadow:var(--ombre); transform:translateY(-3px);}
+.cuisine[hidden]{display:none;}
+/* Remplacer ce bloc par : <img src="./photos/nom.jpg" alt="..." loading="lazy" width="800" height="600"> */
+.cuisine__photo{
+  aspect-ratio:4/3; position:relative; display:flex; align-items:center; justify-content:center;
+  background:
+    repeating-linear-gradient(135deg, rgba(17,17,17,.055) 0 2px, transparent 2px 13px),
+    var(--creme);
+  border-bottom:1px solid var(--trait);
+}
+.cuisine__photo span{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.63rem;
+  letter-spacing:.16em; text-transform:uppercase; color:#A8A199; text-align:center; padding:0 20px;
+}
+.statut{
+  position:absolute; top:0; left:0;
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.62rem;
+  letter-spacing:.1em; text-transform:uppercase; padding:7px 13px;
+  background:var(--rouge); color:var(--blanc);
+}
+.statut--vendue{background:var(--noir);}
+.cuisine__corps{padding:19px 20px 20px; display:flex; flex-direction:column; flex:1;}
+.cuisine__ref{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:600; font-size:.63rem;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--gris); margin-bottom:7px;
+}
+.cuisine__specs{list-style:none; margin:12px 0 16px; font-size:.88rem; color:var(--gris);}
+.cuisine__specs li{display:flex; gap:9px; padding:4px 0;}
+.cuisine__specs li::before{content:"—"; color:var(--rouge); flex-shrink:0;}
+.cuisine__prix{
+  margin-top:auto; padding-top:14px; border-top:1px dashed var(--trait);
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+}
+.prix{font-family:'Archivo',system-ui,sans-serif; font-weight:800; font-size:1.32rem; color:var(--noir);}
+.prix small{font-family:'Inter',sans-serif; font-weight:400; font-size:.7rem; color:var(--gris); display:block; letter-spacing:0;}
+.cuisine__lien{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.06em; color:var(--rouge);
+  border-bottom:2px solid transparent; padding-bottom:2px;
+}
+.cuisine__lien:hover{border-color:var(--rouge);}
+.stock__note{
+  margin-top:26px; padding:18px 22px; background:var(--creme);
+  border-left:3px solid var(--rouge); font-size:.9rem; color:var(--gris);
+}
+
+/* ---------- vendre sa cuisine ---------- */
+.vendre{display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,4vw,56px); align-items:start;}
+.critères{list-style:none; margin:22px 0 0;}
+.critères li{
+  display:flex; gap:12px; padding:12px 0; border-top:1px solid rgba(255,255,255,.14); font-size:.96rem;
+}
+.critères li:first-child{border-top:none;}
+.critères svg{width:18px; height:18px; color:var(--rouge); flex-shrink:0; margin-top:3px;}
+.encart{background:#1B1B1B; border-top:3px solid var(--rouge); padding:30px;}
+.encart h3{margin-bottom:12px;}
+.encart p{font-size:.95rem; margin-bottom:20px;}
+.encart .btn{width:100%;}
+.encart__etapes{list-style:none; counter-reset:e; margin:0 0 22px;}
+.encart__etapes li{
+  counter-increment:e; position:relative; padding-left:34px; padding-bottom:14px; font-size:.93rem; color:#B8B3AC;
+}
+.encart__etapes li::before{
+  content:counter(e); position:absolute; left:0; top:1px;
+  width:22px; height:22px; border-radius:50%; background:var(--rouge); color:var(--blanc);
+  font-family:'Archivo',system-ui,sans-serif; font-weight:800; font-size:.7rem;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ---------- comparaison ---------- */
+.face{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--trait); border:1px solid var(--trait);}
+.face > div{background:var(--blanc); padding:30px 28px;}
+.face__nous{background:var(--creme); border-top:3px solid var(--rouge);}
+.face h3{margin-bottom:16px;}
+.face ul{list-style:none;}
+.face li{display:flex; gap:11px; padding:10px 0; border-top:1px solid var(--trait); font-size:.94rem;}
+.face li:first-child{border-top:none;}
+.face .signe{font-family:'Archivo',system-ui,sans-serif; font-weight:800; flex-shrink:0; width:14px;}
+.face__nous .signe{color:var(--rouge);}
+.face__eux .signe{color:#B4AEA6;}
+.face__eux li{color:var(--gris);}
+
+/* ---------- zone ---------- */
+.zone{display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,4vw,52px); align-items:center;}
+.communes{display:flex; flex-wrap:wrap; gap:8px; margin-top:22px;}
+.commune{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:600; font-size:.74rem;
+  letter-spacing:.05em; padding:8px 14px; background:var(--blanc);
+  border:1px solid var(--trait); border-radius:var(--rayon); color:var(--noir);
+}
+.tarifs{background:var(--blanc); border:1px solid var(--trait); padding:28px;}
+.tarifs h3{margin-bottom:16px;}
+.tarif{display:flex; justify-content:space-between; gap:14px; padding:13px 0; border-top:1px solid var(--trait); font-size:.94rem;}
+.tarif:first-of-type{border-top:none;}
+.tarif b{font-family:'Archivo',system-ui,sans-serif; font-weight:700; color:var(--noir); white-space:nowrap;}
+.tarifs__note{margin-top:16px; font-size:.82rem; color:var(--gris);}
+
+/* ---------- avis ---------- */
+.avis-grille{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+.avis{border-left:3px solid var(--rouge); padding-left:20px;}
+.avis__note{display:flex; gap:3px; margin-bottom:11px; color:var(--rouge);}
+.avis__note svg{width:15px; height:15px;}
+.avis blockquote{font-size:1rem; font-style:italic; color:#DAD6D0; margin-bottom:12px;}
+.avis__qui{font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.7rem; text-transform:uppercase; letter-spacing:.09em; color:var(--rouge);}
+.avis-avert{
+  margin-top:36px; padding:16px 20px; border:1px dashed rgba(255,255,255,.28);
+  font-size:.82rem; color:#9A948C; text-align:center;
+}
+
+/* ---------- questions ---------- */
+.questions{max-width:820px;}
+.question{border-bottom:1px solid var(--trait);}
+.question summary{
+  list-style:none; cursor:pointer; padding:19px 40px 19px 0; position:relative;
+  font-family:'Poppins',sans-serif; font-weight:600; font-size:1rem; color:var(--noir);
+}
+.question summary::-webkit-details-marker{display:none;}
+.question summary::after{
+  content:""; position:absolute; right:8px; top:26px;
+  width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent;
+  border-top:7px solid var(--rouge); transition:transform .2s;
+}
+.question[open] summary::after{transform:rotate(180deg);}
+.question summary:hover{color:var(--rouge);}
+.question__corps{padding:0 40px 20px 0; font-size:.96rem; color:var(--gris);}
+
+/* ---------- contact ---------- */
+.contact{display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(30px,4vw,56px); align-items:start;}
+.fiche{display:flex; gap:16px; padding:17px 0; border-top:1px solid var(--trait);}
+.fiche:last-of-type{border-bottom:1px solid var(--trait);}
+.fiche__clef{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.7rem;
+  text-transform:uppercase; letter-spacing:.09em; color:var(--rouge);
+  width:104px; flex-shrink:0; padding-top:3px;
+}
+.fiche__valeur{font-size:.98rem;}
+.fiche__valeur a{border-bottom:1px solid var(--trait);}
+.fiche__valeur a:hover{color:var(--rouge); border-color:var(--rouge);}
+.contact__ctas{display:flex; gap:11px; flex-wrap:wrap; margin-top:26px;}
+.carte-contact{background:var(--noir); color:var(--blanc); padding:32px;}
+.carte-contact h3{color:var(--blanc); margin-bottom:12px;}
+.carte-contact p{color:#B8B3AC; font-size:.95rem; margin-bottom:22px;}
+.carte-contact .btn{width:100%; margin-bottom:10px;}
+.carte-contact .btn:last-child{margin-bottom:0;}
+
+/* ---------- pied ---------- */
+.pied{background:var(--noir); color:#8D8880; padding:44px 0 26px;}
+.pied__haut{display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:32px; padding-bottom:28px; border-bottom:1px solid rgba(255,255,255,.12);}
+.pied h4{
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.12em; color:var(--blanc); margin-bottom:14px;
+}
+.pied p, .pied li{font-size:.88rem; line-height:1.85;}
+.pied ul{list-style:none;}
+.pied a:hover{color:var(--rouge);}
+.pied__bas{
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-top:20px;
+  font-family:'Archivo',system-ui,sans-serif; font-weight:600; font-size:.68rem;
+  text-transform:uppercase; letter-spacing:.09em;
+}
+.pied__logo .logo__nom{color:var(--blanc); font-size:1.05rem;}
+.pied__logo .logo__sous{color:#8D8880;}
+.acompleter{
+  display:inline-block; background:rgba(208,18,27,.16); color:#E8A0A4;
+  font-family:'Archivo',system-ui,sans-serif; font-weight:700; font-size:.64rem;
+  letter-spacing:.08em; padding:2px 7px; border-radius:3px;
+}
+
+/* ---------- barre d'appel mobile ---------- */
+.barre-mobile{
+  display:none; position:fixed; left:0; right:0; bottom:0; z-index:70;
+  background:var(--blanc); border-top:1px solid var(--trait);
+  padding:9px 12px calc(9px + env(safe-area-inset-bottom));
+  gap:9px; box-shadow:0 -4px 18px rgba(17,17,17,.10);
+}
+.barre-mobile .btn{flex:1; padding:14px 10px; font-size:.76rem;}
+
+/* ---------- adaptations ---------- */
+@media (max-width:980px){
+  .accroche__grille{grid-template-columns:1fr;}
+  .vitrine{order:-1; max-width:420px;}
+  .etapes{grid-template-columns:1fr 1fr;}
+  .etape{padding-right:26px; border-bottom:1px solid var(--trait);}
+  .etape:nth-child(2n){border-right:none;}
+  .stock{grid-template-columns:repeat(2,1fr);}
+  .vendre,.zone,.contact{grid-template-columns:1fr;}
+  .avis-grille{grid-template-columns:1fr;}
+  .pied__haut{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:860px){
+  .menu{display:none;}
+  .tel-entete{display:none;}
+  .burger{display:block;}
+  /* Sur téléphone, ce bouton recouvrait le bouton menu et le rendait
+     incliquable. La barre d'appel fixe en bas assure déjà l'appel à l'action. */
+  .entete__actions > .btn{display:none;}
+  .entete__barre{padding:11px 18px;}
+  /* menu déplié */
+  .menu.ouvert{
+    display:flex; flex-direction:column; gap:0;
+    position:absolute; top:100%; left:0; right:0;
+    background:var(--blanc); border-bottom:1px solid var(--trait);
+    padding:8px 24px 20px; box-shadow:var(--ombre);
   }
-  .hero-graphic .frame{
-    position:absolute; inset:14px; border:1.5px solid var(--black);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:18px; padding:20px; text-align:center;
-  }
-  .hero-graphic .frame .label{color:var(--black); margin-bottom:2px;}
-  .stack{display:flex; gap:10px;}
-  .cube{width:34px; height:44px; background:var(--black);}
-  .cube.mid{background:var(--red); height:30px; align-self:flex-end;}
-  .hero-graphic .arrowdown{
-    width:0; height:0;
-    border-left:120px solid transparent;
-    border-right:120px solid transparent;
-    border-top:34px solid var(--red);
-  }
-
-  section{padding:76px 0;}
-  .section-head{max-width:620px; margin-bottom:48px;}
-  .label.kicker{color:var(--red); margin-bottom:12px; display:flex; align-items:center; gap:8px;}
-  .label.kicker::before{content:""; width:20px; height:2px; background:var(--red);}
-  .section-head h2{font-size:clamp(1.7rem,3.4vw,2.2rem); color:var(--black);}
-  .section-head p{color:#514e49; margin-top:14px; font-size:1.02rem; font-family:'Inter', sans-serif; font-weight:400;}
-
-  /* STEPS */
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); border-top:3px solid var(--black);}
-  .step{padding:32px 24px 32px 0; border-right:1px solid var(--line);}
-  .step:last-child{border-right:none;}
-  .step-num{font-family:'Archivo', sans-serif; font-weight:800; font-size:2.4rem; color:var(--red); margin-bottom:8px;}
-  .step h3{font-family:'Inter',sans-serif; font-weight:600; font-size:1.02rem; margin-bottom:8px; text-transform:none;}
-  .step p{font-size:0.94rem; color:#514e49;}
-
-  /* CATALOGUE */
-  .cat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
-  .card{background:var(--grey); border:1px solid var(--line); position:relative;}
-  .card-swatch{height:150px; position:relative; display:flex; align-items:flex-end; padding:14px;
-    background:repeating-linear-gradient(135deg, var(--black) 0 2px, transparent 2px 14px), var(--grey-mid);
-  }
-  .tag{
-    position:absolute; top:14px; right:0;
-    background:var(--red); color:var(--white);
-    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.66rem; letter-spacing:0.05em;
-    padding:6px 12px 6px 14px; text-transform:uppercase;
-    clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);
-  }
-  .card-body{padding:20px 20px 22px;}
-  .card-body h3{font-family:'Inter',sans-serif; font-weight:600; font-size:1rem; margin-bottom:6px;}
-  .card-body .meta{font-size:0.85rem; color:#66625a; margin-bottom:16px;}
-  .card-price{display:flex; align-items:baseline; justify-content:space-between; border-top:1px dashed var(--line); padding-top:12px;}
-  .price{font-family:'Archivo', sans-serif; font-weight:800; font-size:1.2rem;}
-  .price-old{font-family:'Inter', sans-serif; font-size:0.78rem; color:#a19c92; text-decoration:line-through;}
-
-  /* AVANTAGES */
-  .compare{display:grid; grid-template-columns:1fr 1fr; gap:2px; background:var(--line); border:1px solid var(--line);}
-  .compare > div{background:var(--white); padding:34px 30px;}
-  .compare .win{background:var(--grey); border-top:3px solid var(--red);}
-  .compare h3{font-family:'Inter',sans-serif; font-weight:700; font-size:1rem; margin-bottom:18px;}
-  .compare ul{list-style:none;}
-  .compare li{font-size:0.94rem; padding:9px 0; border-top:1px solid var(--line); display:flex; gap:10px;}
-  .compare li:first-of-type{border-top:none;}
-  .compare .mark{font-family:'Archivo', sans-serif; font-weight:800; color:var(--red); flex-shrink:0;}
-
-  /* AVIS */
-  .avis-wrap{background:var(--black); color:var(--white); padding:76px 0;}
-  .avis-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
-  .avis{border-left:3px solid var(--red); padding-left:20px;}
-  .avis p.quote{font-size:1rem; font-style:italic; color:#e7e3db; margin-bottom:14px;}
-  .avis .who{font-family:'Archivo', sans-serif; font-weight:700; font-size:0.72rem; color:var(--red); text-transform:uppercase; letter-spacing:0.05em;}
-  .avis-note{margin-top:44px; font-family:'Inter', sans-serif; font-size:0.78rem; color:#8a857c; text-align:center;}
-
-  /* CONTACT */
-  .contact-grid{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start;}
-  .infoline{display:flex; gap:16px; padding:16px 0; border-top:1px solid var(--line);}
-  .infoline:last-child{border-bottom:1px solid var(--line);}
-  .infoline .k{font-family:'Archivo', sans-serif; font-weight:700; font-size:0.72rem; color:var(--red); width:110px; flex-shrink:0; text-transform:uppercase; letter-spacing:0.05em; padding-top:2px;}
-  .infoline .v{font-size:0.98rem;}
-  .infoline .v a{border-bottom:1px solid var(--line);}
-  .infoline .v a:hover{border-color:var(--red); color:var(--red);}
-  .badge-open{
-    display:inline-flex; align-items:center; gap:8px;
-    background:var(--black); color:var(--white);
-    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em;
-    padding:9px 16px; margin-top:20px;
-  }
-  .dot{width:7px; height:7px; border-radius:50%; background:#4CAF50;}
-  .cta-box{background:var(--grey); border-top:3px solid var(--red); padding:36px;}
-  .cta-box h3{font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem; margin-bottom:12px;}
-  .cta-box p{font-size:0.95rem; color:#514e49; margin-bottom:24px;}
-  .cta-box .btn{width:100%; text-align:center;}
-
-  footer{background:var(--black); color:#8a857c; padding:26px 0; font-family:'Archivo', sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.04em;}
-  .foot-inner{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; text-transform:uppercase;}
-  .foot-inner span.brand{color:var(--white);}
-
-  @media (max-width:860px){
-    .navlinks{display:none;}
-    .hero-inner{grid-template-columns:1fr;}
-    .hero-graphic{order:-1;}
-    .steps{grid-template-columns:1fr;}
-    .step{border-right:none; border-bottom:1px solid var(--line);}
-    .cat-grid{grid-template-columns:1fr;}
-    .compare{grid-template-columns:1fr;}
-    .avis-grid{grid-template-columns:1fr;}
-    .contact-grid{grid-template-columns:1fr;}
-  }
+  .menu.ouvert a{padding:14px 0; border-bottom:1px solid var(--trait); border-top:none; font-size:.86rem; white-space:normal;}
+  body{padding-bottom:74px;}
+  .barre-mobile{display:flex;}
+}
+@media (max-width:620px){
+  .bandeau__grille{grid-template-columns:1fr 1fr;}
+  .etapes{grid-template-columns:1fr;}
+  .etape{border-right:none; padding-right:0;}
+  .stock{grid-template-columns:1fr;}
+  .face{grid-template-columns:1fr;}
+  .pied__haut{grid-template-columns:1fr;}
+  .fiche{flex-direction:column; gap:5px;}
+  .fiche__clef{width:auto;}
+}
 </style>
 </head>
 <body>
 
-<header class="site">
-  <nav class="nav">
-    <div class="logo"><span class="ici">Ici</span> Cuisine</div>
-    <div class="navlinks">
-      <a href="#catalogue">Catalogue</a>
-      <a href="#comment">Comment ça marche</a>
-      <a href="#avis">Avis</a>
+<!-- ================= EN-TÊTE ================= -->
+<header class="entete">
+  <div class="entete__barre">
+    <a href="#haut" class="logo" aria-label="Ici Cuisine, retour en haut">
+      <!-- Marque simplifiée d'après le logo. Le jour de la mise en ligne,
+           remplacer par le fichier officiel : <img src="./logo.svg" alt="Ici Cuisine" width="46" height="34"> -->
+      <svg width="42" height="32" viewBox="0 0 60 46" role="img" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="#111" stroke-width="2">
+          <rect x="2" y="4" width="14" height="22"/>
+          <rect x="44" y="4" width="14" height="22"/>
+          <rect x="24" y="4" width="12" height="7"/>
+        </g>
+        <rect x="18" y="18" width="24" height="8" fill="#D0121B"/>
+        <rect x="18" y="15" width="24" height="2" fill="#111"/>
+        <path d="M8 30 L52 30 L30 44 Z" fill="#D0121B"/>
+      </svg>
+      <span class="logo__mot">
+        <span class="logo__nom"><span>Ici</span> Cuisine</span>
+        <span class="logo__sous">Votre coin de cuisine</span>
+      </span>
+    </a>
+
+    <nav class="menu" id="menu" aria-label="Navigation principale">
+      <a href="#stock">Nos cuisines</a>
+      <a href="#vendre">Vendre la vôtre</a>
+      <a href="#zone">Livraison</a>
+      <a href="#questions">Questions</a>
       <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="entete__actions">
+      <a class="tel-entete" href="tel:+32475730702">+32 475 73 07 02</a>
+      <a class="btn btn--rouge" href="#contact" style="padding:12px 20px;">Demander un prix</a>
+      <button class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <a href="tel:+32475730702" class="nav-cta">Appeler</a>
-  </nav>
+  </div>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-inner">
+<!-- ================= ACCROCHE ================= -->
+<main id="haut">
+<section class="accroche">
+  <div class="wrap accroche__grille">
     <div>
-      <div class="tagline-tag">Votre coin de cuisine</div>
-      <h1>Cuisine d'occasion,<br><span class="accent">livrée</span> et <span class="accent">installée</span>.</h1>
-      <p class="lead">À Liège (Bressoux) et alentours, Ici Cuisine récupère et revend des cuisines équipées d'occasion contrôlées — avec livraison et installation.</p>
-      <div class="hero-ctas">
-        <a href="#catalogue" class="btn btn-primary">Voir le catalogue</a>
-        <a href="#contact" class="btn btn-ghost">Nous contacter</a>
+      <span class="etiquette">Cuisine d'occasion — Liège</span>
+      <h1>Une vraie cuisine équipée,<br><em>livrée</em> et <em>installée</em>.</h1>
+      <p class="accroche__texte">
+        Nous récupérons des cuisines complètes lors de rénovations, nous les
+        contrôlons pièce par pièce, et nous les remontons chez vous. Le même
+        matériel qu'en magasin, pour une fraction du prix.
+      </p>
+      <div class="accroche__ctas">
+        <a class="btn btn--rouge" href="#stock">Voir les cuisines</a>
+        <a class="btn btn--clair" href="#vendre">J'ai une cuisine à vendre</a>
+      </div>
+
+      <div class="accroche__preuve">
+        <span class="preuve">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Livraison &amp; pose comprises
+        </span>
+        <span class="preuve">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Matériel contrôlé avant vente
+        </span>
+        <span class="preuve">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Dépôt à Bressoux, visite libre
+        </span>
       </div>
     </div>
-    <div class="hero-graphic">
-      <div class="frame">
-        <div class="stack">
-          <div class="cube"></div>
-          <div class="cube mid"></div>
-          <div class="cube"></div>
-        </div>
-        <div class="label">Cuisine d'occasion</div>
+
+    <div class="vitrine">
+      <div class="vitrine__cadre">
+        <p class="vitrine__titre">Cuisine d'occasion</p>
+        <svg viewBox="0 0 260 150" role="img" aria-label="Illustration d'une cuisine équipée">
+          <g fill="none" stroke="#111" stroke-width="2.4" stroke-linejoin="round">
+            <!-- colonne gauche : four -->
+            <rect x="6" y="16" width="56" height="86"/>
+            <rect x="17" y="28" width="34" height="24"/>
+            <line x1="17" y1="66" x2="51" y2="66"/>
+            <!-- colonne droite : machine à café -->
+            <rect x="198" y="16" width="56" height="86"/>
+            <rect x="209" y="28" width="34" height="24"/>
+            <line x1="209" y1="66" x2="243" y2="66"/>
+            <!-- hotte -->
+            <path d="M108 16h44v10l14 12h-72l14-12z"/>
+            <!-- plan de travail et taque -->
+            <line x1="70" y1="62" x2="190" y2="62"/>
+            <rect x="104" y="52" width="52" height="9"/>
+          </g>
+          <!-- caissons bas, rouges comme sur le logo -->
+          <g fill="#D0121B">
+            <rect x="70" y="66" width="36" height="36"/>
+            <rect x="112" y="66" width="36" height="36"/>
+            <rect x="154" y="66" width="36" height="36"/>
+          </g>
+          <g fill="#FFF">
+            <rect x="82" y="76" width="4" height="16"/>
+            <rect x="124" y="76" width="12" height="2"/>
+            <rect x="124" y="82" width="12" height="2"/>
+            <rect x="124" y="88" width="12" height="2"/>
+            <rect x="174" y="76" width="4" height="16"/>
+          </g>
+          <!-- flèche du logo -->
+          <path d="M40 108h180l-90 34z" fill="#D0121B"/>
+        </svg>
+        <p class="vitrine__pied">Livraison et installation</p>
       </div>
     </div>
   </div>
-  <div class="chevron-divider"></div>
+  <div class="fleches" aria-hidden="true"></div>
 </section>
 
-<section id="comment">
+<!-- ================= BANDEAU DE CONFIANCE =================
+     Les chiffres marqués [à compléter] doivent être confirmés par le client
+     avant la mise en ligne : annoncer un chiffre faux est une pratique
+     commerciale trompeuse. -->
+<section class="bandeau">
   <div class="wrap">
-    <div class="section-head">
-      <div class="label kicker">Le circuit</div>
-      <h2>Comment ça marche</h2>
-      <p>Trois étapes, du démontage chez le vendeur jusqu'à l'installation chez vous.</p>
+    <div class="bandeau__grille">
+      <div class="bandeau__case">
+        <span class="bandeau__chiffre">−50 à −70 %</span>
+        <span class="bandeau__mot">Contre le prix neuf</span>
+      </div>
+      <div class="bandeau__case">
+        <span class="bandeau__chiffre">7j/7</span>
+        <span class="bandeau__mot">Joignables par téléphone</span>
+      </div>
+      <div class="bandeau__case">
+        <span class="bandeau__chiffre">Liège</span>
+        <span class="bandeau__mot">Et toute la province</span>
+      </div>
+      <div class="bandeau__case">
+        <span class="bandeau__chiffre">Pose incluse</span>
+        <span class="bandeau__mot">Sur demande</span>
+      </div>
     </div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">01</div>
+  </div>
+</section>
+
+<!-- ================= COMMENT ÇA MARCHE ================= -->
+<section class="section" id="methode">
+  <div class="wrap">
+    <div class="tete">
+      <p class="kicker">Le circuit</p>
+      <h2>De la rénovation d'un autre à votre cuisine</h2>
+      <p>Rien n'est bricolé : chaque cuisine passe par les mêmes quatre étapes avant d'arriver chez vous.</p>
+    </div>
+    <div class="etapes">
+      <article class="etape">
+        <div class="etape__num">01</div>
         <h3>Récupération</h3>
-        <p>La cuisine est démontée avec soin chez le propriétaire, souvent lors d'une rénovation.</p>
+        <p>Nous démontons la cuisine nous-mêmes chez le propriétaire, sans casse et sans laisser de chantier derrière nous.</p>
+      </article>
+      <article class="etape">
+        <div class="etape__num">02</div>
+        <h3>Contrôle</h3>
+        <p>Charnières, coulisses, plan de travail, électroménager : tout est testé. Ce qui ne passe pas ne part pas en vente.</p>
+      </article>
+      <article class="etape">
+        <div class="etape__num">03</div>
+        <h3>Adaptation</h3>
+        <p>Nous ajustons la configuration à votre pièce : recoupe du plan de travail, modules retirés ou ajoutés.</p>
+      </article>
+      <article class="etape">
+        <div class="etape__num">04</div>
+        <h3>Pose chez vous</h3>
+        <p>Livraison et remontage sur place, à la date convenue. Vous récupérez une cuisine prête à servir.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STOCK ================= -->
+<section class="section section--creme" id="stock">
+  <div class="wrap">
+    <div class="tete">
+      <p class="kicker">Nos cuisines</p>
+      <h2>Disponibles en ce moment</h2>
+      <p>Le stock change chaque semaine. Une cuisine vous plaît ? Appelez-nous, elle part souvent dans les jours qui suivent.</p>
+    </div>
+
+    <div class="filtres" role="group" aria-label="Filtrer les cuisines">
+      <button class="filtre" data-filtre="tout" aria-pressed="true">Toutes</button>
+      <button class="filtre" data-filtre="electro" aria-pressed="false">Avec électroménager</button>
+      <button class="filtre" data-filtre="ilot" aria-pressed="false">Avec îlot</button>
+      <button class="filtre" data-filtre="petitprix" aria-pressed="false">Moins de 1 000 €</button>
+      <button class="filtre" data-filtre="dispo" aria-pressed="false">Disponibles</button>
+    </div>
+
+    <!-- ===================================================================
+         EXEMPLES DE FICHES — à remplacer par le stock réel.
+         Pour chaque cuisine : remplacer le bloc « cuisine__photo » par
+         <img src="./photos/ref.jpg" alt="Description" loading="lazy" width="800" height="600">
+         et ajuster les mots-clés data-tags (electro, ilot, petitprix, dispo).
+         =================================================================== -->
+    <div class="stock" id="grille-stock">
+
+      <article class="cuisine" data-tags="electro dispo">
+        <div class="cuisine__photo">
+          <span class="statut">Disponible</span>
+          <span>Photo de la cuisine<br>à insérer ici</span>
+        </div>
+        <div class="cuisine__corps">
+          <p class="cuisine__ref">Réf. IC-001 — exemple</p>
+          <h3>Cuisine chêne massif, 3 m 20</h3>
+          <ul class="cuisine__specs">
+            <li>Façades bois massif, plan stratifié</li>
+            <li>Four, taque et hotte compris</li>
+            <li>État : très bon</li>
+          </ul>
+          <div class="cuisine__prix">
+            <span class="prix">850 €<small>Neuve : environ 2 400 €</small></span>
+            <a class="cuisine__lien" href="https://wa.me/32475730702?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%28e%29%20par%20la%20cuisine%20r%C3%A9f%C3%A9rence%20IC-001." target="_blank" rel="noopener">Je la veux</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="cuisine" data-tags="electro ilot dispo">
+        <div class="cuisine__photo">
+          <span class="statut">Disponible</span>
+          <span>Photo de la cuisine<br>à insérer ici</span>
+        </div>
+        <div class="cuisine__corps">
+          <p class="cuisine__ref">Réf. IC-002 — exemple</p>
+          <h3>Cuisine blanche avec îlot central</h3>
+          <ul class="cuisine__specs">
+            <li>Façades laquées, plan en bois massif</li>
+            <li>Lave-vaisselle et frigo encastrés</li>
+            <li>État : très bon</li>
+          </ul>
+          <div class="cuisine__prix">
+            <span class="prix">1 350 €<small>Neuve : environ 3 800 €</small></span>
+            <a class="cuisine__lien" href="https://wa.me/32475730702?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%28e%29%20par%20la%20cuisine%20r%C3%A9f%C3%A9rence%20IC-002." target="_blank" rel="noopener">Je la veux</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="cuisine" data-tags="petitprix dispo">
+        <div class="cuisine__photo">
+          <span class="statut">Disponible</span>
+          <span>Photo de la cuisine<br>à insérer ici</span>
+        </div>
+        <div class="cuisine__corps">
+          <p class="cuisine__ref">Réf. IC-003 — exemple</p>
+          <h3>Cuisine inox linéaire, 2 m 80</h3>
+          <ul class="cuisine__specs">
+            <li>Style atelier, façades inox brossé</li>
+            <li>Sans électroménager</li>
+            <li>État : bon, quelques marques d'usage</li>
+          </ul>
+          <div class="cuisine__prix">
+            <span class="prix">690 €<small>Neuve : environ 1 900 €</small></span>
+            <a class="cuisine__lien" href="https://wa.me/32475730702?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%28e%29%20par%20la%20cuisine%20r%C3%A9f%C3%A9rence%20IC-003." target="_blank" rel="noopener">Je la veux</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="cuisine" data-tags="electro petitprix dispo">
+        <div class="cuisine__photo">
+          <span class="statut">Disponible</span>
+          <span>Photo de la cuisine<br>à insérer ici</span>
+        </div>
+        <div class="cuisine__corps">
+          <p class="cuisine__ref">Réf. IC-004 — exemple</p>
+          <h3>Cuisine compacte, 2 m 40</h3>
+          <ul class="cuisine__specs">
+            <li>Idéale appartement ou studio</li>
+            <li>Taque et hotte comprises</li>
+            <li>État : bon</li>
+          </ul>
+          <div class="cuisine__prix">
+            <span class="prix">550 €<small>Neuve : environ 1 500 €</small></span>
+            <a class="cuisine__lien" href="https://wa.me/32475730702?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%28e%29%20par%20la%20cuisine%20r%C3%A9f%C3%A9rence%20IC-004." target="_blank" rel="noopener">Je la veux</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="cuisine" data-tags="ilot electro dispo">
+        <div class="cuisine__photo">
+          <span class="statut">Disponible</span>
+          <span>Photo de la cuisine<br>à insérer ici</span>
+        </div>
+        <div class="cuisine__corps">
+          <p class="cuisine__ref">Réf. IC-005 — exemple</p>
+          <h3>Cuisine grise en L, avec îlot</h3>
+          <ul class="cuisine__specs">
+            <li>Grand plan de travail, coin repas</li>
+            <li>Four, micro-ondes et lave-vaisselle</li>
+            <li>État : très bon</li>
+          </ul>
+          <div class="cuisine__prix">
+            <span class="prix">1 600 €<small>Neuve : environ 4 500 €</small></span>
+            <a class="cuisine__lien" href="https://wa.me/32475730702?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%28e%29%20par%20la%20cuisine%20r%C3%A9f%C3%A9rence%20IC-005." target="_blank" rel="noopener">Je la veux</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="cuisine" data-tags="electro">
+        <div class="cuisine__photo">
+          <span class="statut statut--vendue">Vendue</span>
+          <span>Photo de la cuisine<br>à insérer ici</span>
+        </div>
+        <div class="cuisine__corps">
+          <p class="cuisine__ref">Réf. IC-006 — exemple</p>
+          <h3>Cuisine noire mate, 3 m 60</h3>
+          <ul class="cuisine__specs">
+            <li>Partie de la semaine dernière</li>
+            <li>Un modèle proche peut arriver</li>
+            <li>Prévenez-nous de votre recherche</li>
+          </ul>
+          <div class="cuisine__prix">
+            <span class="prix">Vendue<small>Prévenez-nous, on vous cherche l'équivalent</small></span>
+            <a class="cuisine__lien" href="#contact">Me prévenir</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <p class="stock__note">
+      <strong>À remplacer avant la mise en ligne :</strong> ces six fiches sont
+      des exemples de mise en page. Il faut y mettre les vraies photos, les
+      vraies références et les vrais prix. Une annonce sans photo ne se vend pas.
+    </p>
+  </div>
+</section>
+
+<!-- ================= VENDRE SA CUISINE ================= -->
+<section class="section section--noir" id="vendre">
+  <div class="wrap">
+    <div class="tete">
+      <p class="kicker">Vous rénovez ?</p>
+      <h2>Ne jetez pas votre ancienne cuisine</h2>
+      <p>Elle vaut encore quelque chose. Nous la démontons nous-mêmes, nous l'emportons, et vous récupérez une pièce vide sans avoir rien porté.</p>
+    </div>
+
+    <div class="vendre">
+      <div>
+        <h3 style="margin-bottom:6px;">Ce que nous reprenons</h3>
+        <ul class="critères">
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Une cuisine <strong>complète</strong> : meubles, plan de travail, et si possible l'électroménager.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>En <strong>bon état général</strong> : façades saines, charnières en place, plan sans gros dégâts.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Un <strong>électroménager qui fonctionne</strong> — même ancien, s'il tourne encore il a de la valeur.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Un <strong>accès praticable</strong> pour le démontage et l'enlèvement.</span>
+          </li>
+        </ul>
+        <p style="margin-top:22px; font-size:.92rem;">
+          Cuisine incomplète ou très abîmée ? Dites-le quand même : selon les
+          éléments, une reprise partielle reste possible.
+        </p>
       </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <h3>Contrôle &amp; remise en état</h3>
-        <p>Charnières, plan de travail, électroménager : chaque élément est vérifié avant la vente.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <h3>Livraison &amp; pose</h3>
-        <p>Transport et installation possibles sur Liège et les environs, sur simple demande.</p>
+
+      <div class="encart">
+        <h3>Comment ça se passe</h3>
+        <ol class="encart__etapes">
+          <li>Vous nous envoyez <strong>3 ou 4 photos</strong> de la cuisine, par WhatsApp ou Messenger.</li>
+          <li>Nous vous répondons avec une <strong>estimation</strong>, sans engagement.</li>
+          <li>Si c'est d'accord, nous fixons une date et <strong>nous démontons</strong>.</li>
+          <li>Nous emportons tout, et vous réglons sur place.</li>
+        </ol>
+        <a class="btn btn--vert" href="https://wa.me/32475730702?text=Bonjour%2C%20j%27ai%20une%20cuisine%20%C3%A0%20vendre.%20Voici%20quelques%20photos%20%3A" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm5.5 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.7-.1a12.6 12.6 0 0 1-5.3-4.4c-.4-.6-.9-1.5-.9-2.4 0-.9.5-1.4.7-1.6a.8.8 0 0 1 .6-.2h.4c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.5l-.3.4c-.1.1-.2.3-.1.5.3.6 1 1.5 1.8 2 .5.3.8.4 1 .2l.5-.6c.2-.2.3-.2.5-.1l1.6.8c.2.1.3.2.3.3.1.2.1.6 0 1Z"/></svg>
+          Envoyer mes photos
+        </a>
       </div>
     </div>
   </div>
 </section>
 
-<section id="catalogue" style="background:var(--grey);">
+<!-- ================= OCCASION VS NEUF ================= -->
+<section class="section">
   <div class="wrap">
-    <div class="section-head">
-      <div class="label kicker">Sélection</div>
-      <h2>Cuisines disponibles</h2>
-      <p>Un aperçu du type d'annonces à afficher — à remplacer par les vraies photos et références.</p>
+    <div class="tete">
+      <p class="kicker">Le calcul</p>
+      <h2>Occasion contre magasin</h2>
+      <p>Le même matériel, souvent des mêmes marques. Ce qui change, c'est le prix et le délai.</p>
     </div>
-    <div class="cat-grid">
-      <div class="card">
-        <div class="card-swatch"><span class="tag">Occasion</span></div>
-        <div class="card-body">
-          <h3>Cuisine chêne massif, 3m20</h3>
-          <div class="meta">Façades bois · plan stratifié · état très bon</div>
-          <div class="card-price"><span class="price">850 €</span><span class="price-old">neuve ~2400€</span></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-swatch"><span class="tag">Occasion</span></div>
-        <div class="card-body">
-          <h3>Cuisine blanche, îlot central</h3>
-          <div class="meta">Façades laquées · plan bois massif · avec électroménager</div>
-          <div class="card-price"><span class="price">1 350 €</span><span class="price-old">neuve ~3800€</span></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-swatch"><span class="tag">Occasion</span></div>
-        <div class="card-body">
-          <h3>Cuisine inox linéaire, 2m80</h3>
-          <div class="meta">Style atelier · façades inox brossé · sans électroménager</div>
-          <div class="card-price"><span class="price">690 €</span><span class="price-old">neuve ~1900€</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="section-head">
-      <div class="label kicker">Pourquoi l'occasion</div>
-      <h2>Occasion vs. neuf</h2>
-    </div>
-    <div class="compare">
-      <div class="win">
+    <div class="face">
+      <div class="face__nous">
         <h3>Ici Cuisine</h3>
         <ul>
-          <li><span class="mark">+</span> Jusqu'à -60% vs prix neuf</li>
-          <li><span class="mark">+</span> Matériel contrôlé avant vente</li>
-          <li><span class="mark">+</span> Livraison &amp; installation</li>
-          <li><span class="mark">+</span> Basé à Liège (Bressoux)</li>
+          <li><span class="signe">+</span> Une cuisine complète pour le prix de deux meubles neufs</li>
+          <li><span class="signe">+</span> Disponible tout de suite, pas de commande à attendre</li>
+          <li><span class="signe">+</span> Contrôlée avant la vente, pas achetée à l'aveugle</li>
+          <li><span class="signe">+</span> Livraison, adaptation et pose par la même équipe</li>
+          <li><span class="signe">+</span> Du matériel qui ne part pas à la déchetterie</li>
         </ul>
       </div>
-      <div>
-        <h3>Achat neuf en magasin</h3>
+      <div class="face__eux">
+        <h3>Achat neuf en showroom</h3>
         <ul>
-          <li><span class="mark">–</span> Délais de commande longs</li>
-          <li><span class="mark">–</span> Prix catalogue plein tarif</li>
-          <li><span class="mark">–</span> Choix figé par le showroom</li>
-          <li><span class="mark">–</span> Peu de flexibilité horaire</li>
+          <li><span class="signe">–</span> Plein tarif catalogue, pose souvent en supplément</li>
+          <li><span class="signe">–</span> Plusieurs semaines de délai de fabrication</li>
+          <li><span class="signe">–</span> Choix limité à ce que la marque propose</li>
+          <li><span class="signe">–</span> Rendez-vous en journée, aux heures du magasin</li>
+          <li><span class="signe">–</span> Une cuisine encore bonne part à la benne ailleurs</li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<div class="avis-wrap" id="avis">
+<!-- ================= ZONE ET LIVRAISON ================= -->
+<section class="section section--creme" id="zone">
   <div class="wrap">
-    <div class="section-head" style="max-width:620px;">
-      <div class="label kicker">Retours clients</div>
-      <h2 style="color:var(--white);">Ce qu'on en dit</h2>
+    <div class="tete">
+      <p class="kicker">Livraison &amp; installation</p>
+      <h2>Où nous intervenons</h2>
+      <p>Notre dépôt est à Bressoux. Nous livrons et posons dans toute la région liégeoise, et plus loin sur demande.</p>
     </div>
-    <div class="avis-grid">
-      <div class="avis">
-        <p class="quote">« Cuisine récupérée le jour même, montée le week-end suivant. »</p>
-        <div class="who">Exemple d'avis — Liège</div>
-      </div>
-      <div class="avis">
-        <p class="quote">« Prix imbattable pour du matériel encore en très bon état. »</p>
-        <div class="who">Exemple d'avis — Rocourt</div>
-      </div>
-      <div class="avis">
-        <p class="quote">« Réponse rapide, installation propre et soignée. »</p>
-        <div class="who">Exemple d'avis — Ans</div>
-      </div>
-    </div>
-    <p class="avis-note">Textes d'exemple — à remplacer par de vrais avis clients.</p>
-  </div>
-</div>
 
-<section id="contact">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="label kicker">Contact</div>
-      <h2>Nous joindre</h2>
-    </div>
-    <div class="contact-grid">
+    <div class="zone">
       <div>
-        <div class="infoline">
-          <div class="k">Adresse</div>
-          <div class="v">Rue du Moulin 320<br>4020 Liège (Bressoux)</div>
+        <h3>Communes desservies</h3>
+        <div class="communes">
+          <span class="commune">Liège</span>
+          <span class="commune">Bressoux</span>
+          <span class="commune">Herstal</span>
+          <span class="commune">Ans</span>
+          <span class="commune">Seraing</span>
+          <span class="commune">Chênée</span>
+          <span class="commune">Grivegnée</span>
+          <span class="commune">Rocourt</span>
+          <span class="commune">Visé</span>
+          <span class="commune">Fléron</span>
+          <span class="commune">Beyne-Heusay</span>
+          <span class="commune">Saint-Nicolas</span>
+          <span class="commune">Verviers</span>
+          <span class="commune">Huy</span>
         </div>
-        <div class="infoline">
-          <div class="k">Téléphone</div>
-          <div class="v"><a href="tel:+32475730702">+32 475 73 07 02</a><br><a href="tel:+32477852895">+32 477 85 28 95</a></div>
-        </div>
-        <div class="infoline">
-          <div class="k">Réseaux</div>
-          <div class="v">Facebook &amp; Instagram — @ici_cuisine</div>
-        </div>
-        <div class="infoline">
-          <div class="k">Horaires</div>
-          <div class="v">Disponible 24h/24, 7j/7</div>
-        </div>
-        <span class="badge-open"><span class="dot"></span>Ouvert maintenant</span>
+        <p style="margin-top:20px; font-size:.94rem; color:var(--gris);">
+          Votre commune n'est pas dans la liste ? Appelez quand même : nous
+          sortons régulièrement de la province.
+        </p>
       </div>
-      <div class="cta-box">
-        <h3>Une cuisine à vendre ou un projet ?</h3>
-        <p>Décrivez votre demande, réponse rapide par téléphone ou Messenger.</p>
-        <a href="tel:+32475730702" class="btn btn-primary">Appeler maintenant</a>
+
+      <div class="tarifs">
+        <h3>Ce qui est compris</h3>
+        <div class="tarif"><span>Retrait au dépôt, à Bressoux</span><b>Gratuit</b></div>
+        <div class="tarif"><span>Livraison en région liégeoise</span><b>Sur devis</b></div>
+        <div class="tarif"><span>Installation et remontage</span><b>Sur devis</b></div>
+        <div class="tarif"><span>Adaptation du plan de travail</span><b>Sur devis</b></div>
+        <div class="tarif"><span>Enlèvement de votre ancienne cuisine</span><b>Nous consulter</b></div>
+        <p class="tarifs__note">
+          <!-- Remplacer « Sur devis » par les vrais tarifs dès que le client
+               les a fixés : un prix affiché convertit bien mieux qu'un devis. -->
+          Le prix dépend de la distance, de l'étage et de la taille de la
+          cuisine. Un coup de téléphone suffit pour avoir le montant exact.
+        </p>
       </div>
     </div>
   </div>
 </section>
 
-<footer>
-  <div class="wrap foot-inner">
-    <span class="brand">ICI CUISINE — VOTRE COIN DE CUISINE</span>
-    <span>MAQUETTE D'EXEMPLE — AS-MINE DIGITAL</span>
+<!-- ================= AVIS ================= -->
+<section class="section section--noir" id="avis">
+  <div class="wrap">
+    <div class="tete">
+      <p class="kicker">Retours clients</p>
+      <h2>Ce qu'on en dit</h2>
+    </div>
+    <div class="avis-grille">
+      <article class="avis">
+        <div class="avis__note" aria-label="5 étoiles sur 5">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+        </div>
+        <blockquote>« Emplacement du texte d'un vrai avis client. »</blockquote>
+        <p class="avis__qui">Prénom — Commune</p>
+      </article>
+      <article class="avis">
+        <div class="avis__note" aria-label="5 étoiles sur 5">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+        </div>
+        <blockquote>« Emplacement du texte d'un vrai avis client. »</blockquote>
+        <p class="avis__qui">Prénom — Commune</p>
+      </article>
+      <article class="avis">
+        <div class="avis__note" aria-label="5 étoiles sur 5">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>
+        </div>
+        <blockquote>« Emplacement du texte d'un vrai avis client. »</blockquote>
+        <p class="avis__qui">Prénom — Commune</p>
+      </article>
+    </div>
+
+    <!-- ===================================================================
+         AVERTISSEMENT — À LIRE AVANT LA MISE EN LIGNE
+         N'inscrire ici QUE des avis réellement reçus (Facebook, Google,
+         messages clients), avec l'accord de leurs auteurs. Publier de faux
+         avis est une pratique commerciale trompeuse, sanctionnée en Belgique
+         comme dans toute l'Union européenne.
+         Si aucun avis n'est disponible : supprimer toute la section plutôt
+         que d'en inventer.
+         =================================================================== -->
+    <p class="avis-avert">
+      Emplacements réservés — à remplir avec de vrais avis clients, ou à
+      supprimer. Aucun avis ne doit être inventé.
+    </p>
+  </div>
+</section>
+
+<!-- ================= QUESTIONS ================= -->
+<section class="section" id="questions">
+  <div class="wrap">
+    <div class="tete">
+      <p class="kicker">Bon à savoir</p>
+      <h2>Les questions qu'on nous pose</h2>
+    </div>
+    <div class="questions">
+      <details class="question">
+        <summary>Une cuisine d'occasion, c'est vraiment en bon état ?</summary>
+        <div class="question__corps">
+          Nous ne reprenons que des cuisines encore saines, et nous contrôlons
+          chaque élément avant de la remettre en vente. L'état est indiqué
+          honnêtement sur chaque fiche, et vous pouvez venir la voir au dépôt
+          avant d'acheter.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Est-ce qu'elle ira dans ma pièce ?</summary>
+        <div class="question__corps">
+          Souvent, oui — nous adaptons. Un plan de travail se recoupe, un module
+          se retire ou s'ajoute. Prenez vos mesures (longueur des murs, position
+          des arrivées d'eau et de la taque) et envoyez-les-nous : nous vous
+          dirons tout de suite ce qui est possible.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Vous vous occupez de l'installation ?</summary>
+        <div class="question__corps">
+          Oui. Livraison, remontage et raccordement des meubles font partie de
+          nos prestations, sur devis selon la distance et la taille de la
+          cuisine. Vous pouvez aussi venir chercher la cuisine au dépôt et la
+          monter vous-même.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Et si j'ai une cuisine à vendre ?</summary>
+        <div class="question__corps">
+          Envoyez-nous quelques photos par WhatsApp ou Messenger. Nous vous
+          faisons une estimation sans engagement, et si vous êtes d'accord, nous
+          venons la démonter et l'emporter nous-mêmes.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Quels sont les moyens de paiement ?</summary>
+        <div class="question__corps">
+          <span class="acompleter">À compléter</span> — préciser ici ce que vous
+          acceptez : espèces, virement, Bancontact, Payconiq… et si un acompte
+          est demandé pour réserver une cuisine.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Y a-t-il une garantie ?</summary>
+        <div class="question__corps">
+          <span class="acompleter">À compléter</span> — en Belgique, la vente de
+          biens d'occasion par un professionnel à un particulier reste soumise à
+          la garantie légale, dont la durée peut être aménagée par contrat.
+          Faites préciser la formulation exacte par votre comptable ou un
+          juriste avant la mise en ligne.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section class="section section--creme" id="contact">
+  <div class="wrap">
+    <div class="tete">
+      <p class="kicker">Contact</p>
+      <h2>Parlons de votre projet</h2>
+      <p>Le plus simple reste le téléphone. Sinon, WhatsApp : envoyez vos photos et vos mesures, nous répondons vite.</p>
+    </div>
+
+    <div class="contact">
+      <div>
+        <div class="fiche">
+          <span class="fiche__clef">Dépôt</span>
+          <span class="fiche__valeur">
+            Rue du Moulin 320<br>4020 Liège (Bressoux)<br>
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=Rue+du+Moulin+320%2C+4020+Li%C3%A8ge" target="_blank" rel="noopener">Ouvrir dans Google Maps</a>
+          </span>
+        </div>
+        <div class="fiche">
+          <span class="fiche__clef">Téléphone</span>
+          <span class="fiche__valeur">
+            <a href="tel:+32475730702">+32 475 73 07 02</a><br>
+            <a href="tel:+32477852895">+32 477 85 28 95</a>
+          </span>
+        </div>
+        <div class="fiche">
+          <span class="fiche__clef">Réseaux</span>
+          <span class="fiche__valeur">
+            Facebook &amp; Instagram — @ici_cuisine<br>
+            <span class="acompleter">À compléter</span> les liens exacts des deux pages
+          </span>
+        </div>
+        <div class="fiche">
+          <span class="fiche__clef">Horaires</span>
+          <span class="fiche__valeur">
+            Joignables 7j/7 par téléphone<br>
+            Visite du dépôt sur rendez-vous
+          </span>
+        </div>
+
+        <div class="contact__ctas">
+          <a class="btn btn--rouge" href="tel:+32475730702">Appeler maintenant</a>
+          <a class="btn btn--ligne" href="https://wa.me/32475730702" target="_blank" rel="noopener">Écrire sur WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="carte-contact">
+        <h3>Dites-nous ce que vous cherchez</h3>
+        <p>
+          La longueur de vos murs, un budget, une photo de la pièce : avec ça
+          nous savons déjà si une cuisine du dépôt peut convenir — et sinon,
+          nous vous prévenons dès qu'elle arrive.
+        </p>
+        <a class="btn btn--rouge" href="tel:+32475730702">Appeler +32 475 73 07 02</a>
+        <a class="btn btn--vert" href="https://wa.me/32475730702?text=Bonjour%2C%20je%20cherche%20une%20cuisine.%20Voici%20mes%20mesures%20%3A" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm5.5 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.7-.1a12.6 12.6 0 0 1-5.3-4.4c-.4-.6-.9-1.5-.9-2.4 0-.9.5-1.4.7-1.6a.8.8 0 0 1 .6-.2h.4c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.5l-.3.4c-.1.1-.2.3-.1.5.3.6 1 1.5 1.8 2 .5.3.8.4 1 .2l.5-.6c.2-.2.3-.2.5-.1l1.6.8c.2.1.3.2.3.3.1.2.1.6 0 1Z"/></svg>
+          Écrire sur WhatsApp
+        </a>
+        <a class="btn btn--clair" href="#stock">Revoir les cuisines</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ================= PIED ================= -->
+<footer class="pied">
+  <div class="wrap">
+    <div class="pied__haut">
+      <div>
+        <span class="logo__mot pied__logo" style="display:block; margin-bottom:12px;">
+          <span class="logo__nom"><span style="color:var(--rouge)">Ici</span> Cuisine</span>
+          <span class="logo__sous">Votre coin de cuisine</span>
+        </span>
+        <p>
+          Cuisines équipées d'occasion, récupérées, contrôlées, livrées et
+          installées. Dépôt à Bressoux, intervention dans toute la région
+          liégeoise.
+        </p>
+      </div>
+      <div>
+        <h4>Le site</h4>
+        <ul>
+          <li><a href="#stock">Nos cuisines</a></li>
+          <li><a href="#vendre">Vendre la vôtre</a></li>
+          <li><a href="#zone">Livraison &amp; installation</a></li>
+          <li><a href="#questions">Questions fréquentes</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nous joindre</h4>
+        <ul>
+          <li>Rue du Moulin 320<br>4020 Liège (Bressoux)</li>
+          <li><a href="tel:+32475730702">+32 475 73 07 02</a></li>
+          <li><a href="tel:+32477852895">+32 477 85 28 95</a></li>
+        </ul>
+        <!-- Mentions obligatoires en Belgique pour un site commercial :
+             numéro d'entreprise (BCE) et numéro de TVA. À demander au client. -->
+        <p style="margin-top:12px;">
+          <span class="acompleter">À compléter</span> N° d'entreprise &amp; TVA
+        </p>
+      </div>
+    </div>
+    <div class="pied__bas">
+      <span>© <span id="annee">2026</span> Ici Cuisine — Tous droits réservés</span>
+      <span>Maquette de présentation — As-Mine Digital</span>
+    </div>
   </div>
 </footer>
+
+<!-- ================= BARRE D'APPEL MOBILE ================= -->
+<div class="barre-mobile">
+  <a class="btn btn--rouge" href="tel:+32475730702">Appeler</a>
+  <a class="btn btn--vert" href="https://wa.me/32475730702" target="_blank" rel="noopener">WhatsApp</a>
+</div>
+
+<!-- ================= DONNÉES STRUCTURÉES =================
+     Permet à Google d'afficher l'adresse, le téléphone et la zone desservie
+     directement dans les résultats de recherche.
+     À compléter le jour de la mise en ligne : "vatID", "openingHoursSpecification"
+     et l'adresse réelle du site dans "url". -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"HomeAndConstructionBusiness",
+  "name":"Ici Cuisine",
+  "slogan":"Votre coin de cuisine",
+  "description":"Vente de cuisines équipées d'occasion, contrôlées, livrées et installées. Reprise et démontage de cuisines existantes.",
+  "url":"https://barbaros911.github.io/As-mine/ici-cuisine/",
+  "telephone":["+32475730702","+32477852895"],
+  "address":{
+    "@type":"PostalAddress",
+    "streetAddress":"Rue du Moulin 320",
+    "postalCode":"4020",
+    "addressLocality":"Liège (Bressoux)",
+    "addressRegion":"Liège",
+    "addressCountry":"BE"
+  },
+  "areaServed":[
+    {"@type":"City","name":"Liège"},
+    {"@type":"City","name":"Herstal"},
+    {"@type":"City","name":"Ans"},
+    {"@type":"City","name":"Seraing"},
+    {"@type":"City","name":"Visé"},
+    {"@type":"City","name":"Verviers"},
+    {"@type":"City","name":"Huy"}
+  ],
+  "priceRange":"€€",
+  "currenciesAccepted":"EUR",
+  "knowsLanguage":["fr-BE"]
+}
+</script>
+
+<script>
+/* =====================================================================
+   Trois comportements, sans bibliothèque : le menu mobile, les filtres
+   du stock, et l'année du pied de page.
+   ===================================================================== */
+(function(){
+  "use strict";
+
+  /* --- menu mobile --- */
+  var burger = document.getElementById("burger");
+  var menu = document.getElementById("menu");
+  if (burger && menu) {
+    burger.addEventListener("click", function(){
+      var ouvert = menu.classList.toggle("ouvert");
+      burger.setAttribute("aria-expanded", ouvert ? "true" : "false");
+      burger.setAttribute("aria-label", ouvert ? "Fermer le menu" : "Ouvrir le menu");
+    });
+    /* on referme dès qu'un lien est suivi */
+    menu.addEventListener("click", function(e){
+      if (e.target.tagName === "A") {
+        menu.classList.remove("ouvert");
+        burger.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  /* --- filtres du stock --- */
+  var filtres = document.querySelectorAll(".filtre");
+  var grille = document.getElementById("grille-stock");
+  if (filtres.length && grille) {
+    var fiches = grille.querySelectorAll(".cuisine");
+    Array.prototype.forEach.call(filtres, function(bouton){
+      bouton.addEventListener("click", function(){
+        var choisi = bouton.getAttribute("data-filtre");
+
+        Array.prototype.forEach.call(filtres, function(b){
+          b.setAttribute("aria-pressed", b === bouton ? "true" : "false");
+        });
+
+        Array.prototype.forEach.call(fiches, function(fiche){
+          var tags = fiche.getAttribute("data-tags") || "";
+          var garde = choisi === "tout" || tags.split(" ").indexOf(choisi) !== -1;
+          fiche.hidden = !garde;
+        });
+      });
+    });
+  }
+
+  /* --- année courante dans le pied de page --- */
+  var annee = document.getElementById("annee");
+  if (annee) { annee.textContent = new Date().getFullYear(); }
+})();
+</script>
 
 </body>
 </html>
