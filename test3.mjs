@@ -146,7 +146,7 @@ check('registre CSV : la facture émise y figure', csv.includes(numero1));
 await page.locator('#tabVoucher').click();
 await page.waitForTimeout(200);
 
-// --- Adresses enregistrées ---
+// --- Remise à zéro ---
 // Retour depuis le bon vers l'écran de confirmation
 await page.locator('#screen-voucher .btn-back').click();
 await page.waitForTimeout(300);
@@ -155,22 +155,13 @@ await page.locator('#btnNewBooking').click();
 await page.waitForTimeout(400);
 check('formulaire vidé après nouvelle réservation', (await page.inputValue('#clientName')) === '');
 check('case « pour quelqu\'un d\'autre » décochée', !(await page.locator('#forSomeoneElse').isChecked()));
-const nbFav = await page.locator('#pickupFavourites button').count();
-check('adresses enregistrées proposées', nbFav > 0, nbFav + ' raccourci(s)');
-if (nbFav > 0) {
-  await page.locator('#pickupFavourites button').first().click();
-  await page.waitForTimeout(300);
-  check('raccourci remplit le champ départ', (await page.inputValue('#pickup')).length > 3);
-  // et l'adresse doit compter comme validée : la recherche ne doit pas la refuser
-  await pickAddress('#dropoff', 'Versailles');
-  await page.fill('#dateSimple', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
-  await page.waitForTimeout(300);
-  await page.locator('#btnSearch').click();
-  // Le calcul d'itinéraire attend jusqu'à 4 s avant de basculer sur l'estimation
-  await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
-  check('raccourci accepté comme adresse valide', await page.locator('#screen-vehicles').isVisible(),
-    await page.locator('#formError').textContent());
-}
+check('plus de raccourcis d\'adresses sous les champs',
+  (await page.locator('#pickupFavourites').count()) === 0 &&
+  (await page.locator('#dropoffFavourites').count()) === 0);
+check('aucune adresse laissée sur l\'appareil',
+  await page.evaluate(() => localStorage.getItem('asmine_addresses') === null));
+check('passagers remis à 1', (await page.inputValue('#paxHome')) === '1');
+check('véhicule remis à « peu importe »', (await page.inputValue('#vehicleHome')) === '');
 
 // --- Une adresse d'aéroport se tarife à la distance, comme les autres ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
