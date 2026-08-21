@@ -137,8 +137,8 @@ supplémentaire nécessaire) :
 npx http-server -p 8099 -s .
 node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
-node test3.mjs     # bon, facture, vol, passager tiers, référencement (66)
-node test4.mjs     # hôtel, aller-retour, diffusion, carte, langue (62)
+node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
+node test4.mjs     # hôtel, aller-retour, diffusion, carte, langue, capacité (77)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -161,6 +161,22 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   par un chiffre est une adresse postale, la Base Adresse Nationale passe
   devant ; sinon c'est un nom de lieu — hôtel, restaurant, gare, monument,
   hôpital, école — et OpenStreetMap passe devant, seul à savoir le situer.
+- **Trouver un lieu quelle que soit la façon dont on l'écrit** : le client
+  tape « easy hotel aeroville », le nom réel est « easyHotel
+  Paris-Charles de Gaulle », près du centre Aéroville. Aucun mot ne se
+  recoupe. Trois mesures, dans cet ordre : la recherche est relancée sans
+  les mots passe-partout que le client ajoute naturellement (« hôtel »,
+  « restaurant », « gare »…) et qui ne figurent presque jamais dans le nom
+  de l'établissement ; si rien ne remonte encore, elle est relancée sur le
+  seul mot distinctif de la saisie (« aeroville ») ; enfin tout ce qui
+  remonte est reclassé selon les mots réellement tapés, un mot distinctif
+  comptant trois fois plus qu'un mot passe-partout — sinon tous les hôtels
+  de France se vaudraient.
+- **Passagers et véhicule** : demandés dès le premier écran, parce que
+  c'est ce qui décide si une berline suffit. Une berline emmène 4
+  personnes, une berline VIP 3, un van 7, un van VIP 6. Un véhicule trop
+  petit n'est jamais proposé, et ajouter des enfants au-delà de la
+  capacité bloque la réservation au lieu de passer en silence.
 - **Langue** : le site s'ouvre toujours en français, quelle que soit la langue
   du téléphone. Les cinq autres restent au sélecteur, et le choix d'un
   visiteur est mémorisé sur son seul appareil.
@@ -178,8 +194,6 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   s'ouvre après confirmation. L'écran de confirmation le dit explicitement et
   propose un bouton de renvoi, une copie du récapitulatif et un envoi par
   email. Une transmission réellement automatique demande un serveur.
-- **Adresses enregistrées** : les adresses réellement utilisées deviennent des
-  raccourcis sous les champs départ et arrivée, sur l'appareil uniquement.
 - **Numéro de vol** : le champ apparaît dès qu'un terminal d'aéroport est
   choisi au départ ou à l'arrivée, et le vol est repris dans le
   récapitulatif, le bon de réservation et le message au chauffeur. Le suivi

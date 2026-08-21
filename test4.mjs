@@ -17,6 +17,7 @@ async function stubSuggestions(page, item) {
   // Les terminaux d'aéroport viennent de la page elle-même, pas d'une API :
   // le doublon les laisse passer pour qu'ils restent testables.
   await page.evaluate((it) => {
+    window.__vraieRecherche = window.__vraieRecherche || window.fetchAddressSuggestions;
     window.fetchAddressSuggestions = async (q) => {
       const terminaux = getAirportTerminalMatches(q);
       return terminaux.length ? terminaux : [it];
@@ -202,6 +203,101 @@ check('récapitulatif : chambre de l\'hôtel de départ', recapAp.includes('Ch. 
 check('récapitulatif : terminal repris', recapAp.includes('Orly 1'));
 check('récapitulatif : numéro de vol repris', recapAp.includes('TK1802'));
 check('récapitulatif : retour repris', recapAp.includes(dansNJours(7)));
+
+// --- Trouver un lieu quelle que soit la façon dont on l'écrit ---
+const variantes = await page.evaluate(() => ({
+  brut: variantesDeRecherche('easy hotel aeroville'),
+  distinctif: motDistinctif('easy hotel aeroville'),
+  distinctifResto: motDistinctif('restaurant le bristol'),
+  scoreBon: scoreCorrespondance(
+    { label: 'easyHotel Paris-Charles de Gaulle, 93290 Tremblay-en-France', isNamedPlace: true },
+    ['easy', 'hotel', 'aeroville']),
+  scoreMauvais: scoreCorrespondance(
+    { label: 'Hotel Ambeille, 66190 Collioure', isNamedPlace: false },
+    ['easy', 'hotel', 'aeroville'])
+}));
+check('les mots passe-partout sont retirés pour une seconde recherche',
+  variantes.brut.length === 2 && variantes.brut[1] === 'easy aeroville', JSON.stringify(variantes.brut));
+check('le mot distinctif est isolé', variantes.distinctif === 'aeroville', String(variantes.distinctif));
+check('« restaurant » n\'est pas pris pour un nom', variantes.distinctifResto === 'bristol', String(variantes.distinctifResto));
+check('un lieu qui colle à la saisie passe devant un homonyme lointain',
+  variantes.scoreBon > variantes.scoreMauvais, `${variantes.scoreBon} contre ${variantes.scoreMauvais}`);
+
+// Bout en bout : un annuaire qui n'accepte que les mots exacts du nom.
+// « easy hotel aeroville » n'y correspond pas ; le site doit quand même trouver.
+const trouve = await page.evaluate(async () => {
+  const CATALOGUE = [
+    { label: 'easyHotel Paris-Charles de Gaulle, 4 rue de Rome, 93290 Tremblay-en-France',
+      mots: ['easyhotel', 'paris', 'charles', 'gaulle', 'aeroville'], lat: 48.9612, lon: 2.5548 },
+    { label: 'Hotel Ambeille, 66190 Collioure', mots: ['hotel', 'ambeille', 'collioure'], lat: 42.52, lon: 3.08 }
+  ];
+  window.fetchBANSuggestions = async () => [];
+  window.fetchPhotonSuggestions = async (q) => {
+    const tokens = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .split(/[^a-z0-9]+/).filter(Boolean);
+    return CATALOGUE
+      .filter(c => tokens.length && tokens.every(tok => c.mots.includes(tok)))
+      .map(c => ({ label: c.label, lat: c.lat, lon: c.lon, icon: '🏨', categorie: 'hotel', isNamedPlace: true, source: 'photon' }));
+  };
+  addressCache.clear();
+  const recherche = window.__vraieRecherche || fetchAddressSuggestions;
+  const r = await recherche('easy hotel aeroville');
+  return r.map(x => x.label);
+});
+check('« easy hotel aeroville » retrouve bien l\'easyHotel',
+  trouve.length > 0 && trouve[0].startsWith('easyHotel'), trouve.join(' | ') || 'aucun résultat');
+
+// --- Passagers et véhicule choisis dès l'accueil ---
+await page.locator('.nav-item[data-target="screen-home"]').click();
+await page.waitForTimeout(300);
+const optionsPax = await page.locator('#paxHome option').count();
+check('de 1 à 7 passagers proposés', optionsPax === 7, optionsPax + ' option(s)');
+const vehStandard = await page.locator('#vehicleHome option').allTextContents();
+check('quatre véhicules proposés pour un passager', vehStandard.length === 5, vehStandard.join(' | '));
+await page.selectOption('#paxHome', '6');
+await page.waitForTimeout(200);
+const vehSix = await page.locator('#vehicleHome option').allTextContents();
+check('à six passagers, seuls les vans restent proposés',
+  vehSix.length === 3 && vehSix.join(' ').includes('Van') && !vehSix.join(' ').includes('Berline'),
+  vehSix.join(' | '));
+await page.selectOption('#vehicleHome', 'van');
+
+await stubSuggestions(page, HOTEL);
+await pick(page, '#pickup', 'ibis');
+await page.fill('#roomPickup', '204');
+await stubSuggestions(page, BUREAU);
+await pick(page, '#dropoff', 'montaigne');
+await page.fill('#dateSimple', dansNJours(2));
+await page.waitForTimeout(300);
+await page.locator('#btnSearch').click();
+await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+const cartesVeh = await page.locator('#vehicleCards .veh-card').allTextContents();
+check('l\'écran véhicules ne propose que ce qui peut emmener six personnes',
+  cartesVeh.length === 2, cartesVeh.length + ' véhicule(s)');
+check('le véhicule choisi sur l\'accueil est déjà sélectionné',
+  (await page.locator('#vehicleCards .veh-card.selected').count()) === 1);
+check('bouton Continuer déjà actif', !(await page.locator('#btnToPayment').isDisabled()));
+await page.locator('#btnToPayment').click();
+await page.waitForTimeout(400);
+check('récapitulatif : six passagers', (await page.locator('#tripSummary').textContent()).includes('6 '));
+
+// Ajouter des enfants au-delà de la capacité doit bloquer, pas passer en silence
+await page.fill('#paxChildren', '4');
+await page.dispatchEvent('#paxChildren', 'input');
+await page.waitForTimeout(300);
+check('dépassement de capacité signalé',
+  (await page.locator('#tripSummary').textContent()).includes('plus grand'));
+await page.fill('#clientName', 'Test Capacité');
+await page.fill('#clientPhone', '+33 6 00 00 00 00');
+await page.locator('#btnPayOnBoard').click();
+await page.waitForTimeout(400);
+check('réservation bloquée tant que le véhicule est trop petit',
+  !(await page.locator('#screen-confirmation').isVisible()));
+await page.fill('#paxChildren', '0');
+await page.dispatchEvent('#paxChildren', 'input');
+await page.waitForTimeout(300);
+check('message levé une fois la capacité respectée',
+  !(await page.locator('#tripSummary').textContent()).includes('plus grand'));
 
 // --- Carte : crédit sans drapeau, tracé routier réel ---
 // Leaflet vient d'un CDN inaccessible depuis les tests : on le remplace par un
