@@ -11,7 +11,9 @@ page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
 const ok = [], ko = [];
 const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
 
-await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+// « ?exploitant=1 » : les outils internes (attribution, confirmation, registre,
+// diffusion) ne s'affichent que sur l'appareil de l'exploitant.
+await page.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(800);
 await page.selectOption('#langSelect', 'fr');
 await page.waitForTimeout(400);
