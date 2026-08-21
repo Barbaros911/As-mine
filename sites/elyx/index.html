@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>ELYX — Taxi Paris et Île-de-France, tarifs réglementés</title>
+<meta name="description" content="Réservation de taxi à Paris et en Île-de-France. Tarifs réglementés par la préfecture, forfaits aéroport Roissy et Orly, estimation du compteur avant de partir.">
+
+<!-- =====================================================================
+     MAQUETTE DE PRÉSENTATION
+     « noindex » tant que le site n'est pas validé : la page ne doit pas
+     sortir dans Google à la place d'un site réel.
+     >>> LE JOUR DE LA MISE EN LIGNE : supprimer la ligne « robots », et
+         remplacer « canonical » et les adresses og: par le vrai domaine.
+     ===================================================================== -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://barbaros911.github.io/As-mine/elyx/">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="ELYX">
+<meta property="og:title" content="ELYX — Taxi Paris, tarifs réglementés">
+<meta property="og:description" content="Forfaits aéroport fixés par décret, estimation du compteur avant de partir.">
+<meta property="og:url" content="https://barbaros911.github.io/As-mine/elyx/">
+<meta property="og:image" content="https://barbaros911.github.io/As-mine/elyx/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0F1218">
+
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =====================================================================
+   ELYX — feuille de style unique
+   Parti pris : luxe discret. Ivoire, bleu nuit, filets laiton, serif
+   pour les titres. À l'opposé du contraste vif d'un site grand public :
+   un chauffeur haut de gamme se vend par le calme, pas par le tapage.
+   ===================================================================== */
+:root{
+  --ivoire:#F6F3EE;
+  --ivoire-2:#EFEAE2;
+  --nuit:#0F1218;
+  --nuit-2:#1A1F29;
+  --or:#A8874E;
+  --or-clair:#C9A96A;
+  --texte:#23272F;
+  --doux:#6E7480;
+  --blanc:#FFFFFF;
+  --trait:rgba(15,18,24,.11);
+  --trait-clair:rgba(255,255,255,.14);
+  --ombre:0 1px 2px rgba(15,18,24,.04), 0 12px 40px rgba(15,18,24,.08);
+  --large:1200px;
+  --rayon:2px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth; scroll-padding-top:90px;}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.01ms!important; transition-duration:.01ms!important;}
+}
+body{
+  background:var(--ivoire); color:var(--texte);
+  font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; line-height:1.1; color:var(--nuit); letter-spacing:-.005em;}
+h1{font-size:clamp(2.6rem,5.5vw,4.2rem);}
+h2{font-size:clamp(2rem,3.8vw,2.9rem);}
+h3{font-family:'Inter',sans-serif; font-weight:600; font-size:1.02rem; line-height:1.4; letter-spacing:-.01em;}
+p{color:var(--texte);}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+:focus-visible{outline:2px solid var(--or); outline-offset:3px;}
+[hidden]{display:none!important;}
+
+.wrap{max-width:var(--large); margin:0 auto; padding:0 26px;}
+.section{padding:clamp(60px,7.5vw,110px) 0;}
+.section--ivoire2{background:var(--ivoire-2);}
+.section--nuit{background:var(--nuit); color:#C4C8D0;}
+.section--nuit h2,.section--nuit h3{color:var(--blanc);}
+.section--nuit p{color:#9FA5B0;}
+
+.sur{
+  font-family:'Inter',sans-serif; font-weight:600; font-size:.7rem;
+  text-transform:uppercase; letter-spacing:.22em; color:var(--or);
+  display:flex; align-items:center; gap:12px; margin-bottom:18px;
+}
+.sur::before{content:""; width:26px; height:1px; background:var(--or); flex-shrink:0;}
+.tete{max-width:660px; margin-bottom:clamp(36px,4.5vw,60px);}
+.tete p{margin-top:16px; font-size:1.06rem; color:var(--doux);}
+.section--nuit .tete p{color:#9FA5B0;}
+
+/* ---------- boutons ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-family:'Inter',sans-serif; font-weight:600; font-size:.82rem;
+  text-transform:uppercase; letter-spacing:.11em;
+  padding:16px 30px; border:1px solid transparent; border-radius:var(--rayon);
+  cursor:pointer; transition:background .2s, color .2s, border-color .2s, opacity .2s;
+  font-feature-settings:"tnum";
+}
+.btn--or{background:var(--or); color:var(--blanc);}
+.btn--or:hover:not(:disabled){background:#8F7241;}
+.btn--nuit{background:var(--nuit); color:var(--blanc);}
+.btn--nuit:hover:not(:disabled){background:var(--or);}
+.btn--ligne{border-color:var(--nuit); color:var(--nuit); background:transparent;}
+.btn--ligne:hover{background:var(--nuit); color:var(--blanc);}
+.btn--clair{border-color:var(--trait-clair); color:var(--blanc); background:transparent;}
+.btn--clair:hover{background:var(--blanc); color:var(--nuit); border-color:var(--blanc);}
+.btn--fin{padding:12px 22px; font-size:.74rem;}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+.btn svg{width:15px; height:15px; flex-shrink:0;}
+
+/* ---------- en-tête ---------- */
+.entete{
+  position:sticky; top:0; z-index:70; background:rgba(246,243,238,.94);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--trait);
+}
+.entete__barre{
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+  max-width:var(--large); margin:0 auto; padding:16px 26px;
+}
+.marque{display:flex; flex-direction:column; line-height:1;}
+.marque__nom{
+  font-family:'Inter',sans-serif; font-weight:600; font-size:1.28rem;
+  letter-spacing:.34em; text-transform:uppercase; color:var(--nuit);
+  padding-left:.34em;
+}
+.marque__sous{
+  font-family:'Cormorant Garamond',serif; font-size:.78rem; font-style:italic;
+  letter-spacing:.06em; color:var(--or); margin-top:5px;
+}
+.menu{display:flex; gap:32px; font-size:.83rem; font-weight:500;}
+.menu a{color:var(--texte); padding:4px 0; border-bottom:1px solid transparent; white-space:nowrap; transition:border-color .2s, color .2s;}
+.menu a:hover{border-color:var(--or); color:var(--or);}
+.entete__actions{display:flex; align-items:center; gap:16px;}
+.tel-entete{font-weight:600; font-size:.88rem; color:var(--nuit); white-space:nowrap; font-feature-settings:"tnum";}
+.tel-entete:hover{color:var(--or);}
+.burger{display:none; background:none; border:1px solid var(--trait); border-radius:var(--rayon); padding:10px 12px; cursor:pointer;}
+.burger span{display:block; width:18px; height:1.5px; background:var(--nuit); margin:4px 0;}
+
+/* ---------- accroche ---------- */
+.accroche{position:relative; overflow:hidden; background:var(--nuit);}
+.accroche::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(70% 90% at 15% 0%, rgba(168,135,78,.20), transparent 62%);
+  pointer-events:none;
+}
+.accroche__grille{
+  position:relative; display:grid; grid-template-columns:1fr 480px;
+  gap:clamp(36px,5vw,72px); align-items:center;
+  padding:clamp(52px,6.5vw,88px) 0;
+}
+.accroche h1{color:var(--blanc);}
+.accroche h1 em{font-style:italic; color:var(--or-clair);}
+.accroche__texte{font-size:1.1rem; color:#A8AEB9; max-width:44ch; margin:26px 0 34px; line-height:1.75;}
+.accroche__preuves{display:flex; flex-wrap:wrap; gap:14px 34px; padding-top:28px; border-top:1px solid var(--trait-clair);}
+.preuve{display:flex; align-items:center; gap:10px; font-size:.88rem; color:#A8AEB9;}
+.preuve svg{width:16px; height:16px; color:var(--or-clair); flex-shrink:0;}
+
+/* ---------- module de réservation ---------- */
+.reservation{background:var(--blanc); box-shadow:var(--ombre); border-radius:var(--rayon);}
+.reservation__tete{
+  padding:22px 28px 0; border-bottom:1px solid var(--trait);
+}
+.reservation__titre{
+  font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--nuit); margin-bottom:16px;
+}
+.jalons{display:flex; gap:4px; margin-bottom:-1px;}
+.jalon{
+  flex:1; text-align:center; padding:10px 4px 12px;
+  font-size:.62rem; font-weight:600; text-transform:uppercase; letter-spacing:.1em;
+  color:#B4B9C2; border-bottom:2px solid transparent; transition:color .2s, border-color .2s;
+}
+.jalon[data-etat="actif"]{color:var(--or); border-bottom-color:var(--or);}
+.jalon[data-etat="fait"]{color:var(--nuit); border-bottom-color:var(--trait);}
+.reservation__corps{padding:26px 28px 28px;}
+
+.champ{margin-bottom:16px; position:relative;}
+.champ label{
+  display:block; font-size:.68rem; font-weight:600; text-transform:uppercase;
+  letter-spacing:.13em; color:var(--doux); margin-bottom:7px;
+}
+.champ input, .champ select{
+  width:100%; padding:13px 14px; font-family:inherit; font-size:.95rem; color:var(--texte);
+  background:var(--blanc); border:1px solid var(--trait); border-radius:var(--rayon);
+  transition:border-color .18s;
+}
+.champ input:focus, .champ select:focus{border-color:var(--or); outline:none;}
+.champ input::placeholder{color:#B4B9C2;}
+.champ--duo{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.champ--duo .champ{margin-bottom:0;}
+
+/* liste de suggestions d'adresses */
+.suggestions{
+  position:absolute; top:100%; left:0; right:0; z-index:20;
+  background:var(--blanc); border:1px solid var(--trait); border-top:none;
+  max-height:230px; overflow-y:auto; box-shadow:var(--ombre);
+}
+.suggestion{
+  padding:11px 14px; font-size:.9rem; cursor:pointer; border-bottom:1px solid var(--trait);
+  display:flex; align-items:baseline; gap:9px;
+}
+.suggestion:last-child{border-bottom:none;}
+.suggestion:hover, .suggestion[aria-selected="true"]{background:var(--ivoire-2);}
+.suggestion b{font-weight:500;}
+.suggestion small{color:var(--doux); font-size:.78rem;}
+.suggestion__type{
+  font-size:.58rem; font-weight:600; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--or); flex-shrink:0; margin-left:auto;
+}
+
+/* choix de type de course */
+.types{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:22px;}
+.type{
+  padding:16px 10px; text-align:center; cursor:pointer;
+  background:var(--blanc); border:1px solid var(--trait); border-radius:var(--rayon);
+  transition:border-color .18s, background .18s;
+}
+.type:hover{border-color:var(--or);}
+.type[aria-pressed="true"]{border-color:var(--nuit); background:var(--nuit); color:var(--blanc);}
+.type svg{width:22px; height:22px; margin:0 auto 9px; display:block; stroke-width:1.2;}
+.type span{display:block; font-size:.74rem; font-weight:600; letter-spacing:.02em; line-height:1.3;}
+
+/* véhicules */
+.vehicules{display:flex; flex-direction:column; gap:10px; margin-bottom:20px;}
+.vehicule{
+  display:flex; align-items:center; gap:16px; padding:16px 18px; cursor:pointer;
+  background:var(--blanc); border:1px solid var(--trait); border-radius:var(--rayon);
+  transition:border-color .18s;
+  text-align:left; width:100%; font-family:inherit;
+}
+.vehicule:hover{border-color:var(--or);}
+.vehicule[aria-pressed="true"]{border-color:var(--nuit); box-shadow:inset 0 0 0 1px var(--nuit);}
+.vehicule__icone{width:38px; height:26px; flex-shrink:0; color:var(--nuit);}
+.vehicule__info{flex:1; min-width:0;}
+.vehicule__nom{display:block; font-weight:600; font-size:.94rem; color:var(--nuit);}
+.vehicule__det{display:block; font-size:.79rem; color:var(--doux); margin-top:3px; line-height:1.45;}
+.vehicule__prix{
+  font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:600;
+  color:var(--nuit); white-space:nowrap; font-feature-settings:"tnum";
+}
+
+/* récapitulatif */
+.recap{background:var(--ivoire); border-left:2px solid var(--or); padding:18px 20px; margin-bottom:20px;}
+.recap__ligne{display:flex; justify-content:space-between; gap:14px; padding:6px 0; font-size:.89rem;}
+.recap__ligne span:first-child{color:var(--doux);}
+.recap__ligne span:last-child{font-weight:500; text-align:right;}
+.recap__total{
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+  margin-top:12px; padding-top:12px; border-top:1px solid var(--trait);
+}
+.recap__total b{font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:var(--doux);}
+.recap__total strong{font-family:'Cormorant Garamond',serif; font-size:1.9rem; font-weight:600; color:var(--nuit); font-feature-settings:"tnum";}
+
+.actions{display:flex; gap:10px; margin-top:4px;}
+.actions .btn{flex:1;}
+.actions .btn--retour{flex:0 0 auto; padding-left:20px; padding-right:20px;}
+
+.alerte{
+  padding:12px 15px; font-size:.85rem; border-radius:var(--rayon); margin-bottom:16px;
+  background:#FBF0EF; border-left:2px solid #B4423A; color:#8C3129;
+}
+.info{
+  padding:12px 15px; font-size:.83rem; border-radius:var(--rayon); margin-bottom:16px;
+  background:var(--ivoire-2); border-left:2px solid var(--or); color:var(--doux);
+}
+
+/* bon de réservation */
+.bon{border:1px solid var(--trait); padding:26px 24px;}
+.bon__entete{text-align:center; padding-bottom:20px; border-bottom:1px solid var(--trait); margin-bottom:20px;}
+.bon__ref{
+  font-family:'Inter',sans-serif; font-weight:600; font-size:.72rem;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--or); margin-bottom:8px;
+}
+.bon__titre{font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:var(--nuit);}
+.bon__ligne{display:flex; justify-content:space-between; gap:16px; padding:9px 0; border-bottom:1px solid var(--trait); font-size:.89rem;}
+.bon__ligne:last-of-type{border-bottom:none;}
+.bon__ligne span:first-child{color:var(--doux); flex-shrink:0;}
+.bon__ligne span:last-child{text-align:right; font-weight:500;}
+.bon__note{margin-top:18px; padding-top:16px; border-top:1px solid var(--trait); font-size:.8rem; color:var(--doux);}
+
+/* ---------- services ---------- */
+.services{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--trait); border:1px solid var(--trait);}
+.service{background:var(--ivoire); padding:34px 30px;}
+.section--ivoire2 .service{background:var(--ivoire-2);}
+.service__num{
+  font-family:'Cormorant Garamond',serif; font-size:2.4rem; color:var(--or); line-height:1; margin-bottom:14px;
+}
+.service p{font-size:.92rem; color:var(--doux); margin-top:9px;}
+
+/* ---------- flotte ---------- */
+.flotte{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+.carte-vehicule{background:var(--blanc); border:1px solid var(--trait); overflow:hidden;}
+.carte-vehicule__image{
+  aspect-ratio:16/10; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(160deg,var(--ivoire-2),var(--ivoire));
+  border-bottom:1px solid var(--trait); position:relative;
+}
+.carte-vehicule__image svg{width:62%; height:auto; color:var(--nuit); opacity:.9;}
+.carte-vehicule__rang{
+  position:absolute; top:14px; left:14px;
+  font-size:.58rem; font-weight:600; text-transform:uppercase; letter-spacing:.14em;
+  color:var(--or); background:var(--blanc); padding:5px 10px; border:1px solid var(--trait);
+}
+.carte-vehicule__corps{padding:22px 24px 24px;}
+.carte-vehicule h3{margin-bottom:4px;}
+.carte-vehicule__ex{font-size:.79rem; color:var(--doux); font-style:italic; margin-bottom:14px;}
+.specs{list-style:none; font-size:.87rem;}
+.specs li{display:flex; justify-content:space-between; gap:12px; padding:7px 0; border-top:1px solid var(--trait); color:var(--doux);}
+.specs li:first-child{border-top:none;}
+.specs li b{font-weight:500; color:var(--texte);}
+
+/* ---------- tarifs ---------- */
+.tableau{width:100%; border-collapse:collapse; font-size:.92rem; background:var(--blanc); border:1px solid var(--trait);}
+.tableau th, .tableau td{padding:15px 18px; text-align:left; border-bottom:1px solid var(--trait);}
+.tableau thead th{
+  font-size:.66rem; font-weight:600; text-transform:uppercase; letter-spacing:.14em;
+  color:var(--doux); background:var(--ivoire-2); border-bottom:1px solid var(--trait);
+}
+.tableau tbody tr:last-child th, .tableau tbody tr:last-child td{border-bottom:none;}
+.tableau tbody th{font-weight:500; color:var(--nuit); text-align:left;}
+.tableau td{text-align:right; font-feature-settings:"tnum"; color:var(--texte);}
+.tableau thead th:not(:first-child){text-align:right;}
+.tableau-enveloppe{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+.tarifs__note{margin-top:20px; font-size:.85rem; color:var(--doux); max-width:60ch;}
+
+/* ---------- engagements ---------- */
+.engagements{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--trait-clair); border:1px solid var(--trait-clair);}
+.engagement{background:var(--nuit); padding:32px 30px;}
+.engagement svg{width:24px; height:24px; color:var(--or-clair); margin-bottom:16px; stroke-width:1.2;}
+.engagement p{font-size:.92rem; margin-top:9px;}
+
+/* ---------- questions ---------- */
+.questions{max-width:840px;}
+.question{border-bottom:1px solid var(--trait);}
+.question summary{
+  list-style:none; cursor:pointer; padding:22px 44px 22px 0; position:relative;
+  font-weight:500; font-size:1rem; color:var(--nuit);
+}
+.question summary::-webkit-details-marker{display:none;}
+.question summary::after{
+  content:""; position:absolute; right:10px; top:30px; width:11px; height:1px;
+  background:var(--or); transition:transform .2s;
+}
+.question summary::before{
+  content:""; position:absolute; right:15px; top:25px; width:1px; height:11px;
+  background:var(--or); transition:transform .2s, opacity .2s;
+}
+.question[open] summary::before{opacity:0; transform:rotate(90deg);}
+.question summary:hover{color:var(--or);}
+.question__corps{padding:0 44px 24px 0; font-size:.95rem; color:var(--doux);}
+
+/* ---------- contact ---------- */
+.contact{display:grid; grid-template-columns:1fr 1fr; gap:clamp(32px,5vw,64px); align-items:start;}
+.fiche{display:flex; gap:20px; padding:19px 0; border-top:1px solid var(--trait);}
+.fiche:last-of-type{border-bottom:1px solid var(--trait);}
+.fiche__clef{
+  font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.14em;
+  color:var(--or); width:108px; flex-shrink:0; padding-top:4px;
+}
+.fiche__val{font-size:.98rem;}
+.fiche__val a{border-bottom:1px solid var(--trait);}
+.fiche__val a:hover{color:var(--or); border-color:var(--or);}
+.encart-contact{background:var(--nuit); padding:36px 34px;}
+.encart-contact h3{color:var(--blanc); margin-bottom:14px; font-size:1.06rem;}
+.encart-contact p{color:#9FA5B0; font-size:.93rem; margin-bottom:26px;}
+.encart-contact .btn{width:100%; margin-bottom:10px;}
+.encart-contact .btn:last-child{margin-bottom:0;}
+
+/* ---------- pied ---------- */
+.pied{background:var(--nuit); color:#7E848F; padding:52px 0 26px; border-top:1px solid var(--trait-clair);}
+.pied__haut{display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:36px; padding-bottom:32px; border-bottom:1px solid var(--trait-clair);}
+.pied h4{
+  font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:.16em; color:var(--blanc); margin-bottom:16px;
+}
+.pied p, .pied li{font-size:.87rem; line-height:1.9;}
+.pied ul{list-style:none;}
+.pied a:hover{color:var(--or-clair);}
+.pied .marque__nom{color:var(--blanc); font-size:1.1rem;}
+.pied .marque__sous{color:var(--or);}
+.pied__bas{display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:22px; font-size:.75rem;}
+.acompleter{
+  display:inline-block; background:rgba(168,135,78,.18); color:var(--or-clair);
+  font-size:.64rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  padding:2px 7px; border-radius:2px;
+}
+
+/* ---------- barre mobile ---------- */
+.barre-mobile{
+  display:none; position:fixed; left:0; right:0; bottom:0; z-index:80;
+  background:var(--blanc); border-top:1px solid var(--trait);
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom)); gap:10px;
+  box-shadow:0 -4px 22px rgba(15,18,24,.10);
+}
+.barre-mobile .btn{flex:1; padding:14px 8px; font-size:.72rem;}
+
+/* ---------- adaptations ---------- */
+@media (max-width:1080px){
+  .tarifs-grille{grid-template-columns:1fr!important;}
+  .accroche__grille{grid-template-columns:1fr; }
+  .reservation{max-width:520px;}
+  .services{grid-template-columns:1fr;}
+  .flotte{grid-template-columns:1fr; max-width:460px;}
+  .contact{grid-template-columns:1fr;}
+  .pied__haut{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:880px){
+  .menu, .tel-entete{display:none;}
+  .burger{display:block;}
+  .entete__actions > .btn{display:none;}
+  .menu.ouvert{
+    display:flex; flex-direction:column; gap:0;
+    position:absolute; top:100%; left:0; right:0; background:var(--ivoire);
+    border-bottom:1px solid var(--trait); padding:6px 26px 20px; box-shadow:var(--ombre);
+  }
+  .menu.ouvert a{padding:15px 0; border-bottom:1px solid var(--trait); white-space:normal;}
+  body{padding-bottom:78px;}
+  .barre-mobile{display:flex;}
+  .engagements{grid-template-columns:1fr;}
+}
+@media (max-width:560px){
+  .wrap{padding:0 18px;}
+  .entete__barre{padding:14px 18px;}
+  .reservation__tete, .reservation__corps{padding-left:20px; padding-right:20px;}
+  .types{grid-template-columns:1fr;}
+  .type{display:flex; align-items:center; gap:12px; text-align:left; padding:14px 16px;}
+  .type svg{margin:0;}
+  .champ--duo{grid-template-columns:1fr;}
+  .champ--duo .champ{margin-bottom:16px;}
+  .champ--duo .champ:last-child{margin-bottom:0;}
+  .fiche{flex-direction:column; gap:6px;}
+  .fiche__clef{width:auto;}
+  .pied__haut{grid-template-columns:1fr;}
+  .jalon{font-size:.55rem; letter-spacing:.06em;}
+  .actions{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= EN-TÊTE ================= -->
+<header class="entete">
+  <div class="entete__barre">
+    <a href="#haut" class="marque" aria-label="ELYX, retour en haut">
+      <span class="marque__nom">Elyx</span>
+      <span class="marque__sous">Taxi de Paris</span>
+    </a>
+
+    <nav class="menu" id="menu" aria-label="Navigation principale">
+      <a href="#reserver">Réserver</a>
+      <a href="#flotte">Nos véhicules</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#questions">Questions</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="entete__actions">
+      <a class="tel-entete" href="tel:+33100000000">01 00 00 00 00</a>
+      <a class="btn btn--nuit btn--fin" href="#reserver">Réserver</a>
+      <button class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="haut">
+
+<!-- ================= ACCROCHE + RÉSERVATION ================= -->
+<section class="accroche" id="reserver">
+  <div class="wrap accroche__grille">
+
+    <div>
+      <p class="sur">Paris &amp; Île-de-France</p>
+      <h1>Le trajet compte<br>autant que <em>l'arrivée</em>.</h1>
+      <p class="accroche__texte">
+        Forfaits aéroport fixés par décret, courses au compteur, mise à
+        disposition à l'heure. Vous connaissez le montant avant de monter,
+        pas en descendant.
+      </p>
+      <div class="accroche__preuves">
+        <span class="preuve">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Tarifs fixés par la préfecture
+        </span>
+        <span class="preuve">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Attente aéroport comprise
+        </span>
+        <span class="preuve">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Chauffeurs titulaires d'une licence
+        </span>
+      </div>
+    </div>
+
+    <!-- ---------- module de réservation ---------- -->
+    <div class="reservation">
+      <div class="reservation__tete">
+        <p class="reservation__titre">Réserver une course</p>
+        <div class="jalons" role="list">
+          <span class="jalon" data-jalon="1" data-etat="actif" role="listitem">Trajet</span>
+          <span class="jalon" data-jalon="2" role="listitem">Véhicule</span>
+          <span class="jalon" data-jalon="3" role="listitem">Contact</span>
+          <span class="jalon" data-jalon="4" role="listitem">Confirmé</span>
+        </div>
+      </div>
+
+      <div class="reservation__corps">
+
+        <!-- ÉTAPE 1 : trajet -->
+        <div data-etape="1">
+          <div class="types" role="group" aria-label="Type de course">
+            <button type="button" class="type" data-type="transfert" aria-pressed="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+              <span>Transfert</span>
+            </button>
+            <button type="button" class="type" data-type="aeroport" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 14.5 21 5l-3.5 8.5L21 22 2 14.5Z"/></svg>
+              <span>Aéroport / gare</span>
+            </button>
+            <button type="button" class="type" data-type="disposition" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
+              <span>Mise à disposition</span>
+            </button>
+          </div>
+
+          <div id="zone-alerte-1"></div>
+
+          <div class="champ">
+            <label for="depart">Adresse de départ</label>
+            <input type="text" id="depart" autocomplete="off" placeholder="Rue, ville, aéroport ou gare"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugg-depart">
+            <div class="suggestions" id="sugg-depart" role="listbox" hidden></div>
+          </div>
+
+          <div class="champ" data-si="trajet">
+            <label for="arrivee">Adresse d'arrivée</label>
+            <input type="text" id="arrivee" autocomplete="off" placeholder="Rue, ville, aéroport ou gare"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugg-arrivee">
+            <div class="suggestions" id="sugg-arrivee" role="listbox" hidden></div>
+          </div>
+
+          <div class="champ" data-si="duree" hidden>
+            <label for="duree">Durée de la mise à disposition</label>
+            <select id="duree">
+              <option value="2">2 heures</option>
+              <option value="3">3 heures</option>
+              <option value="4" selected>4 heures (demi-journée)</option>
+              <option value="6">6 heures</option>
+              <option value="8">8 heures (journée)</option>
+              <option value="10">10 heures</option>
+            </select>
+          </div>
+
+          <div class="champ--duo">
+            <div class="champ">
+              <label for="date">Date</label>
+              <input type="date" id="date">
+            </div>
+            <div class="champ">
+              <label for="heure">Heure</label>
+              <input type="time" id="heure" value="09:00">
+            </div>
+          </div>
+
+          <div class="champ--duo">
+            <div class="champ">
+              <label for="passagers">Passagers</label>
+              <select id="passagers">
+                <option>1</option><option>2</option><option>3</option>
+                <option>4</option><option>5</option><option>6</option><option>7</option>
+              </select>
+            </div>
+            <div class="champ">
+              <label for="bagages">Bagages</label>
+              <select id="bagages">
+                <option value="0">Aucun</option>
+                <option value="1">1 bagage</option>
+                <option value="2" selected>2 bagages</option>
+                <option value="3">3 bagages</option>
+                <option value="4">4 bagages</option>
+                <option value="6">5 et plus</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn--nuit" id="vers-2">Voir les véhicules</button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 2 : véhicule -->
+        <div data-etape="2" hidden>
+          <div class="recap" id="recap-trajet"></div>
+          <div class="vehicules" id="vehicules" role="group" aria-label="Choix du véhicule"></div>
+          <div class="actions">
+            <button type="button" class="btn btn--ligne btn--retour" data-retour="1">Retour</button>
+            <button type="button" class="btn btn--nuit" id="vers-3">Continuer</button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 3 : coordonnées -->
+        <div data-etape="3" hidden>
+          <div class="recap" id="recap-prix"></div>
+          <div id="zone-alerte-3"></div>
+
+          <div class="champ--duo">
+            <div class="champ">
+              <label for="prenom">Prénom</label>
+              <input type="text" id="prenom" autocomplete="given-name" placeholder="Prénom">
+            </div>
+            <div class="champ">
+              <label for="nom">Nom</label>
+              <input type="text" id="nom" autocomplete="family-name" placeholder="Nom">
+            </div>
+          </div>
+          <div class="champ">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" id="telephone" autocomplete="tel" placeholder="06 00 00 00 00">
+          </div>
+          <div class="champ">
+            <label for="email">Adresse e-mail</label>
+            <input type="email" id="email" autocomplete="email" placeholder="vous@exemple.fr">
+          </div>
+          <div class="champ" data-si="vol" hidden>
+            <label for="vol">Numéro de vol ou de train <span style="text-transform:none;letter-spacing:0">(facultatif)</span></label>
+            <input type="text" id="vol" placeholder="AF1234">
+          </div>
+
+          <div class="info">
+            Le règlement se fait <strong>auprès du chauffeur</strong>, à la fin de
+            la course. Aucun paiement n'est demandé sur ce site.
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn--ligne btn--retour" data-retour="2">Retour</button>
+            <button type="button" class="btn btn--or" id="confirmer">Confirmer</button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 4 : bon de réservation -->
+        <div data-etape="4" hidden>
+          <div class="bon" id="bon"></div>
+          <div class="actions" style="margin-top:20px">
+            <button type="button" class="btn btn--ligne" id="imprimer">Imprimer</button>
+            <button type="button" class="btn btn--nuit" id="nouvelle">Nouvelle course</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= SERVICES ================= -->
+<section class="section" id="services">
+  <div class="wrap">
+    <div class="tete">
+      <p class="sur">Nos prestations</p>
+      <h2>Trois façons de nous confier un trajet</h2>
+      <p>Chacune avec son mode de tarification, annoncé d'avance.</p>
+    </div>
+    <div class="services">
+      <article class="service">
+        <div class="service__num">01</div>
+        <h3>Course au compteur</h3>
+        <p>
+          D'un point à un autre, au tarif réglementé. Nous vous en donnons une
+          estimation avant le départ : le compteur affichera le montant exact
+          à l'arrivée, selon la circulation réelle.
+        </p>
+      </article>
+      <article class="service">
+        <div class="service__num">02</div>
+        <h3>Forfait aéroport</h3>
+        <p>
+          Entre Paris et Roissy ou Orly, le prix est fixé par décret et ne
+          dépend ni du trafic ni de l'heure. Le chauffeur suit votre vol : un
+          retard d'avion ne vous coûte rien de plus.
+        </p>
+      </article>
+      <article class="service">
+        <div class="service__num">03</div>
+        <h3>Mise à disposition</h3>
+        <p>
+          Le chauffeur et le véhicule restent avec vous, facturés au tarif
+          horaire réglementé. Pour une journée de rendez-vous, un événement ou
+          un déplacement sans itinéraire figé.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FLOTTE ================= -->
+<section class="section section--ivoire2" id="flotte">
+  <div class="wrap">
+    <div class="tete">
+      <p class="sur">La flotte</p>
+      <h2>Trois catégories, une même exigence</h2>
+      <p>Véhicules récents, entretenus et non fumeurs. Eau, chargeurs et prise USB à bord.</p>
+    </div>
+    <div class="flotte">
+
+      <article class="carte-vehicule">
+        <div class="carte-vehicule__image">
+          <span class="carte-vehicule__rang">Le plus demandé</span>
+          <svg viewBox="0 0 160 62" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 44h140M18 44c0-14 10-22 24-24 10-1.5 26-1.5 36 0 10 2 20 8 28 12l24 4c8 1.5 12 4 12 8"/>
+            <path d="M46 20c-8 2-14 8-18 14h96c-8-6-18-11-28-13-14-2.5-36-3-50-1Z"/>
+            <line x1="76" y1="20" x2="76" y2="34"/>
+            <circle cx="44" cy="46" r="9"/><circle cx="118" cy="46" r="9"/>
+          </svg>
+        </div>
+        <div class="carte-vehicule__corps">
+          <h3>Berline</h3>
+          <p class="carte-vehicule__ex">Mercedes Classe E, BMW Série 5 ou équivalent</p>
+          <ul class="specs">
+            <li><span>Passagers</span><b>Jusqu'à 3</b></li>
+            <li><span>Bagages</span><b>2 grandes valises</b></li>
+            <li><span>Usage</span><b>Trajet quotidien, aéroport</b></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="carte-vehicule">
+        <div class="carte-vehicule__image">
+          <svg viewBox="0 0 160 62" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 44h140M16 44V22c0-4 3-7 7-7h94c4 0 8 2 11 6l14 17v6"/>
+            <path d="M28 20h86v16H28z"/>
+            <line x1="70" y1="20" x2="70" y2="36"/>
+            <circle cx="44" cy="46" r="9"/><circle cx="118" cy="46" r="9"/>
+          </svg>
+        </div>
+        <div class="carte-vehicule__corps">
+          <h3>Van</h3>
+          <p class="carte-vehicule__ex">Mercedes Classe V, Volkswagen Multivan ou équivalent</p>
+          <ul class="specs">
+            <li><span>Passagers</span><b>Jusqu'à 7</b></li>
+            <li><span>Bagages</span><b>6 grandes valises</b></li>
+            <li><span>Usage</span><b>Famille, groupe, long séjour</b></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="carte-vehicule">
+        <div class="carte-vehicule__image">
+          <span class="carte-vehicule__rang">Haut de gamme</span>
+          <svg viewBox="0 0 160 62" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 44h148M14 44c0-16 12-24 28-26 12-1.5 30-1.5 42 0 12 2 22 9 30 14l26 4c8 1.5 14 4 14 8"/>
+            <path d="M44 18c-9 2-16 9-20 16h104c-9-7-20-12-32-14-15-2.5-38-3-52-2Z"/>
+            <line x1="78" y1="18" x2="78" y2="34"/>
+            <circle cx="42" cy="46" r="10"/><circle cx="122" cy="46" r="10"/>
+            <circle cx="42" cy="46" r="3.5"/><circle cx="122" cy="46" r="3.5"/>
+          </svg>
+        </div>
+        <div class="carte-vehicule__corps">
+          <h3>Première</h3>
+          <p class="carte-vehicule__ex">Mercedes Classe S, Audi A8 ou équivalent</p>
+          <ul class="specs">
+            <li><span>Passagers</span><b>Jusqu'à 3</b></li>
+            <li><span>Bagages</span><b>2 grandes valises</b></li>
+            <li><span>Usage</span><b>Direction, réception, soirée</b></li>
+          </ul>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= TARIFS ================= -->
+<section class="section" id="tarifs">
+  <div class="wrap">
+    <div class="tete">
+      <p class="sur">Tarifs</p>
+      <h2>Des prix que nous ne fixons pas</h2>
+      <p>
+        Les tarifs des taxis parisiens sont arrêtés par la préfecture. Ils sont
+        les mêmes dans tous les taxis, et affichés dans chaque véhicule.
+      </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start" class="tarifs-grille">
+
+      <div>
+        <h3 style="margin-bottom:16px">Forfaits aéroport</h3>
+        <p style="font-size:.9rem;color:var(--doux);margin-bottom:18px">
+          Entre Paris et Roissy ou Orly, un forfait fixé par décret remplace le
+          compteur. Ni le trafic ni l'heure ne le modifient.
+        </p>
+        <div class="tableau-enveloppe">
+          <table class="tableau">
+            <thead>
+              <tr><th scope="col">Trajet</th><th scope="col">Prix</th></tr>
+            </thead>
+            <tbody id="tableau-forfaits"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:16px">Au compteur</h3>
+        <p style="font-size:.9rem;color:var(--doux);margin-bottom:18px">
+          Hors forfait, le compteur applique l'un de ces quatre tarifs, selon
+          l'heure et selon que le taxi reparte chargé ou à vide.
+        </p>
+        <div class="tableau-enveloppe">
+          <table class="tableau">
+            <thead>
+              <tr>
+                <th scope="col">Situation</th>
+                <th scope="col">Tarif</th>
+                <th scope="col">Par km</th>
+              </tr>
+            </thead>
+            <tbody id="tableau-compteur"></tbody>
+          </table>
+        </div>
+
+        <div class="tableau-enveloppe" style="margin-top:16px">
+          <table class="tableau">
+            <tbody>
+              <tr><th scope="row">Prise en charge</th><td>4,40 €</td></tr>
+              <tr><th scope="row">Minimum de perception</th><td>8,00 €</td></tr>
+              <tr><th scope="row">Attente et marche lente</th><td>40,25 € / h</td></tr>
+              <tr><th scope="row">Réservation à l'avance</th><td>7,30 €</td></tr>
+              <tr><th scope="row">À partir du 4<sup>e</sup> passager</th><td>5,50 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="tarifs__note">
+      <!-- Les tarifs taxi sont révisés chaque année par arrêté préfectoral.
+           Reprendre les valeurs de l'arrêté en vigueur avant de publier :
+           afficher un tarif périmé expose à une sanction. -->
+      <span class="acompleter" style="background:rgba(168,135,78,.16);color:#8F7241">À vérifier</span>
+      Grille de la dernière année connue. Ces montants sont révisés chaque
+      année par arrêté préfectoral : reprendre l'arrêté en vigueur avant la
+      mise en ligne. L'estimation affichée à la réservation reste une
+      estimation — seul le compteur fait foi à l'arrivée, sauf sur les
+      forfaits aéroport, qui sont fermes.
+    </p>
+  </div>
+</section>
+
+<!-- ================= ENGAGEMENTS ================= -->
+<section class="section section--nuit" id="engagements">
+  <div class="wrap">
+    <div class="tete">
+      <p class="sur">Nos engagements</p>
+      <h2>Ce sur quoi vous pouvez compter</h2>
+    </div>
+    <div class="engagements">
+      <article class="engagement">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <h3>Un tarif que nous ne fixons pas</h3>
+        <p>
+          Prise en charge, prix au kilomètre, suppléments : tout est arrêté par
+          la préfecture, identique dans tous les taxis parisiens. Sur les
+          forfaits aéroport, le montant est ferme quoi qu'il arrive.
+        </p>
+      </article>
+      <article class="engagement">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2.2"/></svg>
+        <h3>60 minutes d'attente offertes</h3>
+        <p>
+          Sur un transfert aéroport, l'attente est comprise pendant l'heure qui
+          suit l'atterrissage réel — pas l'horaire théorique. Le chauffeur suit
+          le vol.
+        </p>
+      </article>
+      <article class="engagement">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/></svg>
+        <h3>Des chauffeurs déclarés</h3>
+        <p>
+          Chaque chauffeur détient sa licence de taxi parisien, sa carte
+          professionnelle et son assurance. Ses références figurent sur votre
+          bon de réservation.
+        </p>
+      </article>
+      <article class="engagement">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 4h16v12H5.5L4 18.5V4Z"/><path d="M8 9h8M8 12.5h5"/></svg>
+        <h3>Une annulation sans frais</h3>
+        <p>
+          <span class="acompleter">À compléter</span>
+          Préciser ici le délai d'annulation gratuite pratiqué, et le montant
+          retenu au-delà. À faire relire avant la mise en ligne.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUESTIONS ================= -->
+<section class="section" id="questions">
+  <div class="wrap">
+    <div class="tete">
+      <p class="sur">Questions fréquentes</p>
+      <h2>Ce qu'on nous demande le plus</h2>
+    </div>
+    <div class="questions">
+      <details class="question">
+        <summary>Comment le prix est-il calculé ?</summary>
+        <div class="question__corps">
+          Par le compteur, selon les tarifs de la préfecture : une prise en
+          charge, puis un prix au kilomètre qui dépend de l'heure et du secteur.
+          Entre Paris et Roissy ou Orly, un forfait fixe remplace le compteur.
+          Nous affichons une estimation avant votre départ ; sur un forfait,
+          le montant annoncé est celui que vous réglerez.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Quand et comment est-ce que je paie ?</summary>
+        <div class="question__corps">
+          Le règlement se fait auprès du chauffeur, à la fin de la course.
+          Aucun paiement n'est demandé sur ce site, et aucune donnée bancaire
+          n'y transite.
+          <span class="acompleter">À compléter</span>
+          Préciser les moyens acceptés par les chauffeurs : espèces, carte,
+          virement pour les comptes professionnels.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Et si mon avion a du retard ?</summary>
+        <div class="question__corps">
+          Le chauffeur suit le numéro de vol que vous indiquez à la réservation
+          et se cale sur l'heure d'atterrissage réelle. L'heure d'attente qui
+          suit est comprise dans le forfait.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Puis-je réserver pour quelqu'un d'autre ?</summary>
+        <div class="question__corps">
+          Oui. Indiquez vos coordonnées pour le suivi de la réservation, et
+          précisez au moment de la confirmation le nom et le téléphone du
+          passager, afin que le chauffeur puisse le joindre à l'arrivée.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Combien de bagages puis-je emporter ?</summary>
+        <div class="question__corps">
+          Une berline accueille deux grandes valises, un van jusqu'à six. Si
+          vous voyagez avec des bagages hors format — instrument, matériel
+          professionnel, équipement de sport — signalez-le : nous adaptons le
+          véhicule.
+        </div>
+      </details>
+      <details class="question">
+        <summary>Travaillez-vous avec les entreprises ?</summary>
+        <div class="question__corps">
+          <span class="acompleter">À compléter</span>
+          Décrire ici l'offre professionnelle : facturation mensuelle, compte
+          entreprise, mise à disposition récurrente, conditions tarifaires.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section class="section section--ivoire2" id="contact">
+  <div class="wrap">
+    <div class="tete">
+      <p class="sur">Contact</p>
+      <h2>Une question avant de réserver</h2>
+      <p>Pour un trajet particulier, un devis d'entreprise ou une demande urgente, le téléphone reste le plus rapide.</p>
+    </div>
+
+    <div class="contact">
+      <div>
+        <div class="fiche">
+          <span class="fiche__clef">Téléphone</span>
+          <span class="fiche__val">
+            <a href="tel:+33100000000">01 00 00 00 00</a><br>
+            <span style="font-size:.85rem;color:var(--doux)">Tous les jours, 7 h – 23 h</span>
+          </span>
+        </div>
+        <div class="fiche">
+          <span class="fiche__clef">E-mail</span>
+          <span class="fiche__val"><a href="mailto:contact@exemple.fr">contact@exemple.fr</a></span>
+        </div>
+        <div class="fiche">
+          <span class="fiche__clef">Zone</span>
+          <span class="fiche__val">
+            Paris et Île-de-France<br>
+            <span style="font-size:.85rem;color:var(--doux)">Longue distance sur devis, dans toute la France</span>
+          </span>
+        </div>
+        <div class="fiche">
+          <span class="fiche__clef">Société</span>
+          <span class="fiche__val">
+            <span class="acompleter" style="background:rgba(168,135,78,.16);color:#8F7241">À compléter</span>
+            Raison sociale, SIRET, adresse du siège, numéro d'inscription au
+            numéro de licence de taxi parisien
+          </span>
+        </div>
+      </div>
+
+      <div class="encart-contact">
+        <h3>Réserver en trois minutes</h3>
+        <p>
+          Renseignez votre trajet, choisissez votre véhicule, recevez votre bon
+          de réservation. Sans compte à créer et sans paiement en ligne.
+        </p>
+        <a class="btn btn--or" href="#reserver">Commencer la réservation</a>
+        <a class="btn btn--clair" href="tel:+33100000000">Appeler plutôt</a>
+        <a class="btn btn--clair" href="#" id="voir-reservations">Mes réservations</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ================= PIED ================= -->
+<footer class="pied">
+  <div class="wrap">
+    <div class="pied__haut">
+      <div>
+        <span class="marque" style="margin-bottom:16px">
+          <span class="marque__nom">Elyx</span>
+          <span class="marque__sous">Taxi de Paris</span>
+        </span>
+        <p>
+          Réservation de taxis parisiens. Tarifs réglementés par arrêté
+          préfectoral, forfaits aéroport fixés par décret.
+        </p>
+      </div>
+      <div>
+        <h4>Le site</h4>
+        <ul>
+          <li><a href="#reserver">Réserver une course</a></li>
+          <li><a href="#flotte">Nos véhicules</a></li>
+          <li><a href="#tarifs">Tarifs aéroport</a></li>
+          <li><a href="#questions">Questions fréquentes</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Informations légales</h4>
+        <!-- Obligations LCEN pour tout site commercial : identité de
+             l'éditeur, hébergeur, directeur de publication, médiateur de la
+             consommation. À faire relire par un juriste. -->
+        <ul>
+          <li><span class="acompleter">À compléter</span> Mentions légales</li>
+          <li><span class="acompleter">À compléter</span> CGV</li>
+          <li><span class="acompleter">À compléter</span> Confidentialité</li>
+          <li><span class="acompleter">À compléter</span> N° de licence taxi</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pied__bas">
+      <span>© <span id="annee">2026</span> ELYX — Tous droits réservés</span>
+      <span>Maquette de présentation — As-Mine Digital</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ================= BARRE MOBILE ================= -->
+<div class="barre-mobile">
+  <a class="btn btn--nuit" href="#reserver">Réserver</a>
+  <a class="btn btn--ligne" href="tel:+33100000000">Appeler</a>
+</div>
+
+<!-- ================= DONNÉES STRUCTURÉES ================= -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"TaxiService",
+  "name":"ELYX",
+  "description":"Taxi à Paris et en Île-de-France. Tarifs réglementés par arrêté préfectoral, forfaits aéroport Roissy et Orly.",
+  "url":"https://barbaros911.github.io/As-mine/elyx/",
+  "telephone":"+33100000000",
+  "areaServed":[
+    {"@type":"City","name":"Paris"},
+    {"@type":"AdministrativeArea","name":"Île-de-France"}
+  ],
+  "provider":{"@type":"Organization","name":"ELYX"},
+  "availableChannel":{
+    "@type":"ServiceChannel",
+    "serviceUrl":"https://barbaros911.github.io/As-mine/elyx/#reserver",
+    "servicePhone":"+33100000000"
+  }
+}
+</script>
+
+<script>
+/* =====================================================================
+   ELYX — moteur de réservation
+   Aucune bibliothèque : tout tient dans ce fichier.
+
+   Trois principes :
+   — Le prix est calculé et figé côté client, puis rappelé sur le bon de
+     réservation. Le chauffeur encaisse ce montant, pas un autre.
+   — La recherche d'adresse fonctionne hors ligne grâce à une base locale
+     de points connus, et s'enrichit d'un service en ligne quand il répond.
+   — La distance est estimée à vol d'oiseau majorée, puis affinée par un
+     calculateur d'itinéraire lorsqu'il est joignable.
+   ===================================================================== */
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------------------
+     1. TARIFS — à confirmer par le client avant la mise en ligne
+     --------------------------------------------------------------- */
+  /* Tarifs taxi parisiens — fixés par ARRÊTÉ PRÉFECTORAL, pas par nous.
+
+     >>> À VÉRIFIER AVANT LA MISE EN LIGNE <<<
+     Cette grille est révisée chaque année. Les montants ci-dessous
+     correspondent à la dernière grille connue (2024-2025). Afficher un
+     tarif qui n'est plus en vigueur expose à une sanction : reprendre les
+     valeurs de l'arrêté préfectoral en cours avant de publier. */
+  const TARIF = {
+    priseEnCharge: 4.40,   // €
+    minimum:       8.00,   // € — minimum de perception
+    horaire:      40.25,   // €/h — attente et marche lente
+    km: {
+      A: 1.22,   // Paris, jour (10 h – 17 h), retour en charge
+      B: 1.61,   // Paris, nuit (17 h – 10 h), dimanche et jours fériés
+      C: 1.74,   // banlieue, retour à vide, jour
+      D: 2.10    // banlieue, retour à vide, nuit et dimanche
+    },
+    supplements: {
+      reservationAvance: 7.30,   // € — course réservée à l'avance
+      passagerSupp:      5.50    // € — à partir du 4e passager adulte
+    },
+    vitesseMoyenne:  22,   // km/h dans Paris, embouteillages compris
+    facteurRoute:  1.32    // la route fait plus long que le vol d'oiseau
+  };
+
+  /* Le tarif réglementé est le même quel que soit le véhicule : seule la
+     capacité change. Un taxi ne peut pas facturer une « catégorie
+     supérieure » plus cher — c'est la loi, pas un choix commercial. */
+  const VEHICULES = [
+    { id:"taxi", nom:"Taxi",     pax:4, bag:3,
+      det:"Berline · jusqu'à 4 passagers · 3 bagages" },
+    { id:"van",  nom:"Taxi van", pax:7, bag:6,
+      det:"Monospace · jusqu'à 7 passagers · 6 bagages" }
+  ];
+
+  /* Forfaits aéroport : fixés par décret, ils remplacent le compteur entre
+     Paris et Roissy ou Orly. Le prix dépend de la rive, pas du véhicule. */
+  const FORFAITS = [
+    { cle:"cdg",  rive:"droite", nom:"Roissy CDG ↔ Paris rive droite", prix:56 },
+    { cle:"cdg",  rive:"gauche", nom:"Roissy CDG ↔ Paris rive gauche", prix:65 },
+    { cle:"orly", rive:"gauche", nom:"Orly ↔ Paris rive gauche",       prix:36 },
+    { cle:"orly", rive:"droite", nom:"Orly ↔ Paris rive droite",       prix:44 }
+  ];
+
+  /* ---------------------------------------------------------------
+     2. BASE DE LIEUX — permet de chercher une adresse sans réseau
+     --------------------------------------------------------------- */
+  const LIEUX = [
+    // aéroports et pôles
+    {n:"Aéroport Roissy – Charles-de-Gaulle", d:"95700 Roissy-en-France", lat:49.0097, lon:2.5479, t:"Aéroport", f:"cdg"},
+    {n:"Aéroport d'Orly",                     d:"94390 Orly",             lat:48.7262, lon:2.3652, t:"Aéroport", f:"orly"},
+    {n:"Aéroport de Beauvais-Tillé",          d:"60000 Tillé",            lat:49.4544, lon:2.1128, t:"Aéroport", f:"beauvais"},
+    {n:"Aéroport du Bourget",                 d:"93350 Le Bourget",       lat:48.9694, lon:2.4414, t:"Aéroport", f:"bourget"},
+    {n:"Disneyland Paris",                    d:"77700 Chessy",           lat:48.8722, lon:2.7758, t:"Parc",     f:"disney"},
+    // gares
+    {n:"Gare du Nord",         d:"75010 Paris", lat:48.8809, lon:2.3553, t:"Gare", f:"gare"},
+    {n:"Gare de Lyon",         d:"75012 Paris", lat:48.8443, lon:2.3743, t:"Gare", f:"gare"},
+    {n:"Gare Montparnasse",    d:"75015 Paris", lat:48.8412, lon:2.3204, t:"Gare", f:"gare"},
+    {n:"Gare de l'Est",        d:"75010 Paris", lat:48.8766, lon:2.3590, t:"Gare", f:"gare"},
+    {n:"Gare Saint-Lazare",    d:"75008 Paris", lat:48.8757, lon:2.3253, t:"Gare", f:"gare"},
+    {n:"Gare d'Austerlitz",    d:"75013 Paris", lat:48.8422, lon:2.3654, t:"Gare", f:"gare"},
+    {n:"Gare de Bercy",        d:"75012 Paris", lat:48.8390, lon:2.3823, t:"Gare", f:"gare"},
+    // Paris par arrondissement
+    {n:"Paris 1er — Louvre",            d:"75001 Paris", lat:48.8626, lon:2.3363, t:"Paris", rive:"droite"},
+    {n:"Paris 2e — Bourse",             d:"75002 Paris", lat:48.8679, lon:2.3411, t:"Paris", rive:"droite"},
+    {n:"Paris 3e — Temple",             d:"75003 Paris", lat:48.8637, lon:2.3615, t:"Paris", rive:"droite"},
+    {n:"Paris 4e — Hôtel-de-Ville",     d:"75004 Paris", lat:48.8544, lon:2.3574, t:"Paris", rive:"droite"},
+    {n:"Paris 5e — Panthéon",           d:"75005 Paris", lat:48.8448, lon:2.3499, t:"Paris", rive:"gauche"},
+    {n:"Paris 6e — Luxembourg",         d:"75006 Paris", lat:48.8496, lon:2.3327, t:"Paris", rive:"gauche"},
+    {n:"Paris 7e — Palais-Bourbon",     d:"75007 Paris", lat:48.8565, lon:2.3120, t:"Paris", rive:"gauche"},
+    {n:"Paris 8e — Élysée",             d:"75008 Paris", lat:48.8726, lon:2.3125, t:"Paris", rive:"droite"},
+    {n:"Paris 9e — Opéra",              d:"75009 Paris", lat:48.8769, lon:2.3378, t:"Paris", rive:"droite"},
+    {n:"Paris 10e — Entrepôt",          d:"75010 Paris", lat:48.8760, lon:2.3595, t:"Paris", rive:"droite"},
+    {n:"Paris 11e — Popincourt",        d:"75011 Paris", lat:48.8578, lon:2.3795, t:"Paris", rive:"droite"},
+    {n:"Paris 12e — Reuilly",           d:"75012 Paris", lat:48.8351, lon:2.4200, t:"Paris", rive:"droite"},
+    {n:"Paris 13e — Gobelins",          d:"75013 Paris", lat:48.8322, lon:2.3555, t:"Paris", rive:"gauche"},
+    {n:"Paris 14e — Observatoire",      d:"75014 Paris", lat:48.8299, lon:2.3264, t:"Paris", rive:"gauche"},
+    {n:"Paris 15e — Vaugirard",         d:"75015 Paris", lat:48.8412, lon:2.3003, t:"Paris", rive:"gauche"},
+    {n:"Paris 16e — Passy",             d:"75016 Paris", lat:48.8637, lon:2.2769, t:"Paris", rive:"droite"},
+    {n:"Paris 17e — Batignolles",       d:"75017 Paris", lat:48.8872, lon:2.3079, t:"Paris", rive:"droite"},
+    {n:"Paris 18e — Butte-Montmartre",  d:"75018 Paris", lat:48.8925, lon:2.3444, t:"Paris", rive:"droite"},
+    {n:"Paris 19e — Buttes-Chaumont",   d:"75019 Paris", lat:48.8817, lon:2.3820, t:"Paris", rive:"droite"},
+    {n:"Paris 20e — Ménilmontant",      d:"75020 Paris", lat:48.8631, lon:2.3969, t:"Paris", rive:"droite"},
+    // communes d'Île-de-France
+    {n:"Boulogne-Billancourt", d:"92100", lat:48.8352, lon:2.2409, t:"Hauts-de-Seine"},
+    {n:"Neuilly-sur-Seine",    d:"92200", lat:48.8846, lon:2.2697, t:"Hauts-de-Seine"},
+    {n:"Levallois-Perret",     d:"92300", lat:48.8934, lon:2.2879, t:"Hauts-de-Seine"},
+    {n:"La Défense",           d:"92800 Puteaux", lat:48.8918, lon:2.2378, t:"Hauts-de-Seine"},
+    {n:"Issy-les-Moulineaux",  d:"92130", lat:48.8244, lon:2.2730, t:"Hauts-de-Seine"},
+    {n:"Nanterre",             d:"92000", lat:48.8924, lon:2.2069, t:"Hauts-de-Seine"},
+    {n:"Saint-Denis",          d:"93200", lat:48.9362, lon:2.3574, t:"Seine-Saint-Denis"},
+    {n:"Montreuil",            d:"93100", lat:48.8638, lon:2.4485, t:"Seine-Saint-Denis"},
+    {n:"Aubervilliers",        d:"93300", lat:48.9146, lon:2.3822, t:"Seine-Saint-Denis"},
+    {n:"Vincennes",            d:"94300", lat:48.8478, lon:2.4392, t:"Val-de-Marne"},
+    {n:"Créteil",              d:"94000", lat:48.7904, lon:2.4556, t:"Val-de-Marne"},
+    {n:"Ivry-sur-Seine",       d:"94200", lat:48.8137, lon:2.3878, t:"Val-de-Marne"},
+    {n:"Versailles",           d:"78000", lat:48.8014, lon:2.1301, t:"Yvelines"},
+    {n:"Saint-Germain-en-Laye",d:"78100", lat:48.8988, lon:2.0937, t:"Yvelines"},
+    {n:"Argenteuil",           d:"95100", lat:48.9474, lon:2.2482, t:"Val-d'Oise"},
+    {n:"Cergy",                d:"95000", lat:49.0362, lon:2.0631, t:"Val-d'Oise"},
+    {n:"Évry-Courcouronnes",   d:"91000", lat:48.6238, lon:2.4295, t:"Essonne"},
+    {n:"Massy",                d:"91300", lat:48.7304, lon:2.2833, t:"Essonne"},
+    {n:"Meaux",                d:"77100", lat:48.9601, lon:2.8785, t:"Seine-et-Marne"},
+    {n:"Fontainebleau",        d:"77300", lat:48.4045, lon:2.7016, t:"Seine-et-Marne"}
+  ];
+
+  /* ---------------------------------------------------------------
+     3. OUTILS
+     --------------------------------------------------------------- */
+  const $  = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+
+  const euros = (n) =>
+    new Intl.NumberFormat("fr-FR", {style:"currency", currency:"EUR", minimumFractionDigits:0, maximumFractionDigits:0})
+      .format(Math.round(n));
+
+  function sansAccent(s){
+    return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  }
+
+  /* Distance à vol d'oiseau, en kilomètres */
+  function volDOiseau(a, b){
+    const R = 6371, r = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+    const x = Math.sin(dLat/2)**2 +
+              Math.cos(a.lat*r) * Math.cos(b.lat*r) * Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+
+  /* ---------------------------------------------------------------
+     4. ÉTAT DE LA RÉSERVATION
+     --------------------------------------------------------------- */
+  const etat = {
+    type:"transfert",
+    depart:null, arrivee:null,
+    date:"", heure:"09:00",
+    passagers:1, bagages:2, duree:4,
+    km:0, minutes:0, forfait:null, estimation:true,
+    vehicule:null, prix:0,
+    etape:1
+  };
+
+  /* ---------------------------------------------------------------
+     5. RECHERCHE D'ADRESSE
+     --------------------------------------------------------------- */
+  function chercherLocal(q){
+    const t = sansAccent(q);
+    if (t.length < 2) return [];
+    return LIEUX
+      .map((l) => {
+        const nom = sansAccent(l.n), det = sansAccent(l.d);
+        let score = -1;
+        if (nom.startsWith(t)) score = 0;
+        else if (nom.indexOf(t) !== -1) score = 1;
+        else if (det.indexOf(t) !== -1) score = 2;
+        return {l:l, score:score};
+      })
+      .filter((x) => x.score >= 0)
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 7)
+      .map((x) => x.l);
+  }
+
+  /* Complément en ligne. Si le service ne répond pas, on garde la base
+     locale : la réservation reste possible en toutes circonstances. */
+  function chercherEnLigne(q){
+    const url = "https://photon.komoot.io/api/?limit=5&lang=fr&lat=48.8566&lon=2.3522&q=" + encodeURIComponent(q);
+    return fetch(url, {mode:"cors"})
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((j) => (j.features || []).map((f) => {
+        const p = f.properties || {}, c = (f.geometry || {}).coordinates || [];
+        const nom = [p.name, p.street].filter(Boolean).join(", ") || p.city || "";
+        const det = [p.postcode, p.city, p.country].filter(Boolean).join(" ");
+        if (!nom || c.length < 2) return null;
+        return {n:nom, d:det, lat:c[1], lon:c[0], t:"Adresse"};
+      }).filter(Boolean))
+      .catch(() => []);
+  }
+
+  function brancherRecherche(idChamp, idListe, clef){
+    const champ = $("#" + idChamp), liste = $("#" + idListe);
+    let minuteur = null, index = -1, resultats = [];
+
+    function fermer(){
+      liste.hidden = true; liste.innerHTML = "";
+      champ.setAttribute("aria-expanded", "false");
+      index = -1; resultats = [];
+    }
+
+    function afficher(items){
+      resultats = items;
+      if (!items.length) { fermer(); return; }
+      liste.innerHTML = items.map((l, i) =>
+        '<div class="suggestion" role="option" id="' + idListe + '-' + i + '" aria-selected="false" data-i="' + i + '">' +
+          '<span><b>' + l.n + '</b> <small>' + (l.d || "") + '</small></span>' +
+          (l.t ? '<span class="suggestion__type">' + l.t + '</span>' : '') +
+        '</div>').join("");
+      liste.hidden = false;
+      champ.setAttribute("aria-expanded", "true");
+      index = -1;
+    }
+
+    function choisir(i){
+      const l = resultats[i];
+      if (!l) return;
+      etat[clef] = l;
+      champ.value = l.n + (l.d ? " — " + l.d : "");
+      fermer();
+    }
+
+    function surligner(){
+      $$(".suggestion", liste).forEach((el, i) => {
+        el.setAttribute("aria-selected", i === index ? "true" : "false");
+      });
+    }
+
+    champ.addEventListener("input", function(){
+      etat[clef] = null;                       // toute modification invalide le choix
+      const q = champ.value.trim();
+      clearTimeout(minuteur);
+      if (q.length < 2) { fermer(); return; }
+
+      const locaux = chercherLocal(q);
+      afficher(locaux);                        // réponse immédiate, sans réseau
+
+      minuteur = setTimeout(function(){
+        chercherEnLigne(q).then(function(distants){
+          if (champ.value.trim() !== q || !distants.length) return;
+          const vus = {};
+          const fusion = locaux.concat(distants).filter(function(l){
+            const k = sansAccent(l.n + l.d);
+            if (vus[k]) return false;
+            vus[k] = 1; return true;
+          }).slice(0, 8);
+          afficher(fusion);
+        });
+      }, 280);
+    });
+
+    champ.addEventListener("keydown", function(e){
+      if (liste.hidden) return;
+      if (e.key === "ArrowDown"){ e.preventDefault(); index = Math.min(index + 1, resultats.length - 1); surligner(); }
+      else if (e.key === "ArrowUp"){ e.preventDefault(); index = Math.max(index - 1, 0); surligner(); }
+      else if (e.key === "Enter" && index >= 0){ e.preventDefault(); choisir(index); }
+      else if (e.key === "Escape"){ fermer(); }
+    });
+
+    liste.addEventListener("mousedown", function(e){
+      const el = e.target.closest(".suggestion");
+      if (el) { e.preventDefault(); choisir(parseInt(el.dataset.i, 10)); }
+    });
+
+    champ.addEventListener("blur", function(){ setTimeout(fermer, 160); });
+  }
+
+  /* ---------------------------------------------------------------
+     6. CALCUL DU PRIX
+     --------------------------------------------------------------- */
+  /* Lettre du compteur (A, B, C ou D). Deux critères se combinent :
+     l'heure — nuit, dimanche et jours fériés sont plus chers — et le fait
+     que le taxi reparte en charge ou à vide. Dans Paris il retrouve un
+     client tout de suite ; en banlieue il rentre souvent à vide, et le
+     tarif kilométrique en tient compte. */
+  function lettreTarif(){
+    const d = new Date(etat.date + "T" + etat.heure);
+    const h = isNaN(d) ? 12 : d.getHours();
+    const dimanche = !isNaN(d) && d.getDay() === 0;
+    const nuit = (h >= 17 || h < 10) || dimanche;
+    const dansParis = (l) => !!(l && l.t === "Paris");
+    const enCharge = dansParis(etat.depart) && dansParis(etat.arrivee);
+    if (enCharge) return nuit ? "B" : "A";
+    return nuit ? "D" : "C";
+  }
+
+  const LIBELLE_TARIF = {
+    A:"Tarif A — Paris, jour",
+    B:"Tarif B — Paris, nuit ou dimanche",
+    C:"Tarif C — banlieue, jour",
+    D:"Tarif D — banlieue, nuit ou dimanche"
+  };
+
+  /* Un forfait remplace le compteur entre Paris et Roissy ou Orly. La rive
+     de l'adresse parisienne détermine le montant. */
+  function forfaitApplicable(){
+    if (etat.type === "disposition") return null;
+    const a = etat.depart, b = etat.arrivee;
+    if (!a || !b) return null;
+    const aero = a.f || b.f;
+    if (aero !== "cdg" && aero !== "orly") return null;
+    const paris = (a.t === "Paris") ? a : ((b.t === "Paris") ? b : null);
+    if (!paris || !paris.rive) return null;
+    return FORFAITS.find((f) => f.cle === aero && f.rive === paris.rive) || null;
+  }
+
+  function estimerTrajet(){
+    if (etat.type === "disposition"){
+      etat.km = 0; etat.minutes = etat.duree * 60; etat.forfait = null;
+      return Promise.resolve();
+    }
+    const a = etat.depart, b = etat.arrivee;
+    if (!a || !b) return Promise.resolve();
+
+    etat.km      = Math.max(0.5, volDOiseau(a, b) * TARIF.facteurRoute);
+    etat.minutes = Math.max(5, (etat.km / TARIF.vitesseMoyenne) * 60);
+    etat.forfait = forfaitApplicable();
+
+    const url = "https://router.project-osrm.org/route/v1/driving/" +
+                a.lon + "," + a.lat + ";" + b.lon + "," + b.lat + "?overview=false";
+    return fetch(url)
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((j) => {
+        const route = (j.routes || [])[0];
+        if (!route) return;
+        etat.km      = route.distance / 1000;
+        etat.minutes = Math.max(5, route.duration / 60);
+      })
+      .catch(() => {});
+  }
+
+  function supplements(){
+    let t = TARIF.supplements.reservationAvance;
+    if (etat.passagers >= 4) t += (etat.passagers - 3) * TARIF.supplements.passagerSupp;
+    return t;
+  }
+
+  /* Le compteur bascule entre distance et temps selon l'allure : à l'arrêt
+     c'est le tarif horaire qui court, en circulation le kilométrique. Sur
+     l'ensemble d'un trajet, retenir la composante la plus élevée donne une
+     estimation proche de ce qu'affichera le compteur. */
+  function prixDe(){
+    if (etat.type === "disposition"){
+      etat.estimation = true;
+      return TARIF.horaire * etat.duree + supplements();
+    }
+    if (etat.forfait){
+      etat.estimation = false;              // le forfait, lui, est ferme
+      let p = etat.forfait.prix;
+      if (etat.passagers >= 4) p += (etat.passagers - 3) * TARIF.supplements.passagerSupp;
+      return p;
+    }
+    etat.estimation = true;
+    const parKm  = TARIF.km[lettreTarif()];
+    const course = Math.max(etat.km * parKm, (etat.minutes / 60) * TARIF.horaire);
+    return Math.max(TARIF.minimum, TARIF.priseEnCharge + course) + supplements();
+  }
+
+  /* ---------------------------------------------------------------
+     7. AFFICHAGE
+     --------------------------------------------------------------- */
+  function alerte(zone, message){
+    const el = $("#" + zone);
+    if (!el) return;
+    el.innerHTML = message ? '<div class="alerte" role="alert">' + message + '</div>' : "";
+  }
+
+  function allerA(n){
+    etat.etape = n;
+    $$("[data-etape]").forEach((el) => { el.hidden = (parseInt(el.dataset.etape, 10) !== n); });
+    $$(".jalon").forEach((el) => {
+      const j = parseInt(el.dataset.jalon, 10);
+      el.dataset.etat = j === n ? "actif" : (j < n ? "fait" : "");
+    });
+  }
+
+  function libelleTrajet(){
+    if (etat.type === "disposition"){
+      return etat.duree + " h au départ de " + (etat.depart ? etat.depart.n : "—");
+    }
+    return (etat.depart ? etat.depart.n : "—") + " → " + (etat.arrivee ? etat.arrivee.n : "—");
+  }
+
+  function dateLisible(){
+    if (!etat.date) return "—";
+    const d = new Date(etat.date + "T" + etat.heure);
+    if (isNaN(d)) return "—";
+    return d.toLocaleDateString("fr-FR", {weekday:"long", day:"numeric", month:"long"}) +
+           " à " + etat.heure.replace(":", " h ");
+  }
+
+  function rendreRecapTrajet(){
+    const lignes = [
+      ["Trajet", libelleTrajet()],
+      ["Départ", dateLisible()],
+      ["Passagers", etat.passagers + (etat.bagages ? " · " + etat.bagages + " bagage" + (etat.bagages > 1 ? "s" : "") : "")]
+    ];
+    if (etat.forfait){
+      lignes.push(["Tarification", "Forfait réglementé"]);
+      lignes.push(["Trajet couvert", etat.forfait.nom]);
+    } else if (etat.type === "disposition"){
+      lignes.push(["Tarification", "Tarif horaire — " + euros(TARIF.horaire) + " / h"]);
+    } else {
+      lignes.push(["Distance estimée", etat.km.toFixed(1).replace(".", ",") + " km · " + Math.round(etat.minutes) + " min"]);
+      lignes.push(["Compteur", LIBELLE_TARIF[lettreTarif()]]);
+    }
+    if (etat.passagers >= 4) lignes.push(["Supplément", (etat.passagers - 3) + " passager(s) au-delà de 3"]);
+
+    $("#recap-trajet").innerHTML = lignes.map(function(l){
+      return '<div class="recap__ligne"><span>' + l[0] + '</span><span>' + l[1] + '</span></div>';
+    }).join("");
+  }
+
+  function rendreVehicules(){
+    const zone = $("#vehicules");
+    zone.innerHTML = VEHICULES.map(function(v){
+      const trop = etat.passagers > v.pax || etat.bagages > v.bag;
+      const prix = prixDe();
+      return '<button type="button" class="vehicule" data-vehicule="' + v.id + '"' +
+             ' aria-pressed="false"' + (trop ? ' disabled style="opacity:.4;cursor:not-allowed"' : '') + '>' +
+        '<svg class="vehicule__icone" viewBox="0 0 60 26" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">' +
+          (v.id === "van"
+            ? '<path d="M4 19h52M7 19V9c0-2 1.4-3 3-3h34c2 0 3.4 1 5 3l7 8v2"/><circle cx="17" cy="20" r="4"/><circle cx="45" cy="20" r="4"/>'
+            : '<path d="M4 19h52M7 19c0-6 4-9.5 10-10.5 5-1 12-1 17 0 5 1 9 4 13 6l8 1.5c3 .6 5 1.8 5 3"/><circle cx="17" cy="20" r="4"/><circle cx="45" cy="20" r="4"/>') +
+        '</svg>' +
+        '<span class="vehicule__info">' +
+          '<span class="vehicule__nom">' + v.nom + (trop ? " — capacité insuffisante" : "") + '</span>' +
+          '<span class="vehicule__det">' + v.det +
+            (v.id === "van" ? " · tarif réglementé identique" : "") + '</span>' +
+        '</span>' +
+        '<span class="vehicule__prix">' + euros(prix) + '</span>' +
+      '</button>';
+    }).join("");
+
+    /* Présélection : le premier véhicule capable d'accueillir la demande */
+    const premier = VEHICULES.find((v) => etat.passagers <= v.pax && etat.bagages <= v.bag);
+    if (premier) choisirVehicule(premier.id);
+  }
+
+  function choisirVehicule(id){
+    etat.vehicule = id;
+    etat.prix = prixDe();
+    $$(".vehicule").forEach((b) => b.setAttribute("aria-pressed", b.dataset.vehicule === id ? "true" : "false"));
+    $("#vers-3").disabled = false;
+  }
+
+  function rendreRecapPrix(){
+    const v = VEHICULES.find((x) => x.id === etat.vehicule);
+    const ht  = etat.prix / 1.10;             // TVA 10 % sur le transport de personnes
+    const tva = etat.prix - ht;
+    $("#recap-prix").innerHTML =
+      '<div class="recap__ligne"><span>Trajet</span><span>' + libelleTrajet() + '</span></div>' +
+      '<div class="recap__ligne"><span>Départ</span><span>' + dateLisible() + '</span></div>' +
+      '<div class="recap__ligne"><span>Véhicule</span><span>' + (v ? v.nom : "—") + '</span></div>' +
+      '<div class="recap__ligne"><span>Dont TVA 10 %</span><span>' + euros(tva) + '</span></div>' +
+      '<div class="recap__total"><b>' + (etat.estimation ? "Estimation au compteur" : "Forfait ferme") +
+        '</b><strong>' + euros(etat.prix) + '</strong></div>';
+  }
+
+  /* ---------------------------------------------------------------
+     8. BON DE RÉSERVATION
+     --------------------------------------------------------------- */
+  function referenceSuivante(){
+    let n = 1;
+    try {
+      const dernier = localStorage.getItem("elyx-compteur");
+      n = dernier ? parseInt(dernier, 10) + 1 : 1;
+      localStorage.setItem("elyx-compteur", String(n));
+    } catch (e) { n = Math.floor(Math.random() * 9000) + 1000; }
+    return "ELX-" + new Date().getFullYear() + "-" + String(n).padStart(4, "0");
+  }
+
+  function enregistrer(bon){
+    try {
+      const liste = JSON.parse(localStorage.getItem("elyx-reservations") || "[]");
+      liste.unshift(bon);
+      localStorage.setItem("elyx-reservations", JSON.stringify(liste.slice(0, 20)));
+    } catch (e) { /* navigation privée : on n'insiste pas */ }
+  }
+
+  function rendreBon(bon){
+    const v = VEHICULES.find((x) => x.id === bon.vehicule);
+    $("#bon").innerHTML =
+      '<div class="bon__entete">' +
+        '<div class="bon__ref">Réservation ' + bon.ref + '</div>' +
+        '<div class="bon__titre">C\'est confirmé</div>' +
+      '</div>' +
+      '<div class="bon__ligne"><span>Passager</span><span>' + bon.prenom + " " + bon.nom + '</span></div>' +
+      '<div class="bon__ligne"><span>Téléphone</span><span>' + bon.telephone + '</span></div>' +
+      '<div class="bon__ligne"><span>Trajet</span><span>' + bon.trajet + '</span></div>' +
+      '<div class="bon__ligne"><span>Départ</span><span>' + bon.quand + '</span></div>' +
+      '<div class="bon__ligne"><span>Véhicule</span><span>' + (v ? v.nom : "—") + '</span></div>' +
+      (bon.vol ? '<div class="bon__ligne"><span>Vol / train</span><span>' + bon.vol + '</span></div>' : '') +
+      '<div class="bon__ligne"><span>' + (bon.estimation ? "Estimation" : "Forfait ferme") +
+        '</span><span><strong>' + euros(bon.prix) + '</strong></span></div>' +
+      '<div class="bon__note">' +
+        (bon.estimation
+          ? 'Montant <strong>estimé</strong> : le prix réel est celui qu\'affichera le compteur à l\'arrivée, selon la circulation. '
+          : 'Forfait réglementé : ce montant est <strong>ferme</strong>, quelle que soit la circulation. ') +
+        'Réglement <strong>auprès du chauffeur</strong> à la fin de la course. ' +
+        'Le chauffeur affecté et ses références (licence de taxi, carte professionnelle) ' +
+        'vous seront communiqués avant le départ. ' +
+        '<span class="acompleter" style="background:rgba(168,135,78,.16);color:#8F7241">À compléter</span> ' +
+        'Conditions d\'annulation et coordonnées de l\'éditeur.' +
+      '</div>';
+  }
+
+  /* ---------------------------------------------------------------
+     9. BRANCHEMENTS
+     --------------------------------------------------------------- */
+  function init(){
+    // date du jour par défaut
+    const demain = new Date(Date.now() + 864e5);
+    const iso = demain.toISOString().slice(0, 10);
+    $("#date").value = iso; $("#date").min = new Date().toISOString().slice(0, 10);
+    etat.date = iso;
+
+    brancherRecherche("depart", "sugg-depart", "depart");
+    brancherRecherche("arrivee", "sugg-arrivee", "arrivee");
+
+    // tableau des forfaits
+    $("#tableau-forfaits").innerHTML = FORFAITS.map(function(f){
+      return "<tr><th scope='row'>" + f.nom + "</th><td>" + euros(f.prix) + "</td></tr>";
+    }).join("");
+
+    $("#tableau-compteur").innerHTML =
+      ["A","B","C","D"].map(function(l){
+        return "<tr><th scope='row'>" + LIBELLE_TARIF[l].replace("Tarif " + l + " — ", "") +
+               "</th><td>" + l + "</td><td>" +
+               TARIF.km[l].toFixed(2).replace(".", ",") + " €</td></tr>";
+      }).join("");
+
+    // type de course
+    $$(".type").forEach(function(b){
+      b.addEventListener("click", function(){
+        etat.type = b.dataset.type;
+        $$(".type").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+        const dispo = etat.type === "disposition";
+        $('[data-si="trajet"]').hidden = dispo;
+        $('[data-si="duree"]').hidden  = !dispo;
+        $('[data-si="vol"]').hidden    = etat.type !== "aeroport";
+        alerte("zone-alerte-1", "");
+      });
+    });
+
+    // champs simples
+    $("#date").addEventListener("change",  (e) => { etat.date = e.target.value; });
+    $("#heure").addEventListener("change", (e) => { etat.heure = e.target.value; });
+    $("#duree").addEventListener("change", (e) => { etat.duree = parseInt(e.target.value, 10); });
+    $("#passagers").addEventListener("change", (e) => { etat.passagers = parseInt(e.target.value, 10); });
+    $("#bagages").addEventListener("change",   (e) => { etat.bagages   = parseInt(e.target.value, 10); });
+
+    // étape 1 → 2
+    $("#vers-2").addEventListener("click", function(){
+      const b = $("#vers-2");
+      if (!etat.depart){
+        alerte("zone-alerte-1", "Merci de choisir une adresse de départ dans la liste proposée.");
+        $("#depart").focus(); return;
+      }
+      if (etat.type !== "disposition" && !etat.arrivee){
+        alerte("zone-alerte-1", "Merci de choisir une adresse d'arrivée dans la liste proposée.");
+        $("#arrivee").focus(); return;
+      }
+      if (!etat.date || !etat.heure){
+        alerte("zone-alerte-1", "Merci d'indiquer la date et l'heure du départ."); return;
+      }
+      alerte("zone-alerte-1", "");
+      b.disabled = true; b.textContent = "Calcul en cours…";
+      estimerTrajet().then(function(){
+        b.disabled = false; b.textContent = "Voir les véhicules";
+        rendreRecapTrajet();
+        rendreVehicules();
+        allerA(2);
+      });
+    });
+
+    // choix du véhicule
+    $("#vehicules").addEventListener("click", function(e){
+      const b = e.target.closest(".vehicule");
+      if (b && !b.disabled) choisirVehicule(b.dataset.vehicule);
+    });
+
+    // étape 2 → 3
+    $("#vers-3").addEventListener("click", function(){
+      if (!etat.vehicule) return;
+      rendreRecapPrix();
+      allerA(3);
+    });
+
+    // retours
+    $$("[data-retour]").forEach(function(b){
+      b.addEventListener("click", function(){ allerA(parseInt(b.dataset.retour, 10)); });
+    });
+
+    // confirmation
+    $("#confirmer").addEventListener("click", function(){
+      const prenom = $("#prenom").value.trim(), nom = $("#nom").value.trim();
+      const tel = $("#telephone").value.trim(), email = $("#email").value.trim();
+
+      if (!prenom || !nom){
+        alerte("zone-alerte-3", "Merci d'indiquer votre prénom et votre nom.");
+        $("#prenom").focus(); return;
+      }
+      if (tel.replace(/[^0-9+]/g, "").length < 9){
+        alerte("zone-alerte-3", "Merci d'indiquer un numéro de téléphone joignable.");
+        $("#telephone").focus(); return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+        alerte("zone-alerte-3", "Merci d'indiquer une adresse e-mail valide.");
+        $("#email").focus(); return;
+      }
+      alerte("zone-alerte-3", "");
+
+      const bon = {
+        ref: referenceSuivante(),
+        prenom: prenom, nom: nom, telephone: tel, email: email,
+        vol: $("#vol").value.trim(),
+        trajet: libelleTrajet(), quand: dateLisible(),
+        vehicule: etat.vehicule, prix: etat.prix, estimation: etat.estimation,
+        cree: new Date().toISOString()
+      };
+      enregistrer(bon);
+      rendreBon(bon);
+      allerA(4);
+    });
+
+    $("#imprimer").addEventListener("click", function(){ window.print(); });
+
+    $("#nouvelle").addEventListener("click", function(){
+      etat.depart = etat.arrivee = etat.vehicule = null;
+      etat.prix = 0; etat.forfait = null;
+      ["depart","arrivee","prenom","nom","telephone","email","vol"].forEach((id) => { $("#" + id).value = ""; });
+      allerA(1);
+      $("#depart").focus();
+    });
+
+    // mes réservations
+    $("#voir-reservations").addEventListener("click", function(e){
+      e.preventDefault();
+      let liste = [];
+      try { liste = JSON.parse(localStorage.getItem("elyx-reservations") || "[]"); } catch (err) { liste = []; }
+      if (!liste.length){
+        alert("Aucune réservation enregistrée sur cet appareil pour l'instant.");
+        return;
+      }
+      const dernier = liste[0];
+      rendreBon(dernier);
+      allerA(4);
+      document.getElementById("reserver").scrollIntoView({behavior:"smooth"});
+    });
+
+    // menu mobile
+    const burger = $("#burger"), menu = $("#menu");
+    burger.addEventListener("click", function(){
+      const ouvert = menu.classList.toggle("ouvert");
+      burger.setAttribute("aria-expanded", ouvert ? "true" : "false");
+      burger.setAttribute("aria-label", ouvert ? "Fermer le menu" : "Ouvrir le menu");
+    });
+    menu.addEventListener("click", function(e){
+      if (e.target.tagName === "A"){
+        menu.classList.remove("ouvert");
+        burger.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    $("#annee").textContent = new Date().getFullYear();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>
