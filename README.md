@@ -19,28 +19,34 @@ workflow `.github/workflows/pages.yml` : **https://barbaros911.github.io/As-mine
 ## Ajouter d'autres sites, sans toucher à As-mine
 
 As-mine occupe la racine du dépôt et garde son adresse. Pour publier un autre
-site à côté d'elle, il suffit de créer un dossier dans `sites/` :
+site — une démonstration à montrer à un client, par exemple — il suffit de
+créer un dossier dans `sites/` :
 
 | Dossier | Adresse publiée |
 |---|---|
 | *(racine)* | `.../As-mine/` — As-mine |
-| `sites/modele/` | `.../As-mine/modele/` |
 | `sites/mon-site/` | `.../As-mine/mon-site/` |
+| *(automatique)* | `.../As-mine/demos/` — la liste des démonstrations |
 
-Le plus simple est de copier `sites/modele/`, de renommer la copie et de
-modifier son `index.html`. Chaque site est autonome : ses fichiers restent
-dans son dossier et s'appellent en chemin relatif (`./photo.jpg`).
+Le plus simple est de copier `sites/_modele/`, de renommer la copie et de
+modifier son `index.html`. Chaque site est autonome : ses fichiers restent dans
+son dossier et s'appellent en chemin relatif (`./photo.jpg`). La page
+`/demos/` se reconstruit toute seule à chaque publication.
 
-Trois garde-fous protègent As-mine :
+Quatre garde-fous :
 
+- chaque site vit dans son dossier — modifier ou supprimer l'un n'a aucun effet
+  sur les autres ;
 - la racine est copiée **avant** les sites, donc aucun site ne peut l'écraser ;
 - un dossier qui porterait le nom d'un fichier d'As-mine (`index.html`,
-  `sw.js`…) fait échouer la publication au lieu de passer en silence ;
+  `sw.js`…) ou de la galerie (`demos`) fait échouer la publication au lieu de
+  passer en silence ;
 - le service worker d'As-mine ignore les autres sites : il ne met pas leurs
   pages en cache et ne leur substitue jamais la sienne hors ligne.
 
-Supprimer un dossier de `sites/` retire ce seul site. Détails dans
-[`sites/README.md`](sites/README.md).
+Les sites d'exemple sont en `noindex` pour qu'une démonstration ne soit pas
+prise par Google pour une vraie entreprise — à retirer le jour où un site
+devient réel. Détails dans [`sites/README.md`](sites/README.md).
 
 ## À faire avant une mise en ligne commerciale
 
