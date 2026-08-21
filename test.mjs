@@ -80,30 +80,25 @@ if (nbSug > 0) {
   check('coordonnées invalidées après édition du champ', e2.includes('liste'), e2);
 }
 
-// 8. Forfait aéroport : date passée et adresse absente refusées
-await page.locator('#pickup').press('Escape');
-await page.waitForTimeout(150);
-await page.locator('.nav-item[data-target="screen-airports"]').click();
-await page.waitForTimeout(300);
-check('étape 1 : trois aéroports proposés', (await page.locator('#airportChoice button').count()) === 3);
-await page.locator('#airportChoice button').first().click();
-await page.waitForTimeout(300);
-check('étape 2 : formulaire affiché après le choix', await page.locator('#airportForm').isVisible());
-check('étape 1 masquée', !(await page.locator('#airportChoice').isVisible()));
-await page.locator('#btnAirportSearch').click();
-await page.waitForTimeout(400);
-check('forfait bloqué sans adresse',
-  (await page.locator('#airportError').textContent()).length > 0 && !(await page.locator('#screen-vehicles').isVisible()));
+// 8. Plus de forfait aéroport : les terminaux restent des adresses comme les autres
+check('écran des forfaits aéroport supprimé', (await page.locator('#screen-airports').count()) === 0);
+check('onglet « Aéroports » retiré de la navigation',
+  (await page.locator('.nav-item[data-target="screen-airports"]').count()) === 0);
+await page.fill('#pickup', '');
+await page.fill('#dropoff', '');
+await page.type('#dropoff', 'cdg', { delay: 20 });
+await page.waitForTimeout(1500);
+const termCount = await page.locator('#dropoffList [role=option]').count();
+check('terminaux CDG proposés comme adresses', termCount === 9, termCount + ' option(s)');
+const premierTerm = await page.locator('#dropoffList [role=option]').first().textContent();
+check('libellé de terminal complet', premierTerm.includes('Roissy') && premierTerm.includes('Terminal'), premierTerm.trim());
 
-// 9. Le terminal choisi survit à un changement de langue
-await page.selectOption('#terminalSelect', 'Terminal 2E');
-await page.selectOption('#langSelect', 'es');
-await page.waitForTimeout(400);
-check('terminal conservé après changement de langue',
-  (await page.inputValue('#terminalSelect')) === 'Terminal 2E',
-  await page.inputValue('#terminalSelect'));
-await page.selectOption('#langSelect', 'fr');
+// 9. Le numéro de vol n'apparaît qu'avec un terminal
+check('champ numéro de vol masqué par défaut', !(await page.locator('#flightWrap').isVisible()));
+await page.locator('#dropoffList [role=option]').first().click();
 await page.waitForTimeout(300);
+check('champ numéro de vol affiché après le choix d\'un terminal',
+  await page.locator('#flightWrap').isVisible());
 
 // 10. Codes promo absents du code source
 const src = await page.content();

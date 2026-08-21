@@ -14,7 +14,14 @@ const BUREAU = { label: '15 avenue Montaigne, 75008 Paris', lat: 48.8661, lon: 2
 // Les API d'adresses ne sont pas joignables depuis les tests : on remplace la
 // source de suggestions pour que le parcours soit reproductible et instantané.
 async function stubSuggestions(page, item) {
-  await page.evaluate((it) => { window.fetchAddressSuggestions = async () => [it]; }, item);
+  // Les terminaux d'aéroport viennent de la page elle-même, pas d'une API :
+  // le doublon les laisse passer pour qu'ils restent testables.
+  await page.evaluate((it) => {
+    window.fetchAddressSuggestions = async (q) => {
+      const terminaux = getAirportTerminalMatches(q);
+      return terminaux.length ? terminaux : [it];
+    };
+  }, item);
 }
 async function pick(page, field, texte) {
   await page.fill(field, '');
@@ -162,33 +169,100 @@ check('champs de retour refermés', !(await page.locator('#returnFieldsSimple').
 check('champ chambre refermé', !(await page.locator('#roomPickupWrap').isVisible()));
 check('chambre vidée', (await page.inputValue('#roomPickup')) === '');
 
-// --- Forfait aéroport : hôtel et aller-retour ---
-await page.locator('.nav-item[data-target="screen-airports"]').click();
-await page.waitForTimeout(300);
-await page.locator('#airportChoice button').first().click();
-await page.waitForTimeout(300);
-check('champ chambre masqué sur l\'écran aéroport', !(await page.locator('#roomAirportWrap').isVisible()));
+// --- Hôtel → terminal d'aéroport, avec vol et aller-retour ---
 await stubSuggestions(page, HOTEL);
-await pick(page, '#addressAirport', 'ibis');
-check('champ chambre affiché pour un hôtel en aéroport', await page.locator('#roomAirportWrap').isVisible());
-await page.fill('#roomAirport', '318');
-await page.fill('#dateAirport', dansNJours(5));
+await pick(page, '#pickup', 'ibis');
+check('champ chambre affiché pour l\'hôtel de départ', await page.locator('#roomPickupWrap').isVisible());
+await page.fill('#roomPickup', '318');
+// Les terminaux ne viennent d'aucune API : ils sont dans la page.
+await page.fill('#dropoff', '');
+await page.type('#dropoff', 'orly', { delay: 20 });
+await page.locator('#dropoffList [role=option]').first().waitFor({ timeout: 5000 });
+const optOrly = await page.locator('#dropoffList [role=option]').count();
+check('terminaux Orly proposés', optOrly === 4, optOrly + ' option(s)');
+await page.locator('#dropoffList [role=option]').first().click();
 await page.waitForTimeout(300);
-await page.locator('#roundTripAirport').check();
+check('champ vol affiché pour un terminal à l\'arrivée', await page.locator('#flightWrap').isVisible());
+check('champ chambre absent pour un terminal', !(await page.locator('#roomDropoffWrap').isVisible()));
+await page.fill('#flightNumber', 'tk1802');
+await page.fill('#dateSimple', dansNJours(5));
+await page.waitForTimeout(300);
+await page.locator('#roundTripSimple').check();
 await page.waitForTimeout(200);
-await page.fill('#dateReturnAirport', dansNJours(7));
+await page.fill('#dateReturnSimple', dansNJours(7));
 await page.waitForTimeout(300);
-await page.locator('#btnAirportSearch').click();
-await page.waitForTimeout(600);
-check('forfait aéroport atteint en aller-retour', await page.locator('#screen-vehicles').isVisible());
-const tarifsAp = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('forfait aéroport doublé (56 € → 112 €)', tarifsAp[0].includes('112'), tarifsAp.join(' | '));
+await page.locator('#btnSearch').click();
+await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.locator('#btnToPayment').click();
 await page.waitForTimeout(400);
 const recapAp = await page.locator('#tripSummary').textContent();
-check('forfait aéroport : chambre au départ (Paris → aéroport)', recapAp.includes('Ch. 318'), recapAp.slice(0, 140));
-check('forfait aéroport : retour repris', recapAp.includes(dansNJours(7)));
+check('récapitulatif : chambre de l\'hôtel de départ', recapAp.includes('Ch. 318'), recapAp.slice(0, 150));
+check('récapitulatif : terminal repris', recapAp.includes('Orly 1'));
+check('récapitulatif : numéro de vol repris', recapAp.includes('TK1802'));
+check('récapitulatif : retour repris', recapAp.includes(dansNJours(7)));
+
+// --- Carte : crédit sans drapeau, tracé routier réel ---
+// Leaflet vient d'un CDN inaccessible depuis les tests : on le remplace par un
+// double qui enregistre ce que la page lui demande de dessiner.
+const carte = await page.evaluate(() => {
+  window.__carte = { prefix: null, marqueurs: [], traces: [], cadre: null };
+  window.L = {
+    map: () => ({
+      attributionControl: { setPrefix: (p) => { window.__carte.prefix = p; } },
+      removeLayer() {}, invalidateSize() {}, setView(c) { window.__carte.cadre = [c]; },
+      fitBounds: (b) => { window.__carte.cadre = b; }
+    }),
+    tileLayer: () => ({ addTo() { return this; } }),
+    divIcon: (o) => o,
+    marker: (p) => ({ addTo() { window.__carte.marqueurs.push(p); return this; } }),
+    polyline: (pts, o) => ({ addTo() { window.__carte.traces.push({ n: pts.length, o }); return this; } })
+  };
+  tripMapInstance = null;
+  state.pickup = { label: 'A', lat: 48.85, lon: 2.35 };
+  state.dropoff = { label: 'B', lat: 48.72, lon: 2.36 };
+  state.routeGeometry = [[48.85, 2.35], [48.82, 2.35], [48.78, 2.36], [48.75, 2.36], [48.72, 2.36]];
+  renderTripMap();
+  return new Promise(r => setTimeout(() => r(window.__carte), 400));
+});
+check('crédit de la carte sans drapeau ukrainien',
+  carte.prefix === 'Leaflet' && !/[\u{1F1E6}-\u{1F1FF}]/u.test(carte.prefix || ''), String(carte.prefix));
+check('deux repères posés', carte.marqueurs.length === 2, carte.marqueurs.length + ' repère(s)');
+check('itinéraire routier réel tracé, pas une ligne droite',
+  carte.traces.length === 1 && carte.traces[0].n === 5 && !carte.traces[0].o.dashArray,
+  JSON.stringify(carte.traces[0]));
+check('cadrage sur le tracé', Array.isArray(carte.cadre) && carte.cadre.length === 5);
+
+const carteSansTrace = await page.evaluate(() => {
+  window.__carte = { prefix: null, marqueurs: [], traces: [], cadre: null };
+  tripMapInstance = null;
+  state.routeGeometry = null;
+  renderTripMap();
+  return new Promise(r => setTimeout(() => r(window.__carte), 400));
+});
+check('sans itinéraire, ligne directe en pointillé (annoncée comme indicative)',
+  carteSansTrace.traces.length === 1 && carteSansTrace.traces[0].o.dashArray,
+  JSON.stringify(carteSansTrace.traces[0]));
+
+// --- Le site s'ouvre en français quelle que soit la langue du téléphone ---
+const esCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-ES' });
+const esPage = await esCtx.newPage();
+esPage.on('pageerror', e => errors.push('PAGEERROR(es): ' + e.message));
+await esPage.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await esPage.waitForTimeout(600);
+check('navigateur espagnol : le site s\'ouvre quand même en français',
+  (await esPage.inputValue('#langSelect')) === 'fr' &&
+  (await esPage.getAttribute('html', 'lang')) === 'fr');
+await esPage.selectOption('#langSelect', 'es');
+await esPage.waitForTimeout(300);
+check('le visiteur peut toujours choisir sa langue',
+  (await esPage.getAttribute('html', 'lang')) === 'es');
+await esPage.reload({ waitUntil: 'domcontentloaded' });
+await esPage.waitForTimeout(600);
+check('son choix est mémorisé sur son appareil',
+  (await esPage.inputValue('#langSelect')) === 'es');
+await esCtx.close();
 
 // --- Côté client : les outils internes restent invisibles ---
 const clientCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
