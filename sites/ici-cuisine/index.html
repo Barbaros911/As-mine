@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ici Cuisine — Votre coin de cuisine | Liège</title>
+<meta name="description" content="Cuisines équipées d'occasion, livrées et installées à Liège.">
+<!-- Maquette de présentation : on demande aux moteurs de recherche de
+     l'ignorer, pour qu'elle n'apparaisse pas dans Google à la place du vrai
+     site du client. Retirer cette ligne le jour de la mise en ligne réelle. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#D6202B;
+    --red-dark:#A9161F;
+    --black:#0E0E0E;
+    --white:#FFFFFF;
+    --grey:#F3F1EC;
+    --grey-mid:#8A857C;
+    --line: rgba(14,14,14,0.12);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--white);
+    color:var(--black);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Poppins', sans-serif; font-weight:800; line-height:1.08;}
+  .label{
+    font-family:'Archivo', sans-serif; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.14em; font-size:0.72rem;
+  }
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 28px;}
+
+  /* chevron signature — echoes the logo's red arrow under the cabinet drawing */
+  .chevron{
+    width:0; height:0;
+    border-left:14px solid transparent;
+    border-right:14px solid transparent;
+    border-top:14px solid var(--red);
+    display:inline-block;
+  }
+  .chevron-row{display:flex; gap:6px; align-items:center;}
+  .chevron-divider{
+    height:26px; width:100%;
+    background:
+      linear-gradient(135deg, transparent 49%, var(--red) 50%) 0 0/26px 26px repeat-x;
+  }
+
+  /* NAV */
+  header.site{
+    position:sticky; top:0; z-index:50;
+    background:var(--white);
+    border-bottom:3px solid var(--black);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px; max-width:1140px; margin:0 auto;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Archivo', sans-serif; font-weight:800; font-size:1.3rem;
+    letter-spacing:0.05em; text-transform:uppercase;
+  }
+  .logo .ici{color:var(--red);}
+  .navlinks{display:flex; gap:30px; font-family:'Archivo', sans-serif; font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em;}
+  .navlinks a{border-bottom:2px solid transparent; padding-bottom:3px; transition:border-color .2s;}
+  .navlinks a:hover{border-color:var(--red);}
+  .nav-cta{
+    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;
+    background:var(--black); color:var(--white); padding:11px 20px;
+  }
+  .nav-cta:hover{background:var(--red);}
+
+  /* HERO */
+  .hero{
+    background:var(--black); color:var(--white);
+    padding:64px 0 0; position:relative; overflow:hidden;
+  }
+  .hero-inner{
+    display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center;
+    padding-bottom:56px;
+  }
+  .tagline-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--red); color:var(--white);
+    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.72rem;
+    text-transform:uppercase; letter-spacing:0.1em;
+    padding:7px 14px; margin-bottom:24px;
+  }
+  .hero h1{
+    font-size:clamp(2.3rem,5vw,3.4rem); color:var(--white); margin-bottom:20px;
+  }
+  .hero h1 .accent{color:var(--red);}
+  .hero p.lead{
+    font-size:1.06rem; color:#cfcac2; max-width:42ch; margin-bottom:30px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    display:inline-block; padding:14px 26px;
+    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.82rem;
+    text-transform:uppercase; letter-spacing:0.05em;
+    transition:transform .15s ease, background .2s, color .2s;
+  }
+  .btn-primary{background:var(--red); color:var(--white);}
+  .btn-primary:hover{background:var(--white); color:var(--black); transform:translateY(-2px);}
+  .btn-ghost{border:1.5px solid rgba(255,255,255,0.4); color:var(--white);}
+  .btn-ghost:hover{border-color:var(--red); color:var(--red);}
+
+  /* hero graphic block */
+  .hero-graphic{
+    position:relative; aspect-ratio:1/0.95;
+    background:var(--white); border:3px solid var(--white);
+  }
+  .hero-graphic .frame{
+    position:absolute; inset:14px; border:1.5px solid var(--black);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; padding:20px; text-align:center;
+  }
+  .hero-graphic .frame .label{color:var(--black); margin-bottom:2px;}
+  .stack{display:flex; gap:10px;}
+  .cube{width:34px; height:44px; background:var(--black);}
+  .cube.mid{background:var(--red); height:30px; align-self:flex-end;}
+  .hero-graphic .arrowdown{
+    width:0; height:0;
+    border-left:120px solid transparent;
+    border-right:120px solid transparent;
+    border-top:34px solid var(--red);
+  }
+
+  section{padding:76px 0;}
+  .section-head{max-width:620px; margin-bottom:48px;}
+  .label.kicker{color:var(--red); margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+  .label.kicker::before{content:""; width:20px; height:2px; background:var(--red);}
+  .section-head h2{font-size:clamp(1.7rem,3.4vw,2.2rem); color:var(--black);}
+  .section-head p{color:#514e49; margin-top:14px; font-size:1.02rem; font-family:'Inter', sans-serif; font-weight:400;}
+
+  /* STEPS */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); border-top:3px solid var(--black);}
+  .step{padding:32px 24px 32px 0; border-right:1px solid var(--line);}
+  .step:last-child{border-right:none;}
+  .step-num{font-family:'Archivo', sans-serif; font-weight:800; font-size:2.4rem; color:var(--red); margin-bottom:8px;}
+  .step h3{font-family:'Inter',sans-serif; font-weight:600; font-size:1.02rem; margin-bottom:8px; text-transform:none;}
+  .step p{font-size:0.94rem; color:#514e49;}
+
+  /* CATALOGUE */
+  .cat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .card{background:var(--grey); border:1px solid var(--line); position:relative;}
+  .card-swatch{height:150px; position:relative; display:flex; align-items:flex-end; padding:14px;
+    background:repeating-linear-gradient(135deg, var(--black) 0 2px, transparent 2px 14px), var(--grey-mid);
+  }
+  .tag{
+    position:absolute; top:14px; right:0;
+    background:var(--red); color:var(--white);
+    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.66rem; letter-spacing:0.05em;
+    padding:6px 12px 6px 14px; text-transform:uppercase;
+    clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);
+  }
+  .card-body{padding:20px 20px 22px;}
+  .card-body h3{font-family:'Inter',sans-serif; font-weight:600; font-size:1rem; margin-bottom:6px;}
+  .card-body .meta{font-size:0.85rem; color:#66625a; margin-bottom:16px;}
+  .card-price{display:flex; align-items:baseline; justify-content:space-between; border-top:1px dashed var(--line); padding-top:12px;}
+  .price{font-family:'Archivo', sans-serif; font-weight:800; font-size:1.2rem;}
+  .price-old{font-family:'Inter', sans-serif; font-size:0.78rem; color:#a19c92; text-decoration:line-through;}
+
+  /* AVANTAGES */
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:2px; background:var(--line); border:1px solid var(--line);}
+  .compare > div{background:var(--white); padding:34px 30px;}
+  .compare .win{background:var(--grey); border-top:3px solid var(--red);}
+  .compare h3{font-family:'Inter',sans-serif; font-weight:700; font-size:1rem; margin-bottom:18px;}
+  .compare ul{list-style:none;}
+  .compare li{font-size:0.94rem; padding:9px 0; border-top:1px solid var(--line); display:flex; gap:10px;}
+  .compare li:first-of-type{border-top:none;}
+  .compare .mark{font-family:'Archivo', sans-serif; font-weight:800; color:var(--red); flex-shrink:0;}
+
+  /* AVIS */
+  .avis-wrap{background:var(--black); color:var(--white); padding:76px 0;}
+  .avis-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
+  .avis{border-left:3px solid var(--red); padding-left:20px;}
+  .avis p.quote{font-size:1rem; font-style:italic; color:#e7e3db; margin-bottom:14px;}
+  .avis .who{font-family:'Archivo', sans-serif; font-weight:700; font-size:0.72rem; color:var(--red); text-transform:uppercase; letter-spacing:0.05em;}
+  .avis-note{margin-top:44px; font-family:'Inter', sans-serif; font-size:0.78rem; color:#8a857c; text-align:center;}
+
+  /* CONTACT */
+  .contact-grid{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start;}
+  .infoline{display:flex; gap:16px; padding:16px 0; border-top:1px solid var(--line);}
+  .infoline:last-child{border-bottom:1px solid var(--line);}
+  .infoline .k{font-family:'Archivo', sans-serif; font-weight:700; font-size:0.72rem; color:var(--red); width:110px; flex-shrink:0; text-transform:uppercase; letter-spacing:0.05em; padding-top:2px;}
+  .infoline .v{font-size:0.98rem;}
+  .infoline .v a{border-bottom:1px solid var(--line);}
+  .infoline .v a:hover{border-color:var(--red); color:var(--red);}
+  .badge-open{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--black); color:var(--white);
+    font-family:'Archivo', sans-serif; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em;
+    padding:9px 16px; margin-top:20px;
+  }
+  .dot{width:7px; height:7px; border-radius:50%; background:#4CAF50;}
+  .cta-box{background:var(--grey); border-top:3px solid var(--red); padding:36px;}
+  .cta-box h3{font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem; margin-bottom:12px;}
+  .cta-box p{font-size:0.95rem; color:#514e49; margin-bottom:24px;}
+  .cta-box .btn{width:100%; text-align:center;}
+
+  footer{background:var(--black); color:#8a857c; padding:26px 0; font-family:'Archivo', sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.04em;}
+  .foot-inner{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; text-transform:uppercase;}
+  .foot-inner span.brand{color:var(--white);}
+
+  @media (max-width:860px){
+    .navlinks{display:none;}
+    .hero-inner{grid-template-columns:1fr;}
+    .hero-graphic{order:-1;}
+    .steps{grid-template-columns:1fr;}
+    .step{border-right:none; border-bottom:1px solid var(--line);}
+    .cat-grid{grid-template-columns:1fr;}
+    .compare{grid-template-columns:1fr;}
+    .avis-grid{grid-template-columns:1fr;}
+    .contact-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <nav class="nav">
+    <div class="logo"><span class="ici">Ici</span> Cuisine</div>
+    <div class="navlinks">
+      <a href="#catalogue">Catalogue</a>
+      <a href="#comment">Comment ça marche</a>
+      <a href="#avis">Avis</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <a href="tel:+32475730702" class="nav-cta">Appeler</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <div class="tagline-tag">Votre coin de cuisine</div>
+      <h1>Cuisine d'occasion,<br><span class="accent">livrée</span> et <span class="accent">installée</span>.</h1>
+      <p class="lead">À Liège (Bressoux) et alentours, Ici Cuisine récupère et revend des cuisines équipées d'occasion contrôlées — avec livraison et installation.</p>
+      <div class="hero-ctas">
+        <a href="#catalogue" class="btn btn-primary">Voir le catalogue</a>
+        <a href="#contact" class="btn btn-ghost">Nous contacter</a>
+      </div>
+    </div>
+    <div class="hero-graphic">
+      <div class="frame">
+        <div class="stack">
+          <div class="cube"></div>
+          <div class="cube mid"></div>
+          <div class="cube"></div>
+        </div>
+        <div class="label">Cuisine d'occasion</div>
+      </div>
+    </div>
+  </div>
+  <div class="chevron-divider"></div>
+</section>
+
+<section id="comment">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="label kicker">Le circuit</div>
+      <h2>Comment ça marche</h2>
+      <p>Trois étapes, du démontage chez le vendeur jusqu'à l'installation chez vous.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Récupération</h3>
+        <p>La cuisine est démontée avec soin chez le propriétaire, souvent lors d'une rénovation.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Contrôle &amp; remise en état</h3>
+        <p>Charnières, plan de travail, électroménager : chaque élément est vérifié avant la vente.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Livraison &amp; pose</h3>
+        <p>Transport et installation possibles sur Liège et les environs, sur simple demande.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="catalogue" style="background:var(--grey);">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="label kicker">Sélection</div>
+      <h2>Cuisines disponibles</h2>
+      <p>Un aperçu du type d'annonces à afficher — à remplacer par les vraies photos et références.</p>
+    </div>
+    <div class="cat-grid">
+      <div class="card">
+        <div class="card-swatch"><span class="tag">Occasion</span></div>
+        <div class="card-body">
+          <h3>Cuisine chêne massif, 3m20</h3>
+          <div class="meta">Façades bois · plan stratifié · état très bon</div>
+          <div class="card-price"><span class="price">850 €</span><span class="price-old">neuve ~2400€</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-swatch"><span class="tag">Occasion</span></div>
+        <div class="card-body">
+          <h3>Cuisine blanche, îlot central</h3>
+          <div class="meta">Façades laquées · plan bois massif · avec électroménager</div>
+          <div class="card-price"><span class="price">1 350 €</span><span class="price-old">neuve ~3800€</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-swatch"><span class="tag">Occasion</span></div>
+        <div class="card-body">
+          <h3>Cuisine inox linéaire, 2m80</h3>
+          <div class="meta">Style atelier · façades inox brossé · sans électroménager</div>
+          <div class="card-price"><span class="price">690 €</span><span class="price-old">neuve ~1900€</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="label kicker">Pourquoi l'occasion</div>
+      <h2>Occasion vs. neuf</h2>
+    </div>
+    <div class="compare">
+      <div class="win">
+        <h3>Ici Cuisine</h3>
+        <ul>
+          <li><span class="mark">+</span> Jusqu'à -60% vs prix neuf</li>
+          <li><span class="mark">+</span> Matériel contrôlé avant vente</li>
+          <li><span class="mark">+</span> Livraison &amp; installation</li>
+          <li><span class="mark">+</span> Basé à Liège (Bressoux)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Achat neuf en magasin</h3>
+        <ul>
+          <li><span class="mark">–</span> Délais de commande longs</li>
+          <li><span class="mark">–</span> Prix catalogue plein tarif</li>
+          <li><span class="mark">–</span> Choix figé par le showroom</li>
+          <li><span class="mark">–</span> Peu de flexibilité horaire</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="avis-wrap" id="avis">
+  <div class="wrap">
+    <div class="section-head" style="max-width:620px;">
+      <div class="label kicker">Retours clients</div>
+      <h2 style="color:var(--white);">Ce qu'on en dit</h2>
+    </div>
+    <div class="avis-grid">
+      <div class="avis">
+        <p class="quote">« Cuisine récupérée le jour même, montée le week-end suivant. »</p>
+        <div class="who">Exemple d'avis — Liège</div>
+      </div>
+      <div class="avis">
+        <p class="quote">« Prix imbattable pour du matériel encore en très bon état. »</p>
+        <div class="who">Exemple d'avis — Rocourt</div>
+      </div>
+      <div class="avis">
+        <p class="quote">« Réponse rapide, installation propre et soignée. »</p>
+        <div class="who">Exemple d'avis — Ans</div>
+      </div>
+    </div>
+    <p class="avis-note">Textes d'exemple — à remplacer par de vrais avis clients.</p>
+  </div>
+</div>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="label kicker">Contact</div>
+      <h2>Nous joindre</h2>
+    </div>
+    <div class="contact-grid">
+      <div>
+        <div class="infoline">
+          <div class="k">Adresse</div>
+          <div class="v">Rue du Moulin 320<br>4020 Liège (Bressoux)</div>
+        </div>
+        <div class="infoline">
+          <div class="k">Téléphone</div>
+          <div class="v"><a href="tel:+32475730702">+32 475 73 07 02</a><br><a href="tel:+32477852895">+32 477 85 28 95</a></div>
+        </div>
+        <div class="infoline">
+          <div class="k">Réseaux</div>
+          <div class="v">Facebook &amp; Instagram — @ici_cuisine</div>
+        </div>
+        <div class="infoline">
+          <div class="k">Horaires</div>
+          <div class="v">Disponible 24h/24, 7j/7</div>
+        </div>
+        <span class="badge-open"><span class="dot"></span>Ouvert maintenant</span>
+      </div>
+      <div class="cta-box">
+        <h3>Une cuisine à vendre ou un projet ?</h3>
+        <p>Décrivez votre demande, réponse rapide par téléphone ou Messenger.</p>
+        <a href="tel:+32475730702" class="btn btn-primary">Appeler maintenant</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span class="brand">ICI CUISINE — VOTRE COIN DE CUISINE</span>
+    <span>MAQUETTE D'EXEMPLE — AS-MINE DIGITAL</span>
+  </div>
+</footer>
+
+</body>
+</html>
