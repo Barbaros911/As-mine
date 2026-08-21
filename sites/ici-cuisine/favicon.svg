@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Marque Ici Cuisine : les caissons rouges et la flèche descendante du logo. -->
+  <rect width="64" height="64" fill="#111111"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3">
+    <rect x="7" y="12" width="12" height="21"/>
+    <rect x="45" y="12" width="12" height="21"/>
+  </g>
+  <rect x="23" y="21" width="18" height="12" fill="#D0121B"/>
+  <path d="M12 39h40L32 55z" fill="#D0121B"/>
+</svg>

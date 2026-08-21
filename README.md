@@ -16,6 +16,38 @@ le service worker. Aucun serveur n'est nécessaire pour l'héberger.
 Le site est publié automatiquement à chaque modification de `main`, par le
 workflow `.github/workflows/pages.yml` : **https://barbaros911.github.io/As-mine/**
 
+## Ajouter d'autres sites, sans toucher à As-mine
+
+As-mine occupe la racine du dépôt et garde son adresse. Pour publier un autre
+site — une démonstration à montrer à un client, par exemple — il suffit de
+créer un dossier dans `sites/` :
+
+| Dossier | Adresse publiée |
+|---|---|
+| *(racine)* | `.../As-mine/` — As-mine |
+| `sites/mon-site/` | `.../As-mine/mon-site/` |
+| *(automatique)* | `.../As-mine/demos/` — la liste des démonstrations |
+
+Le plus simple est de copier `sites/_modele/`, de renommer la copie et de
+modifier son `index.html`. Chaque site est autonome : ses fichiers restent dans
+son dossier et s'appellent en chemin relatif (`./photo.jpg`). La page
+`/demos/` se reconstruit toute seule à chaque publication.
+
+Quatre garde-fous :
+
+- chaque site vit dans son dossier — modifier ou supprimer l'un n'a aucun effet
+  sur les autres ;
+- la racine est copiée **avant** les sites, donc aucun site ne peut l'écraser ;
+- un dossier qui porterait le nom d'un fichier d'As-mine (`index.html`,
+  `sw.js`…) ou de la galerie (`demos`) fait échouer la publication au lieu de
+  passer en silence ;
+- le service worker d'As-mine ignore les autres sites : il ne met pas leurs
+  pages en cache et ne leur substitue jamais la sienne hors ligne.
+
+Les sites d'exemple sont en `noindex` pour qu'une démonstration ne soit pas
+prise par Google pour une vraie entreprise — à retirer le jour où un site
+devient réel. Détails dans [`sites/README.md`](sites/README.md).
+
 ## À faire avant une mise en ligne commerciale
 
 Ces points ne sont pas des bugs : ce sont des informations ou des services
