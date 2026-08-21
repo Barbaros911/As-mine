@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>ELYX — Chauffeur privé VTC, Paris et Île-de-France</title>
+<title>VTC Roissy CDG, Orly &amp; Paris — Chauffeur privé As-mine</title>
 <meta name="description" content="Réservation de chauffeur privé à Paris et en Île-de-France. Forfaits aéroport Roissy, Orly et Beauvais à prix bloqué. Berline, berline VIP, van et van VIP. Règlement à bord.">
 
 <!-- =====================================================================
@@ -15,19 +15,19 @@
          remplacer « canonical » et les adresses og: par le vrai domaine.
      ===================================================================== -->
 <meta name="robots" content="noindex, nofollow">
-<link rel="canonical" href="https://barbaros911.github.io/As-mine/elyx/">
+<link rel="canonical" href="https://barbaros911.github.io/As-mine/as-mine-transport/">
 
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="ELYX">
-<meta property="og:title" content="ELYX — Chauffeur privé, Paris et Île-de-France">
+<meta property="og:site_name" content="As-mine">
+<meta property="og:title" content="As-mine — VTC &amp; chauffeur privé, Roissy CDG, Orly, Paris">
 <meta property="og:description" content="Forfaits aéroport à prix bloqué. Le prix est connu avant de réserver, et ne change plus.">
-<meta property="og:url" content="https://barbaros911.github.io/As-mine/elyx/">
-<meta property="og:image" content="https://barbaros911.github.io/As-mine/elyx/og.jpg">
+<meta property="og:url" content="https://barbaros911.github.io/As-mine/as-mine-transport/">
+<meta property="og:image" content="https://barbaros911.github.io/As-mine/as-mine-transport/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0F1218">
+<meta name="theme-color" content="#121212">
 
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,24 +36,24 @@
 
 <style>
 /* =====================================================================
-   ELYX — feuille de style unique
+   AS-MINE — feuille de style unique
    Parti pris : luxe discret. Ivoire, bleu nuit, filets laiton, serif
    pour les titres. À l'opposé du contraste vif d'un site grand public :
    un chauffeur haut de gamme se vend par le calme, pas par le tapage.
    ===================================================================== */
 :root{
-  --ivoire:#F6F3EE;
-  --ivoire-2:#EFEAE2;
-  --nuit:#0F1218;
-  --nuit-2:#1A1F29;
-  --or:#A8874E;
-  --or-clair:#C9A96A;
-  --texte:#23272F;
-  --doux:#6E7480;
+  --ivoire:#F4F1EA;
+  --ivoire-2:#E9E4DA;
+  --nuit:#121212;
+  --nuit-2:#1A1A1A;
+  --or:#D4AF37;
+  --or-clair:#E8CE7B;
+  --texte:#1F1F1D;
+  --doux:#6B6963;
   --blanc:#FFFFFF;
-  --trait:rgba(15,18,24,.11);
+  --trait:rgba(18,18,18,.12);
   --trait-clair:rgba(255,255,255,.14);
-  --ombre:0 1px 2px rgba(15,18,24,.04), 0 12px 40px rgba(15,18,24,.08);
+  --ombre:0 1px 2px rgba(18,18,18,.04), 0 12px 40px rgba(18,18,18,.08);
   --large:1200px;
   --rayon:2px;
 }
@@ -105,8 +105,8 @@ img{max-width:100%; display:block;}
   cursor:pointer; transition:background .2s, color .2s, border-color .2s, opacity .2s;
   font-feature-settings:"tnum";
 }
-.btn--or{background:var(--or); color:var(--blanc);}
-.btn--or:hover:not(:disabled){background:#8F7241;}
+.btn--or{background:linear-gradient(180deg,var(--or-clair),var(--or)); color:#141210;}
+.btn--or:hover:not(:disabled){background:var(--or); color:#141210;}
 .btn--nuit{background:var(--nuit); color:var(--blanc);}
 .btn--nuit:hover:not(:disabled){background:var(--or);}
 .btn--ligne{border-color:var(--nuit); color:var(--nuit); background:transparent;}
@@ -127,10 +127,13 @@ img{max-width:100%; display:block;}
   max-width:var(--large); margin:0 auto; padding:16px 26px;
 }
 .marque{display:flex; flex-direction:column; line-height:1;}
+.marque__bloc{display:flex; align-items:center; gap:11px;}
+.marque__signe{width:30px; height:30px; flex-shrink:0; color:var(--nuit);}
+.marque__mots{display:flex; flex-direction:column; line-height:1;}
 .marque__nom{
-  font-family:'Inter',sans-serif; font-weight:600; font-size:1.28rem;
-  letter-spacing:.34em; text-transform:uppercase; color:var(--nuit);
-  padding-left:.34em;
+  font-family:'Inter',sans-serif; font-weight:600; font-size:1.24rem;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--nuit);
+  padding-left:.16em; white-space:nowrap;
 }
 .marque__sous{
   font-family:'Cormorant Garamond',serif; font-size:.78rem; font-style:italic;
@@ -145,11 +148,42 @@ img{max-width:100%; display:block;}
 .burger{display:none; background:none; border:1px solid var(--trait); border-radius:var(--rayon); padding:10px 12px; cursor:pointer;}
 .burger span{display:block; width:18px; height:1.5px; background:var(--nuit); margin:4px 0;}
 
+/* ---------- balayage lumineux, signature d'As-mine ----------
+   Un faisceau glisse d'un bord à l'autre au-dessus d'une piste sombre.
+   L'or de la marque tient la lumière, le rouge n'en est que le cœur. */
+.balayage{
+  position:relative; height:64px; display:flex; align-items:center; overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+}
+.balayage__piste{position:absolute; left:0; right:0; height:1px; background:#2B2B2B;}
+.balayage__faisceau{
+  position:absolute; top:50%; left:0; width:150px; height:2px; margin-top:-1px; border-radius:2px;
+  background:linear-gradient(90deg,
+    rgba(212,175,55,0) 0%, rgba(212,175,55,.25) 28%,
+    rgba(232,206,123,.75) 44%, #FF4438 50%,
+    rgba(232,206,123,.75) 56%, rgba(212,175,55,.25) 72%, rgba(212,175,55,0) 100%);
+  filter:drop-shadow(0 0 5px rgba(255,68,56,.7)) drop-shadow(0 0 16px rgba(212,175,55,.35));
+  animation:balayer 3.2s cubic-bezier(.42,0,.58,1) infinite alternate;
+}
+/* Reflet en dessous, comme une lumière posée sur une carrosserie */
+.balayage__faisceau::after{
+  content:''; position:absolute; inset:-14px -30px;
+  background:radial-gradient(ellipse at center, rgba(255,68,56,.16), transparent 70%);
+}
+@keyframes balayer{
+  from{transform:translateX(-75px);}
+  to{transform:translateX(calc(100% + 100vw - 225px));}
+}
+@media (prefers-reduced-motion:reduce){
+  .balayage__faisceau{animation:none; left:50%; margin-left:-75px;}
+}
+
 /* ---------- accroche ---------- */
 .accroche{position:relative; overflow:hidden; background:var(--nuit);}
 .accroche::before{
   content:""; position:absolute; inset:0;
-  background:radial-gradient(70% 90% at 15% 0%, rgba(168,135,78,.20), transparent 62%);
+  background:radial-gradient(70% 90% at 15% 0%, rgba(212,175,55,.20), transparent 62%);
   pointer-events:none;
 }
 .accroche__grille{
@@ -384,11 +418,12 @@ img{max-width:100%; display:block;}
 .pied p, .pied li{font-size:.87rem; line-height:1.9;}
 .pied ul{list-style:none;}
 .pied a:hover{color:var(--or-clair);}
-.pied .marque__nom{color:var(--blanc); font-size:1.1rem;}
+.pied .marque__nom{color:var(--blanc); font-size:1.06rem;}
+.pied .marque__signe{color:var(--blanc);}
 .pied .marque__sous{color:var(--or);}
 .pied__bas{display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:22px; font-size:.75rem;}
 .acompleter{
-  display:inline-block; background:rgba(168,135,78,.18); color:var(--or-clair);
+  display:inline-block; background:rgba(212,175,55,.18); color:var(--or-clair);
   font-size:.64rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
   padding:2px 7px; border-radius:2px;
 }
@@ -398,7 +433,7 @@ img{max-width:100%; display:block;}
   display:none; position:fixed; left:0; right:0; bottom:0; z-index:80;
   background:var(--blanc); border-top:1px solid var(--trait);
   padding:10px 14px calc(10px + env(safe-area-inset-bottom)); gap:10px;
-  box-shadow:0 -4px 22px rgba(15,18,24,.10);
+  box-shadow:0 -4px 22px rgba(18,18,18,.10);
 }
 .barre-mobile .btn{flex:1; padding:14px 8px; font-size:.72rem;}
 
@@ -449,9 +484,20 @@ img{max-width:100%; display:block;}
 <!-- ================= EN-TÊTE ================= -->
 <header class="entete">
   <div class="entete__barre">
-    <a href="#haut" class="marque" aria-label="ELYX, retour en haut">
-      <span class="marque__nom">Elyx</span>
-      <span class="marque__sous">Chauffeur privé</span>
+    <a href="#haut" class="marque" aria-label="As-mine, retour en haut">
+      <span class="marque__bloc">
+        <!-- Monogramme : le A de As-mine, traversé du faisceau qui signe la
+             marque. Remplacer par le fichier officiel le jour venu. -->
+        <svg class="marque__signe" viewBox="0 0 40 40" role="img" aria-hidden="true" focusable="false">
+          <path d="M6 32 L20 8 L34 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+          <rect x="11" y="23" width="18" height="2.4" rx="1.2" fill="#D4AF37"/>
+          <rect x="18" y="23" width="4" height="2.4" rx="1.2" fill="#FF4438"/>
+        </svg>
+        <span class="marque__mots">
+          <span class="marque__nom">As-mine</span>
+          <span class="marque__sous">Chauffeur privé</span>
+        </span>
+      </span>
     </a>
 
     <nav class="menu" id="menu" aria-label="Navigation principale">
@@ -479,8 +525,15 @@ img{max-width:100%; display:block;}
   <div class="wrap accroche__grille">
 
     <div>
-      <p class="sur">Paris &amp; Île-de-France</p>
-      <h1>Le trajet compte<br>autant que <em>l'arrivée</em>.</h1>
+      <p class="sur">Roissy CDG · Orly · Paris</p>
+      <h1>L'excellence,<br>à <em>chaque trajet</em>.</h1>
+      <!-- Balayage lumineux façon scanner : la lumière part, revient, et
+           laisse une traînée. Signature visuelle de la marque. -->
+      <div class="balayage" role="img" aria-label="Bandeau lumineux animé">
+        <div class="balayage__piste"></div>
+        <div class="balayage__faisceau"></div>
+      </div>
+
       <p class="accroche__texte">
         Transferts aéroport, mise à disposition à l'heure, déplacements
         professionnels. Le prix est fixé avant le départ et ne change plus —
@@ -829,7 +882,7 @@ img{max-width:100%; display:block;}
            pour la prestation VTC. Un VTC fixe ses prix librement mais doit
            les annoncer avant la course : pas de compteur. À faire valider
            par le client avant la mise en ligne. -->
-      <span class="acompleter" style="background:rgba(168,135,78,.16);color:#8F7241">À valider</span>
+      <span class="acompleter" style="background:rgba(212,175,55,.16);color:#8A7128">À valider</span>
       Grille calibrée sur les tarifs taxi parisiens, majorée pour la
       prestation. Prix TTC, TVA 10 % incluse (transport de personnes). Le
       montant s'affiche avant que vous ne confirmiez et ne change plus ensuite.
@@ -869,7 +922,7 @@ img{max-width:100%; display:block;}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/></svg>
         <h3>Des chauffeurs déclarés</h3>
         <p>
-          ELYX est un intermédiaire : chaque course est exécutée par un
+          As-mine est un intermédiaire : chaque course est exécutée par un
           chauffeur indépendant, sous sa propre licence VTC, sa carte
           professionnelle et son assurance. Ses références figurent sur votre
           bon de réservation.
@@ -985,7 +1038,7 @@ img{max-width:100%; display:block;}
         <div class="fiche">
           <span class="fiche__clef">Société</span>
           <span class="fiche__val">
-            <span class="acompleter" style="background:rgba(168,135,78,.16);color:#8F7241">À compléter</span>
+            <span class="acompleter" style="background:rgba(212,175,55,.16);color:#8A7128">À compléter</span>
             Raison sociale, SIRET, adresse du siège, numéro d'inscription au
             registre VTC
           </span>
@@ -1014,8 +1067,17 @@ img{max-width:100%; display:block;}
     <div class="pied__haut">
       <div>
         <span class="marque" style="margin-bottom:16px">
-          <span class="marque__nom">Elyx</span>
-          <span class="marque__sous">Chauffeur privé</span>
+          <span class="marque__bloc">
+            <svg class="marque__signe" viewBox="0 0 40 40" role="img" aria-hidden="true" focusable="false">
+              <path d="M6 32 L20 8 L34 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+              <rect x="11" y="23" width="18" height="2.4" rx="1.2" fill="#D4AF37"/>
+              <rect x="18" y="23" width="4" height="2.4" rx="1.2" fill="#FF4438"/>
+            </svg>
+            <span class="marque__mots">
+              <span class="marque__nom">As-mine</span>
+              <span class="marque__sous">Chauffeur privé</span>
+            </span>
+          </span>
         </span>
         <p>
           Mise en relation avec des chauffeurs VTC indépendants, à Paris et en
@@ -1047,7 +1109,7 @@ img{max-width:100%; display:block;}
       </div>
     </div>
     <div class="pied__bas">
-      <span>© <span id="annee">2026</span> ELYX — Tous droits réservés</span>
+      <span>© <span id="annee">2026</span> As-mine — Tous droits réservés</span>
       <span>Maquette de présentation — As-Mine Digital</span>
     </div>
   </div>
@@ -1065,18 +1127,18 @@ img{max-width:100%; display:block;}
   "@context":"https://schema.org",
   "@type":"Service",
   "serviceType":"Transport de personnes avec chauffeur (VTC)",
-  "name":"ELYX",
+  "name":"As-mine",
   "description":"Chauffeur privé à Paris et en Île-de-France : transferts, forfaits aéroport Roissy, Orly et Beauvais, mise à disposition à l'heure.",
-  "url":"https://barbaros911.github.io/As-mine/elyx/",
+  "url":"https://barbaros911.github.io/As-mine/as-mine-transport/",
   "telephone":"+33100000000",
   "areaServed":[
     {"@type":"City","name":"Paris"},
     {"@type":"AdministrativeArea","name":"Île-de-France"}
   ],
-  "provider":{"@type":"Organization","name":"ELYX"},
+  "provider":{"@type":"Organization","name":"As-mine"},
   "availableChannel":{
     "@type":"ServiceChannel",
-    "serviceUrl":"https://barbaros911.github.io/As-mine/elyx/#reserver",
+    "serviceUrl":"https://barbaros911.github.io/As-mine/as-mine-transport/#reserver",
     "servicePhone":"+33100000000"
   }
 }
@@ -1084,7 +1146,7 @@ img{max-width:100%; display:block;}
 
 <script>
 /* =====================================================================
-   ELYX — moteur de réservation
+   AS-MINE — moteur de réservation
    Aucune bibliothèque : tout tient dans ce fichier.
 
    Trois principes :
@@ -1555,18 +1617,18 @@ img{max-width:100%; display:block;}
   function referenceSuivante(){
     let n = 1;
     try {
-      const dernier = localStorage.getItem("elyx-compteur");
+      const dernier = localStorage.getItem("asmine-compteur");
       n = dernier ? parseInt(dernier, 10) + 1 : 1;
-      localStorage.setItem("elyx-compteur", String(n));
+      localStorage.setItem("asmine-compteur", String(n));
     } catch (e) { n = Math.floor(Math.random() * 9000) + 1000; }
-    return "ELX-" + new Date().getFullYear() + "-" + String(n).padStart(4, "0");
+    return "ASM-" + new Date().getFullYear() + "-" + String(n).padStart(4, "0");
   }
 
   function enregistrer(bon){
     try {
-      const liste = JSON.parse(localStorage.getItem("elyx-reservations") || "[]");
+      const liste = JSON.parse(localStorage.getItem("asmine-reservations") || "[]");
       liste.unshift(bon);
-      localStorage.setItem("elyx-reservations", JSON.stringify(liste.slice(0, 20)));
+      localStorage.setItem("asmine-reservations", JSON.stringify(liste.slice(0, 20)));
     } catch (e) { /* navigation privée : on n'insiste pas */ }
   }
 
@@ -1587,12 +1649,12 @@ img{max-width:100%; display:block;}
       '<div class="bon__note">' +
         'Ce montant est <strong>ferme</strong> : ni la circulation, ni un détour, ni l\'attente ne le modifient. ' +
         'Règlement <strong>auprès du chauffeur</strong>, à bord, en carte ou en espèces — aucun paiement n\'est encaissé par ce site. ' +
-        '<br><br>ELYX intervient comme <strong>intermédiaire</strong> : le transport est exécuté par un ' +
+        '<br><br>As-mine intervient comme <strong>intermédiaire</strong> : le transport est exécuté par un ' +
         '<strong>chauffeur indépendant</strong>, sous sa propre licence VTC et sa propre assurance. Ses références ' +
         'vous sont communiquées avant la prise en charge. ' +
         'Annulation sans frais jusqu\'à 60 minutes avant la prise en charge. ' +
         'Conservez ce bon : il peut vous être demandé lors d\'un contrôle. ' +
-        '<span class="acompleter" style="background:rgba(168,135,78,.16);color:#8F7241">À compléter</span> ' +
+        '<span class="acompleter" style="background:rgba(212,175,55,.16);color:#8A7128">À compléter</span> ' +
         'Coordonnées de l\'éditeur — non renseignées dans As-mine non plus.' +
       '</div>';
   }
@@ -1724,7 +1786,7 @@ img{max-width:100%; display:block;}
     $("#voir-reservations").addEventListener("click", function(e){
       e.preventDefault();
       let liste = [];
-      try { liste = JSON.parse(localStorage.getItem("elyx-reservations") || "[]"); } catch (err) { liste = []; }
+      try { liste = JSON.parse(localStorage.getItem("asmine-reservations") || "[]"); } catch (err) { liste = []; }
       if (!liste.length){
         alert("Aucune réservation enregistrée sur cet appareil pour l'instant.");
         return;

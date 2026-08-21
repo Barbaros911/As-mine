@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- As-mine : le A de la marque, traversé du faisceau doré à cœur rouge. -->
+  <rect width="64" height="64" fill="#121212"/>
+  <path d="M12 50 L32 15 L52 50" fill="none" stroke="#F4F1EA" stroke-width="4.2" stroke-linejoin="round"/>
+  <rect x="20" y="38" width="24" height="3.6" rx="1.8" fill="#D4AF37"/>
+  <rect x="29" y="38" width="6" height="3.6" rx="1.8" fill="#FF4438"/>
+</svg>
