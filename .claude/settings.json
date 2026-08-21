@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(ls*)",
+      "Bash(mkdir -p*)",
+      "Bash(cp -r*)",
+      "Bash(du -sh*)",
+      "Bash(du -sh --total*)",
+      "Bash(wc*)",
+      "Bash(find . *)",
+      "Bash(grep*)",
+      "Bash(rg*)",
+      "Bash(md5sum*)",
+      "Bash(cat*)",
+      "Bash(head*)",
+      "Bash(sed -n*)",
+      "Bash(node --check*)",
+      "Bash(node .github/*)",
+      "Bash(node .claude/*)",
+      "Bash(curl -s -o /dev/null*127.0.0.1*)",
+      "Bash(curl -s -o /dev/null*localhost*)",
+      "Bash(curl http://127.0.0.1:*)",
+      "Bash(curl http://localhost:*)",
+      "Bash(python3 -m http.server*)"
+    ]
+  }
+}
