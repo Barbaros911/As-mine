@@ -135,10 +135,10 @@ supplémentaire nécessaire) :
 
 ```bash
 npx http-server -p 8099 -s .
-node test.mjs      # interface, traductions, accessibilité, validations (20)
+node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
-node test3.mjs     # bon, facture, vol, passager tiers, référencement (64)
-node test4.mjs     # chambre d'hôtel, aller-retour, diffusion, mode exploitant (51)
+node test3.mjs     # bon, facture, vol, passager tiers, référencement (66)
+node test4.mjs     # hôtel, aller-retour, diffusion, carte, langue (62)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -157,6 +157,17 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   « orly »…), lieux nommés via Photon/OpenStreetMap, adresses précises via la
   Base Adresse Nationale. Si les trois échouent, une base locale prend le
   relais pour que la saisie reste possible.
+  L'ordre des résultats suit la forme de la saisie : une saisie qui commence
+  par un chiffre est une adresse postale, la Base Adresse Nationale passe
+  devant ; sinon c'est un nom de lieu — hôtel, restaurant, gare, monument,
+  hôpital, école — et OpenStreetMap passe devant, seul à savoir le situer.
+- **Langue** : le site s'ouvre toujours en français, quelle que soit la langue
+  du téléphone. Les cinq autres restent au sélecteur, et le choix d'un
+  visiteur est mémorisé sur son seul appareil.
+- **Carte du trajet** : elle trace l'itinéraire routier réel renvoyé par OSRM —
+  celui-là même qui a servi à calculer la distance et donc le prix. Si OSRM
+  n'a pas répondu, la ligne directe s'affiche en pointillé, pour qu'on voie
+  qu'elle n'est qu'indicative.
 - **Historique** : conservé en `sessionStorage`, donc il survit à un
   rechargement de page mais disparaît à la fermeture de l'onglet — exactement
   ce qui est annoncé au client à l'écran.
@@ -169,7 +180,8 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   email. Une transmission réellement automatique demande un serveur.
 - **Adresses enregistrées** : les adresses réellement utilisées deviennent des
   raccourcis sous les champs départ et arrivée, sur l'appareil uniquement.
-- **Numéro de vol** : saisi sur l'écran aéroport, il est repris dans le
+- **Numéro de vol** : le champ apparaît dès qu'un terminal d'aéroport est
+  choisi au départ ou à l'arrivée, et le vol est repris dans le
   récapitulatif, le bon de réservation et le message au chauffeur. Le suivi
   automatique du vol (décalage de l'heure en cas de retard, comme le fait
   Blacklane) demanderait un serveur et un abonnement à une API de vols.
@@ -181,11 +193,16 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   vide le champ : le chauffeur ne reçoit jamais la chambre d'une adresse
   précédente. La chambre figure sur le récapitulatif, le bon, la facture et
   le message WhatsApp — mais **jamais** sur l'annonce diffusée au groupe.
-- **Aller-retour** : disponible sur le trajet simple et sur le forfait
-  aéroport. Le retour porte sa propre date et sa propre heure, ne peut pas
-  précéder l'aller, et le tarif est doublé — deux prises en charge, deux
-  trajets. La mise à disposition n'en propose pas : le chauffeur reste sur
-  place.
+- **Aller-retour** : disponible sur le trajet simple. Le retour porte sa
+  propre date et sa propre heure, ne peut pas précéder l'aller, et le tarif
+  est doublé — deux prises en charge, deux trajets. La mise à disposition
+  n'en propose pas : le chauffeur reste sur place.
+- **Plus de forfait aéroport** : il n'y a plus de grille de prix fixes ni
+  d'écran dédié. Une course vers Roissy, Orly ou Beauvais se réserve et se
+  tarife comme n'importe quelle autre, à la distance. Les terminaux restent
+  proposés comme adresses — taper « cdg » ou « orly » les fait apparaître —
+  parce que ce sont des points de rendez-vous précis que ni la Base Adresse
+  Nationale ni OpenStreetMap ne donnent proprement.
 
 ## Mode exploitant et réseau de chauffeurs
 

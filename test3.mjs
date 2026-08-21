@@ -27,23 +27,27 @@ async function pickAddress(field, text) {
   await page.waitForTimeout(200);
 }
 
-// --- Forfait aéroport avec numéro de vol ---
-await page.locator('.nav-item[data-target="screen-airports"]').click();
+// --- Trajet vers un terminal d'aéroport, avec numéro de vol ---
+await pickAddress('#pickup', 'Neuilly');
+check('champ numéro de vol masqué sans terminal', !(await page.locator('#flightWrap').isVisible()));
+await page.fill('#dropoff', '');
+await page.type('#dropoff', 'cdg', { delay: 20 });
+await page.waitForTimeout(1500);
+// Terminal 1, 2A, 2B, 2C, 2D, 2E → le sixième
+await page.locator('#dropoffList [role=option]').nth(5).click();
 await page.waitForTimeout(300);
-await page.locator('#airportChoice button').first().click();
-await page.waitForTimeout(300);
-check('champ numéro de vol présent', await page.locator('#flightNumber').isVisible());
-
-await pickAddress('#addressAirport', 'Neuilly');
-await page.fill('#dateAirport', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
-await page.waitForTimeout(300);
+check('terminal 2E retenu comme adresse d\'arrivée',
+  (await page.inputValue('#dropoff')).includes('Terminal 2E'), await page.inputValue('#dropoff'));
+check('champ numéro de vol présent dès qu\'un terminal est choisi',
+  await page.locator('#flightWrap').isVisible());
 await page.fill('#flightNumber', 'af1234');
-await page.selectOption('#terminalSelect', 'Terminal 2E');
-await page.locator('#btnAirportSearch').click();
-await page.waitForTimeout(800);
-check('écran véhicules atteint avec tarifs forfaitaires', await page.locator('#screen-vehicles').isVisible());
+await page.fill('#dateSimple', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
+await page.waitForTimeout(300);
+await page.locator('#btnSearch').click();
+await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const tarifs = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('forfait CDG : 56 € pour la berline', tarifs[0].includes('56'), tarifs.join(' | '));
+check('quatre tarifs calculés à la distance', tarifs.length === 4, tarifs.join(' | '));
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.waitForTimeout(200);
 await page.locator('#btnToPayment').click();
@@ -168,7 +172,7 @@ if (nbFav > 0) {
     await page.locator('#formError').textContent());
 }
 
-// --- Forfait détecté automatiquement depuis l'accueil ---
+// --- Une adresse d'aéroport se tarife à la distance, comme les autres ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
 await page.waitForTimeout(300);
 await page.fill('#pickup', '');
@@ -187,9 +191,10 @@ await page.waitForTimeout(200);
 await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
 const sousTitre = await page.locator('#vehiclesSub').textContent();
-check('adresse aéroport bascule sur le forfait', sousTitre.includes('Forfait'), sousTitre);
+check('plus de bascule vers un forfait : tarif à la distance',
+  !sousTitre.includes('Forfait') && /km/.test(sousTitre), sousTitre);
 const tarifsAuto = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('prix forfaitaire appliqué, pas le kilométrique', tarifsAuto[0].includes('56'), tarifsAuto.join(' | '));
+check('quatre véhicules tarifés', tarifsAuto.length === 4, tarifsAuto.join(' | '));
 
 // --- Trace des courses ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
