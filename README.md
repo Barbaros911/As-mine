@@ -105,7 +105,8 @@ supplémentaire nécessaire) :
 npx http-server -p 8099 -s .
 node test.mjs      # interface, traductions, accessibilité, validations (20)
 node test2.mjs     # parcours complet de réservation, CGV (23)
-node test3.mjs     # bon, vol, passager tiers, adresses, référencement (46)
+node test3.mjs     # bon, facture, vol, passager tiers, référencement (64)
+node test4.mjs     # chambre d'hôtel, aller-retour, diffusion, mode exploitant (51)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -140,6 +141,61 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   récapitulatif, le bon de réservation et le message au chauffeur. Le suivi
   automatique du vol (décalage de l'heure en cas de retard, comme le fait
   Blacklane) demanderait un serveur et un abonnement à une API de vols.
+- **Numéro de chambre** : dès que l'adresse choisie au départ ou à l'arrivée
+  est un hôtel, un champ « N° de chambre » apparaît. Il est reconnu de deux
+  façons — la catégorie OpenStreetMap renvoyée par Photon, et le libellé
+  lui-même (« Hôtel… », « Ibis », « Mercure »…), car la Base Adresse
+  Nationale ne renvoie pas de catégorie. Changer d'adresse referme **et**
+  vide le champ : le chauffeur ne reçoit jamais la chambre d'une adresse
+  précédente. La chambre figure sur le récapitulatif, le bon, la facture et
+  le message WhatsApp — mais **jamais** sur l'annonce diffusée au groupe.
+- **Aller-retour** : disponible sur le trajet simple et sur le forfait
+  aéroport. Le retour porte sa propre date et sa propre heure, ne peut pas
+  précéder l'aller, et le tarif est doublé — deux prises en charge, deux
+  trajets. La mise à disposition n'en propose pas : le chauffeur reste sur
+  place.
+
+## Mode exploitant et réseau de chauffeurs
+
+### Séparer votre écran de celui du client
+
+L'attribution du chauffeur, la confirmation de la course, l'export du
+registre et la diffusion au groupe sont **vos** outils : ils affichent votre
+marge et n'ont rien à faire sous les yeux d'un client.
+
+Ouvrez le site **une fois** avec `?exploitant=1` sur votre téléphone :
+
+```
+https://barbaros911.github.io/As-mine/?exploitant=1
+```
+
+Le réglage est mémorisé sur cet appareil. `?exploitant=0` le retire. Ce n'est
+pas un contrôle d'accès — un site statique ne peut pas en offrir — mais cela
+suffit à séparer les deux usages. Le client, lui, garde l'accès à son bon
+**et** à sa facture, qui lui reviennent.
+
+### Proposer une course au groupe de chauffeurs
+
+Depuis le bon de réservation, un bloc « Proposer au groupe chauffeurs »
+prépare une annonce et l'ouvre dans WhatsApp — vous n'avez plus qu'à choisir
+le groupe. Aucun numéro de groupe n'est enregistré dans le site.
+
+L'annonce ne contient **ni le nom, ni le téléphone, ni le numéro de chambre**
+du client. Ce n'est pas une précaution de style : diffuser les coordonnées
+d'un client à des centaines de personnes serait une transmission de données
+personnelles à des tiers non nécessaires (RGPD, article 5.1.c, principe de
+minimisation). Vous les communiquez ensuite en privé, au seul chauffeur
+retenu. La politique de confidentialité du site décrit ce fonctionnement.
+
+Le montant affiché sur l'annonce est **net de commission** : c'est ce que le
+chauffeur encaissera. Le taux se règle en haut d'`index.html` :
+
+```js
+const COMMISSION_APPORT = 0.15; // 15 % — mettez 0 pour diffuser le prix entier
+```
+
+Cette valeur n'est qu'un affichage : le taux réel se convient avec les
+chauffeurs, et rien dans le site ne l'impose.
 
 ## Pistes d'amélioration identifiées
 
@@ -147,9 +203,11 @@ Comparaison faite avec les services de référence du chauffeur haut de gamme :
 
 - **Suivi du chauffeur en temps réel** 20 minutes avant la prise en charge.
   Demande un serveur et la position du chauffeur.
-- **Aller-retour en une seule réservation**, fréquent sur les transferts
-  aéroport ; aujourd'hui il faut réserver deux fois.
-- **Facture** : le bon de réservation n'est pas une facture. Le chauffeur doit
-  remettre au client une facture à son nom, avec un numéro séquentiel.
 - **Transmission automatique des réservations** vers votre téléphone, sans
   dépendre du geste du client. Demande un serveur.
+- **Attribution automatique au réseau** : aujourd'hui vous copiez l'annonce
+  dans le groupe et vous dépouillez les réponses à la main. Une vraie
+  répartition (le premier chauffeur qui accepte prend la course, les autres
+  voient qu'elle est prise) demande un serveur et des comptes chauffeurs.
+- **Suivi de vol automatique** (décalage de l'heure en cas de retard) :
+  demande un abonnement à une API de vols.
