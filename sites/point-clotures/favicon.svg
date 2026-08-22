@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Point Clôtures">
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17558F"/>
+      <stop offset="1" stop-color="#2F7D31"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#f)"/>
+  <!-- clôture : trois lisses et quatre montants, comme sur le logo -->
+  <g stroke="#FFFFFF" stroke-width="4" stroke-linecap="round">
+    <path d="M12 28h40M12 38h40M12 48h40"/>
+    <path d="M16 24v26M28 24v26M40 24v26M52 24v26"/>
+  </g>
+  <!-- le repère de carte du « o » de Point -->
+  <path d="M32 8c-5 0-9 4-9 9 0 6.6 9 14 9 14s9-7.4 9-14c0-5-4-9-9-9Z" fill="#F07F17" stroke="#FFFFFF" stroke-width="3"/>
+  <circle cx="32" cy="17" r="3.4" fill="#FFFFFF"/>
+</svg>
