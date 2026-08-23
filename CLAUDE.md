@@ -3,13 +3,24 @@
 Ce fichier est lu automatiquement au début de chaque session sur ce dépôt.
 Il évite de redemander les mêmes règles à chaque fois.
 
-## La règle absolue : ne jamais toucher As-mine
+Ce dépôt sert à **deux activités distinctes**. Lire d'abord laquelle est
+demandée :
+
+| Activité | Fichiers | Branche |
+|---|---|---|
+| **As-mine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | `claude/as-mine-booking-app-yqvxoi` |
+| **Sites vitrines** pour des commerçants | `sites/<client>/` | `claude/session-creation-without-asmine-to9axd` |
+
+## La règle absolue : ne jamais toucher As-mine *en travaillant sur un autre site*
 
 `index.html`, `sw.js`, `manifest.webmanifest`, `icon.svg`,
 `icon-maskable.svg`, `robots.txt`, `sitemap.xml` à la racine sont
 l'application de réservation. Ne jamais les modifier pour créer ou tester
 un autre site. Toute vérification se fait par comparaison de hachage
 (`md5sum`) avant/après.
+
+Cette règle ne s'applique évidemment pas quand la demande porte sur
+As-mine lui-même — voir la section dédiée en fin de fichier.
 
 ## Créer un nouveau site
 
@@ -68,7 +79,121 @@ installer d'autres sans que ce soit demandé.
 
 ## Ton et langue
 
-Répondre en français, simplement, sans jargon technique non expliqué. Cet
-interlocuteur construit et vend des sites vitrines à des commerçants locaux
-(Belgique) — expliquer avec des exemples concrets plutôt que des concepts
-abstraits.
+Répondre en français, simplement, sans jargon technique non expliqué.
+Expliquer avec des exemples concrets plutôt que des concepts abstraits.
+Se placer systématiquement du point de vue d'un professionnel expérimenté
+— design, développement, conseil — et pas d'un exécutant : dire ce qui ne
+va pas, proposer, trancher.
+
+---
+
+# As-mine — l'application de réservation
+
+Tout ce qui suit ne concerne que le site à la racine du dépôt.
+
+## Ce qu'est As-mine
+
+Plateforme de mise en relation entre des clients et des chauffeurs VTC
+indépendants, à Paris et en Île-de-France. Exploitée par Barbaros.
+
+**Intermédiaire, pas transporteur.** Le transport est exécuté par le
+chauffeur, sous sa licence, son assurance et sa carte professionnelle.
+D'où la règle qui structure tout le produit : le **bon de réservation** ne
+porte que l'identité d'As-mine, la **facture** porte le SIRET du chauffeur.
+
+Barbaros a intégré un **groupe WhatsApp de plus de 800 chauffeurs** pour
+placer les courses qu'il ne peut pas assurer lui-même.
+
+## Modèle économique
+
+- Le client paie **directement le chauffeur**, à bord, espèces ou carte.
+  Aucun paiement en ligne, aucune donnée bancaire sur le site.
+- `COMMISSION_APPORT` (haut d'`index.html`) n'est qu'un **affichage** sur
+  l'annonce envoyée aux chauffeurs. **Le taux réel n'est pas arrêté** — ne
+  rien construire dessus tant que Barbaros n'a pas tranché.
+- Rien n'organise aujourd'hui le reversement de la commission : l'argent
+  ne passe jamais par As-mine. C'est le point ouvert du modèle.
+
+## Tarification
+
+Berline 5 € + 1,50 €/km (4 pass.) · Berline VIP 10 € + 2,20 €/km (3) ·
+Van 10 € + 2,50 €/km (7) · Van VIP 15 € + 3,50 €/km (6).
+Horaire : 50 / 75 / 70 / 95 €. +20 % nuit et week-end. TVA 10 % incluse.
+Aller-retour ×2. 60 min d'attente offertes en aéroport, 30 min ailleurs.
+Annulation gratuite jusqu'à 60 min avant.
+
+**Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
+Les terminaux restent proposés comme adresses.
+
+## Règles à ne jamais enfreindre
+
+1. **Aucun faux avis client.** `AVIS` ne contient que des avis réellement
+   reçus. Faux avis = pratique commerciale trompeuse (L132-2 Code conso. :
+   2 ans, 300 000 €, portés à 10 % du CA). Ne pas non plus n'afficher que
+   les bons avis : c'est la même infraction.
+2. **L'annonce diffusée au groupe ne contient jamais** le nom, le
+   téléphone ni le numéro de chambre du client. Diffuser ça à 800
+   personnes serait une transmission de données personnelles à des tiers
+   non nécessaires (RGPD 5.1.c). Ces éléments partent en privé, au seul
+   chauffeur retenu.
+3. **Le dépôt est public.** Jamais de données clients réelles dedans. Le
+   classeur `suivi-as-mine.xlsx` n'est committé que vide.
+4. **Un VTC n'a pas le droit d'avoir un taximètre.** Le prix doit être
+   connu ou calculable **avant** le départ. Une course à destination
+   ouverte doit donc annoncer la **grille** (« 5 € + 1,50 €/km ») et non
+   « prix à définir ».
+5. **En confiant des courses à des tiers, As-mine est une centrale de
+   réservation** (Code des transports L3142-1 et s.) : obligation de
+   pouvoir prouver que chaque chauffeur a carte professionnelle,
+   inscription au registre VTC et assurance.
+
+## Conseils déjà donnés — les tenir pour acquis
+
+- **Ne pas diffuser à 800 inconnus par défaut.** Deux cercles : un noyau
+  de 5 à 10 chauffeurs vérifiés qui reçoit la course en premier, et le
+  grand groupe en réservoir si personne ne prend.
+- **Piste commerciale : les hôtels de la zone CDG.** Le numéro de chambre
+  existe pour eux. Coût zéro, testable en une semaine. *easyHotel n'est
+  pas un partenaire* — c'était un cas de test de recherche d'adresse.
+- **Ne pas promettre une marque précise** (« Mercedes Classe E ») : si un
+  autre véhicule se présente, c'est trompeur. Dire « berline » ou, à la
+  rigueur, « type … ou similaire ».
+- Ne pas proposer d'illustrations de voitures : essayé, refusé.
+
+## Ce qui est décidé, ce qui ne l'est pas
+
+**Décidé** : intermédiaire ; paiement au chauffeur ; pas de forfait
+aéroport ; français par défaut avec 5 autres langues au sélecteur ; mode
+exploitant via `?exploitant=1` ; diffusion anonymisée.
+
+**Pas décidé** : taux de commission réel · statut juridique et SIRET de
+Barbaros · s'il est lui-même chauffeur · volume visé · clientèle cible
+(particuliers / hôtels / entreprises) · budget · tarif d'une course à
+destination ouverte · règle du temps d'attente.
+
+## Feuille de route convenue
+
+Sans serveur (gratuit, en cours) : course à destination ouverte, lien de
+course, écran chauffeur (accepter / démarrer / saisir l'arrivée / renvoyer
+le montant), le tout par lien et WhatsApp.
+
+Avec serveur (quand Barbaros paiera) : comptes chauffeurs par SMS, page
+admin, premier qui accepte prend la course, suivi en direct, tableau de
+bord chauffeur avec commission due et **blocage automatique au-delà d'un
+seuil**, dates d'expiration des papiers avec alerte, avis clients, export
+comptable, gestion des désistements et des clients absents.
+
+## Tests
+
+Quatre suites Playwright à la racine, à relancer après **toute**
+modification :
+
+```bash
+npx http-server -p 8099 -s .
+node test.mjs && node test2.mjs && node test3.mjs && node test4.mjs
+```
+
+Playwright n'est pas installé dans le dépôt : lier le paquet global une
+fois par session avec
+`mkdir -p node_modules && ln -sfn /opt/node22/lib/node_modules/playwright node_modules/playwright`
+(`node_modules/` est ignoré par git).
