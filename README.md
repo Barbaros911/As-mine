@@ -139,6 +139,7 @@ node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
 node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
 node test4.mjs     # hôtel, aller-retour, diffusion, carte, langue, capacité (77)
+node test5.mjs     # destination ouverte, lien de course, écran chauffeur (46)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -207,6 +208,11 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   vide le champ : le chauffeur ne reçoit jamais la chambre d'une adresse
   précédente. La chambre figure sur le récapitulatif, le bon, la facture et
   le message WhatsApp — mais **jamais** sur l'annonce diffusée au groupe.
+- **Course à destination ouverte** : quand un hôtel réserve sans savoir où
+  va son client. Le bon annonce la **grille** (« 5 € + 1,50 €/km ») et non
+  un montant — un VTC n'ayant pas le droit d'un taximètre, le prix doit
+  être calculable avant le départ. Le montant est arrêté à l'arrivée, quand
+  le chauffeur saisit l'adresse réelle.
 - **Aller-retour** : disponible sur le trajet simple. Le retour porte sa
   propre date et sa propre heure, ne peut pas précéder l'aller, et le tarif
   est doublé — deux prises en charge, deux trajets. La mise à disposition
@@ -217,6 +223,59 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   proposés comme adresses — taper « cdg » ou « orly » les fait apparaître —
   parce que ce sont des points de rendez-vous précis que ni la Base Adresse
   Nationale ni OpenStreetMap ne donnent proprement.
+
+## La course transmise par lien — et l'écran chauffeur
+
+Depuis le bon de réservation, en mode exploitant, le bouton « Proposer au
+groupe chauffeurs » envoie désormais **un lien** en plus de l'annonce. Ce
+lien porte la course entière, encodée dans l'adresse : aucun serveur n'est
+nécessaire pour la transmettre.
+
+Le chauffeur l'ouvre et se retrouve dans un **espace chauffeur** :
+
+| Étape | Ce qu'il fait | Ce qui est enregistré |
+|---|---|---|
+| 1 | Donne son nom, « Je prends cette course » | Un message part vers vous sur WhatsApp, signé |
+| 2 | « Je suis sur place » | Le compteur d'attente démarre |
+| 3 | « Client à bord — démarrer » | L'attente est arrêtée et facturée au-delà des minutes offertes |
+| 4 | « Terminer », saisit l'adresse d'arrivée | Distance routière réelle, montant calculé |
+| 5 | « Envoyer le résultat » | Un second lien vous revient sur WhatsApp |
+
+Vous ouvrez ce lien : **votre bon se complète tout seul** avec l'adresse
+réellement desservie, la distance, le montant encaissé et le nom du
+chauffeur. La course passe en « réalisée » dans votre registre.
+
+Un bouton « Envoyer ma position » est disponible à chaque étape : le
+chauffeur vous envoie sa position par WhatsApp quand vous la demandez.
+
+### Ce que ce montage ne sait pas faire
+
+Deux choses, et aucun bricolage ne les remplacera :
+
+- **la position en direct** pendant le trajet ;
+- **le verrouillage de la course** sur le premier chauffeur qui accepte —
+  sans serveur, deux chauffeurs peuvent accepter la même course, et c'est
+  vous qui arbitrez au premier message reçu.
+
+Les deux demandent un serveur. Tout le reste fonctionne aujourd'hui.
+
+### Réglages
+
+En haut d'`index.html` :
+
+```js
+const ATTENTE_OFFERTE_MIN = 15;   // minutes d'attente offertes sur place
+const ATTENTE_PAR_MINUTE  = 0.50; // € par minute au-delà
+```
+
+Ces deux valeurs sont **provisoires** : la règle d'attente reste à arrêter.
+
+### Un point de droit à ne pas perdre de vue
+
+Un VTC **n'a pas le droit d'avoir un taximètre**. Sur une course à
+destination ouverte, ce que le client accepte avant de monter, c'est la
+**grille tarifaire**, pas le montant final. Le bon de réservation l'écrit
+noir sur blanc. Ne jamais remplacer cette mention par « prix à définir ».
 
 ## Mode exploitant et réseau de chauffeurs
 
