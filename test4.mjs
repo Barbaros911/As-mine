@@ -1,5 +1,5 @@
 // Tests des fonctionnalités ajoutées : numéro de chambre d'hôtel,
-// aller-retour, diffusion au groupe de chauffeurs, mode exploitant.
+// capacité des véhicules, diffusion au groupe de chauffeurs, mode exploitant.
 import { chromium } from 'playwright';
 
 const BASE = 'http://127.0.0.1:8099';
@@ -80,45 +80,37 @@ await pick(page, '#dropoff', 'montaigne');
 await page.fill('#dateSimple', dansNJours(3));
 await page.waitForTimeout(200);
 
-// --- Aller-retour ---
-check('champs de retour masqués tant que la case n\'est pas cochée',
-  !(await page.locator('#returnFieldsSimple').isVisible()));
-await page.locator('#roundTripSimple').check();
+// --- La catégorie du véhicule suit le nombre de passagers ---
+check('l\'aller-retour a été retiré', (await page.locator('#roundTripSimple').count()) === 0);
+check('la destination ouverte a été retirée', (await page.locator('#destinationOuverte').count()) === 0);
+const vehUn = await page.locator('#vehicleHome option').allTextContents();
+check('un passager : seules les berlines sont proposées',
+  vehUn.length === 2 && !vehUn.join(' ').includes('Van'), vehUn.join(' | '));
+check('plus d\'option « peu importe »', !vehUn.join(' ').includes('Peu importe'));
+check('une berline est retenue d\'office', (await page.inputValue('#vehicleHome')) === 'berline');
+await page.selectOption('#paxHome', '4');
 await page.waitForTimeout(200);
-check('champs de retour affichés après cochage', await page.locator('#returnFieldsSimple').isVisible());
-check('date de retour alignée sur l\'aller', (await page.inputValue('#dateReturnSimple')) === dansNJours(3));
-const minRetour = await page.locator('#dateReturnSimple').getAttribute('min');
-check('retour impossible avant l\'aller', minRetour === dansNJours(3), minRetour);
+const vehQuatre = await page.locator('#vehicleHome option').allTextContents();
+check('quatre passagers : la berline simple, seule à les emmener',
+  vehQuatre.length === 1 && vehQuatre[0].includes('Berline'), vehQuatre.join(' | '));
+await page.selectOption('#paxHome', '5');
+await page.waitForTimeout(200);
+const vehCinq = await page.locator('#vehicleHome option').allTextContents();
+check('cinq passagers : on passe aux vans',
+  vehCinq.length === 2 && !vehCinq.join(' ').includes('Berline'), vehCinq.join(' | '));
+await page.selectOption('#paxHome', '1');
+await page.waitForTimeout(200);
 
-// Un retour à la même date mais à une heure antérieure doit être refusé
-await page.selectOption('#timeSimple', { index: 100 }).catch(() => {});
-await page.selectOption('#timeReturnSimple', { index: 0 });
-await page.locator('#btnSearch').click();
-await page.waitForTimeout(400);
-const err = await page.locator('#formError').textContent();
-check('retour antérieur à l\'aller refusé', err.includes('postérieur'), err);
-check('on reste sur l\'accueil', await page.locator('#screen-home').isVisible());
-
-// Retour valide : le lendemain
-await page.fill('#dateReturnSimple', dansNJours(4));
-await page.waitForTimeout(300);
 await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
-check('écran véhicules atteint en aller-retour', await page.locator('#screen-vehicles').isVisible());
-check('mention du tarif aller-retour affichée', await page.locator('#returnNote').isVisible());
-const prixAR = await page.evaluate(() => ({
-  aller: prixAller(VEHICLES[0]),
-  total: priceForVehicle(VEHICLES[0])
-}));
-check('tarif doublé pour un aller-retour',
-  Math.abs(prixAR.total - prixAR.aller * 2) < 0.01, `${prixAR.aller.toFixed(2)} → ${prixAR.total.toFixed(2)}`);
-
+check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
+const cartes = await page.locator('#vehicleCards .veh-card').count();
+check('l\'écran des tarifs applique la même règle', cartes === 2, cartes + ' véhicule(s)');
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.locator('#btnToPayment').click();
 await page.waitForTimeout(400);
 const recap = await page.locator('#tripSummary').textContent();
 check('récapitulatif : chambre reprise au départ', recap.includes('Ch. 412'), recap.slice(0, 120));
-check('récapitulatif : retour repris', recap.includes(dansNJours(4)));
 
 // --- Bon de réservation ---
 await page.fill('#clientName', 'Claire Fontaine');
@@ -130,12 +122,10 @@ await page.locator('#btnOpenVoucher').click();
 await page.waitForTimeout(400);
 const bon = await page.locator('#voucherBody').textContent();
 check('bon : chambre reprise', bon.includes('Ch. 412'));
-check('bon : retour repris', bon.includes('Retour') && bon.includes(dansNJours(4)));
 await page.locator('#tabInvoice').click();
 await page.waitForTimeout(300);
 const fact = await page.locator('#voucherBody').textContent();
 check('facture : chambre reprise', fact.includes('Ch. 412'));
-check('facture : retour repris', fact.includes(dansNJours(4)));
 await page.locator('#tabVoucher').click();
 await page.waitForTimeout(200);
 
@@ -144,7 +134,6 @@ check('bloc de diffusion proposé à l\'exploitant', await page.locator('#dispat
 const annonce = await page.locator('#dispatchPreview').textContent();
 check('annonce : référence de la course', /ASM-\d{6}/.test(annonce));
 check('annonce : trajet et horaire', annonce.includes('Ibis') && annonce.includes(dansNJours(3)));
-check('annonce : aller-retour signalé', annonce.includes(dansNJours(4)));
 check('annonce : montant pour le chauffeur', annonce.includes('Pour le chauffeur'));
 check('annonce : sans le nom du client', !annonce.includes('Claire Fontaine'));
 check('annonce : sans le téléphone du client', !annonce.includes('12 34 56 78'));
@@ -165,12 +154,10 @@ await page.locator('#screen-voucher .btn-back').click();
 await page.waitForTimeout(200);
 await page.locator('#btnNewBooking').click();
 await page.waitForTimeout(400);
-check('case aller-retour décochée après remise à zéro', !(await page.locator('#roundTripSimple').isChecked()));
-check('champs de retour refermés', !(await page.locator('#returnFieldsSimple').isVisible()));
 check('champ chambre refermé', !(await page.locator('#roomPickupWrap').isVisible()));
 check('chambre vidée', (await page.inputValue('#roomPickup')) === '');
 
-// --- Hôtel → terminal d'aéroport, avec vol et aller-retour ---
+// --- Hôtel → terminal d'aéroport, avec numéro de vol ---
 await stubSuggestions(page, HOTEL);
 await pick(page, '#pickup', 'ibis');
 check('champ chambre affiché pour l\'hôtel de départ', await page.locator('#roomPickupWrap').isVisible());
@@ -188,10 +175,6 @@ check('champ chambre absent pour un terminal', !(await page.locator('#roomDropof
 await page.fill('#flightNumber', 'tk1802');
 await page.fill('#dateSimple', dansNJours(5));
 await page.waitForTimeout(300);
-await page.locator('#roundTripSimple').check();
-await page.waitForTimeout(200);
-await page.fill('#dateReturnSimple', dansNJours(7));
-await page.waitForTimeout(300);
 await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
@@ -202,7 +185,6 @@ const recapAp = await page.locator('#tripSummary').textContent();
 check('récapitulatif : chambre de l\'hôtel de départ', recapAp.includes('Ch. 318'), recapAp.slice(0, 150));
 check('récapitulatif : terminal repris', recapAp.includes('Orly 1'));
 check('récapitulatif : numéro de vol repris', recapAp.includes('TK1802'));
-check('récapitulatif : retour repris', recapAp.includes(dansNJours(7)));
 
 // --- Trouver un lieu quelle que soit la façon dont on l'écrit ---
 const variantes = await page.evaluate(() => ({
@@ -253,12 +235,12 @@ await page.waitForTimeout(300);
 const optionsPax = await page.locator('#paxHome option').count();
 check('de 1 à 7 passagers proposés', optionsPax === 7, optionsPax + ' option(s)');
 const vehStandard = await page.locator('#vehicleHome option').allTextContents();
-check('quatre véhicules proposés pour un passager', vehStandard.length === 5, vehStandard.join(' | '));
+check('deux berlines proposées pour un passager', vehStandard.length === 2, vehStandard.join(' | '));
 await page.selectOption('#paxHome', '6');
 await page.waitForTimeout(200);
 const vehSix = await page.locator('#vehicleHome option').allTextContents();
 check('à six passagers, seuls les vans restent proposés',
-  vehSix.length === 3 && vehSix.join(' ').includes('Van') && !vehSix.join(' ').includes('Berline'),
+  vehSix.length === 2 && vehSix.join(' ').includes('Van') && !vehSix.join(' ').includes('Berline'),
   vehSix.join(' | '));
 await page.selectOption('#vehicleHome', 'van');
 
