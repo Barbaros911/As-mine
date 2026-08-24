@@ -1,4 +1,4 @@
-# As-mine — application de réservation
+# Asmine — application de réservation
 
 Application web de réservation de chauffeur privé (Paris / Île-de-France).
 Site statique : un seul fichier `index.html`, plus le manifeste, les icônes et
@@ -16,15 +16,15 @@ le service worker. Aucun serveur n'est nécessaire pour l'héberger.
 Le site est publié automatiquement à chaque modification de `main`, par le
 workflow `.github/workflows/pages.yml` : **https://barbaros911.github.io/As-mine/**
 
-## Ajouter d'autres sites, sans toucher à As-mine
+## Ajouter d'autres sites, sans toucher à Asmine
 
-As-mine occupe la racine du dépôt et garde son adresse. Pour publier un autre
+Asmine occupe la racine du dépôt et garde son adresse. Pour publier un autre
 site — une démonstration à montrer à un client, par exemple — il suffit de
 créer un dossier dans `sites/` :
 
 | Dossier | Adresse publiée |
 |---|---|
-| *(racine)* | `.../As-mine/` — As-mine |
+| *(racine)* | `.../As-mine/` — Asmine |
 | `sites/mon-site/` | `.../As-mine/mon-site/` |
 | *(automatique)* | `.../As-mine/demos/` — la liste des démonstrations |
 
@@ -38,10 +38,10 @@ Quatre garde-fous :
 - chaque site vit dans son dossier — modifier ou supprimer l'un n'a aucun effet
   sur les autres ;
 - la racine est copiée **avant** les sites, donc aucun site ne peut l'écraser ;
-- un dossier qui porterait le nom d'un fichier d'As-mine (`index.html`,
+- un dossier qui porterait le nom d'un fichier d'Asmine (`index.html`,
   `sw.js`…) ou de la galerie (`demos`) fait échouer la publication au lieu de
   passer en silence ;
-- le service worker d'As-mine ignore les autres sites : il ne met pas leurs
+- le service worker d'Asmine ignore les autres sites : il ne met pas leurs
   pages en cache et ne leur substitue jamais la sienne hors ligne.
 
 Les sites d'exemple sont en `noindex` pour qu'une démonstration ne soit pas
@@ -141,6 +141,7 @@ node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
 node test4.mjs     # hôtel, diffusion, carte, langue, capacité (73)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
+node test7.mjs     # numérotation ASM-AA-MM-NNNN, confirmation à distance (20)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -249,6 +250,45 @@ Depuis le bon de réservation, en mode exploitant, le bouton « Proposer au
 groupe chauffeurs » envoie désormais **un lien** en plus de l'annonce. Ce
 lien porte la course entière, encodée dans l'adresse : aucun serveur n'est
 nécessaire pour la transmettre.
+
+## Confirmer une course réservée par le client
+
+Le bouton **« Confirmer la course »**, sur le bon en mode exploitant, ne peut
+agir que sur les courses enregistrées sur *votre* appareil — celles que vous
+avez saisies vous-même, parce qu'un hôtel vous a appelé. Chaque téléphone
+garde ses propres courses ; il n'y a pas de base commune sans serveur.
+
+Quand le client a réservé depuis son propre téléphone, sa course n'est pas
+chez vous : vous n'avez que son message WhatsApp. D'où le **lien de
+confirmation**, exact pendant du lien de course envoyé au chauffeur :
+
+1. **Mes réservations**, en mode exploitant → bloc « Confirmer une course à
+   distance » ;
+2. recopiez la référence reçue (`ASM-26-08-0001`), et si vous le voulez le
+   nom et le téléphone du chauffeur retenu ;
+3. **Envoyer la confirmation sur WhatsApp** — ou copier le lien.
+
+Le client ouvre le lien : son bon passe de « En attente de confirmation »
+(orange) à **« Course confirmée »** (vert), l'avertissement des moins de 3 h
+disparaît, et le chauffeur annoncé apparaît sur son bon avec son numéro.
+
+La référence est vérifiée avant l'envoi : une référence mal recopiée est
+refusée plutôt que d'envoyer le client sur un lien mort. Un lien ouvert sur
+un appareil qui ne connaît pas la course ne fabrique rien — il le dit.
+
+## La numérotation des courses
+
+Chaque course reçoit une référence **`ASM-AA-MM-NNNN`** : `ASM-26-08-0001`
+est la première course d'août 2026. Le rang repart à 1 chaque mois, ce qui
+donne le volume mensuel d'un coup d'œil et évite des nombres illisibles.
+
+Le rang se calcule à partir des courses enregistrées sur l'appareil. **Deux
+appareils qui ne se voient pas peuvent donc attribuer le même numéro** —
+c'est la limite du fonctionnement sans serveur, et la raison pour laquelle
+la numérotation des **factures** reste séparée : elle est propre à chaque
+chauffeur (`DUPONT-2026-0001`), n'a pas le droit au moindre doublon ni au
+moindre trou, et doit pour cette raison être éditée depuis un seul appareil.
+Le registre exportable en CSV permet de vérifier sa continuité.
 
 ### Comment voir cet écran vous-même
 

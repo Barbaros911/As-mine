@@ -86,7 +86,7 @@ check('les liens WhatsApp pointent sur le bon numéro',
 
 /* ===================== UNE COURSE À PLUS DE 3 H ===================== */
 const refCalme = await reserver(dansNJours(3), null);
-check('réservation à J+3 : référence attribuée', /^ASM-\d{6}$/.test(refCalme), refCalme);
+check('réservation à J+3 : référence attribuée', /^ASM-\d{2}-\d{2}-\d{4}$/.test(refCalme), refCalme);
 check('réservation à J+3 : aucun avertissement d\'urgence',
   !(await page.locator('#blocUrgence').isVisible()));
 await page.locator('#btnOpenVoucher').click();
@@ -111,7 +111,7 @@ check('le premier créneau proposé tombe bien dans les 3 h',
 
 const refUrgente = await reserver(dateRetenue, premierCreneau);
 check('réservation imminente : elle est acceptée quand même',
-  /^ASM-\d{6}$/.test(refUrgente), refUrgente);
+  /^ASM-\d{2}-\d{2}-\d{4}$/.test(refUrgente), refUrgente);
 check('réservation imminente : l\'avertissement s\'affiche',
   await page.locator('#blocUrgence').isVisible());
 const texteUrgence = await page.locator('#blocUrgence').textContent();

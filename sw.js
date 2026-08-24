@@ -1,5 +1,5 @@
 /* =====================================================================
-   AS-MINE — SERVICE WORKER
+   ASMINE — SERVICE WORKER
    Objectif : l'application reste consultable hors ligne (ou en réseau
    dégradé, ce qui arrive souvent dans un parking d'aéroport ou un sous-sol),
    sans jamais servir une réservation ou un paiement périmé.
@@ -12,13 +12,13 @@
    — Les appels d'API (adresses, itinéraire, PayPal, QR) ne sont JAMAIS mis
      en cache : un tarif ou un paiement doit toujours partir en direct.
    ===================================================================== */
-/* Racine d'As-mine (« /As-mine/ » en ligne). Le service worker est enregistré
+/* Racine d'Asmine (« /Asmine/ » en ligne). Le service worker est enregistré
    à cette adresse : il contrôle donc aussi les sites voisins publiés dans des
    sous-dossiers. Il doit les laisser passer, sans les mettre en cache ni leur
-   servir la page d'As-mine hors ligne. */
+   servir la page d'Asmine hors ligne. */
 const BASE = new URL("./", self.location).pathname;
 
-/* Vrai si la requête vise un site voisin plutôt qu'As-mine elle-même :
+/* Vrai si la requête vise un site voisin plutôt qu'Asmine elle-même :
    même origine, sous la racine, mais dans un sous-dossier. */
 function siteVoisin(url) {
   if (url.origin !== self.location.origin) return false;
@@ -26,7 +26,10 @@ function siteVoisin(url) {
   return url.pathname.slice(BASE.length).includes("/");
 }
 
-const CACHE = "asmine-v1";
+/* Numéro à incrémenter à chaque changement visible : il force les
+   téléphones qui ont installé l'application à repartir sur un cache
+   propre au lieu de garder d'anciennes ressources. */
+const CACHE = "asmine-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"];
 
 /* Hôtes dont la réponse ne doit jamais être mise en cache */
