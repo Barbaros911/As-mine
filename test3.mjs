@@ -95,7 +95,7 @@ await page.waitForTimeout(400);
 check('écran du bon atteint', await page.locator('#screen-voucher').isVisible());
 const bon = await page.locator('#voucherBody').textContent();
 
-check('bon : référence', /ASM-\d{6}/.test(bon));
+check('bon : référence', /ASM-\d{2}-\d{2}-\d{4}/.test(bon));
 check('bon : identité du client', bon.includes('Marie Durand'));
 check('bon : passager distinct', bon.includes('Paul Martin'));
 check('bon : trajet', bon.includes('Terminal 2E') && bon.includes('AF1234'));

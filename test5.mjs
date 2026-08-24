@@ -86,7 +86,7 @@ await op.locator('#btnPayOnBoard').click();
 await op.waitForTimeout(500);
 check('réservation enregistrée', await op.locator('#screen-confirmation').isVisible());
 const ref = (await op.locator('#confRef').textContent()).trim();
-check('référence attribuée', /^ASM-\d{6}$/.test(ref), ref);
+check('référence attribuée', /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
 
 await op.locator('#btnOpenVoucher').click();
 await op.waitForTimeout(400);
@@ -140,7 +140,7 @@ await ch.locator('#btnDriverPrendre').click();
 await ch.waitForTimeout(300);
 check('course acceptée', (await ch.locator('#driverTitle').textContent()).includes('acceptée'));
 const msgPris = await ch.evaluate(() => window.__ouvert[window.__ouvert.length - 1]);
-check('un message part vers As-mine avec le nom du chauffeur',
+check('un message part vers Asmine avec le nom du chauffeur',
   msgPris.includes('wa.me/33759312433') && decodeURIComponent(msgPris).includes('Mehmet K.'));
 
 // Sur place, puis départ, puis fin
@@ -163,7 +163,7 @@ check('le montant est celui convenu à la réservation',
 await ch.locator('#btnDriverEnvoyer').click();
 await ch.waitForTimeout(300);
 const msgFin = decodeURIComponent(await ch.evaluate(() => window.__ouvert[window.__ouvert.length - 1]));
-check('le récapitulatif de fin part vers As-mine', msgFin.includes(ref));
+check('le récapitulatif de fin part vers Asmine', msgFin.includes(ref));
 const lienRetour = (msgFin.match(/https?:\/\/\S+\?f=[\w-]+/) || [])[0];
 check('un lien de retour accompagne le message', !!lienRetour);
 const paramF = lienRetour ? new URL(lienRetour).searchParams.get('f') : null;

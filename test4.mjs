@@ -139,7 +139,7 @@ await page.waitForTimeout(200);
 // --- Diffusion au groupe de chauffeurs ---
 check('bloc de diffusion proposé à l\'exploitant', await page.locator('#dispatchBlock').isVisible());
 const annonce = await page.locator('#dispatchPreview').textContent();
-check('annonce : référence de la course', /ASM-\d{6}/.test(annonce));
+check('annonce : référence de la course', /ASM-\d{2}-\d{2}-\d{4}/.test(annonce));
 check('annonce : trajet et horaire', annonce.includes('Ibis') && annonce.includes(dansNJours(3)));
 check('annonce : montant pour le chauffeur', annonce.includes('Pour le chauffeur'));
 check('annonce : sans le nom du client', !annonce.includes('Claire Fontaine'));

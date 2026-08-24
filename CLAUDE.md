@@ -1,4 +1,4 @@
-# As-mine — mémo pour Claude
+# Asmine — mémo pour Claude
 
 Ce fichier est lu automatiquement au début de chaque session sur ce dépôt.
 Il évite de redemander les mêmes règles à chaque fois.
@@ -8,10 +8,10 @@ demandée :
 
 | Activité | Fichiers | Branche |
 |---|---|---|
-| **As-mine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | `claude/as-mine-booking-app-yqvxoi` |
+| **Asmine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | `claude/as-mine-booking-app-yqvxoi` |
 | **Sites vitrines** pour des commerçants | `sites/<client>/` | `claude/session-creation-without-asmine-to9axd` |
 
-## La règle absolue : ne jamais toucher As-mine *en travaillant sur un autre site*
+## La règle absolue : ne jamais toucher Asmine *en travaillant sur un autre site*
 
 `index.html`, `sw.js`, `manifest.webmanifest`, `icon.svg`,
 `icon-maskable.svg`, `robots.txt`, `sitemap.xml` à la racine sont
@@ -20,7 +20,7 @@ un autre site. Toute vérification se fait par comparaison de hachage
 (`md5sum`) avant/après.
 
 Cette règle ne s'applique évidemment pas quand la demande porte sur
-As-mine lui-même — voir la section dédiée en fin de fichier.
+Asmine lui-même — voir la section dédiée en fin de fichier.
 
 ## Créer un nouveau site
 
@@ -87,11 +87,11 @@ va pas, proposer, trancher.
 
 ---
 
-# As-mine — l'application de réservation
+# Asmine — l'application de réservation
 
 Tout ce qui suit ne concerne que le site à la racine du dépôt.
 
-## Ce qu'est As-mine
+## Ce qu'est Asmine
 
 Plateforme de mise en relation entre des clients et des chauffeurs VTC
 indépendants, à Paris et en Île-de-France. Exploitée par Barbaros.
@@ -99,7 +99,7 @@ indépendants, à Paris et en Île-de-France. Exploitée par Barbaros.
 **Intermédiaire, pas transporteur.** Le transport est exécuté par le
 chauffeur, sous sa licence, son assurance et sa carte professionnelle.
 D'où la règle qui structure tout le produit : le **bon de réservation** ne
-porte que l'identité d'As-mine, la **facture** porte le SIRET du chauffeur.
+porte que l'identité d'Asmine, la **facture** porte le SIRET du chauffeur.
 
 Barbaros a intégré un **groupe WhatsApp de plus de 800 chauffeurs** pour
 placer les courses qu'il ne peut pas assurer lui-même.
@@ -112,7 +112,7 @@ placer les courses qu'il ne peut pas assurer lui-même.
   l'annonce envoyée aux chauffeurs. **Le taux réel n'est pas arrêté** — ne
   rien construire dessus tant que Barbaros n'a pas tranché.
 - Rien n'organise aujourd'hui le reversement de la commission : l'argent
-  ne passe jamais par As-mine. C'est le point ouvert du modèle.
+  ne passe jamais par Asmine. C'est le point ouvert du modèle.
 
 ## Tarification
 
@@ -129,6 +129,18 @@ sont donc obligatoires : sans les deux, pas de réservation.
 
 **Il n'y a plus d'aller-retour ni de course à destination ouverte** —
 supprimés à la demande de Barbaros.
+
+**La marque s'écrit « Asmine »**, jamais « As-mine » ni « as.mine ».
+Seule exception : l'adresse du dépôt `github.io/As-mine/`, qu'on ne peut
+pas changer sans casser tous les liens déjà envoyés.
+
+**Référence de course : `ASM-AA-MM-NNNN`** (`referenceSuivante`), le rang
+repart à 1 chaque mois. Le numéro de FACTURE reste séparé et propre à
+chaque chauffeur — la loi lui interdit trous et doublons.
+
+**Confirmer une course du client** passe par le lien `?ok=` fabriqué dans
+« Mes réservations » en mode exploitant : le bouton « Confirmer la
+course » ne vaut que pour les courses présentes sur l'appareil.
 
 **Délai de 3 h (`DELAI_RESERVATION_H`).** Une course pour dans moins de
 3 h est acceptée mais **pas ferme** : avertissement rouge sur l'écran de
@@ -165,7 +177,7 @@ Les terminaux restent proposés comme adresses.
    connu ou calculable **avant** le départ. Une course à destination
    ouverte doit donc annoncer la **grille** (« 5 € + 1,50 €/km ») et non
    « prix à définir ».
-5. **En confiant des courses à des tiers, As-mine est une centrale de
+5. **En confiant des courses à des tiers, Asmine est une centrale de
    réservation** (Code des transports L3142-1 et s.) : obligation de
    pouvoir prouver que chaque chauffeur a carte professionnelle,
    inscription au registre VTC et assurance.
@@ -210,13 +222,14 @@ comptable, gestion des désistements et des clients absents.
 
 ## Tests
 
-Six suites Playwright à la racine, à relancer après **toute**
+Sept suites Playwright à la racine, à relancer après **toute**
 modification :
 
 ```bash
 npx http-server -p 8099 -s .
 node test.mjs && node test2.mjs && node test3.mjs \
-  && node test4.mjs && node test5.mjs && node test6.mjs
+  && node test4.mjs && node test5.mjs \
+  && node test6.mjs && node test7.mjs
 ```
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une
