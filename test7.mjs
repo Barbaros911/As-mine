@@ -4,6 +4,19 @@
 import { chromium } from 'playwright';
 
 const BASE = 'http://127.0.0.1:8099';
+
+// Le mode exploitant est protégé par un code d'accès. Le code lui-même n'a
+// rien à faire dans un dépôt public : on lit l'empreinte que la page porte
+// déjà, on la dépose comme si la saisie avait eu lieu, et on recharge. La
+// serrure est bien franchie, pas contournée.
+async function deverrouillerExploitant(page, base, suffixe = '') {
+  await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(300);
+  const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
+  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
+}
+
 const browser = await chromium.launch();
 const errors = [];
 const ok = [], ko = [];
@@ -49,6 +62,27 @@ await client.waitForTimeout(200);
 check('le client n\'a pas l\'outil de confirmation',
   !(await client.locator('#outilConfirmation').isVisible()));
 
+// Un client curieux qui devine « ?exploitant=1 » tombe sur le code d'accès.
+// On refuse la saisie : rien ne doit s'ouvrir.
+client.once('dialog', d => d.dismiss());
+await client.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await client.waitForTimeout(600);
+check('« ?exploitant=1 » sans le code n\'ouvre rien',
+  (await client.evaluate(() => MODE_EXPLOITANT)) === false);
+await client.locator('.nav-item[data-target="screen-bookings"]').click();
+await client.waitForTimeout(300);
+check('sans le code, pas d\'outil de confirmation',
+  !(await client.locator('#outilConfirmation').isVisible()));
+client.once('dialog', d => d.accept('mauvais-code'));
+await client.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await client.waitForTimeout(600);
+check('un code faux est refusé',
+  (await client.evaluate(() => MODE_EXPLOITANT)) === false);
+await client.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await client.waitForTimeout(400);
+await client.locator('#cookieAccept').click().catch(() => {});
+await client.waitForTimeout(200);
+
 await stub(client, HOTEL);
 await choisir(client, '#pickup', 'ibis');
 await stub(client, BUREAU);
@@ -86,7 +120,7 @@ const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 } }
 await preparer(ctxOp);
 const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));
-await op.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await deverrouillerExploitant(op, BASE);
 await op.waitForTimeout(600);
 await op.selectOption('#langSelect', 'fr');
 await op.locator('#cookieAccept').click().catch(() => {});
@@ -138,7 +172,7 @@ check('la course est enregistrée comme confirmée',
   enregistre && enregistre.statut === 'confirmee', enregistre ? enregistre.statut : 'introuvable');
 
 // Un lien pour une course inconnue ne doit rien casser ni rien inventer
-await op.goto(BASE + '/index.html?exploitant=1&ok=' + paramOk, { waitUntil: 'domcontentloaded' });
+await op.goto(BASE + '/index.html?ok=' + paramOk, { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(700);
 check('chez l\'exploitant, le lien ne fabrique pas de course',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 0);

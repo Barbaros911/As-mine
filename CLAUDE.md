@@ -138,6 +138,12 @@ pas changer sans casser tous les liens déjà envoyés.
 repart à 1 chaque mois. Le numéro de FACTURE reste séparé et propre à
 chaque chauffeur — la loi lui interdit trous et doublons.
 
+**Le mode exploitant est protégé par un code** (`CODE_EXPLOITANT`, stocké
+en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
+confirmation à distance, attribution du chauffeur et export du registre
+sont derrière. C'est une serrure, pas un coffre : le dire à Barbaros
+plutôt que de laisser croire à une vraie sécurité.
+
 **Confirmer une course du client** passe par le lien `?ok=` fabriqué dans
 « Mes réservations » en mode exploitant : le bouton « Confirmer la
 course » ne vaut que pour les courses présentes sur l'appareil.

@@ -137,11 +137,11 @@ supplémentaire nécessaire) :
 npx http-server -p 8099 -s .
 node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
-node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
-node test4.mjs     # hôtel, diffusion, carte, langue, capacité (73)
+node test3.mjs     # bon, facture, vol, passager tiers, référencement (69)
+node test4.mjs     # hôtel, diffusion, carte, langue, capacité (75)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
-node test7.mjs     # numérotation ASM-AA-MM-NNNN, confirmation à distance (20)
+node test7.mjs     # numérotation, confirmation à distance, code d'accès (23)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -357,10 +357,22 @@ Ouvrez le site **une fois** avec `?exploitant=1` sur votre téléphone :
 https://barbaros911.github.io/As-mine/?exploitant=1
 ```
 
-Le réglage est mémorisé sur cet appareil. `?exploitant=0` le retire. Ce n'est
-pas un contrôle d'accès — un site statique ne peut pas en offrir — mais cela
-suffit à séparer les deux usages. Le client, lui, garde l'accès à son bon
-**et** à sa facture, qui lui reviennent.
+Le site demande alors un **code d'accès**. Une fois saisi, le déverrouillage
+est mémorisé sur cet appareil ; `?exploitant=0` le retire. Le code n'est pas
+écrit dans `index.html` — seule son empreinte l'est, comme pour les codes
+promo — parce que le dépôt est public. Pour le changer : ouvrir la console du
+navigateur sur le site, taper `promoHash("NOUVEAUCODE")`, coller l'empreinte
+obtenue dans `CODE_EXPLOITANT`.
+
+**Ce que cela protège, et ce que cela ne protège pas.** La diffusion au
+groupe, la confirmation à distance, l'attribution du chauffeur et l'export du
+registre ne sont accessibles qu'après le code : un client qui devine
+`?exploitant=1` tombe sur une demande de code et n'obtient rien. Mais c'est
+une serrure, pas un coffre : un site statique ne garde aucun secret pour qui
+s'acharne à lire son code. Le vrai contrôle d'accès demande le serveur.
+
+Le client, lui, garde l'accès à son bon **et** à sa facture, qui lui
+reviennent.
 
 ### Proposer une course au groupe de chauffeurs
 
