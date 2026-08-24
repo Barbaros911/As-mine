@@ -138,7 +138,7 @@ npx http-server -p 8099 -s .
 node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
 node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
-node test4.mjs     # hôtel, diffusion, carte, langue, capacité (70)
+node test4.mjs     # hôtel, diffusion, carte, langue, capacité (73)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
 ```
 
@@ -173,15 +173,22 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   remonte est reclassé selon les mots réellement tapés, un mot distinctif
   comptant trois fois plus qu'un mot passe-partout — sinon tous les hôtels
   de France se vaudraient.
-- **Passagers et véhicule** : demandés dès le premier écran, parce que
-  c'est ce qui décide si une berline suffit. **Jusqu'à 4 passagers, c'est
-  une berline ; au-delà, un van.** Le nombre de passagers ne fait donc pas
-  que filtrer sur la capacité, il choisit la catégorie : proposer un van
-  de sept places à un client seul n'a de sens ni pour lui, ni pour le
-  chauffeur qui déplace le véhicule. Il n'y a **pas d'option « peu
-  importe »** — le client choisit un véhicule, ou rien n'est réservé.
-  Ajouter des enfants au-delà de la capacité bloque la réservation au lieu
-  de passer en silence.
+- **Passagers et véhicule** : demandés dès le premier écran. Le nombre de
+  passagers **écarte les véhicules trop petits, rien de plus** : un client
+  seul garde le choix entre berline, berline VIP, van et van VIP — il a le
+  droit de vouloir un van, et c'est une course plus chère. À six
+  passagers, seuls les vans restent proposés. Il n'y a **pas d'option
+  « peu importe »** : le client choisit un véhicule, ou rien n'est
+  réservé. Ajouter des enfants au-delà de la capacité bloque la
+  réservation au lieu de passer en silence.
+- **Pas d'emoji ni d'illustration de voiture.** Un emoji est dessiné par
+  le téléphone du visiteur, pas par le site : le même caractère est
+  bariolé sur un appareil et terne sur un autre, et rien de tout cela ne
+  tient face à une charte noir et or. Chaque carte porte donc une pastille
+  dorée avec le **nombre de places**, qui est l'information que le client
+  cherche. La seule voie vers du visuel réaliste serait de vraies photos
+  des véhicules du réseau — en évitant toute marque identifiable, sans
+  quoi la promesse devient trompeuse.
 - **Départ et arrivée sont tous deux obligatoires** : sans les deux
   adresses, la réservation ne part pas. Le prix est calculé une fois pour
   toutes à ce moment-là et proposé au client : c'est celui qu'il accepte
@@ -230,6 +237,19 @@ Depuis le bon de réservation, en mode exploitant, le bouton « Proposer au
 groupe chauffeurs » envoie désormais **un lien** en plus de l'annonce. Ce
 lien porte la course entière, encodée dans l'adresse : aucun serveur n'est
 nécessaire pour la transmettre.
+
+### Comment voir cet écran vous-même
+
+Il n'y a **pas de page de connexion** : le lien *est* la clé. Pour le voir :
+
+1. ouvrez le site avec `?exploitant=1` ;
+2. faites une réservation d'essai (n'importe quelle adresse) ;
+3. sur le bon, appuyez sur « Proposer au groupe chauffeurs » ;
+4. dans le message WhatsApp qui s'ouvre, **copiez le lien qui finit par
+   `?c=…`** au lieu de l'envoyer, et collez-le dans votre navigateur.
+
+Vous tombez alors exactement sur ce que voit le chauffeur. Chaque lien ne
+vaut que pour **une** course : il n'y a rien à créer ni à administrer.
 
 Le chauffeur l'ouvre et se retrouve dans un **espace chauffeur** :
 

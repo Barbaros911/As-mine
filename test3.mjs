@@ -47,7 +47,7 @@ await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const tarifs = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('tarifs calculés à la distance', tarifs.length === 2, tarifs.join(' | '));
+check('tarifs calculés à la distance', tarifs.length === 4, tarifs.join(' | '));
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.waitForTimeout(200);
 await page.locator('#btnToPayment').click();
@@ -185,7 +185,7 @@ const sousTitre = await page.locator('#vehiclesSub').textContent();
 check('plus de bascule vers un forfait : tarif à la distance',
   !sousTitre.includes('Forfait') && /km/.test(sousTitre), sousTitre);
 const tarifsAuto = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('véhicules tarifés', tarifsAuto.length === 2, tarifsAuto.join(' | '));
+check('véhicules tarifés', tarifsAuto.length === 4, tarifsAuto.join(' | '));
 
 // --- Trace des courses ---
 await page.locator('.nav-item[data-target="screen-home"]').click();

@@ -130,8 +130,15 @@ sont donc obligatoires : sans les deux, pas de réservation.
 **Il n'y a plus d'aller-retour ni de course à destination ouverte** —
 supprimés à la demande de Barbaros.
 
-**Le nombre de passagers choisit la catégorie** : jusqu'à 4, berline ;
-au-delà, van (`SEUIL_BERLINE`). Pas d'option « peu importe ».
+**Le nombre de passagers n'écarte que les véhicules trop petits.** Les
+quatre catégories restent proposées à un client seul — il a le droit de
+vouloir un van, et c'est une course plus chère. Pas d'option « peu
+importe » pour autant : il choisit, ou rien n'est réservé.
+
+**Pas d'emoji de voiture, pas d'illustration de voiture.** Essayé quatre
+fois, refusé quatre fois. Les cartes portent une pastille dorée avec le
+nombre de places. Seule piste encore ouverte : de vraies photos des
+véhicules, fournies par Barbaros.
 
 **Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
 Les terminaux restent proposés comme adresses.
@@ -169,15 +176,16 @@ Les terminaux restent proposés comme adresses.
 - **Ne pas promettre une marque précise** (« Mercedes Classe E ») : si un
   autre véhicule se présente, c'est trompeur. Dire « berline » ou, à la
   rigueur, « type … ou similaire ».
-- Ne pas proposer d'illustrations de voitures : essayé, refusé.
+- Ne pas proposer d'illustrations **ni d'emojis** de voitures : essayé
+  quatre fois, refusé quatre fois. Ne plus en reparler sans photos réelles.
 
 ## Ce qui est décidé, ce qui ne l'est pas
 
 **Décidé** : intermédiaire ; paiement au chauffeur ; pas de forfait
 aéroport ; pas d'aller-retour ; pas de destination ouverte ; prix ferme à
-la réservation ; berline jusqu'à 4 passagers, van au-delà ; français par
-défaut avec 5 autres langues au sélecteur ; mode exploitant via
-`?exploitant=1` ; diffusion anonymisée.
+la réservation ; les quatre véhicules proposés dès lors qu'ils sont assez
+grands ; français par défaut avec 5 autres langues au sélecteur ; mode
+exploitant via `?exploitant=1` ; diffusion anonymisée.
 
 **Pas décidé** : taux de commission réel · statut juridique et SIRET de
 Barbaros · s'il est lui-même chauffeur · volume visé · clientèle cible
