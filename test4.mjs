@@ -60,7 +60,7 @@ check('champ chambre masqué au départ', !(await page.locator('#roomPickupWrap'
 await stubSuggestions(page, HOTEL);
 await pick(page, '#pickup', 'ibis');
 check('champ chambre affiché après le choix d\'un hôtel', await page.locator('#roomPickupWrap').isVisible());
-await page.fill('#roomPickup', '412');
+await page.fill('#roomPickup', '412B');
 
 await stubSuggestions(page, BUREAU);
 await pick(page, '#dropoff', 'montaigne');
@@ -74,7 +74,7 @@ check('chambre effacée avec le champ', (await page.inputValue('#roomPickup')) =
 // On repose l'hôtel au départ pour la suite
 await stubSuggestions(page, HOTEL);
 await pick(page, '#pickup', 'ibis');
-await page.fill('#roomPickup', '412');
+await page.fill('#roomPickup', '412B');
 await stubSuggestions(page, BUREAU);
 await pick(page, '#dropoff', 'montaigne');
 await page.fill('#dateSimple', dansNJours(3));
@@ -117,7 +117,7 @@ await page.locator('#vehicleCards .veh-card').first().click();
 await page.locator('#btnToPayment').click();
 await page.waitForTimeout(400);
 const recap = await page.locator('#tripSummary').textContent();
-check('récapitulatif : chambre reprise au départ', recap.includes('Ch. 412'), recap.slice(0, 120));
+check('récapitulatif : chambre reprise au départ', recap.includes('Ch. 412B'), recap.slice(0, 120));
 
 // --- Bon de réservation ---
 await page.fill('#clientName', 'Claire Fontaine');
@@ -128,11 +128,11 @@ check('réservation confirmée', await page.locator('#screen-confirmation').isVi
 await page.locator('#btnOpenVoucher').click();
 await page.waitForTimeout(400);
 const bon = await page.locator('#voucherBody').textContent();
-check('bon : chambre reprise', bon.includes('Ch. 412'));
+check('bon : chambre reprise', bon.includes('Ch. 412B'));
 await page.locator('#tabInvoice').click();
 await page.waitForTimeout(300);
 const fact = await page.locator('#voucherBody').textContent();
-check('facture : chambre reprise', fact.includes('Ch. 412'));
+check('facture : chambre reprise', fact.includes('Ch. 412B'));
 await page.locator('#tabVoucher').click();
 await page.waitForTimeout(200);
 
@@ -144,7 +144,7 @@ check('annonce : trajet et horaire', annonce.includes('Ibis') && annonce.include
 check('annonce : montant pour le chauffeur', annonce.includes('Pour le chauffeur'));
 check('annonce : sans le nom du client', !annonce.includes('Claire Fontaine'));
 check('annonce : sans le téléphone du client', !annonce.includes('12 34 56 78'));
-check('annonce : sans le numéro de chambre', !annonce.includes('412'), annonce.slice(0, 160));
+check('annonce : sans le numéro de chambre', !annonce.includes('412B'), annonce.slice(0, 160));
 const partAnnonce = await page.evaluate(() => ({
   total: lastVoucher.prix.total,
   net: lastVoucher.prix.total * (1 - COMMISSION_APPORT)

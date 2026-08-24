@@ -52,7 +52,7 @@ await op.waitForTimeout(200);
 // --- Départ et arrivée sont tous deux obligatoires ---
 await stubAdresses(op, HOTEL);
 await choisir(op, '#pickup', 'ibis');
-await op.fill('#roomPickup', '512');
+await op.fill('#roomPickup', '512B');
 await op.fill('#dateSimple', dansNJours(1));
 await op.waitForTimeout(200);
 await op.locator('#btnSearch').click();
@@ -77,7 +77,7 @@ await op.locator('#btnToPayment').click();
 await op.waitForTimeout(400);
 const recap = await op.locator('#tripSummary').textContent();
 check('récapitulatif : arrivée réelle', recap.includes('Montaigne'), recap.slice(0, 130));
-check('récapitulatif : chambre du départ', recap.includes('Ch. 512'));
+check('récapitulatif : chambre du départ', recap.includes('Ch. 512B'));
 check('récapitulatif : prix total annoncé', recap.includes('Prix total'));
 
 await op.fill('#clientName', 'Hôtel Ibis — réception');
@@ -103,7 +103,7 @@ check('un lien de course part avec l\'annonce', !!lien, lien ? lien.slice(0, 58)
 const apercu = await op.locator('#dispatchPreview').textContent();
 check('l\'aperçu reste lisible, sans le lien encodé', !apercu.includes('?c='));
 check('annonce : sans le nom du client', !texteEnvoye.includes('réception'));
-check('annonce : sans la chambre du client', !apercu.includes('512'));
+check('annonce : sans la chambre du client', !apercu.includes('512B'));
 
 const paramC = lien ? new URL(lien).searchParams.get('c') : null;
 
@@ -122,7 +122,7 @@ check('la course affichée porte la bonne référence',
 const vueCh = await ch.locator('#driverBody').textContent();
 check('chauffeur : départ visible', vueCh.includes('Ibis'));
 check('chauffeur : arrivée visible', vueCh.includes('Montaigne'));
-check('chauffeur : sans le numéro de chambre', !vueCh.includes('512'), vueCh.slice(0, 140));
+check('chauffeur : sans le numéro de chambre', !vueCh.includes('512B'), vueCh.slice(0, 140));
 check('chauffeur : montant à encaisser affiché', vueCh.includes('À encaisser'));
 // Sa part vaut le prix client moins la commission d'apport.
 // On demande le montant à la page elle-même : c'est son formateur qui fait foi,
