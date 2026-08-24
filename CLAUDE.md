@@ -130,6 +130,11 @@ sont donc obligatoires : sans les deux, pas de réservation.
 **Il n'y a plus d'aller-retour ni de course à destination ouverte** —
 supprimés à la demande de Barbaros.
 
+**Délai de 3 h (`DELAI_RESERVATION_H`).** Une course pour dans moins de
+3 h est acceptée mais **pas ferme** : avertissement rouge sur l'écran de
+confirmation et sur le bon, bouton d'appel et message WhatsApp prérempli
+avec la référence. Ne jamais bloquer le client : le prévenir.
+
 **Le nombre de passagers n'écarte que les véhicules trop petits.** Les
 quatre catégories restent proposées à un client seul — il a le droit de
 vouloir un van, et c'est une course plus chère. Pas d'option « peu
@@ -205,12 +210,13 @@ comptable, gestion des désistements et des clients absents.
 
 ## Tests
 
-Quatre suites Playwright à la racine, à relancer après **toute**
+Six suites Playwright à la racine, à relancer après **toute**
 modification :
 
 ```bash
 npx http-server -p 8099 -s .
-node test.mjs && node test2.mjs && node test3.mjs && node test4.mjs
+node test.mjs && node test2.mjs && node test3.mjs \
+  && node test4.mjs && node test5.mjs && node test6.mjs
 ```
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une
