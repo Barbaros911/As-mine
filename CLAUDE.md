@@ -119,8 +119,19 @@ placer les courses qu'il ne peut pas assurer lui-même.
 Berline 5 € + 1,50 €/km (4 pass.) · Berline VIP 10 € + 2,20 €/km (3) ·
 Van 10 € + 2,50 €/km (7) · Van VIP 15 € + 3,50 €/km (6).
 Horaire : 50 / 75 / 70 / 95 €. +20 % nuit et week-end. TVA 10 % incluse.
-Aller-retour ×2. 60 min d'attente offertes en aéroport, 30 min ailleurs.
+60 min d'attente offertes en aéroport, 30 min ailleurs.
 Annulation gratuite jusqu'à 60 min avant.
+
+**Le prix est ferme, arrêté à la réservation.** Le client l'accepte avant
+de monter, le chauffeur l'encaisse tel quel, rien n'est recalculé à
+l'arrivée — un VTC n'a pas le droit d'un taximètre. Départ **et** arrivée
+sont donc obligatoires : sans les deux, pas de réservation.
+
+**Il n'y a plus d'aller-retour ni de course à destination ouverte** —
+supprimés à la demande de Barbaros.
+
+**Le nombre de passagers choisit la catégorie** : jusqu'à 4, berline ;
+au-delà, van (`SEUIL_BERLINE`). Pas d'option « peu importe ».
 
 **Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
 Les terminaux restent proposés comme adresses.
@@ -163,19 +174,20 @@ Les terminaux restent proposés comme adresses.
 ## Ce qui est décidé, ce qui ne l'est pas
 
 **Décidé** : intermédiaire ; paiement au chauffeur ; pas de forfait
-aéroport ; français par défaut avec 5 autres langues au sélecteur ; mode
-exploitant via `?exploitant=1` ; diffusion anonymisée.
+aéroport ; pas d'aller-retour ; pas de destination ouverte ; prix ferme à
+la réservation ; berline jusqu'à 4 passagers, van au-delà ; français par
+défaut avec 5 autres langues au sélecteur ; mode exploitant via
+`?exploitant=1` ; diffusion anonymisée.
 
 **Pas décidé** : taux de commission réel · statut juridique et SIRET de
 Barbaros · s'il est lui-même chauffeur · volume visé · clientèle cible
-(particuliers / hôtels / entreprises) · budget · tarif d'une course à
-destination ouverte · règle du temps d'attente.
+(particuliers / hôtels / entreprises) · budget · règle du temps d'attente.
 
 ## Feuille de route convenue
 
-Sans serveur (gratuit, en cours) : course à destination ouverte, lien de
-course, écran chauffeur (accepter / démarrer / saisir l'arrivée / renvoyer
-le montant), le tout par lien et WhatsApp.
+Sans serveur (gratuit, fait) : lien de course et écran chauffeur
+(accepter / sur place / démarrer / terminer / renvoyer la confirmation),
+le tout par lien et WhatsApp.
 
 Avec serveur (quand Barbaros paiera) : comptes chauffeurs par SMS, page
 admin, premier qui accepte prend la course, suivi en direct, tableau de

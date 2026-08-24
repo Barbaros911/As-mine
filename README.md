@@ -138,8 +138,8 @@ npx http-server -p 8099 -s .
 node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
 node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
-node test4.mjs     # hôtel, aller-retour, diffusion, carte, langue, capacité (77)
-node test5.mjs     # destination ouverte, lien de course, écran chauffeur (46)
+node test4.mjs     # hôtel, diffusion, carte, langue, capacité (70)
+node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -174,10 +174,19 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   comptant trois fois plus qu'un mot passe-partout — sinon tous les hôtels
   de France se vaudraient.
 - **Passagers et véhicule** : demandés dès le premier écran, parce que
-  c'est ce qui décide si une berline suffit. Une berline emmène 4
-  personnes, une berline VIP 3, un van 7, un van VIP 6. Un véhicule trop
-  petit n'est jamais proposé, et ajouter des enfants au-delà de la
-  capacité bloque la réservation au lieu de passer en silence.
+  c'est ce qui décide si une berline suffit. **Jusqu'à 4 passagers, c'est
+  une berline ; au-delà, un van.** Le nombre de passagers ne fait donc pas
+  que filtrer sur la capacité, il choisit la catégorie : proposer un van
+  de sept places à un client seul n'a de sens ni pour lui, ni pour le
+  chauffeur qui déplace le véhicule. Il n'y a **pas d'option « peu
+  importe »** — le client choisit un véhicule, ou rien n'est réservé.
+  Ajouter des enfants au-delà de la capacité bloque la réservation au lieu
+  de passer en silence.
+- **Départ et arrivée sont tous deux obligatoires** : sans les deux
+  adresses, la réservation ne part pas. Le prix est calculé une fois pour
+  toutes à ce moment-là et proposé au client : c'est celui qu'il accepte
+  avant de monter, et c'est celui que le chauffeur encaisse. Rien n'est
+  recalculé à l'arrivée.
 - **Langue** : le site s'ouvre toujours en français, quelle que soit la langue
   du téléphone. Les cinq autres restent au sélecteur, et le choix d'un
   visiteur est mémorisé sur son seul appareil.
@@ -208,15 +217,6 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   vide le champ : le chauffeur ne reçoit jamais la chambre d'une adresse
   précédente. La chambre figure sur le récapitulatif, le bon, la facture et
   le message WhatsApp — mais **jamais** sur l'annonce diffusée au groupe.
-- **Course à destination ouverte** : quand un hôtel réserve sans savoir où
-  va son client. Le bon annonce la **grille** (« 5 € + 1,50 €/km ») et non
-  un montant — un VTC n'ayant pas le droit d'un taximètre, le prix doit
-  être calculable avant le départ. Le montant est arrêté à l'arrivée, quand
-  le chauffeur saisit l'adresse réelle.
-- **Aller-retour** : disponible sur le trajet simple. Le retour porte sa
-  propre date et sa propre heure, ne peut pas précéder l'aller, et le tarif
-  est doublé — deux prises en charge, deux trajets. La mise à disposition
-  n'en propose pas : le chauffeur reste sur place.
 - **Plus de forfait aéroport** : il n'y a plus de grille de prix fixes ni
   d'écran dédié. Une course vers Roissy, Orly ou Beauvais se réserve et se
   tarife comme n'importe quelle autre, à la distance. Les terminaux restent
@@ -236,14 +236,19 @@ Le chauffeur l'ouvre et se retrouve dans un **espace chauffeur** :
 | Étape | Ce qu'il fait | Ce qui est enregistré |
 |---|---|---|
 | 1 | Donne son nom, « Je prends cette course » | Un message part vers vous sur WhatsApp, signé |
-| 2 | « Je suis sur place » | Le compteur d'attente démarre |
-| 3 | « Client à bord — démarrer » | L'attente est arrêtée et facturée au-delà des minutes offertes |
-| 4 | « Terminer », saisit l'adresse d'arrivée | Distance routière réelle, montant calculé |
+| 2 | « Je suis sur place » | Le compteur d'attente démarre, pour information |
+| 3 | « Client à bord — démarrer » | L'heure de départ est notée |
+| 4 | « Terminer la course » | Rien à saisir : le montant est celui de la réservation |
 | 5 | « Envoyer le résultat » | Un second lien vous revient sur WhatsApp |
 
-Vous ouvrez ce lien : **votre bon se complète tout seul** avec l'adresse
-réellement desservie, la distance, le montant encaissé et le nom du
-chauffeur. La course passe en « réalisée » dans votre registre.
+Le chauffeur ne saisit **aucune adresse** et ne calcule **aucun prix** : le
+montant a été arrêté à la réservation, le client l'a accepté avant de
+monter. L'écran chauffeur ne fait que le lui rappeler, en lui indiquant au
+passage sa part nette de commission.
+
+Vous ouvrez le lien de retour : **votre bon se complète tout seul** avec la
+durée, le nom du chauffeur, et la course passe en « réalisée » dans votre
+registre.
 
 Un bouton « Envoyer ma position » est disponible à chaque étape : le
 chauffeur vous envoie sa position par WhatsApp quand vous la demandez.
@@ -259,23 +264,12 @@ Deux choses, et aucun bricolage ne les remplacera :
 
 Les deux demandent un serveur. Tout le reste fonctionne aujourd'hui.
 
-### Réglages
-
-En haut d'`index.html` :
-
-```js
-const ATTENTE_OFFERTE_MIN = 15;   // minutes d'attente offertes sur place
-const ATTENTE_PAR_MINUTE  = 0.50; // € par minute au-delà
-```
-
-Ces deux valeurs sont **provisoires** : la règle d'attente reste à arrêter.
-
 ### Un point de droit à ne pas perdre de vue
 
-Un VTC **n'a pas le droit d'avoir un taximètre**. Sur une course à
-destination ouverte, ce que le client accepte avant de monter, c'est la
-**grille tarifaire**, pas le montant final. Le bon de réservation l'écrit
-noir sur blanc. Ne jamais remplacer cette mention par « prix à définir ».
+Un VTC **n'a pas le droit d'avoir un taximètre** : le prix doit être connu
+avant le départ. C'est exactement ce que fait le site aujourd'hui — un
+montant ferme calculé à la réservation, accepté par le client, encaissé
+tel quel. Ne jamais réintroduire un montant arrêté en fin de course.
 
 ## Mode exploitant et réseau de chauffeurs
 

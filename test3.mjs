@@ -47,7 +47,7 @@ await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const tarifs = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('quatre tarifs calculés à la distance', tarifs.length === 4, tarifs.join(' | '));
+check('tarifs calculés à la distance', tarifs.length === 2, tarifs.join(' | '));
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.waitForTimeout(200);
 await page.locator('#btnToPayment').click();
@@ -161,7 +161,7 @@ check('plus de raccourcis d\'adresses sous les champs',
 check('aucune adresse laissée sur l\'appareil',
   await page.evaluate(() => localStorage.getItem('asmine_addresses') === null));
 check('passagers remis à 1', (await page.inputValue('#paxHome')) === '1');
-check('véhicule remis à « peu importe »', (await page.inputValue('#vehicleHome')) === '');
+check('véhicule remis sur la berline', (await page.inputValue('#vehicleHome')) === 'berline');
 
 // --- Une adresse d'aéroport se tarife à la distance, comme les autres ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
@@ -185,7 +185,7 @@ const sousTitre = await page.locator('#vehiclesSub').textContent();
 check('plus de bascule vers un forfait : tarif à la distance',
   !sousTitre.includes('Forfait') && /km/.test(sousTitre), sousTitre);
 const tarifsAuto = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('quatre véhicules tarifés', tarifsAuto.length === 4, tarifsAuto.join(' | '));
+check('véhicules tarifés', tarifsAuto.length === 2, tarifsAuto.join(' | '));
 
 // --- Trace des courses ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
