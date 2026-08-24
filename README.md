@@ -140,6 +140,7 @@ node test2.mjs     # parcours complet de réservation, CGV (23)
 node test3.mjs     # bon, facture, vol, passager tiers, référencement (67)
 node test4.mjs     # hôtel, diffusion, carte, langue, capacité (73)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
+node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -189,6 +190,17 @@ l'application, précisément pour que le site reste correct si le CDN tombe.
   cherche. La seule voie vers du visuel réaliste serait de vraies photos
   des véhicules du réseau — en évitant toute marque identifiable, sans
   quoi la promesse devient trompeuse.
+- **Délai de réservation de 3 heures.** Le site ne peut pas savoir si un
+  chauffeur est libre tout de suite — il n'y a ni serveur, ni suivi de
+  disponibilité. Une course demandée pour dans moins de trois heures est
+  donc **acceptée mais pas ferme** : l'écran de confirmation l'annonce en
+  rouge, avec un bouton pour appeler et un message WhatsApp déjà rédigé
+  qui porte la référence, et le bon de réservation reprend la même
+  mention. Le client n'est jamais bloqué, il est prévenu — et c'est ce
+  qu'il faut, parce qu'une réservation qu'on croit acquise et qui n'arrive
+  pas coûte bien plus cher qu'un appel. Le seuil se règle en haut
+  d'`index.html` (`DELAI_RESERVATION_H`), et le numéro affiché partout
+  découle de la seule constante `WHATSAPP_NUMBER`.
 - **Départ et arrivée sont tous deux obligatoires** : sans les deux
   adresses, la réservation ne part pas. Le prix est calculé une fois pour
   toutes à ce moment-là et proposé au client : c'est celui qu'il accepte
