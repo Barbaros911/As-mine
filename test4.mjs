@@ -60,7 +60,7 @@ check('champ chambre masqué au départ', !(await page.locator('#roomPickupWrap'
 await stubSuggestions(page, HOTEL);
 await pick(page, '#pickup', 'ibis');
 check('champ chambre affiché après le choix d\'un hôtel', await page.locator('#roomPickupWrap').isVisible());
-await page.fill('#roomPickup', '412');
+await page.fill('#roomPickup', '412B');
 
 await stubSuggestions(page, BUREAU);
 await pick(page, '#dropoff', 'montaigne');
@@ -74,30 +74,34 @@ check('chambre effacée avec le champ', (await page.inputValue('#roomPickup')) =
 // On repose l'hôtel au départ pour la suite
 await stubSuggestions(page, HOTEL);
 await pick(page, '#pickup', 'ibis');
-await page.fill('#roomPickup', '412');
+await page.fill('#roomPickup', '412B');
 await stubSuggestions(page, BUREAU);
 await pick(page, '#dropoff', 'montaigne');
 await page.fill('#dateSimple', dansNJours(3));
 await page.waitForTimeout(200);
 
-// --- La catégorie du véhicule suit le nombre de passagers ---
+// --- Le nombre de passagers n'écarte que les véhicules trop petits ---
 check('l\'aller-retour a été retiré', (await page.locator('#roundTripSimple').count()) === 0);
 check('la destination ouverte a été retirée', (await page.locator('#destinationOuverte').count()) === 0);
 const vehUn = await page.locator('#vehicleHome option').allTextContents();
-check('un passager : seules les berlines sont proposées',
-  vehUn.length === 2 && !vehUn.join(' ').includes('Van'), vehUn.join(' | '));
+check('un passager : les quatre véhicules restent proposés',
+  vehUn.length === 4, vehUn.join(' | '));
 check('plus d\'option « peu importe »', !vehUn.join(' ').includes('Peu importe'));
+check('plus d\'emoji de voiture dans la liste',
+  !/[\u{1F680}-\u{1F6FF}]/u.test(vehUn.join(' ')), vehUn.join(' | '));
+check('le nombre de places est annoncé dans la liste',
+  vehUn.every(x => /\d+\s+passager/.test(x)), vehUn.join(' | '));
 check('une berline est retenue d\'office', (await page.inputValue('#vehicleHome')) === 'berline');
 await page.selectOption('#paxHome', '4');
 await page.waitForTimeout(200);
 const vehQuatre = await page.locator('#vehicleHome option').allTextContents();
-check('quatre passagers : la berline simple, seule à les emmener',
-  vehQuatre.length === 1 && vehQuatre[0].includes('Berline'), vehQuatre.join(' | '));
-await page.selectOption('#paxHome', '5');
+check('quatre passagers : la berline VIP à trois places disparaît',
+  vehQuatre.length === 3 && !vehQuatre.join(' ').includes('Berline VIP'), vehQuatre.join(' | '));
+await page.selectOption('#paxHome', '7');
 await page.waitForTimeout(200);
-const vehCinq = await page.locator('#vehicleHome option').allTextContents();
-check('cinq passagers : on passe aux vans',
-  vehCinq.length === 2 && !vehCinq.join(' ').includes('Berline'), vehCinq.join(' | '));
+const vehSept = await page.locator('#vehicleHome option').allTextContents();
+check('sept passagers : seul le van les emmène',
+  vehSept.length === 1 && vehSept[0].includes('Van'), vehSept.join(' | '));
 await page.selectOption('#paxHome', '1');
 await page.waitForTimeout(200);
 
@@ -105,12 +109,15 @@ await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const cartes = await page.locator('#vehicleCards .veh-card').count();
-check('l\'écran des tarifs applique la même règle', cartes === 2, cartes + ' véhicule(s)');
+check('l\'écran des tarifs applique la même règle', cartes === 4, cartes + ' véhicule(s)');
+const cartesTexte = await page.locator('#vehicleCards .veh-card').allTextContents();
+check('plus d\'emoji de voiture sur les cartes',
+  !/[\u{1F680}-\u{1F6FF}]/u.test(cartesTexte.join(' ')), cartesTexte.join(' | ').slice(0, 120));
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.locator('#btnToPayment').click();
 await page.waitForTimeout(400);
 const recap = await page.locator('#tripSummary').textContent();
-check('récapitulatif : chambre reprise au départ', recap.includes('Ch. 412'), recap.slice(0, 120));
+check('récapitulatif : chambre reprise au départ', recap.includes('Ch. 412B'), recap.slice(0, 120));
 
 // --- Bon de réservation ---
 await page.fill('#clientName', 'Claire Fontaine');
@@ -121,11 +128,11 @@ check('réservation confirmée', await page.locator('#screen-confirmation').isVi
 await page.locator('#btnOpenVoucher').click();
 await page.waitForTimeout(400);
 const bon = await page.locator('#voucherBody').textContent();
-check('bon : chambre reprise', bon.includes('Ch. 412'));
+check('bon : chambre reprise', bon.includes('Ch. 412B'));
 await page.locator('#tabInvoice').click();
 await page.waitForTimeout(300);
 const fact = await page.locator('#voucherBody').textContent();
-check('facture : chambre reprise', fact.includes('Ch. 412'));
+check('facture : chambre reprise', fact.includes('Ch. 412B'));
 await page.locator('#tabVoucher').click();
 await page.waitForTimeout(200);
 
@@ -137,7 +144,7 @@ check('annonce : trajet et horaire', annonce.includes('Ibis') && annonce.include
 check('annonce : montant pour le chauffeur', annonce.includes('Pour le chauffeur'));
 check('annonce : sans le nom du client', !annonce.includes('Claire Fontaine'));
 check('annonce : sans le téléphone du client', !annonce.includes('12 34 56 78'));
-check('annonce : sans le numéro de chambre', !annonce.includes('412'), annonce.slice(0, 160));
+check('annonce : sans le numéro de chambre', !annonce.includes('412B'), annonce.slice(0, 160));
 const partAnnonce = await page.evaluate(() => ({
   total: lastVoucher.prix.total,
   net: lastVoucher.prix.total * (1 - COMMISSION_APPORT)
@@ -235,7 +242,7 @@ await page.waitForTimeout(300);
 const optionsPax = await page.locator('#paxHome option').count();
 check('de 1 à 7 passagers proposés', optionsPax === 7, optionsPax + ' option(s)');
 const vehStandard = await page.locator('#vehicleHome option').allTextContents();
-check('deux berlines proposées pour un passager', vehStandard.length === 2, vehStandard.join(' | '));
+check('les quatre véhicules proposés pour un passager', vehStandard.length === 4, vehStandard.join(' | '));
 await page.selectOption('#paxHome', '6');
 await page.waitForTimeout(200);
 const vehSix = await page.locator('#vehicleHome option').allTextContents();
