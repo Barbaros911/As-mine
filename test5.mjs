@@ -4,6 +4,19 @@
 import { chromium } from 'playwright';
 
 const BASE = 'http://127.0.0.1:8099';
+
+// Le mode exploitant est protégé par un code d'accès. Le code lui-même n'a
+// rien à faire dans un dépôt public : on lit l'empreinte que la page porte
+// déjà, on la dépose comme si la saisie avait eu lieu, et on recharge. La
+// serrure est bien franchie, pas contournée.
+async function deverrouillerExploitant(page, base, suffixe = '') {
+  await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(300);
+  const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
+  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
+}
+
 const browser = await chromium.launch();
 const errors = [];
 const ok = [], ko = [];
@@ -43,7 +56,7 @@ const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 } }
 await prepare(ctxOp);
 const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));
-await op.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await deverrouillerExploitant(op, BASE);
 await op.waitForTimeout(600);
 await op.selectOption('#langSelect', 'fr');
 await op.locator('#cookieAccept').click().catch(() => {});

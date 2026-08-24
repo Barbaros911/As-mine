@@ -3,6 +3,19 @@
 import { chromium } from 'playwright';
 
 const BASE = 'http://127.0.0.1:8099';
+
+// Le mode exploitant est protégé par un code d'accès. Le code lui-même n'a
+// rien à faire dans un dépôt public : on lit l'empreinte que la page porte
+// déjà, on la dépose comme si la saisie avait eu lieu, et on recharge. La
+// serrure est bien franchie, pas contournée.
+async function deverrouillerExploitant(page, base, suffixe = '') {
+  await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(300);
+  const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
+  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
+}
+
 const browser = await chromium.launch();
 const errors = [];
 const ok = [], ko = [];
@@ -35,7 +48,7 @@ const dansNJours = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0
 
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-await page.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await deverrouillerExploitant(page, BASE);
 await page.waitForTimeout(600);
 await page.selectOption('#langSelect', 'fr');
 await page.locator('#cookieAccept').click().catch(() => {});
@@ -140,8 +153,19 @@ await page.waitForTimeout(200);
 check('bloc de diffusion proposé à l\'exploitant', await page.locator('#dispatchBlock').isVisible());
 const annonce = await page.locator('#dispatchPreview').textContent();
 check('annonce : référence de la course', /ASM-\d{2}-\d{2}-\d{4}/.test(annonce));
-check('annonce : trajet et horaire', annonce.includes('Ibis') && annonce.includes(dansNJours(3)));
-check('annonce : montant pour le chauffeur', annonce.includes('Pour le chauffeur'));
+// La date est écrite courte — « jeu. 27/08 — 14:00 » — parce qu'une annonce
+// se lit dans un fil de groupe qui défile.
+const jourCourt = (() => {
+  const d = new Date(dansNJours(3) + 'T00:00:00');
+  return d.toLocaleDateString('fr', { weekday: 'short', day: '2-digit', month: '2-digit' });
+})();
+check('annonce : trajet et horaire lisibles',
+  annonce.includes('Ibis') && annonce.includes(jourCourt), annonce.slice(0, 130));
+check('annonce : montant net annoncé au chauffeur', annonce.includes('Pour vous'));
+check('annonce : le terminal n\'est pas répété',
+  (annonce.match(/Terminal/g) || []).length <= 1, annonce.slice(0, 160));
+check('annonce : tient en peu de lignes',
+  annonce.trim().split('\n').length <= 9, annonce.trim().split('\n').length + ' lignes');
 check('annonce : sans le nom du client', !annonce.includes('Claire Fontaine'));
 check('annonce : sans le téléphone du client', !annonce.includes('12 34 56 78'));
 check('annonce : sans le numéro de chambre', !annonce.includes('412B'), annonce.slice(0, 160));

@@ -3,6 +3,19 @@
 import { chromium } from 'playwright';
 
 const BASE = 'http://127.0.0.1:8099';
+
+// Le mode exploitant est protégé par un code d'accès. Le code lui-même n'a
+// rien à faire dans un dépôt public : on lit l'empreinte que la page porte
+// déjà, on la dépose comme si la saisie avait eu lieu, et on recharge. La
+// serrure est bien franchie, pas contournée.
+async function deverrouillerExploitant(page, base, suffixe = '') {
+  await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(300);
+  const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
+  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
+}
+
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
@@ -13,7 +26,7 @@ const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
 
 // « ?exploitant=1 » : les outils internes (attribution, confirmation, registre,
 // diffusion) ne s'affichent que sur l'appareil de l'exploitant.
-await page.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await deverrouillerExploitant(page, BASE);
 await page.waitForTimeout(800);
 await page.selectOption('#langSelect', 'fr');
 await page.waitForTimeout(400);
@@ -86,7 +99,17 @@ await page.waitForTimeout(500);
 check('écran de confirmation atteint', await page.locator('#screen-confirmation').isVisible());
 check('le client voit « Demande envoyée », pas une réservation ferme',
   (await page.locator('#screen-confirmation h2').textContent()).includes('Demande'));
-check('bouton email présent', await page.locator('#btnEmailSummary').isVisible());
+// Le client n'a plus rien à faire : on le lui dit, et les boutons de renvoi
+// sont repliés pour ne pas ressembler à une étape restante.
+check('le client est invité à attendre notre réponse',
+  (await page.locator('#screen-confirmation').textContent()).includes('rien d\'autre à faire'));
+check('les boutons de renvoi sont repliés',
+  !(await page.locator('#btnEmailSummary').isVisible()));
+await page.locator('#screen-confirmation details summary').click();
+await page.waitForTimeout(200);
+check('le repli s\'ouvre et redonne accès au renvoi',
+  await page.locator('#btnEmailSummary').isVisible()
+  && await page.locator('#btnResendWhatsapp').isVisible());
 const mailto = await page.locator('#btnEmailSummary').getAttribute('href');
 check('lien email correctement formé', mailto.startsWith('mailto:') && mailto.includes('ASM-'), mailto.slice(0, 60));
 
