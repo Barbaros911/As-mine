@@ -63,23 +63,40 @@ check('le client n\'a pas l\'outil de confirmation',
   !(await client.locator('#outilConfirmation').isVisible()));
 
 // Un client curieux qui devine « ?exploitant=1 » tombe sur le code d'accès.
-// On refuse la saisie : rien ne doit s'ouvrir.
-client.once('dialog', d => d.dismiss());
+// Le voile couvre le site : ni les outils, ni la navigation ne s'atteignent.
 await client.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
 await client.waitForTimeout(600);
-check('« ?exploitant=1 » sans le code n\'ouvre rien',
-  (await client.evaluate(() => MODE_EXPLOITANT)) === false);
-await client.locator('.nav-item[data-target="screen-bookings"]').click();
+check('« ?exploitant=1 » demande un code au lieu d\'ouvrir les outils',
+  await client.locator('#deverrouillage').isVisible()
+  && (await client.evaluate(() => MODE_EXPLOITANT)) === false);
+check('aucune fenêtre native n\'est utilisée pour le code',
+  await client.locator('#codeExploitant').isVisible());
+check('le voile empêche d\'atteindre le site par-dessous',
+  !(await client.locator('.nav-item[data-target="screen-bookings"]')
+      .isEnabled({ timeout: 500 }).catch(() => false))
+  || !(await client.evaluate(() => {
+       const v = document.getElementById('deverrouillage').getBoundingClientRect();
+       return v.width === 0 || v.height === 0;
+     })));
+
+await client.fill('#codeExploitant', 'mauvais-code');
+await client.locator('#btnDeverrouiller').click();
 await client.waitForTimeout(300);
-check('sans le code, pas d\'outil de confirmation',
-  !(await client.locator('#outilConfirmation').isVisible()));
-client.once('dialog', d => d.accept('mauvais-code'));
-await client.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
-await client.waitForTimeout(600);
-check('un code faux est refusé',
-  (await client.evaluate(() => MODE_EXPLOITANT)) === false);
-await client.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
-await client.waitForTimeout(400);
+check('un code faux est refusé, avec un message',
+  await client.locator('#erreurCode').isVisible()
+  && (await client.evaluate(() => MODE_EXPLOITANT)) === false);
+check('un code faux ne laisse aucune trace sur l\'appareil',
+  (await client.evaluate(() => localStorage.getItem('asmine_exploitant'))) === null);
+
+// « Retour au site » ramène le client chez lui, sans outils
+await Promise.all([
+  client.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+  client.locator('#btnAnnulerDeverrouillage').click()
+]);
+await client.waitForTimeout(500);
+check('« Retour au site » referme le voile',
+  !(await client.locator('#deverrouillage').isVisible())
+  && (await client.evaluate(() => MODE_EXPLOITANT)) === false);
 await client.locator('#cookieAccept').click().catch(() => {});
 await client.waitForTimeout(200);
 
