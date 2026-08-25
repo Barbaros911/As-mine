@@ -117,15 +117,33 @@ check('bon : montant ferme', bon.includes('Prix total') && bon.includes('TVA'), 
 check('bon : en attente de confirmation', bon.includes('En attente de confirmation'));
 const prixReserve = await op.evaluate(() => lastVoucher.prix.total);
 
-// --- Le lien de course ---
+// --- L'annonce au groupe, puis le lien au seul chauffeur retenu ---
 const hrefDispatch = await op.locator('#btnDispatchWhatsapp').getAttribute('href');
 const texteEnvoye = decodeURIComponent(hrefDispatch.replace('https://wa.me/?text=', ''));
-const lien = (texteEnvoye.match(/https?:\/\/\S+\?c=[\w-]+/) || [])[0];
-check('un lien de course part avec l\'annonce', !!lien, lien ? lien.slice(0, 58) + '…' : 'absent');
 const apercu = await op.locator('#dispatchPreview').textContent();
-check('l\'aperçu reste lisible, sans le lien encodé', !apercu.includes('?c='));
+check('l\'annonce au groupe ne porte aucun lien encodé',
+  !texteEnvoye.includes('?c=') && !apercu.includes('?c='));
+check('l\'aperçu montre exactement ce qui part', apercu.trim() === texteEnvoye.trim());
+check('l\'annonce tient en peu de lignes',
+  texteEnvoye.trim().split('\n').length <= 9, texteEnvoye.trim().split('\n').length + ' lignes');
 check('annonce : sans le nom du client', !texteEnvoye.includes('réception'));
 check('annonce : sans la chambre du client', !apercu.includes('512B'));
+
+// Le lien de course part en privé, au chauffeur que l'exploitant a retenu.
+check('pas de lien de course tant qu\'aucun chauffeur n\'est retenu',
+  !(await op.locator('#btnEnvoyerChauffeur').isVisible()));
+await op.fill('#nomChauffeurRetenu', 'Mehmet K.');
+await op.fill('#telChauffeurRetenu', '06 98 76 54 32');
+await op.waitForTimeout(400);
+check('le bouton d\'envoi apparaît une fois le chauffeur saisi',
+  await op.locator('#btnEnvoyerChauffeur').isVisible());
+const hrefChauffeur = await op.locator('#btnEnvoyerChauffeur').getAttribute('href');
+check('le message part droit sur le numéro du chauffeur',
+  hrefChauffeur.startsWith('https://wa.me/33698765432'), hrefChauffeur.slice(0, 40));
+const texteChauffeur = decodeURIComponent(hrefChauffeur);
+const lien = (texteChauffeur.match(/https?:\/\/\S+\?c=[\w-]+/) || [])[0];
+check('le lien de course accompagne ce message privé', !!lien,
+  lien ? lien.slice(0, 58) + '…' : 'absent');
 
 const paramC = lien ? new URL(lien).searchParams.get('c') : null;
 

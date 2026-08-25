@@ -140,10 +140,10 @@ node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
 node test3.mjs     # bon, facture, vol, passager tiers, référencement (70)
 node test4.mjs     # hôtel, diffusion, carte, langue, capacité (75)
-node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
+node test5.mjs     # prix ferme, lien de course, écran chauffeur (43)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
 node test7.mjs     # numérotation, confirmation à distance, code d'accès (26)
-node test8.mjs     # deux espaces distincts, boucle de la demande (39)
+node test8.mjs     # deux espaces distincts, boucle de la demande (45)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -283,9 +283,10 @@ par un lien, parce qu'aucun appareil ne peut lire la mémoire d'un autre.
 |---|---|---|
 | 1 | Le client réserve et envoie son message WhatsApp | `?a=` y est joint |
 | 2 | Asmine ouvre le lien : la demande entre dans son tableau de bord, **en attente**, pastille clignotante | — |
-| 3 | Il l'ouvre : diffusion au groupe, **Confirmer** ou **Refuser** | — |
-| 4 | Il renvoie sa décision au client | `?ok=` ou `?no=` |
-| 5 | Le client ouvre le lien : son bon passe en **prise en charge** (vert) ou **n'a pas pu aboutir** (rouge, avec le numéro à appeler) | — |
+| 3 | Il l'ouvre : diffusion au groupe, saisie du chauffeur retenu, **Confirmer** ou **Refuser** | — |
+| 4 | Il envoie la course au seul chauffeur retenu | `?c=`, en privé |
+| 5 | Il renvoie sa décision au client, sur son propre numéro | `?ok=` ou `?no=` |
+| 6 | Le client ouvre le lien : son bon passe en **prise en charge** (vert, avec le nom et le numéro de son chauffeur) ou **n'a pas pu aboutir** (rouge, avec le numéro à appeler) | — |
 
 Le tableau de bord compte les demandes en attente, confirmées et réalisées ;
 les compteurs servent aussi de filtres. Rouvrir deux fois le même lien `?a=`
@@ -295,6 +296,24 @@ ne crée pas de doublon et n'écrase pas une décision déjà prise.
 ouvert le lien : si le client n'envoie pas son message WhatsApp, ou si Asmine
 ne touche pas au lien, la demande n'existe pas chez lui. Un vrai registre
 partagé demande le serveur.
+
+
+### Pourquoi l'annonce au groupe ne porte pas le lien
+
+Le lien de course fait 350 caractères : dans un fil de groupe qui défile, il
+noyait le message. Et 800 chauffeurs n'en ont aucun usage — il ne sert qu'à
+celui qui prend la course.
+
+L'annonce diffusée est donc courte et sans lien (8 lignes, ~260 caractères).
+Une fois qu'un chauffeur a répondu en privé, l'exploitant saisit son nom et
+son téléphone dans le bon, et un bouton **« Envoyer la course à ce
+chauffeur »** lui envoie l'annonce **plus le lien**, directement sur sa
+conversation. Message court d'un côté, lien de l'autre — et une donnée de
+moins diffusée à un groupe.
+
+Les messages au client partent de la même façon, **droit sur son numéro** :
+il figure dans la demande, il n'y a aucune raison de passer par le sélecteur
+de contacts.
 
 ## Confirmer une course réservée par le client
 

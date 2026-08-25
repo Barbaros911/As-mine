@@ -163,12 +163,29 @@ check('les trois décisions sont proposées',
 check('rien à annoncer tant qu\'aucune décision n\'est prise',
   !(await op.locator('#btnPrevenirClient').isVisible()));
 
+// Il saisit le chauffeur trouvé dans le groupe, puis lui envoie la course.
+check('un champ libre attend le chauffeur retenu',
+  await op.locator('#nomChauffeurRetenu').isVisible());
+await op.fill('#nomChauffeurRetenu', 'Mehmet K.');
+await op.fill('#telChauffeurRetenu', '06 98 76 54 32');
+await op.waitForTimeout(400);
+const versChauffeur = await op.locator('#btnEnvoyerChauffeur').getAttribute('href');
+check('la course part en privé, sur le numéro du chauffeur',
+  versChauffeur.startsWith('https://wa.me/33698765432'), versChauffeur.slice(0, 40));
+check('ce message-là porte bien le lien de course',
+  decodeURIComponent(versChauffeur).includes('?c='));
+
 await op.locator('#btnConfirmRide').click();
 await op.waitForTimeout(400);
 check('après confirmation, le client peut être prévenu',
   await op.locator('#btnPrevenirClient').isVisible());
-const hrefOk = decodeURIComponent(await op.locator('#btnPrevenirClient').getAttribute('href'));
+const brutOk = await op.locator('#btnPrevenirClient').getAttribute('href');
+check('le message au client part droit sur son numéro',
+  brutOk.startsWith('https://wa.me/33612345678'), brutOk.slice(0, 40));
+const hrefOk = decodeURIComponent(brutOk);
 check('le message de prise en charge porte la référence', hrefOk.includes(ref));
+check('le message annonce le chauffeur au client',
+  hrefOk.includes('Mehmet K.') && hrefOk.includes('06 98 76 54 32'), hrefOk.slice(0, 130));
 const paramOk = (hrefOk.match(/\?ok=([\w-]+)/) || [])[1];
 await op.locator('.nav-item[data-target="screen-home"]').click();
 await op.waitForTimeout(400);
@@ -182,6 +199,8 @@ await client.waitForTimeout(800);
 const bonPris = await client.locator('#voucherBody').textContent();
 check('le client lit que sa demande est prise en charge',
   bonPris.includes('prise en charge'), bonPris.slice(0, 110));
+check('le client voit le nom et le numéro de son chauffeur',
+  bonPris.includes('Mehmet K.') && bonPris.includes('06 98 76 54 32'));
 
 /* ================= ET LE CAS OÙ ELLE N'ABOUTIT PAS ================= */
 // La liste montre les demandes en attente : une fois confirmée, la course

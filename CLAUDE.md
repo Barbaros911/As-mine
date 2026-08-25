@@ -146,8 +146,14 @@ dupliquer `index.html` pour créer un second site : il divergerait.
 
 **Le cycle d'une demande** : le message WhatsApp du client porte un lien
 `?a=` → la demande entre dans le tableau de bord en attente → l'exploitant
-diffuse, confirme (`?ok=`) ou refuse (`?no=`) → le client ouvre le lien et
-son bon passe au vert ou au rouge. Rouvrir un `?a=` ne crée pas de doublon.
+diffuse au groupe, saisit le chauffeur retenu, confirme (`?ok=`) ou refuse
+(`?no=`) → le client ouvre le lien et son bon passe au vert (avec son
+chauffeur) ou au rouge. Rouvrir un `?a=` ne crée pas de doublon.
+
+**L'annonce au groupe ne porte JAMAIS le lien de course.** 350 caractères
+illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
+en privé, au seul chauffeur retenu, depuis le bon. Les messages au client
+partent droit sur son numéro (`numeroWhatsApp`), jamais via le sélecteur.
 
 **Le mode exploitant est protégé par un code** (`CODE_EXPLOITANT`, stocké
 en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
