@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- L'espace de travail d'Asmine n'a rien à faire dans Google : il ne
+     s'adresse qu'à l'exploitant, et son adresse n'est pas un secret mais
+     n'a aucune raison d'être indexée. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Asmine — Espace exploitant</title>
+<style>
+  html,body{margin:0;height:100%;background:#121212;color:#EDEAE3;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  main{height:100%;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:14px;padding:24px;text-align:center;}
+  p{margin:0;font-size:13px;color:#9C9A93;}
+  a{color:#D4AF37;font-size:13px;}
+</style>
+</head>
+<body>
+<main>
+  <p>Ouverture de l'espace exploitant…</p>
+  <a id="secours" href="./index.html?exploitant=1">Continuer</a>
+</main>
+<script>
+/* Cette page ne fait que rediriger : tout le code de l'application vit dans
+   index.html. Le dupliquer ici créerait deux versions qui divergeraient au
+   premier correctif. Elle existe pour une seule raison — donner à
+   l'exploitant une adresse à lui, courte et distincte de celle des clients.
+
+   Les paramètres reçus sont transmis : un lien de demande « ?a=… » ouvert
+   depuis cette adresse doit continuer de fonctionner. */
+(function(){
+  var params = new URLSearchParams(location.search);
+  params.set("exploitant", "1");
+  var cible = "./index.html?" + params.toString();
+  document.getElementById("secours").href = cible;
+  location.replace(cible);
+})();
+</script>
+</body>
+</html>

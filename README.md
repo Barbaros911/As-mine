@@ -11,6 +11,7 @@ le service worker. Aucun serveur n'est nécessaire pour l'héberger.
 | `index.html` | Toute l'application : interface, styles, traductions, tarification |
 | `manifest.webmanifest` | Déclaration PWA (nom, couleurs, icônes) |
 | `icon.svg`, `icon-maskable.svg` | Icônes d'installation |
+| `admin.html` | Adresse dédiée de l'espace exploitant (simple redirection) |
 | `sw.js` | Service worker : consultation hors ligne |
 
 Le site est publié automatiquement à chaque modification de `main`, par le
@@ -137,11 +138,12 @@ supplémentaire nécessaire) :
 npx http-server -p 8099 -s .
 node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
-node test3.mjs     # bon, facture, vol, passager tiers, référencement (69)
+node test3.mjs     # bon, facture, vol, passager tiers, référencement (70)
 node test4.mjs     # hôtel, diffusion, carte, langue, capacité (75)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (38)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
-node test7.mjs     # numérotation, confirmation à distance, code d'accès (23)
+node test7.mjs     # numérotation, confirmation à distance, code d'accès (26)
+node test8.mjs     # deux espaces distincts, boucle de la demande (39)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -250,6 +252,49 @@ Depuis le bon de réservation, en mode exploitant, le bouton « Proposer au
 groupe chauffeurs » envoie désormais **un lien** en plus de l'annonce. Ce
 lien porte la course entière, encodée dans l'adresse : aucun serveur n'est
 nécessaire pour la transmettre.
+
+## Deux espaces, deux adresses
+
+Le code de l'application vit dans **un seul fichier** — un second divergerait
+au premier correctif. Mais les deux usages ne se ressemblent pas, et ils
+n'ont pas la même adresse.
+
+| | Adresse | Ce qu'on y voit |
+|---|---|---|
+| **Client** | `.../As-mine/` | La vitrine, le formulaire, ses propres courses |
+| **Exploitant** | `.../As-mine/admin.html` | Le tableau de bord des demandes |
+
+`admin.html` ne fait que rediriger vers `index.html?exploitant=1` en
+transmettant les paramètres reçus : un lien de demande `?a=…` ouvert depuis
+cette adresse fonctionne toujours. La page est en `noindex`.
+
+Une fois le code saisi, l'écran change de peau : liseré doré en haut, badge
+« EXPLOITANT » dans l'en-tête, onglet « Demandes » au lieu de « Mes
+réservations », bouton « Quitter », et disparition de tout ce qui s'adresse
+au client — bouton WhatsApp flottant, invitation à installer l'application,
+argumentaire de référencement.
+
+## Le cycle d'une demande
+
+C'est la boucle qui remplace la base de données commune. Chaque étape passe
+par un lien, parce qu'aucun appareil ne peut lire la mémoire d'un autre.
+
+| | Ce qui se passe | Le lien |
+|---|---|---|
+| 1 | Le client réserve et envoie son message WhatsApp | `?a=` y est joint |
+| 2 | Asmine ouvre le lien : la demande entre dans son tableau de bord, **en attente**, pastille clignotante | — |
+| 3 | Il l'ouvre : diffusion au groupe, **Confirmer** ou **Refuser** | — |
+| 4 | Il renvoie sa décision au client | `?ok=` ou `?no=` |
+| 5 | Le client ouvre le lien : son bon passe en **prise en charge** (vert) ou **n'a pas pu aboutir** (rouge, avec le numéro à appeler) | — |
+
+Le tableau de bord compte les demandes en attente, confirmées et réalisées ;
+les compteurs servent aussi de filtres. Rouvrir deux fois le même lien `?a=`
+ne crée pas de doublon et n'écrase pas une décision déjà prise.
+
+**Ce que cela ne remplace pas.** Asmine ne voit que les demandes dont il a
+ouvert le lien : si le client n'envoie pas son message WhatsApp, ou si Asmine
+ne touche pas au lien, la demande n'existe pas chez lui. Un vrai registre
+partagé demande le serveur.
 
 ## Confirmer une course réservée par le client
 

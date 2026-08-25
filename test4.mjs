@@ -14,6 +14,15 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
   await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
   await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+  // L'accueil de l'exploitant est son tableau de bord : le formulaire de
+  // réservation s'ouvre par « Nouvelle réservation », comme il le ferait
+  // quand un hôtel l'appelle.
+  const form = page.locator('#accrocheClient');
+  if (!(await form.isVisible())) {
+    await page.locator('#btnNouvelleDemande').click();
+    await page.waitForTimeout(300);
+  }
 }
 
 const browser = await chromium.launch();
