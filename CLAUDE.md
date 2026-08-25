@@ -138,6 +138,17 @@ pas changer sans casser tous les liens déjà envoyés.
 repart à 1 chaque mois. Le numéro de FACTURE reste séparé et propre à
 chaque chauffeur — la loi lui interdit trous et doublons.
 
+**Deux espaces distincts, un seul fichier.** Client : `.../As-mine/`.
+Exploitant : `.../As-mine/admin.html` (redirection vers `?exploitant=1`,
+transmet les paramètres). En mode exploitant : liseré doré, badge, onglet
+« Demandes », bouton « Quitter », et tout le décor client masqué. Ne jamais
+dupliquer `index.html` pour créer un second site : il divergerait.
+
+**Le cycle d'une demande** : le message WhatsApp du client porte un lien
+`?a=` → la demande entre dans le tableau de bord en attente → l'exploitant
+diffuse, confirme (`?ok=`) ou refuse (`?no=`) → le client ouvre le lien et
+son bon passe au vert ou au rouge. Rouvrir un `?a=` ne crée pas de doublon.
+
 **Le mode exploitant est protégé par un code** (`CODE_EXPLOITANT`, stocké
 en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
 confirmation à distance, attribution du chauffeur et export du registre
@@ -228,14 +239,14 @@ comptable, gestion des désistements et des clients absents.
 
 ## Tests
 
-Sept suites Playwright à la racine, à relancer après **toute**
+Huit suites Playwright à la racine, à relancer après **toute**
 modification :
 
 ```bash
 npx http-server -p 8099 -s .
 node test.mjs && node test2.mjs && node test3.mjs \
   && node test4.mjs && node test5.mjs \
-  && node test6.mjs && node test7.mjs
+  && node test6.mjs && node test7.mjs && node test8.mjs
 ```
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une

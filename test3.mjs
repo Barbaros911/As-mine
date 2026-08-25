@@ -14,6 +14,15 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
   await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
   await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+  // L'accueil de l'exploitant est son tableau de bord : le formulaire de
+  // réservation s'ouvre par « Nouvelle réservation », comme il le ferait
+  // quand un hôtel l'appelle.
+  const form = page.locator('#accrocheClient');
+  if (!(await form.isVisible())) {
+    await page.locator('#btnNouvelleDemande').click();
+    await page.waitForTimeout(300);
+  }
 }
 
 const browser = await chromium.launch();
@@ -133,7 +142,8 @@ check('bouton de confirmation proposé', await page.locator('#btnConfirmRide').i
 await page.locator('#btnConfirmRide').click();
 await page.waitForTimeout(400);
 const bonConf = await page.locator('#voucherBody').textContent();
-check('bon : course confirmée après validation', bonConf.includes('Course confirmée'));
+check('bon : demande prise en charge après validation',
+  bonConf.includes('prise en charge'), bonConf.slice(0, 110));
 check('bouton bascule sur annulation',
   (await page.locator('#btnConfirmRide').textContent()).includes('Annuler'));
 check('bon : avertissement opérateur incomplet',
@@ -253,8 +263,11 @@ check('bon : mention « à régler à bord »', bonBord.includes('régler à bor
 // --- Référencement ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
 await page.waitForTimeout(300);
-check('contenu de référencement présent', await page.locator('#seoContent').isVisible());
+check('contenu de référencement masqué à l\'exploitant',
+  !(await page.locator('#seoContent').isVisible()));
+// Il reste dans la page : Google l'explore, et un client le voit.
 const seoTxt = await page.locator('#seoContent').textContent();
+check('contenu de référencement toujours présent dans la page', seoTxt.length > 200);
 check('mots-clés visés présents', seoTxt.includes('VTC') && seoTxt.includes('Roissy') && seoTxt.includes('Orly'));
 const ld = await page.locator('script[type="application/ld+json"]').count();
 check('données structurées présentes', ld === 1, ld + ' bloc(s)');
