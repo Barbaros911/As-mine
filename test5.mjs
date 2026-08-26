@@ -67,7 +67,6 @@ const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));
 await deverrouillerExploitant(op, BASE);
 await op.waitForTimeout(600);
-await op.selectOption('#langSelect', 'fr');
 await op.locator('#cookieAccept').click().catch(() => {});
 await op.waitForTimeout(200);
 

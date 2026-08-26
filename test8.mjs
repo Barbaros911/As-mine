@@ -92,7 +92,6 @@ await preparer(ctxOp);
 const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));
 await ouvrirEspaceExploitant(op);
-await op.selectOption('#langSelect', 'fr');
 await op.locator('#cookieAccept').click().catch(() => {});
 await op.waitForTimeout(300);
 
@@ -104,8 +103,11 @@ check('exploitant : le badge est affiché', await op.locator('#badgeExploitant')
 check('exploitant : le tableau de bord remplace la vitrine',
   await op.locator('#tableauBord').isVisible()
   && !(await op.locator('#accrocheClient').isVisible()));
-check('exploitant : l\'onglet parle de demandes, pas de réservations',
-  (await op.locator('.nav-item[data-target="screen-bookings"] span').textContent()).includes('Demandes'));
+check('exploitant : l\'onglet mène à la création, pas à « mes réservations »',
+  (await op.locator('.nav-item[data-target="screen-bookings"] span').textContent()).includes('Créer'));
+check('exploitant : pas de sélecteur de langue dans l\'espace de travail',
+  !(await op.locator('#langSelect').isVisible())
+  && (await op.getAttribute('html', 'lang')) === 'fr');
 check('exploitant : le bouton de sortie est proposé', await op.locator('#navQuitter').isVisible());
 check('exploitant : pas de WhatsApp flottant', !(await op.locator('#whatsappFloat').isVisible()));
 // La bannière cookies s'adresse aux visiteurs : elle masquait la liste des
@@ -268,6 +270,155 @@ const apresRefus = await client.evaluate((r) =>
   JSON.parse(localStorage.getItem('asmine_bookings') || '[]').find(b => b.ref === r), ref);
 check('la course reste dans ses réservations, marquée refusée',
   apresRefus && apresRefus.statut === 'refusee', apresRefus ? apresRefus.statut : 'introuvable');
+
+/* ================= LA PAGE ADMIN : CRÉER, CHAUFFEURS, SEMAINES ================= */
+await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(800);
+// On repart d'un registre vide : ce qui précède a rempli l'appareil.
+await op.evaluate(() => localStorage.removeItem('asmine_bookings'));
+await op.reload({ waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(800);
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(300);
+
+check('admin : plus de titre « Mes réservations »',
+  !(await op.locator('#blocMesReservations').isVisible()));
+check('admin : la liste des courses du client n\'y est plus',
+  !(await op.locator('#bookingsList').isVisible()));
+check('admin : le bloc de gestion est là', await op.locator('#blocAdmin').isVisible());
+check('admin : les tableaux sont vides tant qu\'aucune course n\'est réalisée',
+  await op.locator('#videChauffeurs').isVisible()
+  && await op.locator('#videSemaines').isVisible());
+
+// Une saisie incomplète ne crée rien : on ne veut pas d'une course sans prix.
+await op.fill('#rapideClient', 'Hôtel Ibis CDG');
+await op.locator('#btnCreerRapide').click();
+await op.waitForTimeout(200);
+check('admin : une course sans adresse ni prix est refusée',
+  await op.locator('#rapideErreur').isVisible()
+  && (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 0);
+
+// Le nom du client, deux adresses, un prix : c'est tout ce qu'il faut.
+await op.fill('#rapideDepart', 'Terminal 2E — Roissy CDG');
+await op.fill('#rapideArrivee', '15 rue de Rivoli, Paris');
+await op.fill('#rapideDate', '2030-03-06');
+await op.fill('#rapideHeure', '09:30');
+await op.fill('#rapidePrix', '90');
+await op.fill('#rapideChauffeur', 'Yusuf D.');
+await op.fill('#rapideChauffeurTel', '+33 6 11 22 33 44');
+await op.locator('#btnCreerRapide').click();
+await op.waitForTimeout(500);
+
+const creee = await op.evaluate(() =>
+  JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0]);
+check('admin : la course est enregistrée', !!creee, creee ? creee.ref : 'aucune');
+check('admin : elle porte une référence Asmine',
+  /^ASM-\d{2}-\d{2}-\d{4}$/.test(creee.ref), creee.ref);
+check('admin : saisie par l\'exploitant, elle est ferme d\'entrée',
+  creee.statut === 'confirmee', creee.statut);
+check('admin : le prix saisi est le prix retenu', creee.prix.total === 90, String(creee.prix.total));
+check('admin : le chauffeur saisi est repris',
+  creee.course.chauffeurDeclare === 'Yusuf D.'
+  && creee.course.chauffeurTelephone === '+33 6 11 22 33 44');
+check('admin : le bon s\'ouvre aussitôt', await op.locator('#screen-voucher').isVisible());
+check('admin : le formulaire est vidé pour la course suivante',
+  (await op.inputValue('#rapideDepart')) === '' && (await op.inputValue('#rapidePrix')) === '');
+
+// Une course confirmée n'est pas une course faite : elle ne compte pas encore.
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(300);
+check('admin : une course confirmée ne gonfle pas le chiffre d\'affaires',
+  await op.locator('#videChauffeurs').isVisible());
+
+// On la marque réalisée : elle rejoint alors les deux tableaux.
+await op.evaluate(() => {
+  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  l[0].statut = 'realisee';
+  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+});
+await op.locator('.nav-item[data-target="screen-home"]').click();
+await op.waitForTimeout(200);
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(400);
+const tblCh = await op.locator('#blocChauffeurs').textContent();
+check('admin : le chauffeur apparaît avec sa course',
+  tblCh.includes('Yusuf D.') && tblCh.includes('90,00'), tblCh.replace(/\s+/g, ' ').slice(0, 120));
+check('admin : la commission d\'apport est calculée',
+  tblCh.includes(await op.evaluate(() => eur(90 * COMMISSION_APPORT))),
+  await op.evaluate(() => eur(90 * COMMISSION_APPORT)));
+const tblSem = await op.locator('#blocSemaines').textContent();
+check('admin : la semaine du 04/03 au 10/03 porte la course',
+  tblSem.includes('04/03') && tblSem.includes('10/03'),
+  tblSem.replace(/\s+/g, ' ').slice(0, 120));
+check('admin : le total de la semaine est juste',
+  tblSem.includes('90,00'), tblSem.replace(/\s+/g, ' ').slice(0, 160));
+
+// Les indicateurs de la semaine : la course créée est datée de 2030, donc
+// hors semaine en cours — les compteurs doivent rester à zéro sans mentir.
+check('admin : les indicateurs de la semaine sont affichés',
+  await op.locator('#kpiCourses').isVisible()
+  && (await op.locator('#periodeSemaine').textContent()).includes('/'));
+check('admin : une course d\'une autre semaine ne compte pas dans celle-ci',
+  (await op.locator('#kpiCourses').textContent()) === '0');
+check('admin : la semaine passée sert de comparaison',
+  (await op.locator('#kpiCoursesAvant').textContent()).includes('sem. dernière'));
+
+// Une course datée d'aujourd'hui doit, elle, apparaître dans la semaine.
+await op.evaluate(() => {
+  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  l.push(JSON.parse(JSON.stringify(Object.assign({}, l[0], {
+    ref: 'ASM-99-99-9999',
+    course: Object.assign({}, l[0].course, { date: new Date().toISOString().slice(0, 10) })
+  }))));
+  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+});
+await op.reload({ waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(800);
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(400);
+check('admin : une course du jour entre dans la semaine en cours',
+  (await op.locator('#kpiCourses').textContent()) === '1'
+  && (await op.locator('#kpiEncaisse').textContent()).includes('90'),
+  await op.locator('#kpiEncaisse').textContent());
+
+// Le registre ne vit que sur cet appareil : la sauvegarde est proposée.
+check('admin : la sauvegarde du registre est offerte',
+  await op.locator('#btnSauvegarde').isVisible()
+  && await op.locator('#btnRestaurer').isVisible()
+  && await op.locator('#btnExportCourses').isVisible());
+const [tele] = await Promise.all([
+  op.waitForEvent('download', { timeout: 8000 }),
+  op.locator('#btnSauvegarde').click()
+]);
+check('admin : la sauvegarde produit bien un fichier',
+  tele.suggestedFilename().startsWith('asmine-registre-')
+  && tele.suggestedFilename().endsWith('.json'), tele.suggestedFilename());
+const [csv] = await Promise.all([
+  op.waitForEvent('download', { timeout: 8000 }),
+  op.locator('#btnExportCourses').click()
+]);
+check('admin : l\'export comptable produit un CSV',
+  csv.suggestedFilename().endsWith('.csv'), csv.suggestedFilename());
+check('admin : le CSV porte les colonnes utiles au comptable',
+  (await op.evaluate(() => coursesCsv().split('\r\n')[0]))
+    .includes('Commission'), await op.evaluate(() => coursesCsv().split('\r\n')[0]));
+
+// Cliquer un indicateur ne doit pas dérégler le filtre du tableau de bord.
+await op.locator('#kpiCourses').click();
+await op.locator('.nav-item[data-target="screen-home"]').click();
+await op.waitForTimeout(300);
+check('admin : les indicateurs ne pilotent pas le filtre des demandes',
+  await op.locator('#listeDemandes').isVisible()
+  || await op.locator('#videDemandes').isVisible());
+
+// Côté client, rien de tout cela n'existe.
+await client.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await client.waitForTimeout(600);
+await client.locator('.nav-item[data-target="screen-bookings"]').click();
+await client.waitForTimeout(300);
+check('client : pas de page de gestion chez lui',
+  !(await client.locator('#blocAdmin').isVisible())
+  && await client.locator('#blocMesReservations').isVisible());
 
 /* ================= LES TERMINAUX D'AÉROPORT ================= */
 await client.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });

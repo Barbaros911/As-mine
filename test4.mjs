@@ -59,7 +59,6 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
 await deverrouillerExploitant(page, BASE);
 await page.waitForTimeout(600);
-await page.selectOption('#langSelect', 'fr');
 await page.locator('#cookieAccept').click().catch(() => {});
 await page.waitForTimeout(200);
 

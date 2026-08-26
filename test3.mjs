@@ -37,7 +37,7 @@ const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
 // diffusion) ne s'affichent que sur l'appareil de l'exploitant.
 await deverrouillerExploitant(page, BASE);
 await page.waitForTimeout(800);
-await page.selectOption('#langSelect', 'fr');
+// L'espace exploitant est en français d'office : pas de sélecteur à régler.
 await page.waitForTimeout(400);
 await page.locator('#cookieAccept').click().catch(() => {});
 
@@ -221,8 +221,11 @@ const tarifsAuto = await page.locator('#vehicleCards .veh-card p.font-mono').all
 check('véhicules tarifés', tarifsAuto.length === 4, tarifsAuto.join(' | '));
 
 // --- Trace des courses ---
-await page.locator('.nav-item[data-target="screen-home"]').click();
-await page.waitForTimeout(400);
+// « Mes réservations » est un écran de client : côté exploitant, cet onglet
+// est devenu sa page de gestion. On repasse donc par le site public, où les
+// courses de cet appareil sont bien celles du client.
+await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(700);
 check('raccourci « Mes réservations » affiché', await page.locator('#btnMyBookings').isVisible());
 await page.locator('#btnMyBookings').click();
 await page.waitForTimeout(400);
@@ -236,8 +239,13 @@ check('le bon se rouvre depuis la liste',
   (await page.locator('#voucherBody').textContent()).includes('ASM-'));
 
 // --- Réservation réglée au chauffeur ---
-await page.locator('.nav-item[data-target="screen-home"]').click();
-await page.waitForTimeout(300);
+// Retour à l'espace de travail, formulaire ouvert.
+await page.goto(BASE + '/index.html?exploitant=1', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(800);
+if (!(await page.locator('#accrocheClient').isVisible())) {
+  await page.locator('#btnNouvelleDemande').click();
+  await page.waitForTimeout(300);
+}
 await pickAddress('#pickup', 'Neuilly');
 await pickAddress('#dropoff', 'Versailles');
 await page.fill('#dateSimple', new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10));
@@ -277,6 +285,10 @@ const titre = await page.title();
 check('titre orienté recherche locale', titre.includes('Roissy') && titre.includes('VTC'), titre);
 const canon = await page.locator('link[rel=canonical]').getAttribute('href');
 check('adresse canonique déclarée', canon.startsWith('https://'), canon);
+// Le sélecteur de langue n'existe que côté client : on repasse sur le site
+// public pour vérifier que le bloc de référencement suit bien la langue.
+await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(600);
 await page.selectOption('#langSelect', 'es');
 await page.waitForTimeout(400);
 check('bloc français masqué dans les autres langues', !(await page.locator('#seoContent').isVisible()));

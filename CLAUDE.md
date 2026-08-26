@@ -146,8 +146,27 @@ Sinon Barbaros ne peut plus voir son propre site public ; l'erreur a déjà
 **Deux espaces distincts, un seul fichier.** Client : `.../As-mine/`.
 Exploitant : `.../As-mine/admin.html` (redirection vers `?exploitant=1`,
 transmet les paramètres). En mode exploitant : liseré doré, badge, onglet
-« Demandes », bouton « Quitter », et tout le décor client masqué. Ne jamais
+« Créer », bouton « Quitter », et tout le décor client masqué. Ne jamais
 dupliquer `index.html` pour créer un second site : il divergerait.
+
+**L'espace exploitant est en français uniquement** — le sélecteur de langue
+y est masqué et la page force `fr`. Les six langues restent au client. Les
+suites de tests ne doivent donc plus régler `#langSelect` sur une page
+exploitant.
+
+**La page de gestion (onglet « Créer »)** tient, dans cet ordre : le
+formulaire de création rapide (nom, deux adresses, date, véhicule, prix,
+chauffeur facultatif → course `confirmee` d'entrée), les trois indicateurs
+« Cette semaine » avec la semaine précédente en rappel, le tableau des
+chauffeurs, le tableau des huit dernières semaines, et la sauvegarde du
+registre (JSON + restauration additive + export CSV). **Les deux tableaux ne
+comptent que les courses `realisee`** : une course confirmée n'est pas une
+course faite. La liste « Mes réservations » et son titre ne s'affichent plus
+côté exploitant — c'était un écran de client sur un outil de travail.
+
+**Le registre ne vit que dans le navigateur.** `saveBooking` en garde 300 (et
+non 10 comme au début, qui effaçait trois jours de travail). Le dire à
+Barbaros : sauvegarder chaque semaine tant qu'il n'y a pas de serveur.
 
 **Le cycle d'une demande** : le message WhatsApp du client porte un lien
 `?a=` → la demande entre dans le tableau de bord en attente → l'exploitant
