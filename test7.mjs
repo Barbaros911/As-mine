@@ -173,11 +173,16 @@ await op.locator('#btnCreerRapide').click();
 await op.waitForTimeout(600);
 check('la course reprend la référence que le client a sous les yeux',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].ref)) === ref);
-check('elle est confirmée d\'entrée : c\'est l\'exploitant qui l\'a saisie',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].statut)) === 'confirmee');
+// Le client attend une réponse : la demande entre en attente, pas confirmée.
+check('la demande du client entre en attente d\'une décision',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].statut)) === 'attente');
+check('rien à annoncer tant qu\'aucune décision n\'est prise',
+  !(await op.locator('#btnPrevenirClient').isVisible()));
 
-// Il prévient le client depuis le bon lui-même.
-check('le bouton « prévenir le client » est offert',
+// Il tranche, puis il prévient le client depuis le bon lui-même.
+await op.locator('#btnConfirmRide').click();
+await op.waitForTimeout(400);
+check('une fois confirmée, le bouton « prévenir le client » est offert',
   await op.locator('#btnPrevenirClient').isVisible());
 const brut = await op.locator('#btnPrevenirClient').getAttribute('href');
 check('le message part droit sur le numéro du client',

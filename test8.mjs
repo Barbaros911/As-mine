@@ -199,6 +199,9 @@ await op.locator('#btnCreerRapide').click();
 await op.waitForTimeout(500);
 check('la course entre au registre avec la référence du client',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].ref)) === ref);
+// Un client qui attend une réponse ne produit pas une course confirmée.
+check('une demande recollée entre EN ATTENTE, pas confirmée',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].statut)) === 'attente');
 // Recoller la même demande ne doit pas fabriquer un doublon.
 await op.locator('.nav-item[data-target="screen-bookings"]').click();
 await op.waitForTimeout(300);
@@ -208,12 +211,6 @@ await op.waitForTimeout(300);
 check('recoller la même demande est refusé',
   (await op.locator('#collerRetour').textContent()).includes('déjà'),
   await op.locator('#collerRetour').textContent());
-// La course arrive confirmée : c'est l'exploitant lui-même qui l'a saisie.
-await op.evaluate(() => {
-  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
-  l[0].statut = 'attente';
-  localStorage.setItem('asmine_bookings', JSON.stringify(l));
-});
 await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
 await op.locator('.nav-item[data-target="screen-home"]').click();
@@ -229,6 +226,51 @@ check('la ligne porte la référence, le client et le trajet',
 
 check('le registre ne contient qu\'une course',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 1);
+
+/* ============ COLLER DEPUIS L'ACCUEIL, EN UN APPUI ============ */
+// Le geste de départ de la journée doit tenir sur l'écran d'accueil : une
+// demande copiée depuis WhatsApp, un appui, elle est là.
+const ctxColle = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  permissions: ['clipboard-read', 'clipboard-write']
+});
+await preparer(ctxColle);
+const colle = await ctxColle.newPage();
+colle.on('pageerror', e => errors.push('PAGEERROR(colle): ' + e.message));
+await ouvrirEspaceExploitant(colle);
+await colle.locator('#cookieAccept').click().catch(() => {});
+await colle.waitForTimeout(300);
+check('le bouton « coller une demande » est sur l\'accueil',
+  await colle.locator('#btnCollerAccueil').isVisible());
+await colle.evaluate((m) => navigator.clipboard.writeText(m), corpsClient);
+await colle.locator('#btnCollerAccueil').click();
+await colle.waitForTimeout(600);
+const cColle = await colle.evaluate(() =>
+  JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0]);
+check('un appui suffit à faire entrer la demande', !!cColle && cColle.ref === ref,
+  cColle ? cColle.ref : 'aucune');
+check('elle entre en attente d\'une décision', cColle.statut === 'attente', cColle.statut);
+check('le prix et le client sont repris du message',
+  Math.abs(cColle.prix.total - prixReserve) < 0.01
+  && cColle.client.nom === 'Claire Fontaine',
+  `${cColle.prix.total} / ${cColle.client.nom}`);
+check('elle s\'affiche aussitôt en or sur le tableau de bord',
+  (await colle.locator('#listeDemandes .ligne-demande.en-attente').count()) === 1
+  && (await colle.locator('#compteurAttente').textContent()) === '1');
+// Recoller la même demande ne doit pas la dédoubler.
+await colle.locator('#btnCollerAccueil').click();
+await colle.waitForTimeout(500);
+check('recoller la même demande ne crée pas de doublon',
+  (await colle.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 1
+  && (await colle.locator('#collerAccueilRetour').textContent()).includes('déjà'));
+// Un presse-papiers qui ne contient pas une demande renvoie à la saisie.
+await colle.evaluate(() => navigator.clipboard.writeText('coucou'));
+await colle.locator('#btnCollerAccueil').click();
+await colle.waitForTimeout(500);
+check('un presse-papiers illisible emmène sur le champ de saisie',
+  await colle.locator('#collerDemande').isVisible()
+  && (await colle.locator('#collerAccueilRetour').textContent()).includes('illisible'));
+await ctxColle.close();
 
 /* ================= IL DIFFUSE, PUIS CONFIRME ================= */
 await op.locator('.nav-item[data-target="screen-home"]').click();

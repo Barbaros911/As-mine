@@ -308,8 +308,17 @@ l'exploitant c'est sa page de gestion. Elle tient quatre choses, dans
 l'ordre où l'on s'en sert.
 
 **Coller une demande.** Le message WhatsApp que le client envoie ne porte
-plus aucun lien : six lignes lisibles, rien d'autre. On le copie, on le colle
-ici, et le formulaire se remplit tout seul — référence comprise. Le lecteur
+plus aucun lien : six lignes lisibles, rien d'autre. Sans serveur, rien ne
+peut voyager tout seul du téléphone du client à celui de l'exploitant — il
+faut que quelqu'un transporte le message, et le moins cher des transports
+est le presse-papiers. D'où le bouton **« Coller une demande reçue »**, en
+haut du tableau de bord : on copie le message dans WhatsApp, un appui, et la
+course entre **en attente**, en or, dans la liste. Une demande venue d'un
+client n'est jamais confirmée d'entrée : il attend une réponse.
+
+Si le navigateur refuse l'accès au presse-papiers, le bouton emmène sur le
+champ de saisie de la page Créer plutôt que de ne rien faire. Ce champ
+accepte le même message et remplit tout le formulaire — référence comprise. Le lecteur
 ne se fie pas aux libellés (un client espagnol écrit « Salida ») mais à la
 structure du message, qui est écrite par cette même page. Si le message est
 incomplet ou déjà connu, il le dit plutôt que de remplir n'importe quoi.
