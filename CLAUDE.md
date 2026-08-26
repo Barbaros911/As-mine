@@ -138,6 +138,11 @@ pas changer sans casser tous les liens déjà envoyés.
 repart à 1 chaque mois. Le numéro de FACTURE reste séparé et propre à
 chaque chauffeur — la loi lui interdit trous et doublons.
 
+**Le mode exploitant suit l'ADRESSE, pas l'appareil.** Sans
+`?exploitant=1`, on est côté client — même sur le téléphone déverrouillé.
+Sinon Barbaros ne peut plus voir son propre site public ; l'erreur a déjà
+été faite. Le lien `?a=` vise `admin.html`.
+
 **Deux espaces distincts, un seul fichier.** Client : `.../As-mine/`.
 Exploitant : `.../As-mine/admin.html` (redirection vers `?exploitant=1`,
 transmet les paramètres). En mode exploitant : liseré doré, badge, onglet

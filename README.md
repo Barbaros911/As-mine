@@ -143,7 +143,7 @@ node test4.mjs     # hôtel, diffusion, carte, langue, capacité (75)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (47)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
 node test7.mjs     # numérotation, confirmation à distance, code d'accès (26)
-node test8.mjs     # deux espaces distincts, boucle de la demande (45)
+node test8.mjs     # deux espaces distincts, boucle de la demande (49)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -265,8 +265,18 @@ n'ont pas la même adresse.
 | **Exploitant** | `.../As-mine/admin.html` | Le tableau de bord des demandes |
 
 `admin.html` ne fait que rediriger vers `index.html?exploitant=1` en
-transmettant les paramètres reçus : un lien de demande `?a=…` ouvert depuis
-cette adresse fonctionne toujours. La page est en `noindex`.
+transmettant les paramètres reçus. La page est en `noindex`.
+
+**L'espace de travail ne s'ouvre que depuis son adresse.** Le déverrouillage
+est retenu sur l'appareil pour ne pas redemander le code, mais il ne suffit
+pas : sans `?exploitant=1`, on voit le site client. Sans cette règle,
+l'exploitant ne pourrait plus jamais consulter son propre site public depuis
+son téléphone — c'est exactement ce qui s'est produit avant correction.
+
+Le lien de demande envoyé par le client vise donc `admin.html`. Un lien `?a=`
+ouvert par erreur sur l'adresse publique est renvoyé vers l'espace de travail
+avec sa charge, plutôt qu'importé en silence dans le site client. Et le code
+saisi ne fait pas perdre les paramètres de l'adresse en cours.
 
 Une fois le code saisi, l'écran change de peau : liseré doré en haut, badge
 « EXPLOITANT » dans l'en-tête, onglet « Demandes » au lieu de « Mes
