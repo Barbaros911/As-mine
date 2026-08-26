@@ -225,9 +225,12 @@ confirmation à distance, attribution du chauffeur et export du registre
 sont derrière. C'est une serrure, pas un coffre : le dire à Barbaros
 plutôt que de laisser croire à une vraie sécurité.
 
-**Confirmer une course du client** passe par le lien `?ok=` fabriqué dans
-« Mes réservations » en mode exploitant : le bouton « Confirmer la
-course » ne vaut que pour les courses présentes sur l'appareil.
+**Confirmer une course du client** se fait sur son bon : chauffeur retenu →
+« Confirmer la course » → « Prévenir le client », qui envoie le lien `?ok=`.
+Le bloc « Confirmer une course à distance » a été **supprimé** — recopier une
+référence à la main pour reconstruire une course qu'on n'a pas ne servait à
+personne, et depuis « Coller une demande » la course est toujours là. Ne pas
+le réintroduire.
 
 **Délai de 3 h (`DELAI_RESERVATION_H`).** Une course pour dans moins de
 3 h est acceptée mais **pas ferme** : avertissement rouge sur l'écran de
