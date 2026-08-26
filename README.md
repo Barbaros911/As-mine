@@ -290,10 +290,52 @@ avec sa charge, plutôt qu'importé en silence dans le site client. Et le code
 saisi ne fait pas perdre les paramètres de l'adresse en cours.
 
 Une fois le code saisi, l'écran change de peau : liseré doré en haut, badge
-« EXPLOITANT » dans l'en-tête, onglet « Demandes » au lieu de « Mes
+« EXPLOITANT » dans l'en-tête, onglet « Créer » au lieu de « Mes
 réservations », bouton « Quitter », et disparition de tout ce qui s'adresse
 au client — bouton WhatsApp flottant, invitation à installer l'application,
-argumentaire de référencement.
+argumentaire de référencement, sélecteur de langue.
+
+L'espace de travail est **en français uniquement**. Le sélecteur de six
+langues sert au client ; sur l'outil de travail c'est un piège — un geste
+malheureux et tout l'écran passe en portugais au milieu d'une nuit chargée.
+Le choix de langue du client, lui, est conservé et retrouvé à la sortie.
+
+## La page de gestion
+
+Le deuxième onglet n'a pas le même sens des deux côtés du miroir : chez le
+client c'est « Mes réservations », la trace de ses propres courses ; chez
+l'exploitant c'est sa page de gestion. Elle tient quatre choses, dans
+l'ordre où l'on s'en sert.
+
+**Créer une résa.** Un hôtel appelle, un habitué envoie un SMS : on ne lui
+fait pas remplir le tunnel client. Le nom, deux adresses, une date, un
+véhicule, un prix — et la course est enregistrée, **ferme d'entrée**
+(`statut: "confirmee"`), puisque c'est l'exploitant lui-même qui la saisit.
+Le chauffeur peut être laissé vide et complété plus tard depuis le bon.
+Sans départ, sans arrivée ou sans prix, rien n'est enregistré : une course
+sans prix serait un taximètre, ce qu'un VTC n'a pas le droit d'avoir.
+
+**Cette semaine.** Trois chiffres — courses réalisées, encaissé, commission
+d'apport — avec la semaine précédente rappelée en dessous. C'est la
+comparaison qui renseigne, pas la valeur : « 4 courses » ne veut rien dire
+tant qu'on ne sait pas s'il y en avait 2 ou 9 la semaine d'avant.
+
+**Chauffeurs** et **Résultat par semaine**, deux tableaux. Le premier dit
+qui roule vraiment pour Asmine : nom, nombre de courses, encaissé, commission
+due. Le second donne les huit dernières semaines. Les deux ne comptent que
+les courses **réalisées** — une course confirmée n'est pas une course faite,
+et gonfler le chiffre d'affaires avec des promesses serait se mentir à
+soi-même. C'est le bouton « Marquer comme réalisée », sur le bon, qui fait
+entrer une course dans ces tableaux.
+
+**Sauvegarde du registre.** Sans serveur, ces courses ne vivent que dans ce
+navigateur : un téléphone perdu, un historique effacé, et trois mois de
+travail disparaissent. « Sauvegarder » télécharge un fichier JSON,
+« Restaurer » le relit — en **ajoutant** ce qui manque, jamais en écrasant
+ce qui est déjà là, parce qu'une course présente sur l'appareil a pu avancer
+depuis la sauvegarde. « Exporter les courses (CSV) » produit le tableau à
+donner au comptable. À faire toutes les semaines tant qu'il n'y a pas de
+serveur : c'est la seule protection qui existe.
 
 ## Le cycle d'une demande
 
@@ -363,8 +405,8 @@ Quand le client a réservé depuis son propre téléphone, sa course n'est pas
 chez vous : vous n'avez que son message WhatsApp. D'où le **lien de
 confirmation**, exact pendant du lien de course envoyé au chauffeur :
 
-1. **Mes réservations**, en mode exploitant → bloc « Confirmer une course à
-   distance » ;
+1. onglet **Créer**, en mode exploitant → bloc « Confirmer une course à
+   distance », en bas de page ;
 2. recopiez la référence reçue (`ASM-26-08-0001`), et si vous le voulez le
    nom et le téléphone du chauffeur retenu ;
 3. **Envoyer la confirmation sur WhatsApp** — ou copier le lien.

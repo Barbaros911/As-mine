@@ -29,7 +29,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "asmine-v2";
+const CACHE = "asmine-v3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"];
 
 /* Hôtes dont la réponse ne doit jamais être mise en cache */
