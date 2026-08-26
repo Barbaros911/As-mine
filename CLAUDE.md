@@ -209,6 +209,14 @@ saisie.
 téléphone, la nuit. Demande du client : 6 lignes. Annonce au groupe : 8.
 Fin de course : 1. Ne jamais y recopier ce que le lien contient déjà.
 
+**Clore une course est le geste le plus fréquent** : c'est lui qui la fait
+entrer au registre et alimente les chiffres. Deux chemins, tous deux à
+garder : un bouton vert **« Terminée »** sur la ligne du tableau de bord
+(un appui, sans ouvrir le bon — le geste du soir, fait à la chaîne), et
+**« Marquer comme réalisée »** sur le bon, en vert plein lui aussi. Il était
+gris à côté d'un « Refuser » rouge : l'action la plus courante était la moins
+visible. Ne pas le regriser.
+
 **L'écran chauffeur n'envoie AUCUN message automatique.** Barbaros attribue
 la course lui-même (champ libre nom + téléphone sur le bon) : il sait déjà
 qui roule. Les étapes ne servent qu'au chauffeur. Il clôt lui-même par

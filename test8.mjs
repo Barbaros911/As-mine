@@ -318,6 +318,34 @@ const apresRefus = await client.evaluate((r) =>
 check('la course reste dans ses réservations, marquée refusée',
   apresRefus && apresRefus.statut === 'refusee', apresRefus ? apresRefus.statut : 'introuvable');
 
+/* ============ CLORE UNE COURSE DEPUIS LE TABLEAU DE BORD ============ */
+// Le geste du soir, fait à la chaîne : il doit tenir en un appui, sans
+// ouvrir le bon de chaque course. On remet la course sur ses pieds — elle
+// vient de servir au refus — et on repart du tableau de bord.
+await op.evaluate((r) => {
+  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  const c = l.find(b => b.ref === r);
+  if (c) c.statut = 'confirmee';
+  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+}, ref);
+await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(800);
+await op.locator('.carte-compteur[data-filtre="confirmee"]').click();
+await op.waitForTimeout(300);
+check('une course confirmée offre un bouton « Terminée » sur la liste',
+  await op.locator('#listeDemandes .btn-clore').first().isVisible());
+await op.locator('#listeDemandes .btn-clore').first().click();
+await op.waitForTimeout(500);
+check('un appui suffit à clore la course, sans ouvrir son bon',
+  (await op.evaluate((r) => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')
+    .find(b => b.ref === r).statut, ref)) === 'realisee'
+  && !(await op.locator('#screen-voucher').isVisible()));
+check('la course close ne propose plus de bouton « Terminée »',
+  (await op.locator('#listeDemandes .btn-clore').count()) === 0);
+check('les compteurs suivent aussitôt',
+  (await op.locator('#compteurRealisee').textContent()) === '1'
+  && (await op.locator('#compteurConfirmee').textContent()) === '0');
+
 /* ================= LA PAGE ADMIN : CRÉER, CHAUFFEURS, SEMAINES ================= */
 await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
