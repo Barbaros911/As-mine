@@ -180,11 +180,24 @@ non 10 comme au début, qui effaçait trois jours de travail). Le dire à
 Barbaros : sauvegarder chaque semaine tant qu'il n'y a pas de serveur.
 
 **Le cycle d'une demande** : le message WhatsApp du client ne porte **plus
-aucun lien** — six lignes lisibles, rien d'autre → l'exploitant le **colle**
-dans « Coller une demande » (page Créer), le formulaire se remplit seul, il
-enregistre → il saisit le chauffeur, lui envoie la course **en toutes
-lettres** → il confirme (`?ok=`) ou refuse (`?no=`) au client, qui ouvre le
-lien et voit son bon passer au vert ou au rouge.
+aucun lien** — six lignes lisibles, rien d'autre → l'exploitant le copie et
+appuie sur **« Coller une demande reçue »**, en haut du tableau de bord : la
+course entre **en attente**, en or → il saisit le chauffeur, lui envoie la
+course **en toutes lettres** → il confirme (`?ok=`) ou refuse (`?no=`) au
+client, qui ouvre le lien et voit son bon passer au vert ou au rouge.
+La page Créer garde le même lecteur avec le formulaire complet, pour saisir
+aussi le chauffeur au passage.
+
+**Une demande venue d'un client entre TOUJOURS en `attente`.** Il attend une
+réponse : la lui donner comme déjà confirmée serait mentir sur l'état réel.
+Seule une course que l'exploitant saisit lui-même de zéro — un hôtel vient
+d'appeler — est `confirmee` d'entrée. Ne pas confondre les deux chemins.
+
+**Rien ne peut voyager tout seul d'un téléphone à l'autre sans serveur.**
+Ni notification, ni synchronisation. Le presse-papiers est le transport :
+`navigator.clipboard.readText()` sur un geste de l'utilisateur, et repli sur
+le champ de saisie si le navigateur refuse. Le dire clairement à Barbaros
+plutôt que de laisser croire à une arrivée automatique.
 
 **Plus rien ne fabrique de lien `?a=` ni `?c=`.** Les lecteurs restent en
 place pour que les liens déjà partis dans WhatsApp continuent de s'ouvrir,
