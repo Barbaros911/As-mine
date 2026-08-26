@@ -83,6 +83,9 @@ check('client : pas de badge exploitant', !(await client.locator('#badgeExploita
 check('client : pas de tableau de bord', !(await client.locator('#tableauBord').isVisible()));
 check('client : le formulaire de réservation est là', await client.locator('#accrocheClient').isVisible());
 check('client : le bouton WhatsApp flottant est là', await client.locator('#whatsappFloat').isVisible());
+// Un client n'a jamais déverrouillé : aucun chemin vers l'espace de travail.
+check('client : aucun chemin vers l\'espace de travail',
+  !(await client.locator('#retourExploitant').isVisible()));
 
 const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 } });
 await preparer(ctxOp);
@@ -105,6 +108,11 @@ check('exploitant : l\'onglet parle de demandes, pas de réservations',
   (await op.locator('.nav-item[data-target="screen-bookings"] span').textContent()).includes('Demandes'));
 check('exploitant : le bouton de sortie est proposé', await op.locator('#navQuitter').isVisible());
 check('exploitant : pas de WhatsApp flottant', !(await op.locator('#whatsappFloat').isVisible()));
+// La bannière cookies s'adresse aux visiteurs : elle masquait la liste des
+// demandes sur l'outil de travail.
+check('exploitant : pas de bannière cookies', !(await op.locator('#cookieBanner').isVisible()));
+check('exploitant : le site public est à un clic',
+  await op.locator('#lienSitePublic').isVisible());
 check('exploitant : liste vide au départ',
   await op.locator('#videDemandes').isVisible()
   && (await op.locator('#compteurAttente').textContent()) === '0');
@@ -121,6 +129,11 @@ check('déverrouillé, l\'adresse publique montre le site client',
   && !(await op.locator('#tableauBord').isVisible()));
 check('et sans badge d\'espace de travail',
   !(await op.locator('#badgeExploitant').isVisible()));
+// L'aller-retour se fait par un bouton, pas en retapant l'adresse.
+check('un chemin de retour vers l\'espace de travail est proposé',
+  await op.locator('#retourExploitant').isVisible());
+check('ce retour vise bien l\'adresse de l\'espace exploitant',
+  (await op.locator('#retourExploitant').getAttribute('href')).includes('admin.html'));
 // Retour à l'espace de travail : le code n'est pas redemandé.
 await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);

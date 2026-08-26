@@ -143,7 +143,7 @@ node test4.mjs     # hôtel, diffusion, carte, langue, capacité (75)
 node test5.mjs     # prix ferme, lien de course, écran chauffeur (47)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
 node test7.mjs     # numérotation, confirmation à distance, code d'accès (26)
-node test8.mjs     # deux espaces distincts, boucle de la demande (49)
+node test8.mjs     # deux espaces distincts, boucle de la demande (54)
 ```
 
 Note : servez le site avec Tailwind accessible. Deux tests portent sur des
@@ -272,6 +272,17 @@ est retenu sur l'appareil pour ne pas redemander le code, mais il ne suffit
 pas : sans `?exploitant=1`, on voit le site client. Sans cette règle,
 l'exploitant ne pourrait plus jamais consulter son propre site public depuis
 son téléphone — c'est exactement ce qui s'est produit avant correction.
+
+**Passer d'un espace à l'autre tient en un bouton.** Le tableau de bord
+porte un lien « Voir le site public » ; le site public, sur un appareil déjà
+déverrouillé, porte un lien « Revenir à mon espace exploitant ». Aucun code
+n'est redemandé, et un client — qui n'a jamais déverrouillé — ne voit rien
+de tout cela. « Quitter », lui, oublie le code sur l'appareil : c'est une
+sortie, pas un aller-retour.
+
+La bannière cookies ne s'affiche pas dans l'espace exploitant : elle
+s'adresse aux visiteurs, et elle masquait la liste des demandes. Sans
+réponse, le consentement reste refusé — aucune statistique n'est collectée.
 
 Le lien de demande envoyé par le client vise donc `admin.html`. Un lien `?a=`
 ouvert par erreur sur l'adresse publique est renvoyé vers l'espace de travail
