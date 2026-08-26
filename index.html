@@ -254,6 +254,10 @@
      c'est le raccourci qui sert le plus. */
   .lien-appel{flex:0 0 auto;font-size:11px;padding:4px 10px;border-radius:999px;
     border:1px solid var(--gold-dim);color:var(--gold-soft);text-decoration:none;}
+  /* Clore une course depuis la liste. En vert plein : c'est le geste qui
+     fait entrer la course au registre, pas une action secondaire. */
+  .btn-clore{flex:0 0 auto;font-size:11px;font-weight:600;padding:4px 12px;
+    border-radius:999px;background:var(--green);color:#0B1A10 !important;border:0;}
   /* La pastille d'une demande en attente respire : c'est ce qui attire l'œil
      sur ce qui réclame une décision, sans faire clignoter toute la ligne. */
   .pastille{width:9px;height:9px;border-radius:50%;flex:0 0 9px;display:inline-block;}
@@ -1497,7 +1501,7 @@ legal_lang_note:"Documents disponibles en français et en anglais.",confirm_what
 pax_adult_one:"adulte",pax_adult_many:"adultes",pax_child_one:"enfant",pax_child_many:"enfants",pax_bag_one:"bagage",pax_bag_many:"bagages",
 flight_number:"Numéro de vol (recommandé)",flight_help:"Transmis au chauffeur pour qu'il suive votre vol et adapte l'heure en cas de retard.",booking_for_other:"Je réserve pour quelqu'un d'autre",passenger_name:"Nom du passager",passenger_phone:"Téléphone du passager",voucher_title:"Bon de réservation",voucher_open:"Voir le bon de réservation",voucher_print:"Imprimer ou enregistrer en PDF",voucher_operator:"Opérateur",voucher_driver:"Chauffeur",voucher_driver_tbd:"Communiqué avant la prise en charge",voucher_booked_at:"Réservation effectuée le",voucher_keep:"Conservez ce bon : il peut vous être demandé lors d'un contrôle.",voucher_payment_method:"Mode de paiement",voucher_incomplete:"Bon incomplet : les informations de l'opérateur ne sont pas encore renseignées.",email_confirm:"Recevoir par email",wa_flight:"Vol",wa_passenger:"Passager",
 voucher_company:"Raison sociale",voucher_address:"Adresse",voucher_trip_type:"Type de course",
-nav_qr:"QR code",nav_registre:"Registre",admin_registre_title:"Registre",admin_registre_note:"Ce que vos courses ont rapporté, qui les a faites, et de quoi retrouver n'importe laquelle.",admin_waiting_since:"en attente depuis",admin_received_ago:"reçue il y a",admin_now:"à l'instant",admin_day_one:"jour",admin_day_many:"jours",admin_today:"Aujourd'hui",admin_tomorrow:"Demain",admin_call:"Appeler",qr_subtitle:"Scannez ou partagez ce code pour ouvrir Asmine sur un autre appareil.",assign_driver:"Chauffeur attribué",free_wait_note:"60 minutes d'attente offertes après l'atterrissage.",
+nav_qr:"QR code",nav_registre:"Registre",admin_registre_title:"Registre",admin_registre_note:"Ce que vos courses ont rapporté, qui les a faites, et de quoi retrouver n'importe laquelle.",admin_waiting_since:"en attente depuis",admin_received_ago:"reçue il y a",admin_now:"à l'instant",admin_day_one:"jour",admin_day_many:"jours",admin_today:"Aujourd'hui",admin_tomorrow:"Demain",admin_call:"Appeler",done_ride_short:"Terminée",done_ride_done:"Course clôturée",qr_subtitle:"Scannez ou partagez ce code pour ouvrir Asmine sur un autre appareil.",assign_driver:"Chauffeur attribué",free_wait_note:"60 minutes d'attente offertes après l'atterrissage.",
 my_bookings:"Mes réservations",my_bookings_note:"Conservées sur cet appareil. Touchez une course pour rouvrir son bon de réservation.",pax_trip_one:"course",pax_trip_many:"courses",
 confirm_booking:"Confirmer ma réservation",pay_on_board:"Payer à bord plutôt qu'en ligne",pay_on_board_note:"Votre course est transmise au chauffeur. Le règlement se fait à bord, en carte ou en espèces.",voucher_pay_on_board:"À régler à bord",wa_to_collect:"À ENCAISSER À BORD",
 voucher_carrier:"Transporteur",voucher_intermediary:"Intermédiaire",voucher_intermediary_note:"Asmine met en relation le client et un chauffeur indépendant. Le transport est exécuté par le transporteur ci-dessus, sous sa propre licence et sa propre assurance.",reviews_title:"Ils nous ont fait confiance",reviews_count_one:"avis",reviews_count_many:"avis",invoice_number:"N° de bon",
@@ -1519,7 +1523,7 @@ legal_lang_note:"Legal documents are available in French and English only.",conf
 pax_adult_one:"adult",pax_adult_many:"adults",pax_child_one:"child",pax_child_many:"children",pax_bag_one:"bag",pax_bag_many:"bags",
 flight_number:"Flight number (recommended)",flight_help:"Passed to your chauffeur so they can track your flight and adjust for delays.",booking_for_other:"I'm booking for someone else",passenger_name:"Passenger name",passenger_phone:"Passenger phone",voucher_title:"Booking voucher",voucher_open:"View the booking voucher",voucher_print:"Print or save as PDF",voucher_operator:"Operator",voucher_driver:"Chauffeur",voucher_driver_tbd:"Confirmed before pickup",voucher_booked_at:"Booked on",voucher_keep:"Keep this voucher: it may be requested during an inspection.",voucher_payment_method:"Payment method",voucher_incomplete:"Incomplete voucher: the operator's details have not been filled in yet.",email_confirm:"Send by email",wa_flight:"Flight",wa_passenger:"Passenger",
 voucher_company:"Company name",voucher_address:"Address",voucher_trip_type:"Ride type",
-nav_qr:"QR code",nav_registre:"Register",admin_registre_title:"Register",admin_registre_note:"What your rides brought in, who did them, and a way to find any of them again.",admin_waiting_since:"waiting for",admin_received_ago:"received",admin_now:"just now",admin_day_one:"day",admin_day_many:"days",admin_today:"Today",admin_tomorrow:"Tomorrow",admin_call:"Call",qr_subtitle:"Scan or share this code to open Asmine on another device.",assign_driver:"Assigned driver",free_wait_note:"60 minutes of complimentary waiting time after landing.",
+nav_qr:"QR code",nav_registre:"Register",admin_registre_title:"Register",admin_registre_note:"What your rides brought in, who did them, and a way to find any of them again.",admin_waiting_since:"waiting for",admin_received_ago:"received",admin_now:"just now",admin_day_one:"day",admin_day_many:"days",admin_today:"Today",admin_tomorrow:"Tomorrow",admin_call:"Call",done_ride_short:"Done",done_ride_done:"Ride closed",qr_subtitle:"Scan or share this code to open Asmine on another device.",assign_driver:"Assigned driver",free_wait_note:"60 minutes of complimentary waiting time after landing.",
 my_bookings:"My bookings",my_bookings_note:"Kept on this device. Tap a ride to reopen its booking voucher.",pax_trip_one:"ride",pax_trip_many:"rides",
 confirm_booking:"Confirm my booking",pay_on_board:"Pay on board instead of online",pay_on_board_note:"Your ride is sent to the chauffeur. Payment is made on board, by card or cash.",voucher_pay_on_board:"To be paid on board",wa_to_collect:"TO COLLECT ON BOARD",
 voucher_carrier:"Carrier",voucher_intermediary:"Intermediary",voucher_intermediary_note:"Asmine connects the client with an independent chauffeur. The transport is performed by the carrier above, under their own licence and insurance.",reviews_title:"What our clients say",reviews_count_one:"review",reviews_count_many:"reviews",invoice_number:"Voucher no.",
@@ -1536,7 +1540,7 @@ label_promo:"رمز ترويجي (اختياري)",vat_note:"الأسعار شا
 pax_adult_one:"بالغ",pax_adult_many:"بالغين",pax_child_one:"طفل",pax_child_many:"أطفال",pax_bag_one:"حقيبة",pax_bag_many:"حقائب",
 flight_number:"رقم الرحلة (مستحسن)",flight_help:"يُرسل إلى السائق ليتابع رحلتك ويعدّل الموعد عند التأخير.",booking_for_other:"أحجز لشخص آخر",passenger_name:"اسم الراكب",passenger_phone:"هاتف الراكب",voucher_title:"سند الحجز",voucher_open:"عرض سند الحجز",voucher_print:"طباعة أو حفظ بصيغة PDF",voucher_operator:"المشغّل",voucher_driver:"السائق",voucher_driver_tbd:"يُبلَّغ قبل الاستقبال",voucher_booked_at:"تم الحجز في",voucher_keep:"احتفظ بهذا السند: قد يُطلب منك عند التفتيش.",voucher_payment_method:"طريقة الدفع",voucher_incomplete:"سند غير مكتمل: بيانات المشغّل غير مُدخلة بعد.",email_confirm:"الإرسال بالبريد الإلكتروني",wa_flight:"الرحلة",wa_passenger:"الراكب",
 voucher_company:"الاسم التجاري",voucher_address:"العنوان",voucher_trip_type:"نوع الرحلة",
-nav_qr:"رمز QR",nav_registre:"السجل",admin_registre_title:"السجل",admin_registre_note:"ما حقّقته رحلاتك، ومن نفّذها، وكيفية العثور على أي منها.",admin_waiting_since:"في الانتظار منذ",admin_received_ago:"وردت منذ",admin_now:"الآن",admin_day_one:"يوم",admin_day_many:"أيام",admin_today:"اليوم",admin_tomorrow:"غدًا",admin_call:"اتصال",qr_subtitle:"امسح هذا الرمز أو شاركه لفتح Asmine على جهاز آخر.",assign_driver:"السائق المُسنَد",free_wait_note:"٦٠ دقيقة انتظار مجانية بعد الهبوط.",
+nav_qr:"رمز QR",nav_registre:"السجل",admin_registre_title:"السجل",admin_registre_note:"ما حقّقته رحلاتك، ومن نفّذها، وكيفية العثور على أي منها.",admin_waiting_since:"في الانتظار منذ",admin_received_ago:"وردت منذ",admin_now:"الآن",admin_day_one:"يوم",admin_day_many:"أيام",admin_today:"اليوم",admin_tomorrow:"غدًا",admin_call:"اتصال",done_ride_short:"منجزة",done_ride_done:"أُغلقت الرحلة",qr_subtitle:"امسح هذا الرمز أو شاركه لفتح Asmine على جهاز آخر.",assign_driver:"السائق المُسنَد",free_wait_note:"٦٠ دقيقة انتظار مجانية بعد الهبوط.",
 my_bookings:"حجوزاتي",my_bookings_note:"محفوظة على هذا الجهاز. اضغط على رحلة لإعادة فتح سند حجزها.",pax_trip_one:"رحلة",pax_trip_many:"رحلات",
 confirm_booking:"تأكيد الحجز",pay_on_board:"الدفع في السيارة بدل الدفع الإلكتروني",pay_on_board_note:"تُرسل رحلتك إلى السائق. الدفع يتم في السيارة، بالبطاقة أو نقداً.",voucher_pay_on_board:"يُدفع في السيارة",wa_to_collect:"يُحصَّل في السيارة",
 voucher_carrier:"الناقل",voucher_intermediary:"الوسيط",voucher_intermediary_note:"تربط Asmine العميل بسائق مستقل. يتولى النقل الناقل المذكور أعلاه، برخصته وتأمينه الخاصين.",reviews_title:"آراء عملائنا",reviews_count_one:"تقييم",reviews_count_many:"تقييمات",invoice_number:"رقم السند",
@@ -1552,7 +1556,7 @@ label_promo:"优惠码（可选）",vat_note:"价格含10%增值税（客运）�
 pax_adult_one:"位成人",pax_adult_many:"位成人",pax_child_one:"位儿童",pax_child_many:"位儿童",pax_bag_one:"件行李",pax_bag_many:"件行李",
 flight_number:"航班号（建议填写）",flight_help:"将转达司机，以便跟踪您的航班并在延误时调整时间。",booking_for_other:"我为他人预订",passenger_name:"乘客姓名",passenger_phone:"乘客电话",voucher_title:"预订凭证",voucher_open:"查看预订凭证",voucher_print:"打印或另存为PDF",voucher_operator:"运营方",voucher_driver:"司机",voucher_driver_tbd:"接送前告知",voucher_booked_at:"预订时间",voucher_keep:"请保留此凭证：检查时可能需要出示。",voucher_payment_method:"支付方式",voucher_incomplete:"凭证不完整：运营方信息尚未填写。",email_confirm:"通过邮件接收",wa_flight:"航班",wa_passenger:"乘客",
 voucher_company:"公司名称",voucher_address:"地址",voucher_trip_type:"行程类型",
-nav_qr:"二维码",nav_registre:"记录",admin_registre_title:"记录",admin_registre_note:"行程带来的收入、由谁完成，以及随时找回任意一趟。",admin_waiting_since:"已等待",admin_received_ago:"收到于",admin_now:"刚刚",admin_day_one:"天",admin_day_many:"天",admin_today:"今天",admin_tomorrow:"明天",admin_call:"拨打",qr_subtitle:"扫描或分享此二维码，在其他设备上打开Asmine。",assign_driver:"已指派司机",free_wait_note:"落地后提供60分钟免费等候。",
+nav_qr:"二维码",nav_registre:"记录",admin_registre_title:"记录",admin_registre_note:"行程带来的收入、由谁完成，以及随时找回任意一趟。",admin_waiting_since:"已等待",admin_received_ago:"收到于",admin_now:"刚刚",admin_day_one:"天",admin_day_many:"天",admin_today:"今天",admin_tomorrow:"明天",admin_call:"拨打",done_ride_short:"已完成",done_ride_done:"行程已结束",qr_subtitle:"扫描或分享此二维码，在其他设备上打开Asmine。",assign_driver:"已指派司机",free_wait_note:"落地后提供60分钟免费等候。",
 my_bookings:"我的预订",my_bookings_note:"保存在本设备上。点击行程可重新打开预订凭证。",pax_trip_one:"次行程",pax_trip_many:"次行程",
 confirm_booking:"确认预订",pay_on_board:"上车支付，不使用在线支付",pay_on_board_note:"您的行程将发送给司机。上车后以刷卡或现金支付。",voucher_pay_on_board:"上车支付",wa_to_collect:"上车收款",
 voucher_carrier:"承运方",voucher_intermediary:"中介方",voucher_intermediary_note:"Asmine 为客户与独立司机牵线。运输由上述承运方以其自有牌照和保险执行。",reviews_title:"客户评价",reviews_count_one:"条评价",reviews_count_many:"条评价",invoice_number:"凭证编号",
@@ -1568,7 +1572,7 @@ label_promo:"Código promocional (opcional)",vat_note:"Precio con IVA del 10% in
 pax_adult_one:"adulto",pax_adult_many:"adultos",pax_child_one:"niño",pax_child_many:"niños",pax_bag_one:"maleta",pax_bag_many:"maletas",
 flight_number:"Número de vuelo (recomendado)",flight_help:"Se transmite al chófer para que siga su vuelo y ajuste la hora si hay retraso.",booking_for_other:"Reservo para otra persona",passenger_name:"Nombre del pasajero",passenger_phone:"Teléfono del pasajero",voucher_title:"Bono de reserva",voucher_open:"Ver el bono de reserva",voucher_print:"Imprimir o guardar en PDF",voucher_operator:"Operador",voucher_driver:"Chófer",voucher_driver_tbd:"Comunicado antes de la recogida",voucher_booked_at:"Reserva realizada el",voucher_keep:"Conserve este bono: puede solicitarse en un control.",voucher_payment_method:"Forma de pago",voucher_incomplete:"Bono incompleto: faltan los datos del operador.",email_confirm:"Recibir por email",wa_flight:"Vuelo",wa_passenger:"Pasajero",
 voucher_company:"Razón social",voucher_address:"Dirección",voucher_trip_type:"Tipo de trayecto",
-nav_qr:"Código QR",nav_registre:"Registro",admin_registre_title:"Registro",admin_registre_note:"Lo que han generado sus trayectos, quién los hizo y cómo encontrar cualquiera de ellos.",admin_waiting_since:"esperando desde hace",admin_received_ago:"recibida hace",admin_now:"ahora mismo",admin_day_one:"día",admin_day_many:"días",admin_today:"Hoy",admin_tomorrow:"Mañana",admin_call:"Llamar",qr_subtitle:"Escanee o comparta este código para abrir Asmine en otro dispositivo.",assign_driver:"Chófer asignado",free_wait_note:"60 minutos de espera gratuitos tras el aterrizaje.",
+nav_qr:"Código QR",nav_registre:"Registro",admin_registre_title:"Registro",admin_registre_note:"Lo que han generado sus trayectos, quién los hizo y cómo encontrar cualquiera de ellos.",admin_waiting_since:"esperando desde hace",admin_received_ago:"recibida hace",admin_now:"ahora mismo",admin_day_one:"día",admin_day_many:"días",admin_today:"Hoy",admin_tomorrow:"Mañana",admin_call:"Llamar",done_ride_short:"Hecho",done_ride_done:"Trayecto cerrado",qr_subtitle:"Escanee o comparta este código para abrir Asmine en otro dispositivo.",assign_driver:"Chófer asignado",free_wait_note:"60 minutos de espera gratuitos tras el aterrizaje.",
 my_bookings:"Mis reservas",my_bookings_note:"Guardadas en este dispositivo. Toque un trayecto para reabrir su bono.",pax_trip_one:"trayecto",pax_trip_many:"trayectos",
 confirm_booking:"Confirmar mi reserva",pay_on_board:"Pagar a bordo en lugar de en línea",pay_on_board_note:"Su trayecto se envía al chófer. El pago se realiza a bordo, con tarjeta o en efectivo.",voucher_pay_on_board:"A pagar a bordo",wa_to_collect:"A COBRAR A BORDO",
 voucher_carrier:"Transportista",voucher_intermediary:"Intermediario",voucher_intermediary_note:"Asmine pone en contacto al cliente con un chófer independiente. El transporte lo realiza el transportista indicado arriba, bajo su propia licencia y seguro.",reviews_title:"Lo que dicen nuestros clientes",reviews_count_one:"opinión",reviews_count_many:"opiniones",invoice_number:"N.º de bono",
@@ -1584,7 +1588,7 @@ label_promo:"Código promocional (opcional)",vat_note:"Preço com IVA de 10% inc
 pax_adult_one:"adulto",pax_adult_many:"adultos",pax_child_one:"criança",pax_child_many:"crianças",pax_bag_one:"mala",pax_bag_many:"malas",
 flight_number:"Número do voo (recomendado)",flight_help:"Transmitido ao motorista para que acompanhe o seu voo e ajuste a hora em caso de atraso.",booking_for_other:"Estou a reservar para outra pessoa",passenger_name:"Nome do passageiro",passenger_phone:"Telefone do passageiro",voucher_title:"Comprovativo de reserva",voucher_open:"Ver o comprovativo de reserva",voucher_print:"Imprimir ou guardar em PDF",voucher_operator:"Operador",voucher_driver:"Motorista",voucher_driver_tbd:"Comunicado antes da recolha",voucher_booked_at:"Reserva efetuada a",voucher_keep:"Guarde este comprovativo: pode ser pedido num controlo.",voucher_payment_method:"Forma de pagamento",voucher_incomplete:"Comprovativo incompleto: faltam os dados do operador.",email_confirm:"Receber por email",wa_flight:"Voo",wa_passenger:"Passageiro",
 voucher_company:"Denominação social",voucher_address:"Morada",voucher_trip_type:"Tipo de trajeto",
-nav_qr:"Código QR",nav_registre:"Registo",admin_registre_title:"Registo",admin_registre_note:"O que os seus trajetos renderam, quem os fez, e como reencontrar qualquer um.",admin_waiting_since:"à espera há",admin_received_ago:"recebida há",admin_now:"agora mesmo",admin_day_one:"dia",admin_day_many:"dias",admin_today:"Hoje",admin_tomorrow:"Amanhã",admin_call:"Ligar",qr_subtitle:"Digitalize ou partilhe este código para abrir a Asmine noutro aparelho.",assign_driver:"Motorista atribuído",free_wait_note:"60 minutos de espera oferecidos após a aterragem.",
+nav_qr:"Código QR",nav_registre:"Registo",admin_registre_title:"Registo",admin_registre_note:"O que os seus trajetos renderam, quem os fez, e como reencontrar qualquer um.",admin_waiting_since:"à espera há",admin_received_ago:"recebida há",admin_now:"agora mesmo",admin_day_one:"dia",admin_day_many:"dias",admin_today:"Hoje",admin_tomorrow:"Amanhã",admin_call:"Ligar",done_ride_short:"Feito",done_ride_done:"Trajeto fechado",qr_subtitle:"Digitalize ou partilhe este código para abrir a Asmine noutro aparelho.",assign_driver:"Motorista atribuído",free_wait_note:"60 minutos de espera oferecidos após a aterragem.",
 my_bookings:"As minhas reservas",my_bookings_note:"Guardadas neste aparelho. Toque num trajeto para reabrir o comprovativo.",pax_trip_one:"trajeto",pax_trip_many:"trajetos",
 confirm_booking:"Confirmar a minha reserva",pay_on_board:"Pagar a bordo em vez de online",pay_on_board_note:"O seu trajeto é enviado ao motorista. O pagamento é feito a bordo, com cartão ou dinheiro.",voucher_pay_on_board:"A pagar a bordo",wa_to_collect:"A COBRAR A BORDO",
 voucher_carrier:"Transportador",voucher_intermediary:"Intermediário",voucher_intermediary_note:"A Asmine liga o cliente a um motorista independente. O transporte é efetuado pelo transportador acima, sob a sua própria licença e seguro.",reviews_title:"O que dizem os nossos clientes",reviews_count_one:"avaliação",reviews_count_many:"avaliações",invoice_number:"N.º do comprovativo",
@@ -3465,9 +3469,18 @@ function renderDriverAssign(){
       : "w-full py-2.5 rounded-xl border border-[var(--green)] text-[var(--green)] text-xs font-medium";
     // Une course ne se clôt qu'après avoir été confirmée : sinon on
     // marquerait « réalisée » quelque chose qu'on n'a jamais accepté.
+    // Clore une course est le geste le plus fréquent une fois qu'elle est
+    // confirmée : c'est lui qui la fait entrer au registre et qui alimente
+    // les chiffres. Il ne doit pas être gris à côté d'un « Refuser » rouge.
     const boutonFait = document.getElementById("btnDoneRide");
-    boutonFait.classList.toggle("hidden", !(confirmee || realiseeDejaVue(statut)));
     boutonFait.textContent = t(statut === "realisee" ? "cancel_done" : "done_ride");
+    // L'apparence d'abord, la visibilité ensuite : réécrire className après
+    // coup effacerait le « hidden » et montrerait le bouton sur une course
+    // qui n'a jamais été confirmée.
+    boutonFait.className = statut === "realisee"
+      ? "w-full mt-2 py-2.5 rounded-xl border border-[var(--line)] text-[var(--muted)] text-xs font-medium"
+      : "w-full mt-2 py-3 rounded-xl bg-[var(--green)] text-[#0B1A10] text-sm font-semibold";
+    boutonFait.classList.toggle("hidden", !(confirmee || realiseeDejaVue(statut)));
     refuser.textContent = t(refusee ? "cancel_refusal" : "refuse_ride");
     refuser.className = refusee
       ? "w-full mt-2 py-2.5 rounded-xl border border-[var(--line)] text-[var(--muted)] text-xs font-medium"
@@ -4217,11 +4230,31 @@ function renderTableauDeBord(){
       <p class="text-xs">${escapeHtml(d.course.depart)} → ${escapeHtml(d.course.arrivee)}</p>
       <div class="flex items-center justify-between gap-2 mt-1">
         <span class="text-[11px] text-[var(--muted)] truncate">${escapeHtml(d.client && d.client.nom || "—")}${d.client && d.client.telephone ? " · " + escapeHtml(d.client.telephone) : ""}</span>
-        ${tel ? `<a class="lien-appel" href="tel:+${tel}" aria-label="${escapeHtml(t("admin_call"))}">${escapeHtml(t("admin_call"))}</a>` : ""}
+        <span class="flex items-center gap-2 shrink-0">
+          ${statut === "confirmee" ? `<button type="button" class="btn-clore">${escapeHtml(t("done_ride_short"))}</button>` : ""}
+          ${tel ? `<a class="lien-appel" href="tel:+${tel}" aria-label="${escapeHtml(t("admin_call"))}">${escapeHtml(t("admin_call"))}</a>` : ""}
+        </span>
       </div>`;
     // Appeler le client ne doit pas ouvrir son bon au passage.
     const appel = ligne.querySelector(".lien-appel");
     if(appel) appel.addEventListener("click", (e)=> e.stopPropagation());
+    // Clore une course depuis la liste : c'est le geste du soir, fait à la
+    // chaîne sur trois ou quatre courses. Ouvrir chaque bon pour ça serait
+    // trois appuis au lieu d'un.
+    const clore = ligne.querySelector(".btn-clore");
+    if(clore) clore.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const liste = loadBookings();
+      const i = liste.findIndex(b=>b.ref === d.ref);
+      if(i < 0) return;
+      liste[i].statut = "realisee";
+      try{ localStorage.setItem("asmine_bookings", JSON.stringify(liste)); }catch(err){ /* stockage refusé */ }
+      if(lastVoucher && lastVoucher.ref === d.ref) lastVoucher = liste[i];
+      showToast(`${t("done_ride_done")} — ${d.ref}`);
+      trackEvent("done_ride_from_list", {ref: d.ref});
+      renderTableauDeBord();
+      if(typeof renderGestion === "function") renderGestion();
+    });
     ligne.addEventListener("keydown", (e)=>{ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); ligne.click(); } });
     ligne.addEventListener("click", ()=>{
       // On relit la course dans le stockage plutôt que d'ouvrir la copie

@@ -314,6 +314,14 @@ ne se fie pas aux libellés (un client espagnol écrit « Salida ») mais à la
 structure du message, qui est écrite par cette même page. Si le message est
 incomplet ou déjà connu, il le dit plutôt que de remplir n'importe quoi.
 
+**Clore une course.** Une fois la course faite, un bouton vert **« Terminée »**
+sur la ligne du tableau de bord suffit : un appui, sans ouvrir le bon. C'est
+le geste du soir, fait à la chaîne sur trois ou quatre courses. Le même geste
+existe sur le bon lui-même — **« Marquer comme réalisée »** — pour le cas où
+l'on y est déjà. Tant qu'une course n'est pas close, elle ne compte ni dans
+le tableau des chauffeurs, ni dans le résultat : une course confirmée n'est
+pas une course faite.
+
 **Créer une résa.** Un hôtel appelle, un habitué envoie un SMS : on ne lui
 fait pas remplir le tunnel client. Le nom, deux adresses, une date, un
 véhicule, un prix — et la course est enregistrée, **ferme d'entrée**
