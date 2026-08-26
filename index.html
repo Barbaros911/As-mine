@@ -1171,9 +1171,14 @@ const MODE_EXPLOITANT = (()=>{
   try{
     const p = new URLSearchParams(location.search).get("exploitant");
     if(p === "0"){ localStorage.removeItem("asmine_exploitant"); return false; }
-    // Déjà déverrouillé sur cet appareil : on ne redemande rien.
+    /* L'espace de travail ne s'ouvre QUE depuis son adresse. Le
+       déverrouillage est retenu par appareil pour ne pas redemander le code,
+       mais il ne suffit pas : sans « ?exploitant=1 », on est côté client.
+       Sinon l'exploitant ne pourrait plus jamais voir son propre site
+       public depuis son téléphone — ce qui est précisément arrivé. */
+    if(p !== "1") return false;
     if(localStorage.getItem("asmine_exploitant") === CODE_EXPLOITANT) return true;
-    if(p === "1"){ DEMANDE_DEVERROUILLAGE = true; }
+    DEMANDE_DEVERROUILLAGE = true;
     return false;
   }catch(e){ return false; }
 })();
@@ -3672,7 +3677,11 @@ function brancherActionsChauffeur(){
    tableau de bord, en attente — prête à être diffusée, confirmée ou
    refusée. C'est ce lien qui remplace la base de données commune.
    ===================================================================== */
-function lienDemande(d){ return `${ADRESSE_SITE}?a=${encoderCharge(d)}`; }
+/* Le lien de demande vise l'adresse de l'espace exploitant : seul Barbaros
+   le reçoit, et il doit atterrir dans son tableau de bord — pas sur le site
+   client, qui ne saurait pas quoi en faire. */
+const ADRESSE_ADMIN = ADRESSE_SITE.replace(/[^/]*$/, "") + "admin.html";
+function lienDemande(d){ return `${ADRESSE_ADMIN}?a=${encoderCharge(d)}`; }
 function importerDemande(d){
   if(!d || !d.ref) return null;
   const list = loadBookings();
@@ -3896,7 +3905,11 @@ document.getElementById("btnNouvelleDemande").addEventListener("click", ()=>{
     const saisi = champ.value.trim();
     if(saisi && promoHash(saisi) === CODE_EXPLOITANT){
       try{ localStorage.setItem("asmine_exploitant", CODE_EXPLOITANT); }catch(e){ /* stockage refusé */ }
-      location.replace(ADRESSE_SITE + "?exploitant=1");
+      // On garde les paramètres de l'adresse : une demande ouverte sur un
+      // appareil pas encore déverrouillé ne doit pas se perdre en route.
+      const params = new URLSearchParams(location.search);
+      params.set("exploitant", "1");
+      location.replace(`${ADRESSE_SITE}?${params.toString()}`);
       return;
     }
     erreur.classList.remove("hidden");
@@ -3967,7 +3980,13 @@ document.getElementById("btnNouvelleDemande").addEventListener("click", ()=>{
   const params = new URLSearchParams(location.search);
   const lienC = params.get("c"), lienF = params.get("f"), lienOk = params.get("ok");
   const lienA = params.get("a"), lienNon = params.get("no");
-  // Une demande qui arrive chez l'exploitant.
+  // Une demande qui arrive chez l'exploitant. Ouverte depuis l'adresse
+  // publique — un ancien lien, un partage —, on la renvoie vers l'espace de
+  // travail au lieu de l'importer en silence dans le site client.
+  if(lienA && !MODE_EXPLOITANT){
+    location.replace(`${ADRESSE_ADMIN}?a=${encodeURIComponent(lienA)}`);
+    return;
+  }
   if(lienA){
     const d = decoderCharge(lienA);
     if(d && d.ref){

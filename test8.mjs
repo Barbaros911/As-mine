@@ -109,6 +109,27 @@ check('exploitant : liste vide au départ',
   await op.locator('#videDemandes').isVisible()
   && (await op.locator('#compteurAttente').textContent()) === '0');
 
+/* ===== SUR LE MÊME TÉLÉPHONE, LE LIEN PUBLIC RESTE PUBLIC ===== */
+// Le déverrouillage est retenu pour ne pas redemander le code, mais il ne
+// doit pas transformer l'adresse publique en espace de travail : sinon
+// l'exploitant ne peut plus voir ce que voient ses clients.
+await op.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(600);
+check('déverrouillé, l\'adresse publique montre le site client',
+  (await op.evaluate(() => MODE_EXPLOITANT)) === false
+  && await op.locator('#accrocheClient').isVisible()
+  && !(await op.locator('#tableauBord').isVisible()));
+check('et sans badge d\'espace de travail',
+  !(await op.locator('#badgeExploitant').isVisible()));
+// Retour à l'espace de travail : le code n'est pas redemandé.
+await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(800);
+check('l\'espace de travail se rouvre sans redemander le code',
+  (await op.evaluate(() => MODE_EXPLOITANT)) === true
+  && !(await op.locator('#deverrouillage').isVisible()));
+await op.locator('#cookieAccept').click().catch(() => {});
+await op.waitForTimeout(200);
+
 /* ================= LE CLIENT RÉSERVE ================= */
 const ref = await reserver(client, 'Claire Fontaine');
 check('la demande du client reçoit une référence', /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
@@ -121,12 +142,15 @@ check('le message porte le nom et le téléphone du client',
 const lienDemande = (texteClient.match(/https?:\/\/\S+\?a=[\w-]+/) || [])[0];
 check('un lien de prise en charge accompagne le message', !!lienDemande,
   lienDemande ? lienDemande.slice(0, 50) + '…' : 'absent');
+check('ce lien vise l\'espace exploitant, pas le site client',
+  !!lienDemande && lienDemande.includes('/admin.html?a='),
+  lienDemande ? lienDemande.slice(0, 60) : '');
 check('le client ne voit aucune étape restante',
   (await client.locator('#screen-confirmation').textContent()).includes('rien d\'autre à faire'));
 
 /* ============ LA DEMANDE ENTRE DANS LE TABLEAU DE BORD ============ */
 const paramA = lienDemande ? new URL(lienDemande).searchParams.get('a') : null;
-await op.goto(BASE + '/index.html?a=' + paramA, { waitUntil: 'domcontentloaded' });
+await op.goto(BASE + '/admin.html?a=' + paramA, { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
 check('le lien ouvre directement le bon de la demande',
   await op.locator('#screen-voucher').isVisible());
@@ -142,7 +166,7 @@ check('la ligne porte la référence, le client et le trajet',
   ligne.replace(/\s+/g, ' ').trim().slice(0, 110));
 
 // Rouvrir le même lien ne doit pas créer de doublon
-await op.goto(BASE + '/index.html?a=' + paramA, { waitUntil: 'domcontentloaded' });
+await op.goto(BASE + '/admin.html?a=' + paramA, { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(600);
 check('rouvrir le lien ne crée pas de doublon',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 1);
