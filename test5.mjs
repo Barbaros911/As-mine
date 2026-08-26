@@ -129,8 +129,8 @@ check('l\'annonce tient en peu de lignes',
 check('annonce : sans le nom du client', !texteEnvoye.includes('réception'));
 check('annonce : sans la chambre du client', !apercu.includes('512B'));
 
-// Le lien de course part en privé, au chauffeur que l'exploitant a retenu.
-check('pas de lien de course tant qu\'aucun chauffeur n\'est retenu',
+// La course part en privé, en toutes lettres, au chauffeur retenu.
+check('rien à envoyer tant qu\'aucun chauffeur n\'est retenu',
   !(await op.locator('#btnEnvoyerChauffeur').isVisible()));
 await op.fill('#nomChauffeurRetenu', 'Mehmet K.');
 await op.fill('#telChauffeurRetenu', '06 98 76 54 32');
@@ -140,12 +140,28 @@ check('le bouton d\'envoi apparaît une fois le chauffeur saisi',
 const hrefChauffeur = await op.locator('#btnEnvoyerChauffeur').getAttribute('href');
 check('le message part droit sur le numéro du chauffeur',
   hrefChauffeur.startsWith('https://wa.me/33698765432'), hrefChauffeur.slice(0, 40));
-const texteChauffeur = decodeURIComponent(hrefChauffeur);
-const lien = (texteChauffeur.match(/https?:\/\/\S+\?c=[\w-]+/) || [])[0];
-check('le lien de course accompagne ce message privé', !!lien,
-  lien ? lien.slice(0, 58) + '…' : 'absent');
+const texteChauffeur = decodeURIComponent(hrefChauffeur.replace(/^[^?]*\?text=/, ''));
+// Le chauffeur ne doit rien avoir à cliquer : il lit et il y va.
+check('le message au chauffeur ne porte aucun lien',
+  !/https?:\/\//.test(texteChauffeur), texteChauffeur.slice(0, 120));
+check('le message au chauffeur porte la référence et la date',
+  texteChauffeur.includes(ref) && /\d{2}\/\d{2}\/\d{4}/.test(texteChauffeur),
+  texteChauffeur.split('\n').slice(0, 2).join(' | '));
+// Ce message-là est privé : il peut porter le client, contrairement à l'annonce.
+check('le message au chauffeur donne le client à contacter',
+  texteChauffeur.includes('réception'), texteChauffeur.slice(0, 200));
+check('le message au chauffeur reste court',
+  texteChauffeur.trim().split('\n').length <= 9,
+  texteChauffeur.trim().split('\n').length + ' lignes');
 
-const paramC = lien ? new URL(lien).searchParams.get('c') : null;
+// Les liens « ?c= » déjà partis dans WhatsApp doivent continuer de s'ouvrir,
+// même si plus rien n'en fabrique de nouveaux.
+const paramC = await op.evaluate(() => encoderCharge({
+  r: lastVoucher.ref, d: lastVoucher.course.date, h: lastVoucher.course.heure,
+  a: lastVoucher.course.departPublic, b: lastVoucher.course.arriveePublic,
+  t: '', v: '', x: lastVoucher.course.passagers, ve: lastVoucher.course.vehicule,
+  m: lastVoucher.prix.total, c: COMMISSION_APPORT
+}));
 
 /* ============================= CÔTÉ CHAUFFEUR ============================= */
 const ctxCh = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -155,7 +171,8 @@ ch.on('pageerror', e => errors.push('PAGEERROR(ch): ' + e.message));
 await ch.goto(BASE + '/index.html?c=' + paramC, { waitUntil: 'domcontentloaded' });
 await ch.waitForTimeout(700);
 
-check('le lien ouvre l\'espace chauffeur', await ch.locator('#screen-driver').isVisible());
+check('un ancien lien de course ouvre encore l\'espace chauffeur',
+  await ch.locator('#screen-driver').isVisible());
 check('la barre de navigation du client est masquée', !(await ch.locator('nav').isVisible()));
 check('la course affichée porte la bonne référence',
   (await ch.locator('#driverRef').textContent()).trim() === ref);

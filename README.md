@@ -307,6 +307,13 @@ client c'est « Mes réservations », la trace de ses propres courses ; chez
 l'exploitant c'est sa page de gestion. Elle tient quatre choses, dans
 l'ordre où l'on s'en sert.
 
+**Coller une demande.** Le message WhatsApp que le client envoie ne porte
+plus aucun lien : six lignes lisibles, rien d'autre. On le copie, on le colle
+ici, et le formulaire se remplit tout seul — référence comprise. Le lecteur
+ne se fie pas aux libellés (un client espagnol écrit « Salida ») mais à la
+structure du message, qui est écrite par cette même page. Si le message est
+incomplet ou déjà connu, il le dit plutôt que de remplir n'importe quoi.
+
 **Créer une résa.** Un hôtel appelle, un habitué envoie un SMS : on ne lui
 fait pas remplir le tunnel client. Le nom, deux adresses, une date, un
 véhicule, un prix — et la course est enregistrée, **ferme d'entrée**
@@ -320,7 +327,13 @@ d'apport — avec la semaine précédente rappelée en dessous. C'est la
 comparaison qui renseigne, pas la valeur : « 4 courses » ne veut rien dire
 tant qu'on ne sait pas s'il y en avait 2 ou 9 la semaine d'avant.
 
-**Chauffeurs** et **Résultat par semaine**, deux tableaux. Le premier dit
+**Résultat par semaine, par mois, par année.** Trois boutons, le même
+registre regroupé autrement : la semaine pour piloter, le mois pour comparer,
+l'année pour la comptabilité. Rien ne sort du registre en changeant de vue.
+Et une **recherche libre** retrouve n'importe quelle course — par référence,
+nom, téléphone, adresse, chauffeur ou date — même six mois plus tard.
+
+**Chauffeurs** et **Résultat**, deux tableaux. Le premier dit
 qui roule vraiment pour Asmine : nom, nombre de courses, encaissé, commission
 due. Le second donne les huit dernières semaines. Les deux ne comptent que
 les courses **réalisées** — une course confirmée n'est pas une course faite,

@@ -147,6 +147,7 @@ await op.waitForTimeout(200);
 
 /* ================= LE CLIENT RÉSERVE ================= */
 const ref = await reserver(client, 'Claire Fontaine');
+const prixReserve = await client.evaluate(() => state.price);
 check('la demande du client reçoit une référence', /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
 const versAsmine = await client.evaluate(() => window.__ouvert[0] || '');
 check('le message part vers le numéro d\'Asmine',
@@ -154,21 +155,67 @@ check('le message part vers le numéro d\'Asmine',
 const texteClient = decodeURIComponent(versAsmine);
 check('le message porte le nom et le téléphone du client',
   texteClient.includes('Claire Fontaine') && texteClient.includes('+33 6 12 34 56 78'));
-const lienDemande = (texteClient.match(/https?:\/\/\S+\?a=[\w-]+/) || [])[0];
-check('un lien de prise en charge accompagne le message', !!lienDemande,
-  lienDemande ? lienDemande.slice(0, 50) + '…' : 'absent');
-check('ce lien vise l\'espace exploitant, pas le site client',
-  !!lienDemande && lienDemande.includes('/admin.html?a='),
-  lienDemande ? lienDemande.slice(0, 60) : '');
+// Le message doit se lire d'un coup d'œil sur un téléphone, la nuit : plus
+// aucun lien encodé de 800 caractères ne vient le noyer.
+const corpsClient = decodeURIComponent(versAsmine.replace(/^[^?]*\?text=/, ''));
+check('le message reçu ne porte aucun lien',
+  !/https?:\/\//.test(corpsClient), corpsClient.slice(0, 120));
+check('le message reçu tient en peu de lignes',
+  corpsClient.trim().split('\n').length <= 8,
+  corpsClient.trim().split('\n').length + ' lignes');
+check('le message porte une date complète, année comprise',
+  /\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/.test(corpsClient),
+  corpsClient.split('\n')[1]);
 check('le client ne voit aucune étape restante',
   (await client.locator('#screen-confirmation').textContent()).includes('rien d\'autre à faire'));
 
 /* ============ LA DEMANDE ENTRE DANS LE TABLEAU DE BORD ============ */
-const paramA = lienDemande ? new URL(lienDemande).searchParams.get('a') : null;
-await op.goto(BASE + '/admin.html?a=' + paramA, { waitUntil: 'domcontentloaded' });
+// Plus de lien : l'exploitant recopie le message reçu et le colle.
+await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
-check('le lien ouvre directement le bon de la demande',
-  await op.locator('#screen-voucher').isVisible());
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(300);
+await op.fill('#collerDemande', 'bonjour');
+await op.locator('#btnLireDemande').click();
+await op.waitForTimeout(200);
+check('un message qui n\'en est pas un est refusé',
+  (await op.locator('#collerRetour').textContent()).includes('illisible'));
+await op.fill('#collerDemande', corpsClient);
+await op.locator('#btnLireDemande').click();
+await op.waitForTimeout(300);
+check('coller le message remplit le formulaire',
+  (await op.inputValue('#rapideClient')) === 'Claire Fontaine'
+  && (await op.inputValue('#rapideDepart')).length > 3
+  && (await op.inputValue('#rapideArrivee')).includes('Montaigne'),
+  [await op.inputValue('#rapideClient'), await op.inputValue('#rapideArrivee')].join(' | '));
+check('le prix convenu est repris tel quel',
+  Math.abs(parseFloat(await op.inputValue('#rapidePrix')) - prixReserve) < 0.01,
+  await op.inputValue('#rapidePrix'));
+check('la date et l\'heure sont reprises',
+  /^\d{4}-\d{2}-\d{2}$/.test(await op.inputValue('#rapideDate'))
+  && /^\d{2}:\d{2}$/.test(await op.inputValue('#rapideHeure')),
+  [await op.inputValue('#rapideDate'), await op.inputValue('#rapideHeure')].join(' '));
+await op.locator('#btnCreerRapide').click();
+await op.waitForTimeout(500);
+check('la course entre au registre avec la référence du client',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].ref)) === ref);
+// Recoller la même demande ne doit pas fabriquer un doublon.
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(300);
+await op.fill('#collerDemande', corpsClient);
+await op.locator('#btnLireDemande').click();
+await op.waitForTimeout(300);
+check('recoller la même demande est refusé',
+  (await op.locator('#collerRetour').textContent()).includes('déjà'),
+  await op.locator('#collerRetour').textContent());
+// La course arrive confirmée : c'est l'exploitant lui-même qui l'a saisie.
+await op.evaluate(() => {
+  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  l[0].statut = 'attente';
+  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+});
+await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
+await op.waitForTimeout(800);
 await op.locator('.nav-item[data-target="screen-home"]').click();
 await op.waitForTimeout(400);
 check('la demande est comptée en attente',
@@ -180,10 +227,7 @@ check('la ligne porte la référence, le client et le trajet',
   ligne.includes(ref) && ligne.includes('Claire Fontaine') && ligne.includes('Montaigne'),
   ligne.replace(/\s+/g, ' ').trim().slice(0, 110));
 
-// Rouvrir le même lien ne doit pas créer de doublon
-await op.goto(BASE + '/admin.html?a=' + paramA, { waitUntil: 'domcontentloaded' });
-await op.waitForTimeout(600);
-check('rouvrir le lien ne crée pas de doublon',
+check('le registre ne contient qu\'une course',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 1);
 
 /* ================= IL DIFFUSE, PUIS CONFIRME ================= */
@@ -211,8 +255,11 @@ await op.waitForTimeout(400);
 const versChauffeur = await op.locator('#btnEnvoyerChauffeur').getAttribute('href');
 check('la course part en privé, sur le numéro du chauffeur',
   versChauffeur.startsWith('https://wa.me/33698765432'), versChauffeur.slice(0, 40));
-check('ce message-là porte bien le lien de course',
-  decodeURIComponent(versChauffeur).includes('?c='));
+check('le chauffeur n\'a aucun lien à ouvrir',
+  !/https?%3A|https?:\/\//.test(versChauffeur.replace(/^https:\/\/wa\.me\/\d+\?text=/, '')),
+  decodeURIComponent(versChauffeur).slice(0, 140));
+check('le chauffeur reçoit le client à contacter',
+  decodeURIComponent(versChauffeur).includes('Claire Fontaine'));
 
 await op.locator('#btnConfirmRide').click();
 await op.waitForTimeout(400);
@@ -286,9 +333,20 @@ check('admin : plus de titre « Mes réservations »',
 check('admin : la liste des courses du client n\'y est plus',
   !(await op.locator('#bookingsList').isVisible()));
 check('admin : le bloc de gestion est là', await op.locator('#blocAdmin').isVisible());
+// Le code QR ne sert à rien sur un outil de travail : le registre l'a remplacé.
+check('admin : plus d\'onglet code QR',
+  !(await op.locator('#navQr').isVisible())
+  && await op.locator('#navRegistre').isVisible());
+await op.locator('#navRegistre').click();
+await op.waitForTimeout(400);
+check('admin : le registre est un écran à part',
+  await op.locator('#screen-registre').isVisible()
+  && !(await op.locator('#screen-bookings').isVisible()));
 check('admin : les tableaux sont vides tant qu\'aucune course n\'est réalisée',
   await op.locator('#videChauffeurs').isVisible()
   && await op.locator('#videSemaines').isVisible());
+await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.waitForTimeout(300);
 
 // Une saisie incomplète ne crée rien : on ne veut pas d'une course sans prix.
 await op.fill('#rapideClient', 'Hôtel Ibis CDG');
@@ -325,8 +383,8 @@ check('admin : le formulaire est vidé pour la course suivante',
   (await op.inputValue('#rapideDepart')) === '' && (await op.inputValue('#rapidePrix')) === '');
 
 // Une course confirmée n'est pas une course faite : elle ne compte pas encore.
-await op.locator('.nav-item[data-target="screen-bookings"]').click();
-await op.waitForTimeout(300);
+await op.locator('#navRegistre').click();
+await op.waitForTimeout(400);
 check('admin : une course confirmée ne gonfle pas le chiffre d\'affaires',
   await op.locator('#videChauffeurs').isVisible());
 
@@ -338,7 +396,7 @@ await op.evaluate(() => {
 });
 await op.locator('.nav-item[data-target="screen-home"]').click();
 await op.waitForTimeout(200);
-await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.locator('#navRegistre').click();
 await op.waitForTimeout(400);
 const tblCh = await op.locator('#blocChauffeurs').textContent();
 check('admin : le chauffeur apparaît avec sa course',
@@ -374,7 +432,7 @@ await op.evaluate(() => {
 });
 await op.reload({ waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
-await op.locator('.nav-item[data-target="screen-bookings"]').click();
+await op.locator('#navRegistre').click();
 await op.waitForTimeout(400);
 check('admin : une course du jour entre dans la semaine en cours',
   (await op.locator('#kpiCourses').textContent()) === '1'
@@ -402,6 +460,39 @@ check('admin : l\'export comptable produit un CSV',
 check('admin : le CSV porte les colonnes utiles au comptable',
   (await op.evaluate(() => coursesCsv().split('\r\n')[0]))
     .includes('Commission'), await op.evaluate(() => coursesCsv().split('\r\n')[0]));
+
+// Rien ne se perd : la même course se retrouve à la semaine, au mois et à
+// l'année, et par une recherche libre.
+await op.locator('#choixPeriode [data-periode="mois"]').click();
+await op.waitForTimeout(300);
+const parMois = await op.locator('#blocSemaines').textContent();
+check('registre : le résultat se lit aussi par mois',
+  /\b(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b/i.test(parMois),
+  parMois.replace(/\s+/g, ' ').slice(0, 90));
+await op.locator('#choixPeriode [data-periode="annee"]').click();
+await op.waitForTimeout(300);
+const parAn = await op.locator('#blocSemaines').textContent();
+check('registre : et par année', /20\d\d/.test(parAn), parAn.replace(/\s+/g, ' ').slice(0, 90));
+check('registre : les deux courses sont toutes deux comptées',
+  parAn.includes('2030') && parAn.includes('2026'), parAn.replace(/\s+/g, ' ').slice(0, 120));
+
+check('registre : rien ne s\'affiche tant qu\'on ne cherche rien',
+  (await op.locator('#resultatsRecherche .ligne-demande').count()) === 0);
+await op.fill('#rechercheCourse', 'Yusuf');
+await op.waitForTimeout(400);
+check('registre : chercher un chauffeur retrouve ses courses',
+  (await op.locator('#resultatsRecherche .ligne-demande').count()) === 2,
+  String(await op.locator('#resultatsRecherche .ligne-demande').count()));
+await op.fill('#rechercheCourse', '2030-03');
+await op.waitForTimeout(400);
+check('registre : chercher un mois retrouve la course de ce mois',
+  (await op.locator('#resultatsRecherche .ligne-demande').count()) === 1);
+await op.fill('#rechercheCourse', 'zzzz');
+await op.waitForTimeout(400);
+check('registre : une recherche sans résultat le dit',
+  await op.locator('#videRecherche').isVisible());
+await op.fill('#rechercheCourse', '');
+await op.waitForTimeout(300);
 
 // Cliquer un indicateur ne doit pas dérégler le filtre du tableau de bord.
 await op.locator('#kpiCourses').click();

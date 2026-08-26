@@ -116,9 +116,10 @@ placer les courses qu'il ne peut pas assurer lui-même.
 
 ## Tarification
 
-Berline 5 € + 1,50 €/km (4 pass.) · Berline VIP 10 € + 2,20 €/km (3) ·
-Van 10 € + 2,50 €/km (7) · Van VIP 15 € + 3,50 €/km (6).
-Horaire : 50 / 75 / 70 / 95 €. +20 % nuit et week-end. TVA 10 % incluse.
+Berline 5,75 € + 1,75 €/km (4 pass.) · Berline VIP 11,50 € + 2,55 €/km (3) ·
+Van 11,50 € + 2,90 €/km (7) · Van VIP 17,25 € + 4,05 €/km (6).
+Horaire : 58 / 86 / 80 / 109 €. +20 % nuit et week-end. TVA 10 % incluse.
+Grille relevée de 15 % en août 2026, à la demande de Barbaros.
 60 min d'attente offertes en aéroport, 30 min ailleurs.
 Annulation gratuite jusqu'à 60 min avant.
 
@@ -154,25 +155,55 @@ y est masqué et la page force `fr`. Les six langues restent au client. Les
 suites de tests ne doivent donc plus régler `#langSelect` sur une page
 exploitant.
 
-**La page de gestion (onglet « Créer »)** tient, dans cet ordre : le
-formulaire de création rapide (nom, deux adresses, date, véhicule, prix,
-chauffeur facultatif → course `confirmee` d'entrée), les trois indicateurs
-« Cette semaine » avec la semaine précédente en rappel, le tableau des
-chauffeurs, le tableau des huit dernières semaines, et la sauvegarde du
-registre (JSON + restauration additive + export CSV). **Les deux tableaux ne
-comptent que les courses `realisee`** : une course confirmée n'est pas une
-course faite. La liste « Mes réservations » et son titre ne s'affichent plus
-côté exploitant — c'était un écran de client sur un outil de travail.
+**La page « Créer »** tient « Coller une demande » puis le formulaire de
+création rapide (nom, deux adresses, date, véhicule, prix, chauffeur
+facultatif → course `confirmee` d'entrée). La liste « Mes réservations » et
+son titre ne s'affichent plus côté exploitant — c'était un écran de client
+sur un outil de travail.
 
-**Le registre ne vit que dans le navigateur.** `saveBooking` en garde 300 (et
+**La page « Registre »** tient les trois indicateurs « Cette semaine » avec
+la semaine précédente en rappel, le tableau des chauffeurs, le résultat par
+**semaine / mois / année**, la **recherche libre** dans tout le registre, et
+la sauvegarde (JSON + restauration additive + export CSV). **Les tableaux ne
+comptent que les courses `realisee`** : une course confirmée n'est pas une
+course faite.
+
+**Coller une demande** (`lireDemandeCollee`) relit le message WhatsApp du
+client. Il ne devine rien à partir des libellés — un client espagnol écrit
+« Salida » — il lit la structure : `ASM-AA-MM-NNNN`, `JJ/MM/AAAA HH:MM`, les
+deux premières lignes « … : … », la ligne à points médians, la dernière
+ligne « nom — téléphone », le dernier montant en euros. **Ne jamais changer
+la forme du message client sans adapter ce lecteur**, et inversement.
+
+**Le registre ne vit que dans le navigateur.** `saveBooking` en garde 1000 (et
 non 10 comme au début, qui effaçait trois jours de travail). Le dire à
 Barbaros : sauvegarder chaque semaine tant qu'il n'y a pas de serveur.
 
-**Le cycle d'une demande** : le message WhatsApp du client porte un lien
-`?a=` → la demande entre dans le tableau de bord en attente → l'exploitant
-diffuse au groupe, saisit le chauffeur retenu, confirme (`?ok=`) ou refuse
-(`?no=`) → le client ouvre le lien et son bon passe au vert (avec son
-chauffeur) ou au rouge. Rouvrir un `?a=` ne crée pas de doublon.
+**Le cycle d'une demande** : le message WhatsApp du client ne porte **plus
+aucun lien** — six lignes lisibles, rien d'autre → l'exploitant le **colle**
+dans « Coller une demande » (page Créer), le formulaire se remplit seul, il
+enregistre → il saisit le chauffeur, lui envoie la course **en toutes
+lettres** → il confirme (`?ok=`) ou refuse (`?no=`) au client, qui ouvre le
+lien et voit son bon passer au vert ou au rouge.
+
+**Plus rien ne fabrique de lien `?a=` ni `?c=`.** Les lecteurs restent en
+place pour que les liens déjà partis dans WhatsApp continuent de s'ouvrir,
+mais l'écran chauffeur n'est plus alimenté : le chauffeur n'a rien à
+cliquer, il lit son message et il y va. Ne pas les recréer sans demande
+explicite de Barbaros.
+
+**Le tableau de bord se lit d'un coup d'œil.** Une demande à trancher est en
+**or plein, texte noir, qui respire** ; une course confirmée mais pas encore
+faite est seulement **cerclée d'or** ; les réalisées et les refus retombent
+en gris. Deux degrés, pas un seul : si tout criait pareil, plus rien ne
+crierait. Chaque ligne porte **depuis combien de temps** le bon est là (rouge
+au-delà d'une heure sur une demande non tranchée) et un bouton **Appeler**.
+Les prochains départs passent devant les courses passées.
+
+**Le code QR n'existe plus côté exploitant** : l'onglet **Registre** a pris
+sa place (indicateurs de la semaine, chauffeurs, résultat par semaine / mois
+/ année, recherche libre, sauvegarde). La page **Créer** ne garde que la
+saisie.
 
 **Les messages WhatsApp doivent rester courts** — Barbaros les lit sur un
 téléphone, la nuit. Demande du client : 6 lignes. Annonce au groupe : 8.
@@ -231,7 +262,7 @@ Les terminaux restent proposés comme adresses.
    classeur `suivi-as-mine.xlsx` n'est committé que vide.
 4. **Un VTC n'a pas le droit d'avoir un taximètre.** Le prix doit être
    connu ou calculable **avant** le départ. Une course à destination
-   ouverte doit donc annoncer la **grille** (« 5 € + 1,50 €/km ») et non
+   ouverte doit donc annoncer la **grille** (« 5,75 € + 1,75 €/km ») et non
    « prix à définir ».
 5. **En confiant des courses à des tiers, Asmine est une centrale de
    réservation** (Code des transports L3142-1 et s.) : obligation de
