@@ -150,6 +150,15 @@ diffuse au groupe, saisit le chauffeur retenu, confirme (`?ok=`) ou refuse
 (`?no=`) → le client ouvre le lien et son bon passe au vert (avec son
 chauffeur) ou au rouge. Rouvrir un `?a=` ne crée pas de doublon.
 
+**Les messages WhatsApp doivent rester courts** — Barbaros les lit sur un
+téléphone, la nuit. Demande du client : 6 lignes. Annonce au groupe : 8.
+Fin de course : 1. Ne jamais y recopier ce que le lien contient déjà.
+
+**L'écran chauffeur n'envoie AUCUN message automatique.** Barbaros attribue
+la course lui-même (champ libre nom + téléphone sur le bon) : il sait déjà
+qui roule. Les étapes ne servent qu'au chauffeur. Il clôt lui-même par
+« Marquer comme réalisée ».
+
 **L'annonce au groupe ne porte JAMAIS le lien de course.** 350 caractères
 illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
 en privé, au seul chauffeur retenu, depuis le bon. Les messages au client

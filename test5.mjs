@@ -116,6 +116,7 @@ const bon = await op.locator('#voucherBody').textContent();
 check('bon : montant ferme', bon.includes('Prix total') && bon.includes('TVA'), bon.slice(-140));
 check('bon : en attente de confirmation', bon.includes('En attente de confirmation'));
 const prixReserve = await op.evaluate(() => lastVoucher.prix.total);
+const eurTexte = (n) => n.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 // --- L'annonce au groupe, puis le lien au seul chauffeur retenu ---
 const hrefDispatch = await op.locator('#btnDispatchWhatsapp').getAttribute('href');
@@ -179,14 +180,17 @@ await ch.fill('#driverNom', 'Mehmet K.');
 await ch.locator('#btnDriverPrendre').click();
 await ch.waitForTimeout(300);
 check('course acceptée', (await ch.locator('#driverTitle').textContent()).includes('acceptée'));
-const msgPris = await ch.evaluate(() => window.__ouvert[window.__ouvert.length - 1]);
-check('un message part vers Asmine avec le nom du chauffeur',
-  msgPris.includes('wa.me/33759312433') && decodeURIComponent(msgPris).includes('Mehmet K.'));
+// Les étapes ne servent qu'au chauffeur : Asmine lui a attribué la course,
+// il n'a rien à apprendre de trois messages automatiques.
+check('accepter la course n\'envoie aucun message',
+  (await ch.evaluate(() => window.__ouvert.length)) === 0);
 
 // Sur place, puis départ, puis fin
 await ch.locator('#btnDriverSurPlace').click();
 await ch.waitForTimeout(300);
 check('arrivée sur place enregistrée', (await ch.locator('#driverTitle').textContent()).includes('Sur place'));
+check('« sur place » n\'envoie aucun message non plus',
+  (await ch.evaluate(() => window.__ouvert.length)) === 0);
 check('le compteur d\'attente tourne', await ch.locator('#driverChrono').isVisible());
 await ch.locator('#btnDriverDemarrer').click();
 await ch.waitForTimeout(300);
@@ -200,18 +204,30 @@ const montant = await ch.evaluate(() => montantCourse(courseChauffeur).total);
 check('le montant est celui convenu à la réservation',
   Math.abs(montant - prixReserve) < 0.01, `${montant} contre ${prixReserve}`);
 
+// Seul geste qui envoie encore quelque chose, et sur décision du chauffeur :
+// un message court de fin de course, sans lien encodé.
 await ch.locator('#btnDriverEnvoyer').click();
 await ch.waitForTimeout(300);
 const msgFin = decodeURIComponent(await ch.evaluate(() => window.__ouvert[window.__ouvert.length - 1]));
-check('le récapitulatif de fin part vers Asmine', msgFin.includes(ref));
-const lienRetour = (msgFin.match(/https?:\/\/\S+\?f=[\w-]+/) || [])[0];
-check('un lien de retour accompagne le message', !!lienRetour);
-const paramF = lienRetour ? new URL(lienRetour).searchParams.get('f') : null;
+check('le message de fin est court et porte la référence',
+  msgFin.includes(ref) && msgFin.split('\n').length <= 2, msgFin.slice(0, 110));
+check('le message de fin ne porte plus de lien encodé', !/\?f=|\?c=/.test(msgFin));
+check('le montant encaissé y figure', msgFin.includes(eurTexte(prixReserve)),
+  `${msgFin.slice(-40)} / attendu ${eurTexte(prixReserve)}`);
 
-/* ======================== RETOUR CHEZ L'EXPLOITANT ======================== */
-await op.goto(BASE + '/index.html?f=' + paramF, { waitUntil: 'domcontentloaded' });
-await op.waitForTimeout(800);
-check('le retour ouvre le bon de réservation', await op.locator('#screen-voucher').isVisible());
+/* ================= L'EXPLOITANT CLÔT LA COURSE LUI-MÊME ================= */
+await op.locator('.nav-item[data-target="screen-home"]').click();
+await op.waitForTimeout(400);
+await op.locator('#listeDemandes .ligne-demande').first().click();
+await op.waitForTimeout(400);
+check('clore la course n\'est possible qu\'après confirmation',
+  !(await op.locator('#btnDoneRide').isVisible()));
+await op.locator('#btnConfirmRide').click();
+await op.waitForTimeout(400);
+check('une fois confirmée, la course peut être marquée réalisée',
+  await op.locator('#btnDoneRide').isVisible());
+await op.locator('#btnDoneRide').click();
+await op.waitForTimeout(400);
 const bonFinal = await op.locator('#voucherBody').textContent();
 check('bon : la course est marquée réalisée', bonFinal.includes('Course réalisée'), bonFinal.slice(0, 160));
 const enregistre = await op.evaluate((r) =>
@@ -221,8 +237,14 @@ check('course enregistrée comme réalisée', enregistre && enregistre.statut ==
 check('montant inchangé de bout en bout',
   enregistre && Math.abs(enregistre.prix.total - prixReserve) < 0.01,
   enregistre ? `${enregistre.prix.total} contre ${prixReserve}` : '');
-check('chauffeur déclaré sur la course',
-  enregistre && enregistre.course.chauffeurDeclare === 'Mehmet K.');
+// Le chauffeur est celui que l'exploitant a saisi lui-même, pas une
+// déclaration renvoyée par l'écran chauffeur : c'est lui qui attribue.
+check('le chauffeur attribué reste sur la course',
+  enregistre && enregistre.course.chauffeurDeclare === 'Mehmet K.',
+  enregistre ? String(enregistre.course.chauffeurDeclare) : 'introuvable');
+check('son téléphone aussi',
+  enregistre && enregistre.course.chauffeurTelephone === '06 98 76 54 32',
+  enregistre ? String(enregistre.course.chauffeurTelephone) : 'introuvable');
 
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');

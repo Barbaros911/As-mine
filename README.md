@@ -140,7 +140,7 @@ node test.mjs      # interface, traductions, accessibilité, validations (21)
 node test2.mjs     # parcours complet de réservation, CGV (23)
 node test3.mjs     # bon, facture, vol, passager tiers, référencement (70)
 node test4.mjs     # hôtel, diffusion, carte, langue, capacité (75)
-node test5.mjs     # prix ferme, lien de course, écran chauffeur (43)
+node test5.mjs     # prix ferme, lien de course, écran chauffeur (47)
 node test6.mjs     # délai de 3 h, avertissement et appel de confirmation (20)
 node test7.mjs     # numérotation, confirmation à distance, code d'accès (26)
 node test8.mjs     # deux espaces distincts, boucle de la demande (45)
@@ -297,6 +297,22 @@ ouvert le lien : si le client n'envoie pas son message WhatsApp, ou si Asmine
 ne touche pas au lien, la demande n'existe pas chez lui. Un vrai registre
 partagé demande le serveur.
 
+
+### Des messages courts, et le moins possible
+
+Trois principes, appris à l'usage sur un vrai téléphone :
+
+- **La demande que le client vous envoie tient en six lignes** : référence,
+  date, départ, arrivée, passagers-véhicule-prix, nom et téléphone. Le
+  détail complet est dans le lien, qui ouvre la demande dans votre tableau
+  de bord — le recopier dans le message ne servait personne.
+- **L'écran chauffeur n'envoie plus rien tout seul.** Vous attribuez la
+  course : vous savez déjà qui roule. Les étapes — accepter, sur place,
+  démarrer, terminer — ne servent qu'au chauffeur, sur son propre
+  téléphone. Seules deux choses partent encore, et sur sa décision : sa
+  position quand on la lui demande, et un message de fin d'une ligne.
+- **Vous clôturez la course vous-même**, par « Marquer comme réalisée » sur
+  le bon. Y compris quand vous l'avez conduite. Rien à attendre de personne.
 
 ### Pourquoi l'annonce au groupe ne porte pas le lien
 
