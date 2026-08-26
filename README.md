@@ -407,30 +407,25 @@ Les messages au client partent de la même façon, **droit sur son numéro** :
 il figure dans la demande, il n'y a aucune raison de passer par le sélecteur
 de contacts.
 
-## Confirmer une course réservée par le client
+## Confirmer une course au client
 
-Le bouton **« Confirmer la course »**, sur le bon en mode exploitant, ne peut
-agir que sur les courses enregistrées sur *votre* appareil — celles que vous
-avez saisies vous-même, parce qu'un hôtel vous a appelé. Chaque téléphone
-garde ses propres courses ; il n'y a pas de base commune sans serveur.
+Le bloc « Confirmer une course à distance » n'existe plus : il demandait de
+recopier une référence à la main pour reconstruire une course qu'on n'avait
+pas, et personne ne s'en servait. Depuis que le message du client se recolle
+dans « Coller une demande », la course est toujours sur l'appareil au moment
+de confirmer.
 
-Quand le client a réservé depuis son propre téléphone, sa course n'est pas
-chez vous : vous n'avez que son message WhatsApp. D'où le **lien de
-confirmation**, exact pendant du lien de course envoyé au chauffeur :
+Le circuit tient donc en trois gestes, tous sur le bon de la course :
 
-1. onglet **Créer**, en mode exploitant → bloc « Confirmer une course à
-   distance », en bas de page ;
-2. recopiez la référence reçue (`ASM-26-08-0001`), et si vous le voulez le
-   nom et le téléphone du chauffeur retenu ;
-3. **Envoyer la confirmation sur WhatsApp** — ou copier le lien.
+1. saisir le **chauffeur retenu** (nom, téléphone) ;
+2. **Confirmer la course** ;
+3. **Prévenir le client** — le message part droit sur son numéro, avec la
+   référence, le chauffeur et un lien `?ok=`.
 
-Le client ouvre le lien : son bon passe de « En attente de confirmation »
+Le client ouvre ce lien : son bon passe de « En attente de confirmation »
 (orange) à **« Course confirmée »** (vert), l'avertissement des moins de 3 h
-disparaît, et le chauffeur annoncé apparaît sur son bon avec son numéro.
-
-La référence est vérifiée avant l'envoi : une référence mal recopiée est
-refusée plutôt que d'envoyer le client sur un lien mort. Un lien ouvert sur
-un appareil qui ne connaît pas la course ne fabrique rien — il le dit.
+disparaît, et le chauffeur annoncé apparaît avec son numéro. Un lien ouvert
+sur un appareil qui ne connaît pas la course ne fabrique rien — il le dit.
 
 ## La numérotation des courses
 

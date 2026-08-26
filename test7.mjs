@@ -68,8 +68,8 @@ await client.selectOption('#langSelect', 'fr');
 await client.locator('#cookieAccept').click().catch(() => {});
 await client.waitForTimeout(200);
 
-check('le client n\'a pas l\'outil de confirmation',
-  !(await client.locator('#outilConfirmation').isVisible()));
+check('le client n\'a pas la page de gestion',
+  !(await client.locator('#blocAdmin').isVisible()));
 
 // Un client curieux qui devine « ?exploitant=1 » tombe sur le code d'accès.
 // Le voile couvre le site : ni les outils, ni la navigation ne s'atteignent.
@@ -154,25 +154,35 @@ await op.waitForTimeout(300);
 
 check('l\'exploitant n\'a pas la course du client sur son appareil',
   (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 0);
-check('l\'outil de confirmation à distance lui est proposé',
-  await op.locator('#outilConfirmation').isVisible());
+// L'outil « confirmer à distance » n'existe plus : la course arrive chez
+// l'exploitant par le message du client, qu'il recolle.
+check('plus d\'outil de confirmation à distance',
+  (await op.locator('#refAConfirmer').count()) === 0);
 
-// Une référence mal recopiée ne doit pas produire de lien mort
-await op.fill('#refAConfirmer', 'ASM-123');
-await op.locator('#btnEnvoyerConfirmation').click();
-await op.waitForTimeout(200);
-check('une référence mal formée est refusée',
-  await op.locator('#erreurConfirmation').isVisible(),
-  await op.locator('#erreurConfirmation').textContent());
+const messageRecu = decodeURIComponent(
+  (await client.evaluate(() => window.__ouvert[0] || '')).replace(/^[^?]*\?text=/, ''));
+await op.fill('#collerDemande', messageRecu);
+await op.locator('#btnLireDemande').click();
+await op.waitForTimeout(300);
+check('le message du client remplit le formulaire',
+  (await op.inputValue('#rapideClient')) === 'Claire Fontaine',
+  await op.inputValue('#rapideClient'));
+await op.fill('#rapideChauffeur', 'Mehmet K.');
+await op.fill('#rapideChauffeurTel', '+33 6 98 76 54 32');
+await op.locator('#btnCreerRapide').click();
+await op.waitForTimeout(600);
+check('la course reprend la référence que le client a sous les yeux',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].ref)) === ref);
+check('elle est confirmée d\'entrée : c\'est l\'exploitant qui l\'a saisie',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].statut)) === 'confirmee');
 
-await op.fill('#refAConfirmer', ref);
-await op.fill('#nomChauffeurConfirme', 'Mehmet K.');
-await op.fill('#telChauffeurConfirme', '+33 6 98 76 54 32');
-await op.waitForTimeout(200);
-const hrefConfirm = await op.locator('#btnEnvoyerConfirmation').getAttribute('href');
-const message = decodeURIComponent(hrefConfirm.replace('https://wa.me/?text=', ''));
-check('le message de confirmation est prêt à partir',
-  hrefConfirm.startsWith('https://wa.me/?text='), hrefConfirm.slice(0, 55) + '…');
+// Il prévient le client depuis le bon lui-même.
+check('le bouton « prévenir le client » est offert',
+  await op.locator('#btnPrevenirClient').isVisible());
+const brut = await op.locator('#btnPrevenirClient').getAttribute('href');
+check('le message part droit sur le numéro du client',
+  brut.startsWith('https://wa.me/33612345678'), brut.slice(0, 40));
+const message = decodeURIComponent(brut.replace(/^[^?]*\?text=/, ''));
 check('le message porte la référence de la course', message.includes(ref), message.slice(0, 90));
 check('le message annonce le chauffeur et son téléphone',
   message.includes('Mehmet K.') && message.includes('+33 6 98 76 54 32'), message.slice(0, 140));
@@ -196,12 +206,16 @@ const enregistre = await client.evaluate((r) =>
 check('la course est enregistrée comme confirmée',
   enregistre && enregistre.statut === 'confirmee', enregistre ? enregistre.statut : 'introuvable');
 
-// Un lien pour une course inconnue ne doit rien casser ni rien inventer
-await op.goto(BASE + '/index.html?ok=' + paramOk, { waitUntil: 'domcontentloaded' });
+// Un lien pour une course inconnue de l'appareil ne doit rien inventer :
+// on ne fabrique pas un bon à partir d'une référence qu'on n'a jamais vue.
+const okInconnu = await op.evaluate(() =>
+  encoderCharge({ r: 'ASM-99-99-9999', n: 'Personne', tel: '' }));
+await op.goto(BASE + '/index.html?ok=' + okInconnu, { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(700);
-check('chez l\'exploitant, le lien ne fabrique pas de course',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 0);
-check('chez l\'exploitant, aucun bon ne s\'ouvre',
+check('un lien pour une course inconnue ne fabrique rien',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')
+    .some(b => b.ref === 'ASM-99-99-9999'))) === false);
+check('et aucun bon ne s\'ouvre',
   !(await op.locator('#screen-voucher').isVisible()));
 
 /* ====================== LE RANG SUIT D'UNE COURSE À L'AUTRE ====================== */
