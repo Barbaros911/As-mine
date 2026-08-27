@@ -206,6 +206,11 @@
     padding:12px 6px;border-radius:14px;border:1px solid var(--line);
     background:var(--panel);transition:border-color .2s;}
   .carte-compteur.actif{border-color:var(--gold);}
+  /* Le compteur « En attente » porte la couleur de ce qu'il compte : l'œil
+     fait le lien entre le chiffre en haut et les lignes rouges en dessous.
+     Il ne s'allume que s'il y a vraiment quelque chose à trancher. */
+  .carte-compteur.alerte{border-color:var(--red);}
+  .carte-compteur.alerte .chiffre{color:var(--red);}
   .carte-compteur .chiffre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
     font-size:22px;font-weight:700;line-height:1;color:var(--gold);}
   .carte-compteur .etiquette{font-size:10px;color:var(--muted);text-align:center;line-height:1.2;}
@@ -220,28 +225,30 @@
   .ligne-demande{display:block;width:100%;text-align:left;padding:14px;border-radius:16px;
     border:1px solid var(--line);background:var(--panel);}
   .ligne-demande{cursor:pointer;}
-  /* Une demande qui n'a pas encore été tranchée s'affiche en or plein, texte
-     noir : sur un fil de courses grises, elle ne peut plus passer inaperçue.
-     C'est la seule ligne de tout le site qui inverse les couleurs — c'est ce
-     qui lui donne sa force. */
+  /* Trois degrés, et un seul crie. Une demande pas encore tranchée s'affiche
+     en ROUGE plein, texte blanc : c'est la seule ligne de tout le site qui
+     prend cette couleur, et elle veut dire une chose — quelqu'un attend une
+     réponse, maintenant. Une course confirmée est cerclée d'or : elle reste à
+     assurer, mais elle n'attend plus personne. Le reste retombe en gris. Si
+     tout criait pareil, plus rien ne crierait. */
   .ligne-demande.en-attente{
-    background:linear-gradient(135deg,#F5D77A 0%,var(--gold) 55%,#C9A233 100%);
-    border-color:#F7E1A0;color:#141210;
-    box-shadow:0 0 0 1px rgba(247,225,160,.5), 0 6px 22px rgba(212,175,55,.35);
-    animation:appelOr 2.2s ease-in-out infinite;}
-  /* Deux degrés d'or, pas un seul. Une demande à trancher est pleine et
-     respire : elle réclame une décision maintenant. Une course confirmée est
-     seulement cerclée d'or : elle reste à assurer, mais elle n'attend rien de
-     personne. Si tout criait pareil, plus rien ne crierait. */
+    background:linear-gradient(135deg,#E5484D 0%,#C9302F 60%,#A32820 100%);
+    border-color:#F08A85;color:#FFF6F5;
+    box-shadow:0 0 0 1px rgba(240,138,133,.55), 0 6px 22px rgba(229,72,77,.38);
+    animation:appelRouge 2.2s ease-in-out infinite;}
   .ligne-demande.a-assurer{border-color:var(--gold);
     box-shadow:0 0 0 1px rgba(212,175,55,.35);
     background:linear-gradient(135deg, rgba(212,175,55,.10), rgba(212,175,55,.03));}
-  .ligne-demande.en-attente *{color:#141210 !important;}
-  .ligne-demande.en-attente .pastille.attente{background:#141210;}
-  .ligne-demande.en-attente .lien-appel{border-color:rgba(20,18,16,.45);background:rgba(255,255,255,.35);}
-  @keyframes appelOr{
-    0%,100%{box-shadow:0 0 0 1px rgba(247,225,160,.5), 0 6px 22px rgba(212,175,55,.35);}
-    50%{box-shadow:0 0 0 2px #F7E1A0, 0 8px 30px rgba(212,175,55,.6);}}
+  .ligne-demande.en-attente *{color:#FFF6F5 !important;}
+  .ligne-demande.en-attente .pastille.attente{background:#FFF6F5;}
+  .ligne-demande.en-attente .lien-appel{border-color:rgba(255,255,255,.6);background:rgba(255,255,255,.16);}
+  .ligne-demande.en-attente .depuis{background:rgba(0,0,0,.28);}
+  /* Passé une heure, le compteur d'attente s'inverse : blanc plein sur le
+     rouge. Le rouge sur rouge ne se verrait pas. */
+  .ligne-demande.en-attente .depuis.tardif{background:#FFF6F5;color:#A32820 !important;}
+  @keyframes appelRouge{
+    0%,100%{box-shadow:0 0 0 1px rgba(240,138,133,.55), 0 6px 22px rgba(229,72,77,.38);}
+    50%{box-shadow:0 0 0 2px #F08A85, 0 8px 30px rgba(229,72,77,.65);}}
   @media (prefers-reduced-motion: reduce){ .ligne-demande.en-attente{animation:none;} }
   /* Depuis combien de temps cette demande attend. Un client qui patiente
      depuis deux heures n'est pas dans la même situation qu'un autre arrivé
@@ -4169,7 +4176,11 @@ function renderTableauDeBord(){
 
   const courses = loadBookings();
   const parEtat = (e)=> courses.filter(c=>(c.statut || "attente") === e);
-  document.getElementById("compteurAttente").textContent = parEtat("attente").length;
+  const enAttente = parEtat("attente").length;
+  document.getElementById("compteurAttente").textContent = enAttente;
+  // Le compteur ne s'allume que s'il y a réellement une décision à prendre.
+  document.querySelector('.carte-compteur[data-filtre="attente"]')
+    .classList.toggle("alerte", enAttente > 0);
   document.getElementById("compteurConfirmee").textContent = parEtat("confirmee").length;
   document.getElementById("compteurRealisee").textContent = parEtat("realisee").length;
   // Portée limitée au tableau de bord : les compteurs de la page de gestion

@@ -254,9 +254,38 @@ check('le prix et le client sont repris du message',
   Math.abs(cColle.prix.total - prixReserve) < 0.01
   && cColle.client.nom === 'Claire Fontaine',
   `${cColle.prix.total} / ${cColle.client.nom}`);
-check('elle s\'affiche aussitôt en or sur le tableau de bord',
+check('elle s\'affiche aussitôt en rouge sur le tableau de bord',
   (await colle.locator('#listeDemandes .ligne-demande.en-attente').count()) === 1
   && (await colle.locator('#compteurAttente').textContent()) === '1');
+// Rouge plein, texte clair : c'est la seule ligne du site qui prend cette
+// couleur, et elle ne veut dire qu'une chose — quelqu'un attend une réponse.
+const teinte = await colle.locator('#listeDemandes .ligne-demande.en-attente').first()
+  .evaluate(el => {
+    const s = getComputedStyle(el);
+    return { fond: s.backgroundImage, texte: s.color };
+  });
+check('la demande non tranchée est bien rouge, pas dorée',
+  teinte.fond.includes('229, 72, 77'), teinte.fond.slice(0, 80));
+check('son texte reste lisible sur ce rouge',
+  teinte.texte.includes('255') , teinte.texte);
+check('le compteur « En attente » s\'allume en rouge',
+  await colle.locator('.carte-compteur[data-filtre="attente"].alerte').isVisible());
+// Une course confirmée ne crie pas : elle est seulement cerclée d'or.
+await colle.evaluate(() => {
+  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  l[0].statut = 'confirmee';
+  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+});
+await colle.reload({ waitUntil: 'domcontentloaded' });
+await colle.waitForTimeout(700);
+// Le filtre par défaut ne montre que les demandes en attente : on regarde tout.
+await colle.locator('#filtresDemandes .puce-filtre').first().click();
+await colle.waitForTimeout(300);
+check('une fois tranchée, la course quitte le rouge',
+  (await colle.locator('#listeDemandes .ligne-demande.en-attente').count()) === 0
+  && (await colle.locator('#listeDemandes .ligne-demande.a-assurer').count()) === 1);
+check('et le compteur s\'éteint',
+  (await colle.locator('.carte-compteur[data-filtre="attente"].alerte').count()) === 0);
 // Recoller la même demande ne doit pas la dédoubler.
 await colle.locator('#btnCollerAccueil').click();
 await colle.waitForTimeout(500);

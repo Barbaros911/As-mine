@@ -313,7 +313,7 @@ peut voyager tout seul du téléphone du client à celui de l'exploitant — il
 faut que quelqu'un transporte le message, et le moins cher des transports
 est le presse-papiers. D'où le bouton **« Coller une demande reçue »**, en
 haut du tableau de bord : on copie le message dans WhatsApp, un appui, et la
-course entre **en attente**, en or, dans la liste. Une demande venue d'un
+course entre **en attente**, en rouge, dans la liste. Une demande venue d'un
 client n'est jamais confirmée d'entrée : il attend une réponse.
 
 Si le navigateur refuse l'accès au presse-papiers, le bouton emmène sur le
