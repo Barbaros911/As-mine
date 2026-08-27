@@ -205,11 +205,15 @@ mais l'écran chauffeur n'est plus alimenté : le chauffeur n'a rien à
 cliquer, il lit son message et il y va. Ne pas les recréer sans demande
 explicite de Barbaros.
 
-**Le tableau de bord se lit d'un coup d'œil.** Une demande à trancher est en
-**or plein, texte noir, qui respire** ; une course confirmée mais pas encore
-faite est seulement **cerclée d'or** ; les réalisées et les refus retombent
-en gris. Deux degrés, pas un seul : si tout criait pareil, plus rien ne
-crierait. Chaque ligne porte **depuis combien de temps** le bon est là (rouge
+**Le tableau de bord se lit d'un coup d'œil.** Une demande pas encore
+tranchée est en **rouge plein, texte clair, qui respire** — c'est la seule
+ligne de tout le site qui prend cette couleur, et elle ne veut dire qu'une
+chose : quelqu'un attend une réponse. Le compteur « En attente » s'allume en
+rouge avec elle. Une course confirmée mais pas encore faite est seulement
+**cerclée d'or** : elle reste à assurer, mais elle n'attend plus personne.
+Les réalisées et les refus retombent en gris. Trois degrés, un seul qui crie :
+si tout criait pareil, plus rien ne crierait. **Ne jamais remettre l'attente
+en or** — essayé, refusé. Chaque ligne porte **depuis combien de temps** le bon est là (rouge
 au-delà d'une heure sur une demande non tranchée) et un bouton **Appeler**.
 Les prochains départs passent devant les courses passées.
 
