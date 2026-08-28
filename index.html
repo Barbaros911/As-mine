@@ -439,6 +439,14 @@
   .pastille-wa:active{transform:scale(.94);}
   @media (min-width:640px){ .pastille-wa{left:24px;bottom:24px;} }
 
+  /* Les chauffeurs récents, en boutons : le geste répété vingt fois par
+     semaine ne doit pas coûter une saisie au clavier sur un quai d'aéroport. */
+  .puce-chauffeur{font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;
+    border:1px solid var(--line);background:var(--field);color:var(--ivory);
+    min-height:34px;cursor:pointer;}
+  .puce-chauffeur.actif{border-color:var(--gold);background:rgba(184,134,43,.12);
+    color:var(--gold-soft);box-shadow:0 0 0 1px var(--gold);}
+
   /* Les quatre promesses : une bande qui se fait glisser au doigt sur
      téléphone, une ligne complète sur écran large. */
   .promesses{display:flex;gap:16px;overflow-x:auto;list-style:none;margin:14px 0 20px;
@@ -975,9 +983,14 @@
          nom part au client avec la confirmation, et s'affiche sur son bon. -->
     <div id="chauffeurRetenu" class="hidden rounded-2xl bg-[var(--panel-2)] card-line p-3 mb-4 no-print">
       <p class="text-[10px] uppercase tracking-widest font-mono text-[var(--gold)] mb-2" data-i18n="assign_driver">Chauffeur attribué</p>
-      <input id="nomChauffeurRetenu" type="text" autocomplete="off"
+      <!-- Les chauffeurs déjà sollicités sont proposés dès la première
+           lettre : le nom et le numéro se remplissent ensemble. Le champ
+           reste libre — un nouveau chauffeur se tape et entre au carnet. -->
+      <input id="nomChauffeurRetenu" type="text" autocomplete="off" list="carnetChauffeurs"
              class="w-full bg-[var(--field)] border border-[var(--line)] focus:border-[var(--gold)] rounded-xl px-3 py-2.5 text-sm outline-none mb-2"
              data-i18n-placeholder="assign_driver_name" placeholder="Nom du chauffeur">
+      <datalist id="carnetChauffeurs"></datalist>
+      <div id="chauffeursRecents" class="flex flex-wrap gap-1.5 mb-2"></div>
       <input id="telChauffeurRetenu" type="tel" autocomplete="off"
              class="w-full bg-[var(--field)] border border-[var(--line)] focus:border-[var(--gold)] rounded-xl px-3 py-2.5 text-sm outline-none"
              data-i18n-placeholder="assign_driver_phone" placeholder="Son téléphone">
@@ -1681,6 +1694,65 @@ const AVIS = [
   // { nom:"", note:5, date:"", trajet:"", texte:"" }
 ];
 
+/* =====================================================================
+   LE CARNET DE CHAUFFEURS
+   ---------------------------------------------------------------------
+   Il vit dans le navigateur de l'exploitant, comme le registre. Avant, la
+   liste était une constante vide dans le code : personne ne pouvait la
+   remplir, et il fallait retaper « Mehmet — 06 12… » à chaque course, y
+   compris pour les chauffeurs qui roulent toutes les semaines. C'était le
+   geste le plus inutile de tout l'outil.
+
+   Ce carnet sert aussi de dossier : en confiant des courses à des tiers,
+   Elatransfer est une centrale de réservation (Code des transports
+   L3142-1 et s.) et doit pouvoir présenter, pour chaque chauffeur, sa
+   carte professionnelle, son inscription au registre VTC et son
+   assurance. Une date d'expiration proche s'affiche en rouge.
+   ===================================================================== */
+const CLE_CARNET = "ela_chauffeurs";
+
+function chargerCarnet(){
+  try{
+    const l = JSON.parse(localStorage.getItem(CLE_CARNET) || "[]");
+    return Array.isArray(l) ? l.filter(c => c && c.nom) : [];
+  }catch(e){ return []; }
+}
+function enregistrerCarnet(liste){
+  try{ localStorage.setItem(CLE_CARNET, JSON.stringify(liste.slice(0, 200))); }
+  catch(e){ /* stockage refusé */ }
+}
+/* Retenir un chauffeur au fil de l'eau : dès qu'un nom et un numéro sont
+   saisis sur un bon, la fiche se crée toute seule. L'exploitant ne remplit
+   donc jamais de formulaire « ajouter un chauffeur » — il travaille, et le
+   carnet se construit. C'est la seule façon qu'il existe vraiment. */
+function retenirChauffeur(nom, telephone){
+  nom = String(nom || "").trim();
+  telephone = String(telephone || "").trim();
+  if(!nom) return;
+  const liste = chargerCarnet();
+  const meme = (a,b)=> String(a||"").replace(/\D/g,"") === String(b||"").replace(/\D/g,"");
+  const existe = liste.find(c =>
+    c.nom.toLowerCase() === nom.toLowerCase() || (telephone && meme(c.telephone, telephone)));
+  if(existe){
+    existe.nom = nom;
+    if(telephone) existe.telephone = telephone;
+    existe.vuLe = new Date().toISOString();
+  }else{
+    liste.unshift({ id: "ch-" + Date.now().toString(36), nom, telephone,
+      entreprise:"", siret:"", evtc:"", carteProfessionnelle:"", expireLe:"",
+      vuLe: new Date().toISOString() });
+  }
+  // Le plus récemment sollicité en tête : c'est presque toujours le bon.
+  liste.sort((a,b)=> String(b.vuLe||"").localeCompare(String(a.vuLe||"")));
+  enregistrerCarnet(liste);
+}
+function chauffeurParNom(nom){
+  const n = String(nom||"").trim().toLowerCase();
+  return chargerCarnet().find(c => c.nom.toLowerCase() === n) || null;
+}
+
+/* Ancienne constante, gardée le temps qu'un dépôt de démonstration puisse
+   encore pré-remplir le carnet. Le vrai carnet est celui du navigateur. */
 const CHAUFFEURS = [
   // { id:"", nom:"", entreprise:"", siret:"", evtc:"", carteProfessionnelle:"", telephone:"" }
 ];
@@ -3645,8 +3717,34 @@ function renderDriverAssign(){
   const blocChauffeur = document.getElementById("chauffeurRetenu");
   blocChauffeur.classList.toggle("hidden", !lastVoucher);
   if(lastVoucher){
-    document.getElementById("nomChauffeurRetenu").value = lastVoucher.course.chauffeurDeclare || "";
-    document.getElementById("telChauffeurRetenu").value = lastVoucher.course.chauffeurTelephone || "";
+    const champNomCh = document.getElementById("nomChauffeurRetenu");
+    const champTelCh = document.getElementById("telChauffeurRetenu");
+    // On ne réécrit pas un champ que l'exploitant est en train de remplir.
+    if(document.activeElement !== champNomCh)
+      champNomCh.value = lastVoucher.course.chauffeurDeclare || "";
+    if(document.activeElement !== champTelCh)
+      champTelCh.value = lastVoucher.course.chauffeurTelephone || "";
+
+    /* Le carnet, sous deux formes : la liste complète pour la saisie assistée,
+       et les cinq derniers sollicités en boutons. Un appui suffit — c'est le
+       geste qu'on répète vingt fois par semaine, il ne doit pas coûter une
+       saisie au clavier sur un quai d'aéroport. */
+    const carnet = chargerCarnet();
+    document.getElementById("carnetChauffeurs").innerHTML =
+      carnet.map(c => `<option value="${escapeHtml(c.nom)}">${escapeHtml(c.telephone || "")}</option>`).join("");
+    const recents = document.getElementById("chauffeursRecents");
+    const choisi = (lastVoucher.course.chauffeurDeclare || "").toLowerCase();
+    recents.innerHTML = carnet.slice(0, 5).map(c => `
+      <button type="button" class="puce-chauffeur${c.nom.toLowerCase() === choisi ? " actif" : ""}"
+              data-nom="${escapeHtml(c.nom)}" data-tel="${escapeHtml(c.telephone || "")}">
+        ${escapeHtml(c.nom)}</button>`).join("");
+    recents.querySelectorAll(".puce-chauffeur").forEach(b => b.addEventListener("click", ()=>{
+      lastVoucher.course.chauffeurDeclare = b.dataset.nom;
+      lastVoucher.course.chauffeurTelephone = b.dataset.tel;
+      majBookingStocke(lastVoucher);
+      afficherDocument(documentAffiche);
+      renderDriverAssign();
+    }));
     // Le lien de course ne part qu'au chauffeur retenu : le bouton n'existe
     // qu'une fois son numéro connu. Le message reprend l'annonce, suivie du
     // lien qui lui ouvre son écran de course.
@@ -3729,12 +3827,26 @@ document.getElementById("btnConfirmRide").addEventListener("click", ()=>{
    perdre si l'on quitte l'écran. Le bouton d'annonce au client se refait
    dans la foulée, pour qu'il emporte toujours le nom à jour. */
 ["nomChauffeurRetenu","telChauffeurRetenu"].forEach(id=>{
-  document.getElementById(id).addEventListener("input", ()=>{
+  document.getElementById(id).addEventListener("input", (e)=>{
     if(!lastVoucher) return;
-    lastVoucher.course.chauffeurDeclare = document.getElementById("nomChauffeurRetenu").value.trim();
-    lastVoucher.course.chauffeurTelephone = document.getElementById("telChauffeurRetenu").value.trim();
+    const champNom = document.getElementById("nomChauffeurRetenu");
+    const champTel = document.getElementById("telChauffeurRetenu");
+    // Un nom reconnu ramène son numéro : c'est tout l'intérêt du carnet.
+    if(e.target.id === "nomChauffeurRetenu"){
+      const connu = chauffeurParNom(champNom.value);
+      if(connu && connu.telephone) champTel.value = connu.telephone;
+    }
+    lastVoucher.course.chauffeurDeclare = champNom.value.trim();
+    lastVoucher.course.chauffeurTelephone = champTel.value.trim();
     majBookingStocke(lastVoucher);
     afficherDocument(documentAffiche);
+    renderDriverAssign();
+  });
+  // On n'inscrit au carnet qu'une fois la saisie finie : sinon « M », « Me »,
+  // « Meh » créeraient trois fiches.
+  document.getElementById(id).addEventListener("change", ()=>{
+    retenirChauffeur(document.getElementById("nomChauffeurRetenu").value,
+                     document.getElementById("telChauffeurRetenu").value);
     renderDriverAssign();
   });
 });

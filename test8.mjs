@@ -712,6 +712,62 @@ check('chaque terminal se distingue dès le début de la ligne',
   await ctx.close();
 }
 
+/* ============ LE CARNET DE CHAUFFEURS ============
+   Avant, la liste des chauffeurs était une constante vide : il fallait
+   retaper « Mehmet — 06 12… » à chaque course. Le carnet se remplit
+   maintenant tout seul, au fil des attributions. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await preparer(ctx);
+  const page = await ctx.newPage();
+  page.on('pageerror', e => errors.push('PAGEERROR(carnet): ' + e.message));
+  await ouvrirEspaceExploitant(page);
+  await page.evaluate(() => { localStorage.removeItem('ela_chauffeurs'); });
+
+  const poser = async (ref, nom) => {
+    await page.evaluate(([r, n]) => enregistrerDemande(lireDemandeCollee(
+      `DEMANDE DE RÉSERVATION — ${r}\n29/08/2026 09:00\nDépart : Terminal 2E\n`
+      + `Arrivée : Gare de Lyon\n2 adultes · Berline · 98,00 €\n${n} — +33 6 11 22 33 44`)),
+      [ref, nom]);
+    await page.waitForTimeout(250);
+  };
+  await poser('ELA-26-08-0901', 'Premier Client');
+  await poser('ELA-26-08-0902', 'Second Client');
+
+  await page.locator('#listeDemandes .ligne-demande').first().click();
+  await page.waitForTimeout(400);
+  check('carnet : vide au premier usage',
+    (await page.locator('#chauffeursRecents .puce-chauffeur').count()) === 0);
+
+  await page.fill('#nomChauffeurRetenu', 'Mehmet A.');
+  await page.fill('#telChauffeurRetenu', '+33 6 98 76 54 32');
+  await page.locator('#telChauffeurRetenu').dispatchEvent('change');
+  await page.waitForTimeout(300);
+  check('carnet : le chauffeur s\'inscrit tout seul en attribuant',
+    (await page.evaluate(() => chargerCarnet().length)) === 1);
+
+  // Course suivante : il doit être proposé, et un appui doit suffire.
+  await page.locator('.nav-item[data-target="screen-home"]').click();
+  await page.waitForTimeout(400);
+  await page.locator('#listeDemandes .ligne-demande').first().click();
+  await page.waitForTimeout(400);
+  check('carnet : il est proposé sur la course suivante',
+    (await page.locator('#chauffeursRecents .puce-chauffeur').count()) === 1);
+  await page.locator('#chauffeursRecents .puce-chauffeur').first().click();
+  await page.waitForTimeout(300);
+  check('carnet : un appui remplit le nom ET le téléphone',
+    (await page.inputValue('#nomChauffeurRetenu')) === 'Mehmet A.'
+    && (await page.inputValue('#telChauffeurRetenu')).includes('98 76 54 32'));
+
+  // Le même chauffeur ne doit pas créer une deuxième fiche.
+  await page.locator('#nomChauffeurRetenu').dispatchEvent('change');
+  await page.waitForTimeout(300);
+  check('carnet : pas de doublon pour le même chauffeur',
+    (await page.evaluate(() => chargerCarnet().length)) === 1);
+
+  await ctx.close();
+}
+
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(t => console.log('  ✔ ' + t));
