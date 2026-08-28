@@ -41,7 +41,7 @@ async function ouvrirEspaceExploitant(page) {
   await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
-  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.evaluate((e) => localStorage.setItem('ela_exploitant', e), empreinte);
   await page.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 }
@@ -148,7 +148,7 @@ await op.waitForTimeout(200);
 /* ================= LE CLIENT RÉSERVE ================= */
 const ref = await reserver(client, 'Claire Fontaine');
 const prixReserve = await client.evaluate(() => state.price);
-check('la demande du client reçoit une référence', /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+check('la demande du client reçoit une référence', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
 const versAsmine = await client.evaluate(() => window.__ouvert[0] || '');
 check('le message part vers le numéro d\'Asmine',
   versAsmine.includes('wa.me/33759312433'), versAsmine.slice(0, 45));
@@ -198,10 +198,10 @@ check('la date et l\'heure sont reprises',
 await op.locator('#btnCreerRapide').click();
 await op.waitForTimeout(500);
 check('la course entre au registre avec la référence du client',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].ref)) === ref);
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]')[0].ref)) === ref);
 // Un client qui attend une réponse ne produit pas une course confirmée.
 check('une demande recollée entre EN ATTENTE, pas confirmée',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].statut)) === 'attente');
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]')[0].statut)) === 'attente');
 // Recoller la même demande ne doit pas fabriquer un doublon.
 await op.locator('.nav-item[data-target="screen-bookings"]').click();
 await op.waitForTimeout(300);
@@ -225,7 +225,7 @@ check('la ligne porte la référence, le client et le trajet',
   ligne.replace(/\s+/g, ' ').trim().slice(0, 110));
 
 check('le registre ne contient qu\'une course',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 1);
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]').length)) === 1);
 
 /* ============ COLLER DEPUIS L'ACCUEIL, EN UN APPUI ============ */
 // Le geste de départ de la journée doit tenir sur l'écran d'accueil : une
@@ -246,7 +246,7 @@ await colle.evaluate((m) => navigator.clipboard.writeText(m), corpsClient);
 await colle.locator('#btnCollerAccueil').click();
 await colle.waitForTimeout(600);
 const cColle = await colle.evaluate(() =>
-  JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0]);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]')[0]);
 check('un appui suffit à faire entrer la demande', !!cColle && cColle.ref === ref,
   cColle ? cColle.ref : 'aucune');
 check('elle entre en attente d\'une décision', cColle.statut === 'attente', cColle.statut);
@@ -272,9 +272,9 @@ check('le compteur « En attente » s\'allume en rouge',
   await colle.locator('.carte-compteur[data-filtre="attente"].alerte').isVisible());
 // Une course confirmée ne crie pas : elle est seulement cerclée d'or.
 await colle.evaluate(() => {
-  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  const l = JSON.parse(localStorage.getItem('ela_bookings') || '[]');
   l[0].statut = 'confirmee';
-  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+  localStorage.setItem('ela_bookings', JSON.stringify(l));
 });
 await colle.reload({ waitUntil: 'domcontentloaded' });
 await colle.waitForTimeout(700);
@@ -290,7 +290,7 @@ check('et le compteur s\'éteint',
 await colle.locator('#btnCollerAccueil').click();
 await colle.waitForTimeout(500);
 check('recoller la même demande ne crée pas de doublon',
-  (await colle.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 1
+  (await colle.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]').length)) === 1
   && (await colle.locator('#collerAccueilRetour').textContent()).includes('déjà'));
 // Un presse-papiers qui ne contient pas une demande renvoie à la saisie.
 await colle.evaluate(() => navigator.clipboard.writeText('coucou'));
@@ -385,7 +385,7 @@ check('le client lit que sa demande n\'a pas abouti',
 check('le refus lui donne un numéro à appeler',
   bonNon.includes('+33 7 59 31 24 33'), bonNon.slice(0, 220));
 const apresRefus = await client.evaluate((r) =>
-  JSON.parse(localStorage.getItem('asmine_bookings') || '[]').find(b => b.ref === r), ref);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]').find(b => b.ref === r), ref);
 check('la course reste dans ses réservations, marquée refusée',
   apresRefus && apresRefus.statut === 'refusee', apresRefus ? apresRefus.statut : 'introuvable');
 
@@ -394,10 +394,10 @@ check('la course reste dans ses réservations, marquée refusée',
 // ouvrir le bon de chaque course. On remet la course sur ses pieds — elle
 // vient de servir au refus — et on repart du tableau de bord.
 await op.evaluate((r) => {
-  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  const l = JSON.parse(localStorage.getItem('ela_bookings') || '[]');
   const c = l.find(b => b.ref === r);
   if (c) c.statut = 'confirmee';
-  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+  localStorage.setItem('ela_bookings', JSON.stringify(l));
 }, ref);
 await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
@@ -408,7 +408,7 @@ check('une course confirmée offre un bouton « Terminée » sur la liste',
 await op.locator('#listeDemandes .btn-clore').first().click();
 await op.waitForTimeout(500);
 check('un appui suffit à clore la course, sans ouvrir son bon',
-  (await op.evaluate((r) => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')
+  (await op.evaluate((r) => JSON.parse(localStorage.getItem('ela_bookings') || '[]')
     .find(b => b.ref === r).statut, ref)) === 'realisee'
   && !(await op.locator('#screen-voucher').isVisible()));
 check('la course close ne propose plus de bouton « Terminée »',
@@ -421,7 +421,7 @@ check('les compteurs suivent aussitôt',
 await op.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
 // On repart d'un registre vide : ce qui précède a rempli l'appareil.
-await op.evaluate(() => localStorage.removeItem('asmine_bookings'));
+await op.evaluate(() => localStorage.removeItem('ela_bookings'));
 await op.reload({ waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
 await op.locator('.nav-item[data-target="screen-bookings"]').click();
@@ -453,7 +453,7 @@ await op.locator('#btnCreerRapide').click();
 await op.waitForTimeout(200);
 check('admin : une course sans adresse ni prix est refusée',
   await op.locator('#rapideErreur').isVisible()
-  && (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 0);
+  && (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]').length)) === 0);
 
 // Le nom du client, deux adresses, un prix : c'est tout ce qu'il faut.
 await op.fill('#rapideDepart', 'Terminal 2E — Roissy CDG');
@@ -467,10 +467,10 @@ await op.locator('#btnCreerRapide').click();
 await op.waitForTimeout(500);
 
 const creee = await op.evaluate(() =>
-  JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0]);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]')[0]);
 check('admin : la course est enregistrée', !!creee, creee ? creee.ref : 'aucune');
 check('admin : elle porte une référence Asmine',
-  /^ASM-\d{2}-\d{2}-\d{4}$/.test(creee.ref), creee.ref);
+  /^ELA-\d{2}-\d{2}-\d{4}$/.test(creee.ref), creee.ref);
 check('admin : saisie par l\'exploitant, elle est ferme d\'entrée',
   creee.statut === 'confirmee', creee.statut);
 check('admin : le prix saisi est le prix retenu', creee.prix.total === 90, String(creee.prix.total));
@@ -489,9 +489,9 @@ check('admin : une course confirmée ne gonfle pas le chiffre d\'affaires',
 
 // On la marque réalisée : elle rejoint alors les deux tableaux.
 await op.evaluate(() => {
-  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  const l = JSON.parse(localStorage.getItem('ela_bookings') || '[]');
   l[0].statut = 'realisee';
-  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+  localStorage.setItem('ela_bookings', JSON.stringify(l));
 });
 await op.locator('.nav-item[data-target="screen-home"]').click();
 await op.waitForTimeout(200);
@@ -522,12 +522,12 @@ check('admin : la semaine passée sert de comparaison',
 
 // Une course datée d'aujourd'hui doit, elle, apparaître dans la semaine.
 await op.evaluate(() => {
-  const l = JSON.parse(localStorage.getItem('asmine_bookings') || '[]');
+  const l = JSON.parse(localStorage.getItem('ela_bookings') || '[]');
   l.push(JSON.parse(JSON.stringify(Object.assign({}, l[0], {
     ref: 'ASM-99-99-9999',
     course: Object.assign({}, l[0].course, { date: new Date().toISOString().slice(0, 10) })
   }))));
-  localStorage.setItem('asmine_bookings', JSON.stringify(l));
+  localStorage.setItem('ela_bookings', JSON.stringify(l));
 });
 await op.reload({ waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(800);
@@ -548,7 +548,7 @@ const [tele] = await Promise.all([
   op.locator('#btnSauvegarde').click()
 ]);
 check('admin : la sauvegarde produit bien un fichier',
-  tele.suggestedFilename().startsWith('asmine-registre-')
+  tele.suggestedFilename().startsWith('elatransfer-registre-')
   && tele.suggestedFilename().endsWith('.json'), tele.suggestedFilename());
 const [csv] = await Promise.all([
   op.waitForEvent('download', { timeout: 8000 }),
@@ -620,6 +620,77 @@ check('taper « cdg » propose les terminaux', terminaux.length >= 9, terminaux.
 const debuts = terminaux.map(x => x.replace(/\s+/g, ' ').trim().slice(0, 16));
 check('chaque terminal se distingue dès le début de la ligne',
   new Set(debuts).size === terminaux.length, debuts.slice(0, 3).join(' | '));
+
+/* ============ LE REGISTRE SURVIT AU CHANGEMENT DE NOM ============
+   Le registre de l'exploitant ne vit que dans son navigateur. Le site a
+   changé de nom, donc de clés de stockage : si la reprise ne marchait
+   pas, il perdrait des mois de courses sans s'en rendre compte tout de
+   suite. C'est le test le plus important du fichier. */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  page.on('pageerror', e => errors.push('PAGEERROR(reprise): ' + e.message));
+
+  // Un appareil qui n'a connu que l'ancien nom.
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    localStorage.clear();
+    const vieille = (ref, total) => ({
+      ref, statut: 'realisee', emisLe: '2026-07-15T09:00:00.000Z',
+      course: { type: 'Trajet simple', depart: 'Terminal 2E', arrivee: 'Gare de Lyon',
+                date: '2026-07-15', heure: '09:00', vehicule: 'Berline',
+                passagers: '2 adultes', terminal: null, vol: '', duree: null },
+      client: { nom: 'Client', telephone: '' },
+      prix: { total, ht: total / 1.1, tva: total - total / 1.1, paiement: 'À bord' }
+    });
+    localStorage.setItem('asmine_bookings', JSON.stringify([
+      vieille('ASM-26-07-0031', 88), vieille('ASM-26-07-0030', 62)
+    ]));
+    localStorage.setItem('asmine_langue', 'es');
+    localStorage.setItem('asmine_course_ASM-26-07-0031', '{"etat":"terminee"}');
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+
+  const repris = await page.evaluate(() => ({
+    courses: JSON.parse(localStorage.getItem('ela_bookings') || '[]').length,
+    langue: localStorage.getItem('ela_langue'),
+    bon: localStorage.getItem('ela_course_ASM-26-07-0031'),
+    ancienIntact: localStorage.getItem('asmine_bookings') !== null
+  }));
+  check('reprise : les courses de l\'ancien nom sont là', repris.courses === 2, repris.courses + '');
+  check('reprise : la langue choisie est gardée', repris.langue === 'es', repris.langue);
+  check('reprise : les bons de course suivent', !!repris.bon);
+  check('reprise : l\'ancien registre n\'est pas effacé', repris.ancienIntact);
+
+  // Une reprise ne doit JAMAIS écraser un travail plus récent.
+  await page.evaluate(() => {
+    const recente = { ref: 'ELA-26-08-0001', statut: 'confirmee',
+      course: { type: 'Trajet simple', depart: 'Orly 4', arrivee: 'La Défense',
+                date: '2026-08-30', heure: '18:00', vehicule: 'Berline', passagers: '2 adultes' },
+      client: { nom: 'Client', telephone: '' },
+      prix: { total: 60, ht: 54.5, tva: 5.5, paiement: 'À bord' } };
+    localStorage.setItem('ela_bookings', JSON.stringify([recente]));
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+  const apres = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ela_bookings') || '[]'));
+  check('reprise : le registre récent n\'est pas écrasé',
+    apres.length === 1 && apres[0].ref === 'ELA-26-08-0001', JSON.stringify(apres).slice(0, 60));
+
+  // Et le rang du mois ne repart pas à 1 le jour du changement de nom.
+  const suite = await page.evaluate(() => {
+    localStorage.setItem('ela_bookings', JSON.stringify([
+      { ref: 'ASM-' + referenceSuivante().slice(4, 10) + '0007' }
+    ]));
+    return referenceSuivante();
+  });
+  check('reprise : le rang continue après l\'ancien préfixe',
+    suite.endsWith('0008') && suite.startsWith('ELA-'), suite);
+
+  await ctx.close();
+}
 
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');

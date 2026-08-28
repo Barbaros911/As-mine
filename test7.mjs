@@ -13,7 +13,7 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
   await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
-  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.evaluate((e) => localStorage.setItem('ela_exploitant', e), empreinte);
   await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
   // L'accueil de l'exploitant est son tableau de bord : le formulaire de
@@ -95,7 +95,7 @@ check('un code faux est refusé, avec un message',
   await client.locator('#erreurCode').isVisible()
   && (await client.evaluate(() => MODE_EXPLOITANT)) === false);
 check('un code faux ne laisse aucune trace sur l\'appareil',
-  (await client.evaluate(() => localStorage.getItem('asmine_exploitant'))) === null);
+  (await client.evaluate(() => localStorage.getItem('ela_exploitant'))) === null);
 
 // « Retour au site » ramène le client chez lui, sans outils
 await Promise.all([
@@ -128,10 +128,10 @@ await client.waitForTimeout(300);
 const ref = (await client.locator('#confRef').textContent()).trim();
 
 check('la référence suit le format année-mois-rang',
-  /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+  /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
 const attendu = (() => {
   const d = new Date();
-  return `ASM-${String(d.getFullYear()).slice(-2)}-${String(d.getMonth() + 1).padStart(2, '0')}-`;
+  return `ELA-${String(d.getFullYear()).slice(-2)}-${String(d.getMonth() + 1).padStart(2, '0')}-`;
 })();
 check('le préfixe porte l\'année et le mois en cours', ref.startsWith(attendu), `${ref} vs ${attendu}…`);
 check('le rang commence à 0001', ref.endsWith('-0001'), ref);
@@ -153,7 +153,7 @@ await op.locator('.nav-item[data-target="screen-bookings"]').click();
 await op.waitForTimeout(300);
 
 check('l\'exploitant n\'a pas la course du client sur son appareil',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]').length)) === 0);
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]').length)) === 0);
 // L'outil « confirmer à distance » n'existe plus : la course arrive chez
 // l'exploitant par le message du client, qu'il recolle.
 check('plus d\'outil de confirmation à distance',
@@ -172,10 +172,10 @@ await op.fill('#rapideChauffeurTel', '+33 6 98 76 54 32');
 await op.locator('#btnCreerRapide').click();
 await op.waitForTimeout(600);
 check('la course reprend la référence que le client a sous les yeux',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].ref)) === ref);
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]')[0].ref)) === ref);
 // Le client attend une réponse : la demande entre en attente, pas confirmée.
 check('la demande du client entre en attente d\'une décision',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')[0].statut)) === 'attente');
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]')[0].statut)) === 'attente');
 check('rien à annoncer tant qu\'aucune décision n\'est prise',
   !(await op.locator('#btnPrevenirClient').isVisible()));
 
@@ -207,7 +207,7 @@ check('le bon annonce au client que sa demande est prise en charge',
 check('le bon annonce le chauffeur au client',
   bonApres.includes('Mehmet K.') && bonApres.includes('+33 6 98 76 54 32'), bonApres.slice(0, 400));
 const enregistre = await client.evaluate((r) =>
-  JSON.parse(localStorage.getItem('asmine_bookings') || '[]').find(b => b.ref === r), ref);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]').find(b => b.ref === r), ref);
 check('la course est enregistrée comme confirmée',
   enregistre && enregistre.statut === 'confirmee', enregistre ? enregistre.statut : 'introuvable');
 
@@ -218,7 +218,7 @@ const okInconnu = await op.evaluate(() =>
 await op.goto(BASE + '/index.html?ok=' + okInconnu, { waitUntil: 'domcontentloaded' });
 await op.waitForTimeout(700);
 check('un lien pour une course inconnue ne fabrique rien',
-  (await op.evaluate(() => JSON.parse(localStorage.getItem('asmine_bookings') || '[]')
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]')
     .some(b => b.ref === 'ASM-99-99-9999'))) === false);
 check('et aucun bon ne s\'ouvre',
   !(await op.locator('#screen-voucher').isVisible()));

@@ -12,13 +12,15 @@
    — Les appels d'API (adresses, itinéraire, PayPal, QR) ne sont JAMAIS mis
      en cache : un tarif ou un paiement doit toujours partir en direct.
    ===================================================================== */
-/* Racine d'Asmine (« /Asmine/ » en ligne). Le service worker est enregistré
+/* Racine du site (« /As-mine/ » en ligne — l'adresse du dépôt n'a pas changé
+   avec le nom, sinon tous les liens déjà envoyés casseraient). Le service
+   worker est enregistré
    à cette adresse : il contrôle donc aussi les sites voisins publiés dans des
    sous-dossiers. Il doit les laisser passer, sans les mettre en cache ni leur
-   servir la page d'Asmine hors ligne. */
+   servir la page d'Elatransfer hors ligne. */
 const BASE = new URL("./", self.location).pathname;
 
-/* Vrai si la requête vise un site voisin plutôt qu'Asmine elle-même :
+/* Vrai si la requête vise un site voisin plutôt qu'Elatransfer elle-même :
    même origine, sous la racine, mais dans un sous-dossier. */
 function siteVoisin(url) {
   if (url.origin !== self.location.origin) return false;
@@ -29,7 +31,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "asmine-v8";
+const CACHE = "elatransfer-v9";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"];
 
 /* Hôtes dont la réponse ne doit jamais être mise en cache */

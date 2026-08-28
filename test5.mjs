@@ -13,7 +13,7 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
   await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
-  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.evaluate((e) => localStorage.setItem('ela_exploitant', e), empreinte);
   await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
   // L'accueil de l'exploitant est son tableau de bord : le formulaire de
@@ -107,7 +107,7 @@ await op.locator('#btnPayOnBoard').click();
 await op.waitForTimeout(500);
 check('réservation enregistrée', await op.locator('#screen-confirmation').isVisible());
 const ref = (await op.locator('#confRef').textContent()).trim();
-check('référence attribuée', /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+check('référence attribuée', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
 
 await op.locator('#btnOpenVoucher').click();
 await op.waitForTimeout(400);
@@ -247,7 +247,7 @@ await op.waitForTimeout(400);
 const bonFinal = await op.locator('#voucherBody').textContent();
 check('bon : la course est marquée réalisée', bonFinal.includes('Course réalisée'), bonFinal.slice(0, 160));
 const enregistre = await op.evaluate((r) =>
-  JSON.parse(localStorage.getItem('asmine_bookings') || '[]').find(b => b.ref === r), ref);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]').find(b => b.ref === r), ref);
 check('course enregistrée comme réalisée', enregistre && enregistre.statut === 'realisee',
   enregistre ? enregistre.statut : 'introuvable');
 check('montant inchangé de bout en bout',
