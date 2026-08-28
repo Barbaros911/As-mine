@@ -100,9 +100,13 @@ await page.waitForTimeout(300);
 check('champ numéro de vol affiché après le choix d\'un terminal',
   await page.locator('#flightWrap').isVisible());
 
-// 10. Codes promo absents du code source
+// 10. Plus aucun code promo dans le site — ni le champ, ni les empreintes.
+//     Ils annulaient la hausse de tarifs : un client qui avait reçu VIP15 une
+//     fois payait l'ancien prix à vie, sans date de fin ni compteur d'usage.
 const src = await page.content();
-check('codes promo non lisibles dans la page', !src.includes('BIENVENUE10') || !src.includes('"BIENVENUE10":'));
+check('plus aucun code promo dans la page',
+  !src.includes('BIENVENUE10') && !src.includes('VIP15')
+  && !src.includes('promoPayment') && !src.includes('Code promo'));
 
 // 11. Manifeste et service worker accessibles
 const mres = await page.request.get(BASE + '/manifest.webmanifest');

@@ -93,9 +93,11 @@ Une personne techniquement avertie peut modifier le prix affiché dans les
 outils de développement. Le risque est aujourd'hui limité, puisque le chauffeur
 encaisse lui-même et voit le montant sur le bon : c'est lui qui fait foi.
 
-Les codes promo sont dans le même cas : ils sont désormais stockés sous forme
-d'empreinte (on ne peut plus les lire dans le code source), mais ce n'est que
-de l'obfuscation. Seule une validation serveur les protège vraiment.
+Il n'y a plus de codes promo depuis août 2026. Les deux qui existaient
+(−10 % et −15 %) n'avaient ni date de fin, ni compteur d'usage, ni limite par
+client : un client qui en avait reçu un annulait à vie la hausse de tarifs de
+15 %. Sans serveur pour compter les usages, un code promo n'est pas une remise,
+c'est un nouveau tarif permanent pour qui le connaît.
 
 ### 4. Compiler Tailwind
 
@@ -527,10 +529,9 @@ https://barbaros911.github.io/As-mine/?exploitant=1
 
 Le site demande alors un **code d'accès**. Une fois saisi, le déverrouillage
 est mémorisé sur cet appareil ; `?exploitant=0` le retire. Le code n'est pas
-écrit dans `index.html` — seule son empreinte l'est, comme pour les codes
-promo — parce que le dépôt est public. Pour le changer : ouvrir la console du
-navigateur sur le site, taper `promoHash("NOUVEAUCODE")`, coller l'empreinte
-obtenue dans `CODE_EXPLOITANT`.
+écrit dans `index.html` — seule son empreinte l'est — parce que le dépôt est
+public. Pour le changer : ouvrir la console du navigateur sur le site, taper
+`empreinte("NOUVEAUCODE")`, coller le résultat dans `CODE_EXPLOITANT`.
 
 **Ce que cela protège, et ce que cela ne protège pas.** La diffusion au
 groupe, la confirmation à distance, l'attribution du chauffeur et l'export du

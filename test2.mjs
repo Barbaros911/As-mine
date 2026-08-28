@@ -64,20 +64,10 @@ await page.fill('#paxChildren', '2');
 await page.waitForTimeout(300);
 check('récapitulatif suit les passagers', (await page.locator('#tripSummary').textContent()).includes('2'));
 
-// Code promo appliqué depuis l'écran de paiement
-const avant = await page.locator('#tripSummary').textContent();
-await page.fill('#promoPayment', 'BIENVENUE10');
-await page.locator('#btnApplyPromo').click();
-await page.waitForTimeout(300);
-const msg = await page.locator('#promoMsg').textContent();
-check('code promo valide reconnu (malgré le hachage)', msg.includes('succès'), msg);
-const apres = await page.locator('#tripSummary').textContent();
-check('prix recalculé après promo', avant !== apres);
-
-await page.fill('#promoPayment', 'NIMPORTEQUOI');
-await page.locator('#btnApplyPromo').click();
-await page.waitForTimeout(300);
-check('code promo invalide rejeté', (await page.locator('#promoMsg').textContent()).includes('invalide'));
+// Plus de code promo nulle part : ni sur l'accueil, ni sur le paiement.
+check('aucun champ de code promo sur le paiement',
+  await page.locator('#promoPayment').count() === 0
+  && await page.locator('#btnApplyPromo').count() === 0);
 
 // --- Mise à disposition ---
 await page.locator('#btnEditTrip').click();

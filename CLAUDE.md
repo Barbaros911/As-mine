@@ -113,6 +113,11 @@ placer les courses qu'il ne peut pas assurer lui-même.
   rien construire dessus tant que Barbaros n'a pas tranché.
 - Rien n'organise aujourd'hui le reversement de la commission : l'argent
   ne passe jamais par Asmine. C'est le point ouvert du modèle.
+- **Il n'y a plus de codes promo** — supprimés en août 2026 à la demande de
+  Barbaros. Les deux qui existaient (−10 % et −15 %) n'avaient ni date de fin,
+  ni compteur, ni limite par client : le −15 % annulait exactement la hausse de
+  tarifs, à vie, pour qui le connaissait. Ne pas en réintroduire sans durée de
+  validité et limite d'usage — donc pas avant d'avoir un serveur.
 
 ## Tarification
 
