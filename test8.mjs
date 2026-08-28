@@ -82,7 +82,18 @@ check('client : aucun liseré d\'espace de travail',
 check('client : pas de badge exploitant', !(await client.locator('#badgeExploitant').isVisible()));
 check('client : pas de tableau de bord', !(await client.locator('#tableauBord').isVisible()));
 check('client : le formulaire de réservation est là', await client.locator('#accrocheClient').isVisible());
-check('client : le bouton WhatsApp flottant est là', await client.locator('#whatsappFloat').isVisible());
+// La pastille WhatsApp ne s'affiche qu'une fois le formulaire dépassé :
+// en haut de page elle recouvrait le bouton « Voir les tarifs ».
+check('client : pas de WhatsApp par-dessus le formulaire',
+  !(await client.evaluate(() => document.getElementById('whatsappFloat').classList.contains('vue'))));
+await client.evaluate(() => window.scrollTo(0, 1200));
+await client.waitForTimeout(400);
+check('client : la pastille WhatsApp arrive après le formulaire',
+  await client.evaluate(() => document.getElementById('whatsappFloat').classList.contains('vue')));
+check('client : elle ouvre une conversation déjà amorcée',
+  (await client.locator('#whatsappFloat').getAttribute('href')).includes('text='));
+await client.evaluate(() => window.scrollTo(0, 0));
+await client.waitForTimeout(300);
 // Un client n'a jamais déverrouillé : aucun chemin vers l'espace de travail.
 check('client : aucun chemin vers l\'espace de travail',
   !(await client.locator('#retourExploitant').isVisible()));
@@ -346,9 +357,18 @@ check('le message annonce le chauffeur au client',
 const paramOk = (hrefOk.match(/\?ok=([\w-]+)/) || [])[1];
 await op.locator('.nav-item[data-target="screen-home"]').click();
 await op.waitForTimeout(400);
-check('les compteurs suivent la décision',
-  (await op.locator('#compteurAttente').textContent()) === '0'
-  && (await op.locator('#compteurConfirmee').textContent()) === '1');
+// « En attente » retombe : plus rien ne réclame de décision.
+check('le compteur d\'attente retombe après la décision',
+  (await op.locator('#compteurAttente').textContent()) === '0');
+// Les deux autres compteurs ne cumulent plus depuis le début des temps : ils
+// disent « aujourd'hui » et « cette semaine ». La course du test part dans
+// cinq jours — elle ne doit donc apparaître dans ni l'un ni l'autre.
+check('les compteurs ne cumulent plus tout l\'historique',
+  (await op.locator('#compteurConfirmee').textContent()) === '0'
+  && (await op.locator('#compteurRealisee').textContent()) === '0');
+check('mais la course confirmée est bien au registre',
+  (await op.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]')
+     .filter(b => b.statut === 'confirmee').length)) === 1);
 
 /* ================= LE CLIENT VOIT SA DEMANDE ABOUTIR ================= */
 await client.goto(BASE + '/index.html?ok=' + paramOk, { waitUntil: 'domcontentloaded' });
