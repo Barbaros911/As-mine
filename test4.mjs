@@ -12,7 +12,7 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
   await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
-  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.evaluate((e) => localStorage.setItem('ela_exploitant', e), empreinte);
   await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
   // L'accueil de l'exploitant est son tableau de bord : le formulaire de
@@ -160,7 +160,7 @@ await page.waitForTimeout(200);
 // --- Diffusion au groupe de chauffeurs ---
 check('bloc de diffusion proposé à l\'exploitant', await page.locator('#dispatchBlock').isVisible());
 const annonce = await page.locator('#dispatchPreview').textContent();
-check('annonce : référence de la course', /ASM-\d{2}-\d{2}-\d{4}/.test(annonce));
+check('annonce : référence de la course', /ELA-\d{2}-\d{2}-\d{4}/.test(annonce));
 // La date est écrite courte — « jeu. 27/08 — 14:00 » — parce qu'une annonce
 // se lit dans un fil de groupe qui défile.
 const jourCourt = (() => {

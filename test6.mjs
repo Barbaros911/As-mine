@@ -86,7 +86,7 @@ check('les liens WhatsApp pointent sur le bon numéro',
 
 /* ===================== UNE COURSE À PLUS DE 3 H ===================== */
 const refCalme = await reserver(dansNJours(3), null);
-check('réservation à J+3 : référence attribuée', /^ASM-\d{2}-\d{2}-\d{4}$/.test(refCalme), refCalme);
+check('réservation à J+3 : référence attribuée', /^ELA-\d{2}-\d{2}-\d{4}$/.test(refCalme), refCalme);
 check('réservation à J+3 : aucun avertissement d\'urgence',
   !(await page.locator('#blocUrgence').isVisible()));
 await page.locator('#btnOpenVoucher').click();
@@ -111,7 +111,7 @@ check('le premier créneau proposé tombe bien dans les 3 h',
 
 const refUrgente = await reserver(dateRetenue, premierCreneau);
 check('réservation imminente : elle est acceptée quand même',
-  /^ASM-\d{2}-\d{2}-\d{4}$/.test(refUrgente), refUrgente);
+  /^ELA-\d{2}-\d{2}-\d{4}$/.test(refUrgente), refUrgente);
 check('réservation imminente : l\'avertissement s\'affiche',
   await page.locator('#blocUrgence').isVisible());
 const texteUrgence = await page.locator('#blocUrgence').textContent();
@@ -134,7 +134,7 @@ check('bon imminent : la course est marquée non ferme',
 check('bon imminent : le numéro à joindre y figure',
   bonUrgent.includes('+33 7 59 31 24 33'), bonUrgent.slice(0, 200));
 const stocke = await page.evaluate((r) =>
-  JSON.parse(localStorage.getItem('asmine_bookings') || '[]').find(b => b.ref === r), refUrgente);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]').find(b => b.ref === r), refUrgente);
 check('la course est enregistrée comme imminente', stocke && stocke.imminente === true);
 
 /* ===================== ET DANS UNE AUTRE LANGUE ===================== */

@@ -12,7 +12,7 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
   await page.goto(base + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
   const empreinte = await page.evaluate(() => CODE_EXPLOITANT);
-  await page.evaluate((e) => localStorage.setItem('asmine_exploitant', e), empreinte);
+  await page.evaluate((e) => localStorage.setItem('ela_exploitant', e), empreinte);
   await page.goto(base + '/index.html?exploitant=1' + suffixe, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
   // L'accueil de l'exploitant est son tableau de bord : le formulaire de
@@ -120,14 +120,14 @@ check('le repli s\'ouvre et redonne accès au renvoi',
   await page.locator('#btnEmailSummary').isVisible()
   && await page.locator('#btnResendWhatsapp').isVisible());
 const mailto = await page.locator('#btnEmailSummary').getAttribute('href');
-check('lien email correctement formé', mailto.startsWith('mailto:') && mailto.includes('ASM-'), mailto.slice(0, 60));
+check('lien email correctement formé', mailto.startsWith('mailto:') && mailto.includes('ELA-'), mailto.slice(0, 60));
 
 await page.locator('#btnOpenVoucher').click();
 await page.waitForTimeout(400);
 check('écran du bon atteint', await page.locator('#screen-voucher').isVisible());
 const bon = await page.locator('#voucherBody').textContent();
 
-check('bon : référence', /ASM-\d{2}-\d{2}-\d{4}/.test(bon));
+check('bon : référence', /ELA-\d{2}-\d{2}-\d{4}/.test(bon));
 check('bon : identité du client', bon.includes('Marie Durand'));
 check('bon : passager distinct', bon.includes('Paul Martin'));
 check('bon : trajet', bon.includes('Terminal 2E') && bon.includes('AF1234'));
@@ -192,7 +192,7 @@ check('plus de raccourcis d\'adresses sous les champs',
   (await page.locator('#pickupFavourites').count()) === 0 &&
   (await page.locator('#dropoffFavourites').count()) === 0);
 check('aucune adresse laissée sur l\'appareil',
-  await page.evaluate(() => localStorage.getItem('asmine_addresses') === null));
+  await page.evaluate(() => localStorage.getItem('ela_addresses') === null));
 check('passagers remis à 1', (await page.inputValue('#paxHome')) === '1');
 check('véhicule remis sur la berline', (await page.inputValue('#vehicleHome')) === 'berline');
 
@@ -236,7 +236,7 @@ await page.locator('#bookingsList button').first().click();
 await page.waitForTimeout(400);
 check('le bon se rouvre depuis la liste',
   (await page.locator('#screen-voucher').isVisible()) &&
-  (await page.locator('#voucherBody').textContent()).includes('ASM-'));
+  (await page.locator('#voucherBody').textContent()).includes('ELA-'));
 
 // --- Réservation réglée au chauffeur ---
 // Retour à l'espace de travail, formulaire ouvert.

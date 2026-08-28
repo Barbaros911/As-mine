@@ -37,7 +37,8 @@ jobs:
       - name: Préparer les fichiers du site
         run: |
           mkdir -p site
-          cp index.html admin.html manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml site/
+          cp index.html admin.html styles.css manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml site/
+          cp -r photos site/photos
           # Empêche Jekyll de réinterpréter les fichiers
           touch site/.nojekyll
 
@@ -48,7 +49,7 @@ jobs:
           # avant, et rien ici ne peut l'écraser : un dossier portant le nom
           # d'un de ses fichiers fait échouer la publication.
           [ -d sites ] || exit 0
-          reserves="index.html admin.html manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml demos"
+          reserves="index.html admin.html styles.css photos manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml demos"
           for dossier in sites/*/; do
             [ -d "$dossier" ] || continue
             nom=$(basename "$dossier")
