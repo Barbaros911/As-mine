@@ -99,7 +99,7 @@
      illisible pour tous les clients. -->
 <link rel="stylesheet" href="styles.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -143,7 +143,12 @@
   }
   *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
   html,body{background:var(--graphite);color:var(--ivory);font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overscroll-behavior-y:none;}
-  .font-display{font-family:'Instrument Serif',Georgia,serif;}
+  /* Les titres étaient dans une police à empattements au dessin penché
+     (Instrument Serif) : elle se lisait comme de l'italique et jurait avec
+     le reste. Un seul caractère sur tout le site, en gras serré pour les
+     titres — c'est plus simple à lire, et c'est la grammaire des
+     applications de course. Une police de moins à télécharger, aussi. */
+  .font-display{font-weight:800;letter-spacing:-.028em;}
   .font-mono{font-family:'JetBrains Mono',monospace;}
   ::-webkit-scrollbar{width:0px;height:0px;}
   .no-select{-webkit-user-select:none;user-select:none;}
@@ -615,8 +620,8 @@
      crédible plutôt que décorative. */
   .accueilli{background:var(--navy-deep);color:#F1EEE7;border-radius:18px;
     padding:20px 16px 18px;margin:20px 0;}
-  .accueilli h2{font-family:'Instrument Serif',Georgia,serif;font-size:23px;
-    margin:0 0 8px;font-weight:400;}
+  .accueilli h2{font-weight:800;letter-spacing:-.028em;font-size:23px;
+    margin:0 0 8px;}
   .accueilli .dit{font-size:13.5px;line-height:1.55;color:#B9C6DE;margin:0 0 18px;}
   .pancarte{background:#FBF9F4;color:#101C31;border-radius:8px;padding:20px 16px 18px;
     text-align:center;transform:rotate(-1.1deg);
@@ -629,7 +634,10 @@
     letter-spacing:.19em;color:var(--navy-deep);}
   .pancarte .marqueP i{font-style:normal;color:var(--or-marque);}
   .pancarte .filetP{display:block;height:1px;background:#D8D2C4;margin:9px 22px 12px;}
-  .pancarte .nomP{display:block;font-family:'Instrument Serif',Georgia,serif;
+  /* Une vraie pancarte de chauffeur est imprimée en gras ordinaire, pas
+     dans un romain de livre. L'interlettrage reste LÉGÈREMENT ouvert : un
+     nom lu à cinq mètres dans un hall d'arrivée a besoin d'air. */
+  .pancarte .nomP{display:block;font-weight:800;
     font-size:clamp(24px,7vw,32px);line-height:1.1;letter-spacing:.01em;
     word-break:break-word;}
   .pancarte .volP{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;
