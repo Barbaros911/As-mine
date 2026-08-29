@@ -376,6 +376,37 @@ Sa marge basse de 20 px n'est pas cosmétique : la section « À l'arrivée de
 votre vol » qui suit est elle aussi sur fond marine, et sans cet intervalle
 les deux masses sombres se collent.
 
+**Le serveur existe, en dormant.** `SUPABASE_URL` et `SUPABASE_CLE` (haut du
+script) sont vides : le site se comporte alors exactement comme avant — le
+client envoie lui-même son récapitulatif, l'exploitant le recolle. Dès
+qu'elles sont remplies (marche à suivre dans `SUPABASE.md`), le client
+appuie sur « Confirmer » et c'est fini pour lui : la demande arrive dans le
+tableau de bord, sur n'importe quel appareil.
+- Le module `nuage` fait tout : `deposer`, `connexion`, `lister`,
+  `majStatut`. Aucune bibliothèque chargée — de simples appels REST.
+- `afficherEtatEnvoi(true | false | null)` décide de ce que voit le client.
+  **`null` n'affiche NI l'un NI l'autre**, et c'est important : le féliciter
+  avant que le dépôt ait répondu lui ferait fermer la page sur une course
+  qui n'existe pas.
+- **Le repli est sacré.** Si le dépôt échoue, les trois boutons d'envoi
+  reviennent. Ne jamais les retirer sans que le serveur soit là : un bouton
+  « Confirmer » qui ne confirme rien, c'est un client qui attend un
+  chauffeur à 5 h du matin pendant que personne ne sait rien.
+- **Sans serveur, WhatsApp s'ouvre AVANT tout appel réseau**, dans le même
+  geste que le clic. `window.open()` après un `await` est bloqué par Safari
+  iOS. Ne pas rendre `finalizeBooking` asynchrone sur ce chemin.
+- **La clé `anon` est publique et ne protège RIEN.** Ce qui protège les
+  clients, c'est la Row Level Security posée dans Supabase : dépôt autorisé
+  au visiteur anonyme, **lecture jamais**. Ajouter une policy de lecture
+  pour `anon` exposerait les noms, téléphones et adresses de tous les
+  clients — RGPD. Ne jamais coller la clé `service_role` dans la page :
+  elle contourne toutes les règles.
+- `fusionnerCourses()` AJOUTE et n'écrase jamais : une course déjà sur
+  l'appareil peut avoir avancé depuis (chauffeur attribué, course réalisée).
+- `test9.mjs` couvre les deux chemins, en réécrivant la page au vol pour y
+  poser de faux identifiants. Il vérifie aussi que la page ne prétend jamais
+  avoir lu quoi que ce soit sans jeton.
+
 **Les services extérieurs sont le point faible du site.** La carte et le
 prix dépendent de deux serveurs qui ne nous appartiennent pas :
 - `router.project-osrm.org` calcule l'itinéraire. C'est un serveur de
@@ -468,14 +499,15 @@ comptable, gestion des désistements et des clients absents.
 
 ## Tests
 
-Huit suites Playwright à la racine, à relancer après **toute**
+Neuf suites Playwright à la racine, à relancer après **toute**
 modification :
 
 ```bash
 npx http-server -p 8099 -s .
 node test.mjs && node test2.mjs && node test3.mjs \
   && node test4.mjs && node test5.mjs \
-  && node test6.mjs && node test7.mjs && node test8.mjs
+  && node test6.mjs && node test7.mjs && node test8.mjs \
+  && node test9.mjs
 ```
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une
