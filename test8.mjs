@@ -987,6 +987,34 @@ check('chaque terminal se distingue dès le début de la ligne',
   await ctx.close();
 }
 
+/* ============ LE CODE QR PORTE TOUJOURS LE DOMAINE ============
+   Un code QR se colle sur une carte de visite ou un comptoir d'hôtel : il
+   doit porter l'adresse définitive, pas celle par laquelle on est arrivé
+   ce jour-là. Le site répond aussi sur github.io — un vieux favori, un
+   lien reçu il y a trois mois — et on imprimait deux cents cartes vers
+   l'ancienne adresse sans le voir. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => errors.push('PAGEERROR(qr): ' + e.message));
+  // On ouvre depuis une adresse quelconque, avec un paramètre parasite.
+  await page.goto(BASE + '/index.html?ok=nimportequoi', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(900);
+  await page.locator('#cookieAccept').click().catch(() => {});
+  await page.locator('.nav-item[data-target="screen-qr"]').click().catch(() => {});
+  await page.waitForTimeout(500);
+
+  const affiche = (await page.locator('#qrUrlText').textContent()).trim();
+  const encode = decodeURIComponent(
+    ((await page.locator('#qrImg').getAttribute('src')) || '').split('data=')[1] || '');
+  check('le code QR porte le domaine, pas l\'adresse d\'origine',
+    affiche === 'https://elatransfer.com/' && encode === 'https://elatransfer.com/',
+    affiche);
+  check('le code QR n\'emporte aucun paramètre d\'adresse',
+    !encode.includes('?'), encode);
+  await ctx.close();
+}
+
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(t => console.log('  ✔ ' + t));
