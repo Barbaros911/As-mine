@@ -97,7 +97,16 @@ await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(300);
 const cgv = await page.locator('#legalDocBody').textContent();
 check('CGV : 60 minutes d\'attente offertes', cgv.includes('60 minutes'));
-check('CGV : annulation sans frais au-delà de 60 minutes', cgv.includes('plus de 60 minutes') && cgv.includes('sans frais'));
+// Le barème d'annulation a remplacé la gratuité générale (art. 7, août 2026).
+// On vérifie que les trois paliers ET l'absence du client y sont : un barème
+// à trous laisse le chauffeur sans recours et le client sans repère.
+check('CGV : le barème d\'annulation porte ses trois paliers',
+  cgv.includes('24 heures') && cgv.includes('30 %') && cgv.includes('50 %'),
+  cgv.includes('24 heures') + '/' + cgv.includes('30 %') + '/' + cgv.includes('50 %'));
+check('CGV : une fenêtre gratuite subsiste — sans elle la clause est attaquable',
+  cgv.includes('aucun frais'));
+check('CGV : l\'absence du client au rendez-vous est couverte',
+  cgv.includes('absence du Client') && cgv.includes('totalité du prix'));
 check('CGV : règlement au chauffeur, pas en ligne', cgv.includes('directement auprès du chauffeur'));
 check('CGV : plus aucune mention de PayPal', !cgv.includes('PayPal'));
 

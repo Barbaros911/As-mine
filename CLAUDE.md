@@ -139,7 +139,13 @@ Van 11,50 € + 2,90 €/km (7) · Van Premium 17,25 € + 4,05 €/km (6).
 Horaire : 58 / 86 / 80 / 109 €. +20 % nuit et week-end. TVA 10 % incluse.
 Grille relevée de 15 % en août 2026, à la demande de Barbaros.
 60 min d'attente offertes en aéroport, 30 min ailleurs.
-Annulation gratuite jusqu'à 60 min avant.
+**Barème d'annulation** (CGV art. 7, août 2026) : gratuit au-delà de 24 h,
+30 % entre 24 h et 3 h, 50 % en deçà, 100 % si le client ne se présente pas.
+Barbaros a retiré « Annulation gratuite » des promesses de l'accueil : le
+barème l'a remplacé dans le contrat. Ne pas remettre l'argument en vitrine
+sans qu'il le redemande, et ne pas descendre à zéro fenêtre gratuite — en
+B2C, une clause d'annulation sans aucune tolérance est attaquable comme
+clause abusive (L212-1 Code conso.).
 
 **Le prix est ferme, arrêté à la réservation.** Le client l'accepte avant
 de monter, le chauffeur l'encaisse tel quel, rien n'est recalculé à
