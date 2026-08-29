@@ -249,7 +249,7 @@ illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
 en privé, au seul chauffeur retenu, depuis le bon. Les messages au client
 partent droit sur son numéro (`numeroWhatsApp`), jamais via le sélecteur.
 
-**Le mode exploitant est protégé par un code** (`CODE_EXPLOITANT`, stocké
+**Le mode exploitant est protégé par le code `Ela1234`** (`CODE_EXPLOITANT`, stocké
 en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
 confirmation à distance, attribution du chauffeur et export du registre
 sont derrière. C'est une serrure, pas un coffre : le dire à Barbaros

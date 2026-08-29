@@ -768,6 +768,71 @@ check('chaque terminal se distingue dès le début de la ligne',
   await ctx.close();
 }
 
+/* ============ LA SERRURE, PAR LE VRAI CHEMIN ============
+   Les autres tests déposent l'empreinte directement pour aller vite. Ici on
+   passe par où passe l'exploitant : l'adresse de son espace, la saisie du
+   code, et le va-et-vient avec le site public. C'est le seul endroit qui
+   vérifie que le code lui-même fonctionne. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => errors.push('PAGEERROR(serrure): ' + e.message));
+
+  await page.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(900);
+  check('serrure : un visiteur qui devine l\'adresse tombe sur le code',
+    await page.locator('#deverrouillage').isVisible()
+    && !(await page.locator('#tableauBord').isVisible()));
+
+  await page.fill('#codeExploitant', 'PasLeBonCode');
+  await page.locator('#btnDeverrouiller').click();
+  await page.waitForTimeout(400);
+  check('serrure : un mauvais code ne passe pas',
+    await page.locator('#erreurCode').isVisible()
+    && await page.locator('#deverrouillage').isVisible());
+
+  await page.fill('#codeExploitant', 'Ela1234');
+  await Promise.all([
+    page.waitForURL(/exploitant=1/, { timeout: 15000 }),
+    page.locator('#btnDeverrouiller').click()
+  ]);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(1400);
+  check('serrure : le bon code ouvre l\'espace de travail',
+    await page.locator('#tableauBord').isVisible()
+    && await page.locator('#badgeExploitant').isVisible());
+
+  // Il doit pouvoir aller voir son propre site public, et en revenir.
+  await Promise.all([
+    page.waitForNavigation({ timeout: 15000 }),
+    page.locator('#lienSitePublic').click()
+  ]);
+  await page.waitForTimeout(1100);
+  check('serrure : il voit ce que voient ses clients',
+    await page.locator('#accrocheClient').isVisible()
+    && !(await page.locator('#tableauBord').isVisible()));
+
+  await Promise.all([
+    page.waitForNavigation({ timeout: 15000 }),
+    page.locator('#retourExploitant').click()
+  ]);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(1400);
+  check('serrure : il revient sans retaper le code',
+    await page.locator('#tableauBord').isVisible()
+    && !(await page.locator('#deverrouillage').isVisible()));
+
+  // Un autre appareil ne sait rien du déverrouillage.
+  const autre = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ailleurs = await autre.newPage();
+  await ailleurs.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
+  await ailleurs.waitForTimeout(900);
+  check('serrure : un autre téléphone redemande le code',
+    await ailleurs.locator('#deverrouillage').isVisible());
+  await autre.close();
+  await ctx.close();
+}
+
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(t => console.log('  ✔ ' + t));
