@@ -5618,14 +5618,31 @@ function declarerNoteGlobale(moyenne){
   document.head.appendChild(sc);
 }
 
+/* =====================================================================
+   L'ADRESSE À PARTAGER
+   ---------------------------------------------------------------------
+   Toujours le domaine, jamais l'adresse courante. Un code QR se colle sur
+   une carte de visite ou sur un comptoir d'hôtel : il doit porter
+   l'adresse définitive, pas celle par laquelle on est arrivé ce jour-là.
+
+   Le site répond aussi sur github.io — un vieux favori, un lien reçu il y
+   a trois mois. Sans cette fonction, on imprimait deux cents cartes vers
+   l'ancienne adresse sans le voir. Et les paramètres d'URL (?ok=, ?a=)
+   partaient dans le code QR avec le reste.
+   ===================================================================== */
+function adressePartageable(){
+  return MARQUE.domaine ? `https://${MARQUE.domaine}/`
+                        : window.location.href.split("#")[0].split("?")[0];
+}
+
 function renderQrScreen(){
-  const url = window.location.href.split("#")[0];
+  const url = adressePartageable();
   document.getElementById("qrImg").src =
     `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
   document.getElementById("qrUrlText").textContent = url;
 }
 document.getElementById("btnCopyLink").addEventListener("click", async ()=>{
-  const url = window.location.href.split("#")[0];
+  const url = adressePartageable();
   try{
     await navigator.clipboard.writeText(url);
     const btn=document.getElementById("btnCopyLink");
