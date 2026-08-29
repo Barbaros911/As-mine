@@ -136,7 +136,14 @@ placer les courses qu'il ne peut pas assurer lui-même.
 
 Ela One 5,75 € + 1,75 €/km (4 pass.) · Ela First 11,50 € + 2,55 €/km (3) ·
 Van 11,50 € + 2,90 €/km (7) · Van Premium 17,25 € + 4,05 €/km (6).
-Horaire : 58 / 86 / 80 / 109 €. +20 % nuit et week-end. TVA 10 % incluse.
+**Mise à disposition, tarif dégressif** (août 2026) : les 3 premières heures
+au plein tarif, chaque heure au-delà au tarif de supplément, plus bas.
+Ela One 60 €/h puis 45 · Ela First 80 puis 60 · Van 90 puis 70 ·
+Van Premium 120 puis 100. `SEUIL_HORAIRE_H` vaut 3 pour les quatre gammes —
+un seul repère à retenir, pour le client comme pour Barbaros au téléphone.
+Le calcul est dans `prixHoraire()`. Sans `hourlyPlus` déclaré, on reste au
+plein tarif : mieux vaut facturer trop cher qu'offrir des heures par accident.
++20 % nuit et week-end. TVA 10 % incluse.
 Grille relevée de 15 % en août 2026, à la demande de Barbaros.
 60 min d'attente offertes en aéroport, 30 min ailleurs.
 **Barème d'annulation** (CGV art. 7, août 2026) : gratuit au-delà de 24 h,
