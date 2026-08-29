@@ -2303,8 +2303,11 @@ function fondDeCarte(){
    anonyme**, et ne jamais coller ici la clé « service_role », qui,
    elle, contourne toutes les règles.
    ===================================================================== */
-const SUPABASE_URL = "";   // ex. https://abcdefgh.supabase.co
-const SUPABASE_CLE = "";   // la clé « anon public » — PAS la « service_role »
+const SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
+const SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
+// Clé PUBLIABLE, faite pour partir dans la page. Ce qui protège les
+// données des clients, ce sont les règles posées dans Supabase :
+// dépôt autorisé au visiteur anonyme, lecture jamais.
 
 const nuage = (function(){
   const CLE_SESSION = "ela_nuage_session";
@@ -2323,15 +2326,24 @@ const nuage = (function(){
     const controle = new AbortController();
     const minuteur = setTimeout(()=>controle.abort(), 8000);
     try{
+      /* `apikey` seul suffit à identifier le visiteur anonyme : Supabase en
+         déduit le rôle. On n'ajoute `Authorization` QUE si l'exploitant est
+         connecté, avec son vrai jeton.
+         Ce n'est pas un détail : Supabase distribue aujourd'hui deux formats
+         de clé publique — l'ancienne, un JWT commençant par `eyJ`, et la
+         nouvelle, `sb_publishable_…`. La nouvelle n'est pas un JWT et se
+         faisait rejeter dès qu'on la présentait en `Bearer`. En ne la
+         mettant que dans `apikey`, les deux formats marchent. */
+      const entetes = {
+        apikey: SUPABASE_CLE,
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      };
+      if(connecte()) entetes.Authorization = "Bearer " + session.access_token;
       const res = await fetch(SUPABASE_URL + chemin, {
         ...options,
         signal: controle.signal,
-        headers: {
-          apikey: SUPABASE_CLE,
-          Authorization: "Bearer " + (connecte() ? session.access_token : SUPABASE_CLE),
-          "Content-Type": "application/json",
-          ...(options.headers || {})
-        }
+        headers: entetes
       });
       if(!res.ok) throw new Error("nuage " + res.status);
       const texte = await res.text();

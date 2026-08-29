@@ -47,9 +47,64 @@ async function equiper(page) {
   });
 }
 
+/* =====================================================================
+   COUPER AUSSI LE SERVEUR
+   ---------------------------------------------------------------------
+   Depuis que le site porte de vrais identifiants Supabase, le parcours du
+   client change : sa demande part toute seule et WhatsApp ne s'ouvre plus.
+   C'est voulu — mais deux suites éprouvent précisément le circuit
+   WhatsApp, qui reste le REPLI quand le serveur est absent ou muet. Ce
+   repli doit continuer de marcher : c'est lui qui sauve la course le jour
+   où Supabase tombe.
+   On efface donc les identifiants au vol pour ces suites-là. Le fichier
+   du dépôt n'est jamais modifié.
+   ===================================================================== */
+export async function sansServeur(page, base = 'http://127.0.0.1:8099') {
+  await page.route('**/*', async (route) => {
+    const url = route.request().url();
+    if (url === base + '/index.html' || url === base + '/') {
+      const res = await route.fetch();
+      const html = (await res.text())
+        .replace(/const SUPABASE_URL = "[^"]*";/, 'const SUPABASE_URL = "";')
+        .replace(/const SUPABASE_CLE = "[^"]*";/, 'const SUPABASE_CLE = "";');
+      return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
+    }
+    if (url.startsWith('data:') || url.startsWith('blob:') || estLocal(url)) {
+      return route.continue();
+    }
+    return route.abort('failed');
+  });
+}
+
 /* On enveloppe newPage et newContext plutôt que de modifier chaque suite :
    les pages créées plus tard dans un test sont équipées elles aussi. */
-export function couperLeReseau(browser) {
+export function couperLeReseau(browser, options = {}) {
+  const sansNuage = options.sansServeur === true;
+  const base = options.base || 'http://127.0.0.1:8099';
+  if (sansNuage) {
+    const pageOrigine0 = browser.newPage.bind(browser);
+    browser.newPage = async (...args) => {
+      const page = await pageOrigine0(...args);
+      await sansServeur(page, base);
+      return page;
+    };
+    const ctxOrigine0 = browser.newContext.bind(browser);
+    browser.newContext = async (...args) => {
+      const ctx = await ctxOrigine0(...args);
+      const npOrigine = ctx.newPage.bind(ctx);
+      ctx.newPage = async (...a) => {
+        const page = await npOrigine(...a);
+        await sansServeur(page, base);
+        return page;
+      };
+      return ctx;
+    };
+    return browser;
+  }
+  return couperLeReseauSeul(browser);
+}
+
+function couperLeReseauSeul(browser) {
   const pageOrigine = browser.newPage.bind(browser);
   browser.newPage = async (...args) => {
     const page = await pageOrigine(...args);

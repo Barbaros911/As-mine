@@ -22,8 +22,20 @@ const browser = await chromium.launch();
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   page.on('pageerror', e => errors.push(String(e)));
-  await page.route('**/*', r =>
-    r.request().url().startsWith(BASE) ? r.continue() : r.abort());
+  // Les identifiants sont désormais réels dans la page : pour éprouver le
+  // comportement « sans serveur », on les efface au vol. C'est ce cas qui
+  // doit rester intact — il protège le repli le jour où le serveur tombe.
+  await page.route('**/*', async route => {
+    const u = route.request().url();
+    if (u === BASE + '/index.html' || u === BASE + '/') {
+      const res = await route.fetch();
+      const html = (await res.text())
+        .replace(/const SUPABASE_URL = "[^"]*";/, 'const SUPABASE_URL = "";')
+        .replace(/const SUPABASE_CLE = "[^"]*";/, 'const SUPABASE_CLE = "";');
+      return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
+    }
+    return u.startsWith(BASE) ? route.continue() : route.abort();
+  });
   await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
@@ -54,8 +66,8 @@ const recu = { deposes: [], lecturesAnonymes: 0 };
     if (u === BASE + '/index.html' || u === BASE + '/') {
       const res = await route.fetch();
       const html = (await res.text())
-        .replace('const SUPABASE_URL = "";', 'const SUPABASE_URL = "https://faux.supabase.co";')
-        .replace('const SUPABASE_CLE = "";', 'const SUPABASE_CLE = "cle-anon-de-test";');
+        .replace(/const SUPABASE_URL = "[^"]*";/, 'const SUPABASE_URL = "https://faux.supabase.co";')
+        .replace(/const SUPABASE_CLE = "[^"]*";/, 'const SUPABASE_CLE = "cle-anon-de-test";');
       return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
     }
 
@@ -76,8 +88,13 @@ const recu = { deposes: [], lecturesAnonymes: 0 };
           // C'est ici que se joue le RGPD : la Row Level Security de Supabase
           // refuse la lecture au rôle anonyme. On l'imite pour vérifier que la
           // page ne prétend jamais avoir lu quoi que ce soit sans jeton.
+          // Pas de jeton d'exploitant : c'est la lecture anonyme, refusée par
+          // la Row Level Security. On vérifie au passage que la page n'envoie
+          // PAS la clé publique en Bearer — la nouvelle génération de clés
+          // Supabase (sb_publishable_…) n'est pas un JWT et s'y ferait rejeter.
           if (!auth.includes('jeton-test')) {
             recu.lecturesAnonymes++;
+            recu.bearerSansSession = recu.bearerSansSession || auth !== '';
             return route.fulfill({ status: 401, contentType: 'application/json', body: '{"message":"RLS"}' });
           }
           return route.fulfill({ status: 200, contentType: 'application/json',
@@ -135,6 +152,8 @@ const recu = { deposes: [], lecturesAnonymes: 0 };
   // --- La lecture est fermée à l'anonyme ---
   check('un visiteur anonyme ne peut lire AUCUNE course',
     (await page.evaluate(() => nuage.lister())) === null);
+  check('la clé publique n\'est jamais présentée en Bearer',
+    recu.bearerSansSession !== true);
 
   // --- Côté exploitant ---
   check('un mauvais mot de passe est refusé',

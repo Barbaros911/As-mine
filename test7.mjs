@@ -30,7 +30,11 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
 const browser = await chromium.launch();
 // Les serveurs extérieurs échouent tout de suite au lieu de faire
 // attendre le navigateur : voir test-hors-ligne.mjs.
-couperLeReseau(browser);
+// Cette suite éprouve le circuit WhatsApp — le REPLI, celui qui prend la
+// main quand le serveur est absent ou muet. On efface donc les identifiants
+// Supabase au vol : avec serveur, la demande partirait seule et WhatsApp ne
+// s'ouvrirait plus. Le fichier du dépôt n'est pas modifié.
+couperLeReseau(browser, { sansServeur: true });
 const errors = [];
 const ok = [], ko = [];
 const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
