@@ -55,7 +55,7 @@ const browser = await chromium.launch();
 }
 
 /* ============ AVEC IDENTIFIANTS : LA VRAIE PAGE ============ */
-const recu = { deposes: [], lecturesAnonymes: 0 };
+const recu = { deposes: [], lecturesAnonymes: 0, suivis: [] };
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   page.on('pageerror', e => errors.push(String(e)));
@@ -80,6 +80,16 @@ const recu = { deposes: [], lecturesAnonymes: 0 };
           return route.fulfill({ status: 400, contentType: 'application/json', body: '{"error":"invalid"}' });
         return route.fulfill({ status: 200, contentType: 'application/json',
           body: JSON.stringify({ access_token: 'jeton-test', user: { email } }) });
+      }
+      if (u.includes('/rest/v1/rpc/suivi')) {
+        // La fonction de suivi n'ouvre QUE sur le bon jeton. On imite ce
+        // refus : c'est lui qui empêche un curieux de lire l'état des
+        // courses des autres en devinant les références.
+        const { p_ref, p_jeton } = JSON.parse(corps || '{}');
+        recu.suivis.push({ p_ref, p_jeton });
+        if (p_jeton !== 'bonjeton') return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+        return route.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify([{ statut: recu.statutServeur || 'attente', chauffeur: recu.chauffeurServeur || null }]) });
       }
       if (u.includes('/rest/v1/courses')) {
         const auth = route.request().headers()['authorization'] || '';
@@ -154,6 +164,52 @@ const recu = { deposes: [], lecturesAnonymes: 0 };
     (await page.evaluate(() => nuage.lister())) === null);
   check('la clé publique n\'est jamais présentée en Bearer',
     recu.bearerSansSession !== true);
+
+  // --- Le suivi de sa course, côté client ---
+  check('chaque réservation porte un jeton de suivi imprévisible',
+    await page.evaluate(() => {
+      const a = jetonDeSuivi(), b = jetonDeSuivi();
+      return a.length === 32 && /^[0-9a-f]+$/.test(a) && a !== b;
+    }));
+
+  const suiviOk = await page.evaluate(() => nuage.suivi('ELA-26-08-0042', 'bonjeton'));
+  check('avec le bon jeton, le client lit l\'état de SA course',
+    !!suiviOk && suiviOk.statut === 'attente', JSON.stringify(suiviOk));
+  const suiviKo = await page.evaluate(() => nuage.suivi('ELA-26-08-0042', 'mauvaisjeton'));
+  check('avec un mauvais jeton, il ne lit RIEN', suiviKo === null, JSON.stringify(suiviKo));
+  // Le suivi est passé par la fonction, et la page n'a JAMAIS tenté de lire
+  // la table en anonyme — elle s'arrête avant même d'envoyer la requête.
+  check('le suivi passe par la fonction dédiée', recu.suivis.length === 2,
+    recu.suivis.length + ' appel(s)');
+  check('la page ne tente jamais de lire la table en anonyme',
+    recu.lecturesAnonymes === 0, recu.lecturesAnonymes + ' tentative(s)');
+
+  // L'affichage : la pastille bat tant qu'on cherche, se fige ensuite.
+  await page.evaluate(() => demarrerSuivi({ ref: 'ELA-26-08-0042', jeton: 'bonjeton', statut: 'attente' }));
+  await page.waitForTimeout(300);
+  const enRecherche = await page.evaluate(() => ({
+    visible: !document.getElementById('blocSuivi').classList.contains('hidden'),
+    classe: document.getElementById('suiviPoint').className,
+    texte: document.getElementById('suiviTexte').textContent
+  }));
+  check('pendant la recherche, le client voit une pastille qui bat',
+    enRecherche.visible && /cherche/.test(enRecherche.classe), enRecherche.texte);
+
+  // L'exploitant confirme : le client doit le voir sans qu'on le prévienne.
+  recu.statutServeur = 'confirmee'; recu.chauffeurServeur = 'Mehmet K.';
+  await page.evaluate(() => interrogerSuivi());
+  await page.waitForTimeout(300);
+  const confirme = await page.evaluate(() => ({
+    classe: document.getElementById('suiviPoint').className,
+    texte: document.getElementById('suiviTexte').textContent,
+    detail: document.getElementById('suiviDetail').textContent
+  }));
+  check('quand l\'exploitant confirme, le client le voit sur le site',
+    /ok/.test(confirme.classe) && confirme.texte.length > 0, confirme.texte);
+  check('et il lit le nom de son chauffeur',
+    confirme.detail.includes('Mehmet K.'), confirme.detail);
+  check('la course tranchée, on cesse d\'interroger le serveur',
+    (await page.evaluate(() => suiviEnCours)) === null);
 
   // --- Côté exploitant ---
   check('un mauvais mot de passe est refusé',
