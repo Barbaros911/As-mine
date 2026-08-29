@@ -54,16 +54,29 @@ Ne pas se contenter de lire le code : ouvrir vraiment la page.
 
 ## Git et publication
 
+**Rien ne part sans que Barbaros l'ait vu.** Règle posée en août 2026, après
+deux fusions passées en ligne avant qu'il ait pu regarder. L'ordre est
+toujours le même : faire le travail, **montrer** (capture d'écran, pas une
+description), **attendre son accord**, et seulement ensuite pousser. Cela
+vaut aussi pour ce qui est « visible par un client » : c'est justement ce
+qui mérite d'être vu avant, pas après. Ne jamais lire l'urgence d'un lien à
+envoyer comme une autorisation de fusionner.
+
+**En cours, à ne PAS pousser sans son feu vert explicite** (août 2026) : la
+branche `claude/as-mine-booking-app-yqvxoi` porte des commits d'avance —
+accueil en bandeau marine, écran des véhicules refait, quatre gammes. Il
+veut les intégrer plus tard et a demandé qu'on **le lui rappelle souvent** :
+le dire à chaque réponse tant que ce n'est pas publié, sans pousser pour
+autant.
+
 - Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
   jamais directement sur `main`.
 - Toujours vérifier `git branch --show-current` avant un `git push` — déjà
   fait l'erreur de pousser vers le mauvais nom de branche une fois.
-- Un site publié (visible par un client) : ouvrir la pull request **et la
-  fusionner directement** — sans ça, le lien envoyé au client ne
-  fonctionne pas.
+- Une fois l'accord donné : ouvrir la pull request **et la fusionner** —
+  sans la fusion, le lien envoyé au client ne fonctionne pas.
 - Un changement interne (compétences, configuration, outillage, rien de
-  visible en ligne) : ouvrir la pull request mais **demander avant de
-  fusionner**.
+  visible en ligne) : même règle, montrer et demander avant.
 - Ne jamais committer et pousser dans le même appel : les faire l'un après
   l'autre. Un appel qui mélange les deux a déjà été bloqué par le
   classificateur de sécurité.
@@ -121,8 +134,8 @@ placer les courses qu'il ne peut pas assurer lui-même.
 
 ## Tarification
 
-Berline 5,75 € + 1,75 €/km (4 pass.) · Berline VIP 11,50 € + 2,55 €/km (3) ·
-Van 11,50 € + 2,90 €/km (7) · Van VIP 17,25 € + 4,05 €/km (6).
+Ela One 5,75 € + 1,75 €/km (4 pass.) · Ela First 11,50 € + 2,55 €/km (3) ·
+Van 11,50 € + 2,90 €/km (7) · Van Premium 17,25 € + 4,05 €/km (6).
 Horaire : 58 / 86 / 80 / 109 €. +20 % nuit et week-end. TVA 10 % incluse.
 Grille relevée de 15 % en août 2026, à la demande de Barbaros.
 60 min d'attente offertes en aéroport, 30 min ailleurs.
@@ -272,10 +285,60 @@ quatre catégories restent proposées à un client seul — il a le droit de
 vouloir un van, et c'est une course plus chère. Pas d'option « peu
 importe » pour autant : il choisit, ou rien n'est réservé.
 
-**Pas d'emoji de voiture, pas d'illustration de voiture.** Essayé quatre
-fois, refusé quatre fois. Les cartes portent une pastille dorée avec le
-nombre de places. Seule piste encore ouverte : de vraies photos des
-véhicules, fournies par Barbaros.
+**Quatre gammes, et des silhouettes dessinées.** Août 2026, à la demande de
+Barbaros, après quatre refus successifs des illustrations de voiture : il
+les veut, façon Uber. Les gammes sont **Ela One** (4 places), **Ela First**
+(3), **Van** (7), **Van Premium** (6).
+- Les **clés techniques ne changent jamais** (`berline`, `berline_vip`,
+  `van`, `van_vip`) même quand le nom commercial change : elles sont écrites
+  dans les courses déjà enregistrées sur l'appareil, et une clé renommée
+  rendrait illisible le véhicule de tout l'historique.
+- Un nom de gamme est une marque : **il ne se traduit pas**, il est
+  identique dans les six langues, comme « UberX » l'est partout.
+- Les anciens noms (`anciensNoms` : « Berline », « Sedán », « 商务车 »…)
+  restent reconnus par `vehiculeDepuisNom()`. Barbaros a des mois de
+  messages WhatsApp qui les portent, et « Coller une demande » doit
+  continuer à les relire. **Renommer une gamme sans ajouter l'ancien nom
+  aux alias rend muet tout l'historique.**
+- Les silhouettes (`SILHOUETTES`) sont deux SVG dessinés dans la page —
+  berline et van, de profil, **sans calandre ni logo**. Aucune marque n'est
+  reconnaissable, et c'est voulu : dessiner une Classe E serait une promesse
+  qu'on ne tient pas si une autre voiture se présente. La gamme haute se
+  distingue par la **couleur** de la silhouette (marine contre gris-bleu),
+  jamais par un modèle inventé.
+- Les **emojis de voiture restent bannis** : ils changent de dessin d'un
+  téléphone à l'autre et grossissent mal. Deux tests le vérifient.
+- Piste encore ouverte : de vraies photos des véhicules, fournies par
+  Barbaros, qui remplaceraient les silhouettes.
+
+**L'écran des véhicules se lit comme une application de course** : la carte
+en haut sur toute la largeur, la liste qui remonte par-dessus dans une
+feuille à coins arrondis (`.veh-feuille`, marge négative de 22 px), et le
+bouton d'action collé au-dessus de la barre de navigation (`.veh-action`,
+`position:sticky`). Chaque ligne porte la pastille des places, le nom,
+« N passagers · heure d'arrivée · durée », et le prix à droite. Le bouton
+se nomme — « Continuer · Berline » — parce qu'on ne confirme pas dans le
+vide. Trois pièges :
+- Si la carte ne s'affiche pas (Leaflet injoignable, client hors ligne), la
+  règle `#tripMap.hidden + .veh-feuille` remet une mise en page ordinaire.
+  Sans elle, il reste un coin arrondi et une poignée dans le vide.
+- Le cadrage réserve **54 px en bas** (`paddingBottomRight`) : la feuille
+  mord sur la carte, et sans cette marge le repère d'arrivée se cache
+  dessous.
+- Les tuiles OpenStreetMap sont désaturées en CSS. La couleur doit rester
+  au tracé et aux repères, pas aux enseignes de magasins.
+
+**La pastille WhatsApp ne s'affiche QUE sur l'accueil.** Elle ne regardait
+que le défilement : sur l'écran des véhicules, qui tient dans une page, elle
+se posait pile sur « Continuer ». C'est le défaut déjà écrit pour « Voir les
+tarifs », qui valait en fait pour tous les boutons d'action. `showScreen`
+appelle `window.__jugerPastilleWa()` à chaque changement d'écran — sans ça
+elle restait visible une seconde de trop, le temps que la minuterie repasse.
+
+**Les suites visent les rôles, pas les balises.** Trois tests cherchaient le
+prix par `.veh-card p.font-mono` : changer le `<p>` en `<span>` les a fait
+tomber alors que rien n'était cassé. Viser `.veh-prix`, `.veh-nom`,
+`.veh-detail` — des classes qui disent ce que l'élément est.
 
 **Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
 Les terminaux restent proposés comme adresses.
@@ -293,12 +356,86 @@ bordures qui doivent rester discrètes.
 **Le titre d'accueil ne se pose JAMAIS sur la photo.** Il y était, en vert,
 sur un ruban de six vues qui change toutes les six secondes : lisible sur la
 Joconde, invisible sur les Champs illuminés. Aucun réglage de voile ne
-rattrape ça — une image qui change ne peut pas garantir un contraste. Le
-titre (`.accroche`) est donc sur le fond ivoire, où le contraste est acquis
-une fois pour toutes, et la vitrine ne porte plus aucun texte. Ne pas l'y
-remettre. L'accroche courte au-dessus (`tagline`) tient dans une pastille :
-la garder **courte**, sinon elle passe à la ligne — deux mots, un point
-médian, pas une phrase.
+rattrape ça — une image qui change ne peut pas garantir un contraste. Ne pas
+l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
+pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
+point médian, pas une phrase.
+
+**L'accueil se lit dans cet ordre : bandeau marine, formulaire, photos.**
+Le titre est posé sur un aplat marine plein (`.accroche`), en ivoire, avec
+le filet doré de la marque qui sort du cadre en bas à gauche — la seule idée
+du logo, à l'échelle de la page, et le seul or admis hors de l'enseigne. Le
+contraste y est acquis une fois pour toutes.
+Le ruban de photos est passé **sous le formulaire** : en haut il occupait la
+place du premier champ, et il servait de fond à un titre qu'il rendait
+illisible. Plus bas il ne porte plus rien, il reprend de la hauteur (186 px
+au lieu de 132), et le client qui veut réserver n'a plus à le franchir. Le
+formulaire entier — bouton « Voir les tarifs » compris — tient désormais
+dans le premier écran d'un téléphone. Ne pas le remonter.
+Sa marge basse de 20 px n'est pas cosmétique : la section « À l'arrivée de
+votre vol » qui suit est elle aussi sur fond marine, et sans cet intervalle
+les deux masses sombres se collent.
+
+**Le serveur existe, en dormant.** `SUPABASE_URL` et `SUPABASE_CLE` (haut du
+script) sont vides : le site se comporte alors exactement comme avant — le
+client envoie lui-même son récapitulatif, l'exploitant le recolle. Dès
+qu'elles sont remplies (marche à suivre dans `SUPABASE.md`), le client
+appuie sur « Confirmer » et c'est fini pour lui : la demande arrive dans le
+tableau de bord, sur n'importe quel appareil.
+- Le module `nuage` fait tout : `deposer`, `connexion`, `lister`,
+  `majStatut`. Aucune bibliothèque chargée — de simples appels REST.
+- `afficherEtatEnvoi(true | false | null)` décide de ce que voit le client.
+  **`null` n'affiche NI l'un NI l'autre**, et c'est important : le féliciter
+  avant que le dépôt ait répondu lui ferait fermer la page sur une course
+  qui n'existe pas.
+- **Le repli est sacré.** Si le dépôt échoue, les trois boutons d'envoi
+  reviennent. Ne jamais les retirer sans que le serveur soit là : un bouton
+  « Confirmer » qui ne confirme rien, c'est un client qui attend un
+  chauffeur à 5 h du matin pendant que personne ne sait rien.
+- **Sans serveur, WhatsApp s'ouvre AVANT tout appel réseau**, dans le même
+  geste que le clic. `window.open()` après un `await` est bloqué par Safari
+  iOS. Ne pas rendre `finalizeBooking` asynchrone sur ce chemin.
+- **La clé `anon` est publique et ne protège RIEN.** Ce qui protège les
+  clients, c'est la Row Level Security posée dans Supabase : dépôt autorisé
+  au visiteur anonyme, **lecture jamais**. Ajouter une policy de lecture
+  pour `anon` exposerait les noms, téléphones et adresses de tous les
+  clients — RGPD. Ne jamais coller la clé `service_role` dans la page :
+  elle contourne toutes les règles.
+- `fusionnerCourses()` AJOUTE et n'écrase jamais : une course déjà sur
+  l'appareil peut avoir avancé depuis (chauffeur attribué, course réalisée).
+- `test9.mjs` couvre les deux chemins, en réécrivant la page au vol pour y
+  poser de faux identifiants. Il vérifie aussi que la page ne prétend jamais
+  avoir lu quoi que ce soit sans jeton.
+
+**Les services extérieurs sont le point faible du site.** La carte et le
+prix dépendent de deux serveurs qui ne nous appartiennent pas :
+- `router.project-osrm.org` calcule l'itinéraire. C'est un serveur de
+  **démonstration** : aucun engagement, débit limité, usage commercial
+  déconseillé par ses auteurs. Quand il refuse, le prix retombe sur la
+  distance à vol d'oiseau × 1,3 et la course est marquée « ≈ ». **Ce n'est
+  pas un détail de confort : ça change le prix payé.** Sur un Roissy →
+  Paris l'écart se compte en euros.
+- `tile.openstreetmap.org` dessine le fond de plan. La politique de la
+  fondation **interdit l'usage commercial soutenu** ; le site peut être
+  coupé sans préavis.
+
+`CLE_MAPBOX` (haut du script) répond aux deux d'un coup : dès qu'une clé y
+est posée, la carte et les itinéraires passent par Mapbox, qui a un
+engagement de service. Le palier gratuit (50 000 cartes et 100 000
+itinéraires par mois) est très au-dessus du volume d'Asmine. Sans clé, le
+site fonctionne exactement comme avant — la bascule est une ligne.
+La clé Mapbox est **publique par construction** (elle part dans la page,
+et le dépôt l'est aussi) : la restreindre au domaine `elatransfer.com`
+depuis le tableau de bord Mapbox, sinon n'importe qui consomme le quota.
+
+**Il n'existe AUCUNE API publique Uber** pour les prix en direct ni la
+position des chauffeurs. L'API publique a été fermée il y a des années ;
+ce qui reste (Uber Direct, Uber for Business) sert à la livraison et aux
+comptes entreprise. Aspirer leur application violerait leurs conditions,
+casserait à chaque mise à jour de leur côté, et ferait dépendre le prix
+d'Asmine d'un concurrent. Ne pas le proposer. **Afficher un prix indexé
+sur un tarif variable est en plus incompatible avec la règle VTC** : le
+prix doit être ferme et connu avant le départ.
 
 ## Règles à ne jamais enfreindre
 
@@ -362,14 +499,15 @@ comptable, gestion des désistements et des clients absents.
 
 ## Tests
 
-Huit suites Playwright à la racine, à relancer après **toute**
+Neuf suites Playwright à la racine, à relancer après **toute**
 modification :
 
 ```bash
 npx http-server -p 8099 -s .
 node test.mjs && node test2.mjs && node test3.mjs \
   && node test4.mjs && node test5.mjs \
-  && node test6.mjs && node test7.mjs && node test8.mjs
+  && node test6.mjs && node test7.mjs && node test8.mjs \
+  && node test9.mjs
 ```
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une
@@ -389,7 +527,10 @@ réelles » : un test qui dépend d'Internet ne prouve rien.
 Trois pièges déjà rencontrés quand une suite échoue :
 - **le numéro de chambre.** Un départ dans un hôtel est refusé sans lui.
   Une suite qui réserve depuis l'Ibis doit remplir `#roomPickup`.
-- **deux véhicules, pas quatre.** Les versions VIP ont été supprimées.
+- **quatre gammes, pas deux.** Ela One, Ela First, Van, Van Premium — les
+  versions haut de gamme sont revenues en août 2026. Une suite qui compte
+  les véhicules doit tenir compte des places : à 4 passagers, Ela First
+  (3 places) sort et il en reste trois ; à 5 ou 6, seuls les deux vans.
 - **l'écran de confirmation n'a plus de repli `<details>`.** Les trois
   moyens d'envoi sont visibles d'emblée, et c'est voulu : tant que le
   client n'a pas appuyé, la demande n'est arrivée nulle part.
