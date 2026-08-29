@@ -1,8 +1,12 @@
 import { chromium } from 'playwright';
+import { couperLeReseau } from './test-hors-ligne.mjs';
 
 const BASE = 'http://127.0.0.1:8099';
 const errors = [];
 const browser = await chromium.launch();
+// Les serveurs extérieurs échouent tout de suite au lieu de faire
+// attendre le navigateur : voir test-hors-ligne.mjs.
+couperLeReseau(browser);
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 
 page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
@@ -23,7 +27,7 @@ check('page chargée', await page.locator('#screen-home').isVisible());
 // 2. Traductions : passage en turc, aucune chaîne française ne doit rester
 await page.selectOption('#langSelect', 'es');
 await page.waitForTimeout(300);
-check('langue ES appliquée', (await page.locator('h1').textContent()).includes('excelencia'));
+check('langue ES appliquée', (await page.locator('h1').textContent()).includes('chófer'));
 await page.locator('.nav-item[data-target="screen-qr"]').click();
 await page.waitForTimeout(200);
 const qrTxt = await page.locator('#screen-qr').textContent();

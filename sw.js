@@ -31,13 +31,14 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v9";
+const CACHE = "elatransfer-v10";
 /* La feuille de style fait partie du strict nécessaire : sans elle la page
    s'ouvre hors ligne mais illisible, ce qui est pire que rien. Les photos
    n'y sont pas — elles font un mégaoctet et n'empêchent personne de
    réserver ; elles se mettront en cache d'elles-mêmes à la visite. */
 const SHELL = ["./", "./index.html", "./styles.css",
-               "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"];
+               "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg",
+               "./icon-180.png"];
 
 /* Hôtes dont la réponse ne doit jamais être mise en cache */
 const NO_CACHE_HOSTS = [

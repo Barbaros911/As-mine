@@ -6,9 +6,17 @@
      inutilisable pour les personnes malvoyantes (WCAG 2.1 critère 1.4.4). -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VTC Roissy CDG, Orly & Paris — Chauffeur privé Elatransfer</title>
-<meta name="theme-color" content="#121212">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23121212'/%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23D4AF37' stroke-width='2'/%3E%3Ctext x='32' y='40' font-family='Georgia,serif' font-size='22' font-weight='600' fill='%23D4AF37' text-anchor='middle'%3EAS%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23121212'/%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23D4AF37' stroke-width='2'/%3E%3Ctext x='32' y='40' font-family='Georgia,serif' font-size='22' font-weight='600' fill='%23D4AF37' text-anchor='middle'%3EAS%3C/text%3E%3C/svg%3E">
+<!-- Couleur de la barre d'adresse du téléphone. Elle doit être celle du haut
+     de la page, sinon on voit une bande noire au-dessus d'un fond ivoire. -->
+<meta name="theme-color" content="#F1EEE7">
+<!-- Le monogramme, une seule fois, pour l'onglet du navigateur. Il portait
+     encore le « AS » noir et or d'Asmine : c'est ce que voyait le client
+     dans son onglet et dans ses favoris. -->
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<!-- Safari sur iPhone ne sait pas afficher une icône SVG sur l'écran
+     d'accueil : sans ce PNG, iOS met une capture de la page à la place.
+     180 px est la taille qu'il demande. -->
+<link rel="apple-touch-icon" href="./icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -473,6 +481,21 @@
   .puce-chauffeur.actif{border-color:var(--gold);background:rgba(184,134,43,.12);
     color:var(--gold-soft);box-shadow:0 0 0 1px var(--gold);}
 
+  /* ================== LE BLOC DE MARQUE ==================
+     Le nom sur une ligne, les villes sur une seconde, plus petite.
+     Les deux sont serrées l'une contre l'autre (line-height court) pour
+     tenir dans les 64 px de hauteur du bandeau sans le faire grandir. */
+  .marque-bloc{display:flex;flex-direction:column;line-height:1;}
+  .marque-nom{display:block;font-size:19px;font-weight:800;letter-spacing:.03em;
+    color:var(--navy-deep);}
+  .marque-nom i{font-style:normal;color:var(--gold-soft);}
+  .marque-villes{display:block;font-size:8.4px;font-weight:600;letter-spacing:.115em;
+    text-transform:uppercase;color:var(--muted);margin-top:3px;}
+  /* Sur l'écran de travail, la ligne des villes ne sert plus à rien : elle
+     s'adresse à un client qui découvre le service. Le badge EXPLOITANT
+     prend sa place à côté du nom. */
+  body.mode-exploitant .marque-villes{display:none;}
+
   /* ================== LA PANCARTE ==================
      Une vraie pancarte de chauffeur : fond clair, marque en haut, filet,
      puis le nom en gros. Légèrement de travers — tenue à la main, elle
@@ -486,6 +509,10 @@
   .pancarte{background:#FBF9F4;color:#101C31;border-radius:8px;padding:20px 16px 18px;
     text-align:center;transform:rotate(-1.1deg);
     box-shadow:0 16px 34px -18px rgba(0,0,0,.75), 0 2px 0 rgba(0,0,0,.12);}
+  /* La pastille au-dessus du nom. Une pancarte d'agence porte toujours le
+     logo : c'est ce qui distingue un professionnel attendu d'un inconnu
+     qui a écrit un nom sur une feuille. */
+  .pancarte .signeP{display:block;margin:0 auto 8px;}
   .pancarte .marqueP{display:block;font-size:12px;font-weight:800;
     letter-spacing:.19em;color:var(--navy-deep);}
   .pancarte .marqueP i{font-style:normal;color:var(--gold);}
@@ -533,11 +560,23 @@
 <header class="fixed top-0 left-0 right-0 z-40 bg-[var(--graphite)]/90 backdrop-blur border-b border-[var(--line)]">
   <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2 min-w-0 shrink-0">
-      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" class="shrink-0" aria-hidden="true"><circle cx="15" cy="15" r="13.2" fill="var(--navy-deep)"/><circle cx="15" cy="15" r="13.2" stroke="var(--gold)" stroke-width="1.2"/><text x="15" y="19.5" font-family="'Instrument Serif',Georgia,serif" font-size="12" font-weight="600" fill="var(--gold-dim)" text-anchor="middle">E</text></svg>
-      <!-- L'enseigne : ELA en marine, TRANSFER en or. Le mot n'est pas coupé
-           en deux par hasard — c'est ce qui rend la marque reconnaissable
-           quand on ne fait que passer devant. -->
-      <span class="text-xl tracking-[0.13em] truncate font-bold" style="color:var(--navy-deep)">ELA<span style="color:var(--gold-soft)">TRANSFER</span></span>
+      <!-- LE BLOC DE MARQUE. Trois morceaux qui vont toujours ensemble :
+           la pastille, le nom, la ligne des villes. Le dessin de la pastille
+           est le même que dans icon.svg — une marque se reconnaît parce
+           qu'elle est identique d'un support à l'autre. Il est redessiné ici
+           plutôt qu'appelé en image : pas de requête réseau supplémentaire
+           à la première ouverture, et il suit les couleurs du thème. -->
+      <svg width="34" height="34" viewBox="0 0 512 512" class="shrink-0" aria-hidden="true"><rect width="512" height="512" rx="112" fill="var(--navy-deep)"/><g transform="translate(68.52 166.50)"><path d="M10.276510067114094 132.0V0.0H101.87919463087249V25.51409395973154H41.54899328859061V52.8H97.09530201342282V77.78255033557048H41.54899328859061V106.48590604026846H101.79060402684564V132.0Z" fill="#F1EEE7"/><path d="M128.9261744966443 132.0V0.0H160.1986577181208V106.48590604026846H215.39060402684566V132.0Z" fill="#F1EEE7"/><path d="M233.4013422818792 132.0 277.4308724832215 0.0H319.3342281879195L364.69261744966445 132.0H329.6107382550336L311.27248322147653 74.32751677852349Q306.84295302013425 59.887248322147656 302.7234899328859 43.63087248322148Q298.6040268456376 27.374496644295306 294.44026845637586 9.92214765100671H301.43892617449666Q297.45234899328864 27.46308724832214 293.7315436241611 43.719463087248315Q290.0107382550336 59.97583892617449 285.8469798657718 74.32751677852349L268.1288590604027 132.0ZM263.344966442953 103.91677852348994V79.9973154362416H334.8375838926175V103.91677852348994Z" fill="#F1EEE7"/></g><rect x="78.8" y="328.5" width="433.2" height="17.0" rx="8.5" fill="var(--gold)"/></svg>
+      <span class="marque-bloc min-w-0">
+        <!-- L'enseigne : ELA en marine, TRANSFER en or. Le mot n'est pas coupé
+             en deux par hasard — c'est ce qui rend la marque reconnaissable
+             quand on ne fait que passer devant. -->
+        <span class="marque-nom truncate">ELA<i>TRANSFER</i></span>
+        <!-- La ligne qui fait entrer un client : le nom dit qui on est, ces
+             trois villes disent ce qu'on fait. Masquée en mode exploitant —
+             Barbaros n'a pas besoin qu'on lui rappelle son métier. -->
+        <span class="marque-villes truncate">Paris · Roissy CDG · Orly</span>
+      </span>
       <!-- Marque l'espace de travail : impossible de confondre son écran avec
            celui d'un client, même d'un coup d'œil. -->
       <span id="badgeExploitant" class="hidden badge-exploitant" data-i18n="admin_badge">EXPLOITANT</span>
@@ -813,6 +852,7 @@
       <h2 data-i18n="accueil_titre">À l'arrivée de votre vol</h2>
       <p class="dit" data-i18n="accueil_texte">Votre chauffeur vous attend dans le hall d'arrivée, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.</p>
       <div class="pancarte">
+        <svg class="signeP" width="28" height="28" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0C1A31"/><g transform="translate(68.52 166.50)"><path d="M10.276510067114094 132.0V0.0H101.87919463087249V25.51409395973154H41.54899328859061V52.8H97.09530201342282V77.78255033557048H41.54899328859061V106.48590604026846H101.79060402684564V132.0Z" fill="#F1EEE7"/><path d="M128.9261744966443 132.0V0.0H160.1986577181208V106.48590604026846H215.39060402684566V132.0Z" fill="#F1EEE7"/><path d="M233.4013422818792 132.0 277.4308724832215 0.0H319.3342281879195L364.69261744966445 132.0H329.6107382550336L311.27248322147653 74.32751677852349Q306.84295302013425 59.887248322147656 302.7234899328859 43.63087248322148Q298.6040268456376 27.374496644295306 294.44026845637586 9.92214765100671H301.43892617449666Q297.45234899328864 27.46308724832214 293.7315436241611 43.719463087248315Q290.0107382550336 59.97583892617449 285.8469798657718 74.32751677852349L268.1288590604027 132.0ZM263.344966442953 103.91677852348994V79.9973154362416H334.8375838926175V103.91677852348994Z" fill="#F1EEE7"/></g><rect x="78.8" y="328.5" width="433.2" height="17.0" rx="8.5" fill="#E0B65C"/></svg>
         <span class="marqueP">ELA<i>TRANSFER</i></span>
         <span class="filetP" aria-hidden="true"></span>
         <span class="nomP" id="nomPancarte">M. DUPONT</span>

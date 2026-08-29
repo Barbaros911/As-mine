@@ -356,3 +356,44 @@ Playwright n'est pas installé dans le dépôt : lier le paquet global une
 fois par session avec
 `mkdir -p node_modules && ln -sfn /opt/node22/lib/node_modules/playwright node_modules/playwright`
 (`node_modules/` est ignoré par git).
+
+**Les suites tournent hors ligne** (`test-hors-ligne.mjs`). Tout ce qui
+n'est pas le serveur local échoue immédiatement au lieu de faire attendre
+le navigateur trente secondes par appel. Sans ça, l'ensemble dépassait dix
+minutes et finissait en délai sans rien vérifier ; avec, il tourne en six
+minutes et vérifie au passage que le site reste utilisable quand ses
+dépendances extérieures tombent — le cas réel d'un client dans un parking
+d'aéroport. Ne pas retirer ce coupe-circuit pour « tester en conditions
+réelles » : un test qui dépend d'Internet ne prouve rien.
+
+Trois pièges déjà rencontrés quand une suite échoue :
+- **le numéro de chambre.** Un départ dans un hôtel est refusé sans lui.
+  Une suite qui réserve depuis l'Ibis doit remplir `#roomPickup`.
+- **deux véhicules, pas quatre.** Les versions VIP ont été supprimées.
+- **l'écran de confirmation n'a plus de repli `<details>`.** Les trois
+  moyens d'envoi sont visibles d'emblée, et c'est voulu : tant que le
+  client n'a pas appuyé, la demande n'est arrivée nulle part.
+
+## Le logo
+
+Le signe court est « **ELA** » gravé en ivoire sur marine, souligné d'un
+filet doré **qui sort du cadre à droite** — la route ne s'arrête pas au
+bord. C'est la seule idée du logo, et elle survit à 24 px. Le nom complet
+« ELA**TRANSFER** » et la ligne « Paris · Roissy CDG · Orly » s'écrivent à
+côté ; le signe seul ne sert que là où il n'y a pas la place d'écrire
+(onglet, écran d'accueil, photo de profil).
+
+Les fichiers `icon.svg`, `icon-maskable.svg` et `icon-180.png` sont
+**fabriqués**, pas dessinés à la main : les lettres sont les contours réels
+d'Inter convertis en formes, pour que le logo ne dépende d'aucune police.
+Le script de fabrication vit hors du dépôt ; en cas de reprise, refaire les
+lettres avec `fontTools` plutôt que de les redessiner en rectangles —
+essayé, le A était raté et ça se voyait.
+
+Deux pièges : **un commentaire XML ne supporte pas deux tirets à la
+suite** (une ligne de séparation en tirets a déjà rendu `icon.svg`
+illisible, l'icône disparaissait partout sans le moindre message), et
+**iOS ignore un `apple-touch-icon` en SVG** — d'où le PNG de 180 px.
+
+Refusé : le E seul (« c'est moche »), et toute voiture, roue ou route
+dessinée.

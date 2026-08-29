@@ -2,9 +2,13 @@
 // course imminente est annoncée comme non ferme tant qu'elle n'a pas été
 // confirmée de vive voix — sur l'écran de confirmation et sur le bon.
 import { chromium } from 'playwright';
+import { couperLeReseau } from './test-hors-ligne.mjs';
 
 const BASE = 'http://127.0.0.1:8099';
 const browser = await chromium.launch();
+// Les serveurs extérieurs échouent tout de suite au lieu de faire
+// attendre le navigateur : voir test-hors-ligne.mjs.
+couperLeReseau(browser);
 const errors = [];
 const ok = [], ko = [];
 const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
@@ -42,6 +46,10 @@ async function reserver(date, heure) {
   await page.waitForTimeout(300);
   await stub(HOTEL);
   await choisir('#pickup', 'ibis');
+  // Départ dans un hôtel : le numéro de chambre est obligatoire depuis
+  // que le site refuse une course sans lui. Sans cette ligne, le
+  // formulaire s'arrête ici et l'écran des véhicules ne s'ouvre jamais.
+  await page.fill('#roomPickup', '412');
   await stub(BUREAU);
   await choisir('#dropoff', 'montaigne');
   await page.fill('#dateSimple', date);

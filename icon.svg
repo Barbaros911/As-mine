@@ -1,6 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="112" fill="#121212"/>
-  <circle cx="256" cy="256" r="192" fill="none" stroke="#D4AF37" stroke-width="16"/>
-  <text x="256" y="322" font-family="Georgia, 'Times New Roman', serif" font-size="176"
-        font-weight="600" fill="#D4AF37" text-anchor="middle" letter-spacing="4">AS</text>
-</svg>
+<!-- LOGO ELATRANSFER : le signe court.
+     « ELA » gravé en ivoire sur marine, souligné d'un filet doré qui ne
+     s'arrête pas au bord du carré : la route continue hors du cadre.
+     C'est la seule idée du logo, et elle survit à 24 px.
+     Il sert partout où il n'y a pas la place d'écrire le nom en entier :
+     l'onglet du navigateur, l'écran d'accueil du téléphone, la photo de
+     profil WhatsApp. Le nom complet s'écrit à côté (bloc de marque dans
+     l'en-tête d'index.html).
+     Pourquoi trois lettres et pas un dessin de voiture : en tout petit une
+     voiture devient une tache grise, et tous les concurrents en mettent
+     donc aucun ne s'en distingue. Ici la marque se reconnaît à ses deux
+     couleurs, marine et or.
+     Les lettres sont les contours réels d'Inter, converties en formes :
+     le fichier ne dépend d'aucune police et s'affiche à l'identique
+     partout, même sans réseau. Fabriqué par poser.py, ne pas retoucher
+     à la main.
+     Attention : un commentaire XML ne supporte pas deux tirets à la
+     suite. Ne pas mettre de ligne de séparation en tirets ici, le fichier
+     deviendrait illisible et l'icône disparaîtrait partout. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Elatransfer"><rect width="512" height="512" rx="112" fill="#0C1A31"/><g transform="translate(68.52 166.50)"><path d="M10.276510067114094 132.0V0.0H101.87919463087249V25.51409395973154H41.54899328859061V52.8H97.09530201342282V77.78255033557048H41.54899328859061V106.48590604026846H101.79060402684564V132.0Z" fill="#F1EEE7"/><path d="M128.9261744966443 132.0V0.0H160.1986577181208V106.48590604026846H215.39060402684566V132.0Z" fill="#F1EEE7"/><path d="M233.4013422818792 132.0 277.4308724832215 0.0H319.3342281879195L364.69261744966445 132.0H329.6107382550336L311.27248322147653 74.32751677852349Q306.84295302013425 59.887248322147656 302.7234899328859 43.63087248322148Q298.6040268456376 27.374496644295306 294.44026845637586 9.92214765100671H301.43892617449666Q297.45234899328864 27.46308724832214 293.7315436241611 43.719463087248315Q290.0107382550336 59.97583892617449 285.8469798657718 74.32751677852349L268.1288590604027 132.0ZM263.344966442953 103.91677852348994V79.9973154362416H334.8375838926175V103.91677852348994Z" fill="#F1EEE7"/></g><rect x="78.8" y="328.5" width="433.2" height="17.0" rx="8.5" fill="#E0B65C"/></svg>
