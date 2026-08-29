@@ -49,6 +49,9 @@ async function ouvrirEspaceExploitant(page) {
 async function reserver(page, nom) {
   await stub(page, HOTEL);
   await choisir(page, '#pickup', 'ibis');
+  // Départ dans un hôtel : la chambre est obligatoire, sinon le chauffeur
+  // attend au comptoir pendant que le client attend dans sa chambre.
+  await page.fill('#roomPickup', '412');
   await stub(page, ARRIVEE);
   await choisir(page, '#dropoff', 'montaigne');
   await page.fill('#dateSimple', dansNJours(5));
@@ -171,9 +174,14 @@ check('le message porte le nom et le téléphone du client',
 const corpsClient = decodeURIComponent(versAsmine.replace(/^[^?]*\?text=/, ''));
 check('le message reçu ne porte aucun lien',
   !/https?:\/\//.test(corpsClient), corpsClient.slice(0, 120));
-check('le message reçu tient en peu de lignes',
-  corpsClient.trim().split('\n').length <= 8,
+// Une information par ligne : le message gagne deux lignes et deux
+// respirations, et se lit en diagonale. Il tient toujours sur un écran.
+check('le message reçu tient sur un écran',
+  corpsClient.trim().split('\n').length <= 12,
   corpsClient.trim().split('\n').length + ' lignes');
+check('le message reçu se lit ligne par ligne',
+  corpsClient.split('\n').filter(l => /\s:\s/.test(l)).length >= 5,
+  corpsClient.split('\n').filter(l => /\s:\s/.test(l)).length + ' lignes étiquetées');
 check('le message porte une date complète, année comprise',
   /\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/.test(corpsClient),
   corpsClient.split('\n')[1]);
@@ -632,7 +640,15 @@ check('client : pas de page de gestion chez lui',
 
 /* ================= LES TERMINAUX D'AÉROPORT ================= */
 await client.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
-await client.waitForTimeout(600);
+await client.waitForTimeout(900);
+// Ce client a déjà réservé plus haut : le site le ramène sur sa demande
+// plutôt que sur un formulaire vide. C'est voulu — on repart de zéro.
+check('un client qui a déjà réservé retrouve sa demande',
+  await client.locator('#screen-confirmation').isVisible());
+if (await client.locator('#screen-confirmation').isVisible()) {
+  await client.locator('#btnNewBooking').click();
+  await client.waitForTimeout(500);
+}
 await client.type('#dropoff', 'cdg', { delay: 20 });
 await client.locator('#dropoffList [role=option]').first().waitFor({ timeout: 5000 });
 const terminaux = await client.locator('#dropoffList [role=option]').allTextContents();
@@ -873,6 +889,10 @@ check('chaque terminal se distingue dès le début de la ligne',
     && (await page.locator('#confRef').textContent()).trim() === reference);
 
   // « Nouvelle réservation » repart de zéro, et n'y ramène plus.
+  // La bannière cookies revient après le rechargement : elle recouvre le bas
+  // de l'écran, donc le bouton.
+  await page.locator('#cookieAccept').click().catch(() => {});
+  await page.waitForTimeout(300);
   await page.locator('#btnNewBooking').click();
   await page.waitForTimeout(400);
   await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
@@ -881,6 +901,89 @@ check('chaque terminal se distingue dès le début de la ligne',
     await page.locator('#accrocheClient').isVisible()
     && !(await page.locator('#screen-confirmation').isVisible()));
 
+  await ctx.close();
+}
+
+/* ============ LA CONFIRMATION SE COMPREND SANS RIEN OUVRIR ============
+   Le message disait « c'est confirmé » et renvoyait à un lien. Le client
+   qui ne cliquait pas — et beaucoup ne cliquent pas — gardait un bon
+   orange « en attente » alors que son chauffeur était trouvé. Il
+   rappelait à 5 h du matin. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await preparer(ctx);
+  const page = await ctx.newPage();
+  page.on('pageerror', e => errors.push('PAGEERROR(confirm): ' + e.message));
+  await ouvrirEspaceExploitant(page);
+  await page.evaluate(() => { localStorage.removeItem('ela_bookings'); });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(700);
+
+  await page.evaluate(() => enregistrerDemande(lireDemandeCollee(
+    `DEMANDE DE RÉSERVATION — ELA-26-08-0777\n\n`
+    + `Départ : Hôtel Ibis, 12 rue Traversière, 75012 Paris (Ch. 412)\n`
+    + `Arrivée : Terminal 2E — Aéroport Roissy-Charles de Gaulle\n`
+    + `Date : 30/08/2026 07:15\nPassagers & bagages : 2 adultes\n`
+    + `Véhicule : Berline\nPrix total TTC : 98,00 €\n\n`
+    + `M. Nakamura — +33 7 55 21 09 44`)));
+  await page.waitForTimeout(400);
+  await page.locator('#listeDemandes .ligne-demande').first().click();
+  await page.waitForTimeout(400);
+  await page.fill('#nomChauffeurRetenu', 'Mehmet A.');
+  await page.fill('#telChauffeurRetenu', '+33 6 98 76 54 32');
+  await page.locator('#telChauffeurRetenu').dispatchEvent('change');
+  await page.waitForTimeout(300);
+  await page.locator('#btnConfirmRide').click();
+  await page.waitForTimeout(500);
+
+  const texte = decodeURIComponent(
+    (await page.locator('#btnPrevenirClient').getAttribute('href')).replace(/^[^?]*\?text=/, ''));
+  check('la confirmation porte le chauffeur et son numéro',
+    texte.includes('Mehmet A.') && texte.includes('98 76 54 32'));
+  check('la confirmation porte l\'heure, le lieu et le prix',
+    /\d{2}\/\d{2}\/\d{4}/.test(texte) && texte.includes('Ibis') && texte.includes('98,00'),
+    texte.split('\n').slice(0, 4).join(' | '));
+  check('le lien ne sert plus qu\'à mettre l\'écran à jour',
+    texte.indexOf('http') > texte.indexOf('Mehmet A.'));
+
+  // Une course confirmée dont le client n'a pas été prévenu est un piège :
+  // l'exploitant la croit réglée, le client croit sa demande en suspens.
+  await page.locator('.nav-item[data-target="screen-home"]').click();
+  await page.waitForTimeout(500);
+  check('le tableau de bord signale un client pas encore prévenu',
+    (await page.locator('#listeDemandes').textContent()).includes('pas encore prévenu'));
+  // Et la course confirmée ne disparaît pas de l'écran : filtrer par défaut
+  // sur « attente » la faisait s'évaporer au moment de la confirmer.
+  check('la course reste visible après confirmation',
+    (await page.locator('#listeDemandes').textContent()).includes('ELA-26-08-0777'));
+
+  await page.locator('#listeDemandes .ligne-demande').first().click();
+  await page.waitForTimeout(300);
+  await page.locator('#btnPrevenirClient').click();
+  await page.waitForTimeout(800);
+  check('la date d\'envoi de la confirmation est retenue',
+    await page.evaluate(() => {
+      const c = loadBookings().find(b => b.ref === 'ELA-26-08-0777');
+      return !!(c && c.course && c.course.prevenuLe);
+    }));
+  await page.locator('.nav-item[data-target="screen-home"]').click();
+  await page.waitForTimeout(500);
+  check('l\'alerte disparaît une fois le client prévenu',
+    !(await page.locator('#listeDemandes').textContent()).includes('pas encore prévenu'));
+
+  await ctx.close();
+}
+
+/* L'invitation à installer l'application était proposée aux clients et
+   cachée à l'exploitant : exactement l'inverse de l'utile. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(800);
+  check('client : aucune invitation à installer l\'application',
+    await page.evaluate(() =>
+      getComputedStyle(document.getElementById('installBtn')).display === 'none'));
   await ctx.close();
 }
 

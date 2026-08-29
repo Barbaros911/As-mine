@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://barbaros911.github.io/As-mine/sitemap.xml
+Sitemap: https://elatransfer.com/sitemap.xml
