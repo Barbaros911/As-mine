@@ -62,6 +62,13 @@ vaut aussi pour ce qui est « visible par un client » : c'est justement ce
 qui mérite d'être vu avant, pas après. Ne jamais lire l'urgence d'un lien à
 envoyer comme une autorisation de fusionner.
 
+**En cours, à ne PAS pousser sans son feu vert explicite** (août 2026) : la
+branche `claude/as-mine-booking-app-yqvxoi` porte des commits d'avance —
+accueil en bandeau marine, écran des véhicules refait, quatre gammes. Il
+veut les intégrer plus tard et a demandé qu'on **le lui rappelle souvent** :
+le dire à chaque réponse tant que ce n'est pas publié, sans pousser pour
+autant.
+
 - Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
   jamais directement sur `main`.
 - Toujours vérifier `git branch --show-current` avant un `git push` — déjà
@@ -368,6 +375,36 @@ dans le premier écran d'un téléphone. Ne pas le remonter.
 Sa marge basse de 20 px n'est pas cosmétique : la section « À l'arrivée de
 votre vol » qui suit est elle aussi sur fond marine, et sans cet intervalle
 les deux masses sombres se collent.
+
+**Les services extérieurs sont le point faible du site.** La carte et le
+prix dépendent de deux serveurs qui ne nous appartiennent pas :
+- `router.project-osrm.org` calcule l'itinéraire. C'est un serveur de
+  **démonstration** : aucun engagement, débit limité, usage commercial
+  déconseillé par ses auteurs. Quand il refuse, le prix retombe sur la
+  distance à vol d'oiseau × 1,3 et la course est marquée « ≈ ». **Ce n'est
+  pas un détail de confort : ça change le prix payé.** Sur un Roissy →
+  Paris l'écart se compte en euros.
+- `tile.openstreetmap.org` dessine le fond de plan. La politique de la
+  fondation **interdit l'usage commercial soutenu** ; le site peut être
+  coupé sans préavis.
+
+`CLE_MAPBOX` (haut du script) répond aux deux d'un coup : dès qu'une clé y
+est posée, la carte et les itinéraires passent par Mapbox, qui a un
+engagement de service. Le palier gratuit (50 000 cartes et 100 000
+itinéraires par mois) est très au-dessus du volume d'Asmine. Sans clé, le
+site fonctionne exactement comme avant — la bascule est une ligne.
+La clé Mapbox est **publique par construction** (elle part dans la page,
+et le dépôt l'est aussi) : la restreindre au domaine `elatransfer.com`
+depuis le tableau de bord Mapbox, sinon n'importe qui consomme le quota.
+
+**Il n'existe AUCUNE API publique Uber** pour les prix en direct ni la
+position des chauffeurs. L'API publique a été fermée il y a des années ;
+ce qui reste (Uber Direct, Uber for Business) sert à la livraison et aux
+comptes entreprise. Aspirer leur application violerait leurs conditions,
+casserait à chaque mise à jour de leur côté, et ferait dépendre le prix
+d'Asmine d'un concurrent. Ne pas le proposer. **Afficher un prix indexé
+sur un tarif variable est en plus incompatible avec la règle VTC** : le
+prix doit être ferme et connu avant le départ.
 
 ## Règles à ne jamais enfreindre
 

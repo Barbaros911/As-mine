@@ -344,14 +344,14 @@ check('message levé une fois la capacité respectée',
 // Leaflet vient d'un CDN inaccessible depuis les tests : on le remplace par un
 // double qui enregistre ce que la page lui demande de dessiner.
 const carte = await page.evaluate(() => {
-  window.__carte = { prefix: null, marqueurs: [], traces: [], cadre: null };
+  window.__carte = { prefix: null, marqueurs: [], traces: [], cadre: null, tuiles: null };
   window.L = {
     map: () => ({
       attributionControl: { setPrefix: (p) => { window.__carte.prefix = p; } },
       removeLayer() {}, invalidateSize() {}, setView(c) { window.__carte.cadre = [c]; },
       fitBounds: (b) => { window.__carte.cadre = b; }
     }),
-    tileLayer: () => ({ addTo() { return this; } }),
+    tileLayer: (url, o) => { window.__carte.tuiles = { url, o }; return { addTo() { return this; } }; },
     divIcon: (o) => o,
     marker: (p) => ({ addTo() { window.__carte.marqueurs.push(p); return this; } }),
     polyline: (pts, o) => ({ addTo() { window.__carte.traces.push({ n: pts.length, o }); return this; } })
@@ -366,6 +366,12 @@ const carte = await page.evaluate(() => {
 check('crédit de la carte sans drapeau ukrainien',
   carte.prefix === 'Leaflet' && !/[\u{1F1E6}-\u{1F1FF}]/u.test(carte.prefix || ''), String(carte.prefix));
 check('deux repères posés', carte.marqueurs.length === 2, carte.marqueurs.length + ' repère(s)');
+// La couche de services : sans clé Mapbox posée dans CLE_MAPBOX, le fond de
+// plan doit rester exactement celui d'avant. Une bascule silencieuse vers un
+// service à quota ferait tomber la carte le jour où le quota est atteint.
+check('sans clé Mapbox, le fond de plan reste OpenStreetMap',
+  !!carte.tuiles && /tile\.openstreetmap\.org/.test(carte.tuiles.url),
+  carte.tuiles ? carte.tuiles.url : 'aucune tuile demandée');
 check('itinéraire routier réel tracé, pas une ligne droite',
   carte.traces.length === 1 && carte.traces[0].n === 5 && !carte.traces[0].o.dashArray,
   JSON.stringify(carte.traces[0]));

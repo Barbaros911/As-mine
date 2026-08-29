@@ -20,7 +20,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com;  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://api.qrserver.com https://unpkg.com; connect-src 'self' https://api-adresse.data.gouv.fr https://router.project-osrm.org https://photon.komoot.io; frame-src;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com;  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://api.mapbox.com https://api.qrserver.com https://unpkg.com; connect-src 'self' https://api-adresse.data.gouv.fr https://router.project-osrm.org https://api.mapbox.com https://photon.komoot.io; frame-src;">
 <!-- NOTE (prod) : frame-ancestors était déclaré ici mais les navigateurs l'ignorent
      dans une balise <meta> — il n'a d'effet qu'en en-tête HTTP. Pour protéger le site
      contre le clickjacking, l'hébergeur doit envoyer :
@@ -2186,6 +2186,52 @@ room_number:"N.º do quarto (hotel)",room_short:"Quarto",room_help:"Transmitido 
 
 dispatch_title:"Propor ao grupo de motoristas",dispatch_headline:"TRAJETO DISPONÍVEL",dispatch_driver_share:"Para o motorista",dispatch_reply:"Disponível? Responda-me em privado.",dispatch_send:"Enviar ao grupo no WhatsApp",dispatch_copy:"Copiar o anúncio",dispatch_note:"O anúncio não contém o nome, o telefone nem o quarto do cliente: pode ser difundido num grupo. Esses dados são enviados em privado apenas ao motorista escolhido."},
 };
+/* =====================================================================
+   LES SERVICES EXTÉRIEURS — LA CARTE ET LES ITINÉRAIRES
+   ---------------------------------------------------------------------
+   Deux services font tourner l'écran des véhicules : celui qui dessine le
+   fond de plan, et celui qui calcule la route. Aujourd'hui le site
+   s'appuie sur des serveurs de DÉMONSTRATION, et c'est un vrai risque :
+
+   — `router.project-osrm.org` n'offre aucune garantie et limite le débit.
+     Quand il refuse, le prix retombe sur la distance à vol d'oiseau
+     multipliée par 1,3. Le client paie alors autre chose que la vraie
+     course, et sur un Roissy → Paris l'écart se compte en euros.
+   — Les tuiles de `tile.openstreetmap.org` sont réservées aux petits
+     usages : la politique de la fondation interdit explicitement l'usage
+     commercial soutenu. Un site de réservation qui tourne dessus peut
+     être coupé sans préavis.
+
+   D'où cette couche : dès qu'une clé Mapbox est posée ici, la carte ET
+   les itinéraires passent par un service avec engagement de service.
+   Le palier gratuit de Mapbox (50 000 affichages de carte et 100 000
+   itinéraires par mois) est très au-dessus du volume d'Asmine.
+   Sans clé, rien ne change : le site continue exactement comme avant.
+
+   ATTENTION — le dépôt est PUBLIC et la clé part dans la page : c'est
+   normal, une clé Mapbox de ce type est publique par construction. Mais
+   il FAUT la restreindre au domaine `elatransfer.com` depuis le tableau
+   de bord Mapbox (Account → Tokens → URL restrictions). Sans cette
+   restriction, n'importe qui peut consommer le quota à sa place. */
+const CLE_MAPBOX = "";   // ← coller ici la clé publique restreinte au domaine
+
+/* Le fond de plan. Le style « light » de Mapbox est déjà désaturé, comme
+   celui des applications de course ; on garde malgré tout le filtre CSS,
+   qui ne fait alors presque rien. */
+function fondDeCarte(){
+  if(CLE_MAPBOX){
+    return {
+      url: `https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/512/{z}/{x}/{y}@2x?access_token=${CLE_MAPBOX}`,
+      options: {maxZoom:20, tileSize:512, zoomOffset:-1,
+                attribution:"© Mapbox © OpenStreetMap"}
+    };
+  }
+  return {
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    options: {maxZoom:19, attribution:"© OpenStreetMap"}
+  };
+}
+
 const RTL_LANGS = ["ar"];
 let currentLang = "fr";
 /* Le jeton {{m}} porte le nom de la marque dans les six langues et dans
@@ -2920,13 +2966,17 @@ async function fetchAddressSuggestions(query){
   return merged;
 }
 
-/* Distance routière réelle via OSRM, avec repli sur la distance à vol d'oiseau.
-   NOTE (prod) : router.project-osrm.org est un serveur de démonstration, limité
-   en débit et explicitement déconseillé pour un usage commercial. Avant une
-   mise en production sérieuse, il faut soit héberger sa propre instance OSRM,
-   soit passer par un service avec clé (Mapbox, OpenRouteService, Google).
-   En attendant, on met les itinéraires en cache pour ne pas relancer le calcul
-   à chaque aller-retour du client entre les écrans. */
+/* L'ITINÉRAIRE — c'est lui qui fait le prix.
+   Deux fournisseurs, essayés dans l'ordre : Mapbox si une clé est posée
+   (engagement de service), sinon le serveur de démonstration d'OSRM. Si
+   les deux échouent, on retombe sur la distance à vol d'oiseau × 1,3 et
+   la course est marquée « estimée » — le client voit alors un « ≈ ».
+   Ce repli n'est pas un détail de confort : il change le prix. Sur un
+   Roissy → Paris, l'écart entre la vraie route et le vol d'oiseau se
+   compte en euros. C'est pour ça que le premier fournisseur compte.
+   Les itinéraires sont mis en cache : le client fait souvent l'aller-retour
+   entre l'écran des véhicules et le formulaire, et rien ne justifie de
+   rappeler le service à chaque fois. */
 const routeCache = new Map();
 async function fetchRouteDistanceKm(pickup, dropoff){
   const cacheKey = `${pickup.lat.toFixed(5)},${pickup.lon.toFixed(5)}>${dropoff.lat.toFixed(5)},${dropoff.lon.toFixed(5)}`;
@@ -2935,19 +2985,39 @@ async function fetchRouteDistanceKm(pickup, dropoff){
   routeCache.set(cacheKey, result);
   return result;
 }
-async function computeRouteDistanceKm(pickup, dropoff){
+/* Un appel, un fournisseur. Les deux répondent dans le même format — c'est
+   la lignée d'OSRM, que Mapbox a reprise — d'où une seule lecture. */
+async function interrogerRouteur(url){
+  const controller = new AbortController();
+  const timeout = setTimeout(()=>controller.abort(), 4000);
   try{
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 4000);
-    // « overview=simplified&geometries=geojson » : on récupère aussi le tracé,
-    // pour dessiner sur la carte la route réellement empruntée et facturée.
-    const url = `https://router.project-osrm.org/route/v1/driving/${pickup.lon},${pickup.lat};${dropoff.lon},${dropoff.lat}?overview=simplified&geometries=geojson`;
     const res = await fetch(url, {signal:controller.signal});
-    clearTimeout(timeout);
     if(!res.ok) throw new Error("route unavailable");
     const data = await res.json();
-    if(data && data.routes && data.routes[0]){
-      const r = data.routes[0];
+    if(!(data && data.routes && data.routes[0])) throw new Error("no route");
+    return data.routes[0];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+async function computeRouteDistanceKm(pickup, dropoff){
+  const couple = `${pickup.lon},${pickup.lat};${dropoff.lon},${dropoff.lat}`;
+  // « overview=simplified&geometries=geojson » : on récupère aussi le tracé,
+  // pour dessiner sur la carte la route réellement empruntée et facturée.
+  const fournisseurs = [];
+  if(CLE_MAPBOX){
+    fournisseurs.push(`https://api.mapbox.com/directions/v5/mapbox/driving/${couple}`
+      + `?overview=simplified&geometries=geojson&access_token=${CLE_MAPBOX}`);
+  }
+  fournisseurs.push(`https://router.project-osrm.org/route/v1/driving/${couple}`
+    + `?overview=simplified&geometries=geojson`);
+  try{
+    let r = null;
+    for(const url of fournisseurs){
+      try{ r = await interrogerRouteur(url); break; }
+      catch(_){ /* on essaie le suivant */ }
+    }
+    if(r){
       // GeoJSON donne [lon,lat] ; Leaflet attend [lat,lon].
       const geometry = r.geometry && Array.isArray(r.geometry.coordinates)
         ? r.geometry.coordinates.map(([lon,lat])=>[lat,lon]) : null;
@@ -3248,7 +3318,8 @@ function renderTripMap(){
   if(!tripMapInstance){
     tripMapInstance = L.map("tripMap", {zoomControl:false, attributionControl:true, dragging:true, scrollWheelZoom:false});
     tripMapInstance.attributionControl.setPrefix("Leaflet");
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19, attribution:"© OpenStreetMap"}).addTo(tripMapInstance);
+    const fond = fondDeCarte();
+    L.tileLayer(fond.url, fond.options).addTo(tripMapInstance);
   }
   tripMapLayers.forEach(l=>tripMapInstance.removeLayer(l));
   tripMapLayers=[];
