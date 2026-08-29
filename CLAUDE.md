@@ -54,16 +54,22 @@ Ne pas se contenter de lire le code : ouvrir vraiment la page.
 
 ## Git et publication
 
+**Rien ne part sans que Barbaros l'ait vu.** Règle posée en août 2026, après
+deux fusions passées en ligne avant qu'il ait pu regarder. L'ordre est
+toujours le même : faire le travail, **montrer** (capture d'écran, pas une
+description), **attendre son accord**, et seulement ensuite pousser. Cela
+vaut aussi pour ce qui est « visible par un client » : c'est justement ce
+qui mérite d'être vu avant, pas après. Ne jamais lire l'urgence d'un lien à
+envoyer comme une autorisation de fusionner.
+
 - Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
   jamais directement sur `main`.
 - Toujours vérifier `git branch --show-current` avant un `git push` — déjà
   fait l'erreur de pousser vers le mauvais nom de branche une fois.
-- Un site publié (visible par un client) : ouvrir la pull request **et la
-  fusionner directement** — sans ça, le lien envoyé au client ne
-  fonctionne pas.
+- Une fois l'accord donné : ouvrir la pull request **et la fusionner** —
+  sans la fusion, le lien envoyé au client ne fonctionne pas.
 - Un changement interne (compétences, configuration, outillage, rien de
-  visible en ligne) : ouvrir la pull request mais **demander avant de
-  fusionner**.
+  visible en ligne) : même règle, montrer et demander avant.
 - Ne jamais committer et pousser dans le même appel : les faire l'un après
   l'autre. Un appel qui mélange les deux a déjà été bloqué par le
   classificateur de sécurité.
