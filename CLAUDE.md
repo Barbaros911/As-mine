@@ -280,6 +280,26 @@ véhicules, fournies par Barbaros.
 **Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
 Les terminaux restent proposés comme adresses.
 
+**L'or ne sert plus qu'à la marque.** Août 2026, à la demande de Barbaros :
+la couleur d'accent du site est le **vert** (`--gold`, `--gold-soft`,
+`--gold-dim` — des rôles, pas des couleurs, qui portent aujourd'hui du vert),
+et l'or ne subsiste que dans le logo — le filet de la pastille et le
+`TRANSFER` de l'enseigne, via `--or-marque` et `--or-marque-nom`. Ne pas
+reprendre `--gold` pour habiller le logo : c'est ce qui l'a fait virer au
+vert une première fois. Et `--gold-dim` reste un ton **pâle** : il ne sert
+qu'à des filets posés sur de l'ivoire, le passer en foncé noircit des
+bordures qui doivent rester discrètes.
+
+**Le titre d'accueil ne se pose JAMAIS sur la photo.** Il y était, en vert,
+sur un ruban de six vues qui change toutes les six secondes : lisible sur la
+Joconde, invisible sur les Champs illuminés. Aucun réglage de voile ne
+rattrape ça — une image qui change ne peut pas garantir un contraste. Le
+titre (`.accroche`) est donc sur le fond ivoire, où le contraste est acquis
+une fois pour toutes, et la vitrine ne porte plus aucun texte. Ne pas l'y
+remettre. L'accroche courte au-dessus (`tagline`) tient dans une pastille :
+la garder **courte**, sinon elle passe à la ligne — deux mots, un point
+médian, pas une phrase.
+
 ## Règles à ne jamais enfreindre
 
 1. **Aucun faux avis client.** `AVIS` ne contient que des avis réellement
