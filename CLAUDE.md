@@ -279,9 +279,39 @@ vouloir un van, et c'est une course plus chère. Pas d'option « peu
 importe » pour autant : il choisit, ou rien n'est réservé.
 
 **Pas d'emoji de voiture, pas d'illustration de voiture.** Essayé quatre
-fois, refusé quatre fois. Les cartes portent une pastille dorée avec le
-nombre de places. Seule piste encore ouverte : de vraies photos des
-véhicules, fournies par Barbaros.
+fois, refusé quatre fois. Les cartes portent une pastille avec le nombre de
+places. Seule piste encore ouverte : de vraies photos des véhicules,
+fournies par Barbaros. C'est aussi ce qui distingue notre écran de celui
+d'Uber, qui met une berline dessinée sur chaque ligne.
+
+**L'écran des véhicules se lit comme une application de course** : la carte
+en haut sur toute la largeur, la liste qui remonte par-dessus dans une
+feuille à coins arrondis (`.veh-feuille`, marge négative de 22 px), et le
+bouton d'action collé au-dessus de la barre de navigation (`.veh-action`,
+`position:sticky`). Chaque ligne porte la pastille des places, le nom,
+« N passagers · heure d'arrivée · durée », et le prix à droite. Le bouton
+se nomme — « Continuer · Berline » — parce qu'on ne confirme pas dans le
+vide. Trois pièges :
+- Si la carte ne s'affiche pas (Leaflet injoignable, client hors ligne), la
+  règle `#tripMap.hidden + .veh-feuille` remet une mise en page ordinaire.
+  Sans elle, il reste un coin arrondi et une poignée dans le vide.
+- Le cadrage réserve **54 px en bas** (`paddingBottomRight`) : la feuille
+  mord sur la carte, et sans cette marge le repère d'arrivée se cache
+  dessous.
+- Les tuiles OpenStreetMap sont désaturées en CSS. La couleur doit rester
+  au tracé et aux repères, pas aux enseignes de magasins.
+
+**La pastille WhatsApp ne s'affiche QUE sur l'accueil.** Elle ne regardait
+que le défilement : sur l'écran des véhicules, qui tient dans une page, elle
+se posait pile sur « Continuer ». C'est le défaut déjà écrit pour « Voir les
+tarifs », qui valait en fait pour tous les boutons d'action. `showScreen`
+appelle `window.__jugerPastilleWa()` à chaque changement d'écran — sans ça
+elle restait visible une seconde de trop, le temps que la minuterie repasse.
+
+**Les suites visent les rôles, pas les balises.** Trois tests cherchaient le
+prix par `.veh-card p.font-mono` : changer le `<p>` en `<span>` les a fait
+tomber alors que rien n'était cassé. Viser `.veh-prix`, `.veh-nom`,
+`.veh-detail` — des classes qui disent ce que l'élément est.
 
 **Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
 Les terminaux restent proposés comme adresses.

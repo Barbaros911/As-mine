@@ -45,7 +45,7 @@ const sub = await page.locator('#vehiclesSub').textContent();
 check('distance calculée', /\d/.test(sub), sub);
 
 // Prix cohérents et croissants
-const prix = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
+const prix = await page.locator('#vehicleCards .veh-card .veh-prix').allTextContents();
 check('tarifs affichés', prix.length === 2, prix.join(' | '));
 
 await page.locator('#vehicleCards .veh-card').first().click();

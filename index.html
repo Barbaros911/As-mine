@@ -361,9 +361,63 @@
   .champ-lieu > input{padding-left:36px !important;}
   .champ-lieu > label{left:36px !important;}
 
-  .veh-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);transition:border-color .2s,transform .15s;}
+  /* =====================================================================
+     L'ÉCRAN DES VÉHICULES
+     ---------------------------------------------------------------------
+     La carte tient le haut sur toute la largeur, et la liste des véhicules
+     remonte par-dessus dans une feuille à coins arrondis. C'est la mise en
+     page de toutes les applications de course, et elle raconte la bonne
+     histoire dans le bon ordre : voici le trajet, voici ce qu'il coûte,
+     voici le bouton. L'action reste sous le pouce quoi qu'il arrive.
+     ===================================================================== */
+  .veh-scene{margin:0 -16px;}
+  .carte-course{width:100%;height:250px;background:var(--panel-2);}
+  /* Les tuiles d'OpenStreetMap sont très colorées — enseignes, zones
+     commerciales, forêts. Sur un écran où l'on choisit un véhicule, la
+     couleur doit rester au tracé et aux repères, pas au décor. On les
+     désature, comme le font les applications de transport. */
+  .carte-course .leaflet-tile-pane{filter:saturate(.4) brightness(1.06) contrast(.95);}
+  .carte-course .leaflet-control-attribution{font-size:9px;background:rgba(255,255,255,.7);}
+  /* Le liseré et l'ombre ne sont pas de la décoration : sans eux, la feuille
+     et la carte ont des clairs trop proches et l'arrondi ne se voit pas —
+     on perd l'effet de feuille posée dessus, qui est tout le propos. */
+  .veh-feuille{position:relative;z-index:2;margin-top:-22px;padding:12px 16px 0;
+    background:var(--graphite);border-radius:22px 22px 0 0;
+    border-top:1px solid rgba(12,26,49,.10);
+    box-shadow:0 -14px 28px -16px rgba(12,26,49,.28);}
+  .veh-poignee{width:40px;height:4px;border-radius:4px;background:var(--line);
+    margin:0 auto 14px;}
+  /* Pas de carte à afficher (mise à disposition, ou Leaflet injoignable) :
+     la feuille redevient une page ordinaire, sans coin arrondi dans le vide. */
+  #tripMap.hidden + .veh-feuille{margin-top:0;padding-top:0;border-radius:0;box-shadow:none;}
+  #tripMap.hidden + .veh-feuille .veh-poignee{display:none;}
+
+  .veh-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;
+    padding:13px 14px;border:1.5px solid var(--line);border-radius:16px;
+    background:var(--panel);
+    transition:border-color .18s,box-shadow .18s,transform .12s;}
   .veh-card:active{transform:scale(.985);}
-  .veh-card.selected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+  .veh-card.selected{border-color:var(--navy-deep);box-shadow:0 0 0 1.5px var(--navy-deep);}
+  /* La pastille des places. Toujours pas de voiture dessinée — essayé,
+     refusé — et de toute façon un chiffre répond plus vite que n'importe
+     quelle silhouette à la seule question posée : on tient à combien ? */
+  .veh-places{flex-shrink:0;width:44px;height:44px;border-radius:14px;
+    background:var(--field);border:1px solid var(--line);color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+  .veh-places b{font-size:15px;font-weight:800;line-height:1;color:var(--ivory);}
+  .veh-card.selected .veh-places{background:rgba(21,105,74,.10);
+    border-color:rgba(21,105,74,.28);color:var(--gold);}
+  .veh-nom{font-size:15px;font-weight:700;line-height:1.2;}
+  .veh-detail{font-size:12px;color:var(--muted);margin-top:3px;}
+  /* JetBrains Mono est large : sans resserrer, un prix à trois chiffres
+     pousse le nom du véhicule et le détail passe à la ligne. */
+  .veh-prix{margin-left:auto;font-size:17px;font-weight:700;letter-spacing:-.045em;
+    white-space:nowrap;}
+  /* Le bouton se colle au-dessus de la barre de navigation dès que la liste
+     dépasse l'écran : on ne cherche jamais comment continuer. */
+  .veh-action{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom));
+    z-index:3;padding:14px 0 6px;
+    background:linear-gradient(180deg,rgba(241,238,231,0),var(--graphite) 34%);}
   .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:10px;padding:6px 0;flex:1;}
   .nav-item.active{color:var(--gold);}
   .chip-price{border:1px solid var(--line);border-radius:12px;padding:10px 8px;background:var(--panel-2);text-align:center;}
@@ -975,19 +1029,30 @@
       <span data-i18n="back">Retour</span>
     </button>
     <div class="stepper" id="stepperVehicles" aria-hidden="true"></div>
-    <h2 class="font-display text-2xl mb-1" data-i18n="vehicles_title">Choisissez votre véhicule</h2>
-    <p id="vehiclesSub" class="text-sm text-[var(--muted)] mb-1"></p>
-    <p id="nightNote" class="text-xs text-[var(--gold-soft)] mb-2 hidden" data-i18n="night_surcharge_note">Majoration nuit/week-end de +20% appliquée automatiquement et affichée en toute transparence.</p>
-    <p id="vatNote" class="text-xs text-[var(--muted)] mb-5" data-i18n="vat_note">Prix TTC, TVA 10% incluse (transport de personnes).</p>
-    <div id="routeSkeleton" class="hidden space-y-3 mb-6">
-      <div class="skeleton-shimmer h-20 rounded-2xl"></div>
-      <div class="skeleton-shimmer h-20 rounded-2xl"></div>
+
+    <!-- La carte, puis la feuille qui remonte dessus. Les deux sont
+         solidaires : si la carte ne s'affiche pas, la feuille reprend la
+         mise en page ordinaire (voir #tripMap.hidden + .veh-feuille). -->
+    <div class="veh-scene">
+      <div id="tripMap" class="carte-course hidden"></div>
+      <div class="veh-feuille">
+        <div class="veh-poignee" aria-hidden="true"></div>
+        <h2 class="text-[22px] font-bold tracking-[-0.02em] mb-1" data-i18n="vehicles_title">Choisissez votre véhicule</h2>
+        <p id="vehiclesSub" class="text-sm text-[var(--muted)] mb-1"></p>
+        <p id="nightNote" class="text-xs text-[var(--gold-soft)] mb-2 hidden" data-i18n="night_surcharge_note">Majoration nuit/week-end de +20% appliquée automatiquement et affichée en toute transparence.</p>
+        <div id="routeSkeleton" class="hidden space-y-3 mt-4">
+          <div class="skeleton-shimmer h-20 rounded-2xl"></div>
+          <div class="skeleton-shimmer h-20 rounded-2xl"></div>
+        </div>
+        <div id="vehicleCards" class="space-y-2.5 mt-4"></div>
+        <p id="vatNote" class="text-[11px] text-[var(--muted)] mt-3" data-i18n="vat_note">Prix TTC, TVA 10% incluse (transport de personnes).</p>
+        <div class="veh-action">
+          <button id="btnToPayment" disabled class="gold-btn w-full py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+            <span id="btnToPaymentLabel" data-i18n="btn_continue">Continuer</span>
+          </button>
+        </div>
+      </div>
     </div>
-    <div id="tripMap" class="hidden w-full rounded-2xl overflow-hidden mb-4 border border-[var(--line)]" style="height:180px"></div>
-    <div id="vehicleCards" class="space-y-3 mb-6"></div>
-    <button id="btnToPayment" disabled class="gold-btn w-full py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg">
-      <span data-i18n="btn_continue">Continuer</span>
-    </button>
   </section>
 
   <!-- ===================== SCREEN: PAYMENT ===================== -->
@@ -1712,9 +1777,20 @@ if(champNomClient) champNomClient.addEventListener("input", majPancarte);
   };
   const juger = () => {
     if(document.body.classList.contains("mode-exploitant")){ wa.classList.remove("vue"); return; }
+    // Elle n'a sa place QUE sur l'accueil. Chaque écran suivant a son propre
+    // bouton d'action en bas, sur toute la largeur : la pastille tombait
+    // pile dessus, et le pouce qui visait « Continuer » ouvrait WhatsApp.
+    // C'est la règle déjà écrite pour « Voir les tarifs » — elle vaut pour
+    // tous les boutons d'action, pas seulement celui de l'accueil.
+    const accueil = document.getElementById("screen-home");
+    if(!accueil || !accueil.classList.contains("active")){ wa.classList.remove("vue"); return; }
     const court = document.documentElement.scrollHeight <= window.innerHeight + 40;
     wa.classList.toggle("vue", court || window.scrollY > Math.max(120, seuil()));
   };
+  // showScreen la rejuge à chaque changement d'écran : sans ça, la pastille
+  // restait visible plus d'une seconde sur l'écran suivant, le temps que la
+  // minuterie repasse.
+  window.__jugerPastilleWa = juger;
   addEventListener("scroll", juger, { passive:true });
   addEventListener("resize", juger);
   juger();
@@ -2950,6 +3026,7 @@ function showScreen(id){
   screenEl.classList.add("active");
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.target===id));
   window.scrollTo({top:0, behavior:"instant"});
+  if(typeof window.__jugerPastilleWa === "function") window.__jugerPastilleWa();
   if(id === "screen-qr") renderQrScreen();
   if(id === "screen-bookings") renderBookings();
   if(id === "screen-registre" && typeof renderGestion === "function") renderGestion();
@@ -3101,10 +3178,13 @@ wireLocateButton("locateBtnPickupDisp", "pickupDisp", (item)=>{ state.pickup=ite
    ===================================================================== */
 let tripMapInstance=null, tripMapLayers=[];
 function repereCarte(couleur, lettre){
+  // Cerclé de blanc et posé sur une ombre courte : le repère se détache
+  // aussi bien sur une avenue claire que sur un parc. L'ancien anneau
+  // sombre disparaissait dès que la tuile en dessous était foncée.
   return L.divIcon({
     className: "",
-    html: `<span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${couleur};color:#141210;font:600 11px/1 Inter,sans-serif;box-shadow:0 0 0 3px rgba(18,18,18,.85)">${lettre}</span>`,
-    iconSize: [22,22], iconAnchor: [11,11]
+    html: `<span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${couleur};color:#FFFFFF;font:700 11px/1 Inter,sans-serif;box-shadow:0 0 0 3px #FFFFFF,0 2px 7px rgba(12,26,49,.35)">${lettre}</span>`,
+    iconSize: [24,24], iconAnchor: [12,12]
   });
 }
 function renderTripMap(){
@@ -3119,23 +3199,28 @@ function renderTripMap(){
   tripMapLayers.forEach(l=>tripMapInstance.removeLayer(l));
   tripMapLayers=[];
   const depart=[state.pickup.lat, state.pickup.lon];
-  tripMapLayers.push(L.marker(depart, {icon:repereCarte("#D4AF37","A")}).addTo(tripMapInstance));
+  tripMapLayers.push(L.marker(depart, {icon:repereCarte("#0C1A31","A")}).addTo(tripMapInstance));
   let cadre=[depart];
   if(state.dropoff){
     const arrivee=[state.dropoff.lat, state.dropoff.lon];
-    tripMapLayers.push(L.marker(arrivee, {icon:repereCarte("#3DDC84","B")}).addTo(tripMapInstance));
+    tripMapLayers.push(L.marker(arrivee, {icon:repereCarte("#15694A","B")}).addTo(tripMapInstance));
     // Le tracé routier réel s'il a pu être calculé ; sinon la ligne directe,
     // en pointillé, pour que le client voie qu'elle n'est qu'indicative.
+    // Bouts et angles arrondis : sur un tracé qui suit des rues, une jointure
+    // à angle vif fait des pointes disgracieuses à chaque virage.
     const trace = state.routeGeometry;
     tripMapLayers.push(trace && trace.length>1
-      ? L.polyline(trace, {color:"#D4AF37", weight:4, opacity:.95})
-      : L.polyline([depart, arrivee], {color:"#D4AF37", weight:3, opacity:.7, dashArray:"6 6"}));
+      ? L.polyline(trace, {color:"#0C1A31", weight:5, opacity:.92, lineCap:"round", lineJoin:"round"})
+      : L.polyline([depart, arrivee], {color:"#0C1A31", weight:3.5, opacity:.55, dashArray:"2 8", lineCap:"round"}));
     tripMapLayers[tripMapLayers.length-1].addTo(tripMapInstance);
     cadre = trace && trace.length>1 ? trace : [depart, arrivee];
   }
   setTimeout(()=>{
     tripMapInstance.invalidateSize();
-    if(cadre.length>1) tripMapInstance.fitBounds(cadre, {padding:[30,30], maxZoom:15});
+    // La feuille des véhicules remonte de 22 px sur la carte : on garde une
+    // marge basse plus large pour que le repère d'arrivée ne se cache pas
+    // dessous. Sinon le point B disparaît juste sous le coin arrondi.
+    if(cadre.length>1) tripMapInstance.fitBounds(cadre, {paddingTopLeft:[34,30], paddingBottomRight:[34,54], maxZoom:15});
     else tripMapInstance.setView(cadre[0], 15);
   }, 150);
 }
@@ -3299,6 +3384,10 @@ btnSearchEl.addEventListener("click", async ()=>{
     btnSearchEl.querySelector("span").textContent = routeBtnLabel;
     state.distanceKm = route.km;
     state.distanceEstimated = route.estimated;
+    // La durée était calculée par le routeur puis jetée. Elle sert à annoncer
+    // une heure d'arrivée sur chaque véhicule — la première chose que le
+    // client regarde après le prix.
+    state.durationMin = route.min || 0;
     state.routeGeometry = route.geometry || null;
   }else{
     state.date=document.getElementById("dateDisp").value;
@@ -3317,7 +3406,7 @@ btnSearchEl.addEventListener("click", async ()=>{
     state.dropoff=null; // mise à disposition : pas d'adresse d'arrivée
     state.pickupRoom = roomPickupDisp.value();
     state.dropoffRoom = null;
-    state.distanceKm=0; state.distanceEstimated=false;
+    state.distanceKm=0; state.distanceEstimated=false; state.durationMin=0;
     state.isNight = isNightOrWeekend(state.date,state.time);
     state.routeGeometry=null;
     state.terminal=null;
@@ -3358,6 +3447,17 @@ function renderStepper(el, active){
     return `<div class="step ${cls}"><div class="step-dot">${dot}</div><span class="step-label hidden sm:inline">${label}</span></div>${line}`;
   }).join("");
 }
+/* Heure d'arrivée estimée : l'heure de prise en charge plus la durée que le
+   routeur a calculée. Si cette durée manque — routeur injoignable, mise à
+   disposition — on n'affiche rien plutôt que d'inventer une heure. Un
+   horaire faux sur un transfert d'aéroport se paie cher. */
+function heureArriveeEstimee(){
+  if(!state.date || !state.time || !state.durationMin) return null;
+  const d = new Date(`${state.date}T${state.time}:00`);
+  if(isNaN(d.getTime())) return null;
+  d.setMinutes(d.getMinutes() + state.durationMin);
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
 function renderVehicleScreen(){
   renderStepper(document.getElementById("stepperVehicles"), 2);
   renderTripMap();
@@ -3383,14 +3483,33 @@ function renderVehicleScreen(){
   // l'accueil, et cela évite qu'un chauffeur arrive en berline pour six.
   const possibles = vehiculesPourPassagers(passagersTotal());
   const proposes = possibles.length ? possibles : VEHICLES;
+  const etiquette=document.getElementById("btnToPaymentLabel");
+  if(etiquette) etiquette.textContent = t("btn_continue");
+
+  // La même pour toutes les lignes : le véhicule ne change ni l'itinéraire
+  // ni l'heure d'arrivée. Elle est calculée une fois, pas à chaque carte.
+  const arrivee = heureArriveeEstimee();
+  const attente = state.tripType==="simple"
+    ? [arrivee, state.durationMin ? `${state.durationMin} min` : null].filter(Boolean).join(" · ")
+    : `${state.duration} ${t("duration_label_h")}`;
+
   proposes.forEach(v=>{
     const price = priceForVehicle(v);
     const card=document.createElement("button");
-    card.className="veh-card w-full p-4 flex items-center justify-between text-left";
+    card.className="veh-card";
     card.dataset.key=v.key;
+    const places = `${v.places} ${t(v.places>1 ? "pax_person_many" : "pax_person_one")}`;
+    const detail = [places, attente].filter(Boolean).join(" · ");
     card.innerHTML = `
-      <p class="font-medium text-sm">${t(v.nameKey)}</p>
-      <p class="font-mono text-[var(--gold)] font-semibold shrink-0 ml-2">${eur(price)}</p>
+      <span class="veh-places" aria-hidden="true">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7.4" r="3.4" stroke="currentColor" stroke-width="2.4"/><path d="M4.9 20c0-3.6 3.2-6.1 7.1-6.1s7.1 2.5 7.1 6.1" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <b>${v.places}</b>
+      </span>
+      <span class="min-w-0">
+        <span class="veh-nom block">${t(v.nameKey)}</span>
+        <span class="veh-detail block">${detail}</span>
+      </span>
+      <span class="veh-prix font-mono">${eur(price)}</span>
     `;
     const select=(track)=>{
       wrap.querySelectorAll(".veh-card").forEach(c=>c.classList.remove("selected"));
@@ -3398,6 +3517,9 @@ function renderVehicleScreen(){
       state.vehicle=v.key;
       state.price=price;
       document.getElementById("btnToPayment").disabled=false;
+      // Le bouton dit ce qu'on emmène : on ne confirme pas « Continuer »
+      // dans le vide, on confirme une berline à tel prix.
+      if(etiquette) etiquette.textContent = `${t("btn_continue")} · ${t(v.nameKey)}`;
       if(track) trackEvent("select_vehicle", {vehicle:v.key, price});
     };
     card.addEventListener("click", ()=>select(true));
@@ -4346,7 +4468,7 @@ document.getElementById("btnNewBooking").addEventListener("click", ()=>{
   state.pickup=null; state.dropoff=null; state.vehicle=null; state.price=0;
   state.pickupRoom=null; state.dropoffRoom=null;
   state.terminal=null; state.routeGeometry=null;
-  state.distanceKm=0; state.distanceEstimated=false;
+  state.distanceKm=0; state.distanceEstimated=false; state.durationMin=0;
   state.adults=1; state.children=0; state.luggage=0;
   state.flightNumber=null; state.passengerName=null; state.passengerPhone=null; state.bookedAt=null;
   ["pickup","dropoff","pickupDisp",
