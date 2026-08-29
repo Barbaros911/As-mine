@@ -34,13 +34,15 @@ await page.waitForTimeout(2500);
 
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const nbVeh = await page.locator('#vehicleCards .veh-card').count();
-check('les quatre véhicules proposés pour un passager', nbVeh === 4, nbVeh + '');
+// Deux véhicules depuis la suppression des versions VIP : un client seul
+// garde le droit de vouloir un van, seul le trop petit est écarté.
+check('les deux véhicules proposés pour un passager', nbVeh === 2, nbVeh + '');
 const sub = await page.locator('#vehiclesSub').textContent();
 check('distance calculée', /\d/.test(sub), sub);
 
 // Prix cohérents et croissants
 const prix = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('tarifs affichés', prix.length === 4, prix.join(' | '));
+check('tarifs affichés', prix.length === 2, prix.join(' | '));
 
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.waitForTimeout(200);

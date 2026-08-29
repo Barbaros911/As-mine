@@ -833,6 +833,57 @@ check('chaque terminal se distingue dès le début de la ligne',
   await ctx.close();
 }
 
+/* ============ LE CLIENT NE PERD PAS SA DEMANDE ============
+   Ouvrir WhatsApp fait passer le navigateur en arrière-plan ; un téléphone
+   chargé le décharge. En revenant, le client retombait sur un formulaire
+   vide et croyait avoir tout perdu — sa référence comprise. Et s'il n'a
+   pas WhatsApp, il lui faut un autre chemin. */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await preparer(ctx);
+  const page = await ctx.newPage();
+  page.on('pageerror', e => errors.push('PAGEERROR(retour): ' + e.message));
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(700);
+  await page.locator('#cookieAccept').click().catch(() => {});
+  const reference = await reserver(page, 'Mme Retour');
+
+  const msg = decodeURIComponent(
+    (await page.evaluate(() => window.__ouvert[0] || '')).replace(/^[^?]*\?text=/, ''));
+  // Une information par ligne, chacune annoncée : on lit en diagonale.
+  check('la demande se lit ligne par ligne',
+    msg.split('\n').filter(l => /\s:\s/.test(l)).length >= 5,
+    msg.split('\n').filter(l => /\s:\s/.test(l)).length + ' lignes étiquetées');
+  check('la demande porte le prix, la date et le véhicule',
+    /€/.test(msg) && /\d{2}\/\d{2}\/\d{4}/.test(msg), msg.split('\n')[0]);
+
+  // Sans WhatsApp : deux autres chemins, visibles, pas cachés dans un repli.
+  check('un envoi par SMS est proposé',
+    (await page.locator('#btnSmsSummary').isVisible())
+    && (await page.locator('#btnSmsSummary').getAttribute('href')).startsWith('sms:'));
+  check('un envoi par e-mail est proposé',
+    (await page.locator('#btnEmailSummary').isVisible())
+    && (await page.locator('#btnEmailSummary').getAttribute('href')).startsWith('mailto:'));
+
+  // Le retour sur le site : on retrouve sa demande, pas un formulaire vide.
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1200);
+  check('en revenant, le client retrouve sa demande',
+    await page.locator('#screen-confirmation').isVisible()
+    && (await page.locator('#confRef').textContent()).trim() === reference);
+
+  // « Nouvelle réservation » repart de zéro, et n'y ramène plus.
+  await page.locator('#btnNewBooking').click();
+  await page.waitForTimeout(400);
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1000);
+  check('après « nouvelle réservation », on repart du formulaire',
+    await page.locator('#accrocheClient').isVisible()
+    && !(await page.locator('#screen-confirmation').isVisible()));
+
+  await ctx.close();
+}
+
 await browser.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(t => console.log('  ✔ ' + t));

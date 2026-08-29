@@ -105,19 +105,28 @@ await page.waitForTimeout(200);
 check('l\'aller-retour a été retiré', (await page.locator('#roundTripSimple').count()) === 0);
 check('la destination ouverte a été retirée', (await page.locator('#destinationOuverte').count()) === 0);
 const vehUn = await page.locator('#vehicleHome option').allTextContents();
-check('un passager : les quatre véhicules restent proposés',
-  vehUn.length === 4, vehUn.join(' | '));
+// Deux véhicules depuis la suppression des versions VIP. Un client seul
+// garde le droit de vouloir un van : seul le trop petit est écarté.
+check('un passager : les deux véhicules restent proposés',
+  vehUn.length === 2, vehUn.join(' | '));
 check('plus d\'option « peu importe »', !vehUn.join(' ').includes('Peu importe'));
 check('plus d\'emoji de voiture dans la liste',
   !/[\u{1F680}-\u{1F6FF}]/u.test(vehUn.join(' ')), vehUn.join(' | '));
-check('le nombre de places est annoncé dans la liste',
-  vehUn.every(x => /\d+\s+passager/.test(x)), vehUn.join(' | '));
+// Le nombre de places n'est plus accolé au nom : le client vient de dire
+// combien ils sont, le lui répéter n'aide pas et allonge la liste.
+check('le nom du véhicule est seul, sans nombre de places',
+  vehUn.every(x => !/\d/.test(x)), vehUn.join(' | '));
 check('une berline est retenue d\'office', (await page.inputValue('#vehicleHome')) === 'berline');
 await page.selectOption('#paxHome', '4');
 await page.waitForTimeout(200);
 const vehQuatre = await page.locator('#vehicleHome option').allTextContents();
-check('quatre passagers : la berline VIP à trois places disparaît',
-  vehQuatre.length === 3 && !vehQuatre.join(' ').includes('Berline VIP'), vehQuatre.join(' | '));
+check('quatre passagers : la berline tient encore',
+  vehQuatre.length === 2 && vehQuatre.join(' ').includes('Berline'), vehQuatre.join(' | '));
+await page.selectOption('#paxHome', '5');
+await page.waitForTimeout(200);
+const vehCinq = await page.locator('#vehicleHome option').allTextContents();
+check('cinq passagers : la berline à quatre places disparaît',
+  vehCinq.length === 1 && !vehCinq.join(' ').includes('Berline'), vehCinq.join(' | '));
 await page.selectOption('#paxHome', '7');
 await page.waitForTimeout(200);
 const vehSept = await page.locator('#vehicleHome option').allTextContents();
@@ -130,7 +139,7 @@ await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const cartes = await page.locator('#vehicleCards .veh-card').count();
-check('l\'écran des tarifs applique la même règle', cartes === 4, cartes + ' véhicule(s)');
+check('l\'écran des tarifs applique la même règle', cartes === 2, cartes + ' véhicule(s)');
 const cartesTexte = await page.locator('#vehicleCards .veh-card').allTextContents();
 check('plus d\'emoji de voiture sur les cartes',
   !/[\u{1F680}-\u{1F6FF}]/u.test(cartesTexte.join(' ')), cartesTexte.join(' | ').slice(0, 120));
@@ -274,12 +283,12 @@ await page.waitForTimeout(300);
 const optionsPax = await page.locator('#paxHome option').count();
 check('de 1 à 7 passagers proposés', optionsPax === 7, optionsPax + ' option(s)');
 const vehStandard = await page.locator('#vehicleHome option').allTextContents();
-check('les quatre véhicules proposés pour un passager', vehStandard.length === 4, vehStandard.join(' | '));
+check('les deux véhicules proposés pour un passager', vehStandard.length === 2, vehStandard.join(' | '));
 await page.selectOption('#paxHome', '6');
 await page.waitForTimeout(200);
 const vehSix = await page.locator('#vehicleHome option').allTextContents();
-check('à six passagers, seuls les vans restent proposés',
-  vehSix.length === 2 && vehSix.join(' ').includes('Van') && !vehSix.join(' ').includes('Berline'),
+check('à six passagers, seul le van reste proposé',
+  vehSix.length === 1 && vehSix.join(' ').includes('Van') && !vehSix.join(' ').includes('Berline'),
   vehSix.join(' | '));
 await page.selectOption('#vehicleHome', 'van');
 
@@ -294,7 +303,7 @@ await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
 const cartesVeh = await page.locator('#vehicleCards .veh-card').allTextContents();
 check('l\'écran véhicules ne propose que ce qui peut emmener six personnes',
-  cartesVeh.length === 2, cartesVeh.length + ' véhicule(s)');
+  cartesVeh.length === 1, cartesVeh.length + ' véhicule(s)');
 check('le véhicule choisi sur l\'accueil est déjà sélectionné',
   (await page.locator('#vehicleCards .veh-card.selected').count()) === 1);
 check('bouton Continuer déjà actif', !(await page.locator('#btnToPayment').isDisabled()));

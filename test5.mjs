@@ -150,9 +150,15 @@ check('le message au chauffeur porte la référence et la date',
 // Ce message-là est privé : il peut porter le client, contrairement à l'annonce.
 check('le message au chauffeur donne le client à contacter',
   texteChauffeur.includes('réception'), texteChauffeur.slice(0, 200));
-check('le message au chauffeur reste court',
-  texteChauffeur.trim().split('\n').length <= 9,
+// Une information par ligne, chacune annoncée par son libellé : le message
+// gagne deux lignes et deux respirations, et se lit en diagonale à 3 h du
+// matin. On plafonne quand même : il tient sur un écran sans faire défiler.
+check('le message au chauffeur tient sur un écran',
+  texteChauffeur.trim().split('\n').length <= 12,
   texteChauffeur.trim().split('\n').length + ' lignes');
+check('le message au chauffeur se lit ligne par ligne',
+  texteChauffeur.split('\n').filter(l => /\s:\s/.test(l)).length >= 5,
+  texteChauffeur.split('\n').filter(l => /\s:\s/.test(l)).length + ' lignes étiquetées');
 
 // Les liens « ?c= » déjà partis dans WhatsApp doivent continuer de s'ouvrir,
 // même si plus rien n'en fabrique de nouveaux.
