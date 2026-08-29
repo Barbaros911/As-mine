@@ -532,6 +532,8 @@ est mémorisé sur cet appareil ; `?exploitant=0` le retire. Le code n'est pas
 écrit dans `index.html` — seule son empreinte l'est — parce que le dépôt est
 public. Pour le changer : ouvrir la console du navigateur sur le site, taper
 `empreinte("NOUVEAUCODE")`, coller le résultat dans `CODE_EXPLOITANT`.
+Le sel de l'empreinte est `elatransfer:` : le changer invaliderait le code
+en service sur les appareils déjà déverrouillés.
 
 **Ce que cela protège, et ce que cela ne protège pas.** La diffusion au
 groupe, la confirmation à distance, l'attribution du chauffeur et l'export du

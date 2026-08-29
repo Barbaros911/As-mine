@@ -1611,7 +1611,7 @@ const COMMISSION_APPORT = 0.15; // 15 %
    Pour changer le code : ouvrir la console du navigateur sur le site,
    taper empreinte("NOUVEAUCODE") et coller le résultat ci-dessous.
    ===================================================================== */
-const CODE_EXPLOITANT = "bbcc3054adeb37c2";
+const CODE_EXPLOITANT = "04b72932f8ccb464";
 /* Le code se saisit dans un panneau du site, pas dans la fenêtre grise du
    navigateur : Safari bloque celle-ci quand elle s'ouvre au chargement, et
    on se retrouverait enfermé dehors sans rien comprendre. */
@@ -1921,8 +1921,7 @@ const PLACES_MAX = Math.max(...VEHICLES.map(v=>v.places));
 function empreinte(code){
   // Deux FNV-1a de graines différentes concaténés → empreinte 64 bits
   let h1=0x811c9dc5>>>0, h2=0x01000193>>>0;
-  const s="asmine:"+code;   /* sel historique — le changer invaliderait
-                            le code d'accès déjà en service */
+  const s="elatransfer:"+code;
   for(let i=0;i<s.length;i++){
     const c=s.charCodeAt(i);
     h1=(h1^c)>>>0; h1=Math.imul(h1,0x01000193)>>>0;
