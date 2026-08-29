@@ -37,7 +37,7 @@ jobs:
       - name: Préparer les fichiers du site
         run: |
           mkdir -p site
-          cp index.html admin.html styles.css manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml site/
+          cp index.html admin.html styles.css manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
           # Le domaine personnalisé. Sans ce fichier dans la publication,
           # GitHub Pages l'oublie à chaque déploiement.
           cp CNAME site/
@@ -52,7 +52,7 @@ jobs:
           # avant, et rien ici ne peut l'écraser : un dossier portant le nom
           # d'un de ses fichiers fait échouer la publication.
           [ -d sites ] || exit 0
-          reserves="index.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg robots.txt sitemap.xml demos"
+          reserves="index.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos"
           for dossier in sites/*/; do
             [ -d "$dossier" ] || continue
             nom=$(basename "$dossier")

@@ -2,6 +2,7 @@
 // renvoie un lien, et le bon du client — resté sur SON téléphone — passe au
 // vert. Deux contextes de navigateur séparés, comme deux appareils.
 import { chromium } from 'playwright';
+import { couperLeReseau } from './test-hors-ligne.mjs';
 
 const BASE = 'http://127.0.0.1:8099';
 
@@ -27,6 +28,9 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
 }
 
 const browser = await chromium.launch();
+// Les serveurs extérieurs échouent tout de suite au lieu de faire
+// attendre le navigateur : voir test-hors-ligne.mjs.
+couperLeReseau(browser);
 const errors = [];
 const ok = [], ko = [];
 const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
@@ -111,6 +115,10 @@ await client.waitForTimeout(200);
 
 await stub(client, HOTEL);
 await choisir(client, '#pickup', 'ibis');
+// Départ dans un hôtel : le numéro de chambre est obligatoire depuis
+// que le site refuse une course sans lui. Sans cette ligne, le
+// formulaire s'arrête ici et l'écran des véhicules ne s'ouvre jamais.
+await client.fill('#roomPickup', '412');
 await stub(client, BUREAU);
 await choisir(client, '#dropoff', 'montaigne');
 await client.fill('#dateSimple', dansNJours(4));

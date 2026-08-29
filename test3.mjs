@@ -1,6 +1,7 @@
 // Tests des fonctionnalités ajoutées : bon de réservation, numéro de vol,
 // passager tiers, adresses enregistrées, envoi par email.
 import { chromium } from 'playwright';
+import { couperLeReseau } from './test-hors-ligne.mjs';
 
 const BASE = 'http://127.0.0.1:8099';
 
@@ -26,6 +27,9 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
 }
 
 const browser = await chromium.launch();
+// Les serveurs extérieurs échouent tout de suite au lieu de faire
+// attendre le navigateur : voir test-hors-ligne.mjs.
+couperLeReseau(browser);
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
@@ -69,7 +73,7 @@ await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
 check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
 const tarifs = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('tarifs calculés à la distance', tarifs.length === 4, tarifs.join(' | '));
+check('tarifs calculés à la distance', tarifs.length === 2, tarifs.join(' | '));
 await page.locator('#vehicleCards .veh-card').first().click();
 await page.waitForTimeout(200);
 await page.locator('#btnToPayment').click();
@@ -108,17 +112,17 @@ await page.waitForTimeout(500);
 check('écran de confirmation atteint', await page.locator('#screen-confirmation').isVisible());
 check('le client voit « Demande envoyée », pas une réservation ferme',
   (await page.locator('#screen-confirmation h2').textContent()).includes('Demande'));
-// Le client n'a plus rien à faire : on le lui dit, et les boutons de renvoi
-// sont repliés pour ne pas ressembler à une étape restante.
 check('le client est invité à attendre notre réponse',
   (await page.locator('#screen-confirmation').textContent()).includes('rien d\'autre à faire'));
-check('les boutons de renvoi sont repliés',
-  !(await page.locator('#btnEmailSummary').isVisible()));
-await page.locator('#screen-confirmation details summary').click();
-await page.waitForTimeout(200);
-check('le repli s\'ouvre et redonne accès au renvoi',
-  await page.locator('#btnEmailSummary').isVisible()
-  && await page.locator('#btnResendWhatsapp').isVisible());
+// L'envoi n'est plus caché derrière un repli : tant que le client n'a pas
+// appuyé, la demande n'est arrivée nulle part. C'est la seule chose qui lui
+// reste à faire, elle doit donc être la plus visible de l'écran.
+check('les trois moyens d\'envoi sont visibles d\'emblée',
+  await page.locator('#btnResendWhatsapp').isVisible()
+  && await page.locator('#btnSmsSummary').isVisible()
+  && await page.locator('#btnEmailSummary').isVisible());
+check('l\'envoi n\'est plus replié',
+  (await page.locator('#screen-confirmation details').count()) === 0);
 const mailto = await page.locator('#btnEmailSummary').getAttribute('href');
 check('lien email correctement formé', mailto.startsWith('mailto:') && mailto.includes('ELA-'), mailto.slice(0, 60));
 
@@ -218,7 +222,7 @@ const sousTitre = await page.locator('#vehiclesSub').textContent();
 check('plus de bascule vers un forfait : tarif à la distance',
   !sousTitre.includes('Forfait') && /km/.test(sousTitre), sousTitre);
 const tarifsAuto = await page.locator('#vehicleCards .veh-card p.font-mono').allTextContents();
-check('véhicules tarifés', tarifsAuto.length === 4, tarifsAuto.join(' | '));
+check('véhicules tarifés', tarifsAuto.length === 2, tarifsAuto.join(' | '));
 
 // --- Trace des courses ---
 // « Mes réservations » est un écran de client : côté exploitant, cet onglet

@@ -1,8 +1,5 @@
-<!-- Version « maskable » : le contenu tient dans la zone sûre centrale (80%),
-     pour que le rognage circulaire d'Android ne coupe pas le logo. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" fill="#121212"/>
-  <circle cx="256" cy="256" r="150" fill="none" stroke="#D4AF37" stroke-width="13"/>
-  <text x="256" y="308" font-family="Georgia, 'Times New Roman', serif" font-size="138"
-        font-weight="600" fill="#D4AF37" text-anchor="middle" letter-spacing="3">AS</text>
-</svg>
+<!-- Version « maskable » : Android rogne l'icône selon la forme choisie
+     par le fabricant (rond, goutte, carré arrondi). Le marine couvre donc
+     tout le carré, le dessin tient dans les 76 % centraux, et le filet
+     s'arrête avant le bord au lieu d'en sortir : il serait coupé net. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Elatransfer"><rect width="512" height="512" fill="#0C1A31"/><g transform="translate(113.51 187.98)"><path d="M7.810147651006711 100.32000000000001V0.0H77.42818791946308V19.390711409395976H31.57723489932886V40.12800000000001H73.79242953020135V59.114738255033565H31.57723489932886V80.92928859060403H77.36085906040269V100.32000000000001Z" fill="#F1EEE7"/><path d="M97.98389261744967 100.32000000000001V0.0H121.75097986577181V80.92928859060403H163.6968590604027V100.32000000000001Z" fill="#F1EEE7"/><path d="M177.3850201342282 100.32000000000001 210.84746308724831 0.0H242.69401342281878L277.16638926174494 100.32000000000001H250.50416107382551L236.56708724832214 56.48891275167786Q233.20064429530203 45.51430872483222 230.0698523489933 33.15946308724833Q226.93906040268456 20.804617449664434 223.77460402684562 7.5408322147651035H229.09358389261746Q226.06378523489934 20.87194630872483 223.23597315436243 33.22679194630872Q220.4081610738255 45.58163758389262 217.24370469798657 56.48891275167786L203.77793288590604 100.32000000000001ZM200.1421744966443 78.97675167785235V60.79795973154363H254.47656375838926V78.97675167785235Z" fill="#F1EEE7"/></g><rect x="121.3" y="311.1" width="269.4" height="12.9" rx="6.5" fill="#E0B65C"/></svg>

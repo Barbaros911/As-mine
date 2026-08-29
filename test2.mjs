@@ -1,7 +1,11 @@
 import { chromium } from 'playwright';
+import { couperLeReseau } from './test-hors-ligne.mjs';
 
 const BASE = 'http://127.0.0.1:8099';
 const browser = await chromium.launch();
+// Les serveurs extérieurs échouent tout de suite au lieu de faire
+// attendre le navigateur : voir test-hors-ligne.mjs.
+couperLeReseau(browser);
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));

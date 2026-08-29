@@ -2,6 +2,7 @@
 // écran chauffeur (accepter, sur place, démarrer, terminer) → confirmation
 // renvoyée à l'exploitant, qui voit son bon passer en « réalisée ».
 import { chromium } from 'playwright';
+import { couperLeReseau } from './test-hors-ligne.mjs';
 
 const BASE = 'http://127.0.0.1:8099';
 
@@ -27,6 +28,9 @@ async function deverrouillerExploitant(page, base, suffixe = '') {
 }
 
 const browser = await chromium.launch();
+// Les serveurs extérieurs échouent tout de suite au lieu de faire
+// attendre le navigateur : voir test-hors-ligne.mjs.
+couperLeReseau(browser);
 const errors = [];
 const ok = [], ko = [];
 const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
