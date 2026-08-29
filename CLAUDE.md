@@ -127,8 +127,8 @@ placer les courses qu'il ne peut pas assurer lui-même.
 
 ## Tarification
 
-Berline 5,75 € + 1,75 €/km (4 pass.) · Berline VIP 11,50 € + 2,55 €/km (3) ·
-Van 11,50 € + 2,90 €/km (7) · Van VIP 17,25 € + 4,05 €/km (6).
+Ela One 5,75 € + 1,75 €/km (4 pass.) · Ela First 11,50 € + 2,55 €/km (3) ·
+Van 11,50 € + 2,90 €/km (7) · Van Premium 17,25 € + 4,05 €/km (6).
 Horaire : 58 / 86 / 80 / 109 €. +20 % nuit et week-end. TVA 10 % incluse.
 Grille relevée de 15 % en août 2026, à la demande de Barbaros.
 60 min d'attente offertes en aéroport, 30 min ailleurs.
@@ -278,11 +278,31 @@ quatre catégories restent proposées à un client seul — il a le droit de
 vouloir un van, et c'est une course plus chère. Pas d'option « peu
 importe » pour autant : il choisit, ou rien n'est réservé.
 
-**Pas d'emoji de voiture, pas d'illustration de voiture.** Essayé quatre
-fois, refusé quatre fois. Les cartes portent une pastille avec le nombre de
-places. Seule piste encore ouverte : de vraies photos des véhicules,
-fournies par Barbaros. C'est aussi ce qui distingue notre écran de celui
-d'Uber, qui met une berline dessinée sur chaque ligne.
+**Quatre gammes, et des silhouettes dessinées.** Août 2026, à la demande de
+Barbaros, après quatre refus successifs des illustrations de voiture : il
+les veut, façon Uber. Les gammes sont **Ela One** (4 places), **Ela First**
+(3), **Van** (7), **Van Premium** (6).
+- Les **clés techniques ne changent jamais** (`berline`, `berline_vip`,
+  `van`, `van_vip`) même quand le nom commercial change : elles sont écrites
+  dans les courses déjà enregistrées sur l'appareil, et une clé renommée
+  rendrait illisible le véhicule de tout l'historique.
+- Un nom de gamme est une marque : **il ne se traduit pas**, il est
+  identique dans les six langues, comme « UberX » l'est partout.
+- Les anciens noms (`anciensNoms` : « Berline », « Sedán », « 商务车 »…)
+  restent reconnus par `vehiculeDepuisNom()`. Barbaros a des mois de
+  messages WhatsApp qui les portent, et « Coller une demande » doit
+  continuer à les relire. **Renommer une gamme sans ajouter l'ancien nom
+  aux alias rend muet tout l'historique.**
+- Les silhouettes (`SILHOUETTES`) sont deux SVG dessinés dans la page —
+  berline et van, de profil, **sans calandre ni logo**. Aucune marque n'est
+  reconnaissable, et c'est voulu : dessiner une Classe E serait une promesse
+  qu'on ne tient pas si une autre voiture se présente. La gamme haute se
+  distingue par la **couleur** de la silhouette (marine contre gris-bleu),
+  jamais par un modèle inventé.
+- Les **emojis de voiture restent bannis** : ils changent de dessin d'un
+  téléphone à l'autre et grossissent mal. Deux tests le vérifient.
+- Piste encore ouverte : de vraies photos des véhicules, fournies par
+  Barbaros, qui remplaceraient les silhouettes.
 
 **L'écran des véhicules se lit comme une application de course** : la carte
 en haut sur toute la largeur, la liste qui remonte par-dessus dans une
@@ -329,12 +349,25 @@ bordures qui doivent rester discrètes.
 **Le titre d'accueil ne se pose JAMAIS sur la photo.** Il y était, en vert,
 sur un ruban de six vues qui change toutes les six secondes : lisible sur la
 Joconde, invisible sur les Champs illuminés. Aucun réglage de voile ne
-rattrape ça — une image qui change ne peut pas garantir un contraste. Le
-titre (`.accroche`) est donc sur le fond ivoire, où le contraste est acquis
-une fois pour toutes, et la vitrine ne porte plus aucun texte. Ne pas l'y
-remettre. L'accroche courte au-dessus (`tagline`) tient dans une pastille :
-la garder **courte**, sinon elle passe à la ligne — deux mots, un point
-médian, pas une phrase.
+rattrape ça — une image qui change ne peut pas garantir un contraste. Ne pas
+l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
+pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
+point médian, pas une phrase.
+
+**L'accueil se lit dans cet ordre : bandeau marine, formulaire, photos.**
+Le titre est posé sur un aplat marine plein (`.accroche`), en ivoire, avec
+le filet doré de la marque qui sort du cadre en bas à gauche — la seule idée
+du logo, à l'échelle de la page, et le seul or admis hors de l'enseigne. Le
+contraste y est acquis une fois pour toutes.
+Le ruban de photos est passé **sous le formulaire** : en haut il occupait la
+place du premier champ, et il servait de fond à un titre qu'il rendait
+illisible. Plus bas il ne porte plus rien, il reprend de la hauteur (186 px
+au lieu de 132), et le client qui veut réserver n'a plus à le franchir. Le
+formulaire entier — bouton « Voir les tarifs » compris — tient désormais
+dans le premier écran d'un téléphone. Ne pas le remonter.
+Sa marge basse de 20 px n'est pas cosmétique : la section « À l'arrivée de
+votre vol » qui suit est elle aussi sur fond marine, et sans cet intervalle
+les deux masses sombres se collent.
 
 ## Règles à ne jamais enfreindre
 
@@ -425,7 +458,10 @@ réelles » : un test qui dépend d'Internet ne prouve rien.
 Trois pièges déjà rencontrés quand une suite échoue :
 - **le numéro de chambre.** Un départ dans un hôtel est refusé sans lui.
   Une suite qui réserve depuis l'Ibis doit remplir `#roomPickup`.
-- **deux véhicules, pas quatre.** Les versions VIP ont été supprimées.
+- **quatre gammes, pas deux.** Ela One, Ela First, Van, Van Premium — les
+  versions haut de gamme sont revenues en août 2026. Une suite qui compte
+  les véhicules doit tenir compte des places : à 4 passagers, Ela First
+  (3 places) sort et il en reste trois ; à 5 ou 6, seuls les deux vans.
 - **l'écran de confirmation n'a plus de repli `<details>`.** Les trois
   moyens d'envoi sont visibles d'emblée, et c'est voulu : tant que le
   client n'a pas appuyé, la demande n'est arrivée nulle part.
