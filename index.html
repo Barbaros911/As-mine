@@ -1003,7 +1003,7 @@
          Paris : la certitude que quelqu'un sera là, avec son nom à la
          main. C'est plus convaincant que n'importe quelle promesse écrite.
          Elle prend le nom saisi dans le formulaire dès qu'il existe. -->
-    <section class="accueilli">
+    <section class="accueilli hidden" id="blocAeroport">
       <h2 data-i18n="accueil_titre">À l'arrivée de votre vol</h2>
       <p class="dit" data-i18n="accueil_texte">Votre chauffeur vous attend dans le hall d'arrivée, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.</p>
       <div class="pancarte">
@@ -3457,11 +3457,18 @@ const champVol = (()=>{
   const wrap=document.getElementById("flightWrap"), input=document.getElementById("flightNumber");
   return {
     sync(){
-      const term = terminalDuLibelle(state.pickup && state.pickup.label) ||
+      const departAeroport = terminalDuLibelle(state.pickup && state.pickup.label);
+      const term = departAeroport ||
                    terminalDuLibelle(state.dropoff && state.dropoff.label);
       state.terminal = term;
       wrap.classList.toggle("hidden", !term);
       if(!term) input.value = "";
+      /* La pancarte ne concerne QUE le client qui arrive. Un client qui part
+         vers Roissy n'a personne qui l'attend dans un hall avec son nom à la
+         main : lui montrer cette section, c'est du bruit. On suit donc le
+         DÉPART, pas l'un ou l'autre bout du trajet. */
+      const bloc = document.getElementById("blocAeroport");
+      if(bloc) bloc.classList.toggle("hidden", !departAeroport);
       return term;
     },
     value(){ return (input.value||"").trim().toUpperCase().slice(0,10) || null; },
