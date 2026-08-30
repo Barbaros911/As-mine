@@ -187,6 +187,17 @@ sont que des **suggestions** — c'est sa journée, pas un parcours imposé, et
   `applyLanguage()` doit rappeler `renderTours()`, sinon un visiteur qui
   passe à l'espagnol garde des créneaux en français. Les neuf clés
   (`tours_*`, `tour_jour*`, `tour_nuit*`) existent dans les six langues.
+- **Deux autres formules, sans arrêts** (août 2026, inspirées de la mise en
+  page GetYourGuide, sans en reprendre les avis ni le mot « guide ») :
+  **Ela Prestige** (4 h, gamme `premium` seulement — Ela First ou Van
+  Premium, à partir de 300 €) pour une soirée ou une occasion à marquer, et
+  **Escapade Versailles** (5 h, toutes gammes, à partir de 270 €) où le
+  chauffeur attend sur place. Elles n'ont ni `arrets` ni `suggestions` :
+  `detailKey` remplace la ligne « N arrêts » sur la photo, `usageKey`
+  remplace la ligne des suggestions — voir `renderTours()`. `prixDepartTour`
+  filtre `VEHICLES` sur `tour.gamme` avant de prendre le moins cher.
+  Ne jamais écrire qu'un billet d'entrée est inclus (château, musée) :
+  Asmine ne vend que le chauffeur et le véhicule.
 
 **La marque s'écrit « Asmine »**, jamais « As-mine » ni « as.mine ».
 Seule exception : l'adresse du dépôt `github.io/As-mine/`, qu'on ne peut
