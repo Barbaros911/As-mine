@@ -136,7 +136,14 @@ placer les courses qu'il ne peut pas assurer lui-même.
 
 Ela One 5,75 € + 1,75 €/km (4 pass.) · Ela First 11,50 € + 2,55 €/km (3) ·
 Van 11,50 € + 2,90 €/km (7) · Van Premium 17,25 € + 4,05 €/km (6).
-Horaire : 58 / 86 / 80 / 109 €. +20 % nuit et week-end. TVA 10 % incluse.
+**Mise à disposition, tarif dégressif** (août 2026) : les 3 premières heures
+au plein tarif, chaque heure au-delà au tarif de supplément, plus bas.
+Ela One 60 €/h puis 45 · Ela First 80 puis 60 · Van 90 puis 70 ·
+Van Premium 120 puis 100. `SEUIL_HORAIRE_H` vaut 3 pour les quatre gammes —
+un seul repère à retenir, pour le client comme pour Barbaros au téléphone.
+Le calcul est dans `prixHoraire()`. Sans `hourlyPlus` déclaré, on reste au
+plein tarif : mieux vaut facturer trop cher qu'offrir des heures par accident.
++20 % nuit et week-end. TVA 10 % incluse.
 Grille relevée de 15 % en août 2026, à la demande de Barbaros.
 60 min d'attente offertes en aéroport, 30 min ailleurs.
 **Barème d'annulation** (CGV art. 7, août 2026) : gratuit au-delà de 24 h,
@@ -154,6 +161,43 @@ sont donc obligatoires : sans les deux, pas de réservation.
 
 **Il n'y a plus d'aller-retour ni de course à destination ouverte** —
 supprimés à la demande de Barbaros.
+
+**Ela Tours** (`TOURS`, `renderTours`, `prixDepartTour`, `choisirTour`) —
+deux circuits posés sous le ruban de photos, jamais au-dessus du
+formulaire : **Paris Tour**, 3 h, du lundi au vendredi 8 h – 20 h, et
+**Paris Illuminé**, 2 h, tous les soirs à partir de 20 h. Les deux ouvrent
+**4 arrêts au choix** ; les sept lieux affichés (Sacré-Cœur, Arc de
+Triomphe, Champs-Élysées, Concorde, Trocadéro, Tour Eiffel, Notre-Dame) ne
+sont que des **suggestions** — c'est sa journée, pas un parcours imposé, et
+ça évite de promettre un itinéraire qu'un embouteillage rendrait faux.
+- Ce n'est **pas un forfait** : un tour n'est qu'une mise à disposition
+  nommée. Appuyer sur une carte bascule sur l'onglet « Mise à disposition »,
+  règle la durée et emmène au champ de départ. Le prix sort de la même
+  grille horaire, donc il reste ferme et connu avant le départ (règle VTC).
+- Le « à partir de » (180 € le jour, 120 € le soir) est la **gamme la moins
+  chère au tarif de jour**. On n'applique pas la majoration de nuit à la
+  carte du soir : `isNightOrWeekend` démarre à **21 h** alors que le créneau
+  ouvre à 20 h — un départ à 20 h paie donc bien le tarif de jour. Le prix
+  affiché est le plancher réel et il monte tout seul après 21 h ou le
+  week-end. **Si Barbaros veut que tout le créneau du soir soit majoré, il
+  faut descendre le seuil de 21 h à 20 h — c'est sa décision, pas la nôtre.**
+- Le créneau lundi–vendredi est **affiché, pas imposé** : la mise à
+  disposition reste réservable tous les jours et le prix se recalcule seul.
+- Les cartes sont fabriquées en JavaScript, sans `data-i18n` :
+  `applyLanguage()` doit rappeler `renderTours()`, sinon un visiteur qui
+  passe à l'espagnol garde des créneaux en français. Les neuf clés
+  (`tours_*`, `tour_jour*`, `tour_nuit*`) existent dans les six langues.
+- **Deux autres formules, sans arrêts** (août 2026, inspirées de la mise en
+  page GetYourGuide, sans en reprendre les avis ni le mot « guide ») :
+  **Ela Prestige** (4 h, gamme `premium` seulement — Ela First ou Van
+  Premium, à partir de 300 €) pour une soirée ou une occasion à marquer, et
+  **Escapade Versailles** (5 h, toutes gammes, à partir de 270 €) où le
+  chauffeur attend sur place. Elles n'ont ni `arrets` ni `suggestions` :
+  `detailKey` remplace la ligne « N arrêts » sur la photo, `usageKey`
+  remplace la ligne des suggestions — voir `renderTours()`. `prixDepartTour`
+  filtre `VEHICLES` sur `tour.gamme` avant de prendre le moins cher.
+  Ne jamais écrire qu'un billet d'entrée est inclus (château, musée) :
+  Asmine ne vend que le chauffeur et le véhicule.
 
 **La marque s'écrit « Asmine »**, jamais « As-mine » ni « as.mine ».
 Seule exception : l'adresse du dépôt `github.io/As-mine/`, qu'on ne peut
