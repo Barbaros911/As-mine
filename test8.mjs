@@ -468,10 +468,15 @@ check('admin : plus de titre « Mes réservations »',
 check('admin : la liste des courses du client n\'y est plus',
   !(await op.locator('#bookingsList').isVisible()));
 check('admin : le bloc de gestion est là', await op.locator('#blocAdmin').isVisible());
-// Le code QR ne sert à rien sur un outil de travail : le registre l'a remplacé.
-check('admin : plus d\'onglet code QR',
-  !(await op.locator('#navQr').isVisible())
-  && await op.locator('#navRegistre').isVisible());
+// Le code QR sert à imprimer l'affiche d'un comptoir d'hôtel : c'est un outil
+// de travail, il n'apparaît donc QUE côté exploitant. L'onglet, lui, reste des
+// deux côtés — il porte les documents obligatoires, que la loi impose de
+// laisser accessibles au client.
+check('admin : le code QR est là, avec le registre',
+  await op.locator('#navRegistre').isVisible());
+await op.locator('.nav-item[data-target="screen-qr"]').click();
+await op.waitForTimeout(400);
+check('admin : le bloc du code QR s\'affiche', await op.locator('#blocQr').isVisible());
 await op.locator('#navRegistre').click();
 await op.waitForTimeout(400);
 check('admin : le registre est un écran à part',
@@ -1005,8 +1010,13 @@ check('chaque terminal se distingue dès le début de la ligne',
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push('PAGEERROR(qr): ' + e.message));
+  // Le code QR est un outil de l'exploitant : c'est lui qui imprime l'affiche.
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(300);
+  const empreinteQr = await page.evaluate(() => CODE_EXPLOITANT);
+  await page.evaluate((e) => localStorage.setItem('ela_exploitant', e), empreinteQr);
   // On ouvre depuis une adresse quelconque, avec un paramètre parasite.
-  await page.goto(BASE + '/index.html?ok=nimportequoi', { waitUntil: 'domcontentloaded' });
+  await page.goto(BASE + '/index.html?exploitant=1&ok=nimportequoi', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(900);
   await page.locator('#cookieAccept').click().catch(() => {});
   await page.locator('.nav-item[data-target="screen-qr"]').click().catch(() => {});

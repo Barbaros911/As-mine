@@ -162,6 +162,27 @@ sont donc obligatoires : sans les deux, pas de réservation.
 **Il n'y a plus d'aller-retour ni de course à destination ouverte** —
 supprimés à la demande de Barbaros.
 
+**« ELA » est la marque, « Elatransfer » l'un de ses services** (août 2026).
+La signature **« Private Driver & Paris Experiences »** est posée sous le titre
+d'accueil (`.accroche-signature`), **en anglais dans les six langues** — une
+signature de marque ne se traduit pas. Elle ne vend rien : c'est le titre
+au-dessus qui vend, elle dit ce qu'est ELA à qui ne la connaît pas, et c'est
+elle qui permettra demain de porter autre chose que du transfert sans que la
+marque paraisse sortir de son rôle. Le nom de domaine reste `elatransfer.com`.
+
+**Le rayon d'offres s'appelle « Explorez Paris avec ELA »** et compte six
+cartes. Chacune porte une **promesse** (`promesseKey`, `.tour-promesse`) posée
+entre le nom et le créneau : un client n'achète pas trois heures de voiture,
+il achète une soirée à Paris. Les offres : **Paris Essentiel** (3 h, 180 €),
+**Paris Illuminé** (2 h, 120 €), **Paris en Famille** (4 h, 225 € — sans gamme
+imposée : une famille de trois tient dans une Ela One, lui vendre un van
+d'office serait la faire payer pour du vide), **Ela Prestige** (4 h, premium,
+300 €), **Escapade Versailles** (5 h, 270 €) et **Mise à Disposition**
+(durée libre, 60 €/h).
+**« Paris Iconique » a été écarté** : les monuments proposés étaient ceux de
+Paris Essentiel à 80 % — deux cartes qui vendent la même chose divisent
+l'attention au lieu de la doubler.
+
 **Ela Tours** (`TOURS`, `renderTours`, `prixDepartTour`, `choisirTour`) —
 deux circuits posés sous le ruban de photos, jamais au-dessus du
 formulaire : **Paris Tour**, 3 h, du lundi au vendredi 8 h – 20 h, et
@@ -430,6 +451,25 @@ plus que les deux adresses, la date et l'heure. Ce qui en est parti :
   Le formulaire qu'elle ouvre porte **`#btnRetourSimple`**, seul chemin de
   retour depuis que les onglets ont disparu : sans lui, le client qui a appuyé
   par curiosité est enfermé.
+
+**Trois destinations fréquentes sous le champ d'arrivée** (`#raccourcisArrivee`,
+août 2026) : **CDG · Orly · Gare du Nord**. Le raccourci écrit le mot dans le
+champ et **ouvre la liste** — il ne choisit pas le terminal à la place du
+client, se tromper de terminal coûte une demi-heure à tout le monde. Deux
+pièges : le `dispatchEvent("input")` part dans un `setTimeout(…, 0)` parce que
+l'autocomplétion ferme toute liste au clic hors du champ — et ce clic-ci est
+hors du champ ; et « Paris » n'est pas une destination (le prix se calcule au
+point exact), d'où la gare plutôt que la ville.
+
+**L'écran « Infos » (`screen-qr`) est le pied de page du site.** Il porte les
+quatre documents légaux et les moyens de nous joindre. Le **code QR** n'y
+apparaît qu'en **mode exploitant** (`#blocQr`) : il sert à imprimer l'affiche
+d'un comptoir d'hôtel, c'est un outil de travail, et un client qui cherche les
+CGV n'a que faire d'un QR du site où il se trouve déjà. **Ne jamais déplacer
+les documents légaux derrière le mode exploitant** — la LCEN impose qu'ils
+restent accessibles. L'onglet `screen-bookings` non plus ne se masque pas côté
+exploitant : c'est son tableau de bord, celui qui porte « Coller une demande » ;
+seul son libellé bascule en « Créer ».
 
 **Le bouton « Voir les tarifs » s'efface sous une liste d'adresses ouverte**
 (`jugerBoutonRecherche()`, classe `.efface` = `visibility:hidden`). Mesuré à

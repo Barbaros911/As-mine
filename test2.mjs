@@ -98,11 +98,15 @@ await page.waitForTimeout(1200);
 check('mise à disposition → écran véhicules', await page.locator('#screen-vehicles').isVisible());
 check('durée affichée', (await page.locator('#vehiclesSub').textContent()).includes('3'));
 
-// --- Écran QR et documents légaux ---
+// --- Écran « Infos » et documents légaux ---
+// L'onglet ne s'appelle plus « QR code » : le code QR sert à imprimer une
+// affiche pour un hôtel, c'est un outil de l'exploitant. Ce que le client
+// vient chercher ici, ce sont les documents obligatoires et un numéro.
 await page.locator('.nav-item[data-target="screen-qr"]').click();
 await page.waitForTimeout(400);
-check('écran QR accessible', await page.locator('#screen-qr').isVisible());
-check('code QR généré', (await page.locator('#qrImg').getAttribute('src')).includes('qrserver'));
+check('écran d\'informations accessible', await page.locator('#screen-qr').isVisible());
+check('le code QR ne s\'affiche pas au client', !(await page.locator('#blocQr').isVisible()));
+check('le client trouve comment nous joindre', await page.locator('#blocContact').isVisible());
 check('quatre documents légaux présents', (await page.locator('.btn-legal').count()) === 4);
 await page.locator('.btn-legal[data-doc="cgv"]').click();
 await page.waitForTimeout(300);
