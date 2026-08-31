@@ -484,7 +484,16 @@ de Barbaros** le jour même. Ne pas les réintroduire sans qu'il le redemande.
 ne cherche pas le sélecteur, il retourne à sa liste de résultats. Trois règles,
 dans cet ordre : le **choix explicite** du visiteur (mémorisé) l'emporte
 toujours ; sinon `navigator.languages` (on ne lit que la partie avant le tiret,
-« es-MX » et « es-ES » sont tous deux de l'espagnol) ; sinon le **français**.
+« es-MX » et « es-ES » sont tous deux de l'espagnol) ; sinon l'**anglais** —
+et non le français : un Allemand, un Italien, un Japonais qui arrivent ici
+lisent bien plus probablement l'anglais. Le français reste servi à qui le
+demande, il est reconnu comme les cinq autres.
+**Conséquence à ne pas manquer : le bloc de référencement (`#seoContent`) est
+désormais TRADUIT et n'est plus masqué selon la langue.** Il était en français
+et caché ailleurs ; avec le repli anglais, l'explorateur de Google — qui
+s'annonce en anglais — ne le voyait plus du tout, et le référencement local
+français partait avec. Du texte présent mais caché aux visiteurs est de toute
+façon ce que Google sanctionne. Ne pas remettre de masquage par langue.
 L'espace exploitant reste en français quoi qu'il arrive. **La détection ne
 s'écrit PAS dans `localStorage`** : ce n'est pas un choix du visiteur, et
 l'y inscrire figerait la langue du premier chargement.

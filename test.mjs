@@ -145,9 +145,13 @@ check('pas de débordement horizontal (390px, AR droite-à-gauche)',
    il retourne à sa liste de résultats. On éprouve donc la détection sur de
    vraies étiquettes de navigateur, variantes régionales comprises, et le
    repli en français pour une langue qu'on ne parle pas. */
+// Une langue qu'on ne parle pas retombe sur l'ANGLAIS, et non le français :
+// un Allemand ou un Japonais qui arrive ici lit bien plus probablement
+// l'anglais. Le français reste servi à qui le demande.
 for (const [locale, attendu] of [['es-ES', 'es'], ['es-MX', 'es'], ['en-GB', 'en'],
                                  ['pt-BR', 'pt'], ['ar-SA', 'ar'], ['zh-CN', 'zh'],
-                                 ['de-DE', 'fr'], ['ja-JP', 'fr']]) {
+                                 ['fr-CA', 'fr'], ['de-DE', 'en'], ['ja-JP', 'en'],
+                                 ['it-IT', 'en'], ['ru-RU', 'en']]) {
   const ctx = await browser.newContext({ locale, viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
   await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
@@ -157,6 +161,15 @@ for (const [locale, attendu] of [['es-ES', 'es'], ['es-MX', 'es'], ['en-GB', 'en
   }));
   check(`un navigateur en ${locale} ouvre le site en ${attendu}`,
     vu.sel === attendu && vu.doc === attendu, vu.sel + ' / ' + vu.doc);
+  // Le bloc de référencement n'est plus masqué selon la langue : il est
+  // traduit. Le masquer revenait à le retirer de l'index dès que
+  // l'explorateur de Google arrivait en anglais — ce qu'il fait.
+  const seoVu = await p.evaluate(() => {
+    const s = document.getElementById('seoContent');
+    return { visible: !s.classList.contains('hidden'), titre: s.querySelector('h2').textContent.trim() };
+  });
+  check(`le texte de référencement reste lisible en ${attendu}`,
+    seoVu.visible && seoVu.titre.length > 10, seoVu.titre.slice(0, 40));
   await ctx.close();
 }
 {
