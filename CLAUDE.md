@@ -162,6 +162,50 @@ sont donc obligatoires : sans les deux, pas de réservation.
 **Il n'y a plus d'aller-retour ni de course à destination ouverte** —
 supprimés à la demande de Barbaros.
 
+**« ELA » est la marque, « Elatransfer » l'un de ses services** (août 2026).
+La signature **« Private Driver & Paris Experiences »** est posée sous le titre
+d'accueil (`.accroche-signature`), **en anglais dans les six langues** — une
+signature de marque ne se traduit pas. Elle ne vend rien : c'est le titre
+au-dessus qui vend, elle dit ce qu'est ELA à qui ne la connaît pas, et c'est
+elle qui permettra demain de porter autre chose que du transfert sans que la
+marque paraisse sortir de son rôle. Le nom de domaine reste `elatransfer.com`.
+
+**Le rayon d'offres s'appelle « Explorez Paris avec ELA »** et compte six
+cartes. Chacune porte une **promesse** (`promesseKey`, `.tour-promesse`) posée
+entre le nom et le créneau : un client n'achète pas trois heures de voiture,
+il achète une soirée à Paris. Les offres : **Paris Essentiel** (3 h, 180 €),
+**Paris Illuminé** (2 h, 120 €), **Paris en Famille** (4 h, 225 € — sans gamme
+imposée : une famille de trois tient dans une Ela One, lui vendre un van
+d'office serait la faire payer pour du vide), **Ela Prestige** (4 h, premium,
+300 €), **Escapade Versailles** (5 h, 270 €) et **Mise à Disposition**
+(durée libre, 60 €/h).
+**« Paris Iconique » a été écarté** : les monuments proposés étaient ceux de
+Paris Essentiel à 80 % — deux cartes qui vendent la même chose divisent
+l'attention au lieu de la doubler.
+
+**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photo, promesse,
+durée, lieux suggérés, **le prix des quatre gammes**, ce qui est compris et ce
+qui ne l'est pas. La carte du rayon **ouvre la fiche**, elle ne prépare plus le
+formulaire — c'est le bouton de la fiche qui le fait.
+- Le prix par gamme **sort de `prixHoraire`**, jamais d'une liste écrite à la
+  main : un tableau recopié finirait par mentir le jour d'une hausse, et un
+  prix VTC affiché qu'on ne tient pas n'est pas une maladresse, c'est une
+  infraction.
+- Ce qui n'y figure **jamais** : une note, un nombre d'avis, un billet d'entrée
+  annoncé comme compris, et le mot « guide » sous toutes ses formes. Six
+  contrôles de `test2.mjs` le verrouillent.
+- « Non compris » se lit aussi clairement que « compris » : une mauvaise
+  surprise à l'arrivée coûte plus cher qu'une vente manquée.
+
+**Le bandeau de cookies recouvrait les boutons d'action.** Mesuré à 390 px : il
+occupait 667–780 px, le bouton 674–726 — **entièrement caché**, sur la fiche
+d'une offre comme sur l'écran des tarifs. Un client qui n'avait pas encore
+répondu au bandeau ne pouvait pas continuer sa réservation. `mesurerBandeau()`
+pose sa hauteur réelle dans `--h-bandeau`, et `.veh-action` s'en sert pour
+remonter d'autant. À **remesurer** à l'affichage, à la fermeture, au dépliage
+des détails, au changement de langue et au redimensionnement — sa hauteur
+change à chaque fois.
+
 **Ela Tours** (`TOURS`, `renderTours`, `prixDepartTour`, `choisirTour`) —
 deux circuits posés sous le ruban de photos, jamais au-dessus du
 formulaire : **Paris Tour**, 3 h, du lundi au vendredi 8 h – 20 h, et
@@ -410,6 +454,69 @@ rattrape ça — une image qui change ne peut pas garantir un contraste. Ne pas
 l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
 pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
 point médian, pas une phrase.
+
+**L'accueil ne pose qu'une question : d'où à où, et quand.** Août 2026, à la
+demande de Barbaros — « fait comme Uber ». Le formulaire d'accueil ne porte
+plus que les deux adresses, la date et l'heure. Ce qui en est parti :
+- **Les deux onglets** « Trajet simple / Mise à disposition ». Les boutons
+  `#tabSimple` et `#tabDisposal` restent dans la page, **masqués** : ils
+  portent l'état ARIA et `selectTripTab()` s'appuie dessus. Ne pas les
+  supprimer sans réécrire cette fonction.
+- **Le nombre de passagers et la gamme.** Ils sont passés sur l'écran des
+  prix (`#paxVehicles`, au-dessus de la liste) : on ne fait pas choisir une
+  gamme à quelqu'un qui n'en connaît pas encore le prix. Changer le nombre
+  redessine la liste tout de suite et **efface un choix devenu impossible**
+  — sinon on continuerait avec une berline pour six.
+- **La mise à disposition**, devenue une **offre**, cinquième carte du rayon
+  Ela Tours (`cle:"disposition"`). Elle n'a pas de durée fixée — `heures:null`
+  et `parHeure:true` font afficher « à partir de 60 €/h » au lieu d'un total
+  qu'on ne peut pas connaître. `choisirTour()` ne touche alors pas au curseur.
+  Le formulaire qu'elle ouvre porte **`#btnRetourSimple`**, seul chemin de
+  retour depuis que les onglets ont disparu : sans lui, le client qui a appuyé
+  par curiosité est enfermé.
+
+**Pas de raccourcis de destination sur l'accueil.** Essayés en août 2026
+(CDG · Orly · Gare du Nord, sous le champ d'arrivée), **retirés à la demande
+de Barbaros** le jour même. Ne pas les réintroduire sans qu'il le redemande.
+
+**Le site s'ouvre dans la langue du visiteur** (`langueDuNavigateur()`, août
+2026, à la demande de Barbaros) : un client espagnol qui tombe sur du français
+ne cherche pas le sélecteur, il retourne à sa liste de résultats. Trois règles,
+dans cet ordre : le **choix explicite** du visiteur (mémorisé) l'emporte
+toujours ; sinon `navigator.languages` (on ne lit que la partie avant le tiret,
+« es-MX » et « es-ES » sont tous deux de l'espagnol) ; sinon l'**anglais** —
+et non le français : un Allemand, un Italien, un Japonais qui arrivent ici
+lisent bien plus probablement l'anglais. Le français reste servi à qui le
+demande, il est reconnu comme les cinq autres.
+**Conséquence à ne pas manquer : le bloc de référencement (`#seoContent`) est
+désormais TRADUIT et n'est plus masqué selon la langue.** Il était en français
+et caché ailleurs ; avec le repli anglais, l'explorateur de Google — qui
+s'annonce en anglais — ne le voyait plus du tout, et le référencement local
+français partait avec. Du texte présent mais caché aux visiteurs est de toute
+façon ce que Google sanctionne. Ne pas remettre de masquage par langue.
+L'espace exploitant reste en français quoi qu'il arrive. **La détection ne
+s'écrit PAS dans `localStorage`** : ce n'est pas un choix du visiteur, et
+l'y inscrire figerait la langue du premier chargement.
+Conséquence pour les tests : **une suite qui vérifie des libellés français doit
+fixer `locale: 'fr-FR'`** à la création du contexte, sinon elle lit de l'anglais
+et échoue sur des formats de nombres (`18.49 €` contre `18,49 €`).
+
+**L'écran « Infos » (`screen-qr`) est le pied de page du site.** Il porte les
+quatre documents légaux et les moyens de nous joindre. Le **code QR** n'y
+apparaît qu'en **mode exploitant** (`#blocQr`) : il sert à imprimer l'affiche
+d'un comptoir d'hôtel, c'est un outil de travail, et un client qui cherche les
+CGV n'a que faire d'un QR du site où il se trouve déjà. **Ne jamais déplacer
+les documents légaux derrière le mode exploitant** — la LCEN impose qu'ils
+restent accessibles. L'onglet `screen-bookings` non plus ne se masque pas côté
+exploitant : c'est son tableau de bord, celui qui porte « Coller une demande » ;
+seul son libellé bascule en « Créer ».
+
+**Le bouton « Voir les tarifs » s'efface sous une liste d'adresses ouverte**
+(`jugerBoutonRecherche()`, classe `.efface` = `visibility:hidden`). Mesuré à
+390 px : depuis que le formulaire tient dans un écran, la liste descend à
+598 px et le bouton occupe 528–580 — le client qui visait le bouton appuyait
+sur une rue. On garde sa place (`visibility`, pas `display`) pour que la page
+ne sursaute pas. Deux tests le verrouillent.
 
 **L'accueil se lit dans cet ordre : bandeau marine, formulaire, photos.**
 Le titre est posé sur un aplat marine plein (`.accroche`), en ivoire, avec

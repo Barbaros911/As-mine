@@ -7,7 +7,7 @@ const browser = await chromium.launch();
 // Les serveurs extérieurs échouent tout de suite au lieu de faire
 // attendre le navigateur : voir test-hors-ligne.mjs.
 couperLeReseau(browser);
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 
 page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
@@ -78,6 +78,14 @@ if (nbSug > 0) {
   await page.locator('#pickup').press('End');
   await page.type('#pickup', 'xyz', { delay: 20 });
   await page.waitForTimeout(300);
+  // Le bouton s'efface tant que la liste d'adresses est ouverte : sur un
+  // téléphone elle passe par-dessus lui, et on appuierait sur une rue en
+  // visant « Voir les tarifs ». On referme donc, comme le ferait le client.
+  check('le bouton s\'efface sous une liste ouverte',
+    !(await page.locator('#btnSearch').isVisible()));
+  await page.locator('#pickup').press('Escape');
+  await page.waitForTimeout(200);
+  check('il revient dès que la liste se ferme', await page.locator('#btnSearch').isVisible());
   await page.locator('#btnSearch').click();
   await page.waitForTimeout(400);
   const e2 = await page.locator('#formError').textContent();
@@ -131,6 +139,56 @@ const oRtl = await page.evaluate(() => ({
 }));
 check('pas de débordement horizontal (390px, AR droite-à-gauche)',
   oRtl.dir === 'rtl' && oRtl.doc <= oRtl.win + 1, oRtl.doc + 'px pour ' + oRtl.win + 'px');
+
+/* ============ LE SITE S'OUVRE DANS LA LANGUE DU VISITEUR ============
+   Un client espagnol qui tombe sur du français ne cherche pas le sélecteur :
+   il retourne à sa liste de résultats. On éprouve donc la détection sur de
+   vraies étiquettes de navigateur, variantes régionales comprises, et le
+   repli en français pour une langue qu'on ne parle pas. */
+// Une langue qu'on ne parle pas retombe sur l'ANGLAIS, et non le français :
+// un Allemand ou un Japonais qui arrive ici lit bien plus probablement
+// l'anglais. Le français reste servi à qui le demande.
+for (const [locale, attendu] of [['es-ES', 'es'], ['es-MX', 'es'], ['en-GB', 'en'],
+                                 ['pt-BR', 'pt'], ['ar-SA', 'ar'], ['zh-CN', 'zh'],
+                                 ['fr-CA', 'fr'], ['de-DE', 'en'], ['ja-JP', 'en'],
+                                 ['it-IT', 'en'], ['ru-RU', 'en']]) {
+  const ctx = await browser.newContext({ locale, viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(600);
+  const vu = await p.evaluate(() => ({
+    sel: document.getElementById('langSelect').value, doc: document.documentElement.lang
+  }));
+  check(`un navigateur en ${locale} ouvre le site en ${attendu}`,
+    vu.sel === attendu && vu.doc === attendu, vu.sel + ' / ' + vu.doc);
+  // Le bloc de référencement n'est plus masqué selon la langue : il est
+  // traduit. Le masquer revenait à le retirer de l'index dès que
+  // l'explorateur de Google arrivait en anglais — ce qu'il fait.
+  const seoVu = await p.evaluate(() => {
+    const s = document.getElementById('seoContent');
+    return { visible: !s.classList.contains('hidden'), titre: s.querySelector('h2').textContent.trim() };
+  });
+  check(`le texte de référencement reste lisible en ${attendu}`,
+    seoVu.visible && seoVu.titre.length > 10, seoVu.titre.slice(0, 40));
+  await ctx.close();
+}
+{
+  // Le choix explicite du visiteur passe AVANT sa langue système : un
+  // Espagnol qui met le site en anglais a ses raisons, on ne le corrige pas.
+  const ctx = await browser.newContext({ locale: 'es-ES', viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(500);
+  check('sans choix du visiteur, rien n\'est écrit sur son appareil',
+    (await p.evaluate(() => localStorage.getItem('ela_langue'))) === null);
+  await p.selectOption('#langSelect', 'en');
+  await p.waitForTimeout(300);
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(600);
+  check('son choix explicite l\'emporte sur la langue du téléphone',
+    (await p.evaluate(() => document.getElementById('langSelect').value)) === 'en');
+  await ctx.close();
+}
 
 await browser.close();
 
