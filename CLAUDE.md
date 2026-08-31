@@ -183,7 +183,33 @@ d'office serait la faire payer pour du vide), **Ela Prestige** (4 h, premium,
 Paris Essentiel à 80 % — deux cartes qui vendent la même chose divisent
 l'attention au lieu de la doubler.
 
-**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photo, promesse,
+**Chaque offre porte PLUSIEURS photos** (`photos:[…]`, jamais `photo`) et la
+fiche les fait défiler (`.fiche-carrousel`, `animerRubanFiche`) : un client
+n'achète pas sur une image, il achète sur trois. La première sert de vignette
+au rayon. Le ruban avance seul toutes les 4 s et **s'arrête définitivement au
+premier geste** — un ruban qui bouge pendant qu'on regarde est une gêne, pas
+une animation. La minuterie est unique et remise à zéro à chaque ouverture,
+sinon deux fiches ouvertes coup sur coup en laissent deux qui tournent.
+
+**LE SITE N'A PLUS AUCUNE PHOTO** (août 2026). Les douze du dossier
+`photos/` étaient d'origine inconnue, et Barbaros a confirmé que celles qu'il
+fournit viennent de Google Images. Le dossier entier a été supprimé, le ruban
+d'accueil avec, et le workflow ne le copie plus que s'il existe. À la place :
+un **bandeau de marque** sur l'accueil (`.ela-bandeau`) et une **teinte par
+offre** (`teinte:"…"`, six dégradés) — rien à charger, rien à devoir.
+- **Ne jamais installer une photo sans savoir d'où elle vient.** Google
+  n'héberge rien : chaque image appartient à un photographe. Contrefaçon,
+  L335-2 CPI — en pratique, une lettre réclamant plusieurs milliers d'euros.
+- Sources propres : **Unsplash, Pexels, Pixabay**.
+- Le ruban de la fiche **reste prêt** : rendre `photos:[…]` à une offre suffit
+  à le rallumer, sans toucher au code. Un test le vérifie en injectant des
+  images dessinées à la volée.
+- Trois pièges rencontrés : le **filigrane Shutterstock** (preuve que l'image
+  n'est pas payée) ; le **plafond de Chagall** à l'Opéra, protégé jusqu'en
+  2055 ; et surtout — la tour Eiffel est libre de droits **de jour**, mais son
+  **éclairage nocturne est une œuvre protégée**, donc pas de tour illuminée.
+
+**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photos, promesse,
 durée, lieux suggérés, **le prix des quatre gammes**, ce qui est compris et ce
 qui ne l'est pas. La carte du rayon **ouvre la fiche**, elle ne prépare plus le
 formulaire — c'est le bouton de la fiche qui le fait.
