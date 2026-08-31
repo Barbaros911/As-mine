@@ -200,7 +200,18 @@ premier geste** — un ruban qui bouge pendant qu'on regarde est une gêne, pas
 une animation. La minuterie est unique et remise à zéro à chaque ouverture,
 sinon deux fiches ouvertes coup sur coup en laissent deux qui tournent.
 
-**LE SITE N'A PLUS AUCUNE PHOTO** (août 2026). Les douze du dossier
+**QUATRE PHOTOS, ET DES TEINTES POUR LE RESTE** (août 2026). Les douze
+photos d'origine ont été supprimées (voir plus bas) ; quatre sont revenues,
+retéléchargées correctement par Barbaros : Arc de Triomphe et Seine au
+couchant sur Paris Essentiel, Moulin Rouge sur Paris Illuminé, toits de Paris
+sur Paris Vision. Les trois autres offres gardent leur teinte — **photos et
+teintes cohabitent**, le code gère les deux et six contrôles le vérifient.
+**Comment reconnaître une vraie photo Unsplash** : elle fait au moins 1000 px
+de large et pèse plus de 200 Ko. Une image de 500 px pour 60 Ko est la
+vignette d'une page de résultats, pas un téléchargement — c'est ce piège qui
+a fait renvoyer deux fois les mêmes images.
+
+**L'HISTORIQUE, à ne pas réintroduire** (août 2026). Les douze du dossier
 `photos/` étaient d'origine inconnue, et Barbaros a confirmé que celles qu'il
 fournit viennent de Google Images. Le dossier entier a été supprimé, le ruban
 d'accueil avec, et le workflow ne le copie plus que s'il existe. À la place :
