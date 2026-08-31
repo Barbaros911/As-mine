@@ -646,8 +646,27 @@
      par du blanc plutôt que par un cadre — six encadrés empilés donnent une
      impression de formulaire administratif.
      ===================================================================== */
-  .fiche-photo{height:196px;border-radius:18px;background-size:cover;
-    background-position:center 45%;background-color:var(--navy-deep);margin-bottom:16px;}
+  /* =====================================================================
+     LE RUBAN DE PHOTOS D'UNE OFFRE
+     ---------------------------------------------------------------------
+     Un client n'achète pas sur une image, il achète sur trois : il veut
+     voir de quoi sera faite sa soirée. Elles défilent au doigt, avec
+     accrochage (scroll-snap) pour qu'on tombe toujours sur une photo
+     entière, jamais sur deux moitiés.
+     ===================================================================== */
+  .fiche-carrousel{position:relative;margin-bottom:16px;}
+  .fiche-vues{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;-webkit-overflow-scrolling:touch;border-radius:18px;}
+  .fiche-vues::-webkit-scrollbar{display:none;}
+  .fiche-photo{flex:0 0 100%;scroll-snap-align:center;height:196px;border-radius:18px;
+    background-size:cover;background-position:center 45%;background-color:var(--navy-deep);}
+  /* Les pastilles sont posées SUR la photo, en bas : hors du cadre elles
+     poussaient le titre vers le bas pour ne rien dire de plus. */
+  .fiche-points{position:absolute;left:0;right:0;bottom:11px;z-index:2;
+    display:flex;justify-content:center;gap:6px;}
+  .fiche-point{width:7px;height:7px;border-radius:999px;background:rgba(244,241,234,.45);
+    border:0;padding:0;transition:width .18s,background .18s;}
+  .fiche-point.actif{width:19px;background:#F4F1EA;}
   .fiche-nom{font-size:25px;font-weight:800;letter-spacing:-.025em;line-height:1.12;}
   .fiche-promesse{font-size:14px;line-height:1.5;color:var(--muted);margin-top:6px;}
   .fiche-faits{margin-top:16px;border-top:1px solid var(--line);}
@@ -3678,25 +3697,35 @@ const formSimple=document.getElementById("formSimple"), formDisposal=document.ge
    cher retenu pour le prix : 'premium' pour Ela Prestige (Ela First/Van
    Premium), 'toutes' partout ailleurs. */
 const TOURS = [
-  { cle:"paris-jour", heures:3, arrets:4, gamme:"toutes", photo:"photos/eiffel-seine.jpg",
+  /* PLUSIEURS PHOTOS PAR OFFRE. La première sert de vignette au rayon ; la
+     fiche les fait toutes défiler. Un client n'achète pas sur une image, il
+     achète sur trois : il veut voir de quoi sera faite sa soirée.
+     Elles sont choisies pour se répondre, pas pour se répéter — un monument
+     par photo, et jamais deux fois le même sujet dans la même offre. */
+  { cle:"paris-jour", heures:3, arrets:4, gamme:"toutes",
+    photos:["photos/eiffel-seine.jpg","photos/v-sacrecoeur.jpg","photos/v-notredame.jpg"],
     nomKey:"tour_jour", promesseKey:"tour_jour_promesse", creneauKey:"tour_jour_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame"] },
-  { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes", photo:"photos/champs-noel.jpg",
+  { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes",
+    photos:["photos/champs-noel.jpg","photos/louvre-nuit.jpg","photos/v-champs.jpg"],
     nomKey:"tour_nuit", promesseKey:"tour_nuit_promesse", creneauKey:"tour_nuit_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame"] },
   /* Paris en famille. Pas de gamme imposée : une famille de trois tient dans
      une Ela One, et lui vendre un van d'office serait la faire payer pour du
      vide. Elle dit combien ils sont sur l'écran des prix, la liste s'ajuste. */
-  { cle:"famille", heures:4, arrets:4, gamme:"toutes", photo:"photos/v-eiffel.jpg",
+  { cle:"famille", heures:4, arrets:4, gamme:"toutes",
+    photos:["photos/v-eiffel.jpg","photos/disneyland.jpg","photos/v-sacrecoeur.jpg"],
     nomKey:"tour_famille", promesseKey:"tour_famille_promesse", creneauKey:"tour_famille_creneau",
     suggestions:["Tour Eiffel","Trocadéro","Champs-Élysées","Louvre",
                  "Notre-Dame","Montmartre"] },
-  { cle:"prestige", heures:4, gamme:"premium", photo:"photos/louvre-nuit.jpg",
+  { cle:"prestige", heures:4, gamme:"premium",
+    photos:["photos/louvre-nuit.jpg","photos/v-versailles.jpg","photos/champs-noel.jpg"],
     nomKey:"tour_prestige", promesseKey:"tour_prestige_promesse", creneauKey:"tour_prestige_creneau",
     detailKey:"tour_prestige_detail", usageKey:"tour_prestige_usage" },
-  { cle:"versailles", heures:5, gamme:"toutes", photo:"photos/versailles.jpg",
+  { cle:"versailles", heures:5, gamme:"toutes",
+    photos:["photos/versailles.jpg","photos/v-versailles.jpg"],
     nomKey:"tour_versailles", promesseKey:"tour_versailles_promesse", creneauKey:"tour_versailles_creneau",
     detailKey:"tour_versailles_detail", usageKey:"tour_versailles_usage" },
   /* La mise à disposition elle-même, devenue une offre parmi les autres :
@@ -3705,7 +3734,7 @@ const TOURS = [
      durée fixée — c'est tout son intérêt — d'où heures:null et parHeure,
      qui font afficher un tarif horaire plutôt qu'un total. */
   { cle:"disposition", heures:null, parHeure:true, gamme:"toutes",
-    photo:"photos/v-sacrecoeur.jpg",
+    photos:["photos/v-sacrecoeur.jpg","photos/eiffel-seine.jpg","photos/v-notredame.jpg"],
     nomKey:"tab_disposal", promesseKey:"tour_disposition_promesse",
     creneauKey:"tour_disposition_creneau",
     detailKey:"tour_disposition_detail", usageKey:"tour_disposition_usage" }
@@ -3741,7 +3770,7 @@ function renderTours(){
       ? `${escapeHtml(t("tours_suggestions"))} ${escapeHtml(tour.suggestions.join(" · "))}`
       : escapeHtml(t(tour.usageKey));
     carte.innerHTML = `
-      <span class="tour-photo block" style="background-image:url('${tour.photo}')">
+      <span class="tour-photo block" style="background-image:url('${tour.photos[0]}')">
         <span class="tour-duree">${ligneHaut}</span>
       </span>
       <span class="tour-corps block">
@@ -3792,7 +3821,14 @@ function ouvrirFicheTour(tour){
        </div>` : "";
 
   document.getElementById("ficheTour").innerHTML = `
-    <div class="fiche-photo" style="background-image:url('${tour.photo}')" role="img" aria-label="${escapeHtml(t(tour.nomKey))}"></div>
+    <div class="fiche-carrousel">
+      <div class="fiche-vues" id="vuesTour">
+        ${tour.photos.map((src,i)=>`<div class="fiche-photo" style="background-image:url('${src}')" role="img" aria-label="${escapeHtml(t(tour.nomKey))} — ${i+1}/${tour.photos.length}"></div>`).join("")}
+      </div>
+      ${tour.photos.length > 1 ? `<div class="fiche-points" id="pointsTour" role="tablist" aria-label="${escapeHtml(t(tour.nomKey))}">
+        ${tour.photos.map((_,i)=>`<button class="fiche-point${i===0?" actif":""}" data-vue="${i}" role="tab" aria-selected="${i===0}" aria-label="${i+1}/${tour.photos.length}"></button>`).join("")}
+      </div>` : ""}
+    </div>
     <h2 class="fiche-nom">${escapeHtml(t(tour.nomKey))}</h2>
     <p class="fiche-promesse">${escapeHtml(t(tour.promesseKey))}</p>
     <ul class="fiche-faits">
@@ -3823,10 +3859,69 @@ function ouvrirFicheTour(tour){
 
   const etiquette = document.getElementById("btnReserverTourLabel");
   if(etiquette) etiquette.textContent = `${t("tour_reserver")} · ${t(tour.nomKey)}`;
+  animerRubanFiche(tour);
   trackEvent("voir_fiche_tour", {tour: tour.cle});
   showScreen("screen-tour");
 }
+
+/* =====================================================================
+   LE RUBAN DE PHOTOS SE MET EN MARCHE TOUT SEUL
+   ---------------------------------------------------------------------
+   Il avance de lui-même toutes les quatre secondes — c'est ce qui donne
+   envie de regarder la suivante — mais il S'ARRÊTE DÉFINITIVEMENT dès que
+   le client y touche. Un ruban qui continue de bouger pendant qu'on
+   regarde une photo est une gêne, pas une animation : le geste du doigt
+   dit qu'il a pris la main, on la lui laisse.
+   La minuterie est unique et remise à zéro à chaque ouverture de fiche :
+   sans ça, deux fiches ouvertes coup sur coup en laissaient deux qui
+   tournaient, et le ruban sautait une photo sur deux.
+   ===================================================================== */
+let minuterieRuban = null;
+function animerRubanFiche(tour){
+  clearInterval(minuterieRuban);
+  minuterieRuban = null;
+  const vues = document.getElementById("vuesTour");
+  const points = document.getElementById("pointsTour");
+  if(!vues || tour.photos.length < 2) return;
+
+  const largeur = () => vues.clientWidth + 8; // la photo plus l'écart
+  const courante = () => Math.round(vues.scrollLeft / largeur());
+  function peindre(){
+    if(!points) return;
+    const i = courante();
+    points.querySelectorAll(".fiche-point").forEach((p,n)=>{
+      p.classList.toggle("actif", n === i);
+      p.setAttribute("aria-selected", String(n === i));
+    });
+  }
+  function arreter(){ clearInterval(minuterieRuban); minuterieRuban = null; }
+
+  vues.addEventListener("scroll", peindre, {passive:true});
+  // Le premier geste du client reprend la main pour de bon.
+  ["pointerdown","touchstart","wheel"].forEach(ev=>
+    vues.addEventListener(ev, arreter, {passive:true, once:true}));
+  if(points){
+    points.querySelectorAll(".fiche-point").forEach(p=>{
+      p.addEventListener("click", ()=>{
+        arreter();
+        vues.scrollTo({left: Number(p.dataset.vue) * largeur(), behavior:"smooth"});
+      });
+    });
+  }
+  minuterieRuban = setInterval(()=>{
+    // Onglet en arrière-plan : on ne fait pas défiler dans le vide, et
+    // surtout on n'accumule pas de retard à rattraper au retour.
+    if(document.visibilityState !== "visible") return;
+    const suivante = (courante() + 1) % tour.photos.length;
+    vues.scrollTo({left: suivante * largeur(), behavior:"smooth"});
+  }, 4000);
+}
+/* Quitter la fiche arrête le ruban : il n'a aucune raison de continuer à
+   tourner sur un écran que personne ne regarde. */
+document.querySelector('#screen-tour .btn-back')
+  .addEventListener("click", ()=>{ clearInterval(minuterieRuban); minuterieRuban = null; });
 document.getElementById("btnReserverTour").addEventListener("click", ()=>{
+  clearInterval(minuterieRuban); minuterieRuban = null;
   if(!tourAffiche) return;
   showScreen("screen-home");
   choisirTour(tourAffiche);

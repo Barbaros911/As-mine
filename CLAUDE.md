@@ -183,7 +183,24 @@ d'office serait la faire payer pour du vide), **Ela Prestige** (4 h, premium,
 Paris Essentiel à 80 % — deux cartes qui vendent la même chose divisent
 l'attention au lieu de la doubler.
 
-**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photo, promesse,
+**Chaque offre porte PLUSIEURS photos** (`photos:[…]`, jamais `photo`) et la
+fiche les fait défiler (`.fiche-carrousel`, `animerRubanFiche`) : un client
+n'achète pas sur une image, il achète sur trois. La première sert de vignette
+au rayon. Le ruban avance seul toutes les 4 s et **s'arrête définitivement au
+premier geste** — un ruban qui bouge pendant qu'on regarde est une gêne, pas
+une animation. La minuterie est unique et remise à zéro à chaque ouverture,
+sinon deux fiches ouvertes coup sur coup en laissent deux qui tournent.
+
+**Les photos du dépôt sont d'origine inconnue** (août 2026). Barbaros a
+confirmé que celles qu'il envoie viennent de Google Images : elles ne peuvent
+pas être publiées — contrefaçon, L335-2 CPI. Une a été installée puis retirée
+par `git revert` le jour même. **Ne jamais installer une photo sans savoir
+d'où elle vient.** Sources propres : Unsplash, Pexels, Pixabay. Piège
+particulier : la tour Eiffel est libre de droits **de jour**, mais son
+**éclairage nocturne est une œuvre protégée** — une photo de la tour illuminée
+ne peut pas servir commercialement sans autorisation.
+
+**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photos, promesse,
 durée, lieux suggérés, **le prix des quatre gammes**, ce qui est compris et ce
 qui ne l'est pas. La carte du rayon **ouvre la fiche**, elle ne prépare plus le
 formulaire — c'est le bouton de la fiche qui le fait.

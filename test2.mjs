@@ -108,6 +108,25 @@ check('aucun billet d\'entrée annoncé comme compris',
   !(await page.locator('.fiche-liste.oui').textContent()).match(/billet|entrée/i));
 check('le mot « guide » n\'apparaît nulle part', !/guid/i.test(fiche), fiche.slice(0, 60));
 check('aucune note ni avis inventés sur la fiche', !/★|\d[,.]\d\s*\/\s*5/.test(fiche));
+// Un client n'achète pas sur une image, il achète sur trois : le ruban
+// avance tout seul, et il S'ARRÊTE dès qu'on y touche — un ruban qui
+// continue de bouger pendant qu'on regarde est une gêne, pas une animation.
+check('la fiche montre plusieurs photos',
+  (await page.locator('#vuesTour .fiche-photo').count()) >= 2);
+check('une pastille par photo',
+  (await page.locator('.fiche-point').count())
+    === (await page.locator('#vuesTour .fiche-photo').count()));
+await page.waitForTimeout(4600);
+const defile = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
+check('le ruban avance de lui-même', defile > 10, 'scrollLeft=' + Math.round(defile));
+check('la pastille suit la photo affichée',
+  (await page.locator('.fiche-point.actif').getAttribute('data-vue')) !== '0');
+await page.locator('#vuesTour').dispatchEvent('pointerdown');
+const avant = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
+await page.waitForTimeout(5200);
+const apres = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
+check('un geste du client arrête le défilement automatique',
+  Math.abs(apres - avant) < 5, Math.round(avant) + ' → ' + Math.round(apres));
 // La fiche ne réserve rien : c'est son bouton qui prépare le formulaire.
 await page.locator('#btnReserverTour').click();
 await page.waitForTimeout(700);
