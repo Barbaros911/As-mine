@@ -3682,7 +3682,13 @@ const TOURS = [
     nomKey:"tour_jour", promesseKey:"tour_jour_promesse", creneauKey:"tour_jour_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame"] },
-  { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes", photo:"photos/champs-noel.jpg",
+  /* La vue aérienne porte trois lieux du parcours dans une seule image —
+     l'Arc de Triomphe, l'étoile des avenues, la tour Eiffel au fond — et
+     elle montre Paris ENTIER illuminé, ce que vend précisément ce tour.
+     Son sujet est bas dans le cadre : d'où « center 80% », sans quoi on ne
+     voit qu'un tapis de lumières sans monument reconnaissable. */
+  { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes", photo:"photos/paris-nuit-aerien.jpg",
+    cadre:"center 80%",
     nomKey:"tour_nuit", promesseKey:"tour_nuit_promesse", creneauKey:"tour_nuit_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame"] },
@@ -3741,7 +3747,7 @@ function renderTours(){
       ? `${escapeHtml(t("tours_suggestions"))} ${escapeHtml(tour.suggestions.join(" · "))}`
       : escapeHtml(t(tour.usageKey));
     carte.innerHTML = `
-      <span class="tour-photo block" style="background-image:url('${tour.photo}')">
+      <span class="tour-photo block" style="background-image:url('${tour.photo}')${tour.cadre ? ";background-position:" + tour.cadre : ""}">
         <span class="tour-duree">${ligneHaut}</span>
       </span>
       <span class="tour-corps block">
@@ -3792,7 +3798,7 @@ function ouvrirFicheTour(tour){
        </div>` : "";
 
   document.getElementById("ficheTour").innerHTML = `
-    <div class="fiche-photo" style="background-image:url('${tour.photo}')" role="img" aria-label="${escapeHtml(t(tour.nomKey))}"></div>
+    <div class="fiche-photo" style="background-image:url('${tour.photo}')${tour.cadre ? ";background-position:" + tour.cadre : ""}" role="img" aria-label="${escapeHtml(t(tour.nomKey))}"></div>
     <h2 class="fiche-nom">${escapeHtml(t(tour.nomKey))}</h2>
     <p class="fiche-promesse">${escapeHtml(t(tour.promesseKey))}</p>
     <ul class="fiche-faits">
