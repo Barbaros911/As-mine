@@ -108,38 +108,45 @@ check('aucun billet d\'entrée annoncé comme compris',
   !(await page.locator('.fiche-liste.oui').textContent()).match(/billet|entrée/i));
 check('le mot « guide » n\'apparaît nulle part', !/guid/i.test(fiche), fiche.slice(0, 60));
 check('aucune note ni avis inventés sur la fiche', !/★|\d[,.]\d\s*\/\s*5/.test(fiche));
-/* ============ AUCUNE PHOTO N'EST SERVIE PAR LE SITE ============
-   Celles qui habillaient les offres venaient de Google Images : elles ont
-   toutes été retirées, dossier compris. Chaque offre porte un dégradé qui
-   lui est propre. Ce contrôle est là pour qu'on ne les réintroduise pas
-   par inadvertance — une image sans origine établie sur un site
-   commercial, c'est une réclamation qui arrive un jour. */
-check('la fiche n\'affiche aucune photo d\'origine inconnue',
-  (await page.evaluate(() => [...document.querySelectorAll('#vuesTour .fiche-photo')]
-    .every(e => !(e.style.backgroundImage || '').includes('photos/')))));
-check('une offre sans photo n\'affiche pas de pastilles',
-  (await page.locator('.fiche-point').count()) === 0);
-check('elle porte une teinte à la place',
-  (await page.locator('#vuesTour .fiche-photo[class*="teinte-"]').count()) === 1);
+/* ============ PHOTOS ET TEINTES COHABITENT ============
+   Certaines offres ont des photos, d'autres pas encore : les deux cas
+   doivent rendre correctement. Une offre AVEC photos les montre et porte
+   ses pastilles ; une offre SANS en porte une teinte, et surtout pas un
+   carrousel à une seule image — ce serait une promesse qu'on ne tient
+   pas. On est ici sur Paris Essentiel, qui a deux photos. */
+check('une offre avec photos les affiche',
+  (await page.locator('#vuesTour .fiche-photo').count()) === 2);
+check('une pastille par photo',
+  (await page.locator('.fiche-point').count()) === 2);
+check('aucune teinte quand il y a des photos',
+  (await page.locator('#vuesTour .fiche-photo[class*="teinte-"]').count()) === 0);
 
-/* ============ LE RUBAN RESTE PRÊT À LES RECEVOIR ============
-   On rend des photos à une offre, le temps de ce contrôle : rendre
-   « photos:[…] » doit suffire à rallumer le carrousel, sans toucher au
-   code. Les images sont dessinées à la volée — le test ne dépend d'aucun
-   fichier, et surtout d'aucune image dont l'origine serait douteuse. */
+// Ela Prestige n'a pas encore de photo : elle porte sa teinte.
+await page.locator('#screen-tour .btn-back').click();
+await page.waitForTimeout(400);
+await page.locator('.tour-carte[data-tour="prestige"]').click();
+await page.waitForTimeout(600);
+check('une offre sans photo porte une teinte',
+  (await page.locator('#vuesTour .fiche-photo[class*="teinte-"]').count()) === 1);
+check('et n\'affiche pas de pastilles',
+  (await page.locator('.fiche-point').count()) === 0);
+
+/* ============ LE RUBAN DÉFILE DÈS QU'IL Y A DE QUOI ============
+   On donne trois vues à une offre, le temps de ce contrôle : les images
+   sont dessinées à la volée, le test ne dépend donc d'aucun fichier. */
 await page.locator('#screen-tour .btn-back').click();
 await page.waitForTimeout(400);
 await page.evaluate(() => {
   const carre = (c) => 'data:image/svg+xml,' +
     encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${c}"/></svg>`);
-  TOURS.find(t => t.cle === 'paris-jour').photos = [carre('#123'), carre('#456'), carre('#789')];
+  TOURS.find(t => t.cle === 'prestige').photos = [carre('#123'), carre('#456'), carre('#789')];
   renderTours();
 });
-await page.locator('.tour-carte[data-tour="paris-jour"]').click();
+await page.locator('.tour-carte[data-tour="prestige"]').click();
 await page.waitForTimeout(600);
 check('rendre des photos rallume le ruban',
   (await page.locator('#vuesTour .fiche-photo').count()) === 3);
-check('une pastille par photo',
+check('trois photos, trois pastilles',
   (await page.locator('.fiche-point').count()) === 3);
 await page.waitForTimeout(4600);
 const defile = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
@@ -152,8 +159,14 @@ await page.waitForTimeout(5200);
 const apres = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
 check('un geste du client arrête le défilement automatique',
   Math.abs(apres - avant) < 5, Math.round(avant) + ' → ' + Math.round(apres));
-await page.evaluate(() => { delete TOURS.find(t => t.cle === 'paris-jour').photos; renderTours(); });
-// La fiche ne réserve rien : c'est son bouton qui prépare le formulaire.
+await page.evaluate(() => { delete TOURS.find(t => t.cle === 'prestige').photos; renderTours(); });
+/* La fiche ne réserve rien : c'est son bouton qui prépare le formulaire.
+   On repart de Paris Essentiel — 3 h — pour que la durée attendue soit
+   celle de l'offre ouverte, et non celle du dernier essai. */
+await page.locator('#screen-tour .btn-back').click();
+await page.waitForTimeout(400);
+await page.locator('.tour-carte[data-tour="paris-jour"]').click();
+await page.waitForTimeout(600);
 await page.locator('#btnReserverTour').click();
 await page.waitForTimeout(700);
 check('« Réserver » ramène au formulaire, préparé',
