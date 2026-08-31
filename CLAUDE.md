@@ -176,7 +176,16 @@ entre le nom et le créneau : un client n'achète pas trois heures de voiture,
 il achète une soirée à Paris. Les offres : **Paris Essentiel** (3 h, 180 €),
 **Paris Illuminé** (2 h, 120 €), **Paris en Famille** (4 h, 225 € — sans gamme
 imposée : une famille de trois tient dans une Ela One, lui vendre un van
-d'office serait la faire payer pour du vide), **Ela Prestige** (4 h, premium,
+d'office serait la faire payer pour du vide), **Paris Vision** (3 h, 180 € — voir Paris d'en haut, ajouté le
+31 août à la demande de Barbaros après que je l'aie déconseillé : ce qu'il
+vend est le TRANSPORT vers les points de vue et l'attente sur place, jamais
+l'entrée. Deux des quatre panoramas sont gratuits — Galeries Lafayette,
+Printemps — donc l'offre tient debout sans billet. **Ne jamais y inclure un
+billet ni une consommation** : vendre de la billetterie ferait sortir Asmine
+du transport (TVA 20 % au lieu de 10 %, argent à avancer, responsabilité d'un
+lieu qu'il ne maîtrise pas), et promettre une coupe de champagne dans un bar
+d'hôtel demande un accord écrit avec cet hôtel),
+**Ela Prestige** (4 h, premium,
 300 €), **Escapade Versailles** (5 h, 270 €) et **Mise à Disposition**
 (durée libre, 60 €/h).
 **« Paris Iconique » a été écarté** : les monuments proposés étaient ceux de
