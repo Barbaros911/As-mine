@@ -523,31 +523,26 @@
   /* La marge basse n'est pas cosmétique : la section « À l'arrivée de votre
      vol » qui suit est elle aussi sur fond marine. Sans cet intervalle, les
      deux masses sombres se collent et la page perd sa respiration. */
-  .vitrine{position:relative;height:186px;margin:22px -16px 20px;overflow:hidden;
-    background:var(--navy-deep);}
-  @media (min-width:640px){ .vitrine{margin-left:0;margin-right:0;border-radius:18px;} }
-  .ruban{display:flex;width:700%;height:100%;animation:defiler 36s ease-in-out infinite;}
-  .cliche{flex:0 0 14.2857%;height:100%;background-size:cover;background-position:center 42%;}
-  @keyframes defiler{
-    0%,     13%    {transform:translateX(0);}
-    16.67%, 29.67% {transform:translateX(-14.2857%);}
-    33.33%, 46.33% {transform:translateX(-28.5714%);}
-    50%,    63%    {transform:translateX(-42.8571%);}
-    66.67%, 79.67% {transform:translateX(-57.1429%);}
-    83.33%, 96.33% {transform:translateX(-71.4286%);}
-    100%           {transform:translateX(-85.7143%);}
-  }
-  /* Un visiteur qui a demandé moins d'animations garde la première photo. */
-  @media (prefers-reduced-motion: reduce){ .ruban{animation:none;} }
-
-  /* Le voile ne soutient plus de texte : il ne sert qu'à asseoir la photo
-     et à éviter qu'une vue trop claire ne vienne cogner le fond ivoire.
-     Il peut donc être bien plus léger qu'avant — les photos se voient. */
-  .vitrine-voile{position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(8,16,32,.06) 0%,rgba(8,16,32,.10) 60%,
-      rgba(8,16,32,.30) 100%);}
-  /* L'espace de travail n'a que faire d'une vitrine touristique. */
-  body.mode-exploitant .vitrine{display:none;}
+  /* =====================================================================
+     LE BANDEAU DE MARQUE
+     ---------------------------------------------------------------------
+     Il a remplacé le ruban de photos de Paris. Ces photos venaient de
+     Google Images : elles appartenaient à quelqu'un, et un site commercial
+     qui les publie s'expose à une réclamation.
+     Plutôt qu'un rectangle vide en attendant, la marque occupe la place :
+     le signe ELA gravé sur le marine, et le filet doré qui sort du cadre —
+     la seule idée du logo, à l'échelle de la page. Ça ne promet rien qu'on
+     ne tienne pas, et ça ne coûte aucune requête réseau.
+     ===================================================================== */
+  .ela-bandeau{position:relative;height:132px;margin:22px -16px 20px;overflow:hidden;
+    background:var(--navy-deep);display:flex;align-items:center;justify-content:center;}
+  @media (min-width:640px){ .ela-bandeau{margin-left:0;margin-right:0;border-radius:18px;} }
+  .ela-bandeau-signe{font-size:52px;font-weight:800;letter-spacing:.16em;
+    color:rgba(244,241,234,.13);text-indent:.16em;user-select:none;}
+  .ela-bandeau-filet{position:absolute;left:0;bottom:26px;width:44%;height:3px;
+    border-radius:0 3px 3px 0;background:var(--or-marque);}
+  [dir="rtl"] .ela-bandeau-filet{left:auto;right:0;border-radius:3px 0 0 3px;}
+  body.mode-exploitant .ela-bandeau{display:none;}
 
   /* =====================================================================
      L'ACCROCHE
@@ -637,6 +632,37 @@
   .tour-prix{margin-top:9px;font-size:13px;font-weight:800;letter-spacing:-.02em;}
   .tour-prix span{font-weight:600;color:var(--muted);font-size:11px;}
   body.mode-exploitant .tours{display:none;}
+
+  /* =====================================================================
+     LES TEINTES DES OFFRES
+     ---------------------------------------------------------------------
+     Elles tiennent la place des photos, retirées parce qu'elles venaient de
+     Google Images. Une teinte par offre, pour qu'on les distingue au premier
+     coup d'œil dans le rayon : la journée est claire, le soir est profond,
+     la famille est chaude, le prestige est sombre et doré.
+     Le grain léger évite l'aplat plat de bandeau d'attente ; il est dessiné
+     en dégradés, sans une seule image à charger.
+     ===================================================================== */
+  .tour-photo[class*="teinte-"], .fiche-photo[class*="teinte-"]{
+    background-size:auto, auto, cover;}
+  .teinte-jour{background:
+    radial-gradient(120% 90% at 18% 12%, rgba(244,241,234,.16), transparent 62%),
+    linear-gradient(152deg, #2E4C77 0%, #16294A 100%);}
+  .teinte-nuit{background:
+    radial-gradient(95% 78% at 76% 16%, rgba(232,206,123,.20), transparent 60%),
+    linear-gradient(152deg, #16294A 0%, #080F1E 100%);}
+  .teinte-famille{background:
+    radial-gradient(110% 85% at 22% 18%, rgba(244,241,234,.20), transparent 62%),
+    linear-gradient(152deg, #2F6E56 0%, #12402F 100%);}
+  .teinte-prestige{background:
+    radial-gradient(100% 80% at 80% 14%, rgba(184,134,43,.32), transparent 58%),
+    linear-gradient(152deg, #1B1B24 0%, #07070C 100%);}
+  .teinte-versailles{background:
+    radial-gradient(115% 88% at 20% 14%, rgba(232,206,123,.22), transparent 60%),
+    linear-gradient(152deg, #6B5324 0%, #2A2010 100%);}
+  .teinte-libre{background:
+    radial-gradient(110% 85% at 78% 18%, rgba(244,241,234,.14), transparent 62%),
+    linear-gradient(152deg, #21456B 0%, #0C1A31 100%);}
 
   /* =====================================================================
      LA FICHE D'UNE OFFRE
@@ -1118,17 +1144,18 @@
          Un ruban qui glisse, pas un fondu — on doit voir que ça bouge.
          Les photos sont des fichiers séparés : elles se chargent après le
          formulaire, qui reste utilisable même si elles n'arrivent jamais. -->
-    <div class="vitrine" role="img" aria-label="Paris : le Louvre, les Champs-Élysées, la tour Eiffel, la Joconde, Versailles, Disneyland">
-      <div class="ruban">
-        <div class="cliche" style="background-image:url('photos/louvre-nuit.jpg')"></div>
-        <div class="cliche" style="background-image:url('photos/champs-noel.jpg')"></div>
-        <div class="cliche" style="background-image:url('photos/eiffel-seine.jpg')"></div>
-        <div class="cliche" style="background-image:url('photos/joconde.jpg')"></div>
-        <div class="cliche" style="background-image:url('photos/versailles.jpg')"></div>
-        <div class="cliche" style="background-image:url('photos/disneyland.jpg')"></div>
-        <div class="cliche" style="background-image:url('photos/louvre-nuit.jpg')"></div>
-      </div>
-      <div class="vitrine-voile" aria-hidden="true"></div>
+    <!-- LE RUBAN DE PHOTOS A ÉTÉ RETIRÉ (août 2026). Les six vues de Paris
+         qu'il faisait défiler venaient de Google Images : elles appartenaient
+         à des photographes qui n'avaient rien autorisé. Un site commercial
+         qui les publie s'expose à une réclamation, et le fait qu'elles soient
+         jolies n'y change rien.
+         Il reprendra sa place le jour où Barbaros fournira des photos dont
+         l'origine est établie — Unsplash, Pexels, Pixabay, ou les siennes. Le
+         balisage est volontairement conservé en commentaire nulle part :
+         c'est douze lignes à réécrire, ce n'est pas ce qui coûte. -->
+    <div class="ela-bandeau" role="img" aria-label="Elatransfer — Paris, Roissy CDG, Orly">
+      <span class="ela-bandeau-signe" aria-hidden="true">ELA</span>
+      <span class="ela-bandeau-filet" aria-hidden="true"></span>
     </div>
 
     <!-- ============== ELA TOURS ==============
@@ -3697,18 +3724,22 @@ const formSimple=document.getElementById("formSimple"), formDisposal=document.ge
    cher retenu pour le prix : 'premium' pour Ela Prestige (Ela First/Van
    Premium), 'toutes' partout ailleurs. */
 const TOURS = [
-  /* PLUSIEURS PHOTOS PAR OFFRE. La première sert de vignette au rayon ; la
-     fiche les fait toutes défiler. Un client n'achète pas sur une image, il
-     achète sur trois : il veut voir de quoi sera faite sa soirée.
-     Elles sont choisies pour se répondre, pas pour se répéter — un monument
-     par photo, et jamais deux fois le même sujet dans la même offre. */
+  /* UNE TEINTE, PAS UNE PHOTO — pour l'instant. Les photos qui habillaient
+     ces offres venaient de Google Images : elles appartenaient à des
+     photographes qui n'avaient rien autorisé, et un site commercial qui les
+     publie s'expose à une réclamation. Elles ont donc toutes été retirées.
+     En attendant des images dont l'origine est établie, chaque offre porte
+     un dégradé qui lui est propre : ça la distingue au premier coup d'œil,
+     ça ne promet rien qu'on ne tienne pas, et ça ne coûte aucune requête.
+     Le ruban de la fiche est prêt à les recevoir : rendre « photos:[…] » à
+     une offre suffit à le rallumer (voir renderTours et ouvrirFicheTour). */
   { cle:"paris-jour", heures:3, arrets:4, gamme:"toutes",
-    photos:["photos/eiffel-seine.jpg","photos/v-sacrecoeur.jpg","photos/v-notredame.jpg"],
+    teinte:"jour",
     nomKey:"tour_jour", promesseKey:"tour_jour_promesse", creneauKey:"tour_jour_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame"] },
   { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes",
-    photos:["photos/champs-noel.jpg","photos/louvre-nuit.jpg","photos/v-champs.jpg"],
+    teinte:"nuit",
     nomKey:"tour_nuit", promesseKey:"tour_nuit_promesse", creneauKey:"tour_nuit_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame"] },
@@ -3716,16 +3747,16 @@ const TOURS = [
      une Ela One, et lui vendre un van d'office serait la faire payer pour du
      vide. Elle dit combien ils sont sur l'écran des prix, la liste s'ajuste. */
   { cle:"famille", heures:4, arrets:4, gamme:"toutes",
-    photos:["photos/v-eiffel.jpg","photos/disneyland.jpg","photos/v-sacrecoeur.jpg"],
+    teinte:"famille",
     nomKey:"tour_famille", promesseKey:"tour_famille_promesse", creneauKey:"tour_famille_creneau",
     suggestions:["Tour Eiffel","Trocadéro","Champs-Élysées","Louvre",
                  "Notre-Dame","Montmartre"] },
   { cle:"prestige", heures:4, gamme:"premium",
-    photos:["photos/louvre-nuit.jpg","photos/v-versailles.jpg","photos/champs-noel.jpg"],
+    teinte:"prestige",
     nomKey:"tour_prestige", promesseKey:"tour_prestige_promesse", creneauKey:"tour_prestige_creneau",
     detailKey:"tour_prestige_detail", usageKey:"tour_prestige_usage" },
   { cle:"versailles", heures:5, gamme:"toutes",
-    photos:["photos/versailles.jpg","photos/v-versailles.jpg"],
+    teinte:"versailles",
     nomKey:"tour_versailles", promesseKey:"tour_versailles_promesse", creneauKey:"tour_versailles_creneau",
     detailKey:"tour_versailles_detail", usageKey:"tour_versailles_usage" },
   /* La mise à disposition elle-même, devenue une offre parmi les autres :
@@ -3734,7 +3765,7 @@ const TOURS = [
      durée fixée — c'est tout son intérêt — d'où heures:null et parHeure,
      qui font afficher un tarif horaire plutôt qu'un total. */
   { cle:"disposition", heures:null, parHeure:true, gamme:"toutes",
-    photos:["photos/v-sacrecoeur.jpg","photos/eiffel-seine.jpg","photos/v-notredame.jpg"],
+    teinte:"libre",
     nomKey:"tab_disposal", promesseKey:"tour_disposition_promesse",
     creneauKey:"tour_disposition_creneau",
     detailKey:"tour_disposition_detail", usageKey:"tour_disposition_usage" }
@@ -3770,7 +3801,7 @@ function renderTours(){
       ? `${escapeHtml(t("tours_suggestions"))} ${escapeHtml(tour.suggestions.join(" · "))}`
       : escapeHtml(t(tour.usageKey));
     carte.innerHTML = `
-      <span class="tour-photo block" style="background-image:url('${tour.photos[0]}')">
+      <span class="tour-photo block${tour.photos ? "" : " teinte-" + tour.teinte}"${tour.photos ? ` style="background-image:url('${tour.photos[0]}')"` : ""}>
         <span class="tour-duree">${ligneHaut}</span>
       </span>
       <span class="tour-corps block">
@@ -3820,13 +3851,21 @@ function ouvrirFicheTour(tour){
          <ul class="fiche-lieux">${tour.suggestions.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul>
        </div>` : "";
 
+  /* Une offre sans photos n'a qu'une vue : son dégradé. Le ruban et ses
+     pastilles n'apparaissent donc pas — un carrousel à une seule image est
+     une promesse qu'on ne tient pas. Rendre « photos:[…] » à l'offre suffit
+     à tout rallumer, sans toucher à ce code. */
+  const vues = tour.photos && tour.photos.length ? tour.photos : [null];
+
   document.getElementById("ficheTour").innerHTML = `
     <div class="fiche-carrousel">
       <div class="fiche-vues" id="vuesTour">
-        ${tour.photos.map((src,i)=>`<div class="fiche-photo" style="background-image:url('${src}')" role="img" aria-label="${escapeHtml(t(tour.nomKey))} — ${i+1}/${tour.photos.length}"></div>`).join("")}
+        ${vues.map((v,i)=>v
+          ? `<div class="fiche-photo" style="background-image:url('${v}')" role="img" aria-label="${escapeHtml(t(tour.nomKey))} — ${i+1}/${vues.length}"></div>`
+          : `<div class="fiche-photo teinte-${tour.teinte}" role="img" aria-label="${escapeHtml(t(tour.nomKey))}"></div>`).join("")}
       </div>
-      ${tour.photos.length > 1 ? `<div class="fiche-points" id="pointsTour" role="tablist" aria-label="${escapeHtml(t(tour.nomKey))}">
-        ${tour.photos.map((_,i)=>`<button class="fiche-point${i===0?" actif":""}" data-vue="${i}" role="tab" aria-selected="${i===0}" aria-label="${i+1}/${tour.photos.length}"></button>`).join("")}
+      ${vues.length > 1 ? `<div class="fiche-points" id="pointsTour" role="tablist" aria-label="${escapeHtml(t(tour.nomKey))}">
+        ${vues.map((_,i)=>`<button class="fiche-point${i===0?" actif":""}" data-vue="${i}" role="tab" aria-selected="${i===0}" aria-label="${i+1}/${vues.length}"></button>`).join("")}
       </div>` : ""}
     </div>
     <h2 class="fiche-nom">${escapeHtml(t(tour.nomKey))}</h2>
@@ -3882,7 +3921,9 @@ function animerRubanFiche(tour){
   minuterieRuban = null;
   const vues = document.getElementById("vuesTour");
   const points = document.getElementById("pointsTour");
-  if(!vues || tour.photos.length < 2) return;
+  // Sans photos, l'offre n'a qu'un dégradé : il n'y a rien à faire défiler.
+  const nb = (tour.photos && tour.photos.length) || 1;
+  if(!vues || nb < 2) return;
 
   const largeur = () => vues.clientWidth + 8; // la photo plus l'écart
   const courante = () => Math.round(vues.scrollLeft / largeur());
@@ -3912,7 +3953,7 @@ function animerRubanFiche(tour){
     // Onglet en arrière-plan : on ne fait pas défiler dans le vide, et
     // surtout on n'accumule pas de retard à rattraper au retour.
     if(document.visibilityState !== "visible") return;
-    const suivante = (courante() + 1) % tour.photos.length;
+    const suivante = (courante() + 1) % nb;
     vues.scrollTo({left: suivante * largeur(), behavior:"smooth"});
   }, 4000);
 }

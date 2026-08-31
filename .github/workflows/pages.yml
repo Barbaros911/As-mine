@@ -41,7 +41,11 @@ jobs:
           # Le domaine personnalisé. Sans ce fichier dans la publication,
           # GitHub Pages l'oublie à chaque déploiement.
           cp CNAME site/
-          cp -r photos site/photos
+          # Le dossier des photos a été retiré (août 2026) : celles qui s'y
+          # trouvaient venaient de Google Images. « -d » plutôt qu'un copier
+          # sec, pour que la publication ne casse pas selon qu'il existe ou
+          # non — il reviendra le jour où des photos légales seront fournies.
+          [ -d photos ] && cp -r photos site/photos || true
           # Empêche Jekyll de réinterpréter les fichiers
           touch site/.nojekyll
 
