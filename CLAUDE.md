@@ -261,8 +261,8 @@ sont que des **suggestions** — c'est sa journée, pas un parcours imposé, et
   page GetYourGuide, sans en reprendre les avis ni le mot « guide ») :
   **Ela Prestige** (4 h, gamme `premium` seulement — Ela First ou Van
   Premium, à partir de 300 €) pour une soirée ou une occasion à marquer, et
-  **Escapade Versailles** (5 h, toutes gammes, à partir de 270 €) où le
-  chauffeur attend sur place. Elles n'ont ni `arrets` ni `suggestions` :
+  **Escapade Versailles**, retirée à sa demande le 31 août. Ela Prestige n'a
+  ni `arrets` ni `suggestions` :
   `detailKey` remplace la ligne « N arrêts » sur la photo, `usageKey`
   remplace la ligne des suggestions — voir `renderTours()`. `prixDepartTour`
   filtre `VEHICLES` sur `tour.gamme` avant de prendre le moins cher.
@@ -447,6 +447,13 @@ vide. Trois pièges :
   dessous.
 - Les tuiles OpenStreetMap sont désaturées en CSS. La couleur doit rester
   au tracé et aux repères, pas aux enseignes de magasins.
+
+**La pastille WhatsApp s'efface aussi devant le rayon d'offres** (août 2026).
+Elle est fixe, à gauche, à hauteur du corps des cartes : elle passait en
+travers de la promesse — « Les incontournables de Paris, arrêts photos
+compris » derrière un rond vert. On ne compare pas le rayon à la fenêtre
+entière (trop large : sur une page de 2090 px il reste visible jusqu'en bas,
+et la pastille ne revenait jamais) mais **au rectangle de la pastille**.
 
 **La pastille WhatsApp ne s'affiche QUE sur l'accueil.** Elle ne regardait
 que le défilement : sur l'écran des véhicules, qui tient dans une page, elle
