@@ -197,8 +197,12 @@ check('plus de raccourcis d\'adresses sous les champs',
   (await page.locator('#dropoffFavourites').count()) === 0);
 check('aucune adresse laissée sur l\'appareil',
   await page.evaluate(() => localStorage.getItem('ela_addresses') === null));
-check('passagers remis à 1', (await page.inputValue('#paxHome')) === '1');
-check('véhicule remis sur la berline', (await page.inputValue('#vehicleHome')) === 'berline');
+// Passagers et véhicule ne sont plus sur l'accueil mais sur l'écran des prix.
+// Ce qu'on vérifie ici, c'est donc l'état remis à zéro, pas un champ.
+check('passagers remis à 1', (await page.evaluate(() => state.adults)) === 1);
+check('aucun véhicule retenu', (await page.evaluate(() => state.vehicle)) === null);
+check('l\'accueil ne demande plus le véhicule',
+  (await page.locator('#vehicleHome').count()) === 0);
 
 // --- Une adresse d'aéroport se tarife à la distance, comme les autres ---
 await page.locator('.nav-item[data-target="screen-home"]').click();

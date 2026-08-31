@@ -78,6 +78,14 @@ if (nbSug > 0) {
   await page.locator('#pickup').press('End');
   await page.type('#pickup', 'xyz', { delay: 20 });
   await page.waitForTimeout(300);
+  // Le bouton s'efface tant que la liste d'adresses est ouverte : sur un
+  // téléphone elle passe par-dessus lui, et on appuierait sur une rue en
+  // visant « Voir les tarifs ». On referme donc, comme le ferait le client.
+  check('le bouton s\'efface sous une liste ouverte',
+    !(await page.locator('#btnSearch').isVisible()));
+  await page.locator('#pickup').press('Escape');
+  await page.waitForTimeout(200);
+  check('il revient dès que la liste se ferme', await page.locator('#btnSearch').isVisible());
   await page.locator('#btnSearch').click();
   await page.waitForTimeout(400);
   const e2 = await page.locator('#formError').textContent();

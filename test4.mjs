@@ -108,44 +108,55 @@ await page.waitForTimeout(200);
 // --- Le nombre de passagers n'écarte que les véhicules trop petits ---
 check('l\'aller-retour a été retiré', (await page.locator('#roundTripSimple').count()) === 0);
 check('la destination ouverte a été retirée', (await page.locator('#destinationOuverte').count()) === 0);
-const vehUn = await page.locator('#vehicleHome option').allTextContents();
-// Quatre gammes : Ela One (4 places), Ela First (3), Van (7), Van Premium
-// (6). Un client seul garde le droit de vouloir un van : seul le véhicule
-// trop petit pour son groupe est écarté.
-check('un passager : les quatre gammes restent proposées',
-  vehUn.length === 4, vehUn.join(' | '));
+// L'accueil ne demande plus ni le nombre de passagers ni la gamme : il ne
+// pose qu'une question, d'où à où et quand, comme une application de course.
+check('l\'accueil ne demande plus le véhicule', (await page.locator('#vehicleHome').count()) === 0);
+check('l\'accueil ne demande plus les passagers', (await page.locator('#paxHome').count()) === 0);
+
+await page.locator('#btnSearch').click();
+await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
+await page.waitForTimeout(300);
+
+// C'est ici que le client dit combien ils sont, à côté des prix. Le nombre
+// n'écarte que les véhicules trop petits : un client seul garde le droit de
+// vouloir un van, et c'est même une course plus chère.
+const nomsVeh = async () =>
+  (await page.locator('#vehicleCards .veh-nom').allTextContents())
+    .map(x => x.trim().split('\n')[0].trim());
+check('le nombre de passagers est demandé avec les prix',
+  await page.locator('#paxVehicles').isVisible());
+check('de 1 à 7 passagers proposés',
+  (await page.locator('#paxVehicles option').count()) === 7);
+check('un passager par défaut', (await page.inputValue('#paxVehicles')) === '1');
+
+const vehUn = await nomsVeh();
+// Quatre gammes : Ela One (4 places), Ela First (3), Van (7), Van Premium (6).
+check('un passager : les quatre gammes restent proposées', vehUn.length === 4, vehUn.join(' | '));
 check('plus d\'option « peu importe »', !vehUn.join(' ').includes('Peu importe'));
 // Les silhouettes sont des SVG dessinés dans la page. Les EMOJIS restent
 // bannis : ils changent de dessin d'un téléphone à l'autre et grossissent mal.
 check('aucun emoji de voiture dans la liste',
   !/[\u{1F680}-\u{1F6FF}]/u.test(vehUn.join(' ')), vehUn.join(' | '));
-// Le nombre de places n'est plus accolé au nom : le client vient de dire
-// combien ils sont, le lui répéter n'aide pas et allonge la liste.
-check('le nom du véhicule est seul, sans nombre de places',
-  vehUn.every(x => !/\d/.test(x)), vehUn.join(' | '));
-check('une berline est retenue d\'office', (await page.inputValue('#vehicleHome')) === 'berline');
-await page.selectOption('#paxHome', '4');
-await page.waitForTimeout(200);
-const vehQuatre = await page.locator('#vehicleHome option').allTextContents();
+
+await page.selectOption('#paxVehicles', '4');
+await page.waitForTimeout(300);
+const vehQuatre = await nomsVeh();
 // À quatre, Ela First (3 places) sort ; les trois autres tiennent.
 check('quatre passagers : Ela One tient encore',
   vehQuatre.length === 3 && vehQuatre.join(' ').includes('Ela One'), vehQuatre.join(' | '));
-await page.selectOption('#paxHome', '5');
-await page.waitForTimeout(200);
-const vehCinq = await page.locator('#vehicleHome option').allTextContents();
+await page.selectOption('#paxVehicles', '5');
+await page.waitForTimeout(300);
+const vehCinq = await nomsVeh();
 check('cinq passagers : les deux berlines disparaissent',
   vehCinq.length === 2 && !vehCinq.join(' ').includes('Ela'), vehCinq.join(' | '));
-await page.selectOption('#paxHome', '7');
-await page.waitForTimeout(200);
-const vehSept = await page.locator('#vehicleHome option').allTextContents();
+await page.selectOption('#paxVehicles', '7');
+await page.waitForTimeout(300);
+const vehSept = await nomsVeh();
 check('sept passagers : seul le van les emmène',
   vehSept.length === 1 && vehSept[0].includes('Van'), vehSept.join(' | '));
-await page.selectOption('#paxHome', '1');
-await page.waitForTimeout(200);
-
-await page.locator('#btnSearch').click();
-await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
-check('écran véhicules atteint', await page.locator('#screen-vehicles').isVisible());
+await page.selectOption('#paxVehicles', '1');
+await page.waitForTimeout(300);
 const cartes = await page.locator('#vehicleCards .veh-card').count();
 check('l\'écran des tarifs applique la même règle', cartes === 4, cartes + ' véhicule(s)');
 const cartesTexte = await page.locator('#vehicleCards .veh-card').allTextContents();
@@ -285,21 +296,9 @@ const trouve = await page.evaluate(async () => {
 check('« easy hotel aeroville » retrouve bien l\'easyHotel',
   trouve.length > 0 && trouve[0].startsWith('easyHotel'), trouve.join(' | ') || 'aucun résultat');
 
-// --- Passagers et véhicule choisis dès l'accueil ---
+// --- Un groupe de six : la règle de capacité tient jusqu'au bout ---
 await page.locator('.nav-item[data-target="screen-home"]').click();
 await page.waitForTimeout(300);
-const optionsPax = await page.locator('#paxHome option').count();
-check('de 1 à 7 passagers proposés', optionsPax === 7, optionsPax + ' option(s)');
-const vehStandard = await page.locator('#vehicleHome option').allTextContents();
-check('les quatre gammes proposées pour un passager', vehStandard.length === 4, vehStandard.join(' | '));
-await page.selectOption('#paxHome', '6');
-await page.waitForTimeout(200);
-const vehSix = await page.locator('#vehicleHome option').allTextContents();
-check('à six passagers, seuls les deux vans restent proposés',
-  vehSix.length === 2 && vehSix.join(' ').includes('Van') && !vehSix.join(' ').includes('Ela'),
-  vehSix.join(' | '));
-await page.selectOption('#vehicleHome', 'van');
-
 await stubSuggestions(page, HOTEL);
 await pick(page, '#pickup', 'ibis');
 await page.fill('#roomPickup', '204');
@@ -309,15 +308,22 @@ await page.fill('#dateSimple', dansNJours(2));
 await page.waitForTimeout(300);
 await page.locator('#btnSearch').click();
 await page.locator('#screen-vehicles').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+await page.waitForTimeout(300);
+await page.selectOption('#paxVehicles', '6');
+await page.waitForTimeout(300);
 const cartesVeh = await page.locator('#vehicleCards .veh-card').allTextContents();
 // Van (7 places) et Van Premium (6) emmènent six personnes ; les deux
-// berlines, non. L'écran des tarifs applique la même règle que l'accueil.
+// berlines, non. La liste se redessine sous les yeux du client.
 check('l\'écran véhicules ne propose que ce qui peut emmener six personnes',
   cartesVeh.length === 2 && !cartesVeh.join(' ').includes('Ela'),
   cartesVeh.length + ' véhicule(s) : ' + cartesVeh.join(' | ').slice(0, 90));
-check('le véhicule choisi sur l\'accueil est déjà sélectionné',
-  (await page.locator('#vehicleCards .veh-card.selected').count()) === 1);
-check('bouton Continuer déjà actif', !(await page.locator('#btnToPayment').isDisabled()));
+// Changer le nombre de passagers efface un choix devenu impossible : sans
+// ça, on continuerait avec une berline pour six.
+check('rien n\'est retenu tant qu\'il n\'a pas rechoisi',
+  (await page.locator('#vehicleCards .veh-card.selected').count()) === 0);
+await page.locator('#vehicleCards .veh-card').first().click();
+await page.waitForTimeout(200);
+check('bouton Continuer actif après le choix', !(await page.locator('#btnToPayment').isDisabled()));
 await page.locator('#btnToPayment').click();
 await page.waitForTimeout(400);
 check('récapitulatif : six passagers', (await page.locator('#tripSummary').textContent()).includes('6 '));

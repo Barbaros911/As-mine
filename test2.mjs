@@ -78,7 +78,18 @@ check('aucun champ de code promo sur le paiement',
 // --- Mise à disposition ---
 await page.locator('#btnEditTrip').click();
 await page.waitForTimeout(300);
-await page.locator('#tabDisposal').click();
+// La mise à disposition n'a plus d'onglet sur l'accueil : c'est une offre,
+// une carte parmi les autres, et c'est par elle qu'on entre dans ce
+// formulaire. Le chemin du client est donc celui-ci, pas un autre.
+check('la mise à disposition est devenue une offre',
+  (await page.locator('.tour-carte[data-tour="disposition"]').count()) === 1);
+check('les onglets ont quitté l\'accueil', !(await page.locator('#tabDisposal').isVisible()));
+await page.locator('.tour-carte[data-tour="disposition"]').click();
+await page.waitForTimeout(500);
+check('la carte ouvre le formulaire de mise à disposition',
+  await page.locator('#formDisposal').isVisible());
+check('un chemin de retour vers le trajet simple existe',
+  await page.locator('#btnRetourSimple').isVisible());
 await pickAddress('#pickupDisp', 'Neuilly');
 await page.fill('#dateDisp', d);
 await page.waitForTimeout(300);

@@ -411,6 +411,33 @@ l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
 pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
 point médian, pas une phrase.
 
+**L'accueil ne pose qu'une question : d'où à où, et quand.** Août 2026, à la
+demande de Barbaros — « fait comme Uber ». Le formulaire d'accueil ne porte
+plus que les deux adresses, la date et l'heure. Ce qui en est parti :
+- **Les deux onglets** « Trajet simple / Mise à disposition ». Les boutons
+  `#tabSimple` et `#tabDisposal` restent dans la page, **masqués** : ils
+  portent l'état ARIA et `selectTripTab()` s'appuie dessus. Ne pas les
+  supprimer sans réécrire cette fonction.
+- **Le nombre de passagers et la gamme.** Ils sont passés sur l'écran des
+  prix (`#paxVehicles`, au-dessus de la liste) : on ne fait pas choisir une
+  gamme à quelqu'un qui n'en connaît pas encore le prix. Changer le nombre
+  redessine la liste tout de suite et **efface un choix devenu impossible**
+  — sinon on continuerait avec une berline pour six.
+- **La mise à disposition**, devenue une **offre**, cinquième carte du rayon
+  Ela Tours (`cle:"disposition"`). Elle n'a pas de durée fixée — `heures:null`
+  et `parHeure:true` font afficher « à partir de 60 €/h » au lieu d'un total
+  qu'on ne peut pas connaître. `choisirTour()` ne touche alors pas au curseur.
+  Le formulaire qu'elle ouvre porte **`#btnRetourSimple`**, seul chemin de
+  retour depuis que les onglets ont disparu : sans lui, le client qui a appuyé
+  par curiosité est enfermé.
+
+**Le bouton « Voir les tarifs » s'efface sous une liste d'adresses ouverte**
+(`jugerBoutonRecherche()`, classe `.efface` = `visibility:hidden`). Mesuré à
+390 px : depuis que le formulaire tient dans un écran, la liste descend à
+598 px et le bouton occupe 528–580 — le client qui visait le bouton appuyait
+sur une rue. On garde sa place (`visibility`, pas `display`) pour que la page
+ne sursaute pas. Deux tests le verrouillent.
+
 **L'accueil se lit dans cet ordre : bandeau marine, formulaire, photos.**
 Le titre est posé sur un aplat marine plein (`.accroche`), en ivoire, avec
 le filet doré de la marque qui sort du cadre en bas à gauche — la seule idée
