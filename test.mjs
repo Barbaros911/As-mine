@@ -7,7 +7,7 @@ const browser = await chromium.launch();
 // Les serveurs extérieurs échouent tout de suite au lieu de faire
 // attendre le navigateur : voir test-hors-ligne.mjs.
 couperLeReseau(browser);
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 
 page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
@@ -139,6 +139,43 @@ const oRtl = await page.evaluate(() => ({
 }));
 check('pas de débordement horizontal (390px, AR droite-à-gauche)',
   oRtl.dir === 'rtl' && oRtl.doc <= oRtl.win + 1, oRtl.doc + 'px pour ' + oRtl.win + 'px');
+
+/* ============ LE SITE S'OUVRE DANS LA LANGUE DU VISITEUR ============
+   Un client espagnol qui tombe sur du français ne cherche pas le sélecteur :
+   il retourne à sa liste de résultats. On éprouve donc la détection sur de
+   vraies étiquettes de navigateur, variantes régionales comprises, et le
+   repli en français pour une langue qu'on ne parle pas. */
+for (const [locale, attendu] of [['es-ES', 'es'], ['es-MX', 'es'], ['en-GB', 'en'],
+                                 ['pt-BR', 'pt'], ['ar-SA', 'ar'], ['zh-CN', 'zh'],
+                                 ['de-DE', 'fr'], ['ja-JP', 'fr']]) {
+  const ctx = await browser.newContext({ locale, viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(600);
+  const vu = await p.evaluate(() => ({
+    sel: document.getElementById('langSelect').value, doc: document.documentElement.lang
+  }));
+  check(`un navigateur en ${locale} ouvre le site en ${attendu}`,
+    vu.sel === attendu && vu.doc === attendu, vu.sel + ' / ' + vu.doc);
+  await ctx.close();
+}
+{
+  // Le choix explicite du visiteur passe AVANT sa langue système : un
+  // Espagnol qui met le site en anglais a ses raisons, on ne le corrige pas.
+  const ctx = await browser.newContext({ locale: 'es-ES', viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(500);
+  check('sans choix du visiteur, rien n\'est écrit sur son appareil',
+    (await p.evaluate(() => localStorage.getItem('ela_langue'))) === null);
+  await p.selectOption('#langSelect', 'en');
+  await p.waitForTimeout(300);
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(600);
+  check('son choix explicite l\'emporte sur la langue du téléphone',
+    (await p.evaluate(() => document.getElementById('langSelect').value)) === 'en');
+  await ctx.close();
+}
 
 await browser.close();
 

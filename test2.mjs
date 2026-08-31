@@ -6,7 +6,7 @@ const browser = await chromium.launch();
 // Les serveurs extérieurs échouent tout de suite au lieu de faire
 // attendre le navigateur : voir test-hors-ligne.mjs.
 couperLeReseau(browser);
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 const errors = [];
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
 
@@ -84,7 +84,42 @@ await page.waitForTimeout(300);
 check('la mise à disposition est devenue une offre',
   (await page.locator('.tour-carte[data-tour="disposition"]').count()) === 1);
 check('les onglets ont quitté l\'accueil', !(await page.locator('#tabDisposal').isVisible()));
+
+/* ============ LA FICHE D'UNE OFFRE ============
+   La carte donne envie, la fiche répond aux questions qui restent. Ce qu'on
+   vérifie ici, c'est surtout ce qu'elle ne dit PAS : aucune note ni nombre
+   d'avis inventés, aucun billet d'entrée annoncé comme compris, et jamais le
+   mot « guide » — Asmine vend le chauffeur et le véhicule, pas une visite
+   commentée, qui demanderait une carte professionnelle qu'il n'a pas. */
+await page.locator('.tour-carte[data-tour="paris-jour"]').click();
+await page.waitForTimeout(600);
+check('la carte ouvre une fiche', await page.locator('#screen-tour').isVisible());
+const fiche = await page.locator('#ficheTour').textContent();
+check('la fiche porte le nom de l\'offre',
+  (await page.locator('.fiche-nom').textContent()).includes('Paris Essentiel'));
+// Le prix par gamme sort de prixHoraire, jamais d'une liste écrite à la main :
+// un tableau recopié finirait par mentir le jour d'une hausse.
+const prixFiche = await page.locator('.fiche-prix li b').allTextContents();
+check('le prix est donné pour les quatre gammes',
+  prixFiche.length === 4 && prixFiche[0].includes('180'), prixFiche.join(' | '));
+check('ce qui n\'est pas compris est écrit aussi',
+  (await page.locator('.fiche-liste.non li').count()) === 2);
+check('aucun billet d\'entrée annoncé comme compris',
+  !(await page.locator('.fiche-liste.oui').textContent()).match(/billet|entrée/i));
+check('le mot « guide » n\'apparaît nulle part', !/guid/i.test(fiche), fiche.slice(0, 60));
+check('aucune note ni avis inventés sur la fiche', !/★|\d[,.]\d\s*\/\s*5/.test(fiche));
+// La fiche ne réserve rien : c'est son bouton qui prépare le formulaire.
+await page.locator('#btnReserverTour').click();
+await page.waitForTimeout(700);
+check('« Réserver » ramène au formulaire, préparé',
+  await page.locator('#screen-home').isVisible()
+  && (await page.inputValue('#durationRange')) === '3');
+
 await page.locator('.tour-carte[data-tour="disposition"]').click();
+await page.waitForTimeout(600);
+check('la fiche à durée libre annonce un tarif horaire',
+  (await page.locator('.fiche-prix li b').first().textContent()).includes('/'));
+await page.locator('#btnReserverTour').click();
 await page.waitForTimeout(500);
 check('la carte ouvre le formulaire de mise à disposition',
   await page.locator('#formDisposal').isVisible());

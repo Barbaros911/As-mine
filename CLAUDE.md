@@ -183,6 +183,29 @@ d'office serait la faire payer pour du vide), **Ela Prestige** (4 h, premium,
 Paris Essentiel à 80 % — deux cartes qui vendent la même chose divisent
 l'attention au lieu de la doubler.
 
+**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photo, promesse,
+durée, lieux suggérés, **le prix des quatre gammes**, ce qui est compris et ce
+qui ne l'est pas. La carte du rayon **ouvre la fiche**, elle ne prépare plus le
+formulaire — c'est le bouton de la fiche qui le fait.
+- Le prix par gamme **sort de `prixHoraire`**, jamais d'une liste écrite à la
+  main : un tableau recopié finirait par mentir le jour d'une hausse, et un
+  prix VTC affiché qu'on ne tient pas n'est pas une maladresse, c'est une
+  infraction.
+- Ce qui n'y figure **jamais** : une note, un nombre d'avis, un billet d'entrée
+  annoncé comme compris, et le mot « guide » sous toutes ses formes. Six
+  contrôles de `test2.mjs` le verrouillent.
+- « Non compris » se lit aussi clairement que « compris » : une mauvaise
+  surprise à l'arrivée coûte plus cher qu'une vente manquée.
+
+**Le bandeau de cookies recouvrait les boutons d'action.** Mesuré à 390 px : il
+occupait 667–780 px, le bouton 674–726 — **entièrement caché**, sur la fiche
+d'une offre comme sur l'écran des tarifs. Un client qui n'avait pas encore
+répondu au bandeau ne pouvait pas continuer sa réservation. `mesurerBandeau()`
+pose sa hauteur réelle dans `--h-bandeau`, et `.veh-action` s'en sert pour
+remonter d'autant. À **remesurer** à l'affichage, à la fermeture, au dépliage
+des détails, au changement de langue et au redimensionnement — sa hauteur
+change à chaque fois.
+
 **Ela Tours** (`TOURS`, `renderTours`, `prixDepartTour`, `choisirTour`) —
 deux circuits posés sous le ruban de photos, jamais au-dessus du
 formulaire : **Paris Tour**, 3 h, du lundi au vendredi 8 h – 20 h, et
@@ -452,14 +475,22 @@ plus que les deux adresses, la date et l'heure. Ce qui en est parti :
   retour depuis que les onglets ont disparu : sans lui, le client qui a appuyé
   par curiosité est enfermé.
 
-**Trois destinations fréquentes sous le champ d'arrivée** (`#raccourcisArrivee`,
-août 2026) : **CDG · Orly · Gare du Nord**. Le raccourci écrit le mot dans le
-champ et **ouvre la liste** — il ne choisit pas le terminal à la place du
-client, se tromper de terminal coûte une demi-heure à tout le monde. Deux
-pièges : le `dispatchEvent("input")` part dans un `setTimeout(…, 0)` parce que
-l'autocomplétion ferme toute liste au clic hors du champ — et ce clic-ci est
-hors du champ ; et « Paris » n'est pas une destination (le prix se calcule au
-point exact), d'où la gare plutôt que la ville.
+**Pas de raccourcis de destination sur l'accueil.** Essayés en août 2026
+(CDG · Orly · Gare du Nord, sous le champ d'arrivée), **retirés à la demande
+de Barbaros** le jour même. Ne pas les réintroduire sans qu'il le redemande.
+
+**Le site s'ouvre dans la langue du visiteur** (`langueDuNavigateur()`, août
+2026, à la demande de Barbaros) : un client espagnol qui tombe sur du français
+ne cherche pas le sélecteur, il retourne à sa liste de résultats. Trois règles,
+dans cet ordre : le **choix explicite** du visiteur (mémorisé) l'emporte
+toujours ; sinon `navigator.languages` (on ne lit que la partie avant le tiret,
+« es-MX » et « es-ES » sont tous deux de l'espagnol) ; sinon le **français**.
+L'espace exploitant reste en français quoi qu'il arrive. **La détection ne
+s'écrit PAS dans `localStorage`** : ce n'est pas un choix du visiteur, et
+l'y inscrire figerait la langue du premier chargement.
+Conséquence pour les tests : **une suite qui vérifie des libellés français doit
+fixer `locale: 'fr-FR'`** à la création du contexte, sinon elle lit de l'anglais
+et échoue sur des formats de nombres (`18.49 €` contre `18,49 €`).
 
 **L'écran « Infos » (`screen-qr`) est le pied de page du site.** Il porte les
 quatre documents légaux et les moyens de nous joindre. Le **code QR** n'y

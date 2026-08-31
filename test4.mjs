@@ -59,7 +59,7 @@ async function pick(page, field, texte) {
 }
 const dansNJours = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
 await deverrouillerExploitant(page, BASE);
 await page.waitForTimeout(600);
@@ -394,15 +394,18 @@ check('sans itinéraire, ligne directe en pointillé (annoncée comme indicative
   carteSansTrace.traces.length === 1 && carteSansTrace.traces[0].o.dashArray,
   JSON.stringify(carteSansTrace.traces[0]));
 
-// --- Le site s'ouvre en français quelle que soit la langue du téléphone ---
+// --- Le site s'ouvre dans la langue du téléphone (août 2026) ---
+// Règle inversée à la demande de Barbaros : un client espagnol qui tombe sur
+// du français ne cherche pas le sélecteur, il retourne à sa liste de
+// résultats. Le français reste le repli pour les langues qu'on ne parle pas.
 const esCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-ES' });
 const esPage = await esCtx.newPage();
 esPage.on('pageerror', e => errors.push('PAGEERROR(es): ' + e.message));
 await esPage.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
 await esPage.waitForTimeout(600);
-check('navigateur espagnol : le site s\'ouvre quand même en français',
-  (await esPage.inputValue('#langSelect')) === 'fr' &&
-  (await esPage.getAttribute('html', 'lang')) === 'fr');
+check('navigateur espagnol : le site s\'ouvre en espagnol',
+  (await esPage.inputValue('#langSelect')) === 'es' &&
+  (await esPage.getAttribute('html', 'lang')) === 'es');
 await esPage.selectOption('#langSelect', 'es');
 await esPage.waitForTimeout(300);
 check('le visiteur peut toujours choisir sa langue',
@@ -414,7 +417,7 @@ check('son choix est mémorisé sur son appareil',
 await esCtx.close();
 
 // --- Côté client : les outils internes restent invisibles ---
-const clientCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const clientCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 const clientPage = await clientCtx.newPage();
 clientPage.on('pageerror', e => errors.push('PAGEERROR(client): ' + e.message));
 await clientPage.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });

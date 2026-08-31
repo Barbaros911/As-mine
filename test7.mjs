@@ -66,7 +66,7 @@ async function choisir(page, champ, texte) {
 }
 
 /* ======================= LE CLIENT, SUR SON TÉLÉPHONE ======================= */
-const ctxClient = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctxClient = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await preparer(ctxClient);
 const client = await ctxClient.newPage();
 client.on('pageerror', e => errors.push('PAGEERROR(client): ' + e.message));
@@ -154,7 +154,7 @@ const bonAvant = await client.locator('#voucherBody').textContent();
 check('le bon du client est en attente', bonAvant.includes('En attente de confirmation'));
 
 /* ==================== L'EXPLOITANT, SUR SON PROPRE TÉLÉPHONE ==================== */
-const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await preparer(ctxOp);
 const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));

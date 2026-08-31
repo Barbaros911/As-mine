@@ -78,7 +78,7 @@ async function reserver(page, nom) {
 }
 
 /* ================= DEUX ESPACES QUI NE SE RESSEMBLENT PAS ================= */
-const ctxClient = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctxClient = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await preparer(ctxClient);
 const client = await ctxClient.newPage();
 client.on('pageerror', e => errors.push('PAGEERROR(client): ' + e.message));
@@ -109,7 +109,7 @@ await client.waitForTimeout(300);
 check('client : aucun chemin vers l\'espace de travail',
   !(await client.locator('#retourExploitant').isVisible()));
 
-const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await preparer(ctxOp);
 const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));
@@ -746,7 +746,7 @@ check('chaque terminal se distingue dès le début de la ligne',
    retaper « Mehmet — 06 12… » à chaque course. Le carnet se remplit
    maintenant tout seul, au fil des attributions. */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   await preparer(ctx);
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push('PAGEERROR(carnet): ' + e.message));
@@ -803,7 +803,7 @@ check('chaque terminal se distingue dès le début de la ligne',
    code, et le va-et-vient avec le site public. C'est le seul endroit qui
    vérifie que le code lui-même fonctionne. */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push('PAGEERROR(serrure): ' + e.message));
 
@@ -852,7 +852,7 @@ check('chaque terminal se distingue dès le début de la ligne',
     && !(await page.locator('#deverrouillage').isVisible()));
 
   // Un autre appareil ne sait rien du déverrouillage.
-  const autre = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const autre = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   const ailleurs = await autre.newPage();
   await ailleurs.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
   await ailleurs.waitForTimeout(900);
@@ -868,7 +868,7 @@ check('chaque terminal se distingue dès le début de la ligne',
    vide et croyait avoir tout perdu — sa référence comprise. Et s'il n'a
    pas WhatsApp, il lui faut un autre chemin. */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   await preparer(ctx);
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push('PAGEERROR(retour): ' + e.message));
@@ -923,7 +923,7 @@ check('chaque terminal se distingue dès le début de la ligne',
    orange « en attente » alors que son chauffeur était trouvé. Il
    rappelait à 5 h du matin. */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   await preparer(ctx);
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push('PAGEERROR(confirm): ' + e.message));
@@ -990,7 +990,7 @@ check('chaque terminal se distingue dès le début de la ligne',
 /* L'invitation à installer l'application était proposée aux clients et
    cachée à l'exploitant : exactement l'inverse de l'utile. */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   const page = await ctx.newPage();
   await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(800);
@@ -1007,7 +1007,7 @@ check('chaque terminal se distingue dès le début de la ligne',
    lien reçu il y a trois mois — et on imprimait deux cents cartes vers
    l'ancienne adresse sans le voir. */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push('PAGEERROR(qr): ' + e.message));
   // Le code QR est un outil de l'exploitant : c'est lui qui imprime l'affiche.

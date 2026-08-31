@@ -17,7 +17,7 @@ const dansNJours = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0
 const HOTEL = { label: 'Hôtel Ibis Paris Gare de Lyon, 12 rue Traversière, 75012 Paris', lat: 48.8443, lon: 2.3735, icon: '🏨', categorie: 'hotel', isNamedPlace: true, source: 'photon' };
 const BUREAU = { label: '15 avenue Montaigne, 75008 Paris', lat: 48.8661, lon: 2.3045, icon: '📍', categorie: 'adresse', isNamedPlace: false, source: 'ban' };
 
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await ctx.addInitScript(() => {
   window.__ouvert = [];
   window.open = (u) => { window.__ouvert.push(u); return { closed: false }; };

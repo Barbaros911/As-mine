@@ -20,7 +20,7 @@ const browser = await chromium.launch();
 
 /* ============ SANS IDENTIFIANTS : RIEN NE CHANGE ============ */
 {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   page.on('pageerror', e => errors.push(String(e)));
   // Les identifiants sont désormais réels dans la page : pour éprouver le
   // comportement « sans serveur », on les efface au vol. C'est ce cas qui
@@ -57,7 +57,7 @@ const browser = await chromium.launch();
 /* ============ AVEC IDENTIFIANTS : LA VRAIE PAGE ============ */
 const recu = { deposes: [], lecturesAnonymes: 0, suivis: [] };
 {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   page.on('pageerror', e => errors.push(String(e)));
 
   await page.route('**/*', async route => {

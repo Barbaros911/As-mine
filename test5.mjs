@@ -65,7 +65,7 @@ async function choisir(page, champ, texte) {
 }
 
 /* ============================ CÔTÉ EXPLOITANT ============================ */
-const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctxOp = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await prepare(ctxOp);
 const op = await ctxOp.newPage();
 op.on('pageerror', e => errors.push('PAGEERROR(op): ' + e.message));
@@ -174,7 +174,7 @@ const paramC = await op.evaluate(() => encoderCharge({
 }));
 
 /* ============================= CÔTÉ CHAUFFEUR ============================= */
-const ctxCh = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const ctxCh = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
 await prepare(ctxCh);
 const ch = await ctxCh.newPage();
 ch.on('pageerror', e => errors.push('PAGEERROR(ch): ' + e.message));
