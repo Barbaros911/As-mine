@@ -522,6 +522,52 @@ l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
 pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
 point médian, pas une phrase.
 
+**LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT** (septembre 2026, phase 1 de
+l'audit). Quatre endroits disaient « aéroport » avant de dire « chauffeur
+privé » : l'enseigne, le titre, la description, et la promesse sous le bouton.
+- L'enseigne dit **« Paris · Île-de-France »**, plus « Paris · Roissy CDG ·
+  Orly ». Elle est sur CHAQUE écran : deux aéroports sur trois mots y
+  définissaient la marque. Les aéroports restent proposés à la saisie.
+- Le **titre**, la **description**, `seo_titre` et `seo_texte` (six langues)
+  mènent avec le métier et la zone ; Roissy, Orly et Beauvais sont nommés
+  **après**. Deux contrôles de `test3.mjs` vérifient l'**ordre**, pas la
+  simple présence.
+- Les données structurées déclarent **`LimousineService`**, plus
+  `TaxiService` : un VTC n'a ni licence de taxi, ni taximètre, ni droit de
+  maraude. C'était factuellement faux.
+- La **promesse sous le bouton** (`#noteReassurance`) est universelle par
+  défaut et ne bascule sur l'attente aéroport que si une des deux adresses
+  est un terminal — `jugerNoteAttente()`, appelée depuis `champVol.sync()`,
+  qui calcule déjà ce signal pour le champ « numéro de vol ». Elle réécrit
+  **l'attribut `data-i18n`**, pas seulement le texte : sinon un changement de
+  langue ramènerait la promesse générale sur une course Roissy.
+- Le bouton dit **« Voir mon prix »**, plus « Voir les tarifs » : une grille ?
+  un devis ? un paiement ? Le nouveau libellé dit ce que le clic donne. Les
+  commentaires du code ont suivi — chercher l'ancien nom ne donnait plus rien.
+- Une ligne **« 3 étapes · aucun paiement en ligne »** sous le bouton :
+  l'incertitude sur la longueur d'un tunnel fait abandonner plus sûrement que
+  sa longueur réelle.
+
+**Les vignettes des offres ne se chargent qu'à l'approche** (septembre 2026).
+Mesuré : le rayon commence à **1 022 px** sur un écran de 844 px, et ses six
+photos partaient quand même — **1,8 Mo avant l'affichage du formulaire**, en
+4G. `chargerFondsVisibles()` pose un `IntersectionObserver` sur
+`.tour-photo[data-fond]`. Deux pièges :
+- **120 px d'avance, pas 300.** Il ne reste que 178 px entre le bas de l'écran
+  et le haut du rayon : à 300 px les deux premières cartes se chargeaient
+  encore, et l'observateur ne servait à rien.
+- Ce sont des **fonds CSS**, pas des `<img>` : `loading="lazy"` ne s'applique
+  pas. Sans `IntersectionObserver`, on charge tout de suite — mieux vaut une
+  page lourde qu'un rayon de cartes vides.
+
+**Zones tactiles : ne JAMAIS poser `position:relative` sur un bouton déjà en
+`absolute`.** Le bouton « me localiser » est positionné par une classe
+Tailwind ; un sélecteur d'identifiant l'emporte sur une classe, et la règle
+l'a fait retomber dans le flux, **à gauche du champ d'adresse**. Un élément
+déjà positionné sert de repère à son propre pseudo-élément. Le sélecteur de
+langue, lui, est un `<select>` : Chrome n'y dessine aucun pseudo-élément, on
+l'agrandit pour de vrai (`min-height:44px`).
+
 **L'accueil ne pose qu'une question : d'où à où, et quand.** Août 2026, à la
 demande de Barbaros — « fait comme Uber ». Le formulaire d'accueil ne porte
 plus que les deux adresses, la date et l'heure. Ce qui en est parti :
