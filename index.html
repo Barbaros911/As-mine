@@ -1495,6 +1495,10 @@
 
   <!-- ===================== SCREEN: CONFIRMATION ===================== -->
   <section id="screen-confirmation" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
     <div class="flex flex-col items-center text-center pt-10">
       <div class="w-16 h-16 rounded-full bg-[#1c2a20] border border-[var(--green)] flex items-center justify-center mb-5">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#3DDC84" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1665,6 +1669,10 @@
        l'adresse d'arrivée : le montant se calcule et repart vers
        l'exploitant par un second lien. -->
   <section id="screen-driver" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
     <p class="text-[10px] uppercase tracking-widest font-mono text-[var(--gold)] mb-2" data-i18n="driver_space">Espace chauffeur</p>
     <div class="flex items-baseline justify-between gap-3 mb-1">
       <h2 id="driverTitle" class="font-display text-2xl">Course à pourvoir</h2>
@@ -1903,6 +1911,10 @@
        confidentialité doivent rester accessibles à TOUT LE MONDE (LCEN) : ne
        jamais les déplacer derrière le mode exploitant. -->
   <section id="screen-qr" class="screen">
+    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="back">Retour</span>
+    </button>
     <h2 class="font-display text-2xl mb-1" data-i18n="infos_titre">Informations</h2>
     <p class="text-xs text-[var(--muted)] mb-5" data-i18n="infos_sous">Nos documents et nos coordonnées.</p>
 
@@ -3804,13 +3816,45 @@ try{ localStorage.removeItem("ela_addresses"); }catch(e){ /* stockage refusé */
 /* =====================================================================
    SCREEN NAVIGATION
    ===================================================================== */
-function showScreen(id){
+/* =====================================================================
+   LE CHEMIN PARCOURU
+   ---------------------------------------------------------------------
+   Chaque bouton « Retour » portait une destination FIXE, écrite dans le
+   HTML. Ça marche tant qu'un écran n'a qu'une seule porte d'entrée — et
+   ça ment dès qu'il en a deux : le bon de réservation s'ouvre depuis la
+   confirmation ET depuis « Mes réservations », et il ramenait toujours à
+   la confirmation, même quand on venait de la liste.
+   On empile donc l'écran quitté, et le retour dépile. La destination
+   écrite dans le HTML ne sert plus que de secours, quand la pile est
+   vide — un client arrivé directement par un lien, par exemple.
+   Douze entrées suffisent : au-delà, personne ne revient à la main.
+   ===================================================================== */
+let pileEcrans = [];
+function ecranCourant(){
+  const actif = document.querySelector(".screen.active");
+  return actif ? actif.id : null;
+}
+function revenirEnArriere(secours){
+  const precedent = pileEcrans.pop();
+  showScreen(precedent || secours || "screen-home", {sansHistorique:true});
+}
+function showScreen(id, options){
+  const courant = ecranCourant();
+  if(courant && courant !== id && !(options && options.sansHistorique)){
+    pileEcrans.push(courant);
+    if(pileEcrans.length > 12) pileEcrans.shift();
+  }
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   const screenEl = document.getElementById(id);
   screenEl.classList.add("active");
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.target===id));
   window.scrollTo({top:0, behavior:"instant"});
   if(typeof window.__jugerPastilleWa === "function") window.__jugerPastilleWa();
+  /* La confirmation ferme le parcours : on efface le chemin derrière elle.
+     Sans ça, « Retour » ramenait à l'écran de paiement, où le client
+     n'avait plus qu'à réappuyer sur « Confirmer » pour créer une seconde
+     course identique. Depuis la confirmation, on revient à l'accueil. */
+  if(id === "screen-confirmation") pileEcrans = [];
   if(id === "screen-qr") renderQrScreen();
   if(id === "screen-bookings") renderBookings();
   if(id === "screen-registre" && typeof renderGestion === "function") renderGestion();
@@ -3827,9 +3871,17 @@ function showScreen(id){
     document.getElementById("installBtn")?.classList.remove("flex");
   }
 }
-document.querySelectorAll(".nav-item, .btn-back").forEach(el=>{
+/* La barre du bas emmène quelque part ; le bouton « Retour » ramène d'où
+   l'on vient. Ce ne sont pas les mêmes gestes, ils ne partagent plus le
+   même code. */
+document.querySelectorAll(".nav-item").forEach(el=>{
   el.addEventListener("click", ()=>{
     showScreen(el.dataset.target || "screen-home");
+  });
+});
+document.querySelectorAll(".btn-back").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    revenirEnArriere(el.dataset.target);
   });
 });
 
