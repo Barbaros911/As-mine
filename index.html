@@ -3752,13 +3752,13 @@ const TOURS = [
      une offre suffit à le rallumer (voir renderTours et ouvrirFicheTour). */
   { cle:"paris-jour", heures:3, arrets:4, gamme:"toutes",
     teinte:"jour",
-    photos:["photos/arc-triomphe-jour.jpg","photos/eiffel-seine-couchant.jpg"],
+    photos:["photos/arc-triomphe-jour.jpg","photos/eiffel-rue-doree.jpg","photos/louvre-pyramide-jour.jpg"],
     nomKey:"tour_jour", promesseKey:"tour_jour_promesse", creneauKey:"tour_jour_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame","Galeries Lafayette"] },
   { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes",
     teinte:"nuit",
-    photos:["photos/moulin-rouge-nuit.jpg"],
+    photos:["photos/louvre-nuit.jpg","photos/moulin-rouge-nuit.jpg"],
     nomKey:"tour_nuit", promesseKey:"tour_nuit_promesse", creneauKey:"tour_nuit_creneau",
     suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
                  "Trocadéro","Tour Eiffel","Notre-Dame","Tour Montparnasse"] },
@@ -3767,6 +3767,7 @@ const TOURS = [
      vide. Elle dit combien ils sont sur l'écran des prix, la liste s'ajuste. */
   { cle:"famille", heures:4, arrets:4, gamme:"toutes",
     teinte:"famille",
+    photos:["photos/eiffel-trocadero.jpg","photos/sacre-coeur-parvis.jpg"],
     nomKey:"tour_famille", promesseKey:"tour_famille_promesse", creneauKey:"tour_famille_creneau",
     suggestions:["Tour Eiffel","Trocadéro","Champs-Élysées","Louvre",
                  "Notre-Dame","Montmartre","Galeries Lafayette"] },
@@ -3782,12 +3783,16 @@ const TOURS = [
      écrit déjà que les entrées ne sont pas comprises. */
   { cle:"vision", heures:3, arrets:4, gamme:"toutes",
     teinte:"vision",
-    photos:["photos/toits-paris-sacre-coeur.jpg"],
+    photos:["photos/champs-depuis-arc.jpg","photos/sacre-coeur-toits.jpg","photos/toits-paris-sacre-coeur.jpg"],
     nomKey:"tour_vision", promesseKey:"tour_vision_promesse", creneauKey:"tour_vision_creneau",
     suggestions:["Galeries Lafayette","Printemps Haussmann","Tour Montparnasse",
                  "Arc de Triomphe","Trocadéro","Montmartre"] },
   { cle:"prestige", heures:4, gamme:"premium",
     teinte:"prestige",
+    // La Seine au couchant d'abord : c'est elle la vignette du rayon. La
+    // Joconde est un intérieur de musée — juste derrière une offre qui vend
+    // une soirée en voiture haut de gamme, elle vendait une visite guidée.
+    photos:["photos/eiffel-seine-couchant.jpg","photos/louvre-joconde.jpg"],
     nomKey:"tour_prestige", promesseKey:"tour_prestige_promesse", creneauKey:"tour_prestige_creneau",
     detailKey:"tour_prestige_detail", usageKey:"tour_prestige_usage" },
   /* La mise à disposition elle-même, devenue une offre parmi les autres :
@@ -3797,6 +3802,7 @@ const TOURS = [
      qui font afficher un tarif horaire plutôt qu'un total. */
   { cle:"disposition", heures:null, parHeure:true, gamme:"toutes",
     teinte:"libre",
+    photos:["photos/sacre-coeur-facade.jpg","photos/louvre-pyramide-jour.jpg"],
     nomKey:"tab_disposal", promesseKey:"tour_disposition_promesse",
     creneauKey:"tour_disposition_creneau",
     detailKey:"tour_disposition_detail", usageKey:"tour_disposition_usage" }

@@ -200,16 +200,30 @@ premier geste** — un ruban qui bouge pendant qu'on regarde est une gêne, pas
 une animation. La minuterie est unique et remise à zéro à chaque ouverture,
 sinon deux fiches ouvertes coup sur coup en laissent deux qui tournent.
 
-**QUATRE PHOTOS, ET DES TEINTES POUR LE RESTE** (août 2026). Les douze
-photos d'origine ont été supprimées (voir plus bas) ; quatre sont revenues,
-retéléchargées correctement par Barbaros : Arc de Triomphe et Seine au
-couchant sur Paris Essentiel, Moulin Rouge sur Paris Illuminé, toits de Paris
-sur Paris Vision. Les trois autres offres gardent leur teinte — **photos et
-teintes cohabitent**, le code gère les deux et six contrôles le vérifient.
+**TREIZE PHOTOS, LES SIX OFFRES SERVIES** (août 2026). Les douze photos
+d'origine ont été supprimées (voir plus bas) ; treize sont revenues, envoyées
+et retéléchargées correctement par Barbaros, réduites à 1400 px de large et
+qualité 80 — le dossier entier pèse 4,2 Mo, ce qu'un téléphone en 4G accepte.
+Chaque offre porte deux ou trois vues : Paris Essentiel (Arc de Triomphe,
+Eiffel rue dorée, pyramide du Louvre), Paris Illuminé (Louvre de nuit, Moulin
+Rouge), Paris en Famille (Eiffel au Trocadéro, parvis du Sacré-Cœur), Paris
+Vision (Champs depuis l'Arc, toits depuis le Sacré-Cœur ×2), Ela Prestige
+(Joconde, Seine au couchant), Mise à Disposition (façade du Sacré-Cœur,
+pyramide du Louvre).
+**Les teintes restent, et le code gère toujours les deux cas** : une offre
+sans `photos` retombe sur son dégradé. Les contrôles de `test2.mjs` ne figent
+plus aucun nombre — ils lisent ce que l'offre déclare, et **retirent** ses
+photos à Ela Prestige le temps de vérifier le cas « pas de photo ». Un test
+qui comptait « deux » tombait le jour d'une troisième image alors que rien
+n'était cassé.
 **Comment reconnaître une vraie photo Unsplash** : elle fait au moins 1000 px
 de large et pèse plus de 200 Ko. Une image de 500 px pour 60 Ko est la
 vignette d'une page de résultats, pas un téléchargement — c'est ce piège qui
 a fait renvoyer deux fois les mêmes images.
+**Trois images envoyées n'ont pas été installées, et ne doivent pas l'être** :
+la vue de Montparnasse la nuit (**tour Eiffel illuminée** — l'éclairage est
+une œuvre protégée), et deux vues de Disneyland — l'une porte un **filigrane
+SORTIRAPARIS.COM**, l'autre montre le château, marque et architecture Disney.
 
 **L'HISTORIQUE, à ne pas réintroduire** (août 2026). Les douze du dossier
 `photos/` étaient d'origine inconnue, et Barbaros a confirmé que celles qu'il
