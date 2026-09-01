@@ -109,21 +109,34 @@ check('aucun billet d\'entrée annoncé comme compris',
 check('le mot « guide » n\'apparaît nulle part', !/guid/i.test(fiche), fiche.slice(0, 60));
 check('aucune note ni avis inventés sur la fiche', !/★|\d[,.]\d\s*\/\s*5/.test(fiche));
 /* ============ PHOTOS ET TEINTES COHABITENT ============
-   Certaines offres ont des photos, d'autres pas encore : les deux cas
-   doivent rendre correctement. Une offre AVEC photos les montre et porte
-   ses pastilles ; une offre SANS en porte une teinte, et surtout pas un
-   carrousel à une seule image — ce serait une promesse qu'on ne tient
-   pas. On est ici sur Paris Essentiel, qui a deux photos. */
+   Certaines offres ont des photos, d'autres pas : les deux cas doivent
+   rendre correctement. Une offre AVEC photos les montre et porte ses
+   pastilles ; une offre SANS en porte une teinte, et surtout pas un
+   carrousel à une seule image — ce serait une promesse qu'on ne tient pas.
+   On ne fige AUCUN nombre ici : le lot de photos change au gré de ce que
+   Barbaros fournit, et un test qui compte « deux » tombe le jour où il en
+   envoie une troisième sans que rien ne soit cassé. On compare donc à ce
+   que l'offre déclare. */
+const attenduJour = await page.evaluate(() => TOURS.find(t => t.cle === 'paris-jour').photos.length);
 check('une offre avec photos les affiche',
-  (await page.locator('#vuesTour .fiche-photo').count()) === 2);
+  (await page.locator('#vuesTour .fiche-photo').count()) === attenduJour,
+  attenduJour + ' déclarée(s)');
 check('une pastille par photo',
-  (await page.locator('.fiche-point').count()) === 2);
+  (await page.locator('.fiche-point').count()) === attenduJour);
 check('aucune teinte quand il y a des photos',
   (await page.locator('#vuesTour .fiche-photo[class*="teinte-"]').count()) === 0);
 
-// Ela Prestige n'a pas encore de photo : elle porte sa teinte.
+// Le cas « pas encore de photo » doit rester couvert même quand toutes les
+// offres en ont : on en retire à une offre le temps du contrôle, comme le
+// test du ruban plus bas en ajoute à une autre.
 await page.locator('#screen-tour .btn-back').click();
 await page.waitForTimeout(400);
+await page.evaluate(() => {
+  const t = TOURS.find(t => t.cle === 'prestige');
+  window.__photosPrestige = t.photos;
+  delete t.photos;
+  renderTours();
+});
 await page.locator('.tour-carte[data-tour="prestige"]').click();
 await page.waitForTimeout(600);
 check('une offre sans photo porte une teinte',
