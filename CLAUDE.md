@@ -522,6 +522,42 @@ l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
 pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
 point médian, pas une phrase.
 
+**LA ZONE DESSERVIE — 90 km autour de Paris** (septembre 2026, phase 2 de
+l'audit, à la demande de Barbaros : « seuls les clients qui sont en
+Île-de-France peuvent réserver »). Avant cette règle, **Lille → Marseille
+passait sans un mot** : 1 084 km, 1 902,91 € annoncés en Ela One, réservation
+acceptée. Et le prix d'Elatransfer est **ferme** — il aurait fallu assurer la
+course à perte, ou se dédire sur un prix annoncé, ce que le Code de la
+consommation appelle une pratique commerciale trompeuse.
+- `CENTRE_ZONE` + `RAYON_ZONE_KM` (90), `horsZone()`, `lieuHorsZone()`,
+  `jugerZone()`. On mesure **la distance à vol d'oiseau depuis Paris**, et
+  **pas le département** : la latitude et la longitude sont la seule donnée
+  présente sur TOUTES les adresses (BAN, Photon, terminaux, repli hors ligne).
+  Le code postal n'est qu'un morceau de libellé, au format variable selon la
+  source — s'y fier, c'est accepter qu'un jour une adresse valable soit
+  refusée parce qu'elle est écrite autrement.
+- **90 km et pas les huit départements** : Beauvais-Tillé est dans l'Oise, à
+  69 km. Une règle départementale aurait refusé l'un des trois aéroports que
+  le site propose lui-même. 90 km couvre toute l'Île-de-France avec de la
+  marge et écarte Lille (204 km), Rouen (112), Orléans (110), Reims (129).
+- **Une adresse sans coordonnées n'est PAS hors zone** : elle n'est pas encore
+  choisie dans la liste, et le formulaire a déjà un message pour ça. Sinon on
+  afficherait « hors zone » sur un champ en cours de saisie.
+- Le contrôle se fait **au choix de l'adresse** (les trois rappels de
+  `jugerZone()` dans les `attachAutocomplete`) **et à la soumission**, dans
+  les deux branches — trajet simple et mise à disposition.
+- **L'écriteau est EN HAUT du formulaire**, pas sous le bouton. Posé en bas il
+  tombait derrière le bandeau de cookies (mesuré : écriteau à 578–770 px,
+  bandeau à 667) et le client voyait un bouton gris sans la moindre raison.
+- On ne renvoie pas le client sans rien : **appel et WhatsApp** sous le
+  message. Un Paris → Deauville est une belle course, elle se négocie de vive
+  voix. L'impasse devient une piste.
+
+**Incrémenter `CACHE` dans `sw.js` à CHAQUE changement visible.** Oublié à la
+phase 1 : Barbaros a publié et n'a rien vu changer sur son téléphone. Le HTML
+est servi « réseau d'abord », mais les téléphones qui ont **installé
+l'application** gardent le reste. `elatransfer-v11` au 1ᵉʳ septembre 2026.
+
 **LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT** (septembre 2026, phase 1 de
 l'audit). Quatre endroits disaient « aéroport » avant de dire « chauffeur
 privé » : l'enseigne, le titre, la description, et la promesse sous le bouton.
