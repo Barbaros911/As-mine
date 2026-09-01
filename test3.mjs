@@ -284,13 +284,29 @@ check('contenu de référencement masqué à l\'exploitant',
 // Il reste dans la page : Google l'explore, et un client le voit.
 const seoTxt = await page.locator('#seoContent').textContent();
 check('contenu de référencement toujours présent dans la page', seoTxt.length > 200);
-check('mots-clés visés présents', seoTxt.includes('VTC') && seoTxt.includes('Roissy') && seoTxt.includes('Orly'));
+/* Le bloc de référencement menait avec les aéroports : le site se battait sur
+   la requête la plus disputée du secteur et n'existait pas sur « chauffeur
+   privé Paris ». On vérifie donc l'ORDRE, pas seulement la présence — le
+   métier et la zone d'abord, les aéroports ensuite, mais toujours là : ils
+   font encore des courses. */
+check('le référencement mène avec le métier et la zone',
+  /chauffeur privé/i.test(seoTxt) && seoTxt.includes('Île-de-France'), seoTxt.slice(0, 70));
+check('les aéroports restent nommés, mais après',
+  seoTxt.includes('Roissy') && seoTxt.includes('Orly')
+  && seoTxt.search(/chauffeur privé/i) < seoTxt.indexOf('Roissy'));
 const ld = await page.locator('script[type="application/ld+json"]').count();
 check('données structurées présentes', ld === 1, ld + ' bloc(s)');
 check('plus de FAQ déclarée sans contenu visible',
   !(await page.content()).includes('FAQPage'));
 const titre = await page.title();
-check('titre orienté recherche locale', titre.includes('Roissy') && titre.includes('VTC'), titre);
+// Le titre est le premier signal que Google lit. Il annonçait « VTC Roissy
+// CDG, Orly & Paris » : deux aéroports avant le métier. Il doit désormais
+// nommer le métier et la zone — un aéroport n'y a plus sa place, il est
+// déjà servi par la description et le corps de page.
+check('le titre nomme le métier et la zone', /chauffeur privé/i.test(titre)
+  && titre.includes('Paris') && titre.includes('Île-de-France'), titre);
+check('le titre ne mène plus avec un aéroport',
+  !/Roissy|Orly|Beauvais/.test(titre), titre);
 const canon = await page.locator('link[rel=canonical]').getAttribute('href');
 check('adresse canonique déclarée', canon.startsWith('https://'), canon);
 // Le sélecteur de langue n'existe que côté client : on repasse sur le site

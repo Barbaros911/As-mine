@@ -92,6 +92,34 @@ if (nbSug > 0) {
   check('coordonnées invalidées après édition du champ', e2.includes('liste'), e2);
 }
 
+/* ============ LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT ============
+   L'enseigne annonçait « Paris · Roissy CDG · Orly » sur CHAQUE écran : deux
+   aéroports sur trois mots. Un client qui cherche un chauffeur pour une
+   soirée y lisait « navette » et repartait. Les aéroports restent des
+   adresses proposées à la saisie ; ils ont quitté la marque. */
+check('l\'enseigne annonce la zone, pas deux aéroports',
+  (await page.locator('.marque-villes').textContent()).includes('Île-de-France')
+  && !/Roissy|Orly/.test(await page.locator('.marque-villes').textContent()),
+  await page.locator('.marque-villes').textContent());
+/* Le bouton disait « Voir les tarifs » : une grille ? un devis ? un paiement ?
+   « Voir mon prix » dit ce que le clic donne, et à qui il appartient. */
+check('le bouton annonce le prix du client',
+  (await page.locator('#btnSearch').textContent()).includes('mon prix'));
+/* L'emplacement de réassurance le plus lu de la page. Il portait l'attente
+   aéroport — vraie pour un client sur trois, muette pour les autres. */
+check('la promesse sous le bouton vaut pour tout le monde',
+  /prix ferme/i.test(await page.locator('#noteReassurance').textContent()));
+check('le nombre d\'étapes est annoncé',
+  (await page.locator('[data-i18n="tunnel_etapes"]').textContent()).includes('3'));
+// Le formulaire entier doit rester dans le premier écran d'un téléphone :
+// c'est la seule chose que le site fait déjà très bien, rien ne doit la casser.
+const posBtn = await page.evaluate(() => {
+  const r = document.getElementById('btnSearch').getBoundingClientRect();
+  return { bas: Math.round(r.bottom), ecran: window.innerHeight };
+});
+check('« Voir mon prix » tient dans le premier écran (390 × 844)',
+  posBtn.bas <= posBtn.ecran, posBtn.bas + 'px sur ' + posBtn.ecran);
+
 // 8. Plus de forfait aéroport : les terminaux restent des adresses comme les autres
 check('écran des forfaits aéroport supprimé', (await page.locator('#screen-airports').count()) === 0);
 check('onglet « Aéroports » retiré de la navigation',
@@ -170,6 +198,29 @@ for (const [locale, attendu] of [['es-ES', 'es'], ['es-MX', 'es'], ['en-GB', 'en
   });
   check(`le texte de référencement reste lisible en ${attendu}`,
     seoVu.visible && seoVu.titre.length > 10, seoVu.titre.slice(0, 40));
+  await ctx.close();
+}
+{
+  /* ============ LES VIGNETTES NE PARTENT PAS AVANT D'ÊTRE VUES ============
+     Mesuré à 390 × 844 : le rayon d'offres commence à 1 022 px, soit sous le
+     bas de l'écran. Ses six photos partaient pourtant d'un coup — 1,8 Mo
+     téléchargés avant que le formulaire ne s'affiche, en 4G. Elles doivent
+     maintenant attendre qu'on approche. */
+  const ctx = await browser.newContext({ locale: 'fr-FR', viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  const vues = [];
+  p.on('response', r => { if (r.url().includes('/photos/')) vues.push(r.url()); });
+  await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1800);
+  check('aucune photo chargée avant d\'être à l\'écran', vues.length === 0, vues.length + ' chargée(s)');
+  const dansLEcran = await p.evaluate(() => {
+    const r = document.getElementById('blocTours').getBoundingClientRect();
+    return r.top < window.innerHeight;
+  });
+  check('le rayon d\'offres est bien hors du premier écran', !dansLEcran);
+  await p.evaluate(() => document.getElementById('blocTours').scrollIntoView({ block: 'center' }));
+  await p.waitForTimeout(1500);
+  check('les photos arrivent quand on descend', vues.length > 0, vues.length + ' chargée(s)');
   await ctx.close();
 }
 {
