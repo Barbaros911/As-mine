@@ -52,6 +52,34 @@ avec Playwright sur ordinateur (1280px) et sur téléphone (390px) :
 
 Ne pas se contenter de lire le code : ouvrir vraiment la page.
 
+## Comment le site est construit et hébergé
+
+**`construire.sh` est la SEULE recette.** Il assemble le dossier `site/` à
+partir du dépôt, et il est appelé par GitHub Actions **et** par Cloudflare
+Pages. Ne jamais recopier ses étapes dans un workflow : deux recettes
+finissent toujours par diverger, et on s'en aperçoit le jour où l'une publie
+un fichier que l'autre a oublié. La liste des fichiers copiés y est
+**explicite** — un `cp *` publierait un jour les suites de tests ou le
+classeur de suivi. `site/` est ignoré par git : il se reconstruit.
+
+**Bascule vers Cloudflare Pages** (septembre 2026, décidée après une panne de
+GitHub : les visiteurs voyaient la licorne rose de GitHub pendant que le site
+était intact). Marche à suivre complète dans `CLOUDFLARE.md`.
+- Réglages Cloudflare : branche `main`, commande `sh construire.sh`, dossier
+  de sortie `site`.
+- **`_headers` ne sert QUE sur Cloudflare.** GitHub Pages ne sait pas définir
+  d'en-têtes HTTP — c'est pour ça que `frame-ancestors` ne pouvait pas être
+  appliqué : les navigateurs l'ignorent dans une balise `<meta>`.
+- **Le danger de la bascule n'est pas le site, c'est l'EMAIL.** Changer les
+  serveurs de noms sans avoir relevé les enregistrements MX coupe
+  `contact@elatransfer.com` sans le moindre message d'erreur. Relever la zone
+  DNS AVANT, comparer APRÈS, basculer seulement ensuite.
+- Vérifier sur l'adresse temporaire `*.pages.dev` avant de toucher au
+  domaine, et garder GitHub Pages actif quelques jours : c'est la porte de
+  sortie si quelque chose tourne mal.
+- **Cloudflare tombe aussi.** Plus rarement et moins longtemps, mais aucun
+  hébergeur ne garantit 100 %. Ne pas le vendre comme une immunité.
+
 ## Git et publication
 
 **Rien ne part sans que Barbaros l'ait vu.** Règle posée en août 2026, après

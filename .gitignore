@@ -6,3 +6,9 @@ node_modules/
 # ne la publie pas. Une fois l'origine connue (prise par lui, achetée, ou
 # libre de droits), elles passeront dans « photos/ ».
 photos-recues/
+
+# Le dossier assemblé par « construire.sh ». Il est reconstruit à chaque
+# publication, par GitHub comme par Cloudflare : le committer reviendrait à
+# mettre en ligne une copie périmée le jour où quelqu'un oublie de la
+# régénérer.
+site/
