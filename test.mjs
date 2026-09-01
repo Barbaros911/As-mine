@@ -169,6 +169,50 @@ check('Beauvais-Tillé reste desservi malgré l\'Oise',
   !(await page.locator('#horsZone').isVisible()));
 await poserAdresse('#dropoff', 'Versailles');
 
+/* ============ REVENIR EN ARRIÈRE, DEPUIS N'IMPORTE OÙ ============
+   Le bouton portait une destination FIXE écrite dans le HTML : ça ment dès
+   qu'un écran a deux portes d'entrée — le bon de réservation s'ouvre depuis
+   la confirmation ET depuis « Mes réservations », et ramenait toujours à la
+   confirmation. On empile désormais l'écran quitté, et le retour dépile. */
+const ecranActif = () => page.evaluate(() => document.querySelector('.screen.active').id);
+const revenir = async () => {
+  await page.locator('.screen.active .btn-back').click();
+  await page.waitForTimeout(350);
+};
+const sansRetour = await page.evaluate(() => [...document.querySelectorAll('.screen')]
+  .filter(s => s.id !== 'screen-home' && !s.querySelector('.btn-back'))
+  .map(s => s.id));
+check('chaque écran a un bouton retour, sauf l\'accueil',
+  sansRetour.length === 0, sansRetour.join(', '));
+// Un vrai chemin : accueil → Infos → CGV, puis retour deux fois.
+await page.locator('.nav-item[data-target="screen-qr"]').click();
+await page.waitForTimeout(300);
+await page.locator('.btn-legal[data-doc="cgv"]').click();
+await page.waitForTimeout(300);
+check('les CGV s\'ouvrent depuis Infos', (await ecranActif()) === 'screen-legal');
+await revenir();
+check('le retour ramène à Infos, d\'où l\'on venait', (await ecranActif()) === 'screen-qr');
+await revenir();
+check('un second retour ramène à l\'accueil', (await ecranActif()) === 'screen-home');
+// Depuis la fiche d'une offre — le cas qui a motivé le changement.
+await page.evaluate(() => document.getElementById('blocTours').scrollIntoView({ block: 'center' }));
+await page.waitForTimeout(400);
+await page.locator('.tour-carte[data-tour="famille"]').click();
+await page.waitForTimeout(500);
+check('la fiche d\'une offre s\'ouvre', (await ecranActif()) === 'screen-tour');
+await revenir();
+check('et son retour ramène à l\'accueil', (await ecranActif()) === 'screen-home');
+// Le bouton doit se voir : c'était un texte gris de 16 px, introuvable.
+await page.locator('.nav-item[data-target="screen-qr"]').click();
+await page.waitForTimeout(300);
+const tailleRetour = await page.evaluate(() => {
+  const r = document.querySelector('.screen.active .btn-back').getBoundingClientRect();
+  return { h: Math.round(r.height), w: Math.round(r.width) };
+});
+check('le bouton retour fait au moins 44 px de haut',
+  tailleRetour.h >= 44, tailleRetour.h + '×' + tailleRetour.w);
+await revenir();
+
 // 8. Plus de forfait aéroport : les terminaux restent des adresses comme les autres
 check('écran des forfaits aéroport supprimé', (await page.locator('#screen-airports').count()) === 0);
 check('onglet « Aéroports » retiré de la navigation',
