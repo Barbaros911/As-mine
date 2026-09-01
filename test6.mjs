@@ -1,6 +1,8 @@
-// Délai de réservation de 3 h : le client n'est jamais bloqué, mais une
-// course imminente est annoncée comme non ferme tant qu'elle n'a pas été
-// confirmée de vive voix — sur l'écran de confirmation et sur le bon.
+// LE DÉLAI DE 3 H A ÉTÉ RETIRÉ (septembre 2026, à la demande de Barbaros).
+// Cette suite vérifie deux choses : qu'il n'en reste aucune trace nulle
+// part, et que ce qui l'accompagnait sur l'accueil — le numéro, l'appel et
+// WhatsApp — est resté. C'est en retirant la règle qu'on a failli emporter
+// le seul endroit de la page d'accueil où figurait le téléphone.
 import { chromium } from 'playwright';
 import { couperLeReseau } from './test-hors-ligne.mjs';
 
@@ -75,82 +77,71 @@ await page.selectOption('#langSelect', 'fr');
 await page.locator('#cookieAccept').click().catch(() => {});
 await page.waitForTimeout(200);
 
-/* ===================== L'AVERTISSEMENT SOUS LE FORMULAIRE ===================== */
-const encart = page.locator('#screen-home .rounded-xl', { hasText: 'Réservations à partir de' }).first();
-check('l\'encart de délai est affiché sous le formulaire', await encart.isVisible());
-const texteEncart = await encart.textContent();
-check('le délai de 3 h est annoncé', /3\s*h/.test(texteEncart), texteEncart.slice(0, 90));
-check('le recours par téléphone et WhatsApp est proposé',
-  texteEncart.includes('WhatsApp') && /appelez/i.test(texteEncart), texteEncart.slice(0, 160));
-check('le numéro est affiché en toutes lettres',
-  texteEncart.includes('+33 7 59 31 24 33'), texteEncart.slice(0, 160));
-
-const hrefsTel = await page.locator('#screen-home a.lien-tel').evaluateAll(a => a.map(x => x.href));
+/* ===================== LE MOYEN DE NOUS JOINDRE ===================== */
+// Il vivait dans l'encadré du délai de 3 h. En retirant la règle, on a
+// retiré le bloc — et avec lui le seul numéro visible sur l'accueil.
+// « :visible » n'est pas un détail : le premier a.lien-tel de l'accueil est
+// désormais celui de l'écriteau « hors zone », qui est masqué tant que le
+// trajet est dans la zone.
+const contact = page.locator('#screen-home a.lien-tel:visible').first();
+check('le numéro est affiché sur l\'accueil', await contact.isVisible());
+check('il est écrit en toutes lettres',
+  (await page.locator('#screen-home').textContent()).includes('+33 7 59 31 24 33'));
+const hrefsTel = await page.locator('#screen-home a.lien-tel:visible').evaluateAll(a => a.map(x => x.href));
 check('les liens d\'appel composent le bon numéro',
-  hrefsTel.length >= 2 && hrefsTel.every(h => h === 'tel:+33759312433'), hrefsTel.join(' | '));
-const hrefsWa = await page.locator('#screen-home a.lien-whatsapp').evaluateAll(a => a.map(x => x.href));
+  hrefsTel.length >= 1 && hrefsTel.every(h => h === 'tel:+33759312433'), hrefsTel.join(' | '));
+const hrefsWa = await page.locator('#screen-home a.lien-whatsapp:visible').evaluateAll(a => a.map(x => x.href));
 check('les liens WhatsApp pointent sur le bon numéro',
   hrefsWa.length >= 1 && hrefsWa.every(h => h.includes('wa.me/33759312433')), hrefsWa.join(' | '));
 
-/* ===================== UNE COURSE À PLUS DE 3 H ===================== */
+/* ===================== PLUS AUCUNE TRACE DU DÉLAI ===================== */
+const accueil = await page.locator('#screen-home').textContent();
+check('l\'accueil n\'annonce plus de délai minimum',
+  !/3\s*h à l'avance|à partir de 3\s*h/i.test(accueil));
+check('la fonction du délai a disparu du code',
+  (await page.evaluate(() => typeof window.courseImminente)) === 'undefined');
+check('l\'encadré d\'urgence n\'existe plus',
+  (await page.locator('#blocUrgence').count()) === 0);
+
+/* ===================== UNE COURSE LOINTAINE ===================== */
 const refCalme = await reserver(dansNJours(3), null);
 check('réservation à J+3 : référence attribuée', /^ELA-\d{2}-\d{2}-\d{4}$/.test(refCalme), refCalme);
-check('réservation à J+3 : aucun avertissement d\'urgence',
-  !(await page.locator('#blocUrgence').isVisible()));
 await page.locator('#btnOpenVoucher').click();
 await page.waitForTimeout(300);
 const bonCalme = await page.locator('#voucherBody').textContent();
-check('bon à J+3 : pas de mention « à confirmer avec nous »',
-  !bonCalme.includes('moins de 3 h'), bonCalme.slice(0, 120));
+check('bon à J+3 : aucune mention de délai', !/moins de 3\s*h/i.test(bonCalme));
 
-/* ===================== UNE COURSE À MOINS DE 3 H ===================== */
-// Le premier créneau proposé est toujours à 20 minutes d'ici : il tombe donc
-// forcément à l'intérieur du délai de 3 h, quelle que soit l'heure du test.
+/* ===================== UNE COURSE POUR TOUT DE SUITE ===================== */
+// Le premier créneau proposé est à vingt minutes d'ici. Avant, il déclenchait
+// un avertissement rouge ; il doit désormais passer comme n'importe quel autre.
 await page.locator('.nav-item[data-target="screen-home"]').click();
 await page.waitForTimeout(300);
 await page.fill('#dateSimple', dansNJours(0));
 await page.waitForTimeout(300);
 const premierCreneau = await page.locator('#timeSimple option').first().getAttribute('value');
 const dateRetenue = await page.inputValue('#dateSimple');
-const doitEtreUrgent = await page.evaluate(
-  ([d, h]) => courseImminente(d, h), [dateRetenue, premierCreneau]);
-check('le premier créneau proposé tombe bien dans les 3 h',
-  doitEtreUrgent, `${dateRetenue} ${premierCreneau}`);
-
-const refUrgente = await reserver(dateRetenue, premierCreneau);
-check('réservation imminente : elle est acceptée quand même',
-  /^ELA-\d{2}-\d{2}-\d{4}$/.test(refUrgente), refUrgente);
-check('réservation imminente : l\'avertissement s\'affiche',
-  await page.locator('#blocUrgence').isVisible());
-const texteUrgence = await page.locator('#blocUrgence').textContent();
-check('l\'avertissement dit que la course n\'est pas ferme',
-  /pas encore ferme/i.test(texteUrgence), texteUrgence.slice(0, 130));
-check('l\'avertissement propose d\'appeler le numéro',
-  texteUrgence.includes('+33 7 59 31 24 33'), texteUrgence.slice(0, 130));
-const waUrgence = await page.locator('#btnUrgenceWhatsapp').getAttribute('href');
-check('le message WhatsApp est prêt à partir, avec la référence',
-  waUrgence.includes('wa.me/33759312433') && decodeURIComponent(waUrgence).includes(refUrgente),
-  decodeURIComponent(waUrgence).slice(0, 110));
-const telUrgence = await page.locator('#blocUrgence a.lien-tel').getAttribute('href');
-check('le bouton d\'appel compose le numéro', telUrgence === 'tel:+33759312433', telUrgence);
-
+const refProche = await reserver(dateRetenue, premierCreneau);
+check('une course pour dans 20 minutes est acceptée sans avertissement',
+  /^ELA-\d{2}-\d{2}-\d{4}$/.test(refProche), refProche);
 await page.locator('#btnOpenVoucher').click();
 await page.waitForTimeout(300);
-const bonUrgent = await page.locator('#voucherBody').textContent();
-check('bon imminent : la course est marquée non ferme',
-  bonUrgent.includes('moins de 3 h'), bonUrgent.slice(0, 160));
-check('bon imminent : le numéro à joindre y figure',
-  bonUrgent.includes('+33 7 59 31 24 33'), bonUrgent.slice(0, 200));
+const bonProche = await page.locator('#voucherBody').textContent();
+check('son bon ne porte aucune mention de délai', !/moins de 3\s*h/i.test(bonProche));
+// Le bon doit malgré tout rester honnête : la course est en attente tant
+// qu'Elatransfer ne l'a pas confirmée. C'est ce qui remplace l'avertissement.
+check('le bon dit que la course est encore en attente',
+  /attente|en cours/i.test(bonProche), bonProche.slice(0, 140));
 const stocke = await page.evaluate((r) =>
-  JSON.parse(localStorage.getItem('ela_bookings') || '[]').find(b => b.ref === r), refUrgente);
-check('la course est enregistrée comme imminente', stocke && stocke.imminente === true);
+  JSON.parse(localStorage.getItem('ela_bookings') || '[]').find(b => b.ref === r), refProche);
+check('la course enregistrée ne porte plus de marque d\'urgence',
+  stocke && stocke.imminente === undefined);
 
 /* ===================== ET DANS UNE AUTRE LANGUE ===================== */
 await page.selectOption('#langSelect', 'en');
 await page.waitForTimeout(400);
 const bonAnglais = await page.locator('#voucherBody').textContent();
-check('la mention suit la langue choisie',
-  /within 3 hours/i.test(bonAnglais), bonAnglais.slice(0, 160));
+check('aucune trace du délai dans une autre langue',
+  !/within 3 hours|3 hours/i.test(bonAnglais), bonAnglais.slice(0, 160));
 await page.selectOption('#langSelect', 'fr');
 await page.waitForTimeout(300);
 

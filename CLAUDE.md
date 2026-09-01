@@ -429,10 +429,34 @@ référence à la main pour reconstruire une course qu'on n'a pas ne servait à
 personne, et depuis « Coller une demande » la course est toujours là. Ne pas
 le réintroduire.
 
-**Délai de 3 h (`DELAI_RESERVATION_H`).** Une course pour dans moins de
-3 h est acceptée mais **pas ferme** : avertissement rouge sur l'écran de
-confirmation et sur le bon, bouton d'appel et message WhatsApp prérempli
-avec la référence. Ne jamais bloquer le client : le prévenir.
+**IL N'Y A PLUS DE DÉLAI DE 3 H** (septembre 2026, à la demande de Barbaros).
+`DELAI_RESERVATION_H`, `courseImminente()`, le champ `imminente` des courses,
+l'encadré de l'accueil, l'avertissement rouge de l'écran de confirmation et le
+rappel du bon ont tous été retirés, ainsi que huit clés de traduction × six
+langues. Une course pour dans vingt minutes se réserve comme une autre.
+- **Ce qui rassure encore le client n'a pas disparu** : le bon dit toujours
+  « En attente de confirmation » et « Ce bon devient ferme dès qu'Elatransfer
+  confirme ». C'est ce qui remplace l'avertissement — ne pas le retirer, ce
+  serait laisser croire à une place réservée qui n'existe pas.
+- **Piège rencontré** : l'encadré des 3 h portait aussi **le seul numéro de
+  téléphone de la page d'accueil**. Le retirer emportait le numéro avec lui.
+  Un bloc de contact l'a remplacé, sans aucune mention de délai. `test6.mjs`
+  le verrouille.
+- Deux autres pièges à la découpe : une **accolade orpheline** est restée
+  après le `if(d.imminente)` du bon (page blanche, « Unexpected token } »), et
+  `applyLanguage()` écrivait dans `#texteAppel`, qui n'existait plus.
+- `lead_time_call` et `lead_time_whatsapp` sont **conservées** : l'écriteau
+  « hors zone » les réutilise.
+
+**Le bouton « Retour » est un vrai bouton** (septembre 2026). C'était un
+« ‹ Retour » gris de 16 px, sans fond ni contour : Barbaros l'a cherché sur la
+fiche d'une offre et ne l'a pas trouvé, il appuyait sur « Accueil » dans la
+barre du bas — ce qui lui faisait perdre l'offre qu'il regardait. Il fait
+maintenant 44 px de haut, avec fond, contour et flèche à la couleur du texte.
+Le sélecteur est `button.btn-back` — **élément + classe**, pour passer devant
+les classes utilitaires du HTML sans réécrire les sept blocs qui l'utilisent.
+La flèche était peinte en gris dans le SVG lui-même : `stroke:currentColor` la
+fait suivre.
 
 **Le nombre de passagers n'écarte que les véhicules trop petits.** Les
 quatre catégories restent proposées à un client seul — il a le droit de
@@ -556,7 +580,7 @@ consommation appelle une pratique commerciale trompeuse.
 **Incrémenter `CACHE` dans `sw.js` à CHAQUE changement visible.** Oublié à la
 phase 1 : Barbaros a publié et n'a rien vu changer sur son téléphone. Le HTML
 est servi « réseau d'abord », mais les téléphones qui ont **installé
-l'application** gardent le reste. `elatransfer-v11` au 1ᵉʳ septembre 2026.
+l'application** gardent le reste. `elatransfer-v12` au 1ᵉʳ septembre 2026.
 
 **LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT** (septembre 2026, phase 1 de
 l'audit). Quatre endroits disaient « aéroport » avant de dire « chauffeur
