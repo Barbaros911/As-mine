@@ -9,28 +9,68 @@ pages. Le code, l'historique et les pull requests ne bougent pas.
 
 ---
 
-## ⚠️ À lire avant de commencer : ton email
+## L'email doit continuer de fonctionner
 
-`contact@elatransfer.com` figure dans tes mentions légales, dans les CGV et
-sur l'écran « Infos ». Si cette adresse existe vraiment et reçoit du
-courrier, **elle dépend des enregistrements MX de ton domaine**.
+`contact@elatransfer.com` reçoit du vrai courrier (confirmé par Barbaros le
+1ᵉʳ septembre 2026). C'est cette contrainte qui décide de la méthode.
 
-Passer le domaine chez Cloudflare implique de changer les serveurs de noms
-chez ton registrar. Cloudflare recopie normalement les enregistrements
-existants, **mais il faut le vérifier avant de basculer** : un MX oublié, et
-tu ne reçois plus un seul email, sans message d'erreur.
+Il y a **deux façons** de brancher un domaine sur Cloudflare Pages. Elles
+n'ont pas du tout le même risque.
 
-**Donc, dans l'ordre :**
+### Voie A — par un simple enregistrement DNS *(recommandée)*
 
-1. Note d'abord tes enregistrements actuels (chez ton registrar, zone DNS) —
-   fais une capture d'écran de la liste complète.
-2. Après l'import chez Cloudflare, compare ligne à ligne. Les MX surtout.
-3. Ne bascule les serveurs de noms qu'une fois la comparaison faite.
+On garde le domaine et les serveurs de noms **exactement là où ils sont**.
+On ajoute un seul enregistrement chez l'hébergeur DNS actuel :
 
-Si `contact@elatransfer.com` n'est qu'une adresse de façade qui ne reçoit
-rien, ce point ne te concerne pas — mais alors il faudra la retirer des
-documents légaux, parce qu'une adresse de contact qui ne répond pas est un
-manquement à la LCEN.
+```
+Type : CNAME     Nom : www     Valeur : <projet>.pages.dev
+```
+
+**Les enregistrements MX ne sont jamais touchés.** L'email continue de
+fonctionner sans qu'on s'en approche — c'est tout l'intérêt.
+
+Reste la question du domaine **sans le `www`**, qui est celui qu'on a
+partagé partout (`https://elatransfer.com`). Un domaine racine ne peut pas
+porter un CNAME dans le DNS classique. Deux cas :
+
+- **L'hébergeur DNS propose un enregistrement `ALIAS` ou `ANAME`** (Gandi,
+  Namecheap, DNSimple, Infomaniak…) : on l'utilise pour la racine, et tout
+  fonctionne à l'identique. C'est le cas idéal.
+- **Il ne le propose pas** (OVH, la plupart des registrars anciens) : on
+  laisse la racine rediriger vers `www` — la plupart des hébergeurs ont un
+  bouton « redirection d'URL » pour ça. Les liens déjà envoyés continuent
+  de marcher, ils atterrissent sur `www.elatransfer.com`.
+
+  ⚠️ Si on prend cette option, il faudra changer l'adresse canonique et le
+  `sitemap.xml` du site, qui déclarent aujourd'hui `https://elatransfer.com/`.
+  Sinon Google reçoit deux signaux contradictoires.
+
+### Voie B — en déplaçant les serveurs de noms chez Cloudflare
+
+C'est ce que Cloudflare propose par défaut. Ça règle le problème de la
+racine tout seul, mais **ça déplace TOUT le DNS du domaine, l'email
+compris**.
+
+Cloudflare recopie normalement les enregistrements existants. « Normalement »
+n'est pas « toujours », et ce qui casse le plus souvent n'est pas le MX
+lui-même mais ce qui l'accompagne : l'enregistrement `SPF`, la clé `DKIM`,
+le `DMARC`, et les entrées `autodiscover` / `autoconfig` qui permettent au
+téléphone de configurer la boîte. Il en manque un, et le courrier part en
+indésirable — ou n'arrive plus, sans message d'erreur.
+
+**Si on prend cette voie, l'ordre est impératif :**
+
+1. Relever la zone DNS actuelle **en entier** (capture d'écran) avant tout.
+2. Après l'import chez Cloudflare, comparer **ligne à ligne** : MX, TXT
+   (SPF, DKIM, DMARC), et les CNAME de messagerie.
+3. Basculer les serveurs de noms seulement après cette comparaison.
+4. S'envoyer un email de test **depuis une adresse extérieure** dans l'heure
+   qui suit, et vérifier qu'il arrive en boîte de réception et non en
+   indésirable.
+
+**Recommandation : la voie A.** Elle ne touche pas à l'email, donc elle ne
+peut pas le casser. On ne prend la voie B que si l'hébergeur DNS ne sait pas
+gérer le domaine racine et que la redirection vers `www` ne convient pas.
 
 ---
 
@@ -71,22 +111,35 @@ Sur cette adresse temporaire, vérifier :
 
 **Ne passer à l'étape 3 que si tout est coché.**
 
-## Étape 3 — Basculer le domaine
+## Étape 3 — Brancher le domaine (voie A, sans toucher à l'email)
 
 1. Dans le projet Pages → **Custom domains** → **Set up a custom domain** →
-   `elatransfer.com` (puis recommencer pour `www.elatransfer.com`).
-2. Cloudflare indique quoi faire :
-   - si le domaine est déjà chez Cloudflare, il crée l'enregistrement seul ;
-   - sinon il demande de passer les serveurs de noms chez lui — **c'est ici
-     que la vérification des MX de l'étape 0 compte.**
-3. Le certificat HTTPS est émis automatiquement, en quelques minutes.
+   saisir `www.elatransfer.com`.
+2. Cloudflare affiche l'enregistrement à créer. **Aller le créer chez
+   l'hébergeur DNS actuel**, sans rien changer d'autre :
+
+   ```
+   Type : CNAME     Nom : www     Valeur : <projet>.pages.dev
+   ```
+
+3. Pour le domaine sans `www`, selon ce que propose l'hébergeur :
+   - **`ALIAS` / `ANAME` disponible** → le créer sur la racine, même valeur.
+   - **Sinon** → activer la redirection d'URL de la racine vers
+     `https://www.elatransfer.com`, et me le dire : il faudra alors changer
+     l'adresse canonique et le `sitemap.xml` du site.
+4. Le certificat HTTPS est émis automatiquement, en quelques minutes.
+
+**À aucun moment on ne touche aux MX.** L'email ne peut pas casser.
 
 ## Étape 4 — Après la bascule
 
 - [ ] `https://elatransfer.com` répond et affiche le site
-- [ ] le cadenas HTTPS est là
-- [ ] un email envoyé à `contact@elatransfer.com` arrive bien
+- [ ] `https://www.elatransfer.com` aussi
+- [ ] le cadenas HTTPS est là sur les deux
 - [ ] refaire les vérifications de l'étape 2 sur le vrai domaine
+- [ ] **s'envoyer un email à `contact@elatransfer.com` depuis une adresse
+      extérieure** (Gmail, un téléphone) et vérifier qu'il arrive en boîte
+      de réception, pas en indésirable
 
 Puis, seulement après quelques jours sans incident : désactiver GitHub
 Pages dans **Settings → Pages** du dépôt. Le garder actif quelques jours ne

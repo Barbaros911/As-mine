@@ -70,10 +70,18 @@ GitHub : les visiteurs voyaient la licorne rose de GitHub pendant que le site
 - **`_headers` ne sert QUE sur Cloudflare.** GitHub Pages ne sait pas définir
   d'en-têtes HTTP — c'est pour ça que `frame-ancestors` ne pouvait pas être
   appliqué : les navigateurs l'ignorent dans une balise `<meta>`.
-- **Le danger de la bascule n'est pas le site, c'est l'EMAIL.** Changer les
-  serveurs de noms sans avoir relevé les enregistrements MX coupe
-  `contact@elatransfer.com` sans le moindre message d'erreur. Relever la zone
-  DNS AVANT, comparer APRÈS, basculer seulement ensuite.
+- **Le danger de la bascule n'est pas le site, c'est l'EMAIL.**
+  `contact@elatransfer.com` reçoit du vrai courrier — confirmé par Barbaros.
+  **On branche donc le domaine par un simple CNAME chez son hébergeur DNS
+  actuel** (voie A), sans déplacer les serveurs de noms : les MX ne sont
+  jamais touchés, l'email ne peut pas casser. Ne PAS proposer la voie
+  « nameservers chez Cloudflare » par confort : ce qui casse alors n'est pas
+  le MX lui-même mais ce qui l'accompagne — SPF, DKIM, DMARC, autodiscover —
+  et le courrier part en indésirable sans message d'erreur.
+- **Le domaine racine est le point à trancher** : il ne peut pas porter un
+  CNAME. Si l'hébergeur DNS propose `ALIAS`/`ANAME`, tout reste identique ;
+  sinon il faut rediriger la racine vers `www`, et alors **changer l'adresse
+  canonique et `sitemap.xml`**, qui déclarent `https://elatransfer.com/`.
 - Vérifier sur l'adresse temporaire `*.pages.dev` avant de toucher au
   domaine, et garder GitHub Pages actif quelques jours : c'est la porte de
   sortie si quelque chose tourne mal.
