@@ -120,6 +120,55 @@ const posBtn = await page.evaluate(() => {
 check('« Voir mon prix » tient dans le premier écran (390 × 844)',
   posBtn.bas <= posBtn.ecran, posBtn.bas + 'px sur ' + posBtn.ecran);
 
+/* ============ LA ZONE DESSERVIE ============
+   Avant cette règle, Lille → Marseille passait sans un mot : 1 084 km,
+   1 902,91 € annoncés en Ela One, réservation acceptée. Et le prix est
+   FERME — il aurait fallu assurer la course à perte, ou se dédire sur un
+   prix annoncé, ce qui est une pratique commerciale trompeuse. */
+async function poserAdresse(champ, texte) {
+  await page.fill(champ, '');
+  await page.type(champ, texte, { delay: 20 });
+  await page.waitForTimeout(1400);
+  const liste = '#' + champ.slice(1) + 'List';
+  if ((await page.locator(liste + ' [role=option]').count()) === 0) return false;
+  await page.locator(liste + ' [role=option]').first().click();
+  await page.waitForTimeout(300);
+  return true;
+}
+await poserAdresse('#pickup', 'Argenteuil');
+await poserAdresse('#dropoff', 'Versailles');
+check('une course en Île-de-France passe',
+  !(await page.locator('#horsZone').isVisible())
+  && !(await page.locator('#btnSearch').isDisabled()));
+await poserAdresse('#pickup', 'Lille');
+await poserAdresse('#dropoff', 'Marseille');
+check('Lille → Marseille est refusé', await page.locator('#horsZone').isVisible());
+check('et le bouton ne peut plus être appuyé', await page.locator('#btnSearch').isDisabled());
+check('l\'adresse fautive est nommée',
+  (await page.locator('#horsZoneLieu').textContent()).toLowerCase().includes('lille'));
+// On ne renvoie pas le client sans rien : un Paris → Deauville est une
+// belle course, elle se négocie de vive voix.
+check('un moyen de nous joindre est proposé',
+  (await page.locator('#horsZone a.lien-tel').count()) === 1
+  && (await page.locator('#horsZone a.lien-whatsapp').count()) === 1);
+// L'écriteau doit être AU-DESSUS des champs : posé sous le bouton, il
+// tombait derrière le bandeau de cookies et le client voyait un bouton
+// gris sans la moindre raison.
+const placeZone = await page.evaluate(() => ({
+  ecriteau: document.getElementById('horsZone').getBoundingClientRect().top,
+  champ: document.getElementById('pickup').getBoundingClientRect().top
+}));
+check('l\'écriteau se lit avant les champs qu\'il concerne',
+  placeZone.ecriteau < placeZone.champ);
+/* Beauvais-Tillé est dans l'Oise, PAS en Île-de-France — et c'est pourtant
+   l'un des trois aéroports que le site propose lui-même. Une règle
+   strictement départementale l'aurait refusé. */
+await poserAdresse('#pickup', 'Argenteuil');
+await poserAdresse('#dropoff', 'beauvais');
+check('Beauvais-Tillé reste desservi malgré l\'Oise',
+  !(await page.locator('#horsZone').isVisible()));
+await poserAdresse('#dropoff', 'Versailles');
+
 // 8. Plus de forfait aéroport : les terminaux restent des adresses comme les autres
 check('écran des forfaits aéroport supprimé', (await page.locator('#screen-airports').count()) === 0);
 check('onglet « Aéroports » retiré de la navigation',
