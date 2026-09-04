@@ -1,0 +1,36 @@
+{
+  // =====================================================================
+  // CONFIGURATION CLOUDFLARE
+  // ---------------------------------------------------------------------
+  // Cloudflare a deux parcours pour publier un site : « Pages », l'ancien,
+  // et « Workers », vers lequel ils poussent désormais tout le monde. Le
+  // second est celui qui s'est présenté à l'inscription — il déploie avec
+  // « npx wrangler deploy » et lit ce fichier.
+  //
+  // Le site reste 100 % statique : il n'y a AUCUN code serveur ici, juste
+  // un dossier de fichiers à servir. « assets » sans « main », c'est
+  // exactement ça — Cloudflare sert le dossier et rien d'autre.
+  //
+  // Le dossier « site » est produit par construire.sh, la même recette que
+  // celle qu'exécute GitHub Actions.
+  // =====================================================================
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "as-mine",
+  "compatibility_date": "2026-09-04",
+
+  "assets": {
+    "directory": "./site",
+
+    // Un site à écrans multiples servi par des chemins simples : toute
+    // adresse inconnue rend index.html plutôt qu'une page d'erreur. Sans
+    // ça, un client qui ouvre un lien « /admin.html » mal recopié tombe
+    // sur un 404 de Cloudflare au lieu du site.
+    "not_found_handling": "single-page-application",
+
+    // On garde l'extension dans l'adresse : « /admin.html » doit rester
+    // « /admin.html ». Les liens déjà envoyés aux clients et le fichier
+    // sitemap.xml la portent, et une redirection silencieuse casserait
+    // l'adresse canonique déclarée à Google.
+    "html_handling": "none"
+  }
+}

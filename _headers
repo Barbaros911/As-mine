@@ -1,0 +1,52 @@
+# =====================================================================
+# EN-TÊTES DE SÉCURITÉ — lus par Cloudflare Pages
+# ---------------------------------------------------------------------
+# GitHub Pages ne sait pas définir d'en-têtes HTTP. C'est l'une des deux
+# raisons du changement d'hébergeur, avec la disponibilité : la balise
+# <meta> du HTML ne peut PAS porter « frame-ancestors », les navigateurs
+# l'y ignorent. Seul un vrai en-tête protège le site.
+# =====================================================================
+
+/*
+  # Empêche qu'un autre site affiche Elatransfer dans un cadre invisible
+  # pour faire cliquer le visiteur sans qu'il s'en rende compte. C'est
+  # exactement ce que la balise <meta> ne pouvait pas faire.
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: SAMEORIGIN
+
+  # Le navigateur ne doit pas deviner le type d'un fichier : c'est ainsi
+  # qu'une image piégée finit exécutée comme du script.
+  X-Content-Type-Options: nosniff
+
+  # L'adresse complète des pages d'Elatransfer — qui peut contenir une
+  # référence de course — ne part pas vers les sites extérieurs.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Le site ne demande ni caméra, ni micro, ni paiement. La position est
+  # autorisée pour nous seuls : c'est le bouton « me localiser ».
+  Permissions-Policy: camera=(), microphone=(), payment=(), geolocation=(self)
+
+  # Force le HTTPS pendant un an. À ne PAS mettre en place tant que le
+  # domaine n'est pas servi en HTTPS partout : un navigateur qui a vu cet
+  # en-tête refusera le HTTP pendant toute cette durée, sans recours.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# Les photos ne changent jamais de contenu sans changer de nom : on
+# autorise le navigateur à les garder un an, elles ne repartiront pas
+# sur le réseau à chaque visite.
+/photos/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Le HTML, lui, doit toujours être revérifié : c'est ce qui fait qu'une
+# publication est visible tout de suite. Sans cette ligne, un client
+# pourrait garder l'ancienne version plusieurs heures.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/admin.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Le service worker décide de ce que gardent les téléphones : s'il est
+# lui-même mis en cache, une correction peut mettre des jours à passer.
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
