@@ -194,14 +194,11 @@ await revenir();
 check('le retour ramène à Infos, d\'où l\'on venait', (await ecranActif()) === 'screen-qr');
 await revenir();
 check('un second retour ramène à l\'accueil', (await ecranActif()) === 'screen-home');
-// Depuis la fiche d'une offre — le cas qui a motivé le changement.
-await page.evaluate(() => document.getElementById('blocTours').scrollIntoView({ block: 'center' }));
-await page.waitForTimeout(400);
-await page.locator('.tour-carte[data-tour="famille"]').click();
-await page.waitForTimeout(500);
-check('la fiche d\'une offre s\'ouvre', (await ecranActif()) === 'screen-tour');
-await revenir();
-check('et son retour ramène à l\'accueil', (await ecranActif()) === 'screen-home');
+/* Le rayon d'offres a été retiré (septembre 2026) : le chemin qui avait
+   motivé cette pile — la fiche d'une offre, qui ramenait toujours au même
+   écran — n'existe plus. La règle, elle, reste éprouvée ci-dessus (Infos →
+   CGV → retour → retour) et par le contrôle « chaque écran a un bouton
+   retour » qui couvre d'office tout écran ajouté plus tard. */
 // Le bouton doit se voir : c'était un texte gris de 16 px, introuvable.
 await page.locator('.nav-item[data-target="screen-qr"]').click();
 await page.waitForTimeout(300);
@@ -294,26 +291,22 @@ for (const [locale, attendu] of [['es-ES', 'es'], ['es-MX', 'es'], ['en-GB', 'en
   await ctx.close();
 }
 {
-  /* ============ LES VIGNETTES NE PARTENT PAS AVANT D'ÊTRE VUES ============
-     Mesuré à 390 × 844 : le rayon d'offres commence à 1 022 px, soit sous le
-     bas de l'écran. Ses six photos partaient pourtant d'un coup — 1,8 Mo
-     téléchargés avant que le formulaire ne s'affiche, en 4G. Elles doivent
-     maintenant attendre qu'on approche. */
+  /* ============ L'ACCUEIL NE TÉLÉCHARGE PLUS AUCUNE PHOTO ============
+     Le rayon d'offres portait treize vignettes — 1,8 Mo qui partaient avant
+     même l'affichage du formulaire, en 4G. Un observateur les retenait
+     jusqu'à l'approche ; depuis le retrait des offres il n'y a plus rien à
+     retenir. Ce contrôle garde la garantie sous sa forme la plus forte :
+     on descend toute la page, et rien du dossier photos ne part. */
   const ctx = await browser.newContext({ locale: 'fr-FR', viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
   const vues = [];
   p.on('response', r => { if (r.url().includes('/photos/')) vues.push(r.url()); });
   await p.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1800);
-  check('aucune photo chargée avant d\'être à l\'écran', vues.length === 0, vues.length + ' chargée(s)');
-  const dansLEcran = await p.evaluate(() => {
-    const r = document.getElementById('blocTours').getBoundingClientRect();
-    return r.top < window.innerHeight;
-  });
-  check('le rayon d\'offres est bien hors du premier écran', !dansLEcran);
-  await p.evaluate(() => document.getElementById('blocTours').scrollIntoView({ block: 'center' }));
+  check('aucune photo chargée à l\'ouverture', vues.length === 0, vues.join(', '));
+  await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await p.waitForTimeout(1500);
-  check('les photos arrivent quand on descend', vues.length > 0, vues.length + ' chargée(s)');
+  check('aucune photo chargée même en bas de page', vues.length === 0, vues.join(', '));
   await ctx.close();
 }
 {

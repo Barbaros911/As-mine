@@ -677,139 +677,6 @@
     font-weight:600;letter-spacing:.14em;text-transform:uppercase;
     color:#8FA3C2;border-top:1px solid rgba(244,241,234,.14);max-width:30ch;}
 
-  /* =====================================================================
-     ELA TOURS
-     ---------------------------------------------------------------------
-     Un second produit, posé juste après les photos de Paris : on regarde
-     la ville, on se dit qu'on aimerait la voir, la réponse est là.
-     Une piste qui défile plutôt qu'une grille : deux ou trois formules ne
-     méritent pas de pousser tout le reste de la page vers le bas, et le
-     geste de balayage dit « il y en a d'autres » mieux qu'une flèche.
-     ===================================================================== */
-  .tours{margin:0 0 22px;}
-  .tours h2{font-size:19px;font-weight:800;letter-spacing:-.02em;margin:0;}
-  .tours-note{font-size:11.5px;color:var(--muted);margin:3px 0 12px;}
-  .tours-piste{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
-    margin:0 -16px;padding:2px 16px 6px;-webkit-overflow-scrolling:touch;}
-  .tours-piste::-webkit-scrollbar{display:none;}
-  .tour-carte{flex:0 0 240px;scroll-snap-align:start;text-align:left;
-    border:1px solid var(--line);border-radius:18px;overflow:hidden;
-    background:var(--panel);transition:transform .12s,box-shadow .18s;}
-  .tour-carte:active{transform:scale(.985);}
-  .tour-photo{height:104px;background-size:cover;background-position:center 45%;
-    background-color:var(--navy-deep);position:relative;}
-  /* Le voile n'est pas décoratif : la durée est écrite en ivoire dessus, et
-     une photo claire la rendrait illisible. */
-  .tour-photo::after{content:"";position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(8,16,32,0) 45%,rgba(8,16,32,.62) 100%);}
-  .tour-duree{position:absolute;left:10px;bottom:8px;z-index:2;color:#F4F1EA;
-    font-size:11px;font-weight:700;letter-spacing:.02em;}
-  .tour-corps{padding:11px 13px 13px;}
-  .tour-nom{font-size:14.5px;font-weight:700;line-height:1.2;}
-  /* Le créneau est une contrainte, pas un détail : il se lit avant les
-     suggestions, et dans la couleur d'accent pour qu'on ne le rate pas. */
-  /* La promesse : c'est elle qui vend, elle passe donc avant le créneau et
-     se lit d'un ton au-dessus des lieux. */
-  .tour-promesse{font-size:11.5px;line-height:1.4;margin-top:4px;}
-  .tour-creneau{font-size:11px;font-weight:700;color:var(--gold-soft);margin-top:5px;}
-  /* Quatre lignes, pas deux : les sept lieux tiennent en trois, et une liste
-     de suggestions coupée sur « Concorde … » donne l'impression d'une carte
-     inachevée. La limite reste, elle ne sert plus qu'aux langues longues. */
-  .tour-etapes{font-size:11px;color:var(--muted);line-height:1.45;margin-top:5px;
-    display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
-  .tour-prix{margin-top:9px;font-size:13px;font-weight:800;letter-spacing:-.02em;}
-  .tour-prix span{font-weight:600;color:var(--muted);font-size:11px;}
-  body.mode-exploitant .tours{display:none;}
-
-  /* =====================================================================
-     LES TEINTES DES OFFRES
-     ---------------------------------------------------------------------
-     Elles tiennent la place des photos, retirées parce qu'elles venaient de
-     Google Images. Une teinte par offre, pour qu'on les distingue au premier
-     coup d'œil dans le rayon : la journée est claire, le soir est profond,
-     la famille est chaude, le prestige est sombre et doré.
-     Le grain léger évite l'aplat plat de bandeau d'attente ; il est dessiné
-     en dégradés, sans une seule image à charger.
-     ===================================================================== */
-  .tour-photo[class*="teinte-"], .fiche-photo[class*="teinte-"]{
-    background-size:auto, auto, cover;}
-  .teinte-jour{background:
-    radial-gradient(120% 90% at 18% 12%, rgba(244,241,234,.16), transparent 62%),
-    linear-gradient(152deg, #2E4C77 0%, #16294A 100%);}
-  .teinte-nuit{background:
-    radial-gradient(95% 78% at 76% 16%, rgba(232,206,123,.20), transparent 60%),
-    linear-gradient(152deg, #16294A 0%, #080F1E 100%);}
-  .teinte-famille{background:
-    radial-gradient(110% 85% at 22% 18%, rgba(244,241,234,.20), transparent 62%),
-    linear-gradient(152deg, #2F6E56 0%, #12402F 100%);}
-  .teinte-vision{background:
-    radial-gradient(120% 90% at 74% 10%, rgba(244,241,234,.24), transparent 60%),
-    linear-gradient(152deg, #3C7FA8 0%, #1B3F5C 100%);}
-  .teinte-prestige{background:
-    radial-gradient(100% 80% at 80% 14%, rgba(184,134,43,.32), transparent 58%),
-    linear-gradient(152deg, #1B1B24 0%, #07070C 100%);}
-  .teinte-libre{background:
-    radial-gradient(110% 85% at 78% 18%, rgba(244,241,234,.14), transparent 62%),
-    linear-gradient(152deg, #21456B 0%, #0C1A31 100%);}
-
-  /* =====================================================================
-     LA FICHE D'UNE OFFRE
-     ---------------------------------------------------------------------
-     Une page de vente, pas un tableau : la photo en grand d'abord, puis les
-     faits, puis les prix, puis ce qui est compris. Chaque bloc est séparé
-     par du blanc plutôt que par un cadre — six encadrés empilés donnent une
-     impression de formulaire administratif.
-     ===================================================================== */
-  /* =====================================================================
-     LE RUBAN DE PHOTOS D'UNE OFFRE
-     ---------------------------------------------------------------------
-     Un client n'achète pas sur une image, il achète sur trois : il veut
-     voir de quoi sera faite sa soirée. Elles défilent au doigt, avec
-     accrochage (scroll-snap) pour qu'on tombe toujours sur une photo
-     entière, jamais sur deux moitiés.
-     ===================================================================== */
-  .fiche-carrousel{position:relative;margin-bottom:16px;}
-  .fiche-vues{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
-    scroll-behavior:smooth;-webkit-overflow-scrolling:touch;border-radius:18px;}
-  .fiche-vues::-webkit-scrollbar{display:none;}
-  .fiche-photo{flex:0 0 100%;scroll-snap-align:center;height:196px;border-radius:18px;
-    background-size:cover;background-position:center 45%;background-color:var(--navy-deep);}
-  /* Les pastilles sont posées SUR la photo, en bas : hors du cadre elles
-     poussaient le titre vers le bas pour ne rien dire de plus. */
-  .fiche-points{position:absolute;left:0;right:0;bottom:11px;z-index:2;
-    display:flex;justify-content:center;gap:6px;}
-  .fiche-point{width:7px;height:7px;border-radius:999px;background:rgba(244,241,234,.45);
-    border:0;padding:0;transition:width .18s,background .18s;}
-  .fiche-point.actif{width:19px;background:#F4F1EA;}
-  .fiche-nom{font-size:25px;font-weight:800;letter-spacing:-.025em;line-height:1.12;}
-  .fiche-promesse{font-size:14px;line-height:1.5;color:var(--muted);margin-top:6px;}
-  .fiche-faits{margin-top:16px;border-top:1px solid var(--line);}
-  .fiche-faits li{display:flex;justify-content:space-between;gap:14px;
-    padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;}
-  .fiche-faits li span{color:var(--muted);}
-  .fiche-faits li b{font-weight:700;text-align:right;}
-  .fiche-bloc{margin-top:22px;}
-  .fiche-bloc h3{font-size:11px;font-weight:700;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--gold);margin-bottom:9px;}
-  .fiche-note{font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:8px;}
-  .fiche-lieux{display:flex;flex-wrap:wrap;gap:6px;}
-  .fiche-lieux li{font-size:12px;padding:5px 10px;border-radius:999px;
-    border:1px solid var(--line);background:var(--field);}
-  /* Le prix par gamme sort de prixHoraire : c'est le même calcul que l'écran
-     des tarifs, jamais une liste recopiée qui finirait par mentir. */
-  .fiche-prix li{display:flex;justify-content:space-between;align-items:baseline;
-    gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
-  .fiche-prix li span{font-weight:600;}
-  .fiche-prix li i{font-style:normal;font-size:11px;color:var(--muted);margin-left:7px;}
-  .fiche-prix li b{font-weight:800;font-variant-numeric:tabular-nums;}
-  .fiche-liste li{position:relative;padding-left:20px;font-size:13px;
-    line-height:1.5;margin-bottom:5px;}
-  .fiche-liste li::before{position:absolute;left:0;top:0;font-weight:700;}
-  .fiche-liste.oui li::before{content:"✓";color:var(--gold);}
-  /* Ce qui n'est pas compris se lit aussi clairement que ce qui l'est : une
-     mauvaise surprise à l'arrivée coûte plus cher qu'une vente manquée. */
-  .fiche-liste.non li::before{content:"×";color:var(--muted);}
-  .fiche-liste.non li{color:var(--muted);}
 
   /* =====================================================================
      LA PASTILLE WHATSAPP
@@ -1081,15 +948,19 @@
 
     <!-- Booking card -->
     <div class="rounded-2xl bg-[var(--panel)] card-line p-4 shadow-xl mb-6">
-      <!-- Les deux onglets ont disparu de la vue. L'accueil ne pose plus qu'une
-           question — d'où à où, et quand — comme une application de course.
-           La mise à disposition n'a pas disparu pour autant : elle est devenue
-           une offre, une carte parmi les autres sous les photos, et c'est elle
-           qui rallume ce formulaire-ci en appelant selectTripTab('disposal').
-           Les deux boutons restent dans la page, masqués : ils portent l'état
-           ARIA du formulaire affiché et selectTripTab s'appuie dessus. Ne pas
-           les supprimer sans réécrire cette fonction. -->
-      <div class="hidden" role="tablist" aria-label="Type de réservation">
+      <!-- LES DEUX ONGLETS SONT REVENUS (septembre 2026). Ils avaient été
+           masqués en août, quand la mise à disposition était devenue une
+           carte du rayon d'offres : l'accueil ne posait plus qu'une question,
+           d'où à où et quand, et c'était le bon choix tant que le rayon
+           existait pour rattraper l'autre service.
+           Le rayon a été retiré à la demande de Barbaros. Sans ces onglets,
+           la mise à disposition — 60 à 120 € de l'heure, une vraie ligne de
+           sa grille — ne serait plus réservable nulle part sur le site : le
+           formulaire existerait toujours, avec aucune porte pour y entrer.
+           Les deux boutons portent aussi l'état ARIA du formulaire affiché et
+           selectTripTab s'appuie dessus. Ne pas les supprimer sans réécrire
+           cette fonction. -->
+      <div class="grid grid-cols-2 gap-1 mb-3" role="tablist" aria-label="Type de réservation">
         <button id="tabSimple" role="tab" aria-selected="true" class="tab-underline active py-2.5 rounded-full text-sm font-medium" data-i18n="tab_simple">Trajet Simple</button>
         <button id="tabDisposal" role="tab" aria-selected="false" class="tab-underline py-2.5 rounded-full text-sm font-medium" data-i18n="tab_disposal">Mise à Disposition</button>
       </div>
@@ -1291,23 +1162,6 @@
       <span class="ela-bandeau-signe" aria-hidden="true">ELA</span>
       <span class="ela-bandeau-filet" aria-hidden="true"></span>
     </div>
-
-    <!-- ============== ELA TOURS ==============
-         Le moteur existe déjà : un tour, c'est une mise à disposition avec
-         un nom, une durée et un itinéraire. Rien de neuf côté tarif, donc
-         rien de neuf côté règle VTC — le prix reste ferme et connu avant le
-         départ puisqu'il ne dépend que des heures.
-         Le mot « visite guidée » est volontairement absent, et doit le
-         rester : guider dans un musée ou un monument demande une carte de
-         guide-conférencier ; conduire et s'arrêter, c'est du transport.
-         La protection tient à ce qu'on NE PROMET PAS, pas à une mention en
-         bas de carte — Barbaros a retiré celle-ci en août 2026. Ne jamais
-         écrire « visite guidée », « guide » ou « commentée » ici. -->
-    <section class="tours" id="blocTours">
-      <h2 data-i18n="tours_titre">Explorez Paris avec ELA</h2>
-      <p class="tours-note" data-i18n="tours_note">Un chauffeur pour vous seul, le temps qu'il vous faut.</p>
-      <div class="tours-piste" id="listeTours"></div>
-    </section>
 
     <!-- ============== LES QUATRE PROMESSES ==============
          Les quatre questions que se pose un voyageur qui ne connaît pas la
@@ -2014,30 +1868,6 @@
     </div>
   </section>
 
-  <!-- ===================== SCREEN: FICHE D'UNE OFFRE =====================
-       La carte du rayon donne envie ; cet écran répond aux questions qui
-       restent — combien de temps, combien ça coûte selon la voiture, ce qui
-       est compris et ce qui ne l'est pas. Sans lui, le client devait décider
-       sur trois lignes, ou appeler.
-       Ce qui n'y figure JAMAIS : une note, un nombre d'avis, un billet
-       d'entrée annoncé comme inclus, et le mot « guide » sous toutes ses
-       formes. Asmine vend le chauffeur et le véhicule, rien d'autre. -->
-  <section id="screen-tour" class="screen">
-    <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-home">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="flip-x"><path d="M15 6l-6 6 6 6" stroke="#9C9A93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span data-i18n="back">Retour</span>
-    </button>
-    <div id="ficheTour"></div>
-    <!-- Le bouton reste au-dessus de la barre de navigation pendant tout le
-         défilement : la fiche est longue, et l'envie retombe si l'on doit
-         chercher où appuyer. -->
-    <div class="veh-action">
-      <button id="btnReserverTour" class="gold-btn w-full py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg">
-        <span id="btnReserverTourLabel" data-i18n="tour_reserver">Réserver ce circuit</span>
-      </button>
-    </div>
-  </section>
-
   <!-- ===================== SCREEN: LEGAL DOC ===================== -->
   <section id="screen-legal" class="screen">
     <button class="btn-back flex items-center gap-1.5 text-xs text-[var(--muted)] mb-4" data-target="screen-qr">
@@ -2287,23 +2117,6 @@ if(champNomClient) champNomClient.addEventListener("input", majPancarte);
     // tous les boutons d'action, pas seulement celui de l'accueil.
     const accueil = document.getElementById("screen-home");
     if(!accueil || !accueil.classList.contains("active")){ wa.classList.remove("vue"); return; }
-    /* Elle s'efface aussi devant le rayon d'offres. La pastille est fixe, à
-       gauche, à hauteur du corps des cartes : elle passait en travers de la
-       promesse de l'offre — « Les incontournables de Paris, arrêts photos
-       compris » devenait illisible derrière un rond vert. Un client qui
-       compare des offres est en train de LIRE ; il n'écrit pas sur WhatsApp
-       à cet instant, et il retrouve la pastille dès qu'il a dépassé le
-       rayon. C'est la même règle que pour les boutons d'action. */
-    const rayon = document.getElementById("blocTours");
-    if(rayon && !rayon.classList.contains("hidden")){
-      const b = rayon.getBoundingClientRect();
-      const p = wa.getBoundingClientRect();
-      // On ne regarde QUE la bande où la pastille se pose. « Le rayon est à
-      // l'écran » serait trop large : sur une page de 2090 px, il reste
-      // visible en haut de la fenêtre jusqu'en bas de page, et la pastille
-      // ne réapparaissait plus jamais.
-      if(b.top < p.bottom && b.bottom > p.top){ wa.classList.remove("vue"); return; }
-    }
     const court = document.documentElement.scrollHeight <= window.innerHeight + 40;
     wa.classList.toggle("vue", court || window.scrollY > Math.max(120, seuil()));
   };
@@ -3967,362 +3780,6 @@ const formSimple=document.getElementById("formSimple"), formDisposal=document.ge
    réservation aéroport le formulaire d'accueil affichait « Trajet Simple »
    alors que l'application était restée en mode « Mise à disposition » : le
    bouton « Voir mon prix » réclamait alors des champs invisibles. */
-/* =====================================================================
-   ELA TOURS — des mises à disposition nommées
-   ---------------------------------------------------------------------
-   Rien d'autre qu'une durée (et parfois un itinéraire) : le prix sort de
-   la même grille horaire que la mise à disposition ordinaire, et donc
-   reste ferme et connu avant le départ, comme la règle VTC l'impose.
-   Quatre formules, deux formes :
-   - Paris Tour / Paris Illuminé ont un itinéraire à arrêts (arrets +
-     suggestions) : quatre arrêts en 3 h de jour, quarante-cinq minutes
-     chacun trajets compris ; les mêmes quatre arrêts tiennent en 2 h le
-     soir parce qu'on ne visite pas, on regarde, et les rues sont libres.
-   - Ela Prestige et Escapade Versailles n'ont PAS d'arrêts : une seule
-     destination ou aucune, le chauffeur est à disposition. Elles portent
-     detailKey + usageKey à la place de arrets + suggestions — voir
-     renderTours().
-   ===================================================================== */
-/* Sur les deux circuits parisiens, le client choisit QUATRE arrêts, où il
-   veut. Les lieux listés ne sont que des suggestions : c'est sa journée,
-   pas un parcours imposé — et ça évite de promettre un itinéraire qu'un
-   embouteillage rendrait faux. Deux créneaux, deux durées : la journée
-   demande plus de temps parce que les rues sont prises ; le soir, on
-   roule. Ela Prestige et Escapade Versailles n'ont pas de liste d'arrêts :
-   une occasion à marquer, ou une seule destination où le chauffeur attend
-   sur place, aussi longtemps qu'il faut. */
-/* Deux formules ont un itinéraire à arrêts (arrets + suggestions), les deux
-   autres n'en ont pas : Ela Prestige et Escapade Versailles sont une seule
-   destination ou aucune, le client dispose du chauffeur comme il veut. Dans
-   ce cas, detailKey remplace la ligne « N arrêts » sur la photo et usageKey
-   remplace la ligne des suggestions. gamme restreint le véhicule le moins
-   cher retenu pour le prix : 'premium' pour Ela Prestige (Ela First/Van
-   Premium), 'toutes' partout ailleurs. */
-const TOURS = [
-  /* UNE TEINTE, PAS UNE PHOTO — pour l'instant. Les photos qui habillaient
-     ces offres venaient de Google Images : elles appartenaient à des
-     photographes qui n'avaient rien autorisé, et un site commercial qui les
-     publie s'expose à une réclamation. Elles ont donc toutes été retirées.
-     En attendant des images dont l'origine est établie, chaque offre porte
-     un dégradé qui lui est propre : ça la distingue au premier coup d'œil,
-     ça ne promet rien qu'on ne tienne pas, et ça ne coûte aucune requête.
-     Le ruban de la fiche est prêt à les recevoir : rendre « photos:[…] » à
-     une offre suffit à le rallumer (voir renderTours et ouvrirFicheTour). */
-  { cle:"paris-jour", heures:3, arrets:4, gamme:"toutes",
-    teinte:"jour",
-    photos:["photos/arc-triomphe-jour.jpg","photos/eiffel-rue-doree.jpg","photos/louvre-pyramide-jour.jpg"],
-    nomKey:"tour_jour", promesseKey:"tour_jour_promesse", creneauKey:"tour_jour_creneau",
-    suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
-                 "Trocadéro","Tour Eiffel","Notre-Dame","Galeries Lafayette"] },
-  { cle:"paris-nuit", heures:2, arrets:4, gamme:"toutes",
-    teinte:"nuit",
-    photos:["photos/louvre-nuit.jpg","photos/moulin-rouge-nuit.jpg"],
-    nomKey:"tour_nuit", promesseKey:"tour_nuit_promesse", creneauKey:"tour_nuit_creneau",
-    suggestions:["Sacré-Cœur","Arc de Triomphe","Champs-Élysées","Concorde",
-                 "Trocadéro","Tour Eiffel","Notre-Dame","Tour Montparnasse"] },
-  /* Paris en famille. Pas de gamme imposée : une famille de trois tient dans
-     une Ela One, et lui vendre un van d'office serait la faire payer pour du
-     vide. Elle dit combien ils sont sur l'écran des prix, la liste s'ajuste. */
-  { cle:"famille", heures:4, arrets:4, gamme:"toutes",
-    teinte:"famille",
-    photos:["photos/eiffel-trocadero.jpg","photos/sacre-coeur-parvis.jpg"],
-    nomKey:"tour_famille", promesseKey:"tour_famille_promesse", creneauKey:"tour_famille_creneau",
-    suggestions:["Tour Eiffel","Trocadéro","Champs-Élysées","Louvre",
-                 "Notre-Dame","Montmartre","Galeries Lafayette"] },
-  /* PARIS VISION — voir Paris d'en haut, à la demande de Barbaros.
-     Ce qu'on vend ici, c'est le TRANSPORT vers les points de vue et
-     l'attente sur place, pas l'entrée. La distinction n'est pas un détail
-     de rédaction : promettre un billet qu'on ne fournit pas est une
-     pratique commerciale trompeuse, et vendre de la billetterie ferait
-     sortir Barbaros du transport — TVA à 20 % au lieu de 10 %, argent à
-     avancer, et la responsabilité d'un lieu qu'il ne maîtrise pas.
-     Deux des quatre points de vue sont GRATUITS (Galeries Lafayette,
-     Printemps) : l'offre tient donc debout même sans billet. La fiche
-     écrit déjà que les entrées ne sont pas comprises. */
-  { cle:"vision", heures:3, arrets:4, gamme:"toutes",
-    teinte:"vision",
-    photos:["photos/champs-depuis-arc.jpg","photos/sacre-coeur-toits.jpg","photos/toits-paris-sacre-coeur.jpg"],
-    nomKey:"tour_vision", promesseKey:"tour_vision_promesse", creneauKey:"tour_vision_creneau",
-    suggestions:["Galeries Lafayette","Printemps Haussmann","Tour Montparnasse",
-                 "Arc de Triomphe","Trocadéro","Montmartre"] },
-  { cle:"prestige", heures:4, gamme:"premium",
-    teinte:"prestige",
-    // La Seine au couchant d'abord : c'est elle la vignette du rayon. La
-    // Joconde est un intérieur de musée — juste derrière une offre qui vend
-    // une soirée en voiture haut de gamme, elle vendait une visite guidée.
-    photos:["photos/eiffel-seine-couchant.jpg","photos/louvre-joconde.jpg"],
-    nomKey:"tour_prestige", promesseKey:"tour_prestige_promesse", creneauKey:"tour_prestige_creneau",
-    detailKey:"tour_prestige_detail", usageKey:"tour_prestige_usage" },
-  /* La mise à disposition elle-même, devenue une offre parmi les autres :
-     elle a quitté l'accueil, où elle occupait un onglet sur deux pour un
-     usage qui ne représente qu'une réservation sur dix. Elle n'a pas de
-     durée fixée — c'est tout son intérêt — d'où heures:null et parHeure,
-     qui font afficher un tarif horaire plutôt qu'un total. */
-  { cle:"disposition", heures:null, parHeure:true, gamme:"toutes",
-    teinte:"libre",
-    photos:["photos/sacre-coeur-facade.jpg","photos/louvre-pyramide-jour.jpg"],
-    nomKey:"tab_disposal", promesseKey:"tour_disposition_promesse",
-    creneauKey:"tour_disposition_creneau",
-    detailKey:"tour_disposition_detail", usageKey:"tour_disposition_usage" }
-];
-
-/* Un « à partir de » : la gamme la moins chère (restreinte à tour.gamme),
-   au tarif de jour. On n'applique PAS la majoration de nuit au circuit du
-   soir, et c'est volontaire : elle démarre à 21 h (isNightOrWeekend), alors
-   que le créneau du soir ouvre à 20 h. Un client qui part à 20 h paie bien
-   le tarif de jour. Le prix affiché est donc le plancher réel, et il
-   montera tout seul si la course tombe après 21 h ou un week-end. */
-function prixDepartTour(tour){
-  const eligibles = tour.gamme === "premium" ? VEHICLES.filter(v=>v.premium) : VEHICLES;
-  // Durée libre : on annonce le tarif d'UNE heure, pas un total qu'on ne peut
-  // pas connaître. « à partir de 60 €/h » est vrai quelle que soit la durée.
-  if(tour.parHeure) return Math.min(...eligibles.map(v=>v.hourly));
-  const moinsCher = eligibles.reduce((a,b)=> prixHoraire(a,tour.heures) <= prixHoraire(b,tour.heures) ? a : b);
-  return prixHoraire(moinsCher, tour.heures);
-}
-function renderTours(){
-  const piste = document.getElementById("listeTours");
-  if(!piste) return;
-  piste.innerHTML = "";
-  TOURS.forEach(tour=>{
-    const carte = document.createElement("button");
-    carte.className = "tour-carte";
-    carte.dataset.tour = tour.cle;
-    const duree = tour.heures ? `${tour.heures} ${escapeHtml(t("duration_label_h"))} · ` : "";
-    const ligneHaut = tour.arrets
-      ? `${duree}${tour.arrets} ${escapeHtml(t("tours_arrets"))}`
-      : `${duree}${escapeHtml(t(tour.detailKey))}`;
-    const ligneBas = tour.suggestions
-      ? `${escapeHtml(t("tours_suggestions"))} ${escapeHtml(tour.suggestions.join(" · "))}`
-      : escapeHtml(t(tour.usageKey));
-    carte.innerHTML = `
-      <span class="tour-photo block${tour.photos ? "" : " teinte-" + tour.teinte}"${tour.photos ? ` data-fond="${escapeHtml(tour.photos[0])}"` : ""}>
-        <span class="tour-duree">${ligneHaut}</span>
-      </span>
-      <span class="tour-corps block">
-        <span class="tour-nom block">${escapeHtml(t(tour.nomKey))}</span>
-        <!-- La promesse avant la contrainte : ce qu'on vend, puis quand.
-             Sans elle, la carte annonçait des heures — un client n'achète
-             pas trois heures de voiture, il achète une soirée à Paris. -->
-        <span class="tour-promesse block">${escapeHtml(t(tour.promesseKey))}</span>
-        <span class="tour-creneau block">${escapeHtml(t(tour.creneauKey))}</span>
-        <span class="tour-etapes block">${ligneBas}</span>
-        <span class="tour-prix block"><span>${escapeHtml(t("tours_apd"))} </span>${eur(prixDepartTour(tour))}${tour.parHeure ? "/" + escapeHtml(t("duration_label_h")) : ""}</span>
-      </span>`;
-    // La carte n'engage rien : elle ouvre la fiche. C'est la fiche qui
-    // prépare le formulaire, une fois le client renseigné.
-    carte.addEventListener("click", ()=>ouvrirFicheTour(tour));
-    piste.appendChild(carte);
-  });
-  chargerFondsVisibles(piste);
-}
-
-/* =====================================================================
-   LES VIGNETTES NE SE CHARGENT QU'À L'APPROCHE
-   ---------------------------------------------------------------------
-   Mesuré à 390 × 844 px : le rayon d'offres commence à 1 022 px, soit
-   178 px SOUS le bas de l'écran. Aucune de ses six photos n'est visible au
-   chargement — et pourtant les six partaient d'un coup : 1,8 Mo téléchargés
-   avant que le formulaire ne s'affiche, en 4G, dans un parking d'aéroport.
-
-   On ne peut pas se contenter de `loading="lazy"` : ce sont des fonds CSS,
-   pas des balises <img>. D'où l'observateur, avec une avance de 120 px pour
-   que la photo soit là juste avant que le client n'arrive dessus.
-   120 et non 300 : à 390 × 844 il ne reste que 178 px entre le bas de
-   l'écran et le haut du rayon. Avec 300 px d'avance, les deux premières
-   cartes se chargeaient encore au premier affichage — l'observateur était
-   posé, mais il ne servait à rien.
-
-   Sans IntersectionObserver (navigateur ancien), on charge tout de suite :
-   mieux vaut une page lourde qu'un rayon de cartes vides.
-   ===================================================================== */
-let guetteurFonds = null;
-function chargerFondsVisibles(piste){
-  const poser = (el)=>{
-    const url = el.dataset.fond;
-    if(!url) return;
-    el.style.backgroundImage = `url('${url}')`;
-    delete el.dataset.fond;
-  };
-  const aCharger = piste.querySelectorAll(".tour-photo[data-fond]");
-  if(!("IntersectionObserver" in window)){ aCharger.forEach(poser); return; }
-  if(!guetteurFonds){
-    guetteurFonds = new IntersectionObserver((entrees, obs)=>{
-      entrees.forEach(e=>{ if(e.isIntersecting){ poser(e.target); obs.unobserve(e.target); } });
-    }, {rootMargin: "120px"});
-  }
-  aCharger.forEach(el=>guetteurFonds.observe(el));
-}
-
-/* =====================================================================
-   LA FICHE D'UNE OFFRE
-   ---------------------------------------------------------------------
-   Le prix par gamme est calculé ici, pas recopié : il sort de prixHoraire,
-   la même fonction que l'écran des tarifs. Un tableau de prix écrit à la
-   main aurait fini par mentir le jour d'une hausse — et un prix affiché
-   qu'on ne tient pas, sur une prestation VTC, n'est pas une maladresse,
-   c'est une infraction.
-   ===================================================================== */
-let tourAffiche = null;
-function ouvrirFicheTour(tour){
-  tourAffiche = tour;
-  const eligibles = tour.gamme === "premium" ? VEHICLES.filter(v=>v.premium) : VEHICLES;
-  const lignesPrix = eligibles.map(v=>{
-    const montant = tour.parHeure
-      ? `${eur(v.hourly)}/${escapeHtml(t("duration_label_h"))}`
-      : eur(prixHoraire(v, tour.heures));
-    return `<li><span>${escapeHtml(t(v.nameKey))}<i>${v.places} ${escapeHtml(t(v.places>1?"pax_person_many":"pax_person_one"))}</i></span><b>${montant}</b></li>`;
-  }).join("");
-
-  const duree = tour.heures
-    ? `${tour.heures} ${escapeHtml(t("duration_label_h"))}`
-    : escapeHtml(t(tour.detailKey));
-  const lieux = tour.suggestions
-    ? `<div class="fiche-bloc">
-         <h3>${escapeHtml(t("fiche_lieux"))}</h3>
-         <p class="fiche-note">${escapeHtml(t("fiche_lieux_note"))}</p>
-         <ul class="fiche-lieux">${tour.suggestions.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul>
-       </div>` : "";
-
-  /* Une offre sans photos n'a qu'une vue : son dégradé. Le ruban et ses
-     pastilles n'apparaissent donc pas — un carrousel à une seule image est
-     une promesse qu'on ne tient pas. Rendre « photos:[…] » à l'offre suffit
-     à tout rallumer, sans toucher à ce code. */
-  const vues = tour.photos && tour.photos.length ? tour.photos : [null];
-
-  document.getElementById("ficheTour").innerHTML = `
-    <div class="fiche-carrousel">
-      <div class="fiche-vues" id="vuesTour">
-        ${vues.map((v,i)=>v
-          ? `<div class="fiche-photo" style="background-image:url('${v}')" role="img" aria-label="${escapeHtml(t(tour.nomKey))} — ${i+1}/${vues.length}"></div>`
-          : `<div class="fiche-photo teinte-${tour.teinte}" role="img" aria-label="${escapeHtml(t(tour.nomKey))}"></div>`).join("")}
-      </div>
-      ${vues.length > 1 ? `<div class="fiche-points" id="pointsTour" role="tablist" aria-label="${escapeHtml(t(tour.nomKey))}">
-        ${vues.map((_,i)=>`<button class="fiche-point${i===0?" actif":""}" data-vue="${i}" role="tab" aria-selected="${i===0}" aria-label="${i+1}/${vues.length}"></button>`).join("")}
-      </div>` : ""}
-    </div>
-    <h2 class="fiche-nom">${escapeHtml(t(tour.nomKey))}</h2>
-    <p class="fiche-promesse">${escapeHtml(t(tour.promesseKey))}</p>
-    <ul class="fiche-faits">
-      <li><span>${escapeHtml(t("fiche_duree"))}</span><b>${duree}</b></li>
-      ${tour.arrets ? `<li><span>${escapeHtml(t("fiche_arrets"))}</span><b>${tour.arrets}</b></li>` : ""}
-      <li><span>${escapeHtml(t("fiche_creneau"))}</span><b>${escapeHtml(t(tour.creneauKey))}</b></li>
-    </ul>
-    ${lieux}
-    <div class="fiche-bloc">
-      <h3>${escapeHtml(t("fiche_prix"))}</h3>
-      <ul class="fiche-prix">${lignesPrix}</ul>
-      <p class="fiche-note">${escapeHtml(t("fiche_prix_note"))}</p>
-    </div>
-    <div class="fiche-bloc">
-      <h3>${escapeHtml(t("fiche_inclus"))}</h3>
-      <ul class="fiche-liste oui">
-        <li>${escapeHtml(t("fiche_inc_chauffeur"))}</li>
-        <li>${escapeHtml(t("fiche_inc_prise"))}</li>
-        ${tour.arrets ? `<li>${escapeHtml(t("fiche_inc_arrets"))}</li>` : ""}
-        <li>${escapeHtml(t("fiche_inc_prix"))}</li>
-      </ul>
-      <h3 class="mt-4">${escapeHtml(t("fiche_exclus"))}</h3>
-      <ul class="fiche-liste non">
-        <li>${escapeHtml(t("fiche_exc_billets"))}</li>
-        <li>${escapeHtml(t("fiche_exc_repas"))}</li>
-      </ul>
-    </div>`;
-
-  const etiquette = document.getElementById("btnReserverTourLabel");
-  if(etiquette) etiquette.textContent = `${t("tour_reserver")} · ${t(tour.nomKey)}`;
-  animerRubanFiche(tour);
-  trackEvent("voir_fiche_tour", {tour: tour.cle});
-  showScreen("screen-tour");
-}
-
-/* =====================================================================
-   LE RUBAN DE PHOTOS SE MET EN MARCHE TOUT SEUL
-   ---------------------------------------------------------------------
-   Il avance de lui-même toutes les quatre secondes — c'est ce qui donne
-   envie de regarder la suivante — mais il S'ARRÊTE DÉFINITIVEMENT dès que
-   le client y touche. Un ruban qui continue de bouger pendant qu'on
-   regarde une photo est une gêne, pas une animation : le geste du doigt
-   dit qu'il a pris la main, on la lui laisse.
-   La minuterie est unique et remise à zéro à chaque ouverture de fiche :
-   sans ça, deux fiches ouvertes coup sur coup en laissaient deux qui
-   tournaient, et le ruban sautait une photo sur deux.
-   ===================================================================== */
-let minuterieRuban = null;
-function animerRubanFiche(tour){
-  clearInterval(minuterieRuban);
-  minuterieRuban = null;
-  const vues = document.getElementById("vuesTour");
-  const points = document.getElementById("pointsTour");
-  // Sans photos, l'offre n'a qu'un dégradé : il n'y a rien à faire défiler.
-  const nb = (tour.photos && tour.photos.length) || 1;
-  if(!vues || nb < 2) return;
-
-  const largeur = () => vues.clientWidth + 8; // la photo plus l'écart
-  const courante = () => Math.round(vues.scrollLeft / largeur());
-  function peindre(){
-    if(!points) return;
-    const i = courante();
-    points.querySelectorAll(".fiche-point").forEach((p,n)=>{
-      p.classList.toggle("actif", n === i);
-      p.setAttribute("aria-selected", String(n === i));
-    });
-  }
-  function arreter(){ clearInterval(minuterieRuban); minuterieRuban = null; }
-
-  vues.addEventListener("scroll", peindre, {passive:true});
-  // Le premier geste du client reprend la main pour de bon.
-  ["pointerdown","touchstart","wheel"].forEach(ev=>
-    vues.addEventListener(ev, arreter, {passive:true, once:true}));
-  if(points){
-    points.querySelectorAll(".fiche-point").forEach(p=>{
-      p.addEventListener("click", ()=>{
-        arreter();
-        vues.scrollTo({left: Number(p.dataset.vue) * largeur(), behavior:"smooth"});
-      });
-    });
-  }
-  minuterieRuban = setInterval(()=>{
-    // Onglet en arrière-plan : on ne fait pas défiler dans le vide, et
-    // surtout on n'accumule pas de retard à rattraper au retour.
-    if(document.visibilityState !== "visible") return;
-    const suivante = (courante() + 1) % nb;
-    vues.scrollTo({left: suivante * largeur(), behavior:"smooth"});
-  }, 4000);
-}
-/* Quitter la fiche arrête le ruban : il n'a aucune raison de continuer à
-   tourner sur un écran que personne ne regarde. */
-document.querySelector('#screen-tour .btn-back')
-  .addEventListener("click", ()=>{ clearInterval(minuterieRuban); minuterieRuban = null; });
-document.getElementById("btnReserverTour").addEventListener("click", ()=>{
-  clearInterval(minuterieRuban); minuterieRuban = null;
-  if(!tourAffiche) return;
-  showScreen("screen-home");
-  choisirTour(tourAffiche);
-});
-/* Appuyer sur un tour ne réserve rien : ça prépare le formulaire. Le client
-   garde la main sur son lieu de départ, sa date et son véhicule — c'est SA
-   course, pas un forfait qu'on lui impose. */
-function choisirTour(tour){
-  selectTripTab("disposal");
-  const curseur = document.getElementById("durationRange");
-  const affichage = document.getElementById("durationVal");
-  // Durée libre (la mise à disposition nue) : on ne touche à rien, c'est au
-  // client de dire combien de temps il lui faut.
-  if(curseur && tour.heures){
-    curseur.value = String(tour.heures);
-    state.duration = tour.heures;
-    if(affichage) affichage.textContent = `${tour.heures} ${t("duration_label_h")}`;
-  }
-  trackEvent("choix_tour", {tour: tour.cle, heures: tour.heures});
-  // On l'emmène au formulaire : sans ça, le formulaire change au-dessus de
-  // sa tête pendant qu'il regarde encore les cartes.
-  const champ = document.getElementById("pickupDisp");
-  if(champ){
-    champ.scrollIntoView({behavior:"smooth", block:"center"});
-    setTimeout(()=>champ.focus({preventScroll:true}), 420);
-  }
-}
 
 function selectTripTab(type){
   const simple = type === "simple";
@@ -4620,7 +4077,6 @@ if(selPax){
     renderVehicleScreen();
   });
 }
-renderTours();
 
 
 /* =====================================================================
@@ -7572,10 +7028,6 @@ function applyLanguage(lang){
     document.querySelector(`.btn-legal[data-doc="${currentLegalDoc}"]`).click();
   }
   renderTableauDeBord();
-  // Les cartes Ela Tours sont fabriquées en JavaScript, sans data-i18n : sans
-  // ce rappel, un visiteur qui passe à l'espagnol gardait des créneaux et des
-  // prix en français au milieu d'une page traduite.
-  renderTours();
   // Le bandeau de cookies change de hauteur d'une langue à l'autre : sans ce
   // rappel, les boutons d'action restent calés sur l'ancienne mesure.
   if(typeof window.__mesurerBandeau === "function") window.__mesurerBandeau();
