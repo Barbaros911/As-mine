@@ -99,7 +99,21 @@ Cloudflare donne une adresse temporaire du type
 `as-mine.pages.dev`. **Le vrai domaine n'a pas encore bougé : le site
 public continue de tourner normalement pendant tout ce temps.**
 
-Sur cette adresse temporaire, vérifier :
+**Les trois adresses à éprouver en premier.** Elles couvrent les trois
+mécanismes de service, et c'est ainsi qu'on voit une erreur de configuration
+depuis l'extérieur — une seule d'entre elles suffit à la révéler :
+
+| Adresse | Ce qu'elle éprouve | Attendu |
+|---|---|---|
+| `/` | la racine | le site de réservation |
+| `/admin.html` | un fichier exact | demande le code |
+| `/demos/` | **un dossier** | la galerie des trois sites vitrines |
+
+Si `/demos/` affiche le site de réservation, c'est le réglage
+`html_handling` de `wrangler.jsonc` qui est en cause — pas la galerie.
+C'est arrivé le 4 septembre 2026.
+
+Puis, sur cette même adresse temporaire :
 
 - [ ] l'accueil s'affiche, le formulaire est là
 - [ ] une adresse se cherche et se choisit (Argenteuil → Versailles)
