@@ -23,14 +23,24 @@
 
     // Un site à écrans multiples servi par des chemins simples : toute
     // adresse inconnue rend index.html plutôt qu'une page d'erreur. Sans
-    // ça, un client qui ouvre un lien « /admin.html » mal recopié tombe
-    // sur un 404 de Cloudflare au lieu du site.
+    // ça, un client qui ouvre un lien mal recopié tombe sur un 404 de
+    // Cloudflare au lieu du site.
     "not_found_handling": "single-page-application",
 
-    // On garde l'extension dans l'adresse : « /admin.html » doit rester
-    // « /admin.html ». Les liens déjà envoyés aux clients et le fichier
-    // sitemap.xml la portent, et une redirection silencieuse casserait
-    // l'adresse canonique déclarée à Google.
-    "html_handling": "none"
+    /* « auto-trailing-slash », et surtout PAS « none ».
+       Première tentative : « none », pour que « /admin.html » garde son
+       extension. Effet de bord non prévu — « none » ne sert QUE les
+       chemins exacts, et supprime du même coup la résolution des
+       DOSSIERS. « /demos/ » n'était donc plus un dossier dont on sert
+       l'index : c'était une adresse inconnue, qui retombait sur la règle
+       ci-dessus et affichait le site de réservation à la place de la
+       galerie. Barbaros l'a vu tout de suite.
+       Pire : la racine « / » ne fonctionnait elle aussi que par accident,
+       par ce même repli.
+       Avec « auto-trailing-slash », « /demos/ » sert bien
+       « /demos/index.html », et « /admin.html » redirige vers « /admin » —
+       une redirection, pas une rupture : les liens déjà envoyés aux
+       clients continuent de fonctionner, paramètres compris. */
+    "html_handling": "auto-trailing-slash"
   }
 }

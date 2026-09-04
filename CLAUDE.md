@@ -88,6 +88,28 @@ GitHub : les visiteurs voyaient la licorne rose de GitHub pendant que le site
 - **Cloudflare tombe aussi.** Plus rarement et moins longtemps, mais aucun
   hébergeur ne garantit 100 %. Ne pas le vendre comme une immunité.
 
+**NE JAMAIS CHANGER UN RÉGLAGE PAR DÉFAUT QU'ON NE PEUT PAS ÉPROUVER.**
+Règle posée le 4 septembre 2026, après une erreur. `html_handling` avait été
+mis à `"none"` pour que `/admin.html` garde son extension — une intuition,
+invérifiable depuis cette machine, qui n'a aucun accès réseau vers Cloudflare.
+`"none"` ne sert que les chemins **exacts** et supprime du même coup la
+résolution des **dossiers** : `/demos/` affichait le site de réservation à la
+place de la galerie, et la racine `/` ne fonctionnait que par le repli
+« adresse inconnue ». Barbaros l'a vu au premier essai.
+Le défaut (`auto-trailing-slash`) était correct. **Quand on ne peut pas
+tester, on garde le défaut** et on ne le change que sur un symptôme constaté.
+
+**LES TROIS ADRESSES À ÉPROUVER APRÈS CHAQUE DÉPLOIEMENT CLOUDFLARE** — elles
+couvrent les trois mécanismes de service, et c'est la seule façon de voir une
+erreur de configuration depuis l'extérieur :
+| Adresse | Ce qu'elle éprouve | Attendu |
+|---|---|---|
+| `/` | la racine | le site de réservation |
+| `/admin.html` | un fichier exact | demande le code |
+| `/demos/` | **un dossier** | la galerie des trois sites vitrines |
+Si `/demos/` affiche le site de réservation, c'est `html_handling` qui est en
+cause — pas la galerie.
+
 ## Git et publication
 
 **Rien ne part sans que Barbaros l'ait vu.** Règle posée en août 2026, après
