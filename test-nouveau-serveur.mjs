@@ -101,8 +101,12 @@ check('et la clé technique du véhicule, jamais son nom commercial seul',
 check('le client lit que sa demande est arrivée',
   (await p.locator('#envoiTexte').textContent()).includes('bien parvenue'),
   await p.locator('#envoiTexte').textContent());
-check('et il n\'a RIEN à envoyer : aucun WhatsApp ouvert tout seul',
-  (await p.evaluate(()=>window.__liens)).length===0);
+// Le message WhatsApp part DANS TOUS LES CAS depuis que Barbaros a demandé
+// à être prévenu sur son téléphone : le dépôt remplit le tableau de bord,
+// le message le réveille. Les deux ne se remplacent pas.
+check('le message WhatsApp part aussi, même quand le dépôt réussit',
+  (await p.evaluate(()=>window.__liens)).length===1,
+  String((await p.evaluate(()=>window.__liens)).length));
 check('le renvoi reste en retrait',
   (await p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome');
 await ctx.close();
@@ -122,7 +126,7 @@ check('la course reste enregistrée sur l\'appareil',
 await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('le message de secours garde sa forme lisible par l\'exploitant',
-  msg.split('\n').length===6 && msg.includes('Départ : '), msg.split('\n').length+' lignes');
+  msg.split('\n').length===8 && msg.includes('Départ : '), msg.split('\n').length+' lignes');
 await ctx.close();
 
 await b.close();
