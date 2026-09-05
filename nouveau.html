@@ -866,13 +866,22 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
         <span data-t="srv1s">Roissy-CDG, Orly, Beauvais</span>
         </span>
       </a>
-      <!-- LA CARTE « MISE À DISPOSITION » A ÉTÉ RETIRÉE (septembre 2026, à la
-           demande de Barbaros : « affiche que le trajet »). Le site ne sait
-           réserver qu'un trajet d'une adresse à une autre : annoncer un
-           chauffeur à l'heure qu'aucun écran ne permet de commander, c'était
-           une promesse en l'air — et le premier message WhatsApp d'un client
-           qui la cherche. La photo du chauffeur ouvrant la portière reste
-           dans le dépôt : elle vient de Barbaros, elle resservira. -->
+      <!-- LA MISE À DISPOSITION EST REVENUE (septembre 2026, à la demande de
+           Barbaros, après avoir été retirée quelques jours plus tôt).
+           ELLE NE MÈNE PAS AU FORMULAIRE, et c'est la seule des trois dans
+           ce cas : le site ne sait réserver qu'un trajet d'une adresse à une
+           autre. L'envoyer vers un formulaire qui ne peut pas la prendre,
+           ce serait promettre puis se dédire au dernier écran. Elle ouvre
+           donc « Contact » — un chauffeur à l'heure se négocie de vive voix,
+           et c'est de toute façon ce qui se passerait. -->
+      <a class="service" href="#" data-ecran="ecran-contact" data-onglet="contact">
+        <span class="service-image a-photo"
+              style="background-image:url('./photos/service-chauffeur.jpg')"></span>
+        <span class="service-corps">
+        <b data-t="srv2">Mise à disposition</b>
+        <span data-t="srv2s">Un chauffeur à l'heure</span>
+        </span>
+      </a>
             <!-- L'intérieur de voiture tient « Déplacement professionnel » : c'est
            la vue la mieux définie des trois (1024 px), et elle a remplacé un
            aperçu Shutterstock non payé, retiré du dépôt. -->
@@ -1391,6 +1400,7 @@ window.ELA_TEXTES = {
     eng4:"Joignable jour et nuit", eng4s:"Par téléphone et WhatsApp",
     services:"Nos services", voir_tous:"Voir tous",
     srv1:"Transfert aéroport", srv1s:"Roissy-CDG, Orly, Beauvais",
+    srv2:"Mise à disposition", srv2s:"Un chauffeur à l'heure",
     srv3:"Déplacement professionnel", srv3s:"Réservation pour un tiers",
     nuit:"Majoration nuit et week-end de 20 % appliquée.",
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
@@ -1456,6 +1466,7 @@ window.ELA_TEXTES = {
     eng4:"Reachable day and night", eng4s:"By phone and WhatsApp",
     services:"Our services", voir_tous:"See all",
     srv1:"Airport transfer", srv1s:"Roissy-CDG, Orly, Beauvais",
+    srv2:"Hourly hire", srv2s:"A chauffeur by the hour",
     srv3:"Business travel", srv3s:"Booking for someone else",
     nuit:"A 20% night and weekend surcharge applies.",
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",

@@ -86,14 +86,13 @@ const oublis = await p.evaluate(()=>{
 });
 check('chaque texte français a son équivalent anglais', oublis.length===0, oublis.join(', '));
 
-// Le site ne sait réserver qu'un trajet : il ne doit rien annoncer d'autre.
-const vitrine = (await p.locator('#ecran-accueil').innerText()).toLowerCase();
-check('la page ne vend plus de mise à disposition',
-  !vitrine.includes('mise à disposition') && !vitrine.includes('hourly hire')
-  && !vitrine.includes('by the hour'));
-check('les cartes de services ne montrent que des trajets',
-  (await p.locator('.service').count())===2,
-  String(await p.locator('.service').count()));
+/* « Mise à disposition » est revenue à la demande de Barbaros. Ce qui est
+   vérifié ici n'est plus son absence mais sa TRADUCTION : c'est la carte la
+   plus facile à oublier, puisqu'elle a été retirée puis remise. */
+check('les trois cartes de services sont traduites',
+  (await p.locator('.service b').allTextContents()).join('|')
+    === 'Airport transfer|Hourly hire|Business travel',
+  (await p.locator('.service b').allTextContents()).join(' | '));
 
 // --- Un tunnel complet en anglais ---
 await p.type('#depart','vendome',{delay:12}); await p.waitForTimeout(850);
