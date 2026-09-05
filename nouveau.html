@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Page d'essai. Elle n'est pas en service : elatransfer.com ne bouge pas.
+     « noindex » évite que Google indexe deux pages au contenu proche, qui se
+     concurrenceraient l'une l'autre. À retirer le jour de la bascule. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Elatransfer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noir:#0B0B0D;
+  --fond:#F7F7F8;
+  --carte:#FFFFFF;
+  --encre:#17171B;
+  --gris:#75757F;
+  --filet:#E7E7EB;
+  --or:#C9992E;
+  --or-clair:#F6EEDF;
+  --or-vif:#E3B855;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--fond);color:var(--encre);
+  font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  /* La barre du bas est fixe : sans cette réserve, le dernier bloc se glisse
+     dessous et devient illisible. */
+  padding-bottom:calc(80px + env(safe-area-inset-bottom));
+}
+img{display:block;max-width:100%;}
+.page{max-width:520px;margin:0 auto;position:relative;}
+
+/* ---------- EN-TÊTE ---------- */
+.entete{background:var(--noir);color:#fff;padding:15px 20px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.logo-arc{display:block;height:13px;width:112px;margin-bottom:1px;}
+.logo-nom{font-size:23px;font-weight:800;letter-spacing:.03em;line-height:1;
+  color:#fff;white-space:nowrap;}
+.logo-nom i{font-style:normal;color:var(--or-vif);}
+.logo-sous{font-size:8px;font-weight:600;letter-spacing:.26em;
+  color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
+.menu{background:none;border:0;padding:8px 4px;display:flex;flex-direction:column;
+  gap:5px;cursor:pointer;}
+.menu span{display:block;width:27px;height:2.5px;background:#fff;border-radius:2px;}
+
+/* ---------- LA GRANDE IMAGE ---------- */
+.hero{position:relative;background:var(--noir);overflow:hidden;height:258px;}
+/* EMPLACEMENT DE LA PHOTO. Un aplat sombre en attendant l'image : il tient la
+   place exacte et garantit le contraste du titre. Pour la mettre en service,
+   remplacer ce bloc par une balise <img> et rien d'autre — les dimensions et
+   le voile sont déjà réglés. */
+.hero-image{position:absolute;inset:0;
+  background:linear-gradient(145deg,#20222B 0%,#15161C 46%,#0B0B0D 100%);}
+.hero-image::before{content:"Emplacement photo";position:absolute;
+  right:16px;top:12px;font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(255,255,255,.22);font-weight:600;}
+/* Le voile n'est pas décoratif : le titre est en blanc, et il doit rester
+   lisible quand une vraie photo — souvent claire à droite — prendra la place
+   de l'aplat. */
+.hero::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,
+    rgba(11,11,13,.95) 0%, rgba(11,11,13,.88) 32%,
+    rgba(11,11,13,.46) 66%, rgba(11,11,13,.22) 100%);}
+.hero-texte{position:absolute;inset:0;z-index:2;
+  padding:22px 20px 0;display:flex;flex-direction:column;}
+.hero h1{margin:0;font-size:31px;line-height:1.15;font-weight:800;
+  letter-spacing:-.024em;color:#fff;}
+.hero-sous{margin:12px 0 0;font-size:15px;line-height:1.4;
+  color:rgba(255,255,255,.88);max-width:30ch;}
+/* 60 px : exactement ce que la carte recouvre en remontant. Sans cette
+   réserve, la ligne de garantie passe dessous et personne ne la voit. */
+.hero-gage{margin-top:auto;padding-bottom:60px;display:flex;align-items:center;
+  gap:10px;font-size:13.5px;font-weight:600;color:#fff;}
+.hero-gage svg{flex:0 0 auto;}
+
+/* ---------- RÉSERVER ---------- */
+/* La carte mord sur l'image : c'est ce qui la fait lire comme l'objet
+   principal de la page, et non comme un bloc de plus qui suit. */
+.reserver{position:relative;z-index:5;margin:-46px 16px 0;
+  background:var(--carte);border-radius:20px;padding:20px 16px 18px;
+  box-shadow:0 20px 46px rgba(11,11,13,.15), 0 2px 6px rgba(11,11,13,.05);}
+.reserver-tete{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.reserver-icone{flex:0 0 auto;width:50px;height:50px;border-radius:15px;
+  background:var(--noir);display:flex;align-items:center;justify-content:center;}
+.reserver-tete h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em;}
+.reserver-tete p{margin:3px 0 0;font-size:13.5px;color:var(--gris);}
+
+.champ{display:flex;align-items:center;gap:12px;width:100%;
+  border:1px solid var(--filet);border-radius:13px;
+  padding:11px 14px;margin-bottom:10px;background:var(--carte);
+  text-align:left;font-family:inherit;}
+.champ-corps{flex:1 1 auto;min-width:0;}
+.champ-titre{display:block;font-size:12.5px;font-weight:600;color:var(--encre);}
+.champ input{border:0;outline:0;font:inherit;font-size:14.5px;color:var(--encre);
+  width:100%;padding:0;margin-top:2px;background:transparent;}
+.champ input::placeholder{color:var(--gris);}
+/* min-width:0 sur les cellules, et ce n'est pas décoratif : par défaut une
+   cellule de grille refuse de se réduire sous la largeur de son contenu. Les
+   champs « Date » et « Heure » débordaient donc de 116 px vers la droite, et
+   toute la page partait avec eux. */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* Un peu plus serré dans les demi-cases : à 14 px de marge et 12 px
+   d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
+.duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
+.fleche{flex:0 0 auto;}
+/* Le navigateur dessine sa propre icône dans les champs date et heure, en
+   plus de la nôtre : à deux, elles poussaient la valeur hors de la case et
+   « 09/05/2026 » s'affichait « 09/05/20 ». On efface la sienne, et on
+   l'étale sur toute la case pour qu'un appui n'importe où ouvre le
+   sélecteur. */
+.champ input[type="date"]::-webkit-calendar-picker-indicator,
+.champ input[type="time"]::-webkit-calendar-picker-indicator{
+  position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.champ input[type="date"],.champ input[type="time"]{min-width:0;}
+.duo > .champ{position:relative;}
+
+.bouton{width:100%;margin-top:8px;border:0;border-radius:13px;
+  background:var(--or);color:#fff;font-family:inherit;
+  font-size:16px;font-weight:700;padding:17px 18px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  cursor:pointer;text-decoration:none;
+  transition:transform .12s ease-out, filter .12s;}
+.bouton:active{transform:scale(.99);filter:brightness(.95);}
+.rassure{margin:14px 0 0;display:flex;align-items:center;justify-content:center;
+  gap:8px;font-size:12.5px;color:var(--gris);}
+
+/* ---------- SECTIONS ---------- */
+.section{padding:30px 20px 0;}
+.section h2{margin:0 0 20px;font-size:20.5px;font-weight:800;letter-spacing:-.02em;}
+.engagements{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.engagement{text-align:center;}
+.engagement-pastille{width:54px;height:54px;margin:0 auto 11px;border-radius:50%;
+  background:var(--or-clair);display:flex;align-items:center;justify-content:center;}
+.engagement b{display:block;font-size:12.5px;font-weight:700;line-height:1.24;}
+.engagement span{display:block;font-size:11.5px;color:var(--gris);
+  line-height:1.3;margin-top:5px;}
+.trait{height:1px;background:var(--filet);margin:28px 20px 0;}
+
+.services-tete{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+.voir-tous{font-size:13.5px;font-weight:600;color:var(--or);text-decoration:none;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+/* Une piste qui défile plutôt qu'une pile : trois cartes empilées pousseraient
+   tout le bas de la page hors de l'écran, et le geste de balayage dit « il y
+   en a d'autres » mieux qu'une flèche. */
+.services{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+  margin:0 -20px;padding:0 20px 6px;-webkit-overflow-scrolling:touch;}
+.services::-webkit-scrollbar{display:none;}
+.service{flex:0 0 178px;scroll-snap-align:start;border-radius:16px;
+  overflow:hidden;background:var(--carte);border:1px solid var(--filet);
+  text-decoration:none;color:inherit;display:block;}
+/* Même principe que la grande image : l'aplat tient la place exacte de la
+   photo à venir, aux mêmes dimensions. */
+.service-image{display:block;height:106px;position:relative;
+  background:linear-gradient(145deg,#2A2C36 0%,#191A20 100%);}
+.service-image::before{content:"Photo";position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.24);font-weight:600;}
+.service-corps{display:block;padding:11px 13px 14px;}
+.service b{display:block;font-size:14px;font-weight:700;line-height:1.2;}
+.service span span{display:block;font-size:12px;color:var(--gris);
+  line-height:1.35;margin-top:4px;}
+
+/* ---------- WHATSAPP ---------- */
+.wa{position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));
+  z-index:40;width:58px;height:58px;border-radius:50%;background:#25D366;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(37,211,102,.4);}
+
+/* ---------- BARRE DU BAS ---------- */
+.barre{position:fixed;left:0;right:0;bottom:0;z-index:35;background:#fff;
+  border-top:1px solid var(--filet);padding-bottom:env(safe-area-inset-bottom);}
+.barre-int{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+/* 52 px : un pouce fait 44 px, et c'est la seule mesure qui compte sur un
+   téléphone. */
+.onglet{min-height:52px;display:flex;flex-direction:column;align-items:center;
+  gap:5px;padding:11px 4px 10px;background:none;border:0;font-family:inherit;
+  font-size:11.5px;font-weight:600;color:var(--gris);text-decoration:none;}
+.onglet.actif{color:var(--or);}
+
+@media (min-width:520px){
+  .hero{height:430px;}
+  .hero h1{font-size:37px;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="entete">
+    <div class="logo">
+      <svg class="logo-arc" viewBox="0 0 112 13" fill="none" aria-hidden="true">
+        <path d="M2 11.4C15 3.6 34 1 56 1s41 2.6 54 10.4" stroke="#E3B855"
+              stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-nom">ELA<i>TRANSFER</i></span>
+      <span class="logo-sous">CHAUFFEURS PRIVÉS</span>
+    </div>
+    <button class="menu" type="button" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <div class="hero-image"></div>
+    <div class="hero-texte">
+      <!-- La coupure est écrite, pas laissée à la largeur : un titre de cette
+           taille se compose comme une affiche. Laissé libre il cassait en
+           trois lignes, dont une de deux mots. -->
+      <h1>Votre chauffeur,<br>en toute simplicité</h1>
+      <p class="hero-sous">Transferts privés, mises à disposition et
+        déplacements sur mesure.</p>
+      <p class="hero-gage">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2.6l7.2 3v5.7c0 4.4-3 8.3-7.2 9.8-4.2-1.5-7.2-5.4-7.2-9.8V5.6l7.2-3z"
+                stroke="#E3B855" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+        Service haut de gamme 24h/24 - 7j/7
+      </p>
+    </div>
+  </section>
+
+  <section class="reserver">
+    <div class="reserver-tete">
+      <span class="reserver-icone">
+        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#fff" stroke-width="1.7"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M9 14.6l2 2 4-4" stroke="#E3B855" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div>
+        <h2>Réserver un trajet</h2>
+        <p>Simple, rapide et sécurisé</p>
+      </div>
+    </div>
+
+    <label class="champ" for="depart">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+        <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+      </svg>
+      <span class="champ-corps">
+        <span class="champ-titre">Lieu de départ</span>
+        <input id="depart" type="text" placeholder="Adresse, aéroport, hôtel…" autocomplete="off">
+      </span>
+      <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </label>
+
+    <label class="champ" for="arrivee">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+        <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+      </svg>
+      <span class="champ-corps">
+        <span class="champ-titre">Lieu d'arrivée</span>
+        <input id="arrivee" type="text" placeholder="Adresse, aéroport, hôtel…" autocomplete="off">
+      </span>
+      <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </label>
+
+    <div class="duo">
+      <label class="champ" for="date">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#C9992E" stroke-width="1.7"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Date</span>
+          <input id="date" type="date">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <label class="champ" for="heure">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.6" stroke="#C9992E" stroke-width="1.7"/>
+          <path d="M12 7.4V12l3.1 2" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Heure</span>
+          <input id="heure" type="time" value="10:00">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+    </div>
+
+    <div class="duo">
+      <label class="champ" for="passagers">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5" stroke="#C9992E" stroke-width="1.7"/>
+          <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Passagers</span>
+          <input id="passagers" type="number" min="1" max="7" value="1" inputmode="numeric">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <label class="champ" for="bagages">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="7.6" width="16" height="12.4" rx="2.4" fill="#C9992E"/>
+          <path d="M9 7.6V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5v2.1"
+                stroke="#C9992E" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M12 10.4v6.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Bagages</span>
+          <input id="bagages" type="number" min="0" max="9" value="1" inputmode="numeric">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+    </div>
+
+    <button class="bouton" type="button">
+      Voir les tarifs et véhicules
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <p class="rassure">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="#9A9AA4" stroke-width="1.7"/>
+        <path d="M8.2 12.3l2.6 2.6 5-5.2" stroke="#9A9AA4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Annulation gratuite jusqu'à 24h avant le trajet
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>Nos engagements</h2>
+    <div class="engagements">
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="10" cy="8" r="3.4" fill="#17171B"/>
+            <path d="M3.6 20c0-3.5 2.9-5.8 6.4-5.8 1.4 0 2.7.4 3.8 1" stroke="#17171B" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M16.2 16.8l1.7 1.7 3.4-3.5" stroke="#17171B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <b>Chauffeurs professionnels</b>
+        <span>Discrets et courtois</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1z" fill="#17171B"/>
+            <path d="M4.6 15.4v2.4M19.4 15.4v2.4" stroke="#17171B" stroke-width="1.9" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <b>Véhicules haut de gamme</b>
+        <span>Confort et sécurité</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="6" width="18" height="12" rx="2.4" stroke="#17171B" stroke-width="1.8"/>
+            <path d="M3 10.2h18M6.6 14.4h3.4" stroke="#17171B" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <b>Paiement sécurisé</b>
+        <span>En ligne ou à bord</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4.6 14.4v-2.6a7.4 7.4 0 0114.8 0v2.6" stroke="#17171B" stroke-width="1.8" stroke-linecap="round"/>
+            <rect x="2.9" y="13.3" width="3.7" height="5.6" rx="1.7" fill="#17171B"/>
+            <rect x="17.4" y="13.3" width="3.7" height="5.6" rx="1.7" fill="#17171B"/>
+          </svg>
+        </span>
+        <b>Support 24/7</b>
+        <span>À votre écoute à tout moment</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="trait"></div>
+
+  <section class="section">
+    <div class="services-tete">
+      <h2>Nos services</h2>
+      <a class="voir-tous" href="#">Voir tous
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="#C9992E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+    <div class="services">
+      <a class="service" href="#">
+        <span class="service-image"></span>
+        <span class="service-corps">
+          <b>Transfert aéroport</b>
+          <span>Roissy-CDG, Orly, Beauvais</span>
+        </span>
+      </a>
+      <a class="service" href="#">
+        <span class="service-image"></span>
+        <span class="service-corps">
+          <b>Mise à disposition</b>
+          <span>Un chauffeur à l'heure</span>
+        </span>
+      </a>
+      <a class="service" href="#">
+        <span class="service-image"></span>
+        <span class="service-corps">
+          <b>Déplacement professionnel</b>
+          <span>Réservation pour un tiers</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<a class="wa" href="#" aria-label="WhatsApp">
+  <svg width="29" height="29" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
+  </svg>
+</a>
+
+<nav class="barre">
+  <div class="barre-int">
+    <a class="onglet actif" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 11l9-8 9 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5.5 10v9.5h13V10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Accueil
+    </a>
+    <a class="onglet" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="4" y="4.5" width="16" height="15.5" rx="2.4" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M4 9.5h16M9 3v3M15 3v3M8.5 14h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      Réserver
+    </a>
+    <a class="onglet" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M3.4 15.4h17.2v2.2h-3v-2.2M6.4 17.6v-2.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      Mes courses
+    </a>
+    <a class="onglet" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      Contact
+    </a>
+  </div>
+</nav>
+
+<script>
+  // La date du jour, pour ne pas présenter une date déjà passée.
+  // Rien d'autre : cette page est une robe, pas un moteur.
+  (function(){
+    var d = document.getElementById("date");
+    if(d){ var j = new Date(); d.min = d.value = j.toISOString().slice(0,10); }
+  })();
+</script>
+</body>
+</html>

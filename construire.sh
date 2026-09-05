@@ -23,6 +23,13 @@ mkdir -p site
 cp index.html admin.html styles.css manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
+# L'APERÇU de la nouvelle robe. Publié à côté du site en service, pas à sa
+# place : Barbaros le juge sur son téléphone pendant que elatransfer.com
+# continue de tourner. Il porte « noindex » — sans ça Google indexerait deux
+# pages au contenu identique, qui se concurrenceraient l'une l'autre.
+# À retirer d'ici le jour de la bascule, en même temps que le fichier.
+[ -f nouveau.html ] && cp nouveau.html site/ || true
+
 # Le domaine personnalisé. GitHub Pages l'oublie à chaque déploiement
 # sans ce fichier. Cloudflare l'ignore — il ne gêne pas.
 cp CNAME site/
