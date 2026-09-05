@@ -5,7 +5,7 @@
    coûterait cher si elle cassait :
 
    1. LA TVA EST INCLUSE, pas ajoutée. La calculer sur le TTC donnerait
-      4,83 € au lieu de 4,39 € sur une course à 48,28 €, et le prix HT
+      7,00 € au lieu de 6,36 € sur une course à 70,00 €, et le prix HT
       annoncé serait faux.
 
    2. RIEN NE PART SANS NOM NI TÉLÉPHONE. Une demande anonyme est une
@@ -68,10 +68,11 @@ check('récapitulatif atteint', await p.locator('#ecran-recap').isVisible());
 const ht = await p.locator('#recapHT').textContent();
 const tva = await p.locator('#recapTVA').textContent();
 const tot = await p.locator('#recapTotal').textContent();
-// 48,28 TTC → HT 43,89 et TVA 4,39. La TVA est INCLUSE, pas ajoutée.
+// 70 € TTC → HT 63,64 et TVA 6,36. La TVA est INCLUSE, pas ajoutée : le
+// total arrondi à la dizaine est le prix payé, on en retire la TVA.
 check('la TVA est retirée du TTC, pas ajoutée',
-  ht.replace(/\s/g,'')==='43,89€' && tva.replace(/\s/g,'')==='4,39€', ht+' / '+tva);
-check('le total est celui de l\'écran des prix', tot.replace(/\s/g,'')==='48,28€', tot);
+  ht.replace(/\s/g,'')==='63,64€' && tva.replace(/\s/g,'')==='6,36€', ht+' / '+tva);
+check('le total est celui de l\'écran des prix', tot.replace(/\s/g,'')==='70,00€', tot);
 
 // Sans coordonnées, rien ne part.
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(300);
@@ -123,7 +124,7 @@ check('les deux premières lignes « … : … » sont les adresses',
 check('la date est au format que relit l\'espace exploitant',
   /\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}/.test(lignes[3]), lignes[3]);
 check('le dernier montant en euros est le prix',
-  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='48,28€');
+  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 check('la dernière ligne est « nom — téléphone », sans deux-points',
   lignes[8].includes(' — ') && !lignes[8].includes(' : '), lignes[8]);
 check('aucune donnée du client avant la dernière ligne',

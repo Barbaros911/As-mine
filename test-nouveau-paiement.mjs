@@ -124,7 +124,7 @@ check('le message porte la ligne « Paiement »',
 check('elle est posée AVANT le prix, pour ne pas voler le dernier montant',
   L.findIndex(x=>x.startsWith('Paiement :')) < L.findIndex(x=>x.startsWith('Prix :')));
 check('le dernier montant en euros reste le prix de la course',
-  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='48,28€');
+  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 check('la dernière ligne reste « nom — téléphone »',
   L[L.length-1]==='Jean Martin — 06 12 34 56 78', L[L.length-1]);
 

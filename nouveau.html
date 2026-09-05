@@ -2092,9 +2092,20 @@ window.ELA_TEXTES = {
      toutes les courses déjà enregistrées ; une clé renommée rendrait
      illisible le véhicule de tout l'historique. Le nom commercial peut
      bouger, la clé jamais. */
+  /* LA GRILLE DE SEPTEMBRE 2026, donnée par Barbaros. Trois changements
+     d'un coup, et ils tiennent ensemble :
+     — PLUS DE PRISE EN CHARGE. Le prix n'est plus qu'un kilométrage. Avec
+       un plancher et un arrondi à la dizaine, un forfait de départ de
+       5,75 € ne se voyait plus dans le résultat : il compliquait le calcul
+       sans changer ce que le client paie.
+     — UN PLANCHER PAR GAMME. Une course de 2 km ne se fait pas pour 6 € :
+       le chauffeur traverse Paris pour venir la prendre, et ce trajet-là
+       n'est facturé à personne.
+     — L'ARRONDI À LA DIZAINE. Un prix rond s'annonce au téléphone, se
+       retient, et se règle en espèces sans chercher la monnaie. */
   var GAMMES = [
-    { cle:"berline", nom:"Berline", base:5.75,  parKm:1.75, places:4 },
-    { cle:"van",     nom:"Van",     base:11.50, parKm:2.90, places:7 }
+    { cle:"berline", nom:"Berline", parKm:2.95, mini:30, places:4 },
+    { cle:"van",     nom:"Van",     parKm:4.20, mini:60, places:7 }
   ];
 
   /* Nuit et week-end : +20 %. Le seuil est le même que sur le site en
@@ -2106,10 +2117,31 @@ window.ELA_TEXTES = {
     var j = d.getDay(), h = d.getHours();
     return j === 0 || j === 6 || h >= 21 || h < 6;
   }
+  /* L'ARRONDI DE BARBAROS : à la dizaine, et le 5 pile descend.
+     45 € → 40 €, 46 € → 50 €. C'est SA règle, pas l'arrondi de l'école, et
+     la différence n'est pas un détail : sur un 5 pile, l'arrondi ordinaire
+     monterait et le client paierait 10 € de plus que ce qui lui a été
+     annoncé au téléphone. On compare donc le reste à 5 avec un « > », pas
+     un « >= ».
+     On passe par une division entière plutôt que par un modulo : « 102,06 %
+     10 » rend 2,0600000000000023 en virgule flottante, et le prix affiché
+     serait 100,000000001 €. Ici le résultat est toujours une dizaine
+     exacte. */
+  function arrondiDizaine(p){
+    var bas = Math.floor(p / 10) * 10;
+    return (p - bas > 5) ? bas + 10 : bas;
+  }
+  /* L'ORDRE DES TROIS OPÉRATIONS COMPTE.
+     1. le kilométrage, 2. la majoration de nuit, 3. l'arrondi, 4. le
+     plancher. Arrondir avant de majorer redonnerait un prix qui n'est plus
+     une dizaine (70 × 1,2 = 84), et appliquer la majoration APRÈS le
+     plancher ferait payer 36 € une course de 2 km annoncée à 30 €. Le
+     plancher est le dernier mot : c'est un montant plancher, pas une base
+     de calcul. */
   function prix(gamme, km, majoration){
-    var p = gamme.base + gamme.parKm * km;
+    var p = gamme.parKm * km;
     if(majoration) p *= 1.2;
-    return p;
+    return Math.max(arrondiDizaine(p), gamme.mini);
   }
   function euros(n){
     return n.toLocaleString(locale(), { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
