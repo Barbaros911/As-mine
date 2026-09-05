@@ -136,6 +136,7 @@ check('et le prix repasse au format français',
 await p.locator('.langues button[data-langue="en"]').click();
 await p.waitForTimeout(200);
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
+await p.locator('[data-paiement="carte"]').click();
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(500);
 await p.locator('#btnRenvoyer').click();
 await p.waitForTimeout(200);

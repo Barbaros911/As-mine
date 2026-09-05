@@ -73,6 +73,7 @@ check('pendant le tunnel, c\'est « Réserver » qui est allumé',
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+await p.locator('[data-paiement="especes"]').click();
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(500);
 
 await p.locator('.onglet[data-onglet="courses"]').click();

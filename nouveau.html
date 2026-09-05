@@ -356,6 +356,26 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .bloc-note{margin:11px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
 .bloc .champ:last-of-type{margin-bottom:0;}
 
+/* LE CHOIX DU RÈGLEMENT — deux boutons, jamais présélectionnés.
+   Une valeur par défaut serait un mensonge poli : le chauffeur emporterait
+   son terminal pour rien, ou pire, il ne l'emporterait pas. 48 px de haut,
+   au-dessus des 44 px minimum, parce qu'on y appuie une fois et que rater
+   ce bouton coûte plus cher que rater les autres. */
+.choix{display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 10px;border:1.5px solid var(--filet);border-radius:13px;
+  background:var(--carte);color:var(--gris);font:inherit;font-size:13.5px;
+  font-weight:700;cursor:pointer;text-align:center;
+  transition:border-color .14s,background .14s,color .14s;}
+.choix svg{flex:0 0 auto;}
+.choix[aria-pressed="true"]{border-color:var(--or);background:var(--or-clair);
+  color:var(--or-encre);}
+.choix:focus-visible{outline:2px solid var(--or);outline-offset:2px;}
+/* Le message d'absence de choix suit une note DÉJÀ grise. En gris lui aussi
+   il devenait la deuxième moitié de la même phrase — vu à l'écran, illisible.
+   Il reprend donc l'encadré rouge des refus, le vocabulaire du site pour
+   « il manque quelque chose ». */
+.erreur-paiement{margin:12px 0 0;}
+
 
 /* ---------- L'ÉTAT DE L'ENVOI ---------- */
 .envoi{margin:14px 20px 0;padding:12px 14px;border-radius:14px;
@@ -971,8 +991,41 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <div class="ligne"><span data-t="prix_ht">Prix HT</span><b id="recapHT">—</b></div>
       <div class="ligne"><span data-t="tva">TVA 10 %</span><b id="recapTVA">—</b></div>
       <div class="ligne total"><span data-t="total">Total à régler</span><b id="recapTotal">—</b></div>
-      <p class="bloc-note" data-t="paiement_note">Règlement au chauffeur, à bord, en espèces ou par
+      <p class="bloc-note" data-t="paiement_note_ligne">Règlement au chauffeur, à bord, en espèces ou par
          carte. Aucun paiement en ligne, aucune donnée bancaire.</p>
+    </div>
+
+    <!-- LE MODE DE RÈGLEMENT SE DEMANDE AU CLIENT, PAS AU CHAUFFEUR.
+         Un chauffeur qui apprend en montant que le client paie par carte, et
+         qui n'a pas son terminal, se retrouve à chercher un distributeur avec
+         un client pressé. C'est UNE question, elle tient en deux boutons, et
+         elle évite exactement ça.
+         Le prix ne change pas d'un mode à l'autre : ce n'est pas un choix
+         commercial, c'est une information de préparation. -->
+    <div class="bloc">
+      <h2 class="bloc-titre" data-t="paiement_titre">Comment réglerez-vous ?</h2>
+      <div class="duo choix-paiement">
+        <button class="choix" type="button" data-paiement="especes" aria-pressed="false">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.9" y="6.4" width="18.2" height="11.2" rx="2.2"
+                  stroke="currentColor" stroke-width="1.7"/>
+            <circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/>
+          </svg>
+          <span data-t="paiement_especes">Espèces</span>
+        </button>
+        <button class="choix" type="button" data-paiement="carte" aria-pressed="false">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.9" y="5.9" width="18.2" height="12.2" rx="2.6"
+                  stroke="currentColor" stroke-width="1.7"/>
+            <path d="M2.9 10.3h18.2" stroke="currentColor" stroke-width="1.9"/>
+          </svg>
+          <span data-t="paiement_carte">Carte bancaire</span>
+        </button>
+      </div>
+      <p class="bloc-note" data-t="paiement_note">Le chauffeur doit le savoir avant
+         de partir : avec la carte, il emporte son terminal.</p>
+      <p class="refus erreur-paiement" id="erreurPaiement" hidden data-t="err_paiement">Indiquez
+         comment vous réglerez : le chauffeur prépare son terminal en conséquence.</p>
     </div>
 
     <div class="bloc">
@@ -1059,6 +1112,10 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <div class="ligne"><span data-t="arrivee">Arrivée</span><b id="bonArrivee">—</b></div>
       <div class="ligne"><span data-t="date">Date</span><b id="bonDate">—</b></div>
       <div class="ligne"><span data-t="vehicule">Véhicule</span><b id="bonVehicule">—</b></div>
+      <!-- Le règlement figure sur le bon parce que c'est un ENGAGEMENT
+           réciproque : le client sait que le chauffeur vient préparé, et
+           le chauffeur sait ce qu'il doit emporter. -->
+      <div class="ligne"><span data-t="paiement">Paiement</span><b id="bonPaiement">—</b></div>
       <div class="ligne total"><span data-t="prix_ferme">Prix ferme</span><b id="bonPrix">—</b></div>
     </div>
 
@@ -1210,6 +1267,9 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <div class="ligne"><span>Véhicule</span><b id="bbVehicule">—</b></div>
       <div class="ligne"><span>Passagers</span><b id="bbPax">—</b></div>
       <div class="ligne" id="bbLigneVol" hidden><span>Vol</span><b id="bbVol">—</b></div>
+      <!-- C'est LA ligne que Barbaros transmet au chauffeur avec l'adresse :
+           « carte » veut dire « emporte ton terminal ». -->
+      <div class="ligne"><span>Paiement</span><b id="bbPaiement">—</b></div>
       <div class="ligne total"><span>Prix</span><b id="bbPrix">—</b></div>
     </div>
 
@@ -1408,7 +1468,7 @@ window.ELA_TEXTES = {
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
     vehicule:"Véhicule", chambre_court:"Chambre", vol_court:"Vol",
     prix_ht:"Prix HT", tva:"TVA 10 %", total:"Total à régler",
-    paiement_note:"Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement en ligne, aucune donnée bancaire.",
+    paiement_note_ligne:"Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement en ligne, aucune donnée bancaire.",
     coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
     telephone:"Téléphone", ph_tel:"06 12 34 56 78",
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
@@ -1429,6 +1489,12 @@ window.ELA_TEXTES = {
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Vérifiez que le message WhatsApp est parti : c'est lui qui nous prévient tout de suite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
+    paiement_titre:"Comment réglerez-vous ?",
+    paiement_note:"Le chauffeur doit le savoir avant de partir : avec la carte, il emporte son terminal.",
+    paiement_especes:"Espèces",
+    paiement_carte:"Carte bancaire",
+    err_paiement:"Indiquez comment vous réglerez : le chauffeur prépare son terminal en conséquence.",
+    paiement:"Paiement",
     etat_court:"En attente",
     courses_titre:"Mes courses",
     courses_note:"Les demandes envoyées depuis ce téléphone. La réponse d'Elatransfer vous arrive sur WhatsApp.",
@@ -1474,7 +1540,7 @@ window.ELA_TEXTES = {
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
     vehicule:"Vehicle", chambre_court:"Room", vol_court:"Flight",
     prix_ht:"Price excl. VAT", tva:"VAT 10%", total:"Total to pay",
-    paiement_note:"Payment to your chauffeur, on board, in cash or by card. No online payment, no bank details.",
+    paiement_note_ligne:"Payment to your chauffeur, on board, in cash or by card. No online payment, no bank details.",
     coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
     telephone:"Phone", ph_tel:"+33 6 12 34 56 78",
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
@@ -1495,6 +1561,12 @@ window.ELA_TEXTES = {
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. Check that the WhatsApp message was sent: that is what alerts us straight away.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
+    paiement_titre:"How will you pay?",
+    paiement_note:"Your chauffeur needs to know before setting off: with a card, he brings his terminal.",
+    paiement_especes:"Cash",
+    paiement_carte:"Card",
+    err_paiement:"Tell us how you will pay: your chauffeur prepares his terminal accordingly.",
+    paiement:"Payment",
     etat_court:"Awaiting",
     courses_titre:"My rides",
     courses_note:"Requests sent from this phone. Elatransfer's answer reaches you on WhatsApp.",
@@ -2344,6 +2416,40 @@ window.ELA_TEXTES = {
   }
   champNom.addEventListener("input", ecrirePancarte);
 
+/* =====================================================================
+   COMMENT LE CLIENT RÈGLE
+   ---------------------------------------------------------------------
+   Ce n'est pas une option commerciale : le prix est identique dans les
+   deux cas. C'est une information de PRÉPARATION pour le chauffeur —
+   avec la carte, il emporte son terminal ; sans, il ne s'encombre pas.
+   Rien n'est présélectionné, et c'est voulu. Cocher « Espèces » par
+   défaut donnerait une réponse que le client n'a pas donnée, et c'est
+   précisément le cas où le chauffeur arrive sans terminal devant
+   quelqu'un qui n'a pas un billet sur lui.
+   ===================================================================== */
+  var boutonsPaiement = Array.prototype.slice.call(
+    document.querySelectorAll("[data-paiement]"));
+  var erreurPaiement  = document.getElementById("erreurPaiement");
+  var paiementChoisi  = null;
+  function marquerPaiement(){
+    boutonsPaiement.forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.paiement === paiementChoisi));
+    });
+  }
+  boutonsPaiement.forEach(function(b){
+    b.addEventListener("click", function(){
+      paiementChoisi = b.dataset.paiement;
+      marquerPaiement();
+      erreurPaiement.hidden = true;
+    });
+  });
+  /* Le libellé suit la langue du client à l'écran, mais celui qui part sur
+     le bon et dans le message est en FRANÇAIS : c'est Barbaros et son
+     chauffeur qui le lisent, pas le client. */
+  function paiementLisible(cle){
+    return cle === "carte" ? "Carte bancaire" : "Espèces";
+  }
+
   document.getElementById("btnContinuer").addEventListener("click", function(){
     if(!course.gamme) return;
     remplirRecap();
@@ -2375,9 +2481,9 @@ window.ELA_TEXTES = {
   }
 
   /* LE MESSAGE QUE LE CLIENT ENVOIE À BARBAROS.
-     Huit lignes, dans l'ordre où on les lit à 3 h du matin : ce qu'on
-     demande, où, quand, pour combien de personnes, dans quoi, à quel prix,
-     et qui appelle. Il commence par « Demande de réservation » parce que
+     Neuf lignes, dans l'ordre où on les lit à 3 h du matin : ce qu'on
+     demande, où, quand, pour combien de personnes, dans quoi, réglé
+     comment, à quel prix, et qui appelle. Il commence par « Demande de réservation » parce que
      c'est la première chose à comprendre en voyant la notification, avant
      même d'ouvrir le message.
      SA STRUCTURE COMPTE AUTANT QUE SON TEXTE. L'espace exploitant relira
@@ -2395,6 +2501,11 @@ window.ELA_TEXTES = {
       "Date : " + bon.dateMsg,
       "Passagers : " + bon.course.passagers,
       "Véhicule : " + bon.course.vehicule,
+      /* Le règlement est posé AVANT le prix, et pas après : le lecteur de
+         demandes retient le DERNIER montant en euros comme prix de la
+         course, et une ligne glissée entre les deux le lui ferait perdre le
+         jour où elle porterait un montant. */
+      "Paiement : " + (bon.paiementNom || "—"),
       "Prix : " + eurosFR(bon.prix.total),
       bon.client.nom + " — " + bon.client.telephone
     ].join("\n");
@@ -2407,6 +2518,11 @@ window.ELA_TEXTES = {
     document.getElementById("bonArrivee").textContent  = bon.course.arrivee;
     document.getElementById("bonDate").textContent     = dateLisible(bon);
     document.getElementById("bonVehicule").textContent = bon.course.vehicule;
+    /* Ici le client lit : le libellé suit SA langue. Une course enregistrée
+       avant que ce choix existe n'a pas de mode de règlement — on affiche un
+       tiret plutôt que d'en inventer un. */
+    document.getElementById("bonPaiement").textContent =
+      bon.paiement ? T(bon.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "—";
     document.getElementById("bonPrix").textContent     = euros(bon.prix.total);
   }
 
@@ -2418,6 +2534,17 @@ window.ELA_TEXTES = {
       return;
     }
     erreurCoord.hidden = true;
+    /* Le mode de règlement est contrôlé APRÈS les coordonnées et avant tout
+       le reste : sans lui, la course part et le chauffeur découvre en
+       montant qu'il lui manque son terminal. On ramène le client sur les
+       deux boutons plutôt que d'afficher une phrase qu'il ne verrait pas. */
+    if(!paiementChoisi){
+      erreurPaiement.hidden = false;
+      boutonsPaiement[0].focus();
+      erreurPaiement.scrollIntoView({ block:"nearest" });
+      return;
+    }
+    erreurPaiement.hidden = true;
     var chambre = (blocChambre.hidden ? "" : champChambre.value.trim());
     var vol = (blocVol.hidden ? "" : champVol.value.trim().toUpperCase());
     /* LA FORME DU BON EST CELLE QUE LIT LE TABLEAU DE BORD DE L'EXPLOITANT.
@@ -2460,6 +2587,11 @@ window.ELA_TEXTES = {
         estimee: course.estime
       },
       client: { nom: nom, telephone: tel },
+      /* Deux formes du même choix : la clé pour le code, le libellé français
+         pour tout ce qui est lu par un humain. Une course déjà enregistrée
+         sans ce champ reste lisible — l'affichage retombe sur un tiret. */
+      paiement: paiementChoisi,
+      paiementNom: paiementLisible(paiementChoisi),
       prix: { total: total, ht: ht, tva: total - ht, majoration: course.majoration },
       dateMsg: dateMessage()
     };
@@ -2867,6 +2999,9 @@ window.ELA_TEXTES = {
     document.getElementById("bbPax").textContent      = c.course.passagers || "—";
     document.getElementById("bbLigneVol").hidden      = !c.course.vol;
     document.getElementById("bbVol").textContent      = c.course.vol || "";
+    /* L'espace exploitant est en français quoi qu'il arrive : on affiche le
+       libellé déposé avec la course, pas une traduction. */
+    document.getElementById("bbPaiement").textContent = c.paiementNom || "—";
     document.getElementById("bbPrix").textContent     = euros(c.prix.total);
     document.getElementById("bbNom").textContent      = (c.client && c.client.nom) || "—";
     document.getElementById("bbTel").textContent      = (c.client && c.client.telephone) || "—";
@@ -3017,7 +3152,7 @@ window.ELA_TEXTES = {
        La liste s'allonge à chaque écran, et c'est normal : une pastille
        FIXE se pose forcément sur quelque chose, la seule question est sur
        quoi on accepte qu'elle se pose. */
-    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .pancarte, .refus, .course, .contact-lien, .protege";
+    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .pancarte, .refus, .course, .contact-lien, .choix, .protege";
 
     function juger(){
       enAttente = false;

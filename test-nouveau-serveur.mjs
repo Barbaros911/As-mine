@@ -64,6 +64,7 @@ async function reserver(serveurRepond){
   await p.locator('.veh-carte').first().click();
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+  await p.locator('[data-paiement="especes"]').click();
   await p.locator('#btnConfirmer').click();
   return { p, ctx, depots };
 }
@@ -126,7 +127,8 @@ check('la course reste enregistrée sur l\'appareil',
 await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('le message de secours garde sa forme lisible par l\'exploitant',
-  msg.split('\n').length===8 && msg.includes('Départ : '), msg.split('\n').length+' lignes');
+  msg.split('\n').length===9 && msg.includes('Départ : ')
+  && msg.includes('Paiement : '), msg.split('\n').length+' lignes');
 await ctx.close();
 
 await b.close();
