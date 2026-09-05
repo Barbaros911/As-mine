@@ -591,6 +591,57 @@ const [tele] = await Promise.all([
 check('admin : la sauvegarde produit bien un fichier',
   tele.suggestedFilename().startsWith('elatransfer-registre-')
   && tele.suggestedFilename().endsWith('.json'), tele.suggestedFilename());
+
+/* ============ L'ÉCRITEAU DE SAUVEGARDE ============
+   Le bouton ci-dessus existait déjà, au fond de cet onglet, et rien ne
+   disait jamais de s'en servir : une protection qu'il faut penser à
+   utiliser n'en est pas une. L'écriteau vit sur le tableau de bord et
+   compte les courses qui n'existent nulle part ailleurs.
+   Trois choses à vérifier, et la troisième compte autant que les autres :
+   il doit aussi savoir SE TAIRE. */
+await op.locator('.nav-item[data-target="screen-home"]').click();
+await op.waitForTimeout(500);
+const etatSauv = () => op.locator('#alerteSauvegarde').getAttribute('class');
+check('sauvegarde : à jour, l\'écriteau ne réclame rien',
+  (await etatSauv()).includes('sauv-ok'), await etatSauv());
+// Cinq courses de plus : le fichier qu'on vient d'écrire ne les contient pas.
+await op.evaluate(() => {
+  const l = JSON.parse(localStorage.getItem('ela_bookings') || '[]');
+  for (let i = 1; i <= 5; i++) l.push({ ref: 'ASM-30-01-900' + i, statut: 'attente',
+    client: { nom: 'Témoin ' + i },
+    course: { depart: 'Paris', arrivee: 'Orly', date: '2030-01-10', heure: '08:00' },
+    prix: { total: 60 } });
+  localStorage.setItem('ela_bookings', JSON.stringify(l));
+  renderTableauDeBord();
+});
+await op.waitForTimeout(400);
+check('sauvegarde : cinq courses de plus et il réclame',
+  (await etatSauv()).includes('sauv-retard'), await etatSauv());
+const texteSauv = (await op.locator('#alerteSauvegarde').textContent()).replace(/\s+/g, ' ');
+check('sauvegarde : il dit combien de courses sont en jeu',
+  /5 courses/.test(texteSauv), texteSauv.slice(0, 70));
+check('sauvegarde : il dit où ranger le fichier',
+  /iCloud|Drive/.test(texteSauv), texteSauv.slice(0, 120));
+/* LE ROUGE EST RÉSERVÉ AUX DEMANDES NON TRANCHÉES. Un premier essai avait
+   donné à cet écriteau le même rouge plein : à l'écran, on ne distinguait
+   plus une sauvegarde en retard d'un client qui attend une réponse. */
+check('sauvegarde : il ne prend pas le rouge des demandes en attente',
+  await op.evaluate(() => {
+    const f = getComputedStyle(document.getElementById('alerteSauvegarde')).backgroundColor;
+    return !/rgba?\(\s*201/.test(f);
+  }));
+// Et il sauvegarde sans quitter le tableau de bord.
+const [teleVite] = await Promise.all([
+  op.waitForEvent('download', { timeout: 8000 }),
+  op.locator('#btnSauvegardeVite').click()
+]);
+check('sauvegarde : le bouton de l\'écriteau produit le fichier',
+  teleVite.suggestedFilename().startsWith('elatransfer-registre-'), teleVite.suggestedFilename());
+await op.waitForTimeout(400);
+check('sauvegarde : une fois faite, il se tait',
+  (await etatSauv()).includes('sauv-ok'), await etatSauv());
+await op.locator('.nav-item[data-target="screen-registre"]').click();
+await op.waitForTimeout(500);
 const [csv] = await Promise.all([
   op.waitForEvent('download', { timeout: 8000 }),
   op.locator('#btnExportCourses').click()
