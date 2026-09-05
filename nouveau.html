@@ -214,6 +214,66 @@ img{display:block;max-width:100%;}
 #ecran-recap .veh-action{position:static;padding-bottom:20px;}
 .bouton:disabled{background:var(--filet);color:var(--gris);cursor:default;}
 
+/* ---------- L'ESPACE EXPLOITANT ---------- */
+/* Tout le décor client disparaît : la vitrine, la barre du bas, la pastille
+   WhatsApp. Ce que Barbaros ouvre son téléphone pour voir, ce sont les
+   demandes qui l'attendent, pas son propre argumentaire de vente. */
+body.exploitant .barre,
+body.exploitant .wa,
+body.exploitant .langues{display:none;}
+body.exploitant{padding-bottom:32px;}
+/* Un liseré doré en haut de l'enseigne : à 3 h du matin, il faut savoir d'un
+   coup d'œil si on est du côté du client ou du sien. */
+body.exploitant .entete{border-bottom:2px solid var(--or);}
+.bord-tete{display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;padding-right:20px;}
+.lien-sortie{background:none;border:0;font-family:inherit;font-size:13px;
+  font-weight:600;color:var(--gris);text-decoration:underline;
+  text-underline-offset:4px;cursor:pointer;padding:6px 0;}
+
+.compteurs{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;
+  margin:14px 20px 0;}
+.compteur{background:var(--carte);border:1px solid var(--filet);
+  border-radius:14px;padding:12px 8px;font-family:inherit;cursor:pointer;
+  text-align:center;}
+.compteur.actif{border-color:var(--encre);box-shadow:0 0 0 1.5px var(--encre);}
+.chiffre{display:block;font-size:24px;font-weight:800;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;}
+.etiquette{display:block;font-size:11px;color:var(--gris);margin-top:2px;}
+/* Le compteur des demandes en attente s'allume avec elles : c'est le seul
+   chiffre qui appelle une action tout de suite. */
+.compteur[data-filtre="attente"].urgent .chiffre{color:#C9302F;}
+
+/* TROIS DEGRÉS, UN SEUL QUI CRIE. */
+.demande{display:block;width:calc(100% - 40px);margin:11px 20px 0;
+  background:var(--carte);border:1px solid var(--filet);border-radius:16px;
+  padding:13px 14px;text-align:left;font-family:inherit;cursor:pointer;}
+.demande.attente{background:#C9302F;border-color:#C9302F;color:#fff;}
+.demande.attente .d-gris{color:rgba(255,255,255,.82);}
+.demande.confirmee{box-shadow:0 0 0 1.5px var(--or);border-color:var(--or);}
+.d-haut{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.d-ref{font-size:12px;font-weight:700;letter-spacing:.03em;
+  font-variant-numeric:tabular-nums;}
+.d-prix{font-size:15px;font-weight:800;letter-spacing:-.02em;}
+.d-trajet{display:block;font-size:14px;font-weight:700;margin-top:5px;
+  line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.d-gris{color:var(--gris);font-size:11.5px;}
+.d-bas{display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-top:7px;}
+.d-boutons{display:flex;gap:8px;flex:0 0 auto;}
+/* 40 px de haut : ces deux boutons se pressent à la chaîne, le soir, sur
+   trois ou quatre courses d'affilée. */
+.d-action{min-height:40px;padding:0 12px;border-radius:10px;border:0;
+  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;}
+.d-appeler{background:rgba(255,255,255,.16);color:#fff;}
+.demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
+.d-clore{background:#15694A;color:#fff;}
+.bouton.vert{background:#15694A;color:#fff;}
+.bouton.vert svg path{stroke:#fff;}
+#nuageActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+#nuageActions .bouton-fantome{margin-top:0;}
+
 /* ---------- LES REFUS DU FORMULAIRE ---------- */
 /* Rouge, et c'est le seul rouge de la page : il ne veut dire qu'une chose,
    « ça ne peut pas partir comme ça ». S'il servait aussi à décorer, plus
@@ -1012,6 +1072,175 @@ img{display:block;max-width:100%;}
       <button class="bouton-fantome" type="button" id="btnNouvelleCourse" data-t="autre_course">
         Réserver une autre course
       </button>
+    </div>
+  </section>
+
+
+  <!-- =====================================================================
+       L'ESPACE EXPLOITANT
+       ---------------------------------------------------------------------
+       IL SUIT L'ADRESSE, PAS L'APPAREIL. Sans « ?exploitant=1 » on est côté
+       client, même sur le téléphone déverrouillé de Barbaros — sinon il ne
+       pourrait plus jamais voir son propre site public.
+       Le code est une SERRURE, pas un coffre : un site statique ne peut pas
+       garder un secret, et seule l'empreinte du code est dans la page. Ce qui
+       protège vraiment les données des clients, c'est la règle posée sur le
+       serveur.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-verrou">
+    <div class="bloc">
+      <h1 class="bloc-titre">Espace exploitant</h1>
+      <p class="bloc-note">Saisissez votre code pour ouvrir votre tableau de bord.</p>
+      <label class="champ" for="codeExploitant">
+        <span class="champ-corps">
+          <span class="champ-titre">Code</span>
+          <input id="codeExploitant" type="password" inputmode="numeric"
+                 autocomplete="off" placeholder="••••••">
+        </span>
+      </label>
+      <p class="champ-aide" id="codeErreur" hidden>Code refusé.</p>
+      <button class="bouton" type="button" id="btnDeverrouiller">
+        <span>Ouvrir</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="ecran" id="ecran-bord">
+    <div class="bord-tete">
+      <h1 class="ecran-titre">Tableau de bord</h1>
+      <button class="lien-sortie" type="button" id="btnQuitter">Quitter</button>
+    </div>
+
+    <!-- LE SERVEUR EST CE QUI REND LE TABLEAU DE BORD UTILE SUR N'IMPORTE
+         QUEL APPAREIL. Sans connexion, on ne voit que les courses de CE
+         téléphone — et changer de téléphone les perdrait. On le dit, plutôt
+         que de laisser croire que tout est là. -->
+    <div class="bloc" id="blocNuage">
+      <h2 class="bloc-titre" id="nuageTitre">Serveur</h2>
+      <p class="bloc-note" id="nuageEtat">Non connecté : vous ne voyez que les courses de cet appareil.</p>
+      <div id="nuageFormulaire">
+        <label class="champ" for="nuageEmail">
+          <span class="champ-corps">
+            <span class="champ-titre">Adresse e-mail</span>
+            <input id="nuageEmail" type="email" autocomplete="username" placeholder="vous@exemple.com">
+          </span>
+        </label>
+        <label class="champ" for="nuageMdp">
+          <span class="champ-corps">
+            <span class="champ-titre">Mot de passe</span>
+            <input id="nuageMdp" type="password" autocomplete="current-password" placeholder="••••••••">
+          </span>
+        </label>
+        <button class="bouton" type="button" id="btnNuageConnexion">
+          <span>Se connecter</span>
+        </button>
+      </div>
+      <div id="nuageActions" hidden>
+        <button class="bouton-fantome" type="button" id="btnNuageSync">Actualiser</button>
+        <button class="bouton-fantome" type="button" id="btnNuageDeco">Se déconnecter</button>
+      </div>
+    </div>
+
+    <!-- TROIS DEGRÉS, UN SEUL QUI CRIE. Une demande pas encore tranchée est
+         en rouge plein : c'est la seule ligne du site qui prend cette
+         couleur, et elle ne veut dire qu'une chose — quelqu'un attend une
+         réponse. Une course confirmée mais pas faite est seulement cerclée
+         d'or : elle reste à assurer, mais elle n'attend plus personne. Les
+         réalisées retombent en gris. Si tout criait pareil, plus rien ne
+         crierait. -->
+    <div class="compteurs">
+      <button class="compteur" type="button" data-filtre="attente">
+        <span class="chiffre" id="cptAttente">0</span>
+        <span class="etiquette">En attente</span>
+      </button>
+      <button class="compteur" type="button" data-filtre="confirmee">
+        <span class="chiffre" id="cptConfirmee">0</span>
+        <span class="etiquette">À assurer</span>
+      </button>
+      <button class="compteur" type="button" data-filtre="realisee">
+        <span class="chiffre" id="cptRealisee">0</span>
+        <span class="etiquette">Réalisées</span>
+      </button>
+    </div>
+
+    <div id="listeBord"></div>
+    <div class="vide" id="videBord" hidden>
+      <p>Aucune course pour l'instant.</p>
+    </div>
+  </section>
+
+  <!-- Le bon vu par l'exploitant : c'est ici qu'il attribue un chauffeur,
+       confirme, ou clôt la course. -->
+  <section class="ecran" id="ecran-bord-bon">
+    <div class="trajet-tete">
+      <button class="retour" type="button" id="btnRetourBord" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="trajet-corps">
+        <p class="trajet-ligne" id="bbDepart">—</p>
+        <p class="trajet-ligne arrivee" id="bbArrivee">—</p>
+      </div>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Référence</span><b id="bbRef">—</b></div>
+      <div class="ligne"><span>État</span><b id="bbEtat">—</b></div>
+      <div class="ligne"><span>Date</span><b id="bbDate">—</b></div>
+      <div class="ligne"><span>Véhicule</span><b id="bbVehicule">—</b></div>
+      <div class="ligne"><span>Passagers</span><b id="bbPax">—</b></div>
+      <div class="ligne" id="bbLigneVol" hidden><span>Vol</span><b id="bbVol">—</b></div>
+      <div class="ligne total"><span>Prix</span><b id="bbPrix">—</b></div>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Client</h2>
+      <div class="ligne"><span>Nom</span><b id="bbNom">—</b></div>
+      <div class="ligne"><span>Téléphone</span><b id="bbTel">—</b></div>
+      <!-- Pas de « href="#" » au repos : un lien qui pointe vers rien est un
+           lien mort, et il le resterait si le client n'avait pas laissé de
+           numéro. L'adresse est posée à l'ouverture du bon, et le bloc
+           disparaît quand il n'y a pas de téléphone. -->
+      <div class="duo" id="bbJoindre" style="margin-top:12px">
+        <a class="bouton-fantome" id="bbAppeler">Appeler</a>
+        <a class="bouton-fantome" id="bbWhatsapp" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+
+    <!-- LE CHAUFFEUR EST SAISI À LA MAIN, et c'est voulu : Barbaros sait
+         déjà qui roule quand il attribue la course. Aucun message ne part
+         tout seul — il envoie la course en toutes lettres, comme il le fait
+         déjà, et clôt lui-même. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Chauffeur</h2>
+      <label class="champ" for="bbChauffeurNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom</span>
+          <input id="bbChauffeurNom" type="text" autocomplete="off" placeholder="Nom du chauffeur">
+        </span>
+      </label>
+      <label class="champ" for="bbChauffeurTel">
+        <span class="champ-corps">
+          <span class="champ-titre">Téléphone</span>
+          <input id="bbChauffeurTel" type="tel" autocomplete="off" placeholder="06 12 34 56 78">
+        </span>
+      </label>
+    </div>
+
+    <div class="veh-action" id="bbActions">
+      <button class="bouton" type="button" id="btnConfirmerCourse">
+        <span>Confirmer la course</span>
+      </button>
+      <!-- CLORE EST LE GESTE LE PLUS FRÉQUENT : c'est lui qui fait entrer la
+           course au registre. Il est en vert plein, pas en gris à côté d'un
+           refus rouge — l'action la plus courante ne doit pas être la moins
+           visible. -->
+      <button class="bouton vert" type="button" id="btnRealisee">
+        <span>Marquer comme réalisée</span>
+      </button>
+      <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
     </div>
   </section>
 
@@ -2334,6 +2563,368 @@ window.ELA_TEXTES = {
       }
     });
   });
+
+
+/* =====================================================================
+   L'ESPACE EXPLOITANT
+   ---------------------------------------------------------------------
+   Il suit l'ADRESSE, pas l'appareil : sans « ?exploitant=1 » on est côté
+   client, même sur le téléphone déverrouillé de Barbaros. Sinon il ne
+   pourrait plus jamais voir son propre site public — l'erreur a déjà été
+   faite une fois.
+   ===================================================================== */
+  var CODE_EXPLOITANT = "04b72932f8ccb464";
+  /* Seule l'EMPREINTE du code est dans la page. C'est de l'obfuscation, pas
+     de la sécurité : un site statique ne peut pas garder un secret, et la
+     page est publique. C'est une serrure, pas un coffre — ce qui protège
+     réellement les données des clients, c'est la règle posée sur le serveur.
+     Pour changer le code : ouvrir la console sur le site et taper
+     empreinte("NOUVEAUCODE"), puis coller le résultat ici. */
+  function empreinte(code){
+    var h1 = 0x811c9dc5>>>0, h2 = 0x01000193>>>0;
+    var t = "elatransfer:" + code;
+    for(var i=0;i<t.length;i++){
+      var c = t.charCodeAt(i);
+      h1 = (h1^c)>>>0; h1 = Math.imul(h1, 0x01000193)>>>0;
+      h2 = (h2^c)>>>0; h2 = Math.imul(h2, 0x85ebca6b)>>>0;
+    }
+    return (h1>>>0).toString(16).padStart(8,"0") + (h2>>>0).toString(16).padStart(8,"0");
+  }
+  window.empreinte = empreinte;
+
+  var MODE_EXPLOITANT = false, DEVERROUILLE = false;
+  try{
+    var par = new URLSearchParams(location.search).get("exploitant");
+    if(par === "0"){ localStorage.removeItem("ela_exploitant"); }
+    else if(par === "1"){
+      MODE_EXPLOITANT = true;
+      DEVERROUILLE = localStorage.getItem("ela_exploitant") === CODE_EXPLOITANT;
+    }
+  }catch(e){ /* stockage refusé : on redemandera le code */ }
+
+  /* LE REGISTRE DE L'EXPLOITANT est distinct de « mes courses » du client :
+     ce ne sont pas les mêmes personnes ni les mêmes données. Il garde 1000
+     courses — dix, au début, c'était trois jours de travail effacés. */
+  function registre(){
+    try{
+      var b = JSON.parse(localStorage.getItem("ela_bookings") || "[]");
+      return Array.isArray(b) ? b : [];
+    }catch(e){ return []; }
+  }
+  function ecrireRegistre(liste){
+    try{ localStorage.setItem("ela_bookings", JSON.stringify(liste.slice(0,1000))); }
+    catch(e){ /* stockage refusé : le tableau reste juste à l'écran */ }
+  }
+  /* FUSIONNER AJOUTE, ET N'ÉCRASE JAMAIS. Une course déjà sur l'appareil
+     peut avoir avancé depuis — chauffeur attribué, course réalisée — et la
+     version du serveur serait alors plus ancienne que celle d'ici. */
+  function fusionner(distantes){
+    var local = registre();
+    var vues = {};
+    local.forEach(function(c){ vues[c.ref] = true; });
+    var neuves = distantes.filter(function(c){ return c && c.ref && !vues[c.ref]; });
+    if(!neuves.length) return 0;
+    ecrireRegistre(neuves.concat(local));
+    return neuves.length;
+  }
+
+  /* Le serveur, côté exploitant : se connecter, lire, et remonter une
+     course qu'on vient de modifier. */
+  var CLE_SESSION = "ela_nuage_session";
+  try{ nuage.session = JSON.parse(localStorage.getItem(CLE_SESSION) || "null"); }
+  catch(e){ nuage.session = null; }
+  nuage.connecte = function(){ return Boolean(this.session && this.session.access_token); };
+  nuage.appel = function(chemin, options){
+    options = options || {};
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 8000);
+    var entetes = { apikey: SUPABASE_CLE, "Content-Type": "application/json" };
+    Object.keys(options.headers || {}).forEach(function(k){ entetes[k] = options.headers[k]; });
+    if(this.connecte()) entetes.Authorization = "Bearer " + this.session.access_token;
+    return fetch(SUPABASE_URL + chemin, {
+      method: options.method || "GET", body: options.body,
+      signal: ctrl.signal, headers: entetes
+    }).then(function(r){
+      if(!r.ok) throw new Error("nuage " + r.status);
+      return r.text();
+    }).then(function(t){ clearTimeout(minuteur); return t ? JSON.parse(t) : null; })
+      .catch(function(e){ clearTimeout(minuteur); throw e; });
+  };
+  nuage.connexion = function(email, mdp){
+    var moi = this;
+    return this.appel("/auth/v1/token?grant_type=password", {
+      method:"POST", body: JSON.stringify({ email: email, password: mdp })
+    }).then(function(r){
+      if(!r || !r.access_token) return false;
+      moi.session = r;
+      try{ localStorage.setItem(CLE_SESSION, JSON.stringify(r)); }catch(e){}
+      return true;
+    }).catch(function(){ return false; });
+  };
+  nuage.deconnexion = function(){
+    this.session = null;
+    try{ localStorage.removeItem(CLE_SESSION); }catch(e){}
+  };
+  /* La lecture est RÉSERVÉE à l'exploitant connecté : la règle du serveur la
+     refuse au visiteur anonyme, et elle doit le rester — l'ouvrir exposerait
+     les noms, téléphones et adresses de tous les clients. */
+  nuage.lister = function(){
+    if(!this.connecte()) return Promise.resolve(null);
+    return this.appel("/rest/v1/courses?select=bon&order=cree_le.desc&limit=1000")
+      .then(function(r){
+        return Array.isArray(r) ? r.map(function(x){ return x.bon; }).filter(Boolean) : [];
+      }).catch(function(){ return null; });
+  };
+  /* DÉPÔT-OU-MISE-À-JOUR. Un simple PATCH ne modifierait qu'une ligne
+     existante : il ne pourrait rien faire d'une course que Barbaros saisit
+     lui-même, qui n'a jamais été déposée par un client. Ces courses-là ne
+     vivraient que dans son téléphone, et changer d'appareil les perdrait. */
+  nuage.pousser = function(bon){
+    if(!this.connecte() || !bon || !bon.ref) return Promise.resolve(false);
+    return this.appel("/rest/v1/courses", {
+      method:"POST",
+      headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
+      body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
+    }).then(function(){ return true; }).catch(function(){ return false; });
+  };
+
+  /* ---- Le tableau de bord ---- */
+  var filtreBord = "attente";
+  function minutesDepuis(iso){
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return null;
+    return Math.floor((Date.now() - d.getTime()) / 60000);
+  }
+  function depuisLisible(min){
+    if(min === null) return "";
+    if(min < 60) return "depuis " + min + " min";
+    var h = Math.floor(min/60);
+    if(h < 24) return "depuis " + h + " h";
+    return "depuis " + Math.floor(h/24) + " j";
+  }
+  function libelleEtat(st){
+    return st === "attente" ? "En attente"
+         : st === "confirmee" ? "Confirmée"
+         : st === "realisee" ? "Réalisée" : "Refusée";
+  }
+  function telWa(brut){
+    if(!brut) return "";
+    var t = String(brut).trim();
+    var plus = t.indexOf("+") === 0 || t.indexOf("00") === 0;
+    t = t.replace(/\D/g, "");
+    if(t.indexOf("00") === 0) t = t.slice(2);
+    if(!plus && t.indexOf("0") === 0) t = "33" + t.slice(1);
+    return t.length >= 8 ? t : "";
+  }
+
+  function dessinerBord(){
+    var liste = document.getElementById("listeBord");
+    var vide  = document.getElementById("videBord");
+    var tout  = registre();
+    var parEtat = { attente:0, confirmee:0, realisee:0 };
+    tout.forEach(function(c){
+      var st = c.statut || "attente";
+      if(parEtat[st] !== undefined) parEtat[st]++;
+    });
+    document.getElementById("cptAttente").textContent   = parEtat.attente;
+    document.getElementById("cptConfirmee").textContent = parEtat.confirmee;
+    document.getElementById("cptRealisee").textContent  = parEtat.realisee;
+    document.querySelector('.compteur[data-filtre="attente"]')
+            .classList.toggle("urgent", parEtat.attente > 0);
+    document.querySelectorAll(".compteur").forEach(function(b){
+      b.classList.toggle("actif", b.dataset.filtre === filtreBord);
+    });
+
+    var visibles = tout.filter(function(c){ return (c.statut || "attente") === filtreBord; });
+    /* Les prochains départs passent devant : ce qui roule dans deux heures
+       compte plus que ce qui roulait la semaine dernière. */
+    visibles.sort(function(a,b){
+      return (a.course.date + a.course.heure).localeCompare(b.course.date + b.course.heure);
+    });
+    liste.innerHTML = "";
+    vide.hidden = visibles.length > 0;
+    visibles.forEach(function(c){
+      var st = c.statut || "attente";
+      var el = document.createElement("button");
+      el.type = "button";
+      el.className = "demande " + st;
+      var tel = telWa(c.client && c.client.telephone);
+      el.innerHTML =
+        '<span class="d-haut"><span class="d-ref"></span><span class="d-prix"></span></span>'
+      + '<span class="d-trajet"></span>'
+      + '<span class="d-gris" style="display:block;margin-top:4px"></span>'
+      + '<span class="d-bas"><span class="d-gris"></span><span class="d-boutons"></span></span>';
+      el.querySelector(".d-ref").textContent = c.ref;
+      el.querySelector(".d-prix").textContent = euros(c.prix.total);
+      el.querySelector(".d-trajet").textContent = c.course.depart + " → " + c.course.arrivee;
+      el.querySelectorAll(".d-gris")[0].textContent =
+        libelleEtat(st) + " · " + dateLisible(c) + " · " + c.course.vehicule;
+      el.querySelectorAll(".d-gris")[1].textContent =
+        (c.client && c.client.nom ? c.client.nom : "—")
+        + (st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "");
+      var boutons = el.querySelector(".d-boutons");
+      /* CLORE DEPUIS LA LISTE : c'est le geste du soir, fait à la chaîne.
+         Ouvrir chaque bon pour ça, ce serait trois appuis au lieu d'un. */
+      if(st === "confirmee"){
+        var clore = document.createElement("button");
+        clore.type = "button"; clore.className = "d-action d-clore";
+        clore.textContent = "Terminée";
+        clore.addEventListener("click", function(e){
+          e.stopPropagation();
+          majCourse(c.ref, "realisee");
+        });
+        boutons.appendChild(clore);
+      }
+      if(tel){
+        var appel = document.createElement("a");
+        appel.className = "d-action d-appeler";
+        appel.href = "tel:+" + tel;
+        appel.textContent = "Appeler";
+        /* Appeler le client ne doit pas ouvrir son bon au passage. */
+        appel.addEventListener("click", function(e){ e.stopPropagation(); });
+        boutons.appendChild(appel);
+      }
+      el.addEventListener("click", function(){ ouvrirBonBord(c.ref); });
+      liste.appendChild(el);
+    });
+  }
+
+  function majCourse(ref, statut, extra){
+    var liste = registre();
+    var i = -1;
+    for(var k=0;k<liste.length;k++) if(liste[k].ref === ref) i = k;
+    if(i < 0) return null;
+    liste[i].statut = statut;
+    if(extra) Object.keys(extra).forEach(function(k){ liste[i][k] = extra[k]; });
+    ecrireRegistre(liste);
+    nuage.pousser(liste[i]);
+    dessinerBord();
+    return liste[i];
+  }
+
+  var bonBord = null;
+  function ouvrirBonBord(ref){
+    var liste = registre();
+    bonBord = liste.filter(function(c){ return c.ref === ref; })[0] || null;
+    if(!bonBord) return;
+    var c = bonBord;
+    document.getElementById("bbDepart").textContent   = c.course.depart;
+    document.getElementById("bbArrivee").textContent  = c.course.arrivee;
+    document.getElementById("bbRef").textContent      = c.ref;
+    document.getElementById("bbEtat").textContent     = libelleEtat(c.statut || "attente");
+    document.getElementById("bbDate").textContent     = dateLisible(c);
+    document.getElementById("bbVehicule").textContent = c.course.vehicule;
+    document.getElementById("bbPax").textContent      = c.course.passagers || "—";
+    document.getElementById("bbLigneVol").hidden      = !c.course.vol;
+    document.getElementById("bbVol").textContent      = c.course.vol || "";
+    document.getElementById("bbPrix").textContent     = euros(c.prix.total);
+    document.getElementById("bbNom").textContent      = (c.client && c.client.nom) || "—";
+    document.getElementById("bbTel").textContent      = (c.client && c.client.telephone) || "—";
+    var tel = telWa(c.client && c.client.telephone);
+    document.getElementById("bbJoindre").hidden = !tel;
+    if(tel){
+      document.getElementById("bbAppeler").href  = "tel:+" + tel;
+      document.getElementById("bbWhatsapp").href = "https://wa.me/" + tel;
+    }
+    document.getElementById("bbChauffeurNom").value = (c.chauffeur && c.chauffeur.nom) || "";
+    document.getElementById("bbChauffeurTel").value = (c.chauffeur && c.chauffeur.telephone) || "";
+    ecran("ecran-bord-bon");
+  }
+  function chauffeurSaisi(){
+    return {
+      nom: document.getElementById("bbChauffeurNom").value.trim(),
+      telephone: document.getElementById("bbChauffeurTel").value.trim()
+    };
+  }
+  document.getElementById("btnRetourBord").addEventListener("click", function(){
+    /* On enregistre le chauffeur en quittant : sinon Barbaros le saisit,
+       revient en arrière, et son travail est perdu sans un mot. */
+    if(bonBord) majCourse(bonBord.ref, bonBord.statut || "attente", { chauffeur: chauffeurSaisi() });
+    ecran("ecran-bord");
+  });
+  document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi() });
+    ouvrirBonBord(bonBord.ref);
+  });
+  document.getElementById("btnRealisee").addEventListener("click", function(){
+    if(!bonBord) return;
+    majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi() });
+    ecran("ecran-bord");
+  });
+  document.getElementById("btnRefuser").addEventListener("click", function(){
+    if(!bonBord) return;
+    majCourse(bonBord.ref, "refusee");
+    ecran("ecran-bord");
+  });
+  document.querySelectorAll(".compteur").forEach(function(b){
+    b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
+  });
+
+  /* ---- Le serveur, côté exploitant ---- */
+  function jugerNuage(){
+    var connecte = nuage.connecte();
+    document.getElementById("nuageFormulaire").hidden = connecte;
+    document.getElementById("nuageActions").hidden = !connecte;
+    document.getElementById("nuageEtat").textContent = connecte
+      ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
+      : "Non connecté : vous ne voyez que les courses de cet appareil.";
+  }
+  function synchroniser(){
+    return nuage.lister().then(function(distantes){
+      if(!distantes) return null;
+      var n = fusionner(distantes);
+      dessinerBord();
+      return n;
+    });
+  }
+  document.getElementById("btnNuageConnexion").addEventListener("click", function(){
+    var b = this, lib = b.querySelector("span"), avant = lib.textContent;
+    lib.textContent = "…"; b.disabled = true;
+    nuage.connexion(document.getElementById("nuageEmail").value.trim(),
+                    document.getElementById("nuageMdp").value).then(function(ok){
+      lib.textContent = avant; b.disabled = false;
+      if(!ok){ document.getElementById("nuageEtat").textContent = "Identifiants refusés."; return; }
+      document.getElementById("nuageMdp").value = "";
+      jugerNuage(); synchroniser();
+    });
+  });
+  document.getElementById("btnNuageSync").addEventListener("click", synchroniser);
+  document.getElementById("btnNuageDeco").addEventListener("click", function(){
+    nuage.deconnexion(); jugerNuage();
+  });
+
+  /* ---- Le verrou ---- */
+  function ouvrirEspace(){
+    document.body.classList.add("exploitant");
+    jugerNuage();
+    dessinerBord();
+    ecran("ecran-bord");
+    if(nuage.connecte()) synchroniser();
+  }
+  document.getElementById("btnDeverrouiller").addEventListener("click", function(){
+    var saisi = document.getElementById("codeExploitant").value;
+    if(empreinte(saisi) !== CODE_EXPLOITANT){
+      document.getElementById("codeErreur").hidden = false;
+      return;
+    }
+    try{ localStorage.setItem("ela_exploitant", CODE_EXPLOITANT); }catch(e){}
+    ouvrirEspace();
+  });
+  document.getElementById("codeExploitant").addEventListener("keydown", function(e){
+    if(e.key === "Enter") document.getElementById("btnDeverrouiller").click();
+  });
+  document.getElementById("btnQuitter").addEventListener("click", function(){
+    /* Quitter, c'est revenir au site public — pas oublier le code. Barbaros
+       fait l'aller-retour dix fois par jour pour vérifier ce que voit un
+       client ; lui redemander le code à chaque fois serait une punition. */
+    location.href = location.pathname;
+  });
+
+  if(MODE_EXPLOITANT){
+    document.body.classList.add("exploitant");
+    if(DEVERROUILLE) ouvrirEspace(); else ecran("ecran-verrou");
+  }
 
   /* Basculer de langue réécrit aussi ce qui a déjà été calculé : sans ça, un
      client qui passe en anglais après avoir vu son prix garderait un
