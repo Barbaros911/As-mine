@@ -237,14 +237,26 @@ chargement à l'approche. Ce qui a disparu du code : `TOURS`, `renderTours`,
 `prixDepartTour`, `ouvrirFicheTour`, `animerRubanFiche`, `chargerFondsVisibles`,
 `choisirTour`, tout le CSS `.tours*` / `.tour-*` / `.fiche-*` / `.teinte-*`, et
 la branche du rayon dans le jugement de la pastille WhatsApp.
-- **LES DEUX ONGLETS SONT REVENUS, ET C'EST OBLIGATOIRE.** La mise à
-  disposition était la cinquième carte du rayon, donc son SEUL chemin d'entrée
-  depuis que les onglets avaient été masqués en août. Retirer les cartes sans
-  rendre les onglets aurait laissé `formDisposal` intact et sans aucune porte :
-  60 à 120 € de l'heure devenus invendables sur le site, en silence. Le
-  `<div>` des onglets a donc repris `grid grid-cols-2 gap-1 mb-3` à la place de
-  `hidden`. `#btnRetourSimple` reste : il fait double emploi avec l'onglet,
-  ce n'est pas une raison de le retirer.
+- **LA MISE À DISPOSITION EST PARTIE AUSSI** (septembre 2026, quelques heures
+  après les packs : « oui »). Le site ne vend plus qu'un trajet d'une adresse
+  à une autre. Partis avec elle : les deux onglets, `selectTripTab()`,
+  `formDisposal` et ses six champs, le curseur de durée, `#btnRetourSimple`,
+  `prixHoraire()`, la branche « disposal » de la soumission et du calcul du
+  prix, et la ligne « Mise à disposition » du bloc de référencement — **y
+  compris dans le paragraphe `seo_texte` des six langues**, qui la vendait
+  encore après le retrait de la puce. Un site qui décrit une prestation qu'on
+  ne peut pas réserver est une promesse en l'air.
+- **CE QUI RESTE, ET CE N'EST PAS UN OUBLI.** `state.tripType` demeure, figé
+  sur `"simple"`, et les trois branches `tripType==="disposal"` du bon de
+  réservation, du message WhatsApp et du récapitulatif aussi. Elles ne servent
+  plus à créer une course : elles servent à **relire celles déjà enregistrées**
+  sur l'appareil et sur le serveur, qui portent ce champ. Les retirer rendrait
+  illisible une partie de l'historique — même raison que les alias des anciens
+  noms de gammes.
+  De même, `hourly`, `hourlyPlus` et `SEUIL_HORAIRE_H` restent dans `VEHICLES` :
+  c'est la grille de Barbaros, elle vaut au téléphone même si le site ne la
+  vend plus. `prixHoraire()`, elle, est partie — elle n'avait plus d'appelant,
+  et le jour où la prestation revient elle tient en huit lignes.
 - **Les clés de traduction des offres n'ont PAS été supprimées** (`tours_*`,
   `tour_*`, `fiche_*` dans les six langues). Elles sont inertes — rien ne les
   lit — et les retirer voudrait dire réécrire six blocs d'une seule ligne de
@@ -581,7 +593,7 @@ consommation appelle une pratique commerciale trompeuse.
 **Incrémenter `CACHE` dans `sw.js` à CHAQUE changement visible.** Oublié à la
 phase 1 : Barbaros a publié et n'a rien vu changer sur son téléphone. Le HTML
 est servi « réseau d'abord », mais les téléphones qui ont **installé
-l'application** gardent le reste. `elatransfer-v14` au 4 septembre 2026.
+l'application** gardent le reste. `elatransfer-v16` au 5 septembre 2026.
 
 **LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT** (septembre 2026, phase 1 de
 l'audit). Quatre endroits disaient « aéroport » avant de dire « chauffeur
@@ -634,21 +646,17 @@ l'agrandit pour de vrai (`min-height:44px`).
 **L'accueil ne pose qu'une question : d'où à où, et quand.** Août 2026, à la
 demande de Barbaros — « fait comme Uber ». Le formulaire d'accueil ne porte
 plus que les deux adresses, la date et l'heure. Ce qui en est parti :
-- **Les deux onglets** « Trajet simple / Mise à disposition » — puis
-  **revenus en septembre 2026**, quand les packs ont été retirés : la mise à
-  disposition n'avait plus d'autre porte d'entrée. Voir « IL N'Y A PLUS DE
-  PACKS » plus haut. `#tabSimple` et `#tabDisposal` portent l'état ARIA et
-  `selectTripTab()` s'appuie dessus : ne pas les supprimer sans réécrire
-  cette fonction.
+- **Les deux onglets** « Trajet simple / Mise à disposition » — masqués en
+  août, brièvement revenus en septembre au retrait des packs, puis
+  **supprimés pour de bon** quand Barbaros a fait retirer la mise à
+  disposition elle-même. Il n'y a plus qu'un formulaire, ouvert d'emblée.
 - **Le nombre de passagers et la gamme.** Ils sont passés sur l'écran des
   prix (`#paxVehicles`, au-dessus de la liste) : on ne fait pas choisir une
   gamme à quelqu'un qui n'en connaît pas encore le prix. Changer le nombre
   redessine la liste tout de suite et **efface un choix devenu impossible**
   — sinon on continuerait avec une berline pour six.
-- **La mise à disposition**, passée un temps en **offre** du rayon Ela Tours,
-  **est revenue à son onglet** avec le retrait des packs (septembre 2026).
-  Son formulaire porte toujours `#btnRetourSimple` : il fait maintenant double
-  emploi avec l'onglet, ce n'est pas une raison de le retirer.
+- **La mise à disposition** a fini par être **retirée entièrement**
+  (septembre 2026). Voir la section des packs plus haut.
 
 **Pas de raccourcis de destination sur l'accueil.** Essayés en août 2026
 (CDG · Orly · Gare du Nord, sous le champ d'arrivée), **retirés à la demande
