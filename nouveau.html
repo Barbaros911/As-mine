@@ -192,6 +192,42 @@ img{display:block;max-width:100%;}
 .veh-action .bouton{margin-top:0;}
 .bouton:disabled{background:var(--filet);color:var(--gris);cursor:default;}
 
+/* ---------- BLOCS DU RÉCAPITULATIF ET DU BON ---------- */
+.bloc{background:var(--carte);border:1px solid var(--filet);border-radius:16px;
+  margin:14px 20px 0;padding:14px;}
+.bloc-titre{margin:0 0 12px;font-size:15px;font-weight:800;letter-spacing:-.018em;}
+.ligne{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding:7px 0;font-size:13.5px;}
+.ligne + .ligne{border-top:1px solid var(--filet);}
+.ligne span{color:var(--gris);flex:0 0 auto;}
+/* Le libellé du trajet peut être long : c'est LUI qui se réduit, jamais le
+   montant à droite — un prix tronqué n'est plus un prix. */
+.ligne b{font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere;}
+.ligne.total{margin-top:2px;padding-top:11px;font-size:16px;}
+.ligne.total b{font-size:19px;font-weight:800;letter-spacing:-.02em;}
+.bloc-note{margin:11px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
+.bloc .champ:last-of-type{margin-bottom:0;}
+
+/* ---------- LE BON DE RÉSERVATION ---------- */
+.bon-tete{margin:16px 20px 0;padding:18px 16px 20px;border-radius:18px;
+  background:var(--noir);color:#fff;}
+/* L'état est en OR sur noir, pas en vert : rien n'est confirmé à cet
+   instant, et un vert dirait le contraire de ce que le bon annonce. */
+.bon-etat{display:inline-block;font-size:11px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--or-vif);
+  border:1px solid rgba(227,184,85,.4);background:rgba(227,184,85,.13);
+  border-radius:999px;padding:5px 11px;}
+.bon-ref{margin:13px 0 0;font-size:23px;font-weight:800;letter-spacing:.02em;
+  font-variant-numeric:tabular-nums;}
+.bon-note{margin:9px 0 0;font-size:12px;line-height:1.42;
+  color:rgba(255,255,255,.76);}
+/* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
+   par écran, sinon plus aucun ne l'est. */
+.bouton-fantome{width:100%;margin-top:10px;border:1px solid var(--filet);
+  border-radius:13px;background:var(--carte);color:var(--encre);
+  font-family:inherit;font-size:14.5px;font-weight:700;padding:14px 18px;
+  cursor:pointer;}
+
 /* ---------- SUGGESTIONS D'ADRESSE ---------- */
 /* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
    flux elle repousserait tout le formulaire vers le bas à chaque frappe, et
@@ -702,6 +738,114 @@ img{display:block;max-width:100%;}
     <div class="veh-action">
       <button class="bouton" type="button" id="btnContinuer" disabled>
         <span id="libelleContinuer">Choisissez une gamme</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       LE RÉCAPITULATIF
+       ---------------------------------------------------------------------
+       Le dernier écran avant l'envoi. Il porte le prix en toutes lettres et
+       son détail HT / TVA : c'est le moment où le client accepte un montant
+       ferme, il a le droit de savoir de quoi il est fait.
+       Aucun paiement en ligne, aucune donnée bancaire : le règlement se fait
+       au chauffeur, à bord.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-recap">
+    <div class="trajet-tete">
+      <button class="retour" type="button" id="btnRetourVehicules" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="trajet-corps">
+        <p class="trajet-ligne" id="recapDepart">—</p>
+        <p class="trajet-ligne arrivee" id="recapArrivee">—</p>
+      </div>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Date</span><b id="recapDate">—</b></div>
+      <div class="ligne"><span>Véhicule</span><b id="recapVehicule">—</b></div>
+      <div class="ligne"><span>Passagers</span><b id="recapPax">—</b></div>
+      <div class="ligne" id="ligneChambre" hidden><span>Chambre</span><b id="recapChambre">—</b></div>
+      <div class="ligne" id="ligneVol" hidden><span>Vol</span><b id="recapVol">—</b></div>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Prix HT</span><b id="recapHT">—</b></div>
+      <div class="ligne"><span>TVA 10 %</span><b id="recapTVA">—</b></div>
+      <div class="ligne total"><span>Total à régler</span><b id="recapTotal">—</b></div>
+      <p class="bloc-note">Règlement au chauffeur, à bord, en espèces ou par
+         carte. Aucun paiement en ligne, aucune donnée bancaire.</p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Vos coordonnées</h2>
+      <label class="champ" for="clientNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom</span>
+          <input id="clientNom" type="text" autocomplete="name" placeholder="Votre nom">
+        </span>
+      </label>
+      <label class="champ" for="clientTel">
+        <span class="champ-corps">
+          <span class="champ-titre">Téléphone</span>
+          <input id="clientTel" type="tel" autocomplete="tel" placeholder="06 12 34 56 78">
+        </span>
+      </label>
+      <p class="champ-aide" id="erreurCoordonnees" hidden>Le nom et le téléphone
+         sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
+    </div>
+
+    <div class="veh-action">
+      <button class="bouton" type="button" id="btnConfirmer">
+        <span>Confirmer ma réservation</span>
+      </button>
+      <p class="rassure">Votre demande part sur WhatsApp. Elle devient ferme
+         dès qu'Elatransfer vous confirme.</p>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       LE BON DE RÉSERVATION
+       ---------------------------------------------------------------------
+       Il ne porte QUE l'identité d'Elatransfer : le transport est exécuté par
+       un chauffeur indépendant, sous sa licence et son assurance, et c'est
+       LUI qui émettra la facture avec son SIRET. Confondre les deux ferait
+       d'Elatransfer un transporteur, ce qu'elle n'est pas.
+       Il dit « en attente » et non « confirmé » : le client attend une
+       réponse, la lui donner comme acquise serait mentir sur l'état réel.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-bon">
+    <div class="bon-tete">
+      <span class="bon-etat">En attente de confirmation</span>
+      <p class="bon-ref" id="bonRef">—</p>
+      <p class="bon-note">Ce bon devient ferme dès qu'Elatransfer confirme.
+         Vous recevez la réponse sur WhatsApp.</p>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Départ</span><b id="bonDepart">—</b></div>
+      <div class="ligne"><span>Arrivée</span><b id="bonArrivee">—</b></div>
+      <div class="ligne"><span>Date</span><b id="bonDate">—</b></div>
+      <div class="ligne"><span>Véhicule</span><b id="bonVehicule">—</b></div>
+      <div class="ligne total"><span>Prix ferme</span><b id="bonPrix">—</b></div>
+    </div>
+
+    <!-- AUCUN BOUTON DORÉ SUR CET ÉCRAN, ET C'EST VOULU. Le client vient
+         d'envoyer sa demande : il n'a plus rien à faire. Un bouton d'action
+         en or lui dirait le contraire — qu'il a raté quelque chose. Les deux
+         actions restent disponibles, en retrait. -->
+    <div class="veh-action">
+      <p class="rassure">Si WhatsApp ne s'est pas ouvert, votre demande n'est
+         pas encore arrivée.</p>
+      <button class="bouton-fantome" type="button" id="btnRenvoyer">
+        Renvoyer ma demande sur WhatsApp
+      </button>
+      <button class="bouton-fantome" type="button" id="btnNouvelleCourse">
+        Réserver une autre course
       </button>
     </div>
   </section>
@@ -1341,6 +1485,149 @@ img{display:block;max-width:100%;}
 
   document.getElementById("btnRetourAccueil")
           .addEventListener("click", function(){ ecran("ecran-accueil"); });
+
+/* =====================================================================
+   LE RÉCAPITULATIF, PUIS LE BON
+   ===================================================================== */
+  var NUMERO_WA = "33759312433";
+  var champBagages = document.getElementById("bagages");
+  var champNom = document.getElementById("clientNom");
+  var champTel = document.getElementById("clientTel");
+  var erreurCoord = document.getElementById("erreurCoordonnees");
+
+  function dateFR(){
+    var d = new Date(champDate.value + "T" + champHeure.value);
+    if(isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("fr-FR") + " " +
+           d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  }
+  function remplirRecap(){
+    var total = prix(course.gamme, course.km, course.majoration);
+    /* TVA 10 % INCLUSE, donc on la retire du total — on ne l'ajoute pas.
+       Calculer 10 % du TTC donnerait 4,83 € au lieu de 4,39 € sur une course
+       à 48,28 €, et le HT annoncé serait faux. */
+    var ht = total / 1.10;
+    document.getElementById("recapDepart").textContent  = choix.depart.label;
+    document.getElementById("recapArrivee").textContent = choix.arrivee.label;
+    document.getElementById("recapDate").textContent     = dateFR();
+    document.getElementById("recapVehicule").textContent = course.gamme.nom;
+    /* « 1 passager », pas « 1 passagers ». Un accord raté sur un
+       récapitulatif de prix, c'est le détail qui fait douter du reste. */
+    var np = parseInt(champPax.value, 10) || 1;
+    var nb = parseInt(champBagages.value, 10) || 0;
+    document.getElementById("recapPax").textContent =
+      np + (np > 1 ? " passagers · " : " passager · ") +
+      nb + (nb > 1 ? " bagages" : " bagage");
+    var chambre = champChambre.value.trim();
+    document.getElementById("ligneChambre").hidden = !chambre || blocChambre.hidden;
+    document.getElementById("recapChambre").textContent = chambre;
+    var vol = champVol.value.trim().toUpperCase();
+    document.getElementById("ligneVol").hidden = !vol || blocVol.hidden;
+    document.getElementById("recapVol").textContent = vol;
+    document.getElementById("recapHT").textContent    = euros(ht);
+    document.getElementById("recapTVA").textContent   = euros(total - ht);
+    document.getElementById("recapTotal").textContent = (course.estime ? "≈ " : "") + euros(total);
+  }
+  document.getElementById("btnContinuer").addEventListener("click", function(){
+    if(!course.gamme) return;
+    remplirRecap();
+    ecran("ecran-recap");
+  });
+  document.getElementById("btnRetourVehicules")
+          .addEventListener("click", function(){ ecran("ecran-vehicules"); });
+
+  /* LA RÉFÉRENCE : ASM-AA-MM-NNNN, le rang repart à 1 chaque mois. Elle sert
+     à retrouver une course dans un fil WhatsApp de plusieurs centaines de
+     messages. Ce n'est PAS un numéro de facture : la facture est émise par
+     le chauffeur, sous son SIRET, et la loi lui interdit trous et doublons —
+     deux numérotations séparées, pour deux documents qui n'engagent pas la
+     même personne. */
+  function referenceSuivante(){
+    var d = new Date();
+    var mois = String(d.getFullYear()).slice(2) + "-" + String(d.getMonth()+1).padStart(2,"0");
+    var rang = 1;
+    try{
+      var brut = JSON.parse(localStorage.getItem("ela_rang") || "null");
+      if(brut && brut.mois === mois) rang = brut.rang + 1;
+      localStorage.setItem("ela_rang", JSON.stringify({ mois:mois, rang:rang }));
+    }catch(e){ /* stockage refusé : le rang repart à 1, ce n'est pas grave */ }
+    return "ASM-" + mois + "-" + String(rang).padStart(4,"0");
+  }
+
+  /* LE MESSAGE. Six lignes, et pas une de plus : Barbaros les lit sur un
+     téléphone, souvent la nuit.
+     SA STRUCTURE EST UN CONTRAT avec le lecteur « Coller une demande » de
+     l'espace exploitant. Celui-ci ne devine rien aux libellés — un client
+     espagnol écrit « Salida » — il lit la PLACE des choses : la référence,
+     la date en JJ/MM/AAAA HH:MM, les deux premières lignes « … : … » pour
+     les deux adresses, la dernière ligne « nom — téléphone », et le dernier
+     montant en euros. Changer la forme d'ici sans adapter le lecteur là-bas
+     rendrait les demandes illisibles à l'arrivée. */
+  function messageDemande(bon){
+    return [
+      "ELATRANSFER — demande " + bon.ref,
+      "Départ : " + bon.depart,
+      "Arrivée : " + bon.arrivee,
+      "Date : " + bon.date,
+      "Véhicule : " + bon.vehicule + " — " + euros(bon.prix),
+      bon.nom + " — " + bon.tel
+    ].join("\n");
+  }
+
+  var bonCourant = null;
+  function remplirBon(bon){
+    document.getElementById("bonRef").textContent      = bon.ref;
+    document.getElementById("bonDepart").textContent   = bon.depart;
+    document.getElementById("bonArrivee").textContent  = bon.arrivee;
+    document.getElementById("bonDate").textContent     = bon.date;
+    document.getElementById("bonVehicule").textContent = bon.vehicule;
+    document.getElementById("bonPrix").textContent     = euros(bon.prix);
+  }
+
+  document.getElementById("btnConfirmer").addEventListener("click", function(){
+    var nom = champNom.value.trim(), tel = champTel.value.trim();
+    if(!nom || !tel){
+      erreurCoord.hidden = false;
+      (nom ? champTel : champNom).focus();
+      return;
+    }
+    erreurCoord.hidden = true;
+    var chambre = (blocChambre.hidden ? "" : champChambre.value.trim());
+    var vol = (blocVol.hidden ? "" : champVol.value.trim().toUpperCase());
+    bonCourant = {
+      ref: referenceSuivante(),
+      depart: choix.depart.label + (chambre ? " (ch. " + chambre + ")" : ""),
+      arrivee: choix.arrivee.label,
+      date: dateFR(),
+      vehicule: course.gamme.nom + (vol ? " — vol " + vol : ""),
+      prix: prix(course.gamme, course.km, course.majoration),
+      nom: nom, tel: tel
+    };
+    /* WhatsApp s'ouvre DANS LE MÊME GESTE que le clic, avant tout appel
+       réseau : un window.open() placé après un « await » est bloqué par
+       Safari sur iPhone, et la demande ne partirait jamais. */
+    window.open("https://wa.me/" + NUMERO_WA + "?text="
+                + encodeURIComponent(messageDemande(bonCourant)), "_blank");
+    try{
+      var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      deja.unshift(bonCourant);
+      localStorage.setItem("ela_courses", JSON.stringify(deja.slice(0, 1000)));
+    }catch(e){ /* stockage refusé : le bon reste affiché, il n'est pas gardé */ }
+    remplirBon(bonCourant);
+    ecran("ecran-bon");
+  });
+
+  /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
+     WhatsApp non installé, fenêtre bloquée, appui à côté. Sans ce bouton, le
+     client croit avoir réservé et attend une voiture qui ne viendra pas. */
+  document.getElementById("btnRenvoyer").addEventListener("click", function(){
+    if(!bonCourant) return;
+    window.open("https://wa.me/" + NUMERO_WA + "?text="
+                + encodeURIComponent(messageDemande(bonCourant)), "_blank");
+  });
+  document.getElementById("btnNouvelleCourse").addEventListener("click", function(){
+    ecran("ecran-accueil");
+  });
   /* Changer le nombre de passagers redessine la liste tout de suite : sans
      ça on continuerait avec une berline pour six. */
   champPax.addEventListener("change", function(){
