@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Page d'essai. Elle n'est pas en service : elatransfer.com ne bouge pas.
-     « noindex » évite que Google indexe deux pages au contenu proche, qui se
-     concurrenceraient l'une l'autre. À retirer le jour de la bascule. -->
+<!-- LE NOUVEAU SITE, en construction à son adresse provisoire.
+     « noindex » tant que deux pages coexistent sur le domaine : Google les
+     indexerait toutes les deux et elles se concurrenceraient l'une l'autre
+     sur les mêmes recherches. À retirer le jour où celle-ci prend la racine. -->
 <meta name="robots" content="noindex, nofollow">
 <title>Elatransfer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -130,6 +131,114 @@ img{display:block;max-width:100%;}
 .champ input[type="date"],.champ input[type="time"]{min-width:0;}
 .duo > .champ{position:relative;}
 
+/* ---------- LES ÉCRANS ---------- */
+.ecran{display:none;}
+.ecran.actif{display:block;animation:apparait .26s ease both;}
+@keyframes apparait{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ---------- HORS ZONE ---------- */
+/* L'écriteau est EN HAUT du formulaire, jamais sous le bouton : posé en bas
+   il tombe derrière le bandeau de cookies, et le client voit un bouton gris
+   sans la moindre raison. On ne le renvoie pas les mains vides — un
+   Paris → Deauville est une belle course, elle se négocie de vive voix. */
+.hors-zone{border:1px solid #C9302F;border-radius:14px;padding:13px 13px 14px;
+  margin-bottom:14px;background:rgba(201,48,47,.05);}
+.hors-zone b{display:block;font-size:13px;color:#9E1F1E;}
+.hors-zone p{margin:5px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
+.hors-zone .duo{margin-top:11px;}
+.hors-zone a{display:flex;align-items:center;justify-content:center;min-height:44px;
+  border:1px solid var(--or);border-radius:11px;color:var(--or);
+  font-size:13px;font-weight:700;text-decoration:none;}
+
+/* ---------- L'ÉCRAN DES PRIX ---------- */
+.trajet-tete{display:flex;align-items:flex-start;gap:12px;padding:16px 20px 0;}
+/* 44 px : le retour d'un écran de prix se cherche du pouce, pas des yeux.
+   Un chevron de 16 px sans fond ni contour a déjà été cherché en vain. */
+.retour{flex:0 0 auto;width:44px;height:44px;border-radius:13px;
+  border:1px solid var(--filet);background:var(--carte);color:var(--encre);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.trajet-corps{min-width:0;padding-top:2px;}
+/* Les deux adresses sont reliées par un filet vertical, comme sur un billet :
+   c'est ce qui dit « d'ici à là » sans écrire le mot. */
+.trajet-ligne{position:relative;margin:0;padding-left:20px;font-size:13.5px;
+  font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;}
+.trajet-ligne + .trajet-ligne{margin-top:11px;}
+.trajet-ligne::before{content:"";position:absolute;left:1px;top:5px;
+  width:9px;height:9px;border-radius:50%;border:2px solid var(--encre);}
+.trajet-ligne.arrivee::before{background:var(--or);border-color:var(--or);}
+.trajet-ligne:first-child::after{content:"";position:absolute;left:5px;top:16px;
+  width:1px;height:12px;background:var(--filet);}
+.trajet-mesure{margin:10px 20px 0;font-size:12px;color:var(--gris);}
+
+.veh-liste{padding:16px 20px 0;display:flex;flex-direction:column;gap:10px;}
+.veh-carte{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:var(--carte);border:1px solid var(--filet);border-radius:16px;
+  padding:13px 14px;font-family:inherit;cursor:pointer;min-width:0;
+  transition:border-color .14s, box-shadow .14s;}
+/* Le choix se voit au CONTOUR, pas au fond : un fond coloré sur une carte
+   blanche déplace le regard vers la couleur au lieu du prix. */
+.veh-carte.choisi{border-color:var(--or);box-shadow:0 0 0 1.5px var(--or);}
+.veh-corps{flex:1 1 auto;min-width:0;}
+.veh-nom{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.012em;}
+.veh-detail{display:block;font-size:11.5px;color:var(--gris);margin-top:3px;
+  line-height:1.3;}
+.veh-prix{flex:0 0 auto;font-size:16px;font-weight:800;letter-spacing:-.02em;
+  padding-left:6px;}
+.veh-note{margin:14px 20px 0;font-size:11px;color:var(--gris);line-height:1.4;}
+/* Le bouton se colle au-dessus de la barre du bas : sur un écran de prix, il
+   doit être atteignable sans remonter la liste. */
+.veh-action{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom));
+  padding:16px 20px 4px;margin-top:18px;}
+.veh-action .bouton{margin-top:0;}
+.bouton:disabled{background:var(--filet);color:var(--gris);cursor:default;}
+
+/* ---------- BLOCS DU RÉCAPITULATIF ET DU BON ---------- */
+.bloc{background:var(--carte);border:1px solid var(--filet);border-radius:16px;
+  margin:14px 20px 0;padding:14px;}
+.bloc-titre{margin:0 0 12px;font-size:15px;font-weight:800;letter-spacing:-.018em;}
+.ligne{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding:7px 0;font-size:13.5px;}
+.ligne + .ligne{border-top:1px solid var(--filet);}
+.ligne span{color:var(--gris);flex:0 0 auto;}
+/* Le libellé du trajet peut être long : c'est LUI qui se réduit, jamais le
+   montant à droite — un prix tronqué n'est plus un prix. */
+.ligne b{font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere;}
+.ligne.total{margin-top:2px;padding-top:11px;font-size:16px;}
+.ligne.total b{font-size:19px;font-weight:800;letter-spacing:-.02em;}
+.bloc-note{margin:11px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
+.bloc .champ:last-of-type{margin-bottom:0;}
+
+/* ---------- LE BON DE RÉSERVATION ---------- */
+.bon-tete{margin:16px 20px 0;padding:18px 16px 20px;border-radius:18px;
+  background:var(--noir);color:#fff;}
+/* La marque en tête du bon, séparée du reste par un filet : au-dessus qui
+   émet le document, en dessous ce qu'il dit. */
+.bon-marque{padding-bottom:15px;margin-bottom:15px;
+  border-bottom:1px solid rgba(255,255,255,.16);}
+.bon-arc{display:block;height:11px;width:96px;margin-bottom:2px;}
+.bon-nom{display:block;font-size:19px;font-weight:800;letter-spacing:.03em;
+  line-height:1;}
+.bon-nom i{font-style:normal;color:var(--or-vif);}
+.bon-sous{display:block;font-size:9px;font-weight:600;letter-spacing:.24em;
+  text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:5px;}
+/* L'état est en OR sur noir, pas en vert : rien n'est confirmé à cet
+   instant, et un vert dirait le contraire de ce que le bon annonce. */
+.bon-etat{display:inline-block;font-size:11px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--or-vif);
+  border:1px solid rgba(227,184,85,.4);background:rgba(227,184,85,.13);
+  border-radius:999px;padding:5px 11px;}
+.bon-ref{margin:13px 0 0;font-size:23px;font-weight:800;letter-spacing:.02em;
+  font-variant-numeric:tabular-nums;}
+.bon-note{margin:9px 0 0;font-size:12px;line-height:1.42;
+  color:rgba(255,255,255,.76);}
+/* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
+   par écran, sinon plus aucun ne l'est. */
+.bouton-fantome{width:100%;margin-top:10px;border:1px solid var(--filet);
+  border-radius:13px;background:var(--carte);color:var(--encre);
+  font-family:inherit;font-size:14.5px;font-weight:700;padding:14px 18px;
+  cursor:pointer;}
+
 /* ---------- SUGGESTIONS D'ADRESSE ---------- */
 /* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
    flux elle repousserait tout le formulaire vers le bas à chaque frappe, et
@@ -151,8 +260,8 @@ img{display:block;max-width:100%;}
   color:var(--gris);line-height:1.35;}
 [hidden]{display:none!important;}
 /* Le bouton s'efface tant qu'une liste est ouverte. Mesuré sur le site en
-   service : la liste descend par-dessus, et le client qui vise le bouton
-   appuie sur une rue. On garde sa place — « visibility », pas « display » —
+   la liste descend par-dessus, et le client qui vise le bouton appuie sur
+   une rue. On garde sa place — « visibility », pas « display » —
    pour que la page ne sursaute pas sous le doigt. */
 .bouton.efface{visibility:hidden;}
 
@@ -194,7 +303,7 @@ img{display:block;max-width:100%;}
    que « .engagement-pastille », qu'elle écrasait donc en passant : la pastille
    repassait en « display:block » et son icône se collait en haut à gauche du
    rond au lieu d'être centrée. Même piège que le bouton « me localiser » du
-   site en service, où un sélecteur d'identifiant avait battu une classe.
+   même famille d'erreur qu'un sélecteur d'identifiant battant une classe.
    Viser l'élément voulu, jamais « tous les span de ce bloc ». */
 .engagement-sous{display:block;font-size:11.5px;color:var(--gris);
   line-height:1.32;margin-top:4px;text-wrap:balance;}
@@ -232,10 +341,9 @@ img{display:block;max-width:100%;}
 
 /* ---------- WHATSAPP ---------- */
 /* La pastille est FIXE : à un moment ou un autre du défilement, elle se pose
-   forcément sur quelque chose. Sur le site en service, la leçon a déjà été
-   payée — elle recouvrait le bouton « Continuer » de l'écran des véhicules.
-   Ici elle mangeait la fin de « Annulation gratuite jusqu'à 24h avant le
-   trajet » et le sous-titre des cartes de services.
+   forcément sur quelque chose. Mesuré ici : elle mangeait la fin de
+   « Annulation gratuite jusqu'à 24h avant le trajet » et le sous-titre des
+   cartes de services.
    Deux mesures, l'une visuelle, l'autre de comportement :
    — 54 px au lieu de 58, et posée un peu plus haut, hors du texte des cartes ;
    — elle S'EFFACE dès qu'elle croise un élément marqué « .protege ». On garde
@@ -282,6 +390,8 @@ img{display:block;max-width:100%;}
     </button>
   </header>
 
+  <section class="ecran actif" id="ecran-accueil">
+
   <section class="hero">
     <div class="hero-image"></div>
     <div class="hero-texte">
@@ -306,6 +416,26 @@ img{display:block;max-width:100%;}
       <div>
         <h2>Réserver un trajet</h2>
         <p>Simple, rapide et sécurisé</p>
+      </div>
+    </div>
+
+    <!-- LA ZONE DESSERVIE — 90 km autour de Paris.
+         Sans ce garde-fou, Lille → Marseille passait sans un mot : 1 084 km,
+         un prix ferme annoncé, et une course à assurer à perte ou un
+         engagement à retirer — ce que le Code de la consommation appelle une
+         pratique commerciale trompeuse. On mesure la distance à vol d'oiseau
+         depuis Paris, et PAS le département : la latitude et la longitude
+         sont la seule donnée présente sur toutes les adresses. 90 km couvre
+         l'Île-de-France avec de la marge et garde Beauvais-Tillé (69 km),
+         que le site propose lui-même. -->
+    <div class="hors-zone" id="horsZone" hidden>
+      <b>Cette adresse est en dehors de notre zone.</b>
+      <p id="horsZoneLieu"></p>
+      <p>Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus
+         long, appelez-nous : nous vous ferons un prix sur mesure.</p>
+      <div class="duo">
+        <a href="tel:+33759312433">Appeler</a>
+        <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
       </div>
     </div>
 
@@ -448,8 +578,8 @@ img{display:block;max-width:100%;}
       </label>
     </div>
 
-    <button class="bouton" type="button">
-      Voir les tarifs et véhicules
+    <button class="bouton" type="button" id="btnVoirPrix">
+      <span>Voir les tarifs et véhicules</span>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -582,6 +712,169 @@ img{display:block;max-width:100%;}
     </div>
   </section>
 
+  </section><!-- /#ecran-accueil -->
+
+  <!-- =====================================================================
+       L'ÉCRAN DES PRIX
+       ---------------------------------------------------------------------
+       Il ne s'ouvre jamais vide : on n'y entre qu'avec deux adresses choisies
+       dans la liste, une date et une distance calculée. C'est ce qui permet
+       d'annoncer un prix FERME — un VTC n'a pas le droit d'un taximètre, le
+       prix doit être connu avant de monter.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-vehicules">
+    <div class="trajet-tete">
+      <button class="retour" type="button" id="btnRetourAccueil" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="trajet-corps">
+        <p class="trajet-ligne" id="resumeDepart">—</p>
+        <p class="trajet-ligne arrivee" id="resumeArrivee">—</p>
+      </div>
+    </div>
+    <p class="trajet-mesure" id="resumeMesure"></p>
+
+    <div class="veh-liste" id="listeVehicules"></div>
+
+    <!-- Le prix est ferme : on le dit là où le client le lit, pas dans les
+         CGV. La majoration nuit et week-end apparaît seulement quand elle
+         s'applique — une mention permanente finit par ne plus être lue. -->
+    <p class="veh-note" id="noteNuit" hidden>Majoration nuit et week-end de 20 % appliquée.</p>
+    <p class="veh-note">Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.</p>
+
+    <div class="veh-action">
+      <button class="bouton" type="button" id="btnContinuer" disabled>
+        <span id="libelleContinuer">Choisissez une gamme</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       LE RÉCAPITULATIF
+       ---------------------------------------------------------------------
+       Le dernier écran avant l'envoi. Il porte le prix en toutes lettres et
+       son détail HT / TVA : c'est le moment où le client accepte un montant
+       ferme, il a le droit de savoir de quoi il est fait.
+       Aucun paiement en ligne, aucune donnée bancaire : le règlement se fait
+       au chauffeur, à bord.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-recap">
+    <div class="trajet-tete">
+      <button class="retour" type="button" id="btnRetourVehicules" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="trajet-corps">
+        <p class="trajet-ligne" id="recapDepart">—</p>
+        <p class="trajet-ligne arrivee" id="recapArrivee">—</p>
+      </div>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Date</span><b id="recapDate">—</b></div>
+      <div class="ligne"><span>Véhicule</span><b id="recapVehicule">—</b></div>
+      <div class="ligne"><span>Passagers</span><b id="recapPax">—</b></div>
+      <div class="ligne" id="ligneChambre" hidden><span>Chambre</span><b id="recapChambre">—</b></div>
+      <div class="ligne" id="ligneVol" hidden><span>Vol</span><b id="recapVol">—</b></div>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Prix HT</span><b id="recapHT">—</b></div>
+      <div class="ligne"><span>TVA 10 %</span><b id="recapTVA">—</b></div>
+      <div class="ligne total"><span>Total à régler</span><b id="recapTotal">—</b></div>
+      <p class="bloc-note">Règlement au chauffeur, à bord, en espèces ou par
+         carte. Aucun paiement en ligne, aucune donnée bancaire.</p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Vos coordonnées</h2>
+      <label class="champ" for="clientNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom</span>
+          <input id="clientNom" type="text" autocomplete="name" placeholder="Votre nom">
+        </span>
+      </label>
+      <label class="champ" for="clientTel">
+        <span class="champ-corps">
+          <span class="champ-titre">Téléphone</span>
+          <input id="clientTel" type="tel" autocomplete="tel" placeholder="06 12 34 56 78">
+        </span>
+      </label>
+      <p class="champ-aide" id="erreurCoordonnees" hidden>Le nom et le téléphone
+         sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
+    </div>
+
+    <div class="veh-action">
+      <button class="bouton" type="button" id="btnConfirmer">
+        <span>Confirmer ma réservation</span>
+      </button>
+      <p class="rassure">Votre demande part sur WhatsApp. Elle devient ferme
+         dès qu'Elatransfer vous confirme.</p>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       LE BON DE RÉSERVATION
+       ---------------------------------------------------------------------
+       Il ne porte QUE l'identité d'Elatransfer : le transport est exécuté par
+       un chauffeur indépendant, sous sa licence et son assurance, et c'est
+       LUI qui émettra la facture avec son SIRET. Confondre les deux ferait
+       d'Elatransfer un transporteur, ce qu'elle n'est pas.
+       Il dit « en attente » et non « confirmé » : le client attend une
+       réponse, la lui donner comme acquise serait mentir sur l'état réel.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-bon">
+    <div class="bon-tete">
+      <!-- LE BON PORTE LA MARQUE, ET SEULEMENT ELLE. C'est un document que le
+           client garde, montre à la réception d'un hôtel, retrouve dans ses
+           captures d'écran trois semaines plus tard : sans nom dessus, ce
+           n'est qu'un numéro. L'identité est celle d'Elatransfer et d'aucun
+           autre : le transport sera exécuté par un chauffeur indépendant, et
+           c'est LUI qui émettra la facture, sous son SIRET. Mêler les deux
+           ferait d'Elatransfer un transporteur, ce qu'elle n'est pas. -->
+      <div class="bon-marque">
+        <svg class="bon-arc" viewBox="0 0 112 13" fill="none" aria-hidden="true">
+          <path d="M2 11.4C15 3.6 34 1 56 1s41 2.6 54 10.4" stroke="#E3B855"
+                stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span class="bon-nom">ELA<i>TRANSFER</i></span>
+        <span class="bon-sous">Bon de réservation</span>
+      </div>
+      <span class="bon-etat">En attente de confirmation</span>
+      <p class="bon-ref" id="bonRef">—</p>
+      <p class="bon-note">Ce bon devient ferme dès qu'Elatransfer confirme.
+         Vous recevez la réponse sur WhatsApp.</p>
+    </div>
+
+    <div class="bloc">
+      <div class="ligne"><span>Départ</span><b id="bonDepart">—</b></div>
+      <div class="ligne"><span>Arrivée</span><b id="bonArrivee">—</b></div>
+      <div class="ligne"><span>Date</span><b id="bonDate">—</b></div>
+      <div class="ligne"><span>Véhicule</span><b id="bonVehicule">—</b></div>
+      <div class="ligne total"><span>Prix ferme</span><b id="bonPrix">—</b></div>
+    </div>
+
+    <!-- AUCUN BOUTON DORÉ SUR CET ÉCRAN, ET C'EST VOULU. Le client vient
+         d'envoyer sa demande : il n'a plus rien à faire. Un bouton d'action
+         en or lui dirait le contraire — qu'il a raté quelque chose. Les deux
+         actions restent disponibles, en retrait. -->
+    <div class="veh-action">
+      <p class="rassure">Si WhatsApp ne s'est pas ouvert, votre demande n'est
+         pas encore arrivée.</p>
+      <button class="bouton-fantome" type="button" id="btnRenvoyer">
+        Renvoyer ma demande sur WhatsApp
+      </button>
+      <button class="bouton-fantome" type="button" id="btnNouvelleCourse">
+        Réserver une autre course
+      </button>
+    </div>
+  </section>
+
 </div>
 
 <a class="wa" href="#" aria-label="WhatsApp">
@@ -632,8 +925,7 @@ img{display:block;max-width:100%;}
 /* =====================================================================
    LA RECHERCHE D'ADRESSE
    ---------------------------------------------------------------------
-   Reprise du site en service, à l'identique dans son principe. Deux
-   fournisseurs, interrogés EN MÊME TEMPS parce qu'ils ne savent pas la
+   Deux fournisseurs, interrogés EN MÊME TEMPS parce qu'ils ne savent pas la
    même chose :
    — la Base Adresse Nationale fait autorité sur les adresses postales
      françaises (« 12 rue de la Paix »), et ne connaît que celles-là ;
@@ -643,11 +935,10 @@ img{display:block;max-width:100%;}
    Les terminaux d'aéroport, eux, sont écrits en dur : ni l'un ni l'autre
    ne les donne proprement, et « cdg » n'a qu'un sens possible.
 
-   Une seule chose manque par rapport au site en service : le repli sur
-   une liste locale quand les DEUX services sont injoignables. Il n'a pas
-   sa place sur une page d'essai — il fabrique des adresses plausibles,
-   ce qui est utile pour éprouver le tunnel, trompeur pour juger la robe.
-   À remettre le jour de la bascule.
+   Quand les DEUX services sont injoignables, la liste affiche « Aucune
+   adresse trouvée » et le bouton reste inerte. C'est volontaire : fabriquer
+   des adresses plausibles pour que le tunnel « marche quand même » ferait
+   réserver un client vers un lieu qui n'existe pas.
    ===================================================================== */
 (function(){
   var champDepart  = document.getElementById("depart");
@@ -1009,10 +1300,363 @@ img{display:block;max-width:100%;}
   }
 
   brancher(champDepart, document.getElementById("departList"), function(item){
-    choix.depart = item; jugerChambre(); jugerVol();
+    choix.depart = item; jugerChambre(); jugerVol(); jugerZone();
   });
   brancher(champArrivee, document.getElementById("arriveeList"), function(item){
-    choix.arrivee = item; jugerVol();
+    choix.arrivee = item; jugerVol(); jugerZone();
+  });
+
+/* =====================================================================
+   LA ZONE DESSERVIE
+   ---------------------------------------------------------------------
+   On mesure la distance À VOL D'OISEAU depuis Paris, et pas le
+   département : la latitude et la longitude sont la seule donnée présente
+   sur TOUTES les adresses — Base Adresse Nationale, Photon, terminaux
+   d'aéroport. Le code postal n'est qu'un morceau de libellé, écrit
+   différemment selon la source ; s'y fier, c'est accepter qu'un jour une
+   adresse valable soit refusée parce qu'elle est écrite autrement.
+   90 km, et pas « les huit départements » : Beauvais-Tillé est dans
+   l'Oise, à 69 km, et une règle départementale aurait refusé l'un des
+   trois aéroports que le site propose lui-même.
+   ===================================================================== */
+  var CENTRE_ZONE = { lat:48.8566, lon:2.3522 };
+  var RAYON_ZONE_KM = 90;
+  function rad(d){ return d * Math.PI / 180; }
+  function volDoiseauKm(a, b){
+    var R = 6371;
+    var dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+    var h = Math.sin(dLat/2)*Math.sin(dLat/2)
+          + Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)*Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+  }
+  /* Une adresse SANS coordonnées n'est pas hors zone : elle n'est
+     simplement pas encore choisie dans la liste. Refuser ici afficherait
+     « hors zone » sur un champ en cours de saisie. */
+  function horsZone(lieu){
+    if(!lieu || typeof lieu.lat !== "number") return false;
+    return volDoiseauKm(CENTRE_ZONE, lieu) > RAYON_ZONE_KM;
+  }
+  var blocZone = document.getElementById("horsZone");
+  var zoneLieu = document.getElementById("horsZoneLieu");
+  function lieuHorsZone(){
+    if(horsZone(choix.depart)) return choix.depart;
+    if(horsZone(choix.arrivee)) return choix.arrivee;
+    return null;
+  }
+  function jugerZone(){
+    var mauvais = lieuHorsZone();
+    blocZone.hidden = !mauvais;
+    zoneLieu.textContent = mauvais ? mauvais.label : "";
+    boutonPrix.disabled = !!mauvais;
+  }
+
+/* =====================================================================
+   LE PRIX
+   ---------------------------------------------------------------------
+   La grille de Barbaros, relevée de 15 % en août 2026. Les CLÉS ne
+   changent jamais (berline, berline_vip, van, van_vip) même quand le nom
+   commercial change : elles sont écrites dans les courses déjà
+   enregistrées, et une clé renommée rendrait illisible tout l'historique.
+   Un nom de gamme est une marque : il ne se traduit pas.
+   ===================================================================== */
+  /* DEUX GAMMES, ET RIEN D'AUTRE (septembre 2026, à la demande de Barbaros :
+     « simplement deux catégories »). Ela First et Van Premium sont retirées
+     de la vente. Ce qui les distinguait — un intérieur, une gamme de
+     véhicule — ne se voit pas sur un écran et ne se promet pas sans risque :
+     annoncer un « premium » qu'on ne peut pas garantir, c'est se dédire
+     devant le client au moment où il monte.
+     LES CLÉS NE CHANGENT PAS. « berline » et « van » sont écrites dans
+     toutes les courses déjà enregistrées ; une clé renommée rendrait
+     illisible le véhicule de tout l'historique. Le nom commercial peut
+     bouger, la clé jamais. */
+  var GAMMES = [
+    { cle:"berline", nom:"Berline", base:5.75,  parKm:1.75, places:4 },
+    { cle:"van",     nom:"Van",     base:11.50, parKm:2.90, places:7 }
+  ];
+
+  /* Nuit et week-end : +20 %. Le seuil est le même que sur le site en
+     service — samedi, dimanche, et de 21 h à 6 h. */
+  function nuitOuWeekend(date, heure){
+    if(!date || !heure) return false;
+    var d = new Date(date + "T" + heure);
+    if(isNaN(d.getTime())) return false;
+    var j = d.getDay(), h = d.getHours();
+    return j === 0 || j === 6 || h >= 21 || h < 6;
+  }
+  function prix(gamme, km, majoration){
+    var p = gamme.base + gamme.parKm * km;
+    if(majoration) p *= 1.2;
+    return p;
+  }
+  function euros(n){
+    return n.toLocaleString("fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
+  }
+
+  /* L'ITINÉRAIRE fait le prix. OSRM est un serveur de DÉMONSTRATION : sans
+     engagement, débit limité. Quand il refuse, on retombe sur le vol
+     d'oiseau × 1,3 et la course est marquée « ≈ ». Ce n'est pas un détail
+     de confort — sur un Roissy → Paris l'écart se compte en euros. */
+  function itineraire(a, b){
+    var couple = a.lon+","+a.lat+";"+b.lon+","+b.lat;
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 5000);
+    return fetch("https://router.project-osrm.org/route/v1/driving/"+couple+"?overview=false",
+                 { signal:ctrl.signal })
+      .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
+      .then(function(d){
+        if(!(d && d.routes && d.routes[0])) throw new Error("route");
+        return { km:d.routes[0].distance/1000, min:Math.round(d.routes[0].duration/60), estime:false };
+      })
+      .catch(function(){
+        var km = volDoiseauKm(a, b) * 1.3;
+        return { km:km, min:Math.round(km / 30 * 60), estime:true };
+      })
+      .then(function(r){ clearTimeout(minuteur); return r; });
+  }
+
+/* =====================================================================
+   PASSER DE L'ACCUEIL AUX PRIX
+   ===================================================================== */
+  var boutonPrix = document.getElementById("btnVoirPrix");
+  var champDate  = document.getElementById("date");
+  var champHeure = document.getElementById("heure");
+  var champPax   = document.getElementById("passagers");
+  var course = { km:0, min:0, estime:false, majoration:false, gamme:null };
+
+  function ecran(id){
+    var vus = document.querySelectorAll(".ecran");
+    for(var i=0;i<vus.length;i++) vus[i].classList.toggle("actif", vus[i].id === id);
+    window.scrollTo(0, 0);
+    if(window.__jugerPastilleWa) window.__jugerPastilleWa();
+  }
+
+  function dessinerGammes(){
+    var liste = document.getElementById("listeVehicules");
+    var pax = Math.max(1, parseInt(champPax.value, 10) || 1);
+    var arrivee = new Date(new Date(champDate.value+"T"+champHeure.value).getTime()
+                           + course.min*60000);
+    liste.innerHTML = "";
+    course.gamme = null;
+    majBoutonContinuer();
+    /* Le nombre de passagers n'écarte QUE les véhicules trop petits : un
+       client seul garde le droit de vouloir un van, et c'est une course
+       plus chère. Il choisit, ou rien n'est réservé. */
+    GAMMES.filter(function(g){ return g.places >= pax; }).forEach(function(g){
+      var p = prix(g, course.km, course.majoration);
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "veh-carte";
+      b.dataset.cle = g.cle;
+      var heureArrivee = isNaN(arrivee.getTime()) ? "" :
+        (" · arrivée " + arrivee.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}));
+      b.innerHTML = '<span class="veh-corps">'
+        +   '<span class="veh-nom"></span>'
+        +   '<span class="veh-detail"></span>'
+        + '</span>'
+        + '<span class="veh-prix"></span>';
+      b.querySelector(".veh-nom").textContent = g.nom;
+      b.querySelector(".veh-detail").textContent =
+        "Jusqu'à " + g.places + " passagers · " + course.min + " min" + heureArrivee;
+      b.querySelector(".veh-prix").textContent = (course.estime ? "≈ " : "") + euros(p);
+      b.addEventListener("click", function(){
+        course.gamme = g;
+        Array.prototype.forEach.call(liste.children, function(c){
+          c.classList.toggle("choisi", c === b);
+        });
+        majBoutonContinuer();
+      });
+      liste.appendChild(b);
+    });
+  }
+  /* Le bouton se NOMME — « Continuer · Ela One » — parce qu'on ne confirme
+     pas dans le vide. */
+  function majBoutonContinuer(){
+    var btn = document.getElementById("btnContinuer");
+    var lib = document.getElementById("libelleContinuer");
+    btn.disabled = !course.gamme;
+    lib.textContent = course.gamme ? ("Continuer · " + course.gamme.nom) : "Choisissez une gamme";
+  }
+
+  boutonPrix.addEventListener("click", function(){
+    /* Départ ET arrivée sont obligatoires : le prix est ferme, arrêté à la
+       réservation, et sans les deux bouts il n'y a pas de distance donc pas
+       de prix. Un VTC n'a pas le droit d'un taximètre. */
+    if(!choix.depart || !choix.arrivee){
+      (choix.depart ? champArrivee : champDepart).focus();
+      return;
+    }
+    if(lieuHorsZone()) return;
+    course.majoration = nuitOuWeekend(champDate.value, champHeure.value);
+    var libelle = boutonPrix.querySelector("span");
+    var avant = libelle.textContent;
+    libelle.textContent = "Calcul du prix…";
+    boutonPrix.disabled = true;
+    itineraire(choix.depart, choix.arrivee).then(function(r){
+      libelle.textContent = avant;
+      boutonPrix.disabled = false;
+      course.km = r.km; course.min = r.min; course.estime = r.estime;
+      document.getElementById("resumeDepart").textContent  = choix.depart.label;
+      document.getElementById("resumeArrivee").textContent = choix.arrivee.label;
+      document.getElementById("resumeMesure").textContent =
+        (r.estime ? "≈ " : "") + r.km.toLocaleString("fr-FR",{maximumFractionDigits:1})
+        + " km · " + r.min + " min";
+      document.getElementById("noteNuit").hidden = !course.majoration;
+      dessinerGammes();
+      ecran("ecran-vehicules");
+    });
+  });
+
+  document.getElementById("btnRetourAccueil")
+          .addEventListener("click", function(){ ecran("ecran-accueil"); });
+
+/* =====================================================================
+   LE RÉCAPITULATIF, PUIS LE BON
+   ===================================================================== */
+  var NUMERO_WA = "33759312433";
+  var champBagages = document.getElementById("bagages");
+  var champNom = document.getElementById("clientNom");
+  var champTel = document.getElementById("clientTel");
+  var erreurCoord = document.getElementById("erreurCoordonnees");
+
+  function dateFR(){
+    var d = new Date(champDate.value + "T" + champHeure.value);
+    if(isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("fr-FR") + " " +
+           d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  }
+  function remplirRecap(){
+    var total = prix(course.gamme, course.km, course.majoration);
+    /* TVA 10 % INCLUSE, donc on la retire du total — on ne l'ajoute pas.
+       Calculer 10 % du TTC donnerait 4,83 € au lieu de 4,39 € sur une course
+       à 48,28 €, et le HT annoncé serait faux. */
+    var ht = total / 1.10;
+    document.getElementById("recapDepart").textContent  = choix.depart.label;
+    document.getElementById("recapArrivee").textContent = choix.arrivee.label;
+    document.getElementById("recapDate").textContent     = dateFR();
+    document.getElementById("recapVehicule").textContent = course.gamme.nom;
+    /* « 1 passager », pas « 1 passagers ». Un accord raté sur un
+       récapitulatif de prix, c'est le détail qui fait douter du reste. */
+    var np = parseInt(champPax.value, 10) || 1;
+    var nb = parseInt(champBagages.value, 10) || 0;
+    document.getElementById("recapPax").textContent =
+      np + (np > 1 ? " passagers · " : " passager · ") +
+      nb + (nb > 1 ? " bagages" : " bagage");
+    var chambre = champChambre.value.trim();
+    document.getElementById("ligneChambre").hidden = !chambre || blocChambre.hidden;
+    document.getElementById("recapChambre").textContent = chambre;
+    var vol = champVol.value.trim().toUpperCase();
+    document.getElementById("ligneVol").hidden = !vol || blocVol.hidden;
+    document.getElementById("recapVol").textContent = vol;
+    document.getElementById("recapHT").textContent    = euros(ht);
+    document.getElementById("recapTVA").textContent   = euros(total - ht);
+    document.getElementById("recapTotal").textContent = (course.estime ? "≈ " : "") + euros(total);
+  }
+  document.getElementById("btnContinuer").addEventListener("click", function(){
+    if(!course.gamme) return;
+    remplirRecap();
+    ecran("ecran-recap");
+  });
+  document.getElementById("btnRetourVehicules")
+          .addEventListener("click", function(){ ecran("ecran-vehicules"); });
+
+  /* LA RÉFÉRENCE : ELA-AA-MM-NNNN, le rang repart à 1 chaque mois. Elle sert
+     à retrouver une course dans un fil WhatsApp de plusieurs centaines de
+     messages. Ce n'est PAS un numéro de facture : la facture est émise par
+     le chauffeur, sous son SIRET, et la loi lui interdit trous et doublons —
+     deux numérotations séparées, pour deux documents qui n'engagent pas la
+     même personne. */
+  function referenceSuivante(){
+    var d = new Date();
+    var mois = String(d.getFullYear()).slice(2) + "-" + String(d.getMonth()+1).padStart(2,"0");
+    var rang = 1;
+    try{
+      var brut = JSON.parse(localStorage.getItem("ela_rang") || "null");
+      if(brut && brut.mois === mois) rang = brut.rang + 1;
+      localStorage.setItem("ela_rang", JSON.stringify({ mois:mois, rang:rang }));
+    }catch(e){ /* stockage refusé : le rang repart à 1, ce n'est pas grave */ }
+    /* Le préfixe est celui de la marque, et rien d'autre : Elatransfer
+       s'écrit ELA. */
+    return "ELA-" + mois + "-" + String(rang).padStart(4,"0");
+  }
+
+  /* LE MESSAGE. Six lignes, et pas une de plus : Barbaros les lit sur un
+     téléphone, souvent la nuit.
+     SA STRUCTURE COMPTE AUTANT QUE SON TEXTE. L'espace exploitant relira
+     ces messages pour créer la course sans rien retaper, et il ne devinera
+     rien aux LIBELLÉS — un client espagnol écrit « Salida » — il lira la
+     PLACE des choses : la référence en tête, la date en JJ/MM/AAAA HH:MM,
+     les deux premières lignes « … : … » pour les deux adresses, le dernier
+     montant en euros, et « nom — téléphone » en dernière ligne. Changer
+     cette forme oblige à changer le lecteur en même temps. */
+  function messageDemande(bon){
+    return [
+      "ELATRANSFER — demande " + bon.ref,
+      "Départ : " + bon.depart,
+      "Arrivée : " + bon.arrivee,
+      "Date : " + bon.date,
+      "Véhicule : " + bon.vehicule + " — " + euros(bon.prix),
+      bon.nom + " — " + bon.tel
+    ].join("\n");
+  }
+
+  var bonCourant = null;
+  function remplirBon(bon){
+    document.getElementById("bonRef").textContent      = bon.ref;
+    document.getElementById("bonDepart").textContent   = bon.depart;
+    document.getElementById("bonArrivee").textContent  = bon.arrivee;
+    document.getElementById("bonDate").textContent     = bon.date;
+    document.getElementById("bonVehicule").textContent = bon.vehicule;
+    document.getElementById("bonPrix").textContent     = euros(bon.prix);
+  }
+
+  document.getElementById("btnConfirmer").addEventListener("click", function(){
+    var nom = champNom.value.trim(), tel = champTel.value.trim();
+    if(!nom || !tel){
+      erreurCoord.hidden = false;
+      (nom ? champTel : champNom).focus();
+      return;
+    }
+    erreurCoord.hidden = true;
+    var chambre = (blocChambre.hidden ? "" : champChambre.value.trim());
+    var vol = (blocVol.hidden ? "" : champVol.value.trim().toUpperCase());
+    bonCourant = {
+      ref: referenceSuivante(),
+      depart: choix.depart.label + (chambre ? " (ch. " + chambre + ")" : ""),
+      arrivee: choix.arrivee.label,
+      date: dateFR(),
+      vehicule: course.gamme.nom + (vol ? " — vol " + vol : ""),
+      prix: prix(course.gamme, course.km, course.majoration),
+      nom: nom, tel: tel
+    };
+    /* WhatsApp s'ouvre DANS LE MÊME GESTE que le clic, avant tout appel
+       réseau : un window.open() placé après un « await » est bloqué par
+       Safari sur iPhone, et la demande ne partirait jamais. */
+    window.open("https://wa.me/" + NUMERO_WA + "?text="
+                + encodeURIComponent(messageDemande(bonCourant)), "_blank");
+    try{
+      var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      deja.unshift(bonCourant);
+      localStorage.setItem("ela_courses", JSON.stringify(deja.slice(0, 1000)));
+    }catch(e){ /* stockage refusé : le bon reste affiché, il n'est pas gardé */ }
+    remplirBon(bonCourant);
+    ecran("ecran-bon");
+  });
+
+  /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
+     WhatsApp non installé, fenêtre bloquée, appui à côté. Sans ce bouton, le
+     client croit avoir réservé et attend une voiture qui ne viendra pas. */
+  document.getElementById("btnRenvoyer").addEventListener("click", function(){
+    if(!bonCourant) return;
+    window.open("https://wa.me/" + NUMERO_WA + "?text="
+                + encodeURIComponent(messageDemande(bonCourant)), "_blank");
+  });
+  document.getElementById("btnNouvelleCourse").addEventListener("click", function(){
+    ecran("ecran-accueil");
+  });
+  /* Changer le nombre de passagers redessine la liste tout de suite : sans
+     ça on continuerait avec une berline pour six. */
+  champPax.addEventListener("change", function(){
+    if(document.getElementById("ecran-vehicules").classList.contains("actif")) dessinerGammes();
   });
 })();
 
@@ -1027,10 +1671,11 @@ img{display:block;max-width:100%;}
     var wa = document.querySelector(".wa");
     if(!wa) return;
     var enAttente = false;
-    /* Ce qu'on ne recouvre jamais : le bouton d'action, la ligne qui le
-       rassure, et le texte des cartes de services. Ajouter « .protege » à
-       un élément suffit à l'inscrire ici sans toucher au script. */
-    var PROTEGES = ".bouton, .rassure, .service-corps, .protege";
+    /* Ce qu'on ne recouvre jamais : les boutons — l'action dorée comme les
+       actions en retrait, qui portent le renvoi de la demande — la ligne qui
+       rassure sous le bouton, et le texte des cartes de services. Ajouter
+       « .protege » à un élément suffit à l'inscrire ici. */
+    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .protege";
 
     function juger(){
       enAttente = false;
@@ -1061,6 +1706,10 @@ img{display:block;max-width:100%;}
     var rayon = document.querySelector(".services");
     if(rayon) rayon.addEventListener("scroll", demander, { passive:true });
     addEventListener("load", demander);
+    /* Un changement d'écran doit la rejuger tout de suite : sur le site en
+       service, sans cet appel, elle restait visible une seconde de trop —
+       le temps que la minuterie repasse — pile sur le bouton « Continuer ». */
+    window.__jugerPastilleWa = demander;
     juger();
   })();
 </script>

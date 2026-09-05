@@ -1,10 +1,9 @@
 /* =====================================================================
-   TEST-NOUVEAU.MJS — la page d'essai « nouveau.html »
+   TEST-NOUVEAU.MJS — la recherche d'adresse du nouveau site
    ---------------------------------------------------------------------
-   Cette page n'est PAS en service : elatransfer.com tourne toujours sur
-   index.html. La suite ne couvre donc que ce que la page d'essai sait
-   faire aujourd'hui — la recherche d'adresse, le numéro de chambre et le
-   numéro de vol.
+   Trois choses : la recherche d'adresse, le numéro de chambre demandé
+   quand le départ est un hôtel, et le numéro de vol demandé quand l'un
+   des deux bouts est un terminal.
 
    Les deux services d'adresses (Base Adresse Nationale et Photon) sont
    injoignables depuis la machine de développement : on répond à leur
