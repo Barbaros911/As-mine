@@ -163,9 +163,14 @@ img{display:block;max-width:100%;}
   background:var(--or-clair);display:flex;align-items:center;justify-content:center;}
 .engagement b{display:block;font-size:13px;font-weight:700;line-height:1.25;
   letter-spacing:-.012em;}
-/* « balance » répartit les mots sur les lignes au lieu de laisser un mot seul
-   en bas — c'est ce qui distingue un titre coupé d'un titre cassé. */
-.engagement span{display:block;font-size:11.5px;color:var(--gris);
+/* LE SOUS-TITRE PORTE SA PROPRE CLASSE, ET CE N'EST PAS DU CONFORT.
+   La règle était écrite « .engagement span » — un point de spécificité de plus
+   que « .engagement-pastille », qu'elle écrasait donc en passant : la pastille
+   repassait en « display:block » et son icône se collait en haut à gauche du
+   rond au lieu d'être centrée. Même piège que le bouton « me localiser » du
+   site en service, où un sélecteur d'identifiant avait battu une classe.
+   Viser l'élément voulu, jamais « tous les span de ce bloc ». */
+.engagement-sous{display:block;font-size:11.5px;color:var(--gris);
   line-height:1.32;margin-top:4px;text-wrap:balance;}
 .trait{height:1px;background:var(--filet);margin:28px 20px 0;}
 
@@ -396,7 +401,7 @@ img{display:block;max-width:100%;}
     <div class="engagements">
       <div class="engagement">
         <span class="engagement-pastille">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0.7 1.1 24 24" fill="none" aria-hidden="true">
             <circle cx="10" cy="8" r="3.4" stroke="#17171B" stroke-width="1.7"/>
             <path d="M3.6 19.6c0-3.4 2.9-5.7 6.4-5.7 1.1 0 2.2.22 3.1.64"
                   stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
@@ -406,11 +411,11 @@ img{display:block;max-width:100%;}
           </svg>
         </span>
         <b>Chauffeurs professionnels</b>
-        <span>Discrets et courtois</span>
+        <span class="engagement-sous">Discrets et courtois</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 1.45 24 24" fill="none" aria-hidden="true">
             <path d="M2.9 15.6v-2l1.8-4.1a2.4 2.4 0 012.2-1.4h10.2a2.4 2.4 0 012.2 1.4l1.8 4.1v2"
                   stroke="#17171B" stroke-width="1.7" stroke-linejoin="round"/>
             <path d="M2.9 15.6h18.2" stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
@@ -420,7 +425,7 @@ img{display:block;max-width:100%;}
           </svg>
         </span>
         <b>Véhicules haut de gamme</b>
-        <span>Confort et sécurité</span>
+        <span class="engagement-sous">Confort et sécurité</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
@@ -436,11 +441,11 @@ img{display:block;max-width:100%;}
              bancaire ne transite par le site. Annoncer un paiement qui
              n'existe pas ferait chercher au client un bouton introuvable. -->
         <b>Paiement à bord</b>
-        <span>Au chauffeur, espèces ou carte</span>
+        <span class="engagement-sous">Au chauffeur, espèces ou carte</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 1.98 24 24" fill="none" aria-hidden="true">
             <path d="M5 14.1v-2.2a7 7 0 0114 0v2.2"
                   stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
             <rect x="3.1" y="13.1" width="4" height="6" rx="2"
@@ -453,7 +458,7 @@ img{display:block;max-width:100%;}
           </svg>
         </span>
         <b>Joignable jour et nuit</b>
-        <span>Par téléphone et WhatsApp</span>
+        <span class="engagement-sous">Par téléphone et WhatsApp</span>
       </div>
     </div>
   </section>
