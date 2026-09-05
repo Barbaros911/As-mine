@@ -59,8 +59,18 @@ img{display:block;max-width:100%;}
    224 px, une image aux mauvaises proportions doit se recadrer, jamais laisser
    de bande. Le cadrage vise la DROITE de l'image — le sujet (la voiture et le
    chauffeur) y est, et c'est la gauche qui passe sous le voile du titre. */
+/* La photo (588 × 393) et le bandeau (390 × 268) ont presque les mêmes
+   proportions : « cover » n'ampute donc que 11 px sur la largeur, et la vue
+   est montrée quasi entière. Agrandir pour « décaler » a été essayé et donne
+   l'inverse du but recherché — le zoom rapproche la tour du titre et lui
+   coupe la pointe. On garde donc l'échelle juste, calée sur le bord GAUCHE
+   de la source, là où est la tour. */
 .hero-image{position:absolute;inset:0;
-  background:#0B0B0D url("./photos/accueil-bandeau.jpg") center right / cover no-repeat;}
+  background-color:#0B0B0D;
+  background-image:url("./photos/accueil-bandeau.jpg");
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:left center;}
 /* Le voile n'est pas décoratif : le titre est en blanc, et il doit rester
    lisible quand une vraie photo — souvent claire à droite — prendra la place
    de l'aplat. */
@@ -72,8 +82,12 @@ img{display:block;max-width:100%;}
   background:linear-gradient(100deg,
     rgba(11,11,13,.72) 0%, rgba(11,11,13,.62) 34%,
     rgba(11,11,13,.34) 68%, rgba(11,11,13,.18) 100%);}
+/* Le titre descend de 22 à 54 px : la pointe de la tour est en haut à gauche
+   de la photo, exactement où commençait « Votre chauffeur ». Décaler l'image
+   n'y pouvait rien — les deux se disputaient le même coin. Ces 32 px rendent
+   la pointe visible sans faire sortir le texte du bandeau. */
 .hero-texte{position:absolute;inset:0;z-index:2;
-  padding:22px 20px 0;display:flex;flex-direction:column;}
+  padding:54px 20px 0;display:flex;flex-direction:column;}
 .hero h1{margin:0;font-size:31px;line-height:1.15;font-weight:800;
   letter-spacing:-.024em;color:#fff;
   text-shadow:0 2px 14px rgba(0,0,0,.65), 0 1px 3px rgba(0,0,0,.5);}
