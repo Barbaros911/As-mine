@@ -211,7 +211,17 @@ check('durée affichée', (await page.locator('#vehiclesSub').textContent()).inc
 await page.locator('.nav-item[data-target="screen-qr"]').click();
 await page.waitForTimeout(400);
 check('écran d\'informations accessible', await page.locator('#screen-qr').isVisible());
-check('le code QR ne s\'affiche pas au client', !(await page.locator('#blocQr').isVisible()));
+/* LE CODE QR EST REVENU CÔTÉ CLIENT (septembre 2026, à la demande de
+   Barbaros). Il était réservé au mode exploitant, vu comme un outil
+   d'impression d'affiche. Sa valeur est ailleurs : un client content à qui
+   on demande le nom de son chauffeur a maintenant quelque chose à montrer.
+   On vérifie le bloc ET le lien écrit en clair — c'est lui qui reste utile
+   si le service extérieur qui dessine le code ne répond pas. */
+check('le bloc « Partager » s\'affiche au client', await page.locator('#blocQr').isVisible());
+check('il porte le lien du site en clair',
+  (await page.locator('#qrUrlText').textContent()).includes('elatransfer.com'),
+  await page.locator('#qrUrlText').textContent());
+check('et le bouton qui le copie', await page.locator('#btnCopyLink').isVisible());
 check('le client trouve comment nous joindre', await page.locator('#blocContact').isVisible());
 check('quatre documents légaux présents', (await page.locator('.btn-legal').count()) === 4);
 await page.locator('.btn-legal[data-doc="cgv"]').click();

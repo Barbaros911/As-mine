@@ -783,14 +783,31 @@ Sa marge basse de 20 px n'est pas cosmétique : la section « À l'arrivée de
 votre vol » qui suit est elle aussi sur fond marine, et sans cet intervalle
 les deux masses sombres se collent.
 
-**Le serveur existe, en dormant.** `SUPABASE_URL` et `SUPABASE_CLE` (haut du
-script) sont vides : le site se comporte alors exactement comme avant — le
-client envoie lui-même son récapitulatif, l'exploitant le recolle. Dès
-qu'elles sont remplies (marche à suivre dans `SUPABASE.md`), le client
-appuie sur « Confirmer » et c'est fini pour lui : la demande arrive dans le
-tableau de bord, sur n'importe quel appareil.
-- Le module `nuage` fait tout : `deposer`, `connexion`, `lister`,
-  `majStatut`. Aucune bibliothèque chargée — de simples appels REST.
+**LE SERVEUR EST BRANCHÉ.** `SUPABASE_URL` et `SUPABASE_CLE` (haut du script)
+sont **remplis** depuis août 2026 — ne pas répéter qu'ils sont vides, l'erreur
+a déjà été faite en septembre. Le client appuie sur « Confirmer » et c'est
+fini pour lui : la demande arrive dans le tableau de bord, sur n'importe quel
+appareil. Marche à suivre complète et manœuvre de changement de téléphone
+dans `SUPABASE.md`.
+- Le module `nuage` fait tout : `deposer` (le client, en anonyme),
+  `connexion`, `lister`, `suivi`, `pousser`. Aucune bibliothèque chargée —
+  de simples appels REST.
+- **`pousser` est un dépôt-OU-mise-à-jour, et ça a été un vrai trou**
+  (corrigé septembre 2026). C'était `majStatut`, un PATCH : il ne modifie
+  qu'une ligne existante. Les courses déposées par un CLIENT en ont une ;
+  celles que Barbaros saisit LUI-MÊME — un hôtel qui appelle, une demande
+  collée depuis WhatsApp — n'en ont aucune. L'appel partait, ne trouvait
+  rien, et ne disait rien : **ces courses-là ne vivaient que dans son
+  téléphone**, et changer d'appareil les perdait. C'est une bonne part de son
+  travail. `saveBooking()` et `majBookingStocke()` appellent maintenant
+  `pousser()`, qui envoie un POST avec
+  `Prefer: resolution=merge-duplicates`. Trois contrôles de `test9.mjs` le
+  verrouillent, dont un sur l'en-tête lui-même.
+- **Ce correctif exige une policy INSERT pour `authenticated`** dans Supabase.
+  Elle manquait au script d'origine ; elle est dans `SUPABASE.md`, à coller
+  seule si le projet est antérieur. Sans elle, le serveur refuse, `pousser`
+  rend `false` en silence, et le registre local reste juste — on ne perd
+  rien, on ne gagne simplement pas la copie.
 - `afficherEtatEnvoi(true | false | null)` décide de ce que voit le client.
   **`null` n'affiche NI l'un NI l'autre**, et c'est important : le féliciter
   avant que le dépôt ait répondu lui ferait fermer la page sur une course
