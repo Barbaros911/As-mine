@@ -39,6 +39,11 @@ await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'a
 ]})}));
 await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
   body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
+// Le serveur est coupé volontairement : c'est le chemin de SECOURS qu'on
+// éprouve ici — celui où la demande ne peut parvenir que par WhatsApp.
+// Le chemin nominal, où le dépôt réussit, est couvert par
+// test-nouveau-serveur.mjs.
+await p.route('**supabase.co/**', r => r.abort());
 // WhatsApp ne doit pas s'ouvrir pour de vrai : on note l'adresse demandée
 // au lieu de la suivre. Écouter l'onglet ne suffit pas — au moment où il
 // apparaît, son adresse est encore « about:blank ».
@@ -93,8 +98,14 @@ check('le bon dit ce qui le rendra ferme',
   (await p.locator('.bon-note').textContent()).includes('ferme'));
 
 // Le message WhatsApp doit rester lisible par « Coller une demande ».
+// Le dépôt a échoué : le renvoi devient le seul chemin, et il passe en or.
+check('le renvoi devient l\'action principale quand le serveur ne répond pas',
+  (await p.locator('#btnRenvoyer').getAttribute('class'))==='bouton',
+  await p.locator('#btnRenvoyer').getAttribute('class'));
+await p.locator('#btnRenvoyer').click();
+await p.waitForTimeout(200);
 const liens = await p.evaluate(()=>window.__liens);
-check('WhatsApp a bien été ouvert', liens.length>0, liens.length+'');
+check('WhatsApp s\'ouvre sur ce geste', liens.length>0, liens.length+'');
 const msg = decodeURIComponent((liens[0]||'').split('text=')[1]||'');
 const lignes = msg.split('\n');
 check('six lignes, pas une de plus', lignes.length===6, lignes.length+'');
@@ -110,8 +121,13 @@ check('la dernière ligne est « nom — téléphone », sans deux-points',
 check('aucune donnée du client dans les cinq premières lignes',
   !lignes.slice(0,5).join(' ').includes('Jean Martin'));
 
-check('aucun bouton d\'action doré sur le bon — le client n\'a plus rien à faire',
-  (await p.locator('#ecran-bon .bouton').count())===0);
+// Un seul bouton doré à la fois, et seulement quand il sert : ici le dépôt
+// a échoué, donc le renvoi est bien l'unique action en or. Quand le dépôt
+// réussit, il repasse en retrait — c'est test-nouveau-serveur.mjs qui le
+// vérifie.
+check('un seul bouton doré, et c\'est le renvoi',
+  (await p.locator('#ecran-bon .bouton').count())===1,
+  String(await p.locator('#ecran-bon .bouton').count()));
 // La pastille WhatsApp ne doit recouvrir aucun bouton, y compris ceux en
 // retrait : « Renvoyer ma demande » est le filet de sécurité du client.
 const gene = await p.evaluate(()=>{

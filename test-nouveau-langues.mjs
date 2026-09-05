@@ -37,6 +37,10 @@ async function page(ctx){
     {geometry:{coordinates:[2.2467,48.9478]},properties:{label:"Argenteuil, 95100 Argenteuil"}}]})}));
   await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
+  // Serveur coupé : on veut le message WhatsApp de secours, qui est le seul
+  // endroit où l'on peut vérifier que ce qui part à l'exploitant reste
+  // français même quand le client lit l'anglais.
+  await p.route('**supabase.co/**', r => r.abort());
   await p.addInitScript(()=>{ window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;}; });
   return p;
 }
@@ -134,6 +138,8 @@ await p.locator('.langues button[data-langue="en"]').click();
 await p.waitForTimeout(200);
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(500);
+await p.locator('#btnRenvoyer').click();
+await p.waitForTimeout(200);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('le message à l\'exploitant reste en français', msg.includes('Départ :') && msg.includes('Véhicule :'),
   msg.split('\n')[1]);
