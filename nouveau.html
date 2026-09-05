@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Page d'essai. Elle n'est pas en service : elatransfer.com ne bouge pas.
-     « noindex » évite que Google indexe deux pages au contenu proche, qui se
-     concurrenceraient l'une l'autre. À retirer le jour de la bascule. -->
+<!-- LE NOUVEAU SITE, en construction à son adresse provisoire.
+     « noindex » tant que deux pages coexistent sur le domaine : Google les
+     indexerait toutes les deux et elles se concurrenceraient l'une l'autre
+     sur les mêmes recherches. À retirer le jour où celle-ci prend la racine. -->
 <meta name="robots" content="noindex, nofollow">
 <title>Elatransfer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -249,8 +250,8 @@ img{display:block;max-width:100%;}
   color:var(--gris);line-height:1.35;}
 [hidden]{display:none!important;}
 /* Le bouton s'efface tant qu'une liste est ouverte. Mesuré sur le site en
-   service : la liste descend par-dessus, et le client qui vise le bouton
-   appuie sur une rue. On garde sa place — « visibility », pas « display » —
+   la liste descend par-dessus, et le client qui vise le bouton appuie sur
+   une rue. On garde sa place — « visibility », pas « display » —
    pour que la page ne sursaute pas sous le doigt. */
 .bouton.efface{visibility:hidden;}
 
@@ -292,7 +293,7 @@ img{display:block;max-width:100%;}
    que « .engagement-pastille », qu'elle écrasait donc en passant : la pastille
    repassait en « display:block » et son icône se collait en haut à gauche du
    rond au lieu d'être centrée. Même piège que le bouton « me localiser » du
-   site en service, où un sélecteur d'identifiant avait battu une classe.
+   même famille d'erreur qu'un sélecteur d'identifiant battant une classe.
    Viser l'élément voulu, jamais « tous les span de ce bloc ». */
 .engagement-sous{display:block;font-size:11.5px;color:var(--gris);
   line-height:1.32;margin-top:4px;text-wrap:balance;}
@@ -330,10 +331,9 @@ img{display:block;max-width:100%;}
 
 /* ---------- WHATSAPP ---------- */
 /* La pastille est FIXE : à un moment ou un autre du défilement, elle se pose
-   forcément sur quelque chose. Sur le site en service, la leçon a déjà été
-   payée — elle recouvrait le bouton « Continuer » de l'écran des véhicules.
-   Ici elle mangeait la fin de « Annulation gratuite jusqu'à 24h avant le
-   trajet » et le sous-titre des cartes de services.
+   forcément sur quelque chose. Mesuré ici : elle mangeait la fin de
+   « Annulation gratuite jusqu'à 24h avant le trajet » et le sous-titre des
+   cartes de services.
    Deux mesures, l'une visuelle, l'autre de comportement :
    — 54 px au lieu de 58, et posée un peu plus haut, hors du texte des cartes ;
    — elle S'EFFACE dès qu'elle croise un élément marqué « .protege ». On garde
@@ -900,8 +900,7 @@ img{display:block;max-width:100%;}
 /* =====================================================================
    LA RECHERCHE D'ADRESSE
    ---------------------------------------------------------------------
-   Reprise du site en service, à l'identique dans son principe. Deux
-   fournisseurs, interrogés EN MÊME TEMPS parce qu'ils ne savent pas la
+   Deux fournisseurs, interrogés EN MÊME TEMPS parce qu'ils ne savent pas la
    même chose :
    — la Base Adresse Nationale fait autorité sur les adresses postales
      françaises (« 12 rue de la Paix »), et ne connaît que celles-là ;
@@ -911,11 +910,10 @@ img{display:block;max-width:100%;}
    Les terminaux d'aéroport, eux, sont écrits en dur : ni l'un ni l'autre
    ne les donne proprement, et « cdg » n'a qu'un sens possible.
 
-   Une seule chose manque par rapport au site en service : le repli sur
-   une liste locale quand les DEUX services sont injoignables. Il n'a pas
-   sa place sur une page d'essai — il fabrique des adresses plausibles,
-   ce qui est utile pour éprouver le tunnel, trompeur pour juger la robe.
-   À remettre le jour de la bascule.
+   Quand les DEUX services sont injoignables, la liste affiche « Aucune
+   adresse trouvée » et le bouton reste inerte. C'est volontaire : fabriquer
+   des adresses plausibles pour que le tunnel « marche quand même » ferait
+   réserver un client vers un lieu qui n'existe pas.
    ===================================================================== */
 (function(){
   var champDepart  = document.getElementById("depart");
@@ -1551,23 +1549,20 @@ img{display:block;max-width:100%;}
       if(brut && brut.mois === mois) rang = brut.rang + 1;
       localStorage.setItem("ela_rang", JSON.stringify({ mois:mois, rang:rang }));
     }catch(e){ /* stockage refusé : le rang repart à 1, ce n'est pas grave */ }
-    /* « ELA » et non « ASM ». Le préfixe ASM venait du nom du dépôt
-       (« As-mine ») et n'a jamais été la marque : elle s'écrit Elatransfer.
-       L'espace exploitant relit les DEUX — les messages déjà partis dans
-       WhatsApp portent l'ancien préfixe et doivent continuer de se coller
-       sans erreur — mais rien de neuf ne doit plus s'appeler ASM. */
+    /* Le préfixe est celui de la marque, et rien d'autre : Elatransfer
+       s'écrit ELA. */
     return "ELA-" + mois + "-" + String(rang).padStart(4,"0");
   }
 
   /* LE MESSAGE. Six lignes, et pas une de plus : Barbaros les lit sur un
      téléphone, souvent la nuit.
-     SA STRUCTURE EST UN CONTRAT avec le lecteur « Coller une demande » de
-     l'espace exploitant. Celui-ci ne devine rien aux libellés — un client
-     espagnol écrit « Salida » — il lit la PLACE des choses : la référence,
-     la date en JJ/MM/AAAA HH:MM, les deux premières lignes « … : … » pour
-     les deux adresses, la dernière ligne « nom — téléphone », et le dernier
-     montant en euros. Changer la forme d'ici sans adapter le lecteur là-bas
-     rendrait les demandes illisibles à l'arrivée. */
+     SA STRUCTURE COMPTE AUTANT QUE SON TEXTE. L'espace exploitant relira
+     ces messages pour créer la course sans rien retaper, et il ne devinera
+     rien aux LIBELLÉS — un client espagnol écrit « Salida » — il lira la
+     PLACE des choses : la référence en tête, la date en JJ/MM/AAAA HH:MM,
+     les deux premières lignes « … : … » pour les deux adresses, le dernier
+     montant en euros, et « nom — téléphone » en dernière ligne. Changer
+     cette forme oblige à changer le lecteur en même temps. */
   function messageDemande(bon){
     return [
       "ELATRANSFER — demande " + bon.ref,

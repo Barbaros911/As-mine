@@ -23,11 +23,11 @@ mkdir -p site
 cp index.html admin.html styles.css manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
-# L'APERÇU de la nouvelle robe. Publié à côté du site en service, pas à sa
-# place : Barbaros le juge sur son téléphone pendant que elatransfer.com
-# continue de tourner. Il porte « noindex » — sans ça Google indexerait deux
-# pages au contenu identique, qui se concurrenceraient l'une l'autre.
-# À retirer d'ici le jour de la bascule, en même temps que le fichier.
+# LE NOUVEAU SITE, publié à son adresse provisoire pendant sa construction.
+# Barbaros le suit sur son téléphone à chaque étape. Il porte « noindex » :
+# tant que deux pages coexistent sur le domaine, Google les indexerait toutes
+# les deux et elles se concurrenceraient sur les mêmes recherches.
+# Le jour où il prend la racine, cette ligne disparaît avec le fichier.
 [ -f nouveau.html ] && cp nouveau.html site/ || true
 
 # Le domaine personnalisé. GitHub Pages l'oublie à chaque déploiement

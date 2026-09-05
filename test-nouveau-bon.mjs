@@ -11,9 +11,9 @@
    2. RIEN NE PART SANS NOM NI TÉLÉPHONE. Une demande anonyme est une
       course que le chauffeur ne peut pas honorer.
 
-   3. LA FORME DU MESSAGE WHATSAPP EST UN CONTRAT avec le lecteur
-      « Coller une demande » de l'espace exploitant. Celui-ci ne devine
-      rien aux libellés — un client espagnol écrit « Salida » — il lit la
+   3. LA FORME DU MESSAGE WHATSAPP. L'espace exploitant relira ces
+      messages pour créer la course sans rien retaper, et il ne devinera
+      rien aux libellés — un client espagnol écrit « Salida » — il lira la
       PLACE des choses. Six contrôles portent donc sur la structure du
       message, pas sur son texte.
 
@@ -79,9 +79,11 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 const ref = await p.locator('#bonRef').textContent();
-// « ELA », jamais « ASM » : ASM venait du nom du dépôt, pas de la marque.
+// La référence porte le préfixe de la marque. Le garde-fou sur « ASM » est
+// là pour qu'un préfixe hérité du nom du dépôt ne revienne jamais par
+// copier-coller.
 check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
-check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref);
+check('aucun préfixe hérité ne revient', !ref.startsWith('ASM'), ref);
 check('le bon dit « en attente », jamais « confirmé »',
   (await p.locator('.bon-etat').textContent()).toLowerCase().includes('attente'));
 check('le bon dit ce qui le rendra ferme',
