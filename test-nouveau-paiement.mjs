@@ -10,6 +10,10 @@
 
    Ce qui est verrouillé ici :
 
+   — ON DEMANDE, ON N'EXPLIQUE PAS. Le client répond « carte » ou
+     « espèces » ; ce que le chauffeur en fait est notre affaire. Une
+     question suivie de sa justification donne l'impression qu'on se
+     justifie de la poser.
    — RIEN N'EST PRÉSÉLECTIONNÉ. Cocher « Espèces » par défaut donnerait
      une réponse que le client n'a pas donnée, et c'est exactement le cas
      où le chauffeur arrive sans terminal devant quelqu'un qui n'a pas un
@@ -67,8 +71,11 @@ const especes = p.locator('[data-paiement="especes"]');
 const carte   = p.locator('[data-paiement="carte"]');
 check('la question est posée sur le récapitulatif',
   await especes.isVisible() && await carte.isVisible());
-check('elle dit pourquoi : le chauffeur emporte son terminal',
-  (await p.locator('[data-t="paiement_note"]').textContent()).includes('terminal'));
+// On demande, on n'explique pas. Le terminal du chauffeur est notre affaire,
+// pas celle du client : une question suivie d'une justification donne
+// l'impression qu'on se justifie de la poser.
+check('la question est posée sans explication de coulisses',
+  !(await p.locator('#ecran-recap').textContent()).toLowerCase().includes('terminal'));
 check('rien n\'est présélectionné',
   (await especes.getAttribute('aria-pressed'))==='false'
   && (await carte.getAttribute('aria-pressed'))==='false');

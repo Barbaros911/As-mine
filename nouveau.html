@@ -370,10 +370,9 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .choix[aria-pressed="true"]{border-color:var(--or);background:var(--or-clair);
   color:var(--or-encre);}
 .choix:focus-visible{outline:2px solid var(--or);outline-offset:2px;}
-/* Le message d'absence de choix suit une note DÉJÀ grise. En gris lui aussi
-   il devenait la deuxième moitié de la même phrase — vu à l'écran, illisible.
-   Il reprend donc l'encadré rouge des refus, le vocabulaire du site pour
-   « il manque quelque chose ». */
+/* Le message d'absence de choix reprend l'encadré rouge des refus : c'est le
+   vocabulaire du site pour « il manque quelque chose ». En gris il se lisait
+   comme une note de bas de bloc — vu à l'écran, on ne le remarquait pas. */
 .erreur-paiement{margin:12px 0 0;}
 
 
@@ -1022,8 +1021,6 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
           <span data-t="paiement_carte">Carte bancaire</span>
         </button>
       </div>
-      <p class="bloc-note" data-t="paiement_note">Le chauffeur doit le savoir avant
-         de partir : avec la carte, il emporte son terminal.</p>
       <p class="refus erreur-paiement" id="erreurPaiement" hidden data-t="err_paiement">Indiquez
          comment vous réglerez : le chauffeur prépare son terminal en conséquence.</p>
     </div>
@@ -1490,10 +1487,9 @@ window.ELA_TEXTES = {
     envoi_ok:"Votre demande nous est bien parvenue. Vérifiez que le message WhatsApp est parti : c'est lui qui nous prévient tout de suite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
     paiement_titre:"Comment réglerez-vous ?",
-    paiement_note:"Le chauffeur doit le savoir avant de partir : avec la carte, il emporte son terminal.",
     paiement_especes:"Espèces",
     paiement_carte:"Carte bancaire",
-    err_paiement:"Indiquez comment vous réglerez : le chauffeur prépare son terminal en conséquence.",
+    err_paiement:"Indiquez comment vous réglerez.",
     paiement:"Paiement",
     etat_court:"En attente",
     courses_titre:"Mes courses",
@@ -1562,10 +1558,9 @@ window.ELA_TEXTES = {
     envoi_ok:"We have received your request. Check that the WhatsApp message was sent: that is what alerts us straight away.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
     paiement_titre:"How will you pay?",
-    paiement_note:"Your chauffeur needs to know before setting off: with a card, he brings his terminal.",
     paiement_especes:"Cash",
     paiement_carte:"Card",
-    err_paiement:"Tell us how you will pay: your chauffeur prepares his terminal accordingly.",
+    err_paiement:"Tell us how you will pay.",
     paiement:"Payment",
     etat_court:"Awaiting",
     courses_titre:"My rides",
