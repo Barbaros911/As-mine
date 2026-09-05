@@ -46,6 +46,16 @@ img{display:block;max-width:100%;}
 .logo-nom i{font-style:normal;color:var(--or-vif);}
 .logo-sous{font-size:8px;font-weight:600;letter-spacing:.26em;
   color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
+.entete-actions{display:flex;align-items:center;gap:12px;flex:0 0 auto;}
+/* 44 px de haut : c'est la taille d'un pouce, et un sélecteur de langue plus
+   petit se rate. Deux boutons plutôt qu'un menu déroulant — à deux langues,
+   un menu demande deux gestes là où un bouton en demande un. */
+.langues{display:flex;border:1px solid rgba(255,255,255,.28);border-radius:10px;
+  overflow:hidden;}
+.langues button{min-width:38px;min-height:36px;border:0;background:none;
+  color:rgba(255,255,255,.62);font-family:inherit;font-size:12px;font-weight:700;
+  letter-spacing:.04em;cursor:pointer;padding:0 4px;}
+.langues button[aria-pressed="true"]{background:var(--or);color:#17171B;}
 .menu{background:none;border:0;padding:8px 4px;display:flex;flex-direction:column;
   gap:5px;cursor:pointer;}
 .menu span{display:block;width:27px;height:2.5px;background:#fff;border-radius:2px;}
@@ -383,11 +393,22 @@ img{display:block;max-width:100%;}
               stroke-width="2.4" stroke-linecap="round"/>
       </svg>
       <span class="logo-nom">ELA<i>TRANSFER</i></span>
-      <span class="logo-sous">CHAUFFEURS PRIVÉS</span>
+      <span class="logo-sous" data-t="entete_sous">CHAUFFEURS PRIVÉS</span>
     </div>
-    <button class="menu" type="button" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="entete-actions">
+      <!-- DEUX LANGUES, ET C'EST UN CHOIX. Le français pour l'Île-de-France,
+           l'anglais pour tous les autres — un voyageur allemand, italien ou
+           japonais qui atterrit à Roissy lit bien plus probablement l'anglais
+           que sa propre langue sur un site français. Deux langues tenues à
+           jour valent mieux que six à moitié traduites. -->
+      <div class="langues" role="group" aria-label="Langue">
+        <button type="button" data-langue="fr" aria-pressed="true">FR</button>
+        <button type="button" data-langue="en" aria-pressed="false">EN</button>
+      </div>
+      <button class="menu" type="button" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
   <section class="ecran actif" id="ecran-accueil">
@@ -398,8 +419,8 @@ img{display:block;max-width:100%;}
       <!-- La coupure est écrite, pas laissée à la largeur : un titre de cette
            taille se compose comme une affiche. Laissé libre il cassait en
            trois lignes, dont une de deux mots. -->
-      <h1>Votre chauffeur,<br>en toute simplicité</h1>
-      <p class="hero-sous">Transferts privés, mises à disposition et
+      <h1 data-t-html="hero_titre">Votre chauffeur,<br>en toute simplicité</h1>
+      <p class="hero-sous" data-t="hero_sous">Transferts privés, mises à disposition et
         déplacements sur mesure.</p>
     </div>
   </section>
@@ -414,8 +435,8 @@ img{display:block;max-width:100%;}
         </svg>
       </span>
       <div>
-        <h2>Réserver un trajet</h2>
-        <p>Simple, rapide et sécurisé</p>
+        <h2 data-t="reserver_titre">Réserver un trajet</h2>
+        <p data-t="reserver_sous">Simple, rapide et sécurisé</p>
       </div>
     </div>
 
@@ -429,12 +450,12 @@ img{display:block;max-width:100%;}
          l'Île-de-France avec de la marge et garde Beauvais-Tillé (69 km),
          que le site propose lui-même. -->
     <div class="hors-zone" id="horsZone" hidden>
-      <b>Cette adresse est en dehors de notre zone.</b>
+      <b data-t="zone_titre">Cette adresse est en dehors de notre zone.</b>
       <p id="horsZoneLieu"></p>
-      <p>Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus
+      <p data-t="zone_note">Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus
          long, appelez-nous : nous vous ferons un prix sur mesure.</p>
       <div class="duo">
-        <a href="tel:+33759312433">Appeler</a>
+        <a href="tel:+33759312433" data-t="appeler">Appeler</a>
         <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
       </div>
     </div>
@@ -446,8 +467,8 @@ img{display:block;max-width:100%;}
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Lieu de départ</span>
-          <input id="depart" type="text" placeholder="Adresse, aéroport, hôtel…"
+          <span class="champ-titre" data-t="lieu_depart">Lieu de départ</span>
+          <input id="depart" type="text" data-t-ph="ph_adresse" placeholder="Adresse, aéroport, hôtel…"
                  autocomplete="off" role="combobox" aria-expanded="false"
                  aria-controls="departList" aria-autocomplete="list">
         </span>
@@ -472,11 +493,11 @@ img{display:block;max-width:100%;}
           <circle cx="13.7" cy="12" r="1.15" fill="#C9992E"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Numéro de chambre</span>
-          <input id="chambre" type="text" placeholder="Ex. 214" autocomplete="off" maxlength="12">
+          <span class="champ-titre" data-t="chambre">Numéro de chambre</span>
+          <input id="chambre" type="text" data-t-ph="ph_chambre" placeholder="Ex. 214" autocomplete="off" maxlength="12">
         </span>
       </label>
-      <p class="champ-aide">Transmis au chauffeur : il vient vous chercher sans attendre à la réception.</p>
+      <p class="champ-aide" data-t="chambre_aide">Transmis au chauffeur : il vient vous chercher sans attendre à la réception.</p>
     </div>
 
     <div class="champ-bloc">
@@ -486,8 +507,8 @@ img{display:block;max-width:100%;}
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Lieu d'arrivée</span>
-          <input id="arrivee" type="text" placeholder="Adresse, aéroport, hôtel…"
+          <span class="champ-titre" data-t="lieu_arrivee">Lieu d'arrivée</span>
+          <input id="arrivee" type="text" data-t-ph="ph_adresse" placeholder="Adresse, aéroport, hôtel…"
                  autocomplete="off" role="combobox" aria-expanded="false"
                  aria-controls="arriveeList" aria-autocomplete="list">
         </span>
@@ -510,8 +531,8 @@ img{display:block;max-width:100%;}
                 fill="#C9992E"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Numéro de vol</span>
-          <input id="vol" type="text" placeholder="Ex. AF1234" autocomplete="off"
+          <span class="champ-titre" data-t="vol">Numéro de vol</span>
+          <input id="vol" type="text" data-t-ph="ph_vol" placeholder="Ex. AF1234" autocomplete="off"
                  maxlength="10" style="text-transform:uppercase">
         </span>
       </label>
@@ -525,7 +546,7 @@ img{display:block;max-width:100%;}
           <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Date</span>
+          <span class="champ-titre" data-t="date">Date</span>
           <input id="date" type="date">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -538,7 +559,7 @@ img{display:block;max-width:100%;}
           <path d="M12 7.4V12l3.1 2" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Heure</span>
+          <span class="champ-titre" data-t="heure">Heure</span>
           <input id="heure" type="time" value="10:00">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -554,7 +575,7 @@ img{display:block;max-width:100%;}
           <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Passagers</span>
+          <span class="champ-titre" data-t="passagers">Passagers</span>
           <input id="passagers" type="number" min="1" max="7" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -569,7 +590,7 @@ img{display:block;max-width:100%;}
           <path d="M12 10.4v6.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre">Bagages</span>
+          <span class="champ-titre" data-t="bagages">Bagages</span>
           <input id="bagages" type="number" min="0" max="9" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -579,7 +600,7 @@ img{display:block;max-width:100%;}
     </div>
 
     <button class="bouton" type="button" id="btnVoirPrix">
-      <span>Voir les tarifs et véhicules</span>
+      <span data-t="btn_prix">Voir les tarifs et véhicules</span>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -589,13 +610,13 @@ img{display:block;max-width:100%;}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <circle cx="12" cy="12" r="9" stroke="#9A9AA4" stroke-width="1.7"/>
         <path d="M8.2 12.3l2.6 2.6 5-5.2" stroke="#9A9AA4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      </svg data-t="annulation">
       Annulation gratuite jusqu'à 24h avant le trajet
     </p>
   </section>
 
   <section class="section">
-    <h2>Nos engagements</h2>
+    <h2 data-t="engagements">Nos engagements</h2>
     <!-- LES QUATRE ICÔNES SONT REDESSINÉES DANS UNE SEULE LANGUE.
          Avant, elles mélangeaient trois techniques : une silhouette pleine,
          une carte pleine à contre-jour, deux traits fins. Posées côte à côte,
@@ -617,8 +638,8 @@ img{display:block;max-width:100%;}
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <b>Chauffeurs professionnels</b>
-        <span class="engagement-sous">Discrets et courtois</span>
+        <b data-t="eng1">Chauffeurs professionnels</b>
+        <span class="engagement-sous" data-t="eng1s">Discrets et courtois</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
@@ -631,8 +652,8 @@ img{display:block;max-width:100%;}
             <circle cx="16.8" cy="16.9" r="1.9" stroke="#17171B" stroke-width="1.7"/>
           </svg>
         </span>
-        <b>Véhicules haut de gamme</b>
-        <span class="engagement-sous">Confort et sécurité</span>
+        <b data-t="eng2">Véhicules haut de gamme</b>
+        <span class="engagement-sous" data-t="eng2s">Confort et sécurité</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
@@ -647,8 +668,8 @@ img{display:block;max-width:100%;}
              paiement en ligne n'existe sur Elatransfer, et aucune donnée
              bancaire ne transite par le site. Annoncer un paiement qui
              n'existe pas ferait chercher au client un bouton introuvable. -->
-        <b>Paiement à bord</b>
-        <span class="engagement-sous">Au chauffeur, espèces ou carte</span>
+        <b data-t="eng3">Paiement à bord</b>
+        <span class="engagement-sous" data-t="eng3s">Au chauffeur, espèces ou carte</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
@@ -664,8 +685,8 @@ img{display:block;max-width:100%;}
             <circle cx="13" cy="21.9" r="1.15" fill="#C9992E"/>
           </svg>
         </span>
-        <b>Joignable jour et nuit</b>
-        <span class="engagement-sous">Par téléphone et WhatsApp</span>
+        <b data-t="eng4">Joignable jour et nuit</b>
+        <span class="engagement-sous" data-t="eng4s">Par téléphone et WhatsApp</span>
       </div>
     </div>
   </section>
@@ -674,8 +695,8 @@ img{display:block;max-width:100%;}
 
   <section class="section">
     <div class="services-tete">
-      <h2>Nos services</h2>
-      <a class="voir-tous" href="#">Voir tous
+      <h2 data-t="services">Nos services</h2>
+      <a class="voir-tous" href="#"><span data-t="voir_tous">Voir tous</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 12h14M13 6l6 6-6 6" stroke="#C9992E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -686,16 +707,16 @@ img{display:block;max-width:100%;}
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-aeroport.webp')"></span>
         <span class="service-corps">
-        <b>Transfert aéroport</b>
-        <span>Roissy-CDG, Orly, Beauvais</span>
+        <b data-t="srv1">Transfert aéroport</b>
+        <span data-t="srv1s">Roissy-CDG, Orly, Beauvais</span>
         </span>
       </a>
       <a class="service" href="#">
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-chauffeur.jpg')"></span>
         <span class="service-corps">
-        <b>Mise à disposition</b>
-        <span>Un chauffeur à l'heure</span>
+        <b data-t="srv2">Mise à disposition</b>
+        <span data-t="srv2s">Un chauffeur à l'heure</span>
         </span>
       </a>
       <!-- L'intérieur de voiture tient « Déplacement professionnel » : c'est
@@ -705,8 +726,8 @@ img{display:block;max-width:100%;}
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-deplacement-pro.jpg')"></span>
         <span class="service-corps">
-        <b>Déplacement professionnel</b>
-        <span>Réservation pour un tiers</span>
+        <b data-t="srv3">Déplacement professionnel</b>
+        <span data-t="srv3s">Réservation pour un tiers</span>
         </span>
       </a>
     </div>
@@ -742,8 +763,8 @@ img{display:block;max-width:100%;}
     <!-- Le prix est ferme : on le dit là où le client le lit, pas dans les
          CGV. La majoration nuit et week-end apparaît seulement quand elle
          s'applique — une mention permanente finit par ne plus être lue. -->
-    <p class="veh-note" id="noteNuit" hidden>Majoration nuit et week-end de 20 % appliquée.</p>
-    <p class="veh-note">Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.</p>
+    <p class="veh-note" id="noteNuit" hidden data-t="nuit">Majoration nuit et week-end de 20 % appliquée.</p>
+    <p class="veh-note" data-t="tva_note">Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.</p>
 
     <div class="veh-action">
       <button class="bouton" type="button" id="btnContinuer" disabled>
@@ -776,44 +797,44 @@ img{display:block;max-width:100%;}
     </div>
 
     <div class="bloc">
-      <div class="ligne"><span>Date</span><b id="recapDate">—</b></div>
-      <div class="ligne"><span>Véhicule</span><b id="recapVehicule">—</b></div>
-      <div class="ligne"><span>Passagers</span><b id="recapPax">—</b></div>
-      <div class="ligne" id="ligneChambre" hidden><span>Chambre</span><b id="recapChambre">—</b></div>
-      <div class="ligne" id="ligneVol" hidden><span>Vol</span><b id="recapVol">—</b></div>
+      <div class="ligne"><span data-t="date">Date</span><b id="recapDate">—</b></div>
+      <div class="ligne"><span data-t="vehicule">Véhicule</span><b id="recapVehicule">—</b></div>
+      <div class="ligne"><span data-t="passagers">Passagers</span><b id="recapPax">—</b></div>
+      <div class="ligne" id="ligneChambre" hidden><span data-t="chambre_court">Chambre</span><b id="recapChambre">—</b></div>
+      <div class="ligne" id="ligneVol" hidden><span data-t="vol_court">Vol</span><b id="recapVol">—</b></div>
     </div>
 
     <div class="bloc">
-      <div class="ligne"><span>Prix HT</span><b id="recapHT">—</b></div>
-      <div class="ligne"><span>TVA 10 %</span><b id="recapTVA">—</b></div>
-      <div class="ligne total"><span>Total à régler</span><b id="recapTotal">—</b></div>
-      <p class="bloc-note">Règlement au chauffeur, à bord, en espèces ou par
+      <div class="ligne"><span data-t="prix_ht">Prix HT</span><b id="recapHT">—</b></div>
+      <div class="ligne"><span data-t="tva">TVA 10 %</span><b id="recapTVA">—</b></div>
+      <div class="ligne total"><span data-t="total">Total à régler</span><b id="recapTotal">—</b></div>
+      <p class="bloc-note" data-t="paiement_note">Règlement au chauffeur, à bord, en espèces ou par
          carte. Aucun paiement en ligne, aucune donnée bancaire.</p>
     </div>
 
     <div class="bloc">
-      <h2 class="bloc-titre">Vos coordonnées</h2>
+      <h2 class="bloc-titre" data-t="coordonnees">Vos coordonnées</h2>
       <label class="champ" for="clientNom">
         <span class="champ-corps">
-          <span class="champ-titre">Nom</span>
-          <input id="clientNom" type="text" autocomplete="name" placeholder="Votre nom">
+          <span class="champ-titre" data-t="nom">Nom</span>
+          <input id="clientNom" type="text" autocomplete="name" data-t-ph="ph_nom" placeholder="Votre nom">
         </span>
       </label>
       <label class="champ" for="clientTel">
         <span class="champ-corps">
-          <span class="champ-titre">Téléphone</span>
-          <input id="clientTel" type="tel" autocomplete="tel" placeholder="06 12 34 56 78">
+          <span class="champ-titre" data-t="telephone">Téléphone</span>
+          <input id="clientTel" type="tel" autocomplete="tel" data-t-ph="ph_tel" placeholder="06 12 34 56 78">
         </span>
       </label>
-      <p class="champ-aide" id="erreurCoordonnees" hidden>Le nom et le téléphone
+      <p class="champ-aide" id="erreurCoordonnees" hidden data-t="err_coord">Le nom et le téléphone
          sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
     </div>
 
     <div class="veh-action">
       <button class="bouton" type="button" id="btnConfirmer">
-        <span>Confirmer ma réservation</span>
+        <span data-t="confirmer">Confirmer ma réservation</span>
       </button>
-      <p class="rassure">Votre demande part sur WhatsApp. Elle devient ferme
+      <p class="rassure" data-t="confirmer_note">Votre demande part sur WhatsApp. Elle devient ferme
          dès qu'Elatransfer vous confirme.</p>
     </div>
   </section>
@@ -843,20 +864,20 @@ img{display:block;max-width:100%;}
                 stroke-width="2.4" stroke-linecap="round"/>
         </svg>
         <span class="bon-nom">ELA<i>TRANSFER</i></span>
-        <span class="bon-sous">Bon de réservation</span>
+        <span class="bon-sous" data-t="bon_sous">Bon de réservation</span>
       </div>
-      <span class="bon-etat">En attente de confirmation</span>
+      <span class="bon-etat" data-t="bon_etat">En attente de confirmation</span>
       <p class="bon-ref" id="bonRef">—</p>
-      <p class="bon-note">Ce bon devient ferme dès qu'Elatransfer confirme.
+      <p class="bon-note" data-t="bon_note">Ce bon devient ferme dès qu'Elatransfer confirme.
          Vous recevez la réponse sur WhatsApp.</p>
     </div>
 
     <div class="bloc">
-      <div class="ligne"><span>Départ</span><b id="bonDepart">—</b></div>
-      <div class="ligne"><span>Arrivée</span><b id="bonArrivee">—</b></div>
-      <div class="ligne"><span>Date</span><b id="bonDate">—</b></div>
-      <div class="ligne"><span>Véhicule</span><b id="bonVehicule">—</b></div>
-      <div class="ligne total"><span>Prix ferme</span><b id="bonPrix">—</b></div>
+      <div class="ligne"><span data-t="depart">Départ</span><b id="bonDepart">—</b></div>
+      <div class="ligne"><span data-t="arrivee">Arrivée</span><b id="bonArrivee">—</b></div>
+      <div class="ligne"><span data-t="date">Date</span><b id="bonDate">—</b></div>
+      <div class="ligne"><span data-t="vehicule">Véhicule</span><b id="bonVehicule">—</b></div>
+      <div class="ligne total"><span data-t="prix_ferme">Prix ferme</span><b id="bonPrix">—</b></div>
     </div>
 
     <!-- AUCUN BOUTON DORÉ SUR CET ÉCRAN, ET C'EST VOULU. Le client vient
@@ -864,12 +885,12 @@ img{display:block;max-width:100%;}
          en or lui dirait le contraire — qu'il a raté quelque chose. Les deux
          actions restent disponibles, en retrait. -->
     <div class="veh-action">
-      <p class="rassure">Si WhatsApp ne s'est pas ouvert, votre demande n'est
+      <p class="rassure" data-t="renvoi_note">Si WhatsApp ne s'est pas ouvert, votre demande n'est
          pas encore arrivée.</p>
-      <button class="bouton-fantome" type="button" id="btnRenvoyer">
+      <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
         Renvoyer ma demande sur WhatsApp
       </button>
-      <button class="bouton-fantome" type="button" id="btnNouvelleCourse">
+      <button class="bouton-fantome" type="button" id="btnNouvelleCourse" data-t="autre_course">
         Réserver une autre course
       </button>
     </div>
@@ -890,37 +911,204 @@ img{display:block;max-width:100%;}
         <path d="M3 11l9-8 9 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M5.5 10v9.5h13V10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      Accueil
+      <span data-t="nav_accueil">Accueil</span>
     </a>
     <a class="onglet" href="#">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <rect x="4" y="4.5" width="16" height="15.5" rx="2.4" stroke="currentColor" stroke-width="1.7"/>
         <path d="M4 9.5h16M9 3v3M15 3v3M8.5 14h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
-      Réserver
+      <span data-t="nav_reserver">Réserver</span>
     </a>
     <a class="onglet" href="#">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
         <path d="M3.4 15.4h17.2v2.2h-3v-2.2M6.4 17.6v-2.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
       </svg>
-      Mes courses
+      <span data-t="nav_courses">Mes courses</span>
     </a>
     <a class="onglet" href="#">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
       </svg>
-      Contact
+      <span data-t="nav_contact">Contact</span>
     </a>
   </div>
 </nav>
 
 <script>
+/* =====================================================================
+   DEUX LANGUES : LE FRANÇAIS ET L'ANGLAIS
+   ---------------------------------------------------------------------
+   Trois règles, dans cet ordre :
+   1. le CHOIX EXPLICITE du visiteur l'emporte toujours, et il est mémorisé ;
+   2. sinon la langue du navigateur — on ne lit que la partie avant le tiret,
+      « en-US » et « en-GB » sont tous deux de l'anglais ;
+   3. sinon l'ANGLAIS, et non le français. Un visiteur dont la langue n'est
+      ni l'une ni l'autre — un Allemand, un Italien, un Japonais qui atterrit
+      à Roissy — lit bien plus probablement l'anglais.
+   La DÉTECTION ne s'écrit pas dans le stockage : ce n'est pas un choix du
+   visiteur, et l'y inscrire figerait la langue du premier chargement.
+   ===================================================================== */
+window.ELA_TEXTES = {
+  fr:{
+    entete_sous:"CHAUFFEURS PRIVÉS",
+    hero_titre:"Votre chauffeur,<br>en toute simplicité",
+    hero_sous:"Transferts privés, mises à disposition et déplacements sur mesure.",
+    reserver_titre:"Réserver un trajet", reserver_sous:"Simple, rapide et sécurisé",
+    zone_titre:"Cette adresse est en dehors de notre zone.",
+    zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
+    appeler:"Appeler",
+    lieu_depart:"Lieu de départ", lieu_arrivee:"Lieu d'arrivée",
+    ph_adresse:"Adresse, aéroport, hôtel…",
+    chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
+    chambre_aide:"Transmis au chauffeur : il vient vous chercher sans attendre à la réception.",
+    vol:"Numéro de vol", ph_vol:"Ex. AF1234",
+    vol_aide_depart:"Le chauffeur suit votre vol et ajuste l'heure en cas de retard.",
+    vol_aide_arrivee:"Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.",
+    date:"Date", heure:"Heure", passagers:"Passagers", bagages:"Bagages",
+    btn_prix:"Voir les tarifs et véhicules", calcul:"Calcul du prix…",
+    annulation:"Annulation gratuite jusqu'à 24h avant le trajet",
+    engagements:"Nos engagements",
+    eng1:"Chauffeurs professionnels", eng1s:"Discrets et courtois",
+    eng2:"Véhicules haut de gamme", eng2s:"Confort et sécurité",
+    eng3:"Paiement à bord", eng3s:"Au chauffeur, espèces ou carte",
+    eng4:"Joignable jour et nuit", eng4s:"Par téléphone et WhatsApp",
+    services:"Nos services", voir_tous:"Voir tous",
+    srv1:"Transfert aéroport", srv1s:"Roissy-CDG, Orly, Beauvais",
+    srv2:"Mise à disposition", srv2s:"Un chauffeur à l'heure",
+    srv3:"Déplacement professionnel", srv3s:"Réservation pour un tiers",
+    nuit:"Majoration nuit et week-end de 20 % appliquée.",
+    tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
+    choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
+    jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
+    vehicule:"Véhicule", chambre_court:"Chambre", vol_court:"Vol",
+    prix_ht:"Prix HT", tva:"TVA 10 %", total:"Total à régler",
+    paiement_note:"Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement en ligne, aucune donnée bancaire.",
+    coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
+    telephone:"Téléphone", ph_tel:"06 12 34 56 78",
+    err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
+    confirmer:"Confirmer ma réservation",
+    confirmer_note:"Votre demande part sur WhatsApp. Elle devient ferme dès qu'Elatransfer vous confirme.",
+    bon_sous:"Bon de réservation", bon_etat:"En attente de confirmation",
+    bon_note:"Ce bon devient ferme dès qu'Elatransfer confirme. Vous recevez la réponse sur WhatsApp.",
+    depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
+    renvoi_note:"Si WhatsApp ne s'est pas ouvert, votre demande n'est pas encore arrivée.",
+    renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
+    nav_accueil:"Accueil", nav_reserver:"Réserver", nav_courses:"Mes courses", nav_contact:"Contact",
+    recherche:"Recherche…", aucune_adresse:"Aucune adresse trouvée",
+    passager_un:"passager", passager_pl:"passagers", bagage_un:"bagage", bagage_pl:"bagages"
+  },
+  en:{
+    entete_sous:"PRIVATE CHAUFFEURS",
+    hero_titre:"Your chauffeur,<br>made simple",
+    hero_sous:"Private transfers, hourly hire and bespoke journeys.",
+    reserver_titre:"Book a ride", reserver_sous:"Simple, fast and secure",
+    zone_titre:"This address is outside our service area.",
+    zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
+    appeler:"Call",
+    lieu_depart:"Pick-up location", lieu_arrivee:"Drop-off location",
+    ph_adresse:"Address, airport, hotel…",
+    chambre:"Room number", ph_chambre:"e.g. 214",
+    chambre_aide:"Passed on to your chauffeur: he meets you without waiting at reception.",
+    vol:"Flight number", ph_vol:"e.g. AF1234",
+    vol_aide_depart:"Your chauffeur tracks your flight and adjusts the time if it is delayed.",
+    vol_aide_arrivee:"So we drop you at the right terminal — they are several kilometres apart.",
+    date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
+    btn_prix:"See prices and vehicles", calcul:"Calculating the price…",
+    annulation:"Free cancellation up to 24h before the ride",
+    engagements:"Our commitments",
+    eng1:"Professional chauffeurs", eng1s:"Discreet and courteous",
+    eng2:"High-end vehicles", eng2s:"Comfort and safety",
+    eng3:"Payment on board", eng3s:"To your chauffeur, cash or card",
+    eng4:"Reachable day and night", eng4s:"By phone and WhatsApp",
+    services:"Our services", voir_tous:"See all",
+    srv1:"Airport transfer", srv1s:"Roissy-CDG, Orly, Beauvais",
+    srv2:"Hourly hire", srv2s:"A chauffeur by the hour",
+    srv3:"Business travel", srv3s:"Booking for someone else",
+    nuit:"A 20% night and weekend surcharge applies.",
+    tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
+    choisir_gamme:"Choose a vehicle", continuer:"Continue",
+    jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
+    vehicule:"Vehicle", chambre_court:"Room", vol_court:"Flight",
+    prix_ht:"Price excl. VAT", tva:"VAT 10%", total:"Total to pay",
+    paiement_note:"Payment to your chauffeur, on board, in cash or by card. No online payment, no bank details.",
+    coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
+    telephone:"Phone", ph_tel:"+33 6 12 34 56 78",
+    err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
+    confirmer:"Confirm my booking",
+    confirmer_note:"Your request is sent on WhatsApp. It becomes firm as soon as Elatransfer confirms.",
+    bon_sous:"Booking voucher", bon_etat:"Awaiting confirmation",
+    bon_note:"This voucher becomes firm as soon as Elatransfer confirms. You will receive the answer on WhatsApp.",
+    depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
+    renvoi_note:"If WhatsApp did not open, your request has not arrived yet.",
+    renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
+    nav_accueil:"Home", nav_reserver:"Book", nav_courses:"My rides", nav_contact:"Contact",
+    recherche:"Searching…", aucune_adresse:"No address found",
+    passager_un:"passenger", passager_pl:"passengers", bagage_un:"bag", bagage_pl:"bags"
+  }
+};
+
   // La date du jour, pour ne pas présenter une date déjà passée.
   (function(){
     var d = document.getElementById("date");
     if(d){ var j = new Date(); d.min = d.value = j.toISOString().slice(0,10); }
   })();
+
+  /* Le moteur de langue. « T » est global : le reste de la page s'en sert
+     pour tout ce qui s'écrit en cours de route — un prix, une erreur, un
+     libellé de bouton. */
+  var LANGUE = "fr";
+  function T(cle){
+    var d = window.ELA_TEXTES[LANGUE] || window.ELA_TEXTES.fr;
+    /* Repli sur le français si une clé manque en anglais : afficher la clé
+       brute (« err_coord ») serait pire que d'afficher du français. */
+    return (cle in d) ? d[cle] : (window.ELA_TEXTES.fr[cle] || cle);
+  }
+  /* Le format des nombres et des dates suit la langue : « 48,28 € » en
+     français, « €48.28 » lu à l'anglaise. Une virgule décimale prise pour un
+     séparateur de milliers, c'est un prix cent fois trop grand. */
+  function locale(){ return LANGUE === "en" ? "en-GB" : "fr-FR"; }
+
+  function langueDuNavigateur(){
+    try{
+      var choisie = localStorage.getItem("ela_langue");
+      if(choisie === "fr" || choisie === "en") return choisie;
+    }catch(e){ /* stockage refusé */ }
+    var liste = navigator.languages || [navigator.language || ""];
+    for(var i=0; i<liste.length; i++){
+      var court = String(liste[i]).toLowerCase().split("-")[0];
+      if(court === "fr") return "fr";
+      if(court === "en") return "en";
+    }
+    return "en";
+  }
+
+  function appliquerLangue(langue){
+    LANGUE = (langue === "en") ? "en" : "fr";
+    document.documentElement.lang = LANGUE;
+    var n;
+    n = document.querySelectorAll("[data-t]");
+    for(var i=0;i<n.length;i++) n[i].textContent = T(n[i].getAttribute("data-t"));
+    n = document.querySelectorAll("[data-t-html]");
+    for(i=0;i<n.length;i++) n[i].innerHTML = T(n[i].getAttribute("data-t-html"));
+    n = document.querySelectorAll("[data-t-ph]");
+    for(i=0;i<n.length;i++) n[i].placeholder = T(n[i].getAttribute("data-t-ph"));
+    n = document.querySelectorAll(".langues button");
+    for(i=0;i<n.length;i++)
+      n[i].setAttribute("aria-pressed", String(n[i].dataset.langue === LANGUE));
+    /* Les écrans déjà remplis se réécrivent : un client qui bascule en
+       anglais après avoir vu son prix ne doit pas garder un récapitulatif
+       moitié français. */
+    if(window.__redessiner) window.__redessiner();
+  }
+  document.querySelectorAll(".langues button").forEach(function(b){
+    b.addEventListener("click", function(){
+      try{ localStorage.setItem("ela_langue", b.dataset.langue); }catch(e){}
+      appliquerLangue(b.dataset.langue);
+    });
+  });
+  appliquerLangue(langueDuNavigateur());
 
 /* =====================================================================
    LA RECHERCHE D'ADRESSE
@@ -1188,9 +1376,7 @@ img{display:block;max-width:100%;}
     /* Le texte d'aide n'est pas le même dans les deux sens. Un client qui
        PART vers Roissy n'a pas de vol à suivre — ce qu'il veut savoir,
        c'est qu'on le dépose au bon terminal. */
-    aideVol.textContent = auDepart
-      ? "Le chauffeur suit votre vol et ajuste l'heure en cas de retard."
-      : "Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.";
+    aideVol.textContent = T(auDepart ? "vol_aide_depart" : "vol_aide_arrivee");
   }
 
   /* ---- Brancher un champ ---------------------------------------------- */
@@ -1223,7 +1409,7 @@ img{display:block;max-width:100%;}
         var vide = document.createElement("div");
         vide.className = "suggest-vide";
         vide.setAttribute("role","status");
-        vide.textContent = "Aucune adresse trouvée";
+        vide.textContent = T("aucune_adresse");
         liste.appendChild(vide);
       }else{
         items.forEach(function(item){
@@ -1259,7 +1445,8 @@ img{display:block;max-width:100%;}
       var q = champ.value;
       if(q.trim().length < 2){ fermer(); return; }
       var mien = ++rang;
-      liste.innerHTML = '<div class="suggest-vide" role="status">Recherche…</div>';
+      liste.innerHTML = '<div class="suggest-vide" role="status"></div>';
+      liste.firstChild.textContent = T("recherche");
       liste.hidden = false;
       champ.setAttribute("aria-expanded","true");
       jugerBouton();
@@ -1389,7 +1576,7 @@ img{display:block;max-width:100%;}
     return p;
   }
   function euros(n){
-    return n.toLocaleString("fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
+    return n.toLocaleString(locale(), { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
   }
 
   /* L'ITINÉRAIRE fait le prix. OSRM est un serveur de DÉMONSTRATION : sans
@@ -1448,7 +1635,8 @@ img{display:block;max-width:100%;}
       b.className = "veh-carte";
       b.dataset.cle = g.cle;
       var heureArrivee = isNaN(arrivee.getTime()) ? "" :
-        (" · arrivée " + arrivee.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}));
+        (" · " + T("arrivee_h") + " "
+         + arrivee.toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"}));
       b.innerHTML = '<span class="veh-corps">'
         +   '<span class="veh-nom"></span>'
         +   '<span class="veh-detail"></span>'
@@ -1456,7 +1644,8 @@ img{display:block;max-width:100%;}
         + '<span class="veh-prix"></span>';
       b.querySelector(".veh-nom").textContent = g.nom;
       b.querySelector(".veh-detail").textContent =
-        "Jusqu'à " + g.places + " passagers · " + course.min + " min" + heureArrivee;
+        T("jusqua") + " " + g.places + " " + T("passagers_bas")
+        + " · " + course.min + " " + T("min") + heureArrivee;
       b.querySelector(".veh-prix").textContent = (course.estime ? "≈ " : "") + euros(p);
       b.addEventListener("click", function(){
         course.gamme = g;
@@ -1474,7 +1663,8 @@ img{display:block;max-width:100%;}
     var btn = document.getElementById("btnContinuer");
     var lib = document.getElementById("libelleContinuer");
     btn.disabled = !course.gamme;
-    lib.textContent = course.gamme ? ("Continuer · " + course.gamme.nom) : "Choisissez une gamme";
+    lib.textContent = course.gamme
+      ? (T("continuer") + " · " + course.gamme.nom) : T("choisir_gamme");
   }
 
   boutonPrix.addEventListener("click", function(){
@@ -1489,7 +1679,7 @@ img{display:block;max-width:100%;}
     course.majoration = nuitOuWeekend(champDate.value, champHeure.value);
     var libelle = boutonPrix.querySelector("span");
     var avant = libelle.textContent;
-    libelle.textContent = "Calcul du prix…";
+    libelle.textContent = T("calcul");
     boutonPrix.disabled = true;
     itineraire(choix.depart, choix.arrivee).then(function(r){
       libelle.textContent = avant;
@@ -1498,8 +1688,8 @@ img{display:block;max-width:100%;}
       document.getElementById("resumeDepart").textContent  = choix.depart.label;
       document.getElementById("resumeArrivee").textContent = choix.arrivee.label;
       document.getElementById("resumeMesure").textContent =
-        (r.estime ? "≈ " : "") + r.km.toLocaleString("fr-FR",{maximumFractionDigits:1})
-        + " km · " + r.min + " min";
+        (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
+        + " km · " + r.min + " " + T("min");
       document.getElementById("noteNuit").hidden = !course.majoration;
       dessinerGammes();
       ecran("ecran-vehicules");
@@ -1518,11 +1708,24 @@ img{display:block;max-width:100%;}
   var champTel = document.getElementById("clientTel");
   var erreurCoord = document.getElementById("erreurCoordonnees");
 
-  function dateFR(){
+  /* Ce qui part dans le message à l'exploitant ne suit PAS la langue du
+     visiteur : Barbaros lit du français, et son lecteur de demandes attend
+     JJ/MM/AAAA HH:MM. Un client anglais ne doit pas lui envoyer une date au
+     format américain ni un prix à point décimal. */
+  function dateMessage(){
     var d = new Date(champDate.value + "T" + champHeure.value);
     if(isNaN(d.getTime())) return "—";
     return d.toLocaleDateString("fr-FR") + " " +
            d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  }
+  function eurosFR(n){
+    return n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €";
+  }
+  function dateFR(){
+    var d = new Date(champDate.value + "T" + champHeure.value);
+    if(isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString(locale()) + " " +
+           d.toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"});
   }
   function remplirRecap(){
     var total = prix(course.gamme, course.km, course.majoration);
@@ -1539,8 +1742,8 @@ img{display:block;max-width:100%;}
     var np = parseInt(champPax.value, 10) || 1;
     var nb = parseInt(champBagages.value, 10) || 0;
     document.getElementById("recapPax").textContent =
-      np + (np > 1 ? " passagers · " : " passager · ") +
-      nb + (nb > 1 ? " bagages" : " bagage");
+      np + " " + T(np > 1 ? "passager_pl" : "passager_un") + " · " +
+      nb + " " + T(nb > 1 ? "bagage_pl" : "bagage_un");
     var chambre = champChambre.value.trim();
     document.getElementById("ligneChambre").hidden = !chambre || blocChambre.hidden;
     document.getElementById("recapChambre").textContent = chambre;
@@ -1593,8 +1796,8 @@ img{display:block;max-width:100%;}
       "ELATRANSFER — demande " + bon.ref,
       "Départ : " + bon.depart,
       "Arrivée : " + bon.arrivee,
-      "Date : " + bon.date,
-      "Véhicule : " + bon.vehicule + " — " + euros(bon.prix),
+      "Date : " + bon.dateMsg,
+      "Véhicule : " + bon.vehicule + " — " + eurosFR(bon.prix),
       bon.nom + " — " + bon.tel
     ].join("\n");
   }
@@ -1623,7 +1826,7 @@ img{display:block;max-width:100%;}
       ref: referenceSuivante(),
       depart: choix.depart.label + (chambre ? " (ch. " + chambre + ")" : ""),
       arrivee: choix.arrivee.label,
-      date: dateFR(),
+      date: dateFR(), dateMsg: dateMessage(),
       vehicule: course.gamme.nom + (vol ? " — vol " + vol : ""),
       prix: prix(course.gamme, course.km, course.majoration),
       nom: nom, tel: tel
@@ -1653,6 +1856,21 @@ img{display:block;max-width:100%;}
   document.getElementById("btnNouvelleCourse").addEventListener("click", function(){
     ecran("ecran-accueil");
   });
+
+  /* Basculer de langue réécrit aussi ce qui a déjà été calculé : sans ça, un
+     client qui passe en anglais après avoir vu son prix garderait un
+     récapitulatif à moitié français, et un prix au format de l'autre langue. */
+  window.__redessiner = function(){
+    if(course.gamme && document.getElementById("ecran-vehicules").classList.contains("actif")){
+      var garde = course.gamme;
+      dessinerGammes();
+      var carte = document.querySelector('.veh-carte[data-cle="' + garde.cle + '"]');
+      if(carte) carte.click();
+    }
+    if(course.gamme && document.getElementById("ecran-recap").classList.contains("actif")) remplirRecap();
+    if(bonCourant && document.getElementById("ecran-bon").classList.contains("actif")) remplirBon(bonCourant);
+    jugerVol();
+  };
   /* Changer le nombre de passagers redessine la liste tout de suite : sans
      ça on continuerait avec une berline pour six. */
   champPax.addEventListener("change", function(){
