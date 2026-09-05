@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Page d'essai. Elle n'est pas en service : elatransfer.com ne bouge pas.
+     « noindex » évite que Google indexe deux pages au contenu proche, qui se
+     concurrenceraient l'une l'autre. À retirer le jour de la bascule. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Elatransfer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noir:#0B0B0D;
+  --fond:#F7F7F8;
+  --carte:#FFFFFF;
+  --encre:#17171B;
+  --gris:#75757F;
+  --filet:#E7E7EB;
+  --or:#C9992E;
+  --or-clair:#F6EEDF;
+  --or-vif:#E3B855;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--fond);color:var(--encre);
+  font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  /* La barre du bas est fixe : sans cette réserve, le dernier bloc se glisse
+     dessous et devient illisible. */
+  padding-bottom:calc(80px + env(safe-area-inset-bottom));
+}
+img{display:block;max-width:100%;}
+.page{max-width:520px;margin:0 auto;position:relative;}
+
+/* ---------- EN-TÊTE ---------- */
+.entete{background:var(--noir);color:#fff;padding:15px 20px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.logo-arc{display:block;height:13px;width:112px;margin-bottom:1px;}
+.logo-nom{font-size:23px;font-weight:800;letter-spacing:.03em;line-height:1;
+  color:#fff;white-space:nowrap;}
+.logo-nom i{font-style:normal;color:var(--or-vif);}
+.logo-sous{font-size:8px;font-weight:600;letter-spacing:.26em;
+  color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
+.menu{background:none;border:0;padding:8px 4px;display:flex;flex-direction:column;
+  gap:5px;cursor:pointer;}
+.menu span{display:block;width:27px;height:2.5px;background:#fff;border-radius:2px;}
+
+/* ---------- LA GRANDE IMAGE ---------- */
+/* 268 px et non 224 : la photo a la tour Eiffel à GAUCHE, pile où se pose le
+   titre. À 224 px il ne restait rien d'elle sous le texte, et on payait une
+   photo de Paris pour afficher un aplat sombre. Les 44 px gagnés lui rendent
+   sa base et le pont — le formulaire tient toujours dans le premier écran. */
+.hero{position:relative;background:var(--noir);overflow:hidden;height:268px;}
+/* LA PHOTO DU BANDEAU.
+   La photo (588 × 393) et le bandeau (390 × 268) ont presque les mêmes
+   proportions : « cover » n'ampute donc que 11 px sur la largeur, et la vue
+   est montrée quasi entière. Agrandir pour « décaler » a été essayé et donne
+   l'inverse du but recherché — le zoom rapproche la tour du titre et lui
+   coupe la pointe. On garde donc l'échelle juste, calée sur le bord GAUCHE
+   de la source, là où est la tour. */
+.hero-image{position:absolute;inset:0;
+  background-color:#0B0B0D;
+  background-image:url("./photos/accueil-bandeau.jpg");
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:left center;}
+/* Le voile était réglé pour un aplat : à 95 % à gauche, il effaçait la tour
+   Eiffel, c'est-à-dire tout l'intérêt de la photo. Il est descendu à 72 %, et
+   le titre garde son contraste par une ombre portée plutôt que par un
+   rideau — une ombre suit les lettres, un rideau mange l'image. */
+.hero::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,
+    rgba(11,11,13,.72) 0%, rgba(11,11,13,.62) 34%,
+    rgba(11,11,13,.34) 68%, rgba(11,11,13,.18) 100%);}
+/* Le titre descend de 22 à 54 px : la pointe de la tour est en haut à gauche
+   de la photo, exactement où commençait « Votre chauffeur ». Décaler l'image
+   n'y pouvait rien — les deux se disputaient le même coin. Ces 32 px rendent
+   la pointe visible sans faire sortir le texte du bandeau. */
+.hero-texte{position:absolute;inset:0;z-index:2;
+  padding:54px 20px 0;display:flex;flex-direction:column;}
+.hero h1{margin:0;font-size:31px;line-height:1.15;font-weight:800;
+  letter-spacing:-.024em;color:#fff;
+  text-shadow:0 2px 14px rgba(0,0,0,.65), 0 1px 3px rgba(0,0,0,.5);}
+.hero-sous{margin:12px 0 0;font-size:15px;line-height:1.4;
+  color:rgba(255,255,255,.92);max-width:30ch;
+  text-shadow:0 1px 10px rgba(0,0,0,.6);}
+
+/* ---------- RÉSERVER ---------- */
+/* La carte mord sur l'image : c'est ce qui la fait lire comme l'objet
+   principal de la page, et non comme un bloc de plus qui suit. */
+.reserver{position:relative;z-index:5;margin:-46px 16px 0;
+  background:var(--carte);border-radius:20px;padding:20px 16px 18px;
+  box-shadow:0 20px 46px rgba(11,11,13,.15), 0 2px 6px rgba(11,11,13,.05);}
+.reserver-tete{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.reserver-icone{flex:0 0 auto;width:50px;height:50px;border-radius:15px;
+  background:var(--noir);display:flex;align-items:center;justify-content:center;}
+.reserver-tete h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em;}
+.reserver-tete p{margin:3px 0 0;font-size:13.5px;color:var(--gris);}
+
+.champ{display:flex;align-items:center;gap:12px;width:100%;
+  border:1px solid var(--filet);border-radius:13px;
+  padding:11px 14px;margin-bottom:10px;background:var(--carte);
+  text-align:left;font-family:inherit;}
+.champ-corps{flex:1 1 auto;min-width:0;}
+.champ-titre{display:block;font-size:12.5px;font-weight:600;color:var(--encre);}
+.champ input{border:0;outline:0;font:inherit;font-size:14.5px;color:var(--encre);
+  width:100%;padding:0;margin-top:2px;background:transparent;}
+.champ input::placeholder{color:var(--gris);}
+/* min-width:0 sur les cellules, et ce n'est pas décoratif : par défaut une
+   cellule de grille refuse de se réduire sous la largeur de son contenu. Les
+   champs « Date » et « Heure » débordaient donc de 116 px vers la droite, et
+   toute la page partait avec eux. */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* Un peu plus serré dans les demi-cases : à 14 px de marge et 12 px
+   d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
+.duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
+.fleche{flex:0 0 auto;}
+/* Le navigateur dessine sa propre icône dans les champs date et heure, en
+   plus de la nôtre : à deux, elles poussaient la valeur hors de la case et
+   « 09/05/2026 » s'affichait « 09/05/20 ». On efface la sienne, et on
+   l'étale sur toute la case pour qu'un appui n'importe où ouvre le
+   sélecteur. */
+.champ input[type="date"]::-webkit-calendar-picker-indicator,
+.champ input[type="time"]::-webkit-calendar-picker-indicator{
+  position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.champ input[type="date"],.champ input[type="time"]{min-width:0;}
+.duo > .champ{position:relative;}
+
+/* ---------- SUGGESTIONS D'ADRESSE ---------- */
+/* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
+   flux elle repousserait tout le formulaire vers le bas à chaque frappe, et
+   le doigt du client viserait une cible qui bouge. */
+.champ-bloc{position:relative;}
+.suggest-list{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:20;
+  background:var(--carte);border:1px solid var(--filet);border-radius:13px;
+  box-shadow:0 14px 34px rgba(11,11,13,.16);
+  max-height:248px;overflow-y:auto;padding:5px;}
+/* 44 px de haut au minimum : c'est la taille d'un pouce, et une ligne plus
+   basse se rate. Deux lignes autorisées — une adresse coupée net ne se
+   choisit pas. */
+.suggest-item{display:flex;align-items:flex-start;gap:9px;min-height:44px;
+  padding:10px;border-radius:9px;font-size:13.5px;line-height:1.32;cursor:pointer;}
+.suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--or-clair);}
+.suggest-item .ico{flex:0 0 auto;font-size:14.5px;}
+.suggest-vide{padding:12px 10px;font-size:13px;color:var(--gris);}
+.champ-aide{margin:-4px 0 10px;padding:0 4px;font-size:11.5px;
+  color:var(--gris);line-height:1.35;}
+[hidden]{display:none!important;}
+/* Le bouton s'efface tant qu'une liste est ouverte. Mesuré sur le site en
+   service : la liste descend par-dessus, et le client qui vise le bouton
+   appuie sur une rue. On garde sa place — « visibility », pas « display » —
+   pour que la page ne sursaute pas sous le doigt. */
+.bouton.efface{visibility:hidden;}
+
+.bouton{width:100%;margin-top:8px;border:0;border-radius:13px;
+  background:var(--or);color:#fff;font-family:inherit;
+  font-size:16px;font-weight:700;padding:17px 18px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  cursor:pointer;text-decoration:none;
+  transition:transform .12s ease-out, filter .12s;}
+.bouton:active{transform:scale(.99);filter:brightness(.95);}
+.rassure{margin:14px 0 0;display:flex;align-items:center;justify-content:center;
+  gap:8px;font-size:12.5px;color:var(--gris);}
+
+/* ---------- SECTIONS ---------- */
+.section{padding:30px 20px 0;}
+.section h2{margin:0 0 20px;font-size:20.5px;font-weight:800;letter-spacing:-.02em;}
+/* QUATRE COLONNES NE TENAIENT PAS, ET L'ICÔNE À GAUCHE DU TEXTE NON PLUS.
+   À 390 px, quatre colonnes font 86 px : « Véhicules haut de gamme » y passe
+   sur trois lignes, « Support 24/7 » sur une, et les sous-titres finissent à
+   quatre hauteurs différentes — un bloc censé rassurer qui a l'air bâclé.
+   L'icône posée à gauche du texte a été essayée : pire encore. Les libellés
+   se coupent n'importe où (« Véhicules haut de / gamme »), et rien ne
+   rattrape les bords perdus dans le vide.
+   La réponse est une CARTE. Un fond blanc, un contour, et les quatre
+   rectangles sont de la même taille quoi qu'il arrive au texte : c'est le
+   cadre qui aligne, plus le texte. Le reste de la page est déjà fait de
+   cartes blanches sur gris — ce bloc rentre enfin dans la page au lieu de
+   flotter au-dessus. */
+.engagements{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.engagement{background:var(--carte);border:1px solid var(--filet);
+  border-radius:15px;padding:14px 13px 15px;min-width:0;
+  display:flex;flex-direction:column;}
+.engagement-pastille{width:40px;height:40px;border-radius:50%;margin-bottom:11px;
+  background:var(--or-clair);display:flex;align-items:center;justify-content:center;}
+.engagement b{display:block;font-size:13px;font-weight:700;line-height:1.25;
+  letter-spacing:-.012em;}
+/* LE SOUS-TITRE PORTE SA PROPRE CLASSE, ET CE N'EST PAS DU CONFORT.
+   La règle était écrite « .engagement span » — un point de spécificité de plus
+   que « .engagement-pastille », qu'elle écrasait donc en passant : la pastille
+   repassait en « display:block » et son icône se collait en haut à gauche du
+   rond au lieu d'être centrée. Même piège que le bouton « me localiser » du
+   site en service, où un sélecteur d'identifiant avait battu une classe.
+   Viser l'élément voulu, jamais « tous les span de ce bloc ». */
+.engagement-sous{display:block;font-size:11.5px;color:var(--gris);
+  line-height:1.32;margin-top:4px;text-wrap:balance;}
+.trait{height:1px;background:var(--filet);margin:28px 20px 0;}
+
+.services-tete{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+.voir-tous{font-size:13.5px;font-weight:600;color:var(--or);text-decoration:none;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+/* Une piste qui défile plutôt qu'une pile : trois cartes empilées pousseraient
+   tout le bas de la page hors de l'écran, et le geste de balayage dit « il y
+   en a d'autres » mieux qu'une flèche. */
+.services{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+  margin:0 -20px;padding:0 20px 6px;-webkit-overflow-scrolling:touch;}
+.services::-webkit-scrollbar{display:none;}
+.service{flex:0 0 178px;scroll-snap-align:start;border-radius:16px;
+  overflow:hidden;background:var(--carte);border:1px solid var(--filet);
+  text-decoration:none;color:inherit;display:block;}
+/* Même principe que la grande image : l'aplat tient la place exacte de la
+   photo à venir, aux mêmes dimensions. */
+.service-image{display:block;height:106px;position:relative;
+  background:linear-gradient(145deg,#2A2C36 0%,#191A20 100%);}
+.service-image::before{content:"Photo";position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.24);font-weight:600;}
+/* Une carte qui a sa photo : l'image REMPLACE l'aplat et l'écriteau « Photo ».
+   « cover » plutôt que « contain » — les trois vues n'ont pas les mêmes
+   proportions, et une bande blanche sur une carte en trahirait une. */
+.service-image.a-photo{background-size:cover;background-position:center;}
+.service-image.a-photo::before{content:none;}
+.service-corps{display:block;padding:11px 13px 14px;}
+.service b{display:block;font-size:14px;font-weight:700;line-height:1.2;}
+.service span span{display:block;font-size:12px;color:var(--gris);
+  line-height:1.35;margin-top:4px;}
+
+/* ---------- WHATSAPP ---------- */
+/* La pastille est FIXE : à un moment ou un autre du défilement, elle se pose
+   forcément sur quelque chose. Sur le site en service, la leçon a déjà été
+   payée — elle recouvrait le bouton « Continuer » de l'écran des véhicules.
+   Ici elle mangeait la fin de « Annulation gratuite jusqu'à 24h avant le
+   trajet » et le sous-titre des cartes de services.
+   Deux mesures, l'une visuelle, l'autre de comportement :
+   — 54 px au lieu de 58, et posée un peu plus haut, hors du texte des cartes ;
+   — elle S'EFFACE dès qu'elle croise un élément marqué « .protege ». On garde
+     sa place (visibility, pas display) pour que rien ne sursaute, et la
+     transition évite le clignotement quand on défile vite. */
+.wa{position:fixed;right:16px;bottom:calc(104px + env(safe-area-inset-bottom));
+  z-index:40;width:54px;height:54px;border-radius:50%;background:#25D366;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(37,211,102,.4);
+  transition:opacity .18s ease-out;}
+.wa.efface{opacity:0;visibility:hidden;}
+
+/* ---------- BARRE DU BAS ---------- */
+.barre{position:fixed;left:0;right:0;bottom:0;z-index:35;background:#fff;
+  border-top:1px solid var(--filet);padding-bottom:env(safe-area-inset-bottom);}
+.barre-int{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+/* 52 px : un pouce fait 44 px, et c'est la seule mesure qui compte sur un
+   téléphone. */
+.onglet{min-height:52px;display:flex;flex-direction:column;align-items:center;
+  gap:5px;padding:11px 4px 10px;background:none;border:0;font-family:inherit;
+  font-size:11.5px;font-weight:600;color:var(--gris);text-decoration:none;}
+.onglet.actif{color:var(--or);}
+
+@media (min-width:520px){
+  .hero{height:430px;}
+  .hero h1{font-size:37px;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="entete">
+    <div class="logo">
+      <svg class="logo-arc" viewBox="0 0 112 13" fill="none" aria-hidden="true">
+        <path d="M2 11.4C15 3.6 34 1 56 1s41 2.6 54 10.4" stroke="#E3B855"
+              stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-nom">ELA<i>TRANSFER</i></span>
+      <span class="logo-sous">CHAUFFEURS PRIVÉS</span>
+    </div>
+    <button class="menu" type="button" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <div class="hero-image"></div>
+    <div class="hero-texte">
+      <!-- La coupure est écrite, pas laissée à la largeur : un titre de cette
+           taille se compose comme une affiche. Laissé libre il cassait en
+           trois lignes, dont une de deux mots. -->
+      <h1>Votre chauffeur,<br>en toute simplicité</h1>
+      <p class="hero-sous">Transferts privés, mises à disposition et
+        déplacements sur mesure.</p>
+    </div>
+  </section>
+
+  <section class="reserver">
+    <div class="reserver-tete">
+      <span class="reserver-icone">
+        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#fff" stroke-width="1.7"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M9 14.6l2 2 4-4" stroke="#E3B855" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div>
+        <h2>Réserver un trajet</h2>
+        <p>Simple, rapide et sécurisé</p>
+      </div>
+    </div>
+
+    <div class="champ-bloc">
+      <label class="champ" for="depart">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+          <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Lieu de départ</span>
+          <input id="depart" type="text" placeholder="Adresse, aéroport, hôtel…"
+                 autocomplete="off" role="combobox" aria-expanded="false"
+                 aria-controls="departList" aria-autocomplete="list">
+        </span>
+        <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <div class="suggest-list" id="departList" role="listbox" aria-label="Suggestions de départ" hidden></div>
+    </div>
+
+    <!-- LE NUMÉRO DE CHAMBRE N'APPARAÎT QUE POUR UN HÔTEL AU DÉPART.
+         Sans lui, le chauffeur attend au comptoir pendant que le client
+         attend dans sa chambre — c'est la course qui part en retard, et
+         personne n'a rien fait de mal. Le champ se vide dès qu'on change
+         d'adresse : le chauffeur ne doit jamais recevoir la chambre d'un
+         hôtel précédent. -->
+    <div id="blocChambre" hidden>
+      <label class="champ" for="chambre">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4.6" y="3.4" width="12.4" height="17.2" rx="1.9"
+                stroke="#C9992E" stroke-width="1.8"/>
+          <circle cx="13.7" cy="12" r="1.15" fill="#C9992E"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Numéro de chambre</span>
+          <input id="chambre" type="text" placeholder="Ex. 214" autocomplete="off" maxlength="12">
+        </span>
+      </label>
+      <p class="champ-aide">Transmis au chauffeur : il vient vous chercher sans attendre à la réception.</p>
+    </div>
+
+    <div class="champ-bloc">
+      <label class="champ" for="arrivee">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+          <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Lieu d'arrivée</span>
+          <input id="arrivee" type="text" placeholder="Adresse, aéroport, hôtel…"
+                 autocomplete="off" role="combobox" aria-expanded="false"
+                 aria-controls="arriveeList" aria-autocomplete="list">
+        </span>
+        <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <div class="suggest-list" id="arriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
+    </div>
+
+    <!-- LE NUMÉRO DE VOL SUIT LES DEUX BOUTS DU TRAJET.
+         Au départ d'un terminal, il permet au chauffeur de suivre le vol et
+         d'ajuster l'heure quand il a du retard. À l'arrivée, il lui dit à
+         quel comptoir déposer le client — les terminaux de Roissy sont à
+         plusieurs kilomètres les uns des autres. -->
+    <div id="blocVol" hidden>
+      <label class="champ" for="vol">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
+                fill="#C9992E"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Numéro de vol</span>
+          <input id="vol" type="text" placeholder="Ex. AF1234" autocomplete="off"
+                 maxlength="10" style="text-transform:uppercase">
+        </span>
+      </label>
+      <p class="champ-aide" id="aideVol">Le chauffeur suit votre vol et ajuste l'heure en cas de retard.</p>
+    </div>
+
+    <div class="duo">
+      <label class="champ" for="date">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#C9992E" stroke-width="1.7"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Date</span>
+          <input id="date" type="date">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <label class="champ" for="heure">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.6" stroke="#C9992E" stroke-width="1.7"/>
+          <path d="M12 7.4V12l3.1 2" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Heure</span>
+          <input id="heure" type="time" value="10:00">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+    </div>
+
+    <div class="duo">
+      <label class="champ" for="passagers">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5" stroke="#C9992E" stroke-width="1.7"/>
+          <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Passagers</span>
+          <input id="passagers" type="number" min="1" max="7" value="1" inputmode="numeric">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <label class="champ" for="bagages">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="7.6" width="16" height="12.4" rx="2.4" fill="#C9992E"/>
+          <path d="M9 7.6V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5v2.1"
+                stroke="#C9992E" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M12 10.4v6.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Bagages</span>
+          <input id="bagages" type="number" min="0" max="9" value="1" inputmode="numeric">
+        </span>
+        <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+    </div>
+
+    <button class="bouton" type="button">
+      Voir les tarifs et véhicules
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <p class="rassure">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="#9A9AA4" stroke-width="1.7"/>
+        <path d="M8.2 12.3l2.6 2.6 5-5.2" stroke="#9A9AA4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Annulation gratuite jusqu'à 24h avant le trajet
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>Nos engagements</h2>
+    <!-- LES QUATRE ICÔNES SONT REDESSINÉES DANS UNE SEULE LANGUE.
+         Avant, elles mélangeaient trois techniques : une silhouette pleine,
+         une carte pleine à contre-jour, deux traits fins. Posées côte à côte,
+         la voiture pesait deux fois plus que le casque, et l'œil lisait un
+         assortiment, pas une série.
+         La règle est la même pour les quatre : contour seul, trait de 1,7,
+         extrémités rondes, et UN accent doré par icône — le badge de contrôle,
+         le pare-brise, la bande de la carte, le micro. C'est l'accent qui
+         raccroche le bloc à la marque sans le colorier. -->
+    <div class="engagements">
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="22" height="22" viewBox="0.7 1.1 24 24" fill="none" aria-hidden="true">
+            <circle cx="10" cy="8" r="3.4" stroke="#17171B" stroke-width="1.7"/>
+            <path d="M3.6 19.6c0-3.4 2.9-5.7 6.4-5.7 1.1 0 2.2.22 3.1.64"
+                  stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="17.6" cy="17.4" r="4.2" fill="#C9992E"/>
+            <path d="M15.8 17.4l1.3 1.3 2.4-2.6" stroke="#fff" stroke-width="1.7"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <b>Chauffeurs professionnels</b>
+        <span class="engagement-sous">Discrets et courtois</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="22" height="22" viewBox="0 1.45 24 24" fill="none" aria-hidden="true">
+            <path d="M2.9 15.6v-2l1.8-4.1a2.4 2.4 0 012.2-1.4h10.2a2.4 2.4 0 012.2 1.4l1.8 4.1v2"
+                  stroke="#17171B" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M2.9 15.6h18.2" stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M6.1 11.3h11.8" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="7.2" cy="16.9" r="1.9" stroke="#17171B" stroke-width="1.7"/>
+            <circle cx="16.8" cy="16.9" r="1.9" stroke="#17171B" stroke-width="1.7"/>
+          </svg>
+        </span>
+        <b>Véhicules haut de gamme</b>
+        <span class="engagement-sous">Confort et sécurité</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.9" y="5.9" width="18.2" height="12.2" rx="2.6"
+                  stroke="#17171B" stroke-width="1.7"/>
+            <path d="M2.9 10.3h18.2" stroke="#C9992E" stroke-width="1.9"/>
+            <path d="M6.3 14.7h4.4" stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <!-- « Paiement sécurisé / En ligne ou à bord » était faux : aucun
+             paiement en ligne n'existe sur Elatransfer, et aucune donnée
+             bancaire ne transite par le site. Annoncer un paiement qui
+             n'existe pas ferait chercher au client un bouton introuvable. -->
+        <b>Paiement à bord</b>
+        <span class="engagement-sous">Au chauffeur, espèces ou carte</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <svg width="22" height="22" viewBox="0 1.98 24 24" fill="none" aria-hidden="true">
+            <path d="M5 14.1v-2.2a7 7 0 0114 0v2.2"
+                  stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
+            <rect x="3.1" y="13.1" width="4" height="6" rx="2"
+                  stroke="#17171B" stroke-width="1.7"/>
+            <rect x="16.9" y="13.1" width="4" height="6" rx="2"
+                  stroke="#17171B" stroke-width="1.7"/>
+            <path d="M18.9 19.1v.6a2.2 2.2 0 01-2.2 2.2h-2.4"
+                  stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="13" cy="21.9" r="1.15" fill="#C9992E"/>
+          </svg>
+        </span>
+        <b>Joignable jour et nuit</b>
+        <span class="engagement-sous">Par téléphone et WhatsApp</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="trait"></div>
+
+  <section class="section">
+    <div class="services-tete">
+      <h2>Nos services</h2>
+      <a class="voir-tous" href="#">Voir tous
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="#C9992E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+    <div class="services">
+      <a class="service" href="#">
+        <span class="service-image a-photo"
+              style="background-image:url('./photos/service-aeroport.webp')"></span>
+        <span class="service-corps">
+        <b>Transfert aéroport</b>
+        <span>Roissy-CDG, Orly, Beauvais</span>
+        </span>
+      </a>
+      <a class="service" href="#">
+        <span class="service-image a-photo"
+              style="background-image:url('./photos/service-chauffeur.jpg')"></span>
+        <span class="service-corps">
+        <b>Mise à disposition</b>
+        <span>Un chauffeur à l'heure</span>
+        </span>
+      </a>
+      <!-- L'intérieur de voiture tient « Déplacement professionnel » : c'est
+           la vue la mieux définie des trois (1024 px), et elle a remplacé un
+           aperçu Shutterstock non payé, retiré du dépôt. -->
+      <a class="service" href="#">
+        <span class="service-image a-photo"
+              style="background-image:url('./photos/service-deplacement-pro.jpg')"></span>
+        <span class="service-corps">
+        <b>Déplacement professionnel</b>
+        <span>Réservation pour un tiers</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<a class="wa" href="#" aria-label="WhatsApp">
+  <svg width="29" height="29" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
+  </svg>
+</a>
+
+<nav class="barre">
+  <div class="barre-int">
+    <a class="onglet actif" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 11l9-8 9 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5.5 10v9.5h13V10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Accueil
+    </a>
+    <a class="onglet" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="4" y="4.5" width="16" height="15.5" rx="2.4" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M4 9.5h16M9 3v3M15 3v3M8.5 14h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      Réserver
+    </a>
+    <a class="onglet" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M3.4 15.4h17.2v2.2h-3v-2.2M6.4 17.6v-2.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      Mes courses
+    </a>
+    <a class="onglet" href="#">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      Contact
+    </a>
+  </div>
+</nav>
+
+<script>
+  // La date du jour, pour ne pas présenter une date déjà passée.
+  (function(){
+    var d = document.getElementById("date");
+    if(d){ var j = new Date(); d.min = d.value = j.toISOString().slice(0,10); }
+  })();
+
+/* =====================================================================
+   LA RECHERCHE D'ADRESSE
+   ---------------------------------------------------------------------
+   Reprise du site en service, à l'identique dans son principe. Deux
+   fournisseurs, interrogés EN MÊME TEMPS parce qu'ils ne savent pas la
+   même chose :
+   — la Base Adresse Nationale fait autorité sur les adresses postales
+     françaises (« 12 rue de la Paix »), et ne connaît que celles-là ;
+   — Photon (OpenStreetMap) connaît les LIEUX : hôtels, gares, hôpitaux,
+     monuments. La BAN ne répondrait à « Hôtel Ibis Bercy » que par des
+     rues portant le mot « Bercy ».
+   Les terminaux d'aéroport, eux, sont écrits en dur : ni l'un ni l'autre
+   ne les donne proprement, et « cdg » n'a qu'un sens possible.
+
+   Une seule chose manque par rapport au site en service : le repli sur
+   une liste locale quand les DEUX services sont injoignables. Il n'a pas
+   sa place sur une page d'essai — il fabrique des adresses plausibles,
+   ce qui est utile pour éprouver le tunnel, trompeur pour juger la robe.
+   À remettre le jour de la bascule.
+   ===================================================================== */
+(function(){
+  var champDepart  = document.getElementById("depart");
+  var champArrivee = document.getElementById("arrivee");
+  if(!champDepart || !champArrivee) return;
+
+  /* Ce que le client a réellement CHOISI dans une liste — pas ce qu'il a
+     tapé. Un texte saisi à la main n'a pas de coordonnées, donc pas de
+     prix : c'est la différence entre une adresse et une intention. */
+  var choix = { depart:null, arrivee:null };
+
+  function sansAccents(s){
+    return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+  }
+  function retarder(fn, delai){
+    var t; return function(){ clearTimeout(t); t = setTimeout(fn, delai); };
+  }
+
+  /* ---- Reconnaître un hôtel -------------------------------------------
+     Deux voies, parce qu'une seule ne suffit pas : la catégorie
+     OpenStreetMap quand elle existe, et le libellé lui-même — la Base
+     Adresse Nationale ne renvoie que du texte, sans catégorie. */
+  var HOTEL_OSM = ["hotel","guest_house","hostel","motel","apartment","chalet"];
+  var HOTEL_MOTS = ["hotel","hostel","auberge","residence","ibis","novotel","mercure",
+    "pullman","sofitel","hyatt","marriott","hilton","radisson","best western",
+    "campanile","kyriad","premiere classe","citadines","adagio","aparthotel",
+    "appart hotel","motel","b&b hotel"];
+  function estHotel(lieu){
+    if(!lieu) return false;
+    if(lieu.categorie === "hotel") return true;
+    var l = sansAccents(lieu.label || "");
+    return HOTEL_MOTS.some(function(m){ return l.indexOf(sansAccents(m)) !== -1; });
+  }
+
+  function categorieDuLieu(cle, valeur, type){
+    var v = (valeur||"").toLowerCase(), k = (cle||"").toLowerCase();
+    if(["hospital","clinic","doctors","pharmacy"].indexOf(v)>-1) return "sante";
+    if(["restaurant","cafe","bar","fast_food","pub"].indexOf(v)>-1) return "restauration";
+    if(HOTEL_OSM.indexOf(v)>-1) return "hotel";
+    if(k==="tourism" || ["museum","attraction","viewpoint","artwork","monument","gallery"].indexOf(v)>-1) return "culture";
+    if(["aerodrome","airport"].indexOf(v)>-1 || v.indexOf("airport")>-1) return "aeroport";
+    if(["station","subway_entrance","halt"].indexOf(v)>-1 || k==="railway") return "gare";
+    if(["school","university","college","kindergarten"].indexOf(v)>-1) return "education";
+    if(["theatre","cinema","stadium","arena"].indexOf(v)>-1) return "spectacle";
+    if(type==="street" || k==="highway") return "voie";
+    return "adresse";
+  }
+  var ICONES = { sante:"🏥", restauration:"🍽️", hotel:"🏨", culture:"🏛️",
+    aeroport:"✈️", gare:"🚉", education:"🎓", spectacle:"🎭", voie:"🛣️", adresse:"📍" };
+
+  /* ---- Les terminaux d'aéroport ---------------------------------------
+     Le terminal est écrit EN PREMIER dans le libellé : neuf lignes
+     commençant toutes par « Aéroport Roissy-Charles de… » se ressemblent
+     une fois tronquées, et le client ne peut plus choisir le sien. */
+  var AEROPORTS = {
+    cdg: { nom:"Aéroport Roissy-Charles de Gaulle",
+      mots:["cdg","roissy","charles","gaulle"],
+      terminaux:{ "Terminal 1":[49.0067,2.5479], "Terminal 2A":[49.0053,2.5695],
+        "Terminal 2B":[49.0037,2.5695], "Terminal 2C":[49.0025,2.5715],
+        "Terminal 2D":[49.0013,2.5715], "Terminal 2E":[48.9998,2.5740],
+        "Terminal 2F":[48.9985,2.5740], "Terminal 2G":[48.9970,2.5760],
+        "Terminal 3":[49.0102,2.5450] } },
+    orly: { nom:"Aéroport de Paris-Orly", mots:["orly"],
+      terminaux:{ "Orly 1":[48.7233,2.3794], "Orly 2":[48.7228,2.3805],
+        "Orly 3":[48.7218,2.3815], "Orly 4":[48.7289,2.3592] } },
+    beauvais: { nom:"Aéroport de Beauvais-Tillé", mots:["beauvais","tille"],
+      terminaux:{ "Terminal unique":[49.4544,2.1128] } }
+  };
+  /* Un mot ENTIER, jamais un début de mot : « ro » déclencherait Roissy
+     sur « Rouen », qui est à 112 km et hors zone. */
+  function terminauxPourSaisie(q){
+    var n = sansAccents(q);
+    if(!n) return [];
+    var mots = n.split(/[^a-z0-9]+/).filter(Boolean);
+    var sortie = [];
+    Object.keys(AEROPORTS).forEach(function(cle){
+      var ap = AEROPORTS[cle], clefs = ap.mots.map(sansAccents);
+      var touche = mots.some(function(m){ return clefs.indexOf(m)>-1; }) || clefs.indexOf(n)>-1;
+      if(!touche) return;
+      Object.keys(ap.terminaux).forEach(function(t){
+        var p = ap.terminaux[t];
+        sortie.push({ label:t+" — "+ap.nom, lat:p[0], lon:p[1],
+                      icon:"✈️", categorie:"aeroport", lieuNomme:true });
+      });
+    });
+    return sortie;
+  }
+  function terminalDuLibelle(label){
+    if(!label) return null;
+    var trouve = null;
+    Object.keys(AEROPORTS).forEach(function(cle){
+      Object.keys(AEROPORTS[cle].terminaux).forEach(function(t){
+        if(!trouve && label.indexOf(t) !== -1) trouve = t;
+      });
+    });
+    return trouve;
+  }
+
+  /* ---- Les deux fournisseurs ------------------------------------------ */
+  function appeler(url){
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 6000);
+    return fetch(url, { signal:ctrl.signal })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .catch(function(){ return null; })
+      .then(function(d){ clearTimeout(minuteur); return d; });
+  }
+  function depuisBAN(q){
+    return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=6&autocomplete=1")
+      .then(function(d){
+        if(!d || !Array.isArray(d.features)) return [];
+        return d.features.map(function(f){
+          return { label:f.properties.label, lat:f.geometry.coordinates[1],
+                   lon:f.geometry.coordinates[0], icon:"📍", lieuNomme:false };
+        });
+      });
+  }
+  function libellePhoton(p){
+    var morceaux = [];
+    var nomme = !!p.name && p.osm_key!=="highway" && p.type!=="house" && p.type!=="street";
+    if(nomme) morceaux.push(p.name);
+    var rue = [p.housenumber, p.street || (!nomme ? p.name : null)].filter(Boolean).join(" ");
+    if(rue) morceaux.push(rue);
+    var ville = [p.postcode, p.city || p.county].filter(Boolean).join(" ");
+    if(ville) morceaux.push(ville); else if(p.state) morceaux.push(p.state);
+    return { label:morceaux.filter(Boolean).join(", "), lieuNomme:nomme };
+  }
+  /* limit=15 : un nom de chaîne (« ibis », « gare du nord ») renvoie beaucoup
+     d'homonymes ; en demander trop peu revenait à n'en montrer aucun de bon.
+     Le biais rapproche de Paris sans exclure le reste de la France. */
+  function depuisPhoton(q){
+    return appeler("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+
+                   "&limit=15&lang=fr&lat=48.8566&lon=2.3522&location_bias_scale=0.4")
+      .then(function(d){
+        if(!d || !Array.isArray(d.features)) return [];
+        return d.features.filter(function(f){
+          var p = f.properties || {};
+          if(p.countrycode) return p.countrycode === "FR";
+          return p.country ? /france/i.test(p.country) : true;
+        }).map(function(f){
+          var p = f.properties, r = libellePhoton(p);
+          var cat = categorieDuLieu(p.osm_key, p.osm_value, p.type);
+          return { label:r.label, lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
+                   icon:ICONES[cat] || "📍", categorie:cat, lieuNomme:r.lieuNomme };
+        }).filter(function(r){ return r.label; });
+      });
+  }
+
+  /* ---- Trier et dédoublonner ------------------------------------------
+     Le client écrit « hôtel ibis bercy ». Les mots passe-partout ne
+     figurent presque jamais dans le nom réel : on relance donc sans eux,
+     et un résultat qui porte un mot distinctif passe devant. */
+  var MOTS_COURANTS = ["hotel","hotels","motel","auberge","residence","restaurant",
+    "resto","brasserie","cafe","bar","pub","gare","station","aeroport","airport",
+    "hopital","clinique","pharmacie","musee","cinema","theatre","stade","ecole",
+    "universite","mairie","centre","commercial","le","la","les","l","un","une",
+    "du","de","des","d","au","aux","chez","the","paris"];
+  function variantes(q){
+    var liste = [q.trim()];
+    var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean);
+    var utiles = mots.filter(function(m){ return MOTS_COURANTS.indexOf(m) === -1; });
+    if(utiles.length && utiles.length < mots.length) liste.push(utiles.join(" "));
+    return liste;
+  }
+  function note(item, mots){
+    var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    mots.forEach(function(m){
+      if(m.length < 2 || l.indexOf(m) === -1) return;
+      s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
+    });
+    return s;
+  }
+  /* Deux résultats à quelques mètres l'un de l'autre sont le même lieu, même
+     si les libellés diffèrent d'une virgule : on dédoublonne sur les DEUX. */
+  function dedoublonner(liste){
+    var vus = {}, sortie = [];
+    liste.forEach(function(it){
+      var parNom = sansAccents(it.label);
+      var parLieu = typeof it.lat === "number"
+        ? "@"+it.lat.toFixed(4)+","+it.lon.toFixed(4) : null;
+      if(!parNom || vus[parNom] || (parLieu && vus[parLieu])) return;
+      vus[parNom] = true; if(parLieu) vus[parLieu] = true;
+      sortie.push(it);
+    });
+    return sortie;
+  }
+
+  var cache = {};
+  function chercher(q){
+    if(!q || q.trim().length < 2) return Promise.resolve([]);
+    var clef = q.trim().toLowerCase();
+    if(cache[clef]) return Promise.resolve(cache[clef]);
+    var terminaux = terminauxPourSaisie(q);
+    var formes = variantes(q);
+    return Promise.all([depuisBAN(q)].concat(formes.map(depuisPhoton)))
+      .then(function(res){
+        var ban = res[0];
+        var photon = res.slice(1).reduce(function(a,b){ return a.concat(b); }, []);
+        var nommes = photon.filter(function(r){ return r.lieuNomme; });
+        var simples = photon.filter(function(r){ return !r.lieuNomme; });
+        /* La saisie dit ce que le client cherche : commencer par un chiffre,
+           c'est une adresse postale, et la BAN fait autorité. Sinon c'est un
+           nom de lieu, et seul OpenStreetMap sait le situer. */
+        var chercheAdresse = /^\s*\d/.test(q);
+        var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean);
+        var classer = function(l){
+          return l.map(function(it,i){ return { it:it, i:i, s:note(it,mots) }; })
+                  .sort(function(a,b){ return b.s - a.s || a.i - b.i; })
+                  .map(function(x){ return x.it; });
+        };
+        var ordre = chercheAdresse
+          ? terminaux.concat(classer(ban.concat(nommes, simples)))
+          : terminaux.concat(classer(nommes.concat(ban, simples)));
+        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+3 : 8);
+        cache[clef] = sortie;
+        return sortie;
+      });
+  }
+
+  /* ---- Le bouton s'efface pendant qu'une liste est ouverte ------------- */
+  function jugerBouton(){
+    var btn = document.querySelector(".reserver .bouton");
+    if(!btn) return;
+    var ouverte = Array.prototype.some.call(
+      document.querySelectorAll(".suggest-list"), function(l){ return !l.hidden; });
+    btn.classList.toggle("efface", ouverte);
+  }
+
+  /* ---- Les deux champs conditionnels ---------------------------------- */
+  var blocChambre = document.getElementById("blocChambre");
+  var champChambre = document.getElementById("chambre");
+  var blocVol = document.getElementById("blocVol");
+  var champVol = document.getElementById("vol");
+  var aideVol = document.getElementById("aideVol");
+
+  function jugerChambre(){
+    var hotel = estHotel(choix.depart);
+    blocChambre.hidden = !hotel;
+    if(!hotel) champChambre.value = "";
+  }
+  function jugerVol(){
+    var auDepart = terminalDuLibelle(choix.depart && choix.depart.label);
+    var aArrivee = terminalDuLibelle(choix.arrivee && choix.arrivee.label);
+    var terminal = auDepart || aArrivee;
+    blocVol.hidden = !terminal;
+    if(!terminal){ champVol.value = ""; return; }
+    /* Le texte d'aide n'est pas le même dans les deux sens. Un client qui
+       PART vers Roissy n'a pas de vol à suivre — ce qu'il veut savoir,
+       c'est qu'on le dépose au bon terminal. */
+    aideVol.textContent = auDepart
+      ? "Le chauffeur suit votre vol et ajuste l'heure en cas de retard."
+      : "Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.";
+  }
+
+  /* ---- Brancher un champ ---------------------------------------------- */
+  function brancher(champ, liste, quand){
+    var rang = 0;        // une réponse lente ne doit pas écraser une plus récente
+    var choisi = null;   // le libellé réellement retenu dans la liste
+    var actif = -1;      // ligne survolée au clavier
+    var ferme = false;   // liste fermée volontairement : ne pas la rouvrir
+
+    function fermer(){
+      liste.hidden = true;
+      champ.setAttribute("aria-expanded","false");
+      champ.removeAttribute("aria-activedescendant");
+      actif = -1; ferme = true; rang++;
+      jugerBouton();
+    }
+    function lignes(){ return Array.prototype.slice.call(liste.querySelectorAll('[role="option"]')); }
+    function surligner(i){
+      var l = lignes(); if(!l.length) return;
+      actif = (i + l.length) % l.length;
+      l.forEach(function(o,k){ o.setAttribute("aria-selected", String(k===actif)); });
+      var el = l[actif];
+      el.id = el.id || liste.id+"-opt-"+actif;
+      champ.setAttribute("aria-activedescendant", el.id);
+      el.scrollIntoView({ block:"nearest" });
+    }
+    function dessiner(items){
+      liste.innerHTML = "";
+      if(!items.length){
+        var vide = document.createElement("div");
+        vide.className = "suggest-vide";
+        vide.setAttribute("role","status");
+        vide.textContent = "Aucune adresse trouvée";
+        liste.appendChild(vide);
+      }else{
+        items.forEach(function(item){
+          var l = document.createElement("div");
+          l.className = "suggest-item";
+          l.setAttribute("role","option");
+          l.setAttribute("tabindex","0");
+          var i = document.createElement("span");
+          i.className = "ico"; i.textContent = item.icon || "📍";
+          var t = document.createElement("span");
+          t.textContent = item.label;
+          l.appendChild(i); l.appendChild(t);
+          function prendre(){
+            champ.value = item.label;
+            choisi = item.label;
+            fermer();
+            quand(item);
+          }
+          l.addEventListener("click", prendre);
+          l.addEventListener("keydown", function(e){
+            if(e.key === "Enter" || e.key === " "){ e.preventDefault(); prendre(); }
+          });
+          liste.appendChild(l);
+        });
+      }
+      liste.hidden = false;
+      champ.setAttribute("aria-expanded","true");
+      jugerBouton();
+    }
+
+    var lancer = retarder(function(){
+      if(ferme) return;
+      var q = champ.value;
+      if(q.trim().length < 2){ fermer(); return; }
+      var mien = ++rang;
+      liste.innerHTML = '<div class="suggest-vide" role="status">Recherche…</div>';
+      liste.hidden = false;
+      champ.setAttribute("aria-expanded","true");
+      jugerBouton();
+      chercher(q).then(function(items){
+        if(mien !== rang) return;   // une frappe plus récente a pris la main
+        actif = -1;
+        dessiner(items);
+      });
+    }, 250);
+
+    champ.addEventListener("input", function(){
+      /* Le texte a changé après un choix : la position mémorisée ne
+         correspond plus à ce qui est écrit, on l'invalide. Sans ça, le
+         client corrige son adresse et part avec les coordonnées de
+         l'ancienne. */
+      if(choisi !== null && champ.value !== choisi){ choisi = null; quand(null); }
+      ferme = false;
+      lancer();
+    });
+    champ.addEventListener("focus", function(){
+      if(!ferme && champ.value.trim().length >= 2) lancer();
+    });
+    champ.addEventListener("keydown", function(e){
+      var ouverte = !liste.hidden;
+      if(e.key === "ArrowDown"){
+        e.preventDefault();
+        if(!ouverte){ ferme = false; lancer(); return; }
+        surligner(actif+1);
+      } else if(e.key === "ArrowUp"){
+        e.preventDefault(); if(ouverte) surligner(actif-1);
+      } else if(e.key === "Enter"){
+        if(ouverte && actif >= 0){ e.preventDefault(); lignes()[actif].click(); }
+      } else if(e.key === "Escape"){ fermer(); }
+    });
+    document.addEventListener("click", function(e){
+      if(!champ.contains(e.target) && !liste.contains(e.target)) fermer();
+    });
+  }
+
+  brancher(champDepart, document.getElementById("departList"), function(item){
+    choix.depart = item; jugerChambre(); jugerVol();
+  });
+  brancher(champArrivee, document.getElementById("arriveeList"), function(item){
+    choix.arrivee = item; jugerVol();
+  });
+})();
+
+  /* LA PASTILLE WHATSAPP S'EFFACE DEVANT CE QU'ELLE RECOUVRE.
+     On compare son rectangle à celui de chaque élément « .protege » — et non
+     à la fenêtre entière : un bloc haut resterait visible jusqu'en bas et la
+     pastille ne reviendrait jamais. Même erreur déjà faite sur le site en
+     service, avec le rayon d'offres.
+     rAF plutôt qu'un appel direct au défilement : sans ça on mesure
+     cinquante fois par seconde et la page tressaute sur un téléphone lent. */
+  (function(){
+    var wa = document.querySelector(".wa");
+    if(!wa) return;
+    var enAttente = false;
+    /* Ce qu'on ne recouvre jamais : le bouton d'action, la ligne qui le
+       rassure, et le texte des cartes de services. Ajouter « .protege » à
+       un élément suffit à l'inscrire ici sans toucher au script. */
+    var PROTEGES = ".bouton, .rassure, .service-corps, .protege";
+
+    function juger(){
+      enAttente = false;
+      // La pastille est cachée : on mesure sa place, pas son rectangle vide.
+      var etaitCachee = wa.classList.contains("efface");
+      if(etaitCachee) wa.classList.remove("efface");
+      var p = wa.getBoundingClientRect();
+      var genee = false;
+      var liste = document.querySelectorAll(PROTEGES);
+      for(var i = 0; i < liste.length; i++){
+        var r = liste[i].getBoundingClientRect();
+        if(r.bottom > p.top && r.top < p.bottom &&
+           r.right  > p.left && r.left < p.right){ genee = true; break; }
+      }
+      if(genee) wa.classList.add("efface");
+    }
+
+    function demander(){
+      if(enAttente) return;
+      enAttente = true;
+      requestAnimationFrame(juger);
+    }
+
+    addEventListener("scroll", demander, { passive:true });
+    addEventListener("resize", demander);
+    // Le rayon de services défile tout seul : une carte peut passer sous la
+    // pastille sans que la page ait bougé d'un pixel.
+    var rayon = document.querySelector(".services");
+    if(rayon) rayon.addEventListener("scroll", demander, { passive:true });
+    addEventListener("load", demander);
+    juger();
+  })();
+</script>
+</body>
+</html>
