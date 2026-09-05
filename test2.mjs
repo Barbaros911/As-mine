@@ -78,124 +78,28 @@ check('aucun champ de code promo sur le paiement',
 // --- Mise à disposition ---
 await page.locator('#btnEditTrip').click();
 await page.waitForTimeout(300);
-// La mise à disposition n'a plus d'onglet sur l'accueil : c'est une offre,
-// une carte parmi les autres, et c'est par elle qu'on entre dans ce
-// formulaire. Le chemin du client est donc celui-ci, pas un autre.
-check('la mise à disposition est devenue une offre',
-  (await page.locator('.tour-carte[data-tour="disposition"]').count()) === 1);
-check('les onglets ont quitté l\'accueil', !(await page.locator('#tabDisposal').isVisible()));
+/* ============ LE RAYON D'OFFRES A ÉTÉ RETIRÉ ============
+   Les six offres — Paris Essentiel, Paris Illuminé, Paris en Famille, Paris
+   Vision, Ela Prestige et la mise à disposition — ont été supprimées en
+   septembre 2026 à la demande de Barbaros. Il ne doit rien en rester : ni le
+   rayon de l'accueil, ni les fiches, ni l'écran qui les portait. */
+check('le rayon d\'offres a disparu', (await page.locator('#blocTours').count()) === 0);
+check('l\'écran des fiches a disparu', (await page.locator('#screen-tour').count()) === 0);
+check('plus aucune carte d\'offre', (await page.locator('.tour-carte').count()) === 0);
 
-/* ============ LA FICHE D'UNE OFFRE ============
-   La carte donne envie, la fiche répond aux questions qui restent. Ce qu'on
-   vérifie ici, c'est surtout ce qu'elle ne dit PAS : aucune note ni nombre
-   d'avis inventés, aucun billet d'entrée annoncé comme compris, et jamais le
-   mot « guide » — Asmine vend le chauffeur et le véhicule, pas une visite
-   commentée, qui demanderait une carte professionnelle qu'il n'a pas. */
-await page.locator('.tour-carte[data-tour="paris-jour"]').click();
-await page.waitForTimeout(600);
-check('la carte ouvre une fiche', await page.locator('#screen-tour').isVisible());
-const fiche = await page.locator('#ficheTour').textContent();
-check('la fiche porte le nom de l\'offre',
-  (await page.locator('.fiche-nom').textContent()).includes('Paris Essentiel'));
-// Le prix par gamme sort de prixHoraire, jamais d'une liste écrite à la main :
-// un tableau recopié finirait par mentir le jour d'une hausse.
-const prixFiche = await page.locator('.fiche-prix li b').allTextContents();
-check('le prix est donné pour les quatre gammes',
-  prixFiche.length === 4 && prixFiche[0].includes('180'), prixFiche.join(' | '));
-check('ce qui n\'est pas compris est écrit aussi',
-  (await page.locator('.fiche-liste.non li').count()) === 2);
-check('aucun billet d\'entrée annoncé comme compris',
-  !(await page.locator('.fiche-liste.oui').textContent()).match(/billet|entrée/i));
-check('le mot « guide » n\'apparaît nulle part', !/guid/i.test(fiche), fiche.slice(0, 60));
-check('aucune note ni avis inventés sur la fiche', !/★|\d[,.]\d\s*\/\s*5/.test(fiche));
-/* ============ PHOTOS ET TEINTES COHABITENT ============
-   Certaines offres ont des photos, d'autres pas : les deux cas doivent
-   rendre correctement. Une offre AVEC photos les montre et porte ses
-   pastilles ; une offre SANS en porte une teinte, et surtout pas un
-   carrousel à une seule image — ce serait une promesse qu'on ne tient pas.
-   On ne fige AUCUN nombre ici : le lot de photos change au gré de ce que
-   Barbaros fournit, et un test qui compte « deux » tombe le jour où il en
-   envoie une troisième sans que rien ne soit cassé. On compare donc à ce
-   que l'offre déclare. */
-const attenduJour = await page.evaluate(() => TOURS.find(t => t.cle === 'paris-jour').photos.length);
-check('une offre avec photos les affiche',
-  (await page.locator('#vuesTour .fiche-photo').count()) === attenduJour,
-  attenduJour + ' déclarée(s)');
-check('une pastille par photo',
-  (await page.locator('.fiche-point').count()) === attenduJour);
-check('aucune teinte quand il y a des photos',
-  (await page.locator('#vuesTour .fiche-photo[class*="teinte-"]').count()) === 0);
-
-// Le cas « pas encore de photo » doit rester couvert même quand toutes les
-// offres en ont : on en retire à une offre le temps du contrôle, comme le
-// test du ruban plus bas en ajoute à une autre.
-await page.locator('#screen-tour .btn-back').click();
+/* La mise à disposition, elle, reste vendable. Elle était la cinquième carte
+   du rayon, donc son unique porte d'entrée : les deux onglets sont revenus
+   pour ça. Sans eux, 60 à 120 € de l'heure ne seraient plus réservables nulle
+   part — le formulaire intact, et aucun moyen d'y entrer. */
+check('l\'onglet « Mise à disposition » est de nouveau visible',
+  await page.locator('#tabDisposal').isVisible());
+await page.locator('#tabDisposal').click();
 await page.waitForTimeout(400);
-await page.evaluate(() => {
-  const t = TOURS.find(t => t.cle === 'prestige');
-  window.__photosPrestige = t.photos;
-  delete t.photos;
-  renderTours();
-});
-await page.locator('.tour-carte[data-tour="prestige"]').click();
-await page.waitForTimeout(600);
-check('une offre sans photo porte une teinte',
-  (await page.locator('#vuesTour .fiche-photo[class*="teinte-"]').count()) === 1);
-check('et n\'affiche pas de pastilles',
-  (await page.locator('.fiche-point').count()) === 0);
-
-/* ============ LE RUBAN DÉFILE DÈS QU'IL Y A DE QUOI ============
-   On donne trois vues à une offre, le temps de ce contrôle : les images
-   sont dessinées à la volée, le test ne dépend donc d'aucun fichier. */
-await page.locator('#screen-tour .btn-back').click();
-await page.waitForTimeout(400);
-await page.evaluate(() => {
-  const carre = (c) => 'data:image/svg+xml,' +
-    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${c}"/></svg>`);
-  TOURS.find(t => t.cle === 'prestige').photos = [carre('#123'), carre('#456'), carre('#789')];
-  renderTours();
-});
-await page.locator('.tour-carte[data-tour="prestige"]').click();
-await page.waitForTimeout(600);
-check('rendre des photos rallume le ruban',
-  (await page.locator('#vuesTour .fiche-photo').count()) === 3);
-check('trois photos, trois pastilles',
-  (await page.locator('.fiche-point').count()) === 3);
-await page.waitForTimeout(4600);
-const defile = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
-check('le ruban avance de lui-même', defile > 10, 'scrollLeft=' + Math.round(defile));
-check('la pastille suit la photo affichée',
-  (await page.locator('.fiche-point.actif').getAttribute('data-vue')) !== '0');
-await page.locator('#vuesTour').dispatchEvent('pointerdown');
-const avant = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
-await page.waitForTimeout(5200);
-const apres = await page.evaluate(() => document.getElementById('vuesTour').scrollLeft);
-check('un geste du client arrête le défilement automatique',
-  Math.abs(apres - avant) < 5, Math.round(avant) + ' → ' + Math.round(apres));
-await page.evaluate(() => { delete TOURS.find(t => t.cle === 'prestige').photos; renderTours(); });
-/* La fiche ne réserve rien : c'est son bouton qui prépare le formulaire.
-   On repart de Paris Essentiel — 3 h — pour que la durée attendue soit
-   celle de l'offre ouverte, et non celle du dernier essai. */
-await page.locator('#screen-tour .btn-back').click();
-await page.waitForTimeout(400);
-await page.locator('.tour-carte[data-tour="paris-jour"]').click();
-await page.waitForTimeout(600);
-await page.locator('#btnReserverTour').click();
-await page.waitForTimeout(700);
-check('« Réserver » ramène au formulaire, préparé',
-  await page.locator('#screen-home').isVisible()
-  && (await page.inputValue('#durationRange')) === '3');
-
-await page.locator('.tour-carte[data-tour="disposition"]').click();
-await page.waitForTimeout(600);
-check('la fiche à durée libre annonce un tarif horaire',
-  (await page.locator('.fiche-prix li b').first().textContent()).includes('/'));
-await page.locator('#btnReserverTour').click();
-await page.waitForTimeout(500);
-check('la carte ouvre le formulaire de mise à disposition',
+check('il ouvre le formulaire de mise à disposition',
   await page.locator('#formDisposal').isVisible());
 check('un chemin de retour vers le trajet simple existe',
   await page.locator('#btnRetourSimple').isVisible());
+
 await pickAddress('#pickupDisp', 'Neuilly');
 await page.fill('#dateDisp', d);
 await page.waitForTimeout(300);

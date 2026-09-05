@@ -228,138 +228,62 @@ au-dessus qui vend, elle dit ce qu'est ELA à qui ne la connaît pas, et c'est
 elle qui permettra demain de porter autre chose que du transfert sans que la
 marque paraisse sortir de son rôle. Le nom de domaine reste `elatransfer.com`.
 
-**Le rayon d'offres s'appelle « Explorez Paris avec ELA »** et compte six
-cartes. Chacune porte une **promesse** (`promesseKey`, `.tour-promesse`) posée
-entre le nom et le créneau : un client n'achète pas trois heures de voiture,
-il achète une soirée à Paris. Les offres : **Paris Essentiel** (3 h, 180 €),
-**Paris Illuminé** (2 h, 120 €), **Paris en Famille** (4 h, 225 € — sans gamme
-imposée : une famille de trois tient dans une Ela One, lui vendre un van
-d'office serait la faire payer pour du vide), **Paris Vision** (3 h, 180 € — voir Paris d'en haut, ajouté le
-31 août à la demande de Barbaros après que je l'aie déconseillé : ce qu'il
-vend est le TRANSPORT vers les points de vue et l'attente sur place, jamais
-l'entrée. Deux des quatre panoramas sont gratuits — Galeries Lafayette,
-Printemps — donc l'offre tient debout sans billet. **Ne jamais y inclure un
-billet ni une consommation** : vendre de la billetterie ferait sortir Asmine
-du transport (TVA 20 % au lieu de 10 %, argent à avancer, responsabilité d'un
-lieu qu'il ne maîtrise pas), et promettre une coupe de champagne dans un bar
-d'hôtel demande un accord écrit avec cet hôtel),
-**Ela Prestige** (4 h, premium,
-300 €), **Escapade Versailles** (5 h, 270 €) et **Mise à Disposition**
-(durée libre, 60 €/h).
-**« Paris Iconique » a été écarté** : les monuments proposés étaient ceux de
-Paris Essentiel à 80 % — deux cartes qui vendent la même chose divisent
-l'attention au lieu de la doubler.
+**IL N'Y A PLUS DE PACKS** (septembre 2026, à la demande de Barbaros :
+« Enleve tout les packs »). Le rayon « Explorez Paris avec ELA » et ses six
+offres — Paris Essentiel, Paris Illuminé, Paris en Famille, Paris Vision,
+Ela Prestige et la Mise à Disposition — ont été retirés en entier, avec les
+fiches, l'écran `screen-tour`, le carrousel de photos, les teintes et le
+chargement à l'approche. Ce qui a disparu du code : `TOURS`, `renderTours`,
+`prixDepartTour`, `ouvrirFicheTour`, `animerRubanFiche`, `chargerFondsVisibles`,
+`choisirTour`, tout le CSS `.tours*` / `.tour-*` / `.fiche-*` / `.teinte-*`, et
+la branche du rayon dans le jugement de la pastille WhatsApp.
+- **LES DEUX ONGLETS SONT REVENUS, ET C'EST OBLIGATOIRE.** La mise à
+  disposition était la cinquième carte du rayon, donc son SEUL chemin d'entrée
+  depuis que les onglets avaient été masqués en août. Retirer les cartes sans
+  rendre les onglets aurait laissé `formDisposal` intact et sans aucune porte :
+  60 à 120 € de l'heure devenus invendables sur le site, en silence. Le
+  `<div>` des onglets a donc repris `grid grid-cols-2 gap-1 mb-3` à la place de
+  `hidden`. `#btnRetourSimple` reste : il fait double emploi avec l'onglet,
+  ce n'est pas une raison de le retirer.
+- **Les clés de traduction des offres n'ont PAS été supprimées** (`tours_*`,
+  `tour_*`, `fiche_*` dans les six langues). Elles sont inertes — rien ne les
+  lit — et les retirer voudrait dire réécrire six blocs d'une seule ligne de
+  plusieurs milliers de caractères, pour un gain nul et un vrai risque de
+  casser une langue. Elles seront enlevées à la prochaine reprise de l'objet
+  `I18N`, pas à l'arrache.
+- **Le dossier `photos/` reste dans le dépôt**, plus rien n'y pointe. Les
+  treize vues envoyées par Barbaros sont conservées pour le jour où il
+  redemandera des offres ; `construire.sh` les publie encore, ce qui ne coûte
+  rien puisque aucune page ne les appelle. Ne pas les supprimer sans le lui
+  demander : c'est du travail qu'il a fourni.
+- **Ne pas réintroduire de packs sans qu'il le redemande explicitement.**
+  C'est le deuxième produit qu'il fait retirer après le pack Disneyland.
 
-**Chaque offre porte PLUSIEURS photos** (`photos:[…]`, jamais `photo`) et la
-fiche les fait défiler (`.fiche-carrousel`, `animerRubanFiche`) : un client
-n'achète pas sur une image, il achète sur trois. La première sert de vignette
-au rayon. Le ruban avance seul toutes les 4 s et **s'arrête définitivement au
-premier geste** — un ruban qui bouge pendant qu'on regarde est une gêne, pas
-une animation. La minuterie est unique et remise à zéro à chaque ouverture,
-sinon deux fiches ouvertes coup sur coup en laissent deux qui tournent.
-
-**TREIZE PHOTOS, LES SIX OFFRES SERVIES** (août 2026). Les douze photos
-d'origine ont été supprimées (voir plus bas) ; treize sont revenues, envoyées
-et retéléchargées correctement par Barbaros, réduites à 1400 px de large et
-qualité 80 — le dossier entier pèse 4,2 Mo, ce qu'un téléphone en 4G accepte.
-Chaque offre porte deux ou trois vues : Paris Essentiel (Arc de Triomphe,
-Eiffel rue dorée, pyramide du Louvre), Paris Illuminé (Louvre de nuit, Moulin
-Rouge), Paris en Famille (Eiffel au Trocadéro, parvis du Sacré-Cœur), Paris
-Vision (Champs depuis l'Arc, toits depuis le Sacré-Cœur ×2), Ela Prestige
-(Joconde, Seine au couchant), Mise à Disposition (façade du Sacré-Cœur,
-pyramide du Louvre).
-**Les teintes restent, et le code gère toujours les deux cas** : une offre
-sans `photos` retombe sur son dégradé. Les contrôles de `test2.mjs` ne figent
-plus aucun nombre — ils lisent ce que l'offre déclare, et **retirent** ses
-photos à Ela Prestige le temps de vérifier le cas « pas de photo ». Un test
-qui comptait « deux » tombait le jour d'une troisième image alors que rien
-n'était cassé.
-**Comment reconnaître une vraie photo Unsplash** : elle fait au moins 1000 px
-de large et pèse plus de 200 Ko. Une image de 500 px pour 60 Ko est la
-vignette d'une page de résultats, pas un téléchargement — c'est ce piège qui
-a fait renvoyer deux fois les mêmes images.
-**Trois images envoyées n'ont pas été installées, et ne doivent pas l'être** :
-la vue de Montparnasse la nuit (**tour Eiffel illuminée** — l'éclairage est
-une œuvre protégée), et deux vues de Disneyland — l'une porte un **filigrane
-SORTIRAPARIS.COM**, l'autre montre le château, marque et architecture Disney.
-
-**L'HISTORIQUE, à ne pas réintroduire** (août 2026). Les douze du dossier
-`photos/` étaient d'origine inconnue, et Barbaros a confirmé que celles qu'il
-fournit viennent de Google Images. Le dossier entier a été supprimé, le ruban
-d'accueil avec, et le workflow ne le copie plus que s'il existe. À la place :
-un **bandeau de marque** sur l'accueil (`.ela-bandeau`) et une **teinte par
-offre** (`teinte:"…"`, six dégradés) — rien à charger, rien à devoir.
+**LES PHOTOS — la règle survit aux packs.** Le dossier `photos/` reste dans le
+dépôt, plus rien ne le lit ; les treize vues envoyées par Barbaros y dorment.
+Les douze photos d'origine, elles, venaient de Google Images — il l'a confirmé
+— et ont été supprimées en août 2026. Ce qui suit vaut pour toute image qu'on
+remettrait un jour, sur une offre ou ailleurs :
 - **Ne jamais installer une photo sans savoir d'où elle vient.** Google
   n'héberge rien : chaque image appartient à un photographe. Contrefaçon,
   L335-2 CPI — en pratique, une lettre réclamant plusieurs milliers d'euros.
-- Sources propres : **Unsplash, Pexels, Pixabay**.
-- Le ruban de la fiche **reste prêt** : rendre `photos:[…]` à une offre suffit
-  à le rallumer, sans toucher au code. Un test le vérifie en injectant des
-  images dessinées à la volée.
+- Sources propres : **Unsplash, Pexels, Pixabay**. Une vraie photo Unsplash
+  fait au moins 1000 px de large et pèse plus de 200 Ko ; une image de 500 px
+  pour 60 Ko est la vignette d'une page de résultats, pas un téléchargement.
 - Trois pièges rencontrés : le **filigrane Shutterstock** (preuve que l'image
   n'est pas payée) ; le **plafond de Chagall** à l'Opéra, protégé jusqu'en
   2055 ; et surtout — la tour Eiffel est libre de droits **de jour**, mais son
   **éclairage nocturne est une œuvre protégée**, donc pas de tour illuminée.
-
-**Chaque offre a sa fiche** (`screen-tour`, `ouvrirFicheTour`) : photos, promesse,
-durée, lieux suggérés, **le prix des quatre gammes**, ce qui est compris et ce
-qui ne l'est pas. La carte du rayon **ouvre la fiche**, elle ne prépare plus le
-formulaire — c'est le bouton de la fiche qui le fait.
-- Le prix par gamme **sort de `prixHoraire`**, jamais d'une liste écrite à la
-  main : un tableau recopié finirait par mentir le jour d'une hausse, et un
-  prix VTC affiché qu'on ne tient pas n'est pas une maladresse, c'est une
-  infraction.
-- Ce qui n'y figure **jamais** : une note, un nombre d'avis, un billet d'entrée
-  annoncé comme compris, et le mot « guide » sous toutes ses formes. Six
-  contrôles de `test2.mjs` le verrouillent.
-- « Non compris » se lit aussi clairement que « compris » : une mauvaise
-  surprise à l'arrivée coûte plus cher qu'une vente manquée.
+- Deux vues de Disneyland ont été écartées pour la même raison : filigrane
+  SORTIRAPARIS.COM sur l'une, château et architecture Disney sur l'autre.
 
 **Le bandeau de cookies recouvrait les boutons d'action.** Mesuré à 390 px : il
-occupait 667–780 px, le bouton 674–726 — **entièrement caché**, sur la fiche
-d'une offre comme sur l'écran des tarifs. Un client qui n'avait pas encore
-répondu au bandeau ne pouvait pas continuer sa réservation. `mesurerBandeau()`
-pose sa hauteur réelle dans `--h-bandeau`, et `.veh-action` s'en sert pour
-remonter d'autant. À **remesurer** à l'affichage, à la fermeture, au dépliage
-des détails, au changement de langue et au redimensionnement — sa hauteur
-change à chaque fois.
-
-**Ela Tours** (`TOURS`, `renderTours`, `prixDepartTour`, `choisirTour`) —
-deux circuits posés sous le ruban de photos, jamais au-dessus du
-formulaire : **Paris Tour**, 3 h, du lundi au vendredi 8 h – 20 h, et
-**Paris Illuminé**, 2 h, tous les soirs à partir de 20 h. Les deux ouvrent
-**4 arrêts au choix** ; les sept lieux affichés (Sacré-Cœur, Arc de
-Triomphe, Champs-Élysées, Concorde, Trocadéro, Tour Eiffel, Notre-Dame) ne
-sont que des **suggestions** — c'est sa journée, pas un parcours imposé, et
-ça évite de promettre un itinéraire qu'un embouteillage rendrait faux.
-- Ce n'est **pas un forfait** : un tour n'est qu'une mise à disposition
-  nommée. Appuyer sur une carte bascule sur l'onglet « Mise à disposition »,
-  règle la durée et emmène au champ de départ. Le prix sort de la même
-  grille horaire, donc il reste ferme et connu avant le départ (règle VTC).
-- Le « à partir de » (180 € le jour, 120 € le soir) est la **gamme la moins
-  chère au tarif de jour**. On n'applique pas la majoration de nuit à la
-  carte du soir : `isNightOrWeekend` démarre à **21 h** alors que le créneau
-  ouvre à 20 h — un départ à 20 h paie donc bien le tarif de jour. Le prix
-  affiché est le plancher réel et il monte tout seul après 21 h ou le
-  week-end. **Si Barbaros veut que tout le créneau du soir soit majoré, il
-  faut descendre le seuil de 21 h à 20 h — c'est sa décision, pas la nôtre.**
-- Le créneau lundi–vendredi est **affiché, pas imposé** : la mise à
-  disposition reste réservable tous les jours et le prix se recalcule seul.
-- Les cartes sont fabriquées en JavaScript, sans `data-i18n` :
-  `applyLanguage()` doit rappeler `renderTours()`, sinon un visiteur qui
-  passe à l'espagnol garde des créneaux en français. Les neuf clés
-  (`tours_*`, `tour_jour*`, `tour_nuit*`) existent dans les six langues.
-- **Deux autres formules, sans arrêts** (août 2026, inspirées de la mise en
-  page GetYourGuide, sans en reprendre les avis ni le mot « guide ») :
-  **Ela Prestige** (4 h, gamme `premium` seulement — Ela First ou Van
-  Premium, à partir de 300 €) pour une soirée ou une occasion à marquer, et
-  **Escapade Versailles**, retirée à sa demande le 31 août. Ela Prestige n'a
-  ni `arrets` ni `suggestions` :
-  `detailKey` remplace la ligne « N arrêts » sur la photo, `usageKey`
-  remplace la ligne des suggestions — voir `renderTours()`. `prixDepartTour`
-  filtre `VEHICLES` sur `tour.gamme` avant de prendre le moins cher.
-  Ne jamais écrire qu'un billet d'entrée est inclus (château, musée) :
-  Asmine ne vend que le chauffeur et le véhicule.
+occupait 667–780 px, le bouton 674–726 — **entièrement caché**, sur l'écran des
+tarifs. Un client qui n'avait pas encore répondu au bandeau ne pouvait pas
+continuer sa réservation. `mesurerBandeau()` pose sa hauteur réelle dans
+`--h-bandeau`, et `.veh-action` s'en sert pour remonter d'autant. À
+**remesurer** à l'affichage, à la fermeture, au dépliage des détails, au
+changement de langue et au redimensionnement — sa hauteur change à chaque fois.
 
 **La marque s'écrit « Asmine »**, jamais « As-mine » ni « as.mine ».
 Seule exception : l'adresse du dépôt `github.io/As-mine/`, qu'on ne peut
@@ -583,12 +507,12 @@ vide. Trois pièges :
 - Les tuiles OpenStreetMap sont désaturées en CSS. La couleur doit rester
   au tracé et aux repères, pas aux enseignes de magasins.
 
-**La pastille WhatsApp s'efface aussi devant le rayon d'offres** (août 2026).
-Elle est fixe, à gauche, à hauteur du corps des cartes : elle passait en
-travers de la promesse — « Les incontournables de Paris, arrêts photos
-compris » derrière un rond vert. On ne compare pas le rayon à la fenêtre
-entière (trop large : sur une page de 2090 px il reste visible jusqu'en bas,
-et la pastille ne revenait jamais) mais **au rectangle de la pastille**.
+**La règle « la pastille s'efface devant le rayon d'offres » a été retirée**
+avec le rayon (septembre 2026). Elle avait servi : la pastille passait en
+travers de la promesse d'une carte. Si un rayon revient un jour, la leçon
+tient toujours — on ne compare pas le rayon à la fenêtre entière (trop large :
+sur une page de 2090 px il reste visible jusqu'en bas et la pastille ne
+revient jamais) mais **au rectangle de la pastille**.
 
 **La pastille WhatsApp ne s'affiche QUE sur l'accueil.** Elle ne regardait
 que le défilement : sur l'écran des véhicules, qui tient dans une page, elle
@@ -657,7 +581,7 @@ consommation appelle une pratique commerciale trompeuse.
 **Incrémenter `CACHE` dans `sw.js` à CHAQUE changement visible.** Oublié à la
 phase 1 : Barbaros a publié et n'a rien vu changer sur son téléphone. Le HTML
 est servi « réseau d'abord », mais les téléphones qui ont **installé
-l'application** gardent le reste. `elatransfer-v13` au 1ᵉʳ septembre 2026.
+l'application** gardent le reste. `elatransfer-v14` au 4 septembre 2026.
 
 **LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT** (septembre 2026, phase 1 de
 l'audit). Quatre endroits disaient « aéroport » avant de dire « chauffeur
@@ -685,17 +609,19 @@ privé » : l'enseigne, le titre, la description, et la promesse sous le bouton.
   l'incertitude sur la longueur d'un tunnel fait abandonner plus sûrement que
   sa longueur réelle.
 
-**Les vignettes des offres ne se chargent qu'à l'approche** (septembre 2026).
-Mesuré : le rayon commence à **1 022 px** sur un écran de 844 px, et ses six
-photos partaient quand même — **1,8 Mo avant l'affichage du formulaire**, en
-4G. `chargerFondsVisibles()` pose un `IntersectionObserver` sur
-`.tour-photo[data-fond]`. Deux pièges :
-- **120 px d'avance, pas 300.** Il ne reste que 178 px entre le bas de l'écran
-  et le haut du rayon : à 300 px les deux premières cartes se chargeaient
-  encore, et l'observateur ne servait à rien.
-- Ce sont des **fonds CSS**, pas des `<img>` : `loading="lazy"` ne s'applique
-  pas. Sans `IntersectionObserver`, on charge tout de suite — mieux vaut une
-  page lourde qu'un rayon de cartes vides.
+**L'accueil ne télécharge plus AUCUNE photo** (septembre 2026). Le rayon
+portait treize vignettes qui partaient toutes au chargement — **1,8 Mo avant
+l'affichage du formulaire**, en 4G. On les avait retenues par un
+`IntersectionObserver` (`chargerFondsVisibles`) ; le rayon retiré, il n'y a
+plus rien à retenir et l'observateur est parti avec. `test.mjs` garde la
+garantie sous sa forme la plus forte : on descend toute la page et rien du
+dossier `photos/` ne part.
+Les deux leçons restent vraies si des images reviennent un jour :
+- **120 px d'avance, pas 300.** Il ne restait que 178 px entre le bas de
+  l'écran et le haut du rayon : à 300 px les deux premières cartes se
+  chargeaient encore, et l'observateur ne servait à rien.
+- Un fond CSS n'est **pas** une balise `<img>` : `loading="lazy"` ne s'y
+  applique pas, il faut un `IntersectionObserver`.
 
 **Zones tactiles : ne JAMAIS poser `position:relative` sur un bouton déjà en
 `absolute`.** Le bouton « me localiser » est positionné par une classe
@@ -708,22 +634,21 @@ l'agrandit pour de vrai (`min-height:44px`).
 **L'accueil ne pose qu'une question : d'où à où, et quand.** Août 2026, à la
 demande de Barbaros — « fait comme Uber ». Le formulaire d'accueil ne porte
 plus que les deux adresses, la date et l'heure. Ce qui en est parti :
-- **Les deux onglets** « Trajet simple / Mise à disposition ». Les boutons
-  `#tabSimple` et `#tabDisposal` restent dans la page, **masqués** : ils
-  portent l'état ARIA et `selectTripTab()` s'appuie dessus. Ne pas les
-  supprimer sans réécrire cette fonction.
+- **Les deux onglets** « Trajet simple / Mise à disposition » — puis
+  **revenus en septembre 2026**, quand les packs ont été retirés : la mise à
+  disposition n'avait plus d'autre porte d'entrée. Voir « IL N'Y A PLUS DE
+  PACKS » plus haut. `#tabSimple` et `#tabDisposal` portent l'état ARIA et
+  `selectTripTab()` s'appuie dessus : ne pas les supprimer sans réécrire
+  cette fonction.
 - **Le nombre de passagers et la gamme.** Ils sont passés sur l'écran des
   prix (`#paxVehicles`, au-dessus de la liste) : on ne fait pas choisir une
   gamme à quelqu'un qui n'en connaît pas encore le prix. Changer le nombre
   redessine la liste tout de suite et **efface un choix devenu impossible**
   — sinon on continuerait avec une berline pour six.
-- **La mise à disposition**, devenue une **offre**, cinquième carte du rayon
-  Ela Tours (`cle:"disposition"`). Elle n'a pas de durée fixée — `heures:null`
-  et `parHeure:true` font afficher « à partir de 60 €/h » au lieu d'un total
-  qu'on ne peut pas connaître. `choisirTour()` ne touche alors pas au curseur.
-  Le formulaire qu'elle ouvre porte **`#btnRetourSimple`**, seul chemin de
-  retour depuis que les onglets ont disparu : sans lui, le client qui a appuyé
-  par curiosité est enfermé.
+- **La mise à disposition**, passée un temps en **offre** du rayon Ela Tours,
+  **est revenue à son onglet** avec le retrait des packs (septembre 2026).
+  Son formulaire porte toujours `#btnRetourSimple` : il fait maintenant double
+  emploi avec l'onglet, ce n'est pas une raison de le retirer.
 
 **Pas de raccourcis de destination sur l'accueil.** Essayés en août 2026
 (CDG · Orly · Gare du Nord, sous le champ d'arrivée), **retirés à la demande
