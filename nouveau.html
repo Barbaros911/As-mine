@@ -212,6 +212,16 @@ img{display:block;max-width:100%;}
 /* ---------- LE BON DE RÉSERVATION ---------- */
 .bon-tete{margin:16px 20px 0;padding:18px 16px 20px;border-radius:18px;
   background:var(--noir);color:#fff;}
+/* La marque en tête du bon, séparée du reste par un filet : au-dessus qui
+   émet le document, en dessous ce qu'il dit. */
+.bon-marque{padding-bottom:15px;margin-bottom:15px;
+  border-bottom:1px solid rgba(255,255,255,.16);}
+.bon-arc{display:block;height:11px;width:96px;margin-bottom:2px;}
+.bon-nom{display:block;font-size:19px;font-weight:800;letter-spacing:.03em;
+  line-height:1;}
+.bon-nom i{font-style:normal;color:var(--or-vif);}
+.bon-sous{display:block;font-size:9px;font-weight:600;letter-spacing:.24em;
+  text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:5px;}
 /* L'état est en OR sur noir, pas en vert : rien n'est confirmé à cet
    instant, et un vert dirait le contraire de ce que le bon annonce. */
 .bon-etat{display:inline-block;font-size:11px;font-weight:700;
@@ -820,6 +830,21 @@ img{display:block;max-width:100%;}
        ===================================================================== -->
   <section class="ecran" id="ecran-bon">
     <div class="bon-tete">
+      <!-- LE BON PORTE LA MARQUE, ET SEULEMENT ELLE. C'est un document que le
+           client garde, montre à la réception d'un hôtel, retrouve dans ses
+           captures d'écran trois semaines plus tard : sans nom dessus, ce
+           n'est qu'un numéro. L'identité est celle d'Elatransfer et d'aucun
+           autre : le transport sera exécuté par un chauffeur indépendant, et
+           c'est LUI qui émettra la facture, sous son SIRET. Mêler les deux
+           ferait d'Elatransfer un transporteur, ce qu'elle n'est pas. -->
+      <div class="bon-marque">
+        <svg class="bon-arc" viewBox="0 0 112 13" fill="none" aria-hidden="true">
+          <path d="M2 11.4C15 3.6 34 1 56 1s41 2.6 54 10.4" stroke="#E3B855"
+                stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span class="bon-nom">ELA<i>TRANSFER</i></span>
+        <span class="bon-sous">Bon de réservation</span>
+      </div>
       <span class="bon-etat">En attente de confirmation</span>
       <p class="bon-ref" id="bonRef">—</p>
       <p class="bon-note">Ce bon devient ferme dès qu'Elatransfer confirme.
@@ -1646,10 +1671,11 @@ img{display:block;max-width:100%;}
     var wa = document.querySelector(".wa");
     if(!wa) return;
     var enAttente = false;
-    /* Ce qu'on ne recouvre jamais : le bouton d'action, la ligne qui le
-       rassure, et le texte des cartes de services. Ajouter « .protege » à
-       un élément suffit à l'inscrire ici sans toucher au script. */
-    var PROTEGES = ".bouton, .rassure, .service-corps, .protege";
+    /* Ce qu'on ne recouvre jamais : les boutons — l'action dorée comme les
+       actions en retrait, qui portent le renvoi de la demande — la ligne qui
+       rassure sous le bouton, et le texte des cartes de services. Ajouter
+       « .protege » à un élément suffit à l'inscrire ici. */
+    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .protege";
 
     function juger(){
       enAttente = false;

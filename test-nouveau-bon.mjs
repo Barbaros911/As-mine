@@ -79,13 +79,16 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 const ref = await p.locator('#bonRef').textContent();
-// La référence porte le préfixe de la marque. Le garde-fou sur « ASM » est
-// là pour qu'un préfixe hérité du nom du dépôt ne revienne jamais par
-// copier-coller.
+// « ELA », jamais « ASM » : ASM venait du nom du dépôt, pas de la marque.
 check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
-check('aucun préfixe hérité ne revient', !ref.startsWith('ASM'), ref);
+check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref);
 check('le bon dit « en attente », jamais « confirmé »',
   (await p.locator('.bon-etat').textContent()).toLowerCase().includes('attente'));
+check('le bon porte la marque Elatransfer',
+  (await p.locator('.bon-nom').textContent()).replace(/\s/g,'') === 'ELATRANSFER',
+  await p.locator('.bon-nom').textContent());
+check('et se nomme pour ce qu\'il est',
+  (await p.locator('.bon-sous').textContent()).toLowerCase().includes('bon de réservation'));
 check('le bon dit ce qui le rendra ferme',
   (await p.locator('.bon-note').textContent()).includes('ferme'));
 
@@ -109,6 +112,17 @@ check('aucune donnée du client dans les cinq premières lignes',
 
 check('aucun bouton d\'action doré sur le bon — le client n\'a plus rien à faire',
   (await p.locator('#ecran-bon .bouton').count())===0);
+// La pastille WhatsApp ne doit recouvrir aucun bouton, y compris ceux en
+// retrait : « Renvoyer ma demande » est le filet de sécurité du client.
+const gene = await p.evaluate(()=>{
+  const w = document.querySelector('.wa').getBoundingClientRect();
+  if(document.querySelector('.wa').classList.contains('efface')) return false;
+  return [...document.querySelectorAll('#ecran-bon .bouton-fantome')].some(el=>{
+    const r = el.getBoundingClientRect();
+    return r.bottom>w.top && r.top<w.bottom && r.right>w.left && r.left<w.right;
+  });
+});
+check('la pastille WhatsApp ne recouvre aucun bouton du bon', !gene);
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
 await p.locator('#btnRetourVehicules').count();
