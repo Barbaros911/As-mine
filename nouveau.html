@@ -130,6 +130,32 @@ img{display:block;max-width:100%;}
 .champ input[type="date"],.champ input[type="time"]{min-width:0;}
 .duo > .champ{position:relative;}
 
+/* ---------- SUGGESTIONS D'ADRESSE ---------- */
+/* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
+   flux elle repousserait tout le formulaire vers le bas à chaque frappe, et
+   le doigt du client viserait une cible qui bouge. */
+.champ-bloc{position:relative;}
+.suggest-list{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:20;
+  background:var(--carte);border:1px solid var(--filet);border-radius:13px;
+  box-shadow:0 14px 34px rgba(11,11,13,.16);
+  max-height:248px;overflow-y:auto;padding:5px;}
+/* 44 px de haut au minimum : c'est la taille d'un pouce, et une ligne plus
+   basse se rate. Deux lignes autorisées — une adresse coupée net ne se
+   choisit pas. */
+.suggest-item{display:flex;align-items:flex-start;gap:9px;min-height:44px;
+  padding:10px;border-radius:9px;font-size:13.5px;line-height:1.32;cursor:pointer;}
+.suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--or-clair);}
+.suggest-item .ico{flex:0 0 auto;font-size:14.5px;}
+.suggest-vide{padding:12px 10px;font-size:13px;color:var(--gris);}
+.champ-aide{margin:-4px 0 10px;padding:0 4px;font-size:11.5px;
+  color:var(--gris);line-height:1.35;}
+[hidden]{display:none!important;}
+/* Le bouton s'efface tant qu'une liste est ouverte. Mesuré sur le site en
+   service : la liste descend par-dessus, et le client qui vise le bouton
+   appuie sur une rue. On garde sa place — « visibility », pas « display » —
+   pour que la page ne sursaute pas sous le doigt. */
+.bouton.efface{visibility:hidden;}
+
 .bouton{width:100%;margin-top:8px;border:0;border-radius:13px;
   background:var(--or);color:#fff;font-family:inherit;
   font-size:16px;font-weight:700;padding:17px 18px;
@@ -283,33 +309,84 @@ img{display:block;max-width:100%;}
       </div>
     </div>
 
-    <label class="champ" for="depart">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
-        <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
-      </svg>
-      <span class="champ-corps">
-        <span class="champ-titre">Lieu de départ</span>
-        <input id="depart" type="text" placeholder="Adresse, aéroport, hôtel…" autocomplete="off">
-      </span>
-      <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </label>
+    <div class="champ-bloc">
+      <label class="champ" for="depart">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+          <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Lieu de départ</span>
+          <input id="depart" type="text" placeholder="Adresse, aéroport, hôtel…"
+                 autocomplete="off" role="combobox" aria-expanded="false"
+                 aria-controls="departList" aria-autocomplete="list">
+        </span>
+        <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <div class="suggest-list" id="departList" role="listbox" aria-label="Suggestions de départ" hidden></div>
+    </div>
 
-    <label class="champ" for="arrivee">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
-        <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
-      </svg>
-      <span class="champ-corps">
-        <span class="champ-titre">Lieu d'arrivée</span>
-        <input id="arrivee" type="text" placeholder="Adresse, aéroport, hôtel…" autocomplete="off">
-      </span>
-      <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </label>
+    <!-- LE NUMÉRO DE CHAMBRE N'APPARAÎT QUE POUR UN HÔTEL AU DÉPART.
+         Sans lui, le chauffeur attend au comptoir pendant que le client
+         attend dans sa chambre — c'est la course qui part en retard, et
+         personne n'a rien fait de mal. Le champ se vide dès qu'on change
+         d'adresse : le chauffeur ne doit jamais recevoir la chambre d'un
+         hôtel précédent. -->
+    <div id="blocChambre" hidden>
+      <label class="champ" for="chambre">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4.6" y="3.4" width="12.4" height="17.2" rx="1.9"
+                stroke="#C9992E" stroke-width="1.8"/>
+          <circle cx="13.7" cy="12" r="1.15" fill="#C9992E"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Numéro de chambre</span>
+          <input id="chambre" type="text" placeholder="Ex. 214" autocomplete="off" maxlength="12">
+        </span>
+      </label>
+      <p class="champ-aide">Transmis au chauffeur : il vient vous chercher sans attendre à la réception.</p>
+    </div>
+
+    <div class="champ-bloc">
+      <label class="champ" for="arrivee">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+          <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Lieu d'arrivée</span>
+          <input id="arrivee" type="text" placeholder="Adresse, aéroport, hôtel…"
+                 autocomplete="off" role="combobox" aria-expanded="false"
+                 aria-controls="arriveeList" aria-autocomplete="list">
+        </span>
+        <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <div class="suggest-list" id="arriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
+    </div>
+
+    <!-- LE NUMÉRO DE VOL SUIT LES DEUX BOUTS DU TRAJET.
+         Au départ d'un terminal, il permet au chauffeur de suivre le vol et
+         d'ajuster l'heure quand il a du retard. À l'arrivée, il lui dit à
+         quel comptoir déposer le client — les terminaux de Roissy sont à
+         plusieurs kilomètres les uns des autres. -->
+    <div id="blocVol" hidden>
+      <label class="champ" for="vol">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
+                fill="#C9992E"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre">Numéro de vol</span>
+          <input id="vol" type="text" placeholder="Ex. AF1234" autocomplete="off"
+                 maxlength="10" style="text-transform:uppercase">
+        </span>
+      </label>
+      <p class="champ-aide" id="aideVol">Le chauffeur suit votre vol et ajuste l'heure en cas de retard.</p>
+    </div>
 
     <div class="duo">
       <label class="champ" for="date">
@@ -547,11 +624,397 @@ img{display:block;max-width:100%;}
 
 <script>
   // La date du jour, pour ne pas présenter une date déjà passée.
-  // Rien d'autre : cette page est une robe, pas un moteur.
   (function(){
     var d = document.getElementById("date");
     if(d){ var j = new Date(); d.min = d.value = j.toISOString().slice(0,10); }
   })();
+
+/* =====================================================================
+   LA RECHERCHE D'ADRESSE
+   ---------------------------------------------------------------------
+   Reprise du site en service, à l'identique dans son principe. Deux
+   fournisseurs, interrogés EN MÊME TEMPS parce qu'ils ne savent pas la
+   même chose :
+   — la Base Adresse Nationale fait autorité sur les adresses postales
+     françaises (« 12 rue de la Paix »), et ne connaît que celles-là ;
+   — Photon (OpenStreetMap) connaît les LIEUX : hôtels, gares, hôpitaux,
+     monuments. La BAN ne répondrait à « Hôtel Ibis Bercy » que par des
+     rues portant le mot « Bercy ».
+   Les terminaux d'aéroport, eux, sont écrits en dur : ni l'un ni l'autre
+   ne les donne proprement, et « cdg » n'a qu'un sens possible.
+
+   Une seule chose manque par rapport au site en service : le repli sur
+   une liste locale quand les DEUX services sont injoignables. Il n'a pas
+   sa place sur une page d'essai — il fabrique des adresses plausibles,
+   ce qui est utile pour éprouver le tunnel, trompeur pour juger la robe.
+   À remettre le jour de la bascule.
+   ===================================================================== */
+(function(){
+  var champDepart  = document.getElementById("depart");
+  var champArrivee = document.getElementById("arrivee");
+  if(!champDepart || !champArrivee) return;
+
+  /* Ce que le client a réellement CHOISI dans une liste — pas ce qu'il a
+     tapé. Un texte saisi à la main n'a pas de coordonnées, donc pas de
+     prix : c'est la différence entre une adresse et une intention. */
+  var choix = { depart:null, arrivee:null };
+
+  function sansAccents(s){
+    return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+  }
+  function retarder(fn, delai){
+    var t; return function(){ clearTimeout(t); t = setTimeout(fn, delai); };
+  }
+
+  /* ---- Reconnaître un hôtel -------------------------------------------
+     Deux voies, parce qu'une seule ne suffit pas : la catégorie
+     OpenStreetMap quand elle existe, et le libellé lui-même — la Base
+     Adresse Nationale ne renvoie que du texte, sans catégorie. */
+  var HOTEL_OSM = ["hotel","guest_house","hostel","motel","apartment","chalet"];
+  var HOTEL_MOTS = ["hotel","hostel","auberge","residence","ibis","novotel","mercure",
+    "pullman","sofitel","hyatt","marriott","hilton","radisson","best western",
+    "campanile","kyriad","premiere classe","citadines","adagio","aparthotel",
+    "appart hotel","motel","b&b hotel"];
+  function estHotel(lieu){
+    if(!lieu) return false;
+    if(lieu.categorie === "hotel") return true;
+    var l = sansAccents(lieu.label || "");
+    return HOTEL_MOTS.some(function(m){ return l.indexOf(sansAccents(m)) !== -1; });
+  }
+
+  function categorieDuLieu(cle, valeur, type){
+    var v = (valeur||"").toLowerCase(), k = (cle||"").toLowerCase();
+    if(["hospital","clinic","doctors","pharmacy"].indexOf(v)>-1) return "sante";
+    if(["restaurant","cafe","bar","fast_food","pub"].indexOf(v)>-1) return "restauration";
+    if(HOTEL_OSM.indexOf(v)>-1) return "hotel";
+    if(k==="tourism" || ["museum","attraction","viewpoint","artwork","monument","gallery"].indexOf(v)>-1) return "culture";
+    if(["aerodrome","airport"].indexOf(v)>-1 || v.indexOf("airport")>-1) return "aeroport";
+    if(["station","subway_entrance","halt"].indexOf(v)>-1 || k==="railway") return "gare";
+    if(["school","university","college","kindergarten"].indexOf(v)>-1) return "education";
+    if(["theatre","cinema","stadium","arena"].indexOf(v)>-1) return "spectacle";
+    if(type==="street" || k==="highway") return "voie";
+    return "adresse";
+  }
+  var ICONES = { sante:"🏥", restauration:"🍽️", hotel:"🏨", culture:"🏛️",
+    aeroport:"✈️", gare:"🚉", education:"🎓", spectacle:"🎭", voie:"🛣️", adresse:"📍" };
+
+  /* ---- Les terminaux d'aéroport ---------------------------------------
+     Le terminal est écrit EN PREMIER dans le libellé : neuf lignes
+     commençant toutes par « Aéroport Roissy-Charles de… » se ressemblent
+     une fois tronquées, et le client ne peut plus choisir le sien. */
+  var AEROPORTS = {
+    cdg: { nom:"Aéroport Roissy-Charles de Gaulle",
+      mots:["cdg","roissy","charles","gaulle"],
+      terminaux:{ "Terminal 1":[49.0067,2.5479], "Terminal 2A":[49.0053,2.5695],
+        "Terminal 2B":[49.0037,2.5695], "Terminal 2C":[49.0025,2.5715],
+        "Terminal 2D":[49.0013,2.5715], "Terminal 2E":[48.9998,2.5740],
+        "Terminal 2F":[48.9985,2.5740], "Terminal 2G":[48.9970,2.5760],
+        "Terminal 3":[49.0102,2.5450] } },
+    orly: { nom:"Aéroport de Paris-Orly", mots:["orly"],
+      terminaux:{ "Orly 1":[48.7233,2.3794], "Orly 2":[48.7228,2.3805],
+        "Orly 3":[48.7218,2.3815], "Orly 4":[48.7289,2.3592] } },
+    beauvais: { nom:"Aéroport de Beauvais-Tillé", mots:["beauvais","tille"],
+      terminaux:{ "Terminal unique":[49.4544,2.1128] } }
+  };
+  /* Un mot ENTIER, jamais un début de mot : « ro » déclencherait Roissy
+     sur « Rouen », qui est à 112 km et hors zone. */
+  function terminauxPourSaisie(q){
+    var n = sansAccents(q);
+    if(!n) return [];
+    var mots = n.split(/[^a-z0-9]+/).filter(Boolean);
+    var sortie = [];
+    Object.keys(AEROPORTS).forEach(function(cle){
+      var ap = AEROPORTS[cle], clefs = ap.mots.map(sansAccents);
+      var touche = mots.some(function(m){ return clefs.indexOf(m)>-1; }) || clefs.indexOf(n)>-1;
+      if(!touche) return;
+      Object.keys(ap.terminaux).forEach(function(t){
+        var p = ap.terminaux[t];
+        sortie.push({ label:t+" — "+ap.nom, lat:p[0], lon:p[1],
+                      icon:"✈️", categorie:"aeroport", lieuNomme:true });
+      });
+    });
+    return sortie;
+  }
+  function terminalDuLibelle(label){
+    if(!label) return null;
+    var trouve = null;
+    Object.keys(AEROPORTS).forEach(function(cle){
+      Object.keys(AEROPORTS[cle].terminaux).forEach(function(t){
+        if(!trouve && label.indexOf(t) !== -1) trouve = t;
+      });
+    });
+    return trouve;
+  }
+
+  /* ---- Les deux fournisseurs ------------------------------------------ */
+  function appeler(url){
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 6000);
+    return fetch(url, { signal:ctrl.signal })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .catch(function(){ return null; })
+      .then(function(d){ clearTimeout(minuteur); return d; });
+  }
+  function depuisBAN(q){
+    return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=6&autocomplete=1")
+      .then(function(d){
+        if(!d || !Array.isArray(d.features)) return [];
+        return d.features.map(function(f){
+          return { label:f.properties.label, lat:f.geometry.coordinates[1],
+                   lon:f.geometry.coordinates[0], icon:"📍", lieuNomme:false };
+        });
+      });
+  }
+  function libellePhoton(p){
+    var morceaux = [];
+    var nomme = !!p.name && p.osm_key!=="highway" && p.type!=="house" && p.type!=="street";
+    if(nomme) morceaux.push(p.name);
+    var rue = [p.housenumber, p.street || (!nomme ? p.name : null)].filter(Boolean).join(" ");
+    if(rue) morceaux.push(rue);
+    var ville = [p.postcode, p.city || p.county].filter(Boolean).join(" ");
+    if(ville) morceaux.push(ville); else if(p.state) morceaux.push(p.state);
+    return { label:morceaux.filter(Boolean).join(", "), lieuNomme:nomme };
+  }
+  /* limit=15 : un nom de chaîne (« ibis », « gare du nord ») renvoie beaucoup
+     d'homonymes ; en demander trop peu revenait à n'en montrer aucun de bon.
+     Le biais rapproche de Paris sans exclure le reste de la France. */
+  function depuisPhoton(q){
+    return appeler("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+
+                   "&limit=15&lang=fr&lat=48.8566&lon=2.3522&location_bias_scale=0.4")
+      .then(function(d){
+        if(!d || !Array.isArray(d.features)) return [];
+        return d.features.filter(function(f){
+          var p = f.properties || {};
+          if(p.countrycode) return p.countrycode === "FR";
+          return p.country ? /france/i.test(p.country) : true;
+        }).map(function(f){
+          var p = f.properties, r = libellePhoton(p);
+          var cat = categorieDuLieu(p.osm_key, p.osm_value, p.type);
+          return { label:r.label, lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
+                   icon:ICONES[cat] || "📍", categorie:cat, lieuNomme:r.lieuNomme };
+        }).filter(function(r){ return r.label; });
+      });
+  }
+
+  /* ---- Trier et dédoublonner ------------------------------------------
+     Le client écrit « hôtel ibis bercy ». Les mots passe-partout ne
+     figurent presque jamais dans le nom réel : on relance donc sans eux,
+     et un résultat qui porte un mot distinctif passe devant. */
+  var MOTS_COURANTS = ["hotel","hotels","motel","auberge","residence","restaurant",
+    "resto","brasserie","cafe","bar","pub","gare","station","aeroport","airport",
+    "hopital","clinique","pharmacie","musee","cinema","theatre","stade","ecole",
+    "universite","mairie","centre","commercial","le","la","les","l","un","une",
+    "du","de","des","d","au","aux","chez","the","paris"];
+  function variantes(q){
+    var liste = [q.trim()];
+    var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean);
+    var utiles = mots.filter(function(m){ return MOTS_COURANTS.indexOf(m) === -1; });
+    if(utiles.length && utiles.length < mots.length) liste.push(utiles.join(" "));
+    return liste;
+  }
+  function note(item, mots){
+    var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    mots.forEach(function(m){
+      if(m.length < 2 || l.indexOf(m) === -1) return;
+      s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
+    });
+    return s;
+  }
+  /* Deux résultats à quelques mètres l'un de l'autre sont le même lieu, même
+     si les libellés diffèrent d'une virgule : on dédoublonne sur les DEUX. */
+  function dedoublonner(liste){
+    var vus = {}, sortie = [];
+    liste.forEach(function(it){
+      var parNom = sansAccents(it.label);
+      var parLieu = typeof it.lat === "number"
+        ? "@"+it.lat.toFixed(4)+","+it.lon.toFixed(4) : null;
+      if(!parNom || vus[parNom] || (parLieu && vus[parLieu])) return;
+      vus[parNom] = true; if(parLieu) vus[parLieu] = true;
+      sortie.push(it);
+    });
+    return sortie;
+  }
+
+  var cache = {};
+  function chercher(q){
+    if(!q || q.trim().length < 2) return Promise.resolve([]);
+    var clef = q.trim().toLowerCase();
+    if(cache[clef]) return Promise.resolve(cache[clef]);
+    var terminaux = terminauxPourSaisie(q);
+    var formes = variantes(q);
+    return Promise.all([depuisBAN(q)].concat(formes.map(depuisPhoton)))
+      .then(function(res){
+        var ban = res[0];
+        var photon = res.slice(1).reduce(function(a,b){ return a.concat(b); }, []);
+        var nommes = photon.filter(function(r){ return r.lieuNomme; });
+        var simples = photon.filter(function(r){ return !r.lieuNomme; });
+        /* La saisie dit ce que le client cherche : commencer par un chiffre,
+           c'est une adresse postale, et la BAN fait autorité. Sinon c'est un
+           nom de lieu, et seul OpenStreetMap sait le situer. */
+        var chercheAdresse = /^\s*\d/.test(q);
+        var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean);
+        var classer = function(l){
+          return l.map(function(it,i){ return { it:it, i:i, s:note(it,mots) }; })
+                  .sort(function(a,b){ return b.s - a.s || a.i - b.i; })
+                  .map(function(x){ return x.it; });
+        };
+        var ordre = chercheAdresse
+          ? terminaux.concat(classer(ban.concat(nommes, simples)))
+          : terminaux.concat(classer(nommes.concat(ban, simples)));
+        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+3 : 8);
+        cache[clef] = sortie;
+        return sortie;
+      });
+  }
+
+  /* ---- Le bouton s'efface pendant qu'une liste est ouverte ------------- */
+  function jugerBouton(){
+    var btn = document.querySelector(".reserver .bouton");
+    if(!btn) return;
+    var ouverte = Array.prototype.some.call(
+      document.querySelectorAll(".suggest-list"), function(l){ return !l.hidden; });
+    btn.classList.toggle("efface", ouverte);
+  }
+
+  /* ---- Les deux champs conditionnels ---------------------------------- */
+  var blocChambre = document.getElementById("blocChambre");
+  var champChambre = document.getElementById("chambre");
+  var blocVol = document.getElementById("blocVol");
+  var champVol = document.getElementById("vol");
+  var aideVol = document.getElementById("aideVol");
+
+  function jugerChambre(){
+    var hotel = estHotel(choix.depart);
+    blocChambre.hidden = !hotel;
+    if(!hotel) champChambre.value = "";
+  }
+  function jugerVol(){
+    var auDepart = terminalDuLibelle(choix.depart && choix.depart.label);
+    var aArrivee = terminalDuLibelle(choix.arrivee && choix.arrivee.label);
+    var terminal = auDepart || aArrivee;
+    blocVol.hidden = !terminal;
+    if(!terminal){ champVol.value = ""; return; }
+    /* Le texte d'aide n'est pas le même dans les deux sens. Un client qui
+       PART vers Roissy n'a pas de vol à suivre — ce qu'il veut savoir,
+       c'est qu'on le dépose au bon terminal. */
+    aideVol.textContent = auDepart
+      ? "Le chauffeur suit votre vol et ajuste l'heure en cas de retard."
+      : "Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.";
+  }
+
+  /* ---- Brancher un champ ---------------------------------------------- */
+  function brancher(champ, liste, quand){
+    var rang = 0;        // une réponse lente ne doit pas écraser une plus récente
+    var choisi = null;   // le libellé réellement retenu dans la liste
+    var actif = -1;      // ligne survolée au clavier
+    var ferme = false;   // liste fermée volontairement : ne pas la rouvrir
+
+    function fermer(){
+      liste.hidden = true;
+      champ.setAttribute("aria-expanded","false");
+      champ.removeAttribute("aria-activedescendant");
+      actif = -1; ferme = true; rang++;
+      jugerBouton();
+    }
+    function lignes(){ return Array.prototype.slice.call(liste.querySelectorAll('[role="option"]')); }
+    function surligner(i){
+      var l = lignes(); if(!l.length) return;
+      actif = (i + l.length) % l.length;
+      l.forEach(function(o,k){ o.setAttribute("aria-selected", String(k===actif)); });
+      var el = l[actif];
+      el.id = el.id || liste.id+"-opt-"+actif;
+      champ.setAttribute("aria-activedescendant", el.id);
+      el.scrollIntoView({ block:"nearest" });
+    }
+    function dessiner(items){
+      liste.innerHTML = "";
+      if(!items.length){
+        var vide = document.createElement("div");
+        vide.className = "suggest-vide";
+        vide.setAttribute("role","status");
+        vide.textContent = "Aucune adresse trouvée";
+        liste.appendChild(vide);
+      }else{
+        items.forEach(function(item){
+          var l = document.createElement("div");
+          l.className = "suggest-item";
+          l.setAttribute("role","option");
+          l.setAttribute("tabindex","0");
+          var i = document.createElement("span");
+          i.className = "ico"; i.textContent = item.icon || "📍";
+          var t = document.createElement("span");
+          t.textContent = item.label;
+          l.appendChild(i); l.appendChild(t);
+          function prendre(){
+            champ.value = item.label;
+            choisi = item.label;
+            fermer();
+            quand(item);
+          }
+          l.addEventListener("click", prendre);
+          l.addEventListener("keydown", function(e){
+            if(e.key === "Enter" || e.key === " "){ e.preventDefault(); prendre(); }
+          });
+          liste.appendChild(l);
+        });
+      }
+      liste.hidden = false;
+      champ.setAttribute("aria-expanded","true");
+      jugerBouton();
+    }
+
+    var lancer = retarder(function(){
+      if(ferme) return;
+      var q = champ.value;
+      if(q.trim().length < 2){ fermer(); return; }
+      var mien = ++rang;
+      liste.innerHTML = '<div class="suggest-vide" role="status">Recherche…</div>';
+      liste.hidden = false;
+      champ.setAttribute("aria-expanded","true");
+      jugerBouton();
+      chercher(q).then(function(items){
+        if(mien !== rang) return;   // une frappe plus récente a pris la main
+        actif = -1;
+        dessiner(items);
+      });
+    }, 250);
+
+    champ.addEventListener("input", function(){
+      /* Le texte a changé après un choix : la position mémorisée ne
+         correspond plus à ce qui est écrit, on l'invalide. Sans ça, le
+         client corrige son adresse et part avec les coordonnées de
+         l'ancienne. */
+      if(choisi !== null && champ.value !== choisi){ choisi = null; quand(null); }
+      ferme = false;
+      lancer();
+    });
+    champ.addEventListener("focus", function(){
+      if(!ferme && champ.value.trim().length >= 2) lancer();
+    });
+    champ.addEventListener("keydown", function(e){
+      var ouverte = !liste.hidden;
+      if(e.key === "ArrowDown"){
+        e.preventDefault();
+        if(!ouverte){ ferme = false; lancer(); return; }
+        surligner(actif+1);
+      } else if(e.key === "ArrowUp"){
+        e.preventDefault(); if(ouverte) surligner(actif-1);
+      } else if(e.key === "Enter"){
+        if(ouverte && actif >= 0){ e.preventDefault(); lignes()[actif].click(); }
+      } else if(e.key === "Escape"){ fermer(); }
+    });
+    document.addEventListener("click", function(e){
+      if(!champ.contains(e.target) && !liste.contains(e.target)) fermer();
+    });
+  }
+
+  brancher(champDepart, document.getElementById("departList"), function(item){
+    choix.depart = item; jugerChambre(); jugerVol();
+  });
+  brancher(champArrivee, document.getElementById("arriveeList"), function(item){
+    choix.arrivee = item; jugerVol();
+  });
+})();
 
   /* LA PASTILLE WHATSAPP S'EFFACE DEVANT CE QU'ELLE RECOUVRE.
      On compare son rectangle à celui de chaque élément « .protege » — et non
