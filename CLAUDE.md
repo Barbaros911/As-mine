@@ -245,12 +245,29 @@ la branche du rayon dans le jugement de la pastille WhatsApp.
   `<div>` des onglets a donc repris `grid grid-cols-2 gap-1 mb-3` à la place de
   `hidden`. `#btnRetourSimple` reste : il fait double emploi avec l'onglet,
   ce n'est pas une raison de le retirer.
-- **Les clés de traduction des offres n'ont PAS été supprimées** (`tours_*`,
-  `tour_*`, `fiche_*` dans les six langues). Elles sont inertes — rien ne les
-  lit — et les retirer voudrait dire réécrire six blocs d'une seule ligne de
-  plusieurs milliers de caractères, pour un gain nul et un vrai risque de
-  casser une langue. Elles seront enlevées à la prochaine reprise de l'objet
-  `I18N`, pas à l'arrache.
+- **Les 42 clés de traduction des offres ont été retirées** (`tours_*`,
+  `tour_*`, `fiche_*`), soit 252 entrées sur les six langues et 12,5 Ko de
+  moins. La méthode compte : on ne coupe QUE ce qu'on peut prouver mort.
+  **Un inventaire naïf se trompe.** Il a signalé 132 clés « jamais
+  référencées » — la plupart sont bien vivantes, simplement **construites au
+  vol** : `t("pax_person_" + …)`, `t("driver_state_" + etat)`,
+  `t("legal_" + doc + "_body")`, `t(v.nameKey)` pour les quatre gammes.
+  Les supprimer aurait cassé le site en silence. Seule la famille des offres
+  était démontrable : le code qui fabriquait ces noms de clés
+  (`nomKey`, `promesseKey`, `creneauKey`, `detailKey`, `usageKey`) a disparu
+  en entier. Les 90 autres restent, et **ne doivent pas être retirées sans la
+  même preuve**.
+  Le retrait se fait clé par clé sur le motif `cle:"…"` : en JavaScript, un
+  guillemet à l'intérieur d'une valeur est forcément échappé, donc le motif ne
+  peut pas déborder sur la clé suivante. On vérifie ensuite en **réévaluant**
+  l'objet `I18N` et en ouvrant les six langues.
+- **Un bug trouvé au passage : `payment_error` était appelée sans exister**
+  dans aucune langue. Quand la copie du récapitulatif échouait deux fois
+  (navigateur ancien, contexte non sécurisé), le client voyait le mot
+  `payment_error` en toutes lettres — un terme technique, en anglais, et qui
+  parlait d'un paiement alors qu'il s'agissait d'une copie. Remplacée par
+  `copy_error` dans les six langues. Un contrôle de l'inventaire vérifie
+  désormais qu'aucune clé référencée n'est absente.
 - **Le dossier `photos/` reste dans le dépôt**, plus rien n'y pointe. Les
   treize vues envoyées par Barbaros sont conservées pour le jour où il
   redemandera des offres ; `construire.sh` les publie encore, ce qui ne coûte
