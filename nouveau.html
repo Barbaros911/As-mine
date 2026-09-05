@@ -204,7 +204,40 @@ img{display:block;max-width:100%;}
 .veh-action{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom));
   padding:16px 20px 4px;margin-top:18px;}
 .veh-action .bouton{margin-top:0;}
+/* LE BOUTON DU RÉCAPITULATIF N'EST PAS COLLANT, ET C'EST VOULU.
+   Vu sur une capture : épinglé en bas de l'écran, il recouvrait la pancarte
+   d'accueil, qui se lisait à moitié sous lui. Mais la vraie raison est
+   ailleurs — l'écran des prix est une LISTE qu'on parcourt, le
+   récapitulatif est un DOCUMENT qu'on lit : le prix, la TVA, le règlement
+   au chauffeur. Un « Confirmer » qui suit le doigt invite à confirmer sans
+   avoir lu, et c'est justement ce qu'on demande au client d'accepter. */
+#ecran-recap .veh-action{position:static;padding-bottom:20px;}
 .bouton:disabled{background:var(--filet);color:var(--gris);cursor:default;}
+
+/* ---------- LES REFUS DU FORMULAIRE ---------- */
+/* Rouge, et c'est le seul rouge de la page : il ne veut dire qu'une chose,
+   « ça ne peut pas partir comme ça ». S'il servait aussi à décorer, plus
+   personne ne le lirait. */
+.refus{margin:0 0 14px;padding:11px 13px;border-radius:12px;
+  border:1px solid #C9302F;background:rgba(201,48,47,.05);
+  font-size:12.5px;line-height:1.4;color:#9E1F1E;font-weight:600;}
+
+/* ---------- LA PANCARTE D'ACCUEIL ---------- */
+/* Une vraie pancarte : marine, le nom en grand, le filet doré de la marque.
+   C'est l'objet que le client cherchera des yeux en sortant des bagages, et
+   le voir à l'avance vaut mieux que de le décrire. */
+.pancarte{display:block;background:var(--noir);border-radius:14px;
+  padding:16px 16px 18px;text-align:center;}
+.pancarte-marque{display:block;font-size:13px;font-weight:800;
+  letter-spacing:.06em;color:#fff;}
+.pancarte-marque i{font-style:normal;color:var(--or-vif);}
+.pancarte-filet{display:block;width:52px;height:2px;border-radius:2px;
+  background:var(--or-vif);margin:9px auto 12px;}
+/* Le nom peut être long : il se réduit plutôt que de sortir du cadre, et il
+   coupe entre les mots plutôt qu'au milieu d'un patronyme. */
+.pancarte-nom{display:block;font-size:clamp(17px,5.4vw,23px);font-weight:800;
+  letter-spacing:.04em;color:#fff;text-transform:uppercase;
+  line-height:1.2;overflow-wrap:break-word;}
 
 /* ---------- ÉCRANS SIMPLES : MES COURSES, CONTACT ---------- */
 .ecran-titre{margin:22px 20px 0;font-size:23px;font-weight:800;letter-spacing:-.024em;}
@@ -444,9 +477,12 @@ img{display:block;max-width:100%;}
         <button type="button" data-langue="fr" aria-pressed="true">FR</button>
         <button type="button" data-langue="en" aria-pressed="false">EN</button>
       </div>
-      <button class="menu" type="button" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
+      <!-- LE MENU ☰ A ÉTÉ RETIRÉ. Il n'avait aucun gestionnaire, et lui en
+           donner un n'aurait servi à rien : il aurait rouvert Accueil, Mes
+           courses et Contact, c'est-à-dire exactement la barre du bas, à
+           deux gestes au lieu d'un. Un site de quatre écrans n'a pas besoin
+           de deux navigations. À remettre le jour où il y aura vraiment
+           quelque chose que la barre ne porte pas. -->
     </div>
   </header>
 
@@ -498,6 +534,11 @@ img{display:block;max-width:100%;}
         <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
       </div>
     </div>
+
+    <!-- Les refus du formulaire s'affichent EN HAUT, comme « hors zone » :
+         posés sous le bouton ils tombent derrière le bandeau de cookies, et
+         le client voit un bouton qui ne répond pas sans savoir pourquoi. -->
+    <p class="refus" id="refus" hidden></p>
 
     <div class="champ-bloc">
       <label class="champ" for="depart">
@@ -735,14 +776,12 @@ img{display:block;max-width:100%;}
   <section class="section">
     <div class="services-tete">
       <h2 data-t="services">Nos services</h2>
-      <a class="voir-tous" href="#"><span data-t="voir_tous">Voir tous</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M5 12h14M13 6l6 6-6 6" stroke="#C9992E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
+      <!-- « Voir tous » menait à une liste de services qui n'existe pas, et
+           n'existera pas : il n'y a qu'une prestation, le trajet. Un lien
+           qui promet une suite qu'on n'a pas est pire que pas de lien. -->
     </div>
     <div class="services">
-      <a class="service" href="#">
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="reserver">
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-aeroport.webp')"></span>
         <span class="service-corps">
@@ -760,7 +799,7 @@ img{display:block;max-width:100%;}
             <!-- L'intérieur de voiture tient « Déplacement professionnel » : c'est
            la vue la mieux définie des trois (1024 px), et elle a remplacé un
            aperçu Shutterstock non payé, retiré du dépôt. -->
-      <a class="service" href="#">
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="reserver">
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-deplacement-pro.jpg')"></span>
         <span class="service-corps">
@@ -866,6 +905,25 @@ img{display:block;max-width:100%;}
       </label>
       <p class="champ-aide" id="erreurCoordonnees" hidden data-t="err_coord">Le nom et le téléphone
          sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
+    </div>
+
+    <!-- LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE.
+         On suit donc le DÉPART, pas l'un ou l'autre bout du trajet : un
+         client qui PART vers Roissy n'a personne qui l'attend dans un hall
+         avec son nom à la main, et lui montrer ça n'est que du bruit.
+         Elle est posée après le champ « Nom » pour qu'il voie son propre nom
+         s'écrire dessus — c'est ce qui rassure un client à 3 000 km, bien
+         plus qu'une phrase de plus. -->
+    <div class="bloc" id="blocPancarte" hidden>
+      <h2 class="bloc-titre" data-t="pancarte_titre">À votre arrivée</h2>
+      <div class="pancarte">
+        <span class="pancarte-marque">ELA<i>TRANSFER</i></span>
+        <span class="pancarte-filet" aria-hidden="true"></span>
+        <span class="pancarte-nom" id="pancarteNom" data-t="pancarte_nom">VOTRE NOM</span>
+      </div>
+      <p class="bloc-note" data-t="pancarte_texte">Votre chauffeur vous attend
+         dans le hall, votre nom à la main. 60 minutes d'attente offertes,
+         même si votre vol a du retard.</p>
     </div>
 
     <div class="veh-action">
@@ -990,7 +1048,11 @@ img{display:block;max-width:100%;}
 
 </div>
 
-<a class="wa" href="#" aria-label="WhatsApp">
+<!-- La bulle portait « # » : le bouton le plus visible du site ne faisait
+     rien. Elle ouvre maintenant une conversation, avec un premier message
+     déjà écrit — un client qui doit trouver quoi dire n'écrit pas. -->
+<a class="wa" target="_blank" rel="noopener" aria-label="WhatsApp"
+   href="https://wa.me/33759312433?text=Bonjour%2C%20je%20souhaite%20r%C3%A9server%20un%20trajet.">
   <svg width="29" height="29" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
     <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
   </svg>
@@ -1087,6 +1149,12 @@ window.ELA_TEXTES = {
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, votre demande n'est pas encore arrivée.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     nav_accueil:"Accueil", nav_reserver:"Réserver", nav_courses:"Mes courses", nav_contact:"Contact",
+    err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
+    err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
+    err_trop_grand:"Nous n'avons pas de véhicule pour {{n}} passagers en une seule course. Appelez-nous : on organise deux voitures.",
+    pancarte_titre:"À votre arrivée",
+    pancarte_texte:"Votre chauffeur vous attend dans le hall, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.",
+    pancarte_nom:"VOTRE NOM",
     etat_court:"En attente",
     courses_titre:"Mes courses",
     courses_note:"Les demandes envoyées depuis ce téléphone. La réponse d'Elatransfer vous arrive sur WhatsApp.",
@@ -1143,6 +1211,12 @@ window.ELA_TEXTES = {
     renvoi_note:"If WhatsApp did not open, your request has not arrived yet.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     nav_accueil:"Home", nav_reserver:"Book", nav_courses:"My rides", nav_contact:"Contact",
+    err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
+    err_heure_passee:"That time has already passed. Choose a time still to come.",
+    err_trop_grand:"We have no single vehicle for {{n}} passengers. Call us: we will arrange two cars.",
+    pancarte_titre:"When you land",
+    pancarte_texte:"Your chauffeur waits in the arrivals hall, your name in hand. 60 minutes of waiting included, even if your flight is delayed.",
+    pancarte_nom:"YOUR NAME",
     etat_court:"Awaiting",
     courses_titre:"My rides",
     courses_note:"Requests sent from this phone. Elatransfer's answer reaches you on WhatsApp.",
@@ -1790,7 +1864,36 @@ window.ELA_TEXTES = {
       ? (T("continuer") + " · " + course.gamme.nom) : T("choisir_gamme");
   }
 
+  var blocRefus = document.getElementById("refus");
+  function refuser(cle, remplacements){
+    var texte = T(cle);
+    if(remplacements) Object.keys(remplacements).forEach(function(k){
+      texte = texte.replace("{{"+k+"}}", remplacements[k]);
+    });
+    blocRefus.textContent = texte;
+    blocRefus.hidden = false;
+    blocRefus.scrollIntoView({ block:"nearest" });
+  }
+  function effacerRefus(){ blocRefus.hidden = true; blocRefus.textContent = ""; }
+
+  /* Deux points identiques ne font pas une course. Sans ce contrôle, choisir
+     deux fois la même adresse donnait « 0 km » et un prix ferme de 5,75 € —
+     mesuré. On compare les COORDONNÉES, pas les libellés : deux sources
+     écrivent rarement la même adresse de la même façon, et 60 mètres est la
+     largeur d'un carrefour. */
+  function memeEndroit(){
+    if(!choix.depart || !choix.arrivee) return false;
+    return volDoiseauKm(choix.depart, choix.arrivee) < 0.06;
+  }
+  /* Une heure déjà passée. Le champ ne peut pas la borner tout seul : sa
+     borne dépend de la date choisie, et elle change à minuit. */
+  function heureDepassee(){
+    var d = new Date(champDate.value + "T" + champHeure.value);
+    return !isNaN(d.getTime()) && d.getTime() < Date.now();
+  }
+
   boutonPrix.addEventListener("click", function(){
+    effacerRefus();
     /* Départ ET arrivée sont obligatoires : le prix est ferme, arrêté à la
        réservation, et sans les deux bouts il n'y a pas de distance donc pas
        de prix. Un VTC n'a pas le droit d'un taximètre. */
@@ -1799,6 +1902,14 @@ window.ELA_TEXTES = {
       return;
     }
     if(lieuHorsZone()) return;
+    if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }
+    if(heureDepassee()){ refuser("err_heure_passee"); champHeure.focus(); return; }
+    /* Plus de passagers que le plus grand véhicule : l'écran des prix
+       s'ouvrait VIDE, avec un bouton gris et pas un mot. Un groupe de neuf
+       est une belle course — deux voitures — pas une impasse. */
+    var pax = Math.max(1, parseInt(champPax.value, 10) || 1);
+    var plusGrand = Math.max.apply(null, GAMMES.map(function(g){ return g.places; }));
+    if(pax > plusGrand){ refuser("err_trop_grand", { n:pax }); champPax.focus(); return; }
     course.majoration = nuitOuWeekend(champDate.value, champHeure.value);
     var libelle = boutonPrix.querySelector("span");
     var avant = libelle.textContent;
@@ -1877,9 +1988,23 @@ window.ELA_TEXTES = {
     document.getElementById("recapTVA").textContent   = euros(total - ht);
     document.getElementById("recapTotal").textContent = (course.estime ? "≈ " : "") + euros(total);
   }
+  var blocPancarte = document.getElementById("blocPancarte");
+  var pancarteNom  = document.getElementById("pancarteNom");
+  function jugerPancarte(){
+    var auDepart = terminalDuLibelle(choix.depart && choix.depart.label);
+    blocPancarte.hidden = !auDepart;
+  }
+  function ecrirePancarte(){
+    var n = champNom.value.trim();
+    pancarteNom.textContent = n ? n.toUpperCase() : T("pancarte_nom");
+  }
+  champNom.addEventListener("input", ecrirePancarte);
+
   document.getElementById("btnContinuer").addEventListener("click", function(){
     if(!course.gamme) return;
     remplirRecap();
+    jugerPancarte();
+    ecrirePancarte();
     ecran("ecran-recap");
   });
   document.getElementById("btnRetourVehicules")
@@ -2092,10 +2217,14 @@ window.ELA_TEXTES = {
     if(!wa) return;
     var enAttente = false;
     /* Ce qu'on ne recouvre jamais : les boutons — l'action dorée comme les
-       actions en retrait, qui portent le renvoi de la demande — la ligne qui
-       rassure sous le bouton, et le texte des cartes de services. Ajouter
-       « .protege » à un élément suffit à l'inscrire ici. */
-    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .protege";
+       actions en retrait —, la ligne qui rassure sous le bouton, le texte
+       des cartes de services, la pancarte d'accueil, les écriteaux de refus,
+       les courses du registre et les moyens de contact. Ajouter « .protege »
+       à un élément suffit à l'inscrire ici.
+       La liste s'allonge à chaque écran, et c'est normal : une pastille
+       FIXE se pose forcément sur quelque chose, la seule question est sur
+       quoi on accepte qu'elle se pose. */
+    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .pancarte, .refus, .course, .contact-lien, .protege";
 
     function juger(){
       enAttente = false;
