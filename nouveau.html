@@ -1536,7 +1536,7 @@ img{display:block;max-width:100%;}
   document.getElementById("btnRetourVehicules")
           .addEventListener("click", function(){ ecran("ecran-vehicules"); });
 
-  /* LA RÉFÉRENCE : ASM-AA-MM-NNNN, le rang repart à 1 chaque mois. Elle sert
+  /* LA RÉFÉRENCE : ELA-AA-MM-NNNN, le rang repart à 1 chaque mois. Elle sert
      à retrouver une course dans un fil WhatsApp de plusieurs centaines de
      messages. Ce n'est PAS un numéro de facture : la facture est émise par
      le chauffeur, sous son SIRET, et la loi lui interdit trous et doublons —
@@ -1551,7 +1551,12 @@ img{display:block;max-width:100%;}
       if(brut && brut.mois === mois) rang = brut.rang + 1;
       localStorage.setItem("ela_rang", JSON.stringify({ mois:mois, rang:rang }));
     }catch(e){ /* stockage refusé : le rang repart à 1, ce n'est pas grave */ }
-    return "ASM-" + mois + "-" + String(rang).padStart(4,"0");
+    /* « ELA » et non « ASM ». Le préfixe ASM venait du nom du dépôt
+       (« As-mine ») et n'a jamais été la marque : elle s'écrit Elatransfer.
+       L'espace exploitant relit les DEUX — les messages déjà partis dans
+       WhatsApp portent l'ancien préfixe et doivent continuer de se coller
+       sans erreur — mais rien de neuf ne doit plus s'appeler ASM. */
+    return "ELA-" + mois + "-" + String(rang).padStart(4,"0");
   }
 
   /* LE MESSAGE. Six lignes, et pas une de plus : Barbaros les lit sur un

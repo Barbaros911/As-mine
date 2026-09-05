@@ -79,7 +79,9 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 const ref = await p.locator('#bonRef').textContent();
-check('la référence est au format ASM-AA-MM-NNNN', /^ASM-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+// « ELA », jamais « ASM » : ASM venait du nom du dépôt, pas de la marque.
+check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref);
 check('le bon dit « en attente », jamais « confirmé »',
   (await p.locator('.bon-etat').textContent()).toLowerCase().includes('attente'));
 check('le bon dit ce qui le rendra ferme',
