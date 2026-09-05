@@ -23,6 +23,9 @@
   --or:#C9992E;
   --or-clair:#F6EEDF;
   --or-vif:#E3B855;
+  /* L'or en TEXTE, sur le doré pâle. L'or d'aplat (--or) n'y ferait que
+     2,25 de contraste — illisible. Celui-ci en fait 5,15. */
+  --or-encre:#7E5F14;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -202,6 +205,42 @@ img{display:block;max-width:100%;}
   padding:16px 20px 4px;margin-top:18px;}
 .veh-action .bouton{margin-top:0;}
 .bouton:disabled{background:var(--filet);color:var(--gris);cursor:default;}
+
+/* ---------- ÉCRANS SIMPLES : MES COURSES, CONTACT ---------- */
+.ecran-titre{margin:22px 20px 0;font-size:23px;font-weight:800;letter-spacing:-.024em;}
+.ecran-note{margin:8px 20px 0;font-size:12.5px;color:var(--gris);line-height:1.45;}
+/* Une course de la liste est un BOUTON, pas une carte décorative : elle
+   s'ouvre, donc elle doit se comporter comme quelque chose qui s'ouvre —
+   curseur, appui, et la flèche qui dit où ça mène. */
+.course{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--carte);border:1px solid var(--filet);border-radius:16px;
+  padding:13px 14px;margin:11px 20px 0;width:calc(100% - 40px);
+  font-family:inherit;cursor:pointer;min-width:0;}
+.course-corps{flex:1 1 auto;min-width:0;}
+.course-haut{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.course-ref{font-size:12px;font-weight:700;color:var(--gris);
+  letter-spacing:.03em;font-variant-numeric:tabular-nums;}
+.course-trajet{display:block;font-size:14px;font-weight:700;margin-top:3px;
+  line-height:1.28;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.course-bas{display:flex;align-items:baseline;justify-content:space-between;
+  gap:10px;margin-top:5px;font-size:11.5px;color:var(--gris);}
+.course-prix{font-size:14.5px;font-weight:800;letter-spacing:-.02em;
+  color:var(--encre);flex:0 0 auto;}
+/* L'état est en OR, jamais en vert : rien n'est confirmé tant que Barbaros
+   n'a pas répondu, et un vert dirait le contraire. */
+.course-etat{flex:0 0 auto;font-size:10px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--or-encre);
+  background:var(--or-clair);border-radius:999px;padding:3px 9px;
+  white-space:nowrap;}
+.vide{margin:26px 20px 0;padding:26px 18px;text-align:center;
+  background:var(--carte);border:1px dashed var(--filet);border-radius:16px;}
+.vide p{margin:0 0 14px;font-size:13.5px;color:var(--gris);}
+.contact-lien{display:flex;align-items:center;gap:13px;padding:12px 2px;
+  text-decoration:none;color:inherit;min-height:44px;}
+.contact-lien + .contact-lien{border-top:1px solid var(--filet);}
+.contact-corps{display:block;min-width:0;}
+.contact-corps b{display:block;font-size:14.5px;font-weight:700;}
+.contact-detail{display:block;font-size:12px;color:var(--gris);margin-top:2px;}
 
 /* ---------- BLOCS DU RÉCAPITULATIF ET DU BON ---------- */
 .bloc{background:var(--carte);border:1px solid var(--filet);border-radius:16px;
@@ -883,7 +922,7 @@ img{display:block;max-width:100%;}
          d'envoyer sa demande : il n'a plus rien à faire. Un bouton d'action
          en or lui dirait le contraire — qu'il a raté quelque chose. Les deux
          actions restent disponibles, en retrait. -->
-    <div class="veh-action">
+    <div class="veh-action" id="actionsBon">
       <p class="rassure" data-t="renvoi_note">Si WhatsApp ne s'est pas ouvert, votre demande n'est
          pas encore arrivée.</p>
       <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
@@ -892,6 +931,60 @@ img{display:block;max-width:100%;}
       <button class="bouton-fantome" type="button" id="btnNouvelleCourse" data-t="autre_course">
         Réserver une autre course
       </button>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       MES COURSES
+       ---------------------------------------------------------------------
+       Les bons de CET APPAREIL, et rien d'autre. Le site n'a pas de compte
+       client : il ne peut pas retrouver les courses d'un client sur un autre
+       téléphone, et il ne doit pas le laisser croire. Il ne peut pas non plus
+       savoir si la course a été confirmée — la réponse arrive sur WhatsApp,
+       pas ici. C'est écrit sur l'écran plutôt que passé sous silence.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-courses">
+    <h1 class="ecran-titre" data-t="courses_titre">Mes courses</h1>
+    <p class="ecran-note" data-t="courses_note">Les demandes envoyées depuis ce téléphone. La réponse d'Elatransfer vous arrive sur WhatsApp.</p>
+    <div id="listeCourses"></div>
+    <div class="vide" id="videCourses" hidden>
+      <p data-t="courses_vide">Aucune course pour l'instant.</p>
+      <button class="bouton-fantome" type="button" data-ecran="ecran-accueil" data-t="courses_vide_cta">
+        Réserver un trajet
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       CONTACT
+       ---------------------------------------------------------------------
+       Un onglet qui ne mène nulle part est pire qu'un onglet en moins : le
+       client appuie, rien ne se passe, et il en conclut que le site est
+       cassé. Deux moyens de nous joindre, en toutes lettres.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-contact">
+    <h1 class="ecran-titre" data-t="contact_titre">Nous joindre</h1>
+    <p class="ecran-note" data-t="contact_note">Une question, un changement d'heure, une course pour tout de suite : appelez, c'est le plus rapide.</p>
+    <div class="bloc">
+      <a class="contact-lien" href="tel:+33759312433">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z"
+                stroke="#C9992E" stroke-width="1.7" stroke-linejoin="round"/>
+        </svg>
+        <span class="contact-corps">
+          <b data-t="appeler">Appeler</b>
+          <span class="contact-detail">+33 7 59 31 24 33</span>
+        </span>
+      </a>
+      <a class="contact-lien" href="https://wa.me/33759312433" target="_blank" rel="noopener">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
+        </svg>
+        <span class="contact-corps">
+          <b>WhatsApp</b>
+          <span class="contact-detail" data-t="contact_wa">Écrivez-nous, on répond vite</span>
+        </span>
+      </a>
     </div>
   </section>
 
@@ -905,28 +998,28 @@ img{display:block;max-width:100%;}
 
 <nav class="barre">
   <div class="barre-int">
-    <a class="onglet actif" href="#">
+    <a class="onglet actif" href="#" data-ecran="ecran-accueil" data-onglet="accueil">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M3 11l9-8 9 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M5.5 10v9.5h13V10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span data-t="nav_accueil">Accueil</span>
     </a>
-    <a class="onglet" href="#">
+    <a class="onglet" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="reserver">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <rect x="4" y="4.5" width="16" height="15.5" rx="2.4" stroke="currentColor" stroke-width="1.7"/>
         <path d="M4 9.5h16M9 3v3M15 3v3M8.5 14h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
       <span data-t="nav_reserver">Réserver</span>
     </a>
-    <a class="onglet" href="#">
+    <a class="onglet" href="#" data-ecran="ecran-courses" data-onglet="courses">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
         <path d="M3.4 15.4h17.2v2.2h-3v-2.2M6.4 17.6v-2.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
       </svg>
       <span data-t="nav_courses">Mes courses</span>
     </a>
-    <a class="onglet" href="#">
+    <a class="onglet" href="#" data-ecran="ecran-contact" data-onglet="contact">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
       </svg>
@@ -994,6 +1087,15 @@ window.ELA_TEXTES = {
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, votre demande n'est pas encore arrivée.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     nav_accueil:"Accueil", nav_reserver:"Réserver", nav_courses:"Mes courses", nav_contact:"Contact",
+    etat_court:"En attente",
+    courses_titre:"Mes courses",
+    courses_note:"Les demandes envoyées depuis ce téléphone. La réponse d'Elatransfer vous arrive sur WhatsApp.",
+    courses_vide:"Aucune course pour l'instant.",
+    courses_vide_cta:"Réserver un trajet",
+    contact_titre:"Nous joindre",
+    contact_note:"Une question, un changement d'heure, une course pour tout de suite : appelez, c'est le plus rapide.",
+    contact_wa:"Écrivez-nous, on répond vite",
+    voir_bon:"Voir le bon",
     recherche:"Recherche…", aucune_adresse:"Aucune adresse trouvée",
     passager_un:"passager", passager_pl:"passagers", bagage_un:"bagage", bagage_pl:"bagages"
   },
@@ -1041,6 +1143,15 @@ window.ELA_TEXTES = {
     renvoi_note:"If WhatsApp did not open, your request has not arrived yet.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     nav_accueil:"Home", nav_reserver:"Book", nav_courses:"My rides", nav_contact:"Contact",
+    etat_court:"Awaiting",
+    courses_titre:"My rides",
+    courses_note:"Requests sent from this phone. Elatransfer's answer reaches you on WhatsApp.",
+    courses_vide:"No ride yet.",
+    courses_vide_cta:"Book a ride",
+    contact_titre:"Contact us",
+    contact_note:"A question, a change of time, a ride for right now: call us, it is the fastest.",
+    contact_wa:"Message us, we answer quickly",
+    voir_bon:"View voucher",
     recherche:"Searching…", aucune_adresse:"No address found",
     passager_un:"passenger", passager_pl:"passengers", bagage_un:"bag", bagage_pl:"bags"
   }
@@ -1607,9 +1718,24 @@ window.ELA_TEXTES = {
   var champPax   = document.getElementById("passagers");
   var course = { km:0, min:0, estime:false, majoration:false, gamme:null };
 
-  function ecran(id){
+  function ecran(id, force){
     var vus = document.querySelectorAll(".ecran");
     for(var i=0;i<vus.length;i++) vus[i].classList.toggle("actif", vus[i].id === id);
+    /* L'onglet allumé suit l'écran affiché, y compris quand on y arrive
+       autrement que par la barre — par le bouton « Voir mon prix », par
+       exemple. Un onglet allumé sur un écran qu'on a quitté ment.
+       DEUX ONGLETS MÈNENT AU MÊME ÉCRAN : « Accueil » et « Réserver »
+       ouvrent tous deux la page d'accueil, puisque le formulaire y est.
+       On ne peut donc pas déduire l'onglet du seul écran — sans quoi les
+       deux s'allumeraient ensemble. Les écrans du tunnel — les prix, le
+       récapitulatif — se rattachent à « Réserver », et le bon au registre
+       des courses. */
+    var onglet = force || { "ecran-accueil":"accueil", "ecran-vehicules":"reserver",
+                   "ecran-recap":"reserver", "ecran-bon":"courses",
+                   "ecran-courses":"courses", "ecran-contact":"contact" }[id];
+    document.querySelectorAll(".onglet").forEach(function(o){
+      o.classList.toggle("actif", o.dataset.onglet === onglet);
+    });
     window.scrollTo(0, 0);
     if(window.__jugerPastilleWa) window.__jugerPastilleWa();
   }
@@ -1854,6 +1980,84 @@ window.ELA_TEXTES = {
     ecran("ecran-accueil");
   });
 
+/* =====================================================================
+   MES COURSES
+   ---------------------------------------------------------------------
+   Ce que cet écran sait, et ce qu'il ne sait pas.
+   IL SAIT : les bons envoyés depuis CET appareil. Ils vivent dans le
+   navigateur, nulle part ailleurs — pas de compte client, donc rien à
+   retrouver sur un autre téléphone. Le dire, plutôt que de laisser un
+   client chercher une course qui n'y sera jamais.
+   IL NE SAIT PAS si la course a été confirmée : la réponse d'Elatransfer
+   arrive sur WhatsApp. Tous les bons sont donc « en attente », et
+   afficher autre chose serait inventer un état qu'on n'a pas.
+   ===================================================================== */
+  function coursesEnregistrees(){
+    try{
+      var brut = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      return Array.isArray(brut) ? brut : [];
+    }catch(e){ return []; }  /* stockage refusé ou contenu abîmé */
+  }
+  function dessinerCourses(){
+    var liste = document.getElementById("listeCourses");
+    var vide  = document.getElementById("videCourses");
+    var tout  = coursesEnregistrees();
+    liste.innerHTML = "";
+    vide.hidden = tout.length > 0;
+    tout.forEach(function(bon){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "course";
+      b.innerHTML =
+        '<span class="course-corps">'
+      +   '<span class="course-haut"><span class="course-ref"></span>'
+      +     '<span class="course-etat"></span></span>'
+      +   '<span class="course-trajet"></span>'
+      +   '<span class="course-bas"><span class="course-date"></span>'
+      +     '<span class="course-prix"></span></span>'
+      + '</span>'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+      +   '<path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" '
+      +   'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      b.querySelector(".course-ref").textContent = bon.ref;
+      /* Une flèche plutôt que le mot « vers » : elle se lit dans les deux
+         langues et ne prend pas de place sur un libellé déjà long. */
+      b.querySelector(".course-trajet").textContent =
+        bon.depart + " → " + bon.arrivee;
+      b.querySelector(".course-etat").textContent = T("etat_court");
+      b.querySelector(".course-date").textContent = bon.date;
+      b.querySelector(".course-prix").textContent = euros(bon.prix);
+      b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
+      b.addEventListener("click", function(){
+        bonCourant = bon;
+        remplirBon(bon);
+        ecran("ecran-bon");
+      });
+      liste.appendChild(b);
+    });
+  }
+
+/* =====================================================================
+   LA BARRE DU BAS
+   ---------------------------------------------------------------------
+   Elle EMMÈNE quelque part — ce n'est pas un retour. Chaque onglet porte
+   l'écran qu'il ouvre : un onglet qui ne mène nulle part est pire qu'un
+   onglet en moins, le client appuie, rien ne bouge, et il en conclut que
+   le site est cassé.
+   ===================================================================== */
+  document.querySelectorAll("[data-ecran]").forEach(function(el){
+    el.addEventListener("click", function(e){
+      e.preventDefault();
+      var cible = el.dataset.ecran;
+      if(cible === "ecran-courses") dessinerCourses();
+      ecran(cible, el.dataset.onglet);
+      if(el.dataset.focus){
+        var champ = document.getElementById(el.dataset.focus);
+        if(champ) champ.focus({ preventScroll:true });
+      }
+    });
+  });
+
   /* Basculer de langue réécrit aussi ce qui a déjà été calculé : sans ça, un
      client qui passe en anglais après avoir vu son prix garderait un
      récapitulatif à moitié français, et un prix au format de l'autre langue. */
@@ -1866,6 +2070,7 @@ window.ELA_TEXTES = {
     }
     if(course.gamme && document.getElementById("ecran-recap").classList.contains("actif")) remplirRecap();
     if(bonCourant && document.getElementById("ecran-bon").classList.contains("actif")) remplirBon(bonCourant);
+    if(document.getElementById("ecran-courses").classList.contains("actif")) dessinerCourses();
     jugerVol();
   };
   /* Changer le nombre de passagers redessine la liste tout de suite : sans
