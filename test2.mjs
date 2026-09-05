@@ -75,38 +75,34 @@ check('aucun champ de code promo sur le paiement',
   await page.locator('#promoPayment').count() === 0
   && await page.locator('#btnApplyPromo').count() === 0);
 
-// --- Mise à disposition ---
+// --- Il ne reste qu'un seul type de course ---
 await page.locator('#btnEditTrip').click();
 await page.waitForTimeout(300);
-/* ============ LE RAYON D'OFFRES A ÉTÉ RETIRÉ ============
-   Les six offres — Paris Essentiel, Paris Illuminé, Paris en Famille, Paris
-   Vision, Ela Prestige et la mise à disposition — ont été supprimées en
-   septembre 2026 à la demande de Barbaros. Il ne doit rien en rester : ni le
-   rayon de l'accueil, ni les fiches, ni l'écran qui les portait. */
+/* ============ LES PACKS ET LA MISE À DISPOSITION ONT ÉTÉ RETIRÉS ============
+   Les six offres d'abord — Paris Essentiel, Paris Illuminé, Paris en Famille,
+   Paris Vision, Ela Prestige et la mise à disposition — puis la mise à
+   disposition elle-même, à la demande de Barbaros : « on garde que la
+   réservation ». Le site ne vend plus qu'un trajet d'une adresse à une autre.
+   Il ne doit rien rester d'accessible : ni rayon, ni fiche, ni second
+   formulaire, ni onglet pour y entrer. */
 check('le rayon d\'offres a disparu', (await page.locator('#blocTours').count()) === 0);
 check('l\'écran des fiches a disparu', (await page.locator('#screen-tour').count()) === 0);
 check('plus aucune carte d\'offre', (await page.locator('.tour-carte').count()) === 0);
-
-/* La mise à disposition, elle, reste vendable. Elle était la cinquième carte
-   du rayon, donc son unique porte d'entrée : les deux onglets sont revenus
-   pour ça. Sans eux, 60 à 120 € de l'heure ne seraient plus réservables nulle
-   part — le formulaire intact, et aucun moyen d'y entrer. */
-check('l\'onglet « Mise à disposition » est de nouveau visible',
-  await page.locator('#tabDisposal').isVisible());
-await page.locator('#tabDisposal').click();
-await page.waitForTimeout(400);
-check('il ouvre le formulaire de mise à disposition',
-  await page.locator('#formDisposal').isVisible());
-check('un chemin de retour vers le trajet simple existe',
-  await page.locator('#btnRetourSimple').isVisible());
-
-await pickAddress('#pickupDisp', 'Neuilly');
-await page.fill('#dateDisp', d);
-await page.waitForTimeout(300);
-await page.locator('#btnSearch').click();
-await page.waitForTimeout(1200);
-check('mise à disposition → écran véhicules', await page.locator('#screen-vehicles').isVisible());
-check('durée affichée', (await page.locator('#vehiclesSub').textContent()).includes('3'));
+check('les onglets ont disparu',
+  (await page.locator('#tabDisposal').count()) === 0
+  && (await page.locator('#tabSimple').count()) === 0);
+check('le formulaire de mise à disposition a disparu',
+  (await page.locator('#formDisposal').count()) === 0);
+check('et ses six champs avec lui',
+  (await page.locator('#pickupDisp').count()) === 0
+  && (await page.locator('#dateDisp').count()) === 0
+  && (await page.locator('#durationRange').count()) === 0);
+/* Le formulaire du trajet simple, lui, reste ouvert d'emblée : il n'y a plus
+   rien à choisir avant de saisir ses adresses. */
+check('le formulaire de trajet simple est ouvert d\'emblée',
+  await page.locator('#formSimple').isVisible());
+check('la page ne vend plus la mise à disposition dans son texte',
+  (await page.locator('#seoContent').textContent()).indexOf('Mise à disposition') === -1);
 
 // --- Écran « Infos » et documents légaux ---
 // L'onglet ne s'appelle plus « QR code » : le code QR sert à imprimer une
