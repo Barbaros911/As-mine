@@ -50,29 +50,36 @@ img{display:block;max-width:100%;}
 .menu span{display:block;width:27px;height:2.5px;background:#fff;border-radius:2px;}
 
 /* ---------- LA GRANDE IMAGE ---------- */
-.hero{position:relative;background:var(--noir);overflow:hidden;height:224px;}
-/* EMPLACEMENT DE LA PHOTO. Un aplat sombre en attendant l'image : il tient la
-   place exacte et garantit le contraste du titre. Pour la mettre en service,
-   remplacer ce bloc par une balise <img> et rien d'autre — les dimensions et
-   le voile sont déjà réglés. */
+/* 268 px et non 224 : la photo a la tour Eiffel à GAUCHE, pile où se pose le
+   titre. À 224 px il ne restait rien d'elle sous le texte, et on payait une
+   photo de Paris pour afficher un aplat sombre. Les 44 px gagnés lui rendent
+   sa base et le pont — le formulaire tient toujours dans le premier écran. */
+.hero{position:relative;background:var(--noir);overflow:hidden;height:268px;}
+/* LA PHOTO DU BANDEAU. « cover » et non « contain » : la hauteur est fixée à
+   224 px, une image aux mauvaises proportions doit se recadrer, jamais laisser
+   de bande. Le cadrage vise la DROITE de l'image — le sujet (la voiture et le
+   chauffeur) y est, et c'est la gauche qui passe sous le voile du titre. */
 .hero-image{position:absolute;inset:0;
-  background:linear-gradient(145deg,#20222B 0%,#15161C 46%,#0B0B0D 100%);}
-.hero-image::before{content:"Emplacement photo";position:absolute;
-  right:16px;top:12px;font-size:10.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:rgba(255,255,255,.22);font-weight:600;}
+  background:#0B0B0D url("./photos/accueil-bandeau.jpg") center right / cover no-repeat;}
 /* Le voile n'est pas décoratif : le titre est en blanc, et il doit rester
    lisible quand une vraie photo — souvent claire à droite — prendra la place
    de l'aplat. */
+/* Le voile était réglé pour un aplat : à 95 % à gauche, il effaçait la tour
+   Eiffel, c'est-à-dire tout l'intérêt de la photo. Il est descendu à 72 %, et
+   le titre garde son contraste par une ombre portée plutôt que par un
+   rideau — une ombre suit les lettres, un rideau mange l'image. */
 .hero::after{content:"";position:absolute;inset:0;
   background:linear-gradient(100deg,
-    rgba(11,11,13,.95) 0%, rgba(11,11,13,.88) 32%,
-    rgba(11,11,13,.46) 66%, rgba(11,11,13,.22) 100%);}
+    rgba(11,11,13,.72) 0%, rgba(11,11,13,.62) 34%,
+    rgba(11,11,13,.34) 68%, rgba(11,11,13,.18) 100%);}
 .hero-texte{position:absolute;inset:0;z-index:2;
   padding:22px 20px 0;display:flex;flex-direction:column;}
 .hero h1{margin:0;font-size:31px;line-height:1.15;font-weight:800;
-  letter-spacing:-.024em;color:#fff;}
+  letter-spacing:-.024em;color:#fff;
+  text-shadow:0 2px 14px rgba(0,0,0,.65), 0 1px 3px rgba(0,0,0,.5);}
 .hero-sous{margin:12px 0 0;font-size:15px;line-height:1.4;
-  color:rgba(255,255,255,.88);max-width:30ch;}
+  color:rgba(255,255,255,.92);max-width:30ch;
+  text-shadow:0 1px 10px rgba(0,0,0,.6);}
 
 /* ---------- RÉSERVER ---------- */
 /* La carte mord sur l'image : c'est ce qui la fait lire comme l'objet
@@ -168,10 +175,22 @@ img{display:block;max-width:100%;}
   line-height:1.35;margin-top:4px;}
 
 /* ---------- WHATSAPP ---------- */
-.wa{position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));
-  z-index:40;width:58px;height:58px;border-radius:50%;background:#25D366;
+/* La pastille est FIXE : à un moment ou un autre du défilement, elle se pose
+   forcément sur quelque chose. Sur le site en service, la leçon a déjà été
+   payée — elle recouvrait le bouton « Continuer » de l'écran des véhicules.
+   Ici elle mangeait la fin de « Annulation gratuite jusqu'à 24h avant le
+   trajet » et le sous-titre des cartes de services.
+   Deux mesures, l'une visuelle, l'autre de comportement :
+   — 54 px au lieu de 58, et posée un peu plus haut, hors du texte des cartes ;
+   — elle S'EFFACE dès qu'elle croise un élément marqué « .protege ». On garde
+     sa place (visibility, pas display) pour que rien ne sursaute, et la
+     transition évite le clignotement quand on défile vite. */
+.wa{position:fixed;right:16px;bottom:calc(104px + env(safe-area-inset-bottom));
+  z-index:40;width:54px;height:54px;border-radius:50%;background:#25D366;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 24px rgba(37,211,102,.4);}
+  box-shadow:0 8px 24px rgba(37,211,102,.4);
+  transition:opacity .18s ease-out;}
+.wa.efface{opacity:0;visibility:hidden;}
 
 /* ---------- BARRE DU BAS ---------- */
 .barre{position:fixed;left:0;right:0;bottom:0;z-index:35;background:#fff;
@@ -374,8 +393,14 @@ img{display:block;max-width:100%;}
             <rect x="6" y="13.2" width="5" height="1.9" rx=".95" fill="#F6EEDF"/>
           </svg>
         </span>
-        <b>Paiement sécurisé</b>
-        <span>En ligne ou à bord</span>
+        <!-- « En ligne ou à bord » était faux : il n'y a AUCUN paiement en
+             ligne sur Elatransfer, et aucune donnée bancaire ne transite par
+             le site. Le client règle le chauffeur à bord, espèces ou carte.
+             Annoncer un paiement qui n'existe pas est une pratique
+             commerciale trompeuse — et ça ferait chercher au client un bouton
+             de paiement qu'il ne trouvera jamais. -->
+        <b>Paiement à bord</b>
+        <span>Au chauffeur, espèces ou carte</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
@@ -480,6 +505,54 @@ img{display:block;max-width:100%;}
   (function(){
     var d = document.getElementById("date");
     if(d){ var j = new Date(); d.min = d.value = j.toISOString().slice(0,10); }
+  })();
+
+  /* LA PASTILLE WHATSAPP S'EFFACE DEVANT CE QU'ELLE RECOUVRE.
+     On compare son rectangle à celui de chaque élément « .protege » — et non
+     à la fenêtre entière : un bloc haut resterait visible jusqu'en bas et la
+     pastille ne reviendrait jamais. Même erreur déjà faite sur le site en
+     service, avec le rayon d'offres.
+     rAF plutôt qu'un appel direct au défilement : sans ça on mesure
+     cinquante fois par seconde et la page tressaute sur un téléphone lent. */
+  (function(){
+    var wa = document.querySelector(".wa");
+    if(!wa) return;
+    var enAttente = false;
+    /* Ce qu'on ne recouvre jamais : le bouton d'action, la ligne qui le
+       rassure, et le texte des cartes de services. Ajouter « .protege » à
+       un élément suffit à l'inscrire ici sans toucher au script. */
+    var PROTEGES = ".bouton, .rassure, .service-corps, .protege";
+
+    function juger(){
+      enAttente = false;
+      // La pastille est cachée : on mesure sa place, pas son rectangle vide.
+      var etaitCachee = wa.classList.contains("efface");
+      if(etaitCachee) wa.classList.remove("efface");
+      var p = wa.getBoundingClientRect();
+      var genee = false;
+      var liste = document.querySelectorAll(PROTEGES);
+      for(var i = 0; i < liste.length; i++){
+        var r = liste[i].getBoundingClientRect();
+        if(r.bottom > p.top && r.top < p.bottom &&
+           r.right  > p.left && r.left < p.right){ genee = true; break; }
+      }
+      if(genee) wa.classList.add("efface");
+    }
+
+    function demander(){
+      if(enAttente) return;
+      enAttente = true;
+      requestAnimationFrame(juger);
+    }
+
+    addEventListener("scroll", demander, { passive:true });
+    addEventListener("resize", demander);
+    // Le rayon de services défile tout seul : une carte peut passer sous la
+    // pastille sans que la page ait bougé d'un pixel.
+    var rayon = document.querySelector(".services");
+    if(rayon) rayon.addEventListener("scroll", demander, { passive:true });
+    addEventListener("load", demander);
+    juger();
   })();
 </script>
 </body>
