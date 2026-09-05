@@ -62,7 +62,23 @@ create policy "l exploitant met a jour"
   on public.courses for update
   to authenticated
   using (true) with check (true);
+
+-- ⚠️ AJOUTÉ EN SEPTEMBRE 2026, ET IL MANQUAIT.
+-- Sans cette ligne, les courses que Barbaros saisit LUI-MÊME — un hôtel qui
+-- appelle, une demande collée depuis WhatsApp — ne montaient jamais sur le
+-- serveur. Elles n'ont pas été déposées par un client, donc il n'y avait
+-- aucune ligne à mettre à jour : elles ne vivaient que dans son téléphone,
+-- et changer d'appareil les perdait. Or c'est une bonne part de son travail.
+create policy "l exploitant depose aussi"
+  on public.courses for insert
+  to authenticated
+  with check (true);
 ```
+
+**Si le projet a été créé avant septembre 2026**, cette dernière policy
+n'existe pas : la coller seule dans le **SQL Editor** et faire **Run**. Rien
+d'autre ne change, et rien ne peut casser — une policy en plus n'ouvre que
+ce qu'elle nomme.
 
 ## 3. Créer le compte de Barbaros
 
@@ -98,6 +114,29 @@ Sur le site, en mode exploitant : **Registre** → bloc **Serveur** → l'e-mail
 et le mot de passe de l'étape 3. La connexion tient d'un jour à l'autre.
 
 ---
+
+## Changer de téléphone sans rien perdre
+
+C'est la raison d'être du serveur, et voici la manœuvre exacte :
+
+1. Sur le **nouveau** téléphone, ouvrir `elatransfer.com/admin.html`, saisir
+   le code d'accès de l'appareil.
+2. **Registre** → bloc **Serveur** → l'e-mail et le mot de passe de l'étape 3.
+3. **Actualiser**. Toutes les courses redescendent.
+
+Rien à exporter, rien à recopier. L'ancien téléphone peut être éteint,
+perdu ou vendu.
+
+**Deux précautions quand même :**
+
+- Le serveur ne remonte que ce qui y est monté. Une course saisie pendant
+  que la connexion au serveur était rompue reste locale jusqu'à ce que son
+  bon soit rouvert ou modifié. L'écriteau de sauvegarde du tableau de bord
+  reste donc utile : c'est la ceinture, le serveur est les bretelles.
+- La fusion **AJOUTE et n'écrase jamais**. Une course déjà présente sur
+  l'appareil garde son état local — c'est voulu : elle peut avoir avancé
+  depuis (chauffeur attribué, course réalisée) et l'écraser avec une version
+  plus ancienne effacerait le travail de la soirée.
 
 ## Vérifier que ça marche
 

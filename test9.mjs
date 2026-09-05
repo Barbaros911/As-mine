@@ -224,6 +224,38 @@ const recu = { deposes: [], lecturesAnonymes: 0, suivis: [] };
   check('une seconde synchronisation ne duplique rien',
     (await page.evaluate(() => synchroniserNuage(true))) === 0);
 
+  /* ============ LES COURSES DE BARBAROS MONTENT AUSSI ============
+     Le trou le plus coûteux du serveur, corrigé en septembre 2026. L'envoi
+     vers le serveur était un PATCH : il ne modifie qu'une ligne existante.
+     Les courses qu'un CLIENT dépose en ont une ; celles que Barbaros saisit
+     lui-même — un hôtel qui appelle, une demande collée depuis WhatsApp —
+     n'en ont aucune. L'appel partait, ne trouvait rien, et ne disait rien :
+     ces courses-là ne vivaient que dans son téléphone, et changer d'appareil
+     les perdait. C'est une bonne part de son travail.
+     On vérifie donc les deux choses qui comptent : qu'elle part, et qu'elle
+     part en dépôt-ou-mise-à-jour, pas en simple modification. */
+  const avant = recu.deposes.length;
+  const entetes = [];
+  page.on('request', r => {
+    if (/faux\.supabase\.co\/rest\/v1\/courses/.test(r.url()) && r.method() === 'POST')
+      entetes.push(r.headers()['prefer'] || '');
+  });
+  await page.evaluate(() => saveBooking({
+    ref: 'ELA-26-09-0100', statut: 'confirmee',
+    client: { nom: 'Hôtel Ibis CDG', telephone: '+33100000000' },
+    course: { depart: 'Ibis CDG', arrivee: 'Paris 8e', date: '2026-09-20', heure: '07:00' },
+    prix: { total: 78 }
+  }));
+  await page.waitForTimeout(600);
+  const monte = recu.deposes.filter(d => d.ref === 'ELA-26-09-0100');
+  check('une course saisie par l\'exploitant monte sur le serveur',
+    monte.length === 1, (recu.deposes.length - avant) + ' envoi(s)');
+  check('elle y monte avec son bon complet',
+    !!(monte[0] && monte[0].bon && monte[0].bon.course
+       && monte[0].bon.course.depart === 'Ibis CDG'));
+  check('et en dépôt-ou-mise-à-jour, pour ne pas échouer si elle existe déjà',
+    entetes.some(h => h.includes('merge-duplicates')), entetes.join(' | '));
+
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(800);
   check('la session survit au rechargement', await page.evaluate(() => nuage.connecte()));

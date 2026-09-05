@@ -2847,13 +2847,29 @@ const nuage = (function(){
         return (Array.isArray(r) && r[0]) ? r[0] : null;
       }catch(e){ return null; }
     },
-    async majStatut(bon){
+    /* METTRE LA COURSE SUR LE SERVEUR, qu'elle y soit déjà ou non.
+       ---------------------------------------------------------------
+       C'était un PATCH, et c'était un trou. Un PATCH ne modifie qu'une
+       ligne existante : il ne pouvait donc rien faire des courses que
+       Barbaros saisit LUI-MÊME — un hôtel qui appelle, une demande collée
+       depuis WhatsApp. Ces courses-là n'ont jamais été déposées par un
+       client, donc aucune ligne à modifier : l'appel partait, ne trouvait
+       rien, et ne disait rien. Elles ne vivaient que dans son téléphone.
+       Or ce sont précisément les courses qu'il prend au téléphone, c'est-à-
+       dire une bonne partie de son travail.
+       « resolution=merge-duplicates » transforme le POST en dépôt-ou-mise-
+       à-jour : la course monte la première fois, et se met à jour ensuite.
+       ⚠️ Il faut pour cela une policy INSERT pour « authenticated » dans
+       Supabase — voir SUPABASE.md. Sans elle le serveur refuse, la
+       fonction rend false, et le registre local reste juste : on ne perd
+       rien, on ne gagne simplement pas encore la copie. */
+    async pousser(bon){
       if(!actif() || !connecte() || !bon || !bon.ref) return false;
       try{
-        await appel(`/rest/v1/courses?ref=eq.${encodeURIComponent(bon.ref)}`, {
-          method: "PATCH",
-          headers: { Prefer: "return=minimal" },
-          body: JSON.stringify({ statut: bon.statut, bon })
+        await appel("/rest/v1/courses", {
+          method: "POST",
+          headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+          body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon })
         });
         return true;
       }catch(e){ return false; }
@@ -3109,6 +3125,15 @@ function saveBooking(v){
     // navigateur accorde. Un client, lui, n'en accumulera jamais autant.
     localStorage.setItem("ela_bookings", JSON.stringify(list.slice(0,1000)));
   }catch(e){ /* stockage refusé : la trace n'est simplement pas conservée */ }
+  /* Et sur le serveur, si l'exploitant y est connecté. C'est CE chemin qui
+     sauve les courses prises au téléphone : un hôtel appelle, Barbaros la
+     saisit, elle monte. Sans ça elle n'existait que dans son appareil, et
+     changer de téléphone la perdait.
+     Gardé silencieux et sans attente : si le serveur ne répond pas, le
+     registre local reste juste et la sauvegarde en fichier prend le relais.
+     Un client, lui, n'est jamais connecté — son dépôt passe par
+     nuage.deposer(), en anonyme. Aucun risque de double envoi. */
+  if(nuage.actif() && nuage.connecte()) nuage.pousser(v);
 }
 function saveClientToDirectory(name, phone){
   try{
@@ -5319,7 +5344,7 @@ function majBookingStocke(d){
     const i=list.findIndex(b=>b.ref===d.ref);
     if(i>=0){ list[i]=d; localStorage.setItem("ela_bookings", JSON.stringify(list)); }
   }catch(e){ /* stockage indisponible : le numéro vaut pour cette session */ }
-  if(nuage.actif() && nuage.connecte()) nuage.majStatut(d);
+  if(nuage.actif() && nuage.connecte()) nuage.pousser(d);
 }
 
 function renderVoucher(d){
