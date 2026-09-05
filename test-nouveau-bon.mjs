@@ -108,7 +108,9 @@ const liens = await p.evaluate(()=>window.__liens);
 check('WhatsApp s\'ouvre sur ce geste', liens.length>0, liens.length+'');
 const msg = decodeURIComponent((liens[0]||'').split('text=')[1]||'');
 const lignes = msg.split('\n');
-check('six lignes, pas une de plus', lignes.length===6, lignes.length+'');
+// Huit lignes depuis que Barbaros a demandé le détail : passagers, gamme et
+// prix sur leurs propres lignes. C'est lui qui les lit, à 3 h du matin.
+check('huit lignes, pas une de plus', lignes.length===8, lignes.length+'');
 check('la référence y est', lignes[0].includes(ref), lignes[0]);
 check('les deux premières lignes « … : … » sont les adresses',
   lignes[1].startsWith('Départ : ') && lignes[2].startsWith('Arrivée : '));
@@ -117,9 +119,9 @@ check('la date est au format que relit l\'espace exploitant',
 check('le dernier montant en euros est le prix',
   (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='48,28€');
 check('la dernière ligne est « nom — téléphone », sans deux-points',
-  lignes[5].includes(' — ') && !lignes[5].includes(' : '), lignes[5]);
-check('aucune donnée du client dans les cinq premières lignes',
-  !lignes.slice(0,5).join(' ').includes('Jean Martin'));
+  lignes[7].includes(' — ') && !lignes[7].includes(' : '), lignes[7]);
+check('aucune donnée du client avant la dernière ligne',
+  !lignes.slice(0,7).join(' ').includes('Jean Martin'));
 
 // Un seul bouton doré à la fois, et seulement quand il sert : ici le dépôt
 // a échoué, donc le renvoi est bien l'unique action en or. Quand le dépôt

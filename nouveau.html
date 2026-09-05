@@ -212,6 +212,11 @@ img{display:block;max-width:100%;}
    au chauffeur. Un « Confirmer » qui suit le doigt invite à confirmer sans
    avoir lu, et c'est justement ce qu'on demande au client d'accepter. */
 #ecran-recap .veh-action{position:static;padding-bottom:20px;}
+/* Le bon non plus n'a pas de bouton collant. Vu sur une capture : épinglé en
+   bas, il passait par-dessus la phrase « Si WhatsApp ne s'est pas ouvert… »,
+   qui est précisément celle qu'il faut lire pour savoir s'il y a quelque
+   chose à refaire. Un écran qu'on lit ne veut pas d'un bouton qui flotte. */
+#ecran-bon .veh-action{position:static;padding-bottom:20px;}
 .bouton:disabled{background:var(--filet);color:var(--gris);cursor:default;}
 
 /* ---------- L'ESPACE EXPLOITANT ---------- */
@@ -1064,8 +1069,12 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
          Quand le dépôt a ÉCHOUÉ, ce bouton devient le seul chemin par lequel
          sa demande peut nous parvenir : il passe en or. -->
     <div class="veh-action" id="actionsBon">
-      <p class="rassure" id="noteRenvoi" data-t="renvoi_note" hidden>Si WhatsApp ne s'est pas ouvert, votre demande n'est
-         pas encore arrivée.</p>
+      <!-- La note n'est plus cachée : le renvoi sert dans les DEUX cas
+           maintenant, puisque le message WhatsApp part à chaque
+           réservation. Un client qui a fermé l'onglet sans appuyer sur
+           envoyer doit pouvoir le refaire d'ici. -->
+      <p class="rassure" id="noteRenvoi" data-t="renvoi_note">Si WhatsApp ne s'est pas ouvert, ou si vous
+         n'avez pas appuyé sur envoyer, renvoyez-le d'ici.</p>
       <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
         Renvoyer ma demande sur WhatsApp
       </button>
@@ -1398,7 +1407,7 @@ window.ELA_TEXTES = {
     bon_sous:"Bon de réservation", bon_etat:"En attente de confirmation",
     bon_note:"Ce bon devient ferme dès qu'Elatransfer confirme. Vous recevez la réponse sur WhatsApp.",
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
-    renvoi_note:"Si WhatsApp ne s'est pas ouvert, votre demande n'est pas encore arrivée.",
+    renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     nav_accueil:"Accueil", nav_reserver:"Réserver", nav_courses:"Mes courses", nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
@@ -1408,7 +1417,7 @@ window.ELA_TEXTES = {
     pancarte_texte:"Votre chauffeur vous attend dans le hall, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.",
     pancarte_nom:"VOTRE NOM",
     envoi_cours:"Envoi de votre demande…",
-    envoi_ok:"Votre demande nous est bien parvenue. Nous vous répondons sur WhatsApp — vous n'avez rien à envoyer.",
+    envoi_ok:"Votre demande nous est bien parvenue. Vérifiez que le message WhatsApp est parti : c'est lui qui nous prévient tout de suite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
     etat_court:"En attente",
     courses_titre:"Mes courses",
@@ -1463,7 +1472,7 @@ window.ELA_TEXTES = {
     bon_sous:"Booking voucher", bon_etat:"Awaiting confirmation",
     bon_note:"This voucher becomes firm as soon as Elatransfer confirms. You will receive the answer on WhatsApp.",
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
-    renvoi_note:"If WhatsApp did not open, your request has not arrived yet.",
+    renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     nav_accueil:"Home", nav_reserver:"Book", nav_courses:"My rides", nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
@@ -1473,7 +1482,7 @@ window.ELA_TEXTES = {
     pancarte_texte:"Your chauffeur waits in the arrivals hall, your name in hand. 60 minutes of waiting included, even if your flight is delayed.",
     pancarte_nom:"YOUR NAME",
     envoi_cours:"Sending your request…",
-    envoi_ok:"We have received your request. We will answer on WhatsApp — there is nothing for you to send.",
+    envoi_ok:"We have received your request. Check that the WhatsApp message was sent: that is what alerts us straight away.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
     etat_court:"Awaiting",
     courses_titre:"My rides",
@@ -2256,6 +2265,12 @@ window.ELA_TEXTES = {
      format américain ni un prix à point décimal. */
   /* Le bon stocke la date en AAAA-MM-JJ et l'heure à part, parce que c'est
      ce que lit l'exploitant. L'affichage, lui, suit la langue du visiteur. */
+  function paxLisible(){
+    var np = parseInt(champPax.value, 10) || 1;
+    var nb = parseInt(champBagages.value, 10) || 0;
+    return np + (np > 1 ? " passagers · " : " passager · ")
+         + nb + (nb > 1 ? " bagages" : " bagage");
+  }
   function dateLisible(bon){
     var d = new Date(bon.course.date + "T" + bon.course.heure);
     if(isNaN(d.getTime())) return bon.course.date + " " + bon.course.heure;
@@ -2288,7 +2303,9 @@ window.ELA_TEXTES = {
     document.getElementById("recapDate").textContent     = dateFR();
     document.getElementById("recapVehicule").textContent = course.gamme.nom;
     /* « 1 passager », pas « 1 passagers ». Un accord raté sur un
-       récapitulatif de prix, c'est le détail qui fait douter du reste. */
+       récapitulatif de prix, c'est le détail qui fait douter du reste.
+       Ici l'accord suit la LANGUE du visiteur ; dans le bon, il suit le
+       français, parce que c'est Barbaros qui le lit. */
     var np = parseInt(champPax.value, 10) || 1;
     var nb = parseInt(champBagages.value, 10) || 0;
     document.getElementById("recapPax").textContent =
@@ -2346,8 +2363,12 @@ window.ELA_TEXTES = {
     return "ELA-" + mois + "-" + String(rang).padStart(4,"0");
   }
 
-  /* LE MESSAGE. Six lignes, et pas une de plus : Barbaros les lit sur un
-     téléphone, souvent la nuit.
+  /* LE MESSAGE QUE LE CLIENT ENVOIE À BARBAROS.
+     Huit lignes, dans l'ordre où on les lit à 3 h du matin : ce qu'on
+     demande, où, quand, pour combien de personnes, dans quoi, à quel prix,
+     et qui appelle. Il commence par « Demande de réservation » parce que
+     c'est la première chose à comprendre en voyant la notification, avant
+     même d'ouvrir le message.
      SA STRUCTURE COMPTE AUTANT QUE SON TEXTE. L'espace exploitant relira
      ces messages pour créer la course sans rien retaper, et il ne devinera
      rien aux LIBELLÉS — un client espagnol écrit « Salida » — il lira la
@@ -2357,11 +2378,13 @@ window.ELA_TEXTES = {
      cette forme oblige à changer le lecteur en même temps. */
   function messageDemande(bon){
     return [
-      "ELATRANSFER — demande " + bon.ref,
+      "Demande de réservation — " + bon.ref,
       "Départ : " + bon.course.depart,
       "Arrivée : " + bon.course.arrivee,
       "Date : " + bon.dateMsg,
-      "Véhicule : " + bon.course.vehicule + " — " + eurosFR(bon.prix.total),
+      "Passagers : " + bon.course.passagers,
+      "Véhicule : " + bon.course.vehicule,
+      "Prix : " + eurosFR(bon.prix.total),
       bon.client.nom + " — " + bon.client.telephone
     ].join("\n");
   }
@@ -2418,8 +2441,10 @@ window.ELA_TEXTES = {
         vol: vol || "",
         vehicule: course.gamme.nom,
         vehiculeCle: course.gamme.cle,
-        passagers: (parseInt(champPax.value,10)||1) + " passagers · "
-                   + (parseInt(champBagages.value,10)||0) + " bagages",
+        /* « 1 passager », pas « 1 passagers ». Cette chaîne part telle quelle
+           dans le message WhatsApp et sur le tableau de bord : un accord
+           raté s'y voit deux fois. */
+        passagers: paxLisible(),
         distanceKm: Math.round(course.km * 10) / 10,
         estimee: course.estime
       },
@@ -2427,6 +2452,18 @@ window.ELA_TEXTES = {
       prix: { total: total, ht: ht, tva: total - ht, majoration: course.majoration },
       dateMsg: dateMessage()
     };
+    /* WHATSAPP S'OUVRE DANS LE MÊME GESTE QUE LE CLIC, avant tout appel
+       réseau. Ce n'est pas un détail de confort : un window.open() placé
+       après un « await » est bloqué par Safari sur iPhone, qui n'autorise
+       l'ouverture d'un onglet que dans la seconde qui suit une action de
+       l'utilisateur. Placé plus loin, le message ne partirait jamais — et
+       sur la moitié des téléphones du monde.
+       Les deux chemins vivent ensemble et ne se remplacent pas : le dépôt
+       met la demande dans le tableau de bord, le message prévient Barbaros
+       sur son téléphone. L'un sans l'autre laisse un trou — soit il n'est
+       pas averti, soit il n'a rien à ouvrir. */
+    window.open("https://wa.me/" + NUMERO_WA + "?text="
+                + encodeURIComponent(messageDemande(bonCourant)), "_blank");
     try{
       var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
       deja.unshift(bonCourant);
@@ -2471,7 +2508,9 @@ window.ELA_TEXTES = {
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
-    noteRenvoi.hidden = (etat !== false);
+    /* La note reste visible quel que soit l'état : le message WhatsApp part
+       dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
+       cas aussi. */
   }
 
   /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
