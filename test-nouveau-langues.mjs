@@ -82,6 +82,15 @@ const oublis = await p.evaluate(()=>{
 });
 check('chaque texte français a son équivalent anglais', oublis.length===0, oublis.join(', '));
 
+// Le site ne sait réserver qu'un trajet : il ne doit rien annoncer d'autre.
+const vitrine = (await p.locator('#ecran-accueil').innerText()).toLowerCase();
+check('la page ne vend plus de mise à disposition',
+  !vitrine.includes('mise à disposition') && !vitrine.includes('hourly hire')
+  && !vitrine.includes('by the hour'));
+check('les cartes de services ne montrent que des trajets',
+  (await p.locator('.service').count())===2,
+  String(await p.locator('.service').count()));
+
 // --- Un tunnel complet en anglais ---
 await p.type('#depart','vendome',{delay:12}); await p.waitForTimeout(850);
 await p.locator('#departList [role=option]').first().click();
