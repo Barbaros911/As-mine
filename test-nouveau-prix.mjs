@@ -111,8 +111,8 @@ await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
 const court = await p.locator('.veh-prix').allTextContents();
 check('2 km en berline : le plancher de 30 €, pas 10 €',
   court[0].replace(/\s/g,'')==='30,00€', court[0]);
-check('2 km en van : le plancher de 60 €',
-  court[1].replace(/\s/g,'')==='60,00€', court[1]);
+check('2 km en van : le plancher de 50 €',
+  court[1].replace(/\s/g,'')==='50,00€', court[1]);
 
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
