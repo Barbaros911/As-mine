@@ -2599,26 +2599,79 @@ window.ELA_TEXTES = {
     return n.toLocaleString(locale(), { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
   }
 
-  /* L'ITINÉRAIRE fait le prix. OSRM est un serveur de DÉMONSTRATION : sans
-     engagement, débit limité. Quand il refuse, on retombe sur le vol
-     d'oiseau × 1,3 et la course est marquée « ≈ ». Ce n'est pas un détail
-     de confort — sur un Roissy → Paris l'écart se compte en euros. */
+  /* =====================================================================
+     L'ITINÉRAIRE FAIT LE PRIX — TROIS NIVEAUX, DU MEILLEUR AU PIRE
+     ---------------------------------------------------------------------
+     1. MAPBOX si une clé est posée ci-dessous. C'est un service avec
+        engagement : 100 000 itinéraires par mois au palier gratuit, très
+        au-dessus du volume d'Elatransfer.
+     2. OSRM sinon, ou si Mapbox refuse. C'est un serveur de DÉMONSTRATION :
+        aucun engagement, débit limité, usage commercial déconseillé par ses
+        propres auteurs. Il marche, jusqu'au jour où il ne marche plus.
+     3. Le vol d'oiseau × 1,3 en dernier recours, et la course est alors
+        marquée « ≈ ». Ce n'est pas un détail de confort : sur un
+        Roissy → Paris l'écart avec la vraie route se compte en euros, et
+        chez nous le prix est FERME — donc opposable.
+
+     POURQUOI MAPBOX ET PAS OPENROUTESERVICE. Les deux calculent aussi bien.
+     La différence est ailleurs : le dépôt est PUBLIC, donc la clé écrite ici
+     est lisible par n'importe qui. Une clé Mapbox se restreint au domaine
+     « elatransfer.com » depuis son tableau de bord — volée, elle ne sert à
+     rien. Une clé OpenRouteService ne se restreint pas : c'est un jeton lié
+     au compte, et le premier venu épuiserait le quota.
+
+     POUR L'ACTIVER : créer un compte sur mapbox.com, copier le jeton public
+     (il commence par « pk. »), le coller ci-dessous, PUIS le restreindre au
+     domaine dans le tableau de bord Mapbox — les deux gestes, pas un seul.
+     Tant que la ligne est vide, le site se comporte exactement comme avant.
+     ===================================================================== */
+  var CLE_MAPBOX = "";
+
+  /* Un appel qui n'aboutit pas doit ABANDONNER, pas faire attendre. Sans
+     minuteur, un serveur qui accepte la connexion puis ne répond jamais
+     laisse le client devant « Calcul du prix… » pendant trente secondes,
+     et il s'en va. Cinq secondes chacun : au pire, quinze en tout avant le
+     vol d'oiseau, ce qui reste tenable. */
+  function fetchLimite(url, ms){
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, ms || 5000);
+    return fetch(url, { signal:ctrl.signal })
+      .then(function(r){ clearTimeout(minuteur); return r; },
+            function(e){ clearTimeout(minuteur); throw e; });
+  }
+
+  /* Mapbox et OSRM rendent la même chose sous deux habillages : une liste
+     « routes », une distance en mètres, une durée en secondes. On les lit
+     donc avec la même fonction — le jour où l'un des deux change de forme,
+     il n'y a qu'un endroit à corriger. */
+  function lireRoute(d){
+    if(!(d && d.routes && d.routes[0])) throw new Error("route");
+    return { km:d.routes[0].distance/1000,
+             min:Math.round(d.routes[0].duration/60), estime:false };
+  }
+
   function itineraire(a, b){
     var couple = a.lon+","+a.lat+";"+b.lon+","+b.lat;
-    var ctrl = new AbortController();
-    var minuteur = setTimeout(function(){ ctrl.abort(); }, 5000);
-    return fetch("https://router.project-osrm.org/route/v1/driving/"+couple+"?overview=false",
-                 { signal:ctrl.signal })
-      .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
-      .then(function(d){
-        if(!(d && d.routes && d.routes[0])) throw new Error("route");
-        return { km:d.routes[0].distance/1000, min:Math.round(d.routes[0].duration/60), estime:false };
-      })
-      .catch(function(){
-        var km = volDoiseauKm(a, b) * 1.3;
-        return { km:km, min:Math.round(km / 30 * 60), estime:true };
-      })
-      .then(function(r){ clearTimeout(minuteur); return r; });
+
+    function parOSRM(){
+      return fetchLimite("https://router.project-osrm.org/route/v1/driving/"
+                         + couple + "?overview=false")
+        .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
+        .then(lireRoute);
+    }
+    function parMapbox(){
+      return fetchLimite("https://api.mapbox.com/directions/v5/mapbox/driving/"
+                         + couple + "?overview=false&access_token="
+                         + encodeURIComponent(CLE_MAPBOX))
+        .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
+        .then(lireRoute);
+    }
+
+    var chaine = CLE_MAPBOX ? parMapbox().catch(parOSRM) : parOSRM();
+    return chaine.catch(function(){
+      var km = volDoiseauKm(a, b) * 1.3;
+      return { km:km, min:Math.round(km / 30 * 60), estime:true };
+    });
   }
 
 /* =====================================================================
