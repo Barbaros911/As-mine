@@ -252,6 +252,31 @@ img{display:block;max-width:100%;}
    d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
 .duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
 .fleche{flex:0 0 auto;}
+
+/* ---------- « ME LOCALISER » ----------
+   44 px de côté : c'est le minimum sous lequel un pouce rate sa cible, et
+   le champ ne fait que 60 px de haut — un bouton dessiné à la taille de son
+   icône serait impossible à viser en marchant, ce qui est exactement la
+   situation où l'on s'en sert.
+   AUCUN « position:relative » ICI. Le bouton est un élément de la rangée
+   flex du champ, comme le chevron qu'il remplace. C'est délibéré : sur
+   l'ancien site, un « position:relative » posé sur un bouton déjà placé en
+   absolu l'avait fait retomber dans le flux, à gauche du champ d'adresse. */
+.geoloc{flex:0 0 auto;width:44px;height:44px;margin:-8px -10px -8px 0;
+  display:grid;place-items:center;border:0;border-radius:12px;padding:0;
+  background:transparent;color:var(--accent);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;}
+.geoloc:hover{background:var(--accent-clair);}
+.geoloc:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.geoloc[disabled]{color:var(--gris);cursor:default;background:transparent;}
+/* Pendant la recherche, l'icône tourne : sans ça, le client qui a autorisé
+   la localisation ne voit rien bouger pendant plusieurs secondes et appuie
+   une deuxième fois. */
+.geoloc.cherche svg{animation:geo-tourne 1.1s linear infinite;}
+@keyframes geo-tourne{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion:reduce){.geoloc.cherche svg{animation:none;}}
+.geo-etat{margin:6px 2px 0;font-size:12.5px;line-height:1.35;color:var(--gris);}
+.geo-etat.raté{color:#B4231F;}
 /* Le navigateur dessine sa propre icône dans les champs date et heure, en
    plus de la nôtre : à deux, elles poussaient la valeur hors de la case et
    « 09/05/2026 » s'affichait « 09/05/20 ». On efface la sienne, et on
@@ -750,7 +775,17 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* ---------- BARRE DU BAS ---------- */
 .barre{position:fixed;left:0;right:0;bottom:0;z-index:35;background:#fff;
   border-top:1px solid var(--filet);padding-bottom:env(safe-area-inset-bottom);}
-.barre-int{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+/* LES ONGLETS SE PARTAGENT LA BARRE, QUEL QUE SOIT LEUR NOMBRE.
+   C'était « grid-template-columns:repeat(4,1fr) », figé sur QUATRE — le
+   compte de l'époque où « Réserver » existait encore. Depuis son retrait,
+   les trois onglets restants gardaient chacun un quart de la largeur et
+   se tassaient à gauche : mesuré à 390 px, ils occupaient 0 à 293 et
+   laissaient 97 px de vide à droite. Personne ne l'avait vu parce qu'un
+   vide n'attire pas l'œil — c'est ce qui n'y est pas.
+   En « flex » avec « flex:1 », le compte ne s'écrit plus nulle part : le
+   jour où un onglet s'ajoute ou disparaît, la barre se réajuste seule. */
+.barre-int{max-width:520px;margin:0 auto;display:flex;}
+.barre-int > .onglet{flex:1 1 0;min-width:0;}
 /* 52 px : un pouce fait 44 px, et c'est la seule mesure qui compte sur un
    téléphone. */
 .onglet{min-height:52px;display:flex;flex-direction:column;align-items:center;
@@ -868,11 +903,31 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
                  autocomplete="off" role="combobox" aria-expanded="false"
                  aria-controls="departList" aria-autocomplete="list">
         </span>
-        <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <!-- « ME LOCALISER » — SEULEMENT AU DÉPART. L'arrivée est là où l'on
+             va, pas là où l'on est : le bouton n'y aurait aucun sens.
+             Il remplace le chevron de ce champ plutôt que de s'ajouter à
+             côté : deux pictogrammes au même endroit, l'un décoratif et
+             l'autre cliquable, et le client appuie sur le mauvais.
+             Il est DANS le label — donc son clic active aussi le label et
+             met le curseur dans le champ. C'est sans conséquence, mais le
+             gestionnaire arrête quand même la propagation : sinon la liste
+             de suggestions s'ouvrirait par-dessus le message de la
+             géolocalisation. -->
+        <button type="button" class="geoloc" id="btnGeoloc"
+                data-t-aria="geo_bouton" aria-label="Me localiser">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.4" fill="currentColor"/>
+            <circle cx="12" cy="12" r="7.4" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 1.6v3.2M12 19.2v3.2M22.4 12h-3.2M4.8 12H1.6"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
       </label>
       <div class="suggest-list" id="departList" role="listbox" aria-label="Suggestions de départ" hidden></div>
+      <!-- Le message vit SOUS le champ, pas dans une alerte : un refus de
+           géolocalisation n'est pas une erreur du client, et une fenêtre
+           surgissante lui ferait perdre ce qu'il était en train de faire. -->
+      <p class="geo-etat" id="geoEtat" role="status" hidden></p>
     </div>
 
     <!-- LE NUMÉRO DE CHAMBRE N'APPARAÎT QUE POUR UN HÔTEL AU DÉPART.
@@ -1863,9 +1918,20 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
          ailleurs, ne voit rien bouger, et en conclut que le site est cassé.
          Les trois qui restent mènent chacun quelque part. -->
     <a class="onglet" href="#" data-ecran="ecran-courses" data-onglet="courses">
+      <!-- LE BON DE RÉSERVATION, PAS UNE VOITURE (septembre 2026, à sa
+           demande : « la voiture est très moche »). Le dessin précédent
+           n'avait pas de ROUES — un profil de voiture sans roues n'est
+           qu'une arche posée sur deux moignons, et l'œil n'y reconnaît
+           rien.
+           Trois pistes lui ont été montrées : une vraie voiture, une
+           liste, ce bon. Il a choisi le bon — et c'est défendable :
+           « Mes courses » contient des bons de réservation, pas des
+           véhicules. Un papier de 21 px reste net là où une voiture de
+           21 px devient une tache. -->
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-        <path d="M3.4 15.4h17.2v2.2h-3v-2.2M6.4 17.6v-2.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M6 3.4h7.6L19 8.8v11.8a1 1 0 01-1 1H6a1 1 0 01-1-1V4.4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M13.4 3.6v5.2h5.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M8.4 13.4h7M8.4 17h4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
       <span data-t="nav_courses">Mes courses</span>
     </a>
@@ -1903,6 +1969,13 @@ window.ELA_TEXTES = {
     appeler:"Appeler",
     lieu_depart:"Lieu de départ", lieu_arrivee:"Lieu d'arrivée",
     ph_adresse:"Adresse, aéroport, hôtel…",
+    geo_bouton:"Me localiser",
+    geo_recherche:"Localisation en cours…",
+    geo_verifiez:"Vérifiez l'adresse : le GPS se trompe souvent de numéro.",
+    geo_sans_adresse:"Aucune adresse trouvée à cet endroit. Saisissez-la à la main.",
+    geo_refus:"Localisation refusée. Autorisez-la dans les réglages de votre navigateur, ou saisissez l'adresse.",
+    geo_echec:"Impossible de vous localiser. Saisissez l'adresse.",
+    geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
     chambre_aide:"Transmis au chauffeur : il vient vous chercher sans attendre à la réception.",
     vol:"Numéro de vol", ph_vol:"Ex. AF1234",
@@ -1993,6 +2066,13 @@ window.ELA_TEXTES = {
     appeler:"Call",
     lieu_depart:"Pick-up location", lieu_arrivee:"Drop-off location",
     ph_adresse:"Address, airport, hotel…",
+    geo_bouton:"Use my location",
+    geo_recherche:"Locating…",
+    geo_verifiez:"Check the address: GPS often gets the street number wrong.",
+    geo_sans_adresse:"No address found at this spot. Please type it in.",
+    geo_refus:"Location denied. Allow it in your browser settings, or type the address.",
+    geo_echec:"Could not locate you. Please type the address.",
+    geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
     chambre_aide:"Passed on to your chauffeur: he meets you without waiting at reception.",
     vol:"Flight number", ph_vol:"e.g. AF1234",
@@ -2116,6 +2196,12 @@ window.ELA_TEXTES = {
     for(i=0;i<n.length;i++) n[i].innerHTML = T(n[i].getAttribute("data-t-html"));
     n = document.querySelectorAll("[data-t-ph]");
     for(i=0;i<n.length;i++) n[i].placeholder = T(n[i].getAttribute("data-t-ph"));
+    /* Un bouton dont le seul contenu est un dessin n'a que son
+       « aria-label » à dire : non traduit, il reste en français dans le
+       lecteur d'écran d'un client anglophone — le seul endroit où le texte
+       compte pour lui. */
+    n = document.querySelectorAll("[data-t-aria]");
+    for(i=0;i<n.length;i++) n[i].setAttribute("aria-label", T(n[i].getAttribute("data-t-aria")));
     n = document.querySelectorAll(".langues button");
     for(i=0;i<n.length;i++)
       n[i].setAttribute("aria-pressed", String(n[i].dataset.langue === LANGUE));
@@ -2506,13 +2592,113 @@ window.ELA_TEXTES = {
     document.addEventListener("click", function(e){
       if(!champ.contains(e.target) && !liste.contains(e.target)) fermer();
     });
+
+    /* LA PRISE POUR POSER UNE ADRESSE VENUE D'AILLEURS — la géolocalisation
+       aujourd'hui, autre chose demain.
+       Elle n'est PAS un luxe : écrire directement dans « champ.value »
+       depuis l'extérieur ne déclenche aucun événement « input », donc
+       « choisi » resterait nul. Le client corrigerait ensuite son adresse à
+       la main, la garde qui invalide les coordonnées ne se déclencherait
+       pas — parce qu'elle ne s'arme que si « choisi » vaut quelque chose —
+       et la course partirait avec les coordonnées d'un endroit et le nom
+       d'un autre. C'est le prix qui serait faux, et il est ferme. */
+    return { poser: function(item){
+      champ.value = item.label;
+      choisi = item.label;
+      fermer();
+      quand(item);
+    } };
   }
 
-  brancher(champDepart, document.getElementById("departList"), function(item){
+  var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
     choix.depart = item; jugerChambre(); jugerVol(); jugerZone();
   });
   brancher(champArrivee, document.getElementById("arriveeList"), function(item){
     choix.arrivee = item; jugerVol(); jugerZone();
+  });
+
+/* =====================================================================
+   « ME LOCALISER »
+   ---------------------------------------------------------------------
+   Le client est à Roissy, il a son téléphone dans une main et sa valise
+   dans l'autre : lui demander de taper « Aéroport Charles-de-Gaulle,
+   Terminal 2E » est le moment où l'on perd une réservation.
+
+   ELLE REND UNE ADRESSE, PAS UNE POSITION. Un point GPS ne sert à rien au
+   chauffeur : il lui faut une adresse à composer dans son navigateur, et
+   au site il faut un libellé à écrire sur le bon. On relit donc la
+   position auprès de la Base Adresse Nationale, et si elle ne rend rien on
+   le dit au lieu d'accepter une course vers des coordonnées nues.
+
+   LES COORDONNÉES RETENUES SONT CELLES DE L'ADRESSE, PAS CELLES DU GPS.
+   Le prix se calcule sur le trajet que le chauffeur fera réellement, et le
+   bon doit annoncer le lieu écrit dessus. Garder le point GPS avec le
+   libellé de l'adresse ferait deux choses différentes sous un seul nom, à
+   quelques dizaines de mètres près — et sur un plancher de prix, quelques
+   dizaines de mètres ne changent rien, mais l'incohérence, si.
+
+   RIEN N'EST CONSERVÉ. La position sert à remplir le champ, puis elle est
+   oubliée. Ce qui part sur le bon est l'adresse, comme si le client
+   l'avait tapée. La politique de confidentialité le dit déjà.
+   ===================================================================== */
+  var btnGeoloc = document.getElementById("btnGeoloc");
+  var geoEtat = document.getElementById("geoEtat");
+
+  function direGeo(cle, raté){
+    geoEtat.textContent = T(cle);
+    geoEtat.classList.toggle("raté", !!raté);
+    geoEtat.hidden = false;
+  }
+  function finGeo(){
+    btnGeoloc.disabled = false;
+    btnGeoloc.classList.remove("cherche");
+  }
+
+  /* La relecture d'un point en adresse. La BAN ne couvre que la France —
+     c'est exactement la zone desservie, et une adresse hors de France
+     serait de toute façon refusée trente mètres plus loin par le contrôle
+     des 90 km. */
+  function adresseDuPoint(lat, lon){
+    return appeler("https://api-adresse.data.gouv.fr/reverse/?lon=" + lon + "&lat=" + lat)
+      .then(function(d){
+        var f = d && Array.isArray(d.features) && d.features[0];
+        if(!f || !f.properties || !f.geometry) return null;
+        return { label:f.properties.label,
+                 lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
+                 icon:"📍", lieuNomme:false };
+      });
+  }
+
+  if(btnGeoloc) btnGeoloc.addEventListener("click", function(e){
+    /* Le bouton est dans le label du champ : sans ça, son clic ouvrirait
+       aussi la liste des suggestions par-dessus le message. */
+    e.preventDefault(); e.stopPropagation();
+    if(!navigator.geolocation){ direGeo("geo_indispo", true); return; }
+
+    btnGeoloc.disabled = true;
+    btnGeoloc.classList.add("cherche");
+    direGeo("geo_recherche");
+
+    navigator.geolocation.getCurrentPosition(function(pos){
+      adresseDuPoint(pos.coords.latitude, pos.coords.longitude).then(function(item){
+        finGeo();
+        /* PAS D'ADRESSE TROUVÉE ≠ ÉCHEC DE LA LOCALISATION. Le client est
+           peut-être sur une bretelle d'autoroute ou dans un champ. On le
+           dit pour ce que c'est, et on le renvoie à la saisie — un VTC ne
+           part pas vers un point sans nom. */
+        if(!item){ direGeo("geo_sans_adresse", true); return; }
+        priseDepart.poser(item);
+        /* On l'invite à VÉRIFIER : le GPS d'un téléphone se trompe
+           couramment de plusieurs dizaines de mètres, donc de numéro dans
+           la rue — et le chauffeur, lui, va à l'adresse écrite. */
+        direGeo("geo_verifiez");
+      });
+    }, function(err){
+      finGeo();
+      /* Un refus n'est pas une panne : le message doit dire quoi faire,
+         pas seulement que ça n'a pas marché. */
+      direGeo(err && err.code === 1 ? "geo_refus" : "geo_echec", true);
+    }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
   });
 
 /* =====================================================================
