@@ -32,7 +32,7 @@
 <meta name="twitter:description" content="Prix ferme annoncé avant la réservation. Réservation en deux minutes, aucun paiement en ligne.">
 <meta name="geo.region" content="FR-IDF">
 <meta name="geo.placename" content="Paris">
-<meta name="theme-color" content="#0B0B0D">
+<meta name="theme-color" content="#16232B">
 
 <!-- L'APPLICATION INSTALLABLE. Le manifeste et les icônes existaient déjà
      pour l'ancien site ; ils valent pour celui-ci sans changement, puisque
@@ -96,19 +96,53 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* =====================================================================
+   « ENCRE & CÉLADON » — la palette, septembre 2026
+   ---------------------------------------------------------------------
+   POURQUOI ELLE A CHANGÉ. Barbaros : « les couleurs noir et dorée sont
+   trop souvent utilisées par les IA pour créer des sites ». Il a raison,
+   et c'était le défaut du site : marine + or est la teinte par défaut de
+   tout ce qu'on génère à qui on dit « chauffeur privé ». Uber est noir,
+   Blacklane est noir : y être aussi, c'est se ranger dans la file.
+
+   LES NOMS SONT DES RÔLES, PLUS DES COULEURS. Les variables s'appelaient
+   « --or », « --or-vif », « --or-clair ». Un rôle nommé par sa couleur
+   finit toujours par ramener la couleur — c'est déjà arrivé sur l'ancien
+   site, où le logo est repassé au vert parce qu'il empruntait « --gold ».
+   D'où « --accent ». Ne jamais renommer une de ces variables d'après la
+   teinte qu'elle porte aujourd'hui.
+
+   LE VRAI LEVIER N'EST PAS L'ACCENT, C'EST LE FOND. Le blanc pur est la
+   signature d'une page générée. « --fond » est un papier très légèrement
+   teinté ; le blanc ne sert plus qu'aux cartes posées dessus.
+
+   LE ROUGE DE L'ATTENTE N'A PAS BOUGÉ, ET NE DOIT PAS. C'est la seule
+   chose qui a le droit de crier sur le tableau de bord. L'accent en est
+   à 171° de teinte : aucun risque qu'ils se disputent l'attention. Tout
+   accent qu'on choisirait demain doit rester à plus de 60° du rouge.
+
+   LE VERT DE « CONFIRMÉ » A ÉTÉ FONDU DANS L'ACCENT. Il y avait deux
+   familles vertes — l'accent et le succès — trop proches pour se
+   distinguer et trop nombreuses pour faire un système. Une seule couleur
+   tenue partout : rouge = on attend, accent = c'est bon, gris = c'est fini.
+
+   Contrastes mesurés, tous au-dessus des seuils WCAG :
+   encre/fond 15,8 · accent/fond 5,5 · blanc/accent 5,9 · gris/fond 4,9 ·
+   accent-encre/accent-clair 7,1 · accent-vif/noir 5,7 · rouge/fond 4,9.
+   ===================================================================== */
 :root{
-  --noir:#0B0B0D;
-  --fond:#F7F7F8;
-  --carte:#FFFFFF;
-  --encre:#17171B;
-  --gris:#75757F;
-  --filet:#E7E7EB;
-  --or:#C9992E;
-  --or-clair:#F6EEDF;
-  --or-vif:#E3B855;
-  /* L'or en TEXTE, sur le doré pâle. L'or d'aplat (--or) n'y ferait que
-     2,25 de contraste — illisible. Celui-ci en fait 5,15. */
-  --or-encre:#7E5F14;
+  --noir:#16232B;         /* l'encre profonde du bandeau et de l'en-tête */
+  --fond:#F4F6F5;         /* le papier — jamais #FFF, c'est ce qui date une page */
+  --carte:#FFFFFF;        /* le blanc ne sert plus qu'aux cartes posées dessus */
+  --encre:#151C22;
+  --gris:#616E6B;
+  --filet:#DDE4E2;
+  --accent:#1F6F6B;       /* céladon profond : ni le vert de Bolt, ni le noir d'Uber */
+  --accent-clair:#E2F0EE;
+  --accent-vif:#3FA9A2;   /* la marque : le filet du logo, le « TRANSFER » */
+  /* L'ACCENT EN TEXTE, sur l'accent pâle. L'accent d'aplat n'y ferait que
+     1,3 de contraste — illisible. Celui-ci en fait 7,1. */
+  --accent-encre:#185754;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -131,7 +165,7 @@ img{display:block;max-width:100%;}
 .logo-arc{display:block;height:16px;width:76px;margin-bottom:1px;align-self:center;}
 .logo-nom{font-size:23px;font-weight:800;letter-spacing:.03em;line-height:1;
   color:#fff;white-space:nowrap;}
-.logo-nom i{font-style:normal;color:var(--or-vif);}
+.logo-nom i{font-style:normal;color:var(--accent-vif);}
 .logo-sous{font-size:8px;font-weight:600;letter-spacing:.26em;
   color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
 .entete-actions{display:flex;align-items:center;gap:12px;flex:0 0 auto;}
@@ -143,7 +177,7 @@ img{display:block;max-width:100%;}
 .langues button{min-width:38px;min-height:36px;border:0;background:none;
   color:rgba(255,255,255,.62);font-family:inherit;font-size:12px;font-weight:700;
   letter-spacing:.04em;cursor:pointer;padding:0 4px;}
-.langues button[aria-pressed="true"]{background:var(--or);color:#17171B;}
+.langues button[aria-pressed="true"]{background:var(--accent);color:#151C22;}
 .menu{background:none;border:0;padding:8px 4px;display:flex;flex-direction:column;
   gap:5px;cursor:pointer;}
 .menu span{display:block;width:27px;height:2.5px;background:#fff;border-radius:2px;}
@@ -162,7 +196,7 @@ img{display:block;max-width:100%;}
    coupe la pointe. On garde donc l'échelle juste, calée sur le bord GAUCHE
    de la source, là où est la tour. */
 .hero-image{position:absolute;inset:0;
-  background-color:#0B0B0D;
+  background-color:#16232B;
   background-image:url("./photos/accueil-bandeau.jpg");
   background-repeat:no-repeat;
   background-size:cover;
@@ -173,8 +207,8 @@ img{display:block;max-width:100%;}
    rideau — une ombre suit les lettres, un rideau mange l'image. */
 .hero::after{content:"";position:absolute;inset:0;
   background:linear-gradient(100deg,
-    rgba(11,11,13,.72) 0%, rgba(11,11,13,.62) 34%,
-    rgba(11,11,13,.34) 68%, rgba(11,11,13,.18) 100%);}
+    rgba(22,35,43,.72) 0%, rgba(22,35,43,.62) 34%,
+    rgba(22,35,43,.34) 68%, rgba(22,35,43,.18) 100%);}
 /* Le titre descend de 22 à 54 px : la pointe de la tour est en haut à gauche
    de la photo, exactement où commençait « Votre chauffeur ». Décaler l'image
    n'y pouvait rien — les deux se disputaient le même coin. Ces 32 px rendent
@@ -193,7 +227,7 @@ img{display:block;max-width:100%;}
    principal de la page, et non comme un bloc de plus qui suit. */
 .reserver{position:relative;z-index:5;margin:-46px 16px 0;
   background:var(--carte);border-radius:20px;padding:20px 16px 18px;
-  box-shadow:0 20px 46px rgba(11,11,13,.15), 0 2px 6px rgba(11,11,13,.05);}
+  box-shadow:0 20px 46px rgba(22,35,43,.15), 0 2px 6px rgba(22,35,43,.05);}
 .reserver-tete{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
 .reserver-icone{flex:0 0 auto;width:50px;height:50px;border-radius:15px;
   background:var(--noir);display:flex;align-items:center;justify-content:center;}
@@ -245,7 +279,7 @@ img{display:block;max-width:100%;}
 .hors-zone p{margin:5px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
 .hors-zone .duo{margin-top:11px;}
 .hors-zone a{display:flex;align-items:center;justify-content:center;min-height:44px;
-  border:1px solid var(--or);border-radius:11px;color:var(--or);
+  border:1px solid var(--accent);border-radius:11px;color:var(--accent);
   font-size:13px;font-weight:700;text-decoration:none;}
 
 /* ---------- L'ÉCRAN DES PRIX ---------- */
@@ -264,7 +298,7 @@ img{display:block;max-width:100%;}
 .trajet-ligne + .trajet-ligne{margin-top:11px;}
 .trajet-ligne::before{content:"";position:absolute;left:1px;top:5px;
   width:9px;height:9px;border-radius:50%;border:2px solid var(--encre);}
-.trajet-ligne.arrivee::before{background:var(--or);border-color:var(--or);}
+.trajet-ligne.arrivee::before{background:var(--accent);border-color:var(--accent);}
 .trajet-ligne:first-child::after{content:"";position:absolute;left:5px;top:16px;
   width:1px;height:12px;background:var(--filet);}
 .trajet-mesure{margin:10px 20px 0;font-size:12px;color:var(--gris);}
@@ -276,7 +310,7 @@ img{display:block;max-width:100%;}
   transition:border-color .14s, box-shadow .14s;}
 /* Le choix se voit au CONTOUR, pas au fond : un fond coloré sur une carte
    blanche déplace le regard vers la couleur au lieu du prix. */
-.veh-carte.choisi{border-color:var(--or);box-shadow:0 0 0 1.5px var(--or);}
+.veh-carte.choisi{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent);}
 .veh-corps{flex:1 1 auto;min-width:0;}
 .veh-nom{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.012em;}
 .veh-detail{display:block;font-size:11.5px;color:var(--gris);margin-top:3px;
@@ -314,7 +348,7 @@ body.exploitant .langues{display:none;}
 body.exploitant{padding-bottom:32px;}
 /* Un liseré doré en haut de l'enseigne : à 3 h du matin, il faut savoir d'un
    coup d'œil si on est du côté du client ou du sien. */
-body.exploitant .entete{border-bottom:2px solid var(--or);}
+body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .bord-tete{display:flex;align-items:baseline;justify-content:space-between;
   gap:12px;padding-right:20px;}
 .lien-sortie{background:none;border:0;font-family:inherit;font-size:13px;
@@ -340,7 +374,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   padding:13px 14px;text-align:left;font-family:inherit;cursor:pointer;}
 .demande.attente{background:#C9302F;border-color:#C9302F;color:#fff;}
 .demande.attente .d-gris{color:rgba(255,255,255,.82);}
-.demande.confirmee{box-shadow:0 0 0 1.5px var(--or);border-color:var(--or);}
+.demande.confirmee{box-shadow:0 0 0 1.5px var(--accent);border-color:var(--accent);}
 .d-haut{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .d-ref{font-size:12px;font-weight:700;letter-spacing:.03em;
   font-variant-numeric:tabular-nums;}
@@ -358,8 +392,8 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   display:inline-flex;align-items:center;}
 .d-appeler{background:rgba(255,255,255,.16);color:#fff;}
 .demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
-.d-clore{background:#15694A;color:#fff;}
-.bouton.vert{background:#15694A;color:#fff;}
+.d-clore{background:#1F6F6B;color:#fff;}
+.bouton.vert{background:#1F6F6B;color:#fff;}
 .bouton.vert svg path{stroke:#fff;}
 #nuageActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 #nuageActions .bouton-fantome{margin-top:0;}
@@ -380,9 +414,9 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   padding:16px 16px 18px;text-align:center;}
 .pancarte-marque{display:block;font-size:13px;font-weight:800;
   letter-spacing:.06em;color:#fff;}
-.pancarte-marque i{font-style:normal;color:var(--or-vif);}
+.pancarte-marque i{font-style:normal;color:var(--accent-vif);}
 .pancarte-filet{display:block;width:52px;height:2px;border-radius:2px;
-  background:var(--or-vif);margin:9px auto 12px;}
+  background:var(--accent-vif);margin:9px auto 12px;}
 /* Le nom peut être long : il se réduit plutôt que de sortir du cadre, et il
    coupe entre les mots plutôt qu'au milieu d'un patronyme. */
 .pancarte-nom{display:block;font-size:clamp(17px,5.4vw,23px);font-weight:800;
@@ -412,13 +446,13 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 /* L'état est en OR, jamais en vert : rien n'est confirmé tant que Barbaros
    n'a pas répondu, et un vert dirait le contraire. */
 .course-etat{flex:0 0 auto;font-size:10px;font-weight:700;
-  letter-spacing:.06em;text-transform:uppercase;color:var(--or-encre);
-  background:var(--or-clair);border-radius:999px;padding:3px 9px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--accent-encre);
+  background:var(--accent-clair);border-radius:999px;padding:3px 9px;
   white-space:nowrap;}
 /* Confirmé passe au vert, comme la pastille du bon : deux endroits, un seul
    langage. Le contraste mesuré est de 5,4:1 — la couleur ne porte pas le
    sens à elle seule, le mot est écrit à côté. */
-.course-etat.ok{color:#14683F;background:#DCF2E7;}
+.course-etat.ok{color:#175E5B;background:#E2F0EE;}
 
 /* ---------- LE REGISTRE ---------- */
 /* Trois chiffres de front sur 390 px : chacun a 110 px, de quoi tenir
@@ -436,7 +470,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .periode{min-height:38px;border:1px solid var(--filet);border-radius:11px;
   background:var(--carte);color:var(--gris);font:inherit;font-size:12.5px;
   font-weight:700;cursor:pointer;}
-.periode.actif{border-color:var(--or);background:var(--or-clair);color:var(--or-encre);}
+.periode.actif{border-color:var(--accent);background:var(--accent-clair);color:var(--accent-encre);}
 /* Une ligne de tableau : un libellé qui peut être long à gauche, un chiffre
    qui ne se coupe jamais à droite. */
 .reg-ligne{display:flex;align-items:baseline;justify-content:space-between;
@@ -452,7 +486,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   border-radius:16px;background:#fff;text-align:center;}
 .affiche-marque{margin:0;font-size:20px;font-weight:800;letter-spacing:.03em;
   color:var(--noir);}
-.affiche-marque i{font-style:normal;color:var(--or);}
+.affiche-marque i{font-style:normal;color:var(--accent);}
 .affiche-titre{margin:4px 0 16px;font-size:14px;font-weight:700;color:var(--gris);}
 .affiche-qr{display:flex;justify-content:center;}
 .affiche-qr svg{display:block;}
@@ -516,9 +550,9 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   font-weight:700;cursor:pointer;text-align:center;
   transition:border-color .14s,background .14s,color .14s;}
 .choix svg{flex:0 0 auto;}
-.choix[aria-pressed="true"]{border-color:var(--or);background:var(--or-clair);
-  color:var(--or-encre);}
-.choix:focus-visible{outline:2px solid var(--or);outline-offset:2px;}
+.choix[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-clair);
+  color:var(--accent-encre);}
+.choix:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 /* Le message d'absence de choix reprend l'encadré rouge des refus : c'est le
    vocabulaire du site pour « il manque quelque chose ». En gris il se lisait
    comme une note de bas de bloc — vu à l'écran, on ne le remarquait pas. */
@@ -546,8 +580,8 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 /* Le vert n'est employé QU'ICI, et pour une seule chose : la demande est
    arrivée. C'est le seul fait dont le site soit certain — pas que la course
    soit confirmée, seulement qu'elle nous est parvenue. */
-.envoi.ok{border-color:#15694A;background:rgba(21,105,74,.06);}
-.envoi.ok p{color:#0D4232;font-weight:600;}
+.envoi.ok{border-color:#1F6F6B;background:rgba(31,111,107,.06);}
+.envoi.ok p{color:#123F3D;font-weight:600;}
 .envoi.ko{border-color:#C9302F;background:rgba(201,48,47,.05);}
 .envoi.ko p{color:#9E1F1E;font-weight:600;}
 /* ---------- LE BON DE RÉSERVATION ---------- */
@@ -560,14 +594,14 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .bon-arc{display:block;height:11px;width:96px;margin-bottom:2px;}
 .bon-nom{display:block;font-size:19px;font-weight:800;letter-spacing:.03em;
   line-height:1;}
-.bon-nom i{font-style:normal;color:var(--or-vif);}
+.bon-nom i{font-style:normal;color:var(--accent-vif);}
 .bon-sous{display:block;font-size:9px;font-weight:600;letter-spacing:.24em;
   text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:5px;}
 /* L'état est en OR sur noir, pas en vert : rien n'est confirmé à cet
    instant, et un vert dirait le contraire de ce que le bon annonce. */
 .bon-etat{display:inline-block;font-size:11px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--or-vif);
-  border:1px solid rgba(227,184,85,.4);background:rgba(227,184,85,.13);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--accent-vif);
+  border:1px solid rgba(63,169,162,.4);background:rgba(63,169,162,.13);
   border-radius:999px;padding:5px 11px;}
 .bon-ref{margin:13px 0 0;font-size:23px;font-weight:800;letter-spacing:.02em;
   font-variant-numeric:tabular-nums;}
@@ -576,13 +610,13 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 /* CONFIRMÉ : la pastille passe au vert. C'est le seul endroit du site où
    l'état d'un bon change de couleur, et il ne le fait qu'une fois — quand
    la réponse arrive. L'or dit « en cours », le vert dit « c'est bon ». */
-.bon-etat.confirme{color:#6FD3A8;border-color:rgba(111,211,168,.45);
-  background:rgba(111,211,168,.15);}
+.bon-etat.confirme{color:#6FCFC9;border-color:rgba(111,207,201,.45);
+  background:rgba(111,207,201,.15);}
 /* Le bloc du chauffeur est cerclé de vert, pas rempli : c'est une bonne
    nouvelle, pas une alerte. */
-.bloc-confirme{border-color:#9BD8BE;background:#F2FBF7;}
-.bloc-confirme .bloc-titre{color:#14683F;}
-#bonAppelChauffeur{border-color:#9BD8BE;color:#14683F;}
+.bloc-confirme{border-color:#8FC9C5;background:#EFF7F6;}
+.bloc-confirme .bloc-titre{color:#175E5B;}
+#bonAppelChauffeur{border-color:#8FC9C5;color:#175E5B;}
 /* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
    par écran, sinon plus aucun ne l'est. */
 /* « display:block » et non le défaut : cette classe habille aussi des liens
@@ -603,14 +637,14 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .champ-bloc{position:relative;}
 .suggest-list{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:20;
   background:var(--carte);border:1px solid var(--filet);border-radius:13px;
-  box-shadow:0 14px 34px rgba(11,11,13,.16);
+  box-shadow:0 14px 34px rgba(22,35,43,.16);
   max-height:248px;overflow-y:auto;padding:5px;}
 /* 44 px de haut au minimum : c'est la taille d'un pouce, et une ligne plus
    basse se rate. Deux lignes autorisées — une adresse coupée net ne se
    choisit pas. */
 .suggest-item{display:flex;align-items:flex-start;gap:9px;min-height:44px;
   padding:10px;border-radius:9px;font-size:13.5px;line-height:1.32;cursor:pointer;}
-.suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--or-clair);}
+.suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--accent-clair);}
 .suggest-item .ico{flex:0 0 auto;font-size:14.5px;}
 .suggest-vide{padding:12px 10px;font-size:13px;color:var(--gris);}
 .champ-aide{margin:-4px 0 10px;padding:0 4px;font-size:11.5px;
@@ -623,7 +657,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .bouton.efface{visibility:hidden;}
 
 .bouton{width:100%;margin-top:8px;border:0;border-radius:13px;
-  background:var(--or);color:#fff;font-family:inherit;
+  background:var(--accent);color:#fff;font-family:inherit;
   font-size:16px;font-weight:700;padding:17px 18px;
   display:flex;align-items:center;justify-content:center;gap:10px;
   cursor:pointer;text-decoration:none;
@@ -652,7 +686,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   border-radius:15px;padding:14px 13px 15px;min-width:0;
   display:flex;flex-direction:column;}
 .engagement-pastille{width:40px;height:40px;border-radius:50%;margin-bottom:11px;
-  background:var(--or-clair);display:flex;align-items:center;justify-content:center;}
+  background:var(--accent-clair);display:flex;align-items:center;justify-content:center;}
 .engagement b{display:block;font-size:13px;font-weight:700;line-height:1.25;
   letter-spacing:-.012em;}
 /* LE SOUS-TITRE PORTE SA PROPRE CLASSE, ET CE N'EST PAS DU CONFORT.
@@ -667,7 +701,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .trait{height:1px;background:var(--filet);margin:28px 20px 0;}
 
 .services-tete{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
-.voir-tous{font-size:13.5px;font-weight:600;color:var(--or);text-decoration:none;
+.voir-tous{font-size:13.5px;font-weight:600;color:var(--accent);text-decoration:none;
   display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
 /* Une piste qui défile plutôt qu'une pile : trois cartes empilées pousseraient
    tout le bas de la page hors de l'écran, et le geste de balayage dit « il y
@@ -681,7 +715,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 /* Même principe que la grande image : l'aplat tient la place exacte de la
    photo à venir, aux mêmes dimensions. */
 .service-image{display:block;height:106px;position:relative;
-  background:linear-gradient(145deg,#2A2C36 0%,#191A20 100%);}
+  background:linear-gradient(145deg,#22323B 0%,#16232B 100%);}
 .service-image::before{content:"Photo";position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
   font-size:10px;letter-spacing:.18em;text-transform:uppercase;
@@ -722,7 +756,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 .onglet{min-height:52px;display:flex;flex-direction:column;align-items:center;
   gap:5px;padding:11px 4px 10px;background:none;border:0;font-family:inherit;
   font-size:11.5px;font-weight:600;color:var(--gris);text-decoration:none;}
-.onglet.actif{color:var(--or);}
+.onglet.actif{color:var(--accent);}
 
 @media (min-width:520px){
   .hero{height:430px;}
@@ -743,7 +777,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
            couvre 44 % de la largeur du mot, pas les deux tiers, et elle est
            deux fois plus cambrée que l'arc qu'elle remplace. -->
       <svg class="logo-arc" viewBox="0 0 76 16" aria-hidden="true">
-        <path fill="#E3B855" d="M2 13.6C14 4.4 26 1.2 38 1.2s24 3.2 36 12.4
+        <path fill="#3FA9A2" d="M2 13.6C14 4.4 26 1.2 38 1.2s24 3.2 36 12.4
                  c-12-6.2-24-9-36-9s-24 2.8-36 9Z"/>
       </svg>
       <span class="logo-nom">ELA<i>TRANSFER</i></span>
@@ -788,7 +822,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
         <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#fff" stroke-width="1.7"/>
           <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
-          <path d="M9 14.6l2 2 4-4" stroke="#E3B855" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 14.6l2 2 4-4" stroke="#3FA9A2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
       <div>
@@ -825,7 +859,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
     <div class="champ-bloc">
       <label class="champ" for="depart">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
@@ -835,7 +869,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
                  aria-controls="departList" aria-autocomplete="list">
         </span>
         <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <div class="suggest-list" id="departList" role="listbox" aria-label="Suggestions de départ" hidden></div>
@@ -851,8 +885,8 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <label class="champ" for="chambre">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="4.6" y="3.4" width="12.4" height="17.2" rx="1.9"
-                stroke="#C9992E" stroke-width="1.8"/>
-          <circle cx="13.7" cy="12" r="1.15" fill="#C9992E"/>
+                stroke="#1F6F6B" stroke-width="1.8"/>
+          <circle cx="13.7" cy="12" r="1.15" fill="#1F6F6B"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="chambre">Numéro de chambre</span>
@@ -865,7 +899,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
     <div class="champ-bloc">
       <label class="champ" for="arrivee">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#C9992E"/>
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
@@ -875,7 +909,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
                  aria-controls="arriveeList" aria-autocomplete="list">
         </span>
         <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <div class="suggest-list" id="arriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
@@ -890,7 +924,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <label class="champ" for="vol">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
-                fill="#C9992E"/>
+                fill="#1F6F6B"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="vol">Numéro de vol</span>
@@ -904,28 +938,28 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
     <div class="duo">
       <label class="champ" for="date">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#C9992E" stroke-width="1.7"/>
-          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#1F6F6B" stroke-width="1.7"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="date">Date</span>
           <input id="date" type="date">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <label class="champ" for="heure">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.6" stroke="#C9992E" stroke-width="1.7"/>
-          <path d="M12 7.4V12l3.1 2" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="8.6" stroke="#1F6F6B" stroke-width="1.7"/>
+          <path d="M12 7.4V12l3.1 2" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="heure">Heure</span>
           <input id="heure" type="time" value="10:00">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
     </div>
@@ -933,22 +967,22 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
     <div class="duo">
       <label class="champ" for="passagers">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.5" stroke="#C9992E" stroke-width="1.7"/>
-          <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="12" cy="8" r="3.5" stroke="#1F6F6B" stroke-width="1.7"/>
+          <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="passagers">Passagers</span>
           <input id="passagers" type="number" min="1" max="7" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <label class="champ" for="bagages">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="4" y="7.6" width="16" height="12.4" rx="2.4" fill="#C9992E"/>
+          <rect x="4" y="7.6" width="16" height="12.4" rx="2.4" fill="#1F6F6B"/>
           <path d="M9 7.6V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5v2.1"
-                stroke="#C9992E" stroke-width="1.8" stroke-linecap="round"/>
+                stroke="#1F6F6B" stroke-width="1.8" stroke-linecap="round"/>
           <path d="M12 10.4v6.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
@@ -956,7 +990,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
           <input id="bagages" type="number" min="0" max="9" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
     </div>
@@ -970,8 +1004,8 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
 
     <p class="rassure">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" stroke="#9A9AA4" stroke-width="1.7"/>
-        <path d="M8.2 12.3l2.6 2.6 5-5.2" stroke="#9A9AA4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="9" stroke="#7C8784" stroke-width="1.7"/>
+        <path d="M8.2 12.3l2.6 2.6 5-5.2" stroke="#7C8784" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <!-- L'attribut de traduction était posé sur la balise FERMANTE du SVG
            (« </svg data-t="annulation"> ») : sans effet, la phrase restait en
@@ -996,10 +1030,10 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <div class="engagement">
         <span class="engagement-pastille">
           <svg width="22" height="22" viewBox="0.7 1.1 24 24" fill="none" aria-hidden="true">
-            <circle cx="10" cy="8" r="3.4" stroke="#17171B" stroke-width="1.7"/>
+            <circle cx="10" cy="8" r="3.4" stroke="#151C22" stroke-width="1.7"/>
             <path d="M3.6 19.6c0-3.4 2.9-5.7 6.4-5.7 1.1 0 2.2.22 3.1.64"
-                  stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
-            <circle cx="17.6" cy="17.4" r="4.2" fill="#C9992E"/>
+                  stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="17.6" cy="17.4" r="4.2" fill="#1F6F6B"/>
             <path d="M15.8 17.4l1.3 1.3 2.4-2.6" stroke="#fff" stroke-width="1.7"
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -1011,11 +1045,11 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
         <span class="engagement-pastille">
           <svg width="22" height="22" viewBox="0 1.45 24 24" fill="none" aria-hidden="true">
             <path d="M2.9 15.6v-2l1.8-4.1a2.4 2.4 0 012.2-1.4h10.2a2.4 2.4 0 012.2 1.4l1.8 4.1v2"
-                  stroke="#17171B" stroke-width="1.7" stroke-linejoin="round"/>
-            <path d="M2.9 15.6h18.2" stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
-            <path d="M6.1 11.3h11.8" stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
-            <circle cx="7.2" cy="16.9" r="1.9" stroke="#17171B" stroke-width="1.7"/>
-            <circle cx="16.8" cy="16.9" r="1.9" stroke="#17171B" stroke-width="1.7"/>
+                  stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M2.9 15.6h18.2" stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M6.1 11.3h11.8" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="7.2" cy="16.9" r="1.9" stroke="#151C22" stroke-width="1.7"/>
+            <circle cx="16.8" cy="16.9" r="1.9" stroke="#151C22" stroke-width="1.7"/>
           </svg>
         </span>
         <b data-t="eng2">Véhicules haut de gamme</b>
@@ -1025,9 +1059,9 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
         <span class="engagement-pastille">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <rect x="2.9" y="5.9" width="18.2" height="12.2" rx="2.6"
-                  stroke="#17171B" stroke-width="1.7"/>
-            <path d="M2.9 10.3h18.2" stroke="#C9992E" stroke-width="1.9"/>
-            <path d="M6.3 14.7h4.4" stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
+                  stroke="#151C22" stroke-width="1.7"/>
+            <path d="M2.9 10.3h18.2" stroke="#1F6F6B" stroke-width="1.9"/>
+            <path d="M6.3 14.7h4.4" stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
           </svg>
         </span>
         <!-- « Paiement sécurisé / En ligne ou à bord » était faux : aucun
@@ -1041,14 +1075,14 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
         <span class="engagement-pastille">
           <svg width="22" height="22" viewBox="0 1.98 24 24" fill="none" aria-hidden="true">
             <path d="M5 14.1v-2.2a7 7 0 0114 0v2.2"
-                  stroke="#17171B" stroke-width="1.7" stroke-linecap="round"/>
+                  stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
             <rect x="3.1" y="13.1" width="4" height="6" rx="2"
-                  stroke="#17171B" stroke-width="1.7"/>
+                  stroke="#151C22" stroke-width="1.7"/>
             <rect x="16.9" y="13.1" width="4" height="6" rx="2"
-                  stroke="#17171B" stroke-width="1.7"/>
+                  stroke="#151C22" stroke-width="1.7"/>
             <path d="M18.9 19.1v.6a2.2 2.2 0 01-2.2 2.2h-2.4"
-                  stroke="#C9992E" stroke-width="1.7" stroke-linecap="round"/>
-            <circle cx="13" cy="21.9" r="1.15" fill="#C9992E"/>
+                  stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="13" cy="21.9" r="1.15" fill="#1F6F6B"/>
           </svg>
         </span>
         <b data-t="eng4">Joignable jour et nuit</b>
@@ -1282,7 +1316,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
            ferait d'Elatransfer un transporteur, ce qu'elle n'est pas. -->
       <div class="bon-marque">
         <svg class="bon-arc" viewBox="0 0 112 13" fill="none" aria-hidden="true">
-          <path d="M2 11.4C15 3.6 34 1 56 1s41 2.6 54 10.4" stroke="#E3B855"
+          <path d="M2 11.4C15 3.6 34 1 56 1s41 2.6 54 10.4" stroke="#3FA9A2"
                 stroke-width="2.4" stroke-linecap="round"/>
         </svg>
         <span class="bon-nom">ELA<i>TRANSFER</i></span>
@@ -1737,7 +1771,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <a class="contact-lien" href="tel:+33759312433">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z"
-                stroke="#C9992E" stroke-width="1.7" stroke-linejoin="round"/>
+                stroke="#1F6F6B" stroke-width="1.7" stroke-linejoin="round"/>
         </svg>
         <span class="contact-corps">
           <b data-t="appeler">Appeler</b>
@@ -1764,19 +1798,19 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <button class="legal-lien" type="button" data-doc="cgv">
         <span data-t="legal_cgv">Conditions générales de vente</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2"
+          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="legal-lien" type="button" data-doc="mentions">
         <span data-t="legal_mentions">Mentions légales</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2"
+          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="legal-lien" type="button" data-doc="privacy">
         <span data-t="legal_privacy">Politique de confidentialité</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2"
+          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <p class="bloc-note" data-t="legal_note">Ces documents sont ceux qui vous
@@ -3429,7 +3463,7 @@ window.ELA_TEXTES = {
       +     '<span class="course-prix"></span></span>'
       + '</span>'
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-      +   '<path d="M9 6l6 6-6 6" stroke="#B8B8C2" stroke-width="2" '
+      +   '<path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2" '
       +   'stroke-linecap="round" stroke-linejoin="round"/></svg>';
       b.querySelector(".course-ref").textContent = bon.ref;
       /* Une flèche plutôt que le mot « vers » : elle se lit dans les deux
@@ -3828,7 +3862,7 @@ window.ELA_TEXTES = {
   function direColler(texte, bon){
     collerEtat.hidden = false;
     collerEtat.textContent = texte;
-    collerEtat.style.color = bon ? "#15694A" : "#B4231F";
+    collerEtat.style.color = bon ? "#1F6F6B" : "#B4231F";
   }
   function traiterColle(texte){
     var d = lireDemandeCollee(texte);
@@ -4557,7 +4591,7 @@ window.ELA_TEXTES = {
          + '" width="' + cote + '" height="' + cote
          + '" shape-rendering="crispEdges" role="img" aria-label="Code QR du site">'
          + '<rect width="' + total + '" height="' + total + '" fill="#fff"/>'
-         + '<path d="' + d + '" fill="#0B0B0D"/></svg>';
+         + '<path d="' + d + '" fill="#16232B"/></svg>';
   }
   function dessinerAffiche(){
     var nom = document.getElementById("hotelNom").value.trim();

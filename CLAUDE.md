@@ -1294,6 +1294,58 @@ l'a pas fait, **le site se comporte exactement comme avant**.
   à cacher la clé d'itinéraire, à laisser un client consulter sa course
   par sa référence, et à tenir les comptes chauffeurs.
 
+## LA PALETTE — « ENCRE & CÉLADON », ET PLUS UN GRAMME D'OR
+
+Septembre 2026, à sa demande : « les couleurs noir et dorée sont trop
+souvent utilisées par les IA pour créer des sites, propose-moi des
+couleurs dignes d'un expert ». Il a raison — marine + or est la teinte par
+défaut de tout ce qu'on génère à qui on dit « chauffeur privé ». Trois
+directions lui ont été montrées en image ; il a choisi la deuxième.
+
+| Rôle | Valeur | Où |
+|---|---|---|
+| `--fond` | `#F4F6F5` | le papier — **jamais `#FFF`** |
+| `--carte` | `#FFFFFF` | seulement les cartes posées dessus |
+| `--noir` | `#16232B` | l'en-tête, le bandeau |
+| `--encre` | `#151C22` | le texte |
+| `--gris` | `#616E6B` | le texte secondaire |
+| `--filet` | `#DDE4E2` | les bordures |
+| `--accent` | `#1F6F6B` | boutons, sélection, onglet actif |
+| `--accent-clair` | `#E2F0EE` | les fonds d'accent |
+| `--accent-vif` | `#3FA9A2` | la marque : filet du logo, « TRANSFER » |
+| `--accent-encre` | `#185754` | l'accent en TEXTE sur `--accent-clair` |
+
+- **LES VARIABLES ONT ÉTÉ RENOMMÉES** : `--or*` → `--accent*`. Un rôle
+  nommé par sa couleur finit par ramener la couleur — c'est arrivé sur
+  l'ancien site, où le logo est repassé au vert parce qu'il empruntait
+  `--gold`. **Ne jamais renommer ces variables d'après la teinte du jour.**
+- **LE VRAI LEVIER EST LE FOND, pas l'accent.** Le blanc pur est la
+  signature d'une page générée. Ne pas remettre `--fond:#FFFFFF`.
+- **LE ROUGE DE L'ATTENTE N'A PAS BOUGÉ** (`#C9302F`) et ne doit pas :
+  c'est la seule chose qui crie sur le tableau de bord. L'accent en est à
+  **171° de teinte**. Tout accent futur doit rester à plus de 60° du rouge,
+  sinon les deux se disputent l'attention.
+- **LE VERT « CONFIRMÉ » A ÉTÉ FONDU DANS L'ACCENT.** Il y avait deux
+  familles vertes, trop proches pour se distinguer et trop nombreuses pour
+  faire un système. Une seule couleur : rouge = on attend, accent = c'est
+  bon, gris = c'est fini.
+- **Le vert WhatsApp `#25D366` est INTOUCHABLE** : c'est une marque. Il
+  jure un peu plus à côté du céladon qu'à côté de l'or ; c'est signalé à
+  Barbaros, il tranchera.
+- **L'ICÔNE DE L'APPLICATION N'A PAS ÉTÉ TOUCHÉE.** `icon.svg`,
+  `icon-maskable.svg` et `icon-180.png` portent encore le marine `#0C1A31`
+  et l'or `#E0B65C`. La changer oblige à refaire le **PNG de 180 px**, dont
+  le script de fabrication vit hors du dépôt — un jeu d'icônes à moitié
+  reteint est pire que l'ancien, cohérent. À faire séparément, en lui
+  montrant l'icône avant.
+- Le manifeste suit la page : `background_color` = `--fond`,
+  `theme_color` = `--noir`, comme la balise `theme-color`. Ils se
+  contredisaient avant.
+- Contrastes mesurés (WCAG) : encre/fond 15,8 · accent/fond 5,5 ·
+  blanc/accent 5,9 · gris/fond 4,9 · accent-encre/accent-clair 7,1 ·
+  accent-vif/noir 5,7 · rouge/fond 4,9. Le gris et les chevrons ont été
+  **assombris au passage** — ils étaient sous les seuils avant.
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
