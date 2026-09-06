@@ -62,14 +62,22 @@ await p.locator('#arriveeList [role=option]').first().click();
 const d = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
 await p.fill('#date', d); await p.fill('#heure','10:00');
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1100);
-// Deux onglets mènent à l'accueil : sans identité propre, ils
-// s'allumeraient tous les deux.
+// La barre du bas doit toujours dire où l'on se trouve, y compris sur un
+// écran où l'on est arrivé par un bouton et non par elle.
 check('un seul onglet allumé à la fois',
   (await p.locator('.onglet.actif').count())===1,
   String(await p.locator('.onglet.actif').count()));
-check('pendant le tunnel, c\'est « Réserver » qui est allumé',
-  (await p.locator('.onglet.actif').getAttribute('data-onglet'))==='reserver',
+/* « Réserver » a été retiré : il ouvrait le même écran qu'« Accueil ».
+   Le tunnel se rattache donc à « Accueil », d'où l'on part. Sans ce
+   rattachement, plus aucun onglet ne s'allumerait pendant la réservation. */
+check('pendant le tunnel, c\'est « Accueil » qui reste allumé',
+  (await p.locator('.onglet.actif').getAttribute('data-onglet'))==='accueil',
   await p.locator('.onglet.actif').getAttribute('data-onglet'));
+// Deux onglets qui ouvrent le même écran, c'est un client qui appuie sur le
+// second, ne voit rien bouger, et en conclut que le site est cassé.
+const cibles = await p.$$eval('.onglet', a=>a.map(x=>x.dataset.ecran));
+check('chaque onglet mène à un écran différent',
+  new Set(cibles).size===cibles.length, cibles.join(', '));
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');

@@ -940,6 +940,18 @@ pas une refonte.
 - Référence `ELA-AA-MM-NNNN`, jamais `ASM` : ASM venait du nom du dépôt,
   pas de la marque.
 
+**LA BARRE DU BAS N'A QUE TROIS ONGLETS** — Accueil, Mes courses, Contact
+(septembre 2026, à sa demande : « Enleve l'icône réserver elle ne sert a
+rien »). « Réserver » ouvrait EXACTEMENT le même écran qu'« Accueil », à
+la seule différence qu'il posait le curseur dans le champ de départ. Deux
+onglets pour un écran, c'est un client qui appuie sur le second, ne voit
+rien bouger, et en conclut que le site est cassé.
+Conséquence à ne pas manquer : les écrans du tunnel — les prix, le
+récapitulatif — se rattachent désormais à **« accueil »** dans la table de
+`ecran()`. Sans ce déplacement, plus aucun onglet ne s'allume pendant la
+réservation. Un test vérifie que **chaque onglet mène à un écran
+différent** : la règle vaut pour tout onglet qu'on ajouterait demain.
+
 ## Les documents légaux
 
 Trois documents, en français et en anglais, accessibles depuis **Contact**

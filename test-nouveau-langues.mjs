@@ -111,14 +111,16 @@ check('le prix suit le format anglais', prixEn.replace(/\s/g,'')==='70.00€', p
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(400);
 // La barre du bas porte son libellé À CÔTÉ d'une icône : remplacer le texte
-// de tout l'élément effacerait le dessin. Ces quatre-là sont donc les plus
+// de tout l'élément effacerait le dessin. Ces trois-là sont donc les plus
 // faciles à oublier en traduisant.
 check('la barre du bas parle anglais elle aussi',
   (await p.locator('[data-t="nav_accueil"]').textContent())==='Home'
   && (await p.locator('[data-t="nav_courses"]').textContent())==='My rides',
   await p.locator('[data-t="nav_accueil"]').textContent());
+// Trois onglets depuis le retrait de « Réserver », qui ouvrait le même
+// écran qu'« Accueil ». Chacun garde son dessin.
 check('et ses icônes sont toujours là',
-  (await p.locator('.onglet svg').count())===4,
+  (await p.locator('.onglet svg').count())===3,
   String(await p.locator('.onglet svg').count()));
 check('le récapitulatif parle anglais',
   (await p.locator('[data-t="total"]').textContent())==='Total to pay');
