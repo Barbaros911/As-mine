@@ -49,6 +49,9 @@ const NO_CACHE_HOSTS = [
   "api-adresse.data.gouv.fr",
   "photon.komoot.io",
   "router.project-osrm.org",
+  /* Mapbox calcule l'itinéraire, donc le PRIX. Une réponse mise en cache
+     resservirait la distance d'une course précédente à une autre course. */
+  "api.mapbox.com",
   "api.qrserver.com",
   "www.paypal.com",
   "www.paypalobjects.com"

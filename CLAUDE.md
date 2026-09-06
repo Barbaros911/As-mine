@@ -1168,6 +1168,43 @@ les hôtels**.
    la page de droite à gauche — ce n'est pas qu'une affaire de textes.
 5. **Cloudflare** reste bloqué : voir `CLOUDFLARE.md`. Ne pas déplacer les
    serveurs de noms — l'email de Barbaros en dépend.
+6. **La clé Mapbox** : tout le code est en place, il ne manque que le
+   jeton. Marche à suivre dans `MAPBOX.md`. Barbaros doit créer le compte
+   lui-même — et **restreindre le jeton au domaine** dans la foulée, sinon
+   la clé, publique dans le dépôt, se fait vider son quota.
+
+## L'ITINÉRAIRE, ET POURQUOI CE N'EST PAS OPENROUTESERVICE
+
+Septembre 2026. Le prix est un kilométrage, donc **la distance décide
+seule de ce que le client paie**, et il est ferme : annoncé, accepté,
+encaissé tel quel. `itineraire()` enchaîne donc trois niveaux — **Mapbox**
+si `CLE_MAPBOX` est remplie, **OSRM** sinon ou s'il refuse, le **vol
+d'oiseau × 1,3** en dernier recours, la course marquée « ≈ ».
+
+- **La clé est vide dans le dépôt, et le site marche exactement comme
+  avant tant qu'elle l'est.** Tout est prêt, il ne manque que le jeton.
+- **Une clé OpenRouteService avait été proposée par une autre session.**
+  Refusée, et la raison vaut pour toute clé qu'on voudrait poser ici : le
+  dépôt est **public**. Un jeton Mapbox **se restreint au domaine** depuis
+  son tableau de bord — volé, il ne sert à rien. Un jeton
+  OpenRouteService ne se restreint pas : c'est un identifiant de compte,
+  et le premier venu épuise le quota. Ne pas revenir dessus.
+- **OSRM ne disparaît pas, il devient le filet.** Le contrôle qui compte
+  le plus dans `test-nouveau-itineraire.mjs` : Mapbox en panne ne doit
+  **pas** sauter OSRM pour aller au vol d'oiseau — ce serait facturer une
+  estimation là où une vraie route était disponible. Un repli qui se
+  déclenche trop tôt ne se voit pas : le prix s'affiche, il est
+  simplement faux de quelques euros. D'où trois distances différentes
+  dans le test, une par niveau.
+- **Le « ≈ » est sur la mesure ET sur le prix**, et c'est sur le prix
+  qu'il compte : c'est le montant que le client regarde.
+- `api.mapbox.com` est dans les hôtes **hors cache** de `sw.js` : une
+  réponse gardée resservirait la distance d'une course à une autre.
+- `overview=false` : le site n'affiche aucune carte, réclamer la
+  géométrie ferait grossir la réponse pour rien.
+- Chaque appel a un **minuteur de 5 s** (`fetchLimite`). Un serveur qui
+  accepte la connexion puis ne répond jamais laisserait le client devant
+  « Calcul du prix… » trente secondes — il s'en va.
 
 ## Ses consignes de travail, à tenir pour acquises
 
@@ -1180,9 +1217,9 @@ les hôtels**.
 
 ## Tests
 
-**Quinze suites, 371 contrôles**, à relancer après **toute** modification.
+**Seize suites, 393 contrôles**, à relancer après **toute** modification.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché quinze fichiers pour zéro gain.
+touché seize fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1192,7 +1229,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-exploitant.mjs test-nouveau-whatsapp.mjs \
          test-nouveau-services.mjs test-nouveau-paiement.mjs \
          test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
-         test-nouveau-affiche.mjs \
+         test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-bascule.mjs; do
   node $f || break
 done
