@@ -1332,12 +1332,9 @@ directions lui ont été montrées en image ; il a choisi la deuxième.
 - **Le vert WhatsApp `#25D366` est INTOUCHABLE** : c'est une marque. Il
   jure un peu plus à côté du céladon qu'à côté de l'or ; c'est signalé à
   Barbaros, il tranchera.
-- **L'ICÔNE DE L'APPLICATION N'A PAS ÉTÉ TOUCHÉE.** `icon.svg`,
-  `icon-maskable.svg` et `icon-180.png` portent encore le marine `#0C1A31`
-  et l'or `#E0B65C`. La changer oblige à refaire le **PNG de 180 px**, dont
-  le script de fabrication vit hors du dépôt — un jeu d'icônes à moitié
-  reteint est pire que l'ancien, cohérent. À faire séparément, en lui
-  montrant l'icône avant.
+- **L'ICÔNE A SUIVI** (septembre 2026, à sa demande : « change l'icône
+  aussi », puis « on garde le rond et on ajoute Transfer »). Voir la
+  section dédiée plus bas.
 - Le manifeste suit la page : `background_color` = `--fond`,
   `theme_color` = `--noir`, comme la balise `theme-color`. Ils se
   contredisaient avant.
@@ -1345,6 +1342,45 @@ directions lui ont été montrées en image ; il a choisi la deuxième.
   blanc/accent 5,9 · gris/fond 4,9 · accent-encre/accent-clair 7,1 ·
   accent-vif/noir 5,7 · rouge/fond 4,9. Le gris et les chevrons ont été
   **assombris au passage** — ils étaient sous les seuils avant.
+
+## L'ICÔNE — LE ROND, ET « TRANSFER » DESSOUS
+
+Septembre 2026. Deux demandes successives : « change l'icône aussi »,
+puis, en voyant les aperçus, « on garde le rond et on ajoute Transfer ».
+
+**LES TROIS FICHIERS SE REFONT ENSEMBLE, TOUJOURS.** `icon.svg`,
+`icon-maskable.svg` et `icon-180.png`. Un jeu d'icônes à moitié changé est
+pire qu'un ancien cohérent : le téléphone montre l'une, l'onglet l'autre.
+
+| Fichier | Forme | Pourquoi |
+|---|---|---|
+| `icon.svg` | **rond**, coins transparents | c'est celui qu'il a choisi |
+| `icon-maskable.svg` | **carré PLEIN** | Android recadre lui-même et rogne jusqu'à 10 % de chaque bord ; à coins transparents il donnerait un rond posé sur un carré blanc |
+| `icon-180.png` | carré opaque | iOS ignore un `apple-touch-icon` en SVG **et** n'accepte pas la transparence — les coins deviendraient noirs. Il applique son propre arrondi par-dessus |
+
+- **`composer.py` (hors dépôt, dans le bac à sable) FABRIQUE les trois.**
+  Ne pas retoucher les SVG à la main : le PNG dériverait du SVG au premier
+  changement.
+- **Le script lisait sa propre sortie — c'était un vrai défaut.** Il
+  extrayait les contours d'« ELA » depuis `icon.svg`, qu'il écrit ensuite :
+  un second passage reprenait « TRANSFER » comme s'il était une lettre
+  d'« ELA ». Les contours sont maintenant **figés dans un fichier à part**,
+  extraits une seule fois depuis git. Un script de fabrication doit pouvoir
+  être rejoué à l'identique autant de fois qu'on veut.
+- **Les lettres sont les contours réels d'Inter**, via `fontTools` — jamais
+  du texte vivant. Le fichier ne dépend d'aucune police et s'affiche à
+  l'identique partout, même sans réseau. L'échelle est calée sur la
+  **hauteur des capitales**, pas sur la taille nominale : c'est la seule
+  mesure qui aligne deux mots posés l'un sous l'autre.
+- **À 20 px, « TRANSFER » n'est plus lisible** — il fait 3 px de haut. C'est
+  inévitable et ça a été dit à Barbaros. « ELA » tient, lui. Si ça devient
+  gênant, la correction est une variante sans le mot pour le seul favicon.
+- **Le bloc est centré optiquement, pas géométriquement** : son milieu est
+  à 249 pour un cercle centré à 256. Un bloc de texte exactement centré
+  paraît tomber vers le bas.
+- **La zone sûre du maskable est un cercle de 80 % du côté** (rayon 204,8).
+  Le script mesure le coin le plus éloigné du centre et le compare à cette
+  limite — 144,3 aujourd'hui.
 
 ## Ses consignes de travail, à tenir pour acquises
 
