@@ -44,7 +44,7 @@ await p.route('**://api-adresse.data.gouv.fr/**', route => route.fulfill({
   ]})
 }));
 
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 
 const bouton = p.locator('.reserver .bouton');

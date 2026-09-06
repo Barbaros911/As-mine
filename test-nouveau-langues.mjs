@@ -48,7 +48,7 @@ async function page(ctx){
 // --- Un visiteur français ---
 let ctx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
 let p = await page(ctx);
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 check('un navigateur français ouvre en français',
   (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
@@ -57,7 +57,7 @@ check('un navigateur français ouvre en français',
 await ctx.close();
 ctx = await b.newContext({viewport:{width:390,height:844},locale:'de-DE'});
 p = await page(ctx);
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 check('un navigateur allemand ouvre en anglais, pas en français',
   (await p.locator('[data-t="reserver_titre"]').textContent())==='Book a ride',

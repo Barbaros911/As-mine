@@ -54,7 +54,7 @@ await ctx.addInitScript(()=>{
   window.open = (u)=>{ window.__liens.push(u); return null; };
 });
 
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
 await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(850);
 await p.locator('#departList [role=option]').first().click();
@@ -130,7 +130,7 @@ check('la dernière ligne reste « nom — téléphone »',
 
 // ---- En anglais : le client lit sa langue, Barbaros lit le français ----
 await p.evaluate(()=>localStorage.removeItem('ela_courses'));
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
 await p.locator('.langues button[data-langue="en"]').click(); await p.waitForTimeout(200);
 await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(850);
@@ -177,7 +177,7 @@ await ctx2.addInitScript(([a,c])=>{
   localStorage.setItem('ela_exploitant', '04b72932f8ccb464');
 }, [course("ELA-26-09-0001",{paiement:"carte", paiementNom:"Carte bancaire"}),
     course("ELA-26-09-0002",{})]);
-await p2.goto('http://127.0.0.1:8099/nouveau.html?exploitant=1',{waitUntil:'domcontentloaded'});
+await p2.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
 await p2.waitForTimeout(600);
 await p2.locator('.demande, .course-bord').first().click(); await p2.waitForTimeout(300);
 check('le bon de l\'exploitant porte le mode de règlement',

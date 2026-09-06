@@ -863,14 +863,29 @@ comptable, gestion des désistements et des clients absents.
 
 ---
 
-# LE NOUVEAU SITE — `nouveau.html`
+# LE SITE — `index.html`
 
-**On ne travaille plus que sur celui-là** (septembre 2026, à sa demande :
-« met le site en ligne celui la, maintenan on travail que sur celui la »).
-`index.html` est l'ancien site, toujours servi à la racine ; `nouveau.html`
-est publié à `.../As-mine/nouveau.html`, en `noindex` tant que les deux
-pages coexistent. Le jour de la bascule : `nouveau.html` prend la place
-d'`index.html` et le `noindex` part.
+**LA BASCULE EST FAITE** (6 septembre 2026, à sa demande : « Non je veux que
+les gens voit mon nouveau site »). `nouveau.html` est devenu `index.html` :
+c'est LUI que voient les clients à la racine du domaine. Tout ce qui suit
+le décrit. La section « Asmine — l'application de réservation » plus haut
+décrit l'ANCIEN site, qui n'existe plus : la garder sert à comprendre d'où
+viennent les décisions, pas à savoir ce que fait le site aujourd'hui. En
+cas de contradiction, **c'est cette section-ci qui dit vrai**.
+
+**CE QUI A ÉTÉ SUPPRIMÉ À LA BASCULE, ET POURQUOI ON NE LE REMET PAS :**
+- l'ancien `index.html`, `styles.css`, `tailwind.config.js`,
+  `tailwind.src.css` ;
+- les neuf suites `test.mjs` … `test9.mjs` et `test-hors-ligne.mjs` — elles
+  éprouvaient un fichier qui n'existe plus.
+
+**IL N'Y A PAS DE PAGE DE SECOURS, ET C'EST DÉLIBÉRÉ.** Garder l'ancien
+site en ligne « au cas où » laisserait une page trouvable — signet, lien
+partagé, résultat de recherche — qui annonce une **grille de prix
+périmée**. Chez Elatransfer le prix est ferme, donc opposable : un client
+qui réserve à 1,75 €/km sur une page encore servie a un prix qu'on doit
+tenir. Le retour en arrière passe par **`git revert` de la bascule**, où
+tout le code est conservé, pas par un fichier laissé traîner.
 
 **IL NE GARDE RIEN DE L'ANCIEN.** Sa consigne, deux fois : « Je ne veux pas
 que le nouveau site ai lapaaraence de lancien, ne garde rien de lancien
@@ -925,6 +940,50 @@ pas une refonte.
 - Référence `ELA-AA-MM-NNNN`, jamais `ASM` : ASM venait du nom du dépôt,
   pas de la marque.
 
+## Les documents légaux
+
+Trois documents, en français et en anglais, accessibles depuis **Contact**
+sans compte et hors du mode exploitant — la LCEN l'impose, et c'est aussi
+ce qu'un client regarde avant de confier un trajet à un inconnu :
+conditions générales de vente, mentions légales, politique de
+confidentialité.
+
+- Ils viennent de l'ancien site, **adaptés** : la formation du prix y
+  décrit la grille réelle (tarif kilométrique, majoration, arrondi à la
+  dizaine, montant minimum), la mise à disposition y est dite **non
+  réservable en ligne**, et le mode de règlement déclaré par le client y
+  engage Elatransfer à envoyer un chauffeur en mesure de l'accepter.
+  **Des CGV qui décrivent une autre formation du prix que celle appliquée
+  sont pires qu'aucunes CGV** : le prix est ferme donc opposable, et le
+  client y trouverait un argument contre nous. Toucher à la grille veut
+  dire toucher aux CGV, dans les deux langues.
+- Le corps est posé en `textContent`, jamais en `innerHTML` : ce sont de
+  longs textes qu'on éditera à la main, parfois copiés d'un document
+  d'avocat, et un chevron perdu dedans ne doit pas devenir une balise.
+- **Le mandat de facturation n'a pas été repris** : c'est un document
+  entre Elatransfer et le chauffeur, il n'a rien à faire côté client.
+
+**CE QU'IL MANQUE, ET QUE SEUL BARBAROS PEUT DONNER** — les textes portent
+des « [À compléter] » hérités de l'ancien site, jamais remplis : raison
+sociale, forme juridique, **SIRET**, numéro de TVA, adresse du siège,
+directeur de la publication, hébergeur, et le médiateur de la
+consommation (obligatoire, L616-1 Code conso.). Tant qu'ils sont vides,
+les mentions légales ne sont pas conformes. Le lui redemander quand il
+aura tranché son statut juridique — c'est dans « Pas décidé ».
+
+## Ce qui reste à faire
+
+1. **Les informations de l'éditeur** (voir ci-dessus) — le seul point qui
+   rende le site non conforme aujourd'hui, et le seul que Claude ne peut
+   pas produire.
+2. **Le registre de l'exploitant** : « Coller une demande » et le résultat
+   par semaine / mois / année existaient sur l'ancien site, pas ici.
+3. **Une langue de plus si le besoin se voit** : l'espagnol et l'arabe sont
+   les deux qui apporteraient à Paris. L'arabe demande de retourner toute
+   la page de droite à gauche — ce n'est pas qu'une affaire de textes.
+4. **Cloudflare** reste bloqué : voir `CLOUDFLARE.md`. Ne pas déplacer les
+   serveurs de noms — l'email de Barbaros en dépend.
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
@@ -936,35 +995,35 @@ pas une refonte.
 
 ## Tests
 
-**Deux jeux de suites, un par site.** Celles de l'ANCIEN site
-(`test.mjs` … `test9.mjs`) et celles du NOUVEAU (`test-nouveau*.mjs`,
-onze suites, 213 contrôles). Relancer celles du site qu'on touche —
-et les deux si on touche `construire.sh` ou `sw.js`.
+**Douze suites, 248 contrôles**, à relancer après **toute** modification.
+Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
+touché douze fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
-
-# L'ancien site (index.html) — neuf suites
-node test.mjs && node test2.mjs && node test3.mjs \
-  && node test4.mjs && node test5.mjs \
-  && node test6.mjs && node test7.mjs && node test8.mjs \
-  && node test9.mjs
-
-# Le nouveau site (nouveau.html) — onze suites
 for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-langues.mjs test-nouveau-courses.mjs \
          test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
          test-nouveau-exploitant.mjs test-nouveau-whatsapp.mjs \
-         test-nouveau-services.mjs test-nouveau-paiement.mjs; do
+         test-nouveau-services.mjs test-nouveau-paiement.mjs \
+         test-nouveau-bascule.mjs; do
   node $f || break
 done
 ```
 
+`test-nouveau-bascule.mjs` couvre ce qui **ne se voit pas à l'écran** et
+qu'on ne remarquerait donc qu'une fois le mal fait : le titre et la
+description (leur ORDRE — le métier avant les aéroports), l'absence de
+`noindex`, les données structurées, le manifeste et les icônes, le fait que
+**chaque fichier du `SHELL` du service worker existe** (`addAll` est tout ou
+rien : un fichier absent et il ne s'installe plus, sans message), et que les
+CGV décrivent la **grille réellement appliquée**.
+
 **UN TEST QUI RÉIMPLÉMENTE CE QU'IL VÉRIFIE NE VÉRIFIE RIEN.** Écrit après
 avoir failli garder un contrôle d'arrondi qui recalculait la formule dans
 le test au lieu d'appeler la page : il serait passé au vert même avec le
-calcul cassé dans `nouveau.html`. Faire la vraie course — pour le plancher,
-une distance de 2 km rendue par le faux OSRM, et on lit le prix à l'écran.
+calcul cassé. Faire la vraie course — pour le plancher, une distance de
+2 km rendue par le faux OSRM, et on lit le prix à l'écran.
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une
 fois par session avec

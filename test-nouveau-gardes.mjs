@@ -39,7 +39,7 @@ await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'a
 await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
   body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
 await ctx.addInitScript(()=>{ window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;}; });
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
 
 // --- Plus aucun bouton mort ---

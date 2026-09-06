@@ -20,15 +20,19 @@ mkdir -p site
 # La liste est EXPLICITE, et c'est voulu : rien ne part en ligne sans
 # avoir été nommé ici. Un « cp * » publierait un jour les fichiers de
 # test, les notes de travail, ou le classeur de suivi.
-cp index.html admin.html styles.css manifest.webmanifest sw.js \
+# « styles.css » est parti avec l'ancien site : le nouveau porte ses styles
+# dans la page. Le publier encore aurait laissé traîner une feuille que plus
+# rien ne lit, et que le service worker aurait continué de mettre en cache.
+cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
-# LE NOUVEAU SITE, publié à son adresse provisoire pendant sa construction.
-# Barbaros le suit sur son téléphone à chaque étape. Il porte « noindex » :
-# tant que deux pages coexistent sur le domaine, Google les indexerait toutes
-# les deux et elles se concurrenceraient sur les mêmes recherches.
-# Le jour où il prend la racine, cette ligne disparaît avec le fichier.
-[ -f nouveau.html ] && cp nouveau.html site/ || true
+# L'ANCIEN SITE N'EST PLUS PUBLIÉ, et ce n'est pas un oubli. Le garder en
+# ligne « au cas où » laisserait une page trouvable — par un lien partagé,
+# un signet, un résultat de recherche — qui annonce une GRILLE DE PRIX
+# PÉRIMÉE. Chez Elatransfer le prix est ferme : un client qui réserve sur
+# l'ancienne grille a un prix opposable. Le retour en arrière ne passe donc
+# pas par une page de secours mais par « git revert » de la bascule, où le
+# code entier est conservé.
 
 # Le domaine personnalisé. GitHub Pages l'oublie à chaque déploiement
 # sans ce fichier. Cloudflare l'ignore — il ne gêne pas.
