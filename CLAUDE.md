@@ -1438,6 +1438,27 @@ le moment où l'on perd une réservation.
   (390×844), le bouton est à 404–448 px et la pastille à 686–740, non
   affichée. **Toujours capturer à 844 px de haut.**
 
+## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
+
+Septembre 2026, vu par Barbaros : « il faut recentrer ces trois choix ».
+`.barre-int` portait `grid-template-columns:repeat(4,1fr)` — le compte de
+l'époque où « Réserver » existait. Depuis son retrait, les trois onglets
+restants gardaient chacun **un quart** de la largeur et se tassaient à
+gauche : mesuré à 390 px, ils occupaient **0 à 293** et laissaient **97 px
+de vide à droite**.
+
+- **Personne ne l'avait vu pendant des semaines**, parce qu'un vide
+  n'attire pas l'œil : ce n'est pas ce qui est là qui alerte, c'est ce qui
+  n'y est pas. Leçon générale — **un compte écrit en dur dans une mise en
+  page survit au changement qui l'invalide**, sans rien casser de visible.
+- La barre est maintenant en **`flex`** avec `flex:1 1 0` par onglet : le
+  compte ne s'écrit plus nulle part, et elle se réajuste seule si un
+  onglet s'ajoute ou disparaît.
+- **Le contrôle de `test-nouveau-courses.mjs` ne COMPTE PAS les onglets**,
+  il vérifie qu'ils **remplissent la barre** et ont la même largeur. Un
+  test qui aurait compté trois onglets serait passé au vert sur la barre
+  cassée.
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
@@ -1449,7 +1470,7 @@ le moment où l'on perd une réservation.
 
 ## Tests
 
-**Dix-sept suites Playwright, 426 contrôles**, à relancer après **toute**
+**Dix-sept suites Playwright, 429 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

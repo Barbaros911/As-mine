@@ -775,7 +775,17 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* ---------- BARRE DU BAS ---------- */
 .barre{position:fixed;left:0;right:0;bottom:0;z-index:35;background:#fff;
   border-top:1px solid var(--filet);padding-bottom:env(safe-area-inset-bottom);}
-.barre-int{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+/* LES ONGLETS SE PARTAGENT LA BARRE, QUEL QUE SOIT LEUR NOMBRE.
+   C'était « grid-template-columns:repeat(4,1fr) », figé sur QUATRE — le
+   compte de l'époque où « Réserver » existait encore. Depuis son retrait,
+   les trois onglets restants gardaient chacun un quart de la largeur et
+   se tassaient à gauche : mesuré à 390 px, ils occupaient 0 à 293 et
+   laissaient 97 px de vide à droite. Personne ne l'avait vu parce qu'un
+   vide n'attire pas l'œil — c'est ce qui n'y est pas.
+   En « flex » avec « flex:1 », le compte ne s'écrit plus nulle part : le
+   jour où un onglet s'ajoute ou disparaît, la barre se réajuste seule. */
+.barre-int{max-width:520px;margin:0 auto;display:flex;}
+.barre-int > .onglet{flex:1 1 0;min-width:0;}
 /* 52 px : un pouce fait 44 px, et c'est la seule mesure qui compte sur un
    téléphone. */
 .onglet{min-height:52px;display:flex;flex-direction:column;align-items:center;

@@ -44,6 +44,29 @@ await ctx.addInitScript(()=>{ window.__liens=[]; window.open=(u)=>{window.__lien
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 
+/* --- LES ONGLETS REMPLISSENT LA BARRE, QUEL QUE SOIT LEUR NOMBRE.
+   La barre était figée sur QUATRE colonnes — le compte de l'époque où
+   « Réserver » existait. Depuis son retrait, les trois onglets gardaient
+   chacun un quart de la largeur et se tassaient à gauche : 0 à 293 px sur
+   390, et 97 px de vide à droite. Personne ne l'avait vu pendant des
+   semaines, parce qu'un vide n'attire pas l'œil — c'est ce qui n'y est
+   pas. Barbaros l'a vu, lui.
+   Ce contrôle ne compte donc PAS les onglets : il vérifie qu'ils
+   remplissent la barre. Il tiendra le jour où il y en aura deux ou
+   quatre. --------------------------------------------------------- */
+const barre = await p.evaluate(() => {
+  const o = [...document.querySelectorAll('.onglet')].map(e => e.getBoundingClientRect());
+  const b = document.querySelector('.barre-int').getBoundingClientRect();
+  return { premier:Math.round(o[0].left), dernier:Math.round(o[o.length-1].right),
+           gauche:Math.round(b.left), droite:Math.round(b.right),
+           largeurs:o.map(r => Math.round(r.width)) };
+});
+check('les onglets remplissent la barre, sans vide au bout',
+  Math.abs(barre.premier - barre.gauche) <= 1 && Math.abs(barre.dernier - barre.droite) <= 1,
+  barre.premier+'→'+barre.dernier+' pour une barre de '+barre.gauche+'→'+barre.droite);
+check('et ils ont tous la même largeur',
+  new Set(barre.largeurs).size === 1, barre.largeurs.join(' / '));
+
 // --- Un onglet doit MENER quelque part ---
 await p.locator('.onglet[data-onglet="courses"]').click();
 await p.waitForTimeout(300);
