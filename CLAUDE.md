@@ -898,7 +898,7 @@ pas une refonte.
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
 | Berline (4 places) | 2,95 € | 30 € |
-| Van (7 places) | 4,20 € | 60 € |
+| Van (7 places) | 4,20 € | 50 € |
 
 - **Plus de prise en charge.** Le prix n'est qu'un kilométrage : avec un
   plancher et un arrondi à la dizaine, un forfait de départ ne se voyait
