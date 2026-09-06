@@ -94,15 +94,27 @@ const ref = await p.locator('#bonRef').textContent();
 // « ELA », jamais « ASM » : ASM venait du nom du dépôt, pas de la marque.
 check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
 check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref);
-check('le bon dit « en attente », jamais « confirmé »',
-  (await p.locator('.bon-etat').textContent()).toLowerCase().includes('attente'));
+/* LE BON NE SE DIT JAMAIS CONFIRMÉ TOUT SEUL. Il dit « Demande reçue » —
+   ce qui se passe maintenant — jusqu'à ce qu'un chauffeur soit attribué.
+   Laisser croire à une place réservée qui n'existe pas, c'est un client qui
+   attend une voiture à 5 h du matin. */
+check('le bon dit « Demande reçue », jamais « confirmé »',
+  (await p.locator('.bon-etat').textContent())==='Demande reçue'
+  && !(await p.locator('.bon-etat').getAttribute('class')).includes('confirme'),
+  await p.locator('.bon-etat').textContent());
+check('et le bloc du chauffeur n\'existe pas encore',
+  await p.locator('#bonConfirme').isHidden());
 check('le bon porte la marque Elatransfer',
   (await p.locator('.bon-nom').textContent()).replace(/\s/g,'') === 'ELATRANSFER',
   await p.locator('.bon-nom').textContent());
 check('et se nomme pour ce qu\'il est',
   (await p.locator('.bon-sous').textContent()).toLowerCase().includes('bon de réservation'));
-check('le bon dit ce qui le rendra ferme',
-  (await p.locator('.bon-note').textContent()).includes('ferme'));
+/* La phrase dit ce qui se passe MAINTENANT — on cherche un chauffeur —
+   plutôt que de renvoyer le client vers WhatsApp : il vient d'y envoyer sa
+   demande, le lui répéter n'apprend rien. */
+check('le bon dit ce qu\'on est en train de faire pour lui',
+  (await p.locator('.bon-note').textContent()).includes('disponibilité d\'un chauffeur'),
+  await p.locator('.bon-note').textContent());
 
 // Le message WhatsApp doit rester lisible par « Coller une demande ».
 // Le dépôt a échoué : le renvoi devient le seul chemin, et il passe en or.

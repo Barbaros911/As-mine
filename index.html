@@ -415,6 +415,10 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   letter-spacing:.06em;text-transform:uppercase;color:var(--or-encre);
   background:var(--or-clair);border-radius:999px;padding:3px 9px;
   white-space:nowrap;}
+/* Confirmé passe au vert, comme la pastille du bon : deux endroits, un seul
+   langage. Le contraste mesuré est de 5,4:1 — la couleur ne porte pas le
+   sens à elle seule, le mot est écrit à côté. */
+.course-etat.ok{color:#14683F;background:#DCF2E7;}
 .vide{margin:26px 20px 0;padding:26px 18px;text-align:center;
   background:var(--carte);border:1px dashed var(--filet);border-radius:16px;}
 .vide p{margin:0 0 14px;font-size:13.5px;color:var(--gris);}
@@ -509,12 +513,28 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
   font-variant-numeric:tabular-nums;}
 .bon-note{margin:9px 0 0;font-size:12px;line-height:1.42;
   color:rgba(255,255,255,.76);}
+/* CONFIRMÉ : la pastille passe au vert. C'est le seul endroit du site où
+   l'état d'un bon change de couleur, et il ne le fait qu'une fois — quand
+   la réponse arrive. L'or dit « en cours », le vert dit « c'est bon ». */
+.bon-etat.confirme{color:#6FD3A8;border-color:rgba(111,211,168,.45);
+  background:rgba(111,211,168,.15);}
+/* Le bloc du chauffeur est cerclé de vert, pas rempli : c'est une bonne
+   nouvelle, pas une alerte. */
+.bloc-confirme{border-color:#9BD8BE;background:#F2FBF7;}
+.bloc-confirme .bloc-titre{color:#14683F;}
+#bonAppelChauffeur{border-color:#9BD8BE;color:#14683F;}
 /* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
    par écran, sinon plus aucun ne l'est. */
-.bouton-fantome{width:100%;margin-top:10px;border:1px solid var(--filet);
+/* « display:block » et non le défaut : cette classe habille aussi des liens
+   « <a> », et une ancre est un élément EN LIGNE — « width:100% » n'y fait
+   rien. Mesuré : le bouton « Appeler le chauffeur » se posait EN TRAVERS de
+   la ligne « Heure », qui devenait illisible. Le centrage et le retrait du
+   soulignement suivent, pour qu'un lien et un bouton se ressemblent. */
+.bouton-fantome{display:block;width:100%;margin-top:10px;
+  border:1px solid var(--filet);
   border-radius:13px;background:var(--carte);color:var(--encre);
   font-family:inherit;font-size:14.5px;font-weight:700;padding:14px 18px;
-  cursor:pointer;}
+  text-align:center;text-decoration:none;cursor:pointer;}
 
 /* ---------- SUGGESTIONS D'ADRESSE ---------- */
 /* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
@@ -1204,13 +1224,36 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
         <span class="bon-nom">ELA<i>TRANSFER</i></span>
         <span class="bon-sous" data-t="bon_sous">Bon de réservation</span>
       </div>
-      <span class="bon-etat" data-t="bon_etat">En attente de confirmation</span>
+      <!-- LE BON A DEUX VISAGES, et un seul est vrai à la fois.
+           En attente, il dit ce qui se passe maintenant : on cherche un
+           chauffeur. Confirmé, il dit qui vient. Afficher « en attente » sur
+           une course déjà attribuée ferait rappeler un client qui n'a rien à
+           demander ; l'inverse serait promettre une voiture qu'on n'a pas. -->
+      <span class="bon-etat" id="bonEtat" data-t="bon_etat">En attente de confirmation</span>
       <p class="bon-ref" id="bonRef">—</p>
-      <p class="bon-note" data-t="bon_note">Ce bon devient ferme dès qu'Elatransfer confirme.
-         Vous recevez la réponse sur WhatsApp.</p>
+      <p class="bon-note" id="bonNote" data-t="bon_note">Nous vérifions la disponibilité
+         d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.</p>
     </div>
 
-    <div class="bloc">
+    <!-- CE QUE LE CLIENT ATTEND VRAIMENT DE SAVOIR : qui vient le chercher.
+         Le bloc n'existe qu'une fois la course confirmée — avant, il n'y a
+         rien de vrai à y écrire. -->
+    <div class="bloc bloc-confirme" id="bonConfirme" hidden>
+      <h2 class="bloc-titre" data-t="confirme_titre">Transfert confirmé</h2>
+      <div class="ligne"><span data-t="chauffeur">Chauffeur</span><b id="bonChauffeur">—</b></div>
+      <div class="ligne"><span data-t="vehicule">Véhicule</span><b id="bonVehiculeC">—</b></div>
+      <div class="ligne"><span data-t="heure">Heure</span><b id="bonHeure">—</b></div>
+      <!-- Le numéro du chauffeur n'apparaît que s'il a été saisi : un bouton
+           « Appeler » qui ne compose rien est pire que pas de bouton. -->
+      <a class="bouton-fantome" id="bonAppelChauffeur" hidden data-t="appeler_chauffeur">Appeler le chauffeur</a>
+    </div>
+
+    <!-- Le détail du trajet disparaît quand le bon est ouvert depuis un lien
+         sur un appareil qui ne connaît pas la course : mieux vaut montrer la
+         seule confirmation que remplir un bon de tirets et d'un prix à zéro.
+         Les adresses ne voyagent JAMAIS dans le lien — un lien se transfère,
+         et la destination d'un client ne regarde que lui. -->
+    <div class="bloc" id="bonDetail">
       <div class="ligne"><span data-t="depart">Départ</span><b id="bonDepart">—</b></div>
       <div class="ligne"><span data-t="arrivee">Arrivée</span><b id="bonArrivee">—</b></div>
       <div class="ligne"><span data-t="date">Date</span><b id="bonDate">—</b></div>
@@ -1413,6 +1456,15 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
     <div class="veh-action" id="bbActions">
       <button class="bouton" type="button" id="btnConfirmerCourse">
         <span>Confirmer la course</span>
+      </button>
+      <!-- CONFIRMER ET PRÉVENIR SONT DEUX GESTES, ET C'EST VOULU.
+           Le premier range la course chez Barbaros ; le second la dit au
+           client. Les fondre en un seul enverrait le message avant qu'il ait
+           relu le nom du chauffeur — et un message parti ne se rattrape pas.
+           Le bouton n'apparaît qu'une fois la course confirmée : prévenir un
+           client qu'on n'a pas encore de chauffeur pour lui n'a pas de sens. -->
+      <button class="bouton vert" type="button" id="btnPrevenirClient" hidden>
+        <span>Prévenir le client</span>
       </button>
       <!-- CLORE EST LE GESTE LE PLUS FRÉQUENT : c'est lui qui fait entrer la
            course au registre. Il est en vert plein, pas en gris à côté d'un
@@ -1621,8 +1673,19 @@ window.ELA_TEXTES = {
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
     confirmer:"Confirmer ma réservation",
     confirmer_note:"Votre demande part sur WhatsApp. Elle devient ferme dès qu'Elatransfer vous confirme.",
-    bon_sous:"Bon de réservation", bon_etat:"En attente de confirmation",
-    bon_note:"Ce bon devient ferme dès qu'Elatransfer confirme. Vous recevez la réponse sur WhatsApp.",
+    bon_sous:"Bon de réservation",
+    /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
+       on cherche un chauffeur — plutôt que de renvoyer le client vers
+       WhatsApp : il vient d'y envoyer sa demande, le lui répéter n'apprend
+       rien et ressemble à une consigne de plus. */
+    bon_etat:"Demande reçue",
+    bon_note:"Nous vérifions la disponibilité d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.",
+    bon_etat_ok:"Transfert confirmé",
+    bon_note_ok:"Votre chauffeur vous attend à l'heure convenue. Gardez ce bon : il porte votre référence.",
+    confirme_titre:"Transfert confirmé",
+    chauffeur:"Chauffeur", heure:"Heure",
+    appeler_chauffeur:"Appeler le chauffeur",
+    etat_confirme:"Confirmé",
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
@@ -1700,8 +1763,15 @@ window.ELA_TEXTES = {
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
     confirmer:"Confirm my booking",
     confirmer_note:"Your request is sent on WhatsApp. It becomes firm as soon as Elatransfer confirms.",
-    bon_sous:"Booking voucher", bon_etat:"Awaiting confirmation",
-    bon_note:"This voucher becomes firm as soon as Elatransfer confirms. You will receive the answer on WhatsApp.",
+    bon_sous:"Booking voucher",
+    bon_etat:"Request received",
+    bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
+    bon_etat_ok:"Transfer confirmed",
+    bon_note_ok:"Your chauffeur will be there at the agreed time. Keep this voucher: it carries your reference.",
+    confirme_titre:"Transfer confirmed",
+    chauffeur:"Chauffeur", heure:"Time",
+    appeler_chauffeur:"Call your chauffeur",
+    etat_confirme:"Confirmed",
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
@@ -2721,6 +2791,127 @@ window.ELA_TEXTES = {
     document.getElementById("bonPaiement").textContent =
       bon.paiement ? T(bon.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "—";
     document.getElementById("bonPrix").textContent     = euros(bon.prix.total);
+
+    /* LES DEUX VISAGES DU BON. Un seul est vrai à la fois : afficher
+       « en attente » sur une course déjà attribuée ferait rappeler un client
+       qui n'a rien à demander, et l'inverse promettrait une voiture qu'on
+       n'a pas encore. */
+    var confirme = (bon.statut === "confirmee");
+    /* Un bon reconstruit depuis le seul lien ne connaît ni le trajet ni le
+       prix : on masque ce qu'on ne sait pas plutôt que d'afficher des tirets
+       et un prix ferme à zéro euro. */
+    document.getElementById("bonDetail").hidden = !!bon.partiel;
+    /* « Renvoyer ma demande » n'a plus de sens une fois la course confirmée :
+       elle est arrivée, quelqu'un y a répondu. Le laisser ferait renvoyer au
+       client une demande qu'on a déjà traitée. */
+    var renvoyable = !confirme && !bon.partiel;
+    document.getElementById("noteRenvoi").hidden  = !renvoyable;
+    document.getElementById("btnRenvoyer").hidden = !renvoyable;
+    if(!renvoyable) document.getElementById("etatEnvoi").hidden = true;
+    var etat = document.getElementById("bonEtat");
+    etat.textContent = T(confirme ? "bon_etat_ok" : "bon_etat");
+    etat.setAttribute("data-t", confirme ? "bon_etat_ok" : "bon_etat");
+    etat.classList.toggle("confirme", confirme);
+    var note = document.getElementById("bonNote");
+    note.textContent = T(confirme ? "bon_note_ok" : "bon_note");
+    note.setAttribute("data-t", confirme ? "bon_note_ok" : "bon_note");
+    /* On réécrit l'ATTRIBUT « data-t », pas seulement le texte : sans ça, un
+       changement de langue rendrait au bon confirmé la phrase de l'attente. */
+
+    var ch = bon.chauffeur || {};
+    document.getElementById("bonConfirme").hidden = !confirme;
+    if(confirme){
+      document.getElementById("bonChauffeur").textContent  = ch.nom || "—";
+      document.getElementById("bonVehiculeC").textContent  = bon.course.vehicule;
+      document.getElementById("bonHeure").textContent      = dateLisible(bon);
+      /* Un bouton « Appeler » qui ne compose rien est pire que pas de bouton :
+         le client appuie, rien ne se passe, et il rappelle Barbaros. */
+      var tel = telWa(ch.telephone);
+      var lien = document.getElementById("bonAppelChauffeur");
+      lien.hidden = !tel;
+      if(tel) lien.href = "tel:+" + tel;
+    }
+  }
+
+/* =====================================================================
+   LA CONFIRMATION QUI ARRIVE AU CLIENT
+   ---------------------------------------------------------------------
+   RIEN NE VOYAGE TOUT SEUL D'UN TÉLÉPHONE À L'AUTRE. Le serveur reçoit
+   bien les demandes, mais sa règle de sécurité interdit la LECTURE aux
+   visiteurs anonymes — et il faut qu'elle l'interdise : une lecture
+   ouverte exposerait les noms, téléphones et adresses de tous les
+   clients. Le site ne peut donc pas aller demander « ma course est-elle
+   confirmée ? ».
+   C'EST DONC LE LIEN QUI PORTE LA RÉPONSE. Barbaros confirme la course,
+   appuie sur « Prévenir le client », et WhatsApp part sur le numéro du
+   client avec un lien « ?ok= ». Le client l'ouvre : son bon passe au
+   vert et porte le nom du chauffeur.
+   CE QUE LE LIEN CONTIENT, ET RIEN D'AUTRE : la référence, le prénom du
+   chauffeur, son téléphone, le véhicule, l'heure. Jamais le nom ni le
+   numéro du client — un lien se transfère, et ce qu'il porte se lit.
+   ===================================================================== */
+  function encoderOk(bon){
+    var ch = bon.chauffeur || {};
+    var d = { r:bon.ref, c:ch.nom || "", t:ch.telephone || "",
+              v:bon.course.vehicule, d:bon.course.date, h:bon.course.heure };
+    /* base64url : le « + », le « / » et le « = » du base64 ordinaire se font
+       manger ou réécrire en route par les applications de messagerie. */
+    return btoa(unescape(encodeURIComponent(JSON.stringify(d))))
+             .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function decoderOk(brut){
+    try{
+      var s = brut.replace(/-/g,"+").replace(/_/g,"/");
+      while(s.length % 4) s += "=";
+      var d = JSON.parse(decodeURIComponent(escape(atob(s))));
+      return (d && d.r) ? d : null;
+    }catch(e){ return null; }  /* lien tronqué ou recopié à la main */
+  }
+
+  /* Le client peut ouvrir ce lien sur un AUTRE téléphone que celui de la
+     réservation — il l'a transféré, ou il a changé d'appareil. On met donc à
+     jour la course si on la connaît, et sinon on reconstruit de quoi
+     l'afficher à partir du seul lien. Un client qui suit le lien qu'on lui a
+     envoyé doit voir sa confirmation, pas un écran vide. */
+  function appliquerConfirmation(d){
+    var liste = coursesEnregistrees(), trouve = null;
+    for(var i=0;i<liste.length;i++) if(liste[i].ref === d.r){
+      liste[i].statut = "confirmee";
+      liste[i].chauffeur = { nom:d.c, telephone:d.t };
+      if(d.d) liste[i].course.date = d.d;
+      if(d.h) liste[i].course.heure = d.h;
+      trouve = liste[i];
+      break;
+    }
+    if(trouve){
+      try{ localStorage.setItem("ela_courses", JSON.stringify(liste)); }
+      catch(e){ /* stockage refusé : la confirmation s'affiche quand même */ }
+      return trouve;
+    }
+    return {
+      ref: d.r, statut:"confirmee", partiel:true,
+      chauffeur: { nom:d.c, telephone:d.t },
+      course: { depart:"", arrivee:"", date:d.d || "", heure:d.h || "",
+                vehicule: d.v || "—" },
+      client: {}, prix: { total:0 }, dateMsg:""
+    };
+  }
+
+  /* Lu AU CHARGEMENT, avant tout le reste : un client qui suit le lien qu'on
+     lui a envoyé doit tomber sur sa confirmation, pas sur le formulaire. */
+  function lireConfirmation(){
+    var brut = new URLSearchParams(location.search).get("ok");
+    if(!brut) return false;
+    var d = decoderOk(brut);
+    if(!d) return false;
+    bonCourant = appliquerConfirmation(d);
+    remplirBon(bonCourant);
+    ecran("ecran-bon");
+    /* On efface le paramètre de la barre d'adresse : sans ça, un
+       rafraîchissement — ou un retour en arrière — rouvrirait la
+       confirmation par-dessus ce que le client était en train de faire. */
+    try{ history.replaceState(null, "", location.pathname); }catch(e){}
+    return true;
   }
 
   document.getElementById("btnConfirmer").addEventListener("click", function(){
@@ -2909,7 +3100,12 @@ window.ELA_TEXTES = {
          langues et ne prend pas de place sur un libellé déjà long. */
       b.querySelector(".course-trajet").textContent =
         bon.course.depart + " → " + bon.course.arrivee;
-      b.querySelector(".course-etat").textContent = T("etat_court");
+      /* L'ÉTAT RÉEL, pas « en attente » pour tout le monde. Le client qui a
+         reçu sa confirmation doit la retrouver ici : sans ça il rouvre la
+         liste, lit « en attente » sur une course confirmée, et rappelle. */
+      var confirmee = (bon.statut === "confirmee");
+      b.querySelector(".course-etat").textContent = T(confirmee ? "etat_confirme" : "etat_court");
+      b.querySelector(".course-etat").classList.toggle("ok", confirmee);
       b.querySelector(".course-date").textContent = dateLisible(bon);
       b.querySelector(".course-prix").textContent = euros(bon.prix.total);
       b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
@@ -3210,6 +3406,11 @@ window.ELA_TEXTES = {
     }
     document.getElementById("bbChauffeurNom").value = (c.chauffeur && c.chauffeur.nom) || "";
     document.getElementById("bbChauffeurTel").value = (c.chauffeur && c.chauffeur.telephone) || "";
+    /* « Prévenir le client » n'apparaît qu'une fois la course confirmée ET
+       s'il y a un numéro où écrire. Un bouton visible qui n'envoie rien fait
+       croire à Barbaros que le client est prévenu — et le client attend. */
+    document.getElementById("btnPrevenirClient").hidden =
+      (c.statut !== "confirmee") || !tel;
     ecran("ecran-bord-bon");
   }
   function chauffeurSaisi(){
@@ -3228,6 +3429,40 @@ window.ELA_TEXTES = {
     if(!bonBord) return;
     bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi() });
     ouvrirBonBord(bonBord.ref);
+  });
+
+/* =====================================================================
+   PRÉVENIR LE CLIENT
+   ---------------------------------------------------------------------
+   SIX LIGNES, lues sur un téléphone. Elles répondent aux trois questions
+   qu'un client se pose en attendant : est-ce que c'est bon, qui vient, et
+   quand. Le reste — le trajet, le prix — il l'a déjà sur son bon, et le
+   recopier ne ferait qu'allonger un message qu'on lit d'un coup d'œil.
+   LE MESSAGE PART SUR LE NUMÉRO DU CLIENT, jamais via le sélecteur de
+   contacts : à 3 h du matin on n'ouvre pas un carnet d'adresses.
+   Le lien porte la confirmation : le client l'ouvre, son bon passe au
+   vert. Sans ce lien, il aurait le message mais un bon resté « en
+   attente » — deux versions de la même course, et il rappellerait.
+   ===================================================================== */
+  function messageConfirmation(bon){
+    var ch = bon.chauffeur || {};
+    var lien = location.origin + location.pathname + "?ok=" + encoderOk(bon);
+    var l = [
+      "Transfert confirmé — " + bon.ref,
+      "Chauffeur : " + (ch.nom || "—"),
+      "Véhicule : " + bon.course.vehicule,
+      "Heure : " + dateLisible(bon)
+    ];
+    if(ch.telephone) l.push("Son numéro : " + ch.telephone);
+    l.push("Votre bon : " + lien);
+    return l.join("\n");
+  }
+  document.getElementById("btnPrevenirClient").addEventListener("click", function(){
+    if(!bonBord) return;
+    var tel = telWa(bonBord.client && bonBord.client.telephone);
+    if(!tel) return;
+    window.open("https://wa.me/" + tel + "?text="
+                + encodeURIComponent(messageConfirmation(bonBord)), "_blank");
   });
   document.getElementById("btnRealisee").addEventListener("click", function(){
     if(!bonBord) return;
@@ -3306,6 +3541,11 @@ window.ELA_TEXTES = {
   if(MODE_EXPLOITANT){
     document.body.classList.add("exploitant");
     if(DEVERROUILLE) ouvrirEspace(); else ecran("ecran-verrou");
+  } else {
+    /* Le lien de confirmation ne s'ouvre que du côté CLIENT : c'est à lui
+       qu'on l'a envoyé. En mode exploitant, il ne doit pas venir recouvrir
+       le tableau de bord. */
+    lireConfirmation();
   }
 
   /* Basculer de langue réécrit aussi ce qui a déjà été calculé : sans ça, un
