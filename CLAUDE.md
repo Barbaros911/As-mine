@@ -952,6 +952,58 @@ récapitulatif — se rattachent désormais à **« accueil »** dans la table d
 réservation. Un test vérifie que **chaque onglet mène à un écran
 différent** : la règle vaut pour tout onglet qu'on ajouterait demain.
 
+## La confirmation qui arrive au client
+
+**LE BON A DEUX VISAGES, un seul vrai à la fois** (septembre 2026, à sa
+demande). En attente : « **Demande reçue** — Nous vérifions la
+disponibilité d'un chauffeur professionnel. Vous recevrez la confirmation
+de votre transfert. » Confirmé : « **Transfert confirmé** », pastille
+verte, et un bloc **Chauffeur / Véhicule / Heure** avec un bouton pour
+appeler le chauffeur. Afficher « en attente » sur une course déjà
+attribuée fait rappeler un client qui n'a rien à demander ; l'inverse
+promet une voiture qu'on n'a pas.
+
+**C'EST LE LIEN QUI PORTE LA RÉPONSE, et ce n'est pas un choix de
+confort.** Le serveur reçoit les demandes, mais sa règle de sécurité
+interdit la LECTURE aux visiteurs anonymes — et il FAUT qu'elle
+l'interdise : une lecture ouverte exposerait les noms, téléphones et
+adresses de tous les clients. Le site ne peut donc pas aller demander
+« ma course est-elle confirmée ? ». Barbaros confirme, appuie sur
+**« Prévenir le client »**, WhatsApp part sur le numéro du client avec un
+lien `?ok=`. Le client l'ouvre : son bon passe au vert.
+- **CE QUE LE LIEN PORTE, ET RIEN D'AUTRE** : la référence, le prénom du
+  chauffeur, son téléphone, le véhicule, l'heure. **Jamais le nom ni le
+  numéro du client, jamais les adresses** — un lien se transfère, et ce
+  qu'il porte se lit (RGPD 5.1.c). Quatre contrôles le verrouillent.
+- Encodé en **base64url** : le `+`, le `/` et le `=` du base64 ordinaire
+  se font manger ou réécrire en route par les messageries.
+- **Le paramètre est effacé de la barre d'adresse** après lecture, sinon
+  un rafraîchissement rouvre la confirmation par-dessus ce que le client
+  était en train de faire.
+- **Un lien ouvert sur un appareil qui ne connaît pas la course** affiche
+  la seule confirmation : le détail du trajet et le prix sont MASQUÉS
+  plutôt qu'affichés en tirets et à 0,00 € — un bon qui annonce zéro euro
+  est un bon faux.
+- **« Renvoyer ma demande » disparaît** une fois la course confirmée :
+  elle est arrivée, quelqu'un y a répondu.
+
+**CONFIRMER ET PRÉVENIR SONT DEUX GESTES, ET ILS LE RESTENT.** Le premier
+range la course chez Barbaros, le second la dit au client. Les fondre
+enverrait le message avant qu'il ait relu le nom du chauffeur — et un
+message parti ne se rattrape pas. « Prévenir le client » n'apparaît que
+sur une course **confirmée** ET **avec un numéro** où écrire : un bouton
+qui n'envoie rien lui ferait croire que le client est prévenu.
+
+**Le message fait six lignes** : confirmé + référence, chauffeur,
+véhicule, heure, numéro du chauffeur, lien du bon. Le trajet et le prix
+n'y sont pas — le client les a déjà sur son bon.
+
+**Piège rencontré** : `.bouton-fantome` habille aussi des liens `<a>`, et
+une ancre est un élément **en ligne** — `width:100%` n'y fait rien. Le
+bouton « Appeler le chauffeur » se posait EN TRAVERS de la ligne
+« Heure ». `display:block` corrige, et un test **mesure les rectangles**
+plutôt que de relire le CSS.
+
 ## Les documents légaux
 
 Trois documents, en français et en anglais, accessibles depuis **Contact**
@@ -998,6 +1050,11 @@ les six textes — la forme survit à une reformulation, pas la formule.
 
 ## Ce qui reste à faire
 
+**Fait au 6 septembre 2026, ne pas le refaire** : optimisation mobile,
+bandeau d'accueil, bouton de réservation, WhatsApp, formulaire, affichage
+du prix, confirmation client, espace exploitant, application installable
+(PWA) et référencement.
+
 1. **Les informations de l'éditeur** (voir ci-dessus) — le seul point qui
    rende le site non conforme aujourd'hui, et le seul que Claude ne peut
    pas produire.
@@ -1020,9 +1077,9 @@ les six textes — la forme survit à une reformulation, pas la formule.
 
 ## Tests
 
-**Douze suites, 248 contrôles**, à relancer après **toute** modification.
+**Treize suites, 295 contrôles**, à relancer après **toute** modification.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché douze fichiers pour zéro gain.
+touché treize fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1031,6 +1088,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
          test-nouveau-exploitant.mjs test-nouveau-whatsapp.mjs \
          test-nouveau-services.mjs test-nouveau-paiement.mjs \
+         test-nouveau-confirmation.mjs \
          test-nouveau-bascule.mjs; do
   node $f || break
 done
