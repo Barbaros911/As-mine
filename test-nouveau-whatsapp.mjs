@@ -19,7 +19,8 @@
      l'utilisateur. Un contrôle vérifie l'ORDRE des deux appels.
    — LE CONTENU DU MESSAGE, ligne par ligne : « Demande de réservation »
      et la référence, les deux adresses, la date, le nombre de passagers,
-     la gamme, le prix, et le nom avec le téléphone en dernier.
+     la gamme, le mode de règlement, le prix, et le nom avec le téléphone
+     en dernier.
    — SA STRUCTURE reste celle que relira « Coller une demande » : les
      deux premières valeurs « … : … » sont les adresses, le dernier
      montant en euros est le prix, la dernière ligne est
@@ -68,6 +69,7 @@ await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+await p.locator('[data-paiement="carte"]').click();
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(1200);
 
 const j = await p.evaluate(()=>window.__journal);
@@ -81,7 +83,7 @@ check('WhatsApp est demandé AVANT le dépôt — sinon Safari iOS le bloque',
 
 const msg = decodeURIComponent(j.find(e=>e.quoi==='wa').url.split('text=')[1]);
 const L = msg.split('\n');
-check('huit lignes', L.length===8, L.length+'');
+check('neuf lignes', L.length===9, L.length+'');
 check('il commence par « Demande de réservation »', L[0].startsWith('Demande de réservation — '), L[0]);
 check('avec la référence', /ELA-\d{2}-\d{2}-\d{4}/.test(L[0]), L[0]);
 check('adresse de départ', L[1].startsWith('Départ : ') && L[1].includes('Vendôme'), L[1]);
@@ -89,18 +91,22 @@ check('adresse d\'arrivée', L[2].startsWith('Arrivée : ') && L[2].includes('Ar
 check('date et heure', /^Date : \d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}$/.test(L[3]), L[3]);
 check('nombre de passagers', L[4]==='Passagers : 3 passagers · 1 bagage', L[4]);
 check('berline ou van', L[5]==='Véhicule : Berline', L[5]);
-check('prix du site', L[6]==='Prix : 48,28 €', L[6]);
+// Le chauffeur doit savoir s'il emporte son terminal : c'est la seule
+// raison d'être de cette ligne, et elle passe AVANT le prix pour que le
+// dernier montant en euros du message reste celui de la course.
+check('mode de règlement, en français', L[6]==='Paiement : Carte bancaire', L[6]);
+check('prix du site', L[7]==='Prix : 70,00 €', L[7]);
 check('nom et téléphone du client, en dernier',
-  L[7]==='Jean Martin — 06 12 34 56 78', L[7]);
+  L[8]==='Jean Martin — 06 12 34 56 78', L[8]);
 
 // La forme reste lisible par « Coller une demande ».
 const valeurs = L.filter(x=>/\s:\s/.test(x)).map(x=>x.slice(x.indexOf(' : ')+3).trim());
 check('les deux premières valeurs « … : … » restent les adresses',
   valeurs[0].includes('Vendôme') && valeurs[1].includes('Argenteuil'));
 check('la dernière ligne est « nom — téléphone », sans deux-points',
-  L[7].includes(' — ') && !L[7].includes(' : '));
+  L[8].includes(' — ') && !L[8].includes(' : '));
 check('le dernier montant en euros est le prix',
-  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='48,28€');
+  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 
 // Ce que voit le client
 check('on lui dit de vérifier que le message est parti',

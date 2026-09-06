@@ -5,7 +5,7 @@
    coûterait cher si elle cassait :
 
    1. LA TVA EST INCLUSE, pas ajoutée. La calculer sur le TTC donnerait
-      4,83 € au lieu de 4,39 € sur une course à 48,28 €, et le prix HT
+      7,00 € au lieu de 6,36 € sur une course à 70,00 €, et le prix HT
       annoncé serait faux.
 
    2. RIEN NE PART SANS NOM NI TÉLÉPHONE. Une demande anonyme est une
@@ -68,10 +68,11 @@ check('récapitulatif atteint', await p.locator('#ecran-recap').isVisible());
 const ht = await p.locator('#recapHT').textContent();
 const tva = await p.locator('#recapTVA').textContent();
 const tot = await p.locator('#recapTotal').textContent();
-// 48,28 TTC → HT 43,89 et TVA 4,39. La TVA est INCLUSE, pas ajoutée.
+// 70 € TTC → HT 63,64 et TVA 6,36. La TVA est INCLUSE, pas ajoutée : le
+// total arrondi à la dizaine est le prix payé, on en retire la TVA.
 check('la TVA est retirée du TTC, pas ajoutée',
-  ht.replace(/\s/g,'')==='43,89€' && tva.replace(/\s/g,'')==='4,39€', ht+' / '+tva);
-check('le total est celui de l\'écran des prix', tot.replace(/\s/g,'')==='48,28€', tot);
+  ht.replace(/\s/g,'')==='63,64€' && tva.replace(/\s/g,'')==='6,36€', ht+' / '+tva);
+check('le total est celui de l\'écran des prix', tot.replace(/\s/g,'')==='70,00€', tot);
 
 // Sans coordonnées, rien ne part.
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(300);
@@ -80,6 +81,12 @@ check('et on dit pourquoi', await p.locator('#erreurCoordonnees').isVisible());
 
 await p.fill('#clientNom','Jean Martin');
 await p.fill('#clientTel','06 12 34 56 78');
+// Le mode de règlement est obligatoire : sans lui le chauffeur partirait
+// sans savoir s'il doit emporter son terminal.
+await p.locator('#btnConfirmer').click(); await p.waitForTimeout(200);
+check('pas d\'envoi sans mode de règlement', await p.locator('#ecran-recap').isVisible());
+check('et on dit pourquoi', await p.locator('#erreurPaiement').isVisible());
+await p.locator('[data-paiement="carte"]').click();
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
@@ -108,20 +115,20 @@ const liens = await p.evaluate(()=>window.__liens);
 check('WhatsApp s\'ouvre sur ce geste', liens.length>0, liens.length+'');
 const msg = decodeURIComponent((liens[0]||'').split('text=')[1]||'');
 const lignes = msg.split('\n');
-// Huit lignes depuis que Barbaros a demandé le détail : passagers, gamme et
-// prix sur leurs propres lignes. C'est lui qui les lit, à 3 h du matin.
-check('huit lignes, pas une de plus', lignes.length===8, lignes.length+'');
+// Neuf lignes : passagers, gamme, mode de règlement et prix sur leurs
+// propres lignes. C'est Barbaros qui les lit, à 3 h du matin.
+check('neuf lignes, pas une de plus', lignes.length===9, lignes.length+'');
 check('la référence y est', lignes[0].includes(ref), lignes[0]);
 check('les deux premières lignes « … : … » sont les adresses',
   lignes[1].startsWith('Départ : ') && lignes[2].startsWith('Arrivée : '));
 check('la date est au format que relit l\'espace exploitant',
   /\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}/.test(lignes[3]), lignes[3]);
 check('le dernier montant en euros est le prix',
-  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='48,28€');
+  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 check('la dernière ligne est « nom — téléphone », sans deux-points',
-  lignes[7].includes(' — ') && !lignes[7].includes(' : '), lignes[7]);
+  lignes[8].includes(' — ') && !lignes[8].includes(' : '), lignes[8]);
 check('aucune donnée du client avant la dernière ligne',
-  !lignes.slice(0,7).join(' ').includes('Jean Martin'));
+  !lignes.slice(0,8).join(' ').includes('Jean Martin'));
 
 // Un seul bouton doré à la fois, et seulement quand il sert : ici le dépôt
 // a échoué, donc le renvoi est bien l'unique action en or. Quand le dépôt

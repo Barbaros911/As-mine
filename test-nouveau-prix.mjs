@@ -64,8 +64,13 @@ check('aucune image de voiture — ni dessin, ni emoji',
   && !/[\u{1F680}-\u{1F6FF}]/u.test(await p.locator('.veh-liste').innerText()));
 const prix = await p.locator('.veh-prix').allTextContents();
 check('un prix par gamme', prix.length===2, prix.join(' | '));
-// 24,3 km : Ela One = 5,75 + 1,75×24,3 = 48,28 €
-check('le prix suit la grille', prix[0].replace(/\s/g,'')==='48,28€', prix[0]);
+// 24,3 km : berline = 2,95 × 24,3 = 71,69 € → arrondi à la dizaine = 70 €.
+//           van     = 4,20 × 24,3 = 102,06 € → 100 €.
+// Plus de prise en charge : le prix n'est qu'un kilométrage.
+check('le prix suit la grille', prix[0].replace(/\s/g,'')==='70,00€', prix[0]);
+check('le van suit la sienne', prix[1].replace(/\s/g,'')==='100,00€', prix[1]);
+check('un prix rond, jamais de centimes',
+  prix.every(x=>/^\d+,00\s*€$/.test(x.trim())), prix.join(' | '));
 check('la mesure est affichée', (await p.locator('#resumeMesure').textContent()).includes('24,3'),
       await p.locator('#resumeMesure').textContent());
 check('pas de majoration un mardi à 10 h', await p.locator('#noteNuit').isHidden());
@@ -87,6 +92,27 @@ await p.waitForTimeout(1000);
 const noms6 = await p.locator('.veh-nom').allTextContents();
 check('à 6 passagers, il ne reste que le van',
   noms6.length===1 && noms6[0]==='Van', noms6.join(' | '));
+
+/* ---------------------------------------------------------------------
+   LE PLANCHER, ÉPROUVÉ SUR UNE VRAIE COURSE COURTE
+   Une course de 2 km coûterait 5,90 € au kilométrage seul — arrondie, 10 €.
+   Ce n'est pas un prix : le chauffeur traverse Paris pour venir la prendre,
+   et ce trajet-là n'est facturé à personne. Le plancher est donc le dernier
+   mot du calcul, et il ne s'arrondit pas : c'est déjà une dizaine.
+   On refait la course pour de vrai plutôt que de recalculer la formule dans
+   le test — un test qui réimplémente ce qu'il vérifie ne vérifie rien.
+   --------------------------------------------------------------------- */
+await p.unroute('**://router.project-osrm.org/**');
+await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
+  body:JSON.stringify({routes:[{distance:2000, duration:420}]})}));
+await p.locator('#btnRetourAccueil').click(); await p.waitForTimeout(300);
+await p.fill('#passagers','1');
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
+const court = await p.locator('.veh-prix').allTextContents();
+check('2 km en berline : le plancher de 30 €, pas 10 €',
+  court[0].replace(/\s/g,'')==='30,00€', court[0]);
+check('2 km en van : le plancher de 60 €',
+  court[1].replace(/\s/g,'')==='60,00€', court[1]);
 
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);

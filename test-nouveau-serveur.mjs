@@ -64,6 +64,7 @@ async function reserver(serveurRepond){
   await p.locator('.veh-carte').first().click();
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+  await p.locator('[data-paiement="especes"]').click();
   await p.locator('#btnConfirmer').click();
   return { p, ctx, depots };
 }
@@ -84,9 +85,9 @@ const bon = d0.corps.bon;
 check('la course entre en « attente », jamais confirmée d\'office',
   d0.corps.statut==='attente' && bon.statut==='attente', d0.corps.statut);
 check('le bon porte prix.total, que le tableau de bord affiche',
-  typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-48.28)<0.01, String(bon.prix.total));
+  typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-70)<0.01, String(bon.prix.total));
 check('la TVA est incluse, pas ajoutée',
-  Math.abs(bon.prix.ht-43.89)<0.01 && Math.abs(bon.prix.tva-4.39)<0.01,
+  Math.abs(bon.prix.ht-63.64)<0.01 && Math.abs(bon.prix.tva-6.36)<0.01,
   bon.prix.ht+' / '+bon.prix.tva);
 check('il porte course.depart et course.arrivee',
   !!bon.course.depart && !!bon.course.arrivee, bon.course.depart);
@@ -126,7 +127,8 @@ check('la course reste enregistrée sur l\'appareil',
 await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('le message de secours garde sa forme lisible par l\'exploitant',
-  msg.split('\n').length===8 && msg.includes('Départ : '), msg.split('\n').length+' lignes');
+  msg.split('\n').length===9 && msg.includes('Départ : ')
+  && msg.includes('Paiement : '), msg.split('\n').length+' lignes');
 await ctx.close();
 
 await b.close();

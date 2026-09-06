@@ -73,6 +73,7 @@ check('pendant le tunnel, c\'est « Réserver » qui est allumé',
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+await p.locator('[data-paiement="especes"]').click();
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(500);
 
 await p.locator('.onglet[data-onglet="courses"]').click();
@@ -82,7 +83,7 @@ check('la course réservée apparaît dans la liste',
 check('l\'écriteau « aucune course » a disparu', await p.locator('#videCourses').isHidden());
 const ref = await p.locator('.course-ref').textContent();
 check('elle porte sa référence', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
-check('et son prix', (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='48,28€',
+check('et son prix', (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='70,00€',
   await p.locator('.course-prix').textContent());
 check('elle est « en attente » — le site ne sait pas si elle est confirmée',
   (await p.locator('.course-etat').textContent()).toLowerCase().includes('attente')
@@ -111,7 +112,7 @@ check('la liste se réécrit en anglais',
   (await p.locator('.course-etat').textContent())==='Awaiting',
   await p.locator('.course-etat').textContent());
 check('et son prix repasse au format anglais',
-  (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='48.28€',
+  (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='70.00€',
   await p.locator('.course-prix').textContent());
 
 check('aucun débordement horizontal',
