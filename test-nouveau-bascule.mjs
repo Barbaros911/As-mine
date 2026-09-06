@@ -146,6 +146,34 @@ check('le barème d\'annulation y est, avec sa fenêtre gratuite',
   /24 heures/.test(cgv) && /30 %/.test(cgv) && /50 %/.test(cgv));
 check('plus aucun « {{m}} » non remplacé', !cgv.includes('{{m}}'));
 
+/* AUCUN TROU DANS AUCUN DOCUMENT, dans les deux langues.
+   À sa demande : « je ne veux pas de trous d'incohérence ». Un document qui
+   dit « [À compléter] » à un client ne fait pas l'effet d'un brouillon — il
+   fait l'effet d'une société qui ne sait pas qui elle est. On préfère un
+   document court et vrai à un formulaire vide.
+   Le contrôle cherche le CROCHET, pas la formule : c'est la forme que
+   prennent tous ces trous, et elle survivrait à une reformulation. */
+const trous = await p.evaluate(()=>{
+  const t = window.ELA_TEXTES, mauvais = [];
+  for (const lang of ['fr','en'])
+    for (const doc of ['cgv','mentions','privacy']) {
+      const corps = t[lang]['legal_' + doc + '_body'] || '';
+      (corps.match(/\[[^\]]*\]/g) || []).forEach(x => mauvais.push(lang+'/'+doc+' '+x));
+      if (/à compléter|to complete|to be completed/i.test(corps))
+        mauvais.push(lang+'/'+doc+' : « à compléter »');
+    }
+  return mauvais;
+});
+check('aucun « [À compléter] » nulle part, dans les deux langues',
+  trous.length===0, trous.join(' | '));
+
+/* On ne nomme pas un médiateur de la consommation tant qu'aucun n'est
+   désigné : le client écrirait à une adresse morte en croyant avoir saisi
+   un recours. La voie de réclamation, elle, doit rester écrite. */
+check('aucun médiateur inventé', !/médiateur de la consommation suivant|mediator:/i.test(cgv));
+check('mais la voie de réclamation reste écrite',
+  /contact@elatransfer\.com/.test(cgv) && /réclamation/i.test(cgv));
+
 // Un document se lit sur 390 px sans partir de côté.
 check('le document ne déborde pas en largeur',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);

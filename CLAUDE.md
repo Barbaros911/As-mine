@@ -963,13 +963,26 @@ confidentialité.
 - **Le mandat de facturation n'a pas été repris** : c'est un document
   entre Elatransfer et le chauffeur, il n'a rien à faire côté client.
 
-**CE QU'IL MANQUE, ET QUE SEUL BARBAROS PEUT DONNER** — les textes portent
-des « [À compléter] » hérités de l'ancien site, jamais remplis : raison
-sociale, forme juridique, **SIRET**, numéro de TVA, adresse du siège,
-directeur de la publication, hébergeur, et le médiateur de la
-consommation (obligatoire, L616-1 Code conso.). Tant qu'ils sont vides,
-les mentions légales ne sont pas conformes. Le lui redemander quand il
-aura tranché son statut juridique — c'est dans « Pas décidé ».
+**PLUS AUCUN TROU, ET C'EST UNE RÈGLE** (6 septembre 2026, à sa demande :
+« Enleve les mention legal non complète ou a compléter je ne veux pas de
+trous d'incohérence »). Les documents portaient 35 « [À compléter] »
+hérités de l'ancien site. Un document qui dit ça à un client ne fait pas
+l'effet d'un brouillon : il fait l'effet d'une société qui ne sait pas
+qui elle est. **Un document court et vrai vaut mieux qu'un formulaire
+vide.** Un contrôle de `test-nouveau-bascule.mjs` cherche le CROCHET dans
+les six textes — la forme survit à une reformulation, pas la formule.
+- **Les mentions légales ont été réécrites**, pas rapiécées : sur onze
+  lignes, neuf étaient des trous. Il ne reste que le vérifiable — nom
+  commercial, activité, hébergeur (GitHub, Inc.), contact, propriété
+  intellectuelle, CNIL.
+- **Aucun médiateur de la consommation n'est nommé** tant qu'aucun n'est
+  désigné : le client écrirait à une adresse morte en croyant avoir saisi
+  un recours. La voie de réclamation, elle, reste écrite.
+- **CE QUI MANQUE ENCORE, et que seul Barbaros peut donner** : raison
+  sociale, forme juridique, **SIRET**, adresse du siège, directeur de la
+  publication, et le médiateur (obligatoire, L616-1 Code conso.). Ne pas
+  remettre de champs vides en attendant — les ajouter le jour où il donne
+  les vraies valeurs, et pas avant.
 
 ## Ce qui reste à faire
 
