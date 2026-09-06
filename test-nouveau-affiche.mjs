@@ -173,6 +173,12 @@ await pc.route('**://photon.komoot.io/**', r => {
     : {geometry:{coordinates:[2.3376,48.8606]},properties:{name:"Place Vendôme",osm_key:"tourism",osm_value:"attraction",postcode:"75001",city:"Paris",countrycode:"FR"}}
   ]})});
 });
+/* OpenRouteService passe AVANT OSRM depuis qu'une clé est posée dans la
+   page. Sans ce refus, la suite dépendrait du fait qu'il soit injoignable
+   d'ici — et sur une machine reliée à Internet elle interrogerait le vrai
+   service, avec une vraie distance, et les prix vérifiés plus bas ne
+   tomberaient plus juste. On le coupe donc explicitement. */
+await pc.route('**://api.openrouteservice.org/**', r => r.abort());
 await pc.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
   body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
 await pc.route('**supabase.co/**', r => r.abort());
