@@ -906,6 +906,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       </div>
     </div>
 
+    <!-- UNE HEURE DÉJÀ PASSÉE. Écriteau séparé de « trop proche », et SANS
+         les boutons d'appel : choisir hier est une faute de saisie, pas un
+         client pressé à qui l'on peut vendre quelque chose. -->
+    <p class="refus" id="heurePassee" hidden data-t="err_heure_passee">Cette heure est déjà
+       passée. Choisissez une heure à venir.</p>
+
     <!-- Les refus du formulaire s'affichent EN HAUT, comme « hors zone » :
          posés sous le bouton ils tombent derrière le bandeau de cookies, et
          le client voit un bouton qui ne répond pas sans savoir pourquoi. -->
@@ -2175,10 +2181,39 @@ window.ELA_TEXTES = {
   }
 };
 
-  // La date du jour, pour ne pas présenter une date déjà passée.
+  /* =====================================================================
+     LA DATE DU JOUR — DANS LE FUSEAU DU CLIENT, PAS EN UTC
+     ---------------------------------------------------------------------
+     C'était « toISOString().slice(0,10) », et c'était FAUX de la pire
+     façon : silencieusement, et seulement la nuit. « toISOString » rend de
+     l'UTC. À 1 h du matin à Paris (UTC+2), il est encore 23 h la veille en
+     UTC : le site se croyait la veille, proposait la date d'hier, et
+     laissait le client la choisir. Barbaros l'a vu le 7 septembre à 1 h,
+     avec le 6 encore sélectionnable.
+     Un décalage d'un jour ne se voit jamais en journée — il n'apparaît que
+     dans les deux premières heures après minuit, exactement quand personne
+     ne teste. On compose donc la date à partir des champs LOCAUX.
+     ===================================================================== */
+  function dateLocale(j){
+    var z = function(n){ return String(n).padStart(2, "0"); };
+    return j.getFullYear() + "-" + z(j.getMonth() + 1) + "-" + z(j.getDate());
+  }
   (function(){
     var d = document.getElementById("date");
-    if(d){ var j = new Date(); d.min = d.value = j.toISOString().slice(0,10); }
+    if(!d) return;
+    d.min = d.value = dateLocale(new Date());
+    /* LA BORNE SE RAFRAÎCHIT. Elle n'était posée qu'au chargement : une
+       page laissée ouverte pendant la nuit gardait la borne de la veille et
+       rouvrait hier. Le client d'un vol de nuit garde justement l'onglet
+       ouvert des heures. */
+    var rafraichir = function(){
+      var aujourdhui = dateLocale(new Date());
+      if(d.min !== aujourdhui) d.min = aujourdhui;
+    };
+    d.addEventListener("focus", rafraichir);
+    document.addEventListener("visibilitychange", function(){
+      if(!document.hidden) rafraichir();
+    });
   })();
 
   /* Le moteur de langue. « T » est global : le reste de la page s'en sert
@@ -3105,15 +3140,21 @@ window.ELA_TEXTES = {
     return d > maintenant && d < maintenant + DELAI_MINIMUM_MIN * 60000;
   }
   var blocTropTot = document.getElementById("tropTot");
+  var blocPassee = document.getElementById("heurePassee");
   /* Le bouton a DEUX juges — la zone et le préavis — et ils ne doivent pas
      se contredire. Sans ce point de rendez-vous, le second à s'exécuter
      rallumerait le bouton que le premier vient d'éteindre. */
   function jugerBoutonPrix(){
-    boutonPrix.disabled = !!lieuHorsZone() || tropTot();
+    boutonPrix.disabled = !!lieuHorsZone() || tropTot() || heureDepassee();
   }
   window.__jugerBoutonPrix = jugerBoutonPrix;
+  /* Les deux écriteaux s'excluent : « trop proche » et « déjà passée » ne
+     peuvent pas être vrais ensemble, et en afficher deux ferait douter le
+     client de ce qu'il doit corriger. */
   function jugerDelai(){
-    blocTropTot.hidden = !tropTot();
+    var passee = heureDepassee();
+    blocPassee.hidden = !passee;
+    blocTropTot.hidden = passee || !tropTot();
     jugerBoutonPrix();
   }
   champDate.addEventListener("input", jugerDelai);
