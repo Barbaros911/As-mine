@@ -164,14 +164,23 @@ Tout cela était impossible sans lui. Rien ne l'est plus.
 
 ## Pour être prévenu sur son téléphone
 
-Le dépôt d'une course peut déclencher une notification. Deux voies :
+**C'est écrit, il reste à le déployer.** Une fonction Supabase envoie une
+alerte — Telegram et/ou e-mail — dès qu'une course est déposée, avec le
+trajet, l'heure, le véhicule et le prix. La marche à suivre complète est
+dans **`NOTIFICATION.md`** ; il faut vingt minutes et l'accès au compte
+Supabase.
 
-- **Telegram** — gratuit, instantané, une dizaine de minutes à mettre en
-  place (Database Webhooks de Supabase → l'API du bot). Le plus simple et
-  le plus fiable.
-- **WhatsApp Business Cloud API** (Meta) — la seule voie officielle pour
-  WhatsApp. Elle demande une vérification d'entreprise **et un numéro
-  dédié, qui ne peut plus servir dans l'application WhatsApp normale**.
-  C'est le point à peser avant de s'y engager.
+Deux points qui ne se devinent pas :
 
-À décider avec Barbaros ; rien n'est fait de ce côté pour l'instant.
+- **La notification ne peut pas faire échouer une réservation.** Le signal
+  part après l'écriture de la course, de façon détachée. Une panne de
+  Telegram fait perdre le bip, jamais la course.
+- **Le message ne porte ni le nom ni le téléphone du client**, ni son
+  numéro de chambre : ils ne servent pas à décider, ils sont dans le
+  tableau de bord, et les envoyer chez un tiers pour rien est exactement
+  ce que le RGPD interdit.
+
+**WhatsApp reste hors de portée** : l'API Business de Meta demande une
+vérification d'entreprise **et un numéro dédié, qui ne peut plus servir
+dans l'application WhatsApp normale**. C'est le point à peser avant de s'y
+engager.

@@ -1156,13 +1156,17 @@ les hôtels**.
    de réservation (Code des transports L3142-1) : elle doit pouvoir prouver
    que chaque chauffeur a carte professionnelle, inscription au registre
    VTC et assurance. Un carnet avec les dates d'expiration et une alerte.
-3. **L'automatisation WhatsApp reste bloquée** et il faut le redire
-   franchement : l'API WhatsApp Business de Meta exige une vérification
-   d'entreprise et un numéro dédié. Rien n'a changé. La voie praticable
-   sans documents serait un **email automatique** à chaque dépôt, via une
-   fonction Supabase Edge et un service d'envoi — cela demande une clé API
-   et un déploiement dans SON tableau de bord, donc son accord et ses
-   identifiants. Ne pas le promettre comme fait.
+3. **L'ALERTE À CHAQUE DEMANDE EST ÉCRITE, PAS ENCORE DÉPLOYÉE**
+   (septembre 2026). `supabase/functions/nouvelle-demande/` et
+   `NOTIFICATION.md`. Il ne manque que ce que Claude ne peut pas faire :
+   se connecter à SON compte Supabase et poser les jetons. Tant que ce
+   n'est pas fait, **ne pas dire que les notifications marchent**.
+   - **L'automatisation WhatsApp reste bloquée** : l'API WhatsApp Business
+     de Meta exige une vérification d'entreprise et **un numéro dédié, qui
+     ne peut plus servir dans l'application normale**. Rien n'a changé, ne
+     pas le promettre.
+   - Telegram a été retenu comme voie recommandée : gratuit, instantané,
+     avec le son. L'e-mail est le second canal, au choix.
 4. **Une langue de plus si le besoin se voit** : l'espagnol et l'arabe sont
    les deux qui apporteraient à Paris. L'arabe demande de retourner toute
    la page de droite à gauche — ce n'est pas qu'une affaire de textes.
@@ -1235,6 +1239,61 @@ rattrapant le précédent :
   tomberaient à côté. **Toute nouvelle suite qui simule OSRM doit couper
   ORS de la même façon.**
 
+## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
+
+Septembre 2026, à sa demande. Il a demandé « pourquoi tu ne me créerais
+pas un serveur qui fabrique la page, je veux pas que mon site reste en
+simple fichier ». La réponse tenue : **un serveur loué ne changerait rien
+pour ses clients**, coûterait 10–20 €/mois, tomberait parfois et
+demanderait de l'entretien — alors que Supabase, qu'il a déjà, sait
+exécuter du code sans machine à tenir. Ne pas revenir sur ce choix sans
+un besoin que les fonctions ne couvrent pas.
+
+**Ce qui est écrit** : `supabase/functions/nouvelle-demande/` (la fonction
+et son message), `test-notification.mjs` (31 contrôles, sous Node, sans
+réseau), `NOTIFICATION.md` (la marche à suivre).
+**Ce qui manque** : le déploiement, qui exige SON compte. Tant qu'il ne
+l'a pas fait, **le site se comporte exactement comme avant**.
+
+- **LA NOTIFICATION NE PEUT PAS FAIRE ÉCHOUER UNE RÉSERVATION.** Le
+  webhook part APRÈS l'écriture de la ligne, détaché. Telegram en panne,
+  jeton périmé, fonction plantée : la course est enregistrée quand même.
+  On perd le bip, jamais la course. **Ne jamais inverser cette
+  répartition** pour « garantir » l'alerte.
+- **INSERT SEUL, jamais UPDATE.** Avec UPDATE, chaque changement de statut
+  — chauffeur attribué, course réalisée — lui annoncerait une « nouvelle
+  demande » qu'il vient de traiter lui-même. Au bout de trois jours il
+  cesserait de regarder ses notifications, et c'est la seule vraie façon
+  de casser ce système. La fonction refuse tout ce qui n'est pas un INSERT
+  sur `courses` — ceinture en plus du réglage du webhook.
+- **LE MESSAGE NE PORTE NI LE NOM, NI LE TÉLÉPHONE, NI LA CHAMBRE.** Ils
+  ne servent pas à DÉCIDER ; ils sont dans le tableau de bord, à un doigt.
+  Les promener chez Telegram ou chez un service d'e-mail pour rien, c'est
+  la minimisation qui l'interdit (RGPD 5.1.c) — même règle que le lien
+  `?ok=`. Le test cherche les **valeurs**, pas les libellés : chercher le
+  mot « téléphone » passerait au vert avec le numéro écrit à côté.
+- **Le départ pris est `departPublic`**, celui SANS le numéro de chambre.
+  Le bon en porte deux versions ; prendre la mauvaise diffuse la chambre
+  d'hôtel d'un client.
+- **Le TITRE porte le trajet et l'heure.** C'est la seule ligne visible
+  sur un écran verrouillé, celle qui décide s'il se lève. Le garder sous
+  90 caractères : au-delà le téléphone coupe la fin, donc l'heure.
+- **Aucun `parse_mode` chez Telegram.** En Markdown, une adresse qui
+  contient un tiret bas ou une étoile fait rejeter TOUT le message, et la
+  notification est perdue sans que personne ne le sache.
+- **Rien de configuré rend une ERREUR, pas un succès muet.** Un « 200 OK »
+  ferait croire pendant des semaines que les alertes marchent, jusqu'au
+  premier client perdu.
+- **`message.js` est en JavaScript ordinaire, à part du `.ts`**, pour
+  qu'un test Node puisse le relire sans Deno ni réseau. Deno l'importe tel
+  quel. Le reste — jetons, appels sortants — ne s'éprouve qu'une fois
+  déployé.
+- **Les secrets vivent chez Supabase, jamais dans le dépôt.** C'est toute
+  la différence avec `CLE_ORS`, qui doit forcément partir dans la page
+  parce que c'est le navigateur qui calcule le prix. La même porte servira
+  à cacher la clé d'itinéraire, à laisser un client consulter sa course
+  par sa référence, et à tenir les comptes chauffeurs.
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
@@ -1246,7 +1305,13 @@ rattrapant le précédent :
 
 ## Tests
 
-**Seize suites, 402 contrôles**, à relancer après **toute** modification.
+**Seize suites Playwright, 402 contrôles**, à relancer après **toute**
+modification de la page.
+
+**Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
+`node test-notification.mjs` (31 contrôles) éprouve le texte de l'alerte
+de la fonction Supabase — c'est la seule partie de cette fonction qui se
+vérifie sans la déployer, et c'est celle qui compte.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
 touché seize fichiers pour zéro gain.
 
@@ -1262,6 +1327,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-bascule.mjs; do
   node $f || break
 done
+node test-notification.mjs   # ni navigateur ni réseau
 ```
 
 `test-nouveau-bascule.mjs` couvre ce qui **ne se voit pas à l'écran** et
