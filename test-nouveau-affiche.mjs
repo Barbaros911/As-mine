@@ -156,6 +156,94 @@ check('le paramètre est effacé de l\'adresse',
   !(await pc.evaluate(()=>location.search)).includes('h='),
   await pc.evaluate(()=>location.search));
 
+/* ---------------------------------------------------------------------
+   LA PROVENANCE SURVIT AU TUNNEL ENTIER
+   Sans elle, l'affiche amène des clients et personne ne sait laquelle
+   travaille : le nom de l'hôtel ne servirait qu'à remplir le champ de
+   départ, et disparaîtrait dès que le client corrige son adresse.
+   On éprouve donc le pire cas : le client CHANGE l'adresse de départ.
+   --------------------------------------------------------------------- */
+/* Deux lieux DIFFÉRENTS selon ce qui est tapé : avec un seul point, départ et
+   arrivée tombent au même endroit et le site refuse la course à juste titre. */
+await pc.unroute('**://photon.komoot.io/**');
+await pc.route('**://photon.komoot.io/**', r => {
+  const loin = r.request().url().toLowerCase().includes('argenteuil');
+  r.fulfill({contentType:'application/json',body:JSON.stringify({features:[ loin
+    ? {geometry:{coordinates:[2.2467,48.9478]},properties:{name:"Argenteuil",osm_key:"place",osm_value:"town",postcode:"95100",city:"Argenteuil",countrycode:"FR"}}
+    : {geometry:{coordinates:[2.3376,48.8606]},properties:{name:"Place Vendôme",osm_key:"tourism",osm_value:"attraction",postcode:"75001",city:"Paris",countrycode:"FR"}}
+  ]})});
+});
+await pc.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
+  body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
+await pc.route('**supabase.co/**', r => r.abort());
+await pc.addInitScript(()=>{ window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;}; });
+
+await pc.fill('#depart','');
+await pc.type('#depart','autre chose',{delay:8}); await pc.waitForTimeout(900);
+await pc.locator('#departList [role=option]').first().click();
+await pc.type('#arrivee','argenteuil',{delay:8}); await pc.waitForTimeout(900);
+await pc.locator('#arriveeList [role=option]').first().click();
+const d3 = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+await pc.fill('#date', d3); await pc.fill('#heure','10:00');
+await pc.locator('#btnVoirPrix').click(); await pc.waitForTimeout(1200);
+await pc.locator('.veh-carte').first().click();
+await pc.locator('#btnContinuer').click(); await pc.waitForTimeout(300);
+await pc.fill('#clientNom','Sophie Durand'); await pc.fill('#clientTel','06 11 22 33 44');
+await pc.locator('[data-paiement="especes"]').click();
+await pc.locator('#btnConfirmer').click(); await pc.waitForTimeout(900);
+
+const gardee = await pc.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]')[0]);
+check('la course garde l\'hôtel d\'où vient le client',
+  gardee && gardee.provenance === 'Ibis CDG', gardee ? String(gardee.provenance) : 'aucune course');
+check('MÊME quand il a changé l\'adresse de départ : c\'est tout l\'intérêt',
+  gardee && !gardee.course.depart.includes('Ibis'), gardee ? gardee.course.depart : '');
+
+// Un client venu directement n'a pas de provenance — et un champ vide se lit
+// « venue directe », pas « information perdue ».
+const ctxD = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
+const pd = await ctxD.newPage();
+pd.on('pageerror',e=>errs.push(e.message));
+await pd.goto('http://127.0.0.1:8099/',{waitUntil:'domcontentloaded'});
+await pd.waitForTimeout(400);
+check('un client venu directement n\'a aucune provenance inventée',
+  (await pd.evaluate(()=>{ try{ return sessionStorage.getItem('ela_provenance'); }catch(e){ return 'refus'; } }))===null);
+await ctxD.close();
+
+/* ---- Le tableau « D'où viennent les clients » ---- */
+const ctxR = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
+const pr = await ctxR.newPage();
+pr.on('pageerror',e=>errs.push(e.message));
+const cr = (ref, statut, prov, total) => ({
+  ref, statut, cree:new Date().toISOString(),
+  course:{ depart:"Paris", arrivee:"Roissy", date:"2026-09-20", heure:"10:00",
+           vehicule:"Berline", vehiculeCle:"berline", passagers:"1 passager", vol:"" },
+  client:{ nom:"Client", telephone:"06 00 00 00 00" },
+  provenance: prov, prix:{ total, ht:total/1.1, tva:total-total/1.1 }
+});
+await ctxR.addInitScript((j)=>{
+  localStorage.setItem('ela_bookings', JSON.stringify(j));
+  localStorage.setItem('ela_exploitant','04b72932f8ccb464');
+}, [cr("A1","realisee","Ibis CDG",70), cr("A2","realisee","Ibis CDG",100),
+    cr("A3","attente","Ibis CDG",50), cr("A4","realisee","Mercure",60),
+    cr("A5","realisee","",900)]);
+await pr.goto('http://127.0.0.1:8099/?exploitant=1',{waitUntil:'domcontentloaded'});
+await pr.waitForTimeout(600);
+await pr.locator('#btnRegistre').click(); await pr.waitForTimeout(500);
+const lignes = await pr.locator('#regProvenance .reg-ligne').allTextContents();
+check('le registre dit d\'où viennent les clients', lignes.length===2, lignes.join(' | '));
+check('l\'hôtel qui envoie le plus vient en tête, avec ses demandes ET ses réalisées',
+  lignes[0].includes('Ibis CDG') && lignes[0].includes('3 demandes')
+  && lignes[0].includes('2 réalisée'), lignes[0]);
+check('l\'argent ne compte que les réalisées : 170 €, pas 220 €',
+  lignes[0].includes('170'), lignes[0]);
+check('une course sans provenance ne crée pas de ligne vide',
+  !lignes.join(' ').includes('900'), lignes.join(' | '));
+await pr.fill('#regRecherche','mercure'); await pr.waitForTimeout(300);
+check('et on peut chercher par hôtel de provenance',
+  (await pr.locator('#regResultats .reg-ligne').count())===1,
+  String(await pr.locator('#regResultats .reg-ligne').count()));
+await ctxR.close();
+
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
 check('aucune erreur JavaScript', errs.length===0, errs.join(' | '));

@@ -241,9 +241,13 @@ let csv = ''; for await (const bloc of flux) csv += bloc;
 check('le CSV commence par un BOM : sinon Excel massacre les accents',
   csv.charCodeAt(0)===0xFEFF, 'code ' + csv.charCodeAt(0));
 check('il est séparé par des points-virgules, pas des virgules',
-  csv.split('\n')[0].split(';').length===14, csv.split('\n')[0].slice(0,60));
+  csv.split('\n')[0].split(';').length===15, csv.split('\n')[0].slice(0,60));
 check('il porte les colonnes qui servent au comptable',
   /Référence;Date;Heure;État/.test(csv) && /Prix TTC;Prix HT;TVA/.test(csv));
+// « Vient de » suit la course jusque dans l'export : c'est là qu'on relit
+// quelle affiche a rapporté, sur une année entière.
+check('et la provenance, pour savoir quelle affiche a rapporté',
+  /;Vient de;/.test(csv));
 check('et une ligne par course du registre',
   csv.trim().split(/\r?\n/).length === 1 + (await p.evaluate(()=>
     JSON.parse(localStorage.getItem('ela_bookings')).length)),

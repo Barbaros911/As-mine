@@ -1078,6 +1078,24 @@ scanne.
   tranche. Une adresse posée d'office enverrait le chauffeur au mauvais
   Ibis.
 
+**LA PROVENANCE EST GARDÉE SUR LA COURSE** (`bon.provenance`), et c'est ce
+qui rend l'affiche utile. Sans elle, l'affiche amène des clients et
+personne ne sait laquelle travaille : le nom de l'hôtel ne sert qu'à
+remplir le champ de départ, et il disparaît dès que le client corrige son
+adresse. Un test éprouve exactement ce pire cas — le client CHANGE son
+départ, et la provenance reste.
+- Elle vit en **`sessionStorage`**, pas dans une variable (le client
+  recharge, revient en arrière, laisse l'onglet ouvert la nuit) et pas en
+  `localStorage` : elle vaut pour CETTE visite, pas pour toutes les
+  réservations qu'il fera ensuite depuis son téléphone.
+- Le registre porte **« D'où viennent les clients »** : les **demandes**
+  reçues (ce que l'affiche a produit) ET l'argent des seules **réalisées**
+  — deux chiffres pour deux questions. Une course sans provenance ne crée
+  pas de ligne : un champ vide se lit « venue directe », pas « information
+  perdue ».
+- La colonne **« Vient de »** est dans l'export CSV, et la recherche du
+  registre cherche aussi par hôtel.
+
 ## Les documents légaux
 
 Trois documents, en français et en anglais, accessibles depuis **Contact**
@@ -1162,7 +1180,7 @@ les hôtels**.
 
 ## Tests
 
-**Quinze suites, 362 contrôles**, à relancer après **toute** modification.
+**Quinze suites, 371 contrôles**, à relancer après **toute** modification.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
 touché quinze fichiers pour zéro gain.
 
