@@ -1458,6 +1458,14 @@ de vide à droite**.
   il vérifie qu'ils **remplissent la barre** et ont la même largeur. Un
   test qui aurait compté trois onglets serait passé au vert sur la barre
   cassée.
+- **LE PICTOGRAMME DE « MES COURSES » EST UN BON DE RÉSERVATION**, plus une
+  voiture (septembre 2026 : « la voiture est très moche »). Le dessin
+  précédent n'avait pas de **roues** — un profil de voiture sans roues
+  n'est qu'une arche posée sur deux moignons. Trois pistes lui ont été
+  montrées ; il a choisi le bon, et c'est défendable : « Mes courses »
+  contient des bons, pas des véhicules, et un papier de 21 px reste net là
+  où une voiture de 21 px devient une tache. **Cinquième refus d'une
+  voiture dessinée** — ne plus en proposer.
 
 ## Ses consignes de travail, à tenir pour acquises
 
@@ -1470,7 +1478,7 @@ de vide à droite**.
 
 ## Tests
 
-**Dix-sept suites Playwright, 429 contrôles**, à relancer après **toute**
+**Dix-sept suites Playwright, 430 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
