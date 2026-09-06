@@ -419,6 +419,66 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
    langage. Le contraste mesuré est de 5,4:1 — la couleur ne porte pas le
    sens à elle seule, le mot est écrit à côté. */
 .course-etat.ok{color:#14683F;background:#DCF2E7;}
+
+/* ---------- LE REGISTRE ---------- */
+/* Trois chiffres de front sur 390 px : chacun a 110 px, de quoi tenir
+   « 1 240 € » sans se couper. Au-delà, c'est le chiffre qui rétrécit, pas
+   la colonne — un montant tronqué n'est plus un montant. */
+.indicateurs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.indic{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.indic-chiffre{font-size:21px;font-weight:800;letter-spacing:-.02em;
+  overflow-wrap:anywhere;}
+.indic-nom{font-size:11px;color:var(--gris);}
+/* La semaine précédente en rappel, plus petite : elle sert de repère, pas
+   de résultat. */
+.indic-avant{margin-top:3px;font-size:10.5px;color:var(--gris);}
+.periodes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.periode{min-height:38px;border:1px solid var(--filet);border-radius:11px;
+  background:var(--carte);color:var(--gris);font:inherit;font-size:12.5px;
+  font-weight:700;cursor:pointer;}
+.periode.actif{border-color:var(--or);background:var(--or-clair);color:var(--or-encre);}
+/* Une ligne de tableau : un libellé qui peut être long à gauche, un chiffre
+   qui ne se coupe jamais à droite. */
+.reg-ligne{display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;padding:8px 0;font-size:13px;}
+.reg-ligne + .reg-ligne{border-top:1px solid var(--filet);}
+.reg-ligne .reg-nom{min-width:0;overflow-wrap:anywhere;}
+.reg-ligne .reg-val{flex:0 0 auto;font-weight:700;text-align:right;}
+.reg-sous{display:block;font-size:11px;color:var(--gris);}
+.reg-vide{padding:6px 0;font-size:12px;color:var(--gris);}
+
+/* ---------- L'AFFICHE D'HÔTEL ---------- */
+.affiche{margin:12px 0;padding:22px 18px;border:1px solid var(--filet);
+  border-radius:16px;background:#fff;text-align:center;}
+.affiche-marque{margin:0;font-size:20px;font-weight:800;letter-spacing:.03em;
+  color:var(--noir);}
+.affiche-marque i{font-style:normal;color:var(--or);}
+.affiche-titre{margin:4px 0 16px;font-size:14px;font-weight:700;color:var(--gris);}
+.affiche-qr{display:flex;justify-content:center;}
+.affiche-qr svg{display:block;}
+.affiche-hotel{margin:16px 0 0;font-size:17px;font-weight:800;overflow-wrap:anywhere;}
+.affiche-mode{margin:8px 0 0;font-size:12px;color:var(--gris);}
+.affiche-tel{margin:12px 0 0;font-size:16px;font-weight:800;letter-spacing:.02em;}
+/* À L'IMPRESSION, SEULE L'AFFICHE SORT. Sans cette règle, le tableau de bord
+   et les demandes en attente — noms et téléphones de clients — partiraient
+   sur le papier posé au comptoir d'un hôtel. */
+@media print{
+  /* « visibility » et non « display » : elle s'hérite, donc on éteint TOUT
+     puis on rallume l'affiche et son contenu — ses ancêtres restent éteints
+     sans qu'on ait à les nommer un par un. Avec « display:none » sur les
+     enfants de body, l'affiche disparaîtrait avec eux. */
+  body.exploitant *{visibility:hidden!important;}
+  body.exploitant .affiche, body.exploitant .affiche *{visibility:visible!important;}
+  body.exploitant .affiche{position:fixed;inset:0;
+    margin:0;border:0;border-radius:0;padding:16mm 12mm;
+    display:flex;flex-direction:column;justify-content:center;}
+  body.exploitant .affiche-qr svg{width:70mm;height:70mm;}
+  body.exploitant .affiche-hotel{font-size:22pt;}
+  body.exploitant .affiche-marque{font-size:26pt;}
+  body.exploitant .affiche-titre{font-size:13pt;}
+  body.exploitant .affiche-tel{font-size:18pt;}
+  body.exploitant .affiche-mode{font-size:11pt;}
+}
 .vide{margin:26px 20px 0;padding:26px 18px;text-align:center;
   background:var(--carte);border:1px dashed var(--filet);border-radius:16px;}
 .vide p{margin:0 0 14px;font-size:13.5px;color:var(--gris);}
@@ -1332,6 +1392,64 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <button class="lien-sortie" type="button" id="btnQuitter">Quitter</button>
     </div>
 
+    <!-- COLLER UNE DEMANDE, EN HAUT ET EN PREMIER.
+         Rien ne voyage tout seul d'un téléphone à l'autre : quand un client
+         écrit sur WhatsApp plutôt que de passer par le site, sa demande
+         n'existe nulle part. Le presse-papiers est le transport. Barbaros
+         copie le message, appuie ici, et la course entre en attente sans
+         qu'il retape une adresse à 3 h du matin. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Une demande reçue sur WhatsApp</h2>
+      <button class="bouton" type="button" id="btnCollerDemande">
+        <span>Coller une demande reçue</span>
+      </button>
+      <!-- LE REPLI N'EST PAS UN LUXE : Safari et Firefox refusent souvent
+           la lecture du presse-papiers, et sans ce champ le bouton ne
+           ferait rien du tout, sans un mot. -->
+      <div id="collerRepli" hidden>
+        <label class="champ" for="collerTexte">
+          <span class="champ-corps">
+            <span class="champ-titre">Collez le message ici</span>
+            <textarea id="collerTexte" rows="5" placeholder="Demande de réservation — ELA-…"></textarea>
+          </span>
+        </label>
+        <button class="bouton-fantome" type="button" id="btnLireColle">Lire ce message</button>
+      </div>
+      <p class="bloc-note" id="collerEtat" hidden></p>
+    </div>
+
+    <button class="bouton-fantome" id="btnRegistre" type="button"
+            style="width:calc(100% - 40px);margin:14px 20px 0">Registre et résultats</button>
+
+    <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
+         montre l'affiche. Le client scanne, le site s'ouvre avec l'hôtel déjà
+         en adresse de départ, et il n'a plus qu'à dire où il va. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Affiche pour un hôtel</h2>
+      <label class="champ" for="hotelNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom de l'hôtel</span>
+          <input id="hotelNom" type="text" autocomplete="off" placeholder="Ibis CDG">
+        </span>
+      </label>
+      <div id="blocAffiche" hidden>
+        <!-- « affiche » est la SEULE chose qui s'imprime : tout le reste est
+             masqué par la feuille de style d'impression. Sans ça, le
+             tableau de bord et les demandes en attente partiraient sur le
+             papier posé au comptoir d'un hôtel. -->
+        <div class="affiche" id="affiche">
+          <p class="affiche-marque">ELA<i>TRANSFER</i></p>
+          <p class="affiche-titre">Votre chauffeur privé</p>
+          <div class="affiche-qr" id="afficheQr"></div>
+          <p class="affiche-hotel" id="afficheNom">Votre hôtel</p>
+          <p class="affiche-mode">Scannez · Réservez en 2 minutes · Prix ferme</p>
+          <p class="affiche-tel">+33 7 59 31 24 33</p>
+        </div>
+        <p class="bloc-note" id="afficheLien"></p>
+        <button class="bouton" type="button" id="btnImprimer"><span>Imprimer l'affiche</span></button>
+      </div>
+    </div>
+
     <!-- LE SERVEUR EST CE QUI REND LE TABLEAU DE BORD UTILE SUR N'IMPORTE
          QUEL APPAREIL. Sans connexion, on ne voit que les courses de CE
          téléphone — et changer de téléphone les perdrait. On le dit, plutôt
@@ -1387,6 +1505,95 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
     <div id="listeBord"></div>
     <div class="vide" id="videBord" hidden>
       <p>Aucune course pour l'instant.</p>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       LE REGISTRE
+       ---------------------------------------------------------------------
+       LES CHIFFRES NE COMPTENT QUE LES COURSES RÉALISÉES. Une course
+       confirmée n'est pas une course faite : la compter dans le chiffre
+       d'affaires ferait prendre des promesses pour de l'argent encaissé, et
+       le premier désistement rendrait le total faux sans qu'on le voie.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-registre">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourRegistre" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Registre</h1>
+    </div>
+
+    <!-- LA SEMAINE EN COURS, AVEC LA PRÉCÉDENTE EN RAPPEL. Un chiffre seul ne
+         dit rien : 12 courses, c'est beaucoup ou peu ? À côté de « 9 la
+         semaine dernière », il devient une information. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Cette semaine</h2>
+      <div class="indicateurs">
+        <div class="indic">
+          <span class="indic-chiffre" id="regCourses">0</span>
+          <span class="indic-nom">courses</span>
+          <span class="indic-avant" id="regCoursesAvant">—</span>
+        </div>
+        <div class="indic">
+          <span class="indic-chiffre" id="regCA">0 €</span>
+          <span class="indic-nom">encaissé</span>
+          <span class="indic-avant" id="regCAAvant">—</span>
+        </div>
+        <div class="indic">
+          <span class="indic-chiffre" id="regMoyen">0 €</span>
+          <span class="indic-nom">par course</span>
+          <span class="indic-avant" id="regMoyenAvant">—</span>
+        </div>
+      </div>
+      <p class="bloc-note">Seules les courses marquées « réalisée » sont comptées.</p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Résultat</h2>
+      <div class="periodes">
+        <button class="periode actif" type="button" data-periode="semaine">Semaine</button>
+        <button class="periode" type="button" data-periode="mois">Mois</button>
+        <button class="periode" type="button" data-periode="annee">Année</button>
+      </div>
+      <div id="regResultat"></div>
+    </div>
+
+    <!-- QUI ROULE, ET COMBIEN IL A RAPPORTÉ. C'est le tableau qui sert à
+         décider à qui confier la prochaine course. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Chauffeurs</h2>
+      <div id="regChauffeurs"></div>
+      <p class="bloc-note" id="regChauffeursVide" hidden>Aucune course réalisée avec un chauffeur nommé.</p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Rechercher</h2>
+      <label class="champ" for="regRecherche">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom, téléphone, adresse, référence</span>
+          <input id="regRecherche" type="search" autocomplete="off" placeholder="Martin, Roissy, ELA-26-09…">
+        </span>
+      </label>
+      <div id="regResultats"></div>
+    </div>
+
+    <!-- LE REGISTRE NE VIT QUE DANS CE NAVIGATEUR tant que le serveur n'est
+         pas connecté. Sauvegarder chaque semaine n'est pas une précaution
+         d'informaticien : c'est la seule copie du travail de Barbaros.
+         LA RESTAURATION AJOUTE, elle n'écrase jamais — une course d'ici peut
+         avoir avancé depuis la sauvegarde. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Sauvegarde</h2>
+      <button class="bouton" type="button" id="btnSauver"><span>Télécharger une sauvegarde</span></button>
+      <button class="bouton-fantome" type="button" id="btnCSV">Exporter en CSV (comptable)</button>
+      <label class="bouton-fantome" for="fichierRestaurer" style="display:block">Restaurer une sauvegarde</label>
+      <input id="fichierRestaurer" type="file" accept=".json,application/json" hidden>
+      <p class="bloc-note" id="regSauvEtat">Sauvegardez chaque semaine tant que le serveur n'est pas connecté :
+         le registre ne vit que dans ce navigateur.</p>
     </div>
   </section>
 
@@ -3377,6 +3584,186 @@ window.ELA_TEXTES = {
     return liste[i];
   }
 
+/* =====================================================================
+   COLLER UNE DEMANDE REÇUE SUR WHATSAPP
+   ---------------------------------------------------------------------
+   IL NE DEVINE RIEN AUX LIBELLÉS, IL LIT LA PLACE DES CHOSES. Un client
+   qui écrit lui-même n'écrira pas « Départ : » — et le message du site
+   pourrait changer de langue demain. On lit donc la STRUCTURE : la
+   référence en tête, une date en JJ/MM/AAAA HH:MM, les deux premières
+   valeurs « … : … » pour les adresses, le DERNIER montant en euros pour
+   le prix, et la dernière ligne « nom — téléphone ».
+   CHANGER LA FORME DU MESSAGE CLIENT OBLIGE À CHANGER CE LECTEUR, et
+   inversement. Les deux se lisent ensemble.
+   UNE DEMANDE VENUE D'UN CLIENT ENTRE TOUJOURS EN « ATTENTE » : il
+   attend une réponse, et la ranger comme déjà confirmée serait mentir
+   sur l'état réel de sa course.
+   ===================================================================== */
+  function lireDemandeCollee(texte){
+    if(!texte || !texte.trim()) return null;
+    var lignes = texte.split("\n").map(function(l){ return l.trim(); })
+                      .filter(function(l){ return l; });
+    var d = { ref:"", depart:"", arrivee:"", date:"", heure:"", vehicule:"",
+              paiement:"", paiementNom:"", passagers:"", prix:0, nom:"", tel:"" };
+
+    var ref = texte.match(/ELA-\d{2}-\d{2}-\d{4}/);
+    d.ref = ref ? ref[0] : "";
+
+    var dt = texte.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+    if(dt){
+      d.date  = dt[3] + "-" + dt[2] + "-" + dt[1];
+      d.heure = (dt[4].length === 1 ? "0" + dt[4] : dt[4]) + ":" + dt[5];
+    }
+
+    /* Les deux premières valeurs « … : … » sont les adresses. On écarte la
+       ligne de la date : elle porte elle aussi des deux-points, mais ceux
+       de l'heure. */
+    var valeurs = [];
+    lignes.forEach(function(l){
+      var i = l.indexOf(" : ");
+      if(i < 0) return;
+      var v = l.slice(i + 3).trim();
+      if(/^\d{2}\/\d{2}\/\d{4}/.test(v)) return;
+      valeurs.push(v);
+    });
+    d.depart  = valeurs[0] || "";
+    d.arrivee = valeurs[1] || "";
+
+    /* Le DERNIER montant en euros est le prix de la course : c'est pour ça
+       que « Paiement » est posé AVANT « Prix » dans le message. */
+    var montants = texte.match(/(\d[\d  ]*(?:[.,]\d{1,2})?)\s*€/g);
+    if(montants){
+      var brut = montants[montants.length - 1]
+                   .replace(/[^\d.,]/g,"").replace(",",".");
+      d.prix = parseFloat(brut) || 0;
+    }
+
+    /* La dernière ligne qui porte un tiret cadratin et pas de deux-points :
+       « Jean Martin — 06 12 34 56 78 ». */
+    for(var i = lignes.length - 1; i >= 0; i--){
+      var m = lignes[i].match(/^(.+?)\s+[—–-]\s+(\+?[\d ().]{6,})$/);
+      if(m && !/\s:\s/.test(lignes[i])){ d.nom = m[1].trim(); d.tel = m[2].trim(); break; }
+    }
+
+    /* Le véhicule est reconnu par son NOM, pas par sa position : c'est la
+       seule donnée du message qui a une liste fermée de valeurs possibles.
+       Les anciens noms de gammes restent reconnus — Barbaros a des mois de
+       messages qui les portent, et un renommage ne doit pas rendre son
+       historique illisible. */
+    var ANCIENS = { "ela one":"berline", "berline":"berline", "sedan":"berline",
+                    "ela first":"berline", "berline vip":"berline",
+                    "van":"van", "van premium":"van", "van vip":"van", "minivan":"van" };
+    var bas = texte.toLowerCase();
+    Object.keys(ANCIENS).forEach(function(nom){
+      if(!d.vehicule && bas.indexOf(nom) >= 0) d.vehicule = ANCIENS[nom];
+    });
+    var gamme = GAMMES.filter(function(g){ return g.cle === d.vehicule; })[0] || GAMMES[0];
+    d.vehiculeCle = gamme.cle;
+    d.vehicule    = gamme.nom;
+
+    if(/carte/i.test(bas)){ d.paiement = "carte";   d.paiementNom = "Carte bancaire"; }
+    else if(/esp[eè]ce/i.test(bas)){ d.paiement = "especes"; d.paiementNom = "Espèces"; }
+
+    var pax = lignes.filter(function(l){ return /passager/i.test(l); })[0];
+    if(pax){ var j = pax.indexOf(" : "); d.passagers = j < 0 ? pax : pax.slice(j+3).trim(); }
+
+    /* Sans référence, sans adresses OU sans date, ce n'est pas une demande :
+       mieux vaut le dire que de créer une course à moitié vide que Barbaros
+       découvrirait au moment de l'assurer. */
+    if(!d.depart || !d.arrivee || !d.date) return null;
+    return d;
+  }
+
+  /* La référence du client est reprise telle quelle : c'est elle qu'il a sur
+     son bon, et lui en donner une autre rendrait les deux impossibles à
+     rapprocher. Sans référence — un client qui a écrit de lui-même — on en
+     fabrique une. */
+  function courseDepuisDemande(d){
+    return {
+      ref: d.ref || referenceSuivante(),
+      statut: "attente",
+      cree: new Date().toISOString(),
+      course: { type:"Trajet simple", depart:d.depart, arrivee:d.arrivee,
+                departPublic:d.depart, arriveePublic:d.arrivee,
+                date:d.date, heure:d.heure, terminal:null, vol:"",
+                vehicule:d.vehicule, vehiculeCle:d.vehiculeCle,
+                passagers:d.passagers || "1 passager", distanceKm:0, estimee:true },
+      client: { nom:d.nom, telephone:d.tel },
+      paiement: d.paiement, paiementNom: d.paiementNom,
+      prix: { total:d.prix, ht:d.prix/1.10, tva:d.prix - d.prix/1.10, majoration:false },
+      dateMsg: d.date ? d.date.split("-").reverse().join("/") + " " + d.heure : ""
+    };
+  }
+
+  var collerEtat = document.getElementById("collerEtat");
+  function direColler(texte, bon){
+    collerEtat.hidden = false;
+    collerEtat.textContent = texte;
+    collerEtat.style.color = bon ? "#15694A" : "#B4231F";
+  }
+  function traiterColle(texte){
+    var d = lireDemandeCollee(texte);
+    if(!d){
+      direColler("Message non reconnu. Il faut au moins les deux adresses et la date.", false);
+      document.getElementById("collerRepli").hidden = false;
+      return;
+    }
+    var liste = registre();
+    for(var i=0;i<liste.length;i++) if(liste[i].ref === d.ref){
+      direColler("Cette demande est déjà dans le tableau de bord (" + d.ref + ").", false);
+      return;
+    }
+    var c = courseDepuisDemande(d);
+    liste.unshift(c);
+    ecrireRegistre(liste);
+    nuage.pousser(c);
+    dessinerBord();
+    /* Le champ se VIDE mais reste ouvert : les demandes arrivent souvent par
+       trois ou quatre d'affilée, et refermer obligerait à rappuyer sur le
+       bouton entre chacune. */
+    document.getElementById("collerTexte").value = "";
+    direColler("Demande ajoutée en attente : " + c.ref + " · " + c.client.nom, true);
+  }
+  document.getElementById("btnCollerDemande").addEventListener("click", function(){
+    /* La lecture du presse-papiers doit partir DU GESTE de l'utilisateur —
+       et Safari comme Firefox la refusent souvent quand même. Le repli n'est
+       pas un luxe : sans lui, le bouton ne ferait rien, sans un mot. */
+    var ouvrirRepli = function(texte){
+      document.getElementById("collerRepli").hidden = false;
+      direColler(texte, false);
+    };
+    if(!(navigator.clipboard && navigator.clipboard.readText)){
+      ouvrirRepli("Collez le message ci-dessous.");
+      return;
+    }
+    /* UNE MINUTERIE, PARCE QU'UN REFUS N'EST PAS TOUJOURS UNE ERREUR.
+       Certains navigateurs rejettent la lecture — le « catch » suffit. Mais
+       d'autres laissent la promesse EN ATTENTE, indéfiniment, pendant qu'ils
+       affichent ou non une demande d'autorisation. Sans cette minuterie, le
+       bouton ne ferait alors rien du tout, sans un mot, et Barbaros
+       appuierait trois fois avant de renoncer. */
+    var repondu = false;
+    var minuterie = setTimeout(function(){
+      if(repondu) return;
+      repondu = true;
+      ouvrirRepli("Votre navigateur ne donne pas accès au presse-papiers. Collez le message ci-dessous.");
+    }, 1200);
+    navigator.clipboard.readText()
+      .then(function(t){
+        if(repondu) return;
+        repondu = true; clearTimeout(minuterie);
+        traiterColle(t);
+      })
+      .catch(function(){
+        if(repondu) return;
+        repondu = true; clearTimeout(minuterie);
+        ouvrirRepli("Votre navigateur ne donne pas accès au presse-papiers. Collez le message ci-dessous.");
+      });
+  });
+  document.getElementById("btnLireColle").addEventListener("click", function(){
+    traiterColle(document.getElementById("collerTexte").value);
+  });
+
   var bonBord = null;
   function ouvrirBonBord(ref){
     var liste = registre();
@@ -3512,6 +3899,520 @@ window.ELA_TEXTES = {
   });
 
   /* ---- Le verrou ---- */
+/* =====================================================================
+   LE REGISTRE
+   ---------------------------------------------------------------------
+   LES CHIFFRES NE COMPTENT QUE LES COURSES « REALISEE ». Une course
+   confirmée n'est pas une course faite : la compter ferait prendre des
+   promesses pour de l'argent encaissé, et le premier désistement rendrait
+   le total faux sans qu'on le voie.
+   LA DATE RETENUE EST CELLE DE LA COURSE, pas celle de la saisie : une
+   course d'hier notée ce matin appartient à hier, sinon les semaines se
+   décalent au fil des oublis.
+   ===================================================================== */
+  function realisees(){
+    return registre().filter(function(c){ return c.statut === "realisee"; });
+  }
+  /* Le lundi comme premier jour : c'est la semaine française, et c'est
+     celle que Barbaros a en tête quand il dit « cette semaine ». */
+  function lundiDe(d){
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var j = (x.getDay() + 6) % 7;
+    x.setDate(x.getDate() - j);
+    return x;
+  }
+  function dateCourse(c){
+    var d = new Date((c.course && c.course.date) || (c.cree || "").slice(0,10));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function bilan(liste){
+    var total = liste.reduce(function(s,c){ return s + ((c.prix && c.prix.total) || 0); }, 0);
+    return { n: liste.length, total: total, moyen: liste.length ? total/liste.length : 0 };
+  }
+  /* Sans décimales : un chiffre d'affaires se lit d'un coup d'œil, et
+     « 1 240 € » se retient mieux que « 1 240,00 € ». Le détail d'une course
+     garde ses centimes, lui. */
+  function eurosRond(n){
+    return Math.round(n).toLocaleString("fr-FR") + " €";
+  }
+
+  function dessinerRegistre(){
+    var faites = realisees();
+    var maintenant = new Date();
+    var l0 = lundiDe(maintenant);
+    var l1 = new Date(l0); l1.setDate(l1.getDate() - 7);
+
+    var cette = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l0; });
+    var avant = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l1 && d < l0; });
+    var a = bilan(cette), b = bilan(avant);
+    document.getElementById("regCourses").textContent = a.n;
+    document.getElementById("regCA").textContent      = eurosRond(a.total);
+    document.getElementById("regMoyen").textContent   = eurosRond(a.moyen);
+    document.getElementById("regCoursesAvant").textContent = b.n + " la semaine dernière";
+    document.getElementById("regCAAvant").textContent      = eurosRond(b.total) + " la semaine dernière";
+    document.getElementById("regMoyenAvant").textContent   = eurosRond(b.moyen) + " la semaine dernière";
+
+    /* Le résultat par période : on regroupe sur la CLÉ de la période plutôt
+       que de boucler sur les dates — un mois sans course n'apparaît pas, et
+       c'est voulu : une ligne à zéro n'apprend rien. */
+    var cles = {};
+    faites.forEach(function(c){
+      var d = dateCourse(c); if(!d) return;
+      var k;
+      if(periodeReg === "annee") k = String(d.getFullYear());
+      else if(periodeReg === "mois") k = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+      else { var l = lundiDe(d);
+             k = l.getFullYear() + "-" + String(l.getMonth()+1).padStart(2,"0") + "-" + String(l.getDate()).padStart(2,"0"); }
+      (cles[k] = cles[k] || []).push(c);
+    });
+    var lignes = Object.keys(cles).sort().reverse().slice(0, 12).map(function(k){
+      var v = bilan(cles[k]);
+      var nom = k;
+      if(periodeReg === "semaine"){
+        var p = k.split("-");
+        nom = "Semaine du " + p[2] + "/" + p[1] + "/" + p[0];
+      } else if(periodeReg === "mois"){
+        var q = k.split("-");
+        nom = ["janvier","février","mars","avril","mai","juin","juillet","août",
+               "septembre","octobre","novembre","décembre"][+q[1]-1] + " " + q[0];
+      }
+      return { nom:nom, sous:v.n + (v.n > 1 ? " courses" : " course"), val:eurosRond(v.total) };
+    });
+    poser("regResultat", lignes, "Aucune course réalisée pour l'instant.");
+
+    /* Les chauffeurs, du plus rapporteur au moins : c'est le tableau qui
+       sert à décider à qui confier la prochaine course. */
+    var parCh = {};
+    faites.forEach(function(c){
+      var nom = (c.chauffeur && c.chauffeur.nom || "").trim();
+      if(!nom) return;
+      (parCh[nom] = parCh[nom] || []).push(c);
+    });
+    var chauff = Object.keys(parCh).map(function(nom){
+      var v = bilan(parCh[nom]);
+      return { nom:nom, sous:v.n + (v.n > 1 ? " courses" : " course")
+                          + " · " + eurosRond(v.moyen) + " en moyenne",
+               val:eurosRond(v.total), _t:v.total };
+    }).sort(function(x,y){ return y._t - x._t; });
+    document.getElementById("regChauffeursVide").hidden = chauff.length > 0;
+    poser("regChauffeurs", chauff, "");
+    chercherRegistre();
+  }
+  function poser(id, lignes, vide){
+    var el = document.getElementById(id);
+    el.innerHTML = "";
+    if(!lignes.length){
+      if(vide){ var p = document.createElement("p"); p.className = "reg-vide";
+                p.textContent = vide; el.appendChild(p); }
+      return;
+    }
+    lignes.forEach(function(l){
+      var d = document.createElement("div");
+      d.className = "reg-ligne";
+      var g = document.createElement("span"); g.className = "reg-nom";
+      g.textContent = l.nom;
+      if(l.sous){ var s = document.createElement("span"); s.className = "reg-sous";
+                  s.textContent = l.sous; g.appendChild(s); }
+      var v = document.createElement("span"); v.className = "reg-val";
+      v.textContent = l.val;
+      d.appendChild(g); d.appendChild(v);
+      el.appendChild(d);
+    });
+  }
+
+  /* LA RECHERCHE PORTE SUR TOUT LE REGISTRE, pas seulement sur les courses
+     réalisées : quand un client rappelle, c'est justement sa course à venir
+     qu'on cherche. */
+  function chercherRegistre(){
+    var q = document.getElementById("regRecherche").value.trim().toLowerCase();
+    if(!q){ poser("regResultats", [], ""); return; }
+    var trouves = registre().filter(function(c){
+      return [c.ref, c.client && c.client.nom, c.client && c.client.telephone,
+              c.course && c.course.depart, c.course && c.course.arrivee,
+              c.chauffeur && c.chauffeur.nom]
+             .join(" ").toLowerCase().indexOf(q) >= 0;
+    }).slice(0, 20);
+    poser("regResultats", trouves.map(function(c){
+      return { nom: c.ref + " · " + ((c.client && c.client.nom) || "—"),
+               sous: (c.course.depart + " → " + c.course.arrivee) + " · " + libelleEtat(c.statut || "attente"),
+               val: euros((c.prix && c.prix.total) || 0) };
+    }), "Aucune course ne correspond.");
+  }
+
+  var periodeReg = "semaine";
+  document.querySelectorAll(".periode").forEach(function(b){
+    b.addEventListener("click", function(){
+      periodeReg = b.dataset.periode;
+      document.querySelectorAll(".periode").forEach(function(x){
+        x.classList.toggle("actif", x === b);
+      });
+      dessinerRegistre();
+    });
+  });
+  document.getElementById("regRecherche").addEventListener("input", chercherRegistre);
+  document.getElementById("btnRegistre").addEventListener("click", function(){
+    dessinerRegistre();
+    ecran("ecran-registre");
+  });
+  document.getElementById("btnRetourRegistre")
+          .addEventListener("click", function(){ ecran("ecran-bord"); });
+
+/* =====================================================================
+   LA SAUVEGARDE
+   ---------------------------------------------------------------------
+   Le registre ne vit que dans ce navigateur tant que le serveur n'est pas
+   connecté. Ce n'est pas une précaution d'informaticien : c'est la seule
+   copie du travail de Barbaros, et vider les données du site l'effacerait
+   sans rien demander.
+   LA RESTAURATION AJOUTE, ELLE N'ÉCRASE JAMAIS — une course d'ici peut
+   avoir avancé depuis la sauvegarde, et remplacer ferait reculer le
+   travail au lieu de le rendre.
+   ===================================================================== */
+  function telecharger(nom, contenu, type){
+    var a = document.createElement("a");
+    var url = URL.createObjectURL(new Blob([contenu], { type:type }));
+    a.href = url; a.download = nom;
+    document.body.appendChild(a); a.click(); a.remove();
+    /* On libère l'adresse APRÈS le clic : la révoquer tout de suite annule
+       le téléchargement sur certains navigateurs. */
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+  function horodatage(){
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0")
+           + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  document.getElementById("btnSauver").addEventListener("click", function(){
+    telecharger("elatransfer-registre-" + horodatage() + ".json",
+                JSON.stringify(registre(), null, 1), "application/json");
+    document.getElementById("regSauvEtat").textContent =
+      "Sauvegarde téléchargée. Gardez-la ailleurs que sur ce téléphone.";
+  });
+  document.getElementById("btnCSV").addEventListener("click", function(){
+    var colonnes = ["Référence","Date","Heure","État","Client","Téléphone",
+                    "Départ","Arrivée","Véhicule","Paiement","Chauffeur","Prix TTC","Prix HT","TVA"];
+    /* Le point-virgule et non la virgule : Excel en français lit le CSV avec
+       le séparateur de sa locale, et une virgule y met tout dans une seule
+       colonne. Le BOM en tête pour qu'il ne massacre pas les accents. */
+    var lignes = [colonnes.join(";")];
+    registre().forEach(function(c){
+      var champ = function(v){
+        var s = String(v === undefined || v === null ? "" : v);
+        return /[";\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+      };
+      lignes.push([c.ref, c.course.date, c.course.heure, libelleEtat(c.statut||"attente"),
+                   (c.client&&c.client.nom)||"", (c.client&&c.client.telephone)||"",
+                   c.course.depart, c.course.arrivee, c.course.vehicule,
+                   c.paiementNom||"", (c.chauffeur&&c.chauffeur.nom)||"",
+                   ((c.prix&&c.prix.total)||0).toFixed(2).replace(".",","),
+                   ((c.prix&&c.prix.ht)||0).toFixed(2).replace(".",","),
+                   ((c.prix&&c.prix.tva)||0).toFixed(2).replace(".",",")].map(champ).join(";"));
+    });
+    telecharger("elatransfer-courses-" + horodatage() + ".csv",
+                "﻿" + lignes.join("\r\n"), "text/csv;charset=utf-8");
+  });
+  document.getElementById("fichierRestaurer").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    var lecteur = new FileReader();
+    lecteur.onload = function(){
+      var etat = document.getElementById("regSauvEtat");
+      try{
+        var brut = JSON.parse(lecteur.result);
+        if(!Array.isArray(brut)) throw new Error("format");
+        var n = fusionner(brut);
+        dessinerRegistre();
+        etat.textContent = n + (n > 1 ? " courses ajoutées." : " course ajoutée.")
+          + " Celles déjà présentes n'ont pas été touchées.";
+      }catch(err){
+        etat.textContent = "Ce fichier n'est pas une sauvegarde du registre.";
+      }
+      e.target.value = "";
+    };
+    lecteur.readAsText(f);
+  });
+
+/* =====================================================================
+   L'AFFICHE DES HÔTELS — l'encodeur QR
+   ---------------------------------------------------------------------
+   ÉCRIT ICI, ET PAS PRIS AILLEURS. Un service extérieur qui fabrique
+   l'image (api.qrserver.com et ses semblables) ajoute une dépendance
+   réseau à une affiche qu'on imprime une fois, et envoie l'adresse à un
+   tiers qui n'a pas à la connaître. Deux cents lignes valent mieux qu'un
+   serveur qu'on ne maîtrise pas.
+   MODE OCTET, CORRECTION M, VERSIONS 1 À 6 — jusqu'à 106 caractères, très
+   au-delà d'une adresse comme « elatransfer.com/?h=ibis-cdg ». S'arrêter
+   à la version 6 évite les blocs d'information de version (obligatoires à
+   partir de la 7) et garde un seul motif d'alignement.
+   ÉPROUVÉ PAR UN DÉCODEUR INDÉPENDANT, pas par relecture maison : un
+   encodeur relu par son propre auteur reproduit ses propres erreurs. Le
+   premier jet passait tous mes contrôles et n'était lisible par AUCUN
+   téléphone — l'information de format était écrite bit à l'envers.
+   ===================================================================== */
+  function qrMatrice(texte){
+  /* ---- Corps fini GF(256), polynôme 0x11D : celui de la norme QR ---- */
+  var EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (function(){ var x = 1;
+    for(var i=0;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x & 0x100) x ^= 0x11D; }
+    for(i=255;i<512;i++) EXP[i] = EXP[i-255];
+  })();
+  function mul(a,b){ return (a && b) ? EXP[LOG[a]+LOG[b]] : 0; }
+  function polyGen(n){
+    var g = [1];
+    for(var i=0;i<n;i++){
+      var ng = new Array(g.length+1).fill(0);
+      for(var j=0;j<g.length;j++){ ng[j] ^= g[j]; ng[j+1] ^= mul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
+  }
+  function ecc(data, n){
+    var g = polyGen(n);
+    var r = data.concat(new Array(n).fill(0));
+    for(var i=0;i<data.length;i++){
+      var c = r[i]; if(!c) continue;
+      for(var j=0;j<g.length;j++) r[i+j] ^= mul(g[j], c);
+    }
+    return r.slice(data.length);
+  }
+
+  /* ---- Tables, niveau M, versions 1 à 6 ----
+     [octets utiles, codets EC par bloc, blocs du groupe 1, données par bloc g1,
+      blocs du groupe 2, données par bloc g2] */
+  var V = {
+    1:[14,10,1,16,0,0], 2:[26,16,1,28,0,0], 3:[42,26,1,44,0,0],
+    4:[62,18,2,32,0,0], 5:[84,24,2,43,0,0], 6:[106,16,4,27,0,0]
+  };
+  var octets = [];
+  for(var i=0;i<texte.length;i++){
+    var c = texte.charCodeAt(i);
+    if(c < 128) octets.push(c);
+    else { var e = new TextEncoder().encode(texte[i]); for(var k=0;k<e.length;k++) octets.push(e[k]); }
+  }
+  var ver = 0;
+  for(var v=1;v<=6;v++) if(octets.length <= V[v][0]){ ver = v; break; }
+  if(!ver) throw new Error("texte trop long pour un QR de version 6");
+  var t = V[ver], ecPar = t[1], b1 = t[2], d1 = t[3], b2 = t[4], d2 = t[5];
+  var totalData = b1*d1 + b2*d2;
+
+  /* ---- Le flux de bits : mode octet (0100), longueur sur 8 bits, données ---- */
+  var bits = [];
+  function pousser(val, n){ for(var i=n-1;i>=0;i--) bits.push((val >> i) & 1); }
+  pousser(4, 4);
+  pousser(octets.length, 8);
+  octets.forEach(function(o){ pousser(o, 8); });
+  /* Terminateur, puis alignement sur l'octet, puis remplissage alterné :
+     c'est la norme, et un lecteur strict refuse un flux mal terminé. */
+  for(var i=0;i<4 && bits.length < totalData*8;i++) bits.push(0);
+  while(bits.length % 8) bits.push(0);
+  var mots = [];
+  for(var i=0;i<bits.length;i+=8){
+    var o = 0; for(var j=0;j<8;j++) o = (o<<1) | bits[i+j];
+    mots.push(o);
+  }
+  var bourre = [0xEC, 0x11], n = 0;
+  while(mots.length < totalData) mots.push(bourre[n++ % 2]);
+
+  /* ---- Découpe en blocs, puis entrelacement ---- */
+  var blocs = [], eccs = [], pos = 0;
+  for(var i=0;i<b1;i++){ var d = mots.slice(pos, pos+d1); pos += d1; blocs.push(d); eccs.push(ecc(d, ecPar)); }
+  for(var i=0;i<b2;i++){ var d = mots.slice(pos, pos+d2); pos += d2; blocs.push(d); eccs.push(ecc(d, ecPar)); }
+  var final = [];
+  var maxD = Math.max(d1, d2);
+  for(var i=0;i<maxD;i++) blocs.forEach(function(b){ if(i < b.length) final.push(b[i]); });
+  for(var i=0;i<ecPar;i++) eccs.forEach(function(e){ final.push(e[i]); });
+
+  /* ---- La grille ---- */
+  var n2 = ver*4 + 17;
+  var m = [], reserve = [];
+  for(var i=0;i<n2;i++){ m.push(new Array(n2).fill(0)); reserve.push(new Array(n2).fill(0)); }
+  function poserMotif(r, c){
+    for(var i=-1;i<=7;i++) for(var j=-1;j<=7;j++){
+      var y = r+i, x = c+j;
+      if(y<0||x<0||y>=n2||x>=n2) continue;
+      var noir = (i>=0&&i<=6&&(j===0||j===6)) || (j>=0&&j<=6&&(i===0||i===6))
+              || (i>=2&&i<=4&&j>=2&&j<=4);
+      m[y][x] = noir ? 1 : 0; reserve[y][x] = 1;
+    }
+  }
+  poserMotif(0,0); poserMotif(0,n2-7); poserMotif(n2-7,0);
+  /* Motif d'alignement : un seul, du centre-bas-droit, pour les versions 2 à 6. */
+  if(ver >= 2){
+    var a = [6, ver*4 + 10][1];
+    for(var i=-2;i<=2;i++) for(var j=-2;j<=2;j++){
+      m[a+i][a+j] = (Math.abs(i)===2 || Math.abs(j)===2 || (i===0&&j===0)) ? 1 : 0;
+      reserve[a+i][a+j] = 1;
+    }
+  }
+  for(var i=8;i<n2-8;i++){
+    m[6][i] = (i % 2 === 0) ? 1 : 0; reserve[6][i] = 1;
+    m[i][6] = (i % 2 === 0) ? 1 : 0; reserve[i][6] = 1;
+  }
+  m[n2-8][8] = 1; reserve[n2-8][8] = 1;              /* module noir obligatoire */
+  /* Les deux copies de l'information de format. ATTENTION AUX BORNES : la
+     seconde copie occupe la COLONNE 8 sur les lignes n-8..n-1, mais la LIGNE 8
+     seulement sur les colonnes n-7..n-1. Réserver (8, n-8) en plus retire un
+     module aux données et décale tout le flux — le QR se dessine, et aucun
+     lecteur ne le décode. */
+  for(var i=0;i<9;i++){ reserve[8][i]=1; reserve[i][8]=1; }
+  for(var i=n2-8;i<n2;i++) reserve[8][i]=1;
+  for(var i=n2-7;i<n2;i++) reserve[i][8]=1;
+
+  /* ---- Les données, en zigzag depuis le coin bas-droit ---- */
+  function placer(masque){
+    var g = m.map(function(l){ return l.slice(); });
+    var bit = 0, haut = true;
+    for(var col = n2-1; col > 0; col -= 2){
+      if(col === 6) col--;                       /* la colonne de timing se saute */
+      for(var k=0;k<n2;k++){
+        var row = haut ? (n2-1-k) : k;
+        for(var d=0;d<2;d++){
+          var c = col - d;
+          if(reserve[row][c]) continue;
+          var v = 0;
+          if(bit < final.length*8) v = (final[bit >> 3] >> (7 - (bit & 7))) & 1;
+          bit++;
+          if(masqueVaut(masque, row, c)) v ^= 1;
+          g[row][c] = v;
+        }
+      }
+      haut = !haut;
+    }
+    return g;
+  }
+  function masqueVaut(k, i, j){
+    switch(k){
+      case 0: return (i+j) % 2 === 0;
+      case 1: return i % 2 === 0;
+      case 2: return j % 3 === 0;
+      case 3: return (i+j) % 3 === 0;
+      case 4: return (Math.floor(i/2) + Math.floor(j/3)) % 2 === 0;
+      case 5: return ((i*j) % 2) + ((i*j) % 3) === 0;
+      case 6: return (((i*j) % 2) + ((i*j) % 3)) % 2 === 0;
+      default: return (((i+j) % 2) + ((i*j) % 3)) % 2 === 0;
+    }
+  }
+  /* L'information de format : 5 bits (niveau M = 00, puis le masque), BCH(15,5),
+     et le masque 0x5412 de la norme. Elle est écrite DEUX FOIS, aux deux coins :
+     un QR abîmé sur un coin reste lisible par l'autre. */
+  function poserFormat(g, masque){
+    var v = (0 << 3) | masque;
+    var d = v << 10;
+    for(var i=4;i>=0;i--) if(d & (1 << (i+10))) d ^= 0x537 << i;
+    var f = ((v << 10) | d) ^ 0x5412;
+    for(var i=0;i<15;i++){
+      /* LE BIT DE POIDS FORT EN PREMIER. Écrit dans l'autre sens, le mot de
+         format se lit à l'envers : le QR se dessine parfaitement, mes propres
+         contrôles le relisent — et aucun vrai lecteur ne le décode, parce que
+         le niveau de correction annoncé est faux. Vérifié contre un
+         générateur de référence, module par module. */
+      var b = (f >> (14 - i)) & 1;
+      if(i < 6) g[8][i] = b;
+      else if(i < 8) g[8][i+1] = b;
+      else if(i === 8) g[7][8] = b;
+      else g[14-i][8] = b;
+      /* Sept modules dans la colonne, HUIT dans la ligne — et pas huit
+         partout : (n-8, 8) est le module noir obligatoire, pas du format.
+         Se tromper d'un cran ici dessine un QR parfait qu'aucun lecteur ne
+         décode, parce que le niveau de correction lu est faux. */
+      if(i < 7) g[n2-1-i][8] = b;
+      else g[8][n2-15+i] = b;
+    }
+    g[n2-8][8] = 1;
+  }
+  /* Le masque est CHOISI, pas fixé : on garde celui qui donne la plus faible
+     pénalité, comme la norme le demande. Un mauvais masque crée des motifs qui
+     ressemblent aux repères de position et gêne les lecteurs. */
+  function penalite(g){
+    var p = 0, i, j, k;
+    for(i=0;i<n2;i++) for(var s=0;s<2;s++){
+      var run = 1;
+      for(j=1;j<n2;j++){
+        var a = s ? g[j][i] : g[i][j], b = s ? g[j-1][i] : g[i][j-1];
+        if(a === b) run++; else { if(run >= 5) p += 3 + (run-5); run = 1; }
+      }
+      if(run >= 5) p += 3 + (run-5);
+    }
+    for(i=0;i<n2-1;i++) for(j=0;j<n2-1;j++){
+      var v = g[i][j];
+      if(v === g[i][j+1] && v === g[i+1][j] && v === g[i+1][j+1]) p += 3;
+    }
+    var motif = [1,0,1,1,1,0,1];
+    for(i=0;i<n2;i++) for(j=0;j<n2-6;j++) for(var s=0;s<2;s++){
+      var bon = true;
+      for(k=0;k<7;k++){ var a = s ? g[j+k][i] : g[i][j+k]; if(a !== motif[k]){ bon = false; break; } }
+      if(!bon) continue;
+      var avant = true, apres = true;
+      for(k=1;k<=4;k++){
+        var y1 = s ? j-k : i, x1 = s ? i : j-k;
+        var y2 = s ? j+6+k : i, x2 = s ? i : j+6+k;
+        if(y1>=0 && x1>=0 && (s?g[y1][x1]:g[y1][x1])) avant = false;
+        if(y2<n2 && x2<n2 && (s?g[y2][x2]:g[y2][x2])) apres = false;
+      }
+      if(avant || apres) p += 40;
+    }
+    var noirs = 0;
+    for(i=0;i<n2;i++) for(j=0;j<n2;j++) if(g[i][j]) noirs++;
+    p += Math.floor(Math.abs(noirs*100/(n2*n2) - 50) / 5) * 10;
+    return p;
+  }
+  var meilleur = null, scoreMin = Infinity;
+  for(var k=0;k<8;k++){
+    var g = placer(k);
+    poserFormat(g, k);
+    var s = penalite(g);
+    if(s < scoreMin){ scoreMin = s; meilleur = g; }
+  }
+  return meilleur;
+}
+
+/* =====================================================================
+   L'AFFICHE À POSER SUR UN COMPTOIR D'HÔTEL
+   ---------------------------------------------------------------------
+   Le concierge n'appelle pas : il montre l'affiche. Le client scanne, le
+   site s'ouvre avec l'hôtel DÉJÀ en adresse de départ, et il n'a plus
+   qu'à dire où il va. C'est la piste commerciale à coût zéro, testable
+   en une semaine.
+   L'HÔTEL VOYAGE DANS L'ADRESSE, pas dans un compte : « ?h=ibis-cdg ».
+   Rien à créer côté serveur, et une affiche imprimée reste valable même
+   si tout change derrière.
+   ===================================================================== */
+  /* LE NOM VOYAGE EN CLAIR, pas en identifiant. \u00ab ?h=Ibis%20CDG \u00bb plut\u00f4t que
+     \u00ab ?h=ibis-cdg \u00bb : \u00e0 l'arriv\u00e9e, on le pose tel quel dans le champ de d\u00e9part
+     et la recherche d'adresse retrouve l'h\u00f4tel. Un identifiant obligerait \u00e0
+     tenir une table de correspondance \u2014 donc \u00e0 republier le site \u00e0 chaque
+     nouvel h\u00f4tel, et \u00e0 r\u00e9imprimer les affiches le jour o\u00f9 la table change. */
+  function lienHotel(nom){
+    return location.origin + location.pathname + "?h=" + encodeURIComponent(nom.slice(0,60));
+  }
+  /* Le QR est dessiné en SVG et non en canvas : une affiche s'IMPRIME, et
+     un canvas de 200 px sort en bouillie sur du papier. Le SVG reste net à
+     n'importe quelle taille. */
+  function qrSvg(texte, cote){
+    var m = qrMatrice(texte), n = m.length, marge = 4, total = n + marge*2;
+    var d = "";
+    for(var i=0;i<n;i++) for(var j=0;j<n;j++)
+      if(m[i][j]) d += "M" + (j+marge) + " " + (i+marge) + "h1v1h-1z";
+    /* Le « xmlns » n'est pas décoratif : sans lui le SVG s'affiche bien dans
+       la page, mais il ne peut plus être chargé comme IMAGE ni collé
+       ailleurs — donc ni éprouvé, ni réutilisé dans un document. */
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + total
+         + '" width="' + cote + '" height="' + cote
+         + '" shape-rendering="crispEdges" role="img" aria-label="Code QR du site">'
+         + '<rect width="' + total + '" height="' + total + '" fill="#fff"/>'
+         + '<path d="' + d + '" fill="#0B0B0D"/></svg>';
+  }
+  function dessinerAffiche(){
+    var nom = document.getElementById("hotelNom").value.trim();
+    var lien = lienHotel(nom || "");
+    document.getElementById("afficheNom").textContent = nom || "Votre hôtel";
+    document.getElementById("afficheQr").innerHTML = qrSvg(lien, 200);
+    document.getElementById("afficheLien").textContent = lien;
+    document.getElementById("blocAffiche").hidden = false;
+  }
+  document.getElementById("hotelNom").addEventListener("input", dessinerAffiche);
+  document.getElementById("btnImprimer").addEventListener("click", function(){ window.print(); });
+
   function ouvrirEspace(){
     document.body.classList.add("exploitant");
     jugerNuage();
@@ -3545,7 +4446,30 @@ window.ELA_TEXTES = {
     /* Le lien de confirmation ne s'ouvre que du côté CLIENT : c'est à lui
        qu'on l'a envoyé. En mode exploitant, il ne doit pas venir recouvrir
        le tableau de bord. */
-    lireConfirmation();
+    if(!lireConfirmation()) lireHotel();
+  }
+
+/* =====================================================================
+   ARRIVÉE PAR L'AFFICHE D'UN HÔTEL
+   ---------------------------------------------------------------------
+   Le client a scanné le QR posé au comptoir. On pose le nom de l'hôtel
+   dans le champ de départ et on OUVRE la liste d'adresses : il choisit
+   lui-même la bonne. On ne remplit PAS l'adresse à sa place — nous ne la
+   connaissons pas, et une adresse inventée serait le pire des départs :
+   le chauffeur irait au mauvais endroit.
+   ===================================================================== */
+  function lireHotel(){
+    var nom = new URLSearchParams(location.search).get("h");
+    if(!nom) return false;
+    nom = nom.trim().slice(0, 60);
+    if(!nom) return false;
+    champDepart.value = nom;
+    /* On déclenche la recherche comme si le client venait de taper : c'est
+       le même chemin, donc le même comportement, y compris le repli hors
+       ligne. */
+    champDepart.dispatchEvent(new Event("input", { bubbles:true }));
+    try{ history.replaceState(null, "", location.pathname); }catch(e){}
+    return true;
   }
 
   /* Basculer de langue réécrit aussi ce qui a déjà été calculé : sans ça, un
