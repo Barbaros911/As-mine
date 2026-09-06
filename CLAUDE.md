@@ -120,12 +120,19 @@ vaut aussi pour ce qui est « visible par un client » : c'est justement ce
 qui mérite d'être vu avant, pas après. Ne jamais lire l'urgence d'un lien à
 envoyer comme une autorisation de fusionner.
 
-**En cours, à ne PAS pousser sans son feu vert explicite** (août 2026) : la
-branche `claude/as-mine-booking-app-yqvxoi` porte des commits d'avance —
-accueil en bandeau marine, écran des véhicules refait, quatre gammes. Il
-veut les intégrer plus tard et a demandé qu'on **le lui rappelle souvent** :
-le dire à chaque réponse tant que ce n'est pas publié, sans pousser pour
-autant.
+**LA BRANCHE `claude/as-mine-booking-app-yqvxoi` EST UN VESTIGE — NE PAS LA
+FUSIONNER** (septembre 2026). Cette note disait qu'elle portait des commits
+d'avance à intégrer plus tard, et qu'il fallait le rappeler à chaque
+réponse. C'était vrai en août ; ça ne l'est plus, et la note a été répétée
+des dizaines de fois pour rien. Le travail qu'elle portait — accueil en
+bandeau marine, écran des véhicules, quatre gammes, retrait des packs — est
+**déjà dans `main`**, arrivé par d'autres pull requests.
+`git log main..branche` montre encore deux commits et trompe : c'est
+`git diff main branche` qu'il faut lire. La branche a divergé **avant** tout
+le nouveau site, et la fusionner **supprimerait** `nouveau.html`, les quatre
+photos, les onze suites de tests et les corrections de `construire.sh`.
+Vérifier avant de croire une note de ce fichier : ici, `git show
+main:index.html | grep -c TOURS` rend 0 — les packs ne sont plus là.
 
 - Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
   jamais directement sur `main`.
@@ -854,18 +861,110 @@ bord chauffeur avec commission due et **blocage automatique au-delà d'un
 seuil**, dates d'expiration des papiers avec alerte, avis clients, export
 comptable, gestion des désistements et des clients absents.
 
+---
+
+# LE NOUVEAU SITE — `nouveau.html`
+
+**On ne travaille plus que sur celui-là** (septembre 2026, à sa demande :
+« met le site en ligne celui la, maintenan on travail que sur celui la »).
+`index.html` est l'ancien site, toujours servi à la racine ; `nouveau.html`
+est publié à `.../As-mine/nouveau.html`, en `noindex` tant que les deux
+pages coexistent. Le jour de la bascule : `nouveau.html` prend la place
+d'`index.html` et le `noindex` part.
+
+**IL NE GARDE RIEN DE L'ANCIEN.** Sa consigne, deux fois : « Je ne veux pas
+que le nouveau site ai lapaaraence de lancien, ne garde rien de lancien
+écriture mise etc », puis « Tu ne garde rien de lancien ». Ne pas recopier
+une règle de l'ancien site sans qu'il la redemande — c'est une réécriture,
+pas une refonte.
+
+## La grille du nouveau site (septembre 2026)
+
+| Gamme | Au kilomètre | Minimum |
+|---|---|---|
+| Berline (4 places) | 2,95 € | 30 € |
+| Van (7 places) | 4,20 € | 60 € |
+
+- **Plus de prise en charge.** Le prix n'est qu'un kilométrage : avec un
+  plancher et un arrondi à la dizaine, un forfait de départ ne se voyait
+  plus dans le résultat.
+- **L'ARRONDI EST LE SIEN, PAS CELUI DE L'ÉCOLE** : à la dizaine, et le
+  **5 pile DESCEND**. 45 → 40, 46 → 50. Le code compare le reste à 5 avec
+  un `>`, jamais un `>=` — sur un 5 pile, l'arrondi ordinaire ferait payer
+  10 € de plus que l'annonce faite au téléphone. Et il passe par une
+  division entière, pas un modulo : `102,06 % 10` rend
+  `2,0600000000000023` et afficherait `100,000000001 €`.
+- **L'ordre est fixé** : kilométrage → majoration de nuit → arrondi →
+  plancher. Arrondir avant de majorer redonne un prix qui n'est plus une
+  dizaine ; majorer après le plancher ferait payer 36 € une course
+  annoncée à 30 €. Le plancher a le dernier mot.
+- Le reste inchangé : +20 % nuit et week-end, TVA 10 % incluse, prix ferme,
+  zone de 90 km autour de Paris.
+- Barbaros écrit souvent **« van » là où il veut dire « berline »** — trois
+  fois de suite sur cette grille. Ne pas deviner sur un prix : demander.
+
+## Ce qui est propre au nouveau site
+
+- **Deux gammes seulement**, Berline et Van. Les clés `berline` et `van` ne
+  changent jamais : elles sont dans l'historique.
+- **Deux langues**, français et anglais, et l'anglais est le repli — un
+  Allemand ou un Japonais lit plus probablement l'anglais. Ajouter une
+  langue veut dire écrire ~110 phrases à la main ; pas de traduction
+  automatique sur un site où le prix engage.
+- **Le mode de règlement est demandé au client** (espèces ou carte), rien
+  n'est présélectionné, et le choix est obligatoire. **On demande, on
+  n'explique pas** : la phrase qui justifiait la question par le terminal
+  du chauffeur a été retirée à sa demande. La réponse part dans le message
+  WhatsApp, sur le bon et sur la fiche de l'exploitant.
+- **Le message WhatsApp fait neuf lignes**, et sa STRUCTURE compte autant
+  que son texte : les deux premières valeurs « … : … » sont les adresses,
+  le **dernier montant en euros est le prix** — d'où la ligne « Paiement »
+  placée AVANT « Prix » — et la dernière ligne est « nom — téléphone ».
+- **Pas de documents légaux pour l'instant**, à sa demande. La LCEN les
+  impose : le nouveau site ne peut pas prendre la racine sans eux.
+- Référence `ELA-AA-MM-NNNN`, jamais `ASM` : ASM venait du nom du dépôt,
+  pas de la marque.
+
+## Ses consignes de travail, à tenir pour acquises
+
+- « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
+  même chose » · « Arrete de me parler de l'heure ».
+- **Répondre en français.** Il l'a demandé après une réponse en anglais.
+- Ne rien faire qu'il n'ait pas demandé : « ne fait pas des chose que je ne
+  t'ai pas demander ».
+- **Montrer une capture avant de pousser**, et attendre son accord.
+
 ## Tests
 
-Neuf suites Playwright à la racine, à relancer après **toute**
-modification :
+**Deux jeux de suites, un par site.** Celles de l'ANCIEN site
+(`test.mjs` … `test9.mjs`) et celles du NOUVEAU (`test-nouveau*.mjs`,
+onze suites, 213 contrôles). Relancer celles du site qu'on touche —
+et les deux si on touche `construire.sh` ou `sw.js`.
 
 ```bash
 npx http-server -p 8099 -s .
+
+# L'ancien site (index.html) — neuf suites
 node test.mjs && node test2.mjs && node test3.mjs \
   && node test4.mjs && node test5.mjs \
   && node test6.mjs && node test7.mjs && node test8.mjs \
   && node test9.mjs
+
+# Le nouveau site (nouveau.html) — onze suites
+for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
+         test-nouveau-langues.mjs test-nouveau-courses.mjs \
+         test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
+         test-nouveau-exploitant.mjs test-nouveau-whatsapp.mjs \
+         test-nouveau-services.mjs test-nouveau-paiement.mjs; do
+  node $f || break
+done
 ```
+
+**UN TEST QUI RÉIMPLÉMENTE CE QU'IL VÉRIFIE NE VÉRIFIE RIEN.** Écrit après
+avoir failli garder un contrôle d'arrondi qui recalculait la formule dans
+le test au lieu d'appeler la page : il serait passé au vert même avec le
+calcul cassé dans `nouveau.html`. Faire la vraie course — pour le plancher,
+une distance de 2 km rendue par le faux OSRM, et on lit le prix à l'écran.
 
 Playwright n'est pas installé dans le dépôt : lier le paquet global une
 fois par session avec
