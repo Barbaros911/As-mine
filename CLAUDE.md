@@ -430,7 +430,11 @@ référence à la main pour reconstruire une course qu'on n'a pas ne servait à
 personne, et depuis « Coller une demande » la course est toujours là. Ne pas
 le réintroduire.
 
-**IL N'Y A PLUS DE DÉLAI DE 3 H** (septembre 2026, à la demande de Barbaros).
+**IL N'Y A PLUS DE DÉLAI DE 3 H — MAIS IL Y A UN PRÉAVIS DE 20 MINUTES**
+(voir la section dédiée en fin de fichier). Les deux ne sont pas la même
+chose et ne doivent pas être confondus : l'un était un AVERTISSEMENT sur
+des heures entières, l'autre est un REFUS de vingt minutes.
+(septembre 2026, à la demande de Barbaros).
 `DELAI_RESERVATION_H`, `courseImminente()`, le champ `imminente` des courses,
 l'encadré de l'accueil, l'avertissement rouge de l'écran de confirmation et le
 rappel du bon ont tous été retirés, ainsi que huit clés de traduction × six
@@ -1467,6 +1471,44 @@ de vide à droite**.
   où une voiture de 21 px devient une tache. **Cinquième refus d'une
   voiture dessinée** — ne plus en proposer.
 
+## LE PRÉAVIS DE 20 MINUTES
+
+Septembre 2026, à sa demande : « lorsque le client réserve il faut qu'il ne
+puisse pas réserver avant 20 min ». Il faut trouver un chauffeur, le
+prévenir, et qu'il roule jusqu'au client. Accepter un départ dans cinq
+minutes, c'est promettre ce qu'on ne peut pas tenir — et chez Elatransfer
+l'heure est ferme comme le prix.
+
+- **CE N'EST PAS LE RETOUR DU DÉLAI DE 3 HEURES**, retiré en septembre 2026
+  à sa demande. Celui-là était un **avertissement** sur des heures
+  entières, qui décourageait des courses parfaitement plaçables ; celui-ci
+  est un **refus** de vingt minutes, le temps matériel d'envoyer une
+  voiture. Ne pas rétablir l'ancien en croyant compléter celui-ci.
+- **`DELAI_MINIMUM_MIN` vaut 20**, et la phrase de l'écriteau annonce le
+  même nombre — dans les deux langues. **Un test lit la constante DANS la
+  page et la cherche dans les deux phrases** : c'est le vrai piège de ce
+  genre de règle, la constante bouge, la phrase reste, et le site annonce
+  vingt minutes en en exigeant quarante.
+- **ON NE RENVOIE PAS LE CLIENT SANS RIEN.** L'écriteau porte appel et
+  WhatsApp, exactement comme « hors zone » : quelqu'un qui veut une voiture
+  tout de suite est un client, pas une erreur de saisie, et Barbaros place
+  ces courses-là de vive voix.
+- **UNE HEURE DÉJÀ PASSÉE GARDE SON PROPRE MESSAGE** (`err_heure_passee`).
+  « Trop proche » ne veut rien dire pour hier — d'où le `> maintenant`
+  dans `tropTot()`.
+- **LE CONTRÔLE EST REFAIT À LA SOUMISSION.** Entre l'instant où le client
+  choisit son heure et celui où il appuie, le temps passe : une page
+  laissée ouverte devient trop proche toute seule. Sans ce second contrôle,
+  elle passerait.
+- **LE BOUTON A DEUX JUGES — la zone et le préavis — et ils se parlent.**
+  `jugerBoutonPrix()` est le point de rendez-vous ; sans lui, le second à
+  s'exécuter rallumerait le bouton que le premier vient d'éteindre.
+  `jugerZone()` n'éteint donc plus le bouton elle-même. **Tout nouveau
+  juge du bouton doit passer par là.**
+- Le test éprouve **les deux côtés de la frontière** — 10 min refusé,
+  25 et 40 min acceptés. Un test qui ne vérifierait que le refus laisserait
+  passer un code qui refuse tout.
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
@@ -1478,7 +1520,7 @@ de vide à droite**.
 
 ## Tests
 
-**Dix-sept suites Playwright, 430 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 447 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
@@ -1486,7 +1528,7 @@ modification de la page.
 de la fonction Supabase — c'est la seule partie de cette fonction qui se
 vérifie sans la déployer, et c'est celle qui compte.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché dix-sept fichiers pour zéro gain.
+touché dix-huit fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1497,7 +1539,8 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-services.mjs test-nouveau-paiement.mjs \
          test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
-         test-nouveau-geoloc.mjs test-nouveau-bascule.mjs; do
+         test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
+         test-nouveau-bascule.mjs; do
   node $f || break
 done
 node test-notification.mjs   # ni navigateur ni réseau
