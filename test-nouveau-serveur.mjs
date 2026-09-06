@@ -52,7 +52,7 @@ async function reserver(serveurRepond){
     else await route.abort();
   });
   await ctx.addInitScript(()=>{ window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;}; });
-  await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+  await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
   await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
   await p.locator('#departList [role=option]').first().click();

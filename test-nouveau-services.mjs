@@ -19,7 +19,7 @@ const b = await chromium.launch();
 const p = await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'networkidle'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'networkidle'});
 await p.waitForTimeout(500);
 const noms = await p.locator('.service b').allTextContents();
 check('trois cartes de services', noms.length===3, noms.join(' | '));

@@ -56,7 +56,7 @@ await ctx.addInitScript(()=>{
     return f.apply(this, arguments);
   };
 });
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
 await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
 await p.locator('#departList [role=option]').first().click();

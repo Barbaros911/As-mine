@@ -31,12 +31,16 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v17";
-/* La feuille de style fait partie du strict nécessaire : sans elle la page
-   s'ouvre hors ligne mais illisible, ce qui est pire que rien. Les photos
-   n'y sont pas — elles font un mégaoctet et n'empêchent personne de
-   réserver ; elles se mettront en cache d'elles-mêmes à la visite. */
-const SHELL = ["./", "./index.html", "./styles.css",
+const CACHE = "elatransfer-v18";
+/* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
+   seul fichier absent et le service worker ne s'installe pas du tout, sans
+   le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
+   bascule : le nouveau site porte ses styles dans la page, et le jour où
+   l'ancien fichier disparaîtra du dépôt il aurait cassé l'installation chez
+   tous les clients qui ont posé l'application sur leur écran d'accueil.
+   Les photos n'y sont pas non plus — elles font un mégaoctet et n'empêchent
+   personne de réserver ; elles se mettent en cache d'elles-mêmes. */
+const SHELL = ["./", "./index.html",
                "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg",
                "./icon-180.png"];
 

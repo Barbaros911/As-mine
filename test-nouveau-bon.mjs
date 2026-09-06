@@ -52,7 +52,7 @@ await ctx.addInitScript(() => {
   window.open = (url) => { window.__liens.push(url); return null; };
 });
 
-await p.goto('http://127.0.0.1:8099/nouveau.html',{waitUntil:'domcontentloaded'});
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
 await p.type('#depart','vendome',{delay:12}); await p.waitForTimeout(850);
 await p.locator('#departList [role=option]').first().click();
