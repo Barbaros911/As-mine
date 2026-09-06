@@ -1004,6 +1004,80 @@ bouton « Appeler le chauffeur » se posait EN TRAVERS de la ligne
 « Heure ». `display:block` corrige, et un test **mesure les rectangles**
 plutôt que de relire le CSS.
 
+## Le registre et « Coller une demande »
+
+**COLLER UNE DEMANDE**, en haut du tableau de bord. Quand un client écrit
+sur WhatsApp plutôt que de passer par le site, sa demande n'existe nulle
+part : le presse-papiers est le transport.
+- `lireDemandeCollee()` **ne devine rien aux libellés, il lit la PLACE des
+  choses** : la référence en tête, une date en JJ/MM/AAAA HH:MM, les deux
+  premières valeurs « … : … » pour les adresses, le **dernier** montant en
+  euros pour le prix, la dernière ligne « nom — téléphone ». Un test le
+  vérifie avec un message aux libellés anglais.
+  **Changer la forme du message client oblige à changer ce lecteur**, et
+  inversement — les deux se lisent ensemble.
+- **La course entre TOUJOURS en `attente`**, jamais confirmée d'office.
+- **Une minuterie de 1,2 s ouvre le champ de repli** : certains navigateurs
+  rejettent la lecture du presse-papiers (le `catch` suffit), d'autres
+  laissent la promesse **en attente indéfiniment** — sans minuterie, le
+  bouton ne fait alors rien du tout, sans un mot.
+- Le champ **reste ouvert** après un ajout, vidé : les demandes arrivent
+  par trois ou quatre d'affilée.
+
+**LE REGISTRE** (bouton « Registre et résultats ») : la semaine en cours
+avec la précédente en rappel, le résultat par semaine / mois / année, le
+tableau des chauffeurs, la recherche libre, la sauvegarde JSON, l'export
+CSV et la restauration.
+- **Les chiffres ne comptent QUE les courses `realisee`.** Une course
+  confirmée n'est pas une course faite : la compter ferait prendre des
+  promesses pour de l'argent encaissé.
+- **La date retenue est celle de la COURSE**, pas de la saisie, sinon les
+  semaines se décalent au fil des oublis.
+- **La recherche porte sur TOUT le registre**, pas seulement les
+  réalisées : quand un client rappelle, c'est sa course à venir qu'on
+  cherche.
+- **Le CSV est en point-virgule avec un BOM** : Excel français lit le CSV
+  au séparateur de sa locale, et une virgule met tout dans une colonne.
+- **La restauration AJOUTE et n'écrase jamais** — une course d'ici peut
+  avoir avancé depuis la sauvegarde.
+
+## L'affiche des hôtels, et l'encodeur QR
+
+**L'ENCODEUR QR EST ÉCRIT DANS LA PAGE**, pas pris chez un tiers.
+`api.qrserver.com` ajouterait une dépendance réseau à une affiche qu'on
+imprime une fois, et enverrait l'adresse à quelqu'un qui n'a pas à la
+connaître. Mode octet, correction M, **versions 1 à 6** — jusqu'à 106
+caractères. S'arrêter à la 6 évite les blocs d'information de version
+(obligatoires dès la 7) et garde un seul motif d'alignement.
+
+**UN ENCODEUR NE SE VÉRIFIE PAS TOUT SEUL — LEÇON PAYÉE.** Le premier jet
+passait TOUS mes contrôles internes : format relu, masque, zigzag,
+Reed-Solomon divisible, dix syndromes nuls. Et il n'était lisible par
+**aucun téléphone**. L'information de format était écrite **bit à
+l'envers** ; mon décodeur maison reproduisait la même erreur et ne voyait
+rien. Seule la comparaison avec un **décodeur indépendant** (`jsqr`, plus
+un générateur de référence `qrcode` pour comparer module par module) l'a
+montré. `test-nouveau-affiche.mjs` rend le SVG **final** en image et le
+décode : sans ça, Barbaros imprimait cinquante affiches dont aucune ne se
+scanne.
+- Le SVG porte son **`xmlns`** : sans lui il s'affiche dans la page mais
+  ne peut plus être chargé comme image ni collé ailleurs.
+- **SVG et non canvas** : une affiche s'imprime, un canvas de 200 px sort
+  en bouillie sur du papier.
+- **À l'impression, seule l'affiche sort** — `visibility:hidden` sur tout
+  puis `visible` sur l'affiche (elle s'hérite ; `display:none` sur les
+  enfants de `body` emporterait l'affiche avec eux). Sans cette règle, le
+  tableau de bord — **noms et téléphones de clients** — partirait sur le
+  papier posé au comptoir d'un hôtel.
+- **Le nom de l'hôtel voyage EN CLAIR** (`?h=Ibis%20CDG`), pas en
+  identifiant : à l'arrivée on le pose dans le champ de départ et la
+  recherche d'adresse le retrouve. Un identifiant obligerait à tenir une
+  table de correspondance, donc à réimprimer les affiches le jour où elle
+  change.
+- **On ne choisit PAS l'adresse à sa place** : la liste s'ouvre, le client
+  tranche. Une adresse posée d'office enverrait le chauffeur au mauvais
+  Ibis.
+
 ## Les documents légaux
 
 Trois documents, en français et en anglais, accessibles depuis **Contact**
@@ -1052,18 +1126,29 @@ les six textes — la forme survit à une reformulation, pas la formule.
 
 **Fait au 6 septembre 2026, ne pas le refaire** : optimisation mobile,
 bandeau d'accueil, bouton de réservation, WhatsApp, formulaire, affichage
-du prix, confirmation client, espace exploitant, application installable
-(PWA) et référencement.
+du prix, confirmation client, espace exploitant, application installable (PWA),
+référencement, **registre et « Coller une demande »**, **affiche QR pour
+les hôtels**.
 
 1. **Les informations de l'éditeur** (voir ci-dessus) — le seul point qui
    rende le site non conforme aujourd'hui, et le seul que Claude ne peut
    pas produire.
-2. **Le registre de l'exploitant** : « Coller une demande » et le résultat
-   par semaine / mois / année existaient sur l'ancien site, pas ici.
-3. **Une langue de plus si le besoin se voit** : l'espagnol et l'arabe sont
+2. **La gestion des chauffeurs** : aujourd'hui un champ libre nom +
+   téléphone. En confiant des courses à des tiers, Asmine est une centrale
+   de réservation (Code des transports L3142-1) : elle doit pouvoir prouver
+   que chaque chauffeur a carte professionnelle, inscription au registre
+   VTC et assurance. Un carnet avec les dates d'expiration et une alerte.
+3. **L'automatisation WhatsApp reste bloquée** et il faut le redire
+   franchement : l'API WhatsApp Business de Meta exige une vérification
+   d'entreprise et un numéro dédié. Rien n'a changé. La voie praticable
+   sans documents serait un **email automatique** à chaque dépôt, via une
+   fonction Supabase Edge et un service d'envoi — cela demande une clé API
+   et un déploiement dans SON tableau de bord, donc son accord et ses
+   identifiants. Ne pas le promettre comme fait.
+4. **Une langue de plus si le besoin se voit** : l'espagnol et l'arabe sont
    les deux qui apporteraient à Paris. L'arabe demande de retourner toute
    la page de droite à gauche — ce n'est pas qu'une affaire de textes.
-4. **Cloudflare** reste bloqué : voir `CLOUDFLARE.md`. Ne pas déplacer les
+5. **Cloudflare** reste bloqué : voir `CLOUDFLARE.md`. Ne pas déplacer les
    serveurs de noms — l'email de Barbaros en dépend.
 
 ## Ses consignes de travail, à tenir pour acquises
@@ -1077,9 +1162,9 @@ du prix, confirmation client, espace exploitant, application installable
 
 ## Tests
 
-**Treize suites, 295 contrôles**, à relancer après **toute** modification.
+**Quinze suites, 362 contrôles**, à relancer après **toute** modification.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché treize fichiers pour zéro gain.
+touché quinze fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1088,7 +1173,8 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
          test-nouveau-exploitant.mjs test-nouveau-whatsapp.mjs \
          test-nouveau-services.mjs test-nouveau-paiement.mjs \
-         test-nouveau-confirmation.mjs \
+         test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
+         test-nouveau-affiche.mjs \
          test-nouveau-bascule.mjs; do
   node $f || break
 done
