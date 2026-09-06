@@ -31,7 +31,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v20";
+const CACHE = "elatransfer-v21";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
@@ -49,9 +49,11 @@ const NO_CACHE_HOSTS = [
   "api-adresse.data.gouv.fr",
   "photon.komoot.io",
   "router.project-osrm.org",
-  /* Mapbox calcule l'itinéraire, donc le PRIX. Une réponse mise en cache
-     resservirait la distance d'une course précédente à une autre course. */
+  /* Mapbox et OpenRouteService calculent l'itinéraire, donc le PRIX. Une
+     réponse mise en cache resservirait la distance d'une course précédente
+     à une autre course. */
   "api.mapbox.com",
+  "api.openrouteservice.org",
   "api.qrserver.com",
   "www.paypal.com",
   "www.paypalobjects.com"

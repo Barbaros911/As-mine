@@ -2600,41 +2600,54 @@ window.ELA_TEXTES = {
   }
 
   /* =====================================================================
-     L'ITINÉRAIRE FAIT LE PRIX — TROIS NIVEAUX, DU MEILLEUR AU PIRE
+     L'ITINÉRAIRE FAIT LE PRIX — QUATRE NIVEAUX, DU MEILLEUR AU PIRE
      ---------------------------------------------------------------------
-     1. MAPBOX si une clé est posée ci-dessous. C'est un service avec
-        engagement : 100 000 itinéraires par mois au palier gratuit, très
-        au-dessus du volume d'Elatransfer.
-     2. OSRM sinon, ou si Mapbox refuse. C'est un serveur de DÉMONSTRATION :
-        aucun engagement, débit limité, usage commercial déconseillé par ses
-        propres auteurs. Il marche, jusqu'au jour où il ne marche plus.
-     3. Le vol d'oiseau × 1,3 en dernier recours, et la course est alors
+     1. MAPBOX si une clé est posée. C'est le seul des trois services dont
+        la clé se RESTREINT AU DOMAINE : volée, elle ne sert à rien.
+        100 000 itinéraires par mois au palier gratuit.
+     2. OPENROUTESERVICE si une clé est posée. 2 000 itinéraires par jour
+        au palier gratuit, avec un engagement de service — très au-dessus
+        du volume d'Elatransfer.
+     3. OSRM sinon, ou si les deux refusent. C'est un serveur de
+        DÉMONSTRATION : aucun engagement, débit limité, usage commercial
+        déconseillé par ses propres auteurs. Il marche, jusqu'au jour où
+        il ne marche plus.
+     4. Le vol d'oiseau × 1,3 en dernier recours, et la course est alors
         marquée « ≈ ». Ce n'est pas un détail de confort : sur un
         Roissy → Paris l'écart avec la vraie route se compte en euros, et
         chez nous le prix est FERME — donc opposable.
 
-     POURQUOI MAPBOX ET PAS OPENROUTESERVICE. Les deux calculent aussi bien.
-     La différence est ailleurs : le dépôt est PUBLIC, donc la clé écrite ici
-     est lisible par n'importe qui. Une clé Mapbox se restreint au domaine
-     « elatransfer.com » depuis son tableau de bord — volée, elle ne sert à
-     rien. Une clé OpenRouteService ne se restreint pas : c'est un jeton lié
-     au compte, et le premier venu épuiserait le quota.
+     CHAQUE NIVEAU RATTRAPE LE PRÉCÉDENT, ET C'EST TOUT L'INTÉRÊT. Trois
+     serveurs indépendants qui tombent le même jour, c'est autrement moins
+     probable qu'un seul. Le vol d'oiseau ne sert que si les trois sont à
+     terre.
 
-     POUR L'ACTIVER : créer un compte sur mapbox.com, copier le jeton public
-     (il commence par « pk. »), le coller ci-dessous, PUIS le restreindre au
-     domaine dans le tableau de bord Mapbox — les deux gestes, pas un seul.
-     Tant que la ligne est vide, le site se comporte exactement comme avant.
+     CE QU'IL FAUT SAVOIR SUR LA CLÉ OPENROUTESERVICE. Le dépôt est PUBLIC
+     et une page statique envoie forcément sa clé au navigateur : elle est
+     donc lisible, ici comme dans le code servi. Et contrairement à Mapbox,
+     ORS ne permet PAS de la restreindre à un domaine — c'est un jeton lié
+     au compte. Si le quota se vide sans raison, c'est qu'elle a été
+     reprise : il suffit d'en régénérer une sur openrouteservice.org et de
+     la remplacer ici. Le site continue de fonctionner entre-temps, OSRM
+     prend le relais — c'est justement à ça que servent les niveaux.
+
+     POUR POSER LA CLÉ MAPBOX : créer un compte sur mapbox.com, copier le
+     jeton public (il commence par « pk. »), le coller ci-dessous, PUIS le
+     restreindre au domaine dans le tableau de bord Mapbox — les deux
+     gestes, pas un seul.
      ===================================================================== */
   var CLE_MAPBOX = "";
+  var CLE_ORS = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU3M2YyYzZmOGE2MTRlZWJiMDcyMWE4OTgzZWVjMjBlIiwiaCI6Im11cm11cjY0In0=";
 
   /* Un appel qui n'aboutit pas doit ABANDONNER, pas faire attendre. Sans
      minuteur, un serveur qui accepte la connexion puis ne répond jamais
      laisse le client devant « Calcul du prix… » pendant trente secondes,
-     et il s'en va. Cinq secondes chacun : au pire, quinze en tout avant le
-     vol d'oiseau, ce qui reste tenable. */
+     et il s'en va. Quatre secondes chacun : au pire douze en tout avant le
+     vol d'oiseau, ce qui reste tenable — et ce pire cas suppose les trois
+     serveurs muets en même temps. */
   function fetchLimite(url, ms){
     var ctrl = new AbortController();
-    var minuteur = setTimeout(function(){ ctrl.abort(); }, ms || 5000);
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, ms || 4000);
     return fetch(url, { signal:ctrl.signal })
       .then(function(r){ clearTimeout(minuteur); return r; },
             function(e){ clearTimeout(minuteur); throw e; });
@@ -2643,11 +2656,22 @@ window.ELA_TEXTES = {
   /* Mapbox et OSRM rendent la même chose sous deux habillages : une liste
      « routes », une distance en mètres, une durée en secondes. On les lit
      donc avec la même fonction — le jour où l'un des deux change de forme,
-     il n'y a qu'un endroit à corriger. */
+     il n'y a qu'un endroit à corriger.
+     OpenRouteService, lui, répond en GeoJSON et range la même mesure
+     ailleurs : d'où son lecteur à part, juste en dessous. */
   function lireRoute(d){
     if(!(d && d.routes && d.routes[0])) throw new Error("route");
     return { km:d.routes[0].distance/1000,
              min:Math.round(d.routes[0].duration/60), estime:false };
+  }
+  function lireRouteORS(d){
+    var s = d && d.features && d.features[0] && d.features[0].properties
+            && d.features[0].properties.summary;
+    /* Une réponse SANS résumé n'est pas une route de zéro kilomètre : c'est
+       une réponse qu'on n'a pas su lire. La laisser passer ferait un prix
+       au plancher sur un Paris → Roissy. */
+    if(!s || typeof s.distance !== "number") throw new Error("route");
+    return { km:s.distance/1000, min:Math.round(s.duration/60), estime:false };
   }
 
   function itineraire(a, b){
@@ -2666,8 +2690,30 @@ window.ELA_TEXTES = {
         .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
         .then(lireRoute);
     }
+    /* ORS prend ses points en deux paramètres séparés, et « lon,lat » —
+       l'ordre inverse de celui qu'on écrit d'habitude. Une inversion ici
+       enverrait la course dans l'océan Indien sans le moindre message. */
+    function parORS(){
+      return fetchLimite("https://api.openrouteservice.org/v2/directions/driving-car"
+                         + "?api_key=" + encodeURIComponent(CLE_ORS)
+                         + "&start=" + a.lon + "," + a.lat
+                         + "&end="   + b.lon + "," + b.lat)
+        .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
+        .then(lireRouteORS);
+    }
 
-    var chaine = CLE_MAPBOX ? parMapbox().catch(parOSRM) : parOSRM();
+    /* On empile les niveaux disponibles, puis on les enchaîne : chacun
+       rattrape celui d'avant. Écrit comme une liste plutôt qu'en cascade
+       de « ? : » imbriqués — le jour où un service s'ajoute ou disparaît,
+       il y a une ligne à changer, pas une condition à démêler. */
+    var niveaux = [];
+    if(CLE_MAPBOX) niveaux.push(parMapbox);
+    if(CLE_ORS)    niveaux.push(parORS);
+    niveaux.push(parOSRM);
+
+    var chaine = niveaux[0]();
+    for(var i=1; i<niveaux.length; i++) chaine = chaine.catch(niveaux[i]);
+
     return chaine.catch(function(){
       var km = volDoiseauKm(a, b) * 1.3;
       return { km:km, min:Math.round(km / 30 * 60), estime:true };

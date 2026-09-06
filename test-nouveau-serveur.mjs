@@ -41,6 +41,12 @@ async function reserver(serveurRepond){
     {geometry:{coordinates:[2.3376,48.8606]},properties:{name:"Place Vendôme",osm_key:"tourism",osm_value:"attraction",postcode:"75001",city:"Paris",countrycode:"FR"}}]})}));
   await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'application/json',body:JSON.stringify({features:[
     {geometry:{coordinates:[2.2467,48.9478]},properties:{label:"Argenteuil, 95100 Argenteuil"}}]})}));
+  /* OpenRouteService passe AVANT OSRM depuis qu'une clé est posée dans la
+     page. Sans ce refus, la suite dépendrait du fait qu'il soit injoignable
+     d'ici — et sur une machine reliée à Internet elle interrogerait le vrai
+     service, avec une vraie distance, et les prix vérifiés plus bas ne
+     tomberaient plus juste. On le coupe donc explicitement. */
+  await p.route('**://api.openrouteservice.org/**', r => r.abort());
   await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
   const depots = [];
