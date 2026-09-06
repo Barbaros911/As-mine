@@ -1570,6 +1570,17 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <p class="bloc-note" id="regChauffeursVide" hidden>Aucune course réalisée avec un chauffeur nommé.</p>
     </div>
 
+    <!-- QUELLE AFFICHE TRAVAILLE. C'est la seule façon de savoir si poser un
+         QR chez un hôtel rapporte quelque chose, et lequel. On compte les
+         DEMANDES reçues — c'est ce que l'affiche a produit — et à côté
+         l'argent réellement encaissé, qui ne vient que des réalisées. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">D'où viennent les clients</h2>
+      <div id="regProvenance"></div>
+      <p class="bloc-note" id="regProvenanceVide" hidden>Aucun client venu par une affiche
+         pour l'instant. Les courses réservées directement ne comptent pas ici.</p>
+    </div>
+
     <div class="bloc">
       <h2 class="bloc-titre">Rechercher</h2>
       <label class="champ" for="regRecherche">
@@ -1620,6 +1631,9 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <div class="ligne"><span>Véhicule</span><b id="bbVehicule">—</b></div>
       <div class="ligne"><span>Passagers</span><b id="bbPax">—</b></div>
       <div class="ligne" id="bbLigneVol" hidden><span>Vol</span><b id="bbVol">—</b></div>
+      <!-- D'où vient ce client. La ligne n'apparaît que s'il vient d'une
+           affiche : sur une course ordinaire, elle n'aurait rien à dire. -->
+      <div class="ligne" id="bbLigneProv" hidden><span>Vient de</span><b id="bbProv">—</b></div>
       <!-- C'est LA ligne que Barbaros transmet au chauffeur avec l'adresse :
            « carte » veut dire « emporte ton terminal ». -->
       <div class="ligne"><span>Paiement</span><b id="bbPaiement">—</b></div>
@@ -2985,6 +2999,13 @@ window.ELA_TEXTES = {
     ].join("\n");
   }
 
+  /* Lue au moment de la réservation, pas à l'arrivée : le client peut avoir
+     ouvert le site par l'affiche puis pris son temps. */
+  function provenanceVisite(){
+    try{ return sessionStorage.getItem("ela_provenance") || ""; }
+    catch(e){ return ""; }
+  }
+
   var bonCourant = null;
   function remplirBon(bon){
     document.getElementById("bonRef").textContent      = bon.ref;
@@ -3182,6 +3203,11 @@ window.ELA_TEXTES = {
         estimee: course.estime
       },
       client: { nom: nom, telephone: tel },
+      /* D'OÙ VIENT CE CLIENT : l'hôtel dont il a scanné l'affiche, s'il en a
+         scanné une. C'est ce qui dit quelle affiche travaille et laquelle
+         dort. Absent pour un client venu directement — et un champ vide se
+         lit « venue directe », pas « information perdue ». */
+      provenance: provenanceVisite(),
       /* Deux formes du même choix : la clé pour le code, le libellé français
          pour tout ce qui est lu par un humain. Une course déjà enregistrée
          sans ce champ reste lisible — l'affichage retombe sur un tiret. */
@@ -3779,6 +3805,8 @@ window.ELA_TEXTES = {
     document.getElementById("bbPax").textContent      = c.course.passagers || "—";
     document.getElementById("bbLigneVol").hidden      = !c.course.vol;
     document.getElementById("bbVol").textContent      = c.course.vol || "";
+    document.getElementById("bbLigneProv").hidden     = !c.provenance;
+    document.getElementById("bbProv").textContent     = c.provenance || "";
     /* L'espace exploitant est en français quoi qu'il arrive : on affiche le
        libellé déposé avec la course, pas une traduction. */
     document.getElementById("bbPaiement").textContent = c.paiementNom || "—";
@@ -3996,6 +4024,30 @@ window.ELA_TEXTES = {
     }).sort(function(x,y){ return y._t - x._t; });
     document.getElementById("regChauffeursVide").hidden = chauff.length > 0;
     poser("regChauffeurs", chauff, "");
+
+    /* D'OÙ VIENNENT LES CLIENTS. Ici on part de TOUT le registre, pas des
+       seules réalisées : une demande venue d'une affiche prouve que
+       l'affiche travaille, même si la course a fini par ne pas se faire.
+       L'argent, lui, ne compte que les réalisées — les deux chiffres
+       répondent à deux questions différentes. */
+    var parProv = {};
+    registre().forEach(function(c){
+      var p = (c.provenance || "").trim();
+      if(!p) return;
+      (parProv[p] = parProv[p] || []).push(c);
+    });
+    var prov = Object.keys(parProv).map(function(nom){
+      var tout = parProv[nom];
+      var faites = tout.filter(function(c){ return c.statut === "realisee"; });
+      var v = bilan(faites);
+      return { nom:nom,
+               sous: tout.length + (tout.length > 1 ? " demandes" : " demande")
+                     + " · " + faites.length + " réalisée" + (faites.length > 1 ? "s" : ""),
+               val: eurosRond(v.total), _n: tout.length };
+    }).sort(function(x,y){ return y._n - x._n; });
+    document.getElementById("regProvenanceVide").hidden = prov.length > 0;
+    poser("regProvenance", prov, "");
+
     chercherRegistre();
   }
   function poser(id, lignes, vide){
@@ -4029,7 +4081,7 @@ window.ELA_TEXTES = {
     var trouves = registre().filter(function(c){
       return [c.ref, c.client && c.client.nom, c.client && c.client.telephone,
               c.course && c.course.depart, c.course && c.course.arrivee,
-              c.chauffeur && c.chauffeur.nom]
+              c.chauffeur && c.chauffeur.nom, c.provenance]
              .join(" ").toLowerCase().indexOf(q) >= 0;
     }).slice(0, 20);
     poser("regResultats", trouves.map(function(c){
@@ -4090,7 +4142,8 @@ window.ELA_TEXTES = {
   });
   document.getElementById("btnCSV").addEventListener("click", function(){
     var colonnes = ["Référence","Date","Heure","État","Client","Téléphone",
-                    "Départ","Arrivée","Véhicule","Paiement","Chauffeur","Prix TTC","Prix HT","TVA"];
+                    "Départ","Arrivée","Véhicule","Paiement","Chauffeur","Vient de",
+                    "Prix TTC","Prix HT","TVA"];
     /* Le point-virgule et non la virgule : Excel en français lit le CSV avec
        le séparateur de sa locale, et une virgule y met tout dans une seule
        colonne. Le BOM en tête pour qu'il ne massacre pas les accents. */
@@ -4104,6 +4157,7 @@ window.ELA_TEXTES = {
                    (c.client&&c.client.nom)||"", (c.client&&c.client.telephone)||"",
                    c.course.depart, c.course.arrivee, c.course.vehicule,
                    c.paiementNom||"", (c.chauffeur&&c.chauffeur.nom)||"",
+                   c.provenance||"",
                    ((c.prix&&c.prix.total)||0).toFixed(2).replace(".",","),
                    ((c.prix&&c.prix.ht)||0).toFixed(2).replace(".",","),
                    ((c.prix&&c.prix.tva)||0).toFixed(2).replace(".",",")].map(champ).join(";"));
@@ -4463,6 +4517,16 @@ window.ELA_TEXTES = {
     if(!nom) return false;
     nom = nom.trim().slice(0, 60);
     if(!nom) return false;
+    /* ON RETIENT D'OÙ IL VIENT, et pas seulement où il part. Sans ça,
+       l'affiche amène des clients et personne ne sait laquelle travaille :
+       le nom de l'hôtel ne sert qu'à remplir le champ de départ, et il
+       disparaît dès que le client corrige son adresse.
+       « sessionStorage » et non une variable : le client peut recharger la
+       page, revenir en arrière, laisser l'onglet ouvert la nuit. Et non
+       « localStorage » : la provenance vaut pour CETTE visite, pas pour
+       toutes les réservations qu'il fera depuis son téléphone ensuite. */
+    try{ sessionStorage.setItem("ela_provenance", nom); }
+    catch(e){ /* stockage refusé : la course partira sans provenance */ }
     champDepart.value = nom;
     /* On déclenche la recherche comme si le client venait de taper : c'est
        le même chemin, donc le même comportement, y compris le repli hors
