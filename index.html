@@ -983,7 +983,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
            qui promet une suite qu'on n'a pas est pire que pas de lien. -->
     </div>
     <div class="services">
-      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="reserver">
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-aeroport.webp')"></span>
         <span class="service-corps">
@@ -1010,7 +1010,7 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
             <!-- L'intérieur de voiture tient « Déplacement professionnel » : c'est
            la vue la mieux définie des trois (1024 px), et elle a remplacé un
            aperçu Shutterstock non payé, retiré du dépôt. -->
-      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="reserver">
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
         <span class="service-image a-photo"
               style="background-image:url('./photos/service-deplacement-pro.jpg')"></span>
         <span class="service-corps">
@@ -1544,13 +1544,13 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       </svg>
       <span data-t="nav_accueil">Accueil</span>
     </a>
-    <a class="onglet" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="reserver">
-      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="4" y="4.5" width="16" height="15.5" rx="2.4" stroke="currentColor" stroke-width="1.7"/>
-        <path d="M4 9.5h16M9 3v3M15 3v3M8.5 14h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-      <span data-t="nav_reserver">Réserver</span>
-    </a>
+    <!-- « RÉSERVER » A ÉTÉ RETIRÉ (septembre 2026, à la demande de Barbaros :
+         « elle ne sert a rien »). Il ouvrait EXACTEMENT le même écran
+         qu'« Accueil » — le formulaire y est — à la seule différence qu'il
+         posait le curseur dans le champ de départ. Deux onglets pour un
+         écran, c'est un client qui appuie sur le second en croyant aller
+         ailleurs, ne voit rien bouger, et en conclut que le site est cassé.
+         Les trois qui restent mènent chacun quelque part. -->
     <a class="onglet" href="#" data-ecran="ecran-courses" data-onglet="courses">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M3.4 15.4v-2.1l1.8-4.2A2 2 0 017 7.9h10a2 2 0 011.8 1.2l1.8 4.2v2.1" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
@@ -1626,7 +1626,7 @@ window.ELA_TEXTES = {
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
-    nav_accueil:"Accueil", nav_reserver:"Réserver", nav_courses:"Mes courses", nav_contact:"Contact",
+    nav_accueil:"Accueil", nav_courses:"Mes courses", nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
     err_trop_grand:"Nous n'avons pas de véhicule pour {{n}} passagers en une seule course. Appelez-nous : on organise deux voitures.",
@@ -1705,7 +1705,7 @@ window.ELA_TEXTES = {
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
-    nav_accueil:"Home", nav_reserver:"Book", nav_courses:"My rides", nav_contact:"Contact",
+    nav_accueil:"Home", nav_courses:"My rides", nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
     err_trop_grand:"We have no single vehicle for {{n}} passengers. Call us: we will arrange two cars.",
@@ -2341,14 +2341,14 @@ window.ELA_TEXTES = {
     /* L'onglet allumé suit l'écran affiché, y compris quand on y arrive
        autrement que par la barre — par le bouton « Voir mon prix », par
        exemple. Un onglet allumé sur un écran qu'on a quitté ment.
-       DEUX ONGLETS MÈNENT AU MÊME ÉCRAN : « Accueil » et « Réserver »
-       ouvrent tous deux la page d'accueil, puisque le formulaire y est.
-       On ne peut donc pas déduire l'onglet du seul écran — sans quoi les
-       deux s'allumeraient ensemble. Les écrans du tunnel — les prix, le
-       récapitulatif — se rattachent à « Réserver », et le bon au registre
-       des courses. */
-    var onglet = force || { "ecran-accueil":"accueil", "ecran-vehicules":"reserver",
-                   "ecran-recap":"reserver", "ecran-bon":"courses",
+       Les écrans du tunnel — les prix, le récapitulatif — se rattachent à
+       « Accueil », puisque c'est de là qu'on part ; le bon se rattache au
+       registre des courses. Ce rattachement était sur « Réserver » jusqu'au
+       retrait de cet onglet : sans le déplacer, plus aucun onglet ne
+       s'allumait pendant la réservation et la barre cessait de dire où
+       l'on se trouve. */
+    var onglet = force || { "ecran-accueil":"accueil", "ecran-vehicules":"accueil",
+                   "ecran-recap":"accueil", "ecran-bon":"courses",
                    "ecran-courses":"courses", "ecran-contact":"contact",
                    /* Un document légal s'ouvre depuis « Contact » : l'onglet
                       y reste allumé, sinon la barre du bas n'indiquerait plus
