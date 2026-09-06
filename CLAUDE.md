@@ -1382,6 +1382,62 @@ pire qu'un ancien cohérent : le téléphone montre l'une, l'onglet l'autre.
   Le script mesure le coin le plus éloigné du centre et le compare à cette
   limite — 144,3 aujourd'hui.
 
+## « ME LOCALISER » — ELLE REND UNE ADRESSE, PAS UNE POSITION
+
+Septembre 2026, à sa demande : « ajoute la géolocalisation pour les
+clients ». Le client est à Roissy, téléphone dans une main et valise dans
+l'autre : lui faire taper « Aéroport Charles-de-Gaulle, Terminal 2E » est
+le moment où l'on perd une réservation.
+
+- **SEULEMENT AU DÉPART.** L'arrivée est là où l'on va, pas là où l'on est.
+  Le bouton **remplace le chevron** de ce champ au lieu de s'y ajouter :
+  deux pictogrammes au même endroit, l'un décoratif et l'autre cliquable,
+  et le client appuie sur le mauvais.
+- **UN POINT GPS NE SERT À RIEN.** Le chauffeur a besoin d'une adresse à
+  composer dans son navigateur, et le bon d'un libellé à écrire. La
+  position est donc relue par la **Base Adresse Nationale**
+  (`/reverse/`) ; si elle ne rend rien — une bretelle, un champ — on le
+  **dit** au lieu d'accepter une course vers des coordonnées nues.
+- **LES COORDONNÉES RETENUES SONT CELLES DE L'ADRESSE, PAS DU GPS.** Le
+  prix se calcule sur le trajet que le chauffeur fera vraiment. Le test
+  donne au faux GPS et à la fausse BAN des points **différents**, et lit
+  l'URL envoyée au calculateur d'itinéraire pour savoir lequel est sorti —
+  un test qui regarde dans le moteur ne prouve pas ce que fait la voiture.
+- **`brancher()` REND MAINTENANT UNE PRISE `poser(item)`**, et ce n'est
+  pas un confort. Écrire dans `champ.value` depuis l'extérieur ne
+  déclenche aucun `input` : `choisi` resterait nul, la garde qui invalide
+  les coordonnées ne s'armerait donc jamais — elle ne se déclenche que si
+  une adresse a été retenue — et le client qui corrige son adresse à la
+  main partirait avec les coordonnées d'un endroit et le nom d'un autre.
+  **Le prix est ferme, donc opposable : ce serait faux ET opposable.**
+- **TROIS MESSAGES DISTINCTS**, parce qu'ils appellent trois gestes
+  différents : refus (« autorisez-la dans les réglages »), pas d'adresse
+  ici (« saisissez-la »), panne (« saisissez l'adresse »). Un seul message
+  « ça n'a pas marché » ne dit pas quoi faire.
+- **On invite à VÉRIFIER l'adresse.** Le GPS d'un téléphone se trompe
+  couramment de plusieurs dizaines de mètres, donc de numéro dans la rue —
+  et le chauffeur va à l'adresse écrite.
+- **La zone des 90 km s'applique**, sans rien de spécial à écrire :
+  `poser()` appelle le même `quand()` que la liste, donc `jugerZone()`. Un
+  test l'éprouve depuis Lille — pas de porte dérobée.
+- **`data-t-aria` a été ajouté à `appliquerLangue()`.** Un bouton dont le
+  seul contenu est un dessin n'a que son `aria-label` à dire ; non
+  traduit, il reste en français dans le lecteur d'écran d'un client
+  anglophone — le seul endroit où le texte compte pour lui.
+- **44 px de côté**, et **aucun `position:relative`** : le bouton est un
+  élément de la rangée flex du champ. C'est délibéré — sur l'ancien site,
+  un `position:relative` posé sur un bouton déjà placé en absolu l'avait
+  fait retomber dans le flux, à gauche du champ d'adresse.
+- **RIEN N'EST CONSERVÉ** : la position remplit le champ puis est oubliée.
+  Ce qui part sur le bon est l'adresse, comme si le client l'avait tapée.
+  **La politique de confidentialité annonçait déjà « Me localiser »**
+  depuis l'ancien site — elle décrivait une fonction qui n'existait pas,
+  c'est réglé. Deux contrôles le verrouillent.
+- **Piège de capture, pas de code** : à 390×560 la page se remet en page
+  et la pastille WhatsApp remonte sur le champ. Mesuré à la vraie hauteur
+  (390×844), le bouton est à 404–448 px et la pastille à 686–740, non
+  affichée. **Toujours capturer à 844 px de haut.**
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
@@ -1393,7 +1449,7 @@ pire qu'un ancien cohérent : le téléphone montre l'une, l'onglet l'autre.
 
 ## Tests
 
-**Seize suites Playwright, 402 contrôles**, à relancer après **toute**
+**Dix-sept suites Playwright, 426 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
@@ -1401,7 +1457,7 @@ modification de la page.
 de la fonction Supabase — c'est la seule partie de cette fonction qui se
 vérifie sans la déployer, et c'est celle qui compte.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché seize fichiers pour zéro gain.
+touché dix-sept fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1412,7 +1468,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-services.mjs test-nouveau-paiement.mjs \
          test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
-         test-nouveau-bascule.mjs; do
+         test-nouveau-geoloc.mjs test-nouveau-bascule.mjs; do
   node $f || break
 done
 node test-notification.mjs   # ni navigateur ni réseau
