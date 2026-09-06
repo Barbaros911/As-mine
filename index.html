@@ -886,6 +886,26 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       </div>
     </div>
 
+    <!-- TROP TÔT — 20 MINUTES DE PRÉAVIS (septembre 2026, à sa demande).
+         Un chauffeur doit être trouvé, prévenu, et il doit rouler jusqu'au
+         client. Accepter une course pour dans cinq minutes, c'est promettre
+         ce qu'on ne peut pas tenir — et chez Elatransfer le prix comme
+         l'heure sont fermes.
+         ON NE RENVOIE PAS LE CLIENT SANS RIEN, exactement comme pour une
+         adresse hors zone : quelqu'un qui veut une voiture tout de suite
+         est un client, pas une erreur de saisie. Le téléphone et WhatsApp
+         sont là, et Barbaros place ces courses-là de vive voix. -->
+    <div class="hors-zone" id="tropTot" hidden>
+      <b data-t="tot_titre">Ce départ est trop proche.</b>
+      <p data-t="tot_note">Il faut au moins 20 minutes pour vous envoyer un chauffeur.
+         Pour un départ tout de suite, appelez-nous : on regarde ce qui est
+         disponible autour de vous.</p>
+      <div class="duo">
+        <a href="tel:+33759312433" data-t="appeler">Appeler</a>
+        <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+
     <!-- Les refus du formulaire s'affichent EN HAUT, comme « hors zone » :
          posés sous le bouton ils tombent derrière le bandeau de cookies, et
          le client voit un bouton qui ne répond pas sans savoir pourquoi. -->
@@ -2024,6 +2044,8 @@ window.ELA_TEXTES = {
     nav_accueil:"Accueil", nav_courses:"Mes courses", nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
+    tot_titre:"Ce départ est trop proche.",
+    tot_note:"Il faut au moins 20 minutes pour vous envoyer un chauffeur. Pour un départ tout de suite, appelez-nous : on regarde ce qui est disponible autour de vous.",
     err_trop_grand:"Nous n'avons pas de véhicule pour {{n}} passagers en une seule course. Appelez-nous : on organise deux voitures.",
     pancarte_titre:"À votre arrivée",
     pancarte_texte:"Votre chauffeur vous attend dans le hall, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.",
@@ -2117,6 +2139,8 @@ window.ELA_TEXTES = {
     nav_accueil:"Home", nav_courses:"My rides", nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
+    tot_titre:"That pickup is too soon.",
+    tot_note:"We need at least 20 minutes to send you a chauffeur. For an immediate pickup, call us: we will see what is available near you.",
     err_trop_grand:"We have no single vehicle for {{n}} passengers. Call us: we will arrange two cars.",
     pancarte_titre:"When you land",
     pancarte_texte:"Your chauffeur waits in the arrivals hall, your name in hand. 60 minutes of waiting included, even if your flight is delayed.",
@@ -2742,7 +2766,9 @@ window.ELA_TEXTES = {
     var mauvais = lieuHorsZone();
     blocZone.hidden = !mauvais;
     zoneLieu.textContent = mauvais ? mauvais.label : "";
-    boutonPrix.disabled = !!mauvais;
+    /* Le bouton n'est plus éteint ici : la zone n'est pas son seul juge
+       depuis le préavis de 20 minutes. Voir « jugerBoutonPrix ». */
+    if(window.__jugerBoutonPrix) window.__jugerBoutonPrix();
   }
 
 /* =====================================================================
@@ -3053,6 +3079,48 @@ window.ELA_TEXTES = {
     return !isNaN(d.getTime()) && d.getTime() < Date.now();
   }
 
+  /* ---------------------------------------------------------------------
+     LE PRÉAVIS DE 20 MINUTES (septembre 2026, à la demande de Barbaros).
+     Il faut trouver un chauffeur, le prévenir, et qu'il roule jusqu'au
+     client. Accepter un départ dans cinq minutes, c'est promettre ce qu'on
+     ne peut pas tenir — et chez Elatransfer l'heure est ferme comme le
+     prix.
+
+     CE N'EST PAS LE RETOUR DU DÉLAI DE 3 HEURES, retiré en septembre 2026 à
+     sa demande. Celui-là était un AVERTISSEMENT sur des heures entières, qui
+     décourageait des courses parfaitement plaçables ; celui-ci est un
+     REFUS de vingt minutes, le temps matériel d'envoyer une voiture. Ne pas
+     les confondre, et ne pas rétablir l'ancien en croyant compléter
+     celui-ci.
+
+     UNE HEURE DÉJÀ PASSÉE N'EST PAS « TROP PROCHE » : elle a son propre
+     message, qui dit ce qui ne va pas. D'où le « > maintenant » ci-dessous.
+     --------------------------------------------------------------------- */
+  var DELAI_MINIMUM_MIN = 20;
+  function tropTot(){
+    if(!champDate.value || !champHeure.value) return false;
+    var d = new Date(champDate.value + "T" + champHeure.value).getTime();
+    if(isNaN(d)) return false;
+    var maintenant = Date.now();
+    return d > maintenant && d < maintenant + DELAI_MINIMUM_MIN * 60000;
+  }
+  var blocTropTot = document.getElementById("tropTot");
+  /* Le bouton a DEUX juges — la zone et le préavis — et ils ne doivent pas
+     se contredire. Sans ce point de rendez-vous, le second à s'exécuter
+     rallumerait le bouton que le premier vient d'éteindre. */
+  function jugerBoutonPrix(){
+    boutonPrix.disabled = !!lieuHorsZone() || tropTot();
+  }
+  window.__jugerBoutonPrix = jugerBoutonPrix;
+  function jugerDelai(){
+    blocTropTot.hidden = !tropTot();
+    jugerBoutonPrix();
+  }
+  champDate.addEventListener("input", jugerDelai);
+  champHeure.addEventListener("input", jugerDelai);
+  champDate.addEventListener("change", jugerDelai);
+  champHeure.addEventListener("change", jugerDelai);
+
   boutonPrix.addEventListener("click", function(){
     effacerRefus();
     /* Départ ET arrivée sont obligatoires : le prix est ferme, arrêté à la
@@ -3065,6 +3133,12 @@ window.ELA_TEXTES = {
     if(lieuHorsZone()) return;
     if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }
     if(heureDepassee()){ refuser("err_heure_passee"); champHeure.focus(); return; }
+    /* Le préavis. L'écriteau est déjà affiché par « jugerDelai », mais le
+       contrôle est REFAIT ici : entre l'instant où le client a choisi son
+       heure et celui où il appuie, le temps a passé — une réservation
+       laissée ouverte deux minutes devient trop proche toute seule. */
+    if(tropTot()){ jugerDelai(); blocTropTot.scrollIntoView({block:"nearest"});
+                   champHeure.focus(); return; }
     /* Plus de passagers que le plus grand véhicule : l'écran des prix
        s'ouvrait VIDE, avec un bouton gris et pas un mot. Un groupe de neuf
        est une belle course — deux voitures — pas une impasse. */
