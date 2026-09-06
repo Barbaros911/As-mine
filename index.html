@@ -972,8 +972,12 @@ body.exploitant .entete{border-bottom:2px solid var(--or);}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <circle cx="12" cy="12" r="9" stroke="#9A9AA4" stroke-width="1.7"/>
         <path d="M8.2 12.3l2.6 2.6 5-5.2" stroke="#9A9AA4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg data-t="annulation">
-      Annulation gratuite jusqu'à 24h avant le trajet
+      </svg>
+      <!-- L'attribut de traduction était posé sur la balise FERMANTE du SVG
+           (« </svg data-t="annulation"> ») : sans effet, la phrase restait en
+           français en anglais. Il ne peut pas non plus aller sur le <p> — la
+           traduction écrit du texte et effacerait l'icône. D'où ce <span>. -->
+      <span data-t="annulation">Annulation gratuite jusqu'à 24h avant le trajet</span>
     </p>
   </section>
 

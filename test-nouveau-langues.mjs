@@ -86,6 +86,29 @@ const oublis = await p.evaluate(()=>{
 });
 check('chaque texte français a son équivalent anglais', oublis.length===0, oublis.join(', '));
 
+/* UN « data-t » POSÉ SUR UNE BALISE FERMANTE NE TRADUIT RIEN, ET RIEN NE LE
+   SIGNALE. « </svg data-t="annulation"> » a laissé « Annulation gratuite
+   jusqu'à 24h avant le trajet » en français pour tous les clients anglophones,
+   sous le bouton principal de l'accueil. Le navigateur avale l'attribut sans
+   un mot : ni erreur, ni clé manquante — la vérification d'au-dessus passait
+   au vert. On lit donc la SOURCE, la seule où la faute est visible.
+   On retire d'abord les commentaires HTML : celui qui explique cette faute-là,
+   dans la page, en cite la forme exacte — sans ça le test tomberait sur sa
+   propre explication. */
+const source = (await (await fetch('http://127.0.0.1:8099/index.html')).text())
+                 .replace(/<!--[\s\S]*?-->/g, '');
+const fermantes = source.match(/<\/[a-zA-Z]+[^>]*\sdata-t=[^>]*>/g) || [];
+check('aucun « data-t » sur une balise fermante', fermantes.length===0, fermantes.join(' '));
+
+/* Et le cas réel, mesuré à l'écran plutôt que dans le code : la ligne qui
+   rassure sous le bouton parle bien anglais. */
+check('la ligne sous le bouton est traduite elle aussi',
+  (await p.locator('p.rassure').first().innerText()).trim()
+    === 'Free cancellation up to 24h before the ride',
+  (await p.locator('p.rassure').first().innerText()).trim());
+check('et son icône n\'a pas été effacée par la traduction',
+  (await p.locator('p.rassure svg').first().count())===1);
+
 /* « Mise à disposition » est revenue à la demande de Barbaros. Ce qui est
    vérifié ici n'est plus son absence mais sa TRADUCTION : c'est la carte la
    plus facile à oublier, puisqu'elle a été retirée puis remise. */
