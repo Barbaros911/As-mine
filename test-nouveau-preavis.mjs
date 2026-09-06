@@ -152,6 +152,59 @@ check('et corriger l\'heure ne le rallume PAS tant que la zone est mauvaise',
 check('l\'écriteau « hors zone » est toujours là', !(await p.locator('#horsZone').isHidden()));
 await ctx.close();
 
+/* --- LA DATE DU JOUR, VUE À 1 H DU MATIN -----------------------------
+   LE BUG QUE CE CONTRÔLE EMPÊCHE DE REVENIR. La date proposée venait de
+   « toISOString », qui rend de l'UTC : à 1 h du matin à Paris (UTC+2), il
+   est encore 23 h la veille en UTC. Le site se croyait la veille,
+   proposait la date d'hier, et la laissait choisir. Barbaros l'a vu le
+   7 septembre à 1 h, avec le 6 encore sélectionnable.
+   Un décalage d'un jour NE SE VOIT JAMAIS EN JOURNÉE : il n'apparaît que
+   dans les deux premières heures après minuit, exactement quand personne
+   ne teste. On déplace donc l'horloge du navigateur pour aller le
+   chercher. -------------------------------------------------------- */
+{
+  const ctxN = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
+    timezoneId:'Europe/Paris'});
+  const pn = await ctxN.newPage();
+  pn.on('pageerror',e=>errs.push(e.message));
+  /* 1 h 12 du matin, heure de Paris. En UTC c'est encore la veille à
+     23 h 12 — c'est tout l'intérêt du cas. */
+  await ctxN.addInitScript(() => {
+    const faux = new Date('2026-09-07T01:12:00+02:00').getTime();
+    const Vrai = Date;
+    const decalage = faux - Vrai.now();
+    // eslint-disable-next-line no-global-assign
+    Date = class extends Vrai {
+      constructor(...a){ if(a.length===0) super(Vrai.now()+decalage); else super(...a); }
+      static now(){ return Vrai.now()+decalage; }
+    };
+  });
+  await pn.route('**://photon.komoot.io/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await pn.route('**://api-adresse.data.gouv.fr/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await pn.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await pn.waitForTimeout(500);
+  const j = await pn.evaluate(()=>{
+    const d = document.getElementById('date');
+    return { valeur:d.value, borne:d.min, vu:new Date().toString() };
+  });
+  check('à 1 h du matin, la date proposée est CELLE DU JOUR, pas la veille',
+    j.valeur==='2026-09-07', j.valeur+' (le navigateur est le '+j.vu.slice(0,15)+')');
+  check('et la borne du champ interdit la veille',
+    j.borne==='2026-09-07', j.borne);
+  /* Le cas exact qu'il décrit : choisir hier 10 h. Le champ doit le
+     refuser — et si le client le tape quand même, le site aussi. */
+  await pn.fill('#date','2026-09-06');
+  await pn.fill('#heure','10:00');
+  await pn.waitForTimeout(300);
+  check('choisir hier 10 h éteint le bouton',
+    await pn.locator('#btnVoirPrix').isDisabled());
+  check('et le dit, au lieu d\'un bouton gris sans raison',
+    !(await pn.locator('#heurePassee').isHidden()));
+  check('sans afficher en même temps « trop proche »',
+    await pn.locator('#tropTot').isHidden());
+  await ctxN.close();
+}
+
 /* --- LE TEXTE ET LE CODE ANNONCENT LE MÊME DÉLAI ---------------------
    Le vrai piège de cette règle : la constante bouge, la phrase reste, et
    le site annonce vingt minutes en en exigeant quarante. On lit donc la

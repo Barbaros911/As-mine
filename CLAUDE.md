@@ -1509,6 +1509,40 @@ l'heure est ferme comme le prix.
   25 et 40 min acceptés. Un test qui ne vérifierait que le refus laisserait
   passer un code qui refuse tout.
 
+## LA DATE DU JOUR SE COMPOSE EN LOCAL, JAMAIS EN UTC
+
+Septembre 2026, vu par Barbaros à 1 h du matin : « je peux cliquer sur le
+6/09 pour 10 h alors qu'on est le 7 ».
+
+La date proposée venait de `toISOString().slice(0,10)`, **qui rend de
+l'UTC**. À 1 h du matin à Paris (UTC+2), il est encore 23 h la veille en
+UTC : le site se croyait la veille, proposait la date d'hier, et la
+laissait choisir.
+
+- **CE GENRE DE BUG NE SE VOIT JAMAIS EN JOURNÉE.** Il n'existe qu'entre
+  minuit et 2 h, exactement quand personne ne teste — et il est parti en
+  ligne sans que rien ne l'attrape. `dateLocale()` compose la date à partir
+  de `getFullYear` / `getMonth` / `getDate`. **Ne jamais utiliser
+  `toISOString` pour une date que le client LIT** ; elle reste juste pour
+  un horodatage (`cree`), où l'UTC est ce qu'on veut.
+- **LA BORNE SE RAFRAÎCHIT** (au `focus` et au retour sur l'onglet). Elle
+  n'était posée qu'au chargement : une page laissée ouverte pendant la nuit
+  gardait la borne de la veille. Le client d'un vol de nuit garde justement
+  l'onglet ouvert des heures.
+- **UNE HEURE PASSÉE ÉTEINT LE BOUTON ET LE DIT**, sans attendre le clic —
+  écriteau `#heurePassee`, **sans** boutons d'appel : choisir hier est une
+  faute de saisie, pas un client pressé à qui l'on vend quelque chose.
+  C'est ce qui distingue cet écriteau de « trop proche ». Les deux
+  s'excluent : en afficher deux ferait douter le client de ce qu'il doit
+  corriger.
+- **Le filet de la soumission reste en place.** Un test rallume le bouton
+  de force et vérifie que la course est encore refusée.
+- **LE TEST DÉPLACE L'HORLOGE DU NAVIGATEUR** à 1 h 12 le 7 septembre, dans
+  le fuseau de Paris. C'est la seule façon d'atteindre ce bug. **Il a été
+  éprouvé contre l'ancien code** : il tombe bien dessus (`2026-09-06`) et
+  passe sur le nouveau. Un test écrit après coup qui ne tombe pas sur le
+  bug d'origine ne prouve rien.
+
 ## Ses consignes de travail, à tenir pour acquises
 
 - « Répond simplement à mon rythme » · « Arrete de répéter tout le temp les
@@ -1520,7 +1554,7 @@ l'heure est ferme comme le prix.
 
 ## Tests
 
-**Dix-huit suites Playwright, 447 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 453 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

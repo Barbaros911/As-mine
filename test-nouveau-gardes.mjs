@@ -71,15 +71,35 @@ check('et on dit pourquoi',
   (await p.locator('#refus').textContent()).includes('même endroit'),
   await p.locator('#refus').textContent());
 
-// --- Une heure déjà passée ---
+/* --- Une heure déjà passée ---
+   LE REFUS N'ATTEND PLUS LE CLIC (septembre 2026). Le bouton s'éteint dès
+   que l'heure choisie est passée, et l'écriteau dit pourquoi au même
+   moment : un bouton gris sans raison est le défaut qu'on répare le plus
+   souvent sur ce site.
+   La date « d'aujourd'hui » se compose à partir des champs LOCAUX, pas de
+   « toISOString » : celui-ci rend de l'UTC et se trompe d'un jour entre
+   minuit et 2 h du matin — le bug exact trouvé sur la page. */
 await p.fill('#arrivee',''); await p.type('#arrivee','argenteuil',{delay:10}); await p.waitForTimeout(800);
 await p.locator('#arriveeList [role=option]').first().click();
-const auj = new Date().toISOString().slice(0,10);
+const z2 = n => String(n).padStart(2,'0');
+const maintenant = new Date();
+const auj = maintenant.getFullYear()+'-'+z2(maintenant.getMonth()+1)+'-'+z2(maintenant.getDate());
 await p.fill('#date', auj); await p.fill('#heure','00:01');
+await p.waitForTimeout(400);
+check('une heure déjà passée éteint le bouton, sans attendre le clic',
+  await p.locator('#btnVoirPrix').isDisabled());
+check('et on dit pourquoi, au même moment',
+  !(await p.locator('#heurePassee').isHidden())
+  && (await p.locator('#heurePassee').textContent()).includes('déjà passée'),
+  await p.locator('#heurePassee').textContent());
+/* Le filet reste en place : si quelqu'un rallume le bouton — une page
+   laissée ouverte, une extension, un doigt sur la console — la
+   soumission refuse encore. */
+await p.evaluate(()=>{ document.getElementById('btnVoirPrix').disabled = false; });
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(600);
-check('une heure déjà passée est refusée', await p.locator('#ecran-accueil').isVisible());
-check('et on dit pourquoi',
-  (await p.locator('#refus').textContent()).includes('déjà passée'),
+check('et le filet de la soumission tient toujours',
+  await p.locator('#ecran-accueil').isVisible()
+  && (await p.locator('#refus').textContent()).includes('déjà passée'),
   await p.locator('#refus').textContent());
 
 // --- Plus de passagers que le plus grand véhicule ---
