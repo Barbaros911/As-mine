@@ -186,7 +186,7 @@ const p2 = await ctx2.newPage();
 p2.on('pageerror',e=>errs.push(e.message));
 await ctx2.addInitScript(([a,c])=>{
   localStorage.setItem('ela_bookings', JSON.stringify([a,c]));
-  localStorage.setItem('ela_exploitant', '04b72932f8ccb464');
+  localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, [course("ELA-26-09-0001",{paiement:"carte", paiementNom:"Carte bancaire"}),
     course("ELA-26-09-0002",{})]);
 await p2.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});

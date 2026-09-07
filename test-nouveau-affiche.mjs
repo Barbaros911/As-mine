@@ -38,7 +38,7 @@ const errs=[];
 const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 const p = await ctx.newPage();
 p.on('pageerror',e=>errs.push(e.message));
-await ctx.addInitScript(()=>{ localStorage.setItem('ela_exploitant','04b72932f8ccb464'); });
+await ctx.addInitScript(()=>{ localStorage.setItem('ela_exploitant','584ec46adb3a2408'); });
 await p.goto('http://127.0.0.1:8099/?exploitant=1',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(600);
 
@@ -228,7 +228,7 @@ const cr = (ref, statut, prov, total) => ({
 });
 await ctxR.addInitScript((j)=>{
   localStorage.setItem('ela_bookings', JSON.stringify(j));
-  localStorage.setItem('ela_exploitant','04b72932f8ccb464');
+  localStorage.setItem('ela_exploitant','584ec46adb3a2408');
 }, [cr("A1","realisee","Ibis CDG",70), cr("A2","realisee","Ibis CDG",100),
     cr("A3","attente","Ibis CDG",50), cr("A4","realisee","Mercure",60),
     cr("A5","realisee","",900)]);

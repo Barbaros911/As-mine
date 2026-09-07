@@ -142,6 +142,26 @@ check('un mot unique très long est tranché, pas effacé',
   court('Roissy-Charles-de-Gaulle-Terminal-2E', 20) === 'Roissy-Charles-de-Ga…',
   court('Roissy-Charles-de-Gaulle-Terminal-2E', 20));
 
+/* --- LE FICHIER À COLLER EST-IL LA MÊME FONCTION ? -------------------
+   « a-coller.ts » est la fonction en un seul morceau, pour être collée
+   depuis un téléphone dans l'éditeur de Supabase. C'est un fichier
+   FABRIQUÉ : s'il s'écarte de ses deux sources, on déploierait un code
+   que personne n'a testé — et on ne s'en apercevrait qu'au premier client
+   perdu, puisque tout continuerait de paraître normal ici. */
+import { readFileSync } from 'node:fs';
+import { assembler } from './supabase/functions/nouvelle-demande/assembler.mjs';
+const colle = readFileSync('supabase/functions/nouvelle-demande/a-coller.ts', 'utf8');
+check('le fichier à coller est à jour avec index.ts et message.js',
+  colle === assembler(),
+  colle === assembler() ? '' : 'relancer : node supabase/functions/nouvelle-demande/assembler.mjs');
+check('il ne dépend plus d\'aucun second fichier',
+  !/^\s*import\s/m.test(colle));
+/* Les paramètres nus deviennent des erreurs dans un .ts : sans annotation,
+   la fonction cesserait de se déployer pour une raison sans rapport avec
+   ce qu'elle fait. */
+check('ses fonctions de message portent leurs types',
+  /function corps\(bon: any, adresseAdmin: any\)/.test(colle));
+
 console.log('\n=== RÉUSSIS (' + ok.length + ') ==='); ok.forEach(x => console.log('  ✔ ' + x));
 if (ko.length) { console.log('\n=== ÉCHECS (' + ko.length + ') ==='); ko.forEach(x => console.log('  ✘ ' + x)); }
 console.log('\n--- Le message tel qu\'il arrive ---\n' + t + '\n\n' + m + '\n');

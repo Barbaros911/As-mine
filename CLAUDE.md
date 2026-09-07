@@ -417,7 +417,7 @@ illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
 en privé, au seul chauffeur retenu, depuis le bon. Les messages au client
 partent droit sur son numéro (`numeroWhatsApp`), jamais via le sélecteur.
 
-**Le mode exploitant est protégé par le code `Ela1234`** (`CODE_EXPLOITANT`, stocké
+**Le mode exploitant est protégé par le code `12345678`** (`CODE_EXPLOITANT`, stocké
 en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
 confirmation à distance, attribution du chauffeur et export du registre
 sont derrière. C'est une serrure, pas un coffre : le dire à Barbaros
@@ -849,9 +849,14 @@ la réservation ; les quatre véhicules proposés dès lors qu'ils sont assez
 grands ; français par défaut avec 5 autres langues au sélecteur ; mode
 exploitant via `?exploitant=1` ; diffusion anonymisée.
 
-**Pas décidé** : taux de commission réel · statut juridique et SIRET de
-Barbaros · s'il est lui-même chauffeur · volume visé · clientèle cible
-(particuliers / hôtels / entreprises) · budget · règle du temps d'attente.
+**Décidé en septembre 2026** : **il ne conduit pas, il place seulement**
+(« Je place seulement »). Elatransfer est donc une centrale de réservation,
+et le taux de commission se règle désormais **par chauffeur**, dans le
+carnet — il n'y a plus de taux global à trancher dans le code.
+
+**Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
+point bloquant** · volume visé · clientèle cible (particuliers / hôtels /
+entreprises) · budget · règle du temps d'attente.
 
 ## Feuille de route convenue
 
@@ -1155,11 +1160,11 @@ les hôtels**.
 1. **Les informations de l'éditeur** (voir ci-dessus) — le seul point qui
    rende le site non conforme aujourd'hui, et le seul que Claude ne peut
    pas produire.
-2. **La gestion des chauffeurs** : aujourd'hui un champ libre nom +
-   téléphone. En confiant des courses à des tiers, Asmine est une centrale
-   de réservation (Code des transports L3142-1) : elle doit pouvoir prouver
-   que chaque chauffeur a carte professionnelle, inscription au registre
-   VTC et assurance. Un carnet avec les dates d'expiration et une alerte.
+2. ~~La gestion des chauffeurs~~ — **FAIT** (septembre 2026). Carnet avec
+   les trois papiers, leurs dates d'expiration, l'alerte à 30 jours et
+   l'avertissement sur le bon au moment de l'attribution. Voir la section
+   dédiée. Reste à y verser les vraies fiches, ce que seul Barbaros peut
+   faire — il lui faut les copies des papiers de ses chauffeurs.
 3. **L'ALERTE À CHAQUE DEMANDE EST ÉCRITE, PAS ENCORE DÉPLOYÉE**
    (septembre 2026). `supabase/functions/nouvelle-demande/` et
    `NOTIFICATION.md`. Il ne manque que ce que Claude ne peut pas faire :
@@ -1254,10 +1259,32 @@ exécuter du code sans machine à tenir. Ne pas revenir sur ce choix sans
 un besoin que les fonctions ne couvrent pas.
 
 **Ce qui est écrit** : `supabase/functions/nouvelle-demande/` (la fonction
-et son message), `test-notification.mjs` (31 contrôles, sous Node, sans
+et son message), `test-notification.mjs` (34 contrôles, sous Node, sans
 réseau), `NOTIFICATION.md` (la marche à suivre).
 **Ce qui manque** : le déploiement, qui exige SON compte. Tant qu'il ne
 l'a pas fait, **le site se comporte exactement comme avant**.
+
+**IL TRAVAILLE DEPUIS UN TÉLÉPHONE — la marche à suivre en tient compte**
+(septembre 2026 : « je bosse depuis un tel »). L'ancienne étape 4 demandait
+`npm install -g supabase` et un terminal : autant dire qu'elle ne se ferait
+jamais. Tout passe maintenant par l'application Telegram et le navigateur —
+l'éditeur du tableau de bord Supabase déploie une fonction qu'on colle.
+- **`a-coller.ts` est la fonction en UN SEUL morceau**, parce qu'on ne colle
+  pas deux fichiers avec un pouce. Il est **fabriqué** par `assembler.mjs`,
+  jamais écrit à la main, et `test-notification.mjs` refait l'assemblage
+  pour le comparer : deux recettes finissent toujours par diverger, et ici
+  la divergence voudrait dire déployer un code que personne n'a testé.
+- **L'assembleur annote les paramètres en `any`, et ce n'est pas
+  cosmétique.** `message.js` est un `.js` : TypeScript n'y exige aucun
+  type. Recopié tel quel dans un `.ts`, chaque paramètre nu devient une
+  erreur « implicitly has an any type » et la fonction cesse de se déployer
+  pour une raison sans rapport avec ce qu'elle fait. Vérifié avec `tsc
+  --strict` : il ne reste que les globales de Deno, que `tsc` ne connaît
+  pas. Le compte de paramètres attendus est écrit dans l'assembleur — une
+  signature ajoutée sans annotation l'arrête au lieu de passer.
+- **Les noms des secrets s'écrivent exactement** : un secret mal nommé
+  n'est pas une erreur visible, la fonction croit simplement que le canal
+  n'est pas configuré.
 
 - **LA NOTIFICATION NE PEUT PAS FAIRE ÉCHOUER UNE RÉSERVATION.** Le
   webhook part APRÈS l'écriture de la ligne, détaché. Telegram en panne,
@@ -1442,6 +1469,252 @@ le moment où l'on perd une réservation.
   (390×844), le bouton est à 404–448 px et la pastille à 686–740, non
   affichée. **Toujours capturer à 844 px de haut.**
 
+## L'ESPACE EXPLOITANT EST DEVENU UN BACK-OFFICE
+
+Septembre 2026, sur sa maquette : « Fait dans ce style ». L'espace était une
+suite de blocs empilés sans hiérarchie — il l'a trouvé « bizarre », et il
+avait raison : rien ne disait ce qu'il fallait regarder en premier.
+
+- **UNE COLONNE À GAUCHE SUR ORDINATEUR, UNE RANGÉE DE PASTILLES SUR
+  TÉLÉPHONE, ET LE MÊME HTML.** Deux mises en page séparées voudraient dire
+  deux tableaux de bord à tenir, et le jour où l'un gagne un bouton l'autre
+  l'oublie. Bascule à 900 px.
+- **`body.espace`, PAS `body.exploitant`.** C'est le piège de cette
+  refonte : `exploitant` est posée AVANT le verrou. S'en servir aurait
+  affiché la colonne — nom, état du serveur, accès au registre — à qui
+  n'a pas encore le code. `espace` n'arrive que dans `ouvrirEspace()`. Un
+  contrôle le verrouille.
+- **`.page` est bridée à 520 px** — c'est une application de téléphone. Un
+  back-office dans 520 px n'en est plus un : la largeur n'est libérée que
+  sous `body.espace`, au-delà de 900 px, et le contenu reste capé à
+  1080 px.
+- **L'ORDRE DIT CE QUI COMPTE** : les quatre chiffres, « Coller une
+  demande », la liste des courses, puis les panneaux, puis l'affiche et le
+  serveur. L'affiche et le serveur se règlent une fois et ne se regardent
+  plus — ils étaient au-dessus de la liste des demandes en attente.
+- **RIEN N'EST DÉCORATIF, ET C'EST LA RÈGLE.** La maquette portait « 4,9/5
+  sur 128 avis » et une carte des chauffeurs en temps réel. Il n'a **aucun
+  avis** — une note inventée est une pratique commerciale trompeuse
+  (L132-2) — et **aucun chauffeur n'a d'application qui envoie sa
+  position**. Le panneau des avis existe, vide, et dit pourquoi ; la carte
+  est remplacée par « D'où viennent les clients », qui est du vrai. Un
+  chiffre décoratif sur un tableau de bord finit par servir à décider.
+- **`dessinerAdmin()` est appelée depuis `dessinerBord()`**, et reçoit le
+  registre déjà lu : deux lectures du `localStorage` pour un même dessin
+  finiraient par diverger.
+- **L'ÉCRAN D'ABORD, LE DESSIN ENSUITE.** `ouvrirEspace()` appelle
+  `ecran("ecran-bord")` **avant** `dessinerBord()` : la courbe est tracée à
+  la largeur RÉELLE de son panneau, et cette largeur vaut zéro tant que
+  l'écran est masqué — la courbe sortait plate. Elle est refaite au
+  redimensionnement pour la même raison.
+- **16 px réservés en haut de la courbe** : le chiffre s'écrit au-dessus de
+  son point, et le point le plus haut est celui du meilleur jour — sans
+  cette marge, c'est justement ce chiffre-là qui sort du cadre.
+- **Le camembert est UN cercle dont on décale le trait**
+  (`stroke-dasharray` sur un rayon de 15,9 pour une circonférence de 100) :
+  deux arcs dessinés séparément laissent une couture blanche à chaque
+  jonction.
+- **Sans référence, pas de pourcentage.** `variation()` dit le chiffre brut
+  quand la semaine précédente est à zéro : « +100 % » ne veut rien dire, et
+  le « −100 % » de la semaine d'après ferait peur pour rien.
+- **L'entrée allumée suit l'ÉCRAN, pas le clic** : on revient au tableau de
+  bord par le bouton « Retour » du registre, et « Registre » y serait resté
+  allumé.
+- « Affiche hôtel » et « Serveur » ne sont pas des écrans mais des blocs de
+  la page : on y descend. **Un contrôle vérifie que chaque `data-admin-vers`
+  vise un élément qui existe** — un lien qui ne mène nulle part est pire que
+  pas de lien.
+- `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
+  identifiants sont inchangés**, six suites les cliquent.
+
+## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
+
+Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
+écrit : « C'est pas grave invente comme les note et commentaire même faux
+sur la page public ». **Refusé, et c'est le seul point où on ne le suit
+pas.** Ce n'est pas de la prudence : publier des avis qu'on n'a pas reçus
+est une pratique commerciale trompeuse (L132-2 Code conso. — deux ans,
+300 000 €, portés à 10 % du chiffre d'affaires), et c'est **lui** qui est
+en première ligne, pas le site. Un concurrent n'a qu'un signalement à
+faire, et Google déréférence les pages d'avis fabriqués.
+**Ne pas rouvrir le sujet en croyant lui rendre service.**
+
+Ce qui a été fait à la place — la seule voie honnête, et elle marche :
+
+- **Un bouton « Demander un avis » sur chaque course RÉALISÉE** de la
+  liste du tableau de bord. Un appui, WhatsApp s'ouvre sur le numéro du
+  client avec un message de trois lignes.
+- **Sur les réalisées seulement.** On ne demande pas à quelqu'un ce qu'il
+  a pensé d'un trajet qu'il n'a pas encore fait.
+- **Le lien d'avis vit dans `localStorage` (`ela_lien_avis`), pas dans le
+  code.** C'est le sien, il peut le changer, et un identifiant de son
+  compte Google n'a rien à faire dans un dépôt public. Bloc « Demander des
+  avis » dans l'espace exploitant.
+- **Sans lien, RIEN NE PART.** Le message se terminerait dans le vide : on
+  emmène au champ et on le dit. Un contrôle vérifie qu'aucun WhatsApp ne
+  s'ouvre dans ce cas.
+- **La course garde `avisDemande`** et le bouton passe à « Avis demandé ».
+  Relancer un client qui a déjà répondu est la meilleure façon d'obtenir
+  un mauvais avis. Il reste cliquable — un client peut dire « oui oui » et
+  oublier.
+- **LE BON PORTE MAINTENANT `langue`.** La demande part des jours après la
+  course : écrire en français à quelqu'un qui a réservé en anglais, c'est
+  un message qu'il ne lira pas. Une course ancienne sans ce champ retombe
+  sur le français.
+- Le bouton est **en creux** (contour seul) : une course réalisée n'attend
+  plus personne, un second bouton plein y ferait deux actions qui crient.
+- **`.d-avis.fait`, pas `.d-avis.demande`** : `.demande` est déjà la classe
+  de la LIGNE entière, et la poser sur un bouton lui collerait la mise en
+  page d'une carte.
+
+## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
+
+Septembre 2026, à sa demande : « fait en sorte que je reçois la commande
+aussi sur la page admin ». Le dépôt sur le serveur existait déjà ; ce qui
+manquait, c'est que la demande **apparaisse pendant qu'il regarde**. Elle
+n'arrivait qu'à l'OUVERTURE de l'espace ou sur « Actualiser » — or un
+onglet laissé ouvert la nuit, c'est exactement la façon dont il travaille.
+
+- **On interroge toutes les 45 s, on n'« écoute » pas.** Une vraie liaison
+  permanente (realtime) demanderait une bibliothèque, un abonnement à
+  tenir et une reconnexion à écrire. 45 s suffisent pour une course qui
+  part dans une heure, et un appel raté est simplement suivi du suivant.
+- **On n'interroge JAMAIS dans le vide** : ni sans session — le serveur
+  refuse la lecture aux anonymes, et il DOIT la refuser — ni onglet en
+  arrière-plan, ni hors de l'espace de travail. Sinon c'est de la batterie
+  brûlée sur son téléphone. `ecouteUtile()` est le seul juge.
+- **Le retour sur l'onglet rattrape tout de suite**, sans attendre le tour
+  suivant : c'est le moment où il regarde.
+- **LA PREMIÈRE LECTURE NE SONNE PAS.** À l'ouverture, tout ce que le
+  serveur contient et que l'appareil n'a pas est « nouveau » : un téléphone
+  neuf ferait sonner cinquante courses vieilles de trois mois. Le drapeau
+  `premiereLecture` distingue le rattrapage de l'arrivée.
+- **Écriteau + bip.** Une ligne qui apparaît en silence au milieu d'une
+  liste ne se remarque pas. Le son passe par un oscillateur — aucun fichier
+  à charger — et il est **enveloppé** : un navigateur qui refuse l'audio ne
+  doit pas faire tomber la synchronisation avec lui.
+- **L'écriteau EMMÈNE aux demandes en attente et se retire** du même geste.
+  Il ne sert à rien s'il faut ensuite les chercher.
+- **SANS SESSION, RIEN N'ARRIVE, et ça se voit en haut du tableau de
+  bord** (`#bordHorsLigne`), pas seulement en petit dans le bloc du
+  serveur. C'est la différence entre voir ses clients et ne pas les voir —
+  le genre de chose qu'on ne découvre qu'en ratant une course.
+- `jugerNuage()` appelle `jugerReception()` : l'état du serveur décide de
+  ce qu'on affiche **et** de si l'on interroge. Les séparer, c'est se
+  retrouver un jour avec une pastille verte et aucune écoute.
+
+**PIÈGE DE TEST, PAS DE CODE** : `ctx.addInitScript` qui pose
+`ela_bookings` **se rejoue à CHAQUE chargement de page**. Dans la suite
+exploitant, le `goto` de la ré-entrée remettait le registre à son état
+initial — les contrôles sur une course réalisée tombaient après ce point
+sans que rien ne soit cassé. Les placer **avant** la sortie.
+
+## LE CARNET DE CHAUFFEURS ET LA FACTURE DE COMMISSION
+
+Septembre 2026, à sa demande : « Oui met en place et publie ». Les deux
+tiennent ensemble et découlent d'une chose qu'il a dite ce jour-là :
+**« Je place seulement »**.
+
+**BARBAROS NE CONDUIT PAS. C'EST ACQUIS, ne plus le lui redemander** — la
+question figurait dans « Pas décidé » depuis des mois. Il est donc une
+**centrale de réservation** (Code des transports L3142-1), pas un
+transporteur, et **il n'a pas encore de SIRET** : la micro-entreprise reste
+à créer sur `formalites.entreprises.gouv.fr`. Tant qu'elle n'existe pas, la
+fiche Google ne peut pas être vérifiée, les mentions légales restent
+incomplètes et aucune facture n'est valable. C'est le point bloquant du
+projet, et il ne dépend que de lui.
+
+### Le carnet (`#ecran-chauffeurs`)
+
+- **CE N'EST PAS UN RÉPERTOIRE, C'EST L'OBLIGATION DE L3142-1** : pouvoir
+  prouver, pour chaque chauffeur, sa carte professionnelle, son inscription
+  au registre VTC et son assurance.
+- **LA DATE COMPTE PLUS QUE LE NUMÉRO.** Un numéro de carte reste identique
+  le lendemain de son expiration : il ne prouve rien. Ce qu'on surveille,
+  c'est `carteFin`, `registreFin`, `assuranceFin`.
+- **UN PAPIER ABSENT VAUT UN PAPIER PÉRIMÉ** — dans les deux cas on ne peut
+  rien prouver. Les distinguer donnerait à « pas renseigné » un air
+  rassurant qu'il n'a pas. Les deux sont au rouge, un contrôle le verrouille.
+- **LE PIRE DES TROIS DÉCIDE** (`etatChauffeur`) : assurance périmée = fiche
+  rouge, même avec une carte à jour.
+- **30 jours d'avance** (`JOURS_ALERTE`), et le jour se compte **à minuit** :
+  un papier qui expire aujourd'hui vaut encore aujourd'hui.
+- **L'AVERTISSEMENT EST SUR LE BON**, à l'instant où l'on attribue la course
+  — c'est-à-dire à l'instant où l'on engage sa responsabilité. Trois
+  messages : hors carnet (orange), papier bloquant (rouge), tout en règle
+  (vert). Un quatrième état — ne rien dire — se confondrait avec un contrôle
+  qui n'a pas eu lieu.
+- **ON RETROUVE LE CHAUFFEUR PAR SON NUMÉRO D'ABORD, PAR SON NOM ENSUITE.**
+  Le nom est saisi à la main depuis des mois — « Mehmet », « mehmet »,
+  « Mehmet Y. » — un numéro normalisé par `telWa()` ne varie pas. Un test
+  l'éprouve avec un nom volontairement mal écrit.
+- Le panneau « Papiers à surveiller » du tableau de bord **ne montre que ce
+  qui cloche** : un carnet à jour n'affiche rien, et sa réapparition est
+  elle-même l'alerte.
+- **L'identifiant `id` ne change JAMAIS** : le nom et le numéro se corrigent,
+  les factures déjà émises pointent dessus.
+
+### La facture (`#ecran-facture`)
+
+- **L'ARGENT NE PASSE JAMAIS PAR ELATRANSFER** — le client paie le chauffeur.
+  La commission ne s'encaisse donc pas toute seule, elle se **facture**.
+  C'était le trou du modèle depuis le début.
+- **PAS DE SIRET, PAS DE FACTURE.** Sans nom, SIRET et adresse de l'émetteur,
+  le document n'en est pas une (art. L441-9 Code de commerce) : on refuse de
+  l'éditer plutôt que d'en envoyer une fausse à un tiers. Même schéma que le
+  lien d'avis — on bloque et on emmène au champ.
+- **LE RANG NE RECULE JAMAIS** (`ela_rang_facture`, `F-AAAA-NNNN`). Il est
+  consommé **à l'émission**, jamais à l'aperçu : regarder ce qu'on va
+  facturer ne doit pas brûler un numéro qui manquerait ensuite. À la
+  restauration d'une sauvegarde, on garde **le plus grand des deux rangs** —
+  reprendre celui du fichier réémettrait des numéros déjà utilisés.
+- **UNE COURSE N'EST FACTURÉE QU'UNE FOIS** : elle porte `factureNum` et sort
+  du lot. Un doublon ne se voit que six mois plus tard, chez le comptable.
+- **SEULES LES `realisee` SONT FACTURABLES** — une course confirmée est une
+  promesse, pas un encaissement. Même règle que le registre.
+- **LA FACTURE EST FIGÉE À L'ÉMISSION** : nom, adresse et SIRET des deux
+  parties sont **recopiés dedans**. Le chauffeur peut déménager ; un document
+  comptable qui se réécrit tout seul ne prouve plus rien. Un test change
+  l'adresse après coup et rouvre l'ancienne facture.
+- **La TVA est ÉTEINTE par défaut** — en micro-entreprise on démarre en
+  franchise, et réclamer une TVA qu'on ne reverse pas est une facture fausse.
+  Mention « TVA non applicable, art. 293 B du CGI ». À noter : **la
+  commission est à 20 %, pas à 10 %** — le taux réduit est celui du
+  transport, pas celui de l'intermédiation.
+- Mentions obligatoires portées : prestation, période, paiement à réception,
+  absence d'escompte, pénalités de retard et **indemnité forfaitaire de 40 €**
+  (L441-10 et D441-5).
+- **À l'impression, seule la facture sort** — même règle que l'affiche, et
+  elles ne peuvent pas se disputer le papier : l'affiche vit dans le tableau
+  de bord, la facture sur son propre écran, et un écran non affiché est en
+  `display:none`, qu'aucune règle de visibilité ne ramène.
+
+### La sauvegarde a changé de format
+
+Elle emporte désormais **courses, chauffeurs, factures, rang et entreprise**
+dans un objet `{format:"elatransfer-1", …}`. Une sauvegarde qui ne rendrait
+que les courses laisserait Barbaros sans preuve que ses chauffeurs étaient
+en règle, et referait partir la numérotation à 1.
+**L'ANCIEN FORMAT RESTE LU** : un simple tableau de courses se restaure
+comme avant. Le carnet et les factures s'AJOUTENT, ils n'écrasent jamais.
+
+### LE DÉFAUT DE POSITIONNEMENT QUE CE TRAVAIL A RÉVÉLÉ
+
+`::-webkit-calendar-picker-indicator` est étiré en `absolute; inset:0` pour
+qu'un appui n'importe où dans la case ouvre le sélecteur. Il se cale donc
+sur le premier ancêtre **positionné** — et la règle ne posait ce repère que
+sur `.duo > .champ`, les deux champs de l'accueil, **les seuls champs de
+date qui existaient alors**.
+Le premier champ de date posé hors d'un `.duo` n'a plus trouvé de repère :
+l'indicateur est remonté jusqu'à la page entière et a recouvert tout, en
+transparent. Le bouton « Enregistrer ce chauffeur » était devenu
+**incliquable, et rien ne se voyait à l'écran**.
+`position:relative` est maintenant sur **tous** les `.champ`. C'est la
+deuxième fois que ce projet se fait avoir par un repère de positionnement
+supposé — la première était le bouton « me localiser » de l'ancien site.
+**Une règle qui vise un cas particulier survit au jour où le cas se
+généralise, sans rien casser de visible.**
+
 ## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
 
 Septembre 2026, vu par Barbaros : « il faut recentrer ces trois choix ».
@@ -1470,6 +1743,94 @@ de vide à droite**.
   contient des bons, pas des véhicules, et un papier de 21 px reste net là
   où une voiture de 21 px devient une tache. **Cinquième refus d'une
   voiture dessinée** — ne plus en proposer.
+
+## L'ARRIVÉE — LA PROMESSE, LE NUMÉRO, ET LA PANCARTE À 10 €
+
+Septembre 2026, quatre demandes qui se suivent et qui tiennent ensemble.
+
+**LA LIGNE SOUS LE BOUTON NE PARLE PLUS D'ANNULATION.** Sa raison, et elle est
+juste : « le client ne paie que le chauffeur ». Rien n'est encaissé par le
+site, donc annuler ne coûte rien de toute façon — et une promesse qui ne coûte
+rien ne rassure personne. Elle dit maintenant ce qui se passe après le clic :
+**« Disponibilité confirmée par WhatsApp ou SMS »**. Le barème d'annulation
+reste dans les CGV, là où il engage. La clé `annulation` est devenue `dispo` :
+**un nom de clé qui décrit autre chose que son contenu finit par ramener
+l'ancien texte**. C'est la deuxième fois que cet argument est retiré de la
+vitrine — il était déjà parti de l'ancien site et il est revenu à la refonte —
+d'où un test dans les deux langues.
+
+**LA PROMESSE D'ARRIVÉE** (`.promesse`, entre le formulaire et « Nos
+engagements »). Le client qui atterrit ne se demande pas combien coûte la
+course : il se demande ce qui se passe si son vol a deux heures de retard.
+- **Sur un aplat d'accent, pas dans une carte blanche.** Les engagements et les
+  services sont déjà des cartes blanches ; une cinquième se serait fondue dans
+  la série au lieu de se lire comme une promesse.
+- **La classe `.arrivee` était déjà prise** par les trois lignes de trajet
+  (`trajet-ligne arrivee`) : la règle les aurait toutes repassées en flex sur
+  fond vert, dans le bon comme dans le récapitulatif. Attrapé par le sélecteur
+  strict de Playwright, qui a rendu quatre éléments au lieu d'un.
+- Le titre et le texte sont **deux clés** : le gras se lit seul, en diagonale.
+
+**LE MÊME CHAMP PREND LE NUMÉRO DE VOL OU DE TRAIN.** La promesse parlait du
+train ; il fallait un endroit où l'écrire.
+- **Un seul champ, pas deux** : c'est le LIBELLÉ qui change (`titreVol`,
+  `ph_train`, `train_aide_*`, `train_court`). Deux champs feraient deux fois le
+  code, deux fois les tests et deux lignes à tenir dans le bon.
+- **ON NE LIT PAS LE MOT « GARE » DANS L'ADRESSE.** *12 rue de la Gare, Melun*
+  n'est pas une gare, et le champ s'ouvrirait chez des gens qui prennent la
+  voiture en bas de chez eux. `estGare()` lit le **type du lieu**
+  (`railway=station`), conservé sur l'item sous `osm`. Les bouches de métro et
+  les arrêts de tram sont dans la même catégorie pour l'icône : `PAS_UN_TRAIN`
+  les écarte, on n'y prend pas de train.
+- **On réécrit l'attribut `data-t`, pas seulement le texte** — sinon un
+  changement de langue rappelle « Numéro de vol » sur un départ en gare.
+- La course porte **`train: true/false`** : « 6201 » et « AF1234 » ne se
+  distinguent pas à la relecture, et le bon de l'exploitant annoncerait « Vol »
+  sur un TGV.
+
+**LA PANCARTE EST UNE OPTION À 10 €** (`OPTION_PANCARTE_EUR`). Elle existait,
+gratuite et automatique, et seulement en aéroport.
+- **Éteinte à l'ouverture, toujours.** Une option cochée d'avance qui gonfle le
+  total est un **paiement supplémentaire non consenti** (L224-76 Code conso.).
+- **Elle est à DEUX endroits pour UN seul état** : sous la liste des véhicules
+  (`.veh-option`, là où l'on décide de ce qu'on achète, à sa demande) et sur le
+  récapitulatif (`.bloc-pancarte`, là où le client tape son nom et le voit
+  s'écrire sur la pancarte). Les deux sont pilotés par la même fonction, en
+  visant des **classes** (`.opt-pancarte`, `.opt-sous`, `.opt-prix`,
+  `.opt-attente`) : deux commandes pour un seul état se désaccordent au premier
+  oubli.
+- **`jugerPancarte()` est appelée depuis `dessinerGammes()`** : l'écran des prix
+  s'ouvre avant le récapitulatif, et jugée seulement là-bas l'option resterait
+  cachée à l'endroit même où on la choisit.
+- **L'aperçu n'apparaît qu'une fois l'option prise.** Montré d'emblée, il
+  promettrait gratuitement ce qu'on vend.
+- **LES 10 € S'AJOUTENT EN DERNIER**, après l'arrondi et le plancher. Entrés
+  avant l'arrondi ils disparaîtraient une fois sur deux : 46 + 10 = 56 redescend
+  à 60, et le client paierait **14 €** une option annoncée 10.
+- **Pas de majoration nuit dessus** : service à prix fixe. +20 % ferait payer
+  12 € une pancarte affichée 10.
+- **Une option qu'on ne voit plus ne se paie plus.** Changer son départ pour une
+  adresse ordinaire reprend les 10 € — sinon il paierait un service qu'on ne
+  peut plus lui rendre, sans même voir la ligne.
+- **La ligne du message WhatsApp est AVANT le prix**, comme le règlement : le
+  lecteur de demandes retient le **dernier** montant en euros comme prix de la
+  course. Après le prix, la course serait recréée à 10 € au lieu de 80.
+- **LES CGV ONT SUIVI, DANS LES DEUX LANGUES.** Elles promettaient la pancarte
+  gratuitement à tout le monde (article 8) : la laisser telle quelle en
+  facturant 10 € donnait au client un argument contre nous, le prix étant ferme
+  donc opposable. L'article 4 décrit l'option et son montant, l'article 8 dit
+  qu'elle est souscrite. **Toucher au prix veut dire toucher aux CGV.**
+- L'attente offerte est dite **« après l'atterrissage »** (60 min en aéroport,
+  30 min en gare) — exactement ce que disent les CGV.
+- `.option` est entrée dans les `PROTEGES` de la pastille WhatsApp : mesuré,
+  elle recouvrait le « +10,00 € ».
+
+**UN CONTRÔLE TROP LARGE FINIT PAR INTERDIRE DES MOTS AU RESTE DE LA PAGE.**
+`test-nouveau-paiement` interdisait « terminal » sur **tout** le récapitulatif,
+pour empêcher qu'on justifie la question du règlement par le terminal de carte
+du chauffeur. Il est tombé le jour où l'option a dit « devant la porte du
+terminal » — un terminal d'aéroport. Il porte maintenant sur le seul
+`#blocPaiement`, qui est son sujet.
 
 ## LE PRÉAVIS MINIMUM AVANT UN DÉPART — 15 MINUTES
 
@@ -1627,15 +1988,15 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 483 contrôles**, à relancer après **toute**
+**Vingt suites Playwright, 575 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
-`node test-notification.mjs` (31 contrôles) éprouve le texte de l'alerte
+`node test-notification.mjs` (34 contrôles) éprouve le texte de l'alerte
 de la fonction Supabase — c'est la seule partie de cette fonction qui se
 vérifie sans la déployer, et c'est celle qui compte.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché dix-huit fichiers pour zéro gain.
+touché dix-neuf fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1647,6 +2008,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
+         test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
          test-nouveau-bascule.mjs; do
   node $f || break
 done
@@ -1660,6 +2022,14 @@ description (leur ORDRE — le métier avant les aéroports), l'absence de
 **chaque fichier du `SHELL` du service worker existe** (`addAll` est tout ou
 rien : un fichier absent et il ne s'installe plus, sans message), et que les
 CGV décrivent la **grille réellement appliquée**.
+
+**UN TEST QUI FIGE UN COMPTE SE MET EN TRAVERS DE LA PREMIÈRE ÉVOLUTION
+LÉGITIME.** Le contrôle du CSV s'intitulait « il est séparé par des
+points-virgules » et comptait **15 colonnes en dur** : il est tombé le jour
+où l'export a gagné « Facture commission », alors que rien n'était cassé.
+Il vérifie maintenant son vrai sujet — un `;` présent, aucune `,`. Même
+leçon que la barre du bas figée sur quatre onglets, et que les trois tests
+qui visaient `p.font-mono` au lieu de `.veh-prix`.
 
 **UN TEST QUI RÉIMPLÉMENTE CE QU'IL VÉRIFIE NE VÉRIFIE RIEN.** Écrit après
 avoir failli garder un contrôle d'arrondi qui recalculait la formule dans

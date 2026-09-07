@@ -286,7 +286,18 @@ img{display:block;max-width:100%;}
 .champ input[type="time"]::-webkit-calendar-picker-indicator{
   position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
 .champ input[type="date"],.champ input[type="time"]{min-width:0;}
-.duo > .champ{position:relative;}
+/* LE REPÈRE EST SUR *TOUS* LES CHAMPS, ET C'EST UN VRAI DÉFAUT ÉVITÉ.
+   L'indicateur de calendrier ci-dessus est étiré en « absolute; inset:0 » ;
+   il se cale donc sur le premier ancêtre POSITIONNÉ. La règle ne visait que
+   « .duo > .champ » — les deux champs de l'accueil, les seuls champs de date
+   qui existaient alors. Le jour où une date est posée hors d'un « .duo »,
+   l'indicateur ne trouve plus de repère, remonte jusqu'à la page entière et
+   recouvre tout : un rectangle transparent qui avale les clics.
+   Attrapé par la suite du carnet — le bouton « Enregistrer » était devenu
+   incliquable, mangé par le champ « Registre VTC — expire le ». Rien ne se
+   voyait à l'écran : c'est le genre de panne qu'un client signale par
+   « ça ne marche pas », sans plus. */
+.champ{position:relative;}
 
 /* ---------- LES ÉCRANS ---------- */
 .ecran{display:none;}
@@ -382,9 +393,17 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 
 .compteurs{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;
   margin:14px 20px 0;}
+/* LA COULEUR EST OBLIGATOIRE SUR UN BOUTON, ET CE N'EST PAS DU CONFORT.
+   Un « button » sans « color » prend la couleur par défaut du système : NOIR
+   sur un navigateur d'ordinateur, BLEU IOS sur l'iPhone de Barbaros. Les
+   trois chiffres du tableau de bord s'affichaient donc en bleu vif chez lui
+   et en noir dans toutes les suites de tests — un défaut qu'aucun contrôle
+   ne pouvait voir, puisque Chromium ne le reproduit pas.
+   Un contrôle le verrouille désormais : aucun bouton de la page ne doit
+   calculer « rgb(0,0,0) », le noir pur que la palette n'utilise jamais. */
 .compteur{background:var(--carte);border:1px solid var(--filet);
   border-radius:14px;padding:12px 8px;font-family:inherit;cursor:pointer;
-  text-align:center;}
+  text-align:center;color:var(--encre);}
 .compteur.actif{border-color:var(--encre);box-shadow:0 0 0 1.5px var(--encre);}
 .chiffre{display:block;font-size:24px;font-weight:800;letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;}
@@ -418,6 +437,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-appeler{background:rgba(255,255,255,.16);color:#fff;}
 .demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
 .d-clore{background:#1F6F6B;color:#fff;}
+/* La demande d'avis n'est PAS l'action principale d'une course réalisée :
+   elle est en creux, contour seul. Un second bouton plein ferait deux
+   actions qui crient sur une ligne qui n'attend plus personne. */
+.d-avis{background:transparent;color:var(--accent-encre);
+  box-shadow:inset 0 0 0 1.5px var(--accent);}
+.d-avis.fait{color:var(--gris);box-shadow:inset 0 0 0 1.5px var(--filet);}
 .bouton.vert{background:#1F6F6B;color:#fff;}
 .bouton.vert svg path{stroke:#fff;}
 #nuageActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
@@ -537,6 +562,15 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   body.exploitant .affiche-titre{font-size:13pt;}
   body.exploitant .affiche-tel{font-size:18pt;}
   body.exploitant .affiche-mode{font-size:11pt;}
+  /* LA FACTURE SORT SEULE, EXACTEMENT COMME L'AFFICHE, et les deux ne
+     peuvent pas se disputer le papier : l'affiche vit dans le tableau de
+     bord, la facture sur son propre écran, et un écran non affiché est en
+     « display:none » — aucune règle de visibilité ne le ramène. */
+  body.exploitant .facture, body.exploitant .facture *{visibility:visible!important;}
+  body.exploitant .facture{position:absolute;left:0;top:0;width:100%;
+    margin:0;border:0;border-radius:0;padding:14mm 12mm;font-size:10pt;}
+  body.exploitant .facture .f-table{font-size:9pt;}
+  body.exploitant .facture .f-mentions{font-size:7.5pt;}
 }
 .vide{margin:26px 20px 0;padding:26px 18px;text-align:center;
   background:var(--carte);border:1px dashed var(--filet);border-radius:16px;}
@@ -740,6 +774,268 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .promesse b{display:block;margin-bottom:3px;font-size:13.5px;
   color:var(--accent-encre);}
 
+
+/* =====================================================================
+   L'ESPACE DE TRAVAIL DE L'EXPLOITANT
+   ---------------------------------------------------------------------
+   Sur ORDINATEUR c'est un back-office : une colonne sombre à gauche, des
+   chiffres en haut, des panneaux en dessous. Sur TÉLÉPHONE la colonne
+   devient une rangée de pastilles qui défile, et tout se met sur une
+   seule colonne — Barbaros travaille depuis son téléphone, une grille de
+   quatre colonnes y devient une pile illisible.
+   MÊME HTML DANS LES DEUX CAS. Deux mises en page séparées voudraient
+   dire deux tableaux de bord à tenir à jour, et le jour où l'un gagne un
+   bouton l'autre l'oublie.
+   ===================================================================== */
+.admin-nav{display:none;}
+body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
+  padding:calc(10px + env(safe-area-inset-top)) 0 2px;}
+.admin-marque{display:none;}
+.admin-profil{display:flex;align-items:center;gap:10px;padding:0 20px 11px;}
+.admin-ava{flex:none;width:34px;height:34px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
+.admin-qui b{display:block;font-size:13.5px;font-weight:700;line-height:1.2;}
+/* L'ÉTAT DIT LA VÉRITÉ SUR LE SERVEUR, pas « En ligne » de décoration :
+   c'est la seule chose qui distingue « je vois toutes mes courses » de
+   « je ne vois que celles de ce téléphone ». */
+.admin-etat{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;
+  color:rgba(255,255,255,.62);margin-top:2px;}
+.admin-point{width:6px;height:6px;border-radius:50%;background:#8a97a3;}
+.admin-etat.ok .admin-point{background:var(--accent-vif);}
+.admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;
+  scrollbar-width:none;}
+.admin-liens::-webkit-scrollbar{display:none;}
+.admin-lien{flex:none;display:flex;align-items:center;gap:7px;padding:9px 13px;
+  border-radius:11px;border:1px solid rgba(255,255,255,.16);background:transparent;
+  color:rgba(255,255,255,.82);font:inherit;font-size:12.5px;font-weight:600;
+  cursor:pointer;white-space:nowrap;}
+.admin-lien svg{width:15px;height:15px;flex:none;}
+.admin-lien.actif{background:var(--accent);border-color:var(--accent);color:#fff;}
+.admin-aide{display:none;}
+
+/* ---------- CE QUI ARRIVE, ET CE QUI N'ARRIVE PAS ---------- */
+/* L'accent, pas le rouge : une demande qui vient d'arriver est une bonne
+   nouvelle, et le rouge du tableau de bord ne veut dire qu'une chose —
+   quelqu'un attend une réponse depuis un moment. La ligne rouge de la
+   liste prend le relais toute seule. */
+.arrivee-avis{display:block;width:calc(100% - 40px);margin:14px 20px 0;
+  padding:12px 14px;border:0;border-radius:13px;background:var(--accent);
+  color:#fff;font:inherit;font-size:13px;font-weight:700;text-align:left;
+  cursor:pointer;}
+.hors-ligne{margin:14px 20px 0;padding:13px 14px;border-radius:13px;
+  background:#fbe9e9;border:1px solid #f0cfcf;}
+.hors-ligne p{margin:0;font-size:12.5px;line-height:1.45;color:#8f2220;}
+.hors-ligne .bouton-fantome{margin-top:10px;min-height:40px;font-size:12.5px;}
+
+/* ---------- LE BANDEAU DU HAUT ---------- */
+.admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:14px;margin:18px 20px 0;}
+.admin-bonjour{margin:0;font-size:20px;font-weight:800;letter-spacing:-.022em;}
+.admin-sous{margin:3px 0 0;font-size:12.5px;color:var(--gris);}
+.admin-date{flex:none;font-size:11.5px;font-weight:600;color:var(--gris);
+  border:1px solid var(--filet);border-radius:10px;padding:8px 11px;
+  background:var(--carte);white-space:nowrap;}
+
+/* ---------- LES QUATRE CHIFFRES ---------- */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 20px 0;}
+.kpi{background:var(--carte);border:1px solid var(--filet);border-radius:15px;
+  padding:13px;display:flex;gap:10px;align-items:flex-start;}
+.kpi-ico{flex:none;width:33px;height:33px;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;}
+.kpi-ico svg{width:17px;height:17px;}
+.kpi-corps{min-width:0;}
+.kpi-lab{display:block;font-size:10.5px;color:var(--gris);line-height:1.3;}
+.kpi-val{display:block;font-size:21px;font-weight:800;letter-spacing:-.03em;
+  margin-top:3px;color:var(--encre);font-variant-numeric:tabular-nums;}
+/* La comparaison est en gris par défaut : une variation n'est ni une bonne
+   ni une mauvaise nouvelle tant qu'on ne sait pas de quoi elle parle. */
+.kpi-var{display:block;font-size:10.5px;font-weight:600;margin-top:2px;
+  color:var(--gris);}
+.kpi-var.hausse{color:var(--accent);}
+.kpi-var.baisse{color:#C9302F;}
+
+/* ---------- LES PANNEAUX ---------- */
+.panneaux{margin:14px 20px 0;display:grid;gap:12px;}
+.panneau{background:var(--carte);border:1px solid var(--filet);
+  border-radius:16px;padding:14px;}
+.panneau-tete{display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:12px;}
+.panneau-titre{font-size:14px;font-weight:800;letter-spacing:-.012em;}
+.panneau-vide{font-size:12px;color:var(--gris);padding:6px 0 2px;}
+
+/* La courbe : dessinée à la main en SVG. Une bibliothèque de graphiques
+   pèse plus lourd que toute la page et ne dessine rien qu'on ne sache
+   faire avec une ligne et sept points. */
+.courbe{width:100%;height:132px;display:block;}
+.courbe-jours{display:flex;justify-content:space-between;margin-top:6px;
+  font-size:9.5px;color:var(--gris);}
+
+/* Le camembert est un cercle unique dont on anime le trait : quatre arcs
+   dessinés séparément laissent des coutures blanches entre les parts. */
+.donut-rangee{display:flex;align-items:center;gap:14px;}
+.donut{flex:none;width:104px;height:104px;}
+.legende{flex:1;min-width:0;}
+.legende-l{display:flex;align-items:center;gap:7px;font-size:11.5px;
+  margin-bottom:6px;}
+.legende-l i{flex:none;width:8px;height:8px;border-radius:50%;}
+.legende-l span{flex:1;color:var(--gris);}
+.legende-l b{font-weight:700;font-variant-numeric:tabular-nums;}
+
+.barre-l{margin-bottom:11px;}
+.barre-l:last-child{margin-bottom:0;}
+.barre-h{display:flex;justify-content:space-between;font-size:11.5px;
+  margin-bottom:5px;}
+.barre-h span{color:var(--gris);}
+.barre-h b{font-weight:700;font-variant-numeric:tabular-nums;}
+.barre-f{height:6px;border-radius:3px;background:var(--fond);overflow:hidden;}
+.barre-f i{display:block;height:100%;border-radius:3px;}
+
+/* Le tableau des dernières réservations. Sur téléphone il défile
+   horizontalement plutôt que de se comprimer : une colonne écrasée à trois
+   caractères ne se lit pas, alors qu'un tableau qui glisse se lit. */
+.tableau-cadre{overflow-x:auto;margin:0 -14px;padding:0 14px;}
+.tableau{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;}
+.tableau th{text-align:left;font-size:10px;font-weight:700;color:var(--gris);
+  letter-spacing:.06em;text-transform:uppercase;padding:0 12px 8px 0;}
+.tableau td{padding:9px 12px 9px 0;border-top:1px solid var(--filet);}
+.tableau tr td:last-child, .tableau tr th:last-child{padding-right:0;}
+.tableau .t-ref{font-weight:700;color:var(--gris);font-variant-numeric:tabular-nums;}
+.tableau .t-prix{font-weight:700;text-align:right;font-variant-numeric:tabular-nums;}
+.etat-pastille{display:inline-block;padding:3px 8px;border-radius:20px;
+  font-size:10px;font-weight:700;}
+.etat-attente{background:#fbe9e9;color:#C9302F;}
+.etat-confirmee{background:var(--accent-clair);color:var(--accent-encre);}
+.etat-realisee{background:#eaeef0;color:var(--gris);}
+.etat-refusee{background:#eaeef0;color:var(--gris);}
+/* L'orange n'existe QUE pour les papiers : « il va falloir relancer », qui
+   n'est ni le rouge d'une demande en attente ni le gris de ce qui est fini.
+   Aucune course ne le porte — sinon il rentrerait en concurrence avec les
+   trois degrés du tableau de bord. */
+.etat-bientot{background:#fbf1e4;color:#8a5a12;}
+
+/* =====================================================================
+   LE CARNET DE CHAUFFEURS
+   ---------------------------------------------------------------------
+   TROIS ÉTATS, ET LE PIRE EST LE PLUS VISIBLE. Un papier périmé n'est pas
+   un détail administratif : confier une course à un chauffeur qui n'est
+   plus en règle, c'est l'exploitant qui répond (Code des transports
+   L3142-1). Le rouge dit « ne lui donne pas de course », l'orange « il
+   faut le relancer », et rien du tout veut dire que tout va bien — on ne
+   décore pas ce qui n'appelle aucun geste.
+   ===================================================================== */
+.ch-carte{display:block;width:calc(100% - 40px);margin:11px 20px 0;
+  background:var(--carte);border:1px solid var(--filet);border-radius:16px;
+  padding:13px 14px;text-align:left;font-family:inherit;cursor:pointer;}
+.ch-carte.perime{border-color:#C9302F;box-shadow:0 0 0 1.5px #C9302F;}
+.ch-carte.bientot{border-color:#C98A2F;box-shadow:0 0 0 1.5px #C98A2F;}
+.ch-haut{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ch-nom{font-size:14.5px;font-weight:700;letter-spacing:-.01em;}
+.ch-tel{font-size:12px;color:var(--gris);font-variant-numeric:tabular-nums;}
+.ch-papiers{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.ch-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
+  background:#eaeef0;color:var(--gris);}
+.ch-badge.ok{background:var(--accent-clair);color:var(--accent-encre);}
+.ch-badge.bientot{background:#fbf1e4;color:#8a5a12;}
+.ch-badge.perime{background:#fbe9e9;color:#C9302F;}
+.ch-vide-papiers{margin-top:8px;font-size:11.5px;color:#C9302F;font-weight:600;}
+
+/* L'avertissement du bon : il apparaît au moment où l'on attribue la
+   course, c'est-à-dire au moment où l'on engage sa responsabilité. Le
+   mettre ailleurs reviendrait à le mettre nulle part. */
+.ch-alerte{margin:0 0 12px;padding:11px 13px;border-radius:12px;
+  font-size:12.5px;line-height:1.45;}
+.ch-alerte.rouge{background:#fbe9e9;border:1px solid #f0cfcf;color:#8f2220;}
+.ch-alerte.orange{background:#fbf1e4;border:1px solid #eedcc2;color:#7a4f0e;}
+.ch-alerte.vert{background:var(--accent-clair);border:1px solid #cfe4e1;
+  color:var(--accent-encre);}
+.ch-alerte b{display:block;margin-bottom:2px;}
+
+/* =====================================================================
+   LA FACTURE DE COMMISSION
+   ---------------------------------------------------------------------
+   C'est un DOCUMENT COMPTABLE, pas un récapitulatif : il part chez un
+   tiers, il sera relu par un comptable et peut être demandé par
+   l'administration. D'où la mise en page sobre, en noir sur blanc, qui
+   s'imprime telle quelle — les couleurs de la marque n'ont rien à y faire.
+   ===================================================================== */
+.facture{background:#fff;color:#111;border:1px solid var(--filet);
+  border-radius:14px;padding:20px 18px;margin-top:14px;
+  font-size:12px;line-height:1.5;}
+.f-tete{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:14px;border-bottom:2px solid #111;padding-bottom:12px;}
+.f-titre{font-size:17px;font-weight:800;letter-spacing:-.02em;margin:0;}
+.f-num{font-size:11px;color:#555;margin-top:3px;font-variant-numeric:tabular-nums;}
+.f-parties{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 6px;}
+.f-partie{flex:1 1 40%;min-width:0;}
+.f-partie h4{margin:0 0 4px;font-size:9.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:#666;}
+.f-partie p{margin:0;font-size:11.5px;white-space:pre-line;}
+.f-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px;}
+.f-table th{text-align:left;font-size:9px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:#666;border-bottom:1px solid #999;
+  padding:0 6px 5px 0;}
+.f-table td{padding:6px 6px 6px 0;border-bottom:1px solid #e3e3e3;
+  vertical-align:top;}
+.f-table .num{text-align:right;font-variant-numeric:tabular-nums;
+  white-space:nowrap;}
+.f-totaux{margin-top:12px;margin-left:auto;width:min(260px,100%);}
+.f-ligne{display:flex;justify-content:space-between;gap:12px;padding:4px 0;
+  font-size:11.5px;}
+.f-ligne.gros{border-top:2px solid #111;margin-top:5px;padding-top:8px;
+  font-size:14px;font-weight:800;}
+.f-mentions{margin-top:16px;padding-top:12px;border-top:1px solid #e3e3e3;
+  font-size:9.5px;line-height:1.55;color:#555;white-space:pre-line;}
+
+/* ---------- ORDINATEUR : la colonne passe à gauche ---------- */
+@media (min-width:900px){
+  body.espace .entete{display:none;}
+  body.espace .admin-nav{position:fixed;left:0;top:0;bottom:0;width:252px;
+    padding:22px 0 18px;overflow-y:auto;z-index:30;
+    display:flex;flex-direction:column;}
+  body.espace .admin-marque{display:flex;flex-direction:column;
+    align-items:center;gap:2px;padding:0 20px 18px;}
+  body.espace .admin-marque .logo-nom{font-size:19px;}
+  body.espace .admin-marque .logo-sous{font-size:7px;}
+  body.espace .admin-profil{border-top:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid rgba(255,255,255,.1);padding:14px 20px;}
+  body.espace .admin-liens{display:block;overflow:visible;padding:12px;}
+  body.espace .admin-lien{width:100%;margin-bottom:3px;border:0;
+    border-radius:10px;padding:10px 12px;font-size:13px;}
+  body.espace .admin-aide{display:block;margin:auto 12px 0;padding:13px;
+    border-radius:13px;background:rgba(255,255,255,.06);}
+  body.espace .admin-aide b{display:block;font-size:12.5px;font-weight:700;}
+  body.espace .admin-aide span{display:block;font-size:11px;
+    color:rgba(255,255,255,.6);margin-top:2px;}
+  body.espace .admin-aide .bouton{margin-top:10px;min-height:38px;
+    font-size:12.5px;}
+  /* LA PAGE EST BRIDÉE À 520 px POUR LE CLIENT — c'est une application de
+     téléphone. Un back-office dans 520 px n'est plus un back-office : on
+     libère la largeur ici, et ici seulement. Le contenu garde une limite,
+     sinon un tableau de six colonnes s'étalerait sur 1 600 px et l'œil
+     perdrait la ligne entre le départ et le prix. */
+  body.espace .page{max-width:none;margin:0;padding-left:252px;}
+  body.espace .ecran{max-width:1080px;}
+  body.espace .admin-tete{margin:26px 28px 0;}
+  body.espace .admin-bonjour{font-size:23px;}
+  body.espace .kpis{grid-template-columns:repeat(4,1fr);gap:14px;
+    margin:18px 28px 0;}
+  body.espace .kpi{padding:16px;}
+  body.espace .kpi-val{font-size:24px;}
+  body.espace .panneaux{grid-template-columns:1fr 1fr;gap:14px;
+    margin:18px 28px 0;align-items:start;}
+  body.espace .panneau{padding:17px;}
+  body.espace .panneau.large{grid-column:1 / -1;}
+  body.espace .compteurs,
+  body.espace .bloc,
+  body.espace #listeBord,
+  body.espace .vide{margin-left:28px;margin-right:28px;}
+  body.espace .demande{width:calc(100% - 56px);margin-left:28px;
+    margin-right:28px;}
+  body.espace .ecran-titre,
+  body.espace .bord-tete{margin-left:28px;margin-right:28px;}
+}
+
 /* ---------- SECTIONS ---------- */
 .section{padding:30px 20px 0;}
 .section h2{margin:0 0 20px;font-size:20.5px;font-weight:800;letter-spacing:-.02em;}
@@ -885,6 +1181,95 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
            quelque chose que la barre ne porte pas. -->
     </div>
   </header>
+
+  <!-- =====================================================================
+       LA COLONNE DE L'EXPLOITANT
+       ---------------------------------------------------------------------
+       Elle n'existe que dans l'espace de travail — « body.espace », posé
+       une fois le code donné. PAS « body.exploitant » : cette classe-là est
+       déjà là sur l'écran du verrou, et la colonne se serait affichée avant
+       même que le code soit saisi, avec l'état du serveur et l'accès au
+       registre en évidence.
+       UN LIEN QUI NE MÈNE NULLE PART EST PIRE QUE PAS DE LIEN : les cinq
+       entrées visent un écran qui existe ou un bloc de cette page, jamais
+       une fonction « à venir ».
+       ===================================================================== -->
+  <nav class="admin-nav" aria-label="Espace exploitant">
+    <div class="admin-marque">
+      <span class="logo-nom">ELA<i>TRANSFER</i></span>
+      <span class="logo-sous">ESPACE EXPLOITANT</span>
+    </div>
+    <div class="admin-profil">
+      <span class="admin-ava">EL</span>
+      <span class="admin-qui">
+        <b>Elatransfer</b>
+        <!-- L'ÉTAT DIT LA VÉRITÉ SUR LE SERVEUR. « En ligne » de décoration
+             ne veut rien dire ; ce qui compte est de savoir si l'on voit
+             toutes ses courses ou seulement celles de ce téléphone. -->
+        <span class="admin-etat" id="adminEtat">
+          <i class="admin-point"></i><span id="adminEtatTexte">Cet appareil seul</span>
+        </span>
+      </span>
+    </div>
+    <div class="admin-liens">
+      <button class="admin-lien actif" type="button" id="btnAdminBord">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-4H4v4Zm10-11h6V4h-6v5Z"
+                fill="currentColor"/>
+        </svg>Tableau de bord</button>
+      <button class="admin-lien" type="button" id="btnRegistre">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4h11l3 3v13H5V4Z" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round"/>
+          <path d="M8 11h8M8 15h5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round"/>
+        </svg>Registre</button>
+      <button class="admin-lien" type="button" id="btnChauffeurs">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M5 20c0-3.4 3.1-5.4 7-5.4s7 2 7 5.4" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round"/>
+        </svg>Chauffeurs</button>
+      <button class="admin-lien" type="button" id="btnFactures">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 3h12v18l-3-1.8L12 21l-3-1.8L6 21V3Z" stroke="currentColor"
+                stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9.5 8h5M9.5 12h5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round"/>
+        </svg>Facturer</button>
+      <button class="admin-lien" type="button" data-admin-vers="blocHotel">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 3h3v3h-3v-3Z"
+                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>Affiche hôtel</button>
+      <button class="admin-lien" type="button" data-admin-vers="blocAvis">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m12 4.4 2.36 4.78 5.28.77-3.82 3.72.9 5.25L12 16.44l-4.72 2.48.9-5.25
+                   L4.36 9.95l5.28-.77L12 4.4Z" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round"/>
+        </svg>Avis</button>
+      <button class="admin-lien" type="button" data-admin-vers="blocNuage">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 18a4 4 0 0 1-.4-7.98A5 5 0 0 1 16.5 9.2 3.9 3.9 0 0 1 17 18H7Z"
+                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>Serveur</button>
+      <button class="admin-lien" type="button" id="btnQuitter">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10 20H5V4h5M15 8l4 4-4 4M19 12H9" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>Quitter</button>
+    </div>
+    <!-- LE SEUL CONSEIL QUI TIENT ICI EST CELUI QU'ON OUBLIE : sans serveur,
+         le registre ne vit que dans ce navigateur, et vider les données du
+         site effacerait des mois de travail. -->
+    <div class="admin-aide">
+      <b>Sauvegardez chaque semaine</b>
+      <span>Le registre ne vit que dans ce navigateur.</span>
+      <button class="bouton" type="button" id="btnAideRegistre">
+        <span>Ouvrir le registre</span>
+      </button>
+    </div>
+  </nav>
 
   <section class="ecran actif" id="ecran-accueil">
 
@@ -1631,9 +2016,90 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   </section>
 
   <section class="ecran" id="ecran-bord">
-    <div class="bord-tete">
-      <h1 class="ecran-titre">Tableau de bord</h1>
-      <button class="lien-sortie" type="button" id="btnQuitter">Quitter</button>
+    <!-- « Quitter » est passé dans la colonne de gauche : il est de la même
+         nature que « Registre » ou « Affiche », pas un titre de page. -->
+    <div class="admin-tete">
+      <div>
+        <h1 class="admin-bonjour">Tableau de bord</h1>
+        <p class="admin-sous" id="adminSous">L'activité d'Elatransfer.</p>
+      </div>
+      <div class="admin-date" id="adminDate"></div>
+    </div>
+
+    <!-- CE QUI ARRIVE PENDANT QU'IL REGARDE L'ÉCRAN.
+         L'écriteau ne s'affiche que sur une demande RÉELLEMENT nouvelle :
+         un bandeau permanent « tout va bien » ne se lit plus au bout de
+         deux jours, et c'est celui-là qu'on ne verrait pas le jour où il
+         dit quelque chose. -->
+    <button class="arrivee-avis" type="button" id="bordArrivee" hidden></button>
+    <!-- SANS SESSION, AUCUNE DEMANDE N'ARRIVE ICI. On ne le dit pas en
+         petit dans le bloc du serveur, tout en bas : c'est la différence
+         entre voir ses clients et ne pas les voir. -->
+    <div class="hors-ligne" id="bordHorsLigne" hidden>
+      <p>Vous ne recevez pas les demandes de vos clients sur cet appareil :
+         vous ne voyez que les courses saisies ici.</p>
+      <button class="bouton-fantome" type="button" data-admin-vers="blocNuage">
+        Se connecter au serveur
+      </button>
+    </div>
+
+    <!-- LES QUATRE CHIFFRES DU HAUT.
+         Ils ne racontent pas la même chose que les trois compteurs plus bas :
+         les compteurs FILTRENT la liste, ceux-ci se lisent et rien de plus.
+         Le premier crie — c'est le seul qui appelle un geste tout de suite. -->
+    <div class="kpis">
+      <div class="kpi">
+        <span class="kpi-ico" style="background:#fbe9e9;color:#C9302F">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.9"/>
+            <path d="M12 7.6V12l3 1.9" stroke="currentColor" stroke-width="1.9"
+                  stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Demandes en attente</span>
+          <span class="kpi-val" id="kpiAttente">0</span>
+          <span class="kpi-var" id="kpiAttenteVar">Aucune réponse à donner</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3.6" y="5.2" width="16.8" height="15.2" rx="2.6"
+                  stroke="currentColor" stroke-width="1.9"/>
+            <path d="M3.6 10h16.8M8.4 3.6v3.2M15.6 3.6v3.2" stroke="currentColor"
+                  stroke-width="1.9" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Courses aujourd'hui</span>
+          <span class="kpi-val" id="kpiJour">0</span>
+          <span class="kpi-var" id="kpiJourVar">—</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14.4 8.2c-.6-1-1.6-1.5-2.9-1.5-1.8 0-2.9.9-2.9 2.2 0 3 6.2 1.5 6.2 4.8
+                     0 1.5-1.3 2.5-3.3 2.5-1.6 0-2.8-.6-3.4-1.8M12 4.6v14.8"
+                  stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Encaissé cette semaine</span>
+          <span class="kpi-val" id="kpiCA">0 €</span>
+          <span class="kpi-var" id="kpiCAVar">—</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4.6 19.4V13m4.8 6.4V8.6m4.8 10.8v-4.2m4.8 4.2V5.4"
+                  stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Courses réalisées</span>
+          <span class="kpi-val" id="kpiCourses">0</span>
+          <span class="kpi-var" id="kpiCoursesVar">—</span>
+        </span>
+      </div>
     </div>
 
     <!-- COLLER UNE DEMANDE, EN HAUT ET EN PREMIER.
@@ -1662,13 +2128,104 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       <p class="bloc-note" id="collerEtat" hidden></p>
     </div>
 
-    <button class="bouton-fantome" id="btnRegistre" type="button"
-            style="width:calc(100% - 40px);margin:14px 20px 0">Registre et résultats</button>
+    <!-- TROIS DEGRÉS, UN SEUL QUI CRIE. Une demande pas encore tranchée est
+         en rouge plein : c'est la seule ligne du site qui prend cette
+         couleur, et elle ne veut dire qu'une chose — quelqu'un attend une
+         réponse. Une course confirmée mais pas faite est seulement cerclée
+         d'or : elle reste à assurer, mais elle n'attend plus personne. Les
+         réalisées retombent en gris. Si tout criait pareil, plus rien ne
+         crierait.
+         LA LISTE EST REMONTÉE ICI, juste sous « Coller une demande » : c'est
+         le travail. L'affiche et le serveur se règlent une fois et ne se
+         regardent plus — ils sont passés en bas. -->
+    <div class="compteurs">
+      <button class="compteur" type="button" data-filtre="attente">
+        <span class="chiffre" id="cptAttente">0</span>
+        <span class="etiquette">En attente</span>
+      </button>
+      <button class="compteur" type="button" data-filtre="confirmee">
+        <span class="chiffre" id="cptConfirmee">0</span>
+        <span class="etiquette">À assurer</span>
+      </button>
+      <button class="compteur" type="button" data-filtre="realisee">
+        <span class="chiffre" id="cptRealisee">0</span>
+        <span class="etiquette">Réalisées</span>
+      </button>
+    </div>
+
+    <div id="listeBord"></div>
+    <div class="vide" id="videBord" hidden>
+      <p>Aucune course pour l'instant.</p>
+    </div>
+
+    <!-- LES PANNEAUX — ce qu'on regarde une fois le travail fait.
+         TOUT Y EST CALCULÉ DEPUIS LE REGISTRE, rien n'est décoratif : pas de
+         carte des chauffeurs en temps réel (aucun d'eux n'a d'application qui
+         envoie sa position), pas de note moyenne inventée. Un chiffre faux sur
+         un tableau de bord est pire qu'un panneau vide : on finit par décider
+         avec. -->
+    <div class="panneaux">
+      <div class="panneau large">
+        <div class="panneau-tete">
+          <span class="panneau-titre">Réservations</span>
+          <span class="panneau-vide" style="padding:0">7 derniers jours</span>
+        </div>
+        <svg class="courbe" id="courbeBord" aria-hidden="true"></svg>
+        <div class="courbe-jours" id="courbeJours"></div>
+      </div>
+
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Berline ou van</span></div>
+        <div class="donut-rangee">
+          <svg class="donut" id="donutBord" viewBox="0 0 42 42" aria-hidden="true"></svg>
+          <div class="legende" id="legendeBord"></div>
+        </div>
+        <p class="panneau-vide" id="donutVide" hidden>Aucune course enregistrée.</p>
+      </div>
+
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Où en sont les courses</span></div>
+        <div id="barresBord"></div>
+        <p class="panneau-vide" id="barresVide" hidden>Aucune course enregistrée.</p>
+      </div>
+
+      <div class="panneau large">
+        <div class="panneau-tete"><span class="panneau-titre">D'où viennent les clients</span></div>
+        <div class="tableau-cadre">
+          <table class="tableau"><tbody id="provBord"></tbody></table>
+        </div>
+        <p class="panneau-vide" id="provVide" hidden>
+          Aucune demande venue d'une affiche pour l'instant. Posez-en une
+          au comptoir d'un hôtel et le compte s'affichera ici.
+        </p>
+      </div>
+
+      <!-- LES PAPIERS QUI EXPIRENT. Ce panneau ne montre QUE ce qui appelle
+           un geste : un carnet entièrement à jour n'a rien à dire, et une
+           liste où tout est vert finit par ne plus se lire du tout. -->
+      <div class="panneau" id="panneauPapiers" hidden>
+        <div class="panneau-tete"><span class="panneau-titre">Papiers à surveiller</span></div>
+        <div id="papiersBord"></div>
+      </div>
+
+      <!-- LES AVIS : LE PANNEAU EXISTE, IL EST VIDE, ET IL LE RESTE TANT
+           QU'AUCUN AVIS N'EST REÇU. Afficher « 4,9/5 sur 128 avis » sans
+           avis serait une pratique commerciale trompeuse (L132-2 Code de la
+           consommation) — et se croire bien noté est une mauvaise façon de
+           décider. -->
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Avis clients</span></div>
+        <p class="panneau-vide">
+          Aucun avis reçu pour l'instant. Ils s'afficheront ici — jamais
+          une note inventée.
+        </p>
+      </div>
+    </div>
 
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
          montre l'affiche. Le client scanne, le site s'ouvre avec l'hôtel déjà
          en adresse de départ, et il n'a plus qu'à dire où il va. -->
-    <div class="bloc">
+    <div class="bloc" id="blocHotel">
       <h2 class="bloc-titre">Affiche pour un hôtel</h2>
       <label class="champ" for="hotelNom">
         <span class="champ-corps">
@@ -1692,6 +2249,30 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
         <p class="bloc-note" id="afficheLien"></p>
         <button class="bouton" type="button" id="btnImprimer"><span>Imprimer l'affiche</span></button>
       </div>
+    </div>
+
+    <!-- DEMANDER DES AVIS, PLUTÔT QUE D'EN INVENTER.
+         Le lien vit ici et pas dans le code : c'est le sien, il peut le
+         changer, et il n'y a aucune raison qu'un mot de son compte Google
+         parte dans un dépôt public. -->
+    <div class="bloc" id="blocAvis">
+      <h2 class="bloc-titre">Demander des avis</h2>
+      <label class="champ" for="lienAvis">
+        <span class="champ-corps">
+          <span class="champ-titre">Votre lien d'avis</span>
+          <input id="lienAvis" type="url" inputmode="url" autocomplete="off"
+                 placeholder="https://g.page/r/…/review">
+        </span>
+      </label>
+      <p class="bloc-note" id="avisAide">
+        Fiche Google de votre entreprise → « Demander des avis » → copiez le
+        lien ici. Un bouton « Demander un avis » apparaît alors sur chaque
+        course réalisée : un appui, le message part au client sur WhatsApp.
+      </p>
+      <p class="bloc-note" id="avisEtat" hidden style="color:#C9302F">
+        Collez d'abord votre lien d'avis : sans lui, le message se
+        terminerait dans le vide.
+      </p>
     </div>
 
     <!-- LE SERVEUR EST CE QUI REND LE TABLEAU DE BORD UTILE SUR N'IMPORTE
@@ -1724,32 +2305,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       </div>
     </div>
 
-    <!-- TROIS DEGRÉS, UN SEUL QUI CRIE. Une demande pas encore tranchée est
-         en rouge plein : c'est la seule ligne du site qui prend cette
-         couleur, et elle ne veut dire qu'une chose — quelqu'un attend une
-         réponse. Une course confirmée mais pas faite est seulement cerclée
-         d'or : elle reste à assurer, mais elle n'attend plus personne. Les
-         réalisées retombent en gris. Si tout criait pareil, plus rien ne
-         crierait. -->
-    <div class="compteurs">
-      <button class="compteur" type="button" data-filtre="attente">
-        <span class="chiffre" id="cptAttente">0</span>
-        <span class="etiquette">En attente</span>
-      </button>
-      <button class="compteur" type="button" data-filtre="confirmee">
-        <span class="chiffre" id="cptConfirmee">0</span>
-        <span class="etiquette">À assurer</span>
-      </button>
-      <button class="compteur" type="button" data-filtre="realisee">
-        <span class="chiffre" id="cptRealisee">0</span>
-        <span class="etiquette">Réalisées</span>
-      </button>
-    </div>
-
-    <div id="listeBord"></div>
-    <div class="vide" id="videBord" hidden>
-      <p>Aucune course pour l'instant.</p>
-    </div>
   </section>
 
   <!-- =====================================================================
@@ -1852,6 +2407,241 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
     </div>
   </section>
 
+  <!-- =====================================================================
+       LE CARNET DE CHAUFFEURS
+       ---------------------------------------------------------------------
+       CE N'EST PAS UN RÉPERTOIRE, C'EST UNE OBLIGATION. En confiant des
+       courses à des chauffeurs indépendants, Elatransfer est une centrale de
+       réservation (Code des transports L3142-1) : elle doit pouvoir prouver,
+       pour CHACUN d'eux, qu'il a sa carte professionnelle, son inscription
+       au registre des VTC et son assurance. Sur un groupe WhatsApp de 800
+       personnes, on ne peut pas savoir — d'où ce carnet, qui n'a de sens que
+       s'il porte les DATES D'EXPIRATION : un papier valable l'an dernier ne
+       prouve rien aujourd'hui.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-chauffeurs">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourChauffeurs" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Chauffeurs</h1>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre" id="chTitreForm">Ajouter un chauffeur</h2>
+      <label class="champ" for="chNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom et prénom</span>
+          <input id="chNom" type="text" autocomplete="off" placeholder="Mehmet Yilmaz">
+        </span>
+      </label>
+      <label class="champ" for="chTel">
+        <span class="champ-corps">
+          <span class="champ-titre">Téléphone</span>
+          <input id="chTel" type="tel" autocomplete="off" placeholder="06 12 34 56 78">
+        </span>
+      </label>
+      <label class="champ" for="chSiret">
+        <span class="champ-corps">
+          <span class="champ-titre">SIRET du chauffeur</span>
+          <input id="chSiret" type="text" inputmode="numeric" autocomplete="off"
+                 placeholder="123 456 789 00012">
+        </span>
+      </label>
+      <label class="champ" for="chAdresse">
+        <span class="champ-corps">
+          <span class="champ-titre">Adresse (pour la facture)</span>
+          <input id="chAdresse" type="text" autocomplete="off"
+                 placeholder="12 rue de Paris, 93290 Tremblay">
+        </span>
+      </label>
+
+      <!-- LES TROIS PIÈCES QUE LA LOI DEMANDE. Le numéro sans la date ne
+           prouve rien : c'est la date qui dit si le papier vaut encore. -->
+      <label class="champ" for="chCarte">
+        <span class="champ-corps">
+          <span class="champ-titre">Carte professionnelle VTC — numéro</span>
+          <input id="chCarte" type="text" autocomplete="off" placeholder="Numéro de la carte">
+        </span>
+      </label>
+      <label class="champ" for="chCarteFin">
+        <span class="champ-corps">
+          <span class="champ-titre">Carte professionnelle — expire le</span>
+          <input id="chCarteFin" type="date">
+        </span>
+      </label>
+      <label class="champ" for="chRegistre">
+        <span class="champ-corps">
+          <span class="champ-titre">Registre VTC — numéro</span>
+          <input id="chRegistre" type="text" autocomplete="off" placeholder="EVTC…">
+        </span>
+      </label>
+      <label class="champ" for="chRegistreFin">
+        <span class="champ-corps">
+          <span class="champ-titre">Registre VTC — expire le</span>
+          <input id="chRegistreFin" type="date">
+        </span>
+      </label>
+      <label class="champ" for="chAssurance">
+        <span class="champ-corps">
+          <span class="champ-titre">Assurance — compagnie et n° de police</span>
+          <!-- Pas de suite de chiffres « 123456… » en exemple : le code
+               exploitant en est une, et un placeholder l'écrirait en clair
+               dans une page publique. Le contrôle de la suite l'a attrapé. -->
+          <input id="chAssurance" type="text" autocomplete="off"
+                 placeholder="AXA · police 4821-77">
+        </span>
+      </label>
+      <label class="champ" for="chAssuranceFin">
+        <span class="champ-corps">
+          <span class="champ-titre">Assurance — expire le</span>
+          <input id="chAssuranceFin" type="date">
+        </span>
+      </label>
+      <label class="champ" for="chTaux">
+        <span class="champ-corps">
+          <span class="champ-titre">Votre commission (%)</span>
+          <input id="chTaux" type="number" inputmode="decimal" min="0" max="100" step="0.5"
+                 placeholder="15">
+        </span>
+      </label>
+
+      <button class="bouton" type="button" id="btnChEnregistrer">
+        <span>Enregistrer ce chauffeur</span>
+      </button>
+      <button class="bouton-fantome" type="button" id="btnChAnnuler" hidden>Annuler la modification</button>
+      <button class="bouton-fantome" type="button" id="btnChSupprimer" hidden>Supprimer ce chauffeur</button>
+      <p class="bloc-note" id="chEtat" hidden></p>
+    </div>
+
+    <div id="chListe"></div>
+    <div class="vide" id="chVide">
+      <p>Aucun chauffeur enregistré. Ajoutez ceux à qui vous confiez
+         régulièrement des courses : c'est ce carnet qui prouve qu'ils sont
+         en règle.</p>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       LA FACTURE DE COMMISSION
+       ---------------------------------------------------------------------
+       LE CLIENT PAIE LE CHAUFFEUR, L'ARGENT NE PASSE JAMAIS PAR ELATRANSFER.
+       La commission ne s'encaisse donc pas toute seule : elle se FACTURE au
+       chauffeur, course par course. Sans ce document, il n'y a ni preuve du
+       dû, ni écriture comptable, ni recours.
+       UNE FACTURE EST NUMÉROTÉE SANS TROU NI DOUBLON — c'est la loi, et
+       c'est la première chose que regarde un contrôle. Le rang ne recule
+       jamais, même si une facture est jetée.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-facture">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourFacture" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Facturer</h1>
+    </div>
+
+    <!-- SANS CES INFORMATIONS, LA FACTURE N'EN EST PAS UNE. Le nom, le SIRET
+         et l'adresse de l'émetteur sont obligatoires (art. L441-9 Code de
+         commerce). On bloque plutôt que d'éditer un document invalide qui
+         partirait chez un tiers. -->
+    <div class="bloc" id="blocEntreprise">
+      <h2 class="bloc-titre">Mes informations d'entreprise</h2>
+      <label class="champ" for="entNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Raison sociale ou nom</span>
+          <input id="entNom" type="text" autocomplete="off" placeholder="Elatransfer — Prénom Nom">
+        </span>
+      </label>
+      <label class="champ" for="entSiret">
+        <span class="champ-corps">
+          <span class="champ-titre">SIRET</span>
+          <input id="entSiret" type="text" inputmode="numeric" autocomplete="off"
+                 placeholder="123 456 789 00012">
+        </span>
+      </label>
+      <label class="champ" for="entAdresse">
+        <span class="champ-corps">
+          <span class="champ-titre">Adresse</span>
+          <input id="entAdresse" type="text" autocomplete="off"
+                 placeholder="12 rue de Paris, 75001 Paris">
+        </span>
+      </label>
+      <label class="champ" for="entContact">
+        <span class="champ-corps">
+          <span class="champ-titre">Contact affiché sur la facture</span>
+          <input id="entContact" type="text" autocomplete="off"
+                 placeholder="contact@elatransfer.com · +33 7 59 31 24 33">
+        </span>
+      </label>
+      <!-- LA TVA EST ÉTEINTE PAR DÉFAUT : en micro-entreprise on démarre en
+           franchise, et une facture qui réclame une TVA qu'on ne reverse pas
+           est une facture fausse. -->
+      <label class="champ" for="entTva" style="cursor:pointer">
+        <span class="champ-corps">
+          <span class="champ-titre">TVA</span>
+          <select id="entTva">
+            <option value="0">Franchise en base — pas de TVA (art. 293 B du CGI)</option>
+            <option value="20">TVA 20 % sur la commission</option>
+          </select>
+        </span>
+      </label>
+      <p class="bloc-note" id="entEtat" hidden style="color:#C9302F">
+        Renseignez au moins le nom, le SIRET et l'adresse : sans eux, le
+        document n'a pas la valeur d'une facture.
+      </p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Préparer une facture</h2>
+      <label class="champ" for="facChauffeur">
+        <span class="champ-corps">
+          <span class="champ-titre">Chauffeur</span>
+          <select id="facChauffeur"></select>
+        </span>
+      </label>
+      <label class="champ" for="facDu">
+        <span class="champ-corps">
+          <span class="champ-titre">Du</span>
+          <input id="facDu" type="date">
+        </span>
+      </label>
+      <label class="champ" for="facAu">
+        <span class="champ-corps">
+          <span class="champ-titre">Au</span>
+          <input id="facAu" type="date">
+        </span>
+      </label>
+      <button class="bouton" type="button" id="btnFacPreparer">
+        <span>Voir les courses à facturer</span>
+      </button>
+      <p class="bloc-note" id="facEtat"></p>
+    </div>
+
+    <div id="facApercu" hidden>
+      <div class="facture" id="factureVue"></div>
+      <button class="bouton" type="button" id="btnFacEmettre">
+        <span>Émettre la facture</span>
+      </button>
+      <button class="bouton-fantome" type="button" id="btnFacImprimer" hidden>
+        Imprimer ou enregistrer en PDF
+      </button>
+      <p class="bloc-note" id="facEmiseEtat" hidden></p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Factures émises</h2>
+      <div id="facListe"></div>
+      <p class="bloc-note" id="facListeVide">Aucune facture émise pour l'instant.</p>
+    </div>
+  </section>
+
   <!-- Le bon vu par l'exploitant : c'est ici qu'il attribue un chauffeur,
        confirme, ou clôt la course. -->
   <section class="ecran" id="ecran-bord-bon">
@@ -1905,10 +2695,16 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
          déjà, et clôt lui-même. -->
     <div class="bloc">
       <h2 class="bloc-titre">Chauffeur</h2>
+      <!-- L'AVERTISSEMENT EST ICI, au moment où l'on attribue la course :
+           c'est l'instant précis où Elatransfer engage sa responsabilité de
+           centrale de réservation. Écrit ailleurs, il ne serait jamais lu. -->
+      <p class="ch-alerte" id="bbChauffeurAlerte" hidden></p>
       <label class="champ" for="bbChauffeurNom">
         <span class="champ-corps">
           <span class="champ-titre">Nom</span>
-          <input id="bbChauffeurNom" type="text" autocomplete="off" placeholder="Nom du chauffeur">
+          <input id="bbChauffeurNom" type="text" autocomplete="off"
+                 list="listeChauffeurs" placeholder="Nom du chauffeur">
+          <datalist id="listeChauffeurs"></datalist>
         </span>
       </label>
       <label class="champ" for="bbChauffeurTel">
@@ -4021,6 +4817,13 @@ window.ELA_TEXTES = {
         estimee: course.estime
       },
       client: { nom: nom, telephone: tel },
+      /* LA LANGUE DU CLIENT EST GARDÉE SUR LA COURSE. Elle ne sert à rien
+         pendant la réservation — la page est déjà dans sa langue — mais
+         elle sert APRÈS : la demande d'avis part des jours plus tard, et
+         écrire en français à quelqu'un qui a réservé en anglais, c'est un
+         message qu'il ne lira pas. Une course ancienne sans ce champ
+         retombe sur le français. */
+      langue: LANGUE,
       /* D'OÙ VIENT CE CLIENT : l'hôtel dont il a scanné l'affiche, s'il en a
          scanné une. C'est ce qui dit quelle affiche travaille et laquelle
          dort. Absent pour un client venu directement — et un champ vide se
@@ -4199,7 +5002,7 @@ window.ELA_TEXTES = {
    pourrait plus jamais voir son propre site public — l'erreur a déjà été
    faite une fois.
    ===================================================================== */
-  var CODE_EXPLOITANT = "04b72932f8ccb464";
+  var CODE_EXPLOITANT = "584ec46adb3a2408";
   /* Seule l'EMPREINTE du code est dans la page. C'est de l'obfuscation, pas
      de la sécurité : un site statique ne peut pas garder un secret, et la
      page est publique. C'est une serrure, pas un coffre — ce qui protège
@@ -4314,6 +5117,61 @@ window.ELA_TEXTES = {
     }).then(function(){ return true; }).catch(function(){ return false; });
   };
 
+/* =====================================================================
+   DEMANDER UN AVIS — LE SEUL MOYEN HONNÊTE D'EN AVOIR
+   ---------------------------------------------------------------------
+   ON N'INVENTE JAMAIS UN AVIS. Publier des avis qu'on n'a pas reçus est
+   une pratique commerciale trompeuse (L132-2 Code de la consommation :
+   deux ans, 300 000 €, portés à 10 % du chiffre d'affaires), et c'est
+   l'exploitant qui est en première ligne, pas le site. La seule voie est
+   de DEMANDER, à des clients réels, après une course réelle.
+   LE MOMENT COMPTE PLUS QUE LE TEXTE. On demande quand la course est
+   close — le client vient de descendre de voiture, il se souvient du
+   chauffeur. Trois jours plus tard il ne répond plus.
+   ON NE DEMANDE PAS DEUX FOIS SANS LE SAVOIR : la course garde
+   « avisDemande », et le bouton le dit. Relancer un client qui a déjà
+   laissé son avis est la meilleure façon d'en obtenir un mauvais.
+   ===================================================================== */
+  var CLE_LIEN_AVIS = "ela_lien_avis";
+  function lienAvis(){
+    try{ return (localStorage.getItem(CLE_LIEN_AVIS) || "").trim(); }
+    catch(e){ return ""; }
+  }
+  /* Le message est COURT et il se lit sur un écran verrouillé : le nom de
+     l'entreprise, la raison, le lien. Un paragraphe de remerciements
+     s'ouvre, se lit en diagonale et se ferme sans qu'on ait cliqué. */
+  function messageAvis(c){
+    var prenom = ((c.client && c.client.nom) || "").trim().split(/\s+/)[0];
+    var lien = lienAvis();
+    if((c.langue || "fr") === "en"){
+      return (prenom ? "Hello " + prenom + ", " : "Hello, ")
+        + "thank you for travelling with Elatransfer.\n"
+        + "If everything went well, a short review would help us a lot:\n"
+        + lien;
+    }
+    return (prenom ? "Bonjour " + prenom + ", " : "Bonjour, ")
+      + "merci d'avoir voyagé avec Elatransfer.\n"
+      + "Si tout s'est bien passé, un avis nous aiderait beaucoup :\n"
+      + lien;
+  }
+  /* Sans lien, le message ne sert à rien : on emmène l'exploitant au champ
+     plutôt que d'envoyer une phrase qui se termine dans le vide. */
+  function demanderAvis(c){
+    if(!lienAvis()){
+      var bloc = document.getElementById("blocAvis");
+      ecran("ecran-bord");
+      bloc.scrollIntoView({ behavior:"smooth", block:"center" });
+      document.getElementById("lienAvis").focus();
+      document.getElementById("avisEtat").hidden = false;
+      return;
+    }
+    var tel = telWa(c.client && c.client.telephone);
+    if(!tel) return;
+    window.open("https://wa.me/" + tel + "?text="
+                + encodeURIComponent(messageAvis(c)), "_blank");
+    majCourse(c.ref, c.statut, { avisDemande: new Date().toISOString() });
+  }
+
   /* ---- Le tableau de bord ---- */
   var filtreBord = "attente";
   function minutesDepuis(iso){
@@ -4401,6 +5259,24 @@ window.ELA_TEXTES = {
         });
         boutons.appendChild(clore);
       }
+      /* DEMANDER L'AVIS UNE FOIS LA COURSE FAITE, et pas avant : on ne
+         demande pas à quelqu'un ce qu'il a pensé d'un trajet qu'il n'a pas
+         encore fait. Le bouton reste cliquable après coup — un client peut
+         répondre « oui oui » et oublier — mais il DIT qu'on a déjà demandé. */
+      if(st === "realisee" && tel){
+        var avis = document.createElement("button");
+        avis.type = "button";
+        /* « fait » et non « demande » : « .demande » est déjà la classe de
+           la LIGNE entière, et la poser sur un bouton lui collerait la mise
+           en page d'une carte de 40 px de haut. */
+        avis.className = "d-action d-avis" + (c.avisDemande ? " fait" : "");
+        avis.textContent = c.avisDemande ? "Avis demandé" : "Demander un avis";
+        avis.addEventListener("click", function(e){
+          e.stopPropagation();
+          demanderAvis(c);
+        });
+        boutons.appendChild(avis);
+      }
       if(tel){
         var appel = document.createElement("a");
         appel.className = "d-action d-appeler";
@@ -4413,7 +5289,251 @@ window.ELA_TEXTES = {
       el.addEventListener("click", function(){ ouvrirBonBord(c.ref); });
       liste.appendChild(el);
     });
+    dessinerAdmin(tout, parEtat);
   }
+
+/* =====================================================================
+   LES PANNEAUX DU TABLEAU DE BORD
+   ---------------------------------------------------------------------
+   TOUT VIENT DU REGISTRE. Rien n'est simulé, rien n'est arrondi vers le
+   haut « pour que ce soit joli » : un tableau de bord sert à décider, et
+   un chiffre décoratif finit par servir à décider quand même.
+   L'ARGENT NE COMPTE QUE LES COURSES « REALISEE » — même règle que le
+   registre, pour la même raison : une course confirmée est une promesse,
+   pas un encaissement. Les COMPTES de courses, eux, portent sur tout ce
+   qui n'est pas refusé : une demande reçue reste du travail arrivé.
+   ===================================================================== */
+  var COULEUR_GAMME = { berline:"#1F6F6B", van:"#3FA9A2" };
+
+  function variation(a, b){
+    /* SANS RÉFÉRENCE, PAS DE POURCENTAGE. « +100 % » sur une semaine
+       précédente à zéro ne veut rien dire, et « −100 % » ferait peur pour
+       rien la semaine d'après. On dit alors le chiffre brut. */
+    if(!b) return { texte: a ? "Première semaine comparable" : "Rien la semaine dernière",
+                    sens: "" };
+    var p = Math.round((a - b) / b * 100);
+    return { texte: (p > 0 ? "+" : "") + p + " % vs semaine dernière",
+             sens: p > 0 ? "hausse" : (p < 0 ? "baisse" : "") };
+  }
+  function poserVar(id, v){
+    var el = document.getElementById(id);
+    el.textContent = v.texte;
+    el.className = "kpi-var" + (v.sens ? " " + v.sens : "");
+  }
+
+  function dessinerAdmin(tout, parEtat){
+    var maintenant = new Date();
+    var aujourdhui = dateLocale(maintenant);
+    document.getElementById("adminDate").textContent =
+      maintenant.toLocaleDateString("fr-FR",
+        { weekday:"long", day:"numeric", month:"long" });
+
+    /* ---- Les quatre chiffres ---- */
+    document.getElementById("kpiAttente").textContent = parEtat.attente;
+    var att = document.getElementById("kpiAttenteVar");
+    att.textContent = parEtat.attente
+      ? (parEtat.attente > 1 ? "Clients qui attendent une réponse"
+                             : "Un client attend une réponse")
+      : "Aucune réponse à donner";
+    att.className = "kpi-var" + (parEtat.attente ? " baisse" : "");
+
+    var duJour = tout.filter(function(c){
+      return c.course && c.course.date === aujourdhui && c.statut !== "refusee";
+    });
+    document.getElementById("kpiJour").textContent = duJour.length;
+    var reste = duJour.filter(function(c){ return c.statut !== "realisee"; }).length;
+    document.getElementById("kpiJourVar").textContent =
+      !duJour.length ? "Rien de prévu aujourd'hui"
+                     : (reste ? reste + " encore à assurer" : "Toutes réalisées");
+
+    var faites = realisees();
+    var l0 = lundiDe(maintenant), l1 = new Date(l0); l1.setDate(l1.getDate() - 7);
+    var cette = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l0; });
+    var avant = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l1 && d < l0; });
+    var a = bilan(cette), b = bilan(avant);
+    document.getElementById("kpiCA").textContent = eurosRond(a.total);
+    poserVar("kpiCAVar", variation(a.total, b.total));
+    document.getElementById("kpiCourses").textContent = a.n;
+    poserVar("kpiCoursesVar", variation(a.n, b.n));
+
+    /* ---- La courbe des sept derniers jours ----
+       DESSINÉE À LA LARGEUR RÉELLE DU PANNEAU. Un « viewBox » fixe étiré en
+       largeur déforme le trait et les points ; mesurer coûte une ligne. */
+    var svg = document.getElementById("courbeBord");
+    var L = svg.clientWidth || 300, H = 132, m = 6;
+    var jours = [], noms = [];
+    for(var i = 6; i >= 0; i--){
+      var d = new Date(maintenant.getFullYear(), maintenant.getMonth(),
+                       maintenant.getDate() - i);
+      var cle = dateLocale(d);
+      jours.push(tout.filter(function(c){
+        return c.course && c.course.date === cle && c.statut !== "refusee";
+      }).length);
+      noms.push(d.toLocaleDateString("fr-FR", { weekday:"short" }).replace(".", ""));
+    }
+    var haut = Math.max(1, Math.max.apply(null, jours));
+    var pas = (L - m*2) / 6;
+    /* 16 px réservés EN HAUT : le chiffre du jour s'écrit au-dessus de son
+       point, et le point le plus haut est celui du meilleur jour — sans
+       cette marge, c'est justement ce chiffre-là qui sort du cadre. */
+    var cime = 16, sol = H - m - 14;
+    var pts = jours.map(function(v, k){
+      return [m + k*pas, cime + (sol - cime) * (1 - v/haut)];
+    });
+    var ligne = pts.map(function(p, k){
+      return (k ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
+    }).join(" ");
+    var bas = sol;
+    svg.setAttribute("viewBox", "0 0 " + L + " " + H);
+    svg.innerHTML =
+      '<defs><linearGradient id="cbG" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="#1F6F6B" stop-opacity=".22"/>'
+      + '<stop offset="1" stop-color="#1F6F6B" stop-opacity="0"/></linearGradient></defs>'
+      + '<path d="' + ligne + ' L' + pts[6][0].toFixed(1) + ' ' + bas
+      + ' L' + pts[0][0].toFixed(1) + ' ' + bas + ' Z" fill="url(#cbG)"/>'
+      + '<path d="' + ligne + '" fill="none" stroke="#1F6F6B" stroke-width="2.2"'
+      + ' stroke-linecap="round" stroke-linejoin="round"/>'
+      + pts.map(function(p, k){
+          return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1)
+               + '" r="' + (k === 6 ? 4 : 2.6) + '" fill="#1F6F6B"/>'
+               + (jours[k] ? '<text x="' + p[0].toFixed(1) + '" y="'
+                   + (p[1] - 8).toFixed(1) + '" text-anchor="middle" font-size="10"'
+                   + ' font-weight="700" fill="#151C22">' + jours[k] + '</text>' : '');
+        }).join("");
+    var jrs = document.getElementById("courbeJours");
+    jrs.innerHTML = "";
+    noms.forEach(function(n){
+      var s = document.createElement("span"); s.textContent = n; jrs.appendChild(s);
+    });
+
+    /* ---- Berline ou van ----
+       UN SEUL CERCLE, dont on décale le trait : deux arcs dessinés séparément
+       laissent une couture blanche à chaque jonction. */
+    var vivantes = tout.filter(function(c){ return c.statut !== "refusee"; });
+    var parGamme = { berline:0, van:0 };
+    vivantes.forEach(function(c){
+      var k = (c.course && c.course.vehiculeCle) || "";
+      if(parGamme[k] !== undefined) parGamme[k]++;
+    });
+    var totalG = parGamme.berline + parGamme.van;
+    var donut = document.getElementById("donutBord");
+    var leg   = document.getElementById("legendeBord");
+    document.getElementById("donutVide").hidden = totalG > 0;
+    donut.style.display = totalG ? "" : "none";
+    leg.innerHTML = "";
+    if(totalG){
+      var partB = parGamme.berline / totalG * 100;
+      donut.innerHTML =
+        '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + COULEUR_GAMME.van
+        + '" stroke-width="7"/>'
+        + '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + COULEUR_GAMME.berline
+        + '" stroke-width="7" stroke-dasharray="' + partB.toFixed(1) + ' '
+        + (100 - partB).toFixed(1) + '" stroke-dashoffset="25"/>';
+      [["berline","Berline"],["van","Van"]].forEach(function(g){
+        var n = parGamme[g[0]];
+        var l = document.createElement("div");
+        l.className = "legende-l";
+        l.innerHTML = '<i style="background:' + COULEUR_GAMME[g[0]] + '"></i>'
+          + '<span></span><b></b>';
+        l.querySelector("span").textContent = g[1];
+        l.querySelector("b").textContent =
+          n + " · " + Math.round(n / totalG * 100) + " %";
+        leg.appendChild(l);
+      });
+    }
+
+    /* ---- Où en sont les courses ---- */
+    var etats = [["attente","En attente","#C9302F"],
+                 ["confirmee","À assurer","#1F6F6B"],
+                 ["realisee","Réalisées","#3FA9A2"],
+                 ["refusee","Refusées","#8a97a3"]];
+    var parTout = { attente:0, confirmee:0, realisee:0, refusee:0 };
+    tout.forEach(function(c){
+      var s = c.statut || "attente";
+      if(parTout[s] !== undefined) parTout[s]++;
+    });
+    var barres = document.getElementById("barresBord");
+    document.getElementById("barresVide").hidden = tout.length > 0;
+    barres.innerHTML = "";
+    etats.forEach(function(e){
+      var n = parTout[e[0]];
+      var pc = tout.length ? n / tout.length * 100 : 0;
+      var d = document.createElement("div");
+      d.className = "barre-l";
+      d.innerHTML = '<div class="barre-h"><span></span><b></b></div>'
+        + '<div class="barre-f"><i style="width:' + pc.toFixed(1)
+        + '%;background:' + e[2] + '"></i></div>';
+      d.querySelector("span").textContent = e[1];
+      d.querySelector("b").textContent = n;
+      barres.appendChild(d);
+    });
+
+    /* ---- D'où viennent les clients ----
+       LES DEMANDES portent sur tout le registre — une affiche qui amène une
+       demande travaille, même si la course ne s'est pas faite. L'ARGENT ne
+       compte que les réalisées. Deux chiffres pour deux questions. */
+    var parProv = {};
+    tout.forEach(function(c){
+      var p = (c.provenance || "").trim();
+      if(!p) return;
+      (parProv[p] = parProv[p] || []).push(c);
+    });
+    var lignesProv = Object.keys(parProv).map(function(nom){
+      var l = parProv[nom];
+      var f = l.filter(function(c){ return c.statut === "realisee"; });
+      return { nom:nom, n:l.length, f:f.length, total:bilan(f).total };
+    }).sort(function(x,y){ return y.n - x.n; }).slice(0, 6);
+    /* ---- Les papiers à surveiller ----
+       On ne liste que ce qui cloche. Un carnet en règle n'affiche rien : le
+       panneau disparaît, et sa réapparition est en elle-même l'alerte. */
+    var aVoir = chauffeurs().filter(function(c){ return etatChauffeur(c) !== "ok"; });
+    var pap = document.getElementById("papiersBord");
+    document.getElementById("panneauPapiers").hidden = aVoir.length === 0;
+    pap.innerHTML = "";
+    aVoir.forEach(function(c){
+      var etat = etatChauffeur(c);
+      var d = document.createElement("div");
+      d.className = "barre-l";
+      d.innerHTML = '<div class="barre-h"><span class="p-nom"></span>'
+                  + '<b class="etat-pastille"></b></div>';
+      d.querySelector(".p-nom").textContent = c.nom || "—";
+      var b = d.querySelector(".etat-pastille");
+      b.classList.add(bloquant(etat) ? "etat-attente" : "etat-bientot");
+      b.textContent = [["Carte pro", c.carteFin], ["Registre", c.registreFin],
+                       ["Assurance", c.assuranceFin]]
+        .filter(function(p){ return etatPapier(p[1]) !== "ok"; })
+        .map(function(p){ return libellePapier(p[0], p[1]); }).join(" · ");
+      pap.appendChild(d);
+    });
+
+    var corps = document.getElementById("provBord");
+    document.getElementById("provVide").hidden = lignesProv.length > 0;
+    corps.innerHTML = "";
+    if(lignesProv.length){
+      var tete = document.createElement("tr");
+      tete.innerHTML = '<th>Hôtel</th><th>Demandes</th><th>Réalisées</th>'
+                     + '<th style="text-align:right">Encaissé</th>';
+      corps.appendChild(tete);
+      lignesProv.forEach(function(l){
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td></td><td></td><td></td><td class="t-prix"></td>';
+        var td = tr.querySelectorAll("td");
+        td[0].textContent = l.nom;
+        td[1].textContent = l.n;
+        td[2].textContent = l.f;
+        td[3].textContent = eurosRond(l.total);
+        corps.appendChild(tr);
+      });
+    }
+  }
+
+  /* La courbe est tracée en pixels réels : elle doit être refaite quand la
+     fenêtre change de largeur, sinon elle garde celle du téléphone tourné
+     dans l'autre sens. */
+  window.addEventListener("resize", function(){
+    var e = document.getElementById("ecran-bord");
+    if(e && e.classList.contains("actif")) dessinerBord();
+  });
 
   function majCourse(ref, statut, extra){
     var liste = registre();
@@ -4646,6 +5766,10 @@ window.ELA_TEXTES = {
     }
     document.getElementById("bbChauffeurNom").value = (c.chauffeur && c.chauffeur.nom) || "";
     document.getElementById("bbChauffeurTel").value = (c.chauffeur && c.chauffeur.telephone) || "";
+    /* À L'OUVERTURE AUSSI, pas seulement à la saisie : une course confirmée
+       hier se rouvre avec son chauffeur déjà dedans, et c'est justement le
+       moment où un papier a pu expirer entre-temps. */
+    jugerChauffeurBon();
     /* « Prévenir le client » n'apparaît qu'une fois la course confirmée ET
        s'il y a un numéro où écrire. Un bouton visible qui n'envoie rien fait
        croire à Barbaros que le client est prévenu — et le client attend. */
@@ -4717,6 +5841,14 @@ window.ELA_TEXTES = {
   document.querySelectorAll(".compteur").forEach(function(b){
     b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
   });
+  /* L'écriteau d'arrivée EMMÈNE aux demandes en attente : c'est là qu'elles
+     sont, et l'écriteau ne sert à rien s'il faut ensuite chercher. Il se
+     retire du même geste — il a dit ce qu'il avait à dire. */
+  document.getElementById("bordArrivee").addEventListener("click", function(){
+    this.hidden = true;
+    filtreBord = "attente";
+    dessinerBord();
+  });
 
   /* ---- Le serveur, côté exploitant ---- */
   function jugerNuage(){
@@ -4726,14 +5858,112 @@ window.ELA_TEXTES = {
     document.getElementById("nuageEtat").textContent = connecte
       ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
       : "Non connecté : vous ne voyez que les courses de cet appareil.";
+    /* La pastille de la colonne dit la MÊME chose que le bloc, en trois
+       mots. Deux endroits qui affichent l'état du serveur doivent être
+       écrits au même endroit, sinon l'un des deux ment un jour. */
+    document.getElementById("adminEtat").classList.toggle("ok", connecte);
+    document.getElementById("adminEtatTexte").textContent =
+      connecte ? "Serveur connecté" : "Cet appareil seul";
+    /* L'état du serveur décide de DEUX choses à la fois : ce qu'on affiche
+       et si l'on interroge. Les séparer, c'est se retrouver un jour avec une
+       pastille verte et aucune écoute. */
+    jugerReception();
   }
+  /* LA PREMIÈRE LECTURE NE SONNE PAS. À l'ouverture de l'espace, tout ce
+     que le serveur contient et que cet appareil n'a pas est « nouveau » :
+     un téléphone neuf ferait sonner cinquante courses vieilles de trois
+     mois. On annonce ce qui arrive PENDANT qu'il regarde, pas ce qu'il
+     vient de rapatrier. */
+  var premiereLecture = true;
   function synchroniser(){
     return nuage.lister().then(function(distantes){
       if(!distantes) return null;
       var n = fusionner(distantes);
       dessinerBord();
+      if(n && !premiereLecture) annoncerArrivee(n);
+      premiereLecture = false;
       return n;
     });
+  }
+
+/* =====================================================================
+   LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
+   ---------------------------------------------------------------------
+   Le client appuie sur « Confirmer », la demande est déposée sur le
+   serveur. Jusqu'ici elle n'apparaissait ici qu'à l'OUVERTURE de l'espace
+   ou sur « Actualiser » : une page laissée ouverte la nuit ne montrait
+   plus rien, et c'est exactement comme ça qu'on travaille — l'onglet
+   reste ouvert.
+   ON INTERROGE, ON N'ÉCOUTE PAS. Une vraie liaison permanente
+   (« realtime ») demanderait une bibliothèque, un abonnement à tenir et
+   une reconnexion à écrire ; quarante-cinq secondes suffisent largement
+   pour une course qui part dans une heure, et un appel qui échoue est
+   simplement suivi du suivant.
+   ON N'INTERROGE PAS DANS LE VIDE : ni sans session — le serveur refuse
+   la lecture aux anonymes, et il DOIT la refuser — ni onglet en
+   arrière-plan, ni hors de l'espace de travail. Sinon c'est de la
+   batterie brûlée pour rien sur son téléphone.
+   ===================================================================== */
+  var PAS_ECOUTE_MS = 45000;
+  var minuterieEcoute = null;
+
+  function espaceOuvert(){
+    return document.body.classList.contains("espace");
+  }
+  function ecouteUtile(){
+    return nuage.connecte() && espaceOuvert() && !document.hidden;
+  }
+  function reglerEcoute(){
+    if(minuterieEcoute){ clearInterval(minuterieEcoute); minuterieEcoute = null; }
+    if(!ecouteUtile()) return;
+    minuterieEcoute = setInterval(function(){
+      if(ecouteUtile()) synchroniser();
+      else reglerEcoute();
+    }, PAS_ECOUTE_MS);
+  }
+  /* Au retour sur l'onglet on rattrape TOUT DE SUITE, sans attendre le
+     prochain tour : c'est le moment où il regarde. */
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden && ecouteUtile()) synchroniser();
+    reglerEcoute();
+  });
+
+  /* CE QUI SE VOIT ET CE QUI S'ENTEND. Une ligne qui apparaît en silence
+     au milieu d'une liste ne se remarque pas : l'écriteau reste jusqu'à ce
+     qu'on touche quelque chose, et le bip fait lever la tête. Le son passe
+     par un oscillateur — aucun fichier à charger, donc rien à attendre —
+     et il est enveloppé : un navigateur qui refuse l'audio ne doit pas
+     faire tomber la synchronisation avec lui. */
+  function bip(){
+    try{
+      var C = window.AudioContext || window.webkitAudioContext;
+      if(!C) return;
+      var ctx = new C();
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + 0.36);
+      o.onended = function(){ try{ ctx.close(); }catch(e){} };
+    }catch(e){ /* audio refusé : l'écriteau suffit */ }
+  }
+  function annoncerArrivee(n){
+    var el = document.getElementById("bordArrivee");
+    if(!el) return;
+    el.textContent = n > 1 ? n + " nouvelles demandes viennent d'arriver."
+                           : "Une nouvelle demande vient d'arriver.";
+    el.hidden = false;
+    bip();
+  }
+  /* SANS SESSION, RIEN N'ARRIVE — et c'est le genre de chose qu'on ne
+     découvre qu'en ratant une course. On le dit en haut du tableau de
+     bord, pas seulement en petit dans le bloc du serveur. */
+  function jugerReception(){
+    var el = document.getElementById("bordHorsLigne");
+    if(el) el.hidden = nuage.connecte();
+    reglerEcoute();
   }
   document.getElementById("btnNuageConnexion").addEventListener("click", function(){
     var b = this, lib = b.querySelector("span"), avant = lib.textContent;
@@ -4747,6 +5977,19 @@ window.ELA_TEXTES = {
     });
   });
   document.getElementById("btnNuageSync").addEventListener("click", synchroniser);
+
+  /* ---- Le lien d'avis ---- */
+  (function(){
+    var champ = document.getElementById("lienAvis");
+    try{ champ.value = lienAvis(); }catch(e){}
+    champ.addEventListener("input", function(){
+      try{ localStorage.setItem(CLE_LIEN_AVIS, champ.value.trim()); }catch(e){}
+      /* L'avertissement disparaît dès qu'il y a quelque chose à envoyer :
+         le laisser sous un champ rempli ferait douter de ce qui est
+         enregistré. */
+      if(champ.value.trim()) document.getElementById("avisEtat").hidden = true;
+    });
+  })();
   document.getElementById("btnNuageDeco").addEventListener("click", function(){
     nuage.deconnexion(); jugerNuage();
   });
@@ -4927,12 +6170,614 @@ window.ELA_TEXTES = {
     });
   });
   document.getElementById("regRecherche").addEventListener("input", chercherRegistre);
-  document.getElementById("btnRegistre").addEventListener("click", function(){
+/* =====================================================================
+   LA COLONNE DE GAUCHE
+   ---------------------------------------------------------------------
+   L'ENTRÉE ALLUMÉE SUIT L'ÉCRAN, pas le clic. Barbaros revient au tableau
+   de bord par le bouton « Retour » du registre : si l'allumage suivait le
+   clic, « Registre » resterait allumé sur le tableau de bord.
+   ===================================================================== */
+  function allumerAdmin(quoi){
+    document.querySelectorAll(".admin-lien").forEach(function(b){
+      b.classList.toggle("actif", b === quoi);
+    });
+  }
+  function ouvrirRegistre(){
     dessinerRegistre();
     ecran("ecran-registre");
+    allumerAdmin(document.getElementById("btnRegistre"));
+  }
+  document.getElementById("btnRegistre").addEventListener("click", ouvrirRegistre);
+  document.getElementById("btnAideRegistre").addEventListener("click", ouvrirRegistre);
+  document.getElementById("btnAdminBord").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(this);
   });
-  document.getElementById("btnRetourRegistre")
-          .addEventListener("click", function(){ ecran("ecran-bord"); });
+  /* « Affiche hôtel » et « Serveur » ne sont pas des écrans : ce sont deux
+     blocs de cette page. On y descend plutôt que d'inventer deux écrans de
+     plus — et on n'allume pas l'entrée, puisqu'on reste sur le tableau de
+     bord. */
+  document.querySelectorAll("[data-admin-vers]").forEach(function(b){
+    b.addEventListener("click", function(){
+      ecran("ecran-bord");
+      dessinerBord();
+      allumerAdmin(document.getElementById("btnAdminBord"));
+      var cible = document.getElementById(b.dataset.adminVers);
+      if(cible) cible.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+  });
+  document.getElementById("btnRetourRegistre").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+
+/* =====================================================================
+   LE CARNET DE CHAUFFEURS
+   ---------------------------------------------------------------------
+   CE N'EST PAS UN RÉPERTOIRE, C'EST UNE OBLIGATION. En confiant des courses
+   à des chauffeurs indépendants, Elatransfer est une centrale de réservation
+   (Code des transports L3142-1) et doit pouvoir prouver, pour CHACUN d'eux,
+   qu'il a sa carte professionnelle, son inscription au registre des VTC et
+   son assurance.
+   LA DATE COMPTE PLUS QUE LE NUMÉRO. Un numéro de carte ne prouve rien : il
+   reste identique le lendemain de son expiration. C'est la date de fin qui
+   dit si le papier vaut encore, et c'est elle qu'on surveille.
+   UN PAPIER ABSENT VAUT UN PAPIER PÉRIMÉ. Dans les deux cas on ne peut rien
+   prouver, et c'est exactement la question qu'on poserait à Barbaros en cas
+   de contrôle. Les deux sont donc au rouge — les distinguer donnerait à
+   « pas renseigné » un air rassurant qu'il n'a pas.
+   ===================================================================== */
+  var CLE_CHAUFFEURS = "ela_chauffeurs";
+  var JOURS_ALERTE = 30;
+
+  function chauffeurs(){
+    try{
+      var l = JSON.parse(localStorage.getItem(CLE_CHAUFFEURS) || "[]");
+      return Array.isArray(l) ? l : [];
+    }catch(e){ return []; }
+  }
+  function ecrireChauffeurs(liste){
+    try{ localStorage.setItem(CLE_CHAUFFEURS, JSON.stringify(liste)); }
+    catch(e){ /* stockage refusé : le carnet reste juste à l'écran */ }
+  }
+  /* Le jour est compté À MINUIT, pas à l'heure qu'il est : un papier qui
+     expire aujourd'hui est encore valable aujourd'hui, et le passer en
+     « périmé » à 14 h ferait refuser un chauffeur qui a le droit de rouler. */
+  function joursAvant(iso){
+    if(!iso) return null;
+    var d = new Date(iso + "T00:00:00");
+    if(isNaN(d.getTime())) return null;
+    var a = new Date(); a.setHours(0,0,0,0);
+    return Math.round((d.getTime() - a.getTime()) / 86400000);
+  }
+  function etatPapier(iso){
+    var j = joursAvant(iso);
+    if(j === null) return "absent";
+    if(j < 0) return "perime";
+    if(j <= JOURS_ALERTE) return "bientot";
+    return "ok";
+  }
+  /* Le pire des trois décide : un chauffeur dont l'assurance est périmée est
+     un chauffeur à qui on ne confie pas de course, quel que soit l'état de
+     sa carte. */
+  function etatChauffeur(c){
+    var e = [etatPapier(c.carteFin), etatPapier(c.registreFin), etatPapier(c.assuranceFin)];
+    if(e.indexOf("perime") >= 0) return "perime";
+    if(e.indexOf("absent") >= 0) return "absent";
+    if(e.indexOf("bientot") >= 0) return "bientot";
+    return "ok";
+  }
+  function bloquant(etat){ return etat === "perime" || etat === "absent"; }
+
+  /* ON RETROUVE LE CHAUFFEUR PAR SON NUMÉRO D'ABORD, par son nom ensuite.
+     Le nom est saisi à la main sur le bon depuis des mois — « Mehmet »,
+     « mehmet », « Mehmet Y. » — alors qu'un numéro normalisé ne varie pas.
+     Le nom reste en second : les premières courses n'ont parfois que ça. */
+  function trouverChauffeur(nom, tel){
+    var t = telWa(tel), n = String(nom || "").trim().toLowerCase();
+    var l = chauffeurs(), i;
+    if(t) for(i = 0; i < l.length; i++) if(telWa(l[i].telephone) === t) return l[i];
+    if(n) for(i = 0; i < l.length; i++)
+      if(String(l[i].nom || "").trim().toLowerCase() === n) return l[i];
+    return null;
+  }
+  function libellePapier(nom, iso){
+    var j = joursAvant(iso);
+    if(j === null) return nom + " : non renseignée";
+    if(j < 0) return nom + " : périmée depuis " + (-j) + " j";
+    if(j <= JOURS_ALERTE) return nom + " : expire dans " + j + " j";
+    return nom + " : à jour";
+  }
+
+  var chEnCours = null;   // l'identifiant du chauffeur en cours de modification
+
+  function videChampsChauffeur(){
+    ["chNom","chTel","chSiret","chAdresse","chCarte","chCarteFin","chRegistre",
+     "chRegistreFin","chAssurance","chAssuranceFin","chTaux"].forEach(function(id){
+      document.getElementById(id).value = "";
+    });
+    chEnCours = null;
+    document.getElementById("chTitreForm").textContent = "Ajouter un chauffeur";
+    document.getElementById("btnChAnnuler").hidden = true;
+    document.getElementById("btnChSupprimer").hidden = true;
+  }
+  function remplirChampsChauffeur(c){
+    document.getElementById("chNom").value = c.nom || "";
+    document.getElementById("chTel").value = c.telephone || "";
+    document.getElementById("chSiret").value = c.siret || "";
+    document.getElementById("chAdresse").value = c.adresse || "";
+    document.getElementById("chCarte").value = c.carte || "";
+    document.getElementById("chCarteFin").value = c.carteFin || "";
+    document.getElementById("chRegistre").value = c.registre || "";
+    document.getElementById("chRegistreFin").value = c.registreFin || "";
+    document.getElementById("chAssurance").value = c.assurance || "";
+    document.getElementById("chAssuranceFin").value = c.assuranceFin || "";
+    document.getElementById("chTaux").value = (c.taux === 0 || c.taux) ? c.taux : "";
+    chEnCours = c.id;
+    document.getElementById("chTitreForm").textContent = "Modifier " + (c.nom || "ce chauffeur");
+    document.getElementById("btnChAnnuler").hidden = false;
+    document.getElementById("btnChSupprimer").hidden = false;
+  }
+
+  function dessinerChauffeurs(){
+    var liste = document.getElementById("chListe");
+    var l = chauffeurs().slice().sort(function(a, b){
+      return String(a.nom || "").localeCompare(String(b.nom || ""), "fr");
+    });
+    document.getElementById("chVide").hidden = l.length > 0;
+    liste.innerHTML = "";
+    l.forEach(function(c){
+      var etat = etatChauffeur(c);
+      var el = document.createElement("button");
+      el.type = "button";
+      el.className = "ch-carte" + (bloquant(etat) ? " perime"
+                                 : etat === "bientot" ? " bientot" : "");
+      el.innerHTML = '<span class="ch-haut"><span class="ch-nom"></span>'
+        + '<span class="ch-tel"></span></span><span class="ch-papiers"></span>';
+      el.querySelector(".ch-nom").textContent = c.nom || "—";
+      el.querySelector(".ch-tel").textContent = c.telephone || "";
+      var pap = el.querySelector(".ch-papiers");
+      [["Carte pro", c.carteFin], ["Registre VTC", c.registreFin],
+       ["Assurance", c.assuranceFin]].forEach(function(p){
+        var e = etatPapier(p[1]);
+        var b = document.createElement("span");
+        b.className = "ch-badge " + (e === "absent" ? "perime" : e);
+        b.textContent = libellePapier(p[0], p[1]);
+        pap.appendChild(b);
+      });
+      el.addEventListener("click", function(){
+        remplirChampsChauffeur(c);
+        window.scrollTo(0, 0);
+      });
+      liste.appendChild(el);
+    });
+    /* La liste déroulante du bon suit le carnet : saisir un nom à la main
+       reste possible — des courses anciennes en portent — mais le carnet
+       est proposé en premier. */
+    var dl = document.getElementById("listeChauffeurs");
+    dl.innerHTML = "";
+    l.forEach(function(c){
+      var o = document.createElement("option");
+      o.value = c.nom || "";
+      dl.appendChild(o);
+    });
+    remplirSelectChauffeurs();
+  }
+
+  document.getElementById("btnChEnregistrer").addEventListener("click", function(){
+    var etat = document.getElementById("chEtat");
+    var nom = document.getElementById("chNom").value.trim();
+    var tel = document.getElementById("chTel").value.trim();
+    if(!nom || !tel){
+      etat.hidden = false;
+      etat.textContent = "Le nom et le téléphone sont nécessaires : c'est par eux "
+                       + "qu'on relie une course à un chauffeur.";
+      return;
+    }
+    var l = chauffeurs();
+    var fiche = {
+      /* L'IDENTIFIANT NE CHANGE JAMAIS. Le nom et le numéro peuvent être
+         corrigés ; les factures déjà émises, elles, pointent ici. */
+      id: chEnCours || ("CH-" + Date.now().toString(36)),
+      nom: nom, telephone: tel,
+      siret: document.getElementById("chSiret").value.trim(),
+      adresse: document.getElementById("chAdresse").value.trim(),
+      carte: document.getElementById("chCarte").value.trim(),
+      carteFin: document.getElementById("chCarteFin").value,
+      registre: document.getElementById("chRegistre").value.trim(),
+      registreFin: document.getElementById("chRegistreFin").value,
+      assurance: document.getElementById("chAssurance").value.trim(),
+      assuranceFin: document.getElementById("chAssuranceFin").value,
+      taux: parseFloat(document.getElementById("chTaux").value) || 0
+    };
+    var i = -1, k;
+    for(k = 0; k < l.length; k++) if(l[k].id === fiche.id) i = k;
+    if(i >= 0) l[i] = fiche; else l.push(fiche);
+    ecrireChauffeurs(l);
+    videChampsChauffeur();
+    dessinerChauffeurs();
+    dessinerBord();
+    etat.hidden = false;
+    etat.textContent = "Enregistré. " + (bloquant(etatChauffeur(fiche))
+      ? "Attention : il lui manque un papier valable — ne lui confiez pas de course."
+      : "Ses papiers sont en règle.");
+  });
+  document.getElementById("btnChAnnuler").addEventListener("click", function(){
+    videChampsChauffeur();
+    document.getElementById("chEtat").hidden = true;
+  });
+  document.getElementById("btnChSupprimer").addEventListener("click", function(){
+    if(!chEnCours) return;
+    ecrireChauffeurs(chauffeurs().filter(function(c){ return c.id !== chEnCours; }));
+    videChampsChauffeur();
+    dessinerChauffeurs();
+    dessinerBord();
+    var etat = document.getElementById("chEtat");
+    etat.hidden = false;
+    etat.textContent = "Chauffeur supprimé. Les factures déjà émises ne bougent pas.";
+  });
+  document.getElementById("btnRetourChauffeurs").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+
+  /* L'AVERTISSEMENT DU BON. Trois messages, parce qu'ils appellent trois
+     gestes différents : inconnu du carnet (« ajoutez-le »), papier périmé ou
+     manquant (« ne lui confiez pas cette course »), tout en règle (rien à
+     faire, mais on le dit — sinon l'absence de message ne se distingue pas
+     d'un contrôle qui n'a pas eu lieu). */
+  function jugerChauffeurBon(){
+    var el = document.getElementById("bbChauffeurAlerte");
+    var nom = document.getElementById("bbChauffeurNom").value.trim();
+    var tel = document.getElementById("bbChauffeurTel").value.trim();
+    if(!nom && !tel){ el.hidden = true; return; }
+    var c = trouverChauffeur(nom, tel);
+    el.hidden = false;
+    if(!c){
+      el.className = "ch-alerte orange";
+      el.innerHTML = "<b>Ce chauffeur n'est pas dans votre carnet.</b>"
+        + "Vous devez pouvoir prouver qu'il a sa carte professionnelle, son "
+        + "inscription au registre VTC et son assurance. Ajoutez-le avant de "
+        + "lui confier la course.";
+      return;
+    }
+    var etat = etatChauffeur(c);
+    if(bloquant(etat)){
+      el.className = "ch-alerte rouge";
+      el.innerHTML = "<b>Papiers non valables — ne lui confiez pas cette course.</b>"
+        + [libellePapier("Carte pro", c.carteFin),
+           libellePapier("Registre VTC", c.registreFin),
+           libellePapier("Assurance", c.assuranceFin)].join(" · ");
+      return;
+    }
+    el.className = "ch-alerte " + (etat === "bientot" ? "orange" : "vert");
+    el.innerHTML = (etat === "bientot"
+        ? "<b>Un papier arrive à échéance.</b>" : "<b>Papiers à jour.</b>")
+      + [libellePapier("Carte pro", c.carteFin),
+         libellePapier("Registre VTC", c.registreFin),
+         libellePapier("Assurance", c.assuranceFin)].join(" · ");
+  }
+  ["bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
+    document.getElementById(id).addEventListener("input", jugerChauffeurBon);
+  });
+
+/* =====================================================================
+   LA FACTURE DE COMMISSION
+   ---------------------------------------------------------------------
+   L'ARGENT NE PASSE JAMAIS PAR ELATRANSFER : le client paie le chauffeur.
+   La commission ne s'encaisse donc pas toute seule, elle se FACTURE — et
+   sans facture il n'y a ni preuve du dû, ni écriture comptable, ni recours.
+   UNE FACTURE EST NUMÉROTÉE SANS TROU NI DOUBLON. Le rang ne recule jamais,
+   même si un document est abandonné : c'est la première chose que regarde
+   un contrôle, et un compteur qui revient en arrière est indéfendable.
+   ON NE FACTURE PAS DEUX FOIS LA MÊME COURSE. Chaque course facturée porte
+   le numéro de sa facture et sort du lot à facturer.
+   ===================================================================== */
+  var CLE_ENTREPRISE = "ela_entreprise";
+  var CLE_FACTURES   = "ela_factures";
+  var CLE_RANG_FAC   = "ela_rang_facture";
+
+  function entreprise(){
+    try{ return JSON.parse(localStorage.getItem(CLE_ENTREPRISE) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function entreprisePrete(e){ return !!(e.nom && e.siret && e.adresse); }
+  function factures(){
+    try{
+      var l = JSON.parse(localStorage.getItem(CLE_FACTURES) || "[]");
+      return Array.isArray(l) ? l : [];
+    }catch(e){ return []; }
+  }
+  /* Le rang est consommé À L'ÉMISSION, jamais à l'aperçu : regarder ce qu'on
+     va facturer ne doit pas brûler un numéro qui manquerait ensuite. */
+  function numeroFactureSuivant(){
+    var an = new Date().getFullYear(), etat;
+    try{ etat = JSON.parse(localStorage.getItem(CLE_RANG_FAC) || "null"); }
+    catch(e){ etat = null; }
+    if(!etat || etat.annee !== an) etat = { annee: an, rang: 0 };
+    etat.rang++;
+    try{ localStorage.setItem(CLE_RANG_FAC, JSON.stringify(etat)); }catch(e){}
+    return "F-" + an + "-" + String(etat.rang).padStart(4, "0");
+  }
+
+  function coursesAFacturer(ch, du, au){
+    return registre().filter(function(c){
+      if(c.statut !== "realisee" || c.factureNum) return false;
+      var d = c.course && c.course.date;
+      if(!d || d < du || d > au) return false;
+      var t = trouverChauffeur(c.chauffeur && c.chauffeur.nom,
+                               c.chauffeur && c.chauffeur.telephone);
+      return !!t && t.id === ch.id;
+    }).sort(function(a, b){
+      return (a.course.date + a.course.heure).localeCompare(b.course.date + b.course.heure);
+    });
+  }
+
+  var factureBrouillon = null;
+
+  /* LA FACTURE EST FIGÉE AU MOMENT OÙ ELLE EST ÉMISE. On recopie ici le nom,
+     l'adresse et le SIRET des deux parties : le chauffeur peut déménager, la
+     raison sociale peut changer, et un document comptable qui se réécrit
+     tout seul n'est plus une preuve de rien. */
+  function composerFacture(ch, courses, du, au){
+    var e = entreprise();
+    var tva = parseFloat(e.tva) || 0;
+    var lignes = courses.map(function(c){
+      var taux = (ch.taux === 0 || ch.taux) ? ch.taux : 0;
+      var prix = (c.prix && c.prix.total) || 0;
+      return { ref: c.ref, date: c.course.date,
+               trajet: c.course.departPublic || c.course.depart,
+               vers: c.course.arriveePublic || c.course.arrivee,
+               prix: prix, taux: taux,
+               commission: Math.round(prix * taux) / 100 };
+    });
+    var ht = lignes.reduce(function(s, l){ return s + l.commission; }, 0);
+    ht = Math.round(ht * 100) / 100;
+    var mtva = Math.round(ht * tva) / 100;
+    return {
+      num: null, date: dateLocale(new Date()), du: du, au: au,
+      emetteur: { nom: e.nom, siret: e.siret, adresse: e.adresse, contact: e.contact || "" },
+      client: { id: ch.id, nom: ch.nom, siret: ch.siret || "", adresse: ch.adresse || "" },
+      lignes: lignes, ht: ht, tauxTva: tva, tva: mtva,
+      ttc: Math.round((ht + mtva) * 100) / 100
+    };
+  }
+
+  function jjmmaaaa(iso){
+    var p = String(iso || "").split("-");
+    return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : (iso || "");
+  }
+
+  function dessinerFacture(f){
+    var vue = document.getElementById("factureVue");
+    var mentions = [
+      "Prestation : mise en relation et apport de clientèle sur les courses "
+      + "listées ci-dessus, réalisées entre le " + jjmmaaaa(f.du)
+      + " et le " + jjmmaaaa(f.au) + ".",
+      f.tauxTva ? "TVA au taux de " + f.tauxTva + " %."
+                : "TVA non applicable, article 293 B du CGI.",
+      "Paiement à réception. Pas d'escompte pour paiement anticipé.",
+      "En cas de retard : pénalités au taux d'intérêt légal majoré de 10 points, "
+      + "et indemnité forfaitaire pour frais de recouvrement de 40 € "
+      + "(art. L441-10 et D441-5 du Code de commerce)."
+    ].join("\n");
+
+    vue.innerHTML =
+      '<div class="f-tete"><div><p class="f-titre">Facture</p>'
+      + '<p class="f-num"></p></div><div class="f-num" style="text-align:right"></div></div>'
+      + '<div class="f-parties">'
+      + '<div class="f-partie"><h4>Émise par</h4><p class="f-de"></p></div>'
+      + '<div class="f-partie"><h4>À l\'attention de</h4><p class="f-a"></p></div></div>'
+      + '<table class="f-table"><thead><tr><th>Date</th><th>Course</th>'
+      + '<th class="num">Prix course</th><th class="num">Taux</th>'
+      + '<th class="num">Commission</th></tr></thead><tbody class="f-corps"></tbody></table>'
+      + '<div class="f-totaux"></div>'
+      + '<p class="f-mentions"></p>';
+
+    vue.querySelector(".f-num").textContent =
+      (f.num ? "N° " + f.num : "Aperçu — non émise");
+    vue.querySelectorAll(".f-num")[1].textContent = "Émise le " + jjmmaaaa(f.date);
+    vue.querySelector(".f-de").textContent =
+      [f.emetteur.nom, f.emetteur.adresse, "SIRET " + f.emetteur.siret,
+       f.emetteur.contact].filter(Boolean).join("\n");
+    vue.querySelector(".f-a").textContent =
+      [f.client.nom, f.client.adresse,
+       f.client.siret ? "SIRET " + f.client.siret : ""].filter(Boolean).join("\n");
+
+    var corps = vue.querySelector(".f-corps");
+    f.lignes.forEach(function(l){
+      var tr = document.createElement("tr");
+      tr.innerHTML = '<td class="d"></td><td class="t"></td><td class="num p"></td>'
+        + '<td class="num x"></td><td class="num c"></td>';
+      tr.querySelector(".d").textContent = jjmmaaaa(l.date);
+      tr.querySelector(".t").textContent = l.ref + " · " + l.trajet + " → " + l.vers;
+      tr.querySelector(".p").textContent = euros(l.prix);
+      tr.querySelector(".x").textContent = l.taux + " %";
+      tr.querySelector(".c").textContent = euros(l.commission);
+      corps.appendChild(tr);
+    });
+
+    var tot = vue.querySelector(".f-totaux");
+    var pose = function(nom, val, gros){
+      var d = document.createElement("div");
+      d.className = "f-ligne" + (gros ? " gros" : "");
+      d.innerHTML = "<span></span><b></b>";
+      d.querySelector("span").textContent = nom;
+      d.querySelector("b").textContent = euros(val);
+      tot.appendChild(d);
+    };
+    pose("Total HT", f.ht);
+    if(f.tauxTva) pose("TVA " + f.tauxTva + " %", f.tva);
+    pose("Net à payer", f.ttc, true);
+    vue.querySelector(".f-mentions").textContent = mentions;
+  }
+
+  function remplirSelectChauffeurs(){
+    var s = document.getElementById("facChauffeur");
+    var garde = s.value;
+    s.innerHTML = "";
+    chauffeurs().slice().sort(function(a, b){
+      return String(a.nom || "").localeCompare(String(b.nom || ""), "fr");
+    }).forEach(function(c){
+      var o = document.createElement("option");
+      o.value = c.id; o.textContent = c.nom || c.id;
+      s.appendChild(o);
+    });
+    if(garde) s.value = garde;
+  }
+
+  function dessinerFacturesEmises(){
+    var l = factures().slice().reverse();
+    var cible = document.getElementById("facListe");
+    document.getElementById("facListeVide").hidden = l.length > 0;
+    cible.innerHTML = "";
+    l.forEach(function(f){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "bouton-fantome";
+      b.style.textAlign = "left";
+      b.textContent = f.num + " · " + f.client.nom + " · " + euros(f.ttc)
+                    + " · " + jjmmaaaa(f.date);
+      b.addEventListener("click", function(){
+        factureBrouillon = null;
+        dessinerFacture(f);
+        document.getElementById("facApercu").hidden = false;
+        document.getElementById("btnFacEmettre").hidden = true;
+        document.getElementById("btnFacImprimer").hidden = false;
+        document.getElementById("facEmiseEtat").hidden = false;
+        document.getElementById("facEmiseEtat").textContent =
+          "Facture déjà émise. Vous pouvez la réimprimer à l'identique.";
+        document.getElementById("facApercu").scrollIntoView({ behavior:"smooth" });
+      });
+      cible.appendChild(b);
+    });
+  }
+
+  function lireEntreprise(){
+    var e = entreprise();
+    document.getElementById("entNom").value     = e.nom || "";
+    document.getElementById("entSiret").value   = e.siret || "";
+    document.getElementById("entAdresse").value = e.adresse || "";
+    document.getElementById("entContact").value = e.contact || "";
+    document.getElementById("entTva").value     = String(e.tva || 0);
+  }
+  function ecrireEntreprise(){
+    var e = {
+      nom: document.getElementById("entNom").value.trim(),
+      siret: document.getElementById("entSiret").value.trim(),
+      adresse: document.getElementById("entAdresse").value.trim(),
+      contact: document.getElementById("entContact").value.trim(),
+      tva: parseFloat(document.getElementById("entTva").value) || 0
+    };
+    try{ localStorage.setItem(CLE_ENTREPRISE, JSON.stringify(e)); }catch(err){}
+    document.getElementById("entEtat").hidden = entreprisePrete(e);
+  }
+  ["entNom","entSiret","entAdresse","entContact","entTva"].forEach(function(id){
+    document.getElementById(id).addEventListener("input", ecrireEntreprise);
+    document.getElementById(id).addEventListener("change", ecrireEntreprise);
+  });
+
+  document.getElementById("btnFacPreparer").addEventListener("click", function(){
+    var etat = document.getElementById("facEtat");
+    var apercu = document.getElementById("facApercu");
+    apercu.hidden = true;
+    factureBrouillon = null;
+    var e = entreprise();
+    if(!entreprisePrete(e)){
+      document.getElementById("entEtat").hidden = false;
+      document.getElementById("blocEntreprise").scrollIntoView({ behavior:"smooth" });
+      etat.textContent = "Il manque vos informations d'entreprise.";
+      return;
+    }
+    var ch = null, id = document.getElementById("facChauffeur").value;
+    chauffeurs().forEach(function(c){ if(c.id === id) ch = c; });
+    if(!ch){ etat.textContent = "Ajoutez d'abord un chauffeur dans votre carnet."; return; }
+    if(!ch.taux){
+      etat.textContent = "Aucune commission n'est renseignée pour " + ch.nom
+        + " : une facture à 0 € ne sert à rien. Ouvrez sa fiche et posez le taux.";
+      return;
+    }
+    var du = document.getElementById("facDu").value;
+    var au = document.getElementById("facAu").value;
+    if(!du || !au || du > au){ etat.textContent = "Choisissez une période valable."; return; }
+    var courses = coursesAFacturer(ch, du, au);
+    if(!courses.length){
+      etat.textContent = "Aucune course réalisée et non encore facturée pour "
+        + ch.nom + " sur cette période.";
+      return;
+    }
+    factureBrouillon = composerFacture(ch, courses, du, au);
+    factureBrouillon.refs = courses.map(function(c){ return c.ref; });
+    dessinerFacture(factureBrouillon);
+    apercu.hidden = false;
+    document.getElementById("btnFacEmettre").hidden = false;
+    document.getElementById("btnFacImprimer").hidden = true;
+    document.getElementById("facEmiseEtat").hidden = true;
+    etat.textContent = courses.length + (courses.length > 1 ? " courses" : " course")
+      + " à facturer. Relisez avant d'émettre : une facture émise ne se modifie plus.";
+  });
+
+  document.getElementById("btnFacEmettre").addEventListener("click", function(){
+    if(!factureBrouillon) return;
+    var f = factureBrouillon;
+    f.num = numeroFactureSuivant();
+    var refs = f.refs || [];
+    /* On écrit le registre EN UNE FOIS : passer par « majCourse » course par
+       course redessinerait le tableau de bord à chaque ligne, et une
+       interruption au milieu laisserait la moitié des courses facturées. */
+    var l = registre();
+    l.forEach(function(c){ if(refs.indexOf(c.ref) >= 0) c.factureNum = f.num; });
+    ecrireRegistre(l);
+    l.forEach(function(c){ if(refs.indexOf(c.ref) >= 0) nuage.pousser(c); });
+    var toutes = factures();
+    toutes.push(f);
+    try{ localStorage.setItem(CLE_FACTURES, JSON.stringify(toutes)); }catch(e){}
+    factureBrouillon = null;
+    dessinerFacture(f);
+    dessinerFacturesEmises();
+    dessinerBord();
+    document.getElementById("btnFacEmettre").hidden = true;
+    document.getElementById("btnFacImprimer").hidden = false;
+    document.getElementById("facEmiseEtat").hidden = false;
+    document.getElementById("facEmiseEtat").textContent =
+      "Facture " + f.num + " émise. Ces courses ne repartiront pas dans une autre facture.";
+  });
+
+  document.getElementById("btnFacImprimer").addEventListener("click", function(){
+    window.print();
+  });
+  document.getElementById("btnRetourFacture").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+
+  /* Le mois dernier par défaut : c'est le rythme d'une facturation, et
+     personne n'a envie de saisir deux dates à chaque fois. */
+  (function(){
+    var a = new Date();
+    var debut = new Date(a.getFullYear(), a.getMonth() - 1, 1);
+    var fin   = new Date(a.getFullYear(), a.getMonth(), 0);
+    document.getElementById("facDu").value = dateLocale(debut);
+    document.getElementById("facAu").value = dateLocale(fin);
+  })();
+
+  document.getElementById("btnChauffeurs").addEventListener("click", function(){
+    dessinerChauffeurs();
+    ecran("ecran-chauffeurs");
+    allumerAdmin(this);
+  });
+  document.getElementById("btnFactures").addEventListener("click", function(){
+    lireEntreprise();
+    remplirSelectChauffeurs();
+    dessinerFacturesEmises();
+    document.getElementById("facApercu").hidden = true;
+    ecran("ecran-facture");
+    allumerAdmin(this);
+  });
 
 /* =====================================================================
    LA SAUVEGARDE
@@ -4959,16 +6804,29 @@ window.ELA_TEXTES = {
     return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0")
            + "-" + String(d.getDate()).padStart(2,"0");
   }
+  /* LA SAUVEGARDE EMPORTE TOUT CE QUI NE VIT QUE DANS CE NAVIGATEUR : les
+     courses, le carnet de chauffeurs, les factures émises et le rang de
+     numérotation. Une sauvegarde qui ne rendrait que les courses laisserait
+     Barbaros sans preuve que ses chauffeurs étaient en règle, et referait
+     partir la numérotation des factures à 1 — donc des doublons.
+     L'ANCIEN FORMAT RESTE LU : les sauvegardes déjà téléchargées sont un
+     simple tableau de courses, et elles doivent continuer à se restaurer. */
   document.getElementById("btnSauver").addEventListener("click", function(){
+    var rang = null;
+    try{ rang = JSON.parse(localStorage.getItem(CLE_RANG_FAC) || "null"); }catch(e){}
     telecharger("elatransfer-registre-" + horodatage() + ".json",
-                JSON.stringify(registre(), null, 1), "application/json");
+                JSON.stringify({ format: "elatransfer-1", courses: registre(),
+                                 chauffeurs: chauffeurs(), factures: factures(),
+                                 rangFacture: rang, entreprise: entreprise() }, null, 1),
+                "application/json");
     document.getElementById("regSauvEtat").textContent =
-      "Sauvegarde téléchargée. Gardez-la ailleurs que sur ce téléphone.";
+      "Sauvegarde téléchargée — courses, chauffeurs et factures. "
+      + "Gardez-la ailleurs que sur ce téléphone.";
   });
   document.getElementById("btnCSV").addEventListener("click", function(){
     var colonnes = ["Référence","Date","Heure","État","Client","Téléphone",
                     "Départ","Arrivée","Véhicule","Paiement","Chauffeur","Vient de",
-                    "Prix TTC","Prix HT","TVA"];
+                    "Prix TTC","Prix HT","TVA","Facture commission"];
     /* Le point-virgule et non la virgule : Excel en français lit le CSV avec
        le séparateur de sa locale, et une virgule y met tout dans une seule
        colonne. Le BOM en tête pour qu'il ne massacre pas les accents. */
@@ -4985,7 +6843,8 @@ window.ELA_TEXTES = {
                    c.provenance||"",
                    ((c.prix&&c.prix.total)||0).toFixed(2).replace(".",","),
                    ((c.prix&&c.prix.ht)||0).toFixed(2).replace(".",","),
-                   ((c.prix&&c.prix.tva)||0).toFixed(2).replace(".",",")].map(champ).join(";"));
+                   ((c.prix&&c.prix.tva)||0).toFixed(2).replace(".",","),
+                   c.factureNum||""].map(champ).join(";"));
     });
     telecharger("elatransfer-courses-" + horodatage() + ".csv",
                 "﻿" + lignes.join("\r\n"), "text/csv;charset=utf-8");
@@ -4998,11 +6857,51 @@ window.ELA_TEXTES = {
       var etat = document.getElementById("regSauvEtat");
       try{
         var brut = JSON.parse(lecteur.result);
-        if(!Array.isArray(brut)) throw new Error("format");
-        var n = fusionner(brut);
+        /* Deux formats : le tableau de courses d'avant, et l'objet complet
+           d'aujourd'hui. On ne casse pas les sauvegardes déjà faites. */
+        var cours = Array.isArray(brut) ? brut
+                  : (brut && Array.isArray(brut.courses) ? brut.courses : null);
+        if(!cours) throw new Error("format");
+        var n = fusionner(cours);
+        var sup = "";
+        if(!Array.isArray(brut)){
+          /* LE CARNET AJOUTE AUSSI, il n'écrase pas : une fiche d'ici peut
+             porter un papier renouvelé depuis la sauvegarde. */
+          if(Array.isArray(brut.chauffeurs)){
+            var ici = chauffeurs(), vus = {};
+            ici.forEach(function(c){ vus[c.id] = true; });
+            var neufs = brut.chauffeurs.filter(function(c){ return c && c.id && !vus[c.id]; });
+            if(neufs.length){ ecrireChauffeurs(ici.concat(neufs)); dessinerChauffeurs(); }
+            sup += " " + neufs.length + " chauffeur" + (neufs.length > 1 ? "s ajoutés." : " ajouté.");
+          }
+          if(Array.isArray(brut.factures)){
+            var f0 = factures(), vues = {};
+            f0.forEach(function(f){ vues[f.num] = true; });
+            var nf = brut.factures.filter(function(f){ return f && f.num && !vues[f.num]; });
+            if(nf.length){
+              try{ localStorage.setItem(CLE_FACTURES, JSON.stringify(f0.concat(nf))); }catch(x){}
+              dessinerFacturesEmises();
+            }
+            sup += " " + nf.length + " facture" + (nf.length > 1 ? "s ajoutées." : " ajoutée.");
+          }
+          /* LE RANG NE RECULE JAMAIS : on garde le plus grand des deux. Le
+             reprendre tel quel réémettrait des numéros déjà utilisés. */
+          if(brut.rangFacture && brut.rangFacture.annee){
+            var ici2 = null;
+            try{ ici2 = JSON.parse(localStorage.getItem(CLE_RANG_FAC) || "null"); }catch(x){}
+            if(!ici2 || ici2.annee !== brut.rangFacture.annee
+               || ici2.rang < brut.rangFacture.rang){
+              try{ localStorage.setItem(CLE_RANG_FAC, JSON.stringify(
+                { annee: brut.rangFacture.annee,
+                  rang: Math.max(brut.rangFacture.rang,
+                                 (ici2 && ici2.annee === brut.rangFacture.annee) ? ici2.rang : 0) }
+              )); }catch(x){}
+            }
+          }
+        }
         dessinerRegistre();
         etat.textContent = n + (n > 1 ? " courses ajoutées." : " course ajoutée.")
-          + " Celles déjà présentes n'ont pas été touchées.";
+          + " Celles déjà présentes n'ont pas été touchées." + sup;
       }catch(err){
         etat.textContent = "Ce fichier n'est pas une sauvegarde du registre.";
       }
@@ -5294,9 +7193,24 @@ window.ELA_TEXTES = {
 
   function ouvrirEspace(){
     document.body.classList.add("exploitant");
+    /* « espace » n'arrive qu'ICI, une fois le code donné : c'est elle qui
+       fait apparaître la colonne de gauche. « exploitant » est déjà posée
+       sur l'écran du verrou — s'en servir afficherait le nom, l'état du
+       serveur et l'accès au registre à qui n'a pas encore le code. */
+    document.body.classList.add("espace");
     jugerNuage();
-    dessinerBord();
+    /* Le carnet est dessiné dès l'ouverture, même si l'on ne va pas sur son
+       écran : c'est lui qui remplit la liste déroulante du bon et le
+       sélecteur de la facture. Sans ça, attribuer un chauffeur ne proposerait
+       rien tant qu'on n'a pas ouvert « Chauffeurs » une fois. */
+    dessinerChauffeurs();
+    lireEntreprise();
+    dessinerFacturesEmises();
+    /* L'ÉCRAN D'ABORD, LE DESSIN ENSUITE. La courbe est tracée à la largeur
+       RÉELLE de son panneau : mesurée pendant que l'écran est encore masqué,
+       cette largeur vaut zéro et la courbe sort plate. */
     ecran("ecran-bord");
+    dessinerBord();
     if(nuage.connecte()) synchroniser();
   }
   document.getElementById("btnDeverrouiller").addEventListener("click", function(){
