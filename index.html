@@ -578,6 +578,33 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .choix[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-clair);
   color:var(--accent-encre);}
 .choix:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- UNE OPTION PAYANTE ---------- */
+/* Elle reprend le vocabulaire des boutons de choix — même contour, même
+   vert quand elle est prise — mais elle s'étale sur la largeur : il y a un
+   titre, une explication et un prix à loger, et trois informations ne
+   tiennent pas dans un bouton centré de 48 px.
+   LE PRIX EST À DROITE, EN GRAS, TOUJOURS VISIBLE. Une option dont le prix
+   n'apparaît qu'une fois cochée est une mauvaise surprise, pas une offre. */
+.option{display:flex;align-items:flex-start;gap:11px;width:100%;
+  padding:13px 13px 14px;border:1.5px solid var(--filet);border-radius:13px;
+  background:var(--carte);color:var(--encre);font:inherit;text-align:left;
+  cursor:pointer;transition:border-color .14s,background .14s;}
+.option[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-clair);}
+.option:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.option-case{flex:none;width:21px;height:21px;margin-top:1px;border-radius:6px;
+  border:1.5px solid var(--filet);background:var(--carte);
+  display:flex;align-items:center;justify-content:center;}
+.option-case svg{opacity:0;}
+.option[aria-pressed="true"] .option-case{background:var(--accent);border-color:var(--accent);}
+.option[aria-pressed="true"] .option-case svg{opacity:1;}
+.option-corps{flex:1 1 auto;min-width:0;}
+.option-corps b{display:block;font-size:14px;font-weight:800;}
+.option-sous{display:block;margin-top:3px;font-size:12.5px;line-height:1.4;
+  color:var(--gris);font-weight:400;}
+.option-prix{flex:none;margin-top:1px;font-size:14px;font-weight:800;
+  color:var(--accent-encre);}
+#apercuPancarte{margin-top:13px;}
 /* Le message d'absence de choix reprend l'encadré rouge des refus : c'est le
    vocabulaire du site pour « il manque quelque chose ». En gris il se lisait
    comme une note de bas de bloc — vu à l'écran, on ne le remarquait pas. */
@@ -1333,6 +1360,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
     </div>
 
     <div class="bloc">
+      <div class="ligne" id="ligneOption" hidden><span data-t="pancarte_court">Pancarte</span><b id="recapOption">—</b></div>
       <div class="ligne"><span data-t="prix_ht">Prix HT</span><b id="recapHT">—</b></div>
       <div class="ligne"><span data-t="tva">TVA 10 %</span><b id="recapTVA">—</b></div>
       <div class="ligne total"><span data-t="total">Total à régler</span><b id="recapTotal">—</b></div>
@@ -1398,14 +1426,36 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
          plus qu'une phrase de plus. -->
     <div class="bloc" id="blocPancarte" hidden>
       <h2 class="bloc-titre" data-t="pancarte_titre">À votre arrivée</h2>
-      <div class="pancarte">
+      <!-- UNE OPTION SE DÉCOCHE. Elle est donc présentée éteinte, et rien
+           n'est ajouté au prix tant que le client n'a pas appuyé : une
+           option cochée d'avance qui gonfle le total est exactement ce que
+           le Code de la consommation appelle un paiement supplémentaire non
+           consenti (L224-76) — et ce que tout le monde reproche aux
+           compagnies aériennes. -->
+      <button class="option" type="button" id="btnPancarte" aria-pressed="false">
+        <span class="option-case" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="2.6"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="option-corps">
+          <b data-t="pancarte_option">Pancarte à votre nom</b>
+          <span class="option-sous" id="pancarteSous" data-t="pancarte_sous_air">Votre chauffeur
+            vous attend devant la porte du terminal, votre nom à la main.</span>
+        </span>
+        <b class="option-prix" id="pancartePrix">+10,00 €</b>
+      </button>
+      <!-- L'APERÇU N'APPARAÎT QU'UNE FOIS L'OPTION PRISE, avec son nom
+           dessus : c'est ce qui rend les 10 € tangibles. Montré d'emblée,
+           il promettrait gratuitement ce qu'on vend. -->
+      <div class="pancarte" id="apercuPancarte" hidden>
         <span class="pancarte-marque">ELA<i>TRANSFER</i></span>
         <span class="pancarte-filet" aria-hidden="true"></span>
         <span class="pancarte-nom" id="pancarteNom" data-t="pancarte_nom">VOTRE NOM</span>
       </div>
-      <p class="bloc-note" data-t="pancarte_texte">Votre chauffeur vous attend
-         dans le hall, votre nom à la main. 60 minutes d'attente offertes,
-         même si votre vol a du retard.</p>
+      <p class="bloc-note" id="pancarteAttente" data-t="pancarte_attente_air">60 minutes
+         d'attente offertes, même si votre vol a du retard.</p>
     </div>
 
     <div class="veh-action">
@@ -1791,6 +1841,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       <div class="ligne"><span>Véhicule</span><b id="bbVehicule">—</b></div>
       <div class="ligne"><span>Passagers</span><b id="bbPax">—</b></div>
       <div class="ligne" id="bbLigneVol" hidden><span id="bbLibVol">Vol</span><b id="bbVol">—</b></div>
+      <div class="ligne" id="bbLignePancarte" hidden><span>Pancarte</span><b>Oui, à son nom</b></div>
       <!-- D'où vient ce client. La ligne n'apparaît que s'il vient d'une
            affiche : sur une course ordinaire, elle n'aurait rien à dire. -->
       <div class="ligne" id="bbLigneProv" hidden><span>Vient de</span><b id="bbProv">—</b></div>
@@ -2106,7 +2157,12 @@ window.ELA_TEXTES = {
     tot_note:"Il faut au moins 15 minutes pour vous envoyer un chauffeur. Pour un départ tout de suite, appelez-nous : on regarde ce qui est disponible autour de vous.",
     err_trop_grand:"Nous n'avons pas de véhicule pour {{n}} passagers en une seule course. Appelez-nous : on organise deux voitures.",
     pancarte_titre:"À votre arrivée",
-    pancarte_texte:"Votre chauffeur vous attend dans le hall, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.",
+    pancarte_option:"Pancarte à votre nom",
+    pancarte_sous_air:"Votre chauffeur vous attend devant la porte du terminal, votre nom à la main.",
+    pancarte_sous_gare:"Votre chauffeur vous attend à la sortie des trains, votre nom à la main.",
+    pancarte_attente_air:"60 minutes d'attente offertes, même si votre vol a du retard.",
+    pancarte_attente_gare:"30 minutes d'attente offertes après l'heure d'arrivée.",
+    pancarte_court:"Pancarte",
     pancarte_nom:"VOTRE NOM",
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Vérifiez que le message WhatsApp est parti : c'est lui qui nous prévient tout de suite.",
@@ -2121,7 +2177,7 @@ window.ELA_TEXTES = {
     legal_cgv:"Conditions générales de vente",
     legal_mentions:"Mentions légales",
     legal_privacy:"Politique de confidentialité",
-    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 6 septembre 2026\n\n1. Objet et champ d'application\nLes présentes conditions générales de vente (CGV) régissent toute réservation de prestation de transport de personnes avec chauffeur (VTC) effectuée via le site ou l'application Elatransfer (ci-après « le Service »), conclue entre le Client et Elatransfer, dont les coordonnées figurent dans les Mentions légales. Toute réservation implique l'acceptation sans réserve des présentes CGV.\n\n2. Prestations proposées\nElatransfer propose des prestations de transport de personnes avec chauffeur, d'une adresse de départ à une adresse d'arrivée. Les mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service : ils s'organisent par téléphone ou par WhatsApp, et font l'objet d'un accord distinct sur le prix avant toute exécution. Elatransfer agit en qualité de plateforme de mise en relation entre le Client et des chauffeurs VTC et taxis professionnels indépendants, chacun titulaire de sa propre carte professionnelle, de son assurance et des autorisations requises pour exercer son activité de transport de personnes.\n\n3. Formation de la réservation\nLa demande de réservation est transmise par le Client via WhatsApp depuis le récapitulatif généré par le Service. Elle ne vaut pas réservation ferme : le contrat n'est formé qu'à compter de la confirmation expresse adressée par Elatransfer au Client, une fois un chauffeur affecté à la course. Tant que cette confirmation n'a pas été reçue, aucune prestation n'est due. Le Client s'engage à fournir des informations exactes (nom, téléphone, adresses, nombre de passagers et de bagages) ; Elatransfer ne saurait être tenue responsable d'un défaut d'exécution résultant d'informations erronées communiquées par le Client.\n\n4. Prix\nLes prix sont exprimés en euros, toutes taxes comprises (TTC), TVA sur le transport de personnes incluse au taux en vigueur. Le prix est calculé automatiquement à partir de la distance de l'itinéraire, selon un tarif kilométrique propre à chaque gamme de véhicule, majoré de 20 % la nuit (21 h – 6 h) ainsi que le samedi et le dimanche. Le montant obtenu est arrondi à la dizaine d'euros. Un montant minimum par course s'applique quelle que soit la distance parcourue. Le tarif kilométrique, la majoration et le montant minimum en vigueur sont ceux affichés sur le Service au moment de la réservation. Il est affiché et accepté par le Client avant la course : il est ferme et n'est pas recalculé à l'arrivée.\n\n5. Paiement\nLe règlement de la course s'effectue directement auprès du chauffeur, à bord du véhicule, en espèces ou par carte bancaire. Le Client indique son mode de règlement au moment de la réservation ; cette indication engage Elatransfer à ce que le chauffeur se présente en mesure de l'accepter. Aucun paiement n'est encaissé par le Service : aucune donnée bancaire du Client n'est collectée, transmise ni conservée. Le chauffeur remet au Client une facture correspondant à la prestation réalisée.\n\n6. Droit de rétractation\nConformément à l'article L221-28, 4° du Code de la consommation, le Client ne bénéficie pas du droit de rétractation de 14 jours pour les prestations de transport de passagers exécutées à une date ou selon une périodicité déterminée.\n\n7. Annulation et absence\nLe Client peut annuler sa réservation à tout moment en contactant Elatransfer. Des frais d'annulation, calculés sur le prix de la course et par rapport à l'heure de prise en charge convenue, peuvent être facturés par le chauffeur :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\nEn cas d'absence du Client au point de rendez-vous à l'issue du temps d'attente offert (60 minutes en aéroport, 30 minutes ailleurs), la totalité du prix peut être facturée. Ces frais reviennent au chauffeur, qui a réservé le créneau et supporté le déplacement.\n\n8. Exécution de la prestation\nElatransfer met en œuvre les moyens nécessaires pour assurer un service ponctuel et professionnel, avec des véhicules conformes à la réglementation VTC et des chauffeurs titulaires des autorisations requises. Un chauffeur attend le Client avec un panneau à son nom lors des prises en charge en aéroport ou en gare. Un temps d'attente de 60 minutes est offert après l'atterrissage pour les prises en charge en aéroport, et de 30 minutes pour les autres prises en charge.\n\n9. Responsabilité\nChaque chauffeur demeure seul responsable du respect de ses obligations professionnelles (carte VTC ou licence taxi, assurance, conformité du véhicule). Elatransfer décline toute responsabilité en cas de force majeure (conditions météorologiques exceptionnelles, grèves, fermetures de voies, décisions administratives) entraînant un retard ou une impossibilité d'exécution.\n\n10. Réclamation et médiation\nToute réclamation peut être adressée via WhatsApp ou par email à contact@elatransfer.com.\n\n11. Données personnelles\nLe traitement des données personnelles du Client est décrit dans la Politique de confidentialité, accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français. Pour les clients consommateurs, tout litige relève, au choix du Client, de la juridiction du lieu de sa résidence ou du siège social d'Elatransfer.",
+    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 6 septembre 2026\n\n1. Objet et champ d'application\nLes présentes conditions générales de vente (CGV) régissent toute réservation de prestation de transport de personnes avec chauffeur (VTC) effectuée via le site ou l'application Elatransfer (ci-après « le Service »), conclue entre le Client et Elatransfer, dont les coordonnées figurent dans les Mentions légales. Toute réservation implique l'acceptation sans réserve des présentes CGV.\n\n2. Prestations proposées\nElatransfer propose des prestations de transport de personnes avec chauffeur, d'une adresse de départ à une adresse d'arrivée. Les mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service : ils s'organisent par téléphone ou par WhatsApp, et font l'objet d'un accord distinct sur le prix avant toute exécution. Elatransfer agit en qualité de plateforme de mise en relation entre le Client et des chauffeurs VTC et taxis professionnels indépendants, chacun titulaire de sa propre carte professionnelle, de son assurance et des autorisations requises pour exercer son activité de transport de personnes.\n\n3. Formation de la réservation\nLa demande de réservation est transmise par le Client via WhatsApp depuis le récapitulatif généré par le Service. Elle ne vaut pas réservation ferme : le contrat n'est formé qu'à compter de la confirmation expresse adressée par Elatransfer au Client, une fois un chauffeur affecté à la course. Tant que cette confirmation n'a pas été reçue, aucune prestation n'est due. Le Client s'engage à fournir des informations exactes (nom, téléphone, adresses, nombre de passagers et de bagages) ; Elatransfer ne saurait être tenue responsable d'un défaut d'exécution résultant d'informations erronées communiquées par le Client.\n\n4. Prix\nLes prix sont exprimés en euros, toutes taxes comprises (TTC), TVA sur le transport de personnes incluse au taux en vigueur. Le prix est calculé automatiquement à partir de la distance de l'itinéraire, selon un tarif kilométrique propre à chaque gamme de véhicule, majoré de 20 % la nuit (21 h – 6 h) ainsi que le samedi et le dimanche. Le montant obtenu est arrondi à la dizaine d'euros. Un montant minimum par course s'applique quelle que soit la distance parcourue. Le tarif kilométrique, la majoration et le montant minimum en vigueur sont ceux affichés sur le Service au moment de la réservation. Des options facultatives peuvent s'ajouter à ce montant : elles ne sont jamais présélectionnées, leur prix est affiché avant tout choix, et il est inclus dans le total présenté au Client. L'accueil avec un panneau au nom du Client, proposé lors des prises en charge en aéroport ou en gare, est une option facturée 10 € TTC. Il est affiché et accepté par le Client avant la course : il est ferme et n'est pas recalculé à l'arrivée.\n\n5. Paiement\nLe règlement de la course s'effectue directement auprès du chauffeur, à bord du véhicule, en espèces ou par carte bancaire. Le Client indique son mode de règlement au moment de la réservation ; cette indication engage Elatransfer à ce que le chauffeur se présente en mesure de l'accepter. Aucun paiement n'est encaissé par le Service : aucune donnée bancaire du Client n'est collectée, transmise ni conservée. Le chauffeur remet au Client une facture correspondant à la prestation réalisée.\n\n6. Droit de rétractation\nConformément à l'article L221-28, 4° du Code de la consommation, le Client ne bénéficie pas du droit de rétractation de 14 jours pour les prestations de transport de passagers exécutées à une date ou selon une périodicité déterminée.\n\n7. Annulation et absence\nLe Client peut annuler sa réservation à tout moment en contactant Elatransfer. Des frais d'annulation, calculés sur le prix de la course et par rapport à l'heure de prise en charge convenue, peuvent être facturés par le chauffeur :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\nEn cas d'absence du Client au point de rendez-vous à l'issue du temps d'attente offert (60 minutes en aéroport, 30 minutes ailleurs), la totalité du prix peut être facturée. Ces frais reviennent au chauffeur, qui a réservé le créneau et supporté le déplacement.\n\n8. Exécution de la prestation\nElatransfer met en œuvre les moyens nécessaires pour assurer un service ponctuel et professionnel, avec des véhicules conformes à la réglementation VTC et des chauffeurs titulaires des autorisations requises. Lorsque le Client a souscrit l'option correspondante, le chauffeur l'attend avec un panneau à son nom, devant la porte du terminal en aéroport ou à la sortie des trains en gare. Un temps d'attente de 60 minutes est offert après l'atterrissage pour les prises en charge en aéroport, et de 30 minutes pour les autres prises en charge.\n\n9. Responsabilité\nChaque chauffeur demeure seul responsable du respect de ses obligations professionnelles (carte VTC ou licence taxi, assurance, conformité du véhicule). Elatransfer décline toute responsabilité en cas de force majeure (conditions météorologiques exceptionnelles, grèves, fermetures de voies, décisions administratives) entraînant un retard ou une impossibilité d'exécution.\n\n10. Réclamation et médiation\nToute réclamation peut être adressée via WhatsApp ou par email à contact@elatransfer.com.\n\n11. Données personnelles\nLe traitement des données personnelles du Client est décrit dans la Politique de confidentialité, accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français. Pour les clients consommateurs, tout litige relève, au choix du Client, de la juridiction du lieu de sa résidence ou du siège social d'Elatransfer.",
     legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 6 septembre 2026\n\n1. Responsable du traitement\nLe responsable du traitement des données collectées via le Service est Elatransfer, dont les coordonnées figurent dans les Mentions légales.\n\n2. Données collectées\n— Données d'identification : nom, numéro de téléphone\n— Données de réservation : adresses de départ et d'arrivée, date, heure, nombre de passagers et de bagages, terminal aéroport et numéro de vol le cas échéant, numéro de chambre lorsque le lieu est un hôtel\n— Données de paiement : aucune. Le règlement se fait directement auprès du chauffeur ; aucune donnée bancaire ne transite par le Service\n— Données de localisation : uniquement si le Client active volontairement la fonction « Me localiser »\n— Données de navigation : cookies statistiques et marketing, uniquement avec consentement\n\n3. Finalités et bases légales\n— Traitement et exécution de la réservation : exécution du contrat\n— Contact avant la prise en charge : exécution du contrat\n— Amélioration du service : intérêt légitime ou consentement selon le cas\n— Prospection commerciale, le cas échéant : consentement de l'utilisateur\n\n4. Destinataires des données\nLes données sont destinées au seul chauffeur affecté à la course. Lorsqu'Elatransfer ne peut pas assurer elle-même la prestation, une annonce est diffusée à son réseau de chauffeurs partenaires afin de trouver un chauffeur disponible ; cette annonce ne comporte ni le nom, ni le numéro de téléphone, ni le numéro de chambre du Client. Ces éléments ne sont communiqués qu'au seul chauffeur finalement retenu, et pour la seule exécution de la course. Aucune donnée n'est transmise à un prestataire de paiement, puisqu'aucun paiement n'est encaissé par le Service. Aucune donnée n'est vendue à des tiers.\n\n5. Durée de conservation\nLes données de réservation sont conservées le temps nécessaire à l'exécution de la prestation, puis archivées pendant la durée légale de conservation des documents comptables (10 ans pour les factures). Les données enregistrées localement sur l'appareil utilisé pour réserver (répertoire client) peuvent être supprimées à tout moment sur simple demande.\n\n6. Cookies\nDes cookies strictement nécessaires au fonctionnement du site sont toujours actifs. Des cookies de mesure d'audience et marketing ne sont déposés qu'avec le consentement explicite du Client, recueilli via le bandeau de gestion des cookies, modifiable à tout moment.\n\n7. Sécurité\nElatransfer met en œuvre les mesures techniques et organisationnelles raisonnables pour protéger les données contre tout accès non autorisé, altération ou perte.\n\n8. Droits du Client\nConformément au RGPD et à la loi Informatique et Libertés, le Client dispose d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de ses données. Ces droits s'exercent via WhatsApp ou par email à contact@elatransfer.com.\n\n9. Réclamation\nEn cas de désaccord sur le traitement de ses données, le Client peut introduire une réclamation auprès de la CNIL (www.cnil.fr).",
     etat_court:"En attente",
@@ -2205,8 +2261,13 @@ window.ELA_TEXTES = {
     tot_titre:"That pickup is too soon.",
     tot_note:"We need at least 15 minutes to send you a chauffeur. For an immediate pickup, call us: we will see what is available near you.",
     err_trop_grand:"We have no single vehicle for {{n}} passengers. Call us: we will arrange two cars.",
-    pancarte_titre:"When you land",
-    pancarte_texte:"Your chauffeur waits in the arrivals hall, your name in hand. 60 minutes of waiting included, even if your flight is delayed.",
+    pancarte_titre:"When you arrive",
+    pancarte_option:"Name sign",
+    pancarte_sous_air:"Your chauffeur waits at the terminal door, your name in hand.",
+    pancarte_sous_gare:"Your chauffeur waits at the train exit, your name in hand.",
+    pancarte_attente_air:"60 minutes of waiting included, even if your flight is delayed.",
+    pancarte_attente_gare:"30 minutes of waiting included after the arrival time.",
+    pancarte_court:"Name sign",
     pancarte_nom:"YOUR NAME",
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. Check that the WhatsApp message was sent: that is what alerts us straight away.",
@@ -2221,7 +2282,7 @@ window.ELA_TEXTES = {
     legal_cgv:"Terms and conditions",
     legal_mentions:"Legal notice",
     legal_privacy:"Privacy policy",
-    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 6 September 2026\n\n1. Purpose and scope\nThese terms and conditions govern any booking of chauffeur-driven passenger transport (VTC) made via the Elatransfer site or app (the \"Service\"), between the Client and Elatransfer, whose contact details appear in the Legal Notice. Any booking implies unconditional acceptance of these terms.\n\n2. Services offered\nElatransfer offers chauffeur-driven passenger transport from a pickup address to a drop-off address. Hourly hire and bespoke journeys cannot be booked through the Service: they are arranged by phone or WhatsApp, and the price is agreed separately before the journey. Elatransfer operates as a platform connecting the Client with independent professional VTC and licensed taxi drivers, each holding their own professional licence, insurance and the authorisations required to carry out their passenger transport activity.\n\n3. Formation of the booking\nThe booking request is sent by the Client via WhatsApp from the summary generated by the Service. It is not a firm booking: the contract is formed only once Elatransfer sends the Client an express confirmation, after a driver has been assigned. Until that confirmation is received, no service is owed. The Client agrees to provide accurate information (name, phone, addresses, number of passengers and luggage); Elatransfer cannot be held liable for a failure resulting from incorrect information supplied by the Client.\n\n4. Price\nPrices are shown in euros, all taxes included (VAT on passenger transport included at the applicable rate). The price is calculated automatically from the route distance, at a per-kilometre rate specific to each vehicle class, increased by 20% at night (9 pm – 6 am) and on Saturdays and Sundays. The resulting amount is rounded to the nearest ten euros. A minimum fare applies to every ride regardless of the distance covered. The per-kilometre rate, the surcharge and the minimum fare in force are those displayed on the Service at the time of booking. It is shown to and accepted by the Client before the ride: it is firm and is not recalculated on arrival.\n\n5. Payment\nThe fare is paid directly to the chauffeur, on board, in cash or by card. The Client states their intended means of payment when booking; Elatransfer undertakes to send a chauffeur able to accept it. No payment is collected by the Service: no banking data of the Client is collected, transmitted or stored. The chauffeur issues the Client an invoice for the service provided.\n\n6. Right of withdrawal\nUnder Article L221-28(4) of the French Consumer Code, the Client does not benefit from the standard 14-day right of withdrawal for passenger transport services performed on a specific date or period.\n\n7. Cancellation and no-show\nThe Client may cancel at any time by contacting Elatransfer. Cancellation fees, calculated on the fare and relative to the agreed pickup time, may be charged by the chauffeur:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the fare;\n— less than 3 hours before: 50% of the fare.\nIf the Client does not show at the meeting point once the complimentary waiting time has elapsed (60 minutes for airport pickups, 30 minutes elsewhere), the full fare may be charged. These fees go to the chauffeur, who held the slot and made the journey.\n\n8. Performance of the service\nElatransfer uses reasonable means to ensure a punctual, professional service, with vehicles compliant with VTC regulations and drivers holding the required authorisations. A driver waits with a name sign for airport and station pickups. Complimentary waiting time is 60 minutes after landing for airport pickups, and 30 minutes for other pickups.\n\n9. Liability\nEach driver remains solely responsible for complying with their own professional obligations (VTC card or taxi licence, insurance, vehicle compliance). Elatransfer declines liability in cases of force majeure (exceptional weather, strikes, road closures, administrative decisions) causing delay or inability to perform.\n\n10. Complaints and mediation\nComplaints can be sent via WhatsApp or email to contact@elatransfer.com.\n\n11. Personal data\nProcessing of the Client's personal data is described in the Privacy Policy, accessible from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law. For consumer clients, any dispute falls, at the Client's choice, under the jurisdiction of their place of residence or Elatransfer's registered office.",
+    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 6 September 2026\n\n1. Purpose and scope\nThese terms and conditions govern any booking of chauffeur-driven passenger transport (VTC) made via the Elatransfer site or app (the \"Service\"), between the Client and Elatransfer, whose contact details appear in the Legal Notice. Any booking implies unconditional acceptance of these terms.\n\n2. Services offered\nElatransfer offers chauffeur-driven passenger transport from a pickup address to a drop-off address. Hourly hire and bespoke journeys cannot be booked through the Service: they are arranged by phone or WhatsApp, and the price is agreed separately before the journey. Elatransfer operates as a platform connecting the Client with independent professional VTC and licensed taxi drivers, each holding their own professional licence, insurance and the authorisations required to carry out their passenger transport activity.\n\n3. Formation of the booking\nThe booking request is sent by the Client via WhatsApp from the summary generated by the Service. It is not a firm booking: the contract is formed only once Elatransfer sends the Client an express confirmation, after a driver has been assigned. Until that confirmation is received, no service is owed. The Client agrees to provide accurate information (name, phone, addresses, number of passengers and luggage); Elatransfer cannot be held liable for a failure resulting from incorrect information supplied by the Client.\n\n4. Price\nPrices are shown in euros, all taxes included (VAT on passenger transport included at the applicable rate). The price is calculated automatically from the route distance, at a per-kilometre rate specific to each vehicle class, increased by 20% at night (9 pm – 6 am) and on Saturdays and Sundays. The resulting amount is rounded to the nearest ten euros. A minimum fare applies to every ride regardless of the distance covered. The per-kilometre rate, the surcharge and the minimum fare in force are those displayed on the Service at the time of booking. Optional extras may be added to that amount: they are never pre-selected, their price is shown before any choice is made, and it is included in the total presented to the Client. A meet-and-greet with a sign bearing the Client's name, offered for airport and station pickups, is an optional extra charged at €10 including VAT. It is shown to and accepted by the Client before the ride: it is firm and is not recalculated on arrival.\n\n5. Payment\nThe fare is paid directly to the chauffeur, on board, in cash or by card. The Client states their intended means of payment when booking; Elatransfer undertakes to send a chauffeur able to accept it. No payment is collected by the Service: no banking data of the Client is collected, transmitted or stored. The chauffeur issues the Client an invoice for the service provided.\n\n6. Right of withdrawal\nUnder Article L221-28(4) of the French Consumer Code, the Client does not benefit from the standard 14-day right of withdrawal for passenger transport services performed on a specific date or period.\n\n7. Cancellation and no-show\nThe Client may cancel at any time by contacting Elatransfer. Cancellation fees, calculated on the fare and relative to the agreed pickup time, may be charged by the chauffeur:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the fare;\n— less than 3 hours before: 50% of the fare.\nIf the Client does not show at the meeting point once the complimentary waiting time has elapsed (60 minutes for airport pickups, 30 minutes elsewhere), the full fare may be charged. These fees go to the chauffeur, who held the slot and made the journey.\n\n8. Performance of the service\nElatransfer uses reasonable means to ensure a punctual, professional service, with vehicles compliant with VTC regulations and drivers holding the required authorisations. Where the Client has taken the corresponding option, the driver waits with a sign bearing their name, at the terminal door at airports or at the train exit in stations. Complimentary waiting time is 60 minutes after landing for airport pickups, and 30 minutes for other pickups.\n\n9. Liability\nEach driver remains solely responsible for complying with their own professional obligations (VTC card or taxi licence, insurance, vehicle compliance). Elatransfer declines liability in cases of force majeure (exceptional weather, strikes, road closures, administrative decisions) causing delay or inability to perform.\n\n10. Complaints and mediation\nComplaints can be sent via WhatsApp or email to contact@elatransfer.com.\n\n11. Personal data\nProcessing of the Client's personal data is described in the Privacy Policy, accessible from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law. For consumer clients, any dispute falls, at the Client's choice, under the jurisdiction of their place of residence or Elatransfer's registered office.",
     legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 6 September 2026\n\n1. Data controller\nThe controller of data collected via the Service is Elatransfer, whose contact details appear in the Legal Notice.\n\n2. Data collected\n— Identification data: name, phone number\n— Booking data: pickup and drop-off addresses, date, time, number of passengers and luggage, airport terminal and flight number where applicable, room number when the location is a hotel\n— Payment data: none. Payment is made directly to the chauffeur; no banking data passes through the Service\n— Location data: only if the Client voluntarily activates the \"Locate me\" feature\n— Browsing data: analytics and marketing cookies, only with consent\n\n3. Purposes and legal bases\n— Processing and delivering the booking: performance of the contract\n— Contacting the Client before pickup: performance of the contract\n— Service improvement: legitimate interest or consent as applicable\n— Marketing, where applicable: user consent\n\n4. Data recipients\nData is shared only with the driver assigned to the ride. Where Elatransfer cannot perform the service itself, an announcement is circulated to its network of partner drivers to find an available one; that announcement carries no client name, phone number or room number. Those details are passed only to the driver finally chosen, and solely to perform the ride. No data is passed to a payment provider, since no payment is collected by the Service. No data is sold to third parties.\n\n5. Retention period\nBooking data is kept for as long as necessary to deliver the service, then archived for the legal accounting retention period (10 years for invoices). Data saved locally on the device used to book (client directory) can be deleted at any time on request.\n\n6. Cookies\nStrictly necessary cookies are always active. Analytics and marketing cookies are only set with the Client's explicit consent, collected via the cookie banner, and changeable at any time.\n\n7. Security\nElatransfer implements reasonable technical and organisational measures to protect data against unauthorised access, alteration or loss.\n\n8. Client rights\nUnder GDPR, the Client has the right to access, rectify, erase, restrict, object to, and port their data. These rights can be exercised via WhatsApp or email to contact@elatransfer.com.\n\n9. Complaints\nIn case of disagreement over data processing, the Client may lodge a complaint with the CNIL (www.cnil.fr).",
     etat_court:"Awaiting",
@@ -2984,6 +3045,27 @@ window.ELA_TEXTES = {
     return n.toLocaleString(locale(), { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
   }
 
+  /* L'OPTION PANCARTE — 10 €, à sa demande (septembre 2026).
+     ELLE S'AJOUTE APRÈS TOUT LE RESTE, et cet ordre n'est pas indifférent :
+     le prix de la course est arrondi à la dizaine puis plancheré, et un
+     supplément de 10 € pile garde un total rond. Le faire entrer AVANT
+     l'arrondi le ferait disparaître une fois sur deux — 10 € ajoutés à
+     42 € s'arrondissent à 50, mais ajoutés à 46 € ils donnent 56 € qui
+     redescend à 60 : le client paierait 14 € une option annoncée à 10.
+     ELLE N'EST PAS MAJORÉE LA NUIT. C'est un service à prix fixe, pas du
+     kilomètre : +20 % dessus ferait payer 12 € une pancarte affichée 10 €.
+     LE PRIX AFFICHÉ SORT DE LA CONSTANTE, il n'est écrit nulle part à la
+     main : c'est le seul moyen qu'un changement de tarif ne laisse pas une
+     étiquette périmée sur le bouton. */
+  var OPTION_PANCARTE_EUR = 10;
+  var optionPancarte = false;
+  function supplementPancarte(){
+    return (optionPancarte && !blocPancarte.hidden) ? OPTION_PANCARTE_EUR : 0;
+  }
+  function totalCourse(){
+    return prix(course.gamme, course.km, course.majoration) + supplementPancarte();
+  }
+
   /* =====================================================================
      L'ITINÉRAIRE FAIT LE PRIX — QUATRE NIVEAUX, DU MEILLEUR AU PIRE
      ---------------------------------------------------------------------
@@ -3490,7 +3572,10 @@ window.ELA_TEXTES = {
            d.toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"});
   }
   function remplirRecap(){
-    var total = prix(course.gamme, course.km, course.majoration);
+    /* L'option décide du total : elle est donc jugée AVANT lui. Jugée
+       après, un premier affichage porterait le prix sans le supplément. */
+    jugerPancarte();
+    var total = totalCourse();
     /* TVA 10 % INCLUSE, donc on la retire du total — on ne l'ajoute pas.
        Calculer 10 % du TTC donnerait 4,83 € au lieu de 4,39 € sur une course
        à 48,28 €, et le HT annoncé serait faux. */
@@ -3514,16 +3599,58 @@ window.ELA_TEXTES = {
     var vol = champVol.value.trim().toUpperCase();
     document.getElementById("ligneVol").hidden = !vol || blocVol.hidden;
     document.getElementById("recapVol").textContent = vol;
+    /* La ligne n'apparaît que si l'option est prise : posée en permanence
+       à « — », elle ferait chercher au client ce qu'il n'a pas demandé. */
+    document.getElementById("ligneOption").hidden = supplementPancarte() === 0;
+    document.getElementById("recapOption").textContent = "+" + euros(OPTION_PANCARTE_EUR);
     document.getElementById("recapHT").textContent    = euros(ht);
     document.getElementById("recapTVA").textContent   = euros(total - ht);
     document.getElementById("recapTotal").textContent = (course.estime ? "≈ " : "") + euros(total);
   }
-  var blocPancarte = document.getElementById("blocPancarte");
-  var pancarteNom  = document.getElementById("pancarteNom");
+  /* LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE, et elle vaut
+     désormais pour les DEUX lieux où l'on attend quelqu'un : un terminal
+     et une gare. On suit le DÉPART, pas l'un ou l'autre bout du trajet —
+     un client qui PART vers Roissy n'a personne qui l'attend avec son nom
+     à la main, et lui vendre une pancarte serait lui vendre du vide. */
+  var blocPancarte  = document.getElementById("blocPancarte");
+  var pancarteNom   = document.getElementById("pancarteNom");
+  var apercuPancarte= document.getElementById("apercuPancarte");
+  var btnPancarte   = document.getElementById("btnPancarte");
+  var pancarteSous  = document.getElementById("pancarteSous");
+  var pancarteAttente = document.getElementById("pancarteAttente");
   function jugerPancarte(){
-    var auDepart = terminalDuLibelle(choix.depart && choix.depart.label);
-    blocPancarte.hidden = !auDepart;
+    var air  = !!terminalDuLibelle(choix.depart && choix.depart.label);
+    var gare = estGare(choix.depart);
+    blocPancarte.hidden = !air && !gare;
+    /* UNE OPTION QU'ON NE VOIT PLUS NE SE PAIE PLUS. Sans cette remise à
+       zéro, un client qui prend la pancarte puis change son départ pour
+       une adresse ordinaire garderait 10 € sur un service qu'on ne peut
+       plus lui rendre — et il ne verrait même plus la ligne. */
+    if(blocPancarte.hidden){ poserPancarte(false); return; }
+    /* Le lieu change la phrase : on n'attend pas au même endroit dans un
+       aéroport et dans une gare. On réécrit l'ATTRIBUT « data-t », pas
+       seulement le texte, sinon un changement de langue ramènerait le
+       terminal sur une prise en charge en gare. */
+    var cleSous = gare && !air ? "pancarte_sous_gare" : "pancarte_sous_air";
+    pancarteSous.setAttribute("data-t", cleSous);
+    pancarteSous.textContent = T(cleSous);
+    var cleAttente = gare && !air ? "pancarte_attente_gare" : "pancarte_attente_air";
+    pancarteAttente.setAttribute("data-t", cleAttente);
+    pancarteAttente.textContent = T(cleAttente);
+    document.getElementById("pancartePrix").textContent = "+" + euros(OPTION_PANCARTE_EUR);
   }
+  function poserPancarte(pris){
+    optionPancarte = !!pris;
+    btnPancarte.setAttribute("aria-pressed", String(optionPancarte));
+    apercuPancarte.hidden = !optionPancarte;
+  }
+  btnPancarte.addEventListener("click", function(){
+    poserPancarte(!optionPancarte);
+    /* Le total change sous ses yeux, dans le même geste : une option dont
+       le prix n'apparaît qu'à l'écran suivant est une surprise. */
+    remplirRecap();
+    ecrirePancarte();
+  });
   function ecrirePancarte(){
     var n = champNom.value.trim();
     pancarteNom.textContent = n ? n.toUpperCase() : T("pancarte_nom");
@@ -3620,9 +3747,15 @@ window.ELA_TEXTES = {
          course, et une ligne glissée entre les deux le lui ferait perdre le
          jour où elle porterait un montant. */
       "Paiement : " + (bon.paiementNom || "—"),
+      /* L'option est posée AVANT le prix, pour la même raison que le
+         règlement : le lecteur de demandes retient le DERNIER montant en
+         euros comme prix de la course. Une ligne portant « +10,00 € »
+         glissée après le prix le remplacerait, et Barbaros recréerait la
+         course à 10 € au lieu de 90. */
+      bon.course.pancarte ? "Option : pancarte à votre nom (+" + eurosFR(OPTION_PANCARTE_EUR) + ")" : null,
       "Prix : " + eurosFR(bon.prix.total),
       bon.client.nom + " — " + bon.client.telephone
-    ].join("\n");
+    ].filter(Boolean).join("\n");
   }
 
   /* Lue au moment de la réservation, pas à l'arrivée : le client peut avoir
@@ -3797,7 +3930,7 @@ window.ELA_TEXTES = {
        La date y est en AAAA-MM-JJ et l'heure à part : c'est ainsi qu'il
        peut dire « aujourd'hui » ou « demain » plutôt qu'une date à
        décoder à 3 h du matin. */
-    var total = prix(course.gamme, course.km, course.majoration);
+    var total = totalCourse();
     var ht = total / 1.10;
     bonCourant = {
       ref: referenceSuivante(),
@@ -3822,6 +3955,10 @@ window.ELA_TEXTES = {
         /* Le numéro seul ne dit pas de quoi il s'agit : « 6201 » est un TGV,
            « AF1234 » un vol, et rien ne les distingue à la relecture. */
         train: !!(vol && volEstTrain),
+        /* Sans ce champ, le bon porterait 10 € que personne ne sait
+           expliquer trois jours plus tard — ni le client, ni le chauffeur
+           qui encaisse. */
+        pancarte: supplementPancarte() > 0,
         vehicule: course.gamme.nom,
         vehiculeCle: course.gamme.cle,
         /* « 1 passager », pas « 1 passagers ». Cette chaîne part telle quelle
@@ -4437,6 +4574,10 @@ window.ELA_TEXTES = {
        TGV enverrait Barbaros chercher un numéro sur le mauvais tableau. */
     document.getElementById("bbLibVol").textContent   = c.course.train ? "Train" : "Vol";
     document.getElementById("bbVol").textContent      = c.course.vol || "";
+    /* Le chauffeur doit savoir qu'une pancarte est due : elle est payée,
+       et un client qui l'a réglée et ne la voit pas a raison de se
+       plaindre. */
+    document.getElementById("bbLignePancarte").hidden = !c.course.pancarte;
     document.getElementById("bbLigneProv").hidden     = !c.provenance;
     document.getElementById("bbProv").textContent     = c.provenance || "";
     /* L'espace exploitant est en français quoi qu'il arrive : on affiche le
@@ -5240,7 +5381,7 @@ window.ELA_TEXTES = {
        La liste s'allonge à chaque écran, et c'est normal : une pastille
        FIXE se pose forcément sur quelque chose, la seule question est sur
        quoi on accepte qu'elle se pose. */
-    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .pancarte, .refus, .course, .contact-lien, .choix, .protege";
+    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .pancarte, .refus, .course, .contact-lien, .choix, .option, .protege";
 
     function juger(){
       enAttente = false;
