@@ -1560,11 +1560,27 @@ pas un départ à 10 h 07 : il pense en quarts et en cinquièmes d'heure.
   2 h 08, 2 h 10, 2 h 11 — sont éprouvés, **recalculés pour 15 minutes** :
   2 h 25, 2 h 25, 2 h 30.
 
-**LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ.** L'heure par défaut est
-10 h : parfaite à 1 h du matin, **impossible à 9 h 55** — le client arrivait
-alors sur un bouton éteint sans avoir rien touché. Le défaut n'est déplacé
-que dans ce cas, pour garder 10 h partout ailleurs. Deux tests, à 9 h 55 et
-à 1 h 41.
+**LE CHAMP S'OUVRE SUR LE PREMIER CRÉNEAU RÉSERVABLE** (septembre 2026, à sa
+demande : « il faut que le choix de l'heure commence à notre heure plus
+15 minutes »). Il s'ouvrait sur **10 h**, déplacé seulement quand 10 h était
+déjà refusé — ce qui réglait le bouton éteint, pas le vrai problème : **la
+molette d'un téléphone se pose sur la VALEUR du champ**. À 3 h 27 du matin,
+capture à l'appui, le client qui veut une voiture tout de suite voyait
+10 h 00 et devait remonter sept heures.
+- Le défaut est maintenant `prochainCreneau()` — à 3 h 27, **3 h 45** (3 h 42
+  arrondi au pas de 5). La **valeur proposée et la borne sont le même
+  moment** ; un test le vérifie, sinon le champ s'ouvrirait sur une heure
+  que lui-même refuse.
+- **Le test lit la VALEUR, plus seulement « est-elle acceptable »** :
+  l'ancien contrôle passait au vert à 1 h 41 avec 10 h, sans rien voir du
+  problème. Un contrôle qui ne demande que « est-ce refusé ? » ne dit rien
+  de ce que le client a sous les yeux.
+- **Tant que le client n'y a pas touché, le défaut se recalcule**
+  (`heureTouchee`, au retour sur l'onglet et à chaque jugement). Avec 10 h
+  ce n'était pas nécessaire ; avec « maintenant + 15 », une page ouverte
+  vingt minutes rouvrait sur une heure déjà refusée. **Dès qu'il choisit
+  lui-même, on ne touche plus à rien** — écraser le choix d'un client est
+  pire que lui proposer une heure passée.
 
 ## LA DATE DU JOUR SE COMPOSE EN LOCAL, JAMAIS EN UTC
 
