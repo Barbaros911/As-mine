@@ -1471,10 +1471,10 @@ de vide à droite**.
   où une voiture de 21 px devient une tache. **Cinquième refus d'une
   voiture dessinée** — ne plus en proposer.
 
-## LE PRÉAVIS DE 20 MINUTES
+## LE PRÉAVIS MINIMUM AVANT UN DÉPART — 15 MINUTES
 
 Septembre 2026, à sa demande : « lorsque le client réserve il faut qu'il ne
-puisse pas réserver avant 20 min ». Il faut trouver un chauffeur, le
+puisse pas réserver avant 20 min », **ramené à 15 minutes le lendemain**. Il faut trouver un chauffeur, le
 prévenir, et qu'il roule jusqu'au client. Accepter un départ dans cinq
 minutes, c'est promettre ce qu'on ne peut pas tenir — et chez Elatransfer
 l'heure est ferme comme le prix.
@@ -1482,13 +1482,19 @@ l'heure est ferme comme le prix.
 - **CE N'EST PAS LE RETOUR DU DÉLAI DE 3 HEURES**, retiré en septembre 2026
   à sa demande. Celui-là était un **avertissement** sur des heures
   entières, qui décourageait des courses parfaitement plaçables ; celui-ci
-  est un **refus** de vingt minutes, le temps matériel d'envoyer une
+  est un **refus** de quinze minutes, le temps matériel d'envoyer une
   voiture. Ne pas rétablir l'ancien en croyant compléter celui-ci.
-- **`DELAI_MINIMUM_MIN` vaut 20**, et la phrase de l'écriteau annonce le
+- **`DELAI_MINIMUM_MIN` vaut 15**, et la phrase de l'écriteau annonce le
   même nombre — dans les deux langues. **Un test lit la constante DANS la
   page et la cherche dans les deux phrases** : c'est le vrai piège de ce
   genre de règle, la constante bouge, la phrase reste, et le site annonce
-  vingt minutes en en exigeant quarante.
+  un délai en en exigeant un autre. **Ça a servi dès le premier
+  changement** — passer de 20 à 15 minutes touche la constante, les deux
+  phrases, et toute la table d'exemples du test.
+- **UN CONTRÔLE VERROUILLE LA VALEUR ELLE-MÊME** (« elle vaut 15 minutes »).
+  Les exemples chiffrés du test la supposent : s'il change, c'est lui qui
+  tombe en premier, et on sait qu'il faut **recalculer la table** plutôt
+  que de chercher un bug ailleurs.
 - **ON NE RENVOIE PAS LE CLIENT SANS RIEN.** L'écriteau porte appel et
   WhatsApp, exactement comme « hors zone » : quelqu'un qui veut une voiture
   tout de suite est un client, pas une erreur de saisie, et Barbaros place
@@ -1538,20 +1544,21 @@ pas un départ à 10 h 07 : il pense en quarts et en cinquièmes d'heure.
   s'ils se désaccordent, la borne tombe hors de la grille et le champ
   propose des heures que personne ne veut.
 - **`step` est compté À PARTIR DE `min`**, pas de minuit. D'où l'arrondi du
-  premier créneau au pas supérieur : à 1 h 41 la borne est **2 h 05**, pas
-  2 h 01 — qui donnerait la grille 2 h 01, 2 h 06, 2 h 11.
+  premier créneau au pas supérieur : à 1 h 41 la borne est **2 h 00**, pas
+  1 h 56 — qui donnerait la grille 1 h 56, 2 h 01, 2 h 06.
 - **LE CALCUL PART DE LA MINUTE EN COURS, SECONDES RABOTÉES**, et ce n'est
   pas un détail. À 2 h 10 pile, l'horloge marque 2 h 10 et 123 ms : le
-  préavis tombait à 19 min 59 s, le créneau de 2 h 30 était refusé, et le
-  client poussé à 2 h 35 — **cinq minutes perdues pour une fraction de
-  seconde qu'il ne voit même pas**. C'est aussi la façon dont il lit sa
+  préavis tombait sous la barre d'une fraction de seconde, le créneau juste
+  atteignable était refusé, et le client poussé au suivant — **cinq minutes
+  perdues pour un délai qu'il ne voit même pas**. C'est aussi la façon dont il lit sa
   montre : « il est 2 h 10, donc 2 h 30 ». Le prix se compte au centime, le
   préavis à la minute.
   **`tropTot()` rabote la même minute** : sinon le champ proposerait 2 h 30
   et l'écriteau le refuserait — deux façons de compter le temps dans la
   même page.
-  Trouvé par le test, pas en production : les trois cas de Barbaros
-  (2 h 08, 2 h 10, 2 h 11) sont éprouvés tels qu'il les a donnés.
+  Trouvé par le test, pas en production. Les trois cas de Barbaros —
+  2 h 08, 2 h 10, 2 h 11 — sont éprouvés, **recalculés pour 15 minutes** :
+  2 h 25, 2 h 25, 2 h 30.
 
 **LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ.** L'heure par défaut est
 10 h : parfaite à 1 h du matin, **impossible à 9 h 55** — le client arrivait
@@ -1604,7 +1611,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 477 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 478 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

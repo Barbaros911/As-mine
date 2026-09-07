@@ -886,7 +886,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       </div>
     </div>
 
-    <!-- TROP TÔT — 20 MINUTES DE PRÉAVIS (septembre 2026, à sa demande).
+    <!-- TROP TÔT — 15 MINUTES DE PRÉAVIS (septembre 2026, à sa demande).
          Un chauffeur doit être trouvé, prévenu, et il doit rouler jusqu'au
          client. Accepter une course pour dans cinq minutes, c'est promettre
          ce qu'on ne peut pas tenir — et chez Elatransfer le prix comme
@@ -897,7 +897,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
          sont là, et Barbaros place ces courses-là de vive voix. -->
     <div class="hors-zone" id="tropTot" hidden>
       <b data-t="tot_titre">Ce départ est trop proche.</b>
-      <p data-t="tot_note">Il faut au moins 20 minutes pour vous envoyer un chauffeur.
+      <p data-t="tot_note">Il faut au moins 15 minutes pour vous envoyer un chauffeur.
          Pour un départ tout de suite, appelez-nous : on regarde ce qui est
          disponible autour de vous.</p>
       <div class="duo">
@@ -2057,7 +2057,7 @@ window.ELA_TEXTES = {
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
     tot_titre:"Ce départ est trop proche.",
-    tot_note:"Il faut au moins 20 minutes pour vous envoyer un chauffeur. Pour un départ tout de suite, appelez-nous : on regarde ce qui est disponible autour de vous.",
+    tot_note:"Il faut au moins 15 minutes pour vous envoyer un chauffeur. Pour un départ tout de suite, appelez-nous : on regarde ce qui est disponible autour de vous.",
     err_trop_grand:"Nous n'avons pas de véhicule pour {{n}} passagers en une seule course. Appelez-nous : on organise deux voitures.",
     pancarte_titre:"À votre arrivée",
     pancarte_texte:"Votre chauffeur vous attend dans le hall, votre nom à la main. 60 minutes d'attente offertes, même si votre vol a du retard.",
@@ -2152,7 +2152,7 @@ window.ELA_TEXTES = {
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
     tot_titre:"That pickup is too soon.",
-    tot_note:"We need at least 20 minutes to send you a chauffeur. For an immediate pickup, call us: we will see what is available near you.",
+    tot_note:"We need at least 15 minutes to send you a chauffeur. For an immediate pickup, call us: we will see what is available near you.",
     err_trop_grand:"We have no single vehicle for {{n}} passengers. Call us: we will arrange two cars.",
     pancarte_titre:"When you land",
     pancarte_texte:"Your chauffeur waits in the arrivals hall, your name in hand. 60 minutes of waiting included, even if your flight is delayed.",
@@ -2808,7 +2808,7 @@ window.ELA_TEXTES = {
     blocZone.hidden = !mauvais;
     zoneLieu.textContent = mauvais ? mauvais.label : "";
     /* Le bouton n'est plus éteint ici : la zone n'est pas son seul juge
-       depuis le préavis de 20 minutes. Voir « jugerBoutonPrix ». */
+       depuis le préavis minimum. Voir « jugerBoutonPrix ». */
     if(window.__jugerBoutonPrix) window.__jugerBoutonPrix();
   }
 
@@ -3121,7 +3121,7 @@ window.ELA_TEXTES = {
   }
 
   /* ---------------------------------------------------------------------
-     LE PRÉAVIS DE 20 MINUTES (septembre 2026, à la demande de Barbaros).
+     LE PRÉAVIS DE 15 MINUTES (septembre 2026, à la demande de Barbaros).
      Il faut trouver un chauffeur, le prévenir, et qu'il roule jusqu'au
      client. Accepter un départ dans cinq minutes, c'est promettre ce qu'on
      ne peut pas tenir — et chez Elatransfer l'heure est ferme comme le
@@ -3137,7 +3137,7 @@ window.ELA_TEXTES = {
      UNE HEURE DÉJÀ PASSÉE N'EST PAS « TROP PROCHE » : elle a son propre
      message, qui dit ce qui ne va pas. D'où le « > maintenant » ci-dessous.
      --------------------------------------------------------------------- */
-  var DELAI_MINIMUM_MIN = 20;
+  var DELAI_MINIMUM_MIN = 15;
   function tropTot(){
     if(!champDate.value || !champHeure.value) return false;
     var d = new Date(champDate.value + "T" + champHeure.value).getTime();
@@ -3158,14 +3158,14 @@ window.ELA_TEXTES = {
      test compare les deux. */
   var PAS_MINUTES = 5;
   /* Le premier moment réservable : maintenant + le préavis, arrondi au PAS
-     supérieur. À 1 h 41, c'est 2 h 05 — et pas 2 h 01, qui ne serait pas
+     supérieur. À 1 h 41, c'est 2 h 00 — et pas 1 h 56, qui ne serait pas
      sur la grille et décalerait tous les créneaux proposés ensuite,
      « step » étant compté à partir de « min ». */
   function prochainCreneau(){
     var pas = PAS_MINUTES * 60000;
     /* ON PART DE LA MINUTE EN COURS, SECONDES RABOTÉES, et ce n'est pas un
        détail : à 2 h 10 pile, l'horloge réelle marque 2 h 10 et 123 ms.
-       Sans ce rabotage, le préavis tombait à 19 min 59 s, le créneau de
+       Sans ce rabotage, le préavis tombait à 14 min 59 s, le créneau de
        2 h 30 était refusé, et le client était poussé à 2 h 35 — cinq
        minutes perdues pour une fraction de seconde qu'il ne voit même pas.
        C'est aussi la façon dont un client lit sa montre : « il est 2 h 10,

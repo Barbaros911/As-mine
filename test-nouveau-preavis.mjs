@@ -1,5 +1,5 @@
 /* =====================================================================
-   TEST-NOUVEAU-PREAVIS.MJS — les 20 minutes de préavis
+   TEST-NOUVEAU-PREAVIS.MJS — le préavis minimum avant un départ
    ---------------------------------------------------------------------
    Il faut trouver un chauffeur, le prévenir, et qu'il roule jusqu'au
    client. Accepter un départ dans cinq minutes, c'est promettre ce qu'on
@@ -10,6 +10,10 @@
    — LE SEUIL EST UN REFUS, PAS UN AVERTISSEMENT. On éprouve les deux côtés
      de la frontière : 10 minutes est refusé, 40 minutes passe. Un test qui
      ne vérifierait que le refus laisserait passer un code qui refuse tout.
+   — LES EXEMPLES CHIFFRÉS SUPPOSENT LE DÉLAI EN VIGUEUR. Le premier
+     contrôle du fichier vérifie sa valeur : si Barbaros le change, c'est
+     lui qui tombe en premier, et on sait qu'il faut recalculer la table
+     plutôt que de chercher un bug ailleurs.
    — LE TEXTE ANNONCE LE MÊME DÉLAI QUE LE CODE. C'est le vrai piège de ce
      genre de règle : la constante bouge, la phrase reste, et le site
      annonce vingt minutes en en exigeant quarante. Le contrôle lit la
@@ -95,7 +99,7 @@ t = dansNMinutes(5);
 await p.fill('#date', t.date); await p.fill('#heure', t.heure);
 await p.waitForTimeout(300);
 const txt = await p.locator('#tropTot').innerText();
-check('il annonce 20 minutes', /20\s*minutes/.test(txt), txt.replace(/\n/g,' | '));
+check('il annonce 15 minutes', /15\s*minutes/.test(txt), txt.replace(/\n/g,' | '));
 check('et il donne un téléphone à appeler',
   (await p.locator('#tropTot a[href^="tel:"]').count())===1);
 check('et WhatsApp',
@@ -234,7 +238,7 @@ await ctx.close();
      de l'instant où il s'exécute finit par tomber tout seul. */
   const borne = await ph.locator('#heure').getAttribute('min');
   check('à 1 h 41, la borne du champ d\'heure est le premier créneau',
-    borne==='02:05', borne);
+    borne==='02:00', borne);
   /* LE PAS ET LA BORNE DOIVENT ÊTRE D'ACCORD. « step » est compté à partir
      de « min » : une borne à 2 h 01 donnerait la grille 2 h 01, 2 h 06,
      2 h 11 — des heures que personne ne choisit. La borne doit donc tomber
@@ -324,22 +328,23 @@ for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', true],
 }
 
 /* --- SON EXEMPLE, AVEC SES CHIFFRES ----------------------------------
-   « il est 2 h 08, il peut commander à partir de 2 h 28… pardon, avec les
-   créneaux, 2 h 30 ». C'est la règle entière en une phrase : le préavis
-   pousse à 2 h 28, la grille arrondit à 2 h 30. On l'éprouve tel quel,
+   Il avait posé la règle avec ses chiffres à 20 minutes : « il est 2 h 08,
+   il peut commander à partir de 2 h 28… pardon, avec les créneaux, 2 h 30 ».
+   Le délai est passé à 15 minutes depuis, la table est donc recalculée :
+   2 h 08 + 15 = 2 h 23, la grille arrondit à 2 h 25. On l'éprouve tel quel,
    parce qu'un exemple donné par celui qui exploite le service vaut mieux
    qu'un cas inventé. ------------------------------------------------ */
 for (const [instant, premier, refuse] of [
-      ['2026-09-07T02:08:00+02:00', '02:30', '02:25'],
+      ['2026-09-07T02:08:00+02:00', '02:25', '02:20'],
       /* PILE SUR LA GRILLE, ET C'EST LE CAS QUI A RÉVÉLÉ UN DÉFAUT.
-         2 h 10 + 20 min = 2 h 30, déjà un multiple de 5. Mais l'horloge
+         2 h 10 + 15 min = 2 h 25, déjà un multiple de 5. Mais l'horloge
          réelle marque 2 h 10 et quelques millisecondes : le préavis tombait
-         à 19 min 59 s, 2 h 30 était refusé, et le client poussé à 2 h 35 —
+         à 14 min 59 s, 2 h 25 était refusé, et le client poussé à 2 h 30 —
          cinq minutes perdues pour une fraction de seconde. On part
          maintenant de la minute en cours, secondes rabotées. */
-      ['2026-09-07T02:10:00+02:00', '02:30', '02:25'],
-      /* Juste après un créneau : 2 h 11 + 20 = 2 h 31 → 2 h 35. */
-      ['2026-09-07T02:11:00+02:00', '02:35', '02:30']]) {
+      ['2026-09-07T02:10:00+02:00', '02:25', '02:20'],
+      /* Juste après un créneau : 2 h 11 + 15 = 2 h 26 → 2 h 30. */
+      ['2026-09-07T02:11:00+02:00', '02:30', '02:25']]) {
   const ctxE = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
     timezoneId:'Europe/Paris'});
   await ctxE.addInitScript(([i]) => {
@@ -378,6 +383,10 @@ for (const [instant, premier, refuse] of [
 const source = await (await fetch('http://127.0.0.1:8099/index.html')).text();
 const m = source.match(/var DELAI_MINIMUM_MIN\s*=\s*(\d+)/);
 check('la constante du préavis existe', !!m, m ? m[1]+' minutes' : 'introuvable');
+/* LA VALEUR ELLE-MÊME. Les exemples chiffrés plus haut la supposent : si
+   elle change, c'est ce contrôle qui doit tomber en premier, pour qu'on
+   sache qu'il faut recalculer la table et non chercher un bug ailleurs. */
+check('et elle vaut 15 minutes', m && m[1]==='15', m ? m[1] : '');
 if(m){
   const n = m[1];
   const fr = source.match(/tot_note:"([^"]*)"/);
