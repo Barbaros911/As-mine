@@ -240,10 +240,22 @@ const flux = await dlCsv[0].createReadStream();
 let csv = ''; for await (const bloc of flux) csv += bloc;
 check('le CSV commence par un BOM : sinon Excel massacre les accents',
   csv.charCodeAt(0)===0xFEFF, 'code ' + csv.charCodeAt(0));
+/* LE SUJET DE CE CONTRÔLE EST LE SÉPARATEUR, PAS LE NOMBRE DE COLONNES.
+   Il comptait 15 colonnes en dur, et il est tombé le jour où l'export a
+   gagné « Facture commission » — alors que rien n'était cassé. Un test qui
+   fige un compte se met en travers de la première évolution légitime : on
+   vérifie donc ce qui compte vraiment, à savoir qu'Excel en français lira
+   bien des colonnes séparées et non une seule case. */
 check('il est séparé par des points-virgules, pas des virgules',
-  csv.split('\n')[0].split(';').length===15, csv.split('\n')[0].slice(0,60));
+  csv.split('\n')[0].indexOf(';') > 0 && csv.split('\n')[0].indexOf(',') < 0,
+  csv.split('\n')[0].slice(0,60));
 check('il porte les colonnes qui servent au comptable',
   /Référence;Date;Heure;État/.test(csv) && /Prix TTC;Prix HT;TVA/.test(csv));
+/* Le numéro de la facture de commission suit la course jusque dans
+   l'export : c'est ce qui dit, un an plus tard, ce qui a été facturé au
+   chauffeur et ce qui reste à facturer. */
+check('et le numéro de la facture de commission',
+  /;Facture commission/.test(csv));
 // « Vient de » suit la course jusque dans l'export : c'est là qu'on relit
 // quelle affiche a rapporté, sur une année entière.
 check('et la provenance, pour savoir quelle affiche a rapporté',

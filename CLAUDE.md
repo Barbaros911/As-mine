@@ -849,9 +849,14 @@ la réservation ; les quatre véhicules proposés dès lors qu'ils sont assez
 grands ; français par défaut avec 5 autres langues au sélecteur ; mode
 exploitant via `?exploitant=1` ; diffusion anonymisée.
 
-**Pas décidé** : taux de commission réel · statut juridique et SIRET de
-Barbaros · s'il est lui-même chauffeur · volume visé · clientèle cible
-(particuliers / hôtels / entreprises) · budget · règle du temps d'attente.
+**Décidé en septembre 2026** : **il ne conduit pas, il place seulement**
+(« Je place seulement »). Elatransfer est donc une centrale de réservation,
+et le taux de commission se règle désormais **par chauffeur**, dans le
+carnet — il n'y a plus de taux global à trancher dans le code.
+
+**Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
+point bloquant** · volume visé · clientèle cible (particuliers / hôtels /
+entreprises) · budget · règle du temps d'attente.
 
 ## Feuille de route convenue
 
@@ -1155,11 +1160,11 @@ les hôtels**.
 1. **Les informations de l'éditeur** (voir ci-dessus) — le seul point qui
    rende le site non conforme aujourd'hui, et le seul que Claude ne peut
    pas produire.
-2. **La gestion des chauffeurs** : aujourd'hui un champ libre nom +
-   téléphone. En confiant des courses à des tiers, Asmine est une centrale
-   de réservation (Code des transports L3142-1) : elle doit pouvoir prouver
-   que chaque chauffeur a carte professionnelle, inscription au registre
-   VTC et assurance. Un carnet avec les dates d'expiration et une alerte.
+2. ~~La gestion des chauffeurs~~ — **FAIT** (septembre 2026). Carnet avec
+   les trois papiers, leurs dates d'expiration, l'alerte à 30 jours et
+   l'avertissement sur le bon au moment de l'attribution. Voir la section
+   dédiée. Reste à y verser les vraies fiches, ce que seul Barbaros peut
+   faire — il lui faut les copies des papiers de ses chauffeurs.
 3. **L'ALERTE À CHAQUE DEMANDE EST ÉCRITE, PAS ENCORE DÉPLOYÉE**
    (septembre 2026). `supabase/functions/nouvelle-demande/` et
    `NOTIFICATION.md`. Il ne manque que ce que Claude ne peut pas faire :
@@ -1604,6 +1609,112 @@ exploitant, le `goto` de la ré-entrée remettait le registre à son état
 initial — les contrôles sur une course réalisée tombaient après ce point
 sans que rien ne soit cassé. Les placer **avant** la sortie.
 
+## LE CARNET DE CHAUFFEURS ET LA FACTURE DE COMMISSION
+
+Septembre 2026, à sa demande : « Oui met en place et publie ». Les deux
+tiennent ensemble et découlent d'une chose qu'il a dite ce jour-là :
+**« Je place seulement »**.
+
+**BARBAROS NE CONDUIT PAS. C'EST ACQUIS, ne plus le lui redemander** — la
+question figurait dans « Pas décidé » depuis des mois. Il est donc une
+**centrale de réservation** (Code des transports L3142-1), pas un
+transporteur, et **il n'a pas encore de SIRET** : la micro-entreprise reste
+à créer sur `formalites.entreprises.gouv.fr`. Tant qu'elle n'existe pas, la
+fiche Google ne peut pas être vérifiée, les mentions légales restent
+incomplètes et aucune facture n'est valable. C'est le point bloquant du
+projet, et il ne dépend que de lui.
+
+### Le carnet (`#ecran-chauffeurs`)
+
+- **CE N'EST PAS UN RÉPERTOIRE, C'EST L'OBLIGATION DE L3142-1** : pouvoir
+  prouver, pour chaque chauffeur, sa carte professionnelle, son inscription
+  au registre VTC et son assurance.
+- **LA DATE COMPTE PLUS QUE LE NUMÉRO.** Un numéro de carte reste identique
+  le lendemain de son expiration : il ne prouve rien. Ce qu'on surveille,
+  c'est `carteFin`, `registreFin`, `assuranceFin`.
+- **UN PAPIER ABSENT VAUT UN PAPIER PÉRIMÉ** — dans les deux cas on ne peut
+  rien prouver. Les distinguer donnerait à « pas renseigné » un air
+  rassurant qu'il n'a pas. Les deux sont au rouge, un contrôle le verrouille.
+- **LE PIRE DES TROIS DÉCIDE** (`etatChauffeur`) : assurance périmée = fiche
+  rouge, même avec une carte à jour.
+- **30 jours d'avance** (`JOURS_ALERTE`), et le jour se compte **à minuit** :
+  un papier qui expire aujourd'hui vaut encore aujourd'hui.
+- **L'AVERTISSEMENT EST SUR LE BON**, à l'instant où l'on attribue la course
+  — c'est-à-dire à l'instant où l'on engage sa responsabilité. Trois
+  messages : hors carnet (orange), papier bloquant (rouge), tout en règle
+  (vert). Un quatrième état — ne rien dire — se confondrait avec un contrôle
+  qui n'a pas eu lieu.
+- **ON RETROUVE LE CHAUFFEUR PAR SON NUMÉRO D'ABORD, PAR SON NOM ENSUITE.**
+  Le nom est saisi à la main depuis des mois — « Mehmet », « mehmet »,
+  « Mehmet Y. » — un numéro normalisé par `telWa()` ne varie pas. Un test
+  l'éprouve avec un nom volontairement mal écrit.
+- Le panneau « Papiers à surveiller » du tableau de bord **ne montre que ce
+  qui cloche** : un carnet à jour n'affiche rien, et sa réapparition est
+  elle-même l'alerte.
+- **L'identifiant `id` ne change JAMAIS** : le nom et le numéro se corrigent,
+  les factures déjà émises pointent dessus.
+
+### La facture (`#ecran-facture`)
+
+- **L'ARGENT NE PASSE JAMAIS PAR ELATRANSFER** — le client paie le chauffeur.
+  La commission ne s'encaisse donc pas toute seule, elle se **facture**.
+  C'était le trou du modèle depuis le début.
+- **PAS DE SIRET, PAS DE FACTURE.** Sans nom, SIRET et adresse de l'émetteur,
+  le document n'en est pas une (art. L441-9 Code de commerce) : on refuse de
+  l'éditer plutôt que d'en envoyer une fausse à un tiers. Même schéma que le
+  lien d'avis — on bloque et on emmène au champ.
+- **LE RANG NE RECULE JAMAIS** (`ela_rang_facture`, `F-AAAA-NNNN`). Il est
+  consommé **à l'émission**, jamais à l'aperçu : regarder ce qu'on va
+  facturer ne doit pas brûler un numéro qui manquerait ensuite. À la
+  restauration d'une sauvegarde, on garde **le plus grand des deux rangs** —
+  reprendre celui du fichier réémettrait des numéros déjà utilisés.
+- **UNE COURSE N'EST FACTURÉE QU'UNE FOIS** : elle porte `factureNum` et sort
+  du lot. Un doublon ne se voit que six mois plus tard, chez le comptable.
+- **SEULES LES `realisee` SONT FACTURABLES** — une course confirmée est une
+  promesse, pas un encaissement. Même règle que le registre.
+- **LA FACTURE EST FIGÉE À L'ÉMISSION** : nom, adresse et SIRET des deux
+  parties sont **recopiés dedans**. Le chauffeur peut déménager ; un document
+  comptable qui se réécrit tout seul ne prouve plus rien. Un test change
+  l'adresse après coup et rouvre l'ancienne facture.
+- **La TVA est ÉTEINTE par défaut** — en micro-entreprise on démarre en
+  franchise, et réclamer une TVA qu'on ne reverse pas est une facture fausse.
+  Mention « TVA non applicable, art. 293 B du CGI ». À noter : **la
+  commission est à 20 %, pas à 10 %** — le taux réduit est celui du
+  transport, pas celui de l'intermédiation.
+- Mentions obligatoires portées : prestation, période, paiement à réception,
+  absence d'escompte, pénalités de retard et **indemnité forfaitaire de 40 €**
+  (L441-10 et D441-5).
+- **À l'impression, seule la facture sort** — même règle que l'affiche, et
+  elles ne peuvent pas se disputer le papier : l'affiche vit dans le tableau
+  de bord, la facture sur son propre écran, et un écran non affiché est en
+  `display:none`, qu'aucune règle de visibilité ne ramène.
+
+### La sauvegarde a changé de format
+
+Elle emporte désormais **courses, chauffeurs, factures, rang et entreprise**
+dans un objet `{format:"elatransfer-1", …}`. Une sauvegarde qui ne rendrait
+que les courses laisserait Barbaros sans preuve que ses chauffeurs étaient
+en règle, et referait partir la numérotation à 1.
+**L'ANCIEN FORMAT RESTE LU** : un simple tableau de courses se restaure
+comme avant. Le carnet et les factures s'AJOUTENT, ils n'écrasent jamais.
+
+### LE DÉFAUT DE POSITIONNEMENT QUE CE TRAVAIL A RÉVÉLÉ
+
+`::-webkit-calendar-picker-indicator` est étiré en `absolute; inset:0` pour
+qu'un appui n'importe où dans la case ouvre le sélecteur. Il se cale donc
+sur le premier ancêtre **positionné** — et la règle ne posait ce repère que
+sur `.duo > .champ`, les deux champs de l'accueil, **les seuls champs de
+date qui existaient alors**.
+Le premier champ de date posé hors d'un `.duo` n'a plus trouvé de repère :
+l'indicateur est remonté jusqu'à la page entière et a recouvert tout, en
+transparent. Le bouton « Enregistrer ce chauffeur » était devenu
+**incliquable, et rien ne se voyait à l'écran**.
+`position:relative` est maintenant sur **tous** les `.champ`. C'est la
+deuxième fois que ce projet se fait avoir par un repère de positionnement
+supposé — la première était le bouton « me localiser » de l'ancien site.
+**Une règle qui vise un cas particulier survit au jour où le cas se
+généralise, sans rien casser de visible.**
+
 ## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
 
 Septembre 2026, vu par Barbaros : « il faut recentrer ces trois choix ».
@@ -1877,7 +1988,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-neuf suites Playwright, 539 contrôles**, à relancer après **toute**
+**Vingt suites Playwright, 575 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
@@ -1897,7 +2008,8 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
-         test-nouveau-option.mjs test-nouveau-bascule.mjs; do
+         test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
+         test-nouveau-bascule.mjs; do
   node $f || break
 done
 node test-notification.mjs   # ni navigateur ni réseau
@@ -1910,6 +2022,14 @@ description (leur ORDRE — le métier avant les aéroports), l'absence de
 **chaque fichier du `SHELL` du service worker existe** (`addAll` est tout ou
 rien : un fichier absent et il ne s'installe plus, sans message), et que les
 CGV décrivent la **grille réellement appliquée**.
+
+**UN TEST QUI FIGE UN COMPTE SE MET EN TRAVERS DE LA PREMIÈRE ÉVOLUTION
+LÉGITIME.** Le contrôle du CSV s'intitulait « il est séparé par des
+points-virgules » et comptait **15 colonnes en dur** : il est tombé le jour
+où l'export a gagné « Facture commission », alors que rien n'était cassé.
+Il vérifie maintenant son vrai sujet — un `;` présent, aucune `,`. Même
+leçon que la barre du bas figée sur quatre onglets, et que les trois tests
+qui visaient `p.font-mono` au lieu de `.veh-prix`.
 
 **UN TEST QUI RÉIMPLÉMENTE CE QU'IL VÉRIFIE NE VÉRIFIE RIEN.** Écrit après
 avoir failli garder un contrôle d'arrondi qui recalculait la formule dans
