@@ -1471,6 +1471,94 @@ de vide à droite**.
   où une voiture de 21 px devient une tache. **Cinquième refus d'une
   voiture dessinée** — ne plus en proposer.
 
+## L'ARRIVÉE — LA PROMESSE, LE NUMÉRO, ET LA PANCARTE À 10 €
+
+Septembre 2026, quatre demandes qui se suivent et qui tiennent ensemble.
+
+**LA LIGNE SOUS LE BOUTON NE PARLE PLUS D'ANNULATION.** Sa raison, et elle est
+juste : « le client ne paie que le chauffeur ». Rien n'est encaissé par le
+site, donc annuler ne coûte rien de toute façon — et une promesse qui ne coûte
+rien ne rassure personne. Elle dit maintenant ce qui se passe après le clic :
+**« Disponibilité confirmée par WhatsApp ou SMS »**. Le barème d'annulation
+reste dans les CGV, là où il engage. La clé `annulation` est devenue `dispo` :
+**un nom de clé qui décrit autre chose que son contenu finit par ramener
+l'ancien texte**. C'est la deuxième fois que cet argument est retiré de la
+vitrine — il était déjà parti de l'ancien site et il est revenu à la refonte —
+d'où un test dans les deux langues.
+
+**LA PROMESSE D'ARRIVÉE** (`.promesse`, entre le formulaire et « Nos
+engagements »). Le client qui atterrit ne se demande pas combien coûte la
+course : il se demande ce qui se passe si son vol a deux heures de retard.
+- **Sur un aplat d'accent, pas dans une carte blanche.** Les engagements et les
+  services sont déjà des cartes blanches ; une cinquième se serait fondue dans
+  la série au lieu de se lire comme une promesse.
+- **La classe `.arrivee` était déjà prise** par les trois lignes de trajet
+  (`trajet-ligne arrivee`) : la règle les aurait toutes repassées en flex sur
+  fond vert, dans le bon comme dans le récapitulatif. Attrapé par le sélecteur
+  strict de Playwright, qui a rendu quatre éléments au lieu d'un.
+- Le titre et le texte sont **deux clés** : le gras se lit seul, en diagonale.
+
+**LE MÊME CHAMP PREND LE NUMÉRO DE VOL OU DE TRAIN.** La promesse parlait du
+train ; il fallait un endroit où l'écrire.
+- **Un seul champ, pas deux** : c'est le LIBELLÉ qui change (`titreVol`,
+  `ph_train`, `train_aide_*`, `train_court`). Deux champs feraient deux fois le
+  code, deux fois les tests et deux lignes à tenir dans le bon.
+- **ON NE LIT PAS LE MOT « GARE » DANS L'ADRESSE.** *12 rue de la Gare, Melun*
+  n'est pas une gare, et le champ s'ouvrirait chez des gens qui prennent la
+  voiture en bas de chez eux. `estGare()` lit le **type du lieu**
+  (`railway=station`), conservé sur l'item sous `osm`. Les bouches de métro et
+  les arrêts de tram sont dans la même catégorie pour l'icône : `PAS_UN_TRAIN`
+  les écarte, on n'y prend pas de train.
+- **On réécrit l'attribut `data-t`, pas seulement le texte** — sinon un
+  changement de langue rappelle « Numéro de vol » sur un départ en gare.
+- La course porte **`train: true/false`** : « 6201 » et « AF1234 » ne se
+  distinguent pas à la relecture, et le bon de l'exploitant annoncerait « Vol »
+  sur un TGV.
+
+**LA PANCARTE EST UNE OPTION À 10 €** (`OPTION_PANCARTE_EUR`). Elle existait,
+gratuite et automatique, et seulement en aéroport.
+- **Éteinte à l'ouverture, toujours.** Une option cochée d'avance qui gonfle le
+  total est un **paiement supplémentaire non consenti** (L224-76 Code conso.).
+- **Elle est à DEUX endroits pour UN seul état** : sous la liste des véhicules
+  (`.veh-option`, là où l'on décide de ce qu'on achète, à sa demande) et sur le
+  récapitulatif (`.bloc-pancarte`, là où le client tape son nom et le voit
+  s'écrire sur la pancarte). Les deux sont pilotés par la même fonction, en
+  visant des **classes** (`.opt-pancarte`, `.opt-sous`, `.opt-prix`,
+  `.opt-attente`) : deux commandes pour un seul état se désaccordent au premier
+  oubli.
+- **`jugerPancarte()` est appelée depuis `dessinerGammes()`** : l'écran des prix
+  s'ouvre avant le récapitulatif, et jugée seulement là-bas l'option resterait
+  cachée à l'endroit même où on la choisit.
+- **L'aperçu n'apparaît qu'une fois l'option prise.** Montré d'emblée, il
+  promettrait gratuitement ce qu'on vend.
+- **LES 10 € S'AJOUTENT EN DERNIER**, après l'arrondi et le plancher. Entrés
+  avant l'arrondi ils disparaîtraient une fois sur deux : 46 + 10 = 56 redescend
+  à 60, et le client paierait **14 €** une option annoncée 10.
+- **Pas de majoration nuit dessus** : service à prix fixe. +20 % ferait payer
+  12 € une pancarte affichée 10.
+- **Une option qu'on ne voit plus ne se paie plus.** Changer son départ pour une
+  adresse ordinaire reprend les 10 € — sinon il paierait un service qu'on ne
+  peut plus lui rendre, sans même voir la ligne.
+- **La ligne du message WhatsApp est AVANT le prix**, comme le règlement : le
+  lecteur de demandes retient le **dernier** montant en euros comme prix de la
+  course. Après le prix, la course serait recréée à 10 € au lieu de 80.
+- **LES CGV ONT SUIVI, DANS LES DEUX LANGUES.** Elles promettaient la pancarte
+  gratuitement à tout le monde (article 8) : la laisser telle quelle en
+  facturant 10 € donnait au client un argument contre nous, le prix étant ferme
+  donc opposable. L'article 4 décrit l'option et son montant, l'article 8 dit
+  qu'elle est souscrite. **Toucher au prix veut dire toucher aux CGV.**
+- L'attente offerte est dite **« après l'atterrissage »** (60 min en aéroport,
+  30 min en gare) — exactement ce que disent les CGV.
+- `.option` est entrée dans les `PROTEGES` de la pastille WhatsApp : mesuré,
+  elle recouvrait le « +10,00 € ».
+
+**UN CONTRÔLE TROP LARGE FINIT PAR INTERDIRE DES MOTS AU RESTE DE LA PAGE.**
+`test-nouveau-paiement` interdisait « terminal » sur **tout** le récapitulatif,
+pour empêcher qu'on justifie la question du règlement par le terminal de carte
+du chauffeur. Il est tombé le jour où l'option a dit « devant la porte du
+terminal » — un terminal d'aéroport. Il porte maintenant sur le seul
+`#blocPaiement`, qui est son sujet.
+
 ## LE PRÉAVIS MINIMUM AVANT UN DÉPART — 15 MINUTES
 
 Septembre 2026, à sa demande : « lorsque le client réserve il faut qu'il ne
@@ -1627,7 +1715,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 483 contrôles**, à relancer après **toute**
+**Dix-neuf suites Playwright, 508 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
@@ -1635,7 +1723,7 @@ modification de la page.
 de la fonction Supabase — c'est la seule partie de cette fonction qui se
 vérifie sans la déployer, et c'est celle qui compte.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
-touché dix-huit fichiers pour zéro gain.
+touché dix-neuf fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
@@ -1647,7 +1735,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
-         test-nouveau-bascule.mjs; do
+         test-nouveau-option.mjs test-nouveau-bascule.mjs; do
   node $f || break
 done
 node test-notification.mjs   # ni navigateur ni réseau
