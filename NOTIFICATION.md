@@ -1,4 +1,9 @@
-# Être prévenu quand une demande arrive — 20 minutes
+# Être prévenu quand une demande arrive — 20 minutes, depuis un téléphone
+
+**Rien à installer, rien à taper dans un terminal.** Tout se fait dans
+l'application Telegram et dans le navigateur du téléphone. C'est la seule
+chose qui manque pour que le site prévienne Barbaros au lieu d'attendre
+qu'il ouvre son tableau de bord.
 
 ## Pourquoi
 
@@ -112,27 +117,60 @@ rien redéployer.
 
 ## Étape 4 — Déployer la fonction
 
-Sur un ordinateur, une fois :
+### Depuis un téléphone — la voie normale
+
+**Tout se fait dans le navigateur, il n'y a rien à installer.** C'est la
+marche à suivre à retenir : Barbaros travaille depuis son téléphone.
+
+1. Ouvrir **supabase.com/dashboard** et se connecter.
+2. Choisir le projet, puis **Edge Functions** dans le menu de gauche.
+3. **Deploy a new function** → **Via Editor**.
+4. Nommer la fonction **`nouvelle-demande`** — exactement, sans majuscule
+   ni accent : c'est ce nom que le déclencheur appellera à l'étape 5.
+5. Effacer l'exemple proposé, et coller **tout le contenu** du fichier
+   [`supabase/functions/nouvelle-demande/a-coller.ts`](supabase/functions/nouvelle-demande/a-coller.ts).
+   Sur GitHub, le bouton « copier » en haut du fichier évite de
+   sélectionner à la main.
+6. **Deploy function**.
+
+**Pourquoi un fichier « à coller » à part.** La fonction vit en deux
+fichiers dans le dépôt — le texte de l'alerte est isolé pour qu'un test
+puisse le relire sans rien déployer. Coller deux fichiers avec un pouce à
+5 h du matin n'a aucun sens : `a-coller.ts` est la même fonction en un
+seul morceau. Il est **fabriqué**, jamais écrit à la main
+(`node supabase/functions/nouvelle-demande/assembler.mjs`), et un test
+compare les deux — sinon on finirait par déployer un code que personne n'a
+éprouvé.
+
+Puis les secrets, **toujours dans le navigateur** : **Edge Functions →
+Secrets → Add new secret**. Un secret par ligne, **seulement ceux du canal
+retenu** :
+
+| Nom | Valeur |
+|---|---|
+| `TELEGRAM_TOKEN` | `1234567890:AAG...` |
+| `TELEGRAM_CHAT` | `123456789` |
+| `RESEND_CLE` | `re_...` |
+| `EMAIL_EXPEDITEUR` | `onboarding@resend.dev` |
+| `EMAIL_DESTINATAIRE` | `contact@elatransfer.com` |
+
+**Les noms s'écrivent exactement comme ici**, en majuscules. Un secret mal
+nommé n'est pas une erreur visible : la fonction ne le trouve pas, croit
+que le canal n'est pas configuré, et répond « aucun canal configuré ».
+
+### Depuis un ordinateur, si l'occasion se présente
 
 ```bash
 npm install -g supabase
 supabase login
 supabase link --project-ref yyhzutnuhuytokarynaw
 supabase functions deploy nouvelle-demande
-```
-
-Puis poser les secrets — **seulement ceux du canal retenu** :
-
-```bash
-# Telegram
 supabase secrets set TELEGRAM_TOKEN="1234567890:AAG..."
 supabase secrets set TELEGRAM_CHAT="123456789"
-
-# E-mail
-supabase secrets set RESEND_CLE="re_..."
-supabase secrets set EMAIL_EXPEDITEUR="onboarding@resend.dev"
-supabase secrets set EMAIL_DESTINATAIRE="contact@elatransfer.com"
 ```
+
+C'est la même fonction : cette voie-là déploie `index.ts` et `message.js`,
+la voie du téléphone déploie leur assemblage. Il n'y a pas deux codes.
 
 **Ces secrets ne sont pas dans le dépôt et n'y seront jamais.** Ils vivent
 chez Supabase, et la fonction s'exécute là-bas. C'est toute la différence
@@ -171,9 +209,12 @@ pas appelable par n'importe qui depuis l'extérieur.
 
 ## Étape 6 — Vérifier
 
-1. Sur un autre téléphone, ouvrir le site public et faire une vraie
-   réservation.
-2. La notification doit arriver **en quelques secondes**.
+1. Ouvrir le site public **dans un onglet de navigation privée** — sur le
+   même téléphone, ça suffit : la course part quand même sur le serveur.
+2. Faire une vraie réservation, de bout en bout.
+3. La notification doit arriver **en quelques secondes**.
+4. Supprimer ensuite la course d'essai depuis le tableau de bord, pour ne
+   pas fausser les chiffres du registre.
 
 Si rien n'arrive : **Edge Functions → nouvelle-demande → Logs**. La
 fonction écrit toujours ce qu'elle a fait — `telegram : ok`,

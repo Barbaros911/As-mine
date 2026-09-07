@@ -1254,10 +1254,32 @@ exécuter du code sans machine à tenir. Ne pas revenir sur ce choix sans
 un besoin que les fonctions ne couvrent pas.
 
 **Ce qui est écrit** : `supabase/functions/nouvelle-demande/` (la fonction
-et son message), `test-notification.mjs` (31 contrôles, sous Node, sans
+et son message), `test-notification.mjs` (34 contrôles, sous Node, sans
 réseau), `NOTIFICATION.md` (la marche à suivre).
 **Ce qui manque** : le déploiement, qui exige SON compte. Tant qu'il ne
 l'a pas fait, **le site se comporte exactement comme avant**.
+
+**IL TRAVAILLE DEPUIS UN TÉLÉPHONE — la marche à suivre en tient compte**
+(septembre 2026 : « je bosse depuis un tel »). L'ancienne étape 4 demandait
+`npm install -g supabase` et un terminal : autant dire qu'elle ne se ferait
+jamais. Tout passe maintenant par l'application Telegram et le navigateur —
+l'éditeur du tableau de bord Supabase déploie une fonction qu'on colle.
+- **`a-coller.ts` est la fonction en UN SEUL morceau**, parce qu'on ne colle
+  pas deux fichiers avec un pouce. Il est **fabriqué** par `assembler.mjs`,
+  jamais écrit à la main, et `test-notification.mjs` refait l'assemblage
+  pour le comparer : deux recettes finissent toujours par diverger, et ici
+  la divergence voudrait dire déployer un code que personne n'a testé.
+- **L'assembleur annote les paramètres en `any`, et ce n'est pas
+  cosmétique.** `message.js` est un `.js` : TypeScript n'y exige aucun
+  type. Recopié tel quel dans un `.ts`, chaque paramètre nu devient une
+  erreur « implicitly has an any type » et la fonction cesse de se déployer
+  pour une raison sans rapport avec ce qu'elle fait. Vérifié avec `tsc
+  --strict` : il ne reste que les globales de Deno, que `tsc` ne connaît
+  pas. Le compte de paramètres attendus est écrit dans l'assembleur — une
+  signature ajoutée sans annotation l'arrête au lieu de passer.
+- **Les noms des secrets s'écrivent exactement** : un secret mal nommé
+  n'est pas une erreur visible, la fonction croit simplement que le canal
+  n'est pas configuré.
 
 - **LA NOTIFICATION NE PEUT PAS FAIRE ÉCHOUER UNE RÉSERVATION.** Le
   webhook part APRÈS l'écriture de la ligne, détaché. Telegram en panne,
@@ -1719,7 +1741,7 @@ laissait choisir.
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
-`node test-notification.mjs` (31 contrôles) éprouve le texte de l'alerte
+`node test-notification.mjs` (34 contrôles) éprouve le texte de l'alerte
 de la fonction Supabase — c'est la seule partie de cette fonction qui se
 vérifie sans la déployer, et c'est celle qui compte.
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
