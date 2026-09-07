@@ -1025,7 +1025,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
                 fill="#1F6F6B"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre" data-t="vol">Numéro de vol</span>
+          <span class="champ-titre" id="titreVol" data-t="vol">Numéro de vol</span>
           <input id="vol" type="text" data-t-ph="ph_vol" placeholder="Ex. AF1234" autocomplete="off"
                  maxlength="10" style="text-transform:uppercase">
         </span>
@@ -1133,7 +1133,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
     </svg>
     <p>
       <b data-t="retard_titre">Vol ou train en retard ? Votre chauffeur s'adapte.</b>
-      <span data-t="retard_texte">Nous suivons votre arrivée et ajustons l'heure de prise en charge : il est là quand vous sortez.</span>
+      <span data-t="retard_texte">Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.</span>
     </p>
   </div>
 
@@ -1329,7 +1329,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       <div class="ligne"><span data-t="vehicule">Véhicule</span><b id="recapVehicule">—</b></div>
       <div class="ligne"><span data-t="passagers">Passagers</span><b id="recapPax">—</b></div>
       <div class="ligne" id="ligneChambre" hidden><span data-t="chambre_court">Chambre</span><b id="recapChambre">—</b></div>
-      <div class="ligne" id="ligneVol" hidden><span data-t="vol_court">Vol</span><b id="recapVol">—</b></div>
+      <div class="ligne" id="ligneVol" hidden><span id="libVol" data-t="vol_court">Vol</span><b id="recapVol">—</b></div>
     </div>
 
     <div class="bloc">
@@ -1790,7 +1790,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       <div class="ligne"><span>Date</span><b id="bbDate">—</b></div>
       <div class="ligne"><span>Véhicule</span><b id="bbVehicule">—</b></div>
       <div class="ligne"><span>Passagers</span><b id="bbPax">—</b></div>
-      <div class="ligne" id="bbLigneVol" hidden><span>Vol</span><b id="bbVol">—</b></div>
+      <div class="ligne" id="bbLigneVol" hidden><span id="bbLibVol">Vol</span><b id="bbVol">—</b></div>
       <!-- D'où vient ce client. La ligne n'apparaît que s'il vient d'une
            affiche : sur une course ordinaire, elle n'aurait rien à dire. -->
       <div class="ligne" id="bbLigneProv" hidden><span>Vient de</span><b id="bbProv">—</b></div>
@@ -2046,6 +2046,9 @@ window.ELA_TEXTES = {
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
     chambre_aide:"Transmis au chauffeur : il vient vous chercher sans attendre à la réception.",
     vol:"Numéro de vol", ph_vol:"Ex. AF1234",
+    train:"Numéro de train", ph_train:"Ex. TGV 6201",
+    train_aide_depart:"Le chauffeur suit votre train et ajuste l'heure en cas de retard.",
+    train_aide_arrivee:"Pour vous déposer à la bonne entrée — les grandes gares en ont plusieurs.",
     vol_aide_depart:"Le chauffeur suit votre vol et ajuste l'heure en cas de retard.",
     vol_aide_arrivee:"Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.",
     date:"Date", heure:"Heure", passagers:"Passagers", bagages:"Bagages",
@@ -2058,7 +2061,7 @@ window.ELA_TEXTES = {
        dans les CGV, où il engage. */
     dispo:"Disponibilité confirmée par WhatsApp ou SMS",
     retard_titre:"Vol ou train en retard ? Votre chauffeur s'adapte.",
-    retard_texte:"Nous suivons votre arrivée et ajustons l'heure de prise en charge : il est là quand vous sortez.",
+    retard_texte:"Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.",
     engagements:"Nos engagements",
     eng1:"Chauffeurs professionnels", eng1s:"Discrets et courtois",
     eng2:"Véhicules haut de gamme", eng2s:"Confort et sécurité",
@@ -2072,7 +2075,7 @@ window.ELA_TEXTES = {
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
-    vehicule:"Véhicule", chambre_court:"Chambre", vol_court:"Vol",
+    vehicule:"Véhicule", chambre_court:"Chambre", vol_court:"Vol", train_court:"Train",
     prix_ht:"Prix HT", tva:"TVA 10 %", total:"Total à régler",
     paiement_note_ligne:"Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement en ligne, aucune donnée bancaire.",
     coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
@@ -2153,13 +2156,16 @@ window.ELA_TEXTES = {
     chambre:"Room number", ph_chambre:"e.g. 214",
     chambre_aide:"Passed on to your chauffeur: he meets you without waiting at reception.",
     vol:"Flight number", ph_vol:"e.g. AF1234",
+    train:"Train number", ph_train:"e.g. TGV 6201",
+    train_aide_depart:"Your chauffeur tracks your train and adjusts the time if it is delayed.",
+    train_aide_arrivee:"So we drop you at the right entrance — large stations have several.",
     vol_aide_depart:"Your chauffeur tracks your flight and adjusts the time if it is delayed.",
     vol_aide_arrivee:"So we drop you at the right terminal — they are several kilometres apart.",
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
     btn_prix:"See prices and vehicles", calcul:"Calculating the price…",
     dispo:"Availability confirmed by WhatsApp or SMS",
     retard_titre:"Flight or train delayed? Your chauffeur adapts.",
-    retard_texte:"We track your arrival and adjust the pick-up time — your chauffeur is there when you come out.",
+    retard_texte:"Give us your flight or train number: we track your arrival and adjust the pick-up time.",
     engagements:"Our commitments",
     eng1:"Professional chauffeurs", eng1s:"Discreet and courteous",
     eng2:"High-end vehicles", eng2s:"Comfort and safety",
@@ -2173,7 +2179,7 @@ window.ELA_TEXTES = {
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
-    vehicule:"Vehicle", chambre_court:"Room", vol_court:"Flight",
+    vehicule:"Vehicle", chambre_court:"Room", vol_court:"Flight", train_court:"Train",
     prix_ht:"Price excl. VAT", tva:"VAT 10%", total:"Total to pay",
     paiement_note_ligne:"Payment to your chauffeur, on board, in cash or by card. No online payment, no bank details.",
     coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
@@ -2379,6 +2385,20 @@ window.ELA_TEXTES = {
     return HOTEL_MOTS.some(function(m){ return l.indexOf(sansAccents(m)) !== -1; });
   }
 
+  /* ---- Reconnaître une GARE, et seulement une vraie ---------------------
+     ON NE LIT PAS LE MOT « GARE » DANS L'ADRESSE. « 12 rue de la Gare,
+     Melun » n'est pas une gare, et le champ « numéro de train » s'ouvrirait
+     chez des gens qui prennent la voiture en bas de chez eux. On lit le
+     TYPE du lieu, comme on lit déjà le terminal pour les aéroports.
+     Une bouche de métro ou un arrêt de tram tombent dans la même catégorie
+     « gare » pour l'icône, mais on n'y prend pas de train : ils sont
+     écartés ici, sinon on demanderait un numéro qui n'existe pas. */
+  var PAS_UN_TRAIN = ["subway_entrance","tram_stop","bus_stop","platform"];
+  function estGare(lieu){
+    return !!lieu && lieu.categorie === "gare"
+           && PAS_UN_TRAIN.indexOf(lieu.osm || "") === -1;
+  }
+
   function categorieDuLieu(cle, valeur, type){
     var v = (valeur||"").toLowerCase(), k = (cle||"").toLowerCase();
     if(["hospital","clinic","doctors","pharmacy"].indexOf(v)>-1) return "sante";
@@ -2488,7 +2508,10 @@ window.ELA_TEXTES = {
           var p = f.properties, r = libellePhoton(p);
           var cat = categorieDuLieu(p.osm_key, p.osm_value, p.type);
           return { label:r.label, lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
-                   icon:ICONES[cat] || "📍", categorie:cat, lieuNomme:r.lieuNomme };
+                   icon:ICONES[cat] || "📍", categorie:cat, lieuNomme:r.lieuNomme,
+                   /* Le type brut est conservé : « gare » couvre aussi les
+                      bouches de métro, et seul ce détail les distingue. */
+                   osm:(p.osm_value || "").toLowerCase() };
         }).filter(function(r){ return r.label; });
       });
   }
@@ -2585,16 +2608,46 @@ window.ELA_TEXTES = {
     blocChambre.hidden = !hotel;
     if(!hotel) champChambre.value = "";
   }
+  /* LE MÊME CHAMP SERT AU VOL ET AU TRAIN (septembre 2026, à sa demande).
+     La page promet de suivre l'arrivée d'un vol OU d'un train ; il fallait
+     donc un endroit où écrire le numéro, sinon on demande au client de
+     préciser quelque chose qu'on ne lui demande jamais.
+     UN SEUL CHAMP, PAS DEUX : deux champs dont un seul s'affiche à la fois
+     font deux fois le code, deux fois les tests, et deux lignes à tenir
+     dans le bon. Ici c'est le LIBELLÉ qui change.
+     ON RÉÉCRIT L'ATTRIBUT « data-t », PAS SEULEMENT LE TEXTE : sinon un
+     changement de langue rappellerait « Numéro de vol » sur une course au
+     départ d'une gare. Même piège que la promesse sous le bouton, sur
+     l'ancien site.
+     L'AVION L'EMPORTE quand les deux bouts s'y prêtent — Roissy est le cas
+     qui gagne de l'argent, et une gare TGV à l'autre bout ne change rien à
+     ce que le chauffeur doit suivre. */
+  var titreVol = document.getElementById("titreVol");
+  var libVol = document.getElementById("libVol");
+  var volEstTrain = false;
   function jugerVol(){
-    var auDepart = terminalDuLibelle(choix.depart && choix.depart.label);
-    var aArrivee = terminalDuLibelle(choix.arrivee && choix.arrivee.label);
-    var terminal = auDepart || aArrivee;
-    blocVol.hidden = !terminal;
-    if(!terminal){ champVol.value = ""; return; }
+    var volDepart  = terminalDuLibelle(choix.depart && choix.depart.label);
+    var volArrivee = terminalDuLibelle(choix.arrivee && choix.arrivee.label);
+    var gareDepart = estGare(choix.depart), gareArrivee = estGare(choix.arrivee);
+    var avion = !!(volDepart || volArrivee);
+    var train = !avion && (gareDepart || gareArrivee);
+    blocVol.hidden = !avion && !train;
+    if(blocVol.hidden){ champVol.value = ""; return; }
+    var auDepart = avion ? !!volDepart : gareDepart;
+    titreVol.setAttribute("data-t", train ? "train" : "vol");
+    titreVol.textContent = T(train ? "train" : "vol");
+    champVol.setAttribute("data-t-ph", train ? "ph_train" : "ph_vol");
+    champVol.placeholder = T(train ? "ph_train" : "ph_vol");
     /* Le texte d'aide n'est pas le même dans les deux sens. Un client qui
        PART vers Roissy n'a pas de vol à suivre — ce qu'il veut savoir,
-       c'est qu'on le dépose au bon terminal. */
-    aideVol.textContent = T(auDepart ? "vol_aide_depart" : "vol_aide_arrivee");
+       c'est qu'on le dépose au bon terminal. En gare, ce qui compte à
+       l'aller est le bon parvis : elles ont plusieurs sorties. */
+    aideVol.textContent = T((train ? "train_aide_" : "vol_aide_") +
+                            (auDepart ? "depart" : "arrivee"));
+    /* Le récapitulatif porte le même mot que le champ. */
+    libVol.setAttribute("data-t", train ? "train_court" : "vol_court");
+    libVol.textContent = T(train ? "train_court" : "vol_court");
+    volEstTrain = !!train;
   }
 
   /* ---- Brancher un champ ---------------------------------------------- */
@@ -3766,6 +3819,9 @@ window.ELA_TEXTES = {
         terminal: terminalDuLibelle(choix.depart.label)
                   || terminalDuLibelle(choix.arrivee.label) || null,
         vol: vol || "",
+        /* Le numéro seul ne dit pas de quoi il s'agit : « 6201 » est un TGV,
+           « AF1234 » un vol, et rien ne les distingue à la relecture. */
+        train: !!(vol && volEstTrain),
         vehicule: course.gamme.nom,
         vehiculeCle: course.gamme.cle,
         /* « 1 passager », pas « 1 passagers ». Cette chaîne part telle quelle
@@ -4377,6 +4433,9 @@ window.ELA_TEXTES = {
     document.getElementById("bbVehicule").textContent = c.course.vehicule;
     document.getElementById("bbPax").textContent      = c.course.passagers || "—";
     document.getElementById("bbLigneVol").hidden      = !c.course.vol;
+    /* Le libellé suit ce que la course porte : annoncer « Vol » sur un
+       TGV enverrait Barbaros chercher un numéro sur le mauvais tableau. */
+    document.getElementById("bbLibVol").textContent   = c.course.train ? "Train" : "Vol";
     document.getElementById("bbVol").textContent      = c.course.vol || "";
     document.getElementById("bbLigneProv").hidden     = !c.provenance;
     document.getElementById("bbProv").textContent     = c.provenance || "";
