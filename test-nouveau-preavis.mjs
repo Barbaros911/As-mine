@@ -323,6 +323,54 @@ for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', true],
   check('le pas est bien de 5 minutes', pas && pas[1] === '5', pas ? pas[1] : '');
 }
 
+/* --- SON EXEMPLE, AVEC SES CHIFFRES ----------------------------------
+   « il est 2 h 08, il peut commander à partir de 2 h 28… pardon, avec les
+   créneaux, 2 h 30 ». C'est la règle entière en une phrase : le préavis
+   pousse à 2 h 28, la grille arrondit à 2 h 30. On l'éprouve tel quel,
+   parce qu'un exemple donné par celui qui exploite le service vaut mieux
+   qu'un cas inventé. ------------------------------------------------ */
+for (const [instant, premier, refuse] of [
+      ['2026-09-07T02:08:00+02:00', '02:30', '02:25'],
+      /* PILE SUR LA GRILLE, ET C'EST LE CAS QUI A RÉVÉLÉ UN DÉFAUT.
+         2 h 10 + 20 min = 2 h 30, déjà un multiple de 5. Mais l'horloge
+         réelle marque 2 h 10 et quelques millisecondes : le préavis tombait
+         à 19 min 59 s, 2 h 30 était refusé, et le client poussé à 2 h 35 —
+         cinq minutes perdues pour une fraction de seconde. On part
+         maintenant de la minute en cours, secondes rabotées. */
+      ['2026-09-07T02:10:00+02:00', '02:30', '02:25'],
+      /* Juste après un créneau : 2 h 11 + 20 = 2 h 31 → 2 h 35. */
+      ['2026-09-07T02:11:00+02:00', '02:35', '02:30']]) {
+  const ctxE = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
+    timezoneId:'Europe/Paris'});
+  await ctxE.addInitScript(([i]) => {
+    const faux = new Date(i).getTime();
+    const Vrai = Date; const dec = faux - Vrai.now();
+    Date = class extends Vrai {
+      constructor(...a){ if(a.length===0) super(Vrai.now()+dec); else super(...a); }
+      static now(){ return Vrai.now()+dec; }
+    };
+  }, [instant]);
+  const pe = await ctxE.newPage();
+  pe.on('pageerror',e=>errs.push(e.message));
+  await pe.route('**://photon.komoot.io/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await pe.route('**://api-adresse.data.gouv.fr/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await pe.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await pe.waitForTimeout(500);
+  const h = instant.slice(11,16);
+  check('à '+h+', le premier créneau réservable est '+premier,
+    (await pe.locator('#heure').getAttribute('min'))===premier,
+    await pe.locator('#heure').getAttribute('min'));
+  await pe.fill('#heure', premier); await pe.waitForTimeout(300);
+  check('à '+h+', '+premier+' est accepté',
+    await pe.locator('#tropTot').isHidden()
+    && !(await pe.locator('#btnVoirPrix').isDisabled()));
+  await pe.fill('#heure', refuse); await pe.waitForTimeout(300);
+  check('à '+h+', le créneau d\'avant ('+refuse+') est refusé',
+    !(await pe.locator('#tropTot').isHidden())
+    && await pe.locator('#btnVoirPrix').isDisabled());
+  await ctxE.close();
+}
+
 /* --- LE TEXTE ET LE CODE ANNONCENT LE MÊME DÉLAI ---------------------
    Le vrai piège de cette règle : la constante bouge, la phrase reste, et
    le site annonce vingt minutes en en exigeant quarante. On lit donc la

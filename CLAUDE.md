@@ -1540,6 +1540,18 @@ pas un départ à 10 h 07 : il pense en quarts et en cinquièmes d'heure.
 - **`step` est compté À PARTIR DE `min`**, pas de minuit. D'où l'arrondi du
   premier créneau au pas supérieur : à 1 h 41 la borne est **2 h 05**, pas
   2 h 01 — qui donnerait la grille 2 h 01, 2 h 06, 2 h 11.
+- **LE CALCUL PART DE LA MINUTE EN COURS, SECONDES RABOTÉES**, et ce n'est
+  pas un détail. À 2 h 10 pile, l'horloge marque 2 h 10 et 123 ms : le
+  préavis tombait à 19 min 59 s, le créneau de 2 h 30 était refusé, et le
+  client poussé à 2 h 35 — **cinq minutes perdues pour une fraction de
+  seconde qu'il ne voit même pas**. C'est aussi la façon dont il lit sa
+  montre : « il est 2 h 10, donc 2 h 30 ». Le prix se compte au centime, le
+  préavis à la minute.
+  **`tropTot()` rabote la même minute** : sinon le champ proposerait 2 h 30
+  et l'écriteau le refuserait — deux façons de compter le temps dans la
+  même page.
+  Trouvé par le test, pas en production : les trois cas de Barbaros
+  (2 h 08, 2 h 10, 2 h 11) sont éprouvés tels qu'il les a donnés.
 
 **LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ.** L'heure par défaut est
 10 h : parfaite à 1 h du matin, **impossible à 9 h 55** — le client arrivait
@@ -1592,7 +1604,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 468 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 477 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
