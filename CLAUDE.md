@@ -417,7 +417,7 @@ illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
 en privé, au seul chauffeur retenu, depuis le bon. Les messages au client
 partent droit sur son numéro (`numeroWhatsApp`), jamais via le sélecteur.
 
-**Le mode exploitant est protégé par le code `Ela1234`** (`CODE_EXPLOITANT`, stocké
+**Le mode exploitant est protégé par le code `12345678`** (`CODE_EXPLOITANT`, stocké
 en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
 confirmation à distance, attribution du chauffeur et export du registre
 sont derrière. C'est une serrure, pas un coffre : le dire à Barbaros
@@ -1464,6 +1464,64 @@ le moment où l'on perd une réservation.
   (390×844), le bouton est à 404–448 px et la pastille à 686–740, non
   affichée. **Toujours capturer à 844 px de haut.**
 
+## L'ESPACE EXPLOITANT EST DEVENU UN BACK-OFFICE
+
+Septembre 2026, sur sa maquette : « Fait dans ce style ». L'espace était une
+suite de blocs empilés sans hiérarchie — il l'a trouvé « bizarre », et il
+avait raison : rien ne disait ce qu'il fallait regarder en premier.
+
+- **UNE COLONNE À GAUCHE SUR ORDINATEUR, UNE RANGÉE DE PASTILLES SUR
+  TÉLÉPHONE, ET LE MÊME HTML.** Deux mises en page séparées voudraient dire
+  deux tableaux de bord à tenir, et le jour où l'un gagne un bouton l'autre
+  l'oublie. Bascule à 900 px.
+- **`body.espace`, PAS `body.exploitant`.** C'est le piège de cette
+  refonte : `exploitant` est posée AVANT le verrou. S'en servir aurait
+  affiché la colonne — nom, état du serveur, accès au registre — à qui
+  n'a pas encore le code. `espace` n'arrive que dans `ouvrirEspace()`. Un
+  contrôle le verrouille.
+- **`.page` est bridée à 520 px** — c'est une application de téléphone. Un
+  back-office dans 520 px n'en est plus un : la largeur n'est libérée que
+  sous `body.espace`, au-delà de 900 px, et le contenu reste capé à
+  1080 px.
+- **L'ORDRE DIT CE QUI COMPTE** : les quatre chiffres, « Coller une
+  demande », la liste des courses, puis les panneaux, puis l'affiche et le
+  serveur. L'affiche et le serveur se règlent une fois et ne se regardent
+  plus — ils étaient au-dessus de la liste des demandes en attente.
+- **RIEN N'EST DÉCORATIF, ET C'EST LA RÈGLE.** La maquette portait « 4,9/5
+  sur 128 avis » et une carte des chauffeurs en temps réel. Il n'a **aucun
+  avis** — une note inventée est une pratique commerciale trompeuse
+  (L132-2) — et **aucun chauffeur n'a d'application qui envoie sa
+  position**. Le panneau des avis existe, vide, et dit pourquoi ; la carte
+  est remplacée par « D'où viennent les clients », qui est du vrai. Un
+  chiffre décoratif sur un tableau de bord finit par servir à décider.
+- **`dessinerAdmin()` est appelée depuis `dessinerBord()`**, et reçoit le
+  registre déjà lu : deux lectures du `localStorage` pour un même dessin
+  finiraient par diverger.
+- **L'ÉCRAN D'ABORD, LE DESSIN ENSUITE.** `ouvrirEspace()` appelle
+  `ecran("ecran-bord")` **avant** `dessinerBord()` : la courbe est tracée à
+  la largeur RÉELLE de son panneau, et cette largeur vaut zéro tant que
+  l'écran est masqué — la courbe sortait plate. Elle est refaite au
+  redimensionnement pour la même raison.
+- **16 px réservés en haut de la courbe** : le chiffre s'écrit au-dessus de
+  son point, et le point le plus haut est celui du meilleur jour — sans
+  cette marge, c'est justement ce chiffre-là qui sort du cadre.
+- **Le camembert est UN cercle dont on décale le trait**
+  (`stroke-dasharray` sur un rayon de 15,9 pour une circonférence de 100) :
+  deux arcs dessinés séparément laissent une couture blanche à chaque
+  jonction.
+- **Sans référence, pas de pourcentage.** `variation()` dit le chiffre brut
+  quand la semaine précédente est à zéro : « +100 % » ne veut rien dire, et
+  le « −100 % » de la semaine d'après ferait peur pour rien.
+- **L'entrée allumée suit l'ÉCRAN, pas le clic** : on revient au tableau de
+  bord par le bouton « Retour » du registre, et « Registre » y serait resté
+  allumé.
+- « Affiche hôtel » et « Serveur » ne sont pas des écrans mais des blocs de
+  la page : on y descend. **Un contrôle vérifie que chaque `data-admin-vers`
+  vise un élément qui existe** — un lien qui ne mène nulle part est pire que
+  pas de lien.
+- `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
+  identifiants sont inchangés**, six suites les cliquent.
+
 ## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
 
 Septembre 2026, vu par Barbaros : « il faut recentrer ces trois choix ».
@@ -1737,7 +1795,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-neuf suites Playwright, 508 contrôles**, à relancer après **toute**
+**Dix-neuf suites Playwright, 521 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

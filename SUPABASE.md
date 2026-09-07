@@ -84,7 +84,7 @@ ce qu'elle nomme.
 
 **Authentication** → **Users** → **Add user** → *Create new user*.
 Mettre une vraie adresse e-mail et **un vrai mot de passe** — celui-ci ouvre
-les données réelles des clients, ce n'est pas le code `Ela1234` de
+les données réelles des clients, ce n'est pas le code `12345678` de
 l'appareil.
 
 Puis **Authentication → Providers → Email** : désactiver

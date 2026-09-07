@@ -382,9 +382,17 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 
 .compteurs{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;
   margin:14px 20px 0;}
+/* LA COULEUR EST OBLIGATOIRE SUR UN BOUTON, ET CE N'EST PAS DU CONFORT.
+   Un « button » sans « color » prend la couleur par défaut du système : NOIR
+   sur un navigateur d'ordinateur, BLEU IOS sur l'iPhone de Barbaros. Les
+   trois chiffres du tableau de bord s'affichaient donc en bleu vif chez lui
+   et en noir dans toutes les suites de tests — un défaut qu'aucun contrôle
+   ne pouvait voir, puisque Chromium ne le reproduit pas.
+   Un contrôle le verrouille désormais : aucun bouton de la page ne doit
+   calculer « rgb(0,0,0) », le noir pur que la palette n'utilise jamais. */
 .compteur{background:var(--carte);border:1px solid var(--filet);
   border-radius:14px;padding:12px 8px;font-family:inherit;cursor:pointer;
-  text-align:center;}
+  text-align:center;color:var(--encre);}
 .compteur.actif{border-color:var(--encre);box-shadow:0 0 0 1.5px var(--encre);}
 .chiffre{display:block;font-size:24px;font-weight:800;letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;}
@@ -740,6 +748,176 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .promesse b{display:block;margin-bottom:3px;font-size:13.5px;
   color:var(--accent-encre);}
 
+
+/* =====================================================================
+   L'ESPACE DE TRAVAIL DE L'EXPLOITANT
+   ---------------------------------------------------------------------
+   Sur ORDINATEUR c'est un back-office : une colonne sombre à gauche, des
+   chiffres en haut, des panneaux en dessous. Sur TÉLÉPHONE la colonne
+   devient une rangée de pastilles qui défile, et tout se met sur une
+   seule colonne — Barbaros travaille depuis son téléphone, une grille de
+   quatre colonnes y devient une pile illisible.
+   MÊME HTML DANS LES DEUX CAS. Deux mises en page séparées voudraient
+   dire deux tableaux de bord à tenir à jour, et le jour où l'un gagne un
+   bouton l'autre l'oublie.
+   ===================================================================== */
+.admin-nav{display:none;}
+body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
+  padding:calc(10px + env(safe-area-inset-top)) 0 2px;}
+.admin-marque{display:none;}
+.admin-profil{display:flex;align-items:center;gap:10px;padding:0 20px 11px;}
+.admin-ava{flex:none;width:34px;height:34px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
+.admin-qui b{display:block;font-size:13.5px;font-weight:700;line-height:1.2;}
+/* L'ÉTAT DIT LA VÉRITÉ SUR LE SERVEUR, pas « En ligne » de décoration :
+   c'est la seule chose qui distingue « je vois toutes mes courses » de
+   « je ne vois que celles de ce téléphone ». */
+.admin-etat{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;
+  color:rgba(255,255,255,.62);margin-top:2px;}
+.admin-point{width:6px;height:6px;border-radius:50%;background:#8a97a3;}
+.admin-etat.ok .admin-point{background:var(--accent-vif);}
+.admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;
+  scrollbar-width:none;}
+.admin-liens::-webkit-scrollbar{display:none;}
+.admin-lien{flex:none;display:flex;align-items:center;gap:7px;padding:9px 13px;
+  border-radius:11px;border:1px solid rgba(255,255,255,.16);background:transparent;
+  color:rgba(255,255,255,.82);font:inherit;font-size:12.5px;font-weight:600;
+  cursor:pointer;white-space:nowrap;}
+.admin-lien svg{width:15px;height:15px;flex:none;}
+.admin-lien.actif{background:var(--accent);border-color:var(--accent);color:#fff;}
+.admin-aide{display:none;}
+
+/* ---------- LE BANDEAU DU HAUT ---------- */
+.admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:14px;margin:18px 20px 0;}
+.admin-bonjour{margin:0;font-size:20px;font-weight:800;letter-spacing:-.022em;}
+.admin-sous{margin:3px 0 0;font-size:12.5px;color:var(--gris);}
+.admin-date{flex:none;font-size:11.5px;font-weight:600;color:var(--gris);
+  border:1px solid var(--filet);border-radius:10px;padding:8px 11px;
+  background:var(--carte);white-space:nowrap;}
+
+/* ---------- LES QUATRE CHIFFRES ---------- */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 20px 0;}
+.kpi{background:var(--carte);border:1px solid var(--filet);border-radius:15px;
+  padding:13px;display:flex;gap:10px;align-items:flex-start;}
+.kpi-ico{flex:none;width:33px;height:33px;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;}
+.kpi-ico svg{width:17px;height:17px;}
+.kpi-corps{min-width:0;}
+.kpi-lab{display:block;font-size:10.5px;color:var(--gris);line-height:1.3;}
+.kpi-val{display:block;font-size:21px;font-weight:800;letter-spacing:-.03em;
+  margin-top:3px;color:var(--encre);font-variant-numeric:tabular-nums;}
+/* La comparaison est en gris par défaut : une variation n'est ni une bonne
+   ni une mauvaise nouvelle tant qu'on ne sait pas de quoi elle parle. */
+.kpi-var{display:block;font-size:10.5px;font-weight:600;margin-top:2px;
+  color:var(--gris);}
+.kpi-var.hausse{color:var(--accent);}
+.kpi-var.baisse{color:#C9302F;}
+
+/* ---------- LES PANNEAUX ---------- */
+.panneaux{margin:14px 20px 0;display:grid;gap:12px;}
+.panneau{background:var(--carte);border:1px solid var(--filet);
+  border-radius:16px;padding:14px;}
+.panneau-tete{display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:12px;}
+.panneau-titre{font-size:14px;font-weight:800;letter-spacing:-.012em;}
+.panneau-vide{font-size:12px;color:var(--gris);padding:6px 0 2px;}
+
+/* La courbe : dessinée à la main en SVG. Une bibliothèque de graphiques
+   pèse plus lourd que toute la page et ne dessine rien qu'on ne sache
+   faire avec une ligne et sept points. */
+.courbe{width:100%;height:132px;display:block;}
+.courbe-jours{display:flex;justify-content:space-between;margin-top:6px;
+  font-size:9.5px;color:var(--gris);}
+
+/* Le camembert est un cercle unique dont on anime le trait : quatre arcs
+   dessinés séparément laissent des coutures blanches entre les parts. */
+.donut-rangee{display:flex;align-items:center;gap:14px;}
+.donut{flex:none;width:104px;height:104px;}
+.legende{flex:1;min-width:0;}
+.legende-l{display:flex;align-items:center;gap:7px;font-size:11.5px;
+  margin-bottom:6px;}
+.legende-l i{flex:none;width:8px;height:8px;border-radius:50%;}
+.legende-l span{flex:1;color:var(--gris);}
+.legende-l b{font-weight:700;font-variant-numeric:tabular-nums;}
+
+.barre-l{margin-bottom:11px;}
+.barre-l:last-child{margin-bottom:0;}
+.barre-h{display:flex;justify-content:space-between;font-size:11.5px;
+  margin-bottom:5px;}
+.barre-h span{color:var(--gris);}
+.barre-h b{font-weight:700;font-variant-numeric:tabular-nums;}
+.barre-f{height:6px;border-radius:3px;background:var(--fond);overflow:hidden;}
+.barre-f i{display:block;height:100%;border-radius:3px;}
+
+/* Le tableau des dernières réservations. Sur téléphone il défile
+   horizontalement plutôt que de se comprimer : une colonne écrasée à trois
+   caractères ne se lit pas, alors qu'un tableau qui glisse se lit. */
+.tableau-cadre{overflow-x:auto;margin:0 -14px;padding:0 14px;}
+.tableau{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;}
+.tableau th{text-align:left;font-size:10px;font-weight:700;color:var(--gris);
+  letter-spacing:.06em;text-transform:uppercase;padding:0 12px 8px 0;}
+.tableau td{padding:9px 12px 9px 0;border-top:1px solid var(--filet);}
+.tableau tr td:last-child, .tableau tr th:last-child{padding-right:0;}
+.tableau .t-ref{font-weight:700;color:var(--gris);font-variant-numeric:tabular-nums;}
+.tableau .t-prix{font-weight:700;text-align:right;font-variant-numeric:tabular-nums;}
+.etat-pastille{display:inline-block;padding:3px 8px;border-radius:20px;
+  font-size:10px;font-weight:700;}
+.etat-attente{background:#fbe9e9;color:#C9302F;}
+.etat-confirmee{background:var(--accent-clair);color:var(--accent-encre);}
+.etat-realisee{background:#eaeef0;color:var(--gris);}
+.etat-refusee{background:#eaeef0;color:var(--gris);}
+
+/* ---------- ORDINATEUR : la colonne passe à gauche ---------- */
+@media (min-width:900px){
+  body.espace .entete{display:none;}
+  body.espace .admin-nav{position:fixed;left:0;top:0;bottom:0;width:252px;
+    padding:22px 0 18px;overflow-y:auto;z-index:30;
+    display:flex;flex-direction:column;}
+  body.espace .admin-marque{display:flex;flex-direction:column;
+    align-items:center;gap:2px;padding:0 20px 18px;}
+  body.espace .admin-marque .logo-nom{font-size:19px;}
+  body.espace .admin-marque .logo-sous{font-size:7px;}
+  body.espace .admin-profil{border-top:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid rgba(255,255,255,.1);padding:14px 20px;}
+  body.espace .admin-liens{display:block;overflow:visible;padding:12px;}
+  body.espace .admin-lien{width:100%;margin-bottom:3px;border:0;
+    border-radius:10px;padding:10px 12px;font-size:13px;}
+  body.espace .admin-aide{display:block;margin:auto 12px 0;padding:13px;
+    border-radius:13px;background:rgba(255,255,255,.06);}
+  body.espace .admin-aide b{display:block;font-size:12.5px;font-weight:700;}
+  body.espace .admin-aide span{display:block;font-size:11px;
+    color:rgba(255,255,255,.6);margin-top:2px;}
+  body.espace .admin-aide .bouton{margin-top:10px;min-height:38px;
+    font-size:12.5px;}
+  /* LA PAGE EST BRIDÉE À 520 px POUR LE CLIENT — c'est une application de
+     téléphone. Un back-office dans 520 px n'est plus un back-office : on
+     libère la largeur ici, et ici seulement. Le contenu garde une limite,
+     sinon un tableau de six colonnes s'étalerait sur 1 600 px et l'œil
+     perdrait la ligne entre le départ et le prix. */
+  body.espace .page{max-width:none;margin:0;padding-left:252px;}
+  body.espace .ecran{max-width:1080px;}
+  body.espace .admin-tete{margin:26px 28px 0;}
+  body.espace .admin-bonjour{font-size:23px;}
+  body.espace .kpis{grid-template-columns:repeat(4,1fr);gap:14px;
+    margin:18px 28px 0;}
+  body.espace .kpi{padding:16px;}
+  body.espace .kpi-val{font-size:24px;}
+  body.espace .panneaux{grid-template-columns:1fr 1fr;gap:14px;
+    margin:18px 28px 0;align-items:start;}
+  body.espace .panneau{padding:17px;}
+  body.espace .panneau.large{grid-column:1 / -1;}
+  body.espace .compteurs,
+  body.espace .bloc,
+  body.espace #listeBord,
+  body.espace .vide{margin-left:28px;margin-right:28px;}
+  body.espace .demande{width:calc(100% - 56px);margin-left:28px;
+    margin-right:28px;}
+  body.espace .ecran-titre,
+  body.espace .bord-tete{margin-left:28px;margin-right:28px;}
+}
+
 /* ---------- SECTIONS ---------- */
 .section{padding:30px 20px 0;}
 .section h2{margin:0 0 20px;font-size:20.5px;font-weight:800;letter-spacing:-.02em;}
@@ -885,6 +1063,76 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
            quelque chose que la barre ne porte pas. -->
     </div>
   </header>
+
+  <!-- =====================================================================
+       LA COLONNE DE L'EXPLOITANT
+       ---------------------------------------------------------------------
+       Elle n'existe que dans l'espace de travail — « body.espace », posé
+       une fois le code donné. PAS « body.exploitant » : cette classe-là est
+       déjà là sur l'écran du verrou, et la colonne se serait affichée avant
+       même que le code soit saisi, avec l'état du serveur et l'accès au
+       registre en évidence.
+       UN LIEN QUI NE MÈNE NULLE PART EST PIRE QUE PAS DE LIEN : les cinq
+       entrées visent un écran qui existe ou un bloc de cette page, jamais
+       une fonction « à venir ».
+       ===================================================================== -->
+  <nav class="admin-nav" aria-label="Espace exploitant">
+    <div class="admin-marque">
+      <span class="logo-nom">ELA<i>TRANSFER</i></span>
+      <span class="logo-sous">ESPACE EXPLOITANT</span>
+    </div>
+    <div class="admin-profil">
+      <span class="admin-ava">EL</span>
+      <span class="admin-qui">
+        <b>Elatransfer</b>
+        <!-- L'ÉTAT DIT LA VÉRITÉ SUR LE SERVEUR. « En ligne » de décoration
+             ne veut rien dire ; ce qui compte est de savoir si l'on voit
+             toutes ses courses ou seulement celles de ce téléphone. -->
+        <span class="admin-etat" id="adminEtat">
+          <i class="admin-point"></i><span id="adminEtatTexte">Cet appareil seul</span>
+        </span>
+      </span>
+    </div>
+    <div class="admin-liens">
+      <button class="admin-lien actif" type="button" id="btnAdminBord">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-4H4v4Zm10-11h6V4h-6v5Z"
+                fill="currentColor"/>
+        </svg>Tableau de bord</button>
+      <button class="admin-lien" type="button" id="btnRegistre">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4h11l3 3v13H5V4Z" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round"/>
+          <path d="M8 11h8M8 15h5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round"/>
+        </svg>Registre</button>
+      <button class="admin-lien" type="button" data-admin-vers="blocHotel">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 3h3v3h-3v-3Z"
+                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>Affiche hôtel</button>
+      <button class="admin-lien" type="button" data-admin-vers="blocNuage">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 18a4 4 0 0 1-.4-7.98A5 5 0 0 1 16.5 9.2 3.9 3.9 0 0 1 17 18H7Z"
+                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>Serveur</button>
+      <button class="admin-lien" type="button" id="btnQuitter">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10 20H5V4h5M15 8l4 4-4 4M19 12H9" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>Quitter</button>
+    </div>
+    <!-- LE SEUL CONSEIL QUI TIENT ICI EST CELUI QU'ON OUBLIE : sans serveur,
+         le registre ne vit que dans ce navigateur, et vider les données du
+         site effacerait des mois de travail. -->
+    <div class="admin-aide">
+      <b>Sauvegardez chaque semaine</b>
+      <span>Le registre ne vit que dans ce navigateur.</span>
+      <button class="bouton" type="button" id="btnAideRegistre">
+        <span>Ouvrir le registre</span>
+      </button>
+    </div>
+  </nav>
 
   <section class="ecran actif" id="ecran-accueil">
 
@@ -1631,9 +1879,73 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   </section>
 
   <section class="ecran" id="ecran-bord">
-    <div class="bord-tete">
-      <h1 class="ecran-titre">Tableau de bord</h1>
-      <button class="lien-sortie" type="button" id="btnQuitter">Quitter</button>
+    <!-- « Quitter » est passé dans la colonne de gauche : il est de la même
+         nature que « Registre » ou « Affiche », pas un titre de page. -->
+    <div class="admin-tete">
+      <div>
+        <h1 class="admin-bonjour">Tableau de bord</h1>
+        <p class="admin-sous" id="adminSous">L'activité d'Elatransfer.</p>
+      </div>
+      <div class="admin-date" id="adminDate"></div>
+    </div>
+
+    <!-- LES QUATRE CHIFFRES DU HAUT.
+         Ils ne racontent pas la même chose que les trois compteurs plus bas :
+         les compteurs FILTRENT la liste, ceux-ci se lisent et rien de plus.
+         Le premier crie — c'est le seul qui appelle un geste tout de suite. -->
+    <div class="kpis">
+      <div class="kpi">
+        <span class="kpi-ico" style="background:#fbe9e9;color:#C9302F">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.9"/>
+            <path d="M12 7.6V12l3 1.9" stroke="currentColor" stroke-width="1.9"
+                  stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Demandes en attente</span>
+          <span class="kpi-val" id="kpiAttente">0</span>
+          <span class="kpi-var" id="kpiAttenteVar">Aucune réponse à donner</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3.6" y="5.2" width="16.8" height="15.2" rx="2.6"
+                  stroke="currentColor" stroke-width="1.9"/>
+            <path d="M3.6 10h16.8M8.4 3.6v3.2M15.6 3.6v3.2" stroke="currentColor"
+                  stroke-width="1.9" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Courses aujourd'hui</span>
+          <span class="kpi-val" id="kpiJour">0</span>
+          <span class="kpi-var" id="kpiJourVar">—</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14.4 8.2c-.6-1-1.6-1.5-2.9-1.5-1.8 0-2.9.9-2.9 2.2 0 3 6.2 1.5 6.2 4.8
+                     0 1.5-1.3 2.5-3.3 2.5-1.6 0-2.8-.6-3.4-1.8M12 4.6v14.8"
+                  stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Encaissé cette semaine</span>
+          <span class="kpi-val" id="kpiCA">0 €</span>
+          <span class="kpi-var" id="kpiCAVar">—</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4.6 19.4V13m4.8 6.4V8.6m4.8 10.8v-4.2m4.8 4.2V5.4"
+                  stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Courses réalisées</span>
+          <span class="kpi-val" id="kpiCourses">0</span>
+          <span class="kpi-var" id="kpiCoursesVar">—</span>
+        </span>
+      </div>
     </div>
 
     <!-- COLLER UNE DEMANDE, EN HAUT ET EN PREMIER.
@@ -1662,13 +1974,96 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       <p class="bloc-note" id="collerEtat" hidden></p>
     </div>
 
-    <button class="bouton-fantome" id="btnRegistre" type="button"
-            style="width:calc(100% - 40px);margin:14px 20px 0">Registre et résultats</button>
+    <!-- TROIS DEGRÉS, UN SEUL QUI CRIE. Une demande pas encore tranchée est
+         en rouge plein : c'est la seule ligne du site qui prend cette
+         couleur, et elle ne veut dire qu'une chose — quelqu'un attend une
+         réponse. Une course confirmée mais pas faite est seulement cerclée
+         d'or : elle reste à assurer, mais elle n'attend plus personne. Les
+         réalisées retombent en gris. Si tout criait pareil, plus rien ne
+         crierait.
+         LA LISTE EST REMONTÉE ICI, juste sous « Coller une demande » : c'est
+         le travail. L'affiche et le serveur se règlent une fois et ne se
+         regardent plus — ils sont passés en bas. -->
+    <div class="compteurs">
+      <button class="compteur" type="button" data-filtre="attente">
+        <span class="chiffre" id="cptAttente">0</span>
+        <span class="etiquette">En attente</span>
+      </button>
+      <button class="compteur" type="button" data-filtre="confirmee">
+        <span class="chiffre" id="cptConfirmee">0</span>
+        <span class="etiquette">À assurer</span>
+      </button>
+      <button class="compteur" type="button" data-filtre="realisee">
+        <span class="chiffre" id="cptRealisee">0</span>
+        <span class="etiquette">Réalisées</span>
+      </button>
+    </div>
+
+    <div id="listeBord"></div>
+    <div class="vide" id="videBord" hidden>
+      <p>Aucune course pour l'instant.</p>
+    </div>
+
+    <!-- LES PANNEAUX — ce qu'on regarde une fois le travail fait.
+         TOUT Y EST CALCULÉ DEPUIS LE REGISTRE, rien n'est décoratif : pas de
+         carte des chauffeurs en temps réel (aucun d'eux n'a d'application qui
+         envoie sa position), pas de note moyenne inventée. Un chiffre faux sur
+         un tableau de bord est pire qu'un panneau vide : on finit par décider
+         avec. -->
+    <div class="panneaux">
+      <div class="panneau large">
+        <div class="panneau-tete">
+          <span class="panneau-titre">Réservations</span>
+          <span class="panneau-vide" style="padding:0">7 derniers jours</span>
+        </div>
+        <svg class="courbe" id="courbeBord" aria-hidden="true"></svg>
+        <div class="courbe-jours" id="courbeJours"></div>
+      </div>
+
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Berline ou van</span></div>
+        <div class="donut-rangee">
+          <svg class="donut" id="donutBord" viewBox="0 0 42 42" aria-hidden="true"></svg>
+          <div class="legende" id="legendeBord"></div>
+        </div>
+        <p class="panneau-vide" id="donutVide" hidden>Aucune course enregistrée.</p>
+      </div>
+
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Où en sont les courses</span></div>
+        <div id="barresBord"></div>
+        <p class="panneau-vide" id="barresVide" hidden>Aucune course enregistrée.</p>
+      </div>
+
+      <div class="panneau large">
+        <div class="panneau-tete"><span class="panneau-titre">D'où viennent les clients</span></div>
+        <div class="tableau-cadre">
+          <table class="tableau"><tbody id="provBord"></tbody></table>
+        </div>
+        <p class="panneau-vide" id="provVide" hidden>
+          Aucune demande venue d'une affiche pour l'instant. Posez-en une
+          au comptoir d'un hôtel et le compte s'affichera ici.
+        </p>
+      </div>
+
+      <!-- LES AVIS : LE PANNEAU EXISTE, IL EST VIDE, ET IL LE RESTE TANT
+           QU'AUCUN AVIS N'EST REÇU. Afficher « 4,9/5 sur 128 avis » sans
+           avis serait une pratique commerciale trompeuse (L132-2 Code de la
+           consommation) — et se croire bien noté est une mauvaise façon de
+           décider. -->
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Avis clients</span></div>
+        <p class="panneau-vide">
+          Aucun avis reçu pour l'instant. Ils s'afficheront ici — jamais
+          une note inventée.
+        </p>
+      </div>
+    </div>
 
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
          montre l'affiche. Le client scanne, le site s'ouvre avec l'hôtel déjà
          en adresse de départ, et il n'a plus qu'à dire où il va. -->
-    <div class="bloc">
+    <div class="bloc" id="blocHotel">
       <h2 class="bloc-titre">Affiche pour un hôtel</h2>
       <label class="champ" for="hotelNom">
         <span class="champ-corps">
@@ -1724,32 +2119,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       </div>
     </div>
 
-    <!-- TROIS DEGRÉS, UN SEUL QUI CRIE. Une demande pas encore tranchée est
-         en rouge plein : c'est la seule ligne du site qui prend cette
-         couleur, et elle ne veut dire qu'une chose — quelqu'un attend une
-         réponse. Une course confirmée mais pas faite est seulement cerclée
-         d'or : elle reste à assurer, mais elle n'attend plus personne. Les
-         réalisées retombent en gris. Si tout criait pareil, plus rien ne
-         crierait. -->
-    <div class="compteurs">
-      <button class="compteur" type="button" data-filtre="attente">
-        <span class="chiffre" id="cptAttente">0</span>
-        <span class="etiquette">En attente</span>
-      </button>
-      <button class="compteur" type="button" data-filtre="confirmee">
-        <span class="chiffre" id="cptConfirmee">0</span>
-        <span class="etiquette">À assurer</span>
-      </button>
-      <button class="compteur" type="button" data-filtre="realisee">
-        <span class="chiffre" id="cptRealisee">0</span>
-        <span class="etiquette">Réalisées</span>
-      </button>
-    </div>
-
-    <div id="listeBord"></div>
-    <div class="vide" id="videBord" hidden>
-      <p>Aucune course pour l'instant.</p>
-    </div>
   </section>
 
   <!-- =====================================================================
@@ -4199,7 +4568,7 @@ window.ELA_TEXTES = {
    pourrait plus jamais voir son propre site public — l'erreur a déjà été
    faite une fois.
    ===================================================================== */
-  var CODE_EXPLOITANT = "04b72932f8ccb464";
+  var CODE_EXPLOITANT = "584ec46adb3a2408";
   /* Seule l'EMPREINTE du code est dans la page. C'est de l'obfuscation, pas
      de la sécurité : un site statique ne peut pas garder un secret, et la
      page est publique. C'est une serrure, pas un coffre — ce qui protège
@@ -4413,7 +4782,228 @@ window.ELA_TEXTES = {
       el.addEventListener("click", function(){ ouvrirBonBord(c.ref); });
       liste.appendChild(el);
     });
+    dessinerAdmin(tout, parEtat);
   }
+
+/* =====================================================================
+   LES PANNEAUX DU TABLEAU DE BORD
+   ---------------------------------------------------------------------
+   TOUT VIENT DU REGISTRE. Rien n'est simulé, rien n'est arrondi vers le
+   haut « pour que ce soit joli » : un tableau de bord sert à décider, et
+   un chiffre décoratif finit par servir à décider quand même.
+   L'ARGENT NE COMPTE QUE LES COURSES « REALISEE » — même règle que le
+   registre, pour la même raison : une course confirmée est une promesse,
+   pas un encaissement. Les COMPTES de courses, eux, portent sur tout ce
+   qui n'est pas refusé : une demande reçue reste du travail arrivé.
+   ===================================================================== */
+  var COULEUR_GAMME = { berline:"#1F6F6B", van:"#3FA9A2" };
+
+  function variation(a, b){
+    /* SANS RÉFÉRENCE, PAS DE POURCENTAGE. « +100 % » sur une semaine
+       précédente à zéro ne veut rien dire, et « −100 % » ferait peur pour
+       rien la semaine d'après. On dit alors le chiffre brut. */
+    if(!b) return { texte: a ? "Première semaine comparable" : "Rien la semaine dernière",
+                    sens: "" };
+    var p = Math.round((a - b) / b * 100);
+    return { texte: (p > 0 ? "+" : "") + p + " % vs semaine dernière",
+             sens: p > 0 ? "hausse" : (p < 0 ? "baisse" : "") };
+  }
+  function poserVar(id, v){
+    var el = document.getElementById(id);
+    el.textContent = v.texte;
+    el.className = "kpi-var" + (v.sens ? " " + v.sens : "");
+  }
+
+  function dessinerAdmin(tout, parEtat){
+    var maintenant = new Date();
+    var aujourdhui = dateLocale(maintenant);
+    document.getElementById("adminDate").textContent =
+      maintenant.toLocaleDateString("fr-FR",
+        { weekday:"long", day:"numeric", month:"long" });
+
+    /* ---- Les quatre chiffres ---- */
+    document.getElementById("kpiAttente").textContent = parEtat.attente;
+    var att = document.getElementById("kpiAttenteVar");
+    att.textContent = parEtat.attente
+      ? (parEtat.attente > 1 ? "Clients qui attendent une réponse"
+                             : "Un client attend une réponse")
+      : "Aucune réponse à donner";
+    att.className = "kpi-var" + (parEtat.attente ? " baisse" : "");
+
+    var duJour = tout.filter(function(c){
+      return c.course && c.course.date === aujourdhui && c.statut !== "refusee";
+    });
+    document.getElementById("kpiJour").textContent = duJour.length;
+    var reste = duJour.filter(function(c){ return c.statut !== "realisee"; }).length;
+    document.getElementById("kpiJourVar").textContent =
+      !duJour.length ? "Rien de prévu aujourd'hui"
+                     : (reste ? reste + " encore à assurer" : "Toutes réalisées");
+
+    var faites = realisees();
+    var l0 = lundiDe(maintenant), l1 = new Date(l0); l1.setDate(l1.getDate() - 7);
+    var cette = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l0; });
+    var avant = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l1 && d < l0; });
+    var a = bilan(cette), b = bilan(avant);
+    document.getElementById("kpiCA").textContent = eurosRond(a.total);
+    poserVar("kpiCAVar", variation(a.total, b.total));
+    document.getElementById("kpiCourses").textContent = a.n;
+    poserVar("kpiCoursesVar", variation(a.n, b.n));
+
+    /* ---- La courbe des sept derniers jours ----
+       DESSINÉE À LA LARGEUR RÉELLE DU PANNEAU. Un « viewBox » fixe étiré en
+       largeur déforme le trait et les points ; mesurer coûte une ligne. */
+    var svg = document.getElementById("courbeBord");
+    var L = svg.clientWidth || 300, H = 132, m = 6;
+    var jours = [], noms = [];
+    for(var i = 6; i >= 0; i--){
+      var d = new Date(maintenant.getFullYear(), maintenant.getMonth(),
+                       maintenant.getDate() - i);
+      var cle = dateLocale(d);
+      jours.push(tout.filter(function(c){
+        return c.course && c.course.date === cle && c.statut !== "refusee";
+      }).length);
+      noms.push(d.toLocaleDateString("fr-FR", { weekday:"short" }).replace(".", ""));
+    }
+    var haut = Math.max(1, Math.max.apply(null, jours));
+    var pas = (L - m*2) / 6;
+    /* 16 px réservés EN HAUT : le chiffre du jour s'écrit au-dessus de son
+       point, et le point le plus haut est celui du meilleur jour — sans
+       cette marge, c'est justement ce chiffre-là qui sort du cadre. */
+    var cime = 16, sol = H - m - 14;
+    var pts = jours.map(function(v, k){
+      return [m + k*pas, cime + (sol - cime) * (1 - v/haut)];
+    });
+    var ligne = pts.map(function(p, k){
+      return (k ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
+    }).join(" ");
+    var bas = sol;
+    svg.setAttribute("viewBox", "0 0 " + L + " " + H);
+    svg.innerHTML =
+      '<defs><linearGradient id="cbG" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="#1F6F6B" stop-opacity=".22"/>'
+      + '<stop offset="1" stop-color="#1F6F6B" stop-opacity="0"/></linearGradient></defs>'
+      + '<path d="' + ligne + ' L' + pts[6][0].toFixed(1) + ' ' + bas
+      + ' L' + pts[0][0].toFixed(1) + ' ' + bas + ' Z" fill="url(#cbG)"/>'
+      + '<path d="' + ligne + '" fill="none" stroke="#1F6F6B" stroke-width="2.2"'
+      + ' stroke-linecap="round" stroke-linejoin="round"/>'
+      + pts.map(function(p, k){
+          return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1)
+               + '" r="' + (k === 6 ? 4 : 2.6) + '" fill="#1F6F6B"/>'
+               + (jours[k] ? '<text x="' + p[0].toFixed(1) + '" y="'
+                   + (p[1] - 8).toFixed(1) + '" text-anchor="middle" font-size="10"'
+                   + ' font-weight="700" fill="#151C22">' + jours[k] + '</text>' : '');
+        }).join("");
+    var jrs = document.getElementById("courbeJours");
+    jrs.innerHTML = "";
+    noms.forEach(function(n){
+      var s = document.createElement("span"); s.textContent = n; jrs.appendChild(s);
+    });
+
+    /* ---- Berline ou van ----
+       UN SEUL CERCLE, dont on décale le trait : deux arcs dessinés séparément
+       laissent une couture blanche à chaque jonction. */
+    var vivantes = tout.filter(function(c){ return c.statut !== "refusee"; });
+    var parGamme = { berline:0, van:0 };
+    vivantes.forEach(function(c){
+      var k = (c.course && c.course.vehiculeCle) || "";
+      if(parGamme[k] !== undefined) parGamme[k]++;
+    });
+    var totalG = parGamme.berline + parGamme.van;
+    var donut = document.getElementById("donutBord");
+    var leg   = document.getElementById("legendeBord");
+    document.getElementById("donutVide").hidden = totalG > 0;
+    donut.style.display = totalG ? "" : "none";
+    leg.innerHTML = "";
+    if(totalG){
+      var partB = parGamme.berline / totalG * 100;
+      donut.innerHTML =
+        '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + COULEUR_GAMME.van
+        + '" stroke-width="7"/>'
+        + '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + COULEUR_GAMME.berline
+        + '" stroke-width="7" stroke-dasharray="' + partB.toFixed(1) + ' '
+        + (100 - partB).toFixed(1) + '" stroke-dashoffset="25"/>';
+      [["berline","Berline"],["van","Van"]].forEach(function(g){
+        var n = parGamme[g[0]];
+        var l = document.createElement("div");
+        l.className = "legende-l";
+        l.innerHTML = '<i style="background:' + COULEUR_GAMME[g[0]] + '"></i>'
+          + '<span></span><b></b>';
+        l.querySelector("span").textContent = g[1];
+        l.querySelector("b").textContent =
+          n + " · " + Math.round(n / totalG * 100) + " %";
+        leg.appendChild(l);
+      });
+    }
+
+    /* ---- Où en sont les courses ---- */
+    var etats = [["attente","En attente","#C9302F"],
+                 ["confirmee","À assurer","#1F6F6B"],
+                 ["realisee","Réalisées","#3FA9A2"],
+                 ["refusee","Refusées","#8a97a3"]];
+    var parTout = { attente:0, confirmee:0, realisee:0, refusee:0 };
+    tout.forEach(function(c){
+      var s = c.statut || "attente";
+      if(parTout[s] !== undefined) parTout[s]++;
+    });
+    var barres = document.getElementById("barresBord");
+    document.getElementById("barresVide").hidden = tout.length > 0;
+    barres.innerHTML = "";
+    etats.forEach(function(e){
+      var n = parTout[e[0]];
+      var pc = tout.length ? n / tout.length * 100 : 0;
+      var d = document.createElement("div");
+      d.className = "barre-l";
+      d.innerHTML = '<div class="barre-h"><span></span><b></b></div>'
+        + '<div class="barre-f"><i style="width:' + pc.toFixed(1)
+        + '%;background:' + e[2] + '"></i></div>';
+      d.querySelector("span").textContent = e[1];
+      d.querySelector("b").textContent = n;
+      barres.appendChild(d);
+    });
+
+    /* ---- D'où viennent les clients ----
+       LES DEMANDES portent sur tout le registre — une affiche qui amène une
+       demande travaille, même si la course ne s'est pas faite. L'ARGENT ne
+       compte que les réalisées. Deux chiffres pour deux questions. */
+    var parProv = {};
+    tout.forEach(function(c){
+      var p = (c.provenance || "").trim();
+      if(!p) return;
+      (parProv[p] = parProv[p] || []).push(c);
+    });
+    var lignesProv = Object.keys(parProv).map(function(nom){
+      var l = parProv[nom];
+      var f = l.filter(function(c){ return c.statut === "realisee"; });
+      return { nom:nom, n:l.length, f:f.length, total:bilan(f).total };
+    }).sort(function(x,y){ return y.n - x.n; }).slice(0, 6);
+    var corps = document.getElementById("provBord");
+    document.getElementById("provVide").hidden = lignesProv.length > 0;
+    corps.innerHTML = "";
+    if(lignesProv.length){
+      var tete = document.createElement("tr");
+      tete.innerHTML = '<th>Hôtel</th><th>Demandes</th><th>Réalisées</th>'
+                     + '<th style="text-align:right">Encaissé</th>';
+      corps.appendChild(tete);
+      lignesProv.forEach(function(l){
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td></td><td></td><td></td><td class="t-prix"></td>';
+        var td = tr.querySelectorAll("td");
+        td[0].textContent = l.nom;
+        td[1].textContent = l.n;
+        td[2].textContent = l.f;
+        td[3].textContent = eurosRond(l.total);
+        corps.appendChild(tr);
+      });
+    }
+  }
+
+  /* La courbe est tracée en pixels réels : elle doit être refaite quand la
+     fenêtre change de largeur, sinon elle garde celle du téléphone tourné
+     dans l'autre sens. */
+  window.addEventListener("resize", function(){
+    var e = document.getElementById("ecran-bord");
+    if(e && e.classList.contains("actif")) dessinerBord();
+  });
 
   function majCourse(ref, statut, extra){
     var liste = registre();
@@ -4726,6 +5316,12 @@ window.ELA_TEXTES = {
     document.getElementById("nuageEtat").textContent = connecte
       ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
       : "Non connecté : vous ne voyez que les courses de cet appareil.";
+    /* La pastille de la colonne dit la MÊME chose que le bloc, en trois
+       mots. Deux endroits qui affichent l'état du serveur doivent être
+       écrits au même endroit, sinon l'un des deux ment un jour. */
+    document.getElementById("adminEtat").classList.toggle("ok", connecte);
+    document.getElementById("adminEtatTexte").textContent =
+      connecte ? "Serveur connecté" : "Cet appareil seul";
   }
   function synchroniser(){
     return nuage.lister().then(function(distantes){
@@ -4927,12 +5523,48 @@ window.ELA_TEXTES = {
     });
   });
   document.getElementById("regRecherche").addEventListener("input", chercherRegistre);
-  document.getElementById("btnRegistre").addEventListener("click", function(){
+/* =====================================================================
+   LA COLONNE DE GAUCHE
+   ---------------------------------------------------------------------
+   L'ENTRÉE ALLUMÉE SUIT L'ÉCRAN, pas le clic. Barbaros revient au tableau
+   de bord par le bouton « Retour » du registre : si l'allumage suivait le
+   clic, « Registre » resterait allumé sur le tableau de bord.
+   ===================================================================== */
+  function allumerAdmin(quoi){
+    document.querySelectorAll(".admin-lien").forEach(function(b){
+      b.classList.toggle("actif", b === quoi);
+    });
+  }
+  function ouvrirRegistre(){
     dessinerRegistre();
     ecran("ecran-registre");
+    allumerAdmin(document.getElementById("btnRegistre"));
+  }
+  document.getElementById("btnRegistre").addEventListener("click", ouvrirRegistre);
+  document.getElementById("btnAideRegistre").addEventListener("click", ouvrirRegistre);
+  document.getElementById("btnAdminBord").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(this);
   });
-  document.getElementById("btnRetourRegistre")
-          .addEventListener("click", function(){ ecran("ecran-bord"); });
+  /* « Affiche hôtel » et « Serveur » ne sont pas des écrans : ce sont deux
+     blocs de cette page. On y descend plutôt que d'inventer deux écrans de
+     plus — et on n'allume pas l'entrée, puisqu'on reste sur le tableau de
+     bord. */
+  document.querySelectorAll("[data-admin-vers]").forEach(function(b){
+    b.addEventListener("click", function(){
+      ecran("ecran-bord");
+      dessinerBord();
+      allumerAdmin(document.getElementById("btnAdminBord"));
+      var cible = document.getElementById(b.dataset.adminVers);
+      if(cible) cible.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+  });
+  document.getElementById("btnRetourRegistre").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
 
 /* =====================================================================
    LA SAUVEGARDE
@@ -5294,9 +5926,17 @@ window.ELA_TEXTES = {
 
   function ouvrirEspace(){
     document.body.classList.add("exploitant");
+    /* « espace » n'arrive qu'ICI, une fois le code donné : c'est elle qui
+       fait apparaître la colonne de gauche. « exploitant » est déjà posée
+       sur l'écran du verrou — s'en servir afficherait le nom, l'état du
+       serveur et l'accès au registre à qui n'a pas encore le code. */
+    document.body.classList.add("espace");
     jugerNuage();
-    dessinerBord();
+    /* L'ÉCRAN D'ABORD, LE DESSIN ENSUITE. La courbe est tracée à la largeur
+       RÉELLE de son panneau : mesurée pendant que l'écran est encore masqué,
+       cette largeur vaut zéro et la courbe sort plate. */
     ecran("ecran-bord");
+    dessinerBord();
     if(nuage.connecte()) synchroniser();
   }
   document.getElementById("btnDeverrouiller").addEventListener("click", function(){

@@ -69,7 +69,7 @@ p.on('pageerror',e=>errs.push(e.message));
 await p.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
 await ctx.addInitScript((j)=>{
   localStorage.setItem('ela_bookings', JSON.stringify(j));
-  localStorage.setItem('ela_exploitant', '04b72932f8ccb464');
+  localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, jeu);
 await p.goto('http://127.0.0.1:8099/?exploitant=1',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(600);
