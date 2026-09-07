@@ -232,6 +232,178 @@ async function espace(session){
   await c.close();
 }
 
+/* =====================================================================
+   LE JETON EXPIRE AU BOUT D'UNE HEURE — LA PANNE INVISIBLE
+   ---------------------------------------------------------------------
+   Rien ne renouvelait le jeton d'accès. Passé une heure, le serveur
+   répondait 401 à chaque lecture, l'erreur était avalée en silence, et plus
+   AUCUNE demande de client n'arrivait dans le tableau de bord — alors que
+   la colonne affichait toujours « Serveur connecté », parce que
+   « connecte() » ne regarde que la présence d'une chaîne, pas sa validité.
+   C'est la pire forme de panne : invisible, durable, et ce qu'on perd ce
+   sont des clients.
+   LE PREMIER CONTRÔLE EST CELUI QUI COMPTE : le 401 doit déclencher UN
+   renouvellement, puis l'appel doit être REJOUÉ — et la course doit
+   apparaître. Un test qui vérifierait seulement « le renouvellement est
+   appelé » ne dirait rien de ce que Barbaros a sous les yeux.
+   ===================================================================== */
+{
+  const liste = [courseServeur('ELA-26-09-0200','客 Expiré')];
+  const vus = [];
+  let jetonNeuf = false;
+  const { c, pg } = await espace({ access_token:'jeton-perime',
+                                   refresh_token:'jeton-de-renouvellement',
+                                   token_type:'bearer' });
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
+    const u = route.request().url();
+    const auth = route.request().headers()['authorization'] || '';
+    vus.push(u.includes('grant_type=refresh_token') ? 'refresh'
+           : (u.includes('select=bon') ? 'lecture:' + auth : 'autre'));
+    if(u.includes('grant_type=refresh_token')){
+      /* Le renouvellement ne doit PAS porter le jeton périmé : le lui
+         envoyer ferait refuser la demande qui doit justement le remplacer. */
+      if(auth) { await route.fulfill({status:401, body:''}); return; }
+      jetonNeuf = true;
+      await route.fulfill({contentType:'application/json',
+        body: JSON.stringify({ access_token:'jeton-neuf',
+                               refresh_token:'renouvellement-2', token_type:'bearer' })});
+      return;
+    }
+    if(u.includes('select=bon')){
+      if(!jetonNeuf || auth !== 'Bearer jeton-neuf'){
+        await route.fulfill({status:401, body:''}); return;
+      }
+      await route.fulfill({contentType:'application/json',
+        body: JSON.stringify(liste.map(x=>({bon:x})))});
+      return;
+    }
+    await route.fulfill({status:201, body:''});
+  });
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(1200);
+  check('un jeton périmé est renouvelé tout seul',
+    vus.includes('refresh'), vus.join(' | '));
+  check('le renouvellement ne porte PAS le jeton périmé',
+    vus.filter(v => v === 'refresh').length === 1, vus.join(' | '));
+  check('et l\'appel est REJOUÉ : la course du client finit par arriver',
+    (await pg.locator('.demande').count()) === 1,
+    String(await pg.locator('.demande').count()));
+  check('rien n\'est signalé au passage — le renouvellement est invisible et doit l\'être',
+    await pg.locator('#bordHorsLigne').isHidden());
+  await c.close();
+}
+
+/* UNE LECTURE QUI ÉCHOUE POUR DE BON DOIT SE VOIR. Elle rendait « null »,
+   exactement comme « pas connecté » : le tableau de bord ne disait rien, et
+   une panne qui ressemble à un état normal ne se répare jamais. */
+{
+  const { c, pg } = await espace({ access_token:'jeton-mort',
+                                   refresh_token:'renouvellement-mort',
+                                   token_type:'bearer' });
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
+    await route.fulfill({status:401, body:''});
+  });
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(1500);
+  check('un renouvellement refusé efface la session au lieu de garder une pastille verte',
+    !(await pg.evaluate(()=>!!localStorage.getItem('ela_nuage_session'))));
+  check('et l\'écriteau DIT que la session a expiré',
+    await pg.locator('#bordHorsLigne').isVisible()
+    && (await pg.locator('#bordHorsLigneTexte').textContent()).includes('expiré'),
+    await pg.locator('#bordHorsLigneTexte').textContent());
+  check('la pastille de la colonne repasse à « cet appareil seul »',
+    (await pg.locator('#adminEtatTexte').textContent()).includes('appareil'),
+    await pg.locator('#adminEtatTexte').textContent());
+  await c.close();
+}
+
+/* =====================================================================
+   L'ACCUSÉ DE RÉCEPTION AU CLIENT
+   ---------------------------------------------------------------------
+   Le client appuie sur « Confirmer » et n'a plus aucune nouvelle. Son bon
+   dit « demande reçue », mais il l'a fermé. Un mot qui dit qu'une personne
+   a vu sa demande — et que la réservation N'EST PAS ENCORE FERME — évite le
+   rappel inquiet, et surtout évite de laisser croire à une voiture réservée
+   qu'on n'a pas encore placée.
+   ===================================================================== */
+{
+  const bon = courseServeur('ELA-26-09-0300','Sophie Girard');
+  bon.course.date = '2026-09-20'; bon.course.heure = '10:00';
+  const { c, pg } = await espace(null);
+  await pg.addInitScript((b)=>{
+    localStorage.setItem('ela_bookings', JSON.stringify([b]));
+    window.__liens = []; window.open = (u)=>{ window.__liens.push(u); return null; };
+  }, bon);
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(700);
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
+  check('une demande en attente porte « Accuser réception »',
+    await pg.locator('#btnAccuserReception').isVisible());
+  await pg.locator('#btnAccuserReception').click(); await pg.waitForTimeout(400);
+  const lien = (await pg.evaluate(()=>window.__liens))[0] || '';
+  const msg = decodeURIComponent((lien.split('text=')[1]) || '');
+  check('il part sur le numéro du CLIENT',
+    lien.startsWith('https://wa.me/33612345678?text='), lien.split('?')[0]);
+  check('il fait quatre lignes, lues sur un écran verrouillé',
+    msg.split('\n').length === 4, String(msg.split('\n').length));
+  check('il porte la référence et le trajet',
+    msg.includes('ELA-26-09-0300') && msg.includes('Place Vendôme'),
+    msg.replace(/\n/g,' | '));
+  /* LE CONTRÔLE QUI COMPTE : ne jamais laisser croire à une voiture
+     réservée. Le prix ET l'heure sont fermes chez Elatransfer ; une
+     promesse ici est une promesse opposable. */
+  check('il dit que la réservation n\'est ferme qu\'après confirmation',
+    /ferme dès notre confirmation/.test(msg), msg.replace(/\n/g,' | '));
+  check('et il ne nomme NI chauffeur NI véhicule — on ne les connaît pas encore',
+    !/chauffeur\s*:/i.test(msg) && !/Berline|Van/.test(msg), msg.replace(/\n/g,' | '));
+  check('la course garde qu\'un accusé est parti',
+    await pg.evaluate(()=>JSON.parse(localStorage.getItem('ela_bookings'))[0].accuse !== undefined));
+  check('et le bouton le dit',
+    (await pg.locator('#btnAccuserReception').textContent()).includes('envoyé'),
+    await pg.locator('#btnAccuserReception').textContent());
+
+  /* Une fois la course confirmée, c'est « Prévenir le client » qui parle :
+     deux messages coup sur coup diraient au client qu'on ne sait pas où on
+     en est. */
+  await pg.fill('#bbChauffeurNom','Mehmet');
+  await pg.fill('#bbChauffeurTel','06 98 76 54 32');
+  await pg.locator('#btnConfirmerCourse').click(); await pg.waitForTimeout(400);
+  await pg.locator('#btnRetourBord').click(); await pg.waitForTimeout(300);
+  await pg.locator('.compteur[data-filtre="confirmee"]').click(); await pg.waitForTimeout(300);
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
+  check('sur une course confirmée, l\'accusé s\'efface au profit de « Prévenir le client »',
+    await pg.locator('#btnAccuserReception').isHidden()
+    && await pg.locator('#btnPrevenirClient').isVisible());
+
+  /* La langue de la course, pas celle de l'exploitant : le client a réservé
+     en anglais, il doit être rassuré en anglais. */
+  /* ON QUITTE LE BON AVANT DE TOUCHER AU REGISTRE. « Retour » réécrit la
+     course depuis l'objet gardé en mémoire — c'est voulu, il enregistre le
+     chauffeur saisi — et il écrasait donc la modification faite ici. Piège
+     de test, pas de code : l'ordre des deux gestes n'est pas indifférent. */
+  await pg.locator('#btnRetourBord').click(); await pg.waitForTimeout(300);
+  await pg.evaluate(()=>{
+    const l = JSON.parse(localStorage.getItem('ela_bookings'));
+    l[0].statut = 'attente'; l[0].langue = 'en';
+    localStorage.setItem('ela_bookings', JSON.stringify(l));
+    window.__liens = [];
+  });
+  await pg.locator('.compteur[data-filtre="attente"]').click(); await pg.waitForTimeout(300);
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnAccuserReception').click(); await pg.waitForTimeout(400);
+  const msgEn = decodeURIComponent(((await pg.evaluate(()=>window.__liens))[0]||'').split('text=')[1]||'');
+  check('une course réservée en anglais reçoit un accusé en anglais',
+    msgEn.includes('has received your request')
+    && /firm as soon as we confirm/.test(msgEn), msgEn.replace(/\n/g,' | '));
+  await c.close();
+}
+
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}

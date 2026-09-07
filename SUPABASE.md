@@ -110,8 +110,13 @@ règles de l'étape 2.
 
 ## 5. Se connecter
 
-Sur le site, en mode exploitant : **Registre** → bloc **Serveur** → l'e-mail
-et le mot de passe de l'étape 3. La connexion tient d'un jour à l'autre.
+Sur le site, en mode exploitant : entrée **Serveur** dans la colonne de
+gauche → l'e-mail et le mot de passe de l'étape 3.
+
+La connexion **se renouvelle toute seule** : le jeton d'accès de Supabase ne
+vit qu'une heure, et le site le remplace sans rien demander. Si l'écriteau
+rouge « Votre session a expiré » apparaît quand même, c'est que le
+renouvellement lui-même a été refusé — il faut alors se reconnecter ici.
 
 ---
 

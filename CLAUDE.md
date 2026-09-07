@@ -348,7 +348,7 @@ deux premières lignes « … : … », la ligne à points médians, la dernièr
 ligne « nom — téléphone », le dernier montant en euros. **Ne jamais changer
 la forme du message client sans adapter ce lecteur**, et inversement.
 
-**Le registre ne vit que dans le navigateur.** `saveBooking` en garde 1000 (et
+**Le registre ne vit que dans le navigateur (sans serveur).** `saveBooking` en garde 1000 (et
 non 10 comme au début, qui effaçait trois jours de travail). Le dire à
 Barbaros : sauvegarder chaque semaine tant qu'il n'y a pas de serveur.
 
@@ -1603,6 +1603,69 @@ onglet laissé ouvert la nuit, c'est exactement la façon dont il travaille.
   ce qu'on affiche **et** de si l'on interroge. Les séparer, c'est se
   retrouver un jour avec une pastille verte et aucune écoute.
 
+### LE JETON EXPIRAIT AU BOUT D'UNE HEURE, ET RIEN NE LE RENOUVELAIT
+
+Septembre 2026, signalé par Barbaros : « je ne reçois pas les demandes des
+clients sur la page admin, pourquoi ». **C'était un vrai défaut, et le plus
+coûteux du projet à ce jour.**
+
+Le jeton d'accès Supabase vit **une heure**. Passé ce délai, le serveur
+répondait `401` à chaque lecture, l'erreur était avalée par un `catch` qui
+rendait `null` — c'est-à-dire exactement ce que rend « pas connecté » — et
+plus **aucune demande de client n'arrivait**. Pendant ce temps la colonne
+affichait « Serveur connecté », parce que `connecte()` ne regardait que la
+**présence** d'une chaîne dans le stockage, jamais sa validité.
+
+**C'est la pire forme de panne : invisible, durable, et ce qu'on perd ce
+sont des clients.** Elle ne se voit pas en test manuel — on se connecte, on
+essaie, ça marche ; il faut attendre une heure pour la rencontrer.
+
+- `nuage.rafraichir()` échange le `refresh_token` contre un jeton neuf.
+  **Il ne présente PAS le jeton périmé** en `Bearer` : l'envoyer ferait
+  refuser la demande qui doit justement le remplacer. Un contrôle le vérifie.
+- `appel()` prend un troisième paramètre `reessai` : sur un `401`, il
+  renouvelle et **rejoue l'appel UNE fois**. Sans ce garde-fou, un refus
+  permanent ferait boucler indéfiniment.
+- **Un renouvellement refusé efface la session** et fait revenir l'écriteau
+  avec « Votre session a expiré » — plutôt qu'une pastille verte sur un
+  serveur qui ne répond plus.
+- **`lister()` n'a plus de `catch`**, et c'est délibéré : une panne qui
+  ressemble à un état normal ne se répare jamais. L'erreur remonte, et
+  `#bordHorsLigne` porte trois phrases distinctes — pas connecté, session
+  expirée, serveur muet (avec le code) — parce qu'elles appellent trois
+  gestes différents.
+- **Le test éprouve ce que Barbaros a sous les yeux**, pas la mécanique : il
+  vérifie que **la course finit par apparaître** après le renouvellement. Un
+  contrôle qui dirait seulement « rafraichir a été appelé » ne prouverait
+  rien.
+
+### L'ACCUSÉ DE RÉCEPTION AU CLIENT
+
+Même demande : « il faut aussi un message destiné au client que Elatransfer
+doit confirmer la réservation ». Le client appuie sur « Confirmer » et n'a
+plus **aucune** nouvelle. Son bon dit bien « demande reçue » — mais il l'a
+fermé, il ne le regarde plus.
+
+- Bouton **« Accuser réception au client »** sur le bon exploitant, visible
+  **seulement sur une course en `attente`** et avec un numéro. Une fois
+  confirmée, c'est « Prévenir le client » qui parle : deux messages coup sur
+  coup diraient au client qu'on ne sait pas où on en est.
+- **Quatre lignes** : référence, trajet, heure, et la phrase qui compte —
+  « **Votre réservation sera ferme dès notre confirmation** ». Un test la
+  cherche dans les deux langues.
+- **NI CHAUFFEUR NI VÉHICULE** : on ne les connaît pas encore, et chez
+  Elatransfer l'heure est ferme comme le prix. Promettre une voiture qu'on
+  n'a pas placée est le meilleur moyen de laisser quelqu'un sur un trottoir.
+  Un contrôle interdit les deux mots.
+- **Il suit `bon.langue`**, comme la demande d'avis — et la **date suit la
+  langue du message**, pas celle de l'espace exploitant qui est toujours le
+  français.
+- La course garde `accuse` et le bouton le dit : sur dix demandes reçues la
+  nuit, on ne se souvient pas de qui a eu une réponse.
+- **Il n'est pas automatique et ne peut pas l'être** : le site n'a aucun
+  moyen d'envoyer un SMS tout seul. C'est WhatsApp qui part, du téléphone de
+  Barbaros. Ne pas promettre l'inverse.
+
 **PIÈGE DE TEST, PAS DE CODE** : `ctx.addInitScript` qui pose
 `ela_bookings` **se rejoue à CHAQUE chargement de page**. Dans la suite
 exploitant, le `goto` de la ré-entrée remettait le registre à son état
@@ -1988,7 +2051,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt suites Playwright, 575 contrôles**, à relancer après **toute**
+**Vingt suites Playwright, 592 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

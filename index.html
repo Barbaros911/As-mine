@@ -2036,8 +2036,8 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          petit dans le bloc du serveur, tout en bas : c'est la différence
          entre voir ses clients et ne pas les voir. -->
     <div class="hors-ligne" id="bordHorsLigne" hidden>
-      <p>Vous ne recevez pas les demandes de vos clients sur cet appareil :
-         vous ne voyez que les courses saisies ici.</p>
+      <p id="bordHorsLigneTexte">Vous ne recevez pas les demandes de vos clients
+         sur cet appareil : vous ne voyez que les courses saisies ici.</p>
       <button class="bouton-fantome" type="button" data-admin-vers="blocNuage">
         Se connecter au serveur
       </button>
@@ -2716,6 +2716,22 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
     </div>
 
     <div class="veh-action" id="bbActions">
+      <!-- ACCUSER RÉCEPTION — le message qui manquait.
+           Le client appuie sur « Confirmer » et n'a plus AUCUNE nouvelle
+           jusqu'à ce qu'un chauffeur soit trouvé. Son bon dit bien « demande
+           reçue », mais il l'a fermé : il ne le regarde plus. Un mot qui lui
+           dit qu'une personne a vu sa demande, et que la réservation ne sera
+           ferme qu'après notre confirmation, coûte un appui et évite le
+           rappel inquiet de 6 h du matin.
+           IL N'EST PAS AUTOMATIQUE, et il ne peut pas l'être : le site n'a
+           aucun moyen d'envoyer un SMS tout seul. C'est WhatsApp qui part,
+           depuis le téléphone de Barbaros, sur le numéro du client.
+           IL NE PROMET RIEN D'AUTRE QUE LE DÉLAI D'UNE RÉPONSE — annoncer un
+           chauffeur qu'on n'a pas encore serait un engagement qu'on ne tient
+           pas, sur un site où le prix ET l'heure sont fermes. -->
+      <button class="bouton-fantome" type="button" id="btnAccuserReception" hidden>
+        Accuser réception au client
+      </button>
       <button class="bouton" type="button" id="btnConfirmerCourse">
         <span>Confirmer la course</span>
       </button>
@@ -5063,8 +5079,48 @@ window.ELA_TEXTES = {
   try{ nuage.session = JSON.parse(localStorage.getItem(CLE_SESSION) || "null"); }
   catch(e){ nuage.session = null; }
   nuage.connecte = function(){ return Boolean(this.session && this.session.access_token); };
-  nuage.appel = function(chemin, options){
+
+  /* LE JETON D'ACCÈS EXPIRE AU BOUT D'UNE HEURE, ET C'ÉTAIT UN VRAI TROU.
+     Rien ne le renouvelait : passé une heure, le serveur répondait 401 à
+     chaque lecture, l'erreur était avalée en silence, et plus AUCUNE demande
+     de client n'arrivait dans le tableau de bord — alors que la colonne
+     affichait toujours « Serveur connecté », parce que « connecte() » ne
+     regarde que la présence d'une chaîne dans le stockage, pas sa validité.
+     C'est la panne la plus coûteuse possible : elle est invisible, elle dure,
+     et ce qu'on perd ce sont des clients.
+     Supabase rend un « refresh_token » avec chaque session : il sert
+     exactement à ça et vit bien plus longtemps. On s'en sert à la première
+     réponse 401, une seule fois, puis on rejoue l'appel. */
+  nuage.rafraichir = function(){
+    var moi = this;
+    var jeton = this.session && this.session.refresh_token;
+    if(!jeton) return Promise.resolve(false);
+    /* L'appel de renouvellement ne porte PAS le jeton périmé : il n'a besoin
+       que de la clé publique et du « refresh_token ». Le lui envoyer ferait
+       refuser la demande qui doit justement le remplacer. */
+    return fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: jeton })
+    }).then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){
+        if(!j || !j.access_token){
+          /* Le renouvellement lui-même est refusé : la session est morte
+             pour de bon. On l'efface, pour que l'écriteau revienne et dise
+             à Barbaros de se reconnecter — plutôt que de laisser une
+             pastille verte sur un serveur qui ne répond plus. */
+          moi.deconnexion();
+          return false;
+        }
+        moi.session = j;
+        try{ localStorage.setItem(CLE_SESSION, JSON.stringify(j)); }catch(e){}
+        return true;
+      }).catch(function(){ return false; });
+  };
+
+  nuage.appel = function(chemin, options, reessai){
     options = options || {};
+    var moi = this;
     var ctrl = new AbortController();
     var minuteur = setTimeout(function(){ ctrl.abort(); }, 8000);
     var entetes = { apikey: SUPABASE_CLE, "Content-Type": "application/json" };
@@ -5074,10 +5130,19 @@ window.ELA_TEXTES = {
       method: options.method || "GET", body: options.body,
       signal: ctrl.signal, headers: entetes
     }).then(function(r){
+      clearTimeout(minuteur);
+      /* 401 sur un appel identifié = le jeton a expiré. On renouvelle et on
+         rejoue UNE fois : sans ce garde-fou, un refus permanent ferait
+         boucler l'appel indéfiniment. */
+      if(r.status === 401 && !reessai && moi.session && moi.session.refresh_token){
+        return moi.rafraichir().then(function(ok){
+          if(!ok) throw new Error("session expiree");
+          return moi.appel(chemin, options, true);
+        });
+      }
       if(!r.ok) throw new Error("nuage " + r.status);
-      return r.text();
-    }).then(function(t){ clearTimeout(minuteur); return t ? JSON.parse(t) : null; })
-      .catch(function(e){ clearTimeout(minuteur); throw e; });
+      return r.text().then(function(t){ return t ? JSON.parse(t) : null; });
+    }).catch(function(e){ clearTimeout(minuteur); throw e; });
   };
   nuage.connexion = function(email, mdp){
     var moi = this;
@@ -5099,10 +5164,15 @@ window.ELA_TEXTES = {
      les noms, téléphones et adresses de tous les clients. */
   nuage.lister = function(){
     if(!this.connecte()) return Promise.resolve(null);
+    /* AUCUN « catch » ICI, ET C'EST DÉLIBÉRÉ. Il y en avait un : une lecture
+       refusée rendait « null », exactement comme « pas connecté », et le
+       tableau de bord ne disait rien. Une panne qui ressemble à un état
+       normal ne se répare jamais. L'erreur remonte donc à l'appelant, qui
+       l'affiche. */
     return this.appel("/rest/v1/courses?select=bon&order=cree_le.desc&limit=1000")
       .then(function(r){
         return Array.isArray(r) ? r.map(function(x){ return x.bon; }).filter(Boolean) : [];
-      }).catch(function(){ return null; });
+      });
   };
   /* DÉPÔT-OU-MISE-À-JOUR. Un simple PATCH ne modifierait qu'une ligne
      existante : il ne pourrait rien faire d'une course que Barbaros saisit
@@ -5775,6 +5845,16 @@ window.ELA_TEXTES = {
        croire à Barbaros que le client est prévenu — et le client attend. */
     document.getElementById("btnPrevenirClient").hidden =
       (c.statut !== "confirmee") || !tel;
+    /* L'accusé de réception ne vaut QUE pour une demande pas encore
+       tranchée : une fois la course confirmée, c'est « Prévenir le client »
+       qui parle, et lui dit bien plus. Deux messages coup sur coup diraient
+       au client qu'on ne sait pas où on en est. */
+    var bAcc = document.getElementById("btnAccuserReception");
+    bAcc.hidden = ((c.statut || "attente") !== "attente") || !tel;
+    /* Le libellé dit si le mot est déjà parti : sur dix demandes reçues la
+       nuit, on ne se souvient pas de qui a eu une réponse. */
+    bAcc.textContent = c.accuse ? "Accusé de réception envoyé — renvoyer"
+                                : "Accuser réception au client";
     ecran("ecran-bord-bon");
   }
   function chauffeurSaisi(){
@@ -5821,6 +5901,68 @@ window.ELA_TEXTES = {
     l.push("Votre bon : " + lien);
     return l.join("\n");
   }
+/* =====================================================================
+   L'ACCUSÉ DE RÉCEPTION AU CLIENT
+   ---------------------------------------------------------------------
+   QUATRE LIGNES, ET PAS UNE DE PLUS. Il répond aux deux seules questions
+   que se pose quelqu'un qui vient de réserver chez un inconnu : est-ce que
+   quelqu'un a vu ma demande, et à partir de quand puis-je compter dessus.
+   IL DIT EXPLICITEMENT QUE LA RÉSERVATION N'EST PAS ENCORE FERME. C'est le
+   contraire d'une précaution : promettre une voiture qu'on n'a pas encore
+   placée, sur un site où l'heure est ferme comme le prix, c'est le seul
+   moyen sûr de laisser un client sur un trottoir à 5 h du matin.
+   ON NE DONNE NI CHAUFFEUR NI VÉHICULE : on ne les connaît pas encore.
+   IL SUIT LA LANGUE DE LA COURSE, comme la demande d'avis — le client a
+   réservé dans sa langue, il doit être rassuré dans la même.
+   ===================================================================== */
+  function messageAccuse(bon){
+    var prenom = ((bon.client && bon.client.nom) || "").trim().split(/\s+/)[0];
+    /* La date suit la langue du MESSAGE, pas celle de l'espace exploitant —
+       qui est toujours le français. « 09/20/2026 » à un client anglophone,
+       « 20/09/2026 » à un francophone : le même jour, lu correctement des
+       deux côtés. */
+    var loc = (bon.langue || "fr") === "en" ? "en-GB" : "fr-FR";
+    var d = new Date(bon.course.date + "T" + bon.course.heure);
+    var quand = isNaN(d.getTime())
+      ? bon.course.date + " " + bon.course.heure
+      : d.toLocaleDateString(loc) + " "
+        + d.toLocaleTimeString(loc, { hour:"2-digit", minute:"2-digit" });
+    /* Les courses d'avant septembre 2026 n'ont pas de version « publique »
+       des adresses : on retombe sur celles du bon plutôt que d'envoyer
+       « undefined » à un client. */
+    var de = bon.course.departPublic || bon.course.depart;
+    var vers = bon.course.arriveePublic || bon.course.arrivee;
+    if((bon.langue || "fr") === "en"){
+      return [
+        (prenom ? "Hello " + prenom + ", " : "Hello, ")
+          + "Elatransfer has received your request " + bon.ref + ".",
+        de + " → " + vers,
+        quand,
+        "We are checking a professional driver's availability and will come "
+          + "back to you shortly. Your booking becomes firm as soon as we confirm."
+      ].join("\n");
+    }
+    return [
+      (prenom ? "Bonjour " + prenom + ", " : "Bonjour, ")
+        + "Elatransfer a bien reçu votre demande " + bon.ref + ".",
+      de + " → " + vers,
+      quand,
+      "Nous vérifions la disponibilité d'un chauffeur professionnel et vous "
+        + "répondons très vite. Votre réservation sera ferme dès notre confirmation."
+    ].join("\n");
+  }
+  document.getElementById("btnAccuserReception").addEventListener("click", function(){
+    if(!bonBord) return;
+    var tel = telWa(bonBord.client && bonBord.client.telephone);
+    if(!tel) return;
+    window.open("https://wa.me/" + tel + "?text="
+                + encodeURIComponent(messageAccuse(bonBord)), "_blank");
+    /* On garde la trace : sur une liste de dix demandes reçues la nuit, on
+       ne se souvient pas de qui a déjà eu un mot. */
+    majCourse(bonBord.ref, bonBord.statut || "attente",
+              { accuse: new Date().toISOString() });
+    this.textContent = "Accusé de réception envoyé";
+  });
   document.getElementById("btnPrevenirClient").addEventListener("click", function(){
     if(!bonBord) return;
     var tel = telWa(bonBord.client && bonBord.client.telephone);
@@ -5875,14 +6017,26 @@ window.ELA_TEXTES = {
      mois. On annonce ce qui arrive PENDANT qu'il regarde, pas ce qu'il
      vient de rapatrier. */
   var premiereLecture = true;
+  /* Ce que le serveur a répondu la dernière fois. Vide = tout va bien ;
+     rempli = on le DIT en haut du tableau de bord. */
+  var panneServeur = "";
   function synchroniser(){
     return nuage.lister().then(function(distantes){
       if(!distantes) return null;
+      panneServeur = "";
+      jugerReception();
       var n = fusionner(distantes);
       dessinerBord();
       if(n && !premiereLecture) annoncerArrivee(n);
       premiereLecture = false;
       return n;
+    }).catch(function(e){
+      /* UNE LECTURE QUI ÉCHOUE DOIT SE VOIR. Sans ça, Barbaros a une
+         pastille verte, une liste vide, et aucune idée que ses clients
+         écrivent dans le vide. */
+      panneServeur = String((e && e.message) || e);
+      jugerNuage();
+      return null;
     });
   }
 
@@ -5962,7 +6116,26 @@ window.ELA_TEXTES = {
      bord, pas seulement en petit dans le bloc du serveur. */
   function jugerReception(){
     var el = document.getElementById("bordHorsLigne");
-    if(el) el.hidden = nuage.connecte();
+    var txt = document.getElementById("bordHorsLigneTexte");
+    if(el){
+      /* TROIS SITUATIONS, TROIS PHRASES, parce qu'elles appellent trois
+         gestes différents — et parce que « ça ne marche pas » ne dit pas
+         quoi faire. Le pire cas est le deuxième : la session a expiré, tout
+         paraissait normal, et les demandes tombaient dans le vide. */
+      var connecte = nuage.connecte();
+      el.hidden = connecte && !panneServeur;
+      if(txt){
+        txt.textContent = !connecte
+          ? (panneServeur
+              ? "Votre session a expiré. Reconnectez-vous : sans elle, les "
+                + "demandes de vos clients n'arrivent plus ici."
+              : "Vous ne recevez pas les demandes de vos clients sur cet "
+                + "appareil : vous ne voyez que les courses saisies ici.")
+          : "Le serveur n'a pas répondu (" + panneServeur + "). Les demandes "
+            + "de vos clients n'arrivent pas pour l'instant — réessayez avec "
+            + "« Actualiser ».";
+      }
+    }
     reglerEcoute();
   }
   document.getElementById("btnNuageConnexion").addEventListener("click", function(){
