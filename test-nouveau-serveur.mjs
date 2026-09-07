@@ -137,6 +137,101 @@ check('le message de secours garde sa forme lisible par l\'exploitant',
   && msg.includes('Paiement : '), msg.split('\n').length+' lignes');
 await ctx.close();
 
+/* =====================================================================
+   LES DEMANDES ARRIVENT DANS LE TABLEAU DE BORD PENDANT QU'IL REGARDE
+   ---------------------------------------------------------------------
+   Le dépôt seul ne suffit pas : jusqu'ici la demande n'apparaissait qu'à
+   l'OUVERTURE de l'espace ou sur « Actualiser ». Un onglet laissé ouvert
+   la nuit — c'est-à-dire la façon dont on travaille — ne montrait plus
+   rien.
+   SANS SESSION, RIEN N'ARRIVE, et il faut que ça se voie : le serveur
+   refuse la lecture aux visiteurs anonymes, et il DOIT la refuser — une
+   lecture ouverte exposerait les noms, téléphones et adresses de tous les
+   clients. Le premier contrôle porte donc sur l'écriteau qui le dit.
+   ===================================================================== */
+function courseServeur(ref, nom){
+  return { ref, statut:"attente", cree:new Date().toISOString(),
+    course:{ depart:"Place Vendôme, 75001 Paris", arrivee:"Argenteuil, 95100 Argenteuil",
+             date:"2026-09-20", heure:"10:00", vehicule:"Berline", vehiculeCle:"berline",
+             passagers:"2 passagers · 1 bagage", vol:"" },
+    client:{ nom, telephone:"06 12 34 56 78" },
+    prix:{ total:70, ht:63.64, tva:6.36 } };
+}
+
+async function espace(session){
+  const c = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
+  await c.addInitScript((s)=>{
+    if(s) localStorage.setItem('ela_nuage_session', JSON.stringify(s));
+  }, session);
+  const pg = await c.newPage();
+  pg.on('pageerror',e=>errs.push(e.message));
+  return { c, pg };
+}
+
+// ---- Sans session : on le DIT, on ne laisse pas croire que tout arrive ----
+{
+  const { c, pg } = await espace(null);
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(500);
+  check('sans session, on dit que les demandes des clients n\'arrivent pas ici',
+    await pg.locator('#bordHorsLigne').isVisible());
+  check('et la pastille de la colonne le dit aussi',
+    (await pg.locator('#adminEtatTexte').textContent()).includes('appareil'),
+    await pg.locator('#adminEtatTexte').textContent());
+  await c.close();
+}
+
+// ---- Avec session : une demande déposée pendant qu'il regarde arrive ----
+{
+  let liste = [courseServeur('ELA-26-09-0100','Jean Martin')];
+  const { c, pg } = await espace({ access_token:'faux-jeton', token_type:'bearer' });
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
+    const u = route.request().url();
+    if(route.request().method()==='GET' && u.includes('select=bon'))
+      await route.fulfill({contentType:'application/json',
+        body: JSON.stringify(liste.map(x=>({bon:x})))});
+    else await route.fulfill({status:201, body:''});
+  });
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(900);
+  check('avec une session, l\'écriteau « vous ne recevez pas » disparaît',
+    await pg.locator('#bordHorsLigne').isHidden());
+  check('la course déjà sur le serveur est là',
+    (await pg.locator('.demande').count())===1,
+    String(await pg.locator('.demande').count()));
+  /* LA PREMIÈRE LECTURE NE SONNE PAS : sur un téléphone neuf, tout ce que
+     le serveur contient serait « nouveau » et ferait sonner cinquante
+     courses vieilles de trois mois. */
+  check('mais elle n\'est pas annoncée comme une arrivée : c\'est un rattrapage',
+    await pg.locator('#bordArrivee').isHidden());
+
+  // Un client réserve maintenant. Le retour sur l'onglet rattrape tout de suite.
+  liste = [courseServeur('ELA-26-09-0101','Sophie Girard'), ...liste];
+  await pg.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await pg.waitForTimeout(900);
+  check('une demande arrivée pendant qu\'il regarde entre dans la liste',
+    (await pg.locator('.demande').count())===2,
+    String(await pg.locator('.demande').count()));
+  check('et elle est ANNONCÉE — une ligne qui apparaît en silence ne se voit pas',
+    await pg.locator('#bordArrivee').isVisible()
+    && (await pg.locator('#bordArrivee').textContent()).includes('nouvelle demande'),
+    (await pg.locator('#bordArrivee').textContent()).trim());
+  check('elle est enregistrée sur l\'appareil, pas seulement affichée',
+    (await pg.evaluate(()=>JSON.parse(localStorage.getItem('ela_bookings')||'[]')
+      .some(x=>x.ref==='ELA-26-09-0101'))));
+  /* L'écriteau EMMÈNE aux demandes en attente : il ne sert à rien s'il faut
+     ensuite les chercher. */
+  await pg.locator('#bordArrivee').click(); await pg.waitForTimeout(300);
+  check('l\'écriteau emmène aux demandes en attente et se retire',
+    await pg.locator('#bordArrivee').isHidden()
+    && (await pg.locator('.compteur[data-filtre="attente"]').getAttribute('class')).includes('actif'));
+  await c.close();
+}
+
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}

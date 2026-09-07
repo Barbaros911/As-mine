@@ -1522,6 +1522,88 @@ avait raison : rien ne disait ce qu'il fallait regarder en premier.
 - `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
   identifiants sont inchangés**, six suites les cliquent.
 
+## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
+
+Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
+écrit : « C'est pas grave invente comme les note et commentaire même faux
+sur la page public ». **Refusé, et c'est le seul point où on ne le suit
+pas.** Ce n'est pas de la prudence : publier des avis qu'on n'a pas reçus
+est une pratique commerciale trompeuse (L132-2 Code conso. — deux ans,
+300 000 €, portés à 10 % du chiffre d'affaires), et c'est **lui** qui est
+en première ligne, pas le site. Un concurrent n'a qu'un signalement à
+faire, et Google déréférence les pages d'avis fabriqués.
+**Ne pas rouvrir le sujet en croyant lui rendre service.**
+
+Ce qui a été fait à la place — la seule voie honnête, et elle marche :
+
+- **Un bouton « Demander un avis » sur chaque course RÉALISÉE** de la
+  liste du tableau de bord. Un appui, WhatsApp s'ouvre sur le numéro du
+  client avec un message de trois lignes.
+- **Sur les réalisées seulement.** On ne demande pas à quelqu'un ce qu'il
+  a pensé d'un trajet qu'il n'a pas encore fait.
+- **Le lien d'avis vit dans `localStorage` (`ela_lien_avis`), pas dans le
+  code.** C'est le sien, il peut le changer, et un identifiant de son
+  compte Google n'a rien à faire dans un dépôt public. Bloc « Demander des
+  avis » dans l'espace exploitant.
+- **Sans lien, RIEN NE PART.** Le message se terminerait dans le vide : on
+  emmène au champ et on le dit. Un contrôle vérifie qu'aucun WhatsApp ne
+  s'ouvre dans ce cas.
+- **La course garde `avisDemande`** et le bouton passe à « Avis demandé ».
+  Relancer un client qui a déjà répondu est la meilleure façon d'obtenir
+  un mauvais avis. Il reste cliquable — un client peut dire « oui oui » et
+  oublier.
+- **LE BON PORTE MAINTENANT `langue`.** La demande part des jours après la
+  course : écrire en français à quelqu'un qui a réservé en anglais, c'est
+  un message qu'il ne lira pas. Une course ancienne sans ce champ retombe
+  sur le français.
+- Le bouton est **en creux** (contour seul) : une course réalisée n'attend
+  plus personne, un second bouton plein y ferait deux actions qui crient.
+- **`.d-avis.fait`, pas `.d-avis.demande`** : `.demande` est déjà la classe
+  de la LIGNE entière, et la poser sur un bouton lui collerait la mise en
+  page d'une carte.
+
+## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
+
+Septembre 2026, à sa demande : « fait en sorte que je reçois la commande
+aussi sur la page admin ». Le dépôt sur le serveur existait déjà ; ce qui
+manquait, c'est que la demande **apparaisse pendant qu'il regarde**. Elle
+n'arrivait qu'à l'OUVERTURE de l'espace ou sur « Actualiser » — or un
+onglet laissé ouvert la nuit, c'est exactement la façon dont il travaille.
+
+- **On interroge toutes les 45 s, on n'« écoute » pas.** Une vraie liaison
+  permanente (realtime) demanderait une bibliothèque, un abonnement à
+  tenir et une reconnexion à écrire. 45 s suffisent pour une course qui
+  part dans une heure, et un appel raté est simplement suivi du suivant.
+- **On n'interroge JAMAIS dans le vide** : ni sans session — le serveur
+  refuse la lecture aux anonymes, et il DOIT la refuser — ni onglet en
+  arrière-plan, ni hors de l'espace de travail. Sinon c'est de la batterie
+  brûlée sur son téléphone. `ecouteUtile()` est le seul juge.
+- **Le retour sur l'onglet rattrape tout de suite**, sans attendre le tour
+  suivant : c'est le moment où il regarde.
+- **LA PREMIÈRE LECTURE NE SONNE PAS.** À l'ouverture, tout ce que le
+  serveur contient et que l'appareil n'a pas est « nouveau » : un téléphone
+  neuf ferait sonner cinquante courses vieilles de trois mois. Le drapeau
+  `premiereLecture` distingue le rattrapage de l'arrivée.
+- **Écriteau + bip.** Une ligne qui apparaît en silence au milieu d'une
+  liste ne se remarque pas. Le son passe par un oscillateur — aucun fichier
+  à charger — et il est **enveloppé** : un navigateur qui refuse l'audio ne
+  doit pas faire tomber la synchronisation avec lui.
+- **L'écriteau EMMÈNE aux demandes en attente et se retire** du même geste.
+  Il ne sert à rien s'il faut ensuite les chercher.
+- **SANS SESSION, RIEN N'ARRIVE, et ça se voit en haut du tableau de
+  bord** (`#bordHorsLigne`), pas seulement en petit dans le bloc du
+  serveur. C'est la différence entre voir ses clients et ne pas les voir —
+  le genre de chose qu'on ne découvre qu'en ratant une course.
+- `jugerNuage()` appelle `jugerReception()` : l'état du serveur décide de
+  ce qu'on affiche **et** de si l'on interroge. Les séparer, c'est se
+  retrouver un jour avec une pastille verte et aucune écoute.
+
+**PIÈGE DE TEST, PAS DE CODE** : `ctx.addInitScript` qui pose
+`ela_bookings` **se rejoue à CHAQUE chargement de page**. Dans la suite
+exploitant, le `goto` de la ré-entrée remettait le registre à son état
+initial — les contrôles sur une course réalisée tombaient après ce point
+sans que rien ne soit cassé. Les placer **avant** la sortie.
+
 ## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
 
 Septembre 2026, vu par Barbaros : « il faut recentrer ces trois choix ».
@@ -1795,7 +1877,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-neuf suites Playwright, 521 contrôles**, à relancer après **toute**
+**Dix-neuf suites Playwright, 539 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

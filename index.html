@@ -426,6 +426,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-appeler{background:rgba(255,255,255,.16);color:#fff;}
 .demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
 .d-clore{background:#1F6F6B;color:#fff;}
+/* La demande d'avis n'est PAS l'action principale d'une course réalisée :
+   elle est en creux, contour seul. Un second bouton plein ferait deux
+   actions qui crient sur une ligne qui n'attend plus personne. */
+.d-avis{background:transparent;color:var(--accent-encre);
+  box-shadow:inset 0 0 0 1.5px var(--accent);}
+.d-avis.fait{color:var(--gris);box-shadow:inset 0 0 0 1.5px var(--filet);}
 .bouton.vert{background:#1F6F6B;color:#fff;}
 .bouton.vert svg path{stroke:#fff;}
 #nuageActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
@@ -788,6 +794,20 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .admin-lien.actif{background:var(--accent);border-color:var(--accent);color:#fff;}
 .admin-aide{display:none;}
 
+/* ---------- CE QUI ARRIVE, ET CE QUI N'ARRIVE PAS ---------- */
+/* L'accent, pas le rouge : une demande qui vient d'arriver est une bonne
+   nouvelle, et le rouge du tableau de bord ne veut dire qu'une chose —
+   quelqu'un attend une réponse depuis un moment. La ligne rouge de la
+   liste prend le relais toute seule. */
+.arrivee-avis{display:block;width:calc(100% - 40px);margin:14px 20px 0;
+  padding:12px 14px;border:0;border-radius:13px;background:var(--accent);
+  color:#fff;font:inherit;font-size:13px;font-weight:700;text-align:left;
+  cursor:pointer;}
+.hors-ligne{margin:14px 20px 0;padding:13px 14px;border-radius:13px;
+  background:#fbe9e9;border:1px solid #f0cfcf;}
+.hors-ligne p{margin:0;font-size:12.5px;line-height:1.45;color:#8f2220;}
+.hors-ligne .bouton-fantome{margin-top:10px;min-height:40px;font-size:12.5px;}
+
 /* ---------- LE BANDEAU DU HAUT ---------- */
 .admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
   gap:14px;margin:18px 20px 0;}
@@ -1111,6 +1131,12 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
           <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 3h3v3h-3v-3Z"
                 stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
         </svg>Affiche hôtel</button>
+      <button class="admin-lien" type="button" data-admin-vers="blocAvis">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m12 4.4 2.36 4.78 5.28.77-3.82 3.72.9 5.25L12 16.44l-4.72 2.48.9-5.25
+                   L4.36 9.95l5.28-.77L12 4.4Z" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round"/>
+        </svg>Avis</button>
       <button class="admin-lien" type="button" data-admin-vers="blocNuage">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M7 18a4 4 0 0 1-.4-7.98A5 5 0 0 1 16.5 9.2 3.9 3.9 0 0 1 17 18H7Z"
@@ -1889,6 +1915,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <div class="admin-date" id="adminDate"></div>
     </div>
 
+    <!-- CE QUI ARRIVE PENDANT QU'IL REGARDE L'ÉCRAN.
+         L'écriteau ne s'affiche que sur une demande RÉELLEMENT nouvelle :
+         un bandeau permanent « tout va bien » ne se lit plus au bout de
+         deux jours, et c'est celui-là qu'on ne verrait pas le jour où il
+         dit quelque chose. -->
+    <button class="arrivee-avis" type="button" id="bordArrivee" hidden></button>
+    <!-- SANS SESSION, AUCUNE DEMANDE N'ARRIVE ICI. On ne le dit pas en
+         petit dans le bloc du serveur, tout en bas : c'est la différence
+         entre voir ses clients et ne pas les voir. -->
+    <div class="hors-ligne" id="bordHorsLigne" hidden>
+      <p>Vous ne recevez pas les demandes de vos clients sur cet appareil :
+         vous ne voyez que les courses saisies ici.</p>
+      <button class="bouton-fantome" type="button" data-admin-vers="blocNuage">
+        Se connecter au serveur
+      </button>
+    </div>
+
     <!-- LES QUATRE CHIFFRES DU HAUT.
          Ils ne racontent pas la même chose que les trois compteurs plus bas :
          les compteurs FILTRENT la liste, ceux-ci se lisent et rien de plus.
@@ -2087,6 +2130,30 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
         <p class="bloc-note" id="afficheLien"></p>
         <button class="bouton" type="button" id="btnImprimer"><span>Imprimer l'affiche</span></button>
       </div>
+    </div>
+
+    <!-- DEMANDER DES AVIS, PLUTÔT QUE D'EN INVENTER.
+         Le lien vit ici et pas dans le code : c'est le sien, il peut le
+         changer, et il n'y a aucune raison qu'un mot de son compte Google
+         parte dans un dépôt public. -->
+    <div class="bloc" id="blocAvis">
+      <h2 class="bloc-titre">Demander des avis</h2>
+      <label class="champ" for="lienAvis">
+        <span class="champ-corps">
+          <span class="champ-titre">Votre lien d'avis</span>
+          <input id="lienAvis" type="url" inputmode="url" autocomplete="off"
+                 placeholder="https://g.page/r/…/review">
+        </span>
+      </label>
+      <p class="bloc-note" id="avisAide">
+        Fiche Google de votre entreprise → « Demander des avis » → copiez le
+        lien ici. Un bouton « Demander un avis » apparaît alors sur chaque
+        course réalisée : un appui, le message part au client sur WhatsApp.
+      </p>
+      <p class="bloc-note" id="avisEtat" hidden style="color:#C9302F">
+        Collez d'abord votre lien d'avis : sans lui, le message se
+        terminerait dans le vide.
+      </p>
     </div>
 
     <!-- LE SERVEUR EST CE QUI REND LE TABLEAU DE BORD UTILE SUR N'IMPORTE
@@ -4390,6 +4457,13 @@ window.ELA_TEXTES = {
         estimee: course.estime
       },
       client: { nom: nom, telephone: tel },
+      /* LA LANGUE DU CLIENT EST GARDÉE SUR LA COURSE. Elle ne sert à rien
+         pendant la réservation — la page est déjà dans sa langue — mais
+         elle sert APRÈS : la demande d'avis part des jours plus tard, et
+         écrire en français à quelqu'un qui a réservé en anglais, c'est un
+         message qu'il ne lira pas. Une course ancienne sans ce champ
+         retombe sur le français. */
+      langue: LANGUE,
       /* D'OÙ VIENT CE CLIENT : l'hôtel dont il a scanné l'affiche, s'il en a
          scanné une. C'est ce qui dit quelle affiche travaille et laquelle
          dort. Absent pour un client venu directement — et un champ vide se
@@ -4683,6 +4757,61 @@ window.ELA_TEXTES = {
     }).then(function(){ return true; }).catch(function(){ return false; });
   };
 
+/* =====================================================================
+   DEMANDER UN AVIS — LE SEUL MOYEN HONNÊTE D'EN AVOIR
+   ---------------------------------------------------------------------
+   ON N'INVENTE JAMAIS UN AVIS. Publier des avis qu'on n'a pas reçus est
+   une pratique commerciale trompeuse (L132-2 Code de la consommation :
+   deux ans, 300 000 €, portés à 10 % du chiffre d'affaires), et c'est
+   l'exploitant qui est en première ligne, pas le site. La seule voie est
+   de DEMANDER, à des clients réels, après une course réelle.
+   LE MOMENT COMPTE PLUS QUE LE TEXTE. On demande quand la course est
+   close — le client vient de descendre de voiture, il se souvient du
+   chauffeur. Trois jours plus tard il ne répond plus.
+   ON NE DEMANDE PAS DEUX FOIS SANS LE SAVOIR : la course garde
+   « avisDemande », et le bouton le dit. Relancer un client qui a déjà
+   laissé son avis est la meilleure façon d'en obtenir un mauvais.
+   ===================================================================== */
+  var CLE_LIEN_AVIS = "ela_lien_avis";
+  function lienAvis(){
+    try{ return (localStorage.getItem(CLE_LIEN_AVIS) || "").trim(); }
+    catch(e){ return ""; }
+  }
+  /* Le message est COURT et il se lit sur un écran verrouillé : le nom de
+     l'entreprise, la raison, le lien. Un paragraphe de remerciements
+     s'ouvre, se lit en diagonale et se ferme sans qu'on ait cliqué. */
+  function messageAvis(c){
+    var prenom = ((c.client && c.client.nom) || "").trim().split(/\s+/)[0];
+    var lien = lienAvis();
+    if((c.langue || "fr") === "en"){
+      return (prenom ? "Hello " + prenom + ", " : "Hello, ")
+        + "thank you for travelling with Elatransfer.\n"
+        + "If everything went well, a short review would help us a lot:\n"
+        + lien;
+    }
+    return (prenom ? "Bonjour " + prenom + ", " : "Bonjour, ")
+      + "merci d'avoir voyagé avec Elatransfer.\n"
+      + "Si tout s'est bien passé, un avis nous aiderait beaucoup :\n"
+      + lien;
+  }
+  /* Sans lien, le message ne sert à rien : on emmène l'exploitant au champ
+     plutôt que d'envoyer une phrase qui se termine dans le vide. */
+  function demanderAvis(c){
+    if(!lienAvis()){
+      var bloc = document.getElementById("blocAvis");
+      ecran("ecran-bord");
+      bloc.scrollIntoView({ behavior:"smooth", block:"center" });
+      document.getElementById("lienAvis").focus();
+      document.getElementById("avisEtat").hidden = false;
+      return;
+    }
+    var tel = telWa(c.client && c.client.telephone);
+    if(!tel) return;
+    window.open("https://wa.me/" + tel + "?text="
+                + encodeURIComponent(messageAvis(c)), "_blank");
+    majCourse(c.ref, c.statut, { avisDemande: new Date().toISOString() });
+  }
+
   /* ---- Le tableau de bord ---- */
   var filtreBord = "attente";
   function minutesDepuis(iso){
@@ -4769,6 +4898,24 @@ window.ELA_TEXTES = {
           majCourse(c.ref, "realisee");
         });
         boutons.appendChild(clore);
+      }
+      /* DEMANDER L'AVIS UNE FOIS LA COURSE FAITE, et pas avant : on ne
+         demande pas à quelqu'un ce qu'il a pensé d'un trajet qu'il n'a pas
+         encore fait. Le bouton reste cliquable après coup — un client peut
+         répondre « oui oui » et oublier — mais il DIT qu'on a déjà demandé. */
+      if(st === "realisee" && tel){
+        var avis = document.createElement("button");
+        avis.type = "button";
+        /* « fait » et non « demande » : « .demande » est déjà la classe de
+           la LIGNE entière, et la poser sur un bouton lui collerait la mise
+           en page d'une carte de 40 px de haut. */
+        avis.className = "d-action d-avis" + (c.avisDemande ? " fait" : "");
+        avis.textContent = c.avisDemande ? "Avis demandé" : "Demander un avis";
+        avis.addEventListener("click", function(e){
+          e.stopPropagation();
+          demanderAvis(c);
+        });
+        boutons.appendChild(avis);
       }
       if(tel){
         var appel = document.createElement("a");
@@ -5307,6 +5454,14 @@ window.ELA_TEXTES = {
   document.querySelectorAll(".compteur").forEach(function(b){
     b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
   });
+  /* L'écriteau d'arrivée EMMÈNE aux demandes en attente : c'est là qu'elles
+     sont, et l'écriteau ne sert à rien s'il faut ensuite chercher. Il se
+     retire du même geste — il a dit ce qu'il avait à dire. */
+  document.getElementById("bordArrivee").addEventListener("click", function(){
+    this.hidden = true;
+    filtreBord = "attente";
+    dessinerBord();
+  });
 
   /* ---- Le serveur, côté exploitant ---- */
   function jugerNuage(){
@@ -5322,14 +5477,106 @@ window.ELA_TEXTES = {
     document.getElementById("adminEtat").classList.toggle("ok", connecte);
     document.getElementById("adminEtatTexte").textContent =
       connecte ? "Serveur connecté" : "Cet appareil seul";
+    /* L'état du serveur décide de DEUX choses à la fois : ce qu'on affiche
+       et si l'on interroge. Les séparer, c'est se retrouver un jour avec une
+       pastille verte et aucune écoute. */
+    jugerReception();
   }
+  /* LA PREMIÈRE LECTURE NE SONNE PAS. À l'ouverture de l'espace, tout ce
+     que le serveur contient et que cet appareil n'a pas est « nouveau » :
+     un téléphone neuf ferait sonner cinquante courses vieilles de trois
+     mois. On annonce ce qui arrive PENDANT qu'il regarde, pas ce qu'il
+     vient de rapatrier. */
+  var premiereLecture = true;
   function synchroniser(){
     return nuage.lister().then(function(distantes){
       if(!distantes) return null;
       var n = fusionner(distantes);
       dessinerBord();
+      if(n && !premiereLecture) annoncerArrivee(n);
+      premiereLecture = false;
       return n;
     });
+  }
+
+/* =====================================================================
+   LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
+   ---------------------------------------------------------------------
+   Le client appuie sur « Confirmer », la demande est déposée sur le
+   serveur. Jusqu'ici elle n'apparaissait ici qu'à l'OUVERTURE de l'espace
+   ou sur « Actualiser » : une page laissée ouverte la nuit ne montrait
+   plus rien, et c'est exactement comme ça qu'on travaille — l'onglet
+   reste ouvert.
+   ON INTERROGE, ON N'ÉCOUTE PAS. Une vraie liaison permanente
+   (« realtime ») demanderait une bibliothèque, un abonnement à tenir et
+   une reconnexion à écrire ; quarante-cinq secondes suffisent largement
+   pour une course qui part dans une heure, et un appel qui échoue est
+   simplement suivi du suivant.
+   ON N'INTERROGE PAS DANS LE VIDE : ni sans session — le serveur refuse
+   la lecture aux anonymes, et il DOIT la refuser — ni onglet en
+   arrière-plan, ni hors de l'espace de travail. Sinon c'est de la
+   batterie brûlée pour rien sur son téléphone.
+   ===================================================================== */
+  var PAS_ECOUTE_MS = 45000;
+  var minuterieEcoute = null;
+
+  function espaceOuvert(){
+    return document.body.classList.contains("espace");
+  }
+  function ecouteUtile(){
+    return nuage.connecte() && espaceOuvert() && !document.hidden;
+  }
+  function reglerEcoute(){
+    if(minuterieEcoute){ clearInterval(minuterieEcoute); minuterieEcoute = null; }
+    if(!ecouteUtile()) return;
+    minuterieEcoute = setInterval(function(){
+      if(ecouteUtile()) synchroniser();
+      else reglerEcoute();
+    }, PAS_ECOUTE_MS);
+  }
+  /* Au retour sur l'onglet on rattrape TOUT DE SUITE, sans attendre le
+     prochain tour : c'est le moment où il regarde. */
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden && ecouteUtile()) synchroniser();
+    reglerEcoute();
+  });
+
+  /* CE QUI SE VOIT ET CE QUI S'ENTEND. Une ligne qui apparaît en silence
+     au milieu d'une liste ne se remarque pas : l'écriteau reste jusqu'à ce
+     qu'on touche quelque chose, et le bip fait lever la tête. Le son passe
+     par un oscillateur — aucun fichier à charger, donc rien à attendre —
+     et il est enveloppé : un navigateur qui refuse l'audio ne doit pas
+     faire tomber la synchronisation avec lui. */
+  function bip(){
+    try{
+      var C = window.AudioContext || window.webkitAudioContext;
+      if(!C) return;
+      var ctx = new C();
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + 0.36);
+      o.onended = function(){ try{ ctx.close(); }catch(e){} };
+    }catch(e){ /* audio refusé : l'écriteau suffit */ }
+  }
+  function annoncerArrivee(n){
+    var el = document.getElementById("bordArrivee");
+    if(!el) return;
+    el.textContent = n > 1 ? n + " nouvelles demandes viennent d'arriver."
+                           : "Une nouvelle demande vient d'arriver.";
+    el.hidden = false;
+    bip();
+  }
+  /* SANS SESSION, RIEN N'ARRIVE — et c'est le genre de chose qu'on ne
+     découvre qu'en ratant une course. On le dit en haut du tableau de
+     bord, pas seulement en petit dans le bloc du serveur. */
+  function jugerReception(){
+    var el = document.getElementById("bordHorsLigne");
+    if(el) el.hidden = nuage.connecte();
+    reglerEcoute();
   }
   document.getElementById("btnNuageConnexion").addEventListener("click", function(){
     var b = this, lib = b.querySelector("span"), avant = lib.textContent;
@@ -5343,6 +5590,19 @@ window.ELA_TEXTES = {
     });
   });
   document.getElementById("btnNuageSync").addEventListener("click", synchroniser);
+
+  /* ---- Le lien d'avis ---- */
+  (function(){
+    var champ = document.getElementById("lienAvis");
+    try{ champ.value = lienAvis(); }catch(e){}
+    champ.addEventListener("input", function(){
+      try{ localStorage.setItem(CLE_LIEN_AVIS, champ.value.trim()); }catch(e){}
+      /* L'avertissement disparaît dès qu'il y a quelque chose à envoyer :
+         le laisser sous un champ rempli ferait douter de ce qui est
+         enregistré. */
+      if(champ.value.trim()) document.getElementById("avisEtat").hidden = true;
+    });
+  })();
   document.getElementById("btnNuageDeco").addEventListener("click", function(){
     nuage.deconnexion(); jugerNuage();
   });
