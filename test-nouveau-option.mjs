@@ -67,7 +67,7 @@ async function ouvrir(photon){
   await p.waitForTimeout(500);
   return {p, ctx};
 }
-async function jusquAuRecap(p, motDepart){
+async function jusquAuxPrix(p, motDepart){
   await p.type('#depart', motDepart, {delay:12}); await p.waitForTimeout(850);
   await p.locator('#departList [role=option]').first().click();
   await p.type('#arrivee','argenteuil',{delay:12}); await p.waitForTimeout(850);
@@ -77,35 +77,63 @@ async function jusquAuRecap(p, motDepart){
   await p.fill('#date', d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate()));
   await p.fill('#heure','10:00');
   await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1100);
+}
+async function jusquAuRecap(p, motDepart){
+  await jusquAuxPrix(p, motDepart);
   await p.locator('.veh-carte').first().click();
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(350);
 }
 const nombre = t => Number(String(t).replace(/[^\d,.-]/g,'').replace(',','.'));
+/* Les deux endroits où l'option vit. Elle se CHOISIT sous la liste des
+   véhicules — là où l'on décide de ce qu'on achète — et se retrouve sur le
+   récapitulatif, là où le client tape son nom et le voit s'écrire sur la
+   pancarte. Un seul état, deux commandes. */
+const VEH   = '.veh-option';
+const RECAP = '#ecran-recap .bloc-pancarte';
 
 /* --- AU DÉPART D'UNE GARE : tout le cycle ----------------------------- */
 {
   const {p, ctx} = await ouvrir(GARE);
-  await jusquAuRecap(p, 'gare de lyon');
-  check('au départ d\'une gare, l\'option est proposée',
-    !(await p.locator('#blocPancarte').isHidden()));
+  await jusquAuxPrix(p, 'gare de lyon');
+  check('l\'option est proposée SOUS la sélection du véhicule',
+    !(await p.locator(VEH).isHidden()));
+  /* Elle doit être APRÈS la liste : au-dessus, elle se vendrait avant que
+     le client sache ce qu'il achète. */
+  const ordre = await p.evaluate(()=>{
+    const l = document.getElementById("listeVehicules").getBoundingClientRect();
+    const o = document.querySelector(".veh-option").getBoundingClientRect();
+    return { liste:Math.round(l.bottom), option:Math.round(o.top) };
+  });
+  check('elle est bien EN DESSOUS de la liste, pas au-dessus',
+    ordre.option >= ordre.liste, 'liste finit à '+ordre.liste+', option commence à '+ordre.option);
+  await p.locator('.veh-carte').first().click();
+  await p.locator('#btnContinuer').click(); await p.waitForTimeout(350);
+  check('on la retrouve sur le récapitulatif',
+    !(await p.locator(RECAP).isHidden()));
   check('elle est ÉTEINTE à l\'ouverture',
-    (await p.locator('#btnPancarte').getAttribute('aria-pressed'))==='false');
+    (await p.locator(RECAP+' .opt-pancarte').getAttribute('aria-pressed'))==='false'
+    && (await p.locator(VEH+' .opt-pancarte').getAttribute('aria-pressed'))==='false');
   check('l\'aperçu de la pancarte n\'est pas encore montré',
     await p.locator('#apercuPancarte').isHidden());
   check('la phrase parle de la sortie des trains, pas d\'un terminal',
-    /sortie des trains/i.test(await p.locator('#pancarteSous').innerText()),
-    await p.locator('#pancarteSous').innerText());
+    /sortie des trains/i.test(await p.locator(RECAP+' .opt-sous').innerText()),
+    await p.locator(RECAP+' .opt-sous').innerText());
   check('le prix de l\'option est affiché avant tout choix',
-    nombre(await p.locator('#pancartePrix').innerText())===10,
-    await p.locator('#pancartePrix').innerText());
+    nombre(await p.locator(RECAP+' .opt-prix').innerText())===10,
+    await p.locator(RECAP+' .opt-prix').innerText());
   const sans = nombre(await p.locator('#recapTotal').innerText());
   check('sans l\'option, le total est celui de la course', sans===70, String(sans));
   check('et aucune ligne d\'option n\'encombre le récapitulatif',
     await p.locator('#ligneOption').isHidden());
 
-  await p.locator('#btnPancarte').click(); await p.waitForTimeout(250);
+  await p.locator(RECAP+' .opt-pancarte').click(); await p.waitForTimeout(250);
   const avec = nombre(await p.locator('#recapTotal').innerText());
   check('l\'option ajoute EXACTEMENT 10 €', avec - sans === 10, sans+' → '+avec);
+  /* Un seul état pour deux commandes : le bouton de l'écran des prix a
+     suivi celui du récapitulatif, sans qu'on y touche. */
+  check('les deux boutons disent la même chose',
+    (await p.locator(VEH+' .opt-pancarte').getAttribute('aria-pressed'))==='true',
+    await p.locator(VEH+' .opt-pancarte').getAttribute('aria-pressed'));
   check('l\'aperçu apparaît une fois l\'option prise',
     !(await p.locator('#apercuPancarte').isHidden()));
   check('la ligne d\'option s\'affiche, à son prix',
@@ -156,7 +184,7 @@ const nombre = t => Number(String(t).replace(/[^\d,.-]/g,'').replace(',','.'));
 {
   const {p, ctx} = await ouvrir(GARE);
   await jusquAuRecap(p, 'gare de lyon');
-  await p.locator('#btnPancarte').click(); await p.waitForTimeout(250);
+  await p.locator(RECAP+' .opt-pancarte').click(); await p.waitForTimeout(250);
   const avec = nombre(await p.locator('#recapTotal').innerText());
   /* Photon ne rend plus de gare : le nouveau départ est une adresse
      ordinaire, servie par la Base Adresse Nationale. */
@@ -171,7 +199,7 @@ const nombre = t => Number(String(t).replace(/[^\d,.-]/g,'').replace(',','.'));
   await p.locator('.veh-carte').first().click();
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(350);
   check('sur une adresse ordinaire, l\'option disparaît',
-    await p.locator('#blocPancarte').isHidden());
+    await p.locator(RECAP).isHidden() && await p.locator(VEH).isHidden());
   const apres = nombre(await p.locator('#recapTotal').innerText());
   check('et ses 10 € avec elle', avec - apres === 10, avec+' → '+apres);
   await ctx.close();

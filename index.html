@@ -605,6 +605,11 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .option-prix{flex:none;margin-top:1px;font-size:14px;font-weight:800;
   color:var(--accent-encre);}
 #apercuPancarte{margin-top:13px;}
+/* L'option vit sous la liste des véhicules, pas dans une carte : l'écran des
+   prix n'est pas fait de blocs blancs comme le récapitulatif, il est fait
+   d'une liste. On garde donc la marge de la liste et rien d'autre. */
+.veh-option{margin:14px 16px 0;}
+.veh-option .bloc-note{margin:9px 2px 0;}
 /* Le message d'absence de choix reprend l'encadré rouge des refus : c'est le
    vocabulaire du site pour « il manque quelque chose ». En gris il se lisait
    comme une note de bas de bloc — vu à l'écran, on ne le remarquait pas. */
@@ -1318,6 +1323,35 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
     <!-- Le prix est ferme : on le dit là où le client le lit, pas dans les
          CGV. La majoration nuit et week-end apparaît seulement quand elle
          s'applique — une mention permanente finit par ne plus être lue. -->
+    <!-- L'OPTION EST SOUS LA SÉLECTION DU VÉHICULE, à sa demande : c'est
+         l'écran où l'on choisit ce qu'on achète, et une option découverte
+         deux écrans plus loin ressemble à un supplément glissé au dernier
+         moment.
+         UNE OPTION SE DÉCOCHE. Elle est donc présentée éteinte, et rien
+         n'est ajouté au prix tant que le client n'a pas appuyé : une option
+         cochée d'avance qui gonfle le total est exactement ce que le Code de
+         la consommation appelle un paiement supplémentaire non consenti
+         (L224-76) — et ce que tout le monde reproche aux compagnies
+         aériennes. -->
+    <div class="veh-option bloc-pancarte" hidden>
+      <button class="option opt-pancarte" type="button" aria-pressed="false">
+        <span class="option-case" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="2.6"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="option-corps">
+          <b data-t="pancarte_option">Pancarte à votre nom</b>
+          <span class="option-sous opt-sous" data-t="pancarte_sous_air">Votre chauffeur
+            vous attend devant la porte du terminal, votre nom à la main.</span>
+        </span>
+        <b class="option-prix opt-prix">+10,00 €</b>
+      </button>
+      <p class="bloc-note opt-attente" data-t="pancarte_attente_air">60 minutes d'attente
+         offertes après l'atterrissage, même si votre vol a du retard.</p>
+    </div>
+
     <p class="veh-note" id="noteNuit" hidden data-t="nuit">Majoration nuit et week-end de 20 % appliquée.</p>
     <p class="veh-note" data-t="tva_note">Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.</p>
 
@@ -1424,15 +1458,15 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
          Elle est posée après le champ « Nom » pour qu'il voie son propre nom
          s'écrire dessus — c'est ce qui rassure un client à 3 000 km, bien
          plus qu'une phrase de plus. -->
-    <div class="bloc" id="blocPancarte" hidden>
+    <!-- LA PANCARTE EST CHOISIE À L'ÉCRAN DES PRIX, sous la sélection du
+         véhicule : c'est là qu'on décide de ce qu'on achète. On la retrouve
+         ici parce que c'est ici que le client TAPE SON NOM — et voir son
+         propre nom s'écrire sur la pancarte vaut mieux qu'une phrase de
+         plus. Le même bouton pilote les deux écrans : deux commandes pour
+         un seul état se désaccordent au premier oubli. -->
+    <div class="bloc bloc-pancarte" hidden>
       <h2 class="bloc-titre" data-t="pancarte_titre">À votre arrivée</h2>
-      <!-- UNE OPTION SE DÉCOCHE. Elle est donc présentée éteinte, et rien
-           n'est ajouté au prix tant que le client n'a pas appuyé : une
-           option cochée d'avance qui gonfle le total est exactement ce que
-           le Code de la consommation appelle un paiement supplémentaire non
-           consenti (L224-76) — et ce que tout le monde reproche aux
-           compagnies aériennes. -->
-      <button class="option" type="button" id="btnPancarte" aria-pressed="false">
+      <button class="option opt-pancarte" type="button" aria-pressed="false">
         <span class="option-case" aria-hidden="true">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
             <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="2.6"
@@ -1441,10 +1475,10 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
         </span>
         <span class="option-corps">
           <b data-t="pancarte_option">Pancarte à votre nom</b>
-          <span class="option-sous" id="pancarteSous" data-t="pancarte_sous_air">Votre chauffeur
+          <span class="option-sous opt-sous" data-t="pancarte_sous_air">Votre chauffeur
             vous attend devant la porte du terminal, votre nom à la main.</span>
         </span>
-        <b class="option-prix" id="pancartePrix">+10,00 €</b>
+        <b class="option-prix opt-prix">+10,00 €</b>
       </button>
       <!-- L'APERÇU N'APPARAÎT QU'UNE FOIS L'OPTION PRISE, avec son nom
            dessus : c'est ce qui rend les 10 € tangibles. Montré d'emblée,
@@ -1454,8 +1488,8 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
         <span class="pancarte-filet" aria-hidden="true"></span>
         <span class="pancarte-nom" id="pancarteNom" data-t="pancarte_nom">VOTRE NOM</span>
       </div>
-      <p class="bloc-note" id="pancarteAttente" data-t="pancarte_attente_air">60 minutes
-         d'attente offertes, même si votre vol a du retard.</p>
+      <p class="bloc-note opt-attente" data-t="pancarte_attente_air">60 minutes d'attente
+         offertes après l'atterrissage, même si votre vol a du retard.</p>
     </div>
 
     <div class="veh-action">
@@ -2160,7 +2194,7 @@ window.ELA_TEXTES = {
     pancarte_option:"Pancarte à votre nom",
     pancarte_sous_air:"Votre chauffeur vous attend devant la porte du terminal, votre nom à la main.",
     pancarte_sous_gare:"Votre chauffeur vous attend à la sortie des trains, votre nom à la main.",
-    pancarte_attente_air:"60 minutes d'attente offertes, même si votre vol a du retard.",
+    pancarte_attente_air:"60 minutes d'attente offertes après l'atterrissage, même si votre vol a du retard.",
     pancarte_attente_gare:"30 minutes d'attente offertes après l'heure d'arrivée.",
     pancarte_court:"Pancarte",
     pancarte_nom:"VOTRE NOM",
@@ -2265,7 +2299,7 @@ window.ELA_TEXTES = {
     pancarte_option:"Name sign",
     pancarte_sous_air:"Your chauffeur waits at the terminal door, your name in hand.",
     pancarte_sous_gare:"Your chauffeur waits at the train exit, your name in hand.",
-    pancarte_attente_air:"60 minutes of waiting included, even if your flight is delayed.",
+    pancarte_attente_air:"60 minutes of waiting included after landing, even if your flight is delayed.",
     pancarte_attente_gare:"30 minutes of waiting included after the arrival time.",
     pancarte_court:"Name sign",
     pancarte_nom:"YOUR NAME",
@@ -3060,7 +3094,7 @@ window.ELA_TEXTES = {
   var OPTION_PANCARTE_EUR = 10;
   var optionPancarte = false;
   function supplementPancarte(){
-    return (optionPancarte && !blocPancarte.hidden) ? OPTION_PANCARTE_EUR : 0;
+    return (optionPancarte && pancarteProposee()) ? OPTION_PANCARTE_EUR : 0;
   }
   function totalCourse(){
     return prix(course.gamme, course.km, course.majoration) + supplementPancarte();
@@ -3230,6 +3264,11 @@ window.ELA_TEXTES = {
     liste.innerHTML = "";
     course.gamme = null;
     majBoutonContinuer();
+    /* L'option d'accueil est jugée ICI aussi : elle vit désormais sous la
+       liste, et l'écran des prix s'ouvre avant le récapitulatif. Jugée
+       seulement là-bas, elle resterait cachée à l'endroit où le client la
+       choisit. */
+    jugerPancarte();
     /* Le nombre de passagers n'écarte QUE les véhicules trop petits : un
        client seul garde le droit de vouloir un van, et c'est une course
        plus chère. Il choisit, ou rien n'est réservé. */
@@ -3612,44 +3651,57 @@ window.ELA_TEXTES = {
      et une gare. On suit le DÉPART, pas l'un ou l'autre bout du trajet —
      un client qui PART vers Roissy n'a personne qui l'attend avec son nom
      à la main, et lui vendre une pancarte serait lui vendre du vide. */
-  var blocPancarte  = document.getElementById("blocPancarte");
+  /* L'OPTION EST À DEUX ENDROITS, MAIS C'EST UN SEUL ÉTAT. Elle se choisit
+     sous la sélection du véhicule — là où l'on décide de ce qu'on achète —
+     et se retrouve sur le récapitulatif, là où le client tape son nom et le
+     voit s'écrire sur la pancarte. Deux commandes pour un seul état se
+     désaccordent au premier oubli : on pilote donc les deux par la MÊME
+     fonction, en visant des classes et non des identifiants. */
+  var blocsPancarte = document.querySelectorAll(".bloc-pancarte");
+  var btnsPancarte  = document.querySelectorAll(".opt-pancarte");
   var pancarteNom   = document.getElementById("pancarteNom");
   var apercuPancarte= document.getElementById("apercuPancarte");
-  var btnPancarte   = document.getElementById("btnPancarte");
-  var pancarteSous  = document.getElementById("pancarteSous");
-  var pancarteAttente = document.getElementById("pancarteAttente");
+  function chaque(liste, fn){ Array.prototype.forEach.call(liste, fn); }
+  /* Un seul point de vérité pour « le bloc est-il montré ? » : les deux
+     blocs sont cachés et montrés ensemble. */
+  function pancarteProposee(){ return !blocsPancarte[0].hidden; }
   function jugerPancarte(){
     var air  = !!terminalDuLibelle(choix.depart && choix.depart.label);
     var gare = estGare(choix.depart);
-    blocPancarte.hidden = !air && !gare;
+    var cache = !air && !gare;
+    chaque(blocsPancarte, function(b){ b.hidden = cache; });
     /* UNE OPTION QU'ON NE VOIT PLUS NE SE PAIE PLUS. Sans cette remise à
        zéro, un client qui prend la pancarte puis change son départ pour
        une adresse ordinaire garderait 10 € sur un service qu'on ne peut
        plus lui rendre — et il ne verrait même plus la ligne. */
-    if(blocPancarte.hidden){ poserPancarte(false); return; }
+    if(cache){ poserPancarte(false); return; }
     /* Le lieu change la phrase : on n'attend pas au même endroit dans un
        aéroport et dans une gare. On réécrit l'ATTRIBUT « data-t », pas
        seulement le texte, sinon un changement de langue ramènerait le
        terminal sur une prise en charge en gare. */
     var cleSous = gare && !air ? "pancarte_sous_gare" : "pancarte_sous_air";
-    pancarteSous.setAttribute("data-t", cleSous);
-    pancarteSous.textContent = T(cleSous);
     var cleAttente = gare && !air ? "pancarte_attente_gare" : "pancarte_attente_air";
-    pancarteAttente.setAttribute("data-t", cleAttente);
-    pancarteAttente.textContent = T(cleAttente);
-    document.getElementById("pancartePrix").textContent = "+" + euros(OPTION_PANCARTE_EUR);
+    chaque(document.querySelectorAll(".opt-sous"), function(e){
+      e.setAttribute("data-t", cleSous); e.textContent = T(cleSous); });
+    chaque(document.querySelectorAll(".opt-attente"), function(e){
+      e.setAttribute("data-t", cleAttente); e.textContent = T(cleAttente); });
+    chaque(document.querySelectorAll(".opt-prix"), function(e){
+      e.textContent = "+" + euros(OPTION_PANCARTE_EUR); });
   }
   function poserPancarte(pris){
     optionPancarte = !!pris;
-    btnPancarte.setAttribute("aria-pressed", String(optionPancarte));
+    chaque(btnsPancarte, function(b){
+      b.setAttribute("aria-pressed", String(optionPancarte)); });
     apercuPancarte.hidden = !optionPancarte;
   }
-  btnPancarte.addEventListener("click", function(){
-    poserPancarte(!optionPancarte);
-    /* Le total change sous ses yeux, dans le même geste : une option dont
-       le prix n'apparaît qu'à l'écran suivant est une surprise. */
-    remplirRecap();
-    ecrirePancarte();
+  chaque(btnsPancarte, function(b){
+    b.addEventListener("click", function(){
+      poserPancarte(!optionPancarte);
+      /* Le total change sous ses yeux, dans le même geste : une option dont
+         le prix n'apparaît qu'à l'écran suivant est une surprise. */
+      remplirRecap();
+      ecrirePancarte();
+    });
   });
   function ecrirePancarte(){
     var n = champNom.value.trim();
