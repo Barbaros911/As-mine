@@ -80,8 +80,14 @@ check('la question est posée sur le récapitulatif',
 // On demande, on n'explique pas. Le terminal du chauffeur est notre affaire,
 // pas celle du client : une question suivie d'une justification donne
 // l'impression qu'on se justifie de la poser.
+/* LE CONTRÔLE PORTE SUR LE BLOC DU PAIEMENT, PAS SUR TOUT L'ÉCRAN.
+   Il lisait le récapitulatif entier, et il est tombé le jour où l'option
+   d'accueil a dit « devant la porte du terminal » — un terminal d'aéroport,
+   qui n'a rien à voir avec le terminal de carte du chauffeur. Un contrôle
+   trop large finit par interdire des mots au reste de la page : c'est la
+   QUESTION du règlement qui ne doit pas se justifier. */
 check('la question est posée sans explication de coulisses',
-  !(await p.locator('#ecran-recap').textContent()).toLowerCase().includes('terminal'));
+  !(await p.locator('#blocPaiement').textContent()).toLowerCase().includes('terminal'));
 check('rien n\'est présélectionné',
   (await especes.getAttribute('aria-pressed'))==='false'
   && (await carte.getAttribute('aria-pressed'))==='false');
