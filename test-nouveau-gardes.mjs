@@ -118,7 +118,8 @@ check('un trajet valable passe toujours', await p.locator('#ecran-vehicules').is
 check('et l\'écriteau de refus a disparu', await p.locator('#refus').isHidden());
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
-check('pas de pancarte pour un départ ordinaire', await p.locator('#blocPancarte').isHidden());
+check('pas de pancarte pour un départ ordinaire',
+  await p.locator('#ecran-recap .bloc-pancarte').isHidden());
 
 // --- La pancarte : seulement en PROVENANCE d'un aéroport ---
 await p.locator('#btnRetourVehicules').click();
@@ -128,7 +129,14 @@ await p.locator('#departList [role=option]',{hasText:'Terminal 2E'}).first().cli
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
-check('départ d\'un terminal : la pancarte apparaît', await p.locator('#blocPancarte').isVisible());
+check('départ d\'un terminal : l\'option pancarte apparaît',
+  await p.locator('#ecran-recap .bloc-pancarte').isVisible());
+/* L'APERÇU NE VIENT QU'AVEC L'OPTION. La pancarte est payante depuis
+   septembre 2026 : la montrer avant qu'elle soit prise promettrait
+   gratuitement ce qu'on vend. */
+check('mais l\'aperçu attend qu\'elle soit prise',
+  await p.locator('#apercuPancarte').isHidden());
+await p.locator('#ecran-recap .opt-pancarte').click(); await p.waitForTimeout(250);
 await p.fill('#clientNom','Jean Martin');
 await p.waitForTimeout(200);
 check('elle porte le nom saisi, en capitales',
@@ -137,11 +145,11 @@ check('elle porte le nom saisi, en capitales',
 // Le bouton ne doit RIEN recouvrir : mesuré rectangle contre rectangle.
 const recouvre = await p.evaluate(()=>{
   const b = document.querySelector('#ecran-recap .bouton').getBoundingClientRect();
-  const q = document.getElementById('blocPancarte').getBoundingClientRect();
+  const q = document.querySelector('#ecran-recap .bloc-pancarte').getBoundingClientRect();
   return b.bottom>q.top && b.top<q.bottom && b.right>q.left && b.left<q.right;
 });
 check('le bouton « Confirmer » ne recouvre pas la pancarte', !recouvre);
-await p.locator('#blocPancarte').scrollIntoViewIfNeeded();
+await p.locator('#ecran-recap .bloc-pancarte').scrollIntoViewIfNeeded();
 await p.waitForTimeout(400);
 const surPancarte = await p.evaluate(()=>{
   const w = document.querySelector('.wa');
