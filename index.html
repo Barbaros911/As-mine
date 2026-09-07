@@ -691,6 +691,23 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .rassure{margin:14px 0 0;display:flex;align-items:center;justify-content:center;
   gap:8px;font-size:12.5px;color:var(--gris);}
 
+/* ---------- LA PROMESSE D'ARRIVÉE ---------- */
+/* Le client qui atterrit ne se demande pas combien coûte la course : il se
+   demande ce qui se passe si son vol a deux heures de retard. C'est la
+   seule inquiétude que le formulaire ne traite pas, et elle arrive juste
+   après le bouton — d'où sa place, entre le formulaire et les engagements.
+   Elle est POSÉE SUR UN APLAT D'ACCENT, pas dans une carte blanche : les
+   engagements et les services sont déjà des cartes blanches, et une
+   cinquième se serait fondue dans la série au lieu de se lire comme une
+   promesse. Pas de bordure — l'aplat suffit à la détacher du gris du fond.
+   Le texte accent sur accent-clair est mesuré à 7,1 de contraste. */
+.promesse{display:flex;gap:12px;align-items:flex-start;margin:26px 20px 0;
+  padding:15px 16px;border-radius:15px;background:var(--accent-clair);}
+.promesse > svg{flex:none;margin-top:2px;}
+.promesse p{margin:0;font-size:13px;line-height:1.45;color:var(--encre);}
+.promesse b{display:block;margin-bottom:3px;font-size:13.5px;
+  color:var(--accent-encre);}
+
 /* ---------- SECTIONS ---------- */
 .section{padding:30px 20px 0;}
 .section h2{margin:0 0 20px;font-size:20.5px;font-weight:800;letter-spacing:-.02em;}
@@ -1101,6 +1118,24 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
       <span data-t="dispo">Disponibilité confirmée par WhatsApp ou SMS</span>
     </p>
   </section>
+
+  <!-- LA PROMESSE D'ARRIVÉE (septembre 2026, à sa demande).
+       Elle reprend l'avion du champ « numéro de vol » : c'est le même
+       service dit deux fois, une fois en vitrine et une fois au moment de
+       le rendre. Le titre et le texte sont deux clés distinctes — le gras
+       se lit seul, en diagonale, et c'est lui qui doit porter la promesse.
+       ON NE PROMET AUCUNE GRATUITÉ D'ATTENTE : la règle du temps d'attente
+       n'est pas arrêtée, et l'écrire ici l'arrêterait à notre place. -->
+  <div class="promesse">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
+            fill="#185754"/>
+    </svg>
+    <p>
+      <b data-t="retard_titre">Vol ou train en retard ? Votre chauffeur s'adapte.</b>
+      <span data-t="retard_texte">Nous suivons votre arrivée et ajustons l'heure de prise en charge : il est là quand vous sortez.</span>
+    </p>
+  </div>
 
   <section class="section">
     <h2 data-t="engagements">Nos engagements</h2>
@@ -2022,6 +2057,8 @@ window.ELA_TEXTES = {
        passe VRAIMENT après le clic — le barème d'annulation, lui, reste
        dans les CGV, où il engage. */
     dispo:"Disponibilité confirmée par WhatsApp ou SMS",
+    retard_titre:"Vol ou train en retard ? Votre chauffeur s'adapte.",
+    retard_texte:"Nous suivons votre arrivée et ajustons l'heure de prise en charge : il est là quand vous sortez.",
     engagements:"Nos engagements",
     eng1:"Chauffeurs professionnels", eng1s:"Discrets et courtois",
     eng2:"Véhicules haut de gamme", eng2s:"Confort et sécurité",
@@ -2121,6 +2158,8 @@ window.ELA_TEXTES = {
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
     btn_prix:"See prices and vehicles", calcul:"Calculating the price…",
     dispo:"Availability confirmed by WhatsApp or SMS",
+    retard_titre:"Flight or train delayed? Your chauffeur adapts.",
+    retard_texte:"We track your arrival and adjust the pick-up time — your chauffeur is there when you come out.",
     engagements:"Our commitments",
     eng1:"Professional chauffeurs", eng1s:"Discreet and courteous",
     eng2:"High-end vehicles", eng2s:"Comfort and safety",
