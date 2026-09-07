@@ -278,12 +278,20 @@ await ctx.close();
   await ctxH.close();
 }
 
-/* --- LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ ---------------------
-   L'heure par défaut est 10 h : parfaite à 1 h du matin, impossible à
-   9 h 55. Le client arrivait alors sur un bouton éteint sans avoir rien
-   touché. ---------------------------------------------------------- */
-for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', true],
-                                  ['2026-09-07T01:41:00+02:00', false]]) {
+/* --- LE FORMULAIRE S'OUVRE SUR LE PREMIER CRÉNEAU RÉSERVABLE ---------
+   « il faut que le choix de l'heure commence à notre heure plus
+   15 minutes ». Le champ s'ouvrait sur 10 h, et la molette d'un téléphone
+   se pose sur la VALEUR du champ : à 3 h 27 du matin, le client qui veut
+   une voiture tout de suite voyait 10 h 00 et devait remonter sept heures.
+   On vérifie la valeur PROPOSÉE, pas seulement qu'elle est acceptable : un
+   défaut de 10 h passait l'ancien contrôle à 1 h 41 sans rien régler du
+   problème qu'il a vu. --------------------------------------------- */
+for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', '10:10'],
+                                  ['2026-09-07T01:41:00+02:00', '02:00'],
+                                  /* Son cas, capture à l'appui : 3 h 27
+                                     + 15 = 3 h 42, la grille arrondit à
+                                     3 h 45. */
+                                  ['2026-09-07T03:27:00+02:00', '03:45']]) {
   const ctxD = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
     timezoneId:'Europe/Paris'});
   await ctxD.addInitScript(([i]) => {
@@ -304,8 +312,12 @@ for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', true],
   check('à '+instant.slice(11,16)+', le formulaire s\'ouvre sur un moment réservable',
     await pd.locator('#tropTot').isHidden() && !(await pd.locator('#btnVoirPrix').isDisabled()),
     'heure proposée : '+h);
-  check('à '+instant.slice(11,16)+', 10 h est '+(attendu?'déplacé':'gardé'),
-    attendu ? h!=='10:00' : h==='10:00', h);
+  check('à '+instant.slice(11,16)+', il s\'ouvre sur '+attendu, h===attendu, h);
+  /* La valeur proposée et la borne du champ sont le même moment : si elles
+     divergeaient, le champ s'ouvrirait sur une heure que lui-même refuse. */
+  check('à '+instant.slice(11,16)+', la valeur proposée est la borne du champ',
+    h===await pd.locator('#heure').getAttribute('min'),
+    h+' contre '+await pd.locator('#heure').getAttribute('min'));
   await ctxD.close();
 }
 

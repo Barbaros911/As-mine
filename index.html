@@ -3210,6 +3210,10 @@ window.ELA_TEXTES = {
      peuvent pas être vrais ensemble, et en afficher deux ferait douter le
      client de ce qu'il doit corriger. */
   function jugerDelai(){
+    /* Le temps a passé sur une page restée ouverte, et le défaut n'est plus
+       réservable. Tant que le client n'y a pas touché, on le remet à jour
+       plutôt que de lui opposer un refus qu'il n'a pas provoqué. */
+    if(!heureTouchee && (tropTot() || heureDepassee())) poserDefautHeure();
     bornerHeure();
     var passee = heureDepassee();
     blocPassee.hidden = !passee;
@@ -3217,21 +3221,36 @@ window.ELA_TEXTES = {
     jugerBoutonPrix();
   }
 
-  /* LE FORMULAIRE NE DOIT JAMAIS S'OUVRIR DÉJÀ REFUSÉ. L'heure par défaut
-     est 10 h — parfaite à 1 h du matin, impossible à 9 h 55 : le client
-     arrivait alors sur un bouton éteint sans avoir rien touché. On ne
-     déplace le défaut QUE dans ce cas, pour garder 10 h partout ailleurs. */
-  (function poserDefautHeure(){
-    if(!tropTot() && !heureDepassee()) return;
+  /* LE CHAMP S'OUVRE SUR LE PREMIER CRÉNEAU RÉSERVABLE (septembre 2026, à
+     sa demande : « il faut que le choix de l'heure commence à notre heure
+     plus 15 minutes »). Il s'ouvrait sur 10 h, et la molette d'iOS se pose
+     sur la VALEUR du champ : à 3 h 27 du matin, le client qui veut une
+     voiture tout de suite voyait 10 h 00 et devait remonter sept heures.
+     Le créneau est arrondi au pas de 5 — à 3 h 27, c'est 3 h 45.
+     TANT QUE LE CLIENT N'Y A PAS TOUCHÉ, le défaut se recalcule : une page
+     laissée ouverte vingt minutes rouvrait sinon sur une heure déjà
+     refusée, ce que le défaut de 10 h ne risquait pas. Dès qu'il choisit
+     lui-même, on ne touche plus à rien — c'est son choix, pas le nôtre. */
+  var heureTouchee = false;
+  function poserDefautHeure(){
+    if(heureTouchee) return;
     var c = prochainCreneau();
     champDate.value = dateLocale(c);
     champHeure.value = hhmm(c);
-  })();
+  }
+  poserDefautHeure();
   jugerDelai();
-  champDate.addEventListener("input", jugerDelai);
-  champHeure.addEventListener("input", jugerDelai);
-  champDate.addEventListener("change", jugerDelai);
-  champHeure.addEventListener("change", jugerDelai);
+  var heureChoisie = function(){ heureTouchee = true; jugerDelai(); };
+  champDate.addEventListener("input", heureChoisie);
+  champHeure.addEventListener("input", heureChoisie);
+  champDate.addEventListener("change", heureChoisie);
+  champHeure.addEventListener("change", heureChoisie);
+  /* Le retour sur l'onglet est le moment où le décalage se voit : un client
+     qui revient d'une application de vol retrouve son formulaire tel qu'il
+     l'a laissé une heure plus tôt. */
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden){ poserDefautHeure(); jugerDelai(); }
+  });
 
   boutonPrix.addEventListener("click", function(){
     effacerRefus();
