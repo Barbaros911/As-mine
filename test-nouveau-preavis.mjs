@@ -234,7 +234,13 @@ await ctx.close();
      de l'instant où il s'exécute finit par tomber tout seul. */
   const borne = await ph.locator('#heure').getAttribute('min');
   check('à 1 h 41, la borne du champ d\'heure est le premier créneau',
-    borne==='02:01' || borne==='02:02', borne);
+    borne==='02:05', borne);
+  /* LE PAS ET LA BORNE DOIVENT ÊTRE D'ACCORD. « step » est compté à partir
+     de « min » : une borne à 2 h 01 donnerait la grille 2 h 01, 2 h 06,
+     2 h 11 — des heures que personne ne choisit. La borne doit donc tomber
+     sur un multiple du pas. */
+  check('et elle tombe sur la grille des 5 minutes',
+    Number(borne.slice(3)) % 5 === 0, borne);
 
   /* SON EXEMPLE EXACT — « il est 1 h 41, je ne dois pas pouvoir
      sélectionner 1 h 40 ». À la réflexion, 1 h 40 est DÉJÀ PASSÉ d'une
@@ -297,6 +303,24 @@ for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', true],
   check('à '+instant.slice(11,16)+', 10 h est '+(attendu?'déplacé':'gardé'),
     attendu ? h!=='10:00' : h==='10:00', h);
   await ctxD.close();
+}
+
+/* --- LES CRÉNEAUX DE 5 MINUTES ---------------------------------------
+   « fait en sorte que les clients puissent commander toutes les 5 minutes ».
+   Le pas vit à DEUX endroits — l'attribut « step » du champ, en secondes,
+   et « PAS_MINUTES » dans le script qui arrondit le premier créneau. S'ils
+   se désaccordent, la borne tombe hors de la grille et le champ propose des
+   heures que personne ne veut. Le test les compare. ------------------ */
+{
+  const src = await (await fetch('http://127.0.0.1:8099/index.html')).text();
+  const step = src.match(/id="heure"[^>]*step="(\d+)"/);
+  const pas = src.match(/var PAS_MINUTES\s*=\s*(\d+)/);
+  check('le champ d\'heure porte un pas', !!step, step ? step[1]+' s' : 'absent');
+  check('et le script connaît le même pas', !!pas, pas ? pas[1]+' min' : 'absent');
+  check('les deux sont d\'accord',
+    step && pas && Number(step[1]) === Number(pas[1]) * 60,
+    step && pas ? step[1]+' s contre '+pas[1]+' min' : '');
+  check('le pas est bien de 5 minutes', pas && pas[1] === '5', pas ? pas[1] : '');
 }
 
 /* --- LE TEXTE ET LE CODE ANNONCENT LE MÊME DÉLAI ---------------------

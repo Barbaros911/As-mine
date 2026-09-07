@@ -1037,7 +1037,13 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="heure">Heure</span>
-          <input id="heure" type="time" value="10:00">
+          <!-- PAS DE 5 MINUTES (à sa demande). Un client ne choisit pas un
+               départ à 10 h 07 : il pense en quarts et en cinquièmes
+               d'heure. « step » est en SECONDES, et il est compté À PARTIR
+               DE « min » — d'où l'arrondi du premier créneau à 5 minutes
+               dans le script, sans lequel la grille deviendrait 2 h 02,
+               2 h 07, 2 h 12. -->
+          <input id="heure" type="time" value="10:00" step="300">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -3142,12 +3148,18 @@ window.ELA_TEXTES = {
   var blocTropTot = document.getElementById("tropTot");
   var blocPassee = document.getElementById("heurePassee");
 
-  /* Le premier moment réservable : maintenant + le préavis, arrondi à la
-     minute supérieure. À 1 h 41, c'est 2 h 01 — et 1 h 40 devient une heure
-     que le champ refuse. */
+  /* LE PAS DES CRÉNEAUX. Un client ne choisit pas un départ à 10 h 07 : il
+     pense en quarts et en cinquièmes d'heure. Le champ porte « step="300" »
+     — 300 secondes — et ce nombre-ci doit rester d'accord avec lui ; un
+     test compare les deux. */
+  var PAS_MINUTES = 5;
+  /* Le premier moment réservable : maintenant + le préavis, arrondi au PAS
+     supérieur. À 1 h 41, c'est 2 h 05 — et pas 2 h 01, qui ne serait pas
+     sur la grille et décalerait tous les créneaux proposés ensuite,
+     « step » étant compté à partir de « min ». */
   function prochainCreneau(){
-    var t = Date.now() + DELAI_MINIMUM_MIN * 60000;
-    return new Date(Math.ceil(t / 60000) * 60000);
+    var pas = PAS_MINUTES * 60000;
+    return new Date(Math.ceil((Date.now() + DELAI_MINIMUM_MIN * 60000) / pas) * pas);
   }
   function hhmm(d){
     var z = function(n){ return String(n).padStart(2, "0"); };

@@ -1530,6 +1530,17 @@ l'heure est ferme comme le prix.
   « trop proche ». Le test éprouve les deux refus voisins — les confondre
   dirait au client de corriger la mauvaise chose.
 
+**LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** (à sa demande : « fait en sorte que
+les clients puissent commander toutes les 5 minutes »). Un client ne choisit
+pas un départ à 10 h 07 : il pense en quarts et en cinquièmes d'heure.
+- Le pas vit à **deux endroits** — l'attribut `step="300"` du champ, **en
+  secondes**, et `PAS_MINUTES` dans le script. **Un test compare les deux** :
+  s'ils se désaccordent, la borne tombe hors de la grille et le champ
+  propose des heures que personne ne veut.
+- **`step` est compté À PARTIR DE `min`**, pas de minuit. D'où l'arrondi du
+  premier créneau au pas supérieur : à 1 h 41 la borne est **2 h 05**, pas
+  2 h 01 — qui donnerait la grille 2 h 01, 2 h 06, 2 h 11.
+
 **LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ.** L'heure par défaut est
 10 h : parfaite à 1 h du matin, **impossible à 9 h 55** — le client arrivait
 alors sur un bouton éteint sans avoir rien touché. Le défaut n'est déplacé
@@ -1581,7 +1592,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 463 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 468 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
