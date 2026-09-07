@@ -110,10 +110,24 @@ check('aucun « data-t » sur une balise fermante', fermantes.length===0, ferman
    rassure sous le bouton parle bien anglais. */
 check('la ligne sous le bouton est traduite elle aussi',
   (await p.locator('p.rassure').first().innerText()).trim()
-    === 'Free cancellation up to 24h before the ride',
+    === 'Availability confirmed by WhatsApp or SMS',
   (await p.locator('p.rassure').first().innerText()).trim());
 check('et son icône n\'a pas été effacée par la traduction',
   (await p.locator('p.rassure svg').first().count())===1);
+
+/* ELLE NE PROMET PLUS D'ANNULATION GRATUITE (septembre 2026, à sa demande :
+   « le client ne paie que le chauffeur »). C'est la deuxième fois que cet
+   argument est retiré de la vitrine — il était déjà parti de l'ancien site,
+   et il est revenu à la refonte. D'où ce contrôle, dans les DEUX langues :
+   le barème d'annulation reste dans les CGV, où il engage, mais la ligne
+   sous le bouton n'en parle plus. */
+for (const [langue, mot] of [['fr','nnulation'], ['en','ancellation']]) {
+  await p.locator('.langues button[data-langue="'+langue+'"]').click();
+  await p.waitForTimeout(250);
+  const ligne = (await p.locator('p.rassure').first().innerText()).trim();
+  check('en '+langue+', la ligne sous le bouton ne promet plus d\'annulation gratuite',
+    !ligne.includes(mot), ligne);
+}
 
 /* « Mise à disposition » est revenue à la demande de Barbaros. Ce qui est
    vérifié ici n'est plus son absence mais sa TRADUCTION : c'est la carte la

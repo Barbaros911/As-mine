@@ -1098,7 +1098,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
            (« </svg data-t="annulation"> ») : sans effet, la phrase restait en
            français en anglais. Il ne peut pas non plus aller sur le <p> — la
            traduction écrit du texte et effacerait l'icône. D'où ce <span>. -->
-      <span data-t="annulation">Annulation gratuite jusqu'à 24h avant le trajet</span>
+      <span data-t="dispo">Disponibilité confirmée par WhatsApp ou SMS</span>
     </p>
   </section>
 
@@ -2015,7 +2015,13 @@ window.ELA_TEXTES = {
     vol_aide_arrivee:"Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.",
     date:"Date", heure:"Heure", passagers:"Passagers", bagages:"Bagages",
     btn_prix:"Voir les tarifs et véhicules", calcul:"Calcul du prix…",
-    annulation:"Annulation gratuite jusqu'à 24h avant le trajet",
+    /* LA LIGNE SOUS LE BOUTON NE PARLE PLUS D'ANNULATION (septembre 2026, à
+       sa demande) : « le client ne paie que le chauffeur », il n'y a donc
+       rien à annuler côté site, et promettre la gratuité d'un geste qui ne
+       coûte déjà rien ne rassure personne. Elle dit maintenant ce qui se
+       passe VRAIMENT après le clic — le barème d'annulation, lui, reste
+       dans les CGV, où il engage. */
+    dispo:"Disponibilité confirmée par WhatsApp ou SMS",
     engagements:"Nos engagements",
     eng1:"Chauffeurs professionnels", eng1s:"Discrets et courtois",
     eng2:"Véhicules haut de gamme", eng2s:"Confort et sécurité",
@@ -2114,7 +2120,7 @@ window.ELA_TEXTES = {
     vol_aide_arrivee:"So we drop you at the right terminal — they are several kilometres apart.",
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
     btn_prix:"See prices and vehicles", calcul:"Calculating the price…",
-    annulation:"Free cancellation up to 24h before the ride",
+    dispo:"Availability confirmed by WhatsApp or SMS",
     engagements:"Our commitments",
     eng1:"Professional chauffeurs", eng1s:"Discreet and courteous",
     eng2:"High-end vehicles", eng2s:"Comfort and safety",
