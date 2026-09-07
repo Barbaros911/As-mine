@@ -3141,6 +3141,39 @@ window.ELA_TEXTES = {
   }
   var blocTropTot = document.getElementById("tropTot");
   var blocPassee = document.getElementById("heurePassee");
+
+  /* Le premier moment réservable : maintenant + le préavis, arrondi à la
+     minute supérieure. À 1 h 41, c'est 2 h 01 — et 1 h 40 devient une heure
+     que le champ refuse. */
+  function prochainCreneau(){
+    var t = Date.now() + DELAI_MINIMUM_MIN * 60000;
+    return new Date(Math.ceil(t / 60000) * 60000);
+  }
+  function hhmm(d){
+    var z = function(n){ return String(n).padStart(2, "0"); };
+    return z(d.getHours()) + ":" + z(d.getMinutes());
+  }
+
+  /* LA BORNE DU CHAMP D'HEURE — CE QU'ELLE FAIT ET CE QU'ELLE NE FAIT PAS.
+     Sur un ORDINATEUR, le navigateur refuse une heure sous la borne. Sur un
+     TÉLÉPHONE, la molette est dessinée par iOS ou Android : elle ignore la
+     borne, le client peut faire défiler jusqu'à 1 h 40 — et c'est alors
+     l'écriteau « trop proche » qui prend le relais. Aucun site ne peut
+     griser des entrées dans un sélecteur du système ; le dire plutôt que de
+     laisser croire le contraire.
+     « min » sur un champ d'heure est une HEURE DANS LA JOURNÉE, sans date :
+     elle n'a donc de sens que si la date choisie est AUJOURD'HUI, et il
+     faut la retirer sinon — sans quoi une course pour demain 8 h serait
+     refusée parce que 8 h est passé aujourd'hui. */
+  function bornerHeure(){
+    var c = prochainCreneau();
+    if(champDate.value && champDate.value === dateLocale(c)) champHeure.min = hhmm(c);
+    /* Le créneau tombe un autre jour — il est 23 h 50, le premier moment
+       libre est demain 0 h 10. Aucune heure d'aujourd'hui ne convient, et
+       une borne « 00:10 » autoriserait à tort toute la journée. On n'en
+       pose donc pas : l'écriteau tranche. */
+    else champHeure.removeAttribute("min");
+  }
   /* Le bouton a DEUX juges — la zone et le préavis — et ils ne doivent pas
      se contredire. Sans ce point de rendez-vous, le second à s'exécuter
      rallumerait le bouton que le premier vient d'éteindre. */
@@ -3152,11 +3185,24 @@ window.ELA_TEXTES = {
      peuvent pas être vrais ensemble, et en afficher deux ferait douter le
      client de ce qu'il doit corriger. */
   function jugerDelai(){
+    bornerHeure();
     var passee = heureDepassee();
     blocPassee.hidden = !passee;
     blocTropTot.hidden = passee || !tropTot();
     jugerBoutonPrix();
   }
+
+  /* LE FORMULAIRE NE DOIT JAMAIS S'OUVRIR DÉJÀ REFUSÉ. L'heure par défaut
+     est 10 h — parfaite à 1 h du matin, impossible à 9 h 55 : le client
+     arrivait alors sur un bouton éteint sans avoir rien touché. On ne
+     déplace le défaut QUE dans ce cas, pour garder 10 h partout ailleurs. */
+  (function poserDefautHeure(){
+    if(!tropTot() && !heureDepassee()) return;
+    var c = prochainCreneau();
+    champDate.value = dateLocale(c);
+    champHeure.value = hhmm(c);
+  })();
+  jugerDelai();
   champDate.addEventListener("input", jugerDelai);
   champHeure.addEventListener("input", jugerDelai);
   champDate.addEventListener("change", jugerDelai);

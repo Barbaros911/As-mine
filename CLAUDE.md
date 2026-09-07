@@ -1509,6 +1509,33 @@ l'heure est ferme comme le prix.
   25 et 40 min acceptés. Un test qui ne vérifierait que le refus laisserait
   passer un code qui refuse tout.
 
+**LA BORNE DU CHAMP D'HEURE — CE QU'ELLE FAIT ET CE QU'ELLE NE FAIT PAS**
+(à sa demande : « il est 1 h 41, je dois pas pouvoir sélectionner 1 h 40 »).
+- Sur un **ordinateur**, le navigateur refuse une heure sous `min`.
+- Sur un **téléphone**, la molette est dessinée par iOS ou Android : elle
+  **ignore la borne**. Le client peut faire défiler jusqu'à l'heure
+  interdite, et c'est l'écriteau qui prend le relais. **Aucun site ne peut
+  griser des entrées dans un sélecteur du système** — le dire à Barbaros
+  plutôt que de laisser croire le contraire.
+- `min` sur un champ d'heure est une **heure dans la journée, sans date** :
+  elle n'a de sens que si la date choisie est **aujourd'hui**, et il faut la
+  **retirer** sinon — sans quoi une course pour demain 8 h serait refusée
+  parce que 8 h est passé aujourd'hui. Un test le vérifie.
+- **Le cas de minuit** : à 23 h 50, le premier créneau est demain 0 h 10.
+  Aucune heure d'aujourd'hui ne convient, et une borne « 00:10 »
+  autoriserait à tort toute la journée. On n'en pose donc **pas** ;
+  l'écriteau tranche.
+- **SON EXEMPLE EXACT TOMBE DANS L'AUTRE CAS** : à 1 h 41, « 1 h 40 » est
+  *déjà passé* d'une minute, donc c'est `#heurePassee` qui parle, pas
+  « trop proche ». Le test éprouve les deux refus voisins — les confondre
+  dirait au client de corriger la mauvaise chose.
+
+**LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ.** L'heure par défaut est
+10 h : parfaite à 1 h du matin, **impossible à 9 h 55** — le client arrivait
+alors sur un bouton éteint sans avoir rien touché. Le défaut n'est déplacé
+que dans ce cas, pour garder 10 h partout ailleurs. Deux tests, à 9 h 55 et
+à 1 h 41.
+
 ## LA DATE DU JOUR SE COMPOSE EN LOCAL, JAMAIS EN UTC
 
 Septembre 2026, vu par Barbaros à 1 h du matin : « je peux cliquer sur le
@@ -1554,7 +1581,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 453 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 463 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :

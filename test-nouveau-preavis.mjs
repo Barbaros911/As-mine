@@ -205,6 +205,100 @@ await ctx.close();
   await ctxN.close();
 }
 
+/* --- LA BORNE DU CHAMP D'HEURE, ET LE DÉFAUT QUI NE DOIT PAS ÊTRE REFUSÉ
+   « il est 1 h 41, je dois pas pouvoir sélectionner 1 h 40 ». Sur un
+   ordinateur le navigateur refuse ; sur un téléphone la molette est
+   dessinée par le système et ignore la borne — l'écriteau prend alors le
+   relais. On éprouve les deux. ------------------------------------- */
+{
+  const ctxH = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
+    timezoneId:'Europe/Paris'});
+  const ph = await ctxH.newPage();
+  ph.on('pageerror',e=>errs.push(e.message));
+  await ctxH.addInitScript(() => {
+    const faux = new Date('2026-09-07T01:41:00+02:00').getTime();
+    const Vrai = Date; const dec = faux - Vrai.now();
+    Date = class extends Vrai {
+      constructor(...a){ if(a.length===0) super(Vrai.now()+dec); else super(...a); }
+      static now(){ return Vrai.now()+dec; }
+    };
+  });
+  await ph.route('**://photon.komoot.io/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await ph.route('**://api-adresse.data.gouv.fr/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await ph.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await ph.waitForTimeout(500);
+
+  /* À 1 h 41, le premier créneau est 2 h 01 — 2 h 02 si la seconde a
+     tourné entre-temps, l'arrondi étant à la minute SUPÉRIEURE. On accepte
+     les deux plutôt que de figer une seconde précise : un test qui dépend
+     de l'instant où il s'exécute finit par tomber tout seul. */
+  const borne = await ph.locator('#heure').getAttribute('min');
+  check('à 1 h 41, la borne du champ d\'heure est le premier créneau',
+    borne==='02:01' || borne==='02:02', borne);
+
+  /* SON EXEMPLE EXACT — « il est 1 h 41, je ne dois pas pouvoir
+     sélectionner 1 h 40 ». À la réflexion, 1 h 40 est DÉJÀ PASSÉ d'une
+     minute : c'est l'autre écriteau qui doit parler. On éprouve donc les
+     deux refus voisins, parce que les confondre serait dire au client de
+     corriger la mauvaise chose. */
+  await ph.fill('#heure','01:40'); await ph.waitForTimeout(300);
+  check('1 h 40 est marqué invalide par le navigateur',
+    !(await ph.locator('#heure').evaluate(e => e.checkValidity())));
+  check('1 h 40 à 1 h 41 : c\'est « déjà passée », pas « trop proche »',
+    !(await ph.locator('#heurePassee').isHidden())
+    && await ph.locator('#tropTot').isHidden()
+    && await ph.locator('#btnVoirPrix').isDisabled());
+  await ph.fill('#heure','01:50'); await ph.waitForTimeout(300);
+  check('1 h 50 à 1 h 41 : là c\'est « trop proche »',
+    !(await ph.locator('#tropTot').isHidden())
+    && await ph.locator('#heurePassee').isHidden()
+    && await ph.locator('#btnVoirPrix').isDisabled());
+  await ph.fill('#heure','02:30'); await ph.waitForTimeout(300);
+  check('2 h 30 passe', await ph.locator('#tropTot').isHidden()
+    && !(await ph.locator('#btnVoirPrix').isDisabled()));
+
+  /* La borne n'a de sens qu'AUJOURD'HUI : demain 1 h 40 est parfaitement
+     réservable, et une borne laissée en place le refuserait. */
+  await ph.fill('#date','2026-09-08'); await ph.fill('#heure','01:40');
+  await ph.waitForTimeout(300);
+  check('demain 1 h 40 est accepté : la borne a été retirée',
+    (await ph.locator('#heure').getAttribute('min'))===null
+    && await ph.locator('#tropTot').isHidden(),
+    'min='+await ph.locator('#heure').getAttribute('min'));
+  await ctxH.close();
+}
+
+/* --- LE FORMULAIRE NE S'OUVRE JAMAIS DÉJÀ REFUSÉ ---------------------
+   L'heure par défaut est 10 h : parfaite à 1 h du matin, impossible à
+   9 h 55. Le client arrivait alors sur un bouton éteint sans avoir rien
+   touché. ---------------------------------------------------------- */
+for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', true],
+                                  ['2026-09-07T01:41:00+02:00', false]]) {
+  const ctxD = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
+    timezoneId:'Europe/Paris'});
+  await ctxD.addInitScript(([i]) => {
+    const faux = new Date(i).getTime();
+    const Vrai = Date; const dec = faux - Vrai.now();
+    Date = class extends Vrai {
+      constructor(...a){ if(a.length===0) super(Vrai.now()+dec); else super(...a); }
+      static now(){ return Vrai.now()+dec; }
+    };
+  }, [instant]);
+  const pd = await ctxD.newPage();
+  pd.on('pageerror',e=>errs.push(e.message));
+  await pd.route('**://photon.komoot.io/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await pd.route('**://api-adresse.data.gouv.fr/**', r=>r.fulfill({contentType:'application/json',body:'{"features":[]}'}));
+  await pd.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await pd.waitForTimeout(500);
+  const h = await pd.locator('#heure').inputValue();
+  check('à '+instant.slice(11,16)+', le formulaire s\'ouvre sur un moment réservable',
+    await pd.locator('#tropTot').isHidden() && !(await pd.locator('#btnVoirPrix').isDisabled()),
+    'heure proposée : '+h);
+  check('à '+instant.slice(11,16)+', 10 h est '+(attendu?'déplacé':'gardé'),
+    attendu ? h!=='10:00' : h==='10:00', h);
+  await ctxD.close();
+}
+
 /* --- LE TEXTE ET LE CODE ANNONCENT LE MÊME DÉLAI ---------------------
    Le vrai piège de cette règle : la constante bouge, la phrase reste, et
    le site annonce vingt minutes en en exigeant quarante. On lit donc la
