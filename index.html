@@ -1963,6 +1963,28 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <p id="envoiTexte"></p>
     </div>
 
+    <!-- ÊTRE PRÉVENU DE LA CONFIRMATION.
+         ON DEMANDE L'AUTORISATION SUR UN GESTE, JAMAIS AU CHARGEMENT. Une
+         demande de notification qui surgit sans raison se refuse d'un
+         réflexe — et un refus est DÉFINITIF : le navigateur ne repose plus
+         jamais la question. Ici le client vient de réserver, il attend une
+         réponse, et il appuie lui-même : c'est le seul moment où la
+         permission a un sens.
+         ELLE NE REMPLACE RIEN. Le message de confirmation part de toute
+         façon sur WhatsApp ; la notification est un plus pour ceux dont le
+         téléphone la supporte. Ne jamais la présenter comme le canal
+         principal — sur iPhone elle n'existe que si le site est posé sur
+         l'écran d'accueil. -->
+    <div class="bloc" id="blocNotif" hidden>
+      <h2 class="bloc-titre" data-t="notif_titre">Être prévenu</h2>
+      <p class="bloc-note" data-t="notif_texte">Recevez une notification dès
+         qu'Elatransfer confirme votre transfert.</p>
+      <button class="bouton-fantome" type="button" id="btnNotif" data-t="notif_bouton">
+        Me prévenir dès que c'est confirmé
+      </button>
+      <p class="bloc-note" id="notifEtat" hidden></p>
+    </div>
+
     <!-- LE RENVOI CHANGE DE POIDS SELON L'ÉTAT DE L'ENVOI.
          Quand la demande est arrivée sur le serveur, le client n'a plus rien
          à faire : le bouton reste en retrait, et un bouton doré lui dirait
@@ -3010,6 +3032,19 @@ window.ELA_TEXTES = {
     pancarte_attente_gare:"30 minutes d'attente offertes après l'heure d'arrivée.",
     pancarte_court:"Pancarte",
     pancarte_nom:"VOTRE NOM",
+    /* LES NOTIFICATIONS. « notif_ios » n'est pas un message d'erreur : c'est
+       la marche à suivre. Sur iPhone, le navigateur ne sait recevoir une
+       notification que si le site est posé sur l'écran d'accueil — le dire
+       en trois mots vaut mieux qu'un « impossible » qui laisse le client
+       croire que le site est cassé. */
+    notif_titre:"Être prévenu",
+    notif_texte:"Recevez une notification dès qu'Elatransfer confirme votre transfert.",
+    notif_bouton:"Me prévenir dès que c'est confirmé",
+    notif_ok:"C'est noté. Vous recevrez une notification dès la confirmation.",
+    notif_refus:"Notifications refusées. Vous pouvez les autoriser dans les réglages de votre navigateur — la confirmation vous parviendra de toute façon sur WhatsApp.",
+    notif_ios:"Sur iPhone, ajoutez d'abord ce site à votre écran d'accueil : bouton Partager, puis « Sur l'écran d'accueil ». Vous pourrez alors être prévenu.",
+    notif_non:"Votre navigateur ne sait pas recevoir de notification. La confirmation vous parviendra sur WhatsApp.",
+    notif_rate:"L'inscription n'a pas abouti. La confirmation vous parviendra sur WhatsApp.",
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Vérifiez que le message WhatsApp est parti : c'est lui qui nous prévient tout de suite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
@@ -3115,6 +3150,14 @@ window.ELA_TEXTES = {
     pancarte_attente_gare:"30 minutes of waiting included after the arrival time.",
     pancarte_court:"Name sign",
     pancarte_nom:"YOUR NAME",
+    notif_titre:"Get notified",
+    notif_texte:"Receive a notification as soon as Elatransfer confirms your transfer.",
+    notif_bouton:"Notify me once it is confirmed",
+    notif_ok:"Noted. You will be notified as soon as it is confirmed.",
+    notif_refus:"Notifications refused. You can allow them in your browser settings — the confirmation will reach you on WhatsApp either way.",
+    notif_ios:"On iPhone, first add this site to your home screen: Share button, then « Add to Home Screen ». You will then be able to get notified.",
+    notif_non:"Your browser cannot receive notifications. The confirmation will reach you on WhatsApp.",
+    notif_rate:"Sign-up did not go through. The confirmation will reach you on WhatsApp.",
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. Check that the WhatsApp message was sent: that is what alerts us straight away.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
@@ -4349,6 +4392,15 @@ window.ELA_TEXTES = {
    Ne jamais coller la clé « service_role » ici : elle contourne toutes
    les règles.
    ===================================================================== */
+  /* LA CLÉ PUBLIQUE DES NOTIFICATIONS (VAPID). Elle est PUBLIQUE par
+     construction : le navigateur du client en a besoin pour s'abonner, elle
+     part donc dans la page de toute façon. Sa moitié PRIVÉE vit chez
+     Supabase, en secret, et ne doit JAMAIS entrer dans ce dépôt — c'est elle
+     qui prouve que la notification vient bien d'Elatransfer.
+     Vide = pas de notification proposée, et le site se comporte exactement
+     comme avant. */
+  var CLE_VAPID = "BKckm_zbq-nvYvV7XnfC3Wg0Hxce67se9qLHUFNEyCgKdwemPvB7kZIb55GUYBXGTj6xeiHzFWOxwqJLs1pk5NU";
+
   var SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
   var SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
 
@@ -4909,10 +4961,107 @@ window.ELA_TEXTES = {
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
+    /* Le bloc des notifications suit l'état de l'envoi : il n'a de sens que
+       si la demande est bien arrivée sur le serveur. */
+    jugerBlocNotif();
     /* La note reste visible quel que soit l'état : le message WhatsApp part
        dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
        cas aussi. */
   }
+
+/* =====================================================================
+   ÊTRE PRÉVENU DE LA CONFIRMATION
+   ---------------------------------------------------------------------
+   ON DEMANDE L'AUTORISATION SUR UN GESTE, JAMAIS AU CHARGEMENT. Une demande
+   de notification qui surgit sans raison se refuse d'un réflexe — et le
+   refus est DÉFINITIF : le navigateur ne repose plus jamais la question,
+   même des mois plus tard. Ici le client vient de réserver, il attend une
+   réponse, et c'est lui qui appuie.
+   ELLE NE REMPLACE RIEN. Le message de confirmation part de toute façon sur
+   WhatsApp. La notification est un plus pour les téléphones qui la
+   supportent — **sur iPhone elle n'existe que si le site est posé sur
+   l'écran d'accueil**, et c'est une bonne moitié de la clientèle
+   parisienne. Ne jamais la présenter comme le canal principal.
+   QUATRE MESSAGES DISTINCTS, parce qu'ils appellent quatre gestes : refus
+   (aller dans les réglages), iPhone non installé (poser le site sur l'écran
+   d'accueil), navigateur incapable (rien à faire), panne (rien à faire).
+   Un « ça n'a pas marché » unique ne dit pas quoi faire, et ici il y a
+   VRAIMENT quelque chose à faire dans deux cas sur quatre.
+   ===================================================================== */
+  /* Safari sur iPhone ne connaît « PushManager » QUE dans une page installée
+     sur l'écran d'accueil. C'est ce qui distingue « ton téléphone ne peut
+     pas » de « ton téléphone peut, mais il faut d'abord installer ». */
+  function surIphone(){
+    return /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function installee(){
+    return window.matchMedia("(display-mode: standalone)").matches
+        || window.navigator.standalone === true;
+  }
+  function pushPossible(){
+    return !!(CLE_VAPID && "serviceWorker" in navigator
+              && "PushManager" in window && "Notification" in window);
+  }
+  /* La clé publique voyage en base64url ; « subscribe » veut des octets. */
+  function clePourAbonnement(b64){
+    var p = b64.replace(/-/g, "+").replace(/_/g, "/");
+    while(p.length % 4) p += "=";
+    var brut = atob(p), t = new Uint8Array(brut.length);
+    for(var i = 0; i < brut.length; i++) t[i] = brut.charCodeAt(i);
+    return t;
+  }
+  function direNotif(cle){
+    var el = document.getElementById("notifEtat");
+    el.hidden = false;
+    el.textContent = T(cle);
+  }
+  /* Le bloc n'apparaît QUE si la demande est arrivée sur le serveur : sans
+     ligne côté serveur, personne ne pourra jamais envoyer la notification, et
+     proposer de s'abonner serait une promesse en l'air. */
+  function jugerBlocNotif(){
+    var bloc = document.getElementById("blocNotif");
+    var possible = pushPossible() || surIphone();
+    bloc.hidden = !(envoiEtat === true && possible
+                    && (!("Notification" in window) || Notification.permission !== "denied"));
+  }
+  document.getElementById("btnNotif").addEventListener("click", function(){
+    var bouton = this;
+    if(surIphone() && !installee()){ direNotif("notif_ios"); return; }
+    if(!pushPossible()){ direNotif("notif_non"); return; }
+    bouton.disabled = true;
+    Notification.requestPermission().then(function(rep){
+      if(rep !== "granted"){ bouton.disabled = false; direNotif("notif_refus"); return; }
+      return navigator.serviceWorker.ready.then(function(reg){
+        return reg.pushManager.subscribe({
+          /* Obligatoire : on s'engage à MONTRER quelque chose à chaque push.
+             Un abonnement silencieux serait révoqué par le navigateur. */
+          userVisibleOnly: true,
+          applicationServerKey: clePourAbonnement(CLE_VAPID)
+        });
+      }).then(function(ab){
+        /* L'abonnement part dans SA PROPRE TABLE, pas dans la course : le
+           visiteur anonyme a le droit d'y déposer une ligne et rien d'autre.
+           L'ajouter à la course demanderait de MODIFIER une ligne existante,
+           donc d'ouvrir l'écriture à tout le monde — et n'importe qui
+           pourrait alors réécrire la réservation d'un autre. */
+        return fetch(SUPABASE_URL + "/rest/v1/abonnements", {
+          method: "POST",
+          headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json",
+                     Prefer: "return=minimal" },
+          body: JSON.stringify({ ref: bonCourant ? bonCourant.ref : "",
+                                 abonnement: ab.toJSON() })
+        });
+      }).then(function(r){
+        bouton.disabled = false;
+        if(r && r.ok){ bouton.hidden = true; direNotif("notif_ok"); }
+        else direNotif("notif_rate");
+      });
+    }).catch(function(){
+      bouton.disabled = false;
+      direNotif("notif_rate");
+    });
+  });
 
   /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
      WhatsApp non installé, fenêtre bloquée, appui à côté. Sans ce bouton, le
@@ -5869,9 +6018,35 @@ window.ELA_TEXTES = {
     if(bonBord) majCourse(bonBord.ref, bonBord.statut || "attente", { chauffeur: chauffeurSaisi() });
     ecran("ecran-bord");
   });
+  /* LA NOTIFICATION PART TOUTE SEULE À LA CONFIRMATION, et elle ne peut pas
+     faire échouer la confirmation — même règle que l'alerte Telegram. Elle
+     est détachée : fonction non déployée, client non abonné, réseau coupé,
+     la course est confirmée quand même. On perd le bip, jamais la course.
+     ELLE NE REMPLACE PAS « PRÉVENIR LE CLIENT ». La plupart des clients ne
+     seront pas abonnés — sur iPhone il faut avoir installé le site — et
+     Barbaros ne saurait pas lesquels. Le message WhatsApp reste le canal
+     sûr, la notification n'est qu'une avance. */
+  function pousserNotification(bon){
+    if(!bon || !nuage.connecte()) return;
+    var ch = bon.chauffeur || {};
+    var titre = "Transfert confirmé — " + bon.ref;
+    var corps = [ch.nom, bon.course.vehicule, dateLisible(bon)]
+                .filter(Boolean).join(" · ");
+    nuage.appel("/functions/v1/prevenir-client", {
+      method: "POST",
+      body: JSON.stringify({
+        ref: bon.ref, titre: titre, corps: corps,
+        /* Le lien du bon, celui-là même qui fait passer le bon au vert. Il
+           ne porte ni le nom ni le numéro du client, ni les adresses. */
+        url: location.origin + location.pathname + "?ok=" + encoderOk(bon)
+      })
+    }).catch(function(){ /* détachée : une notification perdue ne casse rien */ });
+  }
+
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
     if(!bonBord) return;
     bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi() });
+    pousserNotification(bonBord);
     ouvrirBonBord(bonBord.ref);
   });
 

@@ -1672,6 +1672,98 @@ exploitant, le `goto` de la ré-entrée remettait le registre à son état
 initial — les contrôles sur une course réalisée tombaient après ce point
 sans que rien ne soit cassé. Les placer **avant** la sortie.
 
+### LA NOTIFICATION AU CLIENT QUAND LA COURSE EST CONFIRMÉE
+
+Septembre 2026, à sa demande : « est-ce que l'on peut faire en sorte que le
+client reçoive une notification lorsque je valide sa course ». Trois voies
+lui ont été présentées ; il a choisi : **« On garde le geste manuel plus la
+notification navigateur »**.
+
+**LES DEUX PARTENT, ET C'EST LE CHOIX.** La notification arrive tout de
+suite, sur un téléphone verrouillé — mais elle peut être refusée, balayée
+d'un doigt, ou impossible (un iPhone qui n'a pas installé le site). Le
+message WhatsApp, lui, reste dans une conversation qu'on retrouve trois
+jours plus tard. **Ne pas supprimer « Prévenir le client » sous prétexte
+que la notification existe** : ce serait échanger le canal sûr contre le
+canal rapide.
+
+- **LE CHIFFREMENT A ÉTÉ ÉPROUVÉ PAR UN TIERS, pas par moi.** Une
+  notification push est chiffrée de bout en bout (VAPID pour l'expéditeur,
+  aes128gcm pour le contenu) et **un chiffrement faux ressemble toujours à
+  des octets corrects** — exactement le piège de l'encodeur QR, en pire.
+  `test-push.mjs` **déchiffre** donc la sortie avec `http_ece`, écrit par
+  quelqu'un d'autre, et fait vérifier la signature VAPID par `node:crypto`.
+  Relire son propre code ne prouve rien. Ne pas remplacer ces contrôles par
+  des contrôles maison.
+- **LA CLÉ PRIVÉE VAPID N'EST NULLE PART DANS LE DÉPÔT** — elle vit dans
+  les secrets Supabase. C'est elle, et elle seule, qui empêche un tiers
+  d'envoyer une fausse « Transfert confirmé » aux clients d'Elatransfer. La
+  **publique** est dans la page, forcément : le navigateur la reçoit de
+  toute façon. **Les deux se refont ensemble** : dépareillées, le navigateur
+  accepte l'abonnement et le service de push refuse l'envoi — une panne qui
+  ne se voit qu'au premier client.
+- **ELLE A FAILLI PARTIR EN LIGNE, ÉCRITE EN CLAIR DANS UN TEST.**
+  `test-push.mjs` la portait en constante « pour éprouver la signature ».
+  Le dépôt est PUBLIC : c'était la publier. Rattrapé avant le premier
+  `commit`. **Un secret recopié dans un test est un secret perdu**, même
+  si le test ne sert qu'une fois et n'est lu par personne — et un contrôle
+  qui cherchait la clé dans `index.html` seulement ne voyait évidemment
+  rien, puisqu'elle était dans le fichier d'à côté. La suite **fabrique
+  maintenant sa propre paire à chaque exécution** : ce qu'elle éprouve est
+  le code qui signe, et le code ne connaît pas la différence.
+  Ce qu'elle vérifie encore sur la clé de la page, sans le secret : 65
+  octets, non compressée, et **un vrai point de la courbe** — `importKey`
+  refuse le reste, exactement comme le fera le navigateur du client, sauf
+  que lui le fera devant lui et sans rien dire.
+- **ON NE DEMANDE JAMAIS L'AUTORISATION AU CHARGEMENT.** Une demande qui
+  surgit sans raison se refuse d'un réflexe, et **le refus est définitif** :
+  le navigateur ne repose plus jamais la question, des mois plus tard non
+  plus. Elle ne part que sur l'appui du bouton, une fois la demande
+  déposée.
+- **LE BLOC N'APPARAÎT QUE SI LA DEMANDE EST ARRIVÉE SUR LE SERVEUR.** La
+  fonction retrouve l'abonnement par la référence : sans ligne côté
+  serveur, personne ne pourra jamais envoyer. Proposer « Prévenez-moi » là
+  serait promettre un message qui ne partira pas, et le client fermerait sa
+  page en croyant qu'on le rappelle tout seul.
+- **L'ABONNEMENT VA DANS SA PROPRE TABLE**, jamais dans la course.
+  L'attacher au bon demanderait d'ouvrir la **modification** d'une ligne
+  existante au visiteur anonyme — et n'importe qui pourrait alors réécrire
+  la réservation d'un autre. Anon **dépose** dans `abonnements`, et rien de
+  plus : pas de lecture non plus, un abonnement est une adresse d'envoi.
+- **LA NOTIFICATION NE PORTE NI LE NOM, NI LE TÉLÉPHONE, NI LES ADRESSES,
+  NI LA CHAMBRE** — elle s'affiche sur un écran verrouillé, que n'importe
+  qui lit par-dessus l'épaule. Référence, chauffeur, véhicule, heure, et le
+  lien `?ok=`. Même règle que le lien de confirmation (RGPD 5.1.c), quatre
+  contrôles la verrouillent.
+- **ELLE NE PEUT PAS FAIRE ÉCHOUER UNE CONFIRMATION.** L'appel part
+  détaché, après. Fonction en panne, abonnement périmé : la course est
+  confirmée quand même et WhatsApp part comme avant. Un test coupe la
+  fonction et vérifie que le bon passe au vert. **Ne jamais inverser cette
+  répartition** — même règle que l'alerte de Barbaros.
+- **`userVisibleOnly` OBLIGE À MONTRER QUELQUE CHOSE À CHAQUE MESSAGE.** Un
+  push traité en silence fait révoquer l'abonnement par le navigateur, sans
+  prévenir. D'où les replis sur un titre par défaut dans `sw.js` plutôt
+  qu'un `return` si le contenu manque.
+- **LE CLIC RAMÈNE SUR LE BON**, pas sur l'accueil : on réutilise l'onglet
+  déjà ouvert et on l'emmène sur le `?ok=`. Ouvrir l'accueil laisserait le
+  client devant un formulaire vide.
+- **SUR IPHONE, IL FAUT AVOIR INSTALLÉ LE SITE** sur l'écran d'accueil :
+  Safari ne connaît `PushManager` que là. Le bouton le **dit** au lieu
+  d'échouer sans un mot — c'est la différence entre « ton téléphone ne peut
+  pas » et « il peut, mais il faut d'abord installer ».
+- **PIÈGE DE BANC, PAS DE CODE** : un Chrome piloté répond `denied` à
+  `Notification.permission` là où un vrai navigateur répond `default`, et
+  ni l'option `permissions` du contexte ni `grantPermissions` n'y changent
+  rien — éprouvé. La page cache le bloc quand l'autorisation est refusée,
+  et elle a raison ; la suite n'aurait donc éprouvé que ce cas-là. Le test
+  rétablit `default` dans un `addInitScript`. Et il **compte les appels à
+  `requestPermission`** au lieu de lire l'état final : lire la permission
+  ne dit pas qui l'a demandée.
+- **Le déploiement reste à faire** — il exige son compte. Tant que les
+  secrets ne sont pas posés et la fonction collée (`SUPABASE.md`), **ne pas
+  dire que les notifications marchent** : le site se comporte exactement
+  comme avant.
+
 ## LE CARNET DE CHAUFFEURS ET LA FACTURE DE COMMISSION
 
 Septembre 2026, à sa demande : « Oui met en place et publie ». Les deux
@@ -2051,13 +2143,24 @@ laissait choisir.
 
 ## Tests
 
-**Vingt suites Playwright, 592 contrôles**, à relancer après **toute**
+**Vingt suites Playwright, 602 contrôles**, à relancer après **toute**
 modification de la page.
 
-**Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
-`node test-notification.mjs` (34 contrôles) éprouve le texte de l'alerte
-de la fonction Supabase — c'est la seule partie de cette fonction qui se
-vérifie sans la déployer, et c'est celle qui compte.
+**Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
+- `node test-notification.mjs` (34 contrôles) éprouve le texte de l'alerte
+  de la fonction Supabase — c'est la seule partie de cette fonction qui se
+  vérifie sans la déployer, et c'est celle qui compte.
+- `node test-push.mjs` (22 contrôles) éprouve le chiffrement des
+  notifications au client, **en le faisant déchiffrer par `http_ece`** et
+  vérifier la signature VAPID par `node:crypto`. Un chiffrement relu par
+  son propre auteur ne prouve rien — la leçon de l'encodeur QR.
+  `http_ece` vit dans le bac à sable, jamais dans le dépôt ; s'il manque,
+  la suite **échoue** au lieu de sauter le contrôle en silence.
+  **Il fabrique sa propre paire VAPID à chaque exécution** : voir plus bas
+  pourquoi la vraie n'y est pas. L'accord entre la clé de la page et le
+  secret se vérifie à part, la clé en main et sans l'écrire nulle part —
+  `VAPID_PRIVEE=… node test-push.mjs` (23 contrôles alors, dont un qui
+  cherche la clé dans **tous** les fichiers suivis par git).
 Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
 touché dix-neuf fichiers pour zéro gain.
 
@@ -2076,6 +2179,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
   node $f || break
 done
 node test-notification.mjs   # ni navigateur ni réseau
+node test-push.mjs           # ni navigateur ni réseau
 ```
 
 `test-nouveau-bascule.mjs` couvre ce qui **ne se voit pas à l'écran** et
