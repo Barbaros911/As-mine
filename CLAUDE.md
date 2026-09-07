@@ -1627,7 +1627,7 @@ laissait choisir.
 
 ## Tests
 
-**Dix-huit suites Playwright, 478 contrôles**, à relancer après **toute**
+**Dix-huit suites Playwright, 483 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus une suite qui ne passe ni par un navigateur ni par le réseau** :
