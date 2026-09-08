@@ -363,6 +363,58 @@ async function espace(session){
   await c.close();
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   QUATRE PANNES DE CONNEXION, QUATRE PHRASES
+   -----------------------------------------------------------------------
+   Septembre 2026, Barbaros : « j'arrive pas à me connecter ». L'écran
+   affichait « Identifiants refusés » quoi qu'il arrive — mot de passe faux,
+   compte non confirmé, connexion par e-mail désactivée, serveur muet.
+   **Quatre pannes, quatre gestes, un seul message.** On ne répare pas ce
+   qu'on ne sait pas nommer : c'est la leçon de « lister() n'a plus de
+   catch », appliquée à l'autre bout.
+
+   LE COMPTE NON CONFIRMÉ EST LE PIÈGE LE PLUS PROBABLE : en créant un
+   utilisateur depuis le tableau de bord Supabase, la case « Auto Confirm
+   User » n'est pas cochée d'office. Le compte existe, le mot de passe est
+   le bon, et la connexion est refusée quand même — on cherche alors une
+   heure du côté du mot de passe.
+   ═══════════════════════════════════════════════════════════════════════ */
+for(const cas of [
+  { nom:'compte non confirmé', statut:400,
+    corps:{ code:400, error_code:'email_not_confirmed', msg:'Email not confirmed' },
+    attendu:'Auto Confirm User' },
+  { nom:'mot de passe faux', statut:400,
+    corps:{ error:'invalid_grant', error_description:'Invalid login credentials' },
+    attendu:'mot de passe refusé' },
+  { nom:'connexion e-mail désactivée', statut:422,
+    corps:{ code:422, error_code:'email_provider_disabled', msg:'Email logins are disabled' },
+    attendu:'Providers' },
+  { nom:'serveur muet', statut:0, corps:null, attendu:'pas répondu' }
+]){
+  const { c, pg } = await espace(null);
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/auth/v1/token**', async route => {
+    if(cas.statut === 0) return route.abort();
+    await route.fulfill({ status:cas.statut, contentType:'application/json',
+                          body: JSON.stringify(cas.corps) });
+  });
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(400);
+  await pg.locator('[data-admin-vers="blocNuage"]').click(); await pg.waitForTimeout(300);
+  await pg.fill('#nuageEmail','barbaros@elatransfer.com');
+  await pg.fill('#nuageMdp','un-mot-de-passe');
+  await pg.locator('#btnNuageConnexion').click(); await pg.waitForTimeout(900);
+  const dit = await pg.locator('#nuageEtat').textContent();
+  check(cas.nom + ' : le message dit quoi faire',
+    dit.includes(cas.attendu), dit);
+  /* Le bouton revient TOUJOURS : laissé sur « … » et désactivé, il ferait
+     croire que la connexion est en cours pour toujours. */
+  check(cas.nom + ' : le bouton redevient utilisable',
+    !(await pg.locator('#btnNuageConnexion').isDisabled()));
+  await c.close();
+}
+
 // ---- Avec session : une demande déposée pendant qu'il regarde arrive ----
 {
   let liste = [courseServeur('ELA-26-09-0100','Jean Martin')];
