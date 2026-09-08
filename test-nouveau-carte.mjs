@@ -219,6 +219,17 @@ async function reserver(reglages = {}){
      exploitant — quelle qu'elle soit. */
   check('le préfixe de Leaflet est vidé — pas de drapeau ajouté par la bibliothèque',
     j.prefixe === '', JSON.stringify(j.prefixe));
+  /* ═══ « C'EST PAS CLAIR DU TOUT » — LA CAUSE ÉTAIT LÀ ═══
+     Barbaros, sur son téléphone. Un téléphone dessine 2 à 3 pixels physiques
+     pour 1 pixel de page : sans « detectRetina », les tuiles de 256 px
+     étaient étirées sur 512 ou 768 pixels d'écran. C'est du flou, pas de la
+     petitesse — et ça ne se voit JAMAIS sur l'écran d'un ordinateur
+     ordinaire, ce qui explique qu'il ait fallu qu'il le signale.
+     Le contrôle est ici parce que l'option est une ligne qu'une réécriture
+     emporte sans rien casser de visible sur le banc de test. */
+  check('les tuiles sont demandées à la densité de l\'écran',
+    j.tuiles[0] && j.tuiles[0].opts.detectRetina === true,
+    JSON.stringify(j.tuiles[0] && j.tuiles[0].opts));
   check('aucune erreur JavaScript', errs.length === 0, errs.join(' | '));
   await ctx.close();
 }
@@ -256,6 +267,84 @@ async function reserver(reglages = {}){
   check('elle est servie par le site lui-même, jamais par un CDN',
     sources.length === 2 && sources.every(u => u.startsWith('http://127.0.0.1:8099/')),
     sources.join(' '));
+  await ctx.close();
+}
+
+/* ═════════ 4. « ELLE DOIT S'AFFICHER PLUS VITE » ═════════
+   Barbaros, septembre 2026. La bibliothèque ne partait qu'APRÈS la réponse
+   du calculateur d'itinéraire : deux attentes mises bout à bout alors
+   qu'elles n'ont rien à voir l'une avec l'autre.
+
+   LE CONTRÔLE NE MESURE PAS UNE DURÉE — une durée dépend de la machine et
+   finit par échouer un jour de charge sans que rien ne soit cassé. Il
+   éprouve l'ORDRE : on fait répondre l'itinéraire en 2 secondes, et on
+   regarde 900 ms après le clic. À cet instant, l'écran des prix N'EST PAS
+   encore affiché ; si la bibliothèque a déjà été demandée, c'est qu'elle
+   n'attend pas le prix. C'est exactement ce qui tombe sur l'ancien code. */
+{
+  const ctx = await b.newContext({viewport:{width:390,height:844},
+                                  deviceScaleFactor:2, locale:'fr-FR'});
+  const p = await ctx.newPage();
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  const demandes = [];
+  p.on('request', r => demandes.push(r.url()));
+
+  await p.route('**://photon.komoot.io/**', r => r.fulfill({contentType:'application/json',
+    body:JSON.stringify({features:[{geometry:{coordinates:[2.3376,48.8606]},
+      properties:{name:"Place Vendôme",osm_key:"tourism",osm_value:"attraction",
+                  postcode:"75001",city:"Paris",countrycode:"FR"}}]})}));
+  await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'application/json',
+    body:JSON.stringify({features:[{geometry:{coordinates:[2.5479,49.0097]},
+      properties:{label:"Aéroport Charles-de-Gaulle, 95700 Roissy"}}]})}));
+  await p.route('**://api.openrouteservice.org/**', r => r.abort());
+  await p.route('**://tile.openstreetmap.org/**', r => r.fulfill({
+    contentType:'image/svg+xml',
+    body:'<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">'
+       + '<rect width="256" height="256" fill="#eae6df"/></svg>'}));
+  /* L'ITINÉRAIRE PREND SON TEMPS — c'est le cas réel d'un téléphone en 4G,
+     et c'est là que la mise en parallèle se voit. Deux secondes : sous le
+     minuteur de quatre, donc l'appel aboutit. */
+  await p.route('**://router.project-osrm.org/**', async r => {
+    await new Promise(f => setTimeout(f, 2000));
+    await r.fulfill({contentType:'application/json',
+      body:JSON.stringify({routes:[{distance:29400,duration:2280,
+        geometry:{type:"LineString",coordinates:TRACE}}]})});
+  });
+
+  await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(400);
+  await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
+  await p.locator('#departList [role=option]').first().click();
+  await p.type('#arrivee','roissy',{delay:10}); await p.waitForTimeout(800);
+  await p.locator('#arriveeList [role=option]').first().click();
+  const d = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  await p.fill('#date', d); await p.fill('#heure','10:00');
+
+  /* Rien ne doit partir AVANT le clic : l'accueil ne télécharge pas 200 Ko
+     de cartographie pour un visiteur qui ne réservera peut-être jamais. */
+  check('l\'accueil ne télécharge pas la bibliothèque de carte',
+    !demandes.some(u => /carte\/leaflet\.js/.test(u)));
+
+  await p.locator('#btnVoirPrix').click();
+  await p.waitForTimeout(900);
+  const prixAffiche = await p.locator('#ecran-vehicules').evaluate(
+    e => e.classList.contains('actif'));
+  const partie = demandes.some(u => /carte\/leaflet\.js/.test(u));
+  check('à mi-calcul, le prix n\'est pas encore là', !prixAffiche);
+  check('MAIS LA CARTE EST DÉJÀ EN ROUTE — elle n\'attend plus le prix', partie,
+    demandes.filter(u=>/leaflet/.test(u)).join(' '));
+  /* La préconnexion aux tuiles se fait pendant le calcul, elle aussi : une
+     résolution de nom et une poignée de main TLS, c'est facilement une
+     demi-seconde en 4G, et elle est prise sur du temps déjà perdu. */
+  check('et le serveur de tuiles est déjà préconnecté',
+    await p.evaluate(() => !!document.querySelector(
+      'link[rel=preconnect][href*="tile.openstreetmap.org"]')));
+
+  /* Et au bout du compte, la carte s'affiche bel et bien. */
+  await p.waitForTimeout(2200);
+  check('la carte est affichée une fois le prix arrivé',
+    await p.locator('#carteTrajet').isVisible());
+  check('aucune erreur JavaScript', errs.length === 0, errs.join(' | '));
   await ctx.close();
 }
 
