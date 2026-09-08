@@ -42,7 +42,11 @@ await ctx.addInitScript(()=>{ localStorage.setItem('ela_exploitant','584ec46adb3
 await p.goto('http://127.0.0.1:8099/?exploitant=1',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(600);
 
-check('le tableau de bord porte l\'affiche pour un hôtel',
+/* L'AFFICHE A DÉMÉNAGÉ dans l'écran « Réglages ». Elle se règle une fois et
+   ne se regarde plus : sa place n'était pas sur le tableau de bord, qui est
+   ce qu'on ouvre pour voir les demandes qui attendent. */
+await p.locator('#btnReglages').click(); await p.waitForTimeout(350);
+check('les réglages portent l\'affiche pour un hôtel',
   await p.locator('#hotelNom').isVisible());
 check('rien n\'est dessiné tant qu\'aucun hôtel n\'est nommé',
   await p.locator('#blocAffiche').isHidden());
