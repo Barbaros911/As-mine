@@ -3012,6 +3012,35 @@ laissait choisir.
   t'ai pas demander ».
 - **Montrer une capture avant de pousser**, et attendre son accord.
 
+### « Arrête de deviner, sois expert méthodique »
+
+Septembre 2026, après une soirée où une panne a coûté une heure. **Deux
+habitudes à supprimer, pas deux conseils.**
+
+**1. MESURER AVANT D'ÉMETTRE UNE HYPOTHÈSE.** Sur le bouton mangé par la
+barre du bas, j'ai supposé successivement un bouton désactivé, un écriteau
+de zone, un problème d'heure — trois hypothèses, trois vérifications, zéro
+résultat. **La mesure qui a tout donné a pris trente secondes** :
+`elementFromPoint` au centre du bouton, qui rend « onglet ». L'ordre est
+toujours le même : (1) reproduire, (2) **mesurer l'état réel** — rectangles,
+valeurs, ce que reçoit le doigt — (3) comparer avec la version qui marchait
+(`git worktree` sur `main`, un serveur sur un autre port), (4) bissecter
+commit par commit. Ce chemin est plus court que l'intuition, toujours.
+
+**2. NE PAS RELANCER LES VINGT ET UNE SUITES À CHAQUE PAS.** Elles prennent
+six minutes ; elles ont tourné cinq fois cette nuit-là, dont trois pour rien.
+La marche à suivre : après un changement, lancer **les deux ou trois suites
+qui touchent au sujet**, plus celle qu'on vient d'écrire, et **éprouver le
+nouveau contrôle contre le défaut qu'il surveille**. La série complète ne se
+lance **qu'une fois**, avant la fusion. Deux exécutions en parallèle se
+marchent dessus et se bloquent — ne jamais en lancer une seconde tant que la
+première tourne.
+
+**3. UNE SUITE MUETTE EST UN ÉCHEC.** `test-nouveau-option` n'a rien affiché
+— ni réussite ni échec — dans trois séries d'affilée, et je l'ai lue comme
+« pas concernée ». La boucle de lancement le signale maintenant en toutes
+lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
+
 ## Tests
 
 **Vingt et une suites Playwright, 776 contrôles**, à relancer après **toute**
@@ -3037,6 +3066,9 @@ touché dix-neuf fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
+# UNE SEULE EXÉCUTION À LA FOIS : deux séries en parallèle se marchent
+# dessus et se bloquent. Et une suite MUETTE est un échec — elle est
+# signalée en toutes lettres plutôt que laissée passer.
 for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-langues.mjs test-nouveau-courses.mjs \
          test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
@@ -3047,7 +3079,15 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
          test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
          test-nouveau-carte.mjs test-nouveau-bascule.mjs; do
-  node $f || break
+  printf "%-34s " "$f"
+  out=$(node $f 2>&1)
+  res=$(echo "$out" | grep -E "^=== " | tr '\n' ' ')
+  if [ -z "$res" ]; then
+    echo "!!! MUETTE — PLANTAGE"; echo "$out" | tail -4
+  else
+    echo "$res"
+  fi
+  echo "$out" | sed -n '/=== ÉCHECS/,/^$/p' | head -6
 done
 node test-notification.mjs   # ni navigateur ni réseau
 node test-push.mjs           # ni navigateur ni réseau
