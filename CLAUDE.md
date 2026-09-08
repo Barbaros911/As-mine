@@ -1248,6 +1248,74 @@ rattrapant le précédent :
   tomberaient à côté. **Toute nouvelle suite qui simule OSRM doit couper
   ORS de la même façon.**
 
+## LA CARTE DU TRAJET — LEAFLET, ET LA PREMIÈRE DÉPENDANCE DU SITE
+
+Septembre 2026, à sa demande : « une belle carte comme Maps ». Le client voit
+la route qu'on lui facture, et c'est ce qui rend le prix compréhensible.
+
+**C'EST LA SEULE DÉPENDANCE EXTÉRIEURE DE LA PAGE**, et elle a été acceptée
+pour une raison précise : Leaflet est en licence libre, sans dépendance
+lui-même, et **rien ne casse s'il n'arrive pas**. Ne pas s'en servir comme
+d'un précédent pour en ajouter d'autres.
+
+- **ELLE NE PEUT JAMAIS EMPÊCHER DE RÉSERVER.** Le chargement est enveloppé,
+  et le seul échec possible est « pas de carte » : cadre masqué, hauteur
+  nulle, aucun trou dans la page, et le tunnel continue. Un client dans un
+  parking d'aéroport n'a parfois aucun réseau. **Six contrôles éprouvent ce
+  cas-là en premier**, et ils tournent toujours — la machine de test est hors
+  ligne, donc le CDN n'y répond jamais.
+- **UNE MINUTERIE DE 5 s SUR LE CHARGEMENT.** Un script bloqué par un proxy
+  ou un bloqueur de publicité **ne déclenche pas toujours `onerror`** : la
+  promesse resterait en attente pour toujours. Même leçon que le
+  presse-papiers. La promesse échouée est oubliée, pour qu'un client qui
+  retrouve du réseau puisse réessayer.
+- **« lon, lat » CHEZ LES CALCULATEURS, « lat, lon » CHEZ LEAFLET.** Inversé,
+  le tracé part dans l'océan Indien — la carte s'affiche très bien, elle est
+  simplement fausse. Un faux Leaflet **enregistre** ce qu'on lui donne et le
+  test vérifie que les points tombent en Île-de-France. C'est le même piège
+  que l'ordre des points dans l'appel à ORS.
+- **ORS REND LE TRACÉ SANS QU'ON LE DEMANDE** : il est dans la réponse qu'on
+  lit déjà, et on le jetait. La carte ne coûte donc **aucun appel
+  supplémentaire** sur le niveau qui sert aujourd'hui. Pour Mapbox et OSRM,
+  `overview=false` est devenu `overview=simplified&geometries=geojson` — la
+  raison d'origine (« le site n'affiche aucune carte ») est tombée avec la
+  carte. **`simplified` et pas `full`** : à l'échelle d'un téléphone, le
+  tracé complet pèse dix fois plus pour un trait identique à l'œil.
+- **LE DRAPEAU DE LEAFLET S'EN VA — et c'est la DEUXIÈME fois dans ce
+  projet.** La version 1.9 glisse un drapeau ukrainien dans son attribution ;
+  Barbaros l'avait déjà fait retirer de l'ancien site.
+  `attributionControl.setPrefix("")`. **« © OpenStreetMap » reste** : les
+  données sont sous licence ODbL, la citation des contributeurs est une
+  obligation. On retire le préfixe de la bibliothèque, jamais la source.
+- **LA CARTE NE SE MANIPULE PAS** (`dragging`, `touchZoom`, `scrollWheelZoom`
+  à `false`). Dans un tunnel de réservation elle se REGARDE : un pouce qui
+  fait défiler la page ne doit pas déplacer la carte au lieu de descendre à
+  la liste des prix.
+- **ELLE EST TRACÉE APRÈS `ecran()`, jamais avant** : Leaflet mesure son
+  cadre à la création, et un cadre encore masqué mesure zéro — la carte sort
+  grise. Exactement le piège de la courbe du tableau de bord. D'où aussi le
+  `invalidateSize()` différé et la hauteur fixe en CSS, qui empêche la page
+  de sauter quand la carte arrive.
+- **LES TUILES SONT LE POINT FAIBLE, ET IL EST CONNU.** La politique
+  d'OpenStreetMap déconseille l'usage commercial soutenu : elle peut couper
+  sans préavis. Le jour où `CLE_MAPBOX` est remplie, on passe aux tuiles
+  Mapbox — même bibliothèque, une ligne. Elles sont **désaturées** en CSS :
+  la couleur doit rester au tracé et aux deux repères.
+- **LE CDN EST INJOIGNABLE DEPUIS LA MACHINE DE DÉVELOPPEMENT.** Pour voir
+  vraiment la carte, récupérer la bibliothèque par npm
+  (`npm pack leaflet@1.9.4`) dans le bac à sable et la servir à la place du
+  CDN — c'est ce que fait la troisième partie de `test-nouveau-carte.mjs`.
+  Sans elle, la suite **le dit et échoue** au lieu de sauter le contrôle :
+  un faux Leaflet prouve qu'on parle correctement à la bibliothèque, jamais
+  qu'elle dessine.
+- **PAS DE CARTE DE TRAFIC SUR LE TABLEAU DE BORD** (demandée, écartée).
+  TomTom et HERE ont des paliers gratuits, ce n'est pas le problème :
+  Barbaros ne conduit pas, il place. Une carte rouge et verte ne change
+  aucune décision — c'est la carte des chauffeurs en temps réel de la
+  maquette, refusée pour la même raison. Ce qui déciderait quelque chose,
+  c'est une **durée tenant compte du trafic à l'heure de la course** (Mapbox
+  sait le faire), affichée sur une ligne.
+
 ## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
 
 Septembre 2026, à sa demande. Il a demandé « pourquoi tu ne me créerais
@@ -2211,7 +2279,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt suites Playwright, 602 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 681 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
@@ -2243,7 +2311,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
          test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
-         test-nouveau-bascule.mjs; do
+         test-nouveau-carte.mjs test-nouveau-bascule.mjs; do
   node $f || break
 done
 node test-notification.mjs   # ni navigateur ni réseau
