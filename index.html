@@ -2310,71 +2310,6 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       </button>
     </div>
 
-    <!-- LES QUATRE CHIFFRES DU HAUT.
-         Ils ne racontent pas la même chose que les trois compteurs plus bas :
-         les compteurs FILTRENT la liste, ceux-ci se lisent et rien de plus.
-         Le premier crie — c'est le seul qui appelle un geste tout de suite. -->
-    <div class="kpis">
-      <div class="kpi">
-        <span class="kpi-ico" style="background:#fbe9e9;color:#C9302F">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.9"/>
-            <path d="M12 7.6V12l3 1.9" stroke="currentColor" stroke-width="1.9"
-                  stroke-linecap="round"/>
-          </svg></span>
-        <span class="kpi-corps">
-          <span class="kpi-lab">Demandes en attente</span>
-          <span class="kpi-val" id="kpiAttente">0</span>
-          <span class="kpi-var" id="kpiAttenteVar">Aucune réponse à donner</span>
-        </span>
-      </div>
-      <div class="kpi">
-        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3.6" y="5.2" width="16.8" height="15.2" rx="2.6"
-                  stroke="currentColor" stroke-width="1.9"/>
-            <path d="M3.6 10h16.8M8.4 3.6v3.2M15.6 3.6v3.2" stroke="currentColor"
-                  stroke-width="1.9" stroke-linecap="round"/>
-          </svg></span>
-        <span class="kpi-corps">
-          <span class="kpi-lab">Courses aujourd'hui</span>
-          <span class="kpi-val" id="kpiJour">0</span>
-          <span class="kpi-var" id="kpiJourVar">—</span>
-        </span>
-      </div>
-      <div class="kpi">
-        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M14.4 8.2c-.6-1-1.6-1.5-2.9-1.5-1.8 0-2.9.9-2.9 2.2 0 3 6.2 1.5 6.2 4.8
-                     0 1.5-1.3 2.5-3.3 2.5-1.6 0-2.8-.6-3.4-1.8M12 4.6v14.8"
-                  stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-          </svg></span>
-        <span class="kpi-corps">
-          <span class="kpi-lab">Encaissé cette semaine</span>
-          <span class="kpi-val" id="kpiCA">0 €</span>
-          <span class="kpi-var" id="kpiCAVar">—</span>
-        </span>
-      </div>
-      <div class="kpi">
-        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4.6 19.4V13m4.8 6.4V8.6m4.8 10.8v-4.2m4.8 4.2V5.4"
-                  stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
-          </svg></span>
-        <span class="kpi-corps">
-          <span class="kpi-lab">Courses réalisées</span>
-          <span class="kpi-val" id="kpiCourses">0</span>
-          <span class="kpi-var" id="kpiCoursesVar">—</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- COLLER UNE DEMANDE, EN HAUT ET EN PREMIER.
-         Rien ne voyage tout seul d'un téléphone à l'autre : quand un client
-         écrit sur WhatsApp plutôt que de passer par le site, sa demande
-         n'existe nulle part. Le presse-papiers est le transport. Barbaros
-         copie le message, appuie ici, et la course entre en attente sans
-         qu'il retape une adresse à 3 h du matin. -->
     <!-- ═══ LE BLOC A MAIGRI DE MOITIÉ ═══
          Septembre 2026, à sa demande : « ça prend beaucoup de place ». Il
          portait un titre et deux boutons pleine largeur empilés — 160 px
@@ -2445,48 +2380,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <p>Aucune course pour l'instant.</p>
     </div>
 
-    <!-- LES PANNEAUX — ce qu'on regarde une fois le travail fait.
-         TOUT Y EST CALCULÉ DEPUIS LE REGISTRE, rien n'est décoratif : pas de
-         carte des chauffeurs en temps réel (aucun d'eux n'a d'application qui
-         envoie sa position), pas de note moyenne inventée. Un chiffre faux sur
-         un tableau de bord est pire qu'un panneau vide : on finit par décider
-         avec. -->
+    <!-- ═══ LE TABLEAU DE BORD NE SERT PLUS QU'À TRAITER ET À CRÉER ═══
+         Septembre 2026, à sa demande : « laisse le tableau de bord seulement
+         pour le traitement de course et créer des courses ». Les quatre
+         chiffres, la courbe, le camembert, les barres, la provenance et les
+         avis sont partis au REGISTRE — c'est l'écran des chiffres, ils y
+         sont chez eux, et ici ils repoussaient les demandes sous la ligne
+         de flottaison. On ne les a pas supprimés : ce qu'on regarde une fois
+         le travail fait a simplement cessé de passer devant le travail.
+
+         UN SEUL PANNEAU RESTE, ET CE N'EST PAS UNE EXCEPTION DE CONFORT :
+         « Papiers à surveiller » n'affiche RIEN quand le carnet est à jour.
+         Il ne coûte donc aucune place dans le cas normal, et son apparition
+         est elle-même l'alerte — une carte professionnelle ou une assurance
+         périmée engage la responsabilité d'Elatransfer au moment où l'on
+         attribue la course (L3142-1). L'enterrer dans un autre écran, c'est
+         le lire le jour où il est trop tard. -->
     <div class="panneaux">
-      <div class="panneau large">
-        <div class="panneau-tete">
-          <span class="panneau-titre">Réservations</span>
-          <span class="panneau-vide" style="padding:0">7 derniers jours</span>
-        </div>
-        <svg class="courbe" id="courbeBord" aria-hidden="true"></svg>
-        <div class="courbe-jours" id="courbeJours"></div>
-      </div>
-
-      <div class="panneau">
-        <div class="panneau-tete"><span class="panneau-titre">Berline ou van</span></div>
-        <div class="donut-rangee">
-          <svg class="donut" id="donutBord" viewBox="0 0 42 42" aria-hidden="true"></svg>
-          <div class="legende" id="legendeBord"></div>
-        </div>
-        <p class="panneau-vide" id="donutVide" hidden>Aucune course enregistrée.</p>
-      </div>
-
-      <div class="panneau">
-        <div class="panneau-tete"><span class="panneau-titre">Où en sont les courses</span></div>
-        <div id="barresBord"></div>
-        <p class="panneau-vide" id="barresVide" hidden>Aucune course enregistrée.</p>
-      </div>
-
-      <div class="panneau large">
-        <div class="panneau-tete"><span class="panneau-titre">D'où viennent les clients</span></div>
-        <div class="tableau-cadre">
-          <table class="tableau"><tbody id="provBord"></tbody></table>
-        </div>
-        <p class="panneau-vide" id="provVide" hidden>
-          Aucune demande venue d'une affiche pour l'instant. Posez-en une
-          au comptoir d'un hôtel et le compte s'affichera ici.
-        </p>
-      </div>
-
       <!-- LES PAPIERS QUI EXPIRENT. Ce panneau ne montre QUE ce qui appelle
            un geste : un carnet entièrement à jour n'a rien à dire, et une
            liste où tout est vert finit par ne plus se lire du tout. -->
@@ -2495,18 +2405,6 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
         <div id="papiersBord"></div>
       </div>
 
-      <!-- LES AVIS : LE PANNEAU EXISTE, IL EST VIDE, ET IL LE RESTE TANT
-           QU'AUCUN AVIS N'EST REÇU. Afficher « 4,9/5 sur 128 avis » sans
-           avis serait une pratique commerciale trompeuse (L132-2 Code de la
-           consommation) — et se croire bien noté est une mauvaise façon de
-           décider. -->
-      <div class="panneau">
-        <div class="panneau-tete"><span class="panneau-titre">Avis clients</span></div>
-        <p class="panneau-vide">
-          Aucun avis reçu pour l'instant. Ils s'afficheront ici — jamais
-          une note inventée.
-        </p>
-      </div>
     </div>
 
   </section>
@@ -2851,6 +2749,136 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <p class="bloc-note" id="regSauvEtat">Sauvegardez chaque semaine tant que le serveur n'est pas connecté :
          le registre ne vit que dans ce navigateur.</p>
     </div>
+
+    <!-- ═══ LES CHIFFRES SONT ICI, PAS SUR LE TABLEAU DE BORD ═══
+         Ils y étaient et ils repoussaient les demandes hors de l'écran.
+         Le registre est l'endroit des chiffres : on l'ouvre pour eux, on
+         n'y passe pas pour traiter une course. Rien n'est décoratif — pas
+         de carte des chauffeurs en temps réel, pas de note moyenne
+         inventée : un chiffre faux sur un tableau de bord est pire qu'un
+         panneau vide, on finit par décider avec. -->
+    <!-- LES QUATRE CHIFFRES DU HAUT.
+         Ils ne racontent pas la même chose que les trois compteurs plus bas :
+         les compteurs FILTRENT la liste, ceux-ci se lisent et rien de plus.
+         Le premier crie — c'est le seul qui appelle un geste tout de suite. -->
+    <div class="kpis">
+      <div class="kpi">
+        <span class="kpi-ico" style="background:#fbe9e9;color:#C9302F">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.9"/>
+            <path d="M12 7.6V12l3 1.9" stroke="currentColor" stroke-width="1.9"
+                  stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Demandes en attente</span>
+          <span class="kpi-val" id="kpiAttente">0</span>
+          <span class="kpi-var" id="kpiAttenteVar">Aucune réponse à donner</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3.6" y="5.2" width="16.8" height="15.2" rx="2.6"
+                  stroke="currentColor" stroke-width="1.9"/>
+            <path d="M3.6 10h16.8M8.4 3.6v3.2M15.6 3.6v3.2" stroke="currentColor"
+                  stroke-width="1.9" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Courses aujourd'hui</span>
+          <span class="kpi-val" id="kpiJour">0</span>
+          <span class="kpi-var" id="kpiJourVar">—</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14.4 8.2c-.6-1-1.6-1.5-2.9-1.5-1.8 0-2.9.9-2.9 2.2 0 3 6.2 1.5 6.2 4.8
+                     0 1.5-1.3 2.5-3.3 2.5-1.6 0-2.8-.6-3.4-1.8M12 4.6v14.8"
+                  stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Encaissé cette semaine</span>
+          <span class="kpi-val" id="kpiCA">0 €</span>
+          <span class="kpi-var" id="kpiCAVar">—</span>
+        </span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico" style="background:var(--accent-clair);color:var(--accent-encre)">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4.6 19.4V13m4.8 6.4V8.6m4.8 10.8v-4.2m4.8 4.2V5.4"
+                  stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+          </svg></span>
+        <span class="kpi-corps">
+          <span class="kpi-lab">Courses réalisées</span>
+          <span class="kpi-val" id="kpiCourses">0</span>
+          <span class="kpi-var" id="kpiCoursesVar">—</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- COLLER UNE DEMANDE, EN HAUT ET EN PREMIER.
+         Rien ne voyage tout seul d'un téléphone à l'autre : quand un client
+         écrit sur WhatsApp plutôt que de passer par le site, sa demande
+         n'existe nulle part. Le presse-papiers est le transport. Barbaros
+         copie le message, appuie ici, et la course entre en attente sans
+         qu'il retape une adresse à 3 h du matin. -->
+
+    <!-- LES PANNEAUX — ce qu'on regarde une fois le travail fait.
+         TOUT Y EST CALCULÉ DEPUIS LE REGISTRE, rien n'est décoratif : pas de
+         carte des chauffeurs en temps réel (aucun d'eux n'a d'application qui
+         envoie sa position), pas de note moyenne inventée. Un chiffre faux sur
+         un tableau de bord est pire qu'un panneau vide : on finit par décider
+         avec. -->
+    <div class="panneaux">
+      <div class="panneau large">
+        <div class="panneau-tete">
+          <span class="panneau-titre">Réservations</span>
+          <span class="panneau-vide" style="padding:0">7 derniers jours</span>
+        </div>
+        <svg class="courbe" id="courbeBord" aria-hidden="true"></svg>
+        <div class="courbe-jours" id="courbeJours"></div>
+      </div>
+
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Berline ou van</span></div>
+        <div class="donut-rangee">
+          <svg class="donut" id="donutBord" viewBox="0 0 42 42" aria-hidden="true"></svg>
+          <div class="legende" id="legendeBord"></div>
+        </div>
+        <p class="panneau-vide" id="donutVide" hidden>Aucune course enregistrée.</p>
+      </div>
+
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Où en sont les courses</span></div>
+        <div id="barresBord"></div>
+        <p class="panneau-vide" id="barresVide" hidden>Aucune course enregistrée.</p>
+      </div>
+
+      <div class="panneau large">
+        <div class="panneau-tete"><span class="panneau-titre">D'où viennent les clients</span></div>
+        <div class="tableau-cadre">
+          <table class="tableau"><tbody id="provBord"></tbody></table>
+        </div>
+        <p class="panneau-vide" id="provVide" hidden>
+          Aucune demande venue d'une affiche pour l'instant. Posez-en une
+          au comptoir d'un hôtel et le compte s'affichera ici.
+        </p>
+      </div>
+
+      <!-- LES AVIS : LE PANNEAU EXISTE, IL EST VIDE, ET IL LE RESTE TANT
+           QU'AUCUN AVIS N'EST REÇU. Afficher « 4,9/5 sur 128 avis » sans
+           avis serait une pratique commerciale trompeuse (L132-2 Code de la
+           consommation) — et se croire bien noté est une mauvaise façon de
+           décider. -->
+      <div class="panneau">
+        <div class="panneau-tete"><span class="panneau-titre">Avis clients</span></div>
+        <p class="panneau-vide">
+          Aucun avis reçu pour l'instant. Ils s'afficheront ici — jamais
+          une note inventée.
+        </p>
+      </div>
+    </div>
+
   </section>
 
   <!-- =====================================================================
@@ -6742,6 +6770,10 @@ window.ELA_TEXTES = {
       el.addEventListener("click", function(){ ouvrirBonBord(c.ref); });
       liste.appendChild(el);
     });
+    /* Le tableau de bord ne porte plus que le panneau des papiers : les
+       chiffres et les graphiques sont au Registre, et s'y dessinent quand on
+       l'ouvre. Redessiner ici des panneaux invisibles ne servirait à rien —
+       et les tracerait à une largeur de zéro. */
     dessinerAdmin(tout, parEtat);
   }
 
@@ -6984,8 +7016,15 @@ window.ELA_TEXTES = {
      fenêtre change de largeur, sinon elle garde celle du téléphone tourné
      dans l'autre sens. */
   window.addEventListener("resize", function(){
-    var e = document.getElementById("ecran-bord");
-    if(e && e.classList.contains("actif")) dessinerBord();
+    /* Les panneaux ont déménagé au Registre (septembre 2026) : c'est LUI
+       qu'il faut redessiner quand la fenêtre change de largeur. Le tableau
+       de bord garde sa liste, qui ne dépend d'aucune mesure — mais on le
+       redessine aussi, il ne coûte rien et il porte encore le panneau des
+       papiers. */
+    var bord = document.getElementById("ecran-bord");
+    var reg  = document.getElementById("ecran-registre");
+    if((bord && bord.classList.contains("actif"))
+    || (reg  && reg.classList.contains("actif"))) dessinerBord();
   });
 
   function majCourse(ref, statut, extra){
@@ -7878,7 +7917,16 @@ window.ELA_TEXTES = {
   }
   function ouvrirRegistre(){
     dessinerRegistre();
+    /* ═══ L'ÉCRAN D'ABORD, LE DESSIN ENSUITE ═══
+       Les quatre chiffres et les panneaux ont déménagé ici depuis le tableau
+       de bord (septembre 2026). Leur dessin ne peut donc plus se faire au
+       moment où l'on dessine le tableau de bord : Leaflet, la courbe et le
+       camembert mesurent la largeur RÉELLE de leur cadre, et un écran masqué
+       mesure ZÉRO — la courbe sortait plate. C'est le piège déjà rencontré à
+       l'ouverture de l'espace exploitant, et à la création de la carte du
+       trajet. On affiche, PUIS on dessine. */
     ecran("ecran-registre");
+    dessinerBord();
     allumerAdmin(document.getElementById("btnRegistre"));
   }
   document.getElementById("btnRegistre").addEventListener("click", ouvrirRegistre);

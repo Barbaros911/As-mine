@@ -1968,6 +1968,34 @@ avait raison : rien ne disait ce qu'il fallait regarder en premier.
 - `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
   identifiants sont inchangés**, six suites les cliquent.
 
+### LE TABLEAU DE BORD NE SERT PLUS QU'À TRAITER ET À CRÉER
+
+Septembre 2026, à sa demande : « laisse le tableau de bord seulement pour le
+traitement de course et créer des courses ».
+
+**Ce qui reste** : l'état du serveur, « Coller une demande » / « Saisir par
+téléphone », les trois filtres, la liste des courses.
+**Ce qui est parti AU REGISTRE** : les quatre chiffres, la courbe des
+réservations, le camembert berline/van, « Où en sont les courses », « D'où
+viennent les clients », les avis. **Rien n'est supprimé** — le registre est
+l'écran des chiffres, on l'ouvre pour eux ; sur le tableau de bord ils
+repoussaient les demandes hors de l'écran.
+
+- **UN SEUL PANNEAU RESTE, ET CE N'EST PAS UNE EXCEPTION DE CONFORT.**
+  « Papiers à surveiller » n'affiche **rien** quand le carnet est à jour : il
+  ne coûte aucune place dans le cas normal, et son apparition **est**
+  l'alerte. Une carte professionnelle ou une assurance périmée engage la
+  responsabilité d'Elatransfer à l'instant où l'on attribue la course
+  (L3142-1). L'enterrer dans un autre écran, c'est le lire trop tard.
+- **LE DESSIN A SUIVI LES PANNEAUX.** `ouvrirRegistre()` appelle
+  `ecran("ecran-registre")` **puis** `dessinerBord()` : la courbe et le
+  camembert mesurent la largeur RÉELLE de leur cadre, et un écran masqué
+  mesure zéro — la courbe sortait plate. **Troisième fois que ce projet
+  tombe dessus** (la courbe de l'espace exploitant, la carte du trajet).
+  Le gestionnaire de redimensionnement regarde donc les DEUX écrans.
+- **Mesuré** : la première course passe de y = 761 à **y = 518**, et à ~290
+  une fois connecté — le bandeau rouge du serveur disparaît alors.
+
 ### « ÇA PREND BEAUCOUP DE PLACE » — LE TABLEAU DE BORD A MAIGRI
 
 Septembre 2026, à sa demande, après une capture où il fallait franchir près
