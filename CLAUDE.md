@@ -1515,6 +1515,109 @@ estimation de 5-10 minutes plus longue ».
   recalculerait la marge passerait au vert même si elle disparaissait des
   deux côtés. Éprouvé marges à zéro : les trois contrôles tombent.
 
+## LA RÉPONSE ARRIVE SUR LE SITE, ET LA BARRE DU BAS A QUATRE ONGLETS
+
+Septembre 2026, sur deux captures. Quatre reproches d'un coup : « le client
+n'est pas censé savoir que sa demande part sur WhatsApp s'il ne lit pas la
+ligne du bas » · « s'il n'a pas WhatsApp comment je pourrai être au
+courant ? » · « il faut que je puisse répondre aussi via le site » · « en
+bas il faut écrire accueil, mes réservations, mes trajets effectués, sorte
+de logo pour me contacter directement sur WhatsApp… c'est nul comme ça ».
+
+### « EN ATTENTE » ÉTAIT UN MENSONGE, PAS UN MANQUE
+
+C'est le vrai défaut que ses captures montraient : trois courses toutes
+« EN ATTENTE », dont une de 3 h 20 du matin qu'il avait certainement déjà
+traitée. **« Mes courses » n'affichait que ce qui dort dans le téléphone du
+client, figé à l'instant de la réservation.** Le client rappelle pour
+demander ce qu'il a déjà.
+
+- **`etat-course`** (troisième fonction Supabase) est la seule porte : la
+  règle de sécurité interdit la lecture aux anonymes et **doit**
+  l'interdire — la clé du site est publique, une policy de lecture
+  exposerait les noms, téléphones et adresses de tous les clients.
+- **LA CLÉ EST LE COUPLE RÉFÉRENCE + TÉLÉPHONE.** La référence seule est
+  séquentielle donc devinable : il suffirait de compter pour lire les
+  courses des autres. Le numéro ne sort jamais du téléphone du client.
+- **Elle ne rend que ce que porte déjà le lien `?ok=`** — statut, prénom du
+  chauffeur, son numéro, véhicule, heure. Jamais les adresses, le nom, la
+  chambre ni le prix : le client a tout le reste sur son propre bon.
+- **Le chauffeur n'est rendu que sur une course confirmée ou réalisée.** Sur
+  une course en attente, Barbaros a pu écrire un nom pour se souvenir de qui
+  rappeler — l'envoyer promettrait une voiture qui n'a rien accepté.
+- **UN APPEL QUI ÉCHOUE NE FAIT JAMAIS RECULER UN ÉTAT.** `nuage.etat()`
+  rend `null` sur un échec et l'appelant garde ce qu'il a. Écrire
+  « attente » sur un serveur muet repasserait au neutre une course
+  confirmée — exactement le défaut qu'on répare. **C'est le contrôle qui
+  compte le plus** : il ne se voit pas à l'œil et coûterait un client qui
+  croit sa voiture annulée.
+- **On n'interroge que ce qui peut encore changer** : une course réalisée ou
+  refusée ne bougera plus. Un test compte les appels.
+- **Rien à faire dans Supabase** : ni table, ni colonne, ni policy. Elle se
+  déploie seule à chaque poussée (`fonctions.yml`).
+
+### « EN ATTENTE » ET « CONFIRMÉ » ÉTAIENT DE LA MÊME COULEUR
+
+Trouvé en relisant sa capture. La règle d'origine était juste — « l'état est
+en OR, jamais en vert : rien n'est confirmé tant que Barbaros n'a pas
+répondu » — mais le passage à la palette « Encre & céladon » a remplacé l'or
+par le vert PARTOUT : « en attente » portait `accent-encre` sur
+`accent-clair`, c'est-à-dire **exactement les valeurs de `.ok`**. Les deux
+pastilles étaient indiscernables, et la seule information que le client vient
+chercher — a-t-on répondu ? — ne se lisait plus.
+**Une couleur nommée par son rôle suit le rôle ; une couleur nommée par sa
+teinte ramène la teinte.** Deuxième fois dans ce projet.
+Désormais : attente = neutre, **confirmé = la seule pastille colorée**,
+terminé et non prise = gris cerclé. Si tout criait, plus rien ne crierait.
+
+### QUATRE ONGLETS, ET LE DERNIER N'OUVRE PAS UN ÉCRAN
+
+- **Accueil · Réservations · Trajets · WhatsApp.** Les libellés sont
+  **courts** — à quatre sur 390 px chacun dispose de 97 px ; le titre complet
+  (« Mes trajets effectués ») vit sur l'écran, où il a la place.
+- **Les réservations sont ce qui attend encore** (attente, confirmée), les
+  trajets ce qui est fini (réalisée, **et refusée**). Un refus n'est pas un
+  trajet, mais il est fini : le laisser dans les réservations ferait attendre
+  une réponse déjà donnée.
+- **L'onglet WhatsApp porte un vrai `href`, pas un `data-ecran`**, et ne
+  s'allume jamais : il quitte le site. Le test ne compte donc plus les
+  onglets — il vérifie que chaque onglet **qui ouvre un écran** en ouvre un
+  différent.
+- **LA BULLE WHATSAPP FLOTTANTE A ÉTÉ RETIRÉE** avec tout son mécanisme
+  (`__jugerPastilleWa`, `PROTEGES`, `.efface`). Elle et l'onglet étaient le
+  même bouton, au même endroit, de la même couleur — et la bulle était la
+  moins bonne des deux : visible sur le seul accueil, elle recouvrait ce qui
+  passait dessous, d'où tout ce mécanisme pour l'effacer. **Ne pas la
+  remettre.** Les tests qui la visaient éprouvent maintenant la RÈGLE
+  (« aucun élément fixe ne recouvre un bouton »), qui vaut pour tout ce
+  qu'on ajouterait demain.
+- **« CONTACT » A CÉDÉ SA PLACE, PAS SON CONTENU.** Le numéro et les trois
+  documents légaux sont descendus en **pied d'accueil** — c'est là qu'on les
+  cherche sur n'importe quel site, et **la LCEN exige qu'ils restent
+  accessibles sans compte, pas qu'ils aient un onglet**. Un test éprouve le
+  CHEMIN depuis l'accueil, pas la présence de l'écran : un écran qu'aucun
+  lien n'ouvre n'est pas accessible.
+
+### CE QUI SE PASSE QUAND ON APPUIE, ÉCRIT AVANT LE BOUTON
+
+Trois lignes numérotées au-dessus de « Confirmer », pas sous lui : une
+phrase posée sous un bouton se lit après le clic, c'est-à-dire trop tard.
+Elles disent aussi ce qui rassure vraiment — **la demande arrive chez
+Elatransfer même si le message WhatsApp n'est pas envoyé**.
+
+**ET LA RÉPONSE À SA QUESTION : OUI, IL EST AU COURANT SANS WHATSAPP.**
+`nuage.deposer()` part à chaque confirmation, indépendamment du message :
+la demande arrive dans son tableau de bord. Ce qui manquait, c'est que le
+site disait le contraire.
+
+**MAIS WHATSAPP CONTINUE DE S'OUVRIR TOUT SEUL, ET C'EST DÉLIBÉRÉ TANT QUE
+L'ALERTE TELEGRAM N'EST PAS BRANCHÉE.** C'est aujourd'hui son **seul**
+avertissement instantané : le webhook de `nouvelle-demande` n'est toujours
+pas posé. Le retirer maintenant, c'est une demande de 5 h du matin que
+personne ne voit avant le lendemain. **Ne pas supprimer l'ouverture
+automatique avant que le webhook Telegram fonctionne** — et le jour où il
+fonctionne, c'est la première chose à faire.
+
 ## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
 
 Septembre 2026, à sa demande. Il a demandé « pourquoi tu ne me créerais

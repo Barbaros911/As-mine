@@ -158,13 +158,18 @@ await p.locator('#btnContinuer').click(); await p.waitForTimeout(400);
 // faciles à oublier en traduisant.
 check('la barre du bas parle anglais elle aussi',
   (await p.locator('[data-t="nav_accueil"]').textContent())==='Home'
-  && (await p.locator('[data-t="nav_courses"]').textContent())==='My rides',
+  && (await p.locator('[data-t="nav_courses"]').textContent())==='Bookings'
+  && (await p.locator('[data-t="nav_trajets"]').textContent())==='Rides',
   await p.locator('[data-t="nav_accueil"]').textContent());
-// Trois onglets depuis le retrait de « Réserver », qui ouvrait le même
-// écran qu'« Accueil ». Chacun garde son dessin.
-check('et ses icônes sont toujours là',
-  (await p.locator('.onglet svg').count())===3,
-  String(await p.locator('.onglet svg').count()));
+/* ON NE FIGE PAS LE COMPTE. Un test qui écrivait « trois » est tombé le
+   jour où WhatsApp est devenu le quatrième onglet, alors que rien n'était
+   cassé — même leçon que la barre figée sur quatre colonnes. Ce qui compte
+   est que CHAQUE onglet garde son dessin : un libellé traduit qui efface
+   l'icône se verrait ici. */
+const nOnglets = await p.locator('.onglet').count();
+check('et chaque onglet garde son dessin',
+  (await p.locator('.onglet svg').count())===nOnglets && nOnglets>=3,
+  (await p.locator('.onglet svg').count())+' dessins pour '+nOnglets+' onglets');
 check('le récapitulatif parle anglais',
   (await p.locator('[data-t="total"]').textContent())==='Total to pay');
 

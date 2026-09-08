@@ -66,3 +66,11 @@ jobs:
 
       - name: Déployer prevenir-client
         run: supabase functions deploy prevenir-client --project-ref "$PROJET"
+
+      # « etat-course » rend au CLIENT l'état de SA course. Elle est appelée
+      # depuis la page publique, donc avec la clé anonyme — qui est un jeton
+      # valide : la vérification reste activée comme pour les deux autres.
+      # Ce qui protège ici n'est pas le jeton (il est public) mais le couple
+      # référence + téléphone exigé dans le corps de l'appel.
+      - name: Déployer etat-course
+        run: supabase functions deploy etat-course --project-ref "$PROJET"

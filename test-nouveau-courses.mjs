@@ -12,9 +12,14 @@
    — LA COURSE SURVIT AU RECHARGEMENT. Elle vit dans le navigateur, et
      nulle part ailleurs : c'est tout ce que le site peut promettre sans
      compte client.
-   — ELLE RESTE « EN ATTENTE ». Le site ne peut pas savoir si Barbaros a
-     confirmé — la réponse arrive sur WhatsApp. Afficher autre chose
-     serait inventer un état qu'on n'a pas.
+   — L'ÉTAT VIENT DU SERVEUR. « Mes réservations » n'affichait que ce qui
+     dormait dans le téléphone : une course confirmée à 4 h du matin y
+     restait « EN ATTENTE » des jours plus tard — une information FAUSSE.
+     La fonction « etat-course » la remet à jour, et une course réalisée
+     CHANGE DE LISTE.
+   — UN APPEL QUI ÉCHOUE NE FAIT PAS RECULER UN ÉTAT. C'est le contrôle qui
+     compte le plus : il ne se voit pas à l'œil, et il coûterait un client
+     qui croit sa voiture annulée.
    — LA LISTE SE TRADUIT, prix compris.
 
    Lancer :  npx http-server -p 8099 -s .
@@ -70,17 +75,44 @@ check('et ils ont tous la même largeur',
 // --- Un onglet doit MENER quelque part ---
 await p.locator('.onglet[data-onglet="courses"]').click();
 await p.waitForTimeout(300);
-check('l\'onglet « Mes courses » ouvre un écran', await p.locator('#ecran-courses').isVisible());
-check('sans course, on le dit et on propose d\'en réserver une',
+check('l\'onglet « Réservations » ouvre un écran', await p.locator('#ecran-courses').isVisible());
+check('sans réservation, on le dit et on propose d\'en faire une',
   await p.locator('#videCourses').isVisible());
 check('l\'onglet allumé suit l\'écran',
   (await p.locator('.onglet.actif [data-t="nav_courses"]').count())===1);
 
-await p.locator('.onglet[data-onglet="contact"]').click();
+await p.locator('.onglet[data-onglet="trajets"]').click();
 await p.waitForTimeout(300);
-check('l\'onglet « Contact » ouvre un écran', await p.locator('#ecran-contact').isVisible());
-const tel = await p.locator('.contact-lien').first().getAttribute('href');
-check('il porte un vrai numéro appelable', tel==='tel:+33759312433', tel);
+check('l\'onglet « Trajets » ouvre son propre écran',
+  await p.locator('#ecran-trajets').isVisible());
+check('sans trajet fait, on le dit', await p.locator('#videTrajets').isVisible());
+
+/* ═══ LE QUATRIÈME ONGLET N'OUVRE PAS UN ÉCRAN, ET C'EST VOULU ═══
+   Il ouvre WhatsApp. Il porte donc un vrai « href » et aucun
+   « data-ecran » : un onglet qui prétendrait mener quelque part sans y
+   mener est exactement ce qu'on a retiré avec « Réserver ». */
+const wa = await p.locator('.onglet[data-onglet="whatsapp"]').getAttribute('href');
+check('l\'onglet WhatsApp ouvre une conversation, pas un écran',
+  /^https:\/\/wa\.me\/33759312433/.test(wa || '')
+  && (await p.locator('.onglet[data-onglet="whatsapp"]').getAttribute('data-ecran')) === null,
+  wa);
+
+/* ═══ LES DOCUMENTS LÉGAUX ONT SURVÉCU AU RETRAIT DE « CONTACT » ═══
+   Ils vivaient derrière cet onglet. La LCEN exige qu'ils restent
+   accessibles sans compte — pas qu'ils aient un onglet. Ce contrôle
+   éprouve le CHEMIN RÉEL depuis l'accueil, pas la présence de l'écran :
+   un écran qu'aucun lien n'ouvre n'est pas accessible. */
+await p.locator('.onglet[data-onglet="accueil"]').click();
+await p.waitForTimeout(200);
+await p.locator('.pied-lien').click();
+await p.waitForTimeout(300);
+check('le pied de l\'accueil mène aux informations légales',
+  await p.locator('#ecran-contact').isVisible());
+check('les trois documents y sont',
+  (await p.locator('.legal-lien').count())===3,
+  String(await p.locator('.legal-lien').count()));
+const tel = await p.locator('.pied-tel').getAttribute('href');
+check('et le numéro est appelable depuis l\'accueil', tel==='tel:+33759312433', tel);
 
 // --- Une réservation, puis on la retrouve ---
 await p.locator('.onglet[data-onglet="accueil"]').click();
@@ -104,8 +136,13 @@ check('pendant le tunnel, c\'est « Accueil » qui reste allumé',
   await p.locator('.onglet.actif').getAttribute('data-onglet'));
 // Deux onglets qui ouvrent le même écran, c'est un client qui appuie sur le
 // second, ne voit rien bouger, et en conclut que le site est cassé.
-const cibles = await p.$$eval('.onglet', a=>a.map(x=>x.dataset.ecran));
-check('chaque onglet mène à un écran différent',
+/* On ne compte QUE les onglets qui ouvrent un écran : depuis que WhatsApp
+   est le quatrième, tous n'en ouvrent pas. Deux onglets sur le même écran
+   resteraient un client qui appuie sur le second, ne voit rien bouger, et
+   en conclut que le site est cassé. */
+const cibles = (await p.$$eval('.onglet', a=>a.map(x=>x.dataset.ecran || '')))
+  .filter(Boolean);
+check('chaque onglet qui ouvre un écran en ouvre un DIFFÉRENT',
   new Set(cibles).size===cibles.length, cibles.join(', '));
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
@@ -151,6 +188,89 @@ check('la liste se réécrit en anglais',
 check('et son prix repasse au format anglais',
   (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='70.00€',
   await p.locator('.course-prix').textContent());
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LA RÉPONSE D'ELATRANSFER ARRIVE SUR LE SITE
+   -----------------------------------------------------------------------
+   Barbaros : « il faut que je puisse répondre aussi via le site ». Avant,
+   « Mes réservations » n'affichait que ce qui dormait dans le téléphone,
+   figé à l'instant de la réservation : une course confirmée à 4 h du matin
+   restait « EN ATTENTE » des jours plus tard. Ce n'était pas une
+   information manquante, c'était une information FAUSSE.
+
+   ON ÉPROUVE CE QUE LE CLIENT VOIT, pas la mécanique : la pastille change,
+   et la course CHANGE DE LISTE quand elle est réalisée. Un contrôle qui
+   dirait seulement « la fonction a été appelée » ne prouverait rien.
+   ═══════════════════════════════════════════════════════════════════════ */
+await p.locator('.langues button[data-langue="fr"]').click();
+await p.waitForTimeout(300);
+
+let vus = [];
+let reponse = { statut:'confirmee', chauffeur:{nom:'Mehmet', telephone:'0612345678'},
+                vehicule:'Berline', date:'2026-09-11', heure:'10:00' };
+let coupee = false;
+await p.route('**/functions/v1/etat-course', async route => {
+  vus.push(JSON.parse(route.request().postData() || '{}'));
+  if(coupee) return route.abort();
+  await route.fulfill({ contentType:'application/json',
+    body: JSON.stringify(Object.assign({ ref:'' }, reponse)) });
+});
+
+await p.locator('.onglet[data-onglet="accueil"]').click(); await p.waitForTimeout(200);
+await p.locator('.onglet[data-onglet="courses"]').click();
+await p.waitForTimeout(900);
+check('la course confirmée sur le serveur passe au vert SUR LE SITE',
+  (await p.locator('#ecran-courses .course-etat').textContent()).toLowerCase().includes('confirm'),
+  await p.locator('#ecran-courses .course-etat').textContent());
+/* LA RÉFÉRENCE SEULE NE PROTÉGERAIT RIEN : elle est séquentielle, donc
+   devinable. C'est le couple référence + téléphone qui fait office de clé,
+   et le téléphone ne sort jamais du téléphone du client. */
+check('on demande la course par sa référence ET le téléphone du client',
+  vus.length > 0 && /^ELA-\d{2}-\d{2}-\d{4}$/.test(vus[0].ref || '')
+  && String(vus[0].tel || '').replace(/\D/g,'').endsWith('612345678'),
+  JSON.stringify(vus[0] || {}));
+
+/* ═══ UNE COURSE RÉALISÉE CHANGE DE LISTE ═══
+   Elle n'attend plus rien : la laisser dans « Réservations » ferait
+   chercher au client un transfert à venir qui n'existe plus. */
+reponse = { statut:'realisee', chauffeur:{nom:'Mehmet', telephone:'0612345678'},
+            vehicule:'Berline', date:'2026-09-11', heure:'10:00' };
+await p.locator('.onglet[data-onglet="accueil"]').click(); await p.waitForTimeout(200);
+await p.locator('.onglet[data-onglet="courses"]').click();
+await p.waitForTimeout(900);
+check('une fois réalisée, elle quitte « Réservations »',
+  (await p.locator('#ecran-courses .course').count())===0,
+  String(await p.locator('#ecran-courses .course').count()));
+check('et l\'écriteau « aucune réservation » revient',
+  await p.locator('#videCourses').isVisible());
+await p.locator('.onglet[data-onglet="trajets"]').click();
+await p.waitForTimeout(500);
+check('elle apparaît dans « Mes trajets effectués »',
+  (await p.locator('#ecran-trajets .course').count())===1,
+  String(await p.locator('#ecran-trajets .course').count()));
+check('et elle y est marquée comme terminée',
+  (await p.locator('#ecran-trajets .course-etat').textContent()).toLowerCase().includes('termin'),
+  await p.locator('#ecran-trajets .course-etat').textContent());
+
+/* ═══ UN APPEL QUI ÉCHOUE NE FAIT JAMAIS RECULER UN ÉTAT ═══
+   Réseau coupé, fonction pas déployée, serveur muet : on garde ce qu'on a.
+   Réécrire « en attente » sur un échec repasserait au rouge une course
+   confirmée — exactement le défaut qu'on répare. C'est le contrôle qui
+   compte le plus de ce bloc : il ne se voit pas à l'œil, et il coûterait
+   un client qui croit sa voiture annulée. */
+coupee = true;
+const avant = await p.locator('#ecran-trajets .course-etat').textContent();
+await p.locator('.onglet[data-onglet="accueil"]').click(); await p.waitForTimeout(200);
+await p.locator('.onglet[data-onglet="trajets"]').click();
+await p.waitForTimeout(900);
+check('serveur muet : l\'état déjà connu ne recule pas',
+  (await p.locator('#ecran-trajets .course-etat').textContent())===avant,
+  await p.locator('#ecran-trajets .course-etat').textContent());
+/* Une course finie ne bougera plus : la redemander à chaque ouverture
+   brûlerait du réseau sur le téléphone du client pour rien. */
+check('et une course terminée n\'est plus redemandée au serveur',
+  vus.length === 2, vus.length + ' appels');
 
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);

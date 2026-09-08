@@ -321,3 +321,50 @@ répond une **erreur** quand un secret manque, jamais un succès muet — un
 - **Elle ne peut pas faire échouer une confirmation.** L'appel part
   détaché : fonction en panne, abonnement périmé, le client est confirmé
   quand même et le message WhatsApp part comme avant.
+
+---
+
+## La réponse arrive AUSSI sur le site — `etat-course`
+
+Septembre 2026, à sa demande : « il faut que je puisse répondre aussi via
+le site si le client veut voir sa réponse sur le site ».
+
+**Le défaut que ça répare.** « Mes réservations » n'affichait que ce qui
+dort dans le téléphone du client, figé à l'instant de la réservation. Une
+course confirmée à 4 h du matin y restait **EN ATTENTE** des jours plus
+tard. Ce n'est pas une information manquante, c'est une information
+**fausse** : le client rappelle pour demander si sa voiture est réservée,
+alors qu'un chauffeur lui est attribué depuis la veille.
+
+**Pourquoi une fonction et pas une simple lecture.** La règle de sécurité
+interdit la lecture aux visiteurs anonymes, et **elle doit l'interdire** :
+la clé du site est publique, donc une policy de lecture pour `anon`
+exposerait les noms, téléphones et adresses de **tous** les clients. La
+fonction est la seule porte : elle lit avec la clé de service, qui ne sort
+jamais du serveur, et ne rend qu'une course à la fois.
+
+**Ce qui fait office de clé : la référence ET le téléphone.** La référence
+seule ne protégerait rien — elle est séquentielle (`ELA-26-09-0007`), il
+suffirait de compter pour lire les courses des autres. Le numéro du client
+ne sort jamais de son téléphone ; les deux ensemble, c'est ce que lui seul
+possède.
+
+**Ce qu'elle rend, et rien d'autre** : le statut, le prénom du chauffeur,
+son téléphone, le véhicule, l'heure. Jamais les adresses, jamais le nom du
+client, jamais la chambre, jamais le prix — exactement ce que porte déjà le
+lien `?ok=`. Le client a tout le reste sur son propre bon.
+
+**Rien à faire dans Supabase.** Pas de table, pas de colonne, pas de
+policy : elle lit `courses` avec la clé de service, qui est déjà posée.
+Elle se déploie toute seule à chaque poussée, comme les deux autres
+(`.github/workflows/fonctions.yml`).
+
+Deux garde-fous à ne pas retirer :
+
+- **Une course inconnue et un téléphone qui ne correspond pas rendent la
+  même réponse.** Les distinguer dirait à qui essaie des références au
+  hasard lesquelles existent.
+- **Un appel qui échoue ne fait jamais reculer un état.** Réseau coupé,
+  fonction absente, serveur muet : le site garde ce qu'il a. Réécrire
+  « en attente » sur un échec repasserait au neutre une course confirmée —
+  exactement le défaut qu'on répare.

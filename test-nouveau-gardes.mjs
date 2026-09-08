@@ -52,9 +52,14 @@ await p.waitForTimeout(400);
 const morts = await p.evaluate(()=>[...document.querySelectorAll('a[href="#"], a[href=""]')]
   .filter(a=>!a.dataset.ecran).map(a=>a.className));
 check('aucun lien mort ne subsiste', morts.length===0, morts.join(' | '));
-const wa = await p.locator('.wa').getAttribute('href');
-check('la bulle WhatsApp ouvre une conversation', wa.startsWith('https://wa.me/33759312433'), wa.slice(0,40));
+/* La bulle flottante a cédé la place à l'onglet WhatsApp de la barre du
+   bas : même destination, mais visible sur TOUS les écrans et sans jamais
+   recouvrir quoi que ce soit. Le contrôle suit le bouton, pas son ancien
+   habillage. */
+const wa = await p.locator('.onglet[data-onglet="whatsapp"]').getAttribute('href');
+check('l\'onglet WhatsApp ouvre une conversation', wa.startsWith('https://wa.me/33759312433'), wa.slice(0,40));
 check('avec un premier message déjà écrit', wa.includes('text='));
+check('et la bulle flottante a bien disparu', (await p.locator('.wa').count())===0);
 check('le menu ☰ a été retiré', (await p.locator('.menu').count())===0);
 check('« Voir tous » aussi', (await p.locator('.voir-tous').count())===0);
 
@@ -151,13 +156,20 @@ const recouvre = await p.evaluate(()=>{
 check('le bouton « Confirmer » ne recouvre pas la pancarte', !recouvre);
 await p.locator('#ecran-recap .bloc-pancarte').scrollIntoViewIfNeeded();
 await p.waitForTimeout(400);
+/* Même règle que sur le bon : plus rien ne flotte au-dessus du contenu
+   depuis le retrait de la bulle. On éprouve la règle, pas la bulle. */
 const surPancarte = await p.evaluate(()=>{
-  const w = document.querySelector('.wa');
-  if(w.classList.contains('efface')) return false;
-  const a = w.getBoundingClientRect(), q = document.querySelector('.pancarte').getBoundingClientRect();
-  return a.bottom>q.top && a.top<q.bottom && a.right>q.left && a.left<q.right;
+  const q = document.querySelector('.pancarte').getBoundingClientRect();
+  return [...document.querySelectorAll('body *')].some(el=>{
+    const st = getComputedStyle(el);
+    if(st.position !== 'fixed' || st.visibility === 'hidden' || st.display === 'none') return false;
+    if(el.closest('.barre')) return false;
+    const a = el.getBoundingClientRect();
+    if(!a.width || !a.height) return false;
+    return a.bottom>q.top && a.top<q.bottom && a.right>q.left && a.left<q.right;
+  });
 });
-check('la pastille WhatsApp ne se pose pas sur la pancarte', !surPancarte);
+check('rien ne se pose sur la pancarte', !surPancarte);
 
 // --- L'inverse : vers un aéroport, pas de pancarte ---
 await p.locator('#btnRetourVehicules').click();
