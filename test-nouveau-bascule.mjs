@@ -237,7 +237,47 @@ check('le document suit la langue du visiteur, titre ET corps',
   await p.locator('#legalTitre').textContent());
 
 check('aucune erreur JavaScript', errs.length===0, errs.join(' | '));
-await ctx.close(); await b.close();
+await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═══
+   Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
+   téléphone ». Le piège n'était pas dans le geste mais dans le fichier : le
+   manifeste ordinaire déclare « start_url: ./ », donc une icône posée sur
+   l'écran d'accueil depuis « ?exploitant=1 » aurait rouvert **le site
+   client**. iOS et Android lisent le manifeste de la page qu'on ajoute, pas
+   son adresse — et rien à l'écran n'aurait expliqué pourquoi.
+   TROIS CONTRÔLES, PARCE QUE TROIS CHOSES PEUVENT MANQUER : l'échange dans
+   la page, le point de départ dans le fichier, et la COPIE par
+   « construire.sh » — ce dernier est le point de rupture, il marche en
+   local où le serveur sert tout le dépôt, et reste introuvable en ligne. */
+{
+  /* Un contexte à part : celui de la suite est refermé plus haut. */
+  const cx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
+  const pm = await cx.newPage();
+  await pm.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
+  const cote = await pm.locator('#manifeste').getAttribute('href');
+  check('côté client, le manifeste ordinaire',
+    cote === 'manifest.webmanifest', cote);
+  await pm.goto('http://127.0.0.1:8099/index.html?exploitant=1', {waitUntil:'domcontentloaded'});
+  const cotex = await pm.locator('#manifeste').getAttribute('href');
+  check('côté exploitant, le manifeste de l\'espace',
+    cotex === 'manifest-exploitant.webmanifest', cotex);
+  const mf = await (await fetch('http://127.0.0.1:8099/manifest-exploitant.webmanifest')).json();
+  check('il rouvre l\'espace, pas le site client',
+    /exploitant=1/.test(mf.start_url || ''), mf.start_url);
+  check('et il porte les mêmes icônes — un jeu à moitié changé est pire',
+    (mf.icons || []).length === 3, String((mf.icons||[]).length));
+  await cx.close();
+}
+/* LE POINT DE RUPTURE : la recette ne publie que ce qu'elle NOMME. On lit
+   les seules lignes de commande, pas les commentaires — un contrôle qui
+   trouve ce qu'il cherche dans une phrase d'explication ne vérifie rien. */
+{
+  const recette = await (await fetch('http://127.0.0.1:8099/construire.sh')).text();
+  const commandes = recette.split('\n').filter(l => !l.trim().startsWith('#')).join('\n');
+  check('« construire.sh » publie le manifeste de l\'espace',
+    /manifest-exploitant\.webmanifest/.test(commandes));
+}
+
+await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}
 if(errs.length){console.log('\n=== ERREURS JS ==='); [...new Set(errs)].forEach(e=>console.log('  ! '+e));}

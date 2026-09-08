@@ -26,6 +26,13 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
+# LE MANIFESTE DE L'ESPACE EXPLOITANT. Sans lui, une icône posée sur l'écran
+# d'accueil depuis « ?exploitant=1 » rouvrirait le SITE CLIENT : le manifeste
+# ordinaire déclare « start_url: ./ », et c'est lui que le téléphone lit.
+# Même point de rupture que « carte/ » — oublié ici, il marche en local et
+# reste introuvable en ligne.
+cp manifest-exploitant.webmanifest site/
+
 # LA BIBLIOTHÈQUE DE CARTE, SERVIE PAR LE SITE LUI-MÊME. Elle venait d'un
 # CDN ; Barbaros ne voyait pas la carte s'afficher, et une minuterie de 5 s
 # coupait un chargement qui allait aboutir sur un téléphone en 4G.

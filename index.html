@@ -40,7 +40,28 @@
      qui a « ajouté à l'écran d'accueil » verrait son icône disparaître le
      jour de la bascule.
      iOS ignore un apple-touch-icon en SVG — d'où le PNG de 180 px. -->
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest" id="manifeste">
+<!-- ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═══
+     Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
+     téléphone ». Le piège n'était pas dans le geste mais dans le fichier :
+     le manifeste déclare « start_url: ./ », donc une icône posée sur
+     l'écran d'accueil depuis « ?exploitant=1 » aurait rouvert **le site
+     client**. iOS et Android lisent le manifeste de la page qu'on ajoute,
+     pas son adresse — et rien à l'écran n'aurait expliqué pourquoi.
+     On échange donc le manifeste AVANT que le navigateur ne le lise, dès
+     que l'adresse porte « exploitant ». Ce script est en tête de page,
+     exprès : posé plus bas, le manifeste d'origine serait déjà chargé.
+     Le mode exploitant suit toujours l'ADRESSE, jamais l'appareil : sans
+     le paramètre, on reste côté client, y compris sur son téléphone. -->
+<script>
+(function(){
+  try{
+    if(new URLSearchParams(location.search).get("exploitant") !== "1") return;
+    var m = document.getElementById("manifeste");
+    if(m) m.href = "manifest-exploitant.webmanifest";
+  }catch(e){ /* un navigateur qui ne sait pas lire son adresse garde le défaut */ }
+})();
+</script>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 

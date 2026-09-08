@@ -1968,6 +1968,26 @@ avait raison : rien ne disait ce qu'il fallait regarder en premier.
 - `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
   identifiants sont inchangés**, six suites les cliquent.
 
+### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
+
+Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
+téléphone ». **Le piège n'était pas dans le geste, il était dans le
+fichier** : `manifest.webmanifest` déclare `start_url: "./"`, et **iOS comme
+Android lisent le manifeste de la page qu'on ajoute, pas son adresse**. Une
+icône posée depuis `?exploitant=1` aurait donc rouvert **le site client** —
+et rien à l'écran n'aurait expliqué pourquoi.
+
+- `manifest-exploitant.webmanifest`, `start_url: "./index.html?exploitant=1"`,
+  **mêmes icônes** : un jeu à moitié changé est pire qu'un ancien cohérent.
+- **L'ÉCHANGE SE FAIT EN TÊTE DE PAGE**, dans un script placé juste après le
+  `<link rel="manifest" id="manifeste">`. Posé plus bas, le manifeste
+  d'origine serait déjà chargé quand on le remplacerait.
+- **`construire.sh` DOIT LE COPIER** — même point de rupture que `carte/` :
+  oublié, il marche en local (où le serveur sert tout le dépôt) et reste
+  introuvable en ligne. Un contrôle lit les seules lignes de commande.
+- Le mode exploitant continue de suivre l'**ADRESSE**, jamais l'appareil :
+  sans le paramètre on reste côté client, y compris sur son téléphone.
+
 ### LE TABLEAU DE BORD NE SERT PLUS QU'À TRAITER ET À CRÉER
 
 Septembre 2026, à sa demande : « laisse le tableau de bord seulement pour le
