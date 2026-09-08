@@ -5194,6 +5194,14 @@ window.ELA_TEXTES = {
       return fetch(SUPABASE_URL + "/rest/v1/courses", {
         method: "POST",
         signal: ctrl.signal,
+        /* « keepalive » EST CE QUI FAIT SURVIVRE LA DEMANDE À WHATSAPP.
+           Au clic sur « Confirmer », WhatsApp prend l'écran et iOS gèle la
+           page : une requête ordinaire est abandonnée avec elle. Avec ce
+           drapeau, le navigateur s'engage à la mener à terme même si la
+           page est mise de côté ou fermée — c'est exactement le cas prévu
+           par la spécification. La limite est de 64 Ko de corps ; un bon en
+           fait moins de deux. */
+        keepalive: true,
         headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json",
                    Prefer: "return=minimal" },
         body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
@@ -5738,16 +5746,32 @@ window.ELA_TEXTES = {
       prix: { total: total, ht: ht, tva: total - ht, majoration: course.majoration },
       dateMsg: dateMessage()
     };
-    /* WHATSAPP S'OUVRE DANS LE MÊME GESTE QUE LE CLIC, avant tout appel
-       réseau. Ce n'est pas un détail de confort : un window.open() placé
-       après un « await » est bloqué par Safari sur iPhone, qui n'autorise
-       l'ouverture d'un onglet que dans la seconde qui suit une action de
-       l'utilisateur. Placé plus loin, le message ne partirait jamais — et
-       sur la moitié des téléphones du monde.
+    /* ═══ LE DÉPÔT PART AVANT WHATSAPP, ET DANS LE MÊME GESTE ═══
+       Septembre 2026, signalé par Barbaros : « j'ai fait une commande sur le
+       site mais quand j'envoie et que je reviens dessus je vois ça » — le
+       bon portait « Votre demande n'a pas pu nous être transmise », en
+       rouge.
+
+       LA CAUSE ÉTAIT L'ORDRE. Le dépôt partait APRÈS l'ouverture de
+       WhatsApp, c'est-à-dire au moment précis où iOS met la page en
+       arrière-plan pour changer d'application. Safari y gèle le JavaScript
+       et coupe les requêtes en cours ; au retour, le minuteur de huit
+       secondes se réveillait et abandonnait un appel qui n'avait jamais eu
+       sa chance. **Le client lisait un échec alors que rien n'était
+       cassé** — et un client qui lit « votre demande ne nous est pas
+       parvenue » ne réserve pas ailleurs, il ne réserve plus du tout.
+
+       WHATSAPP RESTE OUVERT DANS LE MÊME TICK QUE LE CLIC, et c'est ce qui
+       compte pour Safari : il n'autorise l'ouverture d'un onglet que dans
+       la foulée d'un geste de l'utilisateur. Rien n'est attendu entre les
+       deux — « deposer » n'est pas attendu, il est seulement LANCÉ avant.
+       L'ordre change, la règle est intacte.
+
        Les deux chemins vivent ensemble et ne se remplacent pas : le dépôt
        met la demande dans le tableau de bord, le message prévient Barbaros
        sur son téléphone. L'un sans l'autre laisse un trou — soit il n'est
        pas averti, soit il n'a rien à ouvrir. */
+    var depot = nuage.deposer(bonCourant);
     window.open("https://wa.me/" + NUMERO_WA + "?text="
                 + encodeURIComponent(messageDemande(bonCourant)), "_blank");
     try{
@@ -5760,7 +5784,13 @@ window.ELA_TEXTES = {
     /* On montre le bon TOUT DE SUITE, puis on dépose. Le client voit sa
        référence pendant que ça monte, au lieu d'un bouton qui tourne. */
     afficherEtatEnvoi(null);
-    nuage.deposer(bonCourant).then(afficherEtatEnvoi);
+    depot.then(function(ok){
+      if(ok) return afficherEtatEnvoi(true);
+      /* ON NE CRIE PAS À L'ÉCHEC DEPUIS L'ARRIÈRE-PLAN. Voir
+         « reprendreDepot » : tant que la page est cachée, un échec ne veut
+         rien dire. */
+      reprendreDepot(bonCourant);
+    });
   });
 
 /* =====================================================================
@@ -5800,6 +5830,42 @@ window.ELA_TEXTES = {
     /* La note reste visible quel que soit l'état : le message WhatsApp part
        dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
        cas aussi. */
+  }
+
+  /* ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══
+     Le client appuie sur « Confirmer », WhatsApp prend l'écran, iOS gèle la
+     page. Ce qui échoue pendant ces secondes-là n'échoue pas parce que le
+     serveur refuse : il échoue parce que le téléphone regarde ailleurs.
+     Afficher l'écriteau rouge à ce moment, c'est **annoncer une panne qui
+     n'existe pas** — et le client qui revient lit que sa demande n'est pas
+     partie alors qu'elle est peut-être déjà dans le tableau de bord.
+
+     ON RÉESSAIE DONC AU RETOUR SUR L'ONGLET, et on ne tranche qu'après.
+     C'est le seul instant où la réponse veut dire quelque chose : la page
+     est réveillée, le réseau est à elle.
+
+     UNE SEULE REPRISE. Une boucle transformerait un vrai refus du serveur
+     en appels sans fin sur le forfait du client — et le repli WhatsApp est
+     là pour ça, il n'a jamais eu besoin du serveur.
+     Le filet de trente secondes couvre le cas où l'événement de retour ne
+     vient jamais : certains navigateurs ne l'émettent pas si la page n'a
+     pas été réellement masquée. Sans lui, un vrai échec resterait affiché
+     en « envoi en cours » pour toujours. */
+  function reprendreDepot(bon){
+    var fait = false;
+    function reessayer(){
+      if(fait) return;
+      fait = true;
+      document.removeEventListener("visibilitychange", auRetour);
+      nuage.deposer(bon).then(afficherEtatEnvoi);
+    }
+    function auRetour(){ if(!document.hidden) reessayer(); }
+    if(document.hidden){
+      document.addEventListener("visibilitychange", auRetour);
+      setTimeout(function(){ if(!document.hidden) reessayer(); }, 30000);
+    } else {
+      reessayer();
+    }
   }
 
 /* =====================================================================

@@ -33,7 +33,7 @@ const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
-async function reserver(serveurRepond, sansPush){
+async function reserver(serveurRepond, sansPush, cachee){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
@@ -54,11 +54,27 @@ async function reserver(serveurRepond, sansPush){
     depots.push({ url: route.request().url(), methode: route.request().method(),
                   entetes: route.request().headers(),
                   corps: JSON.parse(route.request().postData()||'{}') });
-    if(serveurRepond) await route.fulfill({status:201, body:''});
+    /* MODE « reprise » : le PREMIER dépôt échoue — c'est ce qui se passe
+       quand iOS gèle la page pendant que WhatsApp prend l'écran — et les
+       suivants passent. C'est exactement le cas que Barbaros a rencontré. */
+    if(serveurRepond === 'reprise'){
+      if(depots.length === 1) await route.abort();
+      else await route.fulfill({status:201, body:''});
+    }
+    else if(serveurRepond) await route.fulfill({status:201, body:''});
     else await route.abort();
   });
   await ctx.addInitScript(()=>{
-    window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;};
+    /* On note l'ORDRE des évènements : le dépôt doit partir AVANT que
+       WhatsApp prenne l'écran — c'est tout le correctif de septembre 2026. */
+    window.__ordre=[];
+    window.__liens=[]; window.open=(u)=>{window.__liens.push(u);
+      window.__ordre.push('whatsapp'); return null;};
+    const vraiFetch = window.fetch.bind(window);
+    window.fetch = function(u, o){
+      if(String(u).indexOf('/rest/v1/courses') > 0) window.__ordre.push('depot');
+      return vraiFetch(u, o);
+    };
     /* ON COMPTE LES DEMANDES D'AUTORISATION, on ne lit pas l'état final :
        lire « Notification.permission » ne dit rien de qui l'a demandée —
        elle peut valoir « granted » parce que le contexte l'a accordée. Ce
@@ -85,6 +101,21 @@ async function reserver(serveurRepond, sansPush){
      push. On le supprime AVANT le chargement : le remplacer après coup ne
      rejouerait pas le jugement de la page. */
   if(sansPush) await ctx.addInitScript(()=>{ delete window.PushManager; });
+  /* ON SIMULE LE PASSAGE EN ARRIÈRE-PLAN. C'est la seule façon d'atteindre
+     le défaut : sur le banc, la page reste visible et le dépôt raté serait
+     retenté tout de suite. Le vrai client, lui, a WhatsApp devant les yeux
+     pendant ce temps-là. */
+  if(cachee) await ctx.addInitScript(()=>{
+    let masquee = true;
+    Object.defineProperty(document, 'hidden',
+      { get: () => masquee, configurable: true });
+    Object.defineProperty(document, 'visibilityState',
+      { get: () => masquee ? 'hidden' : 'visible', configurable: true });
+    window.__revenir = function(){
+      masquee = false;
+      document.dispatchEvent(new Event('visibilitychange'));
+    };
+  });
   await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
   await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
@@ -107,6 +138,25 @@ let { p, ctx, depots } = await reserver(true);
 await p.waitForTimeout(1200);
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 check('une demande a bien été déposée', depots.length===1, String(depots.length));
+/* ═══ L'ORDRE EST LE CORRECTIF ═══
+   Le dépôt partait APRÈS l'ouverture de WhatsApp, c'est-à-dire au moment
+   précis où iOS met la page en arrière-plan pour changer d'application.
+   Safari y gèle le JavaScript et coupe les requêtes en cours : le client
+   revenait sur un écriteau rouge « votre demande n'a pas pu nous être
+   transmise » alors que rien n'était cassé. Signalé par Barbaros, capture
+   à l'appui.
+   WhatsApp reste ouvert dans le même TICK que le clic — ce qui compte pour
+   Safari — mais après le lancement du dépôt. */
+const ordre = await p.evaluate(()=>window.__ordre);
+check('le dépôt part AVANT que WhatsApp prenne l\'écran',
+  ordre.indexOf('depot') >= 0 && ordre.indexOf('depot') < ordre.indexOf('whatsapp'),
+  ordre.join(' → '));
+/* « keepalive » est ce qui fait survivre la requête au gel de la page : le
+   navigateur s'engage à la mener à terme même si la page est mise de côté.
+   Sans lui, l'ordre ne suffirait pas — la requête partirait puis serait
+   abandonnée une milliseconde plus tard. */
+check('et il est marqué « keepalive » pour survivre au passage en arrière-plan',
+  /keepalive:\s*true/.test(await (await fetch('http://127.0.0.1:8099/index.html')).text()));
 const d0 = depots[0];
 check('en POST sur la table des courses', d0.methode==='POST' && d0.url.includes('/rest/v1/courses'));
 check('la clé publique ne va que dans « apikey », jamais en Bearer',
@@ -221,6 +271,51 @@ check('le message de secours garde sa forme lisible par l\'exploitant',
   msg.split('\n').length===9 && msg.includes('Départ : ')
   && msg.includes('Paiement : '), msg.split('\n').length+' lignes');
 await ctx.close();
+
+/* =====================================================================
+   ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══
+   ---------------------------------------------------------------------
+   Septembre 2026, signalé par Barbaros, capture à l'appui : « j'ai fait une
+   commande sur le site mais quand j'envoie et que je reviens dessus je vois
+   ça » — l'écriteau rouge « votre demande n'a pas pu nous être transmise ».
+
+   Le client appuie sur « Confirmer », WhatsApp prend l'écran, iOS gèle la
+   page. Ce qui échoue pendant ces secondes-là n'échoue pas parce que le
+   serveur refuse : il échoue parce que le téléphone regarde ailleurs.
+   Annoncer une panne à ce moment, c'est **inventer une panne** — et un
+   client qui lit que sa demande n'est pas parvenue ne réserve pas ailleurs,
+   il ne réserve plus du tout.
+
+   LE TEST ÉPROUVE CE QUE LE CLIENT VOIT, dans l'ordre où il le voit :
+   pendant qu'il est sur WhatsApp, rien de rouge ; à son retour, la vérité.
+   ===================================================================== */
+{
+  const r = await reserver('reprise', false, true);
+  await r.p.waitForTimeout(1500);
+  check('pendant que le client est sur WhatsApp, aucune panne n\'est annoncée',
+    !(await r.p.locator('#envoiTexte').textContent()).includes('seul moyen'),
+    await r.p.locator('#envoiTexte').textContent());
+  check('et le premier dépôt a bien échoué', r.depots.length===1,
+    String(r.depots.length));
+  /* IL REVIENT SUR LE SITE. C'est le seul instant où la réponse du serveur
+     veut dire quelque chose : la page est réveillée, le réseau est à elle. */
+  await r.p.evaluate(()=>window.__revenir());
+  await r.p.waitForTimeout(1200);
+  check('à son retour, la demande est déposée pour de bon',
+    r.depots.length===2, r.depots.length+' dépôts');
+  check('et le bon dit qu\'elle est arrivée, pas qu\'elle a échoué',
+    !(await r.p.locator('#envoiTexte').textContent()).includes('seul moyen'),
+    await r.p.locator('#envoiTexte').textContent());
+  check('le renvoi WhatsApp redevient une action en retrait',
+    (await r.p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome',
+    await r.p.locator('#btnRenvoyer').getAttribute('class'));
+  /* UNE SEULE REPRISE. Une boucle transformerait un vrai refus du serveur
+     en appels sans fin sur le forfait du client. */
+  await r.p.waitForTimeout(1500);
+  check('et on ne réessaie pas en boucle', r.depots.length===2,
+    r.depots.length+' dépôts');
+  await r.ctx.close();
+}
 
 /* =====================================================================
    LES DEMANDES ARRIVENT DANS LE TABLEAU DE BORD PENDANT QU'IL REGARDE
