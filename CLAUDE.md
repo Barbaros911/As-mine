@@ -1901,6 +1901,43 @@ supposé — la première était le bouton « me localiser » de l'ancien site.
 **Une règle qui vise un cas particulier survit au jour où le cas se
 généralise, sans rien casser de visible.**
 
+### ET LA TROISIÈME FOIS : LE BOUTON COLLANT DU BON EXPLOITANT
+
+Septembre 2026, sur une capture de Barbaros : « règle-moi cela, c'est pas
+fonctionnel du tout cette partie ». Les cinq boutons d'action du bon
+exploitant flottaient par-dessus le formulaire et **recouvraient le champ
+« Téléphone » du chauffeur**. Donc : pas de numéro saisissable, donc
+« Prévenir le client » ne pouvait jamais partir — et **rien à l'écran ne
+disait pourquoi**.
+
+**LA CAUSE N'ÉTAIT PAS CET ÉCRAN, C'ÉTAIT LE SENS DE LA RÈGLE.**
+`.veh-action` était **collante par défaut** (écrite pour l'écran des prix :
+UN bouton au-dessus d'une liste qu'on parcourt) et chaque écran devait
+penser à l'éteindre. Le récapitulatif le faisait, le bon du client le
+faisait, celui de l'exploitant l'avait oublié. **Trois écrans sur quatre en
+dérogation, c'est que le défaut est à l'envers.** La règle est inversée :
+posée dans le flux partout, collante sur `#ecran-vehicules` seulement. Un
+écran ajouté demain n'hérite plus du piège.
+- **`.veh-action .bouton{margin-top:0}` collait aussi les boutons entre
+  eux** : inoffensif tant qu'il n'y en avait qu'un, visible dès qu'il y en a
+  cinq. Même famille — une règle taillée pour un cas unique.
+- **LE PREMIER JET DU TEST PASSAIT AU VERT.** Il mesurait les **boutons** ;
+  le débordement venait de la **marge intérieure du conteneur** — six
+  pixels, transparents, qui avalent les appuis comme le ferait un bouton.
+  Un contrôle qui ne regarde que ce qui se voit passe à côté de ce qui gêne.
+- **IL FALLAIT AUSSI DESCENDRE DANS LA PAGE.** Un bouton collant ne remonte
+  sur le contenu que quand sa place naturelle passe sous le bas de l'écran :
+  sans `scrollIntoViewIfNeeded()` sur le champ, le contrôle ne prouvait
+  rien. C'est exactement pour ça que les suites n'avaient jamais vu le
+  défaut — elles regardaient le haut du bon.
+- **`fill()` N'EST PAS UN APPUI.** Il écrit dans le champ sans se soucier de
+  ce qui le recouvre ; `click()` exige que ce soit bien lui qui reçoive le
+  doigt. C'est la différence entre un test qui passe et un client qui
+  n'arrive pas à taper. Les deux contrôles sont là.
+- Éprouvé **contre l'ancien code** : il tombe bien dessus (`#bbActions`) et
+  passe sur le nouveau. Un test écrit après coup qui ne tombe pas sur le bug
+  d'origine ne prouve rien.
+
 ## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
 
 Septembre 2026, vu par Barbaros : « il faut recentrer ces trois choix ».
