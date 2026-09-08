@@ -596,6 +596,11 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .ligne.total{margin-top:2px;padding-top:11px;font-size:16px;}
 .ligne.total b{font-size:19px;font-weight:800;letter-spacing:-.02em;}
 .bloc-note{margin:11px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
+/* UN NUMÉRO DE TÉLÉPHONE NE SE COUPE PAS. Écrit avec des espaces, il se
+   scindait en « 06 12 34 56 » puis « 78 » : le client doit le relire d'un
+   trait pour repérer un chiffre de travers, c'est tout l'intérêt de
+   l'afficher ici. */
+#notifWaNum{white-space:nowrap;}
 .bloc .champ:last-of-type{margin-bottom:0;}
 
 /* LE CHOIX DU RÈGLEMENT — deux boutons, jamais présélectionnés.
@@ -1975,10 +1980,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          téléphone la supporte. Ne jamais la présenter comme le canal
          principal — sur iPhone elle n'existe que si le site est posé sur
          l'écran d'accueil. -->
+    <!-- WHATSAPP EST ANNONCÉ D'ABORD, ET COMME CERTAIN — parce qu'il l'est :
+         l'exploitant envoie la confirmation sur WhatsApp dans tous les cas,
+         c'est son geste « Prévenir le client ». La notification n'est qu'un
+         supplément, pour l'avoir sur l'écran verrouillé sans attendre.
+         CE N'EST DONC PAS UN CHOIX ENTRE LES DEUX. Laisser un client couper
+         WhatsApp au profit de la notification lui retirerait le seul canal
+         qui marche partout : sur iPhone, la notification demande d'installer
+         le site, ce que presque personne ne fait. -->
     <div class="bloc" id="blocNotif" hidden>
       <h2 class="bloc-titre" data-t="notif_titre">Être prévenu</h2>
-      <p class="bloc-note" data-t="notif_texte">Recevez une notification dès
-         qu'Elatransfer confirme votre transfert.</p>
+      <p class="bloc-note" id="notifWa">
+        <span data-t="notif_wa">Vous recevrez la confirmation sur WhatsApp au</span>
+        <strong id="notifWaNum"></strong>
+      </p>
+      <p class="bloc-note" id="notifPlus" data-t="notif_texte">Vous pouvez aussi
+         être prévenu par une notification sur cet appareil, dès la
+         confirmation.</p>
       <button class="bouton-fantome" type="button" id="btnNotif" data-t="notif_bouton">
         Me prévenir dès que c'est confirmé
       </button>
@@ -3038,7 +3056,8 @@ window.ELA_TEXTES = {
        en trois mots vaut mieux qu'un « impossible » qui laisse le client
        croire que le site est cassé. */
     notif_titre:"Être prévenu",
-    notif_texte:"Recevez une notification dès qu'Elatransfer confirme votre transfert.",
+    notif_wa:"Vous recevrez la confirmation sur WhatsApp au",
+    notif_texte:"Vous pouvez aussi être prévenu par une notification sur cet appareil, dès la confirmation.",
     notif_bouton:"Me prévenir dès que c'est confirmé",
     notif_ok:"C'est noté. Vous recevrez une notification dès la confirmation.",
     notif_refus:"Notifications refusées. Vous pouvez les autoriser dans les réglages de votre navigateur — la confirmation vous parviendra de toute façon sur WhatsApp.",
@@ -3151,7 +3170,8 @@ window.ELA_TEXTES = {
     pancarte_court:"Name sign",
     pancarte_nom:"YOUR NAME",
     notif_titre:"Get notified",
-    notif_texte:"Receive a notification as soon as Elatransfer confirms your transfer.",
+    notif_wa:"You will receive the confirmation on WhatsApp at",
+    notif_texte:"You can also be alerted by a notification on this device, as soon as it is confirmed.",
     notif_bouton:"Notify me once it is confirmed",
     notif_ok:"Noted. You will be notified as soon as it is confirmed.",
     notif_refus:"Notifications refused. You can allow them in your browser settings — the confirmation will reach you on WhatsApp either way.",
@@ -5017,13 +5037,39 @@ window.ELA_TEXTES = {
     el.textContent = T(cle);
   }
   /* Le bloc n'apparaît QUE si la demande est arrivée sur le serveur : sans
-     ligne côté serveur, personne ne pourra jamais envoyer la notification, et
-     proposer de s'abonner serait une promesse en l'air. */
+     ligne côté serveur, personne ne pourra jamais rien envoyer, et annoncer
+     une confirmation serait une promesse en l'air.
+     LE BLOC ET LE BOUTON NE SE JUGENT PLUS ENSEMBLE. Le bloc porte d'abord la
+     promesse WhatsApp, qui vaut pour TOUT LE MONDE ; seul le bouton dépend de
+     ce que sait faire le navigateur. Les lier, c'était laisser un iPhone non
+     installé — donc presque tous les iPhone — devant un bloc absent, alors
+     que ce client-là est justement celui qu'on prévient sur WhatsApp. */
   function jugerBlocNotif(){
     var bloc = document.getElementById("blocNotif");
-    var possible = pushPossible() || surIphone();
-    bloc.hidden = !(envoiEtat === true && possible
-                    && (!("Notification" in window) || Notification.permission !== "denied"));
+    bloc.hidden = envoiEtat !== true;
+    if(bloc.hidden) return;
+
+    /* LE NUMÉRO EST CELUI QU'IL VIENT D'ÉCRIRE, relu sur le bon. L'afficher
+       n'est pas décoratif : c'est là qu'un client voit qu'il a tapé un
+       chiffre de travers, à l'instant où c'est encore rattrapable. */
+    var tel = bonCourant && bonCourant.client ? bonCourant.client.telephone : "";
+    document.getElementById("notifWaNum").textContent = tel || "";
+    document.getElementById("notifWa").hidden = !tel;
+
+    /* Sur un iPhone non installé, le bouton reste — mais il EXPLIQUE au lieu
+       d'échouer. C'est la seule façon de faire connaître l'installation à
+       quelqu'un qui ignore qu'elle existe. */
+    var bouton = document.getElementById("btnNotif");
+    var refuse = ("Notification" in window) && Notification.permission === "denied";
+    bouton.hidden = refuse || !(pushPossible() || surIphone());
+    /* Un client qui a refusé les notifications pour ce site ne doit pas voir
+       un bouton qui ne peut plus rien : la ligne WhatsApp au-dessus, elle,
+       reste vraie.
+       LA PHRASE QUI ANNONCE LA NOTIFICATION PART AVEC LE BOUTON. La laisser
+       seule promettait quelque chose qu'aucun geste ne permettait plus
+       d'obtenir — pire qu'un bouton mort, parce qu'on cherche où appuyer. */
+    document.getElementById("notifPlus").hidden = bouton.hidden;
+    if(bouton.hidden) document.getElementById("notifEtat").hidden = true;
   }
   document.getElementById("btnNotif").addEventListener("click", function(){
     var bouton = this;

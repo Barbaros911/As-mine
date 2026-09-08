@@ -1759,10 +1759,41 @@ canal rapide.
   rétablit `default` dans un `addInitScript`. Et il **compte les appels à
   `requestPermission`** au lieu de lire l'état final : lire la permission
   ne dit pas qui l'a demandée.
-- **Le déploiement reste à faire** — il exige son compte. Tant que les
-  secrets ne sont pas posés et la fonction collée (`SUPABASE.md`), **ne pas
-  dire que les notifications marchent** : le site se comporte exactement
-  comme avant.
+- **CE N'EST PAS UN CHOIX ENTRE WHATSAPP ET LA NOTIFICATION**, et c'est une
+  décision, pas un oubli (septembre 2026, à sa demande : « il faut mettre le
+  choix me prévenir par whatsapp aussi »). Le bloc annonce **WhatsApp
+  d'abord et comme certain** — l'exploitant envoie la confirmation dans tous
+  les cas, c'est son geste « Prévenir le client » — et la notification
+  **ensuite, comme un supplément**. Laisser un client décocher WhatsApp au
+  profit de la notification lui retirerait le seul canal qui marche partout,
+  et c'est Barbaros qu'il rappellerait.
+- **LE BLOC ET LE BOUTON NE SE JUGENT PAS ENSEMBLE.** Le bloc dépend du seul
+  dépôt réussi ; le bouton, de ce que sait faire le navigateur. Les lier —
+  ce qu'ils étaient au premier jet — cachait la promesse WhatsApp à
+  **exactement** ceux qui n'ont que WhatsApp : un iPhone sans le site
+  installé, c'est-à-dire presque tous. Ils lisaient « demande reçue » sans
+  savoir par quel moyen la réponse viendrait. Une suite refait une vraie
+  réservation avec `PushManager` supprimé **avant le chargement**.
+- **Le numéro du client est écrit dans la promesse.** Ce n'est pas
+  décoratif : c'est le dernier moment où il voit qu'il a tapé un chiffre de
+  travers. `white-space:nowrap` — coupé en « 06 12 34 56 » / « 78 », il ne
+  se relit plus d'un trait.
+- **La phrase qui annonce la notification part AVEC le bouton.** Laissée
+  seule, elle promet ce qu'aucun geste ne permet plus d'obtenir — pire qu'un
+  bouton mort, parce que le client cherche où appuyer.
+- **LE DÉPLOIEMENT SE FAIT DEPUIS GITHUB** (`.github/workflows/fonctions.yml`,
+  septembre 2026). L'éditeur de code du tableau de bord Supabase **refuse le
+  collage sur iPhone** — éprouvé ce soir-là, et c'est pour ça que
+  `nouvelle-demande` est restée écrite et jamais déployée pendant des
+  semaines. Le workflow déploie les deux fonctions à chaque poussée ; il ne
+  touche pas au site, `construire.sh` reste la seule recette de publication.
+  Un seul secret GitHub à poser : `SUPABASE_ACCESS_TOKEN`.
+- **LES DEUX FONCTIONS SONT DÉPLOYÉES** depuis le 8 septembre 2026, et la
+  table `abonnements` existe avec sa policy INSERT pour `anon`. Ce qui manque
+  encore à `nouvelle-demande` : son webhook et ses propres secrets Telegram.
+- **UN JETON D'ACCÈS NE SE COLLE PAS DANS UNE CONVERSATION.** C'est arrivé —
+  jeton révoqué et refait dans la minute. Il ne va que dans les secrets
+  GitHub. Le redire si ça se represente, sans en faire un sermon.
 
 ## LE CARNET DE CHAUFFEURS ET LA FACTURE DE COMMISSION
 
