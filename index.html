@@ -1320,26 +1320,29 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .services{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
   margin:0 -20px;padding:0 20px 6px;-webkit-overflow-scrolling:touch;}
 .services::-webkit-scrollbar{display:none;}
-.service{flex:0 0 178px;scroll-snap-align:start;border-radius:16px;
+/* LES CARTES ONT MAIGRI DE 178 À 156 px AVEC LE DÉPART DES PHOTOS.
+   Ce n'est pas une économie de place, c'est ce qui fait voir qu'il y en a
+   d'autres : à 178 px et cinq entrées, la deuxième carte s'arrêtait juste au
+   bord de l'écran et la piste avait l'air de finir là. À 156 px la troisième
+   dépasse, et le balayage se devine sans flèche. */
+.service{flex:0 0 156px;scroll-snap-align:start;border-radius:16px;
   overflow:hidden;background:var(--carte);border:1px solid var(--filet);
   text-decoration:none;color:inherit;display:block;}
-/* Même principe que la grande image : l'aplat tient la place exacte de la
-   photo à venir, aux mêmes dimensions. */
-.service-image{display:block;height:106px;position:relative;
-  background:linear-gradient(145deg,#22323B 0%,#16232B 100%);}
-.service-image::before{content:"Photo";position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  color:rgba(255,255,255,.24);font-weight:600;}
-/* Une carte qui a sa photo : l'image REMPLACE l'aplat et l'écriteau « Photo ».
-   « cover » plutôt que « contain » — les trois vues n'ont pas les mêmes
-   proportions, et une bande blanche sur une carte en trahirait une. */
-.service-image.a-photo{background-size:cover;background-position:center;}
-.service-image.a-photo::before{content:none;}
-.service-corps{display:block;padding:11px 13px 14px;}
+/* La pastille est la MÊME que celle des engagements — même rond, même fond,
+   même trait dans l'icône. Les deux blocs se suivent à trois centimètres :
+   deux façons de dessiner s'y liraient comme deux sites collés. */
+.service-icone{width:38px;height:38px;border-radius:50%;margin-bottom:10px;
+  background:var(--accent-clair);display:flex;align-items:center;
+  justify-content:center;}
+.service-corps{display:block;padding:14px 13px 15px;}
 .service b{display:block;font-size:14px;font-weight:700;line-height:1.2;}
-.service span span{display:block;font-size:12px;color:var(--gris);
-  line-height:1.35;margin-top:4px;}
+/* VISER « .service-corps > span », PAS « .service span span » : la pastille
+   est elle aussi un span dans un span depuis qu'elle a remplacé la photo, et
+   l'ancienne règle lui collait la taille et la couleur d'un sous-titre — le
+   rond repassait en « display:block » et l'icône se posait en haut à gauche.
+   C'est exactement le piège déjà rencontré sur « .engagement span ». */
+.service-corps > span:not(.service-icone){display:block;font-size:12px;
+  color:var(--gris);line-height:1.35;margin-top:4px;}
 
 /* ---------- WHATSAPP ---------- */
 
@@ -1848,7 +1851,7 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   </div>
 
   <section class="section">
-    <h2 data-t="engagements">Nos engagements</h2>
+    <h2 data-t="engagements">Pourquoi choisir Elatransfer ?</h2>
     <!-- LES QUATRE ICÔNES SONT REDESSINÉES DANS UNE SEULE LANGUE.
          Avant, elles mélangeaient trois techniques : une silhouette pleine,
          une carte pleine à contre-jour, deux traits fins. Posées côte à côte,
@@ -1870,38 +1873,50 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <b data-t="eng1">Chauffeurs professionnels</b>
-        <span class="engagement-sous" data-t="eng1s">Discrets et courtois</span>
+        <b data-t="eng1">Chauffeur professionnel</b>
+        <span class="engagement-sous" data-t="eng1s">Une prise en charge organisée</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
-          <svg width="22" height="22" viewBox="0 1.45 24 24" fill="none" aria-hidden="true">
-            <path d="M2.9 15.6v-2l1.8-4.1a2.4 2.4 0 012.2-1.4h10.2a2.4 2.4 0 012.2 1.4l1.8 4.1v2"
-                  stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
-            <path d="M2.9 15.6h18.2" stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
-            <path d="M6.1 11.3h11.8" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
-            <circle cx="7.2" cy="16.9" r="1.9" stroke="#151C22" stroke-width="1.7"/>
-            <circle cx="16.8" cy="16.9" r="1.9" stroke="#151C22" stroke-width="1.7"/>
-          </svg>
-        </span>
-        <b data-t="eng2">Véhicules haut de gamme</b>
-        <span class="engagement-sous" data-t="eng2s">Confort et sécurité</span>
-      </div>
-      <div class="engagement">
-        <span class="engagement-pastille">
+          <!-- UNE ÉTIQUETTE DE PRIX, PAS UNE VOITURE. La voiture illustrait
+               « véhicules haut de gamme », l'argument que cette carte
+               remplace — laissée en place, elle aurait dit « berline » à
+               côté d'un titre qui parle d'argent. Le cadenas de l'étiquette
+               porte l'accent : c'est ce qui distingue « voici un prix » de
+               « voici un prix qui ne bougera plus ». -->
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="2.9" y="5.9" width="18.2" height="12.2" rx="2.6"
-                  stroke="#151C22" stroke-width="1.7"/>
-            <path d="M2.9 10.3h18.2" stroke="#1F6F6B" stroke-width="1.9"/>
-            <path d="M6.3 14.7h4.4" stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M11.3 2.9H4.6a1.7 1.7 0 00-1.7 1.7v6.7c0 .45.18.88.5 1.2l8.5 8.5a1.7 1.7 0 002.4 0l6.7-6.7a1.7 1.7 0 000-2.4l-8.5-8.5a1.7 1.7 0 00-1.2-.5Z"
+                  stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
+            <circle cx="7.9" cy="7.9" r="1.5" stroke="#1F6F6B" stroke-width="1.7"/>
+            <path d="M15.4 10.9a2.6 2.6 0 00-3.7 0 2.6 2.6 0 000 3.7 2.6 2.6 0 003.7 0M11 12.1h3.1M11.4 13.6h3.1"
+                  stroke="#1F6F6B" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </span>
-        <!-- « Paiement sécurisé / En ligne ou à bord » était faux : aucun
-             paiement en ligne n'existe sur Elatransfer, et aucune donnée
-             bancaire ne transite par le site. Annoncer un paiement qui
-             n'existe pas ferait chercher au client un bouton introuvable. -->
-        <b data-t="eng3">Paiement à bord</b>
-        <span class="engagement-sous" data-t="eng3s">Au chauffeur, espèces ou carte</span>
+        <b data-t="eng2">Prix ferme</b>
+        <span class="engagement-sous" data-t="eng2s">Connu avant le départ, réglé au chauffeur</span>
+      </div>
+      <div class="engagement">
+        <span class="engagement-pastille">
+          <!-- L'AVION N'EST PAS LE MÊME QUE CELUI DE L'ENCADRÉ AU-DESSUS.
+               Posés à trois centimètres l'un de l'autre, deux dessins
+               identiques se lisent comme un copier-coller. Celui-ci penche
+               et traîne une trajectoire pointillée derrière lui : il ne dit
+               pas « avion », il dit « on le suit ». -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20.4 4.5a1.6 1.6 0 00-2.3 0l-3 3-5.9-1.5-1.4 1.4 4.7 3-2.6 2.6-2.6-.5-1 1 3 1.9 1.9 3 1-1-.5-2.6 2.6-2.6 3 4.7 1.4-1.4-1.5-5.9 3-3a1.6 1.6 0 000-2.3Z"
+                  stroke="#151C22" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M3.2 20.8h1.9M7.3 20.8h2.2M11.7 20.8h2.2"
+                  stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <!-- LE SUIVI DU VOL EST DIT DEUX FOIS SUR CETTE PAGE, et c'est
+             assumé : l'encadré vert au-dessus s'adresse au client qui
+             ATTERRIT et lui fait remplir son numéro de vol ; cette carte-ci
+             est un argument dans une liste d'arguments, lue en diagonale par
+             quelqu'un qui compare. Les deux formulations sont donc
+             différentes — c'est la répétition MOT POUR MOT qui fait relire. -->
+        <b data-t="eng3">Suivi du vol</b>
+        <span class="engagement-sous" data-t="eng3s">Retard ou avance, l'heure s'ajuste</span>
       </div>
       <div class="engagement">
         <span class="engagement-pastille">
@@ -1917,8 +1932,8 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
             <circle cx="13" cy="21.9" r="1.15" fill="#1F6F6B"/>
           </svg>
         </span>
-        <b data-t="eng4">Joignable jour et nuit</b>
-        <span class="engagement-sous" data-t="eng4s">Par téléphone et WhatsApp</span>
+        <b data-t="eng4">Assistance 24 h/24</b>
+        <span class="engagement-sous" data-t="eng4s">Téléphone et WhatsApp</span>
       </div>
     </div>
   </section>
@@ -1932,40 +1947,108 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
            n'existera pas : il n'y a qu'une prestation, le trajet. Un lien
            qui promet une suite qu'on n'a pas est pire que pas de lien. -->
     </div>
+    <!-- ═══ CINQ ENTRÉES, ET DES DESSINS À LA PLACE DES PHOTOS ═══
+         Septembre 2026, à sa demande. Il en voulait cinq — aéroport, hôtel,
+         gare, professionnel, mise à disposition — avec un pictogramme et une
+         ligne de précisions chacune.
+         POURQUOI LES PHOTOS SONT PARTIES. Il en fallait deux de plus, et une
+         photo ne s'installe pas sans savoir d'où elle vient : les douze
+         premières venaient de Google Images et ont coûté leur retrait. Sa
+         maquette est de toute façon une liste d'icônes, pas de vignettes.
+         Ce qu'on y gagne : l'accueil ne télécharge plus AUCUNE image, et une
+         carte réduite à trois lignes laisse voir qu'il y en a d'autres.
+         PAS D'EMOJI — il en proposait cinq (✈️ 🏨 🚆 💼 🚘). Ils changent de
+         dessin d'un téléphone à l'autre et grossissent mal ; les cinq
+         pictogrammes sont dessinés dans la même langue que les engagements —
+         contour seul, trait de 1,7, un seul accent par icône.
+         LES QUATRE PREMIÈRES MÈNENT AU FORMULAIRE, la cinquième non : le
+         site ne sait réserver qu'un trajet d'une adresse à une autre. Un
+         hôtel, une gare et un rendez-vous d'affaires SONT des adresses ; un
+         chauffeur à l'heure n'en est pas une, et l'envoyer vers un
+         formulaire qui ne peut pas le prendre serait promettre puis se
+         dédire au dernier écran. -->
     <div class="services">
       <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
-        <span class="service-image a-photo"
-              style="background-image:url('./photos/service-aeroport.webp')"></span>
         <span class="service-corps">
-        <b data-t="srv1">Transfert aéroport</b>
-        <span data-t="srv1s">Roissy-CDG, Orly, Beauvais</span>
+        <span class="service-icone">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M10.6 3.4a1.5 1.5 0 013 0v5.1l7.5 4.4v2.3l-7.5-2.3v4.4l2.4 1.9v1.8l-3.9-1.2-3.9 1.2v-1.8l2.4-1.9v-4.4L3.1 15.2v-2.3l7.5-4.4V3.4Z"
+                  stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <b data-t="srv1">Aéroport</b>
+        <span data-t="srv1s">Roissy-CDG · Orly · Beauvais · Le Bourget</span>
         </span>
       </a>
-      <!-- LA MISE À DISPOSITION EST REVENUE (septembre 2026, à la demande de
-           Barbaros, après avoir été retirée quelques jours plus tôt).
-           ELLE NE MÈNE PAS AU FORMULAIRE, et c'est la seule des trois dans
-           ce cas : le site ne sait réserver qu'un trajet d'une adresse à une
-           autre. L'envoyer vers un formulaire qui ne peut pas la prendre,
-           ce serait promettre puis se dédire au dernier écran. Elle ouvre
-           donc « Contact » — un chauffeur à l'heure se négocie de vive voix,
-           et c'est de toute façon ce qui se passerait. -->
-      <a class="service" href="#" data-ecran="ecran-contact" data-onglet="contact">
-        <span class="service-image a-photo"
-              style="background-image:url('./photos/service-chauffeur.jpg')"></span>
-        <span class="service-corps">
-        <b data-t="srv2">Mise à disposition</b>
-        <span data-t="srv2s">Un chauffeur à l'heure</span>
-        </span>
-      </a>
-            <!-- L'intérieur de voiture tient « Déplacement professionnel » : c'est
-           la vue la mieux définie des trois (1024 px), et elle a remplacé un
-           aperçu Shutterstock non payé, retiré du dépôt. -->
       <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
-        <span class="service-image a-photo"
-              style="background-image:url('./photos/service-deplacement-pro.jpg')"></span>
         <span class="service-corps">
-        <b data-t="srv3">Déplacement professionnel</b>
-        <span data-t="srv3s">Réservation pour un tiers</span>
+        <span class="service-icone">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3.4 20.6V4.9a1.5 1.5 0 011.5-1.5h9.4a1.5 1.5 0 011.5 1.5v15.7"
+                  stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M15.8 20.6V9.8h3.3a1.5 1.5 0 011.5 1.5v9.3" stroke="#151C22"
+                  stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M2.2 20.6h19.6" stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M6.6 7.4h2.1M11 7.4h2.1M6.6 11.2h2.1M11 11.2h2.1"
+                  stroke="#1F6F6B" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M8.2 20.6v-4.1h3.3v4.1" stroke="#151C22" stroke-width="1.7"
+                  stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <b data-t="srv2">Hôtel</b>
+        <span data-t="srv2s">Vers l'aéroport, Paris ou une gare</span>
+        </span>
+      </a>
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
+        <span class="service-corps">
+        <span class="service-icone">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5.1" y="2.9" width="13.8" height="13.2" rx="3.4"
+                  stroke="#151C22" stroke-width="1.7"/>
+            <path d="M5.1 9.5h13.8" stroke="#151C22" stroke-width="1.7"/>
+            <circle cx="8.4" cy="12.9" r="1.25" fill="#1F6F6B"/>
+            <circle cx="15.6" cy="12.9" r="1.25" fill="#1F6F6B"/>
+            <path d="M8.6 16.1L6.4 20.6M15.4 16.1l2.2 4.5" stroke="#151C22"
+                  stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <b data-t="srv3">Gare</b>
+        <span data-t="srv3s">Gares de Paris et d'Île-de-France</span>
+        </span>
+      </a>
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
+        <span class="service-corps">
+        <span class="service-icone">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.9" y="7.1" width="18.2" height="12.6" rx="2.4"
+                  stroke="#151C22" stroke-width="1.7"/>
+            <path d="M8.6 7.1V5.3a1.7 1.7 0 011.7-1.7h3.4a1.7 1.7 0 011.7 1.7v1.8"
+                  stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M2.9 12.3h18.2" stroke="#1F6F6B" stroke-width="1.7"/>
+            <path d="M10.4 12.3h3.2" stroke="#151C22" stroke-width="1.9" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <b data-t="srv4">Professionnel</b>
+        <span data-t="srv4s">Clients, collaborateurs, rendez-vous</span>
+        </span>
+      </a>
+      <!-- LA MISE À DISPOSITION OUVRE « NOUS JOINDRE », PAS LE FORMULAIRE.
+           Un chauffeur à l'heure se négocie de vive voix, et c'est de toute
+           façon ce qui se passerait. C'est aussi elle qui porte les visites —
+           Paris, Disneyland : ce ne sont PAS des offres à prix fixe, les
+           packs ont été retirés deux fois à sa demande. On nomme des
+           destinations, on ne vend pas un forfait. -->
+      <a class="service" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+        <span class="service-corps">
+        <span class="service-icone">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.1" stroke="#151C22" stroke-width="1.7"/>
+            <path d="M12 6.6V12l3.6 2.1" stroke="#1F6F6B" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <b data-t="srv5">Mise à disposition</b>
+        <span data-t="srv5s">Chauffeur à l'heure · Paris, Disneyland</span>
         </span>
       </a>
     </div>
@@ -3650,15 +3733,17 @@ window.ELA_TEXTES = {
     dispo:"Disponibilité confirmée par WhatsApp ou SMS",
     retard_titre:"Vol ou train en retard ? Votre chauffeur s'adapte.",
     retard_texte:"Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.",
-    engagements:"Nos engagements",
-    eng1:"Chauffeurs professionnels", eng1s:"Discrets et courtois",
-    eng2:"Véhicules haut de gamme", eng2s:"Confort et sécurité",
-    eng3:"Paiement à bord", eng3s:"Au chauffeur, espèces ou carte",
-    eng4:"Joignable jour et nuit", eng4s:"Par téléphone et WhatsApp",
+    engagements:"Pourquoi choisir Elatransfer ?",
+    eng1:"Chauffeur professionnel", eng1s:"Une prise en charge organisée",
+    eng2:"Prix ferme", eng2s:"Connu avant le départ, réglé au chauffeur",
+    eng3:"Suivi du vol", eng3s:"Retard ou avance, l'heure s'ajuste",
+    eng4:"Assistance 24 h/24", eng4s:"Téléphone et WhatsApp",
     services:"Nos services", voir_tous:"Voir tous",
-    srv1:"Transfert aéroport", srv1s:"Roissy-CDG, Orly, Beauvais",
-    srv2:"Mise à disposition", srv2s:"Un chauffeur à l'heure",
-    srv3:"Déplacement professionnel", srv3s:"Réservation pour un tiers",
+    srv1:"Aéroport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
+    srv2:"Hôtel", srv2s:"Vers l'aéroport, Paris ou une gare",
+    srv3:"Gare", srv3s:"Gares de Paris et d'Île-de-France",
+    srv4:"Professionnel", srv4s:"Clients, collaborateurs, rendez-vous",
+    srv5:"Mise à disposition", srv5s:"Chauffeur à l'heure · Paris, Disneyland",
     nuit:"Majoration nuit et week-end de 20 % appliquée.",
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
@@ -3789,15 +3874,17 @@ window.ELA_TEXTES = {
     dispo:"Availability confirmed by WhatsApp or SMS",
     retard_titre:"Flight or train delayed? Your chauffeur adapts.",
     retard_texte:"Give us your flight or train number: we track your arrival and adjust the pick-up time.",
-    engagements:"Our commitments",
-    eng1:"Professional chauffeurs", eng1s:"Discreet and courteous",
-    eng2:"High-end vehicles", eng2s:"Comfort and safety",
-    eng3:"Payment on board", eng3s:"To your chauffeur, cash or card",
-    eng4:"Reachable day and night", eng4s:"By phone and WhatsApp",
+    engagements:"Why choose Elatransfer?",
+    eng1:"Professional chauffeur", eng1s:"An organised pick-up",
+    eng2:"Firm price", eng2s:"Known before you leave, paid to your chauffeur",
+    eng3:"Flight tracking", eng3s:"Late or early, the time adjusts",
+    eng4:"24/7 assistance", eng4s:"Phone and WhatsApp",
     services:"Our services", voir_tous:"See all",
-    srv1:"Airport transfer", srv1s:"Roissy-CDG, Orly, Beauvais",
-    srv2:"Hourly hire", srv2s:"A chauffeur by the hour",
-    srv3:"Business travel", srv3s:"Booking for someone else",
+    srv1:"Airport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
+    srv2:"Hotel", srv2s:"To the airport, Paris or a station",
+    srv3:"Station", srv3s:"Paris and Île-de-France stations",
+    srv4:"Business", srv4s:"Clients, colleagues, meetings",
+    srv5:"Hourly hire", srv5s:"A chauffeur by the hour · Paris, Disneyland",
     nuit:"A 20% night and weekend surcharge applies.",
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",

@@ -142,12 +142,20 @@ for (const [langue, mot] of [['fr','nnulation'], ['en','ancellation']]) {
     !ligne.includes(mot), ligne);
 }
 
-/* « Mise à disposition » est revenue à la demande de Barbaros. Ce qui est
-   vérifié ici n'est plus son absence mais sa TRADUCTION : c'est la carte la
-   plus facile à oublier, puisqu'elle a été retirée puis remise. */
-check('les trois cartes de services sont traduites',
-  (await p.locator('.service b').allTextContents()).join('|')
-    === 'Airport transfer|Hourly hire|Business travel',
+/* LES CARTES DE SERVICES SONT PASSÉES DE TROIS À CINQ, et elles
+   changeront encore : ce contrôle FIGEAIT LA LISTE (« Airport
+   transfer|Hourly hire|Business travel ») et serait tombé sur une simple
+   réorganisation, alors que rien n'aurait été cassé.
+   Ce qui compte est qu'AUCUNE ne reste en français — le titre comme le
+   sous-titre, celui-ci étant le plus facile à oublier. On lit donc le
+   bloc entier et on y cherche des accents français. */
+const cartesEn = await p.locator('.services').innerText();
+check('aucune carte de services ne reste en français',
+  !/[àéèêîôûç]/i.test(cartesEn.replace(/Île-de-France|Roissy-CDG/g,'')),
+  cartesEn.replace(/\n/g,' | '));
+check('et il y a bien une carte par service annoncé',
+  (await p.locator('.service b').allTextContents()).length ===
+  (await p.locator('.service .service-icone').count()),
   (await p.locator('.service b').allTextContents()).join(' | '));
 
 // --- Un tunnel complet en anglais ---
