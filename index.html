@@ -442,7 +442,6 @@ img{display:block;max-width:100%;}
    WhatsApp. Ce que Barbaros ouvre son téléphone pour voir, ce sont les
    demandes qui l'attendent, pas son propre argumentaire de vente. */
 body.exploitant .barre,
-body.exploitant .wa,
 body.exploitant .langues{display:none;}
 body.exploitant{padding-bottom:32px;}
 /* Un liseré doré en haut de l'enseigne : à 3 h du matin, il faut savoir d'un
@@ -556,16 +555,51 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   gap:10px;margin-top:5px;font-size:11.5px;color:var(--gris);}
 .course-prix{font-size:14.5px;font-weight:800;letter-spacing:-.02em;
   color:var(--encre);flex:0 0 auto;}
-/* L'état est en OR, jamais en vert : rien n'est confirmé tant que Barbaros
-   n'a pas répondu, et un vert dirait le contraire. */
+/* ═══ « EN ATTENTE » ET « CONFIRMÉ » ÉTAIENT DE LA MÊME COULEUR ═══
+   Défaut trouvé en relisant une capture de Barbaros, septembre 2026. La
+   règle d'origine disait « l'état est en OR, jamais en vert : rien n'est
+   confirmé tant que Barbaros n'a pas répondu ». Elle était juste — mais le
+   passage de la palette à « Encre & céladon » a remplacé l'or par le vert
+   PARTOUT, y compris ici : « en attente » portait « accent-encre sur
+   accent-clair », c'est-à-dire exactement les valeurs de « .ok ». Les deux
+   pastilles étaient devenues indiscernables, et la seule information que
+   le client vient chercher — a-t-on répondu ? — ne se lisait plus.
+   **Une couleur nommée par son rôle suit le rôle ; une couleur nommée par
+   sa teinte ramène la teinte.** C'est la deuxième fois dans ce projet.
+   UNE SEULE PASTILLE EST COLORÉE : celle qui annonce la bonne nouvelle.
+   L'attente est neutre, le fini est gris. Si tout était coloré, plus rien
+   ne le serait. */
 .course-etat{flex:0 0 auto;font-size:10px;font-weight:700;
-  letter-spacing:.06em;text-transform:uppercase;color:var(--accent-encre);
-  background:var(--accent-clair);border-radius:999px;padding:3px 9px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--encre);
+  background:var(--filet);border-radius:999px;padding:3px 9px;
   white-space:nowrap;}
 /* Confirmé passe au vert, comme la pastille du bon : deux endroits, un seul
-   langage. Le contraste mesuré est de 5,4:1 — la couleur ne porte pas le
-   sens à elle seule, le mot est écrit à côté. */
-.course-etat.ok{color:#175E5B;background:#E2F0EE;}
+   langage. Le contraste mesuré est de 7,1:1 — et la couleur ne porte pas le
+   sens à elle seule, le mot est écrit dedans. */
+.course-etat.ok{color:var(--accent-encre);background:var(--accent-clair);}
+/* UNE DEMANDE NON PRISE N'EST PAS UN TRAJET TERMINÉ. « Terminé » sur une
+   course qu'on n'a pas pu assurer serait un mensonge poli — et le client
+   attendrait une voiture qui ne vient pas. Les deux sont en gris : elles
+   n'attendent plus rien, et le rouge de ce projet est réservé à ce qui
+   attend une action. */
+.course-etat.fini,
+.course-etat.non{color:var(--gris);background:transparent;
+  box-shadow:inset 0 0 0 1px var(--filet);}
+/* La ligne de mise à jour ne prend pas de place quand elle disparaît :
+   posée dans le flux, elle ferait sauter la liste à chaque ouverture. */
+.maj-etat{margin:8px 20px 0;font-size:11.5px;color:var(--gris);}
+
+/* ---------- LE PIED DE L'ACCUEIL ---------- */
+/* Le numéro et les documents légaux, descendus ici quand « Contact » a
+   cédé son onglet à WhatsApp. Discret mais lisible : le contraste du gris
+   sur le fond est de 4,9:1, et le numéro est un lien de 44 px de haut —
+   c'est un bouton d'appel, pas une mention. */
+.pied{margin:26px 20px 0;padding:18px 0 4px;border-top:1px solid var(--filet);
+  display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.pied-tel{display:inline-flex;align-items:center;gap:8px;min-height:44px;
+  color:var(--accent-encre);font-size:14px;font-weight:700;text-decoration:none;}
+.pied-lien{font-size:12px;color:var(--gris);text-decoration:underline;
+  padding:6px 4px;}
 
 /* ---------- LE REGISTRE ---------- */
 /* Trois chiffres de front sur 390 px : chacun a 110 px, de quoi tenir
@@ -649,6 +683,18 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .bloc{background:var(--carte);border:1px solid var(--filet);border-radius:16px;
   margin:14px 20px 0;padding:14px;}
 .bloc-titre{margin:0 0 12px;font-size:15px;font-weight:800;letter-spacing:-.018em;}
+/* LES TROIS ÉTAPES AVANT LE BOUTON. Numérotées à la main plutôt qu'avec la
+   puce du navigateur : le chiffre est à l'accent, aligné en haut de sa
+   ligne, et il ne bouge pas quand le texte passe sur deux lignes — ce que
+   ne garantit aucun « list-style » d'origine. */
+.suite-liste{margin:0;padding:0;list-style:none;counter-reset:etape;}
+.suite-liste li{counter-increment:etape;position:relative;padding:0 0 0 27px;
+  margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--encre);}
+.suite-liste li:last-child{margin-bottom:0;}
+.suite-liste li::before{content:counter(etape);position:absolute;left:0;top:1px;
+  width:18px;height:18px;border-radius:50%;background:var(--accent-clair);
+  color:var(--accent-encre);font-size:10.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;}
 .ligne{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
   padding:7px 0;font-size:13.5px;}
 .ligne + .ligne{border-top:1px solid var(--filet);}
@@ -1169,21 +1215,6 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   line-height:1.35;margin-top:4px;}
 
 /* ---------- WHATSAPP ---------- */
-/* La pastille est FIXE : à un moment ou un autre du défilement, elle se pose
-   forcément sur quelque chose. Mesuré ici : elle mangeait la fin de
-   « Annulation gratuite jusqu'à 24h avant le trajet » et le sous-titre des
-   cartes de services.
-   Deux mesures, l'une visuelle, l'autre de comportement :
-   — 54 px au lieu de 58, et posée un peu plus haut, hors du texte des cartes ;
-   — elle S'EFFACE dès qu'elle croise un élément marqué « .protege ». On garde
-     sa place (visibility, pas display) pour que rien ne sursaute, et la
-     transition évite le clignotement quand on défile vite. */
-.wa{position:fixed;right:16px;bottom:calc(104px + env(safe-area-inset-bottom));
-  z-index:40;width:54px;height:54px;border-radius:50%;background:#25D366;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 24px rgba(37,211,102,.4);
-  transition:opacity .18s ease-out;}
-.wa.efface{opacity:0;visibility:hidden;}
 
 /* ---------- BARRE DU BAS ---------- */
 .barre{position:fixed;left:0;right:0;bottom:0;z-index:35;background:#fff;
@@ -1205,6 +1236,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   gap:5px;padding:11px 4px 10px;background:none;border:0;font-family:inherit;
   font-size:11.5px;font-weight:600;color:var(--gris);text-decoration:none;}
 .onglet.actif{color:var(--accent);}
+/* L'ONGLET WHATSAPP NE S'ALLUME JAMAIS : il n'ouvre pas un écran, il
+   quitte le site. Un onglet allumé dirait « vous êtes ici », ce qui
+   serait faux dès le retour. Son vert est celui de la marque WhatsApp,
+   intouchable — c'est sa reconnaissance immédiate qui le rend utile. */
+.onglet-wa{color:#128C43;}
 
 @media (min-width:520px){
   .hero{height:430px;}
@@ -1749,6 +1785,30 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
     </div>
   </section>
 
+  <!-- =====================================================================
+       LE PIED DE PAGE — LE TÉLÉPHONE ET LES DOCUMENTS LÉGAUX
+       ---------------------------------------------------------------------
+       Ils vivaient derrière l'onglet « Contact », que le WhatsApp de la
+       barre du bas a remplacé (septembre 2026, à sa demande). Ils descendent
+       ici, en pied d'accueil : c'est l'endroit où un client les cherche sur
+       n'importe quel site, et **la LCEN exige qu'ils restent accessibles
+       sans compte, pas qu'ils aient un onglet à eux**.
+       LE NUMÉRO EST ÉCRIT EN TOUTES LETTRES, pas caché derrière un mot :
+       quelqu'un qui veut une voiture tout de suite compose, il ne cherche
+       pas un écran de contact.
+       ===================================================================== -->
+  <footer class="pied">
+    <a class="pied-tel" href="tel:+33759312433">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z"
+              stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      <span>+33 7 59 31 24 33</span>
+    </a>
+    <a class="pied-lien" href="#" data-ecran="ecran-contact" data-onglet="accueil"
+       data-t="pied_legal">Nous joindre et informations légales</a>
+  </footer>
+
   </section><!-- /#ecran-accueil -->
 
   <!-- =====================================================================
@@ -1960,12 +2020,35 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          offertes après l'atterrissage, même si votre vol a du retard.</p>
     </div>
 
+    <!-- =====================================================================
+         CE QUI SE PASSE QUAND ON APPUIE
+         ---------------------------------------------------------------------
+         Barbaros, septembre 2026 : « le client n'est pas censé savoir que sa
+         demande part sur WhatsApp s'il ne lit pas la ligne du bas ».
+         Il avait raison, et c'était pire que ça : WhatsApp s'OUVRE tout seul
+         au clic. Un client qui ne s'y attend pas voit son téléphone changer
+         d'application sans prévenir — et ceux qui abandonnent là ne
+         reviennent pas.
+         TROIS LIGNES NUMÉROTÉES, AVANT LE BOUTON, PAS APRÈS. Une phrase
+         posée sous un bouton se lit après le clic, c'est-à-dire trop tard.
+         Elles disent aussi la chose qui rassure vraiment : la demande arrive
+         chez Elatransfer **même si** le message WhatsApp n'est pas envoyé.
+         ===================================================================== -->
+    <div class="bloc suite">
+      <h2 class="bloc-titre" data-t="suite_titre">Ce qui se passe ensuite</h2>
+      <ol class="suite-liste">
+        <li data-t="suite_1">WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.</li>
+        <li data-t="suite_2">Votre demande arrive chez Elatransfer dans tous les cas, même sans WhatsApp.</li>
+        <li data-t="suite_3">La réponse s'affiche ici, dans « Réservations », et vous est envoyée.</li>
+      </ol>
+    </div>
+
     <div class="veh-action">
       <button class="bouton" type="button" id="btnConfirmer">
         <span data-t="confirmer">Confirmer ma réservation</span>
       </button>
-      <p class="rassure" data-t="confirmer_note">Votre demande part sur WhatsApp. Elle devient ferme
-         dès qu'Elatransfer vous confirme.</p>
+      <p class="rassure" data-t="confirmer_note">Elle devient ferme dès qu'Elatransfer
+         vous confirme.</p>
     </div>
   </section>
 
@@ -3058,13 +3141,43 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
        savoir si la course a été confirmée — la réponse arrive sur WhatsApp,
        pas ici. C'est écrit sur l'écran plutôt que passé sous silence.
        ===================================================================== -->
+  <!-- =====================================================================
+       MES RÉSERVATIONS — CE QUI EST À VENIR
+       ---------------------------------------------------------------------
+       Séparé de « Mes trajets » à sa demande. Un client qui cherche son
+       transfert de demain n'a pas à le reconnaître au milieu de ses courses
+       du mois dernier.
+       L'ÉTAT AFFICHÉ EST CELUI DU SERVEUR, plus celui figé dans le
+       téléphone : voir « rafraichirCourses ». C'est toute la différence
+       entre une liste qui informe et une liste qui ment.
+       ===================================================================== -->
   <section class="ecran" id="ecran-courses">
-    <h1 class="ecran-titre" data-t="courses_titre">Mes courses</h1>
-    <p class="ecran-note" data-t="courses_note">Les demandes envoyées depuis ce téléphone. La réponse d'Elatransfer vous arrive sur WhatsApp.</p>
+    <h1 class="ecran-titre" data-t="courses_titre">Mes réservations</h1>
+    <p class="ecran-note" data-t="courses_note">Vos transferts à venir. L'état se met à jour tout seul dès qu'Elatransfer répond.</p>
+    <p class="maj-etat" id="majCourses" hidden data-t="maj_cours">Mise à jour…</p>
     <div id="listeCourses"></div>
     <div class="vide" id="videCourses" hidden>
-      <p data-t="courses_vide">Aucune course pour l'instant.</p>
-      <button class="bouton-fantome" type="button" data-ecran="ecran-accueil" data-t="courses_vide_cta">
+      <p data-t="courses_vide">Aucune réservation en cours.</p>
+      <button class="bouton-fantome" type="button" data-ecran="ecran-accueil" data-onglet="accueil" data-t="courses_vide_cta">
+        Réserver un trajet
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       MES TRAJETS EFFECTUÉS — CE QUI EST FINI
+       ---------------------------------------------------------------------
+       Les courses réalisées, et les demandes qui n'ont pas pu être prises.
+       Un refus n'est pas un trajet, mais il est FINI : le laisser dans les
+       réservations ferait attendre une réponse déjà donnée.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-trajets">
+    <h1 class="ecran-titre" data-t="trajets_titre">Mes trajets effectués</h1>
+    <p class="ecran-note" data-t="trajets_note">Vos courses passées, depuis ce téléphone.</p>
+    <div id="listeTrajets"></div>
+    <div class="vide" id="videTrajets" hidden>
+      <p data-t="trajets_vide">Aucun trajet effectué pour l'instant.</p>
+      <button class="bouton-fantome" type="button" data-ecran="ecran-accueil" data-onglet="accueil" data-t="courses_vide_cta">
         Réserver un trajet
       </button>
     </div>
@@ -3149,16 +3262,16 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 
 </div>
 
-<!-- La bulle portait « # » : le bouton le plus visible du site ne faisait
-     rien. Elle ouvre maintenant une conversation, avec un premier message
-     déjà écrit — un client qui doit trouver quoi dire n'écrit pas. -->
-<a class="wa" target="_blank" rel="noopener" aria-label="WhatsApp"
-   href="https://wa.me/33759312433?text=Bonjour%2C%20je%20souhaite%20r%C3%A9server%20un%20trajet.">
-  <svg width="29" height="29" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
-    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
-  </svg>
-</a>
-
+<!-- ═══ LA BULLE WHATSAPP FLOTTANTE A ÉTÉ RETIRÉE ═══
+     Septembre 2026, avec l'arrivée de l'onglet WhatsApp dans la barre du
+     bas. Les deux se posaient l'un sur l'autre — même vert, même dessin,
+     même destination — et la bulle flottante était la moins bonne des
+     deux : elle ne s'affichait que sur l'accueil, elle recouvrait ce qui
+     passait dessous, et il avait fallu tout un mécanisme (« PROTEGES »,
+     « __jugerPastilleWa ») pour l'effacer devant les boutons.
+     L'onglet, lui, est à sa place sur tous les écrans et ne recouvre
+     jamais rien. Ne pas remettre la bulle : ce serait deux fois le même
+     bouton, et le retour du défaut qu'on vient de supprimer. -->
 <nav class="barre">
   <div class="barre-int">
     <a class="onglet actif" href="#" data-ecran="ecran-accueil" data-onglet="accueil">
@@ -3175,6 +3288,20 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          écran, c'est un client qui appuie sur le second en croyant aller
          ailleurs, ne voit rien bouger, et en conclut que le site est cassé.
          Les trois qui restent mènent chacun quelque part. -->
+    <!-- ═══ QUATRE ONGLETS, ET LE DERNIER N'EST PAS UN ÉCRAN ═══
+         Septembre 2026, à sa demande : « accueil, mes réservations, mes
+         trajets effectués, sorte de logo pour me contacter directement sur
+         WhatsApp ». « Mes courses » mélangeait ce qui arrive et ce qui est
+         fait : un client qui cherche son transfert de demain devait le
+         reconnaître au milieu de ses trajets du mois dernier.
+         LES LIBELLÉS SONT COURTS — « Réservations », pas « Mes réservations
+         ». À quatre onglets sur 390 px, chacun dispose de 97 px : le titre
+         complet vit sur l'écran, où il a la place.
+         « CONTACT » A CÉDÉ SA PLACE. Le numéro de téléphone et les trois
+         documents légaux sont descendus en pied de l'accueil — c'est là
+         qu'un client les cherche sur n'importe quel site, et la LCEN exige
+         seulement qu'ils restent accessibles sans compte, pas qu'ils aient
+         un onglet. -->
     <a class="onglet" href="#" data-ecran="ecran-courses" data-onglet="courses">
       <!-- LE BON DE RÉSERVATION, PAS UNE VOITURE (septembre 2026, à sa
            demande : « la voiture est très moche »). Le dessin précédent
@@ -3191,13 +3318,32 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
         <path d="M13.4 3.6v5.2h5.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
         <path d="M8.4 13.4h7M8.4 17h4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
-      <span data-t="nav_courses">Mes courses</span>
+      <span data-t="nav_courses">Réservations</span>
     </a>
-    <a class="onglet" href="#" data-ecran="ecran-contact" data-onglet="contact">
+    <!-- LES TRAJETS FAITS. Une coche dans un cercle : c'est fini, il n'y a
+         plus rien à décider. Le dessin ne parle ni de voiture ni de route —
+         cinquième refus d'une voiture dessinée, la leçon tient. -->
+    <a class="onglet" href="#" data-ecran="ecran-trajets" data-onglet="trajets">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="8.6" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M8.4 12.2l2.5 2.5 4.7-4.9" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span data-t="nav_contact">Contact</span>
+      <span data-t="nav_trajets">Trajets</span>
+    </a>
+    <!-- LE SEUL ONGLET QUI N'OUVRE PAS UN ÉCRAN, et c'est voulu : il ouvre
+         WhatsApp. Il porte donc un vrai « href », pas un « data-ecran » —
+         un onglet qui prétendrait mener quelque part et n'y menant pas est
+         exactement ce qu'on a retiré avec « Réserver ».
+         IL GARDE LE VERT DE WHATSAPP (#25D366), qui est une marque : le
+         teindre à l'accent du site le rendrait méconnaissable, et c'est
+         justement sa reconnaissance immédiate qui le rend utile. -->
+    <a class="onglet onglet-wa" data-onglet="whatsapp" target="_blank" rel="noopener"
+       href="https://wa.me/33759312433?text=Bonjour%2C%20j%27ai%20une%20question%20sur%20ma%20r%C3%A9servation.">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
+      </svg>
+      <span>WhatsApp</span>
     </a>
   </div>
 </nav>
@@ -3275,7 +3421,11 @@ window.ELA_TEXTES = {
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
     err_tel:"Ce numéro ne semble pas valable. Vérifiez-le : c'est par là que nous vous confirmons la course.",
     confirmer:"Confirmer ma réservation",
-    confirmer_note:"Votre demande part sur WhatsApp. Elle devient ferme dès qu'Elatransfer vous confirme.",
+    confirmer_note:"Elle devient ferme dès qu'Elatransfer vous confirme.",
+    suite_titre:"Ce qui se passe ensuite",
+    suite_1:"WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
+    suite_2:"Votre demande arrive chez Elatransfer dans tous les cas, même sans WhatsApp.",
+    suite_3:"La réponse s'affiche ici, dans « Réservations », et vous est envoyée.",
     bon_sous:"Bon de réservation",
     /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
        on cherche un chauffeur — plutôt que de renvoyer le client vers
@@ -3292,7 +3442,8 @@ window.ELA_TEXTES = {
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
-    nav_accueil:"Accueil", nav_courses:"Mes courses", nav_contact:"Contact",
+    nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
+    nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
     tot_titre:"Ce départ est trop proche.",
@@ -3337,9 +3488,15 @@ window.ELA_TEXTES = {
     legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 6 septembre 2026\n\n1. Responsable du traitement\nLe responsable du traitement des données collectées via le Service est Elatransfer, dont les coordonnées figurent dans les Mentions légales.\n\n2. Données collectées\n— Données d'identification : nom, numéro de téléphone\n— Données de réservation : adresses de départ et d'arrivée, date, heure, nombre de passagers et de bagages, terminal aéroport et numéro de vol le cas échéant, numéro de chambre lorsque le lieu est un hôtel\n— Données de paiement : aucune. Le règlement se fait directement auprès du chauffeur ; aucune donnée bancaire ne transite par le Service\n— Données de localisation : uniquement si le Client active volontairement la fonction « Me localiser »\n— Données de navigation : cookies statistiques et marketing, uniquement avec consentement\n\n3. Finalités et bases légales\n— Traitement et exécution de la réservation : exécution du contrat\n— Contact avant la prise en charge : exécution du contrat\n— Amélioration du service : intérêt légitime ou consentement selon le cas\n— Prospection commerciale, le cas échéant : consentement de l'utilisateur\n\n4. Destinataires des données\nLes données sont destinées au seul chauffeur affecté à la course. Lorsqu'Elatransfer ne peut pas assurer elle-même la prestation, une annonce est diffusée à son réseau de chauffeurs partenaires afin de trouver un chauffeur disponible ; cette annonce ne comporte ni le nom, ni le numéro de téléphone, ni le numéro de chambre du Client. Ces éléments ne sont communiqués qu'au seul chauffeur finalement retenu, et pour la seule exécution de la course. Aucune donnée n'est transmise à un prestataire de paiement, puisqu'aucun paiement n'est encaissé par le Service. Aucune donnée n'est vendue à des tiers.\n\n5. Durée de conservation\nLes données de réservation sont conservées le temps nécessaire à l'exécution de la prestation, puis archivées pendant la durée légale de conservation des documents comptables (10 ans pour les factures). Les données enregistrées localement sur l'appareil utilisé pour réserver (répertoire client) peuvent être supprimées à tout moment sur simple demande.\n\n6. Cookies\nDes cookies strictement nécessaires au fonctionnement du site sont toujours actifs. Des cookies de mesure d'audience et marketing ne sont déposés qu'avec le consentement explicite du Client, recueilli via le bandeau de gestion des cookies, modifiable à tout moment.\n\n7. Sécurité\nElatransfer met en œuvre les mesures techniques et organisationnelles raisonnables pour protéger les données contre tout accès non autorisé, altération ou perte.\n\n8. Droits du Client\nConformément au RGPD et à la loi Informatique et Libertés, le Client dispose d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de ses données. Ces droits s'exercent via WhatsApp ou par email à contact@elatransfer.com.\n\n9. Réclamation\nEn cas de désaccord sur le traitement de ses données, le Client peut introduire une réclamation auprès de la CNIL (www.cnil.fr).",
     etat_court:"En attente",
-    courses_titre:"Mes courses",
-    courses_note:"Les demandes envoyées depuis ce téléphone. La réponse d'Elatransfer vous arrive sur WhatsApp.",
-    courses_vide:"Aucune course pour l'instant.",
+    courses_titre:"Mes réservations",
+    courses_note:"Vos transferts à venir. L'état se met à jour tout seul dès qu'Elatransfer répond.",
+    maj_cours:"Mise à jour…",
+    trajets_titre:"Mes trajets effectués",
+    trajets_note:"Vos courses passées, depuis ce téléphone.",
+    trajets_vide:"Aucun trajet effectué pour l'instant.",
+    etat_faite:"Terminé", etat_refusee:"Non prise",
+    pied_legal:"Nous joindre et informations légales",
+    courses_vide:"Aucune réservation en cours.",
     courses_vide_cta:"Réserver un trajet",
     contact_titre:"Nous joindre",
     contact_note:"Une question, un changement d'heure, une course pour tout de suite : appelez, c'est le plus rapide.",
@@ -3400,7 +3557,11 @@ window.ELA_TEXTES = {
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
     err_tel:"This number does not look valid. Please check it: it is how we confirm your transfer.",
     confirmer:"Confirm my booking",
-    confirmer_note:"Your request is sent on WhatsApp. It becomes firm as soon as Elatransfer confirms.",
+    confirmer_note:"It becomes firm as soon as Elatransfer confirms.",
+    suite_titre:"What happens next",
+    suite_1:"WhatsApp opens with your request already written: just send it.",
+    suite_2:"Your request reaches Elatransfer either way, even without WhatsApp.",
+    suite_3:"The answer appears here, under \u00ab Bookings \u00bb, and is sent to you.",
     bon_sous:"Booking voucher",
     bon_etat:"Request received",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
@@ -3413,7 +3574,8 @@ window.ELA_TEXTES = {
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
-    nav_accueil:"Home", nav_courses:"My rides", nav_contact:"Contact",
+    nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
+    nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
     tot_titre:"That pickup is too soon.",
@@ -3453,9 +3615,15 @@ window.ELA_TEXTES = {
     legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 6 September 2026\n\n1. Data controller\nThe controller of data collected via the Service is Elatransfer, whose contact details appear in the Legal Notice.\n\n2. Data collected\n— Identification data: name, phone number\n— Booking data: pickup and drop-off addresses, date, time, number of passengers and luggage, airport terminal and flight number where applicable, room number when the location is a hotel\n— Payment data: none. Payment is made directly to the chauffeur; no banking data passes through the Service\n— Location data: only if the Client voluntarily activates the \"Locate me\" feature\n— Browsing data: analytics and marketing cookies, only with consent\n\n3. Purposes and legal bases\n— Processing and delivering the booking: performance of the contract\n— Contacting the Client before pickup: performance of the contract\n— Service improvement: legitimate interest or consent as applicable\n— Marketing, where applicable: user consent\n\n4. Data recipients\nData is shared only with the driver assigned to the ride. Where Elatransfer cannot perform the service itself, an announcement is circulated to its network of partner drivers to find an available one; that announcement carries no client name, phone number or room number. Those details are passed only to the driver finally chosen, and solely to perform the ride. No data is passed to a payment provider, since no payment is collected by the Service. No data is sold to third parties.\n\n5. Retention period\nBooking data is kept for as long as necessary to deliver the service, then archived for the legal accounting retention period (10 years for invoices). Data saved locally on the device used to book (client directory) can be deleted at any time on request.\n\n6. Cookies\nStrictly necessary cookies are always active. Analytics and marketing cookies are only set with the Client's explicit consent, collected via the cookie banner, and changeable at any time.\n\n7. Security\nElatransfer implements reasonable technical and organisational measures to protect data against unauthorised access, alteration or loss.\n\n8. Client rights\nUnder GDPR, the Client has the right to access, rectify, erase, restrict, object to, and port their data. These rights can be exercised via WhatsApp or email to contact@elatransfer.com.\n\n9. Complaints\nIn case of disagreement over data processing, the Client may lodge a complaint with the CNIL (www.cnil.fr).",
     etat_court:"Awaiting",
-    courses_titre:"My rides",
-    courses_note:"Requests sent from this phone. Elatransfer's answer reaches you on WhatsApp.",
-    courses_vide:"No ride yet.",
+    courses_titre:"My bookings",
+    courses_note:"Your upcoming transfers. The status updates on its own as soon as Elatransfer replies.",
+    maj_cours:"Updating…",
+    trajets_titre:"My completed rides",
+    trajets_note:"Your past rides, from this phone.",
+    trajets_vide:"No completed ride yet.",
+    etat_faite:"Completed", etat_refusee:"Not taken",
+    pied_legal:"Contact us and legal information",
+    courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
     contact_titre:"Contact us",
     contact_note:"A question, a change of time, a ride for right now: call us, it is the fastest.",
@@ -4482,16 +4650,17 @@ window.ELA_TEXTES = {
        l'on se trouve. */
     var onglet = force || { "ecran-accueil":"accueil", "ecran-vehicules":"accueil",
                    "ecran-recap":"accueil", "ecran-bon":"courses",
-                   "ecran-courses":"courses", "ecran-contact":"contact",
-                   /* Un document légal s'ouvre depuis « Contact » : l'onglet
-                      y reste allumé, sinon la barre du bas n'indiquerait plus
-                      où l'on se trouve. */
-                   "ecran-legal":"contact" }[id];
+                   "ecran-courses":"courses", "ecran-trajets":"trajets",
+                   /* « Nous joindre » et les documents légaux s'ouvrent
+                      depuis le pied de l'accueil, qui n'a plus d'onglet à
+                      lui : c'est donc « Accueil » qui reste allumé — la
+                      barre continue de dire d'où l'on vient. */
+                   "ecran-contact":"accueil",
+                   "ecran-legal":"accueil" }[id];
     document.querySelectorAll(".onglet").forEach(function(o){
       o.classList.toggle("actif", o.dataset.onglet === onglet);
     });
     window.scrollTo(0, 0);
-    if(window.__jugerPastilleWa) window.__jugerPastilleWa();
   }
 
 /* =====================================================================
@@ -5032,6 +5201,45 @@ window.ELA_TEXTES = {
       .then(function(r){ return r.ok; })
       .catch(function(){ return false; })
       .then(function(ok){ clearTimeout(minuteur); return ok; });
+    },
+
+    /* ═══ LA RÉPONSE D'ELATRANSFER ARRIVE SUR LE SITE ═══
+       Barbaros : « il faut que je puisse répondre aussi via le site ».
+       « Mes réservations » n'affichait que ce qui dort dans ce téléphone,
+       figé à l'instant de la réservation : une course confirmée à 4 h du
+       matin restait « EN ATTENTE » des jours plus tard. **Ce n'était pas
+       une information manquante, c'était une information FAUSSE** — et le
+       client rappelait pour demander ce qu'il avait déjà.
+
+       ON NE LIT PAS LA TABLE, ON DEMANDE À UNE FONCTION. La règle de
+       sécurité du serveur interdit la lecture aux visiteurs anonymes, et
+       elle DOIT l'interdire : la clé de cette page est publique, une policy
+       de lecture exposerait les noms, téléphones et adresses de tous les
+       clients. La fonction « etat-course » lit avec la clé de service, qui
+       ne sort jamais du serveur, et exige la référence **et** le téléphone
+       — la référence seule est séquentielle, donc devinable.
+
+       UN ÉCHEC N'EST JAMAIS UNE COURSE INCONNUE. Réseau coupé, fonction
+       pas encore déployée, serveur muet : on rend « null », et l'appelant
+       garde l'état qu'il a déjà. Rendre « attente » ferait REVENIR en
+       arrière une course confirmée — le contraire de ce qu'on répare. */
+    etat: function(ref, tel){
+      if(!this.actif() || !ref || !tel) return Promise.resolve(null);
+      var ctrl = new AbortController();
+      var minuteur = setTimeout(function(){ ctrl.abort(); }, 8000);
+      return fetch(SUPABASE_URL + "/functions/v1/etat-course", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { apikey: SUPABASE_CLE, Authorization: "Bearer " + SUPABASE_CLE,
+                   "Content-Type": "application/json" },
+        body: JSON.stringify({ ref: ref, tel: tel })
+      })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; })
+      .then(function(d){
+        clearTimeout(minuteur);
+        return (d && d.statut) ? d : null;
+      });
     }
   };
 /* =====================================================================
@@ -5744,10 +5952,85 @@ window.ELA_TEXTES = {
       return Array.isArray(brut) ? brut : [];
     }catch(e){ return []; }  /* stockage refusé ou contenu abîmé */
   }
-  function dessinerCourses(){
-    var liste = document.getElementById("listeCourses");
-    var vide  = document.getElementById("videCourses");
-    var tout  = coursesEnregistrees();
+  /* ═══ CE QUI EST À VENIR, CE QUI EST FINI ═══
+     Une réservation attend encore quelque chose — une réponse, ou la course
+     elle-même. Un trajet réalisé et une demande refusée n'attendent plus
+     rien : ils vont dans l'autre liste. Laisser un refus parmi les
+     réservations ferait attendre une réponse déjà donnée. */
+  function estFinie(bon){
+    return bon && (bon.statut === "realisee" || bon.statut === "refusee");
+  }
+
+  /* ═══ L'ÉTAT VIENT DU SERVEUR, PAS DU TÉLÉPHONE ═══
+     Barbaros : « il faut que je puisse répondre aussi via le site ». Sans
+     ça, une course confirmée à 4 h du matin restait « EN ATTENTE » sur
+     l'écran du client des jours plus tard — une information FAUSSE, pas
+     une information manquante.
+
+     ON N'INTERROGE QUE CE QUI PEUT ENCORE CHANGER. Une course réalisée ou
+     refusée ne bougera plus : la redemander à chaque ouverture brûlerait
+     du réseau sur le téléphone du client pour rien.
+
+     UN ÉCHEC NE FAIT JAMAIS RECULER UN ÉTAT. Réseau coupé, fonction pas
+     encore déployée, serveur muet : « nuage.etat » rend null et on garde ce
+     qu'on a. Écrire « attente » sur un échec repasserait au rouge une
+     course confirmée — exactement le défaut qu'on répare. */
+  var majEnCours = false;
+  function rafraichirCourses(){
+    var tout = coursesEnregistrees();
+    var aSuivre = tout.filter(function(b){
+      return b && b.ref && b.client && b.client.telephone && !estFinie(b);
+    });
+    var ecriteau = document.getElementById("majCourses");
+    if(majEnCours || !aSuivre.length || !nuage.actif()){
+      if(ecriteau) ecriteau.hidden = true;
+      return Promise.resolve(false);
+    }
+    majEnCours = true;
+    if(ecriteau) ecriteau.hidden = false;
+    return Promise.all(aSuivre.map(function(b){
+      return nuage.etat(b.ref, b.client.telephone).then(function(d){
+        if(!d) return false;
+        var change = false;
+        if(d.statut && d.statut !== b.statut){ b.statut = d.statut; change = true; }
+        var ch = d.chauffeur || {};
+        if(ch.nom || ch.telephone){
+          var avant = b.chauffeur || {};
+          if(avant.nom !== ch.nom || avant.telephone !== ch.telephone){
+            b.chauffeur = { nom:ch.nom, telephone:ch.telephone };
+            change = true;
+          }
+        }
+        return change;
+      });
+    })).then(function(res){
+      var change = res.some(Boolean);
+      /* On réécrit la liste ENTIÈRE, pas seulement les courses suivies :
+         « aSuivre » tient des références vers les objets de « tout », donc
+         les modifications y sont déjà. */
+      if(change){
+        try{ localStorage.setItem("ela_courses", JSON.stringify(tout)); }
+        catch(e){ /* stockage refusé : l'écran reste juste, le disque non */ }
+      }
+      majEnCours = false;
+      if(ecriteau) ecriteau.hidden = true;
+      return change;
+    }).catch(function(){
+      majEnCours = false;
+      if(ecriteau) ecriteau.hidden = true;
+      return false;
+    });
+  }
+
+  /* Les deux listes sont dessinées par la MÊME fonction : deux fonctions
+     jumelles finiraient par diverger, et le jour où la ligne gagne un
+     élément l'une des deux l'oublierait. */
+  function dessinerCourses(finies){
+    var liste = document.getElementById(finies ? "listeTrajets" : "listeCourses");
+    var vide  = document.getElementById(finies ? "videTrajets"  : "videCourses");
+    var tout  = coursesEnregistrees().filter(function(b){
+      return !!estFinie(b) === !!finies;
+    });
     liste.innerHTML = "";
     vide.hidden = tout.length > 0;
     tout.forEach(function(bon){
@@ -5772,10 +6055,19 @@ window.ELA_TEXTES = {
         bon.course.depart + " → " + bon.course.arrivee;
       /* L'ÉTAT RÉEL, pas « en attente » pour tout le monde. Le client qui a
          reçu sa confirmation doit la retrouver ici : sans ça il rouvre la
-         liste, lit « en attente » sur une course confirmée, et rappelle. */
-      var confirmee = (bon.statut === "confirmee");
-      b.querySelector(".course-etat").textContent = T(confirmee ? "etat_confirme" : "etat_court");
-      b.querySelector(".course-etat").classList.toggle("ok", confirmee);
+         liste, lit « en attente » sur une course confirmée, et rappelle.
+         QUATRE ÉTATS, ET LE REFUS A LE SIEN. « Terminé » sur une course
+         qu'on n'a pas pu prendre serait un mensonge poli — le client doit
+         savoir qu'il n'a jamais eu de voiture, sinon il l'attend. */
+      var et = bon.statut === "confirmee" ? "etat_confirme"
+             : bon.statut === "realisee"  ? "etat_faite"
+             : bon.statut === "refusee"   ? "etat_refusee"
+             : "etat_court";
+      var pastille = b.querySelector(".course-etat");
+      pastille.textContent = T(et);
+      pastille.classList.toggle("ok",   et === "etat_confirme");
+      pastille.classList.toggle("fini", et === "etat_faite");
+      pastille.classList.toggle("non",  et === "etat_refusee");
       b.querySelector(".course-date").textContent = dateLisible(bon);
       b.querySelector(".course-prix").textContent = euros(bon.prix.total);
       b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
@@ -5800,7 +6092,21 @@ window.ELA_TEXTES = {
     el.addEventListener("click", function(e){
       e.preventDefault();
       var cible = el.dataset.ecran;
-      if(cible === "ecran-courses") dessinerCourses();
+      /* ON DESSINE AVEC CE QU'ON A, PUIS ON RAFRAÎCHIT. L'inverse ferait
+         attendre le client devant une liste vide le temps d'un appel
+         réseau, pour un écran qu'il a déjà vu. */
+      if(cible === "ecran-courses" || cible === "ecran-trajets"){
+        dessinerCourses(cible === "ecran-trajets");
+        rafraichirCourses().then(function(change){
+          if(change){
+            /* Une course qui vient d'être réalisée change de LISTE : on
+               redessine les deux, sinon elle resterait affichée dans celle
+               qu'elle vient de quitter. */
+            dessinerCourses(false);
+            dessinerCourses(true);
+          }
+        });
+      }
       ecran(cible, el.dataset.onglet);
       if(el.dataset.focus){
         var champ = document.getElementById(el.dataset.focus);
@@ -8700,63 +9006,6 @@ window.ELA_TEXTES = {
     if(document.getElementById("ecran-vehicules").classList.contains("actif")) dessinerGammes();
   });
 })();
-
-  /* LA PASTILLE WHATSAPP S'EFFACE DEVANT CE QU'ELLE RECOUVRE.
-     On compare son rectangle à celui de chaque élément « .protege » — et non
-     à la fenêtre entière : un bloc haut resterait visible jusqu'en bas et la
-     pastille ne reviendrait jamais. Même erreur déjà faite sur le site en
-     service, avec le rayon d'offres.
-     rAF plutôt qu'un appel direct au défilement : sans ça on mesure
-     cinquante fois par seconde et la page tressaute sur un téléphone lent. */
-  (function(){
-    var wa = document.querySelector(".wa");
-    if(!wa) return;
-    var enAttente = false;
-    /* Ce qu'on ne recouvre jamais : les boutons — l'action dorée comme les
-       actions en retrait —, la ligne qui rassure sous le bouton, le texte
-       des cartes de services, la pancarte d'accueil, les écriteaux de refus,
-       les courses du registre et les moyens de contact. Ajouter « .protege »
-       à un élément suffit à l'inscrire ici.
-       La liste s'allonge à chaque écran, et c'est normal : une pastille
-       FIXE se pose forcément sur quelque chose, la seule question est sur
-       quoi on accepte qu'elle se pose. */
-    var PROTEGES = ".bouton, .bouton-fantome, .rassure, .service-corps, .pancarte, .refus, .course, .contact-lien, .choix, .option, .protege";
-
-    function juger(){
-      enAttente = false;
-      // La pastille est cachée : on mesure sa place, pas son rectangle vide.
-      var etaitCachee = wa.classList.contains("efface");
-      if(etaitCachee) wa.classList.remove("efface");
-      var p = wa.getBoundingClientRect();
-      var genee = false;
-      var liste = document.querySelectorAll(PROTEGES);
-      for(var i = 0; i < liste.length; i++){
-        var r = liste[i].getBoundingClientRect();
-        if(r.bottom > p.top && r.top < p.bottom &&
-           r.right  > p.left && r.left < p.right){ genee = true; break; }
-      }
-      if(genee) wa.classList.add("efface");
-    }
-
-    function demander(){
-      if(enAttente) return;
-      enAttente = true;
-      requestAnimationFrame(juger);
-    }
-
-    addEventListener("scroll", demander, { passive:true });
-    addEventListener("resize", demander);
-    // Le rayon de services défile tout seul : une carte peut passer sous la
-    // pastille sans que la page ait bougé d'un pixel.
-    var rayon = document.querySelector(".services");
-    if(rayon) rayon.addEventListener("scroll", demander, { passive:true });
-    addEventListener("load", demander);
-    /* Un changement d'écran doit la rejuger tout de suite : sur le site en
-       service, sans cet appel, elle restait visible une seconde de trop —
-       le temps que la minuterie repasse — pile sur le bouton « Continuer ». */
-    window.__jugerPastilleWa = demander;
-    juger();
-  })();
 
 /* =====================================================================
    L'APPLICATION INSTALLABLE

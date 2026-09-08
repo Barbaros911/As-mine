@@ -154,10 +154,17 @@ for(const mort of ['nouveau.html','ancien.html','styles.css']){
 }
 
 // ---- Les documents légaux ----
-await p.locator('.onglet[data-onglet="contact"]').click();
+/* ILS ONT CHANGÉ DE PORTE, PAS DE STATUT. L'onglet « Contact » a cédé sa
+   place à WhatsApp dans la barre du bas ; le numéro et les trois documents
+   sont descendus en PIED D'ACCUEIL. La LCEN exige qu'ils restent
+   accessibles sans compte, pas qu'ils aient un onglet — mais le chemin,
+   lui, doit exister : on l'emprunte ici plutôt que d'ouvrir l'écran à la
+   main, parce qu'un écran qu'aucun lien n'ouvre n'est pas accessible. */
+await p.locator('.pied-lien').click();
 await p.waitForTimeout(300);
 const docs = await p.locator('[data-doc]').allTextContents();
-check('les trois documents sont listés dans Contact', docs.length===3, docs.join(' | '));
+check('les trois documents s\'atteignent depuis le pied de l\'accueil',
+  docs.length===3, docs.join(' | '));
 check('ils sont accessibles sans compte ni mode exploitant',
   await p.locator('[data-doc="cgv"]').isVisible());
 

@@ -180,17 +180,30 @@ check('aucune donnée du client avant la dernière ligne',
 check('un seul bouton doré, et c\'est le renvoi',
   (await p.locator('#ecran-bon .bouton').count())===1,
   String(await p.locator('#ecran-bon .bouton').count()));
-// La pastille WhatsApp ne doit recouvrir aucun bouton, y compris ceux en
-// retrait : « Renvoyer ma demande » est le filet de sécurité du client.
+/* ═══ PLUS RIEN NE FLOTTE PAR-DESSUS LES BOUTONS ═══
+   La bulle WhatsApp fixe a été retirée quand l'onglet WhatsApp est arrivé
+   dans la barre du bas : les deux étaient le même bouton, et c'est la
+   bulle qui recouvrait ce qui passait dessous. Le contrôle ne vise donc
+   plus la bulle mais LA RÈGLE — aucun élément fixe ne doit se poser sur un
+   bouton du bon, « Renvoyer ma demande » étant le filet du client.
+   Il vaut pour tout élément flottant qu'on ajouterait demain. */
 const gene = await p.evaluate(()=>{
-  const w = document.querySelector('.wa').getBoundingClientRect();
-  if(document.querySelector('.wa').classList.contains('efface')) return false;
-  return [...document.querySelectorAll('#ecran-bon .bouton-fantome')].some(el=>{
-    const r = el.getBoundingClientRect();
-    return r.bottom>w.top && r.top<w.bottom && r.right>w.left && r.left<w.right;
+  const flottants = [...document.querySelectorAll('body *')].filter(el=>{
+    const st = getComputedStyle(el);
+    return st.position === 'fixed' && st.visibility !== 'hidden'
+        && st.display !== 'none' && !el.closest('.barre');
   });
+  return [...document.querySelectorAll('#ecran-bon .bouton, #ecran-bon .bouton-fantome')]
+    .some(el=>{
+      const r = el.getBoundingClientRect();
+      return flottants.some(f=>{
+        const w = f.getBoundingClientRect();
+        if(!w.width || !w.height) return false;
+        return r.bottom>w.top && r.top<w.bottom && r.right>w.left && r.left<w.right;
+      });
+    });
 });
-check('la pastille WhatsApp ne recouvre aucun bouton du bon', !gene);
+check('aucun élément flottant ne recouvre un bouton du bon', !gene);
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
 await p.locator('#btnRetourVehicules').count();
