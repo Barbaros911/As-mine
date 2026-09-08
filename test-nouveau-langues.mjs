@@ -56,8 +56,14 @@ let ctx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
 let p = await page(ctx);
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
+/* LE TÉMOIN DE LANGUE EST LE BOUTON PRINCIPAL, plus le titre du
+   formulaire : « Réserver un trajet / Simple, rapide et sécurisé » a été
+   retiré avec la vraie accroche — le bandeau au-dessus dit déjà tout ça, et
+   ses 68 px remettaient « Voir mon prix » derrière la barre du bas.
+   Un témoin doit viser ce qui ne peut pas disparaître : ici, le bouton
+   sans lequel il n'y a pas de réservation. */
 check('un navigateur français ouvre en français',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
+  (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 
 // --- Un visiteur allemand : ni français ni anglais → anglais ---
 await ctx.close();
@@ -66,8 +72,21 @@ p = await page(ctx);
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 check('un navigateur allemand ouvre en anglais, pas en français',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Book a ride',
-  await p.locator('[data-t="reserver_titre"]').textContent());
+  (await p.locator('[data-t="btn_prix"]').textContent())==='See my price',
+  await p.locator('[data-t="btn_prix"]').textContent());
+
+/* LE BANDEAU D'ACCUEIL BASCULE EN ENTIER — ses CINQ lignes.
+   C'est la première chose que voit un client anglophone, et c'est
+   exactement le genre d'endroit où une ligne oubliée survit des mois :
+   « Prix ferme » et « 24 h/24 » ont été ajoutés après coup, et la
+   vérification des clés manquantes ne dit rien d'un « data-t » qu'on
+   aurait oublié de poser sur la balise. On lit donc ce qui est à
+   l'écran. */
+const bandeau = await p.evaluate(()=>[...document.querySelectorAll('.hero-texte > *')]
+  .map(e=>e.textContent.trim()).join(' | '));
+check('tout le bandeau d\'accueil parle anglais',
+  !/[àéèêîôûç]/i.test(bandeau.replace(/Île-de-France/g,'')) && /private chauffeur/i.test(bandeau),
+  bandeau);
 
 // --- Il n'existe que deux langues ---
 const boutons = await p.locator('.langues button').allTextContents();
@@ -77,11 +96,11 @@ check('deux langues et deux seulement', boutons.join('/')==='FR/EN', boutons.joi
 await p.locator('.langues button[data-langue="fr"]').click();
 await p.waitForTimeout(200);
 check('le choix explicite bascule la page',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
+  (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 await p.reload({waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 check('et il survit au rechargement, malgré un navigateur allemand',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
+  (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 
 // --- Aucune clé ne manque : rien ne doit rester en français en anglais ---
 await p.locator('.langues button[data-langue="en"]').click();
@@ -129,12 +148,20 @@ for (const [langue, mot] of [['fr','nnulation'], ['en','ancellation']]) {
     !ligne.includes(mot), ligne);
 }
 
-/* « Mise à disposition » est revenue à la demande de Barbaros. Ce qui est
-   vérifié ici n'est plus son absence mais sa TRADUCTION : c'est la carte la
-   plus facile à oublier, puisqu'elle a été retirée puis remise. */
-check('les trois cartes de services sont traduites',
-  (await p.locator('.service b').allTextContents()).join('|')
-    === 'Airport transfer|Hourly hire|Business travel',
+/* LES CARTES DE SERVICES SONT PASSÉES DE TROIS À CINQ, et elles
+   changeront encore : ce contrôle FIGEAIT LA LISTE (« Airport
+   transfer|Hourly hire|Business travel ») et serait tombé sur une simple
+   réorganisation, alors que rien n'aurait été cassé.
+   Ce qui compte est qu'AUCUNE ne reste en français — le titre comme le
+   sous-titre, celui-ci étant le plus facile à oublier. On lit donc le
+   bloc entier et on y cherche des accents français. */
+const cartesEn = await p.locator('.services').innerText();
+check('aucune carte de services ne reste en français',
+  !/[àéèêîôûç]/i.test(cartesEn.replace(/Île-de-France|Roissy-CDG/g,'')),
+  cartesEn.replace(/\n/g,' | '));
+check('et il y a bien une carte par service annoncé',
+  (await p.locator('.service b').allTextContents()).length ===
+  (await p.locator('.service .service-icone').count()),
   (await p.locator('.service b').allTextContents()).join(' | '));
 
 // --- Un tunnel complet en anglais ---

@@ -26,6 +26,21 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
+# LE MANIFESTE DE L'ESPACE EXPLOITANT. Sans lui, une icône posée sur l'écran
+# d'accueil depuis « ?exploitant=1 » rouvrirait le SITE CLIENT : le manifeste
+# ordinaire déclare « start_url: ./ », et c'est lui que le téléphone lit.
+# Même point de rupture que « carte/ » — oublié ici, il marche en local et
+# reste introuvable en ligne.
+cp manifest-exploitant.webmanifest site/
+
+# L'ADRESSE DE L'EXPLOITANT, EN CLAIR : « /exploitant/ ». C'est celle qu'il
+# retient et qu'il tape ; « /admin.html » demandait de se rappeler une
+# extension de fichier. Les deux mènent au même endroit — l'ancienne reste
+# valide, des liens sont déjà partis avec.
+# MÊME POINT DE RUPTURE QUE « carte/ » : oubliée ici, l'adresse marche en
+# local, où le serveur de test sert tout le dépôt, et rend un 404 en ligne.
+cp -r exploitant site/exploitant
+
 # LA BIBLIOTHÈQUE DE CARTE, SERVIE PAR LE SITE LUI-MÊME. Elle venait d'un
 # CDN ; Barbaros ne voyait pas la carte s'afficher, et une minuterie de 5 s
 # coupait un chargement qui allait aboutir sur un téléphone en 4G.
@@ -65,7 +80,7 @@ touch site/.nojekyll
 # l'écraser : un dossier portant le nom d'un de ses fichiers fait
 # échouer la construction plutôt que de remplacer le site principal.
 if [ -d sites ]; then
-  reserves="index.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers"
+  reserves="index.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")

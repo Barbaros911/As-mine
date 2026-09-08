@@ -1968,6 +1968,297 @@ avait raison : rien ne disait ce qu'il fallait regarder en premier.
 - `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
   identifiants sont inchangés**, six suites les cliquent.
 
+### LE TITRE D'ACCUEIL DIT QUI, QUOI ET OÙ
+
+Septembre 2026, sur sa relecture commerciale : « le client doit comprendre
+qui tu es + ce que tu fais + où tu opères en une seconde ». Il avait raison,
+et sa remarque a découvert un défaut plus grave que le style.
+
+- **LE SOUS-TITRE VENDAIT DEUX PRESTATIONS QU'ON NE PEUT PAS RÉSERVER.**
+  « Transferts privés, **mises à disposition** et **déplacements sur
+  mesure** » — la mise à disposition a été retirée du site en septembre 2026,
+  et « sur mesure » n'existe nulle part. Le paragraphe `seo_texte` avait été
+  nettoyé à l'époque ; **ce titre-là avait été oublié**. Un site qui décrit
+  une prestation qu'on ne peut pas commander est une promesse en l'air.
+- **« à Paris et en Île-de-France » NE TIENT PAS DANS LE TITRE.** Mesuré :
+  27 caractères pour une largeur qui en tient 21 à cette taille — il cassait
+  en trois lignes avec « France » toute seule. Le titre dit donc **« à
+  Paris »**, ce que cherche un visiteur qui atterrit à Roissy, et le
+  sous-titre ouvre aussitôt à **« Toute l'Île-de-France »** : ses clients
+  réservent depuis Argenteuil et Saint-Denis, un titre qui les exclurait leur
+  ferait croire que ce n'est pas pour eux.
+- **LE BOUTON DIT « VOIR MON PRIX », ET C'EST LE SEUL POINT OÙ ON NE L'A PAS
+  SUIVI.** Il proposait « Réserver mon trajet ». Deux raisons : le bloc
+  s'intitule **déjà** « Réserver un trajet » cinq centimètres au-dessus — un
+  bouton qui répète le titre de sa propre carte n'ajoute rien ; et **le clic
+  ne réserve pas, il affiche un prix**. « Voir les tarifs et véhicules »
+  n'était pas bon non plus : trop long, et « les tarifs » laisse croire à une
+  grille. C'est le même arbitrage que sur l'ancien site, pour la même raison.
+
+### LE BANDEAU EST DEVENU UNE VRAIE ACCROCHE
+
+Septembre 2026, sa relecture suivante : « Le site commence directement avec
+du contenu fonctionnel : *Réserver un trajet / Simple, rapide et sécurisé*.
+C'est fonctionnel, mais pas suffisamment premium ni commercial. Je veux une
+vraie Hero. » Cinq lignes : le titre, les destinations, le prix ferme, un
+bouton, et la réassurance.
+
+- **« à Paris et en Île-de-France » EST REVENU DANS LE TITRE**, et la note
+  du dessus n'est plus qu'à moitié vraie : ce qui ne tenait pas, c'était
+  27 caractères sur **deux** lignes. Le titre est maintenant coupé **à la
+  main en trois** — « Votre chauffeur privé / à Paris / et en Île-de-France ».
+  Un titre d'affiche se compose, il ne se subit pas.
+- **LE NOM DE LA MARQUE N'EST PAS RÉPÉTÉ DANS LE BANDEAU**, alors qu'il le
+  demandait. « ELATRANSFER » est écrit en 23 px **à deux centimètres
+  au-dessus**, dans l'enseigne, sur tous les écrans. L'écrire deux fois dans
+  le même regard ne dit pas la marque plus fort : ça mange la seule ressource
+  rare du bandeau — la hauteur — au détriment de ce que le visiteur cherche.
+  Dit à Barbaros ; il tranchera s'il y tient.
+- **LE TEXTE N'EST PLUS EN `position:absolute`, ET C'EST CE QUI PERMET TOUT
+  LE RESTE.** Posé en `inset:0`, il obligeait `.hero` à porter une **hauteur
+  fixe** (268 px) : toute ligne ajoutée serait sortie par le bas **en
+  silence** — la photo ne bouge pas, le texte disparaît. Dans le flux, c'est
+  le contenu qui donne la hauteur. Seuls la photo et le voile restent en
+  absolu, ils n'ont rien à mesurer. Un contrôle vérifie que **rien ne sort du
+  bandeau par le bas**.
+- **LES 74 px DE MARGE BASSE NE SONT PAS DE LA RESPIRATION** : la carte
+  « Réserver » remonte de 46 px par-dessus. Sans eux, elle recouvrirait la
+  ligne « 24 h/24 » — exactement le défaut du bandeau de cookies sur l'ancien
+  site.
+- **LE BOUTON DU BANDEAU NE RÉSERVE RIEN**, il descend au formulaire et pose
+  le curseur dans le champ de départ. Il n'y a rien à réserver tant qu'on ne
+  sait pas d'où à où. **Le défilement est lancé d'abord, le focus arrive
+  380 ms après** : le navigateur amène de force un champ focalisé à l'écran,
+  et un focus posé en premier annule l'animation qu'on vient de lancer.
+- **C'EST LUI QUI PAIE LA HAUTEUR DU BANDEAU.** Le formulaire ne tient plus
+  dans le premier écran — la note « ne pas le remonter » de l'ancien site est
+  caduque ici. Le marché est explicite : le bandeau prend la place, il rend
+  une action. Un contrôle mesure que **le bouton reste dans les 844 px** ;
+  s'il en sort un jour, le bandeau aura seulement éloigné la réservation.
+- **LE SOUS-TITRE N'A PLUS DE `max-width`.** Les 30 ch dataient de l'époque
+  où c'était une phrase ; c'est devenu une liste de destinations, et une
+  liste qui casse en deux se lit comme deux listes. Un contrôle vérifie
+  qu'elle tient sur **une** ligne.
+- **UN IPHONE SE FAIT 320 px**, et le titre y passait à **quatre** lignes.
+  Les coupures écrites à la main ne protègent que de la casse qu'on a
+  prévue ; celle-là se règle à la taille (26 px sous 360 px). Deux contrôles
+  à 320 px.
+- **DISNEYLAND EST UNE DESTINATION, PAS UNE OFFRE.** Le nommer est un usage
+  descriptif — on dit où l'on conduit. **Ne pas en refaire un « pack »** : il
+  a été retiré à sa demande, c'était le premier des deux.
+
+### CE QUE LE BANDEAU A CASSÉ — LA BARRE DU BAS MANGEAIT « VOIR MON PRIX »
+
+Septembre 2026, trouvé par les suites juste avant la mise en ligne. **Le
+défaut le plus coûteux de la soirée, et il était invisible.**
+
+Le bandeau plus haut a poussé « Voir mon prix » à **774–827** pendant que la
+barre du bas occupe **784–844**. Sa moitié basse passait **derrière** la
+barre : un client qui ouvre la page, remplit le formulaire et appuie au
+milieu du bouton **ouvrait l'onglet « Trajets »**. Il ne voyait pas son prix,
+il changeait d'écran, sans le moindre message.
+
+- **LA NOTE « le formulaire entier tient dans le premier écran, ne pas le
+  remonter » N'ÉTAIT PAS DE LA COQUETTERIE.** Elle protégeait exactement ça,
+  et je l'ai enfreinte en croyant ne coûter qu'un défilement.
+- **LA RÈGLE EXISTANTE NE COUVRAIT PAS CE CAS** : le contrôle des éléments
+  flottants de `test-nouveau-bon` **exclut explicitement `.barre`**, parce
+  qu'elle est légitime et toujours là. C'est précisément pour ça qu'il en
+  fallait une autre — **ce qui est toujours là ne se remarque plus**.
+- **CE QUI A PAYÉ LES 68 px : le bloc « Réserver un trajet / Simple, rapide
+  et sécurisé ».** C'est exactement celui qu'il avait désigné en demandant
+  une vraie accroche. Le bandeau dit maintenant qui l'on est, ce qu'on vend
+  et à quel prix, et il porte un bouton qui descend ici : répéter le titre
+  juste en dessous, avec une icône de 50 px, c'était accueillir deux fois.
+  Une correction de mise en page qui supprime un doublon vaut mieux qu'une
+  correction qui grignote cinq marges.
+- **LE TÉMOIN DE LANGUE VISAIT CE BLOC** — `[data-t="reserver_titre"]`, dans
+  quatre contrôles de `test-nouveau-langues`. Il vise désormais
+  `[data-t="btn_prix"]` : **un témoin doit viser ce qui ne peut pas
+  disparaître**, ici le bouton sans lequel il n'y a pas de réservation.
+- **LE SYMPTÔME N'AVAIT AUCUN RAPPORT AVEC LA CAUSE.** `test-nouveau-option`
+  s'arrêtait sur un délai en cherchant `.veh-carte`, parce qu'un
+  `click({force:true})` avait atterri sur la barre et ouvert l'écran des
+  trajets. **`force:true` ne signale pas un bouton recouvert : il clique à
+  côté et continue.** Une suite qui n'affiche ni réussite ni échec est un
+  échec — ne jamais la lire comme « pas concernée ».
+- **LE PREMIER JET DU NOUVEAU CONTRÔLE PASSAIT AU VERT SUR LA VERSION
+  CASSÉE.** Il était placé **après** le clic sur le bouton du bandeau, donc
+  sur une page déjà défilée : il lisait 365 px là où le client voit 774. Un
+  contrôle de position se mesure **à l'arrêt, avant tout geste**. Éprouvé
+  ensuite contre l'ancien code : il rend « reçoit : onglet ».
+
+### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
+
+Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
+téléphone ». **Le piège n'était pas dans le geste, il était dans le
+fichier** : `manifest.webmanifest` déclare `start_url: "./"`, et **iOS comme
+Android lisent le manifeste de la page qu'on ajoute, pas son adresse**. Une
+icône posée depuis `?exploitant=1` aurait donc rouvert **le site client** —
+et rien à l'écran n'aurait expliqué pourquoi.
+
+- `manifest-exploitant.webmanifest`, `start_url: "./index.html?exploitant=1"`,
+  **mêmes icônes** : un jeu à moitié changé est pire qu'un ancien cohérent.
+- **L'ÉCHANGE SE FAIT EN TÊTE DE PAGE**, dans un script placé juste après le
+  `<link rel="manifest" id="manifeste">`. Posé plus bas, le manifeste
+  d'origine serait déjà chargé quand on le remplacerait.
+- **`construire.sh` DOIT LE COPIER** — même point de rupture que `carte/` :
+  oublié, il marche en local (où le serveur sert tout le dépôt) et reste
+  introuvable en ligne. Un contrôle lit les seules lignes de commande.
+- Le mode exploitant continue de suivre l'**ADRESSE**, jamais l'appareil :
+  sans le paramètre on reste côté client, y compris sur son téléphone.
+
+### « POURQUOI CHOISIR ELATRANSFER ? » ET LES CINQ SERVICES
+
+Septembre 2026, à sa demande, dans la foulée du paiement. Deux blocs de
+l'accueil réécrits ensemble.
+
+**Les engagements** deviennent un bloc de confiance, avec ses arguments à
+lui : **Chauffeur professionnel · Prix ferme · Suivi du vol · Assistance
+24 h/24**, sous le titre « Pourquoi choisir Elatransfer ? ».
+- **CE QU'IL A RETIRÉ, ET CE QU'ON A SAUVÉ AU PASSAGE.** « Véhicules haut de
+  gamme » et « Paiement à bord » sortent. Or « Paiement à bord » était **le
+  seul endroit de l'accueil** qui disait qu'on ne paie pas en ligne — le
+  reste ne le dit qu'au récapitulatif, trois écrans plus loin. Le fait est
+  donc reversé dans son propre argument : « Prix ferme — **connu avant le
+  départ, réglé au chauffeur** ». Un argument retiré peut emporter une
+  information qui n'était nulle part ailleurs.
+- **« SUIVI DU VOL » RÉPÈTE L'ENCADRÉ VERT JUSTE AU-DESSUS**, et c'est
+  assumé : l'encadré s'adresse au client qui atterrit et lui fait remplir son
+  numéro de vol ; la carte est un argument dans une liste lue en diagonale.
+  Les deux formulations sont différentes — **c'est la répétition mot pour mot
+  qui fait relire**, pas le sujet commun. **À lui de trancher s'il veut n'en
+  garder qu'un** : c'est signalé.
+- **L'AVION DE LA CARTE N'EST PAS CELUI DE L'ENCADRÉ.** Posés à trois
+  centimètres, deux dessins identiques se lisent comme un copier-coller.
+  Celui de la carte penche et traîne une trajectoire pointillée : il ne dit
+  pas « avion », il dit « on le suit ».
+- L'icône de « Prix ferme » est une **étiquette**, pas la voiture héritée de
+  « véhicules haut de gamme » — laissée en place, elle aurait dit « berline »
+  à côté d'un titre qui parle d'argent.
+
+**Les services** passent de trois à **cinq** : Aéroport · Hôtel · Gare ·
+Professionnel · Mise à disposition.
+- **LES PHOTOS SONT PARTIES, REMPLACÉES PAR DES PICTOGRAMMES.** Il en aurait
+  fallu deux de plus, et **une photo ne s'installe pas sans savoir d'où elle
+  vient** — les douze premières venaient de Google Images. Sa maquette est de
+  toute façon une liste d'icônes. Ce qu'on y gagne : **l'accueil ne
+  télécharge plus aucune image** (un contrôle descend toute la page et
+  vérifie que rien de `photos/` ne part), et une carte de trois lignes laisse
+  voir qu'il y en a d'autres. **`photos/` reste dans le dépôt** : c'est du
+  travail qu'il a fourni.
+- **PAS D'EMOJI** — il en proposait cinq (✈️ 🏨 🚆 💼 🚘). Ils changent de
+  dessin d'un téléphone à l'autre et grossissent mal : même règle que les
+  voitures. Un contrôle cherche les emojis dans le bloc.
+- **LA RÈGLE DES DESTINATIONS** : une carte mène au formulaire **si et
+  seulement si** ce qu'elle annonce est une ADRESSE. Un hôtel, une gare, un
+  rendez-vous d'affaires en sont ; « un chauffeur à l'heure » n'en est pas
+  un — il ouvre « Nous joindre ». Le test lit le `data-ecran` **déclaré** et
+  vérifie qu'un clic y mène vraiment, carte par carte, plus les deux bornes
+  (au moins une vers le formulaire, au moins une ailleurs) : sans elles, un
+  code qui enverrait tout vers le formulaire passerait au vert.
+- **LES VISITES SONT PORTÉES PAR LA MISE À DISPOSITION** (« Chauffeur à
+  l'heure · Paris, Disneyland »), pas par une carte à elles. **Ce ne sont pas
+  des offres** : les packs ont été retirés deux fois à sa demande. On nomme
+  des destinations, on ne vend pas un forfait — et c'est justement la carte
+  qui ouvre la négociation de vive voix.
+- **LES CARTES ONT MAIGRI DE 178 À 156 px.** Pas pour économiser : à cinq
+  entrées et 178 px, la deuxième s'arrêtait pile au bord de l'écran et la
+  piste avait l'air de finir là. Un contrôle vérifie qu'elle **déborde** de
+  son cadre — c'est ce qui dit qu'on peut balayer.
+- **PIÈGE DÉJÀ CONNU, RENCONTRÉ UNE TROISIÈME FOIS** : la règle des
+  sous-titres visait `.service span span`, et la pastille est elle aussi un
+  span dans un span depuis qu'elle a remplacé la photo — elle repassait en
+  `display:block` et l'icône se collait en haut à gauche. Même faute que
+  `.engagement span`. Viser `.service-corps > span:not(.service-icone)`.
+- **LES DEUX CONTRÔLES QUI FIGEAIENT LA LISTE ONT SAUTÉ.** `test-nouveau-services`
+  vérifiait « trois cartes » et « la mise à disposition est au milieu » ;
+  `test-nouveau-langues` figeait les trois noms anglais. Les deux seraient
+  tombés sur une réorganisation légitime. Ils éprouvent maintenant la
+  **règle**, pas la liste — même leçon que la barre du bas figée sur quatre
+  onglets.
+
+### LE PAIEMENT AFFIRME AVANT DE DEMANDER
+
+Septembre 2026, à sa demande : « pour un touriste étranger, je simplifierais
+énormément ». Le récapitulatif disait le même fait **deux fois** : une phrase
+dense sous le total (« Règlement au chauffeur, à bord, en espèces ou par
+carte. Aucun paiement en ligne, aucune donnée bancaire ») et, une ligne plus
+bas, le bloc qui pose la question.
+
+- **LE TITRE RÉPOND D'ABORD.** « Comment réglerez-vous ? » posait une
+  question à quelqu'un qui se demandait encore s'il allait devoir sortir sa
+  carte sur un site inconnu. « **Vous payez directement votre chauffeur** »
+  lève l'inquiétude, et les deux boutons deviennent le détail d'une chose
+  déjà comprise. Un contrôle vérifie que **le titre n'interroge pas** (pas de
+  « ? » final) plutôt que le libellé exact : une reformulation légitime ne
+  doit pas faire tomber la suite, un retour à la question si.
+- **LA CARTE AVANT LES ESPÈCES**, dans son ordre à lui — c'est ce que cherche
+  un client qui atterrit sans un euro sur lui. Le contrôle compare les
+  **positions à l'écran**, pas l'ordre dans le code : c'est ce que le client
+  lit, et une règle de mise en page peut inverser les deux. Aucun test ne
+  dépendait de l'ordre, tous visent `[data-paiement="…"]`.
+- **PAS D'EMOJI, LES MÊMES DESSINS QU'AVANT.** Il proposait 💳 et 💶 ; un
+  emoji change de forme d'un téléphone à l'autre et grossit mal — la règle
+  vaut ici comme pour les voitures. Les deux SVG étaient déjà dans les
+  boutons, le résultat à l'écran est celui qu'il décrit.
+- **LE FAIT N'EST DIT QU'UNE FOIS**, et le contrôle **compte**. Un doublon ne
+  casse rien : il alourdit, et c'est exactement ce qui ne se voit pas en
+  relisant le code. Éprouvé contre l'ancien texte — il rend « 2 fois ».
+- `paiement_note_ligne` a disparu des deux langues, remplacée par
+  `paiement_note` (« Aucun paiement en ligne nécessaire »). **« aucune donnée
+  bancaire » n'est pas perdu** : c'est la politique de confidentialité qui le
+  porte, là où il engage.
+- Le repli HTML de `err_paiement` justifiait encore la question par le
+  terminal du chauffeur — du texte mort, écrasé au chargement par la
+  traduction, mais **c'est par là que revient une formule retirée**.
+
+### L'ADRESSE DE L'EXPLOITANT EST « /exploitant/ »
+
+Septembre 2026, sur sa relecture : « ça ne doit absolument pas être présenté
+au client comme une partie du site public », et sa solution — deux adresses,
+`elatransfer.com` pour les clients, `elatransfer.com/exploitant` pour lui.
+
+- **CE QU'IL DÉCRIT N'EST PAS CE QUE VOIT UN CLIENT — MESURÉ.** Aucun écran
+  de l'espace n'est à l'écran côté client, `.admin-nav` est à `display:none`
+  hors de `body.espace`, et **aucun lien visible n'y conduit**. Deux
+  contrôles le verrouillent, et ils **mesurent des rectangles** plutôt que
+  de relire le CSS : une règle d'affichage se casse sans bruit, il suffit
+  d'un sélecteur trop large ou d'une classe posée trop tôt.
+- **CE QU'IL A VU EST LE FICHIER, ET LÀ IL A RAISON** : les deux espaces
+  vivent dans le même `index.html`. Un client télécharge donc **~190 Ko de
+  back-office sur 523 Ko** — 37 % de la page — et le lit dans la source.
+  Ce n'est pas une fuite de données (les courses sont sur le serveur,
+  derrière la RLS) mais c'est du poids et une mauvaise impression.
+- **`/exploitant/` EST UN RACCOURCI, PAS UN SECOND SITE.** `exploitant/index.html`
+  redirige vers `index.html?exploitant=1`, exactement comme `admin.html`.
+  **Ne jamais dupliquer `index.html`** : un second exemplaire divergerait au
+  premier correctif. `admin.html` reste valide — des liens sont déjà partis
+  avec.
+- **`../` ET PAS `./`** : cette page vit dans un SOUS-DOSSIER. Le chemin
+  relatif d'un raccourci se lit depuis l'endroit où il est posé, pas depuis
+  celui où il mène ; recopié de `admin.html`, il boucle sur lui-même. Un
+  contrôle lit le lien **dans la source**, pas dans la page ouverte : la
+  redirection part en quelques millisecondes et un `getElementById` arrivé
+  après rend `null` — **un contrôle qui accepte `null` ne vérifie plus rien**.
+- **`construire.sh` DOIT COPIER LE DOSSIER**, et le contrôle cherche
+  `cp -r exploitant`, **pas le mot « exploitant »** : il est déjà dans
+  `manifest-exploitant.webmanifest`, copié deux lignes plus haut, et le
+  contrôle serait passé au vert la ligne retirée. Même faute que le premier
+  jet du contrôle de `carte/`. Éprouvé en supprimant la ligne : il tombe.
+- `exploitant` et `carte` sont entrés dans les noms **réservés** de
+  `construire.sh` (un site vitrine ainsi nommé écraserait le raccourci) et
+  dans `NOS_DOSSIERS` de `sw.js` (sinon le service worker le traite comme un
+  site voisin et ne le garde jamais).
+- **CE QUI RESTE À FAIRE, ET QU'IL FAUT LUI MONTRER AVANT** : la vraie
+  séparation, où `construire.sh` **retire** les écrans exploitant du
+  `index.html` publié aux clients et sert le fichier entier sous
+  `/exploitant/`. Une seule source, deux sorties — pas deux fichiers à
+  tenir. Ce n'est pas un travail de nuit : la saisie de course de
+  l'exploitant partage le calcul du prix avec le client, et **deux calculs
+  de prix qui divergent ne se voient pas** — on le découvre le jour où un
+  client compare, sur un prix ferme donc opposable.
+
 ### LE TABLEAU DE BORD NE SERT PLUS QU'À TRAITER ET À CRÉER
 
 Septembre 2026, à sa demande : « laisse le tableau de bord seulement pour le
@@ -2721,9 +3012,38 @@ laissait choisir.
   t'ai pas demander ».
 - **Montrer une capture avant de pousser**, et attendre son accord.
 
+### « Arrête de deviner, sois expert méthodique »
+
+Septembre 2026, après une soirée où une panne a coûté une heure. **Deux
+habitudes à supprimer, pas deux conseils.**
+
+**1. MESURER AVANT D'ÉMETTRE UNE HYPOTHÈSE.** Sur le bouton mangé par la
+barre du bas, j'ai supposé successivement un bouton désactivé, un écriteau
+de zone, un problème d'heure — trois hypothèses, trois vérifications, zéro
+résultat. **La mesure qui a tout donné a pris trente secondes** :
+`elementFromPoint` au centre du bouton, qui rend « onglet ». L'ordre est
+toujours le même : (1) reproduire, (2) **mesurer l'état réel** — rectangles,
+valeurs, ce que reçoit le doigt — (3) comparer avec la version qui marchait
+(`git worktree` sur `main`, un serveur sur un autre port), (4) bissecter
+commit par commit. Ce chemin est plus court que l'intuition, toujours.
+
+**2. NE PAS RELANCER LES VINGT ET UNE SUITES À CHAQUE PAS.** Elles prennent
+six minutes ; elles ont tourné cinq fois cette nuit-là, dont trois pour rien.
+La marche à suivre : après un changement, lancer **les deux ou trois suites
+qui touchent au sujet**, plus celle qu'on vient d'écrire, et **éprouver le
+nouveau contrôle contre le défaut qu'il surveille**. La série complète ne se
+lance **qu'une fois**, avant la fusion. Deux exécutions en parallèle se
+marchent dessus et se bloquent — ne jamais en lancer une seconde tant que la
+première tourne.
+
+**3. UNE SUITE MUETTE EST UN ÉCHEC.** `test-nouveau-option` n'a rien affiché
+— ni réussite ni échec — dans trois séries d'affilée, et je l'ai lue comme
+« pas concernée ». La boucle de lancement le signale maintenant en toutes
+lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
+
 ## Tests
 
-**Vingt et une suites Playwright, 736 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 776 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
@@ -2746,6 +3066,9 @@ touché dix-neuf fichiers pour zéro gain.
 
 ```bash
 npx http-server -p 8099 -s .
+# UNE SEULE EXÉCUTION À LA FOIS : deux séries en parallèle se marchent
+# dessus et se bloquent. Et une suite MUETTE est un échec — elle est
+# signalée en toutes lettres plutôt que laissée passer.
 for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-langues.mjs test-nouveau-courses.mjs \
          test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
@@ -2756,7 +3079,15 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
          test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
          test-nouveau-carte.mjs test-nouveau-bascule.mjs; do
-  node $f || break
+  printf "%-34s " "$f"
+  out=$(node $f 2>&1)
+  res=$(echo "$out" | grep -E "^=== " | tr '\n' ' ')
+  if [ -z "$res" ]; then
+    echo "!!! MUETTE — PLANTAGE"; echo "$out" | tail -4
+  else
+    echo "$res"
+  fi
+  echo "$out" | sed -n '/=== ÉCHECS/,/^$/p' | head -6
 done
 node test-notification.mjs   # ni navigateur ni réseau
 node test-push.mjs           # ni navigateur ni réseau

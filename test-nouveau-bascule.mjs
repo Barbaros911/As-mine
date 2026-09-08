@@ -237,7 +237,159 @@ check('le document suit la langue du visiteur, titre ET corps',
   await p.locator('#legalTitre').textContent());
 
 check('aucune erreur JavaScript', errs.length===0, errs.join(' | '));
-await ctx.close(); await b.close();
+await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═══
+   Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
+   téléphone ». Le piège n'était pas dans le geste mais dans le fichier : le
+   manifeste ordinaire déclare « start_url: ./ », donc une icône posée sur
+   l'écran d'accueil depuis « ?exploitant=1 » aurait rouvert **le site
+   client**. iOS et Android lisent le manifeste de la page qu'on ajoute, pas
+   son adresse — et rien à l'écran n'aurait expliqué pourquoi.
+   TROIS CONTRÔLES, PARCE QUE TROIS CHOSES PEUVENT MANQUER : l'échange dans
+   la page, le point de départ dans le fichier, et la COPIE par
+   « construire.sh » — ce dernier est le point de rupture, il marche en
+   local où le serveur sert tout le dépôt, et reste introuvable en ligne. */
+{
+  /* Un contexte à part : celui de la suite est refermé plus haut. */
+  const cx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
+  const pm = await cx.newPage();
+  await pm.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
+  const cote = await pm.locator('#manifeste').getAttribute('href');
+  check('côté client, le manifeste ordinaire',
+    cote === 'manifest.webmanifest', cote);
+  await pm.goto('http://127.0.0.1:8099/index.html?exploitant=1', {waitUntil:'domcontentloaded'});
+  const cotex = await pm.locator('#manifeste').getAttribute('href');
+  check('côté exploitant, le manifeste de l\'espace',
+    cotex === 'manifest-exploitant.webmanifest', cotex);
+  const mf = await (await fetch('http://127.0.0.1:8099/manifest-exploitant.webmanifest')).json();
+  check('il rouvre l\'espace, pas le site client',
+    /exploitant=1/.test(mf.start_url || ''), mf.start_url);
+  check('et il porte les mêmes icônes — un jeu à moitié changé est pire',
+    (mf.icons || []).length === 3, String((mf.icons||[]).length));
+  await cx.close();
+}
+/* LE POINT DE RUPTURE : la recette ne publie que ce qu'elle NOMME. On lit
+   les seules lignes de commande, pas les commentaires — un contrôle qui
+   trouve ce qu'il cherche dans une phrase d'explication ne vérifie rien. */
+{
+  const recette = await (await fetch('http://127.0.0.1:8099/construire.sh')).text();
+  const commandes = recette.split('\n').filter(l => !l.trim().startsWith('#')).join('\n');
+  check('« construire.sh » publie le manifeste de l\'espace',
+    /manifest-exploitant\.webmanifest/.test(commandes));
+  /* LE MOT « exploitant » EST DÉJÀ DANS LA RECETTE — au milieu de
+     « manifest-exploitant.webmanifest », copié deux lignes plus haut. Un
+     contrôle qui le chercherait passerait au vert avec la ligne du DOSSIER
+     retirée : c'est la même faute que le premier jet du contrôle de
+     « carte/ », qui se trouvait lui-même dans un commentaire. On cherche
+     donc la copie du dossier, pas le mot. */
+  check('« construire.sh » publie le dossier « exploitant/ »',
+    /cp\s+-r\s+exploitant\b/.test(commandes));
+}
+
+/* =====================================================================
+   L'ADRESSE « /exploitant/ »
+   ---------------------------------------------------------------------
+   Septembre 2026, à sa demande : « elatransfer.com/exploitant ». C'est
+   l'adresse qu'il retient ; « /admin.html » demandait de se rappeler une
+   extension de fichier.
+   ON ÉPROUVE OÙ ELLE MÈNE, PAS CE QU'ELLE CONTIENT. Un raccourci qui
+   existe mais tombe à côté est pire qu'aucun raccourci : il rend un 404 à
+   quelqu'un qui a tapé la bonne adresse. Le piège précis est le chemin
+   relatif — cette page vit dans un SOUS-DOSSIER, un « ./ » recopié depuis
+   « admin.html » viserait « /exploitant/index.html » et bouclerait.
+   ===================================================================== */
+{
+  const cx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
+  const px = await cx.newPage();
+  await px.route('**://api.openrouteservice.org/**', r=>r.abort());
+
+  await px.goto('http://127.0.0.1:8099/exploitant/', {waitUntil:'domcontentloaded'});
+  await px.waitForTimeout(900);
+  check('« /exploitant/ » ouvre bien l\'espace exploitant',
+    /exploitant=1/.test(px.url()) && !/\/exploitant\//.test(px.url()), px.url());
+  check('et elle s\'arrête sur le verrou, jamais sur le tableau de bord',
+    await px.locator('#ecran-verrou').isVisible());
+
+  /* LES PARAMÈTRES SUIVENT : un lien de course ouvert depuis cette adresse
+     doit continuer de fonctionner, comme depuis « admin.html ». */
+  await px.goto('http://127.0.0.1:8099/exploitant/?a=ZZZ', {waitUntil:'domcontentloaded'});
+  await px.waitForTimeout(900);
+  check('elle transmet les paramètres reçus',
+    /a=ZZZ/.test(px.url()) && /exploitant=1/.test(px.url()), px.url());
+
+  /* ELLE N'A RIEN À FAIRE DANS GOOGLE. Ce n'est pas un secret — c'est une
+     serrure derrière, pas un coffre — mais une page de travail indexée sort
+     dans les résultats à côté du site public, et c'est exactement ce qu'il
+     ne veut pas voir. */
+  const brutX = await (await fetch('http://127.0.0.1:8099/exploitant/index.html')).text();
+  check('« /exploitant/ » porte « noindex »', /noindex/.test(brutX));
+
+  /* ET LE CHEMIN DE SECOURS AUSSI : si le script ne part pas — bloqueur,
+     JavaScript coupé — le lien visible reste le seul chemin.
+     ON LE LIT DANS LA SOURCE, PAS DANS LA PAGE OUVERTE : la redirection
+     part en quelques millisecondes, et un « document.getElementById » qui
+     arrive après rend « null ». Un contrôle qui accepte « null » ne
+     vérifie plus rien. */
+  const secours = (brutX.match(/id="secours"\s+href="([^"]+)"/) || [])[1];
+  check('le lien de secours remonte d\'un dossier',
+    /^\.\.\/index\.html/.test(secours || ''), String(secours));
+  await cx.close();
+}
+
+/* =====================================================================
+   UN CLIENT NE VOIT RIEN DE L'ESPACE EXPLOITANT
+   ---------------------------------------------------------------------
+   Septembre 2026, sur sa relecture : « ça ne doit absolument pas être
+   présenté au client comme une partie du site public ».
+   LES DEUX ESPACES VIVENT DANS LE MÊME FICHIER — c'est la règle du projet,
+   un second exemplaire divergerait au premier correctif. Ce qui les sépare
+   est donc l'AFFICHAGE, et une règle d'affichage se casse sans bruit : il
+   suffit d'un sélecteur trop large ou d'une classe posée trop tôt.
+   ON NE LIT PAS LE CSS, ON MESURE CE QUI EST À L'ÉCRAN. Un contrôle qui
+   vérifierait « display:none » dans la feuille passerait au vert le jour où
+   une autre règle le surcharge.
+   ===================================================================== */
+{
+  const cx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
+  const pc = await cx.newPage();
+  await pc.route('**://api.openrouteservice.org/**', r=>r.abort());
+  await pc.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
+  await pc.waitForTimeout(600);
+
+  const fuites = await pc.evaluate(()=>{
+    const dehors = [];
+    const ecransAdmin = ['ecran-verrou','ecran-bord','ecran-registre','ecran-creer',
+                         'ecran-chauffeurs','ecran-facture','ecran-reglages'];
+    document.querySelectorAll('.admin-nav, .admin-liens, .admin-marque').forEach(e=>{
+      const r = e.getBoundingClientRect();
+      if(r.width > 0 && r.height > 0) dehors.push('nav:' + e.className);
+    });
+    ecransAdmin.forEach(id=>{
+      const e = document.getElementById(id);
+      if(!e) return;
+      const r = e.getBoundingClientRect();
+      if(r.width > 0 && r.height > 0) dehors.push(id);
+    });
+    return dehors;
+  });
+  check('aucun écran de l\'espace exploitant n\'est à l\'écran côté client',
+    fuites.length === 0, fuites.join(', '));
+
+  /* ET AUCUN CHEMIN N'Y MÈNE. Un écran invisible qu'un lien ouvre n'est pas
+     caché : le client appuie, et il se retrouve devant un champ « Code ». */
+  const menent = await pc.evaluate(()=>
+    [...document.querySelectorAll('[data-ecran], a[href]')]
+      .filter(e=>{
+        const r = e.getBoundingClientRect();
+        if(!(r.width>0 && r.height>0)) return false;
+        const cible = e.getAttribute('data-ecran') || e.getAttribute('href') || '';
+        return /verrou|ecran-bord|registre|chauffeurs|facture|reglages|exploitant|admin/i.test(cible);
+      })
+      .map(e=>e.getAttribute('data-ecran') || e.getAttribute('href')));
+  check('et aucun lien visible n\'y conduit', menent.length === 0, menent.join(', '));
+  await cx.close();
+}
+
+await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}
 if(errs.length){console.log('\n=== ERREURS JS ==='); [...new Set(errs)].forEach(e=>console.log('  ! '+e));}

@@ -27,7 +27,7 @@ const BASE = new URL("./", self.location).pathname;
    de la carte du trajet : sans cette liste, le service worker la laissait
    passer sans jamais la garder, et la carte redevenait indisponible hors
    ligne — l'inverse de ce qu'on gagne à l'avoir sortie du CDN. */
-const NOS_DOSSIERS = ["carte"];
+const NOS_DOSSIERS = ["carte", "exploitant"];
 
 /* Vrai si la requête vise un site voisin plutôt qu'Elatransfer elle-même :
    même origine, sous la racine, mais dans un sous-dossier. */
@@ -42,7 +42,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v58";
+const CACHE = "elatransfer-v64";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la

@@ -92,6 +92,41 @@ check('rien n\'est présélectionné',
   (await especes.getAttribute('aria-pressed'))==='false'
   && (await carte.getAttribute('aria-pressed'))==='false');
 
+/* ═══ LE BLOC AFFIRME AVANT DE DEMANDER ═══
+   Septembre 2026, à sa demande : « pour un touriste étranger, je
+   simplifierais énormément ». Le titre répond d'abord — on paie le
+   chauffeur, pas le site — et les deux boutons deviennent le détail d'une
+   chose déjà comprise.
+   ON ÉPROUVE QU'IL N'INTERROGE PAS, pas le libellé exact : une
+   reformulation légitime ne doit pas faire tomber la suite, un retour à
+   « Comment réglerez-vous ? » si. */
+check('le titre du paiement affirme, il n\'interroge pas',
+  !/[?？]\s*$/.test(await p.locator('#blocPaiement .bloc-titre').textContent()),
+  await p.locator('#blocPaiement .bloc-titre').textContent());
+
+/* LA CARTE EST ÉCRITE EN PREMIER, dans son ordre à lui : c'est ce que
+   cherche un client qui atterrit sans un euro sur lui. On compare les
+   POSITIONS À L'ÉCRAN, pas l'ordre dans le code — c'est ce que le client
+   lit, et une règle de mise en page peut inverser les deux. */
+const rangs = await p.evaluate(()=>{
+  const q = s => document.querySelector('[data-paiement="'+s+'"]').getBoundingClientRect();
+  return { carte: Math.round(q('carte').left), especes: Math.round(q('especes').left) };
+});
+check('la carte bancaire est proposée avant les espèces',
+  rangs.carte < rangs.especes, JSON.stringify(rangs));
+
+/* ═══ LE FAIT N'EST DIT QU'UNE FOIS ═══
+   « Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement
+   en ligne, aucune donnée bancaire » vivait sous le TOTAL, une ligne
+   au-dessus d'un bloc qui dit la même chose en trois mots et deux dessins.
+   Deux formulations du même fait ne rassurent pas deux fois plus : elles
+   font relire. On COMPTE, parce qu'un doublon ne casse rien — il alourdit,
+   et c'est exactement ce qui ne se voit pas en relisant le code. */
+const foisEnLigne = await p.evaluate(()=>
+  (document.getElementById('ecran-recap').innerText.match(/paiement en ligne/gi) || []).length);
+check('« aucun paiement en ligne » n\'est écrit qu\'une fois sur le récapitulatif',
+  foisEnLigne === 1, foisEnLigne + ' fois');
+
 // Deux boutons sur lesquels on appuie une fois : ils doivent être atteignables.
 const hauteurs = await p.evaluate(()=>
   [...document.querySelectorAll('[data-paiement]')].map(e=>Math.round(e.getBoundingClientRect().height)));
@@ -157,6 +192,16 @@ check('les deux modes sont traduits',
   (await p.locator('[data-paiement="especes"] span').textContent())==='Cash'
   && (await p.locator('[data-paiement="carte"] span').textContent())==='Card',
   await p.locator('[data-paiement="especes"] span').textContent());
+/* LE BLOC ENTIER SUIT, PAS SEULEMENT LES DEUX MOTS. Le titre et la phrase
+   de réassurance ont été ajoutés après coup : c'est exactement le genre de
+   ligne qui reste en français chez un client anglophone, et c'est LUI que
+   cette simplification vise. */
+const blocEn = await p.locator('#blocPaiement').innerText();
+check('tout le bloc du paiement parle anglais',
+  !/[àéèêîôûç]/i.test(blocEn) && /pay/i.test(blocEn), blocEn.replace(/\n/g,' | '));
+check('et il affirme en anglais aussi',
+  !/[?？]\s*$/.test(await p.locator('#blocPaiement .bloc-titre').textContent()),
+  await p.locator('#blocPaiement .bloc-titre').textContent());
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(250);
 check('le refus est traduit lui aussi',

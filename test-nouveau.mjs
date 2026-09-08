@@ -120,6 +120,122 @@ check('modifier le texte après un choix retire le vol',
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)) === 0);
 
+/* =====================================================================
+   7. LE BANDEAU D'ACCUEIL — CE QU'IL DIT ET CE QU'IL FAIT
+   ---------------------------------------------------------------------
+   Septembre 2026, à sa demande : « Je veux une vraie Hero ». Elle porte
+   maintenant une promesse, un prix ferme, un bouton et une réassurance.
+   CE QUI SE VÉRIFIE ICI N'EST PAS LA PRÉSENCE DES LIGNES — un bandeau
+   peut porter les cinq et n'en montrer aucune, si le texte déborde d'une
+   hauteur fixe ou si le bouton tombe sous le premier écran. On mesure
+   donc : le bouton est-il visible sans descendre, mène-t-il au
+   formulaire, et le sous-titre tient-il sur UNE ligne.
+   ===================================================================== */
+const cx7 = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
+const p7  = await cx7.newPage();
+p7.on('pageerror', e=>errs.push(e.message));
+await p7.route('**://api.openrouteservice.org/**', r=>r.abort());
+await p7.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+await p7.waitForTimeout(500);
+
+/* ═══ LA BARRE DU BAS NE DOIT PAS MANGER « VOIR MON PRIX » ═══
+   Septembre 2026. Le bandeau plus haut a poussé le bouton à 774–827 pendant
+   que la barre occupe 784–844 : sa moitié basse passait DERRIÈRE elle, et un
+   doigt posé au milieu du bouton ouvrait l'onglet « Trajets ». Le client ne
+   voyait pas son prix, il changeait d'écran — sans le moindre message.
+
+   LA RÈGLE EXISTANTE NE COUVRAIT PAS CE CAS. Le contrôle des éléments
+   flottants (`test-nouveau-bon`) exclut explicitement « .barre », parce
+   qu'elle est légitime et toujours là. C'est précisément pour ça qu'il faut
+   une règle à part : ce qui est toujours là ne se remarque plus.
+
+   ON MESURE À L'ARRÊT, SANS FAIRE DÉFILER. Playwright amène l'élément à
+   l'écran avant de cliquer, et un test qui clique ne verrait donc jamais
+   rien ; le client, lui, ouvre la page et appuie. C'est aussi pourquoi le
+   défaut est sorti sous une forme absurde — une suite qui cliquait
+   « force:true » se retrouvait sur l'écran des trajets.
+   ===================================================================== */
+const boutonPrix = await p7.evaluate(()=>{
+  const btn = document.getElementById('btnVoirPrix');
+  const b = btn.getBoundingClientRect();
+  const barre = document.querySelector('.barre').getBoundingClientRect();
+  const cx = Math.round(b.left + b.width/2), cy = Math.round(b.top + b.height/2);
+  const dessus = document.elementFromPoint(cx, cy);
+  return { haut:Math.round(b.top), bas:Math.round(b.bottom),
+           barre:Math.round(barre.top),
+           recoit: !!dessus && (dessus === btn || btn.contains(dessus)),
+           dessus: dessus ? (dessus.id || dessus.className || dessus.tagName) : 'hors écran' };
+});
+check('« Voir mon prix » est entier au-dessus de la barre du bas',
+  boutonPrix.bas <= boutonPrix.barre,
+  'bouton ' + boutonPrix.haut + '–' + boutonPrix.bas + ' · barre à ' + boutonPrix.barre);
+check('et un doigt posé au milieu tombe bien sur lui',
+  boutonPrix.recoit, 'reçoit : ' + boutonPrix.dessus);
+
+/* LE BOUTON EST DANS LE PREMIER ÉCRAN, ET C'EST TOUT L'INTÉRÊT DU
+   BANDEAU. Un bandeau plus haut repousse le formulaire ; s'il ne rend pas
+   une action en échange, il a seulement éloigné la réservation. */
+const cta = await p7.locator('#btnHeroReserver').boundingBox();
+check('le bouton du bandeau tient dans le premier écran',
+  !!cta && cta.y + cta.height <= 844, cta ? Math.round(cta.y+cta.height)+' px' : 'absent');
+check('le bouton du bandeau est assez grand pour le doigt',
+  !!cta && cta.height >= 44, cta ? Math.round(cta.height)+' px' : 'absent');
+
+/* LE SOUS-TITRE EST UNE LISTE DE DESTINATIONS : cassée en deux, elle se
+   lit comme deux listes. C'est exactement ce que faisait le « max-width »
+   hérité de la phrase qu'elle a remplacée. */
+const lignesSous = await p7.evaluate(()=>{
+  const e = document.querySelector('.hero-sous');
+  return Math.round(e.getBoundingClientRect().height /
+                    parseFloat(getComputedStyle(e).lineHeight));
+});
+check('le sous-titre du bandeau tient sur une ligne', lignesSous === 1, lignesSous+' ligne(s)');
+
+/* LE BANDEAU N'A PLUS DE HAUTEUR FIXE : le titre est passé à trois
+   lignes, et une hauteur écrite à la main aurait laissé le texte sortir
+   par le bas sans le moindre signe. On vérifie que tout ce qu'il porte
+   reste DEDANS. */
+const dedans = await p7.evaluate(()=>{
+  const h = document.querySelector('.hero').getBoundingClientRect();
+  return [...document.querySelectorAll('.hero-texte > *')]
+    .every(e => e.getBoundingClientRect().bottom <= h.bottom + 1);
+});
+check('rien ne sort du bandeau par le bas', dedans);
+
+/* LE BOUTON MÈNE AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART. Sans
+   ça, c'est une image de bouton : le client appuie, rien ne bouge, et il
+   en conclut que le site est cassé — exactement ce qui avait fait retirer
+   l'onglet « Réserver ». */
+await p7.click('#btnHeroReserver');
+await p7.waitForTimeout(900);
+check('le bouton du bandeau pose le curseur dans le départ',
+  await p7.evaluate(()=>document.activeElement && document.activeElement.id === 'depart'));
+const champVisible = await p7.locator('#depart').boundingBox();
+check('le champ de départ est alors à l\'écran',
+  !!champVisible && champVisible.y >= 0 && champVisible.y < 844,
+  champVisible ? Math.round(champVisible.y)+' px' : 'absent');
+
+/* Il ne remplit rien et ne devine rien : une adresse posée d'office
+   enverrait le chauffeur au mauvais endroit. */
+check('le bouton du bandeau ne remplit aucune adresse',
+  (await p7.inputValue('#depart')) === '');
+
+/* 320 px — un iPhone SE. Le titre y casserait en quatre lignes à sa
+   taille normale ; c'est là qu'un bandeau déborde. */
+const cx8 = await b.newContext({ viewport:{width:320,height:568}, locale:'fr-FR' });
+const p8  = await cx8.newPage();
+await p8.route('**://api.openrouteservice.org/**', r=>r.abort());
+await p8.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+await p8.waitForTimeout(400);
+check('aucun débordement horizontal à 320 px',
+  (await p8.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)) === 0);
+const titre320 = await p8.evaluate(()=>{
+  const e = document.querySelector('.hero h1');
+  return Math.round(e.getBoundingClientRect().height /
+                    parseFloat(getComputedStyle(e).lineHeight));
+});
+check('le titre reste sur trois lignes à 320 px', titre320 === 3, titre320+' ligne(s)');
+
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ===');
 ok.forEach(t=>console.log('  ✔ '+t));
