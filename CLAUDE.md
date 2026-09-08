@@ -1968,6 +1968,49 @@ avait raison : rien ne disait ce qu'il fallait regarder en premier.
 - `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
   identifiants sont inchangés**, six suites les cliquent.
 
+### « ÇA PREND BEAUCOUP DE PLACE » — LE TABLEAU DE BORD A MAIGRI
+
+Septembre 2026, à sa demande, après une capture où il fallait franchir près
+de **700 px** d'en-tête, de chiffres et de boutons avant de voir une seule
+demande — c'est-à-dire avant de voir son travail. Mesuré à 390 px :
+
+| | Avant | Après |
+|---|---|---|
+| Les quatre chiffres | ~230 px | **81 px** |
+| Une carte de course | 142 px | **111 px** |
+| « Coller une demande » | ~160 px | **~75 px** |
+| Les trois filtres | ~130 px | **44 px** |
+| Première course | y = 761 | **y = 611** (et ~380 une fois connecté) |
+
+- **LES QUATRE CHIFFRES PASSENT DE FRONT.** L'icône de 33 px est masquée sur
+  téléphone : elle ne disait rien que le libellé ne dise déjà, et elle
+  coûtait une ligne entière. **Elle reste dans le code et revient au-delà de
+  900 px** — ce n'est pas le même écran, ce ne sont pas les mêmes
+  contraintes. Le libellé, lui, reste : la position et la couleur ne portent
+  jamais le sens toutes seules.
+- **LA CARTE DE COURSE PASSE DE QUATRE LIGNES À TROIS.** Les deux lignes
+  grises — « état · date · véhicule » puis « nom · depuis » — disaient la
+  même chose au même endroit. **La durée d'attente remonte à côté de la
+  référence** : c'est le signal d'urgence, et en fin de ligne grise il était
+  le premier tronqué sur une adresse longue.
+- **LA LIGNE GRISE TRONQUE, elle ne passe pas à la ligne.** Une carte dont la
+  hauteur dépend de la longueur d'une adresse ne se parcourt plus du regard,
+  et c'est exactement ce qu'on venait réparer.
+- **LES DEUX PORTES D'ENTRÉE PASSENT CÔTE À CÔTE**, sans titre : « Coller une
+  demande » se suffit à lui-même, un intitulé au-dessus ne faisait que le
+  répéter. Le second reste en creux — sur dix courses, neuf arrivent par
+  message.
+- **LES TROIS FILTRES TIENNENT SUR UNE LIGNE** : le nombre puis le mot, à
+  44 px de haut. Ils restent des BOUTONS — ce sont les seuls chiffres de
+  l'écran sur lesquels on appuie, et 44 px est la mesure d'un pouce.
+- **LES BOUTONS DE LA CARTE DESCENDENT À 38 px, ET PAS PLUS BAS.** Ils se
+  pressent à la chaîne le soir, sur trois ou quatre courses d'affilée.
+- **CE QUI RESTE À FAIRE SI ÇA REDEVIENT DENSE** : les quatre chiffres
+  répètent deux des trois filtres (« en attente », « réalisées ») à 200 px
+  d'écart. Les deux qui ajoutent quelque chose sont « Courses aujourd'hui »
+  et « Encaissé cette semaine ». Ne pas y toucher sans qu'il le redemande —
+  la duplication coûte peu maintenant qu'elle tient sur une ligne.
+
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
 Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
