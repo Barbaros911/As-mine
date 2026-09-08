@@ -31,7 +31,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v41";
+const CACHE = "elatransfer-v42";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
@@ -70,6 +70,56 @@ self.addEventListener("activate", (event) => {
     caches.keys()
       .then((names) => Promise.all(names.filter((n) => n !== CACHE).map((n) => caches.delete(n))))
       .then(() => self.clients.claim())
+  );
+});
+
+/* =====================================================================
+   LES NOTIFICATIONS
+   ---------------------------------------------------------------------
+   ON MONTRE TOUJOURS QUELQUE CHOSE. L'abonnement est pris en
+   « userVisibleOnly », c'est-à-dire avec l'engagement d'afficher une
+   notification à CHAQUE message reçu. Un push traité en silence fait
+   révoquer l'abonnement par le navigateur, sans prévenir : le client
+   cesserait d'être averti, et personne ne saurait pourquoi. D'où les replis
+   sur un titre par défaut plutôt qu'un « return » si le contenu manque.
+   LE CLIC RAMÈNE SUR LE BON, pas sur l'accueil : le lien porté par la
+   notification est le « ?ok= » qui fait passer le bon au vert. Ouvrir la
+   page d'accueil laisserait le client devant un formulaire vide.
+   ===================================================================== */
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) { d = {}; }
+  event.waitUntil(
+    self.registration.showNotification(d.titre || "Elatransfer", {
+      body: d.corps || "",
+      icon: "./icon-180.png",
+      badge: "./icon-180.png",
+      /* Une seule notification par course : si la confirmation part deux
+         fois, la seconde REMPLACE la première au lieu de s'empiler. */
+      tag: d.ref || "elatransfer",
+      renotify: true,
+      data: { url: d.url || "./" }
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const cible = (event.notification.data && event.notification.data.url) || "./";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true })
+      .then((ouvertes) => {
+        /* Un onglet du site est peut-être déjà ouvert — souvent celui où le
+           client a réservé. On le réutilise et on l'emmène sur le bon,
+           plutôt que d'ouvrir un deuxième onglet du même site. */
+        for (const f of ouvertes) {
+          if ("focus" in f) {
+            try { if ("navigate" in f) f.navigate(cible); } catch (e) { /* refusé : on se contente du focus */ }
+            return f.focus();
+          }
+        }
+        return self.clients.openWindow(cible);
+      })
   );
 });
 

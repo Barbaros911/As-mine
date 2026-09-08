@@ -80,6 +80,42 @@ n'existe pas : la coller seule dans le **SQL Editor** et faire **Run**. Rien
 d'autre ne change, et rien ne peut casser — une policy en plus n'ouvre que
 ce qu'elle nomme.
 
+### La table des abonnements aux notifications
+
+Elle sert au client qui coche « Prévenez-moi » sur son bon : son navigateur
+fabrique un abonnement, on le range ici, et c'est lui qu'on retrouvera au
+moment où Barbaros confirme la course.
+
+⚠️ **C'est une table à part, et pas une colonne de la course.** L'ajouter au
+bon obligerait à donner le droit de **modifier** une ligne existante au
+visiteur anonyme — et n'importe qui pourrait alors réécrire la réservation
+d'un autre. Ici, un anonyme ne peut que **déposer**, jamais lire ni changer.
+
+```sql
+create table public.abonnements (
+  id          bigserial primary key,
+  ref         text not null,
+  abonnement  jsonb not null,
+  cree_le     timestamptz not null default now()
+);
+create index on public.abonnements (ref);
+
+alter table public.abonnements enable row level security;
+
+-- Le client dépose SON abonnement, et rien d'autre.
+create policy "un client depose son abonnement"
+  on public.abonnements for insert
+  to anon
+  with check (true);
+
+-- Aucune lecture pour « anon » : un abonnement est une adresse d'envoi.
+-- Lisible de tous, n'importe qui pourrait envoyer une fausse notification
+-- « Transfert confirmé » aux clients d'Elatransfer.
+```
+
+La fonction qui envoie, elle, lit cette table avec la clé `service_role`,
+qui passe au-dessus de toutes les règles et ne quitte jamais Supabase.
+
 ## 3. Créer le compte de Barbaros
 
 **Authentication** → **Users** → **Add user** → *Create new user*.
@@ -189,3 +225,99 @@ Deux points qui ne se devinent pas :
 vérification d'entreprise **et un numéro dédié, qui ne peut plus servir
 dans l'application WhatsApp normale**. C'est le point à peser avant de s'y
 engager.
+
+---
+
+## Prévenir le CLIENT quand la course est confirmée
+
+L'autre sens : Barbaros confirme, et le téléphone du client sonne, même
+s'il a fermé la page. **Ça ne remplace pas le message WhatsApp** — les deux
+partent, et c'est voulu : la notification arrive tout de suite mais peut
+être refusée ou effacée d'un geste ; le message WhatsApp, lui, reste.
+
+**Tout est écrit et éprouvé hors ligne** (`node test-push.mjs`, 21
+contrôles, dont le déchiffrement du message par une bibliothèque écrite par
+quelqu'un d'autre). Il ne manque que ce qui exige le compte : poser les
+trois secrets et coller la fonction. Vingt minutes, depuis un téléphone.
+
+### 1. La paire de clés VAPID
+
+Elle existe déjà. La **publique** est dans `index.html` (`CLE_VAPID`) — elle
+est publique par construction, le navigateur la reçoit de toute façon. La
+**privée** ne doit **jamais** entrer dans le dépôt : elle est le seul
+secret qui empêche un tiers d'envoyer des notifications au nom
+d'Elatransfer. Elle a été remise à Barbaros à part.
+
+Pour en refaire une paire un jour, il faut les deux ensemble : une clé
+publique dans la page qui ne correspond pas à la privée des secrets fait
+accepter l'abonnement par le navigateur **et** refuser l'envoi par le
+service de push — une panne qui ne se voit qu'au premier client.
+
+Cet accord se vérifie en une commande, la clé en main, **sans jamais
+l'écrire dans un fichier** :
+
+```bash
+VAPID_PRIVEE=la-cle-privee node test-push.mjs
+```
+
+Elle dit « LA CLÉ DE LA PAGE EST BIEN CELLE DU SECRET », et vérifie au
+passage que cette clé privée ne traîne dans aucun fichier du dépôt.
+
+### 2. Poser les trois secrets
+
+**Edge Functions → Secrets** (ou *Settings → Edge Functions*) →
+**Add new secret**, trois fois. Les noms s'écrivent **exactement** ainsi :
+un secret mal nommé n'est pas une erreur visible, la fonction croit
+simplement qu'elle n'est pas configurée.
+
+| Nom | Valeur |
+|---|---|
+| `VAPID_PUBLIQUE` | la clé publique, celle de `CLE_VAPID` |
+| `VAPID_PRIVEE` | la clé privée, remise à part |
+| `VAPID_SUJET` | `mailto:contact@elatransfer.com` |
+
+`SUPABASE_SERVICE_ROLE_KEY` et `SUPABASE_URL` sont déjà là : Supabase les
+pose lui-même. **Ne jamais recopier la `service_role` ailleurs** — elle
+passe au-dessus de toutes les règles de sécurité.
+
+### 3. Coller la fonction
+
+**Edge Functions → Deploy a new function → via Editor**. Nom exact :
+`prevenir-client`. Ouvrir
+`supabase/functions/prevenir-client/a-coller.ts` sur GitHub, tout
+sélectionner, coller par-dessus l'exemple, **Deploy**.
+
+Ce fichier est **fabriqué**, jamais écrit à la main
+(`node supabase/functions/prevenir-client/assembler.mjs`) : le chiffrement
+vit dans un `.js` ordinaire pour qu'un test puisse le relire sans déployer,
+et l'assembleur en fait un seul morceau parce qu'on ne colle pas deux
+fichiers avec un pouce.
+
+**Aucun réglage de webhook ici**, contrairement à l'alerte de Barbaros :
+c'est le site qui appelle cette fonction, à l'instant où il appuie sur
+« Confirmer la course ».
+
+### 4. Vérifier
+
+Réserver depuis un téléphone, appuyer sur **« Prévenez-moi »** au bas du
+bon, accepter la demande du navigateur. Puis confirmer la course depuis la
+page admin : la notification doit arriver en quelques secondes.
+
+Si rien n'arrive : **Edge Functions → prevenir-client → Logs**. La fonction
+répond une **erreur** quand un secret manque, jamais un succès muet — un
+« 200 OK » ferait croire pendant des semaines que ça marche.
+
+### Ce qu'il faut savoir avant de le promettre à un client
+
+- **Sur iPhone, il faut d'abord installer le site sur l'écran d'accueil.**
+  Safari ne connaît les notifications que là. Le bouton le dit lui-même
+  plutôt que d'échouer en silence.
+- **Un refus est définitif.** Le navigateur ne repose plus jamais la
+  question. C'est pourquoi on ne demande rien au chargement : uniquement
+  sur un appui, une fois la demande déposée.
+- **La notification ne porte ni le nom, ni le téléphone, ni les adresses**
+  du client — même règle que le lien `?ok=` : une notification s'affiche
+  sur un écran verrouillé, que n'importe qui peut lire par-dessus l'épaule.
+- **Elle ne peut pas faire échouer une confirmation.** L'appel part
+  détaché : fonction en panne, abonnement périmé, le client est confirmé
+  quand même et le message WhatsApp part comme avant.

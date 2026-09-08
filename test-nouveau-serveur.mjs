@@ -57,7 +57,27 @@ async function reserver(serveurRepond){
     if(serveurRepond) await route.fulfill({status:201, body:''});
     else await route.abort();
   });
-  await ctx.addInitScript(()=>{ window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;}; });
+  await ctx.addInitScript(()=>{
+    window.__liens=[]; window.open=(u)=>{window.__liens.push(u);return null;};
+    /* ON COMPTE LES DEMANDES D'AUTORISATION, on ne lit pas l'état final :
+       lire « Notification.permission » ne dit rien de qui l'a demandée —
+       elle peut valoir « granted » parce que le contexte l'a accordée. Ce
+       qu'on veut prouver, c'est qu'AUCUN appel n'est parti tout seul. */
+    window.__demandes = 0;
+    const vraie = Notification.requestPermission.bind(Notification);
+    Notification.requestPermission = function(){ window.__demandes++; return vraie(); };
+    /* UN CHROME PILOTÉ RÉPOND « denied » LÀ OÙ UN VRAI NAVIGATEUR RÉPOND
+       « default », et ni l'option « permissions » du contexte ni
+       « grantPermissions » n'y changent quoi que ce soit — éprouvé.
+       Or la page cache le bloc quand l'autorisation est REFUSÉE, et elle a
+       raison : un client qui a bloqué le site ne recevra jamais rien, lui
+       proposer un bouton serait une promesse en l'air. Sans ce
+       rétablissement, la suite n'éprouverait donc que ce cas-là et jamais
+       le cas ordinaire. On remet l'état d'un navigateur qui n'a pas encore
+       été interrogé — on ne touche pas à la page, on répare le banc. */
+    try{ Object.defineProperty(Notification, "permission",
+      { get: () => "default", configurable: true }); }catch(e){}
+  });
   await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
   await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
@@ -116,6 +136,18 @@ check('le message WhatsApp part aussi, même quand le dépôt réussit',
   String((await p.evaluate(()=>window.__liens)).length));
 check('le renvoi reste en retrait',
   (await p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome');
+/* ON NE DEMANDE JAMAIS L'AUTORISATION AU CHARGEMENT. Une demande de
+   notification qui surgit sans raison se refuse d'un réflexe — et le refus
+   est DÉFINITIF : le navigateur ne repose plus jamais la question, même des
+   mois plus tard. Elle ne part que sur un geste du client. */
+check('aucune autorisation n\'a été demandée d\'elle-même',
+  (await p.evaluate(()=>window.__demandes))===0,
+  String(await p.evaluate(()=>window.__demandes)));
+/* Le bloc n'apparaît QUE si la demande est arrivée sur le serveur : sans
+   ligne côté serveur, personne ne pourra jamais envoyer la notification, et
+   proposer de s'abonner serait une promesse en l'air. */
+check('le bloc « Être prévenu » s\'affiche une fois la demande déposée',
+  await p.locator('#blocNotif').isVisible());
 await ctx.close();
 
 // ================= LE SERVEUR NE RÉPOND PAS =================
@@ -130,6 +162,13 @@ check('le renvoi WhatsApp devient l\'action principale',
   await p.locator('#btnRenvoyer').getAttribute('class'));
 check('la course reste enregistrée sur l\'appareil',
   (await p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').length))===1);
+/* PAS DE LIGNE SUR LE SERVEUR, PAS DE NOTIFICATION POSSIBLE. La fonction
+   qui prévient cherche l'abonnement par la référence de la course : sans
+   course déposée, elle ne trouvera jamais rien. Proposer « Soyez prévenu »
+   ici serait promettre un message qui ne partira pas — et le client
+   fermerait sa page en croyant qu'on le rappellera tout seul. */
+check('« Être prévenu » ne s\'affiche PAS quand la demande n\'est pas passée',
+  !(await p.locator('#blocNotif').isVisible()));
 await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('le message de secours garde sa forme lisible par l\'exploitant',
@@ -401,6 +440,94 @@ async function espace(session){
   check('une course réservée en anglais reçoit un accusé en anglais',
     msgEn.includes('has received your request')
     && /firm as soon as we confirm/.test(msgEn), msgEn.replace(/\n/g,' | '));
+  await c.close();
+}
+
+/* =====================================================================
+   LA NOTIFICATION AU CLIENT — CE QUI SE PASSE DANS LE NAVIGATEUR
+   ---------------------------------------------------------------------
+   Le chiffrement lui-même est éprouvé ailleurs, par un déchiffreur
+   indépendant (« node test-push.mjs »). Ici on vérifie les deux gestes qui
+   l'encadrent, et qui sont ceux où l'on se trompe :
+
+   1. ON NE DEMANDE L'AUTORISATION QUE SUR UN GESTE, et seulement si la
+      demande est bien arrivée sur le serveur. La demander au chargement,
+      c'est un refus réflexe — et un refus est DÉFINITIF, le navigateur ne
+      repose plus jamais la question.
+   2. LA NOTIFICATION NE PORTE NI LE NOM, NI LE NUMÉRO, NI LES ADRESSES du
+      client — exactement comme le lien « ?ok= ». Elle est chiffrée de bout
+      en bout, mais la règle ne dépend pas du chiffrement : elle dépend de
+      ce qui est nécessaire (RGPD 5.1.c).
+   ===================================================================== */
+/* LE CONTENU DE LA NOTIFICATION, mesuré sur le vrai appel. On intercepte
+   l'appel à la fonction et on lit ce qui part. */
+{
+  const bon = courseServeur('ELA-26-09-0400','Sophie Girard');
+  bon.client.telephone = '06 11 22 33 44';
+  bon.course.depart = 'Ibis CDG, Roissy (ch. 214)';
+  bon.course.departPublic = 'Ibis CDG, Roissy';
+  const envois = [];
+  const { c, pg } = await espace({ access_token:'jeton', refresh_token:'r', token_type:'bearer' });
+  await pg.addInitScript((b)=>{ localStorage.setItem('ela_bookings', JSON.stringify([b])); }, bon);
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
+    const u = route.request().url();
+    if(u.includes('/functions/v1/prevenir-client')){
+      envois.push(JSON.parse(route.request().postData()||'{}'));
+      await route.fulfill({contentType:'application/json', body:'{"envoyes":1}'});
+      return;
+    }
+    if(u.includes('select=bon')){
+      await route.fulfill({contentType:'application/json', body:'[]'}); return;
+    }
+    await route.fulfill({status:201, body:''});
+  });
+  await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(400);
+  await pg.fill('#codeExploitant','12345678');
+  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(700);
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
+  await pg.fill('#bbChauffeurNom','Mehmet');
+  await pg.fill('#bbChauffeurTel','06 98 76 54 32');
+  await pg.locator('#btnConfirmerCourse').click(); await pg.waitForTimeout(700);
+
+  check('confirmer la course envoie la notification, sans qu\'on ait rien à faire',
+    envois.length === 1, String(envois.length));
+  const n = envois[0] || {};
+  const tout = JSON.stringify(n);
+  check('elle porte la référence, le chauffeur, le véhicule et l\'heure',
+    n.titre.includes('ELA-26-09-0400') && n.corps.includes('Mehmet')
+    && n.corps.includes('Berline'), n.titre + ' | ' + n.corps);
+  /* LE CONTRÔLE QUI COMPTE. On cherche les VALEURS, pas les libellés :
+     chercher le mot « téléphone » passerait au vert avec le numéro écrit
+     juste à côté. */
+  check('elle ne porte NI le nom NI le numéro du client',
+    !tout.includes('Sophie') && !tout.includes('06 11 22 33 44'), tout.slice(0,120));
+  check('ni les adresses de la course',
+    !tout.includes('Ibis CDG') && !tout.includes('Argenteuil'), tout.slice(0,120));
+  /* Le numéro de chambre est le pire des cas : il est sur « depart » mais
+     pas sur « departPublic », et une notification qui le porte le diffuse. */
+  check('et surtout pas le numéro de chambre',
+    !tout.includes('214'), tout.slice(0,120));
+  check('le lien est bien celui du bon, celui qui fait passer la course au vert',
+    /\?ok=/.test(n.url || ''), n.url);
+
+  /* ELLE NE PEUT PAS FAIRE ÉCHOUER LA CONFIRMATION — même règle que
+     l'alerte Telegram. On coupe la fonction et la course doit passer
+     confirmée quand même. */
+  await pg.locator('#btnRetourBord').click(); await pg.waitForTimeout(300);
+  await pg.evaluate(()=>{
+    const l = JSON.parse(localStorage.getItem('ela_bookings'));
+    l[0].statut = 'attente';
+    localStorage.setItem('ela_bookings', JSON.stringify(l));
+  });
+  await pg.unroute('**yyhzutnuhuytokarynaw.supabase.co/**');
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', r => r.abort());
+  await pg.locator('.compteur[data-filtre="attente"]').click(); await pg.waitForTimeout(300);
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnConfirmerCourse').click(); await pg.waitForTimeout(700);
+  check('fonction injoignable : la course est confirmée QUAND MÊME',
+    (await pg.locator('#bbEtat').textContent()) === 'Confirmée',
+    await pg.locator('#bbEtat').textContent());
   await c.close();
 }
 
