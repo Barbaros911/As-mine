@@ -1409,7 +1409,68 @@ d'un précédent pour en ajouter d'autres.
   aucune décision — c'est la carte des chauffeurs en temps réel de la
   maquette, refusée pour la même raison. Ce qui déciderait quelque chose,
   c'est une **durée tenant compte du trafic à l'heure de la course** (Mapbox
-  sait le faire), affichée sur une ligne.
+  sait le faire), affichée sur une ligne. **C'est fait — voir juste en
+  dessous.**
+
+### « PAS CLAIR », « PLUS VITE », « LE TRAFIC » — LES TROIS DEMANDES SUIVANTES
+
+Septembre 2026, dès que la carte s'est enfin affichée chez lui. Trois
+choses distinctes, et **aucune des deux premières ne se voit depuis un
+ordinateur** — c'est pour ça qu'il a fallu qu'il les signale.
+
+- **LE FLOU VENAIT DE LA DENSITÉ D'ÉCRAN, pas de la taille du cadre.** Un
+  téléphone dessine 2 à 3 pixels physiques pour 1 pixel de page : les
+  tuiles de 256 px étaient étirées sur 512 ou 768 pixels d'écran.
+  `detectRetina:true` fait demander à Leaflet les tuiles du **zoom
+  supérieur** et les dessine deux fois plus petites — deux fois plus de
+  détail pour la même surface, **sans qu'OpenStreetMap ait à servir des
+  images « @2x »**, ce qu'il ne fait pas. Mesuré : à DPR 2, une tuile de
+  256 px occupe désormais 256 pixels d'écran (1:1, net) au lieu de 512 ;
+  à DPR 1 rien ne change. Le coût est 8 tuiles au lieu de 4.
+- **LA DÉSATURATION ÉTAIT DE TROP** : à `saturate(.55)` le fond de plan
+  virait au gris-vert et les rues ne se distinguaient plus. Elle est à
+  `.8`, le contraste à `1.06`. La règle tient toujours — la couleur
+  appartient au tracé et aux deux repères — mais **un fond de plan effacé
+  n'est plus un fond de plan**. Hauteur portée de 190 à 220 px.
+- **LA LENTEUR ÉTAIT UNE MISE EN SÉRIE.** La bibliothèque ne partait
+  qu'**après** la réponse du calculateur d'itinéraire, dans le `.then()` :
+  deux attentes bout à bout alors qu'elles n'ont rien à voir. Elles partent
+  maintenant **ensemble**, au clic sur « Voir mon prix » (`prechargerCarte()`),
+  avec une **préconnexion** au serveur de tuiles au passage — un DNS et une
+  poignée de main TLS, c'est une demi-seconde en 4G, prise sur du temps
+  déjà perdu. On ne précharge **pas** à l'accueil pour autant : un visiteur
+  qui ne réserve pas n'a pas à payer 200 Ko de cartographie.
+  **Le test n'éprouve pas une durée** — une durée dépend de la machine et
+  finit par tomber un jour de charge — il éprouve l'**ordre** : itinéraire
+  ralenti à 2 s, on regarde à 900 ms, le prix n'est pas là et la
+  bibliothèque est déjà demandée. Éprouvé contre l'ancien code : il tombe.
+- **WAZE N'A PAS D'API PUBLIQUE**, et ce n'est pas une question de budget :
+  elle est fermée depuis des années, ce qui reste (*Waze for Cities*) rend
+  des incidents aux collectivités, pas des temps de trajet. **Google Maps**
+  en a une, mais elle exige un compte de facturation **et** impose
+  d'afficher le résultat sur une carte Google — donc de changer aussi le
+  fond de plan, et de payer les deux. **Mapbox fait la même chose,
+  gratuitement, sans imposer sa carte.** Ne pas rouvrir ce débat : la
+  réponse ne dépend pas de nous.
+- **LE PROFIL EST `driving-traffic`, PAS `driving`.** Les deux noms se
+  ressemblent, le résultat non — sur un Roissy → Paris un mardi à 8 h,
+  l'écart se compte en dizaines de minutes, donc en vols ratés. Un seul mot
+  dans l'URL, exactement ce qu'une réécriture emporte sans rien casser de
+  visible : un test le verrouille.
+- **`depart_at` DEMANDE LE TRAFIC À L'HEURE DE LA COURSE**, pas à celle du
+  clic — une commande passée à 23 h pour demain 8 h n'a rien à voir avec la
+  circulation de 23 h. Il n'est envoyé que si le départ est **dans les 7
+  jours** : hors de sa fenêtre Mapbox **refuserait l'appel**, le site
+  retomberait sur ORS, et on perdrait **en silence** la précision qu'on est
+  venu chercher. Un repli qui se déclenche trop tôt ne se voit pas.
+- **« trafic pris en compte » N'EST ÉCRIT QUE SI C'EST VRAI** — donc
+  seulement quand Mapbox a répondu. ORS et OSRM rendent un temps théorique.
+  L'écrire quand même ferait de la mention une décoration, et un client qui
+  se fie à une heure d'arrivée la vérifie une fois, une seule. Deux
+  contrôles : présent avec Mapbox, **absent** sans.
+- **RIEN DE TOUT ÇA NE TOURNE AUJOURD'HUI** : `CLE_MAPBOX` est vide, il n'a
+  pas de compte. Le code est écrit et éprouvé, la marche à suivre est dans
+  `MAPBOX.md`, et c'est le seul geste qui lui revient.
 
 ## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
 
@@ -2374,7 +2435,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 697 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 699 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

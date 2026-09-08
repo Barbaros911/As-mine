@@ -46,7 +46,7 @@ const errs=[];
    donc à dire que c'est OSRM qui a répondu. */
 const KM = { mapbox:10000, ors:40000, osrm:24300 };
 
-async function course({ mapbox, ors, osrm, sansCles }){
+async function course({ mapbox, ors, osrm, sansCles, jours }){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
@@ -98,7 +98,7 @@ async function course({ mapbox, ors, osrm, sansCles }){
   await p.locator('#departList [role=option]').first().click();
   await p.type('#arrivee','argenteuil',{delay:10}); await p.waitForTimeout(800);
   await p.locator('#arriveeList [role=option]').first().click();
-  const d = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  const d = new Date(Date.now()+(jours===undefined?3:jours)*864e5).toISOString().slice(0,10);
   await p.fill('#date', d); await p.fill('#heure','10:00');
   await p.locator('#btnVoirPrix').click();
   await p.waitForTimeout(2000);
@@ -156,8 +156,27 @@ check('ORS n\'est alors pas appelé', r.versORS.length===0, r.versORS.join(' '))
 check('OSRM non plus', r.versOSRM.length===0, r.versOSRM.join(' '));
 check('la clé Mapbox part en « access_token »',
   r.versMapbox[0] && r.versMapbox[0].includes('access_token=pk.faux'), r.versMapbox[0]);
-check('et l\'appel demande bien un itinéraire routier',
-  r.versMapbox[0] && r.versMapbox[0].includes('/directions/v5/mapbox/driving/'), r.versMapbox[0]);
+/* ═══ LE PROFIL EST « driving-traffic », PAS « driving » ═══
+   Les deux noms se ressemblent ; le résultat non. « driving » rend un temps
+   théorique, comme ORS et OSRM ; « driving-traffic » regarde la
+   circulation. C'est toute la demande de Barbaros — « elle doit prendre en
+   compte le trafic actuel » — et c'est un seul mot dans l'URL : exactement
+   le genre de chose qui se perd à la première réécriture sans qu'un test le
+   voie. Sur un Roissy → Paris un mardi à 8 h, l'écart se compte en dizaines
+   de minutes, donc en vols ratés. */
+check('l\'appel demande le profil qui tient compte du trafic',
+  r.versMapbox[0] && r.versMapbox[0].includes('/directions/v5/mapbox/driving-traffic/')
+  && !/mapbox\/driving\//.test(r.versMapbox[0]), r.versMapbox[0]);
+/* LE TRAFIC DEMANDÉ EST CELUI DE L'HEURE DE LA COURSE, pas celui du clic.
+   Une course commandée à 23 h pour demain 8 h n'a rien à voir avec la
+   circulation de 23 h. Sans « depart_at », la mention « trafic pris en
+   compte » serait vraie mais inutile. */
+check('et le trafic est demandé pour l\'heure de la course',
+  r.versMapbox[0] && /depart_at=\d{4}-\d{2}-\d{2}T10%3A00/.test(r.versMapbox[0]),
+  r.versMapbox[0]);
+/* La mention n'est portée QUE par le niveau qui la mérite. */
+check('« trafic pris en compte » est écrit au client',
+  r.mesure.includes('trafic pris en compte'), r.mesure);
 /* LE TRACÉ EST MAINTENANT RÉCLAMÉ, et en version SIMPLIFIÉE. C'était
    « overview=false », délibérément, tant que le site n'affichait aucune
    carte. La raison est tombée avec l'arrivée de la carte du trajet ; le
@@ -175,6 +194,22 @@ check('le tracé est réclamé, en version simplifiée',
 r = await course({ mapbox:false, ors:true, osrm:true });
 check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='120,00€', r.prix);
 check('OSRM reste au repos', r.versOSRM.length===0, r.versOSRM.join(' '));
+/* ET SURTOUT : ORS NE CONNAÎT PAS LE TRAFIC. Écrire la mention quand même
+   ferait d'elle une décoration — et un client qui se fie à une heure
+   d'arrivée la vérifie une fois, une seule. */
+check('sans Mapbox, on ne prétend PAS tenir compte du trafic',
+  !r.mesure.includes('trafic'), r.mesure);
+
+/* --- 5 bis. UNE COURSE TROP LOINTAINE : on n'envoie pas « depart_at ».
+   Mapbox refuse une date hors de sa fenêtre de prévision, et un refus
+   ferait retomber le site sur ORS — une panne invisible qui coûterait
+   justement la précision qu'on est venu chercher. Sans le paramètre,
+   Mapbox rend la circulation du moment : moins juste, mais l'appel
+   aboutit. ------------------------------------------------------------ */
+r = await course({ mapbox:true, ors:true, osrm:true, jours:30 });
+check('une course dans un mois : Mapbox est appelé sans « depart_at »',
+  r.versMapbox[0] && !r.versMapbox[0].includes('depart_at'), r.versMapbox[0]);
+check('et elle passe quand même par Mapbox', r.prix==='30,00€', r.prix);
 
 /* --- 6. Les trois en panne : le vol d'oiseau, et les trois essayés ---- */
 r = await course({ mapbox:false, ors:false, osrm:false });

@@ -378,12 +378,26 @@ img{display:block;max-width:100%;}
 /* LA CARTE DU TRAJET. Hauteur fixe : sans elle, le cadre vaut zéro pixel
    tant que Leaflet n'a rien dessiné, et la page sauterait quand la carte
    arrive — le client viserait un prix qui vient de bouger.
-   LES TUILES SONT DÉSATURÉES : sur un fond de plan brut, les enseignes de
-   magasins et les zones vertes crient plus fort que la route. La couleur
-   doit rester au tracé et aux deux repères, qui sont le sujet. */
-.carte-trajet{height:190px;margin:14px 20px 0;border-radius:16px;overflow:hidden;
+
+   ═══ « C'EST PAS CLAIR DU TOUT » — CE QUI RENDAIT LA CARTE FLOUE ═══
+   Barbaros, septembre 2026, sur son téléphone. Deux causes cumulées, et
+   aucune des deux ne se voit sur un écran d'ordinateur ordinaire :
+   1. LA DENSITÉ. Un téléphone dessine 2 à 3 pixels physiques pour 1 pixel
+      de page. Les tuiles arrivaient en 256 px et étaient AGRANDIES d'autant :
+      c'est du flou, pas de la petitesse. Corrigé côté script, par
+      « detectRetina » — Leaflet demande alors les tuiles du zoom supérieur
+      et les affiche deux fois plus petites, ce qui double la finesse sans
+      qu'OpenStreetMap ait à servir des images spéciales.
+   2. LE VOILE. La désaturation était à 0,55 : le fond de plan devenait
+      gris-vert, et les rues se distinguaient à peine les unes des autres.
+      Elle est à 0,80 — assez pour que la couleur reste au tracé et aux deux
+      repères, plus assez pour effacer la carte elle-même. Le contraste
+      est monté d'autant.
+   La hauteur passe de 190 à 220 px : à 190, un Roissy → Paris tenait dans
+   une bande où plus rien n'était lisible. */
+.carte-trajet{height:220px;margin:14px 20px 0;border-radius:16px;overflow:hidden;
   background:var(--filet);border:1px solid var(--filet);}
-.carte-trajet .leaflet-tile-pane{filter:saturate(.55) contrast(1.02);}
+.carte-trajet .leaflet-tile-pane{filter:saturate(.8) contrast(1.06);}
 /* Leaflet pose ses propres polices et couleurs de lien dans l'attribution ;
    on la rend discrète sans la retirer — les données OpenStreetMap sont sous
    licence ODbL, et la citation des contributeurs est une obligation, pas un
@@ -3252,6 +3266,7 @@ window.ELA_TEXTES = {
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
+    trafic:"trafic pris en compte",
     vehicule:"Véhicule", chambre_court:"Chambre", vol_court:"Vol", train_court:"Train",
     prix_ht:"Prix HT", tva:"TVA 10 %", total:"Total à régler",
     paiement_note_ligne:"Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement en ligne, aucune donnée bancaire.",
@@ -3376,6 +3391,7 @@ window.ELA_TEXTES = {
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
+    trafic:"live traffic included",
     vehicule:"Vehicle", chambre_court:"Room", vol_court:"Flight", train_court:"Train",
     prix_ht:"Price excl. VAT", tva:"VAT 10%", total:"Total to pay",
     paiement_note_ligne:"Payment to your chauffeur, on board, in cash or by card. No online payment, no bank details.",
@@ -4277,10 +4293,16 @@ window.ELA_TEXTES = {
      il n'y a qu'un endroit à corriger.
      OpenRouteService, lui, répond en GeoJSON et range la même mesure
      ailleurs : d'où son lecteur à part, juste en dessous. */
-  function lireRoute(d){
+  function lireRoute(d, trafic){
     if(!(d && d.routes && d.routes[0])) throw new Error("route");
     return { km:d.routes[0].distance/1000,
              min:Math.round(d.routes[0].duration/60), estime:false,
+             /* Vrai seulement si la durée tient compte de la circulation.
+                On ne l'affiche jamais « au cas où » : annoncer un temps de
+                trajet « trafic pris en compte » alors qu'il ne l'est pas
+                est exactement le genre de promesse qu'un client vérifie
+                une fois, et une seule. */
+             trafic:!!trafic,
              /* Le tracé est pris QUAND IL EST LÀ, et son absence n'est jamais
                 une erreur : elle ne coûte que la carte, jamais le prix. */
              trace:traceDepuisGeoJSON(d.routes[0].geometry) };
@@ -4312,7 +4334,43 @@ window.ELA_TEXTES = {
              trace:traceDepuisGeoJSON(d.features[0].geometry) };
   }
 
-  function itineraire(a, b){
+  /* ═══ LE TRAFIC — CE QUI EST POSSIBLE, ET CE QUI NE L'EST PAS ═══
+     Barbaros, septembre 2026 : « elle doit prendre en compte le trafic
+     actuel, temps basé sur Waze ou Google Maps ».
+     — WAZE N'A PAS D'API PUBLIQUE. Elle a été fermée il y a des années ; ce
+       qui reste (Waze for Cities) sert aux collectivités et rend des
+       incidents, pas des temps de trajet. Aucun site ne peut s'y brancher.
+     — GOOGLE MAPS EN A UNE, mais elle exige un compte de facturation, et
+       ses conditions imposent d'afficher le résultat sur une carte Google —
+       donc de changer aussi le fond de plan, et de payer les deux.
+     — MAPBOX fait la même chose, gratuitement jusqu'à 100 000 itinéraires
+       par mois, et sans imposer sa carte. C'est la voie retenue.
+     Le code est écrit et éprouvé ; il ne manque que la clé, que Barbaros
+     seul peut créer (« CLE_MAPBOX », plus haut). Tant qu'elle est vide, le
+     site calcule comme avant, sans trafic — il ne ment simplement pas
+     là-dessus.
+
+     ON DEMANDE LE TRAFIC À L'HEURE DE LA COURSE, PAS À CELLE DU CLIC. Une
+     course commandée à 23 h pour demain 8 h n'a rien à voir avec la
+     circulation de 23 h. C'est « depart_at » qui le dit, et c'est ce qui
+     rend la chose utile plutôt que décorative : l'heure d'arrivée annoncée
+     au client devient celle d'un mardi 8 h sur l'A1, pas celle d'une nuit
+     déserte. */
+  function departAt(date, heure){
+    if(!date || !heure) return "";
+    var d = new Date(date + "T" + heure);
+    if(isNaN(d.getTime())) return "";
+    var dans = d.getTime() - Date.now();
+    /* Passé, ou trop loin : on n'envoie rien et Mapbox rend la circulation
+       du moment. Une valeur hors de sa fenêtre ferait REFUSER l'appel, donc
+       retomber silencieusement sur le niveau suivant — une panne invisible
+       qui ne coûterait « que » la précision, c'est-à-dire justement ce
+       qu'on est venu chercher. */
+    if(dans < 0 || dans > 7 * 24 * 3600 * 1000) return "";
+    return date + "T" + heure;
+  }
+
+  function itineraire(a, b, quand){
     var couple = a.lon+","+a.lat+";"+b.lon+","+b.lat;
 
     /* ON RÉCLAME MAINTENANT LE TRACÉ, en version SIMPLIFIÉE. C'était
@@ -4327,12 +4385,19 @@ window.ELA_TEXTES = {
         .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
         .then(lireRoute);
     }
+    /* « driving-traffic » ET NON « driving » : c'est le seul des deux
+       profils qui regarde la circulation. Le nom se ressemble, le résultat
+       non — sur un Roissy → Paris un mardi à 8 h, l'écart se compte en
+       dizaines de minutes, donc en clients qui ratent un vol. */
     function parMapbox(){
-      return fetchLimite("https://api.mapbox.com/directions/v5/mapbox/driving/"
-                         + couple + "?overview=simplified&geometries=geojson&access_token="
-                         + encodeURIComponent(CLE_MAPBOX))
+      var url = "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/"
+              + couple + "?overview=simplified&geometries=geojson&access_token="
+              + encodeURIComponent(CLE_MAPBOX);
+      var at = quand ? departAt(quand.date, quand.heure) : "";
+      if(at) url += "&depart_at=" + encodeURIComponent(at);
+      return fetchLimite(url)
         .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
-        .then(lireRoute);
+        .then(function(d){ return lireRoute(d, true); });
     }
     /* ORS prend ses points en deux paramètres séparés, et « lon,lat » —
        l'ordre inverse de celui qu'on écrit d'habitude. Une inversion ici
@@ -4474,6 +4539,45 @@ window.ELA_TEXTES = {
     return promesseLeaflet;
   }
 
+  /* ═══ ELLE DOIT S'AFFICHER PLUS VITE — ON N'ATTEND PLUS LE PRIX ═══
+     Barbaros, septembre 2026. La bibliothèque ne partait qu'APRÈS la réponse
+     du calculateur d'itinéraire, dans le « .then » : deux attentes mises
+     bout à bout alors qu'elles n'ont rien à voir l'une avec l'autre. Le
+     calcul prend une à quatre secondes ; la carte ne commençait qu'ensuite.
+     Elles partent maintenant EN MÊME TEMPS, au moment où le client appuie
+     sur « Voir mon prix » : quand la réponse arrive, la bibliothèque est
+     déjà là et il ne reste que les tuiles à peindre.
+
+     ON NE PRÉCHARGE PAS À L'ACCUEIL POUR AUTANT. La règle du site est que
+     l'accueil ne télécharge rien de lourd : un visiteur qui ne réserve pas
+     n'a aucune raison de payer 200 Ko de bibliothèque de cartographie.
+     L'appui sur le bouton est le premier moment où l'on sait qu'il ira
+     jusqu'à l'écran des prix.
+
+     LA PRÉCONNEXION AUX TUILES est le second gain, et il est invisible dans
+     le code : joindre un serveur inconnu, c'est une résolution de nom, une
+     connexion et une poignée de main TLS avant le premier octet utile —
+     facilement une demi-seconde en 4G. On les fait pendant que le prix se
+     calcule, plutôt qu'au moment où la carte veut peindre.
+
+     ÇA NE PEUT RIEN CASSER : l'échec est avalé ici, et « tracerCarte »
+     rappelle « chargerLeaflet » de toute façon — qui rend la promesse déjà
+     en cours, ou en relance une si la première a échoué. */
+  var precoPose = false;
+  function prechargerCarte(){
+    if(!precoPose){
+      precoPose = true;
+      ["https://tile.openstreetmap.org", "https://a.tile.openstreetmap.org",
+       "https://b.tile.openstreetmap.org", "https://c.tile.openstreetmap.org"]
+      .forEach(function(hote){
+        var l = document.createElement("link");
+        l.rel = "preconnect"; l.href = hote; l.crossOrigin = "anonymous";
+        document.head.appendChild(l);
+      });
+    }
+    chargerLeaflet().catch(function(){ /* pas de carte : le prix, lui, arrive */ });
+  }
+
   var carteTrajet = null;
   function tracerCarte(trace, a, b){
     var cadre = document.getElementById("carteTrajet");
@@ -4504,6 +4608,20 @@ window.ELA_TEXTES = {
         carteTrajet.attributionControl.setPrefix("");
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom:18,
+          /* ═══ LA CARTE ÉTAIT FLOUE, ET C'ÉTAIT ÇA ═══
+             Un téléphone dessine 2 à 3 pixels physiques pour 1 pixel de
+             page. Sans cette option, Leaflet demande des tuiles de 256 px
+             et les fait afficher sur 256 pixels de PAGE, donc étirées sur
+             512 ou 768 pixels d'écran : le flou est là, et il ne se voit
+             jamais sur l'écran d'un ordinateur ordinaire — c'est pour ça
+             qu'il a fallu que Barbaros le signale.
+             « detectRetina » demande les tuiles du zoom SUPÉRIEUR et les
+             dessine deux fois plus petites : deux fois plus de détail pour
+             la même surface, sans qu'OpenStreetMap ait à servir des images
+             « @2x » — il n'en sert pas. Le coût est quatre tuiles au lieu
+             d'une, soit une trentaine de kilo-octets sur un cadre de cette
+             taille : négligeable, et elles arrivent après le prix. */
+          detectRetina:true,
           attribution:"© OpenStreetMap"
         }).addTo(carteTrajet);
       }
@@ -4781,15 +4899,25 @@ window.ELA_TEXTES = {
     var avant = libelle.textContent;
     libelle.textContent = T("calcul");
     boutonPrix.disabled = true;
-    itineraire(choix.depart, choix.arrivee).then(function(r){
+    /* La bibliothèque de la carte part MAINTENANT, en même temps que le
+       calcul du prix — pas après lui. Voir « prechargerCarte ». */
+    prechargerCarte();
+    itineraire(choix.depart, choix.arrivee,
+               { date:champDate.value, heure:champHeure.value }).then(function(r){
       libelle.textContent = avant;
       boutonPrix.disabled = false;
       course.km = r.km; course.min = r.min; course.estime = r.estime;
       document.getElementById("resumeDepart").textContent  = choix.depart.label;
       document.getElementById("resumeArrivee").textContent = choix.arrivee.label;
+      /* « trafic pris en compte » n'apparaît que si c'est VRAI — donc
+         seulement quand Mapbox a répondu. Les autres calculateurs rendent
+         un temps théorique ; l'écrire quand même ferait de cette mention
+         une décoration, et un client qui se fie à une heure d'arrivée la
+         vérifie une fois. */
       document.getElementById("resumeMesure").textContent =
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
-        + " km · " + r.min + " " + T("min");
+        + " km · " + r.min + " " + T("min")
+        + (r.trafic ? " · " + T("trafic") : "");
       document.getElementById("noteNuit").hidden = !course.majoration;
       dessinerGammes();
       ecran("ecran-vehicules");
@@ -7319,7 +7447,9 @@ window.ELA_TEXTES = {
       document.getElementById("crDepart").value  = a.label;
       document.getElementById("crArrivee").value = b.label;
       dire("Calcul de l'itinéraire…");
-      return itineraire(a, b).then(function(it){
+      return itineraire(a, b, { date:document.getElementById("crDate").value,
+                                heure:document.getElementById("crHeure").value })
+        .then(function(it){
         var gamme = GAMMES.filter(function(g){
           return g.cle === document.getElementById("crVehicule").value;
         })[0] || GAMMES[0];
