@@ -114,10 +114,23 @@ check('la dernière ligne est « nom — téléphone », sans deux-points',
 check('le dernier montant en euros est le prix',
   (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 
-// Ce que voit le client
-check('on lui dit de vérifier que le message est parti',
-  (await p.locator('#envoiTexte').textContent()).includes('WhatsApp'),
-  await p.locator('#envoiTexte').textContent());
+/* Ce que voit le client
+   ON NE LUI DEMANDE PLUS DE VÉRIFIER NOTRE PLOMBERIE (septembre 2026, à la
+   demande de Barbaros : « ça fait pas pro »). Le bon disait « vérifiez que
+   le message WhatsApp est parti : c'est lui qui nous prévient tout de
+   suite » — c'est-à-dire confier notre alerte au client, et avouer que le
+   site ne se suffit pas à lui-même. Ce contrôle-ci verrouillait justement
+   cette phrase ; il vise maintenant ce qu'elle doit dire à la place.
+   LE MOT « WhatsApp » EST INTERDIT DANS CE MESSAGE-LÀ, et seulement dans
+   celui-là : chercher la nouvelle formulation mot à mot tomberait à la
+   première reformulation, alors que la règle, elle, tient. */
+{
+  const dit = await p.locator('#envoiTexte').textContent();
+  check('le message de réussite ne renvoie plus le client vers WhatsApp',
+    !dit.includes('WhatsApp'), dit);
+  check('il dit que la demande est arrivée et qu\'on répond',
+    /parvenue|reçu/i.test(dit) && /répond|disponibilité/i.test(dit), dit);
+}
 check('et le renvoi reste offert', await p.locator('#noteRenvoi').isVisible());
 // Le bloc vert ne doit rien recouvrir : c'est la phrase juste en dessous qui
 // dit s'il reste quelque chose à faire.
