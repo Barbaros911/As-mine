@@ -6316,16 +6316,67 @@ window.ELA_TEXTES = {
       return r.text().then(function(t){ return t ? JSON.parse(t) : null; });
     }).catch(function(e){ clearTimeout(minuteur); throw e; });
   };
+  /* ═══ « IDENTIFIANTS REFUSÉS » NE DISAIT PAS QUOI FAIRE ═══
+     Septembre 2026, Barbaros : « j'arrive pas à me connecter ». La
+     connexion rendait « false » quoi qu'il arrive, et l'écran affichait
+     toujours la même phrase — que le mot de passe soit faux, que le compte
+     ne soit pas confirmé, que la connexion par e-mail soit désactivée dans
+     Supabase, ou que le serveur n'ait pas répondu du tout. **Quatre pannes
+     différentes, quatre gestes différents, un seul message.** On ne peut
+     pas réparer ce qu'on ne sait pas nommer — c'est la même leçon que
+     « lister() n'a plus de catch ».
+
+     LE COMPTE NON CONFIRMÉ EST LE PIÈGE LE PLUS PROBABLE : en créant un
+     utilisateur depuis le tableau de bord Supabase, la case « Auto Confirm
+     User » n'est pas cochée d'office. Le compte existe, le mot de passe est
+     le bon, et la connexion est refusée quand même. Sans le message du
+     serveur, on cherche pendant une heure du côté du mot de passe.
+
+     ON REND DONC LA RAISON, pas un booléen. Le message vient du serveur ;
+     on le traduit en geste. */
   nuage.connexion = function(email, mdp){
     var moi = this;
-    return this.appel("/auth/v1/token?grant_type=password", {
-      method:"POST", body: JSON.stringify({ email: email, password: mdp })
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 8000);
+    return fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+      method: "POST", signal: ctrl.signal,
+      headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, password: mdp })
     }).then(function(r){
-      if(!r || !r.access_token) return false;
-      moi.session = r;
-      try{ localStorage.setItem(CLE_SESSION, JSON.stringify(r)); }catch(e){}
-      return true;
-    }).catch(function(){ return false; });
+      clearTimeout(minuteur);
+      return r.text().then(function(t){
+        var j = null;
+        try{ j = t ? JSON.parse(t) : null; }catch(e){ j = null; }
+        if(r.ok && j && j.access_token){
+          moi.session = j;
+          try{ localStorage.setItem(CLE_SESSION, JSON.stringify(j)); }catch(e){}
+          return { ok:true };
+        }
+        /* Supabase a changé deux fois la forme de ses erreurs : « msg »,
+           « error_description », « error_code », « code ». On les regarde
+           toutes plutôt que d'en choisir une — celle qu'on aurait choisie
+           serait forcément celle qui disparaît. */
+        var brut = String((j && (j.error_code || j.error || "")) + " "
+                        + (j && (j.msg || j.error_description || "")) ).toLowerCase();
+        return { ok:false, raison: moi.raisonConnexion(brut, r.status), brut: brut.trim() };
+      });
+    }).catch(function(){
+      clearTimeout(minuteur);
+      return { ok:false, raison:"reseau" };
+    });
+  };
+  /* Quatre raisons, quatre gestes. La cinquième — « on ne sait pas » —
+     recopie ce que le serveur a dit plutôt que d'inventer : un message
+     étrange qu'on peut lire vaut mieux qu'un message clair qui ment. */
+  nuage.raisonConnexion = function(brut, statut){
+    if(brut.indexOf("not_confirmed") >= 0 || brut.indexOf("not confirmed") >= 0)
+      return "non_confirme";
+    if(brut.indexOf("invalid") >= 0 || brut.indexOf("grant") >= 0 || statut === 400)
+      return "identifiants";
+    if(brut.indexOf("disabled") >= 0 || brut.indexOf("not enabled") >= 0)
+      return "desactive";
+    if(statut === 429) return "trop_essais";
+    return "inconnue";
   };
   nuage.deconnexion = function(){
     this.session = null;
@@ -7493,9 +7544,31 @@ window.ELA_TEXTES = {
     var b = this, lib = b.querySelector("span"), avant = lib.textContent;
     lib.textContent = "…"; b.disabled = true;
     nuage.connexion(document.getElementById("nuageEmail").value.trim(),
-                    document.getElementById("nuageMdp").value).then(function(ok){
+                    document.getElementById("nuageMdp").value).then(function(res){
       lib.textContent = avant; b.disabled = false;
-      if(!ok){ document.getElementById("nuageEtat").textContent = "Identifiants refusés."; return; }
+      if(!res || !res.ok){
+        /* CHAQUE PHRASE DIT LE GESTE À FAIRE. « Identifiants refusés » sur
+           un compte non confirmé envoie chercher pendant une heure du côté
+           du mot de passe, qui est le bon. */
+        var dit = {
+          non_confirme: "Ce compte n'est pas confirmé. Dans Supabase → "
+            + "Authentication → Users, supprimez-le et recréez-le en cochant "
+            + "« Auto Confirm User ».",
+          identifiants: "E-mail ou mot de passe refusé. L'e-mail est celui de "
+            + "Supabase → Authentication → Users.",
+          desactive: "La connexion par e-mail est désactivée dans Supabase → "
+            + "Authentication → Providers → Email.",
+          trop_essais: "Trop d'essais de suite. Attendez une minute.",
+          reseau: "Le serveur n'a pas répondu. Vérifiez votre connexion.",
+          inconnue: "Connexion refusée par le serveur."
+        }[(res && res.raison) || "inconnue"];
+        /* On recopie le message brut du serveur quand on n'a pas su le
+           nommer : un message étrange qu'on peut lire vaut mieux qu'un
+           message clair qui ment. */
+        if(res && res.raison === "inconnue" && res.brut) dit += " (" + res.brut + ")";
+        document.getElementById("nuageEtat").textContent = dit;
+        return;
+      }
       document.getElementById("nuageMdp").value = "";
       jugerNuage(); synchroniser();
     });

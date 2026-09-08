@@ -123,6 +123,20 @@ Mettre une vraie adresse e-mail et **un vrai mot de passe** — celui-ci ouvre
 les données réelles des clients, ce n'est pas le code `12345678` de
 l'appareil.
 
+⚠️ **COCHER « Auto Confirm User ».** Elle ne l'est pas d'office, et c'est le
+piège le plus coûteux de cette page : sans elle le compte est créé, le mot
+de passe est le bon, **et la connexion est refusée quand même**. On cherche
+alors une heure du côté du mot de passe. C'est arrivé en septembre 2026.
+Si le compte existe déjà sans être confirmé, le plus simple depuis un
+téléphone est de le **supprimer et de le recréer** avec la case cochée —
+rien n'est perdu : les courses appartiennent à la table, pas à un compte, et
+les règles autorisent **tout compte connecté**, pas un compte précis.
+
+Le site le dit maintenant lui-même : depuis septembre 2026, un refus de
+connexion affiche **la raison** et le geste à faire — compte non confirmé,
+mot de passe refusé, connexion e-mail désactivée, serveur muet. Il affichait
+« Identifiants refusés » dans les quatre cas.
+
 Puis **Authentication → Providers → Email** : désactiver
 *« Enable sign ups »*. Sans ça, n'importe qui pourrait se créer un compte et
 lire toutes les courses.

@@ -1658,6 +1658,37 @@ où mentir.
 - Un contrôle vérifie l'**ordre** (`window.__ordre`), un autre la présence
   de `keepalive` dans la page. Les deux tombent si on revient en arrière.
 
+### « IDENTIFIANTS REFUSÉS » NE DISAIT PAS QUOI FAIRE
+
+Septembre 2026, Barbaros : « j'arrive pas à me connecter ». L'écran affichait
+**la même phrase quoi qu'il arrive** — mot de passe faux, compte non
+confirmé, connexion par e-mail désactivée dans Supabase, serveur muet.
+Quatre pannes, quatre gestes, un seul message. `nuage.connexion` rendait un
+booléen et jetait la réponse du serveur.
+
+**C'est la leçon de « `lister()` n'a plus de catch », à l'autre bout du
+site** : une panne qu'on ne sait pas nommer ne se répare pas.
+
+- `nuage.connexion` rend maintenant `{ok, raison, brut}` et `raisonConnexion()`
+  traduit le message du serveur en geste. **On regarde `msg`,
+  `error_description`, `error_code` ET `error`** : Supabase a changé deux
+  fois la forme de ses erreurs, et celle qu'on aurait choisie serait
+  forcément celle qui disparaît.
+- **Quand on ne sait pas nommer, on recopie le message brut.** Un message
+  étrange qu'on peut lire vaut mieux qu'un message clair qui ment.
+- **LE PIÈGE LE PLUS PROBABLE EST « Auto Confirm User »** : la case n'est pas
+  cochée d'office quand on crée un utilisateur depuis le tableau de bord
+  Supabase. Le compte existe, le mot de passe est le bon, la connexion est
+  refusée — et on cherche une heure du côté du mot de passe. C'est écrit
+  dans `SUPABASE.md` et le site le dit lui-même.
+- **Supprimer un compte ne fait rien perdre** : les policies autorisent
+  `authenticated` en général, jamais un compte précis, et les courses
+  appartiennent à la table. Recréer est plus simple que réinitialiser depuis
+  un téléphone.
+- Quatre cas éprouvés dans `test-nouveau-serveur.mjs`, plus le retour du
+  bouton à l'état utilisable : laissé sur « … » et désactivé, il ferait
+  croire à une connexion en cours pour toujours.
+
 ## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
 
 Septembre 2026, à sa demande. Il a demandé « pourquoi tu ne me créerais
