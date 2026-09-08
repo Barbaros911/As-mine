@@ -1364,13 +1364,45 @@ d'un précédent pour en ajouter d'autres.
   sans préavis. Le jour où `CLE_MAPBOX` est remplie, on passe aux tuiles
   Mapbox — même bibliothèque, une ligne. Elles sont **désaturées** en CSS :
   la couleur doit rester au tracé et aux deux repères.
-- **LE CDN EST INJOIGNABLE DEPUIS LA MACHINE DE DÉVELOPPEMENT.** Pour voir
-  vraiment la carte, récupérer la bibliothèque par npm
-  (`npm pack leaflet@1.9.4`) dans le bac à sable et la servir à la place du
-  CDN — c'est ce que fait la troisième partie de `test-nouveau-carte.mjs`.
-  Sans elle, la suite **le dit et échoue** au lieu de sauter le contrôle :
-  un faux Leaflet prouve qu'on parle correctement à la bibliothèque, jamais
-  qu'elle dessine.
+- **LA BIBLIOTHÈQUE EST DANS LE DÉPÔT (`carte/`), PLUS CHEZ UN CDN**
+  (septembre 2026, après « je ne vois pas la carte s'afficher »). Elle
+  venait de cdnjs avec une **minuterie de 5 s** sur son chargement : 147 Ko
+  chez un serveur étranger, DNS et poignée de main TLS compris, sur un
+  téléphone en 4G. Cinq secondes, c'était court — et ce délai serré ne
+  protégeait **rien**, puisque personne n'attend la carte : le prix est déjà
+  à l'écran. Le réflexe venait des appels d'itinéraire, où une réponse lente
+  retarde le prix. Ici elle ne retarde que la carte.
+  Ce qu'on gagne à la servir soi-même : plus de serveur tiers à joindre,
+  **mise en cache par le service worker** (même origine, réponse complète —
+  une réponse opaque de CDN ne se cache pas), donc carte disponible hors
+  ligne dès la deuxième visite, et personne d'extérieur ne peut changer ce
+  code sous nos pieds. Licence BSD 2-Clause, redistribution permise, le
+  fichier porte son copyright et `carte/LICENSE-leaflet.txt` l'accompagne.
+  La minuterie reste, à **15 s** : elle ne sert plus qu'à ne pas laisser une
+  promesse en suspens pour toujours.
+- **`construire.sh` DOIT COPIER `carte/` — c'est LE point de rupture.** La
+  recette ne publie que ce qui y est nommé : un fichier oublié marche
+  parfaitement en local, où le serveur de test sert le dépôt entier, et
+  reste introuvable en ligne. Deux contrôles de `test-nouveau-bascule.mjs`
+  le verrouillent — dont un qui lit **ce que la page va chercher** plutôt
+  qu'une liste à tenir à jour.
+  **Le premier jet de ce contrôle passait au vert avec la ligne retirée** :
+  il cherchait le mot « carte » dans le fichier entier, et mes propres
+  commentaires en parlaient. Il ne lit maintenant que les lignes de
+  commande. Un test qui trouve ce qu'il cherche dans une phrase
+  d'explication ne vérifie rien.
+- **`NOS_DOSSIERS` DANS `sw.js`.** `siteVoisin()` traite tout sous-dossier
+  comme un site vitrine à laisser tranquille — juste pour `/alfredo/` ou
+  `/demos/`, faux pour `/carte/`. Sans cette liste, le service worker
+  laissait passer la bibliothèque sans jamais la garder : l'inverse de ce
+  qu'on gagne à l'avoir sortie du CDN.
+- **LE RENDU EST MAINTENANT ÉPROUVÉ À CHAQUE EXÉCUTION.** La troisième
+  partie de `test-nouveau-carte.mjs` dépendait d'un fichier posé à la main
+  dans le bac à sable, le CDN étant injoignable d'ici. Servie par le site,
+  la vraie bibliothèque est là de toute façon — et un contrôle vérifie que
+  les deux fichiers viennent bien du site et **jamais d'un CDN** : un retour
+  en arrière ne casserait rien dans la suite, et la carte manquerait de
+  nouveau chez lui.
 - **PAS DE CARTE DE TRAFIC SUR LE TABLEAU DE BORD** (demandée, écartée).
   TomTom et HERE ont des paliers gratuits, ce n'est pas le problème :
   Barbaros ne conduit pas, il place. Une carte rouge et verte ne change
@@ -2342,7 +2374,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 693 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 697 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

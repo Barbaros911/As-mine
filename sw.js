@@ -20,18 +20,29 @@
    servir la page d'Elatransfer hors ligne. */
 const BASE = new URL("./", self.location).pathname;
 
+/* LES DOSSIERS QUI APPARTIENNENT À ELATRANSFER, malgré la règle ci-dessous.
+   « siteVoisin » traite TOUT sous-dossier comme un site vitrine à laisser
+   tranquille — c'est ce qu'on veut pour « /alfredo/ » ou « /demos/ », et
+   c'est faux pour nos propres ressources. « carte/ » porte la bibliothèque
+   de la carte du trajet : sans cette liste, le service worker la laissait
+   passer sans jamais la garder, et la carte redevenait indisponible hors
+   ligne — l'inverse de ce qu'on gagne à l'avoir sortie du CDN. */
+const NOS_DOSSIERS = ["carte"];
+
 /* Vrai si la requête vise un site voisin plutôt qu'Elatransfer elle-même :
    même origine, sous la racine, mais dans un sous-dossier. */
 function siteVoisin(url) {
   if (url.origin !== self.location.origin) return false;
   if (!url.pathname.startsWith(BASE)) return false;
-  return url.pathname.slice(BASE.length).includes("/");
+  const reste = url.pathname.slice(BASE.length);
+  if (!reste.includes("/")) return false;
+  return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v50";
+const CACHE = "elatransfer-v51";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la

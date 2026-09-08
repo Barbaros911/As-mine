@@ -20,23 +20,22 @@
       un faux Leaflet qui ENREGISTRE ce qu'on lui donne, et on vérifie que
       les points tombent bien en Île-de-France.
 
-   3. QUE LA CARTE S'AFFICHE VRAIMENT, avec le VRAI Leaflet. Cette machine
-      n'a pas accès au CDN ; si la bibliothèque a été récupérée dans le bac
-      à sable (« npm pack leaflet@1.9.4 »), on la sert à sa place et on
-      compte les tuiles, les traits et les repères. Sinon on le DIT — un
-      contrôle sauté en silence est pire qu'un contrôle absent.
+   3. QUE LA CARTE S'AFFICHE VRAIMENT, avec le VRAI Leaflet — et ce
+      contrôle-là tourne MAINTENANT TOUJOURS. La bibliothèque est dans le
+      dépôt (« carte/leaflet.js ») depuis que Barbaros ne voyait pas la
+      carte s'afficher : elle venait d'un CDN injoignable depuis cette
+      machine, et la vérification du rendu dépendait d'un fichier posé à la
+      main dans le bac à sable. Servie par le site, elle est éprouvée à
+      chaque exécution — un faux Leaflet prouve qu'on parle correctement à
+      la bibliothèque, jamais qu'elle dessine.
 
    Lancer :  npx http-server -p 8099 -s .
              node test-nouveau-carte.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
-import { existsSync, readFileSync } from 'node:fs';
 
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
-
-const BAC = '/tmp/claude-0/-home-user-As-mine/'
-          + '4bad491f-f7fd-5fb8-ac80-285f0ac64a0c/scratchpad/package/dist/';
 
 /* Un vrai tracé Paris → Roissy, en « lon, lat » comme le rendent les
    services. C'est la matière première du contrôle sur l'ordre des points. */
@@ -65,19 +64,22 @@ async function reserver(reglages = {}){
     body:JSON.stringify({routes:[{distance:29400,duration:2280,
       geometry:{type:"LineString",coordinates:TRACE}}]})}));
 
-  if(reglages.vraiLeaflet){
-    await p.route('**://cdnjs.cloudflare.com/**/leaflet.js', r => r.fulfill(
-      {contentType:'application/javascript', body:readFileSync(BAC+'leaflet.js','utf8')}));
-    await p.route('**://cdnjs.cloudflare.com/**/leaflet.css', r => r.fulfill(
-      {contentType:'text/css', body:readFileSync(BAC+'leaflet.css','utf8')}));
-    /* De vraies images, fabriquées ici : on ne sort pas sur le réseau, et la
-       politique d'OpenStreetMap interdit de toute façon qu'une suite de
-       tests tape sur leurs serveurs. */
-    await p.route('**://tile.openstreetmap.org/**', r => r.fulfill({
-      contentType:'image/svg+xml',
-      body:'<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">'
-         + '<rect width="256" height="256" fill="#eae6df"/></svg>'}));
-  } else if(reglages.faux){
+  /* De vraies images de fond, fabriquées ici : on ne sort pas sur le réseau,
+     et la politique d'OpenStreetMap interdit de toute façon qu'une suite de
+     tests tape sur leurs serveurs. */
+  await p.route('**://tile.openstreetmap.org/**', r => r.fulfill({
+    contentType:'image/svg+xml',
+    body:'<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">'
+       + '<rect width="256" height="256" fill="#eae6df"/></svg>'}));
+
+  /* SANS BIBLIOTHÈQUE : on coupe le fichier du site lui-même. C'est le cas
+     du client hors réseau, ou d'un fichier qu'un déploiement aurait oublié
+     de publier — exactement ce qui arriverait si « carte/ » sortait de la
+     liste de « construire.sh ». */
+  if(reglages.sansLeaflet){
+    await p.route('**/carte/leaflet.js', r => r.abort());
+  }
+  if(reglages.faux){
     /* UN FAUX LEAFLET QUI NOTE TOUT. On ne vérifie pas que Leaflet dessine —
        c'est son métier — mais que NOUS lui parlons correctement. */
     await p.addInitScript(() => {
@@ -116,16 +118,17 @@ async function reserver(reglages = {}){
   const d = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
   await p.fill('#date', d); await p.fill('#heure','10:00');
   await p.locator('#btnVoirPrix').click();
-  await p.waitForTimeout(reglages.vraiLeaflet ? 2500 : 1200);
+  await p.waitForTimeout(reglages.faux || reglages.sansLeaflet ? 1200 : 2600);
   return { p, ctx, errs };
 }
 
 /* ═════════ 1. SANS CARTE, ON RÉSERVE QUAND MÊME ═════════
-   Le contrôle le plus important, et le seul qui tourne dans tous les cas :
-   cette machine n'a pas accès au CDN, donc Leaflet n'arrive jamais. C'est
-   exactement la situation d'un client dans un parking d'aéroport. */
+   Le contrôle le plus important de cette suite. C'est la situation d'un
+   client dans un parking d'aéroport — et aussi celle d'un déploiement qui
+   aurait oublié de publier « carte/ ». Une carte absente doit coûter la
+   carte, jamais la course. */
 {
-  const { p, ctx, errs } = await reserver();
+  const { p, ctx, errs } = await reserver({ sansLeaflet:true });
   check('l\'écran des prix s\'affiche même sans la bibliothèque de carte',
     await p.locator('#ecran-vehicules').isVisible());
   check('les prix sont là — la carte ne conditionne rien',
@@ -224,8 +227,8 @@ async function reserver(reglages = {}){
    Un faux prouve qu'on parle correctement à la bibliothèque, jamais qu'elle
    dessine. Le CDN étant injoignable d'ici, on sert la vraie bibliothèque
    depuis le bac à sable quand elle y est. */
-if(existsSync(BAC + 'leaflet.js')){
-  const { p, ctx, errs } = await reserver({ vraiLeaflet:true });
+{
+  const { p, ctx, errs } = await reserver();
   check('AVEC LE VRAI LEAFLET, LA CARTE S\'AFFICHE',
     await p.locator('#carteTrajet').isVisible());
   check('des tuiles sont réellement chargées',
@@ -242,10 +245,18 @@ if(existsSync(BAC + 'leaflet.js')){
     !/Leaflet|🇺🇦/.test(att) && !(await p.locator('#carteTrajet .leaflet-attribution-flag').count()),
     att);
   check('aucune erreur JavaScript', errs.length === 0, errs.join(' | '));
+  /* LA BIBLIOTHÈQUE VIENT DU SITE, PAS D'UN TIERS. Servie par le CDN, elle
+     dépendait d'un DNS, d'une poignée de main TLS et d'un serveur étranger —
+     et Barbaros ne voyait pas la carte. Un contrôle sur l'ADRESSE, parce
+     qu'un retour au CDN ne casserait rien ici : la suite passerait au vert
+     et la carte manquerait de nouveau chez lui. */
+  const sources = await p.evaluate(()=>[...document.scripts].map(s=>s.src)
+    .concat([...document.querySelectorAll('link[rel=stylesheet]')].map(l=>l.href))
+    .filter(u=>/leaflet/i.test(u)));
+  check('elle est servie par le site lui-même, jamais par un CDN',
+    sources.length === 2 && sources.every(u => u.startsWith('http://127.0.0.1:8099/')),
+    sources.join(' '));
   await ctx.close();
-} else {
-  check('LE RENDU N\'A PAS PU ÊTRE ÉPROUVÉ : Leaflet absent du bac à sable', false,
-    'npm pack leaflet@1.9.4 puis décompresser, ou lancer depuis une machine reliée au CDN');
 }
 
 await b.close();
