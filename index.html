@@ -1851,6 +1851,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       </label>
       <p class="champ-aide" id="erreurCoordonnees" hidden data-t="err_coord">Le nom et le téléphone
          sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
+      <!-- UN MESSAGE À PART, et pas la même phrase que « il en manque un ».
+           Un numéro absent se remplit, un numéro faux se relit : deux
+           gestes différents, donc deux phrases. -->
+      <p class="champ-aide" id="erreurTel" hidden data-t="err_tel">Ce numéro ne semble pas
+         valable. Vérifiez-le : c'est par là que nous vous confirmons la course.</p>
     </div>
 
     <!-- LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE.
@@ -3030,6 +3035,7 @@ window.ELA_TEXTES = {
     coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
     telephone:"Téléphone", ph_tel:"06 12 34 56 78",
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
+    err_tel:"Ce numéro ne semble pas valable. Vérifiez-le : c'est par là que nous vous confirmons la course.",
     confirmer:"Confirmer ma réservation",
     confirmer_note:"Votre demande part sur WhatsApp. Elle devient ferme dès qu'Elatransfer vous confirme.",
     bon_sous:"Bon de réservation",
@@ -3153,6 +3159,7 @@ window.ELA_TEXTES = {
     coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
     telephone:"Phone", ph_tel:"+33 6 12 34 56 78",
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
+    err_tel:"This number does not look valid. Please check it: it is how we confirm your transfer.",
     confirmer:"Confirm my booking",
     confirmer_note:"Your request is sent on WhatsApp. It becomes firm as soon as Elatransfer confirms.",
     bon_sous:"Booking voucher",
@@ -4472,6 +4479,7 @@ window.ELA_TEXTES = {
   var champNom = document.getElementById("clientNom");
   var champTel = document.getElementById("clientTel");
   var erreurCoord = document.getElementById("erreurCoordonnees");
+  var erreurTel   = document.getElementById("erreurTel");
 
   /* Ce qui part dans le message à l'exploitant ne suit PAS la langue du
      visiteur : Barbaros lit du français, et son lecteur de demandes attend
@@ -4853,10 +4861,22 @@ window.ELA_TEXTES = {
     var nom = champNom.value.trim(), tel = champTel.value.trim();
     if(!nom || !tel){
       erreurCoord.hidden = false;
+      erreurTel.hidden = true;
       (nom ? champTel : champNom).focus();
       return;
     }
     erreurCoord.hidden = true;
+    /* DEUX MESSAGES, PAS UN. « il manque le téléphone » et « ce numéro
+       n'existe pas » appellent deux gestes différents : le premier dit
+       d'écrire, le second de relire. Un message unique laisserait le client
+       retaper exactement la même chose. */
+    if(!telValide(tel)){
+      erreurTel.hidden = false;
+      champTel.focus();
+      champTel.select();
+      return;
+    }
+    erreurTel.hidden = true;
     /* Le mode de règlement est contrôlé APRÈS les coordonnées et avant tout
        le reste : sans lui, la course part et le chauffeur découvre en
        montant qu'il lui manque son terminal. On ramène le client sur les
@@ -5468,6 +5488,44 @@ window.ELA_TEXTES = {
          : st === "confirmee" ? "Confirmée"
          : st === "realisee" ? "Réalisée" : "Refusée";
   }
+  /* =====================================================================
+     UN NUMÉRO FAUX EST UNE COURSE PERDUE
+     ---------------------------------------------------------------------
+     Vu sur une capture de Barbaros : « Nom : Aaa · Téléphone : 000000 », et
+     le site avait accepté. Un numéro qu'on ne peut pas composer, c'est une
+     course qu'on ne peut ni confirmer, ni prévenir, ni facturer — et on ne
+     s'en aperçoit qu'au moment d'appeler, souvent la veille au soir.
+
+     ON N'INSTALLE PAS DE BIBLIOTHÈQUE POUR ÇA. « libphonenumber-js » fait
+     entre 80 et 145 Ko : plus que la page entière, pour un site qui n'a
+     aucune dépendance et doit rester utilisable hors ligne, dans un parking
+     d'aéroport. Ce qui suit couvre les cas réels d'Elatransfer.
+
+     ON EST VOLONTAIREMENT LARGE À L'INTERNATIONAL. Les clients arrivent de
+     partout, et les plans de numérotation ne se ressemblent pas : refuser
+     un numéro étranger valable coûterait bien plus cher que d'accepter un
+     numéro douteux. On n'écarte que ce qui ne peut être un téléphone nulle
+     part — trop court, trop long, ou un seul chiffre répété. La France,
+     elle, est connue : dix chiffres commençant par 0. */
+  function telValide(brut){
+    var t = String(brut || "").trim();
+    if(!t) return false;
+    var international = t.indexOf("+") === 0 || t.indexOf("00") === 0;
+    var chiffres = t.replace(/\D/g, "");
+    if(chiffres.indexOf("00") === 0) chiffres = chiffres.slice(2);
+    /* « 000000 », « 111111 » : jamais un téléphone, toujours un client
+       pressé ou un essai. C'est exactement le cas rencontré. */
+    if(/^(\d)\1+$/.test(chiffres)) return false;
+    if(!international && chiffres.indexOf("0") === 0){
+      /* Numéro français : dix chiffres, et le second dit la nature de la
+         ligne — 01 à 05 fixe, 06 et 07 mobile, 09 box. 08 est un numéro
+         spécial, souvent surtaxé : personne n'y est joignable. */
+      return chiffres.length === 10 && /^0[1-79]/.test(chiffres);
+    }
+    /* Ailleurs : entre 8 et 15 chiffres, la borne de la norme E.164. */
+    return chiffres.length >= 8 && chiffres.length <= 15;
+  }
+
   function telWa(brut){
     if(!brut) return "";
     var t = String(brut).trim();
@@ -6549,14 +6607,29 @@ window.ELA_TEXTES = {
   /* LA RECHERCHE PORTE SUR TOUT LE REGISTRE, pas seulement sur les courses
      réalisées : quand un client rappelle, c'est justement sa course à venir
      qu'on cherche. */
+  /* LES ACCENTS NE DOIVENT PAS FAIRE RATER UNE COURSE. Barbaros cherche
+     « vendome » à une main pendant qu'un client attend au téléphone : sans
+     ce nettoyage, « Place Vendôme » ne sortait pas, et il en concluait que
+     la course n'existait pas. « normalize("NFD") » sépare la lettre de son
+     accent, et on jette l'accent.
+     ON EN PROFITE POUR LES ESPACES DU TÉLÉPHONE : les numéros sont
+     enregistrés avec des espaces et il les tape d'une traite. On cherche
+     donc AUSSI dans une version sans espaces — sinon la recherche la plus
+     fiable qui soit, celle par numéro, était la seule à ne jamais marcher.
+     ON RÉUTILISE « sansAccents », écrite pour la recherche d'adresses. Une
+     seconde fonction identique à côté finirait par diverger de la première
+     le jour où l'une des deux est corrigée. */
   function chercherRegistre(){
-    var q = document.getElementById("regRecherche").value.trim().toLowerCase();
+    var q = sansAccents(document.getElementById("regRecherche").value);
     if(!q){ poser("regResultats", [], ""); return; }
+    var qCompact = q.replace(/\s/g, "");
     var trouves = registre().filter(function(c){
-      return [c.ref, c.client && c.client.nom, c.client && c.client.telephone,
+      var champs = sansAccents([c.ref, c.client && c.client.nom,
+              c.client && c.client.telephone,
               c.course && c.course.depart, c.course && c.course.arrivee,
-              c.chauffeur && c.chauffeur.nom, c.provenance]
-             .join(" ").toLowerCase().indexOf(q) >= 0;
+              c.chauffeur && c.chauffeur.nom, c.provenance].join(" "));
+      return champs.indexOf(q) >= 0
+          || (qCompact && champs.replace(/\s/g, "").indexOf(qCompact) >= 0);
     }).slice(0, 20);
     poser("regResultats", trouves.map(function(c){
       return { nom: c.ref + " · " + ((c.client && c.client.nom) || "—"),
