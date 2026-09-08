@@ -2107,8 +2107,13 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <div class="ligne"><span data-t="prix_ht">Prix HT</span><b id="recapHT">—</b></div>
       <div class="ligne"><span data-t="tva">TVA 10 %</span><b id="recapTVA">—</b></div>
       <div class="ligne total"><span data-t="total">Total à régler</span><b id="recapTotal">—</b></div>
-      <p class="bloc-note" data-t="paiement_note_ligne">Règlement au chauffeur, à bord, en espèces ou par
-         carte. Aucun paiement en ligne, aucune donnée bancaire.</p>
+      <!-- LA PHRASE DE RÉASSURANCE A DÉMÉNAGÉ D'UNE LIGNE PLUS BAS.
+           « Règlement au chauffeur, à bord, en espèces ou par carte. Aucun
+           paiement en ligne, aucune donnée bancaire » disait, en deux lignes
+           denses, exactement ce que le bloc suivant dit en trois mots et deux
+           dessins — et il le disait JUSTE AU-DESSUS de lui. Pour un touriste
+           étranger, deux formulations du même fait ne rassurent pas deux fois
+           plus : elles font relire. -->
     </div>
 
     <!-- LE MODE DE RÈGLEMENT SE DEMANDE AU CLIENT, PAS AU CHAUFFEUR.
@@ -2119,16 +2124,20 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          Le prix ne change pas d'un mode à l'autre : ce n'est pas un choix
          commercial, c'est une information de préparation. -->
     <div class="bloc" id="blocPaiement">
-      <h2 class="bloc-titre" data-t="paiement_titre">Comment réglerez-vous ?</h2>
+      <!-- ═══ LE TITRE AFFIRME, IL NE QUESTIONNE PLUS ═══
+           Septembre 2026, à sa demande : « pour un touriste étranger, je
+           simplifierais énormément ». « Comment réglerez-vous ? » posait une
+           question à quelqu'un qui se demandait encore s'il allait devoir
+           sortir sa carte sur un site inconnu. Le titre répond d'abord — on
+           paie le chauffeur, pas le site — et les deux boutons deviennent le
+           détail d'une chose déjà comprise.
+           LA CARTE EST ÉCRITE EN PREMIER, dans son ordre à lui : c'est ce
+           que cherche un client qui atterrit sans un euro sur lui.
+           PAS D'EMOJI, LES MÊMES DESSINS QU'AVANT. Un emoji change de forme
+           d'un téléphone à l'autre et grossit mal — la règle vaut ici comme
+           pour les voitures. Le résultat à l'écran est celui qu'il décrit. -->
+      <h2 class="bloc-titre" data-t="paiement_titre">Vous payez directement votre chauffeur</h2>
       <div class="duo choix-paiement">
-        <button class="choix" type="button" data-paiement="especes" aria-pressed="false">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="2.9" y="6.4" width="18.2" height="11.2" rx="2.2"
-                  stroke="currentColor" stroke-width="1.7"/>
-            <circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/>
-          </svg>
-          <span data-t="paiement_especes">Espèces</span>
-        </button>
         <button class="choix" type="button" data-paiement="carte" aria-pressed="false">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <rect x="2.9" y="5.9" width="18.2" height="12.2" rx="2.6"
@@ -2137,9 +2146,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
           </svg>
           <span data-t="paiement_carte">Carte bancaire</span>
         </button>
+        <button class="choix" type="button" data-paiement="especes" aria-pressed="false">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.9" y="6.4" width="18.2" height="11.2" rx="2.2"
+                  stroke="currentColor" stroke-width="1.7"/>
+            <circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/>
+          </svg>
+          <span data-t="paiement_especes">Espèces</span>
+        </button>
       </div>
+      <!-- LA SEULE PHRASE QUI RESTE, ET ELLE LÈVE LA DERNIÈRE INQUIÉTUDE :
+           il n'y a pas de bouton de paiement à chercher plus loin. -->
+      <p class="bloc-note" data-t="paiement_note">Aucun paiement en ligne nécessaire.</p>
+      <!-- ON DEMANDE, ON N'EXPLIQUE PAS. Le terminal du chauffeur est notre
+           affaire ; une question suivie d'une justification donne
+           l'impression qu'on se justifie de la poser. -->
       <p class="refus erreur-paiement" id="erreurPaiement" hidden data-t="err_paiement">Indiquez
-         comment vous réglerez : le chauffeur prépare son terminal en conséquence.</p>
+         comment vous réglerez.</p>
     </div>
 
     <div class="bloc">
@@ -3643,7 +3666,6 @@ window.ELA_TEXTES = {
     trafic:"trafic pris en compte",
     vehicule:"Véhicule", chambre_court:"Chambre", vol_court:"Vol", train_court:"Train",
     prix_ht:"Prix HT", tva:"TVA 10 %", total:"Total à régler",
-    paiement_note_ligne:"Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement en ligne, aucune donnée bancaire.",
     coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
     telephone:"Téléphone", ph_tel:"06 12 34 56 78",
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
@@ -3702,7 +3724,8 @@ window.ELA_TEXTES = {
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
-    paiement_titre:"Comment réglerez-vous ?",
+    paiement_titre:"Vous payez directement votre chauffeur",
+    paiement_note:"Aucun paiement en ligne nécessaire.",
     paiement_especes:"Espèces",
     paiement_carte:"Carte bancaire",
     err_paiement:"Indiquez comment vous réglerez.",
@@ -3782,7 +3805,6 @@ window.ELA_TEXTES = {
     trafic:"live traffic included",
     vehicule:"Vehicle", chambre_court:"Room", vol_court:"Flight", train_court:"Train",
     prix_ht:"Price excl. VAT", tva:"VAT 10%", total:"Total to pay",
-    paiement_note_ligne:"Payment to your chauffeur, on board, in cash or by card. No online payment, no bank details.",
     coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
     telephone:"Phone", ph_tel:"+33 6 12 34 56 78",
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
@@ -3832,7 +3854,8 @@ window.ELA_TEXTES = {
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
-    paiement_titre:"How will you pay?",
+    paiement_titre:"You pay your chauffeur directly",
+    paiement_note:"No online payment needed.",
     paiement_especes:"Cash",
     paiement_carte:"Card",
     err_paiement:"Tell us how you will pay.",

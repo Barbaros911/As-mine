@@ -2067,6 +2067,41 @@ et rien à l'écran n'aurait expliqué pourquoi.
 - Le mode exploitant continue de suivre l'**ADRESSE**, jamais l'appareil :
   sans le paramètre on reste côté client, y compris sur son téléphone.
 
+### LE PAIEMENT AFFIRME AVANT DE DEMANDER
+
+Septembre 2026, à sa demande : « pour un touriste étranger, je simplifierais
+énormément ». Le récapitulatif disait le même fait **deux fois** : une phrase
+dense sous le total (« Règlement au chauffeur, à bord, en espèces ou par
+carte. Aucun paiement en ligne, aucune donnée bancaire ») et, une ligne plus
+bas, le bloc qui pose la question.
+
+- **LE TITRE RÉPOND D'ABORD.** « Comment réglerez-vous ? » posait une
+  question à quelqu'un qui se demandait encore s'il allait devoir sortir sa
+  carte sur un site inconnu. « **Vous payez directement votre chauffeur** »
+  lève l'inquiétude, et les deux boutons deviennent le détail d'une chose
+  déjà comprise. Un contrôle vérifie que **le titre n'interroge pas** (pas de
+  « ? » final) plutôt que le libellé exact : une reformulation légitime ne
+  doit pas faire tomber la suite, un retour à la question si.
+- **LA CARTE AVANT LES ESPÈCES**, dans son ordre à lui — c'est ce que cherche
+  un client qui atterrit sans un euro sur lui. Le contrôle compare les
+  **positions à l'écran**, pas l'ordre dans le code : c'est ce que le client
+  lit, et une règle de mise en page peut inverser les deux. Aucun test ne
+  dépendait de l'ordre, tous visent `[data-paiement="…"]`.
+- **PAS D'EMOJI, LES MÊMES DESSINS QU'AVANT.** Il proposait 💳 et 💶 ; un
+  emoji change de forme d'un téléphone à l'autre et grossit mal — la règle
+  vaut ici comme pour les voitures. Les deux SVG étaient déjà dans les
+  boutons, le résultat à l'écran est celui qu'il décrit.
+- **LE FAIT N'EST DIT QU'UNE FOIS**, et le contrôle **compte**. Un doublon ne
+  casse rien : il alourdit, et c'est exactement ce qui ne se voit pas en
+  relisant le code. Éprouvé contre l'ancien texte — il rend « 2 fois ».
+- `paiement_note_ligne` a disparu des deux langues, remplacée par
+  `paiement_note` (« Aucun paiement en ligne nécessaire »). **« aucune donnée
+  bancaire » n'est pas perdu** : c'est la politique de confidentialité qui le
+  porte, là où il engage.
+- Le repli HTML de `err_paiement` justifiait encore la question par le
+  terminal du chauffeur — du texte mort, écrasé au chargement par la
+  traduction, mais **c'est par là que revient une formule retirée**.
+
 ### L'ADRESSE DE L'EXPLOITANT EST « /exploitant/ »
 
 Septembre 2026, sur sa relecture : « ça ne doit absolument pas être présenté
@@ -2868,7 +2903,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 746 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 760 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
