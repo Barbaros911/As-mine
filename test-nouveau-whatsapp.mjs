@@ -13,10 +13,15 @@
      tableau de bord, le message prévient Barbaros sur son téléphone.
      L'un sans l'autre laisse un trou : soit il n'est pas averti, soit il
      n'a rien à ouvrir.
-   — WHATSAPP EST DEMANDÉ AVANT LE DÉPÔT. Un window.open() placé après un
-     « await » est bloqué par Safari sur iPhone, qui n'autorise
-     l'ouverture d'un onglet que dans la seconde suivant une action de
-     l'utilisateur. Un contrôle vérifie l'ORDRE des deux appels.
+   — RIEN N'EST ATTENDU AVANT L'OUVERTURE DE WHATSAPP. La règle de Safari
+     n'est pas un ordre, c'est un TICK : il n'autorise l'ouverture d'un
+     onglet que pendant l'exécution SYNCHRONE du gestionnaire de clic. Un
+     « await » avant « window.open » le bloque ; un « fetch » lancé sans
+     être attendu ne le bloque pas. Le contrôle lit donc la source entre le
+     début du gestionnaire et l'ouverture — c'est invisible autrement, un
+     banc sans Safari ne reproduira jamais le blocage.
+     Le dépôt part quand même EN PREMIER : c'est ce qui lui donne ses
+     millisecondes de réseau avant qu'iOS gèle la page pour WhatsApp.
    — LE CONTENU DU MESSAGE, ligne par ligne : « Demande de réservation »
      et la référence, les deux adresses, la date, le nombre de passagers,
      la gamme, le mode de règlement, le prix, et le nom avec le téléphone
@@ -51,8 +56,8 @@ await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'ap
 // Le serveur RÉPOND : c'est le chemin nominal. Le WhatsApp doit partir quand
 // même — c'est lui qui prévient Barbaros sur son téléphone.
 await p.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
-// On note l'ordre des évènements : le WhatsApp doit être demandé AVANT que
-// le dépôt ait répondu, sinon Safari sur iPhone le bloquerait.
+// On note l'ordre des évènements : le dépôt doit être LANCÉ avant que
+// WhatsApp prenne l'écran, sans qu'aucune attente ne s'intercale.
 await ctx.addInitScript(()=>{
   window.__journal = [];
   window.open = (u)=>{ window.__journal.push({quoi:'wa', url:u, t:Date.now()}); return null; };
@@ -83,8 +88,41 @@ check('le message WhatsApp part même quand le serveur répond',
   j.some(e=>e.quoi==='wa'), JSON.stringify(j.map(e=>e.quoi)));
 check('la demande est déposée aussi : les deux chemins vivent ensemble',
   j.some(e=>e.quoi==='depot'));
-check('WhatsApp est demandé AVANT le dépôt — sinon Safari iOS le bloque',
-  j.findIndex(e=>e.quoi==='wa') < j.findIndex(e=>e.quoi==='depot'),
+/* ═══ CE QUE SAFARI EXIGE VRAIMENT, ET CE QU'IL N'EXIGE PAS ═══
+   Ce contrôle demandait que WhatsApp parte AVANT le dépôt. C'était une
+   lecture trop stricte de la règle, et elle a coûté cher : le dépôt partait
+   donc APRÈS l'ouverture de WhatsApp, c'est-à-dire à l'instant où iOS met
+   la page en arrière-plan — Safari y gèle le JavaScript et coupe les
+   requêtes en cours. Le client revenait sur « votre demande n'a pas pu nous
+   être transmise » alors que rien n'était cassé. Signalé par Barbaros,
+   capture à l'appui, septembre 2026.
+
+   LA VRAIE RÈGLE N'EST PAS UN ORDRE, C'EST UN TICK : Safari n'autorise
+   l'ouverture d'un onglet que pendant l'exécution SYNCHRONE du gestionnaire
+   de clic. Un « await » avant « window.open » le bloque ; un « fetch »
+   lancé sans être attendu ne le bloque pas — il rend sa promesse
+   immédiatement et ne cède jamais la main.
+
+   On éprouve donc la règle exacte, à la source : entre le début du
+   gestionnaire de « Confirmer » et l'appel à « window.open », il ne doit y
+   avoir NI « await » NI « .then( ». C'est ce qui casserait vraiment
+   l'ouverture, et c'est invisible autrement — un banc de test sans Safari
+   ne reproduira jamais le blocage. */
+const source = await (await fetch('http://127.0.0.1:8099/index.html')).text();
+const debut = source.indexOf('getElementById("btnConfirmer").addEventListener');
+const ouverture = source.indexOf('window.open("https://wa.me/', debut);
+const avant = source.slice(debut, ouverture);
+check('les deux partent : WhatsApp et le dépôt',
+  j.some(e=>e.quoi==='wa') && j.some(e=>e.quoi==='depot'),
+  j.map(e=>e.quoi).join(' → '));
+check('rien n\'est ATTENDU avant l\'ouverture de WhatsApp — Safari la bloquerait',
+  debut > 0 && ouverture > debut
+  && !/\bawait\b/.test(avant) && !/\.then\s*\(/.test(avant),
+  (avant.match(/\bawait\b|\.then\s*\(/g) || ['rien']).join(' '));
+/* Et le dépôt part quand même EN PREMIER : c'est ce qui lui donne ses
+   quelques millisecondes de réseau avant que WhatsApp prenne l'écran. */
+check('mais le dépôt est LANCÉ avant, pour survivre au passage en arrière-plan',
+  j.findIndex(e=>e.quoi==='depot') < j.findIndex(e=>e.quoi==='wa'),
   j.map(e=>e.quoi).join(' → '));
 
 const msg = decodeURIComponent(j.find(e=>e.quoi==='wa').url.split('text=')[1]);
