@@ -56,8 +56,14 @@ let ctx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR'});
 let p = await page(ctx);
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
+/* LE TÉMOIN DE LANGUE EST LE BOUTON PRINCIPAL, plus le titre du
+   formulaire : « Réserver un trajet / Simple, rapide et sécurisé » a été
+   retiré avec la vraie accroche — le bandeau au-dessus dit déjà tout ça, et
+   ses 68 px remettaient « Voir mon prix » derrière la barre du bas.
+   Un témoin doit viser ce qui ne peut pas disparaître : ici, le bouton
+   sans lequel il n'y a pas de réservation. */
 check('un navigateur français ouvre en français',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
+  (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 
 // --- Un visiteur allemand : ni français ni anglais → anglais ---
 await ctx.close();
@@ -66,8 +72,8 @@ p = await page(ctx);
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 check('un navigateur allemand ouvre en anglais, pas en français',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Book a ride',
-  await p.locator('[data-t="reserver_titre"]').textContent());
+  (await p.locator('[data-t="btn_prix"]').textContent())==='See my price',
+  await p.locator('[data-t="btn_prix"]').textContent());
 
 /* LE BANDEAU D'ACCUEIL BASCULE EN ENTIER — ses CINQ lignes.
    C'est la première chose que voit un client anglophone, et c'est
@@ -90,11 +96,11 @@ check('deux langues et deux seulement', boutons.join('/')==='FR/EN', boutons.joi
 await p.locator('.langues button[data-langue="fr"]').click();
 await p.waitForTimeout(200);
 check('le choix explicite bascule la page',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
+  (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 await p.reload({waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
 check('et il survit au rechargement, malgré un navigateur allemand',
-  (await p.locator('[data-t="reserver_titre"]').textContent())==='Réserver un trajet');
+  (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 
 // --- Aucune clé ne manque : rien ne doit rester en français en anglais ---
 await p.locator('.langues button[data-langue="en"]').click();

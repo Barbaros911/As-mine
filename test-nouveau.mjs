@@ -138,6 +138,40 @@ await p7.route('**://api.openrouteservice.org/**', r=>r.abort());
 await p7.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p7.waitForTimeout(500);
 
+/* ═══ LA BARRE DU BAS NE DOIT PAS MANGER « VOIR MON PRIX » ═══
+   Septembre 2026. Le bandeau plus haut a poussé le bouton à 774–827 pendant
+   que la barre occupe 784–844 : sa moitié basse passait DERRIÈRE elle, et un
+   doigt posé au milieu du bouton ouvrait l'onglet « Trajets ». Le client ne
+   voyait pas son prix, il changeait d'écran — sans le moindre message.
+
+   LA RÈGLE EXISTANTE NE COUVRAIT PAS CE CAS. Le contrôle des éléments
+   flottants (`test-nouveau-bon`) exclut explicitement « .barre », parce
+   qu'elle est légitime et toujours là. C'est précisément pour ça qu'il faut
+   une règle à part : ce qui est toujours là ne se remarque plus.
+
+   ON MESURE À L'ARRÊT, SANS FAIRE DÉFILER. Playwright amène l'élément à
+   l'écran avant de cliquer, et un test qui clique ne verrait donc jamais
+   rien ; le client, lui, ouvre la page et appuie. C'est aussi pourquoi le
+   défaut est sorti sous une forme absurde — une suite qui cliquait
+   « force:true » se retrouvait sur l'écran des trajets.
+   ===================================================================== */
+const boutonPrix = await p7.evaluate(()=>{
+  const btn = document.getElementById('btnVoirPrix');
+  const b = btn.getBoundingClientRect();
+  const barre = document.querySelector('.barre').getBoundingClientRect();
+  const cx = Math.round(b.left + b.width/2), cy = Math.round(b.top + b.height/2);
+  const dessus = document.elementFromPoint(cx, cy);
+  return { haut:Math.round(b.top), bas:Math.round(b.bottom),
+           barre:Math.round(barre.top),
+           recoit: !!dessus && (dessus === btn || btn.contains(dessus)),
+           dessus: dessus ? (dessus.id || dessus.className || dessus.tagName) : 'hors écran' };
+});
+check('« Voir mon prix » est entier au-dessus de la barre du bas',
+  boutonPrix.bas <= boutonPrix.barre,
+  'bouton ' + boutonPrix.haut + '–' + boutonPrix.bas + ' · barre à ' + boutonPrix.barre);
+check('et un doigt posé au milieu tombe bien sur lui',
+  boutonPrix.recoit, 'reçoit : ' + boutonPrix.dessus);
+
 /* LE BOUTON EST DANS LE PREMIER ÉCRAN, ET C'EST TOUT L'INTÉRÊT DU
    BANDEAU. Un bandeau plus haut repousse le formulaire ; s'il ne rend pas
    une action en échange, il a seulement éloigné la réservation. */

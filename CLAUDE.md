@@ -2047,6 +2047,47 @@ bouton, et la réassurance.
   descriptif — on dit où l'on conduit. **Ne pas en refaire un « pack »** : il
   a été retiré à sa demande, c'était le premier des deux.
 
+### CE QUE LE BANDEAU A CASSÉ — LA BARRE DU BAS MANGEAIT « VOIR MON PRIX »
+
+Septembre 2026, trouvé par les suites juste avant la mise en ligne. **Le
+défaut le plus coûteux de la soirée, et il était invisible.**
+
+Le bandeau plus haut a poussé « Voir mon prix » à **774–827** pendant que la
+barre du bas occupe **784–844**. Sa moitié basse passait **derrière** la
+barre : un client qui ouvre la page, remplit le formulaire et appuie au
+milieu du bouton **ouvrait l'onglet « Trajets »**. Il ne voyait pas son prix,
+il changeait d'écran, sans le moindre message.
+
+- **LA NOTE « le formulaire entier tient dans le premier écran, ne pas le
+  remonter » N'ÉTAIT PAS DE LA COQUETTERIE.** Elle protégeait exactement ça,
+  et je l'ai enfreinte en croyant ne coûter qu'un défilement.
+- **LA RÈGLE EXISTANTE NE COUVRAIT PAS CE CAS** : le contrôle des éléments
+  flottants de `test-nouveau-bon` **exclut explicitement `.barre`**, parce
+  qu'elle est légitime et toujours là. C'est précisément pour ça qu'il en
+  fallait une autre — **ce qui est toujours là ne se remarque plus**.
+- **CE QUI A PAYÉ LES 68 px : le bloc « Réserver un trajet / Simple, rapide
+  et sécurisé ».** C'est exactement celui qu'il avait désigné en demandant
+  une vraie accroche. Le bandeau dit maintenant qui l'on est, ce qu'on vend
+  et à quel prix, et il porte un bouton qui descend ici : répéter le titre
+  juste en dessous, avec une icône de 50 px, c'était accueillir deux fois.
+  Une correction de mise en page qui supprime un doublon vaut mieux qu'une
+  correction qui grignote cinq marges.
+- **LE TÉMOIN DE LANGUE VISAIT CE BLOC** — `[data-t="reserver_titre"]`, dans
+  quatre contrôles de `test-nouveau-langues`. Il vise désormais
+  `[data-t="btn_prix"]` : **un témoin doit viser ce qui ne peut pas
+  disparaître**, ici le bouton sans lequel il n'y a pas de réservation.
+- **LE SYMPTÔME N'AVAIT AUCUN RAPPORT AVEC LA CAUSE.** `test-nouveau-option`
+  s'arrêtait sur un délai en cherchant `.veh-carte`, parce qu'un
+  `click({force:true})` avait atterri sur la barre et ouvert l'écran des
+  trajets. **`force:true` ne signale pas un bouton recouvert : il clique à
+  côté et continue.** Une suite qui n'affiche ni réussite ni échec est un
+  échec — ne jamais la lire comme « pas concernée ».
+- **LE PREMIER JET DU NOUVEAU CONTRÔLE PASSAIT AU VERT SUR LA VERSION
+  CASSÉE.** Il était placé **après** le clic sur le bouton du bandeau, donc
+  sur une page déjà défilée : il lisait 365 px là où le client voit 774. Un
+  contrôle de position se mesure **à l'arrêt, avant tout geste**. Éprouvé
+  ensuite contre l'ancien code : il rend « reçoit : onglet ».
+
 ### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
 
 Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
@@ -2973,7 +3014,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 774 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 776 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

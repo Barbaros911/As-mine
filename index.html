@@ -289,11 +289,6 @@ img{display:block;max-width:100%;}
 .reserver{position:relative;z-index:5;margin:-46px 16px 0;
   background:var(--carte);border-radius:20px;padding:20px 16px 18px;
   box-shadow:0 20px 46px rgba(22,35,43,.15), 0 2px 6px rgba(22,35,43,.05);}
-.reserver-tete{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
-.reserver-icone{flex:0 0 auto;width:50px;height:50px;border-radius:15px;
-  background:var(--noir);display:flex;align-items:center;justify-content:center;}
-.reserver-tete h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em;}
-.reserver-tete p{margin:3px 0 0;font-size:13.5px;color:var(--gris);}
 
 .champ{display:flex;align-items:center;gap:12px;width:100%;
   border:1px solid var(--filet);border-radius:13px;
@@ -1568,19 +1563,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   </section>
 
   <section class="reserver">
-    <div class="reserver-tete">
-      <span class="reserver-icone">
-        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#fff" stroke-width="1.7"/>
-          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
-          <path d="M9 14.6l2 2 4-4" stroke="#3FA9A2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
-      <div>
-        <h2 data-t="reserver_titre">Réserver un trajet</h2>
-        <p data-t="reserver_sous">Simple, rapide et sécurisé</p>
-      </div>
-    </div>
+    <!-- ═══ « RÉSERVER UN TRAJET / SIMPLE, RAPIDE ET SÉCURISÉ » EST PARTI ═══
+         Septembre 2026. C'est exactement le bloc qu'il a désigné du doigt en
+         demandant une vraie accroche : « le site commence directement avec du
+         contenu fonctionnel ». Le bandeau au-dessus dit maintenant qui l'on
+         est, ce qu'on vend et à quel prix, et il porte un bouton « Réserver
+         mon trajet » qui descend ICI. Répéter le titre juste en dessous, avec
+         une icône de 50 px, c'était accueillir deux fois.
+         MAIS LA VRAIE RAISON EST PLUS DURE QUE L'ÉLÉGANCE. Mesuré à
+         390 × 844 : le bandeau plus haut avait poussé « Voir mon prix » à
+         774–827, et la barre du bas occupe 784–844. Sa moitié basse passait
+         DERRIÈRE la barre, et un doigt posé au milieu du bouton ouvrait
+         l'onglet « Trajets » — le client ne voyait pas son prix, il changeait
+         d'écran. Même famille que le bandeau de cookies qui recouvrait les
+         boutons d'action sur l'ancien site.
+         Ces 68 px rendus au formulaire remettent le bouton au-dessus de la
+         barre. La règle « le formulaire entier tient dans le premier écran »
+         est donc tenue, et c'est ce bloc-là qui la payait. -->
 
     <!-- LA ZONE DESSERVIE — 90 km autour de Paris.
          Sans ce garde-fou, Lille → Marseille passait sans un mot : 1 084 km,
@@ -3701,7 +3700,6 @@ window.ELA_TEXTES = {
     hero_prix:"Prix ferme, connu avant le départ.",
     hero_cta:"Réserver mon trajet",
     hero_notes:"24 h/24 · 7 j/7 · Confirmation rapide",
-    reserver_titre:"Réserver un trajet", reserver_sous:"Simple, rapide et sécurisé",
     zone_titre:"Cette adresse est en dehors de notre zone.",
     zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
     appeler:"Appeler",
@@ -3848,7 +3846,6 @@ window.ELA_TEXTES = {
     hero_prix:"A firm price, known before you leave.",
     hero_cta:"Book my ride",
     hero_notes:"24/7 · Fast confirmation",
-    reserver_titre:"Book a ride", reserver_sous:"Simple, fast and secure",
     zone_titre:"This address is outside our service area.",
     zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
     appeler:"Call",
