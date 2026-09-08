@@ -1,0 +1,68 @@
+# =====================================================================
+# DÉPLOIEMENT DES FONCTIONS SUPABASE
+# ---------------------------------------------------------------------
+# POURQUOI CE FICHIER EXISTE : Barbaros travaille depuis un téléphone.
+# Coller 300 lignes dans l'éditeur du tableau de bord Supabase avec un
+# pouce ne marche pas — essayé, l'éditeur de code refuse le collage sur
+# iPhone. Sans ce workflow, les fonctions restent écrites et jamais
+# déployées, ce qui est exactement ce qui s'est passé pendant des
+# semaines pour « nouvelle-demande ».
+#
+# CE FICHIER NE TOUCHE PAS AU SITE. « construire.sh » reste la seule
+# recette de publication, et « pages.yml » son seul appelant. Ici on ne
+# déploie que du code qui tourne chez Supabase.
+#
+# CE QU'IL FAUT UNE SEULE FOIS : un secret GitHub nommé
+# SUPABASE_ACCESS_TOKEN, fabriqué sur supabase.com/dashboard/account/tokens.
+# Il n'est PAS dans le dépôt — il donne accès au compte, il vit dans les
+# secrets GitHub, comme les jetons VAPID vivent dans ceux de Supabase.
+# =====================================================================
+name: Déployer les fonctions Supabase
+
+on:
+  push:
+    # La branche de travail y est aussi : sans elle, il faudrait fusionner
+    # vers main avant d'avoir pu éprouver le déploiement une seule fois.
+    branches: [main, mini-van]
+    paths:
+      - "supabase/functions/**"
+      - ".github/workflows/fonctions.yml"
+  workflow_dispatch:
+
+jobs:
+  deployer:
+    runs-on: ubuntu-latest
+    # La référence du projet n'est pas un secret : elle est déjà dans
+    # l'adresse du serveur, écrite en clair dans la page du site.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJET: yyhzutnuhuytokarynaw
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # ON S'ARRÊTE NET SI LE JETON MANQUE. Sans ce contrôle, la commande
+      # échouerait plus loin avec un message d'authentification que
+      # personne ne rattacherait au secret oublié.
+      - name: Vérifier que le jeton est posé
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "Le secret SUPABASE_ACCESS_TOKEN n'est pas posé sur ce dépôt."
+            echo "Le créer sur supabase.com/dashboard/account/tokens,"
+            echo "puis Settings > Secrets and variables > Actions > New secret."
+            exit 1
+          fi
+
+      # « nouvelle-demande » prévient Barbaros, « prevenir-client » prévient
+      # le client. Les deux sont appelées avec un en-tête d'autorisation —
+      # le webhook de Supabase pour l'une, la session de l'exploitant pour
+      # l'autre — donc on GARDE la vérification du jeton. La désactiver
+      # ouvrirait les deux fonctions à n'importe qui sur Internet.
+      - name: Déployer nouvelle-demande
+        run: supabase functions deploy nouvelle-demande --project-ref "$PROJET"
+
+      - name: Déployer prevenir-client
+        run: supabase functions deploy prevenir-client --project-ref "$PROJET"
