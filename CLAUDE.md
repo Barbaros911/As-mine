@@ -2219,6 +2219,84 @@ Professionnel · Mise à disposition.
   **règle**, pas la liste — même leçon que la barre du bas figée sur quatre
   onglets.
 
+### LE BOUTON WHATSAPP OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT
+
+Septembre 2026, à sa demande : « lorsqu'un client clique sur WhatsApp il doit
+avoir des choix… il ne doit pas y avoir un message pré-empli ».
+
+L'onglet envoyait « Bonjour, j'ai une question sur ma réservation » **à tout
+le monde**. Un client qui voulait simplement réserver effaçait une phrase qui
+n'était pas la sienne, et Barbaros recevait la **même** phrase de tous —
+c'est-à-dire aucune information sur ce qu'on lui veut.
+
+- **CE N'EST PLUS UN LIEN MAIS UN BOUTON** (`#btnWa`) : il n'emmène plus
+  directement chez WhatsApp, il demande d'abord. Il garde
+  `data-onglet="whatsapp"`, qui ne correspond à aucun écran et ne s'allume
+  donc jamais.
+- **QUATRE PORTES, ET UNE SEULE N'OUVRE PAS WHATSAPP.** « Réserver un
+  trajet » ramène au formulaire et pose le curseur dans le départ : quelqu'un
+  qui appuie sur WhatsApp pour demander « vous faites Orly ? » n'a pas besoin
+  d'écrire, il a besoin d'un prix. C'est une réservation de plus et un
+  message de moins. « Nous appeler » ouvre `tel:`.
+- **LA RÉFÉRENCE DE SA COURSE EN COURS ENTRE DANS LE MESSAGE** quand
+  l'appareil en connaît une (`derniereReference()`, les courses **non
+  finies** — un trajet fait il y a trois mois n'est pas le sujet). Sans elle,
+  Barbaros répond « laquelle ? » et perd un aller-retour, la nuit, sur dix
+  conversations. Elle ne sort pas du téléphone du client : c'est SA course,
+  dans SON message.
+- **`window.open` EST DANS LE GESTE DU CLIC**, sans aucun `await` avant —
+  Safari iOS bloque une fenêtre ouverte après une attente. Même règle que
+  l'envoi de la demande.
+- **LA FEUILLE EST AU-DESSUS DE LA BARRE** (z-index 60 contre 50). Une
+  feuille passant dessous laisserait ses derniers choix inaccessibles :
+  exactement le défaut corrigé le même soir sur « Voir mon prix ».
+- **LES DEUX CONTRÔLES QUI LISAIENT LE `href` SONT TOMBÉS AVEC LUI.** Ils
+  éprouvent maintenant le **chemin complet** — appuyer, choisir, et lire le
+  lien qui part. Vérifier seulement que la feuille s'ouvre laisserait passer
+  un choix qui n'envoie rien, un bouton mort au bout d'un menu.
+
+### LES PAPIERS DES CHAUFFEURS ONT QUITTÉ LE TABLEAU DE BORD
+
+Septembre 2026, à sa demande : « supprime les infos de chauffeur sur le
+tableau de bord ». Il y sert à traiter et à créer des courses ; un carnet à
+mettre à jour n'est pas une course.
+
+- **LE PANNEAU N'EST PAS SUPPRIMÉ, IL A DÉMÉNAGÉ** dans `#ecran-chauffeurs`,
+  en tête d'écran — là où l'on corrige une date, le geste suivant à portée de
+  doigt. Une carte professionnelle ou une assurance périmée engage la
+  responsabilité d'Elatransfer au moment de l'attribution (L3142-1) : le
+  retirer entièrement, ce serait n'avoir plus rien à opposer.
+- **L'AVERTISSEMENT QUI COMPTE VRAIMENT N'A PAS BOUGÉ** : celui du bon, à
+  l'instant où l'on attribue. C'est lui qui arrête le geste.
+- **`dessinerPapiers()` EST UNE FONCTION À PART**, appelée depuis
+  `dessinerBord()` **et** `dessinerChauffeurs()`. Deux copies du même dessin
+  finissent par diverger, et celle qu'on oublie est celle qui montre une
+  assurance périmée comme si elle était valable.
+- **LE CONTRÔLE ÉPROUVE LES DEUX FACES** — parti du tableau de bord, arrivé
+  dans le carnet. Un contrôle qui ne dirait que « absent du tableau de bord »
+  passerait au vert si on l'avait effacé.
+
+### LA MAJORATION DE NUIT — CE QU'IL A DEMANDÉ, ET CE QUI RESTE À TRANCHER
+
+Septembre 2026, sur une capture à 23 h 22 : « il y a un problème avec le
+prix ? C'est trop cher non, le tarif nuit est appliqué ? »
+
+**Le calcul était juste** : 37 km, Berline 2,95 €/km → 109,15 € ×1,2 =
+130,98 → **130 €** ; Van 4,20 €/km → 155,40 ×1,2 = 186,48 → **190 €**. De
+jour : 110 € et 160 €.
+
+- **La nuit va de 21 h à 6 h**, plus **tout le samedi et tout le dimanche**
+  (`nuitOuWeekend`). C'est écrit à l'article 4 des CGV, dans les deux langues.
+- **CE QUI A ÉTÉ DIT, ET QU'IL N'A PAS ENCORE TRANCHÉ** : ce n'est pas la
+  majoration qui est chère, c'est le **tarif de base**. 110 € de jour pour
+  Argenteuil → Orly quand un concurrent facture 70 à 90 €. Et le week-end
+  **entier** à +20 % est large — un samedi après-midi n'a rien d'une course
+  de nuit.
+- **NE RIEN CHANGER À LA GRILLE SANS SA DÉCISION EXPLICITE.** Elle est
+  décrite dans les CGV et le prix est ferme donc opposable : la toucher veut
+  dire toucher aux CGV, **dans les deux langues**. Et il écrit souvent
+  « van » là où il veut dire « berline » — sur un prix, demander.
+
 ### LE PAIEMENT AFFIRME AVANT DE DEMANDER
 
 Septembre 2026, à sa demande : « pour un touriste étranger, je simplifierais
@@ -3084,7 +3162,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt et une suites Playwright, 780 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 787 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

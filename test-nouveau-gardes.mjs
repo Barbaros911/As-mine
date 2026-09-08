@@ -56,9 +56,19 @@ check('aucun lien mort ne subsiste', morts.length===0, morts.join(' | '));
    bas : même destination, mais visible sur TOUS les écrans et sans jamais
    recouvrir quoi que ce soit. Le contrôle suit le bouton, pas son ancien
    habillage. */
-const wa = await p.locator('.onglet[data-onglet="whatsapp"]').getAttribute('href');
-check('l\'onglet WhatsApp ouvre une conversation', wa.startsWith('https://wa.me/33759312433'), wa.slice(0,40));
-check('avec un premier message déjà écrit', wa.includes('text='));
+/* IL OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT. On suit donc le
+   chemin complet : appuyer, choisir, et LIRE le lien qui part. Vérifier
+   seulement que la feuille s'ouvre laisserait passer un choix qui
+   n'envoie rien — un bouton mort au bout d'un menu. */
+await p.locator('.onglet[data-onglet="whatsapp"]').click();
+await p.waitForTimeout(250);
+check('l\'onglet WhatsApp ouvre un choix', await p.locator('#feuilleWa').isVisible());
+await p.locator('[data-wa="reservation"]').click();
+await p.waitForTimeout(250);
+const wa = await p.evaluate(()=>window.__liens && window.__liens[window.__liens.length-1]);
+check('et le choix ouvre bien une conversation', (wa||'').startsWith('https://wa.me/33759312433'),
+  String(wa).slice(0,40));
+check('avec le message qui correspond au choix', (wa||'').includes('text='));
 check('et la bulle flottante a bien disparu', (await p.locator('.wa').count())===0);
 check('le menu ☰ a été retiré', (await p.locator('.menu').count())===0);
 check('« Voir tous » aussi', (await p.locator('.voir-tous').count())===0);

@@ -88,14 +88,24 @@ check('l\'onglet « Trajets » ouvre son propre écran',
 check('sans trajet fait, on le dit', await p.locator('#videTrajets').isVisible());
 
 /* ═══ LE QUATRIÈME ONGLET N'OUVRE PAS UN ÉCRAN, ET C'EST VOULU ═══
-   Il ouvre WhatsApp. Il porte donc un vrai « href » et aucun
-   « data-ecran » : un onglet qui prétendrait mener quelque part sans y
-   mener est exactement ce qu'on a retiré avec « Réserver ». */
-const wa = await p.locator('.onglet[data-onglet="whatsapp"]').getAttribute('href');
-check('l\'onglet WhatsApp ouvre une conversation, pas un écran',
-  /^https:\/\/wa\.me\/33759312433/.test(wa || '')
-  && (await p.locator('.onglet[data-onglet="whatsapp"]').getAttribute('data-ecran')) === null,
-  wa);
+   Il ouvre un CHOIX (septembre 2026, à sa demande) : « il doit avoir des
+   choix, il ne doit pas y avoir un message pré-empli ». Il ne porte donc
+   plus de « href » — il ne mène plus directement chez WhatsApp — et
+   toujours aucun « data-ecran » : un onglet qui prétendrait mener quelque
+   part sans y mener est exactement ce qu'on a retiré avec « Réserver ».
+   ON ÉPROUVE CE QU'IL FAIT, pas ce qu'il porte : le client appuie, et une
+   feuille de choix doit s'ouvrir. */
+const ongletWa = p.locator('.onglet[data-onglet="whatsapp"]');
+check('l\'onglet WhatsApp n\'ouvre pas un écran',
+  (await ongletWa.getAttribute('data-ecran')) === null);
+check('et il ne part plus droit sur un message tout écrit',
+  (await ongletWa.getAttribute('href')) === null);
+await ongletWa.click(); await p.waitForTimeout(250);
+check('il ouvre une feuille de choix', await p.locator('#feuilleWa').isVisible());
+const choixWa = await p.locator('.feuille-choix').count();
+check('avec plusieurs portes, pas une seule', choixWa >= 3, choixWa + ' choix');
+await p.locator('.feuille-annuler').click(); await p.waitForTimeout(200);
+check('et « Annuler » la referme', await p.locator('#feuilleWa').isHidden());
 
 /* ═══ LES DOCUMENTS LÉGAUX ONT SURVÉCU AU RETRAIT DE « CONTACT » ═══
    Ils vivaient derrière cet onglet. La LCEN exige qu'ils restent
