@@ -2870,8 +2870,12 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
         Calculer le prix depuis les adresses
       </button>
       <p class="bloc-note" id="crCalcul" hidden></p>
-      <p class="bloc-note" id="crGrille">Berline 2,95 €/km, minimum 30 € ·
-         Van 4,20 €/km, minimum 50 €. +20 % la nuit et le week-end.</p>
+      <!-- LA GRILLE EST ÉCRITE PAR LE CODE, PLUS À LA MAIN.
+           Elle l'était en dur, et un changement de tarif laissait ici une
+           étiquette périmée — celle sur laquelle Barbaros annonce un prix au
+           téléphone. Même règle que le prix de la pancarte : ce qui
+           s'affiche sort de la constante qui calcule. -->
+      <p class="bloc-note" id="crGrille"></p>
     </div>
 
     <!-- LE CHAUFFEUR EST FACULTATIF, et c'est voulu : un hôtel appelle, on
@@ -4775,8 +4779,8 @@ window.ELA_TEXTES = {
      — L'ARRONDI À LA DIZAINE. Un prix rond s'annonce au téléphone, se
        retient, et se règle en espèces sans chercher la monnaie. */
   var GAMMES = [
-    { cle:"berline", nom:"Berline", parKm:2.95, mini:30, places:4 },
-    { cle:"van",     nom:"Van",     parKm:4.20, mini:50, places:7 }
+    { cle:"berline", nom:"Berline", parKm:2.35, mini:30, places:4 },
+    { cle:"van",     nom:"Van",     parKm:4.08, mini:50, places:7 }
   ];
 
   /* Nuit et week-end : +20 %. Le seuil est le même que sur le site en
@@ -8401,8 +8405,25 @@ window.ELA_TEXTES = {
     document.getElementById("crVehicule").value = "berline";
     direCreer("");
   }
+  /* ═══ L'ÉTIQUETTE DE LA GRILLE SORT DE LA GRILLE ═══
+     Elle était écrite en dur sous le bouton « Calculer le prix » — et c'est
+     l'étiquette sur laquelle Barbaros annonce un montant au téléphone. Un
+     changement de tarif y laissait un prix périmé, sans que rien ne le
+     signale : le site facturait 2,35 €/km pendant que la page affichait
+     2,95. Même règle que le prix de la pancarte, pour la même raison.
+     ON ÉCRIT EN « textContent », jamais en « innerHTML » : ce sont des
+     nombres formatés par « euros() », rien qui doive devenir une balise. */
+  function ecrireGrille(){
+    var e = document.getElementById("crGrille");
+    if(!e) return;
+    e.textContent = GAMMES.map(function(g){
+      return g.nom + " " + euros(g.parKm) + "/km, minimum " + euros(g.mini);
+    }).join(" · ") + ". +20 % la nuit et le week-end.";
+  }
+
   function ouvrirCreer(){
     videCreer();
+    ecrireGrille();
     /* La date du jour est proposée : la course saisie au téléphone est
        presque toujours pour aujourd'hui ou demain. « dateLocale » et non
        « toISOString » — cette dernière rend de l'UTC, et à 1 h du matin à

@@ -139,7 +139,7 @@ check('berline ou van', L[5]==='Véhicule : Berline', L[5]);
 // raison d'être de cette ligne, et elle passe AVANT le prix pour que le
 // dernier montant en euros du message reste celui de la course.
 check('mode de règlement, en français', L[6]==='Paiement : Carte bancaire', L[6]);
-check('prix du site', L[7]==='Prix : 70,00 €', L[7]);
+check('prix du site', L[7]==='Prix : 60,00 €', L[7]);
 check('nom et téléphone du client, en dernier',
   L[8]==='Jean Martin — 06 12 34 56 78', L[8]);
 
@@ -150,7 +150,7 @@ check('les deux premières valeurs « … : … » restent les adresses',
 check('la dernière ligne est « nom — téléphone », sans deux-points',
   L[8].includes(' — ') && !L[8].includes(' : '));
 check('le dernier montant en euros est le prix',
-  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
+  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='60,00€');
 
 /* Ce que voit le client
    ON NE LUI DEMANDE PLUS DE VÉRIFIER NOTRE PLOMBERIE (septembre 2026, à la

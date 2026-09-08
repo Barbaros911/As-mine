@@ -122,7 +122,7 @@ const RECAP = '#ecran-recap .bloc-pancarte';
     nombre(await p.locator(RECAP+' .opt-prix').innerText())===10,
     await p.locator(RECAP+' .opt-prix').innerText());
   const sans = nombre(await p.locator('#recapTotal').innerText());
-  check('sans l\'option, le total est celui de la course', sans===70, String(sans));
+  check('sans l\'option, le total est celui de la course', sans===60, String(sans));
   check('et aucune ligne d\'option n\'encombre le récapitulatif',
     await p.locator('#ligneOption').isHidden());
 

@@ -168,9 +168,11 @@ const bon = d0.corps.bon;
 check('la course entre en « attente », jamais confirmée d\'office',
   d0.corps.statut==='attente' && bon.statut==='attente', d0.corps.statut);
 check('le bon porte prix.total, que le tableau de bord affiche',
-  typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-70)<0.01, String(bon.prix.total));
+  typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-60)<0.01, String(bon.prix.total));
+/* 60 € TTC → HT 54,55 et TVA 5,45, la TVA étant INCLUSE : le total arrondi
+   à la dizaine est le prix payé, on en retire la taxe. */
 check('la TVA est incluse, pas ajoutée',
-  Math.abs(bon.prix.ht-63.64)<0.01 && Math.abs(bon.prix.tva-6.36)<0.01,
+  Math.abs(bon.prix.ht-54.55)<0.01 && Math.abs(bon.prix.tva-5.45)<0.01,
   bon.prix.ht+' / '+bon.prix.tva);
 check('il porte course.depart et course.arrivee',
   !!bon.course.depart && !!bon.course.arrivee, bon.course.depart);

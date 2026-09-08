@@ -10,7 +10,7 @@
    — LE CHOIX EXPLICITE l'emporte et survit au rechargement.
    — AUCUNE CLÉ NE MANQUE : chaque texte français a son équivalent
      anglais. C'est le contrôle qui attrape l'oubli d'une traduction.
-   — LES FORMATS SUIVENT LA LANGUE : « 70,00 € » en français, « 70.00 € »
+   — LES FORMATS SUIVENT LA LANGUE : « 60,00 € » en français, « 60.00 € »
      en anglais. Une virgule décimale lue comme un séparateur de milliers,
      c'est un prix cent fois trop grand.
    — LE MESSAGE À L'EXPLOITANT RESTE FRANÇAIS quoi qu'il arrive, avec sa
@@ -176,7 +176,7 @@ check('l\'écran des prix parle anglais',
   (await p.locator('.veh-detail').first().textContent()).startsWith('Up to'),
   await p.locator('.veh-detail').first().textContent());
 const prixEn = await p.locator('.veh-prix').first().textContent();
-check('le prix suit le format anglais', prixEn.replace(/\s/g,'')==='70.00€', prixEn);
+check('le prix suit le format anglais', prixEn.replace(/\s/g,'')==='60.00€', prixEn);
 
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(400);
@@ -206,7 +206,7 @@ await p.waitForTimeout(300);
 check('basculer réécrit le récapitulatif déjà rempli',
   (await p.locator('[data-t="total"]').textContent())==='Total à régler');
 check('et le prix repasse au format français',
-  (await p.locator('#recapTotal').textContent()).replace(/\s/g,'')==='70,00€',
+  (await p.locator('#recapTotal').textContent()).replace(/\s/g,'')==='60,00€',
   await p.locator('#recapTotal').textContent());
 
 // --- Le message à l'exploitant reste français quoi qu'il arrive ---
@@ -221,7 +221,7 @@ const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('
 check('le message à l\'exploitant reste en français', msg.includes('Départ :') && msg.includes('Véhicule :'),
   msg.split('\n')[1]);
 check('et son prix garde la virgule décimale française',
-  /70,00\s*€/.test(msg), (msg.match(/[\d.,]+\s*€/g)||[]).join(' '));
+  /60,00\s*€/.test(msg), (msg.match(/[\d.,]+\s*€/g)||[]).join(' '));
 check('et sa date reste JJ/MM/AAAA', /Date : \d{2}\/\d{2}\/\d{4}/.test(msg),
   msg.split('\n')[3]);
 

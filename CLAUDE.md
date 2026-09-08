@@ -906,8 +906,8 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,95 € | 30 € |
-| Van (7 places) | 4,20 € | 50 € |
+| Berline (4 places) | 2,35 € | 30 € |
+| Van (7 places) | 4,08 € | 50 € |
 
 - **Plus de prise en charge.** Le prix n'est qu'un kilométrage : avec un
   plancher et un arrondi à la dizaine, un forfait de départ ne se voyait
@@ -2281,9 +2281,9 @@ mettre à jour n'est pas une course.
 Septembre 2026, sur une capture à 23 h 22 : « il y a un problème avec le
 prix ? C'est trop cher non, le tarif nuit est appliqué ? »
 
-**Le calcul était juste** : 37 km, Berline 2,95 €/km → 109,15 € ×1,2 =
-130,98 → **130 €** ; Van 4,20 €/km → 155,40 ×1,2 = 186,48 → **190 €**. De
-jour : 110 € et 160 €.
+**Le calcul était juste**, à la grille de l'époque : 37 km, Berline
+2,95 €/km → 109,15 € ×1,2 = 130,98 → **130 €**. **Il a fait baisser les deux
+tarifs dans la foulée** — voir juste en dessous.
 
 - **La nuit va de 21 h à 6 h**, plus **tout le samedi et tout le dimanche**
   (`nuitOuWeekend`). C'est écrit à l'article 4 des CGV, dans les deux langues.
@@ -2292,10 +2292,33 @@ jour : 110 € et 160 €.
   Argenteuil → Orly quand un concurrent facture 70 à 90 €. Et le week-end
   **entier** à +20 % est large — un samedi après-midi n'a rien d'une course
   de nuit.
-- **NE RIEN CHANGER À LA GRILLE SANS SA DÉCISION EXPLICITE.** Elle est
-  décrite dans les CGV et le prix est ferme donc opposable : la toucher veut
-  dire toucher aux CGV, **dans les deux langues**. Et il écrit souvent
-  « van » là où il veut dire « berline » — sur un prix, demander.
+- **IL A TRANCHÉ LE SOIR MÊME** : « change le tarif berline à 2.35 et van
+  4.08 ». Les deux gammes nommées, deux nombres distincts — aucune
+  ambiguïté, donc rien à redemander. **La majoration et les planchers n'ont
+  pas bougé.**
+- **LES CGV N'ONT PAS EU À CHANGER, ET C'EST UN CHOIX D'ÉCRITURE ANCIEN.**
+  Elles décrivent la MÉCANIQUE (« un tarif kilométrique propre à chaque
+  gamme… ceux affichés sur le Service au moment de la réservation ») sans
+  jamais citer un nombre. Vérifié dans les deux langues avant de conclure.
+  **Ne pas y écrire de tarif chiffré** : ce serait un second endroit à tenir,
+  et le prix est opposable.
+- **L'ÉTIQUETTE DE LA PAGE « NOUVELLE COURSE » ÉTAIT ÉCRITE EN DUR**
+  (`#crGrille`) — celle sur laquelle il annonce un montant au téléphone. Un
+  changement de tarif y laissait un prix périmé sans que rien ne le signale.
+  Elle est maintenant **fabriquée depuis `GAMMES`** (`ecrireGrille()`), même
+  règle que le prix de la pancarte.
+- **LE CONTRÔLE RELIT LA GRILLE DANS LA SOURCE** plutôt que de recopier les
+  nombres : recopiés, ils déplaceraient simplement la faute dans le test.
+  Le premier jet les avait recopiés en prétendant l'inverse — corrigé.
+- **CE QUE CE CHANGEMENT A COÛTÉ EN TESTS** : dix-sept valeurs attendues dans
+  huit suites, toutes **recalculées à la main depuis la nouvelle grille**,
+  jamais recopiées de ce que la page affichait — un test qui prend la sortie
+  pour référence ne vérifie plus rien. À 24,3 km, la berline passe de 70 € à
+  **60 €** ; le van reste à **100 €**.
+- **PIÈGE PROPRE À `test-nouveau-itineraire`** : ses quatre niveaux se
+  distinguent par quatre prix DIFFÉRENTS — 30, 90, 60 et 40 € avec la
+  nouvelle grille. Vérifié qu'ils restent distincts : un tarif qui en ferait
+  coïncider deux rendrait la suite **aveugle sans qu'elle tombe**.
 
 ### LE PAIEMENT AFFIRME AVANT DE DEMANDER
 
@@ -3162,7 +3185,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt et une suites Playwright, 787 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 790 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

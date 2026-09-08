@@ -36,14 +36,17 @@ const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
 /* Quatre distances distinctes, et quatre prix berline distincts qui en
-   découlent — 2,95 €/km, arrondi à la dizaine, le 5 pile qui descend :
-     Mapbox   10,0 km → 29,50 €  → 30 € (le plancher, atteint de justesse)
-     ORS      40,0 km → 118,00 € → 120 €
-     OSRM     24,3 km → 71,69 €  → 70 €
+   découlent — 2,35 €/km, arrondi à la dizaine, le 5 pile qui descend :
+     Mapbox   10,0 km → 23,50 € → 20 €, relevé au PLANCHER de 30 €
+     ORS      40,0 km → 94,00 € → 90 €
+     OSRM     24,3 km → 57,11 € → 60 €
      Vol d'oiseau : Vendôme → Argenteuil ≈ 12,6 km × 1,3 ≈ 16,4 km
-                            → 48,3 €    → 50 €
-   Aucun de ces quatre prix n'est celui d'un autre : lire « 70 € » suffit
-   donc à dire que c'est OSRM qui a répondu. */
+                            → 38,54 €   → 40 €
+   AUCUN DE CES QUATRE PRIX N'EST CELUI D'UN AUTRE, et c'est toute la
+   mécanique de cette suite : lire « 60 € » suffit à dire que c'est OSRM qui
+   a répondu. Vérifié après le passage à 2,35 €/km — 30, 90, 60 et 40 restent
+   quatre valeurs distinctes. Un changement de tarif qui en ferait coïncider
+   deux rendrait la suite aveugle sans qu'elle tombe. */
 const KM = { mapbox:10000, ors:40000, osrm:24300 };
 
 async function course({ mapbox, ors, osrm, sansCles, jours }){
@@ -120,7 +123,7 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
 
 /* --- 1. TEL QUE LE SITE EST PUBLIÉ : clé ORS, pas de clé Mapbox ------- */
 let r = await course({ ors:true, osrm:true });
-check('en ligne aujourd\'hui, c\'est ORS qui donne la distance', r.prix==='120,00€', r.prix);
+check('en ligne aujourd\'hui, c\'est ORS qui donne la distance', r.prix==='90,00€', r.prix);
 check('et OSRM n\'est pas dérangé', r.versOSRM.length===0, r.versOSRM.join(' '));
 check('la clé part en « api_key »',
   r.versORS[0] && r.versORS[0].includes('api_key='), r.versORS[0]);
@@ -155,7 +158,7 @@ check('l\'heure d\'arrivée de la carte porte la même fourchette',
 /* LE PRIX NE BOUGE PAS D'UN CENTIME : il est un kilométrage, la durée n'y
    entre pas. Un client qui arrive plus tôt que l'estimation ne paie pas
    moins — c'est ce qui permet d'être prudent sur l'heure sans être
-   malhonnête sur le montant. Le 120,00 € ci-dessus est le contrôle. */
+   malhonnête sur le montant. Le 90,00 € ci-dessus est le contrôle. */
 
 /* --- 2. LE RATTRAPAGE, le contrôle qui compte le plus.
    ORS tombe — quota épuisé, clé reprise par un tiers, panne. Le site NE
@@ -163,13 +166,13 @@ check('l\'heure d\'arrivée de la carte porte la même fourchette',
    serait facturer une estimation là où une vraie route était disponible.
    --------------------------------------------------------------------- */
 r = await course({ ors:false, osrm:true });
-check('ORS en panne : OSRM reprend la main', r.prix==='70,00€', r.prix);
+check('ORS en panne : OSRM reprend la main', r.prix==='60,00€', r.prix);
 check('il a bien été essayé d\'abord', r.versORS.length>0);
 check('et le prix n\'est pas une estimation', !r.mesure.includes('≈') && !r.prixEstime, r.mesure);
 
 /* --- 3. Les deux en panne : le vol d'oiseau, annoncé comme tel -------- */
 r = await course({ ors:false, osrm:false });
-check('les deux en panne : le vol d\'oiseau', r.prix==='50,00€', r.prix);
+check('les deux en panne : le vol d\'oiseau', r.prix==='40,00€', r.prix);
 check('les deux ont été essayés',
   r.versORS.length>0 && r.versOSRM.length>0,
   r.versORS.length+' ors / '+r.versOSRM.length+' osrm');
@@ -219,7 +222,7 @@ check('le tracé est réclamé, en version simplifiée',
    Mapbox tombe, ORS répond : c'est ORS qui doit parler, pas OSRM et
    surtout pas le vol d'oiseau. --------------------------------------- */
 r = await course({ mapbox:false, ors:true, osrm:true });
-check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='120,00€', r.prix);
+check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='90,00€', r.prix);
 check('OSRM reste au repos', r.versOSRM.length===0, r.versOSRM.join(' '));
 /* ET SURTOUT : ORS NE CONNAÎT PAS LE TRAFIC. Écrire la mention quand même
    ferait d'elle une décoration — et un client qui se fie à une heure
@@ -240,7 +243,7 @@ check('et elle passe quand même par Mapbox', r.prix==='30,00€', r.prix);
 
 /* --- 6. Les trois en panne : le vol d'oiseau, et les trois essayés ---- */
 r = await course({ mapbox:false, ors:false, osrm:false });
-check('les trois en panne : le vol d\'oiseau', r.prix==='50,00€', r.prix);
+check('les trois en panne : le vol d\'oiseau', r.prix==='40,00€', r.prix);
 check('et les trois ont été essayés',
   r.versMapbox.length>0 && r.versORS.length>0 && r.versOSRM.length>0,
   r.versMapbox.length+' / '+r.versORS.length+' / '+r.versOSRM.length);
@@ -250,7 +253,7 @@ check('et les trois ont été essayés',
    exemple le jour où le quota ORS est vidé et où Barbaros efface la clé
    en attendant d'en régénérer une. Rien ne doit casser. --------------- */
 r = await course({ sansCles:true, ors:true, osrm:true });
-check('sans aucune clé, OSRM suffit', r.prix==='70,00€', r.prix);
+check('sans aucune clé, OSRM suffit', r.prix==='60,00€', r.prix);
 check('et aucun service à clé n\'est appelé',
   r.versMapbox.length===0 && r.versORS.length===0);
 
