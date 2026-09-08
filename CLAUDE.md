@@ -1995,6 +1995,58 @@ et sa remarque a découvert un défaut plus grave que le style.
   n'était pas bon non plus : trop long, et « les tarifs » laisse croire à une
   grille. C'est le même arbitrage que sur l'ancien site, pour la même raison.
 
+### LE BANDEAU EST DEVENU UNE VRAIE ACCROCHE
+
+Septembre 2026, sa relecture suivante : « Le site commence directement avec
+du contenu fonctionnel : *Réserver un trajet / Simple, rapide et sécurisé*.
+C'est fonctionnel, mais pas suffisamment premium ni commercial. Je veux une
+vraie Hero. » Cinq lignes : le titre, les destinations, le prix ferme, un
+bouton, et la réassurance.
+
+- **« à Paris et en Île-de-France » EST REVENU DANS LE TITRE**, et la note
+  du dessus n'est plus qu'à moitié vraie : ce qui ne tenait pas, c'était
+  27 caractères sur **deux** lignes. Le titre est maintenant coupé **à la
+  main en trois** — « Votre chauffeur privé / à Paris / et en Île-de-France ».
+  Un titre d'affiche se compose, il ne se subit pas.
+- **LE NOM DE LA MARQUE N'EST PAS RÉPÉTÉ DANS LE BANDEAU**, alors qu'il le
+  demandait. « ELATRANSFER » est écrit en 23 px **à deux centimètres
+  au-dessus**, dans l'enseigne, sur tous les écrans. L'écrire deux fois dans
+  le même regard ne dit pas la marque plus fort : ça mange la seule ressource
+  rare du bandeau — la hauteur — au détriment de ce que le visiteur cherche.
+  Dit à Barbaros ; il tranchera s'il y tient.
+- **LE TEXTE N'EST PLUS EN `position:absolute`, ET C'EST CE QUI PERMET TOUT
+  LE RESTE.** Posé en `inset:0`, il obligeait `.hero` à porter une **hauteur
+  fixe** (268 px) : toute ligne ajoutée serait sortie par le bas **en
+  silence** — la photo ne bouge pas, le texte disparaît. Dans le flux, c'est
+  le contenu qui donne la hauteur. Seuls la photo et le voile restent en
+  absolu, ils n'ont rien à mesurer. Un contrôle vérifie que **rien ne sort du
+  bandeau par le bas**.
+- **LES 74 px DE MARGE BASSE NE SONT PAS DE LA RESPIRATION** : la carte
+  « Réserver » remonte de 46 px par-dessus. Sans eux, elle recouvrirait la
+  ligne « 24 h/24 » — exactement le défaut du bandeau de cookies sur l'ancien
+  site.
+- **LE BOUTON DU BANDEAU NE RÉSERVE RIEN**, il descend au formulaire et pose
+  le curseur dans le champ de départ. Il n'y a rien à réserver tant qu'on ne
+  sait pas d'où à où. **Le défilement est lancé d'abord, le focus arrive
+  380 ms après** : le navigateur amène de force un champ focalisé à l'écran,
+  et un focus posé en premier annule l'animation qu'on vient de lancer.
+- **C'EST LUI QUI PAIE LA HAUTEUR DU BANDEAU.** Le formulaire ne tient plus
+  dans le premier écran — la note « ne pas le remonter » de l'ancien site est
+  caduque ici. Le marché est explicite : le bandeau prend la place, il rend
+  une action. Un contrôle mesure que **le bouton reste dans les 844 px** ;
+  s'il en sort un jour, le bandeau aura seulement éloigné la réservation.
+- **LE SOUS-TITRE N'A PLUS DE `max-width`.** Les 30 ch dataient de l'époque
+  où c'était une phrase ; c'est devenu une liste de destinations, et une
+  liste qui casse en deux se lit comme deux listes. Un contrôle vérifie
+  qu'elle tient sur **une** ligne.
+- **UN IPHONE SE FAIT 320 px**, et le titre y passait à **quatre** lignes.
+  Les coupures écrites à la main ne protègent que de la casse qu'on a
+  prévue ; celle-là se règle à la taille (26 px sous 360 px). Deux contrôles
+  à 320 px.
+- **DISNEYLAND EST UNE DESTINATION, PAS UNE OFFRE.** Le nommer est un usage
+  descriptif — on dit où l'on conduit. **Ne pas en refaire un « pack »** : il
+  a été retiré à sa demande, c'était le premier des deux.
+
 ### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
 
 Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
@@ -2770,7 +2822,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 736 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 746 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

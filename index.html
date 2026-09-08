@@ -208,7 +208,7 @@ img{display:block;max-width:100%;}
    titre. À 224 px il ne restait rien d'elle sous le texte, et on payait une
    photo de Paris pour afficher un aplat sombre. Les 44 px gagnés lui rendent
    sa base et le pont — le formulaire tient toujours dans le premier écran. */
-.hero{position:relative;background:var(--noir);overflow:hidden;height:268px;}
+.hero{position:relative;background:var(--noir);overflow:hidden;}
 /* LA PHOTO DU BANDEAU.
    La photo (588 × 393) et le bandeau (390 × 268) ont presque les mêmes
    proportions : « cover » n'ampute donc que 11 px sur la largeur, et la vue
@@ -234,14 +234,54 @@ img{display:block;max-width:100%;}
    de la photo, exactement où commençait « Votre chauffeur ». Décaler l'image
    n'y pouvait rien — les deux se disputaient le même coin. Ces 32 px rendent
    la pointe visible sans faire sortir le texte du bandeau. */
-.hero-texte{position:absolute;inset:0;z-index:2;
-  padding:54px 20px 0;display:flex;flex-direction:column;}
-.hero h1{margin:0;font-size:31px;line-height:1.15;font-weight:800;
+/* LE TEXTE N'EST PLUS EN ABSOLU, ET C'EST CE QUI PERMET LE BANDEAU HAUT.
+   Posé en « inset:0 » il obligeait le bandeau à porter une HAUTEUR FIXE, et
+   toute ligne ajoutée débordait en silence — la photo ne bouge pas, le texte
+   sort par le bas. Dans le flux, c'est le contenu qui donne la hauteur : le
+   titre peut passer à trois lignes, l'anglais être plus long que le
+   français, le bandeau suit. Seules la photo et le voile restent en absolu,
+   ils n'ont rien à mesurer.
+   LES 74 px DU BAS NE SONT PAS DE LA RESPIRATION : la carte « Réserver »
+   remonte de 46 px par-dessus. Sans eux, elle recouvrirait la ligne
+   « 24 h/24 ». */
+.hero-texte{position:relative;z-index:2;
+  padding:34px 20px 74px;display:flex;flex-direction:column;align-items:flex-start;}
+.hero h1{margin:0;font-size:30px;line-height:1.14;font-weight:800;
   letter-spacing:-.024em;color:#fff;
   text-shadow:0 2px 14px rgba(0,0,0,.65), 0 1px 3px rgba(0,0,0,.5);}
-.hero-sous{margin:12px 0 0;font-size:15px;line-height:1.4;
-  color:rgba(255,255,255,.92);max-width:30ch;
+/* PAS DE « max-width » ICI. Il valait 30 ch quand le sous-titre était une
+   phrase ; c'est devenu une liste de destinations séparées par des points
+   médians, et une liste qui casse en deux se lit comme deux listes. Mesuré :
+   39 caractères, elle tient sur une ligne à 390 px. C'est la largeur du
+   bandeau qui la borne, pas une valeur écrite à la main. */
+.hero-sous{margin:13px 0 0;font-size:14.5px;line-height:1.4;font-weight:600;
+  color:rgba(255,255,255,.93);
   text-shadow:0 1px 10px rgba(0,0,0,.6);}
+.hero-prix{margin:7px 0 0;font-size:14px;line-height:1.4;
+  color:var(--accent-vif);font-weight:700;
+  text-shadow:0 1px 10px rgba(0,0,0,.75);}
+/* Le bouton ne prend PAS toute la largeur : la carte « Réserver » en porte
+   déjà un, pleine largeur, seize pixels plus bas. Deux barres identiques
+   l'une sur l'autre se lisent comme un doublon ; un bouton d'affiche, calé à
+   gauche sous le titre, se lit comme une invitation. */
+.hero-cta{margin:19px 0 0;min-height:50px;padding:0 26px;
+  border:0;border-radius:14px;background:var(--accent);color:#fff;
+  font:inherit;font-size:15.5px;font-weight:800;letter-spacing:.01em;
+  cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.34);}
+.hero-cta:active{transform:translateY(1px);}
+.hero-notes{margin:11px 0 0;font-size:12.5px;line-height:1.4;
+  color:rgba(255,255,255,.8);
+  text-shadow:0 1px 8px rgba(0,0,0,.7);}
+/* LES PETITS ÉCRANS EXISTENT ENCORE — un iPhone SE fait 320 px. À 30 px,
+   « Votre chauffeur privé » y casse en deux et le titre passe à QUATRE
+   lignes : le bandeau grandit de 34 px et repousse d'autant un formulaire
+   déjà bas. Les coupures écrites à la main ne protègent que de la casse
+   qu'on a prévue ; celle-ci se règle à la taille. */
+@media (max-width:360px){
+  .hero h1{font-size:26px;}
+  .hero-texte{padding-left:16px;padding-right:16px;}
+  .hero-sous{font-size:13.5px;}
+}
 
 /* ---------- RÉSERVER ---------- */
 /* La carte mord sur l'image : c'est ce qui la fait lire comme l'objet
@@ -1490,9 +1530,37 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
            référencement avait été nettoyé, celui-ci avait été oublié.
            La coupure est écrite, pas laissée à la largeur : un titre de
            cette taille se compose comme une affiche. -->
-      <h1 data-t-html="hero_titre">Votre chauffeur privé<br>à Paris</h1>
-      <p class="hero-sous" data-t="hero_sous">Toute l'Île-de-France ·
-        Aéroports, gares, hôtels</p>
+      <!-- ═══ LE BANDEAU EST DEVENU UNE VRAIE ACCROCHE ═══
+           Septembre 2026, à sa demande : « Je veux une vraie Hero ». La page
+           commençait sur « Réserver un trajet / Simple, rapide et sécurisé » —
+           fonctionnel, et muet sur ce qu'on vend.
+           LE NOM DE LA MARQUE N'EST PAS RÉPÉTÉ ICI, et c'est délibéré :
+           « ELATRANSFER » est écrit en 23 px À DEUX CENTIMÈTRES AU-DESSUS,
+           dans l'enseigne, sur tous les écrans. L'écrire deux fois dans le
+           même regard ne dit pas la marque plus fort, ça mange la seule
+           ressource rare du bandeau — la hauteur — au détriment de ce que le
+           visiteur cherche vraiment : ce qu'on fait et où.
+           LE TITRE EST COUPÉ EN TROIS, À LA MAIN. « à Paris et en
+           Île-de-France » fait 27 caractères pour une largeur qui en tient 21
+           à cette taille : laissé à la largeur, il casse sur « France » tout
+           seul. Un titre d'affiche se compose, il ne se subit pas.
+           DISNEYLAND EST UNE DESTINATION, PAS UNE OFFRE. Le nommer est un
+           usage descriptif — on dit où l'on conduit. Ne pas en refaire un
+           « pack », il a été retiré à sa demande. -->
+      <h1 data-t-html="hero_titre">Votre chauffeur privé<br>à Paris<br>et en Île-de-France</h1>
+      <p class="hero-sous" data-t="hero_sous">Aéroports · Gares · Hôtels · Disneyland</p>
+      <!-- LE PRIX FERME EST LE SEUL ARGUMENT QUE LES CONCURRENTS N'ONT PAS.
+           Un VTC n'a pas le droit d'un taximètre : le prix est arrêté avant
+           le départ et il ne bouge plus. C'est ce que le client compare à un
+           taxi au compteur et à une application qui multiplie ses tarifs. -->
+      <p class="hero-prix" data-t="hero_prix">Prix ferme, connu avant le départ.</p>
+      <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
+           Sans lui, un bandeau plus haut ne ferait que repousser le
+           formulaire hors du premier écran : l'accroche coûterait le geste
+           qu'elle est censée provoquer. -->
+      <button class="hero-cta" type="button" id="btnHeroReserver"
+              data-t="hero_cta">Réserver mon trajet</button>
+      <p class="hero-notes" data-t="hero_notes">24 h/24 · 7 j/7 · Confirmation rapide</p>
     </div>
   </section>
 
@@ -3522,8 +3590,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 window.ELA_TEXTES = {
   fr:{
     entete_sous:"CHAUFFEURS PRIVÉS",
-    hero_titre:"Votre chauffeur privé<br>à Paris",
-    hero_sous:"Toute l'Île-de-France · Aéroports, gares, hôtels",
+    hero_titre:"Votre chauffeur privé<br>à Paris<br>et en Île-de-France",
+    hero_sous:"Aéroports · Gares · Hôtels · Disneyland",
+    hero_prix:"Prix ferme, connu avant le départ.",
+    hero_cta:"Réserver mon trajet",
+    hero_notes:"24 h/24 · 7 j/7 · Confirmation rapide",
     reserver_titre:"Réserver un trajet", reserver_sous:"Simple, rapide et sécurisé",
     zone_titre:"Cette adresse est en dehors de notre zone.",
     zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
@@ -3664,8 +3735,11 @@ window.ELA_TEXTES = {
   },
   en:{
     entete_sous:"PRIVATE CHAUFFEURS",
-    hero_titre:"Your private chauffeur<br>in Paris",
-    hero_sous:"All of Île-de-France · Airports, stations, hotels",
+    hero_titre:"Your private chauffeur<br>in Paris<br>and Île-de-France",
+    hero_sous:"Airports · Stations · Hotels · Disneyland",
+    hero_prix:"A firm price, known before you leave.",
+    hero_cta:"Book my ride",
+    hero_notes:"24/7 · Fast confirmation",
     reserver_titre:"Book a ride", reserver_sous:"Simple, fast and secure",
     zone_titre:"This address is outside our service area.",
     zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
@@ -5236,6 +5310,28 @@ window.ELA_TEXTES = {
      l'a laissé une heure plus tôt. */
   document.addEventListener("visibilitychange", function(){
     if(!document.hidden){ poserDefautHeure(); jugerDelai(); }
+  });
+
+  /* ═══ LE BOUTON DU BANDEAU MÈNE AU FORMULAIRE, IL NE RÉSERVE RIEN ═══
+     Il n'y a rien à réserver tant qu'on ne sait pas d'où à où : ce bouton
+     descend à la carte « Réserver » et pose le curseur dans le champ de
+     départ, c'est-à-dire exactement le geste suivant.
+     LE DÉFILEMENT EST « smooth » ET LE FOCUS ARRIVE APRÈS. Poser le focus
+     d'abord ferait sauter la page d'un coup — le navigateur amène de force
+     un champ focalisé à l'écran, et l'animation qu'on vient de lancer n'a
+     plus lieu. 380 ms est la durée du défilement natif ; le focus arrivé
+     trop tôt annule le mouvement, arrivé trop tard laisse un temps mort où
+     le client appuie une deuxième fois.
+     On ne remplit rien et on ne devine rien : la liste d'adresses ne
+     s'ouvre que sur une saisie. */
+  var heroCta = document.getElementById("btnHeroReserver");
+  if(heroCta) heroCta.addEventListener("click", function(){
+    var carte = document.querySelector(".reserver");
+    if(carte && carte.scrollIntoView) carte.scrollIntoView({ behavior:"smooth", block:"start" });
+    setTimeout(function(){
+      var depart = document.getElementById("depart");
+      if(depart) depart.focus();
+    }, 380);
   });
 
   boutonPrix.addEventListener("click", function(){

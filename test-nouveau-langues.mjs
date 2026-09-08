@@ -69,6 +69,19 @@ check('un navigateur allemand ouvre en anglais, pas en français',
   (await p.locator('[data-t="reserver_titre"]').textContent())==='Book a ride',
   await p.locator('[data-t="reserver_titre"]').textContent());
 
+/* LE BANDEAU D'ACCUEIL BASCULE EN ENTIER — ses CINQ lignes.
+   C'est la première chose que voit un client anglophone, et c'est
+   exactement le genre d'endroit où une ligne oubliée survit des mois :
+   « Prix ferme » et « 24 h/24 » ont été ajoutés après coup, et la
+   vérification des clés manquantes ne dit rien d'un « data-t » qu'on
+   aurait oublié de poser sur la balise. On lit donc ce qui est à
+   l'écran. */
+const bandeau = await p.evaluate(()=>[...document.querySelectorAll('.hero-texte > *')]
+  .map(e=>e.textContent.trim()).join(' | '));
+check('tout le bandeau d\'accueil parle anglais',
+  !/[àéèêîôûç]/i.test(bandeau.replace(/Île-de-France/g,'')) && /private chauffeur/i.test(bandeau),
+  bandeau);
+
 // --- Il n'existe que deux langues ---
 const boutons = await p.locator('.langues button').allTextContents();
 check('deux langues et deux seulement', boutons.join('/')==='FR/EN', boutons.join('/'));

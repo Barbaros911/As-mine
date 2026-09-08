@@ -42,7 +42,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v60";
+const CACHE = "elatransfer-v61";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
