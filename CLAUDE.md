@@ -1248,6 +1248,42 @@ rattrapant le précédent :
   tomberaient à côté. **Toute nouvelle suite qui simule OSRM doit couper
   ORS de la même façon.**
 
+## SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
+
+Septembre 2026, à sa demande : « il faut aussi créer un formulaire pour que
+je puisse créer facilement des courses ». « Coller une demande » ne couvrait
+que le client qui **écrit** ; quand un hôtel **appelle**, il aurait fallu
+fabriquer un faux message WhatsApp pour le coller.
+
+- **ELLE ENTRE `confirmee`**, contrairement à une demande collée. Une demande
+  venue d'un client attend une réponse ; une course saisie soi-même a déjà
+  été convenue de vive voix, personne n'attend qu'on la valide.
+- **LE PRIX SE CALCULE** (« Calculer le prix depuis les adresses »), par le
+  **même chemin que côté client** — recherche d'adresse, itinéraire, grille,
+  majoration, arrondi. C'est ce qui garantit qu'on annonce au téléphone le
+  prix que le site aurait donné. **Deux calculs qui divergent ne se voient
+  pas** : on le découvre le jour où un client compare, et le prix est ferme
+  donc opposable. Un test vérifie l'égalité au centime avec la suite client.
+- **LES ADRESSES RETENUES SONT RÉÉCRITES DANS LES CHAMPS.** La recherche rend
+  le premier résultat ; si ce n'est pas le bon Ibis, le kilométrage est faux
+  et le prix avec. Barbaros doit **voir** ce sur quoi il annonce un montant.
+- **LE PRIX RESTE MODIFIABLE** : c'est une négociation, pas un tarif imposé.
+  Et si le calcul échoue, la saisie à la main continue de marcher — elle a
+  toujours marché.
+- **La majoration suit la date et l'heure SAISIES**, pas l'instant présent :
+  une course prise à 2 h du matin pour mardi midi n'est pas une course de
+  nuit.
+- **Le chauffeur est facultatif** — on prend la course, on le cherche
+  ensuite. Son nom vient du carnet (`dessinerChauffeurs()` remplit la liste :
+  sans cet appel on retaperait « Mehmet » avec une casse différente à chaque
+  fois, ce qui rend l'historique illisible).
+- **On ouvre le bon juste après**, et ce n'est pas un confort : c'est là que
+  s'affiche l'avertissement sur les papiers du chauffeur.
+- **Même contrôle de téléphone que côté client**, sur les deux numéros.
+- **Piège rencontré** : `btnNouvelleCourse` était **déjà pris** par le bouton
+  « Réserver une autre course » du site client. Deux éléments pour un
+  identifiant, et l'écouteur se branche sur le mauvais.
+
 ## LA CARTE DU TRAJET — LEAFLET, ET LA PREMIÈRE DÉPENDANCE DU SITE
 
 Septembre 2026, à sa demande : « une belle carte comme Maps ». Le client voit
@@ -2279,7 +2315,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 681 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 688 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
