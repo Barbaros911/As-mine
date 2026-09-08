@@ -1968,6 +1968,33 @@ avait raison : rien ne disait ce qu'il fallait regarder en premier.
 - `#btnQuitter` et `#btnRegistre` ont déménagé dans la colonne : **les
   identifiants sont inchangés**, six suites les cliquent.
 
+### LE TITRE D'ACCUEIL DIT QUI, QUOI ET OÙ
+
+Septembre 2026, sur sa relecture commerciale : « le client doit comprendre
+qui tu es + ce que tu fais + où tu opères en une seconde ». Il avait raison,
+et sa remarque a découvert un défaut plus grave que le style.
+
+- **LE SOUS-TITRE VENDAIT DEUX PRESTATIONS QU'ON NE PEUT PAS RÉSERVER.**
+  « Transferts privés, **mises à disposition** et **déplacements sur
+  mesure** » — la mise à disposition a été retirée du site en septembre 2026,
+  et « sur mesure » n'existe nulle part. Le paragraphe `seo_texte` avait été
+  nettoyé à l'époque ; **ce titre-là avait été oublié**. Un site qui décrit
+  une prestation qu'on ne peut pas commander est une promesse en l'air.
+- **« à Paris et en Île-de-France » NE TIENT PAS DANS LE TITRE.** Mesuré :
+  27 caractères pour une largeur qui en tient 21 à cette taille — il cassait
+  en trois lignes avec « France » toute seule. Le titre dit donc **« à
+  Paris »**, ce que cherche un visiteur qui atterrit à Roissy, et le
+  sous-titre ouvre aussitôt à **« Toute l'Île-de-France »** : ses clients
+  réservent depuis Argenteuil et Saint-Denis, un titre qui les exclurait leur
+  ferait croire que ce n'est pas pour eux.
+- **LE BOUTON DIT « VOIR MON PRIX », ET C'EST LE SEUL POINT OÙ ON NE L'A PAS
+  SUIVI.** Il proposait « Réserver mon trajet ». Deux raisons : le bloc
+  s'intitule **déjà** « Réserver un trajet » cinq centimètres au-dessus — un
+  bouton qui répète le titre de sa propre carte n'ajoute rien ; et **le clic
+  ne réserve pas, il affiche un prix**. « Voir les tarifs et véhicules »
+  n'était pas bon non plus : trop long, et « les tarifs » laisse croire à une
+  grille. C'est le même arbitrage que sur l'ancien site, pour la même raison.
+
 ### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
 
 Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon

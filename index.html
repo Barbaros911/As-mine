@@ -1470,12 +1470,29 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   <section class="hero">
     <div class="hero-image"></div>
     <div class="hero-texte">
-      <!-- La coupure est écrite, pas laissée à la largeur : un titre de cette
-           taille se compose comme une affiche. Laissé libre il cassait en
-           trois lignes, dont une de deux mots. -->
-      <h1 data-t-html="hero_titre">Votre chauffeur,<br>en toute simplicité</h1>
-      <p class="hero-sous" data-t="hero_sous">Transferts privés, mises à
-        disposition et déplacements sur mesure.</p>
+      <!-- ═══ QUI, QUOI, OÙ — EN UNE SECONDE ═══
+           Septembre 2026, à sa demande. « Votre chauffeur, en toute
+           simplicité » était propre et ne disait rien : ni le métier, ni la
+           zone. Un visiteur qui atterrit à Roissy doit savoir en une seconde
+           qu'il est au bon endroit.
+           LA ZONE NE TIENT PAS DANS LE TITRE, ELLE EST JUSTE EN DESSOUS.
+           « à Paris et en Île-de-France » cassait en TROIS lignes, dont une
+           « France » toute seule — mesuré : 27 caractères pour une largeur
+           qui en tient 21 à cette taille. Le titre dit donc « à Paris », ce
+           que cherche un visiteur qui atterrit à Roissy, et le sous-titre
+           ouvre aussitôt à « toute l'Île-de-France » : ses clients réservent
+           depuis Argenteuil et Saint-Denis, un titre qui les exclurait leur
+           ferait croire que ce n'est pas pour eux.
+           LE SOUS-TITRE VENDAIT DEUX PRESTATIONS QU'ON NE PEUT PAS
+           RÉSERVER : la mise à disposition a été retirée du site en
+           septembre, et « déplacements sur mesure » n'existe nulle part.
+           C'était le dernier endroit où elles survivaient — le paragraphe de
+           référencement avait été nettoyé, celui-ci avait été oublié.
+           La coupure est écrite, pas laissée à la largeur : un titre de
+           cette taille se compose comme une affiche. -->
+      <h1 data-t-html="hero_titre">Votre chauffeur privé<br>à Paris</h1>
+      <p class="hero-sous" data-t="hero_sous">Toute l'Île-de-France ·
+        Aéroports, gares, hôtels</p>
     </div>
   </section>
 
@@ -1711,7 +1728,21 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
     </div>
 
     <button class="bouton" type="button" id="btnVoirPrix">
-      <span data-t="btn_prix">Voir les tarifs et véhicules</span>
+      <!-- ═══ « VOIR MON PRIX », PAS « RÉSERVER MON TRAJET » ═══
+           Septembre 2026. Il proposait « Réserver mon trajet » ; c'est plus
+           vendeur, et c'est le seul point de sa relecture qu'on ne suit
+           pas — pour deux raisons.
+           1. LE BLOC S'INTITULE DÉJÀ « Réserver un trajet », cinq
+              centimètres au-dessus. Un bouton qui répète le titre de sa
+              propre carte n'ajoute rien à l'écran.
+           2. LE CLIC NE RÉSERVE PAS, il affiche un prix. Promettre une
+              réservation et rendre une liste de tarifs est exactement le
+              décalage qu'on a déjà corrigé une fois sur ce site.
+           « Voir les tarifs et véhicules » n'était pas bon non plus : trop
+           long, et « les tarifs » laisse croire à une grille. « Voir mon
+           prix » dit ce que le clic donne — SON prix, celui de SON trajet,
+           ferme. -->
+      <span data-t="btn_prix">Voir mon prix</span>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -3491,8 +3522,8 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 window.ELA_TEXTES = {
   fr:{
     entete_sous:"CHAUFFEURS PRIVÉS",
-    hero_titre:"Votre chauffeur,<br>en toute simplicité",
-    hero_sous:"Transferts privés, mises à disposition et déplacements sur mesure.",
+    hero_titre:"Votre chauffeur privé<br>à Paris",
+    hero_sous:"Toute l'Île-de-France · Aéroports, gares, hôtels",
     reserver_titre:"Réserver un trajet", reserver_sous:"Simple, rapide et sécurisé",
     zone_titre:"Cette adresse est en dehors de notre zone.",
     zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
@@ -3515,7 +3546,7 @@ window.ELA_TEXTES = {
     vol_aide_depart:"Le chauffeur suit votre vol et ajuste l'heure en cas de retard.",
     vol_aide_arrivee:"Pour vous déposer au bon terminal — ils sont à plusieurs kilomètres les uns des autres.",
     date:"Date", heure:"Heure", passagers:"Passagers", bagages:"Bagages",
-    btn_prix:"Voir les tarifs et véhicules", calcul:"Calcul du prix…",
+    btn_prix:"Voir mon prix", calcul:"Calcul du prix…",
     /* LA LIGNE SOUS LE BOUTON NE PARLE PLUS D'ANNULATION (septembre 2026, à
        sa demande) : « le client ne paie que le chauffeur », il n'y a donc
        rien à annuler côté site, et promettre la gratuité d'un geste qui ne
@@ -3633,8 +3664,8 @@ window.ELA_TEXTES = {
   },
   en:{
     entete_sous:"PRIVATE CHAUFFEURS",
-    hero_titre:"Your chauffeur,<br>made simple",
-    hero_sous:"Private transfers, chauffeur hire and bespoke journeys.",
+    hero_titre:"Your private chauffeur<br>in Paris",
+    hero_sous:"All of Île-de-France · Airports, stations, hotels",
     reserver_titre:"Book a ride", reserver_sous:"Simple, fast and secure",
     zone_titre:"This address is outside our service area.",
     zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
@@ -3657,7 +3688,7 @@ window.ELA_TEXTES = {
     vol_aide_depart:"Your chauffeur tracks your flight and adjusts the time if it is delayed.",
     vol_aide_arrivee:"So we drop you at the right terminal — they are several kilometres apart.",
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
-    btn_prix:"See prices and vehicles", calcul:"Calculating the price…",
+    btn_prix:"See my price", calcul:"Calculating the price…",
     dispo:"Availability confirmed by WhatsApp or SMS",
     retard_titre:"Flight or train delayed? Your chauffeur adapts.",
     retard_texte:"Give us your flight or train number: we track your arrival and adjust the pick-up time.",
