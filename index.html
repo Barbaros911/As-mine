@@ -2961,6 +2961,14 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <button class="bouton-fantome" type="button" id="btnAccuserReception" hidden>
         Accuser réception au client
       </button>
+      <!-- PLACER LA COURSE AUPRÈS DES CHAUFFEURS. Elle n'a de sens que tant
+           qu'aucun chauffeur n'est retenu : proposer de rediffuser une course
+           déjà attribuée, c'est la façon la plus sûre de se retrouver avec
+           deux voitures au même endroit. Le bouton disparaît donc dès qu'un
+           chauffeur est saisi. -->
+      <button class="bouton-fantome" type="button" id="btnDiffuserGroupe" hidden>
+        Placer au groupe de chauffeurs
+      </button>
       <button class="bouton" type="button" id="btnConfirmerCourse">
         <span>Confirmer la course</span>
       </button>
@@ -4671,6 +4679,16 @@ window.ELA_TEXTES = {
     return d.toLocaleDateString(locale()) + " " +
            d.toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"});
   }
+  /* Une date et une heure séparées, rendues en français. « dateLisible »
+     suit la langue du VISITEUR ; celle-ci est toujours française, parce que
+     ce qu'elle écrit est lu par Barbaros ou par un chauffeur, jamais par un
+     client étranger. */
+  function dateFr(date, heure){
+    var d = new Date((date || "") + "T" + (heure || ""));
+    if(isNaN(d.getTime())) return ((date || "") + " " + (heure || "")).trim() || "—";
+    return d.toLocaleDateString("fr-FR") + " " +
+           d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  }
   function dateMessage(){
     var d = new Date(champDate.value + "T" + champHeure.value);
     if(isNaN(d.getTime())) return "—";
@@ -6295,6 +6313,19 @@ window.ELA_TEXTES = {
        nuit, on ne se souvient pas de qui a eu une réponse. */
     bAcc.textContent = c.accuse ? "Accusé de réception envoyé — renvoyer"
                                 : "Accuser réception au client";
+    /* PLACER LA COURSE N'A DE SENS QUE TANT QU'ELLE N'EST PAS PLACÉE. Une
+       course déjà réalisée ou refusée ne se diffuse pas non plus : la
+       proposer à 800 personnes ferait répondre des chauffeurs pour rien, et
+       la fois d'après ils ne liraient plus. */
+    var bDif = document.getElementById("btnDiffuserGroupe");
+    var aChauffeur = !!(c.chauffeur && (c.chauffeur.nom || c.chauffeur.telephone));
+    bDif.hidden = aChauffeur
+               || ["realisee", "refusee"].indexOf(c.statut || "attente") >= 0;
+    /* Le libellé dit si l'annonce est déjà partie — sur une nuit chargée on
+       ne se souvient pas de ce qu'on a diffusé. Il reste cliquable : une
+       course que personne n'a prise se rediffuse. */
+    bDif.textContent = c.diffusee ? "Déjà placée au groupe — rediffuser"
+                                  : "Placer au groupe de chauffeurs";
     ecran("ecran-bord-bon");
   }
   function chauffeurSaisi(){
@@ -6381,6 +6412,57 @@ window.ELA_TEXTES = {
    IL SUIT LA LANGUE DE LA COURSE, comme la demande d'avis — le client a
    réservé dans sa langue, il doit être rassuré dans la même.
    ===================================================================== */
+/* =====================================================================
+   L'ANNONCE AU GROUPE DE CHAUFFEURS
+   ---------------------------------------------------------------------
+   C'EST LE MÉTIER MÊME, et c'était le seul geste que le site n'aidait pas à
+   faire. Barbaros place ses courses auprès d'un groupe WhatsApp de plus de
+   800 chauffeurs ; il retapait l'annonce à la main, la nuit, et c'est là
+   qu'on oublie une ligne.
+
+   ELLE NE PORTE NI LE NOM, NI LE TÉLÉPHONE, NI LE NUMÉRO DE CHAMBRE. Ce
+   n'est pas une précaution de confort : diffuser ça à 800 inconnus serait
+   une transmission de données personnelles à des tiers qui n'en ont pas
+   besoin pour décider (RGPD 5.1.c). Ces éléments partent en privé, au SEUL
+   chauffeur retenu. La politique de confidentialité du site le promet déjà
+   noir sur blanc — elle décrivait cette annonce avant qu'elle existe.
+
+   ELLE NE PORTE PAS NON PLUS LE LIEN DE LA COURSE : 350 caractères
+   illisibles pour 800 personnes qui n'en ont pas l'usage.
+
+   ET AUCUN TAUX DE COMMISSION. Il se règle par chauffeur, dans le carnet ;
+   un pourcentage annoncé au groupe serait un engagement pris devant 800
+   personnes sur une négociation qui est individuelle.
+
+   ON PART SANS NUMÉRO — « wa.me/?text= » ouvre le sélecteur de WhatsApp et
+   Barbaros choisit son groupe. Les messages au CLIENT, eux, partent droit
+   sur son numéro : envoyer une annonce par le sélecteur est normal, envoyer
+   une confirmation au mauvais destinataire ne l'est pas.
+   ===================================================================== */
+  function messageGroupe(bon){
+    var c = bon.course || {};
+    /* Le départ PUBLIC, celui sans le numéro de chambre. Prendre l'autre
+       diffuserait la chambre d'hôtel d'un client à tout le groupe — c'est
+       exactement le piège déjà rencontré sur l'alerte Telegram. */
+    var de = c.departPublic || c.depart || "";
+    var vers = c.arriveePublic || c.arrivee || "";
+    return [
+      "Course à placer — " + bon.ref,
+      "Départ : " + de,
+      "Arrivée : " + vers,
+      /* LA DATE EST COMPOSÉE, PAS RECOPIÉE. « bon.dateMsg » n'existe que sur
+         les courses créées par le site ; une course venue du serveur ou
+         d'une sauvegarde ancienne n'en a pas, et le repli sortait
+         « 2026-09-20 10:00 ». Un chauffeur qui lit ça la nuit ne lit pas une
+         date : il lit une référence informatique. */
+      "Date : " + dateFr(c.date, c.heure),
+      "Véhicule : " + (c.vehicule || "—"),
+      "Paiement : " + (bon.paiementNom || "à convenir"),
+      "Prix course : " + eurosFR((bon.prix && bon.prix.total) || 0),
+      "Disponible ? Répondez-moi en privé."
+    ].join("\n");
+  }
+
   function messageAccuse(bon){
     var prenom = ((bon.client && bon.client.nom) || "").trim().split(/\s+/)[0];
     /* La date suit la langue du MESSAGE, pas celle de l'espace exploitant —
@@ -6428,6 +6510,17 @@ window.ELA_TEXTES = {
     majCourse(bonBord.ref, bonBord.statut || "attente",
               { accuse: new Date().toISOString() });
     this.textContent = "Accusé de réception envoyé";
+  });
+  document.getElementById("btnDiffuserGroupe").addEventListener("click", function(){
+    if(!bonBord) return;
+    /* SANS NUMÉRO : « wa.me/?text= » ouvre le sélecteur de WhatsApp et
+       Barbaros choisit son groupe. C'est le seul message du site qui parte
+       ainsi — tous les autres visent le numéro d'une personne précise. */
+    window.open("https://wa.me/?text="
+                + encodeURIComponent(messageGroupe(bonBord)), "_blank");
+    majCourse(bonBord.ref, bonBord.statut || "attente",
+              { diffusee: new Date().toISOString() });
+    this.textContent = "Déjà placée au groupe — rediffuser";
   });
   document.getElementById("btnPrevenirClient").addEventListener("click", function(){
     if(!bonBord) return;
