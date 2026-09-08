@@ -1618,6 +1618,46 @@ personne ne voit avant le lendemain. **Ne pas supprimer l'ouverture
 automatique avant que le webhook Telegram fonctionne** — et le jour où il
 fonctionne, c'est la première chose à faire.
 
+### « VOTRE DEMANDE N'A PAS PU NOUS ÊTRE TRANSMISE » — UNE PANNE INVENTÉE
+
+Septembre 2026, capture à l'appui : « j'ai fait une commande sur le site
+mais quand j'envoie et que je reviens dessus je vois ça » — l'écriteau rouge
+du bon, alors que rien n'était cassé.
+
+**LA CAUSE ÉTAIT L'ORDRE.** `nuage.deposer()` partait **après**
+`window.open(WhatsApp)`, c'est-à-dire à l'instant précis où iOS met la page
+en arrière-plan pour changer d'application. Safari y gèle le JavaScript et
+coupe les requêtes en cours ; au retour, le minuteur de huit secondes se
+réveillait et abandonnait un appel qui n'avait jamais eu sa chance.
+
+**Un client qui lit « votre demande ne nous est pas parvenue » ne réserve
+pas ailleurs — il ne réserve plus du tout.** C'est le pire endroit du site
+où mentir.
+
+- **LE DÉPÔT PART MAINTENANT EN PREMIER**, et WhatsApp reste ouvert **dans
+  le même tick** que le clic — ce qui est la seule chose qui compte pour
+  Safari, qui n'autorise l'ouverture d'un onglet que dans la foulée d'un
+  geste. Rien n'est attendu entre les deux : `deposer` est **lancé**, pas
+  attendu. **L'ordre change, la vieille règle est intacte** — ne pas la lire
+  comme une autorisation de mettre un `await` avant `window.open`.
+- **`keepalive:true`** sur la requête : le navigateur s'engage à la mener à
+  terme même si la page est mise de côté ou fermée. Sans lui, l'ordre ne
+  suffirait pas — la requête partirait puis serait abandonnée une
+  milliseconde plus tard.
+- **`reprendreDepot()` — on ne crie pas à l'échec depuis l'arrière-plan.**
+  Tant que `document.hidden` est vrai, un échec ne veut rien dire. On attend
+  le retour sur l'onglet, on réessaie **une fois**, et on ne tranche
+  qu'après. Une boucle transformerait un vrai refus du serveur en appels
+  sans fin sur le forfait du client ; le repli WhatsApp est là pour ça.
+  Filet de 30 s au cas où l'événement de retour ne vienne jamais.
+- **LE TEST SIMULE LE PASSAGE EN ARRIÈRE-PLAN** (`document.hidden` redéfini
+  + `visibilitychange` rejoué) et fait échouer le PREMIER dépôt seulement.
+  C'est la seule façon d'atteindre le défaut : sur le banc la page reste
+  visible, et le dépôt raté serait retenté tout de suite. **Éprouvé contre
+  l'ancien code : il rend mot pour mot la phrase de sa capture.**
+- Un contrôle vérifie l'**ordre** (`window.__ordre`), un autre la présence
+  de `keepalive` dans la page. Les deux tombent si on revient en arrière.
+
 ## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
 
 Septembre 2026, à sa demande. Il a demandé « pourquoi tu ne me créerais
@@ -2581,7 +2621,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 715 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 725 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
