@@ -2581,7 +2581,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 702 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 715 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

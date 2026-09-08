@@ -210,10 +210,24 @@ let vus = [];
 let reponse = { statut:'confirmee', chauffeur:{nom:'Mehmet', telephone:'0612345678'},
                 vehicule:'Berline', date:'2026-09-11', heure:'10:00' };
 let coupee = false;
+/* ═══ LE FAUX SERVEUR DOIT RÉPONDRE COMME LE VRAI ═══
+   La fonction vit sur un autre domaine que la page : le navigateur envoie
+   donc d'abord une requête OPTIONS de vérification, et si elle ne revient
+   pas avec les en-têtes d'autorisation il BLOQUE l'appel réel — sans
+   erreur visible. Un faux serveur qui répond du JSON à l'OPTIONS fait
+   échouer le test alors que le site est juste, et l'inverse serait pire :
+   oublier ces en-têtes dans la vraie fonction ne se verrait nulle part.
+   On ne compte donc que les POST, et on répond à l'OPTIONS comme il faut. */
+const CORS = { 'Access-Control-Allow-Origin':'*',
+               'Access-Control-Allow-Headers':'authorization, apikey, content-type',
+               'Access-Control-Allow-Methods':'POST, OPTIONS' };
 await p.route('**/functions/v1/etat-course', async route => {
+  if(route.request().method() === 'OPTIONS'){
+    return route.fulfill({ status:200, headers:CORS, body:'ok' });
+  }
   vus.push(JSON.parse(route.request().postData() || '{}'));
   if(coupee) return route.abort();
-  await route.fulfill({ contentType:'application/json',
+  await route.fulfill({ contentType:'application/json', headers:CORS,
     body: JSON.stringify(Object.assign({ ref:'' }, reponse)) });
 });
 
