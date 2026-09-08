@@ -1472,6 +1472,39 @@ ordinateur** — c'est pour ça qu'il a fallu qu'il les signale.
   pas de compte. Le code est écrit et éprouvé, la marche à suivre est dans
   `MAPBOX.md`, et c'est le seul geste qui lui revient.
 
+### LA DURÉE ANNONCÉE PORTE UNE MARGE — FOURCHETTE DE +5 À +10 MINUTES
+
+Septembre 2026, à sa demande : « il faut que le temps de trajet soit une
+estimation de 5-10 minutes plus longue ».
+
+- **CE QUE RENDENT LES CALCULATEURS EST UN TEMPS DE ROULAGE, PAS UN TEMPS DE
+  COURSE.** Il ne compte ni la sortie du parking, ni les bagages, ni les deux
+  minutes à chercher le client devant un terminal. Annoncé sec, on promet une
+  heure d'arrivée qu'on tient une fois sur deux — et chez Elatransfer l'heure
+  engage comme le prix.
+- **UNE FOURCHETTE, PAS UN NOMBRE UNIQUE.** Un chiffre seul se lit comme une
+  promesse ; « 43–48 min » se lit comme ce que c'est. Et une marge **fixe**
+  de dix minutes serait absurde sur un trajet court — 12 min deviendraient
+  22, presque le double. `MARGE_DUREE_MIN` / `MARGE_DUREE_MAX`,
+  `dureeAnnoncee()`.
+- **`course.min` RESTE BRUT** : la marge est posée à l'AFFICHAGE. Sinon, le
+  jour où l'on rangerait la durée sur le bon, elle partirait déjà majorée et
+  une seconde marge s'ajouterait à la première sans que personne ne le voie.
+- **LE PRIX NE BOUGE PAS D'UN CENTIME.** Il est un kilométrage, la durée n'y
+  entre pas — c'est ce qui permet d'être prudent sur l'heure sans être
+  malhonnête sur le montant.
+- **LA DURÉE A QUITTÉ LA CARTE DE GAMME**, et ce n'est pas une perte : elle
+  était **identique sur les quatre lignes** (c'est la même route) et elle est
+  déjà écrite au-dessus. En fourchette, « 43–48 min · arrivée 10:43–10:48 »
+  ne tenait plus sur une ligne de téléphone. Ce qui reste sur la carte, c'est
+  l'**heure d'arrivée**, celle que le client compare à l'heure
+  d'enregistrement de son vol. Mesuré : une ligne, à 390 px, court trajet
+  comme long.
+- **LE TEST NE REFAIT PAS L'ADDITION** : le faux ORS rend 2 700 s, donc la
+  page doit afficher « 50–55 min » et **jamais** « 45 min ». Un contrôle qui
+  recalculerait la marge passerait au vert même si elle disparaissait des
+  deux côtés. Éprouvé marges à zéro : les trois contrôles tombent.
+
 ## L'ALERTE À CHAQUE DEMANDE — DU CODE QUI TOURNE AILLEURS QUE DANS LE NAVIGATEUR
 
 Septembre 2026, à sa demande. Il a demandé « pourquoi tu ne me créerais
