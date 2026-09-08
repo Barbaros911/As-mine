@@ -243,6 +243,17 @@ img{display:block;max-width:100%;}
 .champ input{border:0;outline:0;font:inherit;font-size:14.5px;color:var(--encre);
   width:100%;padding:0;margin-top:2px;background:transparent;}
 .champ input::placeholder{color:var(--gris);}
+/* UN MENU DÉROULANT DANS UN « .champ » SE FOND DEDANS. Sans ça, le
+   navigateur dessine le sien : cadre noir, coins carrés, police système —
+   au milieu de champs qui n'en ont pas. Vu sur la capture du formulaire de
+   saisie. « appearance:none » retire l'habillage du système ; le chevron
+   est alors à redessiner nous-mêmes, sinon il n'y en a plus du tout et
+   rien ne dit que la case s'ouvre. */
+.champ select{border:0;outline:0;font:inherit;font-size:14.5px;color:var(--encre);
+  width:100%;padding:0 18px 0 0;margin-top:2px;background:transparent;
+  appearance:none;-webkit-appearance:none;border-radius:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23616E6B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right center;}
 /* min-width:0 sur les cellules, et ce n'est pas décoratif : par défaut une
    cellule de grille refuse de se réduire sous la largeur de son contenu. Les
    champs « Date » et « Heure » débordaient donc de 116 px vers la droite, et
@@ -1234,6 +1245,14 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
           <path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-4H4v4Zm10-11h6V4h-6v5Z"
                 fill="currentColor"/>
         </svg>Tableau de bord</button>
+      <!-- LA SAISIE À LA MAIN EST LA DEUXIÈME ENTRÉE, juste après le tableau
+           de bord : c'est le geste du jour, celui qu'on fait pendant qu'un
+           hôtel est encore au téléphone. -->
+      <button class="admin-lien" type="button" id="btnCreerNav">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.1"
+                stroke-linecap="round"/>
+        </svg>Nouvelle course</button>
       <button class="admin-lien" type="button" id="btnRegistre">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 4h11l3 3v13H5V4Z" stroke="currentColor" stroke-width="1.8"
@@ -1254,22 +1273,17 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
           <path d="M9.5 8h5M9.5 12h5" stroke="currentColor" stroke-width="1.8"
                 stroke-linecap="round"/>
         </svg>Facturer</button>
-      <button class="admin-lien" type="button" data-admin-vers="blocHotel">
+      <!-- UNE SEULE ENTRÉE À LA PLACE DE TROIS. « Affiche hôtel », « Avis »
+           et « Serveur » faisaient DESCENDRE sur le tableau de bord, toutes
+           les trois au même endroit : le bas de la page. On y arrivait sans
+           rien voir bouger. Ce sont trois réglages qu'on pose une fois ; ils
+           tiennent dans un écran, et l'écran, lui, se voit. -->
+      <button class="admin-lien" type="button" id="btnReglages">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 3h3v3h-3v-3Z"
-                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-        </svg>Affiche hôtel</button>
-      <button class="admin-lien" type="button" data-admin-vers="blocAvis">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="m12 4.4 2.36 4.78 5.28.77-3.82 3.72.9 5.25L12 16.44l-4.72 2.48.9-5.25
-                   L4.36 9.95l5.28-.77L12 4.4Z" stroke="currentColor" stroke-width="1.8"
-                stroke-linejoin="round"/>
-        </svg>Avis</button>
-      <button class="admin-lien" type="button" data-admin-vers="blocNuage">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M7 18a4 4 0 0 1-.4-7.98A5 5 0 0 1 16.5 9.2 3.9 3.9 0 0 1 17 18H7Z"
-                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-        </svg>Serveur</button>
+          <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6"
+                stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>Réglages</button>
       <button class="admin-lien" type="button" id="btnQuitter">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M10 20H5V4h5M15 8l4 4-4 4M19 12H9" stroke="currentColor"
@@ -2170,6 +2184,15 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <button class="bouton" type="button" id="btnCollerDemande">
         <span>Coller une demande reçue</span>
       </button>
+      <!-- LE SECOND CHEMIN, ET IL MANQUAIT. « Coller » ne couvre que le
+           client qui ÉCRIT. Quand un hôtel APPELLE, il n'y avait rien : il
+           aurait fallu fabriquer un faux message WhatsApp pour le coller.
+           Le bouton est en creux : sur dix courses, neuf arrivent par
+           message, et deux actions pleines côte à côte ne diraient plus
+           laquelle est la courante. -->
+      <button class="bouton-fantome" type="button" id="btnSaisirCourse">
+        Saisir une course reçue par téléphone
+      </button>
       <!-- LE REPLI N'EST PAS UN LUXE : Safari et Firefox refusent souvent
            la lecture du presse-papiers, et sans ce champ le bouton ne
            ferait rien du tout, sans un mot. -->
@@ -2279,6 +2302,35 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       </div>
     </div>
 
+  </section>
+
+  <!-- =====================================================================
+       RÉGLAGES — ce qui se règle une fois et ne se regarde plus
+       ---------------------------------------------------------------------
+       TROIS ENTRÉES DE MENU NE MENAIENT NULLE PART. « Affiche hôtel »,
+       « Avis » et « Serveur » n'étaient pas des écrans : elles faisaient
+       DESCENDRE sur le tableau de bord. Mesuré à 390 px, les trois
+       arrivaient au MÊME endroit — 1608 px, le bas de la page, parce
+       qu'elle ne peut pas descendre plus loin. Barbaros : « tous les choix
+       sur lesquels on clique, on est toujours sur la même page. »
+       Le choix d'origine était défendable — ne pas inventer trois écrans
+       pour trois blocs qu'on règle une fois. À l'usage il est faux : UNE
+       ENTRÉE DE MENU QUI NE MÈNE VISIBLEMENT NULLE PART EST PIRE QUE PAS
+       D'ENTRÉE, parce qu'on la réappuie en croyant avoir mal visé.
+       Un seul écran remplace les trois. Le menu compte donc six entrées qui
+       mènent chacune ailleurs, et c'est ce qu'un test vérifie.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-reglages">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourReglages" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Réglages</h1>
+    </div>
+
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
          montre l'affiche. Le client scanne, le site s'ouvre avec l'hôtel déjà
          en adresse de départ, et il n'a plus qu'à dire où il va. -->
@@ -2362,6 +2414,126 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       </div>
     </div>
 
+  </section>
+
+  <!-- =====================================================================
+       NOUVELLE COURSE — la saisie à la main
+       ---------------------------------------------------------------------
+       IL N'Y AVAIT QUE « COLLER UNE DEMANDE », et ça ne couvrait qu'un seul
+       cas : le client qui écrit sur WhatsApp. Quand un hôtel APPELLE, il n'y
+       avait rien — il aurait fallu fabriquer un faux message pour le coller.
+
+       ELLE ENTRE « CONFIRMÉE », ET C'EST LA DIFFÉRENCE AVEC UNE DEMANDE
+       COLLÉE. Une demande venue d'un client attend une réponse : la marquer
+       confirmée serait mentir sur son état. Une course qu'on saisit soi-même
+       est déjà convenue de vive voix — personne n'attend qu'on la valide.
+
+       LE PRIX EST ÉCRIT À LA MAIN, PAS CALCULÉ. Ces adresses-là sont dictées
+       au téléphone, sans coordonnées, donc sans distance : un prix calculé
+       sur du vide serait faux. La grille est rappelée sous le champ, pour
+       qu'il l'ait sous les yeux au moment d'annoncer un montant au client.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-creer">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourCreer" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Nouvelle course</h1>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Client</h2>
+      <label class="champ" for="crNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom</span>
+          <input id="crNom" type="text" autocomplete="off" placeholder="Nom du client">
+        </span>
+      </label>
+      <label class="champ" for="crTel">
+        <span class="champ-corps">
+          <span class="champ-titre">Téléphone</span>
+          <input id="crTel" type="tel" autocomplete="off" placeholder="06 12 34 56 78">
+        </span>
+      </label>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Trajet</h2>
+      <label class="champ" for="crDepart">
+        <span class="champ-corps">
+          <span class="champ-titre">Départ</span>
+          <input id="crDepart" type="text" autocomplete="off" placeholder="Hôtel Ibis CDG, Roissy">
+        </span>
+      </label>
+      <label class="champ" for="crArrivee">
+        <span class="champ-corps">
+          <span class="champ-titre">Arrivée</span>
+          <input id="crArrivee" type="text" autocomplete="off" placeholder="Place Vendôme, Paris">
+        </span>
+      </label>
+      <div class="duo">
+        <label class="champ" for="crDate">
+          <span class="champ-corps">
+            <span class="champ-titre">Date</span>
+            <input id="crDate" type="date">
+          </span>
+        </label>
+        <label class="champ" for="crHeure">
+          <span class="champ-corps">
+            <span class="champ-titre">Heure</span>
+            <input id="crHeure" type="time" step="300">
+          </span>
+        </label>
+      </div>
+      <label class="champ" for="crVehicule">
+        <span class="champ-corps">
+          <span class="champ-titre">Véhicule</span>
+          <select id="crVehicule">
+            <option value="berline">Berline · 4 places</option>
+            <option value="van">Van · 7 places</option>
+          </select>
+        </span>
+      </label>
+      <label class="champ" for="crPrix">
+        <span class="champ-corps">
+          <span class="champ-titre">Prix convenu (€)</span>
+          <input id="crPrix" type="number" inputmode="decimal" min="0" step="1" placeholder="70">
+        </span>
+      </label>
+      <p class="bloc-note" id="crGrille">Berline 2,95 €/km, minimum 30 € ·
+         Van 4,20 €/km, minimum 50 €. +20 % la nuit et le week-end.</p>
+    </div>
+
+    <!-- LE CHAUFFEUR EST FACULTATIF, et c'est voulu : un hôtel appelle, on
+         prend la course, on cherche le chauffeur ensuite. L'imposer ferait
+         perdre la réservation le temps de le trouver. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Chauffeur</h2>
+      <p class="bloc-note">Facultatif — vous pourrez l'attribuer plus tard sur le bon.</p>
+      <label class="champ" for="crChNom">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom</span>
+          <input id="crChNom" type="text" autocomplete="off"
+                 list="listeChauffeurs" placeholder="Nom du chauffeur">
+        </span>
+      </label>
+      <label class="champ" for="crChTel">
+        <span class="champ-corps">
+          <span class="champ-titre">Téléphone</span>
+          <input id="crChTel" type="tel" autocomplete="off" placeholder="06 98 76 54 32">
+        </span>
+      </label>
+    </div>
+
+    <div class="veh-action">
+      <p class="champ-aide" id="crErreur" hidden></p>
+      <button class="bouton" type="button" id="btnCreerCourse">
+        <span>Enregistrer la course</span>
+      </button>
+    </div>
   </section>
 
   <!-- =====================================================================
@@ -5455,9 +5627,12 @@ window.ELA_TEXTES = {
      plutôt que d'envoyer une phrase qui se termine dans le vide. */
   function demanderAvis(c){
     if(!lienAvis()){
-      var bloc = document.getElementById("blocAvis");
-      ecran("ecran-bord");
-      bloc.scrollIntoView({ behavior:"smooth", block:"center" });
+      /* LE CHAMP A DÉMÉNAGÉ dans l'écran des réglages, et on y va vraiment.
+         Ce raccourci visait « ecran-bord », où le bloc n'est plus : il aurait
+         posé le curseur dans un champ que personne ne voit, avec un message
+         d'erreur affiché sur un écran masqué. Une garde qui prévient sur un
+         écran qu'on ne regarde pas ne prévient personne. */
+      ouvrirReglages("blocAvis");
       document.getElementById("lienAvis").focus();
       document.getElementById("avisEtat").hidden = false;
       return;
@@ -6673,23 +6848,158 @@ window.ELA_TEXTES = {
     dessinerBord();
     allumerAdmin(this);
   });
-  /* « Affiche hôtel » et « Serveur » ne sont pas des écrans : ce sont deux
-     blocs de cette page. On y descend plutôt que d'inventer deux écrans de
-     plus — et on n'allume pas l'entrée, puisqu'on reste sur le tableau de
-     bord. */
-  document.querySelectorAll("[data-admin-vers]").forEach(function(b){
-    b.addEventListener("click", function(){
-      ecran("ecran-bord");
-      dessinerBord();
-      allumerAdmin(document.getElementById("btnAdminBord"));
-      var cible = document.getElementById(b.dataset.adminVers);
+  /* LES RÉGLAGES SONT UN ÉCRAN, PLUS TROIS DESCENTES. « Affiche hôtel »,
+     « Avis » et « Serveur » faisaient défiler le tableau de bord jusqu'à
+     trois blocs qui, mesurés à 390 px, arrivaient tous au MÊME endroit : le
+     bas de la page. On appuyait, rien ne semblait se passer.
+     Il reste des boutons « data-admin-vers » AILLEURS dans la page — « Se
+     connecter au serveur », par exemple, posé sous la liste des courses. Ils
+     mènent maintenant à l'écran des réglages, puis descendent sur le bloc
+     visé : c'est le même geste pour l'utilisateur, et une seule destination
+     à tenir. */
+  function ouvrirReglages(vers){
+    ecran("ecran-reglages");
+    allumerAdmin(document.getElementById("btnReglages"));
+    if(vers){
+      var cible = document.getElementById(vers);
       if(cible) cible.scrollIntoView({ behavior:"smooth", block:"start" });
-    });
+    }
+  }
+  document.getElementById("btnReglages").addEventListener("click", function(){
+    ouvrirReglages("");
+  });
+  document.getElementById("btnRetourReglages").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+  document.querySelectorAll("[data-admin-vers]").forEach(function(b){
+    b.addEventListener("click", function(){ ouvrirReglages(b.dataset.adminVers); });
   });
   document.getElementById("btnRetourRegistre").addEventListener("click", function(){
     ecran("ecran-bord");
     dessinerBord();
     allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+
+/* =====================================================================
+   NOUVELLE COURSE — LA SAISIE À LA MAIN
+   ---------------------------------------------------------------------
+   « Coller une demande » ne couvrait qu'un cas : le client qui écrit sur
+   WhatsApp. Quand un hôtel APPELLE, il n'y avait rien.
+
+   ELLE ENTRE « CONFIRMÉE », contrairement à une demande collée. Une demande
+   venue d'un client attend une réponse ; une course qu'on saisit soi-même a
+   déjà été convenue de vive voix, personne n'attend qu'on la valide.
+
+   ON OUVRE LE BON JUSTE APRÈS, et ce n'est pas un confort : c'est là que
+   s'affiche l'avertissement sur les papiers du chauffeur. Enregistrer sans
+   le montrer reviendrait à confier une course sans regarder si l'assurance
+   est à jour — l'obligation même qui justifie le carnet.
+   ===================================================================== */
+  function direCreer(texte){
+    var e = document.getElementById("crErreur");
+    e.hidden = !texte;
+    e.textContent = texte || "";
+  }
+  function videCreer(){
+    ["crNom","crTel","crDepart","crArrivee","crDate","crHeure","crPrix",
+     "crChNom","crChTel"].forEach(function(id){
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("crVehicule").value = "berline";
+    direCreer("");
+  }
+  function ouvrirCreer(){
+    videCreer();
+    /* La date du jour est proposée : la course saisie au téléphone est
+       presque toujours pour aujourd'hui ou demain. « dateLocale » et non
+       « toISOString » — cette dernière rend de l'UTC, et à 1 h du matin à
+       Paris elle proposerait la veille. */
+    document.getElementById("crDate").value = dateLocale(new Date());
+    /* La liste déroulante des chauffeurs vient du carnet, et c'est
+       « dessinerChauffeurs » qui la remplit : sans cet appel, le champ ne
+       proposerait rien tant qu'on n'a pas ouvert l'écran du carnet — et on
+       retaperait « Mehmet » à la main, avec une majuscule différente à
+       chaque fois. C'est exactement ce qui rend l'historique illisible. */
+    dessinerChauffeurs();
+    ecran("ecran-creer");
+    allumerAdmin(document.getElementById("btnCreerNav"));
+  }
+  document.getElementById("btnCreerNav").addEventListener("click", ouvrirCreer);
+  document.getElementById("btnSaisirCourse").addEventListener("click", ouvrirCreer);
+  document.getElementById("btnRetourCreer").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+
+  document.getElementById("btnCreerCourse").addEventListener("click", function(){
+    var v = function(id){ return document.getElementById(id).value.trim(); };
+    var nom = v("crNom"), tel = v("crTel"), dep = v("crDepart"), arr = v("crArrivee");
+    var date = v("crDate"), heure = v("crHeure"), prix = parseFloat(v("crPrix"));
+    var chNom = v("crChNom"), chTel = v("crChTel");
+
+    /* ON DIT CE QUI MANQUE, PAS « le formulaire est incomplet ». À 3 h du
+       matin, un message qui ne nomme pas le champ oblige à tout relire. */
+    var manque = [];
+    if(!nom)   manque.push("le nom du client");
+    if(!tel)   manque.push("son téléphone");
+    if(!dep)   manque.push("le départ");
+    if(!arr)   manque.push("l'arrivée");
+    if(!date)  manque.push("la date");
+    if(!heure) manque.push("l'heure");
+    if(!(prix > 0)) manque.push("le prix");
+    if(manque.length){
+      direCreer("Il manque " + manque.join(", ") + ".");
+      return;
+    }
+    /* MÊME CONTRÔLE QUE CÔTÉ CLIENT. Un numéro faux saisi ici coûte encore
+       plus cher : c'est une course qu'on a acceptée au téléphone et qu'on ne
+       pourra pas rappeler si le chauffeur tombe malade. */
+    if(!telValide(tel)){
+      direCreer("Le téléphone du client ne semble pas valable — relisez-le.");
+      return;
+    }
+    if(chTel && !telValide(chTel)){
+      direCreer("Le téléphone du chauffeur ne semble pas valable — relisez-le.");
+      return;
+    }
+    var gamme = GAMMES.filter(function(g){
+      return g.cle === document.getElementById("crVehicule").value;
+    })[0] || GAMMES[0];
+
+    var c = {
+      ref: referenceSuivante(),
+      statut: "confirmee",
+      cree: new Date().toISOString(),
+      course: { type:"Trajet simple", depart:dep, arrivee:arr,
+                departPublic:dep, arriveePublic:arr,
+                date:date, heure:heure, terminal:null, vol:"",
+                vehicule:gamme.nom, vehiculeCle:gamme.cle,
+                passagers:"1 passager", distanceKm:0, estimee:true },
+      client: { nom:nom, telephone:tel },
+      /* LE RÈGLEMENT N'EST PAS DEMANDÉ ICI : il se convient de vive voix, et
+         inventer « espèces » par défaut ferait partir le chauffeur sans son
+         terminal. Le bon le laisse vide, et il se corrige dessus. */
+      paiement: "", paiementNom: "",
+      prix: { total:prix, ht:prix/1.10, tva:prix - prix/1.10, majoration:false },
+      /* La langue sert plus tard, à la demande d'avis : une course prise au
+         téléphone par Barbaros est en français. */
+      langue: "fr",
+      dateMsg: date.split("-").reverse().join("/") + " " + heure
+    };
+    if(chNom || chTel) c.chauffeur = { nom:chNom, telephone:chTel };
+
+    var liste = registre();
+    liste.unshift(c);
+    ecrireRegistre(liste);
+    /* « pousser », pas « majStatut » : cette course-là n'existe nulle part
+       sur le serveur, personne ne l'y a déposée. Un PATCH ne trouverait
+       aucune ligne et elle ne vivrait que sur cet appareil. */
+    nuage.pousser(c);
+    dessinerBord();
+    ouvrirBonBord(c.ref);
   });
 
 /* =====================================================================
