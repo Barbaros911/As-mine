@@ -365,6 +365,16 @@ img{display:block;max-width:100%;}
 .veh-prix{flex:0 0 auto;font-size:16px;font-weight:800;letter-spacing:-.02em;
   padding-left:6px;}
 .veh-note{margin:14px 20px 0;font-size:11px;color:var(--gris);line-height:1.4;}
+/* LES TITRES DE JOUR DE LA LISTE DES COURSES. Discrets par défaut — ils
+   séparent, ils ne crient pas. « En retard » est la seule exception, et il
+   emprunte le rouge de l'attente : c'est la même chose qu'il dit, quelqu'un
+   attend quelque chose de nous. Il n'y a que ces deux rouges sur tout le
+   tableau de bord, et c'est ce qui les rend lisibles. */
+.jour-titre{margin:16px 0 8px;font-size:11px;font-weight:800;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--gris);}
+.jour-titre:first-child{margin-top:2px;}
+.jour-titre.retard{color:#C9302F;}
+
 /* LA CARTE DU TRAJET. Hauteur fixe : sans elle, le cadre vaut zéro pixel
    tant que Leaflet n'a rien dessiné, et la page sauterait quand la carte
    arrive — le client viserait un prix qui vient de bouger.
@@ -5937,7 +5947,44 @@ window.ELA_TEXTES = {
     });
     liste.innerHTML = "";
     vide.hidden = visibles.length > 0;
+    /* =====================================================================
+       LES COURSES SONT GROUPÉES PAR JOUR
+       ---------------------------------------------------------------------
+       La liste était à plat, triée par date croissante — ce qui met une
+       course de la semaine dernière restée ouverte AVANT celle de demain,
+       sans que rien ne le dise. À dix courses on ne voit plus sa journée, et
+       une course en retard se confond avec les autres.
+
+       « EN RETARD » N'EST PAS UN JOUR, C'EST UN AVERTISSEMENT. Une course
+       dont l'heure est passée et qui n'est ni réalisée ni refusée demande
+       quelque chose : soit elle a été faite et il faut la clore, soit elle a
+       été oubliée. La nommer par sa date la noierait parmi les autres.
+       Sur les RÉALISÉES, en revanche, « en retard » ne veut rien dire : une
+       course faite hier est simplement une course d'hier.
+       ===================================================================== */
+    var aujourdhui = dateLocale(new Date());
+    var demain = dateLocale(new Date(Date.now() + 864e5));
+    var titreJour = function(date){
+      if(date === aujourdhui) return "Aujourd'hui";
+      if(date === demain)     return "Demain";
+      if(date < aujourdhui && filtreBord !== "realisee") return "En retard";
+      var d = new Date(date + "T12:00");
+      if(isNaN(d.getTime())) return date || "Sans date";
+      return d.toLocaleDateString("fr-FR",
+        { weekday:"long", day:"numeric", month:"long" });
+    };
+    var jourCourant = null;
     visibles.forEach(function(c){
+      /* Le titre est posé au fil de la liste, pas calculé à part : les
+         courses sont déjà triées, deux parcours pourraient diverger. */
+      var t = titreJour(c.course.date);
+      if(t !== jourCourant){
+        jourCourant = t;
+        var h = document.createElement("p");
+        h.className = "jour-titre" + (t === "En retard" ? " retard" : "");
+        h.textContent = t;
+        liste.appendChild(h);
+      }
       var st = c.statut || "attente";
       var el = document.createElement("button");
       el.type = "button";
