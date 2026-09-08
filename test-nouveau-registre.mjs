@@ -216,6 +216,21 @@ check('la recherche trouve une course EN ATTENTE : c\'est celle-là qu\'on cherc
 await p.fill('#regRecherche','roissy'); await p.waitForTimeout(300);
 check('elle cherche aussi dans les adresses',
   (await p.locator('#regResultats .reg-ligne').count()) >= 1);
+/* ═══ LES ACCENTS NE DOIVENT PAS FAIRE RATER UNE COURSE ═══
+   Barbaros cherche « vendome » à une main pendant qu'un client attend au
+   téléphone. Sans nettoyage, « Place Vendôme » ne sortait pas — et il en
+   concluait que la course n'existait pas. */
+await p.fill('#regRecherche','vendome'); await p.waitForTimeout(300);
+check('« vendome » trouve « Vendôme » : les accents ne bloquent plus',
+  (await p.locator('#regResultats .reg-ligne').count()) >= 1,
+  await p.locator('#regResultats').textContent());
+/* ET LES ESPACES DU TÉLÉPHONE. Les numéros sont enregistrés
+   « 06 12 34 56 78 » et il tape « 0612345678 » : la recherche la PLUS
+   fiable, celle par numéro, était la seule à ne jamais marcher. */
+await p.fill('#regRecherche','0612345678'); await p.waitForTimeout(300);
+check('un numéro tapé sans espaces trouve le numéro enregistré avec',
+  (await p.locator('#regResultats .reg-ligne').count()) >= 1,
+  await p.locator('#regResultats').textContent());
 await p.fill('#regRecherche','zzzz'); await p.waitForTimeout(300);
 check('et le dit quand rien ne correspond',
   (await p.locator('#regResultats').textContent()).includes('Aucune course'),

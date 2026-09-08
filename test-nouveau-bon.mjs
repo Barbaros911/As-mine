@@ -85,7 +85,32 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(300);
 check('pas d\'envoi sans nom ni téléphone', await p.locator('#ecran-recap').isVisible());
 check('et on dit pourquoi', await p.locator('#erreurCoordonnees').isVisible());
 
+/* ═══ UN NUMÉRO FAUX EST UNE COURSE PERDUE ═══
+   Vu sur une capture de Barbaros : « Nom : Aaa · Téléphone : 000000 », et le
+   site avait accepté. Un numéro qu'on ne peut pas composer, c'est une course
+   qu'on ne peut ni confirmer, ni prévenir, ni facturer — et on ne s'en
+   aperçoit qu'en appelant, souvent la veille au soir.
+   ON ÉPROUVE LES DEUX CÔTÉS. Un contrôle qui ne vérifierait que le refus
+   laisserait passer un code qui refuse TOUT — et là, c'est chaque client
+   qu'on perd, pas seulement les distraits. */
 await p.fill('#clientNom','Jean Martin');
+for (const faux of ['000000', '061234567', '0812345678']) {
+  await p.fill('#clientTel', faux);
+  await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
+  check('« ' + faux +' » est refusé',
+    await p.locator('#ecran-recap').isVisible()
+    && await p.locator('#erreurTel').isVisible());
+}
+/* DEUX MESSAGES DISTINCTS, parce qu'ils appellent deux gestes : un numéro
+   ABSENT se remplit, un numéro FAUX se relit. Le même message laisserait le
+   client retaper exactement la même chose. */
+check('et ce n\'est pas le message « il en manque un »',
+  !(await p.locator('#erreurCoordonnees').isVisible()));
+for (const bon of ['06 12 34 56 78', '01 45 67 89 01', '+44 7700 900123']) {
+  await p.fill('#clientTel', bon);
+  await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
+  check('« ' + bon + ' » passe', !(await p.locator('#erreurTel').isVisible()));
+}
 await p.fill('#clientTel','06 12 34 56 78');
 // Le mode de règlement est obligatoire : sans lui le chauffeur partirait
 // sans savoir s'il doit emporter son terminal.
