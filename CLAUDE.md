@@ -1248,6 +1248,33 @@ rattrapant le précédent :
   tomberaient à côté. **Toute nouvelle suite qui simule OSRM doit couper
   ORS de la même façon.**
 
+## LES COURSES SONT GROUPÉES PAR JOUR
+
+Septembre 2026. La liste du tableau de bord était **à plat**, triée par date
+croissante — ce qui met une course de la semaine dernière restée ouverte
+**avant** celle de demain, sans que rien ne le dise. Barbaros travaille la
+nuit : à dix courses il ne voyait plus sa journée.
+
+- **« EN RETARD » N'EST PAS UN JOUR, C'EST UN AVERTISSEMENT.** Une course
+  dont l'heure est passée et qui n'est ni réalisée ni refusée demande quelque
+  chose : soit elle a été faite et il faut la clore, soit elle a été oubliée.
+  La nommer par sa date la noierait parmi les autres. Elle emprunte **le
+  rouge de l'attente** — c'est la même chose qu'elle dit — et ce sont les
+  deux seuls rouges du tableau de bord.
+- **SUR LES RÉALISÉES, « en retard » NE VEUT RIEN DIRE** : une course faite
+  hier est une course d'hier, pas un oubli. Le titre redevient une date.
+- **Les titres sont posés AU FIL de la liste**, pas calculés à part : les
+  courses sont déjà triées, et deux parcours finiraient par diverger.
+- **Le test ne vérifie pas la PRÉSENCE des titres mais leur ORDRE** — en
+  retard, aujourd'hui, demain, puis la suite. Un contrôle de présence serait
+  passé au vert sur un ordre inversé. Même leçon que la barre du bas.
+- **PIÈGE DE TEST, ENCORE LE REGISTRE.** Le bloc qui éprouve les jours
+  **remplace** `ela_bookings` pour poser des dates précises ; les contrôles
+  suivants travaillent sur les courses d'origine. Sans sauvegarde-restitution,
+  la suite s'arrête sur un délai d'attente en cherchant une demande qui
+  n'existe plus. **Le registre est un état partagé, pas un décor local** —
+  même famille que `addInitScript` qui se rejoue à chaque chargement.
+
 ## SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
 
 Septembre 2026, à sa demande : « il faut aussi créer un formulaire pour que
@@ -2315,7 +2342,7 @@ laissait choisir.
 
 ## Tests
 
-**Vingt et une suites Playwright, 688 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 693 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
