@@ -365,6 +365,22 @@ img{display:block;max-width:100%;}
 .veh-prix{flex:0 0 auto;font-size:16px;font-weight:800;letter-spacing:-.02em;
   padding-left:6px;}
 .veh-note{margin:14px 20px 0;font-size:11px;color:var(--gris);line-height:1.4;}
+/* LA CARTE DU TRAJET. Hauteur fixe : sans elle, le cadre vaut zéro pixel
+   tant que Leaflet n'a rien dessiné, et la page sauterait quand la carte
+   arrive — le client viserait un prix qui vient de bouger.
+   LES TUILES SONT DÉSATURÉES : sur un fond de plan brut, les enseignes de
+   magasins et les zones vertes crient plus fort que la route. La couleur
+   doit rester au tracé et aux deux repères, qui sont le sujet. */
+.carte-trajet{height:190px;margin:14px 20px 0;border-radius:16px;overflow:hidden;
+  background:var(--filet);border:1px solid var(--filet);}
+.carte-trajet .leaflet-tile-pane{filter:saturate(.55) contrast(1.02);}
+/* Leaflet pose ses propres polices et couleurs de lien dans l'attribution ;
+   on la rend discrète sans la retirer — les données OpenStreetMap sont sous
+   licence ODbL, et la citation des contributeurs est une obligation, pas un
+   ornement. */
+.carte-trajet .leaflet-control-attribution{font-size:9px;background:rgba(255,255,255,.82);}
+.carte-trajet .leaflet-control-attribution a{color:var(--gris);}
+
 /* ═══ LE BOUTON COLLANT EST L'EXCEPTION, PLUS LE DÉFAUT ═══
    Septembre 2026, sur une capture de Barbaros : « c'est pas fonctionnel du
    tout ». Sur le bon de l'exploitant, les cinq boutons d'action flottaient
@@ -1733,6 +1749,13 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       </div>
     </div>
     <p class="trajet-mesure" id="resumeMesure"></p>
+
+    <!-- LA CARTE DU TRAJET. Elle arrive CACHÉE et ne se montre que si le
+         tracé et la bibliothèque sont là : ni le prix ni la réservation ne
+         dépendent d'elle. Un client dans un parking d'aéroport, sans réseau,
+         doit pouvoir réserver — il verra simplement la liste des prix sans
+         la carte, et rien ne bougera d'un pixel autour. -->
+    <div class="carte-trajet" id="carteTrajet" hidden aria-hidden="true"></div>
 
     <div class="veh-liste" id="listeVehicules"></div>
 
@@ -4237,7 +4260,23 @@ window.ELA_TEXTES = {
   function lireRoute(d){
     if(!(d && d.routes && d.routes[0])) throw new Error("route");
     return { km:d.routes[0].distance/1000,
-             min:Math.round(d.routes[0].duration/60), estime:false };
+             min:Math.round(d.routes[0].duration/60), estime:false,
+             /* Le tracé est pris QUAND IL EST LÀ, et son absence n'est jamais
+                une erreur : elle ne coûte que la carte, jamais le prix. */
+             trace:traceDepuisGeoJSON(d.routes[0].geometry) };
+  }
+  /* Les services rendent le tracé en « lon, lat » ; Leaflet le veut en
+     « lat, lon ». Inversé, la course part dans l'océan Indien — le même
+     piège que l'ordre des points dans l'appel à ORS, et il ne se voit pas
+     davantage. */
+  function traceDepuisGeoJSON(g){
+    if(!g || !g.coordinates || !g.coordinates.length) return null;
+    var out = [];
+    for(var i = 0; i < g.coordinates.length; i++){
+      var c = g.coordinates[i];
+      if(typeof c[0] === "number" && typeof c[1] === "number") out.push([c[1], c[0]]);
+    }
+    return out.length > 1 ? out : null;
   }
   function lireRouteORS(d){
     var s = d && d.features && d.features[0] && d.features[0].properties
@@ -4246,21 +4285,31 @@ window.ELA_TEXTES = {
        une réponse qu'on n'a pas su lire. La laisser passer ferait un prix
        au plancher sur un Paris → Roissy. */
     if(!s || typeof s.distance !== "number") throw new Error("route");
-    return { km:s.distance/1000, min:Math.round(s.duration/60), estime:false };
+    /* ORS rend le tracé SANS QU'ON LE DEMANDE : il est dans la réponse
+       qu'on lit déjà, et on le jetait. La carte ne coûte donc aucun appel
+       supplémentaire sur le niveau qui sert aujourd'hui. */
+    return { km:s.distance/1000, min:Math.round(s.duration/60), estime:false,
+             trace:traceDepuisGeoJSON(d.features[0].geometry) };
   }
 
   function itineraire(a, b){
     var couple = a.lon+","+a.lat+";"+b.lon+","+b.lat;
 
+    /* ON RÉCLAME MAINTENANT LE TRACÉ, en version SIMPLIFIÉE. C'était
+       « overview=false » — délibérément, tant que le site n'affichait aucune
+       carte : réclamer la géométrie faisait grossir la réponse pour rien. La
+       raison est tombée le jour où la carte est arrivée. « simplified »
+       plutôt que « full » : à l'échelle d'un écran de téléphone, le tracé
+       complet pèse dix fois plus pour un trait identique à l'œil. */
     function parOSRM(){
       return fetchLimite("https://router.project-osrm.org/route/v1/driving/"
-                         + couple + "?overview=false")
+                         + couple + "?overview=simplified&geometries=geojson")
         .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
         .then(lireRoute);
     }
     function parMapbox(){
       return fetchLimite("https://api.mapbox.com/directions/v5/mapbox/driving/"
-                         + couple + "?overview=false&access_token="
+                         + couple + "?overview=simplified&geometries=geojson&access_token="
                          + encodeURIComponent(CLE_MAPBOX))
         .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
         .then(lireRoute);
@@ -4328,6 +4377,124 @@ window.ELA_TEXTES = {
     });
     window.scrollTo(0, 0);
     if(window.__jugerPastilleWa) window.__jugerPastilleWa();
+  }
+
+/* =====================================================================
+   LA CARTE DU TRAJET
+   ---------------------------------------------------------------------
+   À la demande de Barbaros : « une belle carte comme Maps ». Le client voit
+   la route qu'on lui facture — c'est ce qui rend le prix compréhensible.
+
+   ELLE NE PEUT JAMAIS EMPÊCHER DE RÉSERVER. Leaflet vient d'un service
+   extérieur, les tuiles d'un autre : les deux peuvent être injoignables, et
+   le client d'un parking d'aéroport n'a parfois aucun réseau. Tout est donc
+   enveloppé, et le seul échec possible est « pas de carte ». Un prix qui
+   dépendrait du chargement d'une bibliothèque de dessin serait absurde.
+
+   ON NE CHARGE RIEN AVANT D'EN AVOIR BESOIN. Leaflet et sa feuille de style
+   partent au moment où l'écran des prix s'ouvre, jamais à l'accueil : la
+   règle du site est que l'accueil ne télécharge rien de lourd.
+
+   L'ATTRIBUTION N'EST PAS DÉCORATIVE. Les données OpenStreetMap sont sous
+   licence ODbL : les afficher sans citer les contributeurs n'est pas permis.
+   Elle est posée sur la couche de tuiles, donc impossible à oublier.
+
+   LES TUILES SONT LE POINT FAIBLE, ET IL EST CONNU. La politique de la
+   fondation OpenStreetMap déconseille l'usage commercial soutenu : elle peut
+   couper sans préavis. Le jour où « CLE_MAPBOX » est remplie, on passera aux
+   tuiles Mapbox — même bibliothèque, une ligne à changer.
+   ===================================================================== */
+  var LEAFLET_JS  = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js";
+  var LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css";
+  var promesseLeaflet = null;
+  function chargerLeaflet(){
+    if(window.L) return Promise.resolve(window.L);
+    if(promesseLeaflet) return promesseLeaflet;
+    promesseLeaflet = new Promise(function(ok, ko){
+      var css = document.createElement("link");
+      css.rel = "stylesheet"; css.href = LEAFLET_CSS;
+      document.head.appendChild(css);
+      var s = document.createElement("script");
+      s.src = LEAFLET_JS;
+      s.onload  = function(){ window.L ? ok(window.L) : ko(new Error("leaflet")); };
+      s.onerror = function(){ ko(new Error("leaflet")); };
+      document.head.appendChild(s);
+      /* UN SCRIPT BLOQUÉ NE DÉCLENCHE PAS TOUJOURS « onerror » — un proxy
+         d'entreprise, un bloqueur de publicité, un réseau qui avale la
+         requête sans la refuser : la promesse resterait en attente pour
+         toujours, et avec elle tout ce qui l'attend. Même leçon que la
+         minuterie du presse-papiers. */
+      setTimeout(function(){ ko(new Error("leaflet-delai")); }, 5000);
+    }).catch(function(e){
+      /* On oublie la promesse échouée : un client qui retrouve du réseau et
+         relance une recherche doit pouvoir réessayer. */
+      promesseLeaflet = null;
+      throw e;
+    });
+    return promesseLeaflet;
+  }
+
+  var carteTrajet = null;
+  function tracerCarte(trace, a, b){
+    var cadre = document.getElementById("carteTrajet");
+    if(!trace || !cadre){ if(cadre) cadre.hidden = true; return; }
+    chargerLeaflet().then(function(L){
+      cadre.hidden = false;
+      if(!carteTrajet){
+        carteTrajet = L.map(cadre, {
+          /* Une carte dans un tunnel de réservation se REGARDE, elle ne se
+             manipule pas : un client qui fait glisser la page avec le pouce
+             ne doit pas déplacer la carte au lieu de descendre à la liste
+             des prix. C'est le piège classique d'une carte posée au milieu
+             d'un écran qu'on parcourt. */
+          zoomControl:false, dragging:false, scrollWheelZoom:false,
+          doubleClickZoom:false, touchZoom:false, keyboard:false,
+          attributionControl:true
+        });
+        /* LE DRAPEAU DE LEAFLET S'EN VA, ET C'EST DÉJÀ ARRIVÉ UNE FOIS. La
+           version 1.9 glisse un drapeau ukrainien dans son attribution :
+           Barbaros l'avait fait retirer de l'ancien site. Un site commercial
+           n'affiche pas de position politique à l'insu de son exploitant —
+           quelle qu'elle soit, ce n'est pas au dessinateur de cartes de la
+           choisir pour lui.
+           « © OpenStreetMap » RESTE : les données sont sous licence ODbL et
+           la citation des contributeurs est une obligation, pas un ornement.
+           C'est le préfixe de la bibliothèque qu'on retire, jamais la
+           source des données. */
+        carteTrajet.attributionControl.setPrefix("");
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom:18,
+          attribution:"© OpenStreetMap"
+        }).addTo(carteTrajet);
+      }
+      if(carteTrajet.__couche) carteTrajet.removeLayer(carteTrajet.__couche);
+      var groupe = L.layerGroup().addTo(carteTrajet);
+      carteTrajet.__couche = groupe;
+      /* DEUX TRAITS SUPERPOSÉS : un large et clair dessous, l'accent dessus.
+         Un trait unique se perd sur les zones sombres du fond de plan. */
+      L.polyline(trace, { color:"#FFFFFF", weight:7, opacity:.9 }).addTo(groupe);
+      L.polyline(trace, { color:"#1F6F6B", weight:4, opacity:1 }).addTo(groupe);
+      var pastille = function(couleur){
+        return L.divIcon({ className:"",
+          html:'<span style="display:block;width:13px;height:13px;border-radius:50%;'
+             + 'background:' + couleur + ';border:2.5px solid #fff;'
+             + 'box-shadow:0 1px 4px rgba(0,0,0,.35)"></span>',
+          iconSize:[13,13], iconAnchor:[6.5,6.5] });
+      };
+      L.marker([a.lat, a.lon], { icon:pastille("#151C22"), interactive:false }).addTo(groupe);
+      L.marker([b.lat, b.lon], { icon:pastille("#1F6F6B"), interactive:false }).addTo(groupe);
+      carteTrajet.fitBounds(L.latLngBounds(trace), { padding:[22,22] });
+      /* La carte est dessinée pendant que son cadre vient d'apparaître :
+         Leaflet a mesuré une hauteur qui pouvait encore valoir zéro, et la
+         carte sort alors grise. Le même piège que la courbe du tableau de
+         bord tracée sur un écran masqué. */
+      setTimeout(function(){
+        carteTrajet.invalidateSize();
+        carteTrajet.fitBounds(L.latLngBounds(trace), { padding:[22,22] });
+      }, 60);
+    }).catch(function(){
+      cadre.hidden = true;   // pas de carte, et rien d'autre ne change
+    });
   }
 
   function dessinerGammes(){
@@ -4586,6 +4753,11 @@ window.ELA_TEXTES = {
       document.getElementById("noteNuit").hidden = !course.majoration;
       dessinerGammes();
       ecran("ecran-vehicules");
+      /* LA CARTE APRÈS L'ÉCRAN, jamais avant : Leaflet mesure son cadre au
+         moment où on la crée, et un cadre encore masqué mesure zéro — la
+         carte sortirait grise. Exactement le piège de la courbe du tableau
+         de bord, tracée sur un écran non affiché. */
+      tracerCarte(r.trace, choix.depart, choix.arrivee);
     });
   });
 

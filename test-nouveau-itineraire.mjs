@@ -158,8 +158,16 @@ check('la clé Mapbox part en « access_token »',
   r.versMapbox[0] && r.versMapbox[0].includes('access_token=pk.faux'), r.versMapbox[0]);
 check('et l\'appel demande bien un itinéraire routier',
   r.versMapbox[0] && r.versMapbox[0].includes('/directions/v5/mapbox/driving/'), r.versMapbox[0]);
-check('sans jamais réclamer le tracé, inutile ici',
-  r.versMapbox[0] && r.versMapbox[0].includes('overview=false'), r.versMapbox[0]);
+/* LE TRACÉ EST MAINTENANT RÉCLAMÉ, et en version SIMPLIFIÉE. C'était
+   « overview=false », délibérément, tant que le site n'affichait aucune
+   carte. La raison est tombée avec l'arrivée de la carte du trajet ; le
+   contrôle suit la décision au lieu de figer l'ancienne.
+   « simplified » plutôt que « full » : à l'échelle d'un écran de téléphone
+   le tracé complet pèse dix fois plus pour un trait identique à l'œil. */
+check('le tracé est réclamé, en version simplifiée',
+  r.versMapbox[0] && r.versMapbox[0].includes('overview=simplified')
+  && r.versMapbox[0].includes('geometries=geojson')
+  && !r.versMapbox[0].includes('overview=full'), r.versMapbox[0]);
 
 /* --- 5. LES TROIS NIVEAUX S'ENCHAÎNENT, sans en sauter un.
    Mapbox tombe, ORS répond : c'est ORS qui doit parler, pas OSRM et
