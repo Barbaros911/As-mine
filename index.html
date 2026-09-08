@@ -1367,6 +1367,32 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    intouchable — c'est sa reconnaissance immédiate qui le rend utile. */
 .onglet-wa{color:#128C43;}
 
+/* ═══ LA FEUILLE DE CHOIX DU BOUTON WHATSAPP ═══
+   Elle monte du bas, comme la barre d'où elle part — un panneau posé au
+   milieu de l'écran obligerait l'œil à quitter le pouce.
+   ELLE EST AU-DESSUS DE LA BARRE (z-index 60 contre 50) : une feuille qui
+   passerait dessous laisserait ses derniers choix inaccessibles, ce qui est
+   exactement le défaut qu'on vient de corriger sur « Voir mon prix ».
+   LE VOILE FERME AU CLIC, et « Annuler » aussi : sur un téléphone, on sort
+   d'une feuille en tapant à côté, et rien ne doit piéger le client dans un
+   panneau qu'il a ouvert par curiosité. */
+.feuille{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;}
+.feuille-voile{position:absolute;inset:0;background:rgba(21,28,34,.45);}
+.feuille-corps{position:relative;width:100%;max-width:520px;margin:0 auto;
+  background:var(--carte);border-radius:20px 20px 0 0;
+  padding:20px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow:0 -14px 40px rgba(22,35,43,.22);}
+.feuille-titre{margin:0 0 14px;font-size:17px;font-weight:800;
+  letter-spacing:-.015em;text-align:center;}
+.feuille-choix{display:block;width:100%;min-height:52px;margin-bottom:9px;
+  padding:0 16px;border:1px solid var(--filet);border-radius:14px;
+  background:var(--carte);color:var(--encre);font:inherit;font-size:15px;
+  font-weight:600;text-align:left;cursor:pointer;}
+.feuille-choix:active{background:var(--accent-clair);}
+.feuille-annuler{display:block;width:100%;min-height:48px;margin-top:6px;
+  border:0;background:none;color:var(--gris);font:inherit;font-size:14.5px;
+  font-weight:600;cursor:pointer;}
+
 @media (min-width:520px){
   .hero{height:430px;}
   .hero h1{font-size:37px;}
@@ -2621,16 +2647,17 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          périmée engage la responsabilité d'Elatransfer au moment où l'on
          attribue la course (L3142-1). L'enterrer dans un autre écran, c'est
          le lire le jour où il est trop tard. -->
-    <div class="panneaux">
-      <!-- LES PAPIERS QUI EXPIRENT. Ce panneau ne montre QUE ce qui appelle
-           un geste : un carnet entièrement à jour n'a rien à dire, et une
-           liste où tout est vert finit par ne plus se lire du tout. -->
-      <div class="panneau" id="panneauPapiers" hidden>
-        <div class="panneau-tete"><span class="panneau-titre">Papiers à surveiller</span></div>
-        <div id="papiersBord"></div>
-      </div>
-
-    </div>
+    <!-- ═══ LES PAPIERS DES CHAUFFEURS ONT QUITTÉ LE TABLEAU DE BORD ═══
+         Septembre 2026, à sa demande : « supprime les infos de chauffeur sur
+         le tableau de bord ». Il y sert à traiter et à créer des courses ;
+         un carnet à mettre à jour n'est pas une course.
+         LE PANNEAU N'EST PAS SUPPRIMÉ, IL A DÉMÉNAGÉ dans l'écran
+         « Chauffeurs » — voir plus bas. Une carte professionnelle ou une
+         assurance périmée engage la responsabilité d'Elatransfer au moment
+         où l'on attribue la course (L3142-1) : le retirer entièrement
+         reviendrait à ne plus rien avoir à opposer le jour d'un contrôle.
+         ET L'AVERTISSEMENT QUI COMPTE VRAIMENT N'A PAS BOUGÉ : celui du bon,
+         à l'instant de l'attribution. C'est lui qui arrête le geste. -->
 
   </section>
 
@@ -2843,8 +2870,12 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
         Calculer le prix depuis les adresses
       </button>
       <p class="bloc-note" id="crCalcul" hidden></p>
-      <p class="bloc-note" id="crGrille">Berline 2,95 €/km, minimum 30 € ·
-         Van 4,20 €/km, minimum 50 €. +20 % la nuit et le week-end.</p>
+      <!-- LA GRILLE EST ÉCRITE PAR LE CODE, PLUS À LA MAIN.
+           Elle l'était en dur, et un changement de tarif laissait ici une
+           étiquette périmée — celle sur laquelle Barbaros annonce un prix au
+           téléphone. Même règle que le prix de la pancarte : ce qui
+           s'affiche sort de la constante qui calcule. -->
+      <p class="bloc-note" id="crGrille"></p>
     </div>
 
     <!-- LE CHAUFFEUR EST FACULTATIF, et c'est voulu : un hôtel appelle, on
@@ -3127,6 +3158,19 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
         </svg>
       </button>
       <h1 class="ecran-titre">Chauffeurs</h1>
+    </div>
+
+    <!-- LES PAPIERS À SURVEILLER, VENUS DU TABLEAU DE BORD (septembre 2026,
+         à sa demande). Ils sont ici chez eux : c'est l'écran où l'on corrige
+         une date, et le geste suivant est à portée de doigt.
+         IL NE MONTRE QUE CE QUI CLOCHE. Un carnet entièrement à jour n'a rien
+         à dire, et une liste où tout est vert finit par ne plus se lire du
+         tout : sa réapparition est en elle-même l'alerte.
+         IL EST EN TÊTE D'ÉCRAN, avant le formulaire : ce qui appelle un geste
+         passe devant ce qui en attend un nouveau. -->
+    <div class="panneau" id="panneauPapiers" hidden>
+      <div class="panneau-tete"><span class="panneau-titre">Papiers à surveiller</span></div>
+      <div id="papiersBord"></div>
     </div>
 
     <div class="bloc">
@@ -3668,15 +3712,57 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          IL GARDE LE VERT DE WHATSAPP (#25D366), qui est une marque : le
          teindre à l'accent du site le rendrait méconnaissable, et c'est
          justement sa reconnaissance immédiate qui le rend utile. -->
-    <a class="onglet onglet-wa" data-onglet="whatsapp" target="_blank" rel="noopener"
-       href="https://wa.me/33759312433?text=Bonjour%2C%20j%27ai%20une%20question%20sur%20ma%20r%C3%A9servation.">
+    <!-- ═══ IL OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT ═══
+         Septembre 2026, à sa demande. Il envoyait « Bonjour, j'ai une
+         question sur ma réservation » à tout le monde : un client qui
+         voulait simplement réserver se retrouvait à effacer une phrase qui
+         n'était pas la sienne, et Barbaros recevait la même phrase de tout
+         le monde — donc aucune information.
+         CE N'EST PLUS UN LIEN MAIS UN BOUTON : il n'emmène plus directement
+         chez WhatsApp, il demande d'abord ce qu'on veut. Il garde
+         « data-onglet="whatsapp" », qui ne correspond à aucun écran et ne
+         s'allume donc jamais. -->
+    <button class="onglet onglet-wa" type="button" id="btnWa" data-onglet="whatsapp"
+            aria-haspopup="dialog">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
         <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
       </svg>
       <span>WhatsApp</span>
-    </a>
+    </button>
   </div>
 </nav>
+
+<!-- ═══ LE CHOIX QUI REMPLACE LE MESSAGE TOUT ÉCRIT ═══
+     Quatre portes, et une seule n'ouvre pas WhatsApp : « Réserver un
+     trajet » ramène au formulaire. C'est délibéré — un client qui appuie sur
+     WhatsApp pour demander « est-ce que vous faites Orly ? » n'a pas besoin
+     d'écrire, il a besoin d'un prix. Lui offrir cette porte-là au moment
+     précis où il allait poser la question, c'est une réservation de plus et
+     un message de moins.
+     LA RÉFÉRENCE DE SA DERNIÈRE COURSE EST GLISSÉE DANS LE MESSAGE quand
+     l'appareil en connaît une : sans elle, Barbaros répond « laquelle ? » et
+     perd un aller-retour, la nuit, sur dix conversations à la fois. Elle ne
+     sort pas du téléphone du client — c'est SA course, dans SON message. -->
+<div class="feuille" id="feuilleWa" hidden role="dialog" aria-modal="true"
+     aria-labelledby="feuilleWaTitre">
+  <div class="feuille-voile" data-fermer-wa></div>
+  <div class="feuille-corps">
+    <h2 class="feuille-titre" id="feuilleWaTitre" data-t="wa_titre">Comment pouvons-nous vous aider ?</h2>
+    <button class="feuille-choix" type="button" data-wa="reservation">
+      <span data-t="wa_c1">J'ai une question sur ma réservation</span>
+    </button>
+    <button class="feuille-choix" type="button" data-wa="infos">
+      <span data-t="wa_c2">Je voudrais des informations</span>
+    </button>
+    <button class="feuille-choix" type="button" data-wa="reserver">
+      <span data-t="wa_c3">Réserver un trajet</span>
+    </button>
+    <button class="feuille-choix" type="button" data-wa="appel">
+      <span data-t="wa_c4">Nous appeler</span>
+    </button>
+    <button class="feuille-annuler" type="button" data-fermer-wa data-t="wa_annuler">Annuler</button>
+  </div>
+</div>
 
 <script>
 /* =====================================================================
@@ -3807,6 +3893,15 @@ window.ELA_TEXTES = {
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
+    wa_titre:"Comment pouvons-nous vous aider ?",
+    wa_c1:"J'ai une question sur ma réservation",
+    wa_c2:"Je voudrais des informations",
+    wa_c3:"Réserver un trajet",
+    wa_c4:"Nous appeler",
+    wa_annuler:"Annuler",
+    wa_msg1:"Bonjour, j'ai une question sur ma réservation.",
+    wa_msg_ref:"Référence :",
+    wa_msg2:"Bonjour, je voudrais des informations sur vos trajets.",
     paiement_titre:"Vous payez directement votre chauffeur",
     paiement_note:"Aucun paiement en ligne nécessaire.",
     paiement_especes:"Espèces",
@@ -3938,6 +4033,15 @@ window.ELA_TEXTES = {
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
+    wa_titre:"How can we help?",
+    wa_c1:"I have a question about my booking",
+    wa_c2:"I would like some information",
+    wa_c3:"Book a ride",
+    wa_c4:"Call us",
+    wa_annuler:"Cancel",
+    wa_msg1:"Hello, I have a question about my booking.",
+    wa_msg_ref:"Reference:",
+    wa_msg2:"Hello, I would like some information about your rides.",
     paiement_titre:"You pay your chauffeur directly",
     paiement_note:"No online payment needed.",
     paiement_especes:"Cash",
@@ -4675,8 +4779,8 @@ window.ELA_TEXTES = {
      — L'ARRONDI À LA DIZAINE. Un prix rond s'annonce au téléphone, se
        retient, et se règle en espèces sans chercher la monnaie. */
   var GAMMES = [
-    { cle:"berline", nom:"Berline", parKm:2.95, mini:30, places:4 },
-    { cle:"van",     nom:"Van",     parKm:4.20, mini:50, places:7 }
+    { cle:"berline", nom:"Berline", parKm:2.35, mini:30, places:4 },
+    { cle:"van",     nom:"Van",     parKm:4.08, mini:50, places:7 }
   ];
 
   /* Nuit et week-end : +20 %. Le seuil est le même que sur le site en
@@ -5614,6 +5718,75 @@ window.ELA_TEXTES = {
    LE RÉCAPITULATIF, PUIS LE BON
    ===================================================================== */
   var NUMERO_WA = "33759312433";
+
+  /* ═══════════════════════════════════════════════════════════════════
+     LE BOUTON WHATSAPP OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT
+     -------------------------------------------------------------------
+     Septembre 2026, à sa demande. Il envoyait « Bonjour, j'ai une question
+     sur ma réservation » à TOUT LE MONDE : un client qui voulait réserver
+     effaçait une phrase qui n'était pas la sienne, et Barbaros recevait la
+     même phrase de tous — donc aucune information sur ce qu'on lui veut.
+
+     UNE PORTE SUR QUATRE N'OUVRE PAS WHATSAPP. « Réserver un trajet »
+     ramène au formulaire : quelqu'un qui appuie sur WhatsApp pour demander
+     « vous faites Orly ? » n'a pas besoin d'écrire, il a besoin d'un prix.
+
+     LA RÉFÉRENCE DE SA DERNIÈRE COURSE ENTRE DANS LE MESSAGE quand
+     l'appareil en connaît une. Sans elle, Barbaros répond « laquelle ? » et
+     perd un aller-retour, la nuit, sur dix conversations à la fois. Elle ne
+     sort pas du téléphone du client : c'est SA course, dans SON message.
+
+     WHATSAPP S'OUVRE DANS LE GESTE MÊME DU CLIC, sans le moindre « await »
+     avant — Safari iOS bloque une fenêtre ouverte après une attente. C'est
+     la règle déjà écrite pour l'envoi de la demande, et elle vaut ici.
+     ═══════════════════════════════════════════════════════════════════ */
+  var feuilleWa = document.getElementById("feuilleWa");
+
+  function ouvrirFeuilleWa(){ if(feuilleWa) feuilleWa.hidden = false; }
+  function fermerFeuilleWa(){ if(feuilleWa) feuilleWa.hidden = true; }
+
+  /* La dernière course encore en cours, s'il y en a une : c'est celle sur
+     laquelle porte une question, pas un trajet fait il y a trois mois. */
+  function derniereReference(){
+    try{
+      var vivantes = coursesEnregistrees().filter(function(c){ return !estFinie(c); });
+      return (vivantes[0] && vivantes[0].ref) || "";
+    }catch(e){ return ""; }
+  }
+
+  function messageWa(quoi){
+    var ref = derniereReference();
+    if(quoi === "reservation"){
+      return T("wa_msg1") + (ref ? " " + T("wa_msg_ref") + " " + ref : "");
+    }
+    return T("wa_msg2");
+  }
+
+  if(feuilleWa){
+    var btnWa = document.getElementById("btnWa");
+    if(btnWa) btnWa.addEventListener("click", ouvrirFeuilleWa);
+    feuilleWa.addEventListener("click", function(e){
+      if(e.target.closest("[data-fermer-wa]")){ fermerFeuilleWa(); return; }
+      var choix = e.target.closest("[data-wa]");
+      if(!choix) return;
+      var quoi = choix.getAttribute("data-wa");
+      fermerFeuilleWa();
+      if(quoi === "reserver"){
+        ecran("ecran-accueil");
+        var depart = document.getElementById("depart");
+        if(depart) setTimeout(function(){ depart.focus(); }, 60);
+        return;
+      }
+      if(quoi === "appel"){ location.href = "tel:+" + NUMERO_WA; return; }
+      window.open("https://wa.me/" + NUMERO_WA + "?text="
+                  + encodeURIComponent(messageWa(quoi)), "_blank");
+    });
+    /* Échap ferme la feuille : sur ordinateur, c'est le geste attendu, et un
+       panneau qu'on ne sait pas fermer est un panneau qui fait quitter. */
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape") fermerFeuilleWa();
+    });
+  }
   var champBagages = document.getElementById("bagages");
   var champNom = document.getElementById("clientNom");
   var champTel = document.getElementById("clientTel");
@@ -7223,28 +7396,7 @@ window.ELA_TEXTES = {
       var f = l.filter(function(c){ return c.statut === "realisee"; });
       return { nom:nom, n:l.length, f:f.length, total:bilan(f).total };
     }).sort(function(x,y){ return y.n - x.n; }).slice(0, 6);
-    /* ---- Les papiers à surveiller ----
-       On ne liste que ce qui cloche. Un carnet en règle n'affiche rien : le
-       panneau disparaît, et sa réapparition est en elle-même l'alerte. */
-    var aVoir = chauffeurs().filter(function(c){ return etatChauffeur(c) !== "ok"; });
-    var pap = document.getElementById("papiersBord");
-    document.getElementById("panneauPapiers").hidden = aVoir.length === 0;
-    pap.innerHTML = "";
-    aVoir.forEach(function(c){
-      var etat = etatChauffeur(c);
-      var d = document.createElement("div");
-      d.className = "barre-l";
-      d.innerHTML = '<div class="barre-h"><span class="p-nom"></span>'
-                  + '<b class="etat-pastille"></b></div>';
-      d.querySelector(".p-nom").textContent = c.nom || "—";
-      var b = d.querySelector(".etat-pastille");
-      b.classList.add(bloquant(etat) ? "etat-attente" : "etat-bientot");
-      b.textContent = [["Carte pro", c.carteFin], ["Registre", c.registreFin],
-                       ["Assurance", c.assuranceFin]]
-        .filter(function(p){ return etatPapier(p[1]) !== "ok"; })
-        .map(function(p){ return libellePapier(p[0], p[1]); }).join(" · ");
-      pap.appendChild(d);
-    });
+    dessinerPapiers();
 
     var corps = document.getElementById("provBord");
     document.getElementById("provVide").hidden = lignesProv.length > 0;
@@ -8253,8 +8405,25 @@ window.ELA_TEXTES = {
     document.getElementById("crVehicule").value = "berline";
     direCreer("");
   }
+  /* ═══ L'ÉTIQUETTE DE LA GRILLE SORT DE LA GRILLE ═══
+     Elle était écrite en dur sous le bouton « Calculer le prix » — et c'est
+     l'étiquette sur laquelle Barbaros annonce un montant au téléphone. Un
+     changement de tarif y laissait un prix périmé, sans que rien ne le
+     signale : le site facturait 2,35 €/km pendant que la page affichait
+     2,95. Même règle que le prix de la pancarte, pour la même raison.
+     ON ÉCRIT EN « textContent », jamais en « innerHTML » : ce sont des
+     nombres formatés par « euros() », rien qui doive devenir une balise. */
+  function ecrireGrille(){
+    var e = document.getElementById("crGrille");
+    if(!e) return;
+    e.textContent = GAMMES.map(function(g){
+      return g.nom + " " + euros(g.parKm) + "/km, minimum " + euros(g.mini);
+    }).join(" · ") + ". +20 % la nuit et le week-end.";
+  }
+
   function ouvrirCreer(){
     videCreer();
+    ecrireGrille();
     /* La date du jour est proposée : la course saisie au téléphone est
        presque toujours pour aujourd'hui ou demain. « dateLocale » et non
        « toISOString » — cette dernière rend de l'UTC, et à 1 h du matin à
@@ -8524,7 +8693,41 @@ window.ELA_TEXTES = {
     document.getElementById("btnChSupprimer").hidden = false;
   }
 
+  /* ═══ LES PAPIERS À SURVEILLER ═══
+     Septembre 2026 : ce panneau a quitté le tableau de bord pour l'écran
+     « Chauffeurs », à sa demande. Il est donc dessiné depuis DEUX endroits —
+     l'ouverture du tableau de bord et celle du carnet — et c'est exactement
+     pourquoi il vit dans sa propre fonction : deux copies du même dessin
+     finissent par diverger, et celle qu'on oublie est celle qui affiche une
+     assurance périmée comme si elle était valable.
+     ON NE LISTE QUE CE QUI CLOCHE. Un carnet en règle n'affiche rien : le
+     panneau disparaît, et sa réapparition est en elle-même l'alerte. */
+  function dessinerPapiers(){
+    var pap = document.getElementById("papiersBord");
+    var cadre = document.getElementById("panneauPapiers");
+    if(!pap || !cadre) return;
+    var aVoir = chauffeurs().filter(function(c){ return etatChauffeur(c) !== "ok"; });
+    cadre.hidden = aVoir.length === 0;
+    pap.innerHTML = "";
+    aVoir.forEach(function(c){
+      var etat = etatChauffeur(c);
+      var d = document.createElement("div");
+      d.className = "barre-l";
+      d.innerHTML = '<div class="barre-h"><span class="p-nom"></span>'
+                  + '<b class="etat-pastille"></b></div>';
+      d.querySelector(".p-nom").textContent = c.nom || "—";
+      var b = d.querySelector(".etat-pastille");
+      b.classList.add(bloquant(etat) ? "etat-attente" : "etat-bientot");
+      b.textContent = [["Carte pro", c.carteFin], ["Registre", c.registreFin],
+                       ["Assurance", c.assuranceFin]]
+        .filter(function(p){ return etatPapier(p[1]) !== "ok"; })
+        .map(function(p){ return libellePapier(p[0], p[1]); }).join(" · ");
+      pap.appendChild(d);
+    });
+  }
+
   function dessinerChauffeurs(){
+    dessinerPapiers();
     var liste = document.getElementById("chListe");
     var l = chauffeurs().slice().sort(function(a, b){
       return String(a.nom || "").localeCompare(String(b.nom || ""), "fr");

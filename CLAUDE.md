@@ -906,8 +906,8 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,95 € | 30 € |
-| Van (7 places) | 4,20 € | 50 € |
+| Berline (4 places) | 2,35 € | 30 € |
+| Van (7 places) | 4,08 € | 50 € |
 
 - **Plus de prise en charge.** Le prix n'est qu'un kilométrage : avec un
   plancher et un arrondi à la dizaine, un forfait de départ ne se voyait
@@ -2107,6 +2107,47 @@ et rien à l'écran n'aurait expliqué pourquoi.
   introuvable en ligne. Un contrôle lit les seules lignes de commande.
 - Le mode exploitant continue de suivre l'**ADRESSE**, jamais l'appareil :
   sans le paramètre on reste côté client, y compris sur son téléphone.
+- **LE MANIFESTE EST AUSSI DÉCLARÉ SUR `/exploitant/index.html`**, la page de
+  redirection (septembre 2026, après « quand je clique c'est toujours la
+  version publique qui s'affiche »). « Ajouter à l'écran d'accueil » lit le
+  manifeste de la page **affichée au moment du geste** : cette page redirige
+  en quelques millisecondes, mais rien ne garantit l'instant où le doigt
+  appuie. Sans manifeste ici, un iPhone retombe sur le site CLIENT. Le
+  **même** fichier que la page d'arrivée — deux manifestes pour un seul
+  espace se désaccorderaient au premier changement.
+- **UNE ICÔNE POSÉE AVANT LE 8 SEPTEMBRE 2026 AU SOIR POINTE SUR LE SITE
+  CLIENT, ET RIEN NE PEUT LA CORRIGER À DISTANCE.** Le manifeste n'existait
+  pas en ligne avant cette mise en ligne : le raccourci a figé
+  `start_url: "./"` à l'instant où il a été créé. Il faut **le supprimer et
+  le refaire**. Le redire si le symptôme revient — c'est la première chose à
+  vérifier, avant de chercher un défaut.
+
+### LE SERVICE WORKER RANGEAIT TOUTES LES PAGES SOUS UNE SEULE CLÉ
+
+Septembre 2026, trouvé en cherchant pourquoi l'icône ouvrait le site public.
+Ce n'était pas la cause de son symptôme, mais c'était **un vrai défaut**, et
+il ne se voit que hors ligne.
+
+`sw.js` gardait **chaque** page HTML sous `./index.html`, quelle que soit
+l'adresse demandée. Il suffisait donc d'ouvrir `/admin.html` ou
+`/exploitant/` — deux pages qui ne font **que** rediriger — pour que leur
+contenu remplace le site dans le cache. Un client hors ligne rouvrait ensuite
+elatransfer.com et tombait sur « Ouverture de l'espace exploitant… », puis
+sur l'écran du code.
+
+- **Une seule clé pour un site qui a trois pages** : la même faute que
+  `.service span span`, une règle écrite pour un cas unique le jour où il n'y
+  en avait qu'un. `admin.html` la portait depuis toujours ; `/exploitant/` l'a
+  rejointe le soir même en entrant dans `NOS_DOSSIERS`.
+- La réponse est désormais gardée **sous sa propre adresse** (`c.put(req, …)`).
+- **LE REPLI HORS LIGNE NE VAUT QUE POUR L'APPLICATION** (`estLApplication`).
+  Servir `index.html` à l'adresse `/exploitant/` casserait tous ses chemins
+  relatifs — icônes, service worker, bibliothèque de carte sont à la racine,
+  pas dans le sous-dossier. **Mieux vaut une erreur franche qu'une page à
+  moitié chargée.**
+- **LE CONTRÔLE LIT LA SOURCE**, parce que le service worker **ne s'installe
+  qu'en `https`** et reste donc injoignable depuis le serveur de test. Éprouvé
+  contre l'ancien code : les deux contrôles tombent.
 
 ### « POURQUOI CHOISIR ELATRANSFER ? » ET LES CINQ SERVICES
 
@@ -2177,6 +2218,107 @@ Professionnel · Mise à disposition.
   tombés sur une réorganisation légitime. Ils éprouvent maintenant la
   **règle**, pas la liste — même leçon que la barre du bas figée sur quatre
   onglets.
+
+### LE BOUTON WHATSAPP OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT
+
+Septembre 2026, à sa demande : « lorsqu'un client clique sur WhatsApp il doit
+avoir des choix… il ne doit pas y avoir un message pré-empli ».
+
+L'onglet envoyait « Bonjour, j'ai une question sur ma réservation » **à tout
+le monde**. Un client qui voulait simplement réserver effaçait une phrase qui
+n'était pas la sienne, et Barbaros recevait la **même** phrase de tous —
+c'est-à-dire aucune information sur ce qu'on lui veut.
+
+- **CE N'EST PLUS UN LIEN MAIS UN BOUTON** (`#btnWa`) : il n'emmène plus
+  directement chez WhatsApp, il demande d'abord. Il garde
+  `data-onglet="whatsapp"`, qui ne correspond à aucun écran et ne s'allume
+  donc jamais.
+- **QUATRE PORTES, ET UNE SEULE N'OUVRE PAS WHATSAPP.** « Réserver un
+  trajet » ramène au formulaire et pose le curseur dans le départ : quelqu'un
+  qui appuie sur WhatsApp pour demander « vous faites Orly ? » n'a pas besoin
+  d'écrire, il a besoin d'un prix. C'est une réservation de plus et un
+  message de moins. « Nous appeler » ouvre `tel:`.
+- **LA RÉFÉRENCE DE SA COURSE EN COURS ENTRE DANS LE MESSAGE** quand
+  l'appareil en connaît une (`derniereReference()`, les courses **non
+  finies** — un trajet fait il y a trois mois n'est pas le sujet). Sans elle,
+  Barbaros répond « laquelle ? » et perd un aller-retour, la nuit, sur dix
+  conversations. Elle ne sort pas du téléphone du client : c'est SA course,
+  dans SON message.
+- **`window.open` EST DANS LE GESTE DU CLIC**, sans aucun `await` avant —
+  Safari iOS bloque une fenêtre ouverte après une attente. Même règle que
+  l'envoi de la demande.
+- **LA FEUILLE EST AU-DESSUS DE LA BARRE** (z-index 60 contre 50). Une
+  feuille passant dessous laisserait ses derniers choix inaccessibles :
+  exactement le défaut corrigé le même soir sur « Voir mon prix ».
+- **LES DEUX CONTRÔLES QUI LISAIENT LE `href` SONT TOMBÉS AVEC LUI.** Ils
+  éprouvent maintenant le **chemin complet** — appuyer, choisir, et lire le
+  lien qui part. Vérifier seulement que la feuille s'ouvre laisserait passer
+  un choix qui n'envoie rien, un bouton mort au bout d'un menu.
+
+### LES PAPIERS DES CHAUFFEURS ONT QUITTÉ LE TABLEAU DE BORD
+
+Septembre 2026, à sa demande : « supprime les infos de chauffeur sur le
+tableau de bord ». Il y sert à traiter et à créer des courses ; un carnet à
+mettre à jour n'est pas une course.
+
+- **LE PANNEAU N'EST PAS SUPPRIMÉ, IL A DÉMÉNAGÉ** dans `#ecran-chauffeurs`,
+  en tête d'écran — là où l'on corrige une date, le geste suivant à portée de
+  doigt. Une carte professionnelle ou une assurance périmée engage la
+  responsabilité d'Elatransfer au moment de l'attribution (L3142-1) : le
+  retirer entièrement, ce serait n'avoir plus rien à opposer.
+- **L'AVERTISSEMENT QUI COMPTE VRAIMENT N'A PAS BOUGÉ** : celui du bon, à
+  l'instant où l'on attribue. C'est lui qui arrête le geste.
+- **`dessinerPapiers()` EST UNE FONCTION À PART**, appelée depuis
+  `dessinerBord()` **et** `dessinerChauffeurs()`. Deux copies du même dessin
+  finissent par diverger, et celle qu'on oublie est celle qui montre une
+  assurance périmée comme si elle était valable.
+- **LE CONTRÔLE ÉPROUVE LES DEUX FACES** — parti du tableau de bord, arrivé
+  dans le carnet. Un contrôle qui ne dirait que « absent du tableau de bord »
+  passerait au vert si on l'avait effacé.
+
+### LA MAJORATION DE NUIT — CE QU'IL A DEMANDÉ, ET CE QUI RESTE À TRANCHER
+
+Septembre 2026, sur une capture à 23 h 22 : « il y a un problème avec le
+prix ? C'est trop cher non, le tarif nuit est appliqué ? »
+
+**Le calcul était juste**, à la grille de l'époque : 37 km, Berline
+2,95 €/km → 109,15 € ×1,2 = 130,98 → **130 €**. **Il a fait baisser les deux
+tarifs dans la foulée** — voir juste en dessous.
+
+- **La nuit va de 21 h à 6 h**, plus **tout le samedi et tout le dimanche**
+  (`nuitOuWeekend`). C'est écrit à l'article 4 des CGV, dans les deux langues.
+- **CE QUI A ÉTÉ DIT, ET QU'IL N'A PAS ENCORE TRANCHÉ** : ce n'est pas la
+  majoration qui est chère, c'est le **tarif de base**. 110 € de jour pour
+  Argenteuil → Orly quand un concurrent facture 70 à 90 €. Et le week-end
+  **entier** à +20 % est large — un samedi après-midi n'a rien d'une course
+  de nuit.
+- **IL A TRANCHÉ LE SOIR MÊME** : « change le tarif berline à 2.35 et van
+  4.08 ». Les deux gammes nommées, deux nombres distincts — aucune
+  ambiguïté, donc rien à redemander. **La majoration et les planchers n'ont
+  pas bougé.**
+- **LES CGV N'ONT PAS EU À CHANGER, ET C'EST UN CHOIX D'ÉCRITURE ANCIEN.**
+  Elles décrivent la MÉCANIQUE (« un tarif kilométrique propre à chaque
+  gamme… ceux affichés sur le Service au moment de la réservation ») sans
+  jamais citer un nombre. Vérifié dans les deux langues avant de conclure.
+  **Ne pas y écrire de tarif chiffré** : ce serait un second endroit à tenir,
+  et le prix est opposable.
+- **L'ÉTIQUETTE DE LA PAGE « NOUVELLE COURSE » ÉTAIT ÉCRITE EN DUR**
+  (`#crGrille`) — celle sur laquelle il annonce un montant au téléphone. Un
+  changement de tarif y laissait un prix périmé sans que rien ne le signale.
+  Elle est maintenant **fabriquée depuis `GAMMES`** (`ecrireGrille()`), même
+  règle que le prix de la pancarte.
+- **LE CONTRÔLE RELIT LA GRILLE DANS LA SOURCE** plutôt que de recopier les
+  nombres : recopiés, ils déplaceraient simplement la faute dans le test.
+  Le premier jet les avait recopiés en prétendant l'inverse — corrigé.
+- **CE QUE CE CHANGEMENT A COÛTÉ EN TESTS** : dix-sept valeurs attendues dans
+  huit suites, toutes **recalculées à la main depuis la nouvelle grille**,
+  jamais recopiées de ce que la page affichait — un test qui prend la sortie
+  pour référence ne vérifie plus rien. À 24,3 km, la berline passe de 70 € à
+  **60 €** ; le van reste à **100 €**.
+- **PIÈGE PROPRE À `test-nouveau-itineraire`** : ses quatre niveaux se
+  distinguent par quatre prix DIFFÉRENTS — 30, 90, 60 et 40 € avec la
+  nouvelle grille. Vérifié qu'ils restent distincts : un tarif qui en ferait
+  coïncider deux rendrait la suite **aveugle sans qu'elle tombe**.
 
 ### LE PAIEMENT AFFIRME AVANT DE DEMANDER
 
@@ -3043,7 +3185,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt et une suites Playwright, 776 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 790 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
