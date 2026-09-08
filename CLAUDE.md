@@ -1759,10 +1759,41 @@ canal rapide.
   rétablit `default` dans un `addInitScript`. Et il **compte les appels à
   `requestPermission`** au lieu de lire l'état final : lire la permission
   ne dit pas qui l'a demandée.
-- **Le déploiement reste à faire** — il exige son compte. Tant que les
-  secrets ne sont pas posés et la fonction collée (`SUPABASE.md`), **ne pas
-  dire que les notifications marchent** : le site se comporte exactement
-  comme avant.
+- **CE N'EST PAS UN CHOIX ENTRE WHATSAPP ET LA NOTIFICATION**, et c'est une
+  décision, pas un oubli (septembre 2026, à sa demande : « il faut mettre le
+  choix me prévenir par whatsapp aussi »). Le bloc annonce **WhatsApp
+  d'abord et comme certain** — l'exploitant envoie la confirmation dans tous
+  les cas, c'est son geste « Prévenir le client » — et la notification
+  **ensuite, comme un supplément**. Laisser un client décocher WhatsApp au
+  profit de la notification lui retirerait le seul canal qui marche partout,
+  et c'est Barbaros qu'il rappellerait.
+- **LE BLOC ET LE BOUTON NE SE JUGENT PAS ENSEMBLE.** Le bloc dépend du seul
+  dépôt réussi ; le bouton, de ce que sait faire le navigateur. Les lier —
+  ce qu'ils étaient au premier jet — cachait la promesse WhatsApp à
+  **exactement** ceux qui n'ont que WhatsApp : un iPhone sans le site
+  installé, c'est-à-dire presque tous. Ils lisaient « demande reçue » sans
+  savoir par quel moyen la réponse viendrait. Une suite refait une vraie
+  réservation avec `PushManager` supprimé **avant le chargement**.
+- **Le numéro du client est écrit dans la promesse.** Ce n'est pas
+  décoratif : c'est le dernier moment où il voit qu'il a tapé un chiffre de
+  travers. `white-space:nowrap` — coupé en « 06 12 34 56 » / « 78 », il ne
+  se relit plus d'un trait.
+- **La phrase qui annonce la notification part AVEC le bouton.** Laissée
+  seule, elle promet ce qu'aucun geste ne permet plus d'obtenir — pire qu'un
+  bouton mort, parce que le client cherche où appuyer.
+- **LE DÉPLOIEMENT SE FAIT DEPUIS GITHUB** (`.github/workflows/fonctions.yml`,
+  septembre 2026). L'éditeur de code du tableau de bord Supabase **refuse le
+  collage sur iPhone** — éprouvé ce soir-là, et c'est pour ça que
+  `nouvelle-demande` est restée écrite et jamais déployée pendant des
+  semaines. Le workflow déploie les deux fonctions à chaque poussée ; il ne
+  touche pas au site, `construire.sh` reste la seule recette de publication.
+  Un seul secret GitHub à poser : `SUPABASE_ACCESS_TOKEN`.
+- **LES DEUX FONCTIONS SONT DÉPLOYÉES** depuis le 8 septembre 2026, et la
+  table `abonnements` existe avec sa policy INSERT pour `anon`. Ce qui manque
+  encore à `nouvelle-demande` : son webhook et ses propres secrets Telegram.
+- **UN JETON D'ACCÈS NE SE COLLE PAS DANS UNE CONVERSATION.** C'est arrivé —
+  jeton révoqué et refait dans la minute. Il ne va que dans les secrets
+  GitHub. Le redire si ça se represente, sans en faire un sermon.
 
 ## LE CARNET DE CHAUFFEURS ET LA FACTURE DE COMMISSION
 
@@ -1869,6 +1900,43 @@ deuxième fois que ce projet se fait avoir par un repère de positionnement
 supposé — la première était le bouton « me localiser » de l'ancien site.
 **Une règle qui vise un cas particulier survit au jour où le cas se
 généralise, sans rien casser de visible.**
+
+### ET LA TROISIÈME FOIS : LE BOUTON COLLANT DU BON EXPLOITANT
+
+Septembre 2026, sur une capture de Barbaros : « règle-moi cela, c'est pas
+fonctionnel du tout cette partie ». Les cinq boutons d'action du bon
+exploitant flottaient par-dessus le formulaire et **recouvraient le champ
+« Téléphone » du chauffeur**. Donc : pas de numéro saisissable, donc
+« Prévenir le client » ne pouvait jamais partir — et **rien à l'écran ne
+disait pourquoi**.
+
+**LA CAUSE N'ÉTAIT PAS CET ÉCRAN, C'ÉTAIT LE SENS DE LA RÈGLE.**
+`.veh-action` était **collante par défaut** (écrite pour l'écran des prix :
+UN bouton au-dessus d'une liste qu'on parcourt) et chaque écran devait
+penser à l'éteindre. Le récapitulatif le faisait, le bon du client le
+faisait, celui de l'exploitant l'avait oublié. **Trois écrans sur quatre en
+dérogation, c'est que le défaut est à l'envers.** La règle est inversée :
+posée dans le flux partout, collante sur `#ecran-vehicules` seulement. Un
+écran ajouté demain n'hérite plus du piège.
+- **`.veh-action .bouton{margin-top:0}` collait aussi les boutons entre
+  eux** : inoffensif tant qu'il n'y en avait qu'un, visible dès qu'il y en a
+  cinq. Même famille — une règle taillée pour un cas unique.
+- **LE PREMIER JET DU TEST PASSAIT AU VERT.** Il mesurait les **boutons** ;
+  le débordement venait de la **marge intérieure du conteneur** — six
+  pixels, transparents, qui avalent les appuis comme le ferait un bouton.
+  Un contrôle qui ne regarde que ce qui se voit passe à côté de ce qui gêne.
+- **IL FALLAIT AUSSI DESCENDRE DANS LA PAGE.** Un bouton collant ne remonte
+  sur le contenu que quand sa place naturelle passe sous le bas de l'écran :
+  sans `scrollIntoViewIfNeeded()` sur le champ, le contrôle ne prouvait
+  rien. C'est exactement pour ça que les suites n'avaient jamais vu le
+  défaut — elles regardaient le haut du bon.
+- **`fill()` N'EST PAS UN APPUI.** Il écrit dans le champ sans se soucier de
+  ce qui le recouvre ; `click()` exige que ce soit bien lui qui reçoive le
+  doigt. C'est la différence entre un test qui passe et un client qui
+  n'arrive pas à taper. Les deux contrôles sont là.
+- Éprouvé **contre l'ancien code** : il tombe bien dessus (`#bbActions`) et
+  passe sur le nouveau. Un test écrit après coup qui ne tombe pas sur le bug
+  d'origine ne prouve rien.
 
 ## LA BARRE DU BAS ÉTAIT FIGÉE SUR QUATRE ONGLETS
 

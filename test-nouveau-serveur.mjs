@@ -33,7 +33,7 @@ const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
-async function reserver(serveurRepond){
+async function reserver(serveurRepond, sansPush){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
@@ -78,6 +78,13 @@ async function reserver(serveurRepond){
     try{ Object.defineProperty(Notification, "permission",
       { get: () => "default", configurable: true }); }catch(e){}
   });
+  /* LE CAS DE PRESQUE TOUS LES IPHONE : le site n'est pas installé sur
+     l'écran d'accueil, donc Safari ne connaît pas « PushManager ». C'est le
+     client qu'on prévient sur WhatsApp — et c'est exactement celui à qui la
+     promesse WhatsApp ne s'affichait plus quand le bloc entier dépendait du
+     push. On le supprime AVANT le chargement : le remplacer après coup ne
+     rejouerait pas le jugement de la page. */
+  if(sansPush) await ctx.addInitScript(()=>{ delete window.PushManager; });
   await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
   await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
@@ -148,6 +155,45 @@ check('aucune autorisation n\'a été demandée d\'elle-même',
    proposer de s'abonner serait une promesse en l'air. */
 check('le bloc « Être prévenu » s\'affiche une fois la demande déposée',
   await p.locator('#blocNotif').isVisible());
+/* WHATSAPP EST ANNONCÉ D'ABORD, ET IL EST CERTAIN. La notification demande
+   au client d'installer le site sur un iPhone — presque personne ne le
+   fait. Sans cette ligne, ce client-là lisait « Être prévenu » et repartait
+   sans savoir par quoi. Le NUMÉRO y est, parce que c'est le dernier moment
+   où il peut voir qu'il a tapé un chiffre de travers. */
+check('la promesse WhatsApp est annoncée, avec le numéro du client',
+  (await p.locator('#notifWa').textContent()).includes('WhatsApp')
+  && (await p.locator('#notifWaNum').textContent()) === '06 12 34 56 78',
+  await p.locator('#notifWaNum').textContent());
+/* ET ELLE PASSE AVANT LA NOTIFICATION — l'ordre dit ce sur quoi le client
+   peut compter. Mesuré, pas relu dans le HTML : un « order » CSS suffirait
+   à inverser les deux sans que le code source le montre. */
+{
+  const wa = await p.locator('#notifWa').boundingBox();
+  const bt = await p.locator('#btnNotif').boundingBox();
+  check('elle est AU-DESSUS du bouton de notification',
+    wa.y + wa.height <= bt.y, Math.round(wa.y) + ' / ' + Math.round(bt.y));
+}
+await ctx.close();
+
+// ========== UN NAVIGATEUR QUI NE SAIT PAS RECEVOIR DE NOTIFICATION ==========
+/* Sur iPhone, tant que le site n'est pas posé sur l'écran d'accueil, il n'y
+   a pas de notification possible — et c'est le cas de la quasi-totalité des
+   clients. Le bloc portait AVANT la seule notification, et disparaissait
+   donc entièrement pour eux : ils lisaient « demande reçue » et n'avaient
+   plus aucune idée de la façon dont la réponse leur arriverait. */
+({ p, ctx } = await reserver(true, true));
+await p.waitForTimeout(1200);
+check('sans notification possible, le bloc « Être prévenu » reste affiché',
+  await p.locator('#blocNotif').isVisible());
+check('et la promesse WhatsApp aussi — c\'est le seul canal de ce client',
+  (await p.locator('#notifWa').textContent()).includes('WhatsApp'));
+check('mais le bouton disparaît : il ne pourrait rien faire',
+  !(await p.locator('#btnNotif').isVisible()));
+/* Et la phrase qui l'annonçait part avec lui. Laissée seule, elle promet
+   une notification qu'aucun geste ne permet plus d'obtenir — c'est pire
+   qu'un bouton mort, parce que le client cherche où appuyer. */
+check('et la phrase qui annonçait la notification part avec lui',
+  !(await p.locator('#notifPlus').isVisible()));
 await ctx.close();
 
 // ================= LE SERVEUR NE RÉPOND PAS =================
