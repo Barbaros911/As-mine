@@ -2526,6 +2526,16 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
           <input id="crPrix" type="number" inputmode="decimal" min="0" step="1" placeholder="70">
         </span>
       </label>
+      <!-- LE PRIX SE CALCULE, IL NE SE DEVINE PAS. Un hôtel appelle, on
+           annonce un montant de tête — et chez Elatransfer le prix est
+           FERME, donc opposable : annoncé trop bas, il faut le tenir. Le
+           site sait déjà calculer, autant qu'il le fasse.
+           IL RESTE MODIFIABLE : c'est une négociation, pas un tarif imposé.
+           On propose, Barbaros tranche. -->
+      <button class="bouton-fantome" type="button" id="btnCalculerPrix">
+        Calculer le prix depuis les adresses
+      </button>
+      <p class="bloc-note" id="crCalcul" hidden></p>
       <p class="bloc-note" id="crGrille">Berline 2,95 €/km, minimum 30 € ·
          Van 4,20 €/km, minimum 50 €. +20 % la nuit et le week-end.</p>
     </div>
@@ -7197,6 +7207,75 @@ window.ELA_TEXTES = {
     ecran("ecran-bord");
     dessinerBord();
     allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+
+/* ---------------------------------------------------------------------
+   CALCULER LE PRIX D'UNE COURSE PRISE AU TÉLÉPHONE
+   ---------------------------------------------------------------------
+   Le prix d'Elatransfer est FERME, donc opposable : un montant annoncé de
+   tête à un hôtel, trop bas, il faut le tenir. Le site sait déjà chercher
+   une adresse, calculer un itinéraire et appliquer la grille — c'est le
+   même chemin que côté client, et c'est ce qui garantit qu'on annonce le
+   MÊME prix que le site aurait donné.
+
+   ON MONTRE LES ADRESSES RETENUES, ET ON NE DÉCIDE PAS À SA PLACE. La
+   recherche rend le premier résultat ; si ce n'est pas le bon Ibis, le
+   kilométrage est faux et le prix avec. Les deux champs sont donc réécrits
+   avec ce qui a servi au calcul : Barbaros voit ce sur quoi il annonce un
+   montant, et retape si ça ne va pas.
+
+   LE PRIX RESTE MODIFIABLE. C'est une négociation, pas un tarif imposé : on
+   propose, il tranche.
+   --------------------------------------------------------------------- */
+  function premierLieu(saisie){
+    return chercher(saisie).then(function(res){ return (res && res[0]) || null; });
+  }
+  document.getElementById("btnCalculerPrix").addEventListener("click", function(){
+    var bouton = this;
+    var note = document.getElementById("crCalcul");
+    var dep = document.getElementById("crDepart").value.trim();
+    var arr = document.getElementById("crArrivee").value.trim();
+    var dire = function(t){ note.hidden = false; note.textContent = t; };
+    if(!dep || !arr){ dire("Écrivez d'abord le départ et l'arrivée."); return; }
+    bouton.disabled = true;
+    dire("Recherche des adresses…");
+    Promise.all([premierLieu(dep), premierLieu(arr)]).then(function(r){
+      var a = r[0], b = r[1];
+      if(!a || !b){
+        /* On NOMME celle qui manque : « adresse introuvable » sur deux
+           champs oblige à tout reprendre. */
+        dire("Adresse introuvable : " + (!a ? "le départ" : "l'arrivée")
+             + ". Précisez-la (ville, code postal).");
+        bouton.disabled = false;
+        return;
+      }
+      document.getElementById("crDepart").value  = a.label;
+      document.getElementById("crArrivee").value = b.label;
+      dire("Calcul de l'itinéraire…");
+      return itineraire(a, b).then(function(it){
+        var gamme = GAMMES.filter(function(g){
+          return g.cle === document.getElementById("crVehicule").value;
+        })[0] || GAMMES[0];
+        /* La majoration suit la date et l'heure SAISIES, pas l'instant
+           présent : une course prise à 2 h du matin pour mardi midi n'est
+           pas une course de nuit. */
+        var maj = nuitOuWeekend(document.getElementById("crDate").value,
+                                document.getElementById("crHeure").value);
+        var p = prix(gamme, it.km, maj);
+        document.getElementById("crPrix").value = p;
+        dire(a.label + " → " + b.label + " · "
+             + (it.estime ? "≈ " : "")
+             + it.km.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " km · "
+             + gamme.nom + (maj ? " · nuit ou week-end +20 %" : "")
+             + " → " + eurosFR(p) + (it.estime ? " (distance estimée)" : ""));
+        bouton.disabled = false;
+      });
+    }).catch(function(){
+      /* UN CALCUL QUI ÉCHOUE NE DOIT PAS BLOQUER LA SAISIE : il reste le
+         prix écrit à la main, qui a toujours marché. */
+      dire("Le calcul n'a pas abouti — écrivez le prix à la main.");
+      bouton.disabled = false;
+    });
   });
 
   document.getElementById("btnCreerCourse").addEventListener("click", function(){
