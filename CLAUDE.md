@@ -1471,6 +1471,16 @@ ordinateur** — c'est pour ça qu'il a fallu qu'il les signale.
 - **RIEN DE TOUT ÇA NE TOURNE AUJOURD'HUI** : `CLE_MAPBOX` est vide, il n'a
   pas de compte. Le code est écrit et éprouvé, la marche à suivre est dans
   `MAPBOX.md`, et c'est le seul geste qui lui revient.
+- **IL A REPOUSSÉ LE SUJET (septembre 2026) — « laisse tomber pour
+  l'instant ».** Mapbox lui a demandé sa carte bancaire à l'inscription et
+  il n'a pas voulu la donner. **Ne pas le relancer là-dessus.** Ce qui a été
+  dit, et qui reste vrai le jour où il y revient : Mapbox crée un jeton
+  public **automatiquement** à l'inscription, avant la question du paiement
+  — il suffit d'aller le chercher sur `account.mapbox.com` ; et **TomTom**
+  fait la même chose (itinéraire avec trafic réel) **sans carte**, 2 500
+  appels par jour, ce serait un quatrième niveau à brancher exactement comme
+  Mapbox. Le site n'en souffre pas : la marge de 5 à 10 minutes posée sur la
+  durée couvre déjà une bonne part de ce que le trafic apporterait.
 
 ### LA DURÉE ANNONCÉE PORTE UNE MARGE — FOURCHETTE DE +5 À +10 MINUTES
 
