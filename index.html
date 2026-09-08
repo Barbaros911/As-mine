@@ -4370,6 +4370,36 @@ window.ELA_TEXTES = {
     return date + "T" + heure;
   }
 
+  /* ═══ LA DURÉE ANNONCÉE PORTE UNE MARGE, ET C'EST UNE FOURCHETTE ═══
+     Septembre 2026, à sa demande : « il faut que le temps de trajet soit une
+     estimation de 5-10 minutes plus longue ».
+
+     CE QUE RENDENT LES CALCULATEURS EST UN TEMPS DE ROULAGE, PAS UN TEMPS DE
+     COURSE. Il ne compte ni la sortie du parking, ni les bagages, ni les
+     deux minutes à chercher le client devant un terminal — et pas non plus
+     le feu qu'on rate. Annoncer ce temps-là sec, c'est promettre une heure
+     d'arrivée qu'on tient une fois sur deux, et chez Elatransfer l'heure
+     engage comme le prix.
+
+     UNE FOURCHETTE, PAS UN NOMBRE UNIQUE. Un chiffre seul se lit comme une
+     promesse ; « 43–48 min » se lit comme ce que c'est, une estimation. Et
+     une marge FIXE de dix minutes serait absurde sur un trajet court —
+     12 min deviendraient 22, presque le double. La fourchette laisse voir
+     l'ordre de grandeur de l'incertitude au lieu de le cacher.
+
+     ELLE NE TOUCHE PAS AU PRIX. Le prix est un kilométrage : la durée n'y
+     entre pas, et un client qui arrive plus tôt que l'estimation ne paie pas
+     moins. C'est ce qui permet d'être prudent ici sans être malhonnête là.
+
+     ON GARDE `course.min` BRUT. La marge est posée à l'AFFICHAGE, pas dans
+     la donnée : sinon un jour où l'on rangerait la durée sur le bon, elle
+     partirait déjà majorée, et une deuxième marge s'ajouterait à la
+     première sans que personne ne le voie. */
+  var MARGE_DUREE_MIN = 5, MARGE_DUREE_MAX = 10;
+  function dureeAnnoncee(min){
+    return { bas:min + MARGE_DUREE_MIN, haut:min + MARGE_DUREE_MAX };
+  }
+
   function itineraire(a, b, quand){
     var couple = a.lon+","+a.lat+";"+b.lon+","+b.lat;
 
@@ -4658,8 +4688,15 @@ window.ELA_TEXTES = {
   function dessinerGammes(){
     var liste = document.getElementById("listeVehicules");
     var pax = Math.max(1, parseInt(champPax.value, 10) || 1);
-    var arrivee = new Date(new Date(champDate.value+"T"+champHeure.value).getTime()
-                           + course.min*60000);
+    /* Deux heures d'arrivée, les deux bouts de la fourchette. Voir
+       « dureeAnnoncee » : ce qu'on annonce n'est pas le temps de roulage. */
+    var duree  = dureeAnnoncee(course.min);
+    var depart = new Date(champDate.value+"T"+champHeure.value).getTime();
+    var arrBas = new Date(depart + duree.bas*60000);
+    var arrHaut= new Date(depart + duree.haut*60000);
+    var hhmmLoc = function(d){
+      return d.toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"});
+    };
     liste.innerHTML = "";
     course.gamme = null;
     majBoutonContinuer();
@@ -4677,18 +4714,23 @@ window.ELA_TEXTES = {
       b.type = "button";
       b.className = "veh-carte";
       b.dataset.cle = g.cle;
-      var heureArrivee = isNaN(arrivee.getTime()) ? "" :
-        (" · " + T("arrivee_h") + " "
-         + arrivee.toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"}));
+      var heureArrivee = isNaN(arrBas.getTime()) ? "" :
+        (" · " + T("arrivee_h") + " " + hhmmLoc(arrBas) + "–" + hhmmLoc(arrHaut));
       b.innerHTML = '<span class="veh-corps">'
         +   '<span class="veh-nom"></span>'
         +   '<span class="veh-detail"></span>'
         + '</span>'
         + '<span class="veh-prix"></span>';
       b.querySelector(".veh-nom").textContent = g.nom;
+      /* LA DURÉE A QUITTÉ LA CARTE, et ce n'est pas une perte : elle est
+         IDENTIQUE sur les quatre lignes — c'est la même route — et elle est
+         déjà écrite au-dessus, sur la ligne du trajet. Ce qui change d'une
+         carte à l'autre, c'est le prix et le nombre de places. En fourchette,
+         « 43–48 min · arrivée 10:43–10:48 » ne tenait plus sur une ligne de
+         téléphone, et c'est l'HEURE D'ARRIVÉE que le client regarde : c'est
+         elle qu'il compare à l'heure d'enregistrement de son vol. */
       b.querySelector(".veh-detail").textContent =
-        T("jusqua") + " " + g.places + " " + T("passagers_bas")
-        + " · " + course.min + " " + T("min") + heureArrivee;
+        T("jusqua") + " " + g.places + " " + T("passagers_bas") + heureArrivee;
       b.querySelector(".veh-prix").textContent = (course.estime ? "≈ " : "") + euros(p);
       b.addEventListener("click", function(){
         course.gamme = g;
@@ -4914,9 +4956,10 @@ window.ELA_TEXTES = {
          un temps théorique ; l'écrire quand même ferait de cette mention
          une décoration, et un client qui se fie à une heure d'arrivée la
          vérifie une fois. */
+      var dv = dureeAnnoncee(r.min);
       document.getElementById("resumeMesure").textContent =
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
-        + " km · " + r.min + " " + T("min")
+        + " km · " + dv.bas + "–" + dv.haut + " " + T("min")
         + (r.trafic ? " · " + T("trafic") : "");
       document.getElementById("noteNuit").hidden = !course.majoration;
       dessinerGammes();

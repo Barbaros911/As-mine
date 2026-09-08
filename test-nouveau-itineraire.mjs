@@ -110,8 +110,9 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
   const brut   = (await p.locator('.veh-prix').first().textContent()).replace(/\s/g,'');
   const prix   = brut.replace(/^≈/,'');
   const mesure = await p.locator('#resumeMesure').textContent();
+  const detail = await p.locator('.veh-detail').first().textContent();
   await ctx.close();
-  return { prix, prixEstime: brut.startsWith('≈'), mesure, appels,
+  return { prix, prixEstime: brut.startsWith('≈'), mesure, detail, appels,
            versMapbox: appels.filter(u=>u.includes('mapbox')),
            versORS:    appels.filter(u=>u.includes('openrouteservice')),
            versOSRM:   appels.filter(u=>u.includes('osrm')) };
@@ -129,6 +130,32 @@ check('la course n\'est pas marquée « ≈ »', !r.mesure.includes('≈') && !r
 check('les points sont envoyés en lon,lat, dans le bon sens',
   r.versORS[0] && r.versORS[0].includes('start=2.3376,48.8606')
                && r.versORS[0].includes('end=2.2467,48.9478'), r.versORS[0]);
+
+/* ═══ LA DURÉE ANNONCÉE PORTE UNE MARGE DE 5 À 10 MINUTES ═══
+   À sa demande. Ce que rendent les calculateurs est un temps de ROULAGE :
+   il ne compte ni la sortie du parking, ni les bagages, ni les deux minutes
+   à chercher le client devant un terminal. Annoncé sec, on promet une heure
+   d'arrivée qu'on tient une fois sur deux — et chez Elatransfer l'heure
+   engage comme le prix.
+
+   LE TEST NE RECALCULE PAS LA MARGE, il lit un chiffre attendu. ORS rend ici
+   2 700 s, soit 45 min : la page doit afficher « 50–55 min », et JAMAIS
+   « 45 min ». Un contrôle qui referait l'addition passerait au vert même si
+   la marge disparaissait des deux côtés. */
+check('la durée est annoncée en fourchette, majorée de 5 à 10 min',
+  r.mesure.includes('50–55 min'), r.mesure);
+check('et le temps de roulage brut n\'est jamais montré tel quel',
+  !/\b45 min\b/.test(r.mesure), r.mesure);
+/* L'HEURE D'ARRIVÉE SUIT LA MÊME FOURCHETTE. Départ 10:00 + 50 et + 55 min.
+   C'est elle que le client compare à l'heure d'enregistrement de son vol :
+   si elle et la durée se désaccordaient, c'est l'heure qui ferait foi pour
+   lui, et elle serait fausse. */
+check('l\'heure d\'arrivée de la carte porte la même fourchette',
+  r.detail.includes('10:50–10:55'), r.detail);
+/* LE PRIX NE BOUGE PAS D'UN CENTIME : il est un kilométrage, la durée n'y
+   entre pas. Un client qui arrive plus tôt que l'estimation ne paie pas
+   moins — c'est ce qui permet d'être prudent sur l'heure sans être
+   malhonnête sur le montant. Le 120,00 € ci-dessus est le contrôle. */
 
 /* --- 2. LE RATTRAPAGE, le contrôle qui compte le plus.
    ORS tombe — quota épuisé, clé reprise par un tiers, panne. Le site NE
