@@ -2107,6 +2107,47 @@ et rien à l'écran n'aurait expliqué pourquoi.
   introuvable en ligne. Un contrôle lit les seules lignes de commande.
 - Le mode exploitant continue de suivre l'**ADRESSE**, jamais l'appareil :
   sans le paramètre on reste côté client, y compris sur son téléphone.
+- **LE MANIFESTE EST AUSSI DÉCLARÉ SUR `/exploitant/index.html`**, la page de
+  redirection (septembre 2026, après « quand je clique c'est toujours la
+  version publique qui s'affiche »). « Ajouter à l'écran d'accueil » lit le
+  manifeste de la page **affichée au moment du geste** : cette page redirige
+  en quelques millisecondes, mais rien ne garantit l'instant où le doigt
+  appuie. Sans manifeste ici, un iPhone retombe sur le site CLIENT. Le
+  **même** fichier que la page d'arrivée — deux manifestes pour un seul
+  espace se désaccorderaient au premier changement.
+- **UNE ICÔNE POSÉE AVANT LE 8 SEPTEMBRE 2026 AU SOIR POINTE SUR LE SITE
+  CLIENT, ET RIEN NE PEUT LA CORRIGER À DISTANCE.** Le manifeste n'existait
+  pas en ligne avant cette mise en ligne : le raccourci a figé
+  `start_url: "./"` à l'instant où il a été créé. Il faut **le supprimer et
+  le refaire**. Le redire si le symptôme revient — c'est la première chose à
+  vérifier, avant de chercher un défaut.
+
+### LE SERVICE WORKER RANGEAIT TOUTES LES PAGES SOUS UNE SEULE CLÉ
+
+Septembre 2026, trouvé en cherchant pourquoi l'icône ouvrait le site public.
+Ce n'était pas la cause de son symptôme, mais c'était **un vrai défaut**, et
+il ne se voit que hors ligne.
+
+`sw.js` gardait **chaque** page HTML sous `./index.html`, quelle que soit
+l'adresse demandée. Il suffisait donc d'ouvrir `/admin.html` ou
+`/exploitant/` — deux pages qui ne font **que** rediriger — pour que leur
+contenu remplace le site dans le cache. Un client hors ligne rouvrait ensuite
+elatransfer.com et tombait sur « Ouverture de l'espace exploitant… », puis
+sur l'écran du code.
+
+- **Une seule clé pour un site qui a trois pages** : la même faute que
+  `.service span span`, une règle écrite pour un cas unique le jour où il n'y
+  en avait qu'un. `admin.html` la portait depuis toujours ; `/exploitant/` l'a
+  rejointe le soir même en entrant dans `NOS_DOSSIERS`.
+- La réponse est désormais gardée **sous sa propre adresse** (`c.put(req, …)`).
+- **LE REPLI HORS LIGNE NE VAUT QUE POUR L'APPLICATION** (`estLApplication`).
+  Servir `index.html` à l'adresse `/exploitant/` casserait tous ses chemins
+  relatifs — icônes, service worker, bibliothèque de carte sont à la racine,
+  pas dans le sous-dossier. **Mieux vaut une erreur franche qu'une page à
+  moitié chargée.**
+- **LE CONTRÔLE LIT LA SOURCE**, parce que le service worker **ne s'installe
+  qu'en `https`** et reste donc injoignable depuis le serveur de test. Éprouvé
+  contre l'ancien code : les deux contrôles tombent.
 
 ### « POURQUOI CHOISIR ELATRANSFER ? » ET LES CINQ SERVICES
 
@@ -3043,7 +3084,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt et une suites Playwright, 776 contrôles**, à relancer après **toute**
+**Vingt et une suites Playwright, 780 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :

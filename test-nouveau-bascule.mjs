@@ -332,6 +332,18 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
   const secours = (brutX.match(/id="secours"\s+href="([^"]+)"/) || [])[1];
   check('le lien de secours remonte d\'un dossier',
     /^\.\.\/index\.html/.test(secours || ''), String(secours));
+
+  /* LE MANIFESTE EST DÉCLARÉ SUR LA PAGE DE REDIRECTION ELLE-MÊME.
+     « Ajouter à l'écran d'accueil » lit le manifeste de la page AFFICHÉE au
+     moment du geste. Cette page redirige en quelques millisecondes, mais
+     rien ne garantit l'instant où le doigt appuie — sans manifeste ici, un
+     iPhone retomberait sur le SITE CLIENT, et c'est exactement le symptôme
+     que Barbaros a signalé. */
+  const mfX = (brutX.match(/rel="manifest"\s+href="([^"]+)"/) || [])[1];
+  check('« /exploitant/ » déclare le manifeste de l\'espace',
+    /manifest-exploitant\.webmanifest$/.test(mfX || ''), String(mfX));
+  check('et il remonte d\'un dossier lui aussi',
+    /^\.\.\//.test(mfX || ''), String(mfX));
   await cx.close();
 }
 
@@ -387,6 +399,29 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
       .map(e=>e.getAttribute('data-ecran') || e.getAttribute('href')));
   check('et aucun lien visible n\'y conduit', menent.length === 0, menent.join(', '));
   await cx.close();
+}
+
+/* =====================================================================
+   LE SERVICE WORKER NE RANGE PLUS TOUTES LES PAGES SOUS UNE SEULE CLÉ
+   ---------------------------------------------------------------------
+   Il gardait CHAQUE page HTML sous « ./index.html », quelle que soit
+   l'adresse demandée. Il suffisait donc d'ouvrir « /admin.html » ou
+   « /exploitant/ » — deux pages qui ne font QUE rediriger — pour que leur
+   contenu remplace le site dans le cache : un client hors ligne rouvrait
+   ensuite le site et tombait sur « Ouverture de l'espace exploitant… »,
+   puis sur l'écran du code.
+   ON LIT LA SOURCE : le service worker ne s'installe qu'en « https », il
+   est donc injoignable depuis le serveur de test. Un contrôle qui ne peut
+   pas s'exécuter vaut mieux qu'aucun contrôle, à condition de lire ce qui
+   décide — ici la clé d'écriture et le repli.
+   ===================================================================== */
+{
+  const sw = await (await fetch('http://127.0.0.1:8099/sw.js')).text();
+  const commandes = sw.split('\n').filter(l => !/^\s*(\/\*|\*|\/\/)/.test(l)).join('\n');
+  check('le service worker garde chaque page sous SA propre adresse',
+    /c\.put\(req,\s*copy\)/.test(commandes) && !/c\.put\("\.\/index\.html"/.test(commandes));
+  check('et le repli hors ligne ne vaut que pour l\'application',
+    /estLApplication/.test(commandes));
 }
 
 await b.close();
