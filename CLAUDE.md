@@ -2067,6 +2067,52 @@ et rien à l'écran n'aurait expliqué pourquoi.
 - Le mode exploitant continue de suivre l'**ADRESSE**, jamais l'appareil :
   sans le paramètre on reste côté client, y compris sur son téléphone.
 
+### L'ADRESSE DE L'EXPLOITANT EST « /exploitant/ »
+
+Septembre 2026, sur sa relecture : « ça ne doit absolument pas être présenté
+au client comme une partie du site public », et sa solution — deux adresses,
+`elatransfer.com` pour les clients, `elatransfer.com/exploitant` pour lui.
+
+- **CE QU'IL DÉCRIT N'EST PAS CE QUE VOIT UN CLIENT — MESURÉ.** Aucun écran
+  de l'espace n'est à l'écran côté client, `.admin-nav` est à `display:none`
+  hors de `body.espace`, et **aucun lien visible n'y conduit**. Deux
+  contrôles le verrouillent, et ils **mesurent des rectangles** plutôt que
+  de relire le CSS : une règle d'affichage se casse sans bruit, il suffit
+  d'un sélecteur trop large ou d'une classe posée trop tôt.
+- **CE QU'IL A VU EST LE FICHIER, ET LÀ IL A RAISON** : les deux espaces
+  vivent dans le même `index.html`. Un client télécharge donc **~190 Ko de
+  back-office sur 523 Ko** — 37 % de la page — et le lit dans la source.
+  Ce n'est pas une fuite de données (les courses sont sur le serveur,
+  derrière la RLS) mais c'est du poids et une mauvaise impression.
+- **`/exploitant/` EST UN RACCOURCI, PAS UN SECOND SITE.** `exploitant/index.html`
+  redirige vers `index.html?exploitant=1`, exactement comme `admin.html`.
+  **Ne jamais dupliquer `index.html`** : un second exemplaire divergerait au
+  premier correctif. `admin.html` reste valide — des liens sont déjà partis
+  avec.
+- **`../` ET PAS `./`** : cette page vit dans un SOUS-DOSSIER. Le chemin
+  relatif d'un raccourci se lit depuis l'endroit où il est posé, pas depuis
+  celui où il mène ; recopié de `admin.html`, il boucle sur lui-même. Un
+  contrôle lit le lien **dans la source**, pas dans la page ouverte : la
+  redirection part en quelques millisecondes et un `getElementById` arrivé
+  après rend `null` — **un contrôle qui accepte `null` ne vérifie plus rien**.
+- **`construire.sh` DOIT COPIER LE DOSSIER**, et le contrôle cherche
+  `cp -r exploitant`, **pas le mot « exploitant »** : il est déjà dans
+  `manifest-exploitant.webmanifest`, copié deux lignes plus haut, et le
+  contrôle serait passé au vert la ligne retirée. Même faute que le premier
+  jet du contrôle de `carte/`. Éprouvé en supprimant la ligne : il tombe.
+- `exploitant` et `carte` sont entrés dans les noms **réservés** de
+  `construire.sh` (un site vitrine ainsi nommé écraserait le raccourci) et
+  dans `NOS_DOSSIERS` de `sw.js` (sinon le service worker le traite comme un
+  site voisin et ne le garde jamais).
+- **CE QUI RESTE À FAIRE, ET QU'IL FAUT LUI MONTRER AVANT** : la vraie
+  séparation, où `construire.sh` **retire** les écrans exploitant du
+  `index.html` publié aux clients et sert le fichier entier sous
+  `/exploitant/`. Une seule source, deux sorties — pas deux fichiers à
+  tenir. Ce n'est pas un travail de nuit : la saisie de course de
+  l'exploitant partage le calcul du prix avec le client, et **deux calculs
+  de prix qui divergent ne se voient pas** — on le découvre le jour où un
+  client compare, sur un prix ferme donc opposable.
+
 ### LE TABLEAU DE BORD NE SERT PLUS QU'À TRAITER ET À CRÉER
 
 Septembre 2026, à sa demande : « laisse le tableau de bord seulement pour le
