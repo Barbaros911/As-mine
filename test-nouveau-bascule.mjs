@@ -110,6 +110,41 @@ check('chaque fichier du cache existe vraiment — « addAll » est tout ou rien
 check('« styles.css » n\'est plus dans le cache : il est parti avec l\'ancien site',
   !shell.includes('styles.css'));
 
+/* =====================================================================
+   TOUT CE QUE LA PAGE CHARGE DOIT ÊTRE PUBLIÉ
+   ---------------------------------------------------------------------
+   Barbaros : « je ne vois pas la carte s'afficher ». La bibliothèque de
+   carte vit maintenant dans le dépôt, et « construire.sh » ne publie QUE ce
+   qui y est nommé — c'est sa force, et c'est aussi son piège : un fichier
+   oublié dans la liste marche parfaitement en local, où le serveur de test
+   sert le dépôt entier, et reste introuvable en ligne.
+   ON VÉRIFIE DONC LA RECETTE, pas seulement la page. Chercher les fichiers
+   sur le serveur local ne prouverait rien : ils y sont de toute façon.
+   ===================================================================== */
+{
+  const brut = await (await p.request.get('http://127.0.0.1:8099/construire.sh')).text();
+  /* ON NE LIT QUE LES COMMANDES, JAMAIS LES COMMENTAIRES. Le premier jet
+     cherchait le mot dans le fichier entier : mes propres commentaires
+     parlaient de « carte », le contrôle passait au vert avec la ligne de
+     copie retirée — éprouvé. Un test qui trouve ce qu'il cherche dans une
+     phrase d'explication ne vérifie rien. */
+  const recette = brut.split('\n')
+    .filter(l => !/^\s*#/.test(l) && /\bcp\b/.test(l)).join('\n');
+  const html = await (await p.request.get('http://127.0.0.1:8099/index.html')).text();
+  /* Les chemins relatifs que la PAGE va chercher d'elle-même : on lit ce
+     qu'elle demande plutôt que d'écrire une liste à tenir à jour. */
+  const demandes = [...new Set([...html.matchAll(/"\.\/([A-Za-z0-9_\-/.]+\.(?:js|css|png|svg|webmanifest))"/g)]
+    .map(m => m[1]))];
+  const oublies = demandes.filter(f => {
+    const dossier = f.includes('/') ? f.split('/')[0] : f;
+    return !recette.includes(dossier);
+  });
+  check('« construire.sh » publie TOUT ce que la page va chercher',
+    oublies.length === 0, oublies.join(', ') || 'rien d\'oublié');
+  check('la bibliothèque de carte est bien COPIÉE, pas seulement mentionnée',
+    /\bcarte\b/.test(recette), recette.replace(/\n/g,' ; ').slice(0,120));
+}
+
 // ---- L'ancien site n'est plus servi ----
 // Le garder en ligne laisserait une page trouvable qui annonce une GRILLE
 // PÉRIMÉE, et chez Elatransfer le prix est ferme donc opposable.

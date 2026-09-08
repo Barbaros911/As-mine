@@ -4424,8 +4424,21 @@ window.ELA_TEXTES = {
    couper sans préavis. Le jour où « CLE_MAPBOX » est remplie, on passera aux
    tuiles Mapbox — même bibliothèque, une ligne à changer.
    ===================================================================== */
-  var LEAFLET_JS  = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js";
-  var LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css";
+  /* ═══ LA BIBLIOTHÈQUE EST DANS LE DÉPÔT, PLUS CHEZ UN TIERS ═══
+     Barbaros : « je ne vois pas la carte s'afficher ». Elle venait d'un CDN,
+     avec une minuterie de 5 s sur son chargement — 147 Ko à récupérer chez
+     un serveur étranger, connexion à établir, sur un téléphone en 4G. Cinq
+     secondes, c'était court. Et le délai serré ne protégeait RIEN : personne
+     n'attend la carte, le prix est déjà affiché quand elle arrive.
+     Servie depuis le site lui-même, elle n'a plus ni DNS, ni poignée de main
+     TLS, ni serveur tiers à joindre. Elle devient aussi cachable par le
+     service worker — même origine, réponse complète — donc disponible hors
+     ligne dès la deuxième visite, ce qu'une réponse opaque de CDN ne permet
+     pas. Et plus personne d'extérieur ne peut changer ce code sous nos pieds.
+     `carte/` DOIT être copié par « construire.sh » : sans cette ligne la
+     carte est introuvable en ligne alors qu'elle marche en local. */
+  var LEAFLET_JS  = "./carte/leaflet.js";
+  var LEAFLET_CSS = "./carte/leaflet.css";
   var promesseLeaflet = null;
   function chargerLeaflet(){
     if(window.L) return Promise.resolve(window.L);
@@ -4443,8 +4456,15 @@ window.ELA_TEXTES = {
          d'entreprise, un bloqueur de publicité, un réseau qui avale la
          requête sans la refuser : la promesse resterait en attente pour
          toujours, et avec elle tout ce qui l'attend. Même leçon que la
-         minuterie du presse-papiers. */
-      setTimeout(function(){ ko(new Error("leaflet-delai")); }, 5000);
+         minuterie du presse-papiers.
+         QUINZE SECONDES, ET NON CINQ. Le premier jet copiait le réflexe des
+         appels d'itinéraire, où une réponse lente retarde le PRIX. Ici rien
+         n'attend : le prix est déjà à l'écran quand la carte arrive. Une
+         minuterie serrée n'y protégeait donc rien et coupait un chargement
+         qui allait aboutir — sur un téléphone en 4G, c'est exactement ce qui
+         s'est passé. Elle ne sert plus qu'à ne pas laisser une promesse en
+         suspens pour toujours. */
+      setTimeout(function(){ ko(new Error("leaflet-delai")); }, 15000);
     }).catch(function(e){
       /* On oublie la promesse échouée : un client qui retrouve du réseau et
          relance une recherche doit pouvoir réessayer. */

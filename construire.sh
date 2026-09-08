@@ -26,6 +26,15 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
+# LA BIBLIOTHÈQUE DE CARTE, SERVIE PAR LE SITE LUI-MÊME. Elle venait d'un
+# CDN ; Barbaros ne voyait pas la carte s'afficher, et une minuterie de 5 s
+# coupait un chargement qui allait aboutir sur un téléphone en 4G.
+# CETTE LIGNE EST LE POINT DE RUPTURE : sans elle, la carte fonctionne
+# parfaitement en local — où le serveur de test sert tout le dépôt — et reste
+# introuvable en ligne, où seul ce qui est nommé ici existe. Un contrôle de
+# « test-nouveau-bascule.mjs » vérifie que le fichier est bien dans la liste.
+cp -r carte site/carte
+
 # L'ANCIEN SITE N'EST PLUS PUBLIÉ, et ce n'est pas un oubli. Le garder en
 # ligne « au cas où » laisserait une page trouvable — par un lien partagé,
 # un signet, un résultat de recherche — qui annonce une GRILLE DE PRIX
