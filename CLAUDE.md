@@ -1149,6 +1149,62 @@ les six textes — la forme survit à une reformulation, pas la formule.
   remettre de champs vides en attendant — les ajouter le jour où il donne
   les vraies valeurs, et pas avant.
 
+## LA PAGE HÔTEL — DEMANDÉE, ANALYSÉE, PAS ENCORE DÉCIDÉE
+
+Septembre 2026. Il a apporté un cahier des charges tout écrit pour une page
+`easyhotel-tremblay.html` : départ figé, sept destinations en menu, forfaits
+au lieu du kilométrage, un seul bouton WhatsApp, pour qu'une réception
+réserve en moins de trente secondes. **Le cadrage est bon** — c'est
+exactement ce qu'une réception peut faire entre deux clients. **Rien n'a été
+construit** : trois points ont été soulevés, il doit trancher.
+
+**1. easyHotel n'est PAS un partenaire** (voir plus haut, « Conseils déjà
+donnés »). Publier une page à leur nom, avec leur adresse et le mot
+« partenariat », utiliserait la marque d'un tiers pour une relation qui
+n'existe pas. **À confirmer avant tout le reste.**
+
+**2. LA GRILLE FORFAITAIRE PROPOSÉE LE FAIT PERDRE DE L'ARGENT SUR LE VAN.**
+Comparé à ce que le site facture depuis le passage à 2,35 / 4,08 €/km
+(distances approximatives — le calculateur est injoignable depuis cette
+machine, à refaire exactement avant toute décision) :
+
+| Van, de jour | Sa page | Le site | Écart |
+|---|---|---|---|
+| Orly | 125 € | ~180 € | **−55 €** |
+| Disneyland | 120 € | ~160 € | **−40 €** |
+| Beauvais | 240 € | ~290 € | **−50 €** |
+
+En berline c'est l'inverse — il est au-dessus partout, ce qui est normal pour
+un canal hôtel qui prend une commission. **Sauf Orly : 100 € sur la page,
+~110 € sur le site.** Un client d'hôtel ouvre elatransfer.com en dix secondes.
+
+**3. CE SERAIT LA DEUXIÈME GRILLE DE PRIX DU PROJET**, et c'est la faute
+évitée deux fois déjà : le calcul de l'espace exploitant réutilise
+volontairement celui du client parce que **deux calculs qui divergent ne se
+voient pas**. Il a changé ses tarifs le soir même ; une grille figée dans une
+page à part serait périmée à la décision suivante.
+
+**CE QUI MANQUE DANS LE CAHIER DES CHARGES POUR QU'UNE RÉSERVATION SOIT
+EXPLOITABLE** — ce ne sont pas des détails, chacun casse une course :
+- **aucune date** : à 23 h, « 6 h 00 » c'est quel jour ?
+- **aucun téléphone** : le chauffeur à 5 h du matin appelle qui ?
+- **rien n'arrive sur le serveur**, WhatsApp seulement : un envoi raté depuis
+  la tablette de la réception et la réservation n'existe nulle part. C'est
+  exactement le défaut corrigé deux jours plus tôt.
+- **la provenance est perdue**, donc on ne saurait pas ce que l'hôtel
+  rapporte — alors que c'est toute la raison d'être de l'affiche QR.
+- **« berline 1–3 / van 4–7 »** : la berline fait **4** places. Un groupe de
+  quatre paierait un van là et une berline sur le site.
+- **le préavis de 15 minutes n'existe pas** sur cette page.
+
+**CE QUI A ÉTÉ PROPOSÉ À LA PLACE : un MODE HÔTEL du site existant**, pas une
+page autonome. `?h=<nom>` préremplit déjà le départ ; il ne manque que les
+destinations fermées et les forfaits. On garde un seul code, un seul dépôt
+serveur, la provenance, le délai — et **la grille hôtel vit à un seul
+endroit**, à côté de l'autre. Une page autonome voudrait dire un second
+logo, un second jeu de couleurs et une seconde grille à tenir, plus une
+ligne de plus dans `construire.sh` sous peine de 404.
+
 ## Ce qui reste à faire
 
 **Fait au 6 septembre 2026, ne pas le refaire** : optimisation mobile,
