@@ -926,7 +926,8 @@ pas une refonte.
   plancher. Arrondir avant de majorer redonne un prix qui n'est plus une
   dizaine ; majorer après le plancher ferait payer 36 € une course
   annoncée à 30 €. Le plancher a le dernier mot.
-- Le reste inchangé : +20 % nuit et week-end, TVA 10 % incluse, prix ferme,
+- **IL N'Y A PLUS DE MAJORATION DU TOUT** (septembre 2026) — voir la
+  section dédiée plus bas. Le reste inchangé : TVA 10 % incluse, prix ferme,
   zone de 90 km autour de Paris.
 - Barbaros écrit souvent **« van » là où il veut dire « berline »** — trois
   fois de suite sur cette grille. Ne pas deviner sur un prix : demander.
@@ -1153,7 +1154,12 @@ les six textes — la forme survit à une reformulation, pas la formule.
   remettre de champs vides en attendant — les ajouter le jour où il donne
   les vraies valeurs, et pas avant.
 
-## LA PAGE HÔTEL — DEMANDÉE, ANALYSÉE, PAS ENCORE DÉCIDÉE
+## LA PAGE HÔTEL — L'ANALYSE QUI A PRÉCÉDÉ (FAITE DEPUIS)
+
+> **Elle est construite.** Voir « LE MODE HÔTEL — LA GRILLE D'UN PARTENAIRE,
+> DANS LE MÊME FICHIER » plus bas, qui dit ce qui existe aujourd'hui. La
+> section ci-dessous garde l'analyse qui a mené à la décision — utile pour
+> comprendre d'où elle vient, pas pour savoir ce que fait le site.
 
 Septembre 2026. Il a apporté un cahier des charges tout écrit pour une page
 `easyhotel-tremblay.html` : départ figé, sept destinations en menu, forfaits
@@ -2556,6 +2562,154 @@ demande — c'est-à-dire avant de voir son travail. Mesuré à 390 px :
   et « Encaissé cette semaine ». Ne pas y toucher sans qu'il le redemande —
   la duplication coûte peu maintenant qu'elle tient sur une ligne.
 
+## IL N'Y A PLUS DE MAJORATION DE NUIT NI DE WEEK-END
+
+Septembre 2026, à sa demande : « supprime la majoration nuit 20 % sur le
+site ». Le prix d'une course ne dépend plus **que** de la distance et de la
+gamme : le même trajet vaut le même prix un mardi à 10 h, un samedi midi et
+à 3 h du matin.
+
+- **C'est la suite de sa propre remarque**, faite sur une capture à 23 h 22
+  (« c'est trop cher non ? »). Ce n'était pas la majoration qui était chère,
+  c'était le tarif de base ; il avait d'abord baissé les deux tarifs
+  kilométriques (2,35 et 4,08 €/km), il supprime maintenant la majoration.
+  Le week-end **entier** à +20 % était de toute façon large : un samedi
+  après-midi n'a rien d'une course de nuit. La note « il n'a pas encore
+  tranché » qui figurait plus haut est donc tranchée.
+- **La question a été posée avant de couper** : la nuit seulement, ou la
+  nuit ET le week-end ? Réponse : **tout**. Ne pas réintroduire la moitié en
+  croyant compléter.
+- Ce qui a disparu : `nuitOuWeekend()`, le paramètre `majoration` de
+  `prix()`, le calcul de `course.majoration`, l'écriteau `#noteNuit` côté
+  site, la clé de traduction `nuit` dans les deux langues, la mention
+  « +20 % la nuit et le week-end » de l'étiquette de la page « Nouvelle
+  course », et le rappel « nuit ou week-end +20 % » de son écriteau de
+  calcul.
+- **CE QUI RESTE, ET CE N'EST PAS UN OUBLI** : le champ `majoration` des
+  courses enregistrées, désormais toujours faux. Il est écrit dans
+  l'historique déjà stocké sur l'appareil et sur le serveur ; le retirer
+  rendrait illisible une partie de ces courses. Même raison que les alias
+  des anciens noms de gammes.
+- **LES CGV ONT SUIVI, DANS LES DEUX LANGUES.** L'article 4 décrivait un
+  +20 % qui ne s'applique plus. Des CGV qui annoncent une formation du prix
+  différente de celle appliquée sont **pires qu'aucunes CGV** : le prix est
+  ferme donc opposable, et le client y trouverait un argument contre nous.
+  Elles disent maintenant qu'aucune majoration de nuit, de week-end ni de
+  jour férié ne s'applique.
+- **LE TARIF NUIT DU FLYER easyHotel N'EST PAS CONCERNÉ** et reste en place
+  (+5 € de 21 h à 6 h, sans week-end). Ce n'est pas la même chose : l'une
+  était une majoration en pourcentage sur un tarif kilométrique, l'autre est
+  une colonne de prix **imprimée sur un papier posé à une réception**. Le
+  jour où quelqu'un lira « il n'y a plus de majoration » dans ce fichier,
+  cette grille-là n'est pas concernée.
+- **Le contrôle qui compte est celui de `test-nouveau-exploitant`** : à 23 h
+  et un samedi midi, le prix ne bouge pas. Éprouvé en réintroduisant la
+  majoration — les deux contrôles tombent (70 € au lieu de 60). Une
+  majoration qui revient en silence ne se voit pas : le prix s'affiche, il
+  est simplement plus élevé d'un cinquième.
+
+## LE MODE HÔTEL — LA GRILLE D'UN PARTENAIRE, DANS LE MÊME FICHIER
+
+Septembre 2026, à sa demande, à partir du flyer easyHotel qu'il a fait
+imprimer. Une réception réserve entre deux arrivées : elle lit la ligne du
+papier posé sur son comptoir, elle appuie dessus, elle annonce le prix.
+
+**CE N'EST PAS UNE PAGE À PART, ET C'EST LA DÉCISION QUI STRUCTURE TOUT.**
+La question lui a été posée ; il a choisi l'écran dans `index.html`. Une
+page autonome aurait voulu dire un second logo, un second jeu de couleurs,
+une seconde grille — et surtout **tout à réécrire dedans** : le dépôt sur le
+serveur, la provenance, le préavis de 15 minutes, la date, le téléphone, les
+suites de tests. Une réception qui rate son envoi WhatsApp depuis sa
+tablette, et la réservation n'existe nulle part — c'est exactement le défaut
+corrigé quelques jours plus tôt. Ici : même fichier, même tunnel, même
+dépôt ; seule l'ENTRÉE change. Rien à ajouter à `construire.sh`, et c'est
+l'un des gains.
+
+- **L'adresse est `?h=easyhotel-aeroville`.** `?h=` servait déjà à l'affiche
+  QR d'un hôtel quelconque ; il reconnaît maintenant d'abord un
+  **partenaire connu** (par sa clé, son nom ou ses alias) et ouvre l'écran
+  de réception. Un hôtel non partenaire garde le comportement d'origine —
+  son nom va dans le champ de départ, rien d'autre ne change. Un test
+  verrouille les deux chemins.
+- **LA GRILLE EST CELLE DU PAPIER, AU CENTIME**, et c'est le seul endroit du
+  dépôt où recopier des nombres dans un test est juste : le flyer est la
+  référence, l'écran est le copiste. Berline / Van, jour / nuit, sept
+  destinations. **Ne jamais « corriger » ces montants** pour les rapprocher
+  du kilométrage : sur les longues courses le van est **volontairement**
+  moins cher que le site, c'est un prix d'appel pour décrocher l'hôtel,
+  tranché par Barbaros.
+- **LA NUIT DU FLYER : +5 €, de 21 h à 6 h, SANS week-end** (`nuitHotel`).
+  C'est la seule majoration qui subsiste dans tout le projet.
+- **CE QU'IL A CHANGÉ EN VOYANT LE FLYER** (septembre 2026) : le supplément
+  van de 10 € est **supprimé**, l'aéroport CDG en berline passe de 25 à
+  **35 € de jour et 40 € de nuit**, et les capacités s'alignent sur le site
+  — **berline 4 places, van 7**, alors que le papier annonce 1–3 et 4–7.
+  **Le flyer imprimé est donc périmé sur ces trois points** : à lui de le
+  refaire avant de le distribuer.
+- **LE NUMÉRO DE TÉLÉPHONE DU FLYER SEMBLE FAUX** : il y est écrit
+  `07591312433`, soit **onze chiffres** ; le sien en a dix,
+  `07 59 31 24 33`. Un « 1 » en trop après « 0759 ». Signalé ; à vérifier
+  avant toute impression, sinon personne ne peut l'appeler.
+- **LE FORFAIT VAUT DANS LES DEUX SENS**, à sa demande. Et l'échange des
+  deux champs est **réel**, pas une inversion au moment de l'envoi : c'est
+  ce qui fait que tout le reste tombe juste sans une ligne de plus — le
+  numéro de chambre ne s'ouvre que sur un hôtel au DÉPART (un client qui
+  arrive n'a pas encore de chambre), le numéro de vol prend sa formulation
+  d'arrivée, et la pancarte n'est proposée que sur une prise en charge en
+  aéroport, c'est-à-dire exactement ce retour-là.
+- **« AUTRE DESTINATION » EST LA SORTIE**, et il l'a demandée. Sans elle,
+  une réception qui envoie un client à Versailles rouvre le site public et
+  **la provenance est perdue** — on ne saurait plus ce que l'hôtel rapporte,
+  qui est toute la raison de cette page. Elle rend la main au calcul
+  kilométrique ordinaire, et elle le **dit**.
+- **« PARIS » N'EST PAS UNE ADRESSE**, c'est une ville de dix kilomètres de
+  large. Le forfait de 80 € s'affiche d'emblée — c'est ce que la réception
+  annonce pendant qu'elle saisit — mais il **tombe** si l'adresse retenue
+  est à plus de 7 km du centre : un « Versailles » tapé là vendrait 45 km au
+  prix de 10. On mesure la distance au centre et **pas le code postal**, qui
+  n'est qu'un morceau de libellé écrit différemment selon la source.
+- **LE TERMINAL VIENT DE `AEROPORTS`**, la table que le site tient déjà pour
+  la recherche d'adresse. Deux listes de terminaux finiraient par diverger,
+  et c'est celle qu'on oublie qui enverrait la voiture au mauvais bout de
+  Roissy. Le libellé reprend **exactement** la forme du site (« Terminal 2E
+  — Aéroport… ») : c'est elle que lit `terminalDuLibelle`, et c'est elle qui
+  ouvre le champ « numéro de vol » et l'option pancarte. Un aéroport à un
+  seul terminal (Beauvais) n'affiche pas le menu — on ne fait pas choisir
+  entre une seule chose.
+- **LES COORDONNÉES DE L'HÔTEL SONT DEMANDÉES À LA BASE ADRESSE
+  NATIONALE**, comme n'importe quelle adresse du site. Celles écrites dans
+  `HOTELS` ne sont qu'un **secours** pour une réception hors ligne. Elles ne
+  changent aucun forfait — ils sont fixes — mais elles font le kilométrage
+  d'« autre destination ». Le test donne au faux service des coordonnées
+  **différentes** du secours et lit l'URL envoyée au calculateur : c'est la
+  seule façon de savoir laquelle des deux a servi. Même leçon que le faux
+  GPS de la géolocalisation.
+- **LA GRILLE NE SORT PAS DANS GOOGLE** : `robots.txt` écarte `?h=`, et la
+  page **réécrit** sa propre balise `robots` en `noindex`. On la RÉÉCRIT, on
+  n'en ajoute pas une seconde : la page en porte déjà une, et deux consignes
+  contradictoires dans la même en-tête ne se découvrent qu'en voyant la page
+  rester dans les résultats des semaines plus tard. Un contrôle vérifie
+  qu'il n'y en a **qu'une**, et un autre que le site public garde « index » —
+  poser `noindex` sur le site ordinaire le sortirait de Google en entier.
+- **LES ONGLETS « RÉSERVATIONS » ET « TRAJETS » RESTENT.** Ils avaient été
+  masqués — la tablette d'un comptoir est un appareil partagé, et ces listes
+  y accumulent les noms, téléphones et adresses de tous les clients passés
+  devant. Mais le QR du flyer est aussi scanné par les **clients**, sur leur
+  propre téléphone : les masquer leur retirait l'accès à leur réservation.
+  Le mal certain était plus grand que le mal possible. **Si la tablette de
+  la réception est vraiment partagée, la réponse est la navigation privée**,
+  pas un onglet caché.
+- **`hotelNom` ÉTAIT DÉJÀ PRIS** par le champ de l'affiche QR, dans l'espace
+  exploitant. Deux éléments pour un identifiant, et `getElementById` rend le
+  premier venu. Même faute que `btnNouvelleCourse`. Un contrôle cherche
+  désormais **tous** les identifiants en double de la page.
+- **LES CGV DÉCRIVENT LE FORFAIT PARTENAIRE**, dans les deux langues : il
+  remplace le calcul kilométrique, il n'est ni arrondi ni soumis au montant
+  minimum, sa majoration de nuit lui est propre, et toute destination hors
+  grille revient au kilométrage. Toucher à un prix veut dire toucher aux
+  CGV.
+- `test-nouveau-hotel.mjs`, 61 contrôles.
+
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
 Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
@@ -3059,8 +3213,10 @@ gratuite et automatique, et seulement en aéroport.
 - **LES 10 € S'AJOUTENT EN DERNIER**, après l'arrondi et le plancher. Entrés
   avant l'arrondi ils disparaîtraient une fois sur deux : 46 + 10 = 56 redescend
   à 60, et le client paierait **14 €** une option annoncée 10.
-- **Pas de majoration nuit dessus** : service à prix fixe. +20 % ferait payer
-  12 € une pancarte affichée 10.
+- **Pas de majoration dessus** : service à prix fixe. Il n'y a de toute
+  façon plus aucune majoration sur le site depuis septembre 2026, mais la
+  règle resterait vraie si l'on en réintroduisait une — une pancarte
+  affichée 10 € se paie 10 €.
 - **Une option qu'on ne voit plus ne se paie plus.** Changer son départ pour une
   adresse ordinaire reprend les 10 € — sinon il paierait un service qu'on ne
   peut plus lui rendre, sans même voir la ligne.
@@ -3269,7 +3425,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt et une suites Playwright, 790 contrôles**, à relancer après **toute**
+**Vingt-deux suites Playwright, 849 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
@@ -3304,7 +3460,8 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
          test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
-         test-nouveau-carte.mjs test-nouveau-bascule.mjs; do
+         test-nouveau-carte.mjs test-nouveau-bascule.mjs \
+         test-nouveau-hotel.mjs; do
   printf "%-34s " "$f"
   out=$(node $f 2>&1)
   res=$(echo "$out" | grep -E "^=== " | tr '\n' ' ')

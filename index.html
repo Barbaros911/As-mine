@@ -1393,6 +1393,60 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   border:0;background:none;color:var(--gris);font:inherit;font-size:14.5px;
   font-weight:600;cursor:pointer;}
 
+/* ═══════════════════════════════════════════════════════════════════════
+   LE MODE HÔTEL — L'ÉCRAN D'UNE RÉCEPTION, PAS CELUI D'UN CLIENT
+   -----------------------------------------------------------------------
+   Une réception réserve entre deux arrivées : elle n'a que faire du
+   bandeau d'accroche, des cinq services, des quatre engagements ni du
+   pied de page. Ils sont MASQUÉS, pas supprimés — c'est le même fichier
+   que le site public, et il n'y en aura jamais deux.
+   LES DEUX ONGLETS DE LISTES RESTENT, ET C'EST UN ARBITRAGE.
+   Ils ont d'abord été masqués : la tablette d'un comptoir est un appareil
+   PARTAGÉ, et « Réservations » y accumule les courses — donc les noms, les
+   téléphones et les adresses — de tous les clients passés devant.
+   Mais le QR du flyer est aussi scanné par les CLIENTS, sur LEUR téléphone :
+   les masquer leur retirait l'accès à leur propre réservation, et c'est un
+   client qui rappelle pour demander ce qu'il a déjà. Le mal certain était
+   plus grand que le mal possible. À signaler à Barbaros : si la tablette
+   de la réception est vraiment partagée, la réponse n'est pas de cacher un
+   onglet, c'est de la mettre en navigation privée — le stockage est alors
+   vidé à chaque fermeture.
+   ═══════════════════════════════════════════════════════════════════════ */
+body.hotel .hero,
+body.hotel .promesse,
+body.hotel .section,
+body.hotel .pied{display:none;}
+body.hotel .reserver{margin-top:0;}
+
+.hotel-tete{margin:0 0 14px;padding:16px 16px 14px;border-radius:18px;
+  background:var(--noir);color:#fff;}
+.hotel-tete .hotel-sur{margin:0;font-size:11.5px;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--accent-vif);}
+.hotel-tete .hotel-nom{margin:4px 0 0;font-size:21px;font-weight:700;
+  line-height:1.2;}
+.hotel-tete .hotel-adresse{margin:3px 0 0;font-size:13px;color:#C9D4D2;}
+/* LES DEUX SENS SE VALENT — c'est le même forfait dans un sens comme dans
+   l'autre. Deux boutons de même poids, donc, et aucun n'est « le bon » :
+   une réception fait partir un client le matin et en récupère un le soir. */
+.hotel-sens{display:flex;gap:6px;margin-top:12px;padding:4px;
+  border-radius:13px;background:rgba(255,255,255,.10);}
+.hotel-sens-btn{flex:1 1 0;min-height:40px;border:0;border-radius:10px;
+  background:none;color:#D5DEDC;font:inherit;font-size:13.5px;font-weight:600;
+  cursor:pointer;}
+.hotel-sens-btn.actif{background:#fff;color:var(--encre);}
+/* L'ADRESSE DE L'HÔTEL EST MONTRÉE, PAS CACHÉE. C'est elle qui part chez
+   le chauffeur : une réception doit pouvoir vérifier d'un coup d'œil que
+   la voiture vient bien chez elle. Grisée parce qu'elle ne se modifie pas
+   ici — le départ est figé, c'est tout l'intérêt de la page. */
+.champ.fige{background:var(--fond);}
+.champ.fige input{color:var(--gris);}
+/* Le prix se rattache au menu qui est AU-DESSUS de lui. Collé au bloc
+   suivant, il se lisait comme le prix du terminal — d'où cette marge basse
+   plus grande que la haute : c'est elle qui dit à quoi la ligne appartient. */
+.hotel-forfait{margin:6px 2px 14px;font-size:13px;font-weight:700;
+  color:var(--accent-encre);}
+.hotel-libre{margin:6px 2px 0;font-size:12.5px;color:var(--gris);}
+
 @media (min-width:520px){
   .hero{height:430px;}
   .hero h1{font-size:37px;}
@@ -1531,6 +1585,25 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 
   <section class="ecran actif" id="ecran-accueil">
 
+  <!-- ═══ L'EN-TÊTE DU MODE HÔTEL ═══
+       Il ne s'affiche que sur « ?h=<hôtel partenaire> ». Il dit trois
+       choses, et chacune évite une course ratée : de quel hôtel on parle,
+       à quelle ADRESSE le chauffeur doit venir, et dans quel sens va le
+       trajet. Le nom seul ne suffit pas — plusieurs easyHotel entourent
+       Roissy, et un chauffeur envoyé au mauvais à 5 h du matin fait rater
+       un vol. -->
+  <section class="hotel-tete" id="hotelTete" hidden>
+    <p class="hotel-sur" data-t="hotel_sur">Tarifs partenaires</p>
+    <p class="hotel-nom" id="hotelTeteNom"></p>
+    <p class="hotel-adresse" id="hotelTeteAdresse"></p>
+    <div class="hotel-sens" role="group" data-t-aria="hotel_sens_aria" aria-label="Sens du trajet">
+      <button type="button" class="hotel-sens-btn actif" data-sens="depuis"
+              aria-pressed="true" data-t="hotel_depuis">Départ de l'hôtel</button>
+      <button type="button" class="hotel-sens-btn" data-sens="vers"
+              aria-pressed="false" data-t="hotel_vers">Arrivée à l'hôtel</button>
+    </div>
+  </section>
+
   <section class="hero">
     <div class="hero-image"></div>
     <div class="hero-texte">
@@ -1658,7 +1731,7 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          le client voit un bouton qui ne répond pas sans savoir pourquoi. -->
     <p class="refus" id="refus" hidden></p>
 
-    <div class="champ-bloc">
+    <div class="champ-bloc" id="blocDepart">
       <label class="champ" for="depart">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
@@ -1718,7 +1791,53 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
       <p class="champ-aide" data-t="chambre_aide">Transmis au chauffeur : il vient vous chercher sans attendre à la réception.</p>
     </div>
 
-    <div class="champ-bloc">
+    <!-- ═══ LES SEPT DESTINATIONS DU FLYER ═══
+         Une réception ne cherche pas une adresse : elle lit la ligne du
+         flyer posé sur son comptoir et elle appuie dessus. Le menu porte
+         exactement les sept destinations imprimées, dans l'ordre du papier,
+         et le forfait s'affiche sous le menu — c'est le montant qu'elle
+         annonce au client de vive voix, il ne doit pas être à chercher.
+         « AUTRE DESTINATION » EST LA SORTIE, et elle n'est pas un détail :
+         un client d'hôtel va aussi à Versailles ou à Vincennes. Sans elle,
+         la réception rouvre le site public et perd la provenance — on ne
+         saurait plus ce que l'hôtel rapporte, qui est toute la raison de
+         cette page. Elle rend la main au calcul kilométrique ordinaire,
+         et elle le DIT. -->
+    <div id="blocDest" hidden>
+      <label class="champ" for="hotelDest">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
+          <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre" id="titreDest" data-t="hotel_destination">Destination</span>
+          <select id="hotelDest"></select>
+        </span>
+      </label>
+      <p class="hotel-forfait" id="destForfait" hidden></p>
+      <p class="hotel-libre" id="destLibre" hidden></p>
+    </div>
+
+    <!-- LE TERMINAL, POUR LES TROIS AÉROPORTS SEULEMENT.
+         Les terminaux de Roissy sont à plusieurs kilomètres les uns des
+         autres : « Aéroport CDG » ne suffit pas à un chauffeur. Le forfait,
+         lui, ne bouge pas d'un terminal à l'autre — c'est le prix du flyer.
+         Un aéroport qui n'a qu'un terminal (Beauvais) n'affiche pas ce
+         menu : on ne fait pas choisir entre une seule chose. -->
+    <div id="blocTerminal" hidden>
+      <label class="champ" for="hotelTerminal">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
+                fill="#1F6F6B"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre" data-t="hotel_terminal">Terminal</span>
+          <select id="hotelTerminal"></select>
+        </span>
+      </label>
+    </div>
+
+    <div class="champ-bloc" id="blocArrivee">
       <label class="champ" for="arrivee">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
@@ -2138,8 +2257,10 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
     <div class="veh-liste" id="listeVehicules"></div>
 
     <!-- Le prix est ferme : on le dit là où le client le lit, pas dans les
-         CGV. La majoration nuit et week-end apparaît seulement quand elle
-         s'applique — une mention permanente finit par ne plus être lue. -->
+         CGV. Il n'y a plus aucune majoration sur le site depuis septembre
+         2026 — même prix à toute heure et tous les jours ; la ligne
+         ci-dessus ne parle plus que du tarif nuit d'un flyer partenaire, et
+         elle n'apparaît que quand il s'applique. -->
     <!-- L'OPTION EST SOUS LA SÉLECTION DU VÉHICULE, à sa demande : c'est
          l'écran où l'on choisit ce qu'on achète, et une option découverte
          deux écrans plus loin ressemble à un supplément glissé au dernier
@@ -2169,7 +2290,10 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
          offertes après l'atterrissage, même si votre vol a du retard.</p>
     </div>
 
-    <p class="veh-note" id="noteNuit" hidden data-t="nuit">Majoration nuit et week-end de 20 % appliquée.</p>
+    <!-- Il n'y a plus de majoration sur le site : cette ligne ne parle plus
+         que du tarif nuit d'un flyer partenaire, et elle reste donc cachée
+         sur toute course ordinaire. -->
+    <p class="veh-note" id="noteNuit" hidden data-t="nuit_hotel">Tarif nuit (21 h – 6 h) appliqué.</p>
     <p class="veh-note" data-t="tva_note">Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.</p>
 
     <div class="veh-action">
@@ -3799,6 +3923,14 @@ window.ELA_TEXTES = {
     geo_echec:"Impossible de vous localiser. Saisissez l'adresse.",
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
+    /* ---- LE MODE HÔTEL ---- */
+    hotel_sur:"Tarifs partenaires", hotel_destination:"Destination",
+    hotel_terminal:"Terminal", hotel_sens_aria:"Sens du trajet",
+    hotel_depuis:"Départ de l'hôtel", hotel_vers:"Arrivée à l'hôtel",
+    hotel_autre:"Autre destination…", hotel_nuit:"tarif nuit",
+    hotel_au_km:"Autre destination : le prix est calculé à la distance, comme sur le site.",
+    hotel_hors_forfait:"Cette adresse n'est pas dans Paris : le prix repasse au calcul à la distance.",
+    nuit_hotel:"Tarif nuit (21 h – 6 h) appliqué.",
     chambre_aide:"Transmis au chauffeur : il vient vous chercher sans attendre à la réception.",
     vol:"Numéro de vol", ph_vol:"Ex. AF1234",
     train:"Numéro de train", ph_train:"Ex. TGV 6201",
@@ -3828,7 +3960,6 @@ window.ELA_TEXTES = {
     srv3:"Gare", srv3s:"Gares de Paris et d'Île-de-France",
     srv4:"Professionnel", srv4s:"Clients, collaborateurs, rendez-vous",
     srv5:"Mise à disposition", srv5s:"Chauffeur à l'heure · Paris, Disneyland",
-    nuit:"Majoration nuit et week-end de 20 % appliquée.",
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
@@ -3913,7 +4044,7 @@ window.ELA_TEXTES = {
     legal_cgv:"Conditions générales de vente",
     legal_mentions:"Mentions légales",
     legal_privacy:"Politique de confidentialité",
-    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 6 septembre 2026\n\n1. Objet et champ d'application\nLes présentes conditions générales de vente (CGV) régissent toute réservation de prestation de transport de personnes avec chauffeur (VTC) effectuée via le site ou l'application Elatransfer (ci-après « le Service »), conclue entre le Client et Elatransfer, dont les coordonnées figurent dans les Mentions légales. Toute réservation implique l'acceptation sans réserve des présentes CGV.\n\n2. Prestations proposées\nElatransfer propose des prestations de transport de personnes avec chauffeur, d'une adresse de départ à une adresse d'arrivée. Les mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service : ils s'organisent par téléphone ou par WhatsApp, et font l'objet d'un accord distinct sur le prix avant toute exécution. Elatransfer agit en qualité de plateforme de mise en relation entre le Client et des chauffeurs VTC et taxis professionnels indépendants, chacun titulaire de sa propre carte professionnelle, de son assurance et des autorisations requises pour exercer son activité de transport de personnes.\n\n3. Formation de la réservation\nLa demande de réservation est transmise par le Client via WhatsApp depuis le récapitulatif généré par le Service. Elle ne vaut pas réservation ferme : le contrat n'est formé qu'à compter de la confirmation expresse adressée par Elatransfer au Client, une fois un chauffeur affecté à la course. Tant que cette confirmation n'a pas été reçue, aucune prestation n'est due. Le Client s'engage à fournir des informations exactes (nom, téléphone, adresses, nombre de passagers et de bagages) ; Elatransfer ne saurait être tenue responsable d'un défaut d'exécution résultant d'informations erronées communiquées par le Client.\n\n4. Prix\nLes prix sont exprimés en euros, toutes taxes comprises (TTC), TVA sur le transport de personnes incluse au taux en vigueur. Le prix est calculé automatiquement à partir de la distance de l'itinéraire, selon un tarif kilométrique propre à chaque gamme de véhicule, majoré de 20 % la nuit (21 h – 6 h) ainsi que le samedi et le dimanche. Le montant obtenu est arrondi à la dizaine d'euros. Un montant minimum par course s'applique quelle que soit la distance parcourue. Le tarif kilométrique, la majoration et le montant minimum en vigueur sont ceux affichés sur le Service au moment de la réservation. Des options facultatives peuvent s'ajouter à ce montant : elles ne sont jamais présélectionnées, leur prix est affiché avant tout choix, et il est inclus dans le total présenté au Client. L'accueil avec un panneau au nom du Client, proposé lors des prises en charge en aéroport ou en gare, est une option facturée 10 € TTC. Il est affiché et accepté par le Client avant la course : il est ferme et n'est pas recalculé à l'arrivée.\n\n5. Paiement\nLe règlement de la course s'effectue directement auprès du chauffeur, à bord du véhicule, en espèces ou par carte bancaire. Le Client indique son mode de règlement au moment de la réservation ; cette indication engage Elatransfer à ce que le chauffeur se présente en mesure de l'accepter. Aucun paiement n'est encaissé par le Service : aucune donnée bancaire du Client n'est collectée, transmise ni conservée. Le chauffeur remet au Client une facture correspondant à la prestation réalisée.\n\n6. Droit de rétractation\nConformément à l'article L221-28, 4° du Code de la consommation, le Client ne bénéficie pas du droit de rétractation de 14 jours pour les prestations de transport de passagers exécutées à une date ou selon une périodicité déterminée.\n\n7. Annulation et absence\nLe Client peut annuler sa réservation à tout moment en contactant Elatransfer. Des frais d'annulation, calculés sur le prix de la course et par rapport à l'heure de prise en charge convenue, peuvent être facturés par le chauffeur :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\nEn cas d'absence du Client au point de rendez-vous à l'issue du temps d'attente offert (60 minutes en aéroport, 30 minutes ailleurs), la totalité du prix peut être facturée. Ces frais reviennent au chauffeur, qui a réservé le créneau et supporté le déplacement.\n\n8. Exécution de la prestation\nElatransfer met en œuvre les moyens nécessaires pour assurer un service ponctuel et professionnel, avec des véhicules conformes à la réglementation VTC et des chauffeurs titulaires des autorisations requises. Lorsque le Client a souscrit l'option correspondante, le chauffeur l'attend avec un panneau à son nom, devant la porte du terminal en aéroport ou à la sortie des trains en gare. Un temps d'attente de 60 minutes est offert après l'atterrissage pour les prises en charge en aéroport, et de 30 minutes pour les autres prises en charge.\n\n9. Responsabilité\nChaque chauffeur demeure seul responsable du respect de ses obligations professionnelles (carte VTC ou licence taxi, assurance, conformité du véhicule). Elatransfer décline toute responsabilité en cas de force majeure (conditions météorologiques exceptionnelles, grèves, fermetures de voies, décisions administratives) entraînant un retard ou une impossibilité d'exécution.\n\n10. Réclamation et médiation\nToute réclamation peut être adressée via WhatsApp ou par email à contact@elatransfer.com.\n\n11. Données personnelles\nLe traitement des données personnelles du Client est décrit dans la Politique de confidentialité, accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français. Pour les clients consommateurs, tout litige relève, au choix du Client, de la juridiction du lieu de sa résidence ou du siège social d'Elatransfer.",
+    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 6 septembre 2026\n\n1. Objet et champ d'application\nLes présentes conditions générales de vente (CGV) régissent toute réservation de prestation de transport de personnes avec chauffeur (VTC) effectuée via le site ou l'application Elatransfer (ci-après « le Service »), conclue entre le Client et Elatransfer, dont les coordonnées figurent dans les Mentions légales. Toute réservation implique l'acceptation sans réserve des présentes CGV.\n\n2. Prestations proposées\nElatransfer propose des prestations de transport de personnes avec chauffeur, d'une adresse de départ à une adresse d'arrivée. Les mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service : ils s'organisent par téléphone ou par WhatsApp, et font l'objet d'un accord distinct sur le prix avant toute exécution. Elatransfer agit en qualité de plateforme de mise en relation entre le Client et des chauffeurs VTC et taxis professionnels indépendants, chacun titulaire de sa propre carte professionnelle, de son assurance et des autorisations requises pour exercer son activité de transport de personnes.\n\n3. Formation de la réservation\nLa demande de réservation est transmise par le Client via WhatsApp depuis le récapitulatif généré par le Service. Elle ne vaut pas réservation ferme : le contrat n'est formé qu'à compter de la confirmation expresse adressée par Elatransfer au Client, une fois un chauffeur affecté à la course. Tant que cette confirmation n'a pas été reçue, aucune prestation n'est due. Le Client s'engage à fournir des informations exactes (nom, téléphone, adresses, nombre de passagers et de bagages) ; Elatransfer ne saurait être tenue responsable d'un défaut d'exécution résultant d'informations erronées communiquées par le Client.\n\n4. Prix\nLes prix sont exprimés en euros, toutes taxes comprises (TTC), TVA sur le transport de personnes incluse au taux en vigueur. Le prix est calculé automatiquement à partir de la distance de l'itinéraire, selon un tarif kilométrique propre à chaque gamme de véhicule. Aucune majoration de nuit, de week-end ni de jour férié ne s'applique : le prix d'un trajet est le même à toute heure et tous les jours de l'année. Le montant obtenu est arrondi à la dizaine d'euros. Un montant minimum par course s'applique quelle que soit la distance parcourue. Le tarif kilométrique et le montant minimum en vigueur sont ceux affichés sur le Service au moment de la réservation. Pour les trajets réservés depuis la page d'un établissement partenaire, le prix est un FORFAIT convenu avec cet établissement pour une destination déterminée : il remplace le calcul kilométrique, il n'est ni arrondi ni soumis au montant minimum, et la majoration de nuit qui lui est propre s'applique de 21 h à 6 h sans majoration de week-end. Le forfait affiché au moment de la réservation est celui qui engage les parties. Toute destination hors de la grille de l'établissement revient au calcul kilométrique décrit ci-dessus. Des options facultatives peuvent s'ajouter à ce montant : elles ne sont jamais présélectionnées, leur prix est affiché avant tout choix, et il est inclus dans le total présenté au Client. L'accueil avec un panneau au nom du Client, proposé lors des prises en charge en aéroport ou en gare, est une option facturée 10 € TTC. Il est affiché et accepté par le Client avant la course : il est ferme et n'est pas recalculé à l'arrivée.\n\n5. Paiement\nLe règlement de la course s'effectue directement auprès du chauffeur, à bord du véhicule, en espèces ou par carte bancaire. Le Client indique son mode de règlement au moment de la réservation ; cette indication engage Elatransfer à ce que le chauffeur se présente en mesure de l'accepter. Aucun paiement n'est encaissé par le Service : aucune donnée bancaire du Client n'est collectée, transmise ni conservée. Le chauffeur remet au Client une facture correspondant à la prestation réalisée.\n\n6. Droit de rétractation\nConformément à l'article L221-28, 4° du Code de la consommation, le Client ne bénéficie pas du droit de rétractation de 14 jours pour les prestations de transport de passagers exécutées à une date ou selon une périodicité déterminée.\n\n7. Annulation et absence\nLe Client peut annuler sa réservation à tout moment en contactant Elatransfer. Des frais d'annulation, calculés sur le prix de la course et par rapport à l'heure de prise en charge convenue, peuvent être facturés par le chauffeur :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\nEn cas d'absence du Client au point de rendez-vous à l'issue du temps d'attente offert (60 minutes en aéroport, 30 minutes ailleurs), la totalité du prix peut être facturée. Ces frais reviennent au chauffeur, qui a réservé le créneau et supporté le déplacement.\n\n8. Exécution de la prestation\nElatransfer met en œuvre les moyens nécessaires pour assurer un service ponctuel et professionnel, avec des véhicules conformes à la réglementation VTC et des chauffeurs titulaires des autorisations requises. Lorsque le Client a souscrit l'option correspondante, le chauffeur l'attend avec un panneau à son nom, devant la porte du terminal en aéroport ou à la sortie des trains en gare. Un temps d'attente de 60 minutes est offert après l'atterrissage pour les prises en charge en aéroport, et de 30 minutes pour les autres prises en charge.\n\n9. Responsabilité\nChaque chauffeur demeure seul responsable du respect de ses obligations professionnelles (carte VTC ou licence taxi, assurance, conformité du véhicule). Elatransfer décline toute responsabilité en cas de force majeure (conditions météorologiques exceptionnelles, grèves, fermetures de voies, décisions administratives) entraînant un retard ou une impossibilité d'exécution.\n\n10. Réclamation et médiation\nToute réclamation peut être adressée via WhatsApp ou par email à contact@elatransfer.com.\n\n11. Données personnelles\nLe traitement des données personnelles du Client est décrit dans la Politique de confidentialité, accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français. Pour les clients consommateurs, tout litige relève, au choix du Client, de la juridiction du lieu de sa résidence ou du siège social d'Elatransfer.",
     legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 6 septembre 2026\n\n1. Responsable du traitement\nLe responsable du traitement des données collectées via le Service est Elatransfer, dont les coordonnées figurent dans les Mentions légales.\n\n2. Données collectées\n— Données d'identification : nom, numéro de téléphone\n— Données de réservation : adresses de départ et d'arrivée, date, heure, nombre de passagers et de bagages, terminal aéroport et numéro de vol le cas échéant, numéro de chambre lorsque le lieu est un hôtel\n— Données de paiement : aucune. Le règlement se fait directement auprès du chauffeur ; aucune donnée bancaire ne transite par le Service\n— Données de localisation : uniquement si le Client active volontairement la fonction « Me localiser »\n— Données de navigation : cookies statistiques et marketing, uniquement avec consentement\n\n3. Finalités et bases légales\n— Traitement et exécution de la réservation : exécution du contrat\n— Contact avant la prise en charge : exécution du contrat\n— Amélioration du service : intérêt légitime ou consentement selon le cas\n— Prospection commerciale, le cas échéant : consentement de l'utilisateur\n\n4. Destinataires des données\nLes données sont destinées au seul chauffeur affecté à la course. Lorsqu'Elatransfer ne peut pas assurer elle-même la prestation, une annonce est diffusée à son réseau de chauffeurs partenaires afin de trouver un chauffeur disponible ; cette annonce ne comporte ni le nom, ni le numéro de téléphone, ni le numéro de chambre du Client. Ces éléments ne sont communiqués qu'au seul chauffeur finalement retenu, et pour la seule exécution de la course. Aucune donnée n'est transmise à un prestataire de paiement, puisqu'aucun paiement n'est encaissé par le Service. Aucune donnée n'est vendue à des tiers.\n\n5. Durée de conservation\nLes données de réservation sont conservées le temps nécessaire à l'exécution de la prestation, puis archivées pendant la durée légale de conservation des documents comptables (10 ans pour les factures). Les données enregistrées localement sur l'appareil utilisé pour réserver (répertoire client) peuvent être supprimées à tout moment sur simple demande.\n\n6. Cookies\nDes cookies strictement nécessaires au fonctionnement du site sont toujours actifs. Des cookies de mesure d'audience et marketing ne sont déposés qu'avec le consentement explicite du Client, recueilli via le bandeau de gestion des cookies, modifiable à tout moment.\n\n7. Sécurité\nElatransfer met en œuvre les mesures techniques et organisationnelles raisonnables pour protéger les données contre tout accès non autorisé, altération ou perte.\n\n8. Droits du Client\nConformément au RGPD et à la loi Informatique et Libertés, le Client dispose d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de ses données. Ces droits s'exercent via WhatsApp ou par email à contact@elatransfer.com.\n\n9. Réclamation\nEn cas de désaccord sur le traitement de ses données, le Client peut introduire une réclamation auprès de la CNIL (www.cnil.fr).",
     etat_court:"En attente",
@@ -3954,6 +4085,14 @@ window.ELA_TEXTES = {
     geo_echec:"Could not locate you. Please type the address.",
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
+    /* ---- HOTEL MODE ---- */
+    hotel_sur:"Partner rates", hotel_destination:"Destination",
+    hotel_terminal:"Terminal", hotel_sens_aria:"Direction of travel",
+    hotel_depuis:"From the hotel", hotel_vers:"To the hotel",
+    hotel_autre:"Other destination…", hotel_nuit:"night rate",
+    hotel_au_km:"Other destination: the price is calculated by distance, as on the site.",
+    hotel_hors_forfait:"This address is not within Paris: the price reverts to the distance calculation.",
+    nuit_hotel:"Night rate (9 pm – 6 am) applied.",
     chambre_aide:"Passed on to your chauffeur: he meets you without waiting at reception.",
     vol:"Flight number", ph_vol:"e.g. AF1234",
     train:"Train number", ph_train:"e.g. TGV 6201",
@@ -3977,7 +4116,6 @@ window.ELA_TEXTES = {
     srv3:"Station", srv3s:"Paris and Île-de-France stations",
     srv4:"Business", srv4s:"Clients, colleagues, meetings",
     srv5:"Hourly hire", srv5s:"A chauffeur by the hour · Paris, Disneyland",
-    nuit:"A 20% night and weekend surcharge applies.",
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
@@ -4053,7 +4191,7 @@ window.ELA_TEXTES = {
     legal_cgv:"Terms and conditions",
     legal_mentions:"Legal notice",
     legal_privacy:"Privacy policy",
-    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 6 September 2026\n\n1. Purpose and scope\nThese terms and conditions govern any booking of chauffeur-driven passenger transport (VTC) made via the Elatransfer site or app (the \"Service\"), between the Client and Elatransfer, whose contact details appear in the Legal Notice. Any booking implies unconditional acceptance of these terms.\n\n2. Services offered\nElatransfer offers chauffeur-driven passenger transport from a pickup address to a drop-off address. Hourly hire and bespoke journeys cannot be booked through the Service: they are arranged by phone or WhatsApp, and the price is agreed separately before the journey. Elatransfer operates as a platform connecting the Client with independent professional VTC and licensed taxi drivers, each holding their own professional licence, insurance and the authorisations required to carry out their passenger transport activity.\n\n3. Formation of the booking\nThe booking request is sent by the Client via WhatsApp from the summary generated by the Service. It is not a firm booking: the contract is formed only once Elatransfer sends the Client an express confirmation, after a driver has been assigned. Until that confirmation is received, no service is owed. The Client agrees to provide accurate information (name, phone, addresses, number of passengers and luggage); Elatransfer cannot be held liable for a failure resulting from incorrect information supplied by the Client.\n\n4. Price\nPrices are shown in euros, all taxes included (VAT on passenger transport included at the applicable rate). The price is calculated automatically from the route distance, at a per-kilometre rate specific to each vehicle class, increased by 20% at night (9 pm – 6 am) and on Saturdays and Sundays. The resulting amount is rounded to the nearest ten euros. A minimum fare applies to every ride regardless of the distance covered. The per-kilometre rate, the surcharge and the minimum fare in force are those displayed on the Service at the time of booking. Optional extras may be added to that amount: they are never pre-selected, their price is shown before any choice is made, and it is included in the total presented to the Client. A meet-and-greet with a sign bearing the Client's name, offered for airport and station pickups, is an optional extra charged at €10 including VAT. It is shown to and accepted by the Client before the ride: it is firm and is not recalculated on arrival.\n\n5. Payment\nThe fare is paid directly to the chauffeur, on board, in cash or by card. The Client states their intended means of payment when booking; Elatransfer undertakes to send a chauffeur able to accept it. No payment is collected by the Service: no banking data of the Client is collected, transmitted or stored. The chauffeur issues the Client an invoice for the service provided.\n\n6. Right of withdrawal\nUnder Article L221-28(4) of the French Consumer Code, the Client does not benefit from the standard 14-day right of withdrawal for passenger transport services performed on a specific date or period.\n\n7. Cancellation and no-show\nThe Client may cancel at any time by contacting Elatransfer. Cancellation fees, calculated on the fare and relative to the agreed pickup time, may be charged by the chauffeur:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the fare;\n— less than 3 hours before: 50% of the fare.\nIf the Client does not show at the meeting point once the complimentary waiting time has elapsed (60 minutes for airport pickups, 30 minutes elsewhere), the full fare may be charged. These fees go to the chauffeur, who held the slot and made the journey.\n\n8. Performance of the service\nElatransfer uses reasonable means to ensure a punctual, professional service, with vehicles compliant with VTC regulations and drivers holding the required authorisations. Where the Client has taken the corresponding option, the driver waits with a sign bearing their name, at the terminal door at airports or at the train exit in stations. Complimentary waiting time is 60 minutes after landing for airport pickups, and 30 minutes for other pickups.\n\n9. Liability\nEach driver remains solely responsible for complying with their own professional obligations (VTC card or taxi licence, insurance, vehicle compliance). Elatransfer declines liability in cases of force majeure (exceptional weather, strikes, road closures, administrative decisions) causing delay or inability to perform.\n\n10. Complaints and mediation\nComplaints can be sent via WhatsApp or email to contact@elatransfer.com.\n\n11. Personal data\nProcessing of the Client's personal data is described in the Privacy Policy, accessible from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law. For consumer clients, any dispute falls, at the Client's choice, under the jurisdiction of their place of residence or Elatransfer's registered office.",
+    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 6 September 2026\n\n1. Purpose and scope\nThese terms and conditions govern any booking of chauffeur-driven passenger transport (VTC) made via the Elatransfer site or app (the \"Service\"), between the Client and Elatransfer, whose contact details appear in the Legal Notice. Any booking implies unconditional acceptance of these terms.\n\n2. Services offered\nElatransfer offers chauffeur-driven passenger transport from a pickup address to a drop-off address. Hourly hire and bespoke journeys cannot be booked through the Service: they are arranged by phone or WhatsApp, and the price is agreed separately before the journey. Elatransfer operates as a platform connecting the Client with independent professional VTC and licensed taxi drivers, each holding their own professional licence, insurance and the authorisations required to carry out their passenger transport activity.\n\n3. Formation of the booking\nThe booking request is sent by the Client via WhatsApp from the summary generated by the Service. It is not a firm booking: the contract is formed only once Elatransfer sends the Client an express confirmation, after a driver has been assigned. Until that confirmation is received, no service is owed. The Client agrees to provide accurate information (name, phone, addresses, number of passengers and luggage); Elatransfer cannot be held liable for a failure resulting from incorrect information supplied by the Client.\n\n4. Price\nPrices are shown in euros, all taxes included (VAT on passenger transport included at the applicable rate). The price is calculated automatically from the route distance, at a per-kilometre rate specific to each vehicle class. No night, weekend or public-holiday surcharge applies: the price of a journey is the same at any hour and on any day of the year. The resulting amount is rounded to the nearest ten euros. A minimum fare applies to every ride regardless of the distance covered. The per-kilometre rate and the minimum fare in force are those displayed on the Service at the time of booking. For journeys booked from a partner establishment's page, the price is a FLAT FARE agreed with that establishment for a given destination: it replaces the per-kilometre calculation, it is neither rounded nor subject to the minimum fare, and its own night surcharge applies from 9 pm to 6 am with no weekend surcharge. The flat fare displayed at the time of booking is the one binding the parties. Any destination outside the establishment's price list reverts to the per-kilometre calculation described above. Optional extras may be added to that amount: they are never pre-selected, their price is shown before any choice is made, and it is included in the total presented to the Client. A meet-and-greet with a sign bearing the Client's name, offered for airport and station pickups, is an optional extra charged at €10 including VAT. It is shown to and accepted by the Client before the ride: it is firm and is not recalculated on arrival.\n\n5. Payment\nThe fare is paid directly to the chauffeur, on board, in cash or by card. The Client states their intended means of payment when booking; Elatransfer undertakes to send a chauffeur able to accept it. No payment is collected by the Service: no banking data of the Client is collected, transmitted or stored. The chauffeur issues the Client an invoice for the service provided.\n\n6. Right of withdrawal\nUnder Article L221-28(4) of the French Consumer Code, the Client does not benefit from the standard 14-day right of withdrawal for passenger transport services performed on a specific date or period.\n\n7. Cancellation and no-show\nThe Client may cancel at any time by contacting Elatransfer. Cancellation fees, calculated on the fare and relative to the agreed pickup time, may be charged by the chauffeur:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the fare;\n— less than 3 hours before: 50% of the fare.\nIf the Client does not show at the meeting point once the complimentary waiting time has elapsed (60 minutes for airport pickups, 30 minutes elsewhere), the full fare may be charged. These fees go to the chauffeur, who held the slot and made the journey.\n\n8. Performance of the service\nElatransfer uses reasonable means to ensure a punctual, professional service, with vehicles compliant with VTC regulations and drivers holding the required authorisations. Where the Client has taken the corresponding option, the driver waits with a sign bearing their name, at the terminal door at airports or at the train exit in stations. Complimentary waiting time is 60 minutes after landing for airport pickups, and 30 minutes for other pickups.\n\n9. Liability\nEach driver remains solely responsible for complying with their own professional obligations (VTC card or taxi licence, insurance, vehicle compliance). Elatransfer declines liability in cases of force majeure (exceptional weather, strikes, road closures, administrative decisions) causing delay or inability to perform.\n\n10. Complaints and mediation\nComplaints can be sent via WhatsApp or email to contact@elatransfer.com.\n\n11. Personal data\nProcessing of the Client's personal data is described in the Privacy Policy, accessible from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law. For consumer clients, any dispute falls, at the Client's choice, under the jurisdiction of their place of residence or Elatransfer's registered office.",
     legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 6 September 2026\n\n1. Data controller\nThe controller of data collected via the Service is Elatransfer, whose contact details appear in the Legal Notice.\n\n2. Data collected\n— Identification data: name, phone number\n— Booking data: pickup and drop-off addresses, date, time, number of passengers and luggage, airport terminal and flight number where applicable, room number when the location is a hotel\n— Payment data: none. Payment is made directly to the chauffeur; no banking data passes through the Service\n— Location data: only if the Client voluntarily activates the \"Locate me\" feature\n— Browsing data: analytics and marketing cookies, only with consent\n\n3. Purposes and legal bases\n— Processing and delivering the booking: performance of the contract\n— Contacting the Client before pickup: performance of the contract\n— Service improvement: legitimate interest or consent as applicable\n— Marketing, where applicable: user consent\n\n4. Data recipients\nData is shared only with the driver assigned to the ride. Where Elatransfer cannot perform the service itself, an announcement is circulated to its network of partner drivers to find an available one; that announcement carries no client name, phone number or room number. Those details are passed only to the driver finally chosen, and solely to perform the ride. No data is passed to a payment provider, since no payment is collected by the Service. No data is sold to third parties.\n\n5. Retention period\nBooking data is kept for as long as necessary to deliver the service, then archived for the legal accounting retention period (10 years for invoices). Data saved locally on the device used to book (client directory) can be deleted at any time on request.\n\n6. Cookies\nStrictly necessary cookies are always active. Analytics and marketing cookies are only set with the Client's explicit consent, collected via the cookie banner, and changeable at any time.\n\n7. Security\nElatransfer implements reasonable technical and organisational measures to protect data against unauthorised access, alteration or loss.\n\n8. Client rights\nUnder GDPR, the Client has the right to access, rectify, erase, restrict, object to, and port their data. These rights can be exercised via WhatsApp or email to contact@elatransfer.com.\n\n9. Complaints\nIn case of disagreement over data processing, the Client may lodge a complaint with the CNIL (www.cnil.fr).",
     etat_court:"Awaiting",
@@ -4612,11 +4750,311 @@ window.ELA_TEXTES = {
   }
 
   var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
-    choix.depart = item; jugerChambre(); jugerVol(); jugerZone();
+    choix.depart = item; jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
   });
-  brancher(champArrivee, document.getElementById("arriveeList"), function(item){
-    choix.arrivee = item; jugerVol(); jugerZone();
+  /* LA PRISE DE L'ARRIVÉE EST RETENUE ELLE AUSSI. Elle ne servait à rien
+     tant qu'une seule fonction posait une adresse de l'extérieur (« me
+     localiser », au départ) ; le mode hôtel fige l'un OU l'autre des deux
+     champs selon le sens du trajet, et il lui faut les deux prises. */
+  var priseArrivee = brancher(champArrivee, document.getElementById("arriveeList"), function(item){
+    choix.arrivee = item; jugerVol(); jugerZone(); jugerForfait();
   });
+
+/* =====================================================================
+   LE MODE HÔTEL — CE QUE VOIT UNE RÉCEPTION
+   ---------------------------------------------------------------------
+   Septembre 2026, à la demande de Barbaros, à partir du flyer easyHotel.
+
+   CE N'EST PAS UNE PAGE À PART, ET C'EST LA DÉCISION QUI STRUCTURE TOUT.
+   Une page autonome aurait voulu dire un second jeu de couleurs, un second
+   logo, une seconde grille — et surtout tout à réécrire dedans : le dépôt
+   sur le serveur, la provenance, le préavis de 15 minutes, la date, le
+   téléphone, les suites de tests. Une réception qui rate son envoi WhatsApp
+   depuis sa tablette, et la réservation n'existe nulle part. Ici c'est le
+   même fichier, le même tunnel, le même dépôt : seule l'ENTRÉE change.
+
+   CE QUI CHANGE, EXACTEMENT :
+   — le départ (ou l'arrivée) est figé sur l'hôtel, adresse postale
+     comprise ;
+   — l'autre bout se choisit dans un menu de sept destinations, celles du
+     flyer, au forfait ;
+   — « autre destination » rend la main au calcul kilométrique ordinaire ;
+   — l'accroche, les services et le pied de page disparaissent : une
+     réception réserve entre deux arrivées, elle ne lit pas une vitrine.
+   ===================================================================== */
+  var hotelTete    = document.getElementById("hotelTete");
+  var blocDest     = document.getElementById("blocDest");
+  var blocTerminal = document.getElementById("blocTerminal");
+  var selDest      = document.getElementById("hotelDest");
+  var selTerminal  = document.getElementById("hotelTerminal");
+  var blocDepart   = document.getElementById("blocDepart");
+  var blocArrivee  = document.getElementById("blocArrivee");
+  var destForfait  = document.getElementById("destForfait");
+  var destLibre    = document.getElementById("destLibre");
+
+  var hotel = null;          // l'hôtel partenaire, ou null : le site ordinaire
+  var hotelSens = "depuis";  // « depuis » = on part de l'hôtel, « vers » = on y va
+  var hotelDest = null;      // la destination retenue dans la grille, ou null
+  var libreAutoRempli = false;
+  function modeHotel(){ return !!hotel; }
+  window.__modeHotel = modeHotel;
+
+  function itemHotel(h){
+    /* Le libellé porte le nom ET l'adresse : c'est lui qui part sur le bon
+       et dans le message du chauffeur. « easyHotel » seul ne suffit pas —
+       plusieurs portent ce nom autour de Roissy. */
+    return { label:h.nom + ", " + h.adresse, lat:h.lat, lon:h.lon,
+             icon:"🏨", categorie:"hotel", lieuNomme:true };
+  }
+  function itemDest(dest, terminal){
+    if(dest.aeroport && terminal){
+      var ap = AEROPORTS[dest.aeroport], pt = ap.terminaux[terminal];
+      /* LE LIBELLÉ REPREND EXACTEMENT LA FORME DU SITE — « Terminal 2E —
+         Aéroport… ». Ce n'est pas cosmétique : « terminalDuLibelle » lit
+         cette forme-là, et c'est elle qui ouvre le champ « numéro de vol »
+         et l'option pancarte. Un libellé écrit autrement les éteindrait
+         tous les deux sans le moindre message. */
+      return { label:terminal + " — " + ap.nom, lat:pt[0], lon:pt[1],
+               icon:"✈️", categorie:"aeroport", lieuNomme:true };
+    }
+    return { label:dest.label || dest.nom, lat:dest.lat, lon:dest.lon,
+             icon:"📍", categorie:"adresse", lieuNomme:true };
+  }
+
+  /* DANS LE SENS « ARRIVÉE À L'HÔTEL », ON ÉCHANGE VRAIMENT LES DEUX CHAMPS
+     — on ne se contente pas d'inverser au moment de l'envoi. C'est ce qui
+     fait que tout le reste tombe juste sans une ligne de plus : le numéro
+     de chambre ne s'ouvre que sur un hôtel AU DÉPART (un client qui arrive
+     n'a pas encore de chambre), le numéro de vol prend sa formulation
+     d'arrivée, et la pancarte n'est proposée que sur une prise en charge en
+     aéroport — c'est-à-dire exactement ce retour-là. */
+  function cotes(){
+    return hotelSens === "depuis"
+      ? { fige:champDepart,  blocFige:blocDepart,  prise:priseDepart,
+          libre:champArrivee, blocLibre:blocArrivee, priseLibre:priseArrivee }
+      : { fige:champArrivee, blocFige:blocArrivee, prise:priseArrivee,
+          libre:champDepart,  blocLibre:blocDepart,  priseLibre:priseDepart };
+  }
+  function choixLibre(){
+    return hotelSens === "depuis" ? choix.arrivee : choix.depart;
+  }
+
+  /* LE FORFAIT NE S'APPLIQUE QUE SI LE TRAJET EST BIEN CELUI DU FLYER.
+     Sur « Paris », la réception tape une adresse : si elle tape Versailles,
+     les 80 € ne valent plus, et les laisser passer serait vendre 45 km au
+     prix de 10 — sur un prix ferme, donc opposable. On mesure la distance
+     au centre de Paris et PAS le code postal : celui-ci n'est qu'un morceau
+     de libellé, écrit différemment selon la source, et s'y fier c'est
+     accepter qu'un jour une adresse valable soit refusée. */
+  function jugerForfait(){
+    if(!hotel){ course.forfait = null; return; }
+    var dest = hotelDest, bon = !!dest;
+    if(dest && dest.adresseLibre){
+      /* LE FORFAIT S'AFFICHE AVANT MÊME QU'UNE ADRESSE SOIT TAPÉE : c'est
+         le prix du flyer, et c'est celui que la réception annonce de vive
+         voix pendant qu'elle saisit. Il ne tombe QUE sur une adresse
+         effectivement retenue et hors de la zone — un champ encore vide
+         n'est pas une erreur, c'est une saisie en cours. Rien n'est
+         réservable sans les deux bouts de toute façon. */
+      var pt = choixLibre();
+      bon = !pt || volDoiseauKm(pt, dest) <= dest.rayonKm;
+    }
+    var nuit = nuitHotel(champDate.value, champHeure.value);
+    course.forfait = bon ? (nuit ? dest.nuit : dest.jour) : null;
+    destForfait.hidden = !course.forfait;
+    if(course.forfait){
+      /* LES DEUX PRIX SONT ÉCRITS, PAS SEULEMENT CELUI DE LA BERLINE. La
+         réception annonce un montant de vive voix avant même d'ouvrir
+         l'écran des gammes : c'est ce qu'elle lit ici. */
+      destForfait.textContent = GAMMES.map(function(g){
+        return g.nom + " " + euros(course.forfait[g.cle]);
+      }).join(" · ") + (nuit ? " · " + T("hotel_nuit") : "");
+    }
+    /* On DIT quand on quitte le forfait. Un prix qui change sans un mot,
+       c'est une réception qui annonce 80 € et un client qui en voit 140. */
+    var sorti = !!dest && dest.adresseLibre && !bon && !!choixLibre();
+    destLibre.hidden = !(!dest || sorti);
+    if(!destLibre.hidden)
+      destLibre.textContent = T(sorti ? "hotel_hors_forfait" : "hotel_au_km");
+  }
+
+  function terminalRetenu(){
+    return (hotelDest && hotelDest.aeroport && selTerminal.value) ? selTerminal.value : null;
+  }
+
+  /* Le menu des terminaux se remplit depuis « AEROPORTS », la table que le
+     site tient déjà pour la recherche d'adresse : deux listes de terminaux
+     finiraient par diverger, et c'est celle qu'on oublie qui enverrait la
+     voiture au mauvais bout de Roissy. */
+  function poserTerminaux(){
+    var dest = hotelDest;
+    if(!dest || !dest.aeroport){ blocTerminal.hidden = true; selTerminal.innerHTML = ""; return; }
+    var noms = Object.keys(AEROPORTS[dest.aeroport].terminaux);
+    selTerminal.innerHTML = "";
+    noms.forEach(function(t){
+      var o = document.createElement("option");
+      o.value = t; o.textContent = t;
+      selTerminal.appendChild(o);
+    });
+    /* UN SEUL TERMINAL NE SE CHOISIT PAS. Beauvais n'en a qu'un : afficher
+       un menu à une entrée, c'est un geste demandé pour rien. */
+    blocTerminal.hidden = noms.length < 2;
+    selTerminal.value = noms[0];
+  }
+
+  function appliquerHotel(){
+    if(!hotel) return;
+    var c = cotes();
+    /* LE CÔTÉ HÔTEL EST FIGÉ, ET MONTRÉ QUAND MÊME. C'est l'adresse où la
+       voiture va se présenter : une réception doit pouvoir la vérifier d'un
+       coup d'œil, pas la deviner depuis un titre. */
+    c.prise.poser(itemHotel(hotel));
+    c.fige.readOnly = true;
+    c.blocFige.hidden = false;
+    chaqueChamp(c.fige, true);
+    chaqueChamp(c.libre, false);
+    c.libre.readOnly = false;
+
+    poserTerminaux();
+    var dest = hotelDest;
+    var besoinAdresse = !dest || !!dest.adresseLibre;
+    c.blocLibre.hidden = !besoinAdresse;
+    if(besoinAdresse){
+      /* On efface ce que le menu avait posé tout seul, jamais ce que la
+         réception a tapé : sinon elle perdrait son adresse en passant de
+         « Paris » à « autre destination ». */
+      if(libreAutoRempli){
+        c.libre.value = "";
+        if(hotelSens === "depuis") choix.arrivee = null; else choix.depart = null;
+        libreAutoRempli = false;
+      }
+    } else {
+      c.priseLibre.poser(itemDest(dest, terminalRetenu()));
+      libreAutoRempli = true;
+    }
+    jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
+  }
+  /* La classe dit seulement « ce champ ne se modifie pas ici ». Elle est
+     posée sur le « .champ », pas sur l'input : c'est lui qui porte le fond
+     et le cadre. */
+  function chaqueChamp(input, fige){
+    var lab = input.closest(".champ");
+    if(lab) lab.classList.toggle("fige", !!fige);
+  }
+
+  selDest.addEventListener("change", function(){
+    var h = hotel; if(!h) return;
+    hotelDest = null;
+    h.destinations.forEach(function(d){ if(d.cle === selDest.value) hotelDest = d; });
+    appliquerHotel();
+  });
+  selTerminal.addEventListener("change", function(){
+    if(hotelDest && hotelDest.aeroport) appliquerHotel();
+  });
+  chaque(hotelTete.querySelectorAll(".hotel-sens-btn"), function(b){
+    b.addEventListener("click", function(){
+      if(hotelSens === b.dataset.sens) return;
+      hotelSens = b.dataset.sens;
+      chaque(hotelTete.querySelectorAll(".hotel-sens-btn"), function(x){
+        var on = x.dataset.sens === hotelSens;
+        x.classList.toggle("actif", on);
+        x.setAttribute("aria-pressed", String(on));
+      });
+      /* LES DEUX CHAMPS SE VIDENT AVANT DE CHANGER DE RÔLE. Sans ça,
+         l'ancien côté hôtel garderait l'hôtel écrit dedans, et la course
+         partirait de l'hôtel VERS l'hôtel — 0 km, et le contrôle « même
+         endroit » refuserait la réservation sans que rien n'explique. */
+      champDepart.value = ""; champArrivee.value = "";
+      champDepart.readOnly = false; champArrivee.readOnly = false;
+      choix.depart = null; choix.arrivee = null;
+      libreAutoRempli = false;
+      appliquerHotel();
+    });
+  });
+
+  /* ═══ L'ENTRÉE ═══
+     Elle n'ouvre le mode hôtel que sur un partenaire CONNU. Un « ?h= »
+     quelconque garde le comportement d'origine — l'affiche QR d'un hôtel
+     sans grille négociée pose son nom dans le champ de départ et ouvre la
+     liste d'adresses. Les deux usages cohabitent, et c'est voulu : tous
+     les hôtels ne sont pas partenaires. */
+  function hotelDuParametre(valeur){
+    var n = sansAccents(valeur).replace(/[^a-z0-9]+/g, " ").trim();
+    var trouve = null;
+    Object.keys(HOTELS).forEach(function(cle){
+      if(trouve) return;
+      var h = HOTELS[cle];
+      var noms = [cle, h.nom].concat(h.alias || []).map(function(x){
+        return sansAccents(x).replace(/[^a-z0-9]+/g, " ").trim();
+      });
+      if(noms.indexOf(n) !== -1) trouve = h;
+    });
+    return trouve;
+  }
+
+  function ouvrirModeHotel(h){
+    hotel = h;
+    hotelSens = "depuis";
+    hotelDest = h.destinations[0];
+    libreAutoRempli = false;
+    document.body.classList.add("hotel");
+    hotelTete.hidden = false;
+    blocDest.hidden = false;
+    document.getElementById("hotelTeteNom").textContent = h.nom;
+    document.getElementById("hotelTeteAdresse").textContent = h.adresse;
+    selDest.innerHTML = "";
+    h.destinations.forEach(function(d){
+      var o = document.createElement("option");
+      o.value = d.cle; o.textContent = d.nom;
+      selDest.appendChild(o);
+    });
+    /* « Autre destination » ferme la liste : c'est la sortie, pas une
+       destination. Sa valeur est vide — aucune clé de la grille ne peut la
+       prendre par accident. */
+    var autre = document.createElement("option");
+    autre.value = ""; autre.setAttribute("data-t", "hotel_autre");
+    autre.textContent = T("hotel_autre");
+    selDest.appendChild(autre);
+    selDest.value = hotelDest.cle;
+
+    /* LA GRILLE NE DOIT PAS SORTIR DANS GOOGLE. Elle est plus basse que le
+       site sur le van des longues courses — c'est un prix d'appel négocié
+       avec un hôtel, pas un tarif public. Une adresse devinée ou partagée,
+       et n'importe qui réserve un van pour Orly à 125 € au lieu de 180.
+       Ce n'est pas un secret : c'est une porte qu'on ne met pas dans
+       l'annuaire. « robots.txt » écarte déjà « ?h= » des explorateurs ;
+       cette balise est la ceinture — elle n'est posée QUE dans ce mode,
+       jamais sur le site public, sous peine de le désindexer en entier. */
+    var m = document.head.querySelector('meta[name="robots"]');
+    if(!m){ m = document.createElement("meta"); m.name = "robots"; document.head.appendChild(m); }
+    /* ON RÉÉCRIT CELLE QUI EXISTE. La page en porte déjà une, « index,
+       follow » : en ajouter une seconde laisserait deux consignes
+       contradictoires dans la même en-tête, et c'est le genre de chose
+       qu'on ne découvre qu'en voyant la page disparaître — ou rester —
+       dans les résultats, des semaines plus tard. */
+    m.content = "noindex, nofollow";
+
+    /* L'ADRESSE RESTE DANS LA BARRE, contrairement au « ?h= » ordinaire.
+       C'est le signet d'un comptoir : la réception recharge, revient en
+       arrière, laisse la tablette dormir la nuit. Sans le paramètre, elle
+       rouvrirait sur le site public et referait ses courses au kilométrage
+       sans s'en apercevoir. */
+    appliquerHotel();
+
+    /* LES COORDONNÉES VIENNENT DU MÊME SERVICE QUE TOUTES LES AUTRES
+       ADRESSES DU SITE. On ne pose pas un point sur une carte à la main
+       quand on peut le demander : celles écrites dans « HOTELS » ne sont
+       qu'un secours pour une réception hors ligne. Elles ne changent aucun
+       forfait — ils sont fixes — mais elles font le kilométrage d'« autre
+       destination ». */
+    depuisBAN(h.adresse).then(function(r){
+      if(!r || !r.length || !hotel) return;
+      hotel.lat = r[0].lat; hotel.lon = r[0].lon;
+      var c = cotes();
+      if(c.fige.readOnly) c.prise.poser(itemHotel(hotel));
+      jugerZone(); jugerForfait();
+    }).catch(function(){ /* hors ligne : le secours suffit */ });
+  }
 
 /* =====================================================================
    « ME LOCALISER »
@@ -4783,15 +5221,32 @@ window.ELA_TEXTES = {
     { cle:"van",     nom:"Van",     parKm:4.08, mini:50, places:7 }
   ];
 
-  /* Nuit et week-end : +20 %. Le seuil est le même que sur le site en
-     service — samedi, dimanche, et de 21 h à 6 h. */
-  function nuitOuWeekend(date, heure){
-    if(!date || !heure) return false;
-    var d = new Date(date + "T" + heure);
-    if(isNaN(d.getTime())) return false;
-    var j = d.getDay(), h = d.getHours();
-    return j === 0 || j === 6 || h >= 21 || h < 6;
-  }
+  /* ═══ IL N'Y A PLUS DE MAJORATION DE NUIT NI DE WEEK-END ═══
+     Septembre 2026, à la demande de Barbaros : « supprime la majoration
+     nuit 20 % sur le site ». Le prix d'une course ne dépend plus QUE de la
+     distance et de la gamme : même montant un mardi à 10 h, un samedi midi
+     et à 3 h du matin.
+     C'est la suite d'une remarque qu'il avait faite lui-même sur une
+     capture à 23 h 22 — « c'est trop cher non ? » Ce n'était pas la
+     majoration qui était chère, c'était le tarif de base ; il a d'abord
+     baissé les deux tarifs kilométriques, et il supprime maintenant la
+     majoration. Le week-end ENTIER à +20 % était de toute façon large : un
+     samedi après-midi n'a rien d'une course de nuit.
+     « nuitOuWeekend » a donc disparu, avec l'écriteau de l'écran des prix
+     et le paramètre « majoration » de « prix() ». LES CGV ONT SUIVI dans
+     les deux langues : elles décrivaient un +20 % qui ne s'applique plus,
+     et des CGV qui annoncent une formation du prix différente de celle
+     appliquée sont pires qu'aucunes CGV — le prix est ferme donc
+     opposable, et le client y trouverait un argument contre nous.
+     CE QUI RESTE, ET CE N'EST PAS UN OUBLI : le champ « majoration » des
+     courses enregistrées, désormais toujours faux. Il est écrit dans
+     l'historique déjà stocké sur l'appareil et sur le serveur ; le retirer
+     rendrait illisible une partie de ces courses. Même raison que les
+     alias des anciens noms de gammes.
+     ET LE TARIF NUIT DU FLYER D'UN HÔTEL PARTENAIRE RESTE, LUI : voir
+     « nuitHotel ». Ce n'est pas la même chose et ça ne se confond pas —
+     l'un était une majoration de 20 % sur un tarif kilométrique, l'autre
+     est une colonne de prix imprimée sur un papier posé à une réception. */
   /* L'ARRONDI DE BARBAROS : à la dizaine, et le 5 pile descend.
      45 € → 40 €, 46 € → 50 €. C'est SA règle, pas l'arrondi de l'école, et
      la différence n'est pas un détail : sur un 5 pile, l'arrondi ordinaire
@@ -4806,17 +5261,17 @@ window.ELA_TEXTES = {
     var bas = Math.floor(p / 10) * 10;
     return (p - bas > 5) ? bas + 10 : bas;
   }
-  /* L'ORDRE DES TROIS OPÉRATIONS COMPTE.
-     1. le kilométrage, 2. la majoration de nuit, 3. l'arrondi, 4. le
-     plancher. Arrondir avant de majorer redonnerait un prix qui n'est plus
-     une dizaine (70 × 1,2 = 84), et appliquer la majoration APRÈS le
-     plancher ferait payer 36 € une course de 2 km annoncée à 30 €. Le
-     plancher est le dernier mot : c'est un montant plancher, pas une base
-     de calcul. */
-  function prix(gamme, km, majoration){
-    var p = gamme.parKm * km;
-    if(majoration) p *= 1.2;
-    return Math.max(arrondiDizaine(p), gamme.mini);
+  /* L'ORDRE COMPTE ENCORE, MÊME À DEUX OPÉRATIONS.
+     1. le kilométrage, 2. l'arrondi, 3. le plancher. Le plancher est le
+     DERNIER mot : c'est un montant plancher, pas une base de calcul, et
+     l'arrondir ensuite ferait payer 30 € une course annoncée à 30 €… ou
+     40 selon le sens de l'arrondi.
+     LA MAJORATION A DISPARU DE CETTE FONCTION (septembre 2026) — voir le
+     commentaire plus haut. Le paramètre n'est plus accepté du tout, et
+     c'est délibéré : laissé en place mais ignoré, il aurait laissé croire
+     à un appelant qu'il majore quelque chose. */
+  function prix(gamme, km){
+    return Math.max(arrondiDizaine(gamme.parKm * km), gamme.mini);
   }
   function euros(n){
     return n.toLocaleString(locale(), { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
@@ -4829,18 +5284,139 @@ window.ELA_TEXTES = {
      l'arrondi le ferait disparaître une fois sur deux — 10 € ajoutés à
      42 € s'arrondissent à 50, mais ajoutés à 46 € ils donnent 56 € qui
      redescend à 60 : le client paierait 14 € une option annoncée à 10.
-     ELLE N'EST PAS MAJORÉE LA NUIT. C'est un service à prix fixe, pas du
-     kilomètre : +20 % dessus ferait payer 12 € une pancarte affichée 10 €.
+     ELLE N'EST MAJORÉE NULLE PART. C'est un service à prix fixe : ni le
+     tarif nuit d'un flyer partenaire ni quoi que ce soit d'autre ne s'y
+     applique. Le site n'a plus aucune majoration depuis septembre 2026, et
+     le jour où l'on en réintroduirait une, elle ne devrait toujours pas
+     toucher cette option — une pancarte affichée 10 € se paie 10 €.
      LE PRIX AFFICHÉ SORT DE LA CONSTANTE, il n'est écrit nulle part à la
      main : c'est le seul moyen qu'un changement de tarif ne laisse pas une
      étiquette périmée sur le bouton. */
+
+/* =====================================================================
+   LES FORFAITS D'UN HÔTEL PARTENAIRE
+   ---------------------------------------------------------------------
+   Septembre 2026, à la demande de Barbaros. Une réception d'hôtel ne
+   cherche pas une adresse et ne compare pas des kilomètres : elle lit le
+   flyer posé sur son comptoir, elle appuie sur la ligne, elle annonce le
+   prix. Trente secondes, entre deux arrivées.
+
+   LA GRILLE CI-DESSOUS EST CELLE DU FLYER IMPRIMÉ, AU CENTIME. C'est un
+   document que le client a sous les yeux au moment où la réception lui
+   annonce un montant : si l'écran et le papier ne disent pas la même
+   chose, c'est le papier qui gagne, et c'est nous qui avons tort. Ne
+   jamais « corriger » ces montants pour les rapprocher du kilométrage du
+   site — sur les longues courses le van est VOLONTAIREMENT moins cher
+   que le site : c'est un prix d'appel pour décrocher l'hôtel, tranché par
+   Barbaros. C'est exactement le genre de chose qu'une prochaine session
+   prendrait pour un défaut.
+
+   LE TARIF NUIT DU FLYER EST LA SEULE MAJORATION QUI SUBSISTE DANS TOUT
+   LE PROJET. Le site n'en a plus aucune depuis septembre 2026 : son prix
+   est le même à toute heure et tous les jours. Le flyer, lui, est imprimé
+   et porte deux colonnes — +5 € de 21 h à 6 h, et rien sur le week-end.
+   Les deux règles n'ont donc RIEN à voir et ne se remplacent pas : le jour
+   où quelqu'un lira « il n'y a plus de majoration » dans ce projet, cette
+   grille-ci n'est pas concernée. Un samedi midi reste au tarif de jour ;
+   un mardi à 22 h reste au tarif de nuit.
+
+   LA GRILLE EST PAR HÔTEL, jamais globale : deux partenaires ne se
+   négocient pas au même prix. D'où cet objet indexé par hôtel plutôt
+   qu'une liste de forfaits posée à côté de « GAMMES ».
+   ===================================================================== */
+  var HOTELS = {
+    "easyhotel-aeroville": {
+      /* LE LIBELLÉ EST CELUI QUE L'HÔTEL ET LA RÉCEPTION EMPLOIENT ENTRE
+         EUX. Le cahier des charges en donnait deux ; c'est celui-ci. Ne pas
+         le réécrire pour faire plus complet. */
+      nom:"easyHotel Aéroville",
+      /* MAIS L'ADRESSE POSTALE COMPLÈTE PART CHEZ LE CHAUFFEUR. Plusieurs
+         easyHotel entourent Roissy : un nom de marque seul envoie la
+         voiture au mauvais, à 5 h du matin, avec un vol à prendre. Le nom
+         est pour l'écran, l'adresse est pour le chauffeur — deux besoins
+         différents, et il faut les deux. */
+      adresse:"10 rue de la Belle Borne, 93410 Tremblay-en-France",
+      /* COORDONNÉES DE SECOURS SEULEMENT. À l'ouverture, l'adresse
+         ci-dessus est relue par la Base Adresse Nationale — le même
+         service que pour n'importe quelle adresse du site — et ce sont
+         SES coordonnées qui servent : on ne devine pas un point sur une
+         carte quand on peut le demander. Celles-ci ne servent que si la
+         BAN est injoignable, sinon une réception hors ligne n'aurait aucun
+         départ. Elles ne changent AUCUN forfait, qui sont fixes : elles ne
+         pèsent que sur « autre destination », au kilométrage. */
+      lat:48.9640, lon:2.5480,
+      /* Le QR du flyer porte le nom en clair (« ?h=easyHotel Aéroville »),
+         pas un identifiant : un identifiant obligerait à tenir une table de
+         correspondance, donc à réimprimer le flyer le jour où elle change.
+         On reconnaît donc plusieurs écritures du même hôtel. */
+      alias:["easyhotel aeroville","easyhotel paris charles de gaulle villepinte",
+             "easyhotel villepinte","easyhotel cdg","easyhotel","aeroville"],
+      destinations:[
+        { cle:"cdg",        nom:"Aéroport CDG",           aeroport:"cdg",
+          jour:{ berline:35,  van:40  }, nuit:{ berline:40,  van:45  } },
+        { cle:"orly",       nom:"Orly",                   aeroport:"orly",
+          jour:{ berline:100, van:125 }, nuit:{ berline:105, van:130 } },
+        { cle:"bourget",    nom:"Le Bourget",
+          label:"Aéroport de Paris-Le Bourget, 93350 Le Bourget",
+          lat:48.9694, lon:2.4414,
+          jour:{ berline:45,  van:65  }, nuit:{ berline:50,  van:70  } },
+        { cle:"beauvais",   nom:"Beauvais",               aeroport:"beauvais",
+          jour:{ berline:180, van:240 }, nuit:{ berline:185, van:245 } },
+        { cle:"villepinte", nom:"Expositions Villepinte",
+          label:"Parc des Expositions de Paris-Nord Villepinte, 93420 Villepinte",
+          lat:48.9736, lon:2.5153,
+          jour:{ berline:35,  van:50  }, nuit:{ berline:40,  van:55  } },
+        { cle:"disney",     nom:"Disney",
+          label:"Disneyland Paris, 77700 Marne-la-Vallée",
+          lat:48.8722, lon:2.7758,
+          jour:{ berline:90,  van:120 }, nuit:{ berline:95,  van:125 } },
+        /* PARIS N'EST PAS UNE ADRESSE, c'est une ville de dix kilomètres de
+           large. Le forfait vaut, mais le chauffeur a besoin d'une rue :
+           cette ligne-là OUVRE le champ d'adresse. Et le forfait ne tient
+           que si l'adresse retenue est bien dans Paris — sinon un
+           « Versailles » tapé ici partirait à 80 € au lieu de son
+           kilométrage. On mesure la distance au centre, pas le code postal :
+           c'est la seule donnée présente sur toutes les adresses, quelle
+           que soit la source. 7 km couvrent les vingt arrondissements, les
+           deux bois compris. */
+        { cle:"paris",      nom:"Paris", label:"Paris", adresseLibre:true,
+          lat:48.8566, lon:2.3522, rayonKm:7,
+          jour:{ berline:80,  van:110 }, nuit:{ berline:85,  van:115 } }
+      ]
+    }
+  };
+
+  /* LA NUIT DU FLYER : 21 h – 6 h, ET RIEN D'AUTRE. Pas de week-end.
+     Voir le commentaire de « HOTELS » : c'est la différence qui coûte le
+     plus cher si on l'oublie, et elle ne se voit pas à la relecture. */
+  function nuitHotel(date, heure){
+    if(!date || !heure) return false;
+    var d = new Date(date + "T" + heure);
+    if(isNaN(d.getTime())) return false;
+    var h = d.getHours();
+    return h >= 21 || h < 6;
+  }
+
+  /* LE PRIX D'UNE GAMME A DEUX SOURCES ET UNE SEULE PORTE.
+     Au kilométrage pour tout le site ; au forfait quand la course relie un
+     hôtel partenaire à une des destinations de sa grille. TOUT ce qui
+     affiche un prix passe par ici — la liste des gammes, le récapitulatif,
+     le bon, le message WhatsApp. Deux calculs qui divergent ne se voient
+     pas : on le découvre le jour où un client compare, et le prix est ferme
+     donc opposable. C'est la faute déjà évitée deux fois sur ce projet. */
+  function prixGamme(g){
+    if(course.forfait && typeof course.forfait[g.cle] === "number")
+      return course.forfait[g.cle];
+    return prix(g, course.km);
+  }
+
   var OPTION_PANCARTE_EUR = 10;
   var optionPancarte = false;
   function supplementPancarte(){
     return (optionPancarte && pancarteProposee()) ? OPTION_PANCARTE_EUR : 0;
   }
   function totalCourse(){
-    return prix(course.gamme, course.km, course.majoration) + supplementPancarte();
+    return prixGamme(course.gamme) + supplementPancarte();
   }
 
   /* =====================================================================
@@ -5076,7 +5652,14 @@ window.ELA_TEXTES = {
   var champDate  = document.getElementById("date");
   var champHeure = document.getElementById("heure");
   var champPax   = document.getElementById("passagers");
-  var course = { km:0, min:0, estime:false, majoration:false, gamme:null };
+  /* « forfait » est nul sur tout le site : le prix se calcule au
+     kilométrage. Il ne porte quelque chose que sur une course partie d'un
+     hôtel partenaire vers une destination de sa grille — et c'est alors lui
+     qui décide, voir « prixGamme ». */
+  /* « majoration » reste à faux et n'est plus jamais calculé : il n'existe
+     que pour que les courses enregistrées gardent la même forme que celles
+     d'avant septembre 2026. Voir le commentaire de « prix ». */
+  var course = { km:0, min:0, estime:false, majoration:false, gamme:null, forfait:null };
 
   function ecran(id, force){
     var vus = document.querySelectorAll(".ecran");
@@ -5320,7 +5903,7 @@ window.ELA_TEXTES = {
        client seul garde le droit de vouloir un van, et c'est une course
        plus chère. Il choisit, ou rien n'est réservé. */
     GAMMES.filter(function(g){ return g.places >= pax; }).forEach(function(g){
-      var p = prix(g, course.km, course.majoration);
+      var p = prixGamme(g);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "veh-carte";
@@ -5489,6 +6072,10 @@ window.ELA_TEXTES = {
     var passee = heureDepassee();
     blocPassee.hidden = !passee;
     blocTropTot.hidden = passee || !tropTot();
+    /* Le flyer a deux colonnes, jour et nuit : l'heure choisie décide de
+       celle qu'on affiche. Sans ce rappel, une réception qui passe le
+       départ de 20 h à 22 h continuerait de lire le tarif de jour. */
+    jugerForfait();
     jugerBoutonPrix();
   }
 
@@ -5569,7 +6156,12 @@ window.ELA_TEXTES = {
     var pax = Math.max(1, parseInt(champPax.value, 10) || 1);
     var plusGrand = Math.max.apply(null, GAMMES.map(function(g){ return g.places; }));
     if(pax > plusGrand){ refuser("err_trop_grand", { n:pax }); champPax.focus(); return; }
-    course.majoration = nuitOuWeekend(champDate.value, champHeure.value);
+    /* Le forfait d'un hôtel est REJUGÉ ici, sur l'heure réellement
+       retenue : entre le choix de la destination et l'appui sur le bouton,
+       la réception a pu repousser le départ de 20 h 50 à 21 h 10 — ce qui
+       change de colonne dans le flyer. Le prix du SITE, lui, ne dépend
+       plus de l'heure du tout depuis le retrait de la majoration. */
+    jugerForfait();
     var libelle = boutonPrix.querySelector("span");
     var avant = libelle.textContent;
     libelle.textContent = T("calcul");
@@ -5594,7 +6186,13 @@ window.ELA_TEXTES = {
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
         + " km · " + dv.bas + "–" + dv.haut + " " + T("min")
         + (r.trafic ? " · " + T("trafic") : "");
-      document.getElementById("noteNuit").hidden = !course.majoration;
+      /* L'ÉCRITEAU DE NUIT NE SERT PLUS QU'AUX FORFAITS D'UN HÔTEL.
+         Le site n'a plus aucune majoration : sur une course au kilométrage
+         il n'y a plus rien à annoncer, à aucune heure et aucun jour. Le
+         flyer d'un partenaire, lui, garde ses deux colonnes — et c'est la
+         seule chose que cette ligne dit désormais. */
+      var noteN = document.getElementById("noteNuit");
+      noteN.hidden = !course.forfait || !nuitHotel(champDate.value, champHeure.value);
       dessinerGammes();
       ecran("ecran-vehicules");
       /* LA CARTE APRÈS L'ÉCRAN, jamais avant : Leaflet mesure son cadre au
@@ -8418,7 +9016,7 @@ window.ELA_TEXTES = {
     if(!e) return;
     e.textContent = GAMMES.map(function(g){
       return g.nom + " " + euros(g.parKm) + "/km, minimum " + euros(g.mini);
-    }).join(" · ") + ". +20 % la nuit et le week-end.";
+    }).join(" · ") + ".";
   }
 
   function ouvrirCreer(){
@@ -8495,17 +9093,18 @@ window.ELA_TEXTES = {
         var gamme = GAMMES.filter(function(g){
           return g.cle === document.getElementById("crVehicule").value;
         })[0] || GAMMES[0];
-        /* La majoration suit la date et l'heure SAISIES, pas l'instant
-           présent : une course prise à 2 h du matin pour mardi midi n'est
-           pas une course de nuit. */
-        var maj = nuitOuWeekend(document.getElementById("crDate").value,
-                                document.getElementById("crHeure").value);
-        var p = prix(gamme, it.km, maj);
+        /* LE MÊME CALCUL QUE CÔTÉ CLIENT, et c'est ce qui garantit qu'on
+           annonce au téléphone le prix que le site aurait donné. Deux
+           calculs qui divergent ne se voient pas : on le découvre le jour
+           où un client compare, sur un prix ferme donc opposable.
+           La majoration de nuit et de week-end a été retirée en septembre
+           2026 — il n'y a plus d'heure à consulter ici. */
+        var p = prix(gamme, it.km);
         document.getElementById("crPrix").value = p;
         dire(a.label + " → " + b.label + " · "
              + (it.estime ? "≈ " : "")
              + it.km.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " km · "
-             + gamme.nom + (maj ? " · nuit ou week-end +20 %" : "")
+             + gamme.nom
              + " → " + eurosFR(p) + (it.estime ? " (distance estimée)" : ""));
         bouton.disabled = false;
       });
@@ -9662,6 +10261,19 @@ window.ELA_TEXTES = {
     if(!nom) return false;
     nom = nom.trim().slice(0, 60);
     if(!nom) return false;
+    /* UN PARTENAIRE D'ABORD. « ?h= » sert deux choses depuis septembre
+       2026 : l'affiche QR d'un hôtel quelconque, qui pose son nom dans le
+       champ de départ, et l'écran d'une réception partenaire, qui a une
+       grille négociée. Le premier reste inchangé — tous les hôtels ne sont
+       pas partenaires, et celui qui ne l'est pas doit continuer à marcher
+       exactement comme avant. */
+    var partenaire = hotelDuParametre(nom);
+    if(partenaire){
+      try{ sessionStorage.setItem("ela_provenance", partenaire.nom); }
+      catch(e){ /* stockage refusé : la course partira sans provenance */ }
+      ouvrirModeHotel(partenaire);
+      return true;
+    }
     /* ON RETIENT D'OÙ IL VIENT, et pas seulement où il part. Sans ça,
        l'affiche amène des clients et personne ne sait laquelle travaille :
        le nom de l'hôtel ne sert qu'à remplir le champ de départ, et il
