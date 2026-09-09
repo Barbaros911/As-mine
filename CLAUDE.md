@@ -1165,12 +1165,18 @@ construit** : trois points ont été soulevés, il doit trancher.
 **1. LE PARTENARIAT EST RÉEL — c'était mon objection, elle tombe.** Le mémo
 disait « easyHotel n'est pas un partenaire » ; c'était vrai à l'époque du cas
 de test, et Barbaros a confirmé depuis que ce ne l'est plus. **Il n'y a donc
-plus d'obstacle à publier une page à leur nom.** Reste à obtenir d'eux le
-libellé exact qu'ils veulent voir — le cahier des charges en donne deux
-différents (« easyHotel Paris Charles de Gaulle Villepinte » dans le contexte,
-« easyHotel Aéroville » comme départ figé) — et l'adresse postale complète
-doit partir dans le message WhatsApp : plusieurs easyHotel entourent CDG, un
-nom de marque seul envoie le chauffeur au mauvais.
+plus d'obstacle à publier une page à leur nom.**
+
+**LE LIBELLÉ EST TRANCHÉ : « easyHotel Aéroville »** (septembre 2026, à sa
+demande). Le cahier des charges en donnait deux — « easyHotel Paris Charles
+de Gaulle Villepinte » dans le contexte, « easyHotel Aéroville » comme départ
+figé ; c'est le second. **Ne pas le réécrire** : c'est le nom que la réception
+et l'hôtel emploient entre eux.
+**MAIS L'ADRESSE POSTALE COMPLÈTE DOIT PARTIR DANS LE MESSAGE WHATSAPP** —
+`10 rue de la Belle Borne, 93410 Tremblay-en-France`. Plusieurs easyHotel
+entourent CDG : un nom de marque seul envoie le chauffeur au mauvais, à
+5 h du matin, avec un vol à prendre. Le libellé est pour l'écran, l'adresse
+est pour le chauffeur ; ce sont deux besoins différents et il faut les deux.
 
 **2. LA GRILLE FORFAITAIRE PROPOSÉE LE FAIT PERDRE DE L'ARGENT SUR LE VAN.**
 Comparé à ce que le site facture depuis le passage à 2,35 / 4,08 €/km
