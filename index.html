@@ -1418,8 +1418,57 @@ body.hotel .section,
 body.hotel .pied{display:none;}
 body.hotel .reserver{margin-top:0;}
 
-.hotel-tete{margin:0 0 14px;padding:16px 16px 14px;border-radius:18px;
-  background:var(--noir);color:#fff;}
+/* ═══════════════════════════════════════════════════════════════════════
+   LE THÈME D'UN PARTENAIRE
+   -----------------------------------------------------------------------
+   Tout est sous « body.hotel » : le site public ne change pas d'un pixel.
+   Les valeurs viennent de l'objet « HOTELS », jamais d'ici — le CSS ne
+   connaît que des rôles. Les replis (« , var(--noir) ») font que la page
+   reste correcte si un partenaire oublie une couleur.
+   L'ORANGE NE DESCEND PAS DANS LA LISTE : il est à 24° du rouge de
+   l'attente, et les deux côte à côte se disputeraient l'attention. Il tient
+   le cadre, l'action et l'aide ; la liste reste neutre.
+   ═══════════════════════════════════════════════════════════════════════ */
+.hotel-tete{position:relative;overflow:hidden;
+  margin:0 0 14px;padding:18px 16px 16px;border-radius:18px;
+  background:var(--h-charbon, var(--noir));color:#fff;}
+/* Le filet de la marque, en haut : c'est lui qui dit « easyHotel » avant
+   même qu'on lise le nom. */
+.hotel-tete::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--h-vif, var(--accent-vif));}
+.hotel-photo{position:absolute;inset:0;background-size:cover;
+  background-position:center;}
+.hotel-photo::after{content:"";position:absolute;inset:0;
+  background:var(--h-charbon, var(--noir));opacity:.62;}
+.hotel-tete > *{position:relative;}
+body.hotel .hotel-tete .hotel-sur{color:var(--h-vif, var(--accent-vif));}
+
+/* L'ACTION PRINCIPALE PORTE LA COULEUR DU PARTENAIRE. Sur les écrans de
+   l'hôtel seulement : le bouton du site public reste vert. */
+body.hotel #btnVoirPrix,
+body.hotel #btnRecReserver,
+body.hotel #btnRecEntrer,
+body.hotel #btnContinuer:not(:disabled){background:var(--h-bouton, var(--accent));}
+body.hotel .hotel-sens-btn.actif{background:#fff;color:var(--h-charbon, var(--encre));}
+body.hotel .hotel-forfait{color:var(--h-paleEncre, var(--accent-encre));font-size:15px;}
+body.hotel .rec-aide{background:var(--h-pale, var(--accent-clair));}
+body.hotel .rec-aide-titre,
+body.hotel .rec-aide-texte{color:var(--h-paleEncre, var(--accent-encre));}
+body.hotel .rec-aide-lien{background:var(--h-bouton, var(--accent));}
+body.hotel .rec-aide-lien.wa{background:#25D366;}
+/* ═══ « CONFIRMÉE » RESTE VERTE, MÊME SUR UNE PAGE ORANGE ═══
+   Passée à l'orange du partenaire, la pastille disait la MARQUE et non
+   plus l'ÉTAT : « confirmée » devenait de la même couleur que le bouton,
+   que le bloc d'aide et que le filet de l'en-tête — c'est-à-dire plus rien.
+   Une couleur d'état ne se négocie pas avec une charte : le vert dit « la
+   voiture est acquise », il est à 147° de l'orange, et c'est exactement ce
+   qu'il faut pour qu'on les distingue d'un coup d'œil. Même erreur, à
+   l'envers, que le jour où l'attente et la confirmation ont fini de la
+   même couleur sur le bon du client. */
+body.hotel .rec-chauffeur{background:var(--h-pale, var(--accent-clair));
+  color:var(--h-paleEncre, var(--accent-encre));}
+/* Le rouge de l'attente et du retard ne bouge PAS : c'est la seule chose
+   qui crie, et elle doit rester distincte de la marque. */
 .hotel-tete .hotel-sur{margin:0;font-size:11.5px;font-weight:700;
   letter-spacing:.09em;text-transform:uppercase;color:var(--accent-vif);}
 .hotel-tete .hotel-nom{margin:4px 0 0;font-size:21px;font-weight:700;
@@ -1485,8 +1534,17 @@ body.hotel .reserver{margin-top:0;}
    dit — quelqu'un doit s'en occuper. Ce sont les deux seuls rouges. */
 .rec-jour.retard{color:#C9302F;}
 .rec-heure{font-size:19px;font-weight:800;}
-.rec-detail{margin:4px 0 0;font-size:12.5px;color:var(--gris);
+.rec-tel{margin:2px 0 0;font-size:13.5px;font-weight:600;}
+.rec-tel a{color:var(--encre);}
+.rec-bas{display:flex;justify-content:space-between;align-items:baseline;
+  gap:10px;margin:6px 0 0;}
+.rec-detail{font-size:12.5px;color:var(--gris);min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Le prix ne rétrécit jamais : c'est le chiffre annoncé au client, et
+   c'est celui qu'on relit en premier quand il demande « c'était combien
+   déjà ? ». « flex-shrink:0 » lui garde sa place quand l'adresse est
+   longue — sans lui, c'est le montant qui serait tronqué. */
+.rec-prix{flex:0 0 auto;font-size:17px;font-weight:800;}
 .rec-barre{display:flex;gap:8px;margin:20px 0 0;}
 .rec-barre .bouton-fantome{flex:1 1 0;margin:0;}
 .rec-vide{margin:24px 2px;font-size:14px;color:var(--gris);text-align:center;}
@@ -1501,7 +1559,7 @@ body.hotel .reserver{margin-top:0;}
   color:var(--accent-encre);}
 .rec-etat.attente{background:transparent;}
 .rec-quand{margin:6px 0 0;font-size:15px;font-weight:800;}
-.rec-ou{margin:2px 0 0;font-size:13.5px;color:var(--encre);
+.rec-ou{margin:6px 0 0;font-size:13.5px;color:var(--encre);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rec-qui{margin:2px 0 0;font-size:13px;color:var(--gris);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1677,6 +1735,12 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
        Roissy, et un chauffeur envoyé au mauvais à 5 h du matin fait rater
        un vol. -->
   <section class="hotel-tete" id="hotelTete" hidden>
+    <!-- La photo est un FOND, sous un voile : un titre posé sur une image
+         non maîtrisée n'a aucun contraste garanti — c'est la leçon du ruban
+         de photos de l'ancien accueil, illisible sur les Champs illuminés.
+         Ici le voile est opaque à 62 %, donc le texte reste lisible quelle
+         que soit l'image qu'easyHotel enverra. -->
+    <div class="hotel-photo" id="hotelPhoto" hidden aria-hidden="true"></div>
     <p class="hotel-sur" data-t="hotel_sur">Tarifs partenaires</p>
     <p class="hotel-nom" id="hotelTeteNom"></p>
     <p class="hotel-adresse" id="hotelTeteAdresse"></p>
@@ -5361,7 +5425,11 @@ window.ELA_TEXTES = {
       l1.appendChild(hh); l1.appendChild(et);
       d.appendChild(l1);
 
-      /* LE CLIENT ET SA CHAMBRE SONT LE REPÈRE PRINCIPAL. Une réception
+      /* ═══ CE QU'UNE RÉSERVATION DOIT PORTER ═══
+         À sa demande, mot pour mot : « la réservation doit comporter le
+         numéro de chambre ou le nom du client ainsi que le numéro, le
+         trajet à effectuer et le prix annoncé », plus le mode de paiement.
+         LE CLIENT ET SA CHAMBRE SONT LE REPÈRE PRINCIPAL — une réception
          pense en « chambre 214 », jamais en « ELA-26-09-0042 ». */
       var qui = document.createElement("p");
       qui.className = "rec-qui";
@@ -5369,16 +5437,48 @@ window.ELA_TEXTES = {
                         .filter(Boolean).join(" · ") || "Client non nommé";
       d.appendChild(qui);
 
+      /* LE NUMÉRO DU CLIENT, CLIQUABLE. C'est le seul moyen de le joindre
+         quand la voiture est en bas et qu'il n'est pas dans sa chambre. */
+      if(c.tel){
+        var t = document.createElement("p");
+        t.className = "rec-tel";
+        var lt = document.createElement("a");
+        lt.href = "tel:" + c.tel; lt.textContent = c.tel;
+        t.appendChild(lt);
+        d.appendChild(t);
+      }
+
+      /* ═══ ON NE RÉPÈTE PAS L'HÔTEL SUR CHAQUE LIGNE ═══
+         Mesuré : « easyHotel Aéroville, 10 rue de la Belle Borne → Beauvais »
+         mangeait toute la largeur et c'est la DESTINATION qui se faisait
+         tronquer — c'est-à-dire la seule moitié que la réception ne connaît
+         pas déjà. Toutes ces courses partent de chez elle ou y arrivent :
+         le bout qui l'intéresse est l'autre.
+         MAIS LE SENS RESTE ÉCRIT. Sans lui, « Orly 1 » ne dirait pas si le
+         chauffeur emmène le client ou vient le chercher — et un comptoir
+         qui se trompe de sens envoie une voiture pour rien. */
       var ou = document.createElement("p");
       ou.className = "rec-ou";
-      ou.textContent = "→ " + (c.arrivee || "—");
+      var versHotel = recHotel && (c.arrivee || "").indexOf(recHotel.nom) === 0;
+      ou.textContent = versHotel
+        ? ((c.depart || "—").split(",")[0] + "  →  l'hôtel")
+        : ("l'hôtel  →  " + (c.arrivee || "—"));
       d.appendChild(ou);
 
-      var det = document.createElement("p");
-      det.className = "rec-detail";
-      det.textContent = [c.vehicule, c.prix ? eurosFR(c.prix) : "", c.ref]
-                        .filter(Boolean).join(" · ");
-      d.appendChild(det);
+      /* LE PRIX EST LE CHIFFRE QUE LA RÉCEPTION A ANNONCÉ AU CLIENT : il
+         est à droite, en gras, et il ne se noie pas dans une ligne grise.
+         Le mode de règlement est à côté — c'est lui qui décide si le
+         chauffeur se présente avec un terminal de carte. */
+      var bas = document.createElement("p");
+      bas.className = "rec-bas";
+      var gauche = document.createElement("span");
+      gauche.className = "rec-detail";
+      gauche.textContent = [c.vehicule, c.paiement, c.ref].filter(Boolean).join(" · ");
+      var prix = document.createElement("b");
+      prix.className = "rec-prix";
+      prix.textContent = c.prix ? eurosFR(c.prix) : "—";
+      bas.appendChild(gauche); bas.appendChild(prix);
+      d.appendChild(bas);
 
       /* LE CHAUFFEUR N'APPARAÎT QUE QUAND IL EST RÉELLEMENT ATTRIBUÉ, et
          c'est ce que la réception vient chercher : répondre au client sans
@@ -5506,6 +5606,17 @@ window.ELA_TEXTES = {
     hotelDest = h.destinations[0];
     libreAutoRempli = false;
     document.body.classList.add("hotel");
+    /* Les couleurs passent par des variables CSS posées sur la page : le
+       CSS ne connaît aucun partenaire, il ne connaît que des rôles. C'est
+       la même leçon que « --accent » qui ne s'appelle plus « --or ». */
+    var m = h.marque || {};
+    var racine = document.documentElement;
+    Object.keys(m).forEach(function(k){ racine.style.setProperty("--h-" + k, m[k]); });
+    var photo = document.getElementById("hotelPhoto");
+    /* Sans photo, le cadre n'est pas vide : il est simplement uni. Un bloc
+       gris « image manquante » ferait plus de mal que pas d'image du tout. */
+    if(h.photo){ photo.style.backgroundImage = "url(" + h.photo + ")"; photo.hidden = false; }
+    else { photo.hidden = true; }
     hotelTete.hidden = false;
     blocDest.hidden = false;
     document.getElementById("hotelTeteNom").textContent = h.nom;
@@ -5838,6 +5949,33 @@ window.ELA_TEXTES = {
          EUX. Le cahier des charges en donnait deux ; c'est celui-ci. Ne pas
          le réécrire pour faire plus complet. */
       nom:"easyHotel Aéroville",
+      /* ═══ LES COULEURS DU PARTENAIRE, RANGÉES AVEC LUI ═══
+         À sa demande : « fais les couleurs orange comme easyHotel ». Elles
+         vivent sur l'hôtel et pas dans le CSS, exactement comme sa grille :
+         le partenaire suivant sera peut-être bleu, et une couleur écrite en
+         dur dans la feuille de style obligerait à la déjouer au lieu de la
+         déclarer.
+         LES VALEURS SONT MESURÉES, PAS CHOISIES À L'ŒIL (WCAG) :
+         — « vif » #FF6600 est l'orange d'easyHotel. Du blanc dessus donne
+           2,94 : ILLISIBLE. On n'y pose donc que de l'encre (5,86) ou on
+           s'en sert sur du charbon (5,87).
+         — « bouton » #C2410C est le même orange assombri jusqu'à ce que le
+           blanc passe (5,18) : c'est lui qui porte les actions.
+         — « pale » #FFF1E8 avec « paleEncre » #7C2D12 donne 8,48.
+         ET SURTOUT : l'orange est à 24° de teinte du ROUGE de l'attente
+         (#C9302F, 0°). Les deux se disputeraient l'attention posés côte à
+         côte. L'orange habille donc le CADRE et l'ACTION — l'en-tête, le
+         bouton principal, le bloc d'aide — et **jamais la liste**, qui
+         reste neutre pour que son seul rouge continue de crier. */
+      marque: { charbon:"#1B1B1B", vif:"#FF6600", bouton:"#C2410C",
+                pale:"#FFF1E8", paleEncre:"#7C2D12" },
+      /* LA PHOTO DE L'HÔTEL — vide tant qu'il ne l'a pas fournie, et
+         l'en-tête est dessiné pour tenir sans elle. On ne va PAS la
+         chercher sur Internet : une photo appartient à son photographe ou
+         à l'hôtel, et ce projet a déjà dû supprimer douze images prises
+         sur Google. Elle viendra d'easyHotel, qui a des photos de presse.
+         Poser ici un chemin relatif, par exemple "photos/easyhotel.jpg". */
+      photo:"",
       /* MAIS L'ADRESSE POSTALE COMPLÈTE PART CHEZ LE CHAUFFEUR. Plusieurs
          easyHotel entourent Roissy : un nom de marque seul envoie la
          voiture au mauvais, à 5 h du matin, avec un vol à prendre. Le nom

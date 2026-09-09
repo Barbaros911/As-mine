@@ -46,11 +46,15 @@
    Barbaros : la référence, la date, l'heure, la destination, le véhicule,
    le prix, le nom du client, sa chambre, l'état, et — seulement sur une
    course confirmée ou réalisée — le prénom du chauffeur et son numéro.
-   **JAMAIS le téléphone du client.** La réception l'a tapé elle-même, donc
-   ce n'est pas un secret pour elle ; mais elle n'en a pas besoin pour
-   DÉCIDER quoi que ce soit — elle joint son client par sa chambre — et ce
-   qui n'est pas nécessaire ne voyage pas (RGPD 5.1.c). Une tablette
-   oubliée sur un comptoir ne doit pas rendre les portables des clients.
+   LE TÉLÉPHONE DU CLIENT EN FAIT PARTIE, et c'est une DÉCISION, pas un
+   oubli. Il avait d'abord été écarté au nom de la minimisation. Barbaros a
+   tranché l'inverse : « la réservation doit comporter le numéro de chambre
+   ou le nom du client ainsi que le numéro ». Et il a raison sur le fond —
+   la réception a tapé ce numéro elle-même, et un client parti prendre son
+   petit-déjeuner n'est joignable QUE là quand la voiture arrive. La
+   minimisation interdit ce qui n'est pas nécessaire, pas ce qui sert. Ce
+   qui reste vrai : ces données ne sortent jamais de l'hôtel qui les a
+   saisies, et le code protège l'accès.
 
    ═══ RIEN NE S'ANNULE DEPUIS UNE TABLETTE D'HÔTEL ═══
    Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
@@ -216,11 +220,18 @@ Deno.serve(async (req: Request) => {
       arrivee: String(co.arrivee || ""),
       vehicule: String(co.vehicule || ""),
       prix: Number(bon.prix && bon.prix.total) || 0,
-      /* Le nom et la chambre : ce sont SES clients, c'est elle qui les a
-         saisis, et sans eux la liste ne se lit pas. Le TÉLÉPHONE du client,
-         lui, ne sort pas — voir l'en-tête. */
+      /* Le nom, la chambre ET le numéro : ce sont SES clients, c'est elle
+         qui les a saisis, et c'est ce qu'un comptoir doit avoir sous les
+         yeux quand la voiture est en bas. Voir l'en-tête. */
       client: String(cl.nom || ""),
+      tel: String(cl.telephone || ""),
       chambre: String(co.chambre || ""),
+      /* LE MODE DE RÈGLEMENT, à sa demande. La réception l'annonce au
+         client au moment de réserver ; s'il n'est pas relisible ensuite,
+         elle ne peut plus répondre à « je paie comment, déjà ? » — et le
+         chauffeur se présente avec ou sans terminal de carte selon cette
+         seule réponse. */
+      paiement: String(bon.paiementNom || bon.paiement || ""),
       annulationDemandee: !!bon.annulationDemandee,
       /* Le chauffeur seulement quand la course est réellement attribuée :
          sur une course en attente, un nom écrit pour mémoire promettrait
