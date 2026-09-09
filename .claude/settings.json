@@ -43,6 +43,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "r=$(git rev-parse --show-toplevel 2>/dev/null) && mkdir -p \"$r/node_modules\" && ln -sfn /opt/node22/lib/node_modules/playwright \"$r/node_modules/playwright\" 2>/dev/null; true",
+            "timeout": 15,
+            "statusMessage": "Préparation des tests…"
+          }
+        ]
+      }
     ]
   }
 }
