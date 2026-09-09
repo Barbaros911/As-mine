@@ -2646,10 +2646,14 @@ l'un des gains.
   — **berline 4 places, van 7**, alors que le papier annonce 1–3 et 4–7.
   **Le flyer imprimé est donc périmé sur ces trois points** : à lui de le
   refaire avant de le distribuer.
-- **LE NUMÉRO DE TÉLÉPHONE DU FLYER SEMBLE FAUX** : il y est écrit
-  `07591312433`, soit **onze chiffres** ; le sien en a dix,
-  `07 59 31 24 33`. Un « 1 » en trop après « 0759 ». Signalé ; à vérifier
-  avant toute impression, sinon personne ne peut l'appeler.
+- **LE NUMÉRO DU FLYER EST BON** — `+33 7 59 31 24 33`, le même que celui
+  du site (`tel:+33759312433`). Il avait été signalé comme faux : c'était
+  une **erreur de lecture de l'image**, un chiffre compté en trop. Barbaros
+  l'a confirmé. Ne pas rouvrir le sujet.
+  La leçon vaut au-delà : **on ne lit pas des chiffres sur une photo pour
+  en tirer une alerte**. Quand un nombre compte, le comparer à une source
+  du dépôt — ici `tel:+33759312433` était à un `grep` de distance et
+  aurait tranché tout de suite.
 - **LE FORFAIT VAUT DANS LES DEUX SENS**, à sa demande. Et l'échange des
   deux champs est **réel**, pas une inversion au moment de l'envoi : c'est
   ce qui fait que tout le reste tombe juste sans une ligne de plus — le
