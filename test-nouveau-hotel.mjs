@@ -133,6 +133,17 @@ check('le départ figé porte l\'ADRESSE POSTALE, pas seulement la marque',
   dep.includes('Belle Borne') && dep.includes('93410'), dep);
 check('le départ ne se modifie pas ici',
   await p.evaluate(()=>document.getElementById('depart').readOnly));
+/* ═══ ET « ME LOCALISER » DISPARAÎT AVEC LUI ═══
+   Défaut trouvé en regardant une capture, pas en relisant le code : le
+   champ était bien en lecture seule, mais le bouton de géolocalisation est
+   un élément À CÔTÉ. Un appui dessus remplaçait l'adresse figée de l'hôtel
+   par la position de l'appareil — « easyHotel Aéroville » devenait « 1 Rue
+   de Rivoli ». Le prix ne bougeait pas, c'est un forfait : rien ne se
+   voyait, et seul le chauffeur s'en serait aperçu en allant à la mauvaise
+   adresse. « readOnly » protège la saisie, jamais ce qui écrit dans le
+   champ depuis l'extérieur. */
+check('« me localiser » disparaît : il écraserait l\'adresse figée de l\'hôtel',
+  await p.locator('#btnGeoloc').isHidden());
 /* Vérifié plus bas, sur l'itinéraire réellement demandé. */
 check('les sept destinations du flyer, plus la sortie',
   (await p.locator('#hotelDest option').allTextContents()).length===8);

@@ -1429,43 +1429,71 @@ body.hotel .reserver{margin-top:0;}
    l'attente, et les deux côte à côte se disputeraient l'attention. Il tient
    le cadre, l'action et l'aide ; la liste reste neutre.
    ═══════════════════════════════════════════════════════════════════════ */
-/* ═══ SANS PHOTO, L'EN-TÊTE EST FINI QUAND MÊME ═══
-   Barbaros n'a pas encore d'image dont il connaisse la provenance, et on
-   n'en pose pas une prise sur Internet — ce projet a déjà dû en supprimer
-   douze. Un aplat uni aurait l'air d'attendre quelque chose ; ce lavis
-   d'orange, posé en diagonale depuis le coin haut droit, a l'air voulu.
-   Il disparaît tout seul le jour où une vraie photo arrive : elle se pose
-   par-dessus, dans « .hotel-photo ». */
+/* ═══ LE BANDEAU EST À LEUR COULEUR, ET LE TEXTE EST SOMBRE ═══
+   À sa demande : « utilise la page aux couleurs de easyHotel », « écris
+   toi-même avec leur couleur ». Aplat orange plein, texte CHARBON.
+   DU BLANC SUR CET ORANGE DONNE 2,94 : ILLISIBLE, et c'est mesuré. Seule
+   de l'encre y passe (5,86). Ce n'est pas une contrainte subie — c'est
+   exactement leur identité : leurs bâtiments sont orange et gris foncé,
+   pas orange et blanc. Le blanc, chez eux, ne sert qu'au lettrage de
+   l'enseigne, sur des lettres énormes.
+   LE FILET EST DONC CHARBON, et non plus orange : sur un aplat orange, un
+   filet orange ne se voit pas.
+   PAS DE LOGO REPRODUIT. Nommer un partenaire pour dire qu'on le dessert
+   est un usage descriptif ; recopier son fichier de marque est autre chose
+   — et Barbaros n'a pas leur accord. Le nom est donc COMPOSÉ, en
+   typographie, dans leur orange. C'est aussi mieux : un logo collé sur une
+   page qui n'est pas la sienne se voit toujours. */
 .hotel-tete{position:relative;overflow:hidden;
-  margin:0 0 14px;padding:18px 16px 16px;border-radius:18px;
-  background:var(--h-charbon, var(--noir));color:#fff;
-  background-image:radial-gradient(120% 90% at 108% -18%,
-    var(--h-vif, var(--accent-vif)) 0%,
-    color-mix(in srgb, var(--h-vif, var(--accent-vif)) 35%, transparent) 34%,
-    transparent 62%);}
-/* Le filet de la marque, en haut : c'est lui qui dit « easyHotel » avant
-   même qu'on lise le nom. */
-.hotel-tete::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
-  background:var(--h-vif, var(--accent-vif));}
+  margin:0 0 14px;padding:20px 18px 18px;border-radius:18px;
+  background:var(--h-vif, var(--accent-vif));
+  color:var(--h-charbon, var(--noir));}
+/* PAS DE FILET EN HAUT. Posé sous l'enseigne marine d'Elatransfer, il
+   formait une bande sombre qui se lisait comme un défaut d'affichage. Un
+   aplat orange plein n'a besoin de rien pour se remarquer. */
 .hotel-photo{position:absolute;inset:0;background-size:cover;
   background-position:center;z-index:0;}
 .hotel-photo::after{content:"";position:absolute;inset:0;
   background:var(--h-charbon, var(--noir));opacity:.62;}
 .hotel-tete > *{position:relative;}
-body.hotel .hotel-tete .hotel-sur{color:var(--h-vif, var(--accent-vif));}
+/* Cette règle datait du bandeau CHARBON, où l'orange vif était le seul
+   accent possible. Le bandeau est devenu orange : elle écrivait donc de
+   l'orange sur de l'orange, et le sur-titre avait purement disparu. Une
+   règle de couleur écrite pour un fond survit au changement de ce fond,
+   sans rien casser de visible — c'est le même piège que le compte
+   d'onglets figé dans la barre du bas. */
+body.hotel .hotel-tete .hotel-sur{color:var(--h-charbon, var(--noir));opacity:.7;}
 
 /* L'ACTION PRINCIPALE PORTE LA COULEUR DU PARTENAIRE. Sur les écrans de
    l'hôtel seulement : le bouton du site public reste vert. */
+/* ═══ LES ACTIONS SONT CHARBON, PAS ORANGE ═══
+   Un bouton orange sous un bandeau orange, c'est une page qui n'a plus de
+   hiérarchie : tout crie de la même voix. Le charbon est la SECONDE
+   couleur d'easyHotel — leurs façades sont orange et gris foncé — il donne
+   17,2 de contraste avec du blanc, et il laisse l'orange dire la marque
+   pendant que le charbon dit « appuie ici ». */
 body.hotel #btnVoirPrix,
 body.hotel #btnRecReserver,
 body.hotel #btnRecEntrer,
-body.hotel #btnContinuer:not(:disabled){background:var(--h-bouton, var(--accent));}
-body.hotel .hotel-sens-btn.actif{background:#fff;color:var(--h-charbon, var(--encre));}
+body.hotel #btnContinuer:not(:disabled){background:var(--h-charbon, var(--noir));}
 body.hotel .hotel-forfait{color:var(--h-paleEncre, var(--accent-encre));font-size:15px;}
 body.hotel .rec-aide{background:var(--h-pale, var(--accent-clair));}
 body.hotel .rec-aide-titre,
 body.hotel .rec-aide-texte{color:var(--h-paleEncre, var(--accent-encre));}
-body.hotel .rec-aide-lien{background:var(--h-bouton, var(--accent));}
+body.hotel .rec-aide-lien{background:var(--h-charbon, var(--noir));}
+
+/* ═══ LES PICTOGRAMMES SUIVENT LA PAGE ═══
+   Ils portent la couleur d'Elatransfer écrite EN DUR dans le SVG
+   (fill="#1F6F6B"). Laissés tels quels sous un bandeau orange, ils
+   faisaient trois couleurs qui ne se parlent pas.
+   ON VISE LA VALEUR EXACTE, pas « tous les svg » : plusieurs de ces
+   dessins ont un point blanc à l'intérieur (le creux du repère de carte),
+   et un « fill » posé sur tout le monde le noircirait.
+   UN ATTRIBUT DE PRÉSENTATION PERD TOUJOURS CONTRE UNE RÈGLE CSS : c'est
+   ce qui permet de les reteindre sans toucher au HTML, donc sans risquer
+   de casser le site public. */
+body.hotel .champ svg [fill="#1F6F6B"]{fill:var(--h-charbon, var(--noir));}
+body.hotel .champ svg [stroke="#1F6F6B"]{stroke:var(--h-charbon, var(--noir));}
 body.hotel .rec-aide-lien.rec-wa{background:#25D366;}
 /* ═══ « CONFIRMÉE » RESTE VERTE, MÊME SUR UNE PAGE ORANGE ═══
    Passée à l'orange du partenaire, la pastille disait la MARQUE et non
@@ -1480,20 +1508,32 @@ body.hotel .rec-chauffeur{background:var(--h-pale, var(--accent-clair));
   color:var(--h-paleEncre, var(--accent-encre));}
 /* Le rouge de l'attente et du retard ne bouge PAS : c'est la seule chose
    qui crie, et elle doit rester distincte de la marque. */
-.hotel-tete .hotel-sur{margin:0;font-size:11.5px;font-weight:700;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--accent-vif);}
-.hotel-tete .hotel-nom{margin:4px 0 0;font-size:21px;font-weight:700;
-  line-height:1.2;}
-.hotel-tete .hotel-adresse{margin:3px 0 0;font-size:13px;color:#C9D4D2;}
+/* LE NOM EST LA PLUS GROSSE CHOSE DE L'ÉCRAN, et il est serré : c'est ce
+   qui fait qu'on le lit comme une enseigne et non comme un titre de
+   paragraphe. « easyHotel » s'écrit ainsi — un mot, deux capitales. */
+.hotel-tete .hotel-sur{margin:0;font-size:11px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--h-charbon, var(--noir));opacity:.72;}
+.hotel-tete .hotel-nom{margin:6px 0 0;font-size:27px;font-weight:800;
+  line-height:1.05;letter-spacing:-.02em;}
+/* L'adresse doit rester LISIBLE, donc sombre : un gris clair sur cet
+   orange tombe sous les seuils (mesuré 3,93 pour #4A3520). #3A1D06 rend
+   5,27 — c'est le plus doux qui passe encore. */
+.hotel-tete .hotel-adresse{margin:5px 0 0;font-size:13px;font-weight:500;
+  color:#3A1D06;}
 /* LES DEUX SENS SE VALENT — c'est le même forfait dans un sens comme dans
    l'autre. Deux boutons de même poids, donc, et aucun n'est « le bon » :
    une réception fait partir un client le matin et en récupère un le soir. */
-.hotel-sens{display:flex;gap:6px;margin-top:12px;padding:4px;
-  border-radius:13px;background:rgba(255,255,255,.10);}
-.hotel-sens-btn{flex:1 1 0;min-height:40px;border:0;border-radius:10px;
-  background:none;color:#D5DEDC;font:inherit;font-size:13.5px;font-weight:600;
+/* Sur un aplat orange, le creux se fait avec du NOIR transparent, jamais
+   avec du blanc : le blanc éclaircit l'orange et le rend laiteux. */
+.hotel-sens{display:flex;gap:6px;margin-top:14px;padding:4px;
+  border-radius:13px;background:rgba(0,0,0,.13);}
+.hotel-sens-btn{flex:1 1 0;min-height:42px;border:0;border-radius:10px;
+  background:none;color:#3A1D06;font:inherit;font-size:13.5px;font-weight:700;
   cursor:pointer;}
-.hotel-sens-btn.actif{background:#fff;color:var(--encre);}
+/* La pastille active est CHARBON, texte blanc (17,2) : c'est le contraste
+   le plus franc possible, et c'est la seconde couleur d'easyHotel. */
+.hotel-sens-btn.actif{background:var(--h-charbon, var(--noir));color:#fff;}
 /* L'ADRESSE DE L'HÔTEL EST MONTRÉE, PAS CACHÉE. C'est elle qui part chez
    le chauffeur : une réception doit pouvoir vérifier d'un coup d'œil que
    la voiture vient bien chez elle. Grisée parce qu'elle ne se modifie pas
@@ -1507,10 +1547,10 @@ body.hotel .rec-chauffeur{background:var(--h-pale, var(--accent-clair));
    outil de la réception, pas une entrée du site. Il ne s'affiche que sous
    « body.reception ». */
 .hotel-acces{display:block;width:100%;min-height:44px;margin-top:10px;
-  border:1px solid rgba(255,255,255,.35);border-radius:12px;
-  background:none;color:#fff;font:inherit;font-size:14px;font-weight:700;
-  cursor:pointer;}
-.hotel-acces:active{background:rgba(255,255,255,.12);}
+  border:1.5px solid var(--h-charbon, var(--noir));border-radius:12px;
+  background:none;color:var(--h-charbon, var(--noir));font:inherit;
+  font-size:14px;font-weight:700;cursor:pointer;}
+.hotel-acces:active{background:var(--h-charbon, var(--noir));color:#fff;}
 .rec-titre{margin:0;font-size:16px;font-weight:800;}
 .rec-hotel{margin:2px 0 0;font-size:13px;color:var(--gris);}
 .rec-intro{margin:0 0 12px;font-size:13.5px;color:var(--gris);}
@@ -5200,10 +5240,22 @@ window.ELA_TEXTES = {
   }
   /* La classe dit seulement « ce champ ne se modifie pas ici ». Elle est
      posée sur le « .champ », pas sur l'input : c'est lui qui porte le fond
-     et le cadre. */
+     et le cadre.
+     ═══ ET « ME LOCALISER » DISPARAÎT AVEC LUI ═══
+     C'était un vrai défaut, silencieux : le champ était bien en lecture
+     seule, mais le bouton de géolocalisation est un élément À CÔTÉ, pas
+     dedans. Un appui dessus remplaçait l'adresse FIGÉE de l'hôtel par la
+     position de l'appareil — mesuré : « easyHotel Aéroville, 10 rue de la
+     Belle Borne » devenait « 1 Rue de Rivoli, 75001 Paris ». Le prix ne
+     bougeait pas (c'est un forfait), donc rien ne se voyait ; seul le
+     chauffeur s'en serait aperçu, en allant à la mauvaise adresse.
+     « readOnly » protège la SAISIE, jamais ce qui écrit dans le champ
+     depuis l'extérieur. Même famille que la prise « poser() », qui existe
+     précisément parce qu'écrire dans un champ ne déclenche rien. */
   function chaqueChamp(input, fige){
     var lab = input.closest(".champ");
     if(lab) lab.classList.toggle("fige", !!fige);
+    if(input === champDepart && btnGeoloc) btnGeoloc.hidden = !!fige;
   }
 
   selDest.addEventListener("change", function(){
