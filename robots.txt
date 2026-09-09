@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 
+# LA GRILLE D'UN HÔTEL PARTENAIRE N'EST PAS UN TARIF PUBLIC.
+# « ?h=<hôtel> » ouvre l'écran d'une réception, avec des forfaits négociés —
+# plus bas que le site sur le van des longues courses. Une adresse devinée
+# ou partagée, et n'importe qui réserve un van pour Orly à 125 € au lieu de
+# 180. Ce n'est pas un secret : c'est une porte qu'on ne met pas dans
+# l'annuaire. La page pose en plus sa propre balise « noindex ».
+Disallow: /*?h=
+
 Sitemap: https://elatransfer.com/sitemap.xml
