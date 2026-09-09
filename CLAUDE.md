@@ -2714,6 +2714,118 @@ l'un des gains.
   CGV.
 - `test-nouveau-hotel.mjs`, 61 contrôles.
 
+
+### LA PAGE DE LA RÉCEPTION — DEUX ADRESSES, ET UN CODE QUI N'EST PAS DANS LA PAGE
+
+Septembre 2026, en trois demandes : « on peut pas mettre un système dans
+lequel ils peuvent placer les réservations, voir les historiques ? », puis
+« je veux qu'il y ait un lien de connexion **vraiment destiné à la
+réception** de l'hôtel uniquement », puis « fais-leur une vraie page,
+prends exemple de ce qui se fait de mieux ». Marche à suivre complète dans
+`RECEPTION-HOTEL.md`.
+
+**LE PROBLÈME QU'ELLE RÉSOUT, ET IL VENAIT DE SA PROPRE QUESTION** :
+« personne ne verra les infos des autres ? » La liste des courses vivait
+dans le navigateur de l'appareil. Deux conséquences opposées et toutes deux
+mauvaises : sur la tablette **partagée** d'un comptoir, chaque client voyait
+les réservations des précédents ; sur n'importe quel autre appareil, la
+réception ne voyait plus rien. La liste vient maintenant du **serveur**,
+filtrée sur l'hôtel.
+
+- **`?h=` est le flyer, `?reception=` est le comptoir.** La première est
+  scannée par les CLIENTS et ne donne accès à rien d'autre qu'à la
+  réservation. Un test éprouve les deux chemins.
+- **LE BOUTON D'ACCÈS EST PROTÉGÉ DEUX FOIS** — l'attribut `hidden` et une
+  règle CSS — et **le test regarde chaque protection séparément**. Éprouvé
+  en cassant l'une puis l'autre : avec un seul contrôle sur ce qui se voit,
+  la suite restait au vert sur la première brèche et n'aurait alerté qu'une
+  fois la seconde ouverte aussi. Une défense en profondeur demande autant de
+  contrôles que de défenses.
+- **LE CODE EST VÉRIFIÉ PAR LE SERVEUR, jamais par la page.** C'est la
+  différence assumée avec `CODE_EXPLOITANT`, qui vit dans le site en
+  empreinte et s'attaque donc hors ligne, autant d'essais qu'on veut. Ici il
+  vit dans les secrets Supabase (`HOTEL_<CLE>_CODE`), la comparaison est à
+  temps constant, et un échec attend 700 ms. **Ce n'est pas un coffre** : ce
+  qui protège vraiment, c'est que l'adresse ne sorte pas de l'hôtel et que
+  le code soit long. Un contrôle cherche qu'aucun code ne traîne dans la
+  page.
+- **UN HÔTEL INCONNU ET UN CODE FAUX RENDENT LA MÊME RÉPONSE.** Les
+  distinguer dirait à qui essaie des noms lesquels sont partenaires.
+- **RIEN NE S'ANNULE DEPUIS UNE TABLETTE D'HÔTEL.** Le bouton transmet et
+  pose `annulationDemandee` ; il ne touche **jamais** au statut. Une course
+  annulée à 5 h du matin libère un chauffeur déjà engagé, et Barbaros seul
+  peut le rappeler. Éprouvé en faisant envoyer un statut : le contrôle
+  tombe.
+- **LE FILTRE PORTE SUR `provenanceCle`, PAS SUR LE LIBELLÉ.** Un libellé
+  est du texte destiné à un écran : le jour où « easyHotel Aéroville »
+  devient « easyHotel Paris CDG », tout l'historique deviendrait invisible à
+  son propre hôtel, sans que rien ne le signale. La clé est posée sur chaque
+  hôtel au chargement (`HOTELS[k].cle = k`) plutôt que recopiée dans l'objet.
+- **CE QUE LA RÉCEPTION VOIT** : ses courses, l'état à jour, la chambre, le
+  nom **et le numéro** du client, le trajet, le véhicule, le prix et le mode
+  de règlement — plus le chauffeur dès que la course est confirmée. Le
+  téléphone du client avait d'abord été écarté au nom de la minimisation ;
+  **Barbaros a tranché l'inverse et il a raison** : un client parti prendre
+  son petit-déjeuner n'est joignable que là quand la voiture arrive. La
+  minimisation interdit ce qui n'est pas nécessaire, pas ce qui sert.
+- **LES ONGLETS « Réservations » et « Trajets » PARTENT SUR CETTE ADRESSE.**
+  Ils lisent le stockage de l'appareil : sur une tablette de comptoir ils
+  auraient affiché les clients précédents. Sur le téléphone d'un client, par
+  l'adresse du flyer, ils restent. **Le raisonnement qui les avait fait
+  garder valait pour le téléphone du client, pas pour le comptoir** — c'est
+  la même note, corrigée par la distinction des deux adresses.
+- **L'HÔTEL N'EST PAS RÉPÉTÉ SUR CHAQUE LIGNE.** Mesuré : son adresse
+  complète mangeait la largeur et c'est la **destination** qui se faisait
+  tronquer, la seule moitié que la réception ne connaît pas déjà. Le SENS
+  reste écrit — sans lui, un comptoir envoie une voiture dans le mauvais
+  sens.
+- **PIÈGE DE TEST : Playwright consulte la DERNIÈRE route posée en premier.**
+  La route générique hors ligne, posée après la route du faux serveur,
+  avalait les appels — et la suite mesurait une panne réseau en croyant
+  mesurer un refus de code.
+
+### LE THÈME D'UN PARTENAIRE — L'ORANGE easyHotel
+
+- **LES COULEURS SONT RANGÉES SUR L'HÔTEL** (`HOTELS[x].marque`), pas dans
+  le CSS, exactement comme sa grille : le partenaire suivant sera peut-être
+  bleu. Le CSS ne connaît que des rôles, et tout est sous `body.hotel` — le
+  site public ne change pas d'un pixel. Un contrôle mesure la couleur
+  **calculée** du bouton public : une règle trop large se voit à l'écran,
+  pas dans la feuille de style.
+- **LES VALEURS SONT MESURÉES (WCAG), PAS CHOISIES À L'ŒIL.** Du blanc sur
+  l'orange du logo `#FF6600` donne **2,94 : illisible**. Les boutons portent
+  donc `#C2410C` (blanc à 5,18) ; l'orange vif reste sur le filet et le
+  titre de l'en-tête, posés sur du charbon (5,87). Le bloc d'aide est en
+  `#FFF1E8` / `#7C2D12` (8,48).
+- **L'ORANGE NE DESCEND PAS DANS LA LISTE.** Il est à **24° de teinte** du
+  rouge de l'attente (`#C9302F`) : côte à côte, les deux se disputeraient
+  l'attention et plus rien ne crierait. Il tient le cadre, l'action et
+  l'aide.
+- **« CONFIRMÉE » EST RESTÉE VERTE**, et c'est la correction d'une erreur
+  commise ici même : passée à l'orange du partenaire, la pastille disait la
+  **marque** et non plus l'**état** — même couleur que le bouton, le bloc
+  d'aide et le filet. Une couleur d'état ne se négocie pas avec une charte.
+  Même faute, à l'envers, que le jour où l'attente et la confirmation ont
+  fini de la même couleur sur le bon du client.
+- **AUCUNE PHOTO NI LOGO D'easyHotel N'EST POSÉ.** Barbaros en a envoyé
+  cinq : trois sur quatre étaient des **vignettes** de résultats de
+  recherche (275 × 182 pour 23 Ko…), et il a confirmé que la seule
+  exploitable venait d'Internet. Il n'a pas non plus l'accord pour le logo.
+  Une photo appartient à son photographe (L335-2 CPI) ; un logo est une
+  **marque déposée**, et c'est ce qu'un siège fait retirer en premier.
+  « C'est seulement pour la réception » ne change rien : la page a une
+  adresse publique, et ce qui est reproché est la reproduction.
+  **Ce qui reste licite et suffit** : leur orange, qui n'appartient à
+  personne, et leur nom écrit — nommer un partenaire pour dire qu'on le
+  dessert est un usage descriptif. L'en-tête porte un lavis d'orange en
+  diagonale pour avoir l'air voulu plutôt qu'en manque d'image ; le champ
+  `photo` attend celle qu'easyHotel fournira, et elle se posera par-dessus,
+  sous un voile opaque à 62 % — un titre posé sur une image non maîtrisée
+  n'a aucun contraste garanti.
+  **À lui demander** : leurs photos de presse et leur logo, en un message à
+  son contact. Ou, gratuit tout de suite, sa propre photo d'une berline
+  devant l'entrée.
+
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
 Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
@@ -3429,7 +3541,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt-deux suites Playwright, 849 contrôles**, à relancer après **toute**
+**Vingt-trois suites Playwright, 895 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
@@ -3465,7 +3577,7 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
          test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
          test-nouveau-carte.mjs test-nouveau-bascule.mjs \
-         test-nouveau-hotel.mjs; do
+         test-nouveau-hotel.mjs test-nouveau-reception.mjs; do
   printf "%-34s " "$f"
   out=$(node $f 2>&1)
   res=$(echo "$out" | grep -E "^=== " | tr '\n' ' ')
