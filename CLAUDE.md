@@ -1193,6 +1193,19 @@ En berline c'est l'inverse — il est au-dessus partout, ce qui est normal pour
 un canal hôtel qui prend une commission. **Sauf Orly : 100 € sur la page,
 ~110 € sur le site.** Un client d'hôtel ouvre elatransfer.com en dix secondes.
 
+**C'EST VOULU — IL A TRANCHÉ** (septembre 2026). Le van moins cher que le
+site sur les longues courses est un **prix d'appel pour décrocher l'hôtel**,
+pas une dérive. **Ne jamais « corriger » cette grille pour l'aligner sur le
+kilométrage** : c'est exactement le genre de chose qu'une prochaine session
+prendrait pour un défaut.
+- **CONSÉQUENCE À NE PAS MANQUER : la page sera PUBLIQUE.** Une adresse
+  devinée ou partagée, et n'importe qui réserve un van pour Orly à 125 € au
+  lieu de 180. Elle doit donc porter **`noindex`** — comme `admin.html` et
+  `/exploitant/` — et son adresse ne se communique qu'à l'hôtel. Ce n'est pas
+  un secret, c'est une porte qu'on ne met pas dans Google.
+- Et le jour où un autre hôtel arrive, **la grille est par HÔTEL**, pas
+  globale : deux partenaires ne se négocient pas au même prix.
+
 **3. CE SERAIT LA DEUXIÈME GRILLE DE PRIX DU PROJET**, et c'est la faute
 évitée deux fois déjà : le calcul de l'espace exploitant réutilise
 volontairement celui du client parce que **deux calculs qui divergent ne se
