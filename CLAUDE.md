@@ -833,8 +833,12 @@ prix doit être ferme et connu avant le départ.
   de 5 à 10 chauffeurs vérifiés qui reçoit la course en premier, et le
   grand groupe en réservoir si personne ne prend.
 - **Piste commerciale : les hôtels de la zone CDG.** Le numéro de chambre
-  existe pour eux. Coût zéro, testable en une semaine. *easyHotel n'est
-  pas un partenaire* — c'était un cas de test de recherche d'adresse.
+  existe pour eux. Coût zéro, testable en une semaine.
+  **easyHotel EST partenaire depuis septembre 2026** — confirmé par Barbaros.
+  La note précédente disait le contraire (« ce n'était qu'un cas de test de
+  recherche d'adresse ») : c'était vrai jusqu'à ce qu'il signe. **Une note de
+  ce fichier vieillit ; vérifier auprès de lui avant de s'en servir pour
+  refuser quelque chose.**
 - **Ne pas promettre une marque précise** (« Mercedes Classe E ») : si un
   autre véhicule se présente, c'est trompeur. Dire « berline » ou, à la
   rigueur, « type … ou similaire ».
@@ -1158,10 +1162,15 @@ réserve en moins de trente secondes. **Le cadrage est bon** — c'est
 exactement ce qu'une réception peut faire entre deux clients. **Rien n'a été
 construit** : trois points ont été soulevés, il doit trancher.
 
-**1. easyHotel n'est PAS un partenaire** (voir plus haut, « Conseils déjà
-donnés »). Publier une page à leur nom, avec leur adresse et le mot
-« partenariat », utiliserait la marque d'un tiers pour une relation qui
-n'existe pas. **À confirmer avant tout le reste.**
+**1. LE PARTENARIAT EST RÉEL — c'était mon objection, elle tombe.** Le mémo
+disait « easyHotel n'est pas un partenaire » ; c'était vrai à l'époque du cas
+de test, et Barbaros a confirmé depuis que ce ne l'est plus. **Il n'y a donc
+plus d'obstacle à publier une page à leur nom.** Reste à obtenir d'eux le
+libellé exact qu'ils veulent voir — le cahier des charges en donne deux
+différents (« easyHotel Paris Charles de Gaulle Villepinte » dans le contexte,
+« easyHotel Aéroville » comme départ figé) — et l'adresse postale complète
+doit partir dans le message WhatsApp : plusieurs easyHotel entourent CDG, un
+nom de marque seul envoie le chauffeur au mauvais.
 
 **2. LA GRILLE FORFAITAIRE PROPOSÉE LE FAIT PERDRE DE L'ARGENT SUR LE VAN.**
 Comparé à ce que le site facture depuis le passage à 2,35 / 4,08 €/km
