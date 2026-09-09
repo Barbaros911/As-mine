@@ -1443,6 +1443,90 @@ body.hotel .reserver{margin-top:0;}
 /* Le prix se rattache au menu qui est AU-DESSUS de lui. Collé au bloc
    suivant, il se lisait comme le prix du terminal — d'où cette marge basse
    plus grande que la haute : c'est elle qui dit à quoi la ligne appartient. */
+/* Le bouton d'accès vit DANS le bandeau sombre de l'hôtel : c'est un
+   outil de la réception, pas une entrée du site. Il ne s'affiche que sous
+   « body.reception ». */
+.hotel-acces{display:block;width:100%;min-height:44px;margin-top:10px;
+  border:1px solid rgba(255,255,255,.35);border-radius:12px;
+  background:none;color:#fff;font:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;}
+.hotel-acces:active{background:rgba(255,255,255,.12);}
+.rec-titre{margin:0;font-size:16px;font-weight:800;}
+.rec-hotel{margin:2px 0 0;font-size:13px;color:var(--gris);}
+.rec-intro{margin:0 0 12px;font-size:13.5px;color:var(--gris);}
+#btnRecReserver{margin:0 0 14px;}
+.rec-chiffres{display:flex;gap:8px;margin:0 0 14px;}
+.rec-chiffre{flex:1 1 0;padding:10px 6px;border:1px solid var(--filet);
+  border-radius:14px;background:var(--carte);text-align:center;}
+.rec-chiffre b{display:block;font-size:21px;line-height:1.1;}
+.rec-chiffre span{display:block;margin-top:2px;font-size:11.5px;color:var(--gris);}
+/* Le seul des trois qui demande quelque chose à quelqu'un s'allume. Si les
+   trois criaient, plus aucun ne crierait — même règle que le tableau de
+   bord de Barbaros, où l'attente est la seule ligne rouge. */
+.rec-chiffre.chaud{border-color:#C9302F;}
+.rec-chiffre.chaud b{color:#C9302F;}
+
+/* « Un imprévu ? » — un aplat d'accent, pas une carte blanche de plus :
+   les cartes de course sont blanches, ce bloc ne doit pas se fondre dans
+   la série. Il reste à l'écran en permanence, au-dessus de la liste. */
+.rec-aide{margin:0 0 16px;padding:14px 16px;border-radius:16px;
+  background:var(--accent-clair);}
+.rec-aide-titre{margin:0;font-size:15px;font-weight:800;color:var(--accent-encre);}
+.rec-aide-texte{margin:4px 0 10px;font-size:13px;color:var(--accent-encre);}
+.rec-aide .duo{gap:8px;}
+.rec-aide-lien{display:flex;align-items:center;justify-content:center;
+  min-height:44px;border-radius:12px;background:var(--accent);color:#fff;
+  font-size:14px;font-weight:700;text-decoration:none;}
+.rec-aide-lien.wa{background:#25D366;}
+
+.rec-jour{margin:18px 2px 8px;font-size:12px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--gris);}
+/* « En retard » emprunte le rouge de l'attente : c'est la même chose qu'il
+   dit — quelqu'un doit s'en occuper. Ce sont les deux seuls rouges. */
+.rec-jour.retard{color:#C9302F;}
+.rec-heure{font-size:19px;font-weight:800;}
+.rec-detail{margin:4px 0 0;font-size:12.5px;color:var(--gris);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-barre{display:flex;gap:8px;margin:20px 0 0;}
+.rec-barre .bouton-fantome{flex:1 1 0;margin:0;}
+.rec-vide{margin:24px 2px;font-size:14px;color:var(--gris);text-align:center;}
+.rec-course{padding:12px 14px;margin:0 0 8px;border:1px solid var(--filet);
+  border-radius:14px;background:var(--carte);}
+.rec-ligne1{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+.rec-ref{font-size:12.5px;font-weight:700;color:var(--gris);}
+.rec-etat{font-size:11.5px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;padding:3px 8px;border-radius:999px;
+  border:1px solid var(--filet);color:var(--gris);white-space:nowrap;}
+.rec-etat.confirmee{background:var(--accent-clair);border-color:transparent;
+  color:var(--accent-encre);}
+.rec-etat.attente{background:transparent;}
+.rec-quand{margin:6px 0 0;font-size:15px;font-weight:800;}
+.rec-ou{margin:2px 0 0;font-size:13.5px;color:var(--encre);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-qui{margin:2px 0 0;font-size:13px;color:var(--gris);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-chauffeur{margin:8px 0 0;padding:8px 10px;border-radius:10px;
+  background:var(--accent-clair);font-size:13px;color:var(--accent-encre);
+  font-weight:600;}
+.rec-chauffeur a{color:inherit;}
+.rec-annul{margin:8px 0 0;font-size:12.5px;font-weight:700;color:#C9302F;}
+.rec-course .bouton-fantome{margin-top:8px;min-height:38px;font-size:13.5px;}
+body:not(.reception) .hotel-acces{display:none;}
+
+/* ═══ SUR L'ADRESSE DE LA RÉCEPTION, LES DEUX LISTES DU CLIENT PARTENT ═══
+   Elles lisent le stockage de L'APPAREIL. Sur le téléphone d'un client
+   c'est exactement ce qu'il faut — il y retrouve sa réservation — et
+   c'est pour ça qu'elles restent sur l'adresse du flyer. Mais l'adresse
+   « ?reception= » ne s'ouvre que sur la tablette d'un comptoir, qui est
+   PARTAGÉE : là, ces listes accumuleraient les noms, chambres et adresses
+   de tous les clients passés devant, et le suivant les lirait.
+   La réception n'y perd rien : elle a désormais sa propre liste, lue sur
+   le serveur, filtrée sur son hôtel — c'est-à-dire mieux, et sans le
+   défaut. Le raisonnement qui les avait fait garder valait pour le
+   téléphone du client ; il ne vaut pas ici. */
+body.reception .onglet[data-onglet="courses"],
+body.reception .onglet[data-onglet="trajets"]{display:none;}
+
 .hotel-forfait{margin:6px 2px 14px;font-size:13px;font-weight:700;
   color:var(--accent-encre);}
 .hotel-libre{margin:6px 2px 0;font-size:12.5px;color:var(--gris);}
@@ -1602,6 +1686,13 @@ body.hotel .reserver{margin-top:0;}
       <button type="button" class="hotel-sens-btn" data-sens="vers"
               aria-pressed="false" data-t="hotel_vers">Arrivée à l'hôtel</button>
     </div>
+    <!-- ═══ IL N'APPARAÎT QUE SUR L'ADRESSE DE LA RÉCEPTION ═══
+         Le QR du flyer est scanné par les CLIENTS : ce bouton n'y existe
+         pas, et c'est la moitié de la réponse à « personne ne verra les
+         infos des autres ? ». L'autre moitié est le code, vérifié par le
+         serveur. Les deux sont nécessaires — un lien se transfère, se
+         retrouve dans un historique, se photographie par-dessus l'épaule. -->
+    <button type="button" class="hotel-acces" id="btnReception" hidden>Réservations de l'hôtel</button>
   </section>
 
   <section class="hero">
@@ -3649,6 +3740,104 @@ body.hotel .reserver{margin-top:0;}
        téléphone : voir « rafraichirCourses ». C'est toute la différence
        entre une liste qui informe et une liste qui ment.
        ===================================================================== -->
+  <!-- ═══════════════════════════════════════════════════════════════
+       L'ESPACE DE LA RÉCEPTION
+       ---------------------------------------------------------------
+       Il ne montre que les courses de CET hôtel, lues sur le serveur —
+       pas dans le navigateur. C'est ce qui règle les deux défauts opposés
+       du stockage local : sur une tablette partagée, chaque client voyait
+       les réservations des précédents ; sur un autre appareil, la
+       réception ne voyait plus rien.
+       CE QU'ON N'Y MET PAS : le téléphone du client. La réception l'a
+       tapé elle-même, donc ce n'est pas un secret pour elle — mais elle
+       joint son client par sa chambre, et ce qui n'est pas nécessaire ne
+       voyage pas. Une tablette oubliée sur un comptoir ne doit pas rendre
+       les portables des clients.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ecran" id="ecran-reception">
+    <div class="trajet-tete">
+      <button class="retour" type="button" id="btnRetourReception" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="trajet-corps">
+        <p class="rec-titre">Réception</p>
+        <p class="rec-hotel" id="recHotel"></p>
+      </div>
+    </div>
+
+    <!-- LE CODE. Il n'est vérifié QUE par le serveur : l'écrire dans la
+         page, même en empreinte, le donnerait à qui lit la source et
+         permettrait de l'attaquer hors ligne, autant d'essais qu'on veut,
+         sans que personne le sache. C'est la différence assumée avec le
+         code de l'espace exploitant. -->
+    <div class="carte" id="recVerrou">
+      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il n'est demandé qu'une fois sur cet appareil.</p>
+      <label class="champ" for="recCode">
+        <span class="champ-corps">
+          <span class="champ-titre">Code de la réception</span>
+          <input id="recCode" type="password" autocomplete="off" inputmode="text" placeholder="Votre code">
+        </span>
+      </label>
+      <p class="refus" id="recErreur" hidden></p>
+      <button class="bouton" type="button" id="btnRecEntrer">Ouvrir</button>
+    </div>
+
+    <div id="recCorps" hidden>
+      <!-- ═══ L'ACTION D'ABORD, LA LISTE ENSUITE ═══
+           Un comptoir vient ici pour DEUX choses, et neuf fois sur dix
+           c'est la première : commander une voiture pour le client qui est
+           devant lui. Le bouton est donc en tête et il est plein — la
+           consultation de l'historique, elle, attend qu'on la cherche.
+           C'est l'inverse du tableau de bord de Barbaros, qui vient
+           d'abord traiter ce qui existe. -->
+      <button class="bouton" type="button" id="btnRecReserver">
+        <span>Réserver un chauffeur</span>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Trois chiffres, de front. « Aujourd'hui » d'abord : c'est la
+           seule question qu'un comptoir se pose en arrivant le matin. -->
+      <div class="rec-chiffres">
+        <div class="rec-chiffre"><b id="recNbJour">0</b><span>aujourd'hui</span></div>
+        <div class="rec-chiffre"><b id="recNbAttente">0</b><span>en attente</span></div>
+        <div class="rec-chiffre"><b id="recNbAVenir">0</b><span>à venir</span></div>
+      </div>
+
+      <!-- ═══ « UN IMPRÉVU ? » — TOUJOURS VISIBLE, JAMAIS DANS UN MENU ═══
+           À sa demande. Un comptoir gère des imprévus toute la journée : un
+           vol avancé, un client qui descend en avance, un groupe qui
+           change d'avis. Cacher le numéro derrière un bouton, c'est une
+           réception qui renonce et qui rend le service moins fiable qu'un
+           taxi de la borne. Il est donc écrit en clair, en permanence, et
+           il ne dépend d'aucune course sélectionnée. -->
+      <div class="rec-aide">
+        <p class="rec-aide-titre">Un imprévu ?</p>
+        <p class="rec-aide-texte">Un retard, un changement d'heure, une annulation : appelez-nous, on s'en occupe tout de suite.</p>
+        <div class="duo">
+          <a class="rec-aide-lien" href="tel:+33759312433" data-t="appeler">Appeler</a>
+          <a class="rec-aide-lien wa" id="recAideWa" href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+
+      <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
+      <div id="recListe"></div>
+
+      <!-- Ces deux-là ferment la page : on les met EN BAS. « Fermer la
+           session » en tête d'écran, c'est le bouton qu'on effleure par
+           erreur en voulant faire défiler. -->
+      <div class="rec-barre">
+        <button type="button" class="bouton-fantome" id="btnRecActualiser">Actualiser</button>
+        <button type="button" class="bouton-fantome" id="btnRecFermer">Fermer la session</button>
+      </div>
+    </div>
+  </section>
+
   <section class="ecran" id="ecran-courses">
     <h1 class="ecran-titre" data-t="courses_titre">Mes réservations</h1>
     <p class="ecran-note" data-t="courses_note">Vos transferts à venir. L'état se met à jour tout seul dès qu'Elatransfer répond.</p>
@@ -4972,6 +5161,325 @@ window.ELA_TEXTES = {
     });
   });
 
+
+/* =====================================================================
+   L'ESPACE DE LA RÉCEPTION
+   ---------------------------------------------------------------------
+   Septembre 2026, à la demande de Barbaros : « je veux qu'il y ait un lien
+   de connexion vraiment destiné à la réception de l'hôtel uniquement ».
+
+   DEUX ADRESSES, ET C'EST LUI QUI L'A IMPOSÉ. « ?h= » est celle du flyer,
+   scannée par les CLIENTS : elle réserve, un point c'est tout.
+   « ?reception= » ne se communique qu'au comptoir : elle réserve AUSSI,
+   et elle ouvre en plus l'historique de l'hôtel.
+
+   LE LIEN NE SUFFIT PAS, IL FAUT LE CODE. Un lien se transfère, se
+   retrouve dans un historique de navigateur, se photographie par-dessus
+   l'épaule. S'il ouvrait à lui seul la liste des clients de l'hôtel, la
+   réponse à « personne ne verra les infos des autres ? » redeviendrait
+   non. Le code est vérifié PAR LE SERVEUR — il n'est nulle part dans ce
+   fichier, contrairement à celui de l'espace exploitant qui y vit en
+   empreinte et peut donc s'attaquer hors ligne.
+
+   IL N'EST DEMANDÉ QU'UNE FOIS. Un comptoir qui doit retaper un code à
+   chaque client cesse d'utiliser l'outil au bout de trois jours. Il est
+   retenu sur l'appareil, et « Fermer la session » l'efface — c'est le
+   geste à faire sur une tablette qu'on prête.
+   ===================================================================== */
+  var recHotel = null;         // l'hôtel dont on tient le comptoir
+  var recCourses = [];
+  var CLE_CODE_REC = "ela_code_reception";
+
+  function codeRetenu(cle){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+         return (o && o[cle]) || ""; }catch(e){ return ""; }
+  }
+  function retenirCode(cle, code){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+         o[cle] = code; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    }catch(e){ /* stockage refusé : le code sera redemandé, rien de cassé */ }
+  }
+  function oublierCode(cle){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+         delete o[cle]; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    }catch(e){}
+  }
+
+  /* Elle reçoit la PHRASE, pas une clé : cet écran n'est pas traduit. */
+  function direRec(phrase){
+    var e = document.getElementById("recErreur");
+    if(!phrase){ e.hidden = true; e.textContent = ""; return; }
+    e.textContent = phrase; e.hidden = false;
+  }
+
+  /* TROIS PANNES, TROIS PHRASES. « code refusé », « serveur injoignable »
+     et « aucune course » appellent trois gestes différents : retaper,
+     réessayer, ne rien faire. Un seul message « ça n'a pas marché » les
+     confondrait, et c'est exactement ce qui a coûté une soirée sur la
+     connexion de l'espace exploitant. */
+  function ouvrirReception(){
+    if(!recHotel) return;
+    document.getElementById("recHotel").textContent = recHotel.nom;
+    var code = codeRetenu(recHotel.cle);
+    direRec(null);
+    if(!code){
+      document.getElementById("recVerrou").hidden = false;
+      document.getElementById("recCorps").hidden  = true;
+      ecran("ecran-reception");
+      return;
+    }
+    ecran("ecran-reception");
+    chargerReception(code);
+  }
+
+  function chargerReception(code){
+    var btn = document.getElementById("btnRecActualiser");
+    btn.disabled = true;
+    nuage.coursesHotel(recHotel.cle, code).then(function(d){
+      btn.disabled = false;
+      retenirCode(recHotel.cle, code);
+      recCourses = (d && d.courses) || [];
+      document.getElementById("recVerrou").hidden = true;
+      document.getElementById("recCorps").hidden  = false;
+      direRec(null);
+      dessinerReception();
+    }).catch(function(err){
+      btn.disabled = false;
+      /* UN CODE REFUSÉ EFFACE CELUI QU'ON GARDAIT. Sinon la réception
+         resterait devant une liste vide sans comprendre, avec un code
+         périmé retenu dans l'appareil — le jour où Barbaros le change,
+         personne ne s'en sort. */
+      if(String(err && err.message) === "code"){
+        oublierCode(recHotel.cle);
+        document.getElementById("recVerrou").hidden = false;
+        document.getElementById("recCorps").hidden  = true;
+        direRec("Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
+      } else {
+        direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
+        document.getElementById("recVerrou").hidden = false;
+      }
+    });
+  }
+
+  /* ═══ LE COMPTOIR EST EN FRANÇAIS, POINT ═══
+     À sa demande : « pas besoin de traduction pour la réception, c'est des
+     Français ». Même règle que l'espace exploitant, et pour la même
+     raison : ce que cet écran affiche est lu par du personnel d'hôtel en
+     Île-de-France, jamais par un client étranger. Les six — ici deux —
+     langues restent au client, sur l'écran de réservation qu'il partage
+     avec eux. Aucune clé de traduction pour cet écran : une clé qu'on
+     traduit pour personne finit par diverger de la page.
+     La date suit donc « dateFr » et le prix « eurosFR », qui sont déjà les
+     versions françaises figées du reste de l'outil. */
+  var ETATS_REC = { attente:"En attente", confirmee:"Confirmée",
+                    realisee:"Effectuée", refusee:"Non prise" };
+
+  /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
+     Même leçon que le tableau de bord de Barbaros : une liste à plat met
+     une course d'hier restée ouverte AVANT celle de demain, sans que rien
+     ne le dise. Un comptoir qui prend son service le matin veut voir sa
+     journée, et il veut voir en premier ce qui cloche — une course dont
+     l'heure est passée et que personne n'a close demande quelque chose.
+     SUR UNE COURSE EFFECTUÉE, « en retard » NE VEUT RIEN DIRE : elle est
+     faite, elle reprend sa date. */
+  function jourRec(c){
+    var d = new Date((c.date || "") + "T" + (c.heure || ""));
+    if(isNaN(d.getTime())) return { rang: 9, titre: "Date inconnue" };
+    var fini = c.statut === "realisee" || c.statut === "refusee";
+    var maintenant = new Date();
+    var minuit = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
+    var jour = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var ecart = Math.round((jour - minuit) / 864e5);
+    if(!fini && d.getTime() < maintenant.getTime()) return { rang:0, titre:"En retard" };
+    if(ecart === 0) return { rang:1, titre:"Aujourd'hui" };
+    if(ecart === 1) return { rang:2, titre:"Demain" };
+    if(ecart > 1)   return { rang:3 + ecart, titre:d.toLocaleDateString("fr-FR",
+                              { weekday:"long", day:"numeric", month:"long" }) };
+    return { rang: 100 - ecart, titre:d.toLocaleDateString("fr-FR",
+              { weekday:"long", day:"numeric", month:"long" }) };
+  }
+
+  function dessinerReception(){
+    var liste = document.getElementById("recListe");
+    liste.innerHTML = "";
+    document.getElementById("recVide").hidden = recCourses.length > 0;
+
+    /* Trois chiffres, et « aujourd'hui » d'abord : c'est la seule question
+       qu'un comptoir se pose en prenant son service. */
+    var auj = 0, att = 0, ave = 0, maintenant = Date.now();
+    recCourses.forEach(function(c){
+      var d = new Date((c.date || "") + "T" + (c.heure || ""));
+      var fini = c.statut === "realisee" || c.statut === "refusee";
+      if(!isNaN(d.getTime())){
+        var n = new Date();
+        if(d.toDateString() === n.toDateString()) auj++;
+        if(!fini && d.getTime() > maintenant) ave++;
+      }
+      if(c.statut === "attente") att++;
+    });
+    document.getElementById("recNbJour").textContent    = auj;
+    document.getElementById("recNbAttente").textContent = att;
+    document.getElementById("recNbAVenir").textContent  = ave;
+    /* Le compteur « en attente » s'allume : c'est le seul des trois qui
+       demande quelque chose à quelqu'un. */
+    document.getElementById("recNbAttente").parentNode
+            .classList.toggle("chaud", att > 0);
+
+    /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
+       liste est déjà triée, et deux parcours finiraient par diverger. */
+    var triees = recCourses.slice().sort(function(a, b){
+      var ja = jourRec(a), jb = jourRec(b);
+      if(ja.rang !== jb.rang) return ja.rang - jb.rang;
+      return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
+    });
+
+    var titreCourant = null;
+    triees.forEach(function(c){
+      var j = jourRec(c);
+      if(j.titre !== titreCourant){
+        titreCourant = j.titre;
+        var h = document.createElement("p");
+        h.className = "rec-jour" + (j.rang === 0 ? " retard" : "");
+        h.textContent = j.titre;
+        liste.appendChild(h);
+      }
+
+      var d = document.createElement("div");
+      d.className = "rec-course";
+      d.dataset.ref = c.ref;
+
+      /* L'HEURE EN GROS, L'ÉTAT À DROITE. Un comptoir lit une heure, pas
+         une référence — celle-ci descend en petit, elle ne sert qu'à nous
+         citer une course au téléphone. */
+      var l1 = document.createElement("p");
+      l1.className = "rec-ligne1";
+      var hh = document.createElement("span");
+      hh.className = "rec-heure"; hh.textContent = (c.heure || "—");
+      var et = document.createElement("span");
+      et.className = "rec-etat " + (c.statut || "attente");
+      et.textContent = ETATS_REC[c.statut] || ETATS_REC.attente;
+      l1.appendChild(hh); l1.appendChild(et);
+      d.appendChild(l1);
+
+      /* LE CLIENT ET SA CHAMBRE SONT LE REPÈRE PRINCIPAL. Une réception
+         pense en « chambre 214 », jamais en « ELA-26-09-0042 ». */
+      var qui = document.createElement("p");
+      qui.className = "rec-qui";
+      qui.textContent = [c.chambre ? "Chambre " + c.chambre : "", c.client]
+                        .filter(Boolean).join(" · ") || "Client non nommé";
+      d.appendChild(qui);
+
+      var ou = document.createElement("p");
+      ou.className = "rec-ou";
+      ou.textContent = "→ " + (c.arrivee || "—");
+      d.appendChild(ou);
+
+      var det = document.createElement("p");
+      det.className = "rec-detail";
+      det.textContent = [c.vehicule, c.prix ? eurosFR(c.prix) : "", c.ref]
+                        .filter(Boolean).join(" · ");
+      d.appendChild(det);
+
+      /* LE CHAUFFEUR N'APPARAÎT QUE QUAND IL EST RÉELLEMENT ATTRIBUÉ, et
+         c'est ce que la réception vient chercher : répondre au client sans
+         nous appeler. Son numéro est cliquable — le comptoir a parfois
+         besoin de le joindre pendant qu'il attend devant la porte. */
+      if(c.chauffeur && c.chauffeur.nom){
+        var ch = document.createElement("p");
+        ch.className = "rec-chauffeur";
+        ch.textContent = "Chauffeur : " + c.chauffeur.nom;
+        if(c.chauffeur.telephone){
+          ch.appendChild(document.createTextNode(" · "));
+          var a = document.createElement("a");
+          a.href = "tel:" + c.chauffeur.telephone;
+          a.textContent = c.chauffeur.telephone;
+          ch.appendChild(a);
+        }
+        d.appendChild(ch);
+      }
+
+      if(c.annulationDemandee){
+        var av = document.createElement("p");
+        av.className = "rec-annul";
+        av.textContent = "Annulation demandée — nous vous confirmons.";
+        d.appendChild(av);
+      } else if(c.statut === "attente" || c.statut === "confirmee"){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "bouton-fantome";
+        b.textContent = "Demander l'annulation";
+        b.addEventListener("click", function(){ demanderAnnulation(c, b); });
+        d.appendChild(b);
+      }
+      liste.appendChild(d);
+    });
+  }
+
+  /* ═══ ELLE NE DÉCIDE RIEN, ET C'EST TOUT SON INTÉRÊT ═══
+     Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
+     déjà engagé, et lui seul peut le rappeler. Le serveur pose un drapeau
+     et ne touche PAS au statut ; WhatsApp part vers Barbaros dans le geste
+     du clic — sans « await » avant, sinon Safari iOS bloque la fenêtre.
+     Tant que l'alerte Telegram n'est pas branchée, ce message EST le seul
+     moyen qu'il l'apprenne : ne pas le retirer. */
+  function demanderAnnulation(c, bouton){
+    var msg = "Demande d'annulation — " + (recHotel ? recHotel.nom : "")
+            + "\nCourse " + c.ref + ", " + dateFr(c.date, c.heure)
+            + ".\nMerci de confirmer.";
+    window.open("https://wa.me/" + NUMERO_WA + "?text=" + encodeURIComponent(msg),
+                "_blank", "noopener");
+    bouton.disabled = true;
+    nuage.coursesHotel(recHotel.cle, codeRetenu(recHotel.cle),
+                       { action:"annulation", ref:c.ref })
+      .then(function(){ c.annulationDemandee = true; dessinerReception(); })
+      .catch(function(){
+        /* Le message est parti chez Barbaros de toute façon : on le dit
+           plutôt que de laisser croire que rien ne s'est passé. */
+        bouton.disabled = false;
+        direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
+      });
+  }
+
+  document.getElementById("btnReception")
+          .addEventListener("click", ouvrirReception);
+  document.getElementById("btnRetourReception")
+          .addEventListener("click", function(){ ecran("ecran-accueil"); });
+  document.getElementById("btnRecEntrer").addEventListener("click", function(){
+    var v = document.getElementById("recCode").value.trim();
+    if(!v){ direRec("Saisissez le code qui vous a été remis."); return; }
+    direRec(null);
+    chargerReception(v);
+  });
+  document.getElementById("recCode").addEventListener("keydown", function(e){
+    if(e.key === "Enter") document.getElementById("btnRecEntrer").click();
+  });
+  /* IL RAMÈNE AU FORMULAIRE, IL NE RÉSERVE RIEN LUI-MÊME — il n'y a rien
+     à réserver tant qu'on ne sait pas où va le client. C'est le même
+     arbitrage que le bouton du bandeau d'accueil : le défilement est lancé
+     d'abord et le curseur arrive après, sinon le navigateur ramène de
+     force le champ à l'écran et annule le mouvement. */
+  document.getElementById("btnRecReserver").addEventListener("click", function(){
+    ecran("ecran-accueil");
+    setTimeout(function(){
+      var dest = document.getElementById("hotelDest");
+      if(dest && !blocDest.hidden) dest.focus();
+    }, 380);
+  });
+  document.getElementById("btnRecActualiser").addEventListener("click", function(){
+    if(recHotel) chargerReception(codeRetenu(recHotel.cle));
+  });
+  /* « Fermer la session » est le geste à faire sur une tablette qu'on
+     prête : il efface le code de l'appareil et referme la liste. */
+  document.getElementById("btnRecFermer").addEventListener("click", function(){
+    if(!recHotel) return;
+    oublierCode(recHotel.cle);
+    recCourses = [];
+    document.getElementById("recListe").innerHTML = "";
+    document.getElementById("recCode").value = "";
+    document.getElementById("recCorps").hidden = true;
+    document.getElementById("recVerrou").hidden = false;
+    direRec(null);
+  });
+
   /* ═══ L'ENTRÉE ═══
      Elle n'ouvre le mode hôtel que sur un partenaire CONNU. Un « ?h= »
      quelconque garde le comportement d'origine — l'affiche QR d'un hôtel
@@ -5386,6 +5894,13 @@ window.ELA_TEXTES = {
     }
   };
 
+  /* CHAQUE HÔTEL PORTE SA PROPRE CLÉ, posée ici plutôt que recopiée dans
+     l'objet : recopiée, elle finirait par ne plus correspondre au nom sous
+     lequel il est rangé, et c'est cette clé qui part sur la course et que
+     le serveur interroge pour rendre son historique à une réception. Deux
+     écritures d'une même clé, c'est un hôtel qui ne voit plus rien. */
+  Object.keys(HOTELS).forEach(function(k){ HOTELS[k].cle = k; });
+
   /* LA NUIT DU FLYER : 21 h – 6 h, ET RIEN D'AUTRE. Pas de week-end.
      Voir le commentaire de « HOTELS » : c'est la différence qui coûte le
      plus cher si on l'oublie, et elle ne se voit pas à la relecture. */
@@ -5681,6 +6196,10 @@ window.ELA_TEXTES = {
                       lui : c'est donc « Accueil » qui reste allumé — la
                       barre continue de dire d'où l'on vient. */
                    "ecran-contact":"accueil",
+                   /* Le comptoir de la réception est un prolongement de
+                      l'écran de réservation : c'est « Accueil » qui reste
+                      allumé, la barre continue de dire d'où l'on vient. */
+                   "ecran-reception":"accueil",
                    "ecran-legal":"accueil" }[id];
     document.querySelectorAll(".onglet").forEach(function(o){
       o.classList.toggle("actif", o.dataset.onglet === onglet);
@@ -6293,6 +6812,36 @@ window.ELA_TEXTES = {
        pas encore déployée, serveur muet : on rend « null », et l'appelant
        garde l'état qu'il a déjà. Rendre « attente » ferait REVENIR en
        arrière une course confirmée — le contraire de ce qu'on répare. */
+    /* ═══ LES COURSES D'UN HÔTEL PARTENAIRE, POUR SA RÉCEPTION ═══
+       Elle passe par une fonction pour la même raison qu'« etat » : le
+       serveur interdit la lecture aux visiteurs anonymes, et il DOIT
+       l'interdire. Le code n'est PAS vérifié ici — il part au serveur, qui
+       seul connaît le bon. Le vérifier dans la page reviendrait à l'y
+       écrire, c'est-à-dire à le donner à qui lit la source.
+       ON NE MET PAS DE « catch » QUI REND null : « pas de courses »,
+       « code refusé » et « serveur muet » appellent trois gestes
+       différents, et une panne qui ressemble à un état normal ne se répare
+       jamais. C'est la leçon de « lister() n'a plus de catch ». */
+    coursesHotel: function(cle, code, extra){
+      if(!SUPABASE_URL || !SUPABASE_CLE) return Promise.reject(new Error("hors-ligne"));
+      var ctrl = new AbortController();
+      var minuteur = setTimeout(function(){ ctrl.abort(); }, 10000);
+      var corps = { hotel: cle, code: code };
+      if(extra) Object.keys(extra).forEach(function(k){ corps[k] = extra[k]; });
+      return fetch(SUPABASE_URL + "/functions/v1/courses-hotel", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { apikey: SUPABASE_CLE, Authorization: "Bearer " + SUPABASE_CLE,
+                   "Content-Type": "application/json" },
+        body: JSON.stringify(corps)
+      }).then(function(r){
+        clearTimeout(minuteur);
+        if(r.status === 401) throw new Error("code");
+        if(!r.ok) throw new Error("serveur");
+        return r.json();
+      });
+    },
+
     etat: function(ref, tel){
       if(!this.actif() || !ref || !tel) return Promise.resolve(null);
       var ctrl = new AbortController();
@@ -6869,6 +7418,16 @@ window.ELA_TEXTES = {
          dort. Absent pour un client venu directement — et un champ vide se
          lit « venue directe », pas « information perdue ». */
       provenance: provenanceVisite(),
+      /* LA CLÉ DE L'HÔTEL PARTENAIRE, à côté de son libellé — et c'est
+         elle, pas le libellé, que le serveur interroge pour rendre à une
+         réception SES courses. Un libellé est du texte destiné à un écran :
+         il peut être corrigé un jour (« easyHotel Aéroville » devient
+         « easyHotel Paris CDG ») et tout l'historique deviendrait alors
+         invisible à son propre hôtel, sans que rien ne le signale.
+         Vide pour un client venu directement ou par l'affiche d'un hôtel
+         sans grille négociée : le champ ne se lit pas « information
+         perdue », il se lit « pas un partenaire ». */
+      provenanceCle: hotel ? hotel.cle : "",
       /* Deux formes du même choix : la clé pour le code, le libellé français
          pour tout ce qui est lu par un humain. Une course déjà enregistrée
          sans ce champ reste lisible — l'affichage retombe sur un tiret. */
@@ -10257,7 +10816,31 @@ window.ELA_TEXTES = {
    le chauffeur irait au mauvais endroit.
    ===================================================================== */
   function lireHotel(){
-    var nom = new URLSearchParams(location.search).get("h");
+    var params = new URLSearchParams(location.search);
+    /* ═══ L'ADRESSE DE LA RÉCEPTION, DISTINCTE DE CELLE DU FLYER ═══
+       À sa demande. « ?h= » est le QR du flyer, scanné par les CLIENTS :
+       il réserve, un point c'est tout. « ?reception= » ne se communique
+       qu'au comptoir. Les deux ouvrent le même écran de réservation ; seule
+       la seconde fait apparaître le bouton vers l'historique de l'hôtel —
+       et il faut encore le code, vérifié par le serveur.
+       ELLE EST LUE EN PREMIER : un lien qui porterait les deux paramètres
+       doit donner le plus de droits à celui qui le tient, pas le moins. */
+    var recCle = (params.get("reception") || "").trim();
+    if(recCle){
+      var partRec = hotelDuParametre(recCle);
+      if(partRec){
+        try{ sessionStorage.setItem("ela_provenance", partRec.nom); }catch(e){}
+        recHotel = partRec;
+        document.body.classList.add("reception");
+        document.getElementById("btnReception").hidden = false;
+        ouvrirModeHotel(partRec);
+        return true;
+      }
+      /* Une clé inconnue ne dit pas qu'elle est inconnue : elle retombe
+         simplement sur le site ordinaire. Répondre « cet hôtel n'existe
+         pas » dirait à qui essaie des noms lesquels sont partenaires. */
+    }
+    var nom = params.get("h");
     if(!nom) return false;
     nom = nom.trim().slice(0, 60);
     if(!nom) return false;
