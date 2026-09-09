@@ -27,7 +27,12 @@ if [ -e "$VERROU" ] && kill -0 "$(cat "$VERROU" 2>/dev/null)" 2>/dev/null; then
   exit 1
 fi
 echo $$ > "$VERROU"
-trap 'rm -f "$VERROU"' EXIT INT TERM
+# LE TRAP DOIT RENDRE LE CODE D'ORIGINE, sinon il l'écrase avec celui de sa
+# dernière commande. Ce script affichait « 10 suites en échec » et sortait
+# avec 0 : à l'écran on voyait rouge, une automatisation aurait vu vert.
+# Exactement le défaut que ce lanceur sert à débusquer chez les autres.
+trap 'c=$?; rm -f "$VERROU"; exit $c' EXIT
+trap 'exit 130' INT TERM
 
 # Playwright n'est pas dans le dépôt : le lien se refait à chaque session.
 [ -e node_modules/playwright ] || {
@@ -40,7 +45,7 @@ trap 'rm -f "$VERROU"' EXIT INT TERM
 if ! curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null; then
   npx --yes http-server . -s -p 8099 >/tmp/asmine-serveur.log 2>&1 &
   SERVEUR=$!
-  trap 'rm -f "$VERROU"; kill $SERVEUR 2>/dev/null' EXIT INT TERM
+  trap 'c=$?; rm -f "$VERROU"; kill $SERVEUR 2>/dev/null; exit $c' EXIT
   i=0; while [ $i -lt 15 ]; do
     curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null && break
     i=$((i+1)); sleep 1
