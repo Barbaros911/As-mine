@@ -1429,15 +1429,26 @@ body.hotel .reserver{margin-top:0;}
    l'attente, et les deux côte à côte se disputeraient l'attention. Il tient
    le cadre, l'action et l'aide ; la liste reste neutre.
    ═══════════════════════════════════════════════════════════════════════ */
+/* ═══ SANS PHOTO, L'EN-TÊTE EST FINI QUAND MÊME ═══
+   Barbaros n'a pas encore d'image dont il connaisse la provenance, et on
+   n'en pose pas une prise sur Internet — ce projet a déjà dû en supprimer
+   douze. Un aplat uni aurait l'air d'attendre quelque chose ; ce lavis
+   d'orange, posé en diagonale depuis le coin haut droit, a l'air voulu.
+   Il disparaît tout seul le jour où une vraie photo arrive : elle se pose
+   par-dessus, dans « .hotel-photo ». */
 .hotel-tete{position:relative;overflow:hidden;
   margin:0 0 14px;padding:18px 16px 16px;border-radius:18px;
-  background:var(--h-charbon, var(--noir));color:#fff;}
+  background:var(--h-charbon, var(--noir));color:#fff;
+  background-image:radial-gradient(120% 90% at 108% -18%,
+    var(--h-vif, var(--accent-vif)) 0%,
+    color-mix(in srgb, var(--h-vif, var(--accent-vif)) 35%, transparent) 34%,
+    transparent 62%);}
 /* Le filet de la marque, en haut : c'est lui qui dit « easyHotel » avant
    même qu'on lise le nom. */
 .hotel-tete::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
   background:var(--h-vif, var(--accent-vif));}
 .hotel-photo{position:absolute;inset:0;background-size:cover;
-  background-position:center;}
+  background-position:center;z-index:0;}
 .hotel-photo::after{content:"";position:absolute;inset:0;
   background:var(--h-charbon, var(--noir));opacity:.62;}
 .hotel-tete > *{position:relative;}
