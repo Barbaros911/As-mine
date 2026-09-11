@@ -137,8 +137,18 @@ const EMAIL_DESTINATAIRE = Deno.env.get("EMAIL_DESTINATAIRE") ?? "";
 /* L'adresse du tableau de bord, mise en pied de message : le geste suivant
    est toujours le même — ouvrir le bon et chercher un chauffeur. Un lien
    sur lequel appuyer vaut mieux qu'une adresse à retaper à 5 h. */
+/* ═══ L'ADRESSE DU SITE, PAS CELLE DU DÉPÔT ═══
+   Elle pointait sur « barbaros911.github.io/As-mine/ », l'adresse
+   d'hébergement de GitHub Pages. Personne ne l'avait vu parce que cette
+   fonction n'avait jamais tourné : elle est restée écrite et non déployée
+   pendant des semaines, et le défaut n'est apparu qu'au premier vrai
+   message, en septembre 2026 — « pourquoi on voit github dans le message ».
+   Trois raisons de ne pas la laisser : ce n'est pas l'adresse d'Elatransfer,
+   elle montre le nom du dépôt à qui lit la notification par-dessus son
+   épaule, et le jour d'une bascule d'hébergement elle ouvrirait une version
+   périmée du tableau de bord. */
 const ADMIN = Deno.env.get("ADRESSE_ADMIN") ??
-  "https://barbaros911.github.io/As-mine/admin.html";
+  "https://elatransfer.com/admin.html";
 
 /* Un appel qui n'aboutit pas ne doit pas retenir la fonction : elle est
    comptée au temps d'exécution, et un service muet la ferait tourner

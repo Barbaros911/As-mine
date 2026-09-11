@@ -2713,6 +2713,17 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
           <input id="clientTel" type="tel" autocomplete="tel" data-t-ph="ph_tel" placeholder="06 12 34 56 78">
         </span>
       </label>
+      <!-- ═══ ELLE EST VISIBLE AVANT DE TAPER, PAS APRÈS ═══
+           À sa demande. Une consigne qui n'apparaît qu'en cas d'erreur
+           arrive trop tard : le client a déjà tapé son numéro, s'est fait
+           refuser, et c'est là qu'on lui explique. Celle-ci est là dès
+           l'ouverture de l'écran.
+           L'ÉTRANGER SEULEMENT, à sa demande aussi : le format français
+           est déjà montré par le champ lui-même (« 06 12 34 56 78 »), et
+           l'expliquer en plus à un Français, c'est une ligne de texte qui
+           ne dit rien à personne. -->
+      <p class="champ-aide" data-t="aide_tel">Depuis l'étranger, indiquez l'indicatif
+         de votre pays (+34, +44…).</p>
       <p class="champ-aide" id="erreurCoordonnees" hidden data-t="err_coord">Le nom et le téléphone
          sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
       <!-- UN MESSAGE À PART, et pas la même phrase que « il en manque un ».
@@ -4385,7 +4396,8 @@ window.ELA_TEXTES = {
     coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
     telephone:"Téléphone", ph_tel:"06 12 34 56 78",
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
-    err_tel:"Ce numéro ne semble pas valable. Vérifiez-le : c'est par là que nous vous confirmons la course.",
+    aide_tel:"Depuis l'étranger, indiquez l'indicatif de votre pays (+34, +44…).",
+    err_tel:"Ce numéro ne semble pas valable. Relisez-le, avec l'indicatif si vous êtes à l'étranger : c'est par là que nous vous confirmons la course.",
     confirmer:"Confirmer ma réservation",
     confirmer_note:"Elle devient ferme dès qu'Elatransfer vous confirme.",
     suite_titre:"Ce qui se passe ensuite",
@@ -4544,7 +4556,8 @@ window.ELA_TEXTES = {
     coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
     telephone:"Phone", ph_tel:"+33 6 12 34 56 78",
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
-    err_tel:"This number does not look valid. Please check it: it is how we confirm your transfer.",
+    aide_tel:"From abroad, please include your country code (+34, +44…).",
+    err_tel:"This number does not look valid. Please check it, with your country code if you are abroad: it is how we confirm your transfer.",
     confirmer:"Confirm my booking",
     confirmer_note:"It becomes firm as soon as Elatransfer confirms.",
     suite_titre:"What happens next",
@@ -8596,13 +8609,34 @@ window.ELA_TEXTES = {
     /* « 000000 », « 111111 » : jamais un téléphone, toujours un client
        pressé ou un essai. C'est exactement le cas rencontré. */
     if(/^(\d)\1+$/.test(chiffres)) return false;
-    if(!international && chiffres.indexOf("0") === 0){
+    /* ═══ SANS INDICATIF, ON N'ACCEPTE QUE LE FORMAT FRANÇAIS ═══
+       Septembre 2026, signalé par Barbaros : « malgré que j'ai entré un
+       mauvais numéro, j'ai quand même réussi à envoyer ».
+       C'ÉTAIT UN VRAI TROU. La dernière ligne acceptait n'importe quelle
+       suite de 8 à 15 chiffres dès qu'elle ne commençait pas par zéro :
+       « 87654321 » passait, et la course partait vers un client
+       injoignable. Un chauffeur qui ne peut pas joindre son client à 5 h
+       du matin, c'est la course perdue et le client sur le trottoir.
+       L'EXEMPLE DE CE COMMENTAIRE A DÛ ÊTRE CHANGÉ : le premier écrit était
+       « 1234 5678 » sans espaces, c'est-à-dire EXACTEMENT le code de
+       l'espace exploitant. Le contrôle qui vérifie qu'il n'apparaît nulle
+       part dans la page est tombé dessus — un exemple pris au hasard peut
+       tomber sur un secret, et un commentaire est servi comme le reste.
+       ON NE FORCE PAS L'INDICATIF AUX FRANÇAIS pour autant. Un client qui
+       tape « 06 12 34 56 78 » est le cas le plus courant du site, et lui
+       refuser son propre numéro serait une réservation perdue à coup sûr —
+       « telWa » sait déjà le compléter en +33. Ce qui change : un numéro
+       SANS indicatif et qui ne commence pas par zéro est refusé. */
+    if(!international){
       /* Numéro français : dix chiffres, et le second dit la nature de la
          ligne — 01 à 05 fixe, 06 et 07 mobile, 09 box. 08 est un numéro
          spécial, souvent surtaxé : personne n'y est joignable. */
       return chiffres.length === 10 && /^0[1-79]/.test(chiffres);
     }
-    /* Ailleurs : entre 8 et 15 chiffres, la borne de la norme E.164. */
+    /* Avec indicatif : entre 8 et 15 chiffres, la borne de la norme E.164.
+       AUCUN INDICATIF NE COMMENCE PAR ZÉRO — « +0… » n'existe nulle part,
+       c'est toujours un zéro de trop recopié d'un numéro national. */
+    if(chiffres.indexOf("0") === 0) return false;
     return chiffres.length >= 8 && chiffres.length <= 15;
   }
 
