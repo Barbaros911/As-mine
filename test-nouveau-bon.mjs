@@ -94,7 +94,18 @@ check('et on dit pourquoi', await p.locator('#erreurCoordonnees').isVisible());
    laisserait passer un code qui refuse TOUT — et là, c'est chaque client
    qu'on perd, pas seulement les distraits. */
 await p.fill('#clientNom','Jean Martin');
-for (const faux of ['000000', '061234567', '0812345678']) {
+/* ═══ L'INDICATIF EST OBLIGATOIRE HORS DE FRANCE ═══
+   Septembre 2026, signalé par Barbaros : « malgré que j'ai entré un
+   mauvais numéro, j'ai quand même réussi à envoyer ».
+   La règle acceptait n'importe quelle suite de 8 à 15 chiffres dès
+   qu'elle ne commençait pas par zéro. « 12345678 » passait, et la course
+   partait vers un client injoignable — un chauffeur qui ne peut pas
+   joindre son client à 5 h du matin, c'est la course perdue ET le client
+   sur le trottoir.
+   ÉPROUVÉ CONTRE L'ANCIEN CODE : les quatre numéros ajoutés ici y
+   passaient tous les quatre. */
+for (const faux of ['000000', '061234567', '0812345678',
+                    '12345678', '612345678', '1234567890', '+0612345678']) {
   await p.fill('#clientTel', faux);
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
   check('« ' + faux +' » est refusé',
@@ -106,7 +117,13 @@ for (const faux of ['000000', '061234567', '0812345678']) {
    client retaper exactement la même chose. */
 check('et ce n\'est pas le message « il en manque un »',
   !(await p.locator('#erreurCoordonnees').isVisible()));
-for (const bon of ['06 12 34 56 78', '01 45 67 89 01', '+44 7700 900123']) {
+/* ON N'IMPOSE PAS L'INDICATIF AUX FRANÇAIS, et cette moitié-là compte
+   autant : un client qui tape son propre numéro est le cas le plus
+   courant du site, et le lui refuser serait une réservation perdue à
+   coup sûr. Sans ces contrôles, un code qui exigerait « + » partout
+   passerait au vert. */
+for (const bon of ['06 12 34 56 78', '01 45 67 89 01', '+44 7700 900123',
+                   '+34 612 345 678', '0034 612 345 678']) {
   await p.fill('#clientTel', bon);
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
   check('« ' + bon + ' » passe', !(await p.locator('#erreurTel').isVisible()));

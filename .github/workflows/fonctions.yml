@@ -74,3 +74,12 @@ jobs:
       # référence + téléphone exigé dans le corps de l'appel.
       - name: Déployer etat-course
         run: supabase functions deploy etat-course --project-ref "$PROJET"
+
+      # « courses-hotel » rend à la RÉCEPTION d'un hôtel partenaire les
+      # courses de CET hôtel. Elle est appelée depuis la page, donc avec la
+      # clé anonyme, et la vérification du jeton reste activée comme pour
+      # les autres. Ce qui protège ici n'est pas ce jeton — il est public —
+      # mais le CODE de l'hôtel, vérifié dans la fonction contre un secret
+      # Supabase qui n'est nulle part dans le site.
+      - name: Déployer courses-hotel
+        run: supabase functions deploy courses-hotel --project-ref "$PROJET"

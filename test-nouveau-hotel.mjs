@@ -133,6 +133,17 @@ check('le départ figé porte l\'ADRESSE POSTALE, pas seulement la marque',
   dep.includes('Belle Borne') && dep.includes('93410'), dep);
 check('le départ ne se modifie pas ici',
   await p.evaluate(()=>document.getElementById('depart').readOnly));
+/* ═══ ET « ME LOCALISER » DISPARAÎT AVEC LUI ═══
+   Défaut trouvé en regardant une capture, pas en relisant le code : le
+   champ était bien en lecture seule, mais le bouton de géolocalisation est
+   un élément À CÔTÉ. Un appui dessus remplaçait l'adresse figée de l'hôtel
+   par la position de l'appareil — « easyHotel Aéroville » devenait « 1 Rue
+   de Rivoli ». Le prix ne bougeait pas, c'est un forfait : rien ne se
+   voyait, et seul le chauffeur s'en serait aperçu en allant à la mauvaise
+   adresse. « readOnly » protège la saisie, jamais ce qui écrit dans le
+   champ depuis l'extérieur. */
+check('« me localiser » disparaît : il écraserait l\'adresse figée de l\'hôtel',
+  await p.locator('#btnGeoloc').isHidden());
 /* Vérifié plus bas, sur l'itinéraire réellement demandé. */
 check('les sept destinations du flyer, plus la sortie',
   (await p.locator('#hotelDest option').allTextContents()).length===8);
@@ -328,6 +339,194 @@ check('l\'itinéraire part bien des coordonnées rendues par la BAN, pas du seco
   derniereRoute.includes(String(BAN_HOTEL[0])), derniereRoute.slice(0,120));
 await p.locator('#btnRetourAccueil').click();
 await p.waitForTimeout(300);
+
+/* =====================================================================
+   LA CASE DE PRÉCISION — CE QUE LA RÉCEPTION SAIT ET QUE LE FORMULAIRE
+   NE DEMANDE PAS
+   ---------------------------------------------------------------------
+   À sa demande. Un comptoir sait qu'un client est en fauteuil, qu'il a
+   deux bagages de plus, qu'il descendra en retard. Sans endroit où
+   l'écrire, ces précisions n'arrivent jamais au chauffeur.
+
+   LE CONTRÔLE QUI COMPTE EST LE DERNIER, ET IL NE SE VOIT PAS À L'ŒIL :
+   le message WhatsApp se lit par la PLACE de ses lignes — les deux
+   premières valeurs « … : … » sont les adresses, le DERNIER montant en
+   euros est le prix. Une précision posée après la ligne Prix, ou portant
+   un deux-points avant les adresses, ferait recréer la course avec un
+   prix ou une adresse faux. On l'éprouve donc avec le pire cas possible :
+   une précision qui contient LES DEUX.
+   ===================================================================== */
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(600);
+check('la case de précision n\'existe PAS sur le site public',
+  await p.locator('#blocNote').isHidden());
+
+await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(900);
+check('elle est là sur la page du partenaire',
+  await p.locator('#blocNote').isVisible());
+check('elle est bornée à 200 caractères — la ligne part dans un message lu la nuit',
+  await p.locator('#noteCourse').getAttribute('maxlength') === '200');
+
+/* LA PRÉCISION VOYAGE : de la case au bon, en passant par la course. On
+   fait une VRAIE réservation, on ne relit pas le code. */
+const PRECISION = "Bagages : 4 grosses valises, prévoir 50 € de péage";
+await poser('orly', lundi, '10:00');
+await p.fill('#chambre', '214');
+await p.fill('#noteCourse', PRECISION);
+await p.locator('#btnVoirPrix').click();
+await p.waitForTimeout(1500);
+await p.locator('.veh-carte').first().click();
+await p.waitForTimeout(300);
+await p.locator('#btnContinuer').click();
+await p.waitForTimeout(600);
+check('elle est rappelée sur le récapitulatif, avant de confirmer',
+  await p.locator('#ligneNoteRecap').isVisible()
+  && (await p.locator('#recapNote').textContent()) === PRECISION);
+await p.fill('#clientNom','M. Dupont');
+await p.fill('#clientTel','06 12 34 56 78');
+await p.locator('[data-paiement="especes"]').click();
+await p.evaluate(()=>{ window.__wa=[]; window.open=(u)=>{ window.__wa.push(u); return null; }; });
+await p.locator('#btnConfirmer').click();
+await p.waitForTimeout(900);
+check('et sur le bon du client, qui est le seul endroit où il peut la relire',
+  await p.locator('#lignePrecision').isVisible()
+  && (await p.locator('#bonPrecision').textContent()) === PRECISION);
+
+const msg = decodeURIComponent((await p.evaluate(()=>window.__wa||[]))[0] || '');
+check('elle est dans le message, AVANT la ligne du prix',
+  msg.indexOf('Précision') > 0 && msg.indexOf('Précision') < msg.indexOf('Prix :'),
+  msg.replace(/\n/g,' | '));
+const garde = await p.evaluate(()=>{
+  const c = (JSON.parse(localStorage.getItem('ela_courses')||'[]'))[0] || {};
+  return { note:(c.course||{}).note, chambre:(c.course||{}).chambre };
+});
+check('la course la garde', garde.note === PRECISION, String(garde.note));
+/* LA CHAMBRE N'ÉTAIT RANGÉE NULLE PART — elle n'existait que fondue dans
+   le libellé de départ, et la fonction qui rend ses courses à la réception
+   lisait « course.chambre », un champ que personne n'écrivait. Le comptoir
+   ne voyait donc jamais le numéro qu'il venait de saisir. Le banc ne
+   pouvait pas l'attraper : il FABRIQUE les réponses du serveur. */
+check('la course garde AUSSI la chambre, à part du libellé de départ',
+  garde.chambre === '214', String(garde.chambre));
+
+/* ═══ LE PIRE CAS : DEUX-POINTS ET MONTANT DANS LA PRÉCISION ═══
+   Éprouvé contre la ligne posée APRÈS le prix : le lecteur rend alors
+   50 € au lieu de 100, et Barbaros recrée la course au prix du péage. */
+await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+await p.fill('#codeExploitant','12345678');
+await p.locator('#btnDeverrouiller').click();
+await p.waitForTimeout(700);
+await p.locator('#btnCollerDemande').click();
+await p.waitForTimeout(1500);
+await p.fill('#collerTexte', msg);
+await p.locator('#btnLireColle').click();
+await p.waitForTimeout(700);
+const relu = await p.evaluate(()=>{
+  const c = (JSON.parse(localStorage.getItem('ela_bookings')||'[]'))
+              .filter(x=>x.course && /Belle Borne/.test(x.course.depart))[0] || {};
+  return { depart:(c.course||{}).depart, arrivee:(c.course||{}).arrivee,
+           prix:(c.prix||{}).total, note:(c.course||{}).note, chambre:(c.course||{}).chambre };
+});
+check('collée, la demande garde le PRIX de la course — pas le montant de la précision',
+  relu.prix === 100, String(relu.prix));
+check('et les deux adresses, malgré le deux-points de la précision',
+  /Belle Borne/.test(relu.depart||'') && /Orly/.test(relu.arrivee||''),
+  relu.depart + ' → ' + relu.arrivee);
+check('la précision est relue, elle aussi', relu.note === PRECISION, String(relu.note));
+check('et la chambre est retrouvée dans le libellé de départ',
+  relu.chambre === '214', String(relu.chambre));
+
+/* =====================================================================
+   LE REPÈRE DU PARTENAIRE SUR LE TABLEAU DE BORD
+   ---------------------------------------------------------------------
+   À sa demande : « l'adresse easyHotel, tu peux mettre un code couleur
+   visuel orange, une façon pour moi de savoir que c'est easyHotel la
+   réception ».
+
+   DEUX CONTRÔLES COMPTENT PLUS QUE LES AUTRES :
+   — la carte NE GRANDIT PAS. Premier jet : la pastille était entre la
+     référence et le prix, elle poussait le prix sur deux lignes et la
+     carte repassait de 103 à 120 px. C'est exactement la densité qu'il
+     avait fait corriger (« ça prend beaucoup de place »). Un repère qui
+     coûte une ligne par course n'est pas un repère, c'est un recul.
+   — la couleur vient de la FICHE DE L'HÔTEL, pas du CSS. Écrite en dur,
+     elle serait orange pour le partenaire suivant, qui sera peut-être
+     bleu — même leçon que sa grille de forfaits, qui est par hôtel.
+   ===================================================================== */
+const jourP = n => { const d=new Date(Date.now()+n*864e5); const z=x=>String(x).padStart(2,'0');
+  return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); };
+const faux = (ref, extra) => Object.assign({
+  ref, statut:'attente', cree:new Date().toISOString(),
+  course:{type:'Trajet simple', depart:'easyHotel Aéroville, 10 rue de la Belle Borne (ch. 214)',
+          arrivee:'Orly 1 — Aéroport de Paris-Orly', date:jourP(1), heure:'06:00',
+          vehicule:'Berline', vehiculeCle:'berline', passagers:'2 passagers', note:''},
+  client:{nom:'M. Dupont', telephone:'0612345678'},
+  paiement:'especes', paiementNom:'Espèces',
+  prix:{total:100, ht:90.9, tva:9.1, majoration:false}}, extra);
+await ctx.addInitScript(([x,y,z]) => localStorage.setItem('ela_bookings', JSON.stringify([x,y,z])),
+ [ faux('ELA-26-09-0050',{provenanceCle:'easyhotel-aeroville', provenance:'easyHotel Aéroville', parReception:true}),
+   faux('ELA-26-09-0051',{provenanceCle:'easyhotel-aeroville', provenance:'easyHotel Aéroville', parReception:false}),
+   faux('ELA-26-09-0052',{course:{type:'Trajet simple', depart:'12 rue de Rivoli, Paris',
+       arrivee:'Gare du Nord', date:jourP(1), heure:'08:00', vehicule:'Van', vehiculeCle:'van',
+       passagers:'4 passagers', note:''}}) ]);
+await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+/* LE CODE N'EST REDEMANDÉ QU'UNE FOIS PAR CONTEXTE : le bloc précédent est
+   déjà entré dans l'espace, et « fill » sur un champ invisible attend
+   trente secondes avant d'échouer. On regarde l'écran plutôt que de
+   supposer. */
+if(await p.locator('#ecran-verrou').isVisible()){
+  await p.fill('#codeExploitant','12345678');
+  await p.locator('#btnDeverrouiller').click();
+  await p.waitForTimeout(900);
+}
+
+check('les deux courses du partenaire sont marquées, la course directe ne l\'est pas',
+  (await p.locator('.demande.partenaire').count()) === 2
+  && (await p.locator('.demande:not(.partenaire)').count()) === 1);
+const pastilles = await p.locator('.d-prov').allTextContents();
+check('le comptoir se distingue du client qui a scanné le flyer',
+  pastilles[0] === 'easyHotel · comptoir' && pastilles[1] === 'easyHotel',
+  pastilles.join(' / '));
+/* LA COULEUR CALCULÉE, pas la feuille de style : une règle trop large ou
+   une variable non posée se voit à l'écran, jamais dans le CSS. */
+const filet = await p.locator('.demande.partenaire').first()
+  .evaluate(el => getComputedStyle(el).borderLeftColor);
+check('le filet porte l\'orange rangé sur la fiche de l\'hôtel',
+  filet.replace(/\s/g,'') === 'rgb(255,102,0)', filet);
+const hauteurs = await p.locator('.demande').evaluateAll(
+  els => els.map(e => Math.round(e.getBoundingClientRect().height)));
+check('LA CARTE NE GRANDIT PAS : marquée ou non, même hauteur',
+  hauteurs[0] === hauteurs[2] && hauteurs[1] === hauteurs[2], hauteurs.join('/'));
+/* ═══ L'ARRIVÉE EST LISIBLE, ET C'EST TOUT LE POINT ═══
+   À sa demande. Les deux adresses tenaient sur UNE ligne qui tronque : sur
+   une course d'hôtel le départ est toujours le même et toujours long, donc
+   c'était l'arrivée — la seule moitié qu'il ne connaît pas d'avance — qui
+   disparaissait à chaque fois. Le contrôle MESURE qu'elle tient en entier
+   plutôt que de vérifier sa présence : un texte présent mais coupé passe
+   tous les contrôles de présence. */
+check('l\'arrivée est sur sa propre ligne, sous le départ',
+  (await p.locator('.demande').first().evaluate(el => {
+     const d = el.querySelector('.d-trajet').getBoundingClientRect();
+     const a = el.querySelector('.d-vers').getBoundingClientRect();
+     return a.top >= d.bottom - 1;
+   })));
+check('et elle tient en entier, sans être tronquée',
+  await p.locator('.d-vers').first().evaluate(e => e.scrollWidth <= e.clientWidth + 1),
+  await p.locator('.d-vers').first().textContent());
+check('le sens reste écrit — sans lui, on ne sait pas qui va où',
+  (await p.locator('.d-vers').first().textContent()).trim().indexOf('→') === 0);
+check('et le prix reste sur UNE ligne',
+  await p.locator('.demande').first()
+    .evaluate(e => Math.round(e.querySelector('.d-prix').getBoundingClientRect().height) < 30));
+/* LE ROUGE RESTE LE SEUL QUI CRIE. L'orange est à 24° de teinte du rouge
+   de l'attente : en aplat sur la ligne, les deux se disputeraient
+   l'attention et plus rien ne dirait « quelqu'un attend une réponse ». */
+check('la ligne garde son fond rouge : l\'orange ne tient que le filet et la pastille',
+  (await p.locator('.demande.partenaire').first()
+     .evaluate(el => getComputedStyle(el).backgroundColor)).replace(/\s/g,'') !== 'rgb(255,102,0)');
 
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);

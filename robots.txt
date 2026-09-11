@@ -9,4 +9,10 @@ Allow: /
 # l'annuaire. La page pose en plus sa propre balise « noindex ».
 Disallow: /*?h=
 
+# L'ADRESSE DE LA RÉCEPTION D'UN HÔTEL PARTENAIRE. Elle ouvre, avec le code,
+# l'historique des courses de l'hôtel — donc des noms et des chambres de
+# clients. Elle ne se communique qu'au comptoir et n'a rien à faire dans un
+# annuaire. La page pose en plus sa propre balise « noindex ».
+Disallow: /*?reception=
+
 Sitemap: https://elatransfer.com/sitemap.xml

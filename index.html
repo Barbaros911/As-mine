@@ -295,6 +295,16 @@ img{display:block;max-width:100%;}
   padding:11px 14px;margin-bottom:10px;background:var(--carte);
   text-align:left;font-family:inherit;}
 .champ-corps{flex:1 1 auto;min-width:0;}
+/* LE TEXTAREA NE PROFITE D'AUCUNE RÈGLE ÉCRITE POUR « input » : sans ces
+   lignes il arrive avec sa police de formulaire par défaut, sa bordure et
+   sa poignée de redimensionnement — trois choses qui n'existent nulle part
+   ailleurs sur le site. « .champ » s'aligne au centre : sur deux lignes de
+   texte, on veut le pictogramme en HAUT, à côté du titre. */
+.champ-note{align-items:flex-start;}
+.champ-note svg{margin-top:3px;}
+.champ textarea{border:0;outline:0;font:inherit;font-size:14.5px;color:var(--encre);
+  width:100%;padding:0;margin-top:3px;background:transparent;resize:none;
+  line-height:1.35;display:block;}
 .champ-titre{display:block;font-size:12.5px;font-weight:600;color:var(--encre);}
 .champ input{border:0;outline:0;font:inherit;font-size:14.5px;color:var(--encre);
   width:100%;padding:0;margin-top:2px;background:transparent;}
@@ -1418,22 +1428,123 @@ body.hotel .section,
 body.hotel .pied{display:none;}
 body.hotel .reserver{margin-top:0;}
 
-.hotel-tete{margin:0 0 14px;padding:16px 16px 14px;border-radius:18px;
-  background:var(--noir);color:#fff;}
-.hotel-tete .hotel-sur{margin:0;font-size:11.5px;font-weight:700;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--accent-vif);}
-.hotel-tete .hotel-nom{margin:4px 0 0;font-size:21px;font-weight:700;
-  line-height:1.2;}
-.hotel-tete .hotel-adresse{margin:3px 0 0;font-size:13px;color:#C9D4D2;}
+/* ═══════════════════════════════════════════════════════════════════════
+   LE THÈME D'UN PARTENAIRE
+   -----------------------------------------------------------------------
+   Tout est sous « body.hotel » : le site public ne change pas d'un pixel.
+   Les valeurs viennent de l'objet « HOTELS », jamais d'ici — le CSS ne
+   connaît que des rôles. Les replis (« , var(--noir) ») font que la page
+   reste correcte si un partenaire oublie une couleur.
+   L'ORANGE NE DESCEND PAS DANS LA LISTE : il est à 24° du rouge de
+   l'attente, et les deux côte à côte se disputeraient l'attention. Il tient
+   le cadre, l'action et l'aide ; la liste reste neutre.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* ═══ LE BANDEAU EST À LEUR COULEUR, ET LE TEXTE EST SOMBRE ═══
+   À sa demande : « utilise la page aux couleurs de easyHotel », « écris
+   toi-même avec leur couleur ». Aplat orange plein, texte CHARBON.
+   DU BLANC SUR CET ORANGE DONNE 2,94 : ILLISIBLE, et c'est mesuré. Seule
+   de l'encre y passe (5,86). Ce n'est pas une contrainte subie — c'est
+   exactement leur identité : leurs bâtiments sont orange et gris foncé,
+   pas orange et blanc. Le blanc, chez eux, ne sert qu'au lettrage de
+   l'enseigne, sur des lettres énormes.
+   LE FILET EST DONC CHARBON, et non plus orange : sur un aplat orange, un
+   filet orange ne se voit pas.
+   PAS DE LOGO REPRODUIT. Nommer un partenaire pour dire qu'on le dessert
+   est un usage descriptif ; recopier son fichier de marque est autre chose
+   — et Barbaros n'a pas leur accord. Le nom est donc COMPOSÉ, en
+   typographie, dans leur orange. C'est aussi mieux : un logo collé sur une
+   page qui n'est pas la sienne se voit toujours. */
+.hotel-tete{position:relative;overflow:hidden;
+  margin:0 0 14px;padding:20px 18px 18px;border-radius:18px;
+  background:var(--h-vif, var(--accent-vif));
+  color:var(--h-charbon, var(--noir));}
+/* PAS DE FILET EN HAUT. Posé sous l'enseigne marine d'Elatransfer, il
+   formait une bande sombre qui se lisait comme un défaut d'affichage. Un
+   aplat orange plein n'a besoin de rien pour se remarquer. */
+.hotel-photo{position:absolute;inset:0;background-size:cover;
+  background-position:center;z-index:0;}
+.hotel-photo::after{content:"";position:absolute;inset:0;
+  background:var(--h-charbon, var(--noir));opacity:.62;}
+.hotel-tete > *{position:relative;}
+/* Cette règle datait du bandeau CHARBON, où l'orange vif était le seul
+   accent possible. Le bandeau est devenu orange : elle écrivait donc de
+   l'orange sur de l'orange, et le sur-titre avait purement disparu. Une
+   règle de couleur écrite pour un fond survit au changement de ce fond,
+   sans rien casser de visible — c'est le même piège que le compte
+   d'onglets figé dans la barre du bas. */
+body.hotel .hotel-tete .hotel-sur{color:var(--h-charbon, var(--noir));opacity:.7;}
+
+/* L'ACTION PRINCIPALE PORTE LA COULEUR DU PARTENAIRE. Sur les écrans de
+   l'hôtel seulement : le bouton du site public reste vert. */
+/* ═══ LES ACTIONS PORTENT L'ORANGE, ASSOMBRI POUR ÊTRE LISIBLE ═══
+   LES BOUTONS SONT ORANGE, À SA DEMANDE — mais PAS de l'orange du logo.
+   Blanc sur #FF6600 donne 2,94 : illisible, mesuré. C'est le même orange
+   assombri, #C2410C, qui donne 5,18 avec du blanc. La marque est tenue,
+   le texte se lit.
+   LE PARTAGE EST UNE AFFAIRE DE FOND, PAS DE GOÛT : un bouton orange POSÉ
+   SUR LE BANDEAU ORANGE ne se distingue plus de lui — 1,76, mesuré. Les
+   boutons qui vivent DANS le bandeau (le sens du trajet, l'accès aux
+   réservations) restent donc charbon, qui est la seconde couleur
+   d'easyHotel ; ceux qui vivent sur le papier passent à l'orange. */
+body.hotel .bouton:not(:disabled){background:var(--h-bouton, var(--accent));}
+body.hotel .hotel-forfait{color:var(--h-paleEncre, var(--accent-encre));font-size:15px;}
+body.hotel .rec-aide{background:var(--h-pale, var(--accent-clair));}
+body.hotel .rec-aide-titre,
+body.hotel .rec-aide-texte{color:var(--h-paleEncre, var(--accent-encre));}
+body.hotel .rec-aide-lien{background:var(--h-bouton, var(--accent));}
+
+/* ═══ LES PICTOGRAMMES SUIVENT LA PAGE ═══
+   Ils portent la couleur d'Elatransfer écrite EN DUR dans le SVG
+   (fill="#1F6F6B"). Laissés tels quels sous un bandeau orange, ils
+   faisaient trois couleurs qui ne se parlent pas.
+   ON VISE LA VALEUR EXACTE, pas « tous les svg » : plusieurs de ces
+   dessins ont un point blanc à l'intérieur (le creux du repère de carte),
+   et un « fill » posé sur tout le monde le noircirait.
+   UN ATTRIBUT DE PRÉSENTATION PERD TOUJOURS CONTRE UNE RÈGLE CSS : c'est
+   ce qui permet de les reteindre sans toucher au HTML, donc sans risquer
+   de casser le site public. */
+body.hotel .champ svg [fill="#1F6F6B"]{fill:var(--h-bouton, var(--accent));}
+body.hotel .champ svg [stroke="#1F6F6B"]{stroke:var(--h-bouton, var(--accent));}
+body.hotel .rec-aide-lien.rec-wa{background:#25D366;}
+/* ═══ « CONFIRMÉE » RESTE VERTE, MÊME SUR UNE PAGE ORANGE ═══
+   Passée à l'orange du partenaire, la pastille disait la MARQUE et non
+   plus l'ÉTAT : « confirmée » devenait de la même couleur que le bouton,
+   que le bloc d'aide et que le filet de l'en-tête — c'est-à-dire plus rien.
+   Une couleur d'état ne se négocie pas avec une charte : le vert dit « la
+   voiture est acquise », il est à 147° de l'orange, et c'est exactement ce
+   qu'il faut pour qu'on les distingue d'un coup d'œil. Même erreur, à
+   l'envers, que le jour où l'attente et la confirmation ont fini de la
+   même couleur sur le bon du client. */
+body.hotel .rec-chauffeur{background:var(--h-pale, var(--accent-clair));
+  color:var(--h-paleEncre, var(--accent-encre));}
+/* Le rouge de l'attente et du retard ne bouge PAS : c'est la seule chose
+   qui crie, et elle doit rester distincte de la marque. */
+/* LE NOM EST LA PLUS GROSSE CHOSE DE L'ÉCRAN, et il est serré : c'est ce
+   qui fait qu'on le lit comme une enseigne et non comme un titre de
+   paragraphe. « easyHotel » s'écrit ainsi — un mot, deux capitales. */
+.hotel-tete .hotel-sur{margin:0;font-size:11px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--h-charbon, var(--noir));opacity:.72;}
+.hotel-tete .hotel-nom{margin:6px 0 0;font-size:27px;font-weight:800;
+  line-height:1.05;letter-spacing:-.02em;}
+/* L'adresse doit rester LISIBLE, donc sombre : un gris clair sur cet
+   orange tombe sous les seuils (mesuré 3,93 pour #4A3520). #3A1D06 rend
+   5,27 — c'est le plus doux qui passe encore. */
+.hotel-tete .hotel-adresse{margin:5px 0 0;font-size:13px;font-weight:500;
+  color:#3A1D06;}
 /* LES DEUX SENS SE VALENT — c'est le même forfait dans un sens comme dans
    l'autre. Deux boutons de même poids, donc, et aucun n'est « le bon » :
    une réception fait partir un client le matin et en récupère un le soir. */
-.hotel-sens{display:flex;gap:6px;margin-top:12px;padding:4px;
-  border-radius:13px;background:rgba(255,255,255,.10);}
-.hotel-sens-btn{flex:1 1 0;min-height:40px;border:0;border-radius:10px;
-  background:none;color:#D5DEDC;font:inherit;font-size:13.5px;font-weight:600;
+/* Sur un aplat orange, le creux se fait avec du NOIR transparent, jamais
+   avec du blanc : le blanc éclaircit l'orange et le rend laiteux. */
+.hotel-sens{display:flex;gap:6px;margin-top:14px;padding:4px;
+  border-radius:13px;background:rgba(0,0,0,.13);}
+.hotel-sens-btn{flex:1 1 0;min-height:42px;border:0;border-radius:10px;
+  background:none;color:#3A1D06;font:inherit;font-size:13.5px;font-weight:700;
   cursor:pointer;}
-.hotel-sens-btn.actif{background:#fff;color:var(--encre);}
+/* La pastille active est CHARBON, texte blanc (17,2) : c'est le contraste
+   le plus franc possible, et c'est la seconde couleur d'easyHotel. */
+.hotel-sens-btn.actif{background:var(--h-charbon, var(--noir));color:#fff;}
 /* L'ADRESSE DE L'HÔTEL EST MONTRÉE, PAS CACHÉE. C'est elle qui part chez
    le chauffeur : une réception doit pouvoir vérifier d'un coup d'œil que
    la voiture vient bien chez elle. Grisée parce qu'elle ne se modifie pas
@@ -1443,6 +1554,153 @@ body.hotel .reserver{margin-top:0;}
 /* Le prix se rattache au menu qui est AU-DESSUS de lui. Collé au bloc
    suivant, il se lisait comme le prix du terminal — d'où cette marge basse
    plus grande que la haute : c'est elle qui dit à quoi la ligne appartient. */
+/* Le bouton d'accès vit DANS le bandeau sombre de l'hôtel : c'est un
+   outil de la réception, pas une entrée du site. Il ne s'affiche que sous
+   « body.reception ». */
+.hotel-acces{display:block;width:100%;min-height:44px;margin-top:10px;
+  border:1.5px solid var(--h-charbon, var(--noir));border-radius:12px;
+  background:none;color:var(--h-charbon, var(--noir));font:inherit;
+  font-size:14px;font-weight:700;cursor:pointer;}
+.hotel-acces:active{background:var(--h-charbon, var(--noir));color:#fff;}
+/* LA GOUTTIÈRE DE L'ÉCRAN. Le titre vient de « .trajet-tete », qui a la
+   sienne ; tout ce qui suivait était à 0 et touchait les deux bords de
+   l'écran. 20 px, comme le reste du site (mesuré sur « .ecran-titre »). */
+#recVerrou, #recCorps{padding:0 20px;}
+/* ═══ LA TÊTE DU COMPTOIR PORTE LA COULEUR DU PARTENAIRE ═══
+   À sa demande. Une réception ouvre cette page vingt fois par jour : elle
+   doit reconnaître la sienne au premier regard, comme elle reconnaît son
+   propre comptoir. L'orange est celui d'easyHotel ; il n'appartient à
+   personne, contrairement à leur logo et à leurs photos.
+   LE TEXTE EST EN CHARBON, JAMAIS EN BLANC — mesuré : blanc sur #FF6600
+   donne 2,94, c'est-à-dire illisible ; le charbon donne 5,87. La même
+   mesure a déjà fait passer les boutons au charbon.
+   L'orange s'arrête ICI : il tient le cadre et l'action, il ne descend pas
+   dans la liste, où il se disputerait l'attention avec le rouge (24° de
+   teinte les séparent). */
+body.reception #ecran-reception .trajet-tete{
+  margin:0 20px 14px;padding:16px 18px;border-radius:18px;
+  background:var(--h-vif, var(--accent-vif));
+  color:var(--h-charbon, var(--noir));align-items:center;}
+body.reception #ecran-reception .trajet-tete .retour{
+  background:rgba(255,255,255,.92);border-color:transparent;
+  color:var(--h-charbon, var(--noir));}
+body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));opacity:.78;}
+.rec-titre{margin:0;font-size:16px;font-weight:800;}
+.rec-hotel{margin:2px 0 0;font-size:13px;color:var(--gris);}
+.rec-intro{margin:0 0 12px;font-size:13.5px;color:var(--gris);}
+#btnRecReserver{margin:0 0 14px;}
+.rec-chiffres{display:flex;gap:8px;margin:0 0 14px;}
+.rec-chiffre{flex:1 1 0;padding:10px 6px;border:1px solid var(--filet);
+  border-radius:14px;background:var(--carte);text-align:center;}
+.rec-chiffre b{display:block;font-size:21px;line-height:1.1;}
+.rec-chiffre span{display:block;margin-top:2px;font-size:11.5px;color:var(--gris);}
+/* Le seul des trois qui demande quelque chose à quelqu'un s'allume. Si les
+   trois criaient, plus aucun ne crierait — même règle que le tableau de
+   bord de Barbaros, où l'attente est la seule ligne rouge. */
+.rec-chiffre.chaud{border-color:#C9302F;}
+.rec-chiffre.chaud b{color:#C9302F;}
+
+/* « Un imprévu ? » — un aplat d'accent, pas une carte blanche de plus :
+   les cartes de course sont blanches, ce bloc ne doit pas se fondre dans
+   la série. Il reste à l'écran en permanence, au-dessus de la liste. */
+.rec-aide{margin:0 0 16px;padding:14px 16px;border-radius:16px;
+  background:var(--accent-clair);}
+.rec-aide-titre{margin:0;font-size:15px;font-weight:800;color:var(--accent-encre);}
+.rec-aide-texte{margin:4px 0 10px;font-size:13px;color:var(--accent-encre);}
+.rec-aide .duo{gap:8px;}
+.rec-aide-lien{display:flex;align-items:center;justify-content:center;
+  min-height:44px;border-radius:12px;background:var(--accent);color:#fff;
+  font-size:14px;font-weight:700;text-decoration:none;}
+.rec-aide-lien.rec-wa{background:#25D366;}
+
+.rec-jour{margin:18px 2px 8px;font-size:12px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--gris);}
+/* « En retard » emprunte le rouge de l'attente : c'est la même chose qu'il
+   dit — quelqu'un doit s'en occuper. Ce sont les deux seuls rouges. */
+.rec-jour.retard{color:#C9302F;}
+.rec-heure{font-size:19px;font-weight:800;}
+.rec-tel{margin:2px 0 0;font-size:13.5px;font-weight:600;}
+.rec-tel a{color:var(--encre);}
+.rec-bas{display:flex;justify-content:space-between;align-items:baseline;
+  gap:10px;margin:6px 0 0;}
+.rec-detail{font-size:12.5px;color:var(--gris);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Le prix ne rétrécit jamais : c'est le chiffre annoncé au client, et
+   c'est celui qu'on relit en premier quand il demande « c'était combien
+   déjà ? ». « flex-shrink:0 » lui garde sa place quand l'adresse est
+   longue — sans lui, c'est le montant qui serait tronqué. */
+.rec-prix{flex:0 0 auto;font-size:17px;font-weight:800;}
+.rec-barre{display:flex;gap:8px;margin:20px 0 0;}
+.rec-barre .bouton-fantome{flex:1 1 0;margin:0;}
+.rec-vide{margin:24px 2px;font-size:14px;color:var(--gris);text-align:center;}
+.rec-course{padding:12px 14px;margin:0 0 8px;border:1px solid var(--filet);
+  border-radius:14px;background:var(--carte);}
+.rec-ligne1{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+.rec-ref{font-size:12.5px;font-weight:700;color:var(--gris);}
+.rec-etat{font-size:11.5px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;padding:3px 8px;border-radius:999px;
+  border:1px solid var(--filet);color:var(--gris);white-space:nowrap;}
+.rec-etat.confirmee{background:var(--accent-clair);border-color:transparent;
+  color:var(--accent-encre);}
+.rec-etat.attente{background:transparent;}
+.rec-quand{margin:6px 0 0;font-size:15px;font-weight:800;}
+.rec-ou{margin:6px 0 0;font-size:13.5px;color:var(--encre);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-qui{margin:2px 0 0;font-size:13px;color:var(--gris);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-chauffeur{margin:8px 0 0;padding:8px 10px;border-radius:10px;
+  background:var(--accent-clair);font-size:13px;color:var(--accent-encre);
+  font-weight:600;}
+.rec-chauffeur a{color:inherit;}
+/* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
+   prend aucune place en hauteur — la carte vient justement de maigrir de
+   142 à 111 px — et il ne recouvre rien. */
+/* 6 px et pas 4 : sur une demande en attente, qui est en ROUGE PLEIN, un
+   filet orange de 4 px se distinguait à peine — les deux couleurs n'ont
+   que 24° de teinte d'écart. */
+.demande.partenaire{border-left:6px solid var(--prov, var(--accent-vif));}
+/* ELLE EST SUR LA LIGNE GRISE, PAS EN HAUT. Essayée entre la référence et
+   le prix : elle poussait le prix sur DEUX lignes et la carte repassait de
+   111 à 120 px — exactement la densité qu'on venait de corriger à sa
+   demande. Ici elle prend la place de ce qui se faisait DÉJÀ tronquer en
+   fin de ligne (la fin du nom du client) : on échange une information
+   coupée contre une information entière.
+   ELLE PORTE SON PROPRE FOND, et c'est ce qui la rend lisible aussi bien
+   sur le rouge d'une demande en attente que sur le blanc d'une course
+   réalisée. Une couleur de texte seule aurait marché sur l'un des deux. */
+/* La flèche est posée en tête plutôt qu'entre les deux adresses : entre
+   elles, elle se serait fait tronquer avec la fin du départ, et la ligne
+   d'arrivée n'aurait plus rien dit du sens. L'arrivée est en gris — c'est
+   le départ qu'on lit en premier, et deux lignes du même noir se
+   confondraient en un pavé. */
+.d-vers{display:block;margin-top:1px;font-size:13.5px;color:var(--gris);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.demande.attente .d-vers, .demande.retard .d-vers{color:rgba(255,255,255,.82);}
+.d-prov{flex:0 0 auto;margin:0 8px 0 0;padding:2px 8px;border-radius:999px;
+  background:var(--prov-pale, var(--accent-clair));color:var(--prov-encre, var(--accent-encre));
+  font-size:11px;font-weight:800;letter-spacing:.02em;
+  white-space:nowrap;align-self:center;}
+.rec-note{margin:8px 0 0;padding:7px 10px;border-radius:10px;
+  background:var(--fond);font-size:12.5px;color:var(--encre);
+  border-left:3px solid var(--filet);}
+.rec-annul{margin:8px 0 0;font-size:12.5px;font-weight:700;color:#C9302F;}
+.rec-course .bouton-fantome{margin-top:8px;min-height:38px;font-size:13.5px;}
+body:not(.reception) .hotel-acces{display:none;}
+
+/* ═══ SUR L'ADRESSE DE LA RÉCEPTION, LES DEUX LISTES DU CLIENT PARTENT ═══
+   Elles lisent le stockage de L'APPAREIL. Sur le téléphone d'un client
+   c'est exactement ce qu'il faut — il y retrouve sa réservation — et
+   c'est pour ça qu'elles restent sur l'adresse du flyer. Mais l'adresse
+   « ?reception= » ne s'ouvre que sur la tablette d'un comptoir, qui est
+   PARTAGÉE : là, ces listes accumuleraient les noms, chambres et adresses
+   de tous les clients passés devant, et le suivant les lirait.
+   La réception n'y perd rien : elle a désormais sa propre liste, lue sur
+   le serveur, filtrée sur son hôtel — c'est-à-dire mieux, et sans le
+   défaut. Le raisonnement qui les avait fait garder valait pour le
+   téléphone du client ; il ne vaut pas ici. */
+body.reception .onglet[data-onglet="courses"],
+body.reception .onglet[data-onglet="trajets"]{display:none;}
+
 .hotel-forfait{margin:6px 2px 14px;font-size:13px;font-weight:700;
   color:var(--accent-encre);}
 .hotel-libre{margin:6px 2px 0;font-size:12.5px;color:var(--gris);}
@@ -1593,6 +1851,12 @@ body.hotel .reserver{margin-top:0;}
        Roissy, et un chauffeur envoyé au mauvais à 5 h du matin fait rater
        un vol. -->
   <section class="hotel-tete" id="hotelTete" hidden>
+    <!-- La photo est un FOND, sous un voile : un titre posé sur une image
+         non maîtrisée n'a aucun contraste garanti — c'est la leçon du ruban
+         de photos de l'ancien accueil, illisible sur les Champs illuminés.
+         Ici le voile est opaque à 62 %, donc le texte reste lisible quelle
+         que soit l'image qu'easyHotel enverra. -->
+    <div class="hotel-photo" id="hotelPhoto" hidden aria-hidden="true"></div>
     <p class="hotel-sur" data-t="hotel_sur">Tarifs partenaires</p>
     <p class="hotel-nom" id="hotelTeteNom"></p>
     <p class="hotel-adresse" id="hotelTeteAdresse"></p>
@@ -1602,6 +1866,13 @@ body.hotel .reserver{margin-top:0;}
       <button type="button" class="hotel-sens-btn" data-sens="vers"
               aria-pressed="false" data-t="hotel_vers">Arrivée à l'hôtel</button>
     </div>
+    <!-- ═══ IL N'APPARAÎT QUE SUR L'ADRESSE DE LA RÉCEPTION ═══
+         Le QR du flyer est scanné par les CLIENTS : ce bouton n'y existe
+         pas, et c'est la moitié de la réponse à « personne ne verra les
+         infos des autres ? ». L'autre moitié est le code, vérifié par le
+         serveur. Les deux sont nécessaires — un lien se transfère, se
+         retrouve dans un historique, se photographie par-dessus l'épaule. -->
+    <button type="button" class="hotel-acces" id="btnReception" hidden>Réservations de l'hôtel</button>
   </section>
 
   <section class="hero">
@@ -1939,6 +2210,36 @@ body.hotel .reserver{margin-top:0;}
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+      </label>
+    </div>
+
+    <!-- ═══ LA CASE DE COMMENTAIRE — MODE HÔTEL SEULEMENT ═══
+         À sa demande : « tu peux ajouter une case si jamais la réception a
+         un commentaire à ajouter ». Un comptoir sait des choses que le
+         formulaire ne demande pas — un client en fauteuil, un siège bébé,
+         « il descendra avec dix minutes de retard », deux bagages de plus
+         que prévu. Sans endroit où l'écrire, ces précisions partent dans un
+         message WhatsApp à part, ou ne partent pas du tout.
+         ELLE N'EST PAS SUR LE SITE PUBLIC : il n'a demandé que la page du
+         partenaire, et un champ libre ouvert à tout le monde ramène des
+         demandes qu'on ne peut pas tenir (« passez d'abord à la pharmacie »).
+         200 CARACTÈRES, ET C'EST UNE MESURE, pas une prudence : la ligne
+         part dans le message WhatsApp que Barbaros lit sur un téléphone, la
+         nuit. Au-delà, elle cesse d'être une précision et devient un
+         paragraphe qu'il ne lira pas. -->
+    <div id="blocNote" hidden>
+      <label class="champ champ-note" for="noteCourse">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5.4 4.6h13.2v11.2l-4 4H5.4z" stroke="#1F6F6B" stroke-width="1.8"
+                stroke-linejoin="round"/>
+          <path d="M8.6 9.2h6.8M8.6 12.6h4.2" stroke="#1F6F6B" stroke-width="1.7"
+                stroke-linecap="round"/>
+        </svg>
+        <span class="champ-corps">
+          <span class="champ-titre" data-t="note_titre">Précision pour le chauffeur</span>
+          <textarea id="noteCourse" rows="2" maxlength="200" autocomplete="off"
+                    data-t-ph="ph_note" placeholder="Facultatif — siège bébé, bagages volumineux, retard annoncé…"></textarea>
+        </span>
       </label>
     </div>
 
@@ -2332,6 +2633,7 @@ body.hotel .reserver{margin-top:0;}
       <div class="ligne"><span data-t="passagers">Passagers</span><b id="recapPax">—</b></div>
       <div class="ligne" id="ligneChambre" hidden><span data-t="chambre_court">Chambre</span><b id="recapChambre">—</b></div>
       <div class="ligne" id="ligneVol" hidden><span id="libVol" data-t="vol_court">Vol</span><b id="recapVol">—</b></div>
+      <div class="ligne" id="ligneNoteRecap" hidden><span data-t="note_court">Précision</span><b id="recapNote">—</b></div>
     </div>
 
     <div class="bloc">
@@ -2411,6 +2713,17 @@ body.hotel .reserver{margin-top:0;}
           <input id="clientTel" type="tel" autocomplete="tel" data-t-ph="ph_tel" placeholder="06 12 34 56 78">
         </span>
       </label>
+      <!-- ═══ ELLE EST VISIBLE AVANT DE TAPER, PAS APRÈS ═══
+           À sa demande. Une consigne qui n'apparaît qu'en cas d'erreur
+           arrive trop tard : le client a déjà tapé son numéro, s'est fait
+           refuser, et c'est là qu'on lui explique. Celle-ci est là dès
+           l'ouverture de l'écran.
+           L'ÉTRANGER SEULEMENT, à sa demande aussi : le format français
+           est déjà montré par le champ lui-même (« 06 12 34 56 78 »), et
+           l'expliquer en plus à un Français, c'est une ligne de texte qui
+           ne dit rien à personne. -->
+      <p class="champ-aide" data-t="aide_tel">Depuis l'étranger, indiquez l'indicatif
+         de votre pays (+34, +44…).</p>
       <p class="champ-aide" id="erreurCoordonnees" hidden data-t="err_coord">Le nom et le téléphone
          sont nécessaires : c'est ainsi que le chauffeur vous retrouve.</p>
       <!-- UN MESSAGE À PART, et pas la même phrase que « il en manque un ».
@@ -2558,6 +2871,12 @@ body.hotel .reserver{margin-top:0;}
            réciproque : le client sait que le chauffeur vient préparé, et
            le chauffeur sait ce qu'il doit emporter. -->
       <div class="ligne"><span data-t="paiement">Paiement</span><b id="bonPaiement">—</b></div>
+      <!-- La précision figure sur le bon pour que le CLIENT la relise : une
+           réception se trompe de chambre ou de nombre de bagages comme tout
+           le monde, et c'est le seul moment où il peut le voir. Elle ne
+           s'affiche que si elle existe — une ligne vide à côté du prix
+           ferait douter d'un bon par ailleurs juste. -->
+      <div class="ligne" id="lignePrecision" hidden><span data-t="note_court">Précision</span><b id="bonPrecision">—</b></div>
       <div class="ligne total"><span data-t="prix_ferme">Prix ferme</span><b id="bonPrix">—</b></div>
     </div>
 
@@ -3533,6 +3852,13 @@ body.hotel .reserver{margin-top:0;}
       <div class="ligne"><span>Passagers</span><b id="bbPax">—</b></div>
       <div class="ligne" id="bbLigneVol" hidden><span id="bbLibVol">Vol</span><b id="bbVol">—</b></div>
       <div class="ligne" id="bbLignePancarte" hidden><span>Pancarte</span><b>Oui, à son nom</b></div>
+      <!-- ═══ CE QUE LA RÉCEPTION A ÉCRIT, ET QUE PERSONNE D'AUTRE NE SAIT ═══
+           C'est la seule ligne du bon qui ne vient ni du formulaire ni du
+           calcul : un fauteuil roulant, un siège bébé, un client qui
+           descendra en retard. Elle est posée AVANT le paiement et le prix
+           parce qu'elle change ce qu'on envoie — la gamme, parfois le
+           chauffeur — et pas seulement ce qu'on encaisse. -->
+      <div class="ligne" id="bbLigneNote" hidden><span>Précision</span><b id="bbNote">—</b></div>
       <!-- D'où vient ce client. La ligne n'apparaît que s'il vient d'une
            affiche : sur une course ordinaire, elle n'aurait rien à dire. -->
       <div class="ligne" id="bbLigneProv" hidden><span>Vient de</span><b id="bbProv">—</b></div>
@@ -3649,6 +3975,104 @@ body.hotel .reserver{margin-top:0;}
        téléphone : voir « rafraichirCourses ». C'est toute la différence
        entre une liste qui informe et une liste qui ment.
        ===================================================================== -->
+  <!-- ═══════════════════════════════════════════════════════════════
+       L'ESPACE DE LA RÉCEPTION
+       ---------------------------------------------------------------
+       Il ne montre que les courses de CET hôtel, lues sur le serveur —
+       pas dans le navigateur. C'est ce qui règle les deux défauts opposés
+       du stockage local : sur une tablette partagée, chaque client voyait
+       les réservations des précédents ; sur un autre appareil, la
+       réception ne voyait plus rien.
+       CE QU'ON N'Y MET PAS : le téléphone du client. La réception l'a
+       tapé elle-même, donc ce n'est pas un secret pour elle — mais elle
+       joint son client par sa chambre, et ce qui n'est pas nécessaire ne
+       voyage pas. Une tablette oubliée sur un comptoir ne doit pas rendre
+       les portables des clients.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ecran" id="ecran-reception">
+    <div class="trajet-tete">
+      <button class="retour" type="button" id="btnRetourReception" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="trajet-corps">
+        <p class="rec-titre">Réception</p>
+        <p class="rec-hotel" id="recHotel"></p>
+      </div>
+    </div>
+
+    <!-- LE CODE. Il n'est vérifié QUE par le serveur : l'écrire dans la
+         page, même en empreinte, le donnerait à qui lit la source et
+         permettrait de l'attaquer hors ligne, autant d'essais qu'on veut,
+         sans que personne le sache. C'est la différence assumée avec le
+         code de l'espace exploitant. -->
+    <div id="recVerrou">
+      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il n'est demandé qu'une fois sur cet appareil.</p>
+      <label class="champ" for="recCode">
+        <span class="champ-corps">
+          <span class="champ-titre">Code de la réception</span>
+          <input id="recCode" type="password" autocomplete="off" inputmode="text" placeholder="Votre code">
+        </span>
+      </label>
+      <p class="refus" id="recErreur" hidden></p>
+      <button class="bouton" type="button" id="btnRecEntrer">Ouvrir</button>
+    </div>
+
+    <div id="recCorps" hidden>
+      <!-- ═══ L'ACTION D'ABORD, LA LISTE ENSUITE ═══
+           Un comptoir vient ici pour DEUX choses, et neuf fois sur dix
+           c'est la première : commander une voiture pour le client qui est
+           devant lui. Le bouton est donc en tête et il est plein — la
+           consultation de l'historique, elle, attend qu'on la cherche.
+           C'est l'inverse du tableau de bord de Barbaros, qui vient
+           d'abord traiter ce qui existe. -->
+      <button class="bouton" type="button" id="btnRecReserver">
+        <span>Réserver un chauffeur</span>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Trois chiffres, de front. « Aujourd'hui » d'abord : c'est la
+           seule question qu'un comptoir se pose en arrivant le matin. -->
+      <div class="rec-chiffres">
+        <div class="rec-chiffre"><b id="recNbJour">0</b><span>aujourd'hui</span></div>
+        <div class="rec-chiffre"><b id="recNbAttente">0</b><span>en attente</span></div>
+        <div class="rec-chiffre"><b id="recNbAVenir">0</b><span>à venir</span></div>
+      </div>
+
+      <!-- ═══ « UN IMPRÉVU ? » — TOUJOURS VISIBLE, JAMAIS DANS UN MENU ═══
+           À sa demande. Un comptoir gère des imprévus toute la journée : un
+           vol avancé, un client qui descend en avance, un groupe qui
+           change d'avis. Cacher le numéro derrière un bouton, c'est une
+           réception qui renonce et qui rend le service moins fiable qu'un
+           taxi de la borne. Il est donc écrit en clair, en permanence, et
+           il ne dépend d'aucune course sélectionnée. -->
+      <div class="rec-aide">
+        <p class="rec-aide-titre">Un imprévu ?</p>
+        <p class="rec-aide-texte">Un retard, un changement d'heure, une annulation : appelez-nous, on s'en occupe tout de suite.</p>
+        <div class="duo">
+          <a class="rec-aide-lien" href="tel:+33759312433" data-t="appeler">Appeler</a>
+          <a class="rec-aide-lien rec-wa" id="recAideWa" href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+
+      <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
+      <div id="recListe"></div>
+
+      <!-- Ces deux-là ferment la page : on les met EN BAS. « Fermer la
+           session » en tête d'écran, c'est le bouton qu'on effleure par
+           erreur en voulant faire défiler. -->
+      <div class="rec-barre">
+        <button type="button" class="bouton-fantome" id="btnRecActualiser">Actualiser</button>
+        <button type="button" class="bouton-fantome" id="btnRecFermer">Fermer la session</button>
+      </div>
+    </div>
+  </section>
+
   <section class="ecran" id="ecran-courses">
     <h1 class="ecran-titre" data-t="courses_titre">Mes réservations</h1>
     <p class="ecran-note" data-t="courses_note">Vos transferts à venir. L'état se met à jour tout seul dès qu'Elatransfer répond.</p>
@@ -3923,6 +4347,9 @@ window.ELA_TEXTES = {
     geo_echec:"Impossible de vous localiser. Saisissez l'adresse.",
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
+    note_titre:"Précision pour le chauffeur",
+    ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
+    note_court:"Précision",
     /* ---- LE MODE HÔTEL ---- */
     hotel_sur:"Tarifs partenaires", hotel_destination:"Destination",
     hotel_terminal:"Terminal", hotel_sens_aria:"Sens du trajet",
@@ -3969,7 +4396,8 @@ window.ELA_TEXTES = {
     coordonnees:"Vos coordonnées", nom:"Nom", ph_nom:"Votre nom",
     telephone:"Téléphone", ph_tel:"06 12 34 56 78",
     err_coord:"Le nom et le téléphone sont nécessaires : c'est ainsi que le chauffeur vous retrouve.",
-    err_tel:"Ce numéro ne semble pas valable. Vérifiez-le : c'est par là que nous vous confirmons la course.",
+    aide_tel:"Depuis l'étranger, indiquez l'indicatif de votre pays (+34, +44…).",
+    err_tel:"Ce numéro ne semble pas valable. Relisez-le, avec l'indicatif si vous êtes à l'étranger : c'est par là que nous vous confirmons la course.",
     confirmer:"Confirmer ma réservation",
     confirmer_note:"Elle devient ferme dès qu'Elatransfer vous confirme.",
     suite_titre:"Ce qui se passe ensuite",
@@ -4085,6 +4513,9 @@ window.ELA_TEXTES = {
     geo_echec:"Could not locate you. Please type the address.",
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
+    note_titre:"Note for the chauffeur",
+    ph_note:"Optional — child seat, bulky luggage, expected delay…",
+    note_court:"Note",
     /* ---- HOTEL MODE ---- */
     hotel_sur:"Partner rates", hotel_destination:"Destination",
     hotel_terminal:"Terminal", hotel_sens_aria:"Direction of travel",
@@ -4125,7 +4556,8 @@ window.ELA_TEXTES = {
     coordonnees:"Your details", nom:"Name", ph_nom:"Your name",
     telephone:"Phone", ph_tel:"+33 6 12 34 56 78",
     err_coord:"Your name and phone are required: that is how your chauffeur finds you.",
-    err_tel:"This number does not look valid. Please check it: it is how we confirm your transfer.",
+    aide_tel:"From abroad, please include your country code (+34, +44…).",
+    err_tel:"This number does not look valid. Please check it, with your country code if you are abroad: it is how we confirm your transfer.",
     confirmer:"Confirm my booking",
     confirmer_note:"It becomes firm as soon as Elatransfer confirms.",
     suite_titre:"What happens next",
@@ -4936,10 +5368,22 @@ window.ELA_TEXTES = {
   }
   /* La classe dit seulement « ce champ ne se modifie pas ici ». Elle est
      posée sur le « .champ », pas sur l'input : c'est lui qui porte le fond
-     et le cadre. */
+     et le cadre.
+     ═══ ET « ME LOCALISER » DISPARAÎT AVEC LUI ═══
+     C'était un vrai défaut, silencieux : le champ était bien en lecture
+     seule, mais le bouton de géolocalisation est un élément À CÔTÉ, pas
+     dedans. Un appui dessus remplaçait l'adresse FIGÉE de l'hôtel par la
+     position de l'appareil — mesuré : « easyHotel Aéroville, 10 rue de la
+     Belle Borne » devenait « 1 Rue de Rivoli, 75001 Paris ». Le prix ne
+     bougeait pas (c'est un forfait), donc rien ne se voyait ; seul le
+     chauffeur s'en serait aperçu, en allant à la mauvaise adresse.
+     « readOnly » protège la SAISIE, jamais ce qui écrit dans le champ
+     depuis l'extérieur. Même famille que la prise « poser() », qui existe
+     précisément parce qu'écrire dans un champ ne déclenche rien. */
   function chaqueChamp(input, fige){
     var lab = input.closest(".champ");
     if(lab) lab.classList.toggle("fige", !!fige);
+    if(input === champDepart && btnGeoloc) btnGeoloc.hidden = !!fige;
   }
 
   selDest.addEventListener("change", function(){
@@ -4972,6 +5416,380 @@ window.ELA_TEXTES = {
     });
   });
 
+
+/* =====================================================================
+   L'ESPACE DE LA RÉCEPTION
+   ---------------------------------------------------------------------
+   Septembre 2026, à la demande de Barbaros : « je veux qu'il y ait un lien
+   de connexion vraiment destiné à la réception de l'hôtel uniquement ».
+
+   DEUX ADRESSES, ET C'EST LUI QUI L'A IMPOSÉ. « ?h= » est celle du flyer,
+   scannée par les CLIENTS : elle réserve, un point c'est tout.
+   « ?reception= » ne se communique qu'au comptoir : elle réserve AUSSI,
+   et elle ouvre en plus l'historique de l'hôtel.
+
+   LE LIEN NE SUFFIT PAS, IL FAUT LE CODE. Un lien se transfère, se
+   retrouve dans un historique de navigateur, se photographie par-dessus
+   l'épaule. S'il ouvrait à lui seul la liste des clients de l'hôtel, la
+   réponse à « personne ne verra les infos des autres ? » redeviendrait
+   non. Le code est vérifié PAR LE SERVEUR — il n'est nulle part dans ce
+   fichier, contrairement à celui de l'espace exploitant qui y vit en
+   empreinte et peut donc s'attaquer hors ligne.
+
+   IL N'EST DEMANDÉ QU'UNE FOIS. Un comptoir qui doit retaper un code à
+   chaque client cesse d'utiliser l'outil au bout de trois jours. Il est
+   retenu sur l'appareil, et « Fermer la session » l'efface — c'est le
+   geste à faire sur une tablette qu'on prête.
+   ===================================================================== */
+  var recHotel = null;         // l'hôtel dont on tient le comptoir
+  var recCourses = [];
+  var CLE_CODE_REC = "ela_code_reception";
+
+  function codeRetenu(cle){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+         return (o && o[cle]) || ""; }catch(e){ return ""; }
+  }
+  function retenirCode(cle, code){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+         o[cle] = code; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    }catch(e){ /* stockage refusé : le code sera redemandé, rien de cassé */ }
+  }
+  function oublierCode(cle){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+         delete o[cle]; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    }catch(e){}
+  }
+
+  /* Elle reçoit la PHRASE, pas une clé : cet écran n'est pas traduit. */
+  function direRec(phrase){
+    var e = document.getElementById("recErreur");
+    if(!phrase){ e.hidden = true; e.textContent = ""; return; }
+    e.textContent = phrase; e.hidden = false;
+  }
+
+  /* TROIS PANNES, TROIS PHRASES. « code refusé », « serveur injoignable »
+     et « aucune course » appellent trois gestes différents : retaper,
+     réessayer, ne rien faire. Un seul message « ça n'a pas marché » les
+     confondrait, et c'est exactement ce qui a coûté une soirée sur la
+     connexion de l'espace exploitant. */
+  /* ═══ UN SEUL ENDROIT DÉCIDE DE CE QU'ON VOIT ═══
+     Le verrou et la liste sont les deux faces d'un même état, et cinq
+     endroits retournaient les deux « hidden » à la main. Deux lignes
+     recopiées cinq fois tiennent jusqu'au jour où il faut en changer une :
+     c'est celle qu'on oublie qui laisse une liste de courses sous un écran
+     de connexion. */
+  function montrerVerrou(oui){
+    document.getElementById("recVerrou").hidden = !oui;
+    document.getElementById("recCorps").hidden  = !!oui;
+  }
+
+  function ouvrirReception(){
+    if(!recHotel) return;
+    document.getElementById("recHotel").textContent = recHotel.nom;
+    var code = codeRetenu(recHotel.cle);
+    direRec(null);
+    if(!code){
+      montrerVerrou(true);
+      ecran("ecran-reception");
+      return;
+    }
+    ecran("ecran-reception");
+    chargerReception(code);
+  }
+
+  function chargerReception(code){
+    var btn = document.getElementById("btnRecActualiser");
+    btn.disabled = true;
+    nuage.coursesHotel(recHotel.cle, code).then(function(d){
+      btn.disabled = false;
+      retenirCode(recHotel.cle, code);
+      recCourses = (d && d.courses) || [];
+      montrerVerrou(false);
+      direRec(null);
+      dessinerReception();
+    }).catch(function(err){
+      btn.disabled = false;
+      /* UN CODE REFUSÉ EFFACE CELUI QU'ON GARDAIT. Sinon la réception
+         resterait devant une liste vide sans comprendre, avec un code
+         périmé retenu dans l'appareil — le jour où Barbaros le change,
+         personne ne s'en sort. */
+      if(String(err && err.message) === "code"){
+        oublierCode(recHotel.cle);
+        montrerVerrou(true);
+        direRec("Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
+      } else {
+        direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
+        montrerVerrou(true);
+      }
+    });
+  }
+
+  /* ═══ LE COMPTOIR EST EN FRANÇAIS, POINT ═══
+     À sa demande : « pas besoin de traduction pour la réception, c'est des
+     Français ». Même règle que l'espace exploitant, et pour la même
+     raison : ce que cet écran affiche est lu par du personnel d'hôtel en
+     Île-de-France, jamais par un client étranger. Les six — ici deux —
+     langues restent au client, sur l'écran de réservation qu'il partage
+     avec eux. Aucune clé de traduction pour cet écran : une clé qu'on
+     traduit pour personne finit par diverger de la page.
+     La date suit donc « dateFr » et le prix « eurosFR », qui sont déjà les
+     versions françaises figées du reste de l'outil. */
+  var ETATS_REC = { attente:"En attente", confirmee:"Confirmée",
+                    realisee:"Effectuée", refusee:"Non prise" };
+
+  /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
+     Même leçon que le tableau de bord de Barbaros : une liste à plat met
+     une course d'hier restée ouverte AVANT celle de demain, sans que rien
+     ne le dise. Un comptoir qui prend son service le matin veut voir sa
+     journée, et il veut voir en premier ce qui cloche — une course dont
+     l'heure est passée et que personne n'a close demande quelque chose.
+     SUR UNE COURSE EFFECTUÉE, « en retard » NE VEUT RIEN DIRE : elle est
+     faite, elle reprend sa date. */
+  function jourRec(c){
+    var d = new Date((c.date || "") + "T" + (c.heure || ""));
+    if(isNaN(d.getTime())) return { rang: 9, titre: "Date inconnue" };
+    var fini = c.statut === "realisee" || c.statut === "refusee";
+    var maintenant = new Date();
+    var minuit = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
+    var jour = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var ecart = Math.round((jour - minuit) / 864e5);
+    if(!fini && d.getTime() < maintenant.getTime()) return { rang:0, titre:"En retard" };
+    if(ecart === 0) return { rang:1, titre:"Aujourd'hui" };
+    if(ecart === 1) return { rang:2, titre:"Demain" };
+    if(ecart > 1)   return { rang:3 + ecart, titre:d.toLocaleDateString("fr-FR",
+                              { weekday:"long", day:"numeric", month:"long" }) };
+    return { rang: 100 - ecart, titre:d.toLocaleDateString("fr-FR",
+              { weekday:"long", day:"numeric", month:"long" }) };
+  }
+
+  function dessinerReception(){
+    var liste = document.getElementById("recListe");
+    liste.innerHTML = "";
+    document.getElementById("recVide").hidden = recCourses.length > 0;
+
+    /* Trois chiffres, et « aujourd'hui » d'abord : c'est la seule question
+       qu'un comptoir se pose en prenant son service. */
+    var auj = 0, att = 0, ave = 0, maintenant = Date.now();
+    recCourses.forEach(function(c){
+      var d = new Date((c.date || "") + "T" + (c.heure || ""));
+      var fini = c.statut === "realisee" || c.statut === "refusee";
+      if(!isNaN(d.getTime())){
+        var n = new Date();
+        if(d.toDateString() === n.toDateString()) auj++;
+        if(!fini && d.getTime() > maintenant) ave++;
+      }
+      if(c.statut === "attente") att++;
+    });
+    document.getElementById("recNbJour").textContent    = auj;
+    document.getElementById("recNbAttente").textContent = att;
+    document.getElementById("recNbAVenir").textContent  = ave;
+    /* Le compteur « en attente » s'allume : c'est le seul des trois qui
+       demande quelque chose à quelqu'un. */
+    document.getElementById("recNbAttente").parentNode
+            .classList.toggle("chaud", att > 0);
+
+    /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
+       liste est déjà triée, et deux parcours finiraient par diverger. */
+    var triees = recCourses.slice().sort(function(a, b){
+      var ja = jourRec(a), jb = jourRec(b);
+      if(ja.rang !== jb.rang) return ja.rang - jb.rang;
+      return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
+    });
+
+    var titreCourant = null;
+    triees.forEach(function(c){
+      var j = jourRec(c);
+      if(j.titre !== titreCourant){
+        titreCourant = j.titre;
+        var h = document.createElement("p");
+        h.className = "rec-jour" + (j.rang === 0 ? " retard" : "");
+        h.textContent = j.titre;
+        liste.appendChild(h);
+      }
+
+      var d = document.createElement("div");
+      d.className = "rec-course";
+      d.dataset.ref = c.ref;
+
+      /* L'HEURE EN GROS, L'ÉTAT À DROITE. Un comptoir lit une heure, pas
+         une référence — celle-ci descend en petit, elle ne sert qu'à nous
+         citer une course au téléphone. */
+      var l1 = document.createElement("p");
+      l1.className = "rec-ligne1";
+      var hh = document.createElement("span");
+      hh.className = "rec-heure"; hh.textContent = (c.heure || "—");
+      var et = document.createElement("span");
+      et.className = "rec-etat " + (c.statut || "attente");
+      et.textContent = ETATS_REC[c.statut] || ETATS_REC.attente;
+      l1.appendChild(hh); l1.appendChild(et);
+      d.appendChild(l1);
+
+      /* ═══ CE QU'UNE RÉSERVATION DOIT PORTER ═══
+         À sa demande, mot pour mot : « la réservation doit comporter le
+         numéro de chambre ou le nom du client ainsi que le numéro, le
+         trajet à effectuer et le prix annoncé », plus le mode de paiement.
+         LE CLIENT ET SA CHAMBRE SONT LE REPÈRE PRINCIPAL — une réception
+         pense en « chambre 214 », jamais en « ELA-26-09-0042 ». */
+      var qui = document.createElement("p");
+      qui.className = "rec-qui";
+      qui.textContent = [c.chambre ? "Chambre " + c.chambre : "", c.client]
+                        .filter(Boolean).join(" · ") || "Client non nommé";
+      d.appendChild(qui);
+
+      /* LE NUMÉRO DU CLIENT, CLIQUABLE. C'est le seul moyen de le joindre
+         quand la voiture est en bas et qu'il n'est pas dans sa chambre. */
+      if(c.tel){
+        var t = document.createElement("p");
+        t.className = "rec-tel";
+        var lt = document.createElement("a");
+        lt.href = "tel:" + c.tel; lt.textContent = c.tel;
+        t.appendChild(lt);
+        d.appendChild(t);
+      }
+
+      /* ═══ ON NE RÉPÈTE PAS L'HÔTEL SUR CHAQUE LIGNE ═══
+         Mesuré : « easyHotel Aéroville, 10 rue de la Belle Borne → Beauvais »
+         mangeait toute la largeur et c'est la DESTINATION qui se faisait
+         tronquer — c'est-à-dire la seule moitié que la réception ne connaît
+         pas déjà. Toutes ces courses partent de chez elle ou y arrivent :
+         le bout qui l'intéresse est l'autre.
+         MAIS LE SENS RESTE ÉCRIT. Sans lui, « Orly 1 » ne dirait pas si le
+         chauffeur emmène le client ou vient le chercher — et un comptoir
+         qui se trompe de sens envoie une voiture pour rien. */
+      var ou = document.createElement("p");
+      ou.className = "rec-ou";
+      var versHotel = recHotel && (c.arrivee || "").indexOf(recHotel.nom) === 0;
+      ou.textContent = versHotel
+        ? ((c.depart || "—").split(",")[0] + "  →  l'hôtel")
+        : ("l'hôtel  →  " + (c.arrivee || "—"));
+      d.appendChild(ou);
+
+      /* LE PRIX EST LE CHIFFRE QUE LA RÉCEPTION A ANNONCÉ AU CLIENT : il
+         est à droite, en gras, et il ne se noie pas dans une ligne grise.
+         Le mode de règlement est à côté — c'est lui qui décide si le
+         chauffeur se présente avec un terminal de carte. */
+      var bas = document.createElement("p");
+      bas.className = "rec-bas";
+      var gauche = document.createElement("span");
+      gauche.className = "rec-detail";
+      gauche.textContent = [c.vehicule, c.paiement, c.ref].filter(Boolean).join(" · ");
+      var prix = document.createElement("b");
+      prix.className = "rec-prix";
+      prix.textContent = c.prix ? eurosFR(c.prix) : "—";
+      bas.appendChild(gauche); bas.appendChild(prix);
+      d.appendChild(bas);
+
+      /* ═══ LA PRÉCISION QU'ELLE A ÉCRITE ELLE-MÊME ═══
+         Elle est SOUS le prix, pas dans la ligne grise : celle-ci tronque
+         volontairement, et une précision coupée au milieu (« client en
+         fauteuil rou… ») est pire qu'une précision absente — on croit
+         l'avoir lue. Elle n'apparaît que si elle existe. */
+      if(c.note){
+        var nt = document.createElement("p");
+        nt.className = "rec-note";
+        nt.textContent = c.note;
+        d.appendChild(nt);
+      }
+
+      /* LE CHAUFFEUR N'APPARAÎT QUE QUAND IL EST RÉELLEMENT ATTRIBUÉ, et
+         c'est ce que la réception vient chercher : répondre au client sans
+         nous appeler. Son numéro est cliquable — le comptoir a parfois
+         besoin de le joindre pendant qu'il attend devant la porte. */
+      if(c.chauffeur && c.chauffeur.nom){
+        var ch = document.createElement("p");
+        ch.className = "rec-chauffeur";
+        ch.textContent = "Chauffeur : " + c.chauffeur.nom;
+        if(c.chauffeur.telephone){
+          ch.appendChild(document.createTextNode(" · "));
+          var a = document.createElement("a");
+          a.href = "tel:" + c.chauffeur.telephone;
+          a.textContent = c.chauffeur.telephone;
+          ch.appendChild(a);
+        }
+        d.appendChild(ch);
+      }
+
+      if(c.annulationDemandee){
+        var av = document.createElement("p");
+        av.className = "rec-annul";
+        av.textContent = "Annulation demandée — nous vous confirmons.";
+        d.appendChild(av);
+      } else if(c.statut === "attente" || c.statut === "confirmee"){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "bouton-fantome";
+        b.textContent = "Demander l'annulation";
+        b.addEventListener("click", function(){ demanderAnnulation(c, b); });
+        d.appendChild(b);
+      }
+      liste.appendChild(d);
+    });
+  }
+
+  /* ═══ ELLE NE DÉCIDE RIEN, ET C'EST TOUT SON INTÉRÊT ═══
+     Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
+     déjà engagé, et lui seul peut le rappeler. Le serveur pose un drapeau
+     et ne touche PAS au statut ; WhatsApp part vers Barbaros dans le geste
+     du clic — sans « await » avant, sinon Safari iOS bloque la fenêtre.
+     Tant que l'alerte Telegram n'est pas branchée, ce message EST le seul
+     moyen qu'il l'apprenne : ne pas le retirer. */
+  function demanderAnnulation(c, bouton){
+    var msg = "Demande d'annulation — " + (recHotel ? recHotel.nom : "")
+            + "\nCourse " + c.ref + ", " + dateFr(c.date, c.heure)
+            + ".\nMerci de confirmer.";
+    window.open("https://wa.me/" + NUMERO_WA + "?text=" + encodeURIComponent(msg),
+                "_blank", "noopener");
+    bouton.disabled = true;
+    nuage.coursesHotel(recHotel.cle, codeRetenu(recHotel.cle),
+                       { action:"annulation", ref:c.ref })
+      .then(function(){ c.annulationDemandee = true; dessinerReception(); })
+      .catch(function(){
+        /* Le message est parti chez Barbaros de toute façon : on le dit
+           plutôt que de laisser croire que rien ne s'est passé. */
+        bouton.disabled = false;
+        direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
+      });
+  }
+
+  document.getElementById("btnReception")
+          .addEventListener("click", ouvrirReception);
+  document.getElementById("btnRetourReception")
+          .addEventListener("click", function(){ ecran("ecran-accueil"); });
+  document.getElementById("btnRecEntrer").addEventListener("click", function(){
+    var v = document.getElementById("recCode").value.trim();
+    if(!v){ direRec("Saisissez le code qui vous a été remis."); return; }
+    direRec(null);
+    chargerReception(v);
+  });
+  document.getElementById("recCode").addEventListener("keydown", function(e){
+    if(e.key === "Enter") document.getElementById("btnRecEntrer").click();
+  });
+  /* IL RAMÈNE AU FORMULAIRE, IL NE RÉSERVE RIEN LUI-MÊME — il n'y a rien
+     à réserver tant qu'on ne sait pas où va le client. C'est le même
+     arbitrage que le bouton du bandeau d'accueil : le défilement est lancé
+     d'abord et le curseur arrive après, sinon le navigateur ramène de
+     force le champ à l'écran et annule le mouvement. */
+  document.getElementById("btnRecReserver").addEventListener("click", function(){
+    ecran("ecran-accueil");
+    setTimeout(function(){
+      var dest = document.getElementById("hotelDest");
+      if(dest && !blocDest.hidden) dest.focus();
+    }, 380);
+  });
+  document.getElementById("btnRecActualiser").addEventListener("click", function(){
+    if(recHotel) chargerReception(codeRetenu(recHotel.cle));
+  });
+  /* « Fermer la session » est le geste à faire sur une tablette qu'on
+     prête : il efface le code de l'appareil et referme la liste. */
+  document.getElementById("btnRecFermer").addEventListener("click", function(){
+    if(!recHotel) return;
+    oublierCode(recHotel.cle);
+    recCourses = [];
+    document.getElementById("recListe").innerHTML = "";
+    document.getElementById("recCode").value = "";
+    montrerVerrou(true);
+    direRec(null);
+  });
+
   /* ═══ L'ENTRÉE ═══
      Elle n'ouvre le mode hôtel que sur un partenaire CONNU. Un « ?h= »
      quelconque garde le comportement d'origine — l'affiche QR d'un hôtel
@@ -4998,8 +5816,23 @@ window.ELA_TEXTES = {
     hotelDest = h.destinations[0];
     libreAutoRempli = false;
     document.body.classList.add("hotel");
+    /* Les couleurs passent par des variables CSS posées sur la page : le
+       CSS ne connaît aucun partenaire, il ne connaît que des rôles. C'est
+       la même leçon que « --accent » qui ne s'appelle plus « --or ». */
+    var m = h.marque || {};
+    var racine = document.documentElement;
+    Object.keys(m).forEach(function(k){ racine.style.setProperty("--h-" + k, m[k]); });
+    var photo = document.getElementById("hotelPhoto");
+    /* Sans photo, le cadre n'est pas vide : il est simplement uni. Un bloc
+       gris « image manquante » ferait plus de mal que pas d'image du tout. */
+    if(h.photo){ photo.style.backgroundImage = "url(" + h.photo + ")"; photo.hidden = false; }
+    else { photo.hidden = true; }
     hotelTete.hidden = false;
     blocDest.hidden = false;
+    /* La case de précision n'existe que sur la page d'un partenaire.
+       Ouverte sur le site public, elle ramènerait des demandes qu'on ne
+       peut pas tenir, et personne ne les lirait avant le départ. */
+    document.getElementById("blocNote").hidden = false;
     document.getElementById("hotelTeteNom").textContent = h.nom;
     document.getElementById("hotelTeteAdresse").textContent = h.adresse;
     selDest.innerHTML = "";
@@ -5330,6 +6163,38 @@ window.ELA_TEXTES = {
          EUX. Le cahier des charges en donnait deux ; c'est celui-ci. Ne pas
          le réécrire pour faire plus complet. */
       nom:"easyHotel Aéroville",
+    /* LE NOM COURT SERT AU REPÈRE DU TABLEAU DE BORD, où il doit tenir à
+       côté d'une référence et d'un prix. On l'écrit plutôt que de le
+       découper du nom complet : « Hôtel du Parc » donnerait « Hôtel », qui
+       ne distingue rien le jour où il y a deux partenaires. */
+    court:"easyHotel",
+      /* ═══ LES COULEURS DU PARTENAIRE, RANGÉES AVEC LUI ═══
+         À sa demande : « fais les couleurs orange comme easyHotel ». Elles
+         vivent sur l'hôtel et pas dans le CSS, exactement comme sa grille :
+         le partenaire suivant sera peut-être bleu, et une couleur écrite en
+         dur dans la feuille de style obligerait à la déjouer au lieu de la
+         déclarer.
+         LES VALEURS SONT MESURÉES, PAS CHOISIES À L'ŒIL (WCAG) :
+         — « vif » #FF6600 est l'orange d'easyHotel. Du blanc dessus donne
+           2,94 : ILLISIBLE. On n'y pose donc que de l'encre (5,86) ou on
+           s'en sert sur du charbon (5,87).
+         — « bouton » #C2410C est le même orange assombri jusqu'à ce que le
+           blanc passe (5,18) : c'est lui qui porte les actions.
+         — « pale » #FFF1E8 avec « paleEncre » #7C2D12 donne 8,48.
+         ET SURTOUT : l'orange est à 24° de teinte du ROUGE de l'attente
+         (#C9302F, 0°). Les deux se disputeraient l'attention posés côte à
+         côte. L'orange habille donc le CADRE et l'ACTION — l'en-tête, le
+         bouton principal, le bloc d'aide — et **jamais la liste**, qui
+         reste neutre pour que son seul rouge continue de crier. */
+      marque: { charbon:"#1B1B1B", vif:"#FF6600", bouton:"#C2410C",
+                pale:"#FFF1E8", paleEncre:"#7C2D12" },
+      /* LA PHOTO DE L'HÔTEL — vide tant qu'il ne l'a pas fournie, et
+         l'en-tête est dessiné pour tenir sans elle. On ne va PAS la
+         chercher sur Internet : une photo appartient à son photographe ou
+         à l'hôtel, et ce projet a déjà dû supprimer douze images prises
+         sur Google. Elle viendra d'easyHotel, qui a des photos de presse.
+         Poser ici un chemin relatif, par exemple "photos/easyhotel.jpg". */
+      photo:"",
       /* MAIS L'ADRESSE POSTALE COMPLÈTE PART CHEZ LE CHAUFFEUR. Plusieurs
          easyHotel entourent Roissy : un nom de marque seul envoie la
          voiture au mauvais, à 5 h du matin, avec un vol à prendre. Le nom
@@ -5385,6 +6250,13 @@ window.ELA_TEXTES = {
       ]
     }
   };
+
+  /* CHAQUE HÔTEL PORTE SA PROPRE CLÉ, posée ici plutôt que recopiée dans
+     l'objet : recopiée, elle finirait par ne plus correspondre au nom sous
+     lequel il est rangé, et c'est cette clé qui part sur la course et que
+     le serveur interroge pour rendre son historique à une réception. Deux
+     écritures d'une même clé, c'est un hôtel qui ne voit plus rien. */
+  Object.keys(HOTELS).forEach(function(k){ HOTELS[k].cle = k; });
 
   /* LA NUIT DU FLYER : 21 h – 6 h, ET RIEN D'AUTRE. Pas de week-end.
      Voir le commentaire de « HOTELS » : c'est la différence qui coûte le
@@ -5681,6 +6553,10 @@ window.ELA_TEXTES = {
                       lui : c'est donc « Accueil » qui reste allumé — la
                       barre continue de dire d'où l'on vient. */
                    "ecran-contact":"accueil",
+                   /* Le comptoir de la réception est un prolongement de
+                      l'écran de réservation : c'est « Accueil » qui reste
+                      allumé, la barre continue de dire d'où l'on vient. */
+                   "ecran-reception":"accueil",
                    "ecran-legal":"accueil" }[id];
     document.querySelectorAll(".onglet").forEach(function(o){
       o.classList.toggle("actif", o.dataset.onglet === onglet);
@@ -6293,6 +7169,36 @@ window.ELA_TEXTES = {
        pas encore déployée, serveur muet : on rend « null », et l'appelant
        garde l'état qu'il a déjà. Rendre « attente » ferait REVENIR en
        arrière une course confirmée — le contraire de ce qu'on répare. */
+    /* ═══ LES COURSES D'UN HÔTEL PARTENAIRE, POUR SA RÉCEPTION ═══
+       Elle passe par une fonction pour la même raison qu'« etat » : le
+       serveur interdit la lecture aux visiteurs anonymes, et il DOIT
+       l'interdire. Le code n'est PAS vérifié ici — il part au serveur, qui
+       seul connaît le bon. Le vérifier dans la page reviendrait à l'y
+       écrire, c'est-à-dire à le donner à qui lit la source.
+       ON NE MET PAS DE « catch » QUI REND null : « pas de courses »,
+       « code refusé » et « serveur muet » appellent trois gestes
+       différents, et une panne qui ressemble à un état normal ne se répare
+       jamais. C'est la leçon de « lister() n'a plus de catch ». */
+    coursesHotel: function(cle, code, extra){
+      if(!SUPABASE_URL || !SUPABASE_CLE) return Promise.reject(new Error("hors-ligne"));
+      var ctrl = new AbortController();
+      var minuteur = setTimeout(function(){ ctrl.abort(); }, 10000);
+      var corps = { hotel: cle, code: code };
+      if(extra) Object.keys(extra).forEach(function(k){ corps[k] = extra[k]; });
+      return fetch(SUPABASE_URL + "/functions/v1/courses-hotel", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { apikey: SUPABASE_CLE, Authorization: "Bearer " + SUPABASE_CLE,
+                   "Content-Type": "application/json" },
+        body: JSON.stringify(corps)
+      }).then(function(r){
+        clearTimeout(minuteur);
+        if(r.status === 401) throw new Error("code");
+        if(!r.ok) throw new Error("serveur");
+        return r.json();
+      });
+    },
+
     etat: function(ref, tel){
       if(!this.actif() || !ref || !tel) return Promise.resolve(null);
       var ctrl = new AbortController();
@@ -6459,6 +7365,12 @@ window.ELA_TEXTES = {
     var chambre = champChambre.value.trim();
     document.getElementById("ligneChambre").hidden = !chambre || blocChambre.hidden;
     document.getElementById("recapChambre").textContent = chambre;
+    /* Même règle que la chambre : on lit à travers le BLOC, pas seulement
+       le champ. Un champ masqué garde ce qu'on y avait tapé. */
+    var blocNote = document.getElementById("blocNote");
+    var noteRec = document.getElementById("noteCourse").value.replace(/\s+/g, " ").trim();
+    document.getElementById("ligneNoteRecap").hidden = !noteRec || blocNote.hidden;
+    document.getElementById("recapNote").textContent = noteRec;
     var vol = champVol.value.trim().toUpperCase();
     document.getElementById("ligneVol").hidden = !vol || blocVol.hidden;
     document.getElementById("recapVol").textContent = vol;
@@ -6629,6 +7541,14 @@ window.ELA_TEXTES = {
          glissée après le prix le remplacerait, et Barbaros recréerait la
          course à 10 € au lieu de 90. */
       bon.course.pancarte ? "Option : pancarte à votre nom (+" + eurosFR(OPTION_PANCARTE_EUR) + ")" : null,
+      /* La précision est posée AVANT le prix, pour la troisième fois la
+         même raison : le lecteur de demandes retient le DERNIER montant en
+         euros comme prix de la course. Une réception qui écrit « prévoir
+         50 € de péage » après la ligne Prix ferait recréer la course à
+         50 €. Elle est aussi APRÈS les deux adresses, qui sont les deux
+         premières valeurs « … : … » du message — une précision contenant
+         un deux-points ne peut donc pas se faire prendre pour une adresse. */
+      bon.course.note ? "Précision : " + bon.course.note : null,
       "Prix : " + eurosFR(bon.prix.total),
       bon.client.nom + " — " + bon.client.telephone
     ].filter(Boolean).join("\n");
@@ -6653,6 +7573,9 @@ window.ELA_TEXTES = {
        tiret plutôt que d'en inventer un. */
     document.getElementById("bonPaiement").textContent =
       bon.paiement ? T(bon.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "—";
+    var note = (bon.course && bon.course.note) || "";
+    document.getElementById("lignePrecision").hidden = !note;
+    document.getElementById("bonPrecision").textContent = note;
     document.getElementById("bonPrix").textContent     = euros(bon.prix.total);
 
     /* LES DEUX VISAGES DU BON. Un seul est vrai à la fois : afficher
@@ -6810,6 +7733,15 @@ window.ELA_TEXTES = {
     erreurPaiement.hidden = true;
     var chambre = (blocChambre.hidden ? "" : champChambre.value.trim());
     var vol = (blocVol.hidden ? "" : champVol.value.trim().toUpperCase());
+    /* LA PRÉCISION EST LUE À TRAVERS LE BLOC, comme la chambre et le vol :
+       un champ masqué peut encore porter ce qu'on y avait tapé avant de
+       changer d'adresse, et cette valeur-là ne doit pas partir.
+       LES RETOURS À LA LIGNE SONT ÉCRASÉS. Le message WhatsApp se lit par
+       la PLACE de ses lignes : une précision sur trois lignes décalerait
+       tout ce qui suit, et « Coller une demande » recréerait la course avec
+       une adresse ou un prix faux. */
+    var note = (document.getElementById("blocNote").hidden ? ""
+                : document.getElementById("noteCourse").value.replace(/\s+/g, " ").trim().slice(0, 200));
     /* LA FORME DU BON EST CELLE QUE LIT LE TABLEAU DE BORD DE L'EXPLOITANT.
        Ce n'est pas un détail d'organisation : il affiche « prix.total »,
        « course.depart », « client.nom ». Un bon rangé autrement s'y
@@ -6843,6 +7775,20 @@ window.ELA_TEXTES = {
         /* Le numéro seul ne dit pas de quoi il s'agit : « 6201 » est un TGV,
            « AF1234 » un vol, et rien ne les distingue à la relecture. */
         train: !!(vol && volEstTrain),
+        /* Ce que la réception sait et que le formulaire ne demande pas.
+           Vide sur toute course venue du site public : le champ ne s'y
+           affiche pas. */
+        note: note,
+        /* ═══ LA CHAMBRE, RANGÉE À PART ═══
+           Elle n'existait QUE fondue dans le libellé de départ
+           (« … (ch. 214) »). La fonction qui rend ses courses à la
+           réception lisait « course.chambre » — un champ que personne
+           n'écrivait : elle renvoyait donc toujours une chambre vide, et le
+           comptoir ne voyait jamais le numéro qu'il venait de saisir. Le
+           banc ne pouvait pas l'attraper, il FABRIQUE les réponses du
+           serveur. Le libellé composé ne bouge pas : c'est lui qui part au
+           chauffeur. */
+        chambre: chambre,
         /* Sans ce champ, le bon porterait 10 € que personne ne sait
            expliquer trois jours plus tard — ni le client, ni le chauffeur
            qui encaisse. */
@@ -6869,6 +7815,23 @@ window.ELA_TEXTES = {
          dort. Absent pour un client venu directement — et un champ vide se
          lit « venue directe », pas « information perdue ». */
       provenance: provenanceVisite(),
+      /* LA CLÉ DE L'HÔTEL PARTENAIRE, à côté de son libellé — et c'est
+         elle, pas le libellé, que le serveur interroge pour rendre à une
+         réception SES courses. Un libellé est du texte destiné à un écran :
+         il peut être corrigé un jour (« easyHotel Aéroville » devient
+         « easyHotel Paris CDG ») et tout l'historique deviendrait alors
+         invisible à son propre hôtel, sans que rien ne le signale.
+         Vide pour un client venu directement ou par l'affiche d'un hôtel
+         sans grille négociée : le champ ne se lit pas « information
+         perdue », il se lit « pas un partenaire ». */
+      provenanceCle: hotel ? hotel.cle : "",
+      /* ═══ LE COMPTOIR OU LE CLIENT ═══
+         Les deux passent par la même page et portent la même provenance.
+         Ce n'est pourtant pas la même course : celle du comptoir a été
+         convenue de vive voix avec quelqu'un qu'on peut rappeler tout de
+         suite, celle du client vient d'un téléphone qu'on ne connaît pas.
+         « recHotel » n'est posé que sur l'adresse « ?reception= ». */
+      parReception: !!recHotel,
       /* Deux formes du même choix : la clé pour le code, le libellé français
          pour tout ce qui est lu par un humain. Une course déjà enregistrée
          sans ce champ reste lisible — l'affichage retombe sur un tiret. */
@@ -7646,13 +8609,34 @@ window.ELA_TEXTES = {
     /* « 000000 », « 111111 » : jamais un téléphone, toujours un client
        pressé ou un essai. C'est exactement le cas rencontré. */
     if(/^(\d)\1+$/.test(chiffres)) return false;
-    if(!international && chiffres.indexOf("0") === 0){
+    /* ═══ SANS INDICATIF, ON N'ACCEPTE QUE LE FORMAT FRANÇAIS ═══
+       Septembre 2026, signalé par Barbaros : « malgré que j'ai entré un
+       mauvais numéro, j'ai quand même réussi à envoyer ».
+       C'ÉTAIT UN VRAI TROU. La dernière ligne acceptait n'importe quelle
+       suite de 8 à 15 chiffres dès qu'elle ne commençait pas par zéro :
+       « 87654321 » passait, et la course partait vers un client
+       injoignable. Un chauffeur qui ne peut pas joindre son client à 5 h
+       du matin, c'est la course perdue et le client sur le trottoir.
+       L'EXEMPLE DE CE COMMENTAIRE A DÛ ÊTRE CHANGÉ : le premier écrit était
+       « 1234 5678 » sans espaces, c'est-à-dire EXACTEMENT le code de
+       l'espace exploitant. Le contrôle qui vérifie qu'il n'apparaît nulle
+       part dans la page est tombé dessus — un exemple pris au hasard peut
+       tomber sur un secret, et un commentaire est servi comme le reste.
+       ON NE FORCE PAS L'INDICATIF AUX FRANÇAIS pour autant. Un client qui
+       tape « 06 12 34 56 78 » est le cas le plus courant du site, et lui
+       refuser son propre numéro serait une réservation perdue à coup sûr —
+       « telWa » sait déjà le compléter en +33. Ce qui change : un numéro
+       SANS indicatif et qui ne commence pas par zéro est refusé. */
+    if(!international){
       /* Numéro français : dix chiffres, et le second dit la nature de la
          ligne — 01 à 05 fixe, 06 et 07 mobile, 09 box. 08 est un numéro
          spécial, souvent surtaxé : personne n'y est joignable. */
       return chiffres.length === 10 && /^0[1-79]/.test(chiffres);
     }
-    /* Ailleurs : entre 8 et 15 chiffres, la borne de la norme E.164. */
+    /* Avec indicatif : entre 8 et 15 chiffres, la borne de la norme E.164.
+       AUCUN INDICATIF NE COMMENCE PAR ZÉRO — « +0… » n'existe nulle part,
+       c'est toujours un zéro de trop recopié d'un numéro national. */
+    if(chiffres.indexOf("0") === 0) return false;
     return chiffres.length >= 8 && chiffres.length <= 15;
   }
 
@@ -7742,12 +8726,53 @@ window.ELA_TEXTES = {
          tronqué sur une adresse longue. */
       el.innerHTML =
         '<span class="d-haut"><span class="d-ref"></span><span class="d-prix"></span></span>'
-      + '<span class="d-trajet"></span>'
+      + '<span class="d-trajet"></span><span class="d-vers"></span>'
       + '<span class="d-bas"><span class="d-gris"></span><span class="d-boutons"></span></span>';
       el.querySelector(".d-ref").textContent = c.ref
         + (st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "");
+      /* ═══ D'OÙ VIENT CETTE DEMANDE, VU D'UN COUP D'ŒIL ═══
+         À sa demande : « l'adresse easyHotel, tu peux mettre un code
+         couleur visuel orange, une façon pour moi de savoir que c'est
+         easyHotel la réception ».
+         UN FILET, PAS UN FOND PLEIN, et c'est une mesure : l'orange du
+         partenaire est à 24° de teinte du rouge de l'attente. En aplat sur
+         la ligne, les deux se disputeraient l'attention et le rouge
+         cesserait d'être le seul signal qui crie — c'est-à-dire le seul
+         qui dit « quelqu'un attend une réponse ».
+         LA COULEUR VIENT DE LA FICHE DE L'HÔTEL, jamais du CSS : le
+         partenaire suivant sera peut-être bleu, exactement comme sa grille
+         de forfaits est la sienne.
+         ON DISTINGUE LE COMPTOIR DU CLIENT : une course prise à la
+         réception a déjà été convenue de vive voix, et il y a quelqu'un à
+         rappeler tout de suite. Le client du flyer, lui, est un inconnu. */
+      var part = c.provenanceCle && HOTELS[c.provenanceCle];
+      if(part){
+        el.classList.add("partenaire");
+        el.style.setProperty("--prov", (part.marque && part.marque.vif) || "var(--accent-vif)");
+        el.style.setProperty("--prov-pale", (part.marque && part.marque.pale) || "var(--accent-clair)");
+        el.style.setProperty("--prov-encre", (part.marque && part.marque.paleEncre) || "var(--accent-encre)");
+        var pas = document.createElement("span");
+        pas.className = "d-prov";
+        pas.textContent = (part.court || part.nom) + (c.parReception ? " · comptoir" : "");
+        var lbas = el.querySelector(".d-bas");
+        lbas.insertBefore(pas, lbas.firstChild);
+      }
       el.querySelector(".d-prix").textContent = euros(c.prix.total);
-      el.querySelector(".d-trajet").textContent = c.course.depart + " → " + c.course.arrivee;
+      /* ═══ L'ARRIVÉE SUR SA PROPRE LIGNE ═══
+         À sa demande : « il faut que je puisse voir l'adresse d'arrivée
+         juste en dessous de celle de départ ».
+         Les deux tenaient sur UNE ligne, « départ → arrivée », qui tronque.
+         Sur une course d'hôtel le départ est toujours le même et toujours
+         long (« easyHotel Aéroville, 10 rue de la Belle Borne (ch. 214) ») :
+         c'était donc l'arrivée, la seule moitié qu'il ne connaît pas
+         d'avance, qui disparaissait systématiquement.
+         DEUX LIGNES FIXES, PAS DEUX LIGNES QUI POUSSENT : chacune tronque
+         au lieu de passer à la ligne. La carte grandit d'une hauteur
+         CONSTANTE, elle ne dépend pas de la longueur d'une adresse — c'est
+         la différence qui permet de parcourir la liste du regard, et c'est
+         la règle posée le jour où le tableau de bord a maigri. */
+      el.querySelector(".d-trajet").textContent = c.course.depart;
+      el.querySelector(".d-vers").textContent = "→ " + c.course.arrivee;
       /* L'ÉTAT RESTE ÉCRIT, même quand la couleur le dit déjà : la couleur
          ne porte jamais le sens toute seule. */
       el.querySelector(".d-gris").textContent =
@@ -8128,6 +9153,24 @@ window.ELA_TEXTES = {
     var pax = lignes.filter(function(l){ return /passager/i.test(l); })[0];
     if(pax){ var j = pax.indexOf(" : "); d.passagers = j < 0 ? pax : pax.slice(j+3).trim(); }
 
+    /* ═══ LA PRÉCISION DE LA RÉCEPTION ═══
+       Ici on lit un LIBELLÉ, contrairement à tout le reste de ce lecteur —
+       et c'est permis pour une raison précise : celui-là, c'est NOUS qui
+       l'écrivons, dans « messageDemande », toujours en français quelle que
+       soit la langue du client. Les adresses, elles, sont lues par leur
+       PLACE parce qu'un client espagnol écrit « Salida ».
+       Sans ces trois lignes, une demande collée perdrait en silence la
+       seule information que le formulaire ne redemande jamais — un fauteuil
+       roulant, un siège bébé — et Barbaros enverrait la mauvaise voiture. */
+    var prec = lignes.filter(function(l){ return /^Pr[ée]cision\s*:/i.test(l); })[0];
+    if(prec) d.note = prec.replace(/^Pr[ée]cision\s*:\s*/i, "").trim().slice(0, 200);
+
+    /* La chambre est fondue dans le libellé du départ, « … (ch. 214) » :
+       c'est cette forme-là que la page compose, et on ne la cherche qu'en
+       FIN de libellé — il existe des « rue de la Chambre ». */
+    var ch = (d.depart || "").match(/\(ch\.\s*([^)]{1,12})\)\s*$/);
+    if(ch) d.chambre = ch[1].trim();
+
     /* Sans référence, sans adresses OU sans date, ce n'est pas une demande :
        mieux vaut le dire que de créer une course à moitié vide que Barbaros
        découvrirait au moment de l'assurer. */
@@ -8147,6 +9190,7 @@ window.ELA_TEXTES = {
       course: { type:"Trajet simple", depart:d.depart, arrivee:d.arrivee,
                 departPublic:d.depart, arriveePublic:d.arrivee,
                 date:d.date, heure:d.heure, terminal:null, vol:"",
+                note:d.note || "", chambre:d.chambre || "",
                 vehicule:d.vehicule, vehiculeCle:d.vehiculeCle,
                 passagers:d.passagers || "1 passager", distanceKm:0, estimee:true },
       client: { nom:d.nom, telephone:d.tel },
@@ -8247,6 +9291,8 @@ window.ELA_TEXTES = {
        et un client qui l'a réglée et ne la voit pas a raison de se
        plaindre. */
     document.getElementById("bbLignePancarte").hidden = !c.course.pancarte;
+    document.getElementById("bbLigneNote").hidden     = !c.course.note;
+    document.getElementById("bbNote").textContent     = c.course.note || "";
     document.getElementById("bbLigneProv").hidden     = !c.provenance;
     document.getElementById("bbProv").textContent     = c.provenance || "";
     /* L'espace exploitant est en français quoi qu'il arrive : on affiche le
@@ -10257,7 +11303,31 @@ window.ELA_TEXTES = {
    le chauffeur irait au mauvais endroit.
    ===================================================================== */
   function lireHotel(){
-    var nom = new URLSearchParams(location.search).get("h");
+    var params = new URLSearchParams(location.search);
+    /* ═══ L'ADRESSE DE LA RÉCEPTION, DISTINCTE DE CELLE DU FLYER ═══
+       À sa demande. « ?h= » est le QR du flyer, scanné par les CLIENTS :
+       il réserve, un point c'est tout. « ?reception= » ne se communique
+       qu'au comptoir. Les deux ouvrent le même écran de réservation ; seule
+       la seconde fait apparaître le bouton vers l'historique de l'hôtel —
+       et il faut encore le code, vérifié par le serveur.
+       ELLE EST LUE EN PREMIER : un lien qui porterait les deux paramètres
+       doit donner le plus de droits à celui qui le tient, pas le moins. */
+    var recCle = (params.get("reception") || "").trim();
+    if(recCle){
+      var partRec = hotelDuParametre(recCle);
+      if(partRec){
+        try{ sessionStorage.setItem("ela_provenance", partRec.nom); }catch(e){}
+        recHotel = partRec;
+        document.body.classList.add("reception");
+        document.getElementById("btnReception").hidden = false;
+        ouvrirModeHotel(partRec);
+        return true;
+      }
+      /* Une clé inconnue ne dit pas qu'elle est inconnue : elle retombe
+         simplement sur le site ordinaire. Répondre « cet hôtel n'existe
+         pas » dirait à qui essaie des noms lesquels sont partenaires. */
+    }
+    var nom = params.get("h");
     if(!nom) return false;
     nom = nom.trim().slice(0, 60);
     if(!nom) return false;

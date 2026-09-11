@@ -181,8 +181,15 @@ parce que c'est le navigateur qui calcule.
 
 ## Étape 5 — Brancher le déclencheur
 
-Dans le tableau de bord Supabase : **Database → Webhooks → Create a new
-hook**.
+**D'ABORD, INSTALLER L'INTÉGRATION — sinon rien de ce qui suit n'existe.**
+« Database Webhooks » n'est plus livré d'office : tant qu'il n'est pas
+installé, il n'apparaît **ni** dans le menu Database, **ni** dans la
+recherche du tableau de bord. On le cherche vingt minutes sans le trouver.
+
+**☰ → Integrations → All → chercher « Database Webhooks » → bouton vert
+*Install integration*.**
+
+Ensuite seulement : onglet **Webhooks** → **Create a new hook**.
 
 | Champ | Valeur |
 |---|---|
@@ -192,6 +199,12 @@ hook**.
 | Type | *Supabase Edge Functions* |
 | Edge Function | `nouvelle-demande` |
 | Method | `POST` |
+| Timeout | `5000` (la valeur par défaut) |
+
+**« Type » se choisit AVANT l'URL.** Le formulaire s'ouvre sur *HTTP
+Request* et réclame alors une adresse à taper à la main ; en choisissant
+*Supabase Edge Functions* puis la fonction dans la liste, l'URL **et**
+l'en-tête d'autorisation se remplissent tout seuls.
 
 **« Insert » uniquement, et c'est important.** Avec *Update* coché, chaque
 changement de statut — chauffeur attribué, course terminée — enverrait
