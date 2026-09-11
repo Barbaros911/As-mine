@@ -1233,6 +1233,92 @@ endroit**, à côté de l'autre. Une page autonome voudrait dire un second
 logo, un second jeu de couleurs et une seconde grille à tenir, plus une
 ligne de plus dans `construire.sh` sous peine de 404.
 
+### LE MODE HÔTEL EST CONSTRUIT — `?hotel=easyhotel-aeroville`
+
+Septembre 2026. Pas de fichier à part : **l'adresse ouvre le site ordinaire
+dans un mode comptoir**, et tout ce que le cahier des charges avait oublié
+vient avec — la date, le téléphone, le dépôt sur le serveur, la provenance,
+le préavis de 15 minutes, le mode de règlement, le message WhatsApp.
+
+- **LE FORFAIT ENTRE PAR `prix()`, ET NULLE PART AILLEURS.** C'est LA
+  décision. Un forfait calculé dans son coin aurait été la deuxième grille
+  de prix du projet — la faute évitée deux fois déjà — et **deux calculs qui
+  divergent ne se voient pas** : le prix s'affiche, il est simplement faux,
+  et on le découvre le jour où un client compare, sur un montant ferme donc
+  opposable. `forfaitHotel()` rend le montant ou `null` ; `null` fait
+  retomber sur le kilométrage, là où un zéro aurait passé pour une course
+  gratuite.
+- **LE TABLEAU PORTE DÉJÀ LE JOUR ET LA NUIT.** On ne remajore pas, on
+  n'arrondit pas, on n'applique pas le plancher : ce sont des montants
+  négociés, pas un calcul à corriger. Les toucher ferait payer autre chose
+  que ce qui a été convenu avec l'hôtel.
+- **LA NUIT DE L'HÔTEL N'EST PAS CELLE DU SITE, et c'est un écart trouvé
+  en relisant son cahier des charges, pas une préférence.** Le site majore
+  de 21 h à 6 h **et tout le week-end** ; la grille remise à la réception ne
+  porte que deux colonnes définies par l'HEURE — « Jour 06 h–21 h », « Nuit
+  21 h–06 h ». Avec la règle du site, un **samedi à midi** se serait facturé
+  40 € au lieu de 35 sur un CDG : autre chose que le papier qu'ils ont sous
+  les yeux, sur un prix ferme donc **opposable**, et l'écart se lit dans
+  leur sens. `nuitHotel()` lit donc l'heure, et **elle seule** — la règle du
+  site n'a pas bougé d'un pouce pour les autres clients, c'est la même
+  `prix()` qui sert aux deux. Le contrôle qui le garde est le plus discret
+  de la suite : cinq euros d'écart entre les deux colonnes, rien qui se
+  voie à l'œil.
+- **LA GRILLE EST PAR HÔTEL, jamais globale** : deux partenaires ne se
+  négocient pas au même prix. Et celle-ci est **volontairement sous le tarif
+  public sur les longues courses en van** — prix d'appel, il l'a tranché
+  (« Oui c'est voulu »). **NE JAMAIS L'ALIGNER SUR LE KILOMÉTRAGE** en
+  croyant corriger un défaut.
+- **`noindex` EST POSÉ À L'OUVERTURE DU MODE**, pas dans le `<head>` : la
+  même page sert les clients ordinaires, et une balise fixe les aurait
+  déréférencés tous. Ce n'est pas un secret, c'est une porte qu'on ne met
+  pas dans Google — une adresse devinée et n'importe qui réserve un van
+  pour Orly au tarif partenaire.
+- **LE DÉPART PORTE LES DEUX : le libellé de l'hôtel ET son adresse
+  postale.** Plusieurs easyHotel entourent Roissy ; un nom de marque seul
+  envoie le chauffeur au mauvais, à 5 h du matin, avec un vol à prendre.
+- **`priseArrivee.poser()`, JAMAIS `champ.value = …`.** La destination du
+  menu entre par la même porte que la liste d'adresses, donc par le même
+  `quand()` : la zone des 90 km, le champ de vol et le jugement du bouton
+  s'appliquent sans une ligne de plus. Écrire dans le champ ne déclenche
+  aucun `input` — la garde qui invalide les coordonnées ne s'armerait
+  jamais. `brancher()` rendait déjà cette prise pour la géolocalisation ;
+  celle de l'arrivée était simplement jetée.
+- **LE BANDEAU S'EFFACE AU COMPTOIR** (`body.hotel .hero{display:none}`,
+  et la marge négative de `.reserver` avec lui). Il convainc quelqu'un qui
+  découvre Elatransfer ; une réception a déjà décidé, sa seule contrainte
+  est le temps. Mesuré : le formulaire entier, bouton compris, tient alors
+  dans le premier écran d'un téléphone.
+- **LA CHAMBRE ARRIVE TOUTE SEULE** : le départ est un hôtel, donc
+  `jugerChambre()` ouvre le champ et l'exige. C'est exactement ce qu'il
+  faut — la réception la connaît, le chauffeur en a besoin.
+- **LE MODE NE S'OUVRE PAS CÔTÉ EXPLOITANT.** Il vit dans la branche
+  client de `lireConfirmation()`. Sans ça, `?exploitant=1&hotel=…` sur le
+  téléphone de Barbaros aurait fait sortir sa saisie de course au tarif du
+  partenaire, pour n'importe quel client. Un contrôle le verrouille.
+- **L'ADRESSE GARDE SON `?hotel=`**, contrairement au `?ok=` qu'on efface :
+  la réception recharge, met en favori, laisse l'onglet ouvert la nuit. Un
+  paramètre effacé la ferait retomber sur le tarif public au premier
+  rafraîchissement, sans un mot.
+- **`test-nouveau-hotel.mjs` (36 contrôles) LIT LA TABLE DANS LA PAGE**
+  plutôt que de recopier les montants : recopiés, ils déplaceraient la
+  faute dans le test et il faudrait les tenir à deux endroits le jour où
+  l'hôtel renégocie. Pour que le contrôle ait des dents, il éprouve **deux
+  destinations et le jour ET la nuit** — un code qui rendrait toujours la
+  même valeur tomberait. Éprouvé contre les deux défauts qu'il surveille :
+  le crochet retiré de `prix()` (8 échecs) et le forfait qui fuit sur le
+  site public (2 échecs).
+- **CE QU'IL RESTE À LUI DEMANDER** : le **téléphone de la réception**
+  (`telephone: ""` dans la table — le champ reste saisi à la main tant
+  qu'il est vide), et les **vraies coordonnées** des destinations si le
+  tracé de la carte paraît de travers. Ni l'un ni l'autre n'empêche de
+  réserver, et aucun ne touche au prix.
+- **SON CAHIER DES CHARGES DISAIT « berline 1–3 / van 4–7 ».** La berline
+  fait **4 places** sur le site, et c'est le site qui a raison : un groupe
+  de quatre paierait un van au comptoir et une berline en ligne. Le mode
+  garde donc la règle du site — le nombre de passagers n'écarte que les
+  véhicules trop petits.
+
 ## Ce qui reste à faire
 
 **Fait au 6 septembre 2026, ne pas le refaire** : optimisation mobile,
@@ -3269,7 +3355,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt et une suites Playwright, 790 contrôles**, à relancer après **toute**
+**Vingt-deux suites Playwright, 826 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
@@ -3304,7 +3390,8 @@ for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
          test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
          test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
          test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
-         test-nouveau-carte.mjs test-nouveau-bascule.mjs; do
+         test-nouveau-carte.mjs test-nouveau-hotel.mjs \
+         test-nouveau-bascule.mjs; do
   printf "%-34s " "$f"
   out=$(node $f 2>&1)
   res=$(echo "$out" | grep -E "^=== " | tr '\n' ' ')

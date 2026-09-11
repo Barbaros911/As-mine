@@ -599,6 +599,25 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   border:1px solid #C9302F;background:rgba(201,48,47,.05);
   font-size:12.5px;line-height:1.4;color:#9E1F1E;font-weight:600;}
 
+/* LA LIGNE DU MODE HÔTEL — discrète, mais elle doit se lire du premier
+   coup d'œil : c'est la seule chose qui distingue la page de comptoir du
+   site public, et une réception qui doute du tarif appelle. Fond d'accent
+   plutôt que carte blanche : la carte de réservation en est déjà une, une
+   seconde s'y serait fondue. */
+.hotel-tag{margin:0 0 13px;padding:8px 12px;border-radius:11px;
+  background:var(--accent-clair);color:var(--accent-encre);
+  font-size:12.5px;line-height:1.35;font-weight:700;}
+.hotel-tag span{font-weight:800;}
+/* LE BANDEAU S'EFFACE AU COMPTOIR. Il est là pour convaincre quelqu'un qui
+   découvre Elatransfer ; une réception, elle, a déjà décidé — et sa seule
+   contrainte est le temps, entre deux clients. Mesuré : le bandeau coûte
+   plus de 600 px avant le premier champ, donc un défilement qu'elle refera
+   dix fois par jour.
+   LA MARGE NÉGATIVE DOIT PARTIR AVEC LUI : « .reserver » remonte de 46 px
+   par-dessus la photo, et sans photo elle passerait sous l'en-tête. */
+body.hotel .hero{display:none;}
+body.hotel .reserver{margin-top:16px;}
+
 /* ---------- LA PANCARTE D'ACCUEIL ---------- */
 /* Une vraie pancarte : marine, le nom en grand, le filet doré de la marque.
    C'est l'objet que le client cherchera des yeux en sortant des bagages, et
@@ -3791,6 +3810,8 @@ window.ELA_TEXTES = {
     appeler:"Appeler",
     lieu_depart:"Lieu de départ", lieu_arrivee:"Lieu d'arrivée",
     ph_adresse:"Adresse, aéroport, hôtel…",
+    hotel_choisir:"Choisissez la destination",
+    hotel_tarifs:"Tarifs partenaire",
     geo_bouton:"Me localiser",
     geo_recherche:"Localisation en cours…",
     geo_verifiez:"Vérifiez l'adresse : le GPS se trompe souvent de numéro.",
@@ -3946,6 +3967,8 @@ window.ELA_TEXTES = {
     appeler:"Call",
     lieu_depart:"Pick-up location", lieu_arrivee:"Drop-off location",
     ph_adresse:"Address, airport, hotel…",
+    hotel_choisir:"Choose the destination",
+    hotel_tarifs:"Partner rates",
     geo_bouton:"Use my location",
     geo_recherche:"Locating…",
     geo_verifiez:"Check the address: GPS often gets the street number wrong.",
@@ -4614,7 +4637,7 @@ window.ELA_TEXTES = {
   var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
     choix.depart = item; jugerChambre(); jugerVol(); jugerZone();
   });
-  brancher(champArrivee, document.getElementById("arriveeList"), function(item){
+  var priseArrivee = brancher(champArrivee, document.getElementById("arriveeList"), function(item){
     choix.arrivee = item; jugerVol(); jugerZone();
   });
 
@@ -4783,6 +4806,105 @@ window.ELA_TEXTES = {
     { cle:"van",     nom:"Van",     parKm:4.08, mini:50, places:7 }
   ];
 
+  /* ═══════════════════════════════════════════════════════════════════
+     LE MODE HÔTEL — UN PARTENAIRE, UN DÉPART FIGÉ, DES FORFAITS
+     -------------------------------------------------------------------
+     Septembre 2026, à sa demande : une réception doit pouvoir réserver un
+     transfert en moins de trente secondes, sans chercher une adresse ni
+     comprendre une grille kilométrique.
+
+     CE N'EST PAS UNE PAGE À PART, ET C'EST LA DÉCISION QUI COMPTE. Son
+     cahier des charges demandait un fichier autonome ; ç'aurait été un
+     second logo, un second jeu de couleurs, une seconde grille de prix et
+     une ligne de plus dans « construire.sh » sous peine de 404. Surtout :
+     une DEUXIÈME grille de prix, la faute que ce projet évite depuis le
+     début — deux calculs qui divergent ne se voient pas, on le découvre le
+     jour où un client compare, et le prix est ferme donc opposable.
+     Ici, le forfait entre par le MÊME « prix() » que le kilométrage : un
+     seul endroit produit un montant, quel que soit le chemin.
+
+     TOUT LE RESTE EST CELUI DU SITE : le dépôt sur le serveur, le préavis
+     de 15 minutes, le mode de règlement, le message WhatsApp, la
+     provenance, la carte. Un mode qui refait ces choses à sa façon les
+     referait mal.
+
+     LES COORDONNÉES SONT APPROXIMATIVES ET NE TOUCHENT PAS AU PRIX : le
+     forfait sort du tableau. Elles servent au tracé de la carte et à la
+     durée annoncée. À remplacer par les vraies si l'écart se voit.
+     ═══════════════════════════════════════════════════════════════════ */
+  var HOTELS = {
+    "easyhotel-aeroville": {
+      /* LE LIBELLÉ EST CELUI QUE LA RÉCEPTION EMPLOIE, à sa demande. Ne pas
+         le réécrire : c'est le nom sous lequel l'hôtel se reconnaît. */
+      nom: "easyHotel Aéroville",
+      /* MAIS L'ADRESSE COMPLÈTE EST CE QUI PART AU CHAUFFEUR. Plusieurs
+         easyHotel entourent Roissy : un nom de marque seul l'envoie au
+         mauvais, à 5 h du matin, avec un vol à prendre. */
+      adresse: "easyHotel Aéroville — 10 rue de la Belle Borne, 93410 Tremblay-en-France",
+      lat: 48.9760, lon: 2.5340,
+      /* LE TÉLÉPHONE DE LA RÉCEPTION REMPLACE CELUI DU CLIENT. Le cahier
+         des charges n'en prévoyait aucun : le chauffeur arrivé sur place
+         n'aurait eu personne à appeler. La réception, elle, répond la nuit
+         et sait dans quelle chambre est le client. */
+      telephone: "",
+      destinations: [
+        { cle:"cdg",       nom:"Aéroport Roissy-CDG",        lat:49.0097, lon:2.5479 },
+        { cle:"orly",      nom:"Aéroport d'Orly",            lat:48.7262, lon:2.3652 },
+        { cle:"beauvais",  nom:"Aéroport de Beauvais",       lat:49.4544, lon:2.1128 },
+        { cle:"bourget",   nom:"Aéroport du Bourget",        lat:48.9694, lon:2.4414 },
+        { cle:"villepinte",nom:"Parc des Expositions de Villepinte", lat:48.9736, lon:2.5153 },
+        { cle:"disney",    nom:"Disneyland Paris",           lat:48.8722, lon:2.7758 },
+        { cle:"paris",     nom:"Paris",                      lat:48.8566, lon:2.3522 }
+      ],
+      /* LA GRILLE EST PAR HÔTEL, PAS GLOBALE : deux partenaires ne se
+         négocient pas au même prix. Et elle est VOLONTAIREMENT sous le
+         tarif du site sur les longues courses en van — c'est un prix
+         d'appel, il l'a tranché. NE JAMAIS « corriger » ces montants pour
+         les aligner sur le kilométrage. */
+      forfaits: {
+        berline: { jour:{cdg:35, orly:100, bourget:45, beauvais:180, villepinte:35, disney:90,  paris:80},
+                   nuit:{cdg:40, orly:105, bourget:50, beauvais:185, villepinte:40, disney:95,  paris:85} },
+        van:     { jour:{cdg:50, orly:125, bourget:65, beauvais:240, villepinte:50, disney:120, paris:110},
+                   nuit:{cdg:55, orly:130, bourget:70, beauvais:245, villepinte:55, disney:125, paris:115} }
+      }
+    }
+  };
+
+  var hotelCourant = null;      /* le partenaire, si l'adresse en nomme un */
+  var destinationHotel = null;  /* la destination choisie dans son menu */
+
+  /* Le forfait, ou rien. Rendre « null » quand on ne sait pas est
+     volontaire : l'appelant retombe alors sur le kilométrage, au lieu de
+     sortir un zéro qui passerait pour une course gratuite. */
+  function forfaitHotel(gamme, majoration){
+    if(!hotelCourant || !destinationHotel) return null;
+    var t = hotelCourant.forfaits[gamme.cle];
+    if(!t) return null;
+    var v = t[nuitHotel(majoration) ? "nuit" : "jour"][destinationHotel.cle];
+    return (typeof v === "number") ? v : null;
+  }
+  /* ═══ LA NUIT DE L'HÔTEL N'EST PAS CELLE DU SITE, ET C'EST VOULU ═══
+     Le site majore de 21 h à 6 h ET TOUT LE WEEK-END. La grille remise à
+     l'hôtel, elle, ne porte que deux colonnes définies par l'HEURE :
+     « Jour 06 h–21 h » et « Nuit 21 h–06 h ». Appliquer la règle du site
+     ferait payer la colonne « nuit » un samedi à midi — 40 € au lieu de 35
+     sur un CDG — c'est-à-dire autre chose que le papier que la réception a
+     sous les yeux. Le prix est ferme donc opposable : l'écart se lit dans
+     leur sens, pas dans le nôtre.
+     ON NE TOUCHE PAS À LA RÈGLE DU SITE POUR AUTANT : elle vaut pour tous
+     les autres clients, et c'est la même fonction « prix() » qui sert aux
+     deux. Seule la LECTURE de la colonne change, ici et nulle part
+     ailleurs.
+     Sans heure lisible — ce qui n'arrive pas, on n'atteint pas l'écran des
+     prix sans elle — on retombe sur le jugement du site. */
+  function nuitHotel(majoration){
+    var h = (champHeure && champHeure.value) || "";
+    var m = /^(\d{1,2}):/.exec(h);
+    if(!m) return majoration;
+    var heure = Number(m[1]);
+    return heure >= 21 || heure < 6;
+  }
+
   /* Nuit et week-end : +20 %. Le seuil est le même que sur le site en
      service — samedi, dimanche, et de 21 h à 6 h. */
   function nuitOuWeekend(date, heure){
@@ -4814,6 +4936,20 @@ window.ELA_TEXTES = {
      plancher est le dernier mot : c'est un montant plancher, pas une base
      de calcul. */
   function prix(gamme, km, majoration){
+    /* ═══ LE FORFAIT D'UN HÔTEL PARTENAIRE PASSE ICI, ET NULLE PART
+       AILLEURS ═══
+       C'est LA décision de ce mode. Un forfait calculé dans son coin serait
+       la deuxième grille de prix du projet : deux calculs qui divergent ne
+       se voient pas — le prix s'affiche, il est simplement faux — et on le
+       découvre le jour où un client compare, sur un montant ferme donc
+       opposable. Un seul « prix() » produit un montant, quel que soit le
+       chemin qui y mène.
+       LE TABLEAU PORTE DÉJÀ LE JOUR ET LA NUIT : on ne remajore pas, on
+       n'arrondit pas, on n'applique pas le plancher. Ce sont des montants
+       négociés, pas un calcul à corriger — les toucher ici ferait payer
+       autre chose que ce qui a été convenu avec l'hôtel. */
+    var f = forfaitHotel(gamme, majoration);
+    if(f !== null) return f;
     var p = gamme.parKm * km;
     if(majoration) p *= 1.2;
     return Math.max(arrondiDizaine(p), gamme.mini);
@@ -9645,7 +9781,12 @@ window.ELA_TEXTES = {
     /* Le lien de confirmation ne s'ouvre que du côté CLIENT : c'est à lui
        qu'on l'a envoyé. En mode exploitant, il ne doit pas venir recouvrir
        le tableau de bord. */
-    if(!lireConfirmation()) lireHotel();
+    /* LE MODE HÔTEL PASSE AVANT L'AFFICHE. « ?hotel= » est une page de
+       comptoir — départ figé, destinations fermées, forfaits — tandis que
+       « ?h= » ne fait que préremplir un champ depuis un QR. Les deux
+       ensemble n'auraient aucun sens : le second écraserait le départ que
+       le premier vient de verrouiller. */
+    if(!lireConfirmation() && !ouvrirModeHotel()) lireHotel();
   }
 
 /* =====================================================================
@@ -9657,6 +9798,141 @@ window.ELA_TEXTES = {
    connaissons pas, et une adresse inventée serait le pire des départs :
    le chauffeur irait au mauvais endroit.
    ===================================================================== */
+  /* ═══════════════════════════════════════════════════════════════════
+     OUVRIR LE MODE HÔTEL
+     -------------------------------------------------------------------
+     ON PILOTE LE FORMULAIRE EXISTANT, on n'en fabrique pas un second. Le
+     départ est posé et verrouillé, l'arrivée devient un menu fermé. Tout
+     ce qui suit — la date, le préavis de 15 minutes, le règlement, le
+     dépôt sur le serveur, le message — est le chemin ordinaire du site.
+
+     « priseDepart.poser() » ET PAS « champ.value = … ». Écrire dans le
+     champ ne déclenche aucun « input » : l'adresse retenue resterait nulle,
+     la garde qui invalide les coordonnées ne s'armerait jamais, et la
+     course partirait avec le nom d'un endroit et les coordonnées d'un
+     autre. C'est écrit dans le mémo, ça a déjà coûté un défaut.
+     ═══════════════════════════════════════════════════════════════════ */
+  function ouvrirModeHotel(){
+    var cle = new URLSearchParams(location.search).get("hotel");
+    if(!cle) return false;
+    var h = HOTELS[String(cle).toLowerCase().trim()];
+    if(!h) return false;          /* une clé inconnue rend le site ordinaire */
+    hotelCourant = h;
+
+    /* La provenance, comme pour l'affiche QR : sans elle, le partenariat
+       amène des clients et personne ne sait ce qu'il rapporte. */
+    try{ sessionStorage.setItem("ela_provenance", h.nom); }catch(e){}
+
+    /* PAS D'INDEXATION. La grille de cet hôtel est négociée et, sur les
+       longues courses en van, VOLONTAIREMENT sous le tarif public : une
+       adresse trouvée dans Google et n'importe qui réserve au prix du
+       partenaire. Ce n'est pas un secret — c'est une porte qu'on ne met pas
+       dans un moteur de recherche. La balise canonique de la page renvoie
+       déjà sur la racine, celle-ci le dit en toutes lettres. */
+    var rob = document.querySelector('meta[name="robots"]');
+    if(rob) rob.setAttribute("content", "noindex, nofollow");
+
+    /* LE DÉPART EST L'ADRESSE COMPLÈTE, pas le nom de la marque. */
+    priseDepart.poser({ label:h.adresse, lat:h.lat, lon:h.lon });
+    champDepart.readOnly = true;
+    champDepart.setAttribute("aria-readonly","true");
+    var geo = document.getElementById("btnGeoloc");
+    if(geo) geo.hidden = true;   /* on sait où l'on est : c'est l'hôtel */
+
+    /* LE NUMÉRO DE LA RÉCEPTION, QUAND ON LE CONNAÎT. Le champ reste
+       modifiable : si le client est là et donne le sien, il vaut mieux.
+       Tant qu'il est vide dans la table, la réception saisit un numéro
+       comme n'importe qui — ce qui compte est que le chauffeur arrivé sur
+       place ait quelqu'un à appeler. */
+    var tel = document.getElementById("clientTel");
+    if(tel && h.telephone && !tel.value) tel.value = h.telephone;
+
+    /* CE QUI DIT À LA RÉCEPTION QU'ELLE EST AU BON ENDROIT. Sans cette
+       ligne, rien à l'écran ne distingue la page partenaire du site public,
+       et la seule façon de s'en assurer serait de comparer un prix — sur
+       une grille qu'elle n'a pas sous les yeux. */
+    var carte = document.querySelector(".reserver");
+    if(carte){
+      var tag = document.createElement("p");
+      tag.className = "hotel-tag";
+      tag.id = "hotelTag";
+      /* DEUX SPANS, PAS UNE PHRASE ASSEMBLÉE. Le premier porte « data-t » et
+         se retraduit tout seul au changement de langue ; une chaîne
+         concaténée à la main resterait en français pour toujours, et il
+         faudrait se souvenir de la réécrire ailleurs. */
+      var mot = document.createElement("span");
+      mot.setAttribute("data-t", "hotel_tarifs");
+      mot.textContent = T("hotel_tarifs");
+      tag.appendChild(mot);
+      tag.appendChild(document.createTextNode(" · " + h.nom));
+      carte.insertBefore(tag, carte.firstChild);
+    }
+
+    /* L'ARRIVÉE DEVIENT UN MENU. Le champ de recherche et sa liste sont
+       masqués plutôt que retirés : le reste du code les lit encore, et un
+       élément absent ferait tomber des gardes qui n'ont rien demandé. */
+    var bloc = champArrivee.closest(".champ-bloc");
+    if(!bloc) return false;
+    var etiquette = bloc.querySelector(".champ");
+    if(etiquette) etiquette.hidden = true;
+    var listeArr = document.getElementById("arriveeList");
+    if(listeArr) listeArr.hidden = true;
+
+    var enveloppe = document.createElement("label");
+    enveloppe.className = "champ";
+    enveloppe.setAttribute("for","hotelDest");
+    /* LE MÊME REPÈRE QUE LES DEUX AUTRES CHAMPS. Sans le pictogramme, la
+       ligne d'arrivée paraît d'une autre famille que celle de départ posée
+       juste au-dessus — une réception qui hésite une seconde est une
+       réservation qui prend dix secondes de plus. */
+    enveloppe.innerHTML = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+      + '<path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>'
+      + '<circle cx="12" cy="10.3" r="2.4" fill="#fff"/></svg>'
+      + '<span class="champ-corps">'
+      + '<span class="champ-titre" data-t="lieu_arrivee"></span>'
+      + '<select id="hotelDest"></select>'
+      + '</span>';
+    enveloppe.querySelector(".champ-titre").textContent = T("lieu_arrivee");
+    var sel = enveloppe.querySelector("select");
+    var vide = document.createElement("option");
+    vide.value = "";
+    vide.setAttribute("data-t", "hotel_choisir");
+    vide.textContent = T("hotel_choisir");
+    sel.appendChild(vide);
+    h.destinations.forEach(function(d){
+      var o = document.createElement("option");
+      o.value = d.cle;
+      o.textContent = d.nom;
+      sel.appendChild(o);
+    });
+    bloc.insertBefore(enveloppe, bloc.firstChild);
+
+    sel.addEventListener("change", function(){
+      var d = h.destinations.filter(function(x){ return x.cle === sel.value; })[0] || null;
+      destinationHotel = d;
+      if(!d){
+        /* Revenir sur « Choisissez… » reprend tout : l'arrivée, le champ de
+           vol et le jugement du bouton. Laisser la course précédente en
+           place ferait réserver vers une destination qui n'est plus
+           affichée nulle part. */
+        choix.arrivee = null; champArrivee.value = "";
+        jugerVol(); jugerZone();
+        return;
+      }
+      /* MÊME PORTE QUE LA LISTE D'ADRESSES : la destination entre par
+         « poser », donc par le même « quand() » — la zone, le champ de vol
+         et le reste sont jugés exactement comme pour un client ordinaire. */
+      priseArrivee.poser({ label:d.nom, lat:d.lat, lon:d.lon });
+    });
+
+    /* L'ADRESSE GARDE SON « ?hotel= », contrairement au « ?ok= » qu'on
+       efface : la réception recharge sa page, la met en favori, la laisse
+       ouverte la nuit. Un paramètre effacé ferait retomber le comptoir sur
+       le tarif public au premier rafraîchissement, sans un mot. */
+    document.body.classList.add("hotel");
+    return true;
+  }
+
   function lireHotel(){
     var nom = new URLSearchParams(location.search).get("h");
     if(!nom) return false;
