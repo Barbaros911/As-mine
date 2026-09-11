@@ -3555,6 +3555,30 @@ nommé plutôt que « va dans les réglages ».
 - **Pas de jargon, et pas d'anglais non expliqué.** « La loupe en haut »,
   pas « la recherche globale ».
 
+### « NE DEVINE PLUS JAMAIS »
+
+Septembre 2026, dans la foulée de la règle du dessus. Deux adresses du
+tableau de bord Supabase données de mémoire, deux pages d'erreur chez lui
+(`/integrations/hooks`, puis `/database/hooks`). Le réseau de cette machine
+bloque `supabase.com` : je ne pouvais pas vérifier, et j'ai proposé quand
+même.
+
+**Quand on ne peut pas vérifier, on ne propose pas une valeur — on donne un
+chemin qui ne dépend d'aucune valeur.** Ici : la recherche du tableau de
+bord Supabase, où il tape « webhook », et qui marche quelle que soit la
+version.
+
+C'est la même règle que « NE JAMAIS CHANGER UN RÉGLAGE PAR DÉFAUT QU'ON NE
+PEUT PAS ÉPROUVER » (le `html_handling` de Cloudflare), et que « on ne lit
+pas des chiffres sur une photo pour en tirer une alerte » (le numéro du
+flyer easyHotel). Trois fois la même faute : **affirmer sans pouvoir
+mesurer**.
+
+Ce qu'il faut faire à la place, dans l'ordre :
+1. **Vérifier** — un `grep` dans le dépôt, un appel réseau, un test.
+2. Si c'est impossible : **le dire**, et donner le chemin robuste.
+3. Ne **jamais** présenter une supposition comme une instruction.
+
 ### « Arrête de deviner, sois expert méthodique »
 
 Septembre 2026, après une soirée où une panne a coûté une heure. **Deux
