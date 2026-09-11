@@ -2815,6 +2815,19 @@ body.hotel .reserver{margin-top:0;}
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
          montre l'affiche. Le client scanne, le site s'ouvre avec l'hôtel déjà
          en adresse de départ, et il n'a plus qu'à dire où il va. -->
+    <!-- LA GRILLE DE PRIX, RÉGLABLE. Elle est AU-DESSUS de l'affiche et du
+         serveur : ceux-là se règlent une fois et ne se regardent plus, un
+         tarif se change. -->
+    <div class="bloc" id="blocTarifs">
+      <h2 class="bloc-titre">Tarifs</h2>
+      <p class="bloc-note">Ce sont les prix que voient vos clients. Un changement s'applique à leur prochain chargement de la page, sur tous les appareils.</p>
+      <div id="tarifsChamps"></div>
+      <p class="bloc-note" id="tarifsApercu"></p>
+      <p class="bloc-note bloc-alerte" id="tarifsAlerte" hidden></p>
+      <button class="bouton" type="button" id="btnTarifs"><span>Enregistrer les tarifs</span></button>
+      <p class="bloc-note" id="tarifsEtat"></p>
+    </div>
+
     <div class="bloc" id="blocHotel">
       <h2 class="bloc-titre">Affiche pour un hôtel</h2>
       <label class="champ" for="hotelNom">
@@ -5221,6 +5234,57 @@ window.ELA_TEXTES = {
     { cle:"van",     nom:"Van",     parKm:4.08, mini:50, places:7 }
   ];
 
+  /* ═══ LA GRILLE SE RÈGLE DEPUIS L'ESPACE EXPLOITANT ═══
+     Septembre 2026, à la demande de Barbaros : pouvoir changer le prix au
+     kilomètre et le montant minimum sans passer par le code.
+
+     LES VALEURS CI-DESSUS RESTENT, ET CE N'EST PAS UN DOUBLON : ce sont
+     celles servies quand le serveur ne répond pas — réseau coupé, Supabase
+     en panne, table pas encore créée. Le site doit pouvoir vendre une
+     course dans un parking d'aéroport. Ne jamais les retirer « puisque le
+     serveur les donne » : le jour où il ne les donne pas, il n'y aurait
+     plus de prix du tout.
+     CONSÉQUENCE À NE PAS MANQUER : après un changement de tarif, ces
+     nombres-là sont PÉRIMÉS. Un client dont la lecture échoue verrait
+     l'ancien prix — et chez Elatransfer le prix est ferme, donc opposable.
+     C'est pourquoi l'espace exploitant le dit à l'écran au moment
+     d'enregistrer, et pourquoi il faut les reporter ici à l'occasion.
+
+     ON NE LIT QU'UNE FOIS, AU CHARGEMENT, et la grille ne bouge plus
+     ensuite. Sinon un client pourrait voir 60 € sur l'écran des prix et
+     70 € au récapitulatif, parce que le tarif aurait changé entre les
+     deux écrans. Le prix qu'on lui montre doit être celui qu'il paie. */
+  var TARIFS_PLANCHER = GAMMES.map(function(g){
+    return { cle:g.cle, parKm:g.parKm, mini:g.mini };
+  });
+
+  /* LES BORNES NE SONT PAS DE LA COQUETTERIE. Une virgule mal placée —
+     23,5 au lieu de 2,35 — multiplie par dix le prix de toutes les courses
+     du site, et le prix est opposable. On refuse le lot ENTIER plutôt que
+     d'en appliquer la moitié : une grille à moitié changée est pire qu'une
+     grille inchangée, parce que personne ne la relit. */
+  function tarifsValides(liste){
+    if(!Array.isArray(liste) || !liste.length) return false;
+    return liste.every(function(x){
+      if(!x || typeof x.cle !== "string") return false;
+      if(!GAMMES.some(function(g){ return g.cle === x.cle; })) return false;
+      var km = Number(x.parKm), mini = Number(x.mini);
+      if(!isFinite(km) || km <= 0 || km > 50) return false;
+      if(!isFinite(mini) || mini < 0 || mini > 1000) return false;
+      return true;
+    });
+  }
+
+  function appliquerTarifs(liste){
+    if(!tarifsValides(liste)) return false;
+    liste.forEach(function(x){
+      GAMMES.forEach(function(g){
+        if(g.cle === x.cle){ g.parKm = Number(x.parKm); g.mini = Number(x.mini); }
+      });
+    });
+    return true;
+  }
+
   /* ═══ IL N'Y A PLUS DE MAJORATION DE NUIT NI DE WEEK-END ═══
      Septembre 2026, à la demande de Barbaros : « supprime la majoration
      nuit 20 % sur le site ». Le prix d'une course ne dépend plus QUE de la
@@ -6239,6 +6303,32 @@ window.ELA_TEXTES = {
 
   var nuage = {
     actif: function(){ return Boolean(SUPABASE_URL && SUPABASE_CLE); },
+
+    /* ═══ LA GRILLE DE PRIX, LUE PAR TOUT LE MONDE ═══
+       C'est la SEULE chose que ce site lit sans session. Les courses, elles,
+       restent fermées aux visiteurs anonymes et doivent le rester : une
+       policy de lecture sur « courses » exposerait les noms, téléphones et
+       adresses de tous les clients (RGPD). Un tarif public n'a rien d'un
+       secret — il est affiché sur la page d'à côté.
+
+       TROIS SECONDES, PAS HUIT. Ce n'est pas le dépôt d'une réservation :
+       si le serveur traîne, on sert la grille écrite dans la page et le
+       client ne voit rien. Attendre plus longtemps retarderait l'affichage
+       du premier prix pour rien. */
+    tarifs: function(){
+      if(!this.actif()) return Promise.resolve(null);
+      var ctrl = new AbortController();
+      var minuteur = setTimeout(function(){ ctrl.abort(); }, 3000);
+      return fetch(SUPABASE_URL + "/rest/v1/reglages?cle=eq.tarifs&select=valeur", {
+        headers: { apikey: SUPABASE_CLE }
+      })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        return (Array.isArray(d) && d[0] && d[0].valeur) ? d[0].valeur : null;
+      })
+      .catch(function(){ return null; })
+      .then(function(v){ clearTimeout(minuteur); return v; });
+    },
     /* Le bon part ENTIER dans une colonne JSON : le jour où il gagne un
        champ, la base n'a pas à changer. Seules « ref » et « statut »
        sortent à part, parce qu'elles servent de clé et de filtre.
@@ -7532,6 +7622,20 @@ window.ELA_TEXTES = {
      existante : il ne pourrait rien faire d'une course que Barbaros saisit
      lui-même, qui n'a jamais été déposée par un client. Ces courses-là ne
      vivraient que dans son téléphone, et changer d'appareil les perdrait. */
+  /* ═══ ENREGISTRER LA GRILLE ═══
+     Dépôt-ou-mise-à-jour, comme les courses : la ligne « tarifs » n'existe
+     pas tant que Barbaros n'a rien changé, et un PATCH ne créerait rien.
+     ON REVALIDE AVANT D'ENVOYER, même si l'écran a déjà contrôlé : l'écran
+     protège d'une faute de frappe, ceci protège d'un appel fait autrement. */
+  nuage.ecrireTarifs = function(liste){
+    if(!this.connecte() || !tarifsValides(liste)) return Promise.resolve(false);
+    return this.appel("/rest/v1/reglages", {
+      method:"POST",
+      headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
+      body: JSON.stringify({ cle:"tarifs", valeur: liste })
+    }).then(function(){ return true; }).catch(function(){ return false; });
+  };
+
   nuage.pousser = function(bon){
     if(!this.connecte() || !bon || !bon.ref) return Promise.resolve(false);
     return this.appel("/rest/v1/courses", {
@@ -10342,6 +10446,136 @@ window.ELA_TEXTES = {
   /* Changer le nombre de passagers redessine la liste tout de suite : sans
      ça on continuerait avec une berline pour six. */
   champPax.addEventListener("change", function(){
+    if(document.getElementById("ecran-vehicules").classList.contains("actif")) dessinerGammes();
+  });
+
+  /* ═══ RÉGLER LA GRILLE DEPUIS L'ESPACE EXPLOITANT ═══
+     LES CHAMPS SONT FABRIQUÉS DEPUIS « GAMMES », jamais écrits à la main.
+     C'est la leçon de l'étiquette de la page « Nouvelle course », qui
+     portait un tarif en dur et affichait un prix périmé après chaque
+     changement : une liste recopiée finit toujours par mentir. Le jour où
+     une troisième gamme arrive, ce panneau la porte sans une ligne de plus.
+
+     LE COURSE-TÉMOIN EST LE VRAI GARDE-FOU. Un tarif au kilomètre ne se
+     relit pas : « 2,35 » et « 23,5 » se ressemblent, et la seconde forme
+     multiplie par dix le prix de TOUTES les courses du site — un prix
+     ferme, donc opposable. On montre donc ce que paierait une course de
+     25 km, calculée par la MÊME fonction que le site public. Un montant à
+     quatre chiffres se voit ; une virgule déplacée, non. */
+  var KM_TEMOIN = 25;
+
+  function tarifsSaisis(){
+    return GAMMES.map(function(g){
+      var a = document.getElementById("tarifKm-" + g.cle);
+      var b = document.getElementById("tarifMini-" + g.cle);
+      return { cle:g.cle,
+               parKm: a ? Number(String(a.value).replace(",", ".")) : g.parKm,
+               mini:  b ? Number(String(b.value).replace(",", ".")) : g.mini };
+    });
+  }
+
+  function dessinerTarifs(){
+    var hote = document.getElementById("tarifsChamps");
+    if(!hote) return;
+    hote.innerHTML = "";
+    GAMMES.forEach(function(g){
+      var d = document.createElement("div");
+      d.className = "duo";
+      d.innerHTML =
+        '<label class="champ" for="tarifKm-' + g.cle + '"><span class="champ-corps">' +
+        '<span class="champ-titre">' + g.nom + ' — € / km</span>' +
+        '<input id="tarifKm-' + g.cle + '" type="number" step="0.01" min="0.1" max="50" inputmode="decimal">' +
+        '</span></label>' +
+        '<label class="champ" for="tarifMini-' + g.cle + '"><span class="champ-corps">' +
+        '<span class="champ-titre">' + g.nom + ' — minimum €</span>' +
+        '<input id="tarifMini-' + g.cle + '" type="number" step="1" min="0" max="1000" inputmode="numeric">' +
+        '</span></label>';
+      hote.appendChild(d);
+      d.querySelector("#tarifKm-" + g.cle).value = g.parKm;
+      d.querySelector("#tarifMini-" + g.cle).value = g.mini;
+    });
+    hote.addEventListener("input", jugerTarifs);
+    jugerTarifs();
+  }
+
+  function jugerTarifs(){
+    var saisis = tarifsSaisis();
+    var apercu = document.getElementById("tarifsApercu");
+    var alerte = document.getElementById("tarifsAlerte");
+    var bouton = document.getElementById("btnTarifs");
+    if(!apercu || !alerte || !bouton) return;
+
+    var bon = tarifsValides(saisis);
+    bouton.disabled = !bon;
+
+    if(!bon){
+      apercu.textContent = "Un tarif au kilomètre doit être compris entre 0,10 € et 50 €, un minimum entre 0 € et 1000 €.";
+      alerte.hidden = true;
+      return;
+    }
+
+    apercu.textContent = "Une course de " + KM_TEMOIN + " km coûterait : " +
+      saisis.map(function(x){
+        var g = GAMMES.filter(function(y){ return y.cle === x.cle; })[0];
+        return g.nom + " " + euros(prix({ parKm:x.parKm, mini:x.mini }, KM_TEMOIN));
+      }).join(" · ") + ".";
+
+    /* UN ÉCART DU SIMPLE AU DOUBLE EST PRESQUE TOUJOURS UNE FAUTE DE FRAPPE.
+       On n'interdit rien — c'est son commerce, il a le droit de doubler ses
+       prix — on le lui met sous les yeux avant qu'il n'appuie. */
+    var suspect = saisis.filter(function(x){
+      var g = GAMMES.filter(function(y){ return y.cle === x.cle; })[0];
+      return g && (x.parKm > g.parKm * 2 || x.parKm < g.parKm / 2);
+    });
+    if(suspect.length){
+      alerte.hidden = false;
+      alerte.textContent = "Attention : le tarif au kilomètre change du simple au double ou davantage. Vérifiez la virgule avant d\u2019enregistrer.";
+    } else {
+      alerte.hidden = true;
+    }
+  }
+
+  var btnTarifs = document.getElementById("btnTarifs");
+  if(btnTarifs) btnTarifs.addEventListener("click", function(){
+    var etat = document.getElementById("tarifsEtat");
+    var saisis = tarifsSaisis();
+    if(!tarifsValides(saisis)) return;
+
+    if(!nuage.connecte()){
+      /* SANS SESSION, RIEN NE PART — et on le DIT. Enregistrer dans ce seul
+         téléphone donnerait à Barbaros un prix que ses clients ne voient
+         pas : il annoncerait 70 € au téléphone pendant que le site en
+         affiche 60. Deux prix qui divergent ne se voient pas. */
+      etat.textContent = "Connectez-vous au serveur (bloc « Serveur », plus bas) : sans lui, un changement de tarif ne sortirait pas de cet appareil.";
+      return;
+    }
+
+    btnTarifs.disabled = true;
+    etat.textContent = "Enregistrement…";
+    nuage.ecrireTarifs(saisis).then(function(ok){
+      btnTarifs.disabled = false;
+      if(!ok){
+        etat.textContent = "Le serveur a refusé. Les prix n\u2019ont pas changé — vérifiez que la table « reglages » existe (voir TARIFS.md).";
+        return;
+      }
+      appliquerTarifs(saisis);
+      if(typeof ecrireGrille === "function") ecrireGrille();
+      etat.textContent = "Enregistré. Vos clients verront ces prix à leur prochain chargement de la page.";
+    });
+  });
+  dessinerTarifs();
+
+  /* ═══ ON VA CHERCHER LA GRILLE, TOUT DE SUITE ═══
+     Au chargement, pas au moment d'afficher un prix : le client met au
+     moins dix secondes à saisir deux adresses et une date, la réponse est
+     là depuis longtemps. Demandée plus tard, elle retarderait le premier
+     prix — et un écran de prix qui hésite fait fermer la page.
+     RIEN N'EST BLOQUÉ PAR CET APPEL. Il échoue en silence et la grille
+     écrite dans la page prend le relais : le tunnel de réservation n'a
+     aucune raison de dépendre d'un serveur pour annoncer un tarif. */
+  nuage.tarifs().then(function(v){
+    if(!appliquerTarifs(v)) return;
+    if(typeof ecrireGrille === "function") ecrireGrille();
     if(document.getElementById("ecran-vehicules").classList.contains("actif")) dessinerGammes();
   });
 })();

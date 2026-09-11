@@ -42,7 +42,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v68";
+const CACHE = "elatransfer-v69";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
@@ -142,6 +142,14 @@ self.addEventListener("fetch", (event) => {
   try { url = new URL(req.url); } catch (e) { return; }
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
   if (NO_CACHE_HOSTS.includes(url.hostname)) return; // laissé au réseau, sans interception
+
+  /* SUPABASE N'EST JAMAIS MIS EN CACHE, quel que soit le projet. Ce sont des
+     données qui changent : les courses que Barbaros relève toutes les 45 s,
+     et la GRILLE DE PRIX. Une réponse gardée resservirait un tarif périmé à
+     un client — et chez Elatransfer le prix est ferme, donc opposable. On
+     vise le domaine et non l'adresse exacte : un changement de projet ne doit
+     pas rouvrir le trou en silence. */
+  if (url.hostname.endsWith(".supabase.co")) return;
   if (siteVoisin(url)) return; // un autre site du dépôt : ne lui appartient pas
 
   /* Vrai si l'adresse est l'application elle-même — la racine ou
