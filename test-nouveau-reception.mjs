@@ -289,6 +289,190 @@ check('une clé inconnue retombe sur le site ordinaire, sans rien révéler',
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
 
+/* =====================================================================
+   9. TOUT SUR UNE SEULE PAGE, ET LA CHAMBRE SUFFIT
+   ---------------------------------------------------------------------
+   À sa demande : « il faut que la réception puisse tout faire une page —
+   destination, nom ou numéro de chambre, numéro client, le mode de
+   paiement etc. » Une réception réserve debout, entre deux arrivées, avec
+   quelqu'un qui attend devant elle.
+
+   LE CONTRÔLE QUI COMPTE LE PLUS N'EST PAS ICI MAIS JUSTE APRÈS : que le
+   site public et le flyer n'aient PAS bougé. Les blocs sont DÉPLACÉS, pas
+   recopiés — un second jeu de champs voudrait dire deux validations, et
+   c'est celle qu'on oublie qui laisse partir une course sans téléphone.
+   Le revers, c'est qu'un déplacement mal gardé emporterait le tunnel du
+   client avec lui.
+   ===================================================================== */
+await ctx.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
+  body:JSON.stringify({code:'Ok',routes:[{distance:24300,duration:2700}]})}));
+await p.addInitScript(() => { window.__wa = []; window.open = u => { window.__wa.push(u); return null; }; });
+await p.goto('http://127.0.0.1:8099/index.html?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(1100);
+
+const dansFormulaire = async id => await p.evaluate(i => {
+  const e = document.getElementById(i);
+  return !!e && !!e.closest('#ecran-accueil');
+}, id);
+check('les gammes, les coordonnées et le règlement sont sur la page de saisie',
+  (await dansFormulaire('listeVehicules')) && (await dansFormulaire('blocCoordonnees'))
+  && (await dansFormulaire('blocPaiement')));
+check('et le titre ne dit plus « VOS coordonnées » : c\'est un autre qu\'on saisit',
+  (await p.locator('#blocCoordonnees .bloc-titre').textContent()).trim() === 'Le client');
+check('la règle « la chambre suffit » est écrite là où elle s\'applique',
+  (await p.locator('[data-t="aide_identite"]').count()) === 1);
+
+/* LE PRIX SE CALCULE TOUT SEUL — sans ça il faudrait deux boutons sur la
+   même page, « Calculer » puis « Réserver », et on aurait reconstruit le
+   tunnel à la verticale. */
+check('avant de choisir une destination, le bouton est éteint',
+  await p.locator('#btnVoirPrix').isDisabled());
+await p.selectOption('#hotelDest','orly');
+await p.waitForTimeout(1700);
+check('choisir la destination suffit : les deux gammes arrivent seules',
+  (await p.locator('#listeVehicules .veh-carte').count()) === 2);
+/* ON NE RÉSERVE PAS À ZÉRO EURO. Tant qu'aucune gamme n'est retenue il n'y
+   a pas de prix, et un bon qui annonce 0,00 € est un bon faux. */
+check('mais le bouton reste éteint tant qu\'aucune gamme n\'est choisie',
+  await p.locator('#btnVoirPrix').isDisabled());
+await p.locator('#listeVehicules .veh-carte').first().click();
+await p.waitForTimeout(400);
+check('la gamme choisie allume le bouton ET y écrit le prix',
+  !(await p.locator('#btnVoirPrix').isDisabled())
+  && /100,00/.test(await p.locator('#btnVoirPrix').textContent()),
+  (await p.locator('#btnVoirPrix').textContent()).trim());
+/* La sélection doit dire la page où l'on est : elle portait le vert
+   d'Elatransfer au milieu d'une page orange. */
+check('et elle porte la couleur du partenaire, pas celle d\'Elatransfer',
+  (await p.locator('#listeVehicules .veh-carte.choisi').first()
+     .evaluate(el => getComputedStyle(el).borderColor)).replace(/\s/g,'') === 'rgb(194,65,12)');
+
+await p.locator('[data-paiement="especes"]').click();
+await p.waitForTimeout(200);
+/* ═══ CHAMBRE OU NOM, ET SANS CHAMBRE IL FAUT LES DEUX ═══ */
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(500);
+check('sans chambre et sans nom, la course est refusée',
+  !(await p.locator('#ecran-bon').isVisible()));
+check('et le refus dit la règle, pas « le nom est nécessaire » qui serait faux ici',
+  /chambre/i.test(await p.locator('#erreurCoordonnees').textContent()));
+/* UN NUMÉRO DONNÉ EST QUAND MÊME VÉRIFIÉ : un numéro faux est pire qu'un
+   numéro absent — il fait croire qu'on peut joindre quelqu'un.
+   ON ÉPROUVE LE CAS RÉEL : chambre remplie, donc le numéro devient
+   facultatif, ET un numéro faux tapé quand même. Le premier jet mettait le
+   numéro AVANT la chambre : le refus d'identité partait d'abord et le
+   contrôle n'atteignait jamais son sujet. */
+await p.fill('#chambre','214');
+await p.fill('#clientTel','12345678');
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(400);
+check('un numéro faux est refusé même quand le numéro est facultatif',
+  !(await p.locator('#ecran-bon').isVisible()) && await p.locator('#erreurTel').isVisible());
+await p.fill('#clientTel','');
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
+check('LA CHAMBRE SEULE SUFFIT — le chauffeur monte la chercher à l\'hôtel',
+  await p.locator('#ecran-bon').isVisible());
+check('le bon porte la chambre',
+  /214/.test(await p.locator('#bonDepart').textContent()),
+  await p.locator('#bonDepart').textContent());
+
+/* =====================================================================
+   10. LA RÉCEPTION VALIDE SUR LE SITE — WHATSAPP NE S'OUVRE PLUS
+   ---------------------------------------------------------------------
+   À sa demande : « pour la confirmation laisse les valider sur le site, je
+   reçois la notification, whatsapp télégramme facultatif », puis, sur la
+   question posée : « il ne s'ouvre plus, un bouton reste ».
+
+   CE QUI REND CE RETRAIT POSSIBLE, C'EST TELEGRAM. Tant que l'alerte
+   n'existait pas, le message WhatsApp était le SEUL avertissement de
+   Barbaros, et le retirer voulait dire une demande de 5 h du matin que
+   personne ne voit avant le lendemain. L'alerte tourne depuis le
+   11 septembre 2026, éprouvée sur une vraie réservation : elle part du
+   SERVEUR à l'écriture de la ligne, donc sans rien demander au navigateur
+   du comptoir.
+
+   LE CONTRÔLE QUI COMPTE : que le bouton reste. Sans lui, une réception
+   dont le dépôt échoue n'a plus AUCUN chemin pour nous joindre — c'est le
+   repli, et il est sacré.
+   ===================================================================== */
+check('AU COMPTOIR, WHATSAPP NE PREND PLUS L\'ÉCRAN',
+  (await p.evaluate(() => window.__wa.length)) === 0,
+  (await p.evaluate(() => window.__wa)).join(' '));
+
+/* ═══ LA COURSE ENTRE EN ATTENTE, COMME CELLE D'UN CLIENT ═══
+   Ses mots : « en attente, comme aujourd'hui ». Une course saisie au
+   comptoir a beau être convenue de vive voix avec le client, elle n'a été
+   convenue avec AUCUN chauffeur : l'afficher confirmée promettrait une
+   voiture que personne n'a encore acceptée, et la réception le répéterait
+   au client devant elle. */
+const posee = await p.evaluate(() =>
+  (JSON.parse(localStorage.getItem('ela_courses') || '[]'))[0] || {});
+check('et la course entre EN ATTENTE, jamais confirmée d\'office',
+  posee.statut === 'attente', String(posee.statut));
+check('en se disant venue du comptoir, pas du téléphone d\'un client',
+  posee.parReception === true && posee.provenanceCle === 'easyhotel-aeroville',
+  posee.parReception + ' / ' + posee.provenanceCle);
+
+/* ═══ LE BOUTON RESTE, ET IL ENVOIE VRAIMENT ═══
+   Vérifier qu'il est là ne prouverait rien : un bouton mort au bout d'un
+   écran est pire qu'un bouton absent. On appuie, et on lit le lien qui
+   part. Même leçon que la feuille WhatsApp du client. */
+const btnR = p.locator('#btnRenvoyer');
+check('un bouton WhatsApp reste sur le bon — c\'est le repli si le dépôt échoue',
+  await btnR.isVisible());
+check('et il ne parle plus d\'un WhatsApp « qui ne s\'est pas ouvert » : il ne s\'ouvre plus',
+  !/ouvert/i.test(await p.locator('#noteRenvoi').textContent()),
+  (await p.locator('#noteRenvoi').textContent()).trim());
+await btnR.click();
+await p.waitForTimeout(300);
+const waComptoir = await p.evaluate(() => window.__wa);
+check('appuyé, il envoie bien la demande avec sa référence',
+  waComptoir.length === 1 && waComptoir[0].includes('wa.me')
+  && decodeURIComponent(waComptoir[0]).includes(posee.ref),
+  waComptoir.join(' '));
+
+/* ═══ « ÊTRE PRÉVENU » NE S'ADRESSE PAS À UNE TABLETTE PARTAGÉE ═══
+   Le bloc promet la confirmation sur LE WhatsApp du client et propose une
+   notification sur CET appareil. Au comptoir les deux sont faux : le
+   numéro affiché est celui de quelqu'un qui n'a pas la tablette en main, et
+   l'abonnement push resterait posé sur l'appareil de l'hôtel, à sonner
+   pour la course d'un autre client à chaque fois.
+   ON LE FAIT VRAIMENT APPARAÎTRE POUR L'ÉPROUVER : sans dépôt réussi il
+   est caché de toute façon, et le contrôle serait passé au vert sans rien
+   vérifier. */
+await ctx.route('**/rest/v1/courses*', r =>
+  r.fulfill({status:201, contentType:'application/json', body:'[]'}));
+await p.goto('http://127.0.0.1:8099/index.html?reception=easyhotel-aeroville',
+             {waitUntil:'domcontentloaded'});
+await p.waitForTimeout(1100);
+await p.selectOption('#hotelDest','orly');
+await p.waitForTimeout(1700);
+await p.locator('#listeVehicules .veh-carte').first().click();
+await p.locator('[data-paiement="especes"]').click();
+await p.fill('#chambre','307');
+await p.locator('#btnVoirPrix').click();
+await p.waitForTimeout(1200);
+check('le dépôt aboutit et le bon le dit',
+  await p.locator('#etatEnvoi.ok').isVisible(),
+  await p.locator('#etatEnvoi').textContent());
+check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
+  await p.locator('#blocNotif').isHidden());
+await ctx.unroute('**/rest/v1/courses*');
+
+/* ═══ ET LE TUNNEL DU CLIENT N'A PAS BOUGÉ D'UN POUCE ═══
+   Les deux adresses qui ne sont PAS le comptoir : le site public, et le QR
+   du flyer que scannent les clients sur leur propre téléphone. Eux
+   découvrent le prix avant de donner leur nom. */
+for (const [url, quoi] of [['', 'le site public'], ['?h=easyhotel-aeroville', 'le flyer du client']]) {
+  await p.goto('http://127.0.0.1:8099/index.html'+url,{waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(800);
+  check('sur ' + quoi + ', rien n\'a été déplacé',
+    !(await dansFormulaire('listeVehicules')) && !(await dansFormulaire('blocCoordonnees'))
+    && !(await dansFormulaire('blocPaiement')));
+  check('sur ' + quoi + ', le bouton dit toujours « Voir mon prix »',
+    (await p.locator('#btnVoirPrix').textContent()).trim() === 'Voir mon prix');
+  check('sur ' + quoi + ', le nom reste exigé : personne ne retrouvera le client sans lui',
+    (await p.locator('#blocCoordonnees .bloc-titre').textContent()).trim() === 'Vos coordonnées');
+}
+
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}

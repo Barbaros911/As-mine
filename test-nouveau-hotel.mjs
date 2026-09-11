@@ -439,6 +439,59 @@ check('et la chambre est retrouvée dans le libellé de départ',
   relu.chambre === '214', String(relu.chambre));
 
 /* =====================================================================
+   « DESTINATION : PARIS » PUIS « LIEU D'ARRIVÉE » — DEUX FOIS LA MÊME
+   QUESTION
+   ---------------------------------------------------------------------
+   Signalé par Barbaros sur une capture du site en ligne. Le champ était
+   pourtant utile — « Paris » fait dix kilomètres de large et le forfait
+   tombe au-delà de 7 km du centre — c'est son LIBELLÉ qui mentait : il
+   annonçait une destination alors qu'il demande une PRÉCISION sur celle
+   du dessus.
+
+   LE CONTRÔLE VÉRIFIE LES QUATRE CAS, et le quatrième compte autant que
+   les autres : sur « autre destination » il n'y a rien au-dessus, le
+   champ EST la destination, et le libellé d'origine y est juste. Un test
+   qui n'aurait vérifié que « Paris » aurait laissé passer un code qui
+   renomme le champ partout.
+   ===================================================================== */
+await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(900);
+const titreArr = async () => (await p.locator('#blocArrivee .champ-titre').textContent()).trim();
+
+await p.selectOption('#hotelDest','cdg'); await p.waitForTimeout(350);
+check('sur un forfait fermé, aucun champ d\'adresse n\'est demandé',
+  await p.locator('#blocArrivee').isHidden());
+
+await p.selectOption('#hotelDest','paris'); await p.waitForTimeout(350);
+check('sur « Paris », le champ demande une PRÉCISION, pas une destination',
+  (await titreArr()) === 'Adresse précise', await titreArr());
+check('et il est bien là — « Paris » fait dix kilomètres de large',
+  !(await p.locator('#blocArrivee').isHidden()));
+
+await p.selectOption('#hotelDest',''); await p.waitForTimeout(350);
+check('sur « autre destination », le libellé d\'origine reste : le champ EST la destination',
+  (await titreArr()) === 'Lieu d\'arrivée', await titreArr());
+
+/* LE SENS INVERSE : le champ libre devient le DÉPART. */
+await p.selectOption('#hotelDest','paris'); await p.waitForTimeout(250);
+await p.locator('.hotel-sens-btn[data-sens="vers"]').click(); await p.waitForTimeout(450);
+check('vers l\'hôtel, la précision suit le champ de départ',
+  (await p.locator('#blocDepart .champ-titre').textContent()).trim() === 'Adresse précise');
+await p.selectOption('#hotelDest',''); await p.waitForTimeout(350);
+check('et « autre destination » y redevient « Lieu de départ »',
+  (await p.locator('#blocDepart .champ-titre').textContent()).trim() === 'Lieu de départ');
+
+/* ON RÉÉCRIT L'ATTRIBUT « data-t », PAS SEULEMENT LE TEXTE. Sans ça, un
+   changement de langue ramène « Lieu d'arrivée » sur une course vers
+   Paris — le texte est réécrit par « appliquerLangue » depuis la clé. */
+await p.locator('.hotel-sens-btn[data-sens="depuis"]').click(); await p.waitForTimeout(300);
+await p.selectOption('#hotelDest','paris'); await p.waitForTimeout(300);
+await p.locator('[data-langue="en"]').click(); await p.waitForTimeout(450);
+check('le libellé survit au changement de langue',
+  (await titreArr()) === 'Exact address', await titreArr());
+await p.locator('[data-langue="fr"]').click(); await p.waitForTimeout(450);
+
+/* =====================================================================
    LE REPÈRE DU PARTENAIRE SUR LE TABLEAU DE BORD
    ---------------------------------------------------------------------
    À sa demande : « l'adresse easyHotel, tu peux mettre un code couleur
