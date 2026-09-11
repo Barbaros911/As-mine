@@ -202,6 +202,14 @@ Deno.serve(async (req: Request) => {
   }
   const lignes = await r.json();
 
+  /* On ne prend le numéro que dans la forme EXACTE que la page compose,
+     « (ch. 214) », et en FIN de libellé. Une recherche plus large
+     ramasserait un nom de rue — il existe des « rue de la Chambre ». */
+  function chambreDuLibelle(label: any): string {
+    const m = String(label || "").match(/\(ch\.\s*([^)]{1,12})\)\s*$/);
+    return m ? m[1].trim() : "";
+  }
+
   const courses = (Array.isArray(lignes) ? lignes : []).map((l: any) => {
     const bon = l.bon || {};
     const co = bon.course || {};
@@ -225,7 +233,17 @@ Deno.serve(async (req: Request) => {
          yeux quand la voiture est en bas. Voir l'en-tête. */
       client: String(cl.nom || ""),
       tel: String(cl.telephone || ""),
-      chambre: String(co.chambre || ""),
+      /* LE REPLI SUR LE LIBELLÉ N'EST PAS UNE CEINTURE, IL EST NÉCESSAIRE.
+         « course.chambre » n'a été écrit qu'à partir de septembre 2026 ;
+         avant, la chambre n'existait QUE fondue dans le libellé de départ,
+         sous la forme « … (ch. 214) ». Sans ce repli, toutes les courses
+         déjà prises perdraient leur numéro pour la réception — et c'est
+         justement celle d'hier soir qu'on rouvre ce matin. */
+      chambre: String(co.chambre || chambreDuLibelle(co.depart)),
+      /* Ce que la réception a écrit elle-même. Elle doit pouvoir le relire :
+         c'est le seul champ de la course qu'aucun formulaire ne rappelle,
+         et c'est sur lui qu'elle vérifie avant de répondre au client. */
+      note: String(co.note || ""),
       /* LE MODE DE RÈGLEMENT, à sa demande. La réception l'annonce au
          client au moment de réserver ; s'il n'est pas relisible ensuite,
          elle ne peut plus répondre à « je paie comment, déjà ? » — et le
