@@ -1255,11 +1255,22 @@ les hôtels**.
    l'avertissement sur le bon au moment de l'attribution. Voir la section
    dédiée. Reste à y verser les vraies fiches, ce que seul Barbaros peut
    faire — il lui faut les copies des papiers de ses chauffeurs.
-3. **L'ALERTE À CHAQUE DEMANDE EST ÉCRITE, PAS ENCORE DÉPLOYÉE**
-   (septembre 2026). `supabase/functions/nouvelle-demande/` et
-   `NOTIFICATION.md`. Il ne manque que ce que Claude ne peut pas faire :
-   se connecter à SON compte Supabase et poser les jetons. Tant que ce
-   n'est pas fait, **ne pas dire que les notifications marchent**.
+3. ~~L'alerte à chaque demande~~ — **ELLE TOURNE** (11 septembre 2026,
+   3 h 18 du matin, éprouvée par une vraie réservation). Barbaros a créé le
+   bot Telegram, posé `TELEGRAM_TOKEN` et `TELEGRAM_CHAT` dans les secrets
+   Supabase, et branché le webhook. Il reçoit désormais une notification
+   sonore à chaque demande, quelle qu'en soit l'origine.
+   - **LE WEBHOOK N'EXISTAIT PAS DANS SON TABLEAU DE BORD**, et c'est ce
+     qui a coûté vingt minutes : « Database Webhooks » est devenu une
+     **intégration à installer** (Integrations → All → Database Webhooks →
+     *Install integration*). Tant qu'elle ne l'est pas, elle n'apparaît ni
+     dans le menu Database, ni dans la recherche. `NOTIFICATION.md` le dit
+     maintenant en étape 5.
+   - **Deux adresses données de mémoire ont rendu deux pages d'erreur** —
+     voir « NE DEVINE PLUS JAMAIS ». Le réseau de cette machine bloque
+     `supabase.com` : on ne pouvait pas vérifier.
+   - **Le message ne porte ni nom, ni téléphone, ni chambre** — vérifié sur
+     le vrai message reçu.
    - **L'automatisation WhatsApp reste bloquée** : l'API WhatsApp Business
      de Meta exige une vérification d'entreprise et **un numéro dédié, qui
      ne peut plus servir dans l'application normale**. Rien n'a changé, ne
