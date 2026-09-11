@@ -2794,9 +2794,31 @@ filtrée sur l'hôtel.
   pas dans la feuille de style.
 - **LES VALEURS SONT MESURÉES (WCAG), PAS CHOISIES À L'ŒIL.** Du blanc sur
   l'orange du logo `#FF6600` donne **2,94 : illisible**. Les boutons portent
-  donc `#C2410C` (blanc à 5,18) ; l'orange vif reste sur le filet et le
-  titre de l'en-tête, posés sur du charbon (5,87). Le bloc d'aide est en
-  `#FFF1E8` / `#7C2D12` (8,48).
+  donc `#C2410C` (blanc à 5,18) ; l'orange vif tient les **bandeaux**, où le
+  texte est en charbon (5,87). Le bloc d'aide est en `#FFF1E8` / `#7C2D12`
+  (8,48).
+- **TOUS LES BOUTONS SONT ORANGE, SAUF CEUX QUI VIVENT DANS UN BANDEAU**
+  (septembre 2026, à sa demande : « fait en orange les parties noires
+  dédiées à easyHotel »). Ils étaient charbon, au motif qu'un bouton orange
+  sous un bandeau orange efface la hiérarchie — il n'en a pas voulu, et la
+  règle qui reste est une **mesure**, pas un goût : `#C2410C` sur le fond
+  clair donne 5,18 avec du blanc, mais **posé SUR l'orange vif il tombe à
+  1,76** et disparaît. D'où le partage — le sens du trajet et l'accès aux
+  réservations, qui sont DANS le bandeau, restent charbon.
+- **LA RÈGLE VISE `.bouton`, PAS QUATRE IDENTIFIANTS.** C'était une liste
+  d'identifiants, donc la liste des boutons qui existaient le jour où elle a
+  été écrite : « Confirmer » n'y était déjà pas, et le suivant n'y serait pas
+  non plus. Même famille que la barre du bas figée sur quatre onglets.
+- **LA TÊTE DE L'ÉCRAN RÉCEPTION PORTE LE BANDEAU DU PARTENAIRE.** Elle était
+  grise comme n'importe quel écran du site : une réception qui ouvre cette
+  page vingt fois par jour doit reconnaître la sienne du premier regard.
+- **PIÈGE RENCONTRÉ : `class="carte"` N'EXISTE DANS AUCUNE RÈGLE DE CE
+  SITE.** L'écran du code la portait — héritée de l'ancien site — donc ni
+  fond, ni marge : le texte et le bouton « Ouvrir » touchaient les deux
+  bords. Une classe morte ne se voit pas en relisant le HTML, et elle
+  ramassera un jour une règle écrite pour autre chose (le piège `.arrivee`,
+  déjà rencontré ici). La gouttière du site est de **20 px**, mesurée sur
+  `.ecran-titre`.
 - **L'ORANGE NE DESCEND PAS DANS LA LISTE.** Il est à **24° de teinte** du
   rouge de l'attente (`#C9302F`) : côte à côte, les deux se disputeraient
   l'attention et plus rien ne crierait. Il tient le cadre, l'action et
