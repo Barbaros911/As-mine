@@ -4347,6 +4347,7 @@ window.ELA_TEXTES = {
     geo_echec:"Impossible de vous localiser. Saisissez l'adresse.",
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
+    hotel_adresse_precise:"Adresse précise",
     note_titre:"Précision pour le chauffeur",
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
     note_court:"Précision",
@@ -4513,6 +4514,7 @@ window.ELA_TEXTES = {
     geo_echec:"Could not locate you. Please type the address.",
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
+    hotel_adresse_precise:"Exact address",
     note_titre:"Note for the chauffeur",
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
     note_court:"Note",
@@ -5351,6 +5353,24 @@ window.ELA_TEXTES = {
     var dest = hotelDest;
     var besoinAdresse = !dest || !!dest.adresseLibre;
     c.blocLibre.hidden = !besoinAdresse;
+    /* ═══ « DESTINATION : PARIS » PUIS « LIEU D'ARRIVÉE » : DEUX FOIS LA
+       MÊME QUESTION ═══
+       Septembre 2026, vu par Barbaros sur sa capture. Le champ est pourtant
+       utile — « Paris » est une ville de dix kilomètres de large, et le
+       forfait tombe si l'adresse retenue est à plus de 7 km du centre. Ce
+       n'est donc pas le champ qu'il fallait retirer, c'est son LIBELLÉ qui
+       mentait : il annonçait une destination alors qu'il demande une
+       PRÉCISION sur celle du dessus.
+       SUR « AUTRE DESTINATION » LE LIBELLÉ D'ORIGINE EST JUSTE : là il n'y
+       a rien au-dessus, le champ EST la destination. D'où les deux cas.
+       ON RÉÉCRIT L'ATTRIBUT « data-t », pas seulement le texte — même règle
+       que le champ vol/train : sinon un changement de langue ramènerait
+       « Lieu d'arrivée » sur une course vers Paris. */
+    var titreLibre = c.libre.closest(".champ").querySelector(".champ-titre");
+    var cleLibre = (dest && dest.adresseLibre) ? "hotel_adresse_precise"
+                 : (hotelSens === "depuis" ? "lieu_arrivee" : "lieu_depart");
+    titreLibre.setAttribute("data-t", cleLibre);
+    titreLibre.textContent = T(cleLibre);
     if(besoinAdresse){
       /* On efface ce que le menu avait posé tout seul, jamais ce que la
          réception a tapé : sinon elle perdrait son adresse en passant de
