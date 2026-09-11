@@ -2723,7 +2723,7 @@ l'un des gains.
   minimum, sa majoration de nuit lui est propre, et toute destination hors
   grille revient au kilométrage. Toucher à un prix veut dire toucher aux
   CGV.
-- `test-nouveau-hotel.mjs`, 61 contrôles.
+- `test-nouveau-hotel.mjs`, 83 contrôles.
 
 
 ### LA PAGE DE LA RÉCEPTION — DEUX ADRESSES, ET UN CODE QUI N'EST PAS DANS LA PAGE
@@ -3621,7 +3621,7 @@ lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
 ## Tests
 
-**Vingt-trois suites Playwright, 895 contrôles**, à relancer après **toute**
+**Vingt-trois suites Playwright, 923 contrôles**, à relancer après **toute**
 modification de la page.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
