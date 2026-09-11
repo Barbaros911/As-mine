@@ -4431,8 +4431,7 @@ window.ELA_TEXTES = {
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
-    renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Ce bouton ne sert que si vous voulez lui écrire un message.",
-    renvoyer_comptoir:"Prévenir par WhatsApp",
+    renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
@@ -4595,8 +4594,7 @@ window.ELA_TEXTES = {
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
-    renvoi_note_comptoir:"Elatransfer is alerted automatically. Use this button only if you want to send them a message.",
-    renvoyer_comptoir:"Notify on WhatsApp",
+    renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
@@ -5915,18 +5913,24 @@ window.ELA_TEXTES = {
       var errCoord = document.getElementById("erreurCoordonnees");
       errCoord.setAttribute("data-t", "err_identite");
       errCoord.textContent = T("err_identite");
-      /* ═══ LE BON DU COMPTOIR NE PARLE PLUS DE WHATSAPP QUI S'OUVRE ═══
-         Il ne s'ouvre plus ici. « Si WhatsApp ne s'est pas ouvert… »
-         enverrait une réception chercher une application qui n'est jamais
-         venue, et lui ferait croire que sa réservation est restée en
-         route. Le bouton, lui, RESTE — il reprend simplement son vrai
-         sujet : écrire un message, pas rattraper un envoi. */
-      var noteR = document.getElementById("noteRenvoi");
-      noteR.setAttribute("data-t", "renvoi_note_comptoir");
-      noteR.textContent = T("renvoi_note_comptoir");
-      var btnR = document.getElementById("btnRenvoyer");
-      btnR.setAttribute("data-t", "renvoyer_comptoir");
-      btnR.textContent = T("renvoyer_comptoir");
+      /* ═══ LE BON DU COMPTOIR NE PROPOSE PLUS D'ÉCRIRE SUR WHATSAPP ═══
+         Septembre 2026, à sa demande : « ne met pas prévenir sur
+         whatsapp ». La réception valide sur le site, Telegram le
+         prévient, et un bouton posé là ne fait que rouvrir une question
+         déjà réglée — pire, il laisse croire qu'il reste un geste à faire
+         pour que la demande arrive.
+
+         IL NE DISPARAÎT QUE DANS LE CAS NORMAL, et ce n'est pas une demi-
+         mesure : si le dépôt sur le serveur ÉCHOUE, il redevient le seul
+         chemin par lequel la course peut nous parvenir, et le retirer là
+         serait une réception qui note un client pour 5 h du matin sans que
+         personne ne le sache jamais. « jugerRenvoiComptoir » est le seul
+         juge, appelé depuis « afficherEtatEnvoi » : la visibilité suit
+         l'état du dépôt, pas le chargement de la page.
+         Son libellé redevient alors « Renvoyer ma demande » — ce qu'il
+         fait vraiment à cet instant : rattraper un envoi, pas prévenir. */
+      document.getElementById("noteRenvoi").setAttribute("data-t", "renvoi_note_comptoir");
+      document.getElementById("noteRenvoi").textContent = T("renvoi_note_comptoir");
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
       ["listeVehicules", "blocCoordonnees", "blocPaiement"].forEach(function(id){
@@ -8162,12 +8166,42 @@ window.ELA_TEXTES = {
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
+    jugerRenvoiComptoir();
     /* Le bloc des notifications suit l'état de l'envoi : il n'a de sens que
        si la demande est bien arrivée sur le serveur. */
     jugerBlocNotif();
     /* La note reste visible quel que soit l'état : le message WhatsApp part
        dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
        cas aussi. */
+  }
+
+  /* ═══ AU COMPTOIR, LE BOUTON WHATSAPP N'EXISTE QUE SUR UN ÉCHEC ═══
+     À sa demande : « ne met pas prévenir sur whatsapp ». La réception n'a
+     rien à envoyer — la demande part sur le serveur et Telegram sonne.
+     MAIS SI LE DÉPÔT A ÉCHOUÉ, c'est l'inverse : plus rien n'est arrivé, et
+     ce bouton est le SEUL chemin qui reste. Le retirer là, ce serait une
+     course notée au comptoir dont personne n'entendrait jamais parler.
+     « Le repli est sacré » — la règle vaut ici comme côté client.
+     Le libellé redevient « Renvoyer ma demande » : à cet instant il ne
+     prévient pas, il rattrape. Et la note reprend sa forme d'origine, qui
+     dit quoi faire, au lieu d'annoncer une alerte qui n'est pas partie.
+     RIEN DE TOUT ÇA CÔTÉ CLIENT : lui garde son bouton en permanence, son
+     message WhatsApp est le second chemin par lequel sa demande arrive. */
+  function jugerRenvoiComptoir(){
+    if(!recHotel) return;
+    var casse = (envoiEtat === false);
+    btnRenvoyer.hidden = !casse;
+    /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas.
+       « Si WhatsApp ne s'est pas ouvert… » est faux ici, il ne s'ouvre
+       jamais ; et l'écriteau rouge posé juste au-dessus dit déjà la même
+       chose en mieux (« envoyez-la sur WhatsApp, c'est le seul moyen
+       qu'elle nous parvienne »). Deux phrases pour une consigne, c'est le
+       doublon qu'on vient de retirer du récapitulatif. */
+    document.getElementById("noteRenvoi").hidden = casse;
+    if(casse){
+      btnRenvoyer.setAttribute("data-t", "renvoyer");
+      btnRenvoyer.textContent = T("renvoyer");
+    }
   }
 
   /* ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══

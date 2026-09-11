@@ -411,16 +411,40 @@ check('en se disant venue du comptoir, pas du téléphone d\'un client',
   posee.parReception === true && posee.provenanceCle === 'easyhotel-aeroville',
   posee.parReception + ' / ' + posee.provenanceCle);
 
-/* ═══ LE BOUTON RESTE, ET IL ENVOIE VRAIMENT ═══
-   Vérifier qu'il est là ne prouverait rien : un bouton mort au bout d'un
-   écran est pire qu'un bouton absent. On appuie, et on lit le lien qui
-   part. Même leçon que la feuille WhatsApp du client. */
+/* ═══ PLUS AUCUN BOUTON WHATSAPP AU COMPTOIR ═══
+   À sa demande : « ne met pas prévenir sur whatsapp ». La réception valide
+   sur le site, Telegram sonne, et un bouton posé là laisse croire qu'il
+   reste un geste à faire pour que la demande arrive.
+   ON MESURE CE QUE REÇOIT LE DOIGT, PAS L'ATTRIBUT. « .bouton-fantome »
+   porte « display:block » : un « hidden » posé sur cet élément ne suffirait
+   pas si la règle « [hidden] » perdait son « !important ». C'est le même
+   piège que le bouton « Appeler le chauffeur » posé en travers d'une ligne.
+   NOTE : ce bloc s'exécute sur un dépôt ÉCHOUÉ (le serveur est injoignable
+   depuis le banc), donc la vraie mesure du cas normal est plus bas, avec le
+   faux serveur qui répond 201. */
 const btnR = p.locator('#btnRenvoyer');
-check('un bouton WhatsApp reste sur le bon — c\'est le repli si le dépôt échoue',
+
+/* ═══ MAIS IL REVIENT SI LE DÉPÔT A ÉCHOUÉ, ET C'EST LE CONTRÔLE QUI COMPTE
+   LE PLUS ═══
+   Ici le serveur est injoignable : la demande n'est arrivée NULLE PART.
+   Sans ce bouton, la réception note un client pour 5 h du matin et personne
+   n'en entend jamais parler. « Le repli est sacré » — le retirer dans ce
+   cas-là serait obéir à la lettre en cassant ce qui protège ses clients.
+   Et le libellé change avec son sujet : il ne prévient pas, il rattrape. */
+check('le dépôt a échoué ici, donc le bon le dit',
+  await p.locator('#etatEnvoi.ko').isVisible(),
+  (await p.locator('#etatEnvoi').textContent()).trim());
+check('ET LE REPLI REVIENT : sans lui la demande n\'existerait nulle part',
   await btnR.isVisible());
-check('et il ne parle plus d\'un WhatsApp « qui ne s\'est pas ouvert » : il ne s\'ouvre plus',
-  !/ouvert/i.test(await p.locator('#noteRenvoi').textContent()),
-  (await p.locator('#noteRenvoi').textContent()).trim());
+/* L'écriteau rouge dit déjà quoi faire, juste au-dessus. Une seconde phrase
+   qui répète la consigne — et qui parlerait en plus d'un WhatsApp « pas
+   ouvert », faux ici — n'ajoute rien et fait relire. */
+check('et la note se tait plutôt que de répéter l\'écriteau rouge',
+  await p.locator('#noteRenvoi').isHidden());
+check('son libellé dit alors ce qu\'il fait — rattraper un envoi, pas prévenir',
+  /renvoyer/i.test(await btnR.textContent())
+  && !/prévenir/i.test(await btnR.textContent()),
+  (await btnR.textContent()).trim());
 await btnR.click();
 await p.waitForTimeout(300);
 const waComptoir = await p.evaluate(() => window.__wa);
@@ -455,6 +479,30 @@ check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi').textContent());
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
+/* ═══ LE CAS NORMAL : LA DEMANDE EST ARRIVÉE, IL N'Y A PLUS RIEN À ENVOYER ═══
+   C'est ici, et seulement ici, que sa demande se mesure : sur un dépôt
+   RÉUSSI. Le contrôle plus haut tourne sur un serveur injoignable, où le
+   bouton doit au contraire revenir. */
+check('LA DEMANDE EST PASSÉE : plus aucun bouton WhatsApp sur le bon',
+  await p.locator('#btnRenvoyer').isHidden());
+/* On ne lit pas l'attribut mais ce qui se voit : « .bouton-fantome » porte
+   « display:block », et un « hidden » sans règle qui l'emporte ne masquerait
+   rien. Mesuré à zéro pixel plutôt que relu dans le HTML. */
+check('et il ne prend pas la place non plus — mesuré, pas relu',
+  await p.locator('#btnRenvoyer').evaluate(el => {
+    const r = el.getBoundingClientRect();
+    return r.width === 0 && r.height === 0;
+  }));
+check('la note dit que c\'est arrivé, sans proposer un geste de plus',
+  !/whatsapp/i.test(await p.locator('#noteRenvoi').textContent()),
+  (await p.locator('#noteRenvoi').textContent()).trim());
+/* ET LE CLIENT, LUI, GARDE LE SIEN. Son message WhatsApp est le second
+   chemin par lequel sa demande arrive : il n'a pas de Telegram. */
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+check('côté client, le bouton de renvoi est toujours dans la page',
+  (await p.locator('#btnRenvoyer').count()) === 1
+  && !(await p.evaluate(()=>document.getElementById('btnRenvoyer').hasAttribute('hidden'))));
 await ctx.unroute('**/rest/v1/courses*');
 
 /* ═══ ET LE TUNNEL DU CLIENT N'A PAS BOUGÉ D'UN POUCE ═══
