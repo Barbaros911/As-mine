@@ -220,6 +220,34 @@ const chiffres = await p.locator('.rec-chiffre b').allTextContents();
 check('deux courses en attente sont comptées', chiffres[1] === '2', chiffres.join('/'));
 check('et ce compteur-là s\'allume, seul', await p.locator('.rec-chiffre.chaud').count() === 1);
 
+/* ═══ « RÉSERVATION VALIDÉE », LE SEUL MOT QUI RÉPOND À LA QUESTION ═══
+   À sa demande : « si moi je confirme sur le site, chez la réception ça
+   doit être réservation validée ». « Confirmée » est le vocabulaire du
+   tableau de bord de Barbaros, où il décrit un geste qu'il vient de faire ;
+   au comptoir, la question est « est-ce que la voiture est acquise ? ».
+   ON VÉRIFIE AUSSI QUE L'ANCIEN MOT NE TRAÎNE PLUS : un libellé remplacé à
+   moitié laisse deux vocabulaires pour un même état. */
+const etatConf = await p.locator('.rec-etat.confirmee').first().textContent();
+check('une course confirmée par Barbaros dit « Réservation validée » au comptoir',
+  etatConf.trim() === 'Réservation validée', etatConf.trim());
+check('et le mot « Confirmée » ne reste nulle part dans la liste',
+  !/Confirmée/.test(await p.locator('#recCorps').textContent()));
+/* LE LIBELLÉ EST DEUX FOIS PLUS LONG QUE L'ANCIEN — on MESURE qu'il ne
+   pousse pas l'heure hors de la carte ni ne passe à la ligne. Un libellé
+   rallongé casse une mise en page sans un mot : c'est exactement la faute
+   du bouton mangé par la barre du bas. */
+const pastMes = await p.locator('.rec-etat.confirmee').first().evaluate(el => {
+  const r = el.getBoundingClientRect();
+  const ligne = el.parentElement.getBoundingClientRect();
+  const heure = el.parentElement.querySelector('.rec-heure').getBoundingClientRect();
+  return { hauteur: Math.round(r.height), dedans: r.right <= ligne.right + 1,
+           surUneLigne: Math.abs(r.top - heure.top) < r.height,
+           heureEntiere: Math.round(heure.width) };
+});
+check('la pastille tient sur la ligne de l\'heure, sans déborder ni la rogner',
+  pastMes.dedans && pastMes.surUneLigne && pastMes.hauteur < 30
+  && pastMes.heureEntiere >= 45, JSON.stringify(pastMes));
+
 /* ═══ L'ORANGE NE DESCEND PAS DANS LA LISTE ═══
    Il est à 24° de teinte du rouge de l'attente. S'il habillait aussi les
    pastilles d'état, « confirmée » dirait la MARQUE et non plus l'ÉTAT. */
@@ -434,24 +462,28 @@ const btnR = p.locator('#btnRenvoyer');
 check('le dépôt a échoué ici, donc le bon le dit',
   await p.locator('#etatEnvoi.ko').isVisible(),
   (await p.locator('#etatEnvoi').textContent()).trim());
-check('ET LE REPLI REVIENT : sans lui la demande n\'existerait nulle part',
-  await btnR.isVisible());
-/* L'écriteau rouge dit déjà quoi faire, juste au-dessus. Une seconde phrase
-   qui répète la consigne — et qui parlerait en plus d'un WhatsApp « pas
-   ouvert », faux ici — n'ajoute rien et fait relire. */
-check('et la note se tait plutôt que de répéter l\'écriteau rouge',
+check('MÊME LÀ, aucun bouton WhatsApp ne revient — « ils auront déjà mon numéro »',
+  await btnR.isHidden());
+/* CE QUI REMPLACE LE REPLI N'EST PAS RIEN. Sans bouton, un message qui dit
+   « envoyez-la sur WhatsApp » désignerait une porte qui n'existe plus :
+   pire que pas de repli du tout. L'écriteau dit d'APPELER, et il porte le
+   numéro — le même que celui du site, relu dans la page plutôt que recopié
+   ici (on ne fige pas un numéro dans un test, on le compare à sa source). */
+const telSite = await p.evaluate(() => {
+  const a = document.querySelector('a[href^="tel:+33"]');
+  return a ? a.getAttribute('href').replace('tel:+33', '0') : '';
+});
+const ecriteau = (await p.locator('#etatEnvoi').textContent()).replace(/\s/g, '');
+check('l\'écriteau d\'échec dit d\'APPELER, et pas d\'envoyer un WhatsApp',
+  /appelez/i.test(ecriteau) && !/whatsapp/i.test(ecriteau),
+  (await p.locator('#etatEnvoi').textContent()).trim());
+check('et il porte le numéro du site, pas un numéro recopié à la main',
+  telSite.length > 8 && ecriteau.includes(telSite), telSite);
+/* La note se tait : deux phrases pour une même consigne font relire. */
+check('la note se tait plutôt que de répéter l\'écriteau',
   await p.locator('#noteRenvoi').isHidden());
-check('son libellé dit alors ce qu\'il fait — rattraper un envoi, pas prévenir',
-  /renvoyer/i.test(await btnR.textContent())
-  && !/prévenir/i.test(await btnR.textContent()),
-  (await btnR.textContent()).trim());
-await btnR.click();
-await p.waitForTimeout(300);
-const waComptoir = await p.evaluate(() => window.__wa);
-check('appuyé, il envoie bien la demande avec sa référence',
-  waComptoir.length === 1 && waComptoir[0].includes('wa.me')
-  && decodeURIComponent(waComptoir[0]).includes(posee.ref),
-  waComptoir.join(' '));
+check('et rien n\'est parti sur WhatsApp tout seul',
+  (await p.evaluate(() => window.__wa.length)) === 0);
 
 /* ═══ « ÊTRE PRÉVENU » NE S'ADRESSE PAS À UNE TABLETTE PARTAGÉE ═══
    Le bloc promet la confirmation sur LE WhatsApp du client et propose une

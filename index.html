@@ -4464,6 +4464,7 @@ window.ELA_TEXTES = {
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
+    envoi_ko_comptoir:"Votre demande n'a pas pu nous être transmise. Appelez Elatransfer au 07 59 31 24 33 pour la confirmer.",
     wa_titre:"Comment pouvons-nous vous aider ?",
     wa_c1:"J'ai une question sur ma réservation",
     wa_c2:"Je voudrais des informations",
@@ -4622,6 +4623,7 @@ window.ELA_TEXTES = {
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
+    envoi_ko_comptoir:"Your request could not reach us. Please call Elatransfer on +33 7 59 31 24 33 to confirm it.",
     wa_titre:"How can we help?",
     wa_c1:"I have a question about my booking",
     wa_c2:"I would like some information",
@@ -5571,7 +5573,18 @@ window.ELA_TEXTES = {
      traduit pour personne finit par diverger de la page.
      La date suit donc « dateFr » et le prix « eurosFR », qui sont déjà les
      versions françaises figées du reste de l'outil. */
-  var ETATS_REC = { attente:"En attente", confirmee:"Confirmée",
+  /* ═══ « RÉSERVATION VALIDÉE », PAS « CONFIRMÉE » ═══
+     À sa demande : « si moi je confirme sur le site la prise en charge,
+     chez la réception ça doit être réservation validée ». Le mot n'est pas
+     un détail : « confirmée » est le vocabulaire de NOTRE tableau de bord,
+     où il décrit un geste qu'il vient de faire. À un comptoir qui a un
+     client devant lui, la seule question est « est-ce que la voiture est
+     acquise ? » — et « Réservation validée » y répond, « Confirmée »
+     laisse un doute sur qui a confirmé quoi.
+     LA CHAÎNE EXISTE DÉJÀ ET N'A PAS EU À CHANGER : « pousser » écrit la
+     colonne « statut » sur le serveur, « courses-hotel » la relit, la liste
+     se rafraîchit. Seul le libellé manquait. */
+  var ETATS_REC = { attente:"En attente", confirmee:"Réservation validée",
                     realisee:"Effectuée", refusee:"Non prise" };
 
   /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
@@ -8161,8 +8174,11 @@ window.ELA_TEXTES = {
     envoiEtat = etat;
     blocEnvoi.hidden = false;
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
+    /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
+       bouton pour ça, et la réception a notre numéro. Elle appelle. */
     texteEnvoi.textContent = T(etat === true ? "envoi_ok"
-                             : etat === false ? "envoi_ko" : "envoi_cours");
+                             : etat === false ? (recHotel ? "envoi_ko_comptoir" : "envoi_ko")
+                             : "envoi_cours");
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
@@ -8175,33 +8191,33 @@ window.ELA_TEXTES = {
        cas aussi. */
   }
 
-  /* ═══ AU COMPTOIR, LE BOUTON WHATSAPP N'EXISTE QUE SUR UN ÉCHEC ═══
-     À sa demande : « ne met pas prévenir sur whatsapp ». La réception n'a
-     rien à envoyer — la demande part sur le serveur et Telegram sonne.
-     MAIS SI LE DÉPÔT A ÉCHOUÉ, c'est l'inverse : plus rien n'est arrivé, et
-     ce bouton est le SEUL chemin qui reste. Le retirer là, ce serait une
-     course notée au comptoir dont personne n'entendrait jamais parler.
-     « Le repli est sacré » — la règle vaut ici comme côté client.
-     Le libellé redevient « Renvoyer ma demande » : à cet instant il ne
-     prévient pas, il rattrape. Et la note reprend sa forme d'origine, qui
-     dit quoi faire, au lieu d'annoncer une alerte qui n'est pas partie.
+  /* ═══ AU COMPTOIR, IL N'Y A PLUS AUCUN BOUTON WHATSAPP ═══
+     À sa demande, en deux temps : « ne met pas prévenir sur whatsapp »,
+     puis — quand le repli en cas d'échec lui a été signalé — « ils auront
+     déjà mon numéro ».
+
+     C'EST CE SECOND POINT QUI TRANCHE, ET IL EST JUSTE. Le repli existait
+     parce qu'un client venu du site n'a aucun autre moyen de nous joindre :
+     son téléphone ne connaît pas Elatransfer. Une réception partenaire,
+     elle, a le numéro sur son flyer, sur son comptoir et dans son
+     répertoire — elle décroche. Le bouton ne lui apportait qu'un message
+     pré-rempli ; l'écran, lui, reste sous ses yeux avec le trajet, l'heure
+     et le prix.
+
+     CE QUI REMPLACE LE REPLI N'EST DONC PAS RIEN : l'écriteau d'échec dit
+     au comptoir d'APPELER, et il porte le numéro. Un message qui dit
+     « envoyez-la sur WhatsApp » sans bouton pour le faire serait pire que
+     l'absence de repli — il désignerait une porte qui n'existe plus.
      RIEN DE TOUT ÇA CÔTÉ CLIENT : lui garde son bouton en permanence, son
      message WhatsApp est le second chemin par lequel sa demande arrive. */
   function jugerRenvoiComptoir(){
     if(!recHotel) return;
-    var casse = (envoiEtat === false);
-    btnRenvoyer.hidden = !casse;
-    /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas.
-       « Si WhatsApp ne s'est pas ouvert… » est faux ici, il ne s'ouvre
-       jamais ; et l'écriteau rouge posé juste au-dessus dit déjà la même
-       chose en mieux (« envoyez-la sur WhatsApp, c'est le seul moyen
-       qu'elle nous parvienne »). Deux phrases pour une consigne, c'est le
-       doublon qu'on vient de retirer du récapitulatif. */
-    document.getElementById("noteRenvoi").hidden = casse;
-    if(casse){
-      btnRenvoyer.setAttribute("data-t", "renvoyer");
-      btnRenvoyer.textContent = T("renvoyer");
-    }
+    btnRenvoyer.hidden = true;
+    /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
+       rouge posé juste au-dessus porte déjà la consigne et le numéro ;
+       deux phrases pour une même chose, c'est le doublon qu'on vient de
+       retirer du récapitulatif. */
+    document.getElementById("noteRenvoi").hidden = (envoiEtat === false);
   }
 
   /* ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══
