@@ -3532,6 +3532,29 @@ laissait choisir.
   t'ai pas demander ».
 - **Montrer une capture avant de pousser**, et attendre son accord.
 
+### « Mène-moi directement au but »
+
+Septembre 2026, pendant la configuration de Telegram. On lui faisait
+traverser des menus (« Edge Functions → Secrets, ou Settings → Edge
+Functions selon la version ») alors qu'une **adresse directe** ouvrait la
+page en un geste.
+
+**Chercher systématiquement le chemin le plus court, et le donner à sa
+place.** Une URL complète plutôt qu'un itinéraire dans une interface ; une
+commande à coller plutôt qu'une description de ce qu'elle fait ; un bouton
+nommé plutôt que « va dans les réglages ».
+
+- **Un geste à la fois quand il suit une procédure.** Trois étapes d'un
+  coup, il se perd et le dit (« je comprends rien », « arrête de
+  t'avancer »). On donne UNE action, on attend sa réponse, on donne la
+  suivante.
+- **Ne pas décrire une interface qu'on ne voit pas.** Ses captures d'écran
+  disent où il est vraiment : les lire avant de répondre, pas supposer.
+  Il s'est retrouvé dans la recherche des RÉGLAGES de Telegram au lieu de
+  celle des conversations — invisible depuis ici sans la capture.
+- **Pas de jargon, et pas d'anglais non expliqué.** « La loupe en haut »,
+  pas « la recherche globale ».
+
 ### « Arrête de deviner, sois expert méthodique »
 
 Septembre 2026, après une soirée où une panne a coûté une heure. **Deux
