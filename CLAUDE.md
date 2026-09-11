@@ -1711,13 +1711,15 @@ Elatransfer même si le message WhatsApp n'est pas envoyé**.
 la demande arrive dans son tableau de bord. Ce qui manquait, c'est que le
 site disait le contraire.
 
-**MAIS WHATSAPP CONTINUE DE S'OUVRIR TOUT SEUL, ET C'EST DÉLIBÉRÉ TANT QUE
-L'ALERTE TELEGRAM N'EST PAS BRANCHÉE.** C'est aujourd'hui son **seul**
-avertissement instantané : le webhook de `nouvelle-demande` n'est toujours
-pas posé. Le retirer maintenant, c'est une demande de 5 h du matin que
-personne ne voit avant le lendemain. **Ne pas supprimer l'ouverture
-automatique avant que le webhook Telegram fonctionne** — et le jour où il
-fonctionne, c'est la première chose à faire.
+**WHATSAPP CONTINUE DE S'OUVRIR TOUT SEUL POUR LE CLIENT, ET C'EST TOUJOURS
+DÉLIBÉRÉ.** Le client, lui, n'a pas de Telegram : son message reste le
+second chemin par lequel sa demande peut nous parvenir si le dépôt échoue.
+Ne pas le retirer côté client.
+**AU COMPTOIR D'HÔTEL, IL NE S'OUVRE PLUS** — voir la section dédiée plus
+bas. C'est l'application de la règle qui figurait ici (« ne pas supprimer
+l'ouverture automatique avant que le webhook Telegram fonctionne ») : il
+fonctionne depuis le 11 septembre 2026, et c'est ce qui a permis de la
+retirer là où elle gênait.
 
 ### « VOTRE DEMANDE N'A PAS PU NOUS ÊTRE TRANSMISE » — UNE PANNE INVENTÉE
 
@@ -2794,6 +2796,53 @@ filtrée sur l'hôtel.
   La route générique hors ligne, posée après la route du faux serveur,
   avalait les appels — et la suite mesurait une panne réseau en croyant
   mesurer un refus de code.
+
+### LA RÉCEPTION VALIDE SUR LE SITE — WHATSAPP NE S'OUVRE PLUS AU COMPTOIR
+
+Septembre 2026, à sa demande : « pour la confirmation laisse les valider sur
+le site, je reçois la notification, whatsapp télégramme facultatif », puis,
+sur les deux questions posées : **« en attente, comme aujourd'hui »** et
+**« il ne s'ouvre plus, un bouton reste »**.
+
+- **CE QUI REND CE RETRAIT POSSIBLE, C'EST TELEGRAM, ET RIEN D'AUTRE.**
+  L'alerte part de `nouvelle-demande`, déclenchée par le SERVEUR à
+  l'écriture de la ligne — donc sans rien demander au navigateur du
+  comptoir, ni à WhatsApp. Elle tourne depuis le 11 septembre 2026,
+  éprouvée sur une vraie réservation. La règle écrite depuis des semaines
+  (« ne pas supprimer l'ouverture automatique avant que le webhook Telegram
+  fonctionne ») est donc **remplie**, pas enfreinte. **Si l'alerte Telegram
+  tombe un jour, c'est cette décision-ci qu'il faut rouvrir en premier** :
+  sans elle, une demande du comptoir n'avertit plus personne.
+- **LE RETRAIT EST LOCAL AU COMPTOIR** (`if(!recHotel)`), jamais global. Le
+  client et le flyer `?h=` gardent l'ouverture automatique : eux n'ont pas
+  de Telegram, et leur message est le second chemin si le dépôt échoue.
+  `test-nouveau-whatsapp` et `test-nouveau-hotel` éprouvent ces deux
+  chemins-là — ils tombent si on retire la condition au lieu de la poser.
+- **LE BOUTON RESTE SUR LE BON, ET CE N'EST PAS UN VESTIGE.** Si le dépôt
+  échoue, il redevient le SEUL chemin par lequel la demande peut nous
+  parvenir. **Le repli est sacré** — même règle que côté client. Le test
+  ne se contente pas de le voir : il **appuie dessus** et lit le lien qui
+  part, un bouton mort au bout d'un écran étant pire qu'un bouton absent.
+- **SA PHRASE A CHANGÉ AVEC SON SUJET.** « Si WhatsApp ne s'est pas
+  ouvert… » enverrait une réception chercher une application qui n'est
+  jamais venue, et lui ferait croire sa réservation restée en route. Elle
+  dit maintenant qu'Elatransfer est prévenu automatiquement, et que le
+  bouton ne sert qu'à écrire un message. **Un libellé qui décrit un
+  mécanisme retiré est pire qu'un libellé absent.**
+- **LA COURSE ENTRE EN `attente`, comme celle d'un client.** Elle a beau
+  être convenue de vive voix avec la personne au comptoir, elle n'a été
+  convenue avec **aucun chauffeur** : l'afficher confirmée promettrait une
+  voiture que personne n'a acceptée, et la réception le répéterait au
+  client devant elle. C'est déjà le défaut du code — un contrôle le
+  **verrouille** désormais, avec `parReception` et `provenanceCle`.
+- **« ÊTRE PRÉVENU » NE S'AFFICHE PAS AU COMPTOIR.** Ce bloc promet la
+  confirmation sur LE WhatsApp du client et propose une notification sur
+  CET appareil : au comptoir les deux sont faux — le numéro est celui de
+  quelqu'un qui n'a pas la tablette en main, et l'abonnement push resterait
+  posé sur l'appareil de l'hôtel, à sonner pour la course d'un autre client
+  à chaque fois. **Le test le fait vraiment apparaître pour l'éprouver**
+  (faux serveur rendant 201) : sans dépôt réussi il est caché de toute
+  façon, et le contrôle serait passé au vert sans rien vérifier.
 
 ### LE THÈME D'UN PARTENAIRE — L'ORANGE easyHotel
 

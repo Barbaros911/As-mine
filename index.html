@@ -1492,6 +1492,11 @@ body.hotel .rec-aide{background:var(--h-pale, var(--accent-clair));}
 body.hotel .rec-aide-titre,
 body.hotel .rec-aide-texte{color:var(--h-paleEncre, var(--accent-encre));}
 body.hotel .rec-aide-lien{background:var(--h-bouton, var(--accent));}
+/* La gamme retenue portait le vert d'Elatransfer au milieu d'une page
+   orange : c'est la SÉLECTION, elle doit dire la page où l'on est. Même
+   raison que les pictogrammes des champs. */
+body.hotel .veh-carte.choisi{border-color:var(--h-bouton, var(--accent));
+  box-shadow:0 0 0 1.5px var(--h-bouton, var(--accent));}
 
 /* ═══ LES PICTOGRAMMES SUIVENT LA PAGE ═══
    Ils portent la couleur d'Elatransfer écrite EN DUR dans le SVG
@@ -2699,7 +2704,7 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
          comment vous réglerez.</p>
     </div>
 
-    <div class="bloc">
+    <div class="bloc" id="blocCoordonnees">
       <h2 class="bloc-titre" data-t="coordonnees">Vos coordonnées</h2>
       <label class="champ" for="clientNom">
         <span class="champ-corps">
@@ -4348,6 +4353,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
     hotel_adresse_precise:"Adresse précise",
+    reserver_prix:"Réserver",
+    client_titre:"Le client",
+    aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
+    err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
+    btn_prix_attente:"Complétez le trajet…",
     note_titre:"Précision pour le chauffeur",
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
     note_court:"Précision",
@@ -4421,6 +4431,8 @@ window.ELA_TEXTES = {
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
+    renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Ce bouton ne sert que si vous voulez lui écrire un message.",
+    renvoyer_comptoir:"Prévenir par WhatsApp",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
@@ -4515,6 +4527,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
     hotel_adresse_precise:"Exact address",
+    reserver_prix:"Book",
+    client_titre:"The guest",
+    aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
+    err_identite:"Enter the room number, or the guest's name and phone number.",
+    btn_prix_attente:"Complete the trip…",
     note_titre:"Note for the chauffeur",
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
     note_court:"Note",
@@ -4578,6 +4595,8 @@ window.ELA_TEXTES = {
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
+    renvoi_note_comptoir:"Elatransfer is alerted automatically. Use this button only if you want to send them a message.",
+    renvoyer_comptoir:"Notify on WhatsApp",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
@@ -5853,6 +5872,71 @@ window.ELA_TEXTES = {
        Ouverte sur le site public, elle ramènerait des demandes qu'on ne
        peut pas tenir, et personne ne les lirait avant le départ. */
     document.getElementById("blocNote").hidden = false;
+
+    /* ═══ LE COMPTOIR SAISIT TOUT SUR UNE SEULE PAGE ═══
+       Septembre 2026, à sa demande : « il faut que la réception puisse tout
+       faire une page — destination, nom ou numéro de chambre, numéro
+       client, le mode de paiement etc. »
+       Une réception réserve entre deux arrivées, debout, avec quelqu'un qui
+       attend devant elle. Trois écrans qui s'enchaînent, c'est trois fois
+       l'occasion de perdre le fil et de recommencer.
+
+       ON DÉPLACE LES BLOCS, ON NE LES RECOPIE PAS. C'est la décision qui
+       porte tout le reste : un second jeu de champs voudrait dire deux
+       identifiants pour un même rôle, deux validations, deux endroits à
+       tenir — et le jour où l'un gagne une règle, l'autre l'oublie. Ici il
+       n'y a qu'un HTML : la vérification du téléphone, le choix du
+       règlement, la construction du bon continuent de lire exactement les
+       mêmes éléments, sans une ligne de plus.
+
+       SEULEMENT SUR « ?reception= ». Le QR du flyer est scanné par des
+       CLIENTS, sur leur propre téléphone : eux gardent le tunnel, où l'on
+       découvre le prix avant de donner son nom. */
+    if(recHotel){
+      /* « Vos coordonnées » s'adresse au client qui réserve pour lui-même.
+         Au comptoir c'est quelqu'un d'AUTRE qu'on saisit, et le possessif
+         fait hésiter une seconde sur ce qu'il faut écrire. */
+      var titreCoord = document.querySelector("#blocCoordonnees .bloc-titre");
+      if(titreCoord){ titreCoord.setAttribute("data-t","client_titre");
+                      titreCoord.textContent = T("client_titre"); }
+      /* ═══ LA RÈGLE EST ÉCRITE LÀ OÙ ELLE S'APPLIQUE ═══
+         « Nom » et « Téléphone » ont l'air obligatoires — ils le sont
+         partout ailleurs sur le site. Sans cette ligne, la réception les
+         remplit à chaque fois « au cas où », et on a rallongé sa saisie au
+         lieu de l'abréger. Elle est posée AVANT le premier champ : une
+         consigne qui suit ce qu'elle régit arrive trop tard. */
+      var aideId = document.createElement("p");
+      aideId.className = "champ-aide";
+      aideId.setAttribute("data-t", "aide_identite");
+      aideId.textContent = T("aide_identite");
+      titreCoord.parentNode.insertBefore(aideId, titreCoord.nextSibling);
+      /* Et le refus dit la même règle : « le nom et le téléphone sont
+         nécessaires » serait faux ici, puisque la chambre suffit. */
+      var errCoord = document.getElementById("erreurCoordonnees");
+      errCoord.setAttribute("data-t", "err_identite");
+      errCoord.textContent = T("err_identite");
+      /* ═══ LE BON DU COMPTOIR NE PARLE PLUS DE WHATSAPP QUI S'OUVRE ═══
+         Il ne s'ouvre plus ici. « Si WhatsApp ne s'est pas ouvert… »
+         enverrait une réception chercher une application qui n'est jamais
+         venue, et lui ferait croire que sa réservation est restée en
+         route. Le bouton, lui, RESTE — il reprend simplement son vrai
+         sujet : écrire un message, pas rattraper un envoi. */
+      var noteR = document.getElementById("noteRenvoi");
+      noteR.setAttribute("data-t", "renvoi_note_comptoir");
+      noteR.textContent = T("renvoi_note_comptoir");
+      var btnR = document.getElementById("btnRenvoyer");
+      btnR.setAttribute("data-t", "renvoyer_comptoir");
+      btnR.textContent = T("renvoyer_comptoir");
+      var apres = document.getElementById("blocNote");
+      var parent = apres.parentNode;
+      ["listeVehicules", "blocCoordonnees", "blocPaiement"].forEach(function(id){
+        var bloc = document.getElementById(id);
+        if(!bloc) return;
+        parent.insertBefore(bloc, apres.nextSibling);
+        apres = bloc;
+      });
+      document.body.classList.add("compte-unique");
+    }
     document.getElementById("hotelTeteNom").textContent = h.nom;
     document.getElementById("hotelTeteAdresse").textContent = h.adresse;
     selDest.innerHTML = "";
@@ -6835,6 +6919,11 @@ window.ELA_TEXTES = {
   /* Le bouton se NOMME — « Continuer · Ela One » — parce qu'on ne confirme
      pas dans le vide. */
   function majBoutonContinuer(){
+    /* Au comptoir il n'y a pas de bouton « Continuer » : c'est « Réserver »
+       qui porte le prix, et il doit suivre le même signal. Les deux sont
+       jugés ici plutôt qu'à chaque endroit où la gamme change — sinon
+       c'est celui qu'on oublie qui reste éteint sur une course valable. */
+    jugerBoutonReserver();
     var btn = document.getElementById("btnContinuer");
     var lib = document.getElementById("libelleContinuer");
     btn.disabled = !course.gamme;
@@ -6953,7 +7042,20 @@ window.ELA_TEXTES = {
      se contredire. Sans ce point de rendez-vous, le second à s'exécuter
      rallumerait le bouton que le premier vient d'éteindre. */
   function jugerBoutonPrix(){
-    boutonPrix.disabled = !!lieuHorsZone() || tropTot() || heureDepassee();
+    var bloque = !!lieuHorsZone() || tropTot() || heureDepassee();
+    boutonPrix.disabled = bloque;
+    /* ═══ TOUT NOUVEAU JUGE DU BOUTON PASSE PAR ICI ═══
+       La règle date du préavis minimum : sans ce point de rendez-vous, le
+       second juge à s'exécuter rallume le bouton que le premier vient
+       d'éteindre. Au comptoir il y en a un troisième — « une gamme
+       est-elle choisie ? » — et le calcul du prix se déclenche d'ici, parce
+       que c'est exactement le moment où une adresse ou une heure vient de
+       changer. */
+    if(document.body.classList.contains("compte-unique")){
+      if(!bloque) calculerAuComptoir(false);
+      jugerBoutonReserver();
+      if(bloque) boutonPrix.disabled = true;
+    }
   }
   window.__jugerBoutonPrix = jugerBoutonPrix;
   /* Les deux écriteaux s'excluent : « trop proche » et « déjà passée » ne
@@ -7028,7 +7130,16 @@ window.ELA_TEXTES = {
     }, 380);
   });
 
-  boutonPrix.addEventListener("click", function(){
+  /* ═══ LE MÊME CHEMIN, DEUX SORTIES ═══
+     « surPlace » ne change qu'une chose à la fin : sur le site et sur le
+     flyer on ouvre l'écran des prix, au comptoir la liste s'écrit dans la
+     page qu'on est en train de remplir.
+     TOUT LE RESTE EST COMMUN, et c'est le point : les huit contrôles qui
+     précèdent — zone, même adresse, heure passée, préavis, passagers,
+     forfait rejugé sur l'heure retenue — sont exactement ceux qui décident
+     si une course peut exister. Recopiés pour le comptoir, c'est celui
+     qu'on oublie qui laisserait partir une réservation impossible. */
+  function allerAuxPrix(surPlace){
     effacerRefus();
     /* Départ ET arrivée sont obligatoires : le prix est ferme, arrêté à la
        réservation, et sans les deux bouts il n'y a pas de distance donc pas
@@ -7090,13 +7201,78 @@ window.ELA_TEXTES = {
       var noteN = document.getElementById("noteNuit");
       noteN.hidden = !course.forfait || !nuitHotel(champDate.value, champHeure.value);
       dessinerGammes();
+      if(surPlace){
+        /* Au comptoir on ne change pas d'écran : la réception est au milieu
+           de sa saisie, et la déplacer lui ferait perdre ce qu'elle
+           regarde. La carte n'y est pas tracée non plus — elle sert à
+           montrer à un CLIENT la route qu'on lui facture, pas à une
+           réception qui lit un forfait sur son flyer. */
+        jugerBoutonReserver();
+        return;
+      }
       ecran("ecran-vehicules");
       /* LA CARTE APRÈS L'ÉCRAN, jamais avant : Leaflet mesure son cadre au
          moment où on la crée, et un cadre encore masqué mesure zéro — la
          carte sortirait grise. Exactement le piège de la courbe du tableau
          de bord, tracée sur un écran non affiché. */
       tracerCarte(r.trace, choix.depart, choix.arrivee);
+    }).catch(function(){
+      /* UN CALCUL QUI ÉCHOUE NE DOIT PAS LAISSER LE BOUTON MORT. Il était
+         remis en état dans le « then » seulement : un refus du calculateur
+         laissait « Calcul… » et un bouton grisé pour toujours. */
+      libelle.textContent = avant;
+      boutonPrix.disabled = false;
+      if(surPlace) jugerBoutonReserver();
     });
+  }
+
+  /* ═══ AU COMPTOIR, LE PRIX SE CALCULE TOUT SEUL ═══
+     Ce n'est pas un confort, c'est ce qui rend la page unique possible :
+     la réception doit CHOISIR une gamme, et la liste des gammes n'existe
+     qu'une fois le prix connu. Sans calcul automatique il faudrait deux
+     boutons sur la même page — « Calculer », puis « Réserver » — et on
+     aurait reconstruit le tunnel à la verticale.
+     UN ANTI-REBOND DE 450 ms, et surtout ON NE RAPPELLE PAS POUR LES MÊMES
+     POINTS : choisir une destination pose l'adresse, ce qui déclencherait
+     un appel par frappe et brûlerait le quota d'un service gratuit. */
+  var dernierCalcul = "", minuterieCalcul = null;
+  function calculerAuComptoir(force){
+    if(!document.body.classList.contains("compte-unique")) return;
+    if(!choix.depart || !choix.arrivee){ jugerBoutonReserver(); return; }
+    var signature = [choix.depart.lat, choix.depart.lon, choix.arrivee.lat,
+                     choix.arrivee.lon, champDate.value, champHeure.value].join("|");
+    if(!force && signature === dernierCalcul) return;
+    dernierCalcul = signature;
+    clearTimeout(minuterieCalcul);
+    minuterieCalcul = setTimeout(function(){ allerAuxPrix(true); }, 450);
+  }
+
+  /* ═══ LE BOUTON NE S'ALLUME QUE QUAND LA COURSE EXISTE VRAIMENT ═══
+     Une gamme choisie, donc un prix connu. Sans ce garde-fou on peut
+     appuyer sur « Réserver » avant que le calcul ait répondu, et la course
+     partirait à 0,00 € — un bon qui annonce zéro euro est un bon faux. */
+  function jugerBoutonReserver(){
+    if(!document.body.classList.contains("compte-unique")) return;
+    var pret = !!course.gamme;
+    boutonPrix.disabled = !pret;
+    var lib = boutonPrix.querySelector("span");
+    lib.setAttribute("data-t", pret ? "reserver_prix" : "btn_prix_attente");
+    lib.textContent = pret
+      ? T("reserver_prix") + " · " + euros(totalCourse())
+      : T("btn_prix_attente");
+  }
+
+  boutonPrix.addEventListener("click", function(){
+    if(document.body.classList.contains("compte-unique")){
+      /* Au comptoir, le bouton ne calcule plus : il réserve. Le prix est
+         déjà à l'écran, et c'est le geste de « Confirmer » du récapitulatif
+         qu'on déclenche — LE MÊME, pas une copie : il porte le contrôle du
+         téléphone, celui du règlement, la construction du bon, le dépôt sur
+         le serveur et le repli si le dépôt échoue. */
+      document.getElementById("btnConfirmer").click();
+      return;
+    }
+    allerAuxPrix(false);
   });
 
   document.getElementById("btnRetourAccueil")
@@ -7720,9 +7896,32 @@ window.ELA_TEXTES = {
     return true;
   }
 
+  /* ═══ QUI EST LE CLIENT : LA CHAMBRE, OU SON NOM ET SON NUMÉRO ═══
+     Septembre 2026, à sa demande : « nom ou numéro de chambre, un des deux
+     obligatoire ; numéro client et nom du client si numéro de chambre non
+     communiqué ».
+     SA RAISON, ET ELLE TIENT : « le chauffeur peut aussi aider le client à
+     transporter les valises depuis l'hôtel s'ils le veulent ». Avec une
+     chambre, le chauffeur monte — la réception est le relais, et exiger un
+     numéro de portable à un client de passage fait perdre des secondes au
+     comptoir pour rien.
+     SANS CHAMBRE, LES DEUX REDEVIENNENT OBLIGATOIRES. Personne ne sait alors
+     qui attend ni où : un chauffeur devant un hall à 5 h du matin, sans nom
+     et sans numéro, ne trouve pas son client.
+     ÇA NE VAUT QUE POUR LE COMPTOIR. Sur le site public et sur le QR du
+     flyer, c'est le CLIENT qui saisit : il n'y a pas de réception derrière
+     pour le retrouver, et son numéro reste exigé. */
+  function chambreSaisie(){
+    return blocChambre.hidden ? "" : champChambre.value.trim();
+  }
+  function identifieParLaChambre(){
+    return !!recHotel && !!chambreSaisie();
+  }
+
   document.getElementById("btnConfirmer").addEventListener("click", function(){
     var nom = champNom.value.trim(), tel = champTel.value.trim();
-    if(!nom || !tel){
+    var parChambre = identifieParLaChambre();
+    if(!parChambre && (!nom || !tel)){
       erreurCoord.hidden = false;
       erreurTel.hidden = true;
       (nom ? champTel : champNom).focus();
@@ -7733,7 +7932,10 @@ window.ELA_TEXTES = {
        n'existe pas » appellent deux gestes différents : le premier dit
        d'écrire, le second de relire. Un message unique laisserait le client
        retaper exactement la même chose. */
-    if(!telValide(tel)){
+    /* UN NUMÉRO DONNÉ EST TOUJOURS VÉRIFIÉ, même quand il est facultatif :
+       un numéro faux est pire qu'un numéro absent — il fait croire qu'on
+       peut joindre quelqu'un. */
+    if(tel && !telValide(tel)){
       erreurTel.hidden = false;
       champTel.focus();
       champTel.select();
@@ -7751,7 +7953,7 @@ window.ELA_TEXTES = {
       return;
     }
     erreurPaiement.hidden = true;
-    var chambre = (blocChambre.hidden ? "" : champChambre.value.trim());
+    var chambre = chambreSaisie();
     var vol = (blocVol.hidden ? "" : champVol.value.trim().toUpperCase());
     /* LA PRÉCISION EST LUE À TRAVERS LE BLOC, comme la chambre et le vol :
        un champ masqué peut encore porter ce qu'on y avait tapé avant de
@@ -7886,8 +8088,30 @@ window.ELA_TEXTES = {
        sur son téléphone. L'un sans l'autre laisse un trou — soit il n'est
        pas averti, soit il n'a rien à ouvrir. */
     var depot = nuage.deposer(bonCourant);
-    window.open("https://wa.me/" + NUMERO_WA + "?text="
-                + encodeURIComponent(messageDemande(bonCourant)), "_blank");
+    /* ═══ AU COMPTOIR, WHATSAPP NE S'OUVRE PLUS TOUT SEUL ═══
+       Septembre 2026, à sa demande : « il ne s'ouvre plus, un bouton
+       reste ». Une réception enchaîne les arrivées ; lui faire traverser
+       WhatsApp à chaque réservation, c'est une application qui prend
+       l'écran, un message à envoyer à la main, et une tablette qui reste
+       dans une conversation au lieu de revenir au comptoir.
+
+       CE QUI REND CE RETRAIT POSSIBLE, C'EST TELEGRAM, ET RIEN D'AUTRE.
+       L'alerte part de « nouvelle-demande », déclenchée par le serveur à
+       l'écriture de la ligne — donc indépendante du navigateur du
+       comptoir, et même de WhatsApp. Elle tourne depuis le 11 septembre
+       2026. La règle écrite jusqu'ici (« ne pas supprimer l'ouverture
+       automatique avant que le webhook Telegram fonctionne ») est donc
+       remplie : c'est exactement le jour où on la retire.
+       ELLE RESTE EN PLACE POUR LE CLIENT, qui n'a pas de Telegram et dont
+       le message est encore le second chemin vers Barbaros.
+
+       LE BOUTON DU BON RESTE, et ce n'est pas un vestige : si le dépôt
+       échoue, il redevient le SEUL chemin par lequel la demande peut nous
+       parvenir. Il ne part simplement plus tout seul. */
+    if(!recHotel){
+      window.open("https://wa.me/" + NUMERO_WA + "?text="
+                  + encodeURIComponent(messageDemande(bonCourant)), "_blank");
+    }
     try{
       var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
       deja.unshift(bonCourant);
@@ -8039,7 +8263,15 @@ window.ELA_TEXTES = {
      que ce client-là est justement celui qu'on prévient sur WhatsApp. */
   function jugerBlocNotif(){
     var bloc = document.getElementById("blocNotif");
-    bloc.hidden = envoiEtat !== true;
+    /* ═══ JAMAIS AU COMPTOIR ═══
+       Ce bloc s'adresse au client : il promet la confirmation sur SON
+       WhatsApp et propose une notification sur SON téléphone. À une
+       réception, les deux sont faux — le numéro affiché serait celui d'un
+       client qui n'a pas la tablette en main, et l'abonnement push
+       resterait posé sur un appareil partagé, à sonner pour la course de
+       quelqu'un d'autre à chaque fois. La réception suit ses courses dans
+       sa propre liste ; c'est là qu'elle voit l'état changer. */
+    bloc.hidden = envoiEtat !== true || !!recHotel;
     if(bloc.hidden) return;
 
     /* LE NUMÉRO EST CELUI QU'IL VIENT D'ÉCRIRE, relu sur le bon. L'afficher
