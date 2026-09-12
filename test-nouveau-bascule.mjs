@@ -162,13 +162,13 @@ for(const mort of ['nouveau.html','ancien.html','styles.css']){
    main, parce qu'un écran qu'aucun lien n'ouvre n'est pas accessible. */
 await p.locator('.pied-lien').click();
 await p.waitForTimeout(300);
-const docs = await p.locator('[data-doc]').allTextContents();
+const docs = await p.locator('#ecran-contact [data-doc]').allTextContents();
 check('les trois documents s\'atteignent depuis le pied de l\'accueil',
   docs.length===3, docs.join(' | '));
 check('ils sont accessibles sans compte ni mode exploitant',
-  await p.locator('[data-doc="cgv"]').isVisible());
+  await p.locator('#ecran-contact [data-doc="cgv"]').isVisible());
 
-await p.locator('[data-doc="cgv"]').click();
+await p.locator('#ecran-contact [data-doc="cgv"]').click();
 await p.waitForTimeout(300);
 const cgv = await p.locator('#legalCorps').textContent();
 check('les CGV s\'ouvrent', await p.locator('#ecran-legal').isVisible());
@@ -215,6 +215,21 @@ check('aucun « [À compléter] » nulle part, dans les deux langues',
 check('aucun médiateur inventé', !/médiateur de la consommation suivant|mediator:/i.test(cgv));
 check('mais la voie de réclamation reste écrite',
   /contact@elatransfer\.com/.test(cgv) && /réclamation/i.test(cgv));
+
+/* LA CONFIDENTIALITÉ DÉCRIT LES FLUX RÉELS. Un nom de prestataire absent
+   empêche le client de comprendre où part son adresse ; un bandeau cookies
+   annoncé mais inexistant est tout aussi faux. */
+const privacy = await p.evaluate(()=>window.ELA_TEXTES.fr.legal_privacy_body);
+check('la politique nomme les prestataires réellement utilisés',
+  ['Supabase','Base Adresse Nationale','Photon','OpenRouteService','OSRM',
+   'WhatsApp','GitHub','Google Fonts'].every(n=>privacy.includes(n)));
+check('elle explique le stockage local des réservations',
+  /stockage local du navigateur/.test(privacy) && /historique des demandes/.test(privacy));
+check('elle ne prétend plus déposer des cookies marketing',
+  /n.active aucun outil de mesure d.audience publicitaire ou marketing/i.test(privacy)
+  && !/cookies statistiques et marketing, uniquement/i.test(privacy));
+check('elle précise qu.aucune donnée bancaire n.est collectée',
+  /aucune donnée de carte bancaire/i.test(privacy));
 
 // Un document se lit sur 390 px sans partir de côté.
 check('le document ne déborde pas en largeur',

@@ -4,9 +4,8 @@
    Trois choses y sont verrouillées, et chacune l'est parce qu'elle
    coûterait cher si elle cassait :
 
-   1. LA TVA EST INCLUSE, pas ajoutée. La calculer sur le TTC donnerait
-      6,00 € au lieu de 5,45 € sur une course à 60,00 €, et le prix HT
-      annoncé serait faux.
+   1. LE CLIENT NE VOIT QU'UN TOTAL À RÉGLER AU CHAUFFEUR. Le site
+      intermédiaire n'affiche ni prix HT ni TVA au nom du chauffeur.
 
    2. RIEN NE PART SANS NOM NI TÉLÉPHONE. Une demande anonyme est une
       course que le chauffeur ne peut pas honorer.
@@ -71,14 +70,20 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(400);
 
 check('récapitulatif atteint', await p.locator('#ecran-recap').isVisible());
-const ht = await p.locator('#recapHT').textContent();
-const tva = await p.locator('#recapTVA').textContent();
+check('les CGV et la confidentialité sont visibles avant l\'envoi',
+  await p.locator('.acceptation-legale').isVisible()
+  && (await p.locator('.acceptation-legale [data-doc]').count()) === 2);
+await p.locator('.acceptation-legale [data-doc="cgv"]').click();
+check('les CGV s\'ouvrent depuis le récapitulatif',
+  await p.locator('#ecran-legal').isVisible());
+await p.locator('#btnRetourLegal').click();
+check('le retour aux CGV conserve le récapitulatif',
+  await p.locator('#ecran-recap').isVisible());
 const tot = await p.locator('#recapTotal').textContent();
-// 60 € TTC → HT 54,55 et TVA 5,45. La TVA est INCLUSE, pas ajoutée : le
-// total arrondi à la dizaine est le prix payé, on en retire la TVA.
-check('la TVA est retirée du TTC, pas ajoutée',
-  ht.replace(/\s/g,'')==='54,55€' && tva.replace(/\s/g,'')==='5,45€', ht+' / '+tva);
-check('le total est celui de l\'écran des prix', tot.replace(/\s/g,'')==='60,00€', tot);
+check('aucun détail HT ou TVA n’est affiché par l’intermédiaire',
+  (await p.locator('#recapHT').count())===0 && (await p.locator('#recapTVA').count())===0);
+check('le total à régler au chauffeur est celui de l\'écran des prix',
+  tot.replace(/\s/g,'')==='60,00€', tot);
 
 // Sans coordonnées, rien ne part.
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(300);
