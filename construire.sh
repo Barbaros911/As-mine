@@ -15,6 +15,18 @@ node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 # On conserve cette application sous une adresse dédiée avant de publier la
 # nouvelle façade validée à la racine du domaine.
 mv site/index.html site/application.html
+cp application-role-theme.css site/
+# Le thème externe ne touche pas à la logique métier : il ne fait que finir
+# les quatre rôles réels (client, hôtel, réception, exploitant).
+python3 - <<'PY'
+from pathlib import Path
+p = Path('site/application.html')
+s = p.read_text(encoding='utf-8')
+link = '<link rel="stylesheet" href="application-role-theme.css">'
+if link not in s:
+    s = s.replace('</head>', link + '\n</head>', 1)
+p.write_text(s, encoding='utf-8')
+PY
 cp sites/ela-public/index.html site/index.html
 
 cp manifest-exploitant.webmanifest site/
@@ -28,7 +40,7 @@ touch site/.nojekyll
 
 # Sites vitrines et aperçus séparés.
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
+  reserves="index.html application.html application-role-theme.css admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
