@@ -70,6 +70,15 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(400);
 
 check('récapitulatif atteint', await p.locator('#ecran-recap').isVisible());
+check('les CGV et la confidentialité sont visibles avant l\'envoi',
+  await p.locator('.acceptation-legale').isVisible()
+  && (await p.locator('.acceptation-legale [data-doc]').count()) === 2);
+await p.locator('.acceptation-legale [data-doc="cgv"]').click();
+check('les CGV s\'ouvrent depuis le récapitulatif',
+  await p.locator('#ecran-legal').isVisible());
+await p.locator('#btnRetourLegal').click();
+check('le retour aux CGV conserve le récapitulatif',
+  await p.locator('#ecran-recap').isVisible());
 const tot = await p.locator('#recapTotal').textContent();
 check('aucun détail HT ou TVA n’est affiché par l’intermédiaire',
   (await p.locator('#recapHT').count())===0 && (await p.locator('#recapTVA').count())===0);
