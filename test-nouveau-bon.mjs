@@ -5,7 +5,7 @@
    coûterait cher si elle cassait :
 
    1. LE CLIENT NE VOIT QU'UN TOTAL À RÉGLER AU CHAUFFEUR. Le site
-      intermédiaire n'affiche ni prix HT ni TVA au Gartnom du chauffeur.
+      intermédiaire n'affiche ni prix HT ni TVA au nom du chauffeur.
 
    2. RIEN NE PART SANS NOM NI TÉLÉPHONE. Une demande anonyme est une
       course que le chauffeur ne peut pas honorer.
