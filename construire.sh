@@ -26,6 +26,12 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
+# Les règles easyHotel sont appliquées SUR LA COPIE PUBLIÉE, jamais sur la
+# structure ni le style de la page source : le rendu validé reste intact.
+# Le script échoue volontairement si une ancre attendue disparaît, plutôt que
+# de publier silencieusement une ancienne grille.
+node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
+
 # LE MANIFESTE DE L'ESPACE EXPLOITANT. Sans lui, une icône posée sur l'écran
 # d'accueil depuis « ?exploitant=1 » rouvrirait le SITE CLIENT : le manifeste
 # ordinaire déclare « start_url: ./ », et c'est lui que le téléphone lit.
