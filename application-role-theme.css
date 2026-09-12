@@ -1,0 +1,111 @@
+/* ELA Transfer — finition fonctionnelle des 4 rôles
+   Chargée uniquement sur application.html après la construction.
+   Objectif : rapprocher l'application réelle des maquettes validées sans
+   dupliquer ni casser la logique métier existante. */
+
+:root{
+  --ela-navy:#082f52;
+  --ela-navy-2:#041f38;
+  --ela-blue:#1fb8ef;
+  --ela-blue-soft:#e9f7fd;
+  --ela-orange:#ff5a0a;
+  --ela-orange-soft:#fff3eb;
+  --ela-bg:#f5f8fb;
+  --ela-line:#dfe8ef;
+  --ela-shadow:0 12px 34px rgba(8,47,82,.10);
+}
+
+/* Base commune : plus nette sur desktop, toujours mobile-first. */
+body{background:var(--ela-bg)!important;}
+.page{width:100%;max-width:1180px!important;margin:0 auto!important;background:#fff;}
+.entete{background:linear-gradient(135deg,var(--ela-navy-2),var(--ela-navy))!important;}
+.bouton{border-radius:12px!important;box-shadow:0 8px 18px rgba(8,47,82,.14);}
+.bouton-fantome{border-radius:12px!important;}
+.bloc,.carte,.panel{box-shadow:var(--ela-shadow);}
+
+/* CLIENT : garder l'identité ELA et donner de l'air à l'application réelle. */
+body:not(.hotel):not(.reception):not(.espace) .page{max-width:760px!important;}
+body:not(.hotel):not(.reception):not(.espace) .hero{border-radius:0 0 24px 24px;}
+body:not(.hotel):not(.reception):not(.espace) .hero-contenu{padding-left:clamp(20px,5vw,42px);padding-right:clamp(20px,5vw,42px);}
+body:not(.hotel):not(.reception):not(.espace) .formulaire,
+body:not(.hotel):not(.reception):not(.espace) .bloc{border-radius:16px!important;}
+
+/* CLIENT HOTEL : orange limité à la collaboration easyHotel, ELA reste bleu. */
+body.hotel{
+  --accent:var(--ela-orange)!important;
+  --accent-vif:#ff7a27!important;
+  --accent-clair:var(--ela-orange-soft)!important;
+  --accent-encre:#a63a00!important;
+  background:#fff8f3!important;
+}
+body.hotel .page{max-width:1180px!important;background:#fff;}
+body.hotel .entete{background:linear-gradient(90deg,#ff5a0a,#ff741f)!important;}
+body.hotel .logo-nom i{color:#d8f5ff!important;}
+body.hotel .hero{min-height:360px;border-radius:0 0 26px 26px;}
+body.hotel .formulaire,body.hotel .bloc{border-radius:15px!important;}
+body.hotel #btnVoirPrix,body.hotel .bouton{background:var(--ela-orange)!important;color:#fff!important;}
+body.hotel .prix,body.hotel .hotel-prix{color:var(--ela-orange)!important;}
+
+/* RECEPTION : outil de comptoir, pas landing marketing. */
+body.reception{background:#f7f9fb!important;}
+body.reception .page{max-width:1260px!important;}
+body.reception .hero{display:none!important;}
+body.reception .entete{position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(0,0,0,.08);}
+body.reception #ecran-reception{padding:18px clamp(14px,3vw,34px) 34px!important;}
+body.reception .rec-course,
+body.reception .rec-carte,
+body.reception .bloc{border-radius:14px!important;border-color:var(--ela-line)!important;box-shadow:0 7px 18px rgba(8,47,82,.06);}
+body.reception .rec-jour{font-size:14px!important;letter-spacing:.02em;}
+body.reception .rec-prix{font-size:21px!important;font-weight:800!important;white-space:nowrap;}
+body.reception #btnReception,body.reception #btnRecEntrer{min-height:48px;}
+
+/* ADMIN / EXPLOITANT : véritable back-office sur desktop. */
+body.espace{background:var(--ela-bg)!important;}
+body.espace .page{max-width:none!important;margin:0!important;background:transparent!important;}
+body.espace .admin-nav{background:linear-gradient(180deg,var(--ela-navy),var(--ela-navy-2))!important;}
+body.espace .admin-lien{border-radius:10px!important;}
+body.espace .admin-lien.actif{background:var(--ela-blue)!important;border-color:var(--ela-blue)!important;}
+body.espace .kpi,body.espace .admin-panneau,body.espace .bloc{border-radius:14px!important;border-color:var(--ela-line)!important;box-shadow:0 8px 22px rgba(8,47,82,.07);}
+body.espace .admin-point.ok,body.espace .admin-etat.ok .admin-point{background:#24b276!important;}
+body.espace .arrivee-avis{background:var(--ela-blue)!important;}
+
+/* Desktop : transformer les trois outils réels en vraies interfaces bureau. */
+@media (min-width:900px){
+  body{padding-bottom:0!important;}
+  body:not(.hotel):not(.reception):not(.espace) .page{max-width:1000px!important;}
+  body.hotel .page{max-width:1280px!important;}
+  body.hotel .hotel-ecran,body.hotel #ecran-hotel{padding-left:42px!important;padding-right:42px!important;}
+
+  body.reception .page{display:block;max-width:1280px!important;}
+  body.reception #ecran-reception{max-width:1220px;margin:0 auto;}
+  body.reception .rec-liste{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+
+  body.espace .page{display:grid!important;grid-template-columns:230px minmax(0,1fr);min-height:100vh;}
+  body.espace .admin-nav{display:flex!important;flex-direction:column;position:sticky;top:0;height:100vh;padding:22px 14px!important;}
+  body.espace .admin-profil{padding:4px 10px 18px!important;}
+  body.espace .admin-liens{display:flex!important;flex-direction:column;overflow:visible!important;padding:0!important;gap:5px!important;}
+  body.espace .admin-lien{width:100%;justify-content:flex-start;min-height:42px;}
+  body.espace .admin-aide{display:block!important;margin-top:auto;}
+  body.espace .ecran,body.espace #ecran-exploitant{max-width:1220px!important;width:100%;padding:22px 28px 34px!important;margin:0!important;}
+  body.espace .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin-left:0!important;margin-right:0!important;}
+  body.espace .admin-tete{margin-left:0!important;margin-right:0!important;}
+}
+
+/* Téléphone : aucune mini version desktop comprimée. */
+@media (max-width:899px){
+  .page{max-width:100%!important;}
+  .entete{padding-left:16px!important;padding-right:16px!important;}
+  .bouton,.bouton-fantome{min-height:48px;}
+  body.hotel .hero{min-height:250px;}
+  body.reception #ecran-reception{padding:12px 12px 28px!important;}
+  body.reception .rec-course{padding:14px!important;}
+  body.espace .admin-liens{scroll-snap-type:x proximity;}
+  body.espace .admin-lien{scroll-snap-align:start;min-height:42px;}
+  body.espace .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+}
+
+@media (max-width:520px){
+  body.hotel .hero{min-height:210px;}
+  body.reception .rec-prix{font-size:19px!important;}
+  body.espace .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
