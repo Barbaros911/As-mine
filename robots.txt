@@ -2,13 +2,10 @@ User-agent: *
 Allow: /
 
 # LA GRILLE D'UN HÔTEL PARTENAIRE N'EST PAS UN TARIF PUBLIC.
-# « ?h=<hôtel> » ouvre l'écran partenaire avec des forfaits négociés.
-# Elle reste hors index, y compris via son URL propre /hotel/.
 Disallow: /*?h=
 Disallow: /hotel/
 
 # L'ESPACE RÉCEPTION CONTIENT DES DONNÉES OPÉRATIONNELLES ET CLIENTS.
-# Il ne doit jamais apparaître dans un moteur de recherche.
 Disallow: /*?reception=
 Disallow: /reception/
 
@@ -16,5 +13,6 @@ Disallow: /reception/
 Disallow: /exploitant/
 Disallow: /admin.html
 Disallow: /client/
+Disallow: /application.html
 
 Sitemap: https://elatransfer.com/sitemap.xml
