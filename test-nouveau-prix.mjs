@@ -64,16 +64,18 @@ check('aucune image de voiture — ni dessin, ni emoji',
   && !/[\u{1F680}-\u{1F6FF}]/u.test(await p.locator('.veh-liste').innerText()));
 const prix = await p.locator('.veh-prix').allTextContents();
 check('un prix par gamme', prix.length===2, prix.join(' | '));
-// 24,3 km : berline = 2,95 × 24,3 = 71,69 € → arrondi à la dizaine = 70 €.
-//           van     = 4,20 × 24,3 = 102,06 € → 100 €.
+// 24,3 km : berline = 2,65 × 24,3 = 64,40 € → arrondi à la dizaine = 60 €.
+//           van     = 4,00 × 24,3 = 97,20 € → 100 €.
 // Plus de prise en charge : le prix n'est qu'un kilométrage.
-check('le prix suit la grille', prix[0].replace(/\s/g,'')==='70,00€', prix[0]);
+check('le prix suit la grille', prix[0].replace(/\s/g,'')==='60,00€', prix[0]);
 check('le van suit la sienne', prix[1].replace(/\s/g,'')==='100,00€', prix[1]);
 check('un prix rond, jamais de centimes',
   prix.every(x=>/^\d+,00\s*€$/.test(x.trim())), prix.join(' | '));
 check('la mesure est affichée', (await p.locator('#resumeMesure').textContent()).includes('24,3'),
       await p.locator('#resumeMesure').textContent());
-check('pas de majoration un mardi à 10 h', await p.locator('#noteNuit').isHidden());
+check('aucune mention publique de majoration',
+  (await p.locator('#noteNuit').count())===0
+  && !/majoration nuit|night and weekend surcharge/i.test(await p.locator('body').innerText()));
 check('le bouton attend un choix', await p.locator('#btnContinuer').isDisabled());
 
 await p.locator('.veh-carte').first().click();
@@ -83,7 +85,18 @@ check('le bouton se nomme après le choix',
   await p.locator('#libelleContinuer').textContent());
 check('le bouton est actif', !(await p.locator('#btnContinuer').isDisabled()));
 
-// Six passagers : seuls les deux vans restent
+// Même prix à 23 h : la période est repérée en interne, sans majoration client.
+await p.locator('#btnRetourAccueil').click();
+await p.waitForTimeout(300);
+await p.fill('#heure','23:00');
+await p.locator('#btnVoirPrix').click();
+await p.waitForTimeout(1000);
+const prixNuit = await p.locator('.veh-prix').allTextContents();
+check('aucune majoration du prix à 23 h',
+  prixNuit[0].replace(/\s/g,'')==='60,00€'
+  && prixNuit[1].replace(/\s/g,'')==='100,00€', prixNuit.join(' | '));
+
+// Six passagers : seul le van reste
 await p.locator('#btnRetourAccueil').click();
 await p.waitForTimeout(300);
 await p.fill('#passagers','6');
