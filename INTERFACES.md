@@ -1,6 +1,6 @@
 # Elatransfer — 4 interfaces
 
-Objectif : conserver une seule logique métier dans `index.html` tout en donnant quatre portes d'entrée claires.
+Objectif : conserver une seule logique métier dans `index.html` tout en donnant quatre portes d'entrée claires et un rendu réellement adapté à chaque rôle.
 
 1. Client public : `/` — réservation grand public.
 2. Landing hôtel : `/?h=easyhotel-aeroville` — page client dédiée au partenaire avec ses tarifs de départ.
@@ -18,7 +18,8 @@ Principes : mobile d'abord, aucune duplication de la logique de réservation, r�
 - WhatsApp et téléphone accessibles sans polluer le parcours.
 
 ### Landing hôtel
-- Nom du partenaire et départ prérempli.
+- Nom du partenaire : **easyHotel Aeroville**.
+- Départ prérempli.
 - Tarifs négociés visibles immédiatement.
 - CTA unique : réserver.
 - Aucun accès aux données de la réception.
@@ -34,7 +35,14 @@ Principes : mobile d'abord, aucune duplication de la logique de réservation, r�
 - Statuts lisibles : attente, prise en charge, confirmée, terminée/annulée.
 - Création manuelle de course et affectation chauffeur.
 - Vue mobile exploitable comme une application.
+- Aucune donnée fictive décorative.
 
 ## Architecture
 
-Les quatre interfaces restent des modes du même `index.html`. Cela évite quatre versions du moteur de réservation qui divergeraient. Cloudflare servira ensuite à renforcer les en-têtes de sécurité, les routes et les fonctions serveur sans changer cette séparation fonctionnelle.
+Les quatre interfaces restent des modes du même moteur. La façade publique vit dans `sites/ela-public/index.html`; l'application complète est publiée en `application.html` par `construire.sh`.
+
+`application-role-theme.css` est injecté au build sur l'application réelle afin de rapprocher les quatre rôles des maquettes validées sans toucher aux calculs, au stockage, aux statuts ni aux appels serveur.
+
+Cloudflare servira ensuite à renforcer les en-têtes de sécurité, les routes et les fonctions serveur sans changer cette séparation fonctionnelle.
+
+Voir `AUDIT-4-ROLES.md` pour le contrôle utilisateur avant fusion.
