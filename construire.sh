@@ -34,6 +34,22 @@ cp site/index.html site/application.html
 cp manifest-exploitant.webmanifest site/
 cp -r exploitant site/exploitant
 cp -r carte site/carte
+[ -d paris ] && cp -r paris site/paris
+
+# Finition fonctionnelle du module Visiter Paris : durées continues de 3 à 10 h
+# et règle claire de comptage depuis la prise en charge jusqu'à l'arrivée finale.
+if [ -f site/paris/index.html ] && [ -f site/paris/enhancements.js ]; then
+python3 - <<'PY'
+from pathlib import Path
+p = Path('site/paris/index.html')
+s = p.read_text(encoding='utf-8')
+tag = '<script src="enhancements.js"></script>'
+if tag not in s:
+    s = s.replace('</body>', tag + '\n</body>', 1)
+p.write_text(s, encoding='utf-8')
+PY
+fi
+
 cp CNAME site/
 [ -f _headers ] && cp _headers site/ || true
 [ -d photos ] && cp -r photos site/photos || true
@@ -43,7 +59,7 @@ touch site/.nojekyll
 # Sites vitrines et aperçus séparés : les maquettes restent consultables dans
 # leurs sous-dossiers mais ne remplacent jamais la vraie page d'accueil.
 if [ -d sites ]; then
-  reserves="index.html application.html application-role-theme.css admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
+  reserves="index.html application.html application-role-theme.css admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant paris"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
