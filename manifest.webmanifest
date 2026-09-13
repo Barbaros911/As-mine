@@ -3,6 +3,7 @@
   "short_name": "ELA Transfer",
   "description": "Chauffeur privé à Paris et en Île-de-France. Transferts aéroports, hôtels, gares et trajets sur réservation.",
   "lang": "fr",
+  "id": "/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
