@@ -1,15 +1,15 @@
 {
-  "name": "Elatransfer — Chauffeur privé",
-  "short_name": "Elatransfer",
-  "description": "Chauffeur privé haut de gamme à Paris et en Île-de-France.",
+  "name": "ELA Transfer — Chauffeur privé",
+  "short_name": "ELA Transfer",
+  "description": "Chauffeur privé à Paris et en Île-de-France. Transferts aéroports, hôtels, gares et trajets sur réservation.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F4F6F5",
-  "theme_color": "#16232B",
-  "categories": ["travel", "business"],
+  "background_color": "#FFFFFF",
+  "theme_color": "#0B2F63",
+  "categories": ["travel", "business", "transportation"],
   "icons": [
     {
       "src": "icon.svg",
