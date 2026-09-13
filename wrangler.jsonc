@@ -16,6 +16,7 @@
   // =====================================================================
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "as-mine",
+  "account_id": "8715d0a9a9a16a3eddd7869a97625102",
   "compatibility_date": "2026-09-04",
 
   "assets": {
