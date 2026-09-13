@@ -1,99 +1,15 @@
-/* ELA Transfer — finition fonctionnelle des 4 rôles */
-:root{--ela-navy:#082f52;--ela-navy-2:#041f38;--ela-blue:#1fb8ef;--ela-blue-dark:#1188bb;--ela-blue-soft:#e9f7fd;--ela-orange:#ff5a0a;--ela-orange-dark:#d94700;--ela-orange-soft:#fff3eb;--ela-bg:#f5f8fb;--ela-line:#dfe8ef;--ela-text:#17324a;--ela-muted:#718092;--ela-shadow:0 12px 34px rgba(8,47,82,.10);--ela-shadow-lg:0 22px 55px rgba(8,47,82,.14)}
-*{scrollbar-color:#b9c9d5 transparent}
-body{background:var(--ela-bg)!important;color:var(--ela-text)}
-.page{width:100%;max-width:1180px!important;margin:0 auto!important;background:#fff}
-.entete{background:linear-gradient(135deg,var(--ela-navy-2),var(--ela-navy))!important;box-shadow:0 6px 22px rgba(4,31,56,.14)}
-.bouton,.bouton-fantome,input,select,textarea,button{font-family:inherit}
-.bouton{border-radius:12px!important;box-shadow:0 8px 18px rgba(8,47,82,.14);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
-.bouton:hover{transform:translateY(-1px);box-shadow:0 11px 24px rgba(8,47,82,.17)}
-.bouton:active{transform:translateY(0)}
-.bouton-fantome{border-radius:12px!important}
-.bloc,.carte,.panel{box-shadow:var(--ela-shadow)}
-input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(31,184,239,.28)!important;outline-offset:2px}
-
-/* CLIENT PUBLIC */
-body:not(.hotel):not(.reception):not(.espace) .page{max-width:760px!important}
-body:not(.hotel):not(.reception):not(.espace) .hero{border-radius:0 0 24px 24px;overflow:hidden}
-body:not(.hotel):not(.reception):not(.espace) .hero-contenu{padding-left:clamp(20px,5vw,42px);padding-right:clamp(20px,5vw,42px)}
-body:not(.hotel):not(.reception):not(.espace) .formulaire,body:not(.hotel):not(.reception):not(.espace) .bloc{border-radius:16px!important}
-body:not(.hotel):not(.reception):not(.espace) #btnVoirPrix{background:linear-gradient(120deg,var(--ela-blue),var(--ela-blue-dark))!important;color:#fff!important}
-
-/* CLIENT EASYHOTEL AEROVILLE */
-body.hotel{--accent:var(--ela-orange)!important;--accent-vif:#ff7a27!important;--accent-clair:var(--ela-orange-soft)!important;--accent-encre:#a63a00!important;background:#fff8f3!important}
-body.hotel .page{max-width:1180px!important;background:#fff}
-body.hotel .entete{background:linear-gradient(90deg,#ff5a0a,#ff741f)!important}
-body.hotel .logo-nom i{color:#d8f5ff!important}
-body.hotel .hero{min-height:360px;border-radius:0 0 26px 26px;overflow:hidden}
-body.hotel .formulaire,body.hotel .bloc{border-radius:15px!important}
-body.hotel #btnVoirPrix,body.hotel .bouton{background:linear-gradient(120deg,var(--ela-orange),#ff7420)!important;color:#fff!important}
-body.hotel .prix,body.hotel .hotel-prix{color:var(--ela-orange-dark)!important}
-body.hotel .hotel-tarif,body.hotel .hotel-destination{transition:transform .14s ease,box-shadow .14s ease}
-body.hotel .hotel-tarif:hover,body.hotel .hotel-destination:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(158,60,7,.10)}
-
-/* RECEPTION EASYHOTEL AEROVILLE */
-body.reception{background:#f7f9fb!important}
-body.reception .page{max-width:1260px!important}
-body.reception .hero{display:none!important}
-body.reception .entete{position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(0,0,0,.08)}
-body.reception #ecran-reception{padding:18px clamp(14px,3vw,34px) 34px!important}
-body.reception .rec-course,body.reception .rec-carte,body.reception .bloc{border-radius:14px!important;border-color:var(--ela-line)!important;box-shadow:0 7px 18px rgba(8,47,82,.06)}
-body.reception .rec-course{background:#fff!important}
-body.reception .rec-jour{font-size:14px!important;letter-spacing:.02em}
-body.reception .rec-prix{font-size:21px!important;font-weight:800!important;white-space:nowrap}
-body.reception #btnReception,body.reception #btnRecEntrer{min-height:48px}
-body.reception .rec-etat{font-weight:700!important}
-
-/* ADMIN / EXPLOITANT */
-body.espace{background:var(--ela-bg)!important}
-body.espace .page{max-width:none!important;margin:0!important;background:transparent!important}
-body.espace .admin-nav{background:linear-gradient(180deg,var(--ela-navy),var(--ela-navy-2))!important}
-body.espace .admin-lien{border-radius:10px!important;transition:.14s background,.14s transform}
-body.espace .admin-lien:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
-body.espace .admin-lien.actif{background:var(--ela-blue)!important;border-color:var(--ela-blue)!important}
-body.espace .kpi,body.espace .admin-panneau,body.espace .bloc{border-radius:14px!important;border-color:var(--ela-line)!important;box-shadow:0 8px 22px rgba(8,47,82,.07)}
-body.espace .admin-point.ok,body.espace .admin-etat.ok .admin-point{background:#24b276!important}
-body.espace .arrivee-avis{background:var(--ela-blue)!important}
-body.espace .admin-tete{align-items:center!important}
-
-@media (min-width:900px){
- body{padding-bottom:0!important}
- body:not(.hotel):not(.reception):not(.espace) .page{max-width:1000px!important}
- body:not(.hotel):not(.reception):not(.espace) .hero{min-height:360px}
- body.hotel .page{max-width:1280px!important}
- body.hotel .hotel-ecran,body.hotel #ecran-hotel{padding-left:42px!important;padding-right:42px!important}
- body.reception .page{display:block;max-width:1280px!important}
- body.reception #ecran-reception{max-width:1220px;margin:0 auto}
- body.reception .rec-liste{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
- body.espace .page{display:grid!important;grid-template-columns:230px minmax(0,1fr);min-height:100vh}
- body.espace .admin-nav{display:flex!important;flex-direction:column;position:sticky;top:0;height:100vh;padding:22px 14px!important}
- body.espace .admin-profil{padding:4px 10px 18px!important}
- body.espace .admin-liens{display:flex!important;flex-direction:column;overflow:visible!important;padding:0!important;gap:5px!important}
- body.espace .admin-lien{width:100%;justify-content:flex-start;min-height:42px}
- body.espace .admin-aide{display:block!important;margin-top:auto}
- body.espace .ecran,body.espace #ecran-exploitant{max-width:1220px!important;width:100%;padding:22px 28px 34px!important;margin:0!important}
- body.espace .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin-left:0!important;margin-right:0!important}
- body.espace .admin-tete{margin-left:0!important;margin-right:0!important}
-}
-
-@media (max-width:899px){
- .page{max-width:100%!important}
- .entete{padding-left:16px!important;padding-right:16px!important;position:relative}
- .bouton,.bouton-fantome{min-height:48px}
- body.hotel .hero{min-height:250px}
- body.reception #ecran-reception{padding:12px 12px 28px!important}
- body.reception .rec-course{padding:14px!important}
- body.espace .admin-liens{scroll-snap-type:x proximity;padding-bottom:10px!important}
- body.espace .admin-lien{scroll-snap-align:start;min-height:44px}
- body.espace .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
- body.espace .admin-tete{align-items:flex-start!important}
-}
-
-@media (max-width:520px){
- body.hotel .hero{min-height:210px}
- body.hotel .hotel-ecran,body.hotel #ecran-hotel{padding-left:12px!important;padding-right:12px!important}
- body.reception .rec-prix{font-size:19px!important}
- body.espace .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
- body.espace .kpi{padding:10px 8px!important}
- body.espace .admin-date{font-size:10px!important;padding:7px 8px!important}
-}
+/* ELA Transfer — finition des 4 rôles, cible visuelle validée */
+:root{--ela-navy:#07365f;--ela-navy-2:#032743;--ela-blue:#16b9f2;--ela-orange:#ff5a0a;--ela-bg:#f4f8fb;--ela-line:#dce7ef;--ela-text:#102f4b;--ela-shadow:0 12px 32px rgba(4,43,76,.11)}
+*{box-sizing:border-box}body{background:var(--ela-bg)!important;color:var(--ela-text)}.page{width:100%;margin:0 auto!important;background:#fff}.entete{box-shadow:0 5px 18px rgba(4,35,61,.13)}.bouton{border-radius:8px!important;font-weight:800!important}.bloc,.carte,.panel{border-color:var(--ela-line)!important;box-shadow:var(--ela-shadow)}input,select,textarea{border-radius:7px!important}input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(22,185,242,.25)!important;outline-offset:2px}
+/* 1 — CLIENT PRINCIPAL : bleu ELA, grand hero photo, moteur immédiatement visible */
+body:not(.hotel):not(.reception):not(.espace){background:#eef5fa!important}body:not(.hotel):not(.reception):not(.espace) .page{max-width:1180px!important}body:not(.hotel):not(.reception):not(.espace) .entete{background:#fff!important;color:var(--ela-navy)!important}body:not(.hotel):not(.reception):not(.espace) .hero{min-height:430px;border-radius:0 0 20px 20px;overflow:hidden}body:not(.hotel):not(.reception):not(.espace) .hero-contenu{padding-left:clamp(28px,5vw,58px);padding-right:clamp(28px,5vw,58px)}body:not(.hotel):not(.reception):not(.espace) #btnVoirPrix,body:not(.hotel):not(.reception):not(.espace) .bouton{background:linear-gradient(120deg,#108fd0,#0877bd)!important;color:#fff!important}
+/* 2 — CLIENT EASYHOTEL AEROVILLE : partenariat orange + ELA, tarifs au premier écran */
+body.hotel{--accent:var(--ela-orange)!important;--accent-vif:#ff782b!important;--accent-clair:#fff0e7!important;--accent-encre:#9b3500!important;background:#fff7f1!important}body.hotel .page{max-width:1280px!important}body.hotel .entete{background:linear-gradient(90deg,#ff5a0a 0,#ff6b13 38%,#fff 38%,#fff 100%)!important}body.hotel .hero{min-height:405px;border-radius:0 0 18px 18px;overflow:hidden}body.hotel #btnVoirPrix,body.hotel .bouton{background:var(--ela-orange)!important;color:#fff!important}body.hotel .prix,body.hotel .hotel-prix{color:#e64b00!important}body.hotel .hotel-tarif,body.hotel .hotel-destination{border-radius:8px!important;overflow:hidden;box-shadow:0 5px 15px rgba(96,47,17,.08)}
+/* 3 — RECEPTION : vrai outil de comptoir comme la référence */
+body.reception{background:#edf3f7!important}body.reception .page{max-width:1280px!important;min-height:100vh}body.reception .hero{display:none!important}body.reception .entete{position:sticky;top:0;z-index:30;background:#fff!important;color:var(--ela-navy)!important;border-bottom:1px solid var(--ela-line)}body.reception #ecran-reception{max-width:1220px;margin:auto;padding:22px 28px 38px!important}body.reception .rec-course,body.reception .rec-carte,body.reception .bloc{background:#fff!important;border-radius:9px!important;border-color:var(--ela-line)!important;box-shadow:0 6px 18px rgba(8,47,82,.06)}body.reception #btnReception,body.reception #btnRecEntrer,body.reception .bouton{background:var(--ela-orange)!important;color:#fff!important;min-height:48px}body.reception .rec-prix{color:#e64b00!important;font-size:21px!important;font-weight:800!important}
+/* 4 — ADMIN : sidebar marine, dashboard dense et lisible */
+body.espace{background:#eef4f8!important}body.espace .page{max-width:none!important;margin:0!important;background:transparent!important}body.espace .admin-nav{background:linear-gradient(180deg,#07365f,#032743)!important;color:#fff!important}body.espace .admin-lien{border-radius:6px!important}body.espace .admin-lien.actif{background:#0d91d2!important;border-color:#0d91d2!important}body.espace .kpi,body.espace .admin-panneau,body.espace .bloc{background:#fff!important;border-radius:8px!important;border-color:var(--ela-line)!important;box-shadow:0 6px 18px rgba(8,47,82,.06)}body.espace .arrivee-avis{background:#0d91d2!important}
+@media(min-width:900px){body{padding-bottom:0!important}body:not(.hotel):not(.reception):not(.espace) .page{max-width:1280px!important}body.hotel .hotel-ecran,body.hotel #ecran-hotel{padding-left:34px!important;padding-right:34px!important}body.reception .rec-liste{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}body.espace .page{display:grid!important;grid-template-columns:220px minmax(0,1fr);min-height:100vh}body.espace .admin-nav{display:flex!important;flex-direction:column;position:sticky;top:0;height:100vh;padding:18px 12px!important}body.espace .admin-liens{display:flex!important;flex-direction:column!important;gap:4px!important;overflow:visible!important}body.espace .admin-lien{width:100%;justify-content:flex-start;min-height:40px}body.espace .admin-aide{display:block!important;margin-top:auto}body.espace .ecran,body.espace #ecran-exploitant{max-width:1280px!important;width:100%;padding:20px 24px 32px!important;margin:0!important}body.espace .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}}
+/* MOBILE : adaptation dédiée, pas desktop rétréci */
+@media(max-width:899px){.page{max-width:100%!important}.entete{padding:10px 14px!important}.bouton,.bouton-fantome{min-height:46px}body:not(.hotel):not(.reception):not(.espace) .hero{min-height:285px;border-radius:0}body:not(.hotel):not(.reception):not(.espace) .hero-contenu{padding:22px 16px!important}body.hotel .entete{background:var(--ela-orange)!important;color:#fff!important}body.hotel .hero{min-height:260px;border-radius:0}body.hotel .hotel-ecran,body.hotel #ecran-hotel{padding-left:12px!important;padding-right:12px!important}body.reception #ecran-reception{padding:14px 12px 28px!important}body.reception .rec-course{padding:13px!important}body.espace .admin-liens{scroll-snap-type:x proximity}body.espace .admin-lien{scroll-snap-align:start;min-height:42px}body.espace .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}}
+@media(max-width:520px){body:not(.hotel):not(.reception):not(.espace) .hero{min-height:250px}body.hotel .hero{min-height:225px}body.reception .rec-prix{font-size:19px!important}body.espace .kpi{padding:9px 7px!important}}
