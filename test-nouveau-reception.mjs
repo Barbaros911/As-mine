@@ -310,6 +310,18 @@ await p.addInitScript(() => { window.__wa = []; window.open = u => { window.__wa
 await p.goto('http://127.0.0.1:8099/index.html?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(1100);
 
+/* Ce scénario vérifie le tarif de JOUR. Il ne doit pas changer de sens selon
+   l'heure à laquelle la suite est lancée (après 21 h, l'ancien test attendait
+   100 € alors que l'application appliquait correctement le tarif nuit 105 €). */
+const demainJour = await p.evaluate(() => {
+  const d = new Date(Date.now() + 864e5);
+  return d.toISOString().slice(0, 10);
+});
+await p.fill('#date', demainJour);
+await p.fill('#heure', '10:00');
+await p.locator('#date').dispatchEvent('change');
+await p.locator('#heure').dispatchEvent('change');
+
 const dansFormulaire = async id => await p.evaluate(i => {
   const e = document.getElementById(i);
   return !!e && !!e.closest('#ecran-accueil');

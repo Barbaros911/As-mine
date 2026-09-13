@@ -47,6 +47,14 @@ if [ -d sites ]; then
   done
 fi
 
+# Les trois interfaces métier utilisent le moteur de réservation réel.
+# Les pages dessinées dans sites/ restent les références visuelles, mais les
+# adresses publiques ci-dessous ne doivent jamais exposer de faux boutons ou
+# de fausses données : elles ouvrent le bon mode de l'application complète.
+cp routes/easyhotel-client.html site/easyhotel-client/index.html
+cp routes/easyhotel-reception.html site/easyhotel-reception/index.html
+cp routes/ela-admin.html site/ela-admin/index.html
+
 node .github/scripts/galerie.mjs
 
 echo "site/ construit : $(find site -type f | wc -l) fichiers"
