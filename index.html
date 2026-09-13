@@ -11555,7 +11555,7 @@ window.ELA_TEXTES = {
     /* Le lien de confirmation ne s'ouvre que du côté CLIENT : c'est à lui
        qu'on l'a envoyé. En mode exploitant, il ne doit pas venir recouvrir
        le tableau de bord. */
-    if(!lireConfirmation()) lireHotel();
+    if(!lireConfirmation() && !lireHotel()) lirePrefillAeroport();
   }
 
 /* =====================================================================
@@ -11624,6 +11624,26 @@ window.ELA_TEXTES = {
        le même chemin, donc le même comportement, y compris le repli hors
        ligne. */
     champDepart.dispatchEvent(new Event("input", { bubbles:true }));
+    try{ history.replaceState(null, "", location.pathname); }catch(e){}
+    return true;
+  }
+
+  /* ARRIVÉE DEPUIS UNE PAGE SEO AÉROPORT.
+     La page peut préparer le bon côté du trajet, mais elle ne choisit jamais
+     un terminal à la place du client : chaque terminal possède ses propres
+     coordonnées et ce choix participe au calcul du prix. On lance donc la
+     liste des terminaux CDG ou Orly dans le champ concerné. */
+  function lirePrefillAeroport(){
+    var params = new URLSearchParams(location.search);
+    var code = (params.get("aeroport") || "").trim().toLowerCase();
+    var sens = (params.get("sens") || "").trim().toLowerCase();
+    if(["cdg", "orly"].indexOf(code) === -1) return false;
+    if(["depart", "arrivee"].indexOf(sens) === -1) return false;
+
+    var champ = sens === "depart" ? champDepart : champArrivee;
+    champ.value = code === "cdg" ? "CDG" : "Orly";
+    champ.dispatchEvent(new Event("input", { bubbles:true }));
+    champ.focus();
     try{ history.replaceState(null, "", location.pathname); }catch(e){}
     return true;
   }
