@@ -7,7 +7,7 @@ mkdir -p site
 # Application complète historique : elle reste disponible pour la réservation,
 # les liens EasyHotel et l'espace exploitant.
 cp index.html admin.html manifest.webmanifest sw.js \
-   icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml \
+   icon.svg icon-maskable.svg icon-180.png brand-logo.svg robots.txt sitemap.xml \
    seo-pages.css \
    chauffeur-prive-paris.html transfert-cdg-paris.html \
    transfert-orly-paris.html site/
@@ -20,6 +20,9 @@ node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 mv site/index.html site/application.html
 cp sites/ela-public/index.html site/index.html
 
+# SEO, identité ELA et logo officiel de la façade publique.
+node .github/scripts/seo-ela.mjs site/index.html
+
 cp manifest-exploitant.webmanifest site/
 cp -r exploitant site/exploitant
 cp -r carte site/carte
@@ -31,7 +34,7 @@ touch site/.nojekyll
 
 # Sites vitrines et aperçus séparés.
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html styles.css seo-pages.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html styles.css seo-pages.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png brand-logo.svg robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
