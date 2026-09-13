@@ -1,15 +1,17 @@
 {
+  "id": "/",
   "name": "Elatransfer — Chauffeur privé",
   "short_name": "Elatransfer",
-  "description": "Chauffeur privé haut de gamme à Paris et en Île-de-France.",
+  "description": "Réservation de chauffeur privé à Paris et en Île-de-France : aéroports, hôtels, gares, trajets professionnels et mise à disposition.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#F4F6F5",
-  "theme_color": "#16232B",
-  "categories": ["travel", "business"],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#F4F8FB",
+  "theme_color": "#07365F",
+  "categories": ["travel", "business", "transportation"],
   "icons": [
     {
       "src": "icon.svg",

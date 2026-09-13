@@ -2,17 +2,17 @@ User-agent: *
 Allow: /
 
 # LA GRILLE D'UN HÔTEL PARTENAIRE N'EST PAS UN TARIF PUBLIC.
-# « ?h=<hôtel> » ouvre l'écran d'une réception, avec des forfaits négociés —
-# plus bas que le site sur le van des longues courses. Une adresse devinée
-# ou partagée, et n'importe qui réserve un van pour Orly à 125 € au lieu de
-# 180. Ce n'est pas un secret : c'est une porte qu'on ne met pas dans
-# l'annuaire. La page pose en plus sa propre balise « noindex ».
 Disallow: /*?h=
+Disallow: /hotel/
 
-# L'ADRESSE DE LA RÉCEPTION D'UN HÔTEL PARTENAIRE. Elle ouvre, avec le code,
-# l'historique des courses de l'hôtel — donc des noms et des chambres de
-# clients. Elle ne se communique qu'au comptoir et n'a rien à faire dans un
-# annuaire. La page pose en plus sa propre balise « noindex ».
+# L'ESPACE RÉCEPTION CONTIENT DES DONNÉES OPÉRATIONNELLES ET CLIENTS.
 Disallow: /*?reception=
+Disallow: /reception/
+
+# LES RACCOURCIS INTERNES N'ONT PAS D'INTÉRÊT SEO.
+Disallow: /exploitant/
+Disallow: /admin.html
+Disallow: /client/
+Disallow: /application.html
 
 Sitemap: https://elatransfer.com/sitemap.xml
