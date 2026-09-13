@@ -9,6 +9,12 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
+# Prototype fonctionnel ELA VISION validé visuellement : isolé de l'application
+# principale tant que Barbaros n'a pas demandé sa publication comme parcours
+# officiel. Le logo utilisé ici est un actif séparé pour éviter toute dérive
+# graphique entre les futures pages ELA.
+cp vision.html ela-logo-fixed.svg site/
+
 # Les règles EasyHotel restent appliquées à l'application fonctionnelle.
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 
@@ -28,7 +34,7 @@ touch site/.nojekyll
 
 # Sites vitrines et aperçus séparés.
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
+  reserves="index.html application.html admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant vision.html ela-logo-fixed.svg"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
