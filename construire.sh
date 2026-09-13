@@ -4,30 +4,32 @@ set -e
 rm -rf site
 mkdir -p site
 
-# Application complète historique : elle reste disponible pour la réservation,
-# les liens EasyHotel et l'espace exploitant.
+# L'application complète reste la page publique réelle : le client doit pouvoir
+# réserver directement sur elatransfer.com, et Google doit indexer cette page
+# fonctionnelle plutôt qu'une maquette statique.
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml site/
 
-# Les règles EasyHotel restent appliquées à l'application fonctionnelle.
+# Les règles easyHotel restent appliquées à l'application fonctionnelle.
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 
-# On conserve cette application sous une adresse dédiée avant de publier la
-# nouvelle façade validée à la racine du domaine.
-mv site/index.html site/application.html
+# Le thème visuel des quatre rôles est injecté sur la vraie application.
 cp application-role-theme.css site/
-# Le thème externe ne touche pas à la logique métier : il ne fait que finir
-# les quatre rôles réels (client, hôtel, réception, exploitant).
 python3 - <<'PY'
 from pathlib import Path
-p = Path('site/application.html')
-s = p.read_text(encoding='utf-8')
 link = '<link rel="stylesheet" href="application-role-theme.css">'
-if link not in s:
-    s = s.replace('</head>', link + '\n</head>', 1)
-p.write_text(s, encoding='utf-8')
+for nom in ('index.html',):
+    p = Path('site') / nom
+    s = p.read_text(encoding='utf-8')
+    if link not in s:
+        s = s.replace('</head>', link + '\n</head>', 1)
+    p.write_text(s, encoding='utf-8')
 PY
-cp sites/ela-public/index.html site/index.html
+
+# Compatibilité avec les anciens liens /application.html sans créer un second
+# moteur : c'est une copie construite du même fichier et elle reste noindex via
+# robots.txt. La racine demeure l'URL canonique et l'entrée normale du client.
+cp site/index.html site/application.html
 
 cp manifest-exploitant.webmanifest site/
 cp -r exploitant site/exploitant
@@ -38,7 +40,8 @@ cp CNAME site/
 
 touch site/.nojekyll
 
-# Sites vitrines et aperçus séparés.
+# Sites vitrines et aperçus séparés : les maquettes restent consultables dans
+# leurs sous-dossiers mais ne remplacent jamais la vraie page d'accueil.
 if [ -d sites ]; then
   reserves="index.html application.html application-role-theme.css admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
   for dossier in sites/*/; do
