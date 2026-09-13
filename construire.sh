@@ -34,6 +34,7 @@ cp site/index.html site/application.html
 cp manifest-exploitant.webmanifest site/
 cp -r exploitant site/exploitant
 cp -r carte site/carte
+[ -d paris ] && cp -r paris site/paris
 cp CNAME site/
 [ -f _headers ] && cp _headers site/ || true
 [ -d photos ] && cp -r photos site/photos || true
@@ -43,7 +44,7 @@ touch site/.nojekyll
 # Sites vitrines et aperçus séparés : les maquettes restent consultables dans
 # leurs sous-dossiers mais ne remplacent jamais la vraie page d'accueil.
 if [ -d sites ]; then
-  reserves="index.html application.html application-role-theme.css admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant"
+  reserves="index.html application.html application-role-theme.css admin.html styles.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png robots.txt sitemap.xml demos _headers carte exploitant paris"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
