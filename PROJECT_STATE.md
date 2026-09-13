@@ -47,8 +47,6 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
-`EN COURS — Publier la maquette exacte des 4 interfaces — fix/publier-maquette-exacte — façades publique, EasyHotel client/réception et admin — sites/* + construire.sh — intégration fonctionnelle, validation responsive et déploiement`
-
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
@@ -60,6 +58,8 @@ Exemple :
 ## Tâches terminées récentes
 
 À renseigner après chaque fusion importante, avec une ligne courte indiquant le commit ou la PR.
+
+`TERMINÉ — Maquette exacte des 4 interfaces publiée — PR #135 / d0c3719 — site public, easyHotel client, réception et admin — build et routes de production vérifiés le 14/09/2026`
 
 ## Blocages
 
