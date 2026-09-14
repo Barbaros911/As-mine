@@ -47,8 +47,6 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
-`EN COURS — Déployer le logo officiel unique fourni par Burak — fix/logo-officiel-unique — identité ELA sur les quatre interfaces et l’application — assets de marque, HTML, manifests et build — intégration puis validation mobile/ordinateur`
-
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
@@ -64,6 +62,8 @@ Exemple :
 `TERMINÉ — Maquette exacte des 4 interfaces publiée — PR #135 / d0c3719 — site public, easyHotel client, réception et admin — build et routes de production vérifiés le 14/09/2026`
 
 `TERMINÉ — Admin mobile réaligné sur la référence et ancien écran neutralisé — PR #137 — admin ELA / application exploitant — build et interactions vérifiés le 14/09/2026`
+
+`TERMINÉ — Logo officiel unique ELA Transfer déployé sur toutes les interfaces — PR #138 — façade publique, application, easyHotel client, réception, admin et icônes — build et assets vérifiés le 14/09/2026`
 
 ## Blocages
 
