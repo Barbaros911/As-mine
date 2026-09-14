@@ -47,6 +47,8 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
+`EN COURS — Déployer le logo officiel unique fourni par Burak — fix/logo-officiel-unique — identité ELA sur les quatre interfaces et l’application — assets de marque, HTML, manifests et build — intégration puis validation mobile/ordinateur`
+
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`

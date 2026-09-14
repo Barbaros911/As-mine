@@ -62,7 +62,7 @@
   }catch(e){ /* un navigateur qui ne sait pas lire son adresse garde le défaut */ }
 })();
 </script>
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-180.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
 
 <!-- DONNÉES STRUCTURÉES. « LimousineService », jamais « TaxiService » : un
@@ -80,7 +80,7 @@
   "name": "Elatransfer — Chauffeur privé VTC",
   "description": "Chauffeur privé à Paris et en Île-de-France. Transferts vers Roissy-Charles de Gaulle, Orly et Beauvais, trajets d'une adresse à une autre. Prix ferme annoncé avant la réservation.",
   "url": "https://elatransfer.com/",
-  "image": "https://elatransfer.com/icon.svg",
+  "image": "https://elatransfer.com/brand-logo.webp",
   "telephone": "+33759312433",
   "priceRange": "€€",
   "currenciesAccepted": "EUR",
@@ -181,6 +181,7 @@ img{display:block;max-width:100%;}
 .entete{background:var(--noir);color:#fff;padding:15px 20px 16px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;}
 .logo{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.logo-image{display:block;width:142px;height:auto;}
 /* Centrée sur le mot, comme sur la maquette : alignée à gauche elle pointait
    dans le vide au-dessus du « ELA ». */
 .logo-arc{display:block;height:16px;width:76px;margin-bottom:1px;align-self:center;}
@@ -1246,6 +1247,7 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
     display:flex;flex-direction:column;}
   body.espace .admin-marque{display:flex;flex-direction:column;
     align-items:center;gap:2px;padding:0 20px 18px;}
+  body.espace .admin-logo-image{display:block;width:150px;height:auto;margin-bottom:6px;}
   body.espace .admin-marque .logo-nom{font-size:19px;}
   body.espace .admin-marque .logo-sous{font-size:7px;}
   body.espace .admin-profil{border-top:1px solid rgba(255,255,255,.1);
@@ -1725,21 +1727,9 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
 <div class="page">
 
   <header class="entete">
-    <div class="logo">
-      <!-- LA SILHOUETTE EST UN CROISSANT, PAS UN TRAIT.
-           Un trait d'épaisseur constante donnait un arc de cercle, sans
-           direction : le croissant, épais au sommet et affiné aux pointes,
-           se lit comme le toit d'une voiture vue de profil. C'est la forme
-           de la maquette de Barbaros, mesurée sur elle : la silhouette
-           couvre 44 % de la largeur du mot, pas les deux tiers, et elle est
-           deux fois plus cambrée que l'arc qu'elle remplace. -->
-      <svg class="logo-arc" viewBox="0 0 76 16" aria-hidden="true">
-        <path fill="#3FA9A2" d="M2 13.6C14 4.4 26 1.2 38 1.2s24 3.2 36 12.4
-                 c-12-6.2-24-9-36-9s-24 2.8-36 9Z"/>
-      </svg>
-      <span class="logo-nom">ELA<i>TRANSFER</i></span>
-      <span class="logo-sous" data-t="entete_sous">CHAUFFEURS PRIVÉS</span>
-    </div>
+    <a class="logo" href="/" aria-label="ELA Transfer">
+      <img class="logo-image" src="brand-logo-white.png" alt="ELA Transfer">
+    </a>
     <div class="entete-actions">
       <!-- DEUX LANGUES, ET C'EST UN CHOIX. Le français pour l'Île-de-France,
            l'anglais pour tous les autres — un voyageur allemand, italien ou
@@ -1773,7 +1763,7 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
        ===================================================================== -->
   <nav class="admin-nav" aria-label="Espace exploitant">
     <div class="admin-marque">
-      <span class="logo-nom">ELA<i>TRANSFER</i></span>
+      <img class="admin-logo-image" src="brand-logo-white.png" alt="ELA Transfer">
       <span class="logo-sous">ESPACE EXPLOITANT</span>
     </div>
     <div class="admin-profil">
