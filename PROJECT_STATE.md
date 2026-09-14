@@ -45,8 +45,6 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-`EN COURS — Aligner l’admin mobile sur la référence et supprimer le retour à l’ancien écran — fix/admin-visuel-coherent — admin ELA / application exploitant — sites/ela-admin/index.html, index.html — validation visuelle puis publication`
-
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
@@ -62,6 +60,8 @@ Exemple :
 À renseigner après chaque fusion importante, avec une ligne courte indiquant le commit ou la PR.
 
 `TERMINÉ — Maquette exacte des 4 interfaces publiée — PR #135 / d0c3719 — site public, easyHotel client, réception et admin — build et routes de production vérifiés le 14/09/2026`
+
+`TERMINÉ — Admin mobile réaligné sur la référence et ancien écran neutralisé — PR #137 — admin ELA / application exploitant — build et interactions vérifiés le 14/09/2026`
 
 ## Blocages
 
