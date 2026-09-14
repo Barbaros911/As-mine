@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-`EN COURS — Corriger le vrai moteur mobile easyHotel d'après les captures — ela/easyhotel-engine-mobile-10 — application hôtel — hotel-engine-polish.css, hotel-engine-polish.js, construire.sh — validation PR, build, mobile et publication`
+Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
 
@@ -73,6 +73,8 @@ Exemple :
 
 `TERMINÉ — Landing easyHotel Aéroville repensée et publiée — PR #144 / 6af2f53 — EasyHotel client — hôtel mis au premier plan, logo ELA inchangé, nouvelles photos licenciées, responsive et CTA partenaire publiés le 15/09/2026`
 
+`TERMINÉ — Vrai moteur mobile easyHotel corrigé d'après les captures — PR #146 / 62e840e — application hôtel — en-tête compact, photo hôtel, identité client avancée et destinations photo publiées le 15/09/2026`
+
 ## Blocages
 
 À renseigner uniquement lorsqu’un accès, une dépendance externe ou une décision utilisateur empêche réellement d’avancer.
@@ -82,4 +84,4 @@ Exemple :
 - Début de tâche : ajouter ou mettre à jour la ligne dans `Tâches actives`.
 - Changement de statut : modifier la même ligne, ne pas créer de doublon.
 - Fin de tâche : retirer de `Tâches actives`, ajouter dans `Tâches terminées récentes`.
-- Si un autre agent voit une tâche active sur la même zone, il doit s’arrêter et utiliser le statut `EN COURS AILLEURS`.
+- Si un autre agent voit une tâche active sur la même zone, il doit s'arrêter et utiliser le statut `EN COURS AILLEURS`.
