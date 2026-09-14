@@ -16,9 +16,7 @@
      en cache : un tarif ou un paiement doit toujours partir en direct.
    ===================================================================== */
 const BASE = new URL("./", self.location).pathname;
-
 const NOS_DOSSIERS = ["carte", "exploitant"];
-
 function siteVoisin(url) {
   if (url.origin !== self.location.origin) return false;
   if (!url.pathname.startsWith(BASE)) return false;
@@ -27,39 +25,25 @@ function siteVoisin(url) {
   return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
-/* Nouvelle génération de cache : supprime automatiquement v76 et les caches
-   antérieurs lors de l'activation du service worker. */
-const CACHE = "elatransfer-v77";
+/* v78 accompagne la reconstruction réelle du parcours client easyHotel. */
+const CACHE = "elatransfer-v78";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
                "./brand-logo.webp", "./brand-logo-white.png"];
-
-/* Ces fichiers peuvent changer visuellement entre deux publications : le réseau
-   est donc prioritaire, avec le cache uniquement comme secours hors ligne. */
 const NETWORK_FIRST_ASSETS = [
   "/application-facade.css",
   "/hotel-engine-polish.css",
   "/hotel-engine-polish.js"
 ];
-
 const NO_CACHE_HOSTS = [
-  "api-adresse.data.gouv.fr",
-  "photon.komoot.io",
-  "router.project-osrm.org",
-  "api.mapbox.com",
-  "api.openrouteservice.org",
-  "api.qrserver.com",
-  "www.paypal.com",
-  "www.paypalobjects.com"
+  "api-adresse.data.gouv.fr","photon.komoot.io","router.project-osrm.org",
+  "api.mapbox.com","api.openrouteservice.org","api.qrserver.com",
+  "www.paypal.com","www.paypalobjects.com"
 ];
-
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
-
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
@@ -67,98 +51,35 @@ self.addEventListener("activate", (event) => {
       .then(() => self.clients.claim())
   );
 });
-
 self.addEventListener("push", (event) => {
-  let d = {};
-  try { d = event.data ? event.data.json() : {}; } catch (e) { d = {}; }
-  event.waitUntil(
-    self.registration.showNotification(d.titre || "Elatransfer", {
-      body: d.corps || "",
-      icon: "./icon-180.png",
-      badge: "./icon-180.png",
-      tag: d.ref || "elatransfer",
-      renotify: true,
-      data: { url: d.url || "./" }
-    })
-  );
+  let d = {}; try { d = event.data ? event.data.json() : {}; } catch (e) { d = {}; }
+  event.waitUntil(self.registration.showNotification(d.titre || "Elatransfer", {
+    body:d.corps || "",icon:"./icon-180.png",badge:"./icon-180.png",tag:d.ref || "elatransfer",renotify:true,data:{url:d.url || "./"}
+  }));
 });
-
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const cible = (event.notification.data && event.notification.data.url) || "./";
-  event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true })
-      .then((ouvertes) => {
-        for (const f of ouvertes) {
-          if ("focus" in f) {
-            try { if ("navigate" in f) f.navigate(cible); } catch (e) {}
-            return f.focus();
-          }
-        }
-        return self.clients.openWindow(cible);
-      })
-  );
+  const cible=(event.notification.data && event.notification.data.url) || "./";
+  event.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then((ouvertes)=>{
+    for(const f of ouvertes){if("focus" in f){try{if("navigate" in f)f.navigate(cible);}catch(e){} return f.focus();}}
+    return self.clients.openWindow(cible);
+  }));
 });
-
 self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  if (req.method !== "GET") return;
-
-  let url;
-  try { url = new URL(req.url); } catch (e) { return; }
-  if (url.protocol !== "http:" && url.protocol !== "https:") return;
-  if (NO_CACHE_HOSTS.includes(url.hostname)) return;
-  if (siteVoisin(url)) return;
-
-  function estLApplication(u) {
-    const reste = u.pathname.slice(BASE.length);
-    return reste === "" || reste === "index.html" || reste === "application.html";
-  }
-
-  if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => {
-          if (r) return r;
-          if (estLApplication(url)) {
-            return caches.match("./index.html").then((f) => f || Response.error());
-          }
-          return Response.error();
-        }))
-    );
+  const req=event.request;if(req.method!=="GET")return;
+  let url;try{url=new URL(req.url);}catch(e){return;}
+  if(url.protocol!=="http:"&&url.protocol!=="https:")return;
+  if(NO_CACHE_HOSTS.includes(url.hostname)||siteVoisin(url))return;
+  function estLApplication(u){const reste=u.pathname.slice(BASE.length);return reste===""||reste==="index.html"||reste==="application.html";}
+  if(req.mode==="navigate"||(req.headers.get("accept")||"").includes("text/html")){
+    event.respondWith(fetch(req).then((res)=>{const copy=res.clone();caches.open(CACHE).then((c)=>c.put(req,copy)).catch(()=>{});return res;})
+      .catch(()=>caches.match(req).then((r)=>{if(r)return r;if(estLApplication(url))return caches.match("./index.html").then((f)=>f||Response.error());return Response.error();})));
     return;
   }
-
-  if (NETWORK_FIRST_ASSETS.some((path) => url.pathname.endsWith(path))) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res && res.status === 200 && res.type !== "opaque") {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          }
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => r || Response.error()))
-    );
+  if(NETWORK_FIRST_ASSETS.some((path)=>url.pathname.endsWith(path))){
+    event.respondWith(fetch(req).then((res)=>{if(res&&res.status===200&&res.type!=="opaque"){const copy=res.clone();caches.open(CACHE).then((c)=>c.put(req,copy)).catch(()=>{});}return res;})
+      .catch(()=>caches.match(req).then((r)=>r||Response.error())));
     return;
   }
-
-  event.respondWith(
-    caches.match(req).then((hit) => {
-      if (hit) return hit;
-      return fetch(req).then((res) => {
-        if (res && res.status === 200 && res.type !== "opaque") {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-        }
-        return res;
-      });
-    })
-  );
+  event.respondWith(caches.match(req).then((hit)=>{if(hit)return hit;return fetch(req).then((res)=>{if(res&&res.status===200&&res.type!=="opaque"){const copy=res.clone();caches.open(CACHE).then((c)=>c.put(req,copy)).catch(()=>{});}return res;});}));
 });

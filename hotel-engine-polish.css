@@ -1,73 +1,97 @@
-/* EasyHotel client — direction visuelle validee.
-   Meme famille que la reception : orange easyHotel + bleu ELA + blanc.
-   Mobile prioritaire, desktop responsive, logique metier inchangee. */
-body.hotel:not(.reception).hotel-enhanced{
- --eh-orange:#ff5a0a;--eh-orange2:#ff761b;--eh-navy:#0b3153;--eh-ink:#15344e;--eh-muted:#738390;--eh-line:#e4eaf0;--eh-soft:#f7f9fb;--eh-warm:#fff6f0;
- background:#f7f9fb;color:var(--eh-ink)
+/* EasyHotel client — rendu valide par l'utilisateur.
+   La mise en forme s'applique des que body.hotel existe : elle ne depend plus
+   d'une classe JS ajoutee trop tot. Reception et client partagent desormais
+   la meme famille visuelle : orange easyHotel, bleu ELA, blanc et photos. */
+body.hotel:not(.reception){
+  --eh-orange:#ff5a0a;--eh-orange2:#ff761b;--eh-navy:#0b3153;--eh-ink:#15344e;
+  --eh-muted:#738390;--eh-line:#e4eaf0;--eh-soft:#f7f9fb;--eh-warm:#fff6f0;
+  background:var(--eh-soft)!important;color:var(--eh-ink)!important;
 }
-body.hotel:not(.reception).hotel-enhanced .page{max-width:1180px;margin:auto;background:#f7f9fb}
-body.hotel:not(.reception).hotel-enhanced .entete{position:sticky;top:0;z-index:90;min-height:72px;padding:8px 18px;background:#fff;border-bottom:1px solid var(--eh-line);box-shadow:0 5px 18px rgba(11,49,83,.07)}
-body.hotel:not(.reception).hotel-enhanced .logo-image{width:118px;max-height:52px;object-fit:contain}
-body.hotel:not(.reception).hotel-enhanced .langues{border:1px solid #d9e1e7;background:#f7f9fb;border-radius:999px;overflow:hidden}
-body.hotel:not(.reception).hotel-enhanced .langues button{min-width:40px;min-height:36px;color:#62717c;font-size:11px}
-body.hotel:not(.reception).hotel-enhanced .langues button[aria-pressed="true"]{background:#fff0e7;color:var(--eh-orange);font-weight:900}
-body.hotel:not(.reception).hotel-enhanced .menu{color:var(--eh-navy)}
-.hotel-partner-chip{display:flex;flex-direction:column;margin-left:14px;padding-left:14px;border-left:1px solid #ccd5dc;line-height:1.05}
-.hotel-partner-chip b{font-size:12px;color:var(--eh-orange)}.hotel-partner-chip span{font-size:8px;color:var(--eh-muted);margin-top:3px}
+body.hotel:not(.reception) .page{max-width:1180px!important;margin:0 auto!important;background:var(--eh-soft)!important}
 
-/* Hero hotel photo-first. */
-body.hotel:not(.reception).hotel-enhanced .hotel-tete{position:relative;min-height:350px;margin:0;padding:190px 28px 22px;border-radius:0;background:var(--eh-navy);color:#fff;overflow:hidden;box-shadow:none}
-body.hotel:not(.reception).hotel-enhanced .hotel-photo{display:block!important;inset:0;background-position:center 48%;background-size:cover}
-body.hotel:not(.reception).hotel-enhanced .hotel-photo::after{opacity:1;background:linear-gradient(180deg,rgba(5,31,50,.02) 20%,rgba(5,31,50,.18) 48%,rgba(5,31,50,.88) 100%)}
-body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-sur{display:inline-flex;margin:0 0 9px;padding:7px 12px;border-radius:999px;background:var(--eh-orange);color:#fff!important;opacity:1!important;font-size:9px;font-weight:900;letter-spacing:.1em}
-body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-nom{margin:0;color:#fff;font-size:38px;line-height:1;font-weight:950;text-shadow:0 2px 8px rgba(0,0,0,.35)}
-body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-adresse{margin:8px 0 16px;color:#fff;font-size:12px;line-height:1.4;text-shadow:0 1px 5px rgba(0,0,0,.5)}
-body.hotel:not(.reception).hotel-enhanced .hotel-sens{max-width:620px;background:#fff;border:1px solid #e0e7ec;padding:4px;border-radius:15px;box-shadow:0 7px 20px rgba(0,0,0,.13)}
-body.hotel:not(.reception).hotel-enhanced .hotel-sens-btn{min-height:48px;border-radius:11px;color:var(--eh-ink)!important;background:transparent!important;font-size:12px;font-weight:850}
-body.hotel:not(.reception).hotel-enhanced .hotel-sens-btn.actif{background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;box-shadow:0 5px 13px rgba(255,90,10,.22)}
+/* Entete : compact, clair, meme logique que la reception. */
+body.hotel:not(.reception) .entete{
+  position:sticky!important;top:0!important;z-index:100!important;
+  min-height:64px!important;height:auto!important;padding:7px 12px!important;
+  background:#fff!important;color:var(--eh-navy)!important;border-bottom:1px solid var(--eh-line)!important;
+  box-shadow:0 5px 18px rgba(11,49,83,.07)!important;
+}
+body.hotel:not(.reception) .logo-image{width:102px!important;max-height:46px!important;object-fit:contain!important}
+body.hotel:not(.reception) .logo-nom,body.hotel:not(.reception) .logo-sous{color:var(--eh-navy)!important}
+body.hotel:not(.reception) .entete-actions{gap:7px!important}
+body.hotel:not(.reception) .langues{border:1px solid #d9e1e7!important;background:#f7f9fb!important;border-radius:999px!important;overflow:hidden!important}
+body.hotel:not(.reception) .langues button{min-width:38px!important;min-height:34px!important;color:#62717c!important;font-size:11px!important}
+body.hotel:not(.reception) .langues button[aria-pressed="true"]{background:#fff0e7!important;color:var(--eh-orange)!important;font-weight:900!important}
+body.hotel:not(.reception) .menu span{background:var(--eh-navy)!important}
+.hotel-partner-chip{display:flex;flex-direction:column;justify-content:center;margin-left:8px;padding-left:9px;border-left:1px solid #ccd5dc;line-height:1.05}
+.hotel-partner-chip b{font-size:10px;color:var(--eh-orange)}.hotel-partner-chip span{font-size:7px;color:var(--eh-muted);margin-top:3px}
 
-/* Guest + booking cards. */
-body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early,body.hotel:not(.reception).hotel-enhanced #ecran-accueil .bloc{background:#fff;border:1px solid var(--eh-line);box-shadow:0 10px 26px rgba(20,47,68,.08);border-radius:18px!important}
-body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early{margin:18px 18px 12px!important;padding:15px!important}
-body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .bloc-titre{font-size:13px;color:var(--eh-navy);font-weight:900;margin:0 0 11px}
-body.hotel:not(.reception).hotel-enhanced #ecran-accueil .bloc{margin:0 18px 14px;padding:15px}
-body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ,body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .champ{min-height:64px!important;margin-bottom:9px!important;border:1px solid #dce4ea!important;border-radius:12px!important;background:#fff!important;padding:9px 11px!important}
-body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ-titre,body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .champ-titre{font-size:10px!important;color:var(--eh-ink);font-weight:850}
-body.hotel:not(.reception).hotel-enhanced #ecran-accueil input,body.hotel:not(.reception).hotel-enhanced #ecran-accueil select,body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early input{font-size:15px!important;color:var(--eh-ink)}
-body.hotel:not(.reception).hotel-enhanced .hotel-forfait{color:var(--eh-orange);font-size:14px;font-weight:900;margin:8px 5px 12px}
-body.hotel:not(.reception).hotel-enhanced #ecran-accueil .principal,body.hotel:not(.reception).hotel-enhanced #ecran-accueil button.principal{background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;border-color:var(--eh-orange)!important;min-height:48px;border-radius:10px!important;font-weight:900}
+/* Hero : la photo devient l'element principal. Le grand aplat sombre disparait. */
+body.hotel:not(.reception) .hotel-tete{
+  position:relative!important;min-height:305px!important;height:auto!important;margin:0!important;
+  padding:158px 14px 14px!important;border-radius:0!important;color:#fff!important;overflow:hidden!important;
+  background-image:linear-gradient(180deg,rgba(11,49,83,.02) 0%,rgba(11,49,83,.08) 42%,rgba(11,49,83,.86) 100%),url('https://www.easyhotel.com/cdn-cgi/image/width=1200,height=800,format=auto/https://cdn.easyhotel.com/1_easy_Hotel_CDG_1067422f0b.png')!important;
+  background-position:center 48%!important;background-size:cover!important;background-repeat:no-repeat!important;
+  box-shadow:none!important;
+}
+body.hotel:not(.reception) .hotel-photo{display:none!important}
+body.hotel:not(.reception) .hotel-tete .hotel-sur{display:inline-flex!important;margin:0 0 7px!important;padding:6px 10px!important;border-radius:999px!important;background:var(--eh-orange)!important;color:#fff!important;opacity:1!important;font-size:9px!important;font-weight:900!important;letter-spacing:.1em!important}
+body.hotel:not(.reception) .hotel-tete .hotel-nom{margin:0!important;color:#fff!important;font-size:31px!important;line-height:1!important;font-weight:950!important;text-shadow:0 2px 8px rgba(0,0,0,.35)!important}
+body.hotel:not(.reception) .hotel-tete .hotel-adresse{margin:7px 0 13px!important;color:#fff!important;font-size:10px!important;line-height:1.35!important;text-shadow:0 1px 4px rgba(0,0,0,.45)!important}
+body.hotel:not(.reception) .hotel-sens{background:rgba(255,255,255,.97)!important;border:1px solid rgba(255,255,255,.9)!important;padding:4px!important;border-radius:13px!important;box-shadow:0 6px 18px rgba(0,0,0,.12)!important}
+body.hotel:not(.reception) .hotel-sens-btn{min-height:46px!important;border-radius:9px!important;color:var(--eh-ink)!important;background:transparent!important;font-size:11px!important;font-weight:850!important}
+body.hotel:not(.reception) .hotel-sens-btn.actif{background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;box-shadow:0 4px 12px rgba(255,90,10,.22)!important}
 
-/* Destination photo cards: visual equivalent of the approved mockup. */
-#hotelQuickDest{margin:4px 18px 16px}
-#hotelQuickDest .quick-title{display:flex;align-items:end;justify-content:space-between;margin:0 2px 9px}
-#hotelQuickDest .quick-title b{font-size:16px;color:var(--eh-navy);font-weight:950}#hotelQuickDest .quick-title span{font-size:9px;color:var(--eh-orange);font-weight:800}
-#hotelQuickDest .quick-scroll{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.hotel-quick{position:relative;overflow:hidden;min-height:126px;border:1px solid var(--eh-line);border-radius:16px;padding:0;cursor:pointer;background:#fff;color:#fff;text-align:left;box-shadow:0 7px 18px rgba(20,47,68,.09)}
-.hotel-quick img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hotel-quick:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,31,50,.02),rgba(5,31,50,.72))}
-.hotel-quick span{position:absolute;z-index:2;left:10px;right:8px;bottom:9px;font-size:11px;font-weight:900;line-height:1.15;text-shadow:0 1px 4px rgba(0,0,0,.65)}
-.hotel-quick.active{outline:3px solid var(--eh-orange);outline-offset:1px}.hotel-quick.active:before{content:"✓";position:absolute;z-index:3;right:7px;top:7px;width:22px;height:22px;border-radius:50%;background:var(--eh-orange);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:950}
+/* Formulaire client : clair, compact et logique hotel. */
+body.hotel:not(.reception) #ecran-accueil .bloc,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{
+  background:#fff!important;border:1px solid var(--eh-line)!important;border-radius:18px!important;
+  box-shadow:0 9px 24px rgba(20,47,68,.07)!important;
+}
+body.hotel:not(.reception) #ecran-accueil .bloc{margin:0 10px 11px!important;padding:11px!important}
+body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{margin:10px!important;padding:11px!important}
+body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early .bloc-titre{margin:0 0 9px!important;font-size:12px!important;color:var(--eh-navy)!important;font-weight:900!important}
+body.hotel:not(.reception) #ecran-accueil .champ,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early .champ{
+  min-height:59px!important;margin-bottom:8px!important;padding:9px 11px!important;background:#fff!important;
+  border:1px solid #dce4ea!important;border-radius:12px!important;box-shadow:none!important;
+}
+body.hotel:not(.reception) #ecran-accueil .champ-titre,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early .champ-titre{font-size:10px!important;color:var(--eh-ink)!important;font-weight:850!important}
+body.hotel:not(.reception) #ecran-accueil input,body.hotel:not(.reception) #ecran-accueil select,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early input{font-size:16px!important;color:var(--eh-ink)!important}
+body.hotel:not(.reception) .champ-aide{color:var(--eh-muted)!important}
+body.hotel:not(.reception) .hotel-forfait{color:var(--eh-orange)!important;font-size:14px!important;font-weight:900!important;margin:7px 5px 11px!important}
+body.hotel:not(.reception) #ecran-accueil .principal,body.hotel:not(.reception) #ecran-accueil button.principal,body.hotel:not(.reception) #btnVoirPrix{
+  background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;border-color:var(--eh-orange)!important;
+  min-height:48px!important;border-radius:10px!important;font-weight:900!important;box-shadow:0 8px 18px rgba(255,90,10,.17)!important;
+}
 
-/* Keep bottom client navigation light and consistent. */
-body.hotel:not(.reception).hotel-enhanced .barre-bas{background:#fff!important;border-top:1px solid var(--eh-line)!important;box-shadow:0 -7px 22px rgba(20,47,68,.08)!important}
-body.hotel:not(.reception).hotel-enhanced .barre-bas .actif,body.hotel:not(.reception).hotel-enhanced .barre-bas .active{color:var(--eh-orange)!important}
+/* Destinations avec photos. */
+#hotelQuickDest{margin:3px 10px 13px}
+#hotelQuickDest .quick-title{display:flex;align-items:flex-end;justify-content:space-between;margin:0 2px 8px}
+#hotelQuickDest .quick-title b{font-size:14px;color:var(--eh-navy);font-weight:950}#hotelQuickDest .quick-title span{font-size:8px;color:var(--eh-orange);font-weight:850}
+#hotelQuickDest .quick-scroll{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.hotel-quick{position:relative;overflow:hidden;min-height:103px;border:1px solid var(--eh-line);border-radius:13px;padding:0;cursor:pointer;background:#fff;color:#fff;text-align:left;box-shadow:0 6px 16px rgba(20,47,68,.09)}
+.hotel-quick img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hotel-quick:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,31,50,.01),rgba(5,31,50,.72))}
+.hotel-quick span{position:absolute;z-index:2;left:8px;right:7px;bottom:7px;font-size:9px;font-weight:900;line-height:1.1;text-shadow:0 1px 4px rgba(0,0,0,.7)}
+.hotel-quick.active{outline:3px solid var(--eh-orange);outline-offset:1px}.hotel-quick.active:before{content:"✓";position:absolute;z-index:3;right:6px;top:6px;width:21px;height:21px;border-radius:50%;background:var(--eh-orange);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:950}
 
-@media(max-width:760px){
- body.hotel:not(.reception).hotel-enhanced .page{max-width:100%}
- body.hotel:not(.reception).hotel-enhanced .entete{min-height:62px;padding:6px 10px}.hotel-partner-chip{margin-left:8px;padding-left:8px}.hotel-partner-chip b{font-size:10px}.hotel-partner-chip span{font-size:7px}
- body.hotel:not(.reception).hotel-enhanced .logo-image{width:94px;max-height:43px}
- body.hotel:not(.reception).hotel-enhanced .hotel-tete{min-height:315px;padding:165px 16px 14px}
- body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-nom{font-size:31px}
- body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-adresse{font-size:10px;max-width:340px}
- body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early{margin:12px 10px 10px!important;padding:11px!important}
- body.hotel:not(.reception).hotel-enhanced #ecran-accueil .bloc{margin:0 10px 11px;padding:11px}
- body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ,body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .champ{min-height:59px!important}
- #hotelQuickDest{margin:3px 10px 13px}#hotelQuickDest .quick-title b{font-size:14px}
- #hotelQuickDest .quick-scroll{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.hotel-quick{min-height:105px;border-radius:13px}.hotel-quick span{font-size:9px;left:8px;bottom:7px}
+/* Navigation client : meme fond clair, WhatsApp conserve son vert metier. */
+body.hotel:not(.reception) .barre-bas{background:#fff!important;border-top:1px solid var(--eh-line)!important;box-shadow:0 -7px 22px rgba(20,47,68,.08)!important}
+body.hotel:not(.reception) .barre-bas .actif,body.hotel:not(.reception) .barre-bas .active{color:var(--eh-orange)!important}
+
+@media(max-width:430px){
+  .hotel-partner-chip{max-width:112px}.hotel-partner-chip span{display:none}
+  body.hotel:not(.reception) .logo-image{width:88px!important}
+  body.hotel:not(.reception) .hotel-tete{min-height:295px!important;padding:154px 12px 12px!important}
+  body.hotel:not(.reception) .hotel-tete .hotel-nom{font-size:29px!important}
 }
 @media(min-width:761px){
- body.hotel:not(.reception).hotel-enhanced #ecran-accueil{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:0 4px;align-items:start}
- body.hotel:not(.reception).hotel-enhanced .hotel-tete{grid-column:1/-1}
- #hotelQuickDest{grid-column:2;grid-row:2 / span 3;margin:18px 18px 16px 6px}
- #hotelQuickDest .quick-scroll{grid-template-columns:repeat(2,1fr)}
- body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early{grid-column:1;margin-right:6px!important}
+  body.hotel:not(.reception) .entete{min-height:70px!important;padding:8px 18px!important}
+  body.hotel:not(.reception) .logo-image{width:116px!important;max-height:51px!important}
+  body.hotel:not(.reception) .hotel-tete{min-height:390px!important;padding:225px 28px 24px!important;border-radius:0 0 18px 18px!important}
+  body.hotel:not(.reception) .hotel-tete .hotel-nom{font-size:40px!important}
+  body.hotel:not(.reception) #ecran-accueil{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:0 8px;align-items:start}
+  body.hotel:not(.reception) .hotel-tete{grid-column:1/-1}
+  body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{grid-column:1;margin:18px 6px 12px 18px!important}
+  body.hotel:not(.reception) #ecran-accueil .bloc{margin-left:18px!important;margin-right:6px!important}
+  #hotelQuickDest{grid-column:2;grid-row:2 / span 4;margin:18px 18px 16px 6px}
+  #hotelQuickDest .quick-scroll{grid-template-columns:repeat(2,1fr);gap:10px}.hotel-quick{min-height:128px}
 }
