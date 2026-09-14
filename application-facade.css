@@ -1,0 +1,157 @@
+/* ELA Transfer — façade validée appliquée au moteur fonctionnel */
+:root{
+  --ela-navy:#062f55;
+  --ela-deep:#031c34;
+  --ela-cyan:#12c4ee;
+  --ela-blue:#147edc;
+  --ela-ink:#14344e;
+  --ela-muted:#70808d;
+  --ela-line:#dfe8ee;
+  --ela-soft:#f5f9fc;
+  --ela-shadow:0 14px 36px rgba(7,43,70,.16);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#fff;color:var(--ela-ink);text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+.page{width:100%;max-width:none;margin:0 auto;background:#fff}
+button,input,select,textarea{font:inherit}
+.bouton{border-radius:7px;font-weight:850}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{
+  outline:3px solid rgba(18,196,238,.27)!important;outline-offset:2px
+}
+
+/* Public : même langage visuel que la nouvelle façade */
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{
+  height:69px;min-height:69px;padding:0 20px;background:#fff;color:var(--ela-navy);
+  border-bottom:1px solid var(--ela-line);box-shadow:none
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .logo-image{
+  width:118px;height:auto;max-height:60px;object-fit:contain
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues{
+  border:1px solid #e4ebf0;border-radius:18px;background:#fff
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues button{
+  min-width:38px;min-height:34px;color:#60758a
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues button[aria-pressed="true"]{
+  background:var(--ela-navy);color:#fff
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{
+  height:auto;min-height:345px;background:var(--ela-deep);border:0;overflow:hidden
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{
+  background-image:url("./photos/accueil-bandeau.jpg");
+  background-position:center;background-size:cover
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{
+  background:linear-gradient(90deg,rgba(3,28,52,.91),rgba(6,47,85,.49) 63%,rgba(6,34,56,.16))
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{
+  min-height:345px;max-width:1180px;margin:auto;padding:52px 28px 104px;display:flex;
+  flex-direction:column;justify-content:center;align-items:flex-start
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{
+  max-width:620px;margin:0 0 10px;font-size:40px;line-height:1.03;letter-spacing:-1px;color:#fff;
+  text-shadow:0 2px 15px rgba(0,0,0,.24)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{
+  margin:0 0 10px;color:#fff;font-size:12px
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{
+  color:var(--ela-cyan);font-size:13px;font-weight:850
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta{
+  border:0;border-radius:7px;background:linear-gradient(120deg,var(--ela-blue),var(--ela-cyan));
+  color:#fff;min-height:43px;padding:0 18px;font-size:11px;font-weight:900;box-shadow:0 10px 22px rgba(4,84,137,.24)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-notes{
+  color:rgba(255,255,255,.84);font-size:9px
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{
+  position:relative;z-index:5;max-width:1180px;margin:-62px auto 0;padding:14px;
+  background:#fff;border:1px solid var(--ela-line);border-radius:10px;box-shadow:var(--ela-shadow)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .champ{
+  border-color:#dce5eb;border-radius:7px;background:#fff
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .champ svg path,
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .champ svg rect,
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .champ svg circle{
+  stroke:var(--ela-blue)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{
+  background:linear-gradient(120deg,var(--ela-blue),var(--ela-cyan));color:#fff;box-shadow:0 9px 20px rgba(20,126,220,.2)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .promesse,
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .section,
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .paiement{
+  max-width:1180px;margin-left:auto;margin-right:auto
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .engagement,
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .carte,
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .bloc{
+  border-color:var(--ela-line);box-shadow:0 5px 14px rgba(11,48,73,.08)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .onglets{
+  background:var(--ela-deep)
+}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .onglet.actif{
+  color:var(--ela-cyan)
+}
+
+/* Les outils internes gardent leur logique, avec la même identité ELA. */
+body.reception{background:#edf3f7}
+body.reception .entete{background:#fff;color:var(--ela-navy);border-bottom:1px solid var(--ela-line)}
+body.reception #ecran-reception{max-width:1220px;margin:auto;padding:22px 28px 38px}
+body.reception .bouton{background:#c2410c;color:#fff}
+body.hotel{background:#fff7f1}
+body.hotel .bouton{background:#c2410c;color:#fff}
+body.espace{background:#eef4f8}
+body.espace .admin-nav{background:linear-gradient(180deg,var(--ela-navy),var(--ela-deep));color:#fff}
+body.espace .admin-lien.actif{background:var(--ela-blue);border-color:var(--ela-blue)}
+
+@media(min-width:900px){
+  body{padding-bottom:0}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{
+    display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:9px;align-items:start
+  }
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocDepart,
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocArrivee{grid-column:span 4}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.duo{grid-column:span 2}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#btnVoirPrix{grid-column:1/-1;min-height:45px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.rassure{grid-column:1/-1}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.hors-zone,
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.refus,
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>[id^="bloc"]:not(#blocDepart):not(#blocArrivee){grid-column:1/-1}
+  body.espace .page{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+  body.espace .admin-nav{display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+}
+@media(max-width:899px){
+  .page{max-width:100%}
+  input,select,textarea{font-size:16px!important}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{
+    height:60px;min-height:60px;padding:0 12px
+  }
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .logo-image{width:108px;max-height:54px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{min-height:290px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{
+    min-height:290px;padding:24px 13px 76px;justify-content:flex-start
+  }
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{
+    max-width:300px;margin-top:4px;font-size:28px;letter-spacing:-.6px
+  }
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{font-size:9px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-size:10px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta{min-height:40px;font-size:10px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{
+    margin:-44px 9px 0;padding:9px;border-radius:8px
+  }
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{min-height:44px}
+  body.reception #ecran-reception{padding:14px 12px 28px}
+}
+@media(max-width:520px){
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{min-height:280px}
+  body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:280px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
