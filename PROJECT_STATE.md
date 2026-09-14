@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-`EN COURS — Refonte 10/10 du parcours mobile client easyHotel — ela/easyhotel-client-10-10 — EasyHotel client — sites/easyhotel-client/index.html — validation fonctionnelle, responsive et publication`
+Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
 
@@ -68,6 +68,8 @@ Exemple :
 `TERMINÉ — Façade publique mobile alignée sur la référence validée — PR #139 — accueil, réservation, services et menu mobile — interactions et identité vérifiées le 14/09/2026`
 
 `TERMINÉ — Façade publique et application de réservation unifiées — PR #142 / 4909e14 — racine, /application, EasyHotel, réception et admin — build, déploiement et interactions vérifiés le 14/09/2026`
+
+`TERMINÉ — Parcours mobile client easyHotel refondu et publié — PR #143 / 7f0b9dd — EasyHotel client — identité easyHotel × ELA, CTA vers moteur partenaire, FR/EN et responsive publiés le 15/09/2026`
 
 ## Blocages
 
