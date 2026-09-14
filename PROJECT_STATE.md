@@ -47,8 +47,6 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
-`EN COURS — Reproduire exactement la référence mobile publique — fix/mobile-public-reference — façade publique mobile — sites/ela-public/index.html — validation puis publication`
-
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
@@ -66,6 +64,8 @@ Exemple :
 `TERMINÉ — Admin mobile réaligné sur la référence et ancien écran neutralisé — PR #137 — admin ELA / application exploitant — build et interactions vérifiés le 14/09/2026`
 
 `TERMINÉ — Logo officiel unique ELA Transfer déployé sur toutes les interfaces — PR #138 — façade publique, application, easyHotel client, réception, admin et icônes — build et assets vérifiés le 14/09/2026`
+
+`TERMINÉ — Façade publique mobile alignée sur la référence validée — PR #139 — accueil, réservation, services et menu mobile — interactions et identité vérifiées le 14/09/2026`
 
 ## Blocages
 
