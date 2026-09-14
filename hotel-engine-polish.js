@@ -30,34 +30,20 @@
       head.insertBefore(chip,actions);
     }
 
-    /* Le nom du client doit etre visible des le premier ecran, a cote de la
-       chambre. Les vrais champs restent la source de verite et les proxys les
-       alimentent, donc aucune logique de reservation n'est dupliquee. */
+    /* Le vrai bloc client est avance au premier ecran, juste apres la chambre.
+       On conserve donc exactement les champs et validations existants : rien
+       n'est duplique, rien n'est resynchronise, seule leur position change. */
     var chambre=document.getElementById('blocChambre');
-    var nom=document.getElementById('clientNom');
-    var tel=document.getElementById('clientTel');
     var blocCoord=document.getElementById('blocCoordonnees');
-    if(chambre && nom && tel && !document.getElementById('hotelGuestEarly')){
-      var wrap=document.createElement('section');
-      wrap.id='hotelGuestEarly';
-      wrap.setAttribute('aria-label','Client');
-      wrap.innerHTML='\
-        <div class="hotel-guest-title">Client / Guest</div>\
-        <div class="hotel-guest-grid">\
-          <label><span>Nom du client / Guest name</span><input id="hotelGuestName" type="text" autocomplete="name" placeholder="Ex. John Smith"></label>\
-          <label><span>Téléphone / Phone</span><input id="hotelGuestPhone" type="tel" autocomplete="tel" placeholder="+33 6 12 34 56 78"></label>\
-        </div>\
-        <p class="hotel-guest-help">Le chauffeur utilise ces informations uniquement pour la prise en charge.</p>';
-      chambre.insertAdjacentElement('afterend',wrap);
-
-      var n=wrap.querySelector('#hotelGuestName');
-      var t=wrap.querySelector('#hotelGuestPhone');
-      n.value=nom.value||''; t.value=tel.value||'';
-      n.addEventListener('input',function(){nom.value=n.value;nom.dispatchEvent(new Event('input',{bubbles:true}));});
-      t.addEventListener('input',function(){tel.value=t.value;tel.dispatchEvent(new Event('input',{bubbles:true}));});
-      nom.addEventListener('input',function(){if(n.value!==nom.value)n.value=nom.value;});
-      tel.addEventListener('input',function(){if(t.value!==tel.value)t.value=tel.value;});
-      if(blocCoord) blocCoord.classList.add('hotel-guest-synced');
+    if(chambre && blocCoord && !blocCoord.classList.contains('hotel-guest-early')){
+      var titre=blocCoord.querySelector('.bloc-titre');
+      if(titre){ titre.textContent='Client / Guest'; titre.removeAttribute('data-t'); }
+      var nom=blocCoord.querySelector('label[for="clientNom"] .champ-titre');
+      if(nom){ nom.textContent='Nom du client / Guest name'; nom.removeAttribute('data-t'); }
+      var tel=blocCoord.querySelector('label[for="clientTel"] .champ-titre');
+      if(tel){ tel.textContent='Téléphone / Phone'; tel.removeAttribute('data-t'); }
+      blocCoord.classList.add('hotel-guest-early');
+      chambre.insertAdjacentElement('afterend',blocCoord);
     }
 
     /* Destinations photo : raccourcis vers les options deja gerees par le
@@ -94,8 +80,8 @@
 
     /* Copie coherente du nom de l'hotel partout ou l'ancienne denomination
        pourrait encore survivre dans ce parcours. */
-    document.querySelectorAll('[data-hotel-name], .hotel-nom').forEach(function(el){
-      if(el.classList.contains('hotel-nom')) el.textContent='easyHotel Aéroville';
+    document.querySelectorAll('.hotel-nom').forEach(function(el){
+      el.textContent='easyHotel Aéroville';
     });
   });
 }());
