@@ -45,6 +45,8 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
+`EN COURS — Aligner l’admin mobile sur la référence et supprimer le retour à l’ancien écran — fix/admin-visuel-coherent — admin ELA / application exploitant — sites/ela-admin/index.html, index.html — validation visuelle puis publication`
+
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
