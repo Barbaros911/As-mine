@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
+`EN COURS — Refonte 10/10 du parcours mobile client easyHotel — ela/easyhotel-client-10-10 — EasyHotel client — sites/easyhotel-client/index.html — validation fonctionnelle, responsive et publication`
 
 Format obligatoire :
 
