@@ -63,6 +63,8 @@ Exemple :
 
 `TERMINÉ — Admin mobile réaligné sur la référence et ancien écran neutralisé — PR #137 — admin ELA / application exploitant — build et interactions vérifiés le 14/09/2026`
 
+`TERMINÉ — Logo officiel unique ELA Transfer déployé sur toutes les interfaces — PR #138 — façade publique, application, easyHotel client, réception, admin et icônes — build et assets vérifiés le 14/09/2026`
+
 ## Blocages
 
 À renseigner uniquement lorsqu’un accès, une dépendance externe ou une décision utilisateur empêche réellement d’avancer.

@@ -11,7 +11,7 @@ html = html.replace(/<meta\s+name=["']description["'][^>]*>/i, `<meta name="desc
 
 const extra = `
 <!-- ELA SEO / identité -->
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-180.png" type="image/png">
 <link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b2f63">
@@ -30,8 +30,8 @@ const extra = `
   '@type': 'LocalBusiness',
   name: 'ELA Transfer',
   url: 'https://elatransfer.com/',
-  logo: 'https://elatransfer.com/brand-logo.svg',
-  image: 'https://elatransfer.com/brand-logo.svg',
+  logo: 'https://elatransfer.com/brand-logo.webp',
+  image: 'https://elatransfer.com/brand-logo.webp',
   telephone: '+33759312433',
   email: 'contact@elatransfer.com',
   areaServed: [
@@ -60,7 +60,7 @@ if (!html.includes('ELA SEO / identité')) {
 }
 
 const brandPattern = /<a class="brand" href="\/">\s*<span class="mark">ELA<\/span>\s*<span class="word">TRANSFER<small>PRIVATE DRIVER SERVICE<\/small><\/span>\s*<\/a>/g;
-html = html.replace(brandPattern, '<a class="brand" href="/" aria-label="ELA Transfer"><img class="brandReal" src="/brand-logo.svg" alt="ELA Transfer"></a>');
+html = html.replace(brandPattern, '<a class="brand" href="/" aria-label="ELA Transfer"><img class="brandReal" src="/brand-logo.webp" alt="ELA Transfer"></a>');
 
 fs.writeFileSync(file, html);
 console.log(`SEO ELA appliqué à ${file}`);

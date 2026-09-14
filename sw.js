@@ -42,7 +42,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v72";
+const CACHE = "elatransfer-v73";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
@@ -52,8 +52,8 @@ const CACHE = "elatransfer-v72";
    Les photos n'y sont pas non plus — elles font un mégaoctet et n'empêchent
    personne de réserver ; elles se mettent en cache d'elles-mêmes. */
 const SHELL = ["./", "./index.html",
-               "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg",
-               "./icon-180.png"];
+               "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
+               "./brand-logo.webp", "./brand-logo-white.png"];
 
 /* Hôtes dont la réponse ne doit jamais être mise en cache */
 const NO_CACHE_HOSTS = [
