@@ -9,23 +9,20 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png \
    brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
-   seo-pages.css \
+   seo-pages.css application-facade.css \
    chauffeur-prive-paris.html transfert-cdg-paris.html \
    transfert-orly-paris.html site/
 
 # Les règles EasyHotel restent appliquées à l'application fonctionnelle.
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 
-# On conserve cette application sous une adresse dédiée avant de publier la
-# nouvelle façade validée à la racine du domaine.
-mv site/index.html site/application.html
-
-# Les anciens favoris exploitant doivent ouvrir l'interface admin publiée et
-# non l'ancien tableau de bord embarqué dans l'application historique.
+# La façade et la réservation ne forment plus deux pages différentes :
+# l'application fonctionnelle reçoit l'identité publique validée, puis elle
+# est publiée à la racine ET sous /application pour préserver les anciens liens.
 python3 - <<'PY'
 from pathlib import Path
 
-page = Path("site/application.html")
+page = Path("site/index.html")
 html = page.read_text(encoding="utf-8")
 redirect = '''<script>
 (function(){
@@ -33,10 +30,17 @@ redirect = '''<script>
   if(p.get("exploitant")==="1") location.replace("/ela-admin/");
 }());
 </script>'''
+facade = '<link rel="stylesheet" href="/application-facade.css">'
 html = html.replace("<head>", "<head>" + redirect, 1)
+html = html.replace("</head>", facade + "</head>", 1)
+html = html.replace(
+    '<img class="logo-image" src="brand-logo-white.png"',
+    '<img class="logo-image" src="brand-logo.webp"',
+    1,
+)
 page.write_text(html, encoding="utf-8")
 PY
-cp sites/ela-public/index.html site/index.html
+cp site/index.html site/application.html
 
 # SEO, identité ELA et logo officiel de la façade publique.
 node .github/scripts/seo-ela.mjs site/index.html
@@ -52,7 +56,7 @@ touch site/.nojekyll
 
 # Sites vitrines et aperçus séparés.
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html styles.css seo-pages.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html styles.css seo-pages.css application-facade.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
