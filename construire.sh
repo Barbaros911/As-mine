@@ -9,7 +9,7 @@ mkdir -p site
 cp index.html admin.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png \
    brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
-   seo-pages.css application-facade.css \
+   seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js \
    chauffeur-prive-paris.html transfert-cdg-paris.html \
    transfert-orly-paris.html site/
 
@@ -31,8 +31,10 @@ redirect = '''<script>
 }());
 </script>'''
 facade = '<link rel="stylesheet" href="/application-facade.css">'
+hotel_css = '<link rel="stylesheet" href="/hotel-engine-polish.css">'
+hotel_js = '<script src="/hotel-engine-polish.js" defer></script>'
 html = html.replace("<head>", "<head>" + redirect, 1)
-html = html.replace("</head>", facade + "</head>", 1)
+html = html.replace("</head>", facade + hotel_css + hotel_js + "</head>", 1)
 html = html.replace(
     '<img class="logo-image" src="brand-logo-white.png"',
     '<img class="logo-image" src="brand-logo.webp"',
@@ -56,7 +58,7 @@ touch site/.nojekyll
 
 # Sites vitrines et aperçus séparés.
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html styles.css seo-pages.css application-facade.css photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")

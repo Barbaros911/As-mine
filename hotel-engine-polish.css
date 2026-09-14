@@ -1,0 +1,98 @@
+/* Finition ciblée du moteur hotel EasyHotel Aeroville.
+   Ne s'applique jamais au site public normal ni a la reception. */
+body.hotel:not(.reception).hotel-enhanced{
+  --hotel-orange:#f36f21;
+  --hotel-orange-dark:#c84e0d;
+  --hotel-ink:#17242d;
+  --hotel-paper:#f7f7f5;
+  --hotel-line:#e6e9e7;
+  background:var(--hotel-paper);
+}
+body.hotel:not(.reception).hotel-enhanced .page{max-width:540px;background:var(--hotel-paper)}
+
+/* En-tete compact : ELA reste la marque transport, easyHotel est visible sans
+   prendre un tiers de l'ecran comme dans l'ancienne version. */
+body.hotel:not(.reception).hotel-enhanced .entete{
+  position:sticky;top:0;z-index:80;
+  min-height:72px;padding:9px 13px;
+  background:#17242d;border-bottom:3px solid var(--hotel-orange);
+  box-shadow:0 8px 24px rgba(10,25,35,.16);
+}
+body.hotel:not(.reception).hotel-enhanced .logo-image{width:108px;max-height:48px;object-fit:contain}
+body.hotel:not(.reception).hotel-enhanced .entete-actions{gap:7px}
+body.hotel:not(.reception).hotel-enhanced .langues{border-radius:9px;border-color:rgba(255,255,255,.24)}
+body.hotel:not(.reception).hotel-enhanced .langues button{min-width:34px;min-height:34px;font-size:11px}
+body.hotel:not(.reception).hotel-enhanced .langues button[aria-pressed="true"]{background:var(--hotel-orange);color:#fff}
+body.hotel:not(.reception).hotel-enhanced .menu{display:none}
+.hotel-partner-chip{display:none}
+@media (min-width:430px){
+  .hotel-partner-chip{display:flex;flex-direction:column;justify-content:center;margin-left:auto;margin-right:8px;line-height:1.05}
+  .hotel-partner-chip b{font-size:12px;color:#fff}
+  .hotel-partner-chip span{font-size:8px;color:rgba(255,255,255,.58);margin-top:3px}
+}
+
+/* Le vrai hotel devient le hero. */
+body.hotel:not(.reception).hotel-enhanced .hotel-tete{
+  min-height:258px;margin:0 0 12px;padding:112px 14px 14px;border-radius:0 0 24px 24px;
+  background:#202b31;color:#fff;box-shadow:0 14px 34px rgba(19,38,50,.13);
+}
+body.hotel:not(.reception).hotel-enhanced .hotel-photo{display:block!important;inset:0;background-position:center 44%;background-size:cover}
+body.hotel:not(.reception).hotel-enhanced .hotel-photo::after{
+  opacity:1;background:linear-gradient(180deg,rgba(11,22,29,.06) 0%,rgba(11,22,29,.28) 40%,rgba(11,22,29,.9) 100%);
+}
+body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-sur{
+  display:inline-flex;margin:0 0 7px;padding:6px 9px;border-radius:999px;
+  background:var(--hotel-orange);color:#fff!important;opacity:1!important;
+  font-size:9px;letter-spacing:.11em;box-shadow:0 5px 16px rgba(0,0,0,.14)
+}
+body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-nom{margin:0;color:#fff;font-size:30px;line-height:1;font-weight:850;text-shadow:0 2px 8px rgba(0,0,0,.32)}
+body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-adresse{margin:7px 0 13px;color:rgba(255,255,255,.9);font-size:11px;line-height:1.35;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+body.hotel:not(.reception).hotel-enhanced .hotel-sens{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);padding:4px;border-radius:12px}
+body.hotel:not(.reception).hotel-enhanced .hotel-sens-btn{min-height:45px;border-radius:9px;color:#fff!important;font-size:11px;background:transparent!important}
+body.hotel:not(.reception).hotel-enhanced .hotel-sens-btn.actif{background:#fff!important;color:var(--hotel-ink)!important;box-shadow:0 5px 15px rgba(0,0,0,.15)}
+
+/* Le vrai bloc client est remonte au premier ecran : aucun champ n'est duplique. */
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early{
+  margin:0 12px 12px!important;padding:13px!important;border:1px solid var(--hotel-line);
+  border-radius:18px!important;background:#fff;box-shadow:0 8px 25px rgba(21,42,55,.07)
+}
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .bloc-titre{
+  margin:0 0 10px;font-size:12px;color:var(--hotel-ink);font-weight:850
+}
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .champ{min-height:62px!important;margin-bottom:8px!important;background:#fbfcfb!important}
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .champ-titre{font-size:9px!important}
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early input{font-size:14px!important}
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .champ-aide,
+body.hotel:not(.reception).hotel-enhanced #blocCoordonnees.hotel-guest-early .aide{font-size:8px;line-height:1.35;color:#74807d}
+
+/* Raccourcis destinations avec de vraies photos plutot que des pictos generiques. */
+#hotelQuickDest{margin:4px 12px 12px}
+#hotelQuickDest .quick-title{display:flex;align-items:end;justify-content:space-between;margin:0 2px 8px}
+#hotelQuickDest .quick-title b{font-size:12px;color:var(--hotel-ink)}
+#hotelQuickDest .quick-title span{font-size:8px;color:#7b8784}
+#hotelQuickDest .quick-scroll{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hotel-quick{position:relative;overflow:hidden;min-height:83px;border:0;border-radius:14px;padding:0;cursor:pointer;background:#27343b;color:#fff;text-align:left;box-shadow:0 6px 18px rgba(16,38,51,.12)}
+.hotel-quick img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hotel-quick:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,15,22,.05),rgba(5,15,22,.83))}
+.hotel-quick span{position:absolute;z-index:2;left:9px;right:7px;bottom:8px;font-size:9px;font-weight:800;line-height:1.1;text-shadow:0 1px 4px #000}
+.hotel-quick.active{outline:3px solid var(--hotel-orange);outline-offset:1px}
+.hotel-quick.active:before{content:"✓";position:absolute;z-index:3;right:6px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--hotel-orange);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:900}
+
+/* Formulaire moins massif et plus net sur iPhone. */
+body.hotel:not(.reception).hotel-enhanced #ecran-accueil .bloc{margin:0 12px 12px;border-radius:18px;padding:12px;box-shadow:0 7px 22px rgba(20,42,55,.06)}
+body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ{min-height:68px;border-radius:14px;margin-bottom:9px;background:#fff;border-color:#dfe5e2;padding:9px 11px}
+body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ-titre{font-size:10px}
+body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ input,
+body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ select{font-size:15px;line-height:1.25}
+body.hotel:not(.reception).hotel-enhanced #ecran-accueil .champ-aide{font-size:9px;line-height:1.35;color:#6d7976;margin:2px 7px 10px}
+body.hotel:not(.reception).hotel-enhanced .hotel-forfait{color:#8e3714;font-size:14px;font-weight:850;margin:7px 5px 12px}
+
+@media(max-width:760px){
+  body.hotel:not(.reception).hotel-enhanced .entete{min-height:66px;padding:7px 11px}
+  body.hotel:not(.reception).hotel-enhanced .logo-image{width:96px;max-height:43px}
+  body.hotel:not(.reception).hotel-enhanced .hotel-tete{min-height:244px;padding:105px 12px 12px;border-radius:0 0 22px 22px}
+  body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-nom{font-size:27px}
+  body.hotel:not(.reception).hotel-enhanced .hotel-tete .hotel-adresse{max-width:330px;font-size:10px}
+  #hotelQuickDest .quick-scroll{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .hotel-quick{min-height:78px}
+}
