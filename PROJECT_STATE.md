@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
+`EN COURS — Repenser la landing EasyHotel Aéroville 10/10 — ela/easyhotel-client-v2 — EasyHotel client — sites/easyhotel-client/index.html — validation responsive, liens, images et publication`
 
 Format obligatoire :
 
