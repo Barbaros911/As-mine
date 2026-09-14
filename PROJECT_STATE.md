@@ -47,8 +47,6 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
-`EN COURS — Unifier la façade publique et la réservation — fix/unifier-facade-application — façade publique / application — application-facade.css, construire.sh, sw.js — validation du build et de la production`
-
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
@@ -68,6 +66,8 @@ Exemple :
 `TERMINÉ — Logo officiel unique ELA Transfer déployé sur toutes les interfaces — PR #138 — façade publique, application, easyHotel client, réception, admin et icônes — build et assets vérifiés le 14/09/2026`
 
 `TERMINÉ — Façade publique mobile alignée sur la référence validée — PR #139 — accueil, réservation, services et menu mobile — interactions et identité vérifiées le 14/09/2026`
+
+`TERMINÉ — Façade publique et application de réservation unifiées — PR #142 / 4909e14 — racine, /application, EasyHotel, réception et admin — build, déploiement et interactions vérifiés le 14/09/2026`
 
 ## Blocages
 
