@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
+`EN COURS — Corriger le vrai moteur mobile easyHotel d'après les captures — ela/easyhotel-engine-mobile-10 — application hôtel — hotel-engine-polish.css, hotel-engine-polish.js, construire.sh — validation PR, build, mobile et publication`
 
 Format obligatoire :
 
