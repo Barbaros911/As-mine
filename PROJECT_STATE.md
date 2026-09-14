@@ -47,6 +47,8 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
+`EN COURS — Reproduire exactement la référence mobile publique — fix/mobile-public-reference — façade publique mobile — sites/ela-public/index.html — validation puis publication`
+
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
