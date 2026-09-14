@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-`EN COURS — Repenser la landing EasyHotel Aéroville 10/10 — ela/easyhotel-client-v2 — EasyHotel client — sites/easyhotel-client/index.html — validation responsive, liens, images et publication`
+Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
 
@@ -70,6 +70,8 @@ Exemple :
 `TERMINÉ — Façade publique et application de réservation unifiées — PR #142 / 4909e14 — racine, /application, EasyHotel, réception et admin — build, déploiement et interactions vérifiés le 14/09/2026`
 
 `TERMINÉ — Parcours mobile client easyHotel refondu et publié — PR #143 / 7f0b9dd — EasyHotel client — identité easyHotel × ELA, CTA vers moteur partenaire, FR/EN et responsive publiés le 15/09/2026`
+
+`TERMINÉ — Landing easyHotel Aéroville repensée et publiée — PR #144 / 6af2f53 — EasyHotel client — hôtel mis au premier plan, logo ELA inchangé, nouvelles photos licenciées, responsive et CTA partenaire publiés le 15/09/2026`
 
 ## Blocages
 
