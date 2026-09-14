@@ -42,7 +42,7 @@ function siteVoisin(url) {
 /* Numéro à incrémenter à chaque changement visible : il force les
    téléphones qui ont installé l'application à repartir sur un cache
    propre au lieu de garder d'anciennes ressources. */
-const CACHE = "elatransfer-v75";
+const CACHE = "elatransfer-v76";
 /* LE STRICT NÉCESSAIRE, ET RIEN DE PLUS — « addAll » est tout ou rien : un
    seul fichier absent et le service worker ne s'installe pas du tout, sans
    le moindre message. C'est pourquoi « ./styles.css » en est sorti à la
@@ -51,8 +51,8 @@ const CACHE = "elatransfer-v75";
    tous les clients qui ont posé l'application sur leur écran d'accueil.
    Les photos n'y sont pas non plus — elles font un mégaoctet et n'empêchent
    personne de réserver ; elles se mettent en cache d'elles-mêmes. */
-const SHELL = ["./", "./index.html",
-               "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
+const SHELL = ["./", "./index.html", "./application.html",
+               "./application-facade.css", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
                "./brand-logo.webp", "./brand-logo-white.png"];
 
 /* Hôtes dont la réponse ne doit jamais être mise en cache */
@@ -149,7 +149,7 @@ self.addEventListener("fetch", (event) => {
      « exploitant/ ») qui ne font que pointer vers elle. */
   function estLApplication(u) {
     const reste = u.pathname.slice(BASE.length);
-    return reste === "" || reste === "index.html";
+    return reste === "" || reste === "index.html" || reste === "application.html";
   }
 
   /* ═══ DOCUMENT HTML : RÉSEAU D'ABORD, CACHE EN SECOURS ═══
