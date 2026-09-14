@@ -18,6 +18,23 @@ node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 # On conserve cette application sous une adresse dédiée avant de publier la
 # nouvelle façade validée à la racine du domaine.
 mv site/index.html site/application.html
+
+# Les anciens favoris exploitant doivent ouvrir l'interface admin publiée et
+# non l'ancien tableau de bord embarqué dans l'application historique.
+python3 - <<'PY'
+from pathlib import Path
+
+page = Path("site/application.html")
+html = page.read_text(encoding="utf-8")
+redirect = '''<script>
+(function(){
+  var p=new URLSearchParams(location.search);
+  if(p.get("exploitant")==="1") location.replace("/ela-admin/");
+}());
+</script>'''
+html = html.replace("<head>", "<head>" + redirect, 1)
+page.write_text(html, encoding="utf-8")
+PY
 cp sites/ela-public/index.html site/index.html
 
 # SEO, identité ELA et logo officiel de la façade publique.

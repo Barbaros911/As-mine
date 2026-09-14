@@ -61,6 +61,8 @@ Exemple :
 
 `TERMINÉ — Maquette exacte des 4 interfaces publiée — PR #135 / d0c3719 — site public, easyHotel client, réception et admin — build et routes de production vérifiés le 14/09/2026`
 
+`TERMINÉ — Admin mobile réaligné sur la référence et ancien écran neutralisé — PR #137 — admin ELA / application exploitant — build et interactions vérifiés le 14/09/2026`
+
 ## Blocages
 
 À renseigner uniquement lorsqu’un accès, une dépendance externe ou une décision utilisateur empêche réellement d’avancer.
