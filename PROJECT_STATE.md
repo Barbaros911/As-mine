@@ -47,6 +47,8 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
+`EN COURS — Unifier la façade publique et la réservation — fix/unifier-facade-application — façade publique / application — application-facade.css, construire.sh, sw.js — validation du build et de la production`
+
 Format obligatoire :
 
 `[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
