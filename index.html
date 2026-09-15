@@ -40,7 +40,7 @@
      qui a « ajouté à l'écran d'accueil » verrait son icône disparaître le
      jour de la bascule.
      iOS ignore un apple-touch-icon en SVG — d'où le PNG de 180 px. -->
-<link rel="manifest" href="manifest.webmanifest" id="manifeste">
+<link rel="manifest" id="manifeste">
 <!-- ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═══
      Septembre 2026, à sa demande : « comment je peux l'enregistrer sur mon
      téléphone ». Le piège n'était pas dans le geste mais dans le fichier :
@@ -55,11 +55,27 @@
      le paramètre, on reste côté client, y compris sur son téléphone. -->
 <script>
 (function(){
+  /* ═══ LE LIEN PART SANS ADRESSE, ET C'EST LA CORRECTION ═══
+     Il portait « manifest.webmanifest » en dur, et ce script le remplaçait
+     quand l'adresse disait « exploitant=1 ». Sur un ordinateur le script
+     gagne ; sur un iPhone, Safari a souvent DÉJÀ commencé à lire le premier
+     fichier quand le script s'exécute — et changer le « href » après coup
+     ne le fait pas relire.
+     Barbaros, trois fois de suite : l'icône posée depuis son espace
+     s'appelait « ELA Transfer » et rouvrait le site public, parce que le
+     manifeste client déclare « start_url: ./ ».
+     SANS ADRESSE DE DÉPART, IL N'Y A PLUS RIEN À PRÉCHARGER : le navigateur
+     ne peut lire que ce que ce script a posé, et ce script s'exécute avant
+     que l'analyse de la page n'aille plus loin. La course de vitesse
+     n'existe plus, au lieu d'être gagnée une fois sur deux.
+     Le mode exploitant suit toujours l'ADRESSE, jamais l'appareil. */
+  var m = document.getElementById("manifeste");
+  if(!m) return;
+  var exploitant = false;
   try{
-    if(new URLSearchParams(location.search).get("exploitant") !== "1") return;
-    var m = document.getElementById("manifeste");
-    if(m) m.href = "manifest-exploitant.webmanifest";
-  }catch(e){ /* un navigateur qui ne sait pas lire son adresse garde le défaut */ }
+    exploitant = new URLSearchParams(location.search).get("exploitant") === "1";
+  }catch(e){ exploitant = false; }
+  m.href = exploitant ? "manifest-exploitant.webmanifest" : "manifest.webmanifest";
 })();
 </script>
 <link rel="icon" href="icon-180.png" type="image/png">

@@ -25,8 +25,8 @@ function siteVoisin(url) {
   return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
-/* v83 : une course jamais deposee sur le serveur s efface quand meme. */
-const CACHE = "elatransfer-v83";
+/* v84 : le lien du manifeste ne porte plus d adresse en dur. */
+const CACHE = "elatransfer-v84";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",

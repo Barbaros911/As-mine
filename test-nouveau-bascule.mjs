@@ -317,7 +317,18 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
   const px = await cx.newPage();
   await px.route('**://api.openrouteservice.org/**', r=>r.abort());
 
+  /* ELLE NE REDIRIGE PLUS, ET C'EST VOULU (septembre 2026). Une page qui
+     part en quelques millisecondes ne laisse pas le temps d'appuyer sur
+     « Partager » : le geste « ajouter à l'écran d'accueil » atterrissait
+     sur la page d'arrivée, dont le manifeste est celui du site CLIENT, et
+     l'icône posée rouvrait le site public. C'est désormais la page qu'on
+     AJOUTE ; « admin.html » garde la redirection immédiate.
+     ON ÉPROUVE DONC OÙ MÈNE LE BOUTON, pas si la page s'en va. */
   await px.goto('http://127.0.0.1:8099/exploitant/', {waitUntil:'domcontentloaded'});
+  await px.waitForTimeout(400);
+  check('« /exploitant/ » reste en place, pour qu\'on puisse l\'ajouter',
+    /\/exploitant\//.test(px.url()), px.url());
+  await px.locator('a.ouvrir').click();
   await px.waitForTimeout(900);
   check('« /exploitant/ » ouvre bien l\'espace exploitant',
     /exploitant=1/.test(px.url()) && !/\/exploitant\//.test(px.url()), px.url());
@@ -325,8 +336,11 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
     await px.locator('#ecran-verrou').isVisible());
 
   /* LES PARAMÈTRES SUIVENT : un lien de course ouvert depuis cette adresse
-     doit continuer de fonctionner, comme depuis « admin.html ». */
+     doit continuer de fonctionner, comme depuis « admin.html ». Le bouton
+     les emporte — c'est la seule chose que le script de cette page fait. */
   await px.goto('http://127.0.0.1:8099/exploitant/?a=ZZZ', {waitUntil:'domcontentloaded'});
+  await px.waitForTimeout(400);
+  await px.locator('a.ouvrir').click();
   await px.waitForTimeout(900);
   check('elle transmet les paramètres reçus',
     /a=ZZZ/.test(px.url()) && /exploitant=1/.test(px.url()), px.url());
@@ -344,9 +358,15 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
      part en quelques millisecondes, et un « document.getElementById » qui
      arrive après rend « null ». Un contrôle qui accepte « null » ne
      vérifie plus rien. */
-  const secours = (brutX.match(/id="secours"\s+href="([^"]+)"/) || [])[1];
-  check('le lien de secours remonte d\'un dossier',
-    /^\.\.\/index\.html/.test(secours || ''), String(secours));
+  /* LE LIEN REMONTE D'UN DOSSIER, ET ON LE LIT DANS LA SOURCE. Cette page
+     vit dans un SOUS-DOSSIER : un « ./ » recopié depuis « admin.html »
+     viserait « /exploitant/application.html » et rendrait un 404.
+     Le lien s'appelle désormais « a.ouvrir » — c'est un bouton qu'on
+     presse, plus un secours après une redirection — et il vise
+     « application.html », la page de l'application depuis la séparation. */
+  const ouvrir = (brutX.match(/class="ouvrir"\s+href="([^"]+)"/) || [])[1];
+  check('le bouton remonte d\'un dossier',
+    /^\.\.\/application\.html/.test(ouvrir || ''), String(ouvrir));
 
   /* LE MANIFESTE EST DÉCLARÉ SUR LA PAGE DE REDIRECTION ELLE-MÊME.
      « Ajouter à l'écran d'accueil » lit le manifeste de la page AFFICHÉE au
