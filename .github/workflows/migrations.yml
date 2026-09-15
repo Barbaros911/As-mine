@@ -50,6 +50,28 @@ jobs:
       # LE NOM EST CONTRÔLÉ AVANT D'ÊTRE UTILISÉ. Sans ça, « ../../quelque
       # chose » sortirait du dossier des migrations et ce workflow
       # exécuterait n'importe quel fichier du dépôt sur la base.
+      # LE JETON D'ABORD, LA MIGRATION ENSUITE. Un 401 sur la requête finale
+      # ne dit pas si le jeton est mort ou si c'est l'appel qui est mal
+      # formé : on interroge donc d'abord une adresse qui ne fait rien, et
+      # on sait lequel des deux est en cause. Aucune valeur secrète n'est
+      # affichée, seulement des codes de réponse.
+      - name: Éprouver le jeton sur une lecture inoffensive
+        run: |
+          code=$(curl -sS -o projets.json -w '%{http_code}' \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            https://api.supabase.com/v1/projects)
+          echo "Lecture des projets : HTTP $code"
+          if [ "$code" = "200" ]; then
+            echo "Le jeton est valide. Projets visibles :"
+            jq -r '.[].id' projets.json || true
+          else
+            echo "Le jeton est REFUSÉ par l'API de gestion."
+            cat projets.json; echo
+            echo "Il faut en refaire un sur supabase.com/dashboard/account/tokens"
+            echo "et le reposer dans le secret GitHub SUPABASE_ACCESS_TOKEN."
+            exit 1
+          fi
+
       - name: Contrôler le nom du fichier
         run: |
           case "$FICHIER" in
