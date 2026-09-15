@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
+`EN COURS — Unifier les anciennes routes publiées — fix/unifier-routes-publiees — façade publique, réception, admin et build — construire.sh, sites/ela-public/, sites/easyhotel-reception/, sites/ela-admin/, sw.js — redirections fonctionnelles, contrôles et fusion`
 
 Format obligatoire :
 
