@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RIE --exclude-dir=.git --exclude='*.md' 'service_role.{0,40}(eyJ|sb_secret_)' .; then
+          if grep -RIE --exclude-dir=.git --exclude='*.md' --exclude='security-regression.yml' 'service_role.{0,40}(eyJ|sb_secret_)' .; then
             echo 'Clé service-role potentiellement publiée'
             exit 1
           fi
