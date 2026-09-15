@@ -220,6 +220,34 @@ const chiffres = await p.locator('.rec-chiffre b').allTextContents();
 check('deux courses en attente sont comptées', chiffres[1] === '2', chiffres.join('/'));
 check('et ce compteur-là s\'allume, seul', await p.locator('.rec-chiffre.chaud').count() === 1);
 
+/* ═══ « RÉSERVATION VALIDÉE », LE SEUL MOT QUI RÉPOND À LA QUESTION ═══
+   À sa demande : « si moi je confirme sur le site, chez la réception ça
+   doit être réservation validée ». « Confirmée » est le vocabulaire du
+   tableau de bord de Barbaros, où il décrit un geste qu'il vient de faire ;
+   au comptoir, la question est « est-ce que la voiture est acquise ? ».
+   ON VÉRIFIE AUSSI QUE L'ANCIEN MOT NE TRAÎNE PLUS : un libellé remplacé à
+   moitié laisse deux vocabulaires pour un même état. */
+const etatConf = await p.locator('.rec-etat.confirmee').first().textContent();
+check('une course confirmée par Barbaros dit « Réservation validée » au comptoir',
+  etatConf.trim() === 'Réservation validée', etatConf.trim());
+check('et le mot « Confirmée » ne reste nulle part dans la liste',
+  !/Confirmée/.test(await p.locator('#recCorps').textContent()));
+/* LE LIBELLÉ EST DEUX FOIS PLUS LONG QUE L'ANCIEN — on MESURE qu'il ne
+   pousse pas l'heure hors de la carte ni ne passe à la ligne. Un libellé
+   rallongé casse une mise en page sans un mot : c'est exactement la faute
+   du bouton mangé par la barre du bas. */
+const pastMes = await p.locator('.rec-etat.confirmee').first().evaluate(el => {
+  const r = el.getBoundingClientRect();
+  const ligne = el.parentElement.getBoundingClientRect();
+  const heure = el.parentElement.querySelector('.rec-heure').getBoundingClientRect();
+  return { hauteur: Math.round(r.height), dedans: r.right <= ligne.right + 1,
+           surUneLigne: Math.abs(r.top - heure.top) < r.height,
+           heureEntiere: Math.round(heure.width) };
+});
+check('la pastille tient sur la ligne de l\'heure, sans déborder ni la rogner',
+  pastMes.dedans && pastMes.surUneLigne && pastMes.hauteur < 30
+  && pastMes.heureEntiere >= 45, JSON.stringify(pastMes));
+
 /* ═══ L'ORANGE NE DESCEND PAS DANS LA LISTE ═══
    Il est à 24° de teinte du rouge de l'attente. S'il habillait aussi les
    pastilles d'état, « confirmée » dirait la MARQUE et non plus l'ÉTAT. */
@@ -423,23 +451,51 @@ check('en se disant venue du comptoir, pas du téléphone d\'un client',
   posee.parReception === true && posee.provenanceCle === 'easyhotel-aeroville',
   posee.parReception + ' / ' + posee.provenanceCle);
 
-/* ═══ LE BOUTON RESTE, ET IL ENVOIE VRAIMENT ═══
-   Vérifier qu'il est là ne prouverait rien : un bouton mort au bout d'un
-   écran est pire qu'un bouton absent. On appuie, et on lit le lien qui
-   part. Même leçon que la feuille WhatsApp du client. */
+/* ═══ PLUS AUCUN BOUTON WHATSAPP AU COMPTOIR ═══
+   À sa demande : « ne met pas prévenir sur whatsapp ». La réception valide
+   sur le site, Telegram sonne, et un bouton posé là laisse croire qu'il
+   reste un geste à faire pour que la demande arrive.
+   ON MESURE CE QUE REÇOIT LE DOIGT, PAS L'ATTRIBUT. « .bouton-fantome »
+   porte « display:block » : un « hidden » posé sur cet élément ne suffirait
+   pas si la règle « [hidden] » perdait son « !important ». C'est le même
+   piège que le bouton « Appeler le chauffeur » posé en travers d'une ligne.
+   NOTE : ce bloc s'exécute sur un dépôt ÉCHOUÉ (le serveur est injoignable
+   depuis le banc), donc la vraie mesure du cas normal est plus bas, avec le
+   faux serveur qui répond 201. */
 const btnR = p.locator('#btnRenvoyer');
-check('un bouton WhatsApp reste sur le bon — c\'est le repli si le dépôt échoue',
-  await btnR.isVisible());
-check('et il ne parle plus d\'un WhatsApp « qui ne s\'est pas ouvert » : il ne s\'ouvre plus',
-  !/ouvert/i.test(await p.locator('#noteRenvoi').textContent()),
-  (await p.locator('#noteRenvoi').textContent()).trim());
-await btnR.click();
-await p.waitForTimeout(300);
-const waComptoir = await p.evaluate(() => window.__wa);
-check('appuyé, il envoie bien la demande avec sa référence',
-  waComptoir.length === 1 && waComptoir[0].includes('wa.me')
-  && decodeURIComponent(waComptoir[0]).includes(posee.ref),
-  waComptoir.join(' '));
+
+/* ═══ MAIS IL REVIENT SI LE DÉPÔT A ÉCHOUÉ, ET C'EST LE CONTRÔLE QUI COMPTE
+   LE PLUS ═══
+   Ici le serveur est injoignable : la demande n'est arrivée NULLE PART.
+   Sans ce bouton, la réception note un client pour 5 h du matin et personne
+   n'en entend jamais parler. « Le repli est sacré » — le retirer dans ce
+   cas-là serait obéir à la lettre en cassant ce qui protège ses clients.
+   Et le libellé change avec son sujet : il ne prévient pas, il rattrape. */
+check('le dépôt a échoué ici, donc le bon le dit',
+  await p.locator('#etatEnvoi.ko').isVisible(),
+  (await p.locator('#etatEnvoi').textContent()).trim());
+check('MÊME LÀ, aucun bouton WhatsApp ne revient — « ils auront déjà mon numéro »',
+  await btnR.isHidden());
+/* CE QUI REMPLACE LE REPLI N'EST PAS RIEN. Sans bouton, un message qui dit
+   « envoyez-la sur WhatsApp » désignerait une porte qui n'existe plus :
+   pire que pas de repli du tout. L'écriteau dit d'APPELER, et il porte le
+   numéro — le même que celui du site, relu dans la page plutôt que recopié
+   ici (on ne fige pas un numéro dans un test, on le compare à sa source). */
+const telSite = await p.evaluate(() => {
+  const a = document.querySelector('a[href^="tel:+33"]');
+  return a ? a.getAttribute('href').replace('tel:+33', '0') : '';
+});
+const ecriteau = (await p.locator('#etatEnvoi').textContent()).replace(/\s/g, '');
+check('l\'écriteau d\'échec dit d\'APPELER, et pas d\'envoyer un WhatsApp',
+  /appelez/i.test(ecriteau) && !/whatsapp/i.test(ecriteau),
+  (await p.locator('#etatEnvoi').textContent()).trim());
+check('et il porte le numéro du site, pas un numéro recopié à la main',
+  telSite.length > 8 && ecriteau.includes(telSite), telSite);
+/* La note se tait : deux phrases pour une même consigne font relire. */
+check('la note se tait plutôt que de répéter l\'écriteau',
+  await p.locator('#noteRenvoi').isHidden());
+check('et rien n\'est parti sur WhatsApp tout seul',
+  (await p.evaluate(() => window.__wa.length)) === 0);
 
 /* ═══ « ÊTRE PRÉVENU » NE S'ADRESSE PAS À UNE TABLETTE PARTAGÉE ═══
    Le bloc promet la confirmation sur LE WhatsApp du client et propose une
@@ -467,6 +523,30 @@ check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi').textContent());
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
+/* ═══ LE CAS NORMAL : LA DEMANDE EST ARRIVÉE, IL N'Y A PLUS RIEN À ENVOYER ═══
+   C'est ici, et seulement ici, que sa demande se mesure : sur un dépôt
+   RÉUSSI. Le contrôle plus haut tourne sur un serveur injoignable, où le
+   bouton doit au contraire revenir. */
+check('LA DEMANDE EST PASSÉE : plus aucun bouton WhatsApp sur le bon',
+  await p.locator('#btnRenvoyer').isHidden());
+/* On ne lit pas l'attribut mais ce qui se voit : « .bouton-fantome » porte
+   « display:block », et un « hidden » sans règle qui l'emporte ne masquerait
+   rien. Mesuré à zéro pixel plutôt que relu dans le HTML. */
+check('et il ne prend pas la place non plus — mesuré, pas relu',
+  await p.locator('#btnRenvoyer').evaluate(el => {
+    const r = el.getBoundingClientRect();
+    return r.width === 0 && r.height === 0;
+  }));
+check('la note dit que c\'est arrivé, sans proposer un geste de plus',
+  !/whatsapp/i.test(await p.locator('#noteRenvoi').textContent()),
+  (await p.locator('#noteRenvoi').textContent()).trim());
+/* ET LE CLIENT, LUI, GARDE LE SIEN. Son message WhatsApp est le second
+   chemin par lequel sa demande arrive : il n'a pas de Telegram. */
+await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+check('côté client, le bouton de renvoi est toujours dans la page',
+  (await p.locator('#btnRenvoyer').count()) === 1
+  && !(await p.evaluate(()=>document.getElementById('btnRenvoyer').hasAttribute('hidden'))));
 await ctx.unroute('**/rest/v1/courses*');
 
 /* ═══ ET LE TUNNEL DU CLIENT N'A PAS BOUGÉ D'UN POUCE ═══

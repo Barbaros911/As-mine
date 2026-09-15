@@ -926,6 +926,10 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   border-radius:13px;background:var(--carte);color:var(--encre);
   font-family:inherit;font-size:14.5px;font-weight:700;padding:14px 18px;
   text-align:center;text-decoration:none;cursor:pointer;}
+/* Le rouge d'un geste irréversible. Mesuré : #8f2220 sur blanc donne 8,7 —
+   bien au-dessus du seuil. Il reste un bouton EN CREUX : plein, il crierait
+   plus fort que « Marquer comme réalisée », qui est le geste courant. */
+.bouton-fantome.rouge{border-color:#f0cfcf;color:#8f2220;}
 
 /* ---------- SUGGESTIONS D'ADRESSE ---------- */
 /* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
@@ -3956,6 +3960,17 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
         <span>Marquer comme réalisée</span>
       </button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
+      <!-- SUPPRIMER N'EST PAS REFUSER. « Refuser » est une RÉPONSE : la course
+           passe au gris, elle reste au registre, et c'est ce qu'on veut d'une
+           vraie demande qu'on n'a pas pu assurer. « Supprimer » efface — c'est
+           pour un essai, un doublon, une saisie ratée. Les confondre ferait
+           disparaître des courses dont on a besoin comme preuve.
+           IL DEMANDE DEUX FOIS, et le second appui porte un autre libellé :
+           un geste irréversible ne doit pas se déclencher sur un pouce qui
+           glisse, et un bouton qui ne change pas de mot laisse croire que le
+           premier appui n'a pas marché. -->
+      <button class="bouton-fantome rouge" type="button" id="btnSupprimerCourse">Supprimer cette course</button>
+      <p class="champ-aide" id="supprEtat" hidden></p>
     </div>
   </section>
 
@@ -4431,8 +4446,7 @@ window.ELA_TEXTES = {
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
-    renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Ce bouton ne sert que si vous voulez lui écrire un message.",
-    renvoyer_comptoir:"Prévenir par WhatsApp",
+    renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
@@ -4465,6 +4479,7 @@ window.ELA_TEXTES = {
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
     envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
+    envoi_ko_comptoir:"Votre demande n'a pas pu nous être transmise. Appelez Elatransfer au 07 59 31 24 33 pour la confirmer.",
     wa_titre:"Comment pouvons-nous vous aider ?",
     wa_c1:"J'ai une question sur ma réservation",
     wa_c2:"Je voudrais des informations",
@@ -4597,8 +4612,7 @@ window.ELA_TEXTES = {
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
-    renvoi_note_comptoir:"Elatransfer is alerted automatically. Use this button only if you want to send them a message.",
-    renvoyer_comptoir:"Notify on WhatsApp",
+    renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
@@ -4626,6 +4640,7 @@ window.ELA_TEXTES = {
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
     envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
+    envoi_ko_comptoir:"Your request could not reach us. Please call Elatransfer on +33 7 59 31 24 33 to confirm it.",
     wa_titre:"How can we help?",
     wa_c1:"I have a question about my booking",
     wa_c2:"I would like some information",
@@ -5575,7 +5590,18 @@ window.ELA_TEXTES = {
      traduit pour personne finit par diverger de la page.
      La date suit donc « dateFr » et le prix « eurosFR », qui sont déjà les
      versions françaises figées du reste de l'outil. */
-  var ETATS_REC = { attente:"En attente", confirmee:"Confirmée",
+  /* ═══ « RÉSERVATION VALIDÉE », PAS « CONFIRMÉE » ═══
+     À sa demande : « si moi je confirme sur le site la prise en charge,
+     chez la réception ça doit être réservation validée ». Le mot n'est pas
+     un détail : « confirmée » est le vocabulaire de NOTRE tableau de bord,
+     où il décrit un geste qu'il vient de faire. À un comptoir qui a un
+     client devant lui, la seule question est « est-ce que la voiture est
+     acquise ? » — et « Réservation validée » y répond, « Confirmée »
+     laisse un doute sur qui a confirmé quoi.
+     LA CHAÎNE EXISTE DÉJÀ ET N'A PAS EU À CHANGER : « pousser » écrit la
+     colonne « statut » sur le serveur, « courses-hotel » la relit, la liste
+     se rafraîchit. Seul le libellé manquait. */
+  var ETATS_REC = { attente:"En attente", confirmee:"Réservation validée",
                     realisee:"Effectuée", refusee:"Non prise" };
 
   /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
@@ -5917,18 +5943,24 @@ window.ELA_TEXTES = {
       var errCoord = document.getElementById("erreurCoordonnees");
       errCoord.setAttribute("data-t", "err_identite");
       errCoord.textContent = T("err_identite");
-      /* ═══ LE BON DU COMPTOIR NE PARLE PLUS DE WHATSAPP QUI S'OUVRE ═══
-         Il ne s'ouvre plus ici. « Si WhatsApp ne s'est pas ouvert… »
-         enverrait une réception chercher une application qui n'est jamais
-         venue, et lui ferait croire que sa réservation est restée en
-         route. Le bouton, lui, RESTE — il reprend simplement son vrai
-         sujet : écrire un message, pas rattraper un envoi. */
-      var noteR = document.getElementById("noteRenvoi");
-      noteR.setAttribute("data-t", "renvoi_note_comptoir");
-      noteR.textContent = T("renvoi_note_comptoir");
-      var btnR = document.getElementById("btnRenvoyer");
-      btnR.setAttribute("data-t", "renvoyer_comptoir");
-      btnR.textContent = T("renvoyer_comptoir");
+      /* ═══ LE BON DU COMPTOIR NE PROPOSE PLUS D'ÉCRIRE SUR WHATSAPP ═══
+         Septembre 2026, à sa demande : « ne met pas prévenir sur
+         whatsapp ». La réception valide sur le site, Telegram le
+         prévient, et un bouton posé là ne fait que rouvrir une question
+         déjà réglée — pire, il laisse croire qu'il reste un geste à faire
+         pour que la demande arrive.
+
+         IL NE DISPARAÎT QUE DANS LE CAS NORMAL, et ce n'est pas une demi-
+         mesure : si le dépôt sur le serveur ÉCHOUE, il redevient le seul
+         chemin par lequel la course peut nous parvenir, et le retirer là
+         serait une réception qui note un client pour 5 h du matin sans que
+         personne ne le sache jamais. « jugerRenvoiComptoir » est le seul
+         juge, appelé depuis « afficherEtatEnvoi » : la visibilité suit
+         l'état du dépôt, pas le chargement de la page.
+         Son libellé redevient alors « Renvoyer ma demande » — ce qu'il
+         fait vraiment à cet instant : rattraper un envoi, pas prévenir. */
+      document.getElementById("noteRenvoi").setAttribute("data-t", "renvoi_note_comptoir");
+      document.getElementById("noteRenvoi").textContent = T("renvoi_note_comptoir");
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
       ["listeVehicules", "blocCoordonnees", "blocPaiement"].forEach(function(id){
@@ -8160,17 +8192,50 @@ window.ELA_TEXTES = {
     envoiEtat = etat;
     blocEnvoi.hidden = false;
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
+    /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
+       bouton pour ça, et la réception a notre numéro. Elle appelle. */
     texteEnvoi.textContent = T(etat === true ? "envoi_ok"
-                             : etat === false ? "envoi_ko" : "envoi_cours");
+                             : etat === false ? (recHotel ? "envoi_ko_comptoir" : "envoi_ko")
+                             : "envoi_cours");
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
+    jugerRenvoiComptoir();
     /* Le bloc des notifications suit l'état de l'envoi : il n'a de sens que
        si la demande est bien arrivée sur le serveur. */
     jugerBlocNotif();
     /* La note reste visible quel que soit l'état : le message WhatsApp part
        dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
        cas aussi. */
+  }
+
+  /* ═══ AU COMPTOIR, IL N'Y A PLUS AUCUN BOUTON WHATSAPP ═══
+     À sa demande, en deux temps : « ne met pas prévenir sur whatsapp »,
+     puis — quand le repli en cas d'échec lui a été signalé — « ils auront
+     déjà mon numéro ».
+
+     C'EST CE SECOND POINT QUI TRANCHE, ET IL EST JUSTE. Le repli existait
+     parce qu'un client venu du site n'a aucun autre moyen de nous joindre :
+     son téléphone ne connaît pas Elatransfer. Une réception partenaire,
+     elle, a le numéro sur son flyer, sur son comptoir et dans son
+     répertoire — elle décroche. Le bouton ne lui apportait qu'un message
+     pré-rempli ; l'écran, lui, reste sous ses yeux avec le trajet, l'heure
+     et le prix.
+
+     CE QUI REMPLACE LE REPLI N'EST DONC PAS RIEN : l'écriteau d'échec dit
+     au comptoir d'APPELER, et il porte le numéro. Un message qui dit
+     « envoyez-la sur WhatsApp » sans bouton pour le faire serait pire que
+     l'absence de repli — il désignerait une porte qui n'existe plus.
+     RIEN DE TOUT ÇA CÔTÉ CLIENT : lui garde son bouton en permanence, son
+     message WhatsApp est le second chemin par lequel sa demande arrive. */
+  function jugerRenvoiComptoir(){
+    if(!recHotel) return;
+    btnRenvoyer.hidden = true;
+    /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
+       rouge posé juste au-dessus porte déjà la consigne et le numéro ;
+       deux phrases pour une même chose, c'est le doublon qu'on vient de
+       retirer du récapitulatif. */
+    document.getElementById("noteRenvoi").hidden = (envoiEtat === false);
   }
 
   /* ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══
@@ -8756,6 +8821,30 @@ window.ELA_TEXTES = {
       method:"POST",
       headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
       body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
+    }).then(function(){ return true; }).catch(function(){ return false; });
+  };
+
+  /* ═══ SUPPRIMER POUR DE BON — LE SERVEUR D'ABORD, L'APPAREIL ENSUITE ═══
+     Septembre 2026, à sa demande : « supprime les demandes de test ». Il
+     n'existait aucun moyen d'effacer une course : « Refuser » la fait
+     passer au gris, elle reste dans la liste.
+
+     L'ORDRE N'EST PAS UN DÉTAIL, C'EST TOUTE LA FONCTION. « fusionner »
+     recopie sur l'appareil toute course du serveur qui n'y est pas encore :
+     effacer d'abord le téléphone la ferait REVENIR à la lecture suivante,
+     quarante-cinq secondes plus tard, sans que personne ne comprenne
+     pourquoi. On efface donc le serveur, et on ne touche à l'appareil que
+     si le serveur a dit oui.
+
+     UNE SUPPRESSION QUI ÉCHOUE EN SILENCE EST PIRE QUE PAS DE BOUTON : elle
+     fait croire le ménage fait. On rend donc le résultat, et l'écran le
+     dit. Même leçon que « pousser », qui rendait « false » sans un mot et
+     laissait des courses entières dans le seul téléphone de Barbaros. */
+  nuage.supprimer = function(ref){
+    if(!this.connecte() || !ref) return Promise.resolve(false);
+    return this.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref), {
+      method:"DELETE",
+      headers:{ Prefer:"return=minimal" }
     }).then(function(){ return true; }).catch(function(){ return false; });
   };
 
@@ -9529,6 +9618,10 @@ window.ELA_TEXTES = {
     var liste = registre();
     bonBord = liste.filter(function(c){ return c.ref === ref; })[0] || null;
     if(!bonBord) return;
+    /* Le bouton de suppression repart désarmé à chaque ouverture : armé sur
+       une course puis quitté, il s'appliquerait à la suivante au premier
+       appui. */
+    desarmerSuppr();
     var c = bonBord;
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
@@ -9808,6 +9901,72 @@ window.ELA_TEXTES = {
     if(!bonBord) return;
     majCourse(bonBord.ref, "refusee");
     ecran("ecran-bord");
+  });
+
+  /* ═══ EFFACER UNE COURSE POUR DE BON ═══
+     LE SERVEUR DÉCIDE, L'APPAREIL SUIT. Effacer le téléphone d'abord ne
+     servirait à rien : « fusionner » recopie toute course du serveur
+     absente d'ici, et la lecture automatique passe toutes les 45 secondes.
+     La course reviendrait donc seule, et on la croirait ressuscitée.
+     SANS SERVEUR, ON NE SUPPRIME PAS — et on le dit, plutôt que d'effacer
+     localement une course qui reviendra à la prochaine connexion. */
+  var supprArme = null, supprMinuteur = null;
+  function direSuppr(texte, calme){
+    var e = document.getElementById("supprEtat");
+    e.hidden = !texte;
+    e.textContent = texte || "";
+    e.style.color = calme ? "var(--gris)" : "#B4231F";
+  }
+  function desarmerSuppr(){
+    supprArme = null;
+    if(supprMinuteur){ clearTimeout(supprMinuteur); supprMinuteur = null; }
+    var b = document.getElementById("btnSupprimerCourse");
+    b.disabled = false;
+    b.textContent = "Supprimer cette course";
+    direSuppr("", true);
+  }
+  function retirerDuRegistre(ref){
+    ecrireRegistre(registre().filter(function(c){ return c && c.ref !== ref; }));
+  }
+  document.getElementById("btnSupprimerCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    var b = this, ref = bonBord.ref;
+    /* PREMIER APPUI : on arme, on ne supprime rien. Le libellé change — un
+       bouton qui garde le même mot laisse croire que l'appui n'a pas pris. */
+    if(supprArme !== ref){
+      supprArme = ref;
+      b.textContent = "Confirmer la suppression";
+      direSuppr("Effacée d'ici ET du serveur, définitivement. Pour une vraie "
+                + "course non assurée, utilisez plutôt « Refuser ».", false);
+      /* L'armement retombe tout seul : un bon laissé ouvert puis repris dix
+         minutes plus tard ne doit pas s'effacer au premier contact. */
+      supprMinuteur = setTimeout(desarmerSuppr, 8000);
+      return;
+    }
+    if(supprMinuteur){ clearTimeout(supprMinuteur); supprMinuteur = null; }
+    if(!nuage.connecte()){
+      desarmerSuppr();
+      direSuppr("Connectez-vous au serveur d'abord : sans lui, la course "
+                + "reviendrait ici toute seule à la prochaine lecture.", false);
+      return;
+    }
+    b.disabled = true;
+    b.textContent = "Suppression…";
+    nuage.supprimer(ref).then(function(ok){
+      /* UN ÉCHEC N'EFFACE RIEN, ET LE DIT. Supprimer localement sur un refus
+         du serveur ferait croire le ménage fait, et la course reparaitrait
+         au tour suivant — la panne la plus déroutante qui soit. */
+      if(!ok){
+        desarmerSuppr();
+        direSuppr("Le serveur a refusé la suppression. Rien n'a été effacé.", false);
+        return;
+      }
+      retirerDuRegistre(ref);
+      desarmerSuppr();
+      bonBord = null;
+      dessinerBord();
+      ecran("ecran-bord");
+    });
   });
   document.querySelectorAll(".compteur").forEach(function(b){
     b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
