@@ -52,6 +52,14 @@ async function espace({ session, reponseSuppr }){
     const req = route.request();
     vus.push({ methode:req.method(), url:req.url() });
     if(req.method() === 'DELETE'){
+      /* Un DELETE qui n'efface RIEN rend « tout va bien » : c'est ce que
+         fait PostgREST quand la regle de securite ecarte la ligne. On rend
+         donc un CORPS, vide ou non, selon le scenario — c'est lui qui
+         distingue un vrai effacement d'un succes en trompe-l'oeil. */
+      if(reponseSuppr === 204) return route.fulfill({ status:200,
+        contentType:'application/json', body: JSON.stringify([{ref:'x'}]) });
+      if(reponseSuppr === 'vide') return route.fulfill({ status:200,
+        contentType:'application/json', body:'[]' });
       return route.fulfill({ status: reponseSuppr, body:'' });
     }
     /* La lecture rend une liste VIDE : sans ça, « fusionner » remettrait
@@ -189,7 +197,49 @@ const refs = pg => pg.evaluate(()=>
   await c.close();
 }
 
-// ═══ 7. LA RÈGLE SERVEUR EXISTE DANS LE DÉPÔT ═══
+// ═══ 7. UN « TOUT VA BIEN » QUI N'A RIEN EFFACÉ N'EST PAS UN SUCCÈS ═══
+/* LE DÉFAUT QUE BARBAROS A TROUVÉ LE PREMIER SOIR : « je supprime une
+   course, je rafraîchis, elle revient ». PostgREST rend 204 quand la règle
+   de sécurité écarte la ligne — zéro effacée, aucune erreur. Le bouton
+   félicitait, et la lecture suivante ramenait la course.
+   On exige donc la LISTE de ce qui a été retiré : un tableau vide est un
+   échec. Et surtout on n'efface RIEN sur l'appareil dans ce cas — sinon
+   on recrée exactement la panne, avec une course qui ressuscite. */
+{
+  const { c, pg } = await espace({ session:SESSION, reponseSuppr:'vide' });
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnSupprimerCourse').click(); await pg.waitForTimeout(150);
+  await pg.locator('#btnSupprimerCourse').click(); await pg.waitForTimeout(700);
+  check("un 2xx qui n'efface aucune ligne n'est PAS un succès",
+    (await refs(pg)).length === 2, 'reste ' + (await refs(pg)).length);
+  check("et l'écran le dit au lieu de féliciter",
+    (await pg.locator('#supprEtat').textContent()).toLowerCase().includes('refus'));
+  await c.close();
+}
+
+// ═══ 8. LE SERVEUR DE DONNÉES NE SE MET JAMAIS EN CACHE ═══
+/* LA VRAIE CAUSE DE LA COURSE QUI REVENAIT. « lister() » appelle toujours
+   la MÊME adresse : elle tombait dans la branche « cache d'abord » du
+   service worker, et toutes les lectures resservaient la première liste.
+   La course effacée y figurait encore — et pire, les NOUVELLES demandes
+   des clients n'y figuraient jamais.
+   Le contrôle lit la SOURCE : le service worker ne s'installe qu'en https
+   et reste injoignable depuis le serveur de test. */
+{
+  const fs = await import('node:fs');
+  const sw = fs.readFileSync('sw.js','utf8');
+  check('le service worker écarte tout le domaine supabase',
+    /supabase\.co/.test(sw));
+  check("et il l'écarte AVANT de servir quoi que ce soit depuis le cache",
+    /if\(NO_CACHE_HOSTS\.includes\(url\.hostname\)\|\|serveurDeDonnees\(url\)/.test(sw));
+  /* Une version inchangée, c'est un téléphone qui garde l'ancien service
+     worker : la correction existe et ne sert à personne. */
+  check('la version du cache a été incrémentée',
+    /elatransfer-v(8[2-9]|9\d|\d{3})/.test(sw),
+    (sw.match(/elatransfer-v\d+/)||['?'])[0]);
+}
+
+// ═══ 9. LA RÈGLE SERVEUR EXISTE DANS LE DÉPÔT ═══
 /* Sans policy, PostgreSQL refuse la suppression — y compris à
    l'exploitant — et le bouton ne ferait qu'annoncer un refus. */
 {

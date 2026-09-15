@@ -4599,7 +4599,7 @@ window.ELA_TEXTES = {
     suite_titre:"What happens next",
     suite_1:"WhatsApp opens with your request already written: just send it.",
     suite_2:"Your request reaches Elatransfer either way, even without WhatsApp.",
-    suite_3:"The answer appears here, under \u00ab Bookings \u00bb, and is sent to you.",
+    suite_3:"The answer appears here, under « Bookings », and is sent to you.",
     bon_sous:"Booking voucher",
     bon_etat:"Request received",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
@@ -4809,7 +4809,7 @@ window.ELA_TEXTES = {
   var choix = { depart:null, arrivee:null };
 
   function sansAccents(s){
-    return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+    return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
   }
   function retarder(fn, delai){
     var t; return function(){ clearTimeout(t); t = setTimeout(fn, delai); };
@@ -8842,10 +8842,21 @@ window.ELA_TEXTES = {
      laissait des courses entières dans le seul téléphone de Barbaros. */
   nuage.supprimer = function(ref){
     if(!this.connecte() || !ref) return Promise.resolve(false);
+    /* ON EXIGE LA LISTE DE CE QUI A ÉTÉ EFFACÉ, PAS UN SIMPLE « OK ».
+       Première version : « return=minimal », et on prenait le 2xx pour un
+       succès. C'est faux, et c'est le défaut le plus sournois de la
+       sécurité par lignes : un DELETE qui ne correspond à AUCUNE ligne
+       autorisée rend « 204, tout va bien » en ayant effacé zéro ligne.
+       Le bouton félicitait, la course revenait à la lecture suivante, et
+       rien nulle part ne disait pourquoi.
+       Avec « return=representation » le serveur rend les lignes qu'il a
+       réellement retirées : un tableau vide est un ÉCHEC, et on le dit. */
     return this.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref), {
       method:"DELETE",
-      headers:{ Prefer:"return=minimal" }
-    }).then(function(){ return true; }).catch(function(){ return false; });
+      headers:{ Prefer:"return=representation" }
+    }).then(function(r){
+      return Array.isArray(r) && r.length > 0;
+    }).catch(function(){ return false; });
   };
 
 /* =====================================================================
@@ -11620,11 +11631,11 @@ window.ELA_TEXTES = {
    Rien à créer côté serveur, et une affiche imprimée reste valable même
    si tout change derrière.
    ===================================================================== */
-  /* LE NOM VOYAGE EN CLAIR, pas en identifiant. \u00ab ?h=Ibis%20CDG \u00bb plut\u00f4t que
-     \u00ab ?h=ibis-cdg \u00bb : \u00e0 l'arriv\u00e9e, on le pose tel quel dans le champ de d\u00e9part
-     et la recherche d'adresse retrouve l'h\u00f4tel. Un identifiant obligerait \u00e0
-     tenir une table de correspondance \u2014 donc \u00e0 republier le site \u00e0 chaque
-     nouvel h\u00f4tel, et \u00e0 r\u00e9imprimer les affiches le jour o\u00f9 la table change. */
+  /* LE NOM VOYAGE EN CLAIR, pas en identifiant. « ?h=Ibis%20CDG » plutôt que
+     « ?h=ibis-cdg » : à l'arrivée, on le pose tel quel dans le champ de départ
+     et la recherche d'adresse retrouve l'hôtel. Un identifiant obligerait à
+     tenir une table de correspondance — donc à republier le site à chaque
+     nouvel hôtel, et à réimprimer les affiches le jour où la table change. */
   function lienHotel(nom){
     return location.origin + location.pathname + "?h=" + encodeURIComponent(nom.slice(0,60));
   }

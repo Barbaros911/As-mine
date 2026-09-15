@@ -25,8 +25,8 @@ function siteVoisin(url) {
   return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
-/* v81 ajoute le bouton de suppression d une course (serveur + appareil). */
-const CACHE = "elatransfer-v81";
+/* v82 : le serveur de donnees ne se met plus jamais en cache. */
+const CACHE = "elatransfer-v82";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
@@ -41,6 +41,26 @@ const NO_CACHE_HOSTS = [
   "api.mapbox.com","api.openrouteservice.org","api.qrserver.com",
   "www.paypal.com","www.paypalobjects.com"
 ];
+/* ═══ LE SERVEUR DE DONNÉES NE SE MET JAMAIS EN CACHE ═══
+   Barbaros : « je supprime une course, je rafraîchis, elle revient ».
+   La cause n'était ni le bouton ni la règle du serveur — les deux étaient
+   justes, mesurés. C'était ICI.
+   « lister() » appelle TOUJOURS la même adresse
+   (/rest/v1/courses?select=bon&order=cree_le.desc&limit=1000). Elle
+   tombait dans la branche « cache d'abord » du bas : la première réponse
+   était gardée, et toutes les lectures suivantes resservaient CETTE
+   liste-là. La course effacée y figurait encore, et « fusionner » la
+   recopiait sur l'appareil au tour suivant.
+   ET C'EST PIRE QUE LA SUPPRESSION : une liste figée, ce sont les
+   NOUVELLES DEMANDES DES CLIENTS qui n'arrivent plus dans le tableau de
+   bord, sans un message, jusqu'au prochain changement de version. La
+   panne invisible qui dure et qui coûte des clients — la même famille
+   que le jeton d'une heure qui coupait les lectures en silence.
+   On écarte donc TOUT le domaine, pas seulement ce projet : une adresse
+   de serveur est une configuration, elle changera un jour. */
+function serveurDeDonnees(u){
+  return u.hostname === "supabase.co" || u.hostname.endsWith(".supabase.co");
+}
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
@@ -69,7 +89,7 @@ self.addEventListener("fetch", (event) => {
   const req=event.request;if(req.method!=="GET")return;
   let url;try{url=new URL(req.url);}catch(e){return;}
   if(url.protocol!=="http:"&&url.protocol!=="https:")return;
-  if(NO_CACHE_HOSTS.includes(url.hostname)||siteVoisin(url))return;
+  if(NO_CACHE_HOSTS.includes(url.hostname)||serveurDeDonnees(url)||siteVoisin(url))return;
   function estLApplication(u){const reste=u.pathname.slice(BASE.length);return reste===""||reste==="index.html"||reste==="application.html";}
   if(req.mode==="navigate"||(req.headers.get("accept")||"").includes("text/html")){
     event.respondWith(fetch(req).then((res)=>{const copy=res.clone();caches.open(CACHE).then((c)=>c.put(req,copy)).catch(()=>{});return res;})
