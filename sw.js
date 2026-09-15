@@ -25,8 +25,8 @@ function siteVoisin(url) {
   return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
-/* v80 retire les anciennes maquettes publiées et unifie toutes les routes ELA. */
-const CACHE = "elatransfer-v80";
+/* v81 ajoute le bouton de suppression d une course (serveur + appareil). */
+const CACHE = "elatransfer-v81";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",

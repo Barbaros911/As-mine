@@ -926,6 +926,10 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   border-radius:13px;background:var(--carte);color:var(--encre);
   font-family:inherit;font-size:14.5px;font-weight:700;padding:14px 18px;
   text-align:center;text-decoration:none;cursor:pointer;}
+/* Le rouge d'un geste irréversible. Mesuré : #8f2220 sur blanc donne 8,7 —
+   bien au-dessus du seuil. Il reste un bouton EN CREUX : plein, il crierait
+   plus fort que « Marquer comme réalisée », qui est le geste courant. */
+.bouton-fantome.rouge{border-color:#f0cfcf;color:#8f2220;}
 
 /* ---------- SUGGESTIONS D'ADRESSE ---------- */
 /* La liste se pose SOUS le champ, en absolu, et non dans le flux : dans le
@@ -3956,6 +3960,17 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
         <span>Marquer comme réalisée</span>
       </button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
+      <!-- SUPPRIMER N'EST PAS REFUSER. « Refuser » est une RÉPONSE : la course
+           passe au gris, elle reste au registre, et c'est ce qu'on veut d'une
+           vraie demande qu'on n'a pas pu assurer. « Supprimer » efface — c'est
+           pour un essai, un doublon, une saisie ratée. Les confondre ferait
+           disparaître des courses dont on a besoin comme preuve.
+           IL DEMANDE DEUX FOIS, et le second appui porte un autre libellé :
+           un geste irréversible ne doit pas se déclencher sur un pouce qui
+           glisse, et un bouton qui ne change pas de mot laisse croire que le
+           premier appui n'a pas marché. -->
+      <button class="bouton-fantome rouge" type="button" id="btnSupprimerCourse">Supprimer cette course</button>
+      <p class="champ-aide" id="supprEtat" hidden></p>
     </div>
   </section>
 
@@ -8809,6 +8824,30 @@ window.ELA_TEXTES = {
     }).then(function(){ return true; }).catch(function(){ return false; });
   };
 
+  /* ═══ SUPPRIMER POUR DE BON — LE SERVEUR D'ABORD, L'APPAREIL ENSUITE ═══
+     Septembre 2026, à sa demande : « supprime les demandes de test ». Il
+     n'existait aucun moyen d'effacer une course : « Refuser » la fait
+     passer au gris, elle reste dans la liste.
+
+     L'ORDRE N'EST PAS UN DÉTAIL, C'EST TOUTE LA FONCTION. « fusionner »
+     recopie sur l'appareil toute course du serveur qui n'y est pas encore :
+     effacer d'abord le téléphone la ferait REVENIR à la lecture suivante,
+     quarante-cinq secondes plus tard, sans que personne ne comprenne
+     pourquoi. On efface donc le serveur, et on ne touche à l'appareil que
+     si le serveur a dit oui.
+
+     UNE SUPPRESSION QUI ÉCHOUE EN SILENCE EST PIRE QUE PAS DE BOUTON : elle
+     fait croire le ménage fait. On rend donc le résultat, et l'écran le
+     dit. Même leçon que « pousser », qui rendait « false » sans un mot et
+     laissait des courses entières dans le seul téléphone de Barbaros. */
+  nuage.supprimer = function(ref){
+    if(!this.connecte() || !ref) return Promise.resolve(false);
+    return this.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref), {
+      method:"DELETE",
+      headers:{ Prefer:"return=minimal" }
+    }).then(function(){ return true; }).catch(function(){ return false; });
+  };
+
 /* =====================================================================
    DEMANDER UN AVIS — LE SEUL MOYEN HONNÊTE D'EN AVOIR
    ---------------------------------------------------------------------
@@ -9579,6 +9618,10 @@ window.ELA_TEXTES = {
     var liste = registre();
     bonBord = liste.filter(function(c){ return c.ref === ref; })[0] || null;
     if(!bonBord) return;
+    /* Le bouton de suppression repart désarmé à chaque ouverture : armé sur
+       une course puis quitté, il s'appliquerait à la suivante au premier
+       appui. */
+    desarmerSuppr();
     var c = bonBord;
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
@@ -9858,6 +9901,72 @@ window.ELA_TEXTES = {
     if(!bonBord) return;
     majCourse(bonBord.ref, "refusee");
     ecran("ecran-bord");
+  });
+
+  /* ═══ EFFACER UNE COURSE POUR DE BON ═══
+     LE SERVEUR DÉCIDE, L'APPAREIL SUIT. Effacer le téléphone d'abord ne
+     servirait à rien : « fusionner » recopie toute course du serveur
+     absente d'ici, et la lecture automatique passe toutes les 45 secondes.
+     La course reviendrait donc seule, et on la croirait ressuscitée.
+     SANS SERVEUR, ON NE SUPPRIME PAS — et on le dit, plutôt que d'effacer
+     localement une course qui reviendra à la prochaine connexion. */
+  var supprArme = null, supprMinuteur = null;
+  function direSuppr(texte, calme){
+    var e = document.getElementById("supprEtat");
+    e.hidden = !texte;
+    e.textContent = texte || "";
+    e.style.color = calme ? "var(--gris)" : "#B4231F";
+  }
+  function desarmerSuppr(){
+    supprArme = null;
+    if(supprMinuteur){ clearTimeout(supprMinuteur); supprMinuteur = null; }
+    var b = document.getElementById("btnSupprimerCourse");
+    b.disabled = false;
+    b.textContent = "Supprimer cette course";
+    direSuppr("", true);
+  }
+  function retirerDuRegistre(ref){
+    ecrireRegistre(registre().filter(function(c){ return c && c.ref !== ref; }));
+  }
+  document.getElementById("btnSupprimerCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    var b = this, ref = bonBord.ref;
+    /* PREMIER APPUI : on arme, on ne supprime rien. Le libellé change — un
+       bouton qui garde le même mot laisse croire que l'appui n'a pas pris. */
+    if(supprArme !== ref){
+      supprArme = ref;
+      b.textContent = "Confirmer la suppression";
+      direSuppr("Effacée d'ici ET du serveur, définitivement. Pour une vraie "
+                + "course non assurée, utilisez plutôt « Refuser ».", false);
+      /* L'armement retombe tout seul : un bon laissé ouvert puis repris dix
+         minutes plus tard ne doit pas s'effacer au premier contact. */
+      supprMinuteur = setTimeout(desarmerSuppr, 8000);
+      return;
+    }
+    if(supprMinuteur){ clearTimeout(supprMinuteur); supprMinuteur = null; }
+    if(!nuage.connecte()){
+      desarmerSuppr();
+      direSuppr("Connectez-vous au serveur d'abord : sans lui, la course "
+                + "reviendrait ici toute seule à la prochaine lecture.", false);
+      return;
+    }
+    b.disabled = true;
+    b.textContent = "Suppression…";
+    nuage.supprimer(ref).then(function(ok){
+      /* UN ÉCHEC N'EFFACE RIEN, ET LE DIT. Supprimer localement sur un refus
+         du serveur ferait croire le ménage fait, et la course reparaitrait
+         au tour suivant — la panne la plus déroutante qui soit. */
+      if(!ok){
+        desarmerSuppr();
+        direSuppr("Le serveur a refusé la suppression. Rien n'a été effacé.", false);
+        return;
+      }
+      retirerDuRegistre(ref);
+      desarmerSuppr();
+      bonBord = null;
+      dessinerBord();
+      ecran("ecran-bord");
+    });
   });
   document.querySelectorAll(".compteur").forEach(function(b){
     b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
