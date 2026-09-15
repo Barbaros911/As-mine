@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
+`EN COURS — Nettoyer la galerie publiée — fix/nettoyer-galerie-publiee — build/démos — .github/scripts/galerie.mjs, test-unified-facade.mjs — exclure les anciennes interfaces de la galerie`
 
 Format obligatoire :
 
