@@ -29,4 +29,13 @@ assert.match(css, /@media\s*\(max-width:\s*899px\)/, "la façade contient le ren
 assert.match(sw, /elatransfer-v80/, "le cache est invalidé après l’unification");
 assert.match(sw, /application-facade\.css/, "la façade reste disponible hors ligne");
 
-console.log("OK — façade et réservation unifiées, fonctions critiques conservées.");
+assert.doesNotMatch(root, /location\\.replace\\("\\/ela-admin\\/"\\)/, "le vrai espace exploitant ne doit pas être remplacé par une maquette");
+assert.match(publicGateway, /location\\.replace\\(cible\\)/, "l’ancienne façade renvoie vers l’accueil unifié");
+assert.match(adminGateway, /params\\.set\\("exploitant", "1"\\)/, "l’ancienne adresse admin ouvre le vrai mode exploitant");
+assert.match(receptionGateway, /params\\.set\\("reception", "easyhotel-aeroville"\\)/, "l’ancienne adresse réception ouvre le vrai mode réception");
+for (const [name, html] of [["admin", adminGateway], ["réception", receptionGateway]]) {
+  assert.doesNotMatch(html, /12\\/09\\/2026|John Smith|Sophie Martin|Aller-retour|30 €/, name + " ne contient plus de données de démonstration");
+}
+assert.equal(existsSync("site/as-mine-transport"), false, "l’ancienne maquette As-mine ne doit plus être publiée");
+
+console.log("OK — façade, réservation et anciennes routes unifiées, fonctions critiques conservées.");
