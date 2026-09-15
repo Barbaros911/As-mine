@@ -13,7 +13,9 @@
       var chip=document.createElement('div');
       chip.className='hotel-partner-chip';
       chip.innerHTML='<b>easyHotel</b><span>Aéroville</span>';
-      head.insertBefore(chip,actions);\n      var logoLink=head.querySelector('.logo');\n      if(logoLink){logoLink.href='/easyhotel-client/';logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
+      head.insertBefore(chip,actions);
+      var logoLink=head.querySelector('.logo');
+      if(logoLink){logoLink.href='/easyhotel-client/';logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
     }
 
     document.querySelectorAll('.hotel-nom').forEach(function(el){el.textContent='easyHotel Aéroville';});
