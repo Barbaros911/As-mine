@@ -14,18 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Refuser le code exploitant historique dans les fichiers publiés
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=(index.html admin.html construire.sh application-facade.css hotel-engine-polish.js)
-          for f in "${files[@]}"; do
-            [ -f "$f" ] || continue
-            if grep -Fq '12345678' "$f"; then
-              echo "Secret/code historique détecté dans $f"
-              exit 1
-            fi
-          done
+
       - name: Vérifier qu'aucune service-role key Supabase n'est publiée
         shell: bash
         run: |
@@ -34,3 +23,33 @@ jobs:
             echo 'Clé service-role potentiellement publiée'
             exit 1
           fi
+
+      - name: Construire exactement le site qui serait publié
+        shell: bash
+        run: bash construire.sh
+
+      - name: Vérifier le verrou exploitant publié
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in site/index.html site/application.html; do
+            test -f "$f"
+            grep -Fq 'id="exploitantEmail"' "$f"
+            grep -Fq 'id="exploitantMdp"' "$f"
+            grep -Fq '/rest/v1/rpc/est_exploitant' "$f"
+            grep -Fq 'nuage.estExploitant' "$f"
+            if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|id="codeExploitant"|empreinte\(saisi\)' "$f"; then
+              echo "Ancien verrou exploitant détecté dans $f"
+              exit 1
+            fi
+          done
+
+      - name: Vérifier que la réservation publique reste présente
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'id="depart"' site/index.html
+          grep -Fq 'id="arrivee"' site/index.html
+          grep -Fq 'id="btnVoirPrix"' site/index.html
+          grep -Fq 'id="btnConfirmer"' site/index.html
+          grep -Fq 'courses-hotel' site/application.html
