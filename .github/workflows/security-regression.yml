@@ -53,3 +53,18 @@ jobs:
           grep -Fq 'id="btnVoirPrix"' site/index.html
           grep -Fq 'id="btnConfirmer"' site/index.html
           grep -Fq 'courses-hotel' site/application.html
+
+      - name: Vérifier la passerelle de réservation publique
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in site/index.html site/application.html; do
+            grep -Fq '/functions/v1/deposer-course' "$f"
+            if grep -Fq 'fetch(SUPABASE_URL + "/rest/v1/courses"' "$f"; then
+              echo "Dépôt public direct encore présent dans $f"
+              exit 1
+            fi
+          done
+          grep -Fq 'consommer_quota_reservation' supabase/functions/deposer-course/index.ts
+          grep -Fq 'statut:"attente"' supabase/functions/deposer-course/index.ts
+          grep -Fq 'grant execute on function public.consommer_quota_reservation' supabase/migrations/20260915214000_public_booking_rate_limit.sql
