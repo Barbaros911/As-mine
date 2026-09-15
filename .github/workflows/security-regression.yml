@@ -1,0 +1,36 @@
+name: Contrôle sécurité
+
+on:
+  pull_request:
+  push:
+    branches:
+      - 'security/**'
+
+permissions:
+  contents: read
+
+jobs:
+  secrets-publics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuser le code exploitant historique dans les fichiers publiés
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(index.html admin.html construire.sh application-facade.css hotel-engine-polish.js)
+          for f in "${files[@]}"; do
+            [ -f "$f" ] || continue
+            if grep -Fq '12345678' "$f"; then
+              echo "Secret/code historique détecté dans $f"
+              exit 1
+            fi
+          done
+      - name: Vérifier qu'aucune service-role key Supabase n'est publiée
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIE --exclude-dir=.git --exclude='*.md' 'service_role.{0,40}(eyJ|sb_secret_)' .; then
+            echo 'Clé service-role potentiellement publiée'
+            exit 1
+          fi
