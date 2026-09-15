@@ -24,16 +24,9 @@ from pathlib import Path
 
 page = Path("site/index.html")
 html = page.read_text(encoding="utf-8")
-redirect = '''<script>
-(function(){
-  var p=new URLSearchParams(location.search);
-  if(p.get("exploitant")==="1") location.replace("/ela-admin/");
-}());
-</script>'''
 facade = '<link rel="stylesheet" href="/application-facade.css">'
 hotel_css = '<link rel="stylesheet" href="/hotel-engine-polish.css">'
 hotel_js = '<script src="/hotel-engine-polish.js" defer></script>'
-html = html.replace("<head>", "<head>" + redirect, 1)
 html = html.replace("</head>", facade + hotel_css + hotel_js + "</head>", 1)
 html = html.replace(
     '<img class="logo-image" src="brand-logo-white.png"',
@@ -62,7 +55,10 @@ if [ -d sites ]; then
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
-    case "$nom" in _*) echo "Ignoré : $nom (modèle interne)"; continue;; esac
+    case "$nom" in
+      _*) echo "Ignoré : $nom (modèle interne)"; continue;;
+      as-mine-transport) echo "Ignoré : $nom (ancienne maquette non publiée)"; continue;;
+    esac
     for reserve in $reserves; do
       if [ "$nom" = "$reserve" ]; then
         echo "ERREUR : le dossier sites/$nom porte le nom d'un fichier réservé." >&2
@@ -74,9 +70,8 @@ if [ -d sites ]; then
   done
 fi
 
-# Les quatre interfaces validées dans sites/ sont les façades publiées.
-# Leurs actions renvoient vers l'application fonctionnelle avec le bon mode ;
-# ne pas les remplacer par les anciennes pages de redirection au build.
+# Les anciennes adresses ELA restent publiées uniquement comme passerelles
+# vers l'application fonctionnelle. La maquette historique As-mine est exclue.
 
 node .github/scripts/galerie.mjs
 

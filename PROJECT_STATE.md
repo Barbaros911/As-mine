@@ -75,6 +75,8 @@ Exemple :
 
 `TERMINÉ — Vrai moteur mobile easyHotel corrigé d'après les captures — PR #146 / 62e840e — application hôtel — en-tête compact, photo hôtel, identité client avancée et destinations photo publiées le 15/09/2026`
 
+`TERMINÉ — Anciennes façades et routes unifiées avec l’application fonctionnelle — PR #151 — façade publique, réception, admin et build — maquettes statiques neutralisées, cache v80 et contrôle anti-régression ajoutés le 15/09/2026`
+
 ## Blocages
 
 À renseigner uniquement lorsqu’un accès, une dépendance externe ou une décision utilisateur empêche réellement d’avancer.
