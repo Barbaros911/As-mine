@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-`EN COURS — Unifier les anciennes routes publiées — fix/unifier-routes-publiees — façade publique, réception, admin et build — construire.sh, sites/ela-public/, sites/easyhotel-reception/, sites/ela-admin/, sw.js — redirections fonctionnelles, contrôles et fusion`
+Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
 
@@ -74,6 +74,8 @@ Exemple :
 `TERMINÉ — Landing easyHotel Aéroville repensée et publiée — PR #144 / 6af2f53 — EasyHotel client — hôtel mis au premier plan, logo ELA inchangé, nouvelles photos licenciées, responsive et CTA partenaire publiés le 15/09/2026`
 
 `TERMINÉ — Vrai moteur mobile easyHotel corrigé d'après les captures — PR #146 / 62e840e — application hôtel — en-tête compact, photo hôtel, identité client avancée et destinations photo publiées le 15/09/2026`
+
+`TERMINÉ — Anciennes façades et routes unifiées avec l’application fonctionnelle — PR #151 — façade publique, réception, admin et build — maquettes statiques neutralisées, cache v80 et contrôle anti-régression ajoutés le 15/09/2026`
 
 ## Blocages
 
