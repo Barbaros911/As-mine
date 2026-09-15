@@ -1,0 +1,71 @@
+# =====================================================================
+# SUPPRIMER LA BRANCHE APRÈS UNE FUSION
+# ---------------------------------------------------------------------
+# POURQUOI CE FICHIER EXISTE. Le réglage « Automatically delete head
+# branches » ferait la même chose, mais c'est un paramètre
+# d'ADMINISTRATION du dépôt : ni l'accès de l'agent ni le jeton des
+# Actions n'ont le droit d'y toucher — la liste des permissions de
+# GITHUB_TOKEN ne contient pas « administration ». Vérifié, pas supposé.
+#
+# CE WORKFLOW REND LE MÊME SERVICE avec le seul droit dont on dispose :
+# « contents: write », qui suffit à supprimer une référence.
+#
+# ET IL FAIT MIEUX QUE LE RÉGLAGE, sur un point qui compte ici : le
+# réglage de GitHub supprime TOUTE branche fusionnée, sans exception.
+# Or ce dépôt en a deux qu'il ne faut pas perdre — « mini-van » est
+# nommée dans « fonctions.yml », et la branche des sites vitrines l'est
+# dans « CLAUDE.md ». Elles sont protégées par « branches-a-garder.txt ».
+#
+# C'EST LA LEÇON DES 53 BRANCHES : la fusion en « squash » laisse la
+# branche éternellement « non fusionnée » aux yeux de git. Sans
+# suppression au moment de la fusion, elles s'accumulent, et on finit
+# par piocher une vieille version dans le tas.
+# =====================================================================
+name: Supprimer la branche après fusion
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  supprimer:
+    # ON N'AGIT QUE SUR UNE PR RÉELLEMENT FUSIONNÉE. Une PR fermée sans
+    # fusion garde sa branche : son travail n'est allé nulle part.
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Supprimer la branche de la PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TETE: ${{ github.event.pull_request.head.ref }}
+          DEPOT_TETE: ${{ github.event.pull_request.head.repo.full_name }}
+          DEFAUT: ${{ github.event.repository.default_branch }}
+        run: |
+          # Une PR venue d'une copie du dépôt : sa branche ne nous
+          # appartient pas, on n'y touche pas.
+          if [ "$DEPOT_TETE" != "${{ github.repository }}" ]; then
+            echo "PASSE  $TETE — la branche appartient à $DEPOT_TETE"; exit 0
+          fi
+          if [ "$TETE" = "$DEFAUT" ]; then
+            echo "REFUS  $TETE — c'est la branche par défaut"; exit 0
+          fi
+          if [ -f .github/branches-a-garder.txt ] \
+             && grep -qxF "$TETE" .github/branches-a-garder.txt; then
+            echo "GARDÉE  $TETE — inscrite dans branches-a-garder.txt"; exit 0
+          fi
+          sha=$(git ls-remote --heads origin "$TETE" | cut -f1)
+          if [ -z "$sha" ]; then
+            echo "PASSE  $TETE — déjà absente"; exit 0
+          fi
+          # UN ÉCHEC NE FAIT PAS ÉCHOUER LA FUSION, qui est déjà faite :
+          # on le DIT, et le ménage se rattrape avec le workflow manuel.
+          if gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$TETE"; then
+            echo "SUPPRIMÉE  $TETE  (était en $sha — récupérable avec ce numéro)"
+          else
+            echo "ÉCHEC  $TETE — à nettoyer à la main ou via « Nettoyage des branches »"
+          fi
