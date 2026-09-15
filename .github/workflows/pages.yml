@@ -38,8 +38,8 @@ jobs:
       # hébergeurs assemblaient le site chacun de leur côté, il n'était
       # qu'une question de temps avant que l'un publie un fichier que
       # l'autre avait oublié.
-      - name: Construire le site
-        run: sh construire.sh
+      - name: Construire et contrôler le site unifié
+        run: node test-unified-facade.mjs
 
       - name: Téléverser le site
         uses: actions/upload-pages-artifact@v3
