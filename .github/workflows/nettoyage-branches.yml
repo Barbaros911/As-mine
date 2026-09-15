@@ -1,0 +1,90 @@
+# =====================================================================
+# SUPPRIMER DES BRANCHES, D'APRÈS UNE LISTE RELUE
+# ---------------------------------------------------------------------
+# POURQUOI CE FICHIER EXISTE : l'accès git de l'agent peut pousser du code
+# mais pas supprimer une référence — 403, même sur une seule branche. Le
+# jeton des Actions, lui, en a le droit. Sans ce workflow, le ménage des
+# branches se ferait à la main, une par une, sur un téléphone.
+#
+# IL NE PART JAMAIS TOUT SEUL : « workflow_dispatch » et rien d'autre.
+#
+# IL N'ACCEPTE AUCUN NOM TAPÉ DANS UN FORMULAIRE. Il lit la liste
+# « .github/branches-a-supprimer.txt », qui est COMMITTÉE donc relue en
+# PR. Un champ libre ferait de ce workflow une porte ouverte sur
+# l'historique du dépôt — même raison que pour les migrations SQL.
+#
+# TROIS REFUS, dans cet ordre, avant toute suppression :
+#   1. la branche par défaut, quel que soit son nom ;
+#   2. toute branche qui porte une PR OUVERTE ;
+#   3. toute branche introuvable (déjà supprimée : on passe, sans échouer).
+# =====================================================================
+name: Nettoyage des branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmer:
+        description: "Taper SUPPRIMER pour confirmer"
+        required: true
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  nettoyer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # LE MOT DE CONFIRMATION EST LE DERNIER GARDE-FOU HUMAIN. Un
+      # workflow de suppression lancé par erreur depuis l'interface ne
+      # doit pas effacer vingt-six branches au premier clic.
+      - name: Contrôler la confirmation
+        run: |
+          if [ "${{ inputs.confirmer }}" != "SUPPRIMER" ]; then
+            echo "Confirmation absente ou incorrecte. Rien n'a été fait."
+            exit 1
+          fi
+
+      - name: Afficher la liste relue
+        run: |
+          test -f .github/branches-a-supprimer.txt \
+            || { echo "Liste introuvable."; exit 1; }
+          echo "Branches visées :"
+          cat .github/branches-a-supprimer.txt
+          echo "Total : $(grep -c . .github/branches-a-supprimer.txt)"
+
+      - name: Supprimer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAUT: ${{ github.event.repository.default_branch }}
+        run: |
+          # Les têtes des PR ouvertes : on ne coupe jamais sous une PR.
+          gh pr list --state open --json headRefName \
+            --jq '.[].headRefName' > /tmp/pr-ouvertes.txt || true
+          echo "Têtes de PR ouvertes :"; cat /tmp/pr-ouvertes.txt
+          echo
+          faits=0; passes=0
+          while IFS= read -r b; do
+            [ -z "$b" ] && continue
+            if [ "$b" = "$DEFAUT" ]; then
+              echo "REFUS  $b — c'est la branche par défaut"; passes=$((passes+1)); continue
+            fi
+            if grep -qxF "$b" /tmp/pr-ouvertes.txt; then
+              echo "REFUS  $b — une PR ouverte s'appuie dessus"; passes=$((passes+1)); continue
+            fi
+            if ! git ls-remote --exit-code --heads origin "$b" >/dev/null 2>&1; then
+              echo "PASSE  $b — déjà absente"; passes=$((passes+1)); continue
+            fi
+            sha=$(git ls-remote --heads origin "$b" | cut -f1)
+            if gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$b" >/dev/null 2>&1; then
+              echo "SUPPRIMÉE  $b  (était en $sha — récupérable avec ce numéro)"
+              faits=$((faits+1))
+            else
+              echo "ÉCHEC  $b"; exit 1
+            fi
+          done < .github/branches-a-supprimer.txt
+          echo
+          echo "Supprimées : $faits — écartées : $passes"
