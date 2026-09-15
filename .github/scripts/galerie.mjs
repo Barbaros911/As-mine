@@ -31,12 +31,13 @@ function echapper(texte) {
 }
 
 const sites = [];
+const INTERFACES_INTERNES = new Set(["as-mine-transport", "ela-public", "ela-admin", "easyhotel-reception"]);
 
 if (existsSync(SOURCE)) {
   for (const nom of readdirSync(SOURCE, { withFileTypes: true })) {
     if (!nom.isDirectory()) continue;
     // Un dossier préfixé « _ » est un modèle interne : ni publié, ni listé.
-    if (nom.name.startsWith("_")) continue;
+    if (nom.name.startsWith("_") || INTERFACES_INTERNES.has(nom.name)) continue;
     const page = join(SOURCE, nom.name, "index.html");
     if (!existsSync(page)) {
       console.log(`::warning::sites/${nom.name} n'a pas d'index.html : absent de la galerie.`);
@@ -127,7 +128,7 @@ const page = `<!doctype html>
   </div>
 
   <footer>
-    Application de réservation As-mine : <a href="../">voir le site</a>.
+    Application de réservation ELA Transfer : <a href="../">voir le site</a>.
   </footer>
 </main>
 </body>
