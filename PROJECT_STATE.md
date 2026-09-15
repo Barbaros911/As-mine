@@ -45,7 +45,7 @@ Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce 
 
 ## Tâches actives
 
-`EN COURS — Nettoyer la galerie publiée — fix/nettoyer-galerie-publiee — build/démos — .github/scripts/galerie.mjs, test-unified-facade.mjs — exclure les anciennes interfaces de la galerie`
+Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
 
 Format obligatoire :
 
@@ -76,6 +76,8 @@ Exemple :
 `TERMINÉ — Vrai moteur mobile easyHotel corrigé d'après les captures — PR #146 / 62e840e — application hôtel — en-tête compact, photo hôtel, identité client avancée et destinations photo publiées le 15/09/2026`
 
 `TERMINÉ — Anciennes façades et routes unifiées avec l’application fonctionnelle — PR #151 — façade publique, réception, admin et build — maquettes statiques neutralisées, cache v80 et contrôle anti-régression ajoutés le 15/09/2026`
+
+`TERMINÉ — Galerie publique nettoyée des anciennes interfaces — PR #152 — build/démos — ancienne marque et anciennes routes retirées de la liste, contrôle anti-régression ajouté le 15/09/2026`
 
 ## Blocages
 
