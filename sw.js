@@ -25,8 +25,8 @@ function siteVoisin(url) {
   return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
-/* v78 accompagne la reconstruction réelle du parcours client easyHotel. */
-const CACHE = "elatransfer-v78";
+/* v79 publie la fusion visuelle landing et moteur easyHotel. */
+const CACHE = "elatransfer-v79";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
