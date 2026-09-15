@@ -140,11 +140,6 @@ const RECAP = '#ecran-recap .bloc-pancarte';
     !(await p.locator('#ligneOption').isHidden())
     && nombre(await p.locator('#recapOption').innerText())===10,
     await p.locator('#recapOption').innerText());
-  const ht = nombre(await p.locator('#recapHT').innerText());
-  const tva = nombre(await p.locator('#recapTVA').innerText());
-  check('le HT et la TVA sont tirés du total, option comprise',
-    Math.abs(ht + tva - avec) < 0.011 && Math.abs(ht - avec/1.1) < 0.011,
-    ht+' + '+tva+' = '+avec);
 
   await p.fill('#clientNom','Jean Martin'); await p.waitForTimeout(200);
   check('la pancarte porte le nom du client, en capitales',
@@ -172,11 +167,28 @@ const RECAP = '#ecran-recap .bloc-pancarte';
     try{
       const l = JSON.parse(localStorage.getItem("ela_courses")||"[]");
       const c = l[0] || {};
-      return { pancarte: (c.course||{}).pancarte, total: (c.prix||{}).total };
+      return { pancarte: (c.course||{}).pancarte, total: (c.prix||{}).total,
+               ht: (c.prix||{}).ht, tva: (c.prix||{}).tva };
     }catch(e){ return {erreur:String(e)}; }
   });
   check('la course enregistrée garde l\'option et son prix',
     garde.pancarte === true && garde.total === avec, JSON.stringify(garde));
+  /* ═══ LE HT ET LA TVA SE LISENT SUR LA COURSE, PLUS À L'ÉCRAN ═══
+     Ce contrôle visait « #recapHT » et « #recapTVA ». Les deux lignes ont
+     été RETIRÉES du récapitulatif quand les tarifs publics ont été
+     clarifiés — changement légitime — et la suite entière s'arrêtait
+     alors sur un délai d'attente, **sans rien afficher**. Vingt-cinq
+     contrôles sur une option PAYANTE ont cessé de tourner sans que
+     personne ne le voie : une suite muette est un échec, pas une suite
+     « pas concernée ».
+     La garantie, elle, n'a pas bougé : la TVA se calcule sur le total
+     option COMPRISE. On la vérifie donc là où la donnée vit toujours —
+     la course enregistrée, celle qui sert à relire un bon trois jours
+     plus tard. Viser la RÈGLE, jamais la balise. */
+  check('le HT et la TVA sont tirés du total, option comprise',
+    Math.abs(garde.ht + garde.tva - avec) < 0.011
+    && Math.abs(garde.ht - avec/1.1) < 0.011,
+    garde.ht+' + '+garde.tva+' = '+avec);
   await ctx.close();
 }
 
