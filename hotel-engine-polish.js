@@ -12,8 +12,8 @@
     if(head && actions && !document.querySelector('.hotel-partner-chip')){
       var chip=document.createElement('div');
       chip.className='hotel-partner-chip';
-      chip.innerHTML='<b>easyHotel Aéroville</b><span>Transferts opérés par ELA Transfer</span>';
-      head.insertBefore(chip,actions);
+      chip.innerHTML='<b>easyHotel</b><span>Aéroville</span>';
+      head.insertBefore(chip,actions);\n      var logoLink=head.querySelector('.logo');\n      if(logoLink){logoLink.href='/easyhotel-client/';logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
     }
 
     document.querySelectorAll('.hotel-nom').forEach(function(el){el.textContent='easyHotel Aéroville';});
@@ -33,6 +33,18 @@
 
     var blocDest=document.getElementById('blocDest');
     var sel=document.getElementById('hotelDest');
+    /* Une carte de la landing doit ouvrir la bonne destination, pas le CDG
+       par défaut. Le moteur peut construire les options après ce script :
+       enhanceHotel repasse jusqu'à ce que la valeur demandée existe. */
+    var preset=p.get('dest');
+    if(sel && preset && !sel.dataset.landingPresetApplied){
+      var presetExists=Array.prototype.some.call(sel.options,function(o){return o.value===preset;});
+      if(presetExists){
+        sel.value=preset;
+        sel.dataset.landingPresetApplied='1';
+        sel.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+    }
     if(blocDest && sel && !document.getElementById('hotelQuickDest')){
       var quick=document.createElement('section');
       quick.id='hotelQuickDest';
