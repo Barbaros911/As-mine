@@ -95,3 +95,140 @@ body.hotel:not(.reception) .barre-bas .actif,body.hotel:not(.reception) .barre-b
   #hotelQuickDest{grid-column:2;grid-row:2 / span 4;margin:18px 18px 16px 6px}
   #hotelQuickDest .quick-scroll{grid-template-columns:repeat(2,1fr);gap:10px}.hotel-quick{min-height:128px}
 }
+
+
+/* ==========================================================================
+   FUSION LANDING → MOTEUR HÔTEL
+   La réservation conserve désormais le même bandeau de marque que la landing.
+   Le moteur historique reste intact : seules son identité et sa continuité
+   visuelle sont adaptées au parcours easyHotel.
+   ========================================================================== */
+body.hotel:not(.reception){
+  --accent:#ff5a0a;
+  --accent-clair:#fff0e7;
+  --accent-vif:#ff761b;
+  --accent-encre:#9a3500;
+}
+body.hotel:not(.reception) .entete{
+  display:grid!important;
+  grid-template-columns:210px minmax(120px,1fr) 190px!important;
+  align-items:center!important;
+  min-height:70px!important;
+  padding:0!important;
+  background:#fff!important;
+  border-bottom:1px solid var(--eh-line)!important;
+}
+body.hotel:not(.reception) .hotel-partner-chip{
+  grid-column:1!important;
+  grid-row:1!important;
+  align-self:stretch!important;
+  justify-self:stretch!important;
+  margin:0!important;
+  padding:0 22px!important;
+  border:0!important;
+  background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;
+  color:#fff!important;
+}
+body.hotel:not(.reception) .hotel-partner-chip b{
+  font-size:27px!important;
+  line-height:.95!important;
+  color:#fff!important;
+}
+body.hotel:not(.reception) .hotel-partner-chip span{
+  display:block!important;
+  margin-top:7px!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  color:#fff!important;
+}
+body.hotel:not(.reception) .entete .logo{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:center!important;
+  display:flex!important;
+  align-items:center!important;
+  margin:0!important;
+}
+body.hotel:not(.reception) .entete .logo-image{
+  display:block!important;
+  width:116px!important;
+  max-height:54px!important;
+  filter:none!important;
+}
+body.hotel:not(.reception) .entete-actions{
+  grid-column:3!important;
+  grid-row:1!important;
+  justify-self:end!important;
+  padding-right:15px!important;
+}
+body.hotel:not(.reception) #ecran-vehicules .bouton,
+body.hotel:not(.reception) #ecran-recap .bouton,
+body.hotel:not(.reception) #ecran-bon .bouton{
+  background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;
+}
+body.hotel:not(.reception) .veh-carte[aria-pressed="true"],
+body.hotel:not(.reception) .choix[aria-pressed="true"]{
+  border-color:var(--eh-orange)!important;
+  box-shadow:0 0 0 2px rgba(255,90,10,.14)!important;
+}
+body.hotel:not(.reception) .barre-bas .onglet.actif{
+  color:var(--eh-orange)!important;
+}
+@media(max-width:760px){
+  body.hotel:not(.reception) .entete{
+    grid-template-columns:minmax(112px,1fr) auto auto!important;
+    min-height:76px!important;
+    padding:0 9px 0 12px!important;
+    gap:8px!important;
+    background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;
+    border-bottom:0!important;
+  }
+  body.hotel:not(.reception) .hotel-partner-chip{
+    padding:0!important;
+    background:transparent!important;
+  }
+  body.hotel:not(.reception) .hotel-partner-chip b{
+    font-size:20px!important;
+  }
+  body.hotel:not(.reception) .hotel-partner-chip span{
+    margin-top:5px!important;
+    font-size:9px!important;
+  }
+  body.hotel:not(.reception) .entete .logo{
+    background:#fff!important;
+    border-radius:9px!important;
+    padding:5px 7px!important;
+  }
+  body.hotel:not(.reception) .entete .logo-image{
+    width:88px!important;
+    max-height:42px!important;
+  }
+  body.hotel:not(.reception) .entete-actions{
+    padding:0!important;
+  }
+  body.hotel:not(.reception) .langues{
+    border-color:rgba(255,255,255,.55)!important;
+    background:rgba(255,255,255,.13)!important;
+  }
+  body.hotel:not(.reception) .langues button{
+    min-width:34px!important;
+    min-height:32px!important;
+    color:#fff!important;
+  }
+  body.hotel:not(.reception) .langues button[aria-pressed="true"]{
+    background:#fff!important;
+    color:var(--eh-orange)!important;
+  }
+}
+@media(max-width:390px){
+  body.hotel:not(.reception) .entete{
+    grid-template-columns:minmax(96px,1fr) auto auto!important;
+    gap:6px!important;
+    padding-left:9px!important;
+    padding-right:7px!important;
+  }
+  body.hotel:not(.reception) .hotel-partner-chip b{font-size:18px!important}
+  body.hotel:not(.reception) .hotel-partner-chip span{font-size:8px!important}
+  body.hotel:not(.reception) .entete .logo-image{width:78px!important}
+  body.hotel:not(.reception) .langues button{min-width:30px!important;padding:0 6px!important}
+}
