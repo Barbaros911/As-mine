@@ -16,6 +16,12 @@ cp index.html admin.html manifest.webmanifest sw.js \
 # Les règles EasyHotel restent appliquées à l'application fonctionnelle.
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 
+# SÉCURITÉ : l'ancien code local ne doit jamais atteindre le site publié.
+# Le build remplace le verrou par Supabase Auth + contrôle d'autorisation
+# serveur. Le script échoue si un motif attendu manque ou si l'ancien verrou
+# subsiste : mieux vaut bloquer un déploiement que publier une porte faible.
+node .github/scripts/harden-exploitant-auth.mjs site/index.html
+
 # La façade et la réservation ne forment plus deux pages différentes :
 # l'application fonctionnelle reçoit l'identité publique validée, puis elle
 # est publiée à la racine ET sous /application pour préserver les anciens liens.

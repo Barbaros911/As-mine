@@ -1,0 +1,55 @@
+name: Contrôle sécurité
+
+on:
+  pull_request:
+  push:
+    branches:
+      - 'security/**'
+
+permissions:
+  contents: read
+
+jobs:
+  secrets-publics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier qu'aucune service-role key Supabase n'est publiée
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIE --exclude-dir=.git --exclude='*.md' --exclude='security-regression.yml' 'service_role.{0,40}(eyJ|sb_secret_)' .; then
+            echo 'Clé service-role potentiellement publiée'
+            exit 1
+          fi
+
+      - name: Construire exactement le site qui serait publié
+        shell: bash
+        run: bash construire.sh
+
+      - name: Vérifier le verrou exploitant publié
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in site/index.html site/application.html; do
+            test -f "$f"
+            grep -Fq 'id="exploitantEmail"' "$f"
+            grep -Fq 'id="exploitantMdp"' "$f"
+            grep -Fq '/rest/v1/rpc/est_exploitant' "$f"
+            grep -Fq 'nuage.estExploitant' "$f"
+            if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|id="codeExploitant"|empreinte\(saisi\)' "$f"; then
+              echo "Ancien verrou exploitant détecté dans $f"
+              exit 1
+            fi
+          done
+
+      - name: Vérifier que la réservation publique reste présente
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'id="depart"' site/index.html
+          grep -Fq 'id="arrivee"' site/index.html
+          grep -Fq 'id="btnVoirPrix"' site/index.html
+          grep -Fq 'id="btnConfirmer"' site/index.html
+          grep -Fq 'courses-hotel' site/application.html
