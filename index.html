@@ -8851,12 +8851,29 @@ window.ELA_TEXTES = {
        rien nulle part ne disait pourquoi.
        Avec « return=representation » le serveur rend les lignes qu'il a
        réellement retirées : un tableau vide est un ÉCHEC, et on le dit. */
-    return this.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref), {
+    var moi = this, chemin = "/rest/v1/courses?ref=eq." + encodeURIComponent(ref);
+    return this.appel(chemin, {
       method:"DELETE",
       headers:{ Prefer:"return=representation" }
     }).then(function(r){
-      return Array.isArray(r) && r.length > 0;
-    }).catch(function(){ return false; });
+      if(Array.isArray(r) && r.length > 0) return "efface";
+      /* ═══ UN TABLEAU VIDE RECOUVRE DEUX CAS OPPOSÉS ═══
+         PostgREST rend la même chose quand la règle de sécurité écarte la
+         ligne et quand la ligne n'existe pas. Mesuré chez Barbaros : son
+         tableau de bord portait 11 courses, le serveur en contenait 10 —
+         une partie de ses courses n'a jamais été déposée. Sur celles-là,
+         « rien effacé » est la vérité, pas un refus, et lui répondre
+         « le serveur a refusé » l'empêchait de faire le ménage sans lui
+         dire pourquoi.
+         ON DEMANDE DONC SI LA LIGNE EXISTE. Et si le serveur ne nous la
+         montre pas, elle ne peut pas revenir non plus : « lister() » lit
+         par la même règle. L'effacer sur l'appareil est donc sûr — c'est
+         exactement le raisonnement inverse qui nous interdisait de le
+         faire quand la ligne, elle, existait. */
+      return moi.appel(chemin + "&select=ref").then(function(vu){
+        return (Array.isArray(vu) && vu.length > 0) ? "refus" : "absente";
+      }).catch(function(){ return "refus"; });
+    }).catch(function(){ return "refus"; });
   };
 
 /* =====================================================================
@@ -9963,11 +9980,13 @@ window.ELA_TEXTES = {
     }
     b.disabled = true;
     b.textContent = "Suppression…";
-    nuage.supprimer(ref).then(function(ok){
-      /* UN ÉCHEC N'EFFACE RIEN, ET LE DIT. Supprimer localement sur un refus
+    nuage.supprimer(ref).then(function(issue){
+      /* UN REFUS N'EFFACE RIEN, ET LE DIT. Supprimer localement sur un refus
          du serveur ferait croire le ménage fait, et la course reparaitrait
-         au tour suivant — la panne la plus déroutante qui soit. */
-      if(!ok){
+         au tour suivant — la panne la plus déroutante qui soit.
+         UNE COURSE ABSENTE DU SERVEUR, ELLE, S'EFFACE : elle n'y a jamais
+         été déposée, donc rien ne peut la ramener. */
+      if(issue === "refus"){
         desarmerSuppr();
         direSuppr("Le serveur a refusé la suppression. Rien n'a été effacé.", false);
         return;

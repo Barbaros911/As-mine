@@ -58,12 +58,18 @@ async function espace({ session, reponseSuppr }){
          distingue un vrai effacement d'un succes en trompe-l'oeil. */
       if(reponseSuppr === 204) return route.fulfill({ status:200,
         contentType:'application/json', body: JSON.stringify([{ref:'x'}]) });
-      if(reponseSuppr === 'vide') return route.fulfill({ status:200,
-        contentType:'application/json', body:'[]' });
+      if(reponseSuppr === 'vide' || reponseSuppr === 'absente')
+        return route.fulfill({ status:200, contentType:'application/json', body:'[]' });
       return route.fulfill({ status: reponseSuppr, body:'' });
     }
-    /* La lecture rend une liste VIDE : sans ça, « fusionner » remettrait
-       les courses du serveur et masquerait ce qu'on mesure. */
+    /* LA LECTURE DE CONTRÔLE, celle qui distingue « la règle a écarté la
+       ligne » de « la ligne n'existe pas ». Elle vise une référence
+       précise ; la lecture générale, elle, rend une liste VIDE, sans quoi
+       « fusionner » remettrait les courses et masquerait ce qu'on mesure. */
+    if(/ref=eq\./.test(req.url()) && /select=ref/.test(req.url())){
+      return route.fulfill({ status:200, contentType:'application/json',
+        body: reponseSuppr === 'vide' ? JSON.stringify([{ref:'x'}]) : '[]' });
+    }
     return route.fulfill({ status:200, contentType:'application/json', body:'[]' });
   });
   await pg.route('**://api.openrouteservice.org/**', r => r.abort());
@@ -217,7 +223,28 @@ const refs = pg => pg.evaluate(()=>
   await c.close();
 }
 
-// ═══ 8. LE SERVEUR DE DONNÉES NE SE MET JAMAIS EN CACHE ═══
+// ═══ 8. UNE COURSE JAMAIS DÉPOSÉE S'EFFACE QUAND MÊME ═══
+/* MESURÉ CHEZ BARBAROS : son tableau de bord portait 11 courses, le
+   serveur en contenait 10. Une partie de ses courses n'a jamais été
+   déposée — et sur celles-là « rien effacé » est la vérité, pas un refus.
+   Lui répondre « le serveur a refusé » l'empêchait de faire le ménage
+   sans lui dire pourquoi.
+   ET C'EST SÛ R : si le serveur ne nous montre pas la ligne, « lister() »
+   ne nous la montrera pas non plus — elle ne peut donc pas revenir. */
+{
+  const { c, pg } = await espace({ session:SESSION, reponseSuppr:'absente' });
+  await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnSupprimerCourse').click(); await pg.waitForTimeout(150);
+  await pg.locator('#btnSupprimerCourse').click(); await pg.waitForTimeout(900);
+  check("une course absente du serveur s'efface de l'appareil",
+    (await refs(pg)).length === 1, 'reste ' + (await refs(pg)).length);
+  check('et on revient au tableau de bord, sans message de refus',
+    await pg.locator('#ecran-bord').isVisible()
+    && await pg.locator('#supprEtat').isHidden());
+  await c.close();
+}
+
+// ═══ 9. LE SERVEUR DE DONNÉES NE SE MET JAMAIS EN CACHE ═══
 /* LA VRAIE CAUSE DE LA COURSE QUI REVENAIT. « lister() » appelle toujours
    la MÊME adresse : elle tombait dans la branche « cache d'abord » du
    service worker, et toutes les lectures resservaient la première liste.
@@ -239,7 +266,7 @@ const refs = pg => pg.evaluate(()=>
     (sw.match(/elatransfer-v\d+/)||['?'])[0]);
 }
 
-// ═══ 9. LA RÈGLE SERVEUR EXISTE DANS LE DÉPÔT ═══
+// ═══ 10. LA RÈGLE SERVEUR EXISTE DANS LE DÉPÔT ═══
 /* Sans policy, PostgreSQL refuse la suppression — y compris à
    l'exploitant — et le bouton ne ferait qu'annoncer un refus. */
 {
