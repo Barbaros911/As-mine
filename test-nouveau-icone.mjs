@@ -67,8 +67,17 @@ if(surPlace){
   /* AUCUN SCRIPT : c'est la garantie qu'il n'y a plus de course de vitesse.
      Un script qui corrigerait le manifeste après coup ramènerait le défaut
      exact que cette page existe pour supprimer. */
-  check('aucun script ne vient corriger le manifeste après coup',
-    (await p.locator('script').count()) === 0);
+  /* LA GARANTIE N'EST PAS « AUCUN SCRIPT », C'EST « LE MANIFESTE EN DUR ».
+     Le premier jet interdisait tout script — trop large : la page doit
+     transmettre les paramètres d'un lien de course, ce qui demande deux
+     lignes. Ce qui ne doit jamais revenir, c'est un manifeste POSÉ par un
+     script : celui-là se joue à la course avec le navigateur, et l'iPhone
+     la gagne une fois sur deux. */
+  const brut = fs.readFileSync('exploitant/index.html','utf8');
+  check('aucun script ne touche au manifeste de cette page',
+    !/manifest/i.test(brut.split('<script')[1] || ''));
+  check('et elle ne redirige toujours pas toute seule',
+    !/http-equiv=.refresh|location\.replace|location\.href\s*=/.test(brut));
 
   check('le bouton mène bien au tableau de bord',
     (await p.locator('a.ouvrir').getAttribute('href')) === '../application.html?exploitant=1',
@@ -88,6 +97,37 @@ if(surPlace){
   check('aucun débordement horizontal à 390 px', !debord);
 }
 
+
+/* --- LA PAGE DE L'APPLICATION : PLUS DE COURSE DE VITESSE -------------- */
+/* Le lien du manifeste ne porte AUCUNE adresse dans la source : c'est le
+   script qui la pose, selon le mode. Sans adresse de départ, le navigateur
+   n'a rien à précharger, donc rien à lire à tort — la course n'existe plus
+   au lieu d'être gagnée une fois sur deux.
+   ON LIT LA SOURCE, pas le DOM : dans le DOM le script a déjà tout corrigé,
+   et le contrôle passerait au vert sur exactement le code qui a échoué. */
+{
+  const source = fs.readFileSync('index.html','utf8');
+  const lien = source.match(/<link rel="manifest"[^>]*>/);
+  check('le lien du manifeste existe dans la page', !!lien, lien ? lien[0] : 'absent');
+  check("il ne porte AUCUNE adresse en dur — rien à précharger de travers",
+    !!lien && !/href=/.test(lien[0]), lien ? lien[0] : '');
+  check("c'est le script qui pose les deux adresses, selon le mode",
+    /m\.href = exploitant \? "manifest-exploitant\.webmanifest" : "manifest\.webmanifest"/
+      .test(source));
+}
+
+/* Et on vérifie que ça MARCHE vraiment, des deux côtés. */
+for (const [mode, adresse, attendu] of [
+      ['client',     'http://127.0.0.1:8099/index.html',
+       'manifest.webmanifest'],
+      ['exploitant', 'http://127.0.0.1:8099/index.html?exploitant=1',
+       'manifest-exploitant.webmanifest']]) {
+  await p.goto(adresse, {waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(250);
+  const pose = await p.locator('#manifeste').getAttribute('href');
+  check('en mode ' + mode + ', le manifeste posé est le bon',
+    pose === attendu, String(pose));
+}
 
 /* --- LE MANIFESTE LUI-MÊME --------------------------------------------- */
 const man = JSON.parse(fs.readFileSync('manifest-exploitant.webmanifest','utf8'));
