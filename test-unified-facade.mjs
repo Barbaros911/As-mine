@@ -12,6 +12,7 @@ const sw = readFileSync("site/sw.js", "utf8");
 const publicGateway = readFileSync("site/ela-public/index.html", "utf8");
 const adminGateway = readFileSync("site/ela-admin/index.html", "utf8");
 const receptionGateway = readFileSync("site/easyhotel-reception/index.html", "utf8");
+const demos = readFileSync("site/demos/index.html", "utf8");
 
 for (const [name, html] of [["racine", root], ["/application", legacy]]) {
   assert.match(html, /id="depart"/, name + " conserve le départ");
@@ -39,5 +40,9 @@ for (const [name, html] of [["admin", adminGateway], ["réception", receptionGat
   }
 }
 assert.equal(existsSync("site/as-mine-transport"), false, "l’ancienne maquette As-mine ne doit plus être publiée");
+for (const ancienneRoute of ["as-mine-transport", "ela-public", "ela-admin", "easyhotel-reception"]) {
+  assert.equal(demos.includes(ancienneRoute), false, "la galerie ne doit pas lister l’ancienne route : " + ancienneRoute);
+}
+assert.equal(demos.includes("Application de réservation ELA Transfer"), true, "la galerie utilise la marque ELA Transfer");
 
 console.log("OK — façade, réservation et anciennes routes unifiées, fonctions critiques conservées.");

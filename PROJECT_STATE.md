@@ -77,6 +77,8 @@ Exemple :
 
 `TERMINÉ — Anciennes façades et routes unifiées avec l’application fonctionnelle — PR #151 — façade publique, réception, admin et build — maquettes statiques neutralisées, cache v80 et contrôle anti-régression ajoutés le 15/09/2026`
 
+`TERMINÉ — Galerie publique nettoyée des anciennes interfaces — PR #152 — build/démos — ancienne marque et anciennes routes retirées de la liste, contrôle anti-régression ajouté le 15/09/2026`
+
 ## Blocages
 
 À renseigner uniquement lorsqu’un accès, une dépendance externe ou une décision utilisateur empêche réellement d’avancer.
