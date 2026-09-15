@@ -22,6 +22,15 @@ for (const [name, html] of [["racine", root], ["/application", legacy]]) {
   assert.match(html, /application-facade\.css/, name + " charge la nouvelle façade");
   assert.match(html, /brand-logo\.webp/, name + " utilise le logo officiel");
   assert.match(html, /easyhotel|reception/i, name + " conserve les modes hôteliers");
+
+  // L'interface exploitant est publique, mais son autorisation ne l'est pas :
+  // le site publié doit demander Supabase Auth puis faire valider le JWT par
+  // l'allowlist serveur avant d'ouvrir les données privées.
+  assert.match(html, /id="exploitantEmail"/, name + " demande l’e-mail exploitant");
+  assert.match(html, /id="exploitantMdp"/, name + " demande le mot de passe exploitant");
+  assert.match(html, /\/rest\/v1\/rpc\/est_exploitant/, name + " vérifie le droit côté serveur");
+  assert.doesNotMatch(html, /CODE_EXPLOITANT|ela_exploitant|id="codeExploitant"|empreinte\(saisi\)/,
+    name + " ne republie jamais l’ancien verrou local");
 }
 assert.doesNotMatch(root, /sites\/ela-public/, "la racine ne doit plus être une copie vitrine");
 assert.match(css, /#062f55/i, "la façade conserve le bleu marine ELA");
@@ -45,4 +54,4 @@ for (const ancienneRoute of ["as-mine-transport", "ela-public", "ela-admin", "ea
 }
 assert.equal(demos.includes("Application de réservation ELA Transfer"), true, "la galerie utilise la marque ELA Transfer");
 
-console.log("OK — façade, réservation et anciennes routes unifiées, fonctions critiques conservées.");
+console.log("OK — façade, réservation, anciennes routes et verrou exploitant serveur contrôlés.");
