@@ -36,7 +36,19 @@ assert.doesNotMatch(root, /sites\/ela-public/, "la racine ne doit plus être une
 assert.match(css, /#062f55/i, "la façade conserve le bleu marine ELA");
 assert.match(css, /#12c4ee/i, "la façade conserve le cyan ELA");
 assert.match(css, /@media\s*\(max-width:\s*899px\)/, "la façade contient le rendu mobile");
-assert.match(sw, /elatransfer-v80/, "le cache est invalidé après l’unification");
+// LE NUMÉRO DE CACHE NE SE FIGE PAS, IL NE PEUT QUE MONTER.
+// Ce contrôle exigeait « elatransfer-v80 », le numéro du jour où il a été
+// écrit. Or la règle du projet impose d'incrémenter ce numéro à CHAQUE
+// changement visible — sans quoi les téléphones qui ont installé
+// l'application gardent l'ancienne version. Le contrôle interdisait donc
+// exactement ce que la règle exige : au premier incrément légitime, la
+// PUBLICATION ENTIÈRE s'est arrêtée, et deux correctifs déjà fusionnés ne
+// sont jamais arrivés en ligne. On éprouve la règle — un numéro présent, et
+// au moins celui de l'unification — jamais une valeur du jour.
+const versionCache = sw.match(/elatransfer-v(\d+)/);
+assert.ok(versionCache, "le service worker nomme sa version de cache");
+assert.ok(Number(versionCache[1]) >= 80,
+  "le cache est invalidé après l’unification (v" + versionCache[1] + " < v80)");
 assert.match(sw, /application-facade\.css/, "la façade reste disponible hors ligne");
 
 assert.equal(root.includes('location.replace("/ela-admin/")'), false, "le vrai espace exploitant ne doit pas être remplacé par une maquette");
