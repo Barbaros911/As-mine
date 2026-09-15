@@ -25,8 +25,8 @@ function siteVoisin(url) {
   return NOS_DOSSIERS.indexOf(reste.split("/")[0]) === -1;
 }
 
-/* v82 : le serveur de donnees ne se met plus jamais en cache. */
-const CACHE = "elatransfer-v82";
+/* v83 : une course jamais deposee sur le serveur s efface quand meme. */
+const CACHE = "elatransfer-v83";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
