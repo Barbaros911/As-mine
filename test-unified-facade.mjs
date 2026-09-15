@@ -29,12 +29,14 @@ assert.match(css, /@media\s*\(max-width:\s*899px\)/, "la façade contient le ren
 assert.match(sw, /elatransfer-v80/, "le cache est invalidé après l’unification");
 assert.match(sw, /application-facade\.css/, "la façade reste disponible hors ligne");
 
-assert.doesNotMatch(root, /location\\.replace\\("\\/ela-admin\\/"\\)/, "le vrai espace exploitant ne doit pas être remplacé par une maquette");
-assert.match(publicGateway, /location\\.replace\\(cible\\)/, "l’ancienne façade renvoie vers l’accueil unifié");
-assert.match(adminGateway, /params\\.set\\("exploitant", "1"\\)/, "l’ancienne adresse admin ouvre le vrai mode exploitant");
-assert.match(receptionGateway, /params\\.set\\("reception", "easyhotel-aeroville"\\)/, "l’ancienne adresse réception ouvre le vrai mode réception");
+assert.equal(root.includes('location.replace("/ela-admin/")'), false, "le vrai espace exploitant ne doit pas être remplacé par une maquette");
+assert.equal(publicGateway.includes("location.replace(cible)"), true, "l’ancienne façade renvoie vers l’accueil unifié");
+assert.equal(adminGateway.includes('params.set("exploitant", "1")'), true, "l’ancienne adresse admin ouvre le vrai mode exploitant");
+assert.equal(receptionGateway.includes('params.set("reception", "easyhotel-aeroville")'), true, "l’ancienne adresse réception ouvre le vrai mode réception");
 for (const [name, html] of [["admin", adminGateway], ["réception", receptionGateway]]) {
-  assert.doesNotMatch(html, /12\\/09\\/2026|John Smith|Sophie Martin|Aller-retour|30 €/, name + " ne contient plus de données de démonstration");
+  for (const stale of ["12/09/2026", "John Smith", "Sophie Martin", "Aller-retour", "30 €"]) {
+    assert.equal(html.includes(stale), false, name + " ne contient plus la donnée de démonstration : " + stale);
+  }
 }
 assert.equal(existsSync("site/as-mine-transport"), false, "l’ancienne maquette As-mine ne doit plus être publiée");
 
