@@ -9,10 +9,9 @@ values
  ('tarif_easyhotel_autre','{"berline_par_km_centimes":255,"van_par_km_centimes":410,"berline_minimum_centimes":3000,"van_minimum_centimes":5000,"arrondi":"euro"}'::jsonb,now(),auth.uid())
 on conflict(cle) do nothing;
 
-insert into public.partenaires(cle,nom,adresse_depart,actif,config)
-values('easyhotel-aeroville','easyHotel Aéroville','10 rue de la Belle Borne, 93410 Tremblay-en-France',true,
-  '{"source":"grille_actuellement_publiee","aucun_tarif_nuit_weekend":true}'::jsonb)
-on conflict(cle) do update set nom=excluded.nom,adresse_depart=excluded.adresse_depart,actif=true,config=public.partenaires.config||excluded.config;
+insert into public.partenaires(cle,nom,adresse_depart,actif)
+values('easyhotel-aeroville','easyHotel Aéroville','10 rue de la Belle Borne, 93410 Tremblay-en-France',true)
+on conflict(cle) do update set nom=excluded.nom,adresse_depart=excluded.adresse_depart,actif=true,modifie_le=now();
 
 create unique index if not exists tarifs_partenaires_unique_actif
   on public.tarifs_partenaires(partenaire_id,destination_cle,vehicule_cle) where actif;
