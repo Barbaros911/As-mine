@@ -3780,6 +3780,71 @@ survit au changement qui l'invalide**.
   inserts d'origine sont recopiés à l'identique. En oublier un les supprimerait
   en silence — un contrôle compte qu'il y en a quatre.
 
+#### L'ÉCRAN CACHAIT, LE SERVEUR N'IMPOSAIT PAS — LE VRAI BLOQUEUR
+
+Trouvé par ChatGPT en relisant la première version de ce correctif, et il avait
+raison : la liste déroulante ne montrait plus les chauffeurs aux papiers
+périmés, **mais les deux RPC continuaient de les accepter**. Elles
+choisissaient le chauffeur avec `actif and statut='valide'` — le champ posé à
+la main, celui-là même qui ne vieillit pas et que ce correctif existe pour
+remplacer. **Un filtre d'écran n'est pas une frontière de sécurité** : un appel
+direct passe à côté, et l'attribution est l'instant précis où Elatransfer
+engage sa responsabilité (L3142-1).
+
+- **UNE SEULE RÈGLE, ÉCRITE UNE SEULE FOIS** : `ela_chauffeur_attribuable()`.
+  La vue l'appelle, les deux RPC l'imposent. Écrire la même condition aux trois
+  endroits, c'est se donner rendez-vous avec la divergence — le projet l'a déjà
+  payé sur le prix client contre le prix exploitant.
+- **LA VUE ÉTAIT PLUS PERMISSIVE QUE LE SERVEUR, et je ne l'avais pas vu.**
+  Elle acceptait `statut not in ('bloque','a_verifier')`, les RPC exigeaient
+  `= 'valide'` : une fiche au statut hérité `a_renouveler` s'affichait
+  attribuable et se faisait refuser à l'attribution. On s'aligne sur le
+  serveur, qui était le plus strict — et `etat_effectif` suit, sinon la fiche
+  dirait « à jour » pendant que l'attribution la refuse.
+- **`create or replace` REMPLACE LA DÉFINITION ENTIÈRE** : `security definer`
+  et `set search_path` doivent être réécrits, sinon la fonction retombe en
+  *invoker* et perd son chemin figé. Ça ne se voit qu'en production — d'où un
+  contrôle qui relit `pg_proc` après la migration, et un autre qui vérifie
+  qu'`anon` n'a pas l'exécution.
+- **LE 30e JOUR N'ÉTAIT PAS DANS LA FENÊTRE.** Le SQL disait `< aujourd'hui +
+  30`, le site dit `j <= JOURS_ALERTE`. Le serveur aurait donc répondu « à
+  jour » le jour même où l'écran affiche « expire dans 30 j ». Aucun symptôme,
+  aucun message : les deux se contredisent en silence, et on l'apprend au
+  contrôle. Deux fiches encadrent la borne dans le test, au 30e et au 31e jour.
+- **LE COMMENTAIRE SQL RACONTAIT L'INVERSE DU CODE** : il annonçait
+  « NULL = non renseigné, ce qui vaut périmé » alors que `manquant` est rouge
+  mais **non bloquant**. Une documentation qui ment est pire qu'une absente —
+  la prochaine session l'aurait lue comme la règle.
+- **LE TEST APPELLE LES DEUX RPC, il ne relit pas leur source.** Il vérifie
+  aussi qu'un refus **n'écrit rien** (ni attribution, ni changement de statut),
+  et — le contrôle qui lève le doute — qu'un chauffeur **en règle passe** : une
+  RPC qui refuserait tout rendrait exactement les mêmes erreurs. Un dernier bloc
+  éteint l'exploitant pour prouver que le refus venait bien du chauffeur et non
+  d'un refus d'accès global.
+- **ÉPROUVÉ CONTRE QUATRE FALSIFICATIONS**, chacune sur un vrai PostgreSQL :
+  les RPC remises sur `statut` (le test rend mot pour mot « A ACCEPTÉ Ayse,
+  assurance expirée depuis 2 jours »), la borne remise à `<`, `security
+  definer` retiré, et l'exécution rendue à `anon`. Les quatre tombent.
+
+**TROIS DATES NE FONT PAS UNE CONFORMITÉ CHAUFFEUR — À NE PAS PRÉSENTER
+AINSI.** Ce correctif suit `carte_vtc_fin`, `registre_fin` et `assurance_fin`.
+ChatGPT signale que le Code des transports en demande davantage à une centrale
+de réservation — permis de conduire, assurance du véhicule, état du véhicule,
+vérification avant première mise en relation puis contrôles périodiques
+(R3141-1 à R3141-4). **Je n'ai pas pu lire ces articles : le réseau de cette
+machine ne joint pas Legifrance.** C'est donc rapporté, pas vérifié, et à
+confirmer sur le texte avant d'en faire une règle. Ce qui est sûr en revanche :
+**ne pas laisser croire que le carnet actuel suffit**, et traiter la suite
+comme une matrice « obligation → preuve → échéance → règle d'attribution →
+test », sans rien inventer.
+
+**« DATE ABSENTE = ROUGE MAIS NON BLOQUANT » EST UNE RÈGLE DE MIGRATION, PAS
+UNE POLITIQUE.** Elle existe parce qu'aucune date n'est encore saisie : bloquer
+dessus rendrait tout le carnet inattribuable le jour du déploiement. Elle se
+durcira quand le carnet sera rempli — **ce sera une décision de Barbaros**, pas
+un correctif appliqué en silence. Le test le dit à l'endroit même du contrôle,
+pour que la prochaine session ne le « répare » pas.
+
 **`test-admin-papiers.mjs` ÉPROUVE LE SITE CONSTRUIT, PAS LE DÉPÔT**, et
 **construit et sert elle-même**. Les trois scripts d'Admin v2 ne sont rattachés
 à la page que par `construire.sh` : ouverte depuis le dépôt, `admin-v2.html`

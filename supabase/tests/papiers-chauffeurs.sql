@@ -24,6 +24,17 @@ insert into public.chauffeurs(id,nom_affiche,telephone_whatsapp,statut,
  ('55555555-5555-5555-5555-555555555555','Aujourdhui','0700','valide',
    current_date,     current_date+400, current_date+200),
  ('66666666-6666-6666-6666-666666666666','BloqueMain','0701','bloque',
+   current_date+300, current_date+400, current_date+200),
+ -- Les deux bornes du 30e jour. Le site alerte a « j <= 30 » : le 30e jour est
+ -- DEDANS, le 31e dehors. Un « < » cote serveur ferait dire « a jour » le jour
+ -- meme ou l'ecran dit « expire dans 30 j », et un desaccord pareil ne se voit
+ -- que le jour du controle.
+ ('77777777-7777-7777-7777-777777777777','Trente','0702','valide',
+   current_date+30,  current_date+400, current_date+200),
+ ('88888888-8888-8888-8888-888888888888','TrenteEtUn','0703','valide',
+   current_date+31,  current_date+400, current_date+200),
+ -- Une fiche d'avant, au statut que le formulaire ne propose plus.
+ ('99999999-9999-9999-9999-999999999999','Ancien','0704','a_renouveler',
    current_date+300, current_date+400, current_date+200);
 
 do $$
@@ -63,6 +74,24 @@ begin
   select * into r from public.chauffeurs_etat where nom_affiche='BloqueMain';
   if r.attribuable then raise exception 'un chauffeur bloque a la main reste attribuable'; end if;
 
+  -- 6 bis. LE 30e JOUR EST DANS LA FENETRE, LE 31e N'Y EST PAS.
+  select * into r from public.chauffeurs_etat where nom_affiche='Trente';
+  if r.papiers_jours <> 30 then raise exception 'Trente : % jours', r.papiers_jours; end if;
+  if r.papiers_etat <> 'bientot' then raise exception
+    'le 30e jour rend « % » : le serveur et l''ecran ne comptent pas pareil', r.papiers_etat; end if;
+  select * into r from public.chauffeurs_etat where nom_affiche='TrenteEtUn';
+  if r.papiers_etat <> 'valide' then raise exception
+    'le 31e jour rend « % » : la fenetre deborde', r.papiers_etat; end if;
+
+  -- 6 ter. L'ECRAN ET LE SERVEUR DISENT LA MEME CHOSE D'UNE FICHE D'AVANT.
+  --        « a_renouveler » a toujours ete refuse a l'attribution ; l'afficher
+  --        « a jour » ferait chercher pendant dix minutes pourquoi il n'est
+  --        pas dans la liste.
+  select * into r from public.chauffeurs_etat where nom_affiche='Ancien';
+  if r.attribuable then raise exception 'un statut « a_renouveler » redevient attribuable'; end if;
+  if r.etat_effectif = 'valide' then raise exception
+    'Ancien s''affiche « a jour » alors que l''attribution le refuse'; end if;
+
   -- 7. TOUT A JOUR : rien ne crie.
   select * into r from public.chauffeurs_etat where nom_affiche='Mehmet';
   if r.etat_effectif <> 'valide' or not r.attribuable then
@@ -81,8 +110,8 @@ declare n integer;
 begin
   select count(*) into n from public.actions_requises
    where type_action='papiers_a_regulariser';
-  if n <> 4 then raise exception
-    'file papiers : % lignes au lieu de 4 -- doublons ou chauffeur manquant', n; end if;
+  if n <> 5 then raise exception
+    'file papiers : % lignes au lieu de 5 -- doublons ou chauffeur manquant', n; end if;
 
   select count(*) into n from public.actions_requises
    where type_action='papiers_a_regulariser' and priorite=85;
@@ -111,6 +140,110 @@ begin
   select count(*) into n from public.actions_requises where type_action='nouvelle_demande';
   if n <> 1 then raise exception
     'l''insert « nouvelle_demande » a disparu en remplacant la fonction'; end if;
+end $$;
+
+-- ===========================================================================
+-- 10. LE SERVEUR REFUSE, PAS SEULEMENT L'ECRAN
+-- ===========================================================================
+-- Le filtre de la liste deroulante n'est pas une frontiere de securite : un
+-- appel direct a la RPC ne passe par aucun ecran. On APPELLE donc les deux
+-- fonctions, on ne relit pas leur source.
+insert into public.courses(ref,statut,bon)
+  values ('ELA-RPC-0001','confirmee','{}'::jsonb);
+
+do $$
+declare erreur text; sortie text;
+begin
+  -- 10a. ATTRIBUER UN CHAUFFEUR DONT L'ASSURANCE A EXPIRE : refuse.
+  begin
+    perform public.ela_attribuer_chauffeur('ELA-RPC-0001',
+      '22222222-2222-2222-2222-222222222222');
+    raise exception 'ela_attribuer_chauffeur A ACCEPTE Ayse, assurance expiree depuis 2 jours';
+  exception when others then
+    erreur := sqlerrm;
+    if erreur <> 'chauffeur_non_attribuable' then raise exception
+      'refus attendu « chauffeur_non_attribuable », recu « % »', erreur; end if;
+  end;
+
+  -- L'attribution ne doit avoir laisse AUCUNE trace : une RPC qui echoue apres
+  -- avoir ecrit laisserait la course attribuee a quelqu'un qu'elle refuse.
+  if exists(select 1 from public.attributions_chauffeur where course_ref='ELA-RPC-0001')
+    then raise exception 'une attribution a ete ecrite malgre le refus'; end if;
+  if (select statut from public.courses where ref='ELA-RPC-0001') <> 'confirmee'
+    then raise exception 'la course a change de statut malgre le refus'; end if;
+
+  -- 10b. MEME REFUS SUR LA PROPOSITION : les deux portes, pas une seule.
+  begin
+    perform public.ela_journaliser_proposition_chauffeur('ELA-RPC-0001',
+      '22222222-2222-2222-2222-222222222222');
+    raise exception 'ela_journaliser_proposition_chauffeur A ACCEPTE Ayse';
+  exception when others then
+    erreur := sqlerrm;
+    if erreur <> 'chauffeur_non_attribuable' then raise exception
+      'proposition : refus attendu, recu « % »', erreur; end if;
+  end;
+
+  -- 10c. UN CHAUFFEUR SANS AUCUNE DATE PASSE ENCORE -- decision de Barbaros,
+  --      le temps que le carnet soit rempli. Si ce controle tombe un jour,
+  --      c'est que la regle transitoire est devenue bloquante : c'est une
+  --      decision, pas un correctif a appliquer en silence.
+  if not public.ela_journaliser_proposition_chauffeur('ELA-RPC-0001',
+      '44444444-4444-4444-4444-444444444444')
+    then raise exception 'Luis (dates absentes) refuse : la regle transitoire a change'; end if;
+
+  -- 10d. ET LE CHAUFFEUR EN REGLE PASSE. Sans ce controle, une RPC qui
+  --      refuserait TOUT rendrait exactement les memes erreurs plus haut.
+  sortie := public.ela_attribuer_chauffeur('ELA-RPC-0001',
+    '11111111-1111-1111-1111-111111111111');
+  if sortie <> 'attribuee' then raise exception
+    'Mehmet, papiers a jour : la RPC rend « % »', sortie; end if;
+  if (select chauffeur_id from public.attributions_chauffeur where course_ref='ELA-RPC-0001')
+     <> '11111111-1111-1111-1111-111111111111'
+    then raise exception 'l''attribution n''a pas ete ecrite'; end if;
+end $$;
+
+-- 10e. LE DOUTE LEVE : le refus venait bien du CHAUFFEUR, pas d'un refus
+--      d'acces global. On eteint l'exploitant et on verifie que le message
+--      change -- deux causes, deux messages.
+update public.socle_reglages set exploitant=false;
+do $$
+declare erreur text;
+begin
+  begin
+    perform public.ela_attribuer_chauffeur('ELA-RPC-0001',
+      '11111111-1111-1111-1111-111111111111');
+    raise exception 'un non-exploitant a pu attribuer une course';
+  exception when others then
+    erreur := sqlerrm;
+    if erreur <> 'acces_refuse' then raise exception
+      'non-exploitant : attendu « acces_refuse », recu « % »', erreur; end if;
+  end;
+end $$;
+update public.socle_reglages set exploitant=true;
+
+-- 11. LES GARDE-FOUS DU SERVEUR SONT-ILS TOUJOURS POSES ? Une redefinition
+--     par « create or replace » remplace la definition ENTIERE : un oubli de
+--     « security definer » ou de search_path ne se voit qu'en production.
+do $$
+declare p record; n integer := 0;
+begin
+  for p in select proname, prosecdef, proconfig from pg_proc
+    where pronamespace='public'::regnamespace
+      and proname in ('ela_attribuer_chauffeur','ela_journaliser_proposition_chauffeur')
+  loop
+    n := n + 1;
+    if not p.prosecdef then raise exception
+      '%() a perdu « security definer »', p.proname; end if;
+    if p.proconfig is null or not ('search_path=public, pg_temp' = any(p.proconfig))
+      then raise exception '%() a perdu son search_path fige : %', p.proname, p.proconfig; end if;
+  end loop;
+  if n <> 2 then raise exception 'les deux RPC ne sont pas toutes les deux presentes (% trouvee(s))', n; end if;
+
+  -- anon ne doit jamais pouvoir appeler l'attribution.
+  if has_function_privilege('anon','public.ela_attribuer_chauffeur(text,uuid)','execute')
+    then raise exception 'anon peut appeler ela_attribuer_chauffeur'; end if;
+  if not has_function_privilege('authenticated','public.ela_attribuer_chauffeur(text,uuid)','execute')
+    then raise exception 'authenticated ne peut plus appeler ela_attribuer_chauffeur'; end if;
 end $$;
 
 select 'PAPIERS CHAUFFEURS : toutes les epreuves passent' as resultat;

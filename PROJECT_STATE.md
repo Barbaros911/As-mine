@@ -155,16 +155,30 @@ Barbaros son geste principal.** Le détail est dans `CLAUDE.md`.
 | Quoi | Qui | Où c'est suivi |
 |---|---|---|
 | Refonte de l'admin sur la référence visuelle | ChatGPT puis Claude | Issue #165 |
-| Trancher la pancarte : option à 10 € ou gratuite | **Barbaros** | Issue #169 |
 | Relecture de `TEAM_RULES.md` (§1 et §9) | ChatGPT | PR #170 |
 | Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
 
 ## Ce qui bloque, et par qui
 
-- **LE SIRET N'EXISTE PAS.** C'est le seul vrai blocage du projet et il ne
-  dépend que de Barbaros — micro-entreprise à créer sur
-  `formalites.entreprises.gouv.fr`. Sans lui : mentions légales incomplètes,
-  fiche Google non vérifiable, **aucune facture de commission valable**.
+- **LE SIRET N'EXISTE PAS.** Micro-entreprise à créer sur
+  `formalites.entreprises.gouv.fr`, et cela ne dépend que de Barbaros. Sans
+  lui : mentions légales incomplètes, fiche Google non vérifiable, **aucune
+  facture de commission valable**.
+- **CE N'ÉTAIT PAS « LE SEUL VRAI BLOCAGE », ET CETTE LIGNE A MENTI**
+  (corrigé le 16/09/2026, sur l'audit de ChatGPT). Elle laissait croire qu'un
+  numéro suffisait à pouvoir exploiter. Or Elatransfer n'est pas un
+  transporteur mais une **centrale de réservation** — Barbaros l'a dit
+  lui-même, « je place seulement » — et ce statut porte ses propres
+  obligations. ChatGPT en nomme trois de plus : l'immatriculation de
+  l'entreprise, une **déclaration annuelle de l'activité de centrale de
+  réservation** auprès du ministre chargé des transports, et une **assurance
+  RC professionnelle de la centrale**.
+  **À FAIRE CONFIRMER SUR LE TEXTE AVANT DE S'EN SERVIR POUR DÉCIDER** : le
+  réseau de cette machine ne joint pas Legifrance, je n'ai donc pas pu lire
+  les articles moi-même. C'est rapporté, pas vérifié — et la règle du projet
+  est de ne pas présenter une supposition comme une instruction. Ce qui est
+  acquis et déjà écrit ici : le régime de centrale de réservation
+  (L3142-1 et s.) et le médiateur (L616-1), juste en dessous.
 - **Le médiateur de la consommation n'est pas désigné** (L616-1 Code conso.).
   Tant qu'il ne l'est pas, on n'en nomme aucun : le client écrirait à une
   adresse morte en croyant avoir saisi un recours.

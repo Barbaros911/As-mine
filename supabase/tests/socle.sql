@@ -17,7 +17,33 @@ create table if not exists public.chauffeurs(
   modifie_le timestamptz not null default now());
 
 create table if not exists public.courses(ref text primary key, statut text, bon jsonb);
-create table if not exists public.attributions_chauffeur(course_ref text, statut text);
+
+-- Depuis que la migration redefinit les deux RPC d'attribution, le socle doit
+-- porter ce qu'elles ECRIVENT : sans ces tables l'appel echouerait sur une
+-- relation manquante, et on croirait avoir eprouve la regle alors qu'on n'a
+-- eprouve que le socle.
+create table if not exists public.attributions_chauffeur(
+  course_ref text primary key references public.courses(ref) on delete restrict,
+  chauffeur_id uuid not null references public.chauffeurs(id) on delete restrict,
+  montant_chauffeur_centimes integer,
+  statut text not null default 'active' check (statut in ('active','retiree')),
+  attribue_le timestamptz not null default now(),
+  retire_le timestamptz,
+  modifie_le timestamptz not null default now(),
+  modifie_par uuid);
+
+create table if not exists public.evenements_reservation(
+  id bigint generated always as identity primary key,
+  course_ref text not null,
+  type_evenement text not null,
+  acteur_type text not null default 'systeme',
+  acteur_id uuid,
+  donnees jsonb not null default '{}'::jsonb,
+  cree_le timestamptz not null default now());
+
+create table if not exists public.snapshots_financiers(
+  course_ref text primary key,
+  montant_chauffeur_centimes integer);
 
 create table if not exists public.actions_requises(
   id bigint generated always as identity primary key,
@@ -34,9 +60,24 @@ create unique index if not exists actions_requises_ouverte
   on public.actions_requises(course_ref,type_action) where statut='ouverte';
 
 -- La migration appelle est_exploitant() ; hors Supabase on la rend vraie.
+-- ELLE EST REGLABLE : une RPC qui refuserait TOUT rendrait le meme message
+-- qu'une RPC qui refuse le bon chauffeur, et le test passerait au vert sans
+-- avoir rien eprouve. Un bloc l'eteint expres pour lever ce doute.
+create table if not exists public.socle_reglages(exploitant boolean not null default true);
+insert into public.socle_reglages(exploitant)
+  select true where not exists(select 1 from public.socle_reglages);
 create or replace function public.est_exploitant() returns boolean
-  language sql as $$ select true $$;
+  language sql as $$ select coalesce((select exploitant from public.socle_reglages limit 1), true) $$;
+
+-- auth.uid() n'existe pas hors Supabase ; les deux RPC l'ecrivent en acteur.
+create schema if not exists auth;
+create or replace function auth.uid() returns uuid
+  language sql stable as $$ select null::uuid $$;
+-- Les deux roles Supabase. « anon » n'est pas decoratif ici : la migration
+-- lui retire l'execution des RPC, et le test verifie qu'il ne l'a pas.
 do $$ begin
   if not exists (select 1 from pg_roles where rolname='authenticated')
   then create role authenticated; end if;
+  if not exists (select 1 from pg_roles where rolname='anon')
+  then create role anon; end if;
 end $$;
