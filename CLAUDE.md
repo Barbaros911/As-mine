@@ -3766,6 +3766,57 @@ Il vérifie maintenant son vrai sujet — un `;` présent, aucune `,`. Même
 leçon que la barre du bas figée sur quatre onglets, et que les trois tests
 qui visaient `p.font-mono` au lieu de `.veh-prix`.
 
+### LE LANCEUR DISAIT « TOUT EST AU VERT » PENDANT QU'UNE SUITE ÉCHOUAIT
+
+16 septembre 2026. `test-notification` est tombé, la ligne
+« === ÉCHECS (1) === » s'est affichée à l'écran — et `tests.sh` a conclu
+**« TOUT EST AU VERT »** en sortant avec 0.
+
+**LA CAUSE : DEUX BOUCLES, UNE SEULE QUI COMPTE.** Les suites
+`test-nouveau*` incrémentaient `ECHECS` ; les trois dernières
+(`test-doc`, `test-notification`, `test-push`) se contentaient d'AFFICHER.
+Un œil pressé voit le verdict, pas la ligne du dessus ; une automatisation,
+elle, ne voit QUE le code de sortie.
+**Un outil de contrôle qui ment est pire que pas d'outil** — c'est
+exactement ce que ce lanceur existe pour empêcher chez les autres, et c'est
+la **deuxième fois** qu'il se fait prendre à son propre piège, après le
+`trap` qui écrasait le code de sortie d'origine. Les trois suites se
+comptent désormais comme les autres, détail des échecs compris.
+
+### « a-coller.ts » IMPORTAIT ENCORE UN FICHIER — IL N'ÉTAIT PLUS COLLABLE
+
+Trouvé dans la foulée, caché par le défaut du dessus. L'assembleur ne
+connaissait que `message.js` ; la PR #180 (double alerte Push + Telegram) a
+ajouté un **troisième** fichier, `chiffrer.js`, dont l'import restait dans
+le fichier assemblé. Or tout l'intérêt de `a-coller.ts` est d'être collable
+**d'un seul bloc avec un pouce** : avec cet import, le collage échoue chez
+Supabase, où `./chiffrer.js` n'existe pas.
+- **RIEN N'ÉTAIT CASSÉ EN PRODUCTION** : `fonctions.yml` déploie depuis
+  `index.ts`. `a-coller.ts` n'est que le chemin de secours au téléphone —
+  celui qui sert le jour où l'automatisation tombe, donc le pire moment
+  pour découvrir qu'il ne marche pas.
+- **L'ASSEMBLEUR INLINE MAINTENANT TOUT CE QU'`index.ts` IMPORTE
+  LOCALEMENT**, plus un fichier nommé en dur. Un quatrième demain sera pris
+  sans qu'on y pense — et s'il arrive sans compte de paramètres déclaré,
+  l'assembleur **s'arrête** au lieu de passer.
+- **`async` EST CONSERVÉ.** La réécriture des signatures rendait
+  « function hkdf(…) » pour « async function hkdf(…) » : tous les `await`
+  du corps seraient devenus des erreurs. Invisible tant qu'aucune source
+  inlinée n'était asynchrone — `chiffrer.js` en a trois.
+- **UN PARAMÈTRE DE RESTE SE TYPE EN TABLEAU** : `...m: any` est refusé
+  (« A rest parameter must be of an array type »), il faut `...m: any[]`.
+- **LE COMPTE DES PARAMÈTRES EST PAR FICHIER** (`ATTENDUS`), pas global :
+  un seul total aurait confondu une signature retirée ici avec une ajoutée
+  là — elles se seraient annulées.
+- **CEINTURE** : si un import survit à l'assemblage, on s'arrête plutôt que
+  de rendre un fichier qui ne se colle pas. Éprouvé sur les trois cas.
+- **LA COMPILATION N'A PAS PU ÊTRE VÉRIFIÉE ICI** — `tsc` n'est pas
+  installable sans réseau npm. Ce qui a été mesuré : Node analyse le
+  TypeScript sans erreur (`module.stripTypeScriptTypes`) et le JavaScript
+  obtenu est syntaxiquement valide. Ça attrape un `async` perdu ou une
+  accolade en trop, pas une erreur de type. Le dire plutôt que de
+  prétendre l'inverse.
+
 ### LA PAGE PUBLIÉE DÉBORDAIT DE 6 px, ET AUCUNE SUITE NE POUVAIT LE VOIR
 
 16 septembre 2026, trouvé en vérifiant autre chose. À 390 px la page publiée

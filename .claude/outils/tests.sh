@@ -80,11 +80,31 @@ done
 # Ces trois-là ne passent ni par un navigateur ni par le réseau.
 # test-doc.mjs compare la DOCUMENTATION au code : c'est le seul contrôle qui
 # empêche une note de vieillir en silence. Il bloque aussi la publication.
+#
+# ELLES SE COMPTENT COMME LES AUTRES — ET ÇA A ÉTÉ UN VRAI DÉFAUT (16 sept.
+# 2026). Cette boucle se contentait d'AFFICHER : elle ne touchait ni ECHECS
+# ni MUETTES. « test-notification » est tombé, la ligne « === ÉCHECS (1) === »
+# s'est affichée à l'écran, et le lanceur a conclu « TOUT EST AU VERT » en
+# sortant avec 0. Un œil pressé voit le verdict, pas la ligne du dessus ; une
+# automatisation, elle, ne voit QUE le code de sortie.
+# C'est exactement ce que ce lanceur existe pour empêcher chez les autres —
+# et c'est la deuxième fois qu'il se fait prendre à son propre piège, après
+# le trap qui écrasait le code d'origine. Un outil de contrôle qui ment est
+# pire que pas d'outil : il fait passer le rouge pour du vert.
 for f in test-doc.mjs test-notification.mjs test-push.mjs; do
   [ -f "$f" ] || continue
   printf "%-36s " "$f"
-  node "$f" 2>&1 | grep -E "^=== " | tr '\n' ' ' || echo "!!! MUETTE"
-  echo ""
+  sortie=$(node "$f" 2>&1) || true
+  bilan=$(echo "$sortie" | grep -E "^=== " | tr '\n' ' ')
+  if [ -z "$bilan" ]; then
+    echo "!!! MUETTE — PLANTAGE"
+    echo "$sortie" | tail -4 | sed 's/^/      /'
+    MUETTES=$((MUETTES+1))
+  else
+    echo "$bilan"
+    detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)
+    [ -n "$detail" ] && { echo "$detail" | sed 's/^/      /'; ECHECS=$((ECHECS+1)); }
+  fi
 done
 
 echo ""
