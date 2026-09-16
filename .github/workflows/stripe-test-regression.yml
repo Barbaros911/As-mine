@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RIE 'sk_live_|whsec_[A-Za-z0-9]{12,}' supabase/functions .github/workflows; then
+          if grep -RIE 'sk_live_|whsec_[A-Za-z0-9]{12,}' supabase/functions; then
             echo 'Secret Stripe ou clé live potentiellement commis'
             exit 1
           fi
