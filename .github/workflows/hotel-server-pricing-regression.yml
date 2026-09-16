@@ -5,6 +5,7 @@ on:
       - '.github/scripts/public-booking-gateway.mjs'
       - 'supabase/functions/deposer-course/index.ts'
       - 'supabase/migrations/20260916103000_hotel_server_pricing.sql'
+      - 'supabase/migrations/20260916104500_hotel_snapshot_origin_fix.sql'
       - '.github/workflows/hotel-server-pricing-regression.yml'
 permissions: {contents: read}
 jobs:
@@ -26,3 +27,9 @@ jobs:
           grep -Fq 'grant execute on function public.ela_deposer_course_serveur' supabase/migrations/20260916103000_hotel_server_pricing.sql
           grep -Fq 'to service_role' supabase/migrations/20260916103000_hotel_server_pricing.sql
           grep -Fq 'verification_manuelle' supabase/migrations/20260916103000_hotel_server_pricing.sql
+          grep -Fq "'moteur_tarifaire'" supabase/migrations/20260916103000_hotel_server_pricing.sql
+          grep -Fq "'moteur_tarifaire'" supabase/migrations/20260916104500_hotel_snapshot_origin_fix.sql
+          if grep -Rq "'tarification_serveur'" supabase/migrations/20260916103000_hotel_server_pricing.sql supabase/migrations/20260916104500_hotel_snapshot_origin_fix.sql; then
+            echo 'Origine snapshot non autorisée détectée'
+            exit 1
+          fi
