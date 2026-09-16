@@ -73,6 +73,105 @@ async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(
     if(a==='clientwa')return whatsapp(x.phone,bookingMessage(x,c));
   });
 }
+/* =====================================================================
+   COLLER UNE DEMANDE — LE GESTE PRINCIPAL DE BARBAROS
+   ---------------------------------------------------------------------
+   Neuf courses sur dix arrivent par message. Admin v2 ne savait que RELIRE
+   ce que le serveur contenait deja : sans ce bouton, la bascule lui aurait
+   retire son geste le plus frequent.
+
+   LE LECTEUR N'EST PAS RECOPIE ICI. Il vit dans « intake-demande.js » et
+   l'espace actuel l'appelle aussi. Deux lecteurs pour un seul message,
+   c'est la divergence assuree le jour ou la forme du message change -- et
+   elle ne se verrait qu'a la course suivante.
+
+   UNE MINUTERIE DE 1,2 s OUVRE LE CHAMP DE REPLI. Certains navigateurs
+   refusent la lecture du presse-papiers (le « catch » suffit), d'autres
+   laissent la promesse EN ATTENTE INDEFINIMENT -- et sans minuterie le
+   bouton ne fait alors rien du tout, sans un mot. Piege deja paye.
+
+   LE CHAMP RESTE OUVERT APRES UN AJOUT, vide : les demandes arrivent par
+   trois ou quatre d'affilee.
+   ===================================================================== */
+function intakeDire(texte, classe){
+  const p=document.getElementById('intakeEtat'); if(!p)return;
+  p.textContent=texte||''; p.className='muted small intake-etat'+(classe?' '+classe:'');
+}
+function intakeOuvrirRepli(){
+  const z=document.getElementById('intakeTexte'), b=document.getElementById('btnIntakeAjouter');
+  if(z)z.hidden=false; if(b)b.hidden=false;
+}
+
+/* LES DEUX CLES NE CHANGENT JAMAIS -- elles sont ecrites dans l'historique.
+   Le lecteur exige une grille et n'en porte aucune : un defaut cache dans
+   le lecteur serait une deuxieme grille, qui se tairait le jour ou la vraie
+   change. Ici les NOMS n'engagent aucun prix : ils ne servent qu'a relire le
+   vehicule ecrit dans un message. */
+const GAMMES_INTAKE=[{cle:'berline',nom:'Berline'},{cle:'van',nom:'Van'}];
+
+/* La reference du client est reprise telle quelle quand le message en porte
+   une. Sinon on en fabrique une a partir du rang du mois DEJA connu -- et si
+   deux exploitants collaient au meme instant, le serveur refuse le doublon
+   au lieu d'ecraser : on reessaie, on ne perd rien. */
+function refIntakeSuivante(){
+  const d=new Date(), aa=String(d.getFullYear()).slice(2), mm=String(d.getMonth()+1).padStart(2,'0');
+  const prefixe=`ELA-${aa}-${mm}-`;
+  let rang=0;
+  (state.courses||[]).forEach(c=>{
+    const r=c.ref||'';
+    if(r.startsWith(prefixe)){const n=parseInt(r.slice(prefixe.length),10); if(n>rang)rang=n;}
+  });
+  return prefixe+String(rang+1).padStart(4,'0');
+}
+
+async function intakeAjouter(texte){
+  if(!window.ELA_INTAKE||!window.ELA_INTAKE.lireDemande){
+    intakeDire("Le lecteur de demandes n'est pas chargé. Recharge la page.",'ko'); return; }
+  let d=null;
+  try{ d=window.ELA_INTAKE.lireDemande(texte,GAMMES_INTAKE); }
+  catch(e){ intakeDire('Lecture impossible : '+e.message,'ko'); return; }
+  if(!d){ intakeDire("Ce message n'est pas une demande : il faut au moins un départ, une arrivée et une date.",'ko'); return; }
+
+  /* UNE DEMANDE VENUE D'UN CLIENT ENTRE TOUJOURS EN « ATTENTE ». Il attend
+     une reponse ; la ranger comme confirmee promettrait une voiture que
+     personne n'a acceptee. */
+  const bon=window.ELA_INTAKE.courseDepuis(d,refIntakeSuivante(),'attente');
+  try{
+    await rpc('ela_creer_course_exploitant',{p_ref:bon.ref,p_bon:bon,p_statut:'attente',p_origine:'collee'});
+  }catch(e){
+    const m=String(e&&e.message||e);
+    if(m.includes('reference_existante')){
+      intakeDire('Cette course existe déjà ('+bon.ref+') — rien n’a été écrasé.','ko'); return; }
+    intakeDire('Le serveur a refusé : '+m,'ko'); return;
+  }
+  const z=document.getElementById('intakeTexte'); if(z)z.value='';
+  intakeDire('Demande ajoutée — '+bon.ref+' · '+(d.nom||'client')+'.','ok');
+  await load(); render();
+}
+
+function brancherIntake(){
+  const bouton=document.getElementById('btnCollerV2');
+  if(bouton)bouton.addEventListener('click',async()=>{
+    intakeDire('');
+    let minuterie=setTimeout(()=>{ minuterie=null; intakeOuvrirRepli();
+      intakeDire("Le presse-papiers n'a pas répondu. Colle le message ci-dessous."); },1200);
+    let texte='';
+    try{ texte=await navigator.clipboard.readText(); }
+    catch(e){ texte=''; }
+    if(minuterie===null)return;          /* la minuterie a deja tranche */
+    clearTimeout(minuterie);
+    if(!texte||!texte.trim()){ intakeOuvrirRepli();
+      intakeDire('Presse-papiers vide. Colle le message ci-dessous.'); return; }
+    await intakeAjouter(texte);
+  });
+  const ajouter=document.getElementById('btnIntakeAjouter');
+  if(ajouter)ajouter.addEventListener('click',async()=>{
+    const z=document.getElementById('intakeTexte');
+    await intakeAjouter(z?z.value:'');
+  });
+}
+brancherIntake();
+
 openBooking=openBookingV2;
 setTimeout(()=>{if(session?.access_token)refreshActionQueue();},700);
 })();

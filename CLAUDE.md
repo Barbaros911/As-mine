@@ -3892,6 +3892,74 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 1 — « COLLER UNE DEMANDE » EXISTE DANS ADMIN V2
+
+16 septembre 2026, première brique de la parité demandée par ChatGPT (#191).
+Neuf courses sur dix arrivent par message : Admin v2 ne savait que **relire**
+ce que le serveur contenait déjà. Basculer dessus aurait retiré à Barbaros son
+geste le plus fréquent, sans rien pour le remplacer.
+
+**LE LECTEUR N'EST PAS RECOPIÉ, IL A DÉMÉNAGÉ.** `intake-demande.js` est
+désormais la source unique : `index.html` l'appelle, `admin-v2.html` aussi.
+Le recopier aurait été la faute que ce fichier reproche partout — deux
+recettes pour une seule chose — et elle ne se serait vue qu'à la course
+suivante, sur un message dont la forme aurait changé d'un seul côté.
+- **LA GRILLE EST UN PARAMÈTRE OBLIGATOIRE, jamais un défaut caché.** Un
+  défaut dans le lecteur serait une **deuxième grille** : elle se tairait le
+  jour où la vraie change, et le véhicule d'une course collée serait faux sans
+  que rien ne le signale. Un appelant qui ne la fournit pas est arrêté.
+- **LE STATUT ET LA RÉFÉRENCE SONT DES PARAMÈTRES AUSSI.** Le fichier LIT, il
+  ne range pas : les deux espaces ont deux portes (une demande collée attend,
+  une course prise au téléphone est déjà convenue) et ne comptent pas les
+  références au même endroit — l'un dans le téléphone, l'autre sur le serveur.
+- `construire.sh` le publie et l'injecte **avant** `admin-v2-actions.js`, qui
+  l'appelle : un navigateur exécute les scripts dans l'ordre déclaré. Il est
+  aussi dans le `SHELL` de `sw.js` — sans ça, un exploitant hors ligne appuie
+  sur « Coller une demande » et rien ne se passe.
+
+**LE CHEMIN SERVEUR EST UNE FONCTION DE PLUS, ET C'EST VOULU**
+(`ela_creer_course_exploitant`). `ela_deposer_course_serveur` existait déjà
+mais est réservée à `service_role` : c'est la passerelle **publique**, appelée
+par une Edge Function pour un visiteur anonyme. L'ouvrir à `authenticated`
+aurait mélangé deux portes qui n'ont pas les mêmes règles — et **une porte
+qu'on élargit ne se rétrécit jamais**.
+- **ELLE REFUSE UNE RÉFÉRENCE DÉJÀ PRISE, ELLE N'ÉCRASE PAS.** Coller deux
+  fois le même message est exactement ce qui arrive la nuit, sur dix demandes
+  d'affilée. Un `upsert` effacerait une course qui a **avancé** depuis —
+  chauffeur attribué, course réalisée. C'est la règle de `fusionnerCourses()`,
+  posée côté serveur.
+- **Deux statuts seulement, et nommés.** Accepter n'importe quelle chaîne
+  ferait entrer un jour un statut que le reste du système ne sait pas lire.
+- Elle appelle `ela_rafraichir_actions()` : sans ça la file « Action requise »
+  ne verrait la course qu'au prochain rafraîchissement, c'est-à-dire pas au
+  moment où l'exploitant regarde.
+
+**LE CONTRÔLE D'ACCÈS QUE LA FALSIFICATION A CORRIGÉ.** Le premier jet
+vérifiait qu'un non-exploitant reçoit `acces_refuse` — et il restait **au
+vert** quand on retirait le verrou de la fonction. Le refus venait en réalité
+de `ela_rafraichir_actions()`, appelée à la fin, qui porte le sien. La course
+était bien refusée, mais **par accident**, après avoir tenté l'écriture :
+réordonner deux lignes, ou retirer un jour le verrou du callee, et le trou
+s'ouvrait sans que rien ne tombe.
+Ce qu'on éprouve maintenant est un **ordre**, pas une présence : un
+non-exploitant qui vise une référence **déjà prise** doit recevoir
+`acces_refuse`, jamais `reference_existante`. Seul un verrou posé dans cette
+fonction-là, avant sa propre logique, rend cette réponse — et au passage on
+n'apprend pas à un inconnu quelles références existent.
+
+**UNE ATTENTE QUI EXPIRE DOIT NOMMER CE QU'ELLE ATTENDAIT.** Éprouvée contre
+cinq falsifications, `test-admin-intake.mjs` en faisait tomber trois sur un
+**délai d'attente nu** : elle échouait bien, sans dire pourquoi. « Une suite
+muette est un échec » vaut aussi pour une suite qui plante. Chaque attente
+passe par un `attendre()` qui transforme le délai en contrôle rouge nommé, et
+le parcours de secours est **gardé** — sans ça un `fill()` sur un champ masqué
+tuait la suite avant qu'elle imprime son bilan.
+
+**CE QUI RESTE À LA PARITÉ** : saisie par téléphone, registre et sauvegarde,
+export CSV, facture de commission, affiche QR des hôtels, demande d'avis,
+accusé de réception. **Aucune bascule de `admin.html` avant que tout y soit** —
+et c'est ChatGPT qui contrôle, brique par brique.
+
 ### LE BANDEAU COLLANT MANGEAIT 18 % DE L'ÉCRAN — ET J'AVAIS MAL DIAGNOSTIQUÉ
 
 **J'AI D'ABORD ANNONCÉ UN DÉFAUT QUI N'EXISTAIT PAS.** En regardant une

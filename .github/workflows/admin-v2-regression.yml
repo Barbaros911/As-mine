@@ -60,6 +60,7 @@ jobs:
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
           node test-admin-papiers.mjs
+          node test-admin-intake.mjs
 
       # LA MIGRATION EST EXÉCUTÉE POUR DE VRAI, sur un PostgreSQL vide.
       # Une expression régulière sur un fichier SQL ne sait pas si la requête
@@ -78,3 +79,11 @@ jobs:
             -f supabase/tests/socle.sql \
             -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
             -f supabase/tests/papiers-chauffeurs.sql
+          # Une base neuve : le socle repose les memes tables, et deux
+          # epreuves qui partagent un etat finissent par se gener.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database intake;'
+          psql -h 127.0.0.1 -U postgres -d intake -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
+            -f supabase/migrations/20260916220000_intake_exploitant.sql \
+            -f supabase/tests/intake-exploitant.sql
