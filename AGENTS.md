@@ -1,6 +1,16 @@
 # ELA Transfer — règles de coordination pour tous les agents
 
-Ce fichier est la règle centrale du dépôt. Il doit être lu AVANT toute modification par ChatGPT, Work, Codex, Claude ou tout autre agent humain/IA.
+> ## ⚠️ LIRE `TEAM_RULES.md` D'ABORD
+>
+> **Les règles communes — qui décide quoi, la source de vérité, la chaîne
+> jusqu'à la production, les tests, les secrets, la communication entre
+> intervenants — sont dans `TEAM_RULES.md`. Une page. En cas de contradiction
+> avec ce fichier-ci, c'est `TEAM_RULES.md` qui dit vrai.**
+>
+> Ce fichier garde ce qui lui est propre : **les zones critiques du dépôt et
+> les états de tâche**.
+
+Ce fichier doit être lu AVANT toute modification par ChatGPT, Work, Codex, Claude ou tout autre agent humain/IA.
 
 ## Objectif
 

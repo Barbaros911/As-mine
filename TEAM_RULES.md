@@ -1,0 +1,147 @@
+# ELA Transfer — règles communes de l'équipe
+
+**Ce fichier est la référence partagée.** `CLAUDE.md` et `AGENTS.md` y renvoient
+et ne gardent que ce qui leur est propre. En cas de contradiction, c'est ce
+fichier qui dit vrai.
+
+Il est court exprès. Chaque règle ci-dessous a coûté quelque chose ; la date
+entre parenthèses renvoie à l'incident qui l'a produite.
+
+---
+
+## 1. Qui décide quoi
+
+| | Domaine | Tranche sur |
+|---|---|---|
+| **Barbaros** | propriétaire | tarifs, produit, commercial, visuel, arbitrages |
+| **ChatGPT** | produit, UX, contrôle extérieur | spécification, cohérence, **le site réellement publié** |
+| **Claude Code** | code, tests, build, déploiement | faits techniques mesurables |
+
+**Un choix produit se tranche par Barbaros. Un fait technique se tranche par la
+mesure** — on reproduit, on prouve, et la preuve gagne. Pas l'ancienneté, pas
+l'assurance de celui qui parle.
+
+**Contrôle croisé :** chacun peut contester le travail de l'autre **avec des
+faits**. Personne ne crée une seconde implémentation de ce que l'autre fait.
+
+**Ni ChatGPT ni Claude ne voient ce que voit l'autre.** Claude n'atteint pas
+`elatransfer.com` — mesuré, quatre adresses, réponse nulle. ChatGPT ne lance
+pas les tests et ne lit pas les journaux de construction. La répartition n'est
+pas un confort : c'est la carte des accès réels.
+
+## 2. La source de vérité
+
+**`main`, et rien d'autre.** Ni une conversation, ni une branche, ni la mémoire
+de qui que ce soit.
+
+**Avant de commencer quoi que ce soit :** lire le dernier `main`, les PR
+ouvertes, les Issues `[TEAM]`, les branches actives sur la zone.
+
+*(15/09 — Claude a travaillé 83 commits en retard. Fusionner à l'aveugle aurait
+supprimé le travail de sécurité de ChatGPT.)*
+
+## 3. Une seule implémentation par sujet
+
+Si une PR, une branche ou une Issue `[TEAM]` couvre déjà la demande : **on ne
+recommence pas ailleurs.** On reprend, ou on signale le conflit.
+
+*(15/09 — 53 branches non fusionnées, dont sept tentatives sur la même
+interface et quatre sur la même tâche de sécurité.)*
+
+## 4. « Fusionné » ne veut pas dire « en ligne »
+
+```
+CODÉ → TESTÉ → FUSIONNÉ → DÉPLOYÉ → VÉRIFIÉ EN PRODUCTION
+```
+
+**`TERMINÉ` ne s'écrit qu'après le dernier étage.**
+
+Après chaque fusion, **Claude vérifie que le workflow de publication a
+réellement réussi** et ne dit jamais « c'est en ligne » avant de l'avoir vu en
+vert. Puis **ChatGPT contrôle le site réellement accessible aux clients.**
+
+*(15/09 — deux PR fusionnées, publication en erreur, Barbaros a testé
+l'ancienne version pendant vingt minutes.)*
+
+## 5. Les tests
+
+- **Un test éprouve une règle durable, jamais une valeur du jour.** Pas un
+  numéro de version, pas un nombre de colonnes, pas un compte d'onglets.
+- **On ne supprime ni ne désactive jamais un test pour obtenir du vert.**
+- **Une suite muette est un échec**, pas une suite « pas concernée ».
+- **Un test rouge qui révèle un problème produit, commercial ou juridique
+  remonte comme décision.** Il ne se corrige pas en silence.
+- Quand la production diffère des sources, **les contrôles s'exécutent aussi
+  sur le résultat de `construire.sh`**.
+
+*(15/09 — un test exigeait `elatransfer-v80`, figé au jour de son écriture,
+alors que la règle du projet impose d'incrémenter ce numéro. Il s'exécute avant
+le téléversement : il a bloqué **toute** publication.)*
+*(15/09 — une suite plantait depuis 85 commits sans rien afficher. Vingt-cinq
+contrôles sur une option payante ne tournaient plus.)*
+
+## 6. La documentation ne ment pas
+
+**Toute PR qui rend la documentation commune fausse** — sur un tarif, une
+adresse d'accès, l'authentification, la structure des pages, le déploiement ou
+une règle métier — **met cette documentation à jour dans la même PR.**
+
+*(15/09 — `CLAUDE.md` annonçait un code d'accès mort depuis des jours. Claude a
+travaillé des heures sur une carte périmée.)*
+
+## 7. Les secrets
+
+**Ils n'appartiennent à aucune IA.** Jetons, clés privées, secrets GitHub et
+Supabase, clés VAPID, codes hôtel : ils vivent dans les coffres prévus.
+
+**Aucun des deux ne doit en demander un, en recevoir un dans une conversation,
+ou en écrire un dans le dépôt** — y compris dans un test.
+
+*(Un jeton collé dans une conversation a dû être révoqué dans la minute. Une
+clé VAPID privée a failli partir dans un fichier de test.)*
+
+## 8. Ce qui est « important »
+
+Est important **tout changement touchant** : un prix ou un paiement · un texte
+contractuel · le logo ou l'identité · les données · la sécurité ou
+l'authentification · l'architecture ou les routes · le déploiement · une zone
+partagée.
+
+**Peu importe le nombre de fichiers.** Un changement important passe par une
+branche et une PR ; il ne se fait jamais directement sur `main`.
+
+## 9. Se parler
+
+**Le canal est l'Issue `[TEAM]` concernée**, pas la conversation.
+#164 pour la coordination, #165 pour l'Admin, et une Issue dédiée par sujet.
+
+- ChatGPT y dépose spécifications, audits de production et demandes de
+  correction.
+- Claude y dépose statuts, preuves techniques, branches et PR utilisées, et y
+  ouvre une Issue quand une décision produit est nécessaire.
+- **Barbaros n'est pas le messager.** Ce qui concerne l'autre s'écrit ici.
+
+**Signez vos messages** (`## ChatGPT → Claude — sujet`) : sur GitHub, les deux
+apparaissent sous le même compte, et la signature est le seul moyen de savoir
+qui parle.
+
+## 10. Ce qu'on ne fait jamais de sa propre initiative
+
+Changer un tarif · une règle métier · un texte commercial ou contractuel · le
+logo · l'identité visuelle · le design validé · l'organisation du produit.
+
+**Et ne jamais recréer une interface déjà unifiée.** On la corrige là où elle
+est.
+
+---
+
+## Ce qui reste hors de ce fichier
+
+- **`CLAUDE.md`** : l'historique des décisions du produit et les pièges
+  techniques rencontrés. C'est une mémoire, pas un règlement — et elle vaut
+  cher : chaque section y explique **pourquoi** une chose est comme elle est.
+- **`AGENTS.md`** : les zones critiques et les états de tâche.
+- **`PROJECT_STATE.md`** : l'état courant.
+
+**Une règle de ces fichiers peut vieillir. Vérifier avant de s'en servir pour
+refuser quelque chose.**

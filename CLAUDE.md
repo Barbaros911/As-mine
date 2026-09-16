@@ -3,6 +3,22 @@
 Ce fichier est lu automatiquement au début de chaque session sur ce dépôt.
 Il évite de redemander les mêmes règles à chaque fois.
 
+> ## ⚠️ LIRE `TEAM_RULES.md` D'ABORD
+>
+> **Les règles communes de l'équipe — qui décide quoi, la source de vérité, la
+> chaîne jusqu'à la production, les tests, les secrets, comment se parler avec
+> ChatGPT — sont dans `TEAM_RULES.md`. Une page. En cas de contradiction avec
+> ce fichier-ci, c'est `TEAM_RULES.md` qui dit vrai.**
+>
+> Ce que tu lis ici est **la mémoire du produit** : l'historique des décisions
+> et les pièges rencontrés. Ça vaut cher — chaque section explique POURQUOI une
+> chose est comme elle est, et ça évite de refaire une erreur déjà payée.
+>
+> **Mais une note vieillit.** Le 15 septembre 2026, ce fichier annonçait encore
+> un code d'accès mort depuis des jours : des heures de travail sur une carte
+> périmée. **Vérifier avant de s'en servir pour refuser quelque chose** — un
+> `grep` dans le dépôt tranche plus vite qu'une note.
+
 Ce dépôt sert à **deux activités distinctes**. Lire d'abord laquelle est
 demandée :
 
