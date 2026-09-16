@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --no-save playwright@1.47.2
+          npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
           node test-admin-papiers.mjs
 

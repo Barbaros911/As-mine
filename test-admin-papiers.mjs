@@ -116,11 +116,15 @@ const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFac
 
 /* LA GÉNÉRIQUE EN PREMIER, LA SPÉCIFIQUE ENSUITE : Playwright consulte la
    DERNIÈRE route posée en premier. */
-await ctx.route('**://*/**', r => r.request().url().startsWith(BASE) ? r.continue() : r.abort());
-
 let envoye = null;
-await ctx.route('**supabase.co/**', r => {
-  const u = r.request().url(), J = o => r.fulfill({contentType:'application/json', body:JSON.stringify(o)});
+const faireServeur = (r, aussi) => {
+  const u = r.request().url();
+  if(u.startsWith(BASE)) return r.continue();
+  if(!u.includes('supabase.co')) return r.abort();
+  return aussi(r, u, o => r.fulfill({contentType:'application/json', body:JSON.stringify(o)}));
+};
+
+await ctx.route('**/*', r => faireServeur(r, (r, u, J) => {
   if(u.includes('/rpc/est_exploitant')) return J(true);
   if(u.includes('/rpc/ela_rafraichir_actions')) return J(0);
   if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);
@@ -133,7 +137,7 @@ await ctx.route('**supabase.co/**', r => {
   if(u.includes('/rest/v1/courses')) return J(COURSES);
   if(u.includes('/evenements_reservation')) return J([]);
   return J([]);
-});
+}));
 
 await ctx.addInitScript(() => {
   sessionStorage.setItem('ela_admin_session', JSON.stringify({
@@ -292,9 +296,7 @@ check('les trois inserts d\'actions existants sont conservés',
    repli, la lecture échoue, state.drivers vaut [] et PLUS AUCUN chauffeur
    n'est attribuable — sans le moindre message à l'écran. */
 const ctx2 = await b.newContext({ viewport:{width:390,height:844}, locale:'fr-FR' });
-await ctx2.route('**://*/**', r => r.request().url().startsWith(BASE) ? r.continue() : r.abort());
-await ctx2.route('**supabase.co/**', r => {
-  const u = r.request().url(), J = o => r.fulfill({contentType:'application/json', body:JSON.stringify(o)});
+await ctx2.route('**/*', r => faireServeur(r, (r, u, J) => {
   if(u.includes('/rpc/est_exploitant')) return J(true);
   if(u.includes('/rpc/')) return J(0);
   /* La vue n'existe pas : Postgrest répond 404. */
@@ -304,7 +306,7 @@ await ctx2.route('**supabase.co/**', r => {
     return J(CHAUFFEURS.map(({papiers_etat,papiers_jours,etat_effectif,attribuable,...d})=>d));
   if(u.includes('/rest/v1/courses')) return J(COURSES);
   return J([]);
-});
+}));
 await ctx2.addInitScript(() => sessionStorage.setItem('ela_admin_session',
   JSON.stringify({access_token:'t', user:{email:'e'}})));
 const p2 = await ctx2.newPage();

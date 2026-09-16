@@ -3805,6 +3805,20 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
 - **Éprouvé en retardant le serveur de 3 s** : l'ancienne version rend
   « Cannot read properties of null », la nouvelle passe. Reproduire la
   lenteur vaut mieux que supposer qu'on l'a corrigée.
+- **ET LA VRAIE CAUSE ÉTAIT AILLEURS ENCORE : LA VERSION DE PLAYWRIGHT.**
+  1.56.1 sur la machine de travail, **1.47.2** épinglée dans le workflow —
+  et **l'ordre de priorité des routes n'est pas le même**. La suite posait une
+  route générique (« tout ce qui n'est pas le site local, on coupe ») puis une
+  route spécifique pour le faux serveur : en 1.56 la spécifique l'emporte, en
+  1.47 la générique avalait tout. **Aucune donnée n'arrivait**, `state.courses`
+  restait vide, et le bon s'ouvrait sur rien. Zéro ligne de code différente
+  entre les deux machines, deux comportements.
+  - **Correction de fond : UNE SEULE ROUTE qui décide de tout.** Deux routes
+    obligent à connaître un ordre ; une seule ne peut pas se tromper.
+  - **Et la CI est alignée sur la version d'ici.** Deux recettes finissent
+    toujours par diverger — celle-ci l'avait déjà fait. Le Chromium de 1.47
+    n'étant pas téléchargeable depuis cette machine, **je n'ai pas pu éprouver
+    la suite sur 1.47** : plutôt que de supposer, on supprime l'écart.
 - **PIÈGE DE DIAGNOSTIC** : le journal de la CI affichait six
   « role "root" does not exist » du service PostgreSQL, juste avant l'échec.
   Ce n'était **pas** la cause — `pg_isready` sans `-U` rend quand même 0,
