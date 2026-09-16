@@ -16,6 +16,11 @@ cp index.html admin.html manifest.webmanifest sw.js \
 # Les règles EasyHotel restent appliquées à l'application fonctionnelle.
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 
+# SÉCURITÉ : toutes les demandes publiques passent par la passerelle serveur.
+# L'ancien INSERT anon ne sera fermé en base qu'après validation réelle de ce
+# parcours, afin de ne jamais couper les réservations pendant la bascule.
+node .github/scripts/public-booking-gateway.mjs site/index.html
+
 # SÉCURITÉ : authentification serveur puis séparation des rôles.
 node .github/scripts/harden-exploitant-auth.mjs site/index.html
 node .github/scripts/agent-role-ui.mjs site/index.html
