@@ -325,6 +325,54 @@ check('sans la vue, la fiche n\'annonce PAS « À jour » : on ne sait pas, on n
     return c ? /à jour/i.test(c.querySelector('.tag').textContent) : false;})));
 await ctx2.close();
 
+/* ---------------------------------------------------------------------
+   8. LE BANDEAU COLLANT NE MANGE PAS L'ÉCRAN
+   ---------------------------------------------------------------------
+   Il est là sur TOUS les écrans et il ne défile jamais : chaque pixel s'y
+   paie vingt fois par jour. « Activer les notifications » et « Déconnexion »
+   ne tenaient pas côte à côte et s'empilaient — mesuré 130 px à 390 px et
+   152 px à 320 px, soit 15 à 18 % de la hauteur, en permanence.
+   Le contrôle MESURE une hauteur ; relire le CSS ne dirait pas si ça passe
+   à la ligne. Et il éprouve les DEUX largeurs, parce que le repliement
+   n'apparaît qu'en dessous d'un certain espace. */
+for (const largeur of [320, 390]) {
+  const ctx3 = await b.newContext({ viewport:{width:largeur, height:844}, locale:'fr-FR' });
+  await ctx3.route('**/*', r => faireServeur(r, (r, u, J) => {
+    if(u.includes('/rpc/est_exploitant')) return J(true);
+    if(u.includes('/rpc/')) return J(0);
+    if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);
+    if(u.includes('/rest/v1/courses')) return J(COURSES);
+    return J([]);
+  }));
+  await ctx3.addInitScript(() => sessionStorage.setItem('ela_admin_session',
+    JSON.stringify({access_token:'t', user:{email:'contact@elatransfer.com'}})));
+  const p3 = await ctx3.newPage();
+  await p3.goto(BASE+'/admin-v2.html', {waitUntil:'domcontentloaded'});
+  await p3.waitForFunction(()=>typeof state!=='undefined'
+    && document.querySelector('#elaPush'), null, {timeout:20000});
+
+  const h = await p3.evaluate(()=>Math.round(document.querySelector('.top').getBoundingClientRect().height));
+  check(`à ${largeur} px, le bandeau collant tient sur une rangée (≤ 80 px)`,
+    h <= 80, 'mesuré : '+h+' px');
+
+  /* Le bouton ne doit pas avoir simplement disparu : un réglage introuvable
+     est pire qu'un bandeau trop haut. Et 44 px est la mesure d'un pouce. */
+  const bt = await p3.evaluate(()=>{
+    const e=document.querySelector('#elaPush'), z=document.querySelector('#zonePush');
+    if(!e) return null;
+    const r=e.getBoundingClientRect();
+    return {dansBord: !!(z && z.contains(e)), h:Math.round(r.height),
+            dansEntete: !!e.closest('.top')};
+  });
+  check(`à ${largeur} px, « activer les notifications » existe toujours`,
+    bt !== null);
+  check(`à ${largeur} px, il a quitté le bandeau pour le tableau de bord`,
+    bt && bt.dansBord && !bt.dansEntete);
+  check(`à ${largeur} px, il reste pressable au pouce (≥ 40 px)`,
+    bt && bt.h >= 40, bt ? 'mesuré : '+bt.h+' px' : '');
+  await ctx3.close();
+}
+
 await b.close(); serveur.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}

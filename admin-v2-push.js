@@ -14,7 +14,20 @@ async function activer(){
     await enregistrer(ab);const b=document.getElementById('elaPush');if(b)b.textContent='Notifications activées';
   }catch(e){alert(`Activation Push impossible : ${e.message}`);}
 }
-function bouton(){if(document.getElementById('elaPush'))return;const zone=document.querySelector('.top>div');if(!zone)return;const b=document.createElement('button');b.id='elaPush';b.className='btn alt';b.type='button';b.textContent='Activer notifications';b.style.marginRight='8px';b.onclick=activer;zone.insertBefore(b,zone.querySelector('#logout'));}
+/* LE BOUTON VIT DANS LE TABLEAU DE BORD, PLUS DANS LE BANDEAU. Un reglage
+   qu'on pose une fois n'a pas sa place dans un en-tete collant : mesure, il
+   y poussait la hauteur a 130 px (152 px a 320 px), parce que les deux
+   boutons ne tenaient pas cote a cote et s'empilaient.
+   Le repli sur le bandeau reste : si la zone manque -- une page plus
+   ancienne en cache, par exemple -- le bouton doit exister quelque part
+   plutot que de disparaitre sans un mot. */
+function bouton(){if(document.getElementById('elaPush'))return;
+  const zone=document.querySelector('#zonePush')||document.querySelector('.top>div');
+  if(!zone)return;
+  const b=document.createElement('button');b.id='elaPush';b.className='btn alt';
+  b.type='button';b.textContent='Activer les notifications';b.onclick=activer;
+  if(zone.id==='zonePush'){b.style.marginTop='8px';zone.appendChild(b);}
+  else {b.style.marginRight='8px';zone.insertBefore(b,zone.querySelector('#logout'));}}
 bouton();
 
 /* Un clic sur une notification ouvre directement la réservation visée. */

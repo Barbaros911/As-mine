@@ -3825,6 +3825,47 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### LE BANDEAU COLLANT MANGEAIT 18 % DE L'ÉCRAN — ET J'AVAIS MAL DIAGNOSTIQUÉ
+
+**J'AI D'ABORD ANNONCÉ UN DÉFAUT QUI N'EXISTAIT PAS.** En regardant une
+capture, j'ai dit à Barbaros que « Activer notifications » et « Déconnexion »
+passaient **par-dessus le logo ELA**. Mesuré ensuite : le logo finit à x=114,
+le bloc de droite commence à x=114, et `elementFromPoint` au centre du logo
+rend bien `IMG`. **Aucun chevauchement.** Ils étaient seulement collés.
+C'est la quatrième fois que ce projet paie la même faute — le numéro du flyer
+easyHotel lu sur une photo, les deux adresses Supabase données de mémoire, le
+`html_handling` de Cloudflare. **Lire une image n'est pas mesurer.**
+
+**LE VRAI DÉFAUT, LUI, ÉTAIT PIRE, et seule la mesure l'a donné** : l'en-tête
+faisait **130 px à 390 px et 152 px à 320 px**, parce que les deux boutons ne
+tenaient pas côte à côte et **s'empilaient**. Il est collant et présent sur
+TOUS les écrans : 15 à 18 % de la hauteur, en permanence, sur l'outil qu'il
+ouvre vingt fois par jour.
+
+- **UN RÉGLAGE QU'ON POSE UNE FOIS N'A RIEN À FAIRE DANS UN BANDEAU COLLANT.**
+  « Activer les notifications » est descendu dans le tableau de bord, sous un
+  titre qui dit ce que c'est. **Même décision que « Affiche hôtel » et
+  « Serveur »**, sortis du haut de l'ancien tableau de bord pour exactement
+  cette raison. Mesuré après : **65 px aux trois largeurs**.
+- **L'ADRESSE E-MAIL EST MASQUÉE SOUS 900 px** : elle ne dit rien à quelqu'un
+  qui est seul à se connecter, et c'est elle qui faisait passer la rangée à la
+  ligne. Elle revient au-delà, où la place ne manque pas.
+- **LE REPLI SUR LE BANDEAU RESTE** dans `admin-v2-push.js` : si `#zonePush`
+  manque — une page plus ancienne gardée en cache, par exemple — le bouton
+  doit exister **quelque part** plutôt que de disparaître sans un mot.
+- **LE CONTRÔLE MESURE UNE HAUTEUR**, aux deux largeurs. Relire le CSS ne dit
+  pas si ça passe à la ligne. Et il vérifie que le bouton **existe encore** et
+  fait 44 px : un réglage introuvable serait pire qu'un bandeau trop haut.
+  Éprouvé en le remettant dans le bandeau — quatre contrôles tombent.
+
+**LE SCRIPT DE CAPTURE NE CONSTRUISAIT PAS LE SITE**, et il a failli me faire
+montrer une image fausse : après la falsification, `site/` contenait encore la
+version cassée, restaurée dans le dépôt mais pas dans le build. Il appelle
+maintenant `construire.sh` lui-même. **Troisième forme du même piège** — le
+serveur laissé sur le mauvais dossier, la suite qui éprouvait le dépôt au lieu
+du site publié, et maintenant la capture d'un build périmé. **Ce qu'on montre
+doit être fabriqué au moment où on le montre.**
+
 **C'EST LA PREMIÈRE SUITE NAVIGATEUR DU DÉPÔT À TOURNER EN CI.** Les
 vingt-huit autres ne tournent que sur la machine de travail : c'est exactement
 pour ça qu'elles ont pu rester rouges quatre jours. Les y brancher toutes est

@@ -5,6 +5,8 @@ import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
+import { execSync } from 'node:child_process';
+execSync('sh construire.sh', {stdio:'ignore'});
 
 const TYPES={'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
   '.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.webmanifest':'application/manifest+json'};
@@ -71,6 +73,9 @@ await p.evaluate(()=>{document.querySelector('#closeSheet').click();
   document.querySelector('#s-dashboard').classList.add('on');});
 await p.waitForTimeout(300);
 await p.screenshot({path:'capture-3-actions.png'});
+await p.evaluate(()=>document.querySelector('#zonePush')?.scrollIntoView({block:'center'}));
+await p.waitForTimeout(300);
+await p.screenshot({path:'capture-4-reglage.png'});
 
 await b.close(); serveur.close();
 console.log('trois captures écrites');
