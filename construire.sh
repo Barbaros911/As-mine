@@ -6,26 +6,18 @@ mkdir -p site
 
 # Application complète historique : elle reste disponible pour la réservation,
 # les liens EasyHotel et l'espace exploitant.
-cp index.html admin.html admin-v2.html admin-v2-actions.js manifest.webmanifest sw.js \
+cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png \
    brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js \
    chauffeur-prive-paris.html transfert-cdg-paris.html \
    transfert-orly-paris.html site/
 
-# Les règles EasyHotel restent appliquées à l'application fonctionnelle.
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
-
-# SÉCURITÉ : toutes les demandes publiques passent par la passerelle serveur.
-# L'ancien INSERT anon ne sera fermé en base qu'après validation réelle de ce
-# parcours, afin de ne jamais couper les réservations pendant la bascule.
 node .github/scripts/public-booking-gateway.mjs site/index.html
-
-# SÉCURITÉ : authentification serveur puis séparation des rôles.
 node .github/scripts/harden-exploitant-auth.mjs site/index.html
 node .github/scripts/agent-role-ui.mjs site/index.html
 
-# La façade et la réservation ne forment plus deux pages différentes.
 python3 - <<'PY'
 from pathlib import Path
 page = Path("site/index.html")
@@ -39,14 +31,14 @@ page.write_text(html, encoding="utf-8")
 
 admin = Path("site/admin-v2.html")
 admin_html = admin.read_text(encoding="utf-8")
-admin_js = '<script src="/admin-v2-actions.js"></script>'
-if admin_js not in admin_html:
-    admin_html = admin_html.replace("</body>", admin_js + "</body>", 1)
+for script in ('/admin-v2-actions.js','/admin-v2-push.js'):
+    tag = f'<script src="{script}"></script>'
+    if tag not in admin_html:
+        admin_html = admin_html.replace("</body>", tag + "</body>", 1)
 admin.write_text(admin_html, encoding="utf-8")
 PY
 cp site/index.html site/application.html
 
-# SEO, identité ELA et logo officiel de la façade publique.
 node .github/scripts/seo-ela.mjs site/index.html
 
 cp manifest-exploitant.webmanifest site/
@@ -59,7 +51,7 @@ cp CNAME site/
 touch site/.nojekyll
 
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
