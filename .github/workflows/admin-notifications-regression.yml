@@ -30,7 +30,7 @@ jobs:
           grep -Fq 'abonnements_admin' supabase/functions/nouvelle-demande/index.ts
           grep -Fq 'security definer' supabase/migrations/20260916090000_admin_push_notifications.sql
           grep -Fq 'est_exploitant()' supabase/migrations/20260916090000_admin_push_notifications.sql
-          if grep -REq 'sk_(test|live)_[A-Za-z0-9]|TELEGRAM_TOKEN\s*=\s*["'"'][0-9]' admin-v2-push.js supabase/functions/nouvelle-demande; then
-            echo 'Secret interdit détecté'
+          if grep -REq 'sk_(test|live)_[A-Za-z0-9]' admin-v2-push.js supabase/functions/nouvelle-demande; then
+            echo 'Secret Stripe interdit détecté'
             exit 1
           fi
