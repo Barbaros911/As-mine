@@ -1,0 +1,28 @@
+name: Contrôle tarification hôtel serveur
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/public-booking-gateway.mjs'
+      - 'supabase/functions/deposer-course/index.ts'
+      - 'supabase/migrations/20260916103000_hotel_server_pricing.sql'
+      - '.github/workflows/hotel-server-pricing-regression.yml'
+permissions: {contents: read}
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash construire.sh
+      - shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'destinationCle: hotelDest ? hotelDest.cle : null' site/index.html
+          grep -Fq 'destinationCle' supabase/functions/deposer-course/index.ts
+          grep -Fq 'destinationValide' supabase/functions/deposer-course/index.ts
+          grep -Fq 'verification_manuelle' supabase/functions/deposer-course/index.ts
+          grep -Fq 'sourceTarif' supabase/functions/deposer-course/index.ts
+          grep -Fq 'commission_ela_defaut' supabase/functions/deposer-course/index.ts
+          grep -Fq 'ela_deposer_course_serveur' supabase/functions/deposer-course/index.ts
+          grep -Fq 'grant execute on function public.ela_deposer_course_serveur' supabase/migrations/20260916103000_hotel_server_pricing.sql
+          grep -Fq 'to service_role' supabase/migrations/20260916103000_hotel_server_pricing.sql
+          grep -Fq 'verification_manuelle' supabase/migrations/20260916103000_hotel_server_pricing.sql
