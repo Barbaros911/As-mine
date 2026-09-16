@@ -6,7 +6,7 @@ mkdir -p site
 
 # Application complète historique : elle reste disponible pour la réservation,
 # les liens EasyHotel et l'espace exploitant.
-cp index.html admin.html manifest.webmanifest sw.js \
+cp index.html admin.html admin-v2.html manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png \
    brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js \
@@ -52,7 +52,7 @@ cp CNAME site/
 touch site/.nojekyll
 
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html admin-v2.html styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
