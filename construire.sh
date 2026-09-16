@@ -6,7 +6,7 @@ mkdir -p site
 
 # Application complète historique : elle reste disponible pour la réservation,
 # les liens EasyHotel et l'espace exploitant.
-cp index.html admin.html admin-v2.html manifest.webmanifest sw.js \
+cp index.html admin.html admin-v2.html admin-v2-actions.js manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png \
    brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js \
@@ -36,6 +36,13 @@ hotel_js = '<script src="/hotel-engine-polish.js" defer></script>'
 html = html.replace("</head>", facade + hotel_css + hotel_js + "</head>", 1)
 html = html.replace('<img class="logo-image" src="brand-logo-white.png"','<img class="logo-image" src="brand-logo.webp"',1)
 page.write_text(html, encoding="utf-8")
+
+admin = Path("site/admin-v2.html")
+admin_html = admin.read_text(encoding="utf-8")
+admin_js = '<script src="/admin-v2-actions.js"></script>'
+if admin_js not in admin_html:
+    admin_html = admin_html.replace("</body>", admin_js + "</body>", 1)
+admin.write_text(admin_html, encoding="utf-8")
 PY
 cp site/index.html site/application.html
 
@@ -52,7 +59,7 @@ cp CNAME site/
 touch site/.nojekyll
 
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html admin-v2.html styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
