@@ -29,7 +29,14 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
 
 - **Barbaros ne conduit pas, il place.** Elatransfer est une centrale de
   réservation (Code des transports L3142-1), pas un transporteur.
-- **Le client paie le chauffeur**, à bord. Aucun paiement en ligne.
+- **Le client paie le chauffeur**, à bord. Aucun paiement en ligne — **c'est
+  ce que fait le site AUJOURD'HUI, et ce que disent les CGV publiées.**
+  Cette règle fondatrice est **en cours de remplacement** par l'empreinte
+  bancaire Stripe (voir plus bas) : décidée, en construction, **pas encore
+  active**. Les deux ne se contredisent que si l'on confond ce qui tourne
+  avec ce qui est décidé. **Tant que Stripe Live est éteint, c'est cette
+  ligne-ci qui dit vrai au client** — et les CGV ne changent que dans la PR
+  qui active réellement l'autre modèle.
 - **Le prix est ferme**, arrêté à la réservation, donc **opposable**.
   Conséquence de tout : toucher à la grille veut dire toucher aux CGV, dans
   les deux langues.
@@ -42,6 +49,90 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   Actions et Cloudflare Pages.
 - **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé.
 - **Aucune photo ni aucun logo dont on ne détient pas les droits.**
+
+## Décisions produit validées par Barbaros avec ChatGPT (16 septembre 2026)
+
+**POURQUOI ELLES SONT ICI.** ChatGPT les a posées dans l'Issue #164 en écrivant
+« À FAIRE PAR CLAUDE : les considérer comme contraintes produit pour la suite ».
+Elles ne vivaient que dans un fil GitHub : **une session neuve ne les aurait
+jamais vues.** Lire une Issue n'est pas s'en souvenir — c'est exactement la
+raison d'être de ce fichier.
+Le détail et les nuances restent dans #164 et #173 ; ce qui suit est ce qu'on
+ne doit pas enfreindre sans le rouvrir.
+
+### Architecture
+- **Quatre espaces séparés** : Public ELA · Client easyHotel · Réception
+  easyHotel · Admin ELA — avec **un seul cœur de réservation**.
+- **Une entrée canonique par rôle.** Les anciens alias redirigent, ils ne
+  deviennent pas des versions à maintenir.
+- **Multi-établissements dès la conception** : easyHotel ne doit pas être un
+  cas codé en dur. Chaque hôtel aura sa configuration, le moteur reste commun.
+- **Les autres projets sortent de la publication ELA** (Point Clôtures, Ici
+  Cuisine) — **sans supprimer leur travail**.
+- Le QR de l'affiche ouvre l'espace **Client easyHotel existant**, et le
+  contexte (hôtel, destination, tarif, provenance) est conservé **jusqu'à la
+  confirmation** — pas de perte silencieuse en changeant d'écran.
+- **Deux origines distinctes** : `QR client hôtel` et `Réception hôtel`. Les
+  deux alimentent le même Admin, avec la source identifiable.
+
+### Cycle de la réservation
+`Demande reçue → Empreinte autorisée → Réservation confirmée → Chauffeur
+attribué → Réalisée`
+- **Confirmer ≠ nommer le chauffeur.** ELA doit pouvoir confirmer sans
+  chauffeur attribué : état « **Confirmée — chauffeur à attribuer** »,
+  prioritaire à l'approche du départ.
+- Une demande immédiate reste **soumise à disponibilité**. Aucune promesse de
+  10/20/30 minutes, aucun « réserver 2 h avant = chauffeur garanti ».
+- Une demande immédiate **ne reste pas indéfiniment en attente** : si aucun
+  chauffeur, on le dit clairement au client.
+
+### Canaux — à ne pas mélanger
+- **Admin ELA = centre de commande et source de vérité.** Aucune action
+  métier canonique ne dépend de Telegram.
+- **WhatsApp = communication humaine** client et chauffeur.
+- **Telegram = alertes internes uniquement.** Ne pas le proposer aux clients.
+
+### Cloisonnement de la réception
+La réception ne voit **jamais** : commission ou marge ELA, montant chauffeur,
+réglages Stripe, Telegram, carnet complet des chauffeurs, paramètres
+commerciaux, réservations des autres partenaires. Elle ne capture ni n'annule
+un paiement, ne modifie aucune règle tarifaire, ne clôt rien financièrement.
+**Ne pas en faire un mini-Admin.**
+
+### Paiement — CE QUI REMPLACE « AUCUN PAIEMENT EN LIGNE »
+C'est un renversement d'une décision fondatrice, autorisé par Barbaros
+(« mets-le en place, je vais créer au moins une auto/micro-entreprise »).
+- **Empreinte bancaire Stripe** puis **capture manuelle** à la confirmation.
+  Si ELA n'assure pas la course : libérer, ne pas capturer.
+- **Apple Pay / Google Pay / Link en priorité**, carte en secours. Le client
+  ne saisit **jamais** sa carte dans un formulaire maison.
+- Le montant est **calculé et verrouillé côté serveur**, jamais accepté du
+  navigateur. Le webhook signé est la vérité de l'état Stripe.
+- **Aucune donnée carte chez ELA. Aucun secret Stripe dans le dépôt.**
+- **Une empreinte n'est PAS du chiffre d'affaires encaissé.**
+- **Stripe Live reste éteint** tant que Barbaros n'a pas son statut réel.
+  Ne jamais afficher « paiement réel actif » sans l'avoir vérifié.
+
+### Annulation (remplace le barème de l'ancien site)
+Plus de 24 h : gratuit, et l'empreinte non capturée est **libérée** · moins de
+24 h et no-show : facturable selon des CGV clairement acceptées · **annulation
+du fait d'ELA : aucune pénalité et restitution intégrale**.
+**Ne pas modifier les CGV sur ce point avant le lot d'implémentation validé.**
+
+### Ce qui reste réservé à Barbaros, et qu'on n'invente jamais
+Activation Stripe Live · reversement réel aux chauffeurs · commission de 20 %
+· tarifs · politique d'annulation · conditions contractuelles · rôle juridique
+· identité et logo · engagement envers un partenaire.
+**Ne jamais présenter easyHotel comme « partenaire officiel » sans accord
+formalisé** — dire « tarifs au départ de easyHotel Aéroville ».
+
+### Qui tient quoi — LE POINT À TRANCHER
+**Deux sessions Claude ont travaillé ce dépôt en parallèle le 16 septembre**,
+et leurs commits sont arrivés sous les pieds l'un de l'autre. #173 (paiement)
+et #165 (finition Admin) ont été pris par l'autre session — #176 à #185 sont
+fusionnées. `TEAM_RULES` §2 interdit une seconde implémentation : **avant de
+reprendre l'un de ces deux lots, vérifier qu'il est libre.** `/etat` signale
+désormais en rouge quand `main` a bougé pendant la session.
 
 ## Ce qui est prévu
 
