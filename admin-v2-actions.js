@@ -39,7 +39,7 @@ function driverPicker(ref,x,snap,mode){const ds=validDrivers();if(!ds.length){al
       if(!confirm(`Attribuer ${d.nom_affiche} à ${ref} ?`))return;
       await rpc('ela_attribuer_chauffeur',{p_ref:ref,p_chauffeur_id:id});$('#sheet').classList.add('hidden');await load();await openBookingV2(ref);
     }
-  };
+  }catch(e){alert(`Chauffeur : ${e.message}`);}};
 }
 async function doPayment(ref,kind){const label=kind==='capture'?'Capturer maintenant le paiement TEST autorisé ?':'Libérer / annuler maintenant l’empreinte TEST ?';if(!confirm(label))return;try{await edge(kind==='capture'?'capturer-paiement':'annuler-empreinte',{ref});await load();await openBookingV2(ref);}catch(e){alert(`Paiement : ${e.message}`);}}
 async function removeDriver(ref){const motif=prompt('Motif interne du retrait / de la réattribution (facultatif) :')||'';if(!confirm('Retirer le chauffeur actuel et remettre la course à attribuer ?'))return;try{await rpc('ela_retirer_chauffeur',{p_ref:ref,p_motif:motif||null});await load();await openBookingV2(ref);}catch(e){alert(`Action refusée : ${e.message}`);}}
