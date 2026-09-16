@@ -53,7 +53,16 @@ if ! curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null; then
   echo "Serveur local démarré."
 fi
 
-SUITES=$(ls test-nouveau*.mjs 2>/dev/null | sort)
+# LES TROIS SUITES HORS NAVIGATEUR, NOMMÉES UNE SEULE FOIS. Elles tournent
+# dans la seconde boucle ; les autres sont toutes des suites de navigateur.
+HORS_NAV="test-doc.mjs test-notification.mjs test-push.mjs"
+
+# ON RAMASSE « test-*.mjs », PAS « test-nouveau* ». Le préfixe « nouveau »
+# est un vestige de la bascule de septembre : une suite écrite aujourd'hui
+# ne le porte pas, et le lanceur l'ignorait EN SILENCE -- une suite jamais
+# lancée ne surveille rien, et personne ne s'aperçoit de son absence.
+# Même famille que la barre du bas figée sur quatre onglets.
+SUITES=$(ls test-*.mjs 2>/dev/null | grep -vxF $(for h in $HORS_NAV; do printf -- '-e %s ' "$h"; done) | sort)
 if [ -n "$1" ]; then
   MOTIF=$(echo "$@" | tr ' ' '|')
   SUITES=$(echo "$SUITES" | grep -E "$MOTIF" || true)
@@ -91,7 +100,7 @@ done
 # et c'est la deuxième fois qu'il se fait prendre à son propre piège, après
 # le trap qui écrasait le code d'origine. Un outil de contrôle qui ment est
 # pire que pas d'outil : il fait passer le rouge pour du vert.
-for f in test-doc.mjs test-notification.mjs test-push.mjs; do
+for f in $HORS_NAV; do
   [ -f "$f" ] || continue
   printf "%-36s " "$f"
   sortie=$(node "$f" 2>&1) || true

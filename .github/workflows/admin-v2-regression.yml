@@ -1,13 +1,33 @@
 name: Contrôle Admin v2
 on:
   pull_request:
-    paths: ['admin-v2.html','construire.sh','.github/workflows/admin-v2-regression.yml']
+    paths:
+      - 'admin-v2.html'
+      - 'admin-v2-actions.js'
+      - 'admin-v2-push.js'
+      - 'admin-v2-finance.js'
+      - 'construire.sh'
+      - 'supabase/migrations/**'
+      - 'test-admin-papiers.mjs'
+      - 'supabase/tests/**'
+      - '.github/workflows/admin-v2-regression.yml'
 permissions: {contents: read}
 jobs:
   verifier:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_PASSWORD: postgres}
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node --check admin-v2-actions.js
       - run: bash construire.sh
       - name: Vérifier Admin v2
         shell: bash
@@ -27,3 +47,34 @@ jobs:
             echo 'Secret ou ancien verrou détecté dans Admin v2'
             exit 1
           fi
+
+      # LA SUITE NAVIGATEUR, ET C'EST LA PREMIÈRE DU DÉPÔT À TOURNER EN CI.
+      # Les vingt-huit autres ne tournent que sur la machine de travail : elles
+      # sont donc restées rouges quatre jours sans que rien ne le dise. Les y
+      # brancher toutes est une décision à part -- durée, instabilité ; celle-ci
+      # est branchée parce qu'elle garde une règle qui engage une responsabilité.
+      - name: Les papiers décident, pas une liste déroulante
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.47.2
+          npx playwright install --with-deps chromium
+          node test-admin-papiers.mjs
+
+      # LA MIGRATION EST EXÉCUTÉE POUR DE VRAI, sur un PostgreSQL vide.
+      # Une expression régulière sur un fichier SQL ne sait pas si la requête
+      # s'exécute, ni ce qu'elle rend. Ici on lit le résultat : un papier
+      # expiré doit sortir de la liste d'attribution, un papier qui expire
+      # aujourd'hui doit y rester, et trois rafraîchissements de la file
+      # d'actions ne doivent pas créer de doublons.
+      # Éprouvée contre le défaut d'origine : elle s'arrête sur
+      # « Ayse est ATTRIBUABLE alors que son assurance a expire ».
+      - name: La migration, exécutée et non relue
+        shell: bash
+        env: {PGPASSWORD: postgres}
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
+            -f supabase/tests/papiers-chauffeurs.sql

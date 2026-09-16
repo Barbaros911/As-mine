@@ -3715,6 +3715,93 @@ première tourne.
 « pas concernée ». La boucle de lancement le signale maintenant en toutes
 lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
+## ADMIN V2 — UN SECOND ESPACE EXPLOITANT, EN PRÉVERSION
+
+Septembre 2026. Une **autre session Claude** a construit un espace exploitant
+neuf, côté serveur : `admin-v2.html` et ses trois scripts, quatre migrations
+Supabase, trois workflows. PR #176 à #185. **Il est publié mais `admin.html`
+n'y bascule pas** : c'est une préversion.
+
+**IL N'EST PAS UN SUR-ENSEMBLE DE L'ESPACE ACTUEL, ET C'EST LE PIÈGE.**
+Mesuré fichier en main, pas supposé : **rien** de ce qui suit n'y existe —
+« Coller une demande » (neuf courses sur dix arrivent par message), la saisie
+par téléphone, le registre et sa sauvegarde JSON, l'export CSV, la facture de
+commission, l'affiche QR des hôtels, la demande d'avis, l'accusé de réception.
+**Basculer aujourd'hui retirerait à Barbaros son geste principal.** Ne pas lire
+« Admin v2 existe » comme « Admin v2 remplace ».
+
+Ce qu'il apporte en revanche, et qu'il ne faut PAS reconstruire : partenaires,
+tarification serveur, codes promo, finances, paiement Stripe TEST, historique
+des réservations, file « Action requise ».
+
+**LE MANDAT DE CHATGPT EST D'EN TERMINER UN SEUL** (#165, septembre 2026) :
+la cible est le remplacement propre de l'espace actuel **quand la parité est
+atteinte**, jamais deux espaces tenus en parallèle.
+
+### LES PAPIERS D'UN CHAUFFEUR EXPIRENT TOUT SEULS — Admin v2 ne le voyait pas
+
+Le premier défaut trouvé en reprenant le chantier, et il engageait une
+responsabilité. L'état d'un chauffeur était un champ `statut` posé **à la
+main** dans un menu déroulant, la colonne `documents` était déclarée et
+**jamais écrite**, et **aucune date d'expiration n'était collectée**. Une
+assurance expirée hier laissait donc le chauffeur « Validé » pour toujours, et
+`validDrivers()` le proposait encore à l'attribution — l'instant précis où
+Elatransfer engage sa responsabilité (L3142-1).
+
+**UN ÉTAT STOCKÉ NE VIEILLIT PAS.** C'est tout le défaut, et il ne se voit
+pas : l'écran affiche « Validé », il est simplement faux. C'est la même faute
+que le tableau de tarifs qui a menti pendant des jours — **une valeur recopiée
+survit au changement qui l'invalide**.
+
+- **LES DATES SONT DES COLONNES, PAS UN JSONB** : une colonne se compare,
+  s'indexe et se lit en SQL. Le `documents jsonb` d'origine ne servait à rien
+  parce que rien ne pouvait l'interroger.
+- **L'ÉTAT EST DÉRIVÉ, À UN SEUL ENDROIT** — la vue `chauffeurs_etat`. La page
+  ne recalcule rien, elle traduit. Deux calculs qui divergent ne se voient pas :
+  c'est la leçon déjà payée sur le prix client contre le prix exploitant.
+- **`security_invoker = true` SUR LA VUE.** Sans lui, elle servirait de porte
+  dérobée autour des policies de la table.
+- **« PÉRIMÉ » ET « MANQUANT » SONT DEUX VALEURS, ET LES DEUX SONT AU ROUGE**
+  — un papier absent ne prouve pas plus qu'un papier expiré. Mais **seul
+  « périmé » BLOQUE** l'attribution : c'est un fait connu, une date passée.
+  « Manquant » est une ignorance ; bloquer dessus reviendrait à inventer un
+  fait, et surtout **rendrait TOUS les chauffeurs inattribuables le jour du
+  déploiement**, puisque aucune date n'est encore saisie. On ne casse pas le
+  geste principal de quelqu'un pour appliquer une règle à la lettre.
+- **LE NOM DU TYPE D'ACTION EST LU PAR DU CODE.** Le tableau de bord compte
+  « Sans chauffeur » avec un `includes('chauffeur')` sur le type : un type
+  nommé `papiers_chauffeur` aurait gonflé cette métrique **sans que rien ne le
+  signale**. Il s'appelle `papiers_a_regulariser`.
+- **DEUX NULL SONT DISTINCTS POUR UN INDEX UNIQUE POSTGRES.** Une action liée à
+  un chauffeur n'a pas de `course_ref` : l'index partiel existant n'aurait rien
+  dédupliqué et la file se serait remplie de doublons à chaque rafraîchissement.
+  D'où une colonne `chauffeur_id` et son propre index.
+- **LA FONCTION `ela_rafraichir_actions` EST REMPLACÉE EN ENTIER** : ses trois
+  inserts d'origine sont recopiés à l'identique. En oublier un les supprimerait
+  en silence — un contrôle compte qu'il y en a quatre.
+
+**`test-admin-papiers.mjs` ÉPROUVE LE SITE CONSTRUIT, PAS LE DÉPÔT**, et
+**construit et sert elle-même**. Les trois scripts d'Admin v2 ne sont rattachés
+à la page que par `construire.sh` : ouverte depuis le dépôt, `admin-v2.html`
+n'a ni sélecteur de chauffeur ni file d'actions, et la suite serait passée au
+vert sans rien avoir éprouvé. Un serveur lancé à côté est un serveur qu'on
+finit par laisser sur le mauvais dossier — **rencontré ce jour-là, une
+demi-heure perdue à mesurer le dépôt en croyant mesurer le site publié**.
+Éprouvée contre le défaut d'origine : elle tombe sur trois contrôles et nomme
+le chauffeur qui n'aurait pas dû être proposé.
+
+**C'EST LA PREMIÈRE SUITE NAVIGATEUR DU DÉPÔT À TOURNER EN CI.** Les
+vingt-huit autres ne tournent que sur la machine de travail : c'est exactement
+pour ça qu'elles ont pu rester rouges quatre jours. Les y brancher toutes est
+une décision à part — durée, instabilité.
+
+**LE LANCEUR IGNORAIT EN SILENCE TOUTE SUITE HORS « test-nouveau* ».**
+`test-agent-rbac.mjs` et `test-unified-facade.mjs` n'ont donc jamais été
+lancées. Le préfixe est un vestige de la bascule de septembre ; une suite
+écrite aujourd'hui ne le porte pas. `tests.sh` ramasse désormais `test-*.mjs`
+moins les trois suites hors navigateur, **nommées une seule fois**. Une suite
+jamais lancée ne surveille rien, et son absence ne se remarque pas.
+
 ## Tests
 
 **Vingt-trois suites Playwright, 957 contrôles**, à relancer après **toute**

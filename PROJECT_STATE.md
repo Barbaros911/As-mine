@@ -126,13 +126,24 @@ Activation Stripe Live · reversement réel aux chauffeurs · commission de 20 %
 **Ne jamais présenter easyHotel comme « partenaire officiel » sans accord
 formalisé** — dire « tarifs au départ de easyHotel Aéroville ».
 
-### Qui tient quoi — LE POINT À TRANCHER
+### Qui tient quoi — TRANCHÉ LE 16 SEPTEMBRE
 **Deux sessions Claude ont travaillé ce dépôt en parallèle le 16 septembre**,
 et leurs commits sont arrivés sous les pieds l'un de l'autre. #173 (paiement)
-et #165 (finition Admin) ont été pris par l'autre session — #176 à #185 sont
-fusionnées. `TEAM_RULES` §2 interdit une seconde implémentation : **avant de
-reprendre l'un de ces deux lots, vérifier qu'il est libre.** `/etat` signale
-désormais en rouge quand `main` a bougé pendant la session.
+et #165 (finition Admin) avaient été pris par l'autre session — #176 à #185
+sont fusionnées.
+
+**ChatGPT a tranché le 16 à 12 h 41** (#165, « DÉMARRAGE CONSTRUCTION ADMIN ») :
+l'autre session est à l'arrêt (« pendant ton indisponibilité »), et **#165 est
+à cette session-ci**. #173 (paiement) vient **après** la bascule Admin, dans
+l'ordre écrit sur #173 le 16 à 12 h 57.
+
+**LA CIBLE EST UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
+Admin v2 est publié mais **en préversion** : il lui manque les gestes
+quotidiens de l'espace actuel — coller une demande, saisir par téléphone, le
+registre et sa sauvegarde, la facture de commission, l'affiche QR, la demande
+d'avis, l'accusé de réception. **Basculer avant la parité retirerait à
+Barbaros son geste principal.** Le détail est dans `CLAUDE.md`.
+`/etat` signale en rouge quand `main` a bougé pendant la session.
 
 ## Ce qui est prévu
 

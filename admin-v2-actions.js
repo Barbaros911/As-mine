@@ -7,7 +7,7 @@ async function rpc(name,body){return api(`/rest/v1/rpc/${name}`,{method:'POST',b
 async function edge(name,body){const r=await fetch(`${SB}/functions/v1/${name}`,{method:'POST',headers:authHeaders(),body:JSON.stringify(body||{})});let x={};try{x=await r.json()}catch{}if(!r.ok)throw new Error(x.erreur||`HTTP ${r.status}`);return x;}
 function paymentFor(ref){return state.payments.find(p=>p.course_ref===ref)||null;}
 function snapshotFor(ref){return state.snapshots.find(s=>s.course_ref===ref)||null;}
-function validDrivers(){return state.drivers.filter(d=>d.actif!==false&&d.statut==='valide');}
+function validDrivers(){return state.drivers.filter(d=>d.attribuable!==undefined?d.attribuable:(d.actif!==false&&d.statut==='valide'));}
 function currentDriver(course){const d=course?.bon?.chauffeur||{};return {nom:d.nom||'',telephone:d.telephone||'',carte:d.carteProfessionnelle||''};}
 function bookingMessage(x,course){const d=currentDriver(course);let msg=`ELA TRANSFER\nRéservation : ${x.ref}\nDate : ${x.date} à ${x.time}\nDépart : ${x.from}\nArrivée : ${x.to}\n`;
   if(x.status==='confirmee')msg+='Statut : Réservation confirmée. Les informations du chauffeur seront communiquées dès son attribution.';
@@ -26,10 +26,17 @@ async function changeStatus(ref,status,label,motif=''){
   if(!confirm(label))return;
   try{await rpc('ela_changer_statut',{p_ref:ref,p_nouveau:status,p_motif:motif||null});await load();await openBookingV2(ref);}catch(e){alert(`Action refusée : ${e.message}`);}
 }
-function driverPicker(ref,x,snap,mode){const ds=validDrivers();if(!ds.length){alert('Aucun chauffeur validé et actif n’est disponible dans le dossier chauffeurs.');return;}
+function driverPicker(ref,x,snap,mode){const ds=validDrivers();if(!ds.length){alert(state.drivers.length?'Aucun chauffeur attribuable : ils sont bloqués, à vérifier, ou leurs papiers sont expirés. Ouvrez « Chauffeurs » pour régulariser.':'Aucun chauffeur dans le dossier chauffeurs.');return;}
   const options=ds.map(d=>`<option value="${esc(d.id)}">${esc(d.nom_affiche)}${d.entreprise?' — '+esc(d.entreprise):''}</option>`).join('');
+  const avertirPapiers=id=>{const d=state.drivers.find(z=>z.id===id),z=$('#driverPapiers');if(!z)return;
+    if(!d||d.papiers_etat===undefined){z.className='papiers-note';z.textContent='';return;}
+    if(d.papiers_etat==='manquant'){z.className='papiers-note rouge';z.textContent="Papiers non renseignés pour ce chauffeur. Impossible de prouver sa carte, son registre et son assurance : à renseigner avant de l'engager.";return;}
+    if(d.papiers_etat==='bientot'){z.className='papiers-note orange';z.textContent=`Papiers à renouveler : le plus proche expire dans ${d.papiers_jours} jour(s).`;return;}
+    z.className='papiers-note vert';z.textContent='Papiers à jour.';};
   const title=mode==='propose'?'Proposer la course':'Attribuer le chauffeur';
-  showSheet(title,`<div class="card"><p><b>${esc(x.date)} ${esc(x.time)}</b></p><p>${esc(x.from)}<br>→ ${esc(x.to)}</p><p>${esc(x.vehicle)}</p><p>Montant chauffeur : <b>${money(snap?.montant_chauffeur_centimes)}</b></p></div><label class="field">Chauffeur<select id="driverChoice">${options}</select></label><button id="driverChoiceGo" class="btn">${mode==='propose'?'Ouvrir WhatsApp':'Attribuer'}</button>`);
+  showSheet(title,`<div class="card"><p><b>${esc(x.date)} ${esc(x.time)}</b></p><p>${esc(x.from)}<br>→ ${esc(x.to)}</p><p>${esc(x.vehicle)}</p><p>Montant chauffeur : <b>${money(snap?.montant_chauffeur_centimes)}</b></p></div><label class="field">Chauffeur<select id="driverChoice">${options}</select></label><p id="driverPapiers" class="papiers-note"></p><button id="driverChoiceGo" class="btn">${mode==='propose'?'Ouvrir WhatsApp':'Attribuer'}</button>`);
+  $('#driverChoice').onchange=e=>avertirPapiers(e.target.value);
+  avertirPapiers($('#driverChoice').value);
   $('#driverChoiceGo').onclick=async()=>{const id=$('#driverChoice').value,d=state.drivers.find(z=>z.id===id);try{
     if(mode==='propose'){
       await rpc('ela_journaliser_proposition_chauffeur',{p_ref:ref,p_chauffeur_id:id});
