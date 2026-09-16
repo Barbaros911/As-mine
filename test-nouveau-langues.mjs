@@ -197,14 +197,32 @@ const nOnglets = await p.locator('.onglet').count();
 check('et chaque onglet garde son dessin',
   (await p.locator('.onglet svg').count())===nOnglets && nOnglets>=3,
   (await p.locator('.onglet svg').count())+' dessins pour '+nOnglets+' onglets');
+/* ON VISE LA RÈGLE, PLUS LE LIBELLÉ DU JOUR (16 septembre 2026). Ces deux
+   contrôles figeaient « Total to pay » et « Total à régler » mot pour mot.
+   Le libellé est devenu « Total à régler AU CHAUFFEUR » en septembre — un
+   changement voulu, qui a récupéré le seul endroit disant qu'on ne paie
+   pas en ligne — et les deux contrôles tombaient tous les jours pour rien.
+   Leur VRAI sujet est le câblage : « data-t » est-il appliqué, et le
+   basculement réécrit-il ce qui est déjà à l'écran. On compare donc le
+   texte affiché à ce que la page dit elle-même dans ELA_TEXTES.
+   ET ON EXIGE QUE LES DEUX LANGUES DIFFÈRENT : sans ça, un jour où la
+   traduction anglaise serait recopiée du français, le contrôle du câblage
+   passerait au vert sur un site qui ne traduit plus rien. */
+const attendu = await p.evaluate(() => ({
+  fr: window.ELA_TEXTES.fr.total, en: window.ELA_TEXTES.en.total }));
+check('le français et l\'anglais ne disent pas la même chose',
+  attendu.fr && attendu.en && attendu.fr !== attendu.en,
+  attendu.fr + ' / ' + attendu.en);
 check('le récapitulatif parle anglais',
-  (await p.locator('[data-t="total"]').textContent())==='Total to pay');
+  (await p.locator('[data-t="total"]').textContent())===attendu.en,
+  await p.locator('[data-t="total"]').textContent());
 
 // --- Basculer en français réécrit ce qui est déjà affiché ---
 await p.locator('.langues button[data-langue="fr"]').click();
 await p.waitForTimeout(300);
 check('basculer réécrit le récapitulatif déjà rempli',
-  (await p.locator('[data-t="total"]').textContent())==='Total à régler');
+  (await p.locator('[data-t="total"]').textContent())===attendu.fr,
+  await p.locator('[data-t="total"]').textContent());
 check('et le prix repasse au format français',
   (await p.locator('#recapTotal').textContent()).replace(/\s/g,'')==='60,00€',
   await p.locator('#recapTotal').textContent());

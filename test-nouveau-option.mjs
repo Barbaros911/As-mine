@@ -220,16 +220,56 @@ const RECAP = '#ecran-recap .bloc-pancarte';
 /* --- LES CGV DISENT CE QU'ON FACTURE, DANS LES DEUX LANGUES ------------ */
 {
   const {p, ctx} = await ouvrir(GARE);
-  for (const [langue, motsPrix, motsExec] of [
-        ['fr', [/option/i, /10 €/], [/souscrit l'option/i, /sortie des trains/i]],
-        ['en', [/optional extra/i, /€10/], [/taken the corresponding option/i, /train exit/i]]]) {
+  /* LE MONTANT SORT DE LA PAGE, IL N'EST PAS RECOPIÉ ICI. Écrit « 10 € »
+     à la main, ce contrôle déplacerait simplement la faute dans le test :
+     le jour où l'option changerait de prix, il faudrait penser à le
+     corriger à deux endroits, et celui qu'on oublie est toujours celui qui
+     compte. On lit OPTION_PANCARTE_EUR et on le cherche dans les CGV.
+     ON VISE LA RÈGLE POUR LE RESTE (16 septembre 2026). Ces contrôles
+     cherchaient « souscrit l'option » et « sortie des trains » mot pour
+     mot ; les documents ont été réécrits le 12 septembre et disent la même
+     chose autrement (« Lorsque l'option a été choisie et confirmée »). Ils
+     tombaient tous les jours sans qu'il y ait de défaut — et à force, on
+     ne les lit plus.
+     CE QUI EST VERROUILLÉ, et qui engage vraiment : les CGV NOMMENT
+     l'option ET SON MONTANT dans la formation du prix, et la pancarte y
+     est CONDITIONNELLE, jamais promise à tout le monde. Le prix est ferme
+     donc opposable : des CGV qui décrivent une autre formation du prix que
+     celle appliquée donnent au client un argument contre nous. */
+  /* ON LIT LA CONSTANTE DANS LA SOURCE, on n'expose rien sur « window »
+     pour les besoins d'un test : une porte ouverte dans la page pour la
+     commodité du banc finit par servir à autre chose. */
+  const src = await (await p.request.get('http://127.0.0.1:8099/index.html')).text();
+  const euro = Number((src.match(/OPTION_PANCARTE_EUR\s*=\s*(\d+)/) || [])[1]);
+  check('le montant de l\'option est lisible dans la page, pour qu\'on le compare',
+    Number.isFinite(euro) && euro > 0, String(euro));
+  for (const [langue, motPancarte, motCondition] of [
+        ['fr', /panneau à son nom/i, /lorsque|si le Client|dès lors que|sur demande/i],
+        ['en', /sign bearing the Client's name/i, /where the option|where the Client|if the Client|when the option|once the option/i]]) {
     await p.locator('.langues button[data-langue="'+langue+'"]').click();
     await p.waitForTimeout(250);
     const cgv = await p.evaluate(l => window.ELA_TEXTES[l].legal_cgv_body, langue);
+    /* Le montant, écrit comme la langue l'écrit : « 10 € » en français,
+       « €10 » en anglais. On accepte les deux plutôt que de figer un
+       format de nombre qui n'est pas le sujet. */
+    const montant = new RegExp('(' + euro + '\\s*€|€\\s*' + euro + ')');
     check('en '+langue+', les CGV décrivent l\'option dans la formation du prix',
-      motsPrix.every(r => r.test(cgv)));
+      /option/i.test(cgv) && montant.test(cgv),
+      montant.test(cgv) ? 'le mot « option » est absent'
+                        : 'le montant ' + euro + ' n\'est écrit nulle part');
+    /* TOUTES les phrases qui parlent de la pancarte, pas la première.
+       ÉPROUVÉ, ET LE PREMIER JET NE TOMBAIT PAS : avec « find », le
+       contrôle s'arrêtait sur la phrase de l'article 4 — qui nomme la
+       pancarte elle aussi depuis qu'on y a écrit l'option — et l'article 8
+       pouvait la promettre gratuitement à tout le monde sans que rien ne
+       bronche. Une seule promesse inconditionnelle suffit à engager :
+       on les veut donc TOUTES conditionnelles. */
+    const phrases = cgv.split(/(?<=\.)\s+/).filter(x => motPancarte.test(x));
+    const libres = phrases.filter(x => !motCondition.test(x));
     check('en '+langue+', elles ne promettent plus la pancarte à tout le monde',
-      motsExec.every(r => r.test(cgv)));
+      phrases.length > 0 && libres.length === 0,
+      phrases.length === 0 ? 'la pancarte n\'est décrite nulle part'
+                           : libres.map(x => x.slice(0, 90)).join(' | '));
   }
   await ctx.close();
 }

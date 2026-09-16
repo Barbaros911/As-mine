@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v84";
+const CACHE = "elatransfer-v85";
 const SHELL = ["./", "./index.html", "./application.html",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
