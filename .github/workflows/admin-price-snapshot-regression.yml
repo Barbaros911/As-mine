@@ -1,0 +1,25 @@
+name: Contrôle snapshot tarifaire Admin
+on:
+  pull_request:
+    paths:
+      - 'admin-v2-finance.js'
+      - 'construire.sh'
+      - 'supabase/migrations/20260916093000_admin_price_snapshot.sql'
+      - '.github/workflows/admin-price-snapshot-regression.yml'
+permissions: {contents: read}
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node --check admin-v2-finance.js
+      - run: bash construire.sh
+      - shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '/admin-v2-finance.js' site/admin-v2.html
+          grep -Fq 'ela_verrouiller_snapshot_admin' admin-v2-finance.js
+          grep -Fq 'Stripe reste bloqué' admin-v2-finance.js
+          grep -Fq "origine='admin'" supabase/migrations/20260916093000_admin_price_snapshot.sql
+          grep -Fq 'paiement_deja_initialise' supabase/migrations/20260916093000_admin_price_snapshot.sql
+          grep -Fq 'est_exploitant()' supabase/migrations/20260916093000_admin_price_snapshot.sql
