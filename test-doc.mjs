@@ -345,6 +345,58 @@ if(refs){
   }
 }
 
+/* =====================================================================
+   LA GRILLE DU CLIENT ET CELLE DU SERVEUR DOIVENT S'ACCORDER
+   ---------------------------------------------------------------------
+   Le site calcule le prix dans le navigateur (« GAMMES ») ; Admin v2
+   s'appuie sur une source SERVEUR semée par une migration. Les deux
+   portent aujourd'hui les mêmes nombres -- et RIEN ne vérifiait qu'ils le
+   restent.
+
+   CE QUE ÇA COÛTERAIT : Barbaros annonce un montant au téléphone depuis
+   l'Admin, le client en voit un autre sur le site. Le prix d'Elatransfer
+   est FERME, donc opposable : c'est le client qui aurait raison.
+   « Deux calculs qui divergent ne se voient pas » -- ce fichier le répète
+   partout, et l'écart traversait ici la frontière client/serveur sans que
+   personne ne le garde.
+
+   ON NE FIGE AUCUN CHIFFRE ICI : on éprouve l'ACCORD. Une baisse de tarif
+   décidée par Barbaros touche les deux et reste verte ; n'en toucher qu'un
+   seul tombe, et le message dit lequel.
+   ===================================================================== */
+{
+  const fSql = "supabase/migrations/20260916100000_current_tariff_source.sql";
+  if(existsSync(fSql)){
+    const sql = readFileSync(fSql, "utf8");
+    const serveur = {};
+    for(const m of sql.matchAll(/'tarif_general_(berline|van)','(\{[^']*\})'/g)){
+      try { const j = JSON.parse(m[2]);
+            serveur[m[1]] = { km: j.par_km_centimes/100, mini: j.minimum_centimes/100 }; }
+      catch(e){ /* la ligne a changé de forme : le contrôle suivant le dira */ }
+    }
+    const client = {};
+    const bloc = (page.match(/var GAMMES = \[([\s\S]*?)\];/) || [,""])[1];
+    for(const m of bloc.matchAll(/cle:"(\w+)"[^}]*parKm:([\d.]+)[^}]*mini:(\d+)/g)){
+      client[m[1]] = { km: parseFloat(m[2]), mini: parseFloat(m[3]) };
+    }
+
+    verifier("les deux grilles sont lisibles (client et serveur)",
+      Object.keys(client).length > 0 && Object.keys(serveur).length > 0,
+      "client : " + JSON.stringify(client) + " · serveur : " + JSON.stringify(serveur));
+
+    for(const cle of Object.keys(client)){
+      const c = client[cle], v = serveur[cle];
+      verifier("la gamme « " + cle + " » est déclarée côté serveur", !!v,
+        "elle est dans GAMMES mais absente de la source tarifaire serveur");
+      if(!v) continue;
+      verifier("« " + cle + " » : le tarif au km est le même des deux côtés",
+        c.km === v.km, "site " + c.km + " €/km · serveur " + v.km + " €/km");
+      verifier("« " + cle + " » : le montant minimum est le même des deux côtés",
+        c.mini === v.mini, "site " + c.mini + " € · serveur " + v.mini + " €");
+    }
+  }
+}
+
 /* --------------------------------------------------------------- */
 console.log("");
 if(echecs.length){

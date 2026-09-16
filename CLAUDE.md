@@ -3925,6 +3925,25 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### LA GRILLE DU CLIENT ET CELLE DU SERVEUR NE S'ACCORDAIENT QUE PAR CHANCE
+
+16 septembre 2026, trouvé en préparant la saisie par téléphone. Le site
+calcule le prix dans le navigateur (`GAMMES`) ; Admin v2 s'appuie sur une
+source **serveur** semée par `20260916100000_current_tariff_source.sql`. Les
+deux portaient les mêmes nombres — **et rien ne vérifiait qu'ils le restent**.
+
+- **CE QUE ÇA COÛTERAIT** : Barbaros annonce un montant au téléphone depuis
+  l'Admin, le client en voit un autre sur le site. Le prix est **ferme donc
+  opposable** : c'est le client qui aurait raison.
+- **L'ÉCART TRAVERSAIT LA FRONTIÈRE CLIENT/SERVEUR**, et c'est pour ça qu'il
+  échappait à tout. `test-doc` comparait déjà `CLAUDE.md` à `GAMMES` — mais un
+  changement du seul SQL laissait la doc et le site d'accord entre eux :
+  **aucun contrôle ne bronchait**. Éprouvé : sur les quatre falsifications,
+  celle qui ne touche que le serveur n'est vue que par le nouveau contrôle.
+- **ON NE FIGE AUCUN CHIFFRE, on éprouve l'ACCORD.** Une baisse décidée par
+  Barbaros touche les deux et reste verte ; n'en toucher qu'un tombe, et le
+  message dit lequel et de combien.
+
 ### PARITÉ, BRIQUE 1 — « COLLER UNE DEMANDE » EXISTE DANS ADMIN V2
 
 16 septembre 2026, première brique de la parité demandée par ChatGPT (#191).
