@@ -99,6 +99,18 @@ const ACTIONS = [
     echeance:null, chauffeur_id:'d2', donnees:{ libelle:'Ayse', etat:'perime' } },
 ];
 
+
+/* ATTENDRE CE QU'ON VEUT VOIR, JAMAIS UNE DURÉE. Un délai fixe passe sur la
+   machine de travail et tombe sur un coureur plus lent : le premier passage
+   de cette suite en CI est mort sur « Cannot read properties of null » à
+   l'endroit précis où elle dormait 300 ms. */
+const ouvrirAttribution = async (page, ref) => {
+  await page.evaluate(r => openBooking(r), ref);
+  await page.waitForSelector('[data-act="assign"]', {timeout:15000});
+  await page.click('[data-act="assign"]');
+  await page.waitForSelector('#driverChoice', {timeout:15000});
+};
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
 
@@ -131,7 +143,8 @@ await ctx.addInitScript(() => {
 const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 await p.goto(BASE+'/admin-v2.html', {waitUntil:'domcontentloaded'});
-await p.waitForTimeout(1200);
+await p.waitForFunction(()=>typeof openBooking==='function'
+  && state.drivers.length>0 && state.courses.length>0, null, {timeout:20000});
 
 check('la page s\'ouvre sur l\'espace, pas sur l\'écran de connexion',
   await p.evaluate(()=>!document.querySelector('#app').classList.contains('hidden')));
@@ -140,10 +153,7 @@ check('les trois scripts d\'Admin v2 sont bien rattachés par construire.sh',
   'sans eux la suite éprouverait une page vide');
 
 /* On ouvre la réservation et on appuie sur « Attribuer », comme Barbaros. */
-await p.evaluate(()=>openBooking('ELA-26-09-0001'));
-await p.waitForTimeout(300);
-await p.evaluate(()=>document.querySelector('[data-act="assign"]').click());
-await p.waitForTimeout(300);
+await ouvrirAttribution(p, 'ELA-26-09-0001');
 
 /* ---------------------------------------------------------------------
    1. LE SÉLECTEUR D'ATTRIBUTION — le cœur du défaut
@@ -214,7 +224,7 @@ check('un chauffeur à jour ne crie pas', /jour/i.test(f('Mehmet').tag) && !f('M
    4. LE FORMULAIRE COLLECTE ENFIN LES DATES
    --------------------------------------------------------------------- */
 await p.evaluate(()=>editDriver('d1'));
-await p.waitForTimeout(150);
+await p.waitForSelector('[name=carte_vtc_fin]', {timeout:15000});
 for(const champ of ['carte_vtc_fin','registre_fin','assurance_fin'])
   check('le formulaire porte le champ « '+champ+' »',
     await p.evaluate(c=>{const e=document.querySelector(`[name=${c}]`);return !!e && e.type==='date';}, champ));
@@ -228,7 +238,7 @@ check('« À renouveler » a quitté le menu : c\'est désormais calculé, pas c
    refuse la colonne date et la fiche ne s'enregistre plus DU TOUT. */
 await p.evaluate(()=>{ document.querySelector('[name=assurance_fin]').value='';
   document.querySelector('#entityForm').dispatchEvent(new Event('submit',{cancelable:true})); });
-await p.waitForTimeout(400);
+for(let i=0; i<100 && envoye===null; i++) await p.waitForTimeout(100);
 check('un champ date vidé part en NULL, jamais en chaîne vide',
   envoye !== null && envoye.assurance_fin === null,
   'reçu : '+JSON.stringify(envoye && envoye.assurance_fin));
@@ -299,15 +309,13 @@ await ctx2.addInitScript(() => sessionStorage.setItem('ela_admin_session',
   JSON.stringify({access_token:'t', user:{email:'e'}})));
 const p2 = await ctx2.newPage();
 await p2.goto(BASE+'/admin-v2.html', {waitUntil:'domcontentloaded'});
-await p2.waitForTimeout(1200);
+await p2.waitForFunction(()=>typeof openBooking==='function'
+  && state.drivers.length>0 && state.courses.length>0, null, {timeout:20000});
 
 check('sans la vue, le carnet retombe sur la table et n\'est PAS vide',
   await p2.evaluate(()=>state.drivers.length)===4,
   'sinon plus aucun chauffeur n\'est attribuable entre le déploiement et la migration');
-await p2.evaluate(()=>openBooking('ELA-26-09-0001'));
-await p2.waitForTimeout(300);
-await p2.evaluate(()=>document.querySelector('[data-act="assign"]').click());
-await p2.waitForTimeout(300);
+await ouvrirAttribution(p2, 'ELA-26-09-0001');
 check('sans la vue, on peut encore attribuer — dégradé, jamais à l\'arrêt',
   (await p2.evaluate(()=>document.querySelectorAll('#driverChoice option').length)) > 0);
 check('sans la vue, la fiche n\'annonce PAS « À jour » : on ne sait pas, on n\'affirme pas',

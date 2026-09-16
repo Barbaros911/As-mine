@@ -3790,6 +3790,27 @@ demi-heure perdue à mesurer le dépôt en croyant mesurer le site publié**.
 Éprouvée contre le défaut d'origine : elle tombe sur trois contrôles et nomme
 le chauffeur qui n'aurait pas dû être proposé.
 
+**ELLE EST TOMBÉE À SON PREMIER PASSAGE EN CI, ET LA CAUSE EST GÉNÉRALE.**
+Elle attendait des **durées fixes** — 1200 ms après le chargement, 300 ms après
+l'ouverture du bon. Ça passe sur la machine de travail et ça tombe sur un
+coureur plus lent : `load()` n'avait pas fini, `state.courses` était vide,
+`openBooking()` rendait la main sans rien ouvrir, et le clic tombait sur
+`null`. **Un délai fixe n'est pas une attente, c'est un pari sur la vitesse
+de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
+`waitForFunction` — jamais une durée.
+- **La condition doit couvrir TOUT ce dont la suite se sert ensuite.** Le
+  premier correctif n'attendait que `state.drivers` : `load()` remplit chaque
+  source indépendamment dans un `Promise.all`, donc les chauffeurs arrivaient
+  pendant que les courses manquaient encore. Même panne, plus loin.
+- **Éprouvé en retardant le serveur de 3 s** : l'ancienne version rend
+  « Cannot read properties of null », la nouvelle passe. Reproduire la
+  lenteur vaut mieux que supposer qu'on l'a corrigée.
+- **PIÈGE DE DIAGNOSTIC** : le journal de la CI affichait six
+  « role "root" does not exist » du service PostgreSQL, juste avant l'échec.
+  Ce n'était **pas** la cause — `pg_isready` sans `-U` rend quand même 0,
+  vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
+  le `-U postgres` a été posé pour que personne ne le rechasse.
+
 **C'EST LA PREMIÈRE SUITE NAVIGATEUR DU DÉPÔT À TOURNER EN CI.** Les
 vingt-huit autres ne tournent que sur la machine de travail : c'est exactement
 pour ça qu'elles ont pu rester rouges quatre jours. Les y brancher toutes est
