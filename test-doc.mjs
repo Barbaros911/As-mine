@@ -290,6 +290,61 @@ if(refs){
   console.log("  (dépôt distant injoignable : le contrôle des branches est sauté)");
 }
 
+/* =====================================================================
+   LA SECTION « TESTS » NE RECOPIE PAS LA LISTE DES SUITES
+   ---------------------------------------------------------------------
+   Le 16 septembre 2026, elle annonçait « vingt-trois suites Playwright,
+   957 contrôles » et recopiait les vingt-trois noms dans une boucle. Il y
+   en avait vingt-huit. Cinq suites n'étaient dans aucune des deux
+   affirmations : qui suivait la documentation ne les lançait jamais, et
+   rien ne le signalait -- une suite absente d'une liste ne proteste pas.
+
+   ON NE VERROUILLE PAS UN COMPTE. Un test qui fige un nombre se met en
+   travers de la première suite légitimement ajoutée, et c'est lui qu'on
+   « répare » en le supprimant. On verrouille les deux choses qui ne
+   vieillissent pas : aucun nom cité ne doit avoir disparu, et la section
+   ne doit pas se remettre à énumérer au lieu de pointer la recette.
+   ===================================================================== */
+{
+  /* LES ACCENTS GRAVES FONT LA DIFFÉRENCE, et c'est la convention déjà
+     posée dans CLAUDE.md : une suite qu'on doit LANCER s'écrit entre
+     accents graves, une suite DISPARUE s'écrit sans. Le fichier garde le
+     souvenir des neuf suites de l'ancien site — c'est utile et ça ne doit
+     pas faire tomber le contrôle. Ce qu'on interdit, c'est de désigner
+     comme exécutable quelque chose qui n'existe pas. */
+  const suites = new Set();
+  for(const m of doc.matchAll(/`(test-[a-z0-9-]*\.mjs)`/g)) suites.add(m[1]);
+  const morte = [...suites].sort().filter(f => !existsSync(f));
+  verifier("CLAUDE.md ne nomme aucune suite à lancer qui n'existe plus",
+    morte.length === 0,
+    "introuvable(s) : " + morte.join(", ") + " — une consigne qui vise le vide fait chercher.");
+
+  const iTests  = doc.indexOf("\n## Tests\n");
+  const section = iTests < 0 ? "" : doc.slice(iTests, iTests + 4000);
+  /* ON NE LIT QUE LE BLOC DE COMMANDES, jamais la section entière. Le
+     premier jet cherchait le nom du lanceur dans tout le texte : il le
+     trouvait dans la PHRASE qui l'explique, et passait au vert alors que la
+     commande à taper avait été remplacée. Même faute que le premier
+     contrôle de construire.sh, qui trouvait « carte » dans un commentaire.
+     Éprouvé : sans ce resserrement, la falsification ne tombe pas. */
+  const bloc = (section.match(/```bash\n([\s\S]*?)```/) || [,""])[1];
+  verifier("la COMMANDE de la section « Tests » appelle la recette",
+    bloc.includes(".claude/outils/tests.sh"),
+    "le bloc à taper doit lancer tests.sh : deux recettes pour une seule chose finissent toujours par diverger.");
+  verifier("…et ne réénumère pas les suites dans une boucle",
+    !/for\s+f\s+in\s+test-/.test(bloc),
+    "une liste recopiée à la main oublie la suite suivante, en silence — c'est exactement ce qui est arrivé.");
+
+  /* Le lanceur, lui, ne doit pas se remettre à filtrer sur « nouveau » :
+     une suite écrite aujourd'hui ne porte pas ce préfixe hérité. */
+  if(existsSync(".claude/outils/tests.sh")){
+    const lanceur = readFileSync(".claude/outils/tests.sh", "utf8");
+    verifier("le lanceur ramasse « test-*.mjs », pas le seul préfixe « nouveau »",
+      /ls\s+test-\*\.mjs/.test(lanceur),
+      "il ignorerait en silence toute suite qui ne s'appelle pas test-nouveau-*.");
+  }
+}
+
 /* --------------------------------------------------------------- */
 console.log("");
 if(echecs.length){

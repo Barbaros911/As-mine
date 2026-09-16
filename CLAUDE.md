@@ -922,8 +922,10 @@ cas de contradiction, **c'est cette section-ci qui dit vrai**.
 **CE QUI A ÉTÉ SUPPRIMÉ À LA BASCULE, ET POURQUOI ON NE LE REMET PAS :**
 - l'ancien `index.html`, `styles.css`, `tailwind.config.js`,
   `tailwind.src.css` ;
-- les neuf suites `test.mjs` … `test9.mjs` et `test-hors-ligne.mjs` — elles
-  éprouvaient un fichier qui n'existe plus.
+- les neuf suites test.mjs … test9.mjs et test-hors-ligne.mjs — elles
+  éprouvaient un fichier qui n'existe plus. (Sans accents graves : c'est la
+  convention du fichier pour une suite qui n'existe plus, et `test-doc.mjs`
+  s'en sert pour distinguer un souvenir d'une consigne.)
 
 **IL N'Y A PAS DE PAGE DE SECOURS, ET C'EST DÉLIBÉRÉ.** Garder l'ancien
 site en ligne « au cas où » laisserait une page trouvable — signet, lien
@@ -3960,10 +3962,59 @@ lancées. Le préfixe est un vestige de la bascule de septembre ; une suite
 moins les trois suites hors navigateur, **nommées une seule fois**. Une suite
 jamais lancée ne surveille rien, et son absence ne se remarque pas.
 
+### LA SECTION « TESTS » ANNONÇAIT 23 SUITES, IL Y EN AVAIT 28
+
+16 septembre 2026, trouvé en reprenant un point que j'avais moi-même reporté.
+Ce fichier disait « vingt-trois suites Playwright, 957 contrôles » et recopiait
+les vingt-trois noms dans une boucle à taper. **Cinq suites n'étaient dans
+aucune des deux affirmations** — `test-nouveau-icone`, `test-nouveau-suppression`,
+`test-admin-papiers`, `test-agent-rbac`, `test-unified-facade`. Qui suivait
+cette page ne les lançait jamais.
+
+- **C'EST LA FAUTE QUE CE FICHIER REPROCHE AILLEURS.** Deux recettes pour une
+  seule chose — exactement ce qu'on interdit à `construire.sh` — et un compte
+  écrit en dur qui survit au changement qui l'invalide, comme la barre du bas
+  figée sur quatre onglets. **Un document ne se trompe jamais bruyamment** :
+  rien ne signale une suite absente d'une liste.
+- **ON NE REMPLACE PAS LE CHIFFRE PAR UN AUTRE CHIFFRE.** Un contrôle qui
+  figerait « 28 » se mettrait en travers de la première suite légitimement
+  ajoutée, et c'est lui qu'on supprimerait pour avoir du vert. On pointe la
+  recette (`.claude/outils/tests.sh`) et on verrouille ce qui ne vieillit pas.
+- **LES ACCENTS GRAVES FONT LA DIFFÉRENCE, et la convention existait déjà** :
+  une suite qu'on doit LANCER s'écrit entre accents graves, une suite DISPARUE
+  s'écrit sans. Elle était référencée sans être appliquée — la liste des neuf
+  suites supprimées à la bascule portait encore des accents graves. Corrigée,
+  et `test-doc.mjs` s'en sert pour distinguer un souvenir d'une consigne.
+- **LE PREMIER JET DU CONTRÔLE PASSAIT AU VERT SUR LA VERSION CASSÉE.** Il
+  cherchait `.claude/outils/tests.sh` dans toute la section — et le trouvait
+  dans **la phrase qui l'explique**, pendant que la commande à taper avait été
+  remplacée. Il ne lit plus que le bloc de commandes. **Troisième fois que ce
+  projet se fait prendre par un contrôle qui trouve ce qu'il cherche dans un
+  texte d'explication** — après `cp -r carte` et `cp -r exploitant` dans
+  `construire.sh`.
+- Les quatre contrôles ont été éprouvés un par un contre le défaut qu'ils
+  surveillent : commande qui n'appelle plus la recette, commande qui réénumère,
+  suite nommée et disparue, lanceur refiltré sur le seul préfixe « nouveau ».
+
 ## Tests
 
-**Vingt-trois suites Playwright, 957 contrôles**, à relancer après **toute**
-modification de la page.
+**`.claude/outils/tests.sh` EST LA SEULE RECETTE, et ce fichier ne recopie
+plus la liste des suites.** Il ramasse `test-*.mjs` moins les trois suites hors
+navigateur, nommées une seule fois. À relancer après **toute** modification de
+la page.
+
+**CETTE SECTION A MENTI, ET C'EST POUR ÇA QU'ELLE EST ÉCRITE AINSI**
+(corrigé le 16 septembre 2026). Elle annonçait « vingt-trois suites Playwright,
+957 contrôles » et recopiait les vingt-trois noms dans une boucle. Il y en avait
+**vingt-huit**. Cinq suites — `test-nouveau-icone`, `test-nouveau-suppression`,
+`test-admin-papiers`, `test-agent-rbac`, `test-unified-facade` — n'étaient dans
+aucune des deux affirmations : **qui suivait cette page ne les lançait jamais**.
+C'est exactement la faute que ce fichier reproche ailleurs — deux recettes pour
+une seule chose, et un compte écrit en dur qui survit au changement qui
+l'invalide. On ne remplace donc pas le chiffre par un autre chiffre : on pointe
+la recette, et `test-doc.mjs` vérifie désormais les deux choses qui, elles, ne
+vieillissent pas — aucun nom de suite cité ici ne doit avoir disparu, et cette
+section ne doit pas se remettre à énumérer.
 
 **Plus deux suites qui ne passent ni par un navigateur ni par le réseau** :
 - `node test-notification.mjs` (34 contrôles) éprouve le texte de l'alerte
@@ -3984,34 +4035,18 @@ Le nom `test-nouveau-*` est resté après la bascule : les renommer aurait
 touché dix-neuf fichiers pour zéro gain.
 
 ```bash
-npx http-server -p 8099 -s .
-# UNE SEULE EXÉCUTION À LA FOIS : deux séries en parallèle se marchent
-# dessus et se bloquent. Et une suite MUETTE est un échec — elle est
-# signalée en toutes lettres plutôt que laissée passer.
-for f in test-nouveau.mjs test-nouveau-prix.mjs test-nouveau-bon.mjs \
-         test-nouveau-langues.mjs test-nouveau-courses.mjs \
-         test-nouveau-gardes.mjs test-nouveau-serveur.mjs \
-         test-nouveau-exploitant.mjs test-nouveau-whatsapp.mjs \
-         test-nouveau-services.mjs test-nouveau-paiement.mjs \
-         test-nouveau-confirmation.mjs test-nouveau-registre.mjs \
-         test-nouveau-affiche.mjs test-nouveau-itineraire.mjs \
-         test-nouveau-geoloc.mjs test-nouveau-preavis.mjs \
-         test-nouveau-option.mjs test-nouveau-chauffeurs.mjs \
-         test-nouveau-carte.mjs test-nouveau-bascule.mjs \
-         test-nouveau-hotel.mjs test-nouveau-reception.mjs; do
-  printf "%-34s " "$f"
-  out=$(node $f 2>&1)
-  res=$(echo "$out" | grep -E "^=== " | tr '\n' ' ')
-  if [ -z "$res" ]; then
-    echo "!!! MUETTE — PLANTAGE"; echo "$out" | tail -4
-  else
-    echo "$res"
-  fi
-  echo "$out" | sed -n '/=== ÉCHECS/,/^$/p' | head -6
-done
-node test-notification.mjs   # ni navigateur ni réseau
-node test-push.mjs           # ni navigateur ni réseau
+sh .claude/outils/tests.sh
 ```
+
+Ce qu'il fait, et pourquoi : il lève le serveur local, lance **une seule
+exécution à la fois** — deux séries en parallèle se marchent dessus et se
+bloquent —, juge chaque suite sur son **code de sortie** et non sur la présence
+d'une ligne `=== `, signale une suite **sans aucune sortie** en toutes lettres
+plutôt que de la laisser passer, et **ne s'arrête pas à la première rouge** :
+l'outil qui doit attraper les pannes des autres ne renonce jamais au premier
+échec. Les trois suites hors navigateur (`test-doc`, `test-notification`,
+`test-push`) sont comptées comme les autres — elles se contentaient d'afficher,
+et le lanceur concluait « tout est au vert » pendant qu'une d'elles échouait.
 
 `test-nouveau-bascule.mjs` couvre ce qui **ne se voit pas à l'écran** et
 qu'on ne remarquerait donc qu'une fois le mal fait : le titre et la
