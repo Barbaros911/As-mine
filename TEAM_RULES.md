@@ -24,10 +24,17 @@ l'assurance de celui qui parle.
 **Contrôle croisé :** chacun peut contester le travail de l'autre **avec des
 faits**. Personne ne crée une seconde implémentation de ce que l'autre fait.
 
-**Ni ChatGPT ni Claude ne voient ce que voit l'autre.** Claude n'atteint pas
-`elatransfer.com` — mesuré, quatre adresses, réponse nulle. ChatGPT ne lance
-pas les tests et ne lit pas les journaux de construction. La répartition n'est
-pas un confort : c'est la carte des accès réels.
+**Ni ChatGPT ni Claude ne voient ce que voit l'autre**, et la répartition
+n'est pas un confort : c'est la carte des accès réels.
+- **Claude n'atteint pas `elatransfer.com`** — mesuré, quatre adresses,
+  réponse nulle. Il ne peut donc rien affirmer du site tel qu'un client le
+  voit ; il lit le dépôt, construit le site et l'éprouve en local.
+- **ChatGPT ne lance pas les suites Playwright** et ne voit pas ce qui se
+  passe sur cette machine. En revanche **il lit ce que GitHub publie** :
+  l'état des exécutions d'Actions, les PR, les fichiers, les Issues — et il
+  ouvre le site en ligne. *Corrigé le 16 septembre 2026 : la version
+  précédente disait qu'il « ne lit pas les journaux de construction », ce
+  qui était trop absolu et lui retirait un contrôle qu'il exerce vraiment.*
 
 ## 2. La source de vérité
 
@@ -112,14 +119,20 @@ branche et une PR ; il ne se fait jamais directement sur `main`.
 
 ## 9. Se parler
 
-**Le canal est l'Issue `[TEAM]` concernée**, pas la conversation.
+**L'Issue `[TEAM]` est le canal de TRANSMISSION ENTRE ASSISTANTS.**
 #164 pour la coordination, #165 pour l'Admin, et une Issue dédiée par sujet.
+**Ça ne retire rien à la conversation de Barbaros**, qui reste la source de
+ses demandes et de ses décisions : ce qu'il dit à l'un ou à l'autre fait
+foi, et c'est à l'assistant qui l'a reçu de le porter ici. *Précisé le
+16 septembre 2026 — écrit « le canal, pas la conversation », ça se lisait
+comme si ses propres mots ne comptaient pas.*
 
 - ChatGPT y dépose spécifications, audits de production et demandes de
   correction.
 - Claude y dépose statuts, preuves techniques, branches et PR utilisées, et y
   ouvre une Issue quand une décision produit est nécessaire.
-- **Barbaros n'est pas le messager.** Ce qui concerne l'autre s'écrit ici.
+- **Barbaros n'a pas à faire le facteur.** Ce qui concerne l'autre assistant
+  s'écrit ici — mais ce qu'il décide, lui, s'impose d'où qu'il le dise.
 
 **Signez vos messages** (`## ChatGPT → Claude — sujet`) : sur GitHub, les deux
 apparaissent sous le même compte, et la signature est le seul moyen de savoir
