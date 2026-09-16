@@ -1,28 +1,129 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-const U=Deno.env.get("SUPABASE_URL")??"",S=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
-const ORIGINES=new Set(["https://elatransfer.com","https://www.elatransfer.com"]);
-const cors=(origin:string)=>({"Access-Control-Allow-Origin":ORIGINES.has(origin)?origin:"https://elatransfer.com","Access-Control-Allow-Headers":"apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Vary":"Origin"});
-const reponse=(b:unknown,status:number,origin:string)=>new Response(JSON.stringify(b),{status,headers:{...cors(origin),"Content-Type":"application/json"}});
-function texte(v:unknown,n:number){return String(v??"").trim().slice(0,n)}
-function propre(o:unknown,cles:string[]){const x=(o&&typeof o==="object"?o:{}) as Record<string,unknown>,r:Record<string,unknown>={};for(const k of cles)if(x[k]!==undefined)r[k]=x[k];return r}
-async function db(path:string,init:RequestInit={}){const h=new Headers(init.headers);h.set("apikey",S);h.set("Authorization",`Bearer ${S}`);if(init.body)h.set("Content-Type","application/json");return fetch(`${U}/rest/v1/${path}`,{...init,headers:h});}
-async function json(path:string){const r=await db(path);if(!r.ok)throw new Error(`db_${r.status}`);return r.json();}
-function destinationValide(validation:any,course:any){if(!validation||validation.verification_manuelle)return false;const terminal=texte(course.terminal,80).toLowerCase(),trajet=(texte(course.departPublic||course.depart,300)+" "+texte(course.arriveePublic||course.arrivee,300)).toLowerCase();if(validation.terminal_prefix)return terminal.startsWith(String(validation.terminal_prefix).toLowerCase());if(validation.texte_contient)return trajet.includes(String(validation.texte_contient).toLowerCase());return false;}
-async function snapshotPartenaire(safe:any){const partenaireCle=texte(safe.provenanceCle,80),destinationCle=texte(safe.course?.destinationCle,40).toLowerCase(),vehiculeCle=texte(safe.course?.vehiculeCle,30).toLowerCase();if(!partenaireCle||!destinationCle||!vehiculeCle)return null;try{const ps=await json(`partenaires?cle=eq.${encodeURIComponent(partenaireCle)}&actif=eq.true&select=id&limit=1`);if(!ps?.[0]?.id)return null;const fs=await json(`tarifs_partenaires?partenaire_id=eq.${encodeURIComponent(ps[0].id)}&destination_cle=eq.${encodeURIComponent(destinationCle)}&vehicule_cle=eq.${encodeURIComponent(vehiculeCle)}&actif=eq.true&select=montant_centimes,validation&limit=1`),f=fs?.[0];if(!f||!destinationValide(f.validation,safe.course))return null;const cs=await json('parametres_commerciaux?cle=eq.commission_ela_defaut&select=valeur&limit=1'),pct=Number(cs?.[0]?.valeur?.pourcentage);if(!Number.isFinite(pct)||pct<0||pct>100)return null;const prix=Number(f.montant_centimes);if(!Number.isInteger(prix)||prix<50)return null;const chauffeur=Math.round(prix*(1-pct/100));safe.prix={...(safe.prix||{}),total:prix/100};safe.securite={...(safe.securite||{}),prixServeurVerifie:true,sourceTarif:'partenaire'};return{prix_final_centimes:prix,montant_chauffeur_centimes:chauffeur,marge_ela_centimes:prix-chauffeur,destination_cle:destinationCle};}catch(e){console.warn('tarification partenaire non verrouillée',String(e));return null;}}
-Deno.serve(async req=>{
- const origin=req.headers.get("origin")??"";
- if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(origin)});
- if(req.method!=="POST")return reponse({erreur:"methode"},405,origin);
- if(origin&&!ORIGINES.has(origin))return reponse({erreur:"origine"},403,origin);
- let x:any;try{x=await req.json()}catch{return reponse({erreur:"json"},400,origin)}
- const b=x?.bon;if(!b||typeof b!=="object")return reponse({erreur:"bon"},400,origin);
- const ref=texte(b.ref,32);if(!/^ELA-[A-Z0-9-]{6,24}$/i.test(ref))return reponse({erreur:"reference"},400,origin);
- const c=propre(b.course,["type","depart","arrivee","departPublic","arriveePublic","date","heure","terminal","vol","note","chambre","vehicule","vehiculeCle","passagers","distanceKm","destinationCle","estimee"]),cl=propre(b.client,["nom","telephone"]),prix=propre(b.prix,["total","ht","tva","majoration"]);
- c.depart=texte(c.depart,300);c.arrivee=texte(c.arrivee,300);c.departPublic=texte(c.departPublic,300);c.arriveePublic=texte(c.arriveePublic,300);c.date=texte(c.date,10);c.heure=texte(c.heure,5);c.terminal=texte(c.terminal,80);c.vol=texte(c.vol,30);c.note=texte(c.note,500);c.chambre=texte(c.chambre,30);c.vehicule=texte(c.vehicule,60);c.vehiculeCle=texte(c.vehiculeCle,30);c.passagers=texte(c.passagers,60);c.destinationCle=texte(c.destinationCle,40);
- cl.nom=texte(cl.nom,120);cl.telephone=texte(cl.telephone,30);if(!cl.telephone||!c.date||!c.heure)return reponse({erreur:"champs"},400,origin);
- const safe:any={ref,statut:"attente",cree:new Date().toISOString(),course:c,client:cl,prix,paiement:texte(b.paiement,30),paiementNom:texte(b.paiementNom,60),langue:texte(b.langue,5),provenance:texte(b.provenance,100),provenanceCle:texte(b.provenanceCle,80),parReception:!!b.parReception,pancarte:!!b.pancarte,securite:{source:"passerelle-publique-v2",prixServeurVerifie:false}};
- const depuis=new Date(Date.now()-60000).toISOString(),q=await db(`courses?select=ref,cree&cree=gte.${encodeURIComponent(depuis)}&limit=100`);if(q.ok){const a=await q.json(),meme=a.some((r:any)=>r.ref===ref);if(meme)return reponse({ok:true,ref,duplique:true},200,origin);if(a.length>=60)return reponse({erreur:"quota"},429,origin)}
- const snapshot=await snapshotPartenaire(safe),r=await db('rpc/ela_deposer_course_serveur',{method:"POST",body:JSON.stringify({p_ref:ref,p_bon:safe,p_snapshot:snapshot})});
- if(!r.ok){const t=await r.text();if(r.status===409||t.includes('duplicate key'))return reponse({ok:true,ref,duplique:true},200,origin);return reponse({erreur:"depot"},502,origin)}
- return reponse({ok:true,ref,tarifServeurVerifie:!!snapshot},200,origin);
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const ORIGINS = new Set(["https://elatransfer.com", "https://www.elatransfer.com"]);
+const MAX_BODY = 24_000;
+
+function reponse(status:number, body:Record<string,unknown>, origin="") {
+  const headers:Record<string,string> = {"Content-Type":"application/json","Cache-Control":"no-store","Vary":"Origin"};
+  if (ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return new Response(JSON.stringify(body), {status, headers});
+}
+function texte(v:unknown, max:number) { return typeof v === "string" ? v.trim().slice(0, max) : ""; }
+function nombre(v:unknown, min:number, max:number) { const n=Number(v); return Number.isFinite(n) && n>=min && n<=max ? n : null; }
+function booleen(v:unknown) { return v === true; }
+function entierPassagers(v:unknown) {
+  if (typeof v === "number") return nombre(v,1,8);
+  if (typeof v !== "string") return null;
+  const m=v.match(/^\s*(\d+)/); return m ? nombre(m[1],1,8) : null;
+}
+function entierBagages(v:unknown) {
+  if (typeof v === "number") return nombre(v,0,20);
+  if (typeof v !== "string") return 0;
+  const m=v.match(/(?:·|\s)(\d+)\s+bagage/i); return m ? nombre(m[1],0,20) : 0;
+}
+async function sha256(v:string) {
+  const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+async function apiJson(path:string) {
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:{apikey:SERVICE_ROLE,Authorization:`Bearer ${SERVICE_ROLE}`}});
+  if(!r.ok) throw new Error(`db_${r.status}`);
+  return r.json();
+}
+function destinationValide(validation:any, course:any) {
+  if(!validation || validation.verification_manuelle) return false;
+  const terminal=texte(course.terminal,80).toLowerCase();
+  const trajet=(texte(course.departPublic||course.depart,300)+" "+texte(course.arriveePublic||course.arrivee,300)).toLowerCase();
+  if(validation.terminal_prefix) return terminal.startsWith(String(validation.terminal_prefix).toLowerCase());
+  if(validation.texte_contient) return trajet.includes(String(validation.texte_contient).toLowerCase());
+  return false;
+}
+async function snapshotPartenaire(propre:any) {
+  const partenaireCle=texte(propre.provenanceCle,80), destinationCle=texte(propre.course?.destinationCle,40).toLowerCase(), vehiculeCle=texte(propre.course?.vehiculeCle,24).toLowerCase();
+  if(!partenaireCle || !destinationCle || !vehiculeCle) return null;
+  try {
+    const partenaires=await apiJson(`partenaires?cle=eq.${encodeURIComponent(partenaireCle)}&actif=eq.true&select=id&limit=1`);
+    if(!partenaires?.[0]?.id) return null;
+    const tarifs=await apiJson(`tarifs_partenaires?partenaire_id=eq.${encodeURIComponent(partenaires[0].id)}&destination_cle=eq.${encodeURIComponent(destinationCle)}&vehicule_cle=eq.${encodeURIComponent(vehiculeCle)}&actif=eq.true&select=montant_centimes,validation&limit=1`), tarif=tarifs?.[0];
+    if(!tarif || !destinationValide(tarif.validation,propre.course)) return null;
+    const params=await apiJson('parametres_commerciaux?cle=eq.commission_ela_defaut&select=valeur&limit=1'), pct=Number(params?.[0]?.valeur?.pourcentage), prix=Number(tarif.montant_centimes);
+    if(!Number.isFinite(pct)||pct<0||pct>100||!Number.isInteger(prix)||prix<50) return null;
+    const chauffeur=Math.round(prix*(1-pct/100));
+    propre.prix={...propre.prix,total:prix/100,ht:Math.round(((prix/100)/1.10)*100)/100,tva:Math.round(((prix/100)-(prix/100)/1.10)*100)/100,serveurVerifie:true};
+    propre.securite={...propre.securite,prixServeurVerifie:true,provenanceServeurVerifie:true,sourceTarif:"partenaire"};
+    return {prix_final_centimes:prix,montant_chauffeur_centimes:chauffeur,marge_ela_centimes:prix-chauffeur,destination_cle:destinationCle};
+  } catch(e) { console.warn("tarification partenaire non verrouillée",String(e)); return null; }
+}
+
+Deno.serve(async (req:Request) => {
+  const origin=req.headers.get("origin") ?? "";
+  if(req.method === "OPTIONS") {
+    if(!ORIGINS.has(origin)) return reponse(403,{erreur:"refusé"});
+    return new Response(null,{status:204,headers:{"Access-Control-Allow-Origin":origin,"Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"content-type, apikey","Access-Control-Max-Age":"600","Vary":"Origin"}});
+  }
+  if(req.method !== "POST") return reponse(405,{erreur:"méthode refusée"},origin);
+  if(!ORIGINS.has(origin)) return reponse(403,{erreur:"origine refusée"});
+  if(!SUPABASE_URL || !SERVICE_ROLE) return reponse(503,{erreur:"service indisponible"},origin);
+
+  const len=Number(req.headers.get("content-length") || 0);
+  if(len > MAX_BODY) return reponse(413,{erreur:"requête trop grande"},origin);
+  let brut:string;
+  try { brut=await req.text(); } catch { return reponse(400,{erreur:"requête illisible"},origin); }
+  if(brut.length > MAX_BODY) return reponse(413,{erreur:"requête trop grande"},origin);
+  let entree:any;
+  try { entree=JSON.parse(brut); } catch { return reponse(400,{erreur:"requête invalide"},origin); }
+
+  const bon=entree?.bon;
+  if(!bon || typeof bon!=="object" || Array.isArray(bon)) return reponse(400,{erreur:"demande invalide"},origin);
+  const ref=texte(bon.ref,32), c=bon.course, client=bon.client, p=bon.prix;
+  if(!/^ELA-[A-Z0-9-]{6,24}$/.test(ref) || !c || typeof c!=="object" || !client || typeof client!=="object" || !p || typeof p!=="object") return reponse(400,{erreur:"demande invalide"},origin);
+
+  const depart=texte(c.depart,300), arrivee=texte(c.arrivee,300), date=texte(c.date,10), heure=texte(c.heure,5);
+  const nom=texte(client.nom,120), tel=texte(client.telephone,40), vehicule=texte(c.vehicule,40), vehiculeCle=texte(c.vehiculeCle,24), paiement=texte(bon.paiement,20), destinationCle=texte(c.destinationCle,40);
+  const total=nombre(p.total,0,5000), distanceKm=nombre(c.distanceKm,0,1500), passagers=entierPassagers(c.passagers), bagages=entierBagages(c.passagers);
+  if(!depart || !arrivee || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(heure) || !nom || tel.length<6 || !vehicule || !["berline","van"].includes(vehiculeCle) || !["carte","especes"].includes(paiement) || total===null || distanceKm===null || passagers===null || bagages===null) return reponse(400,{erreur:"demande invalide"},origin);
+
+  const propre:any={
+    ref,
+    course:{
+      type:texte(c.type,40)||"Trajet simple",depart,arrivee,
+      departPublic:texte(c.departPublic,300)||depart,arriveePublic:texte(c.arriveePublic,300)||arrivee,
+      date,heure,terminal:texte(c.terminal,40)||null,vol:texte(c.vol,30),train:texte(c.train,30),
+      note:texte(c.note,200),chambre:texte(c.chambre,30),pancarte:booleen(c.pancarte),
+      vehicule,vehiculeCle,passagers:texte(c.passagers,80),passagersNombre:passagers,bagagesNombre:bagages,
+      distanceKm,destinationCle,estimee:booleen(c.estimee)
+    },
+    client:{nom,telephone:tel},
+    langue:["fr","en"].includes(texte(bon.langue,2))?texte(bon.langue,2):"fr",
+    conditionsAcceptees:{version:texte(bon.conditionsAcceptees?.version,20),langue:["fr","en"].includes(texte(bon.conditionsAcceptees?.langue,2))?texte(bon.conditionsAcceptees?.langue,2):"fr"},
+    provenance:texte(bon.provenance,120),provenanceCle:texte(bon.provenanceCle,80),parReception:booleen(bon.parReception),
+    paiement,paiementNom:texte(bon.paiementNom,60),
+    prix:{total,ht:Math.round((total/1.10)*100)/100,tva:Math.round((total-total/1.10)*100)/100,majoration:false,serveurVerifie:false}
+  };
+
+  const empreinteDepot=await sha256(JSON.stringify(propre));
+  propre.cree=new Date().toISOString();
+  propre.securite={empreinteDepot,prixServeurVerifie:false,provenanceServeurVerifie:false};
+
+  const ip=(req.headers.get("cf-connecting-ip")||req.headers.get("x-forwarded-for")||"inconnue").split(",")[0].trim();
+  const cleQuota=await sha256(ip+"|"+new Date().toISOString().slice(0,13));
+  const quota=await fetch(`${SUPABASE_URL}/rest/v1/rpc/consommer_quota_reservation`,{method:"POST",headers:{apikey:SERVICE_ROLE,Authorization:`Bearer ${SERVICE_ROLE}`,"Content-Type":"application/json"},body:JSON.stringify({p_cle:cleQuota,p_limite:12})});
+  if(!quota.ok) return reponse(503,{erreur:"service indisponible"},origin);
+  if((await quota.json())!==true) return reponse(429,{erreur:"trop de demandes"},origin);
+
+  const deja=await fetch(`${SUPABASE_URL}/rest/v1/courses?ref=eq.${encodeURIComponent(ref)}&select=bon&limit=1`,{headers:{apikey:SERVICE_ROLE,Authorization:`Bearer ${SERVICE_ROLE}`}});
+  if(!deja.ok) return reponse(503,{erreur:"service indisponible"},origin);
+  const lignes=await deja.json();
+  if(Array.isArray(lignes)&&lignes.length){
+    if(lignes[0]?.bon?.securite?.empreinteDepot===empreinteDepot) return reponse(200,{ok:true,ref,rejoue:true},origin);
+    return reponse(409,{erreur:"référence déjà utilisée"},origin);
+  }
+
+  const snapshot=await snapshotPartenaire(propre);
+  const ins=await fetch(`${SUPABASE_URL}/rest/v1/rpc/ela_deposer_course_serveur`,{method:"POST",headers:{apikey:SERVICE_ROLE,Authorization:`Bearer ${SERVICE_ROLE}`,"Content-Type":"application/json"},body:JSON.stringify({p_ref:ref,p_bon:propre,p_snapshot:snapshot})});
+  if(ins.status===409) return reponse(409,{erreur:"référence déjà utilisée"},origin);
+  if(!ins.ok) return reponse(503,{erreur:"service indisponible"},origin);
+  return reponse(201,{ok:true,ref,tarifServeurVerifie:!!snapshot},origin);
 });
