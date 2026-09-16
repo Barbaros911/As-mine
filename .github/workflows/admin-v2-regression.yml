@@ -1,0 +1,29 @@
+name: Contrôle Admin v2
+on:
+  pull_request:
+    paths: ['admin-v2.html','construire.sh','.github/workflows/admin-v2-regression.yml']
+permissions: {contents: read}
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash construire.sh
+      - name: Vérifier Admin v2
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f site/admin-v2.html
+          grep -Fq '/auth/v1/token?grant_type=password' site/admin-v2.html
+          grep -Fq '/rest/v1/rpc/est_exploitant' site/admin-v2.html
+          grep -Fq 'actions_requises' site/admin-v2.html
+          grep -Fq 'chauffeurs' site/admin-v2.html
+          grep -Fq 'partenaires' site/admin-v2.html
+          grep -Fq 'codes_promo' site/admin-v2.html
+          grep -Fq 'paiements' site/admin-v2.html
+          grep -Fq 'snapshots_financiers' site/admin-v2.html
+          grep -Fq 'brand-logo.webp' site/admin-v2.html
+          if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|service_role|sk_(test|live)_' site/admin-v2.html; then
+            echo 'Secret ou ancien verrou détecté dans Admin v2'
+            exit 1
+          fi
