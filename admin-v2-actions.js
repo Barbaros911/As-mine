@@ -149,6 +149,144 @@ async function intakeAjouter(texte){
   await load(); render();
 }
 
+/* =====================================================================
+   SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
+   ---------------------------------------------------------------------
+   « Coller une demande » ne couvre que le client qui ÉCRIT. Quand un hôtel
+   APPELLE, il aurait fallu fabriquer un faux message WhatsApp pour le
+   coller.
+
+   ELLE ENTRE « CONFIRMEE », contrairement à une demande collée : une
+   demande venue d'un client attend une réponse, une course convenue de
+   vive voix n'attend personne.
+
+   LA GRILLE AFFICHÉE VIENT DU SERVEUR, jamais réécrite ici. C'est sur elle
+   que Barbaros annonce un montant au téléphone : un nombre recopié dans
+   cette page resterait périmé au premier changement de tarif, sans que
+   rien ne le signale. Même règle que « ecrireGrille() » côté site.
+
+   LE CHAUFFEUR PASSE PAR LA RPC D'ATTRIBUTION, jamais par le bon écrit à
+   la main. C'est ce qui fait que la règle des papiers s'applique ici comme
+   ailleurs : on ne peut pas la contourner en créant la course avec un
+   chauffeur déjà dedans.
+
+   LE RÈGLEMENT N'EST PAS DEMANDÉ : il se convient de vive voix, et
+   inventer « espèces » par défaut ferait partir le chauffeur sans son
+   terminal. Le bon le laisse vide, il se corrige dessus.
+   ===================================================================== */
+function grilleServeur(){
+  const lire = cle => {
+    const p = (state.params||[]).find(x=>x.cle===cle);
+    const v = p && p.valeur; if(!v) return null;
+    return { km:Number(v.par_km_centimes)/100, mini:Number(v.minimum_centimes)/100 };
+  };
+  return { berline: lire('tarif_general_berline'), van: lire('tarif_general_van') };
+}
+function ecrireGrilleV2(){
+  const e = document.getElementById('tfGrille'); if(!e) return;
+  const g = grilleServeur();
+  const part = [];
+  if(g.berline) part.push('Berline '+g.berline.km.toFixed(2)+' €/km, minimum '+g.berline.mini+' €');
+  if(g.van)     part.push('Van '+g.van.km.toFixed(2)+' €/km, minimum '+g.van.mini+' €');
+  /* SANS GRILLE SERVEUR, ON LE DIT. Afficher une grille par défaut ferait
+     annoncer un prix au téléphone sur un tarif que personne n'a validé. */
+  e.textContent = part.length
+    ? 'Grille serveur : ' + part.join(' · ') + '. Prix libre — c’est une négociation.'
+    : 'Grille serveur indisponible : le prix se saisit à la main.';
+}
+
+function remplirChauffeursV2(){
+  const sel = document.getElementById('tfChauffeur'); if(!sel) return;
+  const libres = validDrivers();
+  sel.innerHTML = '<option value="">— pas encore —</option>' +
+    libres.map(d=>`<option value="${esc(d.id)}">${esc(d.nom_affiche)}</option>`).join('');
+}
+
+function ouvrirTelephone(ouvert){
+  const f = document.getElementById('formTelephone'); if(!f) return;
+  f.hidden = !ouvert;
+  if(ouvert){ ecrireGrilleV2(); remplirChauffeursV2(); intakeDire(''); }
+}
+
+async function creerParTelephone(){
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const nom=v('tfNom'), tel=v('tfTel'), dep=v('tfDepart'), arr=v('tfArrivee');
+  const date=v('tfDate'), heure=v('tfHeure'), prix=parseFloat(v('tfPrix'));
+  const cle=v('tfVehicule')||'berline', chauffeur=v('tfChauffeur');
+
+  /* ON DIT CE QUI MANQUE, PAS « le formulaire est incomplet ». À 3 h du
+     matin, un message qui ne nomme pas le champ oblige à tout relire. */
+  const manque=[];
+  if(!nom) manque.push('le nom du client');
+  if(!tel) manque.push('son téléphone');
+  if(!dep) manque.push('le départ');
+  if(!arr) manque.push("l'arrivée");
+  if(!date) manque.push('la date');
+  if(!heure) manque.push("l'heure");
+  if(!(prix>0)) manque.push('le prix');
+  if(manque.length){ intakeDire('Il manque '+manque.join(', ')+'.','ko'); return; }
+
+  /* MÊME CONTRÔLE QUE CÔTÉ CLIENT, et c'est la même fonction : un numéro
+     faux accepté ici est une course qu'on a dite oui de vive voix et qu'on
+     ne pourra pas rappeler si le chauffeur tombe malade. */
+  if(!window.ELA_INTAKE || !window.ELA_INTAKE.telValide){
+    intakeDire("Le contrôle de téléphone n'est pas chargé. Recharge la page.",'ko'); return; }
+  if(!window.ELA_INTAKE.telValide(tel)){
+    intakeDire('Le téléphone du client ne semble pas valable — relis-le.','ko'); return; }
+
+  const noms={berline:'Berline',van:'Van'};
+  const bon = window.ELA_INTAKE.courseDepuis({
+    ref:'', depart:dep, arrivee:arr, date:date, heure:heure,
+    vehicule:noms[cle]||cle, vehiculeCle:cle,
+    paiement:'', paiementNom:'', passagers:'', prix:prix, nom:nom, tel:tel
+  }, refIntakeSuivante(), 'confirmee');
+
+  try{
+    await rpc('ela_creer_course_exploitant',
+      {p_ref:bon.ref,p_bon:bon,p_statut:'confirmee',p_origine:'telephone'});
+  }catch(e){
+    const m=String(e&&e.message||e);
+    if(m.includes('reference_existante')){
+      intakeDire('Cette référence est déjà prise ('+bon.ref+') — réessaie.','ko'); return; }
+    intakeDire('Le serveur a refusé : '+m,'ko'); return;
+  }
+
+  /* LE CHAUFFEUR PASSE PAR LA RPC : elle impose la règle des papiers. Si
+     elle refuse, la COURSE EXISTE QUAND MÊME — on ne perd pas un appel
+     parce qu'un chauffeur n'était pas attribuable. */
+  let note='';
+  if(chauffeur){
+    try{ await rpc('ela_attribuer_chauffeur',{p_ref:bon.ref,p_chauffeur_id:chauffeur}); }
+    catch(e){
+      note = String(e&&e.message||e).includes('chauffeur_non_attribuable')
+        ? ' Le chauffeur n’a PAS été attribué : ses papiers ne le permettent pas.'
+        : ' Le chauffeur n’a pas été attribué : '+String(e&&e.message||e);
+    }
+  }
+
+  ['tfNom','tfTel','tfDepart','tfArrivee','tfDate','tfHeure','tfPrix']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  intakeDire('Course créée — '+bon.ref+' · '+nom+'.'+note, note?'ko':'ok');
+  await load(); render();
+  /* ON OUVRE LE BON JUSTE APRÈS, et ce n'est pas un confort : c'est là que
+     s'affiche l'avertissement sur les papiers du chauffeur. */
+  try{ openBooking(bon.ref); }catch(e){}
+}
+
+function brancherTelephone(){
+  /* LE BOUTON OUVRE, IL NE BASCULE PAS. Un bouton qui ferme ce qu'on vient
+     d'ouvrir se lit comme un bouton cassé -- c'est « Annuler » qui ferme.
+     Et il RAFRAICHIT a chaque appui : la grille serveur et la liste des
+     chauffeurs ont pu changer depuis la derniere fois. */
+  const b=document.getElementById('btnTelephoneV2');
+  if(b)b.addEventListener('click',()=>ouvrirTelephone(true));
+  const a=document.getElementById('tfAnnuler');
+  if(a)a.addEventListener('click',()=>ouvrirTelephone(false));
+  const f=document.getElementById('formTelephone');
+  if(f)f.addEventListener('submit',async ev=>{ ev.preventDefault(); await creerParTelephone(); });
+}
+brancherTelephone();
+
 function brancherIntake(){
   const bouton=document.getElementById('btnCollerV2');
   if(bouton)bouton.addEventListener('click',async()=>{

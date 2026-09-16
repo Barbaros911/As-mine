@@ -91,6 +91,22 @@ const MESSAGE_EN = [
 ].join('\n');
 
 let COURSES = [];
+const attributions = [];
+
+/* LA GRILLE VIENT DU SERVEUR : ce sont ces valeurs-la que l'ecran doit
+   afficher, jamais des nombres recopies dans la page. */
+const PARAMS = [
+  { cle:'tarif_general_berline', valeur:{par_km_centimes:265, minimum_centimes:3000} },
+  { cle:'tarif_general_van',     valeur:{par_km_centimes:400, minimum_centimes:5000} },
+];
+
+/* Deux chauffeurs : l'un attribuable, l'autre non -- papiers perimes. */
+const CHAUFFEURS = [
+  { id:'d-ok', nom_affiche:'Mehmet', telephone_whatsapp:'0612345678',
+    statut:'valide', actif:true, papiers_etat:'valide', etat_effectif:'valide', attribuable:true },
+  { id:'d-perime', nom_affiche:'Ayse', telephone_whatsapp:'0698765432',
+    statut:'valide', actif:true, papiers_etat:'perime', etat_effectif:'papiers', attribuable:false },
+];
 const recus = [];          /* ce qui part vraiment vers le serveur */
 let refuserDoublon = true;
 
@@ -119,10 +135,21 @@ await ctx.route('**/*', r => {
     COURSES = COURSES.concat([{ref:corps.p_ref, statut:corps.p_statut, bon:corps.p_bon}]);
     return J(corps.p_ref);
   }
+  if(u.includes('/rpc/ela_attribuer_chauffeur')){
+    const c = JSON.parse(r.request().postData()||'{}');
+    attributions.push(c);
+    /* Le serveur refuse un chauffeur aux papiers perimes -- c'est la regle
+       de #191, et la saisie telephone ne doit pas pouvoir la contourner. */
+    if(c.p_chauffeur_id==='d-perime')
+      return r.fulfill({status:400, contentType:'application/json',
+        body:JSON.stringify({message:'chauffeur_non_attribuable'})});
+    return J('attribuee');
+  }
   if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/parametres_commerciaux')) return J(PARAMS);
   if(u.includes('/rpc/ela_rafraichir_actions')) return J(0);
-  if(u.includes('/chauffeurs_etat')) return J([]);
-  if(u.includes('/rest/v1/chauffeurs')) return J([]);
+  if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);
+  if(u.includes('/rest/v1/chauffeurs')) return J(CHAUFFEURS);
   if(u.includes('/actions_requises')) return J([]);
   if(u.includes('/rest/v1/courses')) return J(COURSES);
   return J([]);
@@ -284,6 +311,117 @@ if(repli){
   check('le champ de repli crée vraiment la course', false,
     'le champ ne s’est jamais ouvert : le parcours de secours est inatteignable');
 }
+
+/* =====================================================================
+   BRIQUE 2 — SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
+   ---------------------------------------------------------------------
+   « Coller une demande » ne couvre que le client qui ÉCRIT. Quand un hôtel
+   APPELLE, il aurait fallu fabriquer un faux message pour le coller.
+   ===================================================================== */
+await p.click('#btnTelephoneV2');
+await p.waitForSelector('#formTelephone:not([hidden])', {timeout:8000});
+
+check('« Saisir par téléphone » ouvre un vrai formulaire', true);
+
+/* LA GRILLE AFFICHÉE VIENT DU SERVEUR. C'est sur elle que Barbaros annonce
+   un montant au téléphone : un nombre recopié dans la page resterait
+   périmé au premier changement de tarif, sans que rien ne le signale. */
+const grille = await p.textContent('#tfGrille');
+check('la grille affichée vient du SERVEUR, pas de la page',
+  grille.includes('2.65') && grille.includes('4.00') && grille.includes('30') && grille.includes('50'),
+  'reçu : '+grille);
+
+/* ON DIT CE QUI MANQUE, PAS « formulaire incomplet ». */
+await p.fill('#tfNom','Hôtel Ibis');
+await p.evaluate(()=>document.getElementById('formTelephone')
+  .dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})));
+await attendre(p, ()=>/manque/i.test(document.getElementById('intakeEtat').textContent),
+  'un formulaire incomplet dit CE QUI manque');
+const manque = await p.textContent('#intakeEtat');
+check('…et il NOMME les champs manquants',
+  /téléphone/i.test(manque) && /départ/i.test(manque) && /prix/i.test(manque),
+  'reçu : '+manque);
+
+/* MÊME CONTRÔLE DE TÉLÉPHONE QUE CÔTÉ CLIENT — et c'est la même fonction. */
+await p.fill('#tfTel','87654321');
+await p.fill('#tfDepart','10 rue de la Paix, Paris');
+await p.fill('#tfArrivee','Orly 1');
+await p.fill('#tfDate','2026-09-25');
+await p.fill('#tfHeure','09:15');
+await p.fill('#tfPrix','80');
+const avantTel = recus.length;
+await p.evaluate(()=>document.getElementById('formTelephone')
+  .dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})));
+await attendre(p, ()=>/valable/i.test(document.getElementById('intakeEtat').textContent),
+  'un numéro impossible est refusé');
+check('un numéro sans indicatif qui ne commence pas par zéro est refusé',
+  recus.length === avantTel,
+  'aucun appel serveur ne doit partir — c’est une course qu’on ne pourrait pas rappeler');
+
+/* LA COURSE PRISE AU TÉLÉPHONE ENTRE « CONFIRMEE ». */
+await p.fill('#tfTel','06 11 22 33 44');
+await p.evaluate(()=>document.getElementById('formTelephone')
+  .dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})));
+await attendre(p, ()=>/Course créée/i.test(document.getElementById('intakeEtat').textContent),
+  'la saisie téléphone crée la course');
+const tel1 = recus[recus.length-1] || {};
+check('une course prise au téléphone entre CONFIRMEE, pas en attente',
+  tel1.p_statut === 'confirmee',
+  'reçu : '+tel1.p_statut+' — elle a été convenue de vive voix, personne n’attend');
+check('…et son origine est « telephone »', tel1.p_origine === 'telephone');
+check('le règlement N’EST PAS inventé',
+  (tel1.p_bon||{}).paiement === '',
+  'inventer « espèces » ferait partir le chauffeur sans son terminal');
+check('le bon a la MÊME forme que celui d’une demande collée',
+  !!(tel1.p_bon||{}).course && !!(tel1.p_bon||{}).client && !!(tel1.p_bon||{}).prix,
+  'deux formes différentes pour la même course se reliraient mal');
+
+/* ON OUVRE LE BON JUSTE APRÈS, et ce n'est pas un confort : c'est là que
+   s'affiche l'avertissement sur les papiers du chauffeur. La preuve est
+   que la feuille recouvre la page — la suite a d'abord calé dessus. */
+/* ON MESURE LE TITRE DE LA FEUILLE, pas sa « visibilité » : la feuille est
+   toujours dans le DOM et c'est une classe qui la montre. Un contrôle sur
+   « isVisible » aurait pu répondre oui sans que le bon soit celui-là. */
+const vu = await attendre(p, r => (document.getElementById('sheetTitle')||{}).textContent?.includes(r),
+  'le bon s’ouvre juste après la création', tel1.p_ref);
+const ouvertSur = await p.textContent('#sheetTitle').catch(()=>'');
+check('le bon s’ouvre juste après la création, sur LA bonne course',
+  vu && ouvertSur.includes(tel1.p_ref),
+  'titre de la feuille : « '+ouvertSur+' » — c’est là que s’affiche l’avertissement sur les papiers');
+await p.click('#closeSheet').catch(()=>{});
+
+/* LE SÉLECTEUR DE CHAUFFEUR NE PROPOSE QUE LES ATTRIBUABLES. */
+await p.click('#btnTelephoneV2');
+await p.waitForSelector('#formTelephone:not([hidden])', {timeout:8000});
+const proposes = await p.evaluate(()=>[...document.querySelectorAll('#tfChauffeur option')]
+  .map(o=>o.textContent.trim()).filter(t=>!t.startsWith('—')));
+check('le sélecteur ne propose pas un chauffeur aux papiers périmés',
+  !proposes.includes('Ayse'), 'reçu : '+JSON.stringify(proposes));
+check('…mais propose bien celui qui est en règle', proposes.includes('Mehmet'));
+
+/* ET LE SERVEUR REFUSE QUAND MÊME, SI ON PASSE OUTRE.
+   L’écran cache, le serveur impose — c’est la règle de ce lot, et la
+   saisie téléphone ne doit pas pouvoir la contourner. */
+await p.fill('#tfNom','Client Deux'); await p.fill('#tfTel','06 55 44 33 22');
+await p.fill('#tfDepart','Gare de Lyon'); await p.fill('#tfArrivee','CDG 2E');
+await p.fill('#tfDate','2026-09-26'); await p.fill('#tfHeure','11:00'); await p.fill('#tfPrix','90');
+await p.evaluate(()=>{ const s=document.getElementById('tfChauffeur');
+  const o=document.createElement('option'); o.value='d-perime'; o.textContent='Ayse';
+  s.appendChild(o); s.value='d-perime'; });
+const avantAttr = attributions.length;
+await p.evaluate(()=>document.getElementById('formTelephone')
+  .dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})));
+await attendre(p, ()=>/Course créée/i.test(document.getElementById('intakeEtat').textContent),
+  'la course est créée même si l’attribution échoue');
+check('l’attribution passe par la RPC, jamais par le bon écrit à la main',
+  attributions.length === avantAttr + 1,
+  'c’est elle qui impose la règle des papiers');
+const dit = await p.textContent('#intakeEtat');
+check('le refus d’attribution est DIT, pas avalé',
+  /papiers/i.test(dit), 'reçu : '+dit);
+check('…et la course existe quand même',
+  COURSES.some(c=>c.bon && c.bon.client && c.bon.client.nom === 'Client Deux'),
+  'on ne perd pas un appel parce qu’un chauffeur n’était pas attribuable');
 
 check('aucune erreur JavaScript pendant tout le parcours', errs.length === 0,
   errs.join(' | '));

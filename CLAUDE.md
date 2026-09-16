@@ -3925,6 +3925,55 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 2 — SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
+
+16 septembre 2026. « Coller une demande » ne couvre que le client qui
+**écrit** ; quand un hôtel **appelle**, il aurait fallu fabriquer un faux
+message WhatsApp pour le coller.
+
+- **ELLE ENTRE `confirmee`**, contrairement à une demande collée : une demande
+  venue d'un client attend une réponse, une course convenue de vive voix
+  n'attend personne. Même RPC que la brique 1, avec l'autre statut — les deux
+  portes existaient déjà dans la fonction, elles servent enfin toutes les deux.
+- **LA GRILLE AFFICHÉE VIENT DU SERVEUR** (`state.params`), jamais réécrite
+  dans la page. C'est sur elle que Barbaros annonce un montant au téléphone :
+  un nombre recopié ici resterait périmé au premier changement de tarif, sans
+  que rien ne le signale. Même règle que `ecrireGrille()` côté site. **Sans
+  grille serveur, on le DIT** — en afficher une par défaut ferait annoncer un
+  prix sur un tarif que personne n'a validé.
+- **LE CHAUFFEUR PASSE PAR LA RPC D'ATTRIBUTION**, jamais par le bon écrit à
+  la main. C'est ce qui fait que la règle des papiers s'applique ici comme
+  ailleurs : **on ne peut pas la contourner en créant la course avec un
+  chauffeur déjà dedans**. Et si elle refuse, **la course existe quand même** —
+  on ne perd pas un appel parce qu'un chauffeur n'était pas attribuable. Le
+  refus est **dit**, jamais avalé.
+- **LE RÈGLEMENT N'EST PAS DEMANDÉ** : il se convient de vive voix, et inventer
+  « espèces » par défaut ferait partir le chauffeur sans son terminal.
+- **`telValide` A REJOINT LA SOURCE PARTAGÉE.** La consigne « même contrôle que
+  côté client » ne vaut que s'il n'y a **qu'un** contrôle : deux règles
+  séparées, c'est un numéro accepté ici et refusé là, et le client qu'on ne
+  rappelle pas.
+- **ON DIT CE QUI MANQUE, PAS « formulaire incomplet »** — à 3 h du matin, un
+  message qui ne nomme pas le champ oblige à tout relire.
+- **LE BOUTON OUVRE, IL NE BASCULE PAS.** Premier jet : il refermait ce qu'on
+  venait d'ouvrir, et la suite attendait un formulaire qui se cachait. Un
+  bouton qui fait deux choses selon l'état se lit comme un bouton cassé —
+  c'est « Annuler » qui ferme.
+
+**DEUX PIÈGES DE TEST, ET LE PREMIER PROUVAIT LE PRODUIT.** La suite a calé
+sur un clic « intercepté par la feuille » : c'était le **bon qui s'ouvrait
+vraiment** après la création, comme il doit. Le second : le contrôle lisait le
+titre de la feuille **avant** qu'`openBooking` ait fini — asynchrone. Et on
+mesure le **titre**, pas `isVisible` : la feuille est toujours dans le DOM,
+c'est une classe qui la montre, donc `isVisible` aurait pu répondre oui sans
+que le bon soit le bon.
+
+**CE QUI N'EST PAS ENCORE PORTÉ, ET JE LE NOMME** : « Calculer le prix depuis
+les adresses ». Côté site il passe par la chaîne d'itinéraire à quatre
+niveaux ; la recopier dans Admin v2 serait exactement la divergence que ce
+lot évite. Elle doit devenir partagée comme le lecteur — **c'est une brique à
+part, qui se relit seule**.
+
 ### LA GRILLE DU CLIENT ET CELLE DU SERVEUR NE S'ACCORDAIENT QUE PAR CHANCE
 
 16 septembre 2026, trouvé en préparant la saisie par téléphone. Le site
