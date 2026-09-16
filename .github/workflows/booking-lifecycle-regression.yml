@@ -1,0 +1,40 @@
+name: Contrôle cycle réservation v2
+on:
+  pull_request:
+    paths:
+      - 'admin-v2-actions.js'
+      - 'construire.sh'
+      - 'supabase/migrations/20260916083000_booking_lifecycle_v2.sql'
+      - '.github/workflows/booking-lifecycle-regression.yml'
+permissions: {contents: read}
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier JavaScript
+        run: node --check admin-v2-actions.js
+      - name: Construire le site
+        run: bash construire.sh
+      - name: Vérifier le parcours métier
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f site/admin-v2-actions.js
+          grep -Fq '/admin-v2-actions.js' site/admin-v2.html
+          grep -Fq 'ela_changer_statut' admin-v2-actions.js
+          grep -Fq 'ela_attribuer_chauffeur' admin-v2-actions.js
+          grep -Fq 'ela_retirer_chauffeur' admin-v2-actions.js
+          grep -Fq 'ela_journaliser_proposition_chauffeur' admin-v2-actions.js
+          grep -Fq 'capturer-paiement' admin-v2-actions.js
+          grep -Fq 'annuler-empreinte' admin-v2-actions.js
+          grep -Fq 'Montant chauffeur' admin-v2-actions.js
+          if grep -Eq 'service_role|sk_(test|live)_' admin-v2-actions.js; then
+            echo 'Secret interdit dans le navigateur'
+            exit 1
+          fi
+          grep -Fq 'security definer' supabase/migrations/20260916083000_booking_lifecycle_v2.sql
+          grep -Fq 'est_exploitant()' supabase/migrations/20260916083000_booking_lifecycle_v2.sql
+          grep -Fq "statut='valide'" supabase/migrations/20260916083000_booking_lifecycle_v2.sql
+          grep -Fq 'actions_requises_unique_ouverte' supabase/migrations/20260916083000_booking_lifecycle_v2.sql
+          grep -Fq 'Europe/Paris' supabase/migrations/20260916083000_booking_lifecycle_v2.sql
