@@ -241,19 +241,29 @@ for(const f of [...cites].sort()){
    du 15 septembre — 53 branches ramenées à 15 — il en nommait une qui
    n'existait plus. Une consigne de travail qui vise le vide fait repartir
    d'un endroit quelconque. */
+/* ON DEMANDE AU SERVEUR, PAS AU CLONE LOCAL — et ça a coûté une publication
+   en échec, le soir même où ce fichier est né. `git branch -r` lit les refs
+   que la machine possède ; GitHub Actions ne clone QU'UNE branche, donc en
+   CI toutes les autres paraissaient supprimées et la publication s'arrêtait
+   sur un mensonge du contrôle lui-même.
+   C'est exactement la faute que cette suite existe pour empêcher : affirmer
+   à partir de ce qu'on a sous la main plutôt que de la source. `ls-remote`
+   interroge le dépôt distant — même réponse en CI et ici.
+   Sans réseau, on SAUTE au lieu d'accuser : un contrôle qui ne peut pas
+   mesurer se tait, il n'invente pas un verdict. */
 let refs = "";
-try { refs = execSync("git branch -r --format='%(refname:short)'", {stdio:["ignore","pipe","ignore"]}).toString(); }
+try { refs = execSync("git ls-remote --heads origin", {stdio:["ignore","pipe","ignore"], timeout:20000}).toString(); }
 catch(e){ refs = ""; }
 if(refs){
   const nommees = new Set();
   for(const m of vivant.matchAll(/`(claude\/[a-z0-9-]{6,})`/g)) nommees.add(m[1]);
   for(const b of [...nommees].sort()){
     verifier("la branche « " + b + " » que CLAUDE.md nomme existe encore",
-      refs.includes("origin/" + b),
+      refs.includes("refs/heads/" + b),
       "elle a été supprimée. Une consigne qui vise une branche morte fait repartir d'ailleurs.");
   }
 } else {
-  console.log("  (pas d'accès aux branches distantes : ce contrôle est sauté)");
+  console.log("  (dépôt distant injoignable : le contrôle des branches est sauté)");
 }
 
 /* --------------------------------------------------------------- */
