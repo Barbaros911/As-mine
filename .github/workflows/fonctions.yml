@@ -83,3 +83,10 @@ jobs:
       # Supabase qui n'est nulle part dans le site.
       - name: Déployer courses-hotel
         run: supabase functions deploy courses-hotel --project-ref "$PROJET"
+
+      # « deposer-course » reçoit les demandes du site public. Il n'existe
+      # volontairement aucune session client : la fonction applique donc
+      # elle-même CORS strict, quota, validation, liste blanche des champs,
+      # idempotence et statut « attente » imposé côté serveur.
+      - name: Déployer deposer-course
+        run: supabase functions deploy deposer-course --no-verify-jwt --project-ref "$PROJET"
