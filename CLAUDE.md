@@ -3847,6 +3847,39 @@ durcira quand le carnet sera rempli — **ce sera une décision de Barbaros**, p
 un correctif appliqué en silence. Le test le dit à l'endroit même du contrôle,
 pour que la prochaine session ne le « répare » pas.
 
+#### LA SUITE SQL EST TOMBÉE À 00 h 21, ET C'ÉTAIT LE TEST QUI AVAIT TORT
+
+16 septembre 2026, premier rouge en CI sur la brique suivante. Message :
+« un papier qui expire aujourd'hui est declare perime ».
+
+**LE CODE ÉTAIT JUSTE, LES FIXTURES DATAIENT DANS LE MAUVAIS FUSEAU.** Elles
+posaient `current_date` — le jour de la **session**, donc UTC sur un coureur
+GitHub — pendant que la règle compare au jour de **Paris**. À 22 h 21 UTC il
+est 00 h 21 à Paris : ce ne sont plus le même jour, et « expire aujourd'hui »
+devenait « expire hier ».
+
+- **ELLE PASSAIT AU VERT DEPUIS DES HEURES POUR UNE SEULE RAISON** : on ne
+  l'avait lancée qu'à des heures où UTC et Paris tombaient le même jour. C'est
+  la même famille que le `toISOString` du site, qui ne se voyait qu'entre
+  minuit et 2 h — **exactement quand personne ne teste**. La fenêtre ici est
+  22 h–minuit UTC, tous les jours.
+- Les fixtures datent maintenant depuis `(now() at time zone 'Europe/Paris')`,
+  **le même repère que la règle**. Une fixture et la règle qu'elle éprouve
+  doivent parler du même calendrier.
+
+**ET LE CONTRÔLE QUE J'AI AJOUTÉ POUR ÇA NE PROUVAIT RIEN AU PREMIER JET.**
+Il décalait la session à Kiritimati (UTC+14) et comparait au jour de Paris.
+Or à 22 h UTC les deux tombent le **même** jour : il passait au vert sur la
+version fausse. **Un contrôle qui ne mord qu'à certaines heures est exactement
+le défaut qu'on répare.**
+Il est maintenant déterministe : Midway (UTC-11) et Kiritimati (UTC+14) sont à
+**vingt-cinq heures d'écart**, donc toujours sur deux jours différents. On
+prend « aujourd'hui » vu de Midway et on demande son état depuis les deux
+fuseaux — une règle ancrée à Paris rend deux fois la même chose, une règle qui
+lit `current_date` rend « valide » ici et « périmé » là-bas.
+Éprouvé sous **quatre** configurations : le vrai code vert en session UTC,
+Paris et Kiritimati ; la version fausse tombe, et nomme l'écart.
+
 **`test-admin-papiers.mjs` ÉPROUVE LE SITE CONSTRUIT, PAS LE DÉPÔT**, et
 **construit et sert elle-même**. Les trois scripts d'Admin v2 ne sont rattachés
 à la page que par `construire.sh` : ouverte depuis le dépôt, `admin-v2.html`

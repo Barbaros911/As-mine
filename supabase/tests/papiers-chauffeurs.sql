@@ -11,31 +11,47 @@
 --
 -- Chaque echec leve une exception : psql -v ON_ERROR_STOP=1 rend alors 3.
 
+-- ===========================================================================
+-- LES FIXTURES DATENT DANS LE FUSEAU DE LA REGLE, PAS DANS CELUI DU COUREUR
+-- ---------------------------------------------------------------------------
+-- Elles utilisaient « current_date », qui est le jour de la SESSION -- UTC
+-- sur un coureur GitHub. La regle, elle, compare au jour de PARIS. Entre
+-- 22 h et minuit UTC les deux ne sont plus le meme jour, et « expire
+-- aujourd'hui » devenait « expire hier » : la suite tombait, alors que le
+-- code etait juste.
+--
+-- ELLE EST PASSEE AU VERT PENDANT DES HEURES POUR UNE SEULE RAISON : on ne
+-- l'a lancee qu'a des heures ou UTC et Paris tombaient le meme jour. Meme
+-- famille que le « toISOString » du site, qui ne se voyait qu'entre minuit
+-- et 2 h -- exactement quand personne ne teste.
+create temporary view aujourdhui_paris as
+  select (now() at time zone 'Europe/Paris')::date as j;
+
 insert into public.chauffeurs(id,nom_affiche,telephone_whatsapp,statut,
                               carte_vtc_fin,registre_fin,assurance_fin) values
  ('11111111-1111-1111-1111-111111111111','Mehmet','0612','valide',
-   current_date+300, current_date+400, current_date+200),
+   (select j from aujourdhui_paris)+300, (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200),
  ('22222222-2222-2222-2222-222222222222','Ayse','0698','valide',
-   current_date+300, current_date+400, current_date-2),
+   (select j from aujourdhui_paris)+300, (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)-2),
  ('33333333-3333-3333-3333-333333333333','Karim','0611','valide',
-   current_date+12,  current_date+400, current_date+200),
+   (select j from aujourdhui_paris)+12,  (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200),
  ('44444444-4444-4444-4444-444444444444','Luis','0755','valide',
    null, null, null),
  ('55555555-5555-5555-5555-555555555555','Aujourdhui','0700','valide',
-   current_date,     current_date+400, current_date+200),
+   (select j from aujourdhui_paris), (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200),
  ('66666666-6666-6666-6666-666666666666','BloqueMain','0701','bloque',
-   current_date+300, current_date+400, current_date+200),
+   (select j from aujourdhui_paris)+300, (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200),
  -- Les deux bornes du 30e jour. Le site alerte a « j <= 30 » : le 30e jour est
  -- DEDANS, le 31e dehors. Un « < » cote serveur ferait dire « a jour » le jour
  -- meme ou l'ecran dit « expire dans 30 j », et un desaccord pareil ne se voit
  -- que le jour du controle.
  ('77777777-7777-7777-7777-777777777777','Trente','0702','valide',
-   current_date+30,  current_date+400, current_date+200),
+   (select j from aujourdhui_paris)+30,  (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200),
  ('88888888-8888-8888-8888-888888888888','TrenteEtUn','0703','valide',
-   current_date+31,  current_date+400, current_date+200),
+   (select j from aujourdhui_paris)+31,  (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200),
  -- Une fiche d'avant, au statut que le formulaire ne propose plus.
  ('99999999-9999-9999-9999-999999999999','Ancien','0704','a_renouveler',
-   current_date+300, current_date+400, current_date+200);
+   (select j from aujourdhui_paris)+300, (select j from aujourdhui_paris)+400, (select j from aujourdhui_paris)+200);
 
 do $$
 declare r record;
@@ -96,6 +112,39 @@ begin
   select * into r from public.chauffeurs_etat where nom_affiche='Mehmet';
   if r.etat_effectif <> 'valide' or not r.attribuable then
     raise exception 'Mehmet : % / %', r.etat_effectif, r.attribuable; end if;
+end $$;
+
+-- 7 bis. LA REGLE SUIT PARIS, ET NE BOUGE PAS AVEC LE FUSEAU DE LA SESSION.
+--
+--        CE CONTROLE MANQUAIT, ET SON ABSENCE A COUTE UN ROUGE EN CI a
+--        00 h 21 heure de Paris : rien ne verifiait que « aujourd'hui »
+--        soit le jour PARISIEN et non celui du coureur.
+--
+--        LE PREMIER JET NE PROUVAIT RIEN : il decalait la session a
+--        Kiritimati (UTC+14) et comparait au jour de Paris. Or a 22 h UTC
+--        les deux tombent le MEME jour -- le controle passait au vert sur la
+--        version fausse. Un controle qui ne mord qu'a certaines heures est
+--        exactement le defaut qu'on repare.
+--
+--        CE QU'ON EPROUVE MAINTENANT EST DETERMINISTE, a n'importe quelle
+--        heure : Midway (UTC-11) et Kiritimati (UTC+14) sont a vingt-cinq
+--        heures d'ecart, donc TOUJOURS sur deux jours differents. On prend
+--        « aujourd'hui » vu de Midway et on demande son etat depuis les deux
+--        fuseaux. Une regle ancree a Paris rend deux fois la meme chose ;
+--        une regle qui lit « current_date » rend « valide » ici et
+--        « perime » la-bas.
+do $$
+declare jour date; a text; b text; ancien text := current_setting('TimeZone');
+begin
+  set time zone 'Pacific/Midway';
+  select current_date into jour;
+  select public.ela_etat_papier(jour) into a;
+  set time zone 'Pacific/Kiritimati';
+  select public.ela_etat_papier(jour) into b;
+  execute format('set time zone %L', ancien);
+  if a is distinct from b then raise exception
+    'la regle suit le fuseau de la session : le meme jour rend « % » a Midway et « % » a Kiritimati', a, b;
+  end if;
 end $$;
 
 -- 8. LA FILE D'ACTIONS : elle voit les papiers, et elle NE SE DUPLIQUE PAS.
