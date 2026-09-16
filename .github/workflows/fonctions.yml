@@ -90,3 +90,18 @@ jobs:
       # idempotence et statut « attente » imposé côté serveur.
       - name: Déployer deposer-course
         run: supabase functions deploy deposer-course --no-verify-jwt --project-ref "$PROJET"
+
+      # Stripe reste en TEST : creer-empreinte ne reçoit pas de session
+      # client mais exige référence + téléphone et un snapshot financier
+      # serveur verrouillé. Capture/annulation exigent une session exploitant.
+      - name: Déployer creer-empreinte
+        run: supabase functions deploy creer-empreinte --no-verify-jwt --project-ref "$PROJET"
+      - name: Déployer capturer-paiement
+        run: supabase functions deploy capturer-paiement --project-ref "$PROJET"
+      - name: Déployer annuler-empreinte
+        run: supabase functions deploy annuler-empreinte --project-ref "$PROJET"
+
+      # Stripe signe lui-même les webhooks : pas de JWT Supabase, mais une
+      # signature HMAC Stripe obligatoire et une déduplication par event_id.
+      - name: Déployer stripe-webhook
+        run: supabase functions deploy stripe-webhook --no-verify-jwt --project-ref "$PROJET"
