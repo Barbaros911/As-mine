@@ -1,91 +1,74 @@
-# ELA Transfer — état central du projet
+# ELA Transfer — ce qui a été décidé, ce qui est prévu, ce qui bloque
 
-Ce fichier est le registre court à lire avant toute intervention. Il complète `AGENTS.md`.
+**Ce fichier ne dit PAS où en est le dépôt.** Ça se demande, ça ne s'écrit
+pas : `sh .claude/outils/etat.sh` (ou `/etat`) rend le dernier `main`, l'état
+de la publication, les Issues `[TEAM]` ouvertes, les PR, les branches vivantes
+et le retard de la branche courante. Il interroge, donc il ne peut pas mentir.
 
-## Production
+**POURQUOI CE FICHIER A MAIGRI** (16 septembre 2026). Il tenait une liste de
+« tâches terminées » et un état de production recopiés à la main. Le 16 il
+n'avait pas bougé depuis **dix fusions, 38 branches supprimées et trois
+correctifs publiés** : il annonçait un projet qui n'existait plus, et personne
+ne pouvait le savoir en le lisant. Le même jour, `CLAUDE.md` annonçait un tarif
+au kilomètre périmé depuis la PR #123. **Tout ce qui se recopie finit périmé** —
+pas par négligence, mais parce qu'il y a toujours un soir où l'on fusionne à 2 h.
 
-- Branche de production : `main`.
-- Déploiement : construit avec `construire.sh`.
-- Domaine public : `elatransfer.com`.
-- GitHub est la source de vérité pour le code.
+Il ne reste donc ici que les trois choses qu'aucune commande ne saura jamais
+répondre : ce qui a été **décidé**, ce qui est **prévu**, ce qui **bloque**.
+Un historique des fusions ne s'écrit plus ici : `git log` le tient déjà, et
+mieux.
 
-## Règle de coordination
+---
 
-Avant toute tâche : vérifier les PR/branches actives, le dernier `main` et ce fichier. Une tâche déjà couverte ailleurs ne doit pas être recommencée.
+## Qui décide quoi
 
-## Zones et état connu
+Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
+`TEAM_RULES.md` qui dit vrai.
 
-### Façade publique ELA
-- Zone : `sites/ela-public/` + intégration d’accueil.
-- Identité verrouillée : bleu marine + cyan + blanc, logo ELA Transfer validé, univers aéroport/Paris.
-- Mobile et ordinateur doivent partager la même identité mais avec mise en page responsive.
-- Une référence visuelle validée doit être reproduite fidèlement, pas seulement utilisée comme inspiration.
-- Ne pas modifier les règles métier lors d’un travail purement visuel.
+## Ce qui est décidé et ne se rediscute pas
 
-### Application de réservation
-- Zone : racine `index.html` et fichiers générés/associés.
-- Ne pas modifier sans vérifier les conséquences sur les modes public, EasyHotel et exploitant.
+- **Barbaros ne conduit pas, il place.** Elatransfer est une centrale de
+  réservation (Code des transports L3142-1), pas un transporteur.
+- **Le client paie le chauffeur**, à bord. Aucun paiement en ligne.
+- **Le prix est ferme**, arrêté à la réservation, donc **opposable**.
+  Conséquence de tout : toucher à la grille veut dire toucher aux CGV, dans
+  les deux langues.
+- **Aucune majoration** — ni nuit, ni week-end, ni jour férié. Seule exception,
+  le forfait partenaire easyHotel (+5 € de 21 h à 6 h), qui est une autre
+  grille.
+- **Un seul `index.html`.** Client, exploitant, hôtel et réception y vivent
+  ensemble. Le dupliquer, c'est le faire diverger au premier correctif.
+- **`construire.sh` est la seule recette de publication**, partagée par GitHub
+  Actions et Cloudflare Pages.
+- **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé.
+- **Aucune photo ni aucun logo dont on ne détient pas les droits.**
 
-### EasyHotel client
-- Zone : `sites/easyhotel-client/` et intégration associée.
-- Ne pas mélanger avec une refonte de la façade publique ELA.
+## Ce qui est prévu
 
-### EasyHotel réception
-- Zone : `sites/easyhotel-reception/` + fonctions serveur associées.
-- Accès et données doivent rester isolés de l’admin complet.
+| Quoi | Qui | Où c'est suivi |
+|---|---|---|
+| Refonte de l'admin sur la référence visuelle | ChatGPT puis Claude | Issue #165 |
+| Trancher la pancarte : option à 10 € ou gratuite | **Barbaros** | Issue #169 |
+| Relecture de `TEAM_RULES.md` (§1 et §9) | ChatGPT | PR #170 |
+| Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
 
-### Admin ELA
-- Zone : `sites/ela-admin/` / logique exploitant.
-- Ne pas exposer de données privées ou de fonctions admin dans la façade publique.
+## Ce qui bloque, et par qui
 
-### Build / déploiement
-- `construire.sh` est la recette centrale.
-- Toute modification de build doit être considérée comme zone critique.
-- Après déploiement, vérifier les routes essentielles touchées.
+- **LE SIRET N'EXISTE PAS.** C'est le seul vrai blocage du projet et il ne
+  dépend que de Barbaros — micro-entreprise à créer sur
+  `formalites.entreprises.gouv.fr`. Sans lui : mentions légales incomplètes,
+  fiche Google non vérifiable, **aucune facture de commission valable**.
+- **Le médiateur de la consommation n'est pas désigné** (L616-1 Code conso.).
+  Tant qu'il ne l'est pas, on n'en nomme aucun : le client écrirait à une
+  adresse morte en croyant avoir saisi un recours.
+- **Mapbox est repoussé**, à sa demande — il n'a pas voulu donner sa carte
+  bancaire. Ne pas le relancer. Le site tourne sur ORS, OSRM en filet.
+- **Cloudflare est en attente** : ne pas déplacer les serveurs de noms, son
+  email en dépend. Marche à suivre dans `CLOUDFLARE.md`.
 
-## Tâches actives
+## Comment tenir ce fichier
 
-Aucune tâche ne doit être inscrite ici comme active sans branche ou PR identifiable.
-
-Format obligatoire :
-
-`[STATUT] — [TÂCHE] — [BRANCHE/PR] — [ZONE] — [FICHIERS] — [PROCHAINE ÉTAPE]`
-
-Exemple :
-
-`EN COURS — Refaire mobile public — ela/mobile-public — façade publique — sites/ela-public/index.html — validation visuelle`
-
-## Tâches terminées récentes
-
-À renseigner après chaque fusion importante, avec une ligne courte indiquant le commit ou la PR.
-
-`TERMINÉ — Maquette exacte des 4 interfaces publiée — PR #135 / d0c3719 — site public, easyHotel client, réception et admin — build et routes de production vérifiés le 14/09/2026`
-
-`TERMINÉ — Admin mobile réaligné sur la référence et ancien écran neutralisé — PR #137 — admin ELA / application exploitant — build et interactions vérifiés le 14/09/2026`
-
-`TERMINÉ — Logo officiel unique ELA Transfer déployé sur toutes les interfaces — PR #138 — façade publique, application, easyHotel client, réception, admin et icônes — build et assets vérifiés le 14/09/2026`
-
-`TERMINÉ — Façade publique mobile alignée sur la référence validée — PR #139 — accueil, réservation, services et menu mobile — interactions et identité vérifiées le 14/09/2026`
-
-`TERMINÉ — Façade publique et application de réservation unifiées — PR #142 / 4909e14 — racine, /application, EasyHotel, réception et admin — build, déploiement et interactions vérifiés le 14/09/2026`
-
-`TERMINÉ — Parcours mobile client easyHotel refondu et publié — PR #143 / 7f0b9dd — EasyHotel client — identité easyHotel × ELA, CTA vers moteur partenaire, FR/EN et responsive publiés le 15/09/2026`
-
-`TERMINÉ — Landing easyHotel Aéroville repensée et publiée — PR #144 / 6af2f53 — EasyHotel client — hôtel mis au premier plan, logo ELA inchangé, nouvelles photos licenciées, responsive et CTA partenaire publiés le 15/09/2026`
-
-`TERMINÉ — Vrai moteur mobile easyHotel corrigé d'après les captures — PR #146 / 62e840e — application hôtel — en-tête compact, photo hôtel, identité client avancée et destinations photo publiées le 15/09/2026`
-
-`TERMINÉ — Anciennes façades et routes unifiées avec l’application fonctionnelle — PR #151 — façade publique, réception, admin et build — maquettes statiques neutralisées, cache v80 et contrôle anti-régression ajoutés le 15/09/2026`
-
-`TERMINÉ — Galerie publique nettoyée des anciennes interfaces — PR #152 — build/démos — ancienne marque et anciennes routes retirées de la liste, contrôle anti-régression ajouté le 15/09/2026`
-
-## Blocages
-
-À renseigner uniquement lorsqu’un accès, une dépendance externe ou une décision utilisateur empêche réellement d’avancer.
-
-## Règle de mise à jour
-
-- Début de tâche : ajouter ou mettre à jour la ligne dans `Tâches actives`.
-- Changement de statut : modifier la même ligne, ne pas créer de doublon.
-- Fin de tâche : retirer de `Tâches actives`, ajouter dans `Tâches terminées récentes`.
-- Si un autre agent voit une tâche active sur la même zone, il doit s'arrêter et utiliser le statut `EN COURS AILLEURS`.
+Une seule règle : **n'y écrire que ce qui ne se mesure pas.** Un état, un
+compte, une liste de branches, une date de dernière fusion — tout ça se
+demande à `/etat`. Ici on n'écrit que des décisions et des intentions, et on
+les date quand elles changent.

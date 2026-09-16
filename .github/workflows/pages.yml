@@ -38,6 +38,16 @@ jobs:
       # hébergeurs assemblaient le site chacun de leur côté, il n'était
       # qu'une question de temps avant que l'un publie un fichier que
       # l'autre avait oublié.
+      # UNE DOCUMENTATION QUI MENT NE PASSE PLUS. Le 16 septembre 2026,
+      # CLAUDE.md annonçait un tarif au kilomètre que le code n'appliquait
+      # plus depuis la PR #123. Le prix d'Elatransfer est ferme donc
+      # opposable : c'est ce chiffre-là qu'on annonce au téléphone et qu'on
+      # recopie dans les CGV. Tout ce qui s'écrit à la main finit périmé —
+      # la seule parade est que la construction s'arrête.
+      # Ni navigateur ni réseau : une seconde.
+      - name: Contrôler que la documentation dit vrai
+        run: node test-doc.mjs
+
       - name: Construire et contrôler le site unifié
         run: node test-unified-facade.mjs
 
