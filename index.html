@@ -1310,7 +1310,17 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 }
 
 /* ---------- SECTIONS ---------- */
-.section{padding:30px 20px 0;}
+/* LA GOUTTIÈRE EST UNE VARIABLE, ET C'EST UN CORRECTIF (16 septembre 2026).
+   Elle était écrite « 20px » ici et « -20px » sur le carrousel des services,
+   qui déborde volontairement pour montrer qu'on peut le balayer. Deux nombres
+   qui doivent rester égaux, à deux endroits : ça tient jusqu'au jour où l'un
+   bouge. « application-facade.css » — appliqué SEULEMENT à la construction —
+   descend la gouttière à 14 px sous 900 px et n'a pas touché au carrousel :
+   la page publiée faisait 396 px de large pour une fenêtre de 390, et se
+   décalait de 6 px sous le doigt. INVISIBLE EN LOCAL, où le dépôt sert un
+   fichier sans cette feuille : le défaut n'existait QUE sur le site publié.
+   Désormais un seul nombre par largeur d'écran, et le carrousel le suit. */
+.section{--gouttiere:20px;padding:30px var(--gouttiere) 0;}
 .section h2{margin:0 0 20px;font-size:20.5px;font-weight:800;letter-spacing:-.02em;}
 /* QUATRE COLONNES NE TENAIENT PAS, ET L'ICÔNE À GAUCHE DU TEXTE NON PLUS.
    À 390 px, quatre colonnes font 86 px : « Véhicules haut de gamme » y passe
@@ -1350,7 +1360,8 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    tout le bas de la page hors de l'écran, et le geste de balayage dit « il y
    en a d'autres » mieux qu'une flèche. */
 .services{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
-  margin:0 -20px;padding:0 20px 6px;-webkit-overflow-scrolling:touch;}
+  margin:0 calc(-1 * var(--gouttiere));padding:0 var(--gouttiere) 6px;
+  -webkit-overflow-scrolling:touch;}
 .services::-webkit-scrollbar{display:none;}
 /* LES CARTES ONT MAIGRI DE 178 À 156 px AVEC LE DÉPART DES PHOTOS.
    Ce n'est pas une économie de place, c'est ce qui fait voir qu'il y en a
