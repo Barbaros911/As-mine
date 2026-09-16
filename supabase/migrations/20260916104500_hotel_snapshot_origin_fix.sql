@@ -1,7 +1,7 @@
--- Validation serveur des destinations partenaires + dépôt atomique course/snapshot.
-alter table public.tarifs_partenaires add column if not exists validation jsonb not null default '{}'::jsonb;
-update public.tarifs_partenaires t set validation=case t.destination_cle when 'cdg' then '{"terminal_prefix":"CDG"}'::jsonb when 'orly' then '{"terminal_prefix":"Orly"}'::jsonb when 'beauvais' then '{"terminal_prefix":"Beauvais"}'::jsonb when 'bourget' then '{"texte_contient":"Le Bourget"}'::jsonb when 'villepinte' then '{"texte_contient":"Villepinte"}'::jsonb when 'disney' then '{"texte_contient":"Disney"}'::jsonb when 'paris' then '{"verification_manuelle":true}'::jsonb else '{}'::jsonb end from public.partenaires p where p.id=t.partenaire_id and p.cle='easyhotel-aeroville' and t.actif;
-create or replace function public.ela_deposer_course_serveur(p_ref text,p_bon jsonb,p_snapshot jsonb default null) returns text language plpgsql security definer set search_path=public,pg_temp as $$
+-- Hotfix de la fonction déjà appliquée : la contrainte existante accepte
+-- uniquement 'admin' ou 'moteur_tarifaire'.
+create or replace function public.ela_deposer_course_serveur(p_ref text,p_bon jsonb,p_snapshot jsonb default null)
+returns text language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   if current_user not in ('service_role','postgres') and auth.role() <> 'service_role' then raise exception 'acces_refuse'; end if;
   insert into public.courses(ref,statut,bon) values(p_ref,'attente',p_bon);
