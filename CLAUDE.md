@@ -3766,6 +3766,56 @@ Il vérifie maintenant son vrai sujet — un `;` présent, aucune `,`. Même
 leçon que la barre du bas figée sur quatre onglets, et que les trois tests
 qui visaient `p.font-mono` au lieu de `.veh-prix`.
 
+### QUATORZE CONTRÔLES ROUGES DEPUIS DES JOURS, ET PERSONNE NE LES VOYAIT
+
+16 septembre 2026. La série complète lancée avant une fusion a rendu **14
+échecs dans 5 suites**, tous antérieurs. La publication ne regarde pas les
+suites : elles pouvaient rester rouges indéfiniment.
+
+**UN TEST QUI TOMBE TOUS LES JOURS NE SURVEILLE PLUS RIEN.** On s'habitue au
+rouge, et le jour où il tombe pour une vraie raison, personne ne le voit.
+C'est pire qu'un test absent — celui-là, au moins, ne rassure personne.
+
+**UNE SEULE CAUSE POUR DIX D'ENTRE EUX : ils figeaient la formulation du
+jour.** La PR #123 a réécrit les documents légaux et changé les tarifs, le
+12 septembre. Les tests cherchaient mot pour mot « Total to pay »,
+« Données de localisation », « souscrit l'option », « sortie des trains »,
+et attendaient un prix calculé à 2,35 €/km. Le fond était resté juste ;
+seule la phrase avait bougé. Même leçon que la barre du bas figée sur
+quatre onglets et que `p.font-mono` — **viser la règle, pas le libellé**.
+Ce qui est verrouillé maintenant, et qui ne vieillira pas :
+- le récapitulatif affiche ce que la page dit elle-même dans `ELA_TEXTES`,
+  **et les deux langues doivent différer** — sinon une traduction recopiée
+  du français passerait au vert ;
+- la politique de confidentialité **nomme le bouton** de localisation et
+  **pose une condition** à côté, dans les DEUX langues ;
+- les CGV nomment l'option pancarte **et son montant, lu dans la page**, et
+  **aucune** phrase ne promet la pancarte sans condition.
+
+**LE TROU DE CONTRAT QUE ÇA A DÉCOUVERT.** La réécriture des CGV avait
+**perdu l'option pancarte de l'article 4**. Le site facturait donc 10 € une
+prestation que la formation du prix ne mentionnait plus — et le prix est
+ferme donc opposable. Rétabli dans les deux langues, avec la date de mise à
+jour des CGV. **Un document légal qui change sans que sa date change est
+lui-même trompeur.**
+
+**LES QUATRE DERNIERS VENAIENT D'AILLEURS, ET C'ÉTAIT LE PLUS INSTRUCTIF :
+`test-nouveau-bascule` éprouvait le DÉPÔT alors que son sujet est le site
+PUBLIÉ.** Elle cherchait `application.html`, que seul `construire.sh`
+fabrique (`cp site/index.html site/application.html`), et concluait au
+fichier manquant. Elle construit donc maintenant le site et le sert sur un
+second port ; ce qui touche à l'artefact publié vise `SITE`, le reste garde
+le dépôt. C'est la suite qui existe pour attraper « un fichier oublié dans
+la recette marche en local et reste introuvable en ligne » — elle ne pouvait
+pas le voir en n'ouvrant jamais le résultat de la recette.
+
+**LE PREMIER JET D'UN DE CES CONTRÔLES NE TOMBAIT PAS.** Celui de la
+pancarte cherchait la PREMIÈRE phrase parlant du panneau — et depuis que
+l'article 4 en parle aussi, c'est elle qu'il lisait : l'article 8 pouvait
+promettre la pancarte gratuitement à tout le monde sans que rien ne bronche.
+Il vérifie désormais que **toutes** ces phrases sont conditionnelles. Trouvé
+en l'éprouvant contre le défaut, pas en le relisant.
+
 **UN TEST QUI RÉIMPLÉMENTE CE QU'IL VÉRIFIE NE VÉRIFIE RIEN.** Écrit après
 avoir failli garder un contrôle d'arrondi qui recalculait la formule dans
 le test au lieu d'appeler la page : il serait passé au vert même avec le

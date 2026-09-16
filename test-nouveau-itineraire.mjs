@@ -36,17 +36,26 @@ const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
 /* Quatre distances distinctes, et quatre prix berline distincts qui en
-   découlent — 2,35 €/km, arrondi à la dizaine, le 5 pile qui descend :
-     Mapbox   10,0 km → 23,50 € → 20 €, relevé au PLANCHER de 30 €
-     ORS      40,0 km → 94,00 € → 90 €
-     OSRM     24,3 km → 57,11 € → 60 €
+   découlent — 2,65 €/km, arrondi à la dizaine, le 5 pile qui descend :
+     Mapbox   10,0 km →  26,50 € →  30 €  (le plancher ne joue plus : 26,50
+                                           monte déjà à 30 tout seul)
+     ORS      40,0 km → 106,00 € → 110 €
+     OSRM     24,3 km →  64,40 € →  60 €
      Vol d'oiseau : Vendôme → Argenteuil ≈ 12,6 km × 1,3 ≈ 16,4 km
-                            → 38,54 €   → 40 €
+                            →  43,46 € →  40 €
    AUCUN DE CES QUATRE PRIX N'EST CELUI D'UN AUTRE, et c'est toute la
    mécanique de cette suite : lire « 60 € » suffit à dire que c'est OSRM qui
-   a répondu. Vérifié après le passage à 2,35 €/km — 30, 90, 60 et 40 restent
-   quatre valeurs distinctes. Un changement de tarif qui en ferait coïncider
-   deux rendrait la suite aveugle sans qu'elle tombe. */
+   a répondu. Un changement de tarif qui en ferait coïncider deux rendrait la
+   suite aveugle SANS QU'ELLE TOMBE — d'où ce calcul écrit à la main ici.
+
+   CES VALEURS ONT MENTI PENDANT DES JOURS (corrigées le 16 septembre 2026).
+   La PR #123 a porté la berline de 2,35 à 2,65 €/km ; ce bloc et les deux
+   attentes ORS sont restés sur l'ancienne grille, et la suite tombait tous
+   les jours en annonçant « 110,00€ » là où elle attendait 90. Un test qui
+   tombe tous les jours ne surveille plus rien : on s'habitue, et le jour où
+   il tomberait pour une vraie raison personne ne le verrait.
+   RECALCULÉ À LA MAIN depuis GAMMES, jamais recopié de ce que la page
+   affiche — un test qui prend la sortie pour référence ne vérifie plus rien. */
 const KM = { mapbox:10000, ors:40000, osrm:24300 };
 
 async function course({ mapbox, ors, osrm, sansCles, jours }){
@@ -123,7 +132,7 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
 
 /* --- 1. TEL QUE LE SITE EST PUBLIÉ : clé ORS, pas de clé Mapbox ------- */
 let r = await course({ ors:true, osrm:true });
-check('en ligne aujourd\'hui, c\'est ORS qui donne la distance', r.prix==='90,00€', r.prix);
+check('en ligne aujourd\'hui, c\'est ORS qui donne la distance', r.prix==='110,00€', r.prix);
 check('et OSRM n\'est pas dérangé', r.versOSRM.length===0, r.versOSRM.join(' '));
 check('la clé part en « api_key »',
   r.versORS[0] && r.versORS[0].includes('api_key='), r.versORS[0]);
@@ -222,7 +231,7 @@ check('le tracé est réclamé, en version simplifiée',
    Mapbox tombe, ORS répond : c'est ORS qui doit parler, pas OSRM et
    surtout pas le vol d'oiseau. --------------------------------------- */
 r = await course({ mapbox:false, ors:true, osrm:true });
-check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='90,00€', r.prix);
+check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='110,00€', r.prix);
 check('OSRM reste au repos', r.versOSRM.length===0, r.versOSRM.join(' '));
 /* ET SURTOUT : ORS NE CONNAÎT PAS LE TRAFIC. Écrire la mention quand même
    ferait d'elle une décoration — et un client qui se fie à une heure

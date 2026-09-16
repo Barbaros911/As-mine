@@ -30,6 +30,55 @@
              node test-nouveau-bascule.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { execSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import { extname, join, normalize } from 'node:path';
+
+/* =====================================================================
+   CETTE SUITE ÉPROUVE LE SITE CONSTRUIT, PAS LE DÉPÔT
+   ---------------------------------------------------------------------
+   Ajouté le 16 septembre 2026, après deux contrôles rouges depuis des
+   jours. Ils cherchaient « application.html », qui N'EXISTE PAS dans le
+   dépôt : « construire.sh » le fabrique (`cp site/index.html
+   site/application.html`). La suite interrogeait le serveur du dépôt et
+   concluait au fichier manquant.
+
+   C'EST LA VRAIE CAUSE, ET ELLE DÉPASSE CES DEUX CONTRÔLES : ce qui est
+   servi en local n'est PAS ce qui est publié. « construire.sh » copie une
+   liste explicite et applique cinq transformations. Un fichier oublié dans
+   la recette marche parfaitement ici, où le serveur sert le dépôt entier,
+   et reste introuvable en ligne. Une suite qui n'éprouve que le dépôt ne
+   peut pas voir ça — or c'est précisément le sujet de CE fichier.
+
+   On construit donc, et on sert « site/ » sur un second port. Le reste de
+   la suite garde le dépôt : pour un fichier copié tel quel, les deux sont
+   identiques, et déplacer soixante adresses risquerait plus que ça
+   n'apporte. Ce qui touche à l'ARTEFACT PUBLIÉ vise SITE. */
+execSync('sh construire.sh', { cwd: process.cwd(), stdio: 'ignore' });
+
+const TYPES = {'.html':'text/html','.css':'text/css','.js':'text/javascript',
+  '.mjs':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json',
+  '.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg',
+  '.ico':'image/x-icon','.txt':'text/plain','.xml':'application/xml'};
+const serveur = createServer(async (req, res) => {
+  try {
+    let chemin = decodeURIComponent(req.url.split('?')[0]);
+    /* NORMALIZE PUIS RETRAIT DES « .. » : sans ça, une adresse pourrait
+       remonter hors de « site/ ». Le serveur ne vit qu'une minute, mais un
+       bac à sable qui laisse sortir n'est pas un bac à sable. */
+    chemin = normalize(chemin).replace(/^(\.\.[/\\])+/, '');
+    let f = join(process.cwd(), 'site', chemin);
+    try { if ((await stat(f)).isDirectory()) f = join(f, 'index.html'); }
+    catch { res.writeHead(404).end('non'); return; }
+    const corps = await readFile(f);
+    res.writeHead(200, {'Content-Type': TYPES[extname(f)] || 'application/octet-stream'});
+    res.end(corps);
+  } catch { res.writeHead(404).end('non'); }
+});
+await new Promise(r => serveur.listen(8098, '127.0.0.1', r));
+const SITE = 'http://127.0.0.1:8098';
+
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -93,16 +142,26 @@ check('l\'icône iOS est un PNG, pas un SVG',
   (await p.getAttribute('link[rel="apple-touch-icon"]','href')||'').endsWith('.png'),
   await p.getAttribute('link[rel="apple-touch-icon"]','href'));
 const man = await (await p.request.get('http://127.0.0.1:8099/manifest.webmanifest')).json();
+/* LA MARQUE S'ÉCRIT « ELA Transfer » OU « Elatransfer » selon l'endroit —
+   l'enseigne, le manifeste et les documents légaux n'ont jamais été alignés
+   là-dessus, et ce n'est pas le sujet de ce contrôle. Il figeait la graphie
+   sans espace et tombait depuis que le manifeste dit « ELA Transfer ».
+   CE QU'IL DOIT GARANTIR, et qui compte vraiment : le manifeste porte bien
+   la marque (et pas le nom d'un autre site du dépôt), et « start_url » ouvre
+   la RACINE — une icône posée par un client doit rouvrir le site client. */
 check('le manifeste est lisible et porte la marque',
-  man.name.includes('Elatransfer') && man.start_url === './', man.name);
+  /ela\s?transfer/i.test(man.name || '') && man.start_url === './', man.name);
 // « addAll » est tout ou rien : un seul fichier manquant et le service
 // worker ne s'installe pas, sans le moindre message.
-const sw = await (await p.request.get('http://127.0.0.1:8099/sw.js')).text();
+/* LE SERVICE WORKER DU SITE PUBLIÉ, et les fichiers qu'il réclame y sont
+   cherchés : « addAll » est tout ou rien, et c'est EN LIGNE qu'un fichier
+   manquant empêche l'installation, sans le moindre message. */
+const sw = await (await p.request.get(SITE + '/sw.js')).text();
 const shell = (sw.match(/const SHELL = \[([^\]]*)\]/)||[])[1] || '';
 const fichiers = [...shell.matchAll(/"\.\/([^"]*)"/g)].map(m=>m[1]).filter(Boolean);
 const manquants = [];
 for(const f of fichiers){
-  const r = await p.request.get('http://127.0.0.1:8099/'+f);
+  const r = await p.request.get(SITE + '/' + f);
   if(!r.ok()) manquants.push(f);
 }
 check('chaque fichier du cache existe vraiment — « addAll » est tout ou rien',
@@ -278,8 +337,20 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
   const mf = await (await fetch('http://127.0.0.1:8099/manifest-exploitant.webmanifest')).json();
   check('il rouvre l\'espace, pas le site client',
     /exploitant=1/.test(mf.start_url || ''), mf.start_url);
+  /* ON COMPARE LES DEUX MANIFESTES L'UN À L'AUTRE, on ne compte plus.
+     Le contrôle exigeait « 3 icônes » — le compte du jour où il a été
+     écrit. Le jeu est passé à deux, légitimement, et il est tombé alors
+     que rien n'était cassé. Même faute que la barre du bas figée sur
+     quatre onglets.
+     LA RÈGLE, ELLE, NE VIEILLIT PAS : un jeu d'icônes à moitié changé est
+     pire qu'un ancien cohérent — le téléphone montre l'une, l'onglet
+     l'autre. Donc les deux manifestes portent EXACTEMENT les mêmes, et il
+     y en a au moins une. */
+  const jeu = m => JSON.stringify((m.icons || []).map(i => i.src + '|' + i.sizes).sort());
+  const mc = await (await fetch('http://127.0.0.1:8099/manifest.webmanifest')).json();
   check('et il porte les mêmes icônes — un jeu à moitié changé est pire',
-    (mf.icons || []).length === 3, String((mf.icons||[]).length));
+    (mf.icons || []).length >= 1 && jeu(mf) === jeu(mc),
+    jeu(mf) + ' contre ' + jeu(mc));
   await cx.close();
 }
 /* LE POINT DE RUPTURE : la recette ne publie que ce qu'elle NOMME. On lit
@@ -324,7 +395,10 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
      l'icône posée rouvrait le site public. C'est désormais la page qu'on
      AJOUTE ; « admin.html » garde la redirection immédiate.
      ON ÉPROUVE DONC OÙ MÈNE LE BOUTON, pas si la page s'en va. */
-  await px.goto('http://127.0.0.1:8099/exploitant/', {waitUntil:'domcontentloaded'});
+  /* SUR LE SITE CONSTRUIT : le bouton vise « ../application.html », que
+     seul « construire.sh » fabrique. Depuis le dépôt il ouvrait un 404, et
+     le contrôle du verrou tombait sans qu'il y ait le moindre défaut. */
+  await px.goto(SITE + '/exploitant/', {waitUntil:'domcontentloaded'});
   await px.waitForTimeout(400);
   check('« /exploitant/ » reste en place, pour qu\'on puisse l\'ajouter',
     /\/exploitant\//.test(px.url()), px.url());
@@ -460,6 +534,7 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
 }
 
 await b.close();
+await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}
 if(errs.length){console.log('\n=== ERREURS JS ==='); [...new Set(errs)].forEach(e=>console.log('  ! '+e));}

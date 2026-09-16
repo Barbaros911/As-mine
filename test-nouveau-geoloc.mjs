@@ -210,13 +210,37 @@ check('et son message aussi', /Check the address/i.test(msg), msg);
 await ctx.close();
 
 /* --- 8. Ce que la page promet par écrit ------------------------------
-   La politique de confidentialité annonce « Me localiser » depuis
-   toujours : elle décrivait une fonction qui n'existait pas. */
-const source = await (await fetch('http://127.0.0.1:8099/index.html')).text();
-check('la politique de confidentialité mentionne bien la localisation',
-  /Données de localisation.*Me localiser/.test(source));
-check('elle précise que c\'est volontaire',
-  /uniquement si le Client active volontairement/.test(source));
+   Le site lit la position de l'appareil : le RGPD impose que la politique
+   de confidentialité le dise, et dise que ça ne part que sur un geste du
+   client. C'est une obligation, pas une formule.
+
+   ON VISE LA RÈGLE, PLUS LA PHRASE EXACTE (16 septembre 2026). Les deux
+   contrôles cherchaient « Données de localisation » et « uniquement si le
+   Client active volontairement », mot pour mot. Les documents légaux ont
+   été réécrits le 12 septembre — le fond est resté juste, la formulation a
+   changé, et ces deux contrôles sont tombés tous les jours pour rien. Un
+   test qui tombe sans qu'il y ait de défaut finit par être ignoré, et
+   c'est comme ça qu'on rate le vrai.
+   Ce qui est verrouillé maintenant : le document NOMME le bouton que le
+   client voit, et il POSE une condition à côté. Une reformulation légitime
+   passe ; un document qui cesserait de parler de la localisation tombe.
+   ET DANS LES DEUX LANGUES : un client anglophone a les mêmes droits, et
+   c'est exactement le genre de moitié qu'une réécriture oublie. */
+({ ctx, p } = await page());
+const textes = await p.evaluate(() => ({
+  fr: window.ELA_TEXTES.fr.legal_privacy_body,
+  en: window.ELA_TEXTES.en.legal_privacy_body
+}));
+for (const [langue, bouton, condition] of [
+      ['fr', /Me localiser/, /uniquement si|seulement si|volontairement|à la demande du Client/i],
+      ['en', /Locate me/i,   /only if|only when|voluntarily|at the Client's request/i]]) {
+  const t = textes[langue] || '';
+  check('en ' + langue + ', la politique nomme le bouton de localisation',
+    bouton.test(t));
+  check('en ' + langue + ', elle pose une condition : rien sans un geste du client',
+    condition.test(t));
+}
+await ctx.close();
 
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
