@@ -1,0 +1,36 @@
+name: Contrôle notifications Admin
+on:
+  pull_request:
+    paths:
+      - 'admin-v2-push.js'
+      - 'construire.sh'
+      - 'supabase/functions/nouvelle-demande/**'
+      - 'supabase/migrations/20260916090000_admin_push_notifications.sql'
+      - '.github/workflows/admin-notifications-regression.yml'
+permissions: {contents: read}
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier JavaScript navigateur
+        run: node --check admin-v2-push.js
+      - name: Construire
+        run: bash construire.sh
+      - name: Contrôler les invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f site/admin-v2-push.js
+          grep -Fq '/admin-v2-push.js' site/admin-v2.html
+          grep -Fq 'ela_enregistrer_push_admin' admin-v2-push.js
+          grep -Fq 'Notification.requestPermission' admin-v2-push.js
+          grep -Fq 'Promise.all([parPush(t,ref),parTelegram(t,m),parEmail(t,m)])' supabase/functions/nouvelle-demande/index.ts
+          grep -Fq 'journal_notifications_admin' supabase/functions/nouvelle-demande/index.ts
+          grep -Fq 'abonnements_admin' supabase/functions/nouvelle-demande/index.ts
+          grep -Fq 'security definer' supabase/migrations/20260916090000_admin_push_notifications.sql
+          grep -Fq 'est_exploitant()' supabase/migrations/20260916090000_admin_push_notifications.sql
+          if grep -REq 'sk_(test|live)_[A-Za-z0-9]|TELEGRAM_TOKEN\s*=\s*["'"'][0-9]' admin-v2-push.js supabase/functions/nouvelle-demande; then
+            echo 'Secret interdit détecté'
+            exit 1
+          fi
