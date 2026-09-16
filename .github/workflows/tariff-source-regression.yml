@@ -1,0 +1,31 @@
+name: Contrôle source tarifaire serveur
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - '.github/scripts/appliquer-regles-easyhotel.mjs'
+      - 'supabase/migrations/20260916100000_current_tariff_source.sql'
+      - '.github/workflows/tariff-source-regression.yml'
+permissions: {contents: read}
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash construire.sh
+      - shell: bash
+        run: |
+          set -euo pipefail
+          # Tarifs généraux réellement publiés.
+          grep -Fq 'parKm:2.65, mini:30' site/index.html
+          grep -Fq 'parKm:4.00, mini:50' site/index.html
+          grep -Fq '"par_km_centimes":265' supabase/migrations/20260916100000_current_tariff_source.sql
+          grep -Fq '"par_km_centimes":400' supabase/migrations/20260916100000_current_tariff_source.sql
+          # easyHotel après transformation de production : aucun tarif nuit/WE.
+          grep -Fq 'jour:{ berline:35,  van:50  }, nuit:{ berline:35,  van:50  }' site/index.html
+          grep -Fq "('cdg','Aéroport CDG','berline',3500)" supabase/migrations/20260916100000_current_tariff_source.sql
+          grep -Fq "('cdg','Aéroport CDG','van',5000)" supabase/migrations/20260916100000_current_tariff_source.sql
+          grep -Fq "('orly','Orly','berline',10000)" supabase/migrations/20260916100000_current_tariff_source.sql
+          grep -Fq "('beauvais','Beauvais','berline',18000)" supabase/migrations/20260916100000_current_tariff_source.sql
+          grep -Fq "('disney','Disney','berline',9000)" supabase/migrations/20260916100000_current_tariff_source.sql
+          grep -Fq "('paris','Paris','berline',8000)" supabase/migrations/20260916100000_current_tariff_source.sql
