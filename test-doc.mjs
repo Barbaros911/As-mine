@@ -34,6 +34,10 @@ import { execSync } from "node:child_process";
 
 const page = readFileSync("index.html", "utf8");
 const doc  = readFileSync("CLAUDE.md", "utf8");
+/* TEAM_RULES peut ne pas exister sur une branche ancienne : on saute
+   plutôt que de faire tomber la suite pour un fichier absent. */
+const reglesTexte = existsSync("TEAM_RULES.md")
+  ? readFileSync("TEAM_RULES.md", "utf8") : null;
 
 /* LA SECTION QUI FAIT FOI. CLAUDE.md garde volontairement la description
    de l'ANCIEN site « pour comprendre d'où viennent les décisions » — on y
@@ -168,30 +172,50 @@ if(step) verifier("l'attribut step du champ d'heure suit PAS_MINUTES",
   Number(step[1]) === constante("PAS_MINUTES") * 60,
   "step=\"" + step[1] + "\" s, soit " + (Number(step[1])/60) + " min, contre PAS_MINUTES=" + constante("PAS_MINUTES"));
 
-/* ═══ 4. LE CODE D'ACCÈS ═══
-   Il vit en EMPREINTE dans la page — le dépôt est public. La doc, elle,
-   écrit le code en clair pour que Barbaros le retrouve. Les deux ne
-   peuvent pas se comparer à l'œil : on recalcule l'empreinte.
-   CLAUDE.md a déjà annoncé un code que la page ne connaissait plus. */
-function empreinte(code){
-  let h1 = 0x811c9dc5>>>0, h2 = 0x01000193>>>0;
-  const t = "elatransfer:" + code;
-  for(let i=0;i<t.length;i++){
-    const c = t.charCodeAt(i);
-    h1 = (h1^c)>>>0; h1 = Math.imul(h1, 0x01000193)>>>0;
-    h2 = (h2^c)>>>0; h2 = Math.imul(h2, 0x85ebca6b)>>>0;
+/* ═══ 4. AUCUN CODE D'ACCÈS EN CLAIR DANS LA DOCUMENTATION ═══
+   CE CONTRÔLE A ÉTÉ RETOURNÉ (16 septembre 2026, demandé par ChatGPT dans
+   la review de la PR #170, et il avait raison).
+   Il faisait exactement l'inverse : il LISAIT le code exploitant écrit en
+   toutes lettres dans CLAUDE.md et vérifiait qu'il correspondait à
+   l'empreinte de la page. Autrement dit, un outil écrit pour empêcher la
+   documentation de mentir **imposait de publier un secret** — le retirer
+   faisait tomber la construction.
+   LE DÉPÔT EST PUBLIC. Une valeur publiée est exposée, définitivement :
+   la retirer ne la reprend pas, l'historique git la garde. Le seul
+   comportement défendable est donc d'empêcher qu'une nouvelle valeur
+   apparaisse.
+   CE QUI PROTÈGE LES DONNÉES CLIENTS N'EST PAS CE CODE, c'est la Row Level
+   Security de Supabase. Le code ne garde qu'un écran.
+   ON VISE LA FORME, PAS UNE VALEUR : chercher « 12345678 » ne protégerait
+   que d'une répétition de la même fuite. On refuse toute valeur PRÉSENTÉE
+   comme un code d'accès, quelle qu'elle soit.
+   LE PREMIER JET ÉTAIT TROP LARGE et prenait « renderTours » pour un
+   secret — il suffisait du mot « code » suivi de deux points, comme dans
+   « ce qui a disparu du code : renderTours ». Un contrôle qui crie sur du
+   texte innocent finit par être désactivé en entier, et c'est la fuite
+   suivante qui passe. On n'accepte donc que les tournures qui ANNONCENT
+   une valeur — « protégé par le code X », « mot de passe X » — et on exige
+   que la valeur contienne un chiffre : un secret d'ici en porte, un nom de
+   fonction non. */
+for (const [nom, texte] of [["CLAUDE.md", doc], ["TEAM_RULES.md", reglesTexte]]) {
+  if (texte === null) continue;
+  const annonces = [
+    /protégé[e]?\s+par\s+le\s+code\s*[«"`']?([A-Za-z0-9!@#$%^&*_-]{6,32})[»"`']?/i,
+    /code\s+(?:d['’]accès|exploitant|secret)\s*(?:est|:|vaut)?\s*[«"`']?([A-Za-z0-9!@#$%^&*_-]{6,32})[»"`']?/i,
+    /mot\s+de\s+passe\s*(?:est|:|vaut)?\s*[«"`']?([A-Za-z0-9!@#$%^&*_-]{6,32})[»"`']?/i,
+    /le\s+code\s+(?:est|vaut)\s*[«"`']?([A-Za-z0-9!@#$%^&*_-]{6,32})[»"`']?/i,
+  ];
+  let fuite = null;
+  for (const motif of annonces) {
+    const m = texte.match(motif);
+    if (m && /\d/.test(m[1])) { fuite = m; break; }
   }
-  return (h1>>>0).toString(16).padStart(8,"0") + (h2>>>0).toString(16).padStart(8,"0");
-}
-const codeDoc = doc.match(/protégé par le code `(\w+)`/);
-const codePage = page.match(/var CODE_EXPLOITANT\s*=\s*"([0-9a-f]+)"/);
-if(verifier("la page porte une empreinte de code exploitant", !!codePage) &&
-   verifier("CLAUDE.md donne le code exploitant", !!codeDoc)){
   verifier(
-    "le code écrit dans CLAUDE.md est celui que la page accepte",
-    empreinte(codeDoc[1]) === codePage[1],
-    "le code « " + codeDoc[1] + " » ne donne pas l'empreinte de la page. " +
-    "Barbaros resterait devant son propre espace de travail."
+    "aucun code d'accès en clair dans " + nom,
+    !fuite,
+    fuite ? "« " + fuite[1] + " » est écrit en clair — le dépôt est public, "
+            + "cette valeur doit être tenue pour exposée et changée hors du dépôt"
+          : ""
   );
 }
 

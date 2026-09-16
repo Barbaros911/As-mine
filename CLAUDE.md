@@ -432,11 +432,29 @@ illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
 en privé, au seul chauffeur retenu, depuis le bon. Les messages au client
 partent droit sur son numéro (`numeroWhatsApp`), jamais via le sélecteur.
 
-**Le mode exploitant est protégé par le code `12345678`** (`CODE_EXPLOITANT`, stocké
-en empreinte, jamais en clair — le dépôt est public). Diffusion au groupe,
-confirmation à distance, attribution du chauffeur et export du registre
-sont derrière. C'est une serrure, pas un coffre : le dire à Barbaros
-plutôt que de laisser croire à une vraie sécurité.
+**Le mode exploitant est protégé par un code** (`CODE_EXPLOITANT`, stocké en
+empreinte dans la page). Diffusion au groupe, confirmation à distance,
+attribution du chauffeur et export du registre sont derrière.
+
+**SA VALEUR N'EST PLUS ÉCRITE ICI, ET ELLE NE DOIT PLUS L'ÊTRE** (16 septembre
+2026, à la demande de ChatGPT, et il a raison). Ce fichier annonçait le code en
+toutes lettres. **Le dépôt est public** : une valeur publiée doit être tenue
+pour exposée, définitivement — la retirer ne la reprend pas, l'historique git la
+garde. Ne la recopier ni ici, ni dans une Issue, ni dans un message.
+- **Pire encore, un contrôle l'EXIGEAIT.** `test-doc.mjs` lisait le code en
+  clair dans ce fichier et vérifiait qu'il correspondait à l'empreinte de la
+  page : le retirer faisait tomber la construction. Un outil censé empêcher la
+  documentation de mentir imposait de publier un secret. Il fait maintenant
+  l'inverse — il **refuse** qu'un code en clair réapparaisse.
+- **C'est une serrure, pas un coffre**, et ça l'était déjà avant : l'empreinte
+  part dans la page, donc elle s'attaque hors ligne, autant d'essais qu'on veut.
+  Le dire à Barbaros plutôt que de laisser croire à une vraie sécurité.
+- **CE QUI PROTÈGE VRAIMENT LES DONNÉES CLIENTS, C'EST SUPABASE** — Auth et Row
+  Level Security, côté serveur. Le code de l'espace exploitant ne garde qu'un
+  écran ; il ne garde aucune donnée. Ne jamais inverser ces deux rôles.
+- **À FAIRE PAR BARBAROS, séparément** : changer ce code s'il lui sert encore.
+  La nouvelle valeur ne s'écrit nulle part dans le dépôt — elle se tape, et on
+  ne garde ici que son empreinte.
 
 **Confirmer une course du client** se fait sur son bon : chauffeur retenu →
 « Confirmer la course » → « Prévenir le client », qui envoie le lien `?ok=`.
