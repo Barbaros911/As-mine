@@ -335,8 +335,8 @@ await ctx2.close();
    Le contrôle MESURE une hauteur ; relire le CSS ne dirait pas si ça passe
    à la ligne. Et il éprouve les DEUX largeurs, parce que le repliement
    n'apparaît qu'en dessous d'un certain espace. */
-for (const largeur of [320, 390]) {
-  const ctx3 = await b.newContext({ viewport:{width:largeur, height:844}, locale:'fr-FR' });
+for (const largeur of [320, 390, 1280]) {
+  const ctx3 = await b.newContext({ viewport:{width:largeur, height:largeur>=900?800:844}, locale:'fr-FR' });
   await ctx3.route('**/*', r => faireServeur(r, (r, u, J) => {
     if(u.includes('/rpc/est_exploitant')) return J(true);
     if(u.includes('/rpc/')) return J(0);
@@ -370,6 +370,42 @@ for (const largeur of [320, 390]) {
     bt && bt.dansBord && !bt.dansEntete);
   check(`à ${largeur} px, il reste pressable au pouce (≥ 40 px)`,
     bt && bt.h >= 40, bt ? 'mesuré : '+bt.h+' px' : '');
+
+  /* Présent dans le DOM ne veut pas dire atteignable : ce projet a déjà payé
+     un bouton parfaitement là et mangé par la barre du bas. On l'amène à
+     l'écran et on demande QUI reçoit le doigt en son centre. */
+  await p3.evaluate(()=>document.querySelector('#elaPush').scrollIntoView({block:'center'}));
+  await p3.waitForTimeout(250);
+  const recoit = await p3.evaluate(()=>{
+    const e=document.querySelector('#elaPush'), r=e.getBoundingClientRect();
+    const au=document.elementFromPoint(r.x+r.width/2, r.y+r.height/2);
+    return au ? (au.id || au.tagName) : 'rien';
+  });
+  check(`à ${largeur} px, c'est bien LUI qui reçoit le doigt`,
+    recoit === 'elaPush', 'reçoit : '+recoit);
+
+  /* L'adresse e-mail ne dit rien à quelqu'un qui est seul à se connecter, et
+     c'est elle qui faisait passer la rangée à la ligne. Au-delà de 900 px la
+     place ne manque pas : elle revient. */
+  const mail = await p3.evaluate(()=>{
+    const w=document.querySelector('#who');
+    return {affiche:getComputedStyle(w).display!=='none', texte:w.textContent.trim()};
+  });
+  check(`à ${largeur} px, l'adresse e-mail est ${largeur>=900?'affichée':'masquée'}`,
+    mail.affiche === (largeur >= 900));
+
+  /* Le logo officiel n'est jamais redessiné ni redimensionné par ce lot. */
+  const logo = await p3.evaluate(()=>{
+    const i=document.querySelector('.top img'), r=i.getBoundingClientRect();
+    const au=document.elementFromPoint(r.x+r.width/2, r.y+r.height/2);
+    return {src:i.getAttribute('src'), w:Math.round(r.width), degage: au===i};
+  });
+  check(`à ${largeur} px, le logo officiel est intact et dégagé`,
+    logo.src === 'brand-logo.webp' && logo.degage && logo.w === (largeur>=900?112:100),
+    JSON.stringify(logo));
+
+  check(`à ${largeur} px, aucun débordement horizontal`,
+    await p3.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth));
   await ctx3.close();
 }
 
