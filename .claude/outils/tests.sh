@@ -77,8 +77,10 @@ for f in $SUITES; do
   fi
 done
 
-# Ces deux-là ne passent ni par un navigateur ni par le réseau.
-for f in test-notification.mjs test-push.mjs; do
+# Ces trois-là ne passent ni par un navigateur ni par le réseau.
+# test-doc.mjs compare la DOCUMENTATION au code : c'est le seul contrôle qui
+# empêche une note de vieillir en silence. Il bloque aussi la publication.
+for f in test-doc.mjs test-notification.mjs test-push.mjs; do
   [ -f "$f" ] || continue
   printf "%-36s " "$f"
   node "$f" 2>&1 | grep -E "^=== " | tr '\n' ' ' || echo "!!! MUETTE"

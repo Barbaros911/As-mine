@@ -24,7 +24,7 @@ demandée :
 
 | Activité | Fichiers | Branche |
 |---|---|---|
-| **Asmine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | `claude/as-mine-booking-app-yqvxoi` |
+| **Asmine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | la branche de travail de la session |
 | **Sites vitrines** pour des commerçants | `sites/<client>/` | `claude/session-creation-without-asmine-to9axd` |
 
 ## La règle absolue : ne jamais toucher Asmine *en travaillant sur un autre site*
@@ -136,19 +136,18 @@ vaut aussi pour ce qui est « visible par un client » : c'est justement ce
 qui mérite d'être vu avant, pas après. Ne jamais lire l'urgence d'un lien à
 envoyer comme une autorisation de fusionner.
 
-**LA BRANCHE `claude/as-mine-booking-app-yqvxoi` EST UN VESTIGE — NE PAS LA
-FUSIONNER** (septembre 2026). Cette note disait qu'elle portait des commits
-d'avance à intégrer plus tard, et qu'il fallait le rappeler à chaque
-réponse. C'était vrai en août ; ça ne l'est plus, et la note a été répétée
-des dizaines de fois pour rien. Le travail qu'elle portait — accueil en
-bandeau marine, écran des véhicules, quatre gammes, retrait des packs — est
-**déjà dans `main`**, arrivé par d'autres pull requests.
-`git log main..branche` montre encore deux commits et trompe : c'est
-`git diff main branche` qu'il faut lire. La branche a divergé **avant** tout
-le nouveau site, et la fusionner **supprimerait** `nouveau.html`, les quatre
-photos, les onze suites de tests et les corrections de `construire.sh`.
-Vérifier avant de croire une note de ce fichier : ici, `git show
-main:index.html | grep -c TOURS` rend 0 — les packs ne sont plus là.
+**LA BRANCHE « VESTIGE » A ÉTÉ SUPPRIMÉE** (audit du 15 septembre 2026, 53
+branches ramenées à 15). Ce paragraphe a nommé pendant des jours une branche
+qui n'existait plus, dans un tableau qui disait où travailler : une consigne
+qui vise le vide fait repartir d'un endroit quelconque. `test-doc.mjs`
+vérifie désormais que toute branche nommée ici existe encore.
+**LA LEÇON, ELLE, N'A PAS D'ÂGE.** `git log main..branche` montrait deux
+commits d'avance et trompait — c'est `git diff main branche` qu'il fallait
+lire : la branche avait divergé AVANT tout le nouveau site, et la fusionner
+aurait **supprimé** les photos, les suites de tests et les corrections de
+`construire.sh`. Un compte de commits ne dit pas ce qu'une fusion ferait.
+Et la règle qui vaut pour tout ce fichier : **vérifier avant de croire une
+note d'ici**. Elle a mis des mois à s'écrire, elle vieillit en un soir.
 
 - Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
   jamais directement sur `main`.
@@ -926,8 +925,22 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,35 € | 30 € |
-| Van (7 places) | 4,08 € | 50 € |
+| Berline (4 places) | 2,65 € | 30 € |
+| Van (7 places) | 4,00 € | 50 € |
+
+**CE TABLEAU A MENTI PENDANT DES JOURS** (corrigé le 16 septembre 2026). Il
+annonçait encore 2,35 et 4,08 €/km alors que la PR #123 les avait portés à
+2,65 et 4,00. Personne ne pouvait le voir : un document ne se trompe jamais
+bruyamment. Et ce n'est pas une note de confort — c'est le chiffre qu'on
+annonce au téléphone, celui qu'on recopie dans les CGV, et le prix est
+**ferme donc opposable**. `test-doc.mjs` compare désormais ce tableau à
+`GAMMES` à chaque construction : une grille qui diverge de la doc **empêche
+la publication**. Le contrôle a été écrit APRÈS le mensonge, et c'est sur
+lui qu'il a été éprouvé.
+**Vérifié au passage** : les CGV ne portent toujours aucun chiffre — elles
+décrivent la mécanique (« un tarif kilométrique propre à chaque gamme »).
+C'est ce choix d'écriture ancien qui a évité que le mensonge devienne
+contractuel. Ne pas y écrire de tarif chiffré.
 
 - **Plus de prise en charge.** Le prix n'est qu'un kilométrage : avec un
   plancher et un arrondi à la dizaine, un forfait de départ ne se voyait
@@ -3764,8 +3777,12 @@ fois par session avec
 `mkdir -p node_modules && ln -sfn /opt/node22/lib/node_modules/playwright node_modules/playwright`
 (`node_modules/` est ignoré par git).
 
-**Les suites tournent hors ligne** (`test-hors-ligne.mjs`). Tout ce qui
-n'est pas le serveur local échoue immédiatement au lieu de faire attendre
+**Les suites tournent hors ligne.** Chacune coupe elle-même ce qu'elle ne
+veut pas joindre, en tête de fichier (`p.route('**://…', r => r.abort())`) —
+il n'y a plus de coupe-circuit commun : le fichier test-hors-ligne (nommé ici
+sans accents graves, voir la convention de `test-doc.mjs`) est parti avec
+l'ancien site, et ce paragraphe a continué de le nommer pendant des semaines.
+Tout ce qui n'est pas le serveur local échoue immédiatement au lieu de faire attendre
 le navigateur trente secondes par appel. Sans ça, l'ensemble dépassait dix
 minutes et finissait en délai sans rien vérifier ; avec, il tourne en six
 minutes et vérifie au passage que le site reste utilisable quand ses
