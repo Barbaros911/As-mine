@@ -1,0 +1,38 @@
+name: Contrôle Stripe TEST
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/creer-empreinte/**'
+      - 'supabase/functions/capturer-paiement/**'
+      - 'supabase/functions/annuler-empreinte/**'
+      - 'supabase/functions/stripe-webhook/**'
+      - 'supabase/migrations/*stripe*'
+      - '.github/workflows/fonctions.yml'
+      - '.github/workflows/stripe-test-regression.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier le mode TEST et les invariants financiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIE 'sk_live_|whsec_[A-Za-z0-9]{12,}' supabase/functions .github/workflows; then
+            echo 'Secret Stripe ou clé live potentiellement commis'
+            exit 1
+          fi
+          grep -Fq 'capture_method","manual' supabase/functions/creer-empreinte/index.ts
+          grep -Fq 'sk_test_' supabase/functions/creer-empreinte/index.ts
+          grep -Fq 'snapshots_financiers' supabase/functions/creer-empreinte/index.ts
+          grep -Fq 'verrouille!==true' supabase/functions/creer-empreinte/index.ts
+          grep -Fq 'est_exploitant' supabase/functions/capturer-paiement/index.ts
+          grep -Fq 'est_exploitant' supabase/functions/annuler-empreinte/index.ts
+          grep -Fq 'stripe-signature' supabase/functions/stripe-webhook/index.ts
+          grep -Fq 'stripe_evenements' supabase/functions/stripe-webhook/index.ts
+          grep -Fq "mode in ('test','live')" supabase/migrations/20260916070000_stripe_test_manual_capture.sql
