@@ -67,6 +67,27 @@ else
   # effacé tout le durcissement de sécurité.
   printf '  \033[31mEN RETARD DE %s COMMIT(S) — repartir du dernier main\033[0m\n' "$retard"
 fi
+# MAIN A-T-IL BOUGÉ PENDANT CETTE SESSION ? Posé le 16 septembre 2026, après
+# une nuit où une AUTRE session Claude a fusionné dix pull requests pendant
+# que celle-ci travaillait. Ses commits sont apparus sous les pieds, et une
+# série complète de tests est passée au vert sans les connaître.
+# Deux sessions sur un même dépôt se marchent dessus sans le savoir : ce
+# n'est pas une faute d'attention, c'est qu'aucun signal ne le disait.
+# On garde l'empreinte du main vu au premier appel, et on la compare ensuite.
+REPERE="${TMPDIR:-/tmp}/asmine-main-$(git rev-parse --show-toplevel | md5sum | cut -c1-8)"
+MAINTENANT=$(git rev-parse origin/main 2>/dev/null)
+if [ -f "$REPERE" ]; then
+  VU=$(cat "$REPERE")
+  if [ -n "$MAINTENANT" ] && [ "$VU" != "$MAINTENANT" ]; then
+    n=$(git rev-list --count "$VU".."$MAINTENANT" 2>/dev/null || echo "?")
+    printf '  \033[31mMAIN A BOUGÉ — %s commit(s) depuis le début de cette session\033[0m\n' "$n"
+    git log --format='      %h %s' "$VU".."$MAINTENANT" 2>/dev/null | head -5
+    echo "      → quelqu'un d'autre travaille ce dépôt. Relire avant de coder,"
+    echo "        et ne pas relancer un chantier déjà pris (TEAM_RULES §2)."
+  fi
+fi
+[ -n "$MAINTENANT" ] && echo "$MAINTENANT" > "$REPERE"
+
 sale=$(git status --porcelain | wc -l)
 [ "$sale" = "0" ] && printf '  arbre               propre\n' \
                   || printf '  arbre               %s fichier(s) modifié(s)\n' "$sale"
