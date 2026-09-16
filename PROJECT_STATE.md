@@ -137,6 +137,11 @@ l'autre session est à l'arrêt (« pendant ton indisponibilité »), et **#165 
 à cette session-ci**. #173 (paiement) vient **après** la bascule Admin, dans
 l'ordre écrit sur #173 le 16 à 12 h 57.
 
+**ET LA RÈGLE QUI EN DÉCOULE, POSÉE PAR BARBAROS LE 16** : en cas
+d'indisponibilité de l'un, **c'est lui qui dit qui prend le relais** — jamais
+les assistants entre eux. Un assistant à l'arrêt ne libère pas son chantier :
+on le signale et on attend. Voir `TEAM_RULES` §3.
+
 **LA CIBLE EST UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
 Admin v2 est publié mais **en préversion** : il lui manque les gestes
 quotidiens de l'espace actuel — coller une demande, saisir par téléphone, le

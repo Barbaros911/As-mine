@@ -55,6 +55,19 @@ recommence pas ailleurs.** On reprend, ou on signale le conflit.
 *(15/09 — 53 branches non fusionnées, dont sept tentatives sur la même
 interface et quatre sur la même tâche de sécurité.)*
 
+**LE RELAIS SE DÉCIDE PAR BARBAROS, PAS ENTRE ASSISTANTS** (16/09, à sa
+demande : « si jamais je n'utilise pas ChatGPT ou Claude, moi je dis qui
+prend le relais »).
+
+Un assistant indisponible **ne libère rien**. Constater que l'autre est à
+l'arrêt n'autorise pas à reprendre son chantier : on le **signale** et on
+attend que Barbaros dise qui continue. C'est lui qui a la vue d'ensemble de
+ce qu'il fait tourner, et lui seul sait s'il compte y revenir.
+
+*(Le 16/09, deux sessions Claude ont poussé sur `main` dans la même heure.
+Une reprise décidée entre assistants aurait tout aussi bien pu refaire le
+travail que le défaire.)*
+
 ## 4. « Fusionné » ne veut pas dire « en ligne »
 
 ```

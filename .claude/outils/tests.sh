@@ -73,12 +73,24 @@ echo ""
 MUETTES=0; ECHECS=0
 for f in $SUITES; do
   printf "%-36s " "$f"
-  sortie=$(node "$f" 2>&1) || true
+  if sortie=$(node "$f" 2>&1); then code=0; else code=$?; fi
   bilan=$(echo "$sortie" | grep -E "^=== " | tr '\n' ' ')
-  if [ -z "$bilan" ]; then
-    echo "!!! MUETTE — PLANTAGE"
-    echo "$sortie" | tail -4 | sed 's/^/      /'
+  # ON JUGE SUR LE CODE DE SORTIE, PAS SUR LE FORMAT D'AFFICHAGE. La ligne
+  # « === » est une convention de présentation, et toutes les suites ne la
+  # suivent pas : test-agent-rbac et test-unified-facade passent en affichant
+  # « OK — … ». Les déclarer MUETTES était une FAUSSE ALERTE -- et une fausse
+  # alerte à chaque exécution est la meilleure façon de faire ignorer le
+  # lanceur, donc de laisser passer le vrai plantage suivant.
+  # Une suite n'est muette que si elle n'affiche RIEN DU TOUT.
+  if [ -z "$sortie" ]; then
+    echo "!!! MUETTE — AUCUNE SORTIE"
     MUETTES=$((MUETTES+1))
+  elif [ -z "$bilan" ] && [ "$code" -ne 0 ]; then
+    echo "!!! ÉCHEC (code $code)"
+    echo "$sortie" | tail -4 | sed 's/^/      /'
+    ECHECS=$((ECHECS+1))
+  elif [ -z "$bilan" ]; then
+    echo "OK — $(echo "$sortie" | grep -v '^[[:space:]]*$' | tail -1)"
   else
     echo "$bilan"
     detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)
@@ -103,12 +115,24 @@ done
 for f in $HORS_NAV; do
   [ -f "$f" ] || continue
   printf "%-36s " "$f"
-  sortie=$(node "$f" 2>&1) || true
+  if sortie=$(node "$f" 2>&1); then code=0; else code=$?; fi
   bilan=$(echo "$sortie" | grep -E "^=== " | tr '\n' ' ')
-  if [ -z "$bilan" ]; then
-    echo "!!! MUETTE — PLANTAGE"
-    echo "$sortie" | tail -4 | sed 's/^/      /'
+  # ON JUGE SUR LE CODE DE SORTIE, PAS SUR LE FORMAT D'AFFICHAGE. La ligne
+  # « === » est une convention de présentation, et toutes les suites ne la
+  # suivent pas : test-agent-rbac et test-unified-facade passent en affichant
+  # « OK — … ». Les déclarer MUETTES était une FAUSSE ALERTE -- et une fausse
+  # alerte à chaque exécution est la meilleure façon de faire ignorer le
+  # lanceur, donc de laisser passer le vrai plantage suivant.
+  # Une suite n'est muette que si elle n'affiche RIEN DU TOUT.
+  if [ -z "$sortie" ]; then
+    echo "!!! MUETTE — AUCUNE SORTIE"
     MUETTES=$((MUETTES+1))
+  elif [ -z "$bilan" ] && [ "$code" -ne 0 ]; then
+    echo "!!! ÉCHEC (code $code)"
+    echo "$sortie" | tail -4 | sed 's/^/      /'
+    ECHECS=$((ECHECS+1))
+  elif [ -z "$bilan" ]; then
+    echo "OK — $(echo "$sortie" | grep -v '^[[:space:]]*$' | tail -1)"
   else
     echo "$bilan"
     detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)

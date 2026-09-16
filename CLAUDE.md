@@ -3795,6 +3795,23 @@ vingt-huit autres ne tournent que sur la machine de travail : c'est exactement
 pour ça qu'elles ont pu rester rouges quatre jours. Les y brancher toutes est
 une décision à part — durée, instabilité.
 
+**LE LANCEUR CRIAIT AU LOUP, PUIS S'ARRÊTAIT À LA PREMIÈRE SUITE ROUGE.**
+Deux défauts trouvés l'un derrière l'autre, et le second **dans la correction
+du premier** — c'est la troisième fois que cet outil se fait prendre à son
+propre piège.
+- Il déclarait « MUETTE — PLANTAGE » toute suite n'imprimant pas la ligne
+  `=== `. Or `test-agent-rbac` et `test-unified-facade` **passent** en
+  affichant « OK — … ». **Une fausse alerte à chaque exécution est la
+  meilleure façon de faire ignorer le lanceur**, donc de laisser passer le
+  vrai plantage suivant. Il juge maintenant sur le **code de sortie** ; la
+  ligne `===` n'est qu'une convention d'affichage.
+- En retirant le `|| true`, `set -e` a repris la main : **le lanceur
+  s'arrêtait à la première suite rouge, sans rien afficher**. Une commande
+  placée en **condition de `if`** est la seule forme qui capture le code sans
+  interrompre. Trouvé en faisant échouer une suite exprès — pas en relisant.
+  **L'outil qui doit attraper les pannes des autres ne s'arrête jamais à la
+  première.**
+
 **LE LANCEUR IGNORAIT EN SILENCE TOUTE SUITE HORS « test-nouveau* ».**
 `test-agent-rbac.mjs` et `test-unified-facade.mjs` n'ont donc jamais été
 lancées. Le préfixe est un vestige de la bascule de septembre ; une suite
