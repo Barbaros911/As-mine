@@ -3766,6 +3766,41 @@ Il vérifie maintenant son vrai sujet — un `;` présent, aucune `,`. Même
 leçon que la barre du bas figée sur quatre onglets, et que les trois tests
 qui visaient `p.font-mono` au lieu de `.veh-prix`.
 
+### LA PAGE PUBLIÉE DÉBORDAIT DE 6 px, ET AUCUNE SUITE NE POUVAIT LE VOIR
+
+16 septembre 2026, trouvé en vérifiant autre chose. À 390 px la page publiée
+mesurait **396 px** : elle se décalait de six pixels sous le doigt.
+
+**LE DÉFAUT N'EXISTAIT QUE SUR LE SITE PUBLIÉ**, et c'est tout l'intérêt.
+Mesuré côte à côte : dépôt 390 px, publié 396. `construire.sh` injecte
+`application-facade.css`, qui descend la gouttière des sections à **14 px**
+sous 900 px ; le carrousel des services gardait sa marge négative de
+**−20 px**, écrite en dur. Deux nombres qui doivent rester égaux, à deux
+endroits — dont un que le dépôt ne porte pas.
+
+- **LA GOUTTIÈRE EST DEVENUE UNE VARIABLE** (`--gouttiere`, posée sur
+  `.section`). Le carrousel la suit en `calc(-1 * var(--gouttiere))`. Un seul
+  nombre par largeur d'écran, et la façade la **redéfinit** au lieu de
+  réécrire le `padding` à côté. Même leçon que la barre du bas figée sur
+  quatre onglets : **un nombre recopié survit au changement qui l'invalide**.
+- **LE CARROUSEL DÉBORDE TOUJOURS DE SON CADRE, ET IL LE DOIT** — c'est ce
+  qui fait deviner qu'on peut balayer. Ce qui est corrigé, c'est que son
+  CADRE débordait de l'écran. Le contrôle distingue les deux : il ignore
+  tout élément dont un parent défile horizontalement.
+- **TROIS LARGEURS** — 320, 390, 430 px : une gouttière change avec l'écran,
+  et le défaut n'apparaissait qu'en dessous de 900.
+- **LE CONTRÔLE VISE LE SITE CONSTRUIT**, dans `test-nouveau-bascule`. Les
+  vingt-huit suites éprouvent le dépôt, qui ne porte pas cette feuille :
+  aucune ne pouvait voir ce défaut, et aucune ne l'aurait vu demain.
+  Éprouvé en remettant la façade d'origine — il tombe aux trois largeurs et
+  **nomme le coupable** (`div.services [-6→396]`) plutôt que de dire « ça
+  déborde » et de laisser chercher dans six mille lignes.
+- **CE QUI N'A PAS ÉTÉ TOUCHÉ, ET QUI SE VOIT EN MESURANT** : la façade
+  écrit trois fois `grid-template-columns` sur `.services`, qui reste en
+  `display:flex` — ces règles sont **inertes**, le carrousel est intact.
+  Les retirer ou poser `display:grid` changerait l'aspect de l'accueil :
+  c'est une décision de Barbaros, pas un nettoyage.
+
 ### QUATORZE CONTRÔLES ROUGES DEPUIS DES JOURS, ET PERSONNE NE LES VOYAIT
 
 16 septembre 2026. La série complète lancée avant une fusion a rendu **14

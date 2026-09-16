@@ -533,6 +533,60 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
     /estLApplication/.test(commandes));
 }
 
+/* =====================================================================
+   RIEN NE DÉBORDE DE LA LARGEUR — SUR LE SITE PUBLIÉ
+   ---------------------------------------------------------------------
+   Écrit le 16 septembre 2026, après un défaut qui n'existait QUE là.
+   « construire.sh » injecte « application-facade.css », qui descendait la
+   gouttière des sections à 14 px sous 900 px. Le carrousel des services,
+   lui, gardait une marge négative de 20 px écrite en dur : la page publiée
+   faisait 396 px pour une fenêtre de 390 et se décalait sous le doigt.
+   AUCUNE DES VINGT-HUIT SUITES NE POUVAIT LE VOIR : elles éprouvent le
+   dépôt, qui ne porte pas cette feuille. C'est la raison d'être de ce
+   contrôle-ci, et il vise le site CONSTRUIT.
+   TROIS LARGEURS, parce qu'une gouttière change avec l'écran : 320 px (le
+   plus petit iPhone), 390 (le courant), 430 (les grands).
+   ON NOMME LE COUPABLE, sinon le message dit « ça déborde » et laisse
+   chercher dans six mille lignes. */
+for (const large of [320, 390, 430]) {
+  const cx = await b.newContext({viewport:{width:large,height:844},locale:'fr-FR'});
+  const pw = await cx.newPage();
+  await pw.route('**://api.openrouteservice.org/**', r => r.abort());
+  await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
+  await pw.waitForTimeout(700);
+  const d = await pw.evaluate(() => {
+    const W = window.innerWidth, out = [];
+    /* On ne retient que ce qui pousse la PAGE : un enfant d'un cadre qui
+       défile horizontalement déborde de son cadre, pas de l'écran — et
+       c'est même voulu pour le carrousel des services, dont la carte
+       suivante doit se deviner. On remonte donc les parents. */
+    const dansUnDefilement = e => {
+      for (let n = e.parentElement; n; n = n.parentElement) {
+        const ov = getComputedStyle(n).overflowX;
+        if (ov === 'auto' || ov === 'scroll' || ov === 'hidden') return true;
+      }
+      return false;
+    };
+    for (const e of document.querySelectorAll('body *')) {
+      const r = e.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      if (r.right <= W + 1 && r.left >= -1) continue;
+      if (dansUnDefilement(e)) continue;
+      out.push(e.tagName.toLowerCase()
+        + (e.id ? '#' + e.id : '')
+        + (typeof e.className === 'string' && e.className.trim()
+            ? '.' + e.className.trim().split(/\s+/).slice(0,2).join('.') : '')
+        + ' [' + Math.round(r.left) + '→' + Math.round(r.right) + ']');
+    }
+    return { W, page: document.documentElement.scrollWidth, coupables: out.slice(0,4) };
+  });
+  check('à ' + large + ' px, le site publié ne déborde pas en largeur',
+    d.page <= d.W,
+    d.page + ' px de page pour ' + d.W + ' de fenêtre — ' +
+    (d.coupables.length ? d.coupables.join(' · ') : 'aucun élément nommé'));
+  await cx.close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
