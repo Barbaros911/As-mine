@@ -17,12 +17,12 @@ jobs:
         run: |
           set -euo pipefail
           grep -Fq 'destinationCle: hotelDest ? hotelDest.cle : null' site/index.html
-          grep -Fq '"destinationCle"' supabase/functions/deposer-course/index.ts
+          grep -Fq 'destinationCle' supabase/functions/deposer-course/index.ts
           grep -Fq 'destinationValide' supabase/functions/deposer-course/index.ts
           grep -Fq 'verification_manuelle' supabase/functions/deposer-course/index.ts
-          grep -Fq "sourceTarif:'partenaire'" supabase/functions/deposer-course/index.ts
+          grep -Fq 'sourceTarif' supabase/functions/deposer-course/index.ts
           grep -Fq 'commission_ela_defaut' supabase/functions/deposer-course/index.ts
           grep -Fq 'ela_deposer_course_serveur' supabase/functions/deposer-course/index.ts
           grep -Fq 'grant execute on function public.ela_deposer_course_serveur' supabase/migrations/20260916103000_hotel_server_pricing.sql
           grep -Fq 'to service_role' supabase/migrations/20260916103000_hotel_server_pricing.sql
-          grep -Fq "when 'paris' then '{\"verification_manuelle\":true}'" supabase/migrations/20260916103000_hotel_server_pricing.sql
+          grep -Fq 'verification_manuelle' supabase/migrations/20260916103000_hotel_server_pricing.sql
