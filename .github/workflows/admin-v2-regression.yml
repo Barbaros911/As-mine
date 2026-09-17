@@ -70,6 +70,7 @@ jobs:
           node test-admin-intake.mjs
           node test-admin-registre.mjs
           node test-admin-factures.mjs
+          node test-admin-gestes.mjs
 
       # LA MIGRATION EST EXÉCUTÉE POUR DE VRAI, sur un PostgreSQL vide.
       # Une expression régulière sur un fichier SQL ne sait pas si la requête
@@ -113,3 +114,10 @@ jobs:
             -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
             -f supabase/migrations/20260917010000_factures_commission.sql \
             -f supabase/tests/factures-commission.sql
+          # Les gestes vers le client : leur regle d'etat est imposee cote
+          # serveur, et c'est la seule facon de l'eprouver.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database gestes;'
+          psql -h 127.0.0.1 -U postgres -d gestes -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/migrations/20260917020000_gestes_client.sql \
+            -f supabase/tests/gestes-client.sql

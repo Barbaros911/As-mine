@@ -122,9 +122,9 @@ begin
     raise exception 'LA COURSE D''UN AUTRE CHAUFFEUR EST ENTREE DANS LA FACTURE'; end if;
 
   -- LA FACTURE EST FIGEE : le SIRET et l'adresse du chauffeur sont RECOPIES.
-  if f->'client'->>'siret' <> '90112233400015' then
+  if f->'client'->>'siret' is distinct from '90112233400015' then
     raise exception 'le SIRET du chauffeur n''est pas fige dans la facture'; end if;
-  if f->'emetteur'->>'siret' <> '00000000000000' then
+  if f->'emetteur'->>'siret' is distinct from '00000000000000' then
     raise exception 'le SIRET de l''emetteur n''est pas fige dans la facture'; end if;
 end $$;
 

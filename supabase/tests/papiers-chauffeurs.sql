@@ -218,7 +218,7 @@ begin
   -- avoir ecrit laisserait la course attribuee a quelqu'un qu'elle refuse.
   if exists(select 1 from public.attributions_chauffeur where course_ref='ELA-RPC-0001')
     then raise exception 'une attribution a ete ecrite malgre le refus'; end if;
-  if (select statut from public.courses where ref='ELA-RPC-0001') <> 'confirmee'
+  if (select statut from public.courses where ref='ELA-RPC-0001') is distinct from 'confirmee'
     then raise exception 'la course a change de statut malgre le refus'; end if;
 
   -- 10b. MEME REFUS SUR LA PROPOSITION : les deux portes, pas une seule.

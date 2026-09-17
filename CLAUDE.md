@@ -3925,6 +3925,74 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 5 — L'ACCUSÉ DE RÉCEPTION ET LA DEMANDE D'AVIS
+
+17 septembre 2026. Les deux gestes de l'exploitant vers le client, portés
+ensemble parce qu'ils partagent le même mécanisme : un message WhatsApp parti
+du téléphone de Barbaros, et une **trace** gardée sur la course.
+`admin-v2-gestes.js`, `ela_marquer_geste_client`.
+
+- **CE NE SONT PAS DES ENVOIS AUTOMATIQUES, ET ILS NE PEUVENT PAS L'ÊTRE.** Le
+  site n'a aucun moyen d'envoyer un SMS tout seul. Ne pas promettre l'inverse.
+- **LA RÈGLE QUI STRUCTURE LA BRIQUE : chaque geste n'a de sens que dans un
+  état, et c'est le SERVEUR qui l'impose.** L'accusé sur une course en
+  **attente** — une fois confirmée, c'est « Prévenir le client » qui parle, et
+  deux messages coup sur coup diraient au client qu'on ne sait pas où on en
+  est. L'avis sur une **réalisée** — on ne demande pas à quelqu'un ce qu'il a
+  pensé d'un trajet qu'il n'a pas fait.
+  **Pourquoi côté serveur et pas dans l'écran** : toute l'utilité de la marque
+  est d'être vraie (« sur dix demandes reçues la nuit, on ne se souvient pas
+  de qui a eu une réponse »). Une marque posée dans le mauvais état fait
+  croire à Barbaros qu'il a répondu à quelqu'un à qui il n'a rien dit, et il
+  ne le découvre que quand le client rappelle.
+- **UN REFUS N'ÉCRIT RIEN.** Un refus qui laisserait quand même la trace
+  serait pire qu'un refus muet : la marque mentirait de toute façon.
+- **ON PEUT REFAIRE LE GESTE**, et la date se rafraîchit : un client peut dire
+  « oui oui » et oublier. Ce qu'on interdit, c'est le mauvais état.
+- **DEUX GESTES SEULEMENT, ET NOMMÉS.** Accepter n'importe quelle chaîne
+  ferait entrer une marque que rien n'affiche — donc une trace perdue.
+- **LE MESSAGE SUIT `bon.langue`, ET LA DATE AVEC LUI.** « 09/20/2026 » à un
+  anglophone, « 20/09/2026 » à un francophone : le même jour, lu correctement
+  des deux côtés. Une course ancienne sans ce champ retombe sur le français.
+- **L'ACCUSÉ NE PROMET NI CHAUFFEUR NI VÉHICULE** : on ne les connaît pas
+  encore, et promettre une voiture qu'on n'a pas placée est le meilleur moyen
+  de laisser quelqu'un sur un trottoir. Quatre lignes, pas un paragraphe.
+- **SANS LIEN D'AVIS, RIEN NE PART** — le message se terminerait dans le vide.
+  Le lien vit dans `parametres_commerciaux` (`lien_avis`), pas dans le code :
+  c'est le sien, et un identifiant de son compte Google n'a rien à faire dans
+  un dépôt public. **Une adresse invalide est refusée** : un lien cassé envoyé
+  à un client est pire qu'un lien absent — lui, au moins, ne se clique pas.
+- **SANS NUMÉRO, AUCUN BOUTON, et on le DIT.** Un bouton qui n'envoie rien
+  ferait croire que le client est prévenu.
+- **`window.open` EST DANS LE GESTE DU CLIC**, sans aucun `await` avant :
+  Safari iOS bloque une fenêtre ouverte après une attente. La marque part
+  ensuite, et **si elle échoue on le dit** plutôt que d'afficher « envoyé »
+  sur une trace qui n'existe pas.
+- **LES AVIS NE S'INVENTENT PAS** — c'est le seul point où l'on ne suit pas
+  Barbaros, et il est rappelé dans le bloc de réglage lui-même (L132-2).
+
+**LE PIÈGE SQL QUE CETTE BRIQUE A DÉCOUVERT, ET QUI TOUCHAIT LES ÉPREUVES
+PRÉCÉDENTES.** Une falsification est restée **verte** : la marque écrasait le
+bon entier et le contrôle ne le voyait pas. La cause est la logique ternaire
+de SQL — `null <> 'Jean Martin'` vaut **NULL, pas TRUE**, donc le `if` ne se
+déclenche jamais. **Un contrôle écrit ainsi ne peut pas échouer.** Quinze
+comparaisons du même type dormaient dans les quatre épreuves déjà écrites ;
+toutes sont passées à `is distinct from`, et les quatre repassent au vert.
+**Écrire `<>` sur une valeur qui peut être NULL, c'est écrire un contrôle
+décoratif.**
+
+**PIÈGE DE TEST, PAS DE CODE** : la suite calait sur un clic d'onglet, et
+Playwright accusait l'écriteau de recouvrir le bouton. **Mesuré : aucun
+chevauchement** — bouton 693–737, écriteau 753–788, `elementFromPoint` rend
+bien le bouton. C'était **la feuille du bon, restée ouverte**, qui couvre
+toute la page : elle est modale par construction, et c'est ce qui empêche de
+cliquer derrière par accident. Un vrai doigt la ferme avant d'aller ailleurs ;
+le test le fait maintenant aussi. *Sans la mesure, j'aurais « corrigé » une
+mise en page qui n'avait rien.*
+
+- `test-admin-gestes.mjs`, **37 contrôles** ; `gestes-client.sql`, **8 blocs**.
+  Onze falsifications, toutes tombent en nommant le défaut.
+
 ### PARITÉ, BRIQUE 4 — LA FACTURE DE COMMISSION
 
 17 septembre 2026. L'argent ne passe **jamais** par Elatransfer : le client

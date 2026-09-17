@@ -37,16 +37,16 @@ begin
   if (r->>'refusees')::int <> 0 then
     raise exception 'attendu 0 refusee, recu %', r->>'refusees'; end if;
 
-  if (select statut from public.courses where ref='ELA-26-08-0001') <> 'realisee' then
+  if (select statut from public.courses where ref='ELA-26-08-0001') is distinct from 'realisee' then
     raise exception 'le statut « realisee » de la sauvegarde n''a pas ete garde'; end if;
-  if (select statut from public.courses where ref='ELA-26-08-0002') <> 'annulee' then
+  if (select statut from public.courses where ref='ELA-26-08-0002') is distinct from 'annulee' then
     raise exception 'le statut « annulee » de la sauvegarde n''a pas ete garde'; end if;
 
   -- LE BON NE DOIT PAS PORTER DE CHAMP « statut » EN DOUBLE : la colonne
   -- fait foi, et deux copies divergent des le premier changement d'etat.
   if (select bon ? 'statut' from public.courses where ref='ELA-26-08-0001') then
     raise exception 'le bon restaure porte un « statut » en double de la colonne'; end if;
-  if (select bon->'client'->>'nom' from public.courses where ref='ELA-26-08-0001') <> 'Duval' then
+  if (select bon->'client'->>'nom' from public.courses where ref='ELA-26-08-0001') is distinct from 'Duval' then
     raise exception 'le bon n''a pas ete restaure entier'; end if;
 end $$;
 
@@ -74,7 +74,7 @@ begin
   if (r->>'ignorees')::int <> 1 then
     raise exception 'attendu 1 ignoree, recu %', r->>'ignorees'; end if;
 
-  if (select statut from public.courses where ref='ELA-26-08-0003') <> 'confirmee' then
+  if (select statut from public.courses where ref='ELA-26-08-0003') is distinct from 'confirmee' then
     raise exception 'LA RESTAURATION A FAIT RECULER UNE COURSE : confirmee -> %',
       (select statut from public.courses where ref='ELA-26-08-0003'); end if;
   if (select bon->'chauffeur'->>'nom' from public.courses where ref='ELA-26-08-0003') is distinct from 'Karim' then
@@ -110,7 +110,7 @@ begin
   r := public.ela_restaurer_courses_exploitant(
     '[{"ref":"ELA-26-08-0011","course":{"date":"2026-08-10"},"prix":{"total":45}}]'::jsonb);
   if (r->>'ajoutees')::int <> 1 then raise exception 'la ligne sans statut n''est pas passee'; end if;
-  if (select statut from public.courses where ref='ELA-26-08-0011') <> 'attente' then
+  if (select statut from public.courses where ref='ELA-26-08-0011') is distinct from 'attente' then
     raise exception 'un statut a ete invente : %',
       (select statut from public.courses where ref='ELA-26-08-0011'); end if;
 end $$;
