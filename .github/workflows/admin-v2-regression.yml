@@ -57,7 +57,7 @@ jobs:
           npx playwright install --with-deps chromium
           node test-admin-papiers.mjs
           node test-admin-intake.mjs
-          node test-admin-registre.mjs
+          node test-admin-registre-mobile.mjs
           node test-admin-factures.mjs
           node test-admin-gestes.mjs
           node test-admin-affiche.mjs
