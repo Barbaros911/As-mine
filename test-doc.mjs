@@ -29,7 +29,7 @@
    Usage :  node test-doc.mjs
    ===================================================================== */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const page = readFileSync("index.html", "utf8");
@@ -393,6 +393,47 @@ if(refs){
         c.km === v.km, "site " + c.km + " €/km · serveur " + v.km + " €/km");
       verifier("« " + cle + " » : le montant minimum est le même des deux côtés",
         c.mini === v.mini, "site " + c.mini + " € · serveur " + v.mini + " €");
+    }
+  }
+}
+
+/* =====================================================================
+   LE FILTRE DE CHEMINS DU CONTRÔLE ADMIN V2 COUVRE-T-IL CE QUI EXISTE ?
+   ---------------------------------------------------------------------
+   Le workflow ne se déclenche que sur les chemins qu'il énumère. La liste
+   d'origine nommait les quatre fichiers qui existaient le jour où elle a
+   été écrite : « intake-demande.js » — le lecteur PARTAGÉ par les deux
+   espaces — n'y était pas, ni « admin-v2-registre.js », ni deux des trois
+   suites. Les modifier seuls n'aurait déclenché AUCUN contrôle, et rien
+   ne l'aurait signalé.
+
+   ON NE FIGE PAS UNE LISTE ICI NON PLUS — ce serait la même faute d'un
+   cran plus loin. On vérifie la COUVERTURE : tout fichier du dépôt qui
+   appartient à Admin v2 doit être attrapé par au moins un motif.
+   ===================================================================== */
+{
+  const wf = ".github/workflows/admin-v2-regression.yml";
+  if(!existsSync(wf)){
+    verifier("le workflow de contrôle Admin v2 existe", false, wf + " est introuvable");
+  } else {
+    const bloc = (readFileSync(wf, "utf8").match(/paths:\n([\s\S]*?)\npermissions:/) || [,""])[1];
+    const motifs = [...bloc.matchAll(/^\s*-\s*'([^']+)'/gm)].map(m => m[1]);
+    verifier("le workflow Admin v2 déclare des chemins", motifs.length > 0);
+    /* Un motif de workflow GitHub : « * » ne traverse pas les dossiers,
+       « ** » oui. On le traduit en expression régulière. */
+    const couvre = (motif, f) => new RegExp("^" + motif
+        .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*\*/g, "\u0000")
+        .replace(/\*/g, "[^/]*")
+        .replace(/\u0000/g, ".*") + "$").test(f);
+    const aCouvrir = readdirSync(".")
+      .filter(f => /^admin-v2.*|^intake-demande\.js$|^test-admin-.*\.mjs$/.test(f));
+    verifier("des fichiers Admin v2 ont été trouvés dans le dépôt",
+      aCouvrir.length >= 4, aCouvrir.length + " fichier(s)");
+    for(const f of aCouvrir){
+      verifier("« " + f + " » déclenche le contrôle Admin v2",
+        motifs.some(m => couvre(m, f)),
+        "aucun motif ne l'attrape — le modifier seul ne lancerait aucune suite");
     }
   }
 }

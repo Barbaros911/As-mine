@@ -3925,6 +3925,37 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### LE FILTRE DE LA CI NOMMAIT LES FICHIERS D'UN AUTRE JOUR
+
+17 septembre 2026, trouvé en vérifiant une durée de CI qui m'avait paru
+suspecte. **La durée, elle, était juste** — le coureur GitHub a Chromium en
+cache, tout avait réellement tourné. *J'avais supposé au lieu de mesurer,
+pour la cinquième fois dans ce projet ; le journal a tranché en une lecture.*
+
+**Le vrai défaut était à côté.** `admin-v2-regression.yml` ne se déclenche
+que sur les chemins qu'il **énumère**, et la liste nommait les quatre
+fichiers qui existaient le jour où elle a été écrite. N'y étaient pas :
+`intake-demande.js` — **le lecteur PARTAGÉ par les deux espaces** —,
+`admin-v2-registre.js`, `test-admin-intake.mjs` et `test-admin-registre.mjs`.
+
+- **LES MODIFIER SEULS N'AURAIT DÉCLENCHÉ AUCUN CONTRÔLE**, et rien ne
+  l'aurait signalé. Le trou était masqué depuis la brique 1 parce que chaque
+  commit touchait *aussi* `construire.sh` ou une migration — **une couverture
+  obtenue par accident n'est pas une couverture**.
+- **Même famille que la barre du bas figée sur quatre onglets, que le lanceur
+  qui ne ramassait que `test-nouveau*`, et que la section « Tests » qui
+  annonçait 23 suites.** Une liste écrite en dur survit au changement qui
+  l'invalide, sans rien casser de visible.
+- Le filtre porte maintenant des **motifs** (`admin-v2*`, `test-admin-*.mjs`,
+  `supabase/**`), pas des noms.
+- **LE CONTRÔLE NE FIGE PAS DE LISTE NON PLUS** — ce serait la même faute d'un
+  cran plus loin. `test-doc.mjs` **traduit les motifs du workflow en
+  expressions régulières** et vérifie que tout fichier d'Admin v2 présent dans
+  le dépôt est attrapé par au moins un. Une suite ajoutée demain est couverte
+  d'office ; un fichier qui sortirait du filet fait tomber le contrôle en le
+  **nommant**. Éprouvé en remettant la liste d'origine : il tombe sur les
+  quatre fichiers, un par un.
+
 ### PARITÉ, BRIQUE 3 — LE REGISTRE, LA SAUVEGARDE ET L'EXPORT CSV
 
 17 septembre 2026. Admin v2 montrait ce qui ARRIVE, jamais ce qui a été

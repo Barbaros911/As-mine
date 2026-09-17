@@ -1,15 +1,22 @@
 name: Contrôle Admin v2
 on:
   pull_request:
+    # ON FILTRE PAR MOTIF, PAS PAR LISTE DE FICHIERS. La liste d'origine
+    # nommait les quatre fichiers qui existaient le jour ou elle a ete
+    # ecrite : « intake-demande.js » -- le lecteur PARTAGE par les deux
+    # espaces -- n'y etait pas, ni « admin-v2-registre.js », ni deux des
+    # trois suites. Les modifier seuls n'aurait declenche AUCUN controle,
+    # et rien ne l'aurait signale : une liste ecrite en dur survit au
+    # changement qui l'invalide. Meme famille que la barre du bas figee
+    # sur quatre onglets, et que le lanceur qui ne ramassait que
+    # « test-nouveau* ». Un controle de « test-doc.mjs » verifie desormais
+    # que tout fichier d'Admin v2 present dans le depot est couvert ici.
     paths:
-      - 'admin-v2.html'
-      - 'admin-v2-actions.js'
-      - 'admin-v2-push.js'
-      - 'admin-v2-finance.js'
+      - 'admin-v2*'
+      - 'intake-demande.js'
+      - 'test-admin-*.mjs'
       - 'construire.sh'
-      - 'supabase/migrations/**'
-      - 'test-admin-papiers.mjs'
-      - 'supabase/tests/**'
+      - 'supabase/**'
       - '.github/workflows/admin-v2-regression.yml'
 permissions: {contents: read}
 jobs:
