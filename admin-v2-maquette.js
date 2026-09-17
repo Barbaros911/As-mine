@@ -53,8 +53,13 @@
       logo.style.transform='none';
       logo.style.transformOrigin='left center';
       if(window.matchMedia('(min-width:801px)').matches){
+        /* Sidebar = 236 px. Logo officiel = 112 px : centrage exact, sans chevaucher l’en-tête. */
+        logo.style.left='62px';
+        logo.style.top='15px';
         top.style.zIndex='14';
       }else{
+        logo.style.left='12px';
+        logo.style.top='10px';
         top.style.zIndex='12';
       }
     };
