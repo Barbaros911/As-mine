@@ -2,85 +2,26 @@
   const $=(s,r=document)=>r.querySelector(s);
   const dashboard=$('#s-dashboard');
   if(!dashboard)return;
-
   dashboard.classList.add('dashboard-maquette');
-  const title=$('.title',dashboard), metrics=$('#metrics'), intake=$('#zoneIntake'), actions=$('#actions'), next=$('#nextBookings'), push=$('#zonePush');
-  if(title){
-    const h1=$('h1',title); if(h1)h1.textContent='Tableau de bord';
-    const sub=$('.muted',title); if(sub)sub.textContent="Vue d’ensemble de l’activité ELA Transfer";
-    const refresh=$('[data-refresh]',title); if(refresh)refresh.textContent='Actualiser';
-  }
-
-  const actionTitle=actions?.previousElementSibling;
-  const nextTitle=next?.previousElementSibling;
-  if(actionTitle?.tagName==='H2')actionTitle.remove();
-  if(nextTitle?.tagName==='H2')nextTitle.remove();
-
-  const quick=document.createElement('section');
-  quick.className='dash-quick';
-  quick.innerHTML='<div><h2>Gestion rapide</h2><p class="muted small">Créer ou importer une nouvelle réservation.</p></div>';
-  if(intake)quick.append(intake);
-
-  const cols=document.createElement('div'); cols.className='dash-cols';
-  const recent=document.createElement('section'); recent.className='dash-panel dash-recent';
-  recent.innerHTML='<div class="dash-panel-head"><div><h2>Réservations récentes</h2><p class="muted small">Prochaines courses et demandes enregistrées</p></div><button type="button" class="dash-link" data-go="bookings">Voir toutes</button></div>';
-  if(next)recent.append(next);
-  const required=document.createElement('section'); required.className='dash-panel dash-required';
-  required.innerHTML='<div class="dash-panel-head"><div><h2>Actions requises</h2><p class="muted small">Priorités opérationnelles à traiter</p></div></div>';
-  if(actions)required.append(actions);
-  cols.append(recent,required);
-
+  const title=$('.title',dashboard),metrics=$('#metrics'),intake=$('#zoneIntake'),actions=$('#actions'),next=$('#nextBookings'),push=$('#zonePush');
+  if(title){const h1=$('h1',title);if(h1)h1.textContent='Tableau de bord';const sub=$('.muted',title);if(sub)sub.textContent="Voici un aperçu de votre activité aujourd’hui.";const refresh=$('[data-refresh]',title);if(refresh)refresh.textContent='Actualiser';}
+  [actions?.previousElementSibling,next?.previousElementSibling].forEach(e=>{if(e?.tagName==='H2')e.remove()});
+  const quick=document.createElement('section');quick.className='dash-quick';quick.innerHTML='<div><h2>Nouvelle réservation</h2><p class="muted small">Créer ou importer une réservation.</p></div>';if(intake)quick.append(intake);
+  const cols=document.createElement('div');cols.className='dash-cols';
+  const recent=document.createElement('section');recent.className='dash-panel dash-recent';recent.innerHTML='<div class="dash-panel-head"><h2>Réservations récentes</h2><button type="button" class="dash-link" data-go="bookings">Voir toutes les réservations →</button></div>';if(next)recent.append(next);
+  const required=document.createElement('section');required.className='dash-panel dash-required';required.innerHTML='<div class="dash-panel-head"><h2>Actions requises</h2></div>';if(actions)required.append(actions);cols.append(recent,required);
+  const lower=document.createElement('div');lower.className='dash-lower';
+  const today=document.createElement('section');today.className='dash-panel';today.innerHTML='<div class="dash-panel-head"><h2>Calendrier du jour</h2><button type="button" class="dash-link" data-go="bookings">Voir les réservations</button></div><div class="dash-derived" data-derived="today"></div>';
+  const departures=document.createElement('section');departures.className='dash-panel';departures.innerHTML='<div class="dash-panel-head"><h2>Prochains départs</h2><button type="button" class="dash-link" data-go="bookings">Voir tous</button></div><div class="dash-derived" data-derived="departures"></div>';
+  const messages=document.createElement('section');messages.className='dash-panel';messages.innerHTML='<div class="dash-panel-head"><h2>Suivi opérationnel</h2></div><div class="dash-derived"><p class="muted small">Les alertes et actions réelles restent disponibles dans « Actions requises ». Aucun faux message n’est affiché.</p></div>';
+  lower.append(today,departures,messages);
+  const analytics=document.createElement('div');analytics.className='dash-analytics';analytics.innerHTML='<section class="dash-panel"><h2>Statistiques</h2><p class="muted small">Les indicateurs affichés ci-dessus proviennent des données réelles disponibles.</p></section><section class="dash-panel"><h2>Répartition des trajets</h2><p class="muted small">Ce graphique apparaîtra uniquement lorsqu’une agrégation réelle est disponible.</p></section><section class="dash-panel"><h2>Revenus</h2><p class="muted small">Aucun montant fictif : seules les données financières réellement disponibles sont présentées.</p></section>';
   if(metrics)metrics.classList.add('dash-metrics');
-  if(title){
-    title.after(metrics||document.createTextNode(''));
-    if(metrics)metrics.after(quick);
-    else title.after(quick);
-    quick.after(cols);
-    if(push)cols.after(push);
-  }
-
-  dashboard.addEventListener('click',e=>{
-    const key=e.target.closest('[data-go]')?.dataset.go;
-    if(!key)return;
-    const tab=document.querySelector(`#nav [data-tab="${key}"]`); if(tab)tab.click();
-  });
-
-  const nav=$('#nav'), top=$('.top');
-  if(nav&&top){
-    const logo=$('img',top);
-    let desktopLogoSlot=null;
-    if(logo){
-      desktopLogoSlot=document.createElement('div');
-      desktopLogoSlot.className='desktop-logo-slot';
-      nav.prepend(desktopLogoSlot);
-    }
-    const placeLogo=()=>{
-      if(!logo)return;
-      logo.style.transform='none';
-      logo.style.transformOrigin='left center';
-      if(window.matchMedia('(min-width:801px)').matches){
-        if(desktopLogoSlot && logo.parentElement!==desktopLogoSlot)desktopLogoSlot.append(logo);
-        logo.style.position='static';
-        logo.style.left='auto';
-        logo.style.top='auto';
-        top.style.zIndex='12';
-      }else{
-        if(logo.parentElement!==top)top.prepend(logo);
-        logo.style.position='absolute';
-        logo.style.left='12px';
-        logo.style.top='10px';
-        top.style.zIndex='12';
-      }
-    };
-    placeLogo();
-    window.addEventListener('resize',placeLogo,{passive:true});
-
-    const menu=document.createElement('button');
-    menu.type='button'; menu.className='mobile-menu'; menu.setAttribute('aria-label','Ouvrir le menu'); menu.setAttribute('aria-expanded','false'); menu.textContent='☰';
-    top.append(menu);
-    const close=()=>{nav.classList.remove('mobile-open');menu.setAttribute('aria-expanded','false')};
-    menu.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');menu.setAttribute('aria-expanded',String(open))});
-    nav.addEventListener('click',e=>{if(e.target.closest('button'))close()});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
-  }
+  if(title){title.after(metrics||document.createTextNode(''));if(metrics)metrics.after(quick);else title.after(quick);quick.after(cols);cols.after(lower);lower.after(analytics);if(push)analytics.after(push);}
+  const getCourses=()=>Array.isArray(window.state?.courses)?window.state.courses:[];
+  const courseInfo=c=>{const b=c?.bon||{},x=b.course||{};return{date:x.date||'',heure:x.heure||'',depart:x.depart||'',arrivee:x.arrivee||'',ref:c.ref||''}};
+  const renderDerived=()=>{const all=getCourses().map(courseInfo).filter(x=>x.date||x.heure);const sorted=all.sort((a,b)=>(a.date+a.heure).localeCompare(b.date+b.heure));const day=new Date().toISOString().slice(0,10);const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const rows=a=>a.slice(0,5).map(x=>`<button type="button" class="derived-row" data-open-ref="${esc(x.ref)}"><strong>${esc(x.heure||x.date)}</strong><span>${esc(x.depart)} → ${esc(x.arrivee)}</span></button>`).join('')||'<p class="muted small">Aucune course disponible.</p>';const t=$('[data-derived="today"]');if(t)t.innerHTML=rows(sorted.filter(x=>x.date===day));const d=$('[data-derived="departures"]');if(d)d.innerHTML=rows(sorted.filter(x=>!x.date||x.date>=day));};
+  renderDerived();setTimeout(renderDerived,800);
+  dashboard.addEventListener('click',e=>{const ref=e.target.closest('[data-open-ref]')?.dataset.openRef;if(ref&&typeof window.openBooking==='function'){window.openBooking(ref);return;}const key=e.target.closest('[data-go]')?.dataset.go;if(key){const tab=document.querySelector(`#nav [data-tab="${key}"]`);if(tab)tab.click();}});
+  const nav=$('#nav'),top=$('.top');if(nav&&top){const logo=$('img',top);let slot=null;if(logo){slot=document.createElement('div');slot.className='desktop-logo-slot';nav.prepend(slot);}const placeLogo=()=>{if(!logo)return;logo.style.transform='none';if(window.matchMedia('(min-width:801px)').matches){if(slot&&logo.parentElement!==slot)slot.append(logo);logo.style.position='static';}else{if(logo.parentElement!==top)top.prepend(logo);logo.style.position='absolute';logo.style.left='12px';logo.style.top='10px';}};placeLogo();window.addEventListener('resize',placeLogo,{passive:true});const menu=document.createElement('button');menu.type='button';menu.className='mobile-menu';menu.setAttribute('aria-label','Ouvrir le menu');menu.setAttribute('aria-expanded','false');menu.textContent='☰';top.append(menu);const close=()=>{nav.classList.remove('mobile-open');menu.setAttribute('aria-expanded','false')};menu.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');menu.setAttribute('aria-expanded',String(open))});nav.addEventListener('click',e=>{if(e.target.closest('button'))close()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});}
 })();
