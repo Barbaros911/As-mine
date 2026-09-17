@@ -143,11 +143,15 @@ les assistants entre eux. Un assistant à l'arrêt ne libère pas son chantier :
 on le signale et on attend. Voir `TEAM_RULES` §3.
 
 **LA CIBLE EST UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
-Admin v2 est publié mais **en préversion** : il lui manque les gestes
-quotidiens de l'espace actuel — coller une demande, saisir par téléphone, le
-registre et sa sauvegarde, la facture de commission, l'affiche QR, la demande
-d'avis, l'accusé de réception. **Basculer avant la parité retirerait à
-Barbaros son geste principal.** Le détail est dans `CLAUDE.md`.
+Admin v2 est publié mais **en préversion**. La parité se fait par briques,
+annoncées et résumées dans **#191** : coller une demande (✔ brique 1),
+saisir par téléphone (✔ brique 2), registre + sauvegarde + export CSV
+(✔ brique 3). **Restent** : la facture de commission, l'affiche QR, la
+demande d'avis, l'accusé de réception, et la chaîne d'itinéraire partagée —
+sans elle, « Calculer le prix depuis les adresses » n'existe que d'un côté,
+et **deux calculs de prix qui divergent ne se voient pas**.
+**Aucune bascule de `admin.html` avant que tout y soit.** Le détail de
+chaque brique et de ses pièges est dans `CLAUDE.md`.
 `/etat` signale en rouge quand `main` a bougé pendant la session.
 
 ## Ce qui est prévu

@@ -3925,6 +3925,78 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 3 — LE REGISTRE, LA SAUVEGARDE ET L'EXPORT CSV
+
+17 septembre 2026. Admin v2 montrait ce qui ARRIVE, jamais ce qui a été
+FAIT : pas de résultat par semaine, pas de tableau des chauffeurs, pas
+d'export comptable. `admin-v2-registre.js`, onglet « Registre ».
+
+- **LE DÉFAUT QU'IL A FALLU TRAITER EN PREMIER : `load()` NE LIT QUE LES 300
+  DERNIÈRES COURSES.** Parfait pour un tableau de bord qui montre ce qui
+  arrive, **mensonger pour un registre qui additionne une année**. Un total
+  calculé sur une liste tronquée s'affiche sans un mot : il est simplement
+  faux, et c'est le chiffre qu'on recopie dans une déclaration. Le registre
+  fait donc **sa propre lecture** (`PLAFOND`, 5000) et, s'il touche ce
+  plafond, **il le DIT** au lieu d'afficher un total qu'il sait incomplet.
+  C'est la même famille que le tableau de tarifs qui a menti pendant des
+  jours — **un document ne se trompe jamais bruyamment**.
+- **LES TABLEAUX NE COMPTENT QUE LES `realisee`**, et **la date retenue est
+  celle de la COURSE** : les deux règles de l'espace actuel, portées telles
+  quelles. Une confirmée est une promesse ; la date de saisie décalerait les
+  semaines au fil des oublis.
+- **ON NE LIT LE REGISTRE QU'À L'OUVERTURE DE SON ÉCRAN.** Cinq mille lignes
+  tirées au chargement, sur un téléphone, pour un écran qu'on n'ouvre pas
+  tous les jours — c'est de la 4G brûlée.
+- **LA RECHERCHE LIBRE N'A PAS ÉTÉ REFAITE** : l'écran « Réservations » la
+  porte déjà, sur tout le registre. La rebâtir aurait été un second champ à
+  tenir pour le même besoin.
+- **LA SAUVEGARDE GARDE LE FORMAT `elatransfer-1`**, celui de l'espace
+  actuel. Tant que les deux espaces coexistent, un fichier pris d'un côté
+  doit se restaurer de l'autre — deux formats voudraient dire deux lecteurs,
+  et c'est celui qu'on oublie qui refuserait le fichier le jour où il sert.
+  Ce qu'elle n'est plus, en revanche : **le filet de survie**. Là-bas le
+  registre ne vit que dans le navigateur ; ici les courses sont sur le
+  serveur. Elle reste la copie de Barbaros, indépendante d'un hébergeur
+  qu'il ne maîtrise pas, et le fichier que réclame un comptable.
+- **LA RESTAURATION EST UNE RPC DE PLUS, ET C'EST VOULU**
+  (`ela_restaurer_courses_exploitant`). `ela_creer_course_exploitant`
+  n'accepte que `attente` et `confirmee`, **et c'est juste** : c'est la porte
+  de SAISIE, et une course qu'on saisit ne peut pas être déjà réalisée. Une
+  restauration ramène des courses **déjà vécues**. Élargir la porte de
+  saisie pour les faire passer aurait ouvert une porte qu'on ne rétrécit
+  jamais — et un exploitant aurait pu créer de toutes pièces une course
+  « réalisée », c'est-à-dire **de l'argent qui n'est jamais entré**.
+- **ELLE AJOUTE, ELLE N'ÉCRASE JAMAIS, et la règle est POSÉE CÔTÉ SERVEUR.**
+  Une course d'ici peut avoir avancé depuis la sauvegarde — chauffeur
+  attribué, course réalisée — et remplacer ferait **reculer** le travail au
+  lieu de le rendre. C'est `fusionnerCourses()` porté côté serveur. Une
+  garde d'écran n'aurait pas suffi : un appel direct passe à côté.
+- **UNE LIGNE MAUVAISE NE FAIT PAS PERDRE LES AUTRES** : sans référence, avec
+  un statut inconnu, ou qui n'est pas un objet — elle est comptée `refusee`
+  et on continue. Sur une sauvegarde de trois cents lignes, s'arrêter à la
+  première ferait perdre les deux cent quatre-vingt-dix-neuf autres.
+- **UN FICHIER ILLISIBLE EST ARRÊTÉ DANS L'ÉCRAN**, il ne part pas au
+  serveur : l'envoyer ferait lire à Barbaros un message de base de données
+  là où l'écran savait déjà quoi dire.
+- **LE STATUT NE RESTE PAS EN DOUBLE DANS LE BON** (`ligne - 'statut'`) : la
+  colonne fait foi, et deux copies divergent au premier changement d'état.
+- **`sw.js` N'A PAS BOUGÉ, ET C'EST DÉLIBÉRÉ.** Le module lit le serveur à
+  chaque ouverture : hors ligne il n'a rien à montrer. Le mettre dans le
+  `SHELL` aurait ajouté un point de rupture à un `addAll` tout-ou-rien pour
+  un gain nul. Seul `intake-demande.js` y est, parce qu'il est **partagé**
+  avec `index.html`.
+- **LE TEST ANCRE L'HORLOGE DU NAVIGATEUR** au jeudi 17/09/2026. Une semaine
+  « en cours » calculée depuis « aujourd'hui » rendrait la suite dépendante
+  du jour où on la lance — **exactement le défaut que la CI a trouvé sur les
+  fixtures SQL**. Et il **recalcule les totaux à la main** depuis le jeu de
+  courses : un test qui prend la sortie pour référence ne vérifie plus rien.
+- **LE TABLEAU DES CHAUFFEURS S'ÉPROUVE PAR SON ORDRE, pas par sa
+  présence** : c'est lui qui sert à décider à qui confier la prochaine
+  course. Un contrôle de présence serait passé au vert sur un tri inversé.
+  Même leçon que la barre du bas et que les jours du tableau de bord.
+- `test-admin-registre.mjs`, **52 contrôles** ; `registre-restauration.sql`,
+  **8 blocs**. Sept falsifications, toutes tombent en nommant le défaut.
+
 ### PARITÉ, BRIQUE 2 — SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
 
 16 septembre 2026. « Coller une demande » ne couvre que le client qui
@@ -4102,10 +4174,13 @@ serveur laissé sur le mauvais dossier, la suite qui éprouvait le dépôt au li
 du site publié, et maintenant la capture d'un build périmé. **Ce qu'on montre
 doit être fabriqué au moment où on le montre.**
 
-**C'EST LA PREMIÈRE SUITE NAVIGATEUR DU DÉPÔT À TOURNER EN CI.** Les
-vingt-huit autres ne tournent que sur la machine de travail : c'est exactement
-pour ça qu'elles ont pu rester rouges quatre jours. Les y brancher toutes est
-une décision à part — durée, instabilité.
+**C'EST LA PREMIÈRE SUITE NAVIGATEUR DU DÉPÔT À TOURNER EN CI**, et les
+suites d'Admin v2 l'ont rejointe depuis. **Toutes les autres ne tournent que
+sur la machine de travail** : c'est exactement pour ça qu'elles ont pu rester
+rouges quatre jours. Les y brancher toutes est une décision à part — durée,
+instabilité. *(On ne compte pas les suites ici : un nombre écrit en dur
+survit à la suite qu'on ajoute, et c'est arrivé deux fois dans ce fichier.
+`.claude/outils/tests.sh` est la seule recette.)*
 
 **LE LANCEUR CRIAIT AU LOUP, PUIS S'ARRÊTAIT À LA PREMIÈRE SUITE ROUGE.**
 Deux défauts trouvés l'un derrière l'autre, et le second **dans la correction
@@ -4308,7 +4383,7 @@ endroits — dont un que le dépôt ne porte pas.
 - **TROIS LARGEURS** — 320, 390, 430 px : une gouttière change avec l'écran,
   et le défaut n'apparaissait qu'en dessous de 900.
 - **LE CONTRÔLE VISE LE SITE CONSTRUIT**, dans `test-nouveau-bascule`. Les
-  vingt-huit suites éprouvent le dépôt, qui ne porte pas cette feuille :
+  autres suites éprouvent le dépôt, qui ne porte pas cette feuille :
   aucune ne pouvait voir ce défaut, et aucune ne l'aurait vu demain.
   Éprouvé en remettant la façade d'origine — il tombe aux trois largeurs et
   **nomme le coupable** (`div.services [-6→396]`) plutôt que de dire « ça
