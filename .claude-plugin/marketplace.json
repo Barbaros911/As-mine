@@ -1,0 +1,11 @@
+{
+  "name": "ela-transfer-plugins",
+  "owner": {"name": "ELA Transfer"},
+  "plugins": [
+    {
+      "name": "ela-transfer",
+      "source": "./chatgpt-plugins/ela-transfer",
+      "description": "Safe ELA Transfer project management, GitHub review, QA, security and deployment workflows."
+    }
+  ]
+}
