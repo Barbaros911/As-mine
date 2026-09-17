@@ -1,0 +1,5 @@
+{
+  "name": "ela-transfer",
+  "version": "0.1.0",
+  "description": "ELA Transfer project operations plugin for safe planning, GitHub review, QA, security and deployment checks."
+}
