@@ -29,7 +29,7 @@
    Usage :  node test-doc.mjs
    ===================================================================== */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const page = readFileSync("index.html", "utf8");
@@ -288,6 +288,154 @@ if(refs){
   }
 } else {
   console.log("  (dépôt distant injoignable : le contrôle des branches est sauté)");
+}
+
+/* =====================================================================
+   LA SECTION « TESTS » NE RECOPIE PAS LA LISTE DES SUITES
+   ---------------------------------------------------------------------
+   Le 16 septembre 2026, elle annonçait « vingt-trois suites Playwright,
+   957 contrôles » et recopiait les vingt-trois noms dans une boucle. Il y
+   en avait vingt-huit. Cinq suites n'étaient dans aucune des deux
+   affirmations : qui suivait la documentation ne les lançait jamais, et
+   rien ne le signalait -- une suite absente d'une liste ne proteste pas.
+
+   ON NE VERROUILLE PAS UN COMPTE. Un test qui fige un nombre se met en
+   travers de la première suite légitimement ajoutée, et c'est lui qu'on
+   « répare » en le supprimant. On verrouille les deux choses qui ne
+   vieillissent pas : aucun nom cité ne doit avoir disparu, et la section
+   ne doit pas se remettre à énumérer au lieu de pointer la recette.
+   ===================================================================== */
+{
+  /* LES ACCENTS GRAVES FONT LA DIFFÉRENCE, et c'est la convention déjà
+     posée dans CLAUDE.md : une suite qu'on doit LANCER s'écrit entre
+     accents graves, une suite DISPARUE s'écrit sans. Le fichier garde le
+     souvenir des neuf suites de l'ancien site — c'est utile et ça ne doit
+     pas faire tomber le contrôle. Ce qu'on interdit, c'est de désigner
+     comme exécutable quelque chose qui n'existe pas. */
+  const suites = new Set();
+  for(const m of doc.matchAll(/`(test-[a-z0-9-]*\.mjs)`/g)) suites.add(m[1]);
+  const morte = [...suites].sort().filter(f => !existsSync(f));
+  verifier("CLAUDE.md ne nomme aucune suite à lancer qui n'existe plus",
+    morte.length === 0,
+    "introuvable(s) : " + morte.join(", ") + " — une consigne qui vise le vide fait chercher.");
+
+  const iTests  = doc.indexOf("\n## Tests\n");
+  const section = iTests < 0 ? "" : doc.slice(iTests, iTests + 4000);
+  /* ON NE LIT QUE LE BLOC DE COMMANDES, jamais la section entière. Le
+     premier jet cherchait le nom du lanceur dans tout le texte : il le
+     trouvait dans la PHRASE qui l'explique, et passait au vert alors que la
+     commande à taper avait été remplacée. Même faute que le premier
+     contrôle de construire.sh, qui trouvait « carte » dans un commentaire.
+     Éprouvé : sans ce resserrement, la falsification ne tombe pas. */
+  const bloc = (section.match(/```bash\n([\s\S]*?)```/) || [,""])[1];
+  verifier("la COMMANDE de la section « Tests » appelle la recette",
+    bloc.includes(".claude/outils/tests.sh"),
+    "le bloc à taper doit lancer tests.sh : deux recettes pour une seule chose finissent toujours par diverger.");
+  verifier("…et ne réénumère pas les suites dans une boucle",
+    !/for\s+f\s+in\s+test-/.test(bloc),
+    "une liste recopiée à la main oublie la suite suivante, en silence — c'est exactement ce qui est arrivé.");
+
+  /* Le lanceur, lui, ne doit pas se remettre à filtrer sur « nouveau » :
+     une suite écrite aujourd'hui ne porte pas ce préfixe hérité. */
+  if(existsSync(".claude/outils/tests.sh")){
+    const lanceur = readFileSync(".claude/outils/tests.sh", "utf8");
+    verifier("le lanceur ramasse « test-*.mjs », pas le seul préfixe « nouveau »",
+      /ls\s+test-\*\.mjs/.test(lanceur),
+      "il ignorerait en silence toute suite qui ne s'appelle pas test-nouveau-*.");
+  }
+}
+
+/* =====================================================================
+   LA GRILLE DU CLIENT ET CELLE DU SERVEUR DOIVENT S'ACCORDER
+   ---------------------------------------------------------------------
+   Le site calcule le prix dans le navigateur (« GAMMES ») ; Admin v2
+   s'appuie sur une source SERVEUR semée par une migration. Les deux
+   portent aujourd'hui les mêmes nombres -- et RIEN ne vérifiait qu'ils le
+   restent.
+
+   CE QUE ÇA COÛTERAIT : Barbaros annonce un montant au téléphone depuis
+   l'Admin, le client en voit un autre sur le site. Le prix d'Elatransfer
+   est FERME, donc opposable : c'est le client qui aurait raison.
+   « Deux calculs qui divergent ne se voient pas » -- ce fichier le répète
+   partout, et l'écart traversait ici la frontière client/serveur sans que
+   personne ne le garde.
+
+   ON NE FIGE AUCUN CHIFFRE ICI : on éprouve l'ACCORD. Une baisse de tarif
+   décidée par Barbaros touche les deux et reste verte ; n'en toucher qu'un
+   seul tombe, et le message dit lequel.
+   ===================================================================== */
+{
+  const fSql = "supabase/migrations/20260916100000_current_tariff_source.sql";
+  if(existsSync(fSql)){
+    const sql = readFileSync(fSql, "utf8");
+    const serveur = {};
+    for(const m of sql.matchAll(/'tarif_general_(berline|van)','(\{[^']*\})'/g)){
+      try { const j = JSON.parse(m[2]);
+            serveur[m[1]] = { km: j.par_km_centimes/100, mini: j.minimum_centimes/100 }; }
+      catch(e){ /* la ligne a changé de forme : le contrôle suivant le dira */ }
+    }
+    const client = {};
+    const bloc = (page.match(/var GAMMES = \[([\s\S]*?)\];/) || [,""])[1];
+    for(const m of bloc.matchAll(/cle:"(\w+)"[^}]*parKm:([\d.]+)[^}]*mini:(\d+)/g)){
+      client[m[1]] = { km: parseFloat(m[2]), mini: parseFloat(m[3]) };
+    }
+
+    verifier("les deux grilles sont lisibles (client et serveur)",
+      Object.keys(client).length > 0 && Object.keys(serveur).length > 0,
+      "client : " + JSON.stringify(client) + " · serveur : " + JSON.stringify(serveur));
+
+    for(const cle of Object.keys(client)){
+      const c = client[cle], v = serveur[cle];
+      verifier("la gamme « " + cle + " » est déclarée côté serveur", !!v,
+        "elle est dans GAMMES mais absente de la source tarifaire serveur");
+      if(!v) continue;
+      verifier("« " + cle + " » : le tarif au km est le même des deux côtés",
+        c.km === v.km, "site " + c.km + " €/km · serveur " + v.km + " €/km");
+      verifier("« " + cle + " » : le montant minimum est le même des deux côtés",
+        c.mini === v.mini, "site " + c.mini + " € · serveur " + v.mini + " €");
+    }
+  }
+}
+
+/* =====================================================================
+   LE FILTRE DE CHEMINS DU CONTRÔLE ADMIN V2 COUVRE-T-IL CE QUI EXISTE ?
+   ---------------------------------------------------------------------
+   Le workflow ne se déclenche que sur les chemins qu'il énumère. La liste
+   d'origine nommait les quatre fichiers qui existaient le jour où elle a
+   été écrite : « intake-demande.js » — le lecteur PARTAGÉ par les deux
+   espaces — n'y était pas, ni « admin-v2-registre.js », ni deux des trois
+   suites. Les modifier seuls n'aurait déclenché AUCUN contrôle, et rien
+   ne l'aurait signalé.
+
+   ON NE FIGE PAS UNE LISTE ICI NON PLUS — ce serait la même faute d'un
+   cran plus loin. On vérifie la COUVERTURE : tout fichier du dépôt qui
+   appartient à Admin v2 doit être attrapé par au moins un motif.
+   ===================================================================== */
+{
+  const wf = ".github/workflows/admin-v2-regression.yml";
+  if(!existsSync(wf)){
+    verifier("le workflow de contrôle Admin v2 existe", false, wf + " est introuvable");
+  } else {
+    const bloc = (readFileSync(wf, "utf8").match(/paths:\n([\s\S]*?)\npermissions:/) || [,""])[1];
+    const motifs = [...bloc.matchAll(/^\s*-\s*'([^']+)'/gm)].map(m => m[1]);
+    verifier("le workflow Admin v2 déclare des chemins", motifs.length > 0);
+    /* Un motif de workflow GitHub : « * » ne traverse pas les dossiers,
+       « ** » oui. On le traduit en expression régulière. */
+    const couvre = (motif, f) => new RegExp("^" + motif
+        .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*\*/g, "\u0000")
+        .replace(/\*/g, "[^/]*")
+        .replace(/\u0000/g, ".*") + "$").test(f);
+    const aCouvrir = readdirSync(".")
+      .filter(f => /^admin-v2.*|^intake-demande\.js$|^qr-affiche\.js$|^test-admin-.*\.mjs$/.test(f));
+    verifier("des fichiers Admin v2 ont été trouvés dans le dépôt",
+      aCouvrir.length >= 4, aCouvrir.length + " fichier(s)");
+    for(const f of aCouvrir){
+      verifier("« " + f + " » déclenche le contrôle Admin v2",
+        motifs.some(m => couvre(m, f)),
+        "aucun motif ne l'attrape — le modifier seul ne lancerait aucune suite");
+    }
+  }
 }
 
 /* --------------------------------------------------------------- */

@@ -56,7 +56,19 @@ const COURSES = () => ([
   { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:'06:00',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Orly 1 — Aéroport de Paris-Orly',
     vehicule:'Berline', prix:100, client:'M. Dupont', tel:'06 12 34 56 78', chambre:'214',
-    paiement:'Espèces', annulationDemandee:false, chauffeur:{nom:'Mehmet', telephone:'0612345678'} },
+    paiement:'Espèces', annulationDemandee:false, chauffeur:{nom:'Mehmet', telephone:'0612345678'},
+    /* ═══ LES INTERNES D'ELATRANSFER, INJECTÉS EXPRÈS ═══
+       La fonction « courses-hotel » ne les envoie pas : elle compose une liste
+       BLANCHE. Mais un filtre serveur et un écran sont deux défenses, et une
+       défense en profondeur demande autant de contrôles que de défenses — la
+       leçon du bouton d'accès, protégé deux fois et éprouvé deux fois.
+       On les fait donc arriver, et l'écran ne doit EN AFFICHER AUCUN : le jour
+       où quelqu'un élargit la liste blanche « pour déboguer », c'est ici que ça
+       doit tomber, pas au comptoir d'un hôtel. */
+    commission: 25, commissionEur: 25, marge: 25,
+    montantChauffeur: 7500, taux_commission: 25,
+    stripePaymentIntent: 'pi_3QTESTinterne0001',
+    autrePartenaire: 'Ibis Roissy', carnetChauffeurs: ['Mehmet','Ayse','Karim'] },
   { ref:'ELA-26-09-0043', statut:'attente', date:jour(1), heure:'14:30',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne',
     arrivee:'Parc des Expositions de Paris-Nord Villepinte, 93420 Villepinte',
@@ -207,6 +219,38 @@ const mesure = await attente.evaluate(el => {
 });
 check('le prix garde sa place entière malgré une adresse longue',
   mesure.largeur >= 55 && mesure.dedans, JSON.stringify(mesure));
+
+/* ═══ CE QUE LE COMPTOIR NE DOIT JAMAIS VOIR ═══
+   Demande de ChatGPT (#165, point 8) : la réception ne doit exposer ni la
+   commission ou la marge d'Elatransfer, ni le montant versé au chauffeur, ni
+   rien de Stripe, ni le carnet de chauffeurs, ni les données d'un AUTRE
+   partenaire. La tablette d'un comptoir est un appareil partagé.
+
+   ON CHERCHE LES VALEURS, PAS LES LIBELLÉS. Chercher le mot « commission »
+   passerait au vert avec le montant écrit juste à côté — c'est la leçon du
+   message d'alerte Telegram, où le test cherche les valeurs.
+
+   ET ON REGARDE TOUT L'ÉCRAN, pas la seule carte : une ligne de total, un
+   pied de liste ou une infobulle compteraient autant. */
+const ecranRec = await p.locator('#ecran-reception').innerText();
+const interdits = [
+  ['la commission d\'Elatransfer', /\b25\s*%/],
+  ['le montant versé au chauffeur', /75(,00|\.00)?\s*€|7500/],
+  ['un identifiant Stripe',         /pi_3QTESTinterne0001|pi_[A-Za-z0-9]{6,}/],
+  ['les données d\'un autre partenaire', /Ibis Roissy/],
+  ['le carnet de chauffeurs',       /Ayse|Karim/],
+];
+for(const [quoi, motif] of interdits){
+  const trouve = motif.exec(ecranRec);
+  check('le comptoir n\'affiche PAS ' + quoi,
+    trouve === null, trouve ? 'trouvé : « ' + trouve[0] + ' »' : '');
+}
+/* LE DOUTE LEVÉ : si l'écran n'affichait RIEN, les cinq contrôles ci-dessus
+   passeraient au vert sans rien prouver. On vérifie donc qu'il montre bien ce
+   qu'il DOIT montrer — même famille que « une RPC qui refuserait tout rendrait
+   les mêmes erreurs ». */
+check('…mais il affiche bien ce qu\'il doit : la chambre, le prix et le paiement',
+  /Chambre 214/.test(ecranRec) && /100,00/.test(ecranRec) && /Espèces/.test(ecranRec));
 
 /* ---------------------------------------------------------------------
    4. GROUPÉ PAR JOUR, ET « EN RETARD » EN PREMIER

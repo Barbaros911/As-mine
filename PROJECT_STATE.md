@@ -126,29 +126,64 @@ Activation Stripe Live · reversement réel aux chauffeurs · commission de 20 %
 **Ne jamais présenter easyHotel comme « partenaire officiel » sans accord
 formalisé** — dire « tarifs au départ de easyHotel Aéroville ».
 
-### Qui tient quoi — LE POINT À TRANCHER
+### Qui tient quoi — TRANCHÉ LE 16 SEPTEMBRE
 **Deux sessions Claude ont travaillé ce dépôt en parallèle le 16 septembre**,
 et leurs commits sont arrivés sous les pieds l'un de l'autre. #173 (paiement)
-et #165 (finition Admin) ont été pris par l'autre session — #176 à #185 sont
-fusionnées. `TEAM_RULES` §2 interdit une seconde implémentation : **avant de
-reprendre l'un de ces deux lots, vérifier qu'il est libre.** `/etat` signale
-désormais en rouge quand `main` a bougé pendant la session.
+et #165 (finition Admin) avaient été pris par l'autre session — #176 à #185
+sont fusionnées.
+
+**ChatGPT a tranché le 16 à 12 h 41** (#165, « DÉMARRAGE CONSTRUCTION ADMIN ») :
+l'autre session est à l'arrêt (« pendant ton indisponibilité »), et **#165 est
+à cette session-ci**. #173 (paiement) vient **après** la bascule Admin, dans
+l'ordre écrit sur #173 le 16 à 12 h 57.
+
+**ET LA RÈGLE QUI EN DÉCOULE, POSÉE PAR BARBAROS LE 16** : en cas
+d'indisponibilité de l'un, **c'est lui qui dit qui prend le relais** — jamais
+les assistants entre eux. Un assistant à l'arrêt ne libère pas son chantier :
+on le signale et on attend. Voir `TEAM_RULES` §3.
+
+**LA CIBLE EST UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
+Admin v2 est publié mais **en préversion**. La parité se fait par briques,
+annoncées et résumées dans **#191** : coller une demande (✔ brique 1),
+saisir par téléphone (✔ brique 2), registre + sauvegarde + export CSV
+(✔ brique 3), facture de commission (✔ brique 4), accusé de réception et
+demande d'avis (✔ brique 5), affiche de comptoir et son QR (✔ brique 6).
+**Reste** : la chaîne d'itinéraire partagée —
+sans elle, « Calculer le prix depuis les adresses » n'existe que d'un côté,
+et **deux calculs de prix qui divergent ne se voient pas**.
+**Aucune bascule de `admin.html` avant que tout y soit.** Le détail de
+chaque brique et de ses pièges est dans `CLAUDE.md`.
+`/etat` signale en rouge quand `main` a bougé pendant la session.
 
 ## Ce qui est prévu
 
 | Quoi | Qui | Où c'est suivi |
 |---|---|---|
 | Refonte de l'admin sur la référence visuelle | ChatGPT puis Claude | Issue #165 |
-| Trancher la pancarte : option à 10 € ou gratuite | **Barbaros** | Issue #169 |
 | Relecture de `TEAM_RULES.md` (§1 et §9) | ChatGPT | PR #170 |
 | Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
 
 ## Ce qui bloque, et par qui
 
-- **LE SIRET N'EXISTE PAS.** C'est le seul vrai blocage du projet et il ne
-  dépend que de Barbaros — micro-entreprise à créer sur
-  `formalites.entreprises.gouv.fr`. Sans lui : mentions légales incomplètes,
-  fiche Google non vérifiable, **aucune facture de commission valable**.
+- **LE SIRET N'EXISTE PAS.** Micro-entreprise à créer sur
+  `formalites.entreprises.gouv.fr`, et cela ne dépend que de Barbaros. Sans
+  lui : mentions légales incomplètes, fiche Google non vérifiable, **aucune
+  facture de commission valable**.
+- **CE N'ÉTAIT PAS « LE SEUL VRAI BLOCAGE », ET CETTE LIGNE A MENTI**
+  (corrigé le 16/09/2026, sur l'audit de ChatGPT). Elle laissait croire qu'un
+  numéro suffisait à pouvoir exploiter. Or Elatransfer n'est pas un
+  transporteur mais une **centrale de réservation** — Barbaros l'a dit
+  lui-même, « je place seulement » — et ce statut porte ses propres
+  obligations. ChatGPT en nomme trois de plus : l'immatriculation de
+  l'entreprise, une **déclaration annuelle de l'activité de centrale de
+  réservation** auprès du ministre chargé des transports, et une **assurance
+  RC professionnelle de la centrale**.
+  **À FAIRE CONFIRMER SUR LE TEXTE AVANT DE S'EN SERVIR POUR DÉCIDER** : le
+  réseau de cette machine ne joint pas Legifrance, je n'ai donc pas pu lire
+  les articles moi-même. C'est rapporté, pas vérifié — et la règle du projet
+  est de ne pas présenter une supposition comme une instruction. Ce qui est
+  acquis et déjà écrit ici : le régime de centrale de réservation
+  (L3142-1 et s.) et le médiateur (L616-1), juste en dessous.
 - **Le médiateur de la consommation n'est pas désigné** (L616-1 Code conso.).
   Tant qu'il ne l'est pas, on n'en nomme aucun : le client écrirait à une
   adresse morte en croyant avoir saisi un recours.

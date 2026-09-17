@@ -53,7 +53,16 @@ if ! curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null; then
   echo "Serveur local démarré."
 fi
 
-SUITES=$(ls test-nouveau*.mjs 2>/dev/null | sort)
+# LES TROIS SUITES HORS NAVIGATEUR, NOMMÉES UNE SEULE FOIS. Elles tournent
+# dans la seconde boucle ; les autres sont toutes des suites de navigateur.
+HORS_NAV="test-doc.mjs test-notification.mjs test-push.mjs"
+
+# ON RAMASSE « test-*.mjs », PAS « test-nouveau* ». Le préfixe « nouveau »
+# est un vestige de la bascule de septembre : une suite écrite aujourd'hui
+# ne le porte pas, et le lanceur l'ignorait EN SILENCE -- une suite jamais
+# lancée ne surveille rien, et personne ne s'aperçoit de son absence.
+# Même famille que la barre du bas figée sur quatre onglets.
+SUITES=$(ls test-*.mjs 2>/dev/null | grep -vxF $(for h in $HORS_NAV; do printf -- '-e %s ' "$h"; done) | sort)
 if [ -n "$1" ]; then
   MOTIF=$(echo "$@" | tr ' ' '|')
   SUITES=$(echo "$SUITES" | grep -E "$MOTIF" || true)
@@ -64,12 +73,24 @@ echo ""
 MUETTES=0; ECHECS=0
 for f in $SUITES; do
   printf "%-36s " "$f"
-  sortie=$(node "$f" 2>&1) || true
+  if sortie=$(node "$f" 2>&1); then code=0; else code=$?; fi
   bilan=$(echo "$sortie" | grep -E "^=== " | tr '\n' ' ')
-  if [ -z "$bilan" ]; then
-    echo "!!! MUETTE — PLANTAGE"
-    echo "$sortie" | tail -4 | sed 's/^/      /'
+  # ON JUGE SUR LE CODE DE SORTIE, PAS SUR LE FORMAT D'AFFICHAGE. La ligne
+  # « === » est une convention de présentation, et toutes les suites ne la
+  # suivent pas : test-agent-rbac et test-unified-facade passent en affichant
+  # « OK — … ». Les déclarer MUETTES était une FAUSSE ALERTE -- et une fausse
+  # alerte à chaque exécution est la meilleure façon de faire ignorer le
+  # lanceur, donc de laisser passer le vrai plantage suivant.
+  # Une suite n'est muette que si elle n'affiche RIEN DU TOUT.
+  if [ -z "$sortie" ]; then
+    echo "!!! MUETTE — AUCUNE SORTIE"
     MUETTES=$((MUETTES+1))
+  elif [ -z "$bilan" ] && [ "$code" -ne 0 ]; then
+    echo "!!! ÉCHEC (code $code)"
+    echo "$sortie" | tail -4 | sed 's/^/      /'
+    ECHECS=$((ECHECS+1))
+  elif [ -z "$bilan" ]; then
+    echo "OK — $(echo "$sortie" | grep -v '^[[:space:]]*$' | tail -1)"
   else
     echo "$bilan"
     detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)
@@ -91,15 +112,27 @@ done
 # et c'est la deuxième fois qu'il se fait prendre à son propre piège, après
 # le trap qui écrasait le code d'origine. Un outil de contrôle qui ment est
 # pire que pas d'outil : il fait passer le rouge pour du vert.
-for f in test-doc.mjs test-notification.mjs test-push.mjs; do
+for f in $HORS_NAV; do
   [ -f "$f" ] || continue
   printf "%-36s " "$f"
-  sortie=$(node "$f" 2>&1) || true
+  if sortie=$(node "$f" 2>&1); then code=0; else code=$?; fi
   bilan=$(echo "$sortie" | grep -E "^=== " | tr '\n' ' ')
-  if [ -z "$bilan" ]; then
-    echo "!!! MUETTE — PLANTAGE"
-    echo "$sortie" | tail -4 | sed 's/^/      /'
+  # ON JUGE SUR LE CODE DE SORTIE, PAS SUR LE FORMAT D'AFFICHAGE. La ligne
+  # « === » est une convention de présentation, et toutes les suites ne la
+  # suivent pas : test-agent-rbac et test-unified-facade passent en affichant
+  # « OK — … ». Les déclarer MUETTES était une FAUSSE ALERTE -- et une fausse
+  # alerte à chaque exécution est la meilleure façon de faire ignorer le
+  # lanceur, donc de laisser passer le vrai plantage suivant.
+  # Une suite n'est muette que si elle n'affiche RIEN DU TOUT.
+  if [ -z "$sortie" ]; then
+    echo "!!! MUETTE — AUCUNE SORTIE"
     MUETTES=$((MUETTES+1))
+  elif [ -z "$bilan" ] && [ "$code" -ne 0 ]; then
+    echo "!!! ÉCHEC (code $code)"
+    echo "$sortie" | tail -4 | sed 's/^/      /'
+    ECHECS=$((ECHECS+1))
+  elif [ -z "$bilan" ]; then
+    echo "OK — $(echo "$sortie" | grep -v '^[[:space:]]*$' | tail -1)"
   else
     echo "$bilan"
     detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)

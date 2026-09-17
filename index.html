@@ -4357,6 +4357,21 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
   </div>
 </div>
 
+<!-- LE LECTEUR DES DEMANDES COLLÉES, PARTAGÉ AVEC ADMIN V2.
+     Posé AVANT le script principal, sans « defer » : celui-ci l'appelle au
+     premier clic sur « Coller une demande », et un « defer » le ferait
+     arriver après. C'est la seule dépendance de fichier de cette page — et
+     elle existe pour qu'il n'y ait pas DEUX lecteurs à tenir. -->
+<script src="intake-demande.js"></script>
+
+<!-- L'ENCODEUR QR DE L'AFFICHE HÔTEL, PARTAGÉ AVEC ADMIN V2.
+     Deuxième dépendance de fichier de cette page, et pour la même raison
+     que la première : un encodeur QR ne se vérifie pas tout seul, deux
+     copies dont une dérive sont des affiches que personne ne peut
+     scanner. Sans « defer », comme le lecteur : le script principal
+     l'appelle dès qu'on tape un nom d'hôtel. -->
+<script src="qr-affiche.js"></script>
+
 <script>
 /* =====================================================================
    DEUX LANGUES : LE FRANÇAIS ET L'ANGLAIS
@@ -8999,44 +9014,11 @@ window.ELA_TEXTES = {
      numéro douteux. On n'écarte que ce qui ne peut être un téléphone nulle
      part — trop court, trop long, ou un seul chiffre répété. La France,
      elle, est connue : dix chiffres commençant par 0. */
+  /* Le contrôle vit dans « intake-demande.js », partagé avec Admin v2 :
+     la consigne « même contrôle que côté client » ne vaut que s'il n'y a
+     qu'un contrôle. Le raisonnement complet est resté avec lui. */
   function telValide(brut){
-    var t = String(brut || "").trim();
-    if(!t) return false;
-    var international = t.indexOf("+") === 0 || t.indexOf("00") === 0;
-    var chiffres = t.replace(/\D/g, "");
-    if(chiffres.indexOf("00") === 0) chiffres = chiffres.slice(2);
-    /* « 000000 », « 111111 » : jamais un téléphone, toujours un client
-       pressé ou un essai. C'est exactement le cas rencontré. */
-    if(/^(\d)\1+$/.test(chiffres)) return false;
-    /* ═══ SANS INDICATIF, ON N'ACCEPTE QUE LE FORMAT FRANÇAIS ═══
-       Septembre 2026, signalé par Barbaros : « malgré que j'ai entré un
-       mauvais numéro, j'ai quand même réussi à envoyer ».
-       C'ÉTAIT UN VRAI TROU. La dernière ligne acceptait n'importe quelle
-       suite de 8 à 15 chiffres dès qu'elle ne commençait pas par zéro :
-       « 87654321 » passait, et la course partait vers un client
-       injoignable. Un chauffeur qui ne peut pas joindre son client à 5 h
-       du matin, c'est la course perdue et le client sur le trottoir.
-       L'EXEMPLE DE CE COMMENTAIRE A DÛ ÊTRE CHANGÉ : le premier écrit était
-       « 1234 5678 » sans espaces, c'est-à-dire EXACTEMENT le code de
-       l'espace exploitant. Le contrôle qui vérifie qu'il n'apparaît nulle
-       part dans la page est tombé dessus — un exemple pris au hasard peut
-       tomber sur un secret, et un commentaire est servi comme le reste.
-       ON NE FORCE PAS L'INDICATIF AUX FRANÇAIS pour autant. Un client qui
-       tape « 06 12 34 56 78 » est le cas le plus courant du site, et lui
-       refuser son propre numéro serait une réservation perdue à coup sûr —
-       « telWa » sait déjà le compléter en +33. Ce qui change : un numéro
-       SANS indicatif et qui ne commence pas par zéro est refusé. */
-    if(!international){
-      /* Numéro français : dix chiffres, et le second dit la nature de la
-         ligne — 01 à 05 fixe, 06 et 07 mobile, 09 box. 08 est un numéro
-         spécial, souvent surtaxé : personne n'y est joignable. */
-      return chiffres.length === 10 && /^0[1-79]/.test(chiffres);
-    }
-    /* Avec indicatif : entre 8 et 15 chiffres, la borne de la norme E.164.
-       AUCUN INDICATIF NE COMMENCE PAR ZÉRO — « +0… » n'existe nulle part,
-       c'est toujours un zéro de trop recopié d'un numéro national. */
-    if(chiffres.indexOf("0") === 0) return false;
-    return chiffres.length >= 8 && chiffres.length <= 15;
+    return window.ELA_INTAKE.telValide(brut);
   }
 
   function telWa(brut){
@@ -9472,131 +9454,38 @@ window.ELA_TEXTES = {
 /* =====================================================================
    COLLER UNE DEMANDE REÇUE SUR WHATSAPP
    ---------------------------------------------------------------------
-   IL NE DEVINE RIEN AUX LIBELLÉS, IL LIT LA PLACE DES CHOSES. Un client
-   qui écrit lui-même n'écrira pas « Départ : » — et le message du site
-   pourrait changer de langue demain. On lit donc la STRUCTURE : la
-   référence en tête, une date en JJ/MM/AAAA HH:MM, les deux premières
-   valeurs « … : … » pour les adresses, le DERNIER montant en euros pour
-   le prix, et la dernière ligne « nom — téléphone ».
+   LE LECTEUR LUI-MÊME VIT DANS « intake-demande.js », ET C'EST DÉLIBÉRÉ.
+   Admin v2 en a besoin à son tour ; le recopier là-bas aurait fait deux
+   recettes pour une seule chose — la faute que ce fichier reproche
+   partout ailleurs. Ce qui reste ici, c'est l'APPEL, avec la grille du
+   site : le lecteur n'en porte aucune, pour qu'une deuxième grille ne
+   puisse pas se taire le jour où la vraie change.
+
    CHANGER LA FORME DU MESSAGE CLIENT OBLIGE À CHANGER CE LECTEUR, et
-   inversement. Les deux se lisent ensemble.
+   inversement. Les deux se lisent ensemble — et il n'y a plus qu'un
+   lecteur à changer.
+
    UNE DEMANDE VENUE D'UN CLIENT ENTRE TOUJOURS EN « ATTENTE » : il
    attend une réponse, et la ranger comme déjà confirmée serait mentir
-   sur l'état réel de sa course.
+   sur l'état réel de sa course. C'est « courseDepuisDemande » qui le
+   décide, juste en dessous — le lecteur, lui, ne range rien.
+
+   SI LE FICHIER N'EST PAS ARRIVÉ, ON LE DIT. Rendre « null » en silence
+   se lirait « ce message n'est pas une demande », et Barbaros chercherait
+   la faute dans le message de son client.
    ===================================================================== */
   function lireDemandeCollee(texte){
-    if(!texte || !texte.trim()) return null;
-    var lignes = texte.split("\n").map(function(l){ return l.trim(); })
-                      .filter(function(l){ return l; });
-    var d = { ref:"", depart:"", arrivee:"", date:"", heure:"", vehicule:"",
-              paiement:"", paiementNom:"", passagers:"", prix:0, nom:"", tel:"" };
-
-    var ref = texte.match(/ELA-\d{2}-\d{2}-\d{4}/);
-    d.ref = ref ? ref[0] : "";
-
-    var dt = texte.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
-    if(dt){
-      d.date  = dt[3] + "-" + dt[2] + "-" + dt[1];
-      d.heure = (dt[4].length === 1 ? "0" + dt[4] : dt[4]) + ":" + dt[5];
-    }
-
-    /* Les deux premières valeurs « … : … » sont les adresses. On écarte la
-       ligne de la date : elle porte elle aussi des deux-points, mais ceux
-       de l'heure. */
-    var valeurs = [];
-    lignes.forEach(function(l){
-      var i = l.indexOf(" : ");
-      if(i < 0) return;
-      var v = l.slice(i + 3).trim();
-      if(/^\d{2}\/\d{2}\/\d{4}/.test(v)) return;
-      valeurs.push(v);
-    });
-    d.depart  = valeurs[0] || "";
-    d.arrivee = valeurs[1] || "";
-
-    /* Le DERNIER montant en euros est le prix de la course : c'est pour ça
-       que « Paiement » est posé AVANT « Prix » dans le message. */
-    var montants = texte.match(/(\d[\d  ]*(?:[.,]\d{1,2})?)\s*€/g);
-    if(montants){
-      var brut = montants[montants.length - 1]
-                   .replace(/[^\d.,]/g,"").replace(",",".");
-      d.prix = parseFloat(brut) || 0;
-    }
-
-    /* La dernière ligne qui porte un tiret cadratin et pas de deux-points :
-       « Jean Martin — 06 12 34 56 78 ». */
-    for(var i = lignes.length - 1; i >= 0; i--){
-      var m = lignes[i].match(/^(.+?)\s+[—–-]\s+(\+?[\d ().]{6,})$/);
-      if(m && !/\s:\s/.test(lignes[i])){ d.nom = m[1].trim(); d.tel = m[2].trim(); break; }
-    }
-
-    /* Le véhicule est reconnu par son NOM, pas par sa position : c'est la
-       seule donnée du message qui a une liste fermée de valeurs possibles.
-       Les anciens noms de gammes restent reconnus — Barbaros a des mois de
-       messages qui les portent, et un renommage ne doit pas rendre son
-       historique illisible. */
-    var ANCIENS = { "ela one":"berline", "berline":"berline", "sedan":"berline",
-                    "ela first":"berline", "berline vip":"berline",
-                    "van":"van", "van premium":"van", "van vip":"van", "minivan":"van" };
-    var bas = texte.toLowerCase();
-    Object.keys(ANCIENS).forEach(function(nom){
-      if(!d.vehicule && bas.indexOf(nom) >= 0) d.vehicule = ANCIENS[nom];
-    });
-    var gamme = GAMMES.filter(function(g){ return g.cle === d.vehicule; })[0] || GAMMES[0];
-    d.vehiculeCle = gamme.cle;
-    d.vehicule    = gamme.nom;
-
-    if(/carte/i.test(bas)){ d.paiement = "carte";   d.paiementNom = "Carte bancaire"; }
-    else if(/esp[eè]ce/i.test(bas)){ d.paiement = "especes"; d.paiementNom = "Espèces"; }
-
-    var pax = lignes.filter(function(l){ return /passager/i.test(l); })[0];
-    if(pax){ var j = pax.indexOf(" : "); d.passagers = j < 0 ? pax : pax.slice(j+3).trim(); }
-
-    /* ═══ LA PRÉCISION DE LA RÉCEPTION ═══
-       Ici on lit un LIBELLÉ, contrairement à tout le reste de ce lecteur —
-       et c'est permis pour une raison précise : celui-là, c'est NOUS qui
-       l'écrivons, dans « messageDemande », toujours en français quelle que
-       soit la langue du client. Les adresses, elles, sont lues par leur
-       PLACE parce qu'un client espagnol écrit « Salida ».
-       Sans ces trois lignes, une demande collée perdrait en silence la
-       seule information que le formulaire ne redemande jamais — un fauteuil
-       roulant, un siège bébé — et Barbaros enverrait la mauvaise voiture. */
-    var prec = lignes.filter(function(l){ return /^Pr[ée]cision\s*:/i.test(l); })[0];
-    if(prec) d.note = prec.replace(/^Pr[ée]cision\s*:\s*/i, "").trim().slice(0, 200);
-
-    /* La chambre est fondue dans le libellé du départ, « … (ch. 214) » :
-       c'est cette forme-là que la page compose, et on ne la cherche qu'en
-       FIN de libellé — il existe des « rue de la Chambre ». */
-    var ch = (d.depart || "").match(/\(ch\.\s*([^)]{1,12})\)\s*$/);
-    if(ch) d.chambre = ch[1].trim();
-
-    /* Sans référence, sans adresses OU sans date, ce n'est pas une demande :
-       mieux vaut le dire que de créer une course à moitié vide que Barbaros
-       découvrirait au moment de l'assurer. */
-    if(!d.depart || !d.arrivee || !d.date) return null;
-    return d;
+    if(!window.ELA_INTAKE || !window.ELA_INTAKE.lireDemande)
+      throw new Error("intake-demande.js n'est pas chargé");
+    return window.ELA_INTAKE.lireDemande(texte, GAMMES);
   }
 
-  /* La référence du client est reprise telle quelle : c'est elle qu'il a sur
-     son bon, et lui en donner une autre rendrait les deux impossibles à
-     rapprocher. Sans référence — un client qui a écrit de lui-même — on en
-     fabrique une. */
+  /* Le bon est fabriqué par « intake-demande.js », comme le lecteur : deux
+     espaces qui produisent deux objets différents à partir du même message,
+     c'est un historique qu'on ne relit plus. Ce qui reste ici, c'est la
+     référence de SECOURS — celle du site, comptée dans le téléphone. */
   function courseDepuisDemande(d){
-    return {
-      ref: d.ref || referenceSuivante(),
-      statut: "attente",
-      cree: new Date().toISOString(),
-      course: { type:"Trajet simple", depart:d.depart, arrivee:d.arrivee,
-                departPublic:d.depart, arriveePublic:d.arrivee,
-                date:d.date, heure:d.heure, terminal:null, vol:"",
-                note:d.note || "", chambre:d.chambre || "",
-                vehicule:d.vehicule, vehiculeCle:d.vehiculeCle,
-                passagers:d.passagers || "1 passager", distanceKm:0, estimee:true },
-      client: { nom:d.nom, telephone:d.tel },
-      paiement: d.paiement, paiementNom: d.paiementNom,
-      prix: { total:d.prix, ht:d.prix/1.10, tva:d.prix - d.prix/1.10, majoration:false },
-      dateMsg: d.date ? d.date.split("-").reverse().join("/") + " " + d.heure : ""
-    };
+    return window.ELA_INTAKE.courseDepuis(d, referenceSuivante(), "attente");
   }
 
   var collerEtat = document.getElementById("collerEtat");
@@ -11433,238 +11322,21 @@ window.ELA_TEXTES = {
   });
 
 /* =====================================================================
-   L'AFFICHE DES HÔTELS — l'encodeur QR
+   L'AFFICHE DES HÔTELS — L'ENCODEUR QR A DÉMÉNAGÉ
    ---------------------------------------------------------------------
-   ÉCRIT ICI, ET PAS PRIS AILLEURS. Un service extérieur qui fabrique
-   l'image (api.qrserver.com et ses semblables) ajoute une dépendance
-   réseau à une affiche qu'on imprime une fois, et envoie l'adresse à un
-   tiers qui n'a pas à la connaître. Deux cents lignes valent mieux qu'un
-   serveur qu'on ne maîtrise pas.
-   MODE OCTET, CORRECTION M, VERSIONS 1 À 6 — jusqu'à 106 caractères, très
-   au-delà d'une adresse comme « elatransfer.com/?h=ibis-cdg ». S'arrêter
-   à la version 6 évite les blocs d'information de version (obligatoires à
-   partir de la 7) et garde un seul motif d'alignement.
-   ÉPROUVÉ PAR UN DÉCODEUR INDÉPENDANT, pas par relecture maison : un
-   encodeur relu par son propre auteur reproduit ses propres erreurs. Le
-   premier jet passait tous mes contrôles et n'était lisible par AUCUN
-   téléphone — l'information de format était écrite bit à l'envers.
+   Il vit dans « qr-affiche.js », chargé en tête de page, et c'est Admin v2
+   qui l'a fait sortir d'ici : il lui faut la MÊME affiche. Le recopier
+   aurait été la faute que ce dépôt reproche partout — et ici la PIRE,
+   parce qu'un encodeur QR NE SE VÉRIFIE PAS TOUT SEUL : le premier jet de
+   celui-ci passait TOUS les contrôles internes (format relu, masque,
+   zigzag, Reed-Solomon divisible, dix syndromes nuls) et n'était lisible
+   par AUCUN téléphone — l'information de format était écrite bit à
+   l'envers, et le décodeur maison reproduisait la même erreur. Seul un
+   décodeur INDÉPENDANT l'a montré.
+   Deux copies, dont une qui dérive, ce sont des affiches imprimées que
+   personne ne peut scanner — et on ne l'apprend qu'au comptoir d'hôtel,
+   des semaines plus tard.
    ===================================================================== */
-  function qrMatrice(texte){
-  /* ---- Corps fini GF(256), polynôme 0x11D : celui de la norme QR ---- */
-  var EXP = new Uint8Array(512), LOG = new Uint8Array(256);
-  (function(){ var x = 1;
-    for(var i=0;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x & 0x100) x ^= 0x11D; }
-    for(i=255;i<512;i++) EXP[i] = EXP[i-255];
-  })();
-  function mul(a,b){ return (a && b) ? EXP[LOG[a]+LOG[b]] : 0; }
-  function polyGen(n){
-    var g = [1];
-    for(var i=0;i<n;i++){
-      var ng = new Array(g.length+1).fill(0);
-      for(var j=0;j<g.length;j++){ ng[j] ^= g[j]; ng[j+1] ^= mul(g[j], EXP[i]); }
-      g = ng;
-    }
-    return g;
-  }
-  function ecc(data, n){
-    var g = polyGen(n);
-    var r = data.concat(new Array(n).fill(0));
-    for(var i=0;i<data.length;i++){
-      var c = r[i]; if(!c) continue;
-      for(var j=0;j<g.length;j++) r[i+j] ^= mul(g[j], c);
-    }
-    return r.slice(data.length);
-  }
-
-  /* ---- Tables, niveau M, versions 1 à 6 ----
-     [octets utiles, codets EC par bloc, blocs du groupe 1, données par bloc g1,
-      blocs du groupe 2, données par bloc g2] */
-  var V = {
-    1:[14,10,1,16,0,0], 2:[26,16,1,28,0,0], 3:[42,26,1,44,0,0],
-    4:[62,18,2,32,0,0], 5:[84,24,2,43,0,0], 6:[106,16,4,27,0,0]
-  };
-  var octets = [];
-  for(var i=0;i<texte.length;i++){
-    var c = texte.charCodeAt(i);
-    if(c < 128) octets.push(c);
-    else { var e = new TextEncoder().encode(texte[i]); for(var k=0;k<e.length;k++) octets.push(e[k]); }
-  }
-  var ver = 0;
-  for(var v=1;v<=6;v++) if(octets.length <= V[v][0]){ ver = v; break; }
-  if(!ver) throw new Error("texte trop long pour un QR de version 6");
-  var t = V[ver], ecPar = t[1], b1 = t[2], d1 = t[3], b2 = t[4], d2 = t[5];
-  var totalData = b1*d1 + b2*d2;
-
-  /* ---- Le flux de bits : mode octet (0100), longueur sur 8 bits, données ---- */
-  var bits = [];
-  function pousser(val, n){ for(var i=n-1;i>=0;i--) bits.push((val >> i) & 1); }
-  pousser(4, 4);
-  pousser(octets.length, 8);
-  octets.forEach(function(o){ pousser(o, 8); });
-  /* Terminateur, puis alignement sur l'octet, puis remplissage alterné :
-     c'est la norme, et un lecteur strict refuse un flux mal terminé. */
-  for(var i=0;i<4 && bits.length < totalData*8;i++) bits.push(0);
-  while(bits.length % 8) bits.push(0);
-  var mots = [];
-  for(var i=0;i<bits.length;i+=8){
-    var o = 0; for(var j=0;j<8;j++) o = (o<<1) | bits[i+j];
-    mots.push(o);
-  }
-  var bourre = [0xEC, 0x11], n = 0;
-  while(mots.length < totalData) mots.push(bourre[n++ % 2]);
-
-  /* ---- Découpe en blocs, puis entrelacement ---- */
-  var blocs = [], eccs = [], pos = 0;
-  for(var i=0;i<b1;i++){ var d = mots.slice(pos, pos+d1); pos += d1; blocs.push(d); eccs.push(ecc(d, ecPar)); }
-  for(var i=0;i<b2;i++){ var d = mots.slice(pos, pos+d2); pos += d2; blocs.push(d); eccs.push(ecc(d, ecPar)); }
-  var final = [];
-  var maxD = Math.max(d1, d2);
-  for(var i=0;i<maxD;i++) blocs.forEach(function(b){ if(i < b.length) final.push(b[i]); });
-  for(var i=0;i<ecPar;i++) eccs.forEach(function(e){ final.push(e[i]); });
-
-  /* ---- La grille ---- */
-  var n2 = ver*4 + 17;
-  var m = [], reserve = [];
-  for(var i=0;i<n2;i++){ m.push(new Array(n2).fill(0)); reserve.push(new Array(n2).fill(0)); }
-  function poserMotif(r, c){
-    for(var i=-1;i<=7;i++) for(var j=-1;j<=7;j++){
-      var y = r+i, x = c+j;
-      if(y<0||x<0||y>=n2||x>=n2) continue;
-      var noir = (i>=0&&i<=6&&(j===0||j===6)) || (j>=0&&j<=6&&(i===0||i===6))
-              || (i>=2&&i<=4&&j>=2&&j<=4);
-      m[y][x] = noir ? 1 : 0; reserve[y][x] = 1;
-    }
-  }
-  poserMotif(0,0); poserMotif(0,n2-7); poserMotif(n2-7,0);
-  /* Motif d'alignement : un seul, du centre-bas-droit, pour les versions 2 à 6. */
-  if(ver >= 2){
-    var a = [6, ver*4 + 10][1];
-    for(var i=-2;i<=2;i++) for(var j=-2;j<=2;j++){
-      m[a+i][a+j] = (Math.abs(i)===2 || Math.abs(j)===2 || (i===0&&j===0)) ? 1 : 0;
-      reserve[a+i][a+j] = 1;
-    }
-  }
-  for(var i=8;i<n2-8;i++){
-    m[6][i] = (i % 2 === 0) ? 1 : 0; reserve[6][i] = 1;
-    m[i][6] = (i % 2 === 0) ? 1 : 0; reserve[i][6] = 1;
-  }
-  m[n2-8][8] = 1; reserve[n2-8][8] = 1;              /* module noir obligatoire */
-  /* Les deux copies de l'information de format. ATTENTION AUX BORNES : la
-     seconde copie occupe la COLONNE 8 sur les lignes n-8..n-1, mais la LIGNE 8
-     seulement sur les colonnes n-7..n-1. Réserver (8, n-8) en plus retire un
-     module aux données et décale tout le flux — le QR se dessine, et aucun
-     lecteur ne le décode. */
-  for(var i=0;i<9;i++){ reserve[8][i]=1; reserve[i][8]=1; }
-  for(var i=n2-8;i<n2;i++) reserve[8][i]=1;
-  for(var i=n2-7;i<n2;i++) reserve[i][8]=1;
-
-  /* ---- Les données, en zigzag depuis le coin bas-droit ---- */
-  function placer(masque){
-    var g = m.map(function(l){ return l.slice(); });
-    var bit = 0, haut = true;
-    for(var col = n2-1; col > 0; col -= 2){
-      if(col === 6) col--;                       /* la colonne de timing se saute */
-      for(var k=0;k<n2;k++){
-        var row = haut ? (n2-1-k) : k;
-        for(var d=0;d<2;d++){
-          var c = col - d;
-          if(reserve[row][c]) continue;
-          var v = 0;
-          if(bit < final.length*8) v = (final[bit >> 3] >> (7 - (bit & 7))) & 1;
-          bit++;
-          if(masqueVaut(masque, row, c)) v ^= 1;
-          g[row][c] = v;
-        }
-      }
-      haut = !haut;
-    }
-    return g;
-  }
-  function masqueVaut(k, i, j){
-    switch(k){
-      case 0: return (i+j) % 2 === 0;
-      case 1: return i % 2 === 0;
-      case 2: return j % 3 === 0;
-      case 3: return (i+j) % 3 === 0;
-      case 4: return (Math.floor(i/2) + Math.floor(j/3)) % 2 === 0;
-      case 5: return ((i*j) % 2) + ((i*j) % 3) === 0;
-      case 6: return (((i*j) % 2) + ((i*j) % 3)) % 2 === 0;
-      default: return (((i+j) % 2) + ((i*j) % 3)) % 2 === 0;
-    }
-  }
-  /* L'information de format : 5 bits (niveau M = 00, puis le masque), BCH(15,5),
-     et le masque 0x5412 de la norme. Elle est écrite DEUX FOIS, aux deux coins :
-     un QR abîmé sur un coin reste lisible par l'autre. */
-  function poserFormat(g, masque){
-    var v = (0 << 3) | masque;
-    var d = v << 10;
-    for(var i=4;i>=0;i--) if(d & (1 << (i+10))) d ^= 0x537 << i;
-    var f = ((v << 10) | d) ^ 0x5412;
-    for(var i=0;i<15;i++){
-      /* LE BIT DE POIDS FORT EN PREMIER. Écrit dans l'autre sens, le mot de
-         format se lit à l'envers : le QR se dessine parfaitement, mes propres
-         contrôles le relisent — et aucun vrai lecteur ne le décode, parce que
-         le niveau de correction annoncé est faux. Vérifié contre un
-         générateur de référence, module par module. */
-      var b = (f >> (14 - i)) & 1;
-      if(i < 6) g[8][i] = b;
-      else if(i < 8) g[8][i+1] = b;
-      else if(i === 8) g[7][8] = b;
-      else g[14-i][8] = b;
-      /* Sept modules dans la colonne, HUIT dans la ligne — et pas huit
-         partout : (n-8, 8) est le module noir obligatoire, pas du format.
-         Se tromper d'un cran ici dessine un QR parfait qu'aucun lecteur ne
-         décode, parce que le niveau de correction lu est faux. */
-      if(i < 7) g[n2-1-i][8] = b;
-      else g[8][n2-15+i] = b;
-    }
-    g[n2-8][8] = 1;
-  }
-  /* Le masque est CHOISI, pas fixé : on garde celui qui donne la plus faible
-     pénalité, comme la norme le demande. Un mauvais masque crée des motifs qui
-     ressemblent aux repères de position et gêne les lecteurs. */
-  function penalite(g){
-    var p = 0, i, j, k;
-    for(i=0;i<n2;i++) for(var s=0;s<2;s++){
-      var run = 1;
-      for(j=1;j<n2;j++){
-        var a = s ? g[j][i] : g[i][j], b = s ? g[j-1][i] : g[i][j-1];
-        if(a === b) run++; else { if(run >= 5) p += 3 + (run-5); run = 1; }
-      }
-      if(run >= 5) p += 3 + (run-5);
-    }
-    for(i=0;i<n2-1;i++) for(j=0;j<n2-1;j++){
-      var v = g[i][j];
-      if(v === g[i][j+1] && v === g[i+1][j] && v === g[i+1][j+1]) p += 3;
-    }
-    var motif = [1,0,1,1,1,0,1];
-    for(i=0;i<n2;i++) for(j=0;j<n2-6;j++) for(var s=0;s<2;s++){
-      var bon = true;
-      for(k=0;k<7;k++){ var a = s ? g[j+k][i] : g[i][j+k]; if(a !== motif[k]){ bon = false; break; } }
-      if(!bon) continue;
-      var avant = true, apres = true;
-      for(k=1;k<=4;k++){
-        var y1 = s ? j-k : i, x1 = s ? i : j-k;
-        var y2 = s ? j+6+k : i, x2 = s ? i : j+6+k;
-        if(y1>=0 && x1>=0 && (s?g[y1][x1]:g[y1][x1])) avant = false;
-        if(y2<n2 && x2<n2 && (s?g[y2][x2]:g[y2][x2])) apres = false;
-      }
-      if(avant || apres) p += 40;
-    }
-    var noirs = 0;
-    for(i=0;i<n2;i++) for(j=0;j<n2;j++) if(g[i][j]) noirs++;
-    p += Math.floor(Math.abs(noirs*100/(n2*n2) - 50) / 5) * 10;
-    return p;
-  }
-  var meilleur = null, scoreMin = Infinity;
-  for(var k=0;k<8;k++){
-    var g = placer(k);
-    poserFormat(g, k);
-    var s = penalite(g);
-    if(s < scoreMin){ scoreMin = s; meilleur = g; }
-  }
-  return meilleur;
-}
 
 /* =====================================================================
    L'AFFICHE À POSER SUR UN COMPTOIR D'HÔTEL
@@ -11677,30 +11349,18 @@ window.ELA_TEXTES = {
    Rien à créer côté serveur, et une affiche imprimée reste valable même
    si tout change derrière.
    ===================================================================== */
-  /* LE NOM VOYAGE EN CLAIR, pas en identifiant. « ?h=Ibis%20CDG » plutôt que
-     « ?h=ibis-cdg » : à l'arrivée, on le pose tel quel dans le champ de départ
-     et la recherche d'adresse retrouve l'hôtel. Un identifiant obligerait à
-     tenir une table de correspondance — donc à republier le site à chaque
-     nouvel hôtel, et à réimprimer les affiches le jour où la table change. */
+  /* LA BASE EST DONNÉE ICI, jamais devinée par le fichier partagé : le site
+     client vit à la racine, Admin v2 sur « /admin-v2.html », et une base
+     devinée là-bas fabriquerait des affiches qui renvoient le client vers le
+     back-office. Le fichier partagé REFUSE une base absente plutôt que d'en
+     inventer une. */
   function lienHotel(nom){
-    return location.origin + location.pathname + "?h=" + encodeURIComponent(nom.slice(0,60));
+    if(!window.ELA_QR) throw new Error("qr-affiche.js n'est pas chargé");
+    return window.ELA_QR.lien(location.origin + location.pathname, nom);
   }
-  /* Le QR est dessiné en SVG et non en canvas : une affiche s'IMPRIME, et
-     un canvas de 200 px sort en bouillie sur du papier. Le SVG reste net à
-     n'importe quelle taille. */
   function qrSvg(texte, cote){
-    var m = qrMatrice(texte), n = m.length, marge = 4, total = n + marge*2;
-    var d = "";
-    for(var i=0;i<n;i++) for(var j=0;j<n;j++)
-      if(m[i][j]) d += "M" + (j+marge) + " " + (i+marge) + "h1v1h-1z";
-    /* Le « xmlns » n'est pas décoratif : sans lui le SVG s'affiche bien dans
-       la page, mais il ne peut plus être chargé comme IMAGE ni collé
-       ailleurs — donc ni éprouvé, ni réutilisé dans un document. */
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + total
-         + '" width="' + cote + '" height="' + cote
-         + '" shape-rendering="crispEdges" role="img" aria-label="Code QR du site">'
-         + '<rect width="' + total + '" height="' + total + '" fill="#fff"/>'
-         + '<path d="' + d + '" fill="#16232B"/></svg>';
+    if(!window.ELA_QR) throw new Error("qr-affiche.js n'est pas chargé");
+    return window.ELA_QR.svg(texte, cote);
   }
   function dessinerAffiche(){
     var nom = document.getElementById("hotelNom").value.trim();
