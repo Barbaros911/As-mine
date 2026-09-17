@@ -47,6 +47,20 @@
 
   const nav=$('#nav'), top=$('.top');
   if(nav&&top){
+    const logo=$('img',top);
+    const placeLogo=()=>{
+      if(!logo)return;
+      if(window.matchMedia('(min-width:801px)').matches){
+        logo.style.transform='translateX(-236px)';
+        logo.style.transformOrigin='left center';
+      }else{
+        logo.style.transform='none';
+        logo.style.transformOrigin='left center';
+      }
+    };
+    placeLogo();
+    window.addEventListener('resize',placeLogo,{passive:true});
+
     const menu=document.createElement('button');
     menu.type='button'; menu.className='mobile-menu'; menu.setAttribute('aria-label','Ouvrir le menu'); menu.setAttribute('aria-expanded','false'); menu.textContent='☰';
     top.append(menu);
