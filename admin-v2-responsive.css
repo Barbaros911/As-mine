@@ -22,7 +22,7 @@ main,.card,.row,.toolbar,.title,.grid,.grid2,.two,.formgrid{min-width:0}
 @media(max-width:800px){
   body{font-size:14px}
   .top{min-height:58px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))}
-  .top img{width:96px;max-height:38px;object-fit:contain}
+  .top img{width:100px;max-height:38px;object-fit:contain}
   .top .btn{min-height:42px;padding:8px 11px;font-size:12px}
   .layout{display:block}
   main{padding:14px 12px calc(92px + var(--safe-b));max-width:none}
