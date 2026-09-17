@@ -110,6 +110,9 @@ jobs:
             -f supabase/tests/registre-restauration.sql
           # Encore une base neuve : la facture compte des numeros, et une
           # emission laissee par l'epreuve d'a cote decalerait toute la suite.
+          # « dblink » y ouvre une VRAIE seconde session : c'est la seule facon
+          # d'eprouver deux emissions concurrentes sur le meme lot, et une
+          # divergence de snapshot ne se simule pas dans une transaction.
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database factures;'
           psql -h 127.0.0.1 -U postgres -d factures -X -q -v ON_ERROR_STOP=1 \
             -f supabase/tests/socle.sql \

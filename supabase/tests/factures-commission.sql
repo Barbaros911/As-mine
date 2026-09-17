@@ -258,4 +258,299 @@ begin
     raise exception 'une policy d''ecriture existe sur factures_commission : le compteur se contourne'; end if;
 end $$;
 
+-- ============================================================================
+-- 9. DEUX EMISSIONS CONCURRENTES SUR LE MEME LOT — A DEUX VRAIES SESSIONS.
+--
+-- L'epreuve des « 100 increments » plus haut prouve que le COMPTEUR est
+-- atomique. Elle ne prouve RIEN sur deux appels concurrents a
+-- « ela_emettre_facture_commission » sur les MEMES courses -- c'est un autre
+-- risque, et il a ete trouve en relecture, pas par ce fichier.
+--
+-- CE QU'ON A MESURE AVANT DE CORRIGER : le document etait reconstruit par un
+-- SECOND appel independant a « ela_lignes_facture », sur toute la periode, et
+-- son resultat n'etait jamais compare a l'ensemble verrouille. Le « coalesce »
+-- ramenait « [] » et 0 SANS UN MOT. Resultat mesure sur un vrai PostgreSQL :
+-- facture F-2026-0001 emise a 0,00 EUR, 0 ligne, UN NUMERO CONSOMME, et les
+-- deux courses marquees « facturees » -- donc PLUS JAMAIS FACTURABLES.
+--
+-- LE VERROU NE COUVRE QUE « courses ». Il ne protege pas
+-- « attributions_chauffeur » : c'est par la que les deux calculs divergent, et
+-- c'est ce que cette epreuve construit.
+--
+-- POURQUOI DEUX SESSIONS ET PAS UNE SIMULATION : une divergence de snapshot ne
+-- se fabrique pas dans une seule transaction. « dblink » ouvre une vraie
+-- seconde connexion, et le BLOCAGE SUR UN VERROU rend l'experience
+-- DETERMINISTE -- on sait exactement ou la session bloquee se trouve.
+-- ============================================================================
+create extension if not exists dblink;
+
+-- On repart d'un lot propre : deux courses realisees, attribuees, non facturees.
+delete from public.evenements_reservation;
+delete from public.factures_commission;
+delete from public.compteur_factures;
+update public.courses set bon = bon - 'factureNum';
+update public.attributions_chauffeur set statut = 'active';
+
+insert into public.courses(ref, statut, bon) values
+ ('ELA-26-09-9001','realisee','{"course":{"date":"2026-09-05"},"prix":{"total":100}}'),
+ ('ELA-26-09-9002','realisee','{"course":{"date":"2026-09-06"},"prix":{"total":200}}')
+on conflict (ref) do nothing;
+insert into public.attributions_chauffeur(course_ref, chauffeur_id, statut)
+ select r, '11111111-1111-1111-1111-111111111111', 'active'
+   from unnest(array['ELA-26-09-9001','ELA-26-09-9002']) r
+on conflict (course_ref) do update set statut = 'active';
+
+-- ── 9a. DEUX EMISSIONS SUR LE MEME LOT : UNE SEULE DOIT PASSER ────────────
+do $$
+declare v_num text; v_err text;
+begin
+  -- La session courante emet et GARDE sa transaction : ses verrous tiennent.
+  v_num := public.ela_emettre_facture_commission(
+    '11111111-1111-1111-1111-111111111111','2026-09-01','2026-09-30')->>'num';
+  if v_num is null then raise exception 'la premiere emission a echoue'; end if;
+
+  perform dblink_connect('conc',
+    'host=127.0.0.1 port=' || current_setting('port')
+    || ' dbname=' || current_database() || ' user=postgres password=postgres');
+  -- ASYNCHRONE, sinon on s'attendrait soi-meme : la seconde session veut un
+  -- verrou que celle-ci detient.
+  perform dblink_send_query('conc',
+    'select coalesce((public.ela_emettre_facture_commission('
+    || '''11111111-1111-1111-1111-111111111111'',''2026-09-01'',''2026-09-30'')'
+    || '->>''num''),''?'')');
+exception when others then
+  raise exception 'preparation de l''epreuve de concurrence : %', sqlerrm;
+end $$;
+
+-- On sort de la transaction du bloc precedent : les verrous tombent, la
+-- seconde session repart.
+do $$
+declare r text; v_err text := null;
+begin
+  begin
+    select * into r from dblink_get_result('conc') as t(x text);
+  exception when others then
+    v_err := sqlerrm;
+  end;
+  perform dblink_disconnect('conc');
+
+  -- EXACTEMENT UNE EMISSION. La seconde doit etre REFUSEE, et nommement.
+  if v_err is null then
+    raise exception 'DEUX EMISSIONS ONT REUSSI SUR LE MEME LOT (la seconde a rendu %)', r;
+  end if;
+  if v_err not like '%aucune_course_a_facturer%'
+     and v_err not like '%lot_modifie_pendant_emission%' then
+    raise exception 'la seconde emission a echoue pour une autre raison : %', v_err;
+  end if;
+end $$;
+
+do $$
+declare n integer; v_rang integer; vides integer;
+begin
+  select count(*) into n from public.factures_commission;
+  if n <> 1 then raise exception 'attendu 1 facture, trouve %', n; end if;
+
+  -- AUCUN SECOND NUMERO CONSOMME : un rang brule sans facture est un TROU
+  -- dans la numerotation, donc la meme infraction que le doublon (L441-9).
+  select rang into v_rang from public.compteur_factures;
+  if v_rang <> 1 then raise exception 'le compteur a consomme % numeros pour 1 facture', v_rang; end if;
+
+  -- AUCUNE FACTURE VIDE. C'est la forme exacte du defaut d'origine.
+  select count(*) into vides from public.factures_commission
+   where ht = 0 or jsonb_array_length(lignes) = 0;
+  if vides > 0 then raise exception
+    'UNE FACTURE VIDE A ETE EMISE (% ligne(s) a 0 EUR) : le document ne vient pas de l''ensemble verrouille', vides; end if;
+
+  -- AUCUN DOUBLON : une course ne porte qu'un seul numero de facture.
+  if exists(select 1 from public.courses
+             where bon ? 'factureNum'
+             group by bon->>'factureNum' having count(*) = 0) then
+    raise exception 'doublon de facturation'; end if;
+end $$;
+
+-- ── 9b. LE LOT QUI BOUGE PENDANT L'ATTENTE DU VERROU ──────────────────────
+--    C'est la reproduction exacte du defaut mesure. La session bloquee sur un
+--    verrou de « courses » voit, en repartant, ses attributions retirees : son
+--    second calcul rendait « [] » et elle facturait 0,00 EUR quand meme.
+delete from public.evenements_reservation;
+delete from public.factures_commission;
+delete from public.compteur_factures;
+update public.courses set bon = bon - 'factureNum';
+update public.attributions_chauffeur set statut = 'active';
+
+do $$
+begin
+  perform dblink_connect('conc2',
+    'host=127.0.0.1 port=' || current_setting('port')
+    || ' dbname=' || current_database() || ' user=postgres password=postgres');
+  -- On tient UNE course : la seconde session s'y bloquera a coup sur.
+  perform (select ref from public.courses where ref='ELA-26-09-9002' for update);
+  perform dblink_send_query('conc2',
+    'select coalesce((public.ela_emettre_facture_commission('
+    || '''11111111-1111-1111-1111-111111111111'',''2026-09-01'',''2026-09-30'')'
+    || '->>''num''),''?'')');
+  perform pg_sleep(1);        -- elle attend maintenant le verrou
+  -- LE VERROU DE « courses » NE COUVRE PAS CECI.
+  update public.attributions_chauffeur set statut='retiree'
+   where chauffeur_id='11111111-1111-1111-1111-111111111111';
+end $$;
+-- fin de transaction : les verrous tombent, et la retraite est visible.
+
+do $$
+declare r text; v_err text := null; n integer; v_rang integer;
+begin
+  begin
+    select * into r from dblink_get_result('conc2') as t(x text);
+  exception when others then
+    v_err := sqlerrm;
+  end;
+  perform dblink_disconnect('conc2');
+
+  if v_err is null then
+    raise exception 'UNE FACTURE A ETE EMISE SUR UN LOT DEVENU VIDE (numero %) '
+      '-- c''est le defaut d''origine : 0,00 EUR, un numero brule, et des '
+      'courses marquees facturees donc plus jamais facturables', r;
+  end if;
+  -- LE MESSAGE COMPTE AUTANT QUE LE REFUS : les deux gardes appellent deux
+  -- gestes differents. Un lot devenu VIDE, c'est « il n'y a rien a facturer »
+  -- -- lui dire « recommence » l'enverrait tourner en rond.
+  if v_err not like '%aucune_course_a_facturer%' then
+    raise exception 'sur un lot vide, attendu « aucune_course_a_facturer », recu : %', v_err;
+  end if;
+
+  select count(*) into n from public.factures_commission;
+  if n <> 0 then raise exception 'une facture a ete ecrite malgre le refus'; end if;
+  select coalesce(max(rang),0) into v_rang from public.compteur_factures;
+  if v_rang <> 0 then raise exception 'un numero a ete consomme pour rien : %', v_rang; end if;
+  if exists(select 1 from public.courses where bon ? 'factureNum') then
+    raise exception 'des courses ont ete marquees facturees sans facture'; end if;
+end $$;
+
+-- ── 9c. LE LOT QUI RETRECIT SANS SE VIDER ─────────────────────────────────
+--    Sans ce cas, la garde « l'ensemble differe » ne serait JAMAIS exercee :
+--    en 9b le lot devient vide, et c'est l'autre garde qui attrape. Un
+--    controle qu'aucun scenario n'atteint est un controle decoratif.
+--    Ici une seule attribution est retiree : deux courses verrouillees, une
+--    seule facturable. Facturer la moitie en silence ferait PERDRE l'autre --
+--    elle serait marquee facturee sans figurer au document.
+delete from public.evenements_reservation;
+delete from public.factures_commission;
+delete from public.compteur_factures;
+update public.courses set bon = bon - 'factureNum';
+update public.attributions_chauffeur set statut = 'active';
+
+do $$
+begin
+  perform dblink_connect('conc3',
+    'host=127.0.0.1 port=' || current_setting('port')
+    || ' dbname=' || current_database() || ' user=postgres password=postgres');
+  perform (select ref from public.courses where ref='ELA-26-09-9002' for update);
+  perform dblink_send_query('conc3',
+    'select coalesce((public.ela_emettre_facture_commission('
+    || '''11111111-1111-1111-1111-111111111111'',''2026-09-01'',''2026-09-30'')'
+    || '->>''num''),''?'')');
+  perform pg_sleep(1);
+  update public.attributions_chauffeur set statut='retiree'
+   where course_ref = 'ELA-26-09-9001';   -- UNE SEULE
+end $$;
+
+do $$
+declare r text; v_err text := null; n integer; v_rang integer;
+begin
+  begin
+    select * into r from dblink_get_result('conc3') as t(x text);
+  exception when others then
+    v_err := sqlerrm;
+  end;
+  perform dblink_disconnect('conc3');
+
+  if v_err is null then
+    raise exception 'UNE FACTURE A ETE EMISE SUR UN LOT QUI A RETRECI (numero %) : '
+      'les courses disparues sont marquees facturees sans figurer au document', r;
+  end if;
+  -- Un lot qui a RETRECI sans se vider, c'est « recommence » -- il reste des
+  -- courses a facturer, simplement plus les memes.
+  if v_err not like '%lot_modifie_pendant_emission%' then
+    raise exception 'sur un lot qui a retreci, attendu « lot_modifie_pendant_emission », recu : %', v_err;
+  end if;
+
+  select count(*) into n from public.factures_commission;
+  if n <> 0 then raise exception 'une facture a ete ecrite malgre le refus'; end if;
+  select coalesce(max(rang),0) into v_rang from public.compteur_factures;
+  if v_rang <> 0 then raise exception 'un numero a ete consomme pour rien : %', v_rang; end if;
+  if exists(select 1 from public.courses where bon ? 'factureNum') then
+    raise exception 'des courses ont ete marquees facturees sans facture'; end if;
+end $$;
+
+-- ── 9d. UNE COURSE QUI ARRIVE PENDANT L'ATTENTE NE BLOQUE PAS L'EMISSION ──
+--    L'autre bord de la regle, et il se paierait cher sans lui : si le
+--    document etait recalcule sur TOUTE la periode au lieu du seul ensemble
+--    verrouille, une course devenue facturable pendant l'attente ferait
+--    « differer » l'ensemble et REFUSERAIT l'emission -- indefiniment sur un
+--    compte actif. Le lot verrouille se facture ; la nouvelle course attend la
+--    facture suivante, ce qui est exactement ce qu'on veut.
+--    C'est ce cas qui rend la restriction « where l.ref = any(refs) »
+--    OBSERVABLE : sans elle, cette epreuve tombe.
+delete from public.evenements_reservation;
+delete from public.factures_commission;
+delete from public.compteur_factures;
+delete from public.attributions_chauffeur where course_ref = 'ELA-26-09-9003';
+delete from public.courses where ref = 'ELA-26-09-9003';
+update public.courses set bon = bon - 'factureNum';
+update public.attributions_chauffeur set statut = 'active';
+
+do $$
+begin
+  perform dblink_connect('conc4',
+    'host=127.0.0.1 port=' || current_setting('port')
+    || ' dbname=' || current_database() || ' user=postgres password=postgres');
+  perform (select ref from public.courses where ref='ELA-26-09-9002' for update);
+  perform dblink_send_query('conc4',
+    'select coalesce((public.ela_emettre_facture_commission('
+    || '''11111111-1111-1111-1111-111111111111'',''2026-09-01'',''2026-09-30'')'
+    || '->>''num''),''?'')');
+  perform pg_sleep(1);
+  -- UNE COURSE DE PLUS, facturable, pendant que l'autre attend.
+  insert into public.courses(ref, statut, bon) values
+   ('ELA-26-09-9003','realisee','{"course":{"date":"2026-09-07"},"prix":{"total":50}}');
+  insert into public.attributions_chauffeur(course_ref, chauffeur_id, statut)
+   values ('ELA-26-09-9003','11111111-1111-1111-1111-111111111111','active');
+end $$;
+
+do $$
+declare r text; v_err text := null; n integer;
+begin
+  begin
+    select * into r from dblink_get_result('conc4') as t(x text);
+  exception when others then
+    v_err := sqlerrm;
+  end;
+  perform dblink_disconnect('conc4');
+
+  if v_err is not null then
+    raise exception 'L''EMISSION A ETE REFUSEE PARCE QU''UNE COURSE EST ARRIVEE '
+      'PENDANT L''ATTENTE (%) : le document doit venir du lot VERROUILLE, pas '
+      'd''un recalcul sur toute la periode -- sinon un compte actif ne facture '
+      'plus jamais', v_err;
+  end if;
+
+  -- ON EPROUVE LA PROPRIETE, PAS UN COMPTE. Le lot verrouille depend du decor
+  -- laisse par les epreuves precedentes ; figer un nombre ici tomberait au
+  -- premier decor legitimement enrichi, sans que rien ne soit casse.
+  select count(*) into n from public.factures_commission;
+  if n <> 1 then raise exception 'attendu 1 facture, trouve %', n; end if;
+  if not exists(select 1 from public.factures_commission f,
+                     jsonb_array_elements(f.lignes) l
+                 where l->>'ref' = 'ELA-26-09-9002') then
+    raise exception 'le lot verrouille n''a pas ete facture'; end if;
+  if exists(select 1 from public.factures_commission f,
+                 jsonb_array_elements(f.lignes) l
+             where l->>'ref' = 'ELA-26-09-9003') then
+    raise exception 'la course arrivee PENDANT l''attente est entree dans le '
+      'document : elle n''etait pas verrouillee'; end if;
+  if (select bon ? 'factureNum' from public.courses where ref='ELA-26-09-9003') then
+    raise exception 'la course arrivee pendant l''attente a ete marquee facturee '
+      'sans figurer au document'; end if;
+end $$;
+
 select 'FACTURES DE COMMISSION : toutes les epreuves passent' as resultat;

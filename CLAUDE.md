@@ -4062,6 +4062,68 @@ mise en page qui n'avait rien.*
 - `test-admin-gestes.mjs`, **37 contrôles** ; `gestes-client.sql`, **8 blocs**.
   Onze falsifications, toutes tombent en nommant le défaut.
 
+### LA FACTURE POUVAIT SORTIR VIDE, À 0,00 € — TROUVÉ EN RELECTURE
+
+17 septembre 2026, bloquant relevé par ChatGPT sur #191. **Le pire défaut de
+la brique 4, et il ne se voyait pas** : le document s'imprime, il est
+simplement faux.
+
+`ela_emettre_facture_commission` verrouillait les courses (`for update`) pour
+obtenir `refs`, puis **reconstruisait `lignes` et `v_ht` par un SECOND appel
+indépendant** à `ela_lignes_facture`, sur toute la période, **sans jamais
+comparer le résultat à l'ensemble verrouillé**. Les `coalesce` ramenaient
+alors `'[]'` et `0` **sans un mot**.
+
+**MESURÉ SUR UN VRAI POSTGRESQL, À DEUX SESSIONS** — pas supposé : facture
+`F-2026-0001` émise à **0,00 €, zéro ligne**, **un numéro consommé**, et les
+deux courses marquées `factureNum` — donc **plus jamais facturables**. De
+l'argent qui n'entre jamais, et on ne l'apprend que chez le comptable.
+
+- **LA SÉQUENCE DÉCRITE EN RELECTURE NE SE REPRODUIT PAS, ET CE N'EST PAS UN
+  DÉSACCORD.** Deux émissions simultanées sur le même lot : la seconde est
+  bien refusée, parce que le `for update` revalide et rend `refs` vide. Le
+  **trou structurel** désigné, lui, est réel — il fallait seulement trouver
+  par où il passe.
+- **IL PASSE PAR `attributions_chauffeur`, QUE LE VERROU NE COUVRE PAS.** Le
+  `for update` porte sur `courses`. Une attribution retirée pendant l'attente
+  du verrou suffit : au réveil, le second calcul prend un **nouveau
+  snapshot**, ne voit plus rien, et la facture part à zéro.
+- **LE DOCUMENT VIENT MAINTENANT DU SEUL ENSEMBLE VERROUILLÉ**
+  (`where l.ref = any(refs)`), et **on refuse avant de consommer un numéro**
+  si cet ensemble est vide ou s'il diffère. Un lot qui a bougé se refuse :
+  le facturer en silence ferait perdre les courses disparues, un refus laisse
+  simplement recommencer.
+- **DEUX REFUS, DEUX GESTES, ET LE TEST L'EXIGE.** Un lot **vide** rend
+  `aucune_course_a_facturer` — « il n'y a rien à facturer », ça se constate.
+  Un lot qui a **rétréci** rend `lot_modifie_pendant_emission` — « recommence ».
+  Les confondre enverrait tourner en rond, ou faire renoncer alors qu'un
+  aperçu suffit. **Sans cette exigence, la garde du lot vide était
+  décorative** : la garde de divergence l'attrapait de toute façon.
+- **L'AUTRE BORD DE LA RÈGLE COMPTE AUTANT** : une course devenue facturable
+  **pendant** l'attente ne doit PAS bloquer l'émission. Sans la restriction au
+  lot verrouillé, l'ensemble « différerait » et un compte actif **ne
+  facturerait plus jamais**. C'est ce cas qui rend la restriction observable —
+  sans lui, elle n'était éprouvée par rien.
+
+**L'ÉPREUVE EST À DEUX VRAIES SESSIONS, par `dblink`** : une divergence de
+snapshot ne se fabrique pas dans une seule transaction. Et **le blocage sur un
+verrou est ce qui la rend déterministe** — on sait exactement où la session
+bloquée se trouve. Quatre blocs (`9a` à `9d`), branchés en CI.
+
+**L'ÉPREUVE DES « 100 INCRÉMENTS » NE COUVRAIT PAS ÇA.** Elle prouve que le
+**compteur** est atomique, et c'est vrai ; elle ne dit rien de deux émissions
+concurrentes **sur les mêmes courses**. *Un test vert sur le sujet d'à côté
+rassure sans protéger.*
+
+**PIÈGE RENCONTRÉ EN CORRIGEANT** : mon premier remplacement a atterri dans la
+fonction d'**aperçu**, dont le bloc de calcul est identique à une ligne près.
+La migration a refusé de s'appliquer (`refs_valides is not a known variable`)
+— c'est le fait de **l'exécuter** et non de la relire qui l'a dit.
+
+- **Quatre falsifications**, toutes tombent en nommant le défaut : la fonction
+  d'origine, la garde de divergence retirée, la restriction au lot retirée, la
+  garde du lot vide retirée.
+
 ### PARITÉ, BRIQUE 4 — LA FACTURE DE COMMISSION
 
 17 septembre 2026. L'argent ne passe **jamais** par Elatransfer : le client

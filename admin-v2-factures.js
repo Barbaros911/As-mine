@@ -199,6 +199,11 @@ async function emettre(){
            ? 'Impossible : il manque le nom, le SIRET ou l’adresse de l’émetteur — c’est dans « Tarification ».'
        : msg.includes('aucune_course_a_facturer')
            ? 'Ces courses viennent d’être facturées ailleurs — rien n’a été émis, et aucun numéro n’a été consommé.'
+       /* DEUX REFUS, DEUX GESTES. « Rien à facturer » se constate ; « le lot a
+          bougé » se recommence. Les confondre enverrait tourner en rond, ou
+          faire renoncer alors qu'un simple aperçu suffit. */
+       : msg.includes('lot_modifie_pendant_emission')
+           ? 'Le lot a changé pendant l’émission — rien n’a été écrit et aucun numéro n’a été consommé. Refais l’aperçu, puis émets.'
            : 'L’émission a échoué : ' + (msg || 'serveur muet') + ' — rien n’a été écrit.',
       'ko');
     return;

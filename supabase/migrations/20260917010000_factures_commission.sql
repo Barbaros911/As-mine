@@ -176,7 +176,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  e jsonb; ch record; lignes jsonb; refs text[];
+  e jsonb; ch record; lignes jsonb; refs text[]; refs_valides text[];
   v_ht numeric; v_taux_tva numeric; v_tva numeric;
   v_annee integer; v_rang integer; v_num text;
 begin
@@ -209,10 +209,41 @@ begin
     raise exception 'aucune_course_a_facturer';
   end if;
 
+  -- ═══ LE DOCUMENT EST CONSTRUIT DEPUIS LE SEUL ENSEMBLE VERROUILLE, ET
+  --     REVALIDE AVANT QU'UN NUMERO SOIT CONSOMME ═══
+  -- Ce calcul etait un SECOND appel independant, sur toute la periode, et son
+  -- resultat n'etait JAMAIS compare a « refs ». Le « coalesce » ramenait alors
+  -- « [] » et 0 SANS UN MOT : numero brule, facture vide a 0 EUR, et les
+  -- courses marquees « facturees » -- donc PLUS JAMAIS FACTURABLES. De
+  -- l'argent qui n'entre jamais, et on ne l'apprend que chez le comptable.
+  --
+  -- LE VERROU NE COUVRE QUE « courses ». Il ne protege PAS
+  -- « attributions_chauffeur », et c'est par la que les deux calculs
+  -- divergeaient. Mesure sur un vrai PostgreSQL, a deux sessions : une
+  -- attribution retiree pendant l'attente du verrou suffisait a emettre
+  -- F-2026-0001 a 0,00 EUR sur deux courses de 300 EUR.
+  --
+  -- On restreint donc le calcul a « refs », et on EXIGE que l'ensemble rendu
+  -- soit exactement celui qu'on tient. Un lot qui a bouge se REFUSE : le
+  -- facturer en silence ferait perdre les courses disparues, tandis qu'un
+  -- refus laisse simplement recommencer.
   select coalesce(jsonb_agg(to_jsonb(l) order by l.jour, l.ref), '[]'::jsonb),
-         coalesce(sum(l.commission), 0)
-    into lignes, v_ht
-    from public.ela_lignes_facture(p_chauffeur_id, p_du, p_au) l;
+         coalesce(sum(l.commission), 0),
+         array_agg(l.ref order by l.ref)
+    into lignes, v_ht, refs_valides
+    from public.ela_lignes_facture(p_chauffeur_id, p_du, p_au) l
+   where l.ref = any(refs);
+
+  if refs_valides is null or array_length(refs_valides, 1) = 0 then
+    raise exception 'aucune_course_a_facturer';
+  end if;
+  -- « is distinct from » et jamais « <> » : sur une valeur qui peut etre NULL,
+  -- « <> » vaut NULL et le « if » ne se declenche jamais -- un controle qui ne
+  -- peut pas echouer. Quinze comparaisons de cette forme dormaient deja dans
+  -- les epreuves de ce depot.
+  if refs_valides is distinct from refs then
+    raise exception 'lot_modifie_pendant_emission';
+  end if;
 
   v_taux_tva := coalesce((e->>'taux_tva')::numeric, 0);
   v_tva := round(v_ht * v_taux_tva / 100, 2);
@@ -240,13 +271,13 @@ begin
   -- des courses refacturables (doublon).
   update public.courses
      set bon = jsonb_set(bon, '{factureNum}', to_jsonb(v_num), true)
-   where ref = any(refs);
+   where ref = any(refs_valides);
 
   insert into public.evenements_reservation(course_ref, type_evenement,
                                             acteur_type, acteur_id, donnees)
     select r, 'facture_commission_emise', 'admin_ela', auth.uid(),
            jsonb_build_object('facture', v_num)
-      from unnest(refs) r;
+      from unnest(refs_valides) r;
 
   return jsonb_build_object('num', v_num, 'emetteur', e,
     'client', jsonb_build_object('id', ch.id, 'nom', ch.nom_affiche,
@@ -254,7 +285,7 @@ begin
     'periode_du', p_du, 'periode_au', p_au,
     'lignes', lignes, 'ht', v_ht,
     'taux_tva', v_taux_tva, 'tva', v_tva, 'ttc', v_ht + v_tva,
-    'refs', to_jsonb(refs));
+    'refs', to_jsonb(refs_valides));
 end $$;
 
 revoke all on function public.ela_apercu_facture_commission(uuid,date,date)  from public, anon;
