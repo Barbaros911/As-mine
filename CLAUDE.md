@@ -2893,6 +2893,39 @@ sur les deux questions posées : **« en attente, comme aujourd'hui »** et
   (faux serveur rendant 201) : sans dépôt réussi il est caché de toute
   façon, et le contrôle serait passé au vert sans rien vérifier.
 
+### CE QUE LE COMPTOIR NE DOIT JAMAIS VOIR — RIEN NE LE VERROUILLAIT
+
+17 septembre 2026, demandé par ChatGPT (#165, point 8) : la réception ne doit
+exposer ni la commission ou la marge d'Elatransfer, ni le montant versé au
+chauffeur, ni rien de Stripe, ni le carnet de chauffeurs, ni les données d'un
+AUTRE partenaire.
+
+**LE CODE N'EN EXPOSAIT AUCUN — ET AUCUN CONTRÔLE NE L'EMPÊCHAIT DEMAIN.**
+`courses-hotel` compose une **liste blanche** (référence, statut, prix, client,
+chambre, paiement, et le chauffeur seulement sur une course confirmée). C'est
+la vraie frontière, et elle était déjà là. Mais un filtre serveur et un écran
+sont **deux défenses**, et *une défense en profondeur demande autant de
+contrôles que de défenses* — la leçon du bouton d'accès, protégé deux fois et
+éprouvé deux fois. Ici il n'y en avait **aucun** : le jour où quelqu'un élargit
+la liste blanche « pour déboguer », plus rien ne tombe.
+
+- **LE FAUX SERVEUR INJECTE LES INTERNES EXPRÈS** sur une course, et l'écran ne
+  doit en afficher aucun. On éprouve donc la défense de l'écran, pas la
+  politesse du serveur.
+- **ON CHERCHE LES VALEURS, PAS LES LIBELLÉS.** Chercher le mot « commission »
+  passerait au vert avec le montant écrit juste à côté — même règle que le
+  message d'alerte Telegram.
+- **ON REGARDE TOUT L'ÉCRAN**, pas la seule carte : une ligne de total, un pied
+  de liste ou une infobulle compteraient autant.
+- **LE DOUTE EST LEVÉ** : un écran qui n'afficherait RIEN passerait les cinq
+  contrôles au vert sans rien prouver. Un sixième vérifie qu'il montre bien la
+  chambre, le prix et le paiement — même famille que « une RPC qui refuserait
+  tout rendrait exactement les mêmes erreurs ».
+- **Éprouvé** en faisant fuiter la commission dans la ligne grise du comptoir :
+  le contrôle tombe et **nomme la valeur** (« trouvé : 25 % »).
+
+`test-nouveau-reception.mjs` passe de 83 à **89 contrôles**.
+
 ### LE THÈME D'UN PARTENAIRE — L'ORANGE easyHotel
 
 - **LES COULEURS SONT RANGÉES SUR L'HÔTEL** (`HOTELS[x].marque`), pas dans
