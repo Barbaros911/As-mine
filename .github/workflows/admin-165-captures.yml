@@ -17,8 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-      - run: npm ci
+      - name: Installer Playwright pour la prévisualisation
+        run: npm install --no-save --no-package-lock playwright
       - run: npx playwright install --with-deps chromium
       - name: Générer les rendus réels
         run: node capture-admin-165.mjs
