@@ -50,12 +50,12 @@
     const logo=$('img',top);
     const placeLogo=()=>{
       if(!logo)return;
+      logo.style.transform='none';
+      logo.style.transformOrigin='left center';
       if(window.matchMedia('(min-width:801px)').matches){
-        logo.style.transform='translateX(-236px)';
-        logo.style.transformOrigin='left center';
+        top.style.zIndex='14';
       }else{
-        logo.style.transform='none';
-        logo.style.transformOrigin='left center';
+        top.style.zIndex='12';
       }
     };
     placeLogo();
