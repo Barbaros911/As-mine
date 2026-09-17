@@ -59,6 +59,17 @@ create table if not exists public.actions_requises(
 create unique index if not exists actions_requises_ouverte
   on public.actions_requises(course_ref,type_action) where statut='ouverte';
 
+-- LES PARAMETRES COMMERCIAUX : la source SERVEUR des tarifs et de la
+-- commission. La facture s'en sert pour le taux par defaut et pour
+-- l'identite de l'emetteur -- sans eux, elle refuse d'editer.
+create table if not exists public.parametres_commerciaux(
+  cle text primary key,
+  valeur jsonb not null,
+  actif boolean not null default true,
+  date_effet timestamptz not null default now(),
+  modifie_le timestamptz not null default now()
+);
+
 -- La migration appelle est_exploitant() ; hors Supabase on la rend vraie.
 -- ELLE EST REGLABLE : une RPC qui refuserait TOUT rendrait le meme message
 -- qu'une RPC qui refuse le bon chauffeur, et le test passerait au vert sans

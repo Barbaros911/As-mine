@@ -3925,6 +3925,81 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 4 — LA FACTURE DE COMMISSION
+
+17 septembre 2026. L'argent ne passe **jamais** par Elatransfer : le client
+paie le chauffeur. La commission ne s'encaisse donc pas toute seule, elle se
+**facture** — et Admin v2 n'avait rien pour ça.
+
+- **LE SUJET DE CETTE BRIQUE EST LA NUMÉROTATION, PAS LE DOCUMENT.** Dans
+  l'espace actuel le rang vit dans `localStorage` : un appareil, une main,
+  aucun conflit possible. Ici **deux appareils peuvent émettre en même
+  temps**, et la loi interdit au numéro de facture les **trous** comme les
+  **doublons** (L441-9). Lire le rang puis l'écrire serait exactement la
+  faute — deux émissions simultanées liraient N et écriraient toutes deux
+  N+1, donc **deux factures au même numéro**. Et ça ne se voit pas : les deux
+  documents s'impriment normalement, on l'apprend chez le comptable.
+  D'où **une seule instruction** : `insert … on conflict do update …
+  returning`, atomique, la ligne verrouillée par Postgres le temps de
+  l'incrément. Une épreuve fait cent incréments et vérifie qu'ils sont **cent
+  valeurs distinctes et contiguës**.
+- **LE RANG EST CONSOMMÉ À L'ÉMISSION, JAMAIS À L'APERÇU** — un numéro brûlé
+  sans facture est un **trou**, donc la même infraction à l'envers. Deux
+  fonctions séparées : `ela_apercu_facture_commission` est `stable`, ne prend
+  rien et n'écrit rien.
+- **PAS DE SIRET, PAS DE FACTURE** — mais **l'aperçu reste possible**. C'est
+  le cas réel : Barbaros n'a pas encore de SIRET, et un écran qui refuserait
+  même de montrer ce qu'il facturera ne servirait à rien d'ici là. Le bouton
+  « Émettre » est **caché** tant qu'il manque quelque chose, et l'écriteau
+  **nomme ce qui manque et où le remplir** — un bouton qui échoue à chaque
+  appui ferait croire à une panne.
+- **LE DÉFAUT TROUVÉ AVANT D'ÉCRIRE UNE LIGNE : le bon ne porte PAS
+  l'identifiant du chauffeur.** `ela_attribuer_chauffeur` n'y écrit que le
+  nom, le téléphone et la carte. Filtrer sur le bon aurait rendu **aucune
+  course** — une facture vide, sans le moindre message. Et s'y rabattre par
+  le NOM répéterait la faiblesse de l'espace actuel, où il est saisi à la
+  main (« Mehmet », « mehmet », « Mehmet Y. »). C'est
+  **`attributions_chauffeur`** qui fait foi : une ligne structurée, pas du
+  texte dans un JSON.
+- **LA MARQUE SUR LES COURSES EST DANS LA MÊME TRANSACTION QUE LA FACTURE.**
+  Séparées, une panne entre les deux brûlerait un numéro (trou) ou laisserait
+  des courses refacturables (doublon). Et on **verrouille** les courses avant
+  de les marquer (`for update`) : sans ça deux émissions simultanées pour le
+  même chauffeur prendraient les mêmes courses. *Piège rencontré :
+  `for update` ne se combine pas à un agrégat — on verrouille dans la
+  sous-requête, on additionne au-dessus.*
+- **AUCUNE POLICY D'ÉCRITURE SUR `factures_commission`**, et c'est voulu :
+  seule la fonction sait prendre un numéro sans trou ni doublon. Une écriture
+  directe contournerait le compteur. Un contrôle cherche qu'il n'existe
+  aucune policy `INSERT`/`UPDATE`/`DELETE`.
+- **LE TAUX EST PAR CHAUFFEUR** (`chauffeurs.taux_commission`), et retombe
+  sur `commission_ela_defaut` quand il n'est pas renseigné — c'est la
+  décision de septembre 2026 (« je place seulement »). La colonne `adresse`
+  manquait aussi : sans elle le document n'est pas une facture.
+- **LE SÉLECTEUR PORTE TOUS LES CHAUFFEURS**, pas seulement les
+  attribuables : on facture aussi celui dont les papiers ont expiré **depuis**
+  la course. **Ce qui bloque une attribution ne bloque pas une créance déjà
+  née.**
+- **LA FACTURE EST FIGÉE À L'ÉMISSION** : émetteur, client et lignes sont
+  recopiés dedans. Le test **change l'identité de l'émetteur après coup, force
+  la page à relire, puis rouvre l'ancienne facture**.
+- **À L'IMPRESSION, SEULE LA FACTURE SORT** (`visibility`, jamais `display` —
+  elle s'hérite). Sans cette règle, le tableau de bord — **noms et téléphones
+  de clients** — partirait sur le papier envoyé au chauffeur. Le test **mesure
+  la visibilité calculée** sous `media: print` plutôt que de relire le CSS.
+- **DEUX FAIBLESSES DE TEST TROUVÉES PAR LA FALSIFICATION, PAS PAR LA
+  RELECTURE.** (1) Mon faux serveur marquait les courses facturées **avant**
+  de composer le document : la facture émise sortait sans ses lignes et à 0 €,
+  et les contrôles ne regardaient que son en-tête. **Un faux serveur qui ment
+  autrement que le vrai ne prouve rien.** (2) Le contrôle de la facture figée
+  ne mordait pas : je changeais l'émetteur côté serveur sans faire relire la
+  page, donc `state.params` gardait l'ancien — **un contrôle qui ne peut pas
+  échouer ne vérifie rien.**
+- `test-admin-factures.mjs`, **37 contrôles** ; `factures-commission.sql`,
+  **8 blocs**. Onze falsifications, toutes tombent en nommant le défaut.
+- **`parametres_commerciaux` a rejoint `supabase/tests/socle.sql`** : la
+  facture y lit le taux par défaut et l'identité de l'émetteur.
+
 ### LE FILTRE DE LA CI NOMMAIT LES FICHIERS D'UN AUTRE JOUR
 
 17 septembre 2026, trouvé en vérifiant une durée de CI qui m'avait paru

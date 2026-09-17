@@ -146,8 +146,8 @@ on le signale et on attend. Voir `TEAM_RULES` §3.
 Admin v2 est publié mais **en préversion**. La parité se fait par briques,
 annoncées et résumées dans **#191** : coller une demande (✔ brique 1),
 saisir par téléphone (✔ brique 2), registre + sauvegarde + export CSV
-(✔ brique 3). **Restent** : la facture de commission, l'affiche QR, la
-demande d'avis, l'accusé de réception, et la chaîne d'itinéraire partagée —
+(✔ brique 3), facture de commission (✔ brique 4). **Restent** : l'affiche QR,
+la demande d'avis, l'accusé de réception, et la chaîne d'itinéraire partagée —
 sans elle, « Calculer le prix depuis les adresses » n'existe que d'un côté,
 et **deux calculs de prix qui divergent ne se voient pas**.
 **Aucune bascule de `admin.html` avant que tout y soit.** Le détail de
