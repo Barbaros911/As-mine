@@ -1,16 +1,6 @@
 name: Contrôle Admin v2
 on:
   pull_request:
-    # ON FILTRE PAR MOTIF, PAS PAR LISTE DE FICHIERS. La liste d'origine
-    # nommait les quatre fichiers qui existaient le jour ou elle a ete
-    # ecrite : « intake-demande.js » -- le lecteur PARTAGE par les deux
-    # espaces -- n'y etait pas, ni « admin-v2-registre.js », ni deux des
-    # trois suites. Les modifier seuls n'aurait declenche AUCUN controle,
-    # et rien ne l'aurait signale : une liste ecrite en dur survit au
-    # changement qui l'invalide. Meme famille que la barre du bas figee
-    # sur quatre onglets, et que le lanceur qui ne ramassait que
-    # « test-nouveau* ». Un controle de « test-doc.mjs » verifie desormais
-    # que tout fichier d'Admin v2 present dans le depot est couvert ici.
     paths:
       - 'admin-v2*'
       - 'intake-demande.js'
@@ -42,6 +32,8 @@ jobs:
         run: |
           set -euo pipefail
           test -f site/admin-v2.html
+          test -f site/admin-v2-responsive.css
+          grep -Fq '/admin-v2-responsive.css' site/admin-v2.html
           grep -Fq '/auth/v1/token?grant_type=password' site/admin-v2.html
           grep -Fq '/rest/v1/rpc/est_exploitant' site/admin-v2.html
           grep -Fq 'actions_requises' site/admin-v2.html
@@ -51,16 +43,11 @@ jobs:
           grep -Fq 'paiements' site/admin-v2.html
           grep -Fq 'snapshots_financiers' site/admin-v2.html
           grep -Fq 'brand-logo.webp' site/admin-v2.html
+          node test-admin-responsive.mjs
           if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|service_role|sk_(test|live)_' site/admin-v2.html; then
             echo 'Secret ou ancien verrou détecté dans Admin v2'
             exit 1
           fi
-
-      # LA SUITE NAVIGATEUR, ET C'EST LA PREMIÈRE DU DÉPÔT À TOURNER EN CI.
-      # Les vingt-huit autres ne tournent que sur la machine de travail : elles
-      # sont donc restées rouges quatre jours sans que rien ne le dise. Les y
-      # brancher toutes est une décision à part -- durée, instabilité ; celle-ci
-      # est branchée parce qu'elle garde une règle qui engage une responsabilité.
       - name: Les papiers décident, pas une liste déroulante
         shell: bash
         run: |
@@ -73,56 +60,17 @@ jobs:
           node test-admin-factures.mjs
           node test-admin-gestes.mjs
           node test-admin-affiche.mjs
-
-      # LA MIGRATION EST EXÉCUTÉE POUR DE VRAI, sur un PostgreSQL vide.
-      # Une expression régulière sur un fichier SQL ne sait pas si la requête
-      # s'exécute, ni ce qu'elle rend. Ici on lit le résultat : un papier
-      # expiré doit sortir de la liste d'attribution, un papier qui expire
-      # aujourd'hui doit y rester, et trois rafraîchissements de la file
-      # d'actions ne doivent pas créer de doublons.
-      # Éprouvée contre le défaut d'origine : elle s'arrête sur
-      # « Ayse est ATTRIBUABLE alors que son assurance a expire ».
       - name: La migration, exécutée et non relue
         shell: bash
         env: {PGPASSWORD: postgres}
         run: |
           set -euo pipefail
-          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 \
-            -f supabase/tests/socle.sql \
-            -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
-            -f supabase/tests/papiers-chauffeurs.sql
-          # Une base neuve : le socle repose les memes tables, et deux
-          # epreuves qui partagent un etat finissent par se gener.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -f supabase/tests/socle.sql -f supabase/migrations/20260916140000_chauffeurs_papiers.sql -f supabase/tests/papiers-chauffeurs.sql
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database intake;'
-          psql -h 127.0.0.1 -U postgres -d intake -X -q -v ON_ERROR_STOP=1 \
-            -f supabase/tests/socle.sql \
-            -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
-            -f supabase/migrations/20260916220000_intake_exploitant.sql \
-            -f supabase/tests/intake-exploitant.sql
-          # Encore une base neuve : la restauration compte des lignes, et
-          # une course laissee par l'epreuve d'a cote fausserait ses totaux.
+          psql -h 127.0.0.1 -U postgres -d intake -X -q -v ON_ERROR_STOP=1 -f supabase/tests/socle.sql -f supabase/migrations/20260916140000_chauffeurs_papiers.sql -f supabase/migrations/20260916220000_intake_exploitant.sql -f supabase/tests/intake-exploitant.sql
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database registre;'
-          psql -h 127.0.0.1 -U postgres -d registre -X -q -v ON_ERROR_STOP=1 \
-            -f supabase/tests/socle.sql \
-            -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
-            -f supabase/migrations/20260916220000_intake_exploitant.sql \
-            -f supabase/migrations/20260917000000_registre_restauration.sql \
-            -f supabase/tests/registre-restauration.sql
-          # Encore une base neuve : la facture compte des numeros, et une
-          # emission laissee par l'epreuve d'a cote decalerait toute la suite.
-          # « dblink » y ouvre une VRAIE seconde session : c'est la seule facon
-          # d'eprouver deux emissions concurrentes sur le meme lot, et une
-          # divergence de snapshot ne se simule pas dans une transaction.
+          psql -h 127.0.0.1 -U postgres -d registre -X -q -v ON_ERROR_STOP=1 -f supabase/tests/socle.sql -f supabase/migrations/20260916140000_chauffeurs_papiers.sql -f supabase/migrations/20260916220000_intake_exploitant.sql -f supabase/migrations/20260917000000_registre_restauration.sql -f supabase/tests/registre-restauration.sql
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database factures;'
-          psql -h 127.0.0.1 -U postgres -d factures -X -q -v ON_ERROR_STOP=1 \
-            -f supabase/tests/socle.sql \
-            -f supabase/migrations/20260916140000_chauffeurs_papiers.sql \
-            -f supabase/migrations/20260917010000_factures_commission.sql \
-            -f supabase/tests/factures-commission.sql
-          # Les gestes vers le client : leur regle d'etat est imposee cote
-          # serveur, et c'est la seule facon de l'eprouver.
+          psql -h 127.0.0.1 -U postgres -d factures -X -q -v ON_ERROR_STOP=1 -f supabase/tests/socle.sql -f supabase/migrations/20260916140000_chauffeurs_papiers.sql -f supabase/migrations/20260917010000_factures_commission.sql -f supabase/tests/factures-commission.sql
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database gestes;'
-          psql -h 127.0.0.1 -U postgres -d gestes -X -q -v ON_ERROR_STOP=1 \
-            -f supabase/tests/socle.sql \
-            -f supabase/migrations/20260917020000_gestes_client.sql \
-            -f supabase/tests/gestes-client.sql
+          psql -h 127.0.0.1 -U postgres -d gestes -X -q -v ON_ERROR_STOP=1 -f supabase/tests/socle.sql -f supabase/migrations/20260917020000_gestes_client.sql -f supabase/tests/gestes-client.sql
