@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+const css=fs.readFileSync('admin-v2-responsive.css','utf8');
+const build=fs.readFileSync('construire.sh','utf8');
+const html=fs.readFileSync('admin-v2.html','utf8');
+const ok=(v,m)=>{if(!v)throw new Error(m)};
+ok(css.includes('env(safe-area-inset-bottom'), 'safe-area iPhone absente');
+ok(css.includes('@media(max-width:800px)'), 'breakpoint mobile absent');
+ok(css.includes('min-height:var(--tap)'), 'cibles tactiles absentes');
+ok(css.includes('#bookingActions'), 'actions réservation mobile non traitées');
+ok(css.includes('overflow-x:hidden'), 'protection débordement horizontal absente');
+ok(build.includes('admin-v2-responsive.css'), 'CSS responsive non copié par le build');
+ok(build.includes('<link rel="stylesheet" href="/admin-v2-responsive.css">'), 'CSS responsive non injecté dans Admin v2');
+ok(html.includes('brand-logo.webp'), 'asset logo officiel Admin absent');
+console.log('OK — garde-fous responsive Admin #165');
