@@ -1,5 +1,6 @@
 (()=>{
   const $=(s,r=document)=>r.querySelector(s);const dashboard=$('#s-dashboard');if(!dashboard)return;dashboard.classList.add('dashboard-maquette');
+  const loginLogo=$('#login img[src="brand-logo.webp"]');if(loginLogo)loginLogo.setAttribute('src','./brand-logo.webp');
   const title=$('.title',dashboard),metrics=$('#metrics'),intake=$('#zoneIntake'),actions=$('#actions'),next=$('#nextBookings'),push=$('#zonePush');
   if(title){const h1=$('h1',title);if(h1)h1.textContent='Tableau de bord';const sub=$('.muted',title);if(sub)sub.textContent='Gérez vos réservations et les actions prioritaires.';const refresh=$('[data-refresh]',title);if(refresh)refresh.textContent='Actualiser';}
   [actions?.previousElementSibling,next?.previousElementSibling].forEach(e=>{if(e?.tagName==='H2')e.remove()});
