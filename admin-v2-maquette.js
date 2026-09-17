@@ -48,16 +48,25 @@
   const nav=$('#nav'), top=$('.top');
   if(nav&&top){
     const logo=$('img',top);
+    let desktopLogoSlot=null;
+    if(logo){
+      desktopLogoSlot=document.createElement('div');
+      desktopLogoSlot.className='desktop-logo-slot';
+      nav.prepend(desktopLogoSlot);
+    }
     const placeLogo=()=>{
       if(!logo)return;
       logo.style.transform='none';
       logo.style.transformOrigin='left center';
       if(window.matchMedia('(min-width:801px)').matches){
-        /* Sidebar = 236 px. Logo officiel = 112 px : centrage exact, sans chevaucher l’en-tête. */
-        logo.style.left='62px';
-        logo.style.top='15px';
-        top.style.zIndex='14';
+        if(desktopLogoSlot && logo.parentElement!==desktopLogoSlot)desktopLogoSlot.append(logo);
+        logo.style.position='static';
+        logo.style.left='auto';
+        logo.style.top='auto';
+        top.style.zIndex='12';
       }else{
+        if(logo.parentElement!==top)top.prepend(logo);
+        logo.style.position='absolute';
         logo.style.left='12px';
         logo.style.top='10px';
         top.style.zIndex='12';
