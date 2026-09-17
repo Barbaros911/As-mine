@@ -147,8 +147,8 @@ Admin v2 est publié mais **en préversion**. La parité se fait par briques,
 annoncées et résumées dans **#191** : coller une demande (✔ brique 1),
 saisir par téléphone (✔ brique 2), registre + sauvegarde + export CSV
 (✔ brique 3), facture de commission (✔ brique 4), accusé de réception et
-demande d'avis (✔ brique 5). **Restent** : l'affiche + QR hôtels, et la chaîne
-d'itinéraire partagée —
+demande d'avis (✔ brique 5), affiche de comptoir et son QR (✔ brique 6).
+**Reste** : la chaîne d'itinéraire partagée —
 sans elle, « Calculer le prix depuis les adresses » n'existe que d'un côté,
 et **deux calculs de prix qui divergent ne se voient pas**.
 **Aucune bascule de `admin.html` avant que tout y soit.** Le détail de

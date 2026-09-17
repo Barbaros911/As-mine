@@ -3925,6 +3925,75 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 6 — L'AFFICHE DE COMPTOIR ET SON QR
+
+17 septembre 2026. Admin v2 n'avait pas l'affiche hôtel : la piste
+commerciale à coût zéro — le concierge ne téléphone pas, il montre
+l'affiche, le client scanne et son adresse de départ est déjà remplie.
+
+**L'ENCODEUR N'A PAS ÉTÉ RECOPIÉ, IL A DÉMÉNAGÉ** dans `qr-affiche.js`,
+partagé par les deux espaces. Même chemin que `intake-demande.js` à la
+brique 1, et ici la raison est plus forte qu'ailleurs : **un encodeur QR ne
+se vérifie pas tout seul**. Le premier jet de celui-ci passait TOUS les
+contrôles internes — format relu, masque, zigzag, Reed-Solomon divisible,
+dix syndromes nuls — et n'était lisible par **aucun téléphone** :
+l'information de format était écrite bit à l'envers, et le décodeur maison
+reproduisait la même erreur. Deux copies dont une dérive, ce sont des
+affiches imprimées que personne ne peut scanner, et **on ne l'apprend qu'au
+comptoir, des semaines plus tard**.
+
+- **LA BASE DU LIEN EST UN PARAMÈTRE OBLIGATOIRE** de `lienHotel(base, nom)`,
+  jamais devinée par le fichier partagé. C'est le danger propre à cet
+  espace : le site client vit à la racine, **Admin v2 sur
+  `/admin-v2.html`**. Prendre `location.pathname` tel quel — ce que fait
+  légitimement la page cliente — fabriquerait des affiches qui envoient le
+  client du comptoir **dans le back-office**. Rien à l'écran ne le dirait :
+  l'affiche s'imprime, elle est simplement fausse. `baseClient()` retire le
+  dernier segment ; un contrôle lit le lien imprimé et refuse toute trace
+  d'« admin ».
+- **LA LISTE DES HÔTELS VIENT DU SERVEUR** (`state.partners`), et le nom
+  choisi est **recopié dans un champ libre** plutôt que dessiné depuis le
+  menu : c'est le nom IMPRIMÉ qui compte, une réception s'appelle parfois
+  autrement que la raison sociale. Et **un hôtel pas encore partenaire se
+  saisit à la main** — l'affiche est justement l'outil de prospection, on
+  l'imprime avant de signer.
+- **RIEN N'EST DESSINÉ TANT QU'AUCUN NOM N'EST DONNÉ.** Une affiche « Votre
+  hôtel » imprimée par mégarde est du papier perdu, et surtout un QR qui
+  envoie tout le monde au même endroit **sans provenance** — c'est-à-dire
+  sans la seule chose qui dise ce que l'hôtel rapporte.
+- **À L'IMPRESSION, SEULE L'AFFICHE SORT** — `visibility`, jamais `display`,
+  qui s'hérite. Sans cette règle, le tableau de bord (**noms et téléphones
+  de clients**) partirait sur le papier posé au comptoir d'un hôtel. Le test
+  **mesure la visibilité calculée** sous `media: print` au lieu de relire le
+  CSS.
+
+**LE DÉFAUT QUE CETTE BRIQUE A DÉCOUVERT : `hidden` ÉTAIT CONTREDIT PAR UNE
+CLASSE.** L'attribut ne pose `display:none` que par la feuille du navigateur
+— la moindre règle d'auteur qui fixe `display` l'emporte, **en silence**.
+`.row{display:flex}` laissait donc le bouton « Imprimer l'affiche » visible
+**sans affiche** : on imprimait le tableau de bord. La règle est posée
+**générale** (`[hidden]{display:none!important}`) et non sur `.row` : un
+élément ajouté demain n'héritera pas du piège. Même famille que la barre du
+bas figée sur quatre onglets — *une règle taillée pour un cas unique survit
+au jour où le cas se généralise*.
+
+**LE DÉCODEUR EST UN TIERS, ET SON ABSENCE EST UN ÉCHEC.** `jsqr` vit dans
+le bac à sable ou dans `node_modules`, jamais dans le dépôt ; s'il manque,
+`test-admin-affiche.mjs` **s'arrête** au lieu de sauter en silence le seul
+contrôle qui prouve qu'une affiche se scanne. Même règle que `http_ece` pour
+le chiffrement des notifications. Il est donc **installé en CI** : un vert
+qui n'a rien décodé ne dit rien.
+
+**`qr-affiche.js` EST ENTRÉ DANS LE FILTRE DE LA CI ET DANS `test-doc`.**
+C'est un fichier **partagé**, comme `intake-demande.js` : sans lui dans les
+motifs, le modifier seul ne déclencherait **aucune** suite — exactement le
+trou bouché la veille. Le contrôle de couverture devait le connaître, sinon
+il gardait le trou qu'il a été écrit pour fermer.
+
+- `test-admin-affiche.mjs`, **27 contrôles**. Sept falsifications, toutes
+  tombent en nommant le défaut — dont la vraie d'origine, l'information de
+  format à l'envers, qui rend `null` au décodage.
+
 ### PARITÉ, BRIQUE 5 — L'ACCUSÉ DE RÉCEPTION ET LA DEMANDE D'AVIS
 
 17 septembre 2026. Les deux gestes de l'exploitant vers le client, portés
