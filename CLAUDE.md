@@ -4051,6 +4051,66 @@ falsifications, toutes tombent en nommant le défaut — dont celle qui recopie
 l'arithmétique dans Admin v2, qui diverge de 10 € et se fait prendre par le
 prix ET par la source.
 
+#### LE MODULE RECOPIÉ EST ARRIVÉ EN MÊME TEMPS, ET IL ANNONÇAIT 10 € DE TROP
+
+18 septembre 2026. Pendant que cette brique s'écrivait, admin-v2-itineraire.js
+est entré dans `main` par un autre chemin, juste avant la fusion de #191
+(commits `37540d6`, `b9da08b`, `ee3b7f2`). **Il fonctionnait**, et il respectait
+la bonne règle : la grille vient exclusivement du serveur. Mais il **recopiait**
+la chaîne au lieu de la partager — exactement ce que cette brique existe pour
+éviter.
+
+**MESURÉ, PAS SUPPOSÉ.** Sur les distances de 1 à 60 km par pas de 250 m,
+**dix-neuf** donnaient un prix différent de celui du site, **toujours 10 € plus
+cher** :
+
+| Distance | Gamme | Le site | Le module recopié |
+|---|---|---|---|
+| 13,75 km | Van | **50 €** | 60 € |
+| 16,25 km | Van | **60 €** | 70 € |
+| 23,75 km | Van | **90 €** | 100 € |
+
+- **LA CAUSE EST L'ARRONDI.** Il utilisait `Math.round(p/10)*10`, l'arrondi de
+  l'école, qui **monte** sur un 5 pile. Chez Barbaros le 5 pile **descend** —
+  c'est écrit dans ce fichier depuis septembre, et c'est le montant qu'il
+  annonce au téléphone. **Le prix est ferme donc opposable : c'est le client
+  qui aurait raison.**
+- **ET UN SECOND ÉCART, STRUCTUREL** : il n'appelait **qu'OSRM**, le serveur de
+  démonstration, quand le site passe d'abord par ORS — dont la clé est remplie.
+  Deux moteurs de routage, deux distances, donc deux prix sur **presque toutes**
+  les courses, pas seulement les 5 piles. *L'ampleur de cet écart n'a pas pu
+  être mesurée d'ici : le réseau de cette machine ne joint aucun des deux
+  services. C'est donc rapporté comme structurel, pas chiffré.*
+- **IL N'AVAIT NI MAPBOX, NI LE VOL D'OISEAU.** OSRM muet, et l'espace
+  exploitant ne sait plus donner un prix du tout, là où le site en donne un.
+- **SON TEST NE LISAIT QUE DES CHAÎNES DE CARACTÈRES** — « le module est
+  publié », « le bouton existe », « BAN est appelé ». Onze contrôles, aucun
+  comportemental : **l'arrondi n'était vérifié par rien**. Un test qui cherche
+  des mots dans un fichier ne dit rien du prix qui sort.
+
+**LES DEUX ONT MÊME COEXISTÉ UNE CONSTRUCTION**, le temps d'une résolution de
+conflit : l'écran portait alors **deux boutons « Calculer le prix depuis les
+adresses »**, côte à côte, rendant deux prix. **Pire que l'un ou l'autre.**
+
+Le module recopié et son test ont donc été **retirés** au profit de la chaîne
+partagée. Trois contrôles gardent la trace : aucun tarif kilométrique recopié
+côté exploitant (c'est ce que son test verrouillait de bon, et ça survit), le
+fichier n'existe plus, la recette ne le publie plus.
+
+**LA LEÇON N'EST PAS « l'autre s'est trompé ».** Les deux travaux ont commencé
+du même constat juste, et le sien marchait. Ce qui a coûté les 10 €, c'est
+d'avoir **réécrit** un calcul au lieu d'aller le chercher — et personne ne
+l'aurait vu, puisque le prix s'affiche des deux côtés. **C'est la règle du
+dépôt, éprouvée une fois de plus sur l'objet le plus cher qu'il protège.**
+
+**ERREUR DE MA PART À LA REPRISE, ET ELLE VAUT D'ÊTRE ÉCRITE** : le rebase
+avait **trois** conflits, pas deux. Mon `grep -c "<<<<<<<\|>>>>>>>"` a rendu
+« 2 » et je l'ai lu comme du contexte au lieu de deux marqueurs restants — le
+troisième est parti dans un commit, et `construire.sh` ne s'exécutait plus
+(« Syntax error: redirection unexpected »). **J'ai mesuré, et j'ai mal lu la
+mesure** ; c'est la même famille que les quatre fautes de lecture déjà
+consignées ici. Ce qui l'a rattrapé : **exécuter la recette**, pas la relire.
+
 ### PARITÉ, BRIQUE 6 — L'AFFICHE DE COMPTOIR ET SON QR
 
 17 septembre 2026. Admin v2 n'avait pas l'affiche hôtel : la piste

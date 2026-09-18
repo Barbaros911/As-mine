@@ -28,6 +28,7 @@
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 import { execSync } from 'node:child_process';
 
@@ -359,6 +360,29 @@ check('« construire.sh » publie le fichier partagé',
 check('et l’injecte dans Admin v2 AVANT les modules qui l’appellent',
   recette.indexOf("'/itineraire-partage.js'") > -1
   && recette.indexOf("'/itineraire-partage.js'") < recette.indexOf("'/admin-v2-actions.js'"));
+/* ═══ LE MODULE RECOPIÉ A ÉTÉ RETIRÉ, ET CE CONTRÔLE EN GARDE LA TRACE ═══
+   « admin-v2-itineraire.js » est arrivé dans main juste avant la fusion de
+   #191, par un autre chemin que celui-ci : il refaisait le géocodage, ne
+   gardait qu'OSRM des quatre niveaux, et surtout REFAISAIT L'ARRONDI avec
+   « Math.round », c'est-à-dire l'arrondi de l'école. Or le 5 pile DESCEND
+   chez Barbaros. MESURÉ, pas supposé : sur les distances de 1 à 60 km par
+   pas de 250 m, DIX-NEUF donnaient un prix différent de celui du site,
+   toujours 10 € PLUS CHER. Le prix est ferme donc opposable.
+   Les deux modules ont même coexisté une construction : l'écran portait
+   alors DEUX boutons « Calculer le prix depuis les adresses », côte à
+   côte, rendant deux prix. Pire que l'un ou l'autre.
+   CE QU'IL VERROUILLAIT DE BON EST GARDÉ ICI : aucun tarif kilométrique
+   ne doit être recopié dans un module de l'espace exploitant. */
+check('aucun tarif kilométrique n’est recopié côté exploitant',
+  !/2\.35|2\.65|4\.08|4\.00/.test(actions));
+check('le module recopié n’existe plus',
+  !existsSync('admin-v2-itineraire.js'),
+  existsSync('admin-v2-itineraire.js') ? 'il est encore là' : '');
+/* Et il ne doit pas revenir par la recette : publié, il se rechargerait et
+   reposerait son bouton en JS, sans que le HTML n'en porte la trace. */
+check('et la recette ne le publie plus',
+  !/admin-v2-itineraire/.test(recette));
+
 /* SANS LUI DANS LE SHELL, le script principal lève « pas chargé » dès sa
    première ligne hors ligne : ce n'est pas le prix qu'on perdrait, c'est
    la page entière. */
