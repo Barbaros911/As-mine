@@ -3958,6 +3958,47 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### DEUX PHOTOS DE L'ACCUEIL ONT DISPARU DU SITE EN LIGNE
+
+18 septembre 2026. Un nettoyage du dépôt fusionné dans `main` (`a87db4a`) a
+supprimé le dossier `photos/` — que ce fichier demande explicitement de **ne
+pas** supprimer sans l'accord de Barbaros : *« c'est du travail qu'il a
+fourni »*.
+
+**MESURÉ SUR LE SITE CONSTRUIT, pas supposé** : deux des **cinq** cartes de
+services de l'accueil avaient perdu leur fond — la deuxième (Hôtel) et la
+cinquième (Mise à disposition). C'est ce que voyait un client arrivant sur
+elatransfer.com.
+
+- **POURQUOI RIEN NE L'A ATTRAPÉ** : une image de fond qui manque **ne casse
+  rien**. Aucune erreur levée, la page se charge, la mise en page tient. Il
+  reste un trou gris — et ça ne se voit qu'en **regardant** la page, ce
+  qu'aucune suite ne faisait pour les images.
+- **ON A ÉTÉ JUSTE DANS L'IMPUTATION** : `easyhotel.jpg` manquait **déjà
+  avant** le nettoyage ; les deux autres non. Vérifié commit par commit
+  plutôt que de tout mettre sur le même dos.
+- Les deux fichiers ont été **restaurés depuis l'historique**. Les onze
+  autres photos ne sont plus référencées par rien : elles restent dans
+  l'historique git, récupérables, et leur sort est **une décision de
+  Barbaros** — pas un nettoyage appliqué en passant.
+
+**LE CONTRÔLE NE FIGE AUCUNE LISTE** : il lit ce que le site **construit** va
+chercher et vérifie que chaque fichier existe. Une photo retirée
+volontairement, avec sa référence, reste verte ; une référence orpheline
+tombe, et le message **nomme le fichier**. Même famille que le débordement de
+6 px : seul le site publié le montre.
+
+**QUATRIÈME FOIS QUE CE PROJET SE FAIT PRENDRE PAR UN CONTRÔLE QUI LIT UN
+COMMENTAIRE.** Le premier jet tombait sur `photos/easyhotel.jpg` — qui n'est
+pas une référence mais un **exemple écrit dans un commentaire**, au-dessus
+d'un champ `photo:""` vide. Après `cp -r carte`, `cp -r exploitant` et la
+section des tests, la règle est acquise : **on retire les commentaires avant
+de chercher**.
+
+**ET MA PREMIÈRE POSE DU BLOC ÉTAIT APRÈS `serveur.close()`** : la suite
+mourait sur `ECONNREFUSED` et n'affichait **rien**. Une suite muette est un
+échec — ne jamais la lire comme « pas concernée ».
+
 ### PARITÉ, BRIQUE 7 — LA CHAÎNE DU PRIX EST PARTAGÉE
 
 18 septembre 2026, dernière brique de la parité. « Calculer le prix depuis les

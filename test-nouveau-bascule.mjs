@@ -587,6 +587,61 @@ for (const large of [320, 390, 430]) {
   await cx.close();
 }
 
+/* =====================================================================
+   AUCUNE IMAGE RÉFÉRENCÉE NE DOIT MANQUER DU SITE PUBLIÉ
+   ---------------------------------------------------------------------
+   18 septembre 2026. Un nettoyage du dépôt a supprimé le dossier
+   « photos/ » — que CLAUDE.md demande explicitement de ne PAS supprimer
+   sans l'accord de Barbaros, « c'est du travail qu'il a fourni ». Deux des
+   cinq cartes de services de l'ACCUEIL ont perdu leur fond, et **le site
+   est parti en ligne comme ça**.
+
+   POURQUOI RIEN NE L'A ATTRAPÉ : une image de fond qui manque ne casse
+   rien. Le navigateur ne lève aucune erreur, la page se charge, la mise en
+   page tient. Il y a simplement un trou gris à la place d'une photo — et
+   ça ne se voit qu'en REGARDANT la page, ce qu'aucune suite ne faisait
+   pour les images.
+
+   CE CONTRÔLE NE FIGE AUCUNE LISTE. Il lit ce que le site CONSTRUIT va
+   chercher, et vérifie que chaque fichier existe vraiment. Une photo
+   retirée volontairement, avec sa référence, reste verte ; une référence
+   orpheline tombe, et le message NOMME le fichier.
+   Même famille que le débordement de 6 px : seul le site publié le montre.
+   ===================================================================== */
+{
+  const fichiers = ['index.html','application-facade.css','seo-pages.css',
+                    'hotel-engine-polish.js','admin-v2.html'];
+  const vues = new Set();
+  for(const f of fichiers){
+    const r = await fetch(SITE + '/' + f);
+    if(!r.ok) continue;
+    /* ON RETIRE LES COMMENTAIRES AVANT DE CHERCHER, et c'est la QUATRIÈME
+       fois que ce projet se fait prendre par un contrôle qui trouve ce
+       qu'il cherche dans un texte d'EXPLICATION — après « cp -r carte »,
+       « cp -r exploitant » et la section des tests. Ici le champ « photo »
+       d'easyHotel est VIDE, et le commentaire au-dessus donne un exemple
+       de chemin : « photos/easyhotel.jpg ». Le premier jet de ce contrôle
+       tombait donc sur une référence qui n'existe pas. */
+    const txt = (await r.text()).replace(/\/\*[\s\S]*?\*\//g, '')
+                                .replace(/<!--[\s\S]*?-->/g, '');
+    for(const m of txt.matchAll(/photos\/[A-Za-z0-9._-]+/g)) vues.add(m[0]);
+  }
+  const absentes = [];
+  for(const chemin of [...vues].sort()){
+    const r = await fetch(SITE + '/' + chemin);
+    if(!r.ok) absentes.push(chemin);
+  }
+  check('aucune image référencée ne manque du site publié',
+    absentes.length === 0,
+    absentes.length ? 'manquantes : ' + absentes.join(', ')
+                    : vues.size + ' image(s) référencée(s), toutes présentes');
+  /* LE DOUTE EST LEVÉ : un site qui ne référencerait AUCUNE image passerait
+     le contrôle du dessus sans rien prouver. L'accueil en porte, et c'est
+     une décision de Barbaros — les cinq cartes de services. */
+  check('l’accueil référence bien ses images',
+    vues.size >= 4, vues.size + ' référence(s)');
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
