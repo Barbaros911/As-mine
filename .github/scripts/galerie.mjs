@@ -32,12 +32,13 @@ function echapper(texte) {
 
 const sites = [];
 const INTERFACES_INTERNES = new Set(["ela-public", "ela-admin", "easyhotel-reception"]);
+const PROJETS_CLIENTS_HORS_ELA = new Set(["point-clotures", "ici-cuisine"]);
 
 if (existsSync(SOURCE)) {
   for (const nom of readdirSync(SOURCE, { withFileTypes: true })) {
     if (!nom.isDirectory()) continue;
     // Un dossier préfixé « _ » est un modèle interne : ni publié, ni listé.
-    if (nom.name.startsWith("_") || INTERFACES_INTERNES.has(nom.name)) continue;
+    if (nom.name.startsWith("_") || INTERFACES_INTERNES.has(nom.name) || PROJETS_CLIENTS_HORS_ELA.has(nom.name)) continue;
     const page = join(SOURCE, nom.name, "index.html");
     if (!existsSync(page)) {
       console.log(`::warning::sites/${nom.name} n'a pas d'index.html : absent de la galerie.`);
