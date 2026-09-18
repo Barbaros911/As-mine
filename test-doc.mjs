@@ -427,7 +427,7 @@ if(refs){
         .replace(/\*/g, "[^/]*")
         .replace(/\u0000/g, ".*") + "$").test(f);
     const aCouvrir = readdirSync(".")
-      .filter(f => /^admin-v2.*|^intake-demande\.js$|^qr-affiche\.js$|^test-admin-.*\.mjs$/.test(f));
+      .filter(f => /^admin-v2.*|^intake-demande\.js$|^qr-affiche\.js$|^itineraire-partage\.js$|^test-admin-.*\.mjs$/.test(f));
     verifier("des fichiers Admin v2 ont été trouvés dans le dépôt",
       aCouvrir.length >= 4, aCouvrir.length + " fichier(s)");
     for(const f of aCouvrir){

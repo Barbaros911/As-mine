@@ -15,6 +15,7 @@ on:
       - 'admin-v2*'
       - 'intake-demande.js'
       - 'qr-affiche.js'
+      - 'itineraire-partage.js'
       - 'test-admin-*.mjs'
       - 'construire.sh'
       - 'supabase/**'

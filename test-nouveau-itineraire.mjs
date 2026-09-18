@@ -64,10 +64,13 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
   p.on('pageerror',e=>errs.push(e.message));
   const appels = [];
 
-  /* La page est réécrite au vol : on y pose la clé Mapbox que le dépôt ne
-     contient pas, et on peut au contraire retirer les deux clés pour
-     éprouver le comportement d'un site qui n'en aurait aucune. */
-  await p.route('**/index.html', async route => {
+  /* LE FICHIER RÉÉCRIT AU VOL EST « itineraire-partage.js », PLUS LA PAGE.
+     Les clés ont suivi le code qui les lit : la chaîne d'itinéraire est
+     désormais partagée avec Admin v2, et c'est elle qui les porte. Viser
+     « index.html » ici passerait au vert en ne remplaçant RIEN — le
+     « replace » d'une chaîne absente ne lève pas, il rend le texte tel
+     quel, et la suite éprouverait la vraie clé au lieu de la fausse. */
+  await p.route('**/itineraire-partage.js', async route => {
     const r = await route.fetch();
     let html = await r.text();
     if(mapbox !== undefined)
@@ -273,7 +276,7 @@ check('et aucun service à clé n\'est appelé',
    sortie de secours est de la régénérer, et les niveaux tiennent le site
    debout entre-temps. Ce contrôle sert à ce qu'on ne colle jamais ici,
    par mégarde, une clé d'une autre nature. -------------------------- */
-const source = await (await fetch('http://127.0.0.1:8099/index.html')).text();
+const source = await (await fetch('http://127.0.0.1:8099/itineraire-partage.js')).text();
 check('la clé Mapbox n\'est pas dans le dépôt',
   /var CLE_MAPBOX = "";/.test(source) && !/pk\.ey/.test(source));
 /* La clé ORS, elle, DOIT être là — sans elle le niveau 2 n'existe plus et
