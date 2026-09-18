@@ -103,6 +103,22 @@ const document_ = (num) => {
     taux_tva: Number(e.taux_tva||0), tva, ttc: (facturees ? 0 : ht) + tva };
 };
 
+/* ═══ LA NAVIGATION EST PASSÉE À TROIS ONGLETS ═══
+   Accueil (« À traiter »), Courses, Gestion. Les cinq autres écrans n'ont
+   pas disparu : ils vivent sous « Gestion », qui est une PORTE et non une
+   copie. Un test doit donc emprunter le CHEMIN RÉEL de l'utilisateur —
+   Gestion, puis l'entrée — au lieu de cliquer un onglet qui n'est plus
+   dans la barre. C'est la même leçon que « un écran qu'aucun lien n'ouvre
+   n'est pas accessible » : ce qu'on éprouve, c'est le chemin. */
+async function allerOnglet(p, cle){
+  const direct = p.locator(`#nav button[data-tab="${cle}"]`);
+  if(await direct.count()){ await direct.click(); await p.waitForTimeout(150); return; }
+  await p.click('#nav button[data-tab="gestion"]');
+  await p.waitForSelector(`#s-gestion [data-tab="${cle}"]`, {state:'visible', timeout:10000});
+  await p.click(`#s-gestion [data-tab="${cle}"]`);
+  await p.waitForTimeout(150);
+}
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
 
@@ -169,7 +185,7 @@ check("l'identité de l'émetteur est dans « Tarification »",
   await p.locator('#s-pricing #emNom').count() === 1,
   "c'est un réglage qu'on pose une fois, pas un geste quotidien");
 
-await p.click('[data-tab="finance"]');
+await allerOnglet(p, 'finance');
 await p.waitForTimeout(300);
 
 /* Le sélecteur porte TOUS les chauffeurs, pas seulement les attribuables :
@@ -222,7 +238,7 @@ check("aucun numéro n'a été consommé par les aperçus", rang === 0,
 check("aucune facture n'a été écrite par un aperçu", FACTURES.length === 0);
 
 /* ══════════ 4. ON REMPLIT L'ÉMETTEUR, ET LE BOUTON APPARAÎT ══════════ */
-await p.click('[data-tab="pricing"]');
+await allerOnglet(p, 'pricing');
 await p.waitForTimeout(200);
 const manque = await p.textContent('#emEtat');
 check("« Tarification » dit ce qui manque à l'émetteur",
@@ -239,7 +255,7 @@ check("l'identité de l'émetteur part vraiment au serveur", paramsEcrits.length
 check("…sous la clé « entreprise_emettrice »",
   (paramsEcrits[0]||{}).cle === 'entreprise_emettrice', JSON.stringify(paramsEcrits[0]||{}).slice(0,120));
 
-await p.click('[data-tab="finance"]');
+await allerOnglet(p, 'finance');
 await p.waitForTimeout(300);
 await p.selectOption('#facChauffeur', 'd-mehmet');
 await p.fill('#facDu', '2026-09-01');
@@ -339,8 +355,8 @@ await p.waitForFunction(() => {
   const x = (state.params||[]).find(z => z.cle === 'entreprise_emettrice');
   return x && x.valeur && x.valeur.siret === '99999999999999';
 }, null, {timeout:8000});
-await p.click('[data-tab="drivers"]'); await p.waitForTimeout(150);
-await p.click('[data-tab="finance"]'); await p.waitForTimeout(500);
+await allerOnglet(p, 'drivers'); await p.waitForTimeout(150);
+await allerOnglet(p, 'finance'); await p.waitForTimeout(500);
 const liste = await p.textContent('#facListe');
 check("la facture émise apparaît dans la liste", liste.includes('F-2026-0001'), liste.slice(0,200));
 await p.click('[data-fac="F-2026-0001"]');

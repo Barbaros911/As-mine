@@ -314,10 +314,11 @@ function brancher(){
   /* ON NE LIT LE REGISTRE QU'À L'OUVERTURE DE SON ÉCRAN. Cinq mille lignes
      tirées au chargement de l'application, sur un téléphone, pour un écran
      qu'on n'ouvre pas tous les jours — c'est de la 4G brûlée. */
-  const nav = document.getElementById('nav');
-  if(nav) nav.addEventListener('click', e => {
-    if(e.target && e.target.dataset && e.target.dataset.tab === 'registre') ouvrirRegistre();
-  });
+    /* ON ÉCOUTE L'ÉVÉNEMENT D'ÉCRAN, PAS LA BARRE. Cet onglet peut vivre
+     dans la barre du bas ou sous « Gestion » : ce module n'a pas à le
+     savoir. Espionner « #nav » l'avait rendu muet le jour du
+     déménagement, sans le moindre message. */
+  document.addEventListener('ela:ecran', e => { if(e.detail === 'registre') ouvrirRegistre(); });
   const r = document.getElementById('btnRegActualiser');
   if(r) r.addEventListener('click', ouvrirRegistre);
 }

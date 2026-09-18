@@ -1,0 +1,222 @@
+/* =====================================================================
+   ADMIN-V2-APP.CSS — L'APPARENCE D'UNE APPLICATION, PAS D'UN SITE
+   ---------------------------------------------------------------------
+   Septembre 2026, à la demande de Barbaros, sur sa maquette : « je veux
+   un visuel style application, très facile ».
+
+   POURQUOI UNE FEUILLE À PART PLUTÔT QUE RÉÉCRIRE LE « <style> » :
+   le retour en arrière tient en une ligne de « construire.sh ». Une
+   refonte d'apparence est exactement le genre de chose qu'on veut pouvoir
+   reprendre sans toucher au reste — les fonctions, elles, ne bougent pas.
+
+   ═══ LE FOND EST CLAIR, ET C'EST SA MAQUETTE QUI TRANCHE ═══
+   Les principes de l'Issue #165 disaient « interface sombre » ; la
+   maquette qu'il a envoyée est CLAIRE, avec un bandeau bleu nuit. Une
+   image vaut mieux qu'une note : on suit l'image, et la note est périmée.
+
+   ═══ LES COULEURS SONT DES RÔLES, JAMAIS DES TEINTES ═══
+   Leçon payée deux fois sur ce projet : une variable nommée « --or »
+   ramène de l'or le jour où l'accent devient vert. Ici « --action » est
+   l'action, « --attente » est ce qui attend — ce qu'elles valent
+   aujourd'hui ne doit jamais entrer dans leur nom.
+
+   ═══ UNE SEULE CHOSE CRIE ═══
+   Le rouge est réservé à ce qui attend une réponse. Si tout criait, plus
+   rien ne crierait. L'accent bleu tient l'action, le gris tient ce qui
+   est fini.
+   ===================================================================== */
+:root{
+  --fond:#F1F5F9;          /* le papier — jamais #FFF, c'est la signature d'une page générée */
+  --carte:#FFFFFF;
+  --nuit:#0F2744;          /* le bandeau et la barre du bas */
+  --encre:#0F172A;
+  --gris:#64748B;
+  --filet:#E2E8F0;
+  --action:#2563EB;        /* l'action principale, et l'onglet allumé */
+  --action-clair:#EFF6FF;
+  --attente:#DC2626;       /* CE QUI ATTEND UNE RÉPONSE, et rien d'autre */
+  --attente-clair:#FEF2F2;
+  --ok:#059669;            /* confirmé, réalisé */
+  --ok-clair:#ECFDF5;
+  --tiede:#D97706;         /* à surveiller : papiers qui expirent */
+  --tiede-clair:#FFFBEB;
+  --r:14px;                /* le rayon des cartes — une application a des coins ronds */
+  --barre:64px;            /* la hauteur de la barre du bas, safe-area en plus */
+}
+body{background:var(--fond);color:var(--encre);
+     font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+     -webkit-font-smoothing:antialiased}
+
+/* ---- L'EN-TÊTE ---------------------------------------------------- */
+.top{background:var(--nuit);color:#fff;border:0;padding:12px 16px;
+     position:sticky;top:0;z-index:20}
+.top img{width:104px;height:auto}
+.top .btn.alt{background:rgba(255,255,255,.12);color:#fff;border-color:transparent;
+  min-height:38px;padding:0 12px;font-size:13px;font-weight:600}
+/* MESURÉ : « Déconnexion » faisait 46 px de haut et 285 px de large, soit
+   plus de place que le logo. C'est un bouton qu'on presse une fois par
+   semaine ; il n'a pas à peser autant que la marque. */
+
+/* ---- LA PAGE ------------------------------------------------------ */
+main{padding:16px 16px calc(var(--barre) + 28px)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;margin:0}
+h2{font-size:16px;font-weight:700;margin:22px 0 10px}
+.muted{color:var(--gris)}
+.title{display:flex;align-items:flex-start;justify-content:space-between;
+       gap:12px;margin:0 0 14px}
+
+/* ---- LES CARTES : c'est l'unité de base d'une application ---------- */
+.card{background:var(--carte);border:1px solid var(--filet);border-radius:var(--r);
+      padding:14px;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.list>*{margin-bottom:10px}
+
+/* ---- LES BOUTONS : 46 px, c'est la mesure d'un pouce -------------- */
+.btn{background:var(--action);color:#fff;border:1px solid transparent;
+     border-radius:11px;padding:0 16px;min-height:46px;font-weight:600;
+     cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn:active{transform:scale(.98)}
+.btn.alt{background:var(--carte);color:var(--encre);border-color:var(--filet)}
+.btn.warn{background:var(--attente);color:#fff}
+.btn:disabled{opacity:.5}
+
+/* ---- LES CHAMPS --------------------------------------------------- */
+input,select,textarea{background:var(--carte);border:1px solid var(--filet);
+  color:var(--encre);border-radius:11px;padding:11px 12px;min-height:46px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--action);outline-offset:-1px}
+.field{display:block;font-size:13px;color:var(--gris);margin:0 0 10px}
+.field input,.field select{margin-top:5px}
+.toolbar input,.toolbar select{background:var(--carte);border-color:var(--filet);color:var(--encre)}
+
+/* ---- LES PASTILLES D'ÉTAT ---------------------------------------- */
+.tag{display:inline-flex;align-items:center;border-radius:999px;
+     padding:3px 10px;font-size:12px;font-weight:700;line-height:1.5}
+.tag.attente{background:var(--attente);color:#fff}
+.tag.confirmee,.tag.attribuee{background:var(--ok-clair);color:var(--ok)}
+.tag.realisee,.tag.annulee{background:var(--filet);color:var(--gris)}
+.tag.a_renouveler{background:var(--tiede-clair);color:var(--tiede)}
+
+/* ---- LES CHIFFRES : QUATRE DE FRONT, À HAUTEUR D'UN POUCE ---------
+   MESURÉ à 390 px : en deux lignes, les quatre cartes occupaient 340 px —
+   40 % du premier écran — et ce qu'elles repoussaient hors de vue,
+   c'étaient les demandes elles-mêmes. C'est le défaut exact que cette
+   refonte vient corriger. Sur une seule ligne : 72 px.
+   Le chiffre passe AU-DESSUS du libellé : on lit le nombre d'un coup
+   d'oeil, le mot seulement si on doute. */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.metric{background:var(--carte);border:1px solid var(--filet);border-radius:12px;
+        padding:9px 8px;text-align:center;display:flex;flex-direction:column-reverse;
+        gap:1px;font-size:10.5px;line-height:1.2;color:var(--gris);
+        overflow:hidden;hyphens:auto}
+.metric b{display:block;font-size:20px;font-weight:800;line-height:1.1;color:var(--encre)}
+.metric.urgent,.metric.danger{border-color:var(--attente);background:var(--attente-clair)}
+.metric.urgent b,.metric.danger b{color:var(--attente)}
+.metric.ok b{color:var(--ok)}
+
+/* ---- LES LIGNES DE LISTE ------------------------------------------ */
+.row{background:var(--carte);border:1px solid var(--filet);border-radius:var(--r);
+     padding:12px;gap:8px;align-items:center}
+.row.urgent{border-color:var(--attente);background:var(--attente-clair)}
+.row.danger{border-left:4px solid var(--attente)}
+.empty{color:var(--gris);background:var(--carte);border:1px dashed var(--filet);
+       border-radius:var(--r);padding:26px;text-align:center}
+
+/* ---- « GESTION » : une porte par ligne, pas une grille d'icônes ----
+   On lit une liste plus vite qu'une grille quand chaque entrée porte un
+   mot ; et le sous-titre dit ce qu'on y trouve, pour ne pas avoir à
+   ouvrir pour savoir. */
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  width:100%;text-align:left;background:var(--carte);border:1px solid var(--filet);
+  border-radius:var(--r);padding:14px;min-height:64px;cursor:pointer;color:inherit}
+.menu-item:active{background:var(--action-clair)}
+.menu-nom{font-weight:700;font-size:15px}
+.menu-sous{font-size:13px;color:var(--gris)}
+
+/* ---- LA ZONE D'ENTRÉE, mise en évidence quand on l'ouvre ----------- */
+.intake-boutons{display:flex;flex-direction:column;gap:8px}
+.intake-boutons .btn{width:100%}
+/* LE GESTE N°1 PREND TOUTE LA LARGEUR, LE CAS RARE PASSE EN CREUX.
+   Mesuré : côte à côte, « Coller une demande » tombait sur TROIS lignes
+   pendant que « Saisir par téléphone » tenait sur une. Le geste le plus
+   fréquent de la journée était le plus petit des deux. */
+.intake-boutons .btn.alt{min-height:42px;font-weight:600;color:var(--gris)}
+.surligne{outline:3px solid var(--action);outline-offset:3px;
+          transition:outline-color .25s}
+
+/* =====================================================================
+   LA BARRE DU BAS — TROIS ONGLETS ET LE BOUTON D'ENTRÉE
+   ---------------------------------------------------------------------
+   ELLE EST EN « flex » AVEC « flex:1 », JAMAIS UN COMPTE ÉCRIT EN DUR.
+   Leçon déjà payée sur le site client : « repeat(4,1fr) » avait survécu
+   au retrait d'un onglet, les trois restants gardaient chacun un quart de
+   la largeur et se tassaient à gauche — 97 px de vide à droite, que
+   personne n'a vu pendant des semaines. Un vide n'attire pas l'œil.
+
+   LE BOUTON D'ENTRÉE DÉBORDE VERS LE HAUT, et c'est ce qui le rend
+   trouvable sans le compter comme un onglet : il n'ouvre pas un écran, il
+   ouvre un geste.
+
+   LA SAFE-AREA N'EST PAS UN DÉTAIL : sur un iPhone sans bouton, la barre
+   du système mange 34 px en bas. Sans elle, le dernier onglet n'est pas
+   cliquable — et rien à l'écran ne le dit.
+   ===================================================================== */
+@media(max-width:899px){
+  .layout{display:block}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
+      align-items:stretch;gap:0;overflow:visible;
+      background:var(--nuit);border:0;
+      padding:0 4px env(safe-area-inset-bottom,0px);
+      height:calc(var(--barre) + env(safe-area-inset-bottom,0px))}
+  nav button[data-tab]{flex:1 1 0;min-width:0;border:0;background:transparent;
+      color:rgba(255,255,255,.62);font-size:12px;font-weight:600;
+      padding:0;border-radius:0;display:flex;align-items:center;
+      justify-content:center;cursor:pointer}
+  nav button[data-tab].on{color:#fff}
+  /* L'onglet allumé porte un filet EN HAUT, pas un fond : un fond plein
+     sur un onglet de 1/3 de largeur fait une tache, et l'œil la lit comme
+     une alerte. */
+  nav button[data-tab].on::before{content:"";position:absolute;top:0;
+      width:38px;height:3px;border-radius:0 0 3px 3px;background:#fff;
+      transform:translateY(0)}
+  nav button[data-tab]{position:relative}
+  .nav-plus{order:2;flex:0 0 auto;align-self:center;
+      width:54px;min-width:54px;max-width:54px;height:54px;
+      margin:0 6px;border:4px solid var(--fond);border-radius:50%;
+      background:var(--action);color:#fff;font-size:28px;line-height:1;
+      font-weight:300;cursor:pointer;display:flex;align-items:center;
+      justify-content:center;transform:translateY(-12px);
+      box-shadow:0 4px 14px rgba(37,99,235,.38)}
+  .nav-plus:active{transform:translateY(-12px) scale(.94)}
+  /* Le bouton se glisse ENTRE le deuxième et le troisième onglet : c'est
+     le milieu de la barre, donc le point que le pouce atteint sans
+     déplacer la main. */
+  nav button[data-tab]:nth-of-type(3){order:3}
+  .top{padding:10px 14px}
+}
+/* Sur ordinateur la colonne de gauche revient : ce n'est pas le même
+   écran, ce ne sont pas les mêmes contraintes. Le bouton d'entrée y
+   redevient une ligne ordinaire — un rond flottant dans une colonne ne
+   veut rien dire. */
+@media(min-width:900px){
+  nav button[data-tab]{width:100%;text-align:left;border:0;background:transparent;
+    color:#9DB2C4;padding:11px 12px;border-radius:10px;min-height:46px;
+    font-weight:600;cursor:pointer}
+  nav button[data-tab].on{background:var(--action);color:#fff}
+  .nav-plus{width:100%;margin-top:10px;min-height:46px;border-radius:10px;
+    border:0;background:var(--action);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+  .nav-plus::after{content:" Ajouter une course"}
+}
+
+/* ---- LA FEUILLE QUI MONTE DU BAS --------------------------------- */
+.sheet>div{background:var(--carte);color:var(--encre);
+  border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheethead h2{margin:0}
+.close{background:var(--filet);color:var(--encre);border:0;border-radius:50%;
+  width:36px;height:36px;font-size:20px;cursor:pointer}
+
+/* ---- CE QUI S'IMPRIME NE CHANGE PAS ------------------------------- */
+@media print{nav,.top,.nav-plus{display:none!important}}
+
+/* « Actualiser » devient un signe : on le presse rarement, et il occupait
+   en haut de l'écran la place d'une demande. */
+.btn.mini{min-height:38px;width:38px;padding:0;font-size:17px;flex:0 0 auto}

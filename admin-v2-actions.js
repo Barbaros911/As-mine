@@ -373,6 +373,31 @@ function brancherCalcul(){
 }
 brancherCalcul();
 
+/* ═══ LE BOUTON DU MILIEU : LES DEUX PORTES D'ENTRÉE ═══
+   NEUF COURSES SUR DIX ARRIVENT PAR MESSAGE. « Coller une demande » est
+   donc le premier choix, et il est le plus gros — le formulaire à remplir
+   à la main est le cas rare, il vient en second et en creux.
+
+   IL EMMÈNE D'ABORD SUR « À TRAITER ». Les deux portes vivent dans cet
+   écran ; les ouvrir depuis « Gestion » ferait apparaître un formulaire
+   sur un écran qui n'est pas le sien, sans que rien ne dise où l'on est.
+
+   ON N'INVENTE PAS UNE TROISIÈME PORTE. Il n'y a que deux façons qu'une
+   course entre : un client écrit, ou quelqu'un appelle. */
+function brancherEntree(){
+  const b=document.getElementById('btnEntree'); if(!b)return;
+  b.addEventListener('click',()=>{
+    if(typeof allerVers==='function') allerVers('dashboard');
+    const zone=document.getElementById('zoneIntake');
+    if(zone) zone.scrollIntoView({behavior:'smooth',block:'center'});
+    /* On met la zone en évidence une seconde : sur un écran chargé, un
+       formulaire qui apparaît en silence ne se remarque pas. */
+    if(zone){ zone.classList.add('surligne');
+      setTimeout(()=>zone.classList.remove('surligne'),1200); }
+  });
+}
+brancherEntree();
+
 function brancherTelephone(){
   /* LE BOUTON OUVRE, IL NE BASCULE PAS. Un bouton qui ferme ce qu'on vient
      d'ouvrir se lit comme un bouton cassé -- c'est « Annuler » qui ferme.
