@@ -61,6 +61,10 @@ for (const [name, html] of [["admin", adminGateway], ["réception", receptionGat
   }
 }
 assert.equal(existsSync("site/as-mine-transport"), false, "l’ancienne maquette As-mine ne doit plus être publiée");
+for (const projetClient of ["point-clotures", "ici-cuisine"]) {
+  assert.equal(existsSync(`site/${projetClient}`), false, `${projetClient} reste dans GitHub mais ne doit pas être publié avec ELA`);
+  assert.equal(demos.includes(projetClient), false, `${projetClient} ne doit pas apparaître dans la galerie ELA`);
+}
 for (const ancienneRoute of ["as-mine-transport", "ela-public", "ela-admin", "easyhotel-reception"]) {
   assert.equal(demos.includes(ancienneRoute), false, "la galerie ne doit pas lister l’ancienne route : " + ancienneRoute);
 }
