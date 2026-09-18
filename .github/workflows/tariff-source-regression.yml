@@ -5,6 +5,7 @@ on:
       - 'index.html'
       - '.github/scripts/appliquer-regles-easyhotel.mjs'
       - 'supabase/migrations/20260916100000_current_tariff_source.sql'
+      - '.github/scripts/verifier-tarif-hotel.mjs'
       - '.github/workflows/tariff-source-regression.yml'
 permissions: {contents: read}
 jobs:
@@ -29,3 +30,12 @@ jobs:
           grep -Fq "('beauvais','Beauvais','berline',18000)" supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq "('disney','Disney','berline',9000)" supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq "('paris','Paris','berline',8000)" supabase/migrations/20260916100000_current_tariff_source.sql
+          # LE TARIF HÔTEL AU KILOMÈTRE — le trou que ces greps laissaient.
+          # Ils comparent les tarifs généraux et les forfaits, mais pas le
+          # taux appliqué à « autre destination » depuis une réception. Il
+          # n'existe que dans le site CONSTRUIT : aucune suite qui éprouve
+          # le dépôt ne peut le voir. Mesuré : avec 9,99 €/km posé dans le
+          # transformateur, le site publié facturait 9,99 et tout restait
+          # vert. Ce contrôle NE FIGE AUCUN NOMBRE — il lit les deux côtés
+          # et exige qu'ils soient égaux.
+          node .github/scripts/verifier-tarif-hotel.mjs site/index.html

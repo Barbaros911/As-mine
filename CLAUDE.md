@@ -4000,11 +4000,13 @@ Barbaros**, `prix`, et les appels d'adresse BAN/Photon.
   partagé l'obligerait à connaître un mode hôtel que l'espace exploitant n'a
   pas. Le partenaire reste ici, le calcul est là-bas, et l'ancre du
   transformateur a suivi la nouvelle forme.
-  **À DIRE PLUTÔT QU'À TAIRE : cette règle est une SECONDE grille** (2,55 et
-  4,10 €/km, arrondi à l'euro), posée à la construction, donc **invisible pour
-  toute suite qui éprouve le dépôt**. C'est une décision de Barbaros — le van
-  moins cher que le site est un prix d'appel assumé — pas un défaut à corriger
-  en passant. Mais elle doit être lue comme telle.
+  **C'EST UNE SECONDE GRILLE** (2,55 et 4,10 €/km, arrondi à l'euro), posée à
+  la construction. C'est une décision de Barbaros — le van moins cher que le
+  site est un prix d'appel assumé — pas un défaut à corriger en passant.
+  **ET ELLE EST BIEN DÉCLARÉE CÔTÉ SERVEUR**, dans `tarif_easyhotel_autre` :
+  j'avais d'abord écrit qu'elle ne l'était pas, c'était faux, la source
+  serveur la porte au centime. **Ce qui manquait n'était pas la déclaration,
+  c'était le CONTRÔLE** — voir juste en dessous.
 - **SANS GRILLE SERVEUR, ADMIN V2 NE CALCULE PAS**, et il le dit. Inventer un
   tarif par défaut ferait annoncer au téléphone un prix que personne n'a
   validé. Même règle que `ecrireGrilleV2` : trois contrôles tombent si on
@@ -4050,6 +4052,61 @@ la fausse. Éprouvé en reculant : douze contrôles tombent.
 falsifications, toutes tombent en nommant le défaut — dont celle qui recopie
 l'arithmétique dans Admin v2, qui diverge de 10 € et se fait prendre par le
 prix ET par la source.
+
+#### LE TARIF HÔTEL AU KILOMÈTRE POUVAIT DÉRIVER SANS QUE RIEN NE TOMBE
+
+18 septembre 2026, trouvé en contrôlant le travail de ChatGPT à la demande de
+Barbaros. Le workflow « Contrôle source tarifaire serveur » compare les tarifs
+**généraux** et les **forfaits** du site publié à la source serveur. Il ne
+comparait **pas** le taux hôtel **au kilomètre** — celui qui s'applique quand
+une réception envoie un client vers « autre destination ».
+
+**MESURÉ, PAS SUPPOSÉ.** En posant `9.99 : 8.88` dans le transformateur, le
+site publié facturait **9,99 €/km** en mode hôtel et **tous les contrôles
+restaient au vert**.
+- **PREMIÈRE FALSIFICATION RATÉE, ET ELLE VAUT D'ÊTRE ÉCRITE** : mon `sed`
+  n'avait rien remplacé (les guillemets du motif sont échappés dans une chaîne
+  JS), le taux était resté le bon, et le vert ne prouvait donc rien. J'ai
+  failli conclure d'une mesure qui n'avait pas mordu. **Une falsification qui
+  ne change rien est un test qui ne teste rien** : toujours vérifier que le
+  défaut est bien en place avant de lire le verdict.
+
+**POURQUOI ÇA NE SE VOIT PAS** : ce taux n'existe que dans le site
+**construit**. Le dépôt ne le porte pas — c'est le transformateur qui
+l'injecte — donc **aucune suite qui éprouve le dépôt ne peut le voir**. Même
+famille que le débordement de 6 px, que seul le site publié montrait.
+
+`.github/scripts/verifier-tarif-hotel.mjs` **ne fige aucun nombre** : il lit le taux dans le
+site publié, lit la source serveur, et exige l'égalité. Une baisse décidée par
+Barbaros touche les deux et reste verte ; n'en toucher qu'un tombe, et le
+message **nomme la gamme et l'écart au centime**. Trois falsifications : le
+build qui dérive, la source serveur qui dérive, le transformateur qui ne
+s'applique plus — les trois tombent.
+
+#### CE QUE LE CONTRÔLE DU TRAVAIL DE CHATGPT A DONNÉ DE BON
+
+Même date, même demande. Ce qui a été éprouvé et tient :
+- **Aucun secret dans le dépôt** : ni clé Stripe secrète, ni `service_role`,
+  ni `whsec_`. Les seules occurrences de ces motifs sont les workflows qui les
+  **cherchent** — des garde-fous, pas des fuites. Aucune trace de Stripe Live.
+- **Aucune policy de lecture pour `anon`**, nulle part. Les tables sensibles
+  portent toutes `revoke all ... from anon`, et les `select` sont réservés à
+  `authenticated` **plus** `est_exploitant()`. C'est la frontière qui protège
+  les noms, téléphones et adresses des clients (RGPD).
+- **Le webhook Stripe est solide** : signature HMAC SHA-256 sur le corps
+  **brut**, comparaison à **temps constant**, fenêtre de 300 s contre le
+  rejeu, et surtout **l'`event_id` n'est marqué qu'APRÈS l'écriture
+  financière** — si la base tombe entre les deux, Stripe rejoue et rien n'est
+  perdu. C'est le bon ordre, et il est commenté.
+- **Autorisé n'est pas encaissé** : `requires_capture` → « autorise »,
+  `succeeded` → « encaisse », et les deux montants vivent dans deux colonnes
+  distinctes. La capture est **manuelle** (`capture_method=manual`).
+- La référence de course venue des métadonnées Stripe est **validée par une
+  expression régulière** avant toute écriture — une donnée qui vient de
+  l'extérieur n'entre pas telle quelle.
+
+**RIEN DE BLOQUANT TROUVÉ SUR CE PÉRIMÈTRE.** Le seul trou est celui du tarif
+hôtel ci-dessus, et il est bouché.
 
 #### LE MODULE RECOPIÉ EST ARRIVÉ EN MÊME TEMPS, ET IL ANNONÇAIT 10 € DE TROP
 
