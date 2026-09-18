@@ -35,7 +35,7 @@ if [ -d sites ]; then
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
-    case "$nom" in _*) echo "Ignoré : $nom (modèle interne)"; continue;; as-mine-transport) echo "Ignoré : $nom (ancienne maquette non publiée)"; continue;; esac
+    case "$nom" in _*) echo "Ignoré : $nom (modèle interne)"; continue;; esac
     for reserve in $reserves; do if [ "$nom" = "$reserve" ]; then echo "ERREUR : le dossier sites/$nom porte le nom d'un fichier réservé." >&2; exit 1; fi; done
     echo "Publication du site « $nom » sur /$nom/"; cp -r "$dossier" "site/$nom"
   done
