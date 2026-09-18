@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v87";
+const CACHE = "elatransfer-v88";
 const SHELL = ["./", "./index.html", "./application.html",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
                   un exploitant hors ligne appuie sur « Coller une demande »
@@ -36,6 +36,11 @@ const SHELL = ["./", "./index.html", "./application.html",
                   lui ici, l'affiche ne se dessine plus hors ligne — et une
                   affiche est justement ce qu'on prépare pour l'imprimer. */
                "./qr-affiche.js",
+               /* LA CHAÎNE DU PRIX. Sans elle ici, le script principal
+                  lève « itineraire-partage.js n'est pas chargé » dès sa
+                  première ligne hors ligne : ce n'est pas le prix qu'on
+                  perdrait, c'est la page entière. */
+               "./itineraire-partage.js",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
                "./brand-logo.webp", "./brand-logo-white.png"];
