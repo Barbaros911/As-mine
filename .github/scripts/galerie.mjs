@@ -31,7 +31,7 @@ function echapper(texte) {
 }
 
 const sites = [];
-const INTERFACES_INTERNES = new Set(["as-mine-transport", "ela-public", "ela-admin", "easyhotel-reception"]);
+const INTERFACES_INTERNES = new Set(["ela-public", "ela-admin", "easyhotel-reception"]);
 
 if (existsSync(SOURCE)) {
   for (const nom of readdirSync(SOURCE, { withFileTypes: true })) {
