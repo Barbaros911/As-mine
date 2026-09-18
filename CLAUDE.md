@@ -3958,6 +3958,99 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### PARITÉ, BRIQUE 7 — LA CHAÎNE DU PRIX EST PARTAGÉE
+
+18 septembre 2026, dernière brique de la parité. « Calculer le prix depuis les
+adresses » n'existait que côté site : quand un hôtel appelle, Admin v2 ne
+savait qu'accepter un montant tapé à la main.
+
+**CE QUI DIVERGERAIT SERAIT LE PRIX, et c'est pour ça que cette brique est la
+plus exposée des sept.** Barbaros annonce un montant au téléphone depuis
+l'espace exploitant ; le client en voit un autre sur le site. Le prix est
+**ferme donc opposable** : c'est le client qui aurait raison. Et rien ne
+l'annonce — le prix s'affiche des deux côtés, il est simplement différent, et
+on le découvre le jour où quelqu'un compare.
+
+**LA CHAÎNE N'EST PAS RECOPIÉE, ELLE A DÉMÉNAGÉ** dans
+`itineraire-partage.js` : même chemin que `intake-demande.js` à la brique 1 et
+`qr-affiche.js` à la brique 6. Ce qui y vit : les quatre niveaux d'itinéraire
+et leurs deux clés, les trois lecteurs de réponse, le tracé GeoJSON, le
+minuteur par appel, `departAt`, le vol d'oiseau de secours, **l'arrondi de
+Barbaros**, `prix`, et les appels d'adresse BAN/Photon.
+
+- **LA GRILLE EST UN PARAMÈTRE OBLIGATOIRE**, jamais un défaut caché.
+  `prix(gamme, km)` : le site passe `GAMMES`, Admin v2 passe la grille du
+  **serveur**. Un défaut dans le fichier partagé serait une **deuxième
+  grille**, muette le jour où la vraie change — même règle que le lecteur de
+  demandes. Un contrôle relit la signature dans la source.
+- **CE QUI RESTE DANS LA PAGE, ET CE N'EST PAS UN OUBLI** : le **classement**
+  des résultats d'adresse (`chercher`, `note`, `variantes`, `dedoublonner`,
+  les terminaux, `sansAccents`). Il est lié à l'autocomplétion du site — le
+  chemin le plus emprunté du produit — et le déplacer aurait mêlé une refonte
+  de l'ergonomie client à un partage de calcul. Le fichier partagé porte les
+  **appels** et leur lecture, donc les coordonnées ; `lieu()` y rend le
+  premier résultat plausible, ce dont Admin v2 a besoin. **La limite est
+  nommée plutôt que cachée.**
+- **`prix` RESTE UNE FONCTION DE LA PAGE, ET LA RAISON EST AILLEURS QUE DANS
+  LE CALCUL.** Elle ne calcule plus rien — elle délègue — mais elle est
+  **l'ancre de la règle tarifaire du partenaire hôtel**, que
+  `.github/scripts/appliquer-regles-easyhotel.mjs` applique au moment de
+  **construire** le site. Cette règle a besoin de `modeHotel()` et de
+  `course`, qui ne vivent que dans cette page : la faire porter par le fichier
+  partagé l'obligerait à connaître un mode hôtel que l'espace exploitant n'a
+  pas. Le partenaire reste ici, le calcul est là-bas, et l'ancre du
+  transformateur a suivi la nouvelle forme.
+  **À DIRE PLUTÔT QU'À TAIRE : cette règle est une SECONDE grille** (2,55 et
+  4,10 €/km, arrondi à l'euro), posée à la construction, donc **invisible pour
+  toute suite qui éprouve le dépôt**. C'est une décision de Barbaros — le van
+  moins cher que le site est un prix d'appel assumé — pas un défaut à corriger
+  en passant. Mais elle doit être lue comme telle.
+- **SANS GRILLE SERVEUR, ADMIN V2 NE CALCULE PAS**, et il le dit. Inventer un
+  tarif par défaut ferait annoncer au téléphone un prix que personne n'a
+  validé. Même règle que `ecrireGrilleV2` : trois contrôles tombent si on
+  invente une grille de repli.
+- **LES ADRESSES RETENUES SONT RÉÉCRITES DANS LES CHAMPS.** La recherche rend
+  le premier résultat plausible ; si ce n'est pas le bon Ibis, le kilométrage
+  est faux et le prix avec. Barbaros doit **voir** ce sur quoi il annonce un
+  montant. Et **le prix reste modifiable** : c'est une négociation.
+- **UN ÉCHEC NE BLOQUE RIEN.** La saisie à la main a toujours marché, et c'est
+  elle le chemin sûr : le calcul le dit et rend la main.
+
+**LE CONTRÔLE QUI COMPTE LE PLUS EST L'ÉGALITÉ AU CENTIME AVEC LE SITE**, sur
+la même distance et la même grille. Et **l'arrondi s'éprouve sur un 5 pile** :
+à 16,25 km et 4,00 €/km la course fait exactement 65 €, le seul cas où `>` et
+`>=` se séparent. Sa règle est que le 5 pile **descend** — 60 €, pas 70.
+- **PREMIER JET RATÉ, ET LA LEÇON VAUT** : j'avais posé ce cas à 11,25 km,
+  soit 45 € pile — mais **le plancher du van est à 50 €, et il a le dernier
+  mot**. Le contrôle tombait sur le code juste. Un cas d'arrondi ne prouve
+  rien s'il est repris par le plancher : il faut le poser **au-dessus**.
+- **LE FAUX SERVICE D'ADRESSES RÉPOND SELON LA QUESTION POSÉE.** Le premier
+  jet rendait la **même** place pour les deux champs : le trajet faisait alors
+  0 km, le prix tombait au **plancher**, et deux contrôles passaient au vert
+  sur un prix faux. Un défaut qui résoudrait les deux adresses au même endroit
+  rendrait exactement ça — 30 € sur un Paris → Argenteuil — sans un mot.
+- **UN CONTRÔLE QUI PASSE PAR CHANCE DE CALENDRIER NE VÉRIFIE RIEN.** La scène
+  « sans grille serveur » n'attendait qu'un texte non vide : elle attrapait
+  « Recherche des adresses… » et « aucun prix n'est inventé » passait au vert
+  parce que le calcul n'avait pas fini d'écrire. Elle attend maintenant un état
+  qui a **tranché**. Éprouvé : sans cette attente, un seul des trois contrôles
+  tombait.
+- **PIÈGE DE BANC RENCONTRÉ ICI** : `state` est déclaré en `let` au premier
+  niveau d'un script classique — il vit donc dans la portée **lexicale**
+  globale et **n'est pas sur `window`**. `window.state` rend `undefined`, et
+  l'attente expirait sur une page parfaitement chargée.
+
+**LA SUITE ITINÉRAIRE RÉÉCRIT MAINTENANT LE FICHIER PARTAGÉ, plus la page.**
+Les clés ont suivi le code qui les lit. Viser `index.html` passait au vert en
+ne remplaçant **rien** : un `replace` sur une chaîne absente ne lève pas, il
+rend le texte tel quel, et la suite aurait éprouvé la **vraie** clé au lieu de
+la fausse. Éprouvé en reculant : douze contrôles tombent.
+
+`test-admin-prix.mjs`, **32 contrôles**, branchée en CI. Quatre
+falsifications, toutes tombent en nommant le défaut — dont celle qui recopie
+l'arithmétique dans Admin v2, qui diverge de 10 € et se fait prendre par le
+prix ET par la source.
+
 ### PARITÉ, BRIQUE 6 — L'AFFICHE DE COMPTOIR ET SON QR
 
 17 septembre 2026. Admin v2 n'avait pas l'affiche hôtel : la piste
@@ -4378,11 +4471,11 @@ mesure le **titre**, pas `isVisible` : la feuille est toujours dans le DOM,
 c'est une classe qui la montre, donc `isVisible` aurait pu répondre oui sans
 que le bon soit le bon.
 
-**CE QUI N'EST PAS ENCORE PORTÉ, ET JE LE NOMME** : « Calculer le prix depuis
-les adresses ». Côté site il passe par la chaîne d'itinéraire à quatre
-niveaux ; la recopier dans Admin v2 serait exactement la divergence que ce
-lot évite. Elle doit devenir partagée comme le lecteur — **c'est une brique à
-part, qui se relit seule**.
+**CE QUI N'ÉTAIT PAS ENCORE PORTÉ À CE MOMENT-LÀ** : « Calculer le prix depuis
+les adresses ». Côté site il passait par la chaîne d'itinéraire à quatre
+niveaux ; la recopier dans Admin v2 aurait été exactement la divergence que ce
+lot évite. **C'est fait — voir la brique 7** : la chaîne a déménagé dans
+`itineraire-partage.js`, comme le lecteur.
 
 ### LA GRILLE DU CLIENT ET CELLE DU SERVEUR NE S'ACCORDAIENT QUE PAR CHANCE
 
@@ -4466,10 +4559,13 @@ passe par un `attendre()` qui transforme le délai en contrôle rouge nommé, et
 le parcours de secours est **gardé** — sans ça un `fill()` sur un champ masqué
 tuait la suite avant qu'elle imprime son bilan.
 
-**CE QUI RESTE À LA PARITÉ** : saisie par téléphone, registre et sauvegarde,
-export CSV, facture de commission, affiche QR des hôtels, demande d'avis,
-accusé de réception. **Aucune bascule de `admin.html` avant que tout y soit** —
-et c'est ChatGPT qui contrôle, brique par brique.
+**CE QUI RESTAIT À LA PARITÉ APRÈS CETTE BRIQUE-LÀ** : saisie par téléphone,
+registre et sauvegarde, export CSV, facture de commission, affiche QR des
+hôtels, demande d'avis, accusé de réception, et la chaîne du prix partagée.
+**Les sept briques sont faites au 18 septembre 2026** (1 à 7, dans cet
+ordre). **Aucune bascule de `admin.html` pour autant** : la parité des gestes
+n'est pas une relecture — c'est ChatGPT qui contrôle, brique par brique, et
+c'est Barbaros qui décide.
 
 ### LE BANDEAU COLLANT MANGEAIT 18 % DE L'ÉCRAN — ET J'AVAIS MAL DIAGNOSTIQUÉ
 
