@@ -74,6 +74,7 @@ jobs:
           node test-admin-factures.mjs
           node test-admin-gestes.mjs
           node test-admin-affiche.mjs
+          node test-admin-prix.mjs
 
       # LA MIGRATION EST EXÉCUTÉE POUR DE VRAI, sur un PostgreSQL vide.
       # Une expression régulière sur un fichier SQL ne sait pas si la requête

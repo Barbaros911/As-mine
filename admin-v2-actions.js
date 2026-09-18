@@ -273,6 +273,106 @@ async function creerParTelephone(){
   try{ openBooking(bon.ref); }catch(e){}
 }
 
+/* =====================================================================
+   « CALCULER LE PRIX DEPUIS LES ADRESSES »
+   ---------------------------------------------------------------------
+   Le dernier geste de la parité, et le plus exposé : c'est sur ce montant
+   que Barbaros répond au téléphone, et le prix d'Elatransfer est FERME
+   donc OPPOSABLE. S'il annonce 60 € et que le site en calcule 70, c'est le
+   client qui a raison.
+
+   IL PASSE PAR LE MÊME CHEMIN QUE CÔTÉ CLIENT, à la fonction près :
+   « itineraire-partage.js » porte la recherche d'adresse, la chaîne
+   d'itinéraire à quatre niveaux, l'arrondi de Barbaros et le plancher. Ce
+   fichier-ci n'ajoute AUCUN calcul — il ne fait que fournir la grille et
+   afficher le résultat. Un centime de différence entre les deux espaces ne
+   se verrait pas : le prix s'affiche des deux côtés, il est simplement
+   différent.
+
+   LA GRILLE VIENT DU SERVEUR, jamais d'ici. C'est la même règle que
+   « ecrireGrilleV2 » juste au-dessus, et elle a une conséquence nette :
+   SANS GRILLE SERVEUR, ON NE CALCULE PAS. Inventer un tarif par défaut
+   ferait annoncer un prix que personne n'a validé.
+
+   LES ADRESSES RETENUES SONT RÉÉCRITES DANS LES CHAMPS. La recherche rend
+   le premier résultat plausible ; si ce n'est pas le bon Ibis, le
+   kilométrage est faux et le prix avec. Barbaros doit VOIR ce sur quoi il
+   annonce un montant.
+
+   LE PRIX RESTE MODIFIABLE : c'est une négociation, pas un tarif imposé.
+   Et si le calcul échoue, la saisie à la main continue de marcher — elle a
+   toujours marché, et c'est elle le chemin sûr.
+   ===================================================================== */
+function calcDire(t, classe){
+  const e = document.getElementById('tfCalcEtat'); if(!e) return;
+  e.textContent = t || '';
+  e.className = 'muted small' + (classe ? ' ' + classe : '');
+}
+
+async function calculerPrixTelephone(){
+  const bouton = document.getElementById('tfCalculer');
+  const champDep = document.getElementById('tfDepart');
+  const champArr = document.getElementById('tfArrivee');
+  const champPrix = document.getElementById('tfPrix');
+  const cle = (document.getElementById('tfVehicule')?.value || 'berline');
+
+  /* La chaîne partagée est une dépendance de fichier : si elle n'est pas
+     là, on le DIT. Un bouton qui ne fait rien sans un mot laisserait
+     croire à une panne du serveur. */
+  if(!window.ELA_ROUTE){
+    calcDire("La chaîne d'itinéraire n'est pas chargée. Recharge la page.", 'ko'); return; }
+
+  const dep = (champDep?.value || '').trim();
+  const arr = (champArr?.value || '').trim();
+  if(!dep || !arr){ calcDire('Il manque le départ ou l’arrivée.', 'ko'); return; }
+
+  /* SANS GRILLE SERVEUR, ON NE CALCULE PAS — voir le commentaire du bloc. */
+  const g = grilleServeur()[cle];
+  if(!g){
+    calcDire('Grille serveur indisponible pour cette gamme : le prix se saisit à la main.', 'ko');
+    return; }
+
+  if(bouton){ bouton.disabled = true; }
+  calcDire('Recherche des adresses…');
+  try{
+    const [a, b] = await Promise.all([window.ELA_ROUTE.lieu(dep), window.ELA_ROUTE.lieu(arr)]);
+    if(!a || !b){
+      calcDire('Adresse introuvable : ' + (!a ? 'le départ' : "l'arrivée") +
+               '. Précise-la, ou saisis le prix à la main.', 'ko');
+      return; }
+    /* On réécrit ce qui a été RETENU : c'est la seule façon pour Barbaros
+       de voir que ce n'est pas le bon Ibis avant d'annoncer un montant. */
+    if(champDep) champDep.value = a.label;
+    if(champArr) champArr.value = b.label;
+
+    calcDire('Calcul de l’itinéraire…');
+    const quand = { date:(document.getElementById('tfDate')?.value || ''),
+                    heure:(document.getElementById('tfHeure')?.value || '') };
+    const it = await window.ELA_ROUTE.itineraire(a, b, quand);
+    /* La gamme passée à « prix() » porte la grille du SERVEUR, jamais une
+       grille écrite ici. « parKm » et « mini » sont les noms que la chaîne
+       partagée attend ; « cle » sert à la règle hôtel du site, elle ne
+       s'applique pas dans cet espace. */
+    const p = window.ELA_ROUTE.prix({ cle:cle, parKm:g.km, mini:g.mini }, it.km);
+    if(champPrix) champPrix.value = String(p);
+
+    const km = it.km.toFixed(1).replace('.', ',');
+    calcDire((it.estime ? '≈ ' : '') + km + ' km · ' + p + ' € — modifiable, c’est une négociation.',
+             'ok');
+  }catch(e){
+    /* Un échec ne bloque RIEN : la saisie à la main a toujours marché. */
+    calcDire('Le calcul a échoué (' + String(e && e.message || e) + '). Saisis le prix à la main.', 'ko');
+  }finally{
+    if(bouton){ bouton.disabled = false; }
+  }
+}
+
+function brancherCalcul(){
+  const b = document.getElementById('tfCalculer');
+  if(b) b.addEventListener('click', calculerPrixTelephone);
+}
+brancherCalcul();
+
 function brancherTelephone(){
   /* LE BOUTON OUVRE, IL NE BASCULE PAS. Un bouton qui ferme ce qu'on vient
      d'ouvrir se lit comme un bouton cassé -- c'est « Annuler » qui ferme.
