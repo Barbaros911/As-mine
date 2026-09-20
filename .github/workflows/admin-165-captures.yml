@@ -1,0 +1,31 @@
+name: Captures Admin #165
+on:
+  pull_request:
+    paths:
+      - 'admin-v2.html'
+      - 'admin-v2-actions.js'
+      - 'admin-v2-responsive.css'
+      - 'capture-admin-165.mjs'
+      - 'construire.sh'
+      - '.github/workflows/admin-165-captures.yml'
+jobs:
+  captures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Installer Playwright pour la prévisualisation
+        run: npm install --no-save --no-package-lock playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Générer les rendus réels
+        run: node capture-admin-165.mjs
+      - name: Archiver mobile et ordinateur
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-admin-pr192
+          path: captures/*.png
+          if-no-files-found: error
+          retention-days: 14
