@@ -6,3 +6,16 @@
 @media(max-width:380px){.dashboard-maquette .dash-metrics{grid-template-columns:1fr 1fr}.metric{min-height:72px}.metric strong{font-size:19px}.mobile-bottom-nav span{font-size:9px}}
 @media(max-width:320px){main{padding-left:8px;padding-right:8px}.top img{width:116px!important}.dashboard-maquette .dash-metrics{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* Le logo officiel garde une largeur stable sur tous les écrans mobiles. */
+@media(max-width:800px){
+  .top img{width:100px!important}
+  /* Seul le rafraîchissement du dashboard est remplacé par la navigation
+     compacte. Les actions des autres écrans doivent rester accessibles. */
+  .section:not(#s-dashboard)>.title .btn{display:inline-flex!important}
+}
+@media(max-width:320px){.top img{width:100px!important}}
+@media(max-width:800px){#s-dashboard .title h1:after{content:'Bonjour Burak'}}
+@media(max-width:800px){
+  .mobile-bottom-nav button:first-child{color:#34516f;background:transparent;border-bottom:0}
+  .mobile-bottom-nav button.on{color:#087ff5;background:#f1f8ff;border-bottom:3px solid #087ff5}
+}
