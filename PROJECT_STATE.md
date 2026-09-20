@@ -142,24 +142,32 @@ d'indisponibilité de l'un, **c'est lui qui dit qui prend le relais** — jamais
 les assistants entre eux. Un assistant à l'arrêt ne libère pas son chantier :
 on le signale et on attend. Voir `TEAM_RULES` §3.
 
-**LA CIBLE EST UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
-Admin v2 est publié mais **en préversion**. La parité se fait par briques,
-annoncées et résumées dans **#191** : coller une demande (✔ brique 1),
-saisir par téléphone (✔ brique 2), registre + sauvegarde + export CSV
-(✔ brique 3), facture de commission (✔ brique 4), accusé de réception et
-demande d'avis (✔ brique 5), affiche de comptoir et son QR (✔ brique 6).
-**Reste** : la chaîne d'itinéraire partagée —
-sans elle, « Calculer le prix depuis les adresses » n'existe que d'un côté,
-et **deux calculs de prix qui divergent ne se voient pas**.
-**Aucune bascule de `admin.html` avant que tout y soit.** Le détail de
-chaque brique et de ses pièges est dans `CLAUDE.md`.
-`/etat` signale en rouge quand `main` a bougé pendant la session.
+**LA CIBLE RESTE UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
+La parité fonctionnelle d'Admin v2, y compris la chaîne partagée
+itinéraire/prix, a été fusionnée dans **#191**. Admin v2 est publié en
+préversion, tandis que l'entrée exploitant historique reste active tant que
+la bascule finale n'a pas été validée.
+
+La refonte responsive mobile/ordinateur est suivie exclusivement dans
+**#165 et la PR #192**. Cette PR est le seul chantier visuel Admin : elle doit
+être remise à niveau sur le dernier `main`, obtenir tous ses contrôles au vert
+et conserver la parité de #191 avant toute fusion. ChatGPT assure la
+spécification UX et le contrôle de production ; Claude Code reprend
+l'implémentation technique sur la branche existante de #192. Aucune seconde
+refonte parallèle ne doit être créée.
+
+La branche `claude/page-directe-0finaj` ne doit pas être fusionnée telle
+quelle : elle diverge de `main`. Seules ses corrections tarifaires encore
+nécessaires et démontrées peuvent être extraites dans une PR technique neuve
+depuis le dernier `main`. Le détail historique des briques et de leurs pièges
+reste dans `CLAUDE.md`. `/etat` signale en rouge quand `main` a bougé
+pendant la session.
 
 ## Ce qui est prévu
 
 | Quoi | Qui | Où c'est suivi |
 |---|---|---|
-| Refonte de l'admin sur la référence visuelle | ChatGPT puis Claude | Issue #165 |
+| Consolider la refonte responsive Admin sans nouvelle implémentation | Claude sur PR #192 · ChatGPT en contrôle UX/production | Issues #164/#165 · PR #192 |
 | Relecture de `TEAM_RULES.md` (§1 et §9) | ChatGPT | PR #170 |
 | Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
 
