@@ -28,9 +28,19 @@
    ===================================================================== */
 import { chromium } from 'playwright';
 import { createRequire } from 'module';
-const exiger = createRequire('/tmp/claude-0/-home-user-As-mine/4bad491f-f7fd-5fb8-ac80-285f0ac64a0c/scratchpad/');
-let jsQR = null;
-try { jsQR = exiger('jsqr'); } catch(e){ /* absent : les contrôles de décodage sont annoncés sautés */ }
+/* ON CHERCHE LE DÉCODEUR LÀ OÙ IL PEUT ÊTRE, ET LE DÉPÔT D'ABORD.
+   Ce chemin portait l'identifiant d'une SESSION de travail : il ne valait
+   que dans celle-là, et ce contrôle — le seul qui prouve qu'une affiche se
+   scanne vraiment — ne pouvait donc plus jamais s'exécuter ailleurs. Il
+   annonçait « jsQR absent » pour toujours, ce qui ressemble à un manque
+   d'outil et cachait qu'il ne cherchait pas au bon endroit. */
+const exiger = nom => {
+  for(const base of [import.meta.url, '/tmp/claude-0/-home-user-As-mine/4bad491f-f7fd-5fb8-ac80-285f0ac64a0c/scratchpad/x.js']){
+    try { return createRequire(base)(nom); } catch(e){}
+  }
+  return null;
+};
+const jsQR = exiger('jsqr');
 
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
