@@ -21,6 +21,24 @@
     const greeting=document.createElement('div');greeting.className='admin-greeting';greeting.innerHTML='<strong>Bonjour Burak</strong><span>Centre de gestion ELA Transfer</span>';top.prepend(greeting);
     const create=document.createElement('button');create.type='button';create.className='btn admin-create';create.textContent='+ Nouvelle réservation';create.addEventListener('click',()=>{go('dashboard');setTimeout(()=>intake?.scrollIntoView({behavior:'smooth',block:'center'}),50)});top.append(create);
     const menu=document.createElement('button');menu.type='button';menu.className='mobile-menu';menu.setAttribute('aria-label','Ouvrir le menu');menu.setAttribute('aria-expanded','false');menu.textContent='☰';top.prepend(menu);const close=()=>{nav.classList.remove('mobile-open');menu.setAttribute('aria-expanded','false')};menu.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');menu.setAttribute('aria-expanded',String(open))});nav.addEventListener('click',e=>{if(e.target.closest('button'))close()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
-    const bottom=document.createElement('div');bottom.className='mobile-bottom-nav';bottom.innerHTML='<button class="on" data-mgo="dashboard"><b>⌂</b><span>Accueil</span></button><button data-mgo="bookings"><b>▣</b><span>Réservations</span></button><button class="mobile-create" data-mgo="dashboard"><b>+</b><span>Créer</span></button><button data-mgo="bookings" data-filter="today"><b>◷</b><span>Trajets</span></button><button data-more><b>•••</b><span>Plus</span></button>';document.body.append(bottom);bottom.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-more')){menu.click();return;}bottom.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');go(b.dataset.mgo,b.dataset.filter||'');if(b.classList.contains('mobile-create'))setTimeout(()=>intake?.scrollIntoView({behavior:'smooth',block:'center'}),50);});
+    const bottom=document.createElement('div');bottom.className='mobile-bottom-nav';bottom.innerHTML='<button class="on" data-mgo="dashboard"><b>⌂</b><span>Accueil</span></button><button data-mgo="bookings"><b>▣</b><span>Réservations</span></button><button class="mobile-create" data-mgo="dashboard"><b>+</b><span>Créer</span></button><button data-mgo="bookings" data-filter="today"><b>◷</b><span>Trajets</span></button><button data-more><b>•••</b><span>Plus</span></button>';document.body.append(bottom);bottom.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-more')){menu.click();return;}go(b.dataset.mgo,b.dataset.filter||'');if(b.classList.contains('mobile-create'))setTimeout(()=>intake?.scrollIntoView({behavior:'smooth',block:'center'}),50);});
+
+  /* L'ONGLET ALLUMÉ SUIT L'ÉCRAN, PAS LE DOIGT QUI L'A OUVERT. La barre ne
+     s'allumait que sur ses propres boutons : ouvert par le tiroir, par une
+     carte du tableau de bord ou par « Voir toutes », on restait sur
+     « Accueil » alors qu'on était ailleurs. Un repère qui ment sur l'endroit
+     où l'on se trouve est pire que pas de repère.
+     C'est la colonne qui fait foi (« #nav button.on ») : une seule vérité,
+     et la barre la recopie. On n'allume RIEN sur les écrans de Gestion —
+     aucun de ces boutons n'y mène, et en allumer un au hasard serait une
+     deuxième façon de mentir. */
+  const suivreBas=()=>{
+    const actif=$('#nav button.on')?.dataset.tab;
+    bottom.querySelectorAll('button').forEach(x=>x.classList.toggle('on',
+      !x.dataset.filter && !x.classList.contains('mobile-create')
+      && !x.hasAttribute('data-more') && x.dataset.mgo===actif));
+  };
+  suivreBas();
+  new MutationObserver(suivreBas).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});
   }
 })();
