@@ -62,13 +62,15 @@ Si une tâche active touche déjà la même zone ou le même fichier, ne pas lan
 
 ## Branches et PR
 
-- Ne pas travailler directement sur `main` pour une évolution normale.
-- Créer une branche fraîche depuis le `main` le plus récent.
+- Ne jamais travailler directement sur `main` ou `ai-dev` pour une évolution normale.
+- Vérifier d'abord que `ai-dev` intègre le dernier `main` validé.
+- Créer chaque branche d'agent depuis `ai-dev`, jamais depuis une branche de travail ancienne.
 - Une branche = une tâche clairement définie.
 - Nom recommandé : `ela/<numero-ou-sujet-court>` ou `fix/<sujet-court>`.
-- Une PR = une tâche.
-- Avant fusion, comparer la branche avec le dernier `main` et vérifier qu’aucun changement plus récent ne sera écrasé.
-- Si `main` a changé pendant le travail, réconcilier avant fusion.
+- Une PR d'agent cible `ai-dev` et ne fusionne jamais automatiquement.
+- La promotion de `ai-dev` vers `main` utilise une PR séparée après tests, revue croisée et validation explicite de Barbaros.
+- Avant toute fusion, comparer avec le dernier `main` et vérifier qu’aucun changement plus récent ne sera écrasé.
+- Si `main` change pendant le travail, synchroniser `ai-dev`, puis réconcilier la branche avant fusion.
 - Fusionner une seule PR à la fois sur une même zone critique.
 
 ## Publication

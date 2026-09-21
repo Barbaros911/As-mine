@@ -43,13 +43,21 @@ n'est pas un confort : c'est la carte des accès réels.
   précédente disait qu'il « ne lit pas les journaux de construction », ce
   qui était trop absolu et lui retirait un contrôle qu'il exerce vraiment.*
 
-## 2. La source de vérité
+## 2. La source de vérité et la branche d'intégration
 
-**`main`, et rien d'autre.** Ni une conversation, ni une branche, ni la mémoire
-de qui que ce soit.
+**`main` est l'unique source de vérité du code validé et destiné à la
+production.** Ni une conversation, ni une branche de travail, ni la mémoire de
+qui que ce soit ne remplace `main`.
 
-**Avant de commencer quoi que ce soit :** lire le dernier `main`, les PR
-ouvertes, les Issues `[TEAM]`, les branches actives sur la zone.
+**`ai-dev` est uniquement la branche d'intégration de l'équipe IA.** Elle doit
+être synchronisée avec `main` avant une nouvelle série de travaux. Les branches
+des agents partent de `ai-dev` et leurs PR ciblent `ai-dev`. La promotion vers
+`main` passe ensuite par une PR séparée, revue, testée et validée explicitement
+par Barbaros. Aucune fusion ou publication automatique.
+
+**Avant de commencer quoi que ce soit :** lire le dernier `main`, vérifier que
+`ai-dev` n'est pas en retard, puis lire les PR ouvertes, les Issues `[TEAM]`
+et les branches actives sur la zone.
 
 *(15/09 — Claude a travaillé 83 commits en retard. Fusionner à l'aveugle aurait
 supprimé le travail de sécurité de ChatGPT.)*
