@@ -271,12 +271,16 @@ function brancher(){
   /* On remplit la liste et on lit les factures à l'ouverture de l'écran des
      finances, pas au chargement : c'est un écran qu'on n'ouvre pas tous les
      jours, et cinquante factures tirées pour rien sont de la 4G brûlée. */
-  const nav = document.getElementById('nav');
-  if(nav) nav.addEventListener('click', ev => {
-    if(ev.target && ev.target.dataset && ev.target.dataset.tab === 'finance'){
-      remplirChauffeurs(); ecrireEmetteur(); listerFactures();
-    }
-    if(ev.target && ev.target.dataset && ev.target.dataset.tab === 'pricing') ecrireEmetteur();
+  /* ON ÉCOUTE L'ÉCRAN, PAS LE BOUTON. C'était un clic sur « #nav » : le jour
+     où « Finances » a quitté la barre du bas pour l'écran « Gestion », ce
+     gestionnaire n'a plus jamais été appelé — liste des chauffeurs vide,
+     identité de l'émetteur jamais écrite, factures jamais lues, et RIEN à
+     l'écran pour le dire. Un module accroché à un ENDROIT meurt quand
+     l'endroit bouge ; accroché à un ÉVÉNEMENT, il survit. Troisième module
+     du même lot à tomber dessus, après le registre et l'affiche. */
+  document.addEventListener('ela:ecran', ev => {
+    if(ev.detail === 'finance'){ remplirChauffeurs(); ecrireEmetteur(); listerFactures(); }
+    if(ev.detail === 'pricing') ecrireEmetteur();
   });
 }
 

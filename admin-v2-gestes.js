@@ -226,9 +226,13 @@ async function enregistrerLien(){
 function brancher(){
   const s = document.getElementById('btnAvLien');
   if(s) s.addEventListener('click', enregistrerLien);
-  const nav = document.getElementById('nav');
-  if(nav) nav.addEventListener('click', ev => {
-    if(ev.target && ev.target.dataset && ev.target.dataset.tab === 'pricing') ecrireLien();
+  /* ON ÉCOUTE L'ÉCRAN, PAS LE BOUTON — même raison que dans les factures,
+     le registre et l'affiche. « Tarifs et réglages » a quitté la barre du
+     bas : un gestionnaire posé sur « #nav » ne se déclenche plus, et le
+     lien d'avis ne s'écrit jamais dans son champ. Sans lien, aucune demande
+     d'avis ne part — et rien à l'écran ne le dit. */
+  document.addEventListener('ela:ecran', ev => {
+    if(ev.detail === 'pricing') ecrireLien();
   });
 }
 

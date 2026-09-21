@@ -50,7 +50,12 @@ body{background:var(--fond);color:var(--encre);
 /* ---- L'EN-TÊTE ---------------------------------------------------- */
 .top{background:var(--nuit);color:#fff;border:0;padding:12px 16px;
      position:sticky;top:0;z-index:20}
-.top img{width:104px;height:auto}
+/* LE LOGO OFFICIEL NE SE REDIMENSIONNE PAS. Cette règle lui imposait 104 px
+   aux trois largeurs ; la page dit 112 px sur ordinateur et 100 px sur
+   téléphone, et c'est ELLE qui fait foi. ChatGPT l'a posé en contrainte de
+   #165 (« logo officiel inchangé »), et un contrôle de test-admin-papiers
+   mesure la largeur à 320, 390 et 1280 px. On ne touche donc qu'à la barre
+   qui l'entoure, jamais à lui. */
 .top .btn.alt{background:rgba(255,255,255,.12);color:#fff;border-color:transparent;
   min-height:38px;padding:0 12px;font-size:13px;font-weight:600}
 /* MESURÉ : « Déconnexion » faisait 46 px de haut et 285 px de large, soit
