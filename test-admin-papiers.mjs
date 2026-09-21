@@ -403,11 +403,25 @@ for (const largeur of [320, 390, 1280]) {
      OFFICIELS (jamais un redessin), et c'est la VARIANTE qui va avec le
      fond — la blanche sur un fond sombre, la bleue sur un fond clair. */
   const logo = await p3.evaluate(()=>{
-    const i=document.querySelector('img[src="brand-logo.webp"]');
+    /* ON CHERCHE LE LOGO PAR SON RÔLE, JAMAIS PAR SON NOM DE FICHIER —
+       c'est tout le sujet de ce contrôle, et la fusion avait justement
+       rétabli le nom en dur sans un mot. Et il n'est plus toujours dans
+       l'en-tête : la maquette le déplace dans la colonne de gauche sur
+       ordinateur. On le prend là où il est. */
+    const i=document.querySelector('.top img[src*="brand-logo"], nav img[src*="brand-logo"]');
     if(!i) return null;
     const r=i.getBoundingClientRect();
     const au=document.elementFromPoint(r.x+r.width/2, r.y+r.height/2);
-    const f=getComputedStyle(document.querySelector('.top')).backgroundColor;
+    const boite=i.closest('.top, nav') || document.querySelector('.top');
+    const st=getComputedStyle(boite);
+    /* UN DÉGRADÉ N'A PAS DE « backgroundColor » : il est transparent, et
+       remonter aux parents lirait le fond CLAIR de la page pour déclarer
+       « clair » un bandeau bleu nuit — donc réclamer le logo bleu, celui
+       qui disparaît dessus. On lit donc aussi les arrêts du dégradé, et
+       on prend la première couleur vraiment opaque. */
+    const f=[st.backgroundColor, st.backgroundImage].join(' ')
+      .match(/rgba?\([^)]*\)/g)?.find(c=>{const v=(c.match(/[\d.]+/g)||[]).map(Number);return v.length<4||v[3]>0.5;})
+      || 'rgb(255,255,255)';
     const n=(f.match(/[\d.]+/g)||[255,255,255]).map(Number);
     /* Luminance perçue : le vert pèse plus que le rouge, le bleu presque
        rien. Une moyenne simple dirait qu'un bleu nuit est « moyen ». */
