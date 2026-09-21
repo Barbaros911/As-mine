@@ -1,5 +1,22 @@
 node_modules/
 
+# Secrets et identifiants locaux : jamais dans Git.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Etat local des agents IA et modèles (volumineux / spécifique machine).
+.ai-tools/
+.aider*
+!.aider.conf.yml
+.opencode/
+
 # Photos envoyées par Barbaros, en attente de décision. Elles ne rejoignent le
 # dépôt que lorsqu'on sait d'où elles viennent : le dépôt est PUBLIC, et y
 # déposer une image trouvée sur Internet est une contrefaçon, même si le site

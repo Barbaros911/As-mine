@@ -1,0 +1,5 @@
+model: ollama_chat/qwen2.5-coder:7b
+auto-commits: false
+dirty-commits: false
+attribute-committer: false
+test-cmd: sh .claude/outils/tests.sh
