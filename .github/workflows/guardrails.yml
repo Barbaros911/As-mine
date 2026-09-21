@@ -1,0 +1,80 @@
+name: ELA Guardrails
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  guardrails:
+    name: guardrails
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject committed private material
+        shell: bash
+        run: |
+          set -euo pipefail
+          tracked="$(git ls-files)"
+          if printf '%s\n' "$tracked" | grep -E '(^|/)(\.env($|\.)|secrets?/)|\.(pem|p12|pfx)$|(^|/)(id_rsa|id_ed25519)$'; then
+            echo "::error::Private secret material is tracked by Git."
+            exit 1
+          fi
+
+      - name: Detect likely hard-coded secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib, re, sys
+          roots = [pathlib.Path(".")]
+          skip = {".git", "node_modules", "site"}
+          rules = [
+              re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'),
+              re.compile(r'(?i)(?:secret|private[_-]?key|service[_-]?role|api[_-]?key|token|password)\s*[:=]\s*["\x27][A-Za-z0-9_./+=:-]{16,}["\x27]'),
+              re.compile(r'\bsk_(?:live|test)_[A-Za-z0-9]{16,}\b'),
+          ]
+          allow = {".env.example"}
+          bad=[]
+          for p in pathlib.Path(".").rglob("*"):
+              if not p.is_file() or any(part in skip for part in p.parts) or p.name in allow:
+                  continue
+              try: text=p.read_text(errors="ignore")
+              except Exception: continue
+              for n,line in enumerate(text.splitlines(),1):
+                  if any(r.search(line) for r in rules):
+                      bad.append(f"{p}:{n}")
+          if bad:
+              print("::error::Potential hard-coded secret(s):")
+              print("\n".join(bad[:100]))
+              sys.exit(1)
+          PY
+
+      - name: Verify governance files remain present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s TEAM_RULES.md
+          test -s AGENTS.md
+          test -s PROJECT_STATE.md
+
+      - name: Build production artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x construire.sh || chmod +x construire.sh
+          sh construire.sh
+
+      - name: Basic published artifact checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d site
+          test -s site/index.html
