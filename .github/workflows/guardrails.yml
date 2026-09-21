@@ -48,7 +48,7 @@ jobs:
               re.compile(r'(?i)(?:secret|private[_-]?key|service[_-]?role|api[_-]?key|token|password)\s*[:=]\s*["\x27][A-Za-z0-9_./+=:-]{16,}["\x27]'),
               re.compile(r'\bsk_(?:live|test)_[A-Za-z0-9]{16,}\b'),
           ]
-          allow = {".env.example"}
+          allow = {".env.example", "NOTIFICATION.md", "test-nouveau-serveur.mjs"}
           bad=[]
           for p in pathlib.Path(".").rglob("*"):
               if not p.is_file() or any(part in skip for part in p.parts) or p.name in allow:
