@@ -367,6 +367,37 @@ check("rouverte, elle garde l'ANCIEN SIRET de l'émetteur",
   "un document comptable qui se réécrit tout seul ne prouve plus rien");
 check("…et pas le nouveau", !rouverte.includes('99999999999999'), rouverte.slice(0,200));
 
+/* ═══ LA PORTE DES CODES PROMO, DEPUIS « TARIFS ET RÉGLAGES » ═══
+   Barbaros la cherchait là et ne la trouvait pas : l'écran existait, mais
+   il n'était atteignable que par « Gestion ». Une porte qui ne mène nulle
+   part est pire que pas de porte — d'où un contrôle qui APPUIE dessus au
+   lieu de constater qu'un bouton existe.
+   ET IL ÉPROUVE LA RÈGLE DU PROJET, pas la présence du formulaire : un
+   code promo sans DATE DE FIN ni NOMBRE D'USAGES est une remise à vie pour
+   qui le connaît. Les deux codes de 2026 n'en avaient aucun, et le −15 %
+   annulait exactement la hausse des tarifs. */
+await allerOnglet(p, 'pricing'); await p.waitForTimeout(200);
+const porte = p.locator('#s-pricing [data-tab="promos"]');
+const combien = await porte.count();
+check("« Tarifs et réglages » porte l'accès aux codes promo", combien === 1, String(combien));
+/* ON NE CLIQUE QUE SI LA PORTE EST LÀ. Sans cette garde, son retrait tue la
+   suite sur un délai d'attente NU — elle échoue bien, mais sans dire ce
+   qu'elle attendait, et les contrôles suivants ne sont jamais imprimés. */
+if(combien === 1){
+  await porte.first().click(); await p.waitForTimeout(300);
+  check("…et elle ouvre vraiment l'écran des codes promo",
+    await p.locator('#s-promos').evaluate(e => e.classList.contains('on')));
+  await p.click('#s-promos [data-open="promo"]'); await p.waitForTimeout(300);
+  const champs = await p.$$eval('#entityForm [name]', n => n.map(x => x.getAttribute('name')));
+  check("le formulaire exige une date de fin", champs.includes('fin'), champs.join(', '));
+  check("…et un nombre d'usages maximum", champs.includes('utilisations_max'), champs.join(', '));
+  await p.click('#closeSheet'); await p.waitForTimeout(150);
+} else {
+  check("…et elle ouvre vraiment l'écran des codes promo", false, "porte absente");
+  check("le formulaire exige une date de fin", false, "porte absente");
+  check("…et un nombre d'usages maximum", false, "porte absente");
+}
+
 check('aucune erreur JavaScript sur toute la traversée', errs.length === 0, errs.join(' | '));
 
 await b.close(); serveur.close();
