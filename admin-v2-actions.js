@@ -48,6 +48,36 @@ function driverPicker(ref,x,snap,mode){const ds=validDrivers();if(!ds.length){al
     }
   }catch(e){alert(`Chauffeur : ${e.message}`);}};
 }
+/* =====================================================================
+   LES GESTES SUR LA LIGNE — LE GESTE DU SOIR
+   ---------------------------------------------------------------------
+   Dans l'espace historique, la ligne d'une course porte « Terminée »,
+   « Appeler », « Demander un avis » : un appui, sans ouvrir le bon. Ici
+   la ligne entière n'était qu'un bouton qui OUVRE le bon. Sur dix courses
+   à clore le soir, ça fait dix ouvertures, dix défilements et dix
+   fermetures au lieu de dix appuis -- et c'est ce que Barbaros a désigné
+   en disant qu'il n'arrivait pas à traiter ses courses.
+
+   RIEN N'EST RECOPIÉ ICI. On appelle « changeStatus » et « driverPicker »,
+   exactement ce que fait le bon : deux chemins pour un même geste
+   finissent par diverger, et c'est celui qu'on oublie qui laisserait une
+   course dans un état que le reste du système ne sait pas lire.
+   LA CONFIRMATION RESTE : « changeStatus » pose sa question. Un geste
+   irréversible à un doigt, dans une liste, sur un téléphone tenu d'une
+   main, c'est une course clôturée par erreur à 3 h du matin.
+   ===================================================================== */
+async function gesteRapide(ref, act){
+  const c=state.courses.find(z=>z.ref===ref); if(!c) return;
+  const x=b(c);
+  if(act==='confirm') return changeStatus(ref,'confirmee','Confirmer cette réservation ?');
+  if(act==='done')    return changeStatus(ref,'realisee','Clôturer cette course comme réalisée ?');
+  /* Attribuer ouvre le sélecteur de chauffeur, et c'est voulu : il porte
+     l'avertissement sur les papiers, à l'instant même où l'on engage la
+     responsabilité d'Elatransfer (L3142-1). */
+  if(act==='assign')  return driverPicker(ref,x,snapshotFor(ref),'assign');
+}
+window.gesteRapide = gesteRapide;
+
 async function doPayment(ref,kind){const label=kind==='capture'?'Capturer maintenant le paiement TEST autorisé ?':'Libérer / annuler maintenant l’empreinte TEST ?';if(!confirm(label))return;try{await edge(kind==='capture'?'capturer-paiement':'annuler-empreinte',{ref});await load();await openBookingV2(ref);}catch(e){alert(`Paiement : ${e.message}`);}}
 async function removeDriver(ref){const motif=prompt('Motif interne du retrait / de la réattribution (facultatif) :')||'';if(!confirm('Retirer le chauffeur actuel et remettre la course à attribuer ?'))return;try{await rpc('ela_retirer_chauffeur',{p_ref:ref,p_motif:motif||null});await load();await openBookingV2(ref);}catch(e){alert(`Action refusée : ${e.message}`);}}
 async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(!c)return;const x=b(c),ev=await api(`/rest/v1/evenements_reservation?course_ref=eq.${encodeURIComponent(ref)}&select=*&order=cree_le.desc&limit=100`).catch(()=>[]),p=paymentFor(ref),s=snapshotFor(ref),d=currentDriver(c);
@@ -58,7 +88,46 @@ async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(
   if(x.status==='incident')actions+=`<button class="btn" data-act="done">Clôturer : réalisée</button> <button class="btn alt" data-act="cancel">Clôturer : annulée</button>`;
   if(p?.statut==='autorise')actions+=` <button class="btn" data-act="capture">Capturer paiement TEST</button> <button class="btn alt" data-act="release">Libérer empreinte TEST</button>`;
   if(x.phone)actions+=` <button class="btn alt" data-act="clientwa">WhatsApp client</button>`;
-  showSheet(`Réservation ${ref}`,`<div class="card"><b>${esc(x.date)} ${esc(x.time)}</b><p>${esc(x.from)}<br>→ ${esc(x.to)}</p><p>${esc(x.client)} · ${esc(x.phone)}</p><p><span class="tag ${esc(x.status)}">${esc(x.status)}</span> · ${esc(x.vehicle)} · ${esc(x.source)}</p>${d.nom?`<p>Chauffeur : <b>${esc(d.nom)}</b> · ${esc(d.telephone)}</p>`:''}</div><div class="card" style="margin-top:10px"><b>Finances</b><p>Prix client : ${money(s?.prix_final_centimes)} · Chauffeur dû : ${money(s?.montant_chauffeur_centimes)} · Marge ELA : ${money(s?.marge_ela_centimes)}</p><p>Paiement : <span class="tag ${esc(p?.statut||'')}">${esc(p?.statut||'non initialisé')}</span>${p?.mode?` · ${esc(p.mode)}`:''}</p></div><div class="toolbar" id="bookingActions" style="margin-top:12px">${actions||'<span class="muted">Aucune action disponible pour cet état.</span>'}</div><h3>Historique</h3><div class="timeline">${ev.length?ev.map(e=>`<div><b>${new Date(e.cree_le).toLocaleString('fr-FR')} — ${esc(e.type_evenement)}</b><br><span class="muted small">${esc(e.acteur_type)}</span></div>`).join(''):'<div class="muted">Aucun événement enregistré.</div>'}</div>`);
+  /* =====================================================================
+     LA PAGE DE TRAITEMENT — CE QU'IL FAUT POUR DÉCIDER, ET RIEN D'AUTRE
+     ---------------------------------------------------------------------
+     MESURÉ sur la version précédente : « Confirmer la réservation » était
+     à 588 px. Avant d'y arriver, on traversait le prix, la marge ELA, le
+     montant dû au chauffeur et l'état du paiement. Le geste pour lequel on
+     ouvre un bon était le cinquième élément de la page, et il fallait
+     défiler pour l'atteindre — sur un téléphone, une main sur le volant
+     d'un chauffeur au téléphone.
+
+     L'ORDRE DIT CE QU'ON VIENT FAIRE : l'état, puis les actions, puis la
+     course, puis à qui l'on parle. Les chiffres (prix chauffeur, marge,
+     paiement) et l'historique ne servent pas à DÉCIDER : ils servent à
+     vérifier, plus tard, et ils vivent sous un repli.
+     LE REPLI EST FERMÉ PAR DÉFAUT, mais rien d'IRRÉVERSIBLE ne s'y cache :
+     seulement de la lecture. Un geste qu'on doit chercher est un geste
+     qu'on ne fait pas.
+     « #bookingActions » GARDE SON NOM : deux autres modules y greffent
+     leurs boutons (l'accusé de réception, la demande d'avis, le tarif
+     serveur). Le renommer les détacherait en silence. */
+  const tel=(x.phone||'').replace(/[^0-9+]/g,'');
+  const telCh=(d.telephone||'').replace(/[^0-9+]/g,'');
+  const prix=Number.isFinite(Number(s?.prix_final_centimes))?money(s.prix_final_centimes)
+           :(x.price?eurAff(x.price)+' €':'—');
+  showSheet(`Réservation ${ref}`,`<div class="bon">
+    <div class="bon-etat"><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><b>${esc(prix)}</b></div>
+    <div class="toolbar bon-actions" id="bookingActions">${actions||'<span class="muted">Aucune action disponible pour cet état.</span>'}</div>
+    <div class="card bon-bloc"><b>${esc(dateLisible(x.date,x.time))}</b>
+      <p class="bon-trajet">${esc(x.from)}<br>→ ${esc(x.to)}</p>
+      <p class="muted small">${esc(x.vehicle||'Véhicule à préciser')} · ${esc(x.source||'Public ELA')}</p></div>
+    <div class="card bon-bloc"><p class="bon-qui"><b>${esc(x.client||'Client')}</b><br><span class="muted">${esc(x.phone||'sans numéro')}</span></p>
+      ${tel?`<a class="btn alt geste" href="tel:${esc(tel)}">Appeler le client</a>`:''}</div>
+    ${d.nom?`<div class="card bon-bloc"><p class="bon-qui"><b>Chauffeur : ${esc(d.nom)}</b><br><span class="muted">${esc(d.telephone||'sans numéro')}</span></p>
+      ${telCh?`<a class="btn alt geste" href="tel:${esc(telCh)}">Appeler le chauffeur</a>`:''}</div>`:''}
+    <details class="bon-plus"><summary>Chiffres, paiement et historique</summary>
+      <div class="toolbar bon-actions" id="bookingActionsPlus"></div>
+      <div class="card bon-bloc"><p>Prix client : ${money(s?.prix_final_centimes)} · Chauffeur dû : ${money(s?.montant_chauffeur_centimes)} · Marge ELA : ${money(s?.marge_ela_centimes)}</p>
+        <p>Paiement : <span class="tag ${esc(p?.statut||'')}">${esc(p?.statut||'non initialisé')}</span>${p?.mode?` · ${esc(p.mode)}`:''}</p></div>
+      <div class="timeline">${ev.length?ev.map(e=>`<div><b>${new Date(e.cree_le).toLocaleString('fr-FR')} — ${esc(e.type_evenement)}</b><br><span class="muted small">${esc(e.acteur_type)}</span></div>`).join(''):'<div class="muted">Aucun événement enregistré.</div>'}</div>
+    </details></div>`);
   $('#bookingActions')?.addEventListener('click',async e=>{const a=e.target.dataset.act;if(!a)return;
     if(a==='confirm')return changeStatus(ref,'confirmee','Confirmer cette réservation ?');
     if(a==='cancel')return changeStatus(ref,'annulee','Annuler cette réservation ?');

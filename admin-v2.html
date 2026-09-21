@@ -68,7 +68,7 @@
 <section id="app" class="app hidden"><header class="top"><img src="brand-logo-white.png" alt="ELA Transfer"><div><span id="who" class="muted small"></span> <button id="logout" class="btn alt">Déconnexion</button></div></header><div class="layout"><nav id="nav"></nav><main>
 <section id="s-dashboard" class="section on"><div class="title"><div><h1>À traiter</h1></div><button class="btn alt mini" data-refresh aria-label="Actualiser">↻</button></div><div id="metrics" class="grid"></div><div id="zoneIntake" class="card intake"><div class="intake-boutons"><button id="btnCollerV2" class="btn" type="button">Coller une demande</button><button id="btnTelephoneV2" class="btn alt" type="button">Saisir par téléphone</button></div><p id="intakeEtat" class="muted small intake-etat"></p><form id="formTelephone" class="intake-form" hidden><div class="grid2"><label>Nom du client<input id="tfNom" required></label><label>Téléphone<input id="tfTel" inputmode="tel" required></label><label class="wide">Départ<input id="tfDepart" required></label><label class="wide">Arrivée<input id="tfArrivee" required></label><label>Date<input id="tfDate" type="date" required></label><label>Heure<input id="tfHeure" type="time" required></label><label>Véhicule<select id="tfVehicule"><option value="berline">Berline</option><option value="van">Van</option></select></label><label>Prix (€)<input id="tfPrix" type="number" min="0" step="1" inputmode="decimal" required></label><div class="wide"><button id="tfCalculer" class="btn alt" type="button">Calculer le prix depuis les adresses</button><p id="tfCalcEtat" class="muted small"></p></div><label class="wide">Chauffeur <span class="muted small">(facultatif — on prend la course, on le cherche ensuite)</span><select id="tfChauffeur"><option value="">— pas encore —</option></select></label></div><p id="tfGrille" class="muted small"></p><div class="row"><button id="tfCreer" class="btn" type="submit">Créer la course</button><button id="tfAnnuler" class="btn alt" type="button">Annuler</button></div></form><textarea id="intakeTexte" class="intake-zone" rows="6" hidden placeholder="Colle ici le message WhatsApp du client, puis appuie sur Ajouter."></textarea><button id="btnIntakeAjouter" class="btn alt" type="button" hidden>Ajouter la demande</button></div><h2>Actions requises</h2><div id="actions" class="list"></div><h2>Prochaines réservations</h2><div id="nextBookings" class="list"></div>
 <div id="zonePush" class="card reglage"><b>Alertes sur cet appareil</b><p class="muted small">Se règle une fois. Prévient dès qu'une demande arrive, écran verrouillé compris.</p></div></section>
-<section id="s-bookings" class="section"><div class="title"><h1>Courses</h1><button class="btn alt mini" data-refresh aria-label="Actualiser">↻</button></div><div class="toolbar"><input id="qBooking" placeholder="Référence, client, départ…"><select id="fBooking"><option value="">Tous statuts</option><option>attente</option><option>confirmee</option><option>attribuee</option><option>realisee</option><option>annulee</option></select></div><div id="bookings" class="list"></div></section>
+<section id="s-bookings" class="section"><div class="title"><h1>Courses</h1><button class="btn alt mini" data-refresh aria-label="Actualiser">↻</button></div><div class="toolbar"><input id="qBooking" placeholder="Référence, client, départ…"></div><div class="kanban-onglets" id="kanbanOnglets"></div><div class="kanban" id="bookings"></div></section>
 <section id="s-drivers" class="section"><div class="title"><h1>Chauffeurs</h1><button class="btn" data-open="driver">+ Chauffeur</button></div><div class="toolbar"><input id="qDriver" placeholder="Nom, téléphone, entreprise…"><select id="fDriver"><option value="">Tous</option><option value="valide">Validés</option><option value="a_renouveler">Papiers bientôt expirés</option><option value="papiers">Papiers expirés ou manquants</option><option value="bloque">Bloqués</option><option value="a_verifier">À vérifier</option></select></div><div id="drivers" class="list"></div></section>
 <section id="s-partners" class="section"><div class="title"><h1>Partenaires / Hôtels</h1><button class="btn" data-open="partner">+ Partenaire</button></div><div id="partners" class="list"></div><h2>Affiche à poser sur un comptoir</h2><div class="card" id="zoneAffiche"><p class="muted small">Le concierge n’appelle pas : il montre l’affiche. Le client scanne, le site s’ouvre avec l’hôtel <b>déjà en adresse de départ</b>, et la course garde d’où il vient — c’est ce qui permet de savoir ce que l’hôtel rapporte. À imprimer une fois.</p><label class="field">Hôtel<select id="affPartenaire"><option value="">— saisir un nom —</option></select></label><label class="field">Nom imprimé sur l’affiche<input id="affNom" maxlength="60" placeholder="Ibis CDG" autocomplete="off"></label><p class="muted small">Un hôtel <b>pas encore partenaire</b> se saisit à la main : l’affiche est justement l’outil de prospection, on l’imprime avant de signer.</p><p id="affEtat" class="muted small intake-etat"></p><div id="affiche" class="affiche" hidden><div class="affiche-marque">ELA<b>TRANSFER</b></div><div class="affiche-titre">Votre chauffeur privé</div><div class="affiche-hotel" id="affHotel"></div><div class="affiche-qr" id="affQr"></div><div class="affiche-mode">Scannez — votre adresse de départ est déjà remplie</div><div class="affiche-tel">Ou appelez le <b>+33 7 59 31 24 33</b></div><div class="affiche-lien" id="affLien"></div></div><div class="row" id="affActions" hidden><button id="btnAffImprimer" class="btn" type="button">Imprimer l’affiche</button></div></div></section>
 <section id="s-gestion" class="section"><div class="title"><h1>Gestion</h1></div><div class="menu"><button class="menu-item" data-tab="drivers" type="button"><span class="menu-nom">Chauffeurs</span><span class="menu-sous">Le carnet et les papiers</span></button><button class="menu-item" data-tab="partners" type="button"><span class="menu-nom">Hôtels et partenaires</span><span class="menu-sous">Tarifs dédiés, affiche de comptoir</span></button><button class="menu-item" data-tab="registre" type="button"><span class="menu-nom">Registre et résultats</span><span class="menu-sous">Ce qui a été fait, et ce que ça rapporte</span></button><button class="menu-item" data-tab="finance" type="button"><span class="menu-nom">Finances et factures</span><span class="menu-sous">Commission, paiements</span></button><button class="menu-item" data-tab="pricing" type="button"><span class="menu-nom">Tarifs et réglages</span><span class="menu-sous">Commission, lien d’avis, identité</span></button><button class="menu-item" data-tab="promos" type="button"><span class="menu-nom">Codes promo</span><span class="menu-sous">Remises et validité</span></button></div></section>
@@ -133,8 +133,78 @@ function metric(label,val,cls=''){/* UN ZÉRO NE CRIE PAS. La couleur d'alerte n
 if((cls==='urgent'||cls==='danger') && (val===0||val==='0')) cls='';
 return `<div class="card metric ${cls}"><span class="muted">${esc(label)}</span><strong>${esc(val)}</strong></div>`}
 function render(){const bs=state.courses.map(b);$('#metrics').innerHTML=metric('Actions requises',state.actions.length,state.actions.length?'urgent':'ok')+metric('Demandes en attente',bs.filter(x=>x.status==='attente').length)+metric('Sans chauffeur',state.actions.filter(x=>x.type_action?.includes('chauffeur')).length)+metric('Incidents',state.actions.filter(x=>x.type_action?.includes('incident')).length,'danger');$('#actions').innerHTML=state.actions.length?state.actions.map(a=>`<div class="card row ${a.priorite>=80?'danger':'urgent'}"><strong>${esc(libelleAction(a.type_action))}</strong><span>${esc(a.course_ref||a.donnees?.libelle||'Action générale')}</span><span class="muted">${a.echeance?new Date(a.echeance).toLocaleString('fr-FR'):''}</span><button class="btn alt" onclick="resolveAction(${a.id})">Résoudre</button></div>`).join(''):'<div class="empty">Aucune action requise.</div>';$('#nextBookings').innerHTML=bookingRows(bs.slice(0,8));filterBookings();filterDrivers();renderPartners();renderPromos();renderPricing();renderFinance()}
-function bookingRows(bs){return bs.length?bs.map(x=>`<button class="card row" style="color:inherit;text-align:left" onclick="openBooking('${esc(x.ref)}')"><strong>${esc(x.ref)}</strong><span><b>${esc(dateLisible(x.date,x.time))}</b><br>${esc(x.from)} → ${esc(x.to)}</span><span><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><br><span class="muted small">${esc(x.source)}</span></span><b>${x.price?esc(eurAff(x.price)+' €'):''}</b></button>`).join(''):'<div class="empty">Aucune réservation.</div>'}
-function filterBookings(){const q=($('#qBooking')?.value||'').toLowerCase(),f=$('#fBooking')?.value||'';let bs=state.courses.map(b).filter(x=>(!f||x.status===f)&&(!q||JSON.stringify(x).toLowerCase().includes(q)));$('#bookings').innerHTML=bookingRows(bs)}
+/* LE GESTE SUIVANT, SUR LA LIGNE. Une course n'attend jamais dix choses :
+   elle en attend UNE, et c'est son statut qui dit laquelle. On ne propose
+   donc qu'elle, en plein, plus le téléphone du client — le reste du bon
+   s'ouvre d'un appui sur la ligne. Sur une course finie, aucun geste : il
+   n'y a plus rien à faire, et un bouton de plus serait du bruit. */
+function gestesLigne(x){
+  const tel=(x.phone||'').replace(/[^0-9+]/g,'');
+  const appeler=tel?`<a class="btn alt geste" href="tel:${esc(tel)}">Appeler</a>`:'';
+  const principal={attente:['confirm','Confirmer'],confirmee:['assign','Attribuer'],
+                   attribuee:['done','Terminée'],incident:['done','Terminée']}[x.status];
+  const p=principal?`<button class="btn geste" onclick="gesteRapide('${esc(x.ref)}','${principal[0]}')">${principal[1]}</button>`:'';
+  return (p||appeler)?`<div class="row-gestes">${p}${appeler}</div>`:'';
+}
+/* LA LIGNE N'EST PLUS UN BOUTON, ET ELLE NE POUVAIT PAS LE RESTER : un
+   bouton dans un bouton est du HTML invalide, et les navigateurs le
+   défont chacun à leur façon. L'enveloppe porte la carte, le bouton
+   intérieur porte la ligne et ouvre le bon, les gestes vivent à côté. */
+function bookingRows(bs){return bs.length?bs.map(x=>`<div class="card row-bloc"><button class="row row-ouvrir" style="color:inherit;text-align:left" onclick="openBooking('${esc(x.ref)}')"><strong>${esc(x.ref)}</strong><span><b>${esc(dateLisible(x.date,x.time))}</b><br>${esc(x.from)} → ${esc(x.to)}</span><span><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><br><span class="muted small">${esc(x.source)}</span></span><b>${x.price?esc(eurAff(x.price)+' €'):''}</b></button>${gestesLigne(x)}</div>`).join(''):'<div class="empty">Aucune réservation.</div>'}
+/* =====================================================================
+   LE TABLEAU DE TRAITEMENT — UNE COLONNE PAR ÉTAPE DU CYCLE
+   ---------------------------------------------------------------------
+   Une liste à plat ne dit pas CE QU'IL RESTE À FAIRE : une course en
+   attente et une course clôturée s'y ressemblent, et il faut lire chaque
+   ligne pour trier. Les colonnes sont les étapes réelles du cycle, dans
+   l'ordre où Barbaros les fait, et chaque carte porte le geste qui la
+   fait avancer d'une colonne. On voit sa soirée d'un coup d'oeil.
+
+   CE N'EST PAS LE KANBAN DE L'ISSUE #197, et il ne faut pas les
+   confondre : celui-là pilote le PRODUIT (backlog, priorités, agents) et
+   sa spécification dit elle-même de ne pas le mélanger au cycle métier
+   des réservations. Celui-ci ne traite que des courses.
+
+   PAS DE GLISSER-DÉPOSER. Sur un téléphone tenu d'une main, à 3 h du
+   matin, un glissement rate ou déplace la mauvaise carte — et ici
+   « déplacer » veut dire changer l'état d'une vraie course. C'est le
+   bouton de la carte qui la fait avancer, avec sa confirmation.
+   ===================================================================== */
+const COLONNES=[
+  {cle:'nouvelles', titre:'Nouvelles',   statuts:['attente'],   urgent:true},
+  {cle:'attribuer', titre:'À attribuer', statuts:['confirmee']},
+  {cle:'encours',   titre:'En course',   statuts:['attribuee']},
+  {cle:'cloturees', titre:'Clôturées',   statuts:['realisee','annulee','client_absent','incident']}
+];
+let colonneVue = 'nouvelles';
+function filterBookings(){
+  const q=($('#qBooking')?.value||'').toLowerCase(), f=$('#fBooking')?.value||'';
+  const bs=state.courses.map(b).filter(x=>(!f||x.status===f)&&(!q||JSON.stringify(x).toLowerCase().includes(q)));
+  /* LES PLUS PROCHES EN PREMIER dans chaque colonne : ce qui part bientôt
+     est ce qui presse. Les clôturées à l'envers — la dernière faite en
+     haut, c'est celle qu'on vient de traiter. */
+  const rang=x=>String(x.date||'')+String(x.time||'');
+  const board=COLONNES.map(col=>{
+    let liste=bs.filter(x=>col.statuts.includes(x.status));
+    liste.sort((a,z)=>col.cle==='cloturees'?rang(z).localeCompare(rang(a)):rang(a).localeCompare(rang(z)));
+    return {col, liste};
+  });
+  $('#bookings').innerHTML=board.map(({col,liste})=>
+    `<section class="kanban-col${col.cle===colonneVue?' on':''}${col.urgent&&liste.length?' kanban-urgent':''}" data-cle="${col.cle}">
+       <header class="kanban-tete"><h2>${col.titre}</h2><b>${liste.length}</b></header>
+       <div class="kanban-cartes">${liste.length?bookingRows(liste):'<p class="muted small kanban-vide">Rien ici.</p>'}</div>
+     </section>`).join('');
+  /* LES ONGLETS PORTENT LE COMPTE, et c'est tout leur intérêt sur un
+     téléphone : on ne voit qu'une colonne à la fois, le nombre dit s'il
+     faut aller voir les autres. */
+  const ong=$('#kanbanOnglets');
+  if(ong) ong.innerHTML=board.map(({col,liste})=>
+    `<button type="button" class="kanban-onglet${col.cle===colonneVue?' on':''}${col.urgent&&liste.length?' kanban-urgent':''}" data-col="${col.cle}">${col.titre}<b>${liste.length}</b></button>`).join('');
+}
+document.addEventListener('click',e=>{
+  const o=e.target.closest('.kanban-onglet'); if(!o)return;
+  colonneVue=o.dataset.col; filterBookings();
+});
 function filterDrivers(){const q=($('#qDriver')?.value||'').toLowerCase(),f=$('#fDriver')?.value||'';let ds=state.drivers.filter(d=>(!f||(d.etat_effectif||d.statut)===f)&&(!q||JSON.stringify(d).toLowerCase().includes(q)));$('#drivers').innerHTML=ds.length?ds.map(d=>`<div class="card row"><strong>${esc(d.nom_affiche)}</strong><span>${esc(d.telephone_whatsapp)}<br><span class="muted">${esc(d.entreprise||'')}</span></span><span class="tag ${esc(tagPapiers(d))}">${esc(libellePapiers(d))}</span><button class="btn alt" onclick="editDriver('${d.id}')">Modifier</button></div>`).join(''):'<div class="empty">Aucun chauffeur.</div>'}
 function tagPapiers(d){const e=d.etat_effectif||d.statut;return e==='papiers'?'bloque':e}
 const sansVue=d=>d.papiers_etat===undefined;
@@ -210,7 +280,7 @@ $('#nav').innerHTML=ONGLETS.map(([k,l],i)=>`<button data-tab="${k}" class="${i?'
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-tab]'); if(!c)return; allerVers(c.dataset.tab);
 });
-document.addEventListener('click',e=>{if(e.target.matches('[data-refresh]'))load();const t=e.target.dataset.open;if(t)openEntity(t)});$('#qBooking').oninput=$('#fBooking').onchange=filterBookings;$('#qDriver').oninput=$('#fDriver').onchange=filterDrivers;$('#closeSheet').onclick=()=>$('#sheet').classList.add('hidden');$('#logout').onclick=()=>{sessionStorage.removeItem('ela_admin_session');location.reload()};
+document.addEventListener('click',e=>{if(e.target.matches('[data-refresh]'))load();const t=e.target.dataset.open;if(t)openEntity(t)});$('#qBooking').oninput=filterBookings;$('#qDriver').oninput=$('#fDriver').onchange=filterDrivers;$('#closeSheet').onclick=()=>$('#sheet').classList.add('hidden');$('#logout').onclick=()=>{sessionStorage.removeItem('ela_admin_session');location.reload()};
 $('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginError').textContent='';try{const s=await login($('#email').value,$('#password').value);$('#who').textContent=s.user?.email||'';$('#login').classList.add('hidden');$('#app').classList.remove('hidden');await load()}catch(err){$('#loginError').textContent=err.message}};
 (async()=>{try{const s=JSON.parse(sessionStorage.getItem('ela_admin_session')||'null');if(!s?.access_token)return;session=s;const ok=await api('/rest/v1/rpc/est_exploitant',{method:'POST',body:'{}'});if(ok!==true)throw 0;$('#who').textContent=s.user?.email||'';$('#login').classList.add('hidden');$('#app').classList.remove('hidden');await load()}catch{sessionStorage.removeItem('ela_admin_session')}})();
 </script></body></html>

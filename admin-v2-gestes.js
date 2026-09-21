@@ -167,7 +167,7 @@ openBooking = async function(ref){
          emmène au champ plutôt que d'envoyer une phrase inachevée. */
       if(!lienAvis()){
         note(zone, "Aucun lien d'avis n'est enregistré — le message se terminerait dans le vide. "
-                 + "Il se règle dans « Tarification ».", 'ko');
+                 + "Il se règle dans « Tarifs et réglages ».", 'ko');
         return;
       }
       const ok = ouvrirEtMarquer(bon, 'avis', messageAvis(bon), reussi => {
@@ -182,7 +182,7 @@ openBooking = async function(ref){
     zone.append(b);
     if(!lienAvis())
       note(zone, "Aucun lien d'avis enregistré : la demande ne peut pas partir. "
-               + "Il se règle dans « Tarification ».", 'ko');
+               + "Il se règle dans « Tarifs et réglages ».", 'ko');
   }
 };
 

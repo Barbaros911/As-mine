@@ -247,8 +247,19 @@ check("« Demander un avis » apparaît sur une course réalisée",
 check("aucun accusé sur une course réalisée",
   await p.locator('#btnAccuse').count() === 0);
 const avantLien = await p.textContent('#bookingActions');
-check("l'absence de lien d'avis est annoncée AVANT le clic",
-  /lien d'avis/i.test(avantLien) && /Tarification/.test(avantLien), avantLien.slice(-200));
+/* ON NE FIGE PAS LE NOM DE L'ONGLET, ON LE LIT DANS L'INTERFACE. Ce
+   contrôle exigeait « Tarification » : l'onglet s'appelle « Tarifs et
+   réglages » depuis la refonte, le message envoyait donc chercher un
+   écran qui n'existe pas sous ce nom -- et le test verrouillait le
+   mensonge au lieu de l'attraper. Lu depuis le menu, il exige
+   désormais que le message et l'onglet disent LA MÊME CHOSE, quel que
+   soit le nom du jour. */
+const nomOnglet = (await p.textContent('#s-gestion [data-tab="pricing"] .menu-nom') || '').trim();
+check("le menu de Gestion nomme bien l'écran des réglages",
+  nomOnglet.length > 2, 'lu : ' + nomOnglet);
+check("l'absence de lien d'avis est annoncée AVANT le clic, et elle dit OÙ le régler",
+  /lien d'avis/i.test(avantLien) && avantLien.includes(nomOnglet),
+  'attendu « ' + nomOnglet + ' » — reçu : ' + avantLien.slice(-140));
 
 const avantClic = (await wa()).length;
 await p.click('#btnAvis');

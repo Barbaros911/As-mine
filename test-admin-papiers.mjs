@@ -440,6 +440,50 @@ for (const largeur of [320, 390, 1280]) {
 
   check(`à ${largeur} px, aucun débordement horizontal`,
     await p3.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth));
+
+  /* ═══ AUCUN BOUTON VISIBLE N'EST RECOUVERT ═══════════════════════════
+     LE DÉFAUT QUE CE CONTRÔLE EXISTE POUR EMPÊCHER, et il est arrivé :
+     la barre de navigation du bas (z-index 29) passait devant la feuille
+     d'un bon (z-index 20). Les boutons du bas du bon recevaient le doigt
+     de la BARRE — ils étaient morts, et rien à l'écran ne le disait.
+     Barbaros l'a vécu, aucune suite ne l'avait vu.
+     ON NE RELIT PAS LE CSS, on demande au navigateur QUI REÇOIT LE DOIGT
+     au centre de chaque bouton : une règle d'empilement se casse sans
+     bruit, il suffit d'un z-index ajouté ailleurs.
+     On ouvre un vrai bon d'abord : c'est là que se jouait le défaut, et
+     un écran sans feuille ouverte ne l'aurait jamais montré. */
+  await p3.evaluate(()=>{ const l=document.querySelector('#nextBookings .row-ouvrir, #nextBookings .row'); if(l) l.click(); });
+  await p3.waitForTimeout(600);
+  const recouverts = await p3.evaluate(()=>{
+    const hors=[];
+    /* ON NE REGARDE QUE LA COUCHE VISIBLE. Une feuille modale recouvre
+       TOUT ce qui est derrière, et c'est son travail : lister ces
+       boutons-là ferait crier le contrôle à chaque exécution, donc le
+       ferait ignorer -- la meilleure façon de laisser passer le vrai
+       recouvrement suivant. Feuille ouverte : on éprouve SES boutons,
+       ceux que le doigt vise réellement. */
+    const racine=document.querySelector('.sheet:not(.hidden)')||document.body;
+    /* UN ÉLÉMENT ROGNÉ N'EST PAS UN ÉLÉMENT RECOUVERT. Le contenu d'une
+       feuille qui défile dépasse sa boîte : ses rectangles restent dans
+       la fenêtre, mais le point visé tombe hors du cadre et rend le
+       voile. Ce n'est pas un bouton mangé, c'est un bouton qu'il faut
+       faire défiler. On n'éprouve donc que ce qui est DANS la boîte. */
+    const boite=(racine.querySelector(':scope>div')||racine).getBoundingClientRect();
+    for(const e of racine.querySelectorAll('button, a[href], summary')){
+      const r=e.getBoundingClientRect();
+      if(r.width<8||r.height<8) continue;
+      if(r.top<0||r.bottom>innerHeight||r.left<0||r.right>innerWidth) continue;
+      const cx=r.x+r.width/2, cy=r.y+r.height/2;
+      if(cy<boite.top||cy>boite.bottom||cx<boite.left||cx>boite.right) continue;
+      const dessus=document.elementFromPoint(r.x+r.width/2, r.y+r.height/2);
+      if(dessus && dessus!==e && !e.contains(dessus))
+        hors.push(((e.textContent||'').trim().slice(0,22)||e.tagName)
+          +' ← '+(dessus.className||dessus.tagName));
+    }
+    return hors;
+  });
+  check(`à ${largeur} px, aucun bouton visible n'est recouvert par autre chose`,
+    recouverts.length===0, recouverts.join(' | '));
   await ctx3.close();
 }
 

@@ -71,3 +71,155 @@
 @media(min-width:801px){
   .menu{display:grid;grid-template-columns:1fr 1fr;gap:11px;max-width:820px}
 }
+
+/* ═══ UNE FEUILLE OUVERTE PASSE DEVANT TOUT, Y COMPRIS LA BARRE ═════════
+   MESURÉ, pas supposé : la feuille du bon est à z-index 20, la barre du
+   bas à 29. La barre passait donc DEVANT une feuille modale, et le
+   dernier bouton du bon — « Accuser réception au client », à 782 px —
+   recevait le doigt de la barre, pas le sien. Le bon défile sur 934 px
+   pour 774 visibles : CHAQUE bouton devenait mort dès qu'il descendait
+   dans les 78 px du bas. C'est ce que Barbaros a vu (« des touches qui ne
+   fonctionnent pas »), et c'est le même défaut que le site client a
+   corrigé il y a des semaines sans qu'il soit reporté ici.
+   ON MASQUE LA BARRE PLUTÔT QUE DE MONTER LA FEUILLE : une feuille modale
+   prend l'écran, et une barre de navigation visible sous un bon invite à
+   quitter un travail en cours sans l'enregistrer. */
+body:has(.sheet:not(.hidden)) .mobile-bottom-nav{display:none}
+/* Repli pour les navigateurs sans « :has » : la feuille, elle, monte
+   au-dessus. Deux défenses, parce qu'un bouton mort ne se voit pas. */
+.sheet{z-index:40}
+
+/* ═══ LE GESTE DU SOIR, SUR LA LIGNE ═══════════════════════════════════
+   La carte devient l'enveloppe, le bouton intérieur garde la grille de la
+   ligne et ouvre le bon, les gestes se posent dessous. */
+.row-bloc{padding:0;overflow:hidden}
+.row-ouvrir{width:100%;background:transparent;border:0;color:inherit;font:inherit}
+.row-gestes{display:flex;gap:8px;padding:0 12px 11px}
+/* 44 px, c'est la mesure d'un pouce, et ces boutons se pressent à la
+   chaîne le soir sur trois ou quatre courses d'affilée. */
+.row-gestes .geste{flex:1;min-height:44px;display:flex;align-items:center;
+  justify-content:center;border-radius:10px;font-weight:700;font-size:14px;
+  text-decoration:none;margin:0}
+/* « .bouton-fantôme » du site client, la même leçon : une ancre est un
+   élément EN LIGNE, et « width » n'y fait rien sans « flex » ou « block ».
+   Le bouton « Appeler le chauffeur » s'était déjà posé en travers d'une
+   ligne pour cette raison exacte. */
+.row-gestes a.geste{display:flex}
+
+/* ═══ LE TABLEAU DE TRAITEMENT ══════════════════════════════════════════
+   MÊME HTML AUX DEUX TAILLES, la feuille de style tranche : sur téléphone
+   une colonne à la fois, choisie par les onglets ; sur ordinateur les
+   quatre de front. Deux balisages voudraient dire deux tableaux à tenir,
+   et le jour où l'un gagne une colonne l'autre l'oublie. */
+.kanban-onglets{display:flex;gap:6px;margin-bottom:12px}
+.kanban-onglet{flex:1;min-width:0;min-height:44px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;padding:5px 3px;border-radius:11px;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  font-size:11px;font-weight:650;line-height:1.15;text-align:center}
+.kanban-onglet b{font-size:17px;color:var(--ink)}
+.kanban-onglet.on{background:#eef6ff;border-color:#9fccf7;color:#0b5ba7}
+.kanban-onglet.on b{color:#0b5ba7}
+/* LE ROUGE NE SERT QU'À CE QUI ATTEND UNE RÉPONSE, et à rien d'autre.
+   Une colonne « Nouvelles » vide ne crie pas : si tout criait, plus rien
+   ne crierait -- c'est la règle du tableau de bord historique. */
+.kanban-onglet.kanban-urgent b{color:#c9302f}
+.kanban-tete{display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin:0 2px 9px}
+.kanban-tete h2{font-size:15px;margin:0;color:var(--ink)}
+.kanban-tete b{min-width:26px;height:24px;padding:0 7px;border-radius:12px;
+  display:grid;place-items:center;background:#e8eef5;color:#31475e;font-size:13px}
+.kanban-col.kanban-urgent .kanban-tete b{background:#fde3e5;color:#a32c38}
+.kanban-cartes{display:flex;flex-direction:column;gap:9px}
+.kanban-vide{padding:14px 2px;margin:0}
+
+@media(max-width:899px){
+  /* UNE SEULE COLONNE À L'ÉCRAN. Pas de défilement horizontal : sur un
+     téléphone tenu d'une main, un tableau qui se balaie de côté fait
+     perdre la colonne qu'on regardait. */
+  .kanban .kanban-col{display:none}
+  .kanban .kanban-col.on{display:block}
+}
+@media(min-width:900px){
+  .kanban-onglets{display:none}
+  .kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+  .kanban .kanban-col{display:block;min-width:0}
+  /* La colonne qui attend une réponse se distingue par un filet, jamais
+     par un fond : quatre colonnes colorées, et on ne sait plus où aller. */
+  .kanban-col.kanban-urgent{box-shadow:inset 0 3px 0 #c9302f;border-radius:13px;padding-top:9px}
+}
+
+/* ═══ LA PAGE DE TRAITEMENT ═════════════════════════════════════════════
+   L'état, puis les actions, puis la course, puis à qui l'on parle. Les
+   chiffres et l'historique sous un repli : ils servent à vérifier, pas à
+   décider. */
+.bon{display:flex;flex-direction:column;gap:11px}
+.bon-etat{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bon-etat b{font-size:19px;color:var(--ink)}
+/* LES ACTIONS EN COLONNE, PLEINE LARGEUR. Côte à côte, elles se
+   partageaient 390 px : un doigt vise mal une cible de 90 px de large, et
+   une erreur ici change l'état d'une vraie course. */
+.bon-actions{display:flex;flex-direction:column;gap:8px;margin:0}
+.bon-actions>.btn,.bon-actions>.geste{width:100%;min-height:48px;margin:0;
+  display:flex;align-items:center;justify-content:center;text-align:center}
+/* L'ACTION DU MOMENT EST LA PREMIÈRE, ET ELLE EST LA SEULE EN PLEIN.
+   Les modules qui se greffent (tarif serveur, accusé, avis) ajoutent à la
+   suite : le geste du statut reste en tête. */
+.bon-actions .tag{align-self:flex-start}
+.bon-bloc{padding:13px 14px;margin:0}
+.bon-bloc p{margin:5px 0 0}
+.bon-trajet{line-height:1.45}
+.bon-qui{margin:0 0 9px}
+.bon-plus{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.bon-plus>summary{padding:13px 14px;min-height:48px;display:flex;align-items:center;
+  cursor:pointer;font-weight:700;font-size:14px;color:var(--ink)}
+.bon-plus[open]>summary{border-bottom:1px solid var(--line)}
+.bon-plus>.card,.bon-plus>.timeline{margin:11px}
+/* 44 px, la mesure d'un pouce. Sans cette règle le bouton d'appel héritait
+   d'un « .btn » de 38 px : mesuré, et c'est le bouton qu'on presse debout,
+   dans un parking d'aéroport. */
+.bon-bloc .geste{display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:44px;text-decoration:none;margin:0}
+
+/* LA COLONNE QUI ATTEND UNE RÉPONSE PORTE LE ROUGE, PAS L'OR. « .urgent »
+   existe déjà dans la page avec un filet doré : ma colonne ramassait une
+   règle écrite pour autre chose, et le seul signal qui doit crier sur cet
+   écran sortait en doré. Troisième fois que ce projet se fait prendre par
+   une classe déjà prise, après « .arrivee » et « class="carte" ». */
+.kanban-col.kanban-urgent{border-left:4px solid #c9302f;padding-left:9px}
+/* LE TITRE ET SON BOUTON D'ACTUALISATION SUR LA MÊME LIGNE. Mesuré : le
+   « ↻ » seul sur sa ligne coûtait ~90 px avant la première course, sur un
+   écran de 844. */
+@media(max-width:899px){
+  .section>.title{position:relative;padding-right:56px}
+  .section>.title .btn[data-refresh]{position:absolute;right:0;top:0;
+    min-height:44px;min-width:44px;margin:0}
+}
+
+/* ═══ LA CARTE DU TABLEAU SE LIT EN COLONNE, À TOUTES LES TAILLES ═══════
+   La ligne d'une liste est une grille de quatre colonnes qui réclame
+   555 px à elle seule. Dans une colonne de tableau large de 330 px, le
+   trajet se faisait couper en plein milieu et le prix sortait du cadre —
+   MESURÉ sur la capture ordinateur, invisible sur téléphone où la règle
+   des 800 px empilait déjà tout.
+   Une carte de tableau n'est pas une ligne de liste : on la lit de haut
+   en bas, pas de gauche à droite. */
+.kanban .row{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:4px 10px;align-items:start;padding:12px}
+.kanban .row>*{min-width:0}
+.kanban .row>strong{grid-column:1/-1}
+.kanban .row>span:nth-of-type(1){grid-column:1/-1;line-height:1.4}
+.kanban .row>span:nth-of-type(2){grid-column:1}
+.kanban .row>b{grid-column:2;align-self:end;white-space:nowrap}
+
+/* ═══ LES MESSAGES DE LA FEUILLE ÉTAIENT ÉCRITS POUR UN FOND SOMBRE ═════
+   « .ko » vaut #ffc1c7 — un rose pâle, lisible sur le bleu nuit de
+   l'ancienne feuille. Cette refonte a mis la feuille en BLANC, et le
+   message est devenu illisible : contraste mesuré 1,3 pour 1, là où la
+   norme demande 4,5. Barbaros l'a vu sur sa capture.
+   C'est le piège d'une couleur choisie pour un décor et non pour un rôle,
+   et le projet le connaît déjà : c'est ce qui avait fait virer le logo au
+   vert quand il empruntait « --gold ».
+   Valeurs mesurées sur blanc : #C9302F donne 4,9 — le rouge de l'attente,
+   celui que le reste du produit emploie déjà. */
+.sheet .ko{color:#C9302F}
+.sheet .ok{color:#14744d}
