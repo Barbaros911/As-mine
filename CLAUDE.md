@@ -3958,6 +3958,257 @@ de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
   vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
   le `-U postgres` a été posé pour que personne ne le rechasse.
 
+### DEUX PHOTOS DE L'ACCUEIL ONT DISPARU DU SITE EN LIGNE
+
+18 septembre 2026. Un nettoyage du dépôt fusionné dans `main` (`a87db4a`) a
+supprimé le dossier `photos/` — que ce fichier demande explicitement de **ne
+pas** supprimer sans l'accord de Barbaros : *« c'est du travail qu'il a
+fourni »*.
+
+**MESURÉ SUR LE SITE CONSTRUIT, pas supposé** : deux des **cinq** cartes de
+services de l'accueil avaient perdu leur fond — la deuxième (Hôtel) et la
+cinquième (Mise à disposition). C'est ce que voyait un client arrivant sur
+elatransfer.com.
+
+- **POURQUOI RIEN NE L'A ATTRAPÉ** : une image de fond qui manque **ne casse
+  rien**. Aucune erreur levée, la page se charge, la mise en page tient. Il
+  reste un trou gris — et ça ne se voit qu'en **regardant** la page, ce
+  qu'aucune suite ne faisait pour les images.
+- **ON A ÉTÉ JUSTE DANS L'IMPUTATION** : `easyhotel.jpg` manquait **déjà
+  avant** le nettoyage ; les deux autres non. Vérifié commit par commit
+  plutôt que de tout mettre sur le même dos.
+- Les deux fichiers ont été **restaurés depuis l'historique**. Les onze
+  autres photos ne sont plus référencées par rien : elles restent dans
+  l'historique git, récupérables, et leur sort est **une décision de
+  Barbaros** — pas un nettoyage appliqué en passant.
+
+**LE CONTRÔLE NE FIGE AUCUNE LISTE** : il lit ce que le site **construit** va
+chercher et vérifie que chaque fichier existe. Une photo retirée
+volontairement, avec sa référence, reste verte ; une référence orpheline
+tombe, et le message **nomme le fichier**. Même famille que le débordement de
+6 px : seul le site publié le montre.
+
+**QUATRIÈME FOIS QUE CE PROJET SE FAIT PRENDRE PAR UN CONTRÔLE QUI LIT UN
+COMMENTAIRE.** Le premier jet tombait sur `photos/easyhotel.jpg` — qui n'est
+pas une référence mais un **exemple écrit dans un commentaire**, au-dessus
+d'un champ `photo:""` vide. Après `cp -r carte`, `cp -r exploitant` et la
+section des tests, la règle est acquise : **on retire les commentaires avant
+de chercher**.
+
+**ET MA PREMIÈRE POSE DU BLOC ÉTAIT APRÈS `serveur.close()`** : la suite
+mourait sur `ECONNREFUSED` et n'affichait **rien**. Une suite muette est un
+échec — ne jamais la lire comme « pas concernée ».
+
+### PARITÉ, BRIQUE 7 — LA CHAÎNE DU PRIX EST PARTAGÉE
+
+18 septembre 2026, dernière brique de la parité. « Calculer le prix depuis les
+adresses » n'existait que côté site : quand un hôtel appelle, Admin v2 ne
+savait qu'accepter un montant tapé à la main.
+
+**CE QUI DIVERGERAIT SERAIT LE PRIX, et c'est pour ça que cette brique est la
+plus exposée des sept.** Barbaros annonce un montant au téléphone depuis
+l'espace exploitant ; le client en voit un autre sur le site. Le prix est
+**ferme donc opposable** : c'est le client qui aurait raison. Et rien ne
+l'annonce — le prix s'affiche des deux côtés, il est simplement différent, et
+on le découvre le jour où quelqu'un compare.
+
+**LA CHAÎNE N'EST PAS RECOPIÉE, ELLE A DÉMÉNAGÉ** dans
+`itineraire-partage.js` : même chemin que `intake-demande.js` à la brique 1 et
+`qr-affiche.js` à la brique 6. Ce qui y vit : les quatre niveaux d'itinéraire
+et leurs deux clés, les trois lecteurs de réponse, le tracé GeoJSON, le
+minuteur par appel, `departAt`, le vol d'oiseau de secours, **l'arrondi de
+Barbaros**, `prix`, et les appels d'adresse BAN/Photon.
+
+- **LA GRILLE EST UN PARAMÈTRE OBLIGATOIRE**, jamais un défaut caché.
+  `prix(gamme, km)` : le site passe `GAMMES`, Admin v2 passe la grille du
+  **serveur**. Un défaut dans le fichier partagé serait une **deuxième
+  grille**, muette le jour où la vraie change — même règle que le lecteur de
+  demandes. Un contrôle relit la signature dans la source.
+- **CE QUI RESTE DANS LA PAGE, ET CE N'EST PAS UN OUBLI** : le **classement**
+  des résultats d'adresse (`chercher`, `note`, `variantes`, `dedoublonner`,
+  les terminaux, `sansAccents`). Il est lié à l'autocomplétion du site — le
+  chemin le plus emprunté du produit — et le déplacer aurait mêlé une refonte
+  de l'ergonomie client à un partage de calcul. Le fichier partagé porte les
+  **appels** et leur lecture, donc les coordonnées ; `lieu()` y rend le
+  premier résultat plausible, ce dont Admin v2 a besoin. **La limite est
+  nommée plutôt que cachée.**
+- **`prix` RESTE UNE FONCTION DE LA PAGE, ET LA RAISON EST AILLEURS QUE DANS
+  LE CALCUL.** Elle ne calcule plus rien — elle délègue — mais elle est
+  **l'ancre de la règle tarifaire du partenaire hôtel**, que
+  `.github/scripts/appliquer-regles-easyhotel.mjs` applique au moment de
+  **construire** le site. Cette règle a besoin de `modeHotel()` et de
+  `course`, qui ne vivent que dans cette page : la faire porter par le fichier
+  partagé l'obligerait à connaître un mode hôtel que l'espace exploitant n'a
+  pas. Le partenaire reste ici, le calcul est là-bas, et l'ancre du
+  transformateur a suivi la nouvelle forme.
+  **C'EST UNE SECONDE GRILLE** (2,55 et 4,10 €/km, arrondi à l'euro), posée à
+  la construction. C'est une décision de Barbaros — le van moins cher que le
+  site est un prix d'appel assumé — pas un défaut à corriger en passant.
+  **ET ELLE EST BIEN DÉCLARÉE CÔTÉ SERVEUR**, dans `tarif_easyhotel_autre` :
+  j'avais d'abord écrit qu'elle ne l'était pas, c'était faux, la source
+  serveur la porte au centime. **Ce qui manquait n'était pas la déclaration,
+  c'était le CONTRÔLE** — voir juste en dessous.
+- **SANS GRILLE SERVEUR, ADMIN V2 NE CALCULE PAS**, et il le dit. Inventer un
+  tarif par défaut ferait annoncer au téléphone un prix que personne n'a
+  validé. Même règle que `ecrireGrilleV2` : trois contrôles tombent si on
+  invente une grille de repli.
+- **LES ADRESSES RETENUES SONT RÉÉCRITES DANS LES CHAMPS.** La recherche rend
+  le premier résultat plausible ; si ce n'est pas le bon Ibis, le kilométrage
+  est faux et le prix avec. Barbaros doit **voir** ce sur quoi il annonce un
+  montant. Et **le prix reste modifiable** : c'est une négociation.
+- **UN ÉCHEC NE BLOQUE RIEN.** La saisie à la main a toujours marché, et c'est
+  elle le chemin sûr : le calcul le dit et rend la main.
+
+**LE CONTRÔLE QUI COMPTE LE PLUS EST L'ÉGALITÉ AU CENTIME AVEC LE SITE**, sur
+la même distance et la même grille. Et **l'arrondi s'éprouve sur un 5 pile** :
+à 16,25 km et 4,00 €/km la course fait exactement 65 €, le seul cas où `>` et
+`>=` se séparent. Sa règle est que le 5 pile **descend** — 60 €, pas 70.
+- **PREMIER JET RATÉ, ET LA LEÇON VAUT** : j'avais posé ce cas à 11,25 km,
+  soit 45 € pile — mais **le plancher du van est à 50 €, et il a le dernier
+  mot**. Le contrôle tombait sur le code juste. Un cas d'arrondi ne prouve
+  rien s'il est repris par le plancher : il faut le poser **au-dessus**.
+- **LE FAUX SERVICE D'ADRESSES RÉPOND SELON LA QUESTION POSÉE.** Le premier
+  jet rendait la **même** place pour les deux champs : le trajet faisait alors
+  0 km, le prix tombait au **plancher**, et deux contrôles passaient au vert
+  sur un prix faux. Un défaut qui résoudrait les deux adresses au même endroit
+  rendrait exactement ça — 30 € sur un Paris → Argenteuil — sans un mot.
+- **UN CONTRÔLE QUI PASSE PAR CHANCE DE CALENDRIER NE VÉRIFIE RIEN.** La scène
+  « sans grille serveur » n'attendait qu'un texte non vide : elle attrapait
+  « Recherche des adresses… » et « aucun prix n'est inventé » passait au vert
+  parce que le calcul n'avait pas fini d'écrire. Elle attend maintenant un état
+  qui a **tranché**. Éprouvé : sans cette attente, un seul des trois contrôles
+  tombait.
+- **PIÈGE DE BANC RENCONTRÉ ICI** : `state` est déclaré en `let` au premier
+  niveau d'un script classique — il vit donc dans la portée **lexicale**
+  globale et **n'est pas sur `window`**. `window.state` rend `undefined`, et
+  l'attente expirait sur une page parfaitement chargée.
+
+**LA SUITE ITINÉRAIRE RÉÉCRIT MAINTENANT LE FICHIER PARTAGÉ, plus la page.**
+Les clés ont suivi le code qui les lit. Viser `index.html` passait au vert en
+ne remplaçant **rien** : un `replace` sur une chaîne absente ne lève pas, il
+rend le texte tel quel, et la suite aurait éprouvé la **vraie** clé au lieu de
+la fausse. Éprouvé en reculant : douze contrôles tombent.
+
+`test-admin-prix.mjs`, **32 contrôles**, branchée en CI. Quatre
+falsifications, toutes tombent en nommant le défaut — dont celle qui recopie
+l'arithmétique dans Admin v2, qui diverge de 10 € et se fait prendre par le
+prix ET par la source.
+
+#### LE TARIF HÔTEL AU KILOMÈTRE POUVAIT DÉRIVER SANS QUE RIEN NE TOMBE
+
+18 septembre 2026, trouvé en contrôlant le travail de ChatGPT à la demande de
+Barbaros. Le workflow « Contrôle source tarifaire serveur » compare les tarifs
+**généraux** et les **forfaits** du site publié à la source serveur. Il ne
+comparait **pas** le taux hôtel **au kilomètre** — celui qui s'applique quand
+une réception envoie un client vers « autre destination ».
+
+**MESURÉ, PAS SUPPOSÉ.** En posant `9.99 : 8.88` dans le transformateur, le
+site publié facturait **9,99 €/km** en mode hôtel et **tous les contrôles
+restaient au vert**.
+- **PREMIÈRE FALSIFICATION RATÉE, ET ELLE VAUT D'ÊTRE ÉCRITE** : mon `sed`
+  n'avait rien remplacé (les guillemets du motif sont échappés dans une chaîne
+  JS), le taux était resté le bon, et le vert ne prouvait donc rien. J'ai
+  failli conclure d'une mesure qui n'avait pas mordu. **Une falsification qui
+  ne change rien est un test qui ne teste rien** : toujours vérifier que le
+  défaut est bien en place avant de lire le verdict.
+
+**POURQUOI ÇA NE SE VOIT PAS** : ce taux n'existe que dans le site
+**construit**. Le dépôt ne le porte pas — c'est le transformateur qui
+l'injecte — donc **aucune suite qui éprouve le dépôt ne peut le voir**. Même
+famille que le débordement de 6 px, que seul le site publié montrait.
+
+`.github/scripts/verifier-tarif-hotel.mjs` **ne fige aucun nombre** : il lit le taux dans le
+site publié, lit la source serveur, et exige l'égalité. Une baisse décidée par
+Barbaros touche les deux et reste verte ; n'en toucher qu'un tombe, et le
+message **nomme la gamme et l'écart au centime**. Trois falsifications : le
+build qui dérive, la source serveur qui dérive, le transformateur qui ne
+s'applique plus — les trois tombent.
+
+#### CE QUE LE CONTRÔLE DU TRAVAIL DE CHATGPT A DONNÉ DE BON
+
+Même date, même demande. Ce qui a été éprouvé et tient :
+- **Aucun secret dans le dépôt** : ni clé Stripe secrète, ni `service_role`,
+  ni `whsec_`. Les seules occurrences de ces motifs sont les workflows qui les
+  **cherchent** — des garde-fous, pas des fuites. Aucune trace de Stripe Live.
+- **Aucune policy de lecture pour `anon`**, nulle part. Les tables sensibles
+  portent toutes `revoke all ... from anon`, et les `select` sont réservés à
+  `authenticated` **plus** `est_exploitant()`. C'est la frontière qui protège
+  les noms, téléphones et adresses des clients (RGPD).
+- **Le webhook Stripe est solide** : signature HMAC SHA-256 sur le corps
+  **brut**, comparaison à **temps constant**, fenêtre de 300 s contre le
+  rejeu, et surtout **l'`event_id` n'est marqué qu'APRÈS l'écriture
+  financière** — si la base tombe entre les deux, Stripe rejoue et rien n'est
+  perdu. C'est le bon ordre, et il est commenté.
+- **Autorisé n'est pas encaissé** : `requires_capture` → « autorise »,
+  `succeeded` → « encaisse », et les deux montants vivent dans deux colonnes
+  distinctes. La capture est **manuelle** (`capture_method=manual`).
+- La référence de course venue des métadonnées Stripe est **validée par une
+  expression régulière** avant toute écriture — une donnée qui vient de
+  l'extérieur n'entre pas telle quelle.
+
+**RIEN DE BLOQUANT TROUVÉ SUR CE PÉRIMÈTRE.** Le seul trou est celui du tarif
+hôtel ci-dessus, et il est bouché.
+
+#### LE MODULE RECOPIÉ EST ARRIVÉ EN MÊME TEMPS, ET IL ANNONÇAIT 10 € DE TROP
+
+18 septembre 2026. Pendant que cette brique s'écrivait, admin-v2-itineraire.js
+est entré dans `main` par un autre chemin, juste avant la fusion de #191
+(commits `37540d6`, `b9da08b`, `ee3b7f2`). **Il fonctionnait**, et il respectait
+la bonne règle : la grille vient exclusivement du serveur. Mais il **recopiait**
+la chaîne au lieu de la partager — exactement ce que cette brique existe pour
+éviter.
+
+**MESURÉ, PAS SUPPOSÉ.** Sur les distances de 1 à 60 km par pas de 250 m,
+**dix-neuf** donnaient un prix différent de celui du site, **toujours 10 € plus
+cher** :
+
+| Distance | Gamme | Le site | Le module recopié |
+|---|---|---|---|
+| 13,75 km | Van | **50 €** | 60 € |
+| 16,25 km | Van | **60 €** | 70 € |
+| 23,75 km | Van | **90 €** | 100 € |
+
+- **LA CAUSE EST L'ARRONDI.** Il utilisait `Math.round(p/10)*10`, l'arrondi de
+  l'école, qui **monte** sur un 5 pile. Chez Barbaros le 5 pile **descend** —
+  c'est écrit dans ce fichier depuis septembre, et c'est le montant qu'il
+  annonce au téléphone. **Le prix est ferme donc opposable : c'est le client
+  qui aurait raison.**
+- **ET UN SECOND ÉCART, STRUCTUREL** : il n'appelait **qu'OSRM**, le serveur de
+  démonstration, quand le site passe d'abord par ORS — dont la clé est remplie.
+  Deux moteurs de routage, deux distances, donc deux prix sur **presque toutes**
+  les courses, pas seulement les 5 piles. *L'ampleur de cet écart n'a pas pu
+  être mesurée d'ici : le réseau de cette machine ne joint aucun des deux
+  services. C'est donc rapporté comme structurel, pas chiffré.*
+- **IL N'AVAIT NI MAPBOX, NI LE VOL D'OISEAU.** OSRM muet, et l'espace
+  exploitant ne sait plus donner un prix du tout, là où le site en donne un.
+- **SON TEST NE LISAIT QUE DES CHAÎNES DE CARACTÈRES** — « le module est
+  publié », « le bouton existe », « BAN est appelé ». Onze contrôles, aucun
+  comportemental : **l'arrondi n'était vérifié par rien**. Un test qui cherche
+  des mots dans un fichier ne dit rien du prix qui sort.
+
+**LES DEUX ONT MÊME COEXISTÉ UNE CONSTRUCTION**, le temps d'une résolution de
+conflit : l'écran portait alors **deux boutons « Calculer le prix depuis les
+adresses »**, côte à côte, rendant deux prix. **Pire que l'un ou l'autre.**
+
+Le module recopié et son test ont donc été **retirés** au profit de la chaîne
+partagée. Trois contrôles gardent la trace : aucun tarif kilométrique recopié
+côté exploitant (c'est ce que son test verrouillait de bon, et ça survit), le
+fichier n'existe plus, la recette ne le publie plus.
+
+**LA LEÇON N'EST PAS « l'autre s'est trompé ».** Les deux travaux ont commencé
+du même constat juste, et le sien marchait. Ce qui a coûté les 10 €, c'est
+d'avoir **réécrit** un calcul au lieu d'aller le chercher — et personne ne
+l'aurait vu, puisque le prix s'affiche des deux côtés. **C'est la règle du
+dépôt, éprouvée une fois de plus sur l'objet le plus cher qu'il protège.**
+
+**ERREUR DE MA PART À LA REPRISE, ET ELLE VAUT D'ÊTRE ÉCRITE** : le rebase
+avait **trois** conflits, pas deux. Mon `grep -c "<<<<<<<\|>>>>>>>"` a rendu
+« 2 » et je l'ai lu comme du contexte au lieu de deux marqueurs restants — le
+troisième est parti dans un commit, et `construire.sh` ne s'exécutait plus
+(« Syntax error: redirection unexpected »). **J'ai mesuré, et j'ai mal lu la
+mesure** ; c'est la même famille que les quatre fautes de lecture déjà
+consignées ici. Ce qui l'a rattrapé : **exécuter la recette**, pas la relire.
+
 ### PARITÉ, BRIQUE 6 — L'AFFICHE DE COMPTOIR ET SON QR
 
 17 septembre 2026. Admin v2 n'avait pas l'affiche hôtel : la piste
@@ -4378,11 +4629,11 @@ mesure le **titre**, pas `isVisible` : la feuille est toujours dans le DOM,
 c'est une classe qui la montre, donc `isVisible` aurait pu répondre oui sans
 que le bon soit le bon.
 
-**CE QUI N'EST PAS ENCORE PORTÉ, ET JE LE NOMME** : « Calculer le prix depuis
-les adresses ». Côté site il passe par la chaîne d'itinéraire à quatre
-niveaux ; la recopier dans Admin v2 serait exactement la divergence que ce
-lot évite. Elle doit devenir partagée comme le lecteur — **c'est une brique à
-part, qui se relit seule**.
+**CE QUI N'ÉTAIT PAS ENCORE PORTÉ À CE MOMENT-LÀ** : « Calculer le prix depuis
+les adresses ». Côté site il passait par la chaîne d'itinéraire à quatre
+niveaux ; la recopier dans Admin v2 aurait été exactement la divergence que ce
+lot évite. **C'est fait — voir la brique 7** : la chaîne a déménagé dans
+`itineraire-partage.js`, comme le lecteur.
 
 ### LA GRILLE DU CLIENT ET CELLE DU SERVEUR NE S'ACCORDAIENT QUE PAR CHANCE
 
@@ -4466,10 +4717,13 @@ passe par un `attendre()` qui transforme le délai en contrôle rouge nommé, et
 le parcours de secours est **gardé** — sans ça un `fill()` sur un champ masqué
 tuait la suite avant qu'elle imprime son bilan.
 
-**CE QUI RESTE À LA PARITÉ** : saisie par téléphone, registre et sauvegarde,
-export CSV, facture de commission, affiche QR des hôtels, demande d'avis,
-accusé de réception. **Aucune bascule de `admin.html` avant que tout y soit** —
-et c'est ChatGPT qui contrôle, brique par brique.
+**CE QUI RESTAIT À LA PARITÉ APRÈS CETTE BRIQUE-LÀ** : saisie par téléphone,
+registre et sauvegarde, export CSV, facture de commission, affiche QR des
+hôtels, demande d'avis, accusé de réception, et la chaîne du prix partagée.
+**Les sept briques sont faites au 18 septembre 2026** (1 à 7, dans cet
+ordre). **Aucune bascule de `admin.html` pour autant** : la parité des gestes
+n'est pas une relecture — c'est ChatGPT qui contrôle, brique par brique, et
+c'est Barbaros qui décide.
 
 ### LE BANDEAU COLLANT MANGEAIT 18 % DE L'ÉCRAN — ET J'AVAIS MAL DIAGNOSTIQUÉ
 

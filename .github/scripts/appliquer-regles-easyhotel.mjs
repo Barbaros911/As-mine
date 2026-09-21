@@ -30,8 +30,8 @@ const remplacements = [
    'hotel_au_km:"Autre destination : le prix final est calculé automatiquement selon la distance."'],
   ['hotel_au_km:"Other destination: the price is calculated by distance, as on the site."',
    'hotel_au_km:"Other destination: the final price is calculated automatically from the route distance."'],
-  ['function prix(gamme, km){\n    return Math.max(arrondiDizaine(gamme.parKm * km), gamme.mini);\n  }',
-   'function prix(gamme, km){\n    if(typeof modeHotel === "function" && modeHotel() && !course.forfait){\n      var tauxHotel = gamme.cle === "van" ? 4.10 : 2.55;\n      return Math.max(Math.round(tauxHotel * km), gamme.mini);\n    }\n    return Math.max(arrondiDizaine(gamme.parKm * km), gamme.mini);\n  }']
+  ['function prix(gamme, km){\n    return window.ELA_ROUTE.prix(gamme, km);\n  }',
+   'function prix(gamme, km){\n    if(typeof modeHotel === "function" && modeHotel() && !course.forfait){\n      var tauxHotel = gamme.cle === "van" ? 4.10 : 2.55;\n      return Math.max(Math.round(tauxHotel * km), gamme.mini);\n    }\n    return window.ELA_ROUTE.prix(gamme, km);\n  }']
 ];
 
 for (const [avant, apres] of remplacements) {

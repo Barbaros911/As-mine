@@ -2,7 +2,7 @@ name: ELA Guardrails
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, ai-dev]
   push:
     branches: [main]
 
@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import pathlib, re, sys
+          import hashlib, pathlib, re, sys
           roots = [pathlib.Path(".")]
           skip = {".git", "node_modules", "site"}
           rules = [
@@ -48,16 +48,25 @@ jobs:
               re.compile(r'(?i)(?:secret|private[_-]?key|service[_-]?role|api[_-]?key|token|password)\s*[:=]\s*["\x27][A-Za-z0-9_./+=:-]{16,}["\x27]'),
               re.compile(r'\bsk_(?:live|test)_[A-Za-z0-9]{16,}\b'),
           ]
-          allow = {".env.example", "NOTIFICATION.md", "test-nouveau-serveur.mjs"}
+          # Exceptions bornées : chemin exact + empreinte SHA-256 de la ligne
+          # factice exacte. Changer la ligne ou la copier ailleurs réactive le scan.
+          allowed_line_hashes = {
+              "NOTIFICATION.md": {"d813af4c1530c8ca4f27239b65b847bd397dc1ec6cef8f63715ef9d2317a668c"},
+              "test-nouveau-serveur.mjs": {"66022aba7806eb7fea4dca77d29525f534c76515471d4f552a47e09b0144d2c9", "b80cdf25dd2c790fb284591440d92a0608dea204f7a2bbe5d11113d5c0dc8590", "743ad7912cf43361d1bb640746bbeaacd518669f98ed62372ec011e9bdda741b"},
+          }
           bad=[]
           for p in pathlib.Path(".").rglob("*"):
-              if not p.is_file() or any(part in skip for part in p.parts) or p.name in allow:
+              if not p.is_file() or any(part in skip for part in p.parts):
                   continue
               try: text=p.read_text(errors="ignore")
               except Exception: continue
               for n,line in enumerate(text.splitlines(),1):
-                  if any(r.search(line) for r in rules):
-                      bad.append(f"{p}:{n}")
+                  if not any(r.search(line) for r in rules):
+                      continue
+                  digest = hashlib.sha256(line.encode("utf-8")).hexdigest()
+                  if digest in allowed_line_hashes.get(p.as_posix(), set()):
+                      continue
+                  bad.append(f"{p}:{n}")
           if bad:
               print("::error::Potential hard-coded secret(s):")
               print("\n".join(bad[:100]))

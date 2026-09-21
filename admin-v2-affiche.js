@@ -97,10 +97,11 @@ function brancher(){
 
   /* La liste se remplit à l'arrivée sur l'onglet : au chargement du module,
      « state.partners » peut encore être vide — « load() » est asynchrone. */
-  const nav = $$('nav');
-  if(nav) nav.addEventListener('click', ev => {
-    if(ev.target && ev.target.dataset && ev.target.dataset.tab === 'partners') remplirPartenaires();
-  });
+    /* ON ÉCOUTE L'ÉVÉNEMENT D'ÉCRAN, PAS LA BARRE. Cet onglet peut vivre
+     dans la barre du bas ou sous « Gestion » : ce module n'a pas à le
+     savoir. Espionner « #nav » l'avait rendu muet le jour du
+     déménagement, sans le moindre message. */
+  document.addEventListener('ela:ecran', e => { if(e.detail === 'partners') remplirPartenaires(); });
   remplirPartenaires();
 }
 
