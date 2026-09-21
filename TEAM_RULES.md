@@ -36,6 +36,26 @@ n'est pas un confort : c'est la carte des accès réels.
   précédente disait qu'il « ne lit pas les journaux de construction », ce
   qui était trop absolu et lui retirait un contrôle qu'il exerce vraiment.*
 
+## 0. Garde-fou d'exécution obligatoire
+
+**AUCUNE ÉCRITURE GITHUB AVANT LE PRÉVOL.** Cette règle s'applique à ChatGPT, Claude, Codex, Work et tout autre agent, même si la demande paraît urgente, triviale ou déjà connue.
+
+Avant le premier appel GitHub qui modifie quoi que ce soit, l'agent doit, dans la session courante :
+1. lire `TEAM_RULES.md` depuis le `main` actuel ;
+2. lire `AGENTS.md` et `PROJECT_STATE.md` depuis ce même `main` ;
+3. relever les PR ouvertes et les branches actives sur la zone concernée ;
+4. identifier les fichiers qui seront touchés et vérifier qu'aucun travail concurrent ne les couvre ;
+5. classer la demande : `À FAIRE`, `EN COURS AILLEURS`, `PARTIELLEMENT FAIT`, `BLOQUÉ` ou `TERMINÉ` ;
+6. seulement ensuite créer/modifier une branche, un fichier, une PR ou fusionner.
+
+**Pas d'exception fondée sur la mémoire.** Une conversation précédente, une mémoire d'agent ou le fait d'avoir lu ces fichiers plus tôt ne remplace jamais ce prévol : l'état GitHub peut avoir changé.
+
+**Fail closed :** si une étape du prévol ne peut pas être vérifiée, l'agent n'écrit rien dans le dépôt et signale précisément ce qui manque.
+
+**Avant fusion**, refaire au minimum le contrôle du dernier `main`, des PR concurrentes et du diff de la branche. Une fusion n'est jamais automatique parce que la modification vient du même agent.
+
+---
+
 ## 2. La source de vérité
 
 **`main`, et rien d'autre.** Ni une conversation, ni une branche, ni la mémoire
