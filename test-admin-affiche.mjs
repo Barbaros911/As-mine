@@ -83,6 +83,22 @@ const PARTENAIRES = [
   {id:'p2', nom:'Ibis CDG',            adresse_depart:'Roissypôle', actif:true},
 ];
 
+/* ═══ LA NAVIGATION EST PASSÉE À TROIS ONGLETS ═══
+   Accueil (« À traiter »), Courses, Gestion. Les cinq autres écrans n'ont
+   pas disparu : ils vivent sous « Gestion », qui est une PORTE et non une
+   copie. Un test doit donc emprunter le CHEMIN RÉEL de l'utilisateur —
+   Gestion, puis l'entrée — au lieu de cliquer un onglet qui n'est plus
+   dans la barre. C'est la même leçon que « un écran qu'aucun lien n'ouvre
+   n'est pas accessible » : ce qu'on éprouve, c'est le chemin. */
+async function allerOnglet(p, cle){
+  const direct = p.locator(`#nav button[data-tab="${cle}"]`);
+  if(await direct.count()){ await direct.click(); await p.waitForTimeout(150); return; }
+  await p.click('#nav button[data-tab="gestion"]');
+  await p.waitForSelector(`#s-gestion [data-tab="${cle}"]`, {state:'visible', timeout:10000});
+  await p.click(`#s-gestion [data-tab="${cle}"]`);
+  await p.waitForTimeout(150);
+}
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
 
@@ -116,7 +132,7 @@ await p.goto(BASE+'/admin-v2.html', {waitUntil:'domcontentloaded'});
 await p.waitForFunction(()=>document.getElementById('affNom')
   && (state.partners||[]).length >= 2, null, {timeout:20000});
 
-await p.click('nav button[data-tab="partners"]');
+await allerOnglet(p, 'partners');
 await p.waitForTimeout(150);
 
 check("l'écran des hôtels porte l'affiche", await p.locator('#zoneAffiche').isVisible());

@@ -2,7 +2,7 @@
 set -e
 rm -rf site
 mkdir -p site
-cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-itineraire.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js intake-demande.js qr-affiche.js manifest.webmanifest sw.js \
+cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-app.css intake-demande.js qr-affiche.js itineraire-partage.js manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html site/
 node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
@@ -16,7 +16,10 @@ html=html.replace('</head>','<link rel="stylesheet" href="/application-facade.cs
 html=html.replace('<img class="logo-image" src="brand-logo-white.png"','<img class="logo-image" src="brand-logo.webp"',1)
 page.write_text(html,encoding='utf-8')
 admin=Path('site/admin-v2.html'); a=admin.read_text(encoding='utf-8')
-for script in ('/intake-demande.js','/qr-affiche.js','/admin-v2-actions.js','/admin-v2-itineraire.js','/admin-v2-push.js','/admin-v2-finance.js','/admin-v2-registre.js','/admin-v2-factures.js','/admin-v2-gestes.js','/admin-v2-affiche.js'):
+a=a.replace('</head>','<link rel="stylesheet" href="/admin-v2-app.css"></head>',1)
+# intake-demande.js EN PREMIER : admin-v2-actions.js l'appelle, et un
+# navigateur exécute les scripts dans l'ordre où ils sont déclarés.
+for script in ('/intake-demande.js','/qr-affiche.js','/itineraire-partage.js','/admin-v2-actions.js','/admin-v2-push.js','/admin-v2-finance.js','/admin-v2-registre.js','/admin-v2-factures.js','/admin-v2-gestes.js','/admin-v2-affiche.js'):
     tag=f'<script src="{script}"></script>'
     if tag not in a:a=a.replace('</body>',tag+'</body>',1)
 admin.write_text(a,encoding='utf-8')
@@ -31,7 +34,7 @@ cp CNAME site/
 [ -d photos ] && cp -r photos site/photos || true
 touch site/.nojekyll
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-itineraire.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js intake-demande.js qr-affiche.js styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
+  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-app.css intake-demande.js qr-affiche.js itineraire-partage.js styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte exploitant"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")

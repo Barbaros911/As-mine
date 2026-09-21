@@ -394,15 +394,33 @@ for (const largeur of [320, 390, 1280]) {
   check(`à ${largeur} px, l'adresse e-mail est ${largeur>=900?'affichée':'masquée'}`,
     mail.affiche === (largeur >= 900));
 
-  /* Le logo officiel n'est jamais redessiné ni redimensionné par ce lot. */
+  /* Le logo officiel n'est jamais redessiné ni redimensionné par ce lot.
+     ET IL DOIT SE VOIR. Ce contrôle figeait le nom du fichier — donc il
+     restait vert le jour où le logo bleu nuit s'est retrouvé posé sur un
+     bandeau bleu nuit : présent, à la bonne taille, dégagé… et invisible.
+     Barbaros l'a vu du premier coup d'oeil, aucun contrôle ne l'avait vu.
+     On éprouve donc la RÈGLE : l'image est l'un des deux fichiers
+     OFFICIELS (jamais un redessin), et c'est la VARIANTE qui va avec le
+     fond — la blanche sur un fond sombre, la bleue sur un fond clair. */
   const logo = await p3.evaluate(()=>{
     const i=document.querySelector('.top img'), r=i.getBoundingClientRect();
     const au=document.elementFromPoint(r.x+r.width/2, r.y+r.height/2);
-    return {src:i.getAttribute('src'), w:Math.round(r.width), degage: au===i};
+    const f=getComputedStyle(document.querySelector('.top')).backgroundColor;
+    const n=(f.match(/[\d.]+/g)||[255,255,255]).map(Number);
+    /* Luminance perçue : le vert pèse plus que le rouge, le bleu presque
+       rien. Une moyenne simple dirait qu'un bleu nuit est « moyen ». */
+    const lum=(0.2126*n[0]+0.7152*n[1]+0.0722*n[2])/255;
+    return {src:i.getAttribute('src'), w:Math.round(r.width),
+            degage: au===i, fond:f, sombre: lum < 0.5};
   });
+  const OFFICIELS = ['brand-logo.webp','brand-logo-white.png'];
+  const attendu = logo.sombre ? 'brand-logo-white.png' : 'brand-logo.webp';
   check(`à ${largeur} px, le logo officiel est intact et dégagé`,
-    logo.src === 'brand-logo.webp' && logo.degage && logo.w === (largeur>=900?112:100),
+    OFFICIELS.includes(logo.src) && logo.degage && logo.w === (largeur>=900?112:100),
     JSON.stringify(logo));
+  check(`à ${largeur} px, c'est la variante lisible sur ce fond`,
+    logo.src === attendu,
+    `fond ${logo.fond} (${logo.sombre?'sombre':'clair'}) → attendu ${attendu}, trouvé ${logo.src}`);
 
   check(`à ${largeur} px, aucun débordement horizontal`,
     await p3.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth));

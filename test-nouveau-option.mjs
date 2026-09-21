@@ -217,6 +217,57 @@ const RECAP = '#ecran-recap .bloc-pancarte';
   await ctx.close();
 }
 
+/* --- LE SENS COMPTE : une gare À L'ARRIVÉE ne vend rien ---------------
+   On vend une pancarte à qui l'on VA CHERCHER, pas à qui l'on dépose. Le
+   code ne regarde que « choix.depart » et il a raison ; ce contrôle existe
+   parce qu'une réécriture qui lirait « l'une des deux adresses » passerait
+   sans que rien ne tombe — et on facturerait 10 € une pancarte brandie
+   devant un client qu'on laisse à Roissy.
+   La Base Adresse Nationale ne rend RIEN sur la question « gare de lyon » :
+   sans ça, ses résultats et ceux de Photon se mélangeraient dans la même
+   liste et le premier choisi ne serait plus celui qu'on croit. */
+{
+  const ctx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',
+    timezoneId:'Europe/Paris'});
+  const p = await ctx.newPage();
+  p.on('pageerror', e=>errs.push(e.message));
+  await p.route('**://photon.komoot.io/**', r=>r.fulfill({contentType:'application/json',
+    body:JSON.stringify(/lyon|gare/i.test(decodeURIComponent(r.request().url())) ? GARE : {features:[]})}));
+  await p.route('**://api-adresse.data.gouv.fr/**', r=>r.fulfill({contentType:'application/json',
+    body:JSON.stringify(/lyon|gare/i.test(decodeURIComponent(r.request().url())) ? {features:[]} : VERSAILLES)}));
+  await p.route('**://api.openrouteservice.org/**', r=>r.abort());
+  await p.route('**://router.project-osrm.org/**', r=>r.fulfill({contentType:'application/json',
+    body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
+  await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(500);
+
+  await p.type('#depart','versailles',{delay:12}); await p.waitForTimeout(900);
+  await p.locator('#departList [role=option]').first().click();
+  await p.type('#arrivee','gare de lyon',{delay:12}); await p.waitForTimeout(900);
+  await p.locator('#arriveeList [role=option]').first().click();
+  const d = new Date(Date.now()+3*864e5), z = n => String(n).padStart(2,"0");
+  await p.fill('#date', d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate()));
+  await p.fill('#heure','10:00');
+  await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1100);
+
+  /* On éprouve d'abord que la scène est bien celle qu'on croit : sans ça,
+     une arrivée qui ne serait PAS une gare rendrait le contrôle vert sans
+     rien prouver. */
+  const arrivee = await p.locator('#arrivee').inputValue();
+  check("la scène est bien un trajet VERS une gare",
+    /gare/i.test(arrivee), 'arrivée retenue : '+arrivee);
+
+  check("une gare à l'ARRIVÉE ne propose pas la pancarte",
+    await p.locator(VEH).isHidden());
+  await p.locator('.veh-carte').first().click();
+  await p.locator('#btnContinuer').click(); await p.waitForTimeout(350);
+  check("…et le récapitulatif ne la propose pas non plus",
+    await p.locator(RECAP).isHidden());
+  const total = nombre(await p.locator('#recapTotal').innerText());
+  check("le total ne porte donc aucun supplément", total === 60, String(total));
+  await ctx.close();
+}
+
 /* --- LES CGV DISENT CE QU'ON FACTURE, DANS LES DEUX LANGUES ------------ */
 {
   const {p, ctx} = await ouvrir(GARE);
