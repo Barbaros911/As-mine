@@ -2,7 +2,7 @@ name: ELA Guardrails
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, ai-dev]
   push:
     branches: [main]
 
@@ -48,16 +48,27 @@ jobs:
               re.compile(r'(?i)(?:secret|private[_-]?key|service[_-]?role|api[_-]?key|token|password)\s*[:=]\s*["\x27][A-Za-z0-9_./+=:-]{16,}["\x27]'),
               re.compile(r'\bsk_(?:live|test)_[A-Za-z0-9]{16,}\b'),
           ]
-          allow = {".env.example", "NOTIFICATION.md", "test-nouveau-serveur.mjs"}
+          # Une exception ne vaut que pour LA ligne suivante, dans le fichier
+          # exact prévu. Aucun fichier complet n'échappe plus au scanner.
+          allowed_next_line_markers = {
+              "NOTIFICATION.md": "secret-scan: allow-example-next-line",
+              "test-nouveau-serveur.mjs": "secret-scan: allow-test-fixture-next-line",
+          }
           bad=[]
           for p in pathlib.Path(".").rglob("*"):
-              if not p.is_file() or any(part in skip for part in p.parts) or p.name in allow:
+              if not p.is_file() or any(part in skip for part in p.parts):
                   continue
               try: text=p.read_text(errors="ignore")
               except Exception: continue
-              for n,line in enumerate(text.splitlines(),1):
-                  if any(r.search(line) for r in rules):
-                      bad.append(f"{p}:{n}")
+              lines=text.splitlines()
+              for n,line in enumerate(lines,1):
+                  if not any(r.search(line) for r in rules):
+                      continue
+                  marker = allowed_next_line_markers.get(p.as_posix())
+                  previous = lines[n - 2] if n > 1 else ""
+                  if marker and marker in previous:
+                      continue
+                  bad.append(f"{p}:{n}")
           if bad:
               print("::error::Potential hard-coded secret(s):")
               print("\n".join(bad[:100]))

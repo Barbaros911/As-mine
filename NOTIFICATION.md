@@ -165,6 +165,7 @@ npm install -g supabase
 supabase login
 supabase link --project-ref yyhzutnuhuytokarynaw
 supabase functions deploy nouvelle-demande
+<!-- secret-scan: allow-example-next-line -->
 supabase secrets set TELEGRAM_TOKEN="1234567890:AAG..."
 supabase secrets set TELEGRAM_CHAT="123456789"
 ```
