@@ -71,3 +71,20 @@
 @media(min-width:801px){
   .menu{display:grid;grid-template-columns:1fr 1fr;gap:11px;max-width:820px}
 }
+
+/* ═══ UNE FEUILLE OUVERTE PASSE DEVANT TOUT, Y COMPRIS LA BARRE ═════════
+   MESURÉ, pas supposé : la feuille du bon est à z-index 20, la barre du
+   bas à 29. La barre passait donc DEVANT une feuille modale, et le
+   dernier bouton du bon — « Accuser réception au client », à 782 px —
+   recevait le doigt de la barre, pas le sien. Le bon défile sur 934 px
+   pour 774 visibles : CHAQUE bouton devenait mort dès qu'il descendait
+   dans les 78 px du bas. C'est ce que Barbaros a vu (« des touches qui ne
+   fonctionnent pas »), et c'est le même défaut que le site client a
+   corrigé il y a des semaines sans qu'il soit reporté ici.
+   ON MASQUE LA BARRE PLUTÔT QUE DE MONTER LA FEUILLE : une feuille modale
+   prend l'écran, et une barre de navigation visible sous un bon invite à
+   quitter un travail en cours sans l'enregistrer. */
+body:has(.sheet:not(.hidden)) .mobile-bottom-nav{display:none}
+/* Repli pour les navigateurs sans « :has » : la feuille, elle, monte
+   au-dessus. Deux défenses, parce qu'un bouton mort ne se voit pas. */
+.sheet{z-index:40}
