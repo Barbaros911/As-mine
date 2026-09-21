@@ -1,3 +1,5 @@
+> **Règle normative :** `TEAM_RULES.md` reste le fichier maître. Ce document décrit son exécution pour les agents IA. En cas de contradiction, `TEAM_RULES.md` prévaut. `main` reste la source du code validé ; `ai-dev` est une branche d'intégration non déployable.
+
 # Équipe IA ELA Transfer
 
 Cette configuration ajoute un troisième exécutant local sans remplacer Claude
@@ -6,7 +8,7 @@ supérieure.
 
 ## Chaîne obligatoire
 
-`main → ai-dev → branche/worktree agent → tests → review croisée → PR → validation Burak`
+`main → ai-dev → branche/worktree agent → tests → review croisée → PR vers ai-dev → validation Burak → PR de promotion vers main`
 
 - aucune écriture directe sur `main` ou `ai-dev` ;
 - aucune fusion ou publication automatique ;

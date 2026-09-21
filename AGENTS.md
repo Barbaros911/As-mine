@@ -65,6 +65,7 @@ Si une tâche active touche déjà la même zone ou le même fichier, ne pas lan
 - Ne jamais travailler directement sur `main` ou `ai-dev` pour une évolution normale.
 - Vérifier d'abord que `ai-dev` intègre le dernier `main` validé.
 - Créer chaque branche d'agent depuis `ai-dev`, jamais depuis une branche de travail ancienne.
+- Un correctif humain urgent hors workflow IA peut partir de `main` si son Issue le décide explicitement ; ne pas retargeter rétroactivement une PR existante.
 - Une branche = une tâche clairement définie.
 - Nom recommandé : `ela/<numero-ou-sujet-court>` ou `fix/<sujet-court>`.
 - Une PR d'agent cible `ai-dev` et ne fusionne jamais automatiquement.

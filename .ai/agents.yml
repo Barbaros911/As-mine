@@ -42,10 +42,13 @@ regles:
   code_valide_source_de_verite: main
   coordination_source_de_verite: github-issues-et-pr
   branche_integration: ai-dev
+  branche_production: main
+  ai_dev_deployable: false
   branche_agent_depuis: ai-dev
   pr_agent_vers: ai-dev
   pr_promotion_vers: main
   fusion_automatique: false
+  validation_humaine_main: obligatoire
   production_automatique: false
   humain_obligatoire: Burak
   opencode_local: experimental-sans-validation-finale

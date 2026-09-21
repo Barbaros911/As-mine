@@ -46,14 +46,18 @@ n'est pas un confort : c'est la carte des accès réels.
 ## 2. La source de vérité et la branche d'intégration
 
 **`main` est l'unique source de vérité du code validé et destiné à la
-production.** Ni une conversation, ni une branche de travail, ni la mémoire de
-qui que ce soit ne remplace `main`.
+production.** Les Issues et Pull Requests GitHub sont la source de vérité de
+l'état du travail. Ni une conversation, ni une branche de travail, ni la mémoire
+de qui que ce soit ne remplace ces preuves.
 
-**`ai-dev` est uniquement la branche d'intégration de l'équipe IA.** Elle doit
+**`ai-dev` est uniquement la branche d'intégration de l'équipe IA et n'est
+jamais déployée en production.** Elle doit
 être synchronisée avec `main` avant une nouvelle série de travaux. Les branches
 des agents partent de `ai-dev` et leurs PR ciblent `ai-dev`. La promotion vers
 `main` passe ensuite par une PR séparée, revue, testée et validée explicitement
-par Barbaros. Aucune fusion ou publication automatique.
+par Barbaros. Aucune fusion ou publication automatique. Une PR de promotion
+peut regrouper plusieurs tâches déjà validées sur `ai-dev`, mais elle n'ajoute
+aucun développement nouveau.
 
 **Avant de commencer quoi que ce soit :** lire le dernier `main`, vérifier que
 `ai-dev` n'est pas en retard, puis lire les PR ouvertes, les Issues `[TEAM]`
