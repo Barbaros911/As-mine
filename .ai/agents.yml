@@ -1,0 +1,53 @@
+version: 1
+orchestrateur:
+  outil: chatgpt-codex
+  mission: attribution, suivi GitHub, intégration et compte rendu
+
+execution:
+  - role: ARCHITECTE
+    moteur: claude-code
+    risque_max: P1
+  - role: FRONTEND
+    moteur: local-aider
+    risque_max: P2
+  - role: ADMIN
+    moteur: claude-code
+    risque_max: P1
+  - role: BOOKING
+    moteur: claude-code
+    risque_max: P1
+  - role: HOTEL
+    moteur: local-aider
+    risque_max: P2
+  - role: DRIVER
+    moteur: claude-code
+    risque_max: P1
+  - role: QA
+    moteur: local-aider
+    risque_max: P2
+  - role: SECURITY
+    moteur: chatgpt-codex
+    risque_max: P0
+  - role: SEO
+    moteur: local-aider
+    risque_max: P2
+  - role: DEVOPS
+    moteur: chatgpt-codex
+    risque_max: P0
+  - role: REVIEWER
+    moteur: chatgpt-ou-claude
+    risque_max: P0
+
+regles:
+  source_de_verite: github-issues-et-pr
+  branche_integration: ai-dev
+  fusion_automatique: false
+  production_automatique: false
+  humain_obligatoire: Burak
+  opencode_local: experimental-sans-validation-finale
+  zones_locales_interdites:
+    - paiements
+    - secrets
+    - migrations-destructives
+    - production
+    - permissions-administrateur

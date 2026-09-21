@@ -1,0 +1,56 @@
+name: Tâche agent IA
+description: Tâche bornée pour Claude, ChatGPT ou l'agent local ELA
+title: "[TEAM] "
+labels: []
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      options: [P0 critique, P1 importante, P2 normale, P3 amélioration]
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Statut initial
+      options: [Backlog, À faire, En cours, À tester, À valider, Terminé]
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Responsable / agent
+      placeholder: Claude Code, ChatGPT, Agent local ELA ou humain nommé
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branche et worktree
+      placeholder: ai/123-agent-sujet — chemin du worktree
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description et fichiers concernés
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critères d'acceptation
+      placeholder: "- [ ] Critère vérifiable"
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests nécessaires
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dépendances, blocages et liens PR
