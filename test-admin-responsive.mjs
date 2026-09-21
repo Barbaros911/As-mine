@@ -22,5 +22,10 @@ ok(js.includes("data-open-ref"), 'ouverture de réservation depuis le tableau de
 ok(js.includes("typeof window.openBooking==='function'"), 'liaison avec la vraie fiche réservation absente');
 ok(build.includes('admin-v2-responsive.css'), 'CSS responsive non copié par le build');
 ok(build.includes('<link rel="stylesheet" href="/admin-v2-responsive.css">'), 'CSS responsive non injecté dans Admin v2');
-ok(html.includes('brand-logo.webp'), 'asset logo officiel Admin absent');
+/* ON ÉPROUVE LA RÈGLE, PAS UN NOM DE FICHIER. Figé sur « brand-logo.webp »,
+   ce contrôle restait vert le jour où ce logo bleu nuit s'est retrouvé posé
+   sur un bandeau bleu nuit — invisible — et il refusait ensuite la
+   correction, la variante blanche officielle. Les deux fichiers sont
+   officiels ; ce qui reste interdit, c'est un logo redessiné. */
+ok(/brand-logo(\.webp|-white\.png)/.test(html), 'aucun des deux logos officiels dans Admin v2');
 console.log('OK — garde-fous responsive et opérationnels Admin #165');

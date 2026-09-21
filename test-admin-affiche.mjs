@@ -91,6 +91,18 @@ const PARTENAIRES = [
    dans la barre. C'est la même leçon que « un écran qu'aucun lien n'ouvre
    n'est pas accessible » : ce qu'on éprouve, c'est le chemin. */
 async function allerOnglet(p, cle){
+  /* LE TIROIR D'ABORD, ET C'EST UNE SEULE AIDE POUR LES DEUX MISES EN PAGE.
+     Sous 800 px la colonne de navigation est un tiroir fermé : cliquer un
+     onglet qui s'y trouve, c'est cliquer dans le vide — Playwright attend
+     puis tombe sur un délai, et on cherche le défaut ailleurs. Il y avait
+     DEUX aides, une par refonte ; c'est toujours celle qu'on oublie qui
+     ment. Celle-ci ouvre le tiroir quand il existe, et se comporte comme
+     avant quand il n'y en a pas. */
+  const tiroir = p.locator('.mobile-menu');
+  if(await tiroir.count() && await tiroir.isVisible()){
+    await tiroir.click();
+    await p.waitForFunction(()=>document.querySelector('#nav')?.classList.contains('mobile-open'));
+  }
   const direct = p.locator(`#nav button[data-tab="${cle}"]`);
   if(await direct.count()){ await direct.click(); await p.waitForTimeout(150); return; }
   await p.click('#nav button[data-tab="gestion"]');
@@ -125,14 +137,6 @@ await ctx.addInitScript(() => {
 });
 
 const p = await ctx.newPage();
-const ouvrirOnglet = async onglet => {
-  const menu = p.locator('.mobile-menu');
-  if(await menu.isVisible()){
-    await menu.click();
-    await p.waitForFunction(()=>document.querySelector('#nav')?.classList.contains('mobile-open'));
-  }
-  await p.click(`nav button[data-tab="${onglet}"]`);
-};
 const errs=[]; p.on('pageerror', e=>errs.push(e.message));
 await p.goto(BASE+'/admin-v2.html', {waitUntil:'domcontentloaded'});
 /* ON ATTEND CE QU'ON VEUT VOIR, jamais une durée : un délai fixe n'est pas
