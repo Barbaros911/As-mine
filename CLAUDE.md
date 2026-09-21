@@ -4884,6 +4884,35 @@ l'outil qui doit attraper les pannes des autres ne renonce jamais au premier
 `test-push`) sont comptées comme les autres — elles se contentaient d'afficher,
 et le lanceur concluait « tout est au vert » pendant qu'une d'elles échouait.
 
+**IL NE RELANCE PLUS LA SÉRIE SI RIEN N'A CHANGÉ** (septembre 2026). Elle
+prend six minutes, et elle a tourné cinq fois en une nuit dont trois sur un
+dépôt strictement identique. Une attente qu'on juge inutile est une attente
+qu'on finit par sauter — donc un lanceur qu'on débranche, et le vrai échec
+suivant que personne ne voit. Le raccourci ne tient que par ce qui le rend
+honnête :
+- **L'empreinte porte le CONTENU**, jamais une liste de noms ni des dates.
+  `git status` dit seulement « ce fichier est modifié » : deux versions
+  différentes du même fichier lui rendent **la même réponse**, et on
+  sauterait la série sur un vrai changement. Éprouvé exactement là-dessus.
+- **Les fichiers non suivis en font partie.** Une suite qu'on vient
+  d'écrire n'est pas encore dans git : sans elle, l'exécution sautée serait
+  justement **la première de la nouvelle suite**. Même famille que le
+  préfixe « nouveau » qui faisait ignorer des suites en silence.
+- **Le banc compte autant que le dépôt** : version de Node, version de
+  Playwright (1.47 et 1.56 n'ordonnent pas les routes pareil — une soirée
+  perdue), et les paquets installés, puisque `jsqr` et `http_ece` décident à
+  eux seuls qu'un contrôle s'exécute ou s'arrête.
+- **Le mémo n'est écrit que par une série complète ET verte**, et la moindre
+  rouge l'efface. Sauter après un échec ferait passer du rouge pour du
+  vert — le défaut que ce lanceur existe pour débusquer, et auquel il s'est
+  déjà fait prendre deux fois. Une série **filtrée** ne compte pas et ne se
+  saute jamais : elle n'a rien lancé des autres.
+- **Un dépôt modifié PENDANT la série n'est pas mémorisé** : ce qui a
+  changé après le passage d'une suite n'a été éprouvé par personne.
+- Il vit dans `/tmp`, donc il disparaît avec la session : le défaut est de
+  **relancer**, jamais de sauter. Et `sh .claude/outils/tests.sh --force`
+  passe outre.
+
 `test-nouveau-bascule.mjs` couvre ce qui **ne se voit pas à l'écran** et
 qu'on ne remarquerait donc qu'une fois le mal fait : le titre et la
 description (leur ORDRE — le métier avant les aéroports), l'absence de

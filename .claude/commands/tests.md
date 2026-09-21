@@ -19,6 +19,13 @@ Le script s'occupe du lien Playwright, du serveur local, et du verrou qui
 empêche deux séries de se marcher dessus. Ne pas refaire ces étapes à la
 main, et ne jamais lancer une seconde série tant que la première tourne.
 
+**S'il répond « RIEN N'A CHANGÉ — AUCUNE SUITE LANCÉE », ce n'est pas une
+panne** : le dépôt, Node et Playwright sont identiques au bit près depuis la
+dernière série complète au vert, et six minutes d'attente n'apprendraient
+rien. Le rapporter tel quel, sans relancer — une série filtrée, un dépôt
+modifié ou une série rouge ne sont jamais sautées, et `--force` passe outre
+si on y tient vraiment.
+
 Ensuite, lire le bilan et en RENDRE COMPTE, pas le recopier :
 
 - **Une suite MUETTE est un ÉCHEC**, jamais « pas concernée ». Le script
