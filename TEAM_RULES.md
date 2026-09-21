@@ -16,10 +16,17 @@ entre parenthèses renvoie à l'incident qui l'a produite.
 | **Barbaros** | propriétaire | tarifs, produit, commercial, visuel, arbitrages |
 | **ChatGPT** | produit, UX, contrôle extérieur | spécification, cohérence, **le site réellement publié** |
 | **Claude Code** | code, tests, build, déploiement | faits techniques mesurables |
+| **Agent local ELA** | petites tâches bornées et revue ciblée | preuves locales et diff Git |
 
 **Un choix produit se tranche par Barbaros. Un fait technique se tranche par la
 mesure** — on reproduit, on prouve, et la preuve gagne. Pas l'ancienneté, pas
 l'assurance de celui qui parle.
+
+L'Agent local ELA est le troisième exécutant. Il utilise en priorité Aider avec
+un modèle Ollama local ; OpenCode reste expérimental sur les machines dont le
+contexte est limité. L'orchestrateur lui attribue automatiquement les tâches
+inachevées bornées et non critiques. Barbaros peut toujours changer cette
+attribution, mais n'a pas à faire lui-même le relais.
 
 **Contrôle croisé :** chacun peut contester le travail de l'autre **avec des
 faits**. Personne ne crée une seconde implémentation de ce que l'autre fait.
@@ -55,14 +62,29 @@ recommence pas ailleurs.** On reprend, ou on signale le conflit.
 *(15/09 — 53 branches non fusionnées, dont sept tentatives sur la même
 interface et quatre sur la même tâche de sécurité.)*
 
-**LE RELAIS SE DÉCIDE PAR BARBAROS, PAS ENTRE ASSISTANTS** (16/09, à sa
-demande : « si jamais je n'utilise pas ChatGPT ou Claude, moi je dis qui
-prend le relais »).
+**LE RELAIS EST AUTOMATIQUE, TRAÇABLE ET RÉVOCABLE PAR BARBAROS.**
 
-Un assistant indisponible **ne libère rien**. Constater que l'autre est à
-l'arrêt n'autorise pas à reprendre son chantier : on le **signale** et on
-attend que Barbaros dise qui continue. C'est lui qui a la vue d'ensemble de
-ce qu'il fait tourner, et lui seul sait s'il compte y revenir.
+Un assistant indisponible publie un handoff et l'orchestrateur désigne un seul
+repreneur dans la même Issue. Il ne crée jamais une seconde implémentation. Les
+tâches P0, paiements, secrets, permissions, migrations ou production restent à
+Claude/ChatGPT avec validation humaine ; l'Agent local ne les reçoit pas.
+
+### Handoff obligatoire pour toute tâche inachevée
+
+Quand ChatGPT, Claude Code ou l'Agent local ELA ne termine pas une tâche, il
+écrit directement dans l'Issue `[TEAM]` de cette tâche un bloc signé contenant :
+
+- l'état exact : demandé, attribué, en cours, codé, testé ou bloqué ;
+- la branche, le worktree et la PR éventuelle ;
+- les fichiers modifiés et ceux qu'il reste à traiter ;
+- les tests réellement exécutés, leurs résultats et ce qui n'a pas été testé ;
+- le blocage ou la prochaine action précise ;
+- le nom du repreneur choisi selon la matrice `.ai/agents.yml`.
+
+Le repreneur répond dans le même fil avec `REPRIS PAR <agent>`. Aucun arrêt,
+silence ou expiration de session ne vaut transfert implicite. Les états communs
+sont : `DEMANDÉ → ATTRIBUÉ → EN COURS → CODÉ → TESTÉ → À VALIDER → FUSIONNÉ
+→ DÉPLOYÉ → VÉRIFIÉ EN PRODUCTION`.
 
 *(Le 16/09, deux sessions Claude ont poussé sur `main` dans la même heure.
 Une reprise décidée entre assistants aurait tout aussi bien pu refaire le
@@ -144,12 +166,17 @@ comme si ses propres mots ne comptaient pas.*
   correction.
 - Claude y dépose statuts, preuves techniques, branches et PR utilisées, et y
   ouvre une Issue quand une décision produit est nécessaire.
+- L'Agent local ELA signe `## Agent local ELA → Équipe — sujet`, annonce sa
+  branche/worktree et laisse tests, diff, limites et reste à faire.
+- Tout travail inachevé reçoit le handoff défini au §3 dans la même Issue ;
+  Barbaros n'a jamais à recopier le contexte d'un agent vers un autre.
 - **Barbaros n'a pas à faire le facteur.** Ce qui concerne l'autre assistant
   s'écrit ici — mais ce qu'il décide, lui, s'impose d'où qu'il le dise.
 
-**Signez vos messages** (`## ChatGPT → Claude — sujet`) : sur GitHub, les deux
-apparaissent sous le même compte, et la signature est le seul moyen de savoir
-qui parle.
+**Signez vos messages** (`## ChatGPT → Claude — sujet` ou
+`## Agent local ELA → Équipe — sujet`) : sur GitHub, les intervenants peuvent
+apparaître sous le même compte, et la signature est le seul moyen de savoir qui
+parle.
 
 ## 10. Ce qu'on ne fait jamais de sa propre initiative
 

@@ -1,0 +1,26 @@
+# Burak reste l'approbateur humain final de tout le dépôt.
+* @Barbaros911
+
+# Gouvernance et déploiement
+/TEAM_RULES.md @Barbaros911
+/AGENTS.md @Barbaros911
+/PROJECT_STATE.md @Barbaros911
+/.github/ @Barbaros911
+/construire.sh @Barbaros911
+/CLOUDFLARE.md @Barbaros911
+/wrangler.jsonc @Barbaros911
+
+# Sécurité, backend et base de données
+/SECRETS.md @Barbaros911
+/SECURITE-SERVEUR.md @Barbaros911
+/SECURITE-CHECKLIST.md @Barbaros911
+/SUPABASE.md @Barbaros911
+/supabase/ @Barbaros911
+
+# Surfaces produit critiques
+/index.html @Barbaros911
+/admin-v2.html @Barbaros911
+/sites/easyhotel-client/ @Barbaros911
+/sites/easyhotel-reception/ @Barbaros911
+/sites/ela-admin/ @Barbaros911
+/sites/ela-public/ @Barbaros911

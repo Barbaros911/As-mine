@@ -427,7 +427,7 @@ if(refs){
         .replace(/\*/g, "[^/]*")
         .replace(/\u0000/g, ".*") + "$").test(f);
     const aCouvrir = readdirSync(".")
-      .filter(f => /^admin-v2.*|^intake-demande\.js$|^qr-affiche\.js$|^test-admin-.*\.mjs$/.test(f));
+      .filter(f => /^admin-v2.*|^intake-demande\.js$|^qr-affiche\.js$|^itineraire-partage\.js$|^test-admin-.*\.mjs$/.test(f));
     verifier("des fichiers Admin v2 ont été trouvés dans le dépôt",
       aCouvrir.length >= 4, aCouvrir.length + " fichier(s)");
     for(const f of aCouvrir){
@@ -436,6 +436,26 @@ if(refs){
         "aucun motif ne l'attrape — le modifier seul ne lancerait aucune suite");
     }
   }
+}
+
+/* ═══ AUCUN MODULE D'ADMIN V2 NE S'ACCROCHE À UN CLIC SUR « #nav » ═══
+   Un module accroché à un ENDROIT meurt quand l'endroit bouge ; accroché à un
+   ÉVÉNEMENT, il survit. Quatre modules écoutaient un clic sur la barre du bas
+   pour savoir qu'on ouvrait leur écran. Le jour où « Finances », « Tarifs »,
+   « Registre » et « Hôtels » ont quitté la barre pour l'écran « Gestion »,
+   ces gestionnaires n'ont plus JAMAIS été appelés : liste des chauffeurs
+   vide, lien d'avis jamais écrit, factures jamais lues — et rien à l'écran
+   pour le dire. Deux des quatre ne faisaient tomber aucune suite.
+   On éprouve donc la RÈGLE, pas la liste des onglets du jour : « ela:ecran »
+   est le seul point de rendez-vous, et il survit à toute réorganisation de la
+   navigation. */
+for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
+  const src = readFileSync(f, "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  verifier(`« ${f} » n'écoute pas un clic sur la barre du bas`,
+    !/(getElementById\(['"]nav['"]\)|querySelector\(['"]#nav['"]\))[\s\S]{0,120}addEventListener\(\s*['"]click['"]/.test(src),
+    "il s'accroche à #nav : le jour où son onglet change de place, il ne sera "
+    + "plus jamais appelé, sans le moindre message. Écouter « ela:ecran ».");
 }
 
 /* --------------------------------------------------------------- */

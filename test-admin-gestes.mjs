@@ -79,6 +79,22 @@ let PARAMS = [];                /* pas de lien d'avis au départ — c'est le ca
 const marques = [];             /* ce qui part vraiment vers le serveur */
 const ouvertures = [];          /* les URL WhatsApp réellement ouvertes */
 
+/* ═══ LA NAVIGATION EST PASSÉE À TROIS ONGLETS ═══
+   Accueil (« À traiter »), Courses, Gestion. Les cinq autres écrans n'ont
+   pas disparu : ils vivent sous « Gestion », qui est une PORTE et non une
+   copie. Un test doit donc emprunter le CHEMIN RÉEL de l'utilisateur —
+   Gestion, puis l'entrée — au lieu de cliquer un onglet qui n'est plus
+   dans la barre. C'est la même leçon que « un écran qu'aucun lien n'ouvre
+   n'est pas accessible » : ce qu'on éprouve, c'est le chemin. */
+async function allerOnglet(p, cle){
+  const direct = p.locator(`#nav button[data-tab="${cle}"]`);
+  if(await direct.count()){ await direct.click(); await p.waitForTimeout(150); return; }
+  await p.click('#nav button[data-tab="gestion"]');
+  await p.waitForSelector(`#s-gestion [data-tab="${cle}"]`, {state:'visible', timeout:10000});
+  await p.click(`#s-gestion [data-tab="${cle}"]`);
+  await p.waitForTimeout(150);
+}
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
 
@@ -240,7 +256,7 @@ check("…et aucune marque n'est posée au serveur", marques.length === 1,
 
 /* ══════════ 5. ON ENREGISTRE LE LIEN, PUIS L'AVIS PART ══════════ */
 await fermerFeuille();
-await ouvrirOnglet('pricing');
+await allerOnglet(p, 'pricing');
 await p.waitForTimeout(250);
 check("le champ du lien d'avis est dans « Tarification »",
   await p.locator('#avLien').count() === 1);
@@ -265,7 +281,7 @@ check("le lien d'avis part au serveur sous sa propre clé",
   PARAMS.some(x => x.cle === 'lien_avis'), JSON.stringify(PARAMS).slice(0,140));
 
 await fermerFeuille();
-await ouvrirOnglet('bookings');
+await allerOnglet(p, 'bookings');
 await p.evaluate(() => openBooking('ELA-26-09-1002'));
 await p.waitForTimeout(400);
 const avant2 = (await wa()).length;
