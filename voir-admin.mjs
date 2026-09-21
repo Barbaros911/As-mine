@@ -2,6 +2,23 @@ import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+/* ON CONSTRUIT AVANT DE MONTRER. Un script de capture qui sert un
+   « site/ » périmé montre une image fausse — c'est arrivé dans ce
+   projet. Ce qu'on montre doit être fabriqué au moment où on le
+   montre.
+   MAIS JAMAIS PENDANT UNE SÉRIE DE TESTS. « construire.sh » commence
+   par « rm -rf site » : deux constructions en même temps se marchent
+   dessus, et la suite qui lisait le dossier tombe sur un défaut qui
+   n'existe pas. Mesuré — c'est ce qui a fait rougir
+   « test-unified-facade » une fois, sans rien de cassé dans le code. */
+if(existsSync('/tmp/asmine-tests.verrou')){
+  console.error("UNE SÉRIE DE TESTS TOURNE. Attendre sa fin : construire pendant\n"
+    +"qu'elle tourne efface le dossier « site » sous ses pieds.");
+  process.exit(1);
+}
+execSync('sh construire.sh', {stdio:'ignore'});
 const TYPES={'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
  '.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'};
 const srv=createServer(async(rq,rs)=>{try{let c=decodeURIComponent(rq.url.split('?')[0]);
