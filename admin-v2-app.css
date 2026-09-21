@@ -112,10 +112,15 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--action);outline-
         padding:9px 8px;text-align:center;display:flex;flex-direction:column-reverse;
         gap:1px;font-size:10.5px;line-height:1.2;color:var(--gris);
         overflow:hidden;hyphens:auto}
-.metric b{display:block;font-size:20px;font-weight:800;line-height:1.1;color:var(--encre)}
+/* « strong » ET « b ». La page écrit <strong> ; ces trois règles ne visaient
+   que <b> et ne s'appliquaient donc à RIEN : les quatre chiffres restaient à
+   leur taille de texte courant, et « Incidents 3 » ne passait pas au rouge.
+   Une règle qui ne mord sur rien ne se voit pas en relisant la feuille. */
+.metric b,.metric strong{display:block;font-size:20px;font-weight:800;line-height:1.1;color:var(--encre)}
 .metric.urgent,.metric.danger{border-color:var(--attente);background:var(--attente-clair)}
-.metric.urgent b,.metric.danger b{color:var(--attente)}
-.metric.ok b{color:var(--ok)}
+.metric.urgent b,.metric.urgent strong,
+.metric.danger b,.metric.danger strong{color:var(--attente)}
+.metric.ok b,.metric.ok strong{color:var(--ok)}
 
 /* ---- LES LIGNES DE LISTE ------------------------------------------ */
 .row{background:var(--carte);border:1px solid var(--filet);border-radius:var(--r);
