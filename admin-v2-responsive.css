@@ -19,3 +19,17 @@
   .mobile-bottom-nav button:first-child{color:#34516f;background:transparent;border-bottom:0}
   .mobile-bottom-nav button.on{color:#087ff5;background:#f1f8ff;border-bottom:3px solid #087ff5}
 }
+
+/* LA LIGNE D'ACTION NE TIENT PAS DANS LA COLONNE ÉTROITE, ET C'EST MESURÉ.
+   « À traiter maintenant » vit dans une piste de 300 px ; la règle de base
+   de « .row » impose quatre colonnes dont les minima font 555 px à elles
+   seules. Une piste de grille ne descend jamais sous le minimum de son
+   contenu : le panneau poussait donc la page à 1524 px pour 1280, et
+   l'Admin défilait de côté sur ordinateur — « Actualiser » et la moitié du
+   panneau passaient hors de l'écran.
+   On ne touche pas au « .row » général : la liste de gauche est large et
+   sa grille en quatre colonnes s'y lit très bien. Seul le panneau étroit
+   passe en ligne souple, qui se replie au lieu de pousser. */
+.dash-required .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.dash-required .row>*{min-width:0;overflow-wrap:anywhere}
+.dash-required .row .btn{margin-left:auto}
