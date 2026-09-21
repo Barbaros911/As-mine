@@ -88,7 +88,46 @@ async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(
   if(x.status==='incident')actions+=`<button class="btn" data-act="done">Clôturer : réalisée</button> <button class="btn alt" data-act="cancel">Clôturer : annulée</button>`;
   if(p?.statut==='autorise')actions+=` <button class="btn" data-act="capture">Capturer paiement TEST</button> <button class="btn alt" data-act="release">Libérer empreinte TEST</button>`;
   if(x.phone)actions+=` <button class="btn alt" data-act="clientwa">WhatsApp client</button>`;
-  showSheet(`Réservation ${ref}`,`<div class="card"><b>${esc(x.date)} ${esc(x.time)}</b><p>${esc(x.from)}<br>→ ${esc(x.to)}</p><p>${esc(x.client)} · ${esc(x.phone)}</p><p><span class="tag ${esc(x.status)}">${esc(x.status)}</span> · ${esc(x.vehicle)} · ${esc(x.source)}</p>${d.nom?`<p>Chauffeur : <b>${esc(d.nom)}</b> · ${esc(d.telephone)}</p>`:''}</div><div class="card" style="margin-top:10px"><b>Finances</b><p>Prix client : ${money(s?.prix_final_centimes)} · Chauffeur dû : ${money(s?.montant_chauffeur_centimes)} · Marge ELA : ${money(s?.marge_ela_centimes)}</p><p>Paiement : <span class="tag ${esc(p?.statut||'')}">${esc(p?.statut||'non initialisé')}</span>${p?.mode?` · ${esc(p.mode)}`:''}</p></div><div class="toolbar" id="bookingActions" style="margin-top:12px">${actions||'<span class="muted">Aucune action disponible pour cet état.</span>'}</div><h3>Historique</h3><div class="timeline">${ev.length?ev.map(e=>`<div><b>${new Date(e.cree_le).toLocaleString('fr-FR')} — ${esc(e.type_evenement)}</b><br><span class="muted small">${esc(e.acteur_type)}</span></div>`).join(''):'<div class="muted">Aucun événement enregistré.</div>'}</div>`);
+  /* =====================================================================
+     LA PAGE DE TRAITEMENT — CE QU'IL FAUT POUR DÉCIDER, ET RIEN D'AUTRE
+     ---------------------------------------------------------------------
+     MESURÉ sur la version précédente : « Confirmer la réservation » était
+     à 588 px. Avant d'y arriver, on traversait le prix, la marge ELA, le
+     montant dû au chauffeur et l'état du paiement. Le geste pour lequel on
+     ouvre un bon était le cinquième élément de la page, et il fallait
+     défiler pour l'atteindre — sur un téléphone, une main sur le volant
+     d'un chauffeur au téléphone.
+
+     L'ORDRE DIT CE QU'ON VIENT FAIRE : l'état, puis les actions, puis la
+     course, puis à qui l'on parle. Les chiffres (prix chauffeur, marge,
+     paiement) et l'historique ne servent pas à DÉCIDER : ils servent à
+     vérifier, plus tard, et ils vivent sous un repli.
+     LE REPLI EST FERMÉ PAR DÉFAUT, mais rien d'IRRÉVERSIBLE ne s'y cache :
+     seulement de la lecture. Un geste qu'on doit chercher est un geste
+     qu'on ne fait pas.
+     « #bookingActions » GARDE SON NOM : deux autres modules y greffent
+     leurs boutons (l'accusé de réception, la demande d'avis, le tarif
+     serveur). Le renommer les détacherait en silence. */
+  const tel=(x.phone||'').replace(/[^0-9+]/g,'');
+  const telCh=(d.telephone||'').replace(/[^0-9+]/g,'');
+  const prix=Number.isFinite(Number(s?.prix_final_centimes))?money(s.prix_final_centimes)
+           :(x.price?eurAff(x.price)+' €':'—');
+  showSheet(`Réservation ${ref}`,`<div class="bon">
+    <div class="bon-etat"><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><b>${esc(prix)}</b></div>
+    <div class="toolbar bon-actions" id="bookingActions">${actions||'<span class="muted">Aucune action disponible pour cet état.</span>'}</div>
+    <div class="card bon-bloc"><b>${esc(dateLisible(x.date,x.time))}</b>
+      <p class="bon-trajet">${esc(x.from)}<br>→ ${esc(x.to)}</p>
+      <p class="muted small">${esc(x.vehicle||'Véhicule à préciser')} · ${esc(x.source||'Public ELA')}</p></div>
+    <div class="card bon-bloc"><p class="bon-qui"><b>${esc(x.client||'Client')}</b><br><span class="muted">${esc(x.phone||'sans numéro')}</span></p>
+      ${tel?`<a class="btn alt geste" href="tel:${esc(tel)}">Appeler le client</a>`:''}</div>
+    ${d.nom?`<div class="card bon-bloc"><p class="bon-qui"><b>Chauffeur : ${esc(d.nom)}</b><br><span class="muted">${esc(d.telephone||'sans numéro')}</span></p>
+      ${telCh?`<a class="btn alt geste" href="tel:${esc(telCh)}">Appeler le chauffeur</a>`:''}</div>`:''}
+    <details class="bon-plus"><summary>Chiffres, paiement et historique</summary>
+      <div class="toolbar bon-actions" id="bookingActionsPlus"></div>
+      <div class="card bon-bloc"><p>Prix client : ${money(s?.prix_final_centimes)} · Chauffeur dû : ${money(s?.montant_chauffeur_centimes)} · Marge ELA : ${money(s?.marge_ela_centimes)}</p>
+        <p>Paiement : <span class="tag ${esc(p?.statut||'')}">${esc(p?.statut||'non initialisé')}</span>${p?.mode?` · ${esc(p.mode)}`:''}</p></div>
+      <div class="timeline">${ev.length?ev.map(e=>`<div><b>${new Date(e.cree_le).toLocaleString('fr-FR')} — ${esc(e.type_evenement)}</b><br><span class="muted small">${esc(e.acteur_type)}</span></div>`).join(''):'<div class="muted">Aucun événement enregistré.</div>'}</div>
+    </details></div>`);
   $('#bookingActions')?.addEventListener('click',async e=>{const a=e.target.dataset.act;if(!a)return;
     if(a==='confirm')return changeStatus(ref,'confirmee','Confirmer cette réservation ?');
     if(a==='cancel')return changeStatus(ref,'annulee','Annuler cette réservation ?');
