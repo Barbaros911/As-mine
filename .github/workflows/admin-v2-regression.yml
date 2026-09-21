@@ -51,7 +51,22 @@ jobs:
           grep -Fq 'codes_promo' site/admin-v2.html
           grep -Fq 'paiements' site/admin-v2.html
           grep -Fq 'snapshots_financiers' site/admin-v2.html
-          grep -Fq 'brand-logo.webp' site/admin-v2.html
+          # LE LOGO EST OFFICIEL — ET C'EST LA RÈGLE, PAS UN NOM DE FICHIER.
+          # Ce contrôle exigeait « brand-logo.webp » : il est donc resté vert
+          # le jour où ce logo bleu nuit s'est retrouvé posé sur un bandeau
+          # bleu nuit, invisible, et il a ensuite refusé la CORRECTION — la
+          # variante blanche officielle, déjà employée par le site client.
+          # Un nom de fichier figé survit au changement qui l'invalide, et se
+          # met en travers du premier correctif légitime.
+          grep -Eq 'brand-logo(\.webp|-white\.png)' site/admin-v2.html
+          # Ce qui reste interdit, lui, ne bouge pas : aucun logo redessiné,
+          # donc aucune autre image en guise d'enseigne.
+          if grep -Eo 'src="[^"]*"' site/admin-v2.html | grep -Eq 'logo' \
+             && grep -Eo 'src="[^"]*logo[^"]*"' site/admin-v2.html \
+                | grep -Evq 'brand-logo(\.webp|-white\.png|\.svg)'; then
+            echo 'Une image de logo NON officielle est servie par Admin v2'
+            exit 1
+          fi
           if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|service_role|sk_(test|live)_' site/admin-v2.html; then
             echo 'Secret ou ancien verrou détecté dans Admin v2'
             exit 1
