@@ -12,3 +12,11 @@ photos-recues/
 # mettre en ligne une copie périmée le jour où quelqu'un oublie de la
 # régénérer.
 site/
+
+# Secrets locaux / serveur — jamais versionner
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
