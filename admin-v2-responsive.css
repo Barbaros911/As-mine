@@ -88,3 +88,20 @@ body:has(.sheet:not(.hidden)) .mobile-bottom-nav{display:none}
 /* Repli pour les navigateurs sans « :has » : la feuille, elle, monte
    au-dessus. Deux défenses, parce qu'un bouton mort ne se voit pas. */
 .sheet{z-index:40}
+
+/* ═══ LE GESTE DU SOIR, SUR LA LIGNE ═══════════════════════════════════
+   La carte devient l'enveloppe, le bouton intérieur garde la grille de la
+   ligne et ouvre le bon, les gestes se posent dessous. */
+.row-bloc{padding:0;overflow:hidden}
+.row-ouvrir{width:100%;background:transparent;border:0;color:inherit;font:inherit}
+.row-gestes{display:flex;gap:8px;padding:0 12px 11px}
+/* 44 px, c'est la mesure d'un pouce, et ces boutons se pressent à la
+   chaîne le soir sur trois ou quatre courses d'affilée. */
+.row-gestes .geste{flex:1;min-height:44px;display:flex;align-items:center;
+  justify-content:center;border-radius:10px;font-weight:700;font-size:14px;
+  text-decoration:none;margin:0}
+/* « .bouton-fantôme » du site client, la même leçon : une ancre est un
+   élément EN LIGNE, et « width » n'y fait rien sans « flex » ou « block ».
+   Le bouton « Appeler le chauffeur » s'était déjà posé en travers d'une
+   ligne pour cette raison exacte. */
+.row-gestes a.geste{display:flex}

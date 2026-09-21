@@ -133,7 +133,24 @@ function metric(label,val,cls=''){/* UN ZÉRO NE CRIE PAS. La couleur d'alerte n
 if((cls==='urgent'||cls==='danger') && (val===0||val==='0')) cls='';
 return `<div class="card metric ${cls}"><span class="muted">${esc(label)}</span><strong>${esc(val)}</strong></div>`}
 function render(){const bs=state.courses.map(b);$('#metrics').innerHTML=metric('Actions requises',state.actions.length,state.actions.length?'urgent':'ok')+metric('Demandes en attente',bs.filter(x=>x.status==='attente').length)+metric('Sans chauffeur',state.actions.filter(x=>x.type_action?.includes('chauffeur')).length)+metric('Incidents',state.actions.filter(x=>x.type_action?.includes('incident')).length,'danger');$('#actions').innerHTML=state.actions.length?state.actions.map(a=>`<div class="card row ${a.priorite>=80?'danger':'urgent'}"><strong>${esc(libelleAction(a.type_action))}</strong><span>${esc(a.course_ref||a.donnees?.libelle||'Action générale')}</span><span class="muted">${a.echeance?new Date(a.echeance).toLocaleString('fr-FR'):''}</span><button class="btn alt" onclick="resolveAction(${a.id})">Résoudre</button></div>`).join(''):'<div class="empty">Aucune action requise.</div>';$('#nextBookings').innerHTML=bookingRows(bs.slice(0,8));filterBookings();filterDrivers();renderPartners();renderPromos();renderPricing();renderFinance()}
-function bookingRows(bs){return bs.length?bs.map(x=>`<button class="card row" style="color:inherit;text-align:left" onclick="openBooking('${esc(x.ref)}')"><strong>${esc(x.ref)}</strong><span><b>${esc(dateLisible(x.date,x.time))}</b><br>${esc(x.from)} → ${esc(x.to)}</span><span><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><br><span class="muted small">${esc(x.source)}</span></span><b>${x.price?esc(eurAff(x.price)+' €'):''}</b></button>`).join(''):'<div class="empty">Aucune réservation.</div>'}
+/* LE GESTE SUIVANT, SUR LA LIGNE. Une course n'attend jamais dix choses :
+   elle en attend UNE, et c'est son statut qui dit laquelle. On ne propose
+   donc qu'elle, en plein, plus le téléphone du client — le reste du bon
+   s'ouvre d'un appui sur la ligne. Sur une course finie, aucun geste : il
+   n'y a plus rien à faire, et un bouton de plus serait du bruit. */
+function gestesLigne(x){
+  const tel=(x.phone||'').replace(/[^0-9+]/g,'');
+  const appeler=tel?`<a class="btn alt geste" href="tel:${esc(tel)}">Appeler</a>`:'';
+  const principal={attente:['confirm','Confirmer'],confirmee:['assign','Attribuer'],
+                   attribuee:['done','Terminée'],incident:['done','Terminée']}[x.status];
+  const p=principal?`<button class="btn geste" onclick="gesteRapide('${esc(x.ref)}','${principal[0]}')">${principal[1]}</button>`:'';
+  return (p||appeler)?`<div class="row-gestes">${p}${appeler}</div>`:'';
+}
+/* LA LIGNE N'EST PLUS UN BOUTON, ET ELLE NE POUVAIT PAS LE RESTER : un
+   bouton dans un bouton est du HTML invalide, et les navigateurs le
+   défont chacun à leur façon. L'enveloppe porte la carte, le bouton
+   intérieur porte la ligne et ouvre le bon, les gestes vivent à côté. */
+function bookingRows(bs){return bs.length?bs.map(x=>`<div class="card row-bloc"><button class="row row-ouvrir" style="color:inherit;text-align:left" onclick="openBooking('${esc(x.ref)}')"><strong>${esc(x.ref)}</strong><span><b>${esc(dateLisible(x.date,x.time))}</b><br>${esc(x.from)} → ${esc(x.to)}</span><span><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><br><span class="muted small">${esc(x.source)}</span></span><b>${x.price?esc(eurAff(x.price)+' €'):''}</b></button>${gestesLigne(x)}</div>`).join(''):'<div class="empty">Aucune réservation.</div>'}
 function filterBookings(){const q=($('#qBooking')?.value||'').toLowerCase(),f=$('#fBooking')?.value||'';let bs=state.courses.map(b).filter(x=>(!f||x.status===f)&&(!q||JSON.stringify(x).toLowerCase().includes(q)));$('#bookings').innerHTML=bookingRows(bs)}
 function filterDrivers(){const q=($('#qDriver')?.value||'').toLowerCase(),f=$('#fDriver')?.value||'';let ds=state.drivers.filter(d=>(!f||(d.etat_effectif||d.statut)===f)&&(!q||JSON.stringify(d).toLowerCase().includes(q)));$('#drivers').innerHTML=ds.length?ds.map(d=>`<div class="card row"><strong>${esc(d.nom_affiche)}</strong><span>${esc(d.telephone_whatsapp)}<br><span class="muted">${esc(d.entreprise||'')}</span></span><span class="tag ${esc(tagPapiers(d))}">${esc(libellePapiers(d))}</span><button class="btn alt" onclick="editDriver('${d.id}')">Modifier</button></div>`).join(''):'<div class="empty">Aucun chauffeur.</div>'}
 function tagPapiers(d){const e=d.etat_effectif||d.statut;return e==='papiers'?'bloque':e}

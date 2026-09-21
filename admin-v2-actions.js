@@ -48,6 +48,36 @@ function driverPicker(ref,x,snap,mode){const ds=validDrivers();if(!ds.length){al
     }
   }catch(e){alert(`Chauffeur : ${e.message}`);}};
 }
+/* =====================================================================
+   LES GESTES SUR LA LIGNE — LE GESTE DU SOIR
+   ---------------------------------------------------------------------
+   Dans l'espace historique, la ligne d'une course porte « Terminée »,
+   « Appeler », « Demander un avis » : un appui, sans ouvrir le bon. Ici
+   la ligne entière n'était qu'un bouton qui OUVRE le bon. Sur dix courses
+   à clore le soir, ça fait dix ouvertures, dix défilements et dix
+   fermetures au lieu de dix appuis -- et c'est ce que Barbaros a désigné
+   en disant qu'il n'arrivait pas à traiter ses courses.
+
+   RIEN N'EST RECOPIÉ ICI. On appelle « changeStatus » et « driverPicker »,
+   exactement ce que fait le bon : deux chemins pour un même geste
+   finissent par diverger, et c'est celui qu'on oublie qui laisserait une
+   course dans un état que le reste du système ne sait pas lire.
+   LA CONFIRMATION RESTE : « changeStatus » pose sa question. Un geste
+   irréversible à un doigt, dans une liste, sur un téléphone tenu d'une
+   main, c'est une course clôturée par erreur à 3 h du matin.
+   ===================================================================== */
+async function gesteRapide(ref, act){
+  const c=state.courses.find(z=>z.ref===ref); if(!c) return;
+  const x=b(c);
+  if(act==='confirm') return changeStatus(ref,'confirmee','Confirmer cette réservation ?');
+  if(act==='done')    return changeStatus(ref,'realisee','Clôturer cette course comme réalisée ?');
+  /* Attribuer ouvre le sélecteur de chauffeur, et c'est voulu : il porte
+     l'avertissement sur les papiers, à l'instant même où l'on engage la
+     responsabilité d'Elatransfer (L3142-1). */
+  if(act==='assign')  return driverPicker(ref,x,snapshotFor(ref),'assign');
+}
+window.gesteRapide = gesteRapide;
+
 async function doPayment(ref,kind){const label=kind==='capture'?'Capturer maintenant le paiement TEST autorisé ?':'Libérer / annuler maintenant l’empreinte TEST ?';if(!confirm(label))return;try{await edge(kind==='capture'?'capturer-paiement':'annuler-empreinte',{ref});await load();await openBookingV2(ref);}catch(e){alert(`Paiement : ${e.message}`);}}
 async function removeDriver(ref){const motif=prompt('Motif interne du retrait / de la réattribution (facultatif) :')||'';if(!confirm('Retirer le chauffeur actuel et remettre la course à attribuer ?'))return;try{await rpc('ela_retirer_chauffeur',{p_ref:ref,p_motif:motif||null});await load();await openBookingV2(ref);}catch(e){alert(`Action refusée : ${e.message}`);}}
 async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(!c)return;const x=b(c),ev=await api(`/rest/v1/evenements_reservation?course_ref=eq.${encodeURIComponent(ref)}&select=*&order=cree_le.desc&limit=100`).catch(()=>[]),p=paymentFor(ref),s=snapshotFor(ref),d=currentDriver(c);
