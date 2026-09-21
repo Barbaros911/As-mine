@@ -486,7 +486,6 @@ for(const cas of [
   const vus = [];
   let jetonNeuf = false;
   const { c, pg } = await espace({ access_token:'jeton-perime',
-// secret-scan: allow-test-fixture-next-line
                                    refresh_token:'jeton-de-renouvellement',
                                    token_type:'bearer' });
   await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
@@ -501,7 +500,6 @@ for(const cas of [
       jetonNeuf = true;
       await route.fulfill({contentType:'application/json',
         body: JSON.stringify({ access_token:'jeton-neuf',
-// secret-scan: allow-test-fixture-next-line
                                refresh_token:'renouvellement-2', token_type:'bearer' })});
       return;
     }
@@ -536,7 +534,6 @@ for(const cas of [
    une panne qui ressemble à un état normal ne se répare jamais. */
 {
   const { c, pg } = await espace({ access_token:'jeton-mort',
-// secret-scan: allow-test-fixture-next-line
                                    refresh_token:'renouvellement-mort',
                                    token_type:'bearer' });
   await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {

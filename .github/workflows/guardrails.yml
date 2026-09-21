@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import pathlib, re, sys
+          import hashlib, pathlib, re, sys
           roots = [pathlib.Path(".")]
           skip = {".git", "node_modules", "site"}
           rules = [
@@ -48,11 +48,11 @@ jobs:
               re.compile(r'(?i)(?:secret|private[_-]?key|service[_-]?role|api[_-]?key|token|password)\s*[:=]\s*["\x27][A-Za-z0-9_./+=:-]{16,}["\x27]'),
               re.compile(r'\bsk_(?:live|test)_[A-Za-z0-9]{16,}\b'),
           ]
-          # Une exception ne vaut que pour LA ligne suivante, dans le fichier
-          # exact prévu. Aucun fichier complet n'échappe plus au scanner.
-          allowed_next_line_markers = {
-              "NOTIFICATION.md": "secret-scan: allow-example-next-line",
-              "test-nouveau-serveur.mjs": "secret-scan: allow-test-fixture-next-line",
+          # Exceptions bornées : chemin exact + empreinte SHA-256 de la ligne
+          # factice exacte. Changer la ligne ou la copier ailleurs réactive le scan.
+          allowed_line_hashes = {
+              "NOTIFICATION.md": {"d813af4c1530c8ca4f27239b65b847bd397dc1ec6cef8f63715ef9d2317a668c"},
+              "test-nouveau-serveur.mjs": {"66022aba7806eb7fea4dca77d29525f534c76515471d4f552a47e09b0144d2c9", "b80cdf25dd2c790fb284591440d92a0608dea204f7a2bbe5d11113d5c0dc8590", "743ad7912cf43361d1bb640746bbeaacd518669f98ed62372ec011e9bdda741b"},
           }
           bad=[]
           for p in pathlib.Path(".").rglob("*"):
@@ -60,13 +60,11 @@ jobs:
                   continue
               try: text=p.read_text(errors="ignore")
               except Exception: continue
-              lines=text.splitlines()
-              for n,line in enumerate(lines,1):
+              for n,line in enumerate(text.splitlines(),1):
                   if not any(r.search(line) for r in rules):
                       continue
-                  marker = allowed_next_line_markers.get(p.as_posix())
-                  previous = lines[n - 2] if n > 1 else ""
-                  if marker and marker in previous:
+                  digest = hashlib.sha256(line.encode("utf-8")).hexdigest()
+                  if digest in allowed_line_hashes.get(p.as_posix(), set()):
                       continue
                   bad.append(f"{p}:{n}")
           if bad:
