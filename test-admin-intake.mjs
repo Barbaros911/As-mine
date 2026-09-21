@@ -327,8 +327,15 @@ check('« Saisir par téléphone » ouvre un vrai formulaire', true);
    un montant au téléphone : un nombre recopié dans la page resterait
    périmé au premier changement de tarif, sans que rien ne le signale. */
 const grille = await p.textContent('#tfGrille');
+/* LE SÉPARATEUR DÉCIMAL N'EST PAS LE SUJET DE CE CONTRÔLE. Il figeait
+   « 2.65 » avec un point, et il est tombé le jour où l'Admin s'est mis à
+   écrire les montants en français — alors que ce qu'il surveille, c'est
+   que le nombre vienne du SERVEUR et non de la page. Un contrôle qui fige
+   une présentation se met en travers de la première correction légitime :
+   c'est la faute que ce dépôt se reproche partout. On accepte donc les
+   deux écritures, et on continue d'exiger LA VALEUR du faux serveur. */
 check('la grille affichée vient du SERVEUR, pas de la page',
-  grille.includes('2.65') && grille.includes('4.00') && grille.includes('30') && grille.includes('50'),
+  /2[.,]65/.test(grille) && /4[.,]00/.test(grille) && grille.includes('30') && grille.includes('50'),
   'reçu : '+grille);
 
 /* ON DIT CE QUI MANQUE, PAS « formulaire incomplet ». */

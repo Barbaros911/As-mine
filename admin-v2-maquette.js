@@ -1,0 +1,44 @@
+(()=>{
+  /* LA DATE DU JOUR SE COMPOSE EN LOCAL, JAMAIS EN UTC. « toISOString »
+     rend de l'UTC : à 1 h du matin à Paris il y est encore 23 h la veille,
+     et « Trajets du jour » affichait alors la journée d'hier. Ce défaut
+     n'existe qu'entre minuit et 2 h -- exactement quand personne ne teste,
+     et exactement quand cet écran sert. Déjà payé une fois côté client. */
+  const jourLocal=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+  const $=(s,r=document)=>r.querySelector(s);const dashboard=$('#s-dashboard');if(!dashboard)return;dashboard.classList.add('dashboard-maquette');
+  const loginLogo=$('#login img[src="brand-logo.webp"]');if(loginLogo)loginLogo.setAttribute('src','./brand-logo.webp');
+  const title=$('.title',dashboard),metrics=$('#metrics'),intake=$('#zoneIntake'),actions=$('#actions'),next=$('#nextBookings'),push=$('#zonePush');
+  if(title){const h1=$('h1',title);if(h1)h1.textContent='Tableau de bord';const sub=$('.muted',title);if(sub)sub.textContent='Gérez vos réservations et les actions prioritaires.';const refresh=$('[data-refresh]',title);if(refresh)refresh.textContent='Actualiser';}
+  [actions?.previousElementSibling,next?.previousElementSibling].forEach(e=>{if(e?.tagName==='H2')e.remove()});
+  const quick=document.createElement('section');quick.className='dash-quick';quick.innerHTML='<div><h2>Nouvelle réservation</h2><p class="muted small">Créer ou importer une réservation.</p></div>';if(intake)quick.append(intake);
+  const cols=document.createElement('div');cols.className='dash-cols';const recent=document.createElement('section');recent.className='dash-panel dash-recent';recent.innerHTML='<div class="dash-panel-head"><h2>Réservations récentes</h2><button type="button" class="dash-link" data-go="bookings">Voir toutes →</button></div>';if(next)recent.append(next);const required=document.createElement('section');required.className='dash-panel dash-required';required.innerHTML='<div class="dash-panel-head"><h2>À traiter maintenant</h2></div>';if(actions)required.append(actions);cols.append(recent,required);
+  const lower=document.createElement('div');lower.className='dash-lower';const today=document.createElement('section');today.className='dash-panel';today.innerHTML='<div class="dash-panel-head"><h2>Trajets du jour</h2><button type="button" class="dash-link" data-go="bookings" data-filter="today">Voir tout</button></div><div class="dash-derived" data-derived="today"></div>';const departures=document.createElement('section');departures.className='dash-panel';departures.innerHTML='<div class="dash-panel-head"><h2>Prochains départs</h2><button type="button" class="dash-link" data-go="bookings">Voir tout</button></div><div class="dash-derived" data-derived="departures"></div>';lower.append(today,departures);
+  if(metrics)metrics.classList.add('dash-metrics');if(title){title.after(metrics||document.createTextNode(''));if(metrics)metrics.after(quick);else title.after(quick);quick.after(cols);cols.after(lower);if(push)lower.after(push);}
+  const getCourses=()=>typeof state!=='undefined'&&Array.isArray(state.courses)?state.courses:[];const courseInfo=c=>{const x=c?.bon?.course||{};return{date:x.date||'',heure:x.heure||'',depart:x.depart||'',arrivee:x.arrivee||'',ref:c.ref||'',statut:c.statut||c.status||''}};
+  const renderDerived=()=>{const all=getCourses().map(courseInfo).filter(x=>x.date||x.heure),sorted=all.sort((a,b)=>(a.date+a.heure).localeCompare(b.date+b.heure)),day=jourLocal(),esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),rows=a=>a.slice(0,5).map(x=>`<button type="button" class="derived-row" data-open-ref="${esc(x.ref)}"><strong>${esc(x.heure||x.date)}</strong><span>${esc(x.depart)} → ${esc(x.arrivee)}</span><em>${esc(x.statut)}</em></button>`).join('')||'<p class="muted small dash-empty">Aucune course disponible.</p>';const t=$('[data-derived="today"]');if(t)t.innerHTML=rows(sorted.filter(x=>x.date===day));const d=$('[data-derived="departures"]');if(d)d.innerHTML=rows(sorted.filter(x=>!x.date||x.date>=day));};renderDerived();setTimeout(renderDerived,800);if(next)new MutationObserver(renderDerived).observe(next,{childList:true,subtree:true});
+  const go=(key,filter='')=>{document.querySelector(`#nav [data-tab="${key}"]`)?.click();if(key==='bookings'&&filter==='today'){const q=$('#qBooking');if(q){q.value=jourLocal();q.dispatchEvent(new Event('input',{bubbles:true}));}if(typeof filterBookings==='function')filterBookings();}};dashboard.addEventListener('click',e=>{const ref=e.target.closest('[data-open-ref]')?.dataset.openRef;if(ref&&typeof window.openBooking==='function'){window.openBooking(ref);return;}const target=e.target.closest('[data-go]');if(target)go(target.dataset.go,target.dataset.filter||'');});
+  const nav=$('#nav'),top=$('.top');if(nav&&top){const logo=$('img',top);let slot=null;if(logo){slot=document.createElement('div');slot.className='desktop-logo-slot';slot.setAttribute('aria-label','ELA Transfer');nav.prepend(slot);}const placeLogo=()=>{if(!logo)return;logo.style.transform='none';if(matchMedia('(min-width:801px)').matches){if(slot&&logo.parentElement!==slot)slot.append(logo);logo.style.position='static';}else{if(logo.parentElement!==top)top.prepend(logo);logo.style.position='absolute';logo.style.left='50%';logo.style.top='8px';logo.style.transform='translateX(-50%)';}};placeLogo();addEventListener('resize',placeLogo,{passive:true});
+    const greeting=document.createElement('div');greeting.className='admin-greeting';greeting.innerHTML='<strong>Bonjour Burak</strong><span>Centre de gestion ELA Transfer</span>';top.prepend(greeting);
+    const create=document.createElement('button');create.type='button';create.className='btn admin-create';create.textContent='+ Nouvelle réservation';create.addEventListener('click',()=>{go('dashboard');setTimeout(()=>intake?.scrollIntoView({behavior:'smooth',block:'center'}),50)});top.append(create);
+    const menu=document.createElement('button');menu.type='button';menu.className='mobile-menu';menu.setAttribute('aria-label','Ouvrir le menu');menu.setAttribute('aria-expanded','false');menu.textContent='☰';top.prepend(menu);const close=()=>{nav.classList.remove('mobile-open');menu.setAttribute('aria-expanded','false')};menu.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');menu.setAttribute('aria-expanded',String(open))});nav.addEventListener('click',e=>{if(e.target.closest('button'))close()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+    const bottom=document.createElement('div');bottom.className='mobile-bottom-nav';bottom.innerHTML='<button class="on" data-mgo="dashboard"><b>⌂</b><span>Accueil</span></button><button data-mgo="bookings"><b>▣</b><span>Réservations</span></button><button class="mobile-create" data-mgo="dashboard"><b>+</b><span>Créer</span></button><button data-mgo="bookings" data-filter="today"><b>◷</b><span>Trajets</span></button><button data-more><b>•••</b><span>Plus</span></button>';document.body.append(bottom);bottom.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-more')){menu.click();return;}go(b.dataset.mgo,b.dataset.filter||'');if(b.classList.contains('mobile-create'))setTimeout(()=>intake?.scrollIntoView({behavior:'smooth',block:'center'}),50);});
+
+  /* L'ONGLET ALLUMÉ SUIT L'ÉCRAN, PAS LE DOIGT QUI L'A OUVERT. La barre ne
+     s'allumait que sur ses propres boutons : ouvert par le tiroir, par une
+     carte du tableau de bord ou par « Voir toutes », on restait sur
+     « Accueil » alors qu'on était ailleurs. Un repère qui ment sur l'endroit
+     où l'on se trouve est pire que pas de repère.
+     C'est la colonne qui fait foi (« #nav button.on ») : une seule vérité,
+     et la barre la recopie. On n'allume RIEN sur les écrans de Gestion —
+     aucun de ces boutons n'y mène, et en allumer un au hasard serait une
+     deuxième façon de mentir. */
+  const suivreBas=()=>{
+    const actif=$('#nav button.on')?.dataset.tab;
+    bottom.querySelectorAll('button').forEach(x=>x.classList.toggle('on',
+      !x.dataset.filter && !x.classList.contains('mobile-create')
+      && !x.hasAttribute('data-more') && x.dataset.mgo===actif));
+  };
+  suivreBas();
+  new MutationObserver(suivreBas).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});
+  }
+})();

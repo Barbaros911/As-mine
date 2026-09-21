@@ -1,7 +1,7 @@
 /* ELA Admin v2 — actions métier. Chargé après admin-v2.html. */
 (()=>{
 'use strict';
-const money=c=>Number.isFinite(Number(c))?(Number(c)/100).toFixed(2)+' €':'—';
+const money=c=>Number.isFinite(Number(c))?eurAff(Number(c)/100)+' €':'—';
 const safePhone=v=>String(v||'').replace(/[^0-9]/g,'');
 async function rpc(name,body){return api(`/rest/v1/rpc/${name}`,{method:'POST',body:JSON.stringify(body||{})});}
 async function edge(name,body){const r=await fetch(`${SB}/functions/v1/${name}`,{method:'POST',headers:authHeaders(),body:JSON.stringify(body||{})});let x={};try{x=await r.json()}catch{}if(!r.ok)throw new Error(x.erreur||`HTTP ${r.status}`);return x;}
@@ -186,8 +186,8 @@ function ecrireGrilleV2(){
   const e = document.getElementById('tfGrille'); if(!e) return;
   const g = grilleServeur();
   const part = [];
-  if(g.berline) part.push('Berline '+g.berline.km.toFixed(2)+' €/km, minimum '+g.berline.mini+' €');
-  if(g.van)     part.push('Van '+g.van.km.toFixed(2)+' €/km, minimum '+g.van.mini+' €');
+  if(g.berline) part.push('Berline '+eurAff(g.berline.km)+' €/km, minimum '+g.berline.mini+' €');
+  if(g.van)     part.push('Van '+eurAff(g.van.km)+' €/km, minimum '+g.van.mini+' €');
   /* SANS GRILLE SERVEUR, ON LE DIT. Afficher une grille par défaut ferait
      annoncer un prix au téléphone sur un tarif que personne n'a validé. */
   e.textContent = part.length

@@ -32,12 +32,19 @@ const check = (n, c, d = "") => (c ? ok : ko).push(n + (d ? " — " + d : ""));
    dépendance, et c'est une force. On le charge s'il est là, et on REFUSE de
    passer au vert s'il ne l'est pas — un contrôle qu'on saute en silence est
    pire qu'un contrôle absent. */
+/* ON LE CHERCHE DANS LE DÉPÔT D'ABORD (« node_modules », ignoré par git),
+   PUIS dans l'ancien bac à sable. Ce chemin-là porte l'identifiant d'une
+   SESSION : il ne vaut que dans celle-là, et ce contrôle — le seul qui
+   DÉCHIFFRE vraiment, avec du code écrit par quelqu'un d'autre — ne
+   pouvait plus jamais s'exécuter ailleurs. Il annonçait « absent » pour
+   toujours : ça ressemble à un outil manquant, c'était une mauvaise
+   adresse. */
 let ece = null;
 const BAC = "/tmp/claude-0/-home-user-As-mine/"
           + "4bad491f-f7fd-5fb8-ac80-285f0ac64a0c/scratchpad/node_modules/";
-try {
-  ece = createRequire(BAC + "x.js")("http_ece");
-} catch (e) { /* absent : le contrôle le dira */ }
+for (const base of [import.meta.url, BAC + "x.js"]) {
+  try { ece = createRequire(base)("http_ece"); break; } catch (e) { /* on essaie le suivant */ }
+}
 
 /* ---- Un abonnement de test : une vraie paire de clés P-256 ---- */
 const client = await crypto.subtle.generateKey(

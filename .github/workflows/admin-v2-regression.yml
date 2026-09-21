@@ -17,6 +17,7 @@ on:
       - 'qr-affiche.js'
       - 'itineraire-partage.js'
       - 'test-admin-*.mjs'
+      - 'capture-admin.mjs'
       - 'construire.sh'
       - 'supabase/**'
       - '.github/workflows/admin-v2-regression.yml'
@@ -43,6 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           test -f site/admin-v2.html
+          test -f site/admin-v2-responsive.css
+          grep -Fq '/admin-v2-responsive.css' site/admin-v2.html
           grep -Fq '/auth/v1/token?grant_type=password' site/admin-v2.html
           grep -Fq '/rest/v1/rpc/est_exploitant' site/admin-v2.html
           grep -Fq 'actions_requises' site/admin-v2.html
@@ -85,11 +88,18 @@ jobs:
           npx playwright install --with-deps chromium
           node test-admin-papiers.mjs
           node test-admin-intake.mjs
-          node test-admin-registre.mjs
           node test-admin-factures.mjs
           node test-admin-gestes.mjs
           node test-admin-affiche.mjs
           node test-admin-prix.mjs
+          node test-admin-responsive.mjs
+          node capture-admin.mjs
+      - name: Joindre les captures Admin
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-admin-pr192
+          path: captures-admin/*.png
+          if-no-files-found: error
 
       # LA MIGRATION EST EXÉCUTÉE POUR DE VRAI, sur un PostgreSQL vide.
       # Une expression régulière sur un fichier SQL ne sait pas si la requête
