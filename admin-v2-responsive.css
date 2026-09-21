@@ -33,3 +33,12 @@
 .dash-required .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .dash-required .row>*{min-width:0;overflow-wrap:anywhere}
 .dash-required .row .btn{margin-left:auto}
+
+/* LE NOMBRE AU-DESSUS, LE LIBELLÉ EN DESSOUS. C'est ce qu'on regarde en
+   premier sur un tableau de bord : « 2 » se lit d'un coup d'oeil, pas
+   « Demandes en attente ». La page écrit le libellé en premier dans le
+   HTML (il faut bien un ordre pour un lecteur d'écran, et c'est le bon) ;
+   « column-reverse » inverse l'AFFICHAGE sans toucher au balisage.
+   C'est la présentation sur laquelle Barbaros a tranché, en capture. */
+.metric{display:flex;flex-direction:column-reverse;justify-content:flex-end}
+.metric .muted{margin-top:2px}
