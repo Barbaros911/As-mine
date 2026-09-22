@@ -5301,9 +5301,38 @@ les trouvait, sur une capture.
   Le seuil de 20 pixels ne tient que par là. Et le contrôleur est **copié
   avant le retour en arrière** : sinon `git checkout` de la base rendrait le
   script d'avant, c'est-à-dire aucun script le jour où on l'introduit.
+- **L'HORLOGE DU NAVIGATEUR EST FIGÉE, ET SANS ÇA L'OUTIL CRIAIT SUR
+  CHAQUE PR.** Le formulaire d'accueil s'ouvre sur « maintenant + 15 min »
+  arrondi au pas de 5 : deux captures prises à quelques minutes d'écart
+  n'affichent pas la même heure. Mesuré — **65 pixels** d'écart sur
+  l'accueil entre la capture avant et la capture après, alors qu'aucun
+  fichier du site n'avait changé. `clock.setFixedTime()`, et l'écart
+  retombe à zéro sur les huit écrans à cent secondes d'intervalle. Les
+  suites du dépôt ancrent déjà l'horloge pour la même raison.
 - Le filtre du workflow porte des **motifs**, jamais une liste de noms —
   une liste survit au fichier qu'on ajoute. Même piège que le filtre de la
   CI et que la barre du bas figée à quatre onglets.
+
+**DEUX PIÈGES DE BANC, PAS DE PRODUIT, RENCONTRÉS EN LIVRANT CES OUTILS :**
+
+- **UN MODULE ESM CHERCHE `node_modules` À CÔTÉ DE LUI-MÊME, PAS DANS LE
+  DOSSIER COURANT.** Le contrôleur visuel doit être copié avant le retour
+  en arrière — sinon `git checkout` de la base rend le script d'avant,
+  c'est-à-dire aucun script le jour où on l'introduit. Posée dans
+  `RUNNER_TEMP`, hors du dépôt, cette copie rendait `ERR_MODULE_NOT_FOUND`
+  et le contrôle tombait en quarante secondes. **C'est la CI qui l'a dit,
+  pas la relecture.** La copie vit donc à la racine du dépôt : un fichier
+  **non suivi** survit à `git checkout --force` (ça, c'est `git clean`), et
+  `construire.sh` ne publie que ce qu'il nomme — vérifié, il ne part pas en
+  ligne.
+- **UN SERVEUR LAISSÉ SUR LE MAUVAIS DOSSIER, TROISIÈME FOIS.** Deux écrans
+  rendaient 404 pendant une simulation : un `python3 -m http.server` resté
+  ouvert sur le port, enraciné sur le **dépôt** et non sur `site/`. Le
+  contrôle de santé (`curl /`) l'acceptait, puisque le dépôt a aussi un
+  `index.html`. **Encore un 200 qui ne dit pas qui a répondu.** Sur un port
+  neuf, tout répond. Et `pkill -f "http.server"` n'est pas la solution : le
+  motif correspond aussi à la ligne de commande du shell qui l'exécute, et
+  il se tue lui-même — vu.
 
 ## Le logo
 

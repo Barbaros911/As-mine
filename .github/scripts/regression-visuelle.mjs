@@ -69,6 +69,16 @@ async function capturer(base, dossier) {
       timezoneId: "Europe/Paris",
       reducedMotion: "reduce",
     });
+    /* L'HORLOGE EST FIGÉE, ET SANS ÇA L'OUTIL CRIERAIT SUR CHAQUE PR.
+       Le formulaire d'accueil s'ouvre sur « maintenant + 15 minutes »
+       arrondi au pas de 5 : deux captures prises à quelques minutes
+       d'écart n'affichent pas la même heure. Mesuré — 65 pixels d'écart
+       sur l'accueil entre la capture AVANT et la capture APRÈS, alors
+       qu'aucun fichier du site n'avait changé. Une alerte qui se trompe
+       à chaque passage ne se lit plus, et c'est la deuxième fois que ce
+       projet l'apprend : les suites du dépôt ancrent déjà l'horloge du
+       navigateur pour la même raison. */
+    await ctx.clock.setFixedTime(new Date("2026-06-15T09:30:00Z"));
     const page = await ctx.newPage();
     await page.route("**", (r) => {
       const h = new URL(r.request().url()).hostname;
