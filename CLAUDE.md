@@ -3757,17 +3757,167 @@ neuf, côté serveur : `admin-v2.html` et ses trois scripts, quatre migrations
 Supabase, trois workflows. PR #176 à #185. **Il est publié mais `admin.html`
 n'y bascule pas** : c'est une préversion.
 
-**IL N'EST PAS UN SUR-ENSEMBLE DE L'ESPACE ACTUEL, ET C'EST LE PIÈGE.**
-Mesuré fichier en main, pas supposé : **rien** de ce qui suit n'y existe —
-« Coller une demande » (neuf courses sur dix arrivent par message), la saisie
-par téléphone, le registre et sa sauvegarde JSON, l'export CSV, la facture de
-commission, l'affiche QR des hôtels, la demande d'avis, l'accusé de réception.
-**Basculer aujourd'hui retirerait à Barbaros son geste principal.** Ne pas lire
-« Admin v2 existe » comme « Admin v2 remplace ».
+**CE PARAGRAPHE A ÉTÉ VRAI, PUIS FAUX PENDANT DES JOURS** (corrigé le
+21 septembre 2026). Il annonçait qu'Admin v2 n'avait ni « Coller une demande »,
+ni la saisie par téléphone, ni le registre, ni l'export CSV, ni la facture de
+commission, ni l'affiche QR, ni la demande d'avis, ni l'accusé de réception —
+et il concluait qu'une bascule retirerait à Barbaros son geste principal.
+**Les sept lots de parité ont tout porté**, et chacun a sa suite de contrôles.
+Vérifié à la demande de Barbaros, suites en main : `test-admin-intake`,
+`test-admin-registre`, `test-admin-factures`, `test-admin-affiche`,
+`test-admin-gestes`, `test-admin-prix`. La note, elle, n'avait pas suivi.
+**C'est exactement le défaut que ce fichier se reproche partout** : une note
+qui vieillit sans bruit, et qui aurait servi à refuser une bascule pour une
+raison qui n'existait plus.
+
+**CE QUI RESTE VRAI, ET CE N'EST PAS LA MÊME CHOSE** : l'espace historique
+**fonctionne sans serveur**. Session expirée, Supabase muet, il affiche quand
+même les courses gardées dans le navigateur. Admin v2, non — il lit le
+serveur. C'est le seul vrai argument en faveur de l'ancien, et il compte à
+5 h du matin. En sens inverse : le registre de l'ancien ne vit que dans CE
+navigateur (changer de téléphone le perd), ses règles de papiers ne sont qu'un
+avertissement d'écran quand Admin v2 les fait imposer par le SERVEUR — un
+filtre d'écran n'est pas une frontière, et l'attribution est l'instant où
+Elatransfer engage sa responsabilité (L3142-1) — et il fait peser ~190 Ko de
+back-office sur la page de chaque client.
+**Ne pas lire « Admin v2 existe » comme « Admin v2 remplace »** pour autant :
+la bascule de `admin.html` reste une décision de Barbaros, et elle n'est pas
+prise.
 
 Ce qu'il apporte en revanche, et qu'il ne faut PAS reconstruire : partenaires,
 tarification serveur, codes promo, finances, paiement Stripe TEST, historique
 des réservations, file « Action requise ».
+
+### LE POSTE DE TRAVAIL — UN TABLEAU, ET UN BON QUI NE DIT QUE L'UTILE
+
+21 septembre 2026, à sa demande, après avoir ouvert Admin v2 pour de vrai :
+« j'arrive pas à traiter les courses, c'est mal fait, des touches qui ne
+fonctionnent pas ». Les trois reproches étaient justes, et mesurables.
+
+**LES BOUTONS ÉTAIENT RÉELLEMENT MORTS.** Feuille du bon à `z-index` 20, barre
+de navigation du bas à 29 : la barre passait DEVANT une feuille modale. Le bon
+défile sur 934 px pour 774 visibles, donc **chaque bouton mourait en
+descendant dans les 78 px du bas** — « Accuser réception au client », à
+782 px, recevait le doigt de la barre. Rien à l'écran ne le disait.
+C'est le défaut que le site client avait corrigé des semaines plus tôt (« la
+feuille est au-dessus de la barre ») et qui n'avait jamais été reporté ici.
+**On masque la barre plutôt que de monter la feuille** : une navigation
+visible sous un bon invite à quitter un travail en cours. La montée reste en
+repli pour les navigateurs sans `:has` — deux défenses, parce qu'un bouton
+mort ne se voit pas.
+
+**LA VRAIE DIFFÉRENCE AVEC L'ESPACE HISTORIQUE N'ÉTAIT PAS UNE FONCTION,
+C'ÉTAIT UN GESTE.** Là-bas, la ligne d'une course porte « Terminée » et
+« Appeler » : un appui. Ici la ligne entière n'était qu'un bouton qui OUVRE le
+bon — dix courses à clore le soir, dix ouvertures, dix défilements, dix
+fermetures. `gesteRapide` appelle `changeStatus` et `driverPicker`, **jamais
+une copie** : deux chemins pour un même geste finissent par diverger, et c'est
+celui qu'on oublie qui laisserait une course dans un état illisible.
+- **Un seul geste par ligne**, celui que le statut appelle. Une course finie
+  n'en porte aucun : un bouton de plus serait du bruit.
+- **La confirmation reste.** Un geste irréversible à un doigt, dans une liste,
+  sur un téléphone tenu d'une main, c'est une course clôturée par erreur à 3 h.
+- **La ligne ne pouvait pas rester un `<button>`** : un bouton dans un bouton
+  est du HTML invalide, et chaque navigateur le défait à sa façon.
+
+**LE TABLEAU DE TRAITEMENT** (écran « Courses ») : quatre colonnes qui sont les
+étapes réelles du cycle — Nouvelles, À attribuer, En course, Clôturées. Chaque
+carte porte le geste qui la fait avancer d'une colonne.
+- **Même HTML aux deux tailles** : une colonne à la fois sur téléphone, choisie
+  par des onglets qui portent le compte ; les quatre de front sur ordinateur.
+  Deux balisages, et le jour où l'un gagne une colonne l'autre l'oublie.
+- **Pas de glisser-déposer.** Ici « déplacer une carte » veut dire changer
+  l'état d'une vraie course : c'est un bouton, avec sa question.
+- **Le menu « Tous statuts » est parti** : les colonnes SONT le tri. Deux
+  commandes pour un même tri se contredisent — filtrer « réalisée » en
+  regardant « Nouvelles » vidait le tableau sans que rien ne l'explique.
+- **CE N'EST PAS LE KANBAN DE L'ISSUE #197**, qui pilote le PRODUIT (backlog,
+  priorités, agents) et dont la spécification dit elle-même de ne pas le mêler
+  au cycle métier des réservations. Ne pas fondre les deux.
+
+**LA PAGE DE TRAITEMENT NE GARDE QUE CE QUI SERT À DÉCIDER.** Mesuré avant :
+« Confirmer la réservation » était à **588 px**, après le prix, la marge ELA,
+le montant dû au chauffeur et l'état du paiement — le geste pour lequel on
+ouvre un bon était le cinquième élément de la page. Il est à **182 px**, et la
+feuille ne défile presque plus (788 px pour 774, contre 934).
+L'ordre dit ce qu'on vient faire : l'état, les actions, la course, à qui l'on
+parle. Les chiffres, le paiement et l'historique passent sous un repli — ils
+servent à **vérifier**, pas à décider. Le tarif et le paiement TEST descendent
+avec eux : le bouton le plus visible d'un bon en attente ne pouvait pas être
+une fonction que Stripe Live n'active même pas.
+- **`#bookingActions` garde son nom** : deux autres modules y greffent leurs
+  boutons (accusé de réception, demande d'avis, tarif serveur). Le renommer
+  les détacherait en silence. `#bookingActionsPlus`, dans le repli, accueille
+  ce qui ne sert pas à décider maintenant — et le module retombe sur la zone
+  d'origine si elle manque : une greffe qui ne trouve pas son hôte ne doit pas
+  disparaître sans un mot.
+
+**TROIS PIÈGES DE PEAU, TOUS DÉJÀ CONSIGNÉS AILLEURS DANS CE FICHIER :**
+- **`.urgent` existait déjà**, avec un filet DORÉ. La colonne qui doit crier
+  sortait donc en or. Quatrième fois après `.arrivee`, `class="carte"` et
+  `.service span span` : **une classe déjà prise ramasse une règle écrite pour
+  autre chose**. Le modificateur s'appelle `kanban-urgent`.
+- **`.ko` vaut `#ffc1c7`**, un rose pâle dessiné pour le fond SOMBRE de
+  l'ancienne feuille. La refonte l'a mise en blanc : contraste mesuré **1,3
+  pour 4,5 exigé**, et Barbaros l'a vu sur sa capture. Une couleur choisie
+  pour un décor et non pour un rôle — c'est ce qui avait fait virer le logo au
+  vert avec `--gold`.
+- **La carte du tableau gardait la grille d'une ligne de liste**, qui réclame
+  555 px de minimum. Dans une colonne de 330 px, le trajet se faisait couper
+  et le prix sortait du cadre. Invisible sur téléphone, où la règle des 800 px
+  empilait déjà tout : **seul l'écran large le montrait**.
+
+**LE MESSAGE QUI ENVOYAIT CHERCHER UN ÉCRAN INEXISTANT.** « Le lien d'avis se
+règle dans *Tarification* » : l'onglet s'appelle **Tarifs et réglages**. Le
+contrôle qui le surveillait figeait le mauvais nom, donc verrouillait le
+mensonge. Il lit désormais le libellé DANS le menu et exige que les deux
+disent la même chose.
+
+**ET UNE FAUTE DE MA MAIN, QUI VAUT D'ÊTRE ÉCRITE** : en retirant le menu des
+statuts, j'ai laissé `$('#fBooking').onchange` qui l'écoutait. L'erreur cassait
+**tout** le script d'initialisation — plus de hamburger, plus de tableau — et
+ne se voyait que dans la console. **Retirer un élément, c'est retirer ce qui le
+regarde.**
+
+### L'AUDIT DES BOUTONS, ET POURQUOI IL A FAILLI MENTIR DEUX FOIS
+
+Même date, à sa demande : « je veux toutes les fonctions actives ». 42 boutons
+appuyés sur les neuf écrans : **aucun mort, aucune erreur JavaScript**.
+
+**« CE BOUTON A-T-IL UN GESTIONNAIRE ? » NE PROUVE RIEN** : un écouteur posé
+sur `document` attrape tous les clics, et la réponse serait « oui » partout. On
+mesure donc l'EFFET — un dialogue, un appel réseau, un téléchargement, le DOM
+qui bouge. Les dialogues sont **refusés** : leur apparition suffit à prouver
+que le bouton vit, et refuser laisse l'état tranquille pour le suivant.
+
+- **PREMIER DÉTECTEUR, VINGT FAUSSES ALERTES.** Il comparait la LONGUEUR du DOM
+  avec un seuil de 40 caractères : ouvrir un champ retire l'attribut `hidden`,
+  sept caractères, et vingt boutons vivants étaient déclarés morts. On compare
+  le DOM **à l'identique**, jamais sa taille.
+- **DEUXIÈME PASSE, MAUVAISE CIBLE.** Mon clic de vérification visait le
+  premier bouton du formulaire et non celui que j'accusais : j'attribuais son
+  silence au voisin. Une liste de fausses alertes est pire qu'aucun audit.
+- **CE QUE L'AUDIT NE PEUT PAS VOIR, ET QU'IL FAUT DIRE** : la bulle de
+  validation du navigateur n'est pas dans le DOM. « Créer la course » sur un
+  formulaire vide ne change donc rien de mesurable — il déplace le focus sur le
+  premier champ manquant et le navigateur affiche sa bulle. Le bouton est
+  actif ; le détecteur est aveugle à ce retour-là.
+- **UN ONGLET DÉJÀ SÉLECTIONNÉ NE FAIT RIEN, ET C'EST CORRECT.**
+
+**CE QUI RESTE EST LE GARDE-FOU, PAS L'AUDIT.** Un audit qu'on lance une fois
+ne surveille rien. `test-admin-papiers.mjs` éprouve désormais la RÈGLE dont ce
+défaut est le cas, aux trois largeurs : **aucun bouton visible ne doit recevoir
+le doigt d'un autre élément**. On ne relit pas le CSS — on demande au
+navigateur qui reçoit le doigt au centre de chaque bouton, parce qu'une règle
+d'empilement se casse sans bruit, d'un `z-index` ajouté ailleurs.
+Deux resserrements, chacun pour une fausse alerte mesurée : une feuille
+**modale** recouvre légitimement tout ce qui est derrière (feuille ouverte, on
+n'éprouve que SES boutons), et un élément **rogné** n'est pas un élément
+recouvert (le contenu d'une feuille qui défile garde des rectangles dans la
+fenêtre alors qu'il est hors de sa boîte).
+**Éprouvé contre le défaut d'origine** : la barre remise devant la feuille, il
+tombe à 320 et 390 px en nommant le bouton mangé, et reste vert à 1280 où la
+barre ne s'affiche pas.
 
 **LE MANDAT DE CHATGPT EST D'EN TERMINER UN SEUL** (#165, septembre 2026) :
 la cible est le remplacement propre de l'espace actuel **quand la parité est
