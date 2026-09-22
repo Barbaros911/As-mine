@@ -1334,6 +1334,30 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    cadre qui aligne, plus le texte. Le reste de la page est déjà fait de
    cartes blanches sur gris — ce bloc rentre enfin dans la page au lieu de
    flotter au-dessus. */
+/* LES TROIS ÉTAPES. Empilées sur téléphone — trois colonnes à 390 px
+   donneraient 120 px chacune, et une étape qui casse en quatre lignes ne
+   se lit plus comme une étape. De front au-delà de 900 px, où la
+   séquence gauche-droite dit l'ordre toute seule.
+   C'est une <ol> : l'ordre EST l'information, et un lecteur d'écran doit
+   l'entendre. Le compteur est masqué puisque le numéro est dessiné. */
+.etapes{display:grid;grid-template-columns:1fr;gap:11px;list-style:none;
+  margin:0;padding:0;counter-reset:none;}
+.etape{background:var(--carte);border:1px solid var(--filet);
+  border-radius:15px;padding:14px 13px 15px;min-width:0;
+  display:flex;flex-direction:column;}
+.etape-num{width:40px;height:40px;border-radius:50%;margin-bottom:11px;
+  background:var(--accent-clair);color:var(--accent-encre);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:800;line-height:1;}
+.etape b{display:block;font-size:13px;font-weight:700;line-height:1.25;
+  letter-spacing:-.012em;}
+/* On vise .etape-sous, jamais « .etape span » : la pastille est elle
+   aussi un span, et une règle trop large la repasserait en display:block
+   — le piège déjà payé trois fois ici (.engagement span, .service span
+   span, .arrivee). */
+.etape-sous{display:block;font-size:11.5px;color:var(--gris);
+  line-height:1.32;margin-top:4px;text-wrap:balance;}
+@media(min-width:900px){.etapes{grid-template-columns:repeat(3,minmax(0,1fr));}}
 .engagements{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .engagement{background:var(--carte);border:1px solid var(--filet);
   border-radius:15px;padding:14px 13px 15px;min-width:0;
@@ -2325,6 +2349,46 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
       <span data-t="retard_texte">Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.</span>
     </p>
   </div>
+
+  <!-- ═══ COMMENT ÇA MARCHE — TROIS ÉTAPES ═══
+       Septembre 2026, à sa demande. La page disait ce qu'on vend et
+       pourquoi nous choisir, jamais CE QUI SE PASSE après le clic. Un
+       visiteur qui hésite n'hésite pas sur le prix : il hésite parce
+       qu'il ne sait pas ce qu'il déclenche.
+
+       ELLE EST PLACÉE ICI, ET PAS PLUS BAS : juste après le formulaire
+       et l'encadré du vol en retard, c'est-à-dire à l'endroit exact où
+       la question se pose. Descendue après « Nos services », elle
+       répondrait à quelqu'un qui est déjà parti.
+
+       AUCUNE PROMESSE DE DÉLAI. « Nous vous répondons » sans chiffre :
+       une demande immédiate reste soumise à disponibilité, et c'est
+       écrit noir sur blanc dans les décisions produit. Promettre dix ou
+       vingt minutes, c'est promettre un chauffeur qu'on n'a pas placé.
+
+       UN NUMÉRO, PAS UNE ICÔNE. Les quatre engagements plus bas portent
+       déjà des pictogrammes ; trois de plus au-dessus feraient une
+       collection. Un chiffre dit l'ordre, ce qu'aucun dessin ne fait. -->
+  <section class="section">
+    <h2 data-t="etapes">Comment ça marche</h2>
+    <ol class="etapes">
+      <li class="etape">
+        <span class="etape-num">1</span>
+        <b data-t="et1">Vous demandez votre prix</b>
+        <span class="etape-sous" data-t="et1s">Deux adresses, une date. Le prix s'affiche aussitôt, et il est ferme.</span>
+      </li>
+      <li class="etape">
+        <span class="etape-num">2</span>
+        <b data-t="et2">Nous confirmons</b>
+        <span class="etape-sous" data-t="et2s">Nous cherchons un chauffeur professionnel, puis nous vous répondons par WhatsApp ou SMS.</span>
+      </li>
+      <li class="etape">
+        <span class="etape-num">3</span>
+        <b data-t="et3">Votre chauffeur vient</b>
+        <span class="etape-sous" data-t="et3s">Vous réglez à bord, en espèces ou par carte. Aucun paiement en ligne.</span>
+      </li>
+    </ol>
+  </section>
 
   <section class="section">
     <h2 data-t="engagements">Pourquoi choisir Elatransfer ?</h2>
@@ -4492,6 +4556,10 @@ window.ELA_TEXTES = {
     dispo:"Disponibilité confirmée par WhatsApp ou SMS",
     retard_titre:"Vol ou train en retard ? Votre chauffeur s'adapte.",
     retard_texte:"Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.",
+    etapes:"Comment ça marche",
+    et1:"Vous demandez votre prix", et1s:"Deux adresses, une date. Le prix s'affiche aussitôt, et il est ferme.",
+    et2:"Nous confirmons", et2s:"Nous cherchons un chauffeur professionnel, puis nous vous répondons par WhatsApp ou SMS.",
+    et3:"Votre chauffeur vient", et3s:"Vous réglez à bord, en espèces ou par carte. Aucun paiement en ligne.",
     engagements:"Pourquoi choisir Elatransfer ?",
     eng1:"Chauffeur professionnel", eng1s:"Une prise en charge organisée",
     eng2:"Prix ferme", eng2s:"Connu avant le départ, réglé au chauffeur",
@@ -4661,6 +4729,10 @@ window.ELA_TEXTES = {
     dispo:"Availability confirmed by WhatsApp or SMS",
     retard_titre:"Flight or train delayed? Your chauffeur adapts.",
     retard_texte:"Give us your flight or train number: we track your arrival and adjust the pick-up time.",
+    etapes:"How it works",
+    et1:"Get your price", et1s:"Two addresses, a date. The price appears straight away, and it is firm.",
+    et2:"We confirm", et2s:"We find a professional chauffeur, then reply by WhatsApp or SMS.",
+    et3:"Your chauffeur arrives", et3s:"You pay on board, in cash or by card. No online payment.",
     engagements:"Why choose Elatransfer?",
     eng1:"Professional chauffeur", eng1s:"An organised pick-up",
     eng2:"Firm price", eng2s:"Known before you leave, paid to your chauffeur",
