@@ -11,11 +11,15 @@
       si les deux ne disent pas la même chose, c'est nous qui avons tort,
       et le prix est ferme donc opposable.
 
-   2. LA NUIT DU FLYER N'EST PAS CELLE DU SITE. Le site majore de 20 % de
-      21 h à 6 h ET tout le week-end ; le flyer facture +5 € de 21 h à 6 h,
-      et ne dit rien du week-end. Un Orly berline de nuit doit sortir à
-      105 € et JAMAIS à 120 ; un Orly du samedi midi à 100 € et jamais à
-      120. C'est la divergence qui ne se voit pas à la relecture.
+   2. IL N'Y A PLUS AUCUN TARIF DE NUIT, NULLE PART. Le partenaire était la
+      derniere majoration du projet (+5 € de 21 h a 6 h) ; elle est retiree,
+      a sa demande, et la source serveur ne declare plus qu'UN forfait par
+      gamme. Un Orly berline doit donc sortir a 100 € a 10 h, a 22 h 30, a
+      4 h du matin et le samedi midi. Et l'ecriteau « Tarif nuit appliquee »
+      ne doit plus exister : il avait survecu au retrait du calcul, et le
+      site publie annoncait donc un tarif de nuit sur un prix identique a
+      celui du jour. Un libelle qui decrit un mecanisme retire est pire
+      qu'un libelle absent.
 
    3. LE SITE PUBLIC NE DOIT RIEN EN SAVOIR. Sans « ?h= », pas d'en-tête,
       pas de menu, pas de balise « noindex » — poser celle-ci sur le site
@@ -46,17 +50,24 @@ const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 
-/* LA GRILLE DU FLYER IMPRIMÉ. Berline 4 places, van 7 places, nuit de
-   21 h à 6 h, aucune majoration de week-end. */
-const FLYER = {
-  cdg:        { nom:'Aéroport CDG',           jour:[35,40],   nuit:[40,45]   },
-  orly:       { nom:'Orly',                   jour:[100,125], nuit:[105,130] },
-  bourget:    { nom:'Le Bourget',             jour:[45,65],   nuit:[50,70]   },
-  beauvais:   { nom:'Beauvais',               jour:[180,240], nuit:[185,245] },
-  villepinte: { nom:'Expositions Villepinte', jour:[35,50],   nuit:[40,55]   },
-  disney:     { nom:'Disney',                 jour:[90,120],  nuit:[95,125]  },
-  paris:      { nom:'Paris',                  jour:[80,110],  nuit:[85,115]  }
+/* LA GRILLE N'EST PAS RECOPIÉE ICI, ELLE EST LUE DANS LA SOURCE SERVEUR.
+   Recopiés, ces nombres auraient simplement déplacé la faute dans le test :
+   une baisse décidée par Barbaros touche la source, et un test qui fige des
+   montants tombe alors sur du code juste — on finit par le corriger sans
+   regarder. Ici la source fait foi, le test éprouve l'ACCORD, et un écart
+   nomme la destination et le montant. */
+import { readFileSync } from 'node:fs';
+const SRC = readFileSync('supabase/migrations/20260916100000_current_tariff_source.sql','utf8');
+const tarif = (cle,g) => {
+  const m = SRC.match(new RegExp("\\('"+cle+"','[^']*','"+g+"',(\\d+)\\)"));
+  if(!m) throw new Error('forfait absent de la source serveur : '+cle+'/'+g);
+  return Number(m[1])/100;
 };
+const FLYER = {};
+[['cdg','Aéroport CDG'],['orly','Orly'],['bourget','Le Bourget'],
+ ['beauvais','Beauvais'],['villepinte','Expositions Villepinte'],
+ ['disney','Disney'],['paris','Paris']]
+  .forEach(([cle,nom]) => { FLYER[cle] = { nom, prix:[tarif(cle,'berline'), tarif(cle,'van')] }; });
 
 await ctx.route('**://photon.komoot.io/**', r => {
   const q = decodeURIComponent(r.request().url()).toLowerCase();
@@ -188,30 +199,37 @@ for(const cle of Object.keys(FLYER)){
   const f = FLYER[cle];
   await poser(cle, lundi, '10:00');
   const j = await montants();
-  check('jour · '+f.nom+' : '+f.jour[0]+' € / '+f.jour[1]+' €',
-    j[0]===f.jour[0] && j[1]===f.jour[1], j.join('/'));
+  check('jour · '+f.nom+' : '+f.prix[0]+' € / '+f.prix[1]+' €',
+    j[0]===f.prix[0] && j[1]===f.prix[1], j.join('/'));
+  /* LE MÊME PRIX À 22 H 30 : c'est tout le sujet depuis le retrait du tarif
+     de nuit. Un contrôle qui ne regarderait que la journée laisserait
+     revenir une majoration en silence — le prix s'affiche, il est
+     simplement plus élevé, et c'est le comptoir qui l'annonce. */
   await poser(cle, lundi, '22:30');
   const n = await montants();
-  check('nuit · '+f.nom+' : '+f.nuit[0]+' € / '+f.nuit[1]+' €',
-    n[0]===f.nuit[0] && n[1]===f.nuit[1], n.join('/'));
+  check('nuit · '+f.nom+' : le MÊME prix qu\'en journée',
+    n[0]===f.prix[0] && n[1]===f.prix[1], n.join('/'));
 }
 
-/* LES DEUX BORNES DE LA NUIT. Le flyer dit 21 h – 6 h : 20 h 59 est du
-   jour, 21 h 00 de la nuit, 5 h 59 de la nuit, 6 h 00 du jour. */
-await poser('orly', lundi, '20:59'); check('20 h 59 est encore du jour', (await montants())[0]===100);
-await poser('orly', lundi, '21:00'); check('21 h 00 bascule en nuit',   (await montants())[0]===105);
-await poser('orly', lundi, '05:59'); check('5 h 59 est encore de la nuit',(await montants())[0]===105);
-await poser('orly', lundi, '06:00'); check('6 h 00 revient au jour',    (await montants())[0]===100);
+/* LES ANCIENNES BORNES DE LA NUIT, ÉPROUVÉES À L'ENVERS. On garde 20 h 59,
+   21 h 00, 5 h 59 et 6 h 00 parce que c'est exactement là qu'une majoration
+   réapparaîtrait si quelqu'un la rétablissait : aucune de ces quatre heures
+   ne doit changer le prix d'un centime. */
+const ORLY = FLYER.orly.prix[0];
+await poser('orly', lundi, '20:59'); check('20 h 59 : le prix ne bouge pas', (await montants())[0]===ORLY);
+await poser('orly', lundi, '21:00'); check('21 h 00 : AUCUNE bascule de nuit',(await montants())[0]===ORLY);
+await poser('orly', lundi, '05:59'); check('5 h 59 : toujours le même prix',  (await montants())[0]===ORLY);
+await poser('orly', lundi, '06:00'); check('6 h 00 : toujours le même prix',  (await montants())[0]===ORLY);
 
 /* LE CONTRÔLE QUI COMPTE LE PLUS : le week-end du SITE ne s'applique pas
    au flyer. Sans lui, un samedi midi sortirait à 120 € au lieu de 100. */
 await poser('orly', samedi, '12:00');
 const sam = await montants();
-check('SAMEDI MIDI reste au tarif de jour : 100 €, pas les 120 € du site',
-  sam[0]===100 && sam[1]===125, sam.join('/'));
+check('SAMEDI MIDI reste au tarif normal : ni nuit, ni week-end',
+  sam[0]===ORLY && sam[1]===FLYER.orly.prix[1], sam.join('/'));
 await poser('orly', samedi, '22:00');
-check('samedi soir : le tarif nuit du flyer, pas le cumul avec le week-end',
-  (await montants())[0]===105);
+check('samedi 22 h : ni nuit, ni week-end — le même prix qu\'un mardi midi',
+  (await montants())[0]===ORLY);
 
 /* ---------------------------------------------------------------------
    4. LE PRIX ANNONCÉ EST CELUI QUE LE CLIENT PAIE — TUNNEL COMPLET
@@ -224,8 +242,11 @@ check('sur l\'écran des gammes, la berline sort à 100 €',
   cartes[0].replace(/\s/g,'')==='100,00€', cartes[0]);
 check('sur l\'écran des gammes, le van sort à 125 €',
   cartes[1].replace(/\s/g,'')==='125,00€', cartes[1]);
-check('aucune note de majoration « nuit et week-end » sur un forfait de jour',
-  await p.locator('#noteNuit').isHidden());
+/* L'ÉCRITEAU DE NUIT N'EXISTE PLUS DU TOUT — on cherche l'ÉLÉMENT, pas sa
+   visibilité : « isHidden » répond vrai sur un élément absent, donc le
+   contrôle serait resté vert le jour où quelqu'un le remettrait caché. */
+check('plus aucun écriteau de tarif nuit dans la page',
+  (await p.locator('#noteNuit').count()) === 0);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click();
 await p.waitForTimeout(600);
@@ -233,7 +254,9 @@ const total = await p.locator('#recapTotal').textContent();
 check('le récapitulatif porte le MÊME prix : 100 €',
   total.replace(/\s/g,'').includes('100,00€'), total);
 
-/* La note de nuit doit dire la règle du flyer, pas celle du site. */
+/* LE TUNNEL COMPLET À 22 H 30 : c'est le chemin par lequel une majoration
+   reviendrait sans bruit. Le prix affiché sur la carte de gamme doit être
+   celui de la journée, au centime. */
 await p.locator('#btnRetourVehicules').click();
 await p.waitForTimeout(300);
 await p.locator('#btnRetourAccueil').click();
@@ -242,11 +265,16 @@ await poser('orly', lundi, '22:30');
 await p.locator('#btnVoirPrix').click();
 await p.waitForTimeout(1400);
 const nuitCartes = await p.locator('.veh-prix').allTextContents();
-check('de nuit, la berline sort à 105 € et JAMAIS à 120 €',
-  nuitCartes[0].replace(/\s/g,'')==='105,00€', nuitCartes[0]);
-const noteN = (await p.locator('#noteNuit').textContent()).toLowerCase();
-check('la note de nuit ne parle pas de week-end sur un forfait',
-  !(await p.locator('#noteNuit').isHidden()) && !noteN.includes('week'), noteN);
+check('à 22 h 30, la berline sort au prix de JOURNÉE',
+  nuitCartes[0].replace(/\s/g,'')===ORLY.toString()+',00€', nuitCartes[0]);
+check('et toujours aucun écriteau de nuit sur l\'écran des prix',
+  (await p.locator('#noteNuit').count()) === 0);
+/* AUCUNE PHRASE DE LA PAGE NE DOIT PLUS PROMETTRE UN TARIF DE NUIT. On lit
+   le texte rendu, pas la feuille de style : une clé de traduction oubliée
+   se voit à l'écran, pas dans le code. */
+const texteEcran = (await p.locator('body').innerText()).toLowerCase();
+check('le mot « tarif nuit » a disparu de l\'écran des prix',
+  !texteEcran.includes('tarif nuit') && !texteEcran.includes('night rate'));
 
 /* ---------------------------------------------------------------------
    5. LA SORTIE, ET LE PIÈGE DE « PARIS »
