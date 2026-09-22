@@ -342,6 +342,18 @@ img{display:block;max-width:100%;}
    champs « Date » et « Heure » débordaient donc de 116 px vers la droite, et
    toute la page partait avec eux. */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* MIN-WIDTH:0 SUR TOUT CE QUI VIT DANS UN « DUO », PAS SUR LES SEULS CHAMPS
+   (22 septembre 2026, vu par Barbaros : « y a Espèces aussi qui dépasse »).
+   En grille, un élément ne peut pas devenir plus étroit que son contenu :
+   il faut le lui dire. La règle existait, mais visait « .duo > .champ » —
+   les deux cases date/heure, les seules qui peuplaient un duo ce jour-là.
+   Les boutons de paiement sont arrivés dans le même duo sans l'hériter :
+   « Carte bancaire » ne tenant pas dans sa colonne, la colonne s'élargissait
+   et « Espèces » sortait du cadre blanc. Mesuré à 320 px : 17 px dehors.
+   C'est la DEUXIÈME fois dans la même journée qu'une règle taillée pour un
+   cas particulier casse le jour où le cas se généralise — après la marge
+   négative des textes d'aide. On vise donc les enfants, pas une classe. */
+.duo > *{min-width:0;}
 /* Un peu plus serré dans les demi-cases : à 14 px de marge et 12 px
    d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
 .duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
@@ -964,7 +976,21 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--accent-clair);}
 .suggest-item .ico{flex:0 0 auto;font-size:14.5px;}
 .suggest-vide{padding:12px 10px;font-size:13px;color:var(--gris);}
-.champ-aide{margin:-4px 0 10px;padding:0 4px;font-size:11.5px;
+/* PAS DE MARGE NÉGATIVE ICI, ET C'EST UNE LEÇON PAYÉE (22 septembre 2026,
+   vu par Barbaros sur son téléphone : « il y a des incohérences »).
+   Elle valait -4px, taillée pour un champ qui porte 10px de marge basse :
+   l'aide se posait alors à +6px, joliment collée. Mais dans le bloc « Le
+   client » les champs n'ont AUCUNE marge basse — l'aide remontait donc à
+   -4px, c'est-à-dire DANS le cadre du champ, et « Depuis l'étranger,
+   indiquez l'indicatif… » se faisait couper sa première ligne par la
+   bordure. Mesuré aux quatre largeurs, 320 à 1280 : le défaut y était
+   partout. Une règle taillée pour un cas particulier survit au jour où le
+   cas se généralise, sans rien casser de visible — c'est la même famille
+   que la barre du bas figée sur quatre onglets.
+   À zéro, l'aide ne peut plus entrer dans rien, quel que soit le champ
+   au-dessus. Les deux autres aides passent de +6 à +10px : mesuré, et
+   c'est tout ce que ça coûte. */
+.champ-aide{margin:0 0 10px;padding:0 4px;font-size:11.5px;
   color:var(--gris);line-height:1.35;}
 [hidden]{display:none!important;}
 /* Le bouton s'efface tant qu'une liste est ouverte. Mesuré sur le site en
