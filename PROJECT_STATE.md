@@ -163,6 +163,44 @@ depuis le dernier `main`. Le détail historique des briques et de leurs pièges
 reste dans `CLAUDE.md`. `/etat` signale en rouge quand `main` a bougé
 pendant la session.
 
+## Le mandat « STACK IA / DEVOPS MULTI-AGENTS V2 » — deux briques sur dix, décidé
+
+22 septembre 2026. Barbaros a apporté un mandat de dix briques : orchestrateur,
+GitHub Actions, Graphify, Context7, Playwright, Supabase preview, sécurité
+automatique, preview visuelle, monitoring production, optimisation des tokens.
+L'audit est dans #215.
+
+**Il a tranché après cet audit : « fais ce qui est le mieux ».** Deux briques
+ont été construites, huit ont été écartées **volontairement**. Ce n'est pas un
+travail inachevé : c'est un arbitrage, et il est écrit ici pour qu'aucune
+session ne le reprenne en croyant combler un oubli.
+
+### Faites
+
+- **Monitoring production.** Une fusion n'était pas une preuve : on publiait et
+  personne n'allait voir derrière. L'état `VÉRIFIÉ EN PRODUCTION` du cycle
+  officiel n'avait **aucun porteur** — il ne pouvait pas être prouvé.
+- **Régression visuelle.** Les suites éprouvent des règles nommées ; une couleur
+  qui change ou un bloc qui se décale n'était vu par personne, sauf par Barbaros
+  sur une capture.
+
+### Écartées, et pourquoi
+
+| Brique | Raison |
+|---|---|
+| Orchestrateur exécutable | La gouvernance écrite est appliquée et tenue par les Issues/PR. Un orchestrateur logiciel serait une deuxième source de vérité à côté de GitHub. |
+| Consolidation des Actions | 18 workflows en place, tous verts. Les toucher sans symptôme constaté, c'est le `html_handling` de Cloudflare une deuxième fois. |
+| Graphify | Dépendance extérieure nouvelle, sur un projet qui n'en tolère qu'une. Le mandat lui-même demande d'en **mesurer le bénéfice avant** de la rendre obligatoire : cette mesure n'a pas été faite, donc rien n'a été installé. |
+| Context7 / MCP projet | Même raison. Aucune tâche récente n'a échoué faute de documentation de dépendance. |
+| Playwright — refonte | Déjà reproductible et verrouillé depuis #210. Un `playwright.config` commun serait du confort. |
+| Supabase preview | Touche une zone critique et coûte peut-être de l'argent. **Aucune activation sans accord explicite de Barbaros**, et le coût reste à documenter GRATUIT / PAYANT / OPTIONNEL. |
+| Scanners de sécurité en plus | gitleaks **plus** le scanner maison à empreintes couvrent déjà. Installer CodeQL, Semgrep et Trivy ferait quatre outils pour un même travail — exactement le doublon que le mandat interdit. |
+| Mesure des tokens | Aucune infrastructure ne la rend fiable aujourd'hui ; un chiffre inventé sur un tableau de bord finit par servir à décider. |
+
+**Ce n'est pas « non », c'est « pas maintenant ».** Chacune se rouvre le jour où
+un symptôme réel la demande. Ce qu'il ne faut pas faire, c'est les installer
+parce qu'une liste les nomme.
+
 ## Ce qui est prévu
 
 | Quoi | Qui | Où c'est suivi |
