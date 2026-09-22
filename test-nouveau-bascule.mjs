@@ -588,6 +588,92 @@ for (const large of [320, 390, 430]) {
 }
 
 /* =====================================================================
+   RIEN NE DOIT SORTIR DE SON CADRE — LA FAMILLE DE DÉFAUTS DU 22/09/2026
+   ---------------------------------------------------------------------
+   Barbaros en a trouvé DEUX le même jour, sur son téléphone, et les deux
+   avaient la même origine : une règle CSS taillée pour les seuls éléments
+   qui peuplaient un bloc le jour où elle a été écrite.
+     — « .champ-aide » portait une marge NÉGATIVE de 4 px, calculée pour un
+       champ qui a 10 px de marge basse. Dans le bloc « Le client » les
+       champs n'en ont aucune : le texte « Depuis l'étranger… » remontait
+       DANS le cadre et sa première ligne se faisait couper par la bordure.
+     — « min-width:0 » ne visait que « .duo > .champ ». Les boutons de
+       paiement vivent dans le même duo sans en hériter : en grille, un
+       élément ne peut pas devenir plus étroit que son contenu, donc la
+       colonne s'élargissait et « Espèces » sortait du bloc blanc.
+   AUCUN CONTRÔLE NE POUVAIT LES VOIR. Les suites mesuraient le débordement
+   de la PAGE ; ces deux-là débordaient de leur CADRE, ce qui ne pousse
+   rien et ne casse rien — ça se voit seulement en regardant.
+   CE QUI EST ÉPROUVÉ ICI EST LA RÈGLE, PAS LES DEUX CAS : un élément ne
+   sort pas de son parent, et un texte d'aide ne remonte pas dans le champ
+   au-dessus. Ce qu'on ajoutera demain dans un duo est couvert d'office.
+   TROIS LARGEURS ET LES DEUX ENTRÉES : le défaut d'« Espèces » ne se
+   déclenchait qu'à 320 px — un iPhone SE — et seulement au comptoir. À 390
+   et 1280, là où les captures de contrôle étaient prises, il était
+   invisible.
+   ON NOMME LE COUPABLE ET L'ÉCART, sinon le message laisse chercher dans
+   six mille lignes. */
+for (const [entree, adresse] of [['site client', '/'],
+                                 ['comptoir hôtel', '/?reception=easyhotel-aeroville']]) {
+  for (const large of [320, 390, 430]) {
+    const cx = await b.newContext({viewport:{width:large,height:844},locale:'fr-FR'});
+    const pw = await cx.newPage();
+    await pw.route('**://api.openrouteservice.org/**', r => r.abort());
+    await pw.goto(SITE + adresse, {waitUntil:'domcontentloaded'});
+    await pw.waitForTimeout(900);
+    const d = await pw.evaluate(() => {
+      const pose = e => { const q = getComputedStyle(e).position;
+        return q === 'absolute' || q === 'fixed' || q === 'sticky'; };
+      /* Un cadre qui défile laisse volontairement dépasser ses enfants —
+         c'est ce qui fait deviner qu'on peut balayer le carrousel. */
+      const dansUnDefilement = e => {
+        for (let n = e.parentElement; n; n = n.parentElement) {
+          const o = getComputedStyle(n).overflowX;
+          if (o === 'auto' || o === 'scroll' || o === 'hidden') return true;
+        }
+        return false;
+      };
+      /* Les formes d'un DESSIN se superposent par construction : un
+         « circle » sur un « path » n'est pas un défaut de mise en page. */
+      const dansUnDessin = e => !!e.closest('svg');
+      const sortis = [], remontes = [];
+      for (const e of document.querySelectorAll('body *')) {
+        const par = e.parentElement;
+        if (!par || par === document.body) continue;
+        if (pose(e) || dansUnDefilement(e) || dansUnDessin(e)) continue;
+        const r = e.getBoundingClientRect(), P = par.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2 || P.width < 2) continue;
+        const dehors = Math.max(Math.round(r.right - P.right), Math.round(P.left - r.left));
+        if (dehors > 1) sortis.push(
+          e.tagName.toLowerCase() + (e.id ? '#' + e.id : '')
+          + (typeof e.className === 'string' && e.className.trim()
+              ? '.' + e.className.trim().split(/\s+/)[0] : '')
+          + ' sort de ' + dehors + 'px');
+      }
+      /* Le texte d'aide appartient au champ qu'il explique : il se pose
+         SOUS lui, jamais dedans. C'est le cas exact du 22/09. */
+      for (const a of document.querySelectorAll('.champ-aide')) {
+        const r = a.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) continue;
+        let prev = a.previousElementSibling;
+        while (prev && !prev.classList.contains('champ')) prev = prev.previousElementSibling;
+        if (!prev) continue;
+        const B = prev.getBoundingClientRect();
+        const dans = Math.round(B.bottom - r.top);
+        if (dans > 0) remontes.push(
+          '« ' + (a.textContent || '').trim().slice(0, 28) + '… » remonte de ' + dans + 'px');
+      }
+      return { sortis: sortis.slice(0, 4), remontes: remontes.slice(0, 4) };
+    });
+    check('à ' + large + ' px sur le ' + entree + ', aucun élément ne sort de son cadre',
+      d.sortis.length === 0, d.sortis.join(' · '));
+    check('à ' + large + ' px sur le ' + entree + ', aucun texte d\'aide ne remonte dans son champ',
+      d.remontes.length === 0, d.remontes.join(' · '));
+    await cx.close();
+  }
+}
+
+/* =====================================================================
    AUCUNE IMAGE RÉFÉRENCÉE NE DOIT MANQUER DU SITE PUBLIÉ
    ---------------------------------------------------------------------
    18 septembre 2026. Un nettoyage du dépôt a supprimé le dossier
