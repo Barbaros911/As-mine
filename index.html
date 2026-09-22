@@ -342,6 +342,18 @@ img{display:block;max-width:100%;}
    champs « Date » et « Heure » débordaient donc de 116 px vers la droite, et
    toute la page partait avec eux. */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* MIN-WIDTH:0 SUR TOUT CE QUI VIT DANS UN « DUO », PAS SUR LES SEULS CHAMPS
+   (22 septembre 2026, vu par Barbaros : « y a Espèces aussi qui dépasse »).
+   En grille, un élément ne peut pas devenir plus étroit que son contenu :
+   il faut le lui dire. La règle existait, mais visait « .duo > .champ » —
+   les deux cases date/heure, les seules qui peuplaient un duo ce jour-là.
+   Les boutons de paiement sont arrivés dans le même duo sans l'hériter :
+   « Carte bancaire » ne tenant pas dans sa colonne, la colonne s'élargissait
+   et « Espèces » sortait du cadre blanc. Mesuré à 320 px : 17 px dehors.
+   C'est la DEUXIÈME fois dans la même journée qu'une règle taillée pour un
+   cas particulier casse le jour où le cas se généralise — après la marge
+   négative des textes d'aide. On vise donc les enfants, pas une classe. */
+.duo > *{min-width:0;}
 /* Un peu plus serré dans les demi-cases : à 14 px de marge et 12 px
    d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
 .duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
