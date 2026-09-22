@@ -1,0 +1,133 @@
+# ═══════════════════════════════════════════════════════════════════════
+# RÉGRESSION VISUELLE — ce que la page avait, et ce qu'elle a
+# ───────────────────────────────────────────────────────────────────────
+# Les suites de ce dépôt éprouvent des RÈGLES nommées : pas de
+# débordement, pas de bouton recouvert, pas de fichier manquant. Elles ne
+# voient rien de ce que personne n'a pensé à nommer — une couleur qui
+# change, un bloc qui se décale, une section qui disparaît sans erreur.
+# Jusqu'ici c'est Barbaros qui les trouvait, sur une capture.
+#
+# LES DEUX CAPTURES SE FONT DANS LE MÊME TRAVAIL, SUR LE MÊME COUREUR.
+# Ce n'est pas une commodité : le seuil est de 20 pixels, et il ne tient
+# que parce que deux captures d'un même site rendent EXACTEMENT zéro
+# pixel d'écart. Deux coureurs, deux Chromium, et le bruit reviendrait.
+#
+# LE CONTRÔLEUR EST COPIÉ AVANT DE REVENIR EN ARRIÈRE. Sans ça,
+# `git checkout` de la base rendrait le script d'AVANT — c'est-à-dire
+# aucun script le jour où on l'introduit.
+#
+# IL NE FAIT PAS ÉCHOUER SUR UN CHANGEMENT D'ASPECT, ET C'EST LA RÈGLE :
+# un écran qui change est peut-être exactement ce qui était demandé. La
+# validation visuelle reste humaine. Il échoue en revanche si une page
+# ne s'ouvre plus — ça, ce n'est pas un choix, c'est un défaut.
+# ═══════════════════════════════════════════════════════════════════════
+name: Régression visuelle
+
+on:
+  pull_request:
+    branches: [main, ai-dev]
+    # Des MOTIFS, jamais une liste de noms : une liste survit au fichier
+    # qu'on ajoute, et c'est le piège que ce dépôt a déjà payé sur le
+    # filtre de la CI et sur la barre du bas figée à quatre onglets.
+    paths:
+      - "**.html"
+      - "**.css"
+      - "**.js"
+      - "construire.sh"
+      - "sites/**"
+      - ".github/scripts/**"
+      - ".github/workflows/regression-visuelle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ela-regression-visuelle-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comparer:
+    name: avant / après, téléphone et ordinateur
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Utiliser Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Installer les dépendances verrouillées
+        run: npm ci --ignore-scripts
+
+      - name: Installer Chromium Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Mettre le contrôleur à l'abri du retour en arrière
+        run: cp .github/scripts/regression-visuelle.mjs "$RUNNER_TEMP/controleur.mjs"
+
+      - name: Capturer APRÈS — l'état proposé
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh construire.sh > /dev/null
+          python3 -m http.server 8099 --directory site >/dev/null 2>&1 &
+          serveur=$!
+          trap 'kill "$serveur" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8099/ >/dev/null && break; sleep 0.5; done
+          node "$RUNNER_TEMP/controleur.mjs" capturer http://127.0.0.1:8099/ "$RUNNER_TEMP/apres"
+
+      - name: Capturer AVANT — la base de la PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
+          git checkout --quiet --force "$base"
+          sh construire.sh > /dev/null
+          python3 -m http.server 8099 --directory site >/dev/null 2>&1 &
+          serveur=$!
+          trap 'kill "$serveur" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8099/ >/dev/null && break; sleep 0.5; done
+          # Une page peut ne pas exister encore dans la base : c'est un
+          # écran NOUVEAU, pas un défaut. On ne fait donc pas échouer ici.
+          node "$RUNNER_TEMP/controleur.mjs" capturer http://127.0.0.1:8099/ "$RUNNER_TEMP/avant" || true
+
+      - name: Comparer
+        id: comparaison
+        shell: bash
+        run: |
+          set -euo pipefail
+          node "$RUNNER_TEMP/controleur.mjs" comparer \
+            "$RUNNER_TEMP/avant" "$RUNNER_TEMP/apres" "$RUNNER_TEMP/differences"
+
+      - name: Écrire le rapport dans le résumé du passage
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/differences/rapport.md" ]; then
+            cat "$RUNNER_TEMP/differences/rapport.md" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "_Les captures avant/après et les images des différences sont dans les artefacts de ce passage._" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Régression visuelle" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "La comparaison n'a pas produit de rapport — voir le journal du passage." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Conserver les captures et les différences
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-visuelle-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/avant
+            ${{ runner.temp }}/apres
+            ${{ runner.temp }}/differences
+          if-no-files-found: warn
+          retention-days: 14
