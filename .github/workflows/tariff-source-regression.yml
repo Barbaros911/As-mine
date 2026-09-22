@@ -7,6 +7,7 @@ on:
       - 'supabase/migrations/20260916100000_current_tariff_source.sql'
       - '.github/scripts/verifier-tarif-hotel.mjs'
       - '.github/workflows/tariff-source-regression.yml'
+      - 'sites/easyhotel-client/**'
 permissions: {contents: read}
 jobs:
   verifier:
@@ -37,10 +38,9 @@ jobs:
           fi
           grep -Fq "('cdg','Aéroport CDG','berline',3500)" supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq "('cdg','Aéroport CDG','van',5000)" supabase/migrations/20260916100000_current_tariff_source.sql
-          grep -Fq "('orly','Orly','berline',10000)" supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq "('beauvais','Beauvais','berline',18000)" supabase/migrations/20260916100000_current_tariff_source.sql
-          grep -Fq "('disney','Disney','berline',9000)" supabase/migrations/20260916100000_current_tariff_source.sql
-          grep -Fq "('paris','Paris','berline',8000)" supabase/migrations/20260916100000_current_tariff_source.sql
+          # Les autres forfaits ne sont plus figés ici : verifier-tarif-hotel.mjs
+          # exige l'accord serveur / moteur / page du QR pour les quatorze.
           # LE TARIF HÔTEL AU KILOMÈTRE — le trou que ces greps laissaient.
           # Ils comparent les tarifs généraux et les forfaits, mais pas le
           # taux appliqué à « autre destination » depuis une réception. Il

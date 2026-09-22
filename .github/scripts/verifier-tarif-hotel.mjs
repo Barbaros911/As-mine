@@ -56,4 +56,38 @@ for (const gamme of ['berline', 'van']) {
     console.log(`✔ ${gamme} : ${publie[gamme]} €/km, site et serveur d'accord`);
   }
 }
+/* LES FORFAITS easyHotel — TROIS ENDROITS, UN SEUL PRIX (22/09/2026).
+   La source serveur fait foi : deposer-course REMPLACE le prix du client par
+   le sien. Le moteur (HOTELS dans le site publié) l'affiche avant la
+   réservation, et la page du QR (sites/easyhotel-client/) l'annonce sur ses
+   cartes. Trois copies d'un prix ferme : un écart est un prix annoncé qu'on
+   ne facture pas. On NE FIGE AUCUN MONTANT — on exige l'accord, et le
+   message nomme la destination, la gamme et les trois valeurs. */
+const forfaitsServeur = {};
+for (const r of src.matchAll(/\('(\w+)','[^']*','(berline|van)',(\d+)\)/g)) {
+  (forfaitsServeur[r[1]] ||= {})[r[2]] = Number(r[3]) / 100;
+}
+const forfaitsSite = {};
+for (const r of site.matchAll(/cle:"(\w+)"[^{}]*?(?:\{[^{}]*\}[^{}]*?)*?forfait:\{\s*berline:(\d+),\s*van:(\d+)\s*\}/g)) {
+  forfaitsSite[r[1]] = { berline: Number(r[2]), van: Number(r[3]) };
+}
+const landing = readFileSync('sites/easyhotel-client/index.html', 'utf8');
+const forfaitsLanding = {};
+for (const r of landing.matchAll(/<a class="carte" data-dest="(\w+)"[\s\S]*?<\/a>/g)) {
+  const px = (g) => { const x = r[0].match(new RegExp('data-g="' + g + '">(\\d+) €')); return x ? Number(x[1]) : null; };
+  forfaitsLanding[r[1]] = { berline: px('berline'), van: px('van') };
+}
+const cles = Object.keys(forfaitsServeur);
+if (!cles.length) { console.error('✘ aucun forfait easyHotel lisible dans la source serveur.'); ko++; }
+for (const cle of new Set([...cles, ...Object.keys(forfaitsSite), ...Object.keys(forfaitsLanding)])) {
+  for (const g of ['berline', 'van']) {
+    const v = [forfaitsServeur[cle]?.[g], forfaitsSite[cle]?.[g], forfaitsLanding[cle]?.[g]];
+    if (v.some(x => typeof x !== 'number') || v[0] !== v[1] || v[0] !== v[2]) {
+      console.error(`✘ ${cle} / ${g} : serveur ${v[0] ?? 'absent'} € · moteur ${v[1] ?? 'absent'} € · page QR ${v[2] ?? 'absent'} €`);
+      ko++;
+    }
+  }
+}
+if (cles.length && !ko) console.log(`✔ ${cles.length} forfaits easyHotel : serveur, moteur et page du QR d'accord`);
+
 process.exit(ko ? 1 : 0);
