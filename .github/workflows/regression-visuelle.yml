@@ -12,9 +12,16 @@
 # que parce que deux captures d'un même site rendent EXACTEMENT zéro
 # pixel d'écart. Deux coureurs, deux Chromium, et le bruit reviendrait.
 #
-# LE CONTRÔLEUR EST COPIÉ AVANT DE REVENIR EN ARRIÈRE. Sans ça,
-# `git checkout` de la base rendrait le script d'AVANT — c'est-à-dire
-# aucun script le jour où on l'introduit.
+# LE CONTRÔLEUR EST COPIÉ AVANT DE REVENIR EN ARRIÈRE, ET LA COPIE RESTE
+# DANS LE DÉPÔT. Sans la copie, `git checkout` de la base rendrait le
+# script d'AVANT — c'est-à-dire aucun script le jour où on l'introduit.
+# Et elle ne peut pas vivre hors du dépôt : un module ESM résout ses
+# dépendances à partir de SA PROPRE position, jamais du dossier courant.
+# Posée dans `RUNNER_TEMP`, elle rendait ERR_MODULE_NOT_FOUND et le
+# contrôle tombait en quarante secondes — c'est la CI qui l'a dit, pas la
+# relecture. Un fichier NON SUIVI survit à `git checkout --force` (ça,
+# c'est `git clean`), et `construire.sh` ne publie que ce qu'il nomme :
+# vérifié, il ne part pas en ligne.
 #
 # IL NE FAIT PAS ÉCHOUER SUR UN CHANGEMENT D'ASPECT, ET C'EST LA RÈGLE :
 # un écran qui change est peut-être exactement ce qui était demandé. La
@@ -70,7 +77,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Mettre le contrôleur à l'abri du retour en arrière
-        run: cp .github/scripts/regression-visuelle.mjs "$RUNNER_TEMP/controleur.mjs"
+        run: cp .github/scripts/regression-visuelle.mjs ./controleur-visuel.mjs
 
       - name: Capturer APRÈS — l'état proposé
         shell: bash
@@ -81,7 +88,7 @@ jobs:
           serveur=$!
           trap 'kill "$serveur" 2>/dev/null || true' EXIT
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8099/ >/dev/null && break; sleep 0.5; done
-          node "$RUNNER_TEMP/controleur.mjs" capturer http://127.0.0.1:8099/ "$RUNNER_TEMP/apres"
+          node ./controleur-visuel.mjs capturer http://127.0.0.1:8099/ "$RUNNER_TEMP/apres"
 
       - name: Capturer AVANT — la base de la PR
         shell: bash
@@ -96,14 +103,14 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8099/ >/dev/null && break; sleep 0.5; done
           # Une page peut ne pas exister encore dans la base : c'est un
           # écran NOUVEAU, pas un défaut. On ne fait donc pas échouer ici.
-          node "$RUNNER_TEMP/controleur.mjs" capturer http://127.0.0.1:8099/ "$RUNNER_TEMP/avant" || true
+          node ./controleur-visuel.mjs capturer http://127.0.0.1:8099/ "$RUNNER_TEMP/avant" || true
 
       - name: Comparer
         id: comparaison
         shell: bash
         run: |
           set -euo pipefail
-          node "$RUNNER_TEMP/controleur.mjs" comparer \
+          node ./controleur-visuel.mjs comparer \
             "$RUNNER_TEMP/avant" "$RUNNER_TEMP/apres" "$RUNNER_TEMP/differences"
 
       - name: Écrire le rapport dans le résumé du passage
@@ -119,6 +126,10 @@ jobs:
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "La comparaison n'a pas produit de rapport — voir le journal du passage." >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Retirer la copie du contrôleur
+        if: always()
+        run: rm -f ./controleur-visuel.mjs
 
       - name: Conserver les captures et les différences
         if: always()
