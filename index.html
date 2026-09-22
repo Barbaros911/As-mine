@@ -964,7 +964,21 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--accent-clair);}
 .suggest-item .ico{flex:0 0 auto;font-size:14.5px;}
 .suggest-vide{padding:12px 10px;font-size:13px;color:var(--gris);}
-.champ-aide{margin:-4px 0 10px;padding:0 4px;font-size:11.5px;
+/* PAS DE MARGE NÉGATIVE ICI, ET C'EST UNE LEÇON PAYÉE (22 septembre 2026,
+   vu par Barbaros sur son téléphone : « il y a des incohérences »).
+   Elle valait -4px, taillée pour un champ qui porte 10px de marge basse :
+   l'aide se posait alors à +6px, joliment collée. Mais dans le bloc « Le
+   client » les champs n'ont AUCUNE marge basse — l'aide remontait donc à
+   -4px, c'est-à-dire DANS le cadre du champ, et « Depuis l'étranger,
+   indiquez l'indicatif… » se faisait couper sa première ligne par la
+   bordure. Mesuré aux quatre largeurs, 320 à 1280 : le défaut y était
+   partout. Une règle taillée pour un cas particulier survit au jour où le
+   cas se généralise, sans rien casser de visible — c'est la même famille
+   que la barre du bas figée sur quatre onglets.
+   À zéro, l'aide ne peut plus entrer dans rien, quel que soit le champ
+   au-dessus. Les deux autres aides passent de +6 à +10px : mesuré, et
+   c'est tout ce que ça coûte. */
+.champ-aide{margin:0 0 10px;padding:0 4px;font-size:11.5px;
   color:var(--gris);line-height:1.35;}
 [hidden]{display:none!important;}
 /* Le bouton s'efface tant qu'une liste est ouverte. Mesuré sur le site en
