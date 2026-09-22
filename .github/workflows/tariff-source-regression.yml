@@ -23,7 +23,18 @@ jobs:
           grep -Fq '"par_km_centimes":265' supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq '"par_km_centimes":400' supabase/migrations/20260916100000_current_tariff_source.sql
           # easyHotel après transformation de production : aucun tarif nuit/WE.
-          grep -Fq 'jour:{ berline:35,  van:50  }, nuit:{ berline:35,  van:50  }' site/index.html
+          # LA FORME A CHANGÉ LE 22/09/2026, ET CE GREP L'AVAIT FIGÉE. Il cherchait
+          # « jour:{…}, nuit:{…} » — deux copies du même prix, que le retrait du tarif
+          # de nuit a fondues en UN seul « forfait ». Le contrôle tombait alors sur un
+          # code juste : exactement la faute que ce dépôt reproche ailleurs, une forme
+          # écrite en dur qui survit au changement qui l'invalide.
+          grep -Fq 'forfait:{ berline:35,  van:50  }' site/index.html
+          # ET LA RÈGLE ELLE-MÊME, qui ne vieillira pas : plus aucun tarif de nuit
+          # dans le site publié. Le grep du dessus dit le bon montant, celui-ci dit
+          # qu'aucune seconde grille ne peut revenir en silence.
+          if grep -Eq 'nuitHotel|noteNuit|hotel_nuit|nuit_hotel' site/index.html; then
+            echo 'Un tarif de nuit est réapparu dans le site publié.'; exit 1
+          fi
           grep -Fq "('cdg','Aéroport CDG','berline',3500)" supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq "('cdg','Aéroport CDG','van',5000)" supabase/migrations/20260916100000_current_tariff_source.sql
           grep -Fq "('orly','Orly','berline',10000)" supabase/migrations/20260916100000_current_tariff_source.sql

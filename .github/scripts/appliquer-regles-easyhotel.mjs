@@ -10,22 +10,23 @@ let source = fs.readFileSync(chemin, 'utf8');
  * mode hôtel au moment de construire le site publié.
  */
 const remplacements = [
-  ['{ cle:"cdg",        nom:"Aéroport CDG",           aeroport:"cdg",\n          jour:{ berline:35,  van:40  }, nuit:{ berline:40,  van:45  } }',
-   '{ cle:"cdg",        nom:"Aéroport CDG",           aeroport:"cdg",\n          jour:{ berline:35,  van:50  }, nuit:{ berline:35,  van:50  } }'],
-  ['jour:{ berline:100, van:125 }, nuit:{ berline:105, van:130 }',
-   'jour:{ berline:100, van:125 }, nuit:{ berline:100, van:125 }'],
-  ['jour:{ berline:45,  van:65  }, nuit:{ berline:50,  van:70  }',
-   'jour:{ berline:45,  van:65  }, nuit:{ berline:45,  van:65  }'],
-  ['jour:{ berline:180, van:240 }, nuit:{ berline:185, van:245 }',
-   'jour:{ berline:180, van:240 }, nuit:{ berline:180, van:240 }'],
-  ['jour:{ berline:35,  van:50  }, nuit:{ berline:40,  van:55  }',
-   'jour:{ berline:35,  van:50  }, nuit:{ berline:35,  van:50  }'],
-  ['jour:{ berline:90,  van:120 }, nuit:{ berline:95,  van:125 }',
-   'jour:{ berline:90,  van:120 }, nuit:{ berline:90,  van:120 }'],
-  ['jour:{ berline:80,  van:110 }, nuit:{ berline:85,  van:115 }',
-   'jour:{ berline:80,  van:110 }, nuit:{ berline:80,  van:110 }'],
-  ['var nuit = nuitHotel(champDate.value, champHeure.value);',
-   'var nuit = false; // easyHotel : aucun tarif nuit/week-end'],
+  /* LES FORFAITS NE SONT PLUS RÉÉCRITS ICI, ET CE N'EST PAS UN OUBLI.
+     Ils étaient corrigés au moment de construire : le dépôt portait un tarif
+     de nuit, le site publié n'en avait pas. DEUX VÉRITÉS POUR UN MÊME PRIX,
+     dont une seule se voyait — et c'est le site publié qu'on facture. La
+     grille du dépôt est désormais alignée sur la source serveur
+     (20260916100000_current_tariff_source.sql), qui déclare UN seul forfait
+     par gamme. Il ne reste ici que ce que le dépôt ne peut pas porter :
+     l'extinction de la mention « tarif nuit » et le tarif au kilomètre du
+     partenaire. Si un tarif de nuit revient un jour, il se pose dans la
+     source serveur ET dans HOTELS, jamais dans ce fichier.
+     L'extinction de la mention « tarif nuit » n'y est plus non plus : le
+     dépôt ne connaît tout simplement plus de tarif de nuit au comptoir.
+     Elle avait d'ailleurs un trou — l'écriteau « Tarif nuit (21 h – 6 h)
+     appliqué » lisait nuitHotel() DIRECTEMENT, et ce second appel n'était
+     pas réécrit : le site publié annonçait donc un tarif de nuit sur un
+     prix rigoureusement identique à celui du jour. Un transformateur qui
+     corrige un calcul à un endroit et l'oublie à l'autre ne se voit pas. */
   ['hotel_au_km:"Autre destination : le prix est calculé à la distance, comme sur le site."',
    'hotel_au_km:"Autre destination : le prix final est calculé automatiquement selon la distance."'],
   ['hotel_au_km:"Other destination: the price is calculated by distance, as on the site."',
