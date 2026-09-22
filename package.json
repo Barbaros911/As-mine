@@ -1,0 +1,21 @@
+{
+  "name": "ela-transfer-quality",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Outillage reproductible de build et de contrôle ELA Transfer",
+  "engines": {
+    "node": ">=22 <27"
+  },
+  "scripts": {
+    "build": "bash construire.sh",
+    "test:docs": "node test-doc.mjs",
+    "test:unified": "node test-unified-facade.mjs",
+    "test:all": "sh .claude/outils/tests.sh",
+    "test:visual": "node .claude/outils/verifier.mjs"
+  },
+  "devDependencies": {
+    "http-server": "14.1.1",
+    "jsqr": "1.4.0",
+    "playwright": "1.56.1"
+  }
+}

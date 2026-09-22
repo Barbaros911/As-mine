@@ -1,0 +1,66 @@
+name: ELA Quality Gate
+
+on:
+  pull_request:
+    branches: [main, ai-dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ela-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-visual-smoke:
+    name: build-mobile-desktop
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Utiliser Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Installer les dépendances verrouillées
+        run: npm ci --ignore-scripts
+
+      - name: Construire le site
+        run: npm run build
+
+      - name: Vérifier documentation et façade unifiée
+        run: |
+          npm run test:docs
+          npm run test:unified
+
+      - name: Installer Chromium Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Contrôler téléphone et ordinateur
+        shell: bash
+        run: |
+          set -euo pipefail
+          captures="$RUNNER_TEMP/ela-captures"
+          python3 -m http.server 8099 --directory site >"$RUNNER_TEMP/ela-http.log" 2>&1 &
+          serveur=$!
+          trap 'kill "$serveur" 2>/dev/null || true' EXIT
+          for tentative in {1..20}; do
+            curl --fail --silent http://127.0.0.1:8099/ >/dev/null && break
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8099/ >/dev/null
+          node .claude/outils/verifier.mjs http://127.0.0.1:8099/ "$captures"
+
+      - name: Conserver les captures de contrôle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ela-mobile-desktop-${{ github.run_id }}
+          path: ${{ runner.temp }}/ela-captures
+          if-no-files-found: warn
+          retention-days: 14
