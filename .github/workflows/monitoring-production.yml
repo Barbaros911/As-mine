@@ -1,0 +1,218 @@
+# ═══════════════════════════════════════════════════════════════════════
+# MONITORING DE PRODUCTION — une fusion n'est pas une preuve
+# ───────────────────────────────────────────────────────────────────────
+# `pages.yml` publie et s'arrête là. Personne ne va voir derrière. Tant
+# que ce workflow n'existait pas, l'état « VÉRIFIÉ EN PRODUCTION » écrit
+# dans AGENTS.md n'avait aucun porteur : on ne pouvait pas le prouver.
+#
+# TROIS DÉCLENCHEURS, TROIS PANNES DIFFÉRENTES :
+#   - après une publication : la régression qu'on vient d'introduire ;
+#   - toutes les 6 h : la panne d'hébergeur, qui n'attend pas nos fusions ;
+#   - à la main : quand Barbaros doute.
+#
+# ON RÉESSAIE UNE FOIS AVANT DE CRIER. Un coup de réseau du coureur
+# GitHub n'est pas une panne du site, et une fausse alerte à chaque
+# passage est la meilleure façon de faire ignorer l'alerte suivante.
+# Deux échecs d'affilée, c'est réel.
+#
+# L'INCIDENT EST UNE ISSUE UNIQUE, PAS UNE PAR PASSAGE. Elle se met à
+# jour tant que ça dure, et elle se FERME toute seule au retour à la
+# normale — sinon on finirait avec quarante Issues pour une seule panne,
+# et plus personne ne les lirait.
+# ═══════════════════════════════════════════════════════════════════════
+name: Monitoring production
+
+on:
+  workflow_run:
+    workflows: ["Publier le site"]
+    types: [completed]
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      adresse:
+        description: "Adresse à contrôler"
+        required: false
+        default: "https://elatransfer.com/"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ela-monitoring-production
+  cancel-in-progress: false
+
+jobs:
+  controler:
+    name: le site en ligne répond-il
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Après une publication : seulement si elle a réussi. Contrôler
+    # derrière une publication ratée mesurerait la version d'avant.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Utiliser Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Installer les dépendances verrouillées
+        run: npm ci --ignore-scripts
+
+      - name: Installer Chromium Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Contrôler le site en ligne
+        id: controle
+        shell: bash
+        run: |
+          set +e
+          adresse="${{ github.event.inputs.adresse || 'https://elatransfer.com/' }}"
+          echo "adresse=$adresse" >> "$GITHUB_OUTPUT"
+
+          node .github/scripts/verifier-production.mjs "$adresse" \
+            --rapport="$RUNNER_TEMP/rapport.json" > "$RUNNER_TEMP/sortie.txt" 2>&1
+          premier=$?
+          cat "$RUNNER_TEMP/sortie.txt"
+
+          if [ "$premier" -ne 0 ]; then
+            echo "::warning::Premier passage en échec — on réessaie une fois dans 60 s avant de déclarer un incident."
+            sleep 60
+            node .github/scripts/verifier-production.mjs "$adresse" \
+              --rapport="$RUNNER_TEMP/rapport.json" > "$RUNNER_TEMP/sortie.txt" 2>&1
+            second=$?
+            cat "$RUNNER_TEMP/sortie.txt"
+            if [ "$second" -ne 0 ]; then
+              echo "etat=panne" >> "$GITHUB_OUTPUT"
+            else
+              echo "etat=ok" >> "$GITHUB_OUTPUT"
+              echo "::notice::Le premier passage avait échoué, le second est vert — pas d'incident."
+            fi
+          else
+            echo "etat=ok" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "## Contrôle de production"
+            echo ""
+            echo '```'
+            cat "$RUNNER_TEMP/sortie.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Conserver le rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-production-${{ github.run_id }}
+          path: ${{ runner.temp }}/rapport.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Ouvrir ou clore l'incident
+        if: always()
+        uses: actions/github-script@v8
+        env:
+          ETAT: ${{ steps.controle.outputs.etat }}
+          ADRESSE: ${{ steps.controle.outputs.adresse }}
+        with:
+          script: |
+            const fs = require("fs");
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const marqueur = "<!-- ela-monitoring-production -->";
+            const titre = "[MONITORING] Le site en ligne ne répond plus correctement";
+            const etat = process.env.ETAT || "panne";
+            const adresse = process.env.ADRESSE || "https://elatransfer.com/";
+
+            let sortie = "";
+            try {
+              sortie = fs.readFileSync(`${process.env.RUNNER_TEMP}/sortie.txt`, "utf8");
+            } catch { sortie = "(sortie du contrôleur indisponible)"; }
+
+            // Une seule Issue d'incident à la fois : on la retrouve par son
+            // marqueur, jamais par son titre — un titre se reformule.
+            const ouvertes = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: "open", labels: "", per_page: 100
+            });
+            const incident = ouvertes.find(i => !i.pull_request && i.body && i.body.includes(marqueur));
+
+            const lien = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            if (etat === "ok") {
+              if (incident) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: incident.number,
+                  body: [
+                    "## Retour à la normale",
+                    "",
+                    `Le contrôle de \`${adresse}\` est repassé au vert.`,
+                    "",
+                    `Passage : ${lien}`,
+                    "",
+                    "```",
+                    sortie.trim(),
+                    "```",
+                    "",
+                    "---",
+                    "_Generated by [Claude Code](https://claude.ai/code)_"
+                  ].join("\n")
+                });
+                await github.rest.issues.update({
+                  owner, repo, issue_number: incident.number,
+                  state: "closed", state_reason: "completed"
+                });
+                core.notice(`Incident #${incident.number} clos : le site répond de nouveau.`);
+              } else {
+                core.notice("Le site en ligne répond. Rien à signaler.");
+              }
+              return;
+            }
+
+            const corps = [
+              marqueur,
+              "## P0 — le site en ligne ne répond plus correctement",
+              "",
+              `Adresse contrôlée : ${adresse}`,
+              `Détecté : ${new Date().toISOString()}`,
+              `Déclencheur : \`${context.eventName}\``,
+              `Passage : ${lien}`,
+              "",
+              "**Deux passages consécutifs ont échoué**, à une minute d'intervalle : ce n'est pas un coup de réseau du coureur.",
+              "",
+              "### Ce que le contrôleur a mesuré",
+              "",
+              "```",
+              sortie.trim(),
+              "```",
+              "",
+              "### Ce que ça veut dire",
+              "",
+              "- « sert une AUTRE page » → un réglage d'hébergeur, pas le code.",
+              "- « fichier(s) du site manquent » → `construire.sh` ne publie pas ce fichier.",
+              "- « on ne peut pas réserver » → la page est en ligne et ne sert à rien.",
+              "",
+              "Aucune correction automatique n'est appliquée. Cette Issue se ferme d'elle-même dès qu'un contrôle repasse au vert.",
+              "",
+              "---",
+              "_Generated by [Claude Code](https://claude.ai/code)_"
+            ].join("\n");
+
+            if (incident) {
+              await github.rest.issues.update({
+                owner, repo, issue_number: incident.number, body: corps
+              });
+              core.setFailed(`Panne toujours en cours — incident #${incident.number} mis à jour.`);
+            } else {
+              const cree = await github.rest.issues.create({
+                owner, repo, title: titre, body: corps
+              });
+              core.setFailed(`Panne détectée — incident #${cree.data.number} ouvert.`);
+            }
