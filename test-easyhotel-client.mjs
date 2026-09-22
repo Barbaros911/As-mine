@@ -120,7 +120,7 @@ for(const doc of ['mentions','privacy']){ const {ctx,p}=await nouveau();
   check('bascule FR', /Où souhaitez-vous/.test(await p.locator('#destinations > h2').innerText()));
   await ctx.close(); }
 // 5. largeurs : débordement, zones tactiles, recouvrements, liens contact
-for(const [w,h] of [[375,812],[390,844],[393,852],[430,932],[768,1024],[1024,768],[1280,800]]){
+for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024],[1024,768],[1280,800]]){
   const {ctx,p}=await nouveau('fr-FR',w,h);
   await p.goto(BASE+'/easyhotel-client/',{waitUntil:'load'});
   const r=await p.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';const sw=document.documentElement.scrollWidth;
