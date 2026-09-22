@@ -5221,6 +5221,119 @@ Trois pièges déjà rencontrés quand une suite échoue :
   moyens d'envoi sont visibles d'emblée, et c'est voulu : tant que le
   client n'a pas appuyé, la demande n'est arrivée nulle part.
 
+## LA MISE EN LIGNE EST ENFIN CONTRÔLÉE, ET L'ASPECT AUSSI
+
+22 septembre 2026, à sa demande (« fais ce qui est le mieux »), après un
+audit des dix briques du mandat « STACK IA / DEVOPS MULTI-AGENTS V2 ».
+**Deux briques retenues sur dix, et c'est une décision, pas un abandon** —
+voir `PROJECT_STATE.md` pour les huit autres et la raison de chacune.
+
+### Le site en ligne est contrôlé APRÈS sa publication
+
+`pages.yml` publiait et s'arrêtait là. L'état **VÉRIFIÉ EN PRODUCTION**
+écrit dans `AGENTS.md` n'avait donc aucun porteur : personne ne pouvait le
+prouver, et une régression ne se découvrait qu'en perdant un client.
+
+- **UN SEUL CONTRÔLEUR, DEUX CIBLES.** `.github/scripts/verifier-production.mjs`
+  prend une adresse, n'importe laquelle : le site construit en local ou le
+  site en ligne. Deux contrôleurs auraient divergé, et c'est celui qu'on
+  oublie qui laisse passer la panne. C'est aussi ce qui le rend éprouvable
+  depuis cette machine, qui ne joint pas `elatransfer.com`.
+- **UN CODE 200 NE DIT PAS QUELLE PAGE A RÉPONDU.** Premier jet : en
+  supprimant `exploitant/index.html`, le serveur rend un **listage de
+  dossier** en 200 et le contrôle restait **vert**. C'est exactement le
+  défaut Cloudflare déjà vécu ici — `html_handling` faisait servir le site
+  de réservation à l'adresse `/demos/`, en 200, et Barbaros l'a vu au
+  premier essai. On vérifie donc chaque porte d'entrée **par son titre**.
+- **ON NE COMPTE QUE NOTRE PROPRE ORIGINE.** Un serveur de tuiles lent ou
+  un calculateur d'itinéraire muet n'est pas notre régression : le site est
+  écrit pour tenir sans eux. Confondre les deux ferait sonner l'alerte une
+  nuit sur deux — et une alerte qui se trompe ne se lit plus.
+- **LE FICHIER OUBLIÉ PAR LA RECETTE EST LE VRAI SUJET.** `construire.sh`
+  ne publie que ce qu'il nomme : un fichier oublié marche parfaitement en
+  local, où le serveur sert le dépôt entier, et reste introuvable en ligne
+  sans lever la moindre erreur. Le contrôleur écoute donc les réponses ≥ 400
+  de notre origine et **nomme le fichier**.
+- **ON RÉESSAIE UNE FOIS AVANT DE CRIER.** Deux échecs à une minute d'écart,
+  c'est réel ; un seul peut être le réseau du coureur.
+- **L'INCIDENT EST UNE SEULE ISSUE**, retrouvée par son marqueur et jamais
+  par son titre — un titre se reformule. Elle se met à jour tant que ça
+  dure et **se ferme d'elle-même** au retour à la normale : quarante Issues
+  pour une seule panne, et plus personne ne les lirait.
+- Éprouvé contre quatre falsifications, toutes tombent en nommant le
+  défaut : page absente, mauvaise page servie, fichier oublié, bouton de
+  réservation disparu.
+
+### La régression visuelle voit ce qu'aucune règle n'avait nommé
+
+Les suites de ce dépôt éprouvent des **règles** : pas de débordement, pas
+de bouton recouvert, pas de fichier manquant. Elles sont excellentes pour
+ce qu'elles nomment et aveugles au reste. Une couleur qui change, un bloc
+qui se décale, une section qui disparaît sans erreur : c'est Barbaros qui
+les trouvait, sur une capture.
+
+- **AUCUNE DÉPENDANCE AJOUTÉE, ET C'EST DÉLIBÉRÉ.** Comparer deux images
+  demande normalement `pixelmatch` et `pngjs`. Ce projet ne tolère qu'une
+  bibliothèque extérieure — Leaflet, servie depuis le dépôt. La comparaison
+  est faite par le navigateur déjà installé : deux `canvas`, une boucle sur
+  les pixels.
+- **LE BRUIT EST NUL, ET C'EST MESURÉ.** Deux captures du même site rendent
+  **exactement zéro** pixel d'écart sur les huit écrans. Le réseau extérieur
+  est coupé pendant les captures et les animations sont figées : sans ça un
+  fond de carte en retard d'un dixième de seconde signalerait un écart tous
+  les jours.
+- **LE SEUIL EST UN NOMBRE DE PIXELS, PAS UN POURCENTAGE**, et c'est la
+  falsification qui l'a imposé. Repeindre la couleur d'accent du site —
+  donc tous les boutons — ne touchait que **0,02 %** d'une longue page :
+  sous le seuil, déclaré « identique ». **Une grande page diluait le
+  défaut.** À 20 pixels, la même couleur ressort à 298 et 457.
+- **UNE PAGE QUI NE S'OUVRE PLUS N'EST PAS UN CHANGEMENT D'ASPECT.** Même
+  piège que ci-dessus, rencontré deux heures plus tard : un listage de
+  dossier en 200 se capturait très bien. Toute page de ce site porte un
+  `meta viewport`, parce que le mobile d'abord est la règle ; aucun listage
+  n'en a. La capture échoue maintenant, et dit pourquoi.
+- **IL NE FAIT PAS ÉCHOUER SUR UN CHANGEMENT D'ASPECT**, et c'est la règle :
+  un écran qui change est peut-être exactement ce qui était demandé. On rend
+  le nombre de pixels, la part de la page, la hauteur avant/après et une
+  image où le rouge marque ce qui a bougé. **La validation visuelle reste
+  humaine.** Il échoue en revanche si une page ne s'ouvre plus.
+- **LES DEUX CAPTURES SE FONT DANS LE MÊME TRAVAIL, SUR LE MÊME COUREUR.**
+  Le seuil de 20 pixels ne tient que par là. Et le contrôleur est **copié
+  avant le retour en arrière** : sinon `git checkout` de la base rendrait le
+  script d'avant, c'est-à-dire aucun script le jour où on l'introduit.
+- **L'HORLOGE DU NAVIGATEUR EST FIGÉE, ET SANS ÇA L'OUTIL CRIAIT SUR
+  CHAQUE PR.** Le formulaire d'accueil s'ouvre sur « maintenant + 15 min »
+  arrondi au pas de 5 : deux captures prises à quelques minutes d'écart
+  n'affichent pas la même heure. Mesuré — **65 pixels** d'écart sur
+  l'accueil entre la capture avant et la capture après, alors qu'aucun
+  fichier du site n'avait changé. `clock.setFixedTime()`, et l'écart
+  retombe à zéro sur les huit écrans à cent secondes d'intervalle. Les
+  suites du dépôt ancrent déjà l'horloge pour la même raison.
+- Le filtre du workflow porte des **motifs**, jamais une liste de noms —
+  une liste survit au fichier qu'on ajoute. Même piège que le filtre de la
+  CI et que la barre du bas figée à quatre onglets.
+
+**DEUX PIÈGES DE BANC, PAS DE PRODUIT, RENCONTRÉS EN LIVRANT CES OUTILS :**
+
+- **UN MODULE ESM CHERCHE `node_modules` À CÔTÉ DE LUI-MÊME, PAS DANS LE
+  DOSSIER COURANT.** Le contrôleur visuel doit être copié avant le retour
+  en arrière — sinon `git checkout` de la base rend le script d'avant,
+  c'est-à-dire aucun script le jour où on l'introduit. Posée dans
+  `RUNNER_TEMP`, hors du dépôt, cette copie rendait `ERR_MODULE_NOT_FOUND`
+  et le contrôle tombait en quarante secondes. **C'est la CI qui l'a dit,
+  pas la relecture.** La copie vit donc à la racine du dépôt : un fichier
+  **non suivi** survit à `git checkout --force` (ça, c'est `git clean`), et
+  `construire.sh` ne publie que ce qu'il nomme — vérifié, il ne part pas en
+  ligne.
+- **UN SERVEUR LAISSÉ SUR LE MAUVAIS DOSSIER, TROISIÈME FOIS.** Deux écrans
+  rendaient 404 pendant une simulation : un `python3 -m http.server` resté
+  ouvert sur le port, enraciné sur le **dépôt** et non sur `site/`. Le
+  contrôle de santé (`curl /`) l'acceptait, puisque le dépôt a aussi un
+  `index.html`. **Encore un 200 qui ne dit pas qui a répondu.** Sur un port
+  neuf, tout répond. Et `pkill -f "http.server"` n'est pas la solution : le
+  motif correspond aussi à la ligne de commande du shell qui l'exécute, et
+  il se tue lui-même — vu.
+
 ## Le logo
 
 Le signe court est « **ELA** » gravé en ivoire sur marine, souligné d'un
