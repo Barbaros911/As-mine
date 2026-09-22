@@ -148,13 +148,13 @@ itinéraire/prix, a été fusionnée dans **#191**. Admin v2 est publié en
 préversion, tandis que l'entrée exploitant historique reste active tant que
 la bascule finale n'a pas été validée.
 
-La refonte responsive mobile/ordinateur est suivie exclusivement dans
-**#165 et la PR #192**. Cette PR est le seul chantier visuel Admin : elle doit
-être remise à niveau sur le dernier `main`, obtenir tous ses contrôles au vert
-et conserver la parité de #191 avant toute fusion. ChatGPT assure la
-spécification UX et le contrôle de production ; Claude Code reprend
-l'implémentation technique sur la branche existante de #192. Aucune seconde
-refonte parallèle ne doit être créée.
+La refonte responsive Admin historique de #165/#192 a été dépassée par les
+intégrations validées et fusionnées dans **#218 puis #219**. Le suivi ne doit
+plus présenter #192 comme chantier actif de référence. L'Admin courant sur
+`main` est la base unique à conserver : toute correction future repart de
+l'état réel de `main`, sans recréer une seconde interface ni réintroduire une
+ancienne branche. #165 doit servir d'historique/coordination jusqu'à sa mise à
+jour ou sa clôture, pas de source technique concurrente.
 
 La branche `claude/page-directe-0finaj` ne doit pas être fusionnée telle
 quelle : elle diverge de `main`. Seules ses corrections tarifaires encore
@@ -167,8 +167,12 @@ pendant la session.
 
 | Quoi | Qui | Où c'est suivi |
 |---|---|---|
-| Consolider la refonte responsive Admin sans nouvelle implémentation | Claude sur PR #192 · ChatGPT en contrôle UX/production | Issues #164/#165 · PR #192 |
-| Relecture de `TEAM_RULES.md` (§1 et §9) | ChatGPT | PR #170 |
+| Gouvernance branches agents → `ai-dev` → promotion contrôlée vers `main` | Équipe · validation Barbaros | #212/#215 · PR #209 |
+| Garde-fou Playwright mobile 390×844 + desktop 1280×800 | QA/DevOps | #213/#215 · PR #210 |
+| Test contrôlé réel de la chaîne multi-agents | Équipe | #200/#215 |
+| Kanban Agile Produit + Opérations (distinct du board de traitement des courses) | Admin/Produit | #197 |
+| Sécurité finale : fermer l'ancien INSERT anon après validation des 4 parcours | Security | #190 |
+| Paiement Stripe à empreinte/capture, Live désactivé jusqu'à validation | Booking/Security | #173 |
 | Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
 
 ## Ce qui bloque, et par qui
