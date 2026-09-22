@@ -2658,12 +2658,15 @@ gamme : le même trajet vaut le même prix un mardi à 10 h, un samedi midi et
   ferme donc opposable, et le client y trouverait un argument contre nous.
   Elles disent maintenant qu'aucune majoration de nuit, de week-end ni de
   jour férié ne s'applique.
-- **LE TARIF NUIT DU FLYER easyHotel N'EST PAS CONCERNÉ** et reste en place
-  (+5 € de 21 h à 6 h, sans week-end). Ce n'est pas la même chose : l'une
-  était une majoration en pourcentage sur un tarif kilométrique, l'autre est
-  une colonne de prix **imprimée sur un papier posé à une réception**. Le
-  jour où quelqu'un lira « il n'y a plus de majoration » dans ce fichier,
-  cette grille-là n'est pas concernée.
+- **LE TARIF NUIT DU FLYER A ÉTÉ RETIRÉ À SON TOUR** (22 septembre 2026, à sa
+  demande : « fait les prix je modifierai le flyer plus tard »). Cette note
+  disait l'inverse et l'a dit pendant des jours — elle survivait à la
+  décision qui l'invalidait. **IL N'Y A PLUS AUCUNE MAJORATION NULLE PART**,
+  ni au kilométrage, ni au forfait d'un partenaire, ni la nuit, ni le
+  week-end, ni les jours fériés.
+  **Le flyer imprimé est donc périmé sur un quatrième point** — il annonce
+  encore une colonne de nuit. Barbaros le refera ; d'ici là le comptoir
+  facture moins que le papier, jamais plus.
 - **Le contrôle qui compte est celui de `test-nouveau-exploitant`** : à 23 h
   et un samedi midi, le prix ne bouge pas. Éprouvé en réintroduisant la
   majoration — les deux contrôles tombent (70 € au lieu de 60). Une
@@ -2700,8 +2703,45 @@ l'un des gains.
   du kilométrage : sur les longues courses le van est **volontairement**
   moins cher que le site, c'est un prix d'appel pour décrocher l'hôtel,
   tranché par Barbaros.
-- **LA NUIT DU FLYER : +5 €, de 21 h à 6 h, SANS week-end** (`nuitHotel`).
-  C'est la seule majoration qui subsiste dans tout le projet.
+- **IL N'Y A PLUS DE TARIF DE NUIT** (22 septembre 2026). C'était la dernière
+  majoration du projet : elle est partie avec `nuitHotel()`, l'écriteau
+  `#noteNuit`, les clés `hotel_nuit` / `nuit_hotel` des deux langues, et les
+  champs `jour`/`nuit` de `HOTELS`, remplacés par **un seul `forfait`**.
+  - **LE DÉPÔT ET LE SITE PUBLIÉ DISAIENT DEUX PRIX DIFFÉRENTS**, et une
+    seule des deux vérités était facturée. Le dépôt portait la grille avec
+    nuit ; `appliquer-regles-easyhotel.mjs` la réécrivait au moment de
+    construire. Une divergence qui ne se voit pas : le prix s'affiche des
+    deux côtés. `HOTELS` est désormais aligné sur la **source serveur**
+    (`20260916100000_current_tariff_source.sql`), qui ne déclare qu'un
+    forfait par gamme, et le transformateur n'a plus à corriger les tarifs.
+  - **LE TROU QUE CE TRAVAIL A DÉCOUVERT, ET IL ÉTAIT EN LIGNE** : le
+    transformateur remplaçait `var nuit = nuitHotel(...)` dans le calcul,
+    mais l'écriteau lisait `nuitHotel()` **directement**, à un second
+    endroit jamais réécrit. Entre 21 h et 6 h, le site publié annonçait donc
+    « **Tarif nuit (21 h – 6 h) appliqué** » sur un prix **rigoureusement
+    identique à celui du jour**. Mesuré, pas déduit. *Un transformateur qui
+    corrige un calcul à un endroit et l'oublie à l'autre ne se voit pas.*
+  - **LE GARDE-FOU DU CHANTIER ÉTAIT QUE LE PRIX NE BOUGE PAS.** Relevé
+    avant, remesuré après : les sept destinations, aux deux gammes, à 10 h,
+    22 h 30 et 4 h du matin, rendent exactement les montants de la source
+    serveur. Un refactor du prix qui ne se compare pas à l'avant n'est pas
+    un refactor, c'est un pari.
+  - **`test-nouveau-hotel` NE FIGE PLUS AUCUN MONTANT** : il **lit** la
+    source serveur et éprouve l'ACCORD. Une baisse décidée par Barbaros
+    touche la source et la suite reste verte ; n'en toucher qu'un tombe, et
+    le message nomme la destination et l'écart. Éprouvé deux fois — tarif de
+    nuit réintroduit (11 contrôles tombent, chacun nommant le montant),
+    écriteau remis (3 contrôles tombent). Les deux défenses sont éprouvées
+    séparément, comme le bouton d'accès du comptoir.
+  - **LES CGV ONT SUIVI, DANS LES DEUX LANGUES** — et elles avaient un trou
+    plus ancien : la réécriture du 16 septembre avait emporté **tout le
+    paragraphe du forfait partenaire**. On facturait donc un forfait de 35 €
+    pendant que les CGV décrivaient un calcul au kilomètre. Même faute que
+    l'option pancarte perdue au même endroit. Le paragraphe est rétabli,
+    **sans aucun chiffre** — c'est ce choix d'écriture qui a évité que les
+    erreurs de grille deviennent contractuelles — et la date de mise à jour
+    a suivi : *un document légal qui change sans que sa date change est
+    lui-même trompeur.*
 - **CE QU'IL A CHANGÉ EN VOYANT LE FLYER** (septembre 2026) : le supplément
   van de 10 € est **supprimé**, l'aéroport CDG en berline passe de 25 à
   **35 € de jour et 40 € de nuit**, et les capacités s'alignent sur le site
