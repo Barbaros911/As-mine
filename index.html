@@ -3270,6 +3270,30 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
       <div id="nuageActions" hidden>
         <button class="bouton-fantome" type="button" id="btnNuageSync">Actualiser</button>
         <button class="bouton-fantome" type="button" id="btnNuageDeco">Se déconnecter</button>
+        <!-- CHANGER SON MOT DE PASSE SANS PASSER PAR SUPABASE. L'éditeur SQL
+             du tableau de bord refuse le collage sur iPhone, et le lien de
+             réinitialisation par e-mail arrive sur une page qui ne sait pas
+             le recevoir : ce bloc est donc le seul chemin qui marche depuis
+             un téléphone. -->
+        <div id="blocMdp" style="grid-column:1/-1;flex-basis:100%;width:100%;margin-top:14px">
+          <h3 class="bloc-titre">Changer mon mot de passe</h3>
+          <label class="champ" for="mdpNouveau">
+            <span class="champ-corps">
+              <span class="champ-titre">Nouveau mot de passe</span>
+              <input id="mdpNouveau" type="password" autocomplete="new-password" placeholder="12 caractères minimum">
+            </span>
+          </label>
+          <label class="champ" for="mdpConfirme">
+            <span class="champ-corps">
+              <span class="champ-titre">Le retaper</span>
+              <input id="mdpConfirme" type="password" autocomplete="new-password" placeholder="••••••••">
+            </span>
+          </label>
+          <p class="champ-aide" id="mdpAvis" hidden></p>
+          <button class="bouton" type="button" id="btnMdpChanger">
+            <span>Enregistrer le nouveau mot de passe</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -9930,6 +9954,62 @@ window.ELA_TEXTES = {
   document.getElementById("btnNuageDeco").addEventListener("click", function(){
     nuage.deconnexion(); jugerNuage();
   });
+
+  /* ═══ CHANGER SON MOT DE PASSE DEPUIS L'ESPACE ═══
+     Septembre 2026, Barbaros veut changer ses accès depuis son téléphone :
+     l'éditeur SQL de Supabase refuse le collage sur iPhone, et « Reset
+     password » envoie un lien que ce site ne sait pas recevoir.
+     ON N'UTILISE PAS nuage.appel : il jette le message du serveur (« nuage
+     422 »), et un mot de passe refusé doit dire POURQUOI — trop court, déjà
+     utilisé… Même leçon que « identifiants refusés ».
+     LES AUTRES APPAREILS SONT DÉCONNECTÉS ENSUITE (scope=others). Changer un
+     mot de passe parce qu'on le croit connu ne sert à rien si la session de
+     celui qui le connaissait reste ouverte. Celle de CET appareil reste. */
+  (function(){
+    var btn = document.getElementById("btnMdpChanger");
+    if(!btn) return;
+    var avis = document.getElementById("mdpAvis");
+    function dire(texte, ok){
+      avis.textContent = texte;
+      avis.style.color = ok ? "var(--accent-encre)" : "#C9302F";
+      avis.hidden = false;
+    }
+    btn.addEventListener("click", function(){
+      var n1 = document.getElementById("mdpNouveau");
+      var n2 = document.getElementById("mdpConfirme");
+      if(!nuage.connecte()){ dire("Connectez-vous d'abord au serveur."); return; }
+      if(n1.value.length < 12){ dire("12 caractères minimum."); return; }
+      if(n1.value !== n2.value){ dire("Les deux saisies ne sont pas identiques."); return; }
+      btn.disabled = true;
+      var jeton = nuage.session.access_token;
+      fetch(SUPABASE_URL + "/auth/v1/user", {
+        method: "PUT",
+        headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json",
+                   Authorization: "Bearer " + jeton },
+        body: JSON.stringify({ password: n1.value })
+      }).then(function(r){
+        return r.text().then(function(t){
+          var j = null;
+          try{ j = t ? JSON.parse(t) : null; }catch(e){ j = null; }
+          if(r.ok){
+            n1.value = ""; n2.value = "";
+            dire("Mot de passe changé. Les autres appareils vont être déconnectés.", true);
+            return fetch(SUPABASE_URL + "/auth/v1/logout?scope=others", {
+              method: "POST",
+              headers: { apikey: SUPABASE_CLE, Authorization: "Bearer " + jeton }
+            }).then(function(r2){
+              if(!r2.ok) dire("Mot de passe changé. Les autres appareils n'ont pas pu être déconnectés : ils le seront à l'expiration de leur session.", true);
+            }).catch(function(){});
+          }
+          if(r.status === 401){ dire("Votre session a expiré : déconnectez-vous puis reconnectez-vous, et recommencez."); return; }
+          var msg = j && (j.msg || j.error_description || j.message || j.error_code || j.error);
+          dire("Refusé par le serveur : " + (msg || ("erreur " + r.status)));
+        });
+      }).catch(function(){
+        dire("Le serveur n'a pas répondu : réessayez.");
+      }).then(function(){ btn.disabled = false; });
+    });
+  })();
 
   /* ---- Le verrou ---- */
 /* =====================================================================

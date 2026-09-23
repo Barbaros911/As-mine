@@ -5505,3 +5505,20 @@ illisible, l'icône disparaissait partout sans le moindre message), et
 
 Refusé : le E seul (« c'est moche »), et toute voiture, roue ou route
 dessinée.
+
+## CHANGER SON MOT DE PASSE DEPUIS L'ESPACE — « Réglages »
+
+23 septembre 2026, à sa demande : changer ses accès depuis le téléphone.
+**Le code d'exploitant n'existe plus en ligne** : `harden-exploitant-auth.mjs`
+le remplace à la construction par la connexion Supabase (e-mail + mot de
+passe, puis `est_exploitant()`). Le vrai accès admin est donc ce mot de passe.
+- **Pourquoi un bloc dans le site** : l'éditeur SQL de Supabase refuse le
+  collage sur iPhone, et « Reset password » envoie un lien que ce site ne sait
+  pas recevoir (aucune gestion de `type=recovery`). Ne pas l'y renvoyer.
+- **Ne jamais supprimer puis recréer le compte** : `operateurs` le désigne par
+  son `user_id`, un compte recréé n'aurait plus accès à l'admin.
+- Après le changement, `logout?scope=others` déconnecte les AUTRES appareils :
+  changer un mot de passe qu'on croit connu ne sert à rien si la session de
+  celui qui le connaissait reste ouverte.
+- Le bloc est dans « Réglages », que le rôle `agent_reservation` ne voit pas :
+  un agent ne peut pas encore changer le sien. `test-nouveau-mdp.mjs`.
