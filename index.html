@@ -4500,6 +4500,7 @@ window.ELA_TEXTES = {
     hotel_autre:"Autre destination…",
     hotel_au_km:"Autre destination : le prix est calculé à la distance, comme sur le site.",
     hotel_hors_forfait:"Cette adresse n'est pas dans Paris : le prix repasse au calcul à la distance.",
+    hotel_tarif_flyer:"Tarif du flyer ({dest}) :",
     chambre_aide:"Transmis au chauffeur : il vient vous chercher sans attendre à la réception.",
     vol:"Numéro de vol", ph_vol:"Ex. AF1234",
     train:"Numéro de train", ph_train:"Ex. TGV 6201",
@@ -4675,6 +4676,7 @@ window.ELA_TEXTES = {
     hotel_autre:"Other destination…",
     hotel_au_km:"Other destination: the price is calculated by distance, as on the site.",
     hotel_hors_forfait:"This address is not within Paris: the price reverts to the distance calculation.",
+    hotel_tarif_flyer:"Flyer price ({dest}):",
     chambre_aide:"Passed on to your chauffeur: he meets you without waiting at reception.",
     vol:"Flight number", ph_vol:"e.g. AF1234",
     train:"Train number", ph_train:"e.g. TGV 6201",
@@ -5365,33 +5367,82 @@ window.ELA_TEXTES = {
      au centre de Paris et PAS le code postal : celui-ci n'est qu'un morceau
      de libellé, écrit différemment selon la source, et s'y fier c'est
      accepter qu'un jour une adresse valable soit refusée. */
+  /* ═══ LE PRIX DU FLYER SUIT LE LIEU, PAS LE MENU ═══
+     Septembre 2026, à sa demande : « peu importe l'adresse, ça doit être le
+     même prix que le flyer », et « Autre destination » aussi, si l'adresse
+     tapée tombe dans l'une des destinations du flyer. Un client qui écrit
+     « Orly 4 » ou « Disneyland Hotel » dans « Autre destination » va bien
+     à Orly ou à Disney : le facturer au kilomètre, c'est lui annoncer un
+     autre prix que le papier posé devant lui sur le comptoir.
+     ON MESURE UNE DISTANCE, pas un mot : « Orly » dans un libellé peut
+     être la rue d'Orly à Montreuil. Un aéroport se reconnaît à moins de
+     RAYON_AEROPORT_KM d'un de ses terminaux (la table AEROPORTS, déjà tenue
+     pour la recherche d'adresse) ; les autres à leur « rayonKm ». Les zones
+     ne se recouvrent pas — la plus proche l'une de l'autre, Paris et Le
+     Bourget, sont à 11 km. */
+  var RAYON_AEROPORT_KM = 2;
+  var hotelDestZone = null;   // la destination du flyer où tombe l'adresse, ou null
+  function destDuPoint(pt){
+    if(!hotel || !pt) return null;
+    var trouve = null;
+    hotel.destinations.forEach(function(d){
+      if(trouve) return;
+      if(d.aeroport){
+        var t = AEROPORTS[d.aeroport].terminaux;
+        Object.keys(t).forEach(function(k){
+          if(!trouve && volDoiseauKm(pt, {lat:t[k][0], lon:t[k][1]}) <= RAYON_AEROPORT_KM) trouve = d;
+        });
+      } else if(d.rayonKm && volDoiseauKm(pt, d) <= d.rayonKm) trouve = d;
+    });
+    return trouve;
+  }
+  /* La destination qui part sur la course : celle du menu, ou celle où
+     tombe l'adresse. C'est elle que le serveur recroise avec sa grille. */
+  function destHotelRetenue(){ return hotelDestZone || hotelDest; }
+  window.__destHotelRetenue = destHotelRetenue;
+
+  /* LE FORFAIT NE S'APPLIQUE QUE SI LE TRAJET EST BIEN CELUI DU FLYER.
+     Sur « Paris », la réception tape une adresse : si elle tape Versailles,
+     les 80 € ne valent plus, et les laisser passer serait vendre 45 km au
+     prix de 10 — sur un prix ferme, donc opposable. On mesure la distance
+     au centre de Paris et PAS le code postal : celui-ci n'est qu'un morceau
+     de libellé, écrit différemment selon la source, et s'y fier c'est
+     accepter qu'un jour une adresse valable soit refusée. */
   function jugerForfait(){
+    hotelDestZone = null;
     if(!hotel){ course.forfait = null; return; }
     var dest = hotelDest, bon = !!dest;
-    if(dest && dest.adresseLibre){
-      /* LE FORFAIT S'AFFICHE AVANT MÊME QU'UNE ADRESSE SOIT TAPÉE : c'est
-         le prix du flyer, et c'est celui que la réception annonce de vive
-         voix pendant qu'elle saisit. Il ne tombe QUE sur une adresse
-         effectivement retenue et hors de la zone — un champ encore vide
-         n'est pas une erreur, c'est une saisie en cours. Rien n'est
-         réservable sans les deux bouts de toute façon. */
-      var pt = choixLibre();
-      bon = !pt || volDoiseauKm(pt, dest) <= dest.rayonKm;
+    var libre = !dest || !!dest.adresseLibre;
+    var pt = libre ? choixLibre() : null;
+    if(libre){
+      /* LE FORFAIT S'AFFICHE AVANT MÊME QU'UNE ADRESSE SOIT TAPÉE sur
+         « Paris » : c'est le prix du flyer, celui que la réception annonce
+         pendant qu'elle saisit. Il ne tombe QUE sur une adresse retenue et
+         hors de toute destination du flyer — un champ encore vide n'est pas
+         une erreur, c'est une saisie en cours. */
+      var zone = destDuPoint(pt);
+      if(zone){ dest = zone; bon = true; hotelDestZone = zone; }
+      else bon = !!dest && !pt;
     }
     course.forfait = bon ? dest.forfait : null;
     destForfait.hidden = !course.forfait;
     if(course.forfait){
       /* LES DEUX PRIX SONT ÉCRITS, PAS SEULEMENT CELUI DE LA BERLINE. La
          réception annonce un montant de vive voix avant même d'ouvrir
-         l'écran des gammes : c'est ce qu'elle lit ici. */
-      destForfait.textContent = GAMMES.map(function(g){
+         l'écran des gammes : c'est ce qu'elle lit ici. Quand le tarif vient
+         de l'adresse et non du menu, on NOMME la destination reconnue —
+         sinon un prix qui change tout seul ne s'explique pas. */
+      var prixTxt = GAMMES.map(function(g){
         return g.nom + " " + euros(course.forfait[g.cle]);
       }).join(" · ");
+      destForfait.textContent = (dest !== hotelDest)
+        ? T("hotel_tarif_flyer").replace("{dest}", dest.nom) + " " + prixTxt
+        : prixTxt;
     }
     /* On DIT quand on quitte le forfait. Un prix qui change sans un mot,
        c'est une réception qui annonce 80 € et un client qui en voit 140. */
-    var sorti = !!dest && dest.adresseLibre && !bon && !!choixLibre();
-    destLibre.hidden = !(!dest || sorti);
+    var sorti = !!hotelDest && !bon && !!pt;
+    destLibre.hidden = bon;
     if(!destLibre.hidden)
       destLibre.textContent = T(sorti ? "hotel_hors_forfait" : "hotel_au_km");
   }
@@ -6366,17 +6417,17 @@ window.ELA_TEXTES = {
           forfait:{ berline:90,  van:130 } },
         { cle:"bourget",    nom:"Le Bourget",
           label:"Aéroport de Paris-Le Bourget, 93350 Le Bourget",
-          lat:48.9694, lon:2.4414,
+          lat:48.9694, lon:2.4414, rayonKm:2.5,
           forfait:{ berline:35,  van:70  } },
         { cle:"beauvais",   nom:"Beauvais",               aeroport:"beauvais",
           forfait:{ berline:180, van:240 } },
         { cle:"villepinte", nom:"Expositions Villepinte",
           label:"Parc des Expositions de Paris-Nord Villepinte, 93420 Villepinte",
-          lat:48.9736, lon:2.5153,
+          lat:48.9736, lon:2.5153, rayonKm:1.5,
           forfait:{ berline:35,  van:50  } },
         { cle:"disney",     nom:"Disney",
           label:"Disneyland Paris, 77700 Marne-la-Vallée",
-          lat:48.8722, lon:2.7758,
+          lat:48.8722, lon:2.7758, rayonKm:3,
           forfait:{ berline:80,  van:120 } },
         /* PARIS N'EST PAS UNE ADRESSE, c'est une ville de dix kilomètres de
            large. Le forfait vaut, mais le chauffeur a besoin d'une rue :

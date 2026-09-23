@@ -73,8 +73,11 @@ await ctx.route('**://photon.komoot.io/**', r => {
   const q = decodeURIComponent(r.request().url()).toLowerCase();
   const dedans = {geometry:{coordinates:[2.3376,48.8606]},properties:{name:"Place Vendôme",osm_key:"tourism",osm_value:"attraction",postcode:"75001",city:"Paris",countrycode:"FR"}};
   const dehors = {geometry:{coordinates:[2.1301,48.8014]},properties:{name:"Château de Versailles",osm_key:"tourism",osm_value:"attraction",postcode:"78000",city:"Versailles",countrycode:"FR"}};
+  /* Un hôtel DE Disneyland, pas le point du menu : 1,5 km du point
+     « Disneyland Paris ». C'est l'adresse qu'un client tape vraiment. */
+  const disney = {geometry:{coordinates:[2.7965,48.8715]},properties:{name:"Disney Newport Bay Club",osm_key:"tourism",osm_value:"hotel",postcode:"77700",city:"Chessy",countrycode:"FR"}};
   return r.fulfill({contentType:'application/json',
-    body:JSON.stringify({features:[q.includes('vendome')?dedans:dehors]})});
+    body:JSON.stringify({features:[q.includes('vendome')?dedans:q.includes('newport')?disney:dehors]})});
 });
 const BAN_HOTEL = [2.5512, 48.9701];
 await ctx.route('**://api-adresse.data.gouv.fr/**', r => {
@@ -336,6 +339,57 @@ check('« Paris » + une adresse HORS de Paris : le forfait tombe',
   await p.locator('#destForfait').isHidden());
 check('et on le dit, plutôt que de changer le prix en silence',
   !(await p.locator('#destLibre').isHidden()));
+
+/* ---------------------------------------------------------------------
+   5 bis. LE PRIX DU FLYER SUIT LE LIEU, PAS LE MENU
+   À sa demande : une adresse tapée dans « Autre destination » qui tombe
+   dans une destination du flyer prend le prix du flyer. On éprouve les
+   trois familles — un aéroport (par son terminal), un lieu (un hôtel de
+   Disney, pas le point du menu), Paris — et la frontière : Versailles
+   reste au kilométrage. Sans cette frontière, un code qui appliquerait le
+   forfait partout passerait au vert.
+   --------------------------------------------------------------------- */
+const choisirLibre = async (q) => {
+  await p.fill('#arrivee','');
+  await p.type('#arrivee', q, {delay:12});
+  await p.waitForTimeout(900);
+  await p.locator('#arriveeList [role=option]').first().click();
+  await p.waitForTimeout(250);
+};
+await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(900);
+await p.selectOption('#hotelDest','');
+await p.fill('#date', lundi); await p.fill('#heure','10:00');
+await p.waitForTimeout(250);
+await choisirLibre('orly');
+check('« Autre destination » + un terminal d\'Orly : le prix du flyer Orly ('+FLYER.orly.prix.join(' / ')+' €)',
+  (await montants()).join('/')===FLYER.orly.prix.join('/'), await p.locator('#destForfait').textContent());
+check('et la destination reconnue est NOMMÉE à côté du prix',
+  (await p.locator('#destForfait').textContent()).includes('Orly'));
+check('et « prix à la distance » n\'est plus annoncé',
+  await p.locator('#destLibre').isHidden());
+await choisirLibre('newport');
+check('« Autre destination » + un hôtel de Disneyland : le prix du flyer Disney ('+FLYER.disney.prix.join(' / ')+' €)',
+  (await montants()).join('/')===FLYER.disney.prix.join('/'), await p.locator('#destForfait').textContent());
+await p.locator('#btnVoirPrix').click();
+await p.waitForTimeout(1400);
+const zoneCartes = await p.locator('.veh-prix').allTextContents();
+check('sur l\'écran des gammes, l\'hôtel de Disney sort au forfait ('+FLYER.disney.prix[0]+' €), pas au kilométrage',
+  zoneCartes[0].replace(/\s/g,'')===FLYER.disney.prix[0]+',00€', zoneCartes[0]);
+await p.locator('#btnRetourAccueil').click();
+await p.waitForTimeout(300);
+await choisirLibre('vendome');
+check('« Autre destination » + une adresse dans Paris : le prix du flyer Paris',
+  (await montants()).join('/')===FLYER.paris.prix.join('/'), await p.locator('#destForfait').textContent());
+await choisirLibre('versailles');
+check('« Autre destination » + Versailles : aucun forfait, on reste à la distance',
+  await p.locator('#destForfait').isHidden());
+check('et on le dit', !(await p.locator('#destLibre').isHidden()));
+await p.selectOption('#hotelDest','paris');
+await p.waitForTimeout(250);
+await choisirLibre('newport');
+check('« Paris » + une adresse à Disneyland : c\'est le forfait Disney qui s\'applique',
+  (await montants()).join('/')===FLYER.disney.prix.join('/'), await p.locator('#destForfait').textContent());
 
 /* ---------------------------------------------------------------------
    6. LES DEUX SENS, AU MÊME PRIX
