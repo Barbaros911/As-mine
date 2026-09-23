@@ -120,7 +120,7 @@ qui passe au-dessus de toutes les règles et ne quitte jamais Supabase.
 
 **Authentication** → **Users** → **Add user** → *Create new user*.
 Mettre une vraie adresse e-mail et **un vrai mot de passe** — celui-ci ouvre
-les données réelles des clients, ce n'est pas le code `12345678` de
+les données réelles des clients, ce n'est pas le code d'exploitant de
 l'appareil.
 
 ⚠️ **COCHER « Auto Confirm User ».** Elle ne l'est pas d'office, et c'est le
