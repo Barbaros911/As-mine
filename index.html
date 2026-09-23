@@ -1778,6 +1778,57 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
   .hero{height:430px;}
   .hero h1{font-size:37px;}
 }
+/* =====================================================================
+   L'ESPACE EXPLOITANT EN NOIR ET BLANC (23 septembre 2026)
+   ---------------------------------------------------------------------
+   Barbaros garde l'ancien admin (« il est plus fonctionnel ») et veut
+   l'allure plus propre du nouveau, en noir et blanc. Ce bloc ne change
+   QUE l'habillage : aucun identifiant, aucun geste, aucun écran ne bouge.
+   CE QUI NE CHANGE PAS, ET C'EST VOULU : le rouge de l'attente et la
+   pastille « confirmée ». Ce sont des ÉTATS, pas une décoration — si tout
+   devenait noir, plus rien ne dirait qu'un client attend.
+   LE LOGO : la construction pose le logo BLEU (celui du site client, fait
+   pour un fond blanc) dans l'en-tête. Sur l'en-tête sombre d'avant il
+   disparaissait. L'en-tête passe donc au blanc, comme le site client.
+   ===================================================================== */
+body.espace, body.exploitant{--e-encre:#111111;--e-filet:#e3e3e3;--e-doux:#f5f5f5;background:#fff;}
+body.exploitant .entete{background:#fff;color:var(--e-encre);border-bottom:1px solid var(--e-filet);}
+body.exploitant .entete .logo-nom, body.exploitant .entete .logo-sous{color:var(--e-encre);}
+/* Sur téléphone, le logo mangeait 95 px de hauteur au-dessus du travail. */
+body.exploitant .entete .logo-image{width:104px;height:auto;max-height:52px;object-fit:contain;}
+body.espace .admin-nav{background:#fff;color:var(--e-encre);border-bottom:1px solid var(--e-filet);}
+body.espace .admin-ava{background:var(--e-encre);color:#fff;}
+body.espace .admin-etat{color:#5f5f5f;}
+body.espace .admin-lien{background:#fff;color:var(--e-encre);border:1px solid var(--e-filet);}
+body.espace .admin-lien.actif{background:var(--e-encre);border-color:var(--e-encre);color:#fff;}
+body.exploitant .bouton{background:var(--e-encre);color:#fff;}
+body.exploitant .bouton:disabled{background:#9a9a9a;}
+body.exploitant .bouton-fantome{background:#fff;color:var(--e-encre);border-color:#cfcfcf;}
+/* Supprimer reste rouge : un geste irréversible ne se déguise pas en bouton ordinaire. */
+body.exploitant .bouton-fantome.rouge{color:#b3261e;border-color:#f0c2c2;}
+body.espace .entrees > .bouton,
+body.espace .entrees > .bouton-fantome{min-height:48px;display:flex;align-items:center;justify-content:center;margin:0;}
+body.espace .compteur.actif{border-color:var(--e-encre);box-shadow:0 0 0 1.5px var(--e-encre);}
+body.espace .bloc, body.espace .compteur, body.espace .entrees{border-color:var(--e-filet);}
+body.espace .jour-titre{margin-left:20px;margin-right:20px;color:#5f5f5f;}
+body.espace .jour-titre.retard{color:#C9302F;}
+body.espace .admin-bonjour, body.espace .ecran-titre h1, body.espace .bloc-titre{color:var(--e-encre);}
+@media (min-width:900px){
+  /* L'ordinateur garde sa colonne à gauche : noire, logo blanc. Le blanc de
+     la page fait le reste. */
+  body.espace .admin-nav{background:var(--e-encre);color:#fff;border-bottom:0;}
+  body.espace .admin-ava{background:#fff;color:var(--e-encre);}
+  body.espace .admin-etat{color:rgba(255,255,255,.7);}
+  body.espace .admin-lien{background:transparent;color:rgba(255,255,255,.86);border:0;}
+  body.espace .admin-lien.actif{background:#fff;color:var(--e-encre);}
+  body.espace .admin-aide{background:rgba(255,255,255,.08);}
+  body.espace .admin-aide .bouton{background:#fff;color:var(--e-encre);}
+  body.espace .admin-aide .bouton span{color:var(--e-encre);margin:0;font-size:12.5px;}
+  /* La liste porte déjà sa marge de 28 px : les cartes et les titres de
+     jour s'y alignent sur les compteurs au lieu de s'enfoncer de 28 px. */
+  body.espace #listeBord .jour-titre{margin-left:0;margin-right:0;}
+  body.espace #listeBord .demande{width:100%;margin-left:0;margin-right:0;}
+}
 </style>
 </head>
 <body>

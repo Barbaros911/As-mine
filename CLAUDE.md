@@ -5522,3 +5522,26 @@ passe, puis `est_exploitant()`). Le vrai accès admin est donc ce mot de passe.
   celui qui le connaissait reste ouverte.
 - Le bloc est dans « Réglages », que le rôle `agent_reservation` ne voit pas :
   un agent ne peut pas encore changer le sien. `test-nouveau-mdp.mjs`.
+
+## UN SEUL ADMIN : L'ANCIEN, EN NOIR ET BLANC
+
+23 septembre 2026, Barbaros : « le nouvel admin est moins fonctionnel que le
+premier, il y a des blocages, des incohérences, on ne peut pas faire retour »
+— puis « on garde l'ancien, on adapte visuellement ». **L'espace historique
+(`admin.html` → `application.html?exploitant=1`) est l'admin retenu.** Admin v2
+reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
+- **L'alerte Telegram vise `admin.html`** (défaut de `ADRESSE_ADMIN` dans
+  `nouvelle-demande`), et `?ref=` y ouvre directement le bon de la course.
+  `test-admin-arrivee.mjs` éprouve, sur le site construit, qu'une demande
+  déposée par un client arrive et est annoncée **sans passer par WhatsApp**.
+- **L'habillage vit dans `index.html`** (bloc « noir et blanc » en fin de
+  style) : en-tête blanc avec le logo bleu, boutons noirs, colonne noire sur
+  ordinateur. **Le rouge de l'attente et la pastille « confirmée » ne changent
+  pas** : ce sont des états.
+- **`application-facade.css` repeignait l'espace ET le cassait** : une grille
+  de 220 px et une colonne `sticky` se superposaient au `padding-left` de
+  252 px — la colonne commençait à 252 px et le contenu passait dessous.
+  Les règles `body.espace` en ont été retirées. Une seconde feuille qui
+  habille le même écran finit toujours par le casser.
+- **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
+  ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
