@@ -38,7 +38,7 @@ jobs:
       PROJET: yyhzutnuhuytokarynaw
       FICHIER: ${{ inputs.fichier }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Vérifier que le jeton est posé
         run: |

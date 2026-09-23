@@ -11,7 +11,7 @@ jobs:
   verifier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: node --check admin-v2-finance.js
       - run: bash construire.sh
       - shell: bash
