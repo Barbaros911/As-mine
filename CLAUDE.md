@@ -5545,3 +5545,13 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   habille le même écran finit toujours par le casser.
 - **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
   ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
+- **Le logo est NOIR sur le blanc** (`filter:brightness(0)`, à sa demande) et
+  blanc sur la colonne noire de l'ordinateur. Pas de fichier de plus : un
+  logo recopié dérive du vrai à la première retouche.
+- **Sur téléphone, l'en-tête tient sur UNE ligne** (logo à gauche, état du
+  serveur à droite) : il en prenait deux, ~80 px avant le travail.
+- **Le registre portait encore le céladon** — période choisie, courbe,
+  anneau, barres, écrits en dur dans le script. Passés en noir et gris.
+- **« D'où viennent les clients » était écrit deux fois dans le registre** :
+  le panneau venu du tableau de bord (`#panneauProvenance`) est masqué, le
+  bloc du haut dit la même chose et l'argent encaissé en plus.
