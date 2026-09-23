@@ -41,7 +41,7 @@ C'est toi qui le choisis. Deux règles :
   le sien — sinon l'un verrait les clients de l'autre.
 
 Le code n'est **jamais écrit dans le site**. C'est la différence avec ton
-code d'exploitant (`12345678`), qui vit dans la page sous forme
+code d'exploitant, qui vit dans la page sous forme
 d'empreinte : celui-là, quelqu'un qui lit le code source peut l'attaquer
 tranquillement chez lui, autant d'essais qu'il veut. Le code de la
 réception, lui, ne peut s'essayer qu'en appelant le serveur, un essai à la
