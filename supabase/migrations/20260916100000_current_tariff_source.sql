@@ -1,6 +1,14 @@
--- Source serveur initiale = copie exacte des règles actuellement publiées.
--- Cette migration NE change aucun prix client : elle évite seulement que le
--- futur moteur serveur parte d'une grille inventée ou différente du site.
+-- Source serveur de la grille = copie exacte des règles publiées sur le site.
+-- Elle évite que le moteur serveur parte d'une grille inventée ou différente.
+--
+-- LES FORFAITS easyHotel SONT UN « UPSERT » : rejouer ce fichier (workflow
+-- « Appliquer une migration Supabase ») met la base à jour. C'est voulu — la
+-- grille ne vit qu'ici côté serveur, jamais recopiée dans une seconde
+-- migration. Grille du flyer arrêtée par Barbaros le 22/09/2026 :
+-- Orly 90/130, Le Bourget 35/70, Disney 80/120, Paris 80/120.
+-- deposer-course REMPLACE le prix du client par celui de cette table : tant
+-- que ce fichier n'est pas rejoué en production, une course easyHotel est
+-- enregistrée à l'ancien montant.
 
 insert into public.parametres_commerciaux(cle,valeur,modifie_le,modifie_par)
 values
@@ -19,12 +27,12 @@ create unique index if not exists tarifs_partenaires_unique_actif
 with p as (select id from public.partenaires where cle='easyhotel-aeroville'),
 t(destination_cle,destination_nom,vehicule_cle,montant_centimes) as (values
  ('cdg','Aéroport CDG','berline',3500),('cdg','Aéroport CDG','van',5000),
- ('orly','Orly','berline',10000),('orly','Orly','van',12500),
- ('bourget','Le Bourget','berline',4500),('bourget','Le Bourget','van',6500),
+ ('orly','Orly','berline',9000),('orly','Orly','van',13000),
+ ('bourget','Le Bourget','berline',3500),('bourget','Le Bourget','van',7000),
  ('beauvais','Beauvais','berline',18000),('beauvais','Beauvais','van',24000),
  ('villepinte','Expositions Villepinte','berline',3500),('villepinte','Expositions Villepinte','van',5000),
- ('disney','Disney','berline',9000),('disney','Disney','van',12000),
- ('paris','Paris','berline',8000),('paris','Paris','van',11000)
+ ('disney','Disney','berline',8000),('disney','Disney','van',12000),
+ ('paris','Paris','berline',8000),('paris','Paris','van',12000)
 )
 insert into public.tarifs_partenaires(partenaire_id,destination_cle,destination_nom,vehicule_cle,montant_centimes,actif)
 select p.id,t.destination_cle,t.destination_nom,t.vehicule_cle,t.montant_centimes,true from p cross join t

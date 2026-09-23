@@ -18,7 +18,12 @@
       if(logoLink){logoLink.href='/easyhotel-client/';logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
     }
 
-    document.querySelectorAll('.hotel-nom').forEach(function(el){el.textContent='easyHotel Aéroville';});
+    /* ON N'ÉCRIT QUE SI LE TEXTE DIFFÈRE. Réécrire un texte identique est
+       quand même une mutation : l'observateur plus bas rappelait cette
+       fonction, qui réécrivait, qui rappelait… une boucle de micro-tâches
+       qui ne rend jamais la main — la page de réservation easyHotel se
+       figeait (mesuré sous Chromium, 22/09/2026). */
+    document.querySelectorAll('.hotel-nom').forEach(function(el){if(el.textContent!=='easyHotel Aéroville')el.textContent='easyHotel Aéroville';});
 
     var chambre=document.getElementById('blocChambre');
     var blocCoord=document.getElementById('blocCoordonnees');
@@ -30,16 +35,38 @@
       var tel=blocCoord.querySelector('label[for="clientTel"] .champ-titre');
       if(tel){tel.textContent='Téléphone / Phone';tel.removeAttribute('data-t');}
       blocCoord.classList.add('hotel-guest-early');
-      chambre.insertAdjacentElement('afterend',blocCoord);
+      /* L'ORDRE D'UN TUNNEL : LE TRAJET D'ABORD, LA PERSONNE ENSUITE
+         (23/09/2026, à la demande de Barbaros). Le départ est suivi tout de
+         suite de la destination — déjà choisie sur la page du QR —, puis
+         de la date et des passagers ; le client vient après, juste avant
+         la précision pour le chauffeur. */
+      var note=document.getElementById('blocNote');
+      if(note) note.insertAdjacentElement('beforebegin',blocCoord);
+      else chambre.insertAdjacentElement('afterend',blocCoord);
+      /* LA CHAMBRE EST RANGÉE AVEC LE CLIENT, SOUS SON NOM, ET ELLE EST
+         FACULTATIVE — elle ne l'a jamais été dans le code, le libellé ne
+         le disait pas. La phrase « il vient vous chercher sans attendre à
+         la réception » part : elle promettait un service de chambre que
+         personne n'a demandé de tenir. */
+      var nomLabel=blocCoord.querySelector('label[for="clientNom"]');
+      if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
+      var tCh=chambre.querySelector('.champ-titre');
+      if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
+      var aideCh=chambre.querySelector('.champ-aide');
+      if(aideCh) aideCh.remove();
     }
 
-    var blocDest=document.getElementById('blocDest');
     var sel=document.getElementById('hotelDest');
     /* Une carte de la landing doit ouvrir la bonne destination, pas le CDG
        par défaut. Le moteur peut construire les options après ce script :
        enhanceHotel repasse jusqu'à ce que la valeur demandée existe. */
     var preset=p.get('dest');
-    if(sel && preset && !sel.dataset.landingPresetApplied){
+    /* « dest=autre » est la carte « Autre destination » de la landing :
+       l'option du moteur porte une valeur VIDE (aucune clé de la grille ne
+       peut la prendre), et c'est elle qui rend la main au calcul à la
+       distance. Sans cette traduction le moteur ouvrait sur CDG au forfait. */
+    if(preset==='autre') preset='';
+    if(sel && preset!==null && !sel.dataset.landingPresetApplied){
       var presetExists=Array.prototype.some.call(sel.options,function(o){return o.value===preset;});
       if(presetExists){
         sel.value=preset;
@@ -47,28 +74,11 @@
         sel.dispatchEvent(new Event('change',{bubbles:true}));
       }
     }
-    if(blocDest && sel && !document.getElementById('hotelQuickDest')){
-      var quick=document.createElement('section');
-      quick.id='hotelQuickDest';
-      quick.innerHTML='\
-        <div class="quick-title"><b>Destinations populaires</b><span>Choix rapide</span></div>\
-        <div class="quick-scroll">\
-          <button class="hotel-quick" type="button" data-dest="cdg"><img src="/photos/service-aeroport.webp" alt="Aéroport Charles-de-Gaulle"><span>Aéroport CDG</span></button>\
-          <button class="hotel-quick" type="button" data-dest="paris"><img src="/photos/eiffel-trocadero.jpg" alt="Paris centre"><span>Paris centre</span></button>\
-          <button class="hotel-quick" type="button" data-dest="villepinte"><img src="/photos/service-deplacement-pro.jpg" alt="Parc des Expositions Villepinte"><span>Villepinte / Le Bourget</span></button>\
-        </div>';
-      blocDest.insertAdjacentElement('beforebegin',quick);
-
-      function syncQuick(){quick.querySelectorAll('.hotel-quick').forEach(function(b){b.classList.toggle('active',b.dataset.dest===sel.value);});}
-      quick.addEventListener('click',function(e){
-        var b=e.target.closest('.hotel-quick');if(!b)return;
-        var wanted=b.dataset.dest;
-        var exists=Array.prototype.some.call(sel.options,function(o){return o.value===wanted;});
-        if(!exists)return;
-        sel.value=wanted;sel.dispatchEvent(new Event('change',{bubbles:true}));syncQuick();
-      });
-      sel.addEventListener('change',syncQuick);syncQuick();
-    }
+    /* LE BLOC « Destinations populaires » (trois photos) A ÉTÉ RETIRÉ le
+       22/09/2026. Il répétait le choix que fait désormais la page du QR
+       (sites/easyhotel-client/), et sa vignette « Villepinte / Le Bourget »
+       choisissait VILLEPINTE : un client du Bourget partait vers la mauvaise
+       adresse, à un autre prix. Le menu « Destination » du moteur reste. */
   }
 
   /* Le moteur historique construit le mode hôtel après le premier chargement.
@@ -79,7 +89,7 @@
   var attempts=0;
   var timer=setInterval(function(){
     enhanceHotel();attempts++;
-    if(attempts>=20 || (document.getElementById('blocChambre') && document.getElementById('hotelDest') && document.getElementById('hotelQuickDest'))) clearInterval(timer);
+    if(attempts>=20 || (document.getElementById('blocChambre') && document.getElementById('hotelDest') && document.getElementById('hotelDest').dataset.landingPresetApplied)) clearInterval(timer);
   },250);
   var observer=new MutationObserver(function(){enhanceHotel();});
   observer.observe(document.documentElement,{subtree:true,childList:true});

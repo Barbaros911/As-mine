@@ -64,14 +64,6 @@ body.hotel:not(.reception) #ecran-accueil .principal,body.hotel:not(.reception) 
 }
 
 /* Destinations avec photos. */
-#hotelQuickDest{margin:3px 10px 13px}
-#hotelQuickDest .quick-title{display:flex;align-items:flex-end;justify-content:space-between;margin:0 2px 8px}
-#hotelQuickDest .quick-title b{font-size:14px;color:var(--eh-navy);font-weight:950}#hotelQuickDest .quick-title span{font-size:8px;color:var(--eh-orange);font-weight:850}
-#hotelQuickDest .quick-scroll{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-.hotel-quick{position:relative;overflow:hidden;min-height:103px;border:1px solid var(--eh-line);border-radius:13px;padding:0;cursor:pointer;background:#fff;color:#fff;text-align:left;box-shadow:0 6px 16px rgba(20,47,68,.09)}
-.hotel-quick img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hotel-quick:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,31,50,.01),rgba(5,31,50,.72))}
-.hotel-quick span{position:absolute;z-index:2;left:8px;right:7px;bottom:7px;font-size:9px;font-weight:900;line-height:1.1;text-shadow:0 1px 4px rgba(0,0,0,.7)}
-.hotel-quick.active{outline:3px solid var(--eh-orange);outline-offset:1px}.hotel-quick.active:before{content:"✓";position:absolute;z-index:3;right:6px;top:6px;width:21px;height:21px;border-radius:50%;background:var(--eh-orange);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:950}
 
 /* Navigation client : meme fond clair, WhatsApp conserve son vert metier. */
 body.hotel:not(.reception) .barre-bas{background:#fff!important;border-top:1px solid var(--eh-line)!important;box-shadow:0 -7px 22px rgba(20,47,68,.08)!important}
@@ -88,12 +80,14 @@ body.hotel:not(.reception) .barre-bas .actif,body.hotel:not(.reception) .barre-b
   body.hotel:not(.reception) .logo-image{width:116px!important;max-height:51px!important}
   body.hotel:not(.reception) .hotel-tete{min-height:390px!important;padding:225px 28px 24px!important;border-radius:0 0 18px 18px!important}
   body.hotel:not(.reception) .hotel-tete .hotel-nom{font-size:40px!important}
-  body.hotel:not(.reception) #ecran-accueil{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:0 8px;align-items:start}
-  body.hotel:not(.reception) .hotel-tete{grid-column:1/-1}
+  /* UNE SEULE COLONNE, CENTRÉE. La colonne de droite ne portait que le bloc
+     « Destinations populaires », retiré le 22/09/2026 : laissée en place,
+     elle restait vide à côté du formulaire. */
+  body.hotel:not(.reception) #ecran-accueil{display:grid;grid-template-columns:1fr minmax(0,780px) 1fr;gap:0 8px;align-items:start}
+  body.hotel:not(.reception) #ecran-accueil > *{grid-column:2}
+  body.hotel:not(.reception) #ecran-accueil > .hotel-tete{grid-column:1/-1}
   body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{grid-column:1;margin:18px 6px 12px 18px!important}
   body.hotel:not(.reception) #ecran-accueil .bloc{margin-left:18px!important;margin-right:6px!important}
-  #hotelQuickDest{grid-column:2;grid-row:2 / span 4;margin:18px 18px 16px 6px}
-  #hotelQuickDest .quick-scroll{grid-template-columns:repeat(2,1fr);gap:10px}.hotel-quick{min-height:128px}
 }
 
 
@@ -232,3 +226,7 @@ body.hotel:not(.reception) .barre-bas .onglet.actif{
   body.hotel:not(.reception) .entete .logo-image{width:78px!important}
   body.hotel:not(.reception) .langues button{min-width:30px!important;padding:0 6px!important}
 }
+
+/* La chambre vit dans le bloc « Client / Guest » (23/09/2026) : son icône
+   la décalait par rapport au nom et au téléphone, qui n'en ont pas. */
+body.hotel:not(.reception) #blocCoordonnees #blocChambre .champ > svg{display:none}

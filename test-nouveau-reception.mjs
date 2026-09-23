@@ -35,6 +35,11 @@
              node test-nouveau-reception.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
+/* Le forfait Orly berline est LU dans la source serveur, jamais recopié :
+   une baisse décidée par Barbaros ne doit pas faire tomber cette suite. */
+const ORLY_BERLINE = Number(readFileSync('supabase/migrations/20260916100000_current_tariff_source.sql','utf8')
+  .match(/\('orly','[^']*','berline',(\d+)\)/)[1]) / 100;
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
 const p = await ctx.newPage();
@@ -423,7 +428,7 @@ await p.locator('#listeVehicules .veh-carte').first().click();
 await p.waitForTimeout(400);
 check('la gamme choisie allume le bouton ET y écrit le prix',
   !(await p.locator('#btnVoirPrix').isDisabled())
-  && /100,00/.test(await p.locator('#btnVoirPrix').textContent()),
+  && (await p.locator('#btnVoirPrix').textContent()).includes(ORLY_BERLINE+',00'),
   (await p.locator('#btnVoirPrix').textContent()).trim());
 /* La sélection doit dire la page où l'on est : elle portait le vert
    d'Elatransfer au milieu d'une page orange. */

@@ -6039,7 +6039,7 @@ window.ELA_TEXTES = {
     /* LA GRILLE NE DOIT PAS SORTIR DANS GOOGLE. Elle est plus basse que le
        site sur le van des longues courses — c'est un prix d'appel négocié
        avec un hôtel, pas un tarif public. Une adresse devinée ou partagée,
-       et n'importe qui réserve un van pour Orly à 125 € au lieu de 180.
+       et n'importe qui réserve un van pour Orly à 130 € au lieu de 180.
        Ce n'est pas un secret : c'est une porte qu'on ne met pas dans
        l'annuaire. « robots.txt » écarte déjà « ?h= » des explorateurs ;
        cette balise est la ceinture — elle n'est posée QUE dans ce mode,
@@ -6363,11 +6363,11 @@ window.ELA_TEXTES = {
         { cle:"cdg",        nom:"Aéroport CDG",           aeroport:"cdg",
           forfait:{ berline:35,  van:50  } },
         { cle:"orly",       nom:"Orly",                   aeroport:"orly",
-          forfait:{ berline:100, van:125 } },
+          forfait:{ berline:90,  van:130 } },
         { cle:"bourget",    nom:"Le Bourget",
           label:"Aéroport de Paris-Le Bourget, 93350 Le Bourget",
           lat:48.9694, lon:2.4414,
-          forfait:{ berline:45,  van:65  } },
+          forfait:{ berline:35,  van:70  } },
         { cle:"beauvais",   nom:"Beauvais",               aeroport:"beauvais",
           forfait:{ berline:180, van:240 } },
         { cle:"villepinte", nom:"Expositions Villepinte",
@@ -6377,7 +6377,7 @@ window.ELA_TEXTES = {
         { cle:"disney",     nom:"Disney",
           label:"Disneyland Paris, 77700 Marne-la-Vallée",
           lat:48.8722, lon:2.7758,
-          forfait:{ berline:90,  van:120 } },
+          forfait:{ berline:80,  van:120 } },
         /* PARIS N'EST PAS UNE ADRESSE, c'est une ville de dix kilomètres de
            large. Le forfait vaut, mais le chauffeur a besoin d'une rue :
            cette ligne-là OUVRE le champ d'adresse. Et le forfait ne tient
@@ -6389,7 +6389,7 @@ window.ELA_TEXTES = {
            deux bois compris. */
         { cle:"paris",      nom:"Paris", label:"Paris", adresseLibre:true,
           lat:48.8566, lon:2.3522, rayonKm:7,
-          forfait:{ berline:80,  van:110 } }
+          forfait:{ berline:80,  van:120 } }
       ]
     }
   };
@@ -11319,6 +11319,14 @@ window.ELA_TEXTES = {
   });
   document.getElementById("btnRetourLegal")
           .addEventListener("click", function(){ ecran(legalRetourEcran || "ecran-contact"); });
+  /* UN LIEN DIRECT VERS UN DOCUMENT (« ?doc=mentions »). La page du QR
+     easyHotel pointe ici : ses liens légaux ouvrent le document, pas un
+     accueil où il faudrait le chercher. Trois valeurs connues, rien d'autre. */
+  (function(){
+    var d = null;
+    try { d = new URLSearchParams(location.search).get("doc"); } catch(e){}
+    if(d === "cgv" || d === "mentions" || d === "privacy"){ ouvrirDocLegal(d); ecran("ecran-legal"); }
+  })();
   /* Changer le nombre de passagers redessine la liste tout de suite : sans
      ça on continuerait avec une berline pour six. */
   champPax.addEventListener("change", function(){
