@@ -238,10 +238,10 @@ await poser('orly', lundi, '10:00');
 await p.locator('#btnVoirPrix').click();
 await p.waitForTimeout(1400);
 const cartes = await p.locator('.veh-prix').allTextContents();
-check('sur l\'écran des gammes, la berline sort à 100 €',
-  cartes[0].replace(/\s/g,'')==='100,00€', cartes[0]);
-check('sur l\'écran des gammes, le van sort à 125 €',
-  cartes[1].replace(/\s/g,'')==='125,00€', cartes[1]);
+check('sur l\'écran des gammes, la berline sort au forfait Orly ('+ORLY+' €)',
+  cartes[0].replace(/\s/g,'')===ORLY+',00€', cartes[0]);
+check('sur l\'écran des gammes, le van sort au forfait Orly ('+FLYER.orly.prix[1]+' €)',
+  cartes[1].replace(/\s/g,'')===FLYER.orly.prix[1]+',00€', cartes[1]);
 /* L'ÉCRITEAU DE NUIT N'EXISTE PLUS DU TOUT — on cherche l'ÉLÉMENT, pas sa
    visibilité : « isHidden » répond vrai sur un élément absent, donc le
    contrôle serait resté vert le jour où quelqu'un le remettrait caché. */
@@ -251,8 +251,8 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click();
 await p.waitForTimeout(600);
 const total = await p.locator('#recapTotal').textContent();
-check('le récapitulatif porte le MÊME prix : 100 €',
-  total.replace(/\s/g,'').includes('100,00€'), total);
+check('le récapitulatif porte le MÊME prix : '+ORLY+' €',
+  total.replace(/\s/g,'').includes(ORLY+',00€'), total);
 
 /* LE TUNNEL COMPLET À 22 H 30 : c'est le chemin par lequel une majoration
    reviendrait sans bruit. Le prix affiché sur la carte de gamme doit être
@@ -325,8 +325,8 @@ await p.type('#arrivee','vendome',{delay:12});
 await p.waitForTimeout(900);
 await p.locator('#arriveeList [role=option]').first().click();
 await p.waitForTimeout(250);
-check('« Paris » + une adresse DANS Paris : le forfait tient (80 € / 110 €)',
-  (await montants()).join('/')==='80/110', await p.locator('#destForfait').textContent());
+check('« Paris » + une adresse DANS Paris : le forfait tient ('+FLYER.paris.prix.join(' € / ')+' €)',
+  (await montants()).join('/')===FLYER.paris.prix.join('/'), await p.locator('#destForfait').textContent());
 await p.fill('#arrivee','');
 await p.type('#arrivee','versailles',{delay:12});
 await p.waitForTimeout(900);
@@ -346,8 +346,8 @@ await p.locator('.hotel-sens-btn[data-sens="vers"]').click();
 await p.waitForTimeout(300);
 await poser('orly', lundi, '10:00');
 const retour = await montants();
-check('sens « arrivée à l\'hôtel » : le même forfait, 100 € / 125 €',
-  retour[0]===100 && retour[1]===125, retour.join('/'));
+check('sens « arrivée à l\'hôtel » : le même forfait, '+ORLY+' € / '+FLYER.orly.prix[1]+' €',
+  retour[0]===ORLY && retour[1]===FLYER.orly.prix[1], retour.join('/'));
 const dep2 = await p.locator('#depart').inputValue();
 const arr2 = await p.locator('#arrivee').inputValue();
 check('au retour, le DÉPART est le terminal', dep2.includes('Orly'), dep2);
@@ -458,7 +458,7 @@ const relu = await p.evaluate(()=>{
            prix:(c.prix||{}).total, note:(c.course||{}).note, chambre:(c.course||{}).chambre };
 });
 check('collée, la demande garde le PRIX de la course — pas le montant de la précision',
-  relu.prix === 100, String(relu.prix));
+  relu.prix === ORLY, String(relu.prix));
 check('et les deux adresses, malgré le deux-points de la précision',
   /Belle Borne/.test(relu.depart||'') && /Orly/.test(relu.arrivee||''),
   relu.depart + ' → ' + relu.arrivee);

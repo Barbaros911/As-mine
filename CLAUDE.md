@@ -2816,6 +2816,64 @@ l'un des gains.
   CGV.
 - `test-nouveau-hotel.mjs`, 90 contrôles ; `test-nouveau-reception.mjs`, 73.
 
+### LA PAGE DU QR easyHotel EST UN TUNNEL — ET LA GRILLE DU FLYER A CHANGÉ
+
+22 septembre 2026, à sa demande (« refonte finale 10/10 »). `sites/easyhotel-client/`
+était une vitrine : bandeau photo, « Pensé pour votre séjour », trois
+destinations, puis une seconde invitation à « voir toutes les destinations ».
+Elle devient : l'hôtel, puis **« Où souhaitez-vous aller ? »** et les **sept
+destinations du flyer** avec leurs deux prix, puis « Autre destination ».
+Un clic ouvre le moteur avec l'hôtel ET la destination déjà posés.
+
+**LA GRILLE A ÉTÉ TRANCHÉE PAR LUI**, sur question, et elle diffère de ce que le
+site facturait : Orly **90 / 130**, Le Bourget **35 / 70**, Disney **80 / 120**,
+Paris **80 / 120** (CDG 35/50, Beauvais 180/240, Villepinte 35/50 inchangés).
+Le Bourget berline à 35 € contredisait sa propre mission (45 €) : il l'a
+**confirmé à la relecture** (23/09/2026). C'est 35 €, ne pas le « corriger ».
+- **TROIS ENDROITS, UN SEUL PRIX, ET UN CONTRÔLE QUI L'EXIGE.** `HOTELS` dans
+  `index.html`, la source serveur (`20260916100000_current_tariff_source.sql`),
+  et les cartes de la page du QR. `verifier-tarif-hotel.mjs` exige l'accord des
+  trois à chaque construction et **nomme** la destination et les trois valeurs.
+- **LE SERVEUR REMPLACE LE PRIX DU CLIENT** (`deposer-course`, `snapshotPartenaire`).
+  Tant que la source serveur n'est pas **rejouée en production** (workflow
+  « Appliquer une migration Supabase », fichier
+  `20260916100000_current_tariff_source.sql` — ses forfaits sont un *upsert*,
+  le rejouer met la base à jour), une course easyHotel est **enregistrée à
+  l'ancien montant** alors que le client a vu le nouveau. **C'est le geste qui
+  suit la fusion, pas une option.**
+- **PAS DE PHOTOS, ET C'EST UNE DÉCISION D'EXPERT QU'IL A DÉLÉGUÉE.** Le dépôt
+  n'a aucune image propre d'Orly, du Bourget, de Beauvais ni de Villepinte, et
+  on ne pose pas une image dont on ne connaît pas l'auteur (L335-2 CPI) — ni le
+  château Disney, ni la tour Eiffel illuminée. Les **codes d'aéroport**
+  (CDG, ORY, LBG, BVA) et trois pictogrammes dessinés disent la destination plus
+  vite qu'une photo, et la page ne télécharge plus que le logo. Le logo
+  easyHotel n'est pas posé non plus : leur nom écrit et leur orange suffisent.
+- **« Autre destination » passe `?dest=autre`**, que `hotel-engine-polish.js`
+  traduit en l'option à valeur VIDE du moteur. Sans cette traduction, le moteur
+  ouvrait sur CDG **au forfait** — un Versailles facturé 35 €.
+- **Les liens légaux passent `?doc=mentions|privacy`**, lus par `index.html`
+  (trois valeurs connues, rien d'autre). Un lien vers l'accueil obligeait à
+  chercher le document.
+
+**LE DÉFAUT LE PLUS GRAVE N'ÉTAIT PAS SUR LA PAGE, IL ÉTAIT EN LIGNE DEPUIS LE
+15/09 : LE MOTEUR easyHotel SE FIGEAIT.** `hotel-engine-polish.js` réécrivait le
+nom de l'hôtel à chaque passage, sous un `MutationObserver` qui le rappelait à
+chaque mutation — or réécrire un texte identique **est** une mutation. Une
+boucle de micro-tâches qui ne rend jamais la main : la page ne répondait plus,
+et la minuterie qui devait couper l'observateur ne pouvait jamais s'exécuter.
+**Mesuré sous Chromium, pas supposé** : figée avec le script, vivante sans lui,
+vivante avec la seule ligne corrigée (on n'écrit que si le texte diffère).
+**AUCUNE SUITE NE POUVAIT LE VOIR** : ce script n'est injecté que par
+`construire.sh`, et toutes les suites hôtel éprouvent le **dépôt**.
+`test-easyhotel-client.mjs` construit et sert le site lui-même, parcourt les
+sept cartes jusqu'à l'écran des prix, et **tombe** si l'on remet la boucle.
+
+**LE BLOC « Destinations populaires » DU MOTEUR EST RETIRÉ.** Il répétait le choix
+de la page du QR, et sa vignette « Villepinte / Le Bourget » choisissait
+**Villepinte** : un client du Bourget partait à la mauvaise adresse, à un autre
+prix. Sur ordinateur, sa colonne restait vide : le formulaire est désormais
+centré (`hotel-engine-polish.css`).
+
 
 ### LA PAGE DE LA RÉCEPTION — DEUX ADRESSES, ET UN CODE QUI N'EST PAS DANS LA PAGE
 

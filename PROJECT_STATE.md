@@ -40,9 +40,10 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
 - **Le prix est ferme**, arrêté à la réservation, donc **opposable**.
   Conséquence de tout : toucher à la grille veut dire toucher aux CGV, dans
   les deux langues.
-- **Aucune majoration** — ni nuit, ni week-end, ni jour férié. Seule exception,
-  le forfait partenaire easyHotel (+5 € de 21 h à 6 h), qui est une autre
-  grille.
+- **Aucune majoration** — ni nuit, ni week-end, ni jour férié, **y compris**
+  sur le forfait partenaire easyHotel (son tarif de nuit a été retiré le
+  22/09/2026). Le forfait easyHotel reste une autre grille, fixe par
+  destination.
 - **Un seul `index.html`.** Client, exploitant, hôtel et réception y vivent
   ensemble. Le dupliquer, c'est le faire diverger au premier correctif.
 - **`construire.sh` est la seule recette de publication**, partagée par GitHub
