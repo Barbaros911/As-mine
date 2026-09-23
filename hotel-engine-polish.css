@@ -226,3 +226,7 @@ body.hotel:not(.reception) .barre-bas .onglet.actif{
   body.hotel:not(.reception) .entete .logo-image{width:78px!important}
   body.hotel:not(.reception) .langues button{min-width:30px!important;padding:0 6px!important}
 }
+
+/* La chambre vit dans le bloc « Client / Guest » (23/09/2026) : son icône
+   la décalait par rapport au nom et au téléphone, qui n'en ont pas. */
+body.hotel:not(.reception) #blocCoordonnees #blocChambre .champ > svg{display:none}
