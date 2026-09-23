@@ -2855,6 +2855,22 @@ Le Bourget berline à 35 € contredisait sa propre mission (45 €) : il l'a
   (trois valeurs connues, rien d'autre). Un lien vers l'accueil obligeait à
   chercher le document.
 
+**LE PRIX DU FLYER SUIT LE LIEU, PAS LE MENU** (23/09/2026, à sa demande :
+« peu importe l'adresse ça doit être le même prix que le flyer », « Autre
+destination » compris). Une adresse tapée dans « Autre destination » — ou
+dans « Paris » — qui tombe dans une destination du flyer prend son forfait,
+et l'écran **nomme** la destination reconnue (« Tarif du flyer (Orly) : … »).
+- **On mesure une distance, pas un mot** (`destDuPoint()`) : un aéroport à
+  moins de `RAYON_AEROPORT_KM` (2 km) d'un de ses terminaux — la table
+  `AEROPORTS` — ; Le Bourget 2,5 km, Villepinte 1,5 km, Disney 3 km, Paris
+  7 km (`rayonKm` sur chaque destination de `HOTELS`). « Orly » dans un
+  libellé peut être la rue d'Orly à Montreuil.
+- **La destination reconnue part sur la course** (`destHotelRetenue()`, lue
+  par `public-booking-gateway.mjs` pour `destinationCle`) : le serveur la
+  recroise avec sa grille comme pour un choix du menu.
+- Hors de toutes les zones (Versailles), rien ne change : kilométrage hôtel,
+  et on le dit. `test-nouveau-hotel` éprouve les deux côtés.
+
 **LE DÉFAUT LE PLUS GRAVE N'ÉTAIT PAS SUR LA PAGE, IL ÉTAIT EN LIGNE DEPUIS LE
 15/09 : LE MOTEUR easyHotel SE FIGEAIT.** `hotel-engine-polish.js` réécrivait le
 nom de l'hôtel à chaque passage, sous un `MutationObserver` qui le rappelait à

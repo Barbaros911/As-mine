@@ -9,7 +9,7 @@ let html = fs.readFileSync(fichier, 'utf8');
    de validation de destination stockée côté serveur. */
 const repereDistance = `distanceKm: Math.round(course.km * 10) / 10,\n        estimee: course.estime`;
 if (!html.includes(repereDistance)) throw new Error('construction du bon introuvable : destinationCle non ajoutée');
-html = html.replace(repereDistance, `distanceKm: Math.round(course.km * 10) / 10,\n        destinationCle: hotelDest ? hotelDest.cle : null,\n        estimee: course.estime`);
+html = html.replace(repereDistance, `distanceKm: Math.round(course.km * 10) / 10,\n        destinationCle: (function(d){ return d ? d.cle : null; })(destHotelRetenue()),\n        estimee: course.estime`);
 
 const ancien = `return fetch(SUPABASE_URL + "/rest/v1/courses", {
         method: "POST",
