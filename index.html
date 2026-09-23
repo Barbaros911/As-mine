@@ -11281,7 +11281,25 @@ window.ELA_TEXTES = {
        cette largeur vaut zéro et la courbe sort plate. */
     ecran("ecran-bord");
     dessinerBord();
-    if(nuage.connecte()) synchroniser();
+    /* ARRIVÉ PAR UNE ALERTE (« ?ref= »), ON OUVRE LA COURSE. La notification
+       dit « action requise » sur une référence précise : le lâcher sur le
+       tableau de bord l'obligerait à la chercher, la nuit, dans la liste.
+       Après la lecture du serveur, puisque la course vient souvent d'arriver
+       et n'est pas encore sur cet appareil. Une seule fois : un
+       rafraîchissement ne doit pas la rouvrir par-dessus son travail. */
+    var refAlerte = null;
+    try{ refAlerte = new URLSearchParams(location.search).get("ref"); }catch(e){}
+    function ouvrirAlerte(){
+      if(!refAlerte) return;
+      var r = refAlerte; refAlerte = null;
+      try{
+        var u = new URL(location.href); u.searchParams.delete("ref");
+        history.replaceState(null, "", u.pathname + u.search + u.hash);
+      }catch(e){}
+      ouvrirBonBord(r);
+    }
+    if(nuage.connecte()) synchroniser().then(ouvrirAlerte, ouvrirAlerte);
+    else ouvrirAlerte();
   }
   document.getElementById("btnDeverrouiller").addEventListener("click", function(){
     var saisi = document.getElementById("codeExploitant").value;
