@@ -17,7 +17,7 @@ jobs:
       - shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'destinationCle: hotelDest ? hotelDest.cle : null' site/index.html
+          grep -Fq 'destinationCle: (function(d){ return d ? d.cle : null; })(destHotelRetenue())' site/index.html
           grep -Fq 'destinationCle' supabase/functions/deposer-course/index.ts
           grep -Fq 'destinationValide' supabase/functions/deposer-course/index.ts
           grep -Fq 'verification_manuelle' supabase/functions/deposer-course/index.ts
