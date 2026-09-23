@@ -29,7 +29,7 @@ secret — il est déjà dans la page du site.*
 
 | Quoi | Où on le tape | Où on le change | Valeur |
 |---|---|---|---|
-| **Code exploitant** | `elatransfer.com/admin.html` | dans `index.html`, en empreinte | `12345678` |
+| **Code exploitant** | `elatransfer.com/admin.html` | dans `index.html`, en empreinte | ✍️ |
 | **Code réception easyHotel** | `?reception=easyhotel-aeroville` | secret Supabase `HOTEL_EASYHOTEL_AEROVILLE_CODE` | ✍️ |
 
 **Le code exploitant est le seul écrit dans le site**, sous forme
