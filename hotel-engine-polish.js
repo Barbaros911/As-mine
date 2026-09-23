@@ -2,7 +2,16 @@
   'use strict';
   function getParams(){try{return new URLSearchParams(location.search);}catch(e){return null;}}
   var p=getParams();
-  if(!p || p.get('h')!=='easyhotel-aeroville' || p.get('reception')) return;
+  /* LE COMPTOIR A LA MÊME FINITION QUE LE CLIENT (23/09/2026, à la demande
+     de Barbaros : « même logique que le site client hôtel »). Il en était
+     exclu : la réception voyait l'ancien ordre des champs, avec la chambre
+     collée au départ et une promesse de service en chambre. Une seule
+     finition pour deux entrées, sinon l'une vieillit pendant que l'autre
+     avance. Ce qui diffère au comptoir est dit à l'endroit où ça diffère. */
+  if(!p) return;
+  var comptoir=p.get('reception')==='easyhotel-aeroville';
+  if(p.get('h')!=='easyhotel-aeroville' && !comptoir) return;
+  var accueil=comptoir?'/easyhotel-client/?reception=easyhotel-aeroville':'/easyhotel-client/';
 
   function enhanceHotel(){
     document.body.classList.add('hotel-enhanced');
@@ -15,7 +24,7 @@
       chip.innerHTML='<b>easyHotel</b><span>Aéroville</span>';
       head.insertBefore(chip,actions);
       var logoLink=head.querySelector('.logo');
-      if(logoLink){logoLink.href='/easyhotel-client/';logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
+      if(logoLink){logoLink.href=accueil;logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
     }
 
     /* ON N'ÉCRIT QUE SI LE TEXTE DIFFÈRE. Réécrire un texte identique est
@@ -49,9 +58,18 @@
          la réception » part : elle promettait un service de chambre que
          personne n'a demandé de tenir. */
       var nomLabel=blocCoord.querySelector('label[for="clientNom"]');
-      if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
       var tCh=chambre.querySelector('.champ-titre');
-      if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
+      if(comptoir){
+        /* AU COMPTOIR LA CHAMBRE VIENT EN PREMIER, ET ELLE N'EST PAS
+           « FACULTATIVE » : c'est elle qui suffit (la règle de l'aide juste
+           au-dessus — chambre, OU nom et téléphone). La réception la
+           connaît d'emblée ; le nom et le numéro ne servent que sans elle. */
+        if(nomLabel) nomLabel.insertAdjacentElement('beforebegin',chambre);
+        if(tCh){tCh.textContent='Chambre / Room';tCh.removeAttribute('data-t');}
+      } else {
+        if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
+        if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
+      }
       var aideCh=chambre.querySelector('.champ-aide');
       if(aideCh) aideCh.remove();
     }
@@ -73,6 +91,14 @@
         sel.dataset.landingPresetApplied='1';
         sel.dispatchEvent(new Event('change',{bubbles:true}));
       }
+    }
+    /* « vue=reservations » vient du bouton « Réservations de l'hôtel » de la
+       page du comptoir : on ouvre la liste (l'écran du code d'abord si la
+       session n'est pas ouverte) une seule fois, pas à chaque passage. */
+    var acces=document.getElementById('btnReception');
+    if(comptoir && p.get('vue')==='reservations' && acces && !acces.hidden && !acces.dataset.vueOuverte){
+      acces.dataset.vueOuverte='1';
+      acces.click();
     }
     /* LE BLOC « Destinations populaires » (trois photos) A ÉTÉ RETIRÉ le
        22/09/2026. Il répétait le choix que fait désormais la page du QR

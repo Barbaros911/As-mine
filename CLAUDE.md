@@ -2871,6 +2871,24 @@ et l'écran **nomme** la destination reconnue (« Tarif du flyer (Orly) : … »
 - Hors de toutes les zones (Versailles), rien ne change : kilométrage hôtel,
   et on le dit. `test-nouveau-hotel` éprouve les deux côtés.
 
+**LE COMPTOIR SUIT LE MÊME PARCOURS** (23/09/2026, à sa demande : « même
+logique que le site client hôtel »). `/easyhotel-client/?reception=easyhotel-aeroville`
+est la MÊME page que celle du QR : les liens des cartes passent en
+`?reception=`, les phrases parlent à la réception, et un bouton
+« Réservations de l'hôtel » ouvre la liste (`&vue=reservations`, lu par
+`hotel-engine-polish.js`). **Pas de seconde page** : elle aurait recopié les
+sept prix, soit un quatrième endroit à tenir.
+- `hotel-engine-polish.js/.css` s'appliquent désormais aux deux entrées
+  (`.hotel-enhanced`, plus `body.hotel:not(.reception)`).
+- **Au comptoir la chambre vient EN PREMIER et n'est pas « facultative »** :
+  la règle y est « chambre, OU nom et téléphone » (`identifieParLaChambre`).
+  Côté client elle reste sous le nom, facultative.
+- **La photo de l'en-tête n'est pas reprise au comptoir** : elle est chargée
+  depuis le site d'easyHotel (`cdn.easyhotel.com`, dans
+  `hotel-engine-polish.css`), sans accord écrit, contre la règle « aucune
+  photo ni logo d'easyHotel » de la section du thème partenaire. Côté client
+  elle est EN LIGNE ; signalé à Barbaros le 23/09/2026, à lui de trancher.
+
 **LE DÉFAUT LE PLUS GRAVE N'ÉTAIT PAS SUR LA PAGE, IL ÉTAIT EN LIGNE DEPUIS LE
 15/09 : LE MOTEUR easyHotel SE FIGEAIT.** `hotel-engine-polish.js` réécrivait le
 nom de l'hôtel à chaque passage, sous un `MutationObserver` qui le rappelait à

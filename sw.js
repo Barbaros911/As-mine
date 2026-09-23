@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v92";
+const CACHE = "elatransfer-v93";
 const SHELL = ["./", "./index.html", "./application.html",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
                   un exploitant hors ligne appuie sur « Coller une demande »

@@ -143,6 +143,60 @@ for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024]
   check('aucune seconde grille : deux prix par carte, pas un de plus', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
   check('une carte par forfait de la source serveur', (await p.locator('.carte').count())===Object.keys(ATT).length);
   await ctx.close(); }
+// 6. LE COMPTOIR (?reception=) : LA MÊME PAGE, LES MÊMES CARTES, ET LE MOTEUR
+//    AVEC LA MÊME FINITION. On éprouve aussi l'autre bord : sans le
+//    paramètre, rien du comptoir n'apparaît — sinon un client qui scanne le
+//    QR verrait un bouton « Réservations de l'hôtel ».
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+  const hrefs=await p.$$eval('a.carte,a.autre',a=>a.map(x=>x.getAttribute('href')));
+  check('comptoir : les huit liens ouvrent le moteur en mode réception',
+    hrefs.length===Object.keys(ATT).length+1 && hrefs.every(h=>h.includes('reception=easyhotel-aeroville')&&!h.includes('?h=')), hrefs.join(' '));
+  check('comptoir : chaque carte garde sa destination', Object.keys(ATT).every(k=>hrefs.some(h=>h.endsWith('dest='+k))));
+  check('comptoir : le bouton « Réservations de l\'hôtel » est visible', await p.locator('#ctaResa').isVisible());
+  check('comptoir : il ouvre la liste de l\'hôtel', (await p.locator('#ctaResa').getAttribute('href')).includes('reception=easyhotel-aeroville&vue=reservations'));
+  check('comptoir : la page parle à la réception', /comptoir/i.test(await p.locator('h1').innerText()));
+  check('comptoir : mêmes prix que la page client (aucune seconde grille)', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
+  check('comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/',{waitUntil:'domcontentloaded'});
+  check('client : pas de bouton des réservations de l\'hôtel', !(await p.locator('#ctaResa').isVisible()));
+  check('client : les liens restent en ?h= (pas de mode réception)', (await p.$$eval('a.carte',a=>a.every(x=>x.getAttribute('href').includes('?h=easyhotel-aeroville')))));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/?reception=inconnu',{waitUntil:'domcontentloaded'});
+  check('clé de comptoir inconnue : la page reste celle du client', !(await p.locator('#ctaResa').isVisible()) && /Votre transfert/.test(await p.locator('h1').innerText()));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/application.html?reception=easyhotel-aeroville&dest=orly',{waitUntil:'load'});
+  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly',null,{timeout:8000}).catch(()=>{});
+  const r=await p.evaluate(()=>{const ids=[...document.querySelectorAll('#blocCoordonnees label')].map(e=>e.id||e.getAttribute('for'));
+    const ch=document.querySelector('#blocChambre .champ-titre');
+    return {dest:document.getElementById('hotelDest').value, ordre:ids.join(','), titre:ch&&ch.textContent,
+      fini:document.body.classList.contains('hotel-enhanced'), acces:!document.getElementById('btnReception').hidden,
+      avant:document.getElementById('blocCoordonnees').compareDocumentPosition(document.getElementById('blocNote'))&Node.DOCUMENT_POSITION_FOLLOWING,
+      logo:document.querySelector('.entete .logo')?.getAttribute('href')};});
+  check('moteur au comptoir : la destination de la carte est choisie', r.dest==='orly', r.dest);
+  check('moteur au comptoir : même finition que le client', r.fini);
+  check('moteur au comptoir : la chambre vient en PREMIER dans le bloc client', r.ordre.indexOf('chambre')===0 && r.ordre.indexOf('clientNom')>0, r.ordre);
+  check('moteur au comptoir : la chambre n\'est pas dite « facultative » (elle suffit)', r.titre && !/facultatif/i.test(r.titre), r.titre);
+  check('moteur au comptoir : le client passe avant la précision au chauffeur', !!r.avant);
+  check('moteur au comptoir : l\'accès aux réservations reste', r.acces);
+  check('moteur au comptoir : le logo ramène à la page du comptoir', r.logo==='/easyhotel-client/?reception=easyhotel-aeroville', r.logo);
+  check('moteur au comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/application.html?reception=easyhotel-aeroville&vue=reservations',{waitUntil:'load'});
+  const vu=await p.waitForFunction(()=>{const e=document.getElementById('ecran-reception');return e&&e.getBoundingClientRect().height>0;},null,{timeout:8000}).then(()=>true).catch(()=>false);
+  check('« Réservations de l\'hôtel » ouvre l\'écran de la réception', vu);
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'});
+  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly',null,{timeout:8000}).catch(()=>{});
+  const t=await p.evaluate(()=>{const ids=[...document.querySelectorAll('#blocCoordonnees label')].map(e=>e.id||e.getAttribute('for'));return {ordre:ids.join(','),titre:document.querySelector('#blocChambre .champ-titre').textContent};});
+  check('moteur client : la chambre reste SOUS le nom, facultative', t.ordre.indexOf('clientNom')<t.ordre.indexOf('chambre') && /facultatif/i.test(t.titre), t.ordre+' / '+t.titre);
+  await ctx.close(); }
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('=== RÉUSSIS ('+ok.length+') ===');
