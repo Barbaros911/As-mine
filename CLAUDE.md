@@ -2828,9 +2828,8 @@ Un clic ouvre le moteur avec l'hôtel ET la destination déjà posés.
 **LA GRILLE A ÉTÉ TRANCHÉE PAR LUI**, sur question, et elle diffère de ce que le
 site facturait : Orly **90 / 130**, Le Bourget **35 / 70**, Disney **80 / 120**,
 Paris **80 / 120** (CDG 35/50, Beauvais 180/240, Villepinte 35/50 inchangés).
-Le Bourget berline à 35 € contredit sa propre mission (45 €) : c'est sa
-réponse explicite, écrite en chiffres — **à lui faire confirmer à la
-relecture**, pas à « corriger » en silence.
+Le Bourget berline à 35 € contredisait sa propre mission (45 €) : il l'a
+**confirmé à la relecture** (23/09/2026). C'est 35 €, ne pas le « corriger ».
 - **TROIS ENDROITS, UN SEUL PRIX, ET UN CONTRÔLE QUI L'EXIGE.** `HOTELS` dans
   `index.html`, la source serveur (`20260916100000_current_tariff_source.sql`),
   et les cartes de la page du QR. `verifier-tarif-hotel.mjs` exige l'accord des
