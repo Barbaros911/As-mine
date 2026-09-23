@@ -2889,6 +2889,22 @@ sept prix, soit un quatrième endroit à tenir.
   photo ni logo d'easyHotel » de la section du thème partenaire. Côté client
   elle est EN LIGNE ; signalé à Barbaros le 23/09/2026, à lui de trancher.
 
+**VERT = REMPLI, ROUGE = IL MANQUE** (23/09/2026, à sa demande), sur les deux
+entrées easyHotel, dans `hotel-engine-polish.js/.css` (classes `eh-ok`,
+`eh-manque` — préfixées : `.ok` et `.ko` existent déjà ailleurs).
+- **LE DÉFAUT QUE ÇA A RÉVÉLÉ, EN LIGNE** : côté client, le nom et le
+  téléphone sont sur la première page, mais « Confirmer », deux écrans plus
+  loin, les contrôlait et affichait son erreur sur la page CACHÉE. Mesuré :
+  le client appuyait, rien ne bougeait. Le contrôle se fait maintenant à
+  « Voir mon prix », avant de quitter la page des champs.
+- **La date et l'heure ne sont pas vertes d'office** : pré-remplies à
+  maintenant + 15 min, personne ne les a choisies. Vertes dès qu'on y touche.
+- **Au comptoir le bouton est grisé** tant qu'aucune gamme n'est choisie ; un
+  bouton grisé ne reçoit pas le clic. On écoute le doigt posé sur sa surface
+  (`pointerup`) pour montrer quand même ce qui manque.
+- La mention écrite accompagne toujours la couleur (« Obligatoire », « Si pas
+  de chambre », « Numéro incomplet ») : la couleur ne porte jamais le sens seule.
+
 **LE DÉFAUT LE PLUS GRAVE N'ÉTAIT PAS SUR LA PAGE, IL ÉTAIT EN LIGNE DEPUIS LE
 15/09 : LE MOTEUR easyHotel SE FIGEAIT.** `hotel-engine-polish.js` réécrivait le
 nom de l'hôtel à chaque passage, sous un `MutationObserver` qui le rappelait à

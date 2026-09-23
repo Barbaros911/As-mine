@@ -253,3 +253,32 @@ body.hotel.reception.hotel-enhanced .hotel-acces{
 /* Au comptoir les prix sont sur la même page que le règlement : sans cet
    intervalle, le bloc du règlement touchait la carte « Van » (mesuré). */
 body.hotel.reception.hotel-enhanced #blocPaiement{margin-top:12px!important}
+
+/* ═══ VERT = REMPLI ET BON · ROUGE = IL MANQUE (23/09/2026) ═══
+   La couleur ne porte jamais le sens toute seule : le vert a sa coche, le
+   rouge dit « Obligatoire » ou « À corriger ». Contrastes mesurés sur blanc :
+   #15803D 5,0 · #DC2626 4,8. Posé en haut à droite, là où aucun chevron ni
+   bouton de champ ne se trouve (ils sont centrés verticalement). */
+/* Le sélecteur porte l'IDENTIFIANT de l'écran : la règle de base des champs
+   en porte un, et sans lui elle l'emportait — mesuré, la coche s'affichait
+   sans le cadre. */
+body.hotel.hotel-enhanced #ecran-accueil .champ.eh-ok,body.hotel.hotel-enhanced #blocCoordonnees .champ.eh-ok{border-color:#15803D!important;box-shadow:0 0 0 1px #15803D inset!important;background:#F4FBF6!important}
+body.hotel.hotel-enhanced .champ.eh-ok::after{content:"✓";position:absolute;top:5px;right:10px;font-size:12px;font-weight:900;color:#15803D;pointer-events:none}
+body.hotel.hotel-enhanced #ecran-accueil .champ.eh-manque,body.hotel.hotel-enhanced #blocCoordonnees .champ.eh-manque{border-color:#DC2626!important;box-shadow:0 0 0 1px #DC2626 inset!important;background:#FFF6F6!important}
+body.hotel.hotel-enhanced .champ.eh-manque::after{content:"Obligatoire";position:absolute;top:6px;right:10px;font-size:10px;font-weight:850;color:#DC2626;pointer-events:none}
+html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque::after{content:"Required"}
+/* Au comptoir, la chambre SUFFIT : le nom et le téléphone ne sont exigés que
+   sans elle. Écrire « Obligatoire » sur les trois dirait le contraire. */
+body.hotel.hotel-enhanced .champ.eh-manque.eh-sinon::after{content:"Si pas de chambre"}
+html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque.eh-sinon::after{content:"If no room"}
+/* Le libellé du champ laisse la place à la mention : il passe à la ligne
+   plutôt que de passer DESSOUS (mesuré à 320 px, « Nom du client / Guest
+   name » touchait la mention). */
+body.hotel.hotel-enhanced .champ.eh-ok .champ-titre{padding-right:16px}
+body.hotel.hotel-enhanced .champ.eh-manque .champ-titre{padding-right:74px}
+body.hotel.hotel-enhanced .champ.eh-manque.eh-sinon .champ-titre,body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger .champ-titre{padding-right:104px}
+body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger::after{content:"Numéro incomplet"}
+html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger::after{content:"Incomplete number"}
+/* Au comptoir : la liste des gammes et le règlement se choisissent sur la
+   même page ; sans choix, c'est le bloc entier qui s'encadre. */
+body.hotel.hotel-enhanced #listeVehicules.eh-manque,body.hotel.hotel-enhanced .eh-manque:not(.champ){outline:2px solid #DC2626;outline-offset:4px;border-radius:14px}
