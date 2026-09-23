@@ -35,7 +35,25 @@
       var tel=blocCoord.querySelector('label[for="clientTel"] .champ-titre');
       if(tel){tel.textContent='Téléphone / Phone';tel.removeAttribute('data-t');}
       blocCoord.classList.add('hotel-guest-early');
-      chambre.insertAdjacentElement('afterend',blocCoord);
+      /* L'ORDRE D'UN TUNNEL : LE TRAJET D'ABORD, LA PERSONNE ENSUITE
+         (23/09/2026, à la demande de Barbaros). Le départ est suivi tout de
+         suite de la destination — déjà choisie sur la page du QR —, puis
+         de la date et des passagers ; le client vient après, juste avant
+         la précision pour le chauffeur. */
+      var note=document.getElementById('blocNote');
+      if(note) note.insertAdjacentElement('beforebegin',blocCoord);
+      else chambre.insertAdjacentElement('afterend',blocCoord);
+      /* LA CHAMBRE EST RANGÉE AVEC LE CLIENT, SOUS SON NOM, ET ELLE EST
+         FACULTATIVE — elle ne l'a jamais été dans le code, le libellé ne
+         le disait pas. La phrase « il vient vous chercher sans attendre à
+         la réception » part : elle promettait un service de chambre que
+         personne n'a demandé de tenir. */
+      var nomLabel=blocCoord.querySelector('label[for="clientNom"]');
+      if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
+      var tCh=chambre.querySelector('.champ-titre');
+      if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
+      var aideCh=chambre.querySelector('.champ-aide');
+      if(aideCh) aideCh.remove();
     }
 
     var sel=document.getElementById('hotelDest');
