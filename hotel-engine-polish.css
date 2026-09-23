@@ -2,63 +2,63 @@
    La mise en forme s'applique des que body.hotel existe : elle ne depend plus
    d'une classe JS ajoutee trop tot. Reception et client partagent desormais
    la meme famille visuelle : orange easyHotel, bleu ELA, blanc et photos. */
-body.hotel:not(.reception){
+body.hotel.hotel-enhanced{
   --eh-orange:#ff5a0a;--eh-orange2:#ff761b;--eh-navy:#0b3153;--eh-ink:#15344e;
   --eh-muted:#738390;--eh-line:#e4eaf0;--eh-soft:#f7f9fb;--eh-warm:#fff6f0;
   background:var(--eh-soft)!important;color:var(--eh-ink)!important;
 }
-body.hotel:not(.reception) .page{max-width:1180px!important;margin:0 auto!important;background:var(--eh-soft)!important}
+body.hotel.hotel-enhanced .page{max-width:1180px!important;margin:0 auto!important;background:var(--eh-soft)!important}
 
 /* Entete : compact, clair, meme logique que la reception. */
-body.hotel:not(.reception) .entete{
+body.hotel.hotel-enhanced .entete{
   position:sticky!important;top:0!important;z-index:100!important;
   min-height:64px!important;height:auto!important;padding:7px 12px!important;
   background:#fff!important;color:var(--eh-navy)!important;border-bottom:1px solid var(--eh-line)!important;
   box-shadow:0 5px 18px rgba(11,49,83,.07)!important;
 }
-body.hotel:not(.reception) .logo-image{width:102px!important;max-height:46px!important;object-fit:contain!important}
-body.hotel:not(.reception) .logo-nom,body.hotel:not(.reception) .logo-sous{color:var(--eh-navy)!important}
-body.hotel:not(.reception) .entete-actions{gap:7px!important}
-body.hotel:not(.reception) .langues{border:1px solid #d9e1e7!important;background:#f7f9fb!important;border-radius:999px!important;overflow:hidden!important}
-body.hotel:not(.reception) .langues button{min-width:38px!important;min-height:34px!important;color:#62717c!important;font-size:11px!important}
-body.hotel:not(.reception) .langues button[aria-pressed="true"]{background:#fff0e7!important;color:var(--eh-orange)!important;font-weight:900!important}
-body.hotel:not(.reception) .menu span{background:var(--eh-navy)!important}
+body.hotel.hotel-enhanced .logo-image{width:102px!important;max-height:46px!important;object-fit:contain!important}
+body.hotel.hotel-enhanced .logo-nom,body.hotel.hotel-enhanced .logo-sous{color:var(--eh-navy)!important}
+body.hotel.hotel-enhanced .entete-actions{gap:7px!important}
+body.hotel.hotel-enhanced .langues{border:1px solid #d9e1e7!important;background:#f7f9fb!important;border-radius:999px!important;overflow:hidden!important}
+body.hotel.hotel-enhanced .langues button{min-width:38px!important;min-height:34px!important;color:#62717c!important;font-size:11px!important}
+body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{background:#fff0e7!important;color:var(--eh-orange)!important;font-weight:900!important}
+body.hotel.hotel-enhanced .menu span{background:var(--eh-navy)!important}
 .hotel-partner-chip{display:flex;flex-direction:column;justify-content:center;margin-left:8px;padding-left:9px;border-left:1px solid #ccd5dc;line-height:1.05}
 .hotel-partner-chip b{font-size:10px;color:var(--eh-orange)}.hotel-partner-chip span{font-size:7px;color:var(--eh-muted);margin-top:3px}
 
 /* Hero : la photo devient l'element principal. Le grand aplat sombre disparait. */
-body.hotel:not(.reception) .hotel-tete{
+body.hotel.hotel-enhanced .hotel-tete{
   position:relative!important;min-height:305px!important;height:auto!important;margin:0!important;
   padding:158px 14px 14px!important;border-radius:0!important;color:#fff!important;overflow:hidden!important;
   background-image:linear-gradient(180deg,rgba(11,49,83,.02) 0%,rgba(11,49,83,.08) 42%,rgba(11,49,83,.86) 100%),url('https://www.easyhotel.com/cdn-cgi/image/width=1200,height=800,format=auto/https://cdn.easyhotel.com/1_easy_Hotel_CDG_1067422f0b.png')!important;
   background-position:center 48%!important;background-size:cover!important;background-repeat:no-repeat!important;
   box-shadow:none!important;
 }
-body.hotel:not(.reception) .hotel-photo{display:none!important}
-body.hotel:not(.reception) .hotel-tete .hotel-sur{display:inline-flex!important;margin:0 0 7px!important;padding:6px 10px!important;border-radius:999px!important;background:var(--eh-orange)!important;color:#fff!important;opacity:1!important;font-size:9px!important;font-weight:900!important;letter-spacing:.1em!important}
-body.hotel:not(.reception) .hotel-tete .hotel-nom{margin:0!important;color:#fff!important;font-size:31px!important;line-height:1!important;font-weight:950!important;text-shadow:0 2px 8px rgba(0,0,0,.35)!important}
-body.hotel:not(.reception) .hotel-tete .hotel-adresse{margin:7px 0 13px!important;color:#fff!important;font-size:10px!important;line-height:1.35!important;text-shadow:0 1px 4px rgba(0,0,0,.45)!important}
-body.hotel:not(.reception) .hotel-sens{background:rgba(255,255,255,.97)!important;border:1px solid rgba(255,255,255,.9)!important;padding:4px!important;border-radius:13px!important;box-shadow:0 6px 18px rgba(0,0,0,.12)!important}
-body.hotel:not(.reception) .hotel-sens-btn{min-height:46px!important;border-radius:9px!important;color:var(--eh-ink)!important;background:transparent!important;font-size:11px!important;font-weight:850!important}
-body.hotel:not(.reception) .hotel-sens-btn.actif{background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;box-shadow:0 4px 12px rgba(255,90,10,.22)!important}
+body.hotel.hotel-enhanced .hotel-photo{display:none!important}
+body.hotel.hotel-enhanced .hotel-tete .hotel-sur{display:inline-flex!important;margin:0 0 7px!important;padding:6px 10px!important;border-radius:999px!important;background:var(--eh-orange)!important;color:#fff!important;opacity:1!important;font-size:9px!important;font-weight:900!important;letter-spacing:.1em!important}
+body.hotel.hotel-enhanced .hotel-tete .hotel-nom{margin:0!important;color:#fff!important;font-size:31px!important;line-height:1!important;font-weight:950!important;text-shadow:0 2px 8px rgba(0,0,0,.35)!important}
+body.hotel.hotel-enhanced .hotel-tete .hotel-adresse{margin:7px 0 13px!important;color:#fff!important;font-size:10px!important;line-height:1.35!important;text-shadow:0 1px 4px rgba(0,0,0,.45)!important}
+body.hotel.hotel-enhanced .hotel-sens{background:rgba(255,255,255,.97)!important;border:1px solid rgba(255,255,255,.9)!important;padding:4px!important;border-radius:13px!important;box-shadow:0 6px 18px rgba(0,0,0,.12)!important}
+body.hotel.hotel-enhanced .hotel-sens-btn{min-height:46px!important;border-radius:9px!important;color:var(--eh-ink)!important;background:transparent!important;font-size:11px!important;font-weight:850!important}
+body.hotel.hotel-enhanced .hotel-sens-btn.actif{background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;box-shadow:0 4px 12px rgba(255,90,10,.22)!important}
 
 /* Formulaire client : clair, compact et logique hotel. */
-body.hotel:not(.reception) #ecran-accueil .bloc,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{
+body.hotel.hotel-enhanced #ecran-accueil .bloc,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early{
   background:#fff!important;border:1px solid var(--eh-line)!important;border-radius:18px!important;
   box-shadow:0 9px 24px rgba(20,47,68,.07)!important;
 }
-body.hotel:not(.reception) #ecran-accueil .bloc{margin:0 10px 11px!important;padding:11px!important}
-body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{margin:10px!important;padding:11px!important}
-body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early .bloc-titre{margin:0 0 9px!important;font-size:12px!important;color:var(--eh-navy)!important;font-weight:900!important}
-body.hotel:not(.reception) #ecran-accueil .champ,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early .champ{
+body.hotel.hotel-enhanced #ecran-accueil .bloc{margin:0 10px 11px!important;padding:11px!important}
+body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early{margin:10px!important;padding:11px!important}
+body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early .bloc-titre{margin:0 0 9px!important;font-size:12px!important;color:var(--eh-navy)!important;font-weight:900!important}
+body.hotel.hotel-enhanced #ecran-accueil .champ,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early .champ{
   min-height:59px!important;margin-bottom:8px!important;padding:9px 11px!important;background:#fff!important;
   border:1px solid #dce4ea!important;border-radius:12px!important;box-shadow:none!important;
 }
-body.hotel:not(.reception) #ecran-accueil .champ-titre,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early .champ-titre{font-size:10px!important;color:var(--eh-ink)!important;font-weight:850!important}
-body.hotel:not(.reception) #ecran-accueil input,body.hotel:not(.reception) #ecran-accueil select,body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early input{font-size:16px!important;color:var(--eh-ink)!important}
-body.hotel:not(.reception) .champ-aide{color:var(--eh-muted)!important}
-body.hotel:not(.reception) .hotel-forfait{color:var(--eh-orange)!important;font-size:14px!important;font-weight:900!important;margin:7px 5px 11px!important}
-body.hotel:not(.reception) #ecran-accueil .principal,body.hotel:not(.reception) #ecran-accueil button.principal,body.hotel:not(.reception) #btnVoirPrix{
+body.hotel.hotel-enhanced #ecran-accueil .champ-titre,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early .champ-titre{font-size:10px!important;color:var(--eh-ink)!important;font-weight:850!important}
+body.hotel.hotel-enhanced #ecran-accueil input,body.hotel.hotel-enhanced #ecran-accueil select,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early input{font-size:16px!important;color:var(--eh-ink)!important}
+body.hotel.hotel-enhanced .champ-aide{color:var(--eh-muted)!important}
+body.hotel.hotel-enhanced .hotel-forfait{color:var(--eh-orange)!important;font-size:14px!important;font-weight:900!important;margin:7px 5px 11px!important}
+body.hotel.hotel-enhanced #ecran-accueil .principal,body.hotel.hotel-enhanced #ecran-accueil button.principal,body.hotel.hotel-enhanced #btnVoirPrix{
   background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;color:#fff!important;border-color:var(--eh-orange)!important;
   min-height:48px!important;border-radius:10px!important;font-weight:900!important;box-shadow:0 8px 18px rgba(255,90,10,.17)!important;
 }
@@ -66,28 +66,28 @@ body.hotel:not(.reception) #ecran-accueil .principal,body.hotel:not(.reception) 
 /* Destinations avec photos. */
 
 /* Navigation client : meme fond clair, WhatsApp conserve son vert metier. */
-body.hotel:not(.reception) .barre-bas{background:#fff!important;border-top:1px solid var(--eh-line)!important;box-shadow:0 -7px 22px rgba(20,47,68,.08)!important}
-body.hotel:not(.reception) .barre-bas .actif,body.hotel:not(.reception) .barre-bas .active{color:var(--eh-orange)!important}
+body.hotel.hotel-enhanced .barre-bas{background:#fff!important;border-top:1px solid var(--eh-line)!important;box-shadow:0 -7px 22px rgba(20,47,68,.08)!important}
+body.hotel.hotel-enhanced .barre-bas .actif,body.hotel.hotel-enhanced .barre-bas .active{color:var(--eh-orange)!important}
 
 @media(max-width:430px){
   .hotel-partner-chip{max-width:112px}.hotel-partner-chip span{display:none}
-  body.hotel:not(.reception) .logo-image{width:88px!important}
-  body.hotel:not(.reception) .hotel-tete{min-height:295px!important;padding:154px 12px 12px!important}
-  body.hotel:not(.reception) .hotel-tete .hotel-nom{font-size:29px!important}
+  body.hotel.hotel-enhanced .logo-image{width:88px!important}
+  body.hotel.hotel-enhanced .hotel-tete{min-height:295px!important;padding:154px 12px 12px!important}
+  body.hotel.hotel-enhanced .hotel-tete .hotel-nom{font-size:29px!important}
 }
 @media(min-width:761px){
-  body.hotel:not(.reception) .entete{min-height:70px!important;padding:8px 18px!important}
-  body.hotel:not(.reception) .logo-image{width:116px!important;max-height:51px!important}
-  body.hotel:not(.reception) .hotel-tete{min-height:390px!important;padding:225px 28px 24px!important;border-radius:0 0 18px 18px!important}
-  body.hotel:not(.reception) .hotel-tete .hotel-nom{font-size:40px!important}
+  body.hotel.hotel-enhanced .entete{min-height:70px!important;padding:8px 18px!important}
+  body.hotel.hotel-enhanced .logo-image{width:116px!important;max-height:51px!important}
+  body.hotel.hotel-enhanced .hotel-tete{min-height:390px!important;padding:225px 28px 24px!important;border-radius:0 0 18px 18px!important}
+  body.hotel.hotel-enhanced .hotel-tete .hotel-nom{font-size:40px!important}
   /* UNE SEULE COLONNE, CENTRÉE. La colonne de droite ne portait que le bloc
      « Destinations populaires », retiré le 22/09/2026 : laissée en place,
      elle restait vide à côté du formulaire. */
-  body.hotel:not(.reception) #ecran-accueil{display:grid;grid-template-columns:1fr minmax(0,780px) 1fr;gap:0 8px;align-items:start}
-  body.hotel:not(.reception) #ecran-accueil > *{grid-column:2}
-  body.hotel:not(.reception) #ecran-accueil > .hotel-tete{grid-column:1/-1}
-  body.hotel:not(.reception) #blocCoordonnees.hotel-guest-early{grid-column:1;margin:18px 6px 12px 18px!important}
-  body.hotel:not(.reception) #ecran-accueil .bloc{margin-left:18px!important;margin-right:6px!important}
+  body.hotel.hotel-enhanced #ecran-accueil{display:grid;grid-template-columns:1fr minmax(0,780px) 1fr;gap:0 8px;align-items:start}
+  body.hotel.hotel-enhanced #ecran-accueil > *{grid-column:2}
+  body.hotel.hotel-enhanced #ecran-accueil > .hotel-tete{grid-column:1/-1}
+  body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early{grid-column:1;margin:18px 6px 12px 18px!important}
+  body.hotel.hotel-enhanced #ecran-accueil .bloc{margin-left:18px!important;margin-right:6px!important}
 }
 
 
@@ -97,13 +97,13 @@ body.hotel:not(.reception) .barre-bas .actif,body.hotel:not(.reception) .barre-b
    Le moteur historique reste intact : seules son identité et sa continuité
    visuelle sont adaptées au parcours easyHotel.
    ========================================================================== */
-body.hotel:not(.reception){
+body.hotel.hotel-enhanced{
   --accent:#ff5a0a;
   --accent-clair:#fff0e7;
   --accent-vif:#ff761b;
   --accent-encre:#9a3500;
 }
-body.hotel:not(.reception) .entete{
+body.hotel.hotel-enhanced .entete{
   display:grid!important;
   grid-template-columns:210px minmax(120px,1fr) 190px!important;
   align-items:center!important;
@@ -112,7 +112,7 @@ body.hotel:not(.reception) .entete{
   background:#fff!important;
   border-bottom:1px solid var(--eh-line)!important;
 }
-body.hotel:not(.reception) .hotel-partner-chip{
+body.hotel.hotel-enhanced .hotel-partner-chip{
   grid-column:1!important;
   grid-row:1!important;
   align-self:stretch!important;
@@ -123,19 +123,19 @@ body.hotel:not(.reception) .hotel-partner-chip{
   background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;
   color:#fff!important;
 }
-body.hotel:not(.reception) .hotel-partner-chip b{
+body.hotel.hotel-enhanced .hotel-partner-chip b{
   font-size:27px!important;
   line-height:.95!important;
   color:#fff!important;
 }
-body.hotel:not(.reception) .hotel-partner-chip span{
+body.hotel.hotel-enhanced .hotel-partner-chip span{
   display:block!important;
   margin-top:7px!important;
   font-size:11px!important;
   font-weight:800!important;
   color:#fff!important;
 }
-body.hotel:not(.reception) .entete .logo{
+body.hotel.hotel-enhanced .entete .logo{
   grid-column:2!important;
   grid-row:1!important;
   justify-self:center!important;
@@ -143,33 +143,33 @@ body.hotel:not(.reception) .entete .logo{
   align-items:center!important;
   margin:0!important;
 }
-body.hotel:not(.reception) .entete .logo-image{
+body.hotel.hotel-enhanced .entete .logo-image{
   display:block!important;
   width:116px!important;
   max-height:54px!important;
   filter:none!important;
 }
-body.hotel:not(.reception) .entete-actions{
+body.hotel.hotel-enhanced .entete-actions{
   grid-column:3!important;
   grid-row:1!important;
   justify-self:end!important;
   padding-right:15px!important;
 }
-body.hotel:not(.reception) #ecran-vehicules .bouton,
-body.hotel:not(.reception) #ecran-recap .bouton,
-body.hotel:not(.reception) #ecran-bon .bouton{
+body.hotel.hotel-enhanced #ecran-vehicules .bouton,
+body.hotel.hotel-enhanced #ecran-recap .bouton,
+body.hotel.hotel-enhanced #ecran-bon .bouton{
   background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;
 }
-body.hotel:not(.reception) .veh-carte[aria-pressed="true"],
-body.hotel:not(.reception) .choix[aria-pressed="true"]{
+body.hotel.hotel-enhanced .veh-carte[aria-pressed="true"],
+body.hotel.hotel-enhanced .choix[aria-pressed="true"]{
   border-color:var(--eh-orange)!important;
   box-shadow:0 0 0 2px rgba(255,90,10,.14)!important;
 }
-body.hotel:not(.reception) .barre-bas .onglet.actif{
+body.hotel.hotel-enhanced .barre-bas .onglet.actif{
   color:var(--eh-orange)!important;
 }
 @media(max-width:760px){
-  body.hotel:not(.reception) .entete{
+  body.hotel.hotel-enhanced .entete{
     grid-template-columns:minmax(112px,1fr) auto auto!important;
     min-height:76px!important;
     padding:0 9px 0 12px!important;
@@ -177,56 +177,108 @@ body.hotel:not(.reception) .barre-bas .onglet.actif{
     background:linear-gradient(120deg,var(--eh-orange),var(--eh-orange2))!important;
     border-bottom:0!important;
   }
-  body.hotel:not(.reception) .hotel-partner-chip{
+  body.hotel.hotel-enhanced .hotel-partner-chip{
     padding:0!important;
     background:transparent!important;
   }
-  body.hotel:not(.reception) .hotel-partner-chip b{
+  body.hotel.hotel-enhanced .hotel-partner-chip b{
     font-size:20px!important;
   }
-  body.hotel:not(.reception) .hotel-partner-chip span{
+  body.hotel.hotel-enhanced .hotel-partner-chip span{
     margin-top:5px!important;
     font-size:9px!important;
   }
-  body.hotel:not(.reception) .entete .logo{
+  body.hotel.hotel-enhanced .entete .logo{
     background:#fff!important;
     border-radius:9px!important;
     padding:5px 7px!important;
   }
-  body.hotel:not(.reception) .entete .logo-image{
+  body.hotel.hotel-enhanced .entete .logo-image{
     width:88px!important;
     max-height:42px!important;
   }
-  body.hotel:not(.reception) .entete-actions{
+  body.hotel.hotel-enhanced .entete-actions{
     padding:0!important;
   }
-  body.hotel:not(.reception) .langues{
+  body.hotel.hotel-enhanced .langues{
     border-color:rgba(255,255,255,.55)!important;
     background:rgba(255,255,255,.13)!important;
   }
-  body.hotel:not(.reception) .langues button{
+  body.hotel.hotel-enhanced .langues button{
     min-width:34px!important;
     min-height:32px!important;
     color:#fff!important;
   }
-  body.hotel:not(.reception) .langues button[aria-pressed="true"]{
+  body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{
     background:#fff!important;
     color:var(--eh-orange)!important;
   }
 }
 @media(max-width:390px){
-  body.hotel:not(.reception) .entete{
+  body.hotel.hotel-enhanced .entete{
     grid-template-columns:minmax(96px,1fr) auto auto!important;
     gap:6px!important;
     padding-left:9px!important;
     padding-right:7px!important;
   }
-  body.hotel:not(.reception) .hotel-partner-chip b{font-size:18px!important}
-  body.hotel:not(.reception) .hotel-partner-chip span{font-size:8px!important}
-  body.hotel:not(.reception) .entete .logo-image{width:78px!important}
-  body.hotel:not(.reception) .langues button{min-width:30px!important;padding:0 6px!important}
+  body.hotel.hotel-enhanced .hotel-partner-chip b{font-size:18px!important}
+  body.hotel.hotel-enhanced .hotel-partner-chip span{font-size:8px!important}
+  body.hotel.hotel-enhanced .entete .logo-image{width:78px!important}
+  body.hotel.hotel-enhanced .langues button{min-width:30px!important;padding:0 6px!important}
 }
 
 /* La chambre vit dans le bloc « Client / Guest » (23/09/2026) : son icône
    la décalait par rapport au nom et au téléphone, qui n'en ont pas. */
-body.hotel:not(.reception) #blocCoordonnees #blocChambre .champ > svg{display:none}
+body.hotel.hotel-enhanced #blocCoordonnees #blocChambre .champ > svg{display:none}
+
+/* ═══ LE COMPTOIR (?reception=) PREND LA MÊME FINITION — SANS LA PHOTO ═══
+   23/09/2026. Tout ce fichier visait « body.hotel:not(.reception) » : la
+   réception gardait l'ancien habillage. Il vise maintenant « .hotel-enhanced »,
+   que le script pose sur les deux entrées.
+   LA PHOTO DE L'EN-TÊTE N'EST PAS REPRISE AU COMPTOIR : elle vient du site
+   d'easyHotel, et ce projet ne pose pas une image dont l'accord n'est pas
+   écrit (L335-2 CPI). L'en-tête du comptoir est un aplat marine, et il porte
+   le bouton « Réservations de l'hôtel », qui a besoin de place. */
+body.hotel.reception.hotel-enhanced .hotel-tete{
+  background-image:linear-gradient(135deg,#0b2d4f 0%,#123f68 100%)!important;
+  padding-top:22px!important;min-height:0!important;
+}
+body.hotel.reception.hotel-enhanced .hotel-acces{
+  background:transparent!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.6)!important;
+  border-radius:12px!important;font-weight:850!important;
+}
+/* Au comptoir la chambre passe en tête du bloc client : elle a besoin de
+   l'intervalle que les autres champs ont entre eux. */
+#blocCoordonnees.hotel-guest-early #blocChambre{margin-bottom:10px!important}
+/* Au comptoir les prix sont sur la même page que le règlement : sans cet
+   intervalle, le bloc du règlement touchait la carte « Van » (mesuré). */
+body.hotel.reception.hotel-enhanced #blocPaiement{margin-top:12px!important}
+
+/* ═══ VERT = REMPLI ET BON · ROUGE = IL MANQUE (23/09/2026) ═══
+   La couleur ne porte jamais le sens toute seule : le vert a sa coche, le
+   rouge dit « Obligatoire » ou « À corriger ». Contrastes mesurés sur blanc :
+   #15803D 5,0 · #DC2626 4,8. Posé en haut à droite, là où aucun chevron ni
+   bouton de champ ne se trouve (ils sont centrés verticalement). */
+/* Le sélecteur porte l'IDENTIFIANT de l'écran : la règle de base des champs
+   en porte un, et sans lui elle l'emportait — mesuré, la coche s'affichait
+   sans le cadre. */
+body.hotel.hotel-enhanced #ecran-accueil .champ.eh-ok,body.hotel.hotel-enhanced #blocCoordonnees .champ.eh-ok{border-color:#15803D!important;box-shadow:0 0 0 1px #15803D inset!important;background:#F4FBF6!important}
+body.hotel.hotel-enhanced .champ.eh-ok::after{content:"✓";position:absolute;top:5px;right:10px;font-size:12px;font-weight:900;color:#15803D;pointer-events:none}
+body.hotel.hotel-enhanced #ecran-accueil .champ.eh-manque,body.hotel.hotel-enhanced #blocCoordonnees .champ.eh-manque{border-color:#DC2626!important;box-shadow:0 0 0 1px #DC2626 inset!important;background:#FFF6F6!important}
+body.hotel.hotel-enhanced .champ.eh-manque::after{content:"Obligatoire";position:absolute;top:6px;right:10px;font-size:10px;font-weight:850;color:#DC2626;pointer-events:none}
+html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque::after{content:"Required"}
+/* Au comptoir, la chambre SUFFIT : le nom et le téléphone ne sont exigés que
+   sans elle. Écrire « Obligatoire » sur les trois dirait le contraire. */
+body.hotel.hotel-enhanced .champ.eh-manque.eh-sinon::after{content:"Si pas de chambre"}
+html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque.eh-sinon::after{content:"If no room"}
+/* Le libellé du champ laisse la place à la mention : il passe à la ligne
+   plutôt que de passer DESSOUS (mesuré à 320 px, « Nom du client / Guest
+   name » touchait la mention). */
+body.hotel.hotel-enhanced .champ.eh-ok .champ-titre{padding-right:16px}
+body.hotel.hotel-enhanced .champ.eh-manque .champ-titre{padding-right:74px}
+body.hotel.hotel-enhanced .champ.eh-manque.eh-sinon .champ-titre,body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger .champ-titre{padding-right:104px}
+body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger::after{content:"Numéro incomplet"}
+html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger::after{content:"Incomplete number"}
+/* Au comptoir : la liste des gammes et le règlement se choisissent sur la
+   même page ; sans choix, c'est le bloc entier qui s'encadre. */
+body.hotel.hotel-enhanced #listeVehicules.eh-manque,body.hotel.hotel-enhanced .eh-manque:not(.champ){outline:2px solid #DC2626;outline-offset:4px;border-radius:14px}

@@ -10,8 +10,16 @@ ouvrir.
 
 | Adresse | À qui | Ce qu'elle donne |
 |---|---|---|
-| `elatransfer.com/?h=easyhotel-aeroville` | **aux clients**, c'est le QR du flyer | réserver, rien d'autre |
-| `elatransfer.com/?reception=easyhotel-aeroville` | **à la réception seulement** | réserver **et** voir les courses de l'hôtel |
+| `elatransfer.com/easyhotel-client/` | **aux clients**, c'est le QR du flyer | choisir une destination du flyer, réserver |
+| `elatransfer.com/easyhotel-client/?reception=easyhotel-aeroville` | **à la réception seulement** | la même grille, réserver pour un client **et** voir les courses de l'hôtel |
+
+**Depuis le 23 septembre 2026, la réception suit le même parcours que le
+client** : la grille des sept destinations du flyer, puis le formulaire déjà
+rempli. C'est la même page — les cartes et leurs prix n'existent qu'une fois —
+et le paramètre `?reception=` change seulement ses liens et ses phrases.
+L'ancienne adresse `elatransfer.com/?reception=easyhotel-aeroville` ouvre
+toujours le formulaire directement : les favoris déjà posés continuent de
+marcher.
 
 La seconde ne se communique qu'au comptoir. Elle n'est ni dans Google
 (`robots.txt` l'écarte et la page se déclare `noindex`), ni devinable
@@ -77,7 +85,7 @@ chaque poussée sur GitHub.
 
 Envoie-leur deux choses, dans le même message :
 
-> Adresse : `https://elatransfer.com/?reception=easyhotel-aeroville`
+> Adresse : `https://elatransfer.com/easyhotel-client/?reception=easyhotel-aeroville`
 > Code : `…`
 >
 > À ouvrir une fois sur la tablette du comptoir, puis à mettre en favori.

@@ -84,6 +84,9 @@ for(const cle of Object.keys(ATT)){
   check(`${cle} : départ = easyHotel`, /Belle Borne/.test(st.dep), st.dep);
   check(`${cle} : forfait moteur ${ATT[cle].join('/')}`, st.f.replace(/\s/g,'')===`Berline${ATT[cle][0]},00€·Van${ATT[cle][1]},00€`, st.f);
   if(cle==='paris'){ await p.fill('#arrivee',''); await p.type('#arrivee','vendome',{delay:10}); await p.waitForTimeout(900); await p.locator('#arriveeList [role=option]').first().click(); await p.waitForTimeout(300);}
+  /* Le client est rempli comme le ferait un vrai client : depuis le 23/09
+     « Voir mon prix » refuse de partir sans nom ni téléphone (bloc 7). */
+  await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
   await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1500);
   const cartes=(await p.locator('.veh-prix').allTextContents()).map(x=>x.replace(/\s/g,''));
   check(`${cle} : écran des prix ${ATT[cle].join('/')}`, cartes[0]===ATT[cle][0]+',00€'&&cartes[1]===ATT[cle][1]+',00€', cartes.join(' | '));
@@ -100,6 +103,9 @@ for(const cle of Object.keys(ATT)){
   check('autre : aucun forfait affiché', st.f===true);
   await p.type('#arrivee','versailles',{delay:10}); await p.waitForTimeout(900);
   await p.locator('#arriveeList [role=option]').first().click(); await p.waitForTimeout(300);
+  /* Le client est rempli comme le ferait un vrai client : depuis le 23/09
+     « Voir mon prix » refuse de partir sans nom ni téléphone (bloc 7). */
+  await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
   await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1500);
   const cartes=(await p.locator('.veh-prix').allTextContents()).map(x=>x.replace(/\s/g,''));
   check(`autre : prix à la distance (${KM} km → ${AUTRE.join(' € / ')} €), pas un forfait`, cartes[0]===AUTRE[0]+',00€'&&cartes[1]===AUTRE[1]+',00€', cartes.join(' | '));
@@ -142,6 +148,117 @@ for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024]
   check('Appeler → tel:+33759312433', (await p.locator('.btns a[href^="tel:"]').getAttribute('href'))==='tel:+33759312433');
   check('aucune seconde grille : deux prix par carte, pas un de plus', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
   check('une carte par forfait de la source serveur', (await p.locator('.carte').count())===Object.keys(ATT).length);
+  await ctx.close(); }
+// 6. LE COMPTOIR (?reception=) : LA MÊME PAGE, LES MÊMES CARTES, ET LE MOTEUR
+//    AVEC LA MÊME FINITION. On éprouve aussi l'autre bord : sans le
+//    paramètre, rien du comptoir n'apparaît — sinon un client qui scanne le
+//    QR verrait un bouton « Réservations de l'hôtel ».
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+  const hrefs=await p.$$eval('a.carte,a.autre',a=>a.map(x=>x.getAttribute('href')));
+  check('comptoir : les huit liens ouvrent le moteur en mode réception',
+    hrefs.length===Object.keys(ATT).length+1 && hrefs.every(h=>h.includes('reception=easyhotel-aeroville')&&!h.includes('?h=')), hrefs.join(' '));
+  check('comptoir : chaque carte garde sa destination', Object.keys(ATT).every(k=>hrefs.some(h=>h.endsWith('dest='+k))));
+  check('comptoir : le bouton « Réservations de l\'hôtel » est visible', await p.locator('#ctaResa').isVisible());
+  check('comptoir : il ouvre la liste de l\'hôtel', (await p.locator('#ctaResa').getAttribute('href')).includes('reception=easyhotel-aeroville&vue=reservations'));
+  check('comptoir : la page parle à la réception', /comptoir/i.test(await p.locator('h1').innerText()));
+  check('comptoir : mêmes prix que la page client (aucune seconde grille)', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
+  check('comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/',{waitUntil:'domcontentloaded'});
+  check('client : pas de bouton des réservations de l\'hôtel', !(await p.locator('#ctaResa').isVisible()));
+  check('client : les liens restent en ?h= (pas de mode réception)', (await p.$$eval('a.carte',a=>a.every(x=>x.getAttribute('href').includes('?h=easyhotel-aeroville')))));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/?reception=inconnu',{waitUntil:'domcontentloaded'});
+  check('clé de comptoir inconnue : la page reste celle du client', !(await p.locator('#ctaResa').isVisible()) && /Votre transfert/.test(await p.locator('h1').innerText()));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/application.html?reception=easyhotel-aeroville&dest=orly',{waitUntil:'load'});
+  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly',null,{timeout:8000}).catch(()=>{});
+  const r=await p.evaluate(()=>{const ids=[...document.querySelectorAll('#blocCoordonnees label')].map(e=>e.id||e.getAttribute('for'));
+    const ch=document.querySelector('#blocChambre .champ-titre');
+    return {dest:document.getElementById('hotelDest').value, ordre:ids.join(','), titre:ch&&ch.textContent,
+      fini:document.body.classList.contains('hotel-enhanced'), acces:!document.getElementById('btnReception').hidden,
+      avant:document.getElementById('blocCoordonnees').compareDocumentPosition(document.getElementById('blocNote'))&Node.DOCUMENT_POSITION_FOLLOWING,
+      logo:document.querySelector('.entete .logo')?.getAttribute('href')};});
+  check('moteur au comptoir : la destination de la carte est choisie', r.dest==='orly', r.dest);
+  check('moteur au comptoir : même finition que le client', r.fini);
+  check('moteur au comptoir : la chambre vient en PREMIER dans le bloc client', r.ordre.indexOf('chambre')===0 && r.ordre.indexOf('clientNom')>0, r.ordre);
+  check('moteur au comptoir : la chambre n\'est pas dite « facultative » (elle suffit)', r.titre && !/facultatif/i.test(r.titre), r.titre);
+  check('moteur au comptoir : le client passe avant la précision au chauffeur', !!r.avant);
+  check('moteur au comptoir : l\'accès aux réservations reste', r.acces);
+  check('moteur au comptoir : le logo ramène à la page du comptoir', r.logo==='/easyhotel-client/?reception=easyhotel-aeroville', r.logo);
+  check('moteur au comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/application.html?reception=easyhotel-aeroville&vue=reservations',{waitUntil:'load'});
+  const vu=await p.waitForFunction(()=>{const e=document.getElementById('ecran-reception');return e&&e.getBoundingClientRect().height>0;},null,{timeout:8000}).then(()=>true).catch(()=>false);
+  check('« Réservations de l\'hôtel » ouvre l\'écran de la réception', vu);
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'});
+  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly',null,{timeout:8000}).catch(()=>{});
+  const t=await p.evaluate(()=>{const ids=[...document.querySelectorAll('#blocCoordonnees label')].map(e=>e.id||e.getAttribute('for'));return {ordre:ids.join(','),titre:document.querySelector('#blocChambre .champ-titre').textContent};});
+  check('moteur client : la chambre reste SOUS le nom, facultative', t.ordre.indexOf('clientNom')<t.ordre.indexOf('chambre') && /facultatif/i.test(t.titre), t.ordre+' / '+t.titre);
+  await ctx.close(); }
+// 7. VERT = REMPLI, ROUGE = IL MANQUE. Le défaut d'origine : côté client,
+//    « Confirmer » contrôlait le nom et le téléphone deux écrans plus loin et
+//    affichait son erreur sur une page cachée — le client appuyait, rien ne
+//    bougeait. Le contrôle doit se faire AVANT de quitter la page des champs.
+const etatsEH = p => p.evaluate(()=>({
+  ok:[...document.querySelectorAll('.eh-ok')].map(e=>e.querySelector('input,select,textarea')?.id||e.id),
+  manque:[...document.querySelectorAll('.eh-manque')].map(e=>e.querySelector('input,select,textarea')?.id||e.id||'bloc'),
+  ecran:[...document.querySelectorAll('.ecran')].find(e=>e.getBoundingClientRect().height>0)?.id }));
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/',{waitUntil:'domcontentloaded'});
+  await p.click('a.carte[data-dest="cdg"]');
+  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='cdg' && document.querySelector('.eh-ok'),null,{timeout:8000}).catch(()=>{});
+  let e=await etatsEH(p);
+  check('après le choix d\'une destination, le trajet rempli est VERT', ['depart','hotelDest','hotelTerminal'].every(x=>e.ok.includes(x)), e.ok.join(','));
+  check('avant toute validation, rien n\'est rouge', e.manque.length===0, e.manque.join(','));
+  check('l\'heure pré-remplie n\'est pas verte d\'office (personne ne l\'a choisie)', !e.ok.includes('heure'), e.ok.join(','));
+  await p.click('#btnVoirPrix'); await p.waitForTimeout(700);
+  e=await etatsEH(p);
+  check('« Voir mon prix » sans nom ni téléphone : on RESTE sur la page', e.ecran==='ecran-accueil', e.ecran);
+  check('… et le nom et le téléphone sont en ROUGE', e.manque.includes('clientNom') && e.manque.includes('clientTel'), e.manque.join(','));
+  check('… la chambre (facultative côté client) n\'est pas rouge', !e.manque.includes('chambre'));
+  /* Si la page est partie quand même, la suite ne peut plus rien éprouver
+     ici : on le dit par un contrôle rouge nommé, pas par un délai expiré. */
+  if(e.ecran==='ecran-accueil'){
+  const vu=await p.evaluate(()=>{const r=document.querySelector('.eh-manque')?.getBoundingClientRect();return !!r&&r.top>=0&&r.bottom<=innerHeight;});
+  check('… et l\'écran est descendu jusqu\'au premier champ en rouge', vu);
+  await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','0612'); await p.waitForTimeout(200);
+  e=await etatsEH(p);
+  check('un nom saisi passe du rouge au VERT', e.ok.includes('clientNom') && !e.manque.includes('clientNom'));
+  check('un numéro trop court reste ROUGE', e.manque.includes('clientTel'));
+  await p.fill('#clientTel','06 12 34 56 78'); await p.waitForTimeout(200);
+  await p.click('#btnVoirPrix');
+  const passe=await p.waitForFunction(()=>document.getElementById('ecran-vehicules').getBoundingClientRect().height>0,null,{timeout:8000}).then(()=>true).catch(()=>false);
+  check('tout rempli : « Voir mon prix » mène bien aux prix', passe);
+  }
+  check('validation client : aucune erreur', p.errs.length===0, p.errs.join(';'));
+  await ctx.close(); }
+{ const {ctx,p}=await nouveau();
+  await p.goto(BASE+'/easyhotel-client/?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+  await p.click('a.carte[data-dest="orly"]');
+  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly' && document.querySelector('.eh-ok'),null,{timeout:8000}).catch(()=>{});
+  /* AU COMPTOIR LE BOUTON EST GRISÉ tant qu'aucune gamme n'est choisie : un
+     vrai doigt posé dessus doit quand même dire ce qui manque. On appuie à
+     la souris, pas par click() — un bouton grisé ne reçoit pas ce dernier. */
+  await p.locator('#btnVoirPrix').scrollIntoViewIfNeeded();
+  const bb=await p.locator('#btnVoirPrix').boundingBox();
+  await p.mouse.click(bb.x+bb.width/2, bb.y+bb.height/2); await p.waitForTimeout(700);
+  let e=await etatsEH(p);
+  check('comptoir : appuyer sur le bouton grisé montre ce qui manque', e.manque.length>0, e.manque.join(','));
+  check('comptoir : la chambre, la gamme et le règlement sont en rouge', e.manque.includes('chambre') && e.manque.includes('listeVehicules') && e.manque.length>=4, e.manque.join(','));
+  const sinon=await p.evaluate(()=>getComputedStyle(document.getElementById('clientNom').closest('.champ'),'::after').content);
+  check('comptoir : le nom vide dit « si pas de chambre », pas « obligatoire »', /pas de chambre/i.test(sinon), sinon);
+  await p.fill('#chambre','214'); await p.waitForTimeout(200);
+  e=await etatsEH(p);
+  check('comptoir : la chambre suffit — le nom et le téléphone ne sont plus rouges', !e.manque.includes('clientNom') && !e.manque.includes('clientTel') && e.ok.includes('chambre'), e.manque.join(','));
+  check('validation comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
   await ctx.close(); }
 await b.close();
 await new Promise(r => serveur.close(r));
