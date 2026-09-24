@@ -106,6 +106,23 @@ try {
       !(await p.evaluate(() => location.search)).includes('ref='));
     await ctx.close();
   }
+  /* 2 bis. Sur le bon, un seul geste principal : celui de l'étape suivante. */
+  {
+    const conf = course('ELA-26-09-0103','Confirmé'); conf.statut = 'confirmee';
+    const fait = course('ELA-26-09-0104','Réalisé'); fait.statut = 'realisee';
+    serveurCourses = [course('ELA-26-09-0105','Attente'), conf, fait];
+    const vis = async (p, id) => p.evaluate(i => { const e = document.getElementById(i);
+      return !!e && !e.hidden && getComputedStyle(e).display !== 'none'; }, id);
+    for (const [ref, attendu] of [['ELA-26-09-0105','attente'],['ELA-26-09-0103','confirmee'],['ELA-26-09-0104','realisee']]) {
+      const {ctx, p} = await espace('/admin.html?ref=' + ref);
+      await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
+      const c = await vis(p,'btnConfirmerCourse'), r = await vis(p,'btnRealisee'), f = await vis(p,'btnRefuser');
+      if (attendu === 'attente') check('en attente : « Confirmer » seul, pas « Marquer comme réalisée »', c && !r && f, `c=${c} r=${r} f=${f}`);
+      if (attendu === 'confirmee') check('confirmée : « Marquer comme réalisée » seul, plus « Confirmer »', !c && r && f, `c=${c} r=${r} f=${f}`);
+      if (attendu === 'realisee') check('réalisée : ni confirmer, ni réaliser, ni refuser', !c && !r && !f, `c=${c} r=${r} f=${f}`);
+      await ctx.close();
+    }
+  }
   /* 3. L'alerte Telegram vise l'admin retenu. */
   for (const f of ['supabase/functions/nouvelle-demande/index.ts', 'supabase/functions/nouvelle-demande/a-coller.ts']) {
     const t = readFileSync(f, 'utf8');

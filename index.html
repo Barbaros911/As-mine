@@ -9528,6 +9528,19 @@ window.ELA_TEXTES = {
        croire à Barbaros que le client est prévenu — et le client attend. */
     document.getElementById("btnPrevenirClient").hidden =
       (c.statut !== "confirmee") || !tel;
+    /* UN SEUL GESTE PRINCIPAL À LA FOIS (23/09/2026, à sa demande : « fais
+       comme tu penses être le mieux »). « Confirmer » et « Marquer comme
+       réalisée » étaient deux gros boutons l'un sous l'autre, même sur une
+       demande que personne n'avait encore acceptée : un pouce pressé la nuit
+       clôturait une course jamais placée — de l'argent compté au registre
+       qui n'était jamais entré. Le cycle réel est attente → confirmée →
+       réalisée : on ne montre que la marche suivante. Refuser n'a de sens
+       que tant que la course n'est pas finie. */
+    var etape = c.statut || "attente";
+    document.getElementById("btnConfirmerCourse").hidden = etape !== "attente";
+    document.getElementById("btnRealisee").hidden = etape !== "confirmee";
+    document.getElementById("btnRefuser").hidden =
+      etape === "realisee" || etape === "refusee";
     /* L'accusé de réception ne vaut QUE pour une demande pas encore
        tranchée : une fois la course confirmée, c'est « Prévenir le client »
        qui parle, et lui dit bien plus. Deux messages coup sur coup diraient

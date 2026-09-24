@@ -5555,3 +5555,9 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
 - **« D'où viennent les clients » était écrit deux fois dans le registre** :
   le panneau venu du tableau de bord (`#panneauProvenance`) est masqué, le
   bloc du haut dit la même chose et l'argent encaissé en plus.
+- **Sur le bon, un seul geste principal : l'étape suivante.** En attente :
+  « Confirmer » (pas « Marquer comme réalisée ») ; confirmée : « Marquer comme
+  réalisée » ; réalisée ou refusée : ni l'un ni l'autre, ni « Refuser ». Les
+  deux gros boutons l'un sous l'autre laissaient clôturer d'un pouce une
+  course jamais placée — donc compter au registre de l'argent jamais entré.
+  `test-admin-arrivee.mjs` éprouve les trois états.
