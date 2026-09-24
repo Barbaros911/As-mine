@@ -5198,6 +5198,33 @@ Il vérifie maintenant son vrai sujet — un `;` présent, aucune `,`. Même
 leçon que la barre du bas figée sur quatre onglets, et que les trois tests
 qui visaient `p.font-mono` au lieu de `.veh-prix`.
 
+### LES DEUX SUITES LES PLUS LENTES ATTENDAIENT POUR RIEN
+
+24 septembre 2026, demandé : trouver la suite la plus lente. **Mesuré, pas
+supposé** — chaque suite chronométrée seule, puis chaque appel Playwright :
+`test-nouveau-serveur` 54 s, `test-nouveau-hotel` 51 s. **Ramenées à 14 s
+et 10 s**, même nombre de contrôles (77 et 100).
+
+- **83 % DU TEMPS ÉTAIENT DES PAUSES FIXES** (`waitForTimeout`). Chacune
+  durait le pire cas même quand la page avait répondu en 20 ms, et pariait
+  sur la vitesse de la machine. On attend désormais un **signal** — la
+  classe `ok`/`ko` du bloc d'envoi, `body.espace`, « Voir mon prix » qui se
+  réactive à la fin du calcul. Seules les **preuves d'absence** (« on ne
+  réessaie pas en boucle ») gardent une pause, nommée `laisser()`.
+- **LE RESTE ÉTAIT L'ANIMATION D'ENTRÉE DES ÉCRANS** (260 ms) : un clic
+  Playwright attend qu'un élément soit immobile, 64 fois. Coupée **sur le
+  banc seulement**, jamais sur le site.
+- **UNE ATTENTE SANS PAUSE PEUT LIRE L'ÉTAT D'AVANT.** L'écran des prix
+  garde les cartes de la visite précédente, la liste d'adresses celle de la
+  recherche précédente : on attend donc la fin du calcul et l'option **qui
+  correspond à la recherche**, pas « une carte » ou « la première option ».
+  Le contrôle d'itinéraire hôtel lisait même l'URL de la course **d'avant**,
+  qui partait elle aussi de l'hôtel : il est remis à zéro avant le clic.
+- **Éprouvé contre sept défauts réintroduits dans la page**, tous attrapés,
+  et une fois sur un cœur saturé (vert en 24 s).
+- Un plantage imprime maintenant **le bilan et l'étape** au lieu d'une trace
+  brute après 30 s d'attente — l'ancienne suite hôtel mourait ainsi.
+
 ### LE LANCEUR DISAIT « TOUT EST AU VERT » PENDANT QU'UNE SUITE ÉCHOUAIT
 
 16 septembre 2026. `test-notification` est tombé, la ligne

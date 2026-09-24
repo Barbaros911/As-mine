@@ -33,8 +33,58 @@ const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
+/* ═══ ON ATTEND CE QU'ON VEUT VOIR, JAMAIS UNE DURÉE ═══
+   Septembre 2026 : cette suite était la plus lente du dépôt — 54 s, dont
+   45 s de pauses fixes (« waitForTimeout »). Chacune durait le pire cas,
+   même quand la page avait répondu en vingt millisecondes, et chacune
+   pariait sur la vitesse de la machine : sur un coureur plus lent, 800 ms
+   peuvent ne plus suffire. Même leçon que test-admin-papiers.
+   UNE ATTENTE QUI EXPIRE NOMME CE QU'ELLE ATTENDAIT : elle devient un
+   contrôle rouge au lieu d'un délai nu qui tue la suite sans rien dire.
+   SEULES LES PREUVES D'ABSENCE gardent une pause (« rien ne doit se
+   passer ») : aucun signal n'annonce qu'une chose n'arrivera pas. Elles
+   passent par « laisser() », qui dit pourquoi elle attend. */
+const DELAI = 8000;
+const attendre = async (pg, fn, arg, nom) => {
+  try{ await pg.waitForFunction(fn, arg, {timeout:DELAI}); }
+  catch(e){ ko.push('attente expirée : '+nom); }
+};
+const voir = async (pg, sel, nom, state='visible') => {
+  try{ await pg.locator(sel).first().waitFor({state, timeout:DELAI}); }
+  catch(e){ ko.push('attente expirée : '+nom); }
+};
+// Pour ce que seul Node voit : les appels interceptés par le faux serveur.
+const jusqua = async (fn, nom) => {
+  const fin = Date.now() + DELAI;
+  while(Date.now() < fin){ if(fn()) return; await new Promise(r=>setTimeout(r,25)); }
+  ko.push('attente expirée : '+nom);
+};
+/* UN PLANTAGE REND QUAND MÊME SON BILAN : ce qui était vert, et l'étape
+   qui a cédé — plutôt qu'une trace brute sans rien d'autre. */
+process.on('uncaughtException', e => {
+  console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
+  ko.push('PLANTAGE — ' + String(e && e.message || e).split('\n')[0]);
+  console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));
+  process.exit(1);
+});
+// Preuve d'absence : on laisse à la page le temps de mal faire.
+const laisser = (pg, ms) => pg.waitForTimeout(ms);
+/* LES ANIMATIONS SONT COUPÉES SUR LE BANC, JAMAIS SUR LE SITE. Chaque écran
+   entre en 260 ms (« .ecran.actif{animation:apparait} »), et un clic
+   Playwright attend qu'un élément soit immobile : 64 clics, 17 s d'attente
+   pour une animation que cette suite n'éprouve pas. Le rendu final est le
+   même — l'animation se termine sur « opacity:1 ». */
+const sansAnimation = (c) => c.addInitScript(() => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const st = document.createElement('style');
+    st.textContent = '*,*::before,*::after{animation:none!important;transition:none!important}';
+    document.head.appendChild(st);
+  });
+});
+
 async function reserver(serveurRepond, sansPush, cachee){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
+  await sansAnimation(ctx);
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
   await p.route('**://photon.komoot.io/**', r => r.fulfill({contentType:'application/json',body:JSON.stringify({features:[
@@ -116,17 +166,18 @@ async function reserver(serveurRepond, sansPush, cachee){
       document.dispatchEvent(new Event('visibilitychange'));
     };
   });
+  /* Aucune pause : « click() » attend de lui-même que la liste d'adresses,
+     la carte de gamme et le bouton suivant soient là et cliquables. */
   await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
-  await p.waitForTimeout(400);
-  await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(800);
+  await p.type('#depart','vendome',{delay:10});
   await p.locator('#departList [role=option]').first().click();
-  await p.type('#arrivee','argenteuil',{delay:10}); await p.waitForTimeout(800);
+  await p.type('#arrivee','argenteuil',{delay:10});
   await p.locator('#arriveeList [role=option]').first().click();
   const d = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
   await p.fill('#date', d); await p.fill('#heure','10:00');
-  await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
+  await p.locator('#btnVoirPrix').click();
   await p.locator('.veh-carte').first().click();
-  await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
+  await p.locator('#btnContinuer').click();
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
   await p.locator('[data-paiement="especes"]').click();
   await p.locator('#btnConfirmer').click();
@@ -135,7 +186,7 @@ async function reserver(serveurRepond, sansPush, cachee){
 
 // ================= LE SERVEUR RÉPOND =================
 let { p, ctx, depots } = await reserver(true);
-await p.waitForTimeout(1200);
+await voir(p, '#etatEnvoi.ok', 'le bloc d\'envoi passe en « ok »');
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 check('une demande a bien été déposée', depots.length===1, String(depots.length));
 /* ═══ L'ORDRE EST LE CORRECTIF ═══
@@ -234,7 +285,7 @@ await ctx.close();
    donc entièrement pour eux : ils lisaient « demande reçue » et n'avaient
    plus aucune idée de la façon dont la réponse leur arriverait. */
 ({ p, ctx } = await reserver(true, true));
-await p.waitForTimeout(1200);
+await voir(p, '#etatEnvoi.ok', 'le bloc d\'envoi passe en « ok » (sans push)');
 check('sans notification possible, le bloc « Être prévenu » reste affiché',
   await p.locator('#blocNotif').isVisible());
 check('et la promesse WhatsApp aussi — c\'est le seul canal de ce client',
@@ -250,7 +301,7 @@ await ctx.close();
 
 // ================= LE SERVEUR NE RÉPOND PAS =================
 ({ p, ctx, depots } = await reserver(false));
-await p.waitForTimeout(1500);
+await voir(p, '#etatEnvoi.ko', 'le bloc d\'envoi passe en « ko »');
 check('le bon s\'affiche quand même', await p.locator('#ecran-bon').isVisible());
 check('on dit clairement que la demande n\'est pas passée',
   (await p.locator('#envoiTexte').textContent()).includes('seul moyen'),
@@ -267,7 +318,8 @@ check('la course reste enregistrée sur l\'appareil',
    fermerait sa page en croyant qu'on le rappellera tout seul. */
 check('« Être prévenu » ne s\'affiche PAS quand la demande n\'est pas passée',
   !(await p.locator('#blocNotif').isVisible()));
-await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
+await p.locator('#btnRenvoyer').click();
+await attendre(p, ()=>window.__liens.length>0, null, 'le renvoi ouvre WhatsApp');
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('le message de secours garde sa forme lisible par l\'exploitant',
   msg.split('\n').length===9 && msg.includes('Départ : ')
@@ -293,7 +345,10 @@ await ctx.close();
    ===================================================================== */
 {
   const r = await reserver('reprise', false, true);
-  await r.p.waitForTimeout(1500);
+  /* Le premier dépôt part et échoue ; on laisse à la page le temps de
+     réagir à cet échec — c'est là qu'elle affichait à tort le rouge. */
+  await jusqua(()=>r.depots.length>=1, 'le premier dépôt part');
+  await laisser(r.p, 500);
   check('pendant que le client est sur WhatsApp, aucune panne n\'est annoncée',
     !(await r.p.locator('#envoiTexte').textContent()).includes('seul moyen'),
     await r.p.locator('#envoiTexte').textContent());
@@ -302,7 +357,7 @@ await ctx.close();
   /* IL REVIENT SUR LE SITE. C'est le seul instant où la réponse du serveur
      veut dire quelque chose : la page est réveillée, le réseau est à elle. */
   await r.p.evaluate(()=>window.__revenir());
-  await r.p.waitForTimeout(1200);
+  await voir(r.p, '#etatEnvoi.ok', 'au retour, le bloc d\'envoi passe en « ok »');
   check('à son retour, la demande est déposée pour de bon',
     r.depots.length===2, r.depots.length+' dépôts');
   check('et le bon dit qu\'elle est arrivée, pas qu\'elle a échoué',
@@ -313,7 +368,9 @@ await ctx.close();
     await r.p.locator('#btnRenvoyer').getAttribute('class'));
   /* UNE SEULE REPRISE. Une boucle transformerait un vrai refus du serveur
      en appels sans fin sur le forfait du client. */
-  await r.p.waitForTimeout(1500);
+  /* Preuve d'absence : une boucle mettrait un troisième dépôt en route
+     aussitôt la réponse reçue. On lui en laisse largement le temps. */
+  await laisser(r.p, 1000);
   check('et on ne réessaie pas en boucle', r.depots.length===2,
     r.depots.length+' dépôts');
   await r.ctx.close();
@@ -342,6 +399,7 @@ function courseServeur(ref, nom){
 
 async function espace(session){
   const c = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
+  await sansAnimation(c);
   await c.addInitScript((s)=>{
     if(s) localStorage.setItem('ela_nuage_session', JSON.stringify(s));
   }, session);
@@ -354,9 +412,9 @@ async function espace(session){
 {
   const { c, pg } = await espace(null);
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(500);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
   check('sans session, on dit que les demandes des clients n\'arrivent pas ici',
     await pg.locator('#bordHorsLigne').isVisible());
   check('et la pastille de la colonne le dit aussi',
@@ -400,13 +458,17 @@ for(const cas of [
                           body: JSON.stringify(cas.corps) });
   });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(400);
-  await pg.locator('[data-admin-vers="blocNuage"]').click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
+  await pg.locator('[data-admin-vers="blocNuage"]').click();
   await pg.fill('#nuageEmail','barbaros@elatransfer.com');
   await pg.fill('#nuageMdp','un-mot-de-passe');
-  await pg.locator('#btnNuageConnexion').click(); await pg.waitForTimeout(900);
+  /* Le bouton se désactive au clic et se réactive quand le serveur a
+     répondu : c'est la fin de la tentative, quelle qu'en soit l'issue. */
+  await pg.locator('#btnNuageConnexion').click();
+  await attendre(pg, ()=>!document.getElementById('btnNuageConnexion').disabled, null,
+    cas.nom + ' : la tentative se termine');
   const dit = await pg.locator('#nuageEtat').textContent();
   check(cas.nom + ' : le message dit quoi faire',
     dit.includes(cas.attendu), dit);
@@ -429,9 +491,11 @@ for(const cas of [
     else await route.fulfill({status:201, body:''});
   });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(900);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
+  await attendre(pg, ()=>document.querySelectorAll('.demande').length===1, null,
+    'la course du serveur arrive dans la liste');
   check('avec une session, l\'écriteau « vous ne recevez pas » disparaît',
     await pg.locator('#bordHorsLigne').isHidden());
   check('la course déjà sur le serveur est là',
@@ -446,7 +510,10 @@ for(const cas of [
   // Un client réserve maintenant. Le retour sur l'onglet rattrape tout de suite.
   liste = [courseServeur('ELA-26-09-0101','Sophie Girard'), ...liste];
   await pg.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
-  await pg.waitForTimeout(900);
+  /* On attend la COURSE, pas l'écriteau : un écriteau posé trop tôt (à la
+     première lecture) libérerait l'attente avant que la seconde soit faite. */
+  await attendre(pg, ()=>document.querySelectorAll('.demande').length===2, null,
+    'la nouvelle demande arrive dans la liste');
   check('une demande arrivée pendant qu\'il regarde entre dans la liste',
     (await pg.locator('.demande').count())===2,
     String(await pg.locator('.demande').count()));
@@ -459,7 +526,8 @@ for(const cas of [
       .some(x=>x.ref==='ELA-26-09-0101'))));
   /* L'écriteau EMMÈNE aux demandes en attente : il ne sert à rien s'il faut
      ensuite les chercher. */
-  await pg.locator('#bordArrivee').click(); await pg.waitForTimeout(300);
+  await pg.locator('#bordArrivee').click();
+  await voir(pg, '#bordArrivee', 'l\'écriteau se retire', 'hidden');
   check('l\'écriteau emmène aux demandes en attente et se retire',
     await pg.locator('#bordArrivee').isHidden()
     && (await pg.locator('.compteur[data-filtre="attente"]').getAttribute('class')).includes('actif'));
@@ -514,9 +582,11 @@ for(const cas of [
     await route.fulfill({status:201, body:''});
   });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(1200);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
+  await attendre(pg, ()=>document.querySelectorAll('.demande').length===1, null,
+    'après renouvellement, la course arrive');
   check('un jeton périmé est renouvelé tout seul',
     vus.includes('refresh'), vus.join(' | '));
   check('le renouvellement ne porte PAS le jeton périmé',
@@ -540,9 +610,11 @@ for(const cas of [
     await route.fulfill({status:401, body:''});
   });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(1500);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
+  await attendre(pg, ()=>/expiré/.test(document.getElementById('bordHorsLigneTexte').textContent), null,
+    'l\'écriteau annonce la session expirée');
   check('un renouvellement refusé efface la session au lieu de garder une pastille verte',
     !(await pg.evaluate(()=>!!localStorage.getItem('ela_nuage_session'))));
   check('et l\'écriteau DIT que la session a expiré',
@@ -573,13 +645,15 @@ for(const cas of [
     window.__liens = []; window.open = (u)=>{ window.__liens.push(u); return null; };
   }, bon);
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(700);
-  await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
+  await pg.locator('.demande').first().click();
+  await voir(pg, '#bbEtat', 'le bon s\'ouvre');
   check('une demande en attente porte « Accuser réception »',
     await pg.locator('#btnAccuserReception').isVisible());
-  await pg.locator('#btnAccuserReception').click(); await pg.waitForTimeout(400);
+  await pg.locator('#btnAccuserReception').click();
+  await attendre(pg, ()=>window.__liens.length>0, null, 'l\'accusé ouvre WhatsApp');
   const lien = (await pg.evaluate(()=>window.__liens))[0] || '';
   const msg = decodeURIComponent((lien.split('text=')[1]) || '');
   check('il part sur le numéro du CLIENT',
@@ -607,10 +681,13 @@ for(const cas of [
      en est. */
   await pg.fill('#bbChauffeurNom','Mehmet');
   await pg.fill('#bbChauffeurTel','06 98 76 54 32');
-  await pg.locator('#btnConfirmerCourse').click(); await pg.waitForTimeout(400);
-  await pg.locator('#btnRetourBord').click(); await pg.waitForTimeout(300);
-  await pg.locator('.compteur[data-filtre="confirmee"]').click(); await pg.waitForTimeout(300);
-  await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
+  await pg.locator('#btnConfirmerCourse').click();
+  await attendre(pg, ()=>document.getElementById('bbEtat').textContent==='Confirmée', null,
+    'la course passe confirmée');
+  await pg.locator('#btnRetourBord').click();
+  await pg.locator('.compteur[data-filtre="confirmee"]').click();
+  await pg.locator('.demande').first().click();
+  await voir(pg, '#btnPrevenirClient', 'le bon confirmé s\'ouvre');
   check('sur une course confirmée, l\'accusé s\'efface au profit de « Prévenir le client »',
     await pg.locator('#btnAccuserReception').isHidden()
     && await pg.locator('#btnPrevenirClient').isVisible());
@@ -621,16 +698,18 @@ for(const cas of [
      course depuis l'objet gardé en mémoire — c'est voulu, il enregistre le
      chauffeur saisi — et il écrasait donc la modification faite ici. Piège
      de test, pas de code : l'ordre des deux gestes n'est pas indifférent. */
-  await pg.locator('#btnRetourBord').click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnRetourBord').click();
+  await voir(pg, '#ecran-bord', 'retour au tableau de bord');
   await pg.evaluate(()=>{
     const l = JSON.parse(localStorage.getItem('ela_bookings'));
     l[0].statut = 'attente'; l[0].langue = 'en';
     localStorage.setItem('ela_bookings', JSON.stringify(l));
     window.__liens = [];
   });
-  await pg.locator('.compteur[data-filtre="attente"]').click(); await pg.waitForTimeout(300);
-  await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
-  await pg.locator('#btnAccuserReception').click(); await pg.waitForTimeout(400);
+  await pg.locator('.compteur[data-filtre="attente"]').click();
+  await pg.locator('.demande').first().click();
+  await pg.locator('#btnAccuserReception').click();
+  await attendre(pg, ()=>window.__liens.length>0, null, 'l\'accusé anglais ouvre WhatsApp');
   const msgEn = decodeURIComponent(((await pg.evaluate(()=>window.__liens))[0]||'').split('text=')[1]||'');
   check('une course réservée en anglais reçoit un accusé en anglais',
     msgEn.includes('has received your request')
@@ -677,13 +756,14 @@ for(const cas of [
     await route.fulfill({status:201, body:''});
   });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
   await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(700);
-  await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
+  await pg.locator('#btnDeverrouiller').click();
+  await voir(pg, 'body.espace', 'l\'espace s\'ouvre');
+  await pg.locator('.demande').first().click();
   await pg.fill('#bbChauffeurNom','Mehmet');
   await pg.fill('#bbChauffeurTel','06 98 76 54 32');
-  await pg.locator('#btnConfirmerCourse').click(); await pg.waitForTimeout(700);
+  await pg.locator('#btnConfirmerCourse').click();
+  await jusqua(()=>envois.length>=1, 'la notification part');
 
   check('confirmer la course envoie la notification, sans qu\'on ait rien à faire',
     envois.length === 1, String(envois.length));
@@ -709,7 +789,8 @@ for(const cas of [
   /* ELLE NE PEUT PAS FAIRE ÉCHOUER LA CONFIRMATION — même règle que
      l'alerte Telegram. On coupe la fonction et la course doit passer
      confirmée quand même. */
-  await pg.locator('#btnRetourBord').click(); await pg.waitForTimeout(300);
+  await pg.locator('#btnRetourBord').click();
+  await voir(pg, '#ecran-bord', 'retour au tableau de bord');
   await pg.evaluate(()=>{
     const l = JSON.parse(localStorage.getItem('ela_bookings'));
     l[0].statut = 'attente';
@@ -717,9 +798,11 @@ for(const cas of [
   });
   await pg.unroute('**yyhzutnuhuytokarynaw.supabase.co/**');
   await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', r => r.abort());
-  await pg.locator('.compteur[data-filtre="attente"]').click(); await pg.waitForTimeout(300);
-  await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
-  await pg.locator('#btnConfirmerCourse').click(); await pg.waitForTimeout(700);
+  await pg.locator('.compteur[data-filtre="attente"]').click();
+  await pg.locator('.demande').first().click();
+  await pg.locator('#btnConfirmerCourse').click();
+  await attendre(pg, ()=>document.getElementById('bbEtat').textContent==='Confirmée', null,
+    'fonction injoignable : la course passe confirmée');
   check('fonction injoignable : la course est confirmée QUAND MÊME',
     (await pg.locator('#bbEtat').textContent()) === 'Confirmée',
     await pg.locator('#bbEtat').textContent());

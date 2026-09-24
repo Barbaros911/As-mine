@@ -50,6 +50,60 @@ const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 
+/* ═══ ON ATTEND CE QU'ON VEUT VOIR, JAMAIS UNE DURÉE ═══
+   Septembre 2026 : 51 s, deuxième suite la plus lente du dépôt, et presque
+   tout en pauses fixes — 1,4 s après chaque « Voir mon prix », 0,9 s après
+   chaque chargement ou chaque saisie d'adresse. Chacune durait le pire cas
+   et pariait sur la vitesse de la machine. Même correctif que
+   test-nouveau-serveur : on attend un signal, et une attente qui expire
+   devient un contrôle rouge qui NOMME ce qu'elle attendait. */
+const DELAI = 8000;
+const attendre = async (fn, arg, nom) => {
+  try{ await p.waitForFunction(fn, arg, {timeout:DELAI}); }
+  catch(e){ ko.push('attente expirée : '+nom); }
+};
+const voir = async (sel, nom, state='visible') => {
+  try{ await p.locator(sel).first().waitFor({state, timeout:DELAI}); }
+  catch(e){ ko.push('attente expirée : '+nom); }
+};
+const jusqua = async (fn, nom) => {
+  const fin = Date.now() + DELAI;
+  while(Date.now() < fin){ if(fn()) return; await new Promise(r=>setTimeout(r,25)); }
+  ko.push('attente expirée : '+nom);
+};
+/* « Voir mon prix » se désactive au clic et se réactive quand le calcul est
+   fini et les cartes redessinées. C'est la seule attente sûre : l'écran des
+   prix garde les cartes de la visite précédente, et attendre qu'une carte
+   soit visible pourrait lire l'ancien prix. */
+const voirPrix = async (nom) => {
+  await p.locator('#btnVoirPrix').click();
+  await attendre(() => !document.getElementById('btnVoirPrix').disabled
+    && document.getElementById('ecran-vehicules').classList.contains('actif'), null,
+    'l\'écran des prix s\'ouvre — ' + nom);
+};
+/* UN PLANTAGE REND QUAND MÊME SON BILAN. Un geste qui ne trouve pas son
+   élément levait une exception : la suite mourait sur une trace brute, sans
+   dire ce qui était déjà vert ni ce qui avait cédé — et en attendant trente
+   secondes pour le faire. Huit secondes suffisent à n'importe quel geste de
+   cette page, et le bilan est imprimé avant de sortir. */
+p.setDefaultTimeout(DELAI);
+process.on('uncaughtException', e => {
+  console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
+  ko.push('PLANTAGE — ' + String(e && e.message || e).split('\n')[0]);
+  console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));
+  process.exit(1);
+});
+/* LES ANIMATIONS SONT COUPÉES SUR LE BANC, JAMAIS SUR LE SITE : chaque écran
+   entre en 260 ms, et un clic Playwright attend qu'un élément soit immobile.
+   Le rendu final est le même. */
+await ctx.addInitScript(() => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const st = document.createElement('style');
+    st.textContent = '*,*::before,*::after{animation:none!important;transition:none!important}';
+    document.head.appendChild(st);
+  });
+});
+
 /* LA GRILLE N'EST PAS RECOPIÉE ICI, ELLE EST LUE DANS LA SOURCE SERVEUR.
    Recopiés, ces nombres auraient simplement déplacé la faute dans le test :
    une baisse décidée par Barbaros touche la source, et un test qui fige des
@@ -80,11 +134,12 @@ await ctx.route('**://photon.komoot.io/**', r => {
     body:JSON.stringify({features:[q.includes('vendome')?dedans:q.includes('newport')?disney:dehors]})});
 });
 const BAN_HOTEL = [2.5512, 48.9701];
+let banRendue = 0;
 await ctx.route('**://api-adresse.data.gouv.fr/**', r => {
   const q = decodeURIComponent(r.request().url()).toLowerCase();
-  if(q.includes('belle borne'))
+  if(q.includes('belle borne')){ banRendue++;
     return r.fulfill({contentType:'application/json',body:JSON.stringify({features:[
-      {geometry:{coordinates:BAN_HOTEL},properties:{label:"10 Rue de la Belle Borne, 93410 Tremblay-en-France"}}]})});
+      {geometry:{coordinates:BAN_HOTEL},properties:{label:"10 Rue de la Belle Borne, 93410 Tremblay-en-France"}}]})}); }
   return r.fulfill({contentType:'application/json',body:JSON.stringify({features:[]})});
 });
 /* On retient l'itinéraire réellement demandé : c'est lui qui dit quelles
@@ -109,7 +164,7 @@ const samedi  = (()=>{ const d=new Date(Date.now()+9*864e5); while(d.getDay()!==
    1. LE SITE PUBLIC N'EN SAIT RIEN
    --------------------------------------------------------------------- */
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(500);
+await voir('.hero', 'le site public s\'affiche');
 check('sans ?h= : pas de mode hôtel',
   !(await p.evaluate(()=>document.body.classList.contains('hotel'))));
 check('sans ?h= : l\'en-tête hôtel est absent de l\'écran',
@@ -127,7 +182,8 @@ check('sans ?h= : les deux onglets de listes sont là',
 /* Un hôtel NON partenaire garde le comportement d'origine : son nom va
    dans le champ de départ, et rien d'autre ne change. */
 await p.goto('http://127.0.0.1:8099/index.html?h=Ibis%20CDG',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(600);
+await attendre(()=>document.getElementById('depart').value.includes('Ibis'), null,
+  'le nom de l\'hôtel non partenaire arrive au départ');
 check('un hôtel non partenaire n\'ouvre PAS le mode hôtel',
   !(await p.evaluate(()=>document.body.classList.contains('hotel'))));
 check('un hôtel non partenaire pose quand même son nom au départ',
@@ -137,7 +193,7 @@ check('un hôtel non partenaire pose quand même son nom au départ',
    2. L'ÉCRAN DE LA RÉCEPTION
    --------------------------------------------------------------------- */
 await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(900);
+await voir('body.hotel', 'le mode hôtel s\'ouvre');
 check('?h= partenaire : le mode hôtel s\'ouvre',
   await p.evaluate(()=>document.body.classList.contains('hotel')));
 check('le libellé est « easyHotel Aéroville », celui que l\'hôtel emploie',
@@ -193,10 +249,8 @@ const montants = async () => {
 };
 const poser = async (cle, date, heure) => {
   await p.selectOption('#hotelDest', cle);
-  await p.waitForTimeout(120);
   await p.fill('#date', date);
   await p.fill('#heure', heure);
-  await p.waitForTimeout(150);
 };
 for(const cle of Object.keys(FLYER)){
   const f = FLYER[cle];
@@ -238,8 +292,7 @@ check('samedi 22 h : ni nuit, ni week-end — le même prix qu\'un mardi midi',
    4. LE PRIX ANNONCÉ EST CELUI QUE LE CLIENT PAIE — TUNNEL COMPLET
    --------------------------------------------------------------------- */
 await poser('orly', lundi, '10:00');
-await p.locator('#btnVoirPrix').click();
-await p.waitForTimeout(1400);
+await voirPrix('Orly de jour');
 const cartes = await p.locator('.veh-prix').allTextContents();
 check('sur l\'écran des gammes, la berline sort au forfait Orly ('+ORLY+' €)',
   cartes[0].replace(/\s/g,'')===ORLY+',00€', cartes[0]);
@@ -252,7 +305,7 @@ check('plus aucun écriteau de tarif nuit dans la page',
   (await p.locator('#noteNuit').count()) === 0);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click();
-await p.waitForTimeout(600);
+await voir('#ecran-recap.actif', 'le récapitulatif s\'ouvre');
 const total = await p.locator('#recapTotal').textContent();
 check('le récapitulatif porte le MÊME prix : '+ORLY+' €',
   total.replace(/\s/g,'').includes(ORLY+',00€'), total);
@@ -261,12 +314,10 @@ check('le récapitulatif porte le MÊME prix : '+ORLY+' €',
    reviendrait sans bruit. Le prix affiché sur la carte de gamme doit être
    celui de la journée, au centime. */
 await p.locator('#btnRetourVehicules').click();
-await p.waitForTimeout(300);
 await p.locator('#btnRetourAccueil').click();
-await p.waitForTimeout(300);
+await voir('#ecran-accueil.actif', 'retour à l\'accueil');
 await poser('orly', lundi, '22:30');
-await p.locator('#btnVoirPrix').click();
-await p.waitForTimeout(1400);
+await voirPrix('Orly à 22 h 30');
 const nuitCartes = await p.locator('.veh-prix').allTextContents();
 check('à 22 h 30, la berline sort au prix de JOURNÉE',
   nuitCartes[0].replace(/\s/g,'')===ORLY.toString()+',00€', nuitCartes[0]);
@@ -283,9 +334,8 @@ check('le mot « tarif nuit » a disparu de l\'écran des prix',
    5. LA SORTIE, ET LE PIÈGE DE « PARIS »
    --------------------------------------------------------------------- */
 await p.locator('#btnRetourAccueil').click();
-await p.waitForTimeout(300);
+await voir('#ecran-accueil.actif', 'retour à l\'accueil');
 await p.selectOption('#hotelDest','');
-await p.waitForTimeout(250);
 check('« autre destination » rouvre le champ d\'adresse',
   await p.locator('#blocArrivee').isVisible());
 check('« autre destination » le DIT : on repasse à la distance',
@@ -293,12 +343,9 @@ check('« autre destination » le DIT : on repasse à la distance',
 check('« autre destination » n\'affiche plus de forfait',
   await p.locator('#destForfait').isHidden());
 await p.type('#arrivee','versailles',{delay:12});
-await p.waitForTimeout(900);
-await p.locator('#arriveeList [role=option]').first().click();
+await p.locator('#arriveeList [role=option]', {hasText:/versailles/i}).first().click();
 await p.fill('#date', lundi); await p.fill('#heure','10:00');
-await p.waitForTimeout(200);
-await p.locator('#btnVoirPrix').click();
-await p.waitForTimeout(1400);
+await voirPrix('Versailles');
 const km = await p.locator('.veh-prix').allTextContents();
 /* 24,3 km × 2,35 = 57,11 → arrondi à la dizaine → 60 €. C'est la grille
    ordinaire du site, exactement comme sur test-nouveau-prix. */
@@ -311,30 +358,25 @@ check('hors grille : le prix repasse au kilométrage du site (60 €)',
    éprouver ce que voit quelqu'un qui choisit « Paris » d'emblée, il faut
    justement qu'aucune adresse ne soit encore choisie. */
 await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(900);
+await voir('body.hotel', 'le mode hôtel s\'ouvre');
 await p.selectOption('#hotelDest','paris');
 /* La page rechargée a reposé l'heure sur « maintenant + 15 minutes » : il
    faut la refixer, sinon le test lit la colonne du flyer qui correspond à
    l'heure qu'il est sur la machine — et il passerait au vert la nuit et
    au rouge le jour. */
 await p.fill('#date', lundi); await p.fill('#heure','10:00');
-await p.waitForTimeout(250);
 check('« Paris » ouvre le champ d\'adresse : ce n\'est pas une adresse',
   await p.locator('#blocArrivee').isVisible());
 check('« Paris » : le forfait s\'affiche AVANT la saisie — c\'est ce que la réception annonce',
   !(await p.locator('#destForfait').isHidden()));
 await p.fill('#arrivee','');
 await p.type('#arrivee','vendome',{delay:12});
-await p.waitForTimeout(900);
-await p.locator('#arriveeList [role=option]').first().click();
-await p.waitForTimeout(250);
+await p.locator('#arriveeList [role=option]', {hasText:/vend/i}).first().click();
 check('« Paris » + une adresse DANS Paris : le forfait tient ('+FLYER.paris.prix.join(' € / ')+' €)',
   (await montants()).join('/')===FLYER.paris.prix.join('/'), await p.locator('#destForfait').textContent());
 await p.fill('#arrivee','');
 await p.type('#arrivee','versailles',{delay:12});
-await p.waitForTimeout(900);
-await p.locator('#arriveeList [role=option]').first().click();
-await p.waitForTimeout(250);
+await p.locator('#arriveeList [role=option]', {hasText:/versailles/i}).first().click();
 check('« Paris » + une adresse HORS de Paris : le forfait tombe',
   await p.locator('#destForfait').isHidden());
 check('et on le dit, plutôt que de changer le prix en silence',
@@ -349,18 +391,19 @@ check('et on le dit, plutôt que de changer le prix en silence',
    reste au kilométrage. Sans cette frontière, un code qui appliquerait le
    forfait partout passerait au vert.
    --------------------------------------------------------------------- */
-const choisirLibre = async (q) => {
+/* ON CLIQUE L'OPTION QUI CORRESPOND À LA RECHERCHE, pas la première venue :
+   sans pause, la liste de la recherche précédente peut encore être là, et
+   on choisirait l'adresse d'avant. « vu » est le texte attendu dans
+   l'option (« vendome » s'écrit « Vendôme »). */
+const choisirLibre = async (q, vu = q) => {
   await p.fill('#arrivee','');
   await p.type('#arrivee', q, {delay:12});
-  await p.waitForTimeout(900);
-  await p.locator('#arriveeList [role=option]').first().click();
-  await p.waitForTimeout(250);
+  await p.locator('#arriveeList [role=option]', {hasText:new RegExp(vu,'i')}).first().click();
 };
 await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(900);
+await voir('body.hotel', 'le mode hôtel s\'ouvre');
 await p.selectOption('#hotelDest','');
 await p.fill('#date', lundi); await p.fill('#heure','10:00');
-await p.waitForTimeout(250);
 await choisirLibre('orly');
 check('« Autre destination » + un terminal d\'Orly : le prix du flyer Orly ('+FLYER.orly.prix.join(' / ')+' €)',
   (await montants()).join('/')===FLYER.orly.prix.join('/'), await p.locator('#destForfait').textContent());
@@ -371,14 +414,13 @@ check('et « prix à la distance » n\'est plus annoncé',
 await choisirLibre('newport');
 check('« Autre destination » + un hôtel de Disneyland : le prix du flyer Disney ('+FLYER.disney.prix.join(' / ')+' €)',
   (await montants()).join('/')===FLYER.disney.prix.join('/'), await p.locator('#destForfait').textContent());
-await p.locator('#btnVoirPrix').click();
-await p.waitForTimeout(1400);
+await voirPrix('hôtel de Disney');
 const zoneCartes = await p.locator('.veh-prix').allTextContents();
 check('sur l\'écran des gammes, l\'hôtel de Disney sort au forfait ('+FLYER.disney.prix[0]+' €), pas au kilométrage',
   zoneCartes[0].replace(/\s/g,'')===FLYER.disney.prix[0]+',00€', zoneCartes[0]);
 await p.locator('#btnRetourAccueil').click();
-await p.waitForTimeout(300);
-await choisirLibre('vendome');
+await voir('#ecran-accueil.actif', 'retour à l\'accueil');
+await choisirLibre('vendome', 'vend');
 check('« Autre destination » + une adresse dans Paris : le prix du flyer Paris',
   (await montants()).join('/')===FLYER.paris.prix.join('/'), await p.locator('#destForfait').textContent());
 await choisirLibre('versailles');
@@ -386,7 +428,6 @@ check('« Autre destination » + Versailles : aucun forfait, on reste à la dist
   await p.locator('#destForfait').isHidden());
 check('et on le dit', !(await p.locator('#destLibre').isHidden()));
 await p.selectOption('#hotelDest','paris');
-await p.waitForTimeout(250);
 await choisirLibre('newport');
 check('« Paris » + une adresse à Disneyland : c\'est le forfait Disney qui s\'applique',
   (await montants()).join('/')===FLYER.disney.prix.join('/'), await p.locator('#destForfait').textContent());
@@ -395,9 +436,13 @@ check('« Paris » + une adresse à Disneyland : c\'est le forfait Disney qui s\
    6. LES DEUX SENS, AU MÊME PRIX
    --------------------------------------------------------------------- */
 await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(900);
+await voir('body.hotel', 'le mode hôtel s\'ouvre');
+/* L'adresse de l'hôtel revient de la BAN en arrière-plan, et c'est elle que
+   le contrôle de l'itinéraire éprouve plus bas. On attend qu'elle soit
+   rendue, puis que la page ait fini de la traiter. */
+await jusqua(()=>banRendue > 0, 'la BAN rend l\'adresse de l\'hôtel');
+await p.evaluate(()=>new Promise(r=>setTimeout(r,50)));
 await p.locator('.hotel-sens-btn[data-sens="vers"]').click();
-await p.waitForTimeout(300);
 await poser('orly', lundi, '10:00');
 const retour = await montants();
 check('sens « arrivée à l\'hôtel » : le même forfait, '+ORLY+' € / '+FLYER.orly.prix[1]+' €',
@@ -413,14 +458,17 @@ check('au retour, pas de numéro de chambre : le client n\'a pas encore la sienn
    REND POSSIBLE. Au retour, la prise en charge est en aéroport : l'option
    d'accueil au nom du client a un sens. Elle n'en avait aucun à l'aller,
    au départ d'un hôtel. */
-await p.locator('#btnVoirPrix').click();
-await p.waitForTimeout(1400);
+/* On efface l'itinéraire retenu : sinon celui de la course précédente, qui
+   partait lui aussi de l'hôtel, ferait passer le contrôle sans que celui-ci
+   ait été demandé. */
+derniereRoute = '';
+await voirPrix('retour vers l\'hôtel');
 check('au retour, la pancarte est proposée — la prise en charge est en aéroport',
   await p.locator('.veh-option').first().isVisible());
 check('l\'itinéraire part bien des coordonnées rendues par la BAN, pas du secours écrit dans la page',
   derniereRoute.includes(String(BAN_HOTEL[0])), derniereRoute.slice(0,120));
 await p.locator('#btnRetourAccueil').click();
-await p.waitForTimeout(300);
+await voir('#ecran-accueil.actif', 'retour à l\'accueil');
 
 /* =====================================================================
    LA CASE DE PRÉCISION — CE QUE LA RÉCEPTION SAIT ET QUE LE FORMULAIRE
@@ -439,12 +487,12 @@ await p.waitForTimeout(300);
    une précision qui contient LES DEUX.
    ===================================================================== */
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(600);
+await voir('.hero', 'le site public s\'affiche');
 check('la case de précision n\'existe PAS sur le site public',
   await p.locator('#blocNote').isHidden());
 
 await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(900);
+await voir('body.hotel', 'le mode hôtel s\'ouvre');
 check('elle est là sur la page du partenaire',
   await p.locator('#blocNote').isVisible());
 check('elle est bornée à 200 caractères — la ligne part dans un message lu la nuit',
@@ -456,12 +504,10 @@ const PRECISION = "Bagages : 4 grosses valises, prévoir 50 € de péage";
 await poser('orly', lundi, '10:00');
 await p.fill('#chambre', '214');
 await p.fill('#noteCourse', PRECISION);
-await p.locator('#btnVoirPrix').click();
-await p.waitForTimeout(1500);
+await voirPrix('précision');
 await p.locator('.veh-carte').first().click();
-await p.waitForTimeout(300);
 await p.locator('#btnContinuer').click();
-await p.waitForTimeout(600);
+await voir('#ecran-recap.actif', 'le récapitulatif s\'ouvre');
 check('elle est rappelée sur le récapitulatif, avant de confirmer',
   await p.locator('#ligneNoteRecap').isVisible()
   && (await p.locator('#recapNote').textContent()) === PRECISION);
@@ -470,7 +516,7 @@ await p.fill('#clientTel','06 12 34 56 78');
 await p.locator('[data-paiement="especes"]').click();
 await p.evaluate(()=>{ window.__wa=[]; window.open=(u)=>{ window.__wa.push(u); return null; }; });
 await p.locator('#btnConfirmer').click();
-await p.waitForTimeout(900);
+await voir('#ecran-bon.actif', 'le bon du client s\'ouvre');
 check('et sur le bon du client, qui est le seul endroit où il peut la relire',
   await p.locator('#lignePrecision').isVisible()
   && (await p.locator('#bonPrecision').textContent()) === PRECISION);
@@ -496,15 +542,17 @@ check('la course garde AUSSI la chambre, à part du libellé de départ',
    Éprouvé contre la ligne posée APRÈS le prix : le lecteur rend alors
    50 € au lieu de 100, et Barbaros recrée la course au prix du péage. */
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(700);
 await p.fill('#codeExploitant','12345678');
 await p.locator('#btnDeverrouiller').click();
-await p.waitForTimeout(700);
+await voir('body.espace', 'l\'espace s\'ouvre');
+/* Le presse-papiers est refusé au banc : c'est la minuterie de 1,2 s qui
+   ouvre le champ de repli. On attend le champ, pas la minuterie. */
 await p.locator('#btnCollerDemande').click();
-await p.waitForTimeout(1500);
 await p.fill('#collerTexte', msg);
 await p.locator('#btnLireColle').click();
-await p.waitForTimeout(700);
+await attendre(()=>(JSON.parse(localStorage.getItem('ela_bookings')||'[]'))
+  .some(x=>x.course && /Belle Borne/.test(x.course.depart)), null,
+  'la demande collée entre au registre');
 const relu = await p.evaluate(()=>{
   const c = (JSON.parse(localStorage.getItem('ela_bookings')||'[]'))
               .filter(x=>x.course && /Belle Borne/.test(x.course.depart))[0] || {};
@@ -537,41 +585,42 @@ check('et la chambre est retrouvée dans le libellé de départ',
    renomme le champ partout.
    ===================================================================== */
 await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(900);
+await voir('body.hotel', 'le mode hôtel s\'ouvre');
 const titreArr = async () => (await p.locator('#blocArrivee .champ-titre').textContent()).trim();
 
-await p.selectOption('#hotelDest','cdg'); await p.waitForTimeout(350);
+await p.selectOption('#hotelDest','cdg');
 check('sur un forfait fermé, aucun champ d\'adresse n\'est demandé',
   await p.locator('#blocArrivee').isHidden());
 
-await p.selectOption('#hotelDest','paris'); await p.waitForTimeout(350);
+await p.selectOption('#hotelDest','paris');
 check('sur « Paris », le champ demande une PRÉCISION, pas une destination',
   (await titreArr()) === 'Adresse précise', await titreArr());
 check('et il est bien là — « Paris » fait dix kilomètres de large',
   !(await p.locator('#blocArrivee').isHidden()));
 
-await p.selectOption('#hotelDest',''); await p.waitForTimeout(350);
+await p.selectOption('#hotelDest','');
 check('sur « autre destination », le libellé d\'origine reste : le champ EST la destination',
   (await titreArr()) === 'Lieu d\'arrivée', await titreArr());
 
 /* LE SENS INVERSE : le champ libre devient le DÉPART. */
-await p.selectOption('#hotelDest','paris'); await p.waitForTimeout(250);
-await p.locator('.hotel-sens-btn[data-sens="vers"]').click(); await p.waitForTimeout(450);
+await p.selectOption('#hotelDest','paris');
+await p.locator('.hotel-sens-btn[data-sens="vers"]').click();
 check('vers l\'hôtel, la précision suit le champ de départ',
   (await p.locator('#blocDepart .champ-titre').textContent()).trim() === 'Adresse précise');
-await p.selectOption('#hotelDest',''); await p.waitForTimeout(350);
+await p.selectOption('#hotelDest','');
 check('et « autre destination » y redevient « Lieu de départ »',
   (await p.locator('#blocDepart .champ-titre').textContent()).trim() === 'Lieu de départ');
 
 /* ON RÉÉCRIT L'ATTRIBUT « data-t », PAS SEULEMENT LE TEXTE. Sans ça, un
    changement de langue ramène « Lieu d'arrivée » sur une course vers
    Paris — le texte est réécrit par « appliquerLangue » depuis la clé. */
-await p.locator('.hotel-sens-btn[data-sens="depuis"]').click(); await p.waitForTimeout(300);
-await p.selectOption('#hotelDest','paris'); await p.waitForTimeout(300);
-await p.locator('[data-langue="en"]').click(); await p.waitForTimeout(450);
+await p.locator('.hotel-sens-btn[data-sens="depuis"]').click();
+await p.selectOption('#hotelDest','paris');
+await p.locator('[data-langue="en"]').click();
+await attendre(()=>document.documentElement.lang==='en', null, 'la page passe en anglais');
 check('le libellé survit au changement de langue',
   (await titreArr()) === 'Exact address', await titreArr());
-await p.locator('[data-langue="fr"]').click(); await p.waitForTimeout(450);
+await p.locator('[data-langue="fr"]').click();
 
 /* =====================================================================
    LE REPÈRE DU PARTENAIRE SUR LE TABLEAU DE BORD
@@ -607,7 +656,12 @@ await ctx.addInitScript(([x,y,z]) => localStorage.setItem('ela_bookings', JSON.s
        arrivee:'Gare du Nord', date:jourP(1), heure:'08:00', vehicule:'Van', vehiculeCle:'van',
        passagers:'4 passagers', note:''}}) ]);
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-await p.waitForTimeout(700);
+/* On attend que la page ait décidé : l'écran du code, ou l'espace déjà
+   ouvert. Tester le verrou avant, c'est le trouver « invisible » par
+   simple précipitation et sauter le déverrouillage. */
+await attendre(()=>document.body.classList.contains('espace')
+  || document.getElementById('ecran-verrou').classList.contains('actif'), null,
+  'la page choisit entre le code et l\'espace');
 /* LE CODE N'EST REDEMANDÉ QU'UNE FOIS PAR CONTEXTE : le bloc précédent est
    déjà entré dans l'espace, et « fill » sur un champ invisible attend
    trente secondes avant d'échouer. On regarde l'écran plutôt que de
@@ -615,7 +669,7 @@ await p.waitForTimeout(700);
 if(await p.locator('#ecran-verrou').isVisible()){
   await p.fill('#codeExploitant','12345678');
   await p.locator('#btnDeverrouiller').click();
-  await p.waitForTimeout(900);
+  await voir('body.espace', 'l\'espace s\'ouvre');
 }
 
 check('les deux courses du partenaire sont marquées, la course directe ne l\'est pas',
