@@ -157,9 +157,11 @@ check('le bon dit « Demande reçue », jamais « confirmé »',
   await p.locator('.bon-etat').textContent());
 check('et le bloc du chauffeur n\'existe pas encore',
   await p.locator('#bonConfirme').isHidden());
-check('le bon porte la marque Elatransfer',
-  (await p.locator('.bon-nom').textContent()).replace(/\s/g,'') === 'ELATRANSFER',
-  await p.locator('.bon-nom').textContent());
+/* NOUVEAU BON (septembre 2026) : le vrai logo, en image, pas un texte
+   recomposé en CSS — « le vrai logo, pas une approximation dessinée ». */
+check('le bon porte le vrai logo Elatransfer',
+  (await p.locator('.bon-logo').getAttribute('alt')) === 'ELA Transfer'
+  && /brand-logo\.webp$/.test(await p.locator('.bon-logo').getAttribute('src')));
 check('et se nomme pour ce qu\'il est',
   (await p.locator('.bon-sous').textContent()).toLowerCase().includes('bon de réservation'));
 /* La phrase dit ce qui se passe MAINTENANT — on cherche un chauffeur —
