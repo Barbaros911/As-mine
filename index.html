@@ -1839,8 +1839,24 @@ body.espace #panneauProvenance{display:none;}
   body.espace .admin-logo-image{display:block;width:84px;height:auto;filter:brightness(0);}
   body.espace .admin-profil{justify-content:flex-end;padding:0 20px 10px 0;}
   body.espace .admin-liens{grid-column:1 / -1;}
-  /* 44 px : la mesure d'un pouce. Les pastilles faisaient 35. */
-  body.espace .admin-lien{min-height:44px;}
+  /* LE MENU DÉFILAIT DE CÔTÉ, ET PERSONNE NE LE SAVAIT (24/09/2026, capture
+     de Barbaros : « j'ai que cette page, il n'y a rien d'autre »). Sur son
+     téléphone seuls « Tableau de bord » et « Nouvelle course » tenaient à
+     l'écran ; Registre, Chauffeurs, Facturer, Réglages et Quitter étaient
+     cachés à droite, sans rien qui dise qu'on pouvait balayer. Un menu
+     qu'on ne voit pas n'existe pas. Toutes les entrées sont maintenant
+     visibles d'un coup, en tuiles : icône au-dessus, mot en dessous, et la
+     grille se replie seule selon la largeur (et la taille de texte) du
+     téléphone. 44 px au moins : la mesure d'un pouce. */
+  body.espace .admin-liens{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));
+    gap:6px;overflow:visible;padding:0 20px 12px;}
+  body.espace .admin-lien{flex-direction:column;justify-content:center;gap:4px;
+    min-height:54px;padding:7px 4px;white-space:normal;text-align:center;
+    font-size:11.5px;line-height:1.15;}
+  body.espace .admin-lien svg{width:17px;height:17px;}
+  /* La présence de l'équipe est ajoutée DANS ce menu à la construction :
+     sans cette ligne elle deviendrait une tuile de plus. */
+  body.espace #presenceEquipe{grid-column:1 / -1;}
   /* Sous les quatre chiffres du registre, la phrase de comparaison était
      coupée à « Clients qui a… » : illisible, et le bloc « Cette semaine »
      juste au-dessus dit déjà la comparaison. */
