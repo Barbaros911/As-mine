@@ -5566,3 +5566,23 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   deux gros boutons l'un sous l'autre laissaient clôturer d'un pouce une
   course jamais placée — donc compter au registre de l'argent jamais entré.
   `test-admin-arrivee.mjs` éprouve les trois états.
+
+## LE BON DE RÉSERVATION — MODÈLE B, UN SEUL POUR TOUTES LES PAGES
+
+24 septembre 2026, à sa demande : « je veux un tout nouveau bon avec mon
+logo, tu supprimes l'ancien, tu ne reprends rien de l'ancien ». Trois modèles
+lui ont été montrés en capture ; il a choisi le **B**.
+- **En-tête clair, le vrai logo (`brand-logo.webp`) centré**, la pastille
+  d'état, la référence, « Bon de réservation », puis la phrase. L'ancien
+  en-tête marine recomposait la marque en CSS (arc SVG + « ELATRANSFER » en
+  texte) : un second dessin du logo, qui divergeait du vrai fichier.
+- **Le prix est dans un encart vert clair** (`#bonDetail .ligne.total`),
+  visé par l'identifiant du bon : `.ligne.total` sert aussi au
+  récapitulatif, qu'on ne touche pas.
+- **UN SEUL BON, IDENTIQUE PARTOUT — il ne prend PAS la couleur d'un
+  partenaire.** Une première correction l'avait fait passer à l'orange sur
+  une course easyHotel ; il l'a refusé : « je ne veux pas que tu adaptes la
+  couleur ». Les couleurs du bon sont donc des valeurs fixes, pas les
+  variables `--accent*` que `hotel-engine-polish.css` réécrit.
+- **Attente = pastille grise, confirmé = pastille verte pleine.** Même règle
+  que partout : si l'attente avait une couleur, elle mentirait sur l'état.
