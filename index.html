@@ -1304,7 +1304,7 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   body.espace .admin-aide{display:block;margin:auto 12px 0;padding:13px;
     border-radius:13px;background:rgba(255,255,255,.06);}
   body.espace .admin-aide b{display:block;font-size:12.5px;font-weight:700;}
-  body.espace .admin-aide span{display:block;font-size:11px;
+  body.espace .admin-aide > span{ /* « > » : le libellé du bouton est aussi un span, il sortait gris */display:block;font-size:11px;
     color:rgba(255,255,255,.6);margin-top:2px;}
   body.espace .admin-aide .bouton{margin-top:10px;min-height:38px;
     font-size:12.5px;}
@@ -1779,50 +1779,31 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
   .hero h1{font-size:37px;}
 }
 /* =====================================================================
-   L'ESPACE EXPLOITANT EN NOIR ET BLANC (23 septembre 2026)
+   L'ESPACE EXPLOITANT — SES COULEURS, ET LE LOGO EN BLANC
    ---------------------------------------------------------------------
-   Barbaros garde l'ancien admin (« il est plus fonctionnel ») et veut
-   l'allure plus propre du nouveau, en noir et blanc. Ce bloc ne change
-   QUE l'habillage : aucun identifiant, aucun geste, aucun écran ne bouge.
-   CE QUI NE CHANGE PAS, ET C'EST VOULU : le rouge de l'attente et la
-   pastille « confirmée ». Ce sont des ÉTATS, pas une décoration — si tout
-   devenait noir, plus rien ne dirait qu'un client attend.
-   LE LOGO : la construction pose le logo BLEU (celui du site client, fait
-   pour un fond blanc) dans l'en-tête. Sur l'en-tête sombre d'avant il
-   disparaissait. L'en-tête passe donc au blanc, comme le site client.
+   24/09/2026, Barbaros : « partout c'est noir et blanc, je veux juste le
+   logo en noir et blanc ». J'avais lu « noir et blanc » pour tout l'espace ;
+   il ne parlait que du LOGO. L'espace garde donc ses couleurs d'avant —
+   bandeau marine, onglet actif bleu, boutons céladon — et seul le logo est
+   monochrome : BLANC, puisqu'il est posé sur le marine.
+   LA CONSTRUCTION POSE LE LOGO BLEU dans l'en-tête (celui du site client,
+   fait pour un fond blanc) : sur le marine il disparaissait. On le passe en
+   blanc par un filtre plutôt que par un fichier de plus, qui dériverait du
+   vrai à la première retouche.
+   Ce qui suit les couleurs, c'est ce qui RÉPARE — mis en place en même
+   temps et gardé : en-tête sur une ligne, menu entièrement visible, second
+   « D'où viennent les clients » masqué, colonne ordinateur alignée.
    ===================================================================== */
-body.espace, body.exploitant{--e-encre:#111111;--e-filet:#e3e3e3;--e-doux:#f5f5f5;background:#fff;}
-body.exploitant .entete{background:#fff;color:var(--e-encre);border-bottom:1px solid var(--e-filet);}
-body.exploitant .entete .logo-nom, body.exploitant .entete .logo-sous{color:var(--e-encre);}
-/* Sur téléphone, le logo mangeait 95 px de hauteur au-dessus du travail. */
+body.espace{background:#eef4f8;}
 body.exploitant .entete .logo-image{width:104px;height:auto;max-height:52px;object-fit:contain;
-  /* Le logo en NOIR (à sa demande) : on éteint ses couleurs plutôt que de
-     fabriquer un fichier de plus, qui dériverait du vrai au premier retouche. */
-  filter:brightness(0);}
-body.espace .admin-nav{background:#fff;color:var(--e-encre);border-bottom:1px solid var(--e-filet);}
-body.espace .admin-ava{background:var(--e-encre);color:#fff;}
-body.espace .admin-etat{color:#5f5f5f;}
-body.espace .admin-lien{background:#fff;color:var(--e-encre);border:1px solid var(--e-filet);}
-body.espace .admin-lien.actif{background:var(--e-encre);border-color:var(--e-encre);color:#fff;}
-body.exploitant .bouton{background:var(--e-encre);color:#fff;}
-body.exploitant .bouton:disabled{background:#9a9a9a;}
-body.exploitant .bouton-fantome{background:#fff;color:var(--e-encre);border-color:#cfcfcf;}
-/* Supprimer reste rouge : un geste irréversible ne se déguise pas en bouton ordinaire. */
-body.exploitant .bouton-fantome.rouge{color:#b3261e;border-color:#f0c2c2;}
+  filter:brightness(0) invert(1);}
+body.espace .admin-nav{background:linear-gradient(180deg,#062f55,#031c34);color:#fff;}
+body.espace .admin-lien.actif{background:#147edc;border-color:#147edc;color:#fff;}
 body.espace .entrees > .bouton,
 body.espace .entrees > .bouton-fantome{min-height:48px;display:flex;align-items:center;justify-content:center;margin:0;}
-body.espace .compteur.actif{border-color:var(--e-encre);box-shadow:0 0 0 1.5px var(--e-encre);}
-body.espace .bloc, body.espace .compteur, body.espace .entrees{border-color:var(--e-filet);}
-body.espace .jour-titre{margin-left:20px;margin-right:20px;color:#5f5f5f;}
-body.espace .jour-titre.retard{color:#C9302F;}
-body.espace .admin-bonjour, body.espace .ecran-titre h1, body.espace .bloc-titre{color:var(--e-encre);}
-/* LES TITRES D'ÉCRAN ÉTAIENT RESTÉS MARINE, seuls de leur couleur. */
-body.espace .ecran-titre{color:var(--e-encre);}
-/* LE REGISTRE PORTAIT ENCORE LE CÉLADON : période choisie, courbe, anneau,
-   barres. En noir et blanc, le NOIR marque ce qui est choisi et ce qui est
-   compté ; le rouge de l'attente reste le seul rouge. */
-body.espace #ecran-registre{--accent:#111111;--accent-clair:#f0f0f0;--accent-encre:#111111;--accent-vif:#8a8a8a;}
-body.espace .periode.actif{border-color:var(--e-encre);background:var(--e-encre);color:#fff;}
+body.espace .jour-titre{margin-left:20px;margin-right:20px;}
+/* Supprimer reste rouge : un geste irréversible ne se déguise pas en bouton ordinaire. */
+body.exploitant .bouton-fantome.rouge{color:#b3261e;border-color:#f0c2c2;}
 /* « D'OÙ VIENNENT LES CLIENTS » ÉTAIT ÉCRIT DEUX FOIS DANS LE REGISTRE : le
    panneau venu du tableau de bord répétait le bloc du haut, qui dit la même
    chose ET l'argent encaissé. On garde celui qui en dit le plus. */
@@ -1831,14 +1812,13 @@ body.espace #panneauProvenance{display:none;}
   /* L'EN-TÊTE PRENAIT DEUX ÉTAGES AVANT LE TRAVAIL : le logo seul sur sa
      ligne, puis le nom et l'état du serveur sur la suivante. Ils tiennent
      sur une seule ligne — logo à gauche, état à droite — et on gagne
-     ~80 px sur chaque écran. */
+     ~80 px sur chaque écran. Le logo de la colonne est déjà le BLANC. */
   body.espace .entete{display:none;}
   body.espace .admin-nav{display:grid;grid-template-columns:auto 1fr;align-items:center;}
   body.espace .admin-marque{display:flex;padding:2px 0 10px 20px;}
   body.espace .admin-marque .logo-sous{display:none;}
-  body.espace .admin-logo-image{display:block;width:84px;height:auto;filter:brightness(0);}
+  body.espace .admin-logo-image{display:block;width:84px;height:auto;}
   body.espace .admin-profil{justify-content:flex-end;padding:0 20px 10px 0;}
-  body.espace .admin-liens{grid-column:1 / -1;}
   /* LE MENU DÉFILAIT DE CÔTÉ, ET PERSONNE NE LE SAVAIT (24/09/2026, capture
      de Barbaros : « j'ai que cette page, il n'y a rien d'autre »). Sur son
      téléphone seuls « Tableau de bord » et « Nouvelle course » tenaient à
@@ -1848,7 +1828,8 @@ body.espace #panneauProvenance{display:none;}
      visibles d'un coup, en tuiles : icône au-dessus, mot en dessous, et la
      grille se replie seule selon la largeur (et la taille de texte) du
      téléphone. 44 px au moins : la mesure d'un pouce. */
-  body.espace .admin-liens{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));
+  body.espace .admin-liens{grid-column:1 / -1;display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(78px,1fr));
     gap:6px;overflow:visible;padding:0 20px 12px;}
   body.espace .admin-lien{flex-direction:column;justify-content:center;gap:4px;
     min-height:54px;padding:7px 4px;white-space:normal;text-align:center;
@@ -1863,16 +1844,6 @@ body.espace #panneauProvenance{display:none;}
   body.espace .kpi-var{display:none;}
 }
 @media (min-width:900px){
-  /* L'ordinateur garde sa colonne à gauche : noire, logo blanc. Le blanc de
-     la page fait le reste. */
-  body.espace .admin-nav{background:var(--e-encre);color:#fff;border-bottom:0;}
-  body.espace .admin-ava{background:#fff;color:var(--e-encre);}
-  body.espace .admin-etat{color:rgba(255,255,255,.7);}
-  body.espace .admin-lien{background:transparent;color:rgba(255,255,255,.86);border:0;}
-  body.espace .admin-lien.actif{background:#fff;color:var(--e-encre);}
-  body.espace .admin-aide{background:rgba(255,255,255,.08);}
-  body.espace .admin-aide .bouton{background:#fff;color:var(--e-encre);}
-  body.espace .admin-aide .bouton span{color:var(--e-encre);margin:0;font-size:12.5px;}
   /* La liste porte déjà sa marge de 28 px : les cartes et les titres de
      jour s'y alignent sur les compteurs au lieu de s'enfoncer de 28 px. */
   body.espace #listeBord .jour-titre{margin-left:0;margin-right:0;}
@@ -9152,9 +9123,7 @@ window.ELA_TEXTES = {
    pas un encaissement. Les COMPTES de courses, eux, portent sur tout ce
    qui n'est pas refusé : une demande reçue reste du travail arrivé.
    ===================================================================== */
-  /* Noir et blanc (23/09/2026) : ces dessins ne vivent que dans l'espace
-     exploitant. Le rouge de l'attente, plus bas, reste le seul rouge. */
-  var COULEUR_GAMME = { berline:"#111111", van:"#9a9a9a" };
+  var COULEUR_GAMME = { berline:"#1F6F6B", van:"#3FA9A2" };
 
   function variation(a, b){
     /* SANS RÉFÉRENCE, PAS DE POURCENTAGE. « +100 % » sur une semaine
@@ -9238,15 +9207,15 @@ window.ELA_TEXTES = {
     svg.setAttribute("viewBox", "0 0 " + L + " " + H);
     svg.innerHTML =
       '<defs><linearGradient id="cbG" x1="0" y1="0" x2="0" y2="1">'
-      + '<stop offset="0" stop-color="#111111" stop-opacity=".22"/>'
-      + '<stop offset="1" stop-color="#111111" stop-opacity="0"/></linearGradient></defs>'
+      + '<stop offset="0" stop-color="#1F6F6B" stop-opacity=".22"/>'
+      + '<stop offset="1" stop-color="#1F6F6B" stop-opacity="0"/></linearGradient></defs>'
       + '<path d="' + ligne + ' L' + pts[6][0].toFixed(1) + ' ' + bas
       + ' L' + pts[0][0].toFixed(1) + ' ' + bas + ' Z" fill="url(#cbG)"/>'
-      + '<path d="' + ligne + '" fill="none" stroke="#111111" stroke-width="2.2"'
+      + '<path d="' + ligne + '" fill="none" stroke="#1F6F6B" stroke-width="2.2"'
       + ' stroke-linecap="round" stroke-linejoin="round"/>'
       + pts.map(function(p, k){
           return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1)
-               + '" r="' + (k === 6 ? 4 : 2.6) + '" fill="#111111"/>'
+               + '" r="' + (k === 6 ? 4 : 2.6) + '" fill="#1F6F6B"/>'
                + (jours[k] ? '<text x="' + p[0].toFixed(1) + '" y="'
                    + (p[1] - 8).toFixed(1) + '" text-anchor="middle" font-size="10"'
                    + ' font-weight="700" fill="#151C22">' + jours[k] + '</text>' : '');
@@ -9295,9 +9264,9 @@ window.ELA_TEXTES = {
 
     /* ---- Où en sont les courses ---- */
     var etats = [["attente","En attente","#C9302F"],
-                 ["confirmee","À assurer","#111111"],
-                 ["realisee","Réalisées","#8a8a8a"],
-                 ["refusee","Refusées","#cfcfcf"]];
+                 ["confirmee","À assurer","#1F6F6B"],
+                 ["realisee","Réalisées","#3FA9A2"],
+                 ["refusee","Refusées","#8a97a3"]];
     var parTout = { attente:0, confirmee:0, realisee:0, refusee:0 };
     tout.forEach(function(c){
       var s = c.statut || "attente";
