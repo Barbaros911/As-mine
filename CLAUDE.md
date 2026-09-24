@@ -5523,7 +5523,7 @@ passe, puis `est_exploitant()`). Le vrai accès admin est donc ce mot de passe.
 - Le bloc est dans « Réglages », que le rôle `agent_reservation` ne voit pas :
   un agent ne peut pas encore changer le sien. `test-nouveau-mdp.mjs`.
 
-## UN SEUL ADMIN : L'ANCIEN, EN NOIR ET BLANC
+## UN SEUL ADMIN : L'ANCIEN, SES COULEURS, ET LE LOGO EN BLANC
 
 23 septembre 2026, Barbaros : « le nouvel admin est moins fonctionnel que le
 premier, il y a des blocages, des incohérences, on ne peut pas faire retour »
@@ -5534,10 +5534,16 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   `nouvelle-demande`), et `?ref=` y ouvre directement le bon de la course.
   `test-admin-arrivee.mjs` éprouve, sur le site construit, qu'une demande
   déposée par un client arrive et est annoncée **sans passer par WhatsApp**.
-- **L'habillage vit dans `index.html`** (bloc « noir et blanc » en fin de
-  style) : en-tête blanc avec le logo bleu, boutons noirs, colonne noire sur
-  ordinateur. **Le rouge de l'attente et la pastille « confirmée » ne changent
-  pas** : ce sont des états.
+- **SES COULEURS RESTENT — SEUL LE LOGO EST MONOCHROME** (24 septembre 2026).
+  J'avais lu « tu peux utiliser la couleur noir et blanc » comme une consigne
+  pour tout l'espace : en-tête, boutons, colonne, graphiques du registre.
+  Réponse : « partout c'est noir et blanc, je veux juste le logo en noir et
+  blanc ». Tout est revenu à la marine et au céladon ; le logo est passé en
+  **blanc** (`filter:brightness(0) invert(1)`) sur l'aplat marine. **Une
+  demande sur un élément ne s'étend pas à toute la page** — demander avant
+  de repeindre un écran entier. Le bloc vit en fin de style d'`index.html`.
+  **Le rouge de l'attente et la pastille « confirmée » ne changent jamais** :
+  ce sont des états.
 - **`application-facade.css` repeignait l'espace ET le cassait** : une grille
   de 220 px et une colonne `sticky` se superposaient au `padding-left` de
   252 px — la colonne commençait à 252 px et le contenu passait dessous.
@@ -5545,13 +5551,12 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   habille le même écran finit toujours par le casser.
 - **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
   ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
-- **Le logo est NOIR sur le blanc** (`filter:brightness(0)`, à sa demande) et
-  blanc sur la colonne noire de l'ordinateur. Pas de fichier de plus : un
-  logo recopié dérive du vrai à la première retouche.
-- **Sur téléphone, l'en-tête tient sur UNE ligne** (logo à gauche, état du
-  serveur à droite) : il en prenait deux, ~80 px avant le travail.
-- **Le registre portait encore le céladon** — période choisie, courbe,
-  anneau, barres, écrits en dur dans le script. Passés en noir et gris.
+- **SUR TÉLÉPHONE, LE MENU EST UNE GRILLE DE TUILES, PLUS UNE RANGÉE QUI
+  DÉFILE.** Capture de Barbaros : « j'ai que cette page, il n'y a rien
+  d'autre ». Les pastilles défilaient de côté et seules deux étaient à
+  l'écran : un menu dont on ne voit pas la suite n'existe pas. Toutes les
+  entrées sont maintenant visibles d'un coup, en tuiles de 54 px de haut, et
+  l'en-tête du site est masqué dans l'espace (le logo vit dans la colonne).
 - **« D'où viennent les clients » était écrit deux fois dans le registre** :
   le panneau venu du tableau de bord (`#panneauProvenance`) est masqué, le
   bloc du haut dit la même chose et l'argent encaissé en plus.
@@ -5561,3 +5566,23 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   deux gros boutons l'un sous l'autre laissaient clôturer d'un pouce une
   course jamais placée — donc compter au registre de l'argent jamais entré.
   `test-admin-arrivee.mjs` éprouve les trois états.
+
+## LE BON DE RÉSERVATION — MODÈLE B, UN SEUL POUR TOUTES LES PAGES
+
+24 septembre 2026, à sa demande : « je veux un tout nouveau bon avec mon
+logo, tu supprimes l'ancien, tu ne reprends rien de l'ancien ». Trois modèles
+lui ont été montrés en capture ; il a choisi le **B**.
+- **En-tête clair, le vrai logo (`brand-logo.webp`) centré**, la pastille
+  d'état, la référence, « Bon de réservation », puis la phrase. L'ancien
+  en-tête marine recomposait la marque en CSS (arc SVG + « ELATRANSFER » en
+  texte) : un second dessin du logo, qui divergeait du vrai fichier.
+- **Le prix est dans un encart vert clair** (`#bonDetail .ligne.total`),
+  visé par l'identifiant du bon : `.ligne.total` sert aussi au
+  récapitulatif, qu'on ne touche pas.
+- **UN SEUL BON, IDENTIQUE PARTOUT — il ne prend PAS la couleur d'un
+  partenaire.** Une première correction l'avait fait passer à l'orange sur
+  une course easyHotel ; il l'a refusé : « je ne veux pas que tu adaptes la
+  couleur ». Les couleurs du bon sont donc des valeurs fixes, pas les
+  variables `--accent*` que `hotel-engine-polish.css` réécrit.
+- **Attente = pastille grise, confirmé = pastille verte pleine.** Même règle
+  que partout : si l'attente avait une couleur, elle mentirait sur l'état.
