@@ -5505,3 +5505,59 @@ illisible, l'icône disparaissait partout sans le moindre message), et
 
 Refusé : le E seul (« c'est moche »), et toute voiture, roue ou route
 dessinée.
+
+## CHANGER SON MOT DE PASSE DEPUIS L'ESPACE — « Réglages »
+
+23 septembre 2026, à sa demande : changer ses accès depuis le téléphone.
+**Le code d'exploitant n'existe plus en ligne** : `harden-exploitant-auth.mjs`
+le remplace à la construction par la connexion Supabase (e-mail + mot de
+passe, puis `est_exploitant()`). Le vrai accès admin est donc ce mot de passe.
+- **Pourquoi un bloc dans le site** : l'éditeur SQL de Supabase refuse le
+  collage sur iPhone, et « Reset password » envoie un lien que ce site ne sait
+  pas recevoir (aucune gestion de `type=recovery`). Ne pas l'y renvoyer.
+- **Ne jamais supprimer puis recréer le compte** : `operateurs` le désigne par
+  son `user_id`, un compte recréé n'aurait plus accès à l'admin.
+- Après le changement, `logout?scope=others` déconnecte les AUTRES appareils :
+  changer un mot de passe qu'on croit connu ne sert à rien si la session de
+  celui qui le connaissait reste ouverte.
+- Le bloc est dans « Réglages », que le rôle `agent_reservation` ne voit pas :
+  un agent ne peut pas encore changer le sien. `test-nouveau-mdp.mjs`.
+
+## UN SEUL ADMIN : L'ANCIEN, EN NOIR ET BLANC
+
+23 septembre 2026, Barbaros : « le nouvel admin est moins fonctionnel que le
+premier, il y a des blocages, des incohérences, on ne peut pas faire retour »
+— puis « on garde l'ancien, on adapte visuellement ». **L'espace historique
+(`admin.html` → `application.html?exploitant=1`) est l'admin retenu.** Admin v2
+reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
+- **L'alerte Telegram vise `admin.html`** (défaut de `ADRESSE_ADMIN` dans
+  `nouvelle-demande`), et `?ref=` y ouvre directement le bon de la course.
+  `test-admin-arrivee.mjs` éprouve, sur le site construit, qu'une demande
+  déposée par un client arrive et est annoncée **sans passer par WhatsApp**.
+- **L'habillage vit dans `index.html`** (bloc « noir et blanc » en fin de
+  style) : en-tête blanc avec le logo bleu, boutons noirs, colonne noire sur
+  ordinateur. **Le rouge de l'attente et la pastille « confirmée » ne changent
+  pas** : ce sont des états.
+- **`application-facade.css` repeignait l'espace ET le cassait** : une grille
+  de 220 px et une colonne `sticky` se superposaient au `padding-left` de
+  252 px — la colonne commençait à 252 px et le contenu passait dessous.
+  Les règles `body.espace` en ont été retirées. Une seconde feuille qui
+  habille le même écran finit toujours par le casser.
+- **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
+  ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
+- **Le logo est NOIR sur le blanc** (`filter:brightness(0)`, à sa demande) et
+  blanc sur la colonne noire de l'ordinateur. Pas de fichier de plus : un
+  logo recopié dérive du vrai à la première retouche.
+- **Sur téléphone, l'en-tête tient sur UNE ligne** (logo à gauche, état du
+  serveur à droite) : il en prenait deux, ~80 px avant le travail.
+- **Le registre portait encore le céladon** — période choisie, courbe,
+  anneau, barres, écrits en dur dans le script. Passés en noir et gris.
+- **« D'où viennent les clients » était écrit deux fois dans le registre** :
+  le panneau venu du tableau de bord (`#panneauProvenance`) est masqué, le
+  bloc du haut dit la même chose et l'argent encaissé en plus.
+- **Sur le bon, un seul geste principal : l'étape suivante.** En attente :
+  « Confirmer » (pas « Marquer comme réalisée ») ; confirmée : « Marquer comme
+  réalisée » ; réalisée ou refusée : ni l'un ni l'autre, ni « Refuser ». Les
+  deux gros boutons l'un sous l'autre laissaient clôturer d'un pouce une
+  course jamais placée — donc compter au registre de l'argent jamais entré.
+  `test-admin-arrivee.mjs` éprouve les trois états.
