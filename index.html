@@ -922,26 +922,37 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .bon-nom i{font-style:normal;color:var(--accent-vif);}
 .bon-sous{display:block;font-size:9px;font-weight:600;letter-spacing:.24em;
   text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:5px;}
-/* L'état est en OR sur noir, pas en vert : rien n'est confirmé à cet
-   instant, et un vert dirait le contraire de ce que le bon annonce. */
+/* ATTENTE = NEUTRE, JAMAIS UNE COULEUR — même règle que la pastille du
+   tableau de bord (« EN ATTENTE ET CONFIRMÉ ÉTAIENT DE LA MÊME COULEUR »).
+   Cette pastille-ci était restée en teal fixe (rgba de #3FA9A2) : sur une
+   course easyHotel, où --accent-vif devient l'orange du partenaire, elle
+   gardait quand même du vert — exactement « l'ancien vert » qui traînait.
+   Le blanc translucide ne dépend d'aucun accent : il ne ment jamais sur
+   l'état, quel que soit le thème. */
 .bon-etat{display:inline-block;font-size:11px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--accent-vif);
-  border:1px solid rgba(63,169,162,.4);background:rgba(63,169,162,.13);
+  letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.82);
+  border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);
   border-radius:999px;padding:5px 11px;}
 .bon-ref{margin:13px 0 0;font-size:23px;font-weight:800;letter-spacing:.02em;
   font-variant-numeric:tabular-nums;}
 .bon-note{margin:9px 0 0;font-size:12px;line-height:1.42;
   color:rgba(255,255,255,.76);}
-/* CONFIRMÉ : la pastille passe au vert. C'est le seul endroit du site où
-   l'état d'un bon change de couleur, et il ne le fait qu'une fois — quand
-   la réponse arrive. L'or dit « en cours », le vert dit « c'est bon ». */
-.bon-etat.confirme{color:#6FCFC9;border-color:rgba(111,207,201,.45);
-  background:rgba(111,207,201,.15);}
-/* Le bloc du chauffeur est cerclé de vert, pas rempli : c'est une bonne
-   nouvelle, pas une alerte. */
-.bloc-confirme{border-color:#8FC9C5;background:#EFF7F6;}
-.bloc-confirme .bloc-titre{color:#175E5B;}
-#bonAppelChauffeur{border-color:#8FC9C5;color:#175E5B;}
+/* CONFIRMÉ : la pastille prend l'accent — teal chez Elatransfer, orange sur
+   une course easyHotel (body.hotel.hotel-enhanced réécrit --accent-vif).
+   C'est le seul endroit du site où l'état d'un bon change de couleur, et il
+   ne le fait qu'une fois — quand la réponse arrive. `color-mix` dérive le
+   filet et le fond de CETTE variable : un hex fixe ici est ce qui a fait
+   traîner du teal sur les écrans d'un partenaire orange. */
+.bon-etat.confirme{color:var(--accent-vif);
+  border-color:color-mix(in srgb, var(--accent-vif) 45%, transparent);
+  background:color-mix(in srgb, var(--accent-vif) 15%, transparent);}
+/* Le bloc du chauffeur est cerclé de l'accent, pas rempli : c'est une bonne
+   nouvelle, pas une alerte. Mêmes variables — orange chez un partenaire. */
+.bloc-confirme{border-color:color-mix(in srgb, var(--accent-vif) 55%, var(--carte));
+  background:var(--accent-clair);}
+.bloc-confirme .bloc-titre{color:var(--accent-encre);}
+#bonAppelChauffeur{border-color:color-mix(in srgb, var(--accent-vif) 55%, var(--carte));
+  color:var(--accent-encre);}
 /* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
    par écran, sinon plus aucun ne l'est. */
 /* « display:block » et non le défaut : cette classe habille aussi des liens
