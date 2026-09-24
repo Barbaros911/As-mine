@@ -149,6 +149,10 @@ const RECAP = '#ecran-recap .bloc-pancarte';
   await p.fill('#clientTel','06 12 34 56 78');
   await p.locator('[data-paiement="especes"]').click();
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
+  /* Pas de serveur ici : le dépôt échoue, le bouton de secours paraît, et
+     c'est lui — pas la confirmation — qui ouvre WhatsApp. */
+  await p.locator('#btnRenvoyer').waitFor({state:'visible',timeout:10000});
+  await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
   const msg = await p.evaluate(()=> decodeURIComponent(
     (window.__liens.find(u=>/wa\.me|whatsapp/.test(u))||'').split('text=')[1]||''));
   const lignes = msg.split('\n');

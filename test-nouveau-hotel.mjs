@@ -475,6 +475,14 @@ check('et sur le bon du client, qui est le seul endroit où il peut la relire',
   await p.locator('#lignePrecision').isVisible()
   && (await p.locator('#bonPrecision').textContent()) === PRECISION);
 
+/* WHATSAPP NE S'OUVRE PLUS TOUT SEUL (24 septembre 2026). Le banc n'a pas
+   de serveur : le dépôt échoue, et c'est le bouton de repli qui porte le
+   message. On APPUIE dessus pour le lire — c'est le chemin qu'un vrai
+   client prendrait. */
+check('WhatsApp ne s\'est pas ouvert tout seul à la confirmation',
+  (await p.evaluate(()=>window.__wa.length)) === 0);
+await p.locator('#btnRenvoyer').waitFor({state:'visible', timeout:15000});
+await p.locator('#btnRenvoyer').click();
 const msg = decodeURIComponent((await p.evaluate(()=>window.__wa||[]))[0] || '');
 check('elle est dans le message, AVANT la ligne du prix',
   msg.indexOf('Précision') > 0 && msg.indexOf('Précision') < msg.indexOf('Prix :'),

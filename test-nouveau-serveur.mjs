@@ -138,18 +138,13 @@ let { p, ctx, depots } = await reserver(true);
 await p.waitForTimeout(1200);
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 check('une demande a bien été déposée', depots.length===1, String(depots.length));
-/* ═══ L'ORDRE EST LE CORRECTIF ═══
-   Le dépôt partait APRÈS l'ouverture de WhatsApp, c'est-à-dire au moment
-   précis où iOS met la page en arrière-plan pour changer d'application.
-   Safari y gèle le JavaScript et coupe les requêtes en cours : le client
-   revenait sur un écriteau rouge « votre demande n'a pas pu nous être
-   transmise » alors que rien n'était cassé. Signalé par Barbaros, capture
-   à l'appui.
-   WhatsApp reste ouvert dans le même TICK que le clic — ce qui compte pour
-   Safari — mais après le lancement du dépôt. */
+/* ═══ WHATSAPP NE S'OUVRE PLUS TOUT SEUL (24 septembre 2026) ═══
+   À la demande de Barbaros : la demande part au serveur, l'alerte Telegram
+   part du serveur, et le client reste sur le site. WhatsApp n'est plus que
+   le repli d'un dépôt raté, sur un geste du client (test-nouveau-whatsapp). */
 const ordre = await p.evaluate(()=>window.__ordre);
-check('le dépôt part AVANT que WhatsApp prenne l\'écran',
-  ordre.indexOf('depot') >= 0 && ordre.indexOf('depot') < ordre.indexOf('whatsapp'),
+check('le dépôt part, et WhatsApp ne prend PAS l\'écran',
+  ordre.indexOf('depot') >= 0 && ordre.indexOf('whatsapp') < 0,
   ordre.join(' → '));
 /* « keepalive » est ce qui fait survivre la requête au gel de la page : le
    navigateur s'engage à la mener à terme même si la page est mise de côté.
@@ -187,14 +182,14 @@ check('et la clé technique du véhicule, jamais son nom commercial seul',
 check('le client lit que sa demande est arrivée',
   (await p.locator('#envoiTexte').textContent()).includes('bien parvenue'),
   await p.locator('#envoiTexte').textContent());
-// Le message WhatsApp part DANS TOUS LES CAS depuis que Barbaros a demandé
-// à être prévenu sur son téléphone : le dépôt remplit le tableau de bord,
-// le message le réveille. Les deux ne se remplacent pas.
-check('le message WhatsApp part aussi, même quand le dépôt réussit',
-  (await p.evaluate(()=>window.__liens)).length===1,
+// Le serveur a reçu la demande : aucun message WhatsApp ne part, et aucun
+// bouton ne propose d'en envoyer un — il ferait croire qu'elle n'est pas
+// arrivée.
+check('aucun message WhatsApp ne part quand le dépôt réussit',
+  (await p.evaluate(()=>window.__liens)).length===0,
   String((await p.evaluate(()=>window.__liens)).length));
-check('le renvoi reste en retrait',
-  (await p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome');
+check('et aucun bouton WhatsApp n\'est proposé',
+  !(await p.locator('#btnRenvoyer').isVisible()));
 /* ON NE DEMANDE JAMAIS L'AUTORISATION AU CHARGEMENT. Une demande de
    notification qui surgit sans raison se refuse d'un réflexe — et le refus
    est DÉFINITIF : le navigateur ne repose plus jamais la question, même des
@@ -294,7 +289,7 @@ await ctx.close();
 {
   const r = await reserver('reprise', false, true);
   await r.p.waitForTimeout(1500);
-  check('pendant que le client est sur WhatsApp, aucune panne n\'est annoncée',
+  check('pendant que la page est en arrière-plan, aucune panne n\'est annoncée',
     !(await r.p.locator('#envoiTexte').textContent()).includes('seul moyen'),
     await r.p.locator('#envoiTexte').textContent());
   check('et le premier dépôt a bien échoué', r.depots.length===1,

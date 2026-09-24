@@ -2925,9 +2925,9 @@ body.espace #panneauProvenance{display:none;}
     <div class="bloc suite">
       <h2 class="bloc-titre" data-t="suite_titre">Ce qui se passe ensuite</h2>
       <ol class="suite-liste">
-        <li data-t="suite_1">WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.</li>
-        <li data-t="suite_2">Votre demande arrive chez Elatransfer dans tous les cas, même sans WhatsApp.</li>
-        <li data-t="suite_3">La réponse s'affiche ici, dans « Réservations », et vous est envoyée.</li>
+        <li data-t="suite_1">Votre demande nous arrive directement : vous n'avez rien d'autre à envoyer.</li>
+        <li data-t="suite_2">Nous vérifions la disponibilité d'un chauffeur professionnel.</li>
+        <li data-t="suite_3">La confirmation vous est envoyée sur WhatsApp et s'affiche ici, dans « Réservations ».</li>
       </ol>
     </div>
 
@@ -3074,7 +3074,7 @@ body.espace #panneauProvenance{display:none;}
       <p class="rassure" id="noteRenvoi" data-t="renvoi_note">Si WhatsApp ne s'est pas ouvert, ou si vous
          n'avez pas appuyé sur envoyer, renvoyez-le d'ici.</p>
       <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
-        Renvoyer ma demande sur WhatsApp
+        Envoyer ma demande par WhatsApp
       </button>
       <button class="bouton-fantome" type="button" id="btnNouvelleCourse" data-t="autre_course">
         Réserver une autre course
@@ -4647,9 +4647,9 @@ window.ELA_TEXTES = {
     legal_accept_prefix:"En envoyant ma demande, j’accepte les", legal_accept_cgv:"CGV",
     legal_accept_join:"et je reconnais avoir lu la", legal_accept_privacy:"politique de confidentialité",
     suite_titre:"Ce qui se passe ensuite",
-    suite_1:"WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
-    suite_2:"Votre demande arrive chez Elatransfer dans tous les cas, même sans WhatsApp.",
-    suite_3:"La réponse s'affiche ici, dans « Réservations », et vous est envoyée.",
+    suite_1:"Votre demande nous arrive directement : vous n'avez rien d'autre à envoyer.",
+    suite_2:"Nous vérifions la disponibilité d'un chauffeur professionnel.",
+    suite_3:"La confirmation vous est envoyée sur WhatsApp et s'affiche ici, dans « Réservations ».",
     bon_sous:"Bon de réservation",
     /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
        on cherche un chauffeur — plutôt que de renvoyer le client vers
@@ -4665,7 +4665,7 @@ window.ELA_TEXTES = {
     etat_confirme:"Confirmé",
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
-    renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
+    renvoyer:"Envoyer ma demande par WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
     nav_contact:"Contact",
@@ -4817,9 +4817,9 @@ window.ELA_TEXTES = {
     legal_accept_prefix:"By sending my request, I accept the", legal_accept_cgv:"terms and conditions",
     legal_accept_join:"and acknowledge that I have read the", legal_accept_privacy:"privacy policy",
     suite_titre:"What happens next",
-    suite_1:"WhatsApp opens with your request already written: just send it.",
-    suite_2:"Your request reaches Elatransfer either way, even without WhatsApp.",
-    suite_3:"The answer appears here, under « Bookings », and is sent to you.",
+    suite_1:"Your request reaches us directly: there is nothing else to send.",
+    suite_2:"We check the availability of a professional driver.",
+    suite_3:"The confirmation is sent to you on WhatsApp and appears here, under « Bookings ».",
     bon_sous:"Booking voucher",
     bon_etat:"Request received",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
@@ -4831,7 +4831,7 @@ window.ELA_TEXTES = {
     etat_confirme:"Confirmed",
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
-    renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
+    renvoyer:"Send my request on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
     nav_contact:"Contact",
@@ -7772,6 +7772,14 @@ window.ELA_TEXTES = {
     var renvoyable = !confirme && !bon.partiel;
     document.getElementById("noteRenvoi").hidden  = !renvoyable;
     document.getElementById("btnRenvoyer").hidden = !renvoyable;
+    /* Côté client, le renvoi n'est plus proposé qu'à un bon jamais parvenu
+       (voir « marquerDepose ») : WhatsApp ne s'ouvre plus tout seul, et un
+       bon reçu n'a rien à renvoyer. */
+    if(!recHotel){
+      document.getElementById("noteRenvoi").hidden = true;
+      document.getElementById("btnRenvoyer").hidden = !(renvoyable && bon.depose === false);
+      if(bon.depose === false) document.getElementById("btnRenvoyer").className = "bouton";
+    }
     if(!renvoyable) document.getElementById("etatEnvoi").hidden = true;
     var etat = document.getElementById("bonEtat");
     etat.textContent = T(confirme ? "bon_etat_ok" : "bon_etat");
@@ -8074,30 +8082,24 @@ window.ELA_TEXTES = {
        sur son téléphone. L'un sans l'autre laisse un trou — soit il n'est
        pas averti, soit il n'a rien à ouvrir. */
     var depot = nuage.deposer(bonCourant);
-    /* ═══ AU COMPTOIR, WHATSAPP NE S'OUVRE PLUS TOUT SEUL ═══
-       Septembre 2026, à sa demande : « il ne s'ouvre plus, un bouton
-       reste ». Une réception enchaîne les arrivées ; lui faire traverser
-       WhatsApp à chaque réservation, c'est une application qui prend
-       l'écran, un message à envoyer à la main, et une tablette qui reste
-       dans une conversation au lieu de revenir au comptoir.
-
-       CE QUI REND CE RETRAIT POSSIBLE, C'EST TELEGRAM, ET RIEN D'AUTRE.
-       L'alerte part de « nouvelle-demande », déclenchée par le serveur à
-       l'écriture de la ligne — donc indépendante du navigateur du
-       comptoir, et même de WhatsApp. Elle tourne depuis le 11 septembre
-       2026. La règle écrite jusqu'ici (« ne pas supprimer l'ouverture
-       automatique avant que le webhook Telegram fonctionne ») est donc
-       remplie : c'est exactement le jour où on la retire.
-       ELLE RESTE EN PLACE POUR LE CLIENT, qui n'a pas de Telegram et dont
-       le message est encore le second chemin vers Barbaros.
-
-       LE BOUTON DU BON RESTE, et ce n'est pas un vestige : si le dépôt
-       échoue, il redevient le SEUL chemin par lequel la demande peut nous
-       parvenir. Il ne part simplement plus tout seul. */
-    if(!recHotel){
-      window.open("https://wa.me/" + NUMERO_WA + "?text="
-                  + encodeURIComponent(messageDemande(bonCourant)), "_blank");
-    }
+    /* ═══ WHATSAPP NE S'OUVRE PLUS TOUT SEUL — NI AU COMPTOIR, NI CHEZ LE
+       CLIENT ═══
+       Au comptoir d'abord (« il ne s'ouvre plus, un bouton reste »), puis
+       chez le client, le 24 septembre 2026, à sa demande : « comment faire
+       en sorte que le client puisse envoyer une demande sans
+       qu'automatiquement il ouvre WhatsApp ? ».
+       CE QUI REND CE RETRAIT POSSIBLE, C'EST LE DÉPÔT SUR LE SERVEUR ET
+       L'ALERTE TELEGRAM, qui part du serveur à l'écriture de la ligne. Le
+       message WhatsApp n'était plus qu'un doublon : il sortait le client du
+       site au moment même où il fallait lui dire « c'est bon », et Barbaros
+       recevait chaque demande deux fois.
+       LE REPLI N'EST PAS SUPPRIMÉ, IL EST DÉPLACÉ : si le dépôt échoue, le
+       bon affiche « Envoyer ma demande par WhatsApp » en bouton plein. C'est
+       alors un GESTE du client, donc Safari le laisse ouvrir WhatsApp — un
+       window.open lancé après la réponse du serveur serait bloqué. Tant que
+       le dépôt n'a pas échoué, le bouton est caché : proposer d'envoyer une
+       demande déjà reçue ferait croire qu'elle ne l'est pas. */
+    bonCourant.depose = false;
     try{
       var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
       deja.unshift(bonCourant);
@@ -8139,8 +8141,22 @@ window.ELA_TEXTES = {
   var noteRenvoi  = document.getElementById("noteRenvoi");
   var btnRenvoyer = document.getElementById("btnRenvoyer");
   var envoiEtat   = null;
+  /* LE BON GARDE S'IL EST ARRIVÉ. Rouvert depuis « Réservations », un bon
+     jamais parvenu doit encore proposer WhatsApp ; un bon reçu, non. Un bon
+     d'avant ce champ n'en porte pas : il avait ouvert WhatsApp tout seul,
+     on ne le repropose pas. */
+  function marquerDepose(bon){
+    if(!bon || bon.depose === true) return;
+    bon.depose = true;
+    try{
+      var liste = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      liste.forEach(function(b){ if(b && b.ref === bon.ref) b.depose = true; });
+      localStorage.setItem("ela_courses", JSON.stringify(liste));
+    }catch(e){ /* stockage refusé : l'écran reste juste pour cette visite */ }
+  }
   function afficherEtatEnvoi(etat){
     envoiEtat = etat;
+    if(etat === true) marquerDepose(bonCourant);
     blocEnvoi.hidden = false;
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
     /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
@@ -8151,6 +8167,13 @@ window.ELA_TEXTES = {
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
+    /* CÔTÉ CLIENT, LE BOUTON N'EXISTE QUE SUR UN ÉCHEC : c'est le repli, et
+       il ne sert qu'à ça. La phrase au-dessus est tue — l'écriteau rouge dit
+       déjà quoi faire, deux phrases pour une même chose se contredisent. */
+    if(!recHotel){
+      btnRenvoyer.hidden = (etat !== false);
+      noteRenvoi.hidden = true;
+    }
     jugerRenvoiComptoir();
     /* Le bloc des notifications suit l'état de l'envoi : il n'a de sens que
        si la demande est bien arrivée sur le serveur. */

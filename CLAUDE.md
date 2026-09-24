@@ -1760,15 +1760,27 @@ Elatransfer même si le message WhatsApp n'est pas envoyé**.
 la demande arrive dans son tableau de bord. Ce qui manquait, c'est que le
 site disait le contraire.
 
-**WHATSAPP CONTINUE DE S'OUVRIR TOUT SEUL POUR LE CLIENT, ET C'EST TOUJOURS
-DÉLIBÉRÉ.** Le client, lui, n'a pas de Telegram : son message reste le
-second chemin par lequel sa demande peut nous parvenir si le dépôt échoue.
-Ne pas le retirer côté client.
-**AU COMPTOIR D'HÔTEL, IL NE S'OUVRE PLUS** — voir la section dédiée plus
-bas. C'est l'application de la règle qui figurait ici (« ne pas supprimer
-l'ouverture automatique avant que le webhook Telegram fonctionne ») : il
-fonctionne depuis le 11 septembre 2026, et c'est ce qui a permis de la
-retirer là où elle gênait.
+**WHATSAPP NE S'OUVRE PLUS TOUT SEUL, NULLE PART** (24 septembre 2026, à sa
+demande : « comment faire en sorte que le client puisse envoyer une demande
+sans qu'automatiquement il n'ouvre WhatsApp ? »). Le serveur reçoit la
+demande et Telegram le prévient : le message du client ne servait plus
+qu'à doubler ce qu'il savait déjà, et il faisait QUITTER le site au client
+à l'instant précis où il fallait lui dire « c'est reçu ».
+- **LE REPLI EST SACRÉ ET IL RESTE** : si le dépôt échoue, l'écriteau rouge
+  s'affiche et le bouton « Envoyer ma demande par WhatsApp » passe en bouton
+  PLEIN. C'est un appui du client, donc `window.open` est dans le geste —
+  la règle Safari tient sans rien attendre.
+- **DÉPÔT RÉUSSI = AUCUN BOUTON WHATSAPP.** Le proposer ferait croire que
+  la demande n'est pas arrivée, et Barbaros recevrait tout en double.
+- **LE BON SE SOUVIENT** (`bon.depose`, écrit par `marquerDepose()`). Rouvert
+  depuis « Réservations », un bon non déposé garde son bouton ; un bon
+  déposé ne l'a pas. Une course ancienne sans ce champ ne le montre pas.
+- **LE RISQUE CONNU** : serveur en panne ET client qui ferme la page avant
+  l'écriteau (jusqu'à ~8 s). `keepalive` et `reprendreDepot()` le réduisent,
+  ils ne l'annulent pas. Si Telegram ou le dépôt tombent un jour, c'est
+  cette décision-ci qu'il faut rouvrir en premier.
+- `test-nouveau-whatsapp` éprouve les deux scènes (201 et 500) et tombe si
+  l'on remet `window.open` dans le gestionnaire de « Confirmer ».
 
 ### « VOTRE DEMANDE N'A PAS PU NOUS ÊTRE TRANSMISE » — UNE PANNE INVENTÉE
 
@@ -3010,11 +3022,10 @@ sur les deux questions posées : **« en attente, comme aujourd'hui »** et
   fonctionne ») est donc **remplie**, pas enfreinte. **Si l'alerte Telegram
   tombe un jour, c'est cette décision-ci qu'il faut rouvrir en premier** :
   sans elle, une demande du comptoir n'avertit plus personne.
-- **LE RETRAIT EST LOCAL AU COMPTOIR** (`if(!recHotel)`), jamais global. Le
-  client et le flyer `?h=` gardent l'ouverture automatique : eux n'ont pas
-  de Telegram, et leur message est le second chemin si le dépôt échoue.
-  `test-nouveau-whatsapp` et `test-nouveau-hotel` éprouvent ces deux
-  chemins-là — ils tombent si on retire la condition au lieu de la poser.
+- **LE RETRAIT A ÉTÉ ÉTENDU AU CLIENT ET AU FLYER** le 24 septembre 2026, à
+  sa demande — voir « WHATSAPP NE S'OUVRE PLUS TOUT SEUL, NULLE PART ». Il
+  était d'abord local au comptoir ; ne pas lire l'ancienne condition
+  `if(!recHotel)` comme une règle à rétablir.
 - **LE BOUTON RESTE SUR LE BON, ET CE N'EST PAS UN VESTIGE.** Si le dépôt
   échoue, il redevient le SEUL chemin par lequel la demande peut nous
   parvenir. **Le repli est sacré** — même règle que côté client. Le test

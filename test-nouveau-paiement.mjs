@@ -54,7 +54,10 @@ await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'a
 await p.route('**://api.openrouteservice.org/**', r => r.abort());
 await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
   body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
-await p.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
+/* Le dépôt ÉCHOUE exprès : depuis septembre 2026 WhatsApp ne s'ouvre plus
+   tout seul, le message ne part que par le bouton de secours — qui
+   n'apparaît que si le serveur n'a pas reçu la demande. */
+await p.route('**supabase.co/**', r => r.fulfill({status:500, body:''}));
 await ctx.addInitScript(()=>{
   window.__liens = [];
   window.open = (u)=>{ window.__liens.push(u); return null; };
@@ -164,6 +167,8 @@ check('le bon porte le mode de règlement',
   await p.locator('#bonPaiement').textContent());
 
 // ---- Le message à Barbaros ----
+await p.locator('#btnRenvoyer').waitFor({state:'visible',timeout:10000});
+await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 const L = msg.split('\n');
 check('le message porte la ligne « Paiement »',
@@ -212,6 +217,8 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(800);
 check('le bon anglais affiche « Cash »',
   (await p.locator('#bonPaiement').textContent())==='Cash',
   await p.locator('#bonPaiement').textContent());
+await p.locator('#btnRenvoyer').waitFor({state:'visible',timeout:10000});
+await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(200);
 const msgEn = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('mais le message à Barbaros reste en français',
   msgEn.includes('Paiement : Espèces'),
