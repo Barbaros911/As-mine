@@ -5586,3 +5586,23 @@ lui ont été montrés en capture ; il a choisi le **B**.
   variables `--accent*` que `hotel-engine-polish.css` réécrit.
 - **Attente = pastille grise, confirmé = pastille verte pleine.** Même règle
   que partout : si l'attente avait une couleur, elle mentirait sur l'état.
+
+## « INCLUS DANS CHAQUE COURSE », LES TROIS ÉTAPES ET LES QUESTIONS
+
+25 septembre 2026, maquette validée par Barbaros (« Ça me convient publie »).
+- « Pourquoi choisir Elatransfer ? » et ses quatre cartes sont remplacés par
+  un bloc bleu nuit **« Inclus dans chaque course »** : des FAITS tenus par
+  les CGV (attente art. 7, prix ferme art. 4, règlement art. 5), pas des
+  adjectifs. Les clés `eng1`…`eng4s` sont gardées, leurs textes ont changé.
+- **Aucune mention « VTC »** : il ne veut pas l'afficher, ses chauffeurs
+  peuvent être VTC ou taxi.
+- Les trois étapes tiennent sur **une ligne** sous le seul « Voir mon prix »
+  (`.etapes-ligne`). Un second bouton plus bas a été refusé : il rallongeait
+  la page pour rien.
+- Les **questions fréquentes** sont en bas de l'accueil, au-dessus du pied.
+  Chaque réponse reprend les CGV : en changer une, c'est relire le contrat.
+- **Les couleurs sont celles de la façade en ligne** (`--ela-navy`,
+  `--ela-blue`, `--ela-cyan` d'`application-facade.css`), pas le céladon du
+  mémo : j'avais d'abord proposé du vert en lisant une note au lieu du site.
+  **Regarder le site publié avant de choisir une couleur.**
+- Classes neuves (`.inclus`, `.faq-q`) : la façade habille `.engagement`.
