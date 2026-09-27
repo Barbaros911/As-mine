@@ -109,7 +109,7 @@ function client() {
   const repereApi = html.includes(debutApi) ? debutApi : debutApiAscii;
   html = remplacerEntre(html, repereApi, '    etat: function', '    ');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
-  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/easyhotel-reception/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){location.replace('/?'+p.toString()+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/easyhotel-reception/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
 }

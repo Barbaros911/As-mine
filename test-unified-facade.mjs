@@ -33,6 +33,8 @@ assert.match(root, /\/rest\/v1\/rpc\/est_exploitant/, "la racine vérifie le dro
 // Le tunnel Client ne reçoit aucun composant ou appel RBAC Admin.
 assert.doesNotMatch(legacy, /id="exploitantEmail"|id="exploitantMdp"|\/rest\/v1\/rpc\/est_exploitant|class="admin-nav"/,
   "/application exclut complètement l’Admin");
+assert.match(legacy, /p\.get\('exploitant'\)===['"]1['"]/,
+  "l’ancienne URL /application?exploitant=1 redirige vers l’Admin authentifié");
 assert.doesNotMatch(root, /sites\/ela-public/, "la racine ne doit plus être une copie vitrine");
 assert.match(css, /#062f55/i, "la façade conserve le bleu marine ELA");
 assert.match(css, /#12c4ee/i, "la façade conserve le cyan ELA");
