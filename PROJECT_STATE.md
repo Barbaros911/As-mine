@@ -44,8 +44,10 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   sur le forfait partenaire easyHotel (son tarif de nuit a été retiré le
   22/09/2026). Le forfait easyHotel reste une autre grille, fixe par
   destination.
-- **Un seul `index.html`.** Client, exploitant, hôtel et réception y vivent
-  ensemble. Le dupliquer, c'est le faire diverger au premier correctif.
+- **Une source fonctionnelle commune, des documents construits séparément.**
+  `construire.sh` génère des pages Client hôtel et Réception hôtel distinctes :
+  le DOM et le JavaScript livrés à un client ne contiennent ni Réception ni
+  Admin. Les correctifs partagés restent appliqués depuis la source commune.
 - **`construire.sh` est la seule recette de publication**, partagée par GitHub
   Actions et Cloudflare Pages.
 - **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé.
