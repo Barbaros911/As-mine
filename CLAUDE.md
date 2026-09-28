@@ -5664,3 +5664,27 @@ et capturer `site/`, jamais le dépôt directement. Même famille que « le
 script de capture ne construisait pas le site » plus haut dans ce fichier —
 troisième fois que ce projet se fait avoir par une capture prise avant la
 recette plutôt qu'après.
+
+## AUDIT DE SÉCURITÉ DU 28/09/2026 — DEUX FONCTIONS OUVERTES À TOUS
+
+**Le jeton vérifié par Supabase à l'entrée d'une fonction ne prouve RIEN** :
+la clé publique du site (lisible dans la page) le franchit — c'est même
+comme ça que `etat-course` et `courses-hotel` sont appelées. Toute fonction
+qui agit au nom de Barbaros doit donc vérifier elle-même `est_exploitant()`
+avec le jeton de l'appelant (modèle : `capturer-paiement`).
+- **`prevenir-client`** n'avait aucun autre contrôle : n'importe qui pouvait
+  envoyer à un client abonné une fausse « Transfert confirmé » avec le texte
+  et le LIEN de son choix, sur des références qui se devinent en comptant.
+  Elle exige maintenant un exploitant, borne le texte, et n'accepte qu'un
+  lien vers elatransfer.com. `sw.js` refuse en plus d'ouvrir un lien
+  étranger au clic sur une notification (deux défenses).
+- **`nouvelle-demande`** croyait le corps reçu : un faux « INSERT » faisait
+  partir chez Barbaros une alerte Telegram au texte libre. Elle ne garde plus
+  que la référence et **relit la course sur le serveur** — existante, créée
+  il y a moins de 15 min, jamais annoncée. **Aucun réglage à changer** : le
+  vrai webhook passe à l'identique.
+- `test-securite-fonctions.mjs` éprouve les deux, sans Deno ni réseau ;
+  six contrôles sur sept tombent sur l'ancien code.
+- **Reste ouvert, à trancher avec Barbaros** : le rôle `agent_reservation`
+  n'est limité QUE par l'écran (CSS) — côté serveur `est_exploitant()` lui
+  donne tout ; `role_operateur` n'est défini dans aucune migration du dépôt.
