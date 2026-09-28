@@ -5141,11 +5141,21 @@ window.ELA_TEXTES = {
       s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
     });
     var km = distanceParis(item);
-    if(km !== null){
-      if(km <= RAYON_RECHERCHE_KM) s += 2;       // dans la zone desservie : ça remonte
-      else if(km > 300) s -= 2;                  // à l'autre bout de la France : ça descend, sans disparaître
-    }
+    if(km !== null) s += bonusDistance(km);
     return s;
+  }
+  /* GRADUÉ, PAS UN SEUIL UNIQUE (28 septembre 2026, à sa demande : « fait ce
+     que tu penses être le meilleur sans restreindre le client »). Une seule
+     coupure à 90 km traitait Melun (50 km, dans la zone) et Deauville
+     (180 km, hors zone mais une vraie destination qu'on sert de vive voix —
+     voir « la zone desservie » plus bas) exactement comme Marseille : même
+     pénalité, alors que l'un est un client plausible et l'autre ne l'est
+     presque jamais. Le dégradé les distingue sans qu'aucun ne disparaisse. */
+  function bonusDistance(km){
+    if(km <= RAYON_RECHERCHE_KM) return 3;      // Île-de-France : priorité nette
+    if(km <= 200) return 1;                     // grande couronne élargie, villes limitrophes
+    if(km <= 400) return 0;                     // une vraie destination lointaine, ni remontée ni enfoncée
+    return -2;                                  // à l'autre bout de la France : ça descend, sans disparaître
   }
   /* Deux résultats à quelques mètres l'un de l'autre sont le même lieu, même
      si les libellés diffèrent d'une virgule : on dédoublonne sur les DEUX. */

@@ -5690,8 +5690,7 @@ même biais.
   de score, et c'était l'ordre brut renvoyé par le serveur qui décidait —
   sans rapport avec ce que cherche un client d'Elatransfer. `note()` ajoute
   maintenant un bonus pour ce qui tombe dans les 90 km (`CENTRE_RECHERCHE`,
-  `RAYON_RECHERCHE_KM`) et une pénalité, jamais une suppression, au-delà de
-  300 km.
+  `RAYON_RECHERCHE_KM`) via `bonusDistance()`.
 - **LE CENTRE DE PARIS EST RECOPIÉ, PAS PARTAGÉ**, à trois endroits
   maintenant (Photon, `note()`, et `CENTRE_ZONE` de la zone desservie plus
   bas) : c'est un fait géographique stable, pas une grille tarifaire
@@ -5701,3 +5700,30 @@ même biais.
   `-geoloc`, `-itineraire`, `test-admin-prix` restent toutes vertes. Et
   éprouvé pour de vrai — une fausse BAN qui rend Marseille EN PREMIER,
   avant Paris : la page réordonne, Paris passe devant.
+
+**LE SEUIL UNIQUE A ÉTÉ REMPLACÉ PAR UN DÉGRADÉ** (même jour, à sa demande :
+« fait ce que tu penses être le meilleur sans restreindre le client »). Une
+seule coupure à 90 km traitait Melun (50 km, dans la zone), Tours (220 km,
+une vraie destination qu'on sert de vive voix — voir « la zone desservie »
+plus bas) et Marseille (660 km) de la même façon dès qu'on sortait des
+90 km : même pénalité pour un client plausible et pour un homonyme sans
+rapport. `bonusDistance(km)` (`itineraire-partage.js` n'est pas concerné,
+c'est une fonction de `index.html`) :
+| Distance | Bonus |
+|---|---|
+| ≤ 90 km (la zone desservie) | +3 |
+| ≤ 200 km (grande couronne élargie, villes limitrophes) | +1 |
+| ≤ 400 km (une vraie destination lointaine) | 0 |
+| > 400 km | −2 |
+- **TOUJOURS AUCUNE EXCLUSION** : le dernier palier redescend, il ne retire
+  rien — même règle que le palier unique qu'il remplace.
+- **LA BAN EST INTERROGÉE PLUS LARGE** (`limit=10`, pas 6). Sur un nom de
+  rue courant, six homonymes suffisaient à remplir la liste de villes de
+  province avant que le classement ait un exemplaire francilien à faire
+  remonter — le tri se fait ensuite, ici on lui donne seulement plus de
+  candidats à trier. Même raisonnement que le `limit=15` déjà admis chez
+  Photon pour les noms de chaîne.
+- **Éprouvé** : Melun (50 km) et Paris ressortent avant Tours (220 km),
+  qui ressort avant Marseille (660 km) — un dégradé à trois vraies marches,
+  pas seulement Paris contre le reste. Les suites `test-nouveau`, `-hotel`,
+  `-geoloc`, `-itineraire`, `test-admin-prix` restent toutes vertes.
