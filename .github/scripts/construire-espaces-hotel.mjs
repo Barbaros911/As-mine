@@ -22,6 +22,23 @@ function retirerElementParId(html, tag, id) {
   throw new Error(`balise fermante introuvable pour #${id}`);
 }
 
+function retirerElementParClasse(html, tag, classe) {
+  const ouverture = new RegExp(`<${tag}\\b[^>]*\\bclass=["'][^"']*\\b${classe}\\b[^"']*["'][^>]*>`, 'i');
+  const trouve = ouverture.exec(html);
+  if (!trouve) return html;
+  const depart = trouve.index;
+  const balises = new RegExp(`<${tag}\\b[^>]*>|</${tag}>`, 'ig');
+  balises.lastIndex = depart;
+  let profondeur = 0;
+  let m;
+  while ((m = balises.exec(html))) {
+    if (m[0].startsWith('</')) profondeur -= 1;
+    else profondeur += 1;
+    if (profondeur === 0) return html.slice(0, depart) + html.slice(balises.lastIndex);
+  }
+  throw new Error(`balise fermante introuvable pour ${tag}.${classe}`);
+}
+
 function retirerNavigationAdmin(html) {
   const m = /<nav\b[^>]*class=["'][^"']*\badmin-nav\b[^"']*["'][^>]*>/i.exec(html);
   if (!m) throw new Error('navigation Admin introuvable');
@@ -65,7 +82,7 @@ const sectionsAdmin = [
   'ecran-registre', 'ecran-chauffeurs', 'ecran-facture', 'ecran-bord-bon',
 ];
 
-function socle(role) {
+function sansAdmin() {
   let html = source;
   html = retirerNavigationAdmin(html);
   for (const id of sectionsAdmin) html = retirerElementParId(html, 'section', id);
@@ -82,17 +99,10 @@ function socle(role) {
   html = remplacerEntreApres(html, 'LA BARRE DU BAS', repereAdmin, repereFin,
     '/* Code Admin exclu de ce bundle par construire-espaces-hotel.mjs. */\n\n');
 
-  const bootstrap = role === 'reception'
-    ? `/* Entrée Réception dédiée : authentification avant le comptoir. */\n  lireHotel();\n  ouvrirReception();\n\n`
-    : `/* Entrée Client hôtel : aucune fonction Réception ou Admin. */\n  if(!lireConfirmation() && !lireHotel()) lirePrefillAeroport();\n\n`;
-  const docs = '/* =====================================================================\n   LES DOCUMENTS LÉGAUX';
-  html = html.replace(docs, bootstrap + docs);
-  if (!html.includes(bootstrap.trim())) throw new Error(`bootstrap ${role} non injecté`);
   return html;
 }
 
-function client() {
-  let html = socle('client');
+function sansReception(html) {
   html = retirerElementParId(html, 'section', 'ecran-reception');
   html = html.replace(/<button\b[^>]*id=["']btnReception["'][^>]*>[\s\S]*?<\/button>\s*/i, '');
   const debutReception = '/* =====================================================================\n   L’ESPACE DE LA RÉCEPTION';
@@ -108,14 +118,43 @@ function client() {
   const debutApiAscii = '    /* ═══ LES COURSES D\'UN HÔTEL PARTENAIRE, POUR SA RÉCEPTION ═══';
   const repereApi = html.includes(debutApi) ? debutApi : debutApiAscii;
   html = remplacerEntre(html, repereApi, '    etat: function', '    ');
+  return html;
+}
+
+function injecterBootstrap(html, role) {
+  const bootstraps = {
+    public: `/* Entrée Publique dédiée : aucun mode Hôtel, Réception ou Admin. */\n  if(!lireConfirmation()) lirePrefillAeroport();\n\n`,
+    client: `/* Entrée Client hôtel : aucune fonction Réception ou Admin. */\n  if(!lireConfirmation() && !lireHotel()) lirePrefillAeroport();\n\n`,
+    reception: `/* Entrée Réception dédiée : authentification avant le comptoir. */\n  lireHotel();\n  ouvrirReception();\n\n`,
+  };
+  const bootstrap = bootstraps[role];
+  const docs = '/* =====================================================================\n   LES DOCUMENTS LÉGAUX';
+  html = html.replace(docs, bootstrap + docs);
+  if (!html.includes(bootstrap.trim())) throw new Error(`bootstrap ${role} non injecté`);
+  return html;
+}
+
+function publicEla() {
+  let html = sansReception(sansAdmin());
+  html = injecterBootstrap(html, 'public');
+  html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="public">');
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var r=p.toString();location.replace('/easyhotel-reception/'+(r?'?'+r:'')+location.hash);return}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
+  html = html.replace('</head>', redirection + '</head>');
+  return html;
+}
+
+function client() {
+  let html = sansReception(sansAdmin());
+  html = injecterBootstrap(html, 'client');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
-  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){location.replace('/?'+p.toString()+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/easyhotel-reception/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/easyhotel-reception/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
 }
 
 function reception() {
-  let html = socle('reception');
+  let html = sansAdmin();
+  html = injecterBootstrap(html, 'reception');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-reception" data-ela-hotel="easyhotel-aeroville">');
   html = html.replace('<head>', '<head>\n<base href="/">');
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
@@ -125,8 +164,53 @@ function reception() {
   return html;
 }
 
+function admin() {
+  let html = source;
+  const sectionsPubliques = [
+    'ecran-accueil', 'ecran-vehicules', 'ecran-recap', 'ecran-bon',
+    'ecran-courses', 'ecran-trajets', 'ecran-contact', 'ecran-legal',
+    'ecran-reception',
+  ];
+  for (const id of sectionsPubliques) html = retirerElementParId(html, 'section', id);
+  html = retirerElementParClasse(html, 'header', 'entete');
+  html = retirerElementParClasse(html, 'nav', 'barre');
+  html = retirerElementParId(html, 'div', 'feuilleWa');
+  html = html.replace(/<script\b[^>]*src=["']\/hotel-engine-polish\.js["'][^>]*><\/script>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*href=["']\/hotel-engine-polish\.css["'][^>]*>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*rel=["']apple-touch-icon["'][^>]*>\s*/gi, '');
+  html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="admin">');
+  const compatibilite = `<script>/* Compatibilité temporaire du moteur historique partagé : les éléments
+     Client retirés du document deviennent des nœuds détachés, jamais du DOM livré. */
+(function(){var vrai=document.getElementById.bind(document),detaches=new Map();window.__elaGetElementByIdReel=vrai;document.getElementById=function(id){var present=vrai(id);if(present)return present;if(!detaches.has(id)){var n=document.createElement(/Dest|Terminal|Vehicule|Select|Pays/i.test(id)?'select':'input');n.id=id;detaches.set(id,n)}return detaches.get(id)}}());</script>`;
+  html = html.replace('<head>', '<head>\n<base href="/">\n<link rel="manifest" href="/manifest-exploitant.webmanifest">\n<link rel="apple-touch-icon" href="/icon-180.png">\n' + compatibilite);
+  /* Le moteur historique partage encore des définitions avec le tunnel
+     client. Dans le document Admin, les branchements d'interface absents
+     deviennent volontairement optionnels ; les branchements Admin, eux,
+     trouvent toujours leurs éléments et restent actifs. */
+  html = html.replace(/\.addEventListener\(/g, '?.addEventListener(');
+  html = html.replace('  chaque(hotelTete.querySelectorAll(".hotel-sens-btn"), function(b){',
+    '  if(hotelTete) chaque(hotelTete.querySelectorAll(".hotel-sens-btn"), function(b){');
+  const repereAdmin = '/* =====================================================================\n   L\'ESPACE EXPLOITANT';
+  const positionAdmin = html.lastIndexOf(repereAdmin);
+  if (positionAdmin < 0) throw new Error('début du moteur Admin introuvable');
+  html = html.slice(0, positionAdmin)
+    + '  document.getElementById = window.__elaGetElementByIdReel;\n\n'
+    + html.slice(positionAdmin);
+  html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
+    '<meta name="robots" content="noindex,nofollow">');
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>Administration — ELA Transfer</title>');
+  const mode = `var MODE_EXPLOITANT = false;\n  try{\n    MODE_EXPLOITANT = new URLSearchParams(location.search).get("exploitant") === "1";\n  }catch(e){ MODE_EXPLOITANT = false; }`;
+  if (!html.includes(mode)) throw new Error('sélecteur du mode exploitant introuvable');
+  html = html.replace(mode, 'var MODE_EXPLOITANT = true;');
+  html = html.replace('location.href = location.pathname;', 'location.href = "/";');
+  return html;
+}
+
+const publicHtml = publicEla();
 const clientHtml = client();
 const receptionHtml = reception();
+const adminHtml = admin();
 
 const interditsClient = [
   'id="ecran-reception"', 'id="ecran-chauffeurs"', 'id="ecran-facture"',
@@ -143,11 +227,30 @@ const interditsReception = [
 for (const interdit of interditsReception) {
   if (receptionHtml.includes(interdit)) throw new Error(`fuite Réception : ${interdit}`);
 }
+const interditsPublic = [
+  'id="ecran-reception"', 'id="ecran-verrou"', 'id="ecran-bord"',
+  'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"',
+  'coursesHotel: function', 'nuage.roleOperateur', 'class="admin-nav"',
+];
+for (const interdit of interditsPublic) {
+  if (publicHtml.includes(interdit)) throw new Error(`fuite Public : ${interdit}`);
+}
+const interditsAdmin = [
+  'id="ecran-accueil"', 'id="ecran-vehicules"', 'id="ecran-recap"',
+  'id="ecran-bon"', 'id="ecran-reception"', 'class="barre"',
+];
+for (const interdit of interditsAdmin) {
+  if (adminHtml.includes(interdit)) throw new Error(`fuite Admin : ${interdit}`);
+}
 
 fs.mkdirSync(sortie, { recursive: true });
+fs.writeFileSync(path.join(sortie, 'index.html'), publicHtml);
 fs.writeFileSync(path.join(sortie, 'application.html'), clientHtml);
 const dossierReception = path.join(sortie, 'easyhotel-reception');
 fs.mkdirSync(dossierReception, { recursive: true });
 fs.writeFileSync(path.join(dossierReception, 'index.html'), receptionHtml);
+const dossierAdmin = path.join(sortie, 'ela-admin');
+fs.mkdirSync(dossierAdmin, { recursive: true });
+fs.writeFileSync(path.join(dossierAdmin, 'index.html'), adminHtml);
 
-console.log(`Espaces hôtel construits : Client ${clientHtml.length} octets · Réception ${receptionHtml.length} octets.`);
+console.log(`Quatre espaces construits : Public ${publicHtml.length} octets · Client ${clientHtml.length} octets · Réception ${receptionHtml.length} octets · Admin ${adminHtml.length} octets.`);

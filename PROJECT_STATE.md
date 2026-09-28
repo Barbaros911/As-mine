@@ -44,10 +44,12 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   sur le forfait partenaire easyHotel (son tarif de nuit a été retiré le
   22/09/2026). Le forfait easyHotel reste une autre grille, fixe par
   destination.
-- **Une source fonctionnelle commune, des documents construits séparément.**
-  `construire.sh` génère des pages Client hôtel et Réception hôtel distinctes :
-  le DOM et le JavaScript livrés à un client ne contiennent ni Réception ni
-  Admin. Les correctifs partagés restent appliqués depuis la source commune.
+- **Quatre documents construits et cloisonnés.** `construire.sh` livre une
+  entrée distincte pour le Public, le Client hôtel, la Réception hôtel et
+  l'Admin. Le Public et le Client ne reçoivent plus le DOM, les appels ni le
+  RBAC Admin ; la Réception reste limitée à son hôtel ; l'Admin dédié conserve
+  l'interface historique choisie par l'exploitant. Les anciens liens deviennent
+  uniquement des redirections vers l'entrée canonique.
 - **`construire.sh` est la seule recette de publication**, partagée par GitHub
   Actions et Cloudflare Pages.
 - **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé.
@@ -147,9 +149,10 @@ on le signale et on attend. Voir `TEAM_RULES` §3.
 
 **LA CIBLE RESTE UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
 La parité fonctionnelle d'Admin v2, y compris la chaîne partagée
-itinéraire/prix, a été fusionnée dans **#191**. Admin v2 est publié en
-préversion, tandis que l'entrée exploitant historique reste active tant que
-la bascule finale n'a pas été validée.
+itinéraire/prix, a été fusionnée dans **#191**. Admin v2 reste publié en
+préversion : l'interface historique explicitement retenue par l'exploitant est
+extraite dans l'entrée dédiée `/ela-admin/`. L'ancien mode `?exploitant=1` ne
+porte plus l'interface et redirige vers cette entrée canonique.
 
 La refonte responsive Admin historique de #165/#192 a été dépassée par les
 intégrations validées et fusionnées dans **#218 puis #219**. Le suivi ne doit

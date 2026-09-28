@@ -336,7 +336,7 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
     cotex === 'manifest-exploitant.webmanifest', cotex);
   const mf = await (await fetch('http://127.0.0.1:8099/manifest-exploitant.webmanifest')).json();
   check('il rouvre l\'espace, pas le site client',
-    /exploitant=1/.test(mf.start_url || ''), mf.start_url);
+    mf.start_url === '/ela-admin/', mf.start_url);
   /* ON COMPARE LES DEUX MANIFESTES L'UN À L'AUTRE, on ne compte plus.
      Le contrôle exigeait « 3 icônes » — le compte du jour où il a été
      écrit. Le jeu est passé à deux, légitimement, et il est tombé alors
@@ -405,7 +405,7 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
   await px.locator('a.ouvrir').click();
   await px.waitForTimeout(900);
   check('« /exploitant/ » ouvre bien l\'espace exploitant',
-    /exploitant=1/.test(px.url()) && !/\/exploitant\//.test(px.url()), px.url());
+    /\/ela-admin\//.test(px.url()) && !/\/exploitant\//.test(px.url()), px.url());
   check('et elle s\'arrête sur le verrou, jamais sur le tableau de bord',
     await px.locator('#ecran-verrou').isVisible());
 
@@ -417,7 +417,7 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
   await px.locator('a.ouvrir').click();
   await px.waitForTimeout(900);
   check('elle transmet les paramètres reçus',
-    /a=ZZZ/.test(px.url()) && /exploitant=1/.test(px.url()), px.url());
+    /a=ZZZ/.test(px.url()) && /\/ela-admin\//.test(px.url()), px.url());
 
   /* ELLE N'A RIEN À FAIRE DANS GOOGLE. Ce n'est pas un secret — c'est une
      serrure derrière, pas un coffre — mais une page de travail indexée sort
@@ -440,7 +440,7 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
      « application.html », la page de l'application depuis la séparation. */
   const ouvrir = (brutX.match(/class="ouvrir"\s+href="([^"]+)"/) || [])[1];
   check('le bouton remonte d\'un dossier',
-    /^\.\.\/application\.html/.test(ouvrir || ''), String(ouvrir));
+    /^\.\.\/ela-admin\//.test(ouvrir || ''), String(ouvrir));
 
   /* LE MANIFESTE EST DÉCLARÉ SUR LA PAGE DE REDIRECTION ELLE-MÊME.
      « Ajouter à l'écran d'accueil » lit le manifeste de la page AFFICHÉE au

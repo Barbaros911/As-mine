@@ -1,6 +1,6 @@
-/* Cloisonnement durable des espaces Client hôtel et Réception hôtel.
+/* Cloisonnement durable des quatre espaces ELA.
    La suite construit exactement ce qui sera publié puis vérifie le DOM,
-   les scripts chargés et le comportement anonyme des deux URL. */
+   les scripts chargés, les anciennes URL et les accès anonymes. */
 import { chromium } from 'playwright';
 import { execFileSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -40,6 +40,24 @@ try {
     if (url.startsWith(`http://127.0.0.1:${PORT}`)) return route.continue();
     return route.abort();
   });
+
+  const publicEla = await contexte.newPage();
+  const erreursPublic = [];
+  const requetesPublic = [];
+  publicEla.on('pageerror', (e) => erreursPublic.push(e.message));
+  publicEla.on('request', (r) => requetesPublic.push(r.url()));
+  await publicEla.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'domcontentloaded' });
+  await publicEla.waitForTimeout(500);
+  check('Public : entrée dédiée',
+    await publicEla.evaluate(() => document.documentElement.dataset.elaSpace === 'public'));
+  check('Public : aucun DOM Réception ou Admin',
+    await publicEla.locator('#ecran-reception,.admin-nav,#ecran-verrou,#ecran-bord,#ecran-chauffeurs,#ecran-facture,#ecran-reglages').count() === 0);
+  check('Public : aucun code Admin ou API Réception',
+    !(await publicEla.content()).includes('/rest/v1/rpc/est_exploitant')
+      && !(await publicEla.content()).includes('coursesHotel: function'));
+  check('Public : aucune requête Admin ou Réception',
+    requetesPublic.every((url) => !/courses-hotel|est_exploitant|role_operateur|presences_operateurs/i.test(url)));
+  check('Public : aucune erreur JavaScript', erreursPublic.length === 0, erreursPublic.join(' | '));
 
   const client = await contexte.newPage();
   const erreursClient = [];
@@ -101,14 +119,47 @@ try {
   check('Réception : aucune erreur JavaScript', erreursReception.length === 0,
     erreursReception.join(' | '));
 
+  const admin = await contexte.newPage();
+  const erreursAdmin = [];
+  admin.on('pageerror', (e) => erreursAdmin.push(e.stack || e.message));
+  await admin.goto(`http://127.0.0.1:${PORT}/ela-admin/`, { waitUntil: 'domcontentloaded' });
+  await admin.waitForTimeout(700);
+  check('Admin : entrée dédiée et authentification visible',
+    await admin.evaluate(() => document.documentElement.dataset.elaSpace === 'admin')
+      && await admin.locator('#ecran-verrou').isVisible()
+      && await admin.locator('#exploitantEmail').isVisible()
+      && await admin.locator('#exploitantMdp').isVisible());
+  check('Admin : aucun DOM Public, Client hôtel ou Réception',
+    await admin.locator('#ecran-accueil,#ecran-vehicules,#ecran-recap,#ecran-bon,#ecran-reception,.barre').count() === 0);
+  check('Admin : le contrôle serveur des droits est conservé',
+    (await admin.content()).includes('/rest/v1/rpc/est_exploitant'));
+  check('Admin : aucune erreur JavaScript', erreursAdmin.length === 0, erreursAdmin.join(' | '));
+
+  const aliasAdmin = await contexte.newPage();
+  await aliasAdmin.goto(`http://127.0.0.1:${PORT}/application.html?exploitant=1`,
+    { waitUntil: 'domcontentloaded' });
+  await aliasAdmin.waitForTimeout(300);
+  check('Alias : l’ancienne URL Admin rejoint l’entrée dédiée',
+    aliasAdmin.url().includes('/ela-admin/'), aliasAdmin.url());
+
+  const aliasHotel = await contexte.newPage();
+  await aliasHotel.goto(`http://127.0.0.1:${PORT}/?h=easyhotel-aeroville&dest=orly`,
+    { waitUntil: 'domcontentloaded' });
+  await aliasHotel.waitForTimeout(300);
+  check('Alias : un contexte hôtel quitte le Public pour le Client hôtel',
+    aliasHotel.url().includes('/application.html?h=easyhotel-aeroville'), aliasHotel.url());
+
+  const sourcePublic = readFileSync('site/index.html', 'utf8');
   const sourceClient = readFileSync('site/application.html', 'utf8');
   const sourceReception = readFileSync('site/easyhotel-reception/index.html', 'utf8');
-  const sourceMonolithe = readFileSync('site/index.html', 'utf8');
-  check('Build : les deux documents sont physiquement différents',
-    sourceClient !== sourceReception);
-  check('Build : les deux documents sont allégés face au monolithe',
-    sourceClient.length < sourceMonolithe.length && sourceReception.length < sourceMonolithe.length,
-    `${sourceClient.length}/${sourceReception.length}/${sourceMonolithe.length}`);
+  const sourceAdmin = readFileSync('site/ela-admin/index.html', 'utf8');
+  const sourceMonolithe = readFileSync('index.html', 'utf8');
+  check('Build : les quatre documents sont physiquement différents',
+    new Set([sourcePublic, sourceClient, sourceReception, sourceAdmin]).size === 4);
+  check('Build : les quatre documents sont allégés face à la source monolithique',
+    [sourcePublic, sourceClient, sourceReception, sourceAdmin]
+      .every((document) => document.length < sourceMonolithe.length),
+    `${sourcePublic.length}/${sourceClient.length}/${sourceReception.length}/${sourceAdmin.length}/${sourceMonolithe.length}`);
   check('Serveur : une réservation Réception exige un jeton signé',
     readFileSync('supabase/functions/deposer-course/index.ts', 'utf8')
       .includes('session réception refusée'));
