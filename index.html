@@ -5114,12 +5114,37 @@ window.ELA_TEXTES = {
     if(utiles.length && utiles.length < mots.length) liste.push(utiles.join(" "));
     return liste;
   }
+  /* MÊME CENTRE ET MÊME RAYON QUE « LA ZONE DESSERVIE » plus bas dans ce
+     fichier (CENTRE_ZONE / RAYON_ZONE_KM) — recopiés ici, pas partagés :
+     Photon, dans itineraire-partage.js, fait déjà de même pour son propre
+     biais. Trois endroits qui utilisent le centre de Paris, c'est un fait
+     géographique stable, pas une grille tarifaire appelée à changer.
+     LA LOGIQUE : un client tape « rue de la Paix » ou « rue de la Gare » —
+     des noms qui existent par dizaines dans toute la France. Sans repère,
+     le score ne compare que des mots, et deux rues homonymes arrivent à
+     égalité ; c'est alors l'ordre brut du serveur qui décide, sans rapport
+     avec ce que cherche un client d'Elatransfer. On ne DIT jamais qu'une
+     adresse loin de Paris est invalide ici — ça, c'est le rôle de
+     « horsZone », plus bas, appliqué au moment du choix, pas de la
+     recherche : on la fait seulement remonter ou descendre dans la liste. */
+  var CENTRE_RECHERCHE = { lat:48.8566, lon:2.3522 };
+  var RAYON_RECHERCHE_KM = 90;
+  function distanceParis(item){
+    if(typeof item.lat !== "number" || typeof item.lon !== "number") return null;
+    var route = window.ELA_ROUTE;
+    return route && route.volDoiseauKm ? route.volDoiseauKm(CENTRE_RECHERCHE, item) : null;
+  }
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
     mots.forEach(function(m){
       if(m.length < 2 || l.indexOf(m) === -1) return;
       s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
     });
+    var km = distanceParis(item);
+    if(km !== null){
+      if(km <= RAYON_RECHERCHE_KM) s += 2;       // dans la zone desservie : ça remonte
+      else if(km > 300) s -= 2;                  // à l'autre bout de la France : ça descend, sans disparaître
+    }
     return s;
   }
   /* Deux résultats à quelques mètres l'un de l'autre sont le même lieu, même

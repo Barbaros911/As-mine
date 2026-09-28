@@ -5664,3 +5664,40 @@ et capturer `site/`, jamais le dépôt directement. Même famille que « le
 script de capture ne construisait pas le site » plus haut dans ce fichier —
 troisième fois que ce projet se fait avoir par une capture prise avant la
 recette plutôt qu'après.
+
+## LA RECHERCHE D'ADRESSE RAPPROCHE DE PARIS, ELLE N'EXCLUT RIEN
+
+28 septembre 2026, à sa demande : « il doit m'aider à trouver les adresses
+logiques en Île-de-France, pas me proposer une rue dans le sud de la
+France ». Sur un nom de rue courant (« rue de la Paix », « rue de la
+Gare »…), qui existe par dizaines dans toute la France, la liste pouvait
+mettre en tête une ville à 800 km sans rapport avec la zone desservie.
+
+**LE TROU ÉTAIT DANS LA BASE ADRESSE NATIONALE, PAS DANS PHOTON.** Photon
+portait déjà un biais vers Paris (`lat=48.8566&lon=2.3522` dans
+`itineraire-partage.js`) ; la BAN — celle qui répond aux adresses postales,
+donc la branche que prend une saisie commençant par un chiffre, la plus
+fréquente du site — n'en portait AUCUN. `depuisBAN()` porte maintenant le
+même biais.
+- **CE N'EST PAS UNE EXCLUSION, ET C'EST VOULU.** `&lat=` / `&lon=`
+  RAPPROCHENT sans jamais retirer un résultat : un client qui part
+  vraiment de Bordeaux garde sa rue dans la liste, elle descend juste. La
+  vraie interdiction (la zone des 90 km) reste au moment du CHOIX
+  (`horsZone`), pas à la recherche — chercher et réserver sont deux
+  moments différents.
+- **LE CLASSEMENT DE `chercher()` (index.html) TENAIT COMPTE DU TEXTE,
+  JAMAIS DE LA DISTANCE.** Deux rues homonymes arrivaient donc à égalité
+  de score, et c'était l'ordre brut renvoyé par le serveur qui décidait —
+  sans rapport avec ce que cherche un client d'Elatransfer. `note()` ajoute
+  maintenant un bonus pour ce qui tombe dans les 90 km (`CENTRE_RECHERCHE`,
+  `RAYON_RECHERCHE_KM`) et une pénalité, jamais une suppression, au-delà de
+  300 km.
+- **LE CENTRE DE PARIS EST RECOPIÉ, PAS PARTAGÉ**, à trois endroits
+  maintenant (Photon, `note()`, et `CENTRE_ZONE` de la zone desservie plus
+  bas) : c'est un fait géographique stable, pas une grille tarifaire
+  appelée à changer — même raisonnement que la répétition déjà acceptée
+  entre Photon et la zone desservie.
+- **Validé** : les suites `test-nouveau` (recherche d'adresse), `-hotel`,
+  `-geoloc`, `-itineraire`, `test-admin-prix` restent toutes vertes. Et
+  éprouvé pour de vrai — une fausse BAN qui rend Marseille EN PREMIER,
+  avant Paris : la page réordonne, Paris passe devant.
