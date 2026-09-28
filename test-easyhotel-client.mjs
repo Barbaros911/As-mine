@@ -23,7 +23,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 
 execSync('sh construire.sh', { cwd: process.cwd(), stdio: 'ignore' });
@@ -46,10 +46,31 @@ const SRC = readFileSync('supabase/migrations/20260916100000_current_tariff_sour
 const ATT = {};
 for (const m of SRC.matchAll(/\('(\w+)','[^']*','(berline|van)',(\d+)\)/g))
   (ATT[m[1]] ||= [])[m[2]==='berline'?0:1] = Number(m[3])/100;
-const autre = JSON.parse(SRC.match(/'tarif_easyhotel_autre','(\{[^']*\})'/)[1]);
+/* « Autre destination » N'A PLUS SA PROPRE GRILLE (28/09/2026) : le
+   transformateur qui l'injectait au moment de construire a été supprimé,
+   il n'y a plus qu'UN tarif au kilomètre pour tout le monde. On le lit
+   donc dans « tarif_general_* », en rejouant TOUTES les migrations dans
+   l'ordre (la seconde ne fait que corriger la première) — même règle que
+   « verifier-tarif-hotel.mjs » et « test-doc.mjs ». */
+const GENERAL = {};
+const fichiers = readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql')).sort();
+for (const f of fichiers) {
+  const texte = readFileSync(join('supabase/migrations', f), 'utf8');
+  const trouvailles = [];
+  for (const m of texte.matchAll(/\('(tarif_general_\w+)'\s*,\s*'(\{[^']*\})'::jsonb/g))
+    trouvailles.push({ gamme: m[1], valeur: m[2], index: m.index });
+  for (const m of texte.matchAll(/update\s+public\.parametres_commerciaux\s+set\s+valeur\s*=\s*'(\{[^']*\})'[^;]*where\s+cle\s*=\s*'(tarif_general_\w+)'/gi))
+    trouvailles.push({ gamme: m[2], valeur: m[1], index: m.index });
+  trouvailles.sort((a,b)=>a.index-b.index);
+  for (const t of trouvailles) GENERAL[t.gamme] = JSON.parse(t.valeur);
+}
+const genB = GENERAL.tarif_general_berline, genV = GENERAL.tarif_general_van;
+/* Même arrondi que la page (« arrondiDizaine » d'itineraire-partage.js) :
+   à la dizaine, et le 5 pile DESCEND — jamais Math.round. */
+function arrondiDizaine(p){ const bas = Math.floor(p/10)*10; return (p-bas>5) ? bas+10 : bas; }
 const KM = 52;
-const AUTRE = [Math.max(Math.round(autre.berline_par_km_centimes/100*KM), autre.berline_minimum_centimes/100),
-               Math.max(Math.round(autre.van_par_km_centimes/100*KM), autre.van_minimum_centimes/100)];
+const AUTRE = [Math.max(arrondiDizaine(genB.par_km_centimes/100*KM), genB.minimum_centimes/100),
+               Math.max(arrondiDizaine(genV.par_km_centimes/100*KM), genV.minimum_centimes/100)];
 /* UNE PAGE FIGÉE NE RÉPOND PLUS À « evaluate », QUI N'A PAS DE DÉLAI : sans
    ce garde-fou la suite attendrait pour toujours au lieu d'échouer. */
 setTimeout(() => { console.log('=== ÉCHECS (1) ===\n  ✘ le parcours ne répond plus : le moteur est figé (boucle ?)'); process.exit(1); }, 240000).unref();

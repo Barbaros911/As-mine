@@ -365,13 +365,32 @@ if(refs){
    seul tombe, et le message dit lequel.
    ===================================================================== */
 {
-  const fSql = "supabase/migrations/20260916100000_current_tariff_source.sql";
-  if(existsSync(fSql)){
-    const sql = readFileSync(fSql, "utf8");
+  /* ON REJOUE TOUTES LES MIGRATIONS, PAS UNE SEULE. Le tarif général a été
+     SEMÉ par « current_tariff_source.sql » (INSERT) puis CORRIGÉ par
+     « tarif_unifie.sql » (UPDATE, 28/09/2026, unification du tarif hôtel
+     et du tarif public) — ne lire que le premier fichier aurait comparé
+     le client à une valeur que la base ne porte plus. Chaque forme capture
+     sa clé ET son JSON dans le MÊME match, pour ne jamais recoller par
+     proximité de texte la valeur d'une gamme au « where cle » d'une autre
+     — piège déjà rencontré et corrigé dans verifier-tarif-hotel.mjs. */
+  const migDir = "supabase/migrations";
+  if(existsSync(migDir)){
+    const sql = readdirSync(migDir).filter(f => f.endsWith(".sql")).sort()
+      .map(f => readFileSync(migDir + "/" + f, "utf8")).join("\n");
+    const lignes = [];
+    for(const m of sql.matchAll(/\('(tarif_general_\w+)'\s*,\s*'(\{[^']*\})'::jsonb/g)){
+      lignes.push({ i:m.index, cle:m[1].replace("tarif_general_", ""), json:m[2] });
+    }
+    for(const m of sql.matchAll(/update\s+public\.parametres_commerciaux\s+set\s+valeur\s*=\s*'(\{[^']*\})'[^;]*where\s+cle\s*=\s*'(tarif_general_\w+)'/gi)){
+      lignes.push({ i:m.index, cle:m[2].replace("tarif_general_", ""), json:m[1] });
+    }
+    lignes.sort((a, b) => a.i - b.i);
     const serveur = {};
-    for(const m of sql.matchAll(/'tarif_general_(berline|van)','(\{[^']*\})'/g)){
-      try { const j = JSON.parse(m[2]);
-            serveur[m[1]] = { km: j.par_km_centimes/100, mini: j.minimum_centimes/100 }; }
+    for(const cle of ["berline", "van"]){
+      const trouvees = lignes.filter(l => l.cle === cle);
+      if(!trouvees.length) continue;
+      try { const j = JSON.parse(trouvees[trouvees.length - 1].json);
+            serveur[cle] = { km: j.par_km_centimes/100, mini: j.minimum_centimes/100 }; }
       catch(e){ /* la ligne a changé de forme : le contrôle suivant le dira */ }
     }
     const client = {};

@@ -945,8 +945,8 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,65 € | 30 € |
-| Van (7 places) | 4,00 € | 50 € |
+| Berline (4 places) | 2,90 € | 30 € |
+| Van (7 places) | 4,70 € | 50 € |
 
 **CE TABLEAU A MENTI PENDANT DES JOURS** (corrigé le 16 septembre 2026). Il
 annonçait encore 2,35 et 4,08 €/km alors que la PR #123 les avait portés à
@@ -4330,22 +4330,17 @@ Barbaros**, `prix`, et les appels d'adresse BAN/Photon.
   **appels** et leur lecture, donc les coordonnées ; `lieu()` y rend le
   premier résultat plausible, ce dont Admin v2 a besoin. **La limite est
   nommée plutôt que cachée.**
-- **`prix` RESTE UNE FONCTION DE LA PAGE, ET LA RAISON EST AILLEURS QUE DANS
-  LE CALCUL.** Elle ne calcule plus rien — elle délègue — mais elle est
-  **l'ancre de la règle tarifaire du partenaire hôtel**, que
-  `.github/scripts/appliquer-regles-easyhotel.mjs` applique au moment de
-  **construire** le site. Cette règle a besoin de `modeHotel()` et de
-  `course`, qui ne vivent que dans cette page : la faire porter par le fichier
-  partagé l'obligerait à connaître un mode hôtel que l'espace exploitant n'a
-  pas. Le partenaire reste ici, le calcul est là-bas, et l'ancre du
-  transformateur a suivi la nouvelle forme.
-  **C'EST UNE SECONDE GRILLE** (2,55 et 4,10 €/km, arrondi à l'euro), posée à
-  la construction. C'est une décision de Barbaros — le van moins cher que le
-  site est un prix d'appel assumé — pas un défaut à corriger en passant.
-  **ET ELLE EST BIEN DÉCLARÉE CÔTÉ SERVEUR**, dans `tarif_easyhotel_autre` :
-  j'avais d'abord écrit qu'elle ne l'était pas, c'était faux, la source
-  serveur la porte au centime. **Ce qui manquait n'était pas la déclaration,
-  c'était le CONTRÔLE** — voir juste en dessous.
+- **`prix` RESTE UNE FONCTION DE LA PAGE**, même si elle ne calcule plus
+  rien elle-même — elle délègue à `window.ELA_ROUTE.prix`.
+  **CETTE SECTION DÉCRIT UN ÉTAT DÉPASSÉ** — voir « UN SEUL TARIF AU
+  KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN » (28 septembre 2026) en fin
+  de fichier, qui dit vrai aujourd'hui : le mode hôtel avait une SECONDE
+  grille au kilomètre pour « autre destination » (2,55 et 4,10 €/km,
+  arrondi à l'euro), injectée à la construction par
+  `.github/scripts/appliquer-regles-easyhotel.mjs`. Barbaros a demandé
+  qu'il n'y en ait plus qu'une pour tout le monde : le transformateur a été
+  **supprimé**, il n'avait plus rien à faire une fois les deux grilles
+  unifiées, et retiré de `construire.sh`.
 - **SANS GRILLE SERVEUR, ADMIN V2 NE CALCULE PAS**, et il le dit. Inventer un
   tarif par défaut ferait annoncer au téléphone un prix que personne n'a
   validé. Même règle que `ecrireGrilleV2` : trois contrôles tombent si on
@@ -5727,3 +5722,83 @@ c'est une fonction de `index.html`) :
   qui ressort avant Marseille (660 km) — un dégradé à trois vraies marches,
   pas seulement Paris contre le reste. Les suites `test-nouveau`, `-hotel`,
   `-geoloc`, `-itineraire`, `test-admin-prix` restent toutes vertes.
+
+## UN SEUL TARIF AU KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN
+
+28 septembre 2026, à sa demande : « je veux que tout le monde ait le même
+prix lorsqu'il tape une adresse sur le moteur de recherche, et je veux
+pouvoir modifier cela sur ma page admin, même les prix du flyer. »
+
+**IL Y AVAIT DEUX GRILLES AU KILOMÈTRE, ET ÇA NE SE VOYAIT PAS.** 2,90 €/km
+berline / 4,70 €/km van pour un client ordinaire ; une seconde, plus basse,
+injectée au moment de CONSTRUIRE le site pour une adresse hôtel hors flyer
+(« autre destination »), par `.github/scripts/appliquer-regles-easyhotel.mjs`.
+Deux clients tapant la même adresse depuis deux entrées différentes du site
+payaient donc un montant différent, sans qu'aucun des deux ne le sache — et
+le prix est ferme donc opposable. **Il n'y en a plus qu'une.** Le
+transformateur de construction a été **supprimé** — il n'avait plus rien à
+faire, l'unique grille suffit désormais partout — et retiré de
+`construire.sh`.
+
+**LE TARIF EST DÉSORMAIS LU SUR LE SERVEUR, PAS SEULEMENT ÉCRIT DANS LA
+PAGE.** C'était la seconde moitié de la demande : pouvoir changer un prix
+depuis un téléphone, sans republier le site. `GAMMES` (le tarif général) et
+`HOTELS[...].destinations[...].forfait` (les sept prix du flyer) restent
+écrits en dur dans `index.html` — **ce sont des REPLIS, plus la vérité** :
+au chargement, `chargerTarifsServeur()` interroge deux vues Supabase
+anonymes et **corrige ces valeurs en mémoire** si le serveur répond. Le
+repli est sacré, comme partout ailleurs sur ce site : un échec (hors ligne,
+minuterie, format inattendu) ne touche à rien, le client garde le chiffre
+écrit en dur, sans le moindre message.
+- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** `parametres_commerciaux`
+  et `tarifs_partenaires` restent fermées à `anon` comme depuis leur
+  création — la première porte AUSSI `commission_ela_defaut`, la marge
+  d'Elatransfer, qui ne doit JAMAIS être visible d'un visiteur ni d'un
+  comptoir d'hôtel (voir plus haut, « CE QUE LE COMPTOIR NE DOIT JAMAIS
+  VOIR »). Deux vues, `tarif_public` et `forfaits_partenaires_publics`, ne
+  rendent QUE des chiffres déjà publics par nature — le tarif au kilomètre
+  affiché sur le site, les prix d'un flyer imprimé — et sont accordées en
+  lecture à `anon`. Elles tournent avec les droits du PROPRIÉTAIRE de la
+  vue (pas de `security_invoker`), qui possède aussi les tables : c'est ce
+  qui laisse `anon` interroger la vue sans jamais toucher aux tables
+  elles-mêmes.
+- **L'ÉCRITURE EXISTAIT DÉJÀ, IL NE MANQUAIT QUE L'ÉCRAN.** Les deux tables
+  ont depuis leur création une policy « authenticated + `est_exploitant()`
+  » en écriture — Admin v2 s'en sert déjà pour la commission. Le nouvel
+  écran (Réglages → « Tarifs », dans l'admin historique que Barbaros
+  utilise réellement, pas Admin v2) appelle donc `nuage.appel()` avec la
+  session déjà ouverte pour se connecter à l'espace — le même compte, la
+  même autorisation.
+- **LES FORFAITS DU FLYER RESTENT DES MONTANTS FIXES**, à sa demande
+  explicite (« rester des forfaits fixes, modifiables un par un ») — pas de
+  bascule au kilométrage. Chaque destination × gamme est un champ modifiable
+  à part.
+- **`nuage.majForfait` LIT AVANT D'ÉCRIRE** : `tarifs_partenaires` se filtre
+  par `partenaire_id`, pas par la clé lisible de l'hôtel. Écrire à
+  l'aveugle sur un identifiant supposé créerait une seconde ligne « active »
+  pour la même destination au lieu de corriger la première.
+- **LA MÉMOIRE DE LA PAGE EST CORRIGÉE AU MOMENT MÊME DE L'ENREGISTREMENT**,
+  pas seulement le serveur : sinon la grille rappelée sur « Nouvelle course »
+  (`ecrireGrille()`) resterait périmée jusqu'au prochain chargement complet
+  de la page — exactement le défaut déjà réglé pour le prix de la pancarte.
+- **`deposer-course` NE VÉRIFIE PAS CE TARIF CÔTÉ SERVEUR** — seuls les
+  forfaits du flyer le sont (`snapshotPartenaire`). Le kilométrage reste,
+  comme avant cette unification, un calcul fait confiance au client. Ce
+  n'est pas une régression : c'était déjà le cas pour les deux grilles
+  précédentes, et étendre cette vérification est un chantier à part.
+- **`verifier-tarif-hotel.mjs` REJOUE TOUTES LES MIGRATIONS, PAS UNE
+  SEULE.** Le tarif général est semé par une migration (INSERT) puis
+  corrigé par celle-ci (UPDATE) : lire uniquement la première aurait
+  comparé le repli du site à une valeur que la base ne porte plus. **Piège
+  rencontré en l'écrivant** : capturer séparément la clé et la valeur
+  laissait une fenêtre de correspondance sauter par-dessus le « where cle »
+  du van et lui attribuer par erreur la valeur de la berline — mesuré, pas
+  supposé (le premier jet rendait bien 2,9 €/km comme tarif serveur du
+  van). Chaque regex capture désormais la clé ET le JSON dans le MÊME
+  match, bornée par le `;` de fin d'instruction. `test-doc.mjs` porte le
+  même correctif pour son propre contrôle d'accord client/serveur.
+- Migration : `supabase/migrations/20260928120000_tarif_unifie.sql`. Comme
+  toujours, elle doit être **rejouée en production** (workflow « Appliquer
+  une migration Supabase ») pour que la base porte réellement 2,90/4,70 —
+  tant que ce n'est pas fait, le site s'appuie sur son repli, qui porte
+  déjà les mêmes chiffres.
