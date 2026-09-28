@@ -11,7 +11,7 @@
    - une demande déposée sur le serveur APPARAÎT et est ANNONCÉE pendant
      qu'il regarde — sans que rien ne passe par WhatsApp ;
    - arrivé par une alerte (« ?ref= »), l'espace OUVRE cette course ;
-   - le lien de l'alerte Telegram vise admin.html, plus admin-v2.html.
+   - le lien de l'alerte Telegram vise l'entrée dédiée /ela-admin/.
    Le déclenchement de Telegram lui-même est côté serveur (webhook INSERT) :
    il ne s'éprouve pas d'ici, il a été vu marcher le 11 septembre 2026.
 
@@ -77,7 +77,7 @@ async function espace(chemin){
 try {
   /* 1. Une demande arrive pendant qu'il regarde. */
   {
-    const {ctx, p, erreurs} = await espace('/admin.html');
+    const {ctx, p, erreurs} = await espace('/ela-admin/');
     await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:8000})
       .catch(() => {});
     check('à l\'ouverture, la course du serveur est là', (await p.locator('.demande').count()) === 1,
@@ -96,7 +96,7 @@ try {
   /* 2. Arrivé par l'alerte : la course s'ouvre. */
   {
     serveurCourses = [course('ELA-26-09-0102','Paul Durand'), ...serveurCourses];
-    const {ctx, p} = await espace('/admin.html?ref=ELA-26-09-0102');
+    const {ctx, p} = await espace('/ela-admin/?ref=ELA-26-09-0102');
     await p.waitForFunction(() => document.getElementById('ecran-bord-bon')
       && document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
     const actif = await p.evaluate(() => (document.querySelector('.ecran.actif')||{}).id);
@@ -114,7 +114,7 @@ try {
     const vis = async (p, id) => p.evaluate(i => { const e = document.getElementById(i);
       return !!e && !e.hidden && getComputedStyle(e).display !== 'none'; }, id);
     for (const [ref, attendu] of [['ELA-26-09-0105','attente'],['ELA-26-09-0103','confirmee'],['ELA-26-09-0104','realisee']]) {
-      const {ctx, p} = await espace('/admin.html?ref=' + ref);
+      const {ctx, p} = await espace('/ela-admin/?ref=' + ref);
       await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
       const c = await vis(p,'btnConfirmerCourse'), r = await vis(p,'btnRealisee'), f = await vis(p,'btnRefuser');
       if (attendu === 'attente') check('en attente : « Confirmer » seul, pas « Marquer comme réalisée »', c && !r && f, `c=${c} r=${r} f=${f}`);
@@ -126,8 +126,7 @@ try {
   /* 3. L'alerte Telegram vise l'admin retenu. */
   for (const f of ['supabase/functions/nouvelle-demande/index.ts', 'supabase/functions/nouvelle-demande/a-coller.ts']) {
     const t = readFileSync(f, 'utf8');
-    check(f.split('/').pop() + ' : l\'alerte ouvre admin.html', /"https:\/\/elatransfer\.com\/admin\.html"/.test(t)
-      && !/elatransfer\.com\/admin-v2\.html/.test(t));
+    check(f.split('/').pop() + ' : l\'alerte ouvre l’Admin dédié', /"https:\/\/elatransfer\.com\/ela-admin\/"/.test(t));
   }
 } catch (e) {
   ko.push('PLANTAGE — ' + e.message.split('\n')[0]);

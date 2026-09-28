@@ -9,9 +9,11 @@
      finition pour deux entrées, sinon l'une vieillit pendant que l'autre
      avance. Ce qui diffère au comptoir est dit à l'endroit où ça diffère. */
   if(!p) return;
-  var comptoir=p.get('reception')==='easyhotel-aeroville';
-  if(p.get('h')!=='easyhotel-aeroville' && !comptoir) return;
-  var accueil=comptoir?'/easyhotel-client/?reception=easyhotel-aeroville':'/easyhotel-client/';
+  var espace=document.documentElement.getAttribute('data-ela-space')||'';
+  var comptoir=espace==='hotel-reception'||p.get('reception')==='easyhotel-aeroville';
+  var clientHotel=espace==='hotel-client'||p.get('h')==='easyhotel-aeroville';
+  if(!clientHotel && !comptoir) return;
+  var accueil=comptoir?'/easyhotel-reception/':'/easyhotel-client/';
 
   function enhanceHotel(){
     document.body.classList.add('hotel-enhanced');

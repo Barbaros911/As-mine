@@ -32,14 +32,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for f in site/index.html site/application.html; do
-            test -f "$f"
-            grep -Fq 'id="exploitantEmail"' "$f"
-            grep -Fq 'id="exploitantMdp"' "$f"
-            grep -Fq '/rest/v1/rpc/est_exploitant' "$f"
-            grep -Fq 'nuage.estExploitant' "$f"
-            if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|id="codeExploitant"|empreinte\(saisi\)' "$f"; then
-              echo "Ancien verrou exploitant détecté dans $f"
+          admin=site/ela-admin/index.html
+          test -f "$admin"
+          grep -Fq 'id="exploitantEmail"' "$admin"
+          grep -Fq 'id="exploitantMdp"' "$admin"
+          grep -Fq '/rest/v1/rpc/est_exploitant' "$admin"
+          grep -Fq 'nuage.estExploitant' "$admin"
+          if grep -Eq 'CODE_EXPLOITANT|ela_exploitant|id="codeExploitant"|empreinte\(saisi\)' "$admin"; then
+            echo "Ancien verrou exploitant détecté dans $admin"
+            exit 1
+          fi
+          for f in site/index.html site/application.html site/easyhotel-reception/index.html; do
+            if grep -Eq 'id="exploitantEmail"|id="exploitantMdp"|/rest/v1/rpc/est_exploitant|class="admin-nav"' "$f"; then
+              echo "Interface ou RBAC Admin divulgué dans $f"
               exit 1
             fi
           done
@@ -52,7 +57,11 @@ jobs:
           grep -Fq 'id="arrivee"' site/index.html
           grep -Fq 'id="btnVoirPrix"' site/index.html
           grep -Fq 'id="btnConfirmer"' site/index.html
-          grep -Fq 'courses-hotel' site/application.html
+          grep -Fq 'courses-hotel' site/easyhotel-reception/index.html
+          if grep -Fq 'coursesHotel: function' site/index.html site/application.html; then
+            echo 'API Réception divulguée dans un espace client'
+            exit 1
+          fi
 
       - name: Vérifier la passerelle de réservation publique
         shell: bash
