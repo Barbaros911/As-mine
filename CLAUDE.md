@@ -5606,3 +5606,41 @@ lui ont été montrés en capture ; il a choisi le **B**.
   mémo : j'avais d'abord proposé du vert en lisant une note au lieu du site.
   **Regarder le site publié avant de choisir une couleur.**
 - Classes neuves (`.inclus`, `.faq-q`) : la façade habille `.engagement`.
+
+## LES COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE
+
+28 septembre 2026, à sa demande, après un audit qui a trouvé pire que le
+mélange public/admin d'un seul fichier : `index.html` publié portait
+**145 commentaires (~68 Ko)** lisibles par « Afficher le code source » —
+comment marche la sécurité de l'espace exploitant et ses limites, d'anciennes
+failles trouvées et corrigées, la grille tarifaire hôtel. C'est une carte
+pour qui cherche une faille, sans même un mot de passe à deviner.
+- `.github/scripts/masquer-commentaires.mjs` les retire, **mais seulement de
+  la copie posée dans `site/`**, en toute dernière étape de `construire.sh`.
+  Le dépôt garde ses commentaires intacts — c'est la mémoire du projet,
+  elle sert aux prochaines sessions.
+- **AUCUNE DÉPENDANCE AJOUTÉE, ET C'EST DÉLIBÉRÉ** — même règle que la
+  régression visuelle. Le premier jet s'appuyait sur le paquet
+  « typescript » pour lire vraiment le JavaScript (éviter qu'une expression
+  régulière naïve se fasse piéger par un `/` de chaîne ou de regex, comme
+  `/\D/g`). **Ça aurait cassé `pages.yml` en silence** : ce workflow ne fait
+  AUCUN `npm install` avant de construire, et le paquet n'existait que sur
+  cette machine, posé à la main. Trouvé par la suite de tests elle-même
+  (`test-admin-papiers` échouait en reconstruisant le site), pas en
+  relisant. Le module final ne dépend que de `node:fs` : il relit le
+  JavaScript caractère par caractère et retient ce qui précède chaque
+  « / » pour savoir si c'est une division ou le début d'une expression
+  régulière — la même règle qu'un vrai analyseur, ramenée à ce dont on a
+  besoin ici.
+- Les commentaires HTML (`<!-- -->`) et CSS retirés par expression régulière
+  simple : leur syntaxe ne peut pas se cacher dans une chaîne comme celle
+  de JS.
+- **GARDE-FOU** : si un `<script>` ou `<style>` contient littéralement
+  `<!--`, le nettoyage s'arrête plutôt que de deviner — cette séquence
+  pourrait tromper le retrait des commentaires HTML qui suit.
+- Validé contre la **suite complète** (28 suites navigateur + doc +
+  notification + push + facade unifiée), toutes au vert après retrait.
+- **Le cloisonnement complet des écrans admin/réception hors du fichier
+  public n'a PAS été fait** : les données restent protégées côté serveur
+  (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus
+  gros, mis de côté à sa demande pour l'instant.
