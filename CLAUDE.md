@@ -5685,6 +5685,18 @@ avec le jeton de l'appelant (modèle : `capturer-paiement`).
   vrai webhook passe à l'identique.
 - `test-securite-fonctions.mjs` éprouve les deux, sans Deno ni réseau ;
   six contrôles sur sept tombent sur l'ancien code.
+- **Second passage, même jour** :
+  - **Le code de la réception est plafonné** : 60 appels par heure et par IP
+    dans `courses-hotel`, via le quota serveur du dépôt public. Le compte est
+    pris AVANT la comparaison — sinon l'essai gagnant passerait quand même.
+    Au-delà : 429, et la page dit « trop d'essais » sans oublier le code.
+  - **Plus aucune écriture directe d'`anon` dans `courses`**
+    (`20260928120000_courses_sans_depot_anonyme.sql`). Le site publié dépose
+    uniquement par `deposer-course` (prix recroisé, quota) ; la vieille
+    policy de `SUPABASE.md` laissait écrire une course au prix de son choix.
+    **La migration ne part pas toute seule** : workflow « Appliquer une
+    migration Supabase », ce fichier. Épreuve SQL en CI, qui repose l'état
+    d'origine et exige qu'il laisse passer avant d'exiger le refus.
 - **Reste ouvert, à trancher avec Barbaros** : le rôle `agent_reservation`
   n'est limité QUE par l'écran (CSS) — côté serveur `est_exploitant()` lui
   donne tout ; `role_operateur` n'est défini dans aucune migration du dépôt.

@@ -99,6 +99,34 @@ const entetes = {
 
 const attendre = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/* UN PLAFOND D'ESSAIS PAR ADRESSE IP (audit du 28/09/2026). L'attente de
+   700 ms ne suffisait pas : on peut paralléliser, et un code court se
+   devinait en quelques heures. Chaque appel consomme une unité du quota
+   serveur déjà utilisé par le dépôt public — soixante par heure et par IP,
+   bien au-delà de ce qu'une réception fait en ouvrant sa liste. Le compte
+   est pris AVANT la comparaison : sinon l'essai gagnant passerait même une
+   fois la limite atteinte. */
+const ESSAIS_PAR_HEURE = 60;
+async function sha256(v: string): Promise<string> {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v));
+  return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+async function quotaOk(req: Request): Promise<boolean | null> {
+  const ip = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "inconnue")
+    .split(",")[0].trim();
+  const cle = await sha256("courses-hotel|" + ip + "|" + new Date().toISOString().slice(0, 13));
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/consommer_quota_reservation`, {
+      method: "POST",
+      headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`,
+                 "Content-Type": "application/json" },
+      body: JSON.stringify({ p_cle: cle, p_limite: ESSAIS_PAR_HEURE })
+    });
+    if (!r.ok) return null;
+    return (await r.json()) === true;
+  } catch (_e) { return null; }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: entetes });
   if (req.method !== "POST") {
@@ -129,6 +157,16 @@ Deno.serve(async (req: Request) => {
     await attendre(700);
     return new Response(JSON.stringify({ refuse: true }),
       { status: 401, headers: entetes });
+  }
+
+  const quota = await quotaOk(req);
+  if (quota === null) {
+    return new Response(JSON.stringify({ erreur: "service indisponible" }),
+      { status: 503, headers: entetes });
+  }
+  if (!quota) {
+    return new Response(JSON.stringify({ erreur: "trop d'essais, réessayez dans une heure" }),
+      { status: 429, headers: entetes });
   }
 
   const attendu = Deno.env.get(nomDuSecret(cle)) ?? "";
