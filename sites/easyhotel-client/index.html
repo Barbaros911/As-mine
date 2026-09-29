@@ -255,10 +255,13 @@ a{color:inherit;text-decoration:none}
 (function(){
   var ctrl = ('AbortController' in window) ? new AbortController() : null;
   if (ctrl) setTimeout(function(){ ctrl.abort(); }, 4000);
+  /* La clé PUBLIABLE du site, la même qu'index.html (SUPABASE_CLE) : elle
+     ne donne accès qu'aux vues publiques. */
+  var CLE_SITE = 'sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj';
   fetch('https://yyhzutnuhuytokarynaw.supabase.co/rest/v1/forfaits_partenaires_publics'
       + '?select=partenaire_cle,destination_cle,vehicule_cle,montant_centimes&partenaire_cle=eq.easyhotel-aeroville',
     { signal: ctrl ? ctrl.signal : undefined,
-      headers: { apikey: 'sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj' } })
+      headers: { apikey: CLE_SITE } })
   .then(function(r){ return r.ok ? r.json() : null; }).then(function(lignes){
     if (!Array.isArray(lignes)) return;
     lignes.forEach(function(l){
