@@ -215,8 +215,8 @@
         var detail=corps.querySelector('.veh-detail');corps.insertBefore(exemple,detail);}
       var berline=carte.dataset.cle==='berline';
       texte(exemple,anglais
-        ? (berline?'Black Toyota Corolla Touring Sports or equivalent':'Professional black van or equivalent')
-        : (berline?'Toyota Corolla Touring Sports noire ou équivalent':'Van noir professionnel ou équivalent'));
+        ? (berline?'Toyota, Peugeot, Mercedes, Citroën or equivalent model':'Mercedes, Ford, Renault or equivalent model')
+        : (berline?'Toyota, Peugeot, Mercedes, Citroën ou modèle équivalent':'Mercedes, Ford, Renault ou modèle équivalent'));
     });
 
     var cta=document.querySelector('#btnVoirPrix span');
