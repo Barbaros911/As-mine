@@ -51,9 +51,17 @@ async function reserver(serveurRepond, sansPush, cachee){
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
   const depots = [];
   await p.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
-    depots.push({ url: route.request().url(), methode: route.request().method(),
-                  entetes: route.request().headers(),
-                  corps: JSON.parse(route.request().postData()||'{}') });
+    /* Depuis que le tarif se lit au chargement (« chargerTarifsServeur »),
+       chaque page émet aussi deux GET vers les vues publiques de tarif —
+       sans rapport avec un dépôt de course. Ne compter ici que les POST :
+       c'est le seul sujet de cette suite (ligne 161, « en POST sur la
+       table des courses »), et les compter tous décalait « depots[0] »
+       du dépôt réel vers le premier GET de tarif. */
+    if(route.request().method()==='POST'){
+      depots.push({ url: route.request().url(), methode: route.request().method(),
+                    entetes: route.request().headers(),
+                    corps: JSON.parse(route.request().postData()||'{}') });
+    }
     /* MODE « reprise » : le PREMIER dépôt échoue — c'est ce qui se passe
        quand iOS gèle la page pendant que WhatsApp prend l'écran — et les
        suivants passent. C'est exactement le cas que Barbaros a rencontré. */
@@ -168,11 +176,11 @@ const bon = d0.corps.bon;
 check('la course entre en « attente », jamais confirmée d\'office',
   d0.corps.statut==='attente' && bon.statut==='attente', d0.corps.statut);
 check('le bon porte prix.total, que le tableau de bord affiche',
-  typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-60)<0.01, String(bon.prix.total));
-/* 60 € TTC → HT 54,55 et TVA 5,45, la TVA étant INCLUSE : le total arrondi
+  typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-70)<0.01, String(bon.prix.total));
+/* 70 € TTC → HT 63,64 et TVA 6,36, la TVA étant INCLUSE : le total arrondi
    à la dizaine est le prix payé, on en retire la taxe. */
 check('la TVA est incluse, pas ajoutée',
-  Math.abs(bon.prix.ht-54.55)<0.01 && Math.abs(bon.prix.tva-5.45)<0.01,
+  Math.abs(bon.prix.ht-63.64)<0.01 && Math.abs(bon.prix.tva-6.36)<0.01,
   bon.prix.ht+' / '+bon.prix.tva);
 check('il porte course.depart et course.arrivee',
   !!bon.course.depart && !!bon.course.arrivee, bon.course.depart);

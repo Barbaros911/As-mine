@@ -300,10 +300,12 @@ await p.waitForTimeout(200);
 await p.locator('#btnVoirPrix').click();
 await p.waitForTimeout(1400);
 const km = await p.locator('.veh-prix').allTextContents();
-/* 24,3 km × 2,35 = 57,11 → arrondi à la dizaine → 60 €. C'est la grille
-   ordinaire du site, exactement comme sur test-nouveau-prix. */
-check('hors grille : le prix repasse au kilométrage du site (60 €)',
-  km[0].replace(/\s/g,'')==='60,00€', km[0]);
+/* 24,3 km × 2,90 = 70,47 → arrondi à la dizaine → 70 €. C'est la grille
+   ordinaire du site, exactement comme sur test-nouveau-prix — et depuis le
+   28 septembre 2026, c'est la SEULE grille au kilomètre : le mode hôtel
+   n'en a plus de séparée. */
+check('hors grille : le prix repasse au kilométrage du site (70 €)',
+  km[0].replace(/\s/g,'')==='70,00€', km[0]);
 
 /* ON REPART D'UNE PAGE NEUVE. Le bloc précédent a laissé une adresse
    RETENUE (Versailles) dans le champ, et c'est voulu : changer de
