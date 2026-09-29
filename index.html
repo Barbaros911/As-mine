@@ -748,13 +748,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* Le graphique des chauffeurs : des barres en HTML, pas un canvas — elles
    suivent la largeur du téléphone et le texte reste net et lisible. */
 .graph-ch{margin:4px 0 14px;}
-.prix-sous{font-size:14px;margin:14px 0 6px;}
-.prix-grille{display:grid;grid-template-columns:1fr 92px 92px;gap:6px 8px;align-items:center;}
-.prix-grille .pg-tete{font-size:12px;color:var(--gris);text-align:center;}
-.prix-grille .pg-nom{font-size:14px;min-width:0;overflow-wrap:anywhere;}
-.prix-grille input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;
-  padding:0 8px;font:inherit;font-size:16px;text-align:right;background:var(--carte);color:var(--encre);}
-.prix-grille input.change{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
 .graph-ch-titre{font-size:13px;color:var(--gris);margin:0 0 8px;}
 .gc-ligne{margin:0 0 10px;}
 .gc-tete{display:flex;justify-content:space-between;gap:8px;font-size:14px;}
@@ -3255,26 +3248,6 @@ body.espace #panneauProvenance{display:none;}
         </svg>
       </button>
       <h1 class="ecran-titre">Réglages</h1>
-    </div>
-
-    <!-- LES PRIX, MODIFIABLES ICI (29/09/2026, à sa demande). Ils vivent sur
-         le serveur : le site, la page du flyer et le serveur qui verrouille
-         le prix d'une course easyHotel lisent tous la même grille. -->
-    <div class="bloc" id="blocPrix">
-      <h2 class="bloc-titre">Prix</h2>
-      <p class="bloc-note" id="prixEtat">Lecture des prix…</p>
-      <h3 class="prix-sous">Site — au kilomètre</h3>
-      <div class="prix-grille" id="prixGeneral"></div>
-      <h3 class="prix-sous">easyHotel — autre destination, au kilomètre</h3>
-      <div class="prix-grille" id="prixHotelKm"></div>
-      <h3 class="prix-sous">easyHotel — forfaits du flyer</h3>
-      <div class="prix-grille" id="prixForfaits"></div>
-      <p class="bloc-note">Le flyer IMPRIMÉ ne change pas tout seul : si vous
-        changez un forfait, refaites le papier posé au comptoir.</p>
-      <button class="bouton" type="button" id="btnPrixEnregistrer" disabled>
-        <span>Enregistrer les prix</span>
-      </button>
-      <p class="champ-aide" id="prixAvis" hidden></p>
     </div>
 
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
@@ -7265,10 +7238,8 @@ window.ELA_TEXTES = {
     /* La bibliothèque de la carte part MAINTENANT, en même temps que le
        calcul du prix — pas après lui. Voir « prechargerCarte ». */
     prechargerCarte();
-    grillePrete().then(function(){
-      return itineraire(choix.depart, choix.arrivee,
-                        { date:champDate.value, heure:champHeure.value });
-    }).then(function(r){
+    itineraire(choix.depart, choix.arrivee,
+               { date:champDate.value, heure:champHeure.value }).then(function(r){
       libelle.textContent = avant;
       boutonPrix.disabled = false;
       course.km = r.km; course.min = r.min; course.estime = r.estime;
@@ -7393,52 +7364,6 @@ window.ELA_TEXTES = {
   var SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
   var SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
 
-  /* ═══ LES PRIX VIENNENT DU SERVEUR, ET SE MODIFIENT DEPUIS L'ADMIN ═══
-     29/09/2026, à sa demande. La source est celle que le serveur relit déjà
-     pour verrouiller le prix d'une course easyHotel (parametres_commerciaux,
-     tarifs_partenaires) : la page la lit au chargement et l'applique à
-     GAMMES et à HOTELS. Les nombres écrits plus haut ne sont plus qu'un
-     SECOURS, pour un client sans réseau — le site ne doit jamais être
-     empêché de donner un prix.
-     « Voir mon prix » attend cette lecture (4 s au plus) : sans ça, un
-     client rapide verrait l'ancien prix et le serveur en enregistrerait un
-     autre — sur un prix ferme, donc opposable. */
-  function appliquerGrille(g){
-    if(!g || typeof g !== "object" || Array.isArray(g)) return;
-    function eur(c){ return (typeof c === "number" && isFinite(c) && c >= 0) ? c / 100 : null; }
-    GAMMES.forEach(function(x){
-      var v = g[x.cle]; if(!v) return;
-      var k = eur(v.par_km_centimes), m = eur(v.minimum_centimes);
-      if(k) x.parKm = k;
-      if(m !== null) x.mini = m;
-    });
-    if(g.hotel_km){
-      var hb = eur(g.hotel_km.berline_par_km_centimes), hv = eur(g.hotel_km.van_par_km_centimes);
-      if(hb && hv) window.ELA_TAUX_HOTEL = { berline: hb, van: hv };
-    }
-    Object.keys(g.forfaits || {}).forEach(function(cle){
-      var h = HOTELS[cle], f = g.forfaits[cle]; if(!h || !f) return;
-      h.destinations.forEach(function(d){
-        var p = f[d.cle]; if(!p || !d.forfait) return;
-        ["berline","van"].forEach(function(v){ var e = eur(p[v]); if(e) d.forfait[v] = e; });
-      });
-    });
-    if(typeof jugerForfait === "function") try{ jugerForfait(); }catch(e){}
-    if(typeof ecrireGrille === "function") try{ ecrireGrille(); }catch(e){}
-  }
-  var grilleLue = null;
-  function grillePrete(){
-    if(grilleLue) return grilleLue;
-    var ctrl = new AbortController(), minuteur = setTimeout(function(){ ctrl.abort(); }, 4000);
-    grilleLue = fetch(SUPABASE_URL + "/rest/v1/rpc/grille_publique", {
-      method: "POST", signal: ctrl.signal, body: "{}",
-      headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" }
-    }).then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(g){ clearTimeout(minuteur); appliquerGrille(g); return g; })
-      .catch(function(){ clearTimeout(minuteur); return null; });
-    return grilleLue;
-  }
-  grillePrete();
 
   var nuage = {
     actif: function(){ return Boolean(SUPABASE_URL && SUPABASE_CLE); },
@@ -10674,115 +10599,8 @@ window.ELA_TEXTES = {
      mènent maintenant à l'écran des réglages, puis descendent sur le bloc
      visé : c'est le même geste pour l'utilisateur, et une seule destination
      à tenir. */
-  /* ═══ LE BLOC « PRIX » ═══
-     On relit TOUJOURS le serveur à l'ouverture : les prix ont pu être changés
-     depuis un autre appareil. Et on n'enregistre que ce qu'on a LU : si la
-     lecture échoue, le bouton reste éteint — enregistrer les nombres de
-     secours écrits dans la page écraserait la vraie grille. */
-  function champPrix(id, euros){
-    var i = document.createElement("input");
-    i.type = "text"; i.inputMode = "decimal"; i.id = id; i.autocomplete = "off";
-    i.value = (euros === null || euros === undefined) ? "" : String(euros).replace(".", ",");
-    i.dataset.lu = i.value;
-    i.addEventListener("input", function(){ i.classList.toggle("change", i.value !== i.dataset.lu); });
-    return i;
-  }
-  function lignePrix(grille, nom, a, b){
-    var n = document.createElement("span"); n.className = "pg-nom"; n.textContent = nom;
-    grille.appendChild(n); grille.appendChild(a); grille.appendChild(b);
-  }
-  function tetePrix(grille, t1, t2){
-    grille.innerHTML = "";
-    ["", t1, t2].forEach(function(t){ var s = document.createElement("span");
-      s.className = "pg-tete"; s.textContent = t; grille.appendChild(s); });
-  }
-  function remplirPrix(){
-    var etat = document.getElementById("prixEtat"), bouton = document.getElementById("btnPrixEnregistrer");
-    bouton.disabled = true;
-    etat.textContent = "Lecture des prix…";
-    grilleLue = null;
-    grillePrete().then(function(g){
-      var gen = document.getElementById("prixGeneral");
-      tetePrix(gen, "€ / km", "minimum €");
-      GAMMES.forEach(function(x){
-        lignePrix(gen, x.nom, champPrix("pk_" + x.cle, x.parKm), champPrix("pm_" + x.cle, x.mini));
-      });
-      var hk = document.getElementById("prixHotelKm");
-      tetePrix(hk, "Berline", "Van");
-      var t = window.ELA_TAUX_HOTEL || {};
-      lignePrix(hk, "€ / km", champPrix("ph_berline", t.berline), champPrix("ph_van", t.van));
-      var fo = document.getElementById("prixForfaits");
-      tetePrix(fo, "Berline €", "Van €");
-      var h = HOTELS["easyhotel-aeroville"];
-      (h ? h.destinations : []).forEach(function(d){
-        if(!d.forfait) return;
-        lignePrix(fo, d.nom, champPrix("pf_" + d.cle + "_berline", d.forfait.berline),
-                             champPrix("pf_" + d.cle + "_van", d.forfait.van));
-      });
-      if(!g || !g.berline){
-        etat.textContent = "Les prix du serveur n'ont pas pu être lus : ceux affichés sont ceux de secours. "
-          + "Rien ne peut être enregistré tant que la lecture échoue — réessayez avec du réseau.";
-        return;
-      }
-      etat.textContent = "Ces prix sont ceux que voient vos clients en ce moment.";
-      bouton.disabled = !nuage.connecte();
-      if(!nuage.connecte()) etat.textContent += " Connectez-vous au serveur pour les modifier.";
-    });
-  }
-  function centimes(id){
-    var v = document.getElementById(id).value.trim().replace(/\s|€/g, "").replace(",", ".");
-    if(v === "" || !isFinite(v)) return NaN;
-    return Math.round(+v * 100);
-  }
-  document.getElementById("btnPrixEnregistrer").addEventListener("click", function(){
-    var avis = document.getElementById("prixAvis"), bouton = this;
-    function dire(t){ avis.hidden = false; avis.textContent = t; }
-    var g = { hotel_km: { berline_par_km_centimes: centimes("ph_berline"),
-                          van_par_km_centimes: centimes("ph_van") },
-              forfaits: { "easyhotel-aeroville": {} } };
-    GAMMES.forEach(function(x){
-      g[x.cle] = { par_km_centimes: centimes("pk_" + x.cle), minimum_centimes: centimes("pm_" + x.cle) };
-    });
-    (HOTELS["easyhotel-aeroville"].destinations || []).forEach(function(d){
-      if(!d.forfait) return;
-      g.forfaits["easyhotel-aeroville"][d.cle] =
-        { berline: centimes("pf_" + d.cle + "_berline"), van: centimes("pf_" + d.cle + "_van") };
-    });
-    /* On refuse ici ce que le serveur refuserait — pour dire QUEL champ,
-       plutôt qu'un message de base de données. */
-    var faux = [];
-    GAMMES.forEach(function(x){
-      var k = g[x.cle].par_km_centimes, m = g[x.cle].minimum_centimes;
-      if(!(k >= 50 && k <= 2000)) faux.push(x.nom + " € / km (entre 0,50 et 20)");
-      if(!(m >= 0 && m <= 50000)) faux.push(x.nom + " minimum");
-    });
-    ["berline","van"].forEach(function(v){
-      var k = g.hotel_km[v + "_par_km_centimes"];
-      if(!(k >= 50 && k <= 2000)) faux.push("easyHotel " + v + " € / km");
-    });
-    Object.keys(g.forfaits["easyhotel-aeroville"]).forEach(function(d){
-      ["berline","van"].forEach(function(v){
-        var m = g.forfaits["easyhotel-aeroville"][d][v];
-        if(!(m >= 500 && m <= 500000)) faux.push("forfait " + d + " " + v + " (entre 5 et 5 000 €)");
-      });
-    });
-    if(faux.length){ dire("À corriger : " + faux.join(", ") + "."); return; }
-    bouton.disabled = true;
-    nuage.appel("/rest/v1/rpc/ela_modifier_grille", { method: "POST",
-      body: JSON.stringify({ p_grille: g }) }).then(function(r){
-      appliquerGrille(r);
-      grilleLue = Promise.resolve(r);
-      remplirPrix();
-      dire("Prix enregistrés. Vos clients les voient dès leur prochaine visite.");
-    }).catch(function(e){
-      bouton.disabled = false;
-      dire("Le serveur a refusé (" + (e && e.message || "erreur") + "). Rien n'a changé.");
-    });
-  });
-
   function ouvrirReglages(vers){
     ecran("ecran-reglages");
-    remplirPrix();
     allumerAdmin(document.getElementById("btnReglages"));
     if(vers){
       var cible = document.getElementById(vers);
