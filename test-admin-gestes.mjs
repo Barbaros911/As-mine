@@ -139,7 +139,7 @@ await ctx.route('**/*', r => {
     return J(PARAMS);
   }
   if(u.includes('/evenements_reservation')) return J([]);
-  if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/rpc/est_')) return J(true);
   if(u.includes('/rpc/ela_rafraichir_actions')) return J(0);
   if(u.includes('/chauffeurs_etat')) return J([]);
   if(u.includes('/rest/v1/chauffeurs')) return J([]);

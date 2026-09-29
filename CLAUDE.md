@@ -5951,6 +5951,46 @@ confirmé.
   une page publique y est définie. Éprouvé contre l'ancien code : cinq
   contrôles tombent, dont « telValide is not defined ».
 
+## LE RÔLE AGENT EST IMPOSÉ PAR LE SERVEUR
+
+29 septembre 2026, à sa demande : « valide le rôle agent ». Le diagnostic lu
+en production (`20260929020000_diagnostic_role_agent.sql`) : un compte
+`admin`, un compte `agent_reservation`, et `est_exploitant()` vraie pour les
+deux — l'écran cachait les prix, les réglages, le registre et les factures,
+mais un appel direct passait.
+- `20260929030000_role_agent_serveur.sql` pose `est_admin()` et réserve à
+  l'admin : l'**écriture** des prix, forfaits, réglages et codes promo (la
+  lecture reste : le calcul du prix en a besoin), les factures de commission,
+  les paiements, les instantanés financiers, l'aperçu et l'émission de
+  facture, la restauration de sauvegarde. L'agent garde tout ce qui traite
+  une course.
+- **Les trois fonctions ne sont pas recopiées** : la migration relit leur
+  définition dans la base et n'y change que le verrou.
+- `supabase/tests/role-agent.sql` éprouve les deux côtés (agent refusé, admin
+  qui passe), en CI. Éprouvé sans la migration, puis sans la policy : il
+  tombe les deux fois.
+- **L'agent garde TOUT ce qui touche une course**, suppression comprise
+  (tranché par Barbaros : « supprimer, créer une course, répondre aux
+  clients »). Ce qu'il ne doit pas voir : le chiffre d'affaires, ce que
+  rapporte chaque chauffeur, les commissions, le détail financier.
+- **LE MASQUAGE D'ÉCRAN NE MARCHAIT PAS DU TOUT, ET PERSONNE NE LE SAVAIT.**
+  `agent-role-ui.mjs` cherchait `nuage` et `ouvrirEspace` sur `window` : ils
+  vivent dans la portée du script principal, jamais sur `window`. Le script
+  sortait à la première ligne, sans erreur — l'agent voyait le registre, les
+  factures et les réglages comme l'admin. Mesuré sur le site construit.
+  `index.html` expose maintenant `window.ELA_NUAGE` et émet l'événement
+  `ela:espace` ; le script s'y branche. `test-admin-commission` joue un
+  agent pour de vrai et tombe si l'on retire la prise.
+- **Cachés en plus à l'agent** : le bloc « Commission » du bon et le taux du
+  carnet. Ce qui est caché n'est pas effacé : enregistrer un bon garde la
+  commission posée par l'admin — un contrôle le vérifie.
+- **Admin v2 exige maintenant `est_admin()`** : il affiche les finances, et
+  l'agent pouvait s'y connecter avec son compte.
+- **La limite, dite franchement** : l'agent lit les courses (il doit les
+  traiter), donc leurs prix. Un agent déterminé pourrait additionner à la
+  main via l'API. Aucun écran ne le fait pour lui, et l'argent (factures,
+  paiements, commissions globales) est fermé côté serveur.
+
 ## L'ICÔNE SUR L'ÉCRAN D'ACCUEIL — CHAQUE ENTRÉE easyHotel A SON MANIFESTE
 
 29 septembre 2026, à sa demande : poser la page client et la réception en

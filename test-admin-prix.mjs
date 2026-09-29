@@ -111,7 +111,7 @@ async function scene({ ors, osrm, sansParams, distanceOrs }){
     if(u.includes('api.mapbox.com')){ appels.push('mapbox'); return r.abort(); }
 
     if(!u.includes('supabase.co')) return r.abort();
-    if(u.includes('/rpc/est_exploitant')) return J(true);
+    if(u.includes('/rpc/est_')) return J(true);
     if(u.includes('/parametres_commerciaux')) return J(sansParams ? [] : PARAMS);
     if(u.includes('/chauffeurs_etat')) return J([]);
     if(u.includes('/rest/v1/chauffeurs')) return J([]);

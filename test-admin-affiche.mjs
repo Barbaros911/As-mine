@@ -122,7 +122,7 @@ await ctx.route('**/*', r => {
   if(u.startsWith(BASE)) return r.continue();
   if(!u.includes('supabase.co')) return r.abort();
   const J = o => r.fulfill({contentType:'application/json', body:JSON.stringify(o)});
-  if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/rpc/est_')) return J(true);
   if(u.includes('/rest/v1/partenaires')) return J(PARTENAIRES);
   if(u.includes('/chauffeurs_etat')) return J([]);
   if(u.includes('/rest/v1/chauffeurs')) return J([]);

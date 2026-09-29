@@ -124,6 +124,67 @@ const tableau = await p.textContent('#regChauffeurs');
 check('le tableau des chauffeurs porte la commission', /commission 47,00\s€/.test(tableau), tableau.slice(0,120));
 check('aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
 
+/* ─── 4. L'agent de réservation : il traite les courses, il ne voit aucun
+   chiffre. On éprouve AUSSI que ce qu'il ne voit pas n'est pas effacé quand
+   il enregistre : une commission cachée qui partirait à zéro serait pire
+   qu'une commission visible. ─── */
+const ctxA = await nav.newContext({viewport:{width:390,height:844}, locale:'fr-FR'});
+await ctxA.addInitScript(([c, ch]) => {
+  localStorage.setItem('ela_nuage_session', JSON.stringify({access_token:'JETON', refresh_token:'R'}));
+  if(!sessionStorage.getItem('pose')){ sessionStorage.setItem('pose','1');
+    localStorage.setItem('ela_bookings', JSON.stringify(c));
+    localStorage.setItem('ela_chauffeurs', JSON.stringify(ch)); }
+}, [COURSES, CARNET]);
+const a = await ctxA.newPage();
+const errA = []; a.on('pageerror', e => errA.push(e.message));
+await a.route('**/*', async route => {
+  const u = route.request().url();
+  if (u.startsWith(BASE)) return route.continue();
+  if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
+  if (u.includes('/rpc/role_operateur')) return route.fulfill(J('agent_reservation'));
+  if (u.includes('supabase.co')) return route.fulfill(J(u.includes('/rest/v1/courses') ? COURSES.map(bon => ({bon, statut:bon.statut})) : []));
+  return route.abort();
+});
+await a.goto(BASE + '/admin.html?ref=ELA-26-09-0002');
+await a.waitForFunction(() => document.body.classList.contains('role-agent_reservation')
+  && document.getElementById('bbRef').textContent === 'ELA-26-09-0002', null, {timeout:10000}).catch(()=>{});
+const vu = async sel => a.evaluate(s => { const e = document.querySelector(s);
+  return !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden'; }, sel);
+check('agent : le bon s\'ouvre (il traite les courses)', await vu('#ecran-bord-bon'));
+check('agent : la commission du bon est cachée', !(await vu('#blocCommission')));
+check('agent : le registre et les factures sont hors de portée', !(await vu('#btnRegistre')) && !(await vu('#btnFactures')));
+await a.click('#btnRetourBord');
+const reste = await a.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings')).find(c => c.ref === 'ELA-26-09-0002').commission);
+check('agent : enregistrer le bon ne touche pas la commission cachée (25 %)', reste && reste.mode === 'pct' && reste.valeur === 25, JSON.stringify(reste));
+await a.evaluate(() => document.getElementById('btnChauffeurs').click());
+await a.waitForTimeout(300);
+check('agent : le carnet reste ouvert, sans le taux de commission', (await vu('#ecran-chauffeurs')) && !(await vu('label[for="chTaux"]')));
+check('agent : aucune erreur JavaScript', errA.length === 0, errA.join(' | '));
+
+/* ─── 5. Admin v2 montre les finances : il est fermé à l'agent. On éprouve
+   les deux comptes — une porte qui refuserait tout le monde passerait le
+   contrôle de l'agent sans rien prouver. ─── */
+const ouvreV2 = async estAdmin => {
+  const c = await nav.newContext({viewport:{width:390,height:844}, locale:'fr-FR'});
+  await c.addInitScript(() => sessionStorage.setItem('ela_admin_session', JSON.stringify({access_token:'JETON', user:{email:'x@y.fr'}})));
+  const v = await c.newPage();
+  await v.route('**/*', async route => {
+    const u = route.request().url();
+    if (u.startsWith(BASE)) return route.continue();
+    if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
+    if (u.includes('/rpc/est_admin')) return route.fulfill(J(estAdmin));
+    if (u.includes('supabase.co')) return route.fulfill(J([]));
+    return route.abort();
+  });
+  await v.goto(BASE + '/admin-v2.html');
+  await v.waitForTimeout(1500);
+  const ouvert = await v.evaluate(() => !document.getElementById('app').classList.contains('hidden'));
+  await c.close();
+  return ouvert;
+};
+check('Admin v2 (les finances) reste fermé à l\'agent', (await ouvreV2(false)) === false);
+check('Admin v2 s\'ouvre toujours pour l\'admin', (await ouvreV2(true)) === true);
+
 await nav.close(); serveur.close();
 console.log(`=== TEST ADMIN COMMISSION : ${ok.length} OK, ${ko.length} échec(s) ===`);
 ok.forEach(x => console.log('  ✓ ' + x)); ko.forEach(x => console.log('  ✗ ' + x));

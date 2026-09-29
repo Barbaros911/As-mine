@@ -147,7 +147,7 @@ await ctx.route('**/*', r => {
         body:JSON.stringify({message:'chauffeur_non_attribuable'})});
     return J('attribuee');
   }
-  if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/rpc/est_')) return J(true);
   if(u.includes('/parametres_commerciaux')) return J(PARAMS);
   if(u.includes('/rpc/ela_rafraichir_actions')) return J(0);
   if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);

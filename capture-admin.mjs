@@ -19,7 +19,7 @@ const courses=[
 const browser=await chromium.launch();
 for(const [name,width,height] of [['mobile-390',390,844],['ordinateur-1280',1280,800]]){
  const ctx=await browser.newContext({viewport:{width,height},deviceScaleFactor:name.startsWith('mobile')?2:1,locale:'fr-FR'});
- await ctx.route('**/*',async r=>{const u=r.request().url();if(u.startsWith(BASE))return r.continue();if(!u.includes('supabase.co'))return r.abort();const J=o=>r.fulfill({contentType:'application/json',body:JSON.stringify(o)});if(u.includes('/rpc/est_exploitant'))return J(true);if(u.includes('/rpc/'))return J(0);if(u.includes('/chauffeurs_etat'))return J(drivers);if(u.includes('/rest/v1/chauffeurs'))return J(drivers);if(u.includes('/rest/v1/courses'))return J(courses);return J([])});
+ await ctx.route('**/*',async r=>{const u=r.request().url();if(u.startsWith(BASE))return r.continue();if(!u.includes('supabase.co'))return r.abort();const J=o=>r.fulfill({contentType:'application/json',body:JSON.stringify(o)});if(u.includes('/rpc/est_'))return J(true);if(u.includes('/rpc/'))return J(0);if(u.includes('/chauffeurs_etat'))return J(drivers);if(u.includes('/rest/v1/chauffeurs'))return J(drivers);if(u.includes('/rest/v1/courses'))return J(courses);return J([])});
  await ctx.addInitScript(()=>sessionStorage.setItem('ela_admin_session',JSON.stringify({access_token:'capture',refresh_token:'r',user:{email:'contact@elatransfer.com'}})));
  const page=await ctx.newPage();
  await page.goto(BASE+'/admin-v2.html',{waitUntil:'domcontentloaded'});
