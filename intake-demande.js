@@ -39,7 +39,9 @@
     var d = { ref:"", depart:"", arrivee:"", date:"", heure:"", vehicule:"",
               paiement:"", paiementNom:"", passagers:"", prix:0, nom:"", tel:"" };
 
-    var ref = texte.match(/ELA-\d{2}-\d{2}-\d{4}/);
+    /* Deux formes : quatre chiffres (avant le 29/09/2026, compteur par
+       appareil) et cinq signes tirés au sort depuis. */
+    var ref = texte.match(/ELA-\d{2}-\d{2}-(?:\d{4}|[2-9A-HJKMNP-Z]{5})(?![0-9A-Z])/);
     d.ref = ref ? ref[0] : "";
 
     var dt = texte.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);

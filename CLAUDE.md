@@ -1000,8 +1000,9 @@ contractuel. Ne pas y écrire de tarif chiffré.
   placée AVANT « Prix » — et la dernière ligne est « nom — téléphone ».
 - **Pas de documents légaux pour l'instant**, à sa demande. La LCEN les
   impose : le nouveau site ne peut pas prendre la racine sans eux.
-- Référence `ELA-AA-MM-NNNN`, jamais `ASM` : ASM venait du nom du dépôt,
-  pas de la marque.
+- Référence `ELA-AA-MM-XXXXX`, jamais `ASM` : ASM venait du nom du dépôt,
+  pas de la marque. **Cinq signes TIRÉS AU SORT depuis le 29/09/2026**, plus
+  un compteur : voir « LA RÉFÉRENCE EST TIRÉE AU SORT » en fin de fichier.
 
 **LA BARRE DU BAS N'A QUE TROIS ONGLETS** — Accueil, Mes courses, Contact
 (septembre 2026, à sa demande : « Enleve l'icône réserver elle ne sert a
@@ -5721,3 +5722,23 @@ notifications Telegram 1 minute après, c'est trop long ».
   journal GitHub est public. Piste la plus probable si `depot_s` est grand :
   le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
   (`reprendreDepot()`).
+
+## LA RÉFÉRENCE EST TIRÉE AU SORT — LE COMPTEUR PAR APPAREIL FAISAIT REFUSER LES DEMANDES
+
+29 septembre 2026, capture de Barbaros à 5 h 28 : une demande du comptoir
+easyHotel refusée, « Votre demande n'a pas pu nous être transmise ».
+**Mesuré** sur le journal du diagnostic de la nuit (workflow des
+migrations) : le serveur portait déjà `ELA-26-09-0001` à `0023`, arrivées de
+plusieurs appareils dans le désordre ; le téléphone venait de fabriquer
+`ELA-26-09-0008`. `deposer-course` refuse une référence déjà prise (409).
+- **Le compteur vivait dans le navigateur** (`ela_rang`), hérité de l'ancien
+  site où seul Barbaros numérotait. Tout nouvel appareil repartait à 0001 :
+  sa première demande du mois était refusée dès que le mois en avait une.
+  Côté exploitant, `pousser` fusionne : une course saisie à la main pouvait
+  **écraser** celle d'un client au même numéro.
+- `referenceSuivante()` tire maintenant cinq signes dans un alphabet sans
+  0/O/1/I/L (28 millions par mois). Ne pas revenir à un compteur local : une
+  numérotation continue exige que le SERVEUR attribue le numéro, ce qui est
+  impossible avant l'ouverture de WhatsApp (Safari, geste de l'utilisateur).
+- `intake-demande.js` lit les deux formes ; `test-admin-intake` en éprouve
+  une de chaque.

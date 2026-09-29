@@ -79,8 +79,10 @@ const MESSAGE = [
 
 /* Les mêmes libellés, EN ANGLAIS : le lecteur lit la PLACE des choses, pas
    les mots. Un client espagnol écrit « Salida ». */
+/* Et la référence au NOUVEAU format (cinq signes tirés au sort, depuis le
+   29/09/2026) : le message en français garde l'ancien, les deux sont lus. */
 const MESSAGE_EN = [
-  'New request ELA-26-09-0077',
+  'New request ELA-26-09-K7Q3M',
   'Pickup : 3 avenue Foch, 75116 Paris',
   'Dropoff : Gare de Lyon',
   'When : 20/09/2026 14:05',
@@ -248,7 +250,7 @@ check('rien n’a été écrasé côté serveur',
    --------------------------------------------------------------------- */
 await p.evaluate(m => navigator.clipboard.writeText(m), MESSAGE_EN);
 await p.click('#btnCollerV2');
-await attendre(p, ()=>/ELA-26-09-0077/.test(document.getElementById('intakeEtat').textContent),
+await attendre(p, ()=>/ELA-26-09-K7Q3M/.test(document.getElementById('intakeEtat').textContent),
   'la référence du message anglais est reprise telle quelle');
 const en = (recus[recus.length-1]||{p_bon:{course:{}}}).p_bon.course;
 check('un message aux libellés ANGLAIS est lu pareil',
