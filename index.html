@@ -1893,6 +1893,146 @@ body.espace #panneauProvenance{display:none;}
   color:#147edc;font-size:20px;font-weight:600}
 .faq-q[open] summary::after{content:"−"}
 .faq-q p{margin:0;padding:0 16px 14px;font-size:14px;line-height:1.45;color:#6f7f8b}
+/* =====================================================================
+   L'ESPACE EXPLOITANT — REFONTE « BLEU NUIT », SANS UN GRAMME DE VERT
+   ---------------------------------------------------------------------
+   29/09/2026, à sa demande : « refaire ma refonte visuelle admin sans
+   modifier le site ni les fonctions, un visuel 10/10, et supprimer la
+   couleur verte gardée depuis les anciens modèles ». Le céladon venait de
+   la palette « Encre & céladon » ; le site public, lui, est passé au bleu
+   ELA (application-facade.css). L'espace reprend CE bleu.
+   TOUT EST SOUS « body.exploitant » : la classe n'existe que dans l'espace
+   (verrou compris). Le site client ne change pas d'un pixel.
+   ON REDÉFINIT LES RÔLES, ON NE REPEINT PAS ÉLÉMENT PAR ÉLÉMENT : chaque
+   règle écrite avec --accent passe au bleu d'elle-même, y compris celles
+   qu'on ajoutera demain.
+   CE QUI NE BOUGE PAS : le rouge de l'attente (#C9302F) — le seul qui crie
+   — et l'orange des papiers « bientôt ». Ce sont des ÉTATS, pas un décor.
+   Contrastes (WCAG) : blanc sur --accent 5,1 · --accent-encre sur
+   --accent-clair 7,6 · --gris sur --fond 5,0 · --encre sur --fond 15,4.
+   ===================================================================== */
+body.exploitant{
+  --noir:#062f55; --fond:#f2f5f9; --carte:#ffffff; --encre:#0f2438;
+  --gris:#5a6a7b; --filet:#e1e8ef; --panel-2:#eef3f8;
+  --accent:#0e6fc7; --accent-clair:#e8f2fd; --accent-vif:#12c4ee;
+  --accent-encre:#0a4f91;
+  --ombre:0 1px 2px rgba(6,47,85,.05),0 10px 28px rgba(6,47,85,.06);
+  background:var(--fond);color:var(--encre);
+}
+/* La façade pose un fond blanc sur .page : c'est ce qui coupait l'écran en
+   deux — un pan blanc jusqu'à la dernière course, puis le gris-bleu. */
+body.exploitant .page{background:transparent;}
+body.exploitant .entete{background:linear-gradient(180deg,#062f55,#04223f);
+  border-bottom:0;}
+
+/* ---------- LA NAVIGATION ---------- */
+body.espace .admin-nav{background:
+  radial-gradient(120% 80% at 0% 0%,rgba(20,126,220,.35),transparent 60%),
+  linear-gradient(180deg,#062f55 0%,#031c34 100%);}
+body.espace .admin-ava{background:linear-gradient(135deg,#147edc,#12c4ee);
+  box-shadow:0 0 0 2px rgba(255,255,255,.14);}
+body.espace .admin-etat.ok .admin-point{background:#12c4ee;
+  box-shadow:0 0 0 3px rgba(18,196,238,.2);}
+body.espace .admin-lien{border-color:rgba(255,255,255,.09);
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.84);
+  transition:background .15s,color .15s,border-color .15s;}
+body.espace .admin-lien:hover{background:rgba(255,255,255,.09);color:#fff;}
+body.espace .admin-lien.actif{background:#fff;border-color:#fff;color:#062f55;
+  box-shadow:0 8px 20px rgba(0,0,0,.22);}
+body.espace .admin-lien.actif svg{color:#147edc;}
+body.espace .admin-aide{background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);}
+body.espace .admin-aide .bouton{background:linear-gradient(120deg,#147edc,#0e6fc7);}
+
+/* ---------- LES SURFACES ---------- */
+body.exploitant .bloc,
+body.exploitant .panneau,
+body.exploitant .kpi,
+body.exploitant .ch-carte{border-color:var(--filet);border-radius:18px;
+  box-shadow:var(--ombre);}
+body.exploitant .bloc-titre,
+body.exploitant .panneau-titre{color:var(--encre);}
+body.exploitant .ecran-titre,
+body.exploitant .admin-bonjour{color:var(--encre);letter-spacing:-.03em;}
+body.exploitant .admin-date{border-color:var(--filet);border-radius:999px;
+  padding:8px 13px;color:var(--accent-encre);background:var(--accent-clair);
+  border-color:transparent;}
+
+/* LE RETOUR ET SON TITRE SE LISENT ENSEMBLE, À GAUCHE. Le titre partait au
+   bord droit (« space-between »), et sur « Nouvelle course » le bouton
+   collait au bord de l'écran. */
+body.exploitant .bord-tete:has(> .retour){justify-content:flex-start;
+  align-items:center;gap:12px;padding:18px 20px 0;}
+body.exploitant .bord-tete:has(> .retour) .ecran-titre{margin:0;}
+body.exploitant .retour{border-color:var(--filet);border-radius:12px;
+  background:var(--carte);color:var(--encre);box-shadow:var(--ombre);}
+
+/* ---------- LES BOUTONS ---------- */
+body.exploitant .bouton{background:linear-gradient(120deg,#147edc 0%,#0e6fc7 60%);
+  border-radius:12px;box-shadow:0 8px 18px rgba(14,111,199,.24);
+  font-weight:750;}
+body.exploitant .bouton:disabled{box-shadow:none;}
+body.exploitant .bouton-fantome{border-color:#d6e1eb;border-radius:12px;
+  color:var(--encre);transition:background .15s,border-color .15s;}
+body.exploitant .bouton-fantome:hover{background:#f6f9fc;border-color:#c3d3e2;}
+body.exploitant .bouton-fantome.rouge{color:#b3261e;border-color:#f0c2c2;}
+body.exploitant .bouton.vert,
+body.exploitant .d-clore{background:#0e6fc7;color:#fff;}
+
+/* ---------- LES CHAMPS ---------- */
+body.exploitant .champ{background:var(--carte);border-color:#dbe4ec;border-radius:13px;
+  transition:border-color .15s,box-shadow .15s;}
+body.exploitant .champ:focus-within{border-color:#147edc;
+  box-shadow:0 0 0 4px rgba(20,126,220,.13);}
+body.exploitant .champ-titre{color:var(--encre);}
+
+/* ---------- LE TABLEAU DE BORD ---------- */
+body.exploitant .compteur{border-radius:13px;box-shadow:var(--ombre);}
+body.exploitant .compteur.actif{border-color:#147edc;background:var(--accent-clair);
+  box-shadow:0 0 0 1.5px #147edc;}
+body.exploitant .compteur.actif .etiquette{color:var(--accent-encre);}
+body.exploitant .demande{border-radius:16px;box-shadow:var(--ombre);}
+/* L'ATTENTE RESTE ROUGE PLEIN : c'est la seule ligne qui crie. */
+body.exploitant .demande.attente{box-shadow:0 10px 24px rgba(201,48,47,.22);}
+body.exploitant .demande.confirmee{border-color:#147edc;
+  box-shadow:0 0 0 1.5px #147edc,var(--ombre);}
+body.exploitant .jour-titre{color:var(--gris);letter-spacing:.09em;}
+body.exploitant .arrivee-avis{background:linear-gradient(120deg,#147edc,#0e6fc7);
+  box-shadow:0 8px 18px rgba(14,111,199,.25);}
+
+/* ---------- LE REGISTRE ---------- */
+body.exploitant .periode{border-radius:11px;}
+body.exploitant .periode.actif{border-color:#147edc;background:var(--accent-clair);
+  color:var(--accent-encre);box-shadow:0 0 0 1px #147edc;}
+body.exploitant .gc-barre{background:#eaf1f8;}
+body.exploitant .gc-barre i{background:linear-gradient(90deg,#0e6fc7,#12c4ee);}
+body.exploitant .barre-f{background:#eaf1f8;}
+
+/* ---------- LE BON ---------- */
+body.exploitant .ligne.total b{color:var(--encre);}
+/* Les trois chiffres de « Cette semaine » sont des tuiles DANS une carte :
+   un fond léger, pas une seconde ombre — deux cartes imbriquées se lisent
+   comme deux choses différentes. */
+body.exploitant .indic{background:var(--fond);border-radius:13px;padding:11px 12px;}
+body.exploitant .indic-chiffre{color:var(--encre);}
+body.exploitant #listeBord{margin-top:18px;}
+body.exploitant #listeBord .jour-titre:first-child{margin-top:0;}
+@media (max-width:899px){
+  /* Le bandeau du haut se termine en arrondi : il se pose sur la page au
+     lieu de la couper net. */
+  body.espace .admin-nav{border-radius:0 0 24px 24px;
+    box-shadow:0 12px 30px rgba(3,28,52,.18);}
+}
+/* « Tout est en règle » : l'état positif prend le bleu, plus le céladon. */
+body.exploitant .ch-alerte.vert{border-color:#cfe0f3;}
+/* LE CARNET S'ALIGNE SUR LE RESTE. Le panneau des papiers et les fiches
+   gardaient la marge du téléphone (20 px, ou aucune) quand tout l'écran
+   s'aligne sur 28 px : trois bords gauches différents sur un même écran. */
+body.exploitant #panneauPapiers{margin:14px 20px 0;}
+@media (min-width:900px){
+  body.espace #panneauPapiers{margin:16px 28px 0;}
+  body.espace .ch-carte{width:calc(100% - 56px);margin-left:28px;margin-right:28px;}
+}
 </style>
 </head>
 <body>
@@ -9588,7 +9728,7 @@ window.ELA_TEXTES = {
    pas un encaissement. Les COMPTES de courses, eux, portent sur tout ce
    qui n'est pas refusé : une demande reçue reste du travail arrivé.
    ===================================================================== */
-  var COULEUR_GAMME = { berline:"#1F6F6B", van:"#3FA9A2" };
+  var COULEUR_GAMME = { berline:"#0E6FC7", van:"#12C4EE" };
 
   function variation(a, b){
     /* SANS RÉFÉRENCE, PAS DE POURCENTAGE. « +100 % » sur une semaine
@@ -9672,15 +9812,15 @@ window.ELA_TEXTES = {
     svg.setAttribute("viewBox", "0 0 " + L + " " + H);
     svg.innerHTML =
       '<defs><linearGradient id="cbG" x1="0" y1="0" x2="0" y2="1">'
-      + '<stop offset="0" stop-color="#1F6F6B" stop-opacity=".22"/>'
-      + '<stop offset="1" stop-color="#1F6F6B" stop-opacity="0"/></linearGradient></defs>'
+      + '<stop offset="0" stop-color="#0E6FC7" stop-opacity=".22"/>'
+      + '<stop offset="1" stop-color="#0E6FC7" stop-opacity="0"/></linearGradient></defs>'
       + '<path d="' + ligne + ' L' + pts[6][0].toFixed(1) + ' ' + bas
       + ' L' + pts[0][0].toFixed(1) + ' ' + bas + ' Z" fill="url(#cbG)"/>'
-      + '<path d="' + ligne + '" fill="none" stroke="#1F6F6B" stroke-width="2.2"'
+      + '<path d="' + ligne + '" fill="none" stroke="#0E6FC7" stroke-width="2.2"'
       + ' stroke-linecap="round" stroke-linejoin="round"/>'
       + pts.map(function(p, k){
           return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1)
-               + '" r="' + (k === 6 ? 4 : 2.6) + '" fill="#1F6F6B"/>'
+               + '" r="' + (k === 6 ? 4 : 2.6) + '" fill="#0E6FC7"/>'
                + (jours[k] ? '<text x="' + p[0].toFixed(1) + '" y="'
                    + (p[1] - 8).toFixed(1) + '" text-anchor="middle" font-size="10"'
                    + ' font-weight="700" fill="#151C22">' + jours[k] + '</text>' : '');
@@ -9729,8 +9869,8 @@ window.ELA_TEXTES = {
 
     /* ---- Où en sont les courses ---- */
     var etats = [["attente","En attente","#C9302F"],
-                 ["confirmee","À assurer","#1F6F6B"],
-                 ["realisee","Réalisées","#3FA9A2"],
+                 ["confirmee","À assurer","#0E6FC7"],
+                 ["realisee","Réalisées","#12C4EE"],
                  ["refusee","Refusées","#8a97a3"]];
     var parTout = { attente:0, confirmee:0, realisee:0, refusee:0 };
     tout.forEach(function(c){
