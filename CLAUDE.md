@@ -5721,3 +5721,39 @@ notifications Telegram 1 minute après, c'est trop long ».
   journal GitHub est public. Piste la plus probable si `depot_s` est grand :
   le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
   (`reprendreDepot()`).
+
+## PRIX MODIFIABLES, COMMISSION PAR COURSE, GRAPHIQUE DES CHAUFFEURS
+
+29 septembre 2026, à sa demande (« une case pour modifier les prix au km,
+hôtel, flyer », « une commission en % ou en € sur chaque course », « un
+graphique des courses réalisées par les chauffeurs »).
+- **LA GRILLE VIT SUR LE SERVEUR** (`parametres_commerciaux`,
+  `tarifs_partenaires` — celle que `deposer-course` relit déjà). Le site,
+  la page du flyer et l'admin la lisent par `grille_publique()` (prix seuls,
+  lisibles par tous) ; Réglages → **Prix** l'écrit par
+  `ela_modifier_grille()` (exploitant seul, montants bornés, aucune
+  destination créée). Migration `20260929010000_grille_modifiable.sql`, **à
+  appliquer par le workflow des migrations** : avant, la lecture échoue et
+  tout retombe sur les prix de secours.
+- **LES NOMBRES ÉCRITS DANS `GAMMES`, `HOTELS` ET LES CARTES DU FLYER NE SONT
+  PLUS QU'UN SECOURS**, pour un client sans réseau. Les contrôles qui les
+  comparent à la source SQL (`test-doc`, `verifier-tarif-hotel`) éprouvent
+  ce secours, plus le prix en ligne. Un prix changé dans l'admin ne se
+  recopie PAS dans le dépôt.
+- **« Voir mon prix » ATTEND la grille (4 s au plus)** : sans ça un client
+  rapide voyait l'ancien prix pendant que le serveur en enregistrait un
+  autre. `test-admin-grille` le ralentit exprès ; il tombe sans l'attente.
+- **Sans lecture réussie, l'admin n'enregistre rien** : il écraserait la
+  vraie grille avec les nombres de secours.
+- **Le flyer IMPRIMÉ ne suit pas** : l'écran le rappelle.
+- **Commission** : `commissionDe(course)` est le seul calcul — celle posée
+  sur la course (% ou € fixes, jamais plus que le prix), sinon le taux du
+  carnet, sinon rien (on ne devine pas un taux). Bon, registre, export CSV
+  et facture l'utilisent tous. `test-admin-commission`.
+- **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
+  compte que les courses réalisées.
+- **Notifications ELA de l'exploitant** : bouton dans Réglages, et un outil
+  qui fabrique la paire VAPID DANS son navigateur — la clé privée ne passe
+  par aucun serveur ni aucune conversation, il la colle lui-même dans les
+  secrets Supabase. Écrire soi-même dans ses secrets a été refusé par la
+  sécurité de l'environnement : ne pas retenter.

@@ -51,6 +51,11 @@ async function reserver(serveurRepond, sansPush, cachee){
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
   const depots = [];
   await p.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
+    /* La lecture des PRIX (29/09/2026) n'est pas un dépôt : la compter
+       ferait croire à une réservation envoyée deux fois. Serveur muet sur
+       ce point, la page garde ses prix de secours — ceux que la suite
+       attend. */
+    if(route.request().url().includes('/rpc/grille_publique')) return route.abort();
     depots.push({ url: route.request().url(), methode: route.request().method(),
                   entetes: route.request().headers(),
                   corps: JSON.parse(route.request().postData()||'{}') });
