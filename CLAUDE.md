@@ -5950,3 +5950,24 @@ confirmé.
   tunnel sur le site construit** et vérifie que toute fonction appelée par
   une page publique y est définie. Éprouvé contre l'ancien code : cinq
   contrôles tombent, dont « telValide is not defined ».
+
+## LE RÔLE AGENT EST IMPOSÉ PAR LE SERVEUR
+
+29 septembre 2026, à sa demande : « valide le rôle agent ». Le diagnostic lu
+en production (`20260929020000_diagnostic_role_agent.sql`) : un compte
+`admin`, un compte `agent_reservation`, et `est_exploitant()` vraie pour les
+deux — l'écran cachait les prix, les réglages, le registre et les factures,
+mais un appel direct passait.
+- `20260929030000_role_agent_serveur.sql` pose `est_admin()` et réserve à
+  l'admin : l'**écriture** des prix, forfaits, réglages et codes promo (la
+  lecture reste : le calcul du prix en a besoin), les factures de commission,
+  les paiements, les instantanés financiers, l'aperçu et l'émission de
+  facture, la restauration de sauvegarde. L'agent garde tout ce qui traite
+  une course.
+- **Les trois fonctions ne sont pas recopiées** : la migration relit leur
+  définition dans la base et n'y change que le verrou.
+- `supabase/tests/role-agent.sql` éprouve les deux côtés (agent refusé, admin
+  qui passe), en CI. Éprouvé sans la migration, puis sans la policy : il
+  tombe les deux fois.
+- **Pas encore fait, à lui de trancher** : la suppression d'une course reste
+  ouverte à l'agent — l'écran ne la lui cache pas.
