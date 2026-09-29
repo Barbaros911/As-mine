@@ -11,7 +11,7 @@
    - une demande déposée sur le serveur APPARAÎT et est ANNONCÉE pendant
      qu'il regarde — sans que rien ne passe par WhatsApp ;
    - arrivé par une alerte (« ?ref= »), l'espace OUVRE cette course ;
-   - le lien de l'alerte Telegram vise admin.html, plus admin-v2.html.
+   - le lien de l'alerte Telegram vise l'entrée dédiée /ela-admin/.
    Le déclenchement de Telegram lui-même est côté serveur (webhook INSERT) :
    il ne s'éprouve pas d'ici, il a été vu marcher le 11 septembre 2026.
 
@@ -50,6 +50,7 @@ const course = (ref, nom) => ({ ref, statut:"attente", cree:new Date().toISOStri
     passagers:"2 passagers", vol:"" },
   client:{ nom, telephone:"06 12 34 56 78" }, prix:{ total:70 } });
 
+let sondes = 0, lectures = 0;
 let serveurCourses = [course('ELA-26-09-0100','Jean Martin')];
 const nav = await chromium.launch();
 async function espace(chemin){
@@ -63,7 +64,10 @@ async function espace(chemin){
     if (u.startsWith(BASE)) return route.continue();
     if (u.includes('supabase.co')) {
       if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
-      if (u.includes('/rest/v1/courses')) return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut}))));
+      /* La sonde ne demande que la dernière référence : on lui répond comme
+         le vrai serveur, UNE ligne, sinon elle lirait « undefined ». */
+      if (u.includes('/rest/v1/courses?select=ref&')) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
+      if (u.includes('/rest/v1/courses')) { lectures++; return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut})))); }
       if (u.includes('/rest/v1/')) return route.fulfill(J([]));
       return route.fulfill(J({}));
     }
@@ -77,7 +81,7 @@ async function espace(chemin){
 try {
   /* 1. Une demande arrive pendant qu'il regarde. */
   {
-    const {ctx, p, erreurs} = await espace('/admin.html');
+    const {ctx, p, erreurs} = await espace('/ela-admin/');
     await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:8000})
       .catch(() => {});
     check('à l\'ouverture, la course du serveur est là', (await p.locator('.demande').count()) === 1,
@@ -93,10 +97,32 @@ try {
     check('aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
     await ctx.close();
   }
+  /* 1 bis. SANS rien toucher, une demande apparaît en quelques secondes
+     (29/09/2026 : « je reçois les demandes sur admin 1 minute après »).
+     Avant, seule une relecture complète toutes les 45 s existait. On
+     n'attend que 15 s : la sonde passe toutes les 8 s. Et elle ne doit
+     PAS relire toute la liste à chaque passage, sinon on ferait
+     télécharger 1000 courses toutes les 8 s sur un téléphone. */
+  {
+    serveurCourses = [course('ELA-26-09-0110','Ali Ben')];
+    const {ctx, p} = await espace('/admin.html');
+    await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:8000}).catch(() => {});
+    const base = lectures;
+    await p.waitForTimeout(9000);                       // une sonde passe, rien n'a changé
+    const lecturesAvant = lectures - base;
+    serveurCourses = [course('ELA-26-09-0111','Nina Roy'), ...serveurCourses];
+    const t0 = Date.now();
+    const vu = await p.waitForFunction(() => document.querySelectorAll('.demande').length === 2, null, {timeout:15000})
+      .then(() => true, () => false);
+    check('une demande arrivée apparaît seule en moins de 15 s', vu, vu ? Math.round((Date.now()-t0)/1000)+' s' : 'jamais');
+    check('la sonde tourne (question minuscule)', sondes >= 1, String(sondes));
+    check('sans changement, la sonde ne relit pas toute la liste', lecturesAvant === 0, 'relectures avant l\'arrivée : ' + lecturesAvant);
+    await ctx.close();
+  }
   /* 2. Arrivé par l'alerte : la course s'ouvre. */
   {
     serveurCourses = [course('ELA-26-09-0102','Paul Durand'), ...serveurCourses];
-    const {ctx, p} = await espace('/admin.html?ref=ELA-26-09-0102');
+    const {ctx, p} = await espace('/ela-admin/?ref=ELA-26-09-0102');
     await p.waitForFunction(() => document.getElementById('ecran-bord-bon')
       && document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
     const actif = await p.evaluate(() => (document.querySelector('.ecran.actif')||{}).id);
@@ -114,7 +140,7 @@ try {
     const vis = async (p, id) => p.evaluate(i => { const e = document.getElementById(i);
       return !!e && !e.hidden && getComputedStyle(e).display !== 'none'; }, id);
     for (const [ref, attendu] of [['ELA-26-09-0105','attente'],['ELA-26-09-0103','confirmee'],['ELA-26-09-0104','realisee']]) {
-      const {ctx, p} = await espace('/admin.html?ref=' + ref);
+      const {ctx, p} = await espace('/ela-admin/?ref=' + ref);
       await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
       const c = await vis(p,'btnConfirmerCourse'), r = await vis(p,'btnRealisee'), f = await vis(p,'btnRefuser');
       if (attendu === 'attente') check('en attente : « Confirmer » seul, pas « Marquer comme réalisée »', c && !r && f, `c=${c} r=${r} f=${f}`);
@@ -126,8 +152,7 @@ try {
   /* 3. L'alerte Telegram vise l'admin retenu. */
   for (const f of ['supabase/functions/nouvelle-demande/index.ts', 'supabase/functions/nouvelle-demande/a-coller.ts']) {
     const t = readFileSync(f, 'utf8');
-    check(f.split('/').pop() + ' : l\'alerte ouvre admin.html', /"https:\/\/elatransfer\.com\/admin\.html"/.test(t)
-      && !/elatransfer\.com\/admin-v2\.html/.test(t));
+    check(f.split('/').pop() + ' : l\'alerte ouvre l’Admin dédié', /"https:\/\/elatransfer\.com\/ela-admin\/"/.test(t));
   }
 } catch (e) {
   ko.push('PLANTAGE — ' + e.message.split('\n')[0]);

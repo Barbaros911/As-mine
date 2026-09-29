@@ -64,8 +64,15 @@
    contrôle vérifie que le statut est intact après l'appel.
    ===================================================================== */
 
+import {
+  creerSessionHotel,
+  nomSecretHotel,
+  validerSessionHotel,
+} from "../_shared/hotel-session.ts";
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const ORIGINS = new Set(["https://elatransfer.com", "https://www.elatransfer.com"]);
 
 /* Le secret d'un hôtel se nomme d'après sa clé : « easyhotel-aeroville »
    donne « HOTEL_EASYHOTEL_AEROVILLE_CODE ». Un nom de secret mal écrit
@@ -73,10 +80,6 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
    n'existe pas, et la réception lit « code refusé » sans comprendre. La
    marche à suivre le répète, et le nom se calcule ici plutôt que de
    s'écrire à la main quelque part. */
-function nomDuSecret(cle: string): string {
-  return "HOTEL_" + cle.toUpperCase().replace(/[^A-Z0-9]+/g, "_") + "_CODE";
-}
-
 /* UNE COMPARAISON QUI NE FUIT PAS PAR SA DURÉE. « a === b » s'arrête au
    premier caractère différent : le temps de réponse dit alors combien de
    caractères de tête sont justes, et un code se reconstruit lettre par
@@ -88,59 +91,116 @@ function memeCode(a: string, b: string): boolean {
   return d === 0;
 }
 
-const entetes = {
-  "Content-Type": "application/json",
-  /* La page est servie depuis un autre domaine que la fonction : sans ces
-     en-têtes le navigateur refuse la réponse avant même de la lire. */
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS"
-};
+function entetes(origin: string): Record<string, string> {
+  const h: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-store",
+    "Vary": "Origin",
+  };
+  if (ORIGINS.has(origin)) h["Access-Control-Allow-Origin"] = origin;
+  return h;
+}
 
 const attendre = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/* UN PLAFOND D'ESSAIS PAR ADRESSE IP (audit du 28/09/2026). L'attente de
+   700 ms ne suffisait pas : on peut paralléliser, et un code court se
+   devinait en quelques heures. Chaque appel consomme une unité du quota
+   serveur déjà utilisé par le dépôt public — soixante par heure et par IP,
+   bien au-delà de ce qu'une réception fait en ouvrant sa liste. Le compte
+   est pris AVANT la comparaison : sinon l'essai gagnant passerait même une
+   fois la limite atteinte. */
+const ESSAIS_PAR_HEURE = 60;
+async function sha256(v: string): Promise<string> {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v));
+  return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+async function quotaOk(req: Request): Promise<boolean | null> {
+  const ip = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "inconnue")
+    .split(",")[0].trim();
+  const cle = await sha256("courses-hotel|" + ip + "|" + new Date().toISOString().slice(0, 13));
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/consommer_quota_reservation`, {
+      method: "POST",
+      headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`,
+                 "Content-Type": "application/json" },
+      body: JSON.stringify({ p_cle: cle, p_limite: ESSAIS_PAR_HEURE })
+    });
+    if (!r.ok) return null;
+    return (await r.json()) === true;
+  } catch (_e) { return null; }
+}
+
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: entetes });
+  const origin = req.headers.get("origin") ?? "";
+  if (req.method === "OPTIONS") {
+    if (!ORIGINS.has(origin)) return new Response("refusé", { status: 403 });
+    return new Response(null, { status: 204, headers: {
+      ...entetes(origin),
+      "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Max-Age": "600",
+    } });
+  }
+  if (origin && !ORIGINS.has(origin)) {
+    return new Response(JSON.stringify({ erreur: "origine refusée" }),
+      { status: 403, headers: entetes(origin) });
+  }
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ erreur: "méthode refusée" }),
-      { status: 405, headers: entetes });
+      { status: 405, headers: entetes(origin) });
   }
   /* RIEN DE CONFIGURÉ REND UNE ERREUR, PAS UN SUCCÈS MUET — même règle que
      les trois autres fonctions. Une liste vide ferait croire à la réception
      qu'elle n'a aucune course, ce qui est un mensonge, pas une panne. */
   if (!SERVICE_ROLE || !SUPABASE_URL) {
     return new Response(JSON.stringify({ erreur: "clé de service absente" }),
-      { status: 500, headers: entetes });
+      { status: 500, headers: entetes(origin) });
   }
 
   let corps: any = {};
   try { corps = await req.json(); } catch (_e) { corps = {}; }
   const cle = String(corps.hotel ?? "").trim().toLowerCase();
   const code = String(corps.code ?? "");
+  const session = String(corps.session ?? "");
   const action = String(corps.action ?? "liste");
 
-  if (!cle || !code) {
-    return new Response(JSON.stringify({ erreur: "hôtel ou code manquant" }),
-      { status: 400, headers: entetes });
+  if (!cle || (!code && !session)) {
+    return new Response(JSON.stringify({ erreur: "hôtel ou autorisation manquante" }),
+      { status: 400, headers: entetes(origin) });
   }
   /* La clé vient d'une adresse, donc de l'extérieur : on la borne avant de
      l'utiliser pour composer un nom de variable d'environnement. */
   if (!/^[a-z0-9-]{3,40}$/.test(cle)) {
     await attendre(700);
     return new Response(JSON.stringify({ refuse: true }),
-      { status: 401, headers: entetes });
+      { status: 401, headers: entetes(origin) });
   }
 
-  const attendu = Deno.env.get(nomDuSecret(cle)) ?? "";
-  if (!memeCode(code, attendu)) {
+  const quota = await quotaOk(req);
+  if (quota === null) {
+    return new Response(JSON.stringify({ erreur: "service indisponible" }),
+      { status: 503, headers: entetes(origin) });
+  }
+  if (!quota) {
+    return new Response(JSON.stringify({ erreur: "trop d'essais, réessayez dans une heure" }),
+      { status: 429, headers: entetes(origin) });
+  }
+
+  const attendu = Deno.env.get(nomSecretHotel(cle)) ?? "";
+  const sessionValide = session
+    ? await validerSessionHotel(session, cle, attendu)
+    : false;
+  if (!sessionValide && !memeCode(code, attendu)) {
     /* Une attente sur l'échec, jamais sur le succès. Elle ne transforme pas
        cette serrure en coffre — on peut paralléliser — mais elle rend un
        essai en force nettement plus coûteux qu'une boucle sur un fichier
        téléchargé, ce qu'est le code de l'espace exploitant. */
     await attendre(700);
     return new Response(JSON.stringify({ refuse: true }),
-      { status: 401, headers: entetes });
+      { status: 401, headers: entetes(origin) });
   }
+  const sessionCourante = sessionValide ? session : await creerSessionHotel(cle, attendu);
 
   /* ---- La demande d'annulation ---------------------------------------
      Elle ne décide rien. On relit le bon, on pose le drapeau, on réécrit
@@ -149,14 +209,14 @@ Deno.serve(async (req: Request) => {
     const ref = String(corps.ref ?? "").trim();
     if (!ref) {
       return new Response(JSON.stringify({ erreur: "référence manquante" }),
-        { status: 400, headers: entetes });
+        { status: 400, headers: entetes(origin) });
     }
     const lu = await fetch(
       `${SUPABASE_URL}/rest/v1/courses?select=ref,statut,bon&ref=eq.${encodeURIComponent(ref)}&limit=1`,
       { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
     if (!lu.ok) {
       return new Response(JSON.stringify({ erreur: "lecture refusée" }),
-        { status: 502, headers: entetes });
+        { status: 502, headers: entetes(origin) });
     }
     const lignes = await lu.json();
     const ligne = Array.isArray(lignes) ? lignes[0] : null;
@@ -167,7 +227,7 @@ Deno.serve(async (req: Request) => {
        d'ouvrir la modification d'une ligne au visiteur anonyme. */
     if (!bon || String(bon.provenanceCle ?? "") !== cle) {
       return new Response(JSON.stringify({ inconnue: true }),
-        { status: 404, headers: entetes });
+        { status: 404, headers: entetes(origin) });
     }
     bon.annulationDemandee = true;
     const ecrit = await fetch(
@@ -180,9 +240,10 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({ bon: bon }) });
     if (!ecrit.ok) {
       return new Response(JSON.stringify({ erreur: "écriture refusée" }),
-        { status: 502, headers: entetes });
+        { status: 502, headers: entetes(origin) });
     }
-    return new Response(JSON.stringify({ ok: true, ref: ref }), { headers: entetes });
+    return new Response(JSON.stringify({ ok: true, ref: ref, session: sessionCourante }),
+      { headers: entetes(origin) });
   }
 
   /* ---- La liste des courses de cet hôtel ------------------------------
@@ -198,7 +259,7 @@ Deno.serve(async (req: Request) => {
     { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
   if (!r.ok) {
     return new Response(JSON.stringify({ erreur: "lecture refusée" }),
-      { status: 502, headers: entetes });
+      { status: 502, headers: entetes(origin) });
   }
   const lignes = await r.json();
 
@@ -260,6 +321,6 @@ Deno.serve(async (req: Request) => {
     };
   });
 
-  return new Response(JSON.stringify({ hotel: cle, courses: courses }),
-    { headers: entetes });
+  return new Response(JSON.stringify({ hotel: cle, courses: courses, session: sessionCourante }),
+    { headers: entetes(origin) });
 });

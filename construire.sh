@@ -23,7 +23,6 @@ for script in ('/intake-demande.js','/qr-affiche.js','/itineraire-partage.js','/
     if tag not in a:a=a.replace('</body>',tag+'</body>',1)
 admin.write_text(a,encoding='utf-8')
 PY
-cp site/index.html site/application.html
 node .github/scripts/seo-ela.mjs site/index.html
 cp manifest-exploitant.webmanifest site/
 cp -r exploitant site/exploitant
@@ -45,6 +44,7 @@ if [ -d sites ]; then
     echo "Publication du site « $nom » sur /$nom/"; cp -r "$dossier" "site/$nom"
   done
 fi
+node .github/scripts/construire-espaces-hotel.mjs site/index.html site
 node .github/scripts/galerie.mjs
 
 # LES COMMENTAIRES DE TRAVAIL NE PARTENT JAMAIS EN LIGNE — septembre 2026.

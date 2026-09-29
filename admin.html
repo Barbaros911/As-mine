@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
-  <meta http-equiv="refresh" content="0;url=./application.html?exploitant=1">
+  <meta http-equiv="refresh" content="0;url=/ela-admin/">
   <link rel="manifest" href="./manifest-exploitant.webmanifest">
   <title>ELA Transfer — Espace exploitant</title>
   <style>
@@ -17,13 +17,14 @@
   <main>
     <img src="./brand-logo.webp" alt="ELA Transfer">
     <p>Ouverture de l’espace exploitant ELA Transfer…</p>
-    <a id="secours" href="./application.html?exploitant=1">Continuer</a>
+    <a id="secours" href="/ela-admin/">Continuer</a>
   </main>
   <script>
     (function(){
       var params = new URLSearchParams(location.search);
-      params.set("exploitant", "1");
-      var cible = "./application.html?" + params.toString() + location.hash;
+      params.delete("exploitant");
+      var query = params.toString();
+      var cible = "/ela-admin/" + (query ? "?" + query : "") + location.hash;
       document.getElementById("secours").href = cible;
       location.replace(cible);
     }());

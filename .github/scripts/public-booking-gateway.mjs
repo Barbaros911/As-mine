@@ -25,7 +25,8 @@ const ancienCorps = `headers: { apikey: SUPABASE_CLE, "Content-Type": "applicati
                    Prefer: "return=minimal" },
         body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })`;
 const nouveauCorps = `headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
-        body: JSON.stringify({ bon: bon })`;
+        body: JSON.stringify({ bon: bon,
+          sessionReception: recHotel ? codeRetenu(recHotel.cle) : "" })`;
 if (!html.includes(ancienCorps)) throw new Error('corps du dépôt public introuvable : transformation refusée');
 html = html.replace(ancienCorps, nouveauCorps);
 

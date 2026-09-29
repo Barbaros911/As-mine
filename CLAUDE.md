@@ -2709,7 +2709,8 @@ l'un des gains.
   champs `jour`/`nuit` de `HOTELS`, remplacés par **un seul `forfait`**.
   - **LE DÉPÔT ET LE SITE PUBLIÉ DISAIENT DEUX PRIX DIFFÉRENTS**, et une
     seule des deux vérités était facturée. Le dépôt portait la grille avec
-    nuit ; `appliquer-regles-easyhotel.mjs` la réécrivait au moment de
+    nuit ; appliquer-regles-easyhotel.mjs (supprimé depuis, voir plus bas)
+    la réécrivait au moment de
     construire. Une divergence qui ne se voit pas : le prix s'affiche des
     deux côtés. `HOTELS` est désormais aligné sur la **source serveur**
     (`20260916100000_current_tariff_source.sql`), qui ne déclare qu'un
@@ -4337,7 +4338,7 @@ Barbaros**, `prix`, et les appels d'adresse BAN/Photon.
   de fichier, qui dit vrai aujourd'hui : le mode hôtel avait une SECONDE
   grille au kilomètre pour « autre destination » (2,55 et 4,10 €/km,
   arrondi à l'euro), injectée à la construction par
-  `.github/scripts/appliquer-regles-easyhotel.mjs`. Barbaros a demandé
+  .github/scripts/appliquer-regles-easyhotel.mjs. Barbaros a demandé
   qu'il n'y en ait plus qu'une pour tout le monde : le transformateur a été
   **supprimé**, il n'avait plus rien à faire une fois les deux grilles
   unifiées, et retiré de `construire.sh`.
@@ -5732,7 +5733,8 @@ pouvoir modifier cela sur ma page admin, même les prix du flyer. »
 **IL Y AVAIT DEUX GRILLES AU KILOMÈTRE, ET ÇA NE SE VOYAIT PAS.** 2,90 €/km
 berline / 4,70 €/km van pour un client ordinaire ; une seconde, plus basse,
 injectée au moment de CONSTRUIRE le site pour une adresse hôtel hors flyer
-(« autre destination »), par `.github/scripts/appliquer-regles-easyhotel.mjs`.
+(« autre destination »), par .github/scripts/appliquer-regles-easyhotel.mjs
+(supprimé depuis).
 Deux clients tapant la même adresse depuis deux entrées différentes du site
 payaient donc un montant différent, sans qu'aucun des deux ne le sache — et
 le prix est ferme donc opposable. **Il n'y en a plus qu'une.** Le
@@ -5802,3 +5804,60 @@ minuterie, format inattendu) ne touche à rien, le client garde le chiffre
   une migration Supabase ») pour que la base porte réellement 2,90/4,70 —
   tant que ce n'est pas fait, le site s'appuie sur son repli, qui porte
   déjà les mêmes chiffres.
+
+## AUDIT DE SÉCURITÉ DU 28/09/2026 — DEUX FONCTIONS OUVERTES À TOUS
+
+**Le jeton vérifié par Supabase à l'entrée d'une fonction ne prouve RIEN** :
+la clé publique du site (lisible dans la page) le franchit — c'est même
+comme ça que `etat-course` et `courses-hotel` sont appelées. Toute fonction
+qui agit au nom de Barbaros doit donc vérifier elle-même `est_exploitant()`
+avec le jeton de l'appelant (modèle : `capturer-paiement`).
+- **`prevenir-client`** n'avait aucun autre contrôle : n'importe qui pouvait
+  envoyer à un client abonné une fausse « Transfert confirmé » avec le texte
+  et le LIEN de son choix, sur des références qui se devinent en comptant.
+  Elle exige maintenant un exploitant, borne le texte, et n'accepte qu'un
+  lien vers elatransfer.com. `sw.js` refuse en plus d'ouvrir un lien
+  étranger au clic sur une notification (deux défenses).
+- **`nouvelle-demande`** croyait le corps reçu : un faux « INSERT » faisait
+  partir chez Barbaros une alerte Telegram au texte libre. Elle ne garde plus
+  que la référence et **relit la course sur le serveur** — existante, créée
+  il y a moins de 15 min, jamais annoncée. **Aucun réglage à changer** : le
+  vrai webhook passe à l'identique.
+- `test-securite-fonctions.mjs` éprouve les deux, sans Deno ni réseau ;
+  six contrôles sur sept tombent sur l'ancien code.
+- **Second passage, même jour** :
+  - **Le code de la réception est plafonné** : 60 appels par heure et par IP
+    dans `courses-hotel`, via le quota serveur du dépôt public. Le compte est
+    pris AVANT la comparaison — sinon l'essai gagnant passerait quand même.
+    Au-delà : 429, et la page dit « trop d'essais » sans oublier le code.
+  - **Plus aucune écriture directe d'`anon` dans `courses`**
+    (`20260928120000_courses_sans_depot_anonyme.sql`). Le site publié dépose
+    uniquement par `deposer-course` (prix recroisé, quota) ; la vieille
+    policy de `SUPABASE.md` laissait écrire une course au prix de son choix.
+    **La migration ne part pas toute seule** : workflow « Appliquer une
+    migration Supabase », ce fichier. Épreuve SQL en CI, qui repose l'état
+    d'origine et exige qu'il laisse passer avant d'exiger le refus.
+- **Reste ouvert, à trancher avec Barbaros** : le rôle `agent_reservation`
+  n'est limité QUE par l'écran (CSS) — côté serveur `est_exploitant()` lui
+  donne tout ; `role_operateur` n'est défini dans aucune migration du dépôt.
+
+## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE
+
+29 septembre 2026, Barbaros : « je reçois les demandes sur admin et les
+notifications Telegram 1 minute après, c'est trop long ».
+- **Le tableau de bord relisait TOUTE la liste (jusqu'à 1000 courses) toutes
+  les 45 s** — une demande attendait donc jusqu'à 45 s. Une **sonde** pose
+  maintenant toutes les 8 s une question d'une ligne (« dernière référence ? »,
+  `nuage.derniere()`), et ne relance la lecture complète que si la réponse
+  change. La relecture de fond à 45 s reste : une course modifiée sur un
+  autre appareil ne change pas la dernière référence. `test-admin-arrivee`
+  exige l'apparition en moins de 15 s ET aucune relecture complète quand
+  rien n'arrive ; l'ancien code tombe (« jamais »).
+- **Telegram : le code serveur n'a rien de lent**, donc on MESURE avant de
+  supposer. `20260929000000_diagnostic_delais_alertes.sql` est en lecture
+  seule (à lancer par le workflow des migrations) : pour les 10 dernières
+  courses, `depot_s` = clic du client → ligne sur le serveur, `alerte_s` =
+  ligne → Telegram envoyé. Il ne sort que références et secondes — le
+  journal GitHub est public. Piste la plus probable si `depot_s` est grand :
+  le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
+  (`reprendreDepot()`).

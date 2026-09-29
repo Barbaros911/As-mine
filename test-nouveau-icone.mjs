@@ -80,7 +80,7 @@ if(surPlace){
     !/http-equiv=.refresh|location\.replace|location\.href\s*=/.test(brut));
 
   check('le bouton mène bien au tableau de bord',
-    (await p.locator('a.ouvrir').getAttribute('href')) === '../application.html?exploitant=1',
+    (await p.locator('a.ouvrir').getAttribute('href')) === '../ela-admin/',
     await p.locator('a.ouvrir').getAttribute('href'));
 
   /* ELLE NE DOIT PAS SORTIR DANS GOOGLE : c'est une porte de service. */
@@ -117,14 +117,13 @@ if(surPlace){
 }
 
 /* Et on vérifie que ça MARCHE vraiment, des deux côtés. */
-for (const [mode, adresse, attendu] of [
-      ['client',     'http://127.0.0.1:8099/index.html',
-       'manifest.webmanifest'],
-      ['exploitant', 'http://127.0.0.1:8099/index.html?exploitant=1',
-       'manifest-exploitant.webmanifest']]) {
+for (const [mode, adresse, selecteur, attendu] of [
+      ['client', 'http://127.0.0.1:8099/index.html', '#manifeste', 'manifest.webmanifest'],
+      ['exploitant', 'http://127.0.0.1:8099/site/ela-admin/', 'link[rel="manifest"]',
+       '/manifest-exploitant.webmanifest']]) {
   await p.goto(adresse, {waitUntil:'domcontentloaded'});
   await p.waitForTimeout(250);
-  const pose = await p.locator('#manifeste').getAttribute('href');
+  const pose = await p.locator(selecteur).getAttribute('href');
   check('en mode ' + mode + ', le manifeste posé est le bon',
     pose === attendu, String(pose));
 }
@@ -136,10 +135,10 @@ const cli = JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
 /* CE QUE L'ICÔNE OUVRE. « ./ » — la valeur du manifeste client — est
    exactement ce que Barbaros a obtenu : le site public. */
 check('l\'icône ouvre l\'espace exploitant, pas la racine',
-  man.start_url === './application.html?exploitant=1', man.start_url);
+  man.start_url === '/ela-admin/', man.start_url);
 check('elle vise la même page que les deux raccourcis du site',
-  fs.readFileSync('admin.html','utf8').includes('application.html?exploitant=1')
-  && fs.readFileSync('exploitant/index.html','utf8').includes('application.html?exploitant=1'));
+  fs.readFileSync('admin.html','utf8').includes('/ela-admin/')
+  && fs.readFileSync('exploitant/index.html','utf8').includes('ela-admin/'));
 
 /* LE NOM EST LA SEULE CHOSE QUE BARBAROS PEUT VÉRIFIER LUI-MÊME, en deux
    secondes, sous l'icône. Il faut donc qu'il DIFFÈRE de celui du client :
