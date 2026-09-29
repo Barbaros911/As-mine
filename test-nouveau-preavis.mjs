@@ -145,7 +145,12 @@ await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'a
   body:JSON.stringify({features:[{geometry:{coordinates:[3.0573,50.6292]},
     properties:{label:"Place du Général de Gaulle, 59000 Lille"}}]})}));
 await p.fill('#arrivee','lille'); await p.waitForTimeout(900);
-await p.locator('#arriveeList [role=option]').first().click();
+/* ON VISE LILLE PAR SON NOM, PAS LA PREMIÈRE LIGNE (29/09/2026). Le faux
+   Photon rend aussi Place Vendôme, et depuis que la recherche fait remonter
+   ce qui est proche de Paris (28/09), c'est elle qui passait en tête : le
+   test choisissait une adresse DANS la zone et ses trois contrôles
+   tombaient sans que rien ne soit cassé. */
+await p.locator('#arriveeList [role=option]', {hasText:'Lille'}).first().click();
 await p.waitForTimeout(300);
 check('une arrivée hors zone éteint le bouton', await p.locator('#btnVoirPrix').isDisabled());
 t = dansNMinutes(240);
