@@ -5887,6 +5887,16 @@ course », « un graphique des courses réalisées par les chauffeurs »).
   (`if(el)`)** : la page publique retire ces écrans à la construction, et
   un `getElementById(...).addEventListener` sur un élément absent arrêtait
   tout le script du site client. Trouvé par la suite, pas en relisant.
+- **LA CLÉ PUBLIQUE DES NOTIFICATIONS VIENT DU SERVEUR** (fonction
+  `cle-notifications`), plus de `CLE_VAPID` écrit dans la page. La paire a
+  été fabriquée sur son téléphone et posée dans les secrets ; la lui faire
+  recopier a échoué deux fois (il a collé le NOM, puis l'EMPREINTE que
+  Supabase affiche — Supabase ne remontre jamais une valeur). Sans réponse
+  du serveur on n'abonne PAS avec `CLE_VAPID` : elle ne va plus avec la
+  moitié privée, et un abonnement dépareillé paraît marcher sans que rien
+  n'arrive. La fonction ne lit jamais `VAPID_PRIVEE` ; une valeur mal
+  collée (une empreinte) est refusée en 503. `test-securite-fonctions`,
+  `test-admin-push`.
 - **Notifications ELA de l'exploitant** : bouton dans Réglages, et un outil
   qui fabrique la paire VAPID DANS son navigateur — la clé privée ne passe
   par aucun serveur ni aucune conversation, il la colle lui-même dans les

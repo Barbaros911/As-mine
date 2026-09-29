@@ -75,6 +75,12 @@ jobs:
       - name: Déployer etat-course
         run: supabase functions deploy etat-course --project-ref "$PROJET"
 
+      # « cle-notifications » rend la clé PUBLIQUE des notifications, posée
+      # dans les secrets. Appelée par la page avec la clé anonyme, comme
+      # etat-course : la vérification du jeton reste activée.
+      - name: Déployer cle-notifications
+        run: supabase functions deploy cle-notifications --project-ref "$PROJET"
+
       # « courses-hotel » rend à la RÉCEPTION d'un hôtel partenaire les
       # courses de CET hôtel. Elle est appelée depuis la page, donc avec la
       # clé anonyme, et la vérification du jeton reste activée comme pour
