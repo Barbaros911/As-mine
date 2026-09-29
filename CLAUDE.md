@@ -5950,3 +5950,25 @@ confirmé.
   tunnel sur le site construit** et vérifie que toute fonction appelée par
   une page publique y est définie. Éprouvé contre l'ancien code : cinq
   contrôles tombent, dont « telValide is not defined ».
+
+## L'ICÔNE SUR L'ÉCRAN D'ACCUEIL — CHAQUE ENTRÉE easyHotel A SON MANIFESTE
+
+29 septembre 2026, à sa demande : poser la page client et la réception en
+icône sur un iPhone. **Mesuré avant** : `/easyhotel-reception/` héritait du
+manifeste du site client (`start_url: ./`, donc la racine) et en déclarait
+DEUX — l'icône aurait rouvert le **site public**, le piège déjà payé sur
+l'espace exploitant. `/easyhotel-client/` n'en avait aucun : vignette
+générique, ouverte dans Safari.
+- Réception : `construire-espaces-hotel.mjs` retire tous les manifestes
+  hérités et écrit `site/easyhotel-reception/manifest.webmanifest`
+  (démarre sur `/easyhotel-reception/`, nom « Réception »).
+- Client : `sites/easyhotel-client/manifest.webmanifest` (nom « easyHotel »).
+- **La portée est `/` dans les deux cas** : les cartes du client mènent à
+  `/application.html` ; une portée limitée au dossier ferait sortir de
+  l'application au premier appui.
+- Icône ELA dans les deux (aucun logo easyHotel sans leur accord).
+- Une icône posée AVANT cette correction garde l'ancien réglage : la
+  supprimer et la refaire. Sur iPhone, l'icône a son propre stockage : la
+  réception retape son code une fois dans l'application.
+- `test-cloisonnement-hotel` lit le manifeste comme le navigateur et tombe
+  sur l'ancien code (« trouvé : 2 »).
