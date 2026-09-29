@@ -47,4 +47,21 @@ if [ -d sites ]; then
 fi
 node .github/scripts/construire-espaces-hotel.mjs site/index.html site
 node .github/scripts/galerie.mjs
+
+# LES COMMENTAIRES DE TRAVAIL NE PARTENT JAMAIS EN LIGNE — septembre 2026.
+# index.html seul en portait 145 (~68 Ko) : la mémoire du projet, utile aux
+# prochaines sessions, mais lisible par n'importe qui via « Afficher le code
+# source » une fois le site publié — sécurité de l'espace exploitant,
+# anciennes failles corrigées, grille tarifaire hôtel. Cette étape les
+# retire de la copie posée dans site/, jamais du dépôt : elle s'exécute en
+# DERNIER, sur ce que construire.sh vient d'assembler, pour ne rien laisser
+# passer d'une étape précédente.
+node .github/scripts/masquer-commentaires.mjs \
+  site/index.html site/application.html site/admin.html site/admin-v2.html \
+  site/intake-demande.js site/qr-affiche.js site/itineraire-partage.js \
+  site/hotel-engine-polish.js site/sw.js \
+  site/admin-v2-actions.js site/admin-v2-push.js site/admin-v2-finance.js \
+  site/admin-v2-registre.js site/admin-v2-factures.js site/admin-v2-gestes.js \
+  site/admin-v2-affiche.js site/admin-v2-maquette.js
+
 echo "site/ construit : $(find site -type f | wc -l) fichiers"

@@ -153,3 +153,12 @@ jobs:
             -f supabase/tests/socle.sql \
             -f supabase/migrations/20260917020000_gestes_client.sql \
             -f supabase/tests/gestes-client.sql
+          # Audit du 28/09/2026 : plus aucune ecriture directe d'anon dans
+          # courses. L'epreuve repose l'etat d'origine, verifie qu'il laisse
+          # passer, applique la migration, puis exige le refus.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database coursesanon;'
+          psql -h 127.0.0.1 -U postgres -d coursesanon -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/courses-sans-anon.sql \
+            -f supabase/migrations/20260928120000_courses_sans_depot_anonyme.sql \
+            -f supabase/tests/courses-sans-anon-apres.sql

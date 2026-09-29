@@ -4558,11 +4558,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
     hotel_adresse_precise:"Adresse précise",
-    reserver_prix:"Réserver",
+    reserver_prix:"Valider la réservation",
     client_titre:"Le client",
     aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
-    btn_prix_attente:"Complétez le trajet…",
+    btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
     note_court:"Précision",
@@ -4740,11 +4740,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
     hotel_adresse_precise:"Exact address",
-    reserver_prix:"Book",
+    reserver_prix:"Confirm booking",
     client_titre:"The guest",
     aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
     err_identite:"Enter the room number, or the guest's name and phone number.",
-    btn_prix_attente:"Complete the trip…",
+    btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
     note_court:"Note",
@@ -5762,6 +5762,11 @@ window.ELA_TEXTES = {
         oublierCode(recHotel.cle);
         montrerVerrou(true);
         direRec("Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
+      } else if(String(err && err.message) === "quota"){
+        /* Trop d'essais depuis cette connexion : le code n'est PAS oublié,
+           il peut être le bon — c'est le nombre d'essais qui bloque. */
+        direRec("Trop d'essais depuis cette connexion. Réessayez dans une heure, ou appelez Elatransfer.");
+        montrerVerrou(true);
       } else {
         direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
         montrerVerrou(true);
@@ -7364,6 +7369,7 @@ window.ELA_TEXTES = {
       }).then(function(r){
         clearTimeout(minuteur);
         if(r.status === 401) throw new Error("code");
+        if(r.status === 429) throw new Error("quota");
         if(!r.ok) throw new Error("serveur");
         return r.json();
       });
@@ -8739,6 +8745,17 @@ window.ELA_TEXTES = {
   /* La lecture est RÉSERVÉE à l'exploitant connecté : la règle du serveur la
      refuse au visiteur anonyme, et elle doit le rester — l'ouvrir exposerait
      les noms, téléphones et adresses de tous les clients. */
+  /* LA SONDE — une question minuscule, posée souvent : « quelle est la
+     dernière course arrivée ? ». Une ligne, deux champs. La relecture
+     complète (jusqu'à 1000 courses) ne part que si la réponse a changé,
+     ou au tour de fond. C'est ce qui permet de voir une demande en
+     quelques secondes sans faire télécharger la liste entière à chaque
+     fois sur un téléphone en 4G. */
+  nuage.derniere = function(){
+    if(!this.connecte()) return Promise.resolve(null);
+    return this.appel("/rest/v1/courses?select=ref&order=cree_le.desc&limit=1")
+      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) || ""; });
+  };
   nuage.lister = function(){
     if(!this.connecte()) return Promise.resolve(null);
     /* AUCUN « catch » ICI, ET C'EST DÉLIBÉRÉ. Il y en avait un : une lecture
@@ -9866,6 +9883,7 @@ window.ELA_TEXTES = {
      rempli = on le DIT en haut du tableau de bord. */
   var panneServeur = "";
   function synchroniser(){
+    dernierComplet = Date.now();
     return nuage.lister().then(function(distantes){
       if(!distantes) return null;
       panneServeur = "";
@@ -9903,8 +9921,26 @@ window.ELA_TEXTES = {
    arrière-plan, ni hors de l'espace de travail. Sinon c'est de la
    batterie brûlée pour rien sur son téléphone.
    ===================================================================== */
+  /* 8 s pour la sonde, 45 s pour la relecture complète (29/09/2026,
+     à sa demande : « je reçois les demandes sur admin 1 minute après, c'est
+     trop long »). Avant, seule la relecture complète existait, toutes les
+     45 s : une demande attendait jusqu'à 45 s avant d'apparaître. Le tour
+     complet reste, parce qu'une course changée AILLEURS (autre appareil)
+     ne change pas la dernière référence : la sonde ne la verrait pas. */
+  var PAS_SONDE_MS = 8000;
   var PAS_ECOUTE_MS = 45000;
   var minuterieEcoute = null;
+  var derniereVue = null, dernierComplet = 0;
+  function sonder(){
+    if(Date.now() - dernierComplet >= PAS_ECOUTE_MS) return synchroniser();
+    return nuage.derniere().then(function(ref){
+      if(ref === null) return;
+      if(derniereVue !== null && ref !== derniereVue){
+        return synchroniser().then(function(){ derniereVue = ref; });
+      }
+      derniereVue = ref;
+    }).catch(function(){ /* la relecture complète dira la panne */ });
+  }
 
   function espaceOuvert(){
     return document.body.classList.contains("espace");
@@ -9916,9 +9952,9 @@ window.ELA_TEXTES = {
     if(minuterieEcoute){ clearInterval(minuterieEcoute); minuterieEcoute = null; }
     if(!ecouteUtile()) return;
     minuterieEcoute = setInterval(function(){
-      if(ecouteUtile()) synchroniser();
+      if(ecouteUtile()) sonder();
       else reglerEcoute();
-    }, PAS_ECOUTE_MS);
+    }, PAS_SONDE_MS);
   }
   /* Au retour sur l'onglet on rattrape TOUT DE SUITE, sans attendre le
      prochain tour : c'est le moment où il regarde. */

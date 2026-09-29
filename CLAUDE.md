@@ -5606,3 +5606,118 @@ lui ont été montrés en capture ; il a choisi le **B**.
   mémo : j'avais d'abord proposé du vert en lisant une note au lieu du site.
   **Regarder le site publié avant de choisir une couleur.**
 - Classes neuves (`.inclus`, `.faq-q`) : la façade habille `.engagement`.
+
+## LES COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE
+
+28 septembre 2026, à sa demande, après un audit qui a trouvé pire que le
+mélange public/admin d'un seul fichier : `index.html` publié portait
+**145 commentaires (~68 Ko)** lisibles par « Afficher le code source » —
+comment marche la sécurité de l'espace exploitant et ses limites, d'anciennes
+failles trouvées et corrigées, la grille tarifaire hôtel. C'est une carte
+pour qui cherche une faille, sans même un mot de passe à deviner.
+- `.github/scripts/masquer-commentaires.mjs` les retire, **mais seulement de
+  la copie posée dans `site/`**, en toute dernière étape de `construire.sh`.
+  Le dépôt garde ses commentaires intacts — c'est la mémoire du projet,
+  elle sert aux prochaines sessions.
+- **AUCUNE DÉPENDANCE AJOUTÉE, ET C'EST DÉLIBÉRÉ** — même règle que la
+  régression visuelle. Le premier jet s'appuyait sur le paquet
+  « typescript » pour lire vraiment le JavaScript (éviter qu'une expression
+  régulière naïve se fasse piéger par un `/` de chaîne ou de regex, comme
+  `/\D/g`). **Ça aurait cassé `pages.yml` en silence** : ce workflow ne fait
+  AUCUN `npm install` avant de construire, et le paquet n'existait que sur
+  cette machine, posé à la main. Trouvé par la suite de tests elle-même
+  (`test-admin-papiers` échouait en reconstruisant le site), pas en
+  relisant. Le module final ne dépend que de `node:fs` : il relit le
+  JavaScript caractère par caractère et retient ce qui précède chaque
+  « / » pour savoir si c'est une division ou le début d'une expression
+  régulière — la même règle qu'un vrai analyseur, ramenée à ce dont on a
+  besoin ici.
+- Les commentaires HTML (`<!-- -->`) et CSS retirés par expression régulière
+  simple : leur syntaxe ne peut pas se cacher dans une chaîne comme celle
+  de JS.
+- **GARDE-FOU** : si un `<script>` ou `<style>` contient littéralement
+  `<!--`, le nettoyage s'arrête plutôt que de deviner — cette séquence
+  pourrait tromper le retrait des commentaires HTML qui suit.
+- Validé contre la **suite complète** (28 suites navigateur + doc +
+  notification + push + facade unifiée), toutes au vert après retrait.
+- **Le cloisonnement complet des écrans admin/réception hors du fichier
+  public n'a PAS été fait** : les données restent protégées côté serveur
+  (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus
+  gros, mis de côté à sa demande pour l'instant.
+
+## NE JAMAIS CAPTURER `index.html` TOUT SEUL — IL A L'AIR D'UN AUTRE SITE
+
+28 septembre 2026. Une capture envoyée à Barbaros montrait un accueil vert
+sombre — l'ancienne palette, jamais la sienne. Il l'a vu tout de suite :
+« mon site n'est pas celui-ci, ça c'est ancien ».
+
+**LA CAUSE N'ÉTAIT PAS UN VIEUX FICHIER OUBLIÉ QUELQUE PART** — il n'y en a
+pas, `index.html` est la seule source depuis la bascule de septembre. La
+capture avait été prise en ouvrant `index.html` **directement**, sans passer
+par `construire.sh` : `application-facade.css` (bleu, logo, boutons) ne
+s'injecte que là, dans `site/index.html`, jamais dans le fichier source.
+Vu seul, `index.html` porte encore sa palette de base ; vu à travers la
+recette — ce que voit réellement un client — il est bleu.
+
+**TOUJOURS CONSTRUIRE AVANT DE CAPTURER** : `sh construire.sh`, puis servir
+et capturer `site/`, jamais le dépôt directement. Même famille que « le
+script de capture ne construisait pas le site » plus haut dans ce fichier —
+troisième fois que ce projet se fait avoir par une capture prise avant la
+recette plutôt qu'après.
+
+## AUDIT DE SÉCURITÉ DU 28/09/2026 — DEUX FONCTIONS OUVERTES À TOUS
+
+**Le jeton vérifié par Supabase à l'entrée d'une fonction ne prouve RIEN** :
+la clé publique du site (lisible dans la page) le franchit — c'est même
+comme ça que `etat-course` et `courses-hotel` sont appelées. Toute fonction
+qui agit au nom de Barbaros doit donc vérifier elle-même `est_exploitant()`
+avec le jeton de l'appelant (modèle : `capturer-paiement`).
+- **`prevenir-client`** n'avait aucun autre contrôle : n'importe qui pouvait
+  envoyer à un client abonné une fausse « Transfert confirmé » avec le texte
+  et le LIEN de son choix, sur des références qui se devinent en comptant.
+  Elle exige maintenant un exploitant, borne le texte, et n'accepte qu'un
+  lien vers elatransfer.com. `sw.js` refuse en plus d'ouvrir un lien
+  étranger au clic sur une notification (deux défenses).
+- **`nouvelle-demande`** croyait le corps reçu : un faux « INSERT » faisait
+  partir chez Barbaros une alerte Telegram au texte libre. Elle ne garde plus
+  que la référence et **relit la course sur le serveur** — existante, créée
+  il y a moins de 15 min, jamais annoncée. **Aucun réglage à changer** : le
+  vrai webhook passe à l'identique.
+- `test-securite-fonctions.mjs` éprouve les deux, sans Deno ni réseau ;
+  six contrôles sur sept tombent sur l'ancien code.
+- **Second passage, même jour** :
+  - **Le code de la réception est plafonné** : 60 appels par heure et par IP
+    dans `courses-hotel`, via le quota serveur du dépôt public. Le compte est
+    pris AVANT la comparaison — sinon l'essai gagnant passerait quand même.
+    Au-delà : 429, et la page dit « trop d'essais » sans oublier le code.
+  - **Plus aucune écriture directe d'`anon` dans `courses`**
+    (`20260928120000_courses_sans_depot_anonyme.sql`). Le site publié dépose
+    uniquement par `deposer-course` (prix recroisé, quota) ; la vieille
+    policy de `SUPABASE.md` laissait écrire une course au prix de son choix.
+    **La migration ne part pas toute seule** : workflow « Appliquer une
+    migration Supabase », ce fichier. Épreuve SQL en CI, qui repose l'état
+    d'origine et exige qu'il laisse passer avant d'exiger le refus.
+- **Reste ouvert, à trancher avec Barbaros** : le rôle `agent_reservation`
+  n'est limité QUE par l'écran (CSS) — côté serveur `est_exploitant()` lui
+  donne tout ; `role_operateur` n'est défini dans aucune migration du dépôt.
+
+## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE
+
+29 septembre 2026, Barbaros : « je reçois les demandes sur admin et les
+notifications Telegram 1 minute après, c'est trop long ».
+- **Le tableau de bord relisait TOUTE la liste (jusqu'à 1000 courses) toutes
+  les 45 s** — une demande attendait donc jusqu'à 45 s. Une **sonde** pose
+  maintenant toutes les 8 s une question d'une ligne (« dernière référence ? »,
+  `nuage.derniere()`), et ne relance la lecture complète que si la réponse
+  change. La relecture de fond à 45 s reste : une course modifiée sur un
+  autre appareil ne change pas la dernière référence. `test-admin-arrivee`
+  exige l'apparition en moins de 15 s ET aucune relecture complète quand
+  rien n'arrive ; l'ancien code tombe (« jamais »).
+- **Telegram : le code serveur n'a rien de lent**, donc on MESURE avant de
+  supposer. `20260929000000_diagnostic_delais_alertes.sql` est en lecture
+  seule (à lancer par le workflow des migrations) : pour les 10 dernières
+  courses, `depot_s` = clic du client → ligne sur le serveur, `alerte_s` =
+  ligne → Telegram envoyé. Il ne sort que références et secondes — le
+  journal GitHub est public. Piste la plus probable si `depot_s` est grand :
+  le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
+  (`reprendreDepot()`).
