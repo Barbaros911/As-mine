@@ -16,7 +16,7 @@
      en cache : un tarif ou un paiement doit toujours partir en direct.
    ===================================================================== */
 const BASE = new URL("./", self.location).pathname;
-const NOS_DOSSIERS = ["carte", "exploitant"];
+const NOS_DOSSIERS = ["carte", "exploitant", "ela-admin"];
 function siteVoisin(url) {
   if (url.origin !== self.location.origin) return false;
   if (!url.pathname.startsWith(BASE)) return false;
@@ -28,6 +28,7 @@ function siteVoisin(url) {
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
 const CACHE = "elatransfer-v101";
 const SHELL = ["./", "./index.html", "./application.html",
+               "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
                   un exploitant hors ligne appuie sur « Coller une demande »
                   et rien ne se passe. Il est partagé avec Admin v2. */

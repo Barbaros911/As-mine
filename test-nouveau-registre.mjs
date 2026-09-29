@@ -35,7 +35,10 @@ const errs=[];
 const auj = new Date();
 const lundi = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate());
 lundi.setDate(lundi.getDate() - ((lundi.getDay() + 6) % 7));
-const iso = d => d.toISOString().slice(0,10);
+/* Une date de course est une date LOCALE. toISOString() la convertit en UTC
+   et, à Paris après minuit, reculait le lundi au dimanche précédent. */
+const iso = d => [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'),
+  String(d.getDate()).padStart(2,'0')].join('-');
 const jour = n => { const d = new Date(lundi); d.setDate(d.getDate() + n); return iso(d); };
 const semaineDerniere = n => { const d = new Date(lundi); d.setDate(d.getDate() - 7 + n); return iso(d); };
 

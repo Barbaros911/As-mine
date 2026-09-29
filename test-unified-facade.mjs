@@ -14,24 +14,27 @@ const adminGateway = readFileSync("site/ela-admin/index.html", "utf8");
 const receptionGateway = readFileSync("site/easyhotel-reception/index.html", "utf8");
 const demos = readFileSync("site/demos/index.html", "utf8");
 
-for (const [name, html] of [["racine", root], ["/application", legacy]]) {
+for (const [name, html] of [["Public", root], ["Client hôtel", legacy]]) {
   assert.match(html, /id="depart"/, name + " conserve le départ");
   assert.match(html, /id="arrivee"/, name + " conserve l’arrivée");
   assert.match(html, /id="btnVoirPrix"/, name + " conserve le calcul de prix");
   assert.match(html, /SUPABASE_URL/, name + " conserve l’intégration Supabase");
   assert.match(html, /application-facade\.css/, name + " charge la nouvelle façade");
   assert.match(html, /brand-logo\.webp/, name + " utilise le logo officiel");
-  assert.match(html, /easyhotel|reception/i, name + " conserve les modes hôteliers");
-
-  // L'interface exploitant est publique, mais son autorisation ne l'est pas :
-  // le site publié doit demander Supabase Auth puis faire valider le JWT par
-  // l'allowlist serveur avant d'ouvrir les données privées.
-  assert.match(html, /id="exploitantEmail"/, name + " demande l’e-mail exploitant");
-  assert.match(html, /id="exploitantMdp"/, name + " demande le mot de passe exploitant");
-  assert.match(html, /\/rest\/v1\/rpc\/est_exploitant/, name + " vérifie le droit côté serveur");
   assert.doesNotMatch(html, /CODE_EXPLOITANT|ela_exploitant|id="codeExploitant"|empreinte\(saisi\)/,
     name + " ne republie jamais l’ancien verrou local");
 }
+// Seul le document Admin dédié conserve l'authentification et le RBAC.
+assert.match(adminGateway, /id="exploitantEmail"/, "l’Admin demande l’e-mail exploitant");
+assert.match(adminGateway, /id="exploitantMdp"/, "l’Admin demande le mot de passe exploitant");
+assert.match(adminGateway, /\/rest\/v1\/rpc\/est_exploitant/, "l’Admin vérifie le droit côté serveur");
+assert.doesNotMatch(root, /id="exploitantEmail"|id="exploitantMdp"|\/rest\/v1\/rpc\/est_exploitant|class="admin-nav"/,
+  "le Public exclut complètement l’Admin");
+// Le tunnel Client ne reçoit aucun composant ou appel RBAC Admin.
+assert.doesNotMatch(legacy, /id="exploitantEmail"|id="exploitantMdp"|\/rest\/v1\/rpc\/est_exploitant|class="admin-nav"/,
+  "/application exclut complètement l’Admin");
+assert.match(legacy, /p\.get\('exploitant'\)===['"]1['"]/,
+  "l’ancienne URL /application?exploitant=1 redirige vers l’Admin authentifié");
 assert.doesNotMatch(root, /sites\/ela-public/, "la racine ne doit plus être une copie vitrine");
 assert.match(css, /#062f55/i, "la façade conserve le bleu marine ELA");
 assert.match(css, /#12c4ee/i, "la façade conserve le cyan ELA");
@@ -51,12 +54,21 @@ assert.ok(Number(versionCache[1]) >= 80,
   "le cache est invalidé après l’unification (v" + versionCache[1] + " < v80)");
 assert.match(sw, /application-facade\.css/, "la façade reste disponible hors ligne");
 
-assert.equal(root.includes('location.replace("/ela-admin/")'), false, "le vrai espace exploitant ne doit pas être remplacé par une maquette");
+assert.equal(root.includes("location.replace('/ela-admin/'"), true, "l’ancien paramètre exploitant quitte le Public pour l’Admin dédié");
 assert.equal(publicGateway.includes("location.replace(cible)"), true, "l’ancienne façade renvoie vers l’accueil unifié");
-assert.equal(adminGateway.includes('params.set("exploitant", "1")'), true, "l’ancienne adresse admin ouvre le vrai mode exploitant");
-assert.equal(receptionGateway.includes('params.set("reception", "easyhotel-aeroville")'), true, "l’ancienne adresse réception ouvre le vrai mode réception");
-for (const [name, html] of [["admin", adminGateway], ["réception", receptionGateway]]) {
-  for (const stale of ["12/09/2026", "John Smith", "Sophie Martin", "Aller-retour", "30 €"]) {
+assert.equal(adminGateway.includes('data-ela-space="admin"'), true, "l’adresse Admin livre son document dédié");
+assert.doesNotMatch(adminGateway, /id="ecran-accueil"|id="ecran-reception"|class="barre"/,
+  "le document Admin exclut complètement les interfaces Public, Client hôtel et Réception");
+assert.equal(receptionGateway.includes('data-ela-space="hotel-reception"'), true, "l’adresse réception livre son document dédié");
+assert.equal(receptionGateway.includes('data-ela-hotel="easyhotel-aeroville"'), true, "l’hôtel de la réception est imposé par le document");
+assert.equal(receptionGateway.includes('id="ecran-reception"'), true, "le document Réception contient le comptoir");
+assert.doesNotMatch(receptionGateway, /id="exploitantEmail"|class="admin-nav"|id="ecran-chauffeurs"/,
+  "le document Réception exclut complètement l’Admin");
+for (const [name, html, exemples] of [
+  ["admin", adminGateway, ["12/09/2026", "John Smith", "Sophie Martin", "Aller-retour"]],
+  ["réception", receptionGateway, ["12/09/2026", "John Smith", "Sophie Martin"]],
+]) {
+  for (const stale of exemples) {
     assert.equal(html.includes(stale), false, name + " ne contient plus la donnée de démonstration : " + stale);
   }
 }

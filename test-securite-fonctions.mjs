@@ -14,7 +14,15 @@ const R=path.join(path.dirname(fileURLToPath(import.meta.url)),'supabase/functio
 async function charger(dir, env){
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ela-fn-'));
   for(const f of fs.readdirSync(R+dir)){ if(f.endsWith('.js')) fs.copyFileSync(R+dir+'/'+f,tmp+'/'+f); }
-  const js=m.stripTypeScriptTypes(fs.readFileSync(R+dir+'/index.ts','utf8'));
+  let js=m.stripTypeScriptTypes(fs.readFileSync(R+dir+'/index.ts','utf8'));
+  /* La Réception partage désormais la signature de session avec la fonction
+     de dépôt. Le test reste autonome : il transpile ce module localement au
+     lieu de tenter d'importer un .ts depuis le dossier temporaire. */
+  if(js.includes('../_shared/hotel-session.ts')){
+    const partage=m.stripTypeScriptTypes(fs.readFileSync(R+'_shared/hotel-session.ts','utf8'));
+    fs.writeFileSync(tmp+'/hotel-session.mjs',partage);
+    js=js.replace('../_shared/hotel-session.ts','./hotel-session.mjs');
+  }
   fs.writeFileSync(tmp+'/index.mjs',js);
   let h; globalThis.Deno={env:{get:k=>env[k]},serve:f=>{h=f}};
   await import(tmp+'/index.mjs?'+Math.random()); return h;

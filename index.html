@@ -4558,11 +4558,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
     hotel_adresse_precise:"Adresse précise",
-    reserver_prix:"Réserver",
+    reserver_prix:"Valider la réservation",
     client_titre:"Le client",
     aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
-    btn_prix_attente:"Complétez le trajet…",
+    btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
     note_court:"Précision",
@@ -4740,11 +4740,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
     hotel_adresse_precise:"Exact address",
-    reserver_prix:"Book",
+    reserver_prix:"Confirm booking",
     client_titre:"The guest",
     aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
     err_identite:"Enter the room number, or the guest's name and phone number.",
-    btn_prix_attente:"Complete the trip…",
+    btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
     note_court:"Note",
@@ -5683,20 +5683,23 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var recHotel = null;         // l'hôtel dont on tient le comptoir
   var recCourses = [];
-  var CLE_CODE_REC = "ela_code_reception";
+  /* Le code brut n'est jamais conservé. Après vérification, le serveur rend
+     un jeton hôtel signé et limité dans le temps ; seul ce jeton vit dans le
+     sessionStorage de l'onglet. Fermer l'onglet ferme donc aussi la session. */
+  var CLE_CODE_REC = "ela_session_reception";
 
   function codeRetenu(cle){
-    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
          return (o && o[cle]) || ""; }catch(e){ return ""; }
   }
-  function retenirCode(cle, code){
-    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
-         o[cle] = code; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
-    }catch(e){ /* stockage refusé : le code sera redemandé, rien de cassé */ }
+  function retenirCode(cle, session){
+    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
+         o[cle] = session; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    }catch(e){ /* stockage refusé : la connexion sera redemandée */ }
   }
   function oublierCode(cle){
-    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
-         delete o[cle]; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
+         delete o[cle]; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
     }catch(e){}
   }
 
@@ -5737,12 +5740,14 @@ window.ELA_TEXTES = {
     chargerReception(code);
   }
 
-  function chargerReception(code){
+  function chargerReception(identifiant){
     var btn = document.getElementById("btnRecActualiser");
     btn.disabled = true;
-    nuage.coursesHotel(recHotel.cle, code).then(function(d){
+    var dejaSession = identifiant && identifiant.indexOf(".") > 0;
+    nuage.coursesHotel(recHotel.cle,
+      dejaSession ? { session:identifiant } : { code:identifiant }).then(function(d){
       btn.disabled = false;
-      retenirCode(recHotel.cle, code);
+      if(d && d.session) retenirCode(recHotel.cle, d.session);
       recCourses = (d && d.courses) || [];
       montrerVerrou(false);
       direRec(null);
@@ -5995,8 +6000,8 @@ window.ELA_TEXTES = {
     window.open("https://wa.me/" + NUMERO_WA + "?text=" + encodeURIComponent(msg),
                 "_blank", "noopener");
     bouton.disabled = true;
-    nuage.coursesHotel(recHotel.cle, codeRetenu(recHotel.cle),
-                       { action:"annulation", ref:c.ref })
+    nuage.coursesHotel(recHotel.cle,
+                       { session:codeRetenu(recHotel.cle), action:"annulation", ref:c.ref })
       .then(function(){ c.annulationDemandee = true; dessinerReception(); })
       .catch(function(){
         /* Le message est parti chez Barbaros de toute façon : on le dit
@@ -7349,12 +7354,12 @@ window.ELA_TEXTES = {
        « code refusé » et « serveur muet » appellent trois gestes
        différents, et une panne qui ressemble à un état normal ne se répare
        jamais. C'est la leçon de « lister() n'a plus de catch ». */
-    coursesHotel: function(cle, code, extra){
+    coursesHotel: function(cle, autorisation){
       if(!SUPABASE_URL || !SUPABASE_CLE) return Promise.reject(new Error("hors-ligne"));
       var ctrl = new AbortController();
       var minuteur = setTimeout(function(){ ctrl.abort(); }, 10000);
-      var corps = { hotel: cle, code: code };
-      if(extra) Object.keys(extra).forEach(function(k){ corps[k] = extra[k]; });
+      var corps = { hotel: cle };
+      Object.keys(autorisation || {}).forEach(function(k){ corps[k] = autorisation[k]; });
       return fetch(SUPABASE_URL + "/functions/v1/courses-hotel", {
         method: "POST",
         signal: ctrl.signal,
@@ -11459,7 +11464,14 @@ window.ELA_TEXTES = {
        et il faut encore le code, vérifié par le serveur.
        ELLE EST LUE EN PREMIER : un lien qui porterait les deux paramètres
        doit donner le plus de droits à celui qui le tient, pas le moins. */
-    var recCle = (params.get("reception") || "").trim();
+    /* Sur la page Réception dédiée, l'hôtel vient du document construit,
+       pas d'un paramètre modifiable. L'ancienne URL ?reception= reste
+       comprise uniquement comme alias de transition. */
+    var espace = document.documentElement.getAttribute("data-ela-space") || "";
+    var hotelImpose = document.documentElement.getAttribute("data-ela-hotel") || "";
+    var recCle = (espace === "hotel-reception" ? hotelImpose
+                  : espace === "hotel-client" ? ""
+                  : (params.get("reception") || "")).trim();
     if(recCle){
       var partRec = hotelDuParametre(recCle);
       if(partRec){
