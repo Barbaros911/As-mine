@@ -93,6 +93,9 @@ jobs:
           node test-admin-affiche.mjs
           node test-admin-prix.mjs
           node test-admin-responsive.mjs
+          node test-admin-push.mjs
+          node test-admin-commission.mjs
+          node test-admin-grille.mjs
           node capture-admin.mjs
       - name: Joindre les captures Admin
         uses: actions/upload-artifact@v4
@@ -162,3 +165,12 @@ jobs:
             -f supabase/tests/courses-sans-anon.sql \
             -f supabase/migrations/20260928120000_courses_sans_depot_anonyme.sql \
             -f supabase/tests/courses-sans-anon-apres.sql
+          # Les prix modifiables depuis l'admin (29/09/2026) : sur la VRAIE
+          # source des tarifs, rejouee avant la migration.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database grille;'
+          psql -h 127.0.0.1 -U postgres -d grille -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/grille-modifiable-avant.sql \
+            -f supabase/migrations/20260916100000_current_tariff_source.sql \
+            -f supabase/migrations/20260929010000_grille_modifiable.sql \
+            -f supabase/tests/grille-modifiable.sql

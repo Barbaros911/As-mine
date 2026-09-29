@@ -26,7 +26,10 @@ const src  = readFileSync('supabase/migrations/20260916100000_current_tariff_sou
 
 /* Le taux injecté : « gamme.cle === "van" ? 4.10 : 2.55 ». On lit les deux
    nombres à leur place, pas par leur valeur. */
-const m = site.match(/tauxHotel\s*=\s*gamme\.cle\s*===\s*"van"\s*\?\s*([\d.]+)\s*:\s*([\d.]+)/);
+/* Depuis le 29/09/2026 le taux lu sur le serveur passe devant
+   (window.ELA_TAUX_HOTEL) : ce qu'on compare ici, c'est le SECOURS écrit
+   dans la page, qui doit rester égal à la source serveur de départ. */
+const m = site.match(/tauxHotel\s*=[^;]*?gamme\.cle\s*===\s*"van"\s*\?\s*([\d.]+)\s*:\s*([\d.]+)/);
 if (!m) {
   console.error('✘ le taux hôtel au kilomètre est introuvable dans le site publié.');
   console.error('  Soit le transformateur ne s\'applique plus, soit sa forme a changé.');

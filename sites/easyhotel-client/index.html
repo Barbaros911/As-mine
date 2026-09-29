@@ -273,6 +273,30 @@ body.comptoir .cta2{display:flex}
   var nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'fr';
   poser(comptoir || String(nav).slice(0,2).toLowerCase() === 'fr' ? 'fr' : 'en');
 })();
+/* ═══ LES PRIX DES CARTES VIENNENT DU SERVEUR (29/09/2026) ═══
+   Barbaros les modifie depuis son admin ; le moteur et le serveur lisent la
+   même grille. Les montants écrits dans les cartes ne sont plus qu'un
+   SECOURS, si le serveur ne répond pas : la page reste lisible hors ligne.
+   On ne remplace un montant que par un nombre plausible. */
+(function(){
+  var ctrl = ('AbortController' in window) ? new AbortController() : null;
+  if (ctrl) setTimeout(function(){ ctrl.abort(); }, 4000);
+  fetch('https://yyhzutnuhuytokarynaw.supabase.co/rest/v1/rpc/grille_publique', {
+    method: 'POST', body: '{}', signal: ctrl ? ctrl.signal : undefined,
+    headers: { apikey: 'sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj', 'Content-Type': 'application/json' }
+  }).then(function(r){ return r.ok ? r.json() : null; }).then(function(g){
+    var f = g && g.forfaits && g.forfaits['easyhotel-aeroville'];
+    if (!f) return;
+    document.querySelectorAll('a.carte[data-dest]').forEach(function(a){
+      var p = f[a.getAttribute('data-dest')]; if (!p) return;
+      a.querySelectorAll('b[data-g]').forEach(function(b){
+        var c = p[b.getAttribute('data-g')];
+        if (typeof c === 'number' && c >= 500 && c <= 500000)
+          b.textContent = (c % 100 ? (c / 100).toFixed(2).replace('.', ',') : String(c / 100)) + ' €';
+      });
+    });
+  }).catch(function(){});
+})();
 </script>
 </body>
 </html>
