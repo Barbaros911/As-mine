@@ -3346,6 +3346,21 @@ body.espace #panneauProvenance{display:none;}
       </div>
     </div>
 
+    <!-- LA NOTIFICATION ELA SUR LE TÉLÉPHONE DE L'EXPLOITANT (29/09/2026).
+         Le bouton n'existait que dans Admin v2, abandonné : l'admin retenu
+         n'avait donc aucun moyen de s'abonner, et le serveur n'avait
+         personne à qui envoyer. Même table et même RPC qu'Admin v2
+         (abonnements_admin, ela_enregistrer_push_admin) : un seul chemin. -->
+    <div class="bloc" id="blocPushAdmin">
+      <h2 class="bloc-titre">Notifications ELA</h2>
+      <p class="bloc-note">Recevez chaque nouvelle demande sur ce téléphone,
+        en plus de Telegram.</p>
+      <button class="bouton" type="button" id="btnPushAdmin">
+        <span>Activer les notifications</span>
+      </button>
+      <p class="champ-aide" id="pushAdminEtat" hidden></p>
+    </div>
+
   </section>
 
   <!-- =====================================================================
@@ -8343,6 +8358,42 @@ window.ELA_TEXTES = {
     });
   });
 
+
+  /* ═══ NOTIFICATIONS ELA POUR L'EXPLOITANT ═══
+     On ne demande l'autorisation QUE sur l'appui (un refus est définitif),
+     et on dit POURQUOI ça n'a pas marché : iPhone non installé, pas
+     connecté, refus — trois gestes différents. */
+  document.getElementById("btnPushAdmin").addEventListener("click", function(){
+    var bouton = this, etat = document.getElementById("pushAdminEtat");
+    function dire(t){ etat.hidden = false; etat.textContent = t; }
+    if(!nuage.connecte()){ dire("Connectez-vous d'abord au serveur, juste au-dessus."); return; }
+    if(surIphone() && !installee()){
+      dire("Sur iPhone : ajoutez d'abord l'admin à l'écran d'accueil (bouton Partager → « Sur l'écran d'accueil »), ouvrez-le depuis cette icône, puis revenez ici.");
+      return;
+    }
+    if(!pushPossible()){ dire("Ce navigateur ne sait pas recevoir de notifications. Telegram continue de fonctionner."); return; }
+    bouton.disabled = true;
+    Notification.requestPermission().then(function(rep){
+      if(rep !== "granted") throw new Error("refus");
+      return navigator.serviceWorker.ready;
+    }).then(function(reg){
+      return reg.pushManager.getSubscription().then(function(ab){
+        return ab || reg.pushManager.subscribe({ userVisibleOnly: true,
+          applicationServerKey: clePourAbonnement(CLE_VAPID) });
+      });
+    }).then(function(ab){
+      return nuage.appel("/rest/v1/rpc/ela_enregistrer_push_admin",
+        { method: "POST", body: JSON.stringify({ p_abonnement: ab.toJSON() }) });
+    }).then(function(){
+      bouton.disabled = false;
+      dire("Notifications activées sur cet appareil.");
+    }).catch(function(e){
+      bouton.disabled = false;
+      dire(e && e.message === "refus"
+        ? "Notifications refusées : autorisez-les pour ce site dans les réglages du téléphone."
+        : "Activation impossible (" + (e && e.message || "erreur") + ").");
+    });
+  });
   /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
      WhatsApp non installé, fenêtre bloquée, appui à côté. Sans ce bouton, le
      client croit avoir réservé et attend une voiture qui ne viendra pas. */
