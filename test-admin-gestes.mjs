@@ -180,6 +180,21 @@ const decode = u => decodeURIComponent(String(u).split('?text=')[1] || '');
 /* ══════════ 1. L'ACCUSÉ, SUR UNE COURSE EN ATTENTE ══════════ */
 await p.evaluate(() => openBooking('ELA-26-09-1001'));
 await p.waitForTimeout(400);
+check('la fiche course met la référence et le statut en tête',
+  (await p.textContent('.bon-reference')).includes('ELA-26-09-1001')
+  && /En attente/i.test(await p.textContent('.bon-etat')));
+check('la fiche annonce la prochaine étape avant les détails',
+  /Vérifier la demande/i.test(await p.textContent('.bon-priorite')),
+  await p.textContent('.bon-priorite'));
+const trajetFiche = await p.textContent('.bon-trajet');
+check('le trajet sépare clairement départ et arrivée',
+  /Départ/.test(trajetFiche) && /Arrivée/.test(trajetFiche)
+  && trajetFiche.includes('10 rue de la Paix') && trajetFiche.includes('Terminal 2E'),
+  trajetFiche);
+check('les informations opérationnelles sont regroupées et lisibles',
+  /Date et heure/.test(await p.textContent('.bon-meta'))
+  && /Véhicule/.test(await p.textContent('.bon-meta'))
+  && /Origine/.test(await p.textContent('.bon-meta')));
 check("« Accuser réception » apparaît sur une course en attente",
   await p.locator('#btnAccuse').count() === 1);
 check("« Demander un avis » n'apparaît PAS sur une course en attente",

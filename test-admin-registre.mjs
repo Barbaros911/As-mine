@@ -199,6 +199,14 @@ check('chaque onglet vise un écran qui existe', manquants.length === 0, manquan
 await allerOnglet(p, 'registre');
 check("l'écran du registre s'affiche au clic",
   await p.locator('#s-registre').evaluate(e => e.classList.contains('on')));
+const aideSauvegarde = await p.textContent('#s-registre');
+check('la sauvegarde ne contredit plus le stockage serveur',
+  /déjà enregistrées automatiquement sur le serveur/i.test(aideSauvegarde)
+  && /copie de sécurité personnelle/i.test(aideSauvegarde),
+  aideSauvegarde.slice(-500));
+check('la restauration annonce qu’elle n’écrase aucune donnée existante',
+  /aucune donnée existante n’est écrasée/i.test(aideSauvegarde),
+  aideSauvegarde.slice(-300));
 
 const lu = await attendre(p, () => {
   const m = document.getElementById('regMetrics');
@@ -340,6 +348,9 @@ else {
     o && o.courses.every(c => c.ref && c.statut),
     JSON.stringify((o&&o.courses&&o.courses[0])||{}).slice(0,120));
   check('elle emporte aussi le carnet de chauffeurs', o && Array.isArray(o.chauffeurs));
+  check('le compte-rendu confirme que les données restent sur le serveur',
+    /restent aussi enregistrées sur le serveur/i.test(await p.textContent('#regEtat')),
+    await p.textContent('#regEtat'));
 }
 
 /* ═══ 9. LA RESTAURATION AJOUTE, ELLE N'ÉCRASE JAMAIS ═══

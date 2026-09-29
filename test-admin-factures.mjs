@@ -199,6 +199,11 @@ check("l'identité de l'émetteur est dans « Tarification »",
 
 await allerOnglet(p, 'finance');
 await p.waitForTimeout(300);
+const preparation = await p.textContent('#facPreparation');
+check('avant le SIRET, la facturation se présente comme préparée pour le lancement',
+  /préparé pour votre lancement/i.test(preparation), preparation);
+check('l’écran distingue clairement l’aperçu disponible de l’émission future',
+  /aperçu/i.test(preparation) && /émission définitive/i.test(preparation), preparation);
 
 /* Le sélecteur porte TOUS les chauffeurs, pas seulement les attribuables :
    on facture aussi celui dont les papiers ont expiré DEPUIS la course. Ce qui
@@ -269,6 +274,9 @@ check("…sous la clé « entreprise_emettrice »",
 
 await allerOnglet(p, 'finance');
 await p.waitForTimeout(300);
+check('après l’identité complète, la facturation annonce qu’elle est prête',
+  /Facturation prête/i.test(await p.textContent('#facPreparation')),
+  await p.textContent('#facPreparation'));
 await p.selectOption('#facChauffeur', 'd-mehmet');
 await p.fill('#facDu', '2026-09-01');
 await p.fill('#facAu', '2026-09-30');
