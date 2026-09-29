@@ -159,6 +159,15 @@ check('agent : enregistrer le bon ne touche pas la commission cachée (25 %)', r
 await a.evaluate(() => document.getElementById('btnChauffeurs').click());
 await a.waitForTimeout(300);
 check('agent : le carnet reste ouvert, sans le taux de commission', (await vu('#ecran-chauffeurs')) && !(await vu('label[for="chTaux"]')));
+/* Réglages (et son « Se déconnecter ») est caché à l'agent : sans bouton
+   dans le menu, un appareil où l'agent s'est connecté ne pouvait plus
+   changer de compte — vu par Barbaros le 29/09/2026. */
+check('agent : « Se déconnecter » est dans son menu', await vu('#btnDeconnexionNav'));
+await a.click('#btnDeconnexionNav');
+await a.waitForTimeout(400);
+const apres = await a.evaluate(() => ({ session: localStorage.getItem('ela_nuage_session'),
+  verrou: (() => { const e = document.getElementById('ecran-verrou'); return !!e && e.getClientRects().length > 0; })() }));
+check('agent : la déconnexion ferme la session et rouvre la connexion', !apres.session && apres.verrou, JSON.stringify(apres));
 check('agent : aucune erreur JavaScript', errA.length === 0, errA.join(' | '));
 
 /* ─── 5. Admin v2 montre les finances : il est fermé à l'agent. On éprouve

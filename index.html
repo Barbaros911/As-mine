@@ -2000,6 +2000,16 @@ body.espace #panneauProvenance{display:none;}
           <path d="M10 20H5V4h5M15 8l4 4-4 4M19 12H9" stroke="currentColor"
                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>Quitter</button>
+      <!-- « Quitter » garde la session (aller-retour vers le site public) ;
+           celui-ci la ferme. Il doit être dans le menu et pas seulement dans
+           Réglages : Réglages est caché à l'agent, et sans ce bouton un
+           appareil où l'agent s'est connecté ne pouvait plus changer de
+           compte. -->
+      <button class="admin-lien" type="button" id="btnDeconnexionNav">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3v8M7.1 6.3a8 8 0 1 0 9.8 0" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round"/>
+        </svg>Se déconnecter</button>
     </div>
     <!-- LE SEUL CONSEIL QUI TIENT ICI EST CELUI QU'ON OUBLIE : sans serveur,
          le registre ne vit que dans ce navigateur, et vider les données du
@@ -12078,6 +12088,13 @@ window.ELA_TEXTES = {
   });
   document.getElementById("codeExploitant").addEventListener("keydown", function(e){
     if(e.key === "Enter") document.getElementById("btnDeverrouiller").click();
+  });
+  /* Même chemin que « Se déconnecter » de Réglages : un seul geste de
+     déconnexion, que la construction complète pour l'espace exploitant. */
+  var elDecoNav = document.getElementById("btnDeconnexionNav");
+  if(elDecoNav) elDecoNav.addEventListener("click", function(){
+    var d = document.getElementById("btnNuageDeco");
+    if(d) d.click();
   });
   document.getElementById("btnQuitter").addEventListener("click", function(){
     /* Quitter, c'est revenir au site public — pas oublier le code. Barbaros
