@@ -148,9 +148,13 @@ check('le nom court diffère de celui du site client',
 check('et il dit ce que c\'est', /espace/i.test(man.short_name));
 
 /* Un jeu d'icônes à moitié changé est pire qu'un ancien cohérent : le
-   téléphone montre l'une, l'onglet l'autre. */
-check('les deux manifestes portent les mêmes icônes',
-  JSON.stringify(man.icons) === JSON.stringify(cli.icons));
+   téléphone montre l'une, l'onglet l'autre. Depuis le 29/09/2026 l'espace
+   a SON icône (ELA bleu sur noir) : toutes ses tailles viennent du même jeu,
+   et aucune n'est celle du site client. */
+check('le manifeste de l\'espace porte son propre jeu d\'icônes, complet',
+  man.icons.length >= 1 && man.icons.every(i => i.src.startsWith('icones/admin-') && fs.existsSync(i.src))
+    && JSON.stringify(man.icons) !== JSON.stringify(cli.icons),
+  JSON.stringify(man.icons.map(i => i.src)));
 
 /* --- CE QUE LA RECETTE PUBLIE ------------------------------------------ */
 /* MÊME POINT DE RUPTURE QUE « carte/ » : un fichier oublié marche en local,

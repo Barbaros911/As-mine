@@ -195,11 +195,12 @@ function admin() {
   html = html.replace(/<link\b[^>]*href=["']\/hotel-engine-polish\.css["'][^>]*>\s*/gi, '');
   html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
   html = html.replace(/<link\b[^>]*rel=["']apple-touch-icon["'][^>]*>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*rel=["'](?:shortcut )?icon["'][^>]*>\s*/gi, '');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="admin">');
   const compatibilite = `<script>/* Compatibilité temporaire du moteur historique partagé : les éléments
      Client retirés du document deviennent des nœuds détachés, jamais du DOM livré. */
 (function(){var vrai=document.getElementById.bind(document),detaches=new Map();window.__elaGetElementByIdReel=vrai;document.getElementById=function(id){var present=vrai(id);if(present)return present;if(!detaches.has(id)){var n=document.createElement(/Dest|Terminal|Vehicule|Select|Pays/i.test(id)?'select':'input');n.id=id;detaches.set(id,n)}return detaches.get(id)}}());</script>`;
-  html = html.replace('<head>', '<head>\n<base href="/">\n<link rel="manifest" href="/manifest-exploitant.webmanifest">\n<link rel="apple-touch-icon" href="/icon-180.png">\n' + compatibilite);
+  html = html.replace('<head>', '<head>\n<base href="/">\n<link rel="manifest" href="/manifest-exploitant.webmanifest">\n<link rel="apple-touch-icon" href="/icones/admin-180.png">\n<link rel="icon" href="/icones/admin-32.png" type="image/png" sizes="32x32">\n' + compatibilite);
   /* Le moteur historique partage encore des définitions avec le tunnel
      client. Dans le document Admin, les branchements d'interface absents
      deviennent volontairement optionnels ; les branchements Admin, eux,

@@ -348,8 +348,13 @@ await ctx.close(); /* ═══ L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE ═�
      y en a au moins une. */
   const jeu = m => JSON.stringify((m.icons || []).map(i => i.src + '|' + i.sizes).sort());
   const mc = await (await fetch('http://127.0.0.1:8099/manifest.webmanifest')).json();
-  check('et il porte les mêmes icônes — un jeu à moitié changé est pire',
-    (mf.icons || []).length >= 1 && jeu(mf) === jeu(mc),
+  /* 29/09/2026, à sa demande : l'espace a SON icône (ELA bleu sur noir),
+     pour ne plus la confondre avec le site public. La règle du jeu cohérent
+     porte désormais sur l'espace lui-même : toutes ses tailles viennent du
+     même jeu, et aucune n'est celle du site client. */
+  check('et il porte SES icônes, toutes du même jeu, distinctes du site client',
+    (mf.icons || []).length >= 1 && (mf.icons || []).every(i => i.src.startsWith('icones/admin-'))
+      && jeu(mf) !== jeu(mc),
     jeu(mf) + ' contre ' + jeu(mc));
   await cx.close();
 }
