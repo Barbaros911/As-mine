@@ -80,7 +80,20 @@ window.gesteRapide = gesteRapide;
 
 async function doPayment(ref,kind){const label=kind==='capture'?'Capturer maintenant le paiement TEST autorisé ?':'Libérer / annuler maintenant l’empreinte TEST ?';if(!confirm(label))return;try{await edge(kind==='capture'?'capturer-paiement':'annuler-empreinte',{ref});await load();await openBookingV2(ref);}catch(e){alert(`Paiement : ${e.message}`);}}
 async function removeDriver(ref){const motif=prompt('Motif interne du retrait / de la réattribution (facultatif) :')||'';if(!confirm('Retirer le chauffeur actuel et remettre la course à attribuer ?'))return;try{await rpc('ela_retirer_chauffeur',{p_ref:ref,p_motif:motif||null});await load();await openBookingV2(ref);}catch(e){alert(`Action refusée : ${e.message}`);}}
-async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(!c)return;const x=b(c),ev=await api(`/rest/v1/evenements_reservation?course_ref=eq.${encodeURIComponent(ref)}&select=*&order=cree_le.desc&limit=100`).catch(()=>[]),p=paymentFor(ref),s=snapshotFor(ref),d=currentDriver(c);
+function prochaineEtape(statut){
+  const textes={
+    attente:'Vérifier la demande, puis la confirmer ou l’annuler.',
+    confirmee:'Proposer la course et attribuer un chauffeur disponible.',
+    attribuee:'Suivre la prise en charge, puis clôturer la course.',
+    incident:'Traiter l’incident avant de clôturer la course.',
+    realisee:'Course terminée : contrôler les chiffres et demander un avis.',
+    client_absent:'Course clôturée pour absence du client.',
+    annulee:'Course annulée : aucune action opérationnelle restante.',
+    refusee:'Demande refusée : aucune action opérationnelle restante.'
+  };
+  return textes[statut]||'Vérifier les informations et l’historique de la course.';
+}
+async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(!c)return;const x=b(c),ev=await api(`/rest/v1/evenements_reservation?course_ref=eq.${encodeURIComponent(ref)}&select=*&order=cree_le.desc&limit=100`).catch(()=>[]),p=paymentFor(ref),s=snapshotFor(ref),d=currentDriver(c),bon=c.bon||{},course=bon.course||{};
   let actions='';
   if(x.status==='attente')actions+=`<button class="btn" data-act="confirm">Confirmer la réservation</button> <button class="btn alt" data-act="cancel">Annuler</button>`;
   if(x.status==='confirmee')actions+=`<button class="btn" data-act="propose">Proposer à un chauffeur</button> <button class="btn alt" data-act="assign">Attribuer</button> <button class="btn alt" data-act="cancel">Annuler</button>`;
@@ -112,21 +125,36 @@ async function openBookingV2(ref){const c=state.courses.find(z=>z.ref===ref);if(
   const telCh=(d.telephone||'').replace(/[^0-9+]/g,'');
   const prix=Number.isFinite(Number(s?.prix_final_centimes))?money(s.prix_final_centimes)
            :(x.price?eurAff(x.price)+' €':'—');
+  const clientCentimes=Number.isFinite(Number(s?.prix_final_centimes))
+    ? Number(s.prix_final_centimes) : (x.price ? Math.round(x.price*100) : undefined);
+  const infos=[
+    ['Passagers',course.passagers],
+    ['Vol / train',course.vol||course.numeroVol||course.train],
+    ['Terminal',course.terminal],
+    ['Paiement',bon.paiementNom||bon.paiement],
+    ['Note',course.note||bon.note||bon.commentaire]
+  ].filter(([,v])=>String(v||'').trim());
+  const historique=ev.length?ev.map(e=>{
+    const dt=new Date(e.cree_le),quand=isNaN(dt.getTime())?String(e.cree_le||''):dt.toLocaleString('fr-FR');
+    return `<div><b>${esc(quand)} — ${esc(e.type_evenement)}</b><br><span class="muted small">${esc(e.acteur_type)}</span></div>`;
+  }).join(''):'<div class="muted">Aucun événement enregistré.</div>';
   showSheet(`Réservation ${ref}`,`<div class="bon">
-    <div class="bon-etat"><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><b>${esc(prix)}</b></div>
+    <div class="bon-reference"><span>Référence</span><b>${esc(ref)}</b></div>
+    <div class="bon-etat"><span class="tag ${esc(x.status)}">${esc(libelleStatut(x.status))}</span><div><span>Prix client</span><b>${esc(prix)}</b></div></div>
+    <div class="bon-priorite"><span>Prochaine étape</span><b>${esc(prochaineEtape(x.status))}</b></div>
     <div class="toolbar bon-actions" id="bookingActions">${actions||'<span class="muted">Aucune action disponible pour cet état.</span>'}</div>
-    <div class="card bon-bloc"><b>${esc(dateLisible(x.date,x.time))}</b>
-      <p class="bon-trajet">${esc(x.from)}<br>→ ${esc(x.to)}</p>
-      <p class="muted small">${esc(x.vehicle||'Véhicule à préciser')} · ${esc(x.source||'Public ELA')}</p></div>
-    <div class="card bon-bloc"><p class="bon-qui"><b>${esc(x.client||'Client')}</b><br><span class="muted">${esc(x.phone||'sans numéro')}</span></p>
+    <div class="bon-section-title">Trajet</div>
+    <div class="card bon-bloc"><p class="bon-trajet"><span>Départ</span><b>${esc(x.from||'À préciser')}</b><i>→</i><span>Arrivée</span><b>${esc(x.to||'À préciser')}</b></p>
+      <div class="bon-meta"><div><span>Date et heure</span><b>${esc(dateLisible(x.date,x.time)||'À préciser')}</b></div><div><span>Véhicule</span><b>${esc(x.vehicle||'À préciser')}</b></div><div><span>Origine</span><b>${esc(x.source||'Public ELA')}</b></div>${infos.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></div>
+    <div class="bon-section-title">Contacts</div>
+    <div class="card bon-bloc"><p class="bon-qui"><span>Client</span><b>${esc(x.client||'Client non renseigné')}</b><small>${esc(x.phone||'Numéro non renseigné')}</small></p>
       ${tel?`<a class="btn alt geste" href="tel:${esc(tel)}">Appeler le client</a>`:''}</div>
-    ${d.nom?`<div class="card bon-bloc"><p class="bon-qui"><b>Chauffeur : ${esc(d.nom)}</b><br><span class="muted">${esc(d.telephone||'sans numéro')}</span></p>
+    ${d.nom?`<div class="card bon-bloc"><p class="bon-qui"><span>Chauffeur</span><b>${esc(d.nom)}</b><small>${esc(d.telephone||'Numéro non renseigné')}</small></p>
       ${telCh?`<a class="btn alt geste" href="tel:${esc(telCh)}">Appeler le chauffeur</a>`:''}</div>`:''}
     <details class="bon-plus"><summary>Chiffres, paiement et historique</summary>
       <div class="toolbar bon-actions" id="bookingActionsPlus"></div>
-      <div class="card bon-bloc"><p>Prix client : ${money(s?.prix_final_centimes)} · Chauffeur dû : ${money(s?.montant_chauffeur_centimes)} · Marge ELA : ${money(s?.marge_ela_centimes)}</p>
-        <p>Paiement : <span class="tag ${esc(p?.statut||'')}">${esc(p?.statut||'non initialisé')}</span>${p?.mode?` · ${esc(p.mode)}`:''}</p></div>
-      <div class="timeline">${ev.length?ev.map(e=>`<div><b>${new Date(e.cree_le).toLocaleString('fr-FR')} — ${esc(e.type_evenement)}</b><br><span class="muted small">${esc(e.acteur_type)}</span></div>`).join(''):'<div class="muted">Aucun événement enregistré.</div>'}</div>
+      <div class="card bon-bloc"><div class="bon-finance"><div><span>Prix client</span><b>${money(clientCentimes)}</b></div><div><span>Chauffeur dû</span><b>${money(s?.montant_chauffeur_centimes)}</b></div><div><span>Marge ELA</span><b>${money(s?.marge_ela_centimes)}</b></div><div><span>Paiement</span><b><span class="tag ${esc(p?.statut||'')}">${esc(p?.statut||'Non initialisé')}</span>${p?.mode?` ${esc(p.mode)}`:''}</b></div></div></div>
+      <div class="timeline">${historique}</div>
     </details></div>`);
   $('#bookingActions')?.addEventListener('click',async e=>{const a=e.target.dataset.act;if(!a)return;
     if(a==='confirm')return changeStatus(ref,'confirmee','Confirmer cette réservation ?');
