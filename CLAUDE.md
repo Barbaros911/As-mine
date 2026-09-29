@@ -5700,3 +5700,24 @@ avec le jeton de l'appelant (modèle : `capturer-paiement`).
 - **Reste ouvert, à trancher avec Barbaros** : le rôle `agent_reservation`
   n'est limité QUE par l'écran (CSS) — côté serveur `est_exploitant()` lui
   donne tout ; `role_operateur` n'est défini dans aucune migration du dépôt.
+
+## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE
+
+29 septembre 2026, Barbaros : « je reçois les demandes sur admin et les
+notifications Telegram 1 minute après, c'est trop long ».
+- **Le tableau de bord relisait TOUTE la liste (jusqu'à 1000 courses) toutes
+  les 45 s** — une demande attendait donc jusqu'à 45 s. Une **sonde** pose
+  maintenant toutes les 8 s une question d'une ligne (« dernière référence ? »,
+  `nuage.derniere()`), et ne relance la lecture complète que si la réponse
+  change. La relecture de fond à 45 s reste : une course modifiée sur un
+  autre appareil ne change pas la dernière référence. `test-admin-arrivee`
+  exige l'apparition en moins de 15 s ET aucune relecture complète quand
+  rien n'arrive ; l'ancien code tombe (« jamais »).
+- **Telegram : le code serveur n'a rien de lent**, donc on MESURE avant de
+  supposer. `20260929000000_diagnostic_delais_alertes.sql` est en lecture
+  seule (à lancer par le workflow des migrations) : pour les 10 dernières
+  courses, `depot_s` = clic du client → ligne sur le serveur, `alerte_s` =
+  ligne → Telegram envoyé. Il ne sort que références et secondes — le
+  journal GitHub est public. Piste la plus probable si `depot_s` est grand :
+  le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
+  (`reprendreDepot()`).
