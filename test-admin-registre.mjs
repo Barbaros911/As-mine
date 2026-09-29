@@ -146,7 +146,7 @@ await ctx.route('**/*', r => {
     return J({ajoutees:neufs.length,
               ignorees:(corps.p_courses||[]).length - neufs.length, refusees:0});
   }
-  if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/rpc/est_')) return J(true);
   if(u.includes('/parametres_commerciaux')) return J([]);
   if(u.includes('/rpc/ela_rafraichir_actions')) return J(0);
   if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);

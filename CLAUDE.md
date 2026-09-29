@@ -5969,5 +5969,24 @@ mais un appel direct passait.
 - `supabase/tests/role-agent.sql` éprouve les deux côtés (agent refusé, admin
   qui passe), en CI. Éprouvé sans la migration, puis sans la policy : il
   tombe les deux fois.
-- **Pas encore fait, à lui de trancher** : la suppression d'une course reste
-  ouverte à l'agent — l'écran ne la lui cache pas.
+- **L'agent garde TOUT ce qui touche une course**, suppression comprise
+  (tranché par Barbaros : « supprimer, créer une course, répondre aux
+  clients »). Ce qu'il ne doit pas voir : le chiffre d'affaires, ce que
+  rapporte chaque chauffeur, les commissions, le détail financier.
+- **LE MASQUAGE D'ÉCRAN NE MARCHAIT PAS DU TOUT, ET PERSONNE NE LE SAVAIT.**
+  `agent-role-ui.mjs` cherchait `nuage` et `ouvrirEspace` sur `window` : ils
+  vivent dans la portée du script principal, jamais sur `window`. Le script
+  sortait à la première ligne, sans erreur — l'agent voyait le registre, les
+  factures et les réglages comme l'admin. Mesuré sur le site construit.
+  `index.html` expose maintenant `window.ELA_NUAGE` et émet l'événement
+  `ela:espace` ; le script s'y branche. `test-admin-commission` joue un
+  agent pour de vrai et tombe si l'on retire la prise.
+- **Cachés en plus à l'agent** : le bloc « Commission » du bon et le taux du
+  carnet. Ce qui est caché n'est pas effacé : enregistrer un bon garde la
+  commission posée par l'admin — un contrôle le vérifie.
+- **Admin v2 exige maintenant `est_admin()`** : il affiche les finances, et
+  l'agent pouvait s'y connecter avec son compte.
+- **La limite, dite franchement** : l'agent lit les courses (il doit les
+  traiter), donc leurs prix. Un agent déterminé pourrait additionner à la
+  main via l'API. Aucun écran ne le fait pour lui, et l'argent (factures,
+  paiements, commissions globales) est fermé côté serveur.

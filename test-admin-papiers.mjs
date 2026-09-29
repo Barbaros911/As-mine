@@ -125,7 +125,7 @@ const faireServeur = (r, aussi) => {
 };
 
 await ctx.route('**/*', r => faireServeur(r, (r, u, J) => {
-  if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/rpc/est_')) return J(true);
   if(u.includes('/rpc/ela_rafraichir_actions')) return J(0);
   if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);
   if(u.includes('/rest/v1/chauffeurs')){
@@ -297,7 +297,7 @@ check('les trois inserts d\'actions existants sont conservés',
    n'est attribuable — sans le moindre message à l'écran. */
 const ctx2 = await b.newContext({ viewport:{width:390,height:844}, locale:'fr-FR' });
 await ctx2.route('**/*', r => faireServeur(r, (r, u, J) => {
-  if(u.includes('/rpc/est_exploitant')) return J(true);
+  if(u.includes('/rpc/est_')) return J(true);
   if(u.includes('/rpc/')) return J(0);
   /* La vue n'existe pas : Postgrest répond 404. */
   if(u.includes('/chauffeurs_etat'))
@@ -338,7 +338,7 @@ await ctx2.close();
 for (const largeur of [320, 390, 1280]) {
   const ctx3 = await b.newContext({ viewport:{width:largeur, height:largeur>=900?800:844}, locale:'fr-FR' });
   await ctx3.route('**/*', r => faireServeur(r, (r, u, J) => {
-    if(u.includes('/rpc/est_exploitant')) return J(true);
+    if(u.includes('/rpc/est_')) return J(true);
     if(u.includes('/rpc/')) return J(0);
     if(u.includes('/chauffeurs_etat')) return J(CHAUFFEURS);
     if(u.includes('/rest/v1/courses')) return J(COURSES);

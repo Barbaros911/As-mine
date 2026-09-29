@@ -7655,6 +7655,13 @@ window.ELA_TEXTES = {
       });
     }
   };
+  /* LE RÔLE AGENT EST POSÉ PAR UN SCRIPT AJOUTÉ À LA CONSTRUCTION
+     (agent-role-ui.mjs), hors de cette portée. Il cherchait « nuage » et
+     « ouvrirEspace » sur window, où ils n'ont jamais été : il sortait sans
+     rien faire, et l'agent voyait le registre et les chiffres comme
+     l'admin. On lui donne une prise explicite plutôt qu'une variable
+     globale supposée. */
+  window.ELA_NUAGE = nuage;
 /* =====================================================================
    LE RÉCAPITULATIF, PUIS LE BON
    ===================================================================== */
@@ -12021,6 +12028,7 @@ window.ELA_TEXTES = {
 
   function ouvrirEspace(){
     document.body.classList.add("exploitant");
+    document.dispatchEvent(new Event("ela:espace"));
     /* « espace » n'arrive qu'ICI, une fois le code donné : c'est elle qui
        fait apparaître la colonne de gauche. « exploitant » est déjà posée
        sur l'écran du verrou — s'en servir afficherait le nom, l'état du
