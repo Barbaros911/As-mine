@@ -5742,3 +5742,7 @@ plusieurs appareils dans le désordre ; le téléphone venait de fabriquer
   impossible avant l'ouverture de WhatsApp (Safari, geste de l'utilisateur).
 - `intake-demande.js` lit les deux formes ; `test-admin-intake` en éprouve
   une de chaque.
+- **Admin v2 triait par référence** (`order=ref.desc`, liste et registre) :
+  un tirage au sort n'a pas d'ordre. Les deux lisent maintenant par
+  `cree_le.desc`, comme l'espace historique et la réception. Sans ça, la
+  limite de 300 lignes aurait pu écarter la demande arrivée à l'instant.
