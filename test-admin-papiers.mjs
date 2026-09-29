@@ -373,11 +373,21 @@ for (const largeur of [320, 390, 1280]) {
 
   /* Présent dans le DOM ne veut pas dire atteignable : ce projet a déjà payé
      un bouton parfaitement là et mangé par la barre du bas. On l'amène à
-     l'écran et on demande QUI reçoit le doigt en son centre. */
-  await p3.evaluate(()=>document.querySelector('#elaPush').scrollIntoView({block:'center'}));
-  await p3.waitForTimeout(250);
+     l'écran et on demande QUI reçoit le doigt en son centre.
+     Défiler et mesurer dans le MÊME geste : entre deux appels, un rendu de la
+     page peut encore la déplacer, et le centre mesuré tombe hors de l'écran
+     (« rien ») — sur un coureur lent, pas sur la machine de travail. Un
+     délai fixe n'est pas une attente. */
+  await p3.waitForFunction(()=>{
+    const e=document.querySelector('#elaPush'); if(!e) return false;
+    e.scrollIntoView({block:'center', behavior:'instant'});
+    const r=e.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= innerHeight;
+  }, null, { timeout: 5000 }).catch(()=>{});
   const recoit = await p3.evaluate(()=>{
-    const e=document.querySelector('#elaPush'), r=e.getBoundingClientRect();
+    const e=document.querySelector('#elaPush');
+    e.scrollIntoView({block:'center', behavior:'instant'});
+    const r=e.getBoundingClientRect();
     const au=document.elementFromPoint(r.x+r.width/2, r.y+r.height/2);
     return au ? (au.id || au.tagName) : 'rien';
   });
