@@ -72,6 +72,14 @@ function ecrireEmetteur(){
       : '';
     note.className = 'muted small' + (m.length ? ' ko' : '');
   }
+  const preparation = document.getElementById('facPreparation');
+  if(preparation){
+    const m = manqueEmetteur();
+    preparation.className = 'fac-preparation ' + (m.length ? 'a-preparer' : 'pret');
+    preparation.innerHTML = m.length
+      ? '<b>Système préparé pour votre lancement</b><span>Vous pouvez déjà générer un aperçu. L’émission définitive sera activée après l’enregistrement du nom, du SIRET et de l’adresse de votre entreprise dans « Tarifs et réglages ».</span>'
+      : '<b>Facturation prête</b><span>L’identité de l’entreprise est complète. Vérifiez toujours l’aperçu avant d’émettre le document définitif.</span>';
+  }
 }
 async function enregistrerEmetteur(){
   const lire = id => { const n = document.getElementById(id); return n ? n.value.trim() : ''; };

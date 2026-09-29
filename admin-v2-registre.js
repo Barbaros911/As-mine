@@ -54,7 +54,11 @@ function lundiDe(d){
    ligne ancienne qui n'aurait pas de date de trajet. */
 function dateCourse(c){
   const r = (c.bon && c.bon.course) || {};
-  const d = new Date(r.date || String((c.bon && c.bon.cree) || '').slice(0,10));
+  const jour = r.date || String((c.bon && c.bon.cree) || '').slice(0,10);
+  /* Une date seule est interprétée en UTC par JavaScript. Dans un navigateur
+     réglé à l'ouest de Greenwich, un lundi devient alors le dimanche soir et
+     tombe dans la mauvaise semaine. Midi local garde le jour civil partout. */
+  const d = new Date(jour ? jour + 'T12:00:00' : '');
   return isNaN(d.getTime()) ? null : d;
 }
 function prixDe(c){ return Number((c.bon && c.bon.prix && c.bon.prix.total) || 0); }
@@ -216,8 +220,8 @@ function sauvegarder(){
                                 { ref:c.ref, statut:c.statut })),
                      chauffeurs: state.drivers || [] }, null, 1),
     'application/json');
-  dire('Sauvegarde téléchargée — ' + regCourses.length + ' courses et le carnet. '
-     + 'Garde-la ailleurs que sur ce téléphone.', 'ok');
+  dire('Copie de sécurité téléchargée — ' + regCourses.length + ' courses et le carnet. '
+     + 'Les données restent aussi enregistrées sur le serveur.', 'ok');
 }
 
 /* LE POINT-VIRGULE ET NON LA VIRGULE : Excel en français lit le CSV avec le
