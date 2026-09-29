@@ -81,7 +81,7 @@ ok((await hp('easyhotel-9F3K2Q')).status===429,'réception : plafond atteint →
   let r=await hk(new Request('http://x',{method:'POST',body:'{}'})), t=await r.text();
   ok(r.status===200&&JSON.parse(t).cle===pub,'cle-notifications rend la clé publique posée dans les secrets');
   ok(!t.includes(j.d)&&!lus.includes('PRIVEE'),'cle-notifications ne lit ni ne rend JAMAIS la moitié privée');
-  env.VAPID_PUBLIQUE='2ffe59d05d339190bfa1fe4de3e024132bb795b1ca71bd3893692e8458586352';
+  env.VAPID_PUBLIQUE=(await import('node:crypto')).randomBytes(32).toString('hex');
   r=await hk(new Request('http://x',{method:'POST',body:'{}'}));
   ok(r.status===503,'une valeur mal collée (une empreinte) est refusée, pas servie aux navigateurs');
 }
