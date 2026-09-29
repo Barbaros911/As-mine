@@ -13,10 +13,15 @@
    réseau coupé, la course est confirmée quand même. On perd le bip, jamais
    la course. Ne jamais inverser cette répartition.
 
-   SEUL L'EXPLOITANT CONNECTÉ PEUT L'APPELER. Supabase vérifie le jeton
-   avant même d'entrer ici (ne pas déployer avec « --no-verify-jwt ») ; sans
-   ça, n'importe qui pourrait envoyer une notification à n'importe lequel
-   des clients.
+   SEUL L'EXPLOITANT CONNECTÉ PEUT L'APPELER — ET C'EST VÉRIFIÉ ICI.
+   Le jeton vérifié par Supabase à l'entrée ne suffisait PAS (audit du
+   28/09/2026) : la clé publique du site, lisible dans la page, passe cette
+   porte-là. N'importe qui pouvait donc envoyer à un client abonné une
+   fausse « Transfert confirmé » avec un titre, un texte et un LIEN de son
+   choix — de l'hameçonnage signé Elatransfer, sur des références qui se
+   devinent en comptant. On demande désormais au serveur si l'appelant est
+   un exploitant (est_exploitant(), comme capturer-paiement), et le lien
+   n'est accepté que s'il vise le site.
 
    ELLE NE LIT PAS LA COURSE. Le titre, le texte et le lien lui sont donnés
    par la page, qui les compose déjà pour le message WhatsApp. La fonction
@@ -37,6 +42,33 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const VAPID_PUBLIQUE = Deno.env.get("VAPID_PUBLIQUE") ?? "";
 const VAPID_PRIVEE = Deno.env.get("VAPID_PRIVEE") ?? "";
 const VAPID_SUJET = Deno.env.get("VAPID_SUJET") ?? "mailto:contact@elatransfer.com";
+const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+/* Les seules adresses vers lesquelles une notification peut emmener. */
+const ORIGINES = new Set(["https://elatransfer.com", "https://www.elatransfer.com",
+  "https://barbaros911.github.io"]);
+function lienSur(brut: unknown): string {
+  try {
+    const u = new URL(String(brut ?? ""));
+    return ORIGINES.has(u.origin) ? u.href : "";
+  } catch (_e) { return ""; }
+}
+
+/* Authentifié ne veut pas dire autorisé : on demande au serveur, avec le
+   jeton de l'appelant, s'il figure parmi les exploitants actifs. */
+async function exploitant(req: Request): Promise<boolean> {
+  const auth = req.headers.get("authorization") ?? "";
+  const cle = ANON || (req.headers.get("apikey") ?? "");
+  if (!auth.startsWith("Bearer ") || !cle || !SUPABASE_URL) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/est_exploitant`, {
+      method: "POST",
+      headers: { apikey: cle, Authorization: auth, "Content-Type": "application/json" },
+      body: "{}"
+    });
+    return r.ok && (await r.json()) === true;
+  } catch (_e) { return false; }
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -52,9 +84,13 @@ Deno.serve(async (req: Request) => {
     return new Response("SUPABASE_SERVICE_ROLE_KEY n'est pas posé", { status: 500 });
   }
 
+  if (!(await exploitant(req))) {
+    return new Response("accès refusé", { status: 403 });
+  }
+
   let corps: any = {};
   try { corps = await req.json(); } catch (_e) { corps = {}; }
-  const ref = String(corps.ref ?? "").trim();
+  const ref = String(corps.ref ?? "").trim().slice(0, 32);
   if (!ref) return new Response("référence manquante", { status: 400 });
 
   /* Les abonnements de CETTE course. Un client peut s'être abonné depuis
@@ -73,10 +109,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const charge = JSON.stringify({
-    titre: String(corps.titre ?? "Elatransfer"),
-    corps: String(corps.corps ?? ""),
+    titre: String(corps.titre ?? "Elatransfer").slice(0, 120),
+    corps: String(corps.corps ?? "").slice(0, 300),
     ref: ref,
-    url: String(corps.url ?? "")
+    url: lienSur(corps.url)
   });
 
   let envoyes = 0;

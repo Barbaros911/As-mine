@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v99";
+const CACHE = "elatransfer-v101";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -93,7 +93,13 @@ self.addEventListener("push", (event) => {
 });
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const cible=(event.notification.data && event.notification.data.url) || "./";
+  /* Une notification n'emmène QUE sur le site (audit du 28/09/2026) : un lien
+     étranger glissé dans une notification, c'est de l'hameçonnage signé Elatransfer. */
+  let cible="./";
+  try{
+    const u=new URL((event.notification.data && event.notification.data.url) || "./", self.location.href);
+    if(u.origin===self.location.origin || u.origin==="https://elatransfer.com" || u.origin==="https://www.elatransfer.com") cible=u.href;
+  }catch(e){ cible="./"; }
   event.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then((ouvertes)=>{
     for(const f of ouvertes){if("focus" in f){try{if("navigate" in f)f.navigate(cible);}catch(e){} return f.focus();}}
     return self.clients.openWindow(cible);

@@ -50,6 +50,7 @@ const course = (ref, nom) => ({ ref, statut:"attente", cree:new Date().toISOStri
     passagers:"2 passagers", vol:"" },
   client:{ nom, telephone:"06 12 34 56 78" }, prix:{ total:70 } });
 
+let sondes = 0, lectures = 0;
 let serveurCourses = [course('ELA-26-09-0100','Jean Martin')];
 const nav = await chromium.launch();
 async function espace(chemin){
@@ -63,7 +64,10 @@ async function espace(chemin){
     if (u.startsWith(BASE)) return route.continue();
     if (u.includes('supabase.co')) {
       if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
-      if (u.includes('/rest/v1/courses')) return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut}))));
+      /* La sonde ne demande que la dernière référence : on lui répond comme
+         le vrai serveur, UNE ligne, sinon elle lirait « undefined ». */
+      if (u.includes('/rest/v1/courses?select=ref&')) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
+      if (u.includes('/rest/v1/courses')) { lectures++; return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut})))); }
       if (u.includes('/rest/v1/')) return route.fulfill(J([]));
       return route.fulfill(J({}));
     }
@@ -91,6 +95,28 @@ try {
       String(await p.locator('.demande').count()));
     check('et elle est ANNONCÉE', await p.locator('#bordArrivee').isVisible());
     check('aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
+    await ctx.close();
+  }
+  /* 1 bis. SANS rien toucher, une demande apparaît en quelques secondes
+     (29/09/2026 : « je reçois les demandes sur admin 1 minute après »).
+     Avant, seule une relecture complète toutes les 45 s existait. On
+     n'attend que 15 s : la sonde passe toutes les 8 s. Et elle ne doit
+     PAS relire toute la liste à chaque passage, sinon on ferait
+     télécharger 1000 courses toutes les 8 s sur un téléphone. */
+  {
+    serveurCourses = [course('ELA-26-09-0110','Ali Ben')];
+    const {ctx, p} = await espace('/admin.html');
+    await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:8000}).catch(() => {});
+    const base = lectures;
+    await p.waitForTimeout(9000);                       // une sonde passe, rien n'a changé
+    const lecturesAvant = lectures - base;
+    serveurCourses = [course('ELA-26-09-0111','Nina Roy'), ...serveurCourses];
+    const t0 = Date.now();
+    const vu = await p.waitForFunction(() => document.querySelectorAll('.demande').length === 2, null, {timeout:15000})
+      .then(() => true, () => false);
+    check('une demande arrivée apparaît seule en moins de 15 s', vu, vu ? Math.round((Date.now()-t0)/1000)+' s' : 'jamais');
+    check('la sonde tourne (question minuscule)', sondes >= 1, String(sondes));
+    check('sans changement, la sonde ne relit pas toute la liste', lecturesAvant === 0, 'relectures avant l\'arrivée : ' + lecturesAvant);
     await ctx.close();
   }
   /* 2. Arrivé par l'alerte : la course s'ouvre. */

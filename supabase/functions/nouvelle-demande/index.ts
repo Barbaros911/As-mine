@@ -23,10 +23,31 @@ async function parPush(t:string,ref:string):Promise<Resultat>{
   return envoyes?{ok:true,detail:`${envoyes}/${lignes.length} push`,statut:"envoye"}:{ok:false,detail:`0/${lignes.length} push; ${echecs} échec(s)`,statut:"echec"};
 }
 
+/* LE CORPS REÇU N'EST QU'UN SIGNAL, JAMAIS UNE SOURCE (audit du 28/09/2026).
+   Cette fonction est joignable avec la clé publique du site : n'importe qui
+   pouvait lui envoyer un faux « INSERT » et faire partir chez Barbaros une
+   alerte au texte de son choix — de quoi l'hameçonner ou le noyer la nuit.
+   On ne retient donc que la RÉFÉRENCE, et on relit la course sur le serveur :
+   elle doit exister, être toute récente, et ne pas avoir déjà été annoncée.
+   Aucun réglage à changer dans Supabase : le vrai webhook passe à l'identique. */
+const FRAICHEUR_MS=15*60*1000;
+async function courseReelle(ref:string):Promise<Record<string,any>|null>{
+  if(!U||!S||!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))return null;
+  const r=await db(`courses?select=ref,bon,cree_le&ref=eq.${encodeURIComponent(ref)}&limit=1`);if(!r.ok)return null;
+  const l=(await r.json())?.[0];if(!l)return null;
+  const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree)||Date.now()-cree>FRAICHEUR_MS)return null;
+  const deja=await db(`journal_notifications_admin?select=course_ref&type_evenement=eq.nouvelle_reservation&course_ref=eq.${encodeURIComponent(ref)}&limit=1`);
+  if(deja.ok&&((await deja.json())||[]).length)return null;
+  const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=l.ref;return bon;
+}
+
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
-  const ligne=(charge.record??{}) as Record<string,any>,bon=(ligne.bon??{}) as Record<string,any>;if(!bon.ref&&ligne.ref)bon.ref=ligne.ref;const ref=String(bon.ref||ligne.ref||"").slice(0,32),t=titre(bon),m=corps(bon,ADMIN);
+  const recu=(charge.record??{}) as Record<string,any>;
+  const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));
+  if(!bon)return new Response("ignoré : course inconnue, ancienne ou déjà annoncée",{status:200});
+  const ref=String(bon.ref).slice(0,32),t=titre(bon),m=corps(bon,ADMIN);
 
   /* Push ELA + Telegram partent en parallèle. L'un ne bloque jamais l'autre.
      L'e-mail reste un troisième filet facultatif. */
