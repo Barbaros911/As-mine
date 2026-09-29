@@ -42,7 +42,7 @@ const b=await chromium.launch();
 const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 await ctx.route('**://*/**',r=>r.request().url().startsWith(BASE)?r.continue():r.abort());
 await ctx.route('**supabase.co/**',r=>{const u=r.request().url(),J=o=>r.fulfill({contentType:'application/json',body:JSON.stringify(o)});
-  if(u.includes('/rpc/est_exploitant'))return J(true);
+  if(u.includes('/rpc/est_'))return J(true);
   if(u.includes('/rpc/'))return J(0);
   if(u.includes('/chauffeurs_etat'))return J(CH);
   if(u.includes('/actions_requises'))return J(ACTIONS);

@@ -18,7 +18,7 @@ for(const w of [1280,1440]){
 const ctx=await b.newContext({viewport:{width:w,height:900},deviceScaleFactor:2,locale:'fr-FR'});
 await ctx.route('**/*',r=>{const u=r.request().url();if(u.startsWith(B))return r.continue();
  const J=o=>r.fulfill({contentType:'application/json',body:JSON.stringify(o)});if(!u.includes('supabase.co'))return r.abort();
- if(u.includes('/rpc/est_exploitant'))return J(true);if(u.includes('/rest/v1/courses'))return J(COURSES);
+ if(u.includes('/rpc/est_'))return J(true);if(u.includes('/rest/v1/courses'))return J(COURSES);
  if(u.includes('/actions_requises'))return J([{id:1,type_action:'nouvelle_demande',course_ref:'ELA-26-09-0041',priorite:90,echeance:null}]);
  if(u.includes('/chauffeurs_etat'))return J([{id:'d1',nom_affiche:'Ahmed K.',telephone:'+33612345678',etat_effectif:'a_jour',attribuable:true}]);
  return J([]);});
