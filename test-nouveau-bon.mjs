@@ -83,7 +83,7 @@ const tot = await p.locator('#recapTotal').textContent();
 check('aucun détail HT ou TVA n’est affiché par l’intermédiaire',
   (await p.locator('#recapHT').count())===0 && (await p.locator('#recapTVA').count())===0);
 check('le total à régler au chauffeur est celui de l\'écran des prix',
-  tot.replace(/\s/g,'')==='60,00€', tot);
+  tot.replace(/\s/g,'')==='70,00€', tot);
 
 // Sans coordonnées, rien ne part.
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(300);
@@ -145,7 +145,7 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 const ref = await p.locator('#bonRef').textContent();
 // « ELA », jamais « ASM » : ASM venait du nom du dépôt, pas de la marque.
-check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-[2-9A-HJKMNP-Z]{5}$/.test(ref), ref);
 check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref);
 /* LE BON NE SE DIT JAMAIS CONFIRMÉ TOUT SEUL. Il dit « Demande reçue » —
    ce qui se passe maintenant — jusqu'à ce qu'un chauffeur soit attribué.
@@ -191,7 +191,7 @@ check('les deux premières lignes « … : … » sont les adresses',
 check('la date est au format que relit l\'espace exploitant',
   /\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}/.test(lignes[3]), lignes[3]);
 check('le dernier montant en euros est le prix',
-  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='60,00€');
+  (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 check('la dernière ligne est « nom — téléphone », sans deux-points',
   lignes[8].includes(' — ') && !lignes[8].includes(' : '), lignes[8]);
 check('aucune donnée du client avant la dernière ligne',

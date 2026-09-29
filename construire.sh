@@ -5,7 +5,6 @@ mkdir -p site
 cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js intake-demande.js qr-affiche.js itineraire-partage.js manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html site/
-node .github/scripts/appliquer-regles-easyhotel.mjs site/index.html
 node .github/scripts/public-booking-gateway.mjs site/index.html
 node .github/scripts/harden-exploitant-auth.mjs site/index.html
 node .github/scripts/agent-role-ui.mjs site/index.html
@@ -24,7 +23,6 @@ for script in ('/intake-demande.js','/qr-affiche.js','/itineraire-partage.js','/
     if tag not in a:a=a.replace('</body>',tag+'</body>',1)
 admin.write_text(a,encoding='utf-8')
 PY
-cp site/index.html site/application.html
 node .github/scripts/seo-ela.mjs site/index.html
 cp manifest-exploitant.webmanifest site/
 cp -r exploitant site/exploitant
@@ -46,6 +44,7 @@ if [ -d sites ]; then
     echo "Publication du site « $nom » sur /$nom/"; cp -r "$dossier" "site/$nom"
   done
 fi
+node .github/scripts/construire-espaces-hotel.mjs site/index.html site
 node .github/scripts/galerie.mjs
 
 # LES COMMENTAIRES DE TRAVAIL NE PARTENT JAMAIS EN LIGNE — septembre 2026.

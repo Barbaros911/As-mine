@@ -3,8 +3,8 @@ on:
   pull_request:
     paths:
       - 'index.html'
-      - '.github/scripts/appliquer-regles-easyhotel.mjs'
       - 'supabase/migrations/20260916100000_current_tariff_source.sql'
+      - 'supabase/migrations/20260928120000_tarif_unifie.sql'
       - '.github/scripts/verifier-tarif-hotel.mjs'
       - '.github/workflows/tariff-source-regression.yml'
       - 'sites/easyhotel-client/**'
@@ -18,11 +18,11 @@ jobs:
       - shell: bash
         run: |
           set -euo pipefail
-          # Tarifs généraux réellement publiés.
-          grep -Fq 'parKm:2.65, mini:30' site/index.html
-          grep -Fq 'parKm:4.00, mini:50' site/index.html
-          grep -Fq '"par_km_centimes":265' supabase/migrations/20260916100000_current_tariff_source.sql
-          grep -Fq '"par_km_centimes":400' supabase/migrations/20260916100000_current_tariff_source.sql
+          # LE TARIF GÉNÉRAL (GAMMES) N'EST PLUS FIGÉ ICI PAR DES VALEURS EN
+          # DUR : depuis l'unification du 28/09/2026, il est comparé à la
+          # source serveur REJOUÉE (toutes les migrations, dans l'ordre) par
+          # « verifier-tarif-hotel.mjs » plus bas, qui nomme l'écart en euros
+          # plutôt que de faire tomber un grep muet sur un ancien chiffre.
           # easyHotel après transformation de production : aucun tarif nuit/WE.
           # LA FORME A CHANGÉ LE 22/09/2026, ET CE GREP L'AVAIT FIGÉE. Il cherchait
           # « jour:{…}, nuit:{…} » — deux copies du même prix, que le retrait du tarif

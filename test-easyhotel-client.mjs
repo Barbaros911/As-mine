@@ -23,7 +23,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 
 execSync('sh construire.sh', { cwd: process.cwd(), stdio: 'ignore' });
@@ -46,10 +46,31 @@ const SRC = readFileSync('supabase/migrations/20260916100000_current_tariff_sour
 const ATT = {};
 for (const m of SRC.matchAll(/\('(\w+)','[^']*','(berline|van)',(\d+)\)/g))
   (ATT[m[1]] ||= [])[m[2]==='berline'?0:1] = Number(m[3])/100;
-const autre = JSON.parse(SRC.match(/'tarif_easyhotel_autre','(\{[^']*\})'/)[1]);
+/* « Autre destination » N'A PLUS SA PROPRE GRILLE (28/09/2026) : le
+   transformateur qui l'injectait au moment de construire a été supprimé,
+   il n'y a plus qu'UN tarif au kilomètre pour tout le monde. On le lit
+   donc dans « tarif_general_* », en rejouant TOUTES les migrations dans
+   l'ordre (la seconde ne fait que corriger la première) — même règle que
+   « verifier-tarif-hotel.mjs » et « test-doc.mjs ». */
+const GENERAL = {};
+const fichiers = readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql')).sort();
+for (const f of fichiers) {
+  const texte = readFileSync(join('supabase/migrations', f), 'utf8');
+  const trouvailles = [];
+  for (const m of texte.matchAll(/\('(tarif_general_\w+)'\s*,\s*'(\{[^']*\})'::jsonb/g))
+    trouvailles.push({ gamme: m[1], valeur: m[2], index: m.index });
+  for (const m of texte.matchAll(/update\s+public\.parametres_commerciaux\s+set\s+valeur\s*=\s*'(\{[^']*\})'[^;]*where\s+cle\s*=\s*'(tarif_general_\w+)'/gi))
+    trouvailles.push({ gamme: m[2], valeur: m[1], index: m.index });
+  trouvailles.sort((a,b)=>a.index-b.index);
+  for (const t of trouvailles) GENERAL[t.gamme] = JSON.parse(t.valeur);
+}
+const genB = GENERAL.tarif_general_berline, genV = GENERAL.tarif_general_van;
+/* Même arrondi que la page (« arrondiDizaine » d'itineraire-partage.js) :
+   à la dizaine, et le 5 pile DESCEND — jamais Math.round. */
+function arrondiDizaine(p){ const bas = Math.floor(p/10)*10; return (p-bas>5) ? bas+10 : bas; }
 const KM = 52;
-const AUTRE = [Math.max(Math.round(autre.berline_par_km_centimes/100*KM), autre.berline_minimum_centimes/100),
-               Math.max(Math.round(autre.van_par_km_centimes/100*KM), autre.van_minimum_centimes/100)];
+const AUTRE = [Math.max(arrondiDizaine(genB.par_km_centimes/100*KM), genB.minimum_centimes/100),
+               Math.max(arrondiDizaine(genV.par_km_centimes/100*KM), genV.minimum_centimes/100)];
 /* UNE PAGE FIGÉE NE RÉPOND PLUS À « evaluate », QUI N'A PAS DE DÉLAI : sans
    ce garde-fou la suite attendrait pour toujours au lieu d'échouer. */
 setTimeout(() => { console.log('=== ÉCHECS (1) ===\n  ✘ le parcours ne répond plus : le moteur est figé (boucle ?)'); process.exit(1); }, 240000).unref();
@@ -149,53 +170,17 @@ for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024]
   check('aucune seconde grille : deux prix par carte, pas un de plus', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
   check('une carte par forfait de la source serveur', (await p.locator('.carte').count())===Object.keys(ATT).length);
   await ctx.close(); }
-// 6. LE COMPTOIR (?reception=) : LA MÊME PAGE, LES MÊMES CARTES, ET LE MOTEUR
-//    AVEC LA MÊME FINITION. On éprouve aussi l'autre bord : sans le
-//    paramètre, rien du comptoir n'apparaît — sinon un client qui scanne le
-//    QR verrait un bouton « Réservations de l'hôtel ».
+// 6. CLIENT ET RÉCEPTION SONT DEUX DOCUMENTS DISTINCTS. L'ancienne URL
+//    ?reception= reste compatible, mais redirige vers l'espace Réception :
+//    elle ne transforme plus cette page client en comptoir.
 { const {ctx,p}=await nouveau();
-  await p.goto(BASE+'/easyhotel-client/?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-  const hrefs=await p.$$eval('a.carte,a.autre',a=>a.map(x=>x.getAttribute('href')));
-  check('comptoir : les huit liens ouvrent le moteur en mode réception',
-    hrefs.length===Object.keys(ATT).length+1 && hrefs.every(h=>h.includes('reception=easyhotel-aeroville')&&!h.includes('?h=')), hrefs.join(' '));
-  check('comptoir : chaque carte garde sa destination', Object.keys(ATT).every(k=>hrefs.some(h=>h.endsWith('dest='+k))));
-  check('comptoir : le bouton « Réservations de l\'hôtel » est visible', await p.locator('#ctaResa').isVisible());
-  check('comptoir : il ouvre la liste de l\'hôtel', (await p.locator('#ctaResa').getAttribute('href')).includes('reception=easyhotel-aeroville&vue=reservations'));
-  check('comptoir : la page parle à la réception', /comptoir/i.test(await p.locator('h1').innerText()));
-  check('comptoir : mêmes prix que la page client (aucune seconde grille)', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
-  check('comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
+  await p.goto(BASE+'/easyhotel-client/?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'}).catch(()=>{});
+  check('ancienne URL comptoir : redirection vers l\'espace Réception', p.url().includes('/easyhotel-reception/'), p.url());
   await ctx.close(); }
 { const {ctx,p}=await nouveau();
   await p.goto(BASE+'/easyhotel-client/',{waitUntil:'domcontentloaded'});
-  check('client : pas de bouton des réservations de l\'hôtel', !(await p.locator('#ctaResa').isVisible()));
+  check('client : aucun bouton des réservations de l\'hôtel dans le DOM', (await p.locator('#ctaResa').count())===0);
   check('client : les liens restent en ?h= (pas de mode réception)', (await p.$$eval('a.carte',a=>a.every(x=>x.getAttribute('href').includes('?h=easyhotel-aeroville')))));
-  await ctx.close(); }
-{ const {ctx,p}=await nouveau();
-  await p.goto(BASE+'/easyhotel-client/?reception=inconnu',{waitUntil:'domcontentloaded'});
-  check('clé de comptoir inconnue : la page reste celle du client', !(await p.locator('#ctaResa').isVisible()) && /Votre transfert/.test(await p.locator('h1').innerText()));
-  await ctx.close(); }
-{ const {ctx,p}=await nouveau();
-  await p.goto(BASE+'/application.html?reception=easyhotel-aeroville&dest=orly',{waitUntil:'load'});
-  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly',null,{timeout:8000}).catch(()=>{});
-  const r=await p.evaluate(()=>{const ids=[...document.querySelectorAll('#blocCoordonnees label')].map(e=>e.id||e.getAttribute('for'));
-    const ch=document.querySelector('#blocChambre .champ-titre');
-    return {dest:document.getElementById('hotelDest').value, ordre:ids.join(','), titre:ch&&ch.textContent,
-      fini:document.body.classList.contains('hotel-enhanced'), acces:!document.getElementById('btnReception').hidden,
-      avant:document.getElementById('blocCoordonnees').compareDocumentPosition(document.getElementById('blocNote'))&Node.DOCUMENT_POSITION_FOLLOWING,
-      logo:document.querySelector('.entete .logo')?.getAttribute('href')};});
-  check('moteur au comptoir : la destination de la carte est choisie', r.dest==='orly', r.dest);
-  check('moteur au comptoir : même finition que le client', r.fini);
-  check('moteur au comptoir : la chambre vient en PREMIER dans le bloc client', r.ordre.indexOf('chambre')===0 && r.ordre.indexOf('clientNom')>0, r.ordre);
-  check('moteur au comptoir : la chambre n\'est pas dite « facultative » (elle suffit)', r.titre && !/facultatif/i.test(r.titre), r.titre);
-  check('moteur au comptoir : le client passe avant la précision au chauffeur', !!r.avant);
-  check('moteur au comptoir : l\'accès aux réservations reste', r.acces);
-  check('moteur au comptoir : le logo ramène à la page du comptoir', r.logo==='/easyhotel-client/?reception=easyhotel-aeroville', r.logo);
-  check('moteur au comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
-  await ctx.close(); }
-{ const {ctx,p}=await nouveau();
-  await p.goto(BASE+'/application.html?reception=easyhotel-aeroville&vue=reservations',{waitUntil:'load'});
-  const vu=await p.waitForFunction(()=>{const e=document.getElementById('ecran-reception');return e&&e.getBoundingClientRect().height>0;},null,{timeout:8000}).then(()=>true).catch(()=>false);
-  check('« Réservations de l\'hôtel » ouvre l\'écran de la réception', vu);
   await ctx.close(); }
 { const {ctx,p}=await nouveau();
   await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'});
@@ -239,26 +224,6 @@ const etatsEH = p => p.evaluate(()=>({
   check('tout rempli : « Voir mon prix » mène bien aux prix', passe);
   }
   check('validation client : aucune erreur', p.errs.length===0, p.errs.join(';'));
-  await ctx.close(); }
-{ const {ctx,p}=await nouveau();
-  await p.goto(BASE+'/easyhotel-client/?reception=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
-  await p.click('a.carte[data-dest="orly"]');
-  await p.waitForFunction(()=>document.getElementById('hotelDest')?.value==='orly' && document.querySelector('.eh-ok'),null,{timeout:8000}).catch(()=>{});
-  /* AU COMPTOIR LE BOUTON EST GRISÉ tant qu'aucune gamme n'est choisie : un
-     vrai doigt posé dessus doit quand même dire ce qui manque. On appuie à
-     la souris, pas par click() — un bouton grisé ne reçoit pas ce dernier. */
-  await p.locator('#btnVoirPrix').scrollIntoViewIfNeeded();
-  const bb=await p.locator('#btnVoirPrix').boundingBox();
-  await p.mouse.click(bb.x+bb.width/2, bb.y+bb.height/2); await p.waitForTimeout(700);
-  let e=await etatsEH(p);
-  check('comptoir : appuyer sur le bouton grisé montre ce qui manque', e.manque.length>0, e.manque.join(','));
-  check('comptoir : la chambre, la gamme et le règlement sont en rouge', e.manque.includes('chambre') && e.manque.includes('listeVehicules') && e.manque.length>=4, e.manque.join(','));
-  const sinon=await p.evaluate(()=>getComputedStyle(document.getElementById('clientNom').closest('.champ'),'::after').content);
-  check('comptoir : le nom vide dit « si pas de chambre », pas « obligatoire »', /pas de chambre/i.test(sinon), sinon);
-  await p.fill('#chambre','214'); await p.waitForTimeout(200);
-  e=await etatsEH(p);
-  check('comptoir : la chambre suffit — le nom et le téléphone ne sont plus rouges', !e.manque.includes('clientNom') && !e.manque.includes('clientTel') && e.ok.includes('chambre'), e.manque.join(','));
-  check('validation comptoir : aucune erreur', p.errs.length===0, p.errs.join(';'));
   await ctx.close(); }
 await b.close();
 await new Promise(r => serveur.close(r));

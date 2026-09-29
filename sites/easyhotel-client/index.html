@@ -58,11 +58,6 @@ a{color:inherit;text-decoration:none}
 .cta{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;background:var(--o);color:#fff;font-weight:850;font-size:15px;box-shadow:0 10px 24px rgba(255,90,10,.28)}
 .cta:active{transform:translateY(1px)}
 .note{margin:9px 0 0;text-align:center;font-size:12px;color:#c3d1dd}
-/* LE BOUTON DES RÉSERVATIONS N'EXISTE QU'AU COMPTOIR (?reception=). Il est
-   en creux : l'action du comptoir reste « réserver », la liste se consulte. */
-.cta2{display:none;align-items:center;justify-content:center;min-height:46px;margin-top:10px;border-radius:12px;border:1.5px solid rgba(255,255,255,.55);color:#fff;font-weight:800;font-size:14px}
-body.comptoir .cta2{display:flex}
-
 /* LES DESTINATIONS — le cœur de la page. */
 .dest{padding-top:22px;padding-bottom:6px;scroll-margin-top:60px}
 .dest h2{margin:0;font-size:20px;letter-spacing:-.3px}
@@ -144,7 +139,6 @@ body.comptoir .cta2{display:flex}
   </div>
   <div class="fixe">✓ <span data-fr="Départ hôtel déjà renseigné" data-en="Hotel pickup already filled in">Départ hôtel déjà renseigné</span></div>
   <a class="cta" id="cta" href="#destinations" data-fr="Réserver mon transfert →" data-en="Book my transfer →">Réserver mon transfert →</a>
-  <a class="cta2" id="ctaResa" href="../../application.html?reception=easyhotel-aeroville&amp;vue=reservations" data-fr="Réservations de l’hôtel" data-en="Hotel bookings">Réservations de l’hôtel</a>
   <p class="note" id="noteHero" data-fr="Prix confirmé avant réservation • Paiement au chauffeur" data-en="Price confirmed before booking • Pay the driver">Prix confirmé avant réservation • Paiement au chauffeur</p>
 </div></div></section>
 
@@ -239,39 +233,43 @@ body.comptoir .cta2{display:flex}
   /* Même règle que le site : le français à qui le demande, l'anglais sinon.
      Un client allemand ou japonais scanne ce QR bien plus souvent qu'un
      francophone ne s'y trompe. Le moteur fait la même détection de son côté. */
-  /* ═══ LE COMPTOIR : LA MÊME PAGE, PAS UNE COPIE ═══
-     « ?reception=easyhotel-aeroville » ouvre cette page pour la RÉCEPTION.
-     Une seconde page aurait recopié les sept cartes et leurs prix — un
-     quatrième endroit à tenir pour un même tarif, celui qu'on oublie le jour
-     d'une baisse. Ici les cartes restent uniques : seuls leurs liens changent
-     (le moteur s'ouvre en mode comptoir, avec l'accès aux réservations de
-     l'hôtel), et les phrases s'adressent à la personne derrière le comptoir.
-     Une clé inconnue est ignorée : la page reste celle du client. Cette page
-     ne montre rien de privé — la liste des courses reste derrière le code,
-     vérifié par le serveur. */
+  /* L'ancien signet ?reception= ne transforme plus cette page Client en
+     interface de comptoir. Il redirige vers l'espace Réception réellement
+     séparé, tout en conservant la destination ou la vue demandée. */
   var q; try { q = new URLSearchParams(location.search); } catch(e) { q = null; }
-  var comptoir = !!q && q.get('reception') === 'easyhotel-aeroville';
-  if (comptoir) {
-    document.body.classList.add('comptoir');
-    document.title = 'Réception easyHotel Aéroville — ELA Transfer';
-    document.querySelectorAll('a[href*="application.html?h=easyhotel-aeroville"]').forEach(function(a){
-      a.setAttribute('href', a.getAttribute('href').replace('?h=easyhotel-aeroville', '?reception=easyhotel-aeroville'));
-    });
-    var textes = {
-      titreHaut: ['Réservation au comptoir', 'Front-desk booking'],
-      cta:       ['Réserver pour un client →', 'Book for a guest →'],
-      noteHero:  ['Prix fixes à annoncer au client • Paiement au chauffeur', 'Fixed prices to quote • Guest pays the driver'],
-      titreDest: ['Où va le client ?', 'Where is the guest going?']
-    };
-    Object.keys(textes).forEach(function(id){
-      var el = document.getElementById(id);
-      if (el) { el.setAttribute('data-fr', textes[id][0]); el.setAttribute('data-en', textes[id][1]); }
-    });
+  if (q && q.get('reception')) {
+    q.delete('reception');
+    var suite = q.toString();
+    location.replace('/easyhotel-reception/' + (suite ? '?' + suite : '') + location.hash);
+    return;
   }
-  /* Au comptoir, le personnel est francophone : la page s'ouvre en
-     français, le bouton EN reste là. Ailleurs, même règle que le site. */
   var nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'fr';
-  poser(comptoir || String(nav).slice(0,2).toLowerCase() === 'fr' ? 'fr' : 'en');
+  poser(String(nav).slice(0,2).toLowerCase() === 'fr' ? 'fr' : 'en');
+})();
+/* ═══ LES PRIX DES CARTES VIENNENT DU SERVEUR (29/09/2026) ═══
+   Barbaros les modifie depuis son admin (Réglages → Tarifs) ; le moteur les
+   lit déjà. Sans cette lecture, la carte annonçait l'ancien montant pendant
+   que le moteur, un clic plus loin, facturait le nouveau. Les montants
+   écrits dans les cartes ne sont plus qu'un SECOURS, si le serveur ne
+   répond pas. On ne remplace un montant que par un nombre plausible. */
+(function(){
+  var ctrl = ('AbortController' in window) ? new AbortController() : null;
+  if (ctrl) setTimeout(function(){ ctrl.abort(); }, 4000);
+  fetch('https://yyhzutnuhuytokarynaw.supabase.co/rest/v1/forfaits_partenaires_publics'
+      + '?select=partenaire_cle,destination_cle,vehicule_cle,montant_centimes&partenaire_cle=eq.easyhotel-aeroville',
+    { signal: ctrl ? ctrl.signal : undefined,
+      headers: { apikey: 'sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj' } })
+  .then(function(r){ return r.ok ? r.json() : null; }).then(function(lignes){
+    if (!Array.isArray(lignes)) return;
+    lignes.forEach(function(l){
+      if (l.partenaire_cle !== 'easyhotel-aeroville') return;
+      var c = Number(l.montant_centimes);
+      if (!(c >= 500 && c <= 500000)) return;
+      var b = document.querySelector('a.carte[data-dest="' + String(l.destination_cle).replace(/[^a-z0-9-]/g, '')
+                                     + '"] b[data-g="' + (l.vehicule_cle === 'van' ? 'van' : 'berline') + '"]');
+      if (b) b.textContent = (c % 100 ? (c / 100).toFixed(2).replace('.', ',') : String(c / 100)) + ' €';
+    });
+  }).catch(function(){});
 })();
 </script>
 </body>

@@ -3303,6 +3303,68 @@ body.espace #panneauProvenance{display:none;}
       </p>
     </div>
 
+    <!-- LE TARIF, MODIFIABLE DEPUIS LE TÉLÉPHONE — 28 septembre 2026, à sa
+         demande : « je veux que tout le monde ait le même prix lorsqu'il
+         tape une adresse sur le moteur de recherche, et je veux pouvoir
+         modifier cela sur ma page admin, même les prix du flyer. »
+         UN SEUL TARIF AU KILOMÈTRE POUR TOUT LE SITE — client public ET
+         adresse hôtel hors flyer — là où il y en avait deux. Les forfaits
+         du flyer restent des montants FIXES, décidés destination par
+         destination : c'est ce que Barbaros a choisi de garder.
+         ENREGISTRER ICI ÉCRIT DIRECTEMENT SUR LE SERVEUR : le nouveau prix
+         s'applique au chargement suivant de la page, sur le site public
+         comme sur un flyer déjà imprimé — sans qu'il faille republier le
+         site. Exige d'être connecté (voir « Serveur » plus bas) : c'est la
+         même règle que pour changer son mot de passe. -->
+    <div class="bloc" id="blocTarifs">
+      <h2 class="bloc-titre">Tarifs</h2>
+      <p class="bloc-note">
+        Le tarif au kilomètre s'applique à toute adresse tapée sur le
+        moteur de recherche — sur le site comme pour une adresse hôtel
+        hors flyer. Les forfaits du flyer sont des montants fixes, à part.
+      </p>
+      <div class="duo">
+        <label class="champ" for="tarifBerlineKm">
+          <span class="champ-corps">
+            <span class="champ-titre">Berline — €/km</span>
+            <input id="tarifBerlineKm" type="number" min="0" step="0.01" inputmode="decimal">
+          </span>
+        </label>
+        <label class="champ" for="tarifBerlineMini">
+          <span class="champ-corps">
+            <span class="champ-titre">Berline — minimum €</span>
+            <input id="tarifBerlineMini" type="number" min="0" step="1" inputmode="decimal">
+          </span>
+        </label>
+      </div>
+      <div class="duo">
+        <label class="champ" for="tarifVanKm">
+          <span class="champ-corps">
+            <span class="champ-titre">Van — €/km</span>
+            <input id="tarifVanKm" type="number" min="0" step="0.01" inputmode="decimal">
+          </span>
+        </label>
+        <label class="champ" for="tarifVanMini">
+          <span class="champ-corps">
+            <span class="champ-titre">Van — minimum €</span>
+            <input id="tarifVanMini" type="number" min="0" step="1" inputmode="decimal">
+          </span>
+        </label>
+      </div>
+      <button class="bouton" type="button" id="btnTarifEnregistrer">
+        <span>Enregistrer le tarif au kilomètre</span>
+      </button>
+      <p class="bloc-note" id="tarifEtat" hidden></p>
+
+      <h3 class="bloc-titre" style="margin-top:18px">Forfaits du flyer</h3>
+      <p class="bloc-note" id="forfaitsAide">Un montant par destination et par gamme.</p>
+      <div id="tarifForfaits"></div>
+      <button class="bouton-fantome" type="button" id="btnForfaitsEnregistrer">
+        <span>Enregistrer les forfaits</span>
+      </button>
+      <p class="bloc-note" id="forfaitsEtat" hidden></p>
+    </div>
+
     <!-- LE SERVEUR EST CE QUI REND LE TABLEAU DE BORD UTILE SUR N'IMPORTE
          QUEL APPAREIL. Sans connexion, on ne voit que les courses de CE
          téléphone — et changer de téléphone les perdrait. On le dit, plutôt
@@ -4639,11 +4701,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
     chambre:"Numéro de chambre", ph_chambre:"Ex. 214",
     hotel_adresse_precise:"Adresse précise",
-    reserver_prix:"Réserver",
+    reserver_prix:"Valider la réservation",
     client_titre:"Le client",
     aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
-    btn_prix_attente:"Complétez le trajet…",
+    btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
     note_court:"Précision",
@@ -4821,11 +4883,11 @@ window.ELA_TEXTES = {
     geo_indispo:"Your browser cannot locate you. Please type the address.",
     chambre:"Room number", ph_chambre:"e.g. 214",
     hotel_adresse_precise:"Exact address",
-    reserver_prix:"Book",
+    reserver_prix:"Confirm booking",
     client_titre:"The guest",
     aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
     err_identite:"Enter the room number, or the guest's name and phone number.",
-    btn_prix_attente:"Complete the trip…",
+    btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
     note_court:"Note",
@@ -5195,13 +5257,48 @@ window.ELA_TEXTES = {
     if(utiles.length && utiles.length < mots.length) liste.push(utiles.join(" "));
     return liste;
   }
+  /* MÊME CENTRE ET MÊME RAYON QUE « LA ZONE DESSERVIE » plus bas dans ce
+     fichier (CENTRE_ZONE / RAYON_ZONE_KM) — recopiés ici, pas partagés :
+     Photon, dans itineraire-partage.js, fait déjà de même pour son propre
+     biais. Trois endroits qui utilisent le centre de Paris, c'est un fait
+     géographique stable, pas une grille tarifaire appelée à changer.
+     LA LOGIQUE : un client tape « rue de la Paix » ou « rue de la Gare » —
+     des noms qui existent par dizaines dans toute la France. Sans repère,
+     le score ne compare que des mots, et deux rues homonymes arrivent à
+     égalité ; c'est alors l'ordre brut du serveur qui décide, sans rapport
+     avec ce que cherche un client d'Elatransfer. On ne DIT jamais qu'une
+     adresse loin de Paris est invalide ici — ça, c'est le rôle de
+     « horsZone », plus bas, appliqué au moment du choix, pas de la
+     recherche : on la fait seulement remonter ou descendre dans la liste. */
+  var CENTRE_RECHERCHE = { lat:48.8566, lon:2.3522 };
+  var RAYON_RECHERCHE_KM = 90;
+  function distanceParis(item){
+    if(typeof item.lat !== "number" || typeof item.lon !== "number") return null;
+    var route = window.ELA_ROUTE;
+    return route && route.volDoiseauKm ? route.volDoiseauKm(CENTRE_RECHERCHE, item) : null;
+  }
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
     mots.forEach(function(m){
       if(m.length < 2 || l.indexOf(m) === -1) return;
       s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
     });
+    var km = distanceParis(item);
+    if(km !== null) s += bonusDistance(km);
     return s;
+  }
+  /* GRADUÉ, PAS UN SEUIL UNIQUE (28 septembre 2026, à sa demande : « fait ce
+     que tu penses être le meilleur sans restreindre le client »). Une seule
+     coupure à 90 km traitait Melun (50 km, dans la zone) et Deauville
+     (180 km, hors zone mais une vraie destination qu'on sert de vive voix —
+     voir « la zone desservie » plus bas) exactement comme Marseille : même
+     pénalité, alors que l'un est un client plausible et l'autre ne l'est
+     presque jamais. Le dégradé les distingue sans qu'aucun ne disparaisse. */
+  function bonusDistance(km){
+    if(km <= RAYON_RECHERCHE_KM) return 3;      // Île-de-France : priorité nette
+    if(km <= 200) return 1;                     // grande couronne élargie, villes limitrophes
+    if(km <= 400) return 0;                     // une vraie destination lointaine, ni remontée ni enfoncée
+    return -2;                                  // à l'autre bout de la France : ça descend, sans disparaître
   }
   /* Deux résultats à quelques mètres l'un de l'autre sont le même lieu, même
      si les libellés diffèrent d'une virgule : on dédoublonne sur les DEUX. */
@@ -5764,20 +5861,23 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var recHotel = null;         // l'hôtel dont on tient le comptoir
   var recCourses = [];
-  var CLE_CODE_REC = "ela_code_reception";
+  /* Le code brut n'est jamais conservé. Après vérification, le serveur rend
+     un jeton hôtel signé et limité dans le temps ; seul ce jeton vit dans le
+     sessionStorage de l'onglet. Fermer l'onglet ferme donc aussi la session. */
+  var CLE_CODE_REC = "ela_session_reception";
 
   function codeRetenu(cle){
-    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
+    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
          return (o && o[cle]) || ""; }catch(e){ return ""; }
   }
-  function retenirCode(cle, code){
-    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
-         o[cle] = code; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
-    }catch(e){ /* stockage refusé : le code sera redemandé, rien de cassé */ }
+  function retenirCode(cle, session){
+    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
+         o[cle] = session; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    }catch(e){ /* stockage refusé : la connexion sera redemandée */ }
   }
   function oublierCode(cle){
-    try{ var o = JSON.parse(localStorage.getItem(CLE_CODE_REC) || "{}");
-         delete o[cle]; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
+         delete o[cle]; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
     }catch(e){}
   }
 
@@ -5818,12 +5918,14 @@ window.ELA_TEXTES = {
     chargerReception(code);
   }
 
-  function chargerReception(code){
+  function chargerReception(identifiant){
     var btn = document.getElementById("btnRecActualiser");
     btn.disabled = true;
-    nuage.coursesHotel(recHotel.cle, code).then(function(d){
+    var dejaSession = identifiant && identifiant.indexOf(".") > 0;
+    nuage.coursesHotel(recHotel.cle,
+      dejaSession ? { session:identifiant } : { code:identifiant }).then(function(d){
       btn.disabled = false;
-      retenirCode(recHotel.cle, code);
+      if(d && d.session) retenirCode(recHotel.cle, d.session);
       recCourses = (d && d.courses) || [];
       montrerVerrou(false);
       direRec(null);
@@ -6076,8 +6178,8 @@ window.ELA_TEXTES = {
     window.open("https://wa.me/" + NUMERO_WA + "?text=" + encodeURIComponent(msg),
                 "_blank", "noopener");
     bouton.disabled = true;
-    nuage.coursesHotel(recHotel.cle, codeRetenu(recHotel.cle),
-                       { action:"annulation", ref:c.ref })
+    nuage.coursesHotel(recHotel.cle,
+                       { session:codeRetenu(recHotel.cle), action:"annulation", ref:c.ref })
       .then(function(){ c.annulationDemandee = true; dessinerReception(); })
       .catch(function(){
         /* Le message est parti chez Barbaros de toute façon : on le dit
@@ -6449,9 +6551,21 @@ window.ELA_TEXTES = {
        n'est facturé à personne.
      — L'ARRONDI À LA DIZAINE. Un prix rond s'annonce au téléphone, se
        retient, et se règle en espèces sans chercher la monnaie. */
+  /* CES VALEURS SONT UN REPLI, PLUS LA VÉRITÉ.
+     Depuis le 28 septembre 2026, le tarif au kilomètre est LU sur le
+     serveur au chargement de la page (voir « chargerTarifsServeur »,
+     plus bas) et peut être modifié depuis l'admin, sans republier le
+     site. ELLES RESTENT ÉCRITES EN DUR pour deux raisons : c'est le
+     prix affiché pendant la fraction de seconde où l'appel n'a pas
+     encore répondu, et c'est le REPLI si le client est hors ligne ou si
+     le serveur ne répond pas — le repli est sacré, un client dans un
+     parking d'aéroport doit pouvoir réserver quand même. Elles valent
+     donc les mêmes chiffres que la source serveur au moment où ce
+     fichier est écrit ; un changement fait depuis l'admin les corrige
+     en mémoire, il ne les réécrit jamais ici. */
   var GAMMES = [
-    { cle:"berline", nom:"Berline", parKm:2.65, mini:30, places:4 },
-    { cle:"van",     nom:"Van",     parKm:4.00, mini:50, places:7 }
+    { cle:"berline", nom:"Berline", parKm:2.90, mini:30, places:4 },
+    { cle:"van",     nom:"Van",     parKm:4.70, mini:50, places:7 }
   ];
 
   /* ═══ POURQUOI « prix » RESTE UNE FONCTION DE CETTE PAGE ═══
@@ -6622,6 +6736,72 @@ window.ELA_TEXTES = {
      le serveur interroge pour rendre son historique à une réception. Deux
      écritures d'une même clé, c'est un hôtel qui ne voit plus rien. */
   Object.keys(HOTELS).forEach(function(k){ HOTELS[k].cle = k; });
+
+  /* ═══ LE TARIF EST LU SUR LE SERVEUR — 28 septembre 2026, à sa demande :
+     « je veux que tout le monde ait le même prix lorsqu'il tape une
+     adresse... et je veux pouvoir modifier cela sur ma page admin, même
+     les prix du flyer. » Deux appels anonymes, au chargement de la page,
+     qui SURCHARGENT « GAMMES » et « HOTELS » si le serveur répond.
+
+     GAMMES ET HOTELS RESTENT LA VÉRITÉ TANT QUE LE SERVEUR N'A PAS RÉPONDU
+     — le repli est sacré, comme partout ailleurs sur ce site : un échec
+     (hors ligne, minuterie, format inattendu) ne touche à RIEN, le client
+     garde les valeurs écrites en dur, sans le moindre message. Il n'y a
+     donc PAS de risque à appeler ceci avant même que la page soit prête :
+     l'appel est non bloquant, et le pire qui puisse arriver est qu'il
+     n'ait pas eu le temps de répondre avant le premier prix affiché — dans
+     ce cas le repli s'affiche, ce qu'il aurait fait de toute façon.
+
+     DEUX VUES, PAS DEUX TABLES : « tarif_public » et
+     « forfaits_partenaires_publics » sont posées côté serveur pour ne
+     rendre QUE des chiffres déjà publics par nature (un tarif au km, un
+     prix de flyer) — jamais la commission d'Elatransfer, qui reste
+     enfermée dans « parametres_commerciaux », fermée à anon. */
+  /* « Voir mon prix » ATTEND cette lecture (4 s au plus, 29/09/2026) : sans
+     ça, un client rapide voyait le prix de repli pendant que la grille du
+     serveur arrivait — et c'est un prix ferme, donc opposable. Mesuré par
+     test-admin-grille : serveur ralenti à 2,5 s, l'ancien prix sortait. */
+  var tarifsLus = Promise.resolve();
+  function chargerTarifsServeur(){
+    var t1 = new AbortController(), m1 = setTimeout(function(){ t1.abort(); }, 4000);
+    var l1 = fetch(SUPABASE_URL + "/rest/v1/tarif_public?select=gamme,par_km_centimes,minimum_centimes",
+          { signal:t1.signal, headers:{ apikey:SUPABASE_CLE } })
+      .then(function(r){ clearTimeout(m1); return r.ok ? r.json() : null; })
+      .then(function(lignes){
+        if(!Array.isArray(lignes)) return;
+        lignes.forEach(function(l){
+          var g = GAMMES.filter(function(x){ return x.cle === l.gamme; })[0];
+          if(!g) return;
+          var km = Number(l.par_km_centimes) / 100, mini = Number(l.minimum_centimes) / 100;
+          if(km > 0) g.parKm = km;
+          if(mini > 0) g.mini = mini;
+        });
+      })
+      .catch(function(){ clearTimeout(m1); /* repli : GAMMES garde ses valeurs */ });
+
+    var t2 = new AbortController(), m2 = setTimeout(function(){ t2.abort(); }, 4000);
+    var l2 = fetch(SUPABASE_URL + "/rest/v1/forfaits_partenaires_publics?select=partenaire_cle,destination_cle,vehicule_cle,montant_centimes",
+          { signal:t2.signal, headers:{ apikey:SUPABASE_CLE } })
+      .then(function(r){ clearTimeout(m2); return r.ok ? r.json() : null; })
+      .then(function(lignes){
+        if(!Array.isArray(lignes)) return;
+        lignes.forEach(function(l){
+          var hotel = HOTELS[l.partenaire_cle];
+          if(!hotel) return;
+          var dest = hotel.destinations.filter(function(d){ return d.cle === l.destination_cle; })[0];
+          if(!dest || (l.vehicule_cle !== "berline" && l.vehicule_cle !== "van")) return;
+          var montant = Number(l.montant_centimes) / 100;
+          if(montant > 0) dest.forfait[l.vehicule_cle] = montant;
+        });
+      })
+      .catch(function(){ clearTimeout(m2); /* repli : HOTELS garde ses valeurs */ });
+    tarifsLus = Promise.all([l1, l2]).then(function(){}, function(){});
+  }
+  /* L'APPEL LUI-MÊME EST PLUS BAS, APRÈS « SUPABASE_URL »/« SUPABASE_CLE » :
+     cette fonction est définie ici, mais tant que ces deux constantes ne
+     sont pas encore affectées (elles le sont plus loin dans ce même
+     script), les lire donnerait « undefined/rest/v1/… ». Une définition
+     de fonction ne s'exécute qu'à l'appel — seul l'APPEL doit attendre. */
 
   /* LA NUIT DU FLYER : 21 h – 6 h, ET RIEN D'AUTRE. Pas de week-end.
      Voir le commentaire de « HOTELS » : c'est la différence qui coûte le
@@ -7238,8 +7418,10 @@ window.ELA_TEXTES = {
     /* La bibliothèque de la carte part MAINTENANT, en même temps que le
        calcul du prix — pas après lui. Voir « prechargerCarte ». */
     prechargerCarte();
-    itineraire(choix.depart, choix.arrivee,
-               { date:champDate.value, heure:champHeure.value }).then(function(r){
+    tarifsLus.then(function(){
+      return itineraire(choix.depart, choix.arrivee,
+                        { date:champDate.value, heure:champHeure.value });
+    }).then(function(r){
       libelle.textContent = avant;
       boutonPrix.disabled = false;
       course.km = r.km; course.min = r.min; course.estime = r.estime;
@@ -7364,6 +7546,7 @@ window.ELA_TEXTES = {
   var SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
   var SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
 
+  chargerTarifsServeur();
 
   var nuage = {
     actif: function(){ return Boolean(SUPABASE_URL && SUPABASE_CLE); },
@@ -7431,12 +7614,12 @@ window.ELA_TEXTES = {
        « code refusé » et « serveur muet » appellent trois gestes
        différents, et une panne qui ressemble à un état normal ne se répare
        jamais. C'est la leçon de « lister() n'a plus de catch ». */
-    coursesHotel: function(cle, code, extra){
+    coursesHotel: function(cle, autorisation){
       if(!SUPABASE_URL || !SUPABASE_CLE) return Promise.reject(new Error("hors-ligne"));
       var ctrl = new AbortController();
       var minuteur = setTimeout(function(){ ctrl.abort(); }, 10000);
-      var corps = { hotel: cle, code: code };
-      if(extra) Object.keys(extra).forEach(function(k){ corps[k] = extra[k]; });
+      var corps = { hotel: cle };
+      Object.keys(autorisation || {}).forEach(function(k){ corps[k] = autorisation[k]; });
       return fetch(SUPABASE_URL + "/functions/v1/courses-hotel", {
         method: "POST",
         signal: ctrl.signal,
@@ -7746,18 +7929,37 @@ window.ELA_TEXTES = {
      le chauffeur, sous son SIRET, et la loi lui interdit trous et doublons —
      deux numérotations séparées, pour deux documents qui n'engagent pas la
      même personne. */
+  /* ═══ LA RÉFÉRENCE EST TIRÉE AU SORT, PLUS COMPTÉE SUR L'APPAREIL ═══
+     29 septembre 2026, capture de Barbaros à 5 h 28 : une demande du
+     comptoir easyHotel refusée, écriteau rouge. MESURÉ, PAS SUPPOSÉ : le
+     serveur portait déjà ELA-26-09-0001 à 0023, déposées par plusieurs
+     appareils, et ce téléphone venait de fabriquer ELA-26-09-0008. Le
+     serveur refuse une référence déjà prise (409), et la course n'existait
+     nulle part.
+     LA CAUSE ÉTAIT LE COMPTEUR : il vivait dans le navigateur, un par
+     appareil. Il date de l'ancien site, où un seul téléphone — celui de
+     Barbaros — numérotait. Aujourd'hui chaque client numérote, et TOUT
+     nouvel appareil commence le mois à 0001 : sa première demande était
+     refusée dès que le mois en avait déjà une. Côté exploitant c'était
+     pire : « pousser » fusionne, et une course saisie à la main aurait
+     ÉCRASÉ celle d'un client portant le même numéro.
+     Une référence que plusieurs appareils fabriquent sans se parler ne peut
+     être unique que par le hasard : cinq signes pris dans un alphabet sans
+     0/O, 1/I/L (qu'on confond au téléphone), soit 28 millions de tirages
+     par mois. Le mois reste en clair : c'est ce qui se lit d'un coup d'œil.
+     Les anciennes références à quatre chiffres restent lues partout. */
+  var SIGNES_REF = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
   function referenceSuivante(){
     var d = new Date();
     var mois = String(d.getFullYear()).slice(2) + "-" + String(d.getMonth()+1).padStart(2,"0");
-    var rang = 1;
-    try{
-      var brut = JSON.parse(localStorage.getItem("ela_rang") || "null");
-      if(brut && brut.mois === mois) rang = brut.rang + 1;
-      localStorage.setItem("ela_rang", JSON.stringify({ mois:mois, rang:rang }));
-    }catch(e){ /* stockage refusé : le rang repart à 1, ce n'est pas grave */ }
+    var tirage = new Uint32Array(5);
+    try{ crypto.getRandomValues(tirage); }
+    catch(e){ for(var i = 0; i < 5; i++) tirage[i] = Math.floor(Math.random() * 4294967296); }
+    var code = "";
+    for(var j = 0; j < 5; j++) code += SIGNES_REF.charAt(tirage[j] % SIGNES_REF.length);
     /* Le préfixe est celui de la marque, et rien d'autre : Elatransfer
        s'écrit ELA. */
-    return "ELA-" + mois + "-" + String(rang).padStart(4,"0");
+    return "ELA-" + mois + "-" + code;
   }
 
   /* LE MESSAGE QUE LE CLIENT ENVOIE À BARBAROS.
@@ -8443,7 +8645,11 @@ window.ELA_TEXTES = {
      On ne demande l'autorisation QUE sur l'appui (un refus est définitif),
      et on dit POURQUOI ça n'a pas marché : iPhone non installé, pas
      connecté, refus — trois gestes différents. */
-  document.getElementById("btnPushAdmin").addEventListener("click", function(){
+  /* CES BOUTONS N'EXISTENT QUE DANS L'ESPACE EXPLOITANT : la page publique
+     les retire à la construction (construire-espaces-hotel.mjs). Brancher
+     sans vérifier arrêtait TOUT le script du site client — mesuré. */
+  var elPushAdmin = document.getElementById("btnPushAdmin");
+  if(elPushAdmin) elPushAdmin.addEventListener("click", function(){
     var bouton = this, etat = document.getElementById("pushAdminEtat");
     function dire(t){ etat.hidden = false; etat.textContent = t; }
     if(!nuage.connecte()){ dire("Connectez-vous d'abord au serveur, juste au-dessus."); return; }
@@ -8473,7 +8679,8 @@ window.ELA_TEXTES = {
   });
   /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
      32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
-  document.getElementById("btnClesVapid").addEventListener("click", function(){
+  var elClesVapid = document.getElementById("btnClesVapid");
+  if(elClesVapid) elClesVapid.addEventListener("click", function(){
     crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
       .then(function(k){ return crypto.subtle.exportKey("jwk", k.privateKey); })
       .then(function(j){
@@ -8978,6 +9185,54 @@ window.ELA_TEXTES = {
         return (Array.isArray(vu) && vu.length > 0) ? "refus" : "absente";
       }).catch(function(){ return "refus"; });
     }).catch(function(){ return "refus"; });
+  };
+
+  /* ═══ ÉCRIRE LE TARIF GÉNÉRAL DEPUIS L'ADMIN ═══ 28 septembre 2026.
+     « parametres_commerciaux » est fermée à anon mais déjà ouverte en
+     écriture à tout compte authentifié « est_exploitant() » — la même
+     policy sert déjà à Admin v2 pour la commission. Rien à créer côté
+     serveur, seulement l'écran.
+     POST + « on_conflict=cle » + « merge-duplicates » : la ligne existe
+     déjà (semée par la migration), donc c'est une MISE À JOUR déguisée en
+     dépôt — même geste que « saveCommission » dans Admin v2. */
+  nuage.majTarif = function(gamme, parKm, mini){
+    if(!this.connecte()) return Promise.reject(new Error("non connecte"));
+    var valeur = { par_km_centimes: Math.round(parKm * 100),
+                    minimum_centimes: Math.round(mini * 100),
+                    arrondi: "dizaine_euros" };
+    return this.appel("/rest/v1/parametres_commerciaux?on_conflict=cle", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ cle: "tarif_general_" + gamme, valeur: valeur,
+                              actif: true, date_effet: new Date().toISOString(),
+                              modifie_le: new Date().toISOString() })
+    });
+  };
+
+  /* ═══ ÉCRIRE UN FORFAIT DU FLYER ═══
+     « tarifs_partenaires » se filtre par « partenaire_id », pas par la clé
+     lisible de l'hôtel : on va donc D'ABORD chercher son identifiant, puis
+     on modifie la ligne active correspondant à la destination et à la
+     gamme. Une lecture puis une écriture, jamais l'inverse — écrire à
+     l'aveugle créerait une seconde ligne « active » pour la même
+     destination au lieu de corriger la première. */
+  nuage.majForfait = function(partenaireCle, destinationCle, vehiculeCle, montant){
+    if(!this.connecte()) return Promise.reject(new Error("non connecte"));
+    var moi = this;
+    return this.appel("/rest/v1/partenaires?cle=eq." + encodeURIComponent(partenaireCle) + "&select=id&limit=1")
+      .then(function(p){
+        if(!p || !p[0] || !p[0].id) throw new Error("partenaire introuvable");
+        var chemin = "/rest/v1/tarifs_partenaires?partenaire_id=eq." + encodeURIComponent(p[0].id)
+          + "&destination_cle=eq." + encodeURIComponent(destinationCle)
+          + "&vehicule_cle=eq." + encodeURIComponent(vehiculeCle) + "&actif=eq.true";
+        return moi.appel(chemin, {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ montant_centimes: Math.round(montant * 100),
+                                  modifie_le: new Date().toISOString() })
+        });
+      })
+      .then(function(r){ return Array.isArray(r) && r.length > 0; });
   };
 
 /* =====================================================================
@@ -9753,8 +10008,10 @@ window.ELA_TEXTES = {
       + (cm.source === "carnet" ? " — taux du carnet" : "");
   }
   ["bbComMode","bbComValeur","bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
-    document.getElementById(id).addEventListener("input", jugerCommissionBon);
-    document.getElementById(id).addEventListener("change", jugerCommissionBon);
+    var el = document.getElementById(id);   // absent de la page publique
+    if(!el) return;
+    el.addEventListener("input", jugerCommissionBon);
+    el.addEventListener("change", jugerCommissionBon);
   });
   function chauffeurSaisi(){
     return {
@@ -10599,9 +10856,117 @@ window.ELA_TEXTES = {
      mènent maintenant à l'écran des réglages, puis descendent sur le bloc
      visé : c'est le même geste pour l'utilisateur, et une seule destination
      à tenir. */
+  /* ═══ L'ÉCRAN DE TARIFICATION SE REDESSINE À L'OUVERTURE, PAS AVANT ═══
+     Comme « ecrireGrille() » pour la page « Nouvelle course » : les
+     valeurs affichées doivent être celles que « chargerTarifsServeur() »
+     a éventuellement corrigées entre-temps, pas celles écrites en dur au
+     chargement du script. On ne construit PAS les champs de forfaits en
+     « innerHTML » — ce sont des textes qu'on retape, un signe « — »
+     suffit à en faire douter, et ce dépôt évite « innerHTML » pour tout
+     texte qui n'est pas déjà su sûr. */
+  function dessinerTarifs(){
+    var b = GAMMES.filter(function(g){ return g.cle === "berline"; })[0];
+    var v = GAMMES.filter(function(g){ return g.cle === "van"; })[0];
+    if(b){ document.getElementById("tarifBerlineKm").value = b.parKm;
+           document.getElementById("tarifBerlineMini").value = b.mini; }
+    if(v){ document.getElementById("tarifVanKm").value = v.parKm;
+           document.getElementById("tarifVanMini").value = v.mini; }
+
+    var zone = document.getElementById("tarifForfaits");
+    while(zone.firstChild) zone.removeChild(zone.firstChild);
+    Object.keys(HOTELS).forEach(function(hk){
+      var hotel = HOTELS[hk];
+      hotel.destinations.forEach(function(d){
+        ["berline","van"].forEach(function(veh){
+          var id = "forfait_" + hk + "_" + d.cle + "_" + veh;
+          var lab = document.createElement("label");
+          lab.className = "champ"; lab.htmlFor = id;
+          var corps = document.createElement("span"); corps.className = "champ-corps";
+          var titre = document.createElement("span"); titre.className = "champ-titre";
+          titre.textContent = hotel.court + " — " + d.nom + " — " + (veh === "berline" ? "Berline" : "Van");
+          var input = document.createElement("input");
+          input.type = "number"; input.min = "0"; input.step = "1"; input.id = id;
+          input.dataset.hotel = hk; input.dataset.dest = d.cle; input.dataset.veh = veh;
+          input.value = d.forfait[veh] || 0;
+          corps.appendChild(titre); corps.appendChild(input);
+          lab.appendChild(corps); zone.appendChild(lab);
+        });
+      });
+    });
+  }
+
+  function direTarif(texte, erreur){
+    var e = document.getElementById("tarifEtat");
+    e.hidden = !texte;
+    e.textContent = texte || "";
+    e.style.color = erreur ? "#C9302F" : "";
+  }
+  function direForfaits(texte, erreur){
+    var e = document.getElementById("forfaitsEtat");
+    e.hidden = !texte;
+    e.textContent = texte || "";
+    e.style.color = erreur ? "#C9302F" : "";
+  }
+
+  document.getElementById("btnTarifEnregistrer").addEventListener("click", function(){
+    if(!nuage.connecte()){ direTarif("Connectez-vous d'abord au serveur (bloc « Serveur » plus bas).", true); return; }
+    var km = { berline: Number(document.getElementById("tarifBerlineKm").value),
+               van: Number(document.getElementById("tarifVanKm").value) };
+    var mini = { berline: Number(document.getElementById("tarifBerlineMini").value),
+                 van: Number(document.getElementById("tarifVanMini").value) };
+    if(!(km.berline > 0) || !(km.van > 0) || !(mini.berline >= 0) || !(mini.van >= 0)){
+      direTarif("Valeurs invalides.", true); return;
+    }
+    direTarif("Enregistrement…", false);
+    Promise.all([
+      nuage.majTarif("berline", km.berline, mini.berline),
+      nuage.majTarif("van", km.van, mini.van)
+    ]).then(function(){
+      /* LA MÉMOIRE DE LA PAGE EST CORRIGÉE TOUT DE SUITE, PAS SEULEMENT LE
+         SERVEUR : sinon la grille rappelée sur « Nouvelle course »
+         (« ecrireGrille ») resterait périmée jusqu'au prochain
+         chargement complet de la page. */
+      GAMMES.filter(function(g){ return g.cle === "berline"; })[0].parKm = km.berline;
+      GAMMES.filter(function(g){ return g.cle === "berline"; })[0].mini = mini.berline;
+      GAMMES.filter(function(g){ return g.cle === "van"; })[0].parKm = km.van;
+      GAMMES.filter(function(g){ return g.cle === "van"; })[0].mini = mini.van;
+      direTarif("Tarif enregistré. Il s'applique dès le prochain chargement de la page, pour tous.", false);
+    }).catch(function(){
+      direTarif("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);
+    });
+  });
+
+  document.getElementById("btnForfaitsEnregistrer").addEventListener("click", function(){
+    if(!nuage.connecte()){ direForfaits("Connectez-vous d'abord au serveur (bloc « Serveur » plus bas).", true); return; }
+    var champs = Array.prototype.slice.call(document.querySelectorAll("#tarifForfaits input"));
+    var invalide = champs.some(function(c){ return !(Number(c.value) >= 0); });
+    if(invalide){ direForfaits("Un montant est invalide.", true); return; }
+    direForfaits("Enregistrement…", false);
+    Promise.all(champs.map(function(c){
+      var montant = Number(c.value);
+      return nuage.majForfait(c.dataset.hotel, c.dataset.dest, c.dataset.veh, montant).then(function(ok){
+        if(ok){
+          var hotel = HOTELS[c.dataset.hotel];
+          var dest = hotel && hotel.destinations.filter(function(d){ return d.cle === c.dataset.dest; })[0];
+          if(dest) dest.forfait[c.dataset.veh] = montant;
+        }
+        return ok;
+      });
+    })).then(function(resultats){
+      if(resultats.every(Boolean)){
+        direForfaits("Forfaits enregistrés. Ils s'appliquent dès le prochain chargement de la page.", false);
+      } else {
+        direForfaits("Certains forfaits n'ont pas pu être enregistrés — réessayez.", true);
+      }
+    }).catch(function(){
+      direForfaits("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);
+    });
+  });
+
   function ouvrirReglages(vers){
     ecran("ecran-reglages");
     allumerAdmin(document.getElementById("btnReglages"));
+    dessinerTarifs();
     if(vers){
       var cible = document.getElementById(vers);
       if(cible) cible.scrollIntoView({ behavior:"smooth", block:"start" });
@@ -11708,7 +12073,14 @@ window.ELA_TEXTES = {
        et il faut encore le code, vérifié par le serveur.
        ELLE EST LUE EN PREMIER : un lien qui porterait les deux paramètres
        doit donner le plus de droits à celui qui le tient, pas le moins. */
-    var recCle = (params.get("reception") || "").trim();
+    /* Sur la page Réception dédiée, l'hôtel vient du document construit,
+       pas d'un paramètre modifiable. L'ancienne URL ?reception= reste
+       comprise uniquement comme alias de transition. */
+    var espace = document.documentElement.getAttribute("data-ela-space") || "";
+    var hotelImpose = document.documentElement.getAttribute("data-ela-hotel") || "";
+    var recCle = (espace === "hotel-reception" ? hotelImpose
+                  : espace === "hotel-client" ? ""
+                  : (params.get("reception") || "")).trim();
     if(recCle){
       var partRec = hotelDuParametre(recCle);
       if(partRec){

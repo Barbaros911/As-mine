@@ -9,9 +9,11 @@
      finition pour deux entrées, sinon l'une vieillit pendant que l'autre
      avance. Ce qui diffère au comptoir est dit à l'endroit où ça diffère. */
   if(!p) return;
-  var comptoir=p.get('reception')==='easyhotel-aeroville';
-  if(p.get('h')!=='easyhotel-aeroville' && !comptoir) return;
-  var accueil=comptoir?'/easyhotel-client/?reception=easyhotel-aeroville':'/easyhotel-client/';
+  var espace=document.documentElement.getAttribute('data-ela-space')||'';
+  var comptoir=espace==='hotel-reception'||p.get('reception')==='easyhotel-aeroville';
+  var clientHotel=espace==='hotel-client'||p.get('h')==='easyhotel-aeroville';
+  if(!clientHotel && !comptoir) return;
+  var accueil=comptoir?'/easyhotel-reception/':'/easyhotel-client/';
 
   function enhanceHotel(){
     document.body.classList.add('hotel-enhanced');
@@ -105,6 +107,206 @@
        (sites/easyhotel-client/), et sa vignette « Villepinte / Le Bourget »
        choisissait VILLEPINTE : un client du Bourget partait vers la mauvaise
        adresse, à un autre prix. Le menu « Destination » du moteur reste. */
+  }
+
+  /* L'espace Réception garde exactement le même moteur et les mêmes champs,
+     mais il doit se lire comme un outil de comptoir. Cette couche ne crée
+     aucune donnée et ne remplace aucun contrôle : elle hiérarchise les deux
+     actions, regroupe visuellement le tunnel et précise les catégories de
+     véhicule. */
+  function receptionPremium(){
+    if(!comptoir) return;
+    document.body.classList.add('reception-premium');
+    var anglais=document.documentElement.lang==='en';
+    function texte(el,valeur){if(el && el.textContent!==valeur) el.textContent=valeur;}
+    function libelleEtape(id,numero,titre,sousTitre){
+      var el=document.getElementById(id);
+      if(!el){
+        el=document.createElement('div');el.id=id;el.className='reception-step';
+        el.innerHTML='<span class="reception-step-num"></span><span class="reception-step-copy"><b></b><small></small></span>';
+      }
+      texte(el.querySelector('.reception-step-num'),numero);
+      texte(el.querySelector('b'),titre);
+      texte(el.querySelector('small'),sousTitre);
+      return el;
+    }
+    function habillerAction(btn,icone,titre,sousTitre){
+      if(!btn) return;
+      btn.classList.add('reception-action');
+      if(!btn.querySelector('.reception-action-icon')){
+        btn.textContent='';
+        var i=document.createElement('span');i.className='reception-action-icon';i.setAttribute('aria-hidden','true');
+        var c=document.createElement('span');c.className='reception-action-copy';
+        var b=document.createElement('b');var s=document.createElement('small');
+        c.appendChild(b);c.appendChild(s);btn.appendChild(i);btn.appendChild(c);
+      }
+      texte(btn.querySelector('.reception-action-icon'),icone);
+      texte(btn.querySelector('b'),titre);
+      texte(btn.querySelector('small'),sousTitre);
+      btn.setAttribute('aria-label',titre+' — '+sousTitre);
+    }
+
+    var tete=document.getElementById('hotelTete');
+    var sur=tete&&tete.querySelector('.hotel-sur');
+    texte(sur,anglais?'RECEPTION DESK':'ESPACE RÉCEPTION');
+    if(sur) sur.removeAttribute('data-t');
+    if(tete){
+      var horaires=document.getElementById('receptionHoraires');
+      if(!horaires){
+        horaires=document.createElement('p');horaires.id='receptionHoraires';
+        horaires.className='reception-hours';
+        var adresse=tete.querySelector('.hotel-adresse');
+        if(adresse) adresse.insertAdjacentElement('afterend',horaires);
+      }
+      texte(horaires,anglais
+        ? 'Human assistance 5 am–10 pm · Immediate requests subject to availability'
+        : 'Assistance humaine 5 h–22 h · Demandes immédiates selon disponibilité');
+
+      var actions=document.getElementById('receptionActions');
+      var liste=document.getElementById('btnReception');
+      if(!actions){
+        actions=document.createElement('div');actions.id='receptionActions';actions.className='reception-actions';
+        var nouveau=document.createElement('button');nouveau.type='button';nouveau.id='btnReceptionNouvelle';
+        nouveau.addEventListener('click',function(){
+          var cible=document.getElementById('receptionEtape1')||document.querySelector('.reserver');
+          if(cible) cible.scrollIntoView({behavior:'smooth',block:'start'});
+        });
+        actions.appendChild(nouveau);
+        if(liste) actions.appendChild(liste);
+        tete.appendChild(actions);
+      }
+      habillerAction(document.getElementById('btnReceptionNouvelle'),'＋',
+        anglais?'NEW RIDE':'NOUVELLE COURSE',
+        anglais?'Book a transfer for a guest':'Réserver un transfert pour un client');
+      habillerAction(liste,'≡',
+        anglais?'HOTEL BOOKINGS':'RÉSERVATIONS DE L’HÔTEL',
+        anglais?'View and track bookings':'Voir et suivre les réservations');
+    }
+
+    var formulaire=document.querySelector('#ecran-accueil .reserver');
+    if(formulaire){
+      var etape1=libelleEtape('receptionEtape1','1',
+        anglais?'TRIP & GUEST':'TRAJET & CLIENT',
+        anglais?'Trip details and guest identification':'Informations du trajet et identification du client');
+      if(!etape1.parentNode) formulaire.insertBefore(etape1,formulaire.firstElementChild);
+
+      /* La chambre / identité appartient au trajet, avant le véhicule. Les
+         éléments sont déplacés, jamais dupliqués : les écouteurs et les
+         contrôles du moteur restent ceux d'origine. */
+      var coord=document.getElementById('blocCoordonnees');
+      var note=document.getElementById('blocNote');
+      if(document.body.classList.contains('compte-unique') && coord && note && !coord.dataset.receptionOrdre){
+        formulaire.insertBefore(coord,note);coord.dataset.receptionOrdre='1';
+      }
+
+      var vehicules=document.getElementById('listeVehicules');
+      if(vehicules){
+        var etape2=libelleEtape('receptionEtape2','2',
+          anglais?'VEHICLE & PAYMENT':'VÉHICULE & PAIEMENT',
+          anglais?'Choose the category, fixed price and payment method':'Choisissez la catégorie, le prix ferme et le règlement');
+        if(!etape2.parentNode) vehicules.parentNode.insertBefore(etape2,vehicules);
+      }
+    }
+
+    document.querySelectorAll('#listeVehicules .veh-carte').forEach(function(carte){
+      var corps=carte.querySelector('.veh-corps');if(!corps) return;
+      var exemple=corps.querySelector('.veh-exemple');
+      if(!exemple){exemple=document.createElement('span');exemple.className='veh-exemple';
+        var detail=corps.querySelector('.veh-detail');corps.insertBefore(exemple,detail);}
+      var berline=carte.dataset.cle==='berline';
+      texte(exemple,anglais
+        ? (berline?'Toyota, Peugeot, Mercedes, Citroën or equivalent model':'Mercedes, Ford, Renault or equivalent model')
+        : (berline?'Toyota, Peugeot, Mercedes, Citroën ou modèle équivalent':'Mercedes, Ford, Renault ou modèle équivalent'));
+    });
+
+    var cta=document.querySelector('#btnVoirPrix span');
+    texte(cta,anglais?'Confirm booking':'Valider la réservation');
+    if(cta) cta.removeAttribute('data-t');
+
+    var bon=document.querySelector('#ecran-bon .bon');
+    if(bon){
+      var etape3=libelleEtape('receptionEtape3','3',
+        anglais?'CONFIRMATION':'CONFIRMATION',
+        anglais?'Request received and reference created':'Demande reçue et référence créée');
+      if(!etape3.parentNode) bon.parentNode.insertBefore(etape3,bon);
+    }
+
+    var ecranReception=document.getElementById('ecran-reception');
+    var titreListe=ecranReception&&ecranReception.querySelector('.rec-titre');
+    texte(titreListe,anglais?'RECEPTION DESK':'ESPACE RÉCEPTION');
+    var hotelListe=document.getElementById('recHotel');
+    if(hotelListe) hotelListe.setAttribute('aria-label',anglais?'Hotel concerned':'Hôtel concerné');
+    if(ecranReception){
+      var adresseRec=document.getElementById('recAdresseHotel');
+      if(!adresseRec){adresseRec=document.createElement('p');adresseRec.id='recAdresseHotel';adresseRec.className='rec-adresse';
+        if(hotelListe) hotelListe.insertAdjacentElement('afterend',adresseRec);}
+      texte(adresseRec,'10 rue de la Belle Borne, 93410 Tremblay-en-France');
+
+      var corpsRec=document.getElementById('recCorps');
+      var chiffres=document.querySelector('.rec-chiffres');
+      if(corpsRec){
+        var actionsRec=document.getElementById('recDashboardActions');
+        var btnReserver=document.getElementById('btnRecReserver');
+        if(!actionsRec){
+          actionsRec=document.createElement('div');actionsRec.id='recDashboardActions';actionsRec.className='reception-actions rec-dashboard-actions';
+          var btnVoir=document.createElement('button');btnVoir.type='button';btnVoir.id='btnRecVoirListe';
+          btnVoir.addEventListener('click',function(){var c=document.querySelector('.rec-chiffres');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});});
+          if(btnReserver) actionsRec.appendChild(btnReserver);actionsRec.appendChild(btnVoir);
+          corpsRec.insertBefore(actionsRec,corpsRec.firstElementChild);
+        }
+        habillerAction(btnReserver,'＋',anglais?'NEW RIDE':'NOUVELLE COURSE',
+          anglais?'Book a transfer for a guest':'Réserver un transfert pour un client');
+        habillerAction(document.getElementById('btnRecVoirListe'),'≡',
+          anglais?'HOTEL BOOKINGS':'RÉSERVATIONS DE L’HÔTEL',
+          anglais?'View and track bookings':'Voir et suivre les réservations');
+        if(chiffres){
+          var titreCourses=document.getElementById('recListeTitre');
+          if(!titreCourses){titreCourses=document.createElement('div');titreCourses.id='recListeTitre';titreCourses.className='rec-liste-titre';
+            titreCourses.innerHTML='<b></b><span></span>';chiffres.parentNode.insertBefore(titreCourses,chiffres);}
+          texte(titreCourses.querySelector('b'),anglais?'HOTEL BOOKINGS':'RÉSERVATIONS DE L’HÔTEL');
+          texte(titreCourses.querySelector('span'),anglais?'Priority and upcoming rides':'Courses prioritaires et à venir');
+        }
+      }
+
+      var intro=document.querySelector('#recVerrou .rec-intro');
+      texte(intro,anglais
+        ? 'This secure code is requested only once on this device.'
+        : 'Ce code sécurisé n’est demandé qu’une fois sur cet appareil.');
+      var codeTitre=document.querySelector('label[for="recCode"] .champ-titre');
+      texte(codeTitre,anglais?'Reception access code':'Code d’accès Réception');
+      var codeChamp=document.getElementById('recCode');if(codeChamp) codeChamp.placeholder=anglais?'Your code':'Votre code';
+      var btnEntrer=document.getElementById('btnRecEntrer');
+      texte(btnEntrer,anglais?'Open reception desk':'Ouvrir l’espace Réception');
+      if(btnEntrer && !btnEntrer.dataset.receptionScroll){
+        btnEntrer.dataset.receptionScroll='1';
+        btnEntrer.addEventListener('click',function(){
+          var essais=0,minuterie=setInterval(function(){
+            essais++;
+            var corps=document.getElementById('recCorps');
+            if(corps && !corps.hidden){window.scrollTo(0,0);clearInterval(minuterie);}
+            else if(essais>=30) clearInterval(minuterie);
+          },100);
+        });
+      }
+      texte(document.querySelector('.rec-aide-titre'),anglais?'Something unexpected?':'Un imprévu ?');
+      texte(document.querySelector('.rec-aide-texte'),anglais
+        ? 'For a delay, time change or cancellation, call us and we will handle it.'
+        : 'Un retard, un changement d’heure ou une annulation : appelez-nous, on s’en occupe.');
+      var compteurs=document.querySelectorAll('.rec-chiffre span');
+      [anglais?'today':'aujourd’hui',anglais?'pending':'en attente',anglais?'upcoming':'à venir'].forEach(function(v,i){texte(compteurs[i],v);});
+      texte(document.getElementById('recVide'),anglais?'No booking yet.':'Aucune réservation pour le moment.');
+      texte(document.getElementById('btnRecActualiser'),anglais?'Refresh':'Actualiser');
+      texte(document.getElementById('btnRecFermer'),anglais?'Close session':'Fermer la session');
+      document.querySelectorAll('.rec-etat').forEach(function(etat){
+        if(!anglais) return;
+        var traductions={attente:'Pending',confirmee:'Confirmed',en_cours:'In progress',realisee:'Completed',refusee:'Unavailable',annulee:'Cancelled'};
+        Object.keys(traductions).some(function(c){if(etat.classList.contains(c)){texte(etat,traductions[c]);return true;}return false;});
+      });
+      if(anglais) document.querySelectorAll('.rec-jour').forEach(function(j){
+        var jours={"Aujourd'hui":'Today','Demain':'Tomorrow','En retard':'Overdue','Date inconnue':'Unknown date'};
+        if(jours[j.textContent.trim()]) texte(j,jours[j.textContent.trim()]);
+      });
+    }
   }
 
   /* ═══ VERT QUAND C'EST BON, ROUGE QUAND IL MANQUE QUELQUE CHOSE ═══
@@ -222,7 +424,7 @@
 
   /* Le moteur historique construit le mode hôtel après le premier chargement.
      On applique donc la finition tout de suite ET après ses mutations. */
-  function tout(){enhanceHotel();brancherValidation();if(document.body.dataset.ehValidation)peindre();}
+  function tout(){enhanceHotel();receptionPremium();brancherValidation();if(document.body.dataset.ehValidation)peindre();}
   enhanceHotel();
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',tout,{once:true});
   window.addEventListener('load',tout,{once:true});
@@ -231,7 +433,7 @@
     tout();attempts++;
     if(attempts>=20 || (document.getElementById('blocChambre') && document.getElementById('hotelDest') && document.getElementById('hotelDest').dataset.landingPresetApplied)) clearInterval(timer);
   },250);
-  var observer=new MutationObserver(function(){enhanceHotel();});
+  var observer=new MutationObserver(function(){enhanceHotel();receptionPremium();});
   observer.observe(document.documentElement,{subtree:true,childList:true});
   setTimeout(function(){observer.disconnect();},7000);
 }());

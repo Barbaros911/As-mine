@@ -116,8 +116,26 @@ function libellePhoton(p){
   return { label:morceaux.filter(Boolean).join(", "), lieuNomme:nomme };
 }
 
+/* LE BIAIS GÉOGRAPHIQUE MANQUAIT ICI, ET C'ÉTAIT LE VRAI TROU (septembre
+   2026, à sa demande : « il doit m'aider à trouver les adresses logiques
+   en Île-de-France, pas me proposer une rue dans le sud de la France »).
+   Photon a toujours porté un biais vers Paris (« lat=…&location_bias_scale »,
+   juste en dessous) ; la Base Adresse Nationale, elle, n'en portait AUCUN.
+   Or c'est ELLE qui répond aux adresses postales (« 12 rue de la Paix ») —
+   la branche que prend une saisie commençant par un chiffre, la plus
+   fréquente du site. Sur un nom de rue courant (« rue de la Paix », « rue
+   de la Gare »…), la BAN rend des dizaines d'homonymes dans toute la
+   France, et sans biais l'ordre ne doit rien à la géographie. « &lat= » et
+   « &lon= » RAPPROCHENT sans EXCLURE — un client qui pars vraiment de
+   Bordeaux garde sa rue dans la liste, juste plus bas. */
+/* limit=10, pas 6 (28 septembre 2026) : sur un nom de rue courant, la BAN
+   rend jusqu'à six homonymes AVANT même d'arriver à celui de Paris — avec
+   six de marge, il arrivait que la liste finale (chercher(), index.html)
+   se remplisse de villes de province avant que le classement par distance
+   ait un exemplaire francilien à faire remonter. Le classement fait le
+   tri ensuite ; ici on lui donne simplement plus de candidats. */
 function depuisBAN(q){
-  return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=6&autocomplete=1")
+  return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=10&autocomplete=1&lat=48.8566&lon=2.3522")
     .then(function(d){
       if(!d || !Array.isArray(d.features)) return [];
       return d.features.map(function(f){

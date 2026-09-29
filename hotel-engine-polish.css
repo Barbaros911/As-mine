@@ -282,3 +282,108 @@ html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger::after{co
 /* Au comptoir : la liste des gammes et le règlement se choisissent sur la
    même page ; sans choix, c'est le bloc entier qui s'encadre. */
 body.hotel.hotel-enhanced #listeVehicules.eh-manque,body.hotel.hotel-enhanced .eh-manque:not(.champ){outline:2px solid #DC2626;outline-offset:4px;border-radius:14px}
+
+/* ==========================================================================
+   RÉCEPTION PREMIUM — outil de comptoir easyHotel Aéroville
+   Tout reste strictement sous .reception-premium : le Client hôtel, le
+   Public et l'Admin ne reçoivent ni ces règles ni cette hiérarchie.
+   ========================================================================== */
+body.hotel.reception-premium{--rec-navy:#082f52;--rec-blue:#0f4f7d;--rec-orange:#ff5a0a;--rec-green:#18794e;--rec-amber:#9a5b00}
+body.hotel.reception-premium .page{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))!important}
+/* La règle desktop du moteur force #ecran-accueil en grille. Quand la
+   réception ouvre sa liste, elle doit pourtant disparaître comme tout écran
+   inactif ; sinon le formulaire reste au-dessus du tableau sur tablette. */
+body.hotel.reception-premium #ecran-accueil.ecran:not(.actif){display:none!important}
+body.hotel.reception-premium .hotel-tete{
+  padding:22px!important;border-radius:0 0 24px 24px!important;
+  background:linear-gradient(135deg,#082b4b 0%,#0e416c 100%)!important;
+  box-shadow:0 18px 38px rgba(8,47,82,.15)!important;
+}
+body.hotel.reception-premium .hotel-tete .hotel-sur{background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.25)!important}
+body.hotel.reception-premium .hotel-tete .hotel-nom{font-size:34px!important;letter-spacing:-.035em!important}
+body.hotel.reception-premium .hotel-tete .hotel-adresse{margin-bottom:5px!important;font-size:12px!important;opacity:.92}
+body.hotel.reception-premium .reception-hours{margin:0 0 18px;color:#dceaf5;font-size:11px;font-weight:750}
+body.hotel.reception-premium .hotel-sens{margin-bottom:12px!important}
+body.hotel.reception-premium .reception-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+body.hotel.reception-premium .reception-action{
+  display:flex!important;align-items:center!important;gap:12px!important;width:100%!important;min-height:76px!important;
+  margin:0!important;padding:13px 15px!important;border:0!important;border-radius:15px!important;text-align:left!important;
+  color:#fff!important;cursor:pointer!important;box-shadow:0 9px 20px rgba(0,0,0,.13)!important;
+}
+body.hotel.reception-premium #btnReceptionNouvelle{background:linear-gradient(120deg,#ff5a0a,#ff761b)!important}
+body.hotel.reception-premium #btnReception{background:#fff!important;color:var(--rec-navy)!important}
+body.hotel.reception-premium .reception-action-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);font-size:25px;font-weight:500;line-height:1}
+body.hotel.reception-premium #btnReception .reception-action-icon{background:#eaf2f8;color:var(--rec-navy)}
+body.hotel.reception-premium .reception-action-copy{display:flex;min-width:0;flex-direction:column;gap:3px}
+body.hotel.reception-premium .reception-action-copy b{font-size:14px;line-height:1.1;font-weight:950;letter-spacing:.015em}
+body.hotel.reception-premium .reception-action-copy small{font-size:11px;line-height:1.25;font-weight:650;opacity:.86}
+
+body.hotel.reception-premium #ecran-accueil .reserver{padding-top:18px!important}
+body.hotel.reception-premium .reception-step{display:flex;align-items:center;gap:11px;margin:2px 12px 10px;padding:0 2px;color:var(--rec-navy)}
+body.hotel.reception-premium .reception-step-num{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:9px;background:var(--rec-navy);color:#fff;font-size:13px;font-weight:950}
+body.hotel.reception-premium .reception-step-copy{display:flex;flex-direction:column;min-width:0}
+body.hotel.reception-premium .reception-step-copy b{font-size:13px;line-height:1.15;font-weight:950;letter-spacing:.06em}
+body.hotel.reception-premium .reception-step-copy small{margin-top:2px;color:#667985;font-size:11px;line-height:1.25}
+body.hotel.reception-premium #receptionEtape2{margin-top:17px}
+body.hotel.reception-premium #ecran-bon #receptionEtape3{max-width:780px;margin:14px auto 10px;padding:0 14px}
+
+body.hotel.reception-premium #ecran-accueil .champ,body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ{min-height:62px!important;border-color:#d9e2e9!important}
+body.hotel.reception-premium #ecran-accueil .champ:focus-within,body.hotel.reception-premium #blocCoordonnees .champ:focus-within{border-color:#4c7899!important;box-shadow:0 0 0 3px rgba(15,79,125,.11)!important}
+body.hotel.reception-premium #ecran-accueil .champ.eh-ok,body.hotel.reception-premium #blocCoordonnees .champ.eh-ok{border-color:#b8d9c7!important;background:#fbfefc!important;box-shadow:none!important}
+body.hotel.reception-premium .champ.eh-ok::after{color:var(--rec-green)!important}
+body.hotel.reception-premium #ecran-accueil .champ.eh-manque,body.hotel.reception-premium #blocCoordonnees .champ.eh-manque{border-color:#d95c5c!important;background:#fffafa!important;box-shadow:0 0 0 1px rgba(185,28,28,.08)!important}
+
+body.hotel.reception-premium #listeVehicules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-left:10px!important;margin-right:10px!important}
+body.hotel.reception-premium #listeVehicules .veh-carte{min-height:108px!important;margin:0!important;padding:15px!important;border:1px solid #d8e2e9!important;border-radius:16px!important;background:#fff!important;align-items:flex-start!important}
+body.hotel.reception-premium #listeVehicules .veh-carte.choisi{border-color:var(--rec-orange)!important;box-shadow:0 0 0 3px rgba(255,90,10,.12)!important}
+body.hotel.reception-premium .veh-exemple{display:block;margin:4px 0 3px;color:#536a7a;font-size:10.5px;line-height:1.25}
+body.hotel.reception-premium #blocPaiement{padding:14px!important;border:1px solid #dfe7ed!important;border-radius:16px!important;background:#fff!important}
+body.hotel.reception-premium #blocPaiement .choix{min-height:48px!important}
+body.hotel.reception-premium #btnVoirPrix{position:relative!important;bottom:auto!important;z-index:1!important;min-height:56px!important;margin:16px 10px 8px!important;border-radius:14px!important;font-size:15px!important;letter-spacing:.01em!important}
+body.hotel.reception-premium #btnVoirPrix:disabled{opacity:1!important;filter:none!important;background:linear-gradient(120deg,#ff5a0a,#ff761b)!important;color:#fff!important;cursor:pointer!important}
+
+body.hotel.reception-premium .barre-bas{min-height:56px!important;height:auto!important;padding-bottom:env(safe-area-inset-bottom,0px)!important}
+body.hotel.reception-premium .barre-bas .onglet{min-height:54px!important;padding:5px 8px!important}
+body.hotel.reception-premium #ecran-reception{max-width:900px;margin:0 auto;padding-top:14px}
+body.hotel.reception-premium #ecran-reception .trajet-tete{background:linear-gradient(120deg,#ff5a0a,#ff761b)!important;box-shadow:0 10px 24px rgba(255,90,10,.16)!important}
+body.hotel.reception-premium #ecran-reception .rec-titre{font-size:18px;font-weight:950}
+body.hotel.reception-premium #ecran-reception .rec-hotel{font-size:14px;font-weight:800;opacity:.9}
+body.hotel.reception-premium #ecran-reception .rec-adresse{margin:3px 0 0;color:rgba(8,47,82,.78);font-size:11px;line-height:1.3}
+body.hotel.reception-premium #recVerrou,body.hotel.reception-premium #recCorps{max-width:820px;margin:0 auto;padding:0 18px}
+body.hotel.reception-premium #recVerrou{padding:18px;border:1px solid #dfe7ed;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(8,47,82,.06)}
+body.hotel.reception-premium #recVerrou .champ{min-height:62px;border-color:#d9e2e9}
+body.hotel.reception-premium #btnRecEntrer{min-height:54px;border-radius:13px;background:linear-gradient(120deg,#ff5a0a,#ff761b)}
+body.hotel.reception-premium .rec-dashboard-actions{margin:2px 0 18px}
+body.hotel.reception-premium .rec-dashboard-actions #btnRecReserver{background:linear-gradient(120deg,#ff5a0a,#ff761b)!important}
+body.hotel.reception-premium .rec-dashboard-actions #btnRecVoirListe{background:var(--rec-navy)!important}
+body.hotel.reception-premium .rec-liste-titre{display:flex;flex-direction:column;margin:0 2px 10px;color:var(--rec-navy)}
+body.hotel.reception-premium .rec-liste-titre b{font-size:13px;font-weight:950;letter-spacing:.05em}
+body.hotel.reception-premium .rec-liste-titre span{margin-top:2px;color:#667985;font-size:11px}
+body.hotel.reception-premium .rec-chiffres{gap:10px}
+body.hotel.reception-premium .rec-chiffre{padding:13px 8px;border-color:#dfe7ed;background:#fff;box-shadow:0 5px 14px rgba(8,47,82,.04)}
+body.hotel.reception-premium .rec-chiffre.chaud{border-color:#f3c47f;background:#fffaf1}
+body.hotel.reception-premium .rec-chiffre.chaud b{color:var(--rec-amber)}
+body.hotel.reception-premium .rec-course{padding:15px 16px;margin-bottom:10px;border-color:#dfe7ed;border-radius:16px;box-shadow:0 6px 16px rgba(8,47,82,.045)}
+body.hotel.reception-premium .rec-etat.attente{border-color:#f1c988;background:#fff7e8;color:#865000}
+body.hotel.reception-premium .rec-etat.confirmee{border-color:#b9dec9;background:#effaf4;color:#12653f}
+body.hotel.reception-premium .rec-etat.en_cours{border-color:#b9d5e8;background:#eef7fd;color:#0b527d}
+body.hotel.reception-premium .rec-chauffeur{background:#eef7fd;color:#0b527d}
+
+@media(max-width:760px){
+  body.hotel.reception-premium .hotel-tete{padding:18px 12px 14px!important;border-radius:0 0 20px 20px!important}
+  body.hotel.reception-premium .hotel-tete .hotel-nom{font-size:29px!important}
+  body.hotel.reception-premium .reception-actions{gap:8px}
+  body.hotel.reception-premium .reception-action{min-height:84px!important;padding:11px!important;gap:8px!important}
+  body.hotel.reception-premium .reception-action-icon{flex-basis:32px;width:32px;height:32px;border-radius:9px;font-size:21px}
+  body.hotel.reception-premium .reception-action-copy b{font-size:11.5px}
+  body.hotel.reception-premium .reception-action-copy small{font-size:9.5px}
+  body.hotel.reception-premium #listeVehicules{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+  body.hotel.reception-premium .hotel-tete .hotel-nom{font-size:27px!important}
+  body.hotel.reception-premium .reception-hours{font-size:10px}
+  body.hotel.reception-premium .reception-action{min-height:88px!important;align-items:flex-start!important}
+  body.hotel.reception-premium .reception-action-icon{display:none}
+  body.hotel.reception-premium .reception-action-copy b{font-size:11px}
+  body.hotel.reception-premium .reception-action-copy small{font-size:9.5px}
+}

@@ -11,9 +11,9 @@
    ON NE REFAIT PAS L'ADDITION DANS LE TEST. Les prix attendus sont
    recalculés à la main depuis la grille du faux serveur, jamais recopiés
    de ce que la page affiche : un test qui prend la sortie pour référence
-   ne vérifie plus rien. À 24,3 km et 2,65 €/km, la berline fait
-   64,395 € → arrondi à la dizaine, 5 pile descendant → 60 €. Le van, à
-   4,00 €/km, fait 97,2 € → 100 €.
+   ne vérifie plus rien. À 24,3 km et 2,90 €/km, la berline fait
+   70,47 € → arrondi à la dizaine, 5 pile descendant → 70 €. Le van, à
+   4,70 €/km, fait 114,21 € → 110 €.
 
    ET ON ÉPROUVE LA CHAÎNE, PAS SEULEMENT LE RÉSULTAT : un niveau en panne
    ne doit pas faire sauter les suivants pour aller droit au vol d'oiseau,
@@ -57,15 +57,15 @@ const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
    grilles différentes. Elle est lue dans « itineraire-partage.js » plus
    bas pour vérifier qu'elles ne se sont pas séparées. */
 const PARAMS = [
-  { cle:'tarif_general_berline', valeur:{par_km_centimes:265, minimum_centimes:3000} },
-  { cle:'tarif_general_van',     valeur:{par_km_centimes:400, minimum_centimes:5000} },
+  { cle:'tarif_general_berline', valeur:{par_km_centimes:290, minimum_centimes:3000} },
+  { cle:'tarif_general_van',     valeur:{par_km_centimes:470, minimum_centimes:5000} },
   { cle:'commission_ela_defaut', valeur:{pourcentage:20} },
 ];
 /* Quatre distances, une par niveau, et elles rendent quatre prix
    DISTINCTS en berline : 24,3 km → 60 €, 40 km → 110 €, 10 km → 30 €
    (le plancher), 2 km → 30 € aussi. Deux prix qui coïncideraient
    rendraient la suite AVEUGLE sans qu'elle tombe. */
-const M = { ors:24300, osrm:40000, pile:16250 };
+const M = { ors:24300, osrm:40000, pile:50000 };
 
 const b = await chromium.launch();
 
@@ -174,8 +174,8 @@ async function calculer(p, { gamme, date, heure } = {}){
 {
   const { ctx, p, errs, appels } = await scene({ ors:true, osrm:true });
   const r = await calculer(p, { gamme:'berline', date:'2026-09-21', heure:'10:00' });
-  check('le prix est calculé depuis les deux adresses', r.prix === '60',
-        r.prix + ' € (attendu 60 : 24,3 km × 2,65 = 64,395 → 60)');
+  check('le prix est calculé depuis les deux adresses', r.prix === '70',
+        r.prix + ' € (attendu 70 : 24,3 km × 2,90 = 70,47 → 70)');
   check('la distance est annoncée avec le prix', /24,3 km/.test(r.etat), r.etat);
   check('rien ne prétend être une estimation quand une route a répondu',
         !r.etat.includes('≈'), r.etat);
@@ -202,8 +202,8 @@ async function calculer(p, { gamme, date, heure } = {}){
 
   /* --- 2. Le van sur la MÊME distance : la grille décide, pas le code -- */
   const v = await calculer(p, { gamme:'van' });
-  check('le van suit sa propre ligne de la grille serveur', v.prix === '100',
-        v.prix + ' € (attendu 100 : 24,3 km × 4,00 = 97,2 → 100)');
+  check('le van suit sa propre ligne de la grille serveur', v.prix === '110',
+        v.prix + ' € (attendu 110 : 24,3 km × 4,70 = 114,21 → 110)');
   check("aucune erreur de page pendant le calcul", errs.length === 0, errs.join(' | '));
   await ctx.close();
 }
@@ -215,24 +215,24 @@ async function calculer(p, { gamme, date, heure } = {}){
 {
   const { ctx, p } = await scene({ ors:true, osrm:true });
   const nuit = await calculer(p, { gamme:'berline', date:'2026-09-19', heure:'23:00' });
-  check('une course de nuit coûte le même prix', nuit.prix === '60', nuit.prix + ' €');
+  check('une course de nuit coûte le même prix', nuit.prix === '70', nuit.prix + ' €');
   const samedi = await calculer(p, { gamme:'berline', date:'2026-09-19', heure:'13:00' });
-  check('un samedi midi aussi', samedi.prix === '60', samedi.prix + ' €');
+  check('un samedi midi aussi', samedi.prix === '70', samedi.prix + ' €');
   await ctx.close();
 }
 
 /* --- 3 bis. L'ARRONDI DE BARBAROS, ÉPROUVÉ SUR UN 5 PILE -------------
    Le contrôle qui relit la source ne suffit pas : il dirait « > » sans
-   qu'aucun prix ne le prouve. À 11,25 km et 4,00 €/km, la course fait
-   EXACTEMENT 45 € — le seul cas où « > » et « >= » se séparent. SA règle
-   est que le 5 pile DESCEND : 40 €. L'arrondi de l'école en ferait 50, et
-   le client paierait 10 € de plus que ce qui lui a été annoncé au
-   téléphone. Recalculé à la main : 4,00 × 11,25 = 45,00. --------------- */
+   qu'aucun prix ne le prouve. À 50 km et 4,70 €/km, la course fait
+   EXACTEMENT 235 € — le seul cas où « > » et « >= » se séparent. SA règle
+   est que le 5 pile DESCEND : 230 €. L'arrondi de l'école en ferait 240,
+   et le client paierait 10 € de plus que ce qui lui a été annoncé au
+   téléphone. Recalculé à la main : 4,70 × 50 = 235,00. --------------- */
 {
   const { ctx, p } = await scene({ ors:true, osrm:true, distanceOrs:M.pile });
   const r = await calculer(p, { gamme:'van' });
   check('un 5 pile DESCEND — c’est son arrondi, pas celui de l’école',
-        r.prix === '60', r.prix + ' € (attendu 60 : 65,00 € pile → 60)');
+        r.prix === '230', r.prix + ' € (attendu 230 : 235,00 € pile → 230)');
   await ctx.close();
 }
 
@@ -242,8 +242,8 @@ async function calculer(p, { gamme, date, heure } = {}){
 {
   const { ctx, p, appels } = await scene({ ors:false, osrm:true });
   const r = await calculer(p, { gamme:'berline' });
-  check('ORS en panne : OSRM donne la distance', r.prix === '110',
-        r.prix + ' € (attendu 110 : 40 km × 2,65 = 106 → 110)');
+  check('ORS en panne : OSRM donne la distance', r.prix === '120',
+        r.prix + ' € (attendu 120 : 40 km × 2,90 = 116 → 120)');
   check('les deux niveaux ont été essayés dans l’ordre',
         appels.includes('ors') && appels.includes('osrm'), appels.join('/'));
   check("et rien n'est marqué « ≈ » : une vraie route a répondu",
@@ -256,7 +256,9 @@ async function calculer(p, { gamme, date, heure } = {}){
   const { ctx, p } = await scene({ ors:false, osrm:false });
   const r = await calculer(p, { gamme:'berline' });
   /* Vendôme → Argenteuil fait ~11,8 km à vol d'oiseau, × 1,3 ≈ 15,3 km.
-     15,3 × 2,65 = 40,6 € → 40 €. Recalculé, pas relevé à l'écran. */
+     15,3 × 2,90 ≈ 44,3 € → 40 €. Recalculé, pas relevé à l'écran — le
+     montant final ne bouge pas par rapport à l'ancien tarif, la marge
+     avant le prochain palier de dix euros était large des deux côtés. */
   check('les deux en panne : le vol d’oiseau sert de dernier recours',
         r.prix === '40', r.prix + ' € (attendu 40)');
   check('et la course est marquée « ≈ » — c’est une estimation',
@@ -347,7 +349,7 @@ check('l’arrondi compare le reste à 5 avec un « > », jamais un « >= »',
 /* LA GRILLE DU FAUX SERVEUR EST CELLE DU DÉPÔT. Si elles se séparaient, le
    contrôle de parité au centime plus haut n'éprouverait plus rien. */
 check('la grille du test est celle du dépôt',
-  /parKm:2\.65[\s\S]{0,60}mini:30/.test(page) && /parKm:4\.00[\s\S]{0,60}mini:50/.test(page));
+  /parKm:2\.90[\s\S]{0,60}mini:30/.test(page) && /parKm:4\.70[\s\S]{0,60}mini:50/.test(page));
 /* LE FICHIER PARTAGÉ EST PUBLIÉ ET INJECTÉ. Oublié dans la recette, il
    marche en local — où le serveur sert le dépôt entier — et reste
    introuvable en ligne. Le contrôle ne lit que les lignes de COMMANDE :

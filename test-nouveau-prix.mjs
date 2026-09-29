@@ -70,12 +70,13 @@ check('aucune image de voiture — ni dessin, ni emoji',
   && !/[\u{1F680}-\u{1F6FF}]/u.test(await p.locator('.veh-liste').innerText()));
 const prix = await p.locator('.veh-prix').allTextContents();
 check('un prix par gamme', prix.length===2, prix.join(' | '));
-// 24,3 km : berline = 2,35 × 24,3 = 57,11 € → le reste 7,11 dépasse 5, on
-//           MONTE à 60 €.
-//           van     = 4,08 × 24,3 = 99,14 € → 100 €.
+// 24,3 km : berline = 2,90 × 24,3 = 70,47 € → le reste 0,47 est sous 5, on
+//           DESCEND à 70 €.
+//           van     = 4,70 × 24,3 = 114,21 € → le reste 4,21 est sous 5,
+//           on DESCEND à 110 €.
 // Plus de prise en charge : le prix n'est qu'un kilométrage.
-check('le prix suit la grille', prix[0].replace(/\s/g,'')==='60,00€', prix[0]);
-check('le van suit la sienne', prix[1].replace(/\s/g,'')==='100,00€', prix[1]);
+check('le prix suit la grille', prix[0].replace(/\s/g,'')==='70,00€', prix[0]);
+check('le van suit la sienne', prix[1].replace(/\s/g,'')==='110,00€', prix[1]);
 check('un prix rond, jamais de centimes',
   prix.every(x=>/^\d+,00\s*€$/.test(x.trim())), prix.join(' | '));
 check('la mesure est affichée', (await p.locator('#resumeMesure').textContent()).includes('24,3'),

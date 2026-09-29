@@ -46,6 +46,7 @@ const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const CODE = 'easyhotel-9F3K2Q';
+const SESSION = 'session-hotel-signee.signature-test';
 const jour = n => { const d=new Date(Date.now()+n*864e5); const z=x=>String(x).padStart(2,'0');
   return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); };
 
@@ -87,12 +88,12 @@ const COURSES = () => ([
 await ctx.route('**/functions/v1/courses-hotel', r => {
   const c = JSON.parse(r.request().postData() || '{}');
   appels.push(c);
-  if(c.code !== CODE)
+  if(c.code !== CODE && c.session !== SESSION)
     return r.fulfill({status:401, contentType:'application/json', body:'{"refuse":true}'});
   if(c.action === 'annulation')
-    return r.fulfill({contentType:'application/json', body:JSON.stringify({ok:true, ref:c.ref})});
+    return r.fulfill({contentType:'application/json', body:JSON.stringify({ok:true, ref:c.ref, session:SESSION})});
   return r.fulfill({contentType:'application/json',
-    body:JSON.stringify({ hotel:c.hotel, courses:COURSES() })});
+    body:JSON.stringify({ hotel:c.hotel, courses:COURSES(), session:SESSION })});
 });
 
 /* ---------------------------------------------------------------------
@@ -184,6 +185,11 @@ await p.locator('#btnRecEntrer').click();
 await p.waitForTimeout(800);
 check('le bon code ouvre la liste', await p.locator('#recCorps').isVisible());
 check('les trois courses sont là', (await p.locator('.rec-course').count()) === 3);
+check('le code brut n\'est jamais conservé dans le navigateur',
+  await p.evaluate(code => !Object.values(localStorage).some(v => String(v).includes(code))
+    && !Object.values(sessionStorage).some(v => String(v).includes(code)), CODE));
+check('seul le jeton de session signé est conservé dans l\'onglet',
+  await p.evaluate(session => Object.values(sessionStorage).some(v => String(v).includes(session)), SESSION));
 
 /* IL N'EST DEMANDÉ QU'UNE FOIS. Un comptoir qui retape un code à chaque
    client cesse d'utiliser l'outil au bout de trois jours. */
