@@ -5757,6 +5757,11 @@ window.ELA_TEXTES = {
         oublierCode(recHotel.cle);
         montrerVerrou(true);
         direRec("Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
+      } else if(String(err && err.message) === "quota"){
+        /* Trop d'essais depuis cette connexion : le code n'est PAS oublié,
+           il peut être le bon — c'est le nombre d'essais qui bloque. */
+        direRec("Trop d'essais depuis cette connexion. Réessayez dans une heure, ou appelez Elatransfer.");
+        montrerVerrou(true);
       } else {
         direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
         montrerVerrou(true);
@@ -7359,6 +7364,7 @@ window.ELA_TEXTES = {
       }).then(function(r){
         clearTimeout(minuteur);
         if(r.status === 401) throw new Error("code");
+        if(r.status === 429) throw new Error("quota");
         if(!r.ok) throw new Error("serveur");
         return r.json();
       });

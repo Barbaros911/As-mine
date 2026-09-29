@@ -3,8 +3,10 @@
    publique du site (audit du 28/09/2026). Sans Deno ni réseau : on charge
    le code TypeScript dépouillé de ses types, avec un faux serveur.
    · nouvelle-demande ne doit croire QUE la course relue sur le serveur ;
-   · prevenir-client ne doit répondre qu'à un exploitant.
-   Éprouvée contre l'ancien code : six contrôles sur sept tombent.
+   · prevenir-client ne doit répondre qu'à un exploitant ;
+   · courses-hotel plafonne les essais du code de la réception.
+   Éprouvée contre l'ancien code : les contrôles de chaque fonction tombent
+   (six sur sept pour les deux premières, le plafond pour courses-hotel).
    ===================================================================== */
 import m from 'node:module'; import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,9 +20,12 @@ async function charger(dir, env){
   await import(tmp+'/index.mjs?'+Math.random()); return h;
 }
 let journal=[], tg=[], rows={};
+let quotaAppels=0,quotaLimite=60;
 globalThis.fetch=async(url,init={})=>{
   url=String(url);
   if(url.includes('api.telegram.org')){tg.push(JSON.parse(init.body).text);return new Response('{}');}
+  if(url.includes('/rpc/consommer_quota_reservation')){quotaAppels++;return new Response(JSON.stringify(quotaAppels<=quotaLimite));}
+  if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon')) return new Response('[]');
   if(url.includes('/rpc/est_exploitant')) return new Response(JSON.stringify(init.headers.Authorization==='Bearer ADMIN'));
   if(url.includes('/rest/v1/courses?')){const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(rows[ref]?[rows[ref]]:[]));}
   if(url.includes('journal_notifications_admin?select')){const ref=decodeURIComponent(url.match(/course_ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(journal.filter(j=>j.course_ref===ref)));}
@@ -47,6 +52,16 @@ const pp=(auth)=>p(new Request('http://x',{method:'POST',headers:auth?{authoriza
 ok((await pp()).status===403,'prevenir-client sans jeton : 403');
 ok((await pp('Bearer sb_publishable_xxx')).status===403,'prevenir-client avec la clé publique : 403');
 ok((await pp('Bearer ADMIN')).status===200,'prevenir-client exploitant : accepté');
+
+// courses-hotel : le code de la réception est plafonné en nombre d'essais,
+// et le plafond est vérifié AVANT la comparaison du code.
+const hc=await charger('courses-hotel',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',HOTEL_EASYHOTEL_AEROVILLE_CODE:'easyhotel-9F3K2Q'});
+const hp=(code)=>hc(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},body:JSON.stringify({hotel:'easyhotel-aeroville',code})}));
+quotaAppels=0;quotaLimite=60;
+ok((await hp('easyhotel-9F3K2Q')).status===200,'réception : bon code accepté sous le plafond');
+ok((await hp('mauvais')).status===401,'réception : mauvais code refusé');
+quotaAppels=60;
+ok((await hp('easyhotel-9F3K2Q')).status===429,'réception : plafond atteint → refus MÊME avec le bon code');
 
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}
