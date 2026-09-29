@@ -5990,3 +5990,30 @@ mais un appel direct passait.
   traiter), donc leurs prix. Un agent déterminé pourrait additionner à la
   main via l'API. Aucun écran ne le fait pour lui, et l'argent (factures,
   paiements, commissions globales) est fermé côté serveur.
+
+## L'ICÔNE SUR L'ÉCRAN D'ACCUEIL — CHAQUE ENTRÉE easyHotel A SON MANIFESTE
+
+29 septembre 2026, à sa demande : poser la page client et la réception en
+icône sur un iPhone. **Mesuré avant** : `/easyhotel-reception/` héritait du
+manifeste du site client (`start_url: ./`, donc la racine) et en déclarait
+DEUX — l'icône aurait rouvert le **site public**, le piège déjà payé sur
+l'espace exploitant. `/easyhotel-client/` n'en avait aucun : vignette
+générique, ouverte dans Safari.
+- Réception : `construire-espaces-hotel.mjs` retire tous les manifestes
+  hérités et écrit `site/easyhotel-reception/manifest.webmanifest`
+  (démarre sur `/easyhotel-reception/`, nom « Réception »).
+- Client : `sites/easyhotel-client/manifest.webmanifest` (nom « easyHotel »).
+- **La portée est `/` dans les deux cas** : les cartes du client mènent à
+  `/application.html` ; une portée limitée au dossier ferait sortir de
+  l'application au premier appui.
+- **Chacune a SA couleur** (29/09/2026, à sa demande : « là c'est trop
+  moche ») : réception = ELA **orange sur blanc** (`icones/reception-*.png`,
+  copié par `construire.sh`), client = ELA **noir sur orange**
+  (`sites/easyhotel-client/icon-*.png`). Tailles 32 (onglet d'ordinateur),
+  180 (iPhone), 512 (Android). Fabriquées en repeignant la silhouette de
+  `brand-logo-white.png`. Aucun logo easyHotel sans leur accord.
+- Une icône posée AVANT cette correction garde l'ancien réglage : la
+  supprimer et la refaire. Sur iPhone, l'icône a son propre stockage : la
+  réception retape son code une fois dans l'application.
+- `test-cloisonnement-hotel` lit le manifeste comme le navigateur et tombe
+  sur l'ancien code (« trouvé : 2 »).

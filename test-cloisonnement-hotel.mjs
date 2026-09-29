@@ -160,6 +160,43 @@ try {
     [sourcePublic, sourceClient, sourceReception, sourceAdmin]
       .every((document) => document.length < sourceMonolithe.length),
     `${sourcePublic.length}/${sourceClient.length}/${sourceReception.length}/${sourceAdmin.length}/${sourceMonolithe.length}`);
+  /* L'ICÔNE SUR L'ÉCRAN D'ACCUEIL : iOS lit le manifeste de la page, pas son
+     adresse. Hérité du site client, celui de la réception déclarait la racine
+     — l'icône rouvrait le site public. On lit ce que le navigateur lirait. */
+  const lireManifeste = async (chemin) => {
+    const pageIcone = await contexte.newPage();
+    await pageIcone.goto(`http://127.0.0.1:${PORT}${chemin}`, { waitUntil: 'domcontentloaded' });
+    const r = await pageIcone.evaluate(async () => {
+      const liens = [...document.querySelectorAll('link[rel="manifest"]')];
+      const icones = [...document.querySelectorAll('link[rel="apple-touch-icon"]')].map((l) => l.href);
+      if (liens.length !== 1 || !liens[0].href) return { nb: liens.length, icones };
+      const url = liens[0].href;
+      const m = await (await fetch(url)).json();
+      const icone = icones[0] ? (await fetch(icones[0])).status : 0;
+      const iconesManifeste = await Promise.all(m.icons.map(async (i) => {
+        const u = new URL(i.src, url); return { chemin: u.pathname, statut: (await fetch(u)).status };
+      }));
+      return { nb: 1, depart: new URL(m.start_url, url).pathname, portee: new URL(m.scope, url).pathname,
+        nom: m.short_name, icone, pomme: icones[0] && new URL(icones[0]).pathname, iconesManifeste };
+    });
+    await pageIcone.close();
+    return r;
+  };
+  /* Chaque entrée a SA couleur (29/09/2026) : réception orange sur blanc,
+     client noir sur orange. Le logo générique du site ne doit plus y revenir. */
+  for (const [chemin, nom, dossier] of [['/easyhotel-reception/', 'Réception', '/icones/reception-'],
+    ['/easyhotel-client/', 'easyHotel', '/easyhotel-client/icon-']]) {
+    const m = await lireManifeste(chemin);
+    check(`Icône ${nom} : un seul manifeste déclaré`, m.nb === 1, `trouvé : ${m.nb}`);
+    check(`Icône ${nom} : l'icône rouvre ${chemin}, pas le site public`, m.depart === chemin, `démarre sur ${m.depart}`);
+    check(`Icône ${nom} : le moteur de réservation reste dans l'application`, m.portee === '/', `portée ${m.portee}`);
+    check(`Icône ${nom} : nom court et image présents`, m.nom === nom && m.icone === 200, `${m.nom} · image ${m.icone}`);
+    check(`Icône ${nom} : ses propres images, pas le logo générique du site`,
+      (m.pomme || '').startsWith(dossier) && (m.iconesManifeste || []).length > 0
+        && m.iconesManifeste.every((i) => i.chemin.startsWith(dossier) && i.statut === 200),
+      `${m.pomme} · ${(m.iconesManifeste || []).map((i) => i.chemin + ' ' + i.statut).join(', ')}`);
+  }
+
   check('Serveur : une réservation Réception exige un jeton signé',
     readFileSync('supabase/functions/deposer-course/index.ts', 'utf8')
       .includes('session réception refusée'));

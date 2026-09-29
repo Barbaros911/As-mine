@@ -156,7 +156,23 @@ function reception() {
   let html = sansAdmin();
   html = injecterBootstrap(html, 'reception');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-reception" data-ela-hotel="easyhotel-aeroville">');
-  html = html.replace('<head>', '<head>\n<base href="/">');
+  /* SON PROPRE MANIFESTE (29/09/2026). La page héritait de celui du site
+     client (« start_url: ./ », donc la racine) : une icône posée depuis la
+     réception rouvrait le site PUBLIC. iOS lit le manifeste de la page, pas
+     son adresse. On retire tous les manifestes hérités — y compris le lien
+     sans adresse que le script d'échange remplit — et on pose le sien. */
+  html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*rel=["']apple-touch-icon["'][^>]*>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*rel=["'](?:shortcut )?icon["'][^>]*>\s*/gi, '');
+  /* ELA orange sur blanc (29/09/2026, à sa demande) : on reconnaît la
+     réception d'un coup d'œil à côté de l'icône client, noir sur orange. */
+  html = html.replace('<head>', '<head>\n<base href="/">\n'
+    + '<link rel="manifest" href="/easyhotel-reception/manifest.webmanifest">\n'
+    + '<link rel="apple-touch-icon" href="/icones/reception-180.png">\n'
+    + '<link rel="icon" href="/icones/reception-32.png" type="image/png" sizes="32x32">\n'
+    + '<meta name="apple-mobile-web-app-title" content="Réception">\n'
+    + '<meta name="apple-mobile-web-app-capable" content="yes">\n'
+    + '<meta name="mobile-web-app-capable" content="yes">');
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
     '<meta name="robots" content="noindex,nofollow">');
   html = html.replace(/<title>[\s\S]*?<\/title>/i,
@@ -249,6 +265,23 @@ fs.writeFileSync(path.join(sortie, 'application.html'), clientHtml);
 const dossierReception = path.join(sortie, 'easyhotel-reception');
 fs.mkdirSync(dossierReception, { recursive: true });
 fs.writeFileSync(path.join(dossierReception, 'index.html'), receptionHtml);
+fs.writeFileSync(path.join(dossierReception, 'manifest.webmanifest'), JSON.stringify({
+  name: 'Réception easyHotel Aéroville — ELA Transfer',
+  short_name: 'Réception',
+  description: 'Réservations de la réception easyHotel Aéroville.',
+  lang: 'fr',
+  id: '/easyhotel-reception/',
+  start_url: '/easyhotel-reception/',
+  scope: '/',
+  display: 'standalone',
+  orientation: 'portrait',
+  background_color: '#FFFFFF',
+  theme_color: '#FFFFFF',
+  icons: [
+    { src: '/icones/reception-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+    { src: '/icones/reception-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+  ],
+}, null, 2) + '\n');
 const dossierAdmin = path.join(sortie, 'ela-admin');
 fs.mkdirSync(dossierAdmin, { recursive: true });
 fs.writeFileSync(path.join(dossierAdmin, 'index.html'), adminHtml);
