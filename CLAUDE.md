@@ -6012,6 +6012,13 @@ générique, ouverte dans Safari.
   (`sites/easyhotel-client/icon-*.png`). Tailles 32 (onglet d'ordinateur),
   180 (iPhone), 512 (Android). Fabriquées en repeignant la silhouette de
   `brand-logo-white.png`. Aucun logo easyHotel sans leur accord.
+- **Même soir, le site public et l'admin ont suivi.** Public : `icon-*.png`
+  refaits depuis `brand-logo.webp` découpé par la silhouette (l'ancien
+  était un agrandissement flou). Admin : ELA **bleu sur noir**
+  (`icones/admin-*.png`, lettres `--ela-blue`, trait `--ela-cyan`), déclaré
+  par `manifest-exploitant.webmanifest`, `/ela-admin/`, `admin.html` et
+  `/exploitant/`. La règle « les deux manifestes portent les mêmes icônes »
+  est tombée à sa demande : elle vaut maintenant DANS chaque espace.
 - Une icône posée AVANT cette correction garde l'ancien réglage : la
   supprimer et la refaire. Sur iPhone, l'icône a son propre stockage : la
   réception retape son code une fois dans l'application.

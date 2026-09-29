@@ -185,7 +185,8 @@ try {
   /* Chaque entrée a SA couleur (29/09/2026) : réception orange sur blanc,
      client noir sur orange. Le logo générique du site ne doit plus y revenir. */
   for (const [chemin, nom, dossier] of [['/easyhotel-reception/', 'Réception', '/icones/reception-'],
-    ['/easyhotel-client/', 'easyHotel', '/easyhotel-client/icon-']]) {
+    ['/easyhotel-client/', 'easyHotel', '/easyhotel-client/icon-'],
+    ['/ela-admin/', 'ELA Espace', '/icones/admin-']]) {
     const m = await lireManifeste(chemin);
     check(`Icône ${nom} : un seul manifeste déclaré`, m.nb === 1, `trouvé : ${m.nb}`);
     check(`Icône ${nom} : l'icône rouvre ${chemin}, pas le site public`, m.depart === chemin, `démarre sur ${m.depart}`);
