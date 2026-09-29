@@ -5966,7 +5966,12 @@ générique, ouverte dans Safari.
 - **La portée est `/` dans les deux cas** : les cartes du client mènent à
   `/application.html` ; une portée limitée au dossier ferait sortir de
   l'application au premier appui.
-- Icône ELA dans les deux (aucun logo easyHotel sans leur accord).
+- **Chacune a SA couleur** (29/09/2026, à sa demande : « là c'est trop
+  moche ») : réception = ELA **orange sur blanc** (`icones/reception-*.png`,
+  copié par `construire.sh`), client = ELA **noir sur orange**
+  (`sites/easyhotel-client/icon-*.png`). Tailles 32 (onglet d'ordinateur),
+  180 (iPhone), 512 (Android). Fabriquées en repeignant la silhouette de
+  `brand-logo-white.png`. Aucun logo easyHotel sans leur accord.
 - Une icône posée AVANT cette correction garde l'ancien réglage : la
   supprimer et la refaire. Sur iPhone, l'icône a son propre stockage : la
   réception retape son code une fois dans l'application.
