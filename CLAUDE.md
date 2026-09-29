@@ -5863,6 +5863,36 @@ notifications Telegram 1 minute après, c'est trop long ».
   le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
   (`reprendreDepot()`).
 
+## COMMISSION PAR COURSE, GRAPHIQUE DES CHAUFFEURS, NOTIFICATIONS ELA
+
+29 septembre 2026, à sa demande (« une commission en % ou en € sur chaque
+course », « un graphique des courses réalisées par les chauffeurs »).
+- **Commission** : `commissionDe(course)` est le seul calcul — celle posée
+  sur la course (% ou € fixes, jamais plus que le prix), sinon le taux du
+  carnet, sinon rien (on ne devine pas un taux). Bon, registre, export CSV
+  et facture l'utilisent tous. `test-admin-commission`.
+- **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
+  compte que les courses réalisées.
+- **Les prix modifiables** avaient été écrits une seconde fois, en même
+  temps que « UN SEUL TARIF AU KILOMÈTRE » (autre session). Cette seconde
+  version a été RETIRÉE avant fusion : deux systèmes de grille pour un
+  prix ferme, c'est exactement la faute que ce fichier reproche partout.
+- **Deux trous bouchés dans le tarif serveur** (`test-tarifs-serveur`) :
+  « Voir mon prix » attend maintenant la lecture (`tarifsLus`, 4 s au plus)
+  — un client rapide voyait le prix de repli, mesuré serveur ralenti à
+  3,5 s ; et la page du QR easyHotel lit `forfaits_partenaires_publics` —
+  ses cartes gardaient les montants écrits en dur pendant que le moteur
+  facturait le nouveau.
+- **Un bouton de l'espace exploitant se branche TOUJOURS avec une garde
+  (`if(el)`)** : la page publique retire ces écrans à la construction, et
+  un `getElementById(...).addEventListener` sur un élément absent arrêtait
+  tout le script du site client. Trouvé par la suite, pas en relisant.
+- **Notifications ELA de l'exploitant** : bouton dans Réglages, et un outil
+  qui fabrique la paire VAPID DANS son navigateur — la clé privée ne passe
+  par aucun serveur ni aucune conversation, il la colle lui-même dans les
+  secrets Supabase. Écrire soi-même dans ses secrets a été refusé par la
+  sécurité de l'environnement : ne pas retenter.
+
 ## LA RÉFÉRENCE EST TIRÉE AU SORT — LE COMPTEUR PAR APPAREIL FAISAIT REFUSER LES DEMANDES
 
 29 septembre 2026, capture de Barbaros à 5 h 28 : une demande du comptoir

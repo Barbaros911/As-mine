@@ -246,6 +246,34 @@ a{color:inherit;text-decoration:none}
   var nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'fr';
   poser(String(nav).slice(0,2).toLowerCase() === 'fr' ? 'fr' : 'en');
 })();
+/* ═══ LES PRIX DES CARTES VIENNENT DU SERVEUR (29/09/2026) ═══
+   Barbaros les modifie depuis son admin (Réglages → Tarifs) ; le moteur les
+   lit déjà. Sans cette lecture, la carte annonçait l'ancien montant pendant
+   que le moteur, un clic plus loin, facturait le nouveau. Les montants
+   écrits dans les cartes ne sont plus qu'un SECOURS, si le serveur ne
+   répond pas. On ne remplace un montant que par un nombre plausible. */
+(function(){
+  var ctrl = ('AbortController' in window) ? new AbortController() : null;
+  if (ctrl) setTimeout(function(){ ctrl.abort(); }, 4000);
+  /* La clé PUBLIABLE du site, la même qu'index.html (SUPABASE_CLE) : elle
+     ne donne accès qu'aux vues publiques. */
+  var CLE_SITE = 'sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj';
+  fetch('https://yyhzutnuhuytokarynaw.supabase.co/rest/v1/forfaits_partenaires_publics'
+      + '?select=partenaire_cle,destination_cle,vehicule_cle,montant_centimes&partenaire_cle=eq.easyhotel-aeroville',
+    { signal: ctrl ? ctrl.signal : undefined,
+      headers: { apikey: CLE_SITE } })
+  .then(function(r){ return r.ok ? r.json() : null; }).then(function(lignes){
+    if (!Array.isArray(lignes)) return;
+    lignes.forEach(function(l){
+      if (l.partenaire_cle !== 'easyhotel-aeroville') return;
+      var c = Number(l.montant_centimes);
+      if (!(c >= 500 && c <= 500000)) return;
+      var b = document.querySelector('a.carte[data-dest="' + String(l.destination_cle).replace(/[^a-z0-9-]/g, '')
+                                     + '"] b[data-g="' + (l.vehicule_cle === 'van' ? 'van' : 'berline') + '"]');
+      if (b) b.textContent = (c % 100 ? (c / 100).toFixed(2).replace('.', ',') : String(c / 100)) + ' €';
+    });
+  }).catch(function(){});
+})();
 </script>
 </body>
 </html>

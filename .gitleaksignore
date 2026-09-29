@@ -1,0 +1,6 @@
+# Clé Supabase PUBLIABLE (sb_publishable_…), la même que SUPABASE_CLE dans
+# index.html : elle est faite pour partir dans la page. Écrite une fois en
+# littéral dans un commit de la PR #257, corrigée au commit suivant (passée
+# par une constante). Empreinte exacte : une autre ligne ou un autre commit
+# restent scannés.
+e182d15af1385ef3c9e2ced79ed0e7fb612e2863:sites/easyhotel-client/index.html:generic-api-key:286

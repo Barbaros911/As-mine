@@ -745,6 +745,17 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .reg-ligne + .reg-ligne{border-top:1px solid var(--filet);}
 .reg-ligne .reg-nom{min-width:0;overflow-wrap:anywhere;}
 .reg-ligne .reg-val{flex:0 0 auto;font-weight:700;text-align:right;}
+/* Le graphique des chauffeurs : des barres en HTML, pas un canvas — elles
+   suivent la largeur du téléphone et le texte reste net et lisible. */
+.graph-ch{margin:4px 0 14px;}
+.graph-ch-titre{font-size:13px;color:var(--gris);margin:0 0 8px;}
+.gc-ligne{margin:0 0 10px;}
+.gc-tete{display:flex;justify-content:space-between;gap:8px;font-size:14px;}
+.gc-tete b{min-width:0;overflow-wrap:anywhere;}
+.gc-tete span{flex:0 0 auto;color:var(--gris);}
+.gc-barre{height:12px;border-radius:6px;background:var(--accent-clair);margin-top:4px;overflow:hidden;}
+.gc-barre i{display:block;height:100%;border-radius:6px;background:var(--accent);}
+.gc-detail{font-size:12px;color:var(--gris);margin-top:3px;}
 .reg-sous{display:block;font-size:11px;color:var(--gris);}
 .reg-vide{padding:6px 0;font-size:12px;color:var(--gris);}
 
@@ -3408,6 +3419,44 @@ body.espace #panneauProvenance{display:none;}
       </div>
     </div>
 
+    <!-- LA NOTIFICATION ELA SUR LE TÉLÉPHONE DE L'EXPLOITANT (29/09/2026).
+         Le bouton n'existait que dans Admin v2, abandonné : l'admin retenu
+         n'avait donc aucun moyen de s'abonner, et le serveur n'avait
+         personne à qui envoyer. Même table et même RPC qu'Admin v2
+         (abonnements_admin, ela_enregistrer_push_admin) : un seul chemin. -->
+    <div class="bloc" id="blocPushAdmin">
+      <h2 class="bloc-titre">Notifications ELA</h2>
+      <p class="bloc-note">Recevez chaque nouvelle demande sur ce téléphone,
+        en plus de Telegram.</p>
+      <button class="bouton" type="button" id="btnPushAdmin">
+        <span>Activer les notifications</span>
+      </button>
+      <p class="champ-aide" id="pushAdminEtat" hidden></p>
+      <!-- FABRIQUER LA PAIRE DE CLÉS, SUR SON PROPRE TÉLÉPHONE (29/09/2026).
+           Les secrets VAPID manquaient chez Supabase et la clé privée
+           d'origine n'est gardée nulle part. La paire est fabriquée ICI, dans
+           son navigateur, par Web Crypto : la clé privée ne part vers aucun
+           serveur, ni vers le dépôt, ni vers une conversation — il la colle
+           lui-même dans les secrets Supabase. -->
+      <details id="blocClesVapid" style="margin-top:14px">
+        <summary>Fabriquer les clés des notifications</summary>
+        <p class="bloc-note">À faire une seule fois. Collez chaque valeur dans
+          les secrets Supabase, sous le nom indiqué. La clé secrète ne doit
+          être envoyée à personne.</p>
+        <button class="bouton-fantome" type="button" id="btnClesVapid">Fabriquer les clés</button>
+        <div id="clesVapid" hidden>
+          <label class="champ" for="cleVapidPub"><span class="champ-corps">
+            <span class="champ-titre">VAPID_PUBLIQUE</span>
+            <input id="cleVapidPub" type="text" readonly></span></label>
+          <button class="bouton-fantome" type="button" data-copier="cleVapidPub">Copier VAPID_PUBLIQUE</button>
+          <label class="champ" for="cleVapidPriv"><span class="champ-corps">
+            <span class="champ-titre">VAPID_PRIVEE (secrète)</span>
+            <input id="cleVapidPriv" type="text" readonly></span></label>
+          <button class="bouton-fantome" type="button" data-copier="cleVapidPriv">Copier VAPID_PRIVEE</button>
+        </div>
+      </details>
+    </div>
+
   </section>
 
   <!-- =====================================================================
@@ -3602,6 +3651,10 @@ body.espace #panneauProvenance{display:none;}
          décider à qui confier la prochaine course. -->
     <div class="bloc">
       <h2 class="bloc-titre">Chauffeurs</h2>
+      <!-- COURSES RÉALISÉES PAR CHAUFFEUR, SUR LA PÉRIODE EN COURS
+           (29/09/2026, à sa demande). Elle suit le choix Semaine / Mois /
+           Année du bloc « Résultat » : un seul réglage pour tout l'écran. -->
+      <div class="graph-ch" id="regGraphChauffeurs"></div>
       <div id="regChauffeurs"></div>
       <p class="bloc-note" id="regChauffeursVide" hidden>Aucune course réalisée avec un chauffeur nommé.</p>
     </div>
@@ -4100,6 +4153,34 @@ body.espace #panneauProvenance{display:none;}
           <input id="bbChauffeurTel" type="tel" autocomplete="off" placeholder="06 12 34 56 78">
         </span>
       </label>
+    </div>
+
+    <!-- LA COMMISSION DE CETTE COURSE (29/09/2026, à sa demande). En % du
+         prix OU en euros fixes. Laissée vide, c'est le taux du carnet du
+         chauffeur qui compte : une course sans rien de spécial ne demande
+         aucune saisie. Le calcul vit dans « commissionDe », le même pour le
+         bon, le registre, l'export et la facture. -->
+    <div class="bloc" id="blocCommission">
+      <h2 class="bloc-titre">Commission Elatransfer</h2>
+      <div class="duo">
+        <label class="champ" for="bbComMode">
+          <span class="champ-corps">
+            <span class="champ-titre">En</span>
+            <select id="bbComMode">
+              <option value="pct">% du prix</option>
+              <option value="eur">euros</option>
+            </select>
+          </span>
+        </label>
+        <label class="champ" for="bbComValeur">
+          <span class="champ-corps">
+            <span class="champ-titre">Montant</span>
+            <input id="bbComValeur" type="text" inputmode="decimal" autocomplete="off"
+                   placeholder="taux du carnet">
+          </span>
+        </label>
+      </div>
+      <p class="bloc-note" id="bbComCalc"></p>
     </div>
 
     <div class="veh-action" id="bbActions">
@@ -6677,9 +6758,14 @@ window.ELA_TEXTES = {
      rendre QUE des chiffres déjà publics par nature (un tarif au km, un
      prix de flyer) — jamais la commission d'Elatransfer, qui reste
      enfermée dans « parametres_commerciaux », fermée à anon. */
+  /* « Voir mon prix » ATTEND cette lecture (4 s au plus, 29/09/2026) : sans
+     ça, un client rapide voyait le prix de repli pendant que la grille du
+     serveur arrivait — et c'est un prix ferme, donc opposable. Mesuré par
+     test-admin-grille : serveur ralenti à 2,5 s, l'ancien prix sortait. */
+  var tarifsLus = Promise.resolve();
   function chargerTarifsServeur(){
     var t1 = new AbortController(), m1 = setTimeout(function(){ t1.abort(); }, 4000);
-    fetch(SUPABASE_URL + "/rest/v1/tarif_public?select=gamme,par_km_centimes,minimum_centimes",
+    var l1 = fetch(SUPABASE_URL + "/rest/v1/tarif_public?select=gamme,par_km_centimes,minimum_centimes",
           { signal:t1.signal, headers:{ apikey:SUPABASE_CLE } })
       .then(function(r){ clearTimeout(m1); return r.ok ? r.json() : null; })
       .then(function(lignes){
@@ -6695,7 +6781,7 @@ window.ELA_TEXTES = {
       .catch(function(){ clearTimeout(m1); /* repli : GAMMES garde ses valeurs */ });
 
     var t2 = new AbortController(), m2 = setTimeout(function(){ t2.abort(); }, 4000);
-    fetch(SUPABASE_URL + "/rest/v1/forfaits_partenaires_publics?select=partenaire_cle,destination_cle,vehicule_cle,montant_centimes",
+    var l2 = fetch(SUPABASE_URL + "/rest/v1/forfaits_partenaires_publics?select=partenaire_cle,destination_cle,vehicule_cle,montant_centimes",
           { signal:t2.signal, headers:{ apikey:SUPABASE_CLE } })
       .then(function(r){ clearTimeout(m2); return r.ok ? r.json() : null; })
       .then(function(lignes){
@@ -6710,6 +6796,7 @@ window.ELA_TEXTES = {
         });
       })
       .catch(function(){ clearTimeout(m2); /* repli : HOTELS garde ses valeurs */ });
+    tarifsLus = Promise.all([l1, l2]).then(function(){}, function(){});
   }
   /* L'APPEL LUI-MÊME EST PLUS BAS, APRÈS « SUPABASE_URL »/« SUPABASE_CLE » :
      cette fonction est définie ici, mais tant que ces deux constantes ne
@@ -7332,8 +7419,10 @@ window.ELA_TEXTES = {
     /* La bibliothèque de la carte part MAINTENANT, en même temps que le
        calcul du prix — pas après lui. Voir « prechargerCarte ». */
     prechargerCarte();
-    itineraire(choix.depart, choix.arrivee,
-               { date:champDate.value, heure:champHeure.value }).then(function(r){
+    tarifsLus.then(function(){
+      return itineraire(choix.depart, choix.arrivee,
+                        { date:champDate.value, heure:champHeure.value });
+    }).then(function(r){
       libelle.textContent = avant;
       boutonPrix.disabled = false;
       course.km = r.km; course.min = r.min; course.estime = r.estime;
@@ -8453,6 +8542,22 @@ window.ELA_TEXTES = {
     for(var i = 0; i < brut.length; i++) t[i] = brut.charCodeAt(i);
     return t;
   }
+  /* UN ABONNEMENT FAIT AVEC UNE AUTRE CLÉ EST MUET. Le jour où la paire VAPID
+     change, le navigateur garde l'ancien : le réutiliser ferait refuser tous
+     les envois, et en demander un nouveau par-dessus lève une erreur. On le
+     retire donc avant de se réabonner. */
+  function abonnerPush(reg){
+    var cle = clePourAbonnement(CLE_VAPID);
+    return reg.pushManager.getSubscription().then(function(ab){
+      if(!ab) return null;
+      var k = ab.options && ab.options.applicationServerKey;
+      var a = k ? new Uint8Array(k) : null;
+      var meme = !!a && a.length === cle.length && Array.prototype.every.call(a, function(v, i){ return v === cle[i]; });
+      return meme ? ab : ab.unsubscribe().then(function(){ return null; });
+    }).then(function(ab){
+      return ab || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: cle });
+    });
+  }
   function direNotif(cle){
     var el = document.getElementById("notifEtat");
     el.hidden = false;
@@ -8509,12 +8614,9 @@ window.ELA_TEXTES = {
     Notification.requestPermission().then(function(rep){
       if(rep !== "granted"){ bouton.disabled = false; direNotif("notif_refus"); return; }
       return navigator.serviceWorker.ready.then(function(reg){
-        return reg.pushManager.subscribe({
-          /* Obligatoire : on s'engage à MONTRER quelque chose à chaque push.
-             Un abonnement silencieux serait révoqué par le navigateur. */
-          userVisibleOnly: true,
-          applicationServerKey: clePourAbonnement(CLE_VAPID)
-        });
+        /* userVisibleOnly est obligatoire (voir abonnerPush) : on s'engage
+           à MONTRER quelque chose à chaque push. */
+        return abonnerPush(reg);
       }).then(function(ab){
         /* L'abonnement part dans SA PROPRE TABLE, pas dans la course : le
            visiteur anonyme a le droit d'y déposer une ligne et rien d'autre.
@@ -8539,6 +8641,68 @@ window.ELA_TEXTES = {
     });
   });
 
+
+  /* ═══ NOTIFICATIONS ELA POUR L'EXPLOITANT ═══
+     On ne demande l'autorisation QUE sur l'appui (un refus est définitif),
+     et on dit POURQUOI ça n'a pas marché : iPhone non installé, pas
+     connecté, refus — trois gestes différents. */
+  /* CES BOUTONS N'EXISTENT QUE DANS L'ESPACE EXPLOITANT : la page publique
+     les retire à la construction (construire-espaces-hotel.mjs). Brancher
+     sans vérifier arrêtait TOUT le script du site client — mesuré. */
+  var elPushAdmin = document.getElementById("btnPushAdmin");
+  if(elPushAdmin) elPushAdmin.addEventListener("click", function(){
+    var bouton = this, etat = document.getElementById("pushAdminEtat");
+    function dire(t){ etat.hidden = false; etat.textContent = t; }
+    if(!nuage.connecte()){ dire("Connectez-vous d'abord au serveur, juste au-dessus."); return; }
+    if(surIphone() && !installee()){
+      dire("Sur iPhone : ajoutez d'abord l'admin à l'écran d'accueil (bouton Partager → « Sur l'écran d'accueil »), ouvrez-le depuis cette icône, puis revenez ici.");
+      return;
+    }
+    if(!pushPossible()){ dire("Ce navigateur ne sait pas recevoir de notifications. Telegram continue de fonctionner."); return; }
+    bouton.disabled = true;
+    Notification.requestPermission().then(function(rep){
+      if(rep !== "granted") throw new Error("refus");
+      return navigator.serviceWorker.ready;
+    }).then(function(reg){
+      return abonnerPush(reg);
+    }).then(function(ab){
+      return nuage.appel("/rest/v1/rpc/ela_enregistrer_push_admin",
+        { method: "POST", body: JSON.stringify({ p_abonnement: ab.toJSON() }) });
+    }).then(function(){
+      bouton.disabled = false;
+      dire("Notifications activées sur cet appareil.");
+    }).catch(function(e){
+      bouton.disabled = false;
+      dire(e && e.message === "refus"
+        ? "Notifications refusées : autorisez-les pour ce site dans les réglages du téléphone."
+        : "Activation impossible (" + (e && e.message || "erreur") + ").");
+    });
+  });
+  /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
+     32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
+  var elClesVapid = document.getElementById("btnClesVapid");
+  if(elClesVapid) elClesVapid.addEventListener("click", function(){
+    crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
+      .then(function(k){ return crypto.subtle.exportKey("jwk", k.privateKey); })
+      .then(function(j){
+        function oct(b){ b = b.replace(/-/g, "+").replace(/_/g, "/"); while(b.length % 4) b += "=";
+          return Array.prototype.map.call(atob(b), function(c){ return c.charCodeAt(0); }); }
+        var pub = [4].concat(oct(j.x), oct(j.y));
+        var b64 = btoa(String.fromCharCode.apply(null, pub))
+          .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        document.getElementById("cleVapidPub").value = b64;
+        document.getElementById("cleVapidPriv").value = j.d;
+        document.getElementById("clesVapid").hidden = false;
+      });
+  });
+  document.querySelectorAll("[data-copier]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var champ = document.getElementById(b.dataset.copier), texte = b.textContent;
+      function fait(){ b.textContent = "Copié ✓"; setTimeout(function(){ b.textContent = texte; }, 1500); }
+      if(navigator.clipboard) navigator.clipboard.writeText(champ.value).then(fait, function(){ champ.select(); });
+      else { champ.select(); document.execCommand("copy"); fait(); }
+    });
+  });
   /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
      WhatsApp non installé, fenêtre bloquée, appui à côté. Sans ce bouton, le
      client croit avoir réservé et attend une voiture qui ne viendra pas. */
@@ -9764,6 +9928,9 @@ window.ELA_TEXTES = {
     }
     document.getElementById("bbChauffeurNom").value = (c.chauffeur && c.chauffeur.nom) || "";
     document.getElementById("bbChauffeurTel").value = (c.chauffeur && c.chauffeur.telephone) || "";
+    document.getElementById("bbComMode").value = (c.commission && c.commission.mode) || "pct";
+    document.getElementById("bbComValeur").value =
+      (c.commission && c.commission.valeur !== null && c.commission.valeur !== undefined) ? c.commission.valeur : "";
     /* À L'OUVERTURE AUSSI, pas seulement à la saisie : une course confirmée
        hier se rouvre avec son chauffeur déjà dedans, et c'est justement le
        moment où un papier a pu expirer entre-temps. */
@@ -9810,7 +9977,52 @@ window.ELA_TEXTES = {
     bDif.textContent = c.diffusee ? "Déjà placée au groupe — rediffuser"
                                   : "Placer au groupe de chauffeurs";
     ecran("ecran-bord-bon");
+    jugerCommissionBon();
   }
+  /* LA COMMISSION D'UNE COURSE, UN SEUL CALCUL. Celle posée sur la course
+     l'emporte ; sinon le taux du chauffeur dans le carnet ; sinon rien —
+     on ne devine pas un taux. En euros fixes, elle ne dépasse jamais le
+     prix : un chauffeur ne doit pas plus que la course. */
+  function commissionDe(c, ch){
+    var prix = (c.prix && c.prix.total) || 0, m = c.commission;
+    if(m && m.valeur !== "" && m.valeur !== null && isFinite(m.valeur) && +m.valeur >= 0){
+      if(m.mode === "eur"){
+        var e = Math.min(prix, Math.round(+m.valeur * 100) / 100);
+        return { montant: e, taux: prix ? Math.round(e / prix * 1000) / 10 : 0,
+                 mode: "eur", source: "course" };
+      }
+      return { montant: Math.round(prix * +m.valeur) / 100, taux: +m.valeur, mode: "pct", source: "course" };
+    }
+    ch = ch || trouverChauffeur(c.chauffeur && c.chauffeur.nom, c.chauffeur && c.chauffeur.telephone);
+    if(ch && (ch.taux || ch.taux === 0))
+      return { montant: Math.round(prix * ch.taux) / 100, taux: ch.taux, mode: "pct", source: "carnet" };
+    return { montant: 0, taux: null, mode: "pct", source: "aucune" };
+  }
+  function commissionSaisie(){
+    var v = document.getElementById("bbComValeur").value.trim().replace(",", ".");
+    if(v === "" || !isFinite(v) || +v < 0) return null;
+    return { mode: document.getElementById("bbComMode").value, valeur: +v };
+  }
+  function jugerCommissionBon(){
+    if(!bonBord) return;
+    var essai = { prix: bonBord.prix, commission: commissionSaisie(), chauffeur: chauffeurSaisi() };
+    var cm = commissionDe(essai), prix = (bonBord.prix && bonBord.prix.total) || 0;
+    var el = document.getElementById("bbComCalc");
+    if(cm.source === "aucune"){
+      el.textContent = "Aucune commission : saisissez-en une, ou posez le taux du chauffeur dans son carnet.";
+      return;
+    }
+    el.textContent = "Commission : " + euros(cm.montant)
+      + (cm.mode === "pct" ? " (" + cm.taux + " %)" : "")
+      + " · reste au chauffeur : " + euros(Math.max(0, prix - cm.montant))
+      + (cm.source === "carnet" ? " — taux du carnet" : "");
+  }
+  ["bbComMode","bbComValeur","bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
+    var el = document.getElementById(id);   // absent de la page publique
+    if(!el) return;
+    el.addEventListener("input", jugerCommissionBon);
+    el.addEventListener("change", jugerCommissionBon);
+  });
   function chauffeurSaisi(){
     return {
       nom: document.getElementById("bbChauffeurNom").value.trim(),
@@ -9820,7 +10032,7 @@ window.ELA_TEXTES = {
   document.getElementById("btnRetourBord").addEventListener("click", function(){
     /* On enregistre le chauffeur en quittant : sinon Barbaros le saisit,
        revient en arrière, et son travail est perdu sans un mot. */
-    if(bonBord) majCourse(bonBord.ref, bonBord.statut || "attente", { chauffeur: chauffeurSaisi() });
+    if(bonBord) majCourse(bonBord.ref, bonBord.statut || "attente", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     ecran("ecran-bord");
   });
   /* LA NOTIFICATION PART TOUTE SEULE À LA CONFIRMATION, et elle ne peut pas
@@ -9850,7 +10062,7 @@ window.ELA_TEXTES = {
 
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
     if(!bonBord) return;
-    bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi() });
+    bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     pousserNotification(bonBord);
     ouvrirBonBord(bonBord.ref);
   });
@@ -10014,7 +10226,7 @@ window.ELA_TEXTES = {
   });
   document.getElementById("btnRealisee").addEventListener("click", function(){
     if(!bonBord) return;
-    majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi() });
+    majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     ecran("ecran-bord");
   });
   document.getElementById("btnRefuser").addEventListener("click", function(){
@@ -10412,6 +10624,51 @@ window.ELA_TEXTES = {
     return Math.round(n).toLocaleString("fr-FR") + " €";
   }
 
+  /* Le graphique ne regarde que la période EN COURS (cette semaine, ce mois,
+     cette année) : c'est la question qu'on se pose — qui roule en ce moment. */
+  function dessinerGraphChauffeurs(faites){
+    var el = document.getElementById("regGraphChauffeurs");
+    var auj = new Date(), debut;
+    if(periodeReg === "annee") debut = new Date(auj.getFullYear(), 0, 1);
+    else if(periodeReg === "mois") debut = new Date(auj.getFullYear(), auj.getMonth(), 1);
+    else debut = lundiDe(auj);
+    var par = {};
+    faites.forEach(function(c){
+      var d = dateCourse(c), nom = (c.chauffeur && c.chauffeur.nom || "").trim();
+      if(!d || d < debut || !nom) return;
+      var cle = nom.toLowerCase();
+      var v = par[cle] = par[cle] || { nom: nom, n: 0, total: 0, com: 0 };
+      v.n++; v.total += (c.prix && c.prix.total) || 0; v.com += commissionDe(c).montant;
+    });
+    var l = Object.keys(par).map(function(k){ return par[k]; })
+             .sort(function(a, b){ return b.n - a.n || b.total - a.total; });
+    el.innerHTML = "";
+    var t = document.createElement("p"); t.className = "graph-ch-titre";
+    t.textContent = "Courses réalisées " + ({ semaine: "cette semaine", mois: "ce mois-ci",
+                                              annee: "cette année" }[periodeReg] || "");
+    el.appendChild(t);
+    if(!l.length){
+      var v = document.createElement("p"); v.className = "reg-vide";
+      v.textContent = "Aucune course réalisée avec un chauffeur sur cette période.";
+      el.appendChild(v); return;
+    }
+    var max = l[0].n;
+    l.forEach(function(x){
+      var d = document.createElement("div"); d.className = "gc-ligne";
+      var tete = document.createElement("div"); tete.className = "gc-tete";
+      var b = document.createElement("b"); b.textContent = x.nom;
+      var n = document.createElement("span"); n.textContent = x.n + (x.n > 1 ? " courses" : " course");
+      tete.appendChild(b); tete.appendChild(n);
+      var barre = document.createElement("div"); barre.className = "gc-barre";
+      var i = document.createElement("i"); i.style.width = Math.max(4, Math.round(x.n / max * 100)) + "%";
+      barre.appendChild(i);
+      var det = document.createElement("div"); det.className = "gc-detail";
+      det.textContent = eurosRond(x.total) + " de courses · commission " + euros(x.com);
+      d.appendChild(tete); d.appendChild(barre); d.appendChild(det);
+      el.appendChild(d);
+    });
+  }
+
   function dessinerRegistre(){
     var faites = realisees();
     var maintenant = new Date();
@@ -10466,11 +10723,13 @@ window.ELA_TEXTES = {
     });
     var chauff = Object.keys(parCh).map(function(nom){
       var v = bilan(parCh[nom]);
+      var com = parCh[nom].reduce(function(s, c){ return s + commissionDe(c).montant; }, 0);
       return { nom:nom, sous:v.n + (v.n > 1 ? " courses" : " course")
-                          + " · " + eurosRond(v.moyen) + " en moyenne",
-               val:eurosRond(v.total), _t:v.total };
+                          + " · commission " + euros(com),
+               val:eurosRond(v.total), _t:v.total, n:v.n, com:com };
     }).sort(function(x,y){ return y._t - x._t; });
     document.getElementById("regChauffeursVide").hidden = chauff.length > 0;
+    dessinerGraphChauffeurs(faites);
     poser("regChauffeurs", chauff, "");
 
     /* D'OÙ VIENNENT LES CLIENTS. Ici on part de TOUT le registre, pas des
@@ -11296,13 +11555,13 @@ window.ELA_TEXTES = {
     var e = entreprise();
     var tva = parseFloat(e.tva) || 0;
     var lignes = courses.map(function(c){
-      var taux = (ch.taux === 0 || ch.taux) ? ch.taux : 0;
+      var cm = commissionDe(c, ch);
       var prix = (c.prix && c.prix.total) || 0;
       return { ref: c.ref, date: c.course.date,
                trajet: c.course.departPublic || c.course.depart,
                vers: c.course.arriveePublic || c.course.arrivee,
-               prix: prix, taux: taux,
-               commission: Math.round(prix * taux) / 100 };
+               prix: prix, taux: cm.taux || 0, fixe: cm.mode === "eur",
+               commission: cm.montant };
     });
     var ht = lignes.reduce(function(s, l){ return s + l.commission; }, 0);
     ht = Math.round(ht * 100) / 100;
@@ -11365,7 +11624,7 @@ window.ELA_TEXTES = {
       tr.querySelector(".d").textContent = jjmmaaaa(l.date);
       tr.querySelector(".t").textContent = l.ref + " · " + l.trajet + " → " + l.vers;
       tr.querySelector(".p").textContent = euros(l.prix);
-      tr.querySelector(".x").textContent = l.taux + " %";
+      tr.querySelector(".x").textContent = l.fixe ? "fixe" : l.taux + " %";
       tr.querySelector(".c").textContent = euros(l.commission);
       corps.appendChild(tr);
     });
@@ -11465,11 +11724,6 @@ window.ELA_TEXTES = {
     var ch = null, id = document.getElementById("facChauffeur").value;
     chauffeurs().forEach(function(c){ if(c.id === id) ch = c; });
     if(!ch){ etat.textContent = "Ajoutez d'abord un chauffeur dans votre carnet."; return; }
-    if(!ch.taux){
-      etat.textContent = "Aucune commission n'est renseignée pour " + ch.nom
-        + " : une facture à 0 € ne sert à rien. Ouvrez sa fiche et posez le taux.";
-      return;
-    }
     var du = document.getElementById("facDu").value;
     var au = document.getElementById("facAu").value;
     if(!du || !au || du > au){ etat.textContent = "Choisissez une période valable."; return; }
@@ -11480,6 +11734,14 @@ window.ELA_TEXTES = {
       return;
     }
     factureBrouillon = composerFacture(ch, courses, du, au);
+    /* Une facture à 0 € ne sert à rien : ni taux au carnet, ni commission
+       posée sur les courses. */
+    if(!factureBrouillon.lignes.some(function(l){ return l.commission > 0; })){
+      factureBrouillon = null;
+      etat.textContent = "Aucune commission pour " + ch.nom
+        + " : posez son taux dans son carnet, ou une commission sur ses courses.";
+      return;
+    }
     factureBrouillon.refs = courses.map(function(c){ return c.ref; });
     dessinerFacture(factureBrouillon);
     apercu.hidden = false;
@@ -11596,7 +11858,7 @@ window.ELA_TEXTES = {
   document.getElementById("btnCSV").addEventListener("click", function(){
     var colonnes = ["Référence","Date","Heure","État","Client","Téléphone",
                     "Départ","Arrivée","Véhicule","Paiement","Chauffeur","Vient de",
-                    "Prix TTC","Prix HT","TVA","Facture commission"];
+                    "Prix TTC","Prix HT","TVA","Commission","Facture commission"];
     /* Le point-virgule et non la virgule : Excel en français lit le CSV avec
        le séparateur de sa locale, et une virgule y met tout dans une seule
        colonne. Le BOM en tête pour qu'il ne massacre pas les accents. */
@@ -11614,6 +11876,7 @@ window.ELA_TEXTES = {
                    ((c.prix&&c.prix.total)||0).toFixed(2).replace(".",","),
                    ((c.prix&&c.prix.ht)||0).toFixed(2).replace(".",","),
                    ((c.prix&&c.prix.tva)||0).toFixed(2).replace(".",","),
+                   commissionDe(c).montant.toFixed(2).replace(".",","),
                    c.factureNum||""].map(champ).join(";"));
     });
     telecharger("elatransfer-courses-" + horodatage() + ".csv",
