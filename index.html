@@ -4522,6 +4522,7 @@ body.espace #panneauProvenance{display:none;}
      premier clic sur « Coller une demande », et un « defer » le ferait
      arriver après. C'est la seule dépendance de fichier de cette page — et
      elle existe pour qu'il n'y ait pas DEUX lecteurs à tenir. -->
+<script src="telephone.js"></script>
 <script src="intake-demande.js"></script>
 
 <!-- L'ENCODEUR QR DE L'AFFICHE HÔTEL, PARTAGÉ AVEC ADMIN V2.
@@ -8732,6 +8733,51 @@ window.ELA_TEXTES = {
   });
 
 
+  /* CES DEUX FONCTIONS SERVENT AUSSI À LA PAGE PUBLIQUE, et c'est pour ça
+     qu'elles vivent AVANT le bloc de l'espace exploitant. Elles étaient
+     dedans : depuis le cloisonnement du 28/09/2026 (#246), la construction
+     retire ce bloc de la page publique, et « Envoyer ma demande » levait
+     « telValide is not defined » — le client appuyait, rien ne partait.
+     Le contrôle lui-même est dans « telephone.js », que la page publique
+     charge ; « intake-demande.js », outil de l'exploitant, en est retiré.
+     telWa sert au bouton « Appeler le chauffeur » du bon confirmé. */
+  /* =====================================================================
+     UN NUMÉRO FAUX EST UNE COURSE PERDUE
+     ---------------------------------------------------------------------
+     Vu sur une capture de Barbaros : « Nom : Aaa · Téléphone : 000000 », et
+     le site avait accepté. Un numéro qu'on ne peut pas composer, c'est une
+     course qu'on ne peut ni confirmer, ni prévenir, ni facturer — et on ne
+     s'en aperçoit qu'au moment d'appeler, souvent la veille au soir.
+
+     ON N'INSTALLE PAS DE BIBLIOTHÈQUE POUR ÇA. « libphonenumber-js » fait
+     entre 80 et 145 Ko : plus que la page entière, pour un site qui n'a
+     aucune dépendance et doit rester utilisable hors ligne, dans un parking
+     d'aéroport. Ce qui suit couvre les cas réels d'Elatransfer.
+
+     ON EST VOLONTAIREMENT LARGE À L'INTERNATIONAL. Les clients arrivent de
+     partout, et les plans de numérotation ne se ressemblent pas : refuser
+     un numéro étranger valable coûterait bien plus cher que d'accepter un
+     numéro douteux. On n'écarte que ce qui ne peut être un téléphone nulle
+     part — trop court, trop long, ou un seul chiffre répété. La France,
+     elle, est connue : dix chiffres commençant par 0. */
+  /* Le contrôle vit dans « telephone.js », partagé avec Admin v2 :
+     la consigne « même contrôle que côté client » ne vaut que s'il n'y a
+     qu'un contrôle. Le raisonnement complet est resté avec lui. */
+  function telValide(brut){
+    return window.ELA_TEL.telValide(brut);
+  }
+
+  function telWa(brut){
+    if(!brut) return "";
+    var t = String(brut).trim();
+    var plus = t.indexOf("+") === 0 || t.indexOf("00") === 0;
+    t = t.replace(/\D/g, "");
+    if(t.indexOf("00") === 0) t = t.slice(2);
+    if(!plus && t.indexOf("0") === 0) t = "33" + t.slice(1);
+    return t.length >= 8 ? t : "";
+  }
+
+
 /* =====================================================================
    L'ESPACE EXPLOITANT
    ---------------------------------------------------------------------
@@ -9148,42 +9194,6 @@ window.ELA_TEXTES = {
          : st === "confirmee" ? "Confirmée"
          : st === "realisee" ? "Réalisée" : "Refusée";
   }
-  /* =====================================================================
-     UN NUMÉRO FAUX EST UNE COURSE PERDUE
-     ---------------------------------------------------------------------
-     Vu sur une capture de Barbaros : « Nom : Aaa · Téléphone : 000000 », et
-     le site avait accepté. Un numéro qu'on ne peut pas composer, c'est une
-     course qu'on ne peut ni confirmer, ni prévenir, ni facturer — et on ne
-     s'en aperçoit qu'au moment d'appeler, souvent la veille au soir.
-
-     ON N'INSTALLE PAS DE BIBLIOTHÈQUE POUR ÇA. « libphonenumber-js » fait
-     entre 80 et 145 Ko : plus que la page entière, pour un site qui n'a
-     aucune dépendance et doit rester utilisable hors ligne, dans un parking
-     d'aéroport. Ce qui suit couvre les cas réels d'Elatransfer.
-
-     ON EST VOLONTAIREMENT LARGE À L'INTERNATIONAL. Les clients arrivent de
-     partout, et les plans de numérotation ne se ressemblent pas : refuser
-     un numéro étranger valable coûterait bien plus cher que d'accepter un
-     numéro douteux. On n'écarte que ce qui ne peut être un téléphone nulle
-     part — trop court, trop long, ou un seul chiffre répété. La France,
-     elle, est connue : dix chiffres commençant par 0. */
-  /* Le contrôle vit dans « intake-demande.js », partagé avec Admin v2 :
-     la consigne « même contrôle que côté client » ne vaut que s'il n'y a
-     qu'un contrôle. Le raisonnement complet est resté avec lui. */
-  function telValide(brut){
-    return window.ELA_INTAKE.telValide(brut);
-  }
-
-  function telWa(brut){
-    if(!brut) return "";
-    var t = String(brut).trim();
-    var plus = t.indexOf("+") === 0 || t.indexOf("00") === 0;
-    t = t.replace(/\D/g, "");
-    if(t.indexOf("00") === 0) t = t.slice(2);
-    if(!plus && t.indexOf("0") === 0) t = "33" + t.slice(1);
-    return t.length >= 8 ? t : "";
-  }
-
   function dessinerBord(){
     var liste = document.getElementById("listeBord");
     var vide  = document.getElementById("videBord");

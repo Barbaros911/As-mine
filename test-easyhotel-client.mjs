@@ -225,6 +225,47 @@ const etatsEH = p => p.evaluate(()=>({
   }
   check('validation client : aucune erreur', p.errs.length===0, p.errs.join(';'));
   await ctx.close(); }
+/* « ENVOYER MA DEMANDE » PART VRAIMENT, SUR LE SITE CONSTRUIT (29/09/2026).
+   Le cloisonnement retirait de la page publique le bloc qui définissait
+   telValide : le clic levait « telValide is not defined » et rien ne
+   partait, pour TOUT client qui donnait son numéro. Aucune suite n'allait
+   jusqu'au bout du tunnel sur le site construit. */
+{ const {ctx,p}=await nouveau();
+  const depots=[];
+  await ctx.route('**/functions/v1/deposer-course',r=>{depots.push(1);r.fulfill({status:201,contentType:'application/json',body:'{"ok":true}'});});
+  await p.goto(BASE+'/easyhotel-client/',{waitUntil:'domcontentloaded'});
+  await p.click('a.carte[data-dest="cdg"]'); await p.waitForURL(/application/); await p.waitForTimeout(1200);
+  await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+  await p.click('#btnVoirPrix');
+  await p.waitForSelector('.veh-carte',{timeout:8000}).catch(()=>{});
+  await p.locator('.veh-carte').first().click();
+  await p.locator('#ecran-vehicules .veh-action .bouton').first().click();
+  await p.waitForSelector('#ecran-recap:not([hidden])',{timeout:5000}).catch(()=>{});
+  await p.locator('[data-paiement="carte"]').click().catch(()=>{});
+  await p.locator('#btnConfirmer').click();
+  const bon=await p.waitForFunction(()=>document.getElementById('ecran-bon').getBoundingClientRect().height>0,null,{timeout:8000}).then(()=>true).catch(()=>false);
+  check('« Envoyer ma demande » ouvre le bon', bon);
+  check('… et la demande part au serveur', depots.length===1, depots.length+' dépôt(s)');
+  check('… sans aucune erreur JavaScript', p.errs.length===0, p.errs.join(' ; '));
+  await ctx.close(); }
+/* Toute fonction APPELÉE par une page publique doit y être DÉFINIE. Le
+   cloisonnement retire des blocs entiers : c'est la seule façon de voir
+   qu'il emporte une fonction dont le client a encore besoin. */
+{ const src=readFileSync('index.html','utf8');
+  const defs=[...new Set([...src.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]))];
+  for(const page of ['application.html','easyhotel-reception/index.html']){
+    const brut=readFileSync(join('site',page),'utf8');
+    /* Seul le CODE compte : ni le texte de la page, ni les commentaires, ni
+       les chaînes (« chauffeurs (VTC) » n'est pas un appel). */
+    const h=[...brut.matchAll(/<script(?![^>]*(?:src=|ld\+json))[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).join('\n')
+      .replace(/\/\*[\s\S]*?\*\//g,'').replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g,'""');
+    const ici=new Set([...h.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]));
+    /* codeRetenu n'est appelé que derrière « recHotel ? … » : null sur la
+       page publique, l'appel n'a jamais lieu. */
+    const manque=defs.filter(n=>n!=='codeRetenu'&&!ici.has(n)&&new RegExp('(^|[^.\\w$])'+n+'\\s*\\(').test(h));
+    check(`${page} : aucune fonction appelée sans être définie`, manque.length===0, manque.join(', '));
+  }
+}
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('=== RÉUSSIS ('+ok.length+') ===');
