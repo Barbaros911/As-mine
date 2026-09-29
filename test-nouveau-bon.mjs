@@ -145,7 +145,7 @@ await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());
 const ref = await p.locator('#bonRef').textContent();
 // « ELA », jamais « ASM » : ASM venait du nom du dépôt, pas de la marque.
-check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-\d{4}$/.test(ref), ref);
+check('la référence porte le préfixe de la marque', /^ELA-\d{2}-\d{2}-[2-9A-HJKMNP-Z]{5}$/.test(ref), ref);
 check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref);
 /* LE BON NE SE DIT JAMAIS CONFIRMÉ TOUT SEUL. Il dit « Demande reçue » —
    ce qui se passe maintenant — jusqu'à ce qu'un chauffeur soit attribué.

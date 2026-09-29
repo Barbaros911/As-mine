@@ -129,7 +129,7 @@ const msg = decodeURIComponent(j.find(e=>e.quoi==='wa').url.split('text=')[1]);
 const L = msg.split('\n');
 check('neuf lignes', L.length===9, L.length+'');
 check('il commence par « Demande de réservation »', L[0].startsWith('Demande de réservation — '), L[0]);
-check('avec la référence', /ELA-\d{2}-\d{2}-\d{4}/.test(L[0]), L[0]);
+check('avec la référence', /ELA-\d{2}-\d{2}-[2-9A-HJKMNP-Z]{5}/.test(L[0]), L[0]);
 check('adresse de départ', L[1].startsWith('Départ : ') && L[1].includes('Vendôme'), L[1]);
 check('adresse d\'arrivée', L[2].startsWith('Arrivée : ') && L[2].includes('Argenteuil'), L[2]);
 check('date et heure', /^Date : \d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}$/.test(L[3]), L[3]);

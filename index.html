@@ -7669,18 +7669,37 @@ window.ELA_TEXTES = {
      le chauffeur, sous son SIRET, et la loi lui interdit trous et doublons —
      deux numérotations séparées, pour deux documents qui n'engagent pas la
      même personne. */
+  /* ═══ LA RÉFÉRENCE EST TIRÉE AU SORT, PLUS COMPTÉE SUR L'APPAREIL ═══
+     29 septembre 2026, capture de Barbaros à 5 h 28 : une demande du
+     comptoir easyHotel refusée, écriteau rouge. MESURÉ, PAS SUPPOSÉ : le
+     serveur portait déjà ELA-26-09-0001 à 0023, déposées par plusieurs
+     appareils, et ce téléphone venait de fabriquer ELA-26-09-0008. Le
+     serveur refuse une référence déjà prise (409), et la course n'existait
+     nulle part.
+     LA CAUSE ÉTAIT LE COMPTEUR : il vivait dans le navigateur, un par
+     appareil. Il date de l'ancien site, où un seul téléphone — celui de
+     Barbaros — numérotait. Aujourd'hui chaque client numérote, et TOUT
+     nouvel appareil commence le mois à 0001 : sa première demande était
+     refusée dès que le mois en avait déjà une. Côté exploitant c'était
+     pire : « pousser » fusionne, et une course saisie à la main aurait
+     ÉCRASÉ celle d'un client portant le même numéro.
+     Une référence que plusieurs appareils fabriquent sans se parler ne peut
+     être unique que par le hasard : cinq signes pris dans un alphabet sans
+     0/O, 1/I/L (qu'on confond au téléphone), soit 28 millions de tirages
+     par mois. Le mois reste en clair : c'est ce qui se lit d'un coup d'œil.
+     Les anciennes références à quatre chiffres restent lues partout. */
+  var SIGNES_REF = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
   function referenceSuivante(){
     var d = new Date();
     var mois = String(d.getFullYear()).slice(2) + "-" + String(d.getMonth()+1).padStart(2,"0");
-    var rang = 1;
-    try{
-      var brut = JSON.parse(localStorage.getItem("ela_rang") || "null");
-      if(brut && brut.mois === mois) rang = brut.rang + 1;
-      localStorage.setItem("ela_rang", JSON.stringify({ mois:mois, rang:rang }));
-    }catch(e){ /* stockage refusé : le rang repart à 1, ce n'est pas grave */ }
+    var tirage = new Uint32Array(5);
+    try{ crypto.getRandomValues(tirage); }
+    catch(e){ for(var i = 0; i < 5; i++) tirage[i] = Math.floor(Math.random() * 4294967296); }
+    var code = "";
+    for(var j = 0; j < 5; j++) code += SIGNES_REF.charAt(tirage[j] % SIGNES_REF.length);
     /* Le préfixe est celui de la marque, et rien d'autre : Elatransfer
        s'écrit ELA. */
-    return "ELA-" + mois + "-" + String(rang).padStart(4,"0");
+    return "ELA-" + mois + "-" + code;
   }
 
   /* LE MESSAGE QUE LE CLIENT ENVOIE À BARBAROS.

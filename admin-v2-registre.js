@@ -70,7 +70,7 @@ function eurosRond(n){ return Math.round(n).toLocaleString('fr-FR') + ' €'; }
 /* ─────────────────────────── la lecture ─────────────────────────── */
 
 async function lireRegistre(){
-  const lignes = await api('/rest/v1/courses?select=ref,statut,bon&order=ref.desc&limit=' + PLAFOND);
+  const lignes = await api('/rest/v1/courses?select=ref,statut,bon&order=cree_le.desc&limit=' + PLAFOND);
   regCourses = lignes || [];
   regTronque = regCourses.length >= PLAFOND;
   return regCourses;
