@@ -51,9 +51,11 @@ async function espace(opts){
     window.Notification = function(){}; window.Notification.permission = 'default';
     window.Notification.requestPermission = () => { window.__demandes++; return Promise.resolve('granted'); };
     window.PushManager = function(){};
-    window.__cle = null;
+    window.__cle = null; window.__ancien = true; window.__retire = false;
     const reg = { pushManager: {
-      getSubscription: () => Promise.resolve(null),
+      /* Un abonnement fait avec une AUTRE clé : il doit être retiré. */
+      getSubscription: () => Promise.resolve(window.__ancien ? { options:{ applicationServerKey: new Uint8Array(65).buffer },
+        unsubscribe: () => { window.__retire = true; window.__ancien = false; return Promise.resolve(true); } } : null),
       subscribe: o => { window.__cle = Array.from(o.applicationServerKey).length;
         return Promise.resolve({ toJSON: () => ({ endpoint:'https://push.example/abc',
           keys:{ p256dh:'P'.repeat(40), auth:'AUTH12345' } }) }); } } };
@@ -97,6 +99,7 @@ async function espace(opts){
   await p.waitForFunction(() => !document.getElementById('pushAdminEtat').hidden, null, {timeout:5000}).catch(()=>{});
   const etat = await p.textContent('#pushAdminEtat');
   check('une seule demande d\'autorisation, sur l\'appui', await p.evaluate(() => window.__demandes) === 1);
+  check('l\'ancien abonnement (autre clé) est retiré avant de se réabonner', await p.evaluate(() => window.__retire));
   check('la clé publique de la page est passée (65 octets)', await p.evaluate(() => window.__cle) === 65);
   check('l\'abonnement part par ela_enregistrer_push_admin', rpc.length === 1, 'appels : ' + rpc.length);
   const corps = rpc[0] ? JSON.parse(rpc[0].corps) : {};
@@ -115,6 +118,35 @@ async function espace(opts){
   check('iPhone non installé : l\'écran explique l\'écran d\'accueil', /écran d'accueil/.test(etat), etat);
   check('iPhone non installé : aucune autorisation demandée', await p.evaluate(() => window.__demandes) === 0);
   check('iPhone non installé : rien n\'est enregistré', rpc.length === 0);
+  await ctx.close();
+}
+
+
+/* ─── 3. L'outil qui fabrique la paire : les deux moitiés vont ensemble ─── */
+{
+  const {ctx, p, erreurs} = await espace({});
+  await p.click('#blocClesVapid summary');
+  await p.click('#btnClesVapid');
+  await p.waitForSelector('#clesVapid:not([hidden])', {timeout:5000}).catch(()=>{});
+  const pub = await p.inputValue('#cleVapidPub'), priv = await p.inputValue('#cleVapidPriv');
+  const bp = Buffer.from(pub, 'base64url'), bd = Buffer.from(priv, 'base64url');
+  check('publique : 65 octets non compressés', bp.length === 65 && bp[0] === 4, bp.length + ' octets');
+  check('privée : 32 octets', bd.length === 32, bd.length + ' octets');
+  check('base64url, sans +, / ni =', !/[+/=]/.test(pub + priv));
+  /* Signer avec la privée, vérifier avec la publique : c'est ce que fera
+     le service de push, et deux moitiés dépareillées ne passent pas. */
+  const { webcrypto: wc } = await import('node:crypto');
+  let accord = false;
+  try {
+    const jwk = { kty:'EC', crv:'P-256', x: bp.subarray(1,33).toString('base64url'),
+      y: bp.subarray(33).toString('base64url'), d: priv };
+    const cle = await wc.subtle.importKey('jwk', jwk, {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']);
+    const pubCle = await wc.subtle.importKey('raw', bp, {name:'ECDSA', namedCurve:'P-256'}, false, ['verify']);
+    const sig = await wc.subtle.sign({name:'ECDSA', hash:'SHA-256'}, cle, Buffer.from('ela'));
+    accord = await wc.subtle.verify({name:'ECDSA', hash:'SHA-256'}, pubCle, sig, Buffer.from('ela'));
+  } catch (e) { accord = false; }
+  check('les deux moitiés vont ensemble (signature vérifiée)', accord);
+  check('aucune erreur JavaScript (outil)', erreurs.length === 0, erreurs.join(' | '));
   await ctx.close();
 }
 

@@ -3359,6 +3359,29 @@ body.espace #panneauProvenance{display:none;}
         <span>Activer les notifications</span>
       </button>
       <p class="champ-aide" id="pushAdminEtat" hidden></p>
+      <!-- FABRIQUER LA PAIRE DE CLÉS, SUR SON PROPRE TÉLÉPHONE (29/09/2026).
+           Les secrets VAPID manquaient chez Supabase et la clé privée
+           d'origine n'est gardée nulle part. La paire est fabriquée ICI, dans
+           son navigateur, par Web Crypto : la clé privée ne part vers aucun
+           serveur, ni vers le dépôt, ni vers une conversation — il la colle
+           lui-même dans les secrets Supabase. -->
+      <details id="blocClesVapid" style="margin-top:14px">
+        <summary>Fabriquer les clés des notifications</summary>
+        <p class="bloc-note">À faire une seule fois. Collez chaque valeur dans
+          les secrets Supabase, sous le nom indiqué. La clé secrète ne doit
+          être envoyée à personne.</p>
+        <button class="bouton-fantome" type="button" id="btnClesVapid">Fabriquer les clés</button>
+        <div id="clesVapid" hidden>
+          <label class="champ" for="cleVapidPub"><span class="champ-corps">
+            <span class="champ-titre">VAPID_PUBLIQUE</span>
+            <input id="cleVapidPub" type="text" readonly></span></label>
+          <button class="bouton-fantome" type="button" data-copier="cleVapidPub">Copier VAPID_PUBLIQUE</button>
+          <label class="champ" for="cleVapidPriv"><span class="champ-corps">
+            <span class="champ-titre">VAPID_PRIVEE (secrète)</span>
+            <input id="cleVapidPriv" type="text" readonly></span></label>
+          <button class="bouton-fantome" type="button" data-copier="cleVapidPriv">Copier VAPID_PRIVEE</button>
+        </div>
+      </details>
     </div>
 
   </section>
@@ -8272,6 +8295,22 @@ window.ELA_TEXTES = {
     for(var i = 0; i < brut.length; i++) t[i] = brut.charCodeAt(i);
     return t;
   }
+  /* UN ABONNEMENT FAIT AVEC UNE AUTRE CLÉ EST MUET. Le jour où la paire VAPID
+     change, le navigateur garde l'ancien : le réutiliser ferait refuser tous
+     les envois, et en demander un nouveau par-dessus lève une erreur. On le
+     retire donc avant de se réabonner. */
+  function abonnerPush(reg){
+    var cle = clePourAbonnement(CLE_VAPID);
+    return reg.pushManager.getSubscription().then(function(ab){
+      if(!ab) return null;
+      var k = ab.options && ab.options.applicationServerKey;
+      var a = k ? new Uint8Array(k) : null;
+      var meme = !!a && a.length === cle.length && Array.prototype.every.call(a, function(v, i){ return v === cle[i]; });
+      return meme ? ab : ab.unsubscribe().then(function(){ return null; });
+    }).then(function(ab){
+      return ab || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: cle });
+    });
+  }
   function direNotif(cle){
     var el = document.getElementById("notifEtat");
     el.hidden = false;
@@ -8328,12 +8367,9 @@ window.ELA_TEXTES = {
     Notification.requestPermission().then(function(rep){
       if(rep !== "granted"){ bouton.disabled = false; direNotif("notif_refus"); return; }
       return navigator.serviceWorker.ready.then(function(reg){
-        return reg.pushManager.subscribe({
-          /* Obligatoire : on s'engage à MONTRER quelque chose à chaque push.
-             Un abonnement silencieux serait révoqué par le navigateur. */
-          userVisibleOnly: true,
-          applicationServerKey: clePourAbonnement(CLE_VAPID)
-        });
+        /* userVisibleOnly est obligatoire (voir abonnerPush) : on s'engage
+           à MONTRER quelque chose à chaque push. */
+        return abonnerPush(reg);
       }).then(function(ab){
         /* L'abonnement part dans SA PROPRE TABLE, pas dans la course : le
            visiteur anonyme a le droit d'y déposer une ligne et rien d'autre.
@@ -8377,10 +8413,7 @@ window.ELA_TEXTES = {
       if(rep !== "granted") throw new Error("refus");
       return navigator.serviceWorker.ready;
     }).then(function(reg){
-      return reg.pushManager.getSubscription().then(function(ab){
-        return ab || reg.pushManager.subscribe({ userVisibleOnly: true,
-          applicationServerKey: clePourAbonnement(CLE_VAPID) });
-      });
+      return abonnerPush(reg);
     }).then(function(ab){
       return nuage.appel("/rest/v1/rpc/ela_enregistrer_push_admin",
         { method: "POST", body: JSON.stringify({ p_abonnement: ab.toJSON() }) });
@@ -8392,6 +8425,30 @@ window.ELA_TEXTES = {
       dire(e && e.message === "refus"
         ? "Notifications refusées : autorisez-les pour ce site dans les réglages du téléphone."
         : "Activation impossible (" + (e && e.message || "erreur") + ").");
+    });
+  });
+  /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
+     32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
+  document.getElementById("btnClesVapid").addEventListener("click", function(){
+    crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
+      .then(function(k){ return crypto.subtle.exportKey("jwk", k.privateKey); })
+      .then(function(j){
+        function oct(b){ b = b.replace(/-/g, "+").replace(/_/g, "/"); while(b.length % 4) b += "=";
+          return Array.prototype.map.call(atob(b), function(c){ return c.charCodeAt(0); }); }
+        var pub = [4].concat(oct(j.x), oct(j.y));
+        var b64 = btoa(String.fromCharCode.apply(null, pub))
+          .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        document.getElementById("cleVapidPub").value = b64;
+        document.getElementById("cleVapidPriv").value = j.d;
+        document.getElementById("clesVapid").hidden = false;
+      });
+  });
+  document.querySelectorAll("[data-copier]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var champ = document.getElementById(b.dataset.copier), texte = b.textContent;
+      function fait(){ b.textContent = "Copié ✓"; setTimeout(function(){ b.textContent = texte; }, 1500); }
+      if(navigator.clipboard) navigator.clipboard.writeText(champ.value).then(fait, function(){ champ.select(); });
+      else { champ.select(); document.execCommand("copy"); fait(); }
     });
   });
   /* Le renvoi existe parce que le premier envoi peut échouer sans rien dire :
