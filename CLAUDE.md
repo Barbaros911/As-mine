@@ -5886,3 +5886,27 @@ plusieurs appareils dans le désordre ; le téléphone venait de fabriquer
   un tirage au sort n'a pas d'ordre. Les deux lisent maintenant par
   `cree_le.desc`, comme l'espace historique et la réception. Sans ça, la
   limite de 300 lignes aurait pu écarter la demande arrivée à l'instant.
+
+## « ENVOYER MA DEMANDE » NE PARTAIT PLUS — LE CLOISONNEMENT AVAIT EMPORTÉ `telValide`
+
+29 septembre 2026, capture de Barbaros : « je n'arrive pas à envoyer la
+demande ». **Mesuré sur le site construit** : le clic levait
+`telValide is not defined`, rien ne partait, sans un message. Depuis le
+cloisonnement du 28/09 (#246), `construire-espaces-hotel.mjs` retire de la
+page publique le bloc de l'espace exploitant — et `telValide` et `telWa`
+vivaient dedans, alors que le tunnel client les appelle. **Tout client qui
+donnait son numéro était bloqué** ; seul le comptoir identifié par la chambre
+passait. `telWa` cassait aussi le bouton « Appeler le chauffeur » du bon
+confirmé.
+- Les deux fonctions sont sorties **avant** le bloc exploitant, et le vrai
+  contrôle a quitté `intake-demande.js` pour **`telephone.js`**, chargé par
+  tous les espaces. Le lecteur de demandes, outil de l'exploitant, reste
+  retiré des pages publiques : `test-cloisonnement-hotel` l'exige, et c'est
+  lui qui a refusé le premier correctif (recharger le lecteur entier).
+  `intake-demande.js` appelle `ELA_TEL` : **`telephone.js` doit toujours
+  être chargé avant lui**, dans la page comme dans Admin v2.
+- **Aucune suite ne pouvait le voir** : elles éprouvent le dépôt, où le bloc
+  est présent. `test-easyhotel-client` va maintenant **jusqu'au bout du
+  tunnel sur le site construit** et vérifie que toute fonction appelée par
+  une page publique y est définie. Éprouvé contre l'ancien code : cinq
+  contrôles tombent, dont « telValide is not defined ».

@@ -26,12 +26,13 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v102";
+const CACHE = "elatransfer-v103";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
                   un exploitant hors ligne appuie sur « Coller une demande »
                   et rien ne se passe. Il est partagé avec Admin v2. */
+               "./telephone.js",
                "./intake-demande.js",
                /* L'encodeur QR de l'affiche hôtel, partagé lui aussi : sans
                   lui ici, l'affiche ne se dessine plus hors ligne — et une
