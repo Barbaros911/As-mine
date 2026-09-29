@@ -71,5 +71,19 @@ ok((await hp('mauvais')).status===401,'réception : mauvais code refusé');
 quotaAppels=60;
 ok((await hp('easyhotel-9F3K2Q')).status===429,'réception : plafond atteint → refus MÊME avec le bon code');
 
+/* cle-notifications : elle rend la clé PUBLIQUE, bien formée, et rien d'autre. */
+{
+  const {generateKeyPairSync}=await import('node:crypto');
+  const j=generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({format:'jwk'});
+  const pub=Buffer.concat([Buffer.from([4]),Buffer.from(j.x,'base64url'),Buffer.from(j.y,'base64url')]).toString('base64url');
+  const env={VAPID_PUBLIQUE:pub,VAPID_PRIVEE:j.d};
+  const lus=[]; const hk=await charger('cle-notifications',{get VAPID_PUBLIQUE(){lus.push('pub');return env.VAPID_PUBLIQUE;},get VAPID_PRIVEE(){lus.push('PRIVEE');return env.VAPID_PRIVEE;}});
+  let r=await hk(new Request('http://x',{method:'POST',body:'{}'})), t=await r.text();
+  ok(r.status===200&&JSON.parse(t).cle===pub,'cle-notifications rend la clé publique posée dans les secrets');
+  ok(!t.includes(j.d)&&!lus.includes('PRIVEE'),'cle-notifications ne lit ni ne rend JAMAIS la moitié privée');
+  env.VAPID_PUBLIQUE=(await import('node:crypto')).randomBytes(32).toString('hex');
+  r=await hk(new Request('http://x',{method:'POST',body:'{}'}));
+  ok(r.status===503,'une valeur mal collée (une empreinte) est refusée, pas servie aux navigateurs');
+}
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

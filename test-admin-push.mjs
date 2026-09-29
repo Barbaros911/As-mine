@@ -39,6 +39,13 @@ await new Promise(r => serveur.listen(8097, '127.0.0.1', r));
 const BASE = 'http://127.0.0.1:8097';
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const J = (b, s=200) => ({status:s, contentType:'application/json', body:JSON.stringify(b)});
+/* La clé publique vient du SERVEUR (fonction cle-notifications). On en
+   fabrique une vraie ici, DIFFÉRENTE de celle écrite dans la page : c'est la
+   seule façon de savoir laquelle des deux a servi à l'abonnement. */
+import { generateKeyPairSync } from 'node:crypto';
+const jwkS = generateKeyPairSync('ec', { namedCurve:'P-256' }).privateKey.export({ format:'jwk' });
+const CLE_SERVEUR = Buffer.concat([Buffer.from([4]), Buffer.from(jwkS.x,'base64url'), Buffer.from(jwkS.y,'base64url')]).toString('base64url');
+let cleRepond = true;
 const nav = await chromium.launch();
 
 async function espace(opts){
@@ -57,6 +64,7 @@ async function espace(opts){
       getSubscription: () => Promise.resolve(window.__ancien ? { options:{ applicationServerKey: new Uint8Array(65).buffer },
         unsubscribe: () => { window.__retire = true; window.__ancien = false; return Promise.resolve(true); } } : null),
       subscribe: o => { window.__cle = Array.from(o.applicationServerKey).length;
+        window.__cleB64 = btoa(String.fromCharCode.apply(null, Array.from(o.applicationServerKey))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
         return Promise.resolve({ toJSON: () => ({ endpoint:'https://push.example/abc',
           keys:{ p256dh:'P'.repeat(40), auth:'AUTH12345' } }) }); } } };
     Object.defineProperty(navigator, 'serviceWorker', { configurable:true,
@@ -71,6 +79,8 @@ async function espace(opts){
     if (u.startsWith(BASE)) return route.continue();
     if (u.includes('supabase.co')) {
       if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
+      if (u.includes('/functions/v1/cle-notifications'))
+        return route.fulfill(cleRepond ? J({ cle: CLE_SERVEUR }) : J({ erreur:'clé non configurée' }, 503));
       if (u.includes('/rpc/ela_enregistrer_push_admin')) {
         rpc.push({ auth: route.request().headers()['authorization'], corps: route.request().postData() });
         return route.fulfill(J(true));
@@ -101,6 +111,7 @@ async function espace(opts){
   check('une seule demande d\'autorisation, sur l\'appui', await p.evaluate(() => window.__demandes) === 1);
   check('l\'ancien abonnement (autre clé) est retiré avant de se réabonner', await p.evaluate(() => window.__retire));
   check('la clé publique de la page est passée (65 octets)', await p.evaluate(() => window.__cle) === 65);
+  check('c\'est la clé du SERVEUR qui sert, pas celle écrite dans la page', await p.evaluate(() => window.__cleB64) === CLE_SERVEUR);
   check('l\'abonnement part par ela_enregistrer_push_admin', rpc.length === 1, 'appels : ' + rpc.length);
   const corps = rpc[0] ? JSON.parse(rpc[0].corps) : {};
   check('avec le jeton de l\'exploitant', rpc[0] && rpc[0].auth === 'Bearer JETON');
@@ -121,6 +132,20 @@ async function espace(opts){
   await ctx.close();
 }
 
+
+/* ─── 2 bis. Clé absente du serveur : on n'abonne PAS avec celle de la page ─── */
+{
+  cleRepond = false;
+  const {ctx, p, rpc} = await espace({});
+  await p.click('#btnPushAdmin');
+  await p.waitForFunction(() => /impossible/.test(document.getElementById('pushAdminEtat').textContent), null, {timeout:10000}).catch(()=>{});
+  const etat = await p.textContent('#pushAdminEtat');
+  check('clé absente du serveur : l\'écran le dit', /impossible/.test(etat), etat);
+  check('clé absente du serveur : aucun abonnement avec la clé de la page', await p.evaluate(() => window.__cle) === null);
+  check('clé absente du serveur : rien n\'est enregistré', rpc.length === 0);
+  cleRepond = true;
+  await ctx.close();
+}
 
 /* ─── 3. L'outil qui fabrique la paire : les deux moitiés vont ensemble ─── */
 {

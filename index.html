@@ -8546,8 +8546,32 @@ window.ELA_TEXTES = {
      change, le navigateur garde l'ancien : le réutiliser ferait refuser tous
      les envois, et en demander un nouveau par-dessus lève une erreur. On le
      retire donc avant de se réabonner. */
+  /* LA CLÉ PUBLIQUE EST DEMANDÉE AU SERVEUR (29/09/2026), là où Barbaros l'a
+     posée avec sa moitié privée : les deux vont forcément ensemble, et une
+     nouvelle paire un jour n'oblige plus à republier le site. Si le serveur
+     ne répond pas, on N'ABONNE PAS avec la clé écrite plus haut : elle ne
+     correspond plus à la moitié privée, et un abonnement dépareillé
+     paraîtrait marcher sans qu'aucune notification n'arrive jamais. */
+  var cleVapidServeur = null;
+  function cleVapid(){
+    if(cleVapidServeur) return Promise.resolve(cleVapidServeur);
+    var ctrl = new AbortController(), m = setTimeout(function(){ ctrl.abort(); }, 8000);
+    return fetch(SUPABASE_URL + "/functions/v1/cle-notifications", {
+      method: "POST", signal: ctrl.signal, body: "{}",
+      headers: { apikey: SUPABASE_CLE, Authorization: "Bearer " + SUPABASE_CLE,
+                 "Content-Type": "application/json" }
+    }).then(function(r){ clearTimeout(m); return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || typeof d.cle !== "string" || clePourAbonnement(d.cle).length !== 65)
+          throw new Error("clé des notifications indisponible");
+        cleVapidServeur = d.cle;
+        return d.cle;
+      }, function(){ clearTimeout(m); throw new Error("clé des notifications indisponible"); });
+  }
   function abonnerPush(reg){
-    var cle = clePourAbonnement(CLE_VAPID);
+    return cleVapid().then(function(texte){ return abonnerAvec(reg, clePourAbonnement(texte)); });
+  }
+  function abonnerAvec(reg, cle){
     return reg.pushManager.getSubscription().then(function(ab){
       if(!ab) return null;
       var k = ab.options && ab.options.applicationServerKey;
