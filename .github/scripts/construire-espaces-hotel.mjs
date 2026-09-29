@@ -163,9 +163,13 @@ function reception() {
      sans adresse que le script d'échange remplit — et on pose le sien. */
   html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
   html = html.replace(/<link\b[^>]*rel=["']apple-touch-icon["'][^>]*>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*rel=["'](?:shortcut )?icon["'][^>]*>\s*/gi, '');
+  /* ELA orange sur blanc (29/09/2026, à sa demande) : on reconnaît la
+     réception d'un coup d'œil à côté de l'icône client, noir sur orange. */
   html = html.replace('<head>', '<head>\n<base href="/">\n'
     + '<link rel="manifest" href="/easyhotel-reception/manifest.webmanifest">\n'
-    + '<link rel="apple-touch-icon" href="/icon-180.png">\n'
+    + '<link rel="apple-touch-icon" href="/icones/reception-180.png">\n'
+    + '<link rel="icon" href="/icones/reception-32.png" type="image/png" sizes="32x32">\n'
     + '<meta name="apple-mobile-web-app-title" content="Réception">\n'
     + '<meta name="apple-mobile-web-app-capable" content="yes">\n'
     + '<meta name="mobile-web-app-capable" content="yes">');
@@ -272,10 +276,10 @@ fs.writeFileSync(path.join(dossierReception, 'manifest.webmanifest'), JSON.strin
   display: 'standalone',
   orientation: 'portrait',
   background_color: '#FFFFFF',
-  theme_color: '#16232B',
+  theme_color: '#FFFFFF',
   icons: [
-    { src: '/icon-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
-    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/icones/reception-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+    { src: '/icones/reception-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
   ],
 }, null, 2) + '\n');
 const dossierAdmin = path.join(sortie, 'ela-admin');
