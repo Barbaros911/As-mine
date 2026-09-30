@@ -6605,6 +6605,20 @@ window.ELA_TEXTES = {
         b.addEventListener("click", function(){ demanderAnnulation(c, b); });
         rang.appendChild(b);
         d.appendChild(rang);
+      } else if(c.statut === "realisee"){
+        /* ═══ RENVOYER LE BON D'UNE COURSE FAITE (30/09/2026) ═══ Le client
+           repasse au comptoir : « il me faut un justificatif pour mon
+           entreprise ». Pas d'annulation ici, la course est faite. Rien sur
+           une course non prise : il n'y a pas de bon à renvoyer. */
+        var rangF = document.createElement("div");
+        rangF.className = "rec-actions";
+        var numeroF = telWa(c.tel);
+        var envF = document.createElement("button");
+        envF.type = "button"; envF.className = "bouton-fantome rec-envoyer";
+        envF.textContent = "Renvoyer le bon au client";
+        envF.addEventListener("click", function(){ ouvrirBonVisuel(bonDeCarte(c), numeroF); });
+        rangF.appendChild(envF);
+        d.appendChild(rangF);
       }
       liste.appendChild(d);
     });
@@ -6642,7 +6656,7 @@ window.ELA_TEXTES = {
              depart:(c.depart || (recHotel ? recHotel.nom : "")).split(",")[0],
              arrivee:(c.arrivee || (recHotel ? recHotel.nom : "")).split(",")[0],
              vehicule:c.vehicule, prix:c.prix, paiement:c.paiement, statut:c.statut,
-             chauffeur:(c.statut === "confirmee" && c.chauffeur) ? c.chauffeur : null };
+             chauffeur:((c.statut === "confirmee" || c.statut === "realisee") && c.chauffeur) ? c.chauffeur : null };
   }
 
   /* ═══ CE QUI A CHANGÉ DEPUIS LE DERNIER REGARD (30/09/2026) ═══
@@ -9059,8 +9073,8 @@ window.ELA_TEXTES = {
         + (en ? " at " : " à ") + (b.heure || "");
     var prix = (typeof b.prix === "number" && b.prix)
       ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "";
-    var etat = b.statut === "confirmee"
-      ? (en ? "Confirmed" : "Confirmé")
+    var etat = (b.statut === "confirmee" || b.statut === "realisee")
+      ? (b.statut === "realisee" ? (en ? "Completed" : "Course effectuée") : (en ? "Confirmed" : "Confirmé"))
         + (b.chauffeur && b.chauffeur.nom ? (en ? " — driver " : " — chauffeur ") + b.chauffeur.nom
            + (b.chauffeur.telephone ? ", " + b.chauffeur.telephone : "") : "")
       : (en ? "Awaiting confirmation — we will confirm shortly" : "En attente de confirmation — nous confirmons très vite");
@@ -9121,7 +9135,11 @@ window.ELA_TEXTES = {
     var pret = (logo.decode ? logo.decode() : Promise.resolve()).catch(function(){ logo = null; });
     var polices = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
     return Promise.all([pret, polices]).then(function(){
-      var confirme = b.statut === "confirmee";
+      /* Une course EFFECTUÉE se renvoie aussi (30/09/2026) : un client
+         qui revient au comptoir pour sa note de frais veut la référence,
+         le trajet et le prix. Elle garde le bleu et son chauffeur. */
+      var effectuee = b.statut === "realisee";
+      var confirme = b.statut === "confirmee" || effectuee;
       var d = new Date((b.date || "") + "T" + (b.heure || ""));
       var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
         : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
@@ -9164,7 +9182,8 @@ window.ELA_TEXTES = {
       }
       /* L'état : gris tant qu'on cherche, vert plein une fois confirmé —
          la même règle que le bon du site. */
-      var etat = confirme ? (en ? "CONFIRMED" : "CONFIRMÉ") : (en ? "REQUEST RECEIVED" : "DEMANDE REÇUE");
+      var etat = effectuee ? (en ? "COMPLETED" : "EFFECTUÉE")
+        : confirme ? (en ? "CONFIRMED" : "CONFIRMÉ") : (en ? "REQUEST RECEIVED" : "DEMANDE REÇUE");
       ctx.font = "800 28px " + P;
       var pl = ctx.measureText(etat).width + 60;
       rectArrondi(ctx, (W - pl) / 2, 305, pl, 56, 28);
@@ -9639,6 +9658,19 @@ window.ELA_TEXTES = {
                 + encodeURIComponent(messageDemande(bonCourant)), "_blank");
   });
   document.getElementById("btnNouvelleCourse").addEventListener("click", function(){
+    /* ═══ AU COMPTOIR, LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT
+       (30/09/2026) ═══ La chambre, le nom et le téléphone du précédent
+       restaient remplis : réservé à la chaîne, le client suivant partait
+       avec la chambre d'un autre — et son numéro recevait le bon d'un
+       inconnu. Côté client, on garde : c'est le même voyageur. */
+    if(recHotel){
+      ["chambre", "clientNom", "clientTel", "vol", "pancarteNom"].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el){ el.value = ""; el.dispatchEvent(new Event("input", { bubbles:true })); }
+      });
+      paiementChoisi = null; marquerPaiement();
+      heureTouchee = false; poserDefautHeure(); jugerDelai();
+    }
     ecran("ecran-accueil");
   });
 

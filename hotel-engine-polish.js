@@ -322,7 +322,7 @@
         var jours={"Aujourd'hui":'Today','Demain':'Tomorrow','En retard':'Overdue','Date inconnue':'Unknown date'};
         trad(j,jours[(j.dataset.fr||j.textContent).trim()]);
       });
-      var boutons={"Demander l'annulation":'Request cancellation','Appeler Elatransfer':'Call Elatransfer','Envoyer le bon au client':'Send voucher to guest'};
+      var boutons={"Demander l'annulation":'Request cancellation','Appeler Elatransfer':'Call Elatransfer','Envoyer le bon au client':'Send voucher to guest','Renvoyer le bon au client':'Resend voucher to guest'};
       document.querySelectorAll('#recListe .bouton-fantome').forEach(function(x){
         trad(x,boutons[(x.dataset.fr||x.textContent).trim()]);
       });

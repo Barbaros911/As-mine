@@ -309,6 +309,18 @@ check('par TÉLÉPHONE, chiffres seuls (espaces indifférents)',
   JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
 await p.fill('#recRecherche', 'laurent');
 check('par NOM, sans majuscule', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]');
+/* UNE COURSE FAITE SE RENVOIE (30/09/2026) : le client repasse pour un
+   justificatif. Pas d'annulation sur une course faite. */
+const faite = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0020' });
+check('une course effectuée porte « Renvoyer le bon au client », sans annulation',
+  (await faite.locator('.rec-envoyer').count()) === 1
+  && (await faite.locator('button', { hasText:"Demander l'annulation" }).count()) === 0);
+await faite.locator('.rec-envoyer').click();
+await p.locator('#bvOngletTexte').click();
+const texteFait = await p.locator('#bvApercuTexte').textContent();
+check('…et le bon dit « Course effectuée », avec son chauffeur',
+  /Course effectuée/.test(texteFait) && /Samir/.test(texteFait) && !/attente/i.test(texteFait), texteFait);
+await p.locator('#bvFermer').click();
 await p.fill('#recRecherche', 'ELA-26-09-0043');
 check('par RÉFÉRENCE', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0043"]');
 await p.fill('#recRecherche', 'zzz introuvable');
@@ -762,6 +774,13 @@ check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi').textContent());
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
+/* LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT : la chambre 307 ne doit
+   pas rester posée pour le client suivant. */
+await p.locator('#btnNouvelleCourse').click();
+check('« Réserver une autre course » vide la chambre, le nom et le téléphone',
+  await p.evaluate(() => ['chambre','clientNom','clientTel'].every(id => document.getElementById(id).value === '')));
+check('…et redemande le mode de règlement',
+  (await p.locator('[data-paiement][aria-pressed="true"]').count()) === 0);
 /* ═══ LE CAS NORMAL : LA DEMANDE EST ARRIVÉE, IL N'Y A PLUS RIEN À ENVOYER ═══
    C'est ici, et seulement ici, que sa demande se mesure : sur un dépôt
    RÉUSSI. Le contrôle plus haut tourne sur un serveur injoignable, où le

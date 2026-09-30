@@ -6132,6 +6132,16 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
     `test-nouveau-reception` a une course effectuée dans son jeu de données
     et éprouve les comptes, chaque onglet et les quatre recherches ; il tombe
     si « passée » n'est plus reconnue (six contrôles).
+- **VÉRIFIÉ EN SE METTANT À LA PLACE DE LA RÉCEPTION** (30/09/2026, à sa
+  demande : « met toi à la place de la réception »). Deux manques :
+  - **« Réserver une autre course » gardait la chambre, le nom et le
+    téléphone du client précédent.** Réservé à la chaîne, le client suivant
+    partait avec la chambre d'un autre, et son numéro recevait le bon d'un
+    inconnu. Au comptoir, ces champs, le vol, la pancarte et le règlement
+    sont vidés ; côté client on garde (c'est le même voyageur).
+  - **Une course effectuée se renvoie** : « Renvoyer le bon au client »
+    (le justificatif d'une note de frais). Le bon dit « EFFECTUÉE » / « Course
+    effectuée », avec son chauffeur. Rien sur une course non prise.
 
 ## LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL
 
