@@ -6510,7 +6510,7 @@ window.ELA_TEXTES = {
   function recFinie(c){ return statutFini(c.statut); }
   /* Une réception retrouve souvent un bon par sa DATE : « le client du
      12/09 ». On range donc dans le texte fouillé les formes qu'elle tape —
-     « 12/09 », « 12/09/2026 », « 12 septembre ». */
+     « JJ/MM », « JJ/MM/AAAA » ou le mois en toutes lettres. */
   function datesCherchables(c){
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(c.date || "");
     if(!m) return "";
