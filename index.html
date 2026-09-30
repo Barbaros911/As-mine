@@ -1097,6 +1097,8 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    nouvelle, et le rouge du tableau de bord ne veut dire qu'une chose —
    quelqu'un attend une réponse depuis un moment. La ligne rouge de la
    liste prend le relais toute seule. */
+.son-coupe{display:block;width:calc(100% - 40px);margin:14px 20px 0;min-height:44px;padding:10px 14px;border:1.5px dashed #C9302F;border-radius:12px;background:#FFF4F4;color:#8E1F1E;font:inherit;font-weight:700;text-align:left}
+.son-coupe[hidden]{display:none}
 .arrivee-avis{display:block;width:calc(100% - 40px);margin:14px 20px 0;
   padding:12px 14px;border:0;border-radius:13px;background:var(--accent);
   color:#fff;font:inherit;font-size:13px;font-weight:700;text-align:left;
@@ -3272,6 +3274,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          deux jours, et c'est celui-là qu'on ne verrait pas le jour où il
          dit quelque chose. -->
     <button class="arrivee-avis" type="button" id="bordArrivee" hidden></button>
+    <!-- LE SON DES ALERTES EST COUPÉ TANT QU'ON N'A PAS TOUCHÉ L'ÉCRAN.
+         iPhone et Android refusent de jouer un son qu'aucun doigt n'a
+         autorisé : l'ancien bip se taisait donc presque toujours, sans rien
+         dire. On le DIT, et le premier appui n'importe où le débloque. -->
+    <button class="son-coupe" type="button" id="sonCoupe" hidden>Son des alertes coupé — touchez ici pour l'activer</button>
     <!-- SANS SESSION, AUCUNE DEMANDE N'ARRIVE ICI. On ne le dit pas en
          petit dans le bloc du serveur, tout en bas : c'est la différence
          entre voir ses clients et ne pas les voir. -->
@@ -3607,6 +3614,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span>Activer les notifications</span>
       </button>
       <p class="champ-aide" id="pushAdminEtat" hidden></p>
+      <p class="champ-aide" id="pushAdminAppareil" hidden></p>
+      <!-- ÉPROUVER SUR SON PROPRE TÉLÉPHONE, PAS SUR UNE PROMESSE. Le bouton
+           fait sonner, vibrer et notifier exactement comme une vraie
+           demande, et dit ce qui a marché sur CET appareil. -->
+      <button class="bouton-fantome" type="button" id="btnTesterAlertes" style="margin-top:10px">
+        <span>Tester mes alertes</span>
+      </button>
+      <p class="champ-aide" id="testAlertesEtat" hidden></p>
       <!-- FABRIQUER LA PAIRE DE CLÉS, SUR SON PROPRE TÉLÉPHONE (29/09/2026).
            Les secrets VAPID manquaient chez Supabase et la clé privée
            d'origine n'est gardée nulle part. La paire est fabriquée ICI, dans
@@ -8884,6 +8899,22 @@ window.ELA_TEXTES = {
         : "Activation impossible (" + (e && e.message || "erreur") + ").");
     });
   });
+  /* L'ÉTAT DES NOTIFICATIONS SUR CET APPAREIL, dit à l'ouverture des
+     réglages : sans lui, rien ne distingue un téléphone abonné d'un
+     téléphone qui ne recevra jamais rien. */
+  function jugerPushAdmin(){
+    var etat = document.getElementById("pushAdminAppareil");
+    if(!etat || !pushPossible()) return;
+    navigator.serviceWorker.ready.then(function(reg){
+      return reg.pushManager.getSubscription();
+    }).then(function(ab){
+      etat.hidden = false;
+      etat.textContent = (ab && Notification.permission === "granted")
+        ? "État de cet appareil : notifications actives."
+        : "État de cet appareil : notifications pas encore actives — appuyez sur le bouton.";
+    }).catch(function(){});
+  }
+  window.__jugerPushAdmin = jugerPushAdmin;
   /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
      32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
   var elClesVapid = document.getElementById("btnClesVapid");
@@ -9576,6 +9607,8 @@ window.ELA_TEXTES = {
     document.getElementById("cptAttente").textContent   = parEtat.attente;
     document.getElementById("cptConfirmee").textContent = parEtat.confirmee;
     document.getElementById("cptRealisee").textContent  = parEtat.realisee;
+    jugerPastille(parEtat.attente);
+    jugerSon();
     document.querySelector('.compteur[data-filtre="attente"]')
             .classList.toggle("urgent", parEtat.attente > 0);
     document.querySelectorAll(".compteur").forEach(function(b){
@@ -10092,6 +10125,7 @@ window.ELA_TEXTES = {
 
   var bonBord = null;
   function ouvrirBonBord(ref){
+    arreterAlarme();
     var liste = registre();
     bonBord = liste.filter(function(c){ return c.ref === ref; })[0] || null;
     if(!bonBord) return;
@@ -10516,6 +10550,7 @@ window.ELA_TEXTES = {
      retire du même geste — il a dit ce qu'il avait à dire. */
   document.getElementById("bordArrivee").addEventListener("click", function(){
     this.hidden = true;
+    arreterAlarme();
     filtreBord = "attente";
     dessinerBord();
   });
@@ -10635,29 +10670,142 @@ window.ELA_TEXTES = {
      par un oscillateur — aucun fichier à charger, donc rien à attendre —
      et il est enveloppé : un navigateur qui refuse l'audio ne doit pas
      faire tomber la synchronisation avec lui. */
-  function bip(){
+  /* ═══ L'ALARME (30/09/2026, à sa demande : « une alerte sonore, visuelle,
+     notification, tout ce qui est possible ») ═══
+     LE DÉFAUT D'ORIGINE : chaque bip créait son propre lecteur de son, hors
+     de tout geste. iPhone et Android le laissent alors « suspendu » — le
+     bip ne sonnait jamais sur un téléphone, et rien ne le disait. Un seul
+     lecteur, débloqué au premier appui n'importe où, et gardé.
+     L'ALARME SE RÉPÈTE toutes les 20 s tant que personne n'a touché
+     l'écriteau ou ouvert une course, dix minutes au plus. Un bip unique se
+     rate dès qu'on a le dos tourné. */
+  var sonCtx = null;
+  function sonPret(){ return !!(sonCtx && sonCtx.state === "running"); }
+  function jugerSon(){
+    var el = document.getElementById("sonCoupe");
+    if(!el) return;
+    var C = window.AudioContext || window.webkitAudioContext;
+    var cacher = !C || sonPret() || !document.body.classList.contains("espace");
+    if(!cacher){ el.hidden = false; return; }
+    /* ON LE RETIRE UNE DEMI-SECONDE APRÈS L'APPUI, PAS PENDANT. Le premier
+       appui débloque le son ; retiré aussitôt, le bandeau faisait remonter
+       la page entre le doigt posé et le clic, et l'appui tombait à côté du
+       bouton visé — « Coller une demande » ne s'ouvrait plus (mesuré par
+       trois suites). */
+    if(!el.hidden && !jugerSon.attente){
+      jugerSon.attente = setTimeout(function(){ jugerSon.attente = null; el.hidden = sonPret() || !C || !document.body.classList.contains("espace") ? true : el.hidden; }, 500);
+    }
+  }
+  function deverrouillerSon(){
     try{
       var C = window.AudioContext || window.webkitAudioContext;
       if(!C) return;
-      var ctx = new C();
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "sine"; o.frequency.value = 880;
-      g.gain.setValueAtTime(0.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-      o.connect(g); g.connect(ctx.destination);
-      o.start(); o.stop(ctx.currentTime + 0.36);
-      o.onended = function(){ try{ ctx.close(); }catch(e){} };
+      if(!sonCtx){
+        sonCtx = new C();
+        sonCtx.onstatechange = jugerSon;
+      }
+      if(sonCtx.state !== "running" && sonCtx.resume) sonCtx.resume().then(jugerSon, jugerSon);
+      /* iOS ne débloque qu'après avoir JOUÉ quelque chose dans le geste :
+         un échantillon muet suffit. */
+      var tampon = sonCtx.createBuffer(1, 1, 22050), src = sonCtx.createBufferSource();
+      src.buffer = tampon; src.connect(sonCtx.destination); src.start(0);
+    }catch(e){ /* pas d'audio : l'écriteau et la notification restent */ }
+    jugerSon();
+  }
+  ["pointerdown", "touchend", "keydown"].forEach(function(ev){
+    document.addEventListener(ev, deverrouillerSon, { capture:true, passive:true });
+  });
+  function bip(){
+    try{
+      if(!sonCtx) deverrouillerSon();
+      if(!sonCtx) return;
+      var t = sonCtx.currentTime + 0.02;
+      /* Quatre notes alternées, fortes : un ton seul et doux se confond
+         avec une notification ordinaire du téléphone. */
+      [[880,0],[1320,0.22],[880,0.44],[1320,0.66]].forEach(function(n){
+        var o = sonCtx.createOscillator(), g = sonCtx.createGain();
+        o.type = "square"; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.35, t + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.19);
+        o.connect(g); g.connect(sonCtx.destination);
+        o.start(t + n[1]); o.stop(t + n[1] + 0.2);
+      });
     }catch(e){ /* audio refusé : l'écriteau suffit */ }
+  }
+  /* LA VIBRATION n'existe que sur Android : iPhone ignore l'appel, sans
+     erreur. La notification du téléphone, elle, vibre partout. */
+  function sonner(){
+    bip();
+    try{ if(navigator.vibrate) navigator.vibrate([400,150,400,150,400]); }catch(e){}
+  }
+  var minuterieAlarme = null, minuterieTitre = null, titreAvant = null;
+  function lancerAlarme(){
+    arreterAlarme();
+    var debut = Date.now();
+    sonner();
+    minuterieAlarme = setInterval(function(){
+      if(Date.now() - debut > 10 * 60000){ arreterAlarme(); return; }
+      sonner();
+    }, 20000);
+    /* LE TITRE DE L'ONGLET CLIGNOTE : c'est ce qu'on voit d'un onglet
+       rangé derrière un autre, sur un ordinateur. */
+    titreAvant = document.title;
+    var allume = false;
+    minuterieTitre = setInterval(function(){
+      allume = !allume;
+      document.title = allume ? "🔴 NOUVELLE DEMANDE" : titreAvant;
+    }, 1000);
+  }
+  function arreterAlarme(){
+    if(minuterieAlarme){ clearInterval(minuterieAlarme); minuterieAlarme = null; }
+    if(minuterieTitre){ clearInterval(minuterieTitre); minuterieTitre = null; }
+    if(titreAvant !== null){ document.title = titreAvant; titreAvant = null; }
+  }
+  window.__alarmeActive = function(){ return !!minuterieAlarme; };
+  /* LA PASTILLE SUR L'ICÔNE compte les demandes en attente — visible sur
+     l'écran d'accueil sans ouvrir l'application (Android, et iPhone quand
+     l'admin est installé). */
+  function jugerPastille(n){
+    try{
+      if(!navigator.setAppBadge) return;
+      if(n > 0) navigator.setAppBadge(n); else navigator.clearAppBadge();
+    }catch(e){}
   }
   function annoncerArrivee(n){
     var el = document.getElementById("bordArrivee");
     if(!el) return;
-    el.textContent = n > 1 ? n + " nouvelles demandes viennent d'arriver."
-                           : "Une nouvelle demande vient d'arriver.";
+    el.textContent = n > 1 ? n + " nouvelles demandes viennent d'arriver — touchez pour voir."
+                           : "Une nouvelle demande vient d'arriver — touchez pour voir.";
     el.hidden = false;
-    bip();
+    lancerAlarme();
   }
+  /* « Tester mes alertes » vit ICI, avec l'alarme : les pages publiques
+     retirent ce bloc à la construction, et un bouton branché ailleurs y
+     appellerait des fonctions qui n'existent plus. */
+  var elTest = document.getElementById("btnTesterAlertes");
+  if(elTest) elTest.addEventListener("click", function(){
+    var etat = document.getElementById("testAlertesEtat");
+    deverrouillerSon();
+    sonner();
+    var lignes = [];
+    lignes.push((window.AudioContext || window.webkitAudioContext)
+      ? "Son : joué — si vous n'avez rien entendu, montez le volume et retirez le mode silencieux."
+      : "Son : impossible sur ce navigateur.");
+    lignes.push(navigator.vibrate ? "Vibration : oui." : "Vibration : non disponible ici (iPhone) — la notification vibre à sa place.");
+    function fin(t){ lignes.push(t); etat.hidden = false; etat.textContent = lignes.join(" "); }
+    if(!pushPossible() || Notification.permission !== "granted"){
+      fin("Notification : pas encore activée — appuyez sur « Activer les notifications ».");
+      return;
+    }
+    navigator.serviceWorker.ready.then(function(reg){
+      return reg.showNotification("Test Elatransfer", {
+        body: "Les alertes fonctionnent sur cet appareil.",
+        tag: "test-alertes", requireInteraction: true, vibrate: [400,150,400,150,400]
+      });
+    }).then(function(){ fin("Notification : envoyée."); },
+            function(){ fin("Notification : refusée par le téléphone."); });
+  });
   /* SANS SESSION, RIEN N'ARRIVE — et c'est le genre de chose qu'on ne
      découvre qu'en ratant une course. On le dit en haut du tableau de
      bord, pas seulement en petit dans le bloc du serveur. */
@@ -11217,6 +11365,7 @@ window.ELA_TEXTES = {
     ecran("ecran-reglages");
     allumerAdmin(document.getElementById("btnReglages"));
     dessinerTarifs();
+    if(window.__jugerPushAdmin) window.__jugerPushAdmin();
     if(vers){
       var cible = document.getElementById(vers);
       if(cible) cible.scrollIntoView({ behavior:"smooth", block:"start" });

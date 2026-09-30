@@ -52,6 +52,16 @@ export function titre(bon) {
     + ", " + quand(bon);
 }
 
+/* LE RAPPEL DIT D'ABORD DEPUIS COMBIEN DE TEMPS ON ATTEND : c'est ce qui
+   le distingue d'une nouvelle demande sur un écran verrouillé. */
+export function titreRappel(bon, minutes) {
+  const c = bon.course ?? {};
+  return "RAPPEL " + minutes + " min — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
 export function corps(bon, adresseAdmin) {
   const c = bon.course ?? {};
   const l = [
