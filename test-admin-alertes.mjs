@@ -118,6 +118,15 @@ try {
   check('toucher l\'écriteau arrête l\'alarme', !(await p.evaluate(() => window.__alarmeActive())));
   check('et rend son titre à l\'onglet', !/NOUVELLE DEMANDE/.test(await p.title()), await p.title());
 
+  /* Ouvrir la course arrête les rappels Telegram : l'admin le dit au serveur. */
+  const vues = []; p.on('request', r => { if (r.url().includes('/rpc/ela_marquer_vue')) vues.push(r.postData()); });
+  await p.locator('.demande').first().click({position:{x:40,y:15}});
+  await p.waitForTimeout(600);
+  check('ouvrir une demande en attente arrête ses rappels Telegram (ela_marquer_vue)', vues.length === 1 && /ELA-26-09-0200/.test(vues[0] || ''), JSON.stringify(vues));
+  await p.click('#btnAdminBord'); await p.waitForTimeout(300);
+  await p.locator('.demande').first().click({position:{x:40,y:15}});
+  await p.waitForTimeout(400);
+  check('une seule fois par course', vues.length === 1, String(vues.length));
   await p.click('#btnReglages');
   const notes1 = await p.evaluate(() => window.__notes);
   await p.locator('#btnTesterAlertes').click();

@@ -64,6 +64,13 @@ jobs:
       - name: Déployer nouvelle-demande
         run: supabase functions deploy nouvelle-demande --project-ref "$PROJET"
 
+      # « telegram-bot » reçoit l'appui sur « ✅ Vu » sous une alerte. Telegram
+      # n'envoie pas de JWT : la fonction vérifie elle-même l'en-tête secret
+      # posé à l'installation du webhook, et que l'appui vient de SA
+      # conversation.
+      - name: Déployer telegram-bot
+        run: supabase functions deploy telegram-bot --no-verify-jwt --project-ref "$PROJET"
+
       - name: Déployer prevenir-client
         run: supabase functions deploy prevenir-client --project-ref "$PROJET"
 
