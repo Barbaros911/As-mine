@@ -175,6 +175,12 @@ const refs = pg => pg.evaluate(()=>
 {
   const { c, pg, vus } = await espace({ session:SESSION, reponseSuppr:204 });
   await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
+  /* Refuser demande DEUX appuis (audit du 30/09/2026) : le premier arme. */
+  await pg.locator('#btnRefuser').click(); await pg.waitForTimeout(200);
+  const armes = await pg.evaluate(()=>
+    JSON.parse(localStorage.getItem('ela_bookings')||'[]').map(c=>c.statut));
+  check('un seul appui sur « Refuser » ne refuse RIEN', !armes.includes('refusee'), armes.join(','));
+  check('et le bouton demande la confirmation', /Confirmer le refus/.test(await pg.textContent('#btnRefuser')));
   await pg.locator('#btnRefuser').click(); await pg.waitForTimeout(500);
   const apres = await refs(pg);
   check('« Refuser » garde la course au registre', apres.length === 2);

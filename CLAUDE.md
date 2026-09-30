@@ -5546,8 +5546,18 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   252 px — la colonne commençait à 252 px et le contenu passait dessous.
   Les règles `body.espace` en ont été retirées. Une seconde feuille qui
   habille le même écran finit toujours par le casser.
-- **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
-  ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
+- **« Confirmer la course » exige un chauffeur, et refuse un papier périmé**
+  (audit du 30/09/2026). Sans chauffeur, le client recevait « Transfert
+  confirmé — Chauffeur : — ». Un chauffeur du carnet dont un papier est
+  PÉRIMÉ est refusé ; hors carnet, l'avertissement orange reste, sans
+  blocage — même règle que Admin v2. Ce contrôle est dans l'écran : Admin v2
+  seul l'impose côté serveur.
+- **« Refuser la course » demande deux appuis**, comme « Supprimer » : un
+  refus ne se défait pas depuis le bon, et il est juste sous « Marquer comme
+  réalisée ».
+- **L'outil « Fabriquer les clés » des notifications est caché** tant que le
+  serveur a une clé : une paire recollée par erreur couperait tous les
+  abonnements.
 - **SUR TÉLÉPHONE, LE MENU EST UNE GRILLE DE TUILES, PLUS UNE RANGÉE QUI
   DÉFILE.** Capture de Barbaros : « j'ai que cette page, il n'y a rien
   d'autre ». Les pastilles défilaient de côté et seules deux étaient à

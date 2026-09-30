@@ -4470,6 +4470,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton" type="button" id="btnConfirmerCourse">
         <span>Confirmer la course</span>
       </button>
+      <p class="champ-aide" id="confirmerEtat" hidden style="color:#B4231F"></p>
       <!-- CONFIRMER ET PRÉVENIR SONT DEUX GESTES, ET C'EST VOULU.
            Le premier range la course chez Barbaros ; le second la dit au
            client. Les fondre en un seul enverrait le message avant qu'il ait
@@ -4487,6 +4488,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span>Marquer comme réalisée</span>
       </button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
+      <p class="champ-aide" id="refusEtat" hidden style="color:#B4231F"></p>
       <!-- SUPPRIMER N'EST PAS REFUSER. « Refuser » est une RÉPONSE : la course
            passe au gris, elle reste au registre, et c'est ce qu'on veut d'une
            vraie demande qu'on n'a pas pu assurer. « Supprimer » efface — c'est
@@ -9627,6 +9629,20 @@ window.ELA_TEXTES = {
   /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
      32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
   var elClesVapid = document.getElementById("btnClesVapid");
+  /* LES CLÉS SONT POSÉES DEPUIS LE 29/09/2026 (audit du 30/09). Une nouvelle
+     paire recollée par erreur dans Supabase couperait TOUS les abonnements
+     existants, sans un message. Le bloc ne s'affiche donc que tant que le
+     serveur n'a pas de clé valable. */
+  var blocClesVapid = document.getElementById("blocClesVapid");
+  /* On ne demande la clé qu'une fois l'espace ouvert : sur la page d'un
+     client, cet appel n'a rien à faire. */
+  if(blocClesVapid){
+    blocClesVapid.hidden = true;
+    document.addEventListener("ela:espace", function(){
+      cleVapid().then(function(){ blocClesVapid.hidden = true; },
+                      function(){ blocClesVapid.hidden = false; });
+    });
+  }
   if(elClesVapid) elClesVapid.addEventListener("click", function(){
     crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
       .then(function(k){ return crypto.subtle.exportKey("jwk", k.privateKey); })
@@ -10868,6 +10884,8 @@ window.ELA_TEXTES = {
        une course puis quitté, il s'appliquerait à la suivante au premier
        appui. */
     desarmerSuppr();
+    desarmerRefus();
+    direConfirmer("");
     var c = bonBord;
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
@@ -11035,8 +11053,39 @@ window.ELA_TEXTES = {
     }).catch(function(){ /* détachée : une notification perdue ne casse rien */ });
   }
 
+  /* CONFIRMER, C'EST PROMETTRE UNE VOITURE (audit du 30/09/2026).
+     Le bouton partait sans chauffeur : le client recevait « Transfert
+     confirmé — Chauffeur : — », c'est-à-dire une promesse sans personne
+     derrière. Il faut donc un chauffeur retenu. Et un chauffeur du carnet
+     dont un papier est PÉRIMÉ est refusé ici : c'est l'instant où
+     Elatransfer engage sa responsabilité (L3142-1). Seul « périmé » bloque
+     — un fait connu, une date passée — comme dans Admin v2 ; un chauffeur
+     hors carnet garde l'avertissement orange, sans blocage. */
+  function direConfirmer(t){
+    var e = document.getElementById("confirmerEtat");
+    e.hidden = !t; e.textContent = t || "";
+  }
+  function refusConfirmation(){
+    var nom = document.getElementById("bbChauffeurNom").value.trim();
+    var tel = document.getElementById("bbChauffeurTel").value.trim();
+    if(!nom) return "Indiquez d'abord le chauffeur retenu : confirmer sans lui "
+      + "promettrait au client une voiture que personne n'a acceptée.";
+    var c = trouverChauffeur(nom, tel);
+    if(c && [c.carteFin, c.registreFin, c.assuranceFin].some(function(d){ return etatPapier(d) === "perime"; }))
+      return "Papier périmé dans le carnet (" + c.nom + ") : choisissez un autre "
+        + "chauffeur, ou mettez sa fiche à jour dans « Chauffeurs ».";
+    return "";
+  }
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
     if(!bonBord) return;
+    var refus = refusConfirmation();
+    if(refus){
+      direConfirmer(refus);
+      var champ = document.getElementById("bbChauffeurNom");
+      if(!champ.value.trim()){ champ.scrollIntoView({block:"center"}); champ.focus(); }
+      return;
+    }
+    direConfirmer("");
     bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     pousserNotification(bonBord);
     ouvrirBonBord(bonBord.ref);
@@ -11204,9 +11253,33 @@ window.ELA_TEXTES = {
     majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     ecran("ecran-bord");
   });
+  /* REFUSER DEMANDE DEUX APPUIS (audit du 30/09/2026). Un seul appui
+     refusait la course sans retour possible — le bon n'offre plus aucun
+     geste sur une course refusée — et « Refuser » est juste sous
+     « Marquer comme réalisée » : un pouce qui glisse, et un client est
+     éconduit. Même mécanisme que « Supprimer ». */
+  var refusArme = null, refusMinuteur = null;
+  function desarmerRefus(){
+    refusArme = null;
+    if(refusMinuteur){ clearTimeout(refusMinuteur); refusMinuteur = null; }
+    var b = document.getElementById("btnRefuser"), e = document.getElementById("refusEtat");
+    b.textContent = "Refuser la course";
+    e.hidden = true; e.textContent = "";
+  }
   document.getElementById("btnRefuser").addEventListener("click", function(){
     if(!bonBord) return;
-    majCourse(bonBord.ref, "refusee");
+    if(refusArme !== bonBord.ref){
+      refusArme = bonBord.ref;
+      this.textContent = "Confirmer le refus";
+      var e = document.getElementById("refusEtat");
+      e.hidden = false;
+      e.textContent = "La course passera en « non prise ». Appuyez encore pour confirmer.";
+      refusMinuteur = setTimeout(desarmerRefus, 8000);
+      return;
+    }
+    var ref = bonBord.ref;
+    desarmerRefus();
+    majCourse(ref, "refusee");
     ecran("ecran-bord");
   });
 
