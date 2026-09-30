@@ -1788,6 +1788,38 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-vues button b{font-weight:800;opacity:.7;}
 .rec-vues button.actif{background:#062f55;color:#fff;}
 .rec-vues button.actif b{opacity:1;}
+.rec-maj{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:-4px 2px 14px;font-size:12.5px;color:var(--gris);}
+.rec-maj #btnRecActualiser{display:inline-flex;align-items:center;gap:6px;min-height:44px;
+  padding:0 16px;border:1px solid #C9D6E2;border-radius:12px;background:#fff;color:#062f55;
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.rec-maj #btnRecActualiser[disabled]{opacity:.6;}
+.rec-maj #btnRecActualiser[disabled] svg{animation:rec-tourne .9s linear infinite;}
+@keyframes rec-tourne{to{transform:rotate(360deg);}}
+.rec-vues button{white-space:nowrap;padding:0 4px;}
+@media (max-width:420px){.rec-vues{gap:4px;}.rec-vues button{font-size:12.5px;}}
+.rec-periode{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--filet);
+  border-radius:14px;background:#fff;}
+.rec-periode[hidden]{display:none;}
+.rec-echelle{display:flex;gap:6px;}
+.rec-echelle button{flex:1 1 0;min-height:40px;border:1px solid #C9D6E2;border-radius:10px;
+  background:#fff;font:inherit;font-size:13.5px;font-weight:700;color:#062f55;cursor:pointer;}
+.rec-echelle button.actif{background:#062f55;border-color:#062f55;color:#fff;}
+.rec-nav{display:flex;align-items:center;gap:6px;}
+.rec-nav > button{flex:0 0 44px;height:44px;border:1px solid #C9D6E2;border-radius:10px;
+  background:#fff;font-size:22px;line-height:1;color:#062f55;cursor:pointer;}
+.rec-choix{position:relative;flex:1 1 auto;min-width:0;min-height:44px;display:flex;
+  align-items:center;justify-content:center;border-radius:10px;background:#EEF3F7;
+  font-size:15px;font-weight:800;color:#062f55;text-align:center;}
+.rec-choix span::first-letter{text-transform:uppercase;}
+.rec-choix span{display:block;}
+.rec-choix input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;cursor:pointer;}
+.rec-choix input[hidden]{display:none;}
+.rec-choix input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;opacity:0;cursor:pointer;}
+.rec-auj{align-self:center;min-height:44px;padding:0 14px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:13px;font-weight:700;color:#0E5FA8;text-decoration:underline;cursor:pointer;}
+.rec-bilan{margin:0;font-size:13px;color:var(--encre);text-align:center;}
+.rec-bilan b{font-weight:800;}
 /* L'aperçu du bon en image. Au-dessus de TOUT (la barre, les feuilles) :
    une feuille passée dessous laisse ses boutons inaccessibles. */
 .bv{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;}
@@ -1844,7 +1876,9 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-note{margin:8px 0 0;padding:7px 10px;border-radius:10px;
   background:var(--fond);font-size:12.5px;color:var(--encre);
   border-left:3px solid var(--filet);}
-.rec-annul{margin:8px 0 0;font-size:12.5px;font-weight:700;color:#C9302F;}
+.rec-modif{margin:6px 0 0;padding:6px 10px;border-radius:10px;background:#EAF3FC;
+  font-size:12.5px;font-weight:700;color:#0B4F8C;}
+.rec-etat.annulee{background:transparent;color:var(--gris);text-decoration:line-through;}
 .rec-course .bouton-fantome{margin-top:8px;min-height:38px;font-size:13.5px;}
 body:not(.reception) .hotel-acces{display:none;}
 
@@ -4587,6 +4621,51 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p class="bloc-note" id="bbComCalc"></p>
     </div>
 
+    <!-- ═══ MODIFIER LA COURSE (30/09/2026, à sa demande) ═══
+         La réception appelle : « le client part à 7 h, plus à 6 h ». Il
+         fallait supprimer et recréer — nouvelle référence, et un client qui
+         ne retrouvait plus son bon. On corrige ici, LA RÉFÉRENCE NE CHANGE
+         PAS, et la réception voit « Course modifiée par Elatransfer » sur sa
+         liste. Le prix ne se recalcule pas tout seul : un trajet changé se
+         renégocie, c'est Barbaros qui fixe le montant. -->
+    <div class="bloc" id="bbModif" hidden>
+      <h2 class="bloc-titre">Modifier la course</h2>
+      <div class="duo">
+        <label class="champ" for="mdDate"><span class="champ-corps">
+          <span class="champ-titre">Date</span><input id="mdDate" type="date"></span></label>
+        <label class="champ" for="mdHeure"><span class="champ-corps">
+          <span class="champ-titre">Heure</span><input id="mdHeure" type="time" step="300"></span></label>
+      </div>
+      <label class="champ" for="mdDepart"><span class="champ-corps">
+        <span class="champ-titre">Départ</span><input id="mdDepart" type="text" autocomplete="off"></span></label>
+      <label class="champ" for="mdArrivee"><span class="champ-corps">
+        <span class="champ-titre">Arrivée</span><input id="mdArrivee" type="text" autocomplete="off"></span></label>
+      <div class="duo">
+        <label class="champ" for="mdChambre"><span class="champ-corps">
+          <span class="champ-titre">Chambre</span><input id="mdChambre" type="text" autocomplete="off" placeholder="—"></span></label>
+        <label class="champ" for="mdVehicule"><span class="champ-corps">
+          <span class="champ-titre">Véhicule</span>
+          <select id="mdVehicule">
+            <option value="berline">Berline</option>
+            <option value="van">Van</option>
+          </select></span></label>
+      </div>
+      <label class="champ" for="mdPrix"><span class="champ-corps">
+        <span class="champ-titre">Prix (€)</span><input id="mdPrix" type="text" inputmode="decimal" autocomplete="off"></span></label>
+      <div class="duo">
+        <label class="champ" for="mdNom"><span class="champ-corps">
+          <span class="champ-titre">Nom du client</span><input id="mdNom" type="text" autocomplete="off"></span></label>
+        <label class="champ" for="mdTel"><span class="champ-corps">
+          <span class="champ-titre">Téléphone</span><input id="mdTel" type="tel" autocomplete="off"></span></label>
+      </div>
+      <label class="champ" for="mdNote"><span class="champ-corps">
+        <span class="champ-titre">Précision</span><input id="mdNote" type="text" autocomplete="off" placeholder="Bagages, fauteuil…"></span></label>
+      <p class="refus" id="mdErreur" hidden></p>
+      <button class="bouton" type="button" id="btnMdEnregistrer"><span>Enregistrer les modifications</span></button>
+      <button class="bouton-fantome" type="button" id="btnMdFermer">Fermer sans modifier</button>
+    </div>
+    <p class="bloc-note" id="bbModifNote" hidden></p>
+
     <div class="veh-action" id="bbActions">
       <!-- ACCUSER RÉCEPTION — le message qui manquait.
            Le client appuie sur « Confirmer » et n'a plus AUCUNE nouvelle
@@ -4632,8 +4711,16 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton vert" type="button" id="btnRealisee">
         <span>Marquer comme réalisée</span>
       </button>
+      <button class="bouton-fantome" type="button" id="btnModifierCourse">Modifier la course</button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
       <p class="champ-aide" id="refusEtat" hidden style="color:#B4231F"></p>
+      <!-- ANNULER N'EST PAS REFUSER (30/09/2026). « Refuser » dit « aucun
+           chauffeur n'a pu la prendre » : la réception lit « Non prise ».
+           « Annuler » dit « la course n'aura pas lieu » — le client, l'hôtel
+           ou Barbaros l'a décidé — et la réception lit « Annulée ». Deux
+           appuis, comme la suppression : un pouce qui glisse ne doit pas
+           libérer un chauffeur engagé. -->
+      <button class="bouton-fantome rouge" type="button" id="btnAnnulerCourse">Annuler la course</button>
       <!-- SUPPRIMER N'EST PAS REFUSER. « Refuser » est une RÉPONSE : la course
            passe au gris, elle reste au registre, et c'est ce qu'on veut d'une
            vraie demande qu'on n'a pas pu assurer. « Supprimer » efface — c'est
@@ -4747,6 +4834,23 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <div class="rec-chiffre"><b id="recNbAVenir">0</b><span>à venir</span></div>
       </div>
 
+      <!-- ═══ ACTUALISER, EN HAUT (30/09/2026, à sa demande) ═══
+           Le bouton existait, mais EN BAS d'une liste qui s'allonge chaque
+           jour : mesuré à 390 px avec deux semaines d'historique, il était
+           à 1 360 px — personne ne le trouvait. Il est ici, sous les
+           chiffres, avec l'heure de la dernière lecture : « Actualiser »
+           sans heure ne dit pas si la liste a vraiment été relue. -->
+      <div class="rec-maj">
+        <span id="recMaj" aria-live="polite"></span>
+        <button type="button" id="btnRecActualiser">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Actualiser</span>
+        </button>
+      </div>
+
       <!-- ═══ « UN IMPRÉVU ? » — TOUJOURS VISIBLE, JAMAIS DANS UN MENU ═══
            À sa demande. Un comptoir gère des imprévus toute la journée : un
            vol avancé, un client qui descend en avance, un groupe qui
@@ -4782,17 +4886,38 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <button type="button" role="tab" data-vue="avenir" class="actif" aria-selected="true"><span>À venir</span> <b></b></button>
           <button type="button" role="tab" data-vue="passees" aria-selected="false"><span>Passées</span> <b></b></button>
           <button type="button" role="tab" data-vue="toutes" aria-selected="false"><span>Toutes</span> <b></b></button>
+          <button type="button" role="tab" data-vue="date" aria-selected="false"><span>Par date</span></button>
+        </div>
+        <!-- ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026, à sa demande) ═══
+             « Passées » met tout l'historique bout à bout : au bout de trois
+             mois, retrouver le bon de mardi dernier, c'est faire défiler cent
+             cartes. Ici on choisit un JOUR ou un MOIS, on avance et on recule
+             d'un appui, et le bilan de la période est écrit en tête. -->
+        <div class="rec-periode" id="recPeriode" hidden>
+          <div class="rec-echelle" role="group" aria-label="Afficher par">
+            <button type="button" data-echelle="jour" class="actif" aria-pressed="true">Jour</button>
+            <button type="button" data-echelle="mois" aria-pressed="false">Mois</button>
+          </div>
+          <div class="rec-nav">
+            <button type="button" id="btnRecAvant" aria-label="Période précédente">‹</button>
+            <label class="rec-choix" for="recJourChoix">
+              <span id="recPeriodeNom"></span>
+              <input type="date" id="recJourChoix" aria-label="Choisir un jour">
+            </label>
+            <button type="button" id="btnRecApres" aria-label="Période suivante">›</button>
+          </div>
+          <button type="button" class="rec-auj" id="btnRecAujourdhui">Aujourd'hui</button>
+          <p class="rec-bilan" id="recBilan"></p>
         </div>
       </div>
 
       <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
       <div id="recListe"></div>
 
-      <!-- Ces deux-là ferment la page : on les met EN BAS. « Fermer la
-           session » en tête d'écran, c'est le bouton qu'on effleure par
-           erreur en voulant faire défiler. -->
+      <!-- « Fermer la session » ferme la page : on la met EN BAS. En tête
+           d'écran, c'est le bouton qu'on effleure par erreur en voulant
+           faire défiler. « Actualiser » est remonté sous les chiffres. -->
       <div class="rec-barre">
-        <button type="button" class="bouton-fantome" id="btnRecActualiser">Actualiser</button>
         <button type="button" class="bouton-fantome" id="btnRecFermer">Fermer la session</button>
       </div>
     </div>
@@ -5299,7 +5424,7 @@ window.ELA_TEXTES = {
     trajets_titre:"Mes trajets effectués",
     trajets_note:"Vos courses passées, depuis ce téléphone.",
     trajets_vide:"Aucun trajet effectué pour l'instant.",
-    etat_faite:"Terminé", etat_refusee:"Non prise",
+    etat_faite:"Terminé", etat_refusee:"Non prise", etat_annulee:"Annulée",
     pied_legal:"Nous joindre et informations légales",
     courses_vide:"Aucune réservation en cours.",
     courses_vide_cta:"Réserver un trajet",
@@ -5472,7 +5597,7 @@ window.ELA_TEXTES = {
     trajets_titre:"My completed rides",
     trajets_note:"Your past rides, from this phone.",
     trajets_vide:"No completed ride yet.",
-    etat_faite:"Completed", etat_refusee:"Not taken",
+    etat_faite:"Completed", etat_refusee:"Not taken", etat_annulee:"Cancelled",
     pied_legal:"Contact us and legal information",
     courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
@@ -6426,11 +6551,12 @@ window.ELA_TEXTES = {
 
   function chargerReception(identifiant, silencieux){
     var btn = document.getElementById("btnRecActualiser");
-    if(!silencieux) btn.disabled = true;
+    if(!silencieux){ btn.disabled = true; recLecture = true; dessinerMaj(); }
     var dejaSession = identifiant && identifiant.indexOf(".") > 0;
     nuage.coursesHotel(recHotel.cle,
       dejaSession ? { session:identifiant } : { code:identifiant }).then(function(d){
       btn.disabled = false;
+      recLecture = false; recLuA = new Date();
       if(d && d.session) retenirCode(recHotel.cle, d.session);
       recCourses = (d && d.courses) || [];
       signalerChangements(recCourses);
@@ -6440,6 +6566,7 @@ window.ELA_TEXTES = {
       dessinerSession();
     }).catch(function(err){
       btn.disabled = false;
+      if(!silencieux){ recLecture = false; dessinerMaj(); }
       /* EN ARRIÈRE-PLAN, UNE PANNE DU RÉSEAU NE DIT RIEN. La liste affichée
          reste juste à quelques secondes près ; la remplacer par un écran de
          connexion parce qu'un appel de fond a échoué ferait croire à la
@@ -6493,7 +6620,11 @@ window.ELA_TEXTES = {
      colonne « statut » sur le serveur, « courses-hotel » la relit, la liste
      se rafraîchit. Seul le libellé manquait. */
   var ETATS_REC = { attente:"En attente", confirmee:"Réservation validée",
-                    realisee:"Effectuée", refusee:"Non prise" };
+                    realisee:"Effectuée", refusee:"Non prise", annulee:"Annulée" };
+  /* Une course FINIE n'attend plus rien : faite, non prise, ou annulée par
+     Elatransfer (30/09/2026 — la réception ne peut plus annuler, elle
+     appelle, et Barbaros annule depuis son admin). */
+  function statutFini(st){ return st === "realisee" || st === "refusee" || st === "annulee"; }
 
   /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
      Même leçon que le tableau de bord de Barbaros : une liste à plat met
@@ -6506,7 +6637,7 @@ window.ELA_TEXTES = {
   function jourRec(c){
     var d = new Date((c.date || "") + "T" + (c.heure || ""));
     if(isNaN(d.getTime())) return { rang: 9, titre: "Date inconnue" };
-    var fini = c.statut === "realisee" || c.statut === "refusee";
+    var fini = statutFini(c.statut);
     var maintenant = new Date();
     var minuit = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
     var jour = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -6523,28 +6654,122 @@ window.ELA_TEXTES = {
   /* L'onglet regardé et la recherche en cours. La recherche l'emporte sur
      l'onglet : on cherche dans TOUT l'historique. */
   var recVue = "avenir", recRecherche = "";
-  function recFinie(c){ return c.statut === "realisee" || c.statut === "refusee"; }
+  function recFinie(c){ return statutFini(c.statut); }
+  /* Une réception retrouve souvent un bon par sa DATE : « le client du
+     12/09 ». On range donc dans le texte fouillé les formes qu'elle tape —
+     « JJ/MM », « JJ/MM/AAAA » ou le mois en toutes lettres. */
+  function datesCherchables(c){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(c.date || "");
+    if(!m) return "";
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return [m[3] + "/" + m[2] + "/" + m[1], (+m[3]) + "/" + (+m[2]) + "/" + m[1],
+            d.toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" }),
+            d.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })].join(" ");
+  }
   function recCorrespond(c, q){
     if(!q) return true;
     var texte = sansAccents([c.ref, c.chambre, c.client, c.depart, c.arrivee, c.vehicule,
-                             c.chauffeur && c.chauffeur.nom].filter(Boolean).join(" ")).toLowerCase();
+                             c.chauffeur && c.chauffeur.nom, datesCherchables(c)]
+                             .filter(Boolean).join(" ")).toLowerCase();
     var mots = sansAccents(q).toLowerCase().split(/\s+/).filter(Boolean);
     var chiffresQ = q.replace(/\D/g, ""), chiffresTel = String(c.tel || "").replace(/\D/g, "");
     /* Un numéro se cherche par ses chiffres : « 06 98 » et « 0698 » sont le
-       même début de numéro. */
-    if(chiffresQ.length >= 4 && chiffresTel.indexOf(chiffresQ) !== -1) return true;
+       même début de numéro. Une DATE (« 12/09 ») a des chiffres aussi : elle
+       ne passe pas par là, elle se lit dans le texte. */
+    if(chiffresQ.length >= 4 && q.indexOf("/") === -1 && chiffresTel.indexOf(chiffresQ) !== -1) return true;
     return mots.every(function(m){ return texte.indexOf(m) !== -1; });
   }
 
+  /* ═══ PAR DATE : UN JOUR OU UN MOIS (30/09/2026) ═══
+     Le curseur est un jour à minuit ; en mode « mois », seul son mois
+     compte. On compare des CHAÎNES « AAAA-MM-JJ » composées en local —
+     jamais toISOString, qui rend de l'UTC et décale d'un jour entre minuit
+     et 2 h (défaut déjà payé sur le formulaire). */
+  var recEchelle = "jour", recCurseur = null;
+  function isoLocal(d){
+    var z = function(x){ return String(x).padStart(2, "0"); };
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+  }
+  function aujourdhuiMinuit(){ var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+  function recEnAnglais(){ return document.documentElement.lang === "en"; }
+  function dansPeriode(c){
+    if(!c.date || !recCurseur) return false;
+    var k = isoLocal(recCurseur);
+    return recEchelle === "jour" ? c.date === k : c.date.slice(0, 7) === k.slice(0, 7);
+  }
+  function dessinerPeriode(visibles){
+    var bloc = document.getElementById("recPeriode");
+    var montre = recVue === "date" && !recRecherche;
+    bloc.hidden = !montre;
+    if(!montre) return;
+    var en = recEnAnglais(), loc = en ? "en-GB" : "fr-FR";
+    document.getElementById("recPeriodeNom").textContent = recEchelle === "jour"
+      ? recCurseur.toLocaleDateString(loc, { weekday:"long", day:"numeric", month:"long", year:"numeric" })
+      : recCurseur.toLocaleDateString(loc, { month:"long", year:"numeric" });
+    var choix = document.getElementById("recJourChoix");
+    choix.hidden = recEchelle !== "jour";
+    choix.value = isoLocal(recCurseur);
+    var ech = document.querySelectorAll(".rec-echelle button");
+    for(var i = 0; i < ech.length; i++){
+      var a = ech[i].dataset.echelle === recEchelle;
+      ech[i].classList.toggle("actif", a);
+      ech[i].setAttribute("aria-pressed", a ? "true" : "false");
+      ech[i].textContent = ech[i].dataset.echelle === "jour" ? (en ? "Day" : "Jour") : (en ? "Month" : "Mois");
+    }
+    document.getElementById("btnRecAvant").setAttribute("aria-label", en ? "Previous" : "Période précédente");
+    document.getElementById("btnRecApres").setAttribute("aria-label", en ? "Next" : "Période suivante");
+    document.getElementById("btnRecAujourdhui").textContent = recEchelle === "jour"
+      ? (en ? "Today" : "Aujourd'hui") : (en ? "This month" : "Ce mois-ci");
+    /* LE BILAN DE LA PÉRIODE — DES COMPTES, JAMAIS DE MONTANT (30/09/2026,
+       à la demande de Barbaros). Le prix d'une course finie ne sort plus
+       du serveur : additionner ce qui reste reviendrait à dire à l'hôtel
+       ce qu'Elatransfer encaisse. */
+    var fait = 0, non = 0, reste = 0, annul = 0;
+    visibles.forEach(function(c){
+      if(c.statut === "realisee") fait++;
+      else if(c.statut === "refusee") non++;
+      else if(c.statut === "annulee") annul++;
+      else reste++;
+    });
+    var bil = document.getElementById("recBilan");
+    bil.textContent = "";
+    if(!visibles.length){ bil.textContent = en ? "No ride in this period." : "Aucune course sur cette période."; return; }
+    var gras = document.createElement("b");
+    gras.textContent = visibles.length + (en ? (visibles.length > 1 ? " rides" : " ride")
+                                             : (visibles.length > 1 ? " courses" : " course"));
+    bil.appendChild(gras);
+    var morceaux = [];
+    if(fait)  morceaux.push(fait + (en ? " completed" : (fait > 1 ? " effectuées" : " effectuée")));
+    if(reste) morceaux.push(reste + (en ? " to come" : " à venir"));
+    if(non)   morceaux.push(non + (en ? " not taken" : (non > 1 ? " non prises" : " non prise")));
+    if(annul) morceaux.push(annul + (en ? " cancelled" : (annul > 1 ? " annulées" : " annulée")));
+    if(morceaux.length) bil.appendChild(document.createTextNode(" · " + morceaux.join(" · ")));
+  }
+  /* L'heure de la dernière lecture, à côté du bouton. */
+  var recLuA = null, recLecture = false;
+  function dessinerMaj(){
+    var en = recEnAnglais();
+    var btn = document.getElementById("btnRecActualiser");
+    btn.querySelector("span").textContent = recLecture ? (en ? "Refreshing…" : "Actualisation…")
+                                                       : (en ? "Refresh" : "Actualiser");
+    var z = function(x){ return String(x).padStart(2, "0"); };
+    document.getElementById("recMaj").textContent = recLuA
+      ? (en ? "Updated at " : "Mis à jour à ") + z(recLuA.getHours()) + ":" + z(recLuA.getMinutes())
+      : "";
+  }
+
   function dessinerReception(){
+    dessinerMaj();
     var liste = document.getElementById("recListe");
     liste.innerHTML = "";
+    if(recVue === "date" && !recCurseur) recCurseur = aujourdhuiMinuit();
     var nbAvenir = 0, nbPassees = 0;
     recCourses.forEach(function(c){ if(recFinie(c)) nbPassees++; else nbAvenir++; });
     var vues = document.querySelectorAll(".rec-vues button");
     for(var iv = 0; iv < vues.length; iv++){
       var v = vues[iv].dataset.vue;
-      vues[iv].querySelector("b").textContent =
+      var compte = vues[iv].querySelector("b");
+      if(compte) compte.textContent =
         v === "avenir" ? nbAvenir : v === "passees" ? nbPassees : recCourses.length;
       var actif = !recRecherche && v === recVue;
       vues[iv].classList.toggle("actif", actif);
@@ -6554,14 +6779,17 @@ window.ELA_TEXTES = {
       if(recRecherche) return recCorrespond(c, recRecherche);
       if(recVue === "avenir") return !recFinie(c);
       if(recVue === "passees") return recFinie(c);
+      if(recVue === "date") return dansPeriode(c);
       return true;
     });
+    dessinerPeriode(visibles);
     var vide = document.getElementById("recVide");
     vide.hidden = visibles.length > 0;
     vide.textContent = !recCourses.length ? "Aucune réservation pour le moment."
       : recRecherche ? "Aucune course ne correspond à « " + recRecherche + " »."
       : recVue === "avenir" ? "Aucune course à venir."
       : recVue === "passees" ? "Aucune course passée pour le moment."
+      : recVue === "date" ? "Aucune course sur cette période."
       : "Aucune réservation pour le moment.";
     delete vide.dataset.fr;
 
@@ -6570,7 +6798,7 @@ window.ELA_TEXTES = {
     var auj = 0, att = 0, ave = 0, maintenant = Date.now();
     recCourses.forEach(function(c){
       var d = new Date((c.date || "") + "T" + (c.heure || ""));
-      var fini = c.statut === "realisee" || c.statut === "refusee";
+      var fini = statutFini(c.statut);
       if(!isNaN(d.getTime())){
         var n = new Date();
         if(d.toDateString() === n.toDateString()) auj++;
@@ -6588,7 +6816,11 @@ window.ELA_TEXTES = {
 
     /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
        liste est déjà triée, et deux parcours finiraient par diverger. */
+    /* PAR DATE, L'ORDRE EST CELUI DU CALENDRIER, et chaque jour porte sa
+       date : on consulte une période, « en retard » n'y a pas sa place. */
+    var parDate = recVue === "date" && !recRecherche;
     var triees = visibles.slice().sort(function(a, b){
+      if(parDate) return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
       var ja = jourRec(a), jb = jourRec(b);
       if(ja.rang !== jb.rang) return ja.rang - jb.rang;
       return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
@@ -6597,10 +6829,15 @@ window.ELA_TEXTES = {
     var titreCourant = null;
     triees.forEach(function(c){
       var j = jourRec(c);
+      if(parDate){
+        var dj = new Date((c.date || "") + "T12:00");
+        j = { rang: j.rang, titre: isNaN(dj.getTime()) ? "Date inconnue"
+              : dj.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" }) };
+      }
       if(j.titre !== titreCourant){
         titreCourant = j.titre;
         var h = document.createElement("p");
-        h.className = "rec-jour" + (j.rang === 0 ? " retard" : "");
+        h.className = "rec-jour" + (j.rang === 0 && !parDate ? " retard" : "");
         h.textContent = j.titre;
         liste.appendChild(h);
       }
@@ -6671,10 +6908,17 @@ window.ELA_TEXTES = {
       var gauche = document.createElement("span");
       gauche.className = "rec-detail";
       gauche.textContent = [c.vehicule, c.paiement].filter(Boolean).join(" · ");
-      var prix = document.createElement("b");
-      prix.className = "rec-prix";
-      prix.textContent = c.prix ? eurosFR(c.prix) : "—";
-      bas.appendChild(gauche); bas.appendChild(prix);
+      bas.appendChild(gauche);
+      /* LE PRIX NE S'AFFICHE QUE SUR UNE COURSE À VENIR (30/09/2026, à sa
+         demande). Le serveur ne l'envoie d'ailleurs plus pour une course
+         finie ; on ne dessine pas non plus de « — » à sa place, qui dirait
+         qu'un chiffre existe et qu'on le cache. */
+      if(!recFinie(c) && typeof c.prix === "number"){
+        var prix = document.createElement("b");
+        prix.className = "rec-prix";
+        prix.textContent = c.prix ? eurosFR(c.prix) : "—";
+        bas.appendChild(prix);
+      }
       d.appendChild(bas);
 
       /* LA RÉFÉRENCE A SA LIGNE, ENTIÈRE (30/09/2026). En fin de ligne grise
@@ -6685,6 +6929,23 @@ window.ELA_TEXTES = {
         rf.className = "rec-reference";
         rf.textContent = "Réf. " + c.ref;
         d.appendChild(rf);
+      }
+
+      /* ═══ MODIFIÉE PAR ELATRANSFER (30/09/2026) ═══ Barbaros peut changer
+         l'heure ou les adresses depuis son admin. Tant que la course est à
+         venir, la carte le DIT, avec le moment du changement : une heure
+         changée sans rien qui se voie fait descendre le client trop tard. */
+      if(c.modifie && !recFinie(c)){
+        var dm = new Date(c.modifie);
+        if(!isNaN(dm.getTime())){
+          var enM = recEnAnglais(), zm = function(x){ return String(x).padStart(2, "0"); };
+          var md = document.createElement("p");
+          md.className = "rec-modif";
+          md.textContent = (enM ? "Updated by Elatransfer on " : "Modifiée par Elatransfer le ")
+            + zm(dm.getDate()) + "/" + zm(dm.getMonth() + 1) + (enM ? " at " : " à ")
+            + zm(dm.getHours()) + ":" + zm(dm.getMinutes());
+          d.appendChild(md);
+        }
       }
 
       /* ═══ LA PRÉCISION QU'ELLE A ÉCRITE ELLE-MÊME ═══
@@ -6717,83 +6978,38 @@ window.ELA_TEXTES = {
         d.appendChild(ch);
       }
 
-      if(!c.annulationDemandee && j.rang === 0){
-        /* ═══ UNE COURSE EN RETARD NE S'ANNULE PAS, ELLE SE RÈGLE AU
-           TÉLÉPHONE (30/09/2026) ═══ Son heure est passée : soit elle a été
-           faite, soit quelque chose cloche. « Demander l'annulation » y
-           proposait un geste sans objet ; ce qu'il faut, c'est nous parler. */
+      if(j.rang === 0){
+        /* ═══ UNE COURSE EN RETARD SE RÈGLE AU TÉLÉPHONE (30/09/2026) ═══ Son
+           heure est passée : soit elle a été faite, soit quelque chose
+           cloche. Ce qu'il faut, c'est nous parler. */
         var ap = document.createElement("a");
         ap.className = "bouton-fantome rec-appel";
         ap.href = "tel:+" + NUMERO_WA;
         ap.textContent = "Appeler Elatransfer";
         d.appendChild(ap);
-      } else if(c.annulationDemandee){
-        var av = document.createElement("p");
-        av.className = "rec-annul";
-        av.textContent = "Annulation demandée — nous vous confirmons.";
-        d.appendChild(av);
       } else if(c.statut === "attente" || c.statut === "confirmee"){
         /* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ Sans lui, il
            n'a ni la référence, ni l'heure, ni le prix — et c'est la
-           réception qu'il revient voir. Seulement s'il a laissé un numéro. */
+           réception qu'il revient voir.
+           PLUS DE « DEMANDER L'ANNULATION » (30/09/2026, à la demande de
+           Barbaros : « la réception ne peut annuler ») : elle appelle, le
+           numéro est écrit en permanence dans « Un imprévu ? ».
+           PLUS DE « RENVOYER LE BON » SUR UNE COURSE FAITE : le bon sans son
+           prix ne servirait plus de justificatif, et le prix d'une course
+           finie ne sort plus du serveur. Le client a son bon sur son
+           téléphone ; sinon c'est Elatransfer qui le lui renvoie. */
         var rang = document.createElement("div");
         rang.className = "rec-actions";
-        /* Le bon en image sert même sans numéro : il se montre à l'écran,
-           le client le photographie. Seul l'envoi en texte exige un numéro. */
         var numeroClient = telWa(c.tel);
         var env = document.createElement("button");
         env.type = "button"; env.className = "bouton-fantome rec-envoyer";
         env.textContent = "Envoyer le bon au client";
         env.addEventListener("click", function(){ ouvrirBonVisuel(bonDeCarte(c), numeroClient); });
         rang.appendChild(env);
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "bouton-fantome";
-        b.textContent = "Demander l'annulation";
-        b.addEventListener("click", function(){ demanderAnnulation(c, b); });
-        rang.appendChild(b);
         d.appendChild(rang);
-      } else if(c.statut === "realisee"){
-        /* ═══ RENVOYER LE BON D'UNE COURSE FAITE (30/09/2026) ═══ Le client
-           repasse au comptoir : « il me faut un justificatif pour mon
-           entreprise ». Pas d'annulation ici, la course est faite. Rien sur
-           une course non prise : il n'y a pas de bon à renvoyer. */
-        var rangF = document.createElement("div");
-        rangF.className = "rec-actions";
-        var numeroF = telWa(c.tel);
-        var envF = document.createElement("button");
-        envF.type = "button"; envF.className = "bouton-fantome rec-envoyer";
-        envF.textContent = "Renvoyer le bon au client";
-        envF.addEventListener("click", function(){ ouvrirBonVisuel(bonDeCarte(c), numeroF); });
-        rangF.appendChild(envF);
-        d.appendChild(rangF);
       }
       liste.appendChild(d);
     });
-  }
-
-  /* ═══ ELLE NE DÉCIDE RIEN, ET C'EST TOUT SON INTÉRÊT ═══
-     Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
-     déjà engagé, et lui seul peut le rappeler. Le serveur pose un drapeau
-     et ne touche PAS au statut ; WhatsApp part vers Barbaros dans le geste
-     du clic — sans « await » avant, sinon Safari iOS bloque la fenêtre.
-     Tant que l'alerte Telegram n'est pas branchée, ce message EST le seul
-     moyen qu'il l'apprenne : ne pas le retirer. */
-  function demanderAnnulation(c, bouton){
-    var msg = "Demande d'annulation — " + (recHotel ? recHotel.nom : "")
-            + "\nCourse " + c.ref + ", " + dateFr(c.date, c.heure)
-            + ".\nMerci de confirmer.";
-    window.open("https://wa.me/" + NUMERO_WA + "?text=" + encodeURIComponent(msg),
-                "_blank", "noopener");
-    bouton.disabled = true;
-    nuage.coursesHotel(recHotel.cle,
-                       { session:codeRetenu(recHotel.cle), action:"annulation", ref:c.ref })
-      .then(function(){ c.annulationDemandee = true; dessinerReception(); })
-      .catch(function(){
-        /* Le message est parti chez Barbaros de toute façon : on le dit
-           plutôt que de laisser croire que rien ne s'est passé. */
-        bouton.disabled = false;
-        direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
-      });
   }
 
   /* La course telle que la liste la reçoit, mise à la forme commune du
@@ -6813,26 +7029,46 @@ window.ELA_TEXTES = {
      Seuls deux changements comptent pour un comptoir — « validée » (la
      voiture est acquise) et « non prise » (il faut prévenir le client). */
   var recNouveaux = {};
+  /* Ce qui compte pour un comptoir : validée, non prise, ANNULÉE par
+     Elatransfer, et MODIFIÉE (heure, date, adresses) — celle-là dit
+     l'ancienne heure et la nouvelle, sinon on ne sait pas quoi corriger. */
   function signalerChangements(liste){
     var avant = recEtatsConnus, changes = [];
     recEtatsConnus = {};
     liste.forEach(function(c){
-      recEtatsConnus[c.ref] = c.statut;
-      if(avant && avant[c.ref] && avant[c.ref] !== c.statut
-         && (c.statut === "confirmee" || c.statut === "refusee")) changes.push(c);
+      var quand = (c.date || "") + " " + (c.heure || "");
+      recEtatsConnus[c.ref] = { statut:c.statut, quand:quand, ou:(c.depart || "") + "|" + (c.arrivee || "") };
+      var a = avant && avant[c.ref];
+      if(!a) return;
+      if(a.statut !== c.statut
+         && (c.statut === "confirmee" || c.statut === "refusee" || c.statut === "annulee"))
+        changes.push({ c:c, type:c.statut });
+      else if(!statutFini(c.statut) && (a.quand !== quand || a.ou !== recEtatsConnus[c.ref].ou))
+        changes.push({ c:c, type:"modifiee", ancienne:a.quand });
     });
     if(!changes.length) return;
-    changes.forEach(function(c){ recNouveaux[c.ref] = true; });
+    changes.forEach(function(x){ recNouveaux[x.c.ref] = true; });
     var al = document.getElementById("recAlerte");
     if(!al) return;
-    var refus = changes.some(function(c){ return c.statut === "refusee"; });
+    var refus = changes.some(function(x){ return x.type === "refusee" || x.type === "annulee"; });
     al.className = "rec-alerte" + (refus ? " refus" : "");
-    al.querySelector("span").textContent = changes.map(function(c){
-      var en = document.documentElement.lang === "en";
-      return (c.statut === "confirmee" ? (en ? "Confirmed" : "Réservation validée")
+    al.querySelector("span").textContent = changes.map(function(x){
+      var c = x.c, en = document.documentElement.lang === "en";
+      var qui = (c.chambre ? (en ? " · room " : " · chambre ") + c.chambre : (c.client ? " · " + c.client : ""));
+      if(x.type === "modifiee"){
+        var hAvant = (x.ancienne || "").split(" ")[1] || "";
+        var jAvant = (x.ancienne || "").split(" ")[0] || "";
+        var dit = jAvant && jAvant !== c.date
+          ? jj(jAvant) + " " + hAvant + " → " + jj(c.date) + " " + (c.heure || "")
+          : (hAvant !== (c.heure || "") ? hAvant + " → " + (c.heure || "") : (c.heure || ""));
+        return (en ? "Updated by Elatransfer" : "Course modifiée par Elatransfer") + qui + " : " + dit;
+      }
+      return (x.type === "confirmee" ? (en ? "Confirmed" : "Réservation validée")
+              : x.type === "annulee" ? (en ? "Cancelled by Elatransfer" : "Annulée par Elatransfer")
               : (en ? "Not taken — let the guest know" : "Non prise — prévenez le client"))
-        + " : " + (c.heure || "") + (c.chambre ? (en ? " · room " : " · chambre ") + c.chambre : (c.client ? " · " + c.client : ""));
+        + " : " + (c.heure || "") + qui;
     }).join("\n");
+    function jj(iso){ var m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? m[2] + "/" + m[1] : iso; }
     al.hidden = false;
     try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){}
   }
@@ -6868,6 +7104,42 @@ window.ELA_TEXTES = {
       dessinerReception();
     });
   }
+  /* Par date : on ouvre sur AUJOURD'HUI, c'est la question du matin. */
+  function recAller(pas){
+    if(!recCurseur) recCurseur = aujourdhuiMinuit();
+    recCurseur = recEchelle === "jour"
+      ? new Date(recCurseur.getFullYear(), recCurseur.getMonth(), recCurseur.getDate() + pas)
+      : new Date(recCurseur.getFullYear(), recCurseur.getMonth() + pas, 1);
+    dessinerReception();
+  }
+  var echRec = document.querySelectorAll(".rec-echelle button");
+  for(var ie = 0; ie < echRec.length; ie++){
+    echRec[ie].addEventListener("click", function(){
+      recEchelle = this.dataset.echelle;
+      dessinerReception();
+    });
+  }
+  document.getElementById("btnRecAvant").addEventListener("click", function(){ recAller(-1); });
+  document.getElementById("btnRecApres").addEventListener("click", function(){ recAller(1); });
+  document.getElementById("btnRecAujourdhui").addEventListener("click", function(){
+    recCurseur = aujourdhuiMinuit(); dessinerReception();
+  });
+  var choixJour = document.getElementById("recJourChoix");
+  choixJour.addEventListener("change", function(){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(this.value);
+    if(!m) return;
+    recCurseur = new Date(+m[1], +m[2] - 1, +m[3]);
+    dessinerReception();
+  });
+  /* Sur ordinateur, un clic sur le champ transparent n'ouvre pas toujours
+     le calendrier : on le lui demande. */
+  choixJour.addEventListener("click", function(){
+    try{ if(this.showPicker) this.showPicker(); }catch(e){}
+  });
+  /* La langue change : les libellés écrits par la page suivent. */
+  new MutationObserver(function(){
+    if(recHotel && !document.getElementById("recCorps").hidden) dessinerReception();
+  }).observe(document.documentElement, { attributes:true, attributeFilter:["lang"] });
   document.getElementById("recRecherche").addEventListener("input", function(){
     recRecherche = this.value.trim();
     dessinerReception();
@@ -6914,6 +7186,8 @@ window.ELA_TEXTES = {
     recCourses = [];
     recEtatsConnus = null; recNouveaux = {};
     recVue = "avenir"; recRecherche = ""; document.getElementById("recRecherche").value = "";
+    recCurseur = null; recEchelle = "jour"; recLuA = null;
+    document.getElementById("recPeriode").hidden = true;
     document.getElementById("recAlerte").hidden = true;
     document.getElementById("recSession").hidden = true;
     document.getElementById("recListe").innerHTML = "";
@@ -9859,7 +10133,7 @@ window.ELA_TEXTES = {
      rien : ils vont dans l'autre liste. Laisser un refus parmi les
      réservations ferait attendre une réponse déjà donnée. */
   function estFinie(bon){
-    return bon && (bon.statut === "realisee" || bon.statut === "refusee");
+    return bon && (bon.statut === "realisee" || bon.statut === "refusee" || bon.statut === "annulee");
   }
 
   /* ═══ L'ÉTAT VIENT DU SERVEUR, PAS DU TÉLÉPHONE ═══
@@ -9963,12 +10237,13 @@ window.ELA_TEXTES = {
       var et = bon.statut === "confirmee" ? "etat_confirme"
              : bon.statut === "realisee"  ? "etat_faite"
              : bon.statut === "refusee"   ? "etat_refusee"
+             : bon.statut === "annulee"   ? "etat_annulee"
              : "etat_court";
       var pastille = b.querySelector(".course-etat");
       pastille.textContent = T(et);
       pastille.classList.toggle("ok",   et === "etat_confirme");
       pastille.classList.toggle("fini", et === "etat_faite");
-      pastille.classList.toggle("non",  et === "etat_refusee");
+      pastille.classList.toggle("non",  et === "etat_refusee" || et === "etat_annulee");
       b.querySelector(".course-date").textContent = dateLisible(bon);
       b.querySelector(".course-prix").textContent = euros(bon.prix.total);
       b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
@@ -10508,7 +10783,8 @@ window.ELA_TEXTES = {
   function libelleEtat(st){
     return st === "attente" ? "En attente"
          : st === "confirmee" ? "Confirmée"
-         : st === "realisee" ? "Réalisée" : "Refusée";
+         : st === "realisee" ? "Réalisée"
+         : st === "annulee" ? "Annulée" : "Refusée";
   }
   function dessinerBord(){
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
@@ -10737,7 +11013,7 @@ window.ELA_TEXTES = {
     att.className = "kpi-var" + (parEtat.attente ? " baisse" : "");
 
     var duJour = tout.filter(function(c){
-      return c.course && c.course.date === aujourdhui && c.statut !== "refusee";
+      return c.course && c.course.date === aujourdhui && c.statut !== "refusee" && c.statut !== "annulee";
     });
     document.getElementById("kpiJour").textContent = duJour.length;
     var reste = duJour.filter(function(c){ return c.statut !== "realisee"; }).length;
@@ -10766,7 +11042,7 @@ window.ELA_TEXTES = {
                        maintenant.getDate() - i);
       var cle = dateLocale(d);
       jours.push(tout.filter(function(c){
-        return c.course && c.course.date === cle && c.statut !== "refusee";
+        return c.course && c.course.date === cle && c.statut !== "refusee" && c.statut !== "annulee";
       }).length);
       noms.push(d.toLocaleDateString("fr-FR", { weekday:"short" }).replace(".", ""));
     }
@@ -10808,7 +11084,7 @@ window.ELA_TEXTES = {
     /* ---- Berline ou van ----
        UN SEUL CERCLE, dont on décale le trait : deux arcs dessinés séparément
        laissent une couture blanche à chaque jonction. */
-    var vivantes = tout.filter(function(c){ return c.statut !== "refusee"; });
+    var vivantes = tout.filter(function(c){ return c.statut !== "refusee" && c.statut !== "annulee"; });
     var parGamme = { berline:0, van:0 };
     vivantes.forEach(function(c){
       var k = (c.course && c.course.vehiculeCle) || "";
@@ -10845,8 +11121,9 @@ window.ELA_TEXTES = {
     var etats = [["attente","En attente","#C9302F"],
                  ["confirmee","À assurer","#0E6FC7"],
                  ["realisee","Réalisées","#12C4EE"],
-                 ["refusee","Refusées","#8a97a3"]];
-    var parTout = { attente:0, confirmee:0, realisee:0, refusee:0 };
+                 ["refusee","Refusées","#8a97a3"],
+                 ["annulee","Annulées","#b8c2cc"]];
+    var parTout = { attente:0, confirmee:0, realisee:0, refusee:0, annulee:0 };
     tout.forEach(function(c){
       var s = c.statut || "attente";
       if(parTout[s] !== undefined) parTout[s]++;
@@ -11133,8 +11410,15 @@ window.ELA_TEXTES = {
     var etape = c.statut || "attente";
     document.getElementById("btnConfirmerCourse").hidden = etape !== "attente";
     document.getElementById("btnRealisee").hidden = etape !== "confirmee";
-    document.getElementById("btnRefuser").hidden =
-      etape === "realisee" || etape === "refusee";
+    var finie = etape === "realisee" || etape === "refusee" || etape === "annulee";
+    document.getElementById("btnRefuser").hidden = finie;
+    /* Annuler et modifier n'ont de sens que tant que la course est à venir :
+       une course faite ne se change plus, elle est au registre. */
+    document.getElementById("btnAnnulerCourse").hidden = finie;
+    document.getElementById("btnModifierCourse").hidden = finie;
+    desarmerAnnul();
+    fermerModif();
+    document.getElementById("bbModifNote").hidden = true;
     /* L'accusé de réception ne vaut QUE pour une demande pas encore
        tranchée : une fois la course confirmée, c'est « Prévenir le client »
        qui parle, et lui dit bien plus. Deux messages coup sur coup diraient
@@ -11152,7 +11436,7 @@ window.ELA_TEXTES = {
     var bDif = document.getElementById("btnDiffuserGroupe");
     var aChauffeur = !!(c.chauffeur && (c.chauffeur.nom || c.chauffeur.telephone));
     bDif.hidden = aChauffeur
-               || ["realisee", "refusee"].indexOf(c.statut || "attente") >= 0;
+               || ["realisee", "refusee", "annulee"].indexOf(c.statut || "attente") >= 0;
     /* Le libellé dit si l'annonce est déjà partie — sur une nuit chargée on
        ne se souvient pas de ce qu'on a diffusé. Il reste cliquable : une
        course que personne n'a prise se rediffuse. */
@@ -11530,6 +11814,117 @@ window.ELA_TEXTES = {
     desarmerRefus();
     majCourse(ref, "refusee");
     ecran("ecran-bord");
+  });
+
+  /* ═══ ANNULER LA COURSE (30/09/2026, à sa demande) ═══
+     La réception ne peut plus annuler : elle appelle, et c'est ici qu'on
+     annule. Deux appuis, le second porte un autre mot ; l'armement retombe
+     seul après 8 s. La course reste au registre (preuve), ne compte pas dans
+     les chiffres, et la réception lit « Annulée ». */
+  var annulArme = null, annulMinuteur = null;
+  function desarmerAnnul(){
+    annulArme = null;
+    if(annulMinuteur){ clearTimeout(annulMinuteur); annulMinuteur = null; }
+    var b = document.getElementById("btnAnnulerCourse");
+    if(b) b.textContent = "Annuler la course";
+  }
+  document.getElementById("btnAnnulerCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    if(annulArme !== bonBord.ref){
+      annulArme = bonBord.ref;
+      this.textContent = "Confirmer l'annulation";
+      annulMinuteur = setTimeout(desarmerAnnul, 8000);
+      return;
+    }
+    var avecChauffeur = !!(bonBord.chauffeur && (bonBord.chauffeur.nom || bonBord.chauffeur.telephone));
+    desarmerAnnul();
+    var ref = bonBord.ref;
+    majCourse(ref, "annulee", { annuleeLe: new Date().toISOString() });
+    /* On RESTE sur le bon, qui dit maintenant « Annulée » : c'est la preuve
+       que le geste a pris. Et rien ne part tout seul chez le chauffeur — on
+       le rappelle, sinon la voiture part quand même. */
+    ouvrirBonBord(ref);
+    var note = document.getElementById("bbModifNote");
+    note.textContent = "Course annulée. La réception le verra sous 30 secondes."
+      + (avecChauffeur ? " Prévenez le chauffeur : rien ne lui est envoyé automatiquement." : "");
+    note.hidden = false;
+  });
+
+  /* ═══ MODIFIER LA COURSE (30/09/2026, à sa demande) ═══
+     La référence ne change pas. On garde la trace du moment (« modifieLe »),
+     que la réception affiche sur sa carte. Le prix ne se recalcule pas tout
+     seul : un trajet changé se renégocie. */
+  function fermerModif(){
+    var f = document.getElementById("bbModif");
+    if(f) f.hidden = true;
+    var e = document.getElementById("mdErreur");
+    if(e) e.hidden = true;
+  }
+  function sansChambre(libelle){
+    return String(libelle || "").replace(/\s*\(ch\.\s*[^)]{1,12}\)\s*$/, "");
+  }
+  document.getElementById("btnModifierCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    var c = bonBord, co = c.course || {};
+    document.getElementById("mdDate").value    = co.date || "";
+    document.getElementById("mdHeure").value   = co.heure || "";
+    document.getElementById("mdDepart").value  = co.departPublic || sansChambre(co.depart);
+    document.getElementById("mdArrivee").value = co.arriveePublic || co.arrivee || "";
+    var m = /\(ch\.\s*([^)]{1,12})\)\s*$/.exec(co.depart || "");
+    document.getElementById("mdChambre").value = co.chambre || (m ? m[1].trim() : "");
+    document.getElementById("mdVehicule").value = co.vehiculeCle === "van" ? "van" : "berline";
+    document.getElementById("mdPrix").value    = c.prix && c.prix.total ? String(c.prix.total).replace(".", ",") : "";
+    document.getElementById("mdNom").value     = (c.client && c.client.nom) || "";
+    document.getElementById("mdTel").value     = (c.client && c.client.telephone) || "";
+    document.getElementById("mdNote").value    = co.note || "";
+    document.getElementById("mdErreur").hidden = true;
+    var f = document.getElementById("bbModif");
+    f.hidden = false;
+    f.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+  document.getElementById("btnMdFermer").addEventListener("click", fermerModif);
+  document.getElementById("btnMdEnregistrer").addEventListener("click", function(){
+    if(!bonBord) return;
+    var err = document.getElementById("mdErreur");
+    var dire = function(t){ err.textContent = t; err.hidden = false; };
+    var date = document.getElementById("mdDate").value;
+    var heure = document.getElementById("mdHeure").value;
+    var dep = document.getElementById("mdDepart").value.trim();
+    var arr = document.getElementById("mdArrivee").value.trim();
+    var chambre = document.getElementById("mdChambre").value.trim();
+    var prix = Number(document.getElementById("mdPrix").value.replace(",", ".").replace(/[^\d.]/g, ""));
+    var nom = document.getElementById("mdNom").value.trim();
+    var tel = document.getElementById("mdTel").value.trim();
+    /* On dit CE qui manque, pas « formulaire incomplet ». */
+    if(!date || !heure) return dire("La date et l'heure sont obligatoires.");
+    if(!dep || !arr) return dire("Le départ et l'arrivée sont obligatoires.");
+    if(!(prix > 0)) return dire("Le prix doit être un montant supérieur à 0.");
+    if(tel && !telValide(tel)) return dire("Le téléphone du client ne semble pas valable — relisez-le.");
+    var c = bonBord, co = JSON.parse(JSON.stringify(c.course || {}));
+    var gamme = GAMMES.filter(function(g){ return g.cle === document.getElementById("mdVehicule").value; })[0] || GAMMES[0];
+    var avant = (co.date || "") + " " + (co.heure || "");
+    co.date = date; co.heure = heure;
+    co.departPublic = dep; co.arriveePublic = arr;
+    co.depart = dep + (chambre ? " (ch. " + chambre + ")" : "");
+    co.arrivee = arr;
+    co.chambre = chambre;
+    co.note = document.getElementById("mdNote").value.trim();
+    co.vehicule = gamme.nom; co.vehiculeCle = gamme.cle;
+    var p = JSON.parse(JSON.stringify(c.prix || {}));
+    p.total = Math.round(prix * 100) / 100;
+    p.ht = p.total / 1.10; p.tva = p.total - p.ht;
+    var modifs = (c.modifications || []).concat([{ le: new Date().toISOString(), avant: avant }]).slice(-20);
+    var client = { nom: nom, telephone: tel };
+    Object.keys(c.client || {}).forEach(function(k){ if(!(k in client)) client[k] = c.client[k]; });
+    var maj = majCourse(c.ref, c.statut || "attente",
+      { course: co, prix: p, client: client, modifieLe: new Date().toISOString(), modifications: modifs });
+    fermerModif();
+    ouvrirBonBord(c.ref);
+    var note = document.getElementById("bbModifNote");
+    var aChauffeur = maj && maj.chauffeur && (maj.chauffeur.nom || maj.chauffeur.telephone);
+    note.textContent = "Course modifiée. La réception le verra sous 30 secondes."
+      + (aChauffeur ? " Prévenez le chauffeur : rien ne lui est envoyé automatiquement." : "");
+    note.hidden = false;
   });
 
   /* ═══ EFFACER UNE COURSE POUR DE BON ═══

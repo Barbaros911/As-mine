@@ -28,12 +28,13 @@ async function charger(dir, env){
   await import(tmp+'/index.mjs?'+Math.random()); return h;
 }
 let journal=[], tg=[], rows={};
-let quotaAppels=0,quotaLimite=60;
+let quotaAppels=0,quotaLimite=60,listeHotel=[],ecritures=[];
 globalThis.fetch=async(url,init={})=>{
   url=String(url);
   if(url.includes('api.telegram.org')){tg.push(JSON.parse(init.body).text);return new Response('{}');}
   if(url.includes('/rpc/consommer_quota_reservation')){quotaAppels++;return new Response(JSON.stringify(quotaAppels<=quotaLimite));}
-  if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon')) return new Response('[]');
+  if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon')) return new Response(JSON.stringify(listeHotel));
+  if(init.method==='PATCH'||init.method==='POST'&&url.includes('/rest/v1/courses')){ecritures.push(url);return new Response('');}
   if(url.includes('/rpc/est_exploitant')) return new Response(JSON.stringify(init.headers.Authorization==='Bearer ADMIN'));
   if(url.includes('/rest/v1/courses?')){const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(rows[ref]?[rows[ref]]:[]));}
   if(url.includes('journal_notifications_admin?select')){const ref=decodeURIComponent(url.match(/course_ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(journal.filter(j=>j.course_ref===ref)));}
@@ -70,6 +71,32 @@ ok((await hp('easyhotel-9F3K2Q')).status===200,'réception : bon code accepté s
 ok((await hp('mauvais')).status===401,'réception : mauvais code refusé');
 quotaAppels=60;
 ok((await hp('easyhotel-9F3K2Q')).status===429,'réception : plafond atteint → refus MÊME avec le bon code');
+
+/* LE PRIX NE SORT QUE TANT QUE LA COURSE EST À VENIR (30/09/2026). On cherche
+   la VALEUR dans la réponse brute, pas le mot « prix » : c'est ce que lirait
+   quelqu'un dans les outils du navigateur. Chaque montant est unique. */
+quotaAppels=0;
+const bonDe=(ref,total)=>({provenanceCle:'easyhotel-aeroville',course:{date:'2026-09-30',heure:'10:00'},prix:{total}});
+listeHotel=[['H1','attente',111],['H2','confirmee',222],['H3','realisee',333],['H4','refusee',444],['H5','annulee',555]]
+  .map(([ref,statut,t])=>({ref,statut,cree_le:'2026-09-30',bon:bonDe(ref,t)}));
+listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
+{
+  const t=await (await hp('easyhotel-9F3K2Q')).text();
+  ok(t.includes('111')&&t.includes('222'),'réception : le prix d\'une course À VENIR est envoyé (attente, confirmée)');
+  ok(!t.includes('333'),'réception : AUCUNE trace du prix d\'une course RÉALISÉE dans la réponse');
+  ok(!t.includes('444')&&!t.includes('555'),'réception : ni d\'une course non prise, ni d\'une course annulée');
+  const cs=JSON.parse(t).courses;
+  ok(cs.filter(c=>'prix' in c).length===2,'réception : le champ « prix » est ABSENT des courses finies, pas mis à zéro');
+  ok(cs[1].modifie==='2026-09-30T08:00:00Z','réception : la date de modification par Elatransfer est transmise');
+}
+/* LA RÉCEPTION NE PEUT PLUS DEMANDER D'ANNULATION (30/09/2026). */
+{
+  quotaAppels=0; ecritures=[];
+  const r=await hc(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},
+    body:JSON.stringify({hotel:'easyhotel-aeroville',code:'easyhotel-9F3K2Q',action:'annulation',ref:'H2'})}));
+  ok(r.status===403,'réception : l\'action « annulation » est refusée (403)');
+  ok(ecritures.length===0,'réception : et rien n\'est écrit sur la course');
+}
 
 /* cle-notifications : elle rend la clé PUBLIQUE, bien formée, et rien d'autre. */
 {
