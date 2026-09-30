@@ -1755,6 +1755,24 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   color:var(--gris);font-variant-numeric:tabular-nums;}
 .rec-course .rec-appel{display:flex;align-items:center;justify-content:center;
   text-decoration:none;}
+/* Deux gestes côte à côte : envoyer le bon, demander l'annulation. */
+.rec-actions{display:flex;gap:8px;margin-top:10px;}
+.rec-actions .bouton-fantome{flex:1 1 0;margin:0;min-height:44px;font-size:13.5px;
+  line-height:1.2;padding:8px 10px;}
+.rec-actions .rec-envoyer{border-color:#25D366;color:#128C4A;}
+/* Le rappel des 12 h : discret mais toujours là, en haut de la liste. */
+.rec-session{margin:0 2px 12px;padding:9px 12px;border-radius:10px;
+  background:#EEF4F8;color:#24485F;font-size:12.5px;line-height:1.35;}
+/* Ce qui vient de changer. Le vert dit « la voiture est acquise », le rouge
+   « prévenez le client » — les deux seuls changements qu'on signale. */
+.rec-alerte{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:12px 14px;
+  border-radius:12px;background:#E7F6EE;border:1px solid #9FD3B6;color:#12653F;
+  font-size:14px;font-weight:700;white-space:pre-line;}
+.rec-alerte.refus{background:#FDECEC;border-color:#F0A8A8;color:#9B1C1C;}
+.rec-alerte span{flex:1 1 auto;}
+.rec-alerte-ok{flex:0 0 auto;min-height:40px;min-width:56px;border-radius:10px;
+  border:1px solid currentColor;background:#fff;color:inherit;font-weight:800;cursor:pointer;}
+.rec-course.rec-nouveau{box-shadow:0 0 0 2px #25A06A;}
 /* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
    prend aucune place en hauteur — la carte vient justement de maigrir de
    142 à 111 px — et il ne recouvre rien. */
@@ -4458,7 +4476,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          sans que personne le sache. C'est la différence assumée avec le
          code de l'espace exploitant. -->
     <div id="recVerrou">
-      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il n'est demandé qu'une fois sur cet appareil.</p>
+      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il reste actif 12 h sur cet appareil, puis il vous sera redemandé : gardez-le bien.</p>
       <label class="champ" for="recCode">
         <span class="champ-corps">
           <span class="champ-titre">Code de la réception</span>
@@ -4487,6 +4505,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 
       <!-- Trois chiffres, de front. « Aujourd'hui » d'abord : c'est la
            seule question qu'un comptoir se pose en arrivant le matin. -->
+      <!-- LE RAPPEL DES 12 H, EN HAUT, pour qu'on n'oublie pas le code : il dit
+           à quelle heure il sera redemandé. -->
+      <p class="rec-session" id="recSession" hidden></p>
+
+      <!-- Ce qui vient de changer — « validée » ou « non prise » — depuis le
+           dernier regard. Caché tant qu'il n'y a rien à dire. -->
+      <div class="rec-alerte" id="recAlerte" hidden role="status">
+        <span></span>
+        <button type="button" class="rec-alerte-ok" id="btnRecAlerteOk">Vu</button>
+      </div>
+
       <div class="rec-chiffres">
         <div class="rec-chiffre"><b id="recNbJour">0</b><span>aujourd'hui</span></div>
         <div class="rec-chiffre"><b id="recNbAttente">0</b><span>en attente</span></div>
@@ -4875,6 +4904,7 @@ window.ELA_TEXTES = {
     bon_note_comptoir:"Nous cherchons un chauffeur. La course passera à « Réservation validée » dans les réservations de l'hôtel dès qu'il est attribué.",
     envoi_ok_comptoir:"Demande bien reçue. Elatransfer est prévenu automatiquement : rien d'autre à faire.",
     voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
+    envoyer_bon_client:"Envoyer le bon au client",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
     btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
@@ -5062,6 +5092,7 @@ window.ELA_TEXTES = {
     bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
     envoi_ok_comptoir:"Request received. Elatransfer is alerted automatically: nothing else to do.",
     voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
+    envoyer_bon_client:"Send the voucher to the guest",
     err_identite:"Enter the room number, or the guest's name and phone number.",
     btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
@@ -6037,24 +6068,71 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var recHotel = null;         // l'hôtel dont on tient le comptoir
   var recCourses = [];
-  /* Le code brut n'est jamais conservé. Après vérification, le serveur rend
-     un jeton hôtel signé et limité dans le temps ; seul ce jeton vit dans le
-     sessionStorage de l'onglet. Fermer l'onglet ferme donc aussi la session. */
+  /* ═══ LA SESSION TIENT 12 HEURES SUR L'APPAREIL (30/09/2026) ═══
+     À la demande de Barbaros. Elle vivait dans le sessionStorage de
+     l'onglet : fermer l'onglet — ou la tablette qui le fait toute seule —
+     redemandait le code, alors que l'écran promettait « une fois sur cet
+     appareil ». Un comptoir qui retape son code dix fois par jour cesse
+     d'utiliser l'outil.
+     LE CODE BRUT N'EST TOUJOURS PAS CONSERVÉ : seul le jeton signé par le
+     serveur l'est, et c'est le SERVEUR qui fixe sa fin (12 h après la saisie
+     du code, `exp` dans le jeton) — le navigateur ne peut pas la repousser.
+     On relit `exp` pour l'AFFICHER et pour oublier le jeton à l'heure dite ;
+     la vérification, elle, reste celle du serveur.
+     « Fermer la session » efface tout, tout de suite : c'est le geste d'une
+     tablette qu'on prête. */
   var CLE_CODE_REC = "ela_session_reception";
 
+  function finSession(jeton){
+    try{
+      var b = String(jeton || "").split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+      while(b.length % 4) b += "=";
+      var exp = JSON.parse(atob(b)).exp;
+      return typeof exp === "number" ? exp : 0;
+    }catch(e){ return 0; }
+  }
+  function lireSessions(stockage){
+    try{ return JSON.parse(stockage.getItem(CLE_CODE_REC) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
   function codeRetenu(cle){
-    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
-         return (o && o[cle]) || ""; }catch(e){ return ""; }
+    var jeton = "";
+    try{ jeton = lireSessions(localStorage)[cle] || ""; }catch(e){}
+    /* Une session d'avant ce changement, posée dans l'onglet : on la lit
+       encore, pour ne pas faire retaper le code le jour de la mise en ligne. */
+    if(!jeton){ try{ jeton = lireSessions(sessionStorage)[cle] || ""; }catch(e){} }
+    var fin = finSession(jeton);
+    if(jeton && fin && fin <= Date.now()){ oublierCode(cle); return ""; }
+    return jeton;
   }
   function retenirCode(cle, session){
-    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
-         o[cle] = session; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    try{ var o = lireSessions(localStorage);
+         o[cle] = session; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
     }catch(e){ /* stockage refusé : la connexion sera redemandée */ }
   }
   function oublierCode(cle){
-    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
-         delete o[cle]; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
-    }catch(e){}
+    [function(){ return localStorage; }, function(){ return sessionStorage; }].forEach(function(f){
+      try{ var st = f(), o = lireSessions(st);
+           delete o[cle]; st.setItem(CLE_CODE_REC, JSON.stringify(o)); }catch(e){}
+    });
+  }
+
+  /* LE RAPPEL, À L'ÉCRAN, POUR QU'ON N'OUBLIE PAS LE CODE : il sera
+     redemandé à telle heure. Écrit en français ; la finition du comptoir le
+     traduit (elle repart de « data-fin »). */
+  function dessinerSession(){
+    var el = document.getElementById("recSession");
+    if(!el || !recHotel) return;
+    var fin = finSession(codeRetenu(recHotel.cle));
+    if(!fin){ el.hidden = true; return; }
+    var d = new Date(fin);
+    var heure = d.toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+    var demain = d.toDateString() !== new Date().toDateString();
+    el.dataset.fin = String(fin);
+    delete el.dataset.fr;
+    el.textContent = "Code actif sur cet appareil jusqu’à " + (demain ? "demain " : "") + heure
+      + ". Gardez-le bien : il vous sera redemandé ensuite.";
+    el.hidden = false;
   }
 
   /* Elle reçoit la PHRASE, pas une clé : cet écran n'est pas traduit. */
@@ -6094,28 +6172,47 @@ window.ELA_TEXTES = {
     chargerReception(code);
   }
 
-  function chargerReception(identifiant){
+  /* Ce que la liste savait au dernier chargement : référence → état. Sert à
+     repérer ce qui a CHANGÉ depuis — une course que Barbaros vient de
+     valider, ou qu'il n'a pas pu placer. « null » au premier chargement :
+     tout y serait « nouveau », et l'écran s'allumerait pour rien. */
+  var recEtatsConnus = null;
+
+  function chargerReception(identifiant, silencieux){
     var btn = document.getElementById("btnRecActualiser");
-    btn.disabled = true;
+    if(!silencieux) btn.disabled = true;
     var dejaSession = identifiant && identifiant.indexOf(".") > 0;
     nuage.coursesHotel(recHotel.cle,
       dejaSession ? { session:identifiant } : { code:identifiant }).then(function(d){
       btn.disabled = false;
       if(d && d.session) retenirCode(recHotel.cle, d.session);
       recCourses = (d && d.courses) || [];
+      signalerChangements(recCourses);
       montrerVerrou(false);
       direRec(null);
       dessinerReception();
+      dessinerSession();
     }).catch(function(err){
       btn.disabled = false;
+      /* EN ARRIÈRE-PLAN, UNE PANNE DU RÉSEAU NE DIT RIEN. La liste affichée
+         reste juste à quelques secondes près ; la remplacer par un écran de
+         connexion parce qu'un appel de fond a échoué ferait croire à la
+         réception qu'elle a été déconnectée. Seul un refus du jeton compte. */
+      if(silencieux && String(err && err.message) !== "code") return;
       /* UN CODE REFUSÉ EFFACE CELUI QU'ON GARDAIT. Sinon la réception
          resterait devant une liste vide sans comprendre, avec un code
          périmé retenu dans l'appareil — le jour où Barbaros le change,
          personne ne s'en sort. */
       if(String(err && err.message) === "code"){
         oublierCode(recHotel.cle);
+        recEtatsConnus = null;
         montrerVerrou(true);
-        direRec("Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
+        /* Un JETON refusé n'est pas un code faux : ce sont les 12 h qui sont
+           passées (ou le code a été changé). Le dire autrement ferait
+           chercher une faute de frappe qui n'existe pas. */
+        direRec(dejaSession
+          ? "La session de 12 h est terminée. Saisissez à nouveau le code de la réception."
+          : "Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
       } else if(String(err && err.message) === "quota"){
         /* Trop d'essais depuis cette connexion : le code n'est PAS oublié,
            il peut être le bon — c'est le nombre d'essais qui bloque. */
@@ -6223,7 +6320,7 @@ window.ELA_TEXTES = {
       }
 
       var d = document.createElement("div");
-      d.className = "rec-course";
+      d.className = "rec-course" + (recNouveaux[c.ref] ? " rec-nouveau" : "");
       d.dataset.ref = c.ref;
 
       /* L'HEURE EN GROS, L'ÉTAT À DROITE. Un comptoir lit une heure, pas
@@ -6350,11 +6447,29 @@ window.ELA_TEXTES = {
         av.textContent = "Annulation demandée — nous vous confirmons.";
         d.appendChild(av);
       } else if(c.statut === "attente" || c.statut === "confirmee"){
+        /* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ Sans lui, il
+           n'a ni la référence, ni l'heure, ni le prix — et c'est la
+           réception qu'il revient voir. Seulement s'il a laissé un numéro. */
+        var rang = document.createElement("div");
+        rang.className = "rec-actions";
+        var numeroClient = telWa(c.tel);
+        if(numeroClient){
+          var env = document.createElement("button");
+          env.type = "button"; env.className = "bouton-fantome rec-envoyer";
+          env.textContent = "Envoyer le bon au client";
+          env.addEventListener("click", function(){
+            window.open("https://wa.me/" + numeroClient + "?text="
+              + encodeURIComponent(messageBonClient(bonDeCarte(c), langueMessage())),
+              "_blank", "noopener");
+          });
+          rang.appendChild(env);
+        }
         var b = document.createElement("button");
         b.type = "button"; b.className = "bouton-fantome";
         b.textContent = "Demander l'annulation";
         b.addEventListener("click", function(){ demanderAnnulation(c, b); });
-        d.appendChild(b);
+        rang.appendChild(b);
+        d.appendChild(rang);
       }
       liste.appendChild(d);
     });
@@ -6384,6 +6499,74 @@ window.ELA_TEXTES = {
         direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
       });
   }
+
+  /* La course telle que la liste la reçoit, mise à la forme commune du
+     message au client. */
+  function bonDeCarte(c){
+    return { ref:c.ref, date:c.date, heure:c.heure,
+             depart:(c.depart || (recHotel ? recHotel.nom : "")).split(",")[0],
+             arrivee:(c.arrivee || (recHotel ? recHotel.nom : "")).split(",")[0],
+             vehicule:c.vehicule, prix:c.prix, paiement:c.paiement, statut:c.statut,
+             chauffeur:(c.statut === "confirmee" && c.chauffeur) ? c.chauffeur : null };
+  }
+
+  /* ═══ CE QUI A CHANGÉ DEPUIS LE DERNIER REGARD (30/09/2026) ═══
+     La liste se met à jour toute seule ; encore faut-il qu'un changement SE
+     VOIE. Une pastille qui passe au vert au milieu de dix cartes ne se
+     remarque pas : un bandeau le dit en haut, et la carte s'éclaire.
+     Seuls deux changements comptent pour un comptoir — « validée » (la
+     voiture est acquise) et « non prise » (il faut prévenir le client). */
+  var recNouveaux = {};
+  function signalerChangements(liste){
+    var avant = recEtatsConnus, changes = [];
+    recEtatsConnus = {};
+    liste.forEach(function(c){
+      recEtatsConnus[c.ref] = c.statut;
+      if(avant && avant[c.ref] && avant[c.ref] !== c.statut
+         && (c.statut === "confirmee" || c.statut === "refusee")) changes.push(c);
+    });
+    if(!changes.length) return;
+    changes.forEach(function(c){ recNouveaux[c.ref] = true; });
+    var al = document.getElementById("recAlerte");
+    if(!al) return;
+    var refus = changes.some(function(c){ return c.statut === "refusee"; });
+    al.className = "rec-alerte" + (refus ? " refus" : "");
+    al.querySelector("span").textContent = changes.map(function(c){
+      var en = document.documentElement.lang === "en";
+      return (c.statut === "confirmee" ? (en ? "Confirmed" : "Réservation validée")
+              : (en ? "Not taken — let the guest know" : "Non prise — prévenez le client"))
+        + " : " + (c.heure || "") + (c.chambre ? (en ? " · room " : " · chambre ") + c.chambre : (c.client ? " · " + c.client : ""));
+    }).join("\n");
+    al.hidden = false;
+    try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){}
+  }
+
+  /* ═══ LA LISTE SE MET À JOUR TOUTE SEULE (30/09/2026) ═══
+     Sans ça, une course confirmée par Barbaros restait « En attente » tant
+     que personne n'appuyait sur « Actualiser », et la réception l'appelait
+     pour demander ce qu'elle aurait pu lire.
+     Toutes les 30 s, mais JAMAIS DANS LE VIDE : ni onglet en arrière-plan,
+     ni liste fermée, ni session absente — c'est de la batterie et du quota
+     serveur brûlés pour personne. Et au RETOUR sur l'onglet, tout de suite :
+     c'est le moment où l'on regarde. */
+  function ecouteReception(){
+    var corps = document.getElementById("recCorps");
+    return !!recHotel && !document.hidden && corps && !corps.hidden
+           && !!corps.offsetParent && !!codeRetenu(recHotel.cle);
+  }
+  function rafraichirReception(){
+    if(ecouteReception()) chargerReception(codeRetenu(recHotel.cle), true);
+    else if(recHotel) dessinerSession();
+  }
+  setInterval(rafraichirReception, 30000);
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden) rafraichirReception();
+  });
+  document.getElementById("btnRecAlerteOk").addEventListener("click", function(){
+    document.getElementById("recAlerte").hidden = true;
+    recNouveaux = {};
+    dessinerReception();
+  });
 
   document.getElementById("btnReception")
           .addEventListener("click", ouvrirReception);
@@ -6419,6 +6602,9 @@ window.ELA_TEXTES = {
     if(!recHotel) return;
     oublierCode(recHotel.cle);
     recCourses = [];
+    recEtatsConnus = null; recNouveaux = {};
+    document.getElementById("recAlerte").hidden = true;
+    document.getElementById("recSession").hidden = true;
     document.getElementById("recListe").innerHTML = "";
     document.getElementById("recCode").value = "";
     montrerVerrou(true);
@@ -6556,6 +6742,27 @@ window.ELA_TEXTES = {
         });
         var actionsBon = document.getElementById("actionsBon");
         actionsBon.insertBefore(versRec, document.getElementById("btnNouvelleCourse"));
+        /* Et le client repart avec son bon, dans le même geste. */
+        var envBon = document.createElement("button");
+        envBon.type = "button"; envBon.className = "bouton-fantome";
+        envBon.id = "btnBonEnvoyerClient"; envBon.hidden = true;
+        envBon.setAttribute("data-t", "envoyer_bon_client");
+        envBon.textContent = T("envoyer_bon_client");
+        envBon.addEventListener("click", function(){
+          if(!bonCourant || !bonCourant.client) return;
+          var num = telWa(bonCourant.client.telephone);
+          if(!num) return;
+          var co = bonCourant.course || {};
+          window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(messageBonClient({
+            ref:bonCourant.ref, date:co.date, heure:co.heure,
+            depart:(co.departPublic || co.depart || "").split(",")[0],
+            arrivee:(co.arriveePublic || co.arrivee || "").split(",")[0],
+            vehicule:co.vehicule, prix:bonCourant.prix && bonCourant.prix.total,
+            paiement:bonCourant.paiement ? T(bonCourant.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "",
+            statut:bonCourant.statut, chauffeur:bonCourant.statut === "confirmee" ? bonCourant.chauffeur : null
+          }, langueMessage())), "_blank", "noopener");
+        });
+        actionsBon.insertBefore(envBon, versRec);
       }
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
@@ -8688,9 +8895,43 @@ window.ELA_TEXTES = {
      l'absence de repli — il désignerait une porte qui n'existe plus.
      RIEN DE TOUT ÇA CÔTÉ CLIENT : lui garde son bouton en permanence, son
      message WhatsApp est le second chemin par lequel sa demande arrive. */
+  /* ═══ LE BON ENVOYÉ AU CLIENT PAR LA RÉCEPTION (30/09/2026) ═══
+     Sept lignes, dans la langue choisie à l'écran (le sélecteur FR/EN sert
+     justement quand le client devant le comptoir est étranger). Ce sont SES
+     informations, envoyées à SON numéro : rien d'autre que sa course. Le
+     chauffeur n'y figure que sur une course confirmée — avant, rien n'est
+     acquis, et un nom promettrait une voiture que personne n'a acceptée. */
+  function langueMessage(){ return document.documentElement.lang === "en" ? "en" : "fr"; }
+  function messageBonClient(b, langue){
+    var en = langue === "en";
+    var d = new Date((b.date || "") + "T" + (b.heure || ""));
+    var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
+      : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
+        + (en ? " at " : " à ") + (b.heure || "");
+    var prix = (typeof b.prix === "number" && b.prix)
+      ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "";
+    var etat = b.statut === "confirmee"
+      ? (en ? "Confirmed" : "Confirmé")
+        + (b.chauffeur && b.chauffeur.nom ? (en ? " — driver " : " — chauffeur ") + b.chauffeur.nom
+           + (b.chauffeur.telephone ? ", " + b.chauffeur.telephone : "") : "")
+      : (en ? "Awaiting confirmation — we will confirm shortly" : "En attente de confirmation — nous confirmons très vite");
+    return [
+      en ? "Elatransfer — your transfer" : "Elatransfer — votre transfert",
+      (en ? "Ref. " : "Réf. ") + (b.ref || ""),
+      quand.charAt(0).toUpperCase() + quand.slice(1),
+      (b.depart || "—") + " → " + (b.arrivee || "—"),
+      [b.vehicule, prix, b.paiement].filter(Boolean).join(" · "),
+      etat,
+      (en ? "Questions: " : "Une question : ") + "+33 7 59 31 24 33"
+    ].join("\n");
+  }
+
   function jugerRenvoiComptoir(){
     if(!recHotel) return;
     btnRenvoyer.hidden = true;
+    var envBon = document.getElementById("btnBonEnvoyerClient");
+    if(envBon) envBon.hidden = !(bonCourant && bonCourant.client
+                                 && telWa(bonCourant.client.telephone));
     /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
        rouge posé juste au-dessus porte déjà la consigne et le numéro ;
        deux phrases pour une même chose, c'est le doublon qu'on vient de

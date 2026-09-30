@@ -58,6 +58,7 @@ await ctx.route('**://*/**', r => r.request().url().startsWith('http://127.0.0.1
   ? r.continue() : r.abort());
 
 let appels = [];
+let etat0043 = 'attente';   // Barbaros la validera en cours de suite
 const COURSES = () => ([
   { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:'06:00',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Orly 1 — Aéroport de Paris-Orly',
@@ -75,7 +76,7 @@ const COURSES = () => ([
     montantChauffeur: 7500, taux_commission: 25,
     stripePaymentIntent: 'pi_3QTESTinterne0001',
     autrePartenaire: 'Ibis Roissy', carnetChauffeurs: ['Mehmet','Ayse','Karim'] },
-  { ref:'ELA-26-09-0043', statut:'attente', date:jour(1), heure:'14:30',
+  { ref:'ELA-26-09-0043', statut:etat0043, date:jour(1), heure:'14:30',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne',
     arrivee:'Parc des Expositions de Paris-Nord Villepinte, 93420 Villepinte',
     vehicule:'Van', prix:120, client:'Famille Chen', tel:'06 98 76 54 32', chambre:'302',
@@ -188,8 +189,11 @@ check('les trois courses sont là', (await p.locator('.rec-course').count()) ===
 check('le code brut n\'est jamais conservé dans le navigateur',
   await p.evaluate(code => !Object.values(localStorage).some(v => String(v).includes(code))
     && !Object.values(sessionStorage).some(v => String(v).includes(code)), CODE));
-check('seul le jeton de session signé est conservé dans l\'onglet',
-  await p.evaluate(session => Object.values(sessionStorage).some(v => String(v).includes(session)), SESSION));
+/* 12 H SUR L'APPAREIL (30/09/2026, à sa demande) : le jeton vit dans le
+   localStorage, plus dans l'onglet — fermer la tablette ne redemande plus le
+   code. C'est le SERVEUR qui fixe la fin, dans le jeton. */
+check('seul le jeton de session signé est conservé, sur l\'appareil',
+  await p.evaluate(session => Object.values(localStorage).some(v => String(v).includes(session)), SESSION));
 
 /* IL N'EST DEMANDÉ QU'UNE FOIS. Un comptoir qui retape un code à chaque
    client cesse d'utiliser l'outil au bout de trois jours. */
@@ -342,6 +346,51 @@ check('avec le téléphone ET WhatsApp',
   (await p.locator('.rec-aide a[href^="tel:"]').count()) === 1
   && (await p.locator('#recAideWa').getAttribute('href')).includes('wa.me'));
 
+/* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ On lit le message qui
+   part, pas seulement la présence du bouton : un bouton qui envoie un
+   message vide ou faux serait pire que pas de bouton. */
+await p.evaluate(() => { window.__bon = []; window.open = (u) => { window.__bon.push(u); return null; }; });
+await carte.locator('button', { hasText:'Envoyer le bon au client' }).click();
+const bonEnvoye = await p.evaluate(() => (window.__bon || []).map(u => decodeURIComponent(u)));
+check('« Envoyer le bon au client » écrit au NUMÉRO DU CLIENT',
+  bonEnvoye.length === 1 && bonEnvoye[0].startsWith('https://wa.me/33612345678?text='), bonEnvoye.join(' '));
+check('…avec la référence, l\'heure, le trajet et le prix',
+  bonEnvoye.length === 1 && /ELA-26-09-0042/.test(bonEnvoye[0]) && /06:00/.test(bonEnvoye[0])
+  && /Orly 1/.test(bonEnvoye[0]) && /100,00 €/.test(bonEnvoye[0]), bonEnvoye.join(' '));
+check('…et le chauffeur, la course étant confirmée',
+  bonEnvoye.length === 1 && /Mehmet/.test(bonEnvoye[0]), bonEnvoye.join(' '));
+const sansTel = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0031' });
+check('pas de bouton quand le client n\'a laissé aucun numéro',
+  (await sansTel.locator('button', { hasText:'Envoyer le bon au client' }).count()) === 0);
+
+/* ═══ LA LISTE SE MET À JOUR TOUTE SEULE, ET LE CHANGEMENT SE VOIT ═══
+   Barbaros valide 0043 ; le retour sur l'onglet suffit à le faire apparaître,
+   sans appuyer sur « Actualiser » — et un bandeau le dit. */
+etat0043 = 'confirmee';
+const avantAuto = appels.length;
+await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+await p.waitForTimeout(700);
+check('au retour sur l\'onglet, la liste se relit toute seule', appels.length === avantAuto + 1,
+  `${avantAuto} → ${appels.length}`);
+check('la course validée par Barbaros passe à « Réservation validée »',
+  /Réservation validée/.test(await attente.locator('.rec-etat').textContent()));
+check('…et un bandeau le signale en haut',
+  await p.locator('#recAlerte').isVisible()
+  && /Réservation validée : 14:30/.test(await p.locator('#recAlerte').textContent()),
+  await p.locator('#recAlerte').textContent());
+check('…la carte concernée s\'éclaire', await attente.evaluate(el => el.classList.contains('rec-nouveau')));
+/* Gardé : si le bandeau manque, la suite doit le DIRE, pas mourir sur un
+   délai d'attente en cliquant un bouton caché. */
+const bandeauVu = await p.locator('#recAlerte').isVisible();
+if(bandeauVu) await p.locator('#btnRecAlerteOk').click();
+check('« Vu » retire le bandeau', bandeauVu && await p.locator('#recAlerte').isHidden());
+const avantCache = appels.length;
+await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable:true, get:() => true });
+  document.dispatchEvent(new Event('visibilitychange')); });
+await p.waitForTimeout(400);
+check('onglet en arrière-plan : aucune relecture (batterie, quota)', appels.length === avantCache);
+await p.evaluate(() => { delete document.hidden; });
+
 /* ---------------------------------------------------------------------
    5. RIEN NE S'ANNULE TOUT SEUL
    --------------------------------------------------------------------- */
@@ -380,6 +429,34 @@ await p.locator('#btnReception').click();
 await p.waitForTimeout(700);
 check('et il ne revient pas tout seul au rechargement : le code est oublié',
   await p.locator('#recVerrou').isVisible());
+
+/* ═══ LES 12 H ═══ Un jeton dont la fin (fixée par le serveur, dans le
+   jeton) est passée est oublié SANS appel : la liste ne s'ouvre pas sur une
+   session morte. Et un jeton que le serveur refuse dit « 12 h terminées »,
+   pas « code faux » — sinon on chercherait une faute de frappe. */
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const perime = b64({ v:1, hotel:'easyhotel-aeroville', exp: Date.now() - 60000 }) + '.sig';
+await p.evaluate(j => localStorage.setItem('ela_session_reception',
+  JSON.stringify({ 'easyhotel-aeroville': j })), perime);
+appels = [];
+await p.reload({waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+await p.locator('#btnReception').click();
+await p.waitForTimeout(500);
+check('un jeton dont les 12 h sont passées redemande le code, sans appel',
+  await p.locator('#recVerrou').isVisible() && !appels.some(a => a.session === perime),
+  JSON.stringify(appels));
+const refuse = b64({ v:1, hotel:'easyhotel-aeroville', exp: Date.now() + 3600e3 }) + '.refusee';
+await p.evaluate(j => localStorage.setItem('ela_session_reception',
+  JSON.stringify({ 'easyhotel-aeroville': j })), refuse);
+await p.reload({waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+await p.locator('#btnReception').click();
+await p.waitForTimeout(700);
+check('un jeton refusé par le serveur dit que la session de 12 h est terminée',
+  /12 h/.test(await p.locator('#recErreur').textContent()), await p.locator('#recErreur').textContent());
+check('…et rappelle la règle des 12 h avant la saisie',
+  /12 h/.test(await p.locator('#recVerrou .rec-intro').textContent()));
 
 /* ---------------------------------------------------------------------
    7. UN HÔTEL INCONNU NE DIT PAS QU'IL EST INCONNU

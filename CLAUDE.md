@@ -6063,3 +6063,25 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
   et repasser en FR laissait « Pending » et « Tomorrow ». Deux observateurs
   ÉTROITS restent (l'attribut `lang`, les enfants directs de `#recListe`), et
   le français d'origine est gardé sur l'élément (`data-fr`) pour y revenir.
+- **Suite du même jour, à sa demande (« ok fait 12 h en leur affichant ce
+  message afin qu'ils n'oublient pas ») :**
+  - **La session tient 12 h sur l'appareil** (`localStorage`, plus l'onglet).
+    La fin est celle du jeton signé par le serveur (`exp`,
+    `DUREE_SESSION_MS` de `_shared/hotel-session.ts`) : le navigateur la lit
+    pour l'afficher et oublier le jeton à l'heure dite, il ne peut pas la
+    repousser. Le code brut n'est toujours conservé nulle part.
+  - **Le rappel est écrit deux fois** : avant la saisie (« actif 12 h, puis
+    redemandé : gardez-le bien ») et en haut de la liste (« Code actif sur
+    cet appareil jusqu'à 11:49 »). Un jeton refusé dit « la session de 12 h
+    est terminée », jamais « code faux ».
+  - **La liste se relit toute seule** toutes les 30 s et au retour sur
+    l'onglet — jamais onglet caché, liste fermée ou sans session. En fond,
+    une panne réseau ne dit rien ; seul un refus du jeton reverrouille.
+  - **Ce qui change se voit** : « Réservation validée » (vert) ou « Non
+    prise — prévenez le client » (rouge) dans un bandeau en haut, avec « Vu »,
+    et la carte s'éclaire. Aucun bandeau au premier chargement.
+  - **« Envoyer le bon au client »** sur chaque course à venir qui a un
+    numéro, et sur le bon juste après l'envoi : WhatsApp vers le numéro du
+    client, sept lignes, dans la langue affichée (le FR/EN sert quand le
+    client est étranger). Le chauffeur n'y figure que sur une course
+    confirmée — même règle que partout.

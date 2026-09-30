@@ -416,3 +416,6 @@ body.hotel.reception-premium #receptionActions .reception-action-copy b,
 body.hotel.reception-premium #recDashboardActions .reception-action-copy b{font-size:14px}
 body.hotel.reception-premium #receptionActions .reception-action-copy small,
 body.hotel.reception-premium #recDashboardActions .reception-action-copy small{font-size:11.5px}
+/* La carte qui vient d'être validée s'éclaire aussi au comptoir : l'ombre
+   de la carte, plus haut, recouvrait le filet vert. */
+body.hotel.reception-premium .rec-course.rec-nouveau{border-color:#25A06A;box-shadow:0 0 0 2px #25A06A,0 6px 16px rgba(8,47,82,.045)}
