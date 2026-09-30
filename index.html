@@ -5734,8 +5734,12 @@ window.ELA_TEXTES = {
      prix : c'est la différence entre une adresse et une intention. */
   var choix = { depart:null, arrivee:null };
 
+  /* « œ » et « æ » ne sont PAS des lettres accentuées : NFD ne les défait
+     pas. Sans ces deux remplacements, « coeur » tapé ne retrouvait jamais
+     « Sacré-Cœur », et un bar écrit « Coeur » passait devant la basilique. */
   function sansAccents(s){
-    return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+    return (s||"").toLowerCase().replace(/œ/g,"oe").replace(/æ/g,"ae")
+             .normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
   }
   function retarder(fn, delai){
     var t; return function(){ clearTimeout(t); t = setTimeout(fn, delai); };
@@ -5856,12 +5860,33 @@ window.ELA_TEXTES = {
     var route = window.ELA_ROUTE;
     return route && route.volDoiseauKm ? route.volDoiseauKm(CENTRE_RECHERCHE, item) : null;
   }
+  /* Ce que le client tape quand il cherche un restaurant : sans l'un de ces
+     mots, un bar homonyme n'a pas à passer devant le monument ou la rue. */
+  var MOTS_RESTO = ["restaurant","resto","brasserie","cafe","bar","pub","bistrot","pizza","pizzeria"];
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    var utiles = 0, touches = 0;
     mots.forEach(function(m){
-      if(m.length < 2 || l.indexOf(m) === -1) return;
-      s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
+      if(m.length < 2) return;
+      var courant = MOTS_COURANTS.indexOf(m) > -1;
+      if(!courant) utiles++;
+      if(l.indexOf(m) === -1) return;
+      if(!courant) touches++;
+      s += courant ? 1 : 3;
     });
+    var toutTrouve = utiles > 0 && touches === utiles;
+    /* ═══ CE QU'ON CHERCHE PAR SON NOM PASSE DEVANT (30/09/2026) ═══
+       « sacré coeur » : la basilique avant le bar du même nom ; « champs
+       elysee » : l'avenue avant les hôtels qui portent son nom. Un
+       monument qui répond au nom tapé gagne 3 ; une RUE dont le nom est
+       entièrement tapé gagne 3 (une rue n'a pas le bonus de « lieu nommé »
+       qu'ont les commerces) ; un bar ou un restaurant en perd 2 si le
+       client n'a pas écrit « restaurant », « bar »… Rien n'est retiré :
+       l'ordre change, la liste reste la même. */
+    if(item.categorie === "culture" && touches > 0) s += 3;
+    if(item.categorie === "voie" && toutTrouve) s += 3;
+    if(item.categorie === "restauration"
+       && !mots.some(function(m){ return MOTS_RESTO.indexOf(m) > -1; })) s -= 2;
     var km = distanceParis(item);
     if(km !== null) s += bonusDistance(km);
     return s;

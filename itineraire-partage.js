@@ -93,7 +93,11 @@ function categorieDuLieu(cle, valeur, type){
   if(["hospital","clinic","doctors","pharmacy"].indexOf(v)>-1) return "sante";
   if(["restaurant","cafe","bar","fast_food","pub"].indexOf(v)>-1) return "restauration";
   if(HOTEL_OSM.indexOf(v)>-1) return "hotel";
-  if(k==="tourism" || ["museum","attraction","viewpoint","artwork","monument","gallery"].indexOf(v)>-1) return "culture";
+  /* Une basilique, une église, un monument historique SONT des lieux qu'on
+     cherche par leur nom (« sacré coeur ») : sans cette ligne, le lieu de
+     culte tombait en simple « adresse », au rang du premier bar homonyme. */
+  if(k==="tourism" || k==="historic" || ["museum","attraction","viewpoint","artwork","monument","gallery",
+     "place_of_worship","castle","memorial","palace","cathedral"].indexOf(v)>-1) return "culture";
   if(["aerodrome","airport"].indexOf(v)>-1 || v.indexOf("airport")>-1) return "aeroport";
   if(["station","subway_entrance","halt"].indexOf(v)>-1 || k==="railway") return "gare";
   if(["school","university","college","kindergarten"].indexOf(v)>-1) return "education";
@@ -113,6 +117,9 @@ function libellePhoton(p){
   if(rue) morceaux.push(rue);
   var ville = [p.postcode, p.city || p.county].filter(Boolean).join(" ");
   if(ville) morceaux.push(ville); else if(p.state) morceaux.push(p.state);
+  /* Hors de France, le pays est écrit : « Amsterdam, Pays-Bas » ne se
+     confond pas avec la rue d'Amsterdam à Paris. */
+  if(p.countrycode && p.countrycode !== "FR" && p.country) morceaux.push(p.country);
   return { label:morceaux.filter(Boolean).join(", "), lieuNomme:nomme };
 }
 
@@ -139,8 +146,12 @@ function depuisBAN(q){
     .then(function(d){
       if(!d || !Array.isArray(d.features)) return [];
       return d.features.map(function(f){
+        /* Le TYPE est gardé : une rue entière (« Avenue des Champs-Élysées »)
+           doit pouvoir passer devant un commerce qui porte son nom. */
+        var t = f.properties.type;
         return { label:f.properties.label, lat:f.geometry.coordinates[1],
-                 lon:f.geometry.coordinates[0], icon:"📍", lieuNomme:false };
+                 lon:f.geometry.coordinates[0], icon:"📍", lieuNomme:false,
+                 categorie: t === "street" ? "voie" : "adresse" };
       });
     });
 }
@@ -153,11 +164,13 @@ function depuisPhoton(q){
                  "&limit=15&lang=fr&lat=48.8566&lon=2.3522&location_bias_scale=0.4")
     .then(function(d){
       if(!d || !Array.isArray(d.features)) return [];
-      return d.features.filter(function(f){
-        var p = f.properties || {};
-        if(p.countrycode) return p.countrycode === "FR";
-        return p.country ? /france/i.test(p.country) : true;
-      }).map(function(f){
+      /* PLUS DE FILTRE « FRANCE SEULEMENT » (30/09/2026, à sa demande :
+         « amst doit montrer la rue d'Amsterdam à Paris mais aussi Amsterdam
+         aux Pays-Bas »). Le classement par distance (bonusDistance, dans la
+         page) fait descendre l'étranger sans le cacher ; et la zone des
+         90 km s'applique toujours au moment du CHOIX : on ne vend pas en
+         ligne un Paris → Amsterdam au prix du kilomètre. */
+      return d.features.map(function(f){
         var p = f.properties, r = libellePhoton(p);
         var cat = categorieDuLieu(p.osm_key, p.osm_value, p.type);
         return { label:r.label, lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],

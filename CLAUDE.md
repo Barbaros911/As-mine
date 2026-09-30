@@ -5735,6 +5735,30 @@ c'est une fonction de `index.html`) :
   pas seulement Paris contre le reste. Les suites `test-nouveau`, `-hotel`,
   `-geoloc`, `-itineraire`, `test-admin-prix` restent toutes vertes.
 
+**« SACRÉ COEUR », « CHAMPS ELYSEE », « AMST » — CE QU'ON CHERCHE PAR SON NOM
+PASSE DEVANT** (30/09/2026, à sa demande : « il me propose des bars alors que
+je parle de la basilique… amst doit montrer la rue d'Amsterdam mais aussi
+Amsterdam aux Pays-Bas »). Trois causes, lues dans le code (le réseau d'ici
+ne joint ni la BAN ni Photon) :
+- **« œ » n'était pas ramené à « oe »** par `sansAccents` (NFD ne défait pas
+  une ligature) : « coeur » ne retrouvait pas « Cœur », et le bar écrit
+  « Coeur » passait devant la basilique.
+- **Un lieu de culte n'était dans aucune catégorie** (`categorieDuLieu` :
+  `place_of_worship` et la clé `historic` vont maintenant en « culture »), et
+  une avenue n'avait pas le bonus de « lieu nommé » des commerces qui portent
+  son nom. `note()` : +3 à un monument qui répond au nom tapé, +3 à une rue
+  dont tout le nom est tapé (la BAN garde son `type`), −2 à un bar ou un
+  restaurant si le client n'a écrit ni « restaurant » ni « bar »… Rien n'est
+  retiré de la liste, l'ordre seul change.
+- **Photon était filtré sur la France.** Le filtre est retiré : l'étranger
+  apparaît, plus bas (`bonusDistance`), avec son pays écrit (« Amsterdam,
+  Pays-Bas »). **La zone des 90 km tient au moment du CHOIX** : choisir
+  Amsterdam affiche « hors zone » avec appel et WhatsApp — décidé, on ne vend
+  pas un Paris → Amsterdam en ligne au prix du kilomètre.
+`test-nouveau-recherche.mjs` rejoue ses trois exemples, réponses données
+dans l'ordre le plus défavorable ; sur l'ancien code il rend exactement ce
+qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
+
 ## UN SEUL TARIF AU KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN
 
 28 septembre 2026, à sa demande : « je veux que tout le monde ait le même
