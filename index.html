@@ -10685,7 +10685,16 @@ window.ELA_TEXTES = {
     var el = document.getElementById("sonCoupe");
     if(!el) return;
     var C = window.AudioContext || window.webkitAudioContext;
-    el.hidden = !C || sonPret() || !document.body.classList.contains("espace");
+    var cacher = !C || sonPret() || !document.body.classList.contains("espace");
+    if(!cacher){ el.hidden = false; return; }
+    /* ON LE RETIRE UNE DEMI-SECONDE APRÈS L'APPUI, PAS PENDANT. Le premier
+       appui débloque le son ; retiré aussitôt, le bandeau faisait remonter
+       la page entre le doigt posé et le clic, et l'appui tombait à côté du
+       bouton visé — « Coller une demande » ne s'ouvrait plus (mesuré par
+       trois suites). */
+    if(!el.hidden && !jugerSon.attente){
+      jugerSon.attente = setTimeout(function(){ jugerSon.attente = null; el.hidden = sonPret() || !C || !document.body.classList.contains("espace") ? true : el.hidden; }, 500);
+    }
   }
   function deverrouillerSon(){
     try{

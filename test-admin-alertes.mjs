@@ -88,9 +88,13 @@ try {
   const {ctx, p, erreurs} = await espace('/ela-admin/');
   await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:8000}).catch(() => {});
   check('sans aucun appui, le bandeau « son coupé » est affiché', await p.locator('#sonCoupe').isVisible());
-  await p.locator('#sonCoupe').click();
-  await p.waitForTimeout(300);
-  check('un appui débloque le son et retire le bandeau', await p.locator('#sonCoupe').isHidden());
+  /* LE PREMIER APPUI VISE UN VRAI BOUTON, pas le bandeau : retiré trop tôt,
+     le bandeau faisait remonter la page et l'appui tombait à côté —
+     « Coller une demande » ne s'ouvrait plus. */
+  await p.locator('#btnCollerDemande').click();
+  await p.waitForTimeout(1500);
+  check('le premier appui atteint bien le bouton visé (Coller une demande s\'ouvre)', await p.locator('#collerRepli').isVisible());
+  check('et il débloque le son : le bandeau est retiré', await p.locator('#sonCoupe').isHidden());
   const badges0 = await p.evaluate(() => window.__badges.slice());
   check('la pastille de l\'icône compte la demande en attente (1)', badges0.includes(1), JSON.stringify(badges0));
 
