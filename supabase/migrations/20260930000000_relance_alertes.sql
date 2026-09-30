@@ -1,5 +1,5 @@
 -- =====================================================================
--- RAPPEL ET RATTRAPAGE DES ALERTES — toutes les 20 s, côté serveur
+-- RAPPEL ET RATTRAPAGE DES ALERTES — cadence d'urgence, côté serveur
 -- ---------------------------------------------------------------------
 -- 30/09/2026, à la demande de Barbaros : « recevoir toutes les courses en
 -- temps et en heure sur admin et Telegram ». Le webhook INSERT annonce la
@@ -8,10 +8,10 @@
 -- Toutes les 20 secondes, pg_cron appelle « nouvelle-demande » avec
 -- {"type":"RELANCE"} : la fonction relit les courses en attente et envoie
 --   · le RATTRAPAGE d'une demande de plus d'1 min jamais annoncée ;
---   · un RAPPEL TELEGRAM toutes les 20 s tant qu'elle reste en attente ET
---     qu'il ne l'a pas VUE (bouton « ✅ Vu » sous le message, ou course
---     ouverte dans l'admin) — 30/09/2026, à sa demande ;
---   · une notification du téléphone toutes les 10 min, 3 au plus.
+--   · Telegram ET notification toutes les 3 min si le départ est à H-30
+--     ou moins, toutes les 10 min entre H-2 et H-30 ;
+--   · aucun rappel avant H-2 (l'annonce initiale est déjà partie) ;
+--   · arrêt immédiat si elle est vue, confirmée ou refusée.
 -- « 20 seconds » : la syntaxe des intervalles courts de pg_cron (1.5 et
 -- plus). Si la base la refuse, le journal du workflow le dira — remettre
 -- alors '* * * * *' (une fois par minute).
