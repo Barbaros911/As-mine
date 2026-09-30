@@ -6066,17 +6066,25 @@ visuelle, notification, tout ce qui est possible ».
   `nouvelle-demande` avec `{type:"RELANCE"}`
   (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
   attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
-  **Telegram toutes les 20 s** tant qu'elle reste en attente ET qu'il ne l'a
-  pas VUE (à sa demande : « tant que je n'ai pas ouvert la demande reçue sur
-  Telegram »). **Telegram ne dit jamais à un bot qu'un message est lu** : « vu »
+  **La cadence suit l'urgence** (ChatGPT, 30/09/2026, validé par Barbaros) :
+  départ dans 30 min ou moins → Telegram ET notification toutes les 3 min ;
+  entre 30 min et 2 h → toutes les 10 min ; plus de 2 h → aucun rappel avant
+  H-2. Arrêt dès qu'elle est VUE, confirmée ou refusée. **Telegram ne dit
+  jamais à un bot qu'un message est lu** : « vu »
   est donc un GESTE — le bouton « ✅ Vu » sous chaque alerte (fonction
   `telegram-bot`, déployée sans JWT, qui vérifie l'en-tête secret du webhook
   et que l'appui vient de `TELEGRAM_CHAT`), ou la course ouverte dans l'admin
   (`signalerVue()` → RPC `ela_marquer_vue`). Les deux écrivent `vue` au
   journal. Le secret du webhook est dérivé du jeton du bot (SHA-256 de
   « jeton:webhook-ela ») : aucun secret de plus. Le webhook est posé par
-  `{type:"INSTALLER_TELEGRAM"}`, appelé par la même migration. Seule borne :
-  la fenêtre de 6 h. Notification du téléphone : toutes les 10 min, 3 au plus. Le son et la vibration de chaque message Telegram sont
+  `{type:"INSTALLER_TELEGRAM"}`, appelé par la même migration.
+  **LA FENÊTRE DE 6 H SE COMPTE DEPUIS LE DÉPART, PAS DEPUIS LA CRÉATION.**
+  Comptée depuis la création, elle écartait toute demande faite plus de 6 h
+  avant le départ (un hôtel qui réserve la veille : le cas le plus courant) —
+  aucun rappel à H-20 min. Trouvé en relisant le travail de ChatGPT, prouvé
+  par un test qui tombait. On lit 7 jours de demandes en attente ; le
+  rattrapage d'une demande jamais annoncée garde sa borne de 6 h depuis la
+  création. Le son et la vibration de chaque message Telegram sont
   réglés dans Telegram sur son téléphone, pas ici.
   Tout est relu sur le serveur et la cadence vient du journal : l'appeler plus
   souvent n'envoie rien de plus. **La migration ne part pas toute seule** —

@@ -119,6 +119,29 @@ try {
   minutes(30); await relance();
   check('course à plus de 2 h : aucun rappel inutile', nbRappels(lointain, 'telegram') === 0 && nbRappels(lointain, 'push') === 0);
 
+  /* 7 bis. RÉSERVÉE LA VEILLE : c'est le cas le plus courant (un hôtel, un
+     vol du lendemain), et la fenêtre de 6 h était comptée depuis la
+     CRÉATION. Une demande faite 20 h avant, toujours en attente à 20 min
+     du départ, ne recevait donc AUCUN rappel. La fenêtre se compte depuis
+     le DÉPART. */
+  {
+    const veille = 'ELA-26-09-VVVV8';
+    const parisDans = (min) => {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+        .formatToParts(new Date(maintenant + min * 60000)).filter(x => x.type !== 'literal').map(x => [x.type, x.value]));
+      return { date: `${p.year}-${p.month}-${p.day}`, heure: `${p.hour}:${p.minute}` };
+    };
+    const d = parisDans(20);
+    const b = bon(veille, d.heure); b.course.date = d.date;
+    courses.push({ ref: veille, statut: 'attente', cree_le: iso(maintenant - 20 * 3600000), bon: b });
+    journal.push({ type_evenement: 'nouvelle_reservation', course_ref: veille, canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant - 20 * 3600000) });
+    journal.push({ type_evenement: 'nouvelle_reservation', course_ref: veille, canal: 'push', statut: 'envoye', cree_le: iso(maintenant - 20 * 3600000) });
+    await relance();
+    check('réservée la veille, départ dans 20 min, toujours en attente : elle SONNE', nbRappels(veille, 'telegram') === 1, String(nbRappels(veille, 'telegram')));
+    /* Et une vieille demande jamais annoncée ne se réveille pas en pleine
+       nuit : le rattrapage garde sa borne de 6 h depuis la création. */
+  }
+
   /* 8. Une alerte qui a ÉCHOUÉ est rattrapée, sans tempête toutes les 20 s. */
   courses.push({ ref: 'ELA-26-09-CCCC3', statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-CCCC3', '13:10') });
   journal.push({ type_evenement: 'nouvelle_reservation', course_ref: 'ELA-26-09-CCCC3', canal: 'telegram', statut: 'echec', cree_le: iso(maintenant - 5 * 60000) });
