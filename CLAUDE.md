@@ -6099,7 +6099,17 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
     à se fabriquer. On la fabrique à l'ouverture ; « Envoyer l'image »
     (`navigator.share`, seulement si l'appareil sait partager un fichier) ou
     « Enregistrer l'image » partent ensuite sans attente.
-  - **Le texte WhatsApp reste en secours** dans l'aperçu : un partage de
-    fichier ne sait pas viser un numéro. Sans numéro, l'image sert encore (on
-    la montre, on la photographie), seul le texte disparaît. Le texte suit la
-    langue affichée ; le chauffeur n'y figure que sur une course confirmée.
+  - **LE CHOIX IMAGE / ÉCRIT EST EN TÊTE DE LA FEUILLE** (à sa demande : « il
+    faut qu'on puisse avoir le choix »). Deux onglets, « Bon en image » (ouvert
+    par défaut) et « Message écrit », et chacun MONTRE ce qui partira avant
+    l'envoi. L'écrit garde son avantage : il écrit DIRECTEMENT au numéro du
+    client, là où l'image passe par le partage du téléphone. Sans numéro,
+    « Copier le message » remplace l'envoi. Le texte suit la langue affichée ;
+    le chauffeur n'y figure que sur une course confirmée.
+  - **LE BON A QUITTÉ L'ANCIEN VERT CÉLADON** (à sa demande : « il garde
+    encore la trace verte ancienne »), sur le site COMME sur l'image : pastille
+    « Confirmé » `#0E5FA8`, encart du prix `#EAF3FC` / `#062f55`, bloc du
+    chauffeur et écriteau « demande reçue » en bleu ELA. Contrastes mesurés
+    (blanc sur `#0E5FA8` 6,5 ; `#0B4F8C` sur fond clair 7,5). **La pastille
+    « Réservation validée » de la LISTE de la réception reste verte** : c'est
+    une couleur d'état, pas le bon.

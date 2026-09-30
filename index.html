@@ -916,8 +916,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* Le vert n'est employé QU'ICI, et pour une seule chose : la demande est
    arrivée. C'est le seul fait dont le site soit certain — pas que la course
    soit confirmée, seulement qu'elle nous est parvenue. */
-.envoi.ok{border-color:#1F6F6B;background:rgba(31,111,107,.06);}
-.envoi.ok p{color:#123F3D;font-weight:600;}
+/* BLEU ELA, PLUS L'ANCIEN VERT CÉLADON (30/09/2026, à sa demande : « il
+   garde encore la trace verte ancienne »). Le bon suit la palette de la
+   façade en ligne (--ela-navy, --ela-blue) ; contrastes mesurés : texte
+   #0B4F8C sur fond clair 7,5 ; blanc sur #0E5FA8 6,5. */
+.envoi.ok{border-color:#147edc;background:rgba(20,126,220,.06);}
+.envoi.ok p{color:#0B4F8C;font-weight:600;}
 .envoi.ko{border-color:#C9302F;background:rgba(201,48,47,.05);}
 .envoi.ko p{color:#9E1F1E;font-weight:600;}
 /* ---------- LE BON DE RÉSERVATION ---------- */
@@ -950,19 +954,19 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    ne change pas de nuance ni de teinte d'une page à l'autre. C'est le seul
    endroit du site où l'état d'un bon change de couleur, et il ne le fait
    qu'une fois, quand la réponse arrive. */
-.bon-etat.confirme{background:#1F6F6B;}
+.bon-etat.confirme{background:#0E5FA8;}
 /* Le prix est mis en évidence dans le bloc du trajet, pas dans l'en-tête :
    c'est la dernière chose qu'on relit avant de fermer le bon. */
 #bonDetail .ligne.total{margin-top:10px;padding:14px 16px;border-radius:14px;
-  background:#EFF7F6;border-top:none;}
-#bonDetail .ligne.total span{color:#175E5B;font-weight:800;
+  background:#EAF3FC;border-top:none;}
+#bonDetail .ligne.total span{color:#062f55;font-weight:800;
   text-transform:uppercase;font-size:11.5px;letter-spacing:.05em;}
-#bonDetail .ligne.total b{color:#175E5B;}
+#bonDetail .ligne.total b{color:#062f55;}
 /* Le bloc du chauffeur est cerclé de vert, pas rempli : c'est une bonne
    nouvelle, pas une alerte. */
-.bloc-confirme{border-color:#8FC9C5;background:#EFF7F6;}
-.bloc-confirme .bloc-titre{color:#175E5B;}
-#bonAppelChauffeur{border-color:#8FC9C5;color:#175E5B;}
+.bloc-confirme{border-color:#A9CDEF;background:#EAF3FC;}
+.bloc-confirme .bloc-titre{color:#0E5FA8;}
+#bonAppelChauffeur{border-color:#A9CDEF;color:#0E5FA8;}
 /* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
    par écran, sinon plus aucun ne l'est. */
 /* « display:block » et non le défaut : cette classe habille aussi des liens
@@ -1787,6 +1791,17 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .bv-corps .bouton,.bv-corps .bouton-fantome{margin:0;width:100%;min-height:48px;}
 .bv-corps a.bouton-fantome{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .bv-fermer{min-height:44px;border:0;background:none;color:var(--gris);font-weight:700;cursor:pointer;}
+.bv-titre{margin:2px 0 0;text-align:center;font-size:16px;font-weight:800;color:#062f55;}
+/* Deux onglets de même largeur ; l'onglet choisi est en bleu ELA plein. */
+.bv-choix{display:flex;gap:6px;padding:4px;border-radius:14px;background:#EEF3F7;}
+.bv-choix button{flex:1 1 0;min-height:44px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:14px;font-weight:800;color:#14344e;cursor:pointer;}
+.bv-choix button.actif{background:#0E5FA8;color:#fff;}
+.bv-pan{display:flex;flex-direction:column;gap:10px;}
+.bv-pan[hidden]{display:none;}
+.bv-texte{margin:0;padding:14px;border-radius:12px;background:#EEF3F7;color:#14344e;
+  font:600 14px/1.5 inherit;font-family:inherit;white-space:pre-wrap;word-break:break-word;}
+.bv-note{margin:0;text-align:center;font-size:12.5px;line-height:1.4;color:var(--gris);}
 /* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
    prend aucune place en hauteur — la carte vient justement de maigrir de
    142 à 111 px — et il ne recouvre rien. */
@@ -9027,7 +9042,7 @@ window.ELA_TEXTES = {
       ctx.font = "800 28px " + P;
       var pl = ctx.measureText(etat).width + 60;
       rectArrondi(ctx, (W - pl) / 2, 305, pl, 56, 28);
-      ctx.fillStyle = confirme ? "#1F6F6B" : "#6B7780"; ctx.fill();
+      ctx.fillStyle = confirme ? "#0E5FA8" : "#6B7780"; ctx.fill();
       ctx.fillStyle = "#fff"; ctx.fillText(etat, W / 2, 343);
       ctx.fillStyle = "#14344e"; ctx.font = "800 64px " + P; ctx.fillText(b.ref || "", W / 2, 440);
       ctx.fillStyle = "#6f7f8b"; ctx.font = "700 26px " + P;
@@ -9044,9 +9059,9 @@ window.ELA_TEXTES = {
       });
       var yPrix = bas - 290;
 
-      /* Le prix dans son encart vert : c'est la dernière chose qu'on relit. */
-      rectArrondi(ctx, 120, yPrix, 840, 130, 28); ctx.fillStyle = "#EFF7F6"; ctx.fill();
-      ctx.fillStyle = "#175E5B"; ctx.font = "800 28px " + P; ctx.textAlign = "left";
+      /* Le prix dans son encart bleu clair : c'est la dernière chose qu'on relit. */
+      rectArrondi(ctx, 120, yPrix, 840, 130, 28); ctx.fillStyle = "#EAF3FC"; ctx.fill();
+      ctx.fillStyle = "#062f55"; ctx.font = "800 28px " + P; ctx.textAlign = "left";
       ctx.fillText(en ? "FIRM PRICE" : "PRIX FERME", 160, yPrix + 78);
       var prix = (typeof b.prix === "number" && b.prix)
         ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "—";
@@ -9060,9 +9075,18 @@ window.ELA_TEXTES = {
     });
   }
 
-  /* L'aperçu : l'image, puis « Envoyer l'image », « Enregistrer », et le
-     texte en secours. Créé au premier usage — la page du client n'en a
-     jamais besoin. */
+  /* ═══ LE CHOIX : BON EN IMAGE OU MESSAGE ÉCRIT (30/09/2026) ═══
+     À sa demande : « il faut qu'on puisse avoir le choix entre le bon en
+     image et en écrit ». Deux onglets en tête de la feuille, et chacun MONTRE
+     ce qui partira avant qu'on l'envoie — l'image, ou le texte exact.
+     - IMAGE : « Envoyer l'image » ouvre le partage du téléphone (on y choisit
+       WhatsApp puis le client) ; sans partage possible, « Enregistrer
+       l'image » la range dans la galerie.
+     - ÉCRIT : « Envoyer sur WhatsApp » écrit DIRECTEMENT au numéro du client
+       — c'est son avantage sur l'image. Sans numéro, on copie le message.
+     L'image s'ouvre par défaut : c'est la demande de Barbaros, et c'est ce
+     qu'un client relit le plus facilement. Créée au premier usage — la page
+     du client n'en a jamais besoin. */
   function ouvrirBonVisuel(b, numero){
     var en = langueMessage() === "en";
     var f = document.getElementById("bonVisuel");
@@ -9071,11 +9095,24 @@ window.ELA_TEXTES = {
       f.id = "bonVisuel"; f.className = "bv"; f.setAttribute("role", "dialog");
       f.setAttribute("aria-modal", "true");
       f.innerHTML = '<div class="bv-voile"></div><div class="bv-corps">'
-        + '<img class="bv-img" alt="">'
-        + '<p class="bv-etat"></p>'
-        + '<button type="button" class="bouton" id="bvPartager"></button>'
-        + '<a class="bouton-fantome" id="bvEnregistrer"></a>'
-        + '<button type="button" class="bouton-fantome" id="bvTexte"></button>'
+        + '<p class="bv-titre" id="bvTitre"></p>'
+        + '<div class="bv-choix" role="tablist">'
+        +   '<button type="button" role="tab" data-bv="image" id="bvOngletImage"></button>'
+        +   '<button type="button" role="tab" data-bv="texte" id="bvOngletTexte"></button>'
+        + '</div>'
+        + '<div class="bv-pan" data-pan="image">'
+        +   '<img class="bv-img" alt="">'
+        +   '<p class="bv-etat"></p>'
+        +   '<button type="button" class="bouton" id="bvPartager"></button>'
+        +   '<a class="bouton-fantome" id="bvEnregistrer"></a>'
+        +   '<p class="bv-note" id="bvNoteImage"></p>'
+        + '</div>'
+        + '<div class="bv-pan" data-pan="texte" hidden>'
+        +   '<pre class="bv-texte" id="bvApercuTexte"></pre>'
+        +   '<button type="button" class="bouton" id="bvTexte"></button>'
+        +   '<button type="button" class="bouton-fantome" id="bvCopier"></button>'
+        +   '<p class="bv-note" id="bvNoteTexte"></p>'
+        + '</div>'
         + '<button type="button" class="bv-fermer" id="bvFermer"></button></div>';
       document.body.appendChild(f);
       var fermer = function(){
@@ -9084,6 +9121,9 @@ window.ELA_TEXTES = {
       };
       f.querySelector(".bv-voile").addEventListener("click", fermer);
       document.getElementById("bvFermer").addEventListener("click", fermer);
+      f.querySelectorAll(".bv-choix button").forEach(function(o){
+        o.addEventListener("click", function(){ montrerChoixBon(o.dataset.bv); });
+      });
       document.getElementById("bvPartager").addEventListener("click", function(){
         var fichier = f._fichier;
         if(fichier && navigator.canShare && navigator.canShare({ files:[fichier] })){
@@ -9095,21 +9135,49 @@ window.ELA_TEXTES = {
       document.getElementById("bvTexte").addEventListener("click", function(){
         if(!f._numero) return;
         window.open("https://wa.me/" + f._numero + "?text="
-          + encodeURIComponent(messageBonClient(f._bon, langueMessage())), "_blank", "noopener");
+          + encodeURIComponent(f._message), "_blank", "noopener");
+      });
+      document.getElementById("bvCopier").addEventListener("click", function(){
+        var bouton = this, en2 = langueMessage() === "en";
+        var fait = function(){ bouton.textContent = en2 ? "Message copied" : "Message copié"; };
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(f._message).then(fait).catch(function(){ selectionnerTexte(); });
+        } else selectionnerTexte();
       });
     }
+    function selectionnerTexte(){
+      var pre = document.getElementById("bvApercuTexte");
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    }
     f._bon = b; f._numero = numero || ""; f._fichier = null;
+    f._message = messageBonClient(b, langueMessage());
     f._titre = (en ? "Voucher " : "Bon ") + (b.ref || "");
+    document.getElementById("bvTitre").textContent = en ? "Send the voucher to the guest" : "Envoyer le bon au client";
+    document.getElementById("bvOngletImage").textContent = en ? "Image voucher" : "Bon en image";
+    document.getElementById("bvOngletTexte").textContent = en ? "Written message" : "Message écrit";
     var img = f.querySelector(".bv-img"), etat = f.querySelector(".bv-etat");
     var partager = document.getElementById("bvPartager"), enreg = document.getElementById("bvEnregistrer");
-    var texte = document.getElementById("bvTexte");
+    var noteImage = document.getElementById("bvNoteImage");
     img.alt = f._titre; img.removeAttribute("src");
     etat.textContent = en ? "Preparing the voucher…" : "Préparation du bon…"; etat.hidden = false;
     partager.textContent = en ? "Send the image" : "Envoyer l'image";
     enreg.textContent = en ? "Save the image" : "Enregistrer l'image";
-    texte.textContent = en ? "Send as text on WhatsApp" : "Envoyer en texte sur WhatsApp";
+    partager.hidden = true; enreg.hidden = true; noteImage.hidden = true;
+    /* Le texte : on MONTRE exactement ce qui partira. */
+    document.getElementById("bvApercuTexte").textContent = f._message;
+    var btnTexte = document.getElementById("bvTexte"), btnCopier = document.getElementById("bvCopier");
+    var noteTexte = document.getElementById("bvNoteTexte");
+    btnTexte.textContent = en ? "Send on WhatsApp" : "Envoyer sur WhatsApp";
+    btnCopier.textContent = en ? "Copy the message" : "Copier le message";
+    btnTexte.hidden = !numero;
+    btnCopier.className = numero ? "bouton-fantome" : "bouton";
+    noteTexte.textContent = numero
+      ? (en ? "Opens WhatsApp directly on the guest's number." : "Ouvre WhatsApp directement sur le numéro du client.")
+      : (en ? "No phone number for this guest: copy the message and send it yourself."
+            : "Pas de numéro pour ce client : copiez le message pour l'envoyer vous-même.");
     document.getElementById("bvFermer").textContent = en ? "Close" : "Fermer";
-    partager.disabled = true; enreg.hidden = true; texte.hidden = !numero;
+    montrerChoixBon("image");
     f.hidden = false;
     dessinerBonImage(b, langueMessage()).then(function(blob){
       if(f.dataset.url) URL.revokeObjectURL(f.dataset.url);
@@ -9118,16 +9186,31 @@ window.ELA_TEXTES = {
       var nom = "bon-" + (b.ref || "elatransfer") + ".png";
       try{ f._fichier = new File([blob], nom, { type:"image/png" }); }catch(e){ f._fichier = null; }
       enreg.href = url; enreg.download = nom; enreg.hidden = false;
-      /* On ne propose « Envoyer l'image » que si l'appareil sait partager un
-         fichier : sinon le bouton enregistre, et on le dit. */
+      /* « Envoyer l'image » n'apparaît que si l'appareil sait partager un
+         fichier ; sinon on enregistre, et on dit quoi faire ensuite. */
       var peutPartager = !!(f._fichier && navigator.canShare && navigator.canShare({ files:[f._fichier] }));
-      partager.disabled = false;
       partager.hidden = !peutPartager;
+      enreg.className = peutPartager ? "bouton-fantome" : "bouton";
+      noteImage.textContent = peutPartager
+        ? (en ? "Choose WhatsApp, then the guest." : "Choisissez WhatsApp, puis le client.")
+        : (en ? "Save it, then send it from your photos — or show the screen to the guest."
+              : "Enregistrez-la puis envoyez-la depuis vos photos — ou montrez l'écran au client.");
+      noteImage.hidden = false;
       etat.hidden = true;
     }).catch(function(){
-      etat.textContent = en ? "The image could not be created. Send it as text."
-                            : "L'image n'a pas pu être créée. Envoyez-le en texte.";
+      etat.textContent = en ? "The image could not be created: use the written message."
+                            : "L'image n'a pas pu être créée : utilisez le message écrit.";
     });
+  }
+  function montrerChoixBon(choix){
+    var f = document.getElementById("bonVisuel");
+    if(!f) return;
+    f.querySelectorAll(".bv-choix button").forEach(function(o){
+      var actif = o.dataset.bv === choix;
+      o.classList.toggle("actif", actif);
+      o.setAttribute("aria-selected", actif ? "true" : "false");
+    });
+    f.querySelectorAll(".bv-pan").forEach(function(p){ p.hidden = p.dataset.pan !== choix; });
   }
 
   function jugerRenvoiComptoir(){

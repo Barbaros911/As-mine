@@ -365,6 +365,15 @@ check('« Envoyer le bon au client » fabrique une vraie image du bon',
 check('…qu\'on peut enregistrer (ou partager quand l\'appareil le sait)',
   await p.locator('#bvEnregistrer').isVisible()
   && /^bon-ELA-26-09-0042\.png$/.test(await p.locator('#bvEnregistrer').getAttribute('download') || ''));
+/* LE CHOIX IMAGE / ÉCRIT (30/09/2026) : l'image s'ouvre d'abord, l'onglet
+   « Message écrit » montre le texte exact avant de l'envoyer. */
+check('la feuille propose le choix : bon en image ou message écrit',
+  await p.locator('#bvOngletImage').isVisible() && await p.locator('#bvOngletTexte').isVisible()
+  && (await p.locator('#bvOngletImage').getAttribute('aria-selected')) === 'true');
+await p.locator('#bvOngletTexte').click();
+check('« Message écrit » montre le texte qui partira, et cache l\'image',
+  /ELA-26-09-0042/.test(await p.locator('#bvApercuTexte').textContent())
+  && await p.locator('#bonVisuel .bv-img').isHidden());
 await p.locator('#bvTexte').click();
 const bonEnvoye = await p.evaluate(() => (window.__bon || []).map(u => decodeURIComponent(u)));
 check('« Envoyer le bon au client » écrit au NUMÉRO DU CLIENT',
@@ -407,9 +416,12 @@ if(await btnSansTel.count()){
   await btnSansTel.click();
   await p.waitForTimeout(600);
 }
-check('sans numéro : l\'image oui, l\'envoi en texte non',
-  (await btnSansTel.count()) === 1 && await p.locator('#bonVisuel').isVisible()
-  && await p.locator('#bvTexte').isHidden());
+const imageSansTel = await p.locator('#bonVisuel .bv-img').isVisible();
+await p.locator('#bvOngletTexte').click();
+check('sans numéro : l\'image oui ; à l\'écrit, « copier » remplace l\'envoi',
+  (await btnSansTel.count()) === 1 && imageSansTel
+  && await p.locator('#bvTexte').isHidden() && await p.locator('#bvCopier').isVisible());
+/* À la réouverture, on repart sur l'image : le choix d'avant ne colle pas. */
 if(await p.locator('#bonVisuel').isVisible()) await p.locator('#bvFermer').click();
 const avantCache = appels.length;
 await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable:true, get:() => true });
