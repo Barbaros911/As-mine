@@ -68,7 +68,10 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
    Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
    - RATTRAPAGE : une course en attente depuis plus d'1 min sans AUCUNE
      alerte réussie est annoncée maintenant, par tous les canaux.
-   - DEPART DANS 30 MIN OU MOINS : Telegram ET notification toutes les 3 min.
+   - LES 10 PREMIÈRES MINUTES, ET DÉPART DANS 30 MIN OU MOINS : Telegram ET
+     notification à CHAQUE tour (20 s), soit trois fois par minute
+     (30/09/2026, à sa demande : « tout sonne plusieurs fois par minute
+     lorsque je reçois des commandes »). C'était toutes les 3 min.
    - DEPART DANS 2 H OU MOINS : les deux canaux toutes les 10 min.
    - PLUS DE 2 H : l'annonce initiale suffit ; la relance commence à H-2.
    Les deux canaux s'arrêtent dès que la course n'est plus « attente », ou
@@ -76,7 +79,9 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
    dans l'admin. La fenêtre de 6 h borne aussi tout incident ancien.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
    vient du journal. */
-const RATTRAPAGE_MS=60*1000,PAS_URGENT_MS=3*60*1000,PAS_PROCHE_MS=10*60*1000,FENETRE_MS=6*3600*1000;
+/* PAS_ALARME_MS vaut 15 s et non 20 : pg_cron ne tombe jamais pile à 20 s,
+   et un tour arrivé à 19,9 s sauterait son rappel — une fois sur deux. */
+const RATTRAPAGE_MS=60*1000,PAS_ALARME_MS=15*1000,ALARME_MS=10*60*1000,PAS_URGENT_MS=PAS_ALARME_MS,PAS_PROCHE_MS=10*60*1000,FENETRE_MS=6*3600*1000;
 const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
 /* Date et heure du bon sont des heures civiles de Paris. Les convertir en
    pseudo-UTC, comme l'horloge de Paris courante, évite que le serveur UTC
@@ -86,7 +91,7 @@ function heureCivileParis(ms:number):number{const p=Object.fromEntries(HORLOGE_P
 function departCivil(bon:Record<string,any>):number|null{const c=(bon.course??{}) as Record<string,any>,d=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(c.date??"")),h=/^(\d{1,2}):(\d{2})$/.exec(String(c.heure??""));if(!d||!h)return null;const valeurs=[...d.slice(1),...h.slice(1)].map(Number),v=Date.UTC(valeurs[0],valeurs[1]-1,valeurs[2],valeurs[3],valeurs[4]);return valeurs[1]>=1&&valeurs[1]<=12&&valeurs[2]>=1&&valeurs[2]<=31&&valeurs[3]<=23&&valeurs[4]<=59?v:null;}
 /* Un départ passé depuis plus de 6 h n'est plus relancé : c'est un oubli à
    clore dans l'admin, pas une alarme à sonner la nuit. */
-function cadenceRappel(bon:Record<string,any>):number|null{const depart=departCivil(bon);if(depart===null)return null;const reste=depart-heureCivileParis(Date.now());if(reste<-FENETRE_MS)return null;return reste<=30*60*1000?PAS_URGENT_MS:reste<=2*3600*1000?PAS_PROCHE_MS:null;}
+function cadenceRappel(bon:Record<string,any>,age=Infinity):number|null{if(age<=ALARME_MS)return PAS_ALARME_MS;const depart=departCivil(bon);if(depart===null)return null;const reste=depart-heureCivileParis(Date.now());if(reste<-FENETRE_MS)return null;return reste<=30*60*1000?PAS_URGENT_MS:reste<=2*3600*1000?PAS_PROCHE_MS:null;}
 /* LA FENÊTRE SE COMPTE DEPUIS LE DÉPART, PAS DEPUIS LA CRÉATION (30/09/2026).
    Lue depuis la création, elle écartait toute demande faite plus de 6 h avant
    le départ — un hôtel qui réserve la veille, un vol du lendemain, c'est-à-dire
@@ -123,7 +128,7 @@ async function relancer():Promise<string>{
       await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
       continue;
     }
-    const cadence=cadenceRappel(bon);if(cadence===null)continue;
+    const cadence=cadenceRappel(bon,age);if(cadence===null)continue;
     const t=titreRappel(bon,Math.max(1,Math.round(age/60000)));
     /* Une tentative échouée compte pour la cadence : sinon une panne d'un
        fournisseur provoquerait un nouvel appel toutes les 20 secondes. */

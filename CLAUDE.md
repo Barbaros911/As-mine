@@ -6171,7 +6171,7 @@ visuelle, notification, tout ce qui est possible ».
   créait un lecteur de son hors de tout geste ; iPhone et Android le laissent
   suspendu, sans erreur. Un seul lecteur maintenant, débloqué au premier appui
   n'importe où, et un bandeau `#sonCoupe` le dit tant que ce n'est pas fait.
-- **L'alarme se répète toutes les 20 s** (quatre notes fortes + vibration
+- **L'alarme se répète toutes les 10 s** (quatre notes fortes + vibration
   Android + titre d'onglet qui clignote) jusqu'à un appui sur l'écriteau ou
   l'ouverture d'une course, dix minutes au plus. **Pastille sur l'icône** =
   nombre de demandes en attente (`setAppBadge`).
@@ -6184,8 +6184,11 @@ visuelle, notification, tout ce qui est possible ».
   `nouvelle-demande` avec `{type:"RELANCE"}`
   (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
   attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
-  **La cadence suit l'urgence** (ChatGPT, 30/09/2026, validé par Barbaros) :
-  départ dans 30 min ou moins → Telegram ET notification toutes les 3 min ;
+  **La cadence suit l'urgence** (ChatGPT, 30/09/2026, validé par Barbaros,
+  puis resserrée le soir même à sa demande : « tout sonne plusieurs fois par
+  minute ») : les **10 premières minutes** d'une demande non vue, et tout
+  départ dans 30 min ou moins → Telegram ET notification **à chaque tour de
+  20 s** (seuil 15 s : pg_cron ne tombe jamais pile) ;
   entre 30 min et 2 h → toutes les 10 min ; plus de 2 h → aucun rappel avant
   H-2. Arrêt dès qu'elle est VUE, confirmée ou refusée. **Telegram ne dit
   jamais à un bot qu'un message est lu** : « vu »
@@ -6208,6 +6211,9 @@ visuelle, notification, tout ce qui est possible ».
   souvent n'envoie rien de plus. **La migration ne part pas toute seule** —
   workflow « Appliquer une migration Supabase », ce fichier. Si la base refuse
   `pg_cron` ou `pg_net`, le journal du workflow le dira.
+- **WhatsApp ne peut PAS sonner tout seul chez lui** : l'API WhatsApp
+  Business exige une vérification d'entreprise et un numéro dédié (voir plus
+  haut). Ce qui sonne : Telegram, la notification ELA, et l'admin ouvert.
 - **Le code de l'alarme vit dans le bloc exploitant**, retiré des pages
   publiques : un bouton branché ailleurs y appellerait des fonctions absentes
   (`test-easyhotel-client` l'a vu).

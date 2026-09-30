@@ -11411,7 +11411,8 @@ window.ELA_TEXTES = {
      de tout geste. iPhone et Android le laissent alors « suspendu » — le
      bip ne sonnait jamais sur un téléphone, et rien ne le disait. Un seul
      lecteur, débloqué au premier appui n'importe où, et gardé.
-     L'ALARME SE RÉPÈTE toutes les 20 s tant que personne n'a touché
+     L'ALARME SE RÉPÈTE toutes les 10 s (six fois par minute, à sa demande :
+     « tout sonne plusieurs fois par minute ») tant que personne n'a touché
      l'écriteau ou ouvert une course, dix minutes au plus. Un bip unique se
      rate dès qu'on a le dos tourné. */
   var sonCtx = null;
@@ -11482,7 +11483,7 @@ window.ELA_TEXTES = {
     minuterieAlarme = setInterval(function(){
       if(Date.now() - debut > 10 * 60000){ arreterAlarme(); return; }
       sonner();
-    }, 20000);
+    }, 10000);
     /* LE TITRE DE L'ONGLET CLIGNOTE : c'est ce qu'on voit d'un onglet
        rangé derrière un autre, sur un ordinateur. */
     titreAvant = document.title;
