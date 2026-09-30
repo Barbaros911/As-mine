@@ -5759,6 +5759,20 @@ ne joint ni la BAN ni Photon) :
 dans l'ordre le plus défavorable ; sur l'ancien code il rend exactement ce
 qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
 
+**LA RECHERCHE SE FAIT AUTOUR DE LA PERSONNE** (30/09/2026, à sa demande).
+`centreRecherche()` : sa position si elle est connue (« Me localiser » dans
+cette visite, OU autorisation déjà accordée un autre jour — relue par
+`navigator.permissions.query`, **sans jamais rien demander au chargement** :
+un refus est définitif) ; sinon le DÉPART déjà choisi (au comptoir, l'hôtel) ;
+sinon Paris. Le centre part à la BAN et à Photon **arrondi à deux décimales
+(~1 km)** — `centreArrondi()` dans `itineraire-partage.js`. Dans `note()`,
++2 dans les 3 km, +1 dans les 15 km, **seulement sur un résultat qui répond
+au mot tapé** : sans cette garde la place d'à côté passait devant
+« Argenteuil » qu'on venait d'écrire (`test-nouveau-itineraire` l'a vu). La
+zone des 90 km se mesure toujours depuis Paris. La politique de
+confidentialité (FR/EN, datée du 30/09/2026) dit à quoi sert la position.
+`test-nouveau-recherche.mjs` éprouve les trois cas en lisant l'URL envoyée.
+
 ## UN SEUL TARIF AU KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN
 
 28 septembre 2026, à sa demande : « je veux que tout le monde ait le même

@@ -108,6 +108,91 @@ const horsZone = await p.evaluate(() => {
 check('choisir Amsterdam affiche « hors zone » : pas de réservation en ligne à 430 km', horsZone);
 
 check('aucune erreur JavaScript', errs.length === 0, errs.join(' | '));
+
+/* =====================================================================
+   CHERCHER AUTOUR DE LA PERSONNE (30/09/2026, à sa demande)
+   On lit l'URL envoyée aux services (le centre de la recherche) ET l'ordre
+   affiché : deux « Boulangerie du Centre » homonymes, l'une à Roissy,
+   l'autre à Paris. Le service les rend Paris d'abord ; près de Roissy, la
+   page doit remettre celle de Roissy en tête.
+   ===================================================================== */
+const BOULANGERIES = [
+  { geometry:{coordinates:[2.3522,48.8566]}, properties:{ name:"Boulangerie du Centre", osm_key:"shop",
+    osm_value:"bakery", street:"Rue de Rivoli", housenumber:"10", postcode:"75004", city:"Paris", countrycode:"FR" } },
+  { geometry:{coordinates:[2.5500,49.0000]}, properties:{ name:"Boulangerie du Centre", osm_key:"shop",
+    osm_value:"bakery", street:"Rue de Paris", housenumber:"3", postcode:"95700", city:"Roissy-en-France", countrycode:"FR" } }
+];
+async function contexte(options){
+  const ctx = await b.newContext({ viewport:{width:390,height:844}, locale:'fr-FR', ...options });
+  const demandes = [];
+  await ctx.addInitScript(() => {
+    window.__demandesGps = 0;
+    if(navigator.geolocation){
+      const orig = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+      navigator.geolocation.getCurrentPosition = function(a, b2, c){ window.__demandesGps++; return orig(a, b2, c); };
+    }
+  });
+  await ctx.route('**/*', r => {
+    const u = decodeURIComponent(r.request().url());
+    if(u.startsWith('http://127.0.0.1:8099')) return r.continue();
+    if(u.includes('photon.komoot.io')){ demandes.push(u);
+      return r.fulfill({contentType:'application/json', body:JSON.stringify({features:/boulang/i.test(u) ? BOULANGERIES : []})}); }
+    if(u.includes('api-adresse.data.gouv.fr')){ demandes.push(u);
+      const roissy = /roissy/i.test(u) ? [{ geometry:{coordinates:[2.5500,49.0000]},
+        properties:{ label:"Rue de Paris 95700 Roissy-en-France", type:"street" } }] : [];
+      return r.fulfill({contentType:'application/json', body:JSON.stringify({features:roissy})}); }
+    return r.abort();
+  });
+  const pg = await ctx.newPage();
+  await pg.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(700);
+  return { ctx, pg, demandes };
+}
+async function taper(pg, champ, q, attendu){
+  await pg.fill(champ,''); await pg.type(champ, q, {delay:20});
+  await pg.waitForFunction(([c, a]) => [...document.querySelectorAll(c + 'List [role=option]')]
+    .some(o => o.textContent.includes(a)), [champ, attendu], {timeout:4000}).catch(()=>{});
+  await pg.waitForTimeout(150);
+  return (await pg.locator(champ + 'List [role=option]').allTextContents()).map(t => t.trim());
+}
+
+/* 1. Sans autorisation : on ne demande RIEN, et on cherche autour de Paris. */
+{
+  const { ctx, pg, demandes } = await contexte({});
+  check('au chargement, la position n\'est JAMAIS demandée sans que le client ait appuyé',
+    (await pg.evaluate(() => window.__demandesGps)) === 0);
+  const l = await taper(pg, '#depart', 'boulangerie', 'Boulangerie');
+  const u = demandes.filter(x => /boulang/i.test(x)).pop() || '';
+  check('sans position connue, la recherche reste centrée sur Paris', /lat=48\.8566&lon=2\.3522/.test(u), u);
+  check('…et la boulangerie de Paris est en tête', /75004/.test(l[0] || ''), l.join(' | '));
+  await ctx.close();
+}
+/* 2. Autorisation DÉJÀ donnée (il a appuyé sur « Me localiser » un autre
+      jour) : la position est relue sans rien redemander, et sert au tri. */
+{
+  const { ctx, pg, demandes } = await contexte({ permissions:['geolocation'],
+    geolocation:{ latitude:49.0012, longitude:2.5534 } });
+  const l = await taper(pg, '#arrivee', 'boulangerie', 'Boulangerie');
+  const u = demandes.filter(x => /boulang/i.test(x)).pop() || '';
+  check('position déjà autorisée : la recherche est centrée sur le client, ARRONDIE à ~1 km',
+    /lat=49&lon=2\.55(&|$)/.test(u), u);
+  check('…et la boulangerie d\'à côté (Roissy) passe devant celle de Paris', /Roissy/.test(l[0] || ''), l.join(' | '));
+  await ctx.close();
+}
+/* 3. Sans position mais avec un DÉPART choisi : l'arrivée se cherche de là. */
+{
+  const { ctx, pg, demandes } = await contexte({});
+  await taper(pg, '#depart', 'rue de paris roissy', 'Rue de Paris');
+  /* On vise la RUE : « roissy » propose aussi les terminaux de CDG en tête. */
+  const opt = pg.locator('#departList [role=option]', {hasText:'Rue de Paris'}).first();
+  if(await opt.count()) await opt.click();
+  await pg.waitForTimeout(300);
+  const l = await taper(pg, '#arrivee', 'boulangerie', 'Boulangerie');
+  const u = demandes.filter(x => /boulang/i.test(x)).pop() || '';
+  check('départ choisi à Roissy : l\'arrivée se cherche autour du départ', /lat=49&lon=2\.55(&|$)/.test(u), u);
+  check('…et la boulangerie de Roissy est en tête', /Roissy/.test(l[0] || ''), l.join(' | '));
+  await ctx.close();
+}
 await b.close();
 console.log('=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(x => console.log('  ✔ ' + x));

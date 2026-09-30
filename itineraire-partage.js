@@ -141,8 +141,19 @@ function libellePhoton(p){
    se remplisse de villes de province avant que le classement par distance
    ait un exemplaire francilien à faire remonter. Le classement fait le
    tri ensuite ; ici on lui donne simplement plus de candidats. */
-function depuisBAN(q){
-  return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=10&autocomplete=1&lat=48.8566&lon=2.3522")
+/* ═══ LE CENTRE DE LA RECHERCHE EST UN PARAMÈTRE (30/09/2026) ═══
+   À sa demande : « il faut que la recherche se fasse autour de la
+   personne ». La page passe la position du client quand elle la connaît,
+   sinon rien et on garde Paris. ARRONDIE À DEUX DÉCIMALES (~1 km) : pour
+   trouver « la boulangerie d'à côté » le quartier suffit, et on n'envoie
+   pas à un service d'adresses la position exacte d'un téléphone. */
+function centreArrondi(c){
+  if(!c || typeof c.lat !== "number" || typeof c.lon !== "number") return { lat:48.8566, lon:2.3522 };
+  return { lat:Math.round(c.lat * 100) / 100, lon:Math.round(c.lon * 100) / 100 };
+}
+function depuisBAN(q, centre){
+  var c = centreArrondi(centre);
+  return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=10&autocomplete=1&lat="+c.lat+"&lon="+c.lon)
     .then(function(d){
       if(!d || !Array.isArray(d.features)) return [];
       return d.features.map(function(f){
@@ -159,9 +170,10 @@ function depuisBAN(q){
 /* limit=15 : un nom de chaîne (« ibis », « gare du nord ») renvoie beaucoup
    d'homonymes ; en demander trop peu revenait à n'en montrer aucun de bon.
    Le biais rapproche de Paris sans exclure le reste de la France. */
-function depuisPhoton(q){
+function depuisPhoton(q, centre){
+  var c = centreArrondi(centre);
   return appeler("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+
-                 "&limit=15&lang=fr&lat=48.8566&lon=2.3522&location_bias_scale=0.4")
+                 "&limit=15&lang=fr&lat="+c.lat+"&lon="+c.lon+"&location_bias_scale=0.4")
     .then(function(d){
       if(!d || !Array.isArray(d.features)) return [];
       /* PLUS DE FILTRE « FRANCE SEULEMENT » (30/09/2026, à sa demande :
