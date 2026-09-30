@@ -1773,6 +1773,20 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-alerte-ok{flex:0 0 auto;min-height:40px;min-width:56px;border-radius:10px;
   border:1px solid currentColor;background:#fff;color:inherit;font-weight:800;cursor:pointer;}
 .rec-course.rec-nouveau{box-shadow:0 0 0 2px #25A06A;}
+/* L'aperçu du bon en image. Au-dessus de TOUT (la barre, les feuilles) :
+   une feuille passée dessous laisse ses boutons inaccessibles. */
+.bv{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+.bv[hidden]{display:none;}
+.bv-voile{position:absolute;inset:0;background:rgba(3,28,52,.55);}
+.bv-corps{position:relative;width:100%;max-width:480px;max-height:100%;overflow:auto;
+  background:var(--carte,#fff);border-radius:20px 20px 0 0;padding:16px 16px
+  calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
+.bv-img{display:block;width:100%;max-height:58vh;object-fit:contain;border-radius:12px;
+  background:#EEF3F7;min-height:120px;}
+.bv-etat{margin:0;text-align:center;font-size:13.5px;color:var(--gris);}
+.bv-corps .bouton,.bv-corps .bouton-fantome{margin:0;width:100%;min-height:48px;}
+.bv-corps a.bouton-fantome{display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.bv-fermer{min-height:44px;border:0;background:none;color:var(--gris);font-weight:700;cursor:pointer;}
 /* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
    prend aucune place en hauteur — la carte vient justement de maigrir de
    142 à 111 px — et il ne recouvre rien. */
@@ -4476,7 +4490,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          sans que personne le sache. C'est la différence assumée avec le
          code de l'espace exploitant. -->
     <div id="recVerrou">
-      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il reste actif 12 h sur cet appareil, puis il vous sera redemandé : gardez-le bien.</p>
+      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il reste actif 30 jours sur cet appareil, puis il vous sera redemandé : gardez-le bien.</p>
       <label class="champ" for="recCode">
         <span class="champ-corps">
           <span class="champ-titre">Code de la réception</span>
@@ -6126,11 +6140,10 @@ window.ELA_TEXTES = {
     var fin = finSession(codeRetenu(recHotel.cle));
     if(!fin){ el.hidden = true; return; }
     var d = new Date(fin);
-    var heure = d.toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
-    var demain = d.toDateString() !== new Date().toDateString();
+    var jour = d.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" });
     el.dataset.fin = String(fin);
     delete el.dataset.fr;
-    el.textContent = "Code actif sur cet appareil jusqu’à " + (demain ? "demain " : "") + heure
+    el.textContent = "Code gardé sur cet appareil jusqu’au " + jour
       + ". Gardez-le bien : il vous sera redemandé ensuite.";
     el.hidden = false;
   }
@@ -6211,7 +6224,7 @@ window.ELA_TEXTES = {
            passées (ou le code a été changé). Le dire autrement ferait
            chercher une faute de frappe qui n'existe pas. */
         direRec(dejaSession
-          ? "La session de 12 h est terminée. Saisissez à nouveau le code de la réception."
+          ? "La session de 30 jours est terminée, ou le code a changé. Saisissez à nouveau le code de la réception."
           : "Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
       } else if(String(err && err.message) === "quota"){
         /* Trop d'essais depuis cette connexion : le code n'est PAS oublié,
@@ -6452,18 +6465,14 @@ window.ELA_TEXTES = {
            réception qu'il revient voir. Seulement s'il a laissé un numéro. */
         var rang = document.createElement("div");
         rang.className = "rec-actions";
+        /* Le bon en image sert même sans numéro : il se montre à l'écran,
+           le client le photographie. Seul l'envoi en texte exige un numéro. */
         var numeroClient = telWa(c.tel);
-        if(numeroClient){
-          var env = document.createElement("button");
-          env.type = "button"; env.className = "bouton-fantome rec-envoyer";
-          env.textContent = "Envoyer le bon au client";
-          env.addEventListener("click", function(){
-            window.open("https://wa.me/" + numeroClient + "?text="
-              + encodeURIComponent(messageBonClient(bonDeCarte(c), langueMessage())),
-              "_blank", "noopener");
-          });
-          rang.appendChild(env);
-        }
+        var env = document.createElement("button");
+        env.type = "button"; env.className = "bouton-fantome rec-envoyer";
+        env.textContent = "Envoyer le bon au client";
+        env.addEventListener("click", function(){ ouvrirBonVisuel(bonDeCarte(c), numeroClient); });
+        rang.appendChild(env);
         var b = document.createElement("button");
         b.type = "button"; b.className = "bouton-fantome";
         b.textContent = "Demander l'annulation";
@@ -6749,18 +6758,17 @@ window.ELA_TEXTES = {
         envBon.setAttribute("data-t", "envoyer_bon_client");
         envBon.textContent = T("envoyer_bon_client");
         envBon.addEventListener("click", function(){
-          if(!bonCourant || !bonCourant.client) return;
-          var num = telWa(bonCourant.client.telephone);
-          if(!num) return;
+          if(!bonCourant) return;
+          var num = telWa(bonCourant.client && bonCourant.client.telephone);
           var co = bonCourant.course || {};
-          window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(messageBonClient({
+          ouvrirBonVisuel({
             ref:bonCourant.ref, date:co.date, heure:co.heure,
             depart:(co.departPublic || co.depart || "").split(",")[0],
             arrivee:(co.arriveePublic || co.arrivee || "").split(",")[0],
             vehicule:co.vehicule, prix:bonCourant.prix && bonCourant.prix.total,
             paiement:bonCourant.paiement ? T(bonCourant.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "",
             statut:bonCourant.statut, chauffeur:bonCourant.statut === "confirmee" ? bonCourant.chauffeur : null
-          }, langueMessage())), "_blank", "noopener");
+          }, num);
         });
         actionsBon.insertBefore(envBon, versRec);
       }
@@ -8926,12 +8934,207 @@ window.ELA_TEXTES = {
     ].join("\n");
   }
 
+  /* ═══ LE BON EN IMAGE (30/09/2026, à sa demande : « un bon visuel plutôt
+     qu'un message ») ═══
+     Une image se montre au client devant le comptoir, se photographie, et
+     arrive dans WhatsApp comme un vrai bon — le même que celui du site :
+     le logo, l'état, la référence, le trajet, le prix ferme.
+     DESSINÉE DANS LA PAGE (canvas), pas chez un tiers : les informations
+     d'un client ne partent vers aucun service pour être mises en forme.
+     LE PARTAGE PASSE PAR UN APERÇU, et ce n'est pas un détour. Safari
+     n'autorise le partage d'un fichier que dans la foulée immédiate d'un
+     appui ; fabriquer l'image prend un instant. On la fabrique donc à
+     l'ouverture de l'aperçu, et le bouton « Envoyer » la partage d'un
+     coup, sans attente.
+     LE TEXTE RESTE EN SECOURS : un partage de fichier ne sait pas viser un
+     numéro, et certains navigateurs ne partagent pas d'image du tout. */
+  function sautsDeLigne(ctx, texte, largeur, maxLignes){
+    var mots = String(texte || "").split(/\s+/), lignes = [], cur = "";
+    mots.forEach(function(m){
+      var essai = cur ? cur + " " + m : m;
+      if(ctx.measureText(essai).width > largeur && cur){ lignes.push(cur); cur = m; }
+      else cur = essai;
+    });
+    if(cur) lignes.push(cur);
+    if(lignes.length > maxLignes){
+      lignes = lignes.slice(0, maxLignes);
+      var der = lignes[maxLignes - 1];
+      while(der.length > 1 && ctx.measureText(der + "…").width > largeur) der = der.slice(0, -1);
+      lignes[maxLignes - 1] = der + "…";
+    }
+    return lignes;
+  }
+  function rectArrondi(ctx, x, y, l, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + l, y, x + l, y + h, r);
+    ctx.arcTo(x + l, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + l, y, r); ctx.closePath();
+  }
+  function dessinerBonImage(b, langue){
+    var en = langue === "en";
+    var P = "Figtree, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+    var W = 1080, H = 1350;
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+    var logo = new Image(); logo.src = "brand-logo.webp";
+    var pret = (logo.decode ? logo.decode() : Promise.resolve()).catch(function(){ logo = null; });
+    var polices = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
+    return Promise.all([pret, polices]).then(function(){
+      var confirme = b.statut === "confirmee";
+      var d = new Date((b.date || "") + "T" + (b.heure || ""));
+      var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
+        : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
+          + " · " + (b.heure || "");
+      quand = quand.charAt(0).toUpperCase() + quand.slice(1);
+      var lignes = [
+        [en ? "Date & time" : "Date et heure", quand, 44],
+        [en ? "Pick-up" : "Départ", b.depart || "—", 36],
+        [en ? "Drop-off" : "Arrivée", b.arrivee || "—", 36],
+        [en ? "Vehicle · payment" : "Véhicule · paiement",
+          [b.vehicule, b.paiement].filter(Boolean).join(" · ") || "—", 36]
+      ];
+      if(confirme && b.chauffeur && b.chauffeur.nom){
+        lignes.push([en ? "Driver" : "Chauffeur",
+          b.chauffeur.nom + (b.chauffeur.telephone ? " · " + b.chauffeur.telephone : ""), 36]);
+      }
+      /* LA HAUTEUR SUIT LE CONTENU. Une hauteur fixe coupait la dernière
+         ligne — celle du chauffeur, justement celle qui compte sur un bon
+         confirmé. On mesure d'abord, on dessine ensuite. */
+      lignes.forEach(function(l){
+        ctx.font = "700 " + l[2] + "px " + P;
+        l.push(sautsDeLigne(ctx, l[1], 840, 2));
+      });
+      var HAUT_LIGNES = 575, finLignes = HAUT_LIGNES;
+      function hauteurLigne(l){ return 12 + l[3].length * (l[2] + 10) + 44; }
+      lignes.forEach(function(l){ finLignes += hauteurLigne(l); });
+      H = Math.max(1350, finLignes + 300);
+      cv.height = H;
+      var bas = H;
+
+      ctx.fillStyle = "#EEF3F7"; ctx.fillRect(0, 0, W, H);
+      ctx.save(); ctx.shadowColor = "rgba(6,47,85,.12)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+      rectArrondi(ctx, 60, 60, 960, H - 120, 44); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore();
+      ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+      if(logo && logo.naturalWidth){
+        var lw = 380, lh = lw * logo.naturalHeight / logo.naturalWidth;
+        ctx.drawImage(logo, (W - lw) / 2, 105, lw, lh);
+      } else {
+        ctx.fillStyle = "#062f55"; ctx.font = "800 72px " + P; ctx.fillText("ELA TRANSFER", W / 2, 220);
+      }
+      /* L'état : gris tant qu'on cherche, vert plein une fois confirmé —
+         la même règle que le bon du site. */
+      var etat = confirme ? (en ? "CONFIRMED" : "CONFIRMÉ") : (en ? "REQUEST RECEIVED" : "DEMANDE REÇUE");
+      ctx.font = "800 28px " + P;
+      var pl = ctx.measureText(etat).width + 60;
+      rectArrondi(ctx, (W - pl) / 2, 305, pl, 56, 28);
+      ctx.fillStyle = confirme ? "#1F6F6B" : "#6B7780"; ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText(etat, W / 2, 343);
+      ctx.fillStyle = "#14344e"; ctx.font = "800 64px " + P; ctx.fillText(b.ref || "", W / 2, 440);
+      ctx.fillStyle = "#6f7f8b"; ctx.font = "700 26px " + P;
+      ctx.fillText(en ? "BOOKING VOUCHER" : "BON DE RÉSERVATION", W / 2, 482);
+      ctx.fillStyle = "#dbe6ed"; ctx.fillRect(120, 518, 840, 2);
+
+      ctx.textAlign = "left";
+      var y = HAUT_LIGNES;
+      lignes.forEach(function(l){
+        ctx.fillStyle = "#6f7f8b"; ctx.font = "600 26px " + P; ctx.fillText(l[0], 120, y);
+        ctx.fillStyle = "#14344e"; ctx.font = "700 " + l[2] + "px " + P;
+        l[3].forEach(function(t, i){ ctx.fillText(t, 120, y + 12 + l[2] + i * (l[2] + 10)); });
+        y += hauteurLigne(l);
+      });
+      var yPrix = bas - 290;
+
+      /* Le prix dans son encart vert : c'est la dernière chose qu'on relit. */
+      rectArrondi(ctx, 120, yPrix, 840, 130, 28); ctx.fillStyle = "#EFF7F6"; ctx.fill();
+      ctx.fillStyle = "#175E5B"; ctx.font = "800 28px " + P; ctx.textAlign = "left";
+      ctx.fillText(en ? "FIRM PRICE" : "PRIX FERME", 160, yPrix + 78);
+      var prix = (typeof b.prix === "number" && b.prix)
+        ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "—";
+      ctx.font = "800 60px " + P; ctx.textAlign = "right"; ctx.fillText(prix, 920, yPrix + 86);
+
+      ctx.textAlign = "center"; ctx.fillStyle = "#6f7f8b"; ctx.font = "500 26px " + P;
+      ctx.fillText((en ? "Paid directly to the driver · " : "Réglé directement au chauffeur · ") + "+33 7 59 31 24 33", W / 2, bas - 110);
+      return new Promise(function(ok, ko){
+        cv.toBlob(function(bl){ bl ? ok(bl) : ko(new Error("image")); }, "image/png");
+      });
+    });
+  }
+
+  /* L'aperçu : l'image, puis « Envoyer l'image », « Enregistrer », et le
+     texte en secours. Créé au premier usage — la page du client n'en a
+     jamais besoin. */
+  function ouvrirBonVisuel(b, numero){
+    var en = langueMessage() === "en";
+    var f = document.getElementById("bonVisuel");
+    if(!f){
+      f = document.createElement("div");
+      f.id = "bonVisuel"; f.className = "bv"; f.setAttribute("role", "dialog");
+      f.setAttribute("aria-modal", "true");
+      f.innerHTML = '<div class="bv-voile"></div><div class="bv-corps">'
+        + '<img class="bv-img" alt="">'
+        + '<p class="bv-etat"></p>'
+        + '<button type="button" class="bouton" id="bvPartager"></button>'
+        + '<a class="bouton-fantome" id="bvEnregistrer"></a>'
+        + '<button type="button" class="bouton-fantome" id="bvTexte"></button>'
+        + '<button type="button" class="bv-fermer" id="bvFermer"></button></div>';
+      document.body.appendChild(f);
+      var fermer = function(){
+        f.hidden = true;
+        if(f.dataset.url){ URL.revokeObjectURL(f.dataset.url); delete f.dataset.url; }
+      };
+      f.querySelector(".bv-voile").addEventListener("click", fermer);
+      document.getElementById("bvFermer").addEventListener("click", fermer);
+      document.getElementById("bvPartager").addEventListener("click", function(){
+        var fichier = f._fichier;
+        if(fichier && navigator.canShare && navigator.canShare({ files:[fichier] })){
+          navigator.share({ files:[fichier], title:f._titre }).catch(function(){});
+        } else {
+          document.getElementById("bvEnregistrer").click();
+        }
+      });
+      document.getElementById("bvTexte").addEventListener("click", function(){
+        if(!f._numero) return;
+        window.open("https://wa.me/" + f._numero + "?text="
+          + encodeURIComponent(messageBonClient(f._bon, langueMessage())), "_blank", "noopener");
+      });
+    }
+    f._bon = b; f._numero = numero || ""; f._fichier = null;
+    f._titre = (en ? "Voucher " : "Bon ") + (b.ref || "");
+    var img = f.querySelector(".bv-img"), etat = f.querySelector(".bv-etat");
+    var partager = document.getElementById("bvPartager"), enreg = document.getElementById("bvEnregistrer");
+    var texte = document.getElementById("bvTexte");
+    img.alt = f._titre; img.removeAttribute("src");
+    etat.textContent = en ? "Preparing the voucher…" : "Préparation du bon…"; etat.hidden = false;
+    partager.textContent = en ? "Send the image" : "Envoyer l'image";
+    enreg.textContent = en ? "Save the image" : "Enregistrer l'image";
+    texte.textContent = en ? "Send as text on WhatsApp" : "Envoyer en texte sur WhatsApp";
+    document.getElementById("bvFermer").textContent = en ? "Close" : "Fermer";
+    partager.disabled = true; enreg.hidden = true; texte.hidden = !numero;
+    f.hidden = false;
+    dessinerBonImage(b, langueMessage()).then(function(blob){
+      if(f.dataset.url) URL.revokeObjectURL(f.dataset.url);
+      var url = URL.createObjectURL(blob); f.dataset.url = url;
+      img.src = url;
+      var nom = "bon-" + (b.ref || "elatransfer") + ".png";
+      try{ f._fichier = new File([blob], nom, { type:"image/png" }); }catch(e){ f._fichier = null; }
+      enreg.href = url; enreg.download = nom; enreg.hidden = false;
+      /* On ne propose « Envoyer l'image » que si l'appareil sait partager un
+         fichier : sinon le bouton enregistre, et on le dit. */
+      var peutPartager = !!(f._fichier && navigator.canShare && navigator.canShare({ files:[f._fichier] }));
+      partager.disabled = false;
+      partager.hidden = !peutPartager;
+      etat.hidden = true;
+    }).catch(function(){
+      etat.textContent = en ? "The image could not be created. Send it as text."
+                            : "L'image n'a pas pu être créée. Envoyez-le en texte.";
+    });
+  }
+
   function jugerRenvoiComptoir(){
     if(!recHotel) return;
     btnRenvoyer.hidden = true;
     var envBon = document.getElementById("btnBonEnvoyerClient");
-    if(envBon) envBon.hidden = !(bonCourant && bonCourant.client
-                                 && telWa(bonCourant.client.telephone));
+    if(envBon) envBon.hidden = !bonCourant;
     /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
        rouge posé juste au-dessus porte déjà la consigne et le numéro ;
        deux phrases pour une même chose, c'est le doublon qu'on vient de

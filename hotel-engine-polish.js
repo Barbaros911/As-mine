@@ -266,19 +266,18 @@
       }
 
       var intro=document.querySelector('#recVerrou .rec-intro');
-      /* 12 h, pas « une fois » (30/09/2026) : la session tient 12 heures sur
-         l'appareil, et c'est ce qu'il faut retenir pour ne pas perdre le code. */
+      /* 30 jours, pas « une fois » (30/09/2026) : c'est la durée du jeton
+         signé par le serveur (_shared/hotel-session.ts). */
       texte(intro,anglais
-        ? 'This code stays active for 12 hours on this device, then you will be asked for it again: keep it safe.'
-        : 'Ce code reste actif 12 h sur cet appareil, puis il vous sera redemandé : gardez-le bien.');
+        ? 'This code stays active for 30 days on this device, then you will be asked for it again: keep it safe.'
+        : 'Ce code reste actif 30 jours sur cet appareil, puis il vous sera redemandé : gardez-le bien.');
       var sess=document.getElementById('recSession');
       if(sess && sess.dataset.fin){
         var fin=new Date(Number(sess.dataset.fin));
-        var h=fin.toLocaleTimeString(anglais?'en-GB':'fr-FR',{hour:'2-digit',minute:'2-digit'});
-        var lendemain=fin.toDateString()!==new Date().toDateString();
+        var j=fin.toLocaleDateString(anglais?'en-GB':'fr-FR',{weekday:'long',day:'numeric',month:'long'});
         texte(sess,anglais
-          ? 'Code active on this device until '+(lendemain?'tomorrow ':'')+h+'. Keep it safe: you will be asked for it again afterwards.'
-          : 'Code actif sur cet appareil jusqu’à '+(lendemain?'demain ':'')+h+'. Gardez-le bien : il vous sera redemandé ensuite.');
+          ? 'Code kept on this device until '+j+'. Keep it safe: you will be asked for it again afterwards.'
+          : 'Code gardé sur cet appareil jusqu’au '+j+'. Gardez-le bien : il vous sera redemandé ensuite.');
       }
       texte(document.getElementById('btnRecAlerteOk'),anglais?'OK':'Vu');
       var codeTitre=document.querySelector('label[for="recCode"] .champ-titre');

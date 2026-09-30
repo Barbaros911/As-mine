@@ -58,7 +58,8 @@ await ctx.route('**://*/**', r => r.request().url().startsWith('http://127.0.0.1
   ? r.continue() : r.abort());
 
 let appels = [];
-let etat0043 = 'attente';   // Barbaros la validera en cours de suite
+let etat0043 = 'attente';
+let tel0043 = '06 98 76 54 32';   // Barbaros la validera en cours de suite
 const COURSES = () => ([
   { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:'06:00',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Orly 1 — Aéroport de Paris-Orly',
@@ -79,7 +80,7 @@ const COURSES = () => ([
   { ref:'ELA-26-09-0043', statut:etat0043, date:jour(1), heure:'14:30',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne',
     arrivee:'Parc des Expositions de Paris-Nord Villepinte, 93420 Villepinte',
-    vehicule:'Van', prix:120, client:'Famille Chen', tel:'06 98 76 54 32', chambre:'302',
+    vehicule:'Van', prix:120, client:'Famille Chen', tel:tel0043, chambre:'302',
     paiement:'Carte bancaire', annulationDemandee:false, chauffeur:{nom:'',telephone:''} },
   { ref:'ELA-26-09-0031', statut:'attente', date:jour(-1), heure:'07:00',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Beauvais',
@@ -349,8 +350,22 @@ check('avec le téléphone ET WhatsApp',
 /* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ On lit le message qui
    part, pas seulement la présence du bouton : un bouton qui envoie un
    message vide ou faux serait pire que pas de bouton. */
+/* ═══ LE BON EST UNE IMAGE (30/09/2026, à sa demande) ═══ Le bouton ouvre
+   un aperçu où l'image est fabriquée dans la page ; le texte WhatsApp reste
+   en secours. On éprouve les deux : l'image existe vraiment (on lit ses
+   dimensions), et le texte part au bon numéro avec le bon contenu. */
 await p.evaluate(() => { window.__bon = []; window.open = (u) => { window.__bon.push(u); return null; }; });
 await carte.locator('button', { hasText:'Envoyer le bon au client' }).click();
+const imageBon = await p.waitForFunction(() => {
+  const i = document.querySelector('#bonVisuel .bv-img');
+  return i && i.complete && i.naturalWidth > 0 ? { l:i.naturalWidth, h:i.naturalHeight } : false;
+}, null, { timeout:8000 }).then(h => h.jsonValue()).catch(() => null);
+check('« Envoyer le bon au client » fabrique une vraie image du bon',
+  !!imageBon && imageBon.l === 1080 && imageBon.h >= 1350, JSON.stringify(imageBon));
+check('…qu\'on peut enregistrer (ou partager quand l\'appareil le sait)',
+  await p.locator('#bvEnregistrer').isVisible()
+  && /^bon-ELA-26-09-0042\.png$/.test(await p.locator('#bvEnregistrer').getAttribute('download') || ''));
+await p.locator('#bvTexte').click();
 const bonEnvoye = await p.evaluate(() => (window.__bon || []).map(u => decodeURIComponent(u)));
 check('« Envoyer le bon au client » écrit au NUMÉRO DU CLIENT',
   bonEnvoye.length === 1 && bonEnvoye[0].startsWith('https://wa.me/33612345678?text='), bonEnvoye.join(' '));
@@ -359,14 +374,14 @@ check('…avec la référence, l\'heure, le trajet et le prix',
   && /Orly 1/.test(bonEnvoye[0]) && /100,00 €/.test(bonEnvoye[0]), bonEnvoye.join(' '));
 check('…et le chauffeur, la course étant confirmée',
   bonEnvoye.length === 1 && /Mehmet/.test(bonEnvoye[0]), bonEnvoye.join(' '));
-const sansTel = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0031' });
-check('pas de bouton quand le client n\'a laissé aucun numéro',
-  (await sansTel.locator('button', { hasText:'Envoyer le bon au client' }).count()) === 0);
+await p.locator('#bvFermer').click();
+check('« Fermer » referme l\'aperçu', await p.locator('#bonVisuel').isHidden());
+
 
 /* ═══ LA LISTE SE MET À JOUR TOUTE SEULE, ET LE CHANGEMENT SE VOIT ═══
    Barbaros valide 0043 ; le retour sur l'onglet suffit à le faire apparaître,
    sans appuyer sur « Actualiser » — et un bandeau le dit. */
-etat0043 = 'confirmee';
+etat0043 = 'confirmee'; tel0043 = '';
 const avantAuto = appels.length;
 await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
 await p.waitForTimeout(700);
@@ -384,6 +399,18 @@ check('…la carte concernée s\'éclaire', await attente.evaluate(el => el.clas
 const bandeauVu = await p.locator('#recAlerte').isVisible();
 if(bandeauVu) await p.locator('#btnRecAlerteOk').click();
 check('« Vu » retire le bandeau', bandeauVu && await p.locator('#recAlerte').isHidden());
+/* Sans numéro, l'image sert encore (on la montre, on la photographie) ;
+   seul l'envoi en texte, qui vise un numéro, disparaît. 0043 est relue sans
+   numéro depuis le dernier rafraîchissement. */
+const btnSansTel = attente.locator('button', { hasText:'Envoyer le bon au client' });
+if(await btnSansTel.count()){
+  await btnSansTel.click();
+  await p.waitForTimeout(600);
+}
+check('sans numéro : l\'image oui, l\'envoi en texte non',
+  (await btnSansTel.count()) === 1 && await p.locator('#bonVisuel').isVisible()
+  && await p.locator('#bvTexte').isHidden());
+if(await p.locator('#bonVisuel').isVisible()) await p.locator('#bvFermer').click();
 const avantCache = appels.length;
 await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable:true, get:() => true });
   document.dispatchEvent(new Event('visibilitychange')); });
@@ -453,10 +480,18 @@ await p.reload({waitUntil:'domcontentloaded'});
 await p.waitForTimeout(700);
 await p.locator('#btnReception').click();
 await p.waitForTimeout(700);
-check('un jeton refusé par le serveur dit que la session de 12 h est terminée',
-  /12 h/.test(await p.locator('#recErreur').textContent()), await p.locator('#recErreur').textContent());
-check('…et rappelle la règle des 12 h avant la saisie',
-  /12 h/.test(await p.locator('#recVerrou .rec-intro').textContent()));
+/* LA DURÉE ÉCRITE DOIT ÊTRE CELLE DU SERVEUR : on la LIT dans
+   _shared/hotel-session.ts. La constante bouge, la phrase reste — c'est le
+   piège déjà payé sur le préavis de 15 minutes. */
+const dureeMs = eval(readFileSync('supabase/functions/_shared/hotel-session.ts','utf8')
+  .match(/DUREE_SESSION_MS\s*=\s*([\d\s*]+);/)[1]);
+const dureeTexte = dureeMs % 864e5 === 0 ? (dureeMs / 864e5) + ' jours' : (dureeMs / 36e5) + ' h';
+check('un jeton refusé par le serveur dit que la session est terminée, avec sa durée',
+  (await p.locator('#recErreur').textContent()).includes(dureeTexte),
+  dureeTexte + ' / ' + await p.locator('#recErreur').textContent());
+check('…et la même durée est annoncée avant la saisie',
+  (await p.locator('#recVerrou .rec-intro').textContent()).includes(dureeTexte),
+  await p.locator('#recVerrou .rec-intro').textContent());
 
 /* ---------------------------------------------------------------------
    7. UN HÔTEL INCONNU NE DIT PAS QU'IL EST INCONNU

@@ -6065,23 +6065,41 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
   le français d'origine est gardé sur l'élément (`data-fr`) pour y revenir.
 - **Suite du même jour, à sa demande (« ok fait 12 h en leur affichant ce
   message afin qu'ils n'oublient pas ») :**
-  - **La session tient 12 h sur l'appareil** (`localStorage`, plus l'onglet).
+  - **La session tient 30 JOURS sur l'appareil** (`localStorage`, plus l'onglet)
+    — d'abord 12 h, puis 30 jours le même soir, à sa demande (« personne ne
+    verra le code à part la réception »). **Le code ne peut pas disparaître** :
+    la clé de l'hôtel (`easyhotel-aeroville`) est publique, écrite dans les
+    liens de la page du QR ; sans code, n'importe qui appellerait
+    `courses-hotel` et lirait noms et téléphones des clients. La session est
+    signée AVEC le code : le changer dans les secrets Supabase coupe toutes
+    les tablettes d'un coup. `test-nouveau-reception` lit la durée dans
+    `hotel-session.ts` et exige la même dans les phrases.
     La fin est celle du jeton signé par le serveur (`exp`,
     `DUREE_SESSION_MS` de `_shared/hotel-session.ts`) : le navigateur la lit
     pour l'afficher et oublier le jeton à l'heure dite, il ne peut pas la
     repousser. Le code brut n'est toujours conservé nulle part.
-  - **Le rappel est écrit deux fois** : avant la saisie (« actif 12 h, puis
-    redemandé : gardez-le bien ») et en haut de la liste (« Code actif sur
-    cet appareil jusqu'à 11:49 »). Un jeton refusé dit « la session de 12 h
-    est terminée », jamais « code faux ».
+  - **Le rappel est écrit deux fois** : avant la saisie (« actif 30 jours,
+    puis redemandé : gardez-le bien ») et en haut de la liste (« Code gardé
+    sur cet appareil jusqu'au jeudi 29 octobre »). Un jeton refusé dit « la
+    session est terminée, ou le code a changé », jamais « code faux ».
   - **La liste se relit toute seule** toutes les 30 s et au retour sur
     l'onglet — jamais onglet caché, liste fermée ou sans session. En fond,
     une panne réseau ne dit rien ; seul un refus du jeton reverrouille.
   - **Ce qui change se voit** : « Réservation validée » (vert) ou « Non
     prise — prévenez le client » (rouge) dans un bandeau en haut, avec « Vu »,
     et la carte s'éclaire. Aucun bandeau au premier chargement.
-  - **« Envoyer le bon au client »** sur chaque course à venir qui a un
-    numéro, et sur le bon juste après l'envoi : WhatsApp vers le numéro du
-    client, sept lignes, dans la langue affichée (le FR/EN sert quand le
-    client est étranger). Le chauffeur n'y figure que sur une course
-    confirmée — même règle que partout.
+  - **« Envoyer le bon au client » fabrique une IMAGE du bon** (à sa
+    demande : « un bon visuel plutôt qu'un message ») : logo, état, référence,
+    date, trajet, véhicule et paiement, chauffeur si confirmé, prix ferme.
+    Dessinée dans la page (`dessinerBonImage`, canvas 1080 px de large, la
+    hauteur suit le contenu — une hauteur fixe coupait la ligne du chauffeur),
+    jamais chez un tiers. Couleurs du bon du site, pas celles du partenaire.
+  - **Elle passe par un aperçu** (`ouvrirBonVisuel`) : Safari ne partage un
+    fichier que dans la foulée immédiate d'un appui, et l'image met un instant
+    à se fabriquer. On la fabrique à l'ouverture ; « Envoyer l'image »
+    (`navigator.share`, seulement si l'appareil sait partager un fichier) ou
+    « Enregistrer l'image » partent ensuite sans attente.
+  - **Le texte WhatsApp reste en secours** dans l'aperçu : un partage de
+    fichier ne sait pas viser un numéro. Sans numéro, l'image sert encore (on
+    la montre, on la photographie), seul le texte disparaît. Le texte suit la
+    langue affichée ; le chauffeur n'y figure que sur une course confirmée.
