@@ -1,4 +1,10 @@
-const DUREE_SESSION_MS = 12 * 60 * 60 * 1000;
+/* 30 JOURS (30/09/2026, à la demande de Barbaros : « personne ne verra le
+   code à part la réception »). Il ne veut pas qu'on le redemande sans cesse.
+   Le code ne disparaît pas pour autant : la clé de l'hôtel est publique (elle
+   est dans les liens de la page du QR), c'est lui seul qui garde les noms et
+   téléphones des clients. La session est signée AVEC le code : changer le code
+   dans les secrets Supabase coupe aussitôt toutes les tablettes connectées. */
+const DUREE_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 const encodeur = new TextEncoder();
 
 function b64url(bytes: Uint8Array): string {

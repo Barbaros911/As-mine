@@ -39,12 +39,17 @@
     var chambre=document.getElementById('blocChambre');
     var blocCoord=document.getElementById('blocCoordonnees');
     if(chambre && blocCoord && !blocCoord.classList.contains('hotel-guest-early')){
-      var titre=blocCoord.querySelector('.bloc-titre');
-      if(titre){titre.textContent='Client / Guest';titre.removeAttribute('data-t');}
-      var nom=blocCoord.querySelector('label[for="clientNom"] .champ-titre');
-      if(nom){nom.textContent='Nom du client / Guest name';nom.removeAttribute('data-t');}
-      var tel=blocCoord.querySelector('label[for="clientTel"] .champ-titre');
-      if(tel){tel.textContent='Téléphone / Phone';tel.removeAttribute('data-t');}
+      /* AU COMPTOIR, PAS DE LIBELLÉS DOUBLÉS « Chambre / Room » (30/09/2026) :
+         le sélecteur FR/EN y est gardé, c'est lui qui traduit. index.html y
+         pose ses propres clés de traduction (« nom_comptoir »…). */
+      if(!comptoir){
+        var titre=blocCoord.querySelector('.bloc-titre');
+        if(titre){titre.textContent='Client / Guest';titre.removeAttribute('data-t');}
+        var nom=blocCoord.querySelector('label[for="clientNom"] .champ-titre');
+        if(nom){nom.textContent='Nom du client / Guest name';nom.removeAttribute('data-t');}
+        var tel=blocCoord.querySelector('label[for="clientTel"] .champ-titre');
+        if(tel){tel.textContent='Téléphone / Phone';tel.removeAttribute('data-t');}
+      }
       blocCoord.classList.add('hotel-guest-early');
       /* L'ORDRE D'UN TUNNEL : LE TRAJET D'ABORD, LA PERSONNE ENSUITE
          (23/09/2026, à la demande de Barbaros). Le départ est suivi tout de
@@ -67,7 +72,6 @@
            au-dessus — chambre, OU nom et téléphone). La réception la
            connaît d'emblée ; le nom et le numéro ne servent que sans elle. */
         if(nomLabel) nomLabel.insertAdjacentElement('beforebegin',chambre);
-        if(tCh){tCh.textContent='Chambre / Room';tCh.removeAttribute('data-t');}
       } else {
         if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
         if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
@@ -164,20 +168,15 @@
 
       var actions=document.getElementById('receptionActions');
       var liste=document.getElementById('btnReception');
+      /* UNE SEULE TUILE PAR ÉCRAN, CELLE QUI MÈNE À L'AUTRE (30/09/2026).
+         Le formulaire portait aussi « Nouvelle course », qui ne faisait que
+         descendre de quelques centimètres sur l'écran où l'on était déjà :
+         deux grosses tuiles pour un seul vrai geste. */
       if(!actions){
         actions=document.createElement('div');actions.id='receptionActions';actions.className='reception-actions';
-        var nouveau=document.createElement('button');nouveau.type='button';nouveau.id='btnReceptionNouvelle';
-        nouveau.addEventListener('click',function(){
-          var cible=document.getElementById('receptionEtape1')||document.querySelector('.reserver');
-          if(cible) cible.scrollIntoView({behavior:'smooth',block:'start'});
-        });
-        actions.appendChild(nouveau);
         if(liste) actions.appendChild(liste);
         tete.appendChild(actions);
       }
-      habillerAction(document.getElementById('btnReceptionNouvelle'),'＋',
-        anglais?'NEW RIDE':'NOUVELLE COURSE',
-        anglais?'Book a transfer for a guest':'Réserver un transfert pour un client');
       habillerAction(liste,'≡',
         anglais?'HOTEL BOOKINGS':'RÉSERVATIONS DE L’HÔTEL',
         anglais?'View and track bookings':'Voir et suivre les réservations');
@@ -249,16 +248,14 @@
         var btnReserver=document.getElementById('btnRecReserver');
         if(!actionsRec){
           actionsRec=document.createElement('div');actionsRec.id='recDashboardActions';actionsRec.className='reception-actions rec-dashboard-actions';
-          var btnVoir=document.createElement('button');btnVoir.type='button';btnVoir.id='btnRecVoirListe';
-          btnVoir.addEventListener('click',function(){var c=document.querySelector('.rec-chiffres');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});});
-          if(btnReserver) actionsRec.appendChild(btnReserver);actionsRec.appendChild(btnVoir);
+          /* « Réservations de l'hôtel » n'est plus répété ici : on EST sur
+             les réservations, la tuile ne faisait que descendre de 24 px, et
+             le même titre était écrit juste en dessous. */
+          if(btnReserver) actionsRec.appendChild(btnReserver);
           corpsRec.insertBefore(actionsRec,corpsRec.firstElementChild);
         }
         habillerAction(btnReserver,'＋',anglais?'NEW RIDE':'NOUVELLE COURSE',
           anglais?'Book a transfer for a guest':'Réserver un transfert pour un client');
-        habillerAction(document.getElementById('btnRecVoirListe'),'≡',
-          anglais?'HOTEL BOOKINGS':'RÉSERVATIONS DE L’HÔTEL',
-          anglais?'View and track bookings':'Voir et suivre les réservations');
         if(chiffres){
           var titreCourses=document.getElementById('recListeTitre');
           if(!titreCourses){titreCourses=document.createElement('div');titreCourses.id='recListeTitre';titreCourses.className='rec-liste-titre';
@@ -269,9 +266,20 @@
       }
 
       var intro=document.querySelector('#recVerrou .rec-intro');
+      /* 30 jours, pas « une fois » (30/09/2026) : c'est la durée du jeton
+         signé par le serveur (_shared/hotel-session.ts). */
       texte(intro,anglais
-        ? 'This secure code is requested only once on this device.'
-        : 'Ce code sécurisé n’est demandé qu’une fois sur cet appareil.');
+        ? 'This code stays active for 30 days on this device, then you will be asked for it again: keep it safe.'
+        : 'Ce code reste actif 30 jours sur cet appareil, puis il vous sera redemandé : gardez-le bien.');
+      var sess=document.getElementById('recSession');
+      if(sess && sess.dataset.fin){
+        var fin=new Date(Number(sess.dataset.fin));
+        var j=fin.toLocaleDateString(anglais?'en-GB':'fr-FR',{weekday:'long',day:'numeric',month:'long'});
+        texte(sess,anglais
+          ? 'Code kept on this device until '+j+'. Keep it safe: you will be asked for it again afterwards.'
+          : 'Code gardé sur cet appareil jusqu’au '+j+'. Gardez-le bien : il vous sera redemandé ensuite.');
+      }
+      texte(document.getElementById('btnRecAlerteOk'),anglais?'OK':'Vu');
       var codeTitre=document.querySelector('label[for="recCode"] .champ-titre');
       texte(codeTitre,anglais?'Reception access code':'Code d’accès Réception');
       var codeChamp=document.getElementById('recCode');if(codeChamp) codeChamp.placeholder=anglais?'Your code':'Votre code';
@@ -294,17 +302,54 @@
         : 'Un retard, un changement d’heure ou une annulation : appelez-nous, on s’en occupe.');
       var compteurs=document.querySelectorAll('.rec-chiffre span');
       [anglais?'today':'aujourd’hui',anglais?'pending':'en attente',anglais?'upcoming':'à venir'].forEach(function(v,i){texte(compteurs[i],v);});
-      texte(document.getElementById('recVide'),anglais?'No booking yet.':'Aucune réservation pour le moment.');
       texte(document.getElementById('btnRecActualiser'),anglais?'Refresh':'Actualiser');
       texte(document.getElementById('btnRecFermer'),anglais?'Close session':'Fermer la session');
+      /* LA LISTE EST DESSINÉE EN FRANÇAIS ; on garde le français d'origine
+         sur l'élément (data-fr) pour pouvoir y REVENIR. Sans ça, repasser en
+         FR laissait « Pending » et « Tomorrow » à l'écran. */
+      function trad(el,en){
+        if(!el) return;
+        if(!el.dataset.fr) el.dataset.fr=el.textContent;
+        texte(el,anglais&&en?en:el.dataset.fr);
+      }
       document.querySelectorAll('.rec-etat').forEach(function(etat){
-        if(!anglais) return;
         var traductions={attente:'Pending',confirmee:'Confirmed',en_cours:'In progress',realisee:'Completed',refusee:'Unavailable',annulee:'Cancelled'};
-        Object.keys(traductions).some(function(c){if(etat.classList.contains(c)){texte(etat,traductions[c]);return true;}return false;});
+        var en=null;
+        Object.keys(traductions).some(function(c){if(etat.classList.contains(c)){en=traductions[c];return true;}return false;});
+        trad(etat,en);
       });
-      if(anglais) document.querySelectorAll('.rec-jour').forEach(function(j){
+      document.querySelectorAll('.rec-jour').forEach(function(j){
         var jours={"Aujourd'hui":'Today','Demain':'Tomorrow','En retard':'Overdue','Date inconnue':'Unknown date'};
-        if(jours[j.textContent.trim()]) texte(j,jours[j.textContent.trim()]);
+        trad(j,jours[(j.dataset.fr||j.textContent).trim()]);
+      });
+      var boutons={"Demander l'annulation":'Request cancellation','Appeler Elatransfer':'Call Elatransfer','Envoyer le bon au client':'Send voucher to guest','Renvoyer le bon au client':'Resend voucher to guest'};
+      document.querySelectorAll('#recListe .bouton-fantome').forEach(function(x){
+        trad(x,boutons[(x.dataset.fr||x.textContent).trim()]);
+      });
+      /* Retrouver une course (30/09/2026) : le message « rien trouvé » est
+         contextuel, écrit en français par la page ; on le traduit, et on y
+         revient en FR grâce à data-fr. */
+      var vide=document.getElementById('recVide');
+      if(vide){
+        var frVide=vide.dataset.fr||vide.textContent, enVide=null;
+        var mRech=/^Aucune course ne correspond à « (.*) »\.$/.exec(frVide);
+        if(mRech) enVide='No ride matches “'+mRech[1]+'”.';
+        else enVide={'Aucune réservation pour le moment.':'No booking yet.',
+          'Aucune course à venir.':'No upcoming ride.',
+          'Aucune course passée pour le moment.':'No past ride yet.'}[frVide]||null;
+        trad(vide,enVide);
+      }
+      var titreRech=document.querySelector('label[for="recRecherche"] .champ-titre');
+      texte(titreRech,anglais?'Find a ride':'Retrouver une course');
+      var champRech=document.getElementById('recRecherche');
+      if(champRech) champRech.placeholder=anglais?'Room, name, phone or reference':'Chambre, nom, téléphone ou référence';
+      var nomsVues={avenir:['À venir','Upcoming'],passees:['Passées','Past'],toutes:['Toutes','All']};
+      document.querySelectorAll('.rec-vues button').forEach(function(bv){
+        var n=nomsVues[bv.dataset.vue];if(n) texte(bv.querySelector('span'),anglais?n[1]:n[0]);
+      });
+      document.querySelectorAll('#recListe .rec-reference').forEach(function(x){
+        var fr=x.dataset.fr||x.textContent;
+        trad(x,fr.replace(/^Réf\. /,'Ref. '));
       });
     }
   }
@@ -436,4 +481,22 @@
   var observer=new MutationObserver(function(){enhanceHotel();receptionPremium();});
   observer.observe(document.documentElement,{subtree:true,childList:true});
   setTimeout(function(){observer.disconnect();},7000);
+  /* ═══ APRÈS SEPT SECONDES, LA LANGUE ET LA LISTE SUIVENT QUAND MÊME ═══
+     (30/09/2026). L'observateur général se coupe à 7 s, et c'est voulu —
+     mais un FR/EN touché ensuite, ou une liste redessinée par
+     « Actualiser », revenaient alors aux textes d'origine. Deux
+     observateurs ÉTROITS restent : l'attribut « lang » de la page, et les
+     enfants DIRECTS de la liste. Ce que la finition réécrit est plus
+     profond que ces enfants : elle ne se rappelle pas elle-même. */
+  if(comptoir){
+    new MutationObserver(function(){tout();})
+      .observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+    var brancherListe=setInterval(function(){
+      var l=document.getElementById('recListe');
+      if(!l) return;
+      clearInterval(brancherListe);
+      new MutationObserver(function(){receptionPremium();}).observe(l,{childList:true});
+    },250);
+    setTimeout(function(){clearInterval(brancherListe);},10000);
+  }
 }());

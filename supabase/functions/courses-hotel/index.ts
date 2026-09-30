@@ -254,7 +254,12 @@ Deno.serve(async (req: Request) => {
   const url = `${SUPABASE_URL}/rest/v1/courses`
     + `?select=ref,statut,cree_le,bon`
     + `&bon->>provenanceCle=eq.${encodeURIComponent(cle)}`
-    + `&order=cree_le.desc&limit=200`;
+    /* 500 et plus 200 (30/09/2026) : la réception retrouve maintenant son
+       HISTORIQUE (onglet « Passées », recherche). 200 couvrait quelques
+       semaines d'un hôtel actif ; 500 couvre des mois, pour quelques
+       centaines de Ko relus toutes les 30 s seulement quand l'écran est
+       ouvert et visible. */
+    + `&order=cree_le.desc&limit=500`;
   const r = await fetch(url,
     { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
   if (!r.ok) {
