@@ -6,11 +6,11 @@
    « nouvelle-demande » reçoit toutes les 20 s {type:"RELANCE"} (pg_cron) :
    · RATTRAPAGE : en attente depuis plus d'1 min et aucune alerte réussie
      → annoncée maintenant (webhook tombé, Telegram en panne un instant) ;
-   · RAPPEL TELEGRAM toutes les 20 s tant qu'elle attend et qu'il ne l'a
-     pas VUE (bouton « ✅ Vu », ou course ouverte dans l'admin) ;
+   · Telegram ET push toutes les 3 min à H-30 ou moins ;
+   · les deux canaux toutes les 10 min entre H-2 et H-30 ;
+   · aucun rappel avant H-2 ;
    · « telegram-bot » n'accepte l'appui que de Telegram et de SA conversation ;
-   · notification du téléphone toutes les 10 min, trois fois au plus ;
-   · une course tranchée ne sonne plus.
+   · vue, confirmation et refus arrêtent tout immédiatement.
    Sans Deno ni réseau : le code TypeScript dépouillé de ses types, un faux
    serveur, et une horloge qu'on avance à la main.
    Lancer :  node test-relance-alertes.mjs
@@ -49,7 +49,9 @@ const relance = async (corps = { type: 'RELANCE' }) => (await h(new Request('htt
 const minutes = (n) => { maintenant += n * 60000; };
 
 const ok = [], ko = []; const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
-const bon = (ref) => ({ ref, course: { departPublic: 'Place Vendôme, 75001 Paris', arriveePublic: 'Aéroport Charles-de-Gaulle, Terminal 2E', date: '2026-09-30', heure: '14:00', vehicule: 'Berline', passagers: '2 passagers' }, prix: { total: 70 } });
+const bon = (ref, heure = '14:00') => ({ ref, course: { departPublic: 'Place Vendôme, 75001 Paris', arriveePublic: 'Aéroport Charles-de-Gaulle, Terminal 2E', date: '2026-09-30', heure, vehicule: 'Berline', passagers: '2 passagers' }, prix: { total: 70 } });
+const nbTg = (ref) => tg.filter(t => t.includes(ref)).length;
+const nbRappels = (ref, canal) => journal.filter(j => j.course_ref === ref && j.canal === canal && j.type_evenement === 'rappel_reservation').length;
 
 try {
   /* 1. Toute fraîche : c'est au webhook de parler, pas au rappel. */
@@ -67,62 +69,75 @@ try {
   await relance();
   check('appelé à nouveau tout de suite : rien de plus', tg.length === 1, String(tg.length));
 
-  /* 3. Telegram toutes les 20 s, tant qu'elle attend. */
-  maintenant += 10000; await relance();
-  check('10 s après : pas encore de rappel', tg.length === 1, String(tg.length));
-  maintenant += 10000; await relance();
-  check('20 s après : RAPPEL Telegram', tg.length === 2 && /^RAPPEL \d+ min/.test(tg[1]), (tg[1] || '').split('\n')[0]);
-  check('le titre du rappel tient sous 90 caractères', (tg[1] || '').split('\n')[0].length < 90, String((tg[1] || '').split('\n')[0].length));
-  check('le rappel porte le bouton qui ouvre la course', (tgCorps[1]?.reply_markup?.inline_keyboard?.[1]?.[0]?.url || '').includes('?ref=ELA-26-09-AAAA1'), JSON.stringify(tgCorps[1]?.reply_markup));
-  const n1 = tg.length;
-  for (let i = 0; i < 9; i++) { maintenant += 20000; await relance(); }
-  check('trois minutes de plus : un rappel toutes les 20 s (9)', tg.length - n1 === 9, String(tg.length - n1));
-
-  /* 4. La notification du téléphone, elle, ne se répète que toutes les 10 min, 3 fois. */
-  while (Date.parse(courses[0].cree_le) + 29 * 60000 > maintenant) { maintenant += 20000; await relance(); }
-  const rappelsPush = journal.filter(j => j.course_ref === 'ELA-26-09-AAAA1' && j.canal === 'push' && j.type_evenement === 'rappel_reservation');
-  check('notification du téléphone : 3 rappels au plus, espacés de 10 min', rappelsPush.length >= 2 && rappelsPush.length <= 3, String(rappelsPush.length));
-
-  check('chaque alerte porte le bouton « ✅ Vu »', tgCorps.every(c => c.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data === 'vu:ELA-26-09-AAAA1'),
-    JSON.stringify(tgCorps.at(-1)?.reply_markup));
-  check('et le bouton « Ouvrir la course »', tgCorps.every(c => /\?ref=ELA-26-09-AAAA1/.test(c.reply_markup?.inline_keyboard?.[1]?.[0]?.url || '')));
-
-  /* 5. PAS DE LIMITE DE 30 MIN : tant qu'il ne l'a pas vue, ça sonne. */
-  maintenant += 5 * 60000; const n2 = tg.length;
-  for (let i = 0; i < 3; i++) { maintenant += 20000; await relance(); }
-  check('35 min sans réponse : Telegram sonne toujours', tg.length - n2 === 3, String(tg.length - n2));
-  /* « Vu » (bouton Telegram ou course ouverte dans l'admin) l'arrête net. */
+  /* 3. Entre H-2 et H-30 : les deux canaux suivent 10 minutes. */
+  minutes(9); await relance();
+  check('course à moins de 2 h : aucun rappel avant 10 min', nbTg('ELA-26-09-AAAA1') === 1, String(nbTg('ELA-26-09-AAAA1')));
+  minutes(1); await relance();
+  check('course à moins de 2 h : Telegram rappelle à 10 min', nbTg('ELA-26-09-AAAA1') === 2, String(nbTg('ELA-26-09-AAAA1')));
+  check('course à moins de 2 h : le push est tenté au même instant', nbRappels('ELA-26-09-AAAA1', 'push') === 1, String(nbRappels('ELA-26-09-AAAA1', 'push')));
+  check('le titre du rappel tient sous 90 caractères', (tg.at(-1) || '').split('\n')[0].length < 90, String((tg.at(-1) || '').split('\n')[0].length));
+  check('le rappel porte le bouton qui ouvre la course', (tgCorps.at(-1)?.reply_markup?.inline_keyboard?.[1]?.[0]?.url || '').includes('?ref=ELA-26-09-AAAA1'), JSON.stringify(tgCorps.at(-1)?.reply_markup));
   journal.push({ type_evenement: 'vue', course_ref: 'ELA-26-09-AAAA1', canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant) });
-  const n2b = tg.length;
-  for (let i = 0; i < 6; i++) { maintenant += 20000; await relance(); }
-  check('« Vu » : plus aucun rappel', tg.length === n2b, String(tg.length - n2b));
 
-  /* 6. Une course tranchée ne sonne plus — dès le tour suivant. */
-  courses.push({ ref: 'ELA-26-09-FFFF6', statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-FFFF6') });
-  journal.push({ type_evenement: 'nouvelle_reservation', course_ref: 'ELA-26-09-FFFF6', canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant - 5 * 60000) });
-  maintenant += 20000; const n3 = tg.length; await relance();
-  check('en attente : elle sonne', tg.length === n3 + 1, String(tg.length - n3));
-  courses.at(-1).statut = 'confirmee';
-  const n4 = tg.length; for (let i = 0; i < 3; i++) { maintenant += 20000; await relance(); }
-  check('confirmée : plus aucun rappel', tg.length === n4, String(tg.length - n4));
+  /* 4. A H-30 ou moins : Telegram et push toutes les 3 minutes. */
+  const urgent = 'ELA-26-09-UUUU2';
+  courses.push({ ref: urgent, statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon(urgent, '12:40') });
+  journal.push({ type_evenement: 'nouvelle_reservation', course_ref: urgent, canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant) });
+  journal.push({ type_evenement: 'nouvelle_reservation', course_ref: urgent, canal: 'push', statut: 'envoye', cree_le: iso(maintenant) });
+  minutes(2.9); await relance();
+  check('course urgente : aucun rappel avant 3 min', nbRappels(urgent, 'telegram') === 0, String(nbRappels(urgent, 'telegram')));
+  minutes(0.1); await relance();
+  check('course urgente : Telegram rappelle à 3 min', nbRappels(urgent, 'telegram') === 1, String(nbRappels(urgent, 'telegram')));
+  check('course urgente : le push rappelle aussi à 3 min', nbRappels(urgent, 'push') === 1, String(nbRappels(urgent, 'push')));
 
-  /* 5. Une alerte qui a ÉCHOUÉ ne compte pas comme faite. */
-  courses.push({ ref: 'ELA-26-09-CCCC3', statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-CCCC3') });
+  /* 5. Deux réservations rapprochées restent indépendantes. */
+  const procheA = 'ELA-26-09-PPPA3', procheB = 'ELA-26-09-PPPB4';
+  for (const ref of [procheA, procheB]) {
+    courses.push({ ref, statut: 'attente', cree_le: iso(maintenant), bon: bon(ref, '12:40') });
+    journal.push({ type_evenement: 'nouvelle_reservation', course_ref: ref, canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant) });
+    journal.push({ type_evenement: 'nouvelle_reservation', course_ref: ref, canal: 'push', statut: 'envoye', cree_le: iso(maintenant) });
+  }
+  minutes(3); await relance();
+  check('2 réservations rapprochées : Telegram rappelle les deux', nbRappels(procheA, 'telegram') === 1 && nbRappels(procheB, 'telegram') === 1);
+  check('2 réservations rapprochées : le push rappelle les deux', nbRappels(procheA, 'push') === 1 && nbRappels(procheB, 'push') === 1);
+
+  /* 6. Vu, confirmation et refus arrêtent les tours suivants. */
+  journal.push({ type_evenement: 'vue', course_ref: urgent, canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant) });
+  courses.find(c => c.ref === procheA).statut = 'confirmee';
+  courses.find(c => c.ref === procheB).statut = 'refusee';
+  const avantArret = [urgent, procheA, procheB].map(ref => ({ tg: nbTg(ref), push: nbRappels(ref, 'push') }));
+  minutes(3); await relance();
+  check('« Vu » arrête les deux canaux', nbTg(urgent) === avantArret[0].tg && nbRappels(urgent, 'push') === avantArret[0].push);
+  check('confirmation arrête les deux canaux', nbTg(procheA) === avantArret[1].tg && nbRappels(procheA, 'push') === avantArret[1].push);
+  check('refus arrête les deux canaux', nbTg(procheB) === avantArret[2].tg && nbRappels(procheB, 'push') === avantArret[2].push);
+
+  /* 7. Plus de 2 h : annonce initiale seulement. */
+  const lointain = 'ELA-26-09-LLLL5';
+  courses.push({ ref: lointain, statut: 'attente', cree_le: iso(maintenant - 15 * 60000), bon: bon(lointain, '18:00') });
+  journal.push({ type_evenement: 'nouvelle_reservation', course_ref: lointain, canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant) });
+  journal.push({ type_evenement: 'nouvelle_reservation', course_ref: lointain, canal: 'push', statut: 'envoye', cree_le: iso(maintenant) });
+  minutes(30); await relance();
+  check('course à plus de 2 h : aucun rappel inutile', nbRappels(lointain, 'telegram') === 0 && nbRappels(lointain, 'push') === 0);
+
+  /* 8. Une alerte qui a ÉCHOUÉ est rattrapée, sans tempête toutes les 20 s. */
+  courses.push({ ref: 'ELA-26-09-CCCC3', statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-CCCC3', '13:10') });
   journal.push({ type_evenement: 'nouvelle_reservation', course_ref: 'ELA-26-09-CCCC3', canal: 'telegram', statut: 'echec', cree_le: iso(maintenant - 5 * 60000) });
   const avant2 = tg.length; await relance();
   check('Telegram en panne au premier envoi : la demande est RATTRAPÉE', tg.length === avant2 + 1 && tg.at(-1).includes('CCCC3'), String(tg.length - avant2));
   check('et annoncée comme une NOUVELLE demande, pas comme un rappel', /^Nouvelle demande/.test(tg.at(-1) || ''), (tg.at(-1) || '').split('\n')[0]);
+  const apresRattrapage = nbTg('ELA-26-09-CCCC3'); maintenant += 20000; await relance();
+  check('nouvel appel 20 s après : pas de tempête', nbTg('ELA-26-09-CCCC3') === apresRattrapage, String(nbTg('ELA-26-09-CCCC3')));
 
-  /* 6. Hors fenêtre de 6 h : on ne réveille pas l'historique. */
+  /* 9. Hors fenêtre de 6 h : on ne réveille pas l'historique. */
   courses.push({ ref: 'ELA-26-09-DDDD4', statut: 'attente', cree_le: iso(maintenant - 7 * 3600000), bon: bon('ELA-26-09-DDDD4') });
   const avant3 = tg.length; await relance();
   check('une vieille demande (7 h) ne sonne pas la nuit', tg.length === avant3, String(tg.length - avant3));
 
-  /* 7. Le contenu vient du SERVEUR, jamais de l'appel. */
+  /* 10. Le contenu vient du SERVEUR, jamais de l'appel. */
   await relance({ type: 'RELANCE', record: { bon: { course: { departPublic: 'CLIQUEZ http://pirate' } } } });
   check('aucun texte venu de l\'appel n\'est envoyé', !tg.some(t => t.includes('pirate')));
 
-  /* 8. Le chemin d'origine (webhook INSERT) est intact. */
+  /* 11. Le chemin d'origine (webhook INSERT) est intact. */
   courses.push({ ref: 'ELA-26-09-EEEE5', statut: 'attente', cree_le: iso(maintenant - 5000), bon: bon('ELA-26-09-EEEE5') });
   const avant4 = tg.length;
   globalThis.fetch = ((f) => async (url, init) => String(url).includes('/rest/v1/courses?select=ref,bon,cree_le&ref=eq.')
@@ -130,7 +145,7 @@ try {
     : f(url, init))(globalThis.fetch);
   await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-EEEE5' } });
   check('le webhook INSERT annonce toujours la nouvelle demande', tg.length === avant4 + 1, String(tg.length - avant4));
-  /* 9. LA PASTILLE, MÊME ADMIN FERMÉ. Le service worker est le seul code
+  /* 12. LA PASTILLE, MÊME ADMIN FERMÉ. Le service worker est le seul code
      qui tourne quand l'application est fermée : on le fait tourner pour de
      vrai, avec une fausse notification, et on lit ce qu'il pose sur l'icône. */
   {
@@ -152,7 +167,7 @@ try {
     await pousser({ titre: 'Transfert confirmé', corps: 'x', ref: 'ELA-26-09-AAAA1' });
     check('sans nombre (notification client) : un simple point, pas de chiffre inventé', badges.at(-1) === 'point', JSON.stringify(badges));
   }
-  /* 10. LE BOUTON « VU » : l'installation et la fonction qui le reçoit
+  /* 13. LE BOUTON « VU » : l'installation et la fonction qui le reçoit
      parlent le même secret, et seul SON appui compte. */
   {
     await relance({ type: 'INSTALLER_TELEGRAM' });

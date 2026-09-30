@@ -64,23 +64,27 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
 }
 
 /* LE RAPPEL ET LE RATTRAPAGE (30/09/2026, à sa demande : « recevoir toutes
-   les courses en temps et en heure… », « toutes les 20 secondes », puis
-   « tant que je n'ai pas ouvert la demande reçue sur Telegram »).
+   les courses en temps et en heure… », puis une cadence liée à l'urgence).
    Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
    - RATTRAPAGE : une course en attente depuis plus d'1 min sans AUCUNE
      alerte réussie est annoncée maintenant, par tous les canaux.
-   - TELEGRAM TOUTES LES 20 S tant qu'elle reste « attente » ET qu'il ne l'a
-     pas VUE : bouton « ✅ Vu » sous le message, ou course ouverte dans
-     l'admin. Telegram ne dit jamais à un bot qu'un message est lu : « vu »
-     ne peut être qu'un geste. Chaque message sonne et vibre — c'est le
-     réglage de Telegram sur le téléphone.
-     Borne : la fenêtre de 6 h. Au-delà, une demande n'est plus relancée.
-   - NOTIFICATION DU TÉLÉPHONE toutes les 10 min, trois fois au plus : elle
-     reste affichée de toute façon.
+   - DEPART DANS 30 MIN OU MOINS : Telegram ET notification toutes les 3 min.
+   - DEPART DANS 2 H OU MOINS : les deux canaux toutes les 10 min.
+   - PLUS DE 2 H : l'annonce initiale suffit ; la relance commence à H-2.
+   Les deux canaux s'arrêtent dès que la course n'est plus « attente », ou
+   dès qu'elle est VUE : bouton « ✅ Vu » sous le message, ou course ouverte
+   dans l'admin. La fenêtre de 6 h borne aussi tout incident ancien.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
    vient du journal. */
-const RATTRAPAGE_MS=60*1000,PAS_TELEGRAM_MS=15*1000,PAS_PUSH_MS=10*60*1000,MAX_PUSH=3,FENETRE_MS=6*3600*1000;
+const RATTRAPAGE_MS=60*1000,PAS_URGENT_MS=3*60*1000,PAS_PROCHE_MS=10*60*1000,FENETRE_MS=6*3600*1000;
 const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
+/* Date et heure du bon sont des heures civiles de Paris. Les convertir en
+   pseudo-UTC, comme l'horloge de Paris courante, évite que le serveur UTC
+   décale le seuil d'une ou deux heures lors des changements été/hiver. */
+const HORLOGE_PARIS=new Intl.DateTimeFormat("fr-FR",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+function heureCivileParis(ms:number):number{const p=Object.fromEntries(HORLOGE_PARIS.formatToParts(new Date(ms)).filter(x=>x.type!=="literal").map(x=>[x.type,Number(x.value)]));return Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute);}
+function departCivil(bon:Record<string,any>):number|null{const c=(bon.course??{}) as Record<string,any>,d=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(c.date??"")),h=/^(\d{1,2}):(\d{2})$/.exec(String(c.heure??""));if(!d||!h)return null;const valeurs=[...d.slice(1),...h.slice(1)].map(Number),v=Date.UTC(valeurs[0],valeurs[1]-1,valeurs[2],valeurs[3],valeurs[4]);return valeurs[1]>=1&&valeurs[1]<=12&&valeurs[2]>=1&&valeurs[2]<=31&&valeurs[3]<=23&&valeurs[4]<=59?v:null;}
+function cadenceRappel(bon:Record<string,any>):number|null{const depart=departCivil(bon);if(depart===null)return null;const reste=depart-heureCivileParis(Date.now());return reste<=30*60*1000?PAS_URGENT_MS:reste<=2*3600*1000?PAS_PROCHE_MS:null;}
 async function relancer():Promise<string>{
   if(!U||!S)return "non configuré";
   const depuis=new Date(Date.now()-FENETRE_MS).toISOString();
@@ -98,25 +102,34 @@ async function relancer():Promise<string>{
     const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
     const age=Date.now()-cree;
     if(!reussies.length){
-      if(age<RATTRAPAGE_MS)continue;
+      const derniereTentative=plusRecent(journalRef.filter(x=>x.type_evenement==="nouvelle_reservation"),cree);
+      if(age<RATTRAPAGE_MS||Date.now()-derniereTentative<RATTRAPAGE_MS)continue;
       const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
       const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m,ref)]);
       await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
       continue;
     }
+    const cadence=cadenceRappel(bon);if(cadence===null)continue;
     const t=titreRappel(bon,Math.max(1,Math.round(age/60000)));
-    /* 20 s après le dernier message PARTI (15 s de marge : le minuteur de
-       pg_cron n'est pas à la seconde près). */
-    const tgPartis=reussies.filter(x=>x.canal==="telegram");
-    if(TELEGRAM_TOKEN&&TELEGRAM_CHAT&&Date.now()-plusRecent(tgPartis,cree)>=PAS_TELEGRAM_MS){
+    /* Une tentative échouée compte pour la cadence : sinon une panne d'un
+       fournisseur provoquerait un nouvel appel toutes les 20 secondes. */
+    const tgDernier=plusRecent(journalRef.filter(x=>x.canal==="telegram"),cree);
+    const pushDernier=plusRecent(journalRef.filter(x=>x.canal==="push"),cree);
+    const doitTelegram=TELEGRAM_TOKEN&&TELEGRAM_CHAT&&Date.now()-tgDernier>=cadence;
+    const doitPush=Date.now()-pushDernier>=cadence;
+    if(doitTelegram&&doitPush){
+      const [tg,push]=await Promise.all([
+        parTelegram(t,`Réf. ${ref} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref),
+        parPush(t,ref),
+      ]);
+      await Promise.all([journal("rappel_reservation",ref,"telegram",tg),journal("rappel_reservation",ref,"push",push)]);
+      rappelsTg++;rappelsPush++;
+    }else if(doitTelegram){
       /* Court : sur un écran verrouillé seule la première ligne se lit, et
          le détail est déjà dans le premier message. */
       const tg=await parTelegram(t,`Réf. ${ref} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref);
       await journal("rappel_reservation",ref,"telegram",tg);rappelsTg++;
-    }
-    const pushTentes=journalRef.filter(x=>x.canal==="push"&&x.type_evenement==="rappel_reservation");
-    const pushDernier=plusRecent(journalRef.filter(x=>x.canal==="push"),cree);
-    if(pushTentes.length<MAX_PUSH&&Date.now()-pushDernier>=PAS_PUSH_MS){
+    }else if(doitPush){
       const push=await parPush(t,ref);
       await journal("rappel_reservation",ref,"push",push);rappelsPush++;
     }
