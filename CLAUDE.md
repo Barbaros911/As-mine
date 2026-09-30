@@ -6143,6 +6143,20 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
     (le justificatif d'une note de frais). Le bon dit « EFFECTUÉE » / « Course
     effectuée », avec son chauffeur. Rien sur une course non prise.
 
+- **ACTUALISER EN HAUT, PAR DATE, ET RETROUVER UN BON PAR SA DATE**
+  (30/09/2026, à sa demande). « Actualiser » était en bas d'une liste qui
+  s'allonge (mesuré à 1 360 px) : il est remonté sous les trois chiffres,
+  avec l'heure de la dernière lecture (`#recMaj`, `dessinerMaj()`), et
+  tourne pendant la lecture. Un quatrième onglet **« Par date »** ouvre une
+  barre Jour / Mois, ‹ ›, un calendrier et « Aujourd'hui » ; la liste y est
+  dans l'ordre du calendrier, sans « En retard », avec le bilan de la
+  période (courses, effectuées, à venir, non prises, et le montant des
+  seules EFFECTUÉES — même règle que le registre). La recherche trouve
+  aussi une date tapée « 12/09 », « 12/09/2026 » ou « 12 septembre ». Les
+  dates sont composées en local (`isoLocal`), jamais par `toISOString`.
+  Le libellé d'« Actualiser » est écrit par la page, plus par la finition
+  (`hotel-engine-polish.js`) : elle l'écrasait pendant la lecture.
+
 ## LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL
 
 29 septembre 2026, à sa demande. Réglages → « Prix du flyer, par hôtel » :

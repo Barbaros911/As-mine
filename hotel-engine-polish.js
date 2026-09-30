@@ -302,7 +302,8 @@
         : 'Un retard, un changement d’heure ou une annulation : appelez-nous, on s’en occupe.');
       var compteurs=document.querySelectorAll('.rec-chiffre span');
       [anglais?'today':'aujourd’hui',anglais?'pending':'en attente',anglais?'upcoming':'à venir'].forEach(function(v,i){texte(compteurs[i],v);});
-      texte(document.getElementById('btnRecActualiser'),anglais?'Refresh':'Actualiser');
+      /* « Actualiser » est écrit par la page elle-même (dessinerMaj) : il
+         change pendant la lecture, la finition ne doit pas l'écraser. */
       texte(document.getElementById('btnRecFermer'),anglais?'Close session':'Fermer la session');
       /* LA LISTE EST DESSINÉE EN FRANÇAIS ; on garde le français d'origine
          sur l'élément (data-fr) pour pouvoir y REVENIR. Sans ça, repasser en
@@ -336,14 +337,15 @@
         if(mRech) enVide='No ride matches “'+mRech[1]+'”.';
         else enVide={'Aucune réservation pour le moment.':'No booking yet.',
           'Aucune course à venir.':'No upcoming ride.',
-          'Aucune course passée pour le moment.':'No past ride yet.'}[frVide]||null;
+          'Aucune course passée pour le moment.':'No past ride yet.',
+          'Aucune course sur cette période.':'No ride in this period.'}[frVide]||null;
         trad(vide,enVide);
       }
       var titreRech=document.querySelector('label[for="recRecherche"] .champ-titre');
       texte(titreRech,anglais?'Find a ride':'Retrouver une course');
       var champRech=document.getElementById('recRecherche');
       if(champRech) champRech.placeholder=anglais?'Room, name, phone or reference':'Chambre, nom, téléphone ou référence';
-      var nomsVues={avenir:['À venir','Upcoming'],passees:['Passées','Past'],toutes:['Toutes','All']};
+      var nomsVues={avenir:['À venir','Upcoming'],passees:['Passées','Past'],toutes:['Toutes','All'],date:['Par date','By date']};
       document.querySelectorAll('.rec-vues button').forEach(function(bv){
         var n=nomsVues[bv.dataset.vue];if(n) texte(bv.querySelector('span'),anglais?n[1]:n[0]);
       });

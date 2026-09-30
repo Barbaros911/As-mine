@@ -331,6 +331,71 @@ check('recherche vidée : retour à « À venir »',
   (await refsVisibles()).length === 3
   && (await p.locator('.rec-vues button[data-vue="avenir"]').getAttribute('aria-selected')) === 'true');
 
+/* ═══ UN BON SE RETROUVE PAR SA DATE (30/09/2026) ═══ « le client du 12/09 » :
+   la forme que tape une réception, pas « 2026-09-12 ». */
+const jj = s => s.slice(8,10) + '/' + s.slice(5,7);
+await p.fill('#recRecherche', jj(jour(-3)));
+check('par DATE « JJ/MM » : on retrouve la course de ce jour-là, et elle seule',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', '');
+
+/* ═══ ACTUALISER EST EN HAUT, ET IL DIT QUAND (30/09/2026) ═══ Il était en bas
+   d'une liste qui s'allonge : personne ne le trouvait. On le MESURE à l'arrêt,
+   page remontée, sans défilement — et on vérifie qu'il relit vraiment. */
+await p.evaluate(() => window.scrollTo(0, 0));
+const rectMaj = await p.locator('#btnRecActualiser').boundingBox();
+check('« Actualiser » est dans le premier écran, sans défiler',
+  !!rectMaj && rectMaj.y + rectMaj.height <= 844, JSON.stringify(rectMaj));
+const avantMaj = appels.length;
+await p.locator('#btnRecActualiser').click();
+await p.waitForTimeout(400);
+check('…il relit vraiment le serveur', appels.length === avantMaj + 1, (appels.length - avantMaj) + ' appel(s)');
+check('…et il écrit l\'heure de la lecture',
+  /^Mis à jour à \d\d:\d\d$/.test((await p.locator('#recMaj').textContent()).trim()),
+  await p.locator('#recMaj').textContent());
+
+/* ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026) ═══ On lit l'ordre et le
+   bilan à l'écran, jamais l'état interne ; les attendus sont recalculés depuis
+   le jeu de courses, pas recopiés de la page. */
+await p.locator('.rec-vues button[data-vue="date"]').click();
+check('« Par date » ouvre la barre de période, sur AUJOURD\'HUI',
+  await p.locator('#recPeriode').isVisible()
+  && (await p.locator('#recJourChoix').inputValue()) === jour(0));
+check('aujourd\'hui, aucune course : on le dit',
+  (await refsVisibles()).length === 0
+  && /Aucune course sur cette période/.test(await p.locator('#recBilan').textContent()));
+await p.locator('#btnRecApres').click();
+check('« › » passe à demain : les deux courses, dans l\'ordre de l\'heure',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0042","ELA-26-09-0043"]', JSON.stringify(await refsVisibles()));
+check('…et le bilan les compte', /^2 courses/.test(await p.locator('#recBilan').textContent()),
+  await p.locator('#recBilan').textContent());
+await p.locator('#recJourChoix').fill(jour(-3));
+check('le calendrier choisit un jour précis : la course faite, et son montant',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]'
+  && /1 effectuée/.test(await p.locator('#recBilan').textContent())
+  && /80,00/.test(await p.locator('#recBilan').textContent()),
+  JSON.stringify(await refsVisibles()) + ' ' + await p.locator('#recBilan').textContent());
+check('sur une course passée, pas de titre « En retard » en mode date',
+  (await p.locator('.rec-jour.retard').count()) === 0);
+await p.locator('#btnRecAujourdhui').click();
+await p.locator('.rec-echelle button[data-echelle="mois"]').click();
+const duMois = COURSES().filter(c => c.date.slice(0,7) === jour(0).slice(0,7)).map(c => c.ref).sort();
+check('« Mois » montre toutes les courses du mois en cours, et seulement elles',
+  JSON.stringify((await refsVisibles()).slice().sort()) === JSON.stringify(duMois),
+  JSON.stringify(await refsVisibles()) + ' attendu ' + JSON.stringify(duMois));
+check('en mode mois, le choix d\'un jour est masqué', await p.locator('#recJourChoix').isHidden());
+await p.locator('#btnRecAvant').click();
+const moisAvant = (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth() - 1, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); })();
+const duMoisAvant = COURSES().filter(c => c.date.slice(0,7) === moisAvant).map(c => c.ref).sort();
+check('« ‹ » recule d\'un MOIS entier',
+  JSON.stringify((await refsVisibles()).slice().sort()) === JSON.stringify(duMoisAvant),
+  JSON.stringify(await refsVisibles()) + ' attendu ' + JSON.stringify(duMoisAvant));
+await p.locator('.rec-echelle button[data-echelle="jour"]').click();
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
+check('retour à « À venir » : la barre de période se referme',
+  await p.locator('#recPeriode').isHidden() && (await refsVisibles()).length === 3);
+
 /* ═══ L'AUDIT DU 30/09/2026 ═══ Une course EN RETARD ne propose plus
    d'annulation (son heure est passée : on appelle), la référence a sa ligne
    entière, et le comptoir n'a plus de barre du bas ni de flèche qui ouvrait

@@ -1788,6 +1788,38 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-vues button b{font-weight:800;opacity:.7;}
 .rec-vues button.actif{background:#062f55;color:#fff;}
 .rec-vues button.actif b{opacity:1;}
+.rec-maj{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:-4px 2px 14px;font-size:12.5px;color:var(--gris);}
+.rec-maj #btnRecActualiser{display:inline-flex;align-items:center;gap:6px;min-height:44px;
+  padding:0 16px;border:1px solid #C9D6E2;border-radius:12px;background:#fff;color:#062f55;
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.rec-maj #btnRecActualiser[disabled]{opacity:.6;}
+.rec-maj #btnRecActualiser[disabled] svg{animation:rec-tourne .9s linear infinite;}
+@keyframes rec-tourne{to{transform:rotate(360deg);}}
+.rec-vues button{white-space:nowrap;padding:0 4px;}
+@media (max-width:420px){.rec-vues{gap:4px;}.rec-vues button{font-size:12.5px;}}
+.rec-periode{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--filet);
+  border-radius:14px;background:#fff;}
+.rec-periode[hidden]{display:none;}
+.rec-echelle{display:flex;gap:6px;}
+.rec-echelle button{flex:1 1 0;min-height:40px;border:1px solid #C9D6E2;border-radius:10px;
+  background:#fff;font:inherit;font-size:13.5px;font-weight:700;color:#062f55;cursor:pointer;}
+.rec-echelle button.actif{background:#062f55;border-color:#062f55;color:#fff;}
+.rec-nav{display:flex;align-items:center;gap:6px;}
+.rec-nav > button{flex:0 0 44px;height:44px;border:1px solid #C9D6E2;border-radius:10px;
+  background:#fff;font-size:22px;line-height:1;color:#062f55;cursor:pointer;}
+.rec-choix{position:relative;flex:1 1 auto;min-width:0;min-height:44px;display:flex;
+  align-items:center;justify-content:center;border-radius:10px;background:#EEF3F7;
+  font-size:15px;font-weight:800;color:#062f55;text-align:center;}
+.rec-choix span::first-letter{text-transform:uppercase;}
+.rec-choix span{display:block;}
+.rec-choix input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;cursor:pointer;}
+.rec-choix input[hidden]{display:none;}
+.rec-choix input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;opacity:0;cursor:pointer;}
+.rec-auj{align-self:center;min-height:44px;padding:0 14px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:13px;font-weight:700;color:#0E5FA8;text-decoration:underline;cursor:pointer;}
+.rec-bilan{margin:0;font-size:13px;color:var(--encre);text-align:center;}
+.rec-bilan b{font-weight:800;}
 /* L'aperçu du bon en image. Au-dessus de TOUT (la barre, les feuilles) :
    une feuille passée dessous laisse ses boutons inaccessibles. */
 .bv{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;}
@@ -4600,6 +4632,23 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <div class="rec-chiffre"><b id="recNbAVenir">0</b><span>à venir</span></div>
       </div>
 
+      <!-- ═══ ACTUALISER, EN HAUT (30/09/2026, à sa demande) ═══
+           Le bouton existait, mais EN BAS d'une liste qui s'allonge chaque
+           jour : mesuré à 390 px avec deux semaines d'historique, il était
+           à 1 360 px — personne ne le trouvait. Il est ici, sous les
+           chiffres, avec l'heure de la dernière lecture : « Actualiser »
+           sans heure ne dit pas si la liste a vraiment été relue. -->
+      <div class="rec-maj">
+        <span id="recMaj" aria-live="polite"></span>
+        <button type="button" id="btnRecActualiser">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Actualiser</span>
+        </button>
+      </div>
+
       <!-- ═══ « UN IMPRÉVU ? » — TOUJOURS VISIBLE, JAMAIS DANS UN MENU ═══
            À sa demande. Un comptoir gère des imprévus toute la journée : un
            vol avancé, un client qui descend en avance, un groupe qui
@@ -4635,17 +4684,38 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <button type="button" role="tab" data-vue="avenir" class="actif" aria-selected="true"><span>À venir</span> <b></b></button>
           <button type="button" role="tab" data-vue="passees" aria-selected="false"><span>Passées</span> <b></b></button>
           <button type="button" role="tab" data-vue="toutes" aria-selected="false"><span>Toutes</span> <b></b></button>
+          <button type="button" role="tab" data-vue="date" aria-selected="false"><span>Par date</span></button>
+        </div>
+        <!-- ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026, à sa demande) ═══
+             « Passées » met tout l'historique bout à bout : au bout de trois
+             mois, retrouver le bon de mardi dernier, c'est faire défiler cent
+             cartes. Ici on choisit un JOUR ou un MOIS, on avance et on recule
+             d'un appui, et le bilan de la période est écrit en tête. -->
+        <div class="rec-periode" id="recPeriode" hidden>
+          <div class="rec-echelle" role="group" aria-label="Afficher par">
+            <button type="button" data-echelle="jour" class="actif" aria-pressed="true">Jour</button>
+            <button type="button" data-echelle="mois" aria-pressed="false">Mois</button>
+          </div>
+          <div class="rec-nav">
+            <button type="button" id="btnRecAvant" aria-label="Période précédente">‹</button>
+            <label class="rec-choix" for="recJourChoix">
+              <span id="recPeriodeNom"></span>
+              <input type="date" id="recJourChoix" aria-label="Choisir un jour">
+            </label>
+            <button type="button" id="btnRecApres" aria-label="Période suivante">›</button>
+          </div>
+          <button type="button" class="rec-auj" id="btnRecAujourdhui">Aujourd'hui</button>
+          <p class="rec-bilan" id="recBilan"></p>
         </div>
       </div>
 
       <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
       <div id="recListe"></div>
 
-      <!-- Ces deux-là ferment la page : on les met EN BAS. « Fermer la
-           session » en tête d'écran, c'est le bouton qu'on effleure par
-           erreur en voulant faire défiler. -->
+      <!-- « Fermer la session » ferme la page : on la met EN BAS. En tête
+           d'écran, c'est le bouton qu'on effleure par erreur en voulant
+           faire défiler. « Actualiser » est remonté sous les chiffres. -->
       <div class="rec-barre">
-        <button type="button" class="bouton-fantome" id="btnRecActualiser">Actualiser</button>
         <button type="button" class="bouton-fantome" id="btnRecFermer">Fermer la session</button>
       </div>
     </div>
@@ -6279,11 +6349,12 @@ window.ELA_TEXTES = {
 
   function chargerReception(identifiant, silencieux){
     var btn = document.getElementById("btnRecActualiser");
-    if(!silencieux) btn.disabled = true;
+    if(!silencieux){ btn.disabled = true; recLecture = true; dessinerMaj(); }
     var dejaSession = identifiant && identifiant.indexOf(".") > 0;
     nuage.coursesHotel(recHotel.cle,
       dejaSession ? { session:identifiant } : { code:identifiant }).then(function(d){
       btn.disabled = false;
+      recLecture = false; recLuA = new Date();
       if(d && d.session) retenirCode(recHotel.cle, d.session);
       recCourses = (d && d.courses) || [];
       signalerChangements(recCourses);
@@ -6293,6 +6364,7 @@ window.ELA_TEXTES = {
       dessinerSession();
     }).catch(function(err){
       btn.disabled = false;
+      if(!silencieux){ recLecture = false; dessinerMaj(); }
       /* EN ARRIÈRE-PLAN, UNE PANNE DU RÉSEAU NE DIT RIEN. La liste affichée
          reste juste à quelques secondes près ; la remplacer par un écran de
          connexion parce qu'un appel de fond a échoué ferait croire à la
@@ -6377,27 +6449,124 @@ window.ELA_TEXTES = {
      l'onglet : on cherche dans TOUT l'historique. */
   var recVue = "avenir", recRecherche = "";
   function recFinie(c){ return c.statut === "realisee" || c.statut === "refusee"; }
+  /* Une réception retrouve souvent un bon par sa DATE : « le client du
+     12/09 ». On range donc dans le texte fouillé les formes qu'elle tape —
+     « 12/09 », « 12/09/2026 », « 12 septembre ». */
+  function datesCherchables(c){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(c.date || "");
+    if(!m) return "";
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return [m[3] + "/" + m[2] + "/" + m[1], (+m[3]) + "/" + (+m[2]) + "/" + m[1],
+            d.toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" }),
+            d.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })].join(" ");
+  }
   function recCorrespond(c, q){
     if(!q) return true;
     var texte = sansAccents([c.ref, c.chambre, c.client, c.depart, c.arrivee, c.vehicule,
-                             c.chauffeur && c.chauffeur.nom].filter(Boolean).join(" ")).toLowerCase();
+                             c.chauffeur && c.chauffeur.nom, datesCherchables(c)]
+                             .filter(Boolean).join(" ")).toLowerCase();
     var mots = sansAccents(q).toLowerCase().split(/\s+/).filter(Boolean);
     var chiffresQ = q.replace(/\D/g, ""), chiffresTel = String(c.tel || "").replace(/\D/g, "");
     /* Un numéro se cherche par ses chiffres : « 06 98 » et « 0698 » sont le
-       même début de numéro. */
-    if(chiffresQ.length >= 4 && chiffresTel.indexOf(chiffresQ) !== -1) return true;
+       même début de numéro. Une DATE (« 12/09 ») a des chiffres aussi : elle
+       ne passe pas par là, elle se lit dans le texte. */
+    if(chiffresQ.length >= 4 && q.indexOf("/") === -1 && chiffresTel.indexOf(chiffresQ) !== -1) return true;
     return mots.every(function(m){ return texte.indexOf(m) !== -1; });
   }
 
+  /* ═══ PAR DATE : UN JOUR OU UN MOIS (30/09/2026) ═══
+     Le curseur est un jour à minuit ; en mode « mois », seul son mois
+     compte. On compare des CHAÎNES « AAAA-MM-JJ » composées en local —
+     jamais toISOString, qui rend de l'UTC et décale d'un jour entre minuit
+     et 2 h (défaut déjà payé sur le formulaire). */
+  var recEchelle = "jour", recCurseur = null;
+  function isoLocal(d){
+    var z = function(x){ return String(x).padStart(2, "0"); };
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+  }
+  function aujourdhuiMinuit(){ var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+  function recEnAnglais(){ return document.documentElement.lang === "en"; }
+  function dansPeriode(c){
+    if(!c.date || !recCurseur) return false;
+    var k = isoLocal(recCurseur);
+    return recEchelle === "jour" ? c.date === k : c.date.slice(0, 7) === k.slice(0, 7);
+  }
+  function dessinerPeriode(visibles){
+    var bloc = document.getElementById("recPeriode");
+    var montre = recVue === "date" && !recRecherche;
+    bloc.hidden = !montre;
+    if(!montre) return;
+    var en = recEnAnglais(), loc = en ? "en-GB" : "fr-FR";
+    document.getElementById("recPeriodeNom").textContent = recEchelle === "jour"
+      ? recCurseur.toLocaleDateString(loc, { weekday:"long", day:"numeric", month:"long", year:"numeric" })
+      : recCurseur.toLocaleDateString(loc, { month:"long", year:"numeric" });
+    var choix = document.getElementById("recJourChoix");
+    choix.hidden = recEchelle !== "jour";
+    choix.value = isoLocal(recCurseur);
+    var ech = document.querySelectorAll(".rec-echelle button");
+    for(var i = 0; i < ech.length; i++){
+      var a = ech[i].dataset.echelle === recEchelle;
+      ech[i].classList.toggle("actif", a);
+      ech[i].setAttribute("aria-pressed", a ? "true" : "false");
+      ech[i].textContent = ech[i].dataset.echelle === "jour" ? (en ? "Day" : "Jour") : (en ? "Month" : "Mois");
+    }
+    document.getElementById("btnRecAvant").setAttribute("aria-label", en ? "Previous" : "Période précédente");
+    document.getElementById("btnRecApres").setAttribute("aria-label", en ? "Next" : "Période suivante");
+    document.getElementById("btnRecAujourdhui").textContent = recEchelle === "jour"
+      ? (en ? "Today" : "Aujourd'hui") : (en ? "This month" : "Ce mois-ci");
+    /* LE BILAN DE LA PÉRIODE. L'argent ne compte que les courses EFFECTUÉES :
+       une course à venir est une promesse, pas un montant encaissé par le
+       chauffeur — même règle que le registre de Barbaros. */
+    var fait = 0, non = 0, reste = 0, montant = 0;
+    visibles.forEach(function(c){
+      if(c.statut === "realisee"){ fait++; montant += Number(c.prix) || 0; }
+      else if(c.statut === "refusee") non++;
+      else reste++;
+    });
+    var bil = document.getElementById("recBilan");
+    bil.textContent = "";
+    if(!visibles.length){ bil.textContent = en ? "No ride in this period." : "Aucune course sur cette période."; return; }
+    var gras = document.createElement("b");
+    gras.textContent = visibles.length + (en ? (visibles.length > 1 ? " rides" : " ride")
+                                             : (visibles.length > 1 ? " courses" : " course"));
+    bil.appendChild(gras);
+    var morceaux = [];
+    if(fait)  morceaux.push(fait + (en ? " completed" : (fait > 1 ? " effectuées" : " effectuée")));
+    if(reste) morceaux.push(reste + (en ? " to come" : " à venir"));
+    if(non)   morceaux.push(non + (en ? " not taken" : (non > 1 ? " non prises" : " non prise")));
+    if(morceaux.length) bil.appendChild(document.createTextNode(" · " + morceaux.join(" · ")));
+    if(fait){
+      bil.appendChild(document.createElement("br"));
+      bil.appendChild(document.createTextNode(en ? "Completed rides: " : "Courses effectuées : "));
+      var m = document.createElement("b"); m.textContent = eurosFR(montant);
+      bil.appendChild(m);
+    }
+  }
+  /* L'heure de la dernière lecture, à côté du bouton. */
+  var recLuA = null, recLecture = false;
+  function dessinerMaj(){
+    var en = recEnAnglais();
+    var btn = document.getElementById("btnRecActualiser");
+    btn.querySelector("span").textContent = recLecture ? (en ? "Refreshing…" : "Actualisation…")
+                                                       : (en ? "Refresh" : "Actualiser");
+    var z = function(x){ return String(x).padStart(2, "0"); };
+    document.getElementById("recMaj").textContent = recLuA
+      ? (en ? "Updated at " : "Mis à jour à ") + z(recLuA.getHours()) + ":" + z(recLuA.getMinutes())
+      : "";
+  }
+
   function dessinerReception(){
+    dessinerMaj();
     var liste = document.getElementById("recListe");
     liste.innerHTML = "";
+    if(recVue === "date" && !recCurseur) recCurseur = aujourdhuiMinuit();
     var nbAvenir = 0, nbPassees = 0;
     recCourses.forEach(function(c){ if(recFinie(c)) nbPassees++; else nbAvenir++; });
     var vues = document.querySelectorAll(".rec-vues button");
     for(var iv = 0; iv < vues.length; iv++){
       var v = vues[iv].dataset.vue;
-      vues[iv].querySelector("b").textContent =
+      var compte = vues[iv].querySelector("b");
+      if(compte) compte.textContent =
         v === "avenir" ? nbAvenir : v === "passees" ? nbPassees : recCourses.length;
       var actif = !recRecherche && v === recVue;
       vues[iv].classList.toggle("actif", actif);
@@ -6407,14 +6576,17 @@ window.ELA_TEXTES = {
       if(recRecherche) return recCorrespond(c, recRecherche);
       if(recVue === "avenir") return !recFinie(c);
       if(recVue === "passees") return recFinie(c);
+      if(recVue === "date") return dansPeriode(c);
       return true;
     });
+    dessinerPeriode(visibles);
     var vide = document.getElementById("recVide");
     vide.hidden = visibles.length > 0;
     vide.textContent = !recCourses.length ? "Aucune réservation pour le moment."
       : recRecherche ? "Aucune course ne correspond à « " + recRecherche + " »."
       : recVue === "avenir" ? "Aucune course à venir."
       : recVue === "passees" ? "Aucune course passée pour le moment."
+      : recVue === "date" ? "Aucune course sur cette période."
       : "Aucune réservation pour le moment.";
     delete vide.dataset.fr;
 
@@ -6441,7 +6613,11 @@ window.ELA_TEXTES = {
 
     /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
        liste est déjà triée, et deux parcours finiraient par diverger. */
+    /* PAR DATE, L'ORDRE EST CELUI DU CALENDRIER, et chaque jour porte sa
+       date : on consulte une période, « en retard » n'y a pas sa place. */
+    var parDate = recVue === "date" && !recRecherche;
     var triees = visibles.slice().sort(function(a, b){
+      if(parDate) return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
       var ja = jourRec(a), jb = jourRec(b);
       if(ja.rang !== jb.rang) return ja.rang - jb.rang;
       return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
@@ -6450,10 +6626,15 @@ window.ELA_TEXTES = {
     var titreCourant = null;
     triees.forEach(function(c){
       var j = jourRec(c);
+      if(parDate){
+        var dj = new Date((c.date || "") + "T12:00");
+        j = { rang: j.rang, titre: isNaN(dj.getTime()) ? "Date inconnue"
+              : dj.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" }) };
+      }
       if(j.titre !== titreCourant){
         titreCourant = j.titre;
         var h = document.createElement("p");
-        h.className = "rec-jour" + (j.rang === 0 ? " retard" : "");
+        h.className = "rec-jour" + (j.rang === 0 && !parDate ? " retard" : "");
         h.textContent = j.titre;
         liste.appendChild(h);
       }
@@ -6721,6 +6902,42 @@ window.ELA_TEXTES = {
       dessinerReception();
     });
   }
+  /* Par date : on ouvre sur AUJOURD'HUI, c'est la question du matin. */
+  function recAller(pas){
+    if(!recCurseur) recCurseur = aujourdhuiMinuit();
+    recCurseur = recEchelle === "jour"
+      ? new Date(recCurseur.getFullYear(), recCurseur.getMonth(), recCurseur.getDate() + pas)
+      : new Date(recCurseur.getFullYear(), recCurseur.getMonth() + pas, 1);
+    dessinerReception();
+  }
+  var echRec = document.querySelectorAll(".rec-echelle button");
+  for(var ie = 0; ie < echRec.length; ie++){
+    echRec[ie].addEventListener("click", function(){
+      recEchelle = this.dataset.echelle;
+      dessinerReception();
+    });
+  }
+  document.getElementById("btnRecAvant").addEventListener("click", function(){ recAller(-1); });
+  document.getElementById("btnRecApres").addEventListener("click", function(){ recAller(1); });
+  document.getElementById("btnRecAujourdhui").addEventListener("click", function(){
+    recCurseur = aujourdhuiMinuit(); dessinerReception();
+  });
+  var choixJour = document.getElementById("recJourChoix");
+  choixJour.addEventListener("change", function(){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(this.value);
+    if(!m) return;
+    recCurseur = new Date(+m[1], +m[2] - 1, +m[3]);
+    dessinerReception();
+  });
+  /* Sur ordinateur, un clic sur le champ transparent n'ouvre pas toujours
+     le calendrier : on le lui demande. */
+  choixJour.addEventListener("click", function(){
+    try{ if(this.showPicker) this.showPicker(); }catch(e){}
+  });
+  /* La langue change : les libellés écrits par la page suivent. */
+  new MutationObserver(function(){
+    if(recHotel && !document.getElementById("recCorps").hidden) dessinerReception();
+  }).observe(document.documentElement, { attributes:true, attributeFilter:["lang"] });
   document.getElementById("recRecherche").addEventListener("input", function(){
     recRecherche = this.value.trim();
     dessinerReception();
@@ -6767,6 +6984,8 @@ window.ELA_TEXTES = {
     recCourses = [];
     recEtatsConnus = null; recNouveaux = {};
     recVue = "avenir"; recRecherche = ""; document.getElementById("recRecherche").value = "";
+    recCurseur = null; recEchelle = "jour"; recLuA = null;
+    document.getElementById("recPeriode").hidden = true;
     document.getElementById("recAlerte").hidden = true;
     document.getElementById("recSession").hidden = true;
     document.getElementById("recListe").innerHTML = "";
