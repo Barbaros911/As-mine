@@ -73,13 +73,15 @@ const CHAUFFEURS = [
   { id:'c2', nom:'Ali', telephone:'0600000002', taux:0 } ];
 let TAUX = { public:{mode:'pct', valeur:10}, hotel:{mode:'eur', valeur:5}, admin:{mode:'pct', valeur:15} };
 let ecrits = [];
+let SERVEUR = COURSES;
 
 const nav = await chromium.launch();
 async function espace(role='admin'){
   const ctx = await nav.newContext({viewport:{width:390,height:844}, locale:'fr-FR'});
   await ctx.addInitScript(([ch]) => {
     localStorage.setItem('ela_nuage_session', JSON.stringify({access_token:'JETON', refresh_token:'R'}));
-    localStorage.setItem('ela_chauffeurs', JSON.stringify(ch));
+    if (!localStorage.getItem('ela_chauffeurs')) localStorage.setItem('ela_chauffeurs', JSON.stringify(ch));
+    window.__ouverts = []; window.open = (u) => { window.__ouverts.push(String(u)); return null; };
   }, [CHAUFFEURS]);
   const p = await ctx.newPage();
   const erreurs = []; p.on('pageerror', e => erreurs.push(e.message));
@@ -95,8 +97,8 @@ async function espace(role='admin'){
         return route.fulfill({status:201, body:''});
       }
       if (u.includes('parametres_commerciaux?cle=eq.commission_canaux')) return route.fulfill(J([{valeur:TAUX}]));
-      if (u.includes('/rest/v1/courses?select=ref&')) return route.fulfill(J([{ref:COURSES[0].ref}]));
-      if (u.includes('/rest/v1/courses')) return route.fulfill(J(COURSES.map(bon => ({bon, statut:bon.statut}))));
+      if (u.includes('/rest/v1/courses?select=ref&')) return route.fulfill(J([{ref:SERVEUR[0].ref}]));
+      if (u.includes('/rest/v1/courses')) return route.fulfill(J(SERVEUR.map(bon => ({bon, statut:bon.statut}))));
       if (u.includes('/rest/v1/')) return route.fulfill(J([]));
       return route.fulfill(J({}));
     }
@@ -174,6 +176,75 @@ try {
   await ag.p.locator('#btnChauffeurs').click(); await ag.p.waitForTimeout(200);
   check('agent : l\'unité de commission du carnet est cachée', !(await ag.p.locator('label[for="chTauxMode"]').isVisible()));
   await ag.ctx.close();
+
+  /* ═══ CE QUE LES CHAUFFEURS DOIVENT ═══
+     Mehmet (20 %) : une course de 100 € il y a 40 jours (20 € EN RETARD) et
+     une de 50 € aujourd'hui (10 €). Ali : 7 € posés sur la course. Sami,
+     hors carnet et sans taux de canal : une course sans commission définie. */
+  const ilya = (j) => { const d = new Date(); d.setDate(d.getDate() - j); return d.toISOString().slice(0,10); };
+  const vieille = course('ELA-26-08-MMMM1', 100, 'Mehmet'); vieille.course.date = ilya(40);
+  SERVEUR = [ vieille, course('ELA-26-09-MMMM2', 50, 'Mehmet'),
+    course('ELA-26-09-AAAA3', 70, 'Ali', { commission:{ mode:'eur', valeur:7 } }),
+    course('ELA-26-09-SSSS4', 60, 'Sami', { provenanceCle:'easyhotel-aeroville', parReception:true }),
+    course('ELA-26-09-PPPP5', 90, '', { statut:'attente', chauffeur:undefined }),
+    course('ELA-26-09-QQQQ6', 80, 'Ali', { statut:'confirmee' }) ];
+  TAUX = { public:{mode:'pct', valeur:10} };
+  SERVEUR[3].chauffeur.telephone = '0600000009';
+  const d = await espace();
+  check('tableau de bord : le retard est signalé', await d.p.locator('#bordDettes').isVisible());
+  check('et il nomme le chauffeur et le montant en retard (20 €)', /Mehmet doit 20,00\s€/.test(await d.p.textContent('#bordDettesTexte')), await d.p.textContent('#bordDettesTexte'));
+  await d.p.click('#btnBordDettes'); await d.p.waitForTimeout(300);
+  check('« Voir et relancer » ouvre le centre de contrôle', await d.p.locator('#ecran-controle').isVisible());
+  let m = await ligne(d.p, 'ccDettes', 'Mehmet');
+  check('Mehmet : dû 30 €, reste 30 €, retard 20 €', nb(m[1]) === 30 && nb(m[3]) === 30 && /retard 20,00/.test(m[0]), m.join(' | '));
+  const sami = await ligne(d.p, 'ccDettes', 'Sami');
+  check('Sami (course sans commission définie) n\'apparaît pas comme débiteur', sami.length === 0, sami.join(' | '));
+  check('mais la course sans commission est signalée', /1 course\(s\) réalisée\(s\) sans commission/.test(await d.p.textContent('#ccDettesResume')), await d.p.textContent('#ccDettesResume'));
+  /* Sami vient de la réception, canal sans taux : rien à devoir, mais à signaler. */
+
+  await d.p.click('[data-relancer^="id:c1"]'); await d.p.waitForTimeout(200);
+  const lien = (await d.p.evaluate(() => window.__ouverts)).at(-1) || '';
+  check('« Relancer » écrit sur le numéro du chauffeur', lien.startsWith('https://wa.me/33600000001'), lien.slice(0,40));
+  const msg = decodeURIComponent(lien.split('text=')[1] || '');
+  check('le message liste les courses et le total', /ELA-26-08-MMMM1/.test(msg) && /Total à régler : 30,00\s€/.test(msg), msg);
+
+  await d.p.click('[data-payer^="id:c1"]'); await d.p.waitForTimeout(200);
+  check('« Paiement reçu » propose le reste (30,00)', (await d.p.inputValue('#ccPaiementMontant')) === '30.00', await d.p.inputValue('#ccPaiementMontant'));
+  await d.p.fill('#ccPaiementMontant', '15');
+  await d.p.click('#btnCcPaiementOk'); await d.p.waitForTimeout(300);
+  m = await ligne(d.p, 'ccDettes', 'Mehmet');
+  check('après 15 € reçus : reste 15 €, et le paiement solde la plus ANCIENNE (retard 5 €)', nb(m[3]) === 15 && /retard 5,00/.test(m[0]), m.join(' | '));
+
+  /* Le seuil : au-delà, la confirmation est bloquée. */
+  await d.p.fill('#ccSeuil', '10'); await d.p.click('#btnCcSeuil'); await d.p.waitForTimeout(300);
+  check('le seuil part au serveur', ecrits.some(e => e.cle === 'seuil_dette_chauffeur' && e.valeur.euros === 10), JSON.stringify(ecrits.map(e=>e.cle)));
+  await d.p.click('#btnRetourControle'); await d.p.waitForTimeout(200);
+  await d.p.locator('.demande').filter({hasText:'ELA-26-09-PPPP5'}).first().click(); await d.p.waitForTimeout(400);
+  await d.p.fill('#bbChauffeurNom', 'Mehmet'); await d.p.fill('#bbChauffeurTel', '0600000001'); await d.p.waitForTimeout(200);
+  const alerte = await d.p.textContent('#bbDette');
+  check('sur le bon : « Mehmet vous doit 15,00 € », au-delà du seuil', await d.p.locator('#bbDette').isVisible() && /Mehmet vous doit 15,00\s€/.test(alerte) && /seuil/.test(alerte), alerte);
+  await d.p.click('#btnConfirmerCourse'); await d.p.waitForTimeout(300);
+  check('la confirmation est bloquée', (await d.p.textContent('#bbEtat')) !== 'Confirmée' && /seuil/.test(await d.p.textContent('#confirmerEtat')), await d.p.textContent('#confirmerEtat'));
+  await d.p.fill('#bbChauffeurNom', 'Ali'); await d.p.fill('#bbChauffeurTel', '0600000002'); await d.p.waitForTimeout(200);
+  check('Ali (7 €, sous le seuil) : signalé sans blocage', /Ali vous doit 7,00\s€/.test(await d.p.textContent('#bbDette')) && !/seuil/.test(await d.p.textContent('#bbDette')), await d.p.textContent('#bbDette'));
+  await d.p.click('#btnRetourBord'); await d.p.waitForTimeout(200);
+
+  /* La commission se FIGE quand la course est faite. */
+  await d.p.locator('button', {hasText:'À assurer'}).first().click(); await d.p.waitForTimeout(200);
+  await d.p.locator('.demande').filter({hasText:'ELA-26-09-QQQQ6'}).first().click(); await d.p.waitForTimeout(400);
+  await d.p.click('#btnRealisee'); await d.p.waitForTimeout(300);
+  const figee = await d.p.evaluate(() => (JSON.parse(localStorage.getItem('ela_bookings')||'[]').find(c => c.ref === 'ELA-26-09-QQQQ6') || {}).commissionFigee);
+  check('marquée réalisée : la commission est figée (10 % de 80 € = 8 €)', figee && figee.montant === 8 && figee.source === 'canal', JSON.stringify(figee));
+  await d.p.click('#btnControle'); await d.p.waitForTimeout(300);
+  await d.p.fill('#ccVal_public', '25'); await d.p.click('#btnCcTaux'); await d.p.waitForTimeout(300);
+  const aliD = await ligne(d.p, 'ccDettes', 'Ali');
+  check('le taux du canal change ensuite : la dette d\'Ali ne bouge pas (7 + 8 = 15 €)', nb(aliD[1]) === 15, aliD.join(' | '));
+
+  const [dl] = await Promise.all([ d.p.waitForEvent('download'), (async () => { await d.p.click('#btnRegistre'); await d.p.click('#btnSauver'); })() ]);
+  const contenu = JSON.parse(await (await import('node:fs/promises')).readFile(await dl.path(), 'utf8'));
+  check('la sauvegarde emporte les paiements', Array.isArray(contenu.paiementsChauffeurs) && contenu.paiementsChauffeurs.length === 1);
+  check('aucune erreur JavaScript (dettes)', d.erreurs.length === 0, d.erreurs.join(' | '));
+  await d.ctx.close();
 } finally {
   await nav.close(); serveur.close();
 }

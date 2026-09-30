@@ -5905,6 +5905,39 @@ pouvoir attribuer un montant précis par course ou chauffeur ».
 - `test-admin-controle.mjs` recalcule les totaux à la main ; il tombe si le
   chauffeur passe après le canal, ou si le vieux `0` masque le canal.
 
+### CE QUE LES CHAUFFEURS DOIVENT — LE GRAND LIVRE DES COMMISSIONS
+
+30 septembre 2026, à sa demande : « un bouton et une alerte qui dit que le
+chauffeur doit une commission ou pas… analyse comme un expert ».
+- **Le client paie le chauffeur, jamais Elatransfer** : chaque course
+  RÉALISÉE crée une dette du chauffeur. Dû = commissions des réalisées ;
+  reçu = paiements enregistrés ; reste = la différence (`soldesChauffeurs`).
+- **LE SEUL LEVIER EST LA COURSE SUIVANTE.** L'alerte est donc sur le bon, à
+  l'instant où l'on saisit le chauffeur (`#bbDette`) : « Mehmet vous doit
+  47 €, dont 20 € depuis plus de 30 jours ». Un **seuil** facultatif
+  (centre de contrôle, clé serveur `seuil_dette_chauffeur`) BLOQUE
+  « Confirmer » au-delà. Vide par défaut : sans lui, on signale seulement.
+- **Le retard se compte course par course** : un paiement solde d'abord les
+  plus anciennes. Ce qui reste dû sur une course de plus de 30 jours est en
+  retard (délai par défaut entre professionnels, L441-10). Le tableau de
+  bord ne s'allume (`#bordDettes`) QUE sur un retard.
+- **Boutons** : « Paiement reçu » (montant proposé = le reste, date, moyen)
+  et « Relancer par WhatsApp » (sur le numéro du chauffeur, avec la liste des
+  courses — une relance sans détail appelle une discussion). Un paiement se
+  retire en deux appuis.
+- **LA COMMISSION SE FIGE AU PASSAGE EN « RÉALISÉE »** (`commissionFigee`,
+  dans `majCourse`). Avant, elle était recalculée à chaque affichage :
+  changer un taux de canal réécrivait après coup ce que devait un chauffeur
+  pour une course déjà faite. Un montant posé sur la course reste modifiable.
+  Les courses réalisées avant le 30/09/2026 n'ont pas de valeur figée.
+- **Une course réalisée sans aucune règle de commission est signalée**, pas
+  comptée à zéro en silence : c'est de l'argent oublié.
+- **Les paiements vivent sur l'appareil** (`ela_paiements_chauffeurs`),
+  comme le carnet et les factures, et partent dans la sauvegarde (restaurés
+  en ajout, par identifiant). Changer de téléphone sans sauvegarde les perd.
+- Caché à l'agent. `test-admin-controle.mjs` tombe si la commission n'est
+  plus figée ou si le seuil ne bloque plus.
+
 ## COMMISSION PAR COURSE, GRAPHIQUE DES CHAUFFEURS, NOTIFICATIONS ELA
 
 29 septembre 2026, à sa demande (« une commission en % ou en € sur chaque

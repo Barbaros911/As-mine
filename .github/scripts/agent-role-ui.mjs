@@ -4,7 +4,7 @@ if(!fichier) throw new Error('fichier manquant');
 let html=fs.readFileSync(fichier,'utf8');
 const ajout=`
 <style id="ela-role-style">
-body.role-agent_reservation #btnControle,body.role-agent_reservation #ecran-controle,body.role-agent_reservation label[for="chTauxMode"],body.role-agent_reservation #btnRegistre,body.role-agent_reservation #btnFactures,body.role-agent_reservation #btnReglages,body.role-agent_reservation #ecran-registre,body.role-agent_reservation #ecran-facture,body.role-agent_reservation #ecran-reglages,body.role-agent_reservation #blocCommission,body.role-agent_reservation label[for="chTaux"]{display:none!important}
+body.role-agent_reservation #btnControle,body.role-agent_reservation #bordDettes,body.role-agent_reservation #bbDette,body.role-agent_reservation #ecran-controle,body.role-agent_reservation label[for="chTauxMode"],body.role-agent_reservation #btnRegistre,body.role-agent_reservation #btnFactures,body.role-agent_reservation #btnReglages,body.role-agent_reservation #ecran-registre,body.role-agent_reservation #ecran-facture,body.role-agent_reservation #ecran-reglages,body.role-agent_reservation #blocCommission,body.role-agent_reservation label[for="chTaux"]{display:none!important}
 #presenceEquipe{font-size:12px;line-height:1.45;padding:10px 12px;margin:8px 0;border:1px solid #dbe4e2;border-radius:10px;background:#fff;color:#52605d}#presenceEquipe b{color:#183c39}
 </style>
 <script>
