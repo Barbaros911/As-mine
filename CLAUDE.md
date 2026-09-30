@@ -6039,3 +6039,39 @@ Berline / Van. C'était une liste à plat de quatorze champs.
   site. En ajouter un reste un travail de code.
 - `test-admin-forfaits.mjs` lit ce qui part au serveur ; il tombe si l'on
   renvoie les quatorze prix à chaque fois.
+
+## ÊTRE ALERTÉ DE CHAQUE DEMANDE — SON, VIBRATION, NOTIFICATION, RAPPEL
+
+30 septembre 2026, à sa demande : « recevoir toutes les courses de tous les
+sites en temps et en heure sur admin et Telegram… une alerte sonore,
+visuelle, notification, tout ce qui est possible ».
+- **MESURÉ AVANT (diagnostic du 29/09, run #10 du workflow des migrations)** :
+  clic du client → serveur en 0 à 2 s, serveur → Telegram en 0 à 2 s, sur les
+  dix dernières courses. **Le serveur n'est pas lent.** Push était encore
+  « indisponible » ce jour-là (clés VAPID pas encore posées).
+- **LE BIP DE L'ADMIN NE SONNAIT PROBABLEMENT JAMAIS SUR UN TÉLÉPHONE.** Il
+  créait un lecteur de son hors de tout geste ; iPhone et Android le laissent
+  suspendu, sans erreur. Un seul lecteur maintenant, débloqué au premier appui
+  n'importe où, et un bandeau `#sonCoupe` le dit tant que ce n'est pas fait.
+- **L'alarme se répète toutes les 20 s** (quatre notes fortes + vibration
+  Android + titre d'onglet qui clignote) jusqu'à un appui sur l'écriteau ou
+  l'ouverture d'une course, dix minutes au plus. **Pastille sur l'icône** =
+  nombre de demandes en attente (`setAppBadge`).
+- **La notification reste affichée** (`requireInteraction`) et vibre (`sw.js`).
+- **« Tester mes alertes »** (Réglages) sonne, vibre, notifie, et dit ce qui a
+  marché sur CET appareil. L'état des notifications de l'appareil a sa propre
+  ligne (`#pushAdminAppareil`) : l'écrire dans `#pushAdminEtat` faisait
+  tomber `test-admin-push`, qui attend le résultat de l'appui à cet endroit.
+- **RATTRAPAGE ET RAPPEL CÔTÉ SERVEUR** : pg_cron appelle chaque minute
+  `nouvelle-demande` avec `{type:"RELANCE"}`
+  (`20260930000000_relance_alertes.sql`). Demande en attente depuis plus de
+  2 min sans AUCUNE alerte réussie → annoncée ; toujours en attente 10 min
+  après la dernière alerte → « RAPPEL N min », trois au plus ; fenêtre de 6 h.
+  Tout est relu sur le serveur et la cadence vient du journal : l'appeler plus
+  souvent n'envoie rien de plus. **La migration ne part pas toute seule** —
+  workflow « Appliquer une migration Supabase », ce fichier. Si la base refuse
+  `pg_cron` ou `pg_net`, le journal du workflow le dira.
+- **Le code de l'alarme vit dans le bloc exploitant**, retiré des pages
+  publiques : un bouton branché ailleurs y appellerait des fonctions absentes
+  (`test-easyhotel-client` l'a vu).
+- Suites : `test-admin-alertes.mjs` (14), `test-relance-alertes.mjs` (17).

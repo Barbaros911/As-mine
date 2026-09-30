@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v108";
+const CACHE = "elatransfer-v109";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -89,8 +89,12 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("push", (event) => {
   let d = {}; try { d = event.data ? event.data.json() : {}; } catch (e) { d = {}; }
   event.waitUntil(self.registration.showNotification(d.titre || "Elatransfer", {
-    body:d.corps || "",icon:"./icon-180.png",badge:"./icon-180.png",tag:d.ref || "elatransfer",renotify:true,data:{url:d.url || "./"}
-  }));
+    body:d.corps || "",icon:"./icon-180.png",badge:"./icon-180.png",tag:d.ref || "elatransfer",renotify:true,
+    /* 30/09/2026 : une demande reste AFFICHÉE tant qu'on ne l'a pas touchée,
+       et elle vibre fort — un bandeau qui disparaît seul en cinq secondes
+       se rate à 5 h du matin. */
+    requireInteraction:true,vibrate:[400,150,400,150,400],silent:false,data:{url:d.url || "./"}
+  }).then(() => { try { if (self.navigator && self.navigator.setAppBadge) return self.navigator.setAppBadge(); } catch (e) {} }));
 });
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();

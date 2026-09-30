@@ -1,4 +1,4 @@
-import { titre, corps } from "./message.js";
+import { titre, titreRappel, corps } from "./message.js";
 import { chiffrer, jetonVapid } from "./chiffrer.js";
 
 const U=Deno.env.get("SUPABASE_URL")??"",S=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -41,8 +41,54 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
   const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=l.ref;return bon;
 }
 
+/* LE RAPPEL ET LE RATTRAPAGE (30/09/2026, à sa demande : « recevoir toutes
+   les courses en temps et en heure… tout ce qui est possible pour être
+   alerté »). Appelée chaque minute par pg_cron avec {type:"RELANCE"}.
+   - RATTRAPAGE : une course en attente depuis plus de 2 min sans AUCUNE
+     alerte réussie (webhook tombé, Telegram en panne à cet instant) est
+     annoncée maintenant. C'est ce qui fait que « toutes les courses »
+     arrivent, et pas seulement celles dont le webhook a marché.
+   - RAPPEL : une demande toujours « attente » 10 min après la dernière
+     alerte en reçoit une autre, trois fois au plus. Une demande tranchée
+     (confirmée, refusée) ne sonne plus : on relit le statut à chaque tour.
+   Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
+   vient du journal. Un appel répété à la main ne peut donc envoyer que les
+   alertes légitimes, au rythme prévu. */
+const RATTRAPAGE_MS=2*60*1000,RELANCE_MS=10*60*1000,MAX_RELANCES=3,FENETRE_MS=6*3600*1000;
+async function relancer():Promise<string>{
+  if(!U||!S)return "non configuré";
+  const depuis=new Date(Date.now()-FENETRE_MS).toISOString();
+  const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.asc&limit=50`);
+  if(!r.ok)return "lecture refusée";
+  const lignes=(await r.json())||[];let rattrapes=0,rappels=0;
+  for(const l of lignes){
+    const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;
+    const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
+    const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
+    if(!j.ok)continue;
+    const journalRef=((await j.json())||[]) as Array<Record<string,string>>;
+    const reussies=journalRef.filter(x=>x.statut==="envoye");
+    const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
+    let type="",t="";
+    if(!reussies.length){
+      if(Date.now()-cree<RATTRAPAGE_MS)continue;
+      type="nouvelle_reservation";t=titre(bon);rattrapes++;
+    }else{
+      const nbRappels=new Set(journalRef.filter(x=>x.type_evenement==="rappel_reservation").map(x=>x.cree_le.slice(0,16))).size;
+      const derniere=Math.max(...reussies.map(x=>Date.parse(x.cree_le)));
+      if(nbRappels>=MAX_RELANCES||Date.now()-derniere<RELANCE_MS)continue;
+      type="rappel_reservation";t=titreRappel(bon,Math.round((Date.now()-cree)/60000));rappels++;
+    }
+    const m=corps(bon,ADMIN);
+    const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m)]);
+    await Promise.all([journal(type,ref,"push",push),journal(type,ref,"telegram",telegram)]);
+  }
+  return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappels} rappel(s)`;
+}
+
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
+  if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
   const recu=(charge.record??{}) as Record<string,any>;
   const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));
