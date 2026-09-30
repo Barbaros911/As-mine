@@ -6024,3 +6024,18 @@ générique, ouverte dans Safari.
   réception retape son code une fois dans l'application.
 - `test-cloisonnement-hotel` lit le manifeste comme le navigateur et tombe
   sur l'ancien code (« trouvé : 2 »).
+
+## LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL
+
+29 septembre 2026, à sa demande. Réglages → « Prix du flyer, par hôtel » :
+un menu d'hôtel (tous ceux de `HOTELS`), puis un tableau Destination ×
+Berline / Van. C'était une liste à plat de quatorze champs.
+- **Seuls les prix modifiés partent** (`data-initial` sur chaque champ) ; un
+  prix modifié est bleu jusqu'à l'enregistrement.
+- **Le défaut que ça a corrigé** : un champ vidé valait `Number("") = 0` et
+  passait le contrôle — l'ancien bouton aurait écrit un forfait à **0 €**.
+  Un montant vide est maintenant refusé, et le message nomme la ligne.
+- Un hôtel absent de `HOTELS` n'apparaît pas : il n'a pas de page sur le
+  site. En ajouter un reste un travail de code.
+- `test-admin-forfaits.mjs` lit ce qui part au serveur ; il tombe si l'on
+  renvoie les quatorze prix à chaque fois.

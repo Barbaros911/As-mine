@@ -2033,6 +2033,16 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   body.espace #panneauPapiers{margin:16px 28px 0;}
   body.espace .ch-carte{width:calc(100% - 56px);margin-left:28px;margin-right:28px;}
 }
+/* Prix du flyer par hôtel : un tableau Destination × Berline / Van, la
+   forme du flyer imprimé. Un prix modifié se colore jusqu'à l'envoi. */
+.forfaits-grille{margin:10px 0 14px;border:1px solid var(--filet);border-radius:12px;overflow:hidden;background:var(--carte)}
+.forfait-ligne{display:grid;grid-template-columns:1fr 84px 84px;gap:8px;align-items:center;padding:6px 10px;border-top:1px solid var(--filet)}
+.forfait-ligne:first-child{border-top:0}
+.forfait-tete{font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px}
+.forfait-tete span:not(:first-child){text-align:center}
+.forfait-nom{font-size:15px;font-weight:600;color:var(--encre);min-width:0}
+.forfait-ligne input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
+.forfait-ligne input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
 </style>
 </head>
 <body>
@@ -3506,11 +3516,26 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </button>
       <p class="bloc-note" id="tarifEtat" hidden></p>
 
-      <h3 class="bloc-titre" style="margin-top:18px">Forfaits du flyer</h3>
-      <p class="bloc-note" id="forfaitsAide">Un montant par destination et par gamme.</p>
-      <div id="tarifForfaits"></div>
-      <button class="bouton-fantome" type="button" id="btnForfaitsEnregistrer">
-        <span>Enregistrer les forfaits</span>
+      <!-- LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL (29/09/2026, à sa
+           demande : « changer les prix des flyer par hôtel »). C'était une
+           liste à plat de quatorze champs « easyHotel — Orly — Berline » :
+           le nom de l'hôtel répété sur chaque ligne, et rien pour dire
+           lequel on venait de toucher. On choisit l'hôtel, puis un tableau
+           Destination × Berline / Van — la forme même du flyer imprimé.
+           SEULS LES PRIX MODIFIÉS PARTENT au serveur : réécrire les
+           quatorze à chaque fois ferait échouer tout l'envoi pour une seule
+           ligne absente du serveur, et le message ne dirait pas laquelle. -->
+      <h3 class="bloc-titre" style="margin-top:18px">Prix du flyer, par hôtel</h3>
+      <label class="champ" for="forfaitHotel">
+        <span class="champ-corps">
+          <span class="champ-titre">Hôtel</span>
+          <select id="forfaitHotel"></select>
+        </span>
+      </label>
+      <p class="bloc-note" id="forfaitsAide">Montants fixes, en euros, tels qu'annoncés au comptoir. Un prix modifié passe en bleu jusqu'à l'enregistrement.</p>
+      <div id="tarifForfaits" class="forfaits-grille"></div>
+      <button class="bouton" type="button" id="btnForfaitsEnregistrer">
+        <span id="btnForfaitsTexte">Enregistrer les prix du flyer</span>
       </button>
       <p class="bloc-note" id="forfaitsEtat" hidden></p>
     </div>
@@ -11063,28 +11088,58 @@ window.ELA_TEXTES = {
     if(v){ document.getElementById("tarifVanKm").value = v.parKm;
            document.getElementById("tarifVanMini").value = v.mini; }
 
+    var sel = document.getElementById("forfaitHotel");
+    var choisi = sel.value;
+    while(sel.firstChild) sel.removeChild(sel.firstChild);
+    Object.keys(HOTELS).forEach(function(hk){
+      var o = document.createElement("option");
+      o.value = hk; o.textContent = HOTELS[hk].nom;
+      sel.appendChild(o);
+    });
+    if(choisi && HOTELS[choisi]) sel.value = choisi;
+    dessinerForfaits(sel.value);
+  }
+
+  /* UN HÔTEL À LA FOIS. Chaque champ garde sa valeur d'origine dans
+     « data-initial » : c'est elle qui dit ce qui a changé, donc ce qui
+     part au serveur. */
+  function dessinerForfaits(hk){
     var zone = document.getElementById("tarifForfaits");
     while(zone.firstChild) zone.removeChild(zone.firstChild);
-    Object.keys(HOTELS).forEach(function(hk){
-      var hotel = HOTELS[hk];
-      hotel.destinations.forEach(function(d){
-        ["berline","van"].forEach(function(veh){
-          var id = "forfait_" + hk + "_" + d.cle + "_" + veh;
-          var lab = document.createElement("label");
-          lab.className = "champ"; lab.htmlFor = id;
-          var corps = document.createElement("span"); corps.className = "champ-corps";
-          var titre = document.createElement("span"); titre.className = "champ-titre";
-          titre.textContent = hotel.court + " — " + d.nom + " — " + (veh === "berline" ? "Berline" : "Van");
-          var input = document.createElement("input");
-          input.type = "number"; input.min = "0"; input.step = "1"; input.id = id;
-          input.dataset.hotel = hk; input.dataset.dest = d.cle; input.dataset.veh = veh;
-          input.value = d.forfait[veh] || 0;
-          corps.appendChild(titre); corps.appendChild(input);
-          lab.appendChild(corps); zone.appendChild(lab);
+    direForfaits("", false);
+    var hotel = HOTELS[hk];
+    document.getElementById("btnForfaitsTexte").textContent =
+      hotel ? "Enregistrer les prix de " + hotel.court : "Enregistrer les prix du flyer";
+    if(!hotel) return;
+    var tete = document.createElement("div"); tete.className = "forfait-ligne forfait-tete";
+    ["Destination","Berline","Van"].forEach(function(t){
+      var c = document.createElement("span"); c.textContent = t; tete.appendChild(c);
+    });
+    zone.appendChild(tete);
+    hotel.destinations.forEach(function(d){
+      var ligne = document.createElement("div"); ligne.className = "forfait-ligne";
+      var nom = document.createElement("span"); nom.className = "forfait-nom"; nom.textContent = d.nom;
+      ligne.appendChild(nom);
+      ["berline","van"].forEach(function(veh){
+        var input = document.createElement("input");
+        input.type = "number"; input.min = "0"; input.step = "1"; input.inputMode = "numeric";
+        input.id = "forfait_" + hk + "_" + d.cle + "_" + veh;
+        input.setAttribute("aria-label", d.nom + " — " + (veh === "berline" ? "Berline" : "Van") + ", en euros");
+        input.dataset.hotel = hk; input.dataset.dest = d.cle; input.dataset.veh = veh;
+        input.value = d.forfait[veh] || 0;
+        input.dataset.initial = input.value;
+        input.addEventListener("input", function(){
+          input.classList.toggle("modifie", input.value !== input.dataset.initial);
+          direForfaits("", false);
         });
+        ligne.appendChild(input);
       });
+      zone.appendChild(ligne);
     });
   }
+  document.getElementById("forfaitHotel").addEventListener("change", function(e){
+    dessinerForfaits(e.target.value);
+  });
 
   function direTarif(texte, erreur){
     var e = document.getElementById("tarifEtat");
@@ -11129,9 +11184,11 @@ window.ELA_TEXTES = {
 
   document.getElementById("btnForfaitsEnregistrer").addEventListener("click", function(){
     if(!nuage.connecte()){ direForfaits("Connectez-vous d'abord au serveur (bloc « Serveur » plus bas).", true); return; }
-    var champs = Array.prototype.slice.call(document.querySelectorAll("#tarifForfaits input"));
-    var invalide = champs.some(function(c){ return !(Number(c.value) >= 0); });
-    if(invalide){ direForfaits("Un montant est invalide.", true); return; }
+    var champs = Array.prototype.slice.call(document.querySelectorAll("#tarifForfaits input"))
+      .filter(function(c){ return c.value !== c.dataset.initial; });
+    if(!champs.length){ direForfaits("Aucun prix modifié.", false); return; }
+    var invalide = champs.filter(function(c){ return c.value === "" || !(Number(c.value) >= 0); })[0];
+    if(invalide){ direForfaits("Montant invalide : " + invalide.getAttribute("aria-label") + ".", true); invalide.focus(); return; }
     direForfaits("Enregistrement…", false);
     Promise.all(champs.map(function(c){
       var montant = Number(c.value);
@@ -11140,14 +11197,16 @@ window.ELA_TEXTES = {
           var hotel = HOTELS[c.dataset.hotel];
           var dest = hotel && hotel.destinations.filter(function(d){ return d.cle === c.dataset.dest; })[0];
           if(dest) dest.forfait[c.dataset.veh] = montant;
+          c.dataset.initial = c.value; c.classList.remove("modifie");
         }
         return ok;
       });
     })).then(function(resultats){
       if(resultats.every(Boolean)){
-        direForfaits("Forfaits enregistrés. Ils s'appliquent dès le prochain chargement de la page.", false);
+        direForfaits(resultats.length + (resultats.length > 1 ? " prix enregistrés" : " prix enregistré")
+          + " : ils s'appliquent aux nouvelles réservations et à la page du QR. Le flyer imprimé, lui, ne change pas.", false);
       } else {
-        direForfaits("Certains forfaits n'ont pas pu être enregistrés — réessayez.", true);
+        direForfaits("Les prix encore en bleu n'ont pas pu être enregistrés — réessayez.", true);
       }
     }).catch(function(){
       direForfaits("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);
