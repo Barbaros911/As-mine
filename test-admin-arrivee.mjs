@@ -50,7 +50,7 @@ const course = (ref, nom) => ({ ref, statut:"attente", cree:new Date().toISOStri
     passagers:"2 passagers", vol:"" },
   client:{ nom, telephone:"06 12 34 56 78" }, prix:{ total:70 } });
 
-let sondes = 0, lectures = 0;
+let sondes = 0, lectures = 0, poussees = [];
 let serveurCourses = [course('ELA-26-09-0100','Jean Martin')];
 const nav = await chromium.launch();
 async function espace(chemin){
@@ -67,6 +67,8 @@ async function espace(chemin){
       /* La sonde ne demande que la dernière référence : on lui répond comme
          le vrai serveur, UNE ligne, sinon elle lirait « undefined ». */
       if (u.includes('/rest/v1/courses?select=ref&')) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
+      if (u.includes('/rest/v1/courses') && route.request().method() === 'POST') {
+        poussees.push(JSON.parse(route.request().postData() || '{}')); return route.fulfill({status:201, body:''}); }
       if (u.includes('/rest/v1/courses')) { lectures++; return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut})))); }
       if (u.includes('/rest/v1/')) return route.fulfill(J([]));
       return route.fulfill(J({}));
@@ -148,6 +150,81 @@ try {
       if (attendu === 'realisee') check('réalisée : ni confirmer, ni réaliser, ni refuser', !c && !r && !f, `c=${c} r=${r} f=${f}`);
       await ctx.close();
     }
+  }
+  /* 2 ter. ANNULER ET MODIFIER DEPUIS L'ADMIN (30/09/2026, à sa demande : la
+     réception ne peut plus annuler, elle appelle ; Barbaros annule ou
+     modifie). On lit ce qui PART au serveur — c'est ce que la réception
+     relira — pas l'état interne. */
+  {
+    const conf = course('ELA-26-09-0106','Mme Annule'); conf.statut = 'confirmee';
+    conf.chauffeur = { nom:'Mehmet', telephone:'0612345678' };
+    const fait = course('ELA-26-09-0107','Réalisé'); fait.statut = 'realisee';
+    const att = course('ELA-26-09-0108','M. Modif');
+    att.course.depart = 'easyHotel Aéroville, 10 rue de la Belle Borne (ch. 118)';
+    att.course.departPublic = 'easyHotel Aéroville, 10 rue de la Belle Borne';
+    att.course.chambre = '118';
+    serveurCourses = [conf, fait, att];
+    const vis = async (p, id) => p.evaluate(i => { const e = document.getElementById(i);
+      return !!e && !e.hidden && getComputedStyle(e).display !== 'none'; }, id);
+    const ouvrir = async ref => {
+      const x = await espace('/ela-admin/?ref=' + ref);
+      await x.p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
+      return x;
+    };
+    { const {ctx, p} = await ouvrir('ELA-26-09-0107');
+      check('réalisée : ni « Annuler », ni « Modifier » (elle est au registre)',
+        !(await vis(p,'btnAnnulerCourse')) && !(await vis(p,'btnModifierCourse')));
+      await ctx.close(); }
+    { const {ctx, p, erreurs} = await ouvrir('ELA-26-09-0106');
+      check('confirmée : « Annuler la course » et « Modifier la course » sont là',
+        await vis(p,'btnAnnulerCourse') && await vis(p,'btnModifierCourse'));
+      poussees = [];
+      await p.click('#btnAnnulerCourse');
+      check('un premier appui n\'annule RIEN, il demande confirmation',
+        poussees.length === 0 && (await p.locator('#btnAnnulerCourse').textContent()).trim() === 'Confirmer l\'annulation');
+      await p.click('#btnAnnulerCourse');
+      await p.waitForTimeout(300);
+      const envoi = poussees.filter(x => x.ref === 'ELA-26-09-0106').pop();
+      check('le second appui l\'annule : « annulee » part au serveur, même référence',
+        !!envoi && envoi.statut === 'annulee', JSON.stringify(envoi && envoi.statut));
+      check('le bon dit « Annulée », et les boutons d\'action se retirent',
+        (await p.locator('#bbEtat').textContent()) === 'Annulée' && !(await vis(p,'btnAnnulerCourse'))
+        && !(await vis(p,'btnRefuser')) && !(await vis(p,'btnRealisee')));
+      check('un chauffeur était attribué : on rappelle de le prévenir',
+        /Prévenez le chauffeur/.test(await p.locator('#bbModifNote').textContent()));
+      check('aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+      await ctx.close(); }
+    { const {ctx, p, erreurs} = await ouvrir('ELA-26-09-0108');
+      await p.click('#btnModifierCourse');
+      check('« Modifier » ouvre le formulaire, prérempli',
+        await vis(p,'bbModif') && (await p.inputValue('#mdHeure')) === '10:00'
+        && (await p.inputValue('#mdChambre')) === '118'
+        && (await p.inputValue('#mdDepart')) === 'easyHotel Aéroville, 10 rue de la Belle Borne'
+        && (await p.inputValue('#mdPrix')) === '70');
+      await p.fill('#mdPrix', '');
+      poussees = [];
+      await p.click('#btnMdEnregistrer');
+      check('un prix vide est refusé, et rien ne part',
+        await vis(p,'mdErreur') && /prix/i.test(await p.locator('#mdErreur').textContent()) && poussees.length === 0);
+      await p.fill('#mdPrix', '85');
+      await p.fill('#mdHeure', '11:30');
+      await p.fill('#mdChambre', '214');
+      await p.click('#btnMdEnregistrer');
+      await p.waitForTimeout(300);
+      const envoi = poussees.filter(x => x.ref === 'ELA-26-09-0108').pop();
+      const co = envoi && envoi.bon && envoi.bon.course || {};
+      check('la modification part au serveur, SOUS LA MÊME RÉFÉRENCE', !!envoi && envoi.bon.ref === 'ELA-26-09-0108');
+      check('…avec la nouvelle heure, le nouveau prix et la nouvelle chambre',
+        co.heure === '11:30' && envoi.bon.prix.total === 85 && co.chambre === '214'
+        && /\(ch\. 214\)$/.test(co.depart) && co.departPublic === 'easyHotel Aéroville, 10 rue de la Belle Borne',
+        JSON.stringify({h:co.heure, p:envoi && envoi.bon.prix, d:co.depart}));
+      check('…et la marque « modifieLe » que la réception affiche',
+        !!(envoi && envoi.bon.modifieLe) && !isNaN(Date.parse(envoi.bon.modifieLe)));
+      check('le statut ne change pas en modifiant', envoi && envoi.statut === 'attente');
+      check('le bon affiché suit : 11:30 et 85,00 €',
+        /11:30/.test(await p.locator('#bbDate').textContent()) && /85,00/.test(await p.locator('#bbPrix').textContent()));
+      check('aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+      await ctx.close(); }
   }
   /* 3. L'alerte Telegram vise l'admin retenu. */
   for (const f of ['supabase/functions/nouvelle-demande/index.ts', 'supabase/functions/nouvelle-demande/a-coller.ts']) {
