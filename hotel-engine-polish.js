@@ -302,7 +302,6 @@
         : 'Un retard, un changement d’heure ou une annulation : appelez-nous, on s’en occupe.');
       var compteurs=document.querySelectorAll('.rec-chiffre span');
       [anglais?'today':'aujourd’hui',anglais?'pending':'en attente',anglais?'upcoming':'à venir'].forEach(function(v,i){texte(compteurs[i],v);});
-      texte(document.getElementById('recVide'),anglais?'No booking yet.':'Aucune réservation pour le moment.');
       texte(document.getElementById('btnRecActualiser'),anglais?'Refresh':'Actualiser');
       texte(document.getElementById('btnRecFermer'),anglais?'Close session':'Fermer la session');
       /* LA LISTE EST DESSINÉE EN FRANÇAIS ; on garde le français d'origine
@@ -326,6 +325,27 @@
       var boutons={"Demander l'annulation":'Request cancellation','Appeler Elatransfer':'Call Elatransfer','Envoyer le bon au client':'Send voucher to guest'};
       document.querySelectorAll('#recListe .bouton-fantome').forEach(function(x){
         trad(x,boutons[(x.dataset.fr||x.textContent).trim()]);
+      });
+      /* Retrouver une course (30/09/2026) : le message « rien trouvé » est
+         contextuel, écrit en français par la page ; on le traduit, et on y
+         revient en FR grâce à data-fr. */
+      var vide=document.getElementById('recVide');
+      if(vide){
+        var frVide=vide.dataset.fr||vide.textContent, enVide=null;
+        var mRech=/^Aucune course ne correspond à « (.*) »\.$/.exec(frVide);
+        if(mRech) enVide='No ride matches “'+mRech[1]+'”.';
+        else enVide={'Aucune réservation pour le moment.':'No booking yet.',
+          'Aucune course à venir.':'No upcoming ride.',
+          'Aucune course passée pour le moment.':'No past ride yet.'}[frVide]||null;
+        trad(vide,enVide);
+      }
+      var titreRech=document.querySelector('label[for="recRecherche"] .champ-titre');
+      texte(titreRech,anglais?'Find a ride':'Retrouver une course');
+      var champRech=document.getElementById('recRecherche');
+      if(champRech) champRech.placeholder=anglais?'Room, name, phone or reference':'Chambre, nom, téléphone ou référence';
+      var nomsVues={avenir:['À venir','Upcoming'],passees:['Passées','Past'],toutes:['Toutes','All']};
+      document.querySelectorAll('.rec-vues button').forEach(function(bv){
+        var n=nomsVues[bv.dataset.vue];if(n) texte(bv.querySelector('span'),anglais?n[1]:n[0]);
       });
       document.querySelectorAll('#recListe .rec-reference').forEach(function(x){
         var fr=x.dataset.fr||x.textContent;

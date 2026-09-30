@@ -1777,6 +1777,15 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-alerte-ok{flex:0 0 auto;min-height:40px;min-width:56px;border-radius:10px;
   border:1px solid currentColor;background:#fff;color:inherit;font-weight:800;cursor:pointer;}
 .rec-course.rec-nouveau{box-shadow:0 0 0 2px #25A06A;}
+/* Retrouver une course : le champ de recherche, puis trois onglets qui
+   portent leur compte. Même mesure qu'un pouce : 44 px. */
+.rec-outils{margin:14px 0 4px;display:flex;flex-direction:column;gap:10px;}
+.rec-vues{display:flex;gap:6px;padding:4px;border-radius:14px;background:#EEF3F7;}
+.rec-vues button{flex:1 1 0;min-height:44px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:13.5px;font-weight:800;color:#14344e;cursor:pointer;}
+.rec-vues button b{font-weight:800;opacity:.7;}
+.rec-vues button.actif{background:#062f55;color:#fff;}
+.rec-vues button.actif b{opacity:1;}
 /* L'aperçu du bon en image. Au-dessus de TOUT (la barre, les feuilles) :
    une feuille passée dessous laisse ses boutons inaccessibles. */
 .bv{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;}
@@ -4567,6 +4576,28 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </div>
       </div>
 
+      <!-- ═══ RETROUVER UNE COURSE (30/09/2026, à sa demande : « un moyen de
+           retrouver les courses, l'historique ») ═══
+           Un client repasse au comptoir : « c'était combien, mon taxi de
+           mardi ? ». La réception cherche par CHAMBRE, NOM, TÉLÉPHONE ou
+           RÉFÉRENCE — la recherche porte sur TOUTES les courses, quel que
+           soit l'onglet. Les onglets trient ce qu'on regarde sans chercher :
+           ce qui reste à faire (en retard compris), ce qui est fini, tout. -->
+      <div class="rec-outils">
+        <label class="champ rec-recherche" for="recRecherche">
+          <span class="champ-corps">
+            <span class="champ-titre">Retrouver une course</span>
+            <input id="recRecherche" type="search" autocomplete="off"
+                   placeholder="Chambre, nom, téléphone ou référence">
+          </span>
+        </label>
+        <div class="rec-vues" role="tablist">
+          <button type="button" role="tab" data-vue="avenir" class="actif" aria-selected="true"><span>À venir</span> <b></b></button>
+          <button type="button" role="tab" data-vue="passees" aria-selected="false"><span>Passées</span> <b></b></button>
+          <button type="button" role="tab" data-vue="toutes" aria-selected="false"><span>Toutes</span> <b></b></button>
+        </div>
+      </div>
+
       <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
       <div id="recListe"></div>
 
@@ -6302,10 +6333,50 @@ window.ELA_TEXTES = {
               { weekday:"long", day:"numeric", month:"long" }) };
   }
 
+  /* L'onglet regardé et la recherche en cours. La recherche l'emporte sur
+     l'onglet : on cherche dans TOUT l'historique. */
+  var recVue = "avenir", recRecherche = "";
+  function recFinie(c){ return c.statut === "realisee" || c.statut === "refusee"; }
+  function recCorrespond(c, q){
+    if(!q) return true;
+    var texte = sansAccents([c.ref, c.chambre, c.client, c.depart, c.arrivee, c.vehicule,
+                             c.chauffeur && c.chauffeur.nom].filter(Boolean).join(" ")).toLowerCase();
+    var mots = sansAccents(q).toLowerCase().split(/\s+/).filter(Boolean);
+    var chiffresQ = q.replace(/\D/g, ""), chiffresTel = String(c.tel || "").replace(/\D/g, "");
+    /* Un numéro se cherche par ses chiffres : « 06 98 » et « 0698 » sont le
+       même début de numéro. */
+    if(chiffresQ.length >= 4 && chiffresTel.indexOf(chiffresQ) !== -1) return true;
+    return mots.every(function(m){ return texte.indexOf(m) !== -1; });
+  }
+
   function dessinerReception(){
     var liste = document.getElementById("recListe");
     liste.innerHTML = "";
-    document.getElementById("recVide").hidden = recCourses.length > 0;
+    var nbAvenir = 0, nbPassees = 0;
+    recCourses.forEach(function(c){ if(recFinie(c)) nbPassees++; else nbAvenir++; });
+    var vues = document.querySelectorAll(".rec-vues button");
+    for(var iv = 0; iv < vues.length; iv++){
+      var v = vues[iv].dataset.vue;
+      vues[iv].querySelector("b").textContent =
+        v === "avenir" ? nbAvenir : v === "passees" ? nbPassees : recCourses.length;
+      var actif = !recRecherche && v === recVue;
+      vues[iv].classList.toggle("actif", actif);
+      vues[iv].setAttribute("aria-selected", actif ? "true" : "false");
+    }
+    var visibles = recCourses.filter(function(c){
+      if(recRecherche) return recCorrespond(c, recRecherche);
+      if(recVue === "avenir") return !recFinie(c);
+      if(recVue === "passees") return recFinie(c);
+      return true;
+    });
+    var vide = document.getElementById("recVide");
+    vide.hidden = visibles.length > 0;
+    vide.textContent = !recCourses.length ? "Aucune réservation pour le moment."
+      : recRecherche ? "Aucune course ne correspond à « " + recRecherche + " »."
+      : recVue === "avenir" ? "Aucune course à venir."
+      : recVue === "passees" ? "Aucune course passée pour le moment."
+      : "Aucune réservation pour le moment.";
+    delete vide.dataset.fr;
 
     /* Trois chiffres, et « aujourd'hui » d'abord : c'est la seule question
        qu'un comptoir se pose en prenant son service. */
@@ -6330,7 +6401,7 @@ window.ELA_TEXTES = {
 
     /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
        liste est déjà triée, et deux parcours finiraient par diverger. */
-    var triees = recCourses.slice().sort(function(a, b){
+    var triees = visibles.slice().sort(function(a, b){
       var ja = jourRec(a), jb = jourRec(b);
       if(ja.rang !== jb.rang) return ja.rang - jb.rang;
       return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
@@ -6586,6 +6657,20 @@ window.ELA_TEXTES = {
   document.addEventListener("visibilitychange", function(){
     if(!document.hidden) rafraichirReception();
   });
+  /* Les onglets et la recherche redessinent sans rien redemander au
+     serveur : tout l'historique est déjà là. */
+  var vuesRec = document.querySelectorAll(".rec-vues button");
+  for(var ivr = 0; ivr < vuesRec.length; ivr++){
+    vuesRec[ivr].addEventListener("click", function(){
+      recVue = this.dataset.vue;
+      recRecherche = ""; document.getElementById("recRecherche").value = "";
+      dessinerReception();
+    });
+  }
+  document.getElementById("recRecherche").addEventListener("input", function(){
+    recRecherche = this.value.trim();
+    dessinerReception();
+  });
   document.getElementById("btnRecAlerteOk").addEventListener("click", function(){
     document.getElementById("recAlerte").hidden = true;
     recNouveaux = {};
@@ -6627,6 +6712,7 @@ window.ELA_TEXTES = {
     oublierCode(recHotel.cle);
     recCourses = [];
     recEtatsConnus = null; recNouveaux = {};
+    recVue = "avenir"; recRecherche = ""; document.getElementById("recRecherche").value = "";
     document.getElementById("recAlerte").hidden = true;
     document.getElementById("recSession").hidden = true;
     document.getElementById("recListe").innerHTML = "";

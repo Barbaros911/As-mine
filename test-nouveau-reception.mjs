@@ -85,7 +85,13 @@ const COURSES = () => ([
   { ref:'ELA-26-09-0031', statut:'attente', date:jour(-1), heure:'07:00',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Beauvais',
     vehicule:'Van', prix:240, client:'Groupe Silva', tel:'07 11 22 33 44', chambre:'',
-    paiement:'Carte bancaire', annulationDemandee:false, chauffeur:{nom:'',telephone:''} }
+    paiement:'Carte bancaire', annulationDemandee:false, chauffeur:{nom:'',telephone:''} },
+  /* UNE COURSE FAITE, pour l'historique (30/09/2026) : cachée de « À venir »,
+     elle ne doit reparaître que dans « Passées », « Toutes » et la recherche. */
+  { ref:'ELA-26-09-0020', statut:'realisee', date:jour(-3), heure:'10:15',
+    depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Disneyland Paris',
+    vehicule:'Berline', prix:80, client:'Mme Laurent', tel:'06 55 44 33 22', chambre:'118',
+    paiement:'Espèces', annulationDemandee:false, chauffeur:{nom:'Samir',telephone:'0611111111'} }
 ]);
 await ctx.route('**/functions/v1/courses-hotel', r => {
   const c = JSON.parse(r.request().postData() || '{}');
@@ -279,6 +285,39 @@ check('le titre « En retard » est le seul en rouge',
 const chiffres = await p.locator('.rec-chiffre b').allTextContents();
 check('deux courses en attente sont comptées', chiffres[1] === '2', chiffres.join('/'));
 check('et ce compteur-là s\'allume, seul', await p.locator('.rec-chiffre.chaud').count() === 1);
+
+/* ═══ RETROUVER UNE COURSE (30/09/2026) ═══ Trois onglets qui portent leur
+   compte, et une recherche qui fouille TOUT l'historique, quel que soit
+   l'onglet. On lit ce qui est à l'écran, pas l'état interne. */
+const refsVisibles = () => p.locator('.rec-course').evaluateAll(els => els.map(e => e.dataset.ref));
+const comptes = await p.locator('.rec-vues button b').allTextContents();
+check('les onglets portent leur compte : 3 à venir, 1 passée, 4 en tout',
+  comptes.join('/') === '3/1/4', comptes.join('/'));
+check('« À venir » est l\'onglet ouvert, et la course faite n\'y est pas',
+  !(await refsVisibles()).includes('ELA-26-09-0020'));
+await p.locator('.rec-vues button[data-vue="passees"]').click();
+check('« Passées » ne montre que la course faite',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.locator('.rec-vues button[data-vue="toutes"]').click();
+check('« Toutes » montre les quatre', (await refsVisibles()).length === 4);
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
+await p.fill('#recRecherche', '118');
+check('la recherche par CHAMBRE retrouve une course passée, même depuis « À venir »',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', '0655 44');
+check('par TÉLÉPHONE, chiffres seuls (espaces indifférents)',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', 'laurent');
+check('par NOM, sans majuscule', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]');
+await p.fill('#recRecherche', 'ELA-26-09-0043');
+check('par RÉFÉRENCE', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0043"]');
+await p.fill('#recRecherche', 'zzz introuvable');
+check('rien trouvé : on le dit, avec ce qu\'on a cherché',
+  (await refsVisibles()).length === 0 && /zzz introuvable/.test(await p.locator('#recVide').textContent()));
+await p.fill('#recRecherche', '');
+check('recherche vidée : retour à « À venir »',
+  (await refsVisibles()).length === 3
+  && (await p.locator('.rec-vues button[data-vue="avenir"]').getAttribute('aria-selected')) === 'true');
 
 /* ═══ L'AUDIT DU 30/09/2026 ═══ Une course EN RETARD ne propose plus
    d'annulation (son heure est passée : on appelle), la référence a sa ligne

@@ -6113,3 +6113,22 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
     (blanc sur `#0E5FA8` 6,5 ; `#0B4F8C` sur fond clair 7,5). **La pastille
     « Réservation validée » de la LISTE de la réception reste verte** : c'est
     une couleur d'état, pas le bon.
+- **RETROUVER UNE COURSE — L'HISTORIQUE DU COMPTOIR** (30/09/2026, à sa
+  demande : « un moyen de retrouver les courses, l'historique, on a oublié
+  ça »). Au-dessus de la liste : un champ « Retrouver une course » et trois
+  onglets qui portent leur compte — **À venir** (ouvert par défaut : attente
+  et confirmée, en retard compris, puisqu'elles demandent encore quelque
+  chose), **Passées** (effectuées et non prises, la plus récente en haut),
+  **Toutes**.
+  - **La recherche fouille TOUT, quel que soit l'onglet** : chambre, nom,
+    téléphone (par ses chiffres — « 0655 44 » trouve « 06 55 44 33 22 »),
+    référence, adresse, chauffeur. Un client repasse au comptoir pour une
+    course de mardi : on ne lui fait pas chercher le bon onglet d'abord.
+  - **Rien n'est redemandé au serveur** pour trier ou chercher : la liste
+    est déjà là. `courses-hotel` en rend désormais **500** (au lieu de 200)
+    — des mois d'un hôtel actif. Au-delà, les plus anciennes ne s'affichent
+    plus : le jour où ça arrive, il faudra une recherche côté serveur.
+  - Classes `.rec-outils` / `.rec-vues`, neuves (vérifiées libres).
+    `test-nouveau-reception` a une course effectuée dans son jeu de données
+    et éprouve les comptes, chaque onglet et les quatre recherches ; il tombe
+    si « passée » n'est plus reconnue (six contrôles).
