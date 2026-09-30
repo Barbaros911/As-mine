@@ -5546,8 +5546,18 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   252 px — la colonne commençait à 252 px et le contenu passait dessous.
   Les règles `body.espace` en ont été retirées. Une seconde feuille qui
   habille le même écran finit toujours par le casser.
-- **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
-  ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
+- **« Confirmer la course » exige un chauffeur, et refuse un papier périmé**
+  (audit du 30/09/2026). Sans chauffeur, le client recevait « Transfert
+  confirmé — Chauffeur : — ». Un chauffeur du carnet dont un papier est
+  PÉRIMÉ est refusé ; hors carnet, l'avertissement orange reste, sans
+  blocage — même règle que Admin v2. Ce contrôle est dans l'écran : Admin v2
+  seul l'impose côté serveur.
+- **« Refuser la course » demande deux appuis**, comme « Supprimer » : un
+  refus ne se défait pas depuis le bon, et il est juste sous « Marquer comme
+  réalisée ».
+- **L'outil « Fabriquer les clés » des notifications est caché** tant que le
+  serveur a une clé : une paire recollée par erreur couperait tous les
+  abonnements.
 - **SUR TÉLÉPHONE, LE MENU EST UNE GRILLE DE TUILES, PLUS UNE RANGÉE QUI
   DÉFILE.** Capture de Barbaros : « j'ai que cette page, il n'y a rien
   d'autre ». Les pastilles défilaient de côté et seules deux étaient à
@@ -5863,13 +5873,79 @@ notifications Telegram 1 minute après, c'est trop long ».
   le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
   (`reprendreDepot()`).
 
+## LE CENTRE DE CONTRÔLE — LA COMMISSION PAR CANAL
+
+30 septembre 2026, à sa demande : « un tableau qui indique le taux de
+commission sur les courses public, site client hôtel, flyer ou prix km… un
+vrai centre de contrôle depuis ma page admin », puis « un changement de
+commission pour le site public ne doit pas affecter easyHotel… je dois
+pouvoir attribuer un montant précis par course ou chauffeur ».
+- **Écran `#ecran-controle`**, entrée « Centre de contrôle » du menu, cachée
+  à l'agent (`agent-role-ui.mjs`) et retirée des pages publiques
+  (`construire-espaces-hotel.mjs`). Quatre blocs : résultats par canal
+  (Semaine / Mois / Année / Tout), commission par canal (modifiable),
+  commission par chauffeur, tarifs en vigueur (lus dans `GAMMES` et `HOTELS`,
+  bouton vers Réglages pour les changer).
+- **QUATRE CANAUX** (`canalDe`) : réception (`parReception`), flyer hôtel
+  (`provenanceCle`), saisie au téléphone (`canal:"admin"`, posé par « Saisir
+  par téléphone »), site public (tout le reste). **Une demande COLLÉE reste
+  « site public »** : son message est celui que fabrique le site.
+- **L'ORDRE DE LA COMMISSION va du plus précis au plus général** : montant
+  posé sur la course, puis taux du chauffeur (carnet, en % OU en € par
+  course — `tauxMode`), puis taux du canal. Chaque canal a son propre taux,
+  en % ou en € : changer le site public ne touche pas easyHotel.
+- **Les taux par canal vivent sur le serveur** (`parametres_commerciaux`,
+  clé `commission_canaux`), copiés sur l'appareil (`ela_commission_canaux`).
+  Aucune migration : la table accepte toute clé, l'écriture est réservée à
+  l'admin depuis `20260929030000_role_agent_serveur.sql`.
+- **Un champ de taux vide n'est pas zéro.** Le carnet enregistrait `0` pour
+  un champ vide : une vieille fiche à `0` sans unité est donc lue « pas de
+  taux », sinon elle masquerait le taux du canal. Une fiche enregistrée
+  depuis porte son unité, et son zéro est alors voulu.
+- `test-admin-controle.mjs` recalcule les totaux à la main ; il tombe si le
+  chauffeur passe après le canal, ou si le vieux `0` masque le canal.
+
+### CE QUE LES CHAUFFEURS DOIVENT — LE GRAND LIVRE DES COMMISSIONS
+
+30 septembre 2026, à sa demande : « un bouton et une alerte qui dit que le
+chauffeur doit une commission ou pas… analyse comme un expert ».
+- **Le client paie le chauffeur, jamais Elatransfer** : chaque course
+  RÉALISÉE crée une dette du chauffeur. Dû = commissions des réalisées ;
+  reçu = paiements enregistrés ; reste = la différence (`soldesChauffeurs`).
+- **LE SEUL LEVIER EST LA COURSE SUIVANTE.** L'alerte est donc sur le bon, à
+  l'instant où l'on saisit le chauffeur (`#bbDette`) : « Mehmet vous doit
+  47 €, dont 20 € depuis plus de 30 jours ». Un **seuil** facultatif
+  (centre de contrôle, clé serveur `seuil_dette_chauffeur`) BLOQUE
+  « Confirmer » au-delà. Vide par défaut : sans lui, on signale seulement.
+- **Le retard se compte course par course** : un paiement solde d'abord les
+  plus anciennes. Ce qui reste dû sur une course de plus de 30 jours est en
+  retard (délai par défaut entre professionnels, L441-10). Le tableau de
+  bord ne s'allume (`#bordDettes`) QUE sur un retard.
+- **Boutons** : « Paiement reçu » (montant proposé = le reste, date, moyen)
+  et « Relancer par WhatsApp » (sur le numéro du chauffeur, avec la liste des
+  courses — une relance sans détail appelle une discussion). Un paiement se
+  retire en deux appuis.
+- **LA COMMISSION SE FIGE AU PASSAGE EN « RÉALISÉE »** (`commissionFigee`,
+  dans `majCourse`). Avant, elle était recalculée à chaque affichage :
+  changer un taux de canal réécrivait après coup ce que devait un chauffeur
+  pour une course déjà faite. Un montant posé sur la course reste modifiable.
+  Les courses réalisées avant le 30/09/2026 n'ont pas de valeur figée.
+- **Une course réalisée sans aucune règle de commission est signalée**, pas
+  comptée à zéro en silence : c'est de l'argent oublié.
+- **Les paiements vivent sur l'appareil** (`ela_paiements_chauffeurs`),
+  comme le carnet et les factures, et partent dans la sauvegarde (restaurés
+  en ajout, par identifiant). Changer de téléphone sans sauvegarde les perd.
+- Caché à l'agent. `test-admin-controle.mjs` tombe si la commission n'est
+  plus figée ou si le seuil ne bloque plus.
+
 ## COMMISSION PAR COURSE, GRAPHIQUE DES CHAUFFEURS, NOTIFICATIONS ELA
 
 29 septembre 2026, à sa demande (« une commission en % ou en € sur chaque
 course », « un graphique des courses réalisées par les chauffeurs »).
 - **Commission** : `commissionDe(course)` est le seul calcul — celle posée
   sur la course (% ou € fixes, jamais plus que le prix), sinon le taux du
-  carnet, sinon rien (on ne devine pas un taux). Bon, registre, export CSV
+  carnet, sinon celui du canal (centre de contrôle, voir plus haut), sinon
+  rien (on ne devine pas un taux). Bon, registre, export CSV
   et facture l'utilisent tous. `test-admin-commission`.
 - **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
   compte que les courses réalisées.

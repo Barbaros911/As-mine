@@ -147,9 +147,22 @@ async function espace(opts){
   await ctx.close();
 }
 
-/* ─── 3. L'outil qui fabrique la paire : les deux moitiés vont ensemble ─── */
+/* ─── 3. L'outil qui fabrique la paire : les deux moitiés vont ensemble ───
+   Clés déjà posées sur le serveur : l'outil est CACHÉ — une paire recollée
+   par erreur couperait tous les abonnements (audit du 30/09/2026). Il ne
+   s'affiche que tant que le serveur n'a pas de clé. */
 {
+  const {ctx, p} = await espace({});
+  await p.waitForFunction(() => document.getElementById('blocClesVapid').hidden, null, {timeout:5000}).catch(()=>{});
+  check('clés déjà posées sur le serveur : l\'outil de fabrication est caché', await p.evaluate(() => document.getElementById('blocClesVapid').hidden));
+  await ctx.close();
+}
+{
+  cleRepond = false;
   const {ctx, p, erreurs} = await espace({});
+  cleRepond = true;
+  await p.waitForFunction(() => !document.getElementById('blocClesVapid').hidden, null, {timeout:10000}).catch(()=>{});
+  check('sans clé sur le serveur : l\'outil est proposé', await p.evaluate(() => !document.getElementById('blocClesVapid').hidden));
   await p.click('#blocClesVapid summary');
   await p.click('#btnClesVapid');
   await p.waitForSelector('#clesVapid:not([hidden])', {timeout:5000}).catch(()=>{});

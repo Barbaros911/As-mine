@@ -2148,6 +2148,31 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .forfait-nom{font-size:15px;font-weight:600;color:var(--encre);min-width:0}
 .forfait-ligne input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
 .forfait-ligne input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
+/* Centre de contrôle : des tableaux qui tiennent à 320 px. La première
+   colonne prend le reste, les chiffres sont alignés à droite. */
+.cc-table{margin:10px 0 14px;border:1px solid var(--filet);border-radius:12px;overflow:hidden;background:var(--carte)}
+.cc-ligne{display:grid;grid-template-columns:minmax(0,1fr) repeat(var(--cc-col,3),minmax(0,auto));gap:10px;align-items:center;padding:9px 12px;border-top:1px solid var(--filet);font-size:14px}
+.cc-ligne:first-child{border-top:0}
+.cc-ligne > span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cc-tete{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px}
+.cc-total{font-weight:800;background:var(--fond)}
+.cc-nom{font-weight:600;color:var(--encre);min-width:0;overflow-wrap:anywhere}
+.cc-nom small{display:block;font-weight:500;color:var(--gris);font-size:12px}
+.cc-taux{display:flex;gap:6px;align-items:center}
+.cc-taux select,.cc-taux input{min-height:44px;border:1px solid var(--filet);border-radius:10px;background:var(--fond);color:var(--encre);font-size:16px}
+.cc-taux select{width:64px;padding:0 4px}
+.cc-taux input{width:76px;text-align:center;font-weight:700}
+.cc-taux input.modifie,.cc-taux select.modifie{border-color:#1C7FE0;background:#E8F2FD}
+.cc-retard{color:#B4231F;font-weight:700}
+.cc-actions{display:flex;gap:8px;padding:0 12px 10px;flex-wrap:wrap}
+.cc-actions button{flex:1 1 130px;min-height:44px;border-radius:10px;border:1px solid var(--filet);background:var(--carte);font-weight:700;font-size:14px;color:var(--encre)}
+.cc-actions .cc-payer{background:#E6F4EA;border-color:#9BD3AE;color:#14532D}
+.cc-paiement{margin:0 0 14px;padding:12px;border:1px solid #1C7FE0;border-radius:12px;background:#F2F8FE}
+.cc-paiement-titre{margin:0 0 8px;font-weight:700}
+.cc-histo summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}
+.dettes-bord{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:#FDECEC;border:1px solid #F3B7B5;color:#7F1D1D}
+.dettes-bord p{margin:0 0 8px;font-weight:600;font-size:14px}
+@media (min-width:900px){ body.espace .dettes-bord{margin:16px 28px 0;} }
 </style>
 </head>
 <body>
@@ -2211,6 +2236,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-4H4v4Zm10-11h6V4h-6v5Z"
                 fill="currentColor"/>
         </svg>Tableau de bord</button>
+      <!-- LE CENTRE DE CONTRÔLE (30/09/2026, à sa demande : « un vrai centre
+           de contrôle »). Les tarifs en vigueur, la commission par canal, et
+           ce que chaque canal rapporte — sur un seul écran. Caché à l'agent :
+           c'est de l'argent. -->
+      <button class="admin-lien" type="button" id="btnControle">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 18a8 8 0 1 1 16 0" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round"/>
+          <path d="M12 18l4-6" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round"/>
+        </svg>Centre de contrôle</button>
       <!-- LA SAISIE À LA MAIN EST LA DEUXIÈME ENTRÉE, juste après le tableau
            de bord : c'est le geste du jour, celui qu'on fait pendant qu'un
            hôtel est encore au téléphone. -->
@@ -3385,6 +3421,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <!-- SANS SESSION, AUCUNE DEMANDE N'ARRIVE ICI. On ne le dit pas en
          petit dans le bloc du serveur, tout en bas : c'est la différence
          entre voir ses clients et ne pas les voir. -->
+    <!-- LES COMMISSIONS EN RETARD (30/09/2026). Il n'apparaît que s'il y a un
+         retard : sa présence est l'alerte, comme les papiers à surveiller. -->
+    <div class="dettes-bord" id="bordDettes" hidden>
+      <p id="bordDettesTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnBordDettes">Voir et relancer</button>
+    </div>
     <div class="hors-ligne" id="bordHorsLigne" hidden>
       <p id="bordHorsLigneTexte">Vous ne recevez pas les demandes de vos clients
          sur cet appareil : vous ne voyez que les courses saisies ici.</p>
@@ -3509,6 +3551,97 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        Un seul écran remplace les trois. Le menu compte donc six entrées qui
        mènent chacune ailleurs, et c'est ce qu'un test vérifie.
        ===================================================================== -->
+  <!-- =====================================================================
+       LE CENTRE DE CONTRÔLE
+       Trois questions, dans l'ordre où on se les pose : à quel prix
+       vend-on, combien garde-t-on, et d'où vient l'argent.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-controle">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourControle" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Centre de contrôle</h1>
+    </div>
+
+    <!-- CE QUE LES CHAUFFEURS VOUS DOIVENT. L'argent ne passe jamais par
+         Elatransfer : chaque course réalisée crée une dette du chauffeur. -->
+    <div class="bloc" id="blocDettes">
+      <h2 class="bloc-titre">Commissions dues par les chauffeurs</h2>
+      <p class="bloc-note" id="ccDettesResume"></p>
+      <div class="cc-table" id="ccDettes"></div>
+      <div class="cc-paiement" id="ccPaiement" hidden>
+        <p class="cc-paiement-titre" id="ccPaiementTitre"></p>
+        <div class="duo">
+          <label class="champ" for="ccPaiementMontant"><span class="champ-corps">
+            <span class="champ-titre">Montant reçu (€)</span>
+            <input id="ccPaiementMontant" type="number" min="0" step="0.01" inputmode="decimal"></span></label>
+          <label class="champ" for="ccPaiementDate"><span class="champ-corps">
+            <span class="champ-titre">Reçu le</span>
+            <input id="ccPaiementDate" type="date"></span></label>
+        </div>
+        <label class="champ" for="ccPaiementMode"><span class="champ-corps">
+          <span class="champ-titre">Moyen</span>
+          <select id="ccPaiementMode">
+            <option value="virement">Virement</option>
+            <option value="especes">Espèces</option>
+            <option value="carte">Carte</option>
+            <option value="autre">Autre</option>
+          </select></span></label>
+        <button class="bouton vert" type="button" id="btnCcPaiementOk"><span>Enregistrer le paiement</span></button>
+        <button class="bouton-fantome" type="button" id="btnCcPaiementAnnuler">Annuler</button>
+      </div>
+      <p class="champ-aide" id="ccDettesEtat" hidden></p>
+      <label class="champ" for="ccSeuil"><span class="champ-corps">
+        <span class="champ-titre">Bloquer la confirmation d'une course si le chauffeur doit plus de (€)</span>
+        <input id="ccSeuil" type="number" min="0" step="1" inputmode="numeric" placeholder="pas de blocage"></span></label>
+      <button class="bouton-fantome" type="button" id="btnCcSeuil">Enregistrer le seuil</button>
+      <details class="cc-histo">
+        <summary>Paiements enregistrés</summary>
+        <div class="cc-table" id="ccPaiements"></div>
+      </details>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Résultats par canal</h2>
+      <div class="periodes">
+        <button class="periode actif" type="button" data-ccperiode="semaine">Semaine</button>
+        <button class="periode" type="button" data-ccperiode="mois">Mois</button>
+        <button class="periode" type="button" data-ccperiode="annee">Année</button>
+        <button class="periode" type="button" data-ccperiode="tout">Tout</button>
+      </div>
+      <div class="cc-table" id="ccCanaux"></div>
+      <p class="bloc-note">Chiffre d'affaires et commission : courses réalisées
+        seulement. Demandes : toutes les courses de la période.</p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Commission par canal</h2>
+      <p class="bloc-note">Chaque canal a son propre taux : changer celui du site
+        public ne touche pas easyHotel. Il s'applique quand rien n'est posé sur la
+        course ni sur le chauffeur. Ordre : <b>montant saisi sur la course</b>,
+        puis <b>taux du chauffeur</b> (carnet), puis <b>taux du canal</b>.</p>
+      <div class="cc-table" id="ccTaux"></div>
+      <button class="bouton" type="button" id="btnCcTaux"><span>Enregistrer les taux</span></button>
+      <p class="champ-aide" id="ccTauxEtat" hidden></p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Commission par chauffeur</h2>
+      <div class="cc-table" id="ccChauffeurs"></div>
+      <button class="bouton-fantome" type="button" id="btnCcCarnet">Modifier dans le carnet</button>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Tarifs en vigueur</h2>
+      <div class="cc-table" id="ccTarifs"></div>
+      <button class="bouton-fantome" type="button" id="btnCcTarifs">Modifier les tarifs</button>
+    </div>
+  </section>
+
   <section class="ecran" id="ecran-reglages">
     <div class="bord-tete">
       <button class="retour" type="button" id="btnRetourReglages" aria-label="Retour">
@@ -4227,9 +4360,20 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <input id="chAssuranceFin" type="date">
         </span>
       </label>
+      <label class="champ" for="chTauxMode">
+        <span class="champ-corps">
+          <span class="champ-titre">Commission de ce chauffeur, en</span>
+          <!-- Vide = pas de taux propre : c'est alors le taux du canal qui
+               s'applique (centre de contrôle). -->
+          <select id="chTauxMode">
+            <option value="pct">% du prix</option>
+            <option value="eur">euros par course</option>
+          </select>
+        </span>
+      </label>
       <label class="champ" for="chTaux">
         <span class="champ-corps">
-          <span class="champ-titre">Votre commission (%)</span>
+          <span class="champ-titre">Montant (vide = taux du canal)</span>
           <input id="chTaux" type="number" inputmode="decimal" min="0" max="100" step="0.5"
                  placeholder="15">
         </span>
@@ -4432,6 +4576,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            c'est l'instant précis où Elatransfer engage sa responsabilité de
            centrale de réservation. Écrit ailleurs, il ne serait jamais lu. -->
       <p class="ch-alerte" id="bbChauffeurAlerte" hidden></p>
+      <p class="ch-alerte" id="bbDette" hidden></p>
       <label class="champ" for="bbChauffeurNom">
         <span class="champ-corps">
           <span class="champ-titre">Nom</span>
@@ -4549,6 +4694,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton" type="button" id="btnConfirmerCourse">
         <span>Confirmer la course</span>
       </button>
+      <p class="champ-aide" id="confirmerEtat" hidden style="color:#B4231F"></p>
       <!-- CONFIRMER ET PRÉVENIR SONT DEUX GESTES, ET C'EST VOULU.
            Le premier range la course chez Barbaros ; le second la dit au
            client. Les fondre en un seul enverrait le message avant qu'il ait
@@ -4567,6 +4713,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </button>
       <button class="bouton-fantome" type="button" id="btnModifierCourse">Modifier la course</button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
+      <p class="champ-aide" id="refusEtat" hidden style="color:#B4231F"></p>
       <!-- ANNULER N'EST PAS REFUSER (30/09/2026). « Refuser » dit « aucun
            chauffeur n'a pu la prendre » : la réception lit « Non prise ».
            « Annuler » dit « la course n'aura pas lieu » — le client, l'hôtel
@@ -9901,6 +10048,20 @@ window.ELA_TEXTES = {
   /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
      32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
   var elClesVapid = document.getElementById("btnClesVapid");
+  /* LES CLÉS SONT POSÉES DEPUIS LE 29/09/2026 (audit du 30/09). Une nouvelle
+     paire recollée par erreur dans Supabase couperait TOUS les abonnements
+     existants, sans un message. Le bloc ne s'affiche donc que tant que le
+     serveur n'a pas de clé valable. */
+  var blocClesVapid = document.getElementById("blocClesVapid");
+  /* On ne demande la clé qu'une fois l'espace ouvert : sur la page d'un
+     client, cet appel n'a rien à faire. */
+  if(blocClesVapid){
+    blocClesVapid.hidden = true;
+    document.addEventListener("ela:espace", function(){
+      cleVapid().then(function(){ blocClesVapid.hidden = true; },
+                      function(){ blocClesVapid.hidden = false; });
+    });
+  }
   if(elClesVapid) elClesVapid.addEventListener("click", function(){
     crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
       .then(function(k){ return crypto.subtle.exportKey("jwk", k.privateKey); })
@@ -10489,6 +10650,38 @@ window.ELA_TEXTES = {
     });
   };
 
+  nuage.lireParametre = function(cle){
+    if(!this.connecte()) return Promise.resolve(null);
+    return this.appel("/rest/v1/parametres_commerciaux?cle=eq." + encodeURIComponent(cle) + "&select=valeur&limit=1")
+      .then(function(r){ return Array.isArray(r) && r[0] ? r[0].valeur : null; });
+  };
+  nuage.majParametre = function(cle, valeur){
+    if(!this.connecte()) return Promise.reject(new Error("non connecte"));
+    return this.appel("/rest/v1/parametres_commerciaux?on_conflict=cle", {
+      method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ cle: cle, valeur: valeur, actif: true,
+                              date_effet: new Date().toISOString(), modifie_le: new Date().toISOString() })
+    });
+  };
+  /* ═══ LA COMMISSION PAR CANAL ═══ (30/09/2026) Même table, même geste
+     que le tarif. Lecture : « null » si rien n'est encore posé, pour ne pas
+     effacer la copie de l'appareil sur un simple silence du serveur. */
+  nuage.lireCommissionCanaux = function(){
+    if(!this.connecte()) return Promise.resolve(null);
+    return this.appel("/rest/v1/parametres_commerciaux?cle=eq.commission_canaux&select=valeur&limit=1")
+      .then(function(r){ return Array.isArray(r) && r[0] && r[0].valeur && typeof r[0].valeur === "object" ? r[0].valeur : null; });
+  };
+  nuage.majCommissionCanaux = function(valeur){
+    if(!this.connecte()) return Promise.reject(new Error("non connecte"));
+    return this.appel("/rest/v1/parametres_commerciaux?on_conflict=cle", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ cle: "commission_canaux", valeur: valeur, actif: true,
+                              date_effet: new Date().toISOString(),
+                              modifie_le: new Date().toISOString() })
+    });
+  };
+
   /* ═══ ÉCRIRE UN FORFAIT DU FLYER ═══
      « tarifs_partenaires » se filtre par « partenaire_id », pas par la clé
      lisible de l'hôtel : on va donc D'ABORD chercher son identifiant, puis
@@ -10594,6 +10787,7 @@ window.ELA_TEXTES = {
          : st === "annulee" ? "Annulée" : "Refusée";
   }
   function dessinerBord(){
+    if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     var liste = document.getElementById("listeBord");
     var vide  = document.getElementById("videBord");
     var tout  = registre();
@@ -11010,6 +11204,16 @@ window.ELA_TEXTES = {
     if(i < 0) return null;
     liste[i].statut = statut;
     if(extra) Object.keys(extra).forEach(function(k){ liste[i][k] = extra[k]; });
+    /* LA COMMISSION SE FIGE QUAND LA COURSE EST FAITE (30/09/2026). C'est à
+       cet instant que le chauffeur contracte sa dette ; changer un taux de
+       canal ou de carnet le mois suivant ne doit pas réécrire ce qu'il
+       devait. Un montant posé sur la course reste, lui, modifiable. */
+    if(statut === "realisee" && !liste[i].commissionFigee){
+      var cmF = commissionDe(liste[i]);
+      if(cmF.source !== "aucune" && cmF.source !== "course")
+        liste[i].commissionFigee = { montant: cmF.montant, taux: cmF.taux, mode: cmF.mode, source: cmF.source,
+                                     le: new Date().toISOString() };
+    }
     ecrireRegistre(liste);
     nuage.pousser(liste[i]);
     dessinerBord();
@@ -11145,6 +11349,9 @@ window.ELA_TEXTES = {
        une course puis quitté, il s'appliquerait à la suivante au premier
        appui. */
     desarmerSuppr();
+    desarmerRefus();
+    direConfirmer("");
+    setTimeout(jugerDetteBon, 0);
     var c = bonBord;
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
@@ -11252,10 +11459,62 @@ window.ELA_TEXTES = {
       }
       return { montant: Math.round(prix * +m.valeur) / 100, taux: +m.valeur, mode: "pct", source: "course" };
     }
+    var fg = c.commissionFigee;
+    if(fg && c.statut === "realisee" && isFinite(fg.montant))
+      return { montant: +fg.montant, taux: fg.taux, mode: fg.mode, source: fg.source, figee: true };
     ch = ch || trouverChauffeur(c.chauffeur && c.chauffeur.nom, c.chauffeur && c.chauffeur.telephone);
-    if(ch && (ch.taux || ch.taux === 0))
-      return { montant: Math.round(prix * ch.taux) / 100, taux: ch.taux, mode: "pct", source: "carnet" };
+    if(ch && tauxChauffeur(ch)) return appliquerTaux(prix, ch.tauxMode, ch.taux, "carnet");
+    /* LE TAUX DU CANAL EN DERNIER (30/09/2026) : le plus général. Un
+       montant posé sur la course ou sur le chauffeur est un choix précis,
+       il passe devant. */
+    var cn = commissionsCanaux()[canalDe(c)];
+    if(cn && cn.valeur !== "" && cn.valeur !== null && isFinite(cn.valeur) && +cn.valeur >= 0)
+      return appliquerTaux(prix, cn.mode, +cn.valeur, "canal");
     return { montant: 0, taux: null, mode: "pct", source: "aucune" };
+  }
+  function appliquerTaux(prix, mode, valeur, source){
+    if(mode === "eur"){
+      var e = Math.min(prix, Math.round(valeur * 100) / 100);
+      return { montant: e, taux: prix ? Math.round(e / prix * 1000) / 10 : 0, mode: "eur", source: source };
+    }
+    return { montant: Math.round(prix * valeur) / 100, taux: valeur, mode: "pct", source: source };
+  }
+  /* UN TAUX DE CHAUFFEUR N'EXISTE QUE S'IL A ÉTÉ POSÉ. Les anciennes
+     fiches enregistraient « 0 » pour un champ vide : sans mode déclaré, un
+     zéro est lu comme « pas de taux ». Une fiche enregistrée depuis le
+     30/09/2026 porte son mode, et son zéro est alors voulu. */
+  function tauxChauffeur(ch){
+    if(!ch || ch.taux === null || ch.taux === undefined || ch.taux === "" || !isFinite(ch.taux)) return false;
+    return +ch.taux > 0 || !!ch.tauxMode;
+  }
+  /* LE CANAL D'UNE COURSE : d'où elle est venue. Une demande COLLÉE reste
+     « site public » : son message est celui que le site fabrique, c'est une
+     réservation du site dont le dépôt a raté. Seule une course créée à la
+     main (« Saisir par téléphone ») est marquée « admin ». Une course
+     ancienne sans marque retombe sur le site public. */
+  var CANAUX = [
+    { cle: "public",    nom: "Site public",        aide: "elatransfer.com" },
+    { cle: "hotel",     nom: "Flyer hôtel",        aide: "client qui scanne le QR" },
+    { cle: "reception", nom: "Réception de l'hôtel", aide: "comptoir easyHotel" },
+    { cle: "admin",     nom: "Saisie au téléphone", aide: "créée dans l'admin" }
+  ];
+  function canalDe(c){
+    if(!c) return "public";
+    if(c.parReception) return "reception";
+    if(c.provenanceCle) return "hotel";
+    if(c.canal === "admin") return "admin";
+    return "public";
+  }
+  /* LES TAUX PAR CANAL VIVENT SUR LE SERVEUR (parametres_commerciaux,
+     « commission_canaux ») : ils valent sur tous ses appareils. Une copie
+     reste sur l'appareil pour calculer même sans réseau. */
+  var CLE_COM_CANAUX = "ela_commission_canaux";
+  function commissionsCanaux(){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_COM_CANAUX) || "{}"); return o && typeof o === "object" ? o : {}; }
+    catch(e){ return {}; }
+  }
+  function ecrireCommissionsCanaux(o){
+    try{ localStorage.setItem(CLE_COM_CANAUX, JSON.stringify(o || {})); }catch(e){}
   }
   function commissionSaisie(){
     var v = document.getElementById("bbComValeur").value.trim().replace(",", ".");
@@ -11264,17 +11523,21 @@ window.ELA_TEXTES = {
   }
   function jugerCommissionBon(){
     if(!bonBord) return;
-    var essai = { prix: bonBord.prix, commission: commissionSaisie(), chauffeur: chauffeurSaisi() };
+    var essai = { prix: bonBord.prix, commission: commissionSaisie(), chauffeur: chauffeurSaisi(),
+                  parReception: bonBord.parReception, provenanceCle: bonBord.provenanceCle, canal: bonBord.canal,
+                  statut: bonBord.statut, commissionFigee: bonBord.commissionFigee };
     var cm = commissionDe(essai), prix = (bonBord.prix && bonBord.prix.total) || 0;
     var el = document.getElementById("bbComCalc");
     if(cm.source === "aucune"){
-      el.textContent = "Aucune commission : saisissez-en une, ou posez le taux du chauffeur dans son carnet.";
+      el.textContent = "Aucune commission : saisissez-en une, posez le taux du chauffeur dans son carnet, ou celui du canal dans le centre de contrôle.";
       return;
     }
     el.textContent = "Commission : " + euros(cm.montant)
       + (cm.mode === "pct" ? " (" + cm.taux + " %)" : "")
       + " · reste au chauffeur : " + euros(Math.max(0, prix - cm.montant))
-      + (cm.source === "carnet" ? " — taux du carnet" : "");
+      + (cm.source === "carnet" ? " — taux du carnet" : "")
+      + (cm.figee ? " — figée à la fin de la course" : "")
+      + (cm.source === "canal" && !cm.figee ? " — taux du canal (" + CANAUX.filter(function(x){ return x.cle === canalDe(essai); })[0].nom + ")" : "");
   }
   ["bbComMode","bbComValeur","bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
     var el = document.getElementById(id);   // absent de la page publique
@@ -11319,8 +11582,43 @@ window.ELA_TEXTES = {
     }).catch(function(){ /* détachée : une notification perdue ne casse rien */ });
   }
 
+  /* CONFIRMER, C'EST PROMETTRE UNE VOITURE (audit du 30/09/2026).
+     Le bouton partait sans chauffeur : le client recevait « Transfert
+     confirmé — Chauffeur : — », c'est-à-dire une promesse sans personne
+     derrière. Il faut donc un chauffeur retenu. Et un chauffeur du carnet
+     dont un papier est PÉRIMÉ est refusé ici : c'est l'instant où
+     Elatransfer engage sa responsabilité (L3142-1). Seul « périmé » bloque
+     — un fait connu, une date passée — comme dans Admin v2 ; un chauffeur
+     hors carnet garde l'avertissement orange, sans blocage. */
+  function direConfirmer(t){
+    var e = document.getElementById("confirmerEtat");
+    e.hidden = !t; e.textContent = t || "";
+  }
+  function refusConfirmation(){
+    var nom = document.getElementById("bbChauffeurNom").value.trim();
+    var tel = document.getElementById("bbChauffeurTel").value.trim();
+    if(!nom) return "Indiquez d'abord le chauffeur retenu : confirmer sans lui "
+      + "promettrait au client une voiture que personne n'a acceptée.";
+    var dette = detteDe(nom, tel), seuil = seuilDette();
+    if(dette && seuil !== null && dette.solde > seuil)
+      return dette.nom + " doit " + euros(dette.solde) + " de commission, au-delà de votre seuil ("
+        + euros(seuil) + ") : enregistrez son paiement dans le centre de contrôle, ou choisissez un autre chauffeur.";
+    var c = trouverChauffeur(nom, tel);
+    if(c && [c.carteFin, c.registreFin, c.assuranceFin].some(function(d){ return etatPapier(d) === "perime"; }))
+      return "Papier périmé dans le carnet (" + c.nom + ") : choisissez un autre "
+        + "chauffeur, ou mettez sa fiche à jour dans « Chauffeurs ».";
+    return "";
+  }
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
     if(!bonBord) return;
+    var refus = refusConfirmation();
+    if(refus){
+      direConfirmer(refus);
+      var champ = document.getElementById("bbChauffeurNom");
+      if(!champ.value.trim()){ champ.scrollIntoView({block:"center"}); champ.focus(); }
+      return;
+    }
+    direConfirmer("");
     bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     pousserNotification(bonBord);
     ouvrirBonBord(bonBord.ref);
@@ -11488,9 +11786,33 @@ window.ELA_TEXTES = {
     majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     ecran("ecran-bord");
   });
+  /* REFUSER DEMANDE DEUX APPUIS (audit du 30/09/2026). Un seul appui
+     refusait la course sans retour possible — le bon n'offre plus aucun
+     geste sur une course refusée — et « Refuser » est juste sous
+     « Marquer comme réalisée » : un pouce qui glisse, et un client est
+     éconduit. Même mécanisme que « Supprimer ». */
+  var refusArme = null, refusMinuteur = null;
+  function desarmerRefus(){
+    refusArme = null;
+    if(refusMinuteur){ clearTimeout(refusMinuteur); refusMinuteur = null; }
+    var b = document.getElementById("btnRefuser"), e = document.getElementById("refusEtat");
+    b.textContent = "Refuser la course";
+    e.hidden = true; e.textContent = "";
+  }
   document.getElementById("btnRefuser").addEventListener("click", function(){
     if(!bonBord) return;
-    majCourse(bonBord.ref, "refusee");
+    if(refusArme !== bonBord.ref){
+      refusArme = bonBord.ref;
+      this.textContent = "Confirmer le refus";
+      var e = document.getElementById("refusEtat");
+      e.hidden = false;
+      e.textContent = "La course passera en « non prise ». Appuyez encore pour confirmer.";
+      refusMinuteur = setTimeout(desarmerRefus, 8000);
+      return;
+    }
+    var ref = bonBord.ref;
+    desarmerRefus();
+    majCourse(ref, "refusee");
     ecran("ecran-bord");
   });
 
@@ -12299,16 +12621,396 @@ window.ELA_TEXTES = {
   }
 
   var periodeReg = "semaine";
-  document.querySelectorAll(".periode").forEach(function(b){
+  /* « [data-periode] » : le centre de contrôle a ses propres boutons de
+     période, qui ne doivent pas changer celle du registre. */
+  document.querySelectorAll(".periode[data-periode]").forEach(function(b){
     b.addEventListener("click", function(){
       periodeReg = b.dataset.periode;
-      document.querySelectorAll(".periode").forEach(function(x){
+      document.querySelectorAll(".periode[data-periode]").forEach(function(x){
         x.classList.toggle("actif", x === b);
       });
       dessinerRegistre();
     });
   });
   document.getElementById("regRecherche").addEventListener("input", chercherRegistre);
+
+/* =====================================================================
+   LE CENTRE DE CONTRÔLE (30/09/2026, à sa demande : « un tableau qui
+   indique le taux de commission sur les courses public, site client
+   hôtel, flyer ou prix km… un vrai centre de contrôle »).
+   ON N'Y RECALCULE RIEN À PART : la commission vient de commissionDe(),
+   les tarifs de GAMMES et HOTELS, la date de dateCourse() — les mêmes que
+   le registre, le bon et la facture. Deux calculs finissent par diverger.
+   ===================================================================== */
+  var periodeCc = "semaine";
+  function ligneCc(cellules, classe, colonnes){
+    var d = document.createElement("div");
+    d.className = "cc-ligne" + (classe ? " " + classe : "");
+    d.style.setProperty("--cc-col", String(colonnes || cellules.length - 1));
+    cellules.forEach(function(x, i){
+      var sp = document.createElement("span");
+      if(i === 0 && classe !== "cc-tete") sp.className = "cc-nom";
+      if(x && x.nodeType) sp.appendChild(x);
+      else if(x && typeof x === "object"){ sp.textContent = x.t; if(x.aide){ var sm = document.createElement("small"); sm.textContent = x.aide; sp.appendChild(sm); } }
+      else sp.textContent = x;
+      d.appendChild(sp);
+    });
+    return d;
+  }
+  function viderCc(id){ var z = document.getElementById(id); while(z.firstChild) z.removeChild(z.firstChild); return z; }
+  function debutPeriodeCc(){
+    var auj = new Date();
+    if(periodeCc === "annee") return new Date(auj.getFullYear(), 0, 1);
+    if(periodeCc === "mois") return new Date(auj.getFullYear(), auj.getMonth(), 1);
+    if(periodeCc === "tout") return null;
+    return lundiDe(auj);
+  }
+  function dansPeriodeCc(c, debut){
+    if(!debut) return true;
+    var d = dateCourse(c);
+    return !!d && d >= debut;
+  }
+  function regleTexte(mode, valeur){
+    return mode === "eur" ? euros(valeur) + " / course" : String(valeur).replace(".", ",") + " %";
+  }
+  function dessinerControle(){
+    dessinerDettes();
+    var liste = registre(), debut = debutPeriodeCc();
+    /* 1. RÉSULTATS PAR CANAL. Demandes = tout ce qui est arrivé ; argent =
+       les seules réalisées (une course confirmée n'est pas une course faite). */
+    var par = {};
+    CANAUX.forEach(function(k){ par[k.cle] = { dem: 0, n: 0, ca: 0, com: 0 }; });
+    liste.forEach(function(c){
+      if(!c || !dansPeriodeCc(c, debut)) return;
+      var v = par[canalDe(c)]; v.dem++;
+      if(c.statut !== "realisee") return;
+      v.n++; v.ca += (c.prix && c.prix.total) || 0; v.com += commissionDe(c).montant;
+    });
+    var z = viderCc("ccCanaux"), tot = { dem: 0, n: 0, ca: 0, com: 0 };
+    z.appendChild(ligneCc(["Canal", "Dem.", "Faites", "CA", "Com."], "cc-tete"));
+    CANAUX.forEach(function(k){
+      var v = par[k.cle];
+      ["dem","n","ca","com"].forEach(function(x){ tot[x] += v[x]; });
+      z.appendChild(ligneCc([{ t: k.nom, aide: v.ca ? "taux moyen " + (Math.round(v.com / v.ca * 1000) / 10).toString().replace(".", ",") + " %" : k.aide },
+                             String(v.dem), String(v.n), eurosRond(v.ca), euros(v.com)]));
+    });
+    z.appendChild(ligneCc(["Total", String(tot.dem), String(tot.n), eurosRond(tot.ca), euros(tot.com)], "cc-total"));
+
+    /* 2. LES TAUX PAR CANAL, modifiables. */
+    var taux = commissionsCanaux(), zt = viderCc("ccTaux");
+    zt.appendChild(ligneCc(["Canal", "Commission"], "cc-tete"));
+    CANAUX.forEach(function(k){
+      var t = taux[k.cle] || {}, bloc = document.createElement("span");
+      bloc.className = "cc-taux";
+      var sel = document.createElement("select");
+      sel.id = "ccMode_" + k.cle; sel.setAttribute("aria-label", "Commission " + k.nom + " : unité");
+      [["pct","%"],["eur","€"]].forEach(function(o){ var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
+      sel.value = t.mode === "eur" ? "eur" : "pct";
+      var inp = document.createElement("input");
+      inp.id = "ccVal_" + k.cle; inp.type = "number"; inp.min = "0"; inp.step = "0.5"; inp.inputMode = "decimal";
+      inp.placeholder = "—"; inp.setAttribute("aria-label", "Commission " + k.nom + " : montant");
+      inp.value = (t.valeur === 0 || t.valeur) ? t.valeur : "";
+      [sel, inp].forEach(function(x){
+        x.dataset.initial = x.value;
+        x.addEventListener("input", function(){ x.classList.toggle("modifie", x.value !== x.dataset.initial); direCcTaux(""); });
+        x.addEventListener("change", function(){ x.classList.toggle("modifie", x.value !== x.dataset.initial); });
+      });
+      bloc.appendChild(sel); bloc.appendChild(inp);
+      zt.appendChild(ligneCc([{ t: k.nom, aide: k.aide }, bloc], "", 1));
+    });
+
+    /* 3. PAR CHAUFFEUR : sa règle, et ce qu'il a rapporté sur la période. */
+    var zc = viderCc("ccChauffeurs"), fiches = chauffeurs(), parCh = {};
+    liste.forEach(function(c){
+      if(!c || c.statut !== "realisee" || !dansPeriodeCc(c, debut)) return;
+      var nom = (c.chauffeur && c.chauffeur.nom || "").trim(); if(!nom) return;
+      var k = nom.toLowerCase(), v = parCh[k] = parCh[k] || { nom: nom, n: 0, com: 0 };
+      v.n++; v.com += commissionDe(c).montant;
+    });
+    zc.appendChild(ligneCc(["Chauffeur", "Règle", "Faites", "Com."], "cc-tete"));
+    fiches.forEach(function(ch){
+      var v = parCh[(ch.nom || "").trim().toLowerCase()] || { n: 0, com: 0 };
+      delete parCh[(ch.nom || "").trim().toLowerCase()];
+      zc.appendChild(ligneCc([ch.nom || "—", tauxChauffeur(ch) ? regleTexte(ch.tauxMode, ch.taux) : "canal",
+                              String(v.n), euros(v.com)]));
+    });
+    Object.keys(parCh).forEach(function(k){
+      var v = parCh[k];
+      zc.appendChild(ligneCc([{ t: v.nom, aide: "hors carnet" }, "canal", String(v.n), euros(v.com)]));
+    });
+    if(!fiches.length && !Object.keys(parCh).length)
+      zc.appendChild(ligneCc(["Aucun chauffeur dans le carnet", "", "", ""]));
+
+    /* 4. LES TARIFS EN VIGUEUR : ceux que le client voit à l'instant. */
+    var zf = viderCc("ccTarifs");
+    zf.appendChild(ligneCc(["Au kilomètre", "€/km", "Minimum"], "cc-tete"));
+    GAMMES.forEach(function(g){
+      zf.appendChild(ligneCc([g.nom, euros(g.parKm), eurosRond(g.mini)]));
+    });
+    Object.keys(HOTELS).forEach(function(hk){
+      var h = HOTELS[hk];
+      zf.appendChild(ligneCc(["Flyer " + (h.court || h.nom), "Berline", "Van"], "cc-tete"));
+      h.destinations.forEach(function(d){
+        zf.appendChild(ligneCc([d.nom, eurosRond(d.forfait.berline || 0), eurosRond(d.forfait.van || 0)]));
+      });
+    });
+  }
+  function direCcTaux(t, erreur){
+    var e = document.getElementById("ccTauxEtat");
+    e.hidden = !t; e.textContent = t || ""; e.style.color = erreur ? "#C9302F" : "";
+  }
+  function ouvrirControle(){
+    ecran("ecran-controle");
+    allumerAdmin(document.getElementById("btnControle"));
+    dessinerControle();
+    /* Les taux du serveur font foi : on les relit à chaque ouverture, et on
+       redessine s'ils ont changé depuis un autre appareil. */
+    nuage.lireCommissionCanaux().then(function(o){
+      if(!o) return;
+      if(JSON.stringify(o) !== JSON.stringify(commissionsCanaux())){ ecrireCommissionsCanaux(o); dessinerControle(); }
+    }, function(){});
+  }
+  document.getElementById("btnControle").addEventListener("click", ouvrirControle);
+  document.getElementById("btnRetourControle").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+  document.querySelectorAll(".periode[data-ccperiode]").forEach(function(b){
+    b.addEventListener("click", function(){
+      periodeCc = b.dataset.ccperiode;
+      document.querySelectorAll(".periode[data-ccperiode]").forEach(function(x){ x.classList.toggle("actif", x === b); });
+      dessinerControle();
+    });
+  });
+  document.getElementById("btnCcCarnet").addEventListener("click", function(){
+    document.getElementById("btnChauffeurs").click();
+  });
+  document.getElementById("btnCcTarifs").addEventListener("click", function(){
+    ouvrirReglages("blocTarifs");
+  });
+  document.getElementById("btnCcTaux").addEventListener("click", function(){
+    var o = {}, faute = "";
+    CANAUX.forEach(function(k){
+      var v = document.getElementById("ccVal_" + k.cle).value.trim().replace(",", ".");
+      var m = document.getElementById("ccMode_" + k.cle).value === "eur" ? "eur" : "pct";
+      if(v === "") return;                           // vide = pas de taux pour ce canal
+      if(!isFinite(v) || +v < 0 || (m === "pct" && +v > 100)){ faute = faute || k.nom; return; }
+      o[k.cle] = { mode: m, valeur: +v };
+    });
+    if(faute){ direCcTaux("Montant invalide : " + faute + " (un pourcentage va de 0 à 100).", true); return; }
+    if(!nuage.connecte()){ direCcTaux("Connectez-vous d'abord au serveur : les taux doivent valoir sur tous vos appareils.", true); return; }
+    var b = this; b.disabled = true;
+    nuage.majCommissionCanaux(o).then(function(){
+      ecrireCommissionsCanaux(o);
+      dessinerControle();
+      direCcTaux("Taux enregistrés. Ils s'appliquent aux courses sans commission propre.", false);
+    }, function(){
+      direCcTaux("Le serveur a refusé l'enregistrement : rien n'a changé.", true);
+    }).then(function(){ b.disabled = false; });
+  });
+  document.addEventListener("ela:espace", function(){
+    nuage.lireCommissionCanaux().then(function(o){ if(o) ecrireCommissionsCanaux(o); }, function(){});
+    nuage.lireParametre("seuil_dette_chauffeur").then(function(v){
+      if(v && (v.euros === null || isFinite(v.euros))){ ecrireSeuilDette(v.euros); dessinerDettesBord(); }
+    }, function(){});
+  });
+
+/* =====================================================================
+   CE QUE LES CHAUFFEURS DOIVENT (30/09/2026, à sa demande : « un bouton et
+   une alerte qui dit que le chauffeur doit une commission ou pas »).
+   LE PRINCIPE : le client paie le chauffeur, jamais Elatransfer. Chaque
+   course RÉALISÉE crée donc une dette du chauffeur — sa commission. On
+   tient un grand livre tout simple : dû (commissions des réalisées), reçu
+   (paiements enregistrés ici), reste.
+   LE RETARD SE COMPTE COURSE PAR COURSE : un paiement solde d'abord les
+   plus anciennes (comme un relevé bancaire). Ce qui reste dû sur une
+   course de plus de 30 jours est « en retard » — le délai de paiement par
+   défaut entre professionnels (L441-10 Code de commerce).
+   LES PAIEMENTS VIVENT SUR CET APPAREIL, comme le carnet et les factures,
+   et partent dans la sauvegarde. Le dire plutôt que le cacher.
+   ===================================================================== */
+  var DELAI_COMMISSION_J = 30;
+  var CLE_PAIEMENTS = "ela_paiements_chauffeurs";
+  var CLE_SEUIL_DETTE = "ela_seuil_dette";
+  function paiementsChauffeurs(){
+    try{ var l = JSON.parse(localStorage.getItem(CLE_PAIEMENTS) || "[]"); return Array.isArray(l) ? l : []; }
+    catch(e){ return []; }
+  }
+  function ecrirePaiements(l){ try{ localStorage.setItem(CLE_PAIEMENTS, JSON.stringify(l)); }catch(e){} }
+  function seuilDette(){
+    try{ var v = JSON.parse(localStorage.getItem(CLE_SEUIL_DETTE) || "null"); return v === null || !isFinite(v) ? null : +v; }
+    catch(e){ return null; }
+  }
+  function ecrireSeuilDette(v){ try{ localStorage.setItem(CLE_SEUIL_DETTE, JSON.stringify(v === null || v === "" ? null : +v)); }catch(e){} }
+  /* Le même chauffeur s'écrit « Mehmet », « mehmet », « Mehmet Y. » : on
+     le reconnaît d'abord par le carnet (numéro), sinon par son nom. */
+  function cleDette(nom, tel){
+    var ch = trouverChauffeur(nom, tel);
+    return ch ? "id:" + ch.id : "nom:" + String(nom || "").trim().toLowerCase();
+  }
+  function soldesChauffeurs(){
+    var par = {}, sansRegle = [], limite = new Date(); limite.setHours(0,0,0,0);
+    limite.setDate(limite.getDate() - DELAI_COMMISSION_J);
+    registre().forEach(function(c){
+      if(!c || c.statut !== "realisee") return;
+      var nom = (c.chauffeur && c.chauffeur.nom || "").trim();
+      if(!nom) return;
+      var tel = (c.chauffeur && c.chauffeur.telephone) || "";
+      var cm = commissionDe(c);
+      if(cm.source === "aucune"){ sansRegle.push(c.ref); return; }
+      var k = cleDette(nom, tel), ch = trouverChauffeur(nom, tel);
+      var v = par[k] = par[k] || { cle: k, nom: ch ? ch.nom : nom, tel: (ch && ch.telephone) || tel,
+                                   du: 0, recu: 0, solde: 0, retard: 0, lignes: [] };
+      v.du += cm.montant;
+      v.lignes.push({ ref: c.ref, date: dateCourse(c), montant: cm.montant, reste: cm.montant });
+    });
+    paiementsChauffeurs().forEach(function(pmt){
+      var v = par[pmt.cle] = par[pmt.cle] || { cle: pmt.cle, nom: pmt.nom, tel: pmt.tel || "",
+                                               du: 0, recu: 0, solde: 0, retard: 0, lignes: [] };
+      v.recu += +pmt.montant || 0;
+    });
+    Object.keys(par).forEach(function(k){
+      var v = par[k], aImputer = v.recu;
+      v.lignes.sort(function(a, b){ return (a.date || 0) - (b.date || 0); });
+      v.lignes.forEach(function(l){
+        var pris = Math.min(l.montant, aImputer); l.reste = Math.round((l.montant - pris) * 100) / 100; aImputer -= pris;
+        if(l.reste > 0 && l.date && l.date < limite) v.retard += l.reste;
+      });
+      v.du = Math.round(v.du * 100) / 100; v.recu = Math.round(v.recu * 100) / 100;
+      v.solde = Math.round((v.du - v.recu) * 100) / 100; v.retard = Math.round(v.retard * 100) / 100;
+    });
+    return { par: par, sansRegle: sansRegle };
+  }
+  function detteDe(nom, tel){
+    var v = soldesChauffeurs().par[cleDette(nom, tel)];
+    return v || null;
+  }
+  /* LE BANDEAU DU TABLEAU DE BORD : seulement s'il y a un RETARD. Une dette
+     récente est normale ; un bandeau toujours allumé ne se lit plus. */
+  function dessinerDettesBord(){
+    var el = document.getElementById("bordDettes");
+    if(!el) return;
+    var par = soldesChauffeurs().par, enRetard = Object.keys(par).map(function(k){ return par[k]; })
+      .filter(function(v){ return v.retard > 0.004; });
+    if(!enRetard.length){ el.hidden = true; return; }
+    var total = enRetard.reduce(function(s, v){ return s + v.retard; }, 0);
+    el.hidden = false;
+    document.getElementById("bordDettesTexte").textContent = "Commissions en retard : "
+      + (enRetard.length === 1 ? enRetard[0].nom + " doit " : enRetard.length + " chauffeurs doivent ")
+      + euros(total) + " depuis plus de " + DELAI_COMMISSION_J + " jours.";
+  }
+  document.getElementById("btnBordDettes").addEventListener("click", ouvrirControle);
+
+  /* LA RELANCE : un message au chauffeur, sur SON numéro, avec les courses
+     concernées. Une relance qui dit « vous me devez 47 € » sans dire pour
+     quoi appelle une discussion ; la liste la clôt. */
+  function messageRelance(v){
+    var dues = v.lignes.filter(function(l){ return l.reste > 0; });
+    var l = ["Bonjour " + v.nom + ", récapitulatif de vos commissions Elatransfer :"];
+    dues.slice(0, 8).forEach(function(x){
+      l.push("• " + x.ref + (x.date ? " du " + x.date.toLocaleDateString("fr-FR") : "") + " : " + euros(x.reste));
+    });
+    if(dues.length > 8) l.push("• et " + (dues.length - 8) + " autre(s)");
+    l.push("Total à régler : " + euros(v.solde)
+      + (v.retard > 0.004 ? " (dont " + euros(v.retard) + " de plus de " + DELAI_COMMISSION_J + " jours)" : "") + ".");
+    l.push("Merci !");
+    return l.join("\n");
+  }
+  var paiementPour = null;
+  function direDettes(t, erreur){
+    var e = document.getElementById("ccDettesEtat");
+    e.hidden = !t; e.textContent = t || ""; e.style.color = erreur ? "#C9302F" : "";
+  }
+  function dessinerDettes(){
+    var r = soldesChauffeurs(), par = r.par, z = viderCc("ccDettes");
+    var l = Object.keys(par).map(function(k){ return par[k]; })
+      .filter(function(v){ return v.du > 0.004 || v.recu > 0.004; })
+      .sort(function(a, b){ return b.retard - a.retard || b.solde - a.solde; });
+    var totalSolde = l.reduce(function(s, v){ return s + Math.max(0, v.solde); }, 0);
+    var totalRetard = l.reduce(function(s, v){ return s + v.retard; }, 0);
+    var resume = document.getElementById("ccDettesResume");
+    resume.textContent = (totalSolde > 0.004
+        ? "À encaisser : " + euros(totalSolde) + (totalRetard > 0.004 ? ", dont " + euros(totalRetard) + " en retard (plus de " + DELAI_COMMISSION_J + " jours)." : ".")
+        : "Aucun chauffeur ne vous doit de commission.")
+      + (r.sansRegle.length ? " Attention : " + r.sansRegle.length + " course(s) réalisée(s) sans commission définie — posez un taux de canal ou de chauffeur." : "");
+    if(!l.length) return;
+    z.appendChild(ligneCc(["Chauffeur", "Dû", "Reçu", "Reste"], "cc-tete"));
+    l.forEach(function(v){
+      var etat = v.solde <= 0.004 ? "à jour" : v.retard > 0.004 ? "retard " + euros(v.retard) : "dans les délais";
+      var ligne = ligneCc([{ t: v.nom, aide: etat }, euros(v.du), euros(v.recu), euros(Math.max(0, v.solde))]);
+      if(v.retard > 0.004) ligne.querySelector("small").className = "cc-retard";
+      ligne.dataset.cle = v.cle;
+      z.appendChild(ligne);
+      if(v.solde > 0.004){
+        var act = document.createElement("div"); act.className = "cc-actions";
+        var bp = document.createElement("button"); bp.type = "button"; bp.className = "cc-payer";
+        bp.textContent = "Paiement reçu"; bp.dataset.payer = v.cle;
+        bp.addEventListener("click", function(){ ouvrirPaiement(v); });
+        act.appendChild(bp);
+        var tel = typeof telWa === "function" ? telWa(v.tel) : "";
+        var br = document.createElement("button"); br.type = "button";
+        br.textContent = tel ? "Relancer par WhatsApp" : "Relancer (pas de numéro)"; br.disabled = !tel;
+        br.dataset.relancer = v.cle;
+        br.addEventListener("click", function(){
+          window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(messageRelance(v)), "_blank");
+        });
+        act.appendChild(br);
+        z.appendChild(act);
+      }
+    });
+    var zp = viderCc("ccPaiements"), pmts = paiementsChauffeurs().slice().reverse();
+    if(!pmts.length){ zp.appendChild(ligneCc(["Aucun paiement enregistré", ""])); }
+    pmts.slice(0, 30).forEach(function(pmt){
+      var b = document.createElement("button"); b.type = "button"; b.className = "bouton-fantome rouge";
+      b.textContent = "Retirer"; b.style.minHeight = "40px";
+      b.addEventListener("click", function(){
+        if(b.dataset.arme !== "1"){ b.dataset.arme = "1"; b.textContent = "Confirmer"; setTimeout(function(){ b.dataset.arme = ""; b.textContent = "Retirer"; }, 6000); return; }
+        ecrirePaiements(paiementsChauffeurs().filter(function(x){ return x.id !== pmt.id; }));
+        dessinerDettes(); dessinerDettesBord();
+      });
+      zp.appendChild(ligneCc([{ t: pmt.nom + " · " + euros(+pmt.montant), aide: (pmt.date || "").split("-").reverse().join("/") + " · " + (pmt.mode || "") }, b], "", 1));
+    });
+    var seuil = seuilDette();
+    document.getElementById("ccSeuil").value = seuil === null ? "" : seuil;
+  }
+  function ouvrirPaiement(v){
+    paiementPour = v;
+    document.getElementById("ccPaiement").hidden = false;
+    document.getElementById("ccPaiementTitre").textContent = "Paiement de " + v.nom + " (reste " + euros(v.solde) + ")";
+    document.getElementById("ccPaiementMontant").value = v.solde.toFixed(2);
+    document.getElementById("ccPaiementDate").value = dateLocale(new Date());
+    document.getElementById("ccPaiement").scrollIntoView({ block: "center" });
+  }
+  document.getElementById("btnCcPaiementAnnuler").addEventListener("click", function(){
+    paiementPour = null; document.getElementById("ccPaiement").hidden = true;
+  });
+  document.getElementById("btnCcPaiementOk").addEventListener("click", function(){
+    if(!paiementPour) return;
+    var m = document.getElementById("ccPaiementMontant").value.trim().replace(",", ".");
+    if(m === "" || !isFinite(m) || +m <= 0){ direDettes("Indiquez le montant reçu.", true); return; }
+    var l = paiementsChauffeurs();
+    l.push({ id: "P-" + Date.now().toString(36), cle: paiementPour.cle, nom: paiementPour.nom, tel: paiementPour.tel,
+             montant: Math.round(+m * 100) / 100, date: document.getElementById("ccPaiementDate").value || dateLocale(new Date()),
+             mode: document.getElementById("ccPaiementMode").value, cree: new Date().toISOString() });
+    ecrirePaiements(l);
+    var nom = paiementPour.nom; paiementPour = null;
+    document.getElementById("ccPaiement").hidden = true;
+    dessinerDettes(); dessinerDettesBord();
+    direDettes("Paiement de " + nom + " enregistré (" + euros(Math.round(+m * 100) / 100) + ").", false);
+  });
+  document.getElementById("btnCcSeuil").addEventListener("click", function(){
+    var v = document.getElementById("ccSeuil").value.trim().replace(",", ".");
+    if(v !== "" && (!isFinite(v) || +v < 0)){ direDettes("Seuil invalide.", true); return; }
+    var val = v === "" ? null : +v;
+    ecrireSeuilDette(val);
+    direDettes(val === null ? "Aucun blocage : la dette est seulement signalée."
+                            : "Au-delà de " + euros(val) + " dus, la confirmation d'une course sera bloquée.", false);
+    /* Le seuil vaut sur tous ses appareils ; sans serveur il reste ici. */
+    if(nuage.connecte()) nuage.majParametre("seuil_dette_chauffeur", { euros: val }).catch(function(){
+      direDettes("Seuil gardé sur cet appareil : le serveur a refusé de l'enregistrer.", true);
+    });
+  });
 /* =====================================================================
    LA COLONNE DE GAUCHE
    ---------------------------------------------------------------------
@@ -12713,6 +13415,7 @@ window.ELA_TEXTES = {
       /* La langue sert plus tard, à la demande d'avis : une course prise au
          téléphone par Barbaros est en français. */
       langue: "fr",
+      canal: "admin",
       dateMsg: date.split("-").reverse().join("/") + " " + heure
     };
     if(chNom || chTel) c.chauffeur = { nom:chNom, telephone:chTel };
@@ -12813,6 +13516,7 @@ window.ELA_TEXTES = {
      "chRegistreFin","chAssurance","chAssuranceFin","chTaux"].forEach(function(id){
       document.getElementById(id).value = "";
     });
+    document.getElementById("chTauxMode").value = "pct";
     chEnCours = null;
     document.getElementById("chTitreForm").textContent = "Ajouter un chauffeur";
     document.getElementById("btnChAnnuler").hidden = true;
@@ -12829,7 +13533,8 @@ window.ELA_TEXTES = {
     document.getElementById("chRegistreFin").value = c.registreFin || "";
     document.getElementById("chAssurance").value = c.assurance || "";
     document.getElementById("chAssuranceFin").value = c.assuranceFin || "";
-    document.getElementById("chTaux").value = (c.taux === 0 || c.taux) ? c.taux : "";
+    document.getElementById("chTaux").value = tauxChauffeur(c) ? c.taux : "";
+    document.getElementById("chTauxMode").value = c.tauxMode === "eur" ? "eur" : "pct";
     chEnCours = c.id;
     document.getElementById("chTitreForm").textContent = "Modifier " + (c.nom || "ce chauffeur");
     document.getElementById("btnChAnnuler").hidden = false;
@@ -12939,7 +13644,12 @@ window.ELA_TEXTES = {
       registreFin: document.getElementById("chRegistreFin").value,
       assurance: document.getElementById("chAssurance").value.trim(),
       assuranceFin: document.getElementById("chAssuranceFin").value,
-      taux: parseFloat(document.getElementById("chTaux").value) || 0
+      /* VIDE N'EST PAS ZÉRO (30/09/2026). « || 0 » transformait un champ
+         laissé vide en « 0 % » : le chauffeur aurait alors masqué le taux
+         du canal avec une commission nulle. Vide = pas de taux propre. */
+      taux: (function(v){ v = v.trim().replace(",", "."); return v === "" || !isFinite(v) || +v < 0 ? null : +v; })
+            (document.getElementById("chTaux").value),
+      tauxMode: document.getElementById("chTauxMode").value === "eur" ? "eur" : "pct"
     };
     var i = -1, k;
     for(k = 0; k < l.length; k++) if(l[k].id === fiche.id) i = k;
@@ -13011,7 +13721,26 @@ window.ELA_TEXTES = {
   }
   ["bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
     document.getElementById(id).addEventListener("input", jugerChauffeurBon);
+    document.getElementById(id).addEventListener("input", jugerDetteBon);
   });
+  /* CE QUE LE CHAUFFEUR DOIT, DIT AU MOMENT DE LUI CONFIER UNE COURSE
+     (30/09/2026). C'est le seul levier réel : l'argent ne passe jamais par
+     Elatransfer, et un chauffeur qui ne règle pas continue de recevoir des
+     courses tant que personne ne le voit à cet instant-là. */
+  function jugerDetteBon(){
+    var el = document.getElementById("bbDette");
+    if(!el) return;
+    var nom = document.getElementById("bbChauffeurNom").value.trim();
+    var tel = document.getElementById("bbChauffeurTel").value.trim();
+    var d = nom ? detteDe(nom, tel) : null;
+    if(!d || d.solde <= 0.004){ el.hidden = true; return; }
+    var seuil = seuilDette(), bloque = seuil !== null && d.solde > seuil;
+    el.hidden = false;
+    el.className = "ch-alerte " + (bloque || d.retard > 0.004 ? "rouge" : "orange");
+    el.textContent = d.nom + " vous doit " + euros(d.solde) + " de commission"
+      + (d.retard > 0.004 ? ", dont " + euros(d.retard) + " depuis plus de " + DELAI_COMMISSION_J + " jours" : "")
+      + "." + (bloque ? " C'est au-delà de votre seuil (" + euros(seuil) + ") : la confirmation est bloquée." : "");
+  }
 
 /* =====================================================================
    LA FACTURE DE COMMISSION
@@ -13369,7 +14098,8 @@ window.ELA_TEXTES = {
     telecharger("elatransfer-registre-" + horodatage() + ".json",
                 JSON.stringify({ format: "elatransfer-1", courses: registre(),
                                  chauffeurs: chauffeurs(), factures: factures(),
-                                 rangFacture: rang, entreprise: entreprise() }, null, 1),
+                                 rangFacture: rang, entreprise: entreprise(),
+                                 paiementsChauffeurs: paiementsChauffeurs() }, null, 1),
                 "application/json");
     document.getElementById("regSauvEtat").textContent =
       "Sauvegarde téléchargée — courses, chauffeurs et factures. "
@@ -13426,6 +14156,15 @@ window.ELA_TEXTES = {
             var neufs = brut.chauffeurs.filter(function(c){ return c && c.id && !vus[c.id]; });
             if(neufs.length){ ecrireChauffeurs(ici.concat(neufs)); dessinerChauffeurs(); }
             sup += " " + neufs.length + " chauffeur" + (neufs.length > 1 ? "s ajoutés." : " ajouté.");
+          }
+          /* LES PAIEMENTS AJOUTENT AUSSI, par identifiant : un paiement
+             en double ferait croire une dette réglée. */
+          if(Array.isArray(brut.paiementsChauffeurs)){
+            var p0 = paiementsChauffeurs(), pv = {};
+            p0.forEach(function(x){ pv[x.id] = true; });
+            var np = brut.paiementsChauffeurs.filter(function(x){ return x && x.id && !pv[x.id]; });
+            if(np.length) ecrirePaiements(p0.concat(np));
+            sup += " " + np.length + " paiement" + (np.length > 1 ? "s ajoutés." : " ajouté.");
           }
           if(Array.isArray(brut.factures)){
             var f0 = factures(), vues = {};
