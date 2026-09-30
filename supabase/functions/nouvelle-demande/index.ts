@@ -84,16 +84,30 @@ const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.m
 const HORLOGE_PARIS=new Intl.DateTimeFormat("fr-FR",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
 function heureCivileParis(ms:number):number{const p=Object.fromEntries(HORLOGE_PARIS.formatToParts(new Date(ms)).filter(x=>x.type!=="literal").map(x=>[x.type,Number(x.value)]));return Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute);}
 function departCivil(bon:Record<string,any>):number|null{const c=(bon.course??{}) as Record<string,any>,d=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(c.date??"")),h=/^(\d{1,2}):(\d{2})$/.exec(String(c.heure??""));if(!d||!h)return null;const valeurs=[...d.slice(1),...h.slice(1)].map(Number),v=Date.UTC(valeurs[0],valeurs[1]-1,valeurs[2],valeurs[3],valeurs[4]);return valeurs[1]>=1&&valeurs[1]<=12&&valeurs[2]>=1&&valeurs[2]<=31&&valeurs[3]<=23&&valeurs[4]<=59?v:null;}
-function cadenceRappel(bon:Record<string,any>):number|null{const depart=departCivil(bon);if(depart===null)return null;const reste=depart-heureCivileParis(Date.now());return reste<=30*60*1000?PAS_URGENT_MS:reste<=2*3600*1000?PAS_PROCHE_MS:null;}
+/* Un départ passé depuis plus de 6 h n'est plus relancé : c'est un oubli à
+   clore dans l'admin, pas une alarme à sonner la nuit. */
+function cadenceRappel(bon:Record<string,any>):number|null{const depart=departCivil(bon);if(depart===null)return null;const reste=depart-heureCivileParis(Date.now());if(reste<-FENETRE_MS)return null;return reste<=30*60*1000?PAS_URGENT_MS:reste<=2*3600*1000?PAS_PROCHE_MS:null;}
+/* LA FENÊTRE SE COMPTE DEPUIS LE DÉPART, PAS DEPUIS LA CRÉATION (30/09/2026).
+   Lue depuis la création, elle écartait toute demande faite plus de 6 h avant
+   le départ — un hôtel qui réserve la veille, un vol du lendemain, c'est-à-dire
+   le cas le plus courant : à H-20 min, toujours en attente, AUCUN rappel. On lit
+   donc les demandes en attente des 7 derniers jours ; c'est l'heure du départ
+   qui décide du rappel, et le rattrapage garde sa borne de 6 h depuis la
+   création (une vieille demande jamais annoncée ne se réveille pas la nuit). */
+const LECTURE_MS=7*24*3600*1000;
 async function relancer():Promise<string>{
   if(!U||!S)return "non configuré";
-  const depuis=new Date(Date.now()-FENETRE_MS).toISOString();
-  const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.asc&limit=50`);
+  const depuis=new Date(Date.now()-LECTURE_MS).toISOString();
+  const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.desc&limit=200`);
   if(!r.ok)return "lecture refusée";
   const lignes=(await r.json())||[];let rattrapes=0,rappelsTg=0,rappelsPush=0;
   for(const l of lignes){
     const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;
     const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
+    /* Ni rattrapage possible (plus de 6 h), ni rappel dû (départ loin ou
+       passé depuis longtemps) : on n'interroge même pas le journal. Sans ce
+       tri, sept jours de demandes relues toutes les 20 s. */
+    if(Date.now()-cree>FENETRE_MS&&cadenceRappel((l.bon??{}) as Record<string,any>)===null)continue;
     const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
     if(!j.ok)continue;
     const journalRef=((await j.json())||[]) as Array<Record<string,string>>;
@@ -103,7 +117,7 @@ async function relancer():Promise<string>{
     const age=Date.now()-cree;
     if(!reussies.length){
       const derniereTentative=plusRecent(journalRef.filter(x=>x.type_evenement==="nouvelle_reservation"),cree);
-      if(age<RATTRAPAGE_MS||Date.now()-derniereTentative<RATTRAPAGE_MS)continue;
+      if(age<RATTRAPAGE_MS||age>FENETRE_MS||Date.now()-derniereTentative<RATTRAPAGE_MS)continue;
       const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
       const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m,ref)]);
       await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
