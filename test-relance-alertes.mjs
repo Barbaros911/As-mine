@@ -3,11 +3,11 @@
    ---------------------------------------------------------------------
    30/09/2026, à sa demande : « recevoir toutes les courses en temps et en
    heure sur admin et Telegram… tout ce qui est possible pour être alerté ».
-   « nouvelle-demande » reçoit chaque minute {type:"RELANCE"} (pg_cron) :
-   · RATTRAPAGE : en attente depuis plus de 2 min et aucune alerte réussie
+   « nouvelle-demande » reçoit toutes les 20 s {type:"RELANCE"} (pg_cron) :
+   · RATTRAPAGE : en attente depuis plus d'1 min et aucune alerte réussie
      → annoncée maintenant (webhook tombé, Telegram en panne un instant) ;
-   · RAPPEL : toujours en attente 10 min après la dernière alerte → une
-     autre, trois fois au plus ;
+   · RAPPEL TELEGRAM toutes les 20 s tant qu'elle attend, 30 min au plus ;
+   · notification du téléphone toutes les 10 min, trois fois au plus ;
    · une course tranchée ne sonne plus.
    Sans Deno ni réseau : le code TypeScript dépouillé de ses types, un faux
    serveur, et une horloge qu'on avance à la main.
@@ -55,31 +55,44 @@ try {
   check('course de 30 s sans alerte : le rappel ne double pas le webhook', tg.length === 0, String(tg.length));
 
   /* 2. Le webhook n'a jamais rien envoyé : rattrapage. */
-  minutes(3);
+  minutes(1);
   const bilan = await relance();
-  check('3 min sans aucune alerte : RATTRAPÉE', tg.length === 1, bilan);
+  check('1 min 30 sans aucune alerte : RATTRAPÉE', tg.length === 1, bilan);
   check('le rattrapage est annoncé comme une nouvelle demande', /^Nouvelle demande/.test(tg[0] || ''), (tg[0] || '').split('\n')[0]);
   check('il est journalisé comme annonce (le webhook ne la redoublera pas)',
     journal.some(j => j.course_ref === 'ELA-26-09-AAAA1' && j.type_evenement === 'nouvelle_reservation' && j.canal === 'telegram'));
   await relance();
   check('appelé à nouveau tout de suite : rien de plus', tg.length === 1, String(tg.length));
 
-  /* 3. Rappels : toutes les 10 min, trois au plus. */
-  minutes(9); await relance();
-  check('9 min après : pas encore de rappel', tg.length === 1, String(tg.length));
-  minutes(1); await relance();
-  check('10 min après : premier RAPPEL', tg.length === 2 && /^RAPPEL \d+ min/.test(tg[1]), (tg[1] || '').split('\n')[0]);
-  check('le rappel dit depuis combien de temps (14 min)', /^RAPPEL 14 min/.test(tg[1] || ''), (tg[1] || '').split('\n')[0]);
+  /* 3. Telegram toutes les 20 s, tant qu'elle attend. */
+  maintenant += 10000; await relance();
+  check('10 s après : pas encore de rappel', tg.length === 1, String(tg.length));
+  maintenant += 10000; await relance();
+  check('20 s après : RAPPEL Telegram', tg.length === 2 && /^RAPPEL \d+ min/.test(tg[1]), (tg[1] || '').split('\n')[0]);
   check('le titre du rappel tient sous 90 caractères', (tg[1] || '').split('\n')[0].length < 90, String((tg[1] || '').split('\n')[0].length));
-  minutes(10); await relance(); minutes(10); await relance();
-  check('trois rappels au bout de 30 min', tg.length === 4, String(tg.length));
-  minutes(10); await relance(); minutes(10); await relance();
-  check('jamais plus de trois rappels', tg.length === 4, String(tg.length));
+  check('le rappel porte le lien qui ouvre la course', (tg[1] || '').includes('?ref=ELA-26-09-AAAA1'), tg[1]);
+  const n1 = tg.length;
+  for (let i = 0; i < 9; i++) { maintenant += 20000; await relance(); }
+  check('trois minutes de plus : un rappel toutes les 20 s (9)', tg.length - n1 === 9, String(tg.length - n1));
 
-  /* 4. Une course tranchée ne sonne plus. */
-  courses.push({ ref: 'ELA-26-09-BBBB2', statut: 'confirmee', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-BBBB2') });
-  const avant = tg.length; await relance();
-  check('une course confirmée ne déclenche ni rattrapage ni rappel', tg.length === avant, String(tg.length - avant));
+  /* 4. La notification du téléphone, elle, ne se répète que toutes les 10 min, 3 fois. */
+  while (Date.parse(courses[0].cree_le) + 29 * 60000 > maintenant) { maintenant += 20000; await relance(); }
+  const rappelsPush = journal.filter(j => j.course_ref === 'ELA-26-09-AAAA1' && j.canal === 'push' && j.type_evenement === 'rappel_reservation');
+  check('notification du téléphone : 3 rappels au plus, espacés de 10 min', rappelsPush.length >= 2 && rappelsPush.length <= 3, String(rappelsPush.length));
+
+  /* 5. Au-delà de 30 min : Telegram se tait (pas une nuit entière de messages). */
+  maintenant += 2 * 60000; const n2 = tg.length;
+  for (let i = 0; i < 6; i++) { maintenant += 20000; await relance(); }
+  check('après 30 min sans réponse, Telegram s\'arrête', tg.length === n2, String(tg.length - n2));
+
+  /* 6. Une course tranchée ne sonne plus — dès le tour suivant. */
+  courses.push({ ref: 'ELA-26-09-FFFF6', statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-FFFF6') });
+  journal.push({ type_evenement: 'nouvelle_reservation', course_ref: 'ELA-26-09-FFFF6', canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant - 5 * 60000) });
+  maintenant += 20000; const n3 = tg.length; await relance();
+  check('en attente : elle sonne', tg.length === n3 + 1, String(tg.length - n3));
+  courses.at(-1).statut = 'confirmee';
+  const n4 = tg.length; for (let i = 0; i < 3; i++) { maintenant += 20000; await relance(); }
+  check('confirmée : plus aucun rappel', tg.length === n4, String(tg.length - n4));
 
   /* 5. Une alerte qui a ÉCHOUÉ ne compte pas comme faite. */
   courses.push({ ref: 'ELA-26-09-CCCC3', statut: 'attente', cree_le: iso(maintenant - 5 * 60000), bon: bon('ELA-26-09-CCCC3') });

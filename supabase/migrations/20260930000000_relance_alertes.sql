@@ -1,14 +1,19 @@
 -- =====================================================================
--- RAPPEL ET RATTRAPAGE DES ALERTES — chaque minute, côté serveur
+-- RAPPEL ET RATTRAPAGE DES ALERTES — toutes les 20 s, côté serveur
 -- ---------------------------------------------------------------------
 -- 30/09/2026, à la demande de Barbaros : « recevoir toutes les courses en
 -- temps et en heure sur admin et Telegram ». Le webhook INSERT annonce la
 -- demande à l'instant où elle arrive ; s'il tombe (fonction en panne,
 -- Telegram muet une seconde), rien ne la rattrapait.
--- Chaque minute, pg_cron appelle « nouvelle-demande » avec
+-- Toutes les 20 secondes, pg_cron appelle « nouvelle-demande » avec
 -- {"type":"RELANCE"} : la fonction relit les courses en attente et envoie
---   · le RATTRAPAGE d'une demande de plus de 2 min jamais annoncée ;
---   · un RAPPEL toutes les 10 min tant qu'elle reste en attente (3 au plus).
+--   · le RATTRAPAGE d'une demande de plus d'1 min jamais annoncée ;
+--   · un RAPPEL TELEGRAM toutes les 20 s tant qu'elle reste en attente,
+--     30 min au plus (30/09/2026, à sa demande : « toutes les 20 secondes ») ;
+--   · une notification du téléphone toutes les 10 min, 3 au plus.
+-- « 20 seconds » : la syntaxe des intervalles courts de pg_cron (1.5 et
+-- plus). Si la base la refuse, le journal du workflow le dira — remettre
+-- alors '* * * * *' (une fois par minute).
 -- La cadence est tenue par le journal, pas par cet appel : l'appeler plus
 -- souvent n'enverrait rien de plus.
 --
@@ -27,7 +32,7 @@ select cron.unschedule(jobid) from cron.job where jobname = 'ela-relance-alertes
 
 select cron.schedule(
   'ela-relance-alertes',
-  '* * * * *',
+  '20 seconds',
   $$
   select net.http_post(
     url := 'https://yyhzutnuhuytokarynaw.supabase.co/functions/v1/nouvelle-demande',

@@ -160,24 +160,32 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
 
 /* LE RAPPEL ET LE RATTRAPAGE (30/09/2026, à sa demande : « recevoir toutes
    les courses en temps et en heure… tout ce qui est possible pour être
-   alerté »). Appelée chaque minute par pg_cron avec {type:"RELANCE"}.
-   - RATTRAPAGE : une course en attente depuis plus de 2 min sans AUCUNE
+   alerté », puis « l'alerte Telegram, bruit, vibration, toutes les 20
+   secondes »). Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
+   - RATTRAPAGE : une course en attente depuis plus d'1 min sans AUCUNE
      alerte réussie (webhook tombé, Telegram en panne à cet instant) est
-     annoncée maintenant. C'est ce qui fait que « toutes les courses »
-     arrivent, et pas seulement celles dont le webhook a marché.
-   - RAPPEL : une demande toujours « attente » 10 min après la dernière
-     alerte en reçoit une autre, trois fois au plus. Une demande tranchée
-     (confirmée, refusée) ne sonne plus : on relit le statut à chaque tour.
+     annoncée maintenant, par tous les canaux.
+   - TELEGRAM TOUTES LES 20 S tant qu'elle reste « attente », 30 min au plus
+     après son arrivée. Chaque message sonne et vibre — c'est le réglage de
+     Telegram sur le téléphone, pas un choix d'ici. Il se tait dès que la
+     course est confirmée ou refusée : le statut est relu à chaque tour.
+     LES 30 MINUTES NE SONT PAS UN OUBLI : une nuit sans réponse, ce serait
+     sinon un message toutes les 20 s jusqu'au matin.
+   - NOTIFICATION DU TÉLÉPHONE toutes les 10 min, trois fois au plus : elle
+     reste affichée de toute façon, la répéter toutes les 20 s ne dirait rien
+     de plus.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
    vient du journal. Un appel répété à la main ne peut donc envoyer que les
    alertes légitimes, au rythme prévu. */
-const RATTRAPAGE_MS=2*60*1000,RELANCE_MS=10*60*1000,MAX_RELANCES=3,FENETRE_MS=6*3600*1000;
+const RATTRAPAGE_MS=60*1000,PAS_TELEGRAM_MS=15*1000,DUREE_TELEGRAM_MS=30*60*1000,
+      PAS_PUSH_MS=10*60*1000,MAX_PUSH=3,FENETRE_MS=6*3600*1000;
+const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
 async function relancer():Promise<string>{
   if(!U||!S)return "non configuré";
   const depuis=new Date(Date.now()-FENETRE_MS).toISOString();
   const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.asc&limit=50`);
   if(!r.ok)return "lecture refusée";
-  const lignes=(await r.json())||[];let rattrapes=0,rappels=0;
+  const lignes=(await r.json())||[];let rattrapes=0,rappelsTg=0,rappelsPush=0;
   for(const l of lignes){
     const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;
     const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
@@ -186,21 +194,32 @@ async function relancer():Promise<string>{
     const journalRef=((await j.json())||[]) as Array<Record<string,string>>;
     const reussies=journalRef.filter(x=>x.statut==="envoye");
     const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
-    let type="",t="";
+    const age=Date.now()-cree;
     if(!reussies.length){
-      if(Date.now()-cree<RATTRAPAGE_MS)continue;
-      type="nouvelle_reservation";t=titre(bon);rattrapes++;
-    }else{
-      const nbRappels=new Set(journalRef.filter(x=>x.type_evenement==="rappel_reservation").map(x=>x.cree_le.slice(0,16))).size;
-      const derniere=Math.max(...reussies.map(x=>Date.parse(x.cree_le)));
-      if(nbRappels>=MAX_RELANCES||Date.now()-derniere<RELANCE_MS)continue;
-      type="rappel_reservation";t=titreRappel(bon,Math.round((Date.now()-cree)/60000));rappels++;
+      if(age<RATTRAPAGE_MS)continue;
+      const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
+      const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m)]);
+      await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
+      continue;
     }
-    const m=corps(bon,ADMIN);
-    const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m)]);
-    await Promise.all([journal(type,ref,"push",push),journal(type,ref,"telegram",telegram)]);
+    const t=titreRappel(bon,Math.max(1,Math.round(age/60000)));
+    /* Telegram : 20 s après le dernier message PARTI (15 s de marge, le
+       minuteur de pg_cron n'est pas à la seconde près). */
+    const tgPartis=reussies.filter(x=>x.canal==="telegram");
+    if(TELEGRAM_TOKEN&&TELEGRAM_CHAT&&age<=DUREE_TELEGRAM_MS&&Date.now()-plusRecent(tgPartis,cree)>=PAS_TELEGRAM_MS){
+      /* Le rappel est COURT : sur un écran verrouillé, seule la première
+         ligne se lit, et le détail est déjà dans le premier message. */
+      const tg=await parTelegram(t,`Réf. ${ref} — toujours en attente.\n${ADMIN}?ref=${encodeURIComponent(ref)}`);
+      await journal("rappel_reservation",ref,"telegram",tg);rappelsTg++;
+    }
+    const pushTentes=journalRef.filter(x=>x.canal==="push"&&x.type_evenement==="rappel_reservation");
+    const pushDernier=plusRecent(journalRef.filter(x=>x.canal==="push"),cree);
+    if(pushTentes.length<MAX_PUSH&&Date.now()-pushDernier>=PAS_PUSH_MS){
+      const push=await parPush(t,ref);
+      await journal("rappel_reservation",ref,"push",push);rappelsPush++;
+    }
   }
-  return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappels} rappel(s)`;
+  return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappelsTg} rappel(s) Telegram, ${rappelsPush} rappel(s) notification`;
 }
 
 Deno.serve(async(req)=>{
