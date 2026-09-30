@@ -6184,11 +6184,17 @@ visuelle, notification, tout ce qui est possible ».
   `nouvelle-demande` avec `{type:"RELANCE"}`
   (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
   attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
-  **Telegram toutes les 20 s** tant qu'elle reste en attente (à sa demande :
-  « bruit, vibration, toutes les 20 secondes »), **30 min au plus** après son
-  arrivée — sinon une nuit sans réponse ferait un message toutes les 20 s
-  jusqu'au matin. Notification du téléphone : toutes les 10 min, 3 au plus.
-  Fenêtre de 6 h. Le son et la vibration de chaque message Telegram sont
+  **Telegram toutes les 20 s** tant qu'elle reste en attente ET qu'il ne l'a
+  pas VUE (à sa demande : « tant que je n'ai pas ouvert la demande reçue sur
+  Telegram »). **Telegram ne dit jamais à un bot qu'un message est lu** : « vu »
+  est donc un GESTE — le bouton « ✅ Vu » sous chaque alerte (fonction
+  `telegram-bot`, déployée sans JWT, qui vérifie l'en-tête secret du webhook
+  et que l'appui vient de `TELEGRAM_CHAT`), ou la course ouverte dans l'admin
+  (`signalerVue()` → RPC `ela_marquer_vue`). Les deux écrivent `vue` au
+  journal. Le secret du webhook est dérivé du jeton du bot (SHA-256 de
+  « jeton:webhook-ela ») : aucun secret de plus. Le webhook est posé par
+  `{type:"INSTALLER_TELEGRAM"}`, appelé par la même migration. Seule borne :
+  la fenêtre de 6 h. Notification du téléphone : toutes les 10 min, 3 au plus. Le son et la vibration de chaque message Telegram sont
   réglés dans Telegram sur son téléphone, pas ici.
   Tout est relu sur le serveur et la cadence vient du journal : l'appeler plus
   souvent n'envoie rien de plus. **La migration ne part pas toute seule** —

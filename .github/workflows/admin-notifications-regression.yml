@@ -25,7 +25,7 @@ jobs:
           grep -Fq '/admin-v2-push.js' site/admin-v2.html
           grep -Fq 'ela_enregistrer_push_admin' admin-v2-push.js
           grep -Fq 'Notification.requestPermission' admin-v2-push.js
-          grep -Fq 'Promise.all([parPush(t,ref),parTelegram(t,m),parEmail(t,m)])' supabase/functions/nouvelle-demande/index.ts
+          grep -Fq 'Promise.all([parPush(t,ref),parTelegram(t,m,ref),parEmail(t,m)])' supabase/functions/nouvelle-demande/index.ts
           grep -Fq 'journal_notifications_admin' supabase/functions/nouvelle-demande/index.ts
           grep -Fq 'abonnements_admin' supabase/functions/nouvelle-demande/index.ts
           grep -Fq 'security definer' supabase/migrations/20260916090000_admin_push_notifications.sql
