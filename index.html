@@ -1742,6 +1742,19 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   background:var(--accent-clair);font-size:13px;color:var(--accent-encre);
   font-weight:600;}
 .rec-chauffeur a{color:inherit;}
+/* LES NUMÉROS SE TOUCHENT AU DOIGT : 44 px de haut, pas 15 (30/09/2026).
+   Le texte ne grossit pas, c'est la zone d'appui qui s'élargit. */
+.rec-tel a,.rec-chauffeur a{display:inline-flex;align-items:center;min-height:44px;
+  padding:0 4px;text-decoration:underline;}
+.rec-tel{margin:0;}
+.rec-chauffeur{padding-top:0;padding-bottom:0;}
+/* « rec-reference » et pas « rec-ref » : ce nom est déjà pris par le tableau
+   de bord de l'exploitant, et une classe partagée ramasse un jour une règle
+   écrite pour l'autre écran. */
+.rec-reference{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.02em;
+  color:var(--gris);font-variant-numeric:tabular-nums;}
+.rec-course .rec-appel{display:flex;align-items:center;justify-content:center;
+  text-decoration:none;}
 /* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
    prend aucune place en hauteur — la carte vient justement de maigrir de
    142 à 111 px — et il ne recouvre rien. */
@@ -2250,7 +2263,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            qu'elle est censée provoquer. -->
       <button class="hero-cta" type="button" id="btnHeroReserver"
               data-t="hero_cta">Réserver mon trajet</button>
-      <p class="hero-notes" data-t="hero_notes">24 h/24 · 7 j/7 · Confirmation rapide</p>
+      <p class="hero-notes" data-t="hero_notes">Réservation 24 h/24 · Assistance 5 h–22 h</p>
     </div>
   </section>
 
@@ -4837,7 +4850,7 @@ window.ELA_TEXTES = {
     hero_sous:"Aéroports · Gares · Hôtels · Disneyland",
     hero_prix:"Prix ferme, connu avant le départ.",
     hero_cta:"Réserver mon trajet",
-    hero_notes:"24 h/24 · 7 j/7 · Confirmation rapide",
+    hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     zone_titre:"Cette adresse est en dehors de notre zone.",
     zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
     appeler:"Appeler",
@@ -4855,6 +4868,13 @@ window.ELA_TEXTES = {
     reserver_prix:"Valider la réservation",
     client_titre:"Le client",
     aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
+    /* LE COMPTOIR SAISIT QUELQU'UN D'AUTRE : aucune phrase en « vous », aucun
+       libellé doublé en deux langues — le sélecteur FR/EN fait ce travail. */
+    nom_comptoir:"Nom du client", ph_nom_comptoir:"Nom du client", ph_tel_comptoir:"06 12 34 56 78",
+    aide_tel_comptoir:"Numéro étranger : ajoutez l'indicatif (+34, +44…).",
+    bon_note_comptoir:"Nous cherchons un chauffeur. La course passera à « Réservation validée » dans les réservations de l'hôtel dès qu'il est attribué.",
+    envoi_ok_comptoir:"Demande bien reçue. Elatransfer est prévenu automatiquement : rien d'autre à faire.",
+    voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
     btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
@@ -5019,7 +5039,7 @@ window.ELA_TEXTES = {
     hero_sous:"Airports · Stations · Hotels · Disneyland",
     hero_prix:"A firm price, known before you leave.",
     hero_cta:"Book my ride",
-    hero_notes:"24/7 · Fast confirmation",
+    hero_notes:"Book 24/7 · Support 5 am–10 pm",
     zone_titre:"This address is outside our service area.",
     zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
     appeler:"Call",
@@ -5037,6 +5057,11 @@ window.ELA_TEXTES = {
     reserver_prix:"Confirm booking",
     client_titre:"The guest",
     aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
+    nom_comptoir:"Guest name", ph_nom_comptoir:"Guest name", ph_tel_comptoir:"+33 6 12 34 56 78",
+    aide_tel_comptoir:"Foreign number: add the country code (+34, +44…).",
+    bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
+    envoi_ok_comptoir:"Request received. Elatransfer is alerted automatically: nothing else to do.",
+    voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
     err_identite:"Enter the room number, or the guest's name and phone number.",
     btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
@@ -6262,12 +6287,22 @@ window.ELA_TEXTES = {
       bas.className = "rec-bas";
       var gauche = document.createElement("span");
       gauche.className = "rec-detail";
-      gauche.textContent = [c.vehicule, c.paiement, c.ref].filter(Boolean).join(" · ");
+      gauche.textContent = [c.vehicule, c.paiement].filter(Boolean).join(" · ");
       var prix = document.createElement("b");
       prix.className = "rec-prix";
       prix.textContent = c.prix ? eurosFR(c.prix) : "—";
       bas.appendChild(gauche); bas.appendChild(prix);
       d.appendChild(bas);
+
+      /* LA RÉFÉRENCE A SA LIGNE, ENTIÈRE (30/09/2026). En fin de ligne grise
+         elle était la première tronquée (« ELA-26-09-JK… ») — or c'est ce que
+         la réception lit au téléphone pour nous citer une course. */
+      if(c.ref){
+        var rf = document.createElement("p");
+        rf.className = "rec-reference";
+        rf.textContent = "Réf. " + c.ref;
+        d.appendChild(rf);
+      }
 
       /* ═══ LA PRÉCISION QU'ELLE A ÉCRITE ELLE-MÊME ═══
          Elle est SOUS le prix, pas dans la ligne grise : celle-ci tronque
@@ -6299,7 +6334,17 @@ window.ELA_TEXTES = {
         d.appendChild(ch);
       }
 
-      if(c.annulationDemandee){
+      if(!c.annulationDemandee && j.rang === 0){
+        /* ═══ UNE COURSE EN RETARD NE S'ANNULE PAS, ELLE SE RÈGLE AU
+           TÉLÉPHONE (30/09/2026) ═══ Son heure est passée : soit elle a été
+           faite, soit quelque chose cloche. « Demander l'annulation » y
+           proposait un geste sans objet ; ce qu'il faut, c'est nous parler. */
+        var ap = document.createElement("a");
+        ap.className = "bouton-fantome rec-appel";
+        ap.href = "tel:+" + NUMERO_WA;
+        ap.textContent = "Appeler Elatransfer";
+        d.appendChild(ap);
+      } else if(c.annulationDemandee){
         var av = document.createElement("p");
         av.className = "rec-annul";
         av.textContent = "Annulation demandée — nous vous confirmons.";
@@ -6484,6 +6529,34 @@ window.ELA_TEXTES = {
          fait vraiment à cet instant : rattraper un envoi, pas prévenir. */
       document.getElementById("noteRenvoi").setAttribute("data-t", "renvoi_note_comptoir");
       document.getElementById("noteRenvoi").textContent = T("renvoi_note_comptoir");
+      /* ═══ LE FORMULAIRE PARLE À LA RÉCEPTION (30/09/2026) ═══
+         On réécrit les ATTRIBUTS de traduction, pas seulement le texte :
+         le sélecteur FR/EN reste, et il doit retrouver ces libellés-ci. */
+      [["label[for='clientNom'] .champ-titre", "data-t", "nom_comptoir"],
+       ["#clientNom", "data-t-ph", "ph_nom_comptoir"],
+       ["#clientTel", "data-t-ph", "ph_tel_comptoir"],
+       ["[data-t='aide_tel']", "data-t", "aide_tel_comptoir"]].forEach(function(r){
+        var el = document.querySelector(r[0]);
+        if(!el) return;
+        el.setAttribute(r[1], r[2]);
+        if(r[1] === "data-t") el.textContent = T(r[2]); else el.placeholder = T(r[2]);
+      });
+      /* ═══ APRÈS L'ENVOI, LE CHEMIN DU RETOUR ═══
+         Le bon n'offrait que « Réserver une autre course » : la réception
+         qui voulait vérifier sa liste restait coincée. */
+      if(!document.getElementById("btnBonVersReception")){
+        var versRec = document.createElement("button");
+        versRec.type = "button"; versRec.className = "bouton";
+        versRec.id = "btnBonVersReception";
+        versRec.setAttribute("data-t", "voir_reservations_hotel");
+        versRec.textContent = T("voir_reservations_hotel");
+        versRec.addEventListener("click", function(){
+          var acces = document.getElementById("btnReception");
+          if(acces) acces.click();
+        });
+        var actionsBon = document.getElementById("actionsBon");
+        actionsBon.insertBefore(versRec, document.getElementById("btnNouvelleCourse"));
+      }
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
       ["listeVehicules", "blocCoordonnees", "blocPaiement"].forEach(function(id){
@@ -8210,8 +8283,12 @@ window.ELA_TEXTES = {
     etat.setAttribute("data-t", confirme ? "bon_etat_ok" : "bon_etat");
     etat.classList.toggle("confirme", confirme);
     var note = document.getElementById("bonNote");
-    note.textContent = T(confirme ? "bon_note_ok" : "bon_note");
-    note.setAttribute("data-t", confirme ? "bon_note_ok" : "bon_note");
+    /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
+       la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
+       de l'hôtel. */
+    var cleNote = confirme ? "bon_note_ok" : (recHotel ? "bon_note_comptoir" : "bon_note");
+    note.textContent = T(cleNote);
+    note.setAttribute("data-t", cleNote);
     /* On réécrit l'ATTRIBUT « data-t », pas seulement le texte : sans ça, un
        changement de langue rendrait au bon confirmé la phrase de l'attente. */
 
@@ -8577,7 +8654,7 @@ window.ELA_TEXTES = {
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
     /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
        bouton pour ça, et la réception a notre numéro. Elle appelle. */
-    texteEnvoi.textContent = T(etat === true ? "envoi_ok"
+    texteEnvoi.textContent = T(etat === true ? (recHotel ? "envoi_ok_comptoir" : "envoi_ok")
                              : etat === false ? (recHotel ? "envoi_ko_comptoir" : "envoi_ko")
                              : "envoi_cours");
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
@@ -8618,7 +8695,7 @@ window.ELA_TEXTES = {
        rouge posé juste au-dessus porte déjà la consigne et le numéro ;
        deux phrases pour une même chose, c'est le doublon qu'on vient de
        retirer du récapitulatif. */
-    document.getElementById("noteRenvoi").hidden = (envoiEtat === false);
+    document.getElementById("noteRenvoi").hidden = true;
   }
 
   /* ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══

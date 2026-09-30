@@ -289,7 +289,6 @@ body.hotel.hotel-enhanced #listeVehicules.eh-manque,body.hotel.hotel-enhanced .e
    Public et l'Admin ne reçoivent ni ces règles ni cette hiérarchie.
    ========================================================================== */
 body.hotel.reception-premium{--rec-navy:#082f52;--rec-blue:#0f4f7d;--rec-orange:#ff5a0a;--rec-green:#18794e;--rec-amber:#9a5b00}
-body.hotel.reception-premium .page{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))!important}
 /* La règle desktop du moteur force #ecran-accueil en grille. Quand la
    réception ouvre sa liste, elle doit pourtant disparaître comme tout écran
    inactif ; sinon le formulaire reste au-dessus du tableau sur tablette. */
@@ -305,6 +304,23 @@ body.hotel.reception-premium .hotel-tete .hotel-adresse{margin-bottom:5px!import
 body.hotel.reception-premium .reception-hours{margin:0 0 18px;color:#dceaf5;font-size:11px;font-weight:750}
 body.hotel.reception-premium .hotel-sens{margin-bottom:12px!important}
 body.hotel.reception-premium .reception-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* UNE TUILE PAR ÉCRAN (30/09/2026) : elle prend toute la largeur. */
+body.hotel.reception-premium #receptionActions,body.hotel.reception-premium #recDashboardActions{grid-template-columns:1fr}
+/* ═══ CE QUI NE SERT PAS À UN COMPTOIR (30/09/2026) ═══
+   — la flèche « ‹ » de la liste : elle ne revenait pas en arrière, elle
+     ouvrait le formulaire, comme « Nouvelle course » juste en dessous ;
+   — la barre du bas : « Accueil » refaisait la même chose, et « WhatsApp »
+     ouvrait un menu écrit pour un client, en double du bloc « Un imprévu ? » ;
+   — la promesse « confirmée par WhatsApp ou SMS » (fausse ici : la réponse
+     apparaît dans la liste de l'hôtel), les trois étapes du tunnel client,
+     et « aucun paiement en ligne », qui rassure un client, pas un comptoir. */
+body.hotel.reception-premium #btnRetourReception,
+body.hotel.reception-premium .barre,
+body.hotel.reception-premium #ecran-accueil .rassure:has([data-t="dispo"]),
+body.hotel.reception-premium #ecran-accueil .etapes-ligne,
+body.hotel.reception-premium #blocPaiement [data-t="paiement_note"]{display:none!important}
+body.hotel.reception-premium .page{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
+body.hotel.reception-premium #btnBonVersReception{margin-bottom:10px}
 body.hotel.reception-premium .reception-action{
   display:flex!important;align-items:center!important;gap:12px!important;width:100%!important;min-height:76px!important;
   margin:0!important;padding:13px 15px!important;border:0!important;border-radius:15px!important;text-align:left!important;
@@ -387,3 +403,16 @@ body.hotel.reception-premium .rec-chauffeur{background:#eef7fd;color:#0b527d}
   body.hotel.reception-premium .reception-action-copy b{font-size:11px}
   body.hotel.reception-premium .reception-action-copy small{font-size:9.5px}
 }
+
+/* UNE TUILE SEULE PREND TOUTE LA LARGEUR (30/09/2026) : elle n'a plus besoin
+   de la hauteur ni de la typographie serrée d'une tuile en duo. Posé en fin
+   de fichier pour passer devant les réglages ≤ 390 px ci-dessus. */
+body.hotel.reception-premium #receptionActions .reception-action,
+body.hotel.reception-premium #recDashboardActions .reception-action{
+  min-height:64px!important;align-items:center!important;justify-content:flex-start!important;padding:12px 16px!important;gap:12px!important}
+body.hotel.reception-premium #receptionActions .reception-action-icon,
+body.hotel.reception-premium #recDashboardActions .reception-action-icon{display:grid;flex-basis:36px;width:36px;height:36px;font-size:23px}
+body.hotel.reception-premium #receptionActions .reception-action-copy b,
+body.hotel.reception-premium #recDashboardActions .reception-action-copy b{font-size:14px}
+body.hotel.reception-premium #receptionActions .reception-action-copy small,
+body.hotel.reception-premium #recDashboardActions .reception-action-copy small{font-size:11.5px}

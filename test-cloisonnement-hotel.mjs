@@ -98,6 +98,15 @@ try {
     await reception.locator('#recVerrou').isVisible()
       && await reception.locator('#recCorps').isHidden()
       && await reception.locator('.rec-course').count() === 0);
+  /* Audit du 30/09/2026 : la barre du bas (Accueil en double, menu WhatsApp
+     écrit pour un client) et la flèche qui ouvrait le formulaire en se
+     faisant passer pour un retour ne s'affichent plus au comptoir. On attend
+     la finition, qui pose sa classe après le chargement. */
+  await reception.waitForFunction(() => document.body.classList.contains('reception-premium'),
+    null, { timeout: 5000 }).catch(() => {});
+  check('Réception : ni barre du bas ni flèche « retour » trompeuse',
+    await reception.locator('.barre').isHidden()
+      && await reception.locator('#btnRetourReception').isHidden());
   check('Réception : aucun DOM Admin/Chauffeurs/Facturation/Réglages',
     await reception.locator('.admin-nav,#ecran-chauffeurs,#ecran-facture,#ecran-reglages').count() === 0);
   check('Réception : aucun code Admin dans le document',

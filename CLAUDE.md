@@ -6024,3 +6024,42 @@ générique, ouverte dans Safari.
   réception retape son code une fois dans l'application.
 - `test-cloisonnement-hotel` lit le manifeste comme le navigateur et tombe
   sur l'ancien code (« trouvé : 2 »).
+
+## LA PAGE RÉCEPTION, AUDITÉE BOUTON PAR BOUTON — CE QUI EN EST PARTI
+
+30 septembre 2026, à sa demande (« vérifie toutes les touches… corrige comme
+un pro, laisse le FR/EN »). Audit fait sur le SITE CONSTRUIT
+(`/easyhotel-reception/`), à 390 et 1280 px : tous les boutons répondaient,
+le défaut était ailleurs — des doublons et des phrases écrites pour un client.
+- **La permanence humaine est 5 h–22 h**, tranché par Barbaros. Le bandeau
+  du site public disait « 24 h/24 · 7 j/7 » pendant que la réception disait
+  5 h–22 h. Il dit maintenant « Réservation 24 h/24 · Assistance 5 h–22 h » :
+  la réservation en ligne, elle, reste ouverte jour et nuit.
+- **Une tuile par écran**, celle qui mène à l'autre : « Nouvelle course » sur
+  la liste, « Réservations de l'hôtel » sur le formulaire. Chacune avait un
+  doublon qui ne faisait que défiler sur l'écran où l'on était déjà.
+- **Retirés au comptoir** (CSS sous `.reception-premium`) : la flèche « ‹ »
+  de la liste (elle ouvrait le formulaire, pas la page d'avant), la barre du
+  bas (« Accueil » en double, et un menu WhatsApp écrit pour un client, en
+  double du bloc « Un imprévu ? »), « Disponibilité confirmée par WhatsApp ou
+  SMS » (faux ici : la réponse apparaît dans la liste), les trois étapes du
+  tunnel client, « Aucun paiement en ligne ».
+- **Une course EN RETARD porte « Appeler Elatransfer »**, plus « Demander
+  l'annulation » : annuler une course dont l'heure est passée n'a pas d'objet.
+- **La référence a sa ligne, entière** (`.rec-reference` — `.rec-ref` est déjà
+  pris par le tableau de bord de l'exploitant). Elle était tronquée en fin de
+  ligne grise, alors que c'est ce qu'on nous lit au téléphone.
+- **Les numéros de téléphone de la liste font 44 px de haut**, plus 15.
+- **Le bon, après l'envoi, parle à la réception** (`bon_note_comptoir`,
+  `envoi_ok_comptoir`) et porte « Voir les réservations de l'hôtel » : la
+  réception restait coincée sur le bon, sans chemin vers sa liste.
+- **Le FR/EN est gardé**, donc plus de libellés doublés (« Chambre / Room »,
+  « Nom du client / Guest name ») au comptoir : `index.html` y pose ses clés
+  (`nom_comptoir`, `ph_nom_comptoir`, `aide_tel_comptoir`) et le sélecteur
+  traduit. Le côté client du flyer garde ses libellés doublés.
+- **LE PIÈGE QUE L'AUDIT A TROUVÉ : après 7 s, la langue ne suivait plus.**
+  `hotel-engine-polish.js` coupe son observateur à 7 s (pour ne pas boucler) :
+  un FR/EN touché ensuite, ou un « Actualiser », rendait les textes d'origine,
+  et repasser en FR laissait « Pending » et « Tomorrow ». Deux observateurs
+  ÉTROITS restent (l'attribut `lang`, les enfants directs de `#recListe`), et
+  le français d'origine est gardé sur l'élément (`data-fr`) pour y revenir.

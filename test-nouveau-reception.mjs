@@ -275,6 +275,27 @@ const chiffres = await p.locator('.rec-chiffre b').allTextContents();
 check('deux courses en attente sont comptées', chiffres[1] === '2', chiffres.join('/'));
 check('et ce compteur-là s\'allume, seul', await p.locator('.rec-chiffre.chaud').count() === 1);
 
+/* ═══ L'AUDIT DU 30/09/2026 ═══ Une course EN RETARD ne propose plus
+   d'annulation (son heure est passée : on appelle), la référence a sa ligne
+   entière, et le comptoir n'a plus de barre du bas ni de flèche qui ouvrait
+   le formulaire en se faisant passer pour un retour. */
+const retard = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0031' });
+check('une course en retard porte « Appeler Elatransfer »…',
+  (await retard.locator('a.rec-appel').getAttribute('href')) === 'tel:+33759312433');
+check('…et pas « Demander l\'annulation »',
+  (await retard.locator('button', { hasText:"Demander l'annulation" }).count()) === 0);
+check('une course à venir garde « Demander l\'annulation »',
+  (await attente.locator('button', { hasText:"Demander l'annulation" }).count()) === 1);
+const refLigne = await carte.locator('.rec-reference').evaluate(el => ({
+  texte: el.textContent, entier: el.scrollWidth <= el.clientWidth + 1 }));
+check('la référence a sa ligne, entière', refLigne.texte === 'Réf. ELA-26-09-0042' && refLigne.entier,
+  JSON.stringify(refLigne));
+const hTel = await carte.locator('.rec-tel a').evaluate(el => el.getBoundingClientRect().height);
+check('le numéro du client se touche au doigt (44 px)', hTel >= 44, String(hTel));
+/* La barre du bas et la flèche sont retirées par hotel-engine-polish.css,
+   que seul le site CONSTRUIT charge : leur contrôle vit dans
+   test-cloisonnement-hotel.mjs, qui éprouve ce site-là. */
+
 /* ═══ « RÉSERVATION VALIDÉE », LE SEUL MOT QUI RÉPOND À LA QUESTION ═══
    À sa demande : « si moi je confirme sur le site, chez la réception ça
    doit être réservation validée ». « Confirmée » est le vocabulaire du
