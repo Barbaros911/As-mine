@@ -120,7 +120,19 @@ type Resultat={ok:boolean;detail:string;statut?:"envoye"|"echec"|"indisponible"|
 async function envoyer(url:string,init:RequestInit,ms=8000):Promise<Resultat>{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),ms);try{const r=await fetch(url,{...init,signal:ctrl.signal});return{ok:r.ok,detail:r.ok?"":`${r.status} ${await r.text()}`};}catch(e){return{ok:false,detail:String(e)}}finally{clearTimeout(timer)}}
 async function db(path:string,init:RequestInit={}){const h=new Headers(init.headers);h.set("apikey",S);h.set("Authorization",`Bearer ${S}`);if(init.body)h.set("Content-Type","application/json");return fetch(`${U}/rest/v1/${path}`,{...init,headers:h});}
 async function journal(type_evenement:string,course_ref:string,canal:string,r:Resultat){if(!U||!S)return;await db("journal_notifications_admin",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({type_evenement,course_ref,canal,statut:r.statut||(r.ok?"envoye":"echec"),detail:r.detail.slice(0,500)||null})}).catch(()=>{});}
-async function parTelegram(t:string,m:string):Promise<Resultat>{if(!TELEGRAM_TOKEN||!TELEGRAM_CHAT)return{ok:false,detail:"telegram_non_configure",statut:"indisponible"};return envoyer(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:TELEGRAM_CHAT,text:t+"\n\n"+m,disable_web_page_preview:true})});}
+/* Sous chaque alerte : « ✅ Vu » arrête les rappels (fonction telegram-bot),
+   « Ouvrir la course » mène au bon — et l'ouvrir les arrête aussi. */
+function boutons(ref:string){return{inline_keyboard:[[{text:"✅ Vu — arrêter les rappels",callback_data:`vu:${ref}`}],[{text:"Ouvrir la course",url:`${ADMIN}?ref=${encodeURIComponent(ref)}`}]]};}
+async function parTelegram(t:string,m:string,ref=""):Promise<Resultat>{if(!TELEGRAM_TOKEN||!TELEGRAM_CHAT)return{ok:false,detail:"telegram_non_configure",statut:"indisponible"};return envoyer(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:TELEGRAM_CHAT,text:t+"\n\n"+m,disable_web_page_preview:true,...(ref?{reply_markup:boutons(ref)}:{})})});}
+/* Le secret du webhook est DÉRIVÉ du jeton du bot : même calcul dans
+   telegram-bot. Aucun secret de plus à poser. */
+async function secretWebhook(jeton:string):Promise<string>{const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(jeton+":webhook-ela"));return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("");}
+async function installerTelegram():Promise<string>{
+  if(!TELEGRAM_TOKEN||!U)return "telegram non configuré";
+  const r=await envoyer(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/setWebhook`,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({url:`${U}/functions/v1/telegram-bot`,secret_token:await secretWebhook(TELEGRAM_TOKEN),allowed_updates:["callback_query"]})});
+  return r.ok?"webhook Telegram installé":"webhook Telegram refusé : "+r.detail.slice(0,200);
+}
 async function parEmail(t:string,m:string):Promise<Resultat>{if(!RESEND_CLE||!EMAIL_EXPEDITEUR||!EMAIL_DESTINATAIRE)return{ok:false,detail:"email_non_configure",statut:"indisponible"};return envoyer("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${RESEND_CLE}`,"Content-Type":"application/json"},body:JSON.stringify({from:EMAIL_EXPEDITEUR,to:[EMAIL_DESTINATAIRE],subject:t,text:m})});}
 /* LA PASTILLE DE L'ICÔNE, MÊME APPLICATION FERMÉE (30/09/2026). Une page
    fermée ne tourne plus : seule la notification arrive. Elle porte donc le
@@ -159,26 +171,22 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
 }
 
 /* LE RAPPEL ET LE RATTRAPAGE (30/09/2026, à sa demande : « recevoir toutes
-   les courses en temps et en heure… tout ce qui est possible pour être
-   alerté », puis « l'alerte Telegram, bruit, vibration, toutes les 20
-   secondes »). Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
+   les courses en temps et en heure… », « toutes les 20 secondes », puis
+   « tant que je n'ai pas ouvert la demande reçue sur Telegram »).
+   Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
    - RATTRAPAGE : une course en attente depuis plus d'1 min sans AUCUNE
-     alerte réussie (webhook tombé, Telegram en panne à cet instant) est
-     annoncée maintenant, par tous les canaux.
-   - TELEGRAM TOUTES LES 20 S tant qu'elle reste « attente », 30 min au plus
-     après son arrivée. Chaque message sonne et vibre — c'est le réglage de
-     Telegram sur le téléphone, pas un choix d'ici. Il se tait dès que la
-     course est confirmée ou refusée : le statut est relu à chaque tour.
-     LES 30 MINUTES NE SONT PAS UN OUBLI : une nuit sans réponse, ce serait
-     sinon un message toutes les 20 s jusqu'au matin.
+     alerte réussie est annoncée maintenant, par tous les canaux.
+   - TELEGRAM TOUTES LES 20 S tant qu'elle reste « attente » ET qu'il ne l'a
+     pas VUE : bouton « ✅ Vu » sous le message, ou course ouverte dans
+     l'admin. Telegram ne dit jamais à un bot qu'un message est lu : « vu »
+     ne peut être qu'un geste. Chaque message sonne et vibre — c'est le
+     réglage de Telegram sur le téléphone.
+     Borne : la fenêtre de 6 h. Au-delà, une demande n'est plus relancée.
    - NOTIFICATION DU TÉLÉPHONE toutes les 10 min, trois fois au plus : elle
-     reste affichée de toute façon, la répéter toutes les 20 s ne dirait rien
-     de plus.
+     reste affichée de toute façon.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
-   vient du journal. Un appel répété à la main ne peut donc envoyer que les
-   alertes légitimes, au rythme prévu. */
-const RATTRAPAGE_MS=60*1000,PAS_TELEGRAM_MS=15*1000,DUREE_TELEGRAM_MS=30*60*1000,
-      PAS_PUSH_MS=10*60*1000,MAX_PUSH=3,FENETRE_MS=6*3600*1000;
+   vient du journal. */
+const RATTRAPAGE_MS=60*1000,PAS_TELEGRAM_MS=15*1000,PAS_PUSH_MS=10*60*1000,MAX_PUSH=3,FENETRE_MS=6*3600*1000;
 const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
 async function relancer():Promise<string>{
   if(!U||!S)return "non configuré";
@@ -192,24 +200,25 @@ async function relancer():Promise<string>{
     const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
     if(!j.ok)continue;
     const journalRef=((await j.json())||[]) as Array<Record<string,string>>;
+    if(journalRef.some(x=>x.type_evenement==="vue"))continue;
     const reussies=journalRef.filter(x=>x.statut==="envoye");
     const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
     const age=Date.now()-cree;
     if(!reussies.length){
       if(age<RATTRAPAGE_MS)continue;
       const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
-      const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m)]);
+      const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m,ref)]);
       await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
       continue;
     }
     const t=titreRappel(bon,Math.max(1,Math.round(age/60000)));
-    /* Telegram : 20 s après le dernier message PARTI (15 s de marge, le
-       minuteur de pg_cron n'est pas à la seconde près). */
+    /* 20 s après le dernier message PARTI (15 s de marge : le minuteur de
+       pg_cron n'est pas à la seconde près). */
     const tgPartis=reussies.filter(x=>x.canal==="telegram");
-    if(TELEGRAM_TOKEN&&TELEGRAM_CHAT&&age<=DUREE_TELEGRAM_MS&&Date.now()-plusRecent(tgPartis,cree)>=PAS_TELEGRAM_MS){
-      /* Le rappel est COURT : sur un écran verrouillé, seule la première
-         ligne se lit, et le détail est déjà dans le premier message. */
-      const tg=await parTelegram(t,`Réf. ${ref} — toujours en attente.\n${ADMIN}?ref=${encodeURIComponent(ref)}`);
+    if(TELEGRAM_TOKEN&&TELEGRAM_CHAT&&Date.now()-plusRecent(tgPartis,cree)>=PAS_TELEGRAM_MS){
+      /* Court : sur un écran verrouillé seule la première ligne se lit, et
+         le détail est déjà dans le premier message. */
+      const tg=await parTelegram(t,`Réf. ${ref} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref);
       await journal("rappel_reservation",ref,"telegram",tg);rappelsTg++;
     }
     const pushTentes=journalRef.filter(x=>x.canal==="push"&&x.type_evenement==="rappel_reservation");
@@ -225,6 +234,9 @@ async function relancer():Promise<string>{
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
   if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
+  /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
+     le rappeler ne fait que reposer la même adresse. */
+  if(charge.type==="INSTALLER_TELEGRAM")return new Response(await installerTelegram(),{status:200});
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
   const recu=(charge.record??{}) as Record<string,any>;
   const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));
@@ -233,7 +245,7 @@ Deno.serve(async(req)=>{
 
   /* Push ELA + Telegram partent en parallèle. L'un ne bloque jamais l'autre.
      L'e-mail reste un troisième filet facultatif. */
-  const [push,telegram,email]=await Promise.all([parPush(t,ref),parTelegram(t,m),parEmail(t,m)]);
+  const [push,telegram,email]=await Promise.all([parPush(t,ref),parTelegram(t,m,ref),parEmail(t,m)]);
   await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram),journal("nouvelle_reservation",ref,"email",email)]);
   const utiles=[push,telegram,email].filter(x=>x.statut!=="indisponible");
   const bilan=`push : ${push.ok?"ok":push.detail} | telegram : ${telegram.ok?"ok":telegram.detail} | email : ${email.ok?"ok":email.detail}`;

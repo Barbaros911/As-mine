@@ -10124,8 +10124,21 @@ window.ELA_TEXTES = {
   });
 
   var bonBord = null;
+  /* OUVRIR LA COURSE ARRÊTE LES RAPPELS TELEGRAM (30/09/2026) : c'est la
+     preuve qu'il l'a vue. Une seule fois par course et par visite, et
+     seulement sur une demande qui attend — les autres ne sont plus relancées. */
+  var vuesSignalees = {};
+  function signalerVue(ref){
+    if(!ref || vuesSignalees[ref] || !nuage.connecte()) return;
+    var c = registre().filter(function(x){ return x.ref === ref; })[0];
+    if(!c || (c.statut || "attente") !== "attente") return;
+    vuesSignalees[ref] = true;
+    nuage.appel("/rest/v1/rpc/ela_marquer_vue", { method:"POST", body: JSON.stringify({ p_ref: ref }) })
+      .catch(function(){ vuesSignalees[ref] = false; });
+  }
   function ouvrirBonBord(ref){
     arreterAlarme();
+    signalerVue(ref);
     var liste = registre();
     bonBord = liste.filter(function(c){ return c.ref === ref; })[0] || null;
     if(!bonBord) return;
