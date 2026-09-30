@@ -6143,6 +6143,49 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
     (le justificatif d'une note de frais). Le bon dit « EFFECTUÉE » / « Course
     effectuée », avec son chauffeur. Rien sur une course non prise.
 
+- **ACTUALISER EN HAUT, PAR DATE, ET RETROUVER UN BON PAR SA DATE**
+  (30/09/2026, à sa demande). « Actualiser » était en bas d'une liste qui
+  s'allonge (mesuré à 1 360 px) : il est remonté sous les trois chiffres,
+  avec l'heure de la dernière lecture (`#recMaj`, `dessinerMaj()`), et
+  tourne pendant la lecture. Un quatrième onglet **« Par date »** ouvre une
+  barre Jour / Mois, ‹ ›, un calendrier et « Aujourd'hui » ; la liste y est
+  dans l'ordre du calendrier, sans « En retard », avec le bilan de la
+  période (courses, effectuées, à venir, non prises, et le montant des
+  seules EFFECTUÉES — même règle que le registre). La recherche trouve
+  aussi une date tapée « 12/09 », « 12/09/2026 » ou « 12 septembre ». Les
+  dates sont composées en local (`isoLocal`), jamais par `toISOString`.
+  Le libellé d'« Actualiser » est écrit par la page, plus par la finition
+  (`hotel-engine-polish.js`) : elle l'écrasait pendant la lecture.
+
+- **UNE COURSE FINIE NE PORTE PLUS AUCUN PRIX CÔTÉ RÉCEPTION** (30/09/2026, à
+  sa demande : « aucune trace du chiffre ne doit rester »). Réalisée, non
+  prise ou annulée : `courses-hotel` n'envoie plus le champ `prix` (ABSENT,
+  pas mis à zéro — masquer à l'écran laissait le montant dans la réponse,
+  lisible par les outils du navigateur), et la page ne le dessine pas non
+  plus (deux défenses, deux contrôles : `test-securite-fonctions`,
+  `test-nouveau-reception`). Le bilan « Par date » ne compte plus que des
+  courses, jamais un montant. « Renvoyer le bon » est retiré des courses
+  faites : sans prix, ce n'est plus un justificatif. Le prix reste dans
+  l'admin (registre, commissions, factures) et sur le téléphone du client.
+- **LA RÉCEPTION NE PEUT PLUS ANNULER, NI MÊME LE DEMANDER** (30/09/2026, à sa
+  demande). Le bouton « Demander l'annulation » est retiré et `courses-hotel`
+  refuse toute action autre que la liste (403). Elle appelle : « Un imprévu ? »
+  est affiché en permanence. Le drapeau `annulationDemandee` n'est plus lu.
+- **« ANNULER LA COURSE » ET « MODIFIER LA COURSE » DANS L'ADMIN** (bon
+  exploitant, 30/09/2026). Nouveau statut **`annulee`** : fini comme un refus,
+  jamais compté, mais la réception et le client lisent « Annulée », pas « Non
+  prise » (qui dit qu'aucun chauffeur n'était libre). Deux appuis pour
+  annuler. Modifier garde la RÉFÉRENCE, écrit `modifieLe` (+ `modifications`,
+  les 20 dernières), recompose `depart` = `departPublic` + « (ch. N) », et ne
+  recalcule PAS le prix : un trajet changé se renégocie. La réception voit
+  « Modifiée par Elatransfer le … » sur la carte et, en direct, un bandeau
+  « 06:00 → 07:00 ». Rien ne part chez le chauffeur : un rappel « Prévenez le
+  chauffeur » s'affiche s'il y en a un. `test-admin-arrivee` (bloc 2 ter).
+  **Tout endroit qui teste `"refusee"` pour dire « finie » doit aussi tester
+  `"annulee"`** — c'est la liste qu'on a dû parcourir ce jour-là.
+- **Pas encore fait, décidé pour un second temps** : changer ou couper le code
+  de la réception depuis l'admin (le code vit dans les secrets Supabase).
+
 ## LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL
 
 29 septembre 2026, à sa demande. Réglages → « Prix du flyer, par hôtel » :

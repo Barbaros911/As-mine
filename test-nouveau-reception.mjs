@@ -12,12 +12,14 @@
       SERVEUR. Un contrôle cherche qu'aucun code ne traîne dans la page :
       écrit ici, même en empreinte, il s'attaquerait hors ligne.
 
-   3. RIEN NE S'ANNULE TOUT SEUL. Le bouton transmet et pose un drapeau ;
-      il ne change jamais le statut. Une course annulée à 5 h du matin
-      libère un chauffeur déjà engagé, et Barbaros seul peut le rappeler.
+   3. RIEN NE S'ANNULE DEPUIS LE COMPTOIR. Depuis le 30/09/2026 il n'y a même
+      plus de bouton de demande : la réception appelle, Barbaros annule.
+      Une course annulée à 5 h du matin libère un chauffeur déjà engagé,
+      et Barbaros seul peut le rappeler.
 
    4. CE QU'UNE RÉSERVATION PORTE, à sa demande : la chambre ou le nom, LE
-      NUMÉRO du client, le trajet, LE PRIX et le MODE DE PAIEMENT.
+      NUMÉRO du client, le trajet, LE PRIX (tant que la course est à
+      venir — plus aucun montant une fois finie) et le MODE DE PAIEMENT.
 
    5. LE PRIX NE SE FAIT JAMAIS TRONQUER par une adresse longue — c'est le
       chiffre que la réception a annoncé au client. Le contrôle MESURE des
@@ -60,8 +62,9 @@ await ctx.route('**://*/**', r => r.request().url().startsWith('http://127.0.0.1
 let appels = [];
 let etat0043 = 'attente';
 let tel0043 = '06 98 76 54 32';   // Barbaros la validera en cours de suite
+let heure0042 = '06:00', modif0042 = '';   // … puis la modifiera depuis son admin
 const COURSES = () => ([
-  { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:'06:00',
+  { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:heure0042, modifie:modif0042,
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Orly 1 — Aéroport de Paris-Orly',
     vehicule:'Berline', prix:100, client:'M. Dupont', tel:'06 12 34 56 78', chambre:'214',
     paiement:'Espèces', annulationDemandee:false, chauffeur:{nom:'Mehmet', telephone:'0612345678'},
@@ -309,18 +312,18 @@ check('par TÉLÉPHONE, chiffres seuls (espaces indifférents)',
   JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
 await p.fill('#recRecherche', 'laurent');
 check('par NOM, sans majuscule', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]');
-/* UNE COURSE FAITE SE RENVOIE (30/09/2026) : le client repasse pour un
-   justificatif. Pas d'annulation sur une course faite. */
+/* ═══ UNE COURSE FAITE NE PORTE PLUS AUCUN PRIX (30/09/2026, à sa demande :
+   « aucune trace du chiffre ne doit rester ») ═══ Le faux serveur ENVOIE
+   encore 80 € sur cette course : c'est exprès. Le vrai ne l'envoie plus
+   (test-securite-fonctions), et l'écran est la seconde défense — on éprouve
+   donc la page seule. Et plus de « Renvoyer le bon » : sans prix il ne sert
+   plus de justificatif. */
 const faite = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0020' });
-check('une course effectuée porte « Renvoyer le bon au client », sans annulation',
-  (await faite.locator('.rec-envoyer').count()) === 1
-  && (await faite.locator('button', { hasText:"Demander l'annulation" }).count()) === 0);
-await faite.locator('.rec-envoyer').click();
-await p.locator('#bvOngletTexte').click();
-const texteFait = await p.locator('#bvApercuTexte').textContent();
-check('…et le bon dit « Course effectuée », avec son chauffeur',
-  /Course effectuée/.test(texteFait) && /Samir/.test(texteFait) && !/attente/i.test(texteFait), texteFait);
-await p.locator('#bvFermer').click();
+check('une course effectuée n\'affiche AUCUN montant, même si on le lui envoie',
+  !/80|€/.test(await faite.textContent()) && (await faite.locator('.rec-prix').count()) === 0,
+  await faite.textContent());
+check('…et ne porte plus aucun bouton (ni renvoi du bon, ni annulation)',
+  (await faite.locator('button').count()) === 0);
 await p.fill('#recRecherche', 'ELA-26-09-0043');
 check('par RÉFÉRENCE', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0043"]');
 await p.fill('#recRecherche', 'zzz introuvable');
@@ -331,6 +334,71 @@ check('recherche vidée : retour à « À venir »',
   (await refsVisibles()).length === 3
   && (await p.locator('.rec-vues button[data-vue="avenir"]').getAttribute('aria-selected')) === 'true');
 
+/* ═══ UN BON SE RETROUVE PAR SA DATE (30/09/2026) ═══ « le client du 12/09 » :
+   la forme que tape une réception, pas « 2026-09-12 ». */
+const jj = s => s.slice(8,10) + '/' + s.slice(5,7);
+await p.fill('#recRecherche', jj(jour(-3)));
+check('par DATE « JJ/MM » : on retrouve la course de ce jour-là, et elle seule',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', '');
+
+/* ═══ ACTUALISER EST EN HAUT, ET IL DIT QUAND (30/09/2026) ═══ Il était en bas
+   d'une liste qui s'allonge : personne ne le trouvait. On le MESURE à l'arrêt,
+   page remontée, sans défilement — et on vérifie qu'il relit vraiment. */
+await p.evaluate(() => window.scrollTo(0, 0));
+const rectMaj = await p.locator('#btnRecActualiser').boundingBox();
+check('« Actualiser » est dans le premier écran, sans défiler',
+  !!rectMaj && rectMaj.y + rectMaj.height <= 844, JSON.stringify(rectMaj));
+const avantMaj = appels.length;
+await p.locator('#btnRecActualiser').click();
+await p.waitForTimeout(400);
+check('…il relit vraiment le serveur', appels.length === avantMaj + 1, (appels.length - avantMaj) + ' appel(s)');
+check('…et il écrit l\'heure de la lecture',
+  /^Mis à jour à \d\d:\d\d$/.test((await p.locator('#recMaj').textContent()).trim()),
+  await p.locator('#recMaj').textContent());
+
+/* ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026) ═══ On lit l'ordre et le
+   bilan à l'écran, jamais l'état interne ; les attendus sont recalculés depuis
+   le jeu de courses, pas recopiés de la page. */
+await p.locator('.rec-vues button[data-vue="date"]').click();
+check('« Par date » ouvre la barre de période, sur AUJOURD\'HUI',
+  await p.locator('#recPeriode').isVisible()
+  && (await p.locator('#recJourChoix').inputValue()) === jour(0));
+check('aujourd\'hui, aucune course : on le dit',
+  (await refsVisibles()).length === 0
+  && /Aucune course sur cette période/.test(await p.locator('#recBilan').textContent()));
+await p.locator('#btnRecApres').click();
+check('« › » passe à demain : les deux courses, dans l\'ordre de l\'heure',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0042","ELA-26-09-0043"]', JSON.stringify(await refsVisibles()));
+check('…et le bilan les compte', /^2 courses/.test(await p.locator('#recBilan').textContent()),
+  await p.locator('#recBilan').textContent());
+await p.locator('#recJourChoix').fill(jour(-3));
+check('le calendrier choisit un jour précis : la course faite, comptée SANS montant',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]'
+  && /1 effectuée/.test(await p.locator('#recBilan').textContent())
+  && !/80|€/.test(await p.locator('#recBilan').textContent()),
+  JSON.stringify(await refsVisibles()) + ' ' + await p.locator('#recBilan').textContent());
+check('sur une course passée, pas de titre « En retard » en mode date',
+  (await p.locator('.rec-jour.retard').count()) === 0);
+await p.locator('#btnRecAujourdhui').click();
+await p.locator('.rec-echelle button[data-echelle="mois"]').click();
+const duMois = COURSES().filter(c => c.date.slice(0,7) === jour(0).slice(0,7)).map(c => c.ref).sort();
+check('« Mois » montre toutes les courses du mois en cours, et seulement elles',
+  JSON.stringify((await refsVisibles()).slice().sort()) === JSON.stringify(duMois),
+  JSON.stringify(await refsVisibles()) + ' attendu ' + JSON.stringify(duMois));
+check('en mode mois, le choix d\'un jour est masqué', await p.locator('#recJourChoix').isHidden());
+await p.locator('#btnRecAvant').click();
+const moisAvant = (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth() - 1, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); })();
+const duMoisAvant = COURSES().filter(c => c.date.slice(0,7) === moisAvant).map(c => c.ref).sort();
+check('« ‹ » recule d\'un MOIS entier',
+  JSON.stringify((await refsVisibles()).slice().sort()) === JSON.stringify(duMoisAvant),
+  JSON.stringify(await refsVisibles()) + ' attendu ' + JSON.stringify(duMoisAvant));
+await p.locator('.rec-echelle button[data-echelle="jour"]').click();
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
+check('retour à « À venir » : la barre de période se referme',
+  await p.locator('#recPeriode').isHidden() && (await refsVisibles()).length === 3);
+
 /* ═══ L'AUDIT DU 30/09/2026 ═══ Une course EN RETARD ne propose plus
    d'annulation (son heure est passée : on appelle), la référence a sa ligne
    entière, et le comptoir n'a plus de barre du bas ni de flèche qui ouvrait
@@ -340,8 +408,8 @@ check('une course en retard porte « Appeler Elatransfer »…',
   (await retard.locator('a.rec-appel').getAttribute('href')) === 'tel:+33759312433');
 check('…et pas « Demander l\'annulation »',
   (await retard.locator('button', { hasText:"Demander l'annulation" }).count()) === 0);
-check('une course à venir garde « Demander l\'annulation »',
-  (await attente.locator('button', { hasText:"Demander l'annulation" }).count()) === 1);
+check('« Demander l\'annulation » n\'existe plus nulle part : la réception appelle',
+  (await p.locator('#ecran-reception button', { hasText:/annulation/i }).count()) === 0);
 const refLigne = await carte.locator('.rec-reference').evaluate(el => ({
   texte: el.textContent, entier: el.scrollWidth <= el.clientWidth + 1 }));
 check('la référence a sa ligne, entière', refLigne.texte === 'Réf. ELA-26-09-0042' && refLigne.entier,
@@ -482,27 +550,38 @@ check('onglet en arrière-plan : aucune relecture (batterie, quota)', appels.len
 await p.evaluate(() => { delete document.hidden; });
 
 /* ---------------------------------------------------------------------
-   5. RIEN NE S'ANNULE TOUT SEUL
+   5. RIEN NE S'ANNULE DEPUIS LE COMPTOIR — ET CE QUE BARBAROS CHANGE SE VOIT
    --------------------------------------------------------------------- */
 appels = [];
-await p.context().grantPermissions([]);
-/* On empêche l'ouverture réelle de WhatsApp : ce qu'on éprouve est ce que
-   la page ENVOIE au serveur, pas le comportement de l'onglet. */
-await p.evaluate(() => { window.__wa = []; window.open = (u) => { window.__wa.push(u); return null; }; });
-await attente.locator('button', { hasText:"Demander l'annulation" }).click();
-await p.waitForTimeout(700);
-const envoye = appels.filter(a => a.action === 'annulation');
-check('la demande part au serveur avec la bonne référence',
-  envoye.length === 1 && envoye[0].ref === 'ELA-26-09-0043', JSON.stringify(envoye));
-check('elle ne demande JAMAIS de changer le statut',
-  envoye.length === 1 && !('statut' in envoye[0]), JSON.stringify(envoye[0]));
-const wa = await p.evaluate(()=>window.__wa || []);
-check('et Barbaros est prévenu par WhatsApp — seul canal tant que Telegram dort',
-  wa.length === 1 && wa[0].includes('wa.me') && decodeURIComponent(wa[0]).includes('ELA-26-09-0043'),
-  wa.join(' '));
-check('la course affiche « annulation demandée », pas « annulée »',
-  /Annulation demandée/.test(await attente.textContent())
-  && !/Annulée/.test(await attente.textContent()));
+/* La réception ne fait QUE lire : aucun appel autre que la liste n'est
+   jamais parti de la page pendant toute la suite. */
+check('aucune demande d\'annulation n\'est jamais partie au serveur',
+  !appels.some(a => a.action && a.action !== 'liste'), JSON.stringify(appels.filter(a => a.action)));
+
+/* ═══ ANNULÉE ET MODIFIÉE PAR ELATRANSFER (30/09/2026) ═══ Barbaros annule
+   0043 et déplace 0042 de 6 h à 7 h depuis son admin. La réception doit le
+   VOIR : un bandeau qui dit l'ancienne et la nouvelle heure, la carte qui
+   porte « Modifiée », et l'annulée sans prix. */
+etat0043 = 'annulee'; heure0042 = '07:00'; modif0042 = new Date().toISOString();
+await p.locator('#btnRecActualiser').click();
+await p.waitForTimeout(600);
+const texteAlerte = (await p.locator('#recAlerte').textContent()) || '';
+check('le bandeau dit « Annulée par Elatransfer »', /Annulée par Elatransfer/.test(texteAlerte), texteAlerte);
+check('…et « Course modifiée », de 06:00 à 07:00', /Course modifiée par Elatransfer.*06:00 → 07:00/.test(texteAlerte), texteAlerte);
+await p.locator('.rec-vues button[data-vue="toutes"]').click();
+const annulee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0043' });
+check('la course annulée dit « Annulée », pas « Non prise »',
+  (await annulee.locator('.rec-etat').textContent()).trim() === 'Annulée');
+check('…sans aucun prix, ni aucun bouton',
+  !/120|€/.test(await annulee.textContent()) && (await annulee.locator('button').count()) === 0,
+  await annulee.textContent());
+const modifiee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0042' });
+check('la course modifiée porte « Modifiée par Elatransfer le … »',
+  /Modifiée par Elatransfer le \d\d\/\d\d à \d\d:\d\d/.test(await modifiee.textContent()));
+check('…garde sa référence, et son prix (elle est encore à venir)',
+  /07:00/.test(await modifiee.textContent()) && /100,00/.test(await modifiee.textContent()));
+if(await p.locator('#recAlerte').isVisible()) await p.locator('#btnRecAlerteOk').click();
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
 
 /* ---------------------------------------------------------------------
    6. « FERMER LA SESSION » — LE GESTE D'UNE TABLETTE QU'ON PRÊTE
