@@ -80,6 +80,7 @@ function remplacerEntreApres(html, apres, debut, fin, remplacement = '') {
 const sectionsAdmin = [
   'ecran-verrou', 'ecran-bord', 'ecran-reglages', 'ecran-creer',
   'ecran-registre', 'ecran-chauffeurs', 'ecran-facture', 'ecran-bord-bon',
+  'ecran-controle',
 ];
 
 function sansAdmin() {
@@ -231,14 +232,14 @@ const adminHtml = admin();
 
 const interditsClient = [
   'id="ecran-reception"', 'id="ecran-chauffeurs"', 'id="ecran-facture"',
-  'id="ecran-reglages"', 'CODE_EXPLOITANT', 'coursesHotel: function',
+  'id="ecran-reglages"', 'id="ecran-controle"', 'CODE_EXPLOITANT', 'coursesHotel: function',
   'nuage.roleOperateur', 'class="admin-nav"',
 ];
 for (const interdit of interditsClient) {
   if (clientHtml.includes(interdit)) throw new Error(`fuite Client : ${interdit}`);
 }
 const interditsReception = [
-  'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"',
+  'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
   'CODE_EXPLOITANT', 'nuage.roleOperateur', 'class="admin-nav"',
 ];
 for (const interdit of interditsReception) {
@@ -246,7 +247,7 @@ for (const interdit of interditsReception) {
 }
 const interditsPublic = [
   'id="ecran-reception"', 'id="ecran-verrou"', 'id="ecran-bord"',
-  'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"',
+  'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
   'coursesHotel: function', 'nuage.roleOperateur', 'class="admin-nav"',
 ];
 for (const interdit of interditsPublic) {

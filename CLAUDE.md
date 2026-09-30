@@ -5873,13 +5873,46 @@ notifications Telegram 1 minute après, c'est trop long ».
   le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
   (`reprendreDepot()`).
 
+## LE CENTRE DE CONTRÔLE — LA COMMISSION PAR CANAL
+
+30 septembre 2026, à sa demande : « un tableau qui indique le taux de
+commission sur les courses public, site client hôtel, flyer ou prix km… un
+vrai centre de contrôle depuis ma page admin », puis « un changement de
+commission pour le site public ne doit pas affecter easyHotel… je dois
+pouvoir attribuer un montant précis par course ou chauffeur ».
+- **Écran `#ecran-controle`**, entrée « Centre de contrôle » du menu, cachée
+  à l'agent (`agent-role-ui.mjs`) et retirée des pages publiques
+  (`construire-espaces-hotel.mjs`). Quatre blocs : résultats par canal
+  (Semaine / Mois / Année / Tout), commission par canal (modifiable),
+  commission par chauffeur, tarifs en vigueur (lus dans `GAMMES` et `HOTELS`,
+  bouton vers Réglages pour les changer).
+- **QUATRE CANAUX** (`canalDe`) : réception (`parReception`), flyer hôtel
+  (`provenanceCle`), saisie au téléphone (`canal:"admin"`, posé par « Saisir
+  par téléphone »), site public (tout le reste). **Une demande COLLÉE reste
+  « site public »** : son message est celui que fabrique le site.
+- **L'ORDRE DE LA COMMISSION va du plus précis au plus général** : montant
+  posé sur la course, puis taux du chauffeur (carnet, en % OU en € par
+  course — `tauxMode`), puis taux du canal. Chaque canal a son propre taux,
+  en % ou en € : changer le site public ne touche pas easyHotel.
+- **Les taux par canal vivent sur le serveur** (`parametres_commerciaux`,
+  clé `commission_canaux`), copiés sur l'appareil (`ela_commission_canaux`).
+  Aucune migration : la table accepte toute clé, l'écriture est réservée à
+  l'admin depuis `20260929030000_role_agent_serveur.sql`.
+- **Un champ de taux vide n'est pas zéro.** Le carnet enregistrait `0` pour
+  un champ vide : une vieille fiche à `0` sans unité est donc lue « pas de
+  taux », sinon elle masquerait le taux du canal. Une fiche enregistrée
+  depuis porte son unité, et son zéro est alors voulu.
+- `test-admin-controle.mjs` recalcule les totaux à la main ; il tombe si le
+  chauffeur passe après le canal, ou si le vieux `0` masque le canal.
+
 ## COMMISSION PAR COURSE, GRAPHIQUE DES CHAUFFEURS, NOTIFICATIONS ELA
 
 29 septembre 2026, à sa demande (« une commission en % ou en € sur chaque
 course », « un graphique des courses réalisées par les chauffeurs »).
 - **Commission** : `commissionDe(course)` est le seul calcul — celle posée
   sur la course (% ou € fixes, jamais plus que le prix), sinon le taux du
-  carnet, sinon rien (on ne devine pas un taux). Bon, registre, export CSV
+  carnet, sinon celui du canal (centre de contrôle, voir plus haut), sinon
+  rien (on ne devine pas un taux). Bon, registre, export CSV
   et facture l'utilisent tous. `test-admin-commission`.
 - **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
   compte que les courses réalisées.
