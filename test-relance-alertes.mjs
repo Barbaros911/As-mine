@@ -105,6 +105,28 @@ try {
     : f(url, init))(globalThis.fetch);
   await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-EEEE5' } });
   check('le webhook INSERT annonce toujours la nouvelle demande', tg.length === avant4 + 1, String(tg.length - avant4));
+  /* 9. LA PASTILLE, MÊME ADMIN FERMÉ. Le service worker est le seul code
+     qui tourne quand l'application est fermée : on le fait tourner pour de
+     vrai, avec une fausse notification, et on lit ce qu'il pose sur l'icône. */
+  {
+    const sw = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'sw.js'), 'utf8');
+    const ecoute = {}, badges = [], notifs = [];
+    const self = {
+      location: Object.assign(new URL('https://elatransfer.com/sw.js'), {}),
+      addEventListener: (t, f) => { ecoute[t] = f; },
+      registration: { showNotification: (titre, o) => { notifs.push({ titre, ...o }); return Promise.resolve(); } },
+      navigator: { setAppBadge: (n) => { badges.push(n === undefined ? 'point' : n); return Promise.resolve(); } },
+      clients: { claim: () => Promise.resolve() }, skipWaiting: () => Promise.resolve()
+    };
+    new Function('self', 'caches', 'fetch', sw)(self, {}, () => {});
+    const pousser = async (charge) => { let fin; ecoute.push({ data: { json: () => charge }, waitUntil: (pr) => { fin = pr; } }); await fin; };
+    await pousser({ titre: 'Nouvelle demande', corps: 'x', ref: 'ELA-26-09-AAAA1', attente: 3, url: 'https://elatransfer.com/ela-admin/' });
+    check('application fermée : la pastille de l\'icône affiche le NOMBRE en attente (3)', badges.at(-1) === 3, JSON.stringify(badges));
+    check('la notification reste affichée tant qu\'on ne l\'a pas touchée', notifs.at(-1)?.requireInteraction === true);
+    check('et elle vibre', Array.isArray(notifs.at(-1)?.vibrate));
+    await pousser({ titre: 'Transfert confirmé', corps: 'x', ref: 'ELA-26-09-AAAA1' });
+    check('sans nombre (notification client) : un simple point, pas de chiffre inventé', badges.at(-1) === 'point', JSON.stringify(badges));
+  }
 } catch (x) { ko.push('PLANTAGE — ' + x.message); }
 
 console.log(`=== RÉUSSIS (${ok.length}) ===`); ok.forEach(x => console.log('  ✓ ' + x));

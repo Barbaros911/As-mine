@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v109";
+const CACHE = "elatransfer-v110";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -94,7 +94,16 @@ self.addEventListener("push", (event) => {
        et elle vibre fort — un bandeau qui disparaît seul en cinq secondes
        se rate à 5 h du matin. */
     requireInteraction:true,vibrate:[400,150,400,150,400],silent:false,data:{url:d.url || "./"}
-  }).then(() => { try { if (self.navigator && self.navigator.setAppBadge) return self.navigator.setAppBadge(); } catch (e) {} }));
+  }).then(() => {
+    /* Le NOMBRE de demandes en attente, compté par le serveur : c'est ce qui
+       tient la pastille à jour quand l'admin est fermé (30/09/2026). Sans
+       nombre (notification d'un client), un simple point. */
+    try {
+      if (!self.navigator || !self.navigator.setAppBadge) return;
+      const n = Number(d.attente);
+      return n > 0 ? self.navigator.setAppBadge(n) : self.navigator.setAppBadge();
+    } catch (e) {}
+  }));
 });
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
