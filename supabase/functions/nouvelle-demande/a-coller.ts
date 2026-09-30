@@ -63,6 +63,16 @@ function titre(bon: any) {
     + ", " + quand(bon);
 }
 
+/* LE RAPPEL DIT D'ABORD DEPUIS COMBIEN DE TEMPS ON ATTEND : c'est ce qui
+   le distingue d'une nouvelle demande sur un écran verrouillé. */
+function titreRappel(bon: any, minutes: any) {
+  const c = bon.course ?? {};
+  return "RAPPEL " + minutes + " min — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
 function corps(bon: any, adresseAdmin: any) {
   const c = bon.course ?? {};
   const l = [
@@ -112,10 +122,20 @@ async function db(path:string,init:RequestInit={}){const h=new Headers(init.head
 async function journal(type_evenement:string,course_ref:string,canal:string,r:Resultat){if(!U||!S)return;await db("journal_notifications_admin",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({type_evenement,course_ref,canal,statut:r.statut||(r.ok?"envoye":"echec"),detail:r.detail.slice(0,500)||null})}).catch(()=>{});}
 async function parTelegram(t:string,m:string):Promise<Resultat>{if(!TELEGRAM_TOKEN||!TELEGRAM_CHAT)return{ok:false,detail:"telegram_non_configure",statut:"indisponible"};return envoyer(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:TELEGRAM_CHAT,text:t+"\n\n"+m,disable_web_page_preview:true})});}
 async function parEmail(t:string,m:string):Promise<Resultat>{if(!RESEND_CLE||!EMAIL_EXPEDITEUR||!EMAIL_DESTINATAIRE)return{ok:false,detail:"email_non_configure",statut:"indisponible"};return envoyer("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${RESEND_CLE}`,"Content-Type":"application/json"},body:JSON.stringify({from:EMAIL_EXPEDITEUR,to:[EMAIL_DESTINATAIRE],subject:t,text:m})});}
+/* LA PASTILLE DE L'ICÔNE, MÊME APPLICATION FERMÉE (30/09/2026). Une page
+   fermée ne tourne plus : seule la notification arrive. Elle porte donc le
+   NOMBRE de demandes en attente, que le service worker pose sur l'icône. */
+async function nbAttente():Promise<number>{
+  if(!U||!S)return 0;
+  const depuis=new Date(Date.now()-30*86400000).toISOString();
+  const r=await db(`courses?select=ref&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&limit=99`).catch(()=>null);
+  if(!r||!r.ok)return 0;
+  const l=await r.json().catch(()=>[]);return Array.isArray(l)?l.length:0;
+}
 async function parPush(t:string,ref:string):Promise<Resultat>{
   if(!U||!S||!VAPID_PUBLIQUE||!VAPID_PRIVEE)return{ok:false,detail:"push_non_configure",statut:"indisponible"};
   const r=await db("abonnements_admin?select=id,abonnement&actif=eq.true");if(!r.ok)return{ok:false,detail:"lecture_abonnements_refusee",statut:"echec"};const lignes=await r.json();if(!Array.isArray(lignes)||!lignes.length)return{ok:false,detail:"aucun_abonne",statut:"aucun_abonne"};
-  const charge=JSON.stringify({titre:t,corps:`${ref} — action requise`,ref,url:`${ADMIN}?ref=${encodeURIComponent(ref)}`});let envoyes=0,echecs=0;
+  const charge=JSON.stringify({titre:t,corps:`${ref} — action requise`,ref,attente:await nbAttente(),url:`${ADMIN}?ref=${encodeURIComponent(ref)}`});let envoyes=0,echecs=0;
   for(const ligne of lignes){const ab=ligne.abonnement;if(!ab?.endpoint||!ab?.keys?.p256dh||!ab?.keys?.auth){echecs++;continue;}try{const paquet=await chiffrer(charge,ab.keys.p256dh,ab.keys.auth),origine=new URL(ab.endpoint).origin,jeton=await jetonVapid(origine,VAPID_SUJET,VAPID_PRIVEE,VAPID_PUBLIQUE),rep=await fetch(ab.endpoint,{method:"POST",headers:{Authorization:`vapid t=${jeton}, k=${VAPID_PUBLIQUE}`,"Content-Encoding":"aes128gcm","Content-Type":"application/octet-stream",TTL:"14400"},body:paquet});if(rep.ok)envoyes++;else{echecs++;if(rep.status===404||rep.status===410)await db(`abonnements_admin?id=eq.${encodeURIComponent(ligne.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({actif:false,modifie_le:new Date().toISOString()})}).catch(()=>{});}}catch{echecs++;}}
   return envoyes?{ok:true,detail:`${envoyes}/${lignes.length} push`,statut:"envoye"}:{ok:false,detail:`0/${lignes.length} push; ${echecs} échec(s)`,statut:"echec"};
 }
@@ -138,8 +158,73 @@ async function courseReelle(ref:string):Promise<Record<string,any>|null>{
   const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=l.ref;return bon;
 }
 
+/* LE RAPPEL ET LE RATTRAPAGE (30/09/2026, à sa demande : « recevoir toutes
+   les courses en temps et en heure… tout ce qui est possible pour être
+   alerté », puis « l'alerte Telegram, bruit, vibration, toutes les 20
+   secondes »). Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
+   - RATTRAPAGE : une course en attente depuis plus d'1 min sans AUCUNE
+     alerte réussie (webhook tombé, Telegram en panne à cet instant) est
+     annoncée maintenant, par tous les canaux.
+   - TELEGRAM TOUTES LES 20 S tant qu'elle reste « attente », 30 min au plus
+     après son arrivée. Chaque message sonne et vibre — c'est le réglage de
+     Telegram sur le téléphone, pas un choix d'ici. Il se tait dès que la
+     course est confirmée ou refusée : le statut est relu à chaque tour.
+     LES 30 MINUTES NE SONT PAS UN OUBLI : une nuit sans réponse, ce serait
+     sinon un message toutes les 20 s jusqu'au matin.
+   - NOTIFICATION DU TÉLÉPHONE toutes les 10 min, trois fois au plus : elle
+     reste affichée de toute façon, la répéter toutes les 20 s ne dirait rien
+     de plus.
+   Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
+   vient du journal. Un appel répété à la main ne peut donc envoyer que les
+   alertes légitimes, au rythme prévu. */
+const RATTRAPAGE_MS=60*1000,PAS_TELEGRAM_MS=15*1000,DUREE_TELEGRAM_MS=30*60*1000,
+      PAS_PUSH_MS=10*60*1000,MAX_PUSH=3,FENETRE_MS=6*3600*1000;
+const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
+async function relancer():Promise<string>{
+  if(!U||!S)return "non configuré";
+  const depuis=new Date(Date.now()-FENETRE_MS).toISOString();
+  const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.asc&limit=50`);
+  if(!r.ok)return "lecture refusée";
+  const lignes=(await r.json())||[];let rattrapes=0,rappelsTg=0,rappelsPush=0;
+  for(const l of lignes){
+    const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;
+    const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
+    const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
+    if(!j.ok)continue;
+    const journalRef=((await j.json())||[]) as Array<Record<string,string>>;
+    const reussies=journalRef.filter(x=>x.statut==="envoye");
+    const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
+    const age=Date.now()-cree;
+    if(!reussies.length){
+      if(age<RATTRAPAGE_MS)continue;
+      const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
+      const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m)]);
+      await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
+      continue;
+    }
+    const t=titreRappel(bon,Math.max(1,Math.round(age/60000)));
+    /* Telegram : 20 s après le dernier message PARTI (15 s de marge, le
+       minuteur de pg_cron n'est pas à la seconde près). */
+    const tgPartis=reussies.filter(x=>x.canal==="telegram");
+    if(TELEGRAM_TOKEN&&TELEGRAM_CHAT&&age<=DUREE_TELEGRAM_MS&&Date.now()-plusRecent(tgPartis,cree)>=PAS_TELEGRAM_MS){
+      /* Le rappel est COURT : sur un écran verrouillé, seule la première
+         ligne se lit, et le détail est déjà dans le premier message. */
+      const tg=await parTelegram(t,`Réf. ${ref} — toujours en attente.\n${ADMIN}?ref=${encodeURIComponent(ref)}`);
+      await journal("rappel_reservation",ref,"telegram",tg);rappelsTg++;
+    }
+    const pushTentes=journalRef.filter(x=>x.canal==="push"&&x.type_evenement==="rappel_reservation");
+    const pushDernier=plusRecent(journalRef.filter(x=>x.canal==="push"),cree);
+    if(pushTentes.length<MAX_PUSH&&Date.now()-pushDernier>=PAS_PUSH_MS){
+      const push=await parPush(t,ref);
+      await journal("rappel_reservation",ref,"push",push);rappelsPush++;
+    }
+  }
+  return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappelsTg} rappel(s) Telegram, ${rappelsPush} rappel(s) notification`;
+}
+
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
+  if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
   const recu=(charge.record??{}) as Record<string,any>;
   const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));

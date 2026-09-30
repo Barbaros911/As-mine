@@ -6132,3 +6132,67 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
     `test-nouveau-reception` a une course effectuée dans son jeu de données
     et éprouve les comptes, chaque onglet et les quatre recherches ; il tombe
     si « passée » n'est plus reconnue (six contrôles).
+
+## LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL
+
+29 septembre 2026, à sa demande. Réglages → « Prix du flyer, par hôtel » :
+un menu d'hôtel (tous ceux de `HOTELS`), puis un tableau Destination ×
+Berline / Van. C'était une liste à plat de quatorze champs.
+- **Seuls les prix modifiés partent** (`data-initial` sur chaque champ) ; un
+  prix modifié est bleu jusqu'à l'enregistrement.
+- **Le défaut que ça a corrigé** : un champ vidé valait `Number("") = 0` et
+  passait le contrôle — l'ancien bouton aurait écrit un forfait à **0 €**.
+  Un montant vide est maintenant refusé, et le message nomme la ligne.
+- Un hôtel absent de `HOTELS` n'apparaît pas : il n'a pas de page sur le
+  site. En ajouter un reste un travail de code.
+- `test-admin-forfaits.mjs` lit ce qui part au serveur ; il tombe si l'on
+  renvoie les quatorze prix à chaque fois.
+
+## ÊTRE ALERTÉ DE CHAQUE DEMANDE — SON, VIBRATION, NOTIFICATION, RAPPEL
+
+30 septembre 2026, à sa demande : « recevoir toutes les courses de tous les
+sites en temps et en heure sur admin et Telegram… une alerte sonore,
+visuelle, notification, tout ce qui est possible ».
+- **MESURÉ AVANT (diagnostic du 29/09, run #10 du workflow des migrations)** :
+  clic du client → serveur en 0 à 2 s, serveur → Telegram en 0 à 2 s, sur les
+  dix dernières courses. **Le serveur n'est pas lent.** Push était encore
+  « indisponible » ce jour-là (clés VAPID pas encore posées).
+- **LE BIP DE L'ADMIN NE SONNAIT PROBABLEMENT JAMAIS SUR UN TÉLÉPHONE.** Il
+  créait un lecteur de son hors de tout geste ; iPhone et Android le laissent
+  suspendu, sans erreur. Un seul lecteur maintenant, débloqué au premier appui
+  n'importe où, et un bandeau `#sonCoupe` le dit tant que ce n'est pas fait.
+- **L'alarme se répète toutes les 20 s** (quatre notes fortes + vibration
+  Android + titre d'onglet qui clignote) jusqu'à un appui sur l'écriteau ou
+  l'ouverture d'une course, dix minutes au plus. **Pastille sur l'icône** =
+  nombre de demandes en attente (`setAppBadge`).
+- **La notification reste affichée** (`requireInteraction`) et vibre (`sw.js`).
+- **« Tester mes alertes »** (Réglages) sonne, vibre, notifie, et dit ce qui a
+  marché sur CET appareil. L'état des notifications de l'appareil a sa propre
+  ligne (`#pushAdminAppareil`) : l'écrire dans `#pushAdminEtat` faisait
+  tomber `test-admin-push`, qui attend le résultat de l'appui à cet endroit.
+- **RATTRAPAGE ET RAPPEL CÔTÉ SERVEUR** : pg_cron appelle toutes les 20 s
+  `nouvelle-demande` avec `{type:"RELANCE"}`
+  (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
+  attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
+  **Telegram toutes les 20 s** tant qu'elle reste en attente (à sa demande :
+  « bruit, vibration, toutes les 20 secondes »), **30 min au plus** après son
+  arrivée — sinon une nuit sans réponse ferait un message toutes les 20 s
+  jusqu'au matin. Notification du téléphone : toutes les 10 min, 3 au plus.
+  Fenêtre de 6 h. Le son et la vibration de chaque message Telegram sont
+  réglés dans Telegram sur son téléphone, pas ici.
+  Tout est relu sur le serveur et la cadence vient du journal : l'appeler plus
+  souvent n'envoie rien de plus. **La migration ne part pas toute seule** —
+  workflow « Appliquer une migration Supabase », ce fichier. Si la base refuse
+  `pg_cron` ou `pg_net`, le journal du workflow le dira.
+- **Le code de l'alarme vit dans le bloc exploitant**, retiré des pages
+  publiques : un bouton branché ailleurs y appellerait des fonctions absentes
+  (`test-easyhotel-client` l'a vu).
+- Suites : `test-admin-alertes.mjs` (14), `test-relance-alertes.mjs` (17).
+- **ADMIN FERMÉ, CE QUI ARRIVE ENCORE** (30/09/2026, à sa demande : « toujours
+  actif même application fermée… aussi sur l'icône »). Une page fermée ne
+  tourne plus — aucun site ne peut l'empêcher, ne pas le promettre. Ce qui
+  arrive quand même : la notification (serveur → service worker), Telegram,
+  et la **pastille chiffrée** : la notification porte `attente` (demandes en
+  attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
+  l'icône. Sans nombre (notification d'un client), un simple point.
+  `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
