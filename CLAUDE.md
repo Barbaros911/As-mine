@@ -6062,11 +6062,16 @@ visuelle, notification, tout ce qui est possible ».
   marché sur CET appareil. L'état des notifications de l'appareil a sa propre
   ligne (`#pushAdminAppareil`) : l'écrire dans `#pushAdminEtat` faisait
   tomber `test-admin-push`, qui attend le résultat de l'appui à cet endroit.
-- **RATTRAPAGE ET RAPPEL CÔTÉ SERVEUR** : pg_cron appelle chaque minute
+- **RATTRAPAGE ET RAPPEL CÔTÉ SERVEUR** : pg_cron appelle toutes les 20 s
   `nouvelle-demande` avec `{type:"RELANCE"}`
-  (`20260930000000_relance_alertes.sql`). Demande en attente depuis plus de
-  2 min sans AUCUNE alerte réussie → annoncée ; toujours en attente 10 min
-  après la dernière alerte → « RAPPEL N min », trois au plus ; fenêtre de 6 h.
+  (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
+  attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
+  **Telegram toutes les 20 s** tant qu'elle reste en attente (à sa demande :
+  « bruit, vibration, toutes les 20 secondes »), **30 min au plus** après son
+  arrivée — sinon une nuit sans réponse ferait un message toutes les 20 s
+  jusqu'au matin. Notification du téléphone : toutes les 10 min, 3 au plus.
+  Fenêtre de 6 h. Le son et la vibration de chaque message Telegram sont
+  réglés dans Telegram sur son téléphone, pas ici.
   Tout est relu sur le serveur et la cadence vient du journal : l'appeler plus
   souvent n'envoie rien de plus. **La migration ne part pas toute seule** —
   workflow « Appliquer une migration Supabase », ce fichier. Si la base refuse
