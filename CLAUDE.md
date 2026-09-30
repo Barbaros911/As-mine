@@ -6075,3 +6075,11 @@ visuelle, notification, tout ce qui est possible ».
   publiques : un bouton branché ailleurs y appellerait des fonctions absentes
   (`test-easyhotel-client` l'a vu).
 - Suites : `test-admin-alertes.mjs` (14), `test-relance-alertes.mjs` (17).
+- **ADMIN FERMÉ, CE QUI ARRIVE ENCORE** (30/09/2026, à sa demande : « toujours
+  actif même application fermée… aussi sur l'icône »). Une page fermée ne
+  tourne plus — aucun site ne peut l'empêcher, ne pas le promettre. Ce qui
+  arrive quand même : la notification (serveur → service worker), Telegram,
+  et la **pastille chiffrée** : la notification porte `attente` (demandes en
+  attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
+  l'icône. Sans nombre (notification d'un client), un simple point.
+  `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
