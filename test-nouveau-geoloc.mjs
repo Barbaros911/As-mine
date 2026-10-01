@@ -176,24 +176,21 @@ check('et le champ n\'est pas rempli avec des coordonnées nues',
   await p.locator('#depart').inputValue());
 await ctx.close();
 
-/* --- 6. LA ZONE DES 90 KM S'APPLIQUE AUSSI ICI.
-   Se localiser à Lille ne doit pas ouvrir une porte dérobée : avant la
-   règle de zone, un Lille → Marseille passait sans un mot, à 1 900 € que
-   le prix ferme rendait opposables. ---------------------------------- */
+/* --- 6. PLUS DE ZONE (1er octobre 2026, à sa demande : « un client doit
+   pouvoir aller n'importe où »). Se localiser à Lille remplit le départ
+   et laisse le bouton du prix allumé. --------------------------------- */
 ({ ctx, p } = await page({
   position:{latitude:50.6292, longitude:3.0573},
   reverse:{ lat:50.6292, lon:3.0573, label:"Place du Général de Gaulle, 59000 Lille" }}));
 await p.locator('#btnGeoloc').click();
 await p.waitForTimeout(1500);
-check('une position hors zone est refusée comme une adresse hors zone',
-  !(await p.locator('#horsZone').isHidden()));
-check('et l\'écriteau nomme le lieu, pour qu\'on comprenne pourquoi',
-  (await p.locator('#horsZoneLieu').textContent()).includes('Lille'),
-  await p.locator('#horsZoneLieu').textContent());
-/* Le bouton doit être éteint AUSSI : un écriteau seul laisserait croire
-   qu'on peut quand même essayer. */
-check('et le bouton du prix est éteint',
-  await p.locator('#btnVoirPrix').isDisabled());
+check('une position à Lille remplit le départ',
+  (await p.locator('#depart').inputValue()).includes('Lille'),
+  await p.locator('#depart').inputValue());
+check('et aucun écriteau « hors zone » n\'existe plus',
+  await p.locator('#horsZone').count() === 0);
+check('et le bouton du prix reste allumé',
+  !(await p.locator('#btnVoirPrix').isDisabled()));
 await ctx.close();
 
 /* --- 7. Les deux langues -------------------------------------------- */

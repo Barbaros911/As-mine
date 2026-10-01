@@ -179,9 +179,8 @@ function depuisPhoton(q, centre){
       /* PLUS DE FILTRE « FRANCE SEULEMENT » (30/09/2026, à sa demande :
          « amst doit montrer la rue d'Amsterdam à Paris mais aussi Amsterdam
          aux Pays-Bas »). Le classement par distance (bonusDistance, dans la
-         page) fait descendre l'étranger sans le cacher ; et la zone des
-         90 km s'applique toujours au moment du CHOIX : on ne vend pas en
-         ligne un Paris → Amsterdam au prix du kilomètre. */
+         page) fait descendre l'étranger sans le cacher. Il n'y a plus de
+         zone desservie (1er octobre 2026) : tout se réserve. */
       return d.features.map(function(f){
         var p = f.properties, r = libellePhoton(p);
         var cat = categorieDuLieu(p.osm_key, p.osm_value, p.type);

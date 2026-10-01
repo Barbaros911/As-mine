@@ -94,18 +94,17 @@ check('« amst » : la rue d\'Amsterdam à Paris en tête', /Rue d'Amsterdam/.te
 check('…ET Amsterdam aux Pays-Bas apparaît (plus de filtre « France seulement »)',
   l.some(t => /Amsterdam, .*Pays-Bas/.test(t)), l.join(' | '));
 
-/* LA ZONE TIENT TOUJOURS : choisir Amsterdam ne donne pas de prix en
-   ligne, ça dit « hors zone » avec l'appel et WhatsApp. */
+/* PLUS DE ZONE (1er octobre 2026, à sa demande) : choisir Amsterdam se
+   réserve comme une autre adresse, bouton du prix allumé. */
 /* Gardé : si Amsterdam manque, la suite doit le DIRE, pas mourir sur un
    délai d'attente sans imprimer son bilan. */
 const amsterdam = p.locator('#arriveeList [role=option]', {hasText:'Pays-Bas'}).first();
 if(await amsterdam.count()) await amsterdam.click();
 await p.waitForTimeout(300);
-const horsZone = await p.evaluate(() => {
-  const e = document.getElementById('horsZone');
-  return !!e && !e.hidden && e.offsetParent !== null;
-});
-check('choisir Amsterdam affiche « hors zone » : pas de réservation en ligne à 430 km', horsZone);
+check('choisir Amsterdam remplit l\'arrivée', /Amsterdam/.test(await p.locator('#arrivee').inputValue()),
+  await p.locator('#arrivee').inputValue());
+check('…sans écriteau « hors zone », bouton du prix allumé',
+  await p.locator('#horsZone').count() === 0 && !(await p.locator('#btnVoirPrix').isDisabled()));
 
 check('aucune erreur JavaScript', errs.length === 0, errs.join(' | '));
 

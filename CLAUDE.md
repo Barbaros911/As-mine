@@ -603,6 +603,12 @@ l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
 pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
 point médian, pas une phrase.
 
+> **RETIRÉE LE 1er OCTOBRE 2026, à sa demande** : « il faut qu'un client
+> puisse aller n'importe où ». Plus d'écriteau « hors zone », plus de bouton
+> éteint : toute adresse trouvée se réserve, au prix du kilomètre. Voir « IL
+> N'Y A PLUS DE ZONE DESSERVIE » en fin de fichier. Ce qui suit est
+> l'historique de la règle.
+
 **LA ZONE DESSERVIE — 90 km autour de Paris** (septembre 2026, phase 2 de
 l'audit, à la demande de Barbaros : « seuls les clients qui sont en
 Île-de-France peuvent réserver »). Avant cette règle, **Lille → Marseille
@@ -2042,7 +2048,7 @@ le moment où l'on perd une réservation.
 - **On invite à VÉRIFIER l'adresse.** Le GPS d'un téléphone se trompe
   couramment de plusieurs dizaines de mètres, donc de numéro dans la rue —
   et le chauffeur va à l'adresse écrite.
-- **La zone des 90 km s'applique**, sans rien de spécial à écrire :
+- **(Historique — zone retirée le 01/10/2026.)** La zone des 90 km s'appliquait, sans rien de spécial à écrire :
   `poser()` appelle le même `quand()` que la liste, donc `jugerZone()`. Un
   test l'éprouve depuis Lille — pas de porte dérobée.
 - **`data-t-aria` a été ajouté à `appliquerLangue()`.** Un bouton dont le
@@ -5752,7 +5758,7 @@ ne joint ni la BAN ni Photon) :
   retiré de la liste, l'ordre seul change.
 - **Photon était filtré sur la France.** Le filtre est retiré : l'étranger
   apparaît, plus bas (`bonusDistance`), avec son pays écrit (« Amsterdam,
-  Pays-Bas »). **La zone des 90 km tient au moment du CHOIX** : choisir
+  Pays-Bas »). **(La zone a été retirée le 01/10/2026 — Amsterdam se réserve désormais.)** Avant : choisir
   Amsterdam affiche « hors zone » avec appel et WhatsApp — décidé, on ne vend
   pas un Paris → Amsterdam en ligne au prix du kilomètre.
 `test-nouveau-recherche.mjs` rejoue ses trois exemples, réponses données
@@ -6383,3 +6389,22 @@ visuelle, notification, tout ce qui est possible ».
   attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
   l'icône. Sans nombre (notification d'un client), un simple point.
   `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
+
+## IL N'Y A PLUS DE ZONE DESSERVIE — TOUT SE RÉSERVE
+
+1er octobre 2026, à sa demande : « enlève la limite des 90 km, il faut qu'un
+client puisse aller n'importe où, voir toutes les adresses qu'il veut ».
+- Partis : l'écriteau `#horsZone`, `CENTRE_ZONE`, `RAYON_ZONE_KM`,
+  `horsZone()`, `lieuHorsZone()`, les clés `zone_titre` / `zone_note`, et le
+  contrôle de `test-doc` sur « 90 km autour de Paris ». `jugerZone()` reste,
+  vidé : il ne fait plus que réveiller `jugerBoutonPrix()` au choix d'une
+  adresse.
+- **La recherche, elle, garde son classement par distance** (`bonusDistance`,
+  `RAYON_RECHERCHE_KM`) : l'Île-de-France passe devant, rien n'est caché.
+- **CE QUI A ÉTÉ DIT, ET QU'IL A ACCEPTÉ EN DÉCIDANT** : le prix reste ferme
+  donc opposable. Un Lille → Marseille sort à plus de 3 000 € au kilomètre,
+  et un trajet à l'étranger au même tarif. Le site ne refuse plus rien :
+  c'est à Barbaros de ne pas confirmer une course qu'il ne peut pas placer
+  (« Refuser la course », sur le bon).
+- Le serveur (`deposer-course`) n'a jamais vérifié la zone : rien à changer
+  de ce côté. Les CGV ne la mentionnent pas non plus.

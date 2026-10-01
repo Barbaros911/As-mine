@@ -140,8 +140,6 @@ verifier("le tableau de la grille est lisible dans CLAUDE.md", lignesLues >= 2,
    minutes, où la constante, deux phrases et une table d'exemples devaient
    bouger ensemble. */
 const chiffres = [
-  { nom:"RAYON_ZONE_KM",       motif:/(\d+)\s*km autour de Paris/i,
-    quoi:"le rayon de la zone desservie" },
   { nom:"DELAI_MINIMUM_MIN",   motif:/`DELAI_MINIMUM_MIN`\s*vaut\s*(\d+)/i,
     quoi:"le préavis minimum avant un départ" },
   { nom:"OPTION_PANCARTE_EUR", motif:/OPTION_PANCARTE_EUR[^\n]*?|PANCARTE EST UNE OPTION À\s*(\d+)\s*€/i,

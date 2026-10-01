@@ -129,10 +129,9 @@ await p.waitForTimeout(600);
 const refus = await p.locator('#refus').textContent();
 check('elle a son message à elle', /déjà passée/i.test(refus), refus);
 
-/* --- LA ZONE ET LE PRÉAVIS NE SE CONTREDISENT PAS -------------------- */
-/* Une adresse hors zone éteint le bouton. Corriger ensuite l'heure ne doit
-   PAS le rallumer : le second juge rallumerait ce que le premier a éteint
-   s'ils ne se parlaient pas. */
+/* --- UNE ARRIVÉE LOINTAINE SE RÉSERVE ---------------------------------
+   Plus de zone des 90 km (1er octobre 2026, à sa demande). Lille n'éteint
+   plus le bouton, et le préavis reste le seul juge de l'heure. */
 await ctx.close();
 ({ ctx, p } = await page());
 await p.evaluate(()=>{
@@ -152,13 +151,12 @@ await p.fill('#arrivee','lille'); await p.waitForTimeout(900);
    tombaient sans que rien ne soit cassé. */
 await p.locator('#arriveeList [role=option]', {hasText:'Lille'}).first().click();
 await p.waitForTimeout(300);
-check('une arrivée hors zone éteint le bouton', await p.locator('#btnVoirPrix').isDisabled());
+check('une arrivée à Lille laisse le bouton allumé', !(await p.locator('#btnVoirPrix').isDisabled()));
 t = dansNMinutes(240);
 await p.fill('#date', t.date); await p.fill('#heure', t.heure);
 await p.waitForTimeout(300);
-check('et corriger l\'heure ne le rallume PAS tant que la zone est mauvaise',
-  await p.locator('#btnVoirPrix').isDisabled());
-check('l\'écriteau « hors zone » est toujours là', !(await p.locator('#horsZone').isHidden()));
+check('et une heure valable le laisse allumé', !(await p.locator('#btnVoirPrix').isDisabled()));
+check('aucun écriteau « hors zone » n\'existe plus', await p.locator('#horsZone').count() === 0);
 await ctx.close();
 
 /* --- LA DATE DU JOUR, VUE À 1 H DU MATIN -----------------------------

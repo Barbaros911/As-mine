@@ -2424,26 +2424,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          barre. La règle « le formulaire entier tient dans le premier écran »
          est donc tenue, et c'est ce bloc-là qui la payait. -->
 
-    <!-- LA ZONE DESSERVIE — 90 km autour de Paris.
-         Sans ce garde-fou, Lille → Marseille passait sans un mot : 1 084 km,
-         un prix ferme annoncé, et une course à assurer à perte ou un
-         engagement à retirer — ce que le Code de la consommation appelle une
-         pratique commerciale trompeuse. On mesure la distance à vol d'oiseau
-         depuis Paris, et PAS le département : la latitude et la longitude
-         sont la seule donnée présente sur toutes les adresses. 90 km couvre
-         l'Île-de-France avec de la marge et garde Beauvais-Tillé (69 km),
-         que le site propose lui-même. -->
-    <div class="hors-zone" id="horsZone" hidden>
-      <b data-t="zone_titre">Cette adresse est en dehors de notre zone.</b>
-      <p id="horsZoneLieu"></p>
-      <p data-t="zone_note">Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus
-         long, appelez-nous : nous vous ferons un prix sur mesure.</p>
-      <div class="duo">
-        <a href="tel:+33759312433" data-t="appeler">Appeler</a>
-        <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
-      </div>
-    </div>
-
     <!-- TROP TÔT — 15 MINUTES DE PRÉAVIS (septembre 2026, à sa demande).
          Un chauffeur doit être trouvé, prévenu, et il doit rouler jusqu'au
          client. Accepter une course pour dans cinq minutes, c'est promettre
@@ -5252,8 +5232,6 @@ window.ELA_TEXTES = {
     hero_prix:"Prix ferme, connu avant le départ.",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
-    zone_titre:"Cette adresse est en dehors de notre zone.",
-    zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
     appeler:"Appeler",
     lieu_depart:"Lieu de départ", lieu_arrivee:"Lieu d'arrivée",
     ph_adresse:"Adresse, aéroport, hôtel…",
@@ -5442,8 +5420,6 @@ window.ELA_TEXTES = {
     hero_prix:"A firm price, known before you leave.",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
-    zone_titre:"This address is outside our service area.",
-    zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
     appeler:"Call",
     lieu_depart:"Pick-up location", lieu_arrivee:"Drop-off location",
     ph_adresse:"Address, airport, hotel…",
@@ -5840,19 +5816,17 @@ window.ELA_TEXTES = {
     if(utiles.length && utiles.length < mots.length) liste.push(utiles.join(" "));
     return liste;
   }
-  /* MÊME CENTRE ET MÊME RAYON QUE « LA ZONE DESSERVIE » plus bas dans ce
-     fichier (CENTRE_ZONE / RAYON_ZONE_KM) — recopiés ici, pas partagés :
-     Photon, dans itineraire-partage.js, fait déjà de même pour son propre
-     biais. Trois endroits qui utilisent le centre de Paris, c'est un fait
+  /* LE CENTRE DE PARIS, recopié ici, pas partagé : Photon, dans
+     itineraire-partage.js, fait déjà de même pour son propre biais. Deux
+     endroits qui utilisent le centre de Paris, c'est un fait
      géographique stable, pas une grille tarifaire appelée à changer.
      LA LOGIQUE : un client tape « rue de la Paix » ou « rue de la Gare » —
      des noms qui existent par dizaines dans toute la France. Sans repère,
      le score ne compare que des mots, et deux rues homonymes arrivent à
      égalité ; c'est alors l'ordre brut du serveur qui décide, sans rapport
      avec ce que cherche un client d'Elatransfer. On ne DIT jamais qu'une
-     adresse loin de Paris est invalide ici — ça, c'est le rôle de
-     « horsZone », plus bas, appliqué au moment du choix, pas de la
-     recherche : on la fait seulement remonter ou descendre dans la liste. */
+     adresse loin de Paris est invalide — il n'y a plus de zone depuis le
+     1er octobre 2026 : on la fait seulement remonter ou descendre. */
   var CENTRE_RECHERCHE = { lat:48.8566, lon:2.3522 };
   /* ═══ CHERCHER AUTOUR DE LA PERSONNE (30/09/2026, à sa demande) ═══
      Comme Uber : ce qui est près du client passe devant. Trois repères, du
@@ -7575,40 +7549,13 @@ window.ELA_TEXTES = {
   });
 
 /* =====================================================================
-   LA ZONE DESSERVIE
-   ---------------------------------------------------------------------
-   On mesure la distance À VOL D'OISEAU depuis Paris, et pas le
-   département : la latitude et la longitude sont la seule donnée présente
-   sur TOUTES les adresses — Base Adresse Nationale, Photon, terminaux
-   d'aéroport. Le code postal n'est qu'un morceau de libellé, écrit
-   différemment selon la source ; s'y fier, c'est accepter qu'un jour une
-   adresse valable soit refusée parce qu'elle est écrite autrement.
-   90 km, et pas « les huit départements » : Beauvais-Tillé est dans
-   l'Oise, à 69 km, et une règle départementale aurait refusé l'un des
-   trois aéroports que le site propose lui-même.
+   PLUS DE ZONE DESSERVIE (1er octobre 2026, à la demande de Barbaros :
+   « il faut qu'un client puisse aller n'importe où »). La limite des
+   90 km autour de Paris est retirée : toute adresse trouvée se réserve,
+   au prix du kilomètre. « jugerZone » ne fait plus que réveiller le juge
+   du bouton, appelé au choix de chaque adresse.
    ===================================================================== */
-  var CENTRE_ZONE = { lat:48.8566, lon:2.3522 };
-  var RAYON_ZONE_KM = 90;
-  /* Une adresse SANS coordonnées n'est pas hors zone : elle n'est
-     simplement pas encore choisie dans la liste. Refuser ici afficherait
-     « hors zone » sur un champ en cours de saisie. */
-  function horsZone(lieu){
-    if(!lieu || typeof lieu.lat !== "number") return false;
-    return volDoiseauKm(CENTRE_ZONE, lieu) > RAYON_ZONE_KM;
-  }
-  var blocZone = document.getElementById("horsZone");
-  var zoneLieu = document.getElementById("horsZoneLieu");
-  function lieuHorsZone(){
-    if(horsZone(choix.depart)) return choix.depart;
-    if(horsZone(choix.arrivee)) return choix.arrivee;
-    return null;
-  }
   function jugerZone(){
-    var mauvais = lieuHorsZone();
-    blocZone.hidden = !mauvais;
-    zoneLieu.textContent = mauvais ? mauvais.label : "";
-    /* Le bouton n'est plus éteint ici : la zone n'est pas son seul juge
-       depuis le préavis minimum. Voir « jugerBoutonPrix ». */
     if(window.__jugerBoutonPrix) window.__jugerBoutonPrix();
   }
 
@@ -8375,7 +8322,7 @@ window.ELA_TEXTES = {
      se contredire. Sans ce point de rendez-vous, le second à s'exécuter
      rallumerait le bouton que le premier vient d'éteindre. */
   function jugerBoutonPrix(){
-    var bloque = !!lieuHorsZone() || tropTot() || heureDepassee();
+    var bloque = tropTot() || heureDepassee();
     boutonPrix.disabled = bloque;
     /* ═══ TOUT NOUVEAU JUGE DU BOUTON PASSE PAR ICI ═══
        La règle date du préavis minimum : sans ce point de rendez-vous, le
@@ -8481,7 +8428,6 @@ window.ELA_TEXTES = {
       (choix.depart ? champArrivee : champDepart).focus();
       return;
     }
-    if(lieuHorsZone()) return;
     if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }
     if(heureDepassee()){ refuser("err_heure_passee"); champHeure.focus(); return; }
     /* Le préavis. L'écriteau est déjà affiché par « jugerDelai », mais le
