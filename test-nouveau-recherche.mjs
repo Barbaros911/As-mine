@@ -192,6 +192,74 @@ async function taper(pg, champ, q, attendu){
   check('…et la boulangerie de Roissy est en tête', /Roissy/.test(l[0] || ''), l.join(' | '));
   await ctx.close();
 }
+/* =====================================================================
+   DEVINER LA FAUTE, ET LES DESTINATIONS D'UN CHAUFFEUR DEVANT (01/10/2026)
+   Les faux services ne répondent QU'À LA BONNE ORTHOGRAPHE : si la page
+   n'envoyait pas d'elle-même la saisie corrigée, la liste resterait vide.
+   Et chaque réponse met la boutique ou le bar homonyme EN PREMIER.
+   ===================================================================== */
+{
+  const lieu = (lon, lat, name, key, value, extra={}) => ({ geometry:{coordinates:[lon,lat]},
+    properties:{ name, osm_key:key, osm_value:value, postcode:"75000", city:"Paris", countrycode:"FR", ...extra } });
+  const ctx = await b.newContext({ viewport:{width:390,height:844}, locale:'fr-FR' });
+  const vus = [];
+  await ctx.route('**/*', r => {
+    const u = decodeURIComponent(r.request().url());
+    if(u.startsWith('http://127.0.0.1:8099')) return r.continue();
+    if(u.includes('photon.komoot.io')){
+      vus.push(u);
+      const q = (new URL(r.request().url()).searchParams.get('q') || '').toLowerCase();
+      let f = [];
+      if(/sacre coeur/.test(q)) f = [lieu(2.3440,48.8850,"Le Sacré Coeur","amenity","bar"),
+        lieu(2.3431,48.8867,"Basilique du Sacré-Cœur de Montmartre","amenity","place_of_worship")];
+      if(/gare du nord/.test(q)) f = [lieu(2.3560,48.8800,"Brasserie Gare du Nord","amenity","restaurant"),
+        lieu(2.3553,48.8809,"Gare du Nord","railway","station")];
+      if(/^lyon$/.test(q)) f = [lieu(2.3730,48.8440,"Boulangerie de Lyon","shop","bakery"),
+        lieu(2.3734,48.8443,"Gare de Lyon","railway","station")];
+      if(/ibis bercy/.test(q)) f = [lieu(2.3850,48.8380,"Ibis Bercy Optique","shop","optician"),
+        lieu(2.3870,48.8360,"Ibis Paris Bercy Village","tourism","hotel")];
+      if(/rue du lyon/.test(q)) f = [lieu(2.3734,48.8443,"Gare de Lyon","railway","station")];
+      return r.fulfill({contentType:'application/json', body:JSON.stringify({features:f})});
+    }
+    if(u.includes('api-adresse.data.gouv.fr')){
+      const q = (new URL(r.request().url()).searchParams.get('q') || '').toLowerCase();
+      const f = /rue du lion/.test(q) ? [{ geometry:{coordinates:[2.3620,48.8530]},
+        properties:{ label:"Rue du Lion 75004 Paris", type:"street" } }] : [];
+      return r.fulfill({contentType:'application/json', body:JSON.stringify({features:f})});
+    }
+    return r.abort();
+  });
+  const pg = await ctx.newPage();
+  const errs2 = []; pg.on('pageerror', e => errs2.push(e.message));
+  await pg.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await pg.waitForTimeout(600);
+
+  let l = await taper(pg, '#arrivee', 'sacre ceur', 'Basilique');
+  check('« sacre ceur » (faute) : la saisie corrigée « sacre coeur » est envoyée',
+    vus.some(u => /q=sacre coeur/.test(u)), vus.slice(-3).join(' || '));
+  check('…et la basilique arrive en tête', /Basilique/.test(l[0] || ''), l.join(' | '));
+
+  l = await taper(pg, '#arrivee', 'gare du nrod', 'Gare du Nord');
+  check('« gare du nrod » (lettres inversées) : la gare du Nord en tête, devant la brasserie',
+    /^.?\s*Gare du Nord/.test(l[0] || '') || /Gare du Nord, /.test(l[0] || ''), l.join(' | '));
+
+  l = await taper(pg, '#depart', 'aeroport roisy', 'Terminal');
+  check('« aeroport roisy » : les terminaux de Roissy sont proposés',
+    l.some(t => /Terminal 2E/.test(t)), l.join(' | '));
+
+  l = await taper(pg, '#arrivee', 'lyon', 'Gare de Lyon');
+  check('« lyon » : la GARE passe devant la boulangerie du même nom', /Gare de Lyon/.test(l[0] || ''), l.join(' | '));
+
+  l = await taper(pg, '#arrivee', 'ibis bercy', 'Village');
+  check('« ibis bercy » : l\'HÔTEL passe devant la boutique du même nom', /Bercy Village/.test(l[0] || ''), l.join(' | '));
+
+  l = await taper(pg, '#arrivee', 'rue du lion', 'Rue du Lion');
+  check('« rue du lion » est juste : la rue reste en tête, la correction ne la chasse pas',
+    /Rue du Lion/.test(l[0] || ''), l.join(' | '));
+
+  check('aucune erreur JavaScript (fautes de frappe)', errs2.length === 0, errs2.join(' | '));
+  await ctx.close();
+}
 await b.close();
 console.log('=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(x => console.log('  ✔ ' + x));

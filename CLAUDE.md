@@ -6408,3 +6408,30 @@ client puisse aller n'importe où, voir toutes les adresses qu'il veut ».
   (« Refuser la course », sur le bon).
 - Le serveur (`deposer-course`) n'a jamais vérifié la zone : rien à changer
   de ce côté. Les CGV ne la mentionnent pas non plus.
+
+## LA RECHERCHE DEVINE LES FAUTES, ET MET LES GARES ET LES HÔTELS DEVANT
+
+1er octobre 2026, à sa demande : « si ce n'est pas exactement le mot, il
+faut deviner ce que le client écrit », et valoriser monuments, gares,
+hôtels — **« pas les hôpitaux »**, tranché par lui.
+- **`LEXIQUE`** (index.html) : les mots qu'un client tape vraiment
+  (aéroports, gares, monuments, communes d'Île-de-France, mots d'adresse).
+  Un mot tapé à une faute près (deux au-delà de 6 lettres, inversion de deux
+  lettres comptée une) fait partir une **seconde** recherche corrigée —
+  « sacre ceur » → « sacre coeur », « gare du nrod » → « gare du nord »,
+  « aeroport roisy » ouvre les terminaux de Roissy. **La saisie d'origine
+  part toujours aussi** : « rue du lion » existe, la remplacer par « lyon »
+  la ferait disparaître. Moins de 4 lettres : on ne devine rien.
+- **Le classement tolère la faute** : un mot à une ou deux lettres d'un mot
+  du libellé compte 2 au lieu de 3.
+- **Jamais vers un mot passe-partout** (`MOTS_COURANTS`) : « paix » est à
+  une lettre de « paris », présent dans presque tous les libellés — le
+  premier jet faisait passer un hôtel devant « 12 rue de la Paix »
+  (`test-nouveau` l'a vu).
+- **Les bonus** (`note()`) : monument +4, gare +3, hôtel +2, chacun
+  seulement s'il répond au mot tapé ; une rue dont tout le nom est tapé +5,
+  pour garder « champs elysee » sur l'avenue et non sur l'hôtel qui porte
+  son nom. Aucun résultat n'est retiré, seul l'ordre change.
+- **Pour ajouter un mot que les clients écorchent**, l'ajouter à `LEXIQUE`.
+- `test-nouveau-recherche.mjs` : les faux services ne répondent qu'à la
+  bonne orthographe ; six contrôles tombent sur l'ancien code.

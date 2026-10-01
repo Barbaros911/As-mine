@@ -5814,7 +5814,82 @@ window.ELA_TEXTES = {
     var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean);
     var utiles = mots.filter(function(m){ return MOTS_COURANTS.indexOf(m) === -1; });
     if(utiles.length && utiles.length < mots.length) liste.push(utiles.join(" "));
+    /* La saisie corrigée part EN PLUS, jamais à la place : « rue du lion »
+       existe, et la corriger en « lyon » la ferait disparaître. */
+    var corrigee = corrigerSaisie(q);
+    if(corrigee) liste.push(corrigee);
     return liste;
+  }
+
+  /* ═══ DEVINER CE QUE LE CLIENT A VOULU ÉCRIRE (1er octobre 2026) ═══
+     À sa demande : « si ce n'est pas exactement le mot, il faut deviner ».
+     Deux mécanismes, et aucun ne retire de résultat :
+     1. UN LEXIQUE des mots qu'un client d'Elatransfer tape vraiment —
+        aéroports, gares, monuments, communes d'Île-de-France, mots d'une
+        adresse. Un mot tapé qui en est TOUT PROCHE (« roisy », « ceur »,
+        « montparnase », « elisee ») fait partir une seconde recherche,
+        corrigée. Les services ne savent pas tous rattraper une faute ; ce
+        lexique, si.
+     2. LE CLASSEMENT TOLÈRE LA FAUTE : un mot tapé compte aussi quand il est
+        à une ou deux lettres d'un mot du libellé (moins qu'un mot exact).
+     « Proche » se mesure sur un SQUELETTE du mot — y = i, ph = f, lettres
+     doublées réduites, s ou x final retiré — puis en comptant les lettres
+     à changer, ajouter, retirer ou inverser : une faute pour un mot de 4 à
+     6 lettres, deux au-delà. En dessous de 4 lettres on ne devine rien :
+     « nor » devient tout et n'importe quoi. */
+  var LEXIQUE = ["roissy","charles","gaulle","orly","beauvais","tille","aeroport",
+    "terminal","aerogare","gare","nord","lyon","montparnasse","austerlitz","lazare",
+    "bercy","saint","sainte","denis","champs","elysees","eiffel","tour","sacre","coeur",
+    "basilique","montmartre","notre","dame","cathedrale","louvre","opera","garnier",
+    "bastille","concorde","trocadero","invalides","defense","versailles","chateau",
+    "disneyland","disney","marne","vallee","chessy","chatelet","halles","republique",
+    "nation","madeleine","vendome","pigalle","marais","belleville","villepinte","bourget",
+    "boulogne","billancourt","neuilly","levallois","argenteuil","nanterre","vincennes",
+    "montreuil","creteil","massy","palaiseau","aeroville","porte","maillot","etoile",
+    "arc","triomphe","pantheon","sorbonne","luxembourg","orsay","pompidou","hotel",
+    "hotels","rue","avenue","boulevard","place","quai","allee","impasse","chemin",
+    "route","square","cours","villa","passage","residence","parc","jardin","musee",
+    "stade","france","paris","roland","garros","cergy","pontoise","evry","melun",
+    "meaux","marne","noisy","grand","fontainebleau","rambouillet","poissy","saclay"];
+  function squelette(m){
+    return m.replace(/ph/g,"f").replace(/y/g,"i").replace(/(.)\1+/g,"$1").replace(/[sx]$/,"");
+  }
+  /* Lettres à changer, ajouter, retirer ou INVERSER (« nrod » → « nord »
+     coûte une faute, pas deux). */
+  function ecart(a, b){
+    if(Math.abs(a.length - b.length) > 2) return 3;
+    var d = [], i, j;
+    for(i=0;i<=a.length;i++){ d[i]=[i]; }
+    for(j=0;j<=b.length;j++){ d[0][j]=j; }
+    for(i=1;i<=a.length;i++) for(j=1;j<=b.length;j++){
+      var c = a[i-1]===b[j-1] ? 0 : 1;
+      d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+c);
+      if(i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]) d[i][j] = Math.min(d[i][j], d[i-2][j-2]+1);
+    }
+    return d[a.length][b.length];
+  }
+  function tolerance(n){ return n >= 7 ? 2 : n >= 4 ? 1 : 0; }
+  /* Le mot de la liste le plus proche de « m », ou null. */
+  function motVoisin(m, liste){
+    if(m.length < 4 || /\d/.test(m)) return null;
+    var sm = squelette(m), meilleur = null, mieux = 9;
+    liste.forEach(function(c){
+      var e = ecart(sm, squelette(c));
+      if(e <= tolerance(Math.max(m.length, c.length)) && e < mieux){ mieux = e; meilleur = c; }
+    });
+    return meilleur;
+  }
+  /* Même règle pour la correction : « paix » ne devient pas « paris ». */
+  var CIBLES = LEXIQUE.filter(function(w){ return MOTS_COURANTS.indexOf(w) === -1; });
+  function corrigerSaisie(q){
+    var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean), change = false;
+    var sortie = mots.map(function(m){
+      if(LEXIQUE.indexOf(m) > -1 || MOTS_COURANTS.indexOf(m) > -1) return m;
+      var v = motVoisin(m, CIBLES);
+      if(v && v !== m){ change = true; return v; }
+      return m;
+    });
+    return change ? sortie.join(" ") : null;
   }
   /* LE CENTRE DE PARIS, recopié ici, pas partagé : Photon, dans
      itineraire-partage.js, fait déjà de même pour son propre biais. Deux
@@ -5873,12 +5948,21 @@ window.ELA_TEXTES = {
   var MOTS_RESTO = ["restaurant","resto","brasserie","cafe","bar","pub","bistrot","pizza","pizzeria"];
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    /* On ne rapproche jamais d'un mot passe-partout : « paix » est à une
+       lettre de « paris », qui est dans presque tous les libellés. */
+    var motsLibelle = l.split(/[^a-z0-9]+/).filter(function(w){
+      return w && !/\d/.test(w) && MOTS_COURANTS.indexOf(w) === -1;
+    });
     var utiles = 0, touches = 0;
     mots.forEach(function(m){
       if(m.length < 2) return;
       var courant = MOTS_COURANTS.indexOf(m) > -1;
       if(!courant) utiles++;
-      if(l.indexOf(m) === -1) return;
+      if(l.indexOf(m) === -1){
+        /* Une faute de frappe compte encore, un peu moins qu'un mot juste. */
+        if(courant || !motVoisin(m, motsLibelle)) return;
+        touches++; s += 2; return;
+      }
       if(!courant) touches++;
       s += courant ? 1 : 3;
     });
@@ -5886,13 +5970,20 @@ window.ELA_TEXTES = {
     /* ═══ CE QU'ON CHERCHE PAR SON NOM PASSE DEVANT (30/09/2026) ═══
        « sacré coeur » : la basilique avant le bar du même nom ; « champs
        elysee » : l'avenue avant les hôtels qui portent son nom. Un
-       monument qui répond au nom tapé gagne 3 ; une RUE dont le nom est
-       entièrement tapé gagne 3 (une rue n'a pas le bonus de « lieu nommé »
+       monument qui répond au nom tapé gagne 4 ; une RUE dont le nom est
+       entièrement tapé gagne 5 (une rue n'a pas le bonus de « lieu nommé »
        qu'ont les commerces) ; un bar ou un restaurant en perd 2 si le
        client n'a pas écrit « restaurant », « bar »… Rien n'est retiré :
        l'ordre change, la liste reste la même. */
-    if(item.categorie === "culture" && touches > 0) s += 3;
-    if(item.categorie === "voie" && toutTrouve) s += 3;
+    /* LES DESTINATIONS D'UN CHAUFFEUR PASSENT DEVANT (1er octobre 2026, à sa
+       demande) : un monument, une gare, un hôtel qui répond au nom tapé
+       passe devant la boutique ou le bar du même nom. PAS LES HÔPITAUX —
+       tranché par Barbaros. Une rue dont tout le nom est tapé garde le
+       dessus sur l'hôtel qui porte son nom (« champs elysee » : l'avenue). */
+    if(item.categorie === "culture" && touches > 0) s += 4;
+    if(item.categorie === "gare" && touches > 0) s += 3;
+    if(item.categorie === "hotel" && touches > 0) s += 2;
+    if(item.categorie === "voie" && toutTrouve) s += 5;
     if(item.categorie === "restauration"
        && !mots.some(function(m){ return MOTS_RESTO.indexOf(m) > -1; })) s -= 2;
     var km = distanceParis(item);
@@ -5947,6 +6038,8 @@ window.ELA_TEXTES = {
       + (centre ? "@" + centre.lat.toFixed(2) + "," + centre.lon.toFixed(2) : "");
     if(cache[clef]) return Promise.resolve(cache[clef]);
     var terminaux = terminauxPourSaisie(q);
+    /* « aeroport roisy » doit ouvrir les terminaux de Roissy. */
+    if(!terminaux.length){ var qc = corrigerSaisie(q); if(qc) terminaux = terminauxPourSaisie(qc); }
     var formes = variantes(q);
     return Promise.all([depuisBAN(q, centre)].concat(formes.map(function(f){ return depuisPhoton(f, centre); })))
       .then(function(res){
