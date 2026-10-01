@@ -139,7 +139,7 @@ function publicEla() {
   let html = sansReception(sansAdmin());
   html = injecterBootstrap(html, 'public');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="public">');
-  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var r=p.toString();location.replace('/easyhotel-reception/'+(r?'?'+r:'')+location.hash);return}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var r=p.toString();location.replace('/reception/easyhotel-aeroville/'+(r?'?'+r:'')+location.hash);return}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
 }
@@ -148,7 +148,7 @@ function client() {
   let html = sansReception(sansAdmin());
   html = injecterBootstrap(html, 'client');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
-  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/easyhotel-reception/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/reception/easyhotel-aeroville/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
 }
@@ -283,6 +283,17 @@ fs.writeFileSync(path.join(dossierReception, 'manifest.webmanifest'), JSON.strin
     { src: '/icones/reception-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
     { src: '/icones/reception-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
   ],
+}, null, 2) + '\n');
+/* ADRESSE PROPRE (01/10/2026) : /reception/easyhotel-aeroville/ sert la MÊME
+   page que /easyhotel-reception/, qui reste intacte (icônes déjà posées).
+   Seul le manifeste diffère, pour qu'une icône posée d'ici rouvre ici. */
+const dossierReceptionPropre = path.join(sortie, 'reception', 'easyhotel-aeroville');
+fs.mkdirSync(dossierReceptionPropre, { recursive: true });
+fs.writeFileSync(path.join(dossierReceptionPropre, 'index.html'),
+  receptionHtml.replace('href="/easyhotel-reception/manifest.webmanifest"', 'href="/reception/easyhotel-aeroville/manifest.webmanifest"'));
+const manifesteReception = JSON.parse(fs.readFileSync(path.join(dossierReception, 'manifest.webmanifest'), 'utf8'));
+fs.writeFileSync(path.join(dossierReceptionPropre, 'manifest.webmanifest'), JSON.stringify({
+  ...manifesteReception, id: '/reception/easyhotel-aeroville/', start_url: '/reception/easyhotel-aeroville/',
 }, null, 2) + '\n');
 const dossierAdmin = path.join(sortie, 'ela-admin');
 fs.mkdirSync(dossierAdmin, { recursive: true });
