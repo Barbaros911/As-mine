@@ -6576,3 +6576,81 @@ page propre retirée, il tombe en la nommant.
   d'avis ne vivent QUE sur l'appareil. Les réservations, elles, sont toutes
   sur le serveur.
 - `sw.js` CACHE v121.
+
+## AUDIT DU 2 OCTOBRE 2026 — CE QUE LA PRODUCTION CONTIENT VRAIMENT
+
+Audit demandé par Barbaros avant l'exploitation du 12. Lecture seule, à
+partir des journaux des 17 exécutions du workflow de migration (la seule
+trace de ce que la base a reçu), du diagnostic de fiabilité et du chien de
+garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
+
+- **LA POLICY ANONYME S'APPELLE « depot client » EN PRODUCTION**, pas « un
+  client peut deposer sa demande » comme l'écrivait `SUPABASE.md`. Le `drop
+  policy` du 28/09 a donc visé le vide ; le `revoke insert … from anon` de la
+  même migration, lui, a été exécuté (29/09, 00 h 26). PostgreSQL vérifie le
+  droit sur la table avant les policies : anon ne peut plus écrire, la
+  policy est inerte mais reste **affichée** dans le tableau de bord — c'est
+  ce que Barbaros voyait comme « encore active ». `20261003000000` la
+  supprime par son vrai nom ; **à appliquer après les trois réservations
+  réelles du 10**, pas avant. Leçon : **on ne droppe pas un nom lu dans une
+  doc, on droppe un nom lu dans `pg_policies`** — le diagnostic du 15/09
+  l'avait sous les yeux.
+- **AUCUN REGISTRE DES MIGRATIONS.** Le workflow exécute du SQL brut par
+  l'API de gestion et n'écrit rien dans `schema_migrations`. Sur 29 fichiers,
+  12 sont passés par lui ; 17 ont été collés dans l'éditeur SQL, et des
+  objets vivent en production sans migration (`courses`, `abonnements`,
+  `presence_operateurs`, `role_operateur`, `signaler_presence`,
+  `presences_operateurs`, le webhook INSERT → nouvelle-demande).
+  `20261003010000_inventaire_schema.sql` liste le schéma réel en lecture
+  seule, sans donnée ni argument de déclencheur : **le lancer avant d'écrire
+  une migration qui touche un objet existant.**
+- **DEUX MIGRATIONS NE DOIVENT PLUS JAMAIS ÊTRE REJOUÉES** :
+  `20260916100000_current_tariff_source.sql` (upsert des forfaits) et
+  `20260928120000_tarif_unifie.sql` (UPDATE du tarif au kilomètre). Depuis
+  que les prix se règlent depuis l'admin (Réglages → Tarifs, Prix du flyer),
+  les rejouer **écraserait** ce que Barbaros a réglé, sans un mot.
+  `20260916070000_stripe_test_manual_capture.sql` crée ses policies sans
+  `drop` préalable : rejouée, elle échoue, ce qui est sans dégât.
+- **SEULE `main` PUBLIE, DÉPLOIE ET MIGRE.** `pages.yml`, `fonctions.yml` et
+  `migrations.yml` acceptaient `workflow_dispatch` sur n'importe quelle
+  branche — les migrations ont été lancées depuis une branche le 15/09. Les
+  trois jobs portent `if: github.ref == 'refs/heads/main'`. Un diagnostic se
+  fusionne d'abord, se lance ensuite.
+- **LE QUOTA DES CLIENTS DU QR EST TRANCHÉ** (3 octobre 2026, Barbaros :
+  « la 2 »). Le plafond anonyme de 12 dépôts par heure et par adresse IP
+  valait aussi pour les clients qui scannent le flyer sur le **wifi de
+  l'hôtel**, qui partagent l'adresse de la box : le treizième lisait « non
+  transmise » et personne n'était alerté. Une demande qui porte la clé d'un
+  partenaire **réel** — vérifiée dans `partenaires`, jamais crue sur parole,
+  sinon chaque clé inventée serait un compteur neuf — compte désormais sur sa
+  propre clé « hôtel + adresse + heure », plafonnée à **30**. La réception
+  garde ses 60 par session ; l'anonyme ordinaire ses 12. Un attaquant qui
+  connaît la clé de l'hôtel (elle est dans les liens du QR) gagne 30 au lieu
+  de 12, rien de plus. Quatre contrôles dans `test-securite-fonctions`.
+- **LA CLÉ DU WEBHOOK SE LIT D'ICI, SANS L'AFFICHER** (3 octobre 2026,
+  Barbaros : « regarde toi-même »). L'en-tête d'autorisation du webhook sur
+  `courses` (créé dans le tableau de bord) doit porter la clé publique, pas
+  une clé service_role. `20261003020000_diagnostic_webhook_autorisation.sql`
+  lit la définition des déclencheurs `http_request` et **classe** l'en-tête
+  — publique, secrète, ou jeton JWT avec son rôle — sans jamais sortir la
+  valeur, le journal GitHub étant public. Le rôle se lit dans la partie
+  centrale du jeton, qui est du JSON encodé, pas chiffré.
+  - **`analyse` EST UN MOT RÉSERVÉ DE POSTGRESQL** (l'orthographe britannique
+    d'`ANALYZE`) : le premier jet nommait ainsi une CTE, et la base l'a
+    refusé en production — après une fusion, donc une PR de plus à faire
+    relire. **Un SQL de diagnostic s'éprouve AVANT d'être poussé, et c'est
+    possible ici** : cette machine a PostgreSQL 16 complet dans
+    `/usr/lib/postgresql/16/bin` (`initdb`, `postgres`, `psql`), à lancer
+    sous l'utilisateur `postgres` dans `/tmp` — le bac à sable n'est pas
+    traversable par cet utilisateur. La PR #285 affirmait « pas de serveur
+    PostgreSQL sur la machine de travail » : c'était faux, personne n'avait
+    regardé. Éprouvé ensuite sur six déclencheurs factices (anon,
+    service_role, `sb_publishable_`, `sb_secret_`, sans en-tête, et un
+    déclencheur ordinaire qui ne doit pas apparaître) : la version de `main`
+    rend mot pour mot l'erreur de la CI, la version corrigée classe les cinq
+    webhooks et ignore le sixième.
+- **LE VRAI BLOQUANT EST ADMINISTRATIF** : SIRET, RC Pro de la centrale,
+  déclaration d'activité au ministère des transports (L3142-2, preuve
+  d'immatriculation + attestation RC, par mail, valable un an), papiers des
+  chauffeurs dans le carnet, médiateur sous 30 jours. Rien de tout cela ne se
+  code.

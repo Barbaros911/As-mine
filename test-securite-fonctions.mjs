@@ -143,7 +143,8 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   globalThis.fetch=async(url,init={})=>{
     url=String(url);
     if(url.includes('/rpc/consommer_quota_reservation')){clesQuota.push(JSON.parse(init.body));return new Response('true');}
-    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    /* Un seul partenaire existe pour le faux serveur : easyHotel. Toute autre clé est inconnue. */
+    if(url.includes('/rest/v1/partenaires')) return new Response(url.includes('cle=eq.easyhotel-aeroville')?'[{"id":"p1"}]':'[]');
     if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
     if(url.includes('/rpc/ela_deposer_course_serveur')) return new Response('"ok"');
     return fetchAvant(url,init);
@@ -153,10 +154,10 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   fs.writeFileSync(tmpS+'/hotel-session.mjs',m.stripTypeScriptTypes(fs.readFileSync(R+'_shared/hotel-session.ts','utf8')));
   const {creerSessionHotel}=await import(tmpS+'/hotel-session.mjs');
   const session=await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q');
-  const bon=(ref,reception)=>({ref,course:{depart:'easyHotel Aéroville',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30,chambre:reception?'214':''},
-    client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'carte',provenanceCle:reception?'easyhotel-aeroville':'',parReception:!!reception});
-  const depot=(ref,reception)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.9','content-type':'application/json'},
-    body:JSON.stringify({bon:bon(ref,reception),sessionReception:reception?session:''})}));
+  const bon=(ref,reception,prov)=>({ref,course:{depart:'easyHotel Aéroville',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30,chambre:reception?'214':''},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'carte',provenanceCle:prov!==undefined?prov:(reception?'easyhotel-aeroville':''),parReception:!!reception});
+  const depot=(ref,reception,prov)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.9','content-type':'application/json'},
+    body:JSON.stringify({bon:bon(ref,reception,prov),sessionReception:reception?session:''})}));
   const r1=await depot('ELA-26-10-QA1AA',false), r2=await depot('ELA-26-10-QB2BB',true);
   ok(r1.status===201&&r2.status===201,'deposer-course : un dépôt anonyme et un dépôt de réception passent ('+r1.status+'/'+r2.status+')');
   ok(clesQuota.length===2&&clesQuota[0].p_cle!==clesQuota[1].p_cle,'deposer-course : la réception identifiée a SA clé de quota, pas celle du wifi');
@@ -165,8 +166,18 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const heure=new Date().toISOString().slice(0,13);
   ok(clesQuota[1]?.p_cle===createHash('sha256').update('reception|easyhotel-aeroville|'+heure).digest('hex'),'deposer-course : la clé de la réception est celle de l\'hôtel et de l\'heure, jamais l\'adresse IP');
   const r3=await depot('ELA-26-10-QC3CC',true);
-  globalThis.fetch=fetchAvant;
   ok(r3.status===201&&clesQuota[2]?.p_cle===clesQuota[1]?.p_cle,'deposer-course : deux dépôts de la même réception comptent sur la même clé');
+  /* LES CLIENTS DU QR (3/10/2026, « la 2 ») : pas de session, mais la clé d'un
+     partenaire RÉEL → compteur propre « hôtel + adresse + heure », plafond 30.
+     Une clé d'hôtel inventée ne donne RIEN de plus que l'anonyme ordinaire :
+     sinon chaque clé inventée serait un compteur neuf. */
+  const r4=await depot('ELA-26-10-QD4DD',false,'easyhotel-aeroville');
+  ok(r4.status===201&&clesQuota[3]?.p_limite===30,'deposer-course : un client du QR d\'un hôtel partenaire a un plafond de 30, pas 12 ('+clesQuota[3]?.p_limite+')');
+  ok(clesQuota[3]?.p_cle===createHash('sha256').update('hotel|easyhotel-aeroville|10.0.0.9|'+heure).digest('hex'),'deposer-course : sa clé mêle l\'hôtel, l\'adresse et l\'heure — distincte de l\'anonyme et de la réception');
+  ok(clesQuota[3]?.p_cle!==clesQuota[0]?.p_cle&&clesQuota[3]?.p_cle!==clesQuota[1]?.p_cle,'deposer-course : les trois compteurs (anonyme, QR hôtel, réception) ne se mélangent pas');
+  const r5=await depot('ELA-26-10-QE5EE',false,'hotel-invente');
+  globalThis.fetch=fetchAvant;
+  ok(r5.status===201&&clesQuota[4]?.p_limite===12&&clesQuota[4]?.p_cle===clesQuota[0]?.p_cle,'deposer-course : une clé d\'hôtel inconnue reste comptée comme un anonyme ordinaire (12, même compteur)');
 }
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

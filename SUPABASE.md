@@ -43,11 +43,20 @@ create table public.courses (
 -- Rien n'est lisible ni modifiable tant qu'une règle ne l'autorise pas.
 alter table public.courses enable row level security;
 
--- Le visiteur anonyme (le client sur le site) peut DÉPOSER une demande.
-create policy "un client peut deposer sa demande"
-  on public.courses for insert
-  to anon
-  with check (true);
+-- ⚠️ PLUS AUCUNE POLICY POUR « anon » SUR courses (audit du 2 octobre 2026).
+-- Ce script posait ici « un client peut deposer sa demande » (INSERT pour
+-- anon, with check (true)). Depuis la passerelle « deposer-course », le site
+-- publié ne dépose plus jamais en direct dans la table : la fonction valide,
+-- plafonne, recroise le prix et écrit avec la clé de service. La migration
+-- 20260928120000 a retiré le droit INSERT à anon ; 20261003000000 supprime
+-- la policy par son VRAI nom en production, « depot client » — le nom qui
+-- figurait ici n'a jamais été celui de la base, et le drop du 28/09 l'a visé
+-- pour rien.
+-- NE JAMAIS RECRÉER une policy anon sur cette table, ni refaire « grant
+-- insert on courses to anon » : ce serait rouvrir l'écriture libre, au prix
+-- de son choix, sans quota. Les noms réels des autres policies (« lecture
+-- exploitant », « maj exploitant », « suppression exploitant ») diffèrent
+-- aussi de ceux écrits plus bas : l'inventaire 20261003010000 les liste.
 
 -- Il ne peut RIEN lire. Aucune policy de lecture pour « anon » : c'est
 -- volontaire, et il ne faut jamais en ajouter une.

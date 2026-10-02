@@ -21,6 +21,14 @@ concurrency:
 
 jobs:
   publier:
+    # SEULE « main » PUBLIE (audit du 2 octobre 2026). Un lancement manuel
+    # (« workflow_dispatch ») s'exécute sur la BRANCHE CHOISIE dans le menu :
+    # sans cette garde, lancer ce workflow depuis une vieille branche aurait
+    # remis en ligne son vieux site, avec l'ancienne grille et sans les
+    # correctifs de sécurité. C'est arrivé pour les migrations le 15/09,
+    # lancées depuis une branche. Le bouton reste utile pour republier
+    # « main » à la main ; il ne sert plus à rien ailleurs.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

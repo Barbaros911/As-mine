@@ -32,6 +32,13 @@ on:
 
 jobs:
   appliquer:
+    # SEULE « main » TOUCHE LA BASE (audit du 2 octobre 2026). Ce workflow
+    # a été lancé deux fois depuis une branche le 15/09 — des diagnostics en
+    # lecture seule, sans dégât. Mais le même geste depuis une branche
+    # portant une migration non relue aurait exécuté du SQL non fusionné
+    # sur la production. Ce qu'on applique est ce qui est DANS main : une
+    # migration se fusionne d'abord, s'applique ensuite.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # LE JETON VIT DANS L'ENVIRONNEMENT « production », RESTREINT À MAIN
     # (2 octobre 2026, même règle que fonctions.yml). Une migration
