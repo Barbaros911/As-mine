@@ -6576,6 +6576,22 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
     déclencheur ordinaire qui ne doit pas apparaître) : la version de `main`
     rend mot pour mot l'erreur de la CI, la version corrigée classe les cinq
     webhooks et ignore le sixième.
+  - **VERDICT RENDU LE 3 OCTOBRE 2026 : LE WEBHOOK PORTAIT UN JETON
+    `service_role`.** Un seul webhook, `nouvelle-demande` sur `courses`,
+    sans en-tête `apikey`. Rien ne l'avait montré dans un journal public
+    (aucun diagnostic antérieur ne lisait les déclencheurs) : pas de
+    rotation forcée. Barbaros : « fais-le pour moi » —
+    `20261003030000_webhook_cle_publique.sql` relit la définition du
+    déclencheur, remplace la valeur d'`Authorization` par la clé publique,
+    ajoute `apikey` avec la même clé (les deux en-têtes que la relance
+    pg_cron envoie depuis le 30/09, combinaison éprouvée en production — la
+    fonction lit la base avec ses propres droits, jamais avec l'en-tête
+    reçu), et rejoue la définition en `CREATE OR REPLACE TRIGGER`. Elle
+    **refuse** s'il y a zéro ou plusieurs webhooks sur `courses`, ou si
+    l'en-tête n'est pas « Bearer <jeton JWT> » ; rejouée, elle constate et
+    ne fait rien ; elle n'affiche jamais l'ancienne définition. Éprouvée
+    sur le PostgreSQL local : cas réel, rejouée, déclencheur qui tire
+    encore, deux refus, `apikey` déjà présente — six scènes.
 - **LE VRAI BLOQUANT EST ADMINISTRATIF** : SIRET, RC Pro de la centrale,
   déclaration d'activité au ministère des transports (L3142-2, preuve
   d'immatriculation + attestation RC, par mail, valable un an), papiers des
