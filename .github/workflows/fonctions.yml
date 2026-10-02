@@ -31,6 +31,13 @@ on:
 
 jobs:
   deployer:
+    # SEULE « main » DÉPLOIE (audit du 2 octobre 2026). Le déclencheur
+    # « push » ne vise déjà que main, mais « workflow_dispatch » s'exécute
+    # sur la branche choisie dans le menu : depuis une vieille branche, il
+    # aurait remis en production des fonctions d'avant les correctifs du
+    # 28/09 (prevenir-client ouverte à tous, nouvelle-demande qui croit le
+    # corps reçu). La garde ferme ce chemin ; le bouton reste pour main.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # La référence du projet n'est pas un secret : elle est déjà dans
     # l'adresse du serveur, écrite en clair dans la page du site.
