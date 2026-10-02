@@ -6386,10 +6386,12 @@ entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
 - **Migration `20261002000000_courses_version.sql`** : `version` (monte à
   chaque modification, par déclencheur) et `modifie_le` sur `courses`.
   **À appliquer en production AVANT de fusionner** (workflow « Appliquer une
-  migration Supabase »). Le site publié avant la migration tient quand même :
-  un 400 sur la colonne fait retomber la page sur l'ancienne lecture et
-  l'ancien dépôt-ou-mise-à-jour (`serveurSansVersion`), éprouvé par le
-  bloc e) de `test-admin-arrivee`.
+  migration Supabase »). Le site publié avant la migration tenait quand même
+  grâce à un repli (`serveurSansVersion`) : un 400 sur la colonne faisait
+  retomber la page sur l'ancienne lecture et l'ancien dépôt-ou-mise-à-jour.
+  **CE REPLI A ÉTÉ RETIRÉ LE SOIR MÊME, une fois la migration confirmée en
+  production** — voir « SEULE MAIN TOUCHE LA PRODUCTION » en fin de fichier.
+  Le bloc e) de `test-admin-arrivee` éprouve maintenant l'inverse.
 - **`reconcilier()` remplace `fusionner()` pour la lecture serveur** : le
   serveur remplace la copie locale s'il est plus récent (`_v`), une course
   qu'il ne montre plus s'efface ici (seulement si on l'avait lue de lui et
@@ -6503,6 +6505,77 @@ GitHub le fait.
   qui l'a vu (« Identifier 'heure' has already been declared »).
   `test-securite-fonctions` charge maintenant `deposer-course` (import
   `jsr:` retiré au chargement) et lit la clé de quota envoyée.
+
+## SEULE MAIN TOUCHE LA PRODUCTION — ET LE REPLI « SERVEUR SANS VERSION » EST PARTI
+
+2 octobre 2026, le soir, à sa demande (« fait le comme un expert »), après
+la vérification d'avant lancement — le projet démarre le 12. **Ce qui a été
+LU en production, pas supposé** : le journal du workflow des migrations
+(colonnes `version` et `modifie_le` listées à 18 h 15 ; diagnostic de
+fiabilité à 18 h 47 : 12 demandes du site en 7 jours, **0 sans alerte
+réussie**, Telegram 16/0, notifications 13 réussies, relance pg_cron active,
+dernier passage 19 s), et le journal des déploiements : les 11 fonctions
+déployées depuis `main` à 18 h 46.
+
+**LE CORRECTIF « SEULE MAIN DÉPLOIE » DE #283 NE PROTÉGEAIT PAS.** Retirer
+une branche de la liste `branches:` ne change que la copie du workflow qui
+est sur `main` ; GitHub exécute **la copie présente sur la branche
+poussée**. Mesuré sur `git ls-remote` : 45 branches portaient encore une
+copie qui déploie depuis la branche mini-van (du 11 septembre), dont la
+`prevenir-client` **sans contrôle d'exploitant** — la faille fermée le
+28 septembre. Un push sur cette branche, ou un lancement manuel depuis
+n'importe laquelle, la remettait en production sans un mot.
+- **La protection est le SECRET, pas la liste.** Les trois workflows qui
+  portent `SUPABASE_ACCESS_TOKEN` (fonctions, migrations, chien de garde)
+  déclarent `environment: production`, et chacun refuse à voix haute toute
+  branche autre que `main` à sa première étape. **Ce que seul Barbaros peut
+  faire, dans cet ordre** : fusionner, PUIS créer l'environnement
+  « production » (Settings → Environments) restreint à `main`, y poser le
+  jeton — **en refaire un neuf chez Supabase et révoquer l'ancien**, Supabase
+  ne remontre jamais une valeur — et supprimer le secret au niveau du dépôt.
+  Fait dans l'autre ordre, les copies de `main` perdraient le jeton avant la
+  fusion. Une fois le secret déplacé, toute vieille copie s'arrête à
+  « jeton absent ». La branche mini-van reste à supprimer, sur son accord.
+- **Le chien de garde a mis QUATRE HEURES à tourner seul** : fusionné à
+  18 h 05, premier passage planifié à 22 h 08 — et dans l'heure qui a suivi,
+  un passage sur quatre seulement. J'avais d'abord accusé l'expression
+  `7-59/15` et l'avais réécrite en liste ; mesure faite, elle était juste,
+  et la réécriture est retirée : **retoucher le fichier d'un planning peut
+  réenclencher ce délai**. GitHub est lent à enregistrer un planning neuf et
+  le livre avec retard sous charge — c'est connu, et c'est pour ça que ses
+  Issues sont un filet, pas une horloge. **À constater sur 24 h** avant de
+  le compter comme régulier, et ses Issues ne servent que si Barbaros reçoit
+  les notifications GitHub sur son téléphone.
+
+**LE REPLI `serveurSansVersion` EST RETIRÉ** d'`index.html`. Il avait une
+lame : il se déclenchait sur TOUT message d'erreur contenant « 400 » et
+repassait l'admin, pour toute la session, en écrasement complet du bon
+(`merge-duplicates`) — le défaut même que la version existe pour fermer.
+La migration étant confirmée en production, il n'avait plus de raison
+d'être. Une colonne absente est désormais une panne AFFICHÉE
+(`#bordHorsLigne`, « nuage 400 ») et un geste reste en file, jamais forcé.
+Le bloc e) de `test-admin-arrivee` éprouve l'inverse de ce qu'il éprouvait ;
+contre l'ancien code, cinq contrôles tombent et nomment le
+`merge-duplicates` parti.
+
+**`verifier-production.mjs` SURVEILLE DIX PORTES, PLUS CINQ.** Manquaient :
+`application.html` (où mènent les cartes du flyer), `/ela-admin/`,
+`/easyhotel-client/`, et la réception sous ses deux adresses. Éprouvé : la
+page propre retirée, il tombe en la nommant.
+
+**CE QUI RESTE À FAIRE PAR BARBAROS, ET QUE LE CODE NE PEUT PAS FAIRE** :
+- fermer puis rouvrir l'admin sur CHAQUE téléphone et tablette — un onglet
+  gardé en mémoire depuis avant 18 h 05 porte l'ancien code, et la base,
+  elle, accepte toujours une écriture sans version ;
+- la course test de bout en bout (flyer → Telegram → confirmer sur un
+  appareil → modifier sur un autre → réception → réaliser → supprimer) :
+  rien de la synchronisation par version n'a encore servi sur une vraie
+  course ;
+- une sauvegarde par semaine : le carnet des chauffeurs, leurs paiements,
+  les factures et leur numérotation, l'identité de l'émetteur et le lien
+  d'avis ne vivent QUE sur l'appareil. Les réservations, elles, sont toutes
+  sur le serveur.
+- `sw.js` CACHE v121.
 
 ## AUDIT DU 2 OCTOBRE 2026 — CE QUE LA PRODUCTION CONTIENT VRAIMENT
 

@@ -285,7 +285,11 @@ try {
         if (m === 'POST') {
           posts.push({u, corps, prefer: route.request().headers()['prefer'] || ''});
           if (serveur.has(corps.ref)) {
-            if (sansVersion) { const r = serveur.get(corps.ref); r.statut = corps.statut; r.bon = corps.bon; return route.fulfill({status:201, body:''}); }
+            /* Un « merge-duplicates » ÉCRASE la ligne — c'est ce que l'ancien
+               code envoyait sur un serveur sans version, et ce que le bloc e)
+               interdit. Un « ignore-duplicates » rend zéro ligne, comme
+               PostgREST. */
+            if (/merge-duplicates/.test(route.request().headers()['prefer'] || '')) { const r = serveur.get(corps.ref); r.statut = corps.statut; r.bon = corps.bon; return route.fulfill({status:201, body:''}); }
             return route.fulfill(J([]));
           }
           poser({...corps.bon, statut:corps.statut}, 1);
@@ -371,15 +375,30 @@ try {
       check('d) une course supprimée sur le serveur disparaît de cet appareil', partie && !(await local(p,'ELA-26-10-SYND1')));
       await ctx.close();
     }
-    /* e) Serveur d'AVANT la migration : lu et écrit à l'ancienne, rien ne casse. */
+    /* e) Serveur SANS colonne version (migration défaite, ou base d'un autre
+       projet) : l'écran le DIT, et RIEN ne part à l'ancienne. Ce bloc
+       éprouvait l'inverse jusqu'au 2 octobre 2026 au soir — « lu et écrit à
+       l'ancienne » — tant que la migration n'était pas en production. Elle
+       l'est (journal du workflow : colonnes listées), et le repli avait une
+       lame : il se déclenchait sur TOUT message contenant « 400 » et
+       repassait l'admin en écrasement complet du bon pour toute la session,
+       le défaut même que la version ferme. Éprouvé contre l'ancien code : il
+       lit la course en silence et envoie un « merge-duplicates ». */
     {
-      serveur.clear(); poser(course('ELA-26-10-SYNE1','Ancien Serveur')); sansVersion = true; posts = [];
-      const {ctx, p, erreurs} = await espaceV('/ela-admin/?ref=ELA-26-10-SYNE1');
+      serveur.clear(); poser(course('ELA-26-10-SYNE1','Ancien Serveur')); sansVersion = true; posts = []; patchs = [];
+      const {ctx, p, erreurs} = await espaceV('/ela-admin/');
+      const dit = await p.waitForFunction(() => { const e = document.getElementById('bordHorsLigne'); return !!e && !e.hidden && /400/.test(e.textContent); }, null, {timeout:10000}).then(() => true, () => false);
+      check('e) sans colonne version, le tableau de bord DIT la panne (code 400), il ne lit pas à l\'ancienne', dit, (await p.locator('#bordHorsLigne').textContent().catch(() => '')).trim().slice(0, 120));
+      check('e) …et rien n\'est entré en silence dans la copie locale', !(await local(p,'ELA-26-10-SYNE1')));
+      /* Un geste fait sur une copie locale gardée d'avant : il reste en file, jamais en écrasement. */
+      await p.evaluate(c => localStorage.setItem('ela_bookings', JSON.stringify([c])), course('ELA-26-10-SYNE1','Ancien Serveur'));
+      await p.goto(BASE + '/ela-admin/?ref=ELA-26-10-SYNE1');
       await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
-      check('e) sans colonne version, la course est quand même lue', !!(await local(p,'ELA-26-10-SYNE1')));
       await p.click('#btnRefuser'); await p.click('#btnRefuser');
-      const parti = await p.waitForFunction(() => !Object.keys(JSON.parse(localStorage.getItem('ela_file')||'{}')).length, null, {timeout:10000}).then(() => true, () => false);
-      check('e) …et écrite à l\'ancienne (dépôt-ou-mise-à-jour)', parti && posts.some(x => /merge-duplicates/.test(x.prefer)) && serveur.get('ELA-26-10-SYNE1').statut === 'refusee');
+      await p.waitForTimeout(2500);
+      check('e) le geste reste EN FILE, témoin visible — pas abandonné, pas forcé', (await file(p)).includes('ELA-26-10-SYNE1') && await p.locator('#bordSynchro').isVisible(), 'file : ' + (await file(p)).join(','));
+      check('e) AUCUN dépôt-ou-mise-à-jour (merge-duplicates) n\'est parti', !posts.some(x => /merge-duplicates/.test(x.prefer)), posts.map(x => x.prefer).join(' | ') || '(aucun POST)');
+      check('e) le serveur n\'a pas bougé : toujours « attente », version 1', serveur.get('ELA-26-10-SYNE1').statut === 'attente' && serveur.get('ELA-26-10-SYNE1').version === 1);
       check('e) aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
       sansVersion = false;
       await ctx.close();

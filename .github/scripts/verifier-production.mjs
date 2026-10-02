@@ -14,7 +14,7 @@
 
    CE QU'IL ÉPROUVE, ET POURQUOI CES QUATRE-LÀ :
 
-   1. LES PAGES CRITIQUES RÉPONDENT. Le site a quatre portes d'entrée et
+   1. LES PAGES CRITIQUES RÉPONDENT. Le site a dix portes d'entrée et
       une seule est sur la page d'accueil. Une redirection cassée ne se
       voit jamais depuis l'accueil.
 
@@ -50,7 +50,7 @@ const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || "https://elatransfer.com/").replace(/\/*$/, "/");
 const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[1] || "";
 
-/* LES CINQ PORTES D'ENTRÉE, ET CHACUNE DOIT PROUVER QUI ELLE EST.
+/* LES PORTES D'ENTRÉE, ET CHACUNE DOIT PROUVER QUI ELLE EST.
    `titre` n'est pas un confort : un code 200 ne dit pas QUELLE page a
    répondu. Ce dépôt a déjà payé exactement ça — un mauvais réglage
    d'hébergeur (`html_handling`) faisait servir le site de réservation à
@@ -61,11 +61,23 @@ const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[
    par code passait.
    `demos/` éprouve en plus la résolution d'un DOSSIER, qui est un
    mécanisme de service différent d'un fichier exact. */
+/* DIX PORTES DEPUIS LE 2 OCTOBRE 2026. Les cinq ajoutées sont celles que
+   la vérification d'avant lancement a trouvées sans surveillance : le
+   tunnel visé par les cartes du flyer, l'admin où mène admin.html, la page
+   du QR easyHotel, et la réception sous ses DEUX adresses — la nouvelle
+   (PR #281) et l'ancienne, que des icônes posées sur des tablettes
+   continuent d'ouvrir. Toutes sont construites par la recette ; aucune
+   n'était vérifiée une fois en ligne. */
 const PAGES = [
   { chemin: "", quoi: "le site de réservation", titre: "Chauffeur priv\u00e9" },
+  { chemin: "application.html", quoi: "le tunnel de r\u00e9servation (cartes du flyer)", titre: "Chauffeur priv\u00e9" },
   { chemin: "admin.html", quoi: "le raccourci exploitant", titre: "Espace exploitant" },
   { chemin: "exploitant/", quoi: "l'espace exploitant", titre: "Espace exploitant" },
+  { chemin: "ela-admin/", quoi: "l'admin historique (o\u00f9 m\u00e8ne admin.html)", titre: "Administration" },
   { chemin: "admin-v2.html", quoi: "l'Admin v2", titre: "Admin" },
+  { chemin: "easyhotel-client/", quoi: "la page du QR easyHotel", titre: "easyHotel A\u00e9roville" },
+  { chemin: "easyhotel-reception/", quoi: "la r\u00e9ception easyHotel (ancienne adresse, ic\u00f4nes d\u00e9j\u00e0 pos\u00e9es)", titre: "R\u00e9ception easyHotel" },
+  { chemin: "reception/easyhotel-aeroville/", quoi: "la r\u00e9ception easyHotel (adresse propre)", titre: "R\u00e9ception easyHotel" },
   { chemin: "demos/", quoi: "la galerie (r\u00e9solution de dossier)", titre: "D\u00e9monstrations" },
 ];
 

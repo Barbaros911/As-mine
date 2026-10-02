@@ -39,12 +39,32 @@ jobs:
     # corps reçu). La garde ferme ce chemin ; le bouton reste pour main.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # SEULE « main » DÉPLOIE, ET C'EST L'ENVIRONNEMENT QUI LE GARANTIT
+    # (2 octobre 2026). Retirer une branche de la liste « branches: » ne
+    # protège que la copie de CE fichier qui est sur main : GitHub exécute
+    # la copie présente sur la branche poussée, et 45 branches en portaient
+    # encore une qui déployait depuis « mini-van » — avec des fonctions du
+    # 11 septembre, sans les correctifs de sécurité du 28. Le jeton vit donc
+    # dans l'environnement « production », restreint à main dans les
+    # réglages du dépôt : une vieille copie se retrouve sans jeton et
+    # s'arrête à la première étape. Le contrôle d'étape ci-dessous dit la
+    # même chose à voix haute pour un lancement manuel depuis une autre
+    # branche.
+    environment: production
     # La référence du projet n'est pas un secret : elle est déjà dans
     # l'adresse du serveur, écrite en clair dans la page du site.
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PROJET: yyhzutnuhuytokarynaw
     steps:
+      - name: Refuser toute branche autre que main
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Ce workflow ne déploie que depuis main. Branche reçue : $GITHUB_REF"
+            echo "Fusionner d'abord, puis laisser la poussée sur main déployer."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - uses: supabase/setup-cli@v1
