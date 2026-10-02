@@ -46,7 +46,9 @@ globalThis.fetch=async(url,init={})=>{
 const reussis=[],echecs=[];const ok=(c,msg)=>(c?reussis:echecs).push(msg);
 const h=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c'});
 const post=(b)=>h(new Request('http://x',{method:'POST',body:JSON.stringify(b)}));
-rows['ELA-26-09-0007']={ref:'ELA-26-09-0007',cree_le:new Date().toISOString(),bon:{ref:'ELA-26-09-0007',course:{departPublic:'Orly',arrivee:'Paris',date:'2026-09-28',heure:'10:00'},prix:{total:60}}};
+rows['ELA-26-09-0007']={ref:'ELA-26-09-0007',cree_le:new Date().toISOString(),bon:{ref:'ELA-26-09-0007',securite:{empreinteDepot:'e'},course:{departPublic:'Orly',arrivee:'Paris',date:'2026-09-28',heure:'10:00'},prix:{total:60}}};
+/* Une course SANS empreinte de dépôt n'est pas passée par deposer-course : c'est une saisie de l'exploitant, jamais annoncée (2/10/2026). */
+rows['ELA-26-09-0008']={ref:'ELA-26-09-0008',cree_le:new Date().toISOString(),bon:{ref:'ELA-26-09-0008',course:{departPublic:'Orly',arrivee:'Paris',date:'2026-09-28',heure:'10:00'},prix:{total:60}}};
 rows['ELA-26-01-0001']={ref:'ELA-26-01-0001',cree_le:'2026-01-01T00:00:00Z',bon:{ref:'ELA-26-01-0001',course:{}}};
 let r=await post({type:'INSERT',table:'courses',record:{ref:'ELA-99-99-9999',bon:{course:{depart:'CLIQUEZ http://pirate'}}}});
 ok(tg.length===0,'faux INSERT (course inconnue) : aucune alerte');
@@ -56,6 +58,8 @@ await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-09-0007'}});
 ok(tg.length===1,'rejeu : pas de seconde alerte');
 await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-01-0001'}});
 ok(tg.length===1,'course ancienne : pas d\'alerte');
+await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-09-0008'}});
+ok(tg.length===1,'saisie de l\'exploitant (sans empreinte de dépôt) : aucune alerte');
 const p=await charger('prevenir-client',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',SUPABASE_ANON_KEY:'A',VAPID_PUBLIQUE:'x',VAPID_PRIVEE:'y'});
 const pp=(auth)=>p(new Request('http://x',{method:'POST',headers:auth?{authorization:auth}:{},body:JSON.stringify({ref:'ELA-26-09-0007',url:'https://pirate.example'})}));
 ok((await pp()).status===403,'prevenir-client sans jeton : 403');

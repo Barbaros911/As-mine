@@ -6431,3 +6431,43 @@ entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
   reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
   rien. `sh construire.sh` avant toute capture, toujours.
 - `sw.js` CACHE v120.
+
+## UN CANAL QUI INSISTE, UN CANAL QUI INFORME — LA CADENCE DES ALERTES
+
+2 octobre 2026, Barbaros : « je ne veux pas recevoir trop d'alertes sur
+Telegram… des fois je reçois une notification, je ne réponds pas, après ça
+passe en mode silencieux ». **Mesuré dans le code** : Telegram partait toutes
+les 20 s pendant 10 min, puis toutes les 20 s dès H-30 et **jusqu'à 6 h après
+le départ** tant que la course restait « en attente » et non vue — jusqu'à un
+millier de messages pour une course oubliée. C'est le téléphone qui coupait le
+son, et la vraie demande suivante passait avec.
+- **La notification ELA est l'alarme** (elle se REMPLACE sur le téléphone,
+  même étiquette) : à chaque tour de 20 s les 10 premières minutes et à H-30
+  ou moins, toutes les 10 min entre H-2 et H-30, rien avant H-2.
+- **Telegram informe** : +3 min, +10 min, puis toutes les 15 min la première
+  heure ; silence jusqu'à H-2 (toutes les 15 min) ; toutes les 5 min sous
+  H-30. **Chaque rappel EFFACE le précédent** (`deleteMessage`, identifiant
+  gardé dans `journal.detail` sous `message_id=N`) : une seule ligne de
+  rappel visible, jamais une pile. L'annonce initiale n'est jamais effacée.
+- **À l'heure du départ, un dernier message** (`rappel_final`, `titreFinal`)
+  sur les deux canaux, puis plus rien. Une course oubliée se clôt dans
+  l'admin, elle ne sonne pas six heures.
+- **Les saisies de l'exploitant ne sont ni annoncées ni relancées** (à sa
+  demande : « aucune alerte du tout »). Une demande passée par le site porte
+  `securite.empreinteDepot`, posée par `deposer-course` ; les siennes
+  (« Coller une demande », « Saisir par téléphone ») jamais —
+  `saisieExploitant()`. Le webhook INSERT et la relance l'appliquent tous
+  deux.
+- **Les délais se comptent depuis l'ANNONCE, pas depuis la création** : une
+  demande rattrapée 15 min après son dépôt aurait eu son « +3 min » au tour
+  suivant. Trouvé par le test.
+- **Les heures du bon sont celles de Paris, l'horloge du test est en UTC** :
+  deux contrôles sont tombés parce qu'un départ « 14:00 » (12:00 UTC) était
+  déjà à H-2 quand le test croyait être loin. Même famille que les fixtures
+  SQL datées dans le mauvais fuseau.
+- `pg_cron` reste à 20 s : c'est la cadence de l'alarme (notification), la
+  cadence Telegram vient du journal.
+- `test-relance-alertes` : 61 contrôles ; trois falsifications (règle des
+  saisies retirée, effacement retiré, arrêt au départ retiré) tombent en
+  nommant le défaut. `test-securite-fonctions` éprouve le webhook sur une
+  saisie sans empreinte.
