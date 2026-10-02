@@ -6369,3 +6369,65 @@ visuelle, notification, tout ce qui est possible ».
   attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
   l'icône. Sans nombre (notification d'un client), un simple point.
   `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
+
+## LE SERVEUR EST LA SEULE VÉRITÉ — L'ADMIN N'EST PLUS QU'UNE COPIE
+
+2 octobre 2026, Barbaros : « je valide une course, ça revient ; je refuse,
+ça revient ». Le projet démarre le 12, tout doit être fiable le 10.
+**La cause n'était pas un bouton, c'était une architecture à deux vérités.**
+Le téléphone gardait sa liste, le serveur la sienne. `fusionner` ne faisait
+qu'AJOUTER ce que l'appareil ne connaissait pas — une course confirmée sur
+l'ordinateur restait « en attente » sur le téléphone pour toujours. Et
+`pousser` partait en « on verra » (8 s, pas de reprise, pas de témoin, pas de
+`keepalive`) : l'écran disait « refusée », le serveur « en attente », et la
+relance Telegram sonnait sur une course qu'il croyait réglée. Un appareil
+périmé pouvait même ÉCRASER l'état du serveur (POST merge-duplicates du bon
+entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
+- **Migration `20261002000000_courses_version.sql`** : `version` (monte à
+  chaque modification, par déclencheur) et `modifie_le` sur `courses`.
+  **À appliquer en production AVANT de fusionner** (workflow « Appliquer une
+  migration Supabase »). Le site publié avant la migration tient quand même :
+  un 400 sur la colonne fait retomber la page sur l'ancienne lecture et
+  l'ancien dépôt-ou-mise-à-jour (`serveurSansVersion`), éprouvé par le
+  bloc e) de `test-admin-arrivee`.
+- **`reconcilier()` remplace `fusionner()` pour la lecture serveur** : le
+  serveur remplace la copie locale s'il est plus récent (`_v`), une course
+  qu'il ne montre plus s'efface ici (seulement si on l'avait lue de lui et
+  si la liste n'est pas tronquée à 1000), une course jamais partie d'ici est
+  remise en file. `fusionner` reste pour la restauration d'une sauvegarde,
+  qui AJOUTE et n'efface jamais.
+- **La file d'attente `ela_file`** : `nuage.pousser(bon)` met en file et
+  `viderFile()` envoie, une course à la fois, avec reprise (3 s, 6, 12…
+  60 s au plus), relancée par la sonde, au retour sur l'onglet et au retour
+  du réseau. Elle survit à un rechargement. `keepalive:true` sur les
+  écritures : elles survivent au gel de la page quand WhatsApp s'ouvre.
+- **On écrit SOUS CONDITION DE VERSION** (`PATCH ?ref=eq.X&version=eq.N`,
+  `return=representation`) : zéro ligne rendue = la version a bougé ; on
+  relit, **le serveur gagne**, la copie locale est remplacée, et l'écran le
+  DIT — sur le tableau de bord (`#bordConflit`) et sur le bon ouvert
+  (`#bbModifNote`, amené à l'écran). Une course jamais lue du serveur part
+  en POST `ignore-duplicates` : si elle existait déjà, même règle.
+  Pourquoi le serveur et pas le dernier geste : le geste perdu a été fait
+  sur une information fausse ; mieux vaut le remontrer que d'exécuter un
+  refus sur une course déjà confirmée ailleurs.
+- **Le témoin `#bordSynchro`** : « N modification(s) en cours d'envoi… »,
+  rouge à partir de 30 s, « reconnectez-vous » sans session. Plus jamais un
+  écran et un serveur qui se contredisent sans que personne le sache.
+- **La sonde demande la course modifiée le plus RÉCEMMENT**
+  (`select=ref,version&order=modifie_le.desc`), plus la dernière arrivée :
+  un changement fait ailleurs arrive ici en 8 s, plus 45. **Son repère est
+  reposé après chaque lecture complète** — sans ça, son premier passage ne
+  faisait qu'enregistrer la réponse, et un changement survenu entre
+  l'ouverture et ce passage attendait le tour de fond. Trouvé par le test.
+- **Les suites qui simulent le serveur** (`test-admin-arrivee`, `-alertes`,
+  `-controle`) reconnaissent les deux formes de la sonde.
+- `test-admin-arrivee` bloc 4, cinq scènes, toutes contre un faux serveur à
+  versions : changée ailleurs → ici en moins de 15 s ; panne → en file, témoin,
+  repart seule ; copie périmée → refusée, serveur gagne, écran le dit ;
+  supprimée ailleurs → disparaît ; serveur d'avant la migration → lu et écrit
+  à l'ancienne. **Éprouvé contre l'ancien code : six contrôles tombent.**
+- **PIÈGE DE CAPTURE, QUATRIÈME FOIS** : les premières captures montraient
+  l'ANCIEN admin sans témoin — la falsification (`git stash`) avait
+  reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
+  rien. `sh construire.sh` avant toute capture, toujours.
+- `sw.js` CACHE v120.

@@ -66,7 +66,7 @@ async function espace(chemin){
       if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
       /* La sonde ne demande que la dernière référence : on lui répond comme
          le vrai serveur, UNE ligne, sinon elle lirait « undefined ». */
-      if (u.includes('/rest/v1/courses?select=ref&')) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
+      if ((u.includes('/rest/v1/courses?select=ref&') || u.includes('/rest/v1/courses?select=ref,version&'))) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
       if (u.includes('/rest/v1/courses') && route.request().method() === 'POST') {
         poussees.push(JSON.parse(route.request().postData() || '{}')); return route.fulfill({status:201, body:''}); }
       if (u.includes('/rest/v1/courses')) { lectures++; return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut})))); }
@@ -225,6 +225,165 @@ try {
         /11:30/.test(await p.locator('#bbDate').textContent()) && /85,00/.test(await p.locator('#bbPrix').textContent()));
       check('aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
       await ctx.close(); }
+  }
+  /* 4. LE SERVEUR EST LA SEULE VÉRITÉ (2 octobre 2026 : « je valide une
+     course, ça revient ; je refuse, ça revient »). Un faux serveur qui tient
+     des VERSIONS, comme le vrai depuis la migration 20261002000000 :
+     - une course changée AILLEURS remplace la copie de l'appareil ;
+     - une modification d'ici qui échoue est réessayée, et l'écran le dit ;
+     - une modification faite sur une copie périmée est refusée : le serveur
+       gagne, et l'écran le dit ;
+     - une course supprimée ailleurs disparaît ici ;
+     - un serveur d'AVANT la migration (pas de colonne version) est encore
+       lu, et écrit à l'ancienne.
+     On regarde l'état réel (localStorage, faux serveur), pas la mécanique. */
+  {
+    const serveur = new Map();           // ref → {bon, statut, version, cree_le, modifie_le}
+    let t = 1000;
+    const poser = (bon, version = 1) => serveur.set(bon.ref, { bon:{...bon}, statut:bon.statut, version,
+      cree_le:new Date(Date.now()-t).toISOString(), modifie_le: ++t });
+    const changer = (ref, statut) => { const r = serveur.get(ref); r.statut = statut; r.bon = {...r.bon, statut}; r.version++; r.modifie_le = ++t; };
+    const ligne = r => ({ bon:r.bon, statut:r.statut, version:r.version, cree_le:r.cree_le, modifie_le:String(r.modifie_le) });
+    let panne = false, sondeFigee = null, sansVersion = false, patchs = [], posts = [];
+    async function espaceV(chemin){
+      const ctx = await nav.newContext({viewport:{width:390,height:844}, locale:'fr-FR'});
+      await ctx.addInitScript(() => localStorage.setItem('ela_nuage_session',
+        JSON.stringify({access_token:'JETON', refresh_token:'R'})));
+      const p = await ctx.newPage();
+      const erreurs = []; p.on('pageerror', e => erreurs.push(e.message));
+      await p.route('**/*', async route => {
+        const u = route.request().url(), m = route.request().method();
+        if (u.startsWith(BASE)) return route.continue();
+        if (!u.includes('supabase.co')) return route.abort();
+        if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
+        if (u.includes('/rpc/')) return route.fulfill(J(null));
+        if (!u.includes('/rest/v1/courses')) return route.fulfill(J([]));
+        const q = new URL(u).searchParams, sel = q.get('select') || '';
+        if (sansVersion && /version|modifie_le/.test(sel + (q.get('order')||'') + (q.get('version')||'')))
+          return route.fulfill(J({message:'column courses.version does not exist'}, 400));
+        const rows = [...serveur.values()];
+        if (m === 'GET') {
+          if (q.get('ref')) { const r = serveur.get(q.get('ref').replace('eq.','')); return route.fulfill(J(r ? [ligne(r)] : [])); }
+          if ((q.get('order')||'').startsWith('modifie_le')) {
+            if (sondeFigee) return route.fulfill(J([sondeFigee]));
+            const r = rows.sort((a,b) => b.modifie_le - a.modifie_le)[0];
+            return route.fulfill(J(r ? [{ref:r.bon.ref, version:r.version}] : []));
+          }
+          if (sel === 'ref') { const r = rows.sort((a,b) => (a.cree_le < b.cree_le ? 1 : -1))[0]; return route.fulfill(J(r ? [{ref:r.bon.ref}] : [])); }
+          return route.fulfill(J(rows.sort((a,b) => (a.cree_le < b.cree_le ? 1 : -1)).map(ligne)));
+        }
+        if (panne) return route.fulfill({status:500, body:'panne'});
+        const corps = JSON.parse(route.request().postData() || '{}');
+        if (m === 'PATCH') {
+          patchs.push({u, corps});
+          const ref = q.get('ref').replace('eq.',''), v = Number(q.get('version').replace('eq.',''));
+          const r = serveur.get(ref);
+          if (!r || r.version !== v) return route.fulfill(J([]));
+          r.statut = corps.statut; r.bon = corps.bon; r.version++; r.modifie_le = ++t;
+          return route.fulfill(J([{version:r.version, cree_le:r.cree_le}]));
+        }
+        if (m === 'POST') {
+          posts.push({u, corps, prefer: route.request().headers()['prefer'] || ''});
+          if (serveur.has(corps.ref)) {
+            if (sansVersion) { const r = serveur.get(corps.ref); r.statut = corps.statut; r.bon = corps.bon; return route.fulfill({status:201, body:''}); }
+            return route.fulfill(J([]));
+          }
+          poser({...corps.bon, statut:corps.statut}, 1);
+          return route.fulfill(J([{version:1, cree_le:serveur.get(corps.ref).cree_le}], 201));
+        }
+        return route.fulfill(J([]));
+      });
+      await p.goto(BASE + chemin);
+      await p.waitForFunction(() => document.body.classList.contains('espace'), null, {timeout:10000});
+      return {ctx, p, erreurs};
+    }
+    const local = (p, ref) => p.evaluate(r => (JSON.parse(localStorage.getItem('ela_bookings')||'[]').find(c => c.ref === r) || null), ref);
+    const file = p => p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('ela_file')||'{}')));
+    const texteCarte = (p, ref) => p.evaluate(r => { const e = [...document.querySelectorAll('.demande')].find(x => x.textContent.includes(r)); return e ? e.textContent : ''; }, ref);
+
+    /* a) Confirmée sur un autre appareil → ici aussi, sans rien toucher. */
+    {
+      serveur.clear(); poser(course('ELA-26-10-SYNA1','Léa Marchand'));
+      const {ctx, p, erreurs} = await espaceV('/ela-admin/');
+      await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:8000}).catch(() => {});
+      check('a) la course est lue avec sa version', (await local(p,'ELA-26-10-SYNA1') || {})._v === 1);
+      changer('ELA-26-10-SYNA1', 'confirmee');
+      const t0 = Date.now();
+      const vu = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('ela_bookings')||'[]')[0]||{}).statut === 'confirmee', null, {timeout:15000}).then(() => true, () => false);
+      check('a) confirmée AILLEURS → confirmée ICI en moins de 15 s, sans un geste', vu, vu ? Math.round((Date.now()-t0)/1000)+' s' : 'toujours « attente »');
+      check('a) …et les compteurs le disent : 0 en attente, 1 confirmée',
+        (await p.locator('#cptAttente').textContent()) === '0' && (await p.locator('#cptConfirmee').textContent()) === '1',
+        'attente=' + await p.locator('#cptAttente').textContent() + ' confirmee=' + await p.locator('#cptConfirmee').textContent());
+      check('a) la version suit (2)', (await local(p,'ELA-26-10-SYNA1') || {})._v === 2);
+      check('a) aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+      await ctx.close();
+    }
+    /* b) Refusée ici, serveur en panne : l'écran le DIT, et ça repart tout seul. */
+    {
+      serveur.clear(); poser(course('ELA-26-10-SYNB1','Marc Petit')); patchs = [];
+      const {ctx, p, erreurs} = await espaceV('/ela-admin/?ref=ELA-26-10-SYNB1');
+      await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
+      panne = true;
+      await p.click('#btnRefuser'); await p.click('#btnRefuser');
+      await p.waitForTimeout(600);
+      check('b) l\'écran dit « refusée » tout de suite', (await local(p,'ELA-26-10-SYNB1') || {}).statut === 'refusee');
+      check('b) la modification est EN FILE, pas perdue', (await file(p)).includes('ELA-26-10-SYNB1'));
+      check('b) le témoin « en cours d\'envoi » est visible', await p.locator('#bordSynchro').isVisible(), await p.locator('#bordSynchro').textContent());
+      check('b) le serveur, lui, dit encore « attente »', serveur.get('ELA-26-10-SYNB1').statut === 'attente');
+      const essais0 = patchs.length;
+      panne = false;
+      const parti = await p.waitForFunction(() => !Object.keys(JSON.parse(localStorage.getItem('ela_file')||'{}')).length, null, {timeout:20000}).then(() => true, () => false);
+      check('b) le réseau revient → l\'envoi repart SEUL et la file se vide', parti, parti ? '' : 'file : ' + (await file(p)).join(','));
+      check('b) …sous condition de version (PATCH version=eq.1)', patchs.some(x => /version=eq\.1/.test(x.u)) && patchs.length > essais0, String(patchs.length));
+      check('b) le serveur dit maintenant « refusée », version 2', serveur.get('ELA-26-10-SYNB1').statut === 'refusee' && serveur.get('ELA-26-10-SYNB1').version === 2);
+      check('b) le témoin disparaît', await p.locator('#bordSynchro').isHidden());
+      check('b) la copie locale porte la version 2', (await local(p,'ELA-26-10-SYNB1') || {})._v === 2);
+      check('b) aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+      await ctx.close();
+    }
+    /* c) Geste sur une copie PÉRIMÉE : refusé, le serveur gagne, et on le dit. */
+    {
+      serveur.clear(); poser(course('ELA-26-10-SYNC1','Inès Dubois'));
+      const {ctx, p, erreurs} = await espaceV('/ela-admin/?ref=ELA-26-10-SYNC1');
+      await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
+      /* La sonde est figée : l'appareil ne verra pas le changement avant son geste. */
+      sondeFigee = {ref:'ELA-26-10-SYNC1', version:1};
+      changer('ELA-26-10-SYNC1', 'confirmee'); changer('ELA-26-10-SYNC1', 'confirmee');   // version 3 ailleurs
+      await p.click('#btnRefuser'); await p.click('#btnRefuser');
+      const fini = await p.waitForFunction(() => !Object.keys(JSON.parse(localStorage.getItem('ela_file')||'{}')).length, null, {timeout:10000}).then(() => true, () => false);
+      check('c) la file se vide (le conflit est tranché, pas réessayé en boucle)', fini);
+      check('c) le refus périmé N\'A PAS écrasé le serveur : toujours « confirmée », version 3',
+        serveur.get('ELA-26-10-SYNC1').statut === 'confirmee' && serveur.get('ELA-26-10-SYNC1').version === 3);
+      const l = await local(p,'ELA-26-10-SYNC1');
+      check('c) la copie locale est REMPLACÉE par celle du serveur (confirmée, v3)', l && l.statut === 'confirmee' && l._v === 3, JSON.stringify({statut:l&&l.statut, v:l&&l._v}));
+      check('c) et l\'écran le DIT, sur le bon ouvert', await p.locator('#bbModifNote').isVisible() && /autre appareil/.test(await p.locator('#bbModifNote').textContent()), await p.locator('#bbModifNote').textContent());
+      sondeFigee = null;
+      check('c) aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+      await ctx.close();
+    }
+    /* d) Supprimée ailleurs → disparaît ici. */
+    {
+      serveur.clear(); poser(course('ELA-26-10-SYND1','Omar Saidi')); poser(course('ELA-26-10-SYND2','Julie Blanc'));
+      const {ctx, p} = await espaceV('/ela-admin/');
+      await p.waitForFunction(() => document.querySelectorAll('.demande').length === 2, null, {timeout:8000}).catch(() => {});
+      serveur.delete('ELA-26-10-SYND1'); changer('ELA-26-10-SYND2', 'attente');
+      const partie = await p.waitForFunction(() => document.querySelectorAll('.demande').length === 1, null, {timeout:15000}).then(() => true, () => false);
+      check('d) une course supprimée sur le serveur disparaît de cet appareil', partie && !(await local(p,'ELA-26-10-SYND1')));
+      await ctx.close();
+    }
+    /* e) Serveur d'AVANT la migration : lu et écrit à l'ancienne, rien ne casse. */
+    {
+      serveur.clear(); poser(course('ELA-26-10-SYNE1','Ancien Serveur')); sansVersion = true; posts = [];
+      const {ctx, p, erreurs} = await espaceV('/ela-admin/?ref=ELA-26-10-SYNE1');
+      await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, {timeout:8000}).catch(() => {});
+      check('e) sans colonne version, la course est quand même lue', !!(await local(p,'ELA-26-10-SYNE1')));
+      await p.click('#btnRefuser'); await p.click('#btnRefuser');
+      const parti = await p.waitForFunction(() => !Object.keys(JSON.parse(localStorage.getItem('ela_file')||'{}')).length, null, {timeout:10000}).then(() => true, () => false);
+      check('e) …et écrite à l\'ancienne (dépôt-ou-mise-à-jour)', parti && posts.some(x => /merge-duplicates/.test(x.prefer)) && serveur.get('ELA-26-10-SYNE1').statut === 'refusee');
+      check('e) aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+      sansVersion = false;
+      await ctx.close();
+    }
   }
   /* 3. L'alerte Telegram vise l'admin retenu. */
   for (const f of ['supabase/functions/nouvelle-demande/index.ts', 'supabase/functions/nouvelle-demande/a-coller.ts']) {

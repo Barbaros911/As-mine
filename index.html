@@ -1111,6 +1111,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   background:#fbe9e9;border:1px solid #f0cfcf;}
 .hors-ligne p{margin:0;font-size:12.5px;line-height:1.45;color:#8f2220;}
 .hors-ligne .bouton-fantome{margin-top:10px;min-height:40px;font-size:12.5px;}
+/* Le témoin d'envoi : discret tant que ça part, rouge quand ça traîne. */
+.synchro{margin:10px 20px 0;padding:9px 12px;border-radius:11px;font-size:12.5px;line-height:1.45;
+  background:#eef3f8;border:1px solid #d5e0ea;color:#2c4a63;}
+.synchro.tard{background:#fbe9e9;border-color:#f0cfcf;color:#8f2220;font-weight:600;}
+.synchro.conflit{background:#fff4e5;border-color:#f3dbb5;color:#7a4a08;}
 
 /* ---------- LE BANDEAU DU HAUT ---------- */
 .admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
@@ -3434,6 +3439,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         Se connecter au serveur
       </button>
     </div>
+    <!-- LE TÉMOIN DE LA FILE D'ATTENTE (2 octobre 2026). Tant qu'une
+         modification n'est pas arrivée sur le serveur, il le dit ; rouge
+         au-delà de 30 s. Sans lui, « refusée » à l'écran et « en attente »
+         sur le serveur pouvaient coexister des heures sans que rien ne le
+         signale. -->
+    <p class="synchro" id="bordSynchro" hidden></p>
+    <p class="synchro conflit" id="bordConflit" hidden></p>
 
     <!-- ═══ LE BLOC A MAIGRI DE MOITIÉ ═══
          Septembre 2026, à sa demande : « ça prend beaucoup de place ». Il
@@ -10425,6 +10437,121 @@ window.ELA_TEXTES = {
     return neuves.length;
   }
 
+  /* ═══ LE SERVEUR EST LA SEULE VÉRITÉ, L'APPAREIL N'EST QU'UNE COPIE ═══
+     2 octobre 2026, Barbaros : « je valide une course, ça revient ; je
+     refuse, ça revient ». La cause n'était pas un bouton : c'était DEUX
+     vérités. « fusionner » ne faisait qu'AJOUTER ce que l'appareil ne
+     connaissait pas — une course confirmée sur l'ordinateur restait « en
+     attente » sur le téléphone pour toujours. Et « pousser » partait sans
+     regarder s'il arrivait : l'écran disait « refusée », le serveur disait
+     « en attente », et la relance Telegram sonnait sur une course qu'il
+     croyait réglée. « Ça revient. »
+
+     TROIS RÈGLES, ET ELLES TIENNENT ENSEMBLE :
+     1. Chaque course porte sur le serveur un NUMÉRO DE VERSION (migration
+        20261002000000). L'appareil garde celui qu'il a lu (« _v »). Quand
+        le serveur est plus récent, sa copie est REMPLACÉE, plus complétée.
+     2. Toute modification entre dans une FILE D'ATTENTE sur l'appareil
+        (« ela_file »), envoyée tout de suite, réessayée si ça échoue —
+        réseau, retour de WhatsApp, session expirée — et qui survit à un
+        rechargement. Un témoin le dit à l'écran tant qu'elle n'est pas
+        vide. Plus jamais un écran qui dit une chose pendant que le serveur
+        en dit une autre, sans que personne le sache.
+     3. On écrit SOUS CONDITION : « modifie la version N ». Si la version a
+        bougé — un autre appareil est passé avant — le serveur ne touche à
+        rien, on relit, le serveur gagne, et on le DIT. Impossible d'écraser
+        du frais avec du vieux.
+
+     POURQUOI « LE SERVEUR GAGNE » ET PAS « LE DERNIER GESTE GAGNE » : le
+     geste perdu a été fait sur une copie périmée, donc sur une information
+     fausse. Mieux vaut le lui remontrer et qu'il le refasse en connaissance
+     de cause qu'exécuter un refus sur une course déjà confirmée ailleurs.
+     Avec un seul exploitant, le cas est rare ; il doit juste ne jamais
+     passer en silence.
+
+     « _v » et « _cree » ne quittent jamais l'appareil : ils sont retirés
+     du bon avant l'envoi. */
+  var CLE_FILE = "ela_file";
+  function fileAttente(){
+    try{ var f = JSON.parse(localStorage.getItem(CLE_FILE) || "{}"); return f && typeof f === "object" ? f : {}; }
+    catch(e){ return {}; }
+  }
+  function ecrireFile(f){ try{ localStorage.setItem(CLE_FILE, JSON.stringify(f)); }catch(e){} }
+  function enFile(ref){ return !!fileAttente()[ref]; }
+  function mettreEnFile(ref){
+    var f = fileAttente();
+    if(!f[ref]) f[ref] = { depuis: Date.now(), essais: 0 };
+    ecrireFile(f);
+  }
+  function retirerDeFile(ref){
+    var f = fileAttente();
+    if(f[ref]){ delete f[ref]; ecrireFile(f); }
+  }
+  function remplacerLocal(c){
+    var liste = registre(), trouve = false;
+    for(var i=0;i<liste.length;i++) if(liste[i] && liste[i].ref === c.ref){ liste[i] = c; trouve = true; }
+    if(!trouve) liste.unshift(c);
+    ecrireRegistre(liste);
+  }
+  /* Ce que lit « lister » : des bons portant « _v » (version serveur) et
+     « _cree » (date d'arrivée serveur), le statut de la COLONNE faisant
+     foi sur celui du JSON — c'est la colonne que lisent la relance et la
+     réception. Un serveur d'avant la migration ne rend pas de version :
+     « _v » reste alors absent et on retombe sur l'ancien comportement. */
+  function reconcilier(distantes){
+    var local = registre();
+    var parRef = {};
+    local.forEach(function(c){ if(c && c.ref) parRef[c.ref] = c; });
+    var file = fileAttente();
+    var neuves = [], changees = [];
+    var plusAncienne = null;
+    distantes.forEach(function(d){
+      if(!d || !d.ref) return;
+      if(d._cree && (!plusAncienne || d._cree < plusAncienne)) plusAncienne = d._cree;
+      var l = parRef[d.ref];
+      if(!l){ neuves.push(d); parRef[d.ref] = d; return; }
+      /* Une modification de CET appareil attend encore de partir : on garde
+         sa copie, c'est l'envoi qui tranchera (sous condition de version). */
+      if(file[d.ref]) return;
+      var vS = Number(d._v) || 0, vL = Number(l._v) || 0;
+      if(vS > vL){
+        parRef[d.ref] = d;
+        if((l.statut || "attente") !== (d.statut || "attente")) changees.push(d.ref);
+      }
+    });
+    /* UNE COURSE QUE LE SERVEUR NE MONTRE PLUS A ÉTÉ SUPPRIMÉE AILLEURS :
+       elle s'efface ici aussi. Seulement si on l'avait bien lue du serveur
+       un jour (« _v »), et seulement si la liste n'est pas tronquée à cet
+       endroit — au-delà de 1000 lignes, « absente de la liste » ne veut
+       plus dire « absente du serveur ». Une course jamais partie d'ici (sans
+       « _v », pas en file) est remise en file : c'est exactement celle qui
+       « ne vivait que dans son téléphone ». */
+    var presentes = {};
+    distantes.forEach(function(d){ if(d && d.ref) presentes[d.ref] = true; });
+    var tronquee = distantes.length >= 1000;
+    var resultat = [];
+    Object.keys(parRef).forEach(function(ref){
+      var c = parRef[ref];
+      if(presentes[ref] || file[ref]){ resultat.push(c); return; }
+      if(c._v){
+        if(!tronquee || (c._cree && plusAncienne && c._cree >= plusAncienne)) return;
+        resultat.push(c); return;
+      }
+      resultat.push(c);
+      mettreEnFile(ref);
+    });
+    /* L'ordre du serveur d'abord (le plus récent en tête), puis le reste. */
+    var rangs = {};
+    distantes.forEach(function(d, i){ if(d && d.ref) rangs[d.ref] = i; });
+    resultat.sort(function(a, b){
+      var ra = rangs[a.ref] !== undefined ? rangs[a.ref] : 1e9;
+      var rb = rangs[b.ref] !== undefined ? rangs[b.ref] : 1e9;
+      return ra - rb;
+    });
+    ecrireRegistre(resultat);
+    return { neuves: neuves.length, changees: changees };
+  }
+
   /* Le serveur, côté exploitant : se connecter, lire, et remonter une
      course qu'on vient de modifier. */
   var CLE_SESSION = "ela_nuage_session";
@@ -10480,6 +10607,11 @@ window.ELA_TEXTES = {
     if(this.connecte()) entetes.Authorization = "Bearer " + this.session.access_token;
     return fetch(SUPABASE_URL + chemin, {
       method: options.method || "GET", body: options.body,
+      /* « keepalive » : une écriture lancée juste avant que WhatsApp prenne
+         l'écran (« Prévenir le client ») survit au gel de la page. Sans lui,
+         iOS l'abandonnait et l'admin disait « confirmée » pendant que le
+         serveur disait « en attente ». */
+      keepalive: !!options.keepalive,
       signal: ctrl.signal, headers: entetes
     }).then(function(r){
       clearTimeout(minuteur);
@@ -10571,35 +10703,235 @@ window.ELA_TEXTES = {
      ou au tour de fond. C'est ce qui permet de voir une demande en
      quelques secondes sans faire télécharger la liste entière à chaque
      fois sur un téléphone en 4G. */
+  /* LA SONDE DEMANDE « LA COURSE MODIFIÉE LE PLUS RÉCEMMENT », pas la
+     dernière arrivée (2 octobre 2026) : une confirmation faite sur un autre
+     appareil change la réponse, et la relecture complète part dans les 8 s.
+     Avant, seule une NOUVELLE course la faisait partir — un changement
+     ailleurs attendait le tour de fond, 45 s. Un serveur d'avant la
+     migration n'a pas « version » : on retombe sur l'ancienne question. */
+  var serveurSansVersion = false;
   nuage.derniere = function(){
     if(!this.connecte()) return Promise.resolve(null);
-    return this.appel("/rest/v1/courses?select=ref&order=cree_le.desc&limit=1")
-      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) || ""; });
+    var moi = this;
+    if(serveurSansVersion)
+      return this.appel("/rest/v1/courses?select=ref&order=cree_le.desc&limit=1")
+        .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) || ""; });
+    return this.appel("/rest/v1/courses?select=ref,version&order=modifie_le.desc&limit=1")
+      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) ? r[0].ref + ":" + (r[0].version || "") : ""; })
+      .catch(function(e){
+        if(String(e && e.message).indexOf("400") >= 0){ serveurSansVersion = true; return moi.derniere(); }
+        throw e;
+      });
   };
   nuage.lister = function(){
     if(!this.connecte()) return Promise.resolve(null);
-    /* AUCUN « catch » ICI, ET C'EST DÉLIBÉRÉ. Il y en avait un : une lecture
-       refusée rendait « null », exactement comme « pas connecté », et le
-       tableau de bord ne disait rien. Une panne qui ressemble à un état
-       normal ne se répare jamais. L'erreur remonte donc à l'appelant, qui
-       l'affiche. */
-    return this.appel("/rest/v1/courses?select=bon&order=cree_le.desc&limit=1000")
-      .then(function(r){
-        return Array.isArray(r) ? r.map(function(x){ return x.bon; }).filter(Boolean) : [];
-      });
+    var moi = this;
+    /* AUCUN « catch » QUI RENDE null ICI, ET C'EST DÉLIBÉRÉ. Il y en avait
+       un : une lecture refusée rendait « null », exactement comme « pas
+       connecté », et le tableau de bord ne disait rien. Une panne qui
+       ressemble à un état normal ne se répare jamais. L'erreur remonte donc
+       à l'appelant, qui l'affiche. Le seul repli : un serveur d'avant la
+       migration de version (400 sur la colonne), qu'on relit à l'ancienne. */
+    var lire = function(avecVersion){
+      var champs = avecVersion ? "bon,statut,version,modifie_le,cree_le" : "bon,statut,cree_le";
+      return moi.appel("/rest/v1/courses?select=" + champs + "&order=cree_le.desc&limit=1000")
+        .then(function(r){
+          return Array.isArray(r) ? r.map(function(x){
+            var b = x && x.bon;
+            if(!b || !b.ref) return null;
+            if(x.statut) b.statut = x.statut;
+            if(x.version) b._v = x.version;
+            if(x.cree_le) b._cree = x.cree_le;
+            return b;
+          }).filter(Boolean) : [];
+        });
+    };
+    if(serveurSansVersion) return lire(false);
+    return lire(true).catch(function(e){
+      if(String(e && e.message).indexOf("400") >= 0){ serveurSansVersion = true; return lire(false); }
+      throw e;
+    });
   };
-  /* DÉPÔT-OU-MISE-À-JOUR. Un simple PATCH ne modifierait qu'une ligne
-     existante : il ne pourrait rien faire d'une course que Barbaros saisit
-     lui-même, qui n'a jamais été déposée par un client. Ces courses-là ne
-     vivraient que dans son téléphone, et changer d'appareil les perdrait. */
+  /* « POUSSER » METTRE EN FILE, ET LA FILE ENVOIE. Les appelants n'ont pas
+     changé — ils donnent le bon à envoyer — mais plus rien ne part en
+     « on verra » : la file réessaie jusqu'à ce que le serveur ait répondu,
+     et le témoin de l'écran dit tant que ce n'est pas fait. */
   nuage.pousser = function(bon){
-    if(!this.connecte() || !bon || !bon.ref) return Promise.resolve(false);
-    return this.appel("/rest/v1/courses", {
-      method:"POST",
-      headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
-      body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
-    }).then(function(){ return true; }).catch(function(){ return false; });
+    if(!bon || !bon.ref) return Promise.resolve(false);
+    mettreEnFile(bon.ref);
+    jugerSynchro();
+    return viderFile();
   };
+  /* L'ENVOI D'UNE COURSE, SOUS CONDITION DE VERSION.
+     Résultats : « ok » (écrite), « conflit » (le serveur était plus récent :
+     sa version a remplacé la nôtre), « attendre » (réseau, session — on
+     réessaie). Jamais de silence. */
+  function bonPourEnvoi(c){
+    var b = JSON.parse(JSON.stringify(c)); delete b._v; delete b._cree; return b;
+  }
+  function depuisServeur(x){
+    var b = x && x.bon; if(!b) return null;
+    if(x.statut) b.statut = x.statut;
+    if(x.version) b._v = x.version;
+    if(x.cree_le) b._cree = x.cree_le;
+    return b;
+  }
+  nuage.envoyerCourse = function(c){
+    var moi = this, ref = c.ref, b = bonPourEnvoi(c), statut = c.statut || "attente";
+    var opts = { keepalive: true };
+    function relire(){
+      return moi.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref)
+                       + "&select=bon,statut" + (serveurSansVersion ? ",cree_le" : ",version,modifie_le,cree_le") + "&limit=1")
+        .then(function(r){ return Array.isArray(r) && r[0] ? r[0] : null; });
+    }
+    function conflit(ligne){
+      var d = depuisServeur(ligne);
+      if(d) remplacerLocal(d);
+      return "conflit";
+    }
+    /* Serveur d'avant la migration : l'ancien dépôt-ou-mise-à-jour, le
+       temps que la migration soit appliquée. */
+    function ancienne(){
+      return moi.appel("/rest/v1/courses", { method:"POST", keepalive:true,
+        headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
+        body: JSON.stringify({ ref: ref, statut: statut, bon: b }) }).then(function(){ return "ok"; });
+    }
+    if(serveurSansVersion) return ancienne();
+    if(c._v){
+      /* « modifie la version N » : zéro ligne rendue = la version a bougé
+         (ou la ligne a disparu). On relit pour savoir lequel des deux. */
+      return moi.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref) + "&version=eq." + Number(c._v)
+                       + "&select=version,cree_le", { method:"PATCH", keepalive:true,
+        headers:{ Prefer:"return=representation" },
+        body: JSON.stringify({ statut: statut, bon: b }) })
+      .then(function(r){
+        if(Array.isArray(r) && r.length){
+          var l = registre();
+          for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ref){ l[i]._v = r[0].version; if(r[0].cree_le) l[i]._cree = r[0].cree_le; }
+          ecrireRegistre(l);
+          return "ok";
+        }
+        return relire().then(function(ligne){
+          if(ligne) return conflit(ligne);
+          /* Disparue du serveur : supprimée ailleurs. On n'insiste pas, et
+             la réconciliation l'effacera ici. */
+          return "ok";
+        });
+      });
+    }
+    /* Jamais lue du serveur : on DÉPOSE, sans écraser. Si la ligne existe
+       déjà — déposée par le client, ou lue par un autre appareil — le
+       serveur gagne : on la relit et elle remplace la nôtre. */
+    return moi.appel("/rest/v1/courses?select=version,cree_le", { method:"POST", keepalive:true,
+      headers:{ Prefer:"return=representation,resolution=ignore-duplicates" },
+      body: JSON.stringify({ ref: ref, statut: statut, bon: b }) })
+    .then(function(r){
+      if(Array.isArray(r) && r.length === 0){
+        return relire().then(function(ligne){
+          if(!ligne) return "attendre";
+          if(ligne.version === undefined){ serveurSansVersion = true; return ancienne(); }
+          return conflit(ligne);
+        });
+      }
+      if(Array.isArray(r) && r[0] && r[0].version){
+        var l = registre();
+        for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ref){ l[i]._v = r[0].version; if(r[0].cree_le) l[i]._cree = r[0].cree_le; }
+        ecrireRegistre(l);
+      }
+      return "ok";
+    });
+  };
+
+  /* LA FILE SE VIDE UNE COURSE À LA FOIS, dans l'ordre d'entrée, et
+     réessaie avec un délai qui s'allonge (3 s, 6, 12… 60 s au plus). Elle
+     est aussi relancée par la sonde, au retour sur l'onglet, et au retour
+     du réseau. Un conflit n'est pas un échec : la course est à jour, on
+     passe à la suivante et on le dit. */
+  var fileEnCours = false, minuterieFile = null, conflitsRecents = [];
+  function viderFile(){
+    if(fileEnCours) return Promise.resolve(false);
+    if(!nuage.connecte()){ jugerSynchro(); return Promise.resolve(false); }
+    var f = fileAttente(), refs = Object.keys(f);
+    if(!refs.length){ jugerSynchro(); return Promise.resolve(true); }
+    var maintenant = Date.now();
+    var prets = refs.filter(function(r){ return !f[r].prochain || f[r].prochain <= maintenant; });
+    if(!prets.length){ programmerFile(); return Promise.resolve(false); }
+    fileEnCours = true;
+    var ref = prets[0];
+    var c = registre().filter(function(x){ return x && x.ref === ref; })[0];
+    if(!c){ retirerDeFile(ref); fileEnCours = false; return viderFile(); }
+    return nuage.envoyerCourse(c).then(function(res){
+      if(res === "ok" || res === "conflit"){
+        retirerDeFile(ref);
+        if(res === "conflit"){
+          conflitsRecents.push(ref);
+          dessinerBord();
+          /* Le bon d'abord (il remet ses notes à zéro), le message ensuite. */
+          if(bonBord && bonBord.ref === ref) ouvrirBonBord(ref);
+          direConflit(ref);
+        }
+      } else {
+        reporter(ref);
+      }
+    }).catch(function(){ reporter(ref); })
+    .then(function(){
+      fileEnCours = false;
+      jugerSynchro();
+      var reste = Object.keys(fileAttente());
+      if(reste.length) return viderFile();
+      return true;
+    });
+  }
+  function reporter(ref){
+    var f = fileAttente(); if(!f[ref]) return;
+    f[ref].essais = (f[ref].essais || 0) + 1;
+    f[ref].prochain = Date.now() + Math.min(60000, 3000 * Math.pow(2, Math.min(5, f[ref].essais - 1)));
+    ecrireFile(f);
+    programmerFile();
+  }
+  function programmerFile(){
+    if(minuterieFile) clearTimeout(minuterieFile);
+    var f = fileAttente(), refs = Object.keys(f); if(!refs.length) return;
+    var prochain = Math.min.apply(null, refs.map(function(r){ return f[r].prochain || 0; }));
+    minuterieFile = setTimeout(function(){ minuterieFile = null; viderFile(); },
+                               Math.max(500, prochain - Date.now()));
+  }
+  /* LE TÉMOIN. Caché quand tout est parti ; « en cours d'envoi » sinon ;
+     rouge au-delà de 30 s — le temps au bout duquel un réseau capricieux
+     devient une panne qu'il faut voir. */
+  function jugerSynchro(){
+    var el = document.getElementById("bordSynchro"); if(!el) return;
+    var f = fileAttente(), refs = Object.keys(f);
+    if(!refs.length){ el.hidden = true; el.classList.remove("tard"); return; }
+    var plusVieux = Math.min.apply(null, refs.map(function(r){ return f[r].depuis || Date.now(); }));
+    var attente = Math.round((Date.now() - plusVieux) / 1000);
+    var tard = attente >= 30;
+    el.hidden = false;
+    el.classList.toggle("tard", tard);
+    var n = refs.length;
+    el.textContent = !nuage.connecte()
+      ? n + " modification" + (n > 1 ? "s" : "") + " en attente d'envoi : reconnectez-vous au serveur pour qu'elle" + (n > 1 ? "s partent" : " parte") + "."
+      : tard
+        ? n + " modification" + (n > 1 ? "s" : "") + " non envoyée" + (n > 1 ? "s" : "") + " depuis " + attente + " s — le serveur ne répond pas, on réessaie. Vérifiez le réseau."
+        : n + " modification" + (n > 1 ? "s" : "") + " en cours d'envoi…";
+  }
+  setInterval(function(){ if(Object.keys(fileAttente()).length) jugerSynchro(); }, 5000);
+  function direConflit(ref){
+    var phrase = "La course " + ref + " avait été modifiée sur un autre appareil : l'écran a été mis à jour "
+               + "avec la version du serveur. Vérifiez-la et refaites votre geste si besoin.";
+    var el = document.getElementById("bordConflit");
+    if(el){ el.hidden = false; el.textContent = phrase; }
+    /* Le geste vient en général du bon lui-même : c'est là qu'il regarde,
+       pas sur le tableau de bord derrière. On le dit aux deux endroits. */
+    var note = document.getElementById("bbModifNote");
+    if(note && bonBord && bonBord.ref === ref){
+      note.hidden = false; note.textContent = phrase;
+      /* La note vit sous le bloc client, hors de l'écran sur un téléphone :
+         on l'amène sous les yeux, sinon le geste perdu passe inaperçu. */
+      try{ note.scrollIntoView({ block:"center", behavior:"smooth" }); }catch(e){}
+    }
+  }
+  window.addEventListener("online", function(){ viderFile(); });
 
   /* ═══ SUPPRIMER POUR DE BON — LE SERVEUR D'ABORD, L'APPAREIL ENSUITE ═══
      Septembre 2026, à sa demande : « supprime les demandes de test ». Il
@@ -11976,6 +12308,10 @@ window.ELA_TEXTES = {
   }
   function retirerDuRegistre(ref){
     ecrireRegistre(registre().filter(function(c){ return c && c.ref !== ref; }));
+    /* Une modification encore en file sur une course qu'on vient de
+       supprimer la ferait RENAÎTRE sur le serveur au prochain envoi. */
+    retirerDeFile(ref);
+    jugerSynchro();
   }
   document.getElementById("btnSupprimerCourse").addEventListener("click", function(){
     if(!bonBord) return;
@@ -12031,6 +12367,8 @@ window.ELA_TEXTES = {
     filtreBord = "attente";
     dessinerBord();
   });
+  var elConflit = document.getElementById("bordConflit");
+  if(elConflit) elConflit.addEventListener("click", function(){ this.hidden = true; });
 
   /* ---- Le serveur, côté exploitant ---- */
   function jugerNuage(){
@@ -12066,10 +12404,22 @@ window.ELA_TEXTES = {
       if(!distantes) return null;
       panneServeur = "";
       jugerReception();
-      var n = fusionner(distantes);
+      /* RÉCONCILIER, PLUS FUSIONNER : le serveur remplace ce qu'il a de plus
+         récent, et une course qu'il ne montre plus s'efface ici. */
+      var r = reconcilier(distantes);
+      var n = r.neuves;
+      /* Le bon ouvert a changé d'état ailleurs : on le redessine, sinon il
+         montrerait « en attente » sur une course confirmée à côté. */
+      if(bonBord && r.changees.indexOf(bonBord.ref) >= 0) ouvrirBonBord(bonBord.ref);
       dessinerBord();
       if(n && !premiereLecture) annoncerArrivee(n);
       premiereLecture = false;
+      viderFile();
+      /* LA SONDE REPART DE CE QU'ON VIENT DE LIRE. Sans ce repère, son
+         premier passage ne faisait qu'enregistrer la réponse : un changement
+         survenu entre l'ouverture et ce premier passage attendait le tour de
+         fond (45 s). Trouvé par le test, pas en relisant. */
+      nuage.derniere().then(function(k){ if(k !== null) derniereVue = k; }).catch(function(){});
       return n;
     }).catch(function(e){
       /* UNE LECTURE QUI ÉCHOUE DOIT SE VOIR. Sans ça, Barbaros a une
@@ -12110,6 +12460,7 @@ window.ELA_TEXTES = {
   var minuterieEcoute = null;
   var derniereVue = null, dernierComplet = 0;
   function sonder(){
+    if(Object.keys(fileAttente()).length) viderFile();
     if(Date.now() - dernierComplet >= PAS_ECOUTE_MS) return synchroniser();
     return nuage.derniere().then(function(ref){
       if(ref === null) return;
