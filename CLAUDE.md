@@ -6543,10 +6543,18 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   branche — les migrations ont été lancées depuis une branche le 15/09. Les
   trois jobs portent `if: github.ref == 'refs/heads/main'`. Un diagnostic se
   fusionne d'abord, se lance ensuite.
-- **CE QUI RESTE À TRANCHER PAR BARBAROS** : le quota anonyme de 12 dépôts
-  par heure et par adresse IP vaut aussi pour les **clients du QR sur le wifi
-  de l'hôtel**, qui partagent une adresse ; la réception a son propre plafond
-  depuis le 02/10, pas eux. Et l'en-tête d'autorisation du webhook sur
+- **LE QUOTA DES CLIENTS DU QR EST TRANCHÉ** (3 octobre 2026, Barbaros :
+  « la 2 »). Le plafond anonyme de 12 dépôts par heure et par adresse IP
+  valait aussi pour les clients qui scannent le flyer sur le **wifi de
+  l'hôtel**, qui partagent l'adresse de la box : le treizième lisait « non
+  transmise » et personne n'était alerté. Une demande qui porte la clé d'un
+  partenaire **réel** — vérifiée dans `partenaires`, jamais crue sur parole,
+  sinon chaque clé inventée serait un compteur neuf — compte désormais sur sa
+  propre clé « hôtel + adresse + heure », plafonnée à **30**. La réception
+  garde ses 60 par session ; l'anonyme ordinaire ses 12. Un attaquant qui
+  connaît la clé de l'hôtel (elle est dans les liens du QR) gagne 30 au lieu
+  de 12, rien de plus. Quatre contrôles dans `test-securite-fonctions`.
+- **RESTE À VÉRIFIER PAR BARBAROS** : l'en-tête d'autorisation du webhook sur
   `courses` (créé dans le tableau de bord) doit porter la clé publique, pas
   une clé service_role : non vérifiable d'ici.
 - **LE VRAI BLOQUANT EST ADMINISTRATIF** : SIRET, RC Pro de la centrale,
