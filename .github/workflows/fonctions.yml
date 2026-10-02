@@ -71,6 +71,13 @@ jobs:
       - name: Déployer telegram-bot
         run: supabase functions deploy telegram-bot --no-verify-jwt --project-ref "$PROJET"
 
+      # « pilotage » : la sentinelle (pg_cron, chaque minute) et le bilan de
+      # santé du chien de garde GitHub. Appelée avec la clé publique, comme
+      # la relance de nouvelle-demande : la vérification du jeton reste
+      # activée, et la fonction ne croit rien du corps — tout est relu en base.
+      - name: Déployer pilotage
+        run: supabase functions deploy pilotage --project-ref "$PROJET"
+
       - name: Déployer prevenir-client
         run: supabase functions deploy prevenir-client --project-ref "$PROJET"
 

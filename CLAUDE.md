@@ -6369,3 +6369,63 @@ visuelle, notification, tout ce qui est possible ».
   attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
   l'icône. Sans nombre (notification d'un client), un simple point.
   `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
+
+## L'ASSISTANT DE PILOTAGE — QUESTIONS, SENTINELLE, CHIEN DE GARDE
+
+2 octobre 2026, à sa demande : « savoir immédiatement ce qui se passe, ce
+qui nécessite une intervention, et si une réservation rencontre un
+problème ». **Lecture seule**, à côté du tunnel de réservation, jamais
+dedans.
+- **Ce qui existait déjà et n'a pas été refait** : l'alerte immédiate
+  (webhook INSERT → `nouvelle-demande` → Telegram + notification + e-mail),
+  le rattrapage et les rappels toutes les 20 s, « ✅ Vu », la sonde de
+  l'admin à 8 s. Une seconde chaîne d'alerte aurait doublé les messages.
+- **Trois couches ajoutées, chacune indépendante des autres** :
+  1. **Les questions sur Telegram** (`telegram-bot`) : « aujourd'hui »,
+     « demain », « urgent », « sans chauffeur », « attention », « résumé »,
+     « hotel easyhotel », une référence (son parcours : serveur → alerte →
+     vue → chauffeur → statut). Un clavier de boutons sous chaque réponse.
+     Réponse seulement à SA conversation (`TELEGRAM_CHAT`) et avec le secret
+     du webhook ; le reste est journalisé (`journal_assistant`) sans réponse.
+  2. **La sentinelle** (fonction `pilotage`, pg_cron chaque minute) :
+     demande jamais annoncée à 3 min, relance arrêtée, Telegram ou
+     notifications en échec, confirmée sans chauffeur à H-2 (toutes les
+     15 min, 5 min à H-30), départ passé non clos, double réservation
+     possible (même trajet, même jour, même heure), chauffeur sur deux
+     départs à moins d'1 h. Chaque anomalie a sa cadence
+     (`alertes_pilotage`) et **se ferme seule** quand elle se règle — le
+     chauffeur saisi arrête les rappels. « Je m'en occupe » la fait taire
+     **30 min, jamais plus** : une urgence acquittée puis oubliée resonne.
+  3. **Le chien de garde GitHub** (`surveillance-alertes.yml`, toutes les
+     15 min) : demande `{type:"SANTE"}` à `pilotage` et ouvre une Issue si
+     c'est critique. **C'est le seul filet qui ne passe ni par Supabase ni
+     par Telegram** : pg_cron arrêté, projet à terre, bot révoqué. La
+     réponse ne porte que des codes, jamais une référence (clé publique).
+- **PAS D'IA GÉNÉRATIVE, ET C'EST UN CHOIX** : un modèle de langue enverrait
+  les courses chez un tiers à chaque question et peut inventer un chiffre.
+  Huit questions par mots-clés, déterministes ; une question inconnue rend
+  l'aide, jamais une réponse devinée.
+- **Une lecture ratée ne rend jamais « rien d'urgent »** : « serveur
+  injoignable, je ne peux rien affirmer ». C'est le pire mensonge possible
+  ici, et un contrôle le verrouille.
+- **Aucune réponse ni alerte ne porte nom, téléphone ou chambre** (RGPD
+  5.1.c, même règle que l'alerte Telegram) ; le départ est `departPublic`.
+- **La relance écrit son passage** dans `sante_systeme` à chaque tour : c'est
+  ce qui permet de voir qu'elle s'est arrêtée.
+- **Tout ce qui décide vit dans `supabase/functions/_shared/pilotage.js`**,
+  en JavaScript ordinaire, et une seule lecture de la base
+  (`_shared/lecture-pilotage.ts`) sert le bot ET la sentinelle : deux
+  lectures séparées finiraient par ne pas voir les mêmes courses.
+- **Après la fusion, UN geste** : workflow « Appliquer une migration
+  Supabase », fichier `20261002000000_assistant_pilotage.sql` — APRÈS le
+  déploiement des fonctions (sinon le webhook Telegram est reposé sans les
+  messages ; rejouer le fichier suffit).
+- **Second temps, pas encore fait** : préparer un message chauffeur,
+  relancer, changer un statut depuis Telegram. Chaque action passera par une
+  RPC qui vérifie le rôle côté serveur et écrit au journal — jamais une
+  écriture directe depuis le bot.
+- `test-pilotage.mjs` (Node, sans réseau), branché en CI avec
+  `test-relance-alertes.mjs` et `test-securite-fonctions.mjs`
+  (`pilotage-regression.yml`). Éprouvé contre quatre défauts : chambre dans
+  une réponse, autre conversation servie, lecture ratée lue « rien », alerte
+  qui ne se ferme pas.

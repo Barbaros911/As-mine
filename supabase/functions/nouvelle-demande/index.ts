@@ -23,7 +23,7 @@ async function secretWebhook(jeton:string):Promise<string>{const h=await crypto.
 async function installerTelegram():Promise<string>{
   if(!TELEGRAM_TOKEN||!U)return "telegram non configuré";
   const r=await envoyer(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/setWebhook`,{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({url:`${U}/functions/v1/telegram-bot`,secret_token:await secretWebhook(TELEGRAM_TOKEN),allowed_updates:["callback_query"]})});
+    body:JSON.stringify({url:`${U}/functions/v1/telegram-bot`,secret_token:await secretWebhook(TELEGRAM_TOKEN),allowed_updates:["callback_query","message"]})});
   return r.ok?"webhook Telegram installé":"webhook Telegram refusé : "+r.detail.slice(0,200);
 }
 async function parEmail(t:string,m:string):Promise<Resultat>{if(!RESEND_CLE||!EMAIL_EXPEDITEUR||!EMAIL_DESTINATAIRE)return{ok:false,detail:"email_non_configure",statut:"indisponible"};return envoyer("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${RESEND_CLE}`,"Content-Type":"application/json"},body:JSON.stringify({from:EMAIL_EXPEDITEUR,to:[EMAIL_DESTINATAIRE],subject:t,text:m})});}
@@ -105,6 +105,11 @@ async function relancer():Promise<string>{
   const depuis=new Date(Date.now()-LECTURE_MS).toISOString();
   const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.desc&limit=200`);
   if(!r.ok)return "lecture refusée";
+  /* LE PASSAGE EST ÉCRIT (02/10/2026) : la sentinelle et le chien de garde
+     GitHub savent ainsi que la relance tourne. Écrit APRÈS la lecture — il
+     prouve que la chaîne pg_cron → fonction → base marche, pas seulement que
+     la fonction a été appelée. Un échec d'écriture ne bloque rien. */
+  await db("sante_systeme?on_conflict=cle",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({cle:"relance",maj:new Date().toISOString()})}).catch(()=>{});
   const lignes=(await r.json())||[];let rattrapes=0,rappelsTg=0,rappelsPush=0;
   for(const l of lignes){
     const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;

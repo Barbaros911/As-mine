@@ -1,0 +1,30 @@
+# Les suites hors navigateur des fonctions Supabase : elles ne tournaient
+# que sur la machine de travail. Rapides (quelques secondes), sans réseau.
+name: Pilotage et alertes — régression
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/**"
+      - "test-pilotage.mjs"
+      - "test-relance-alertes.mjs"
+      - "test-securite-fonctions.mjs"
+      - ".github/workflows/pilotage-regression.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "test-pilotage.mjs"
+
+jobs:
+  suites:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node test-pilotage.mjs
+      - run: node test-relance-alertes.mjs
+      - run: node test-securite-fonctions.mjs

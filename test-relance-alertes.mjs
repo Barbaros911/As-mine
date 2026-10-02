@@ -218,8 +218,13 @@ try {
     check('la migration installe le webhook du bouton « Vu »', !!pose && /\/functions\/v1\/telegram-bot$/.test(pose.corps.url), JSON.stringify(pose?.corps?.url));
     check('avec un secret (pas un webhook ouvert à tous)', /^[0-9a-f]{64}$/.test(pose?.corps?.secret_token || ''));
     const Rb = path.join(path.dirname(fileURLToPath(import.meta.url)), 'supabase/functions/telegram-bot') + '/';
-    const tmpb = fs.mkdtempSync(path.join(os.tmpdir(), 'ela-bot-'));
-    fs.writeFileSync(tmpb + '/index.mjs', m.stripTypeScriptTypes(fs.readFileSync(Rb + 'index.ts', 'utf8')));
+    /* Le bot importe ../_shared (assistant de pilotage) : on recompose
+       l'arborescence, .ts dépouillés de leurs types en .mjs. */
+    const racineb = fs.mkdtempSync(path.join(os.tmpdir(), 'ela-bot-')), tmpb = racineb + '/telegram-bot';
+    fs.mkdirSync(tmpb); fs.mkdirSync(racineb + '/_shared');
+    const Rs = path.join(path.dirname(fileURLToPath(import.meta.url)), 'supabase/functions/_shared') + '/';
+    for (const f of fs.readdirSync(Rs)) fs.writeFileSync(racineb + '/_shared/' + f.replace(/\.ts$/, '.mjs'), f.endsWith('.ts') ? m.stripTypeScriptTypes(fs.readFileSync(Rs + f, 'utf8')) : fs.readFileSync(Rs + f, 'utf8'));
+    fs.writeFileSync(tmpb + '/index.mjs', m.stripTypeScriptTypes(fs.readFileSync(Rb + 'index.ts', 'utf8')).replace(/(\.\.\/_shared\/[\w-]+)\.ts/g, '$1.mjs'));
     let hb; globalThis.Deno = { env: { get: k => ({ SUPABASE_URL: 'http://sb', SUPABASE_SERVICE_ROLE_KEY: 'S', TELEGRAM_TOKEN: 't', TELEGRAM_CHAT: 'c' })[k] }, serve: f => { hb = f; } };
     await import(tmpb + '/index.mjs');
     const appui = (secret, chat, data = 'vu:ELA-26-09-CCCC3') => hb(new Request('http://x', { method: 'POST',
