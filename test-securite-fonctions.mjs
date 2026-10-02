@@ -77,6 +77,20 @@ ok((await hp('easyhotel-9F3K2Q')).status===200,'réception : bon code accepté s
 ok((await hp('mauvais')).status===401,'réception : mauvais code refusé');
 quotaAppels=60;
 ok((await hp('easyhotel-9F3K2Q')).status===429,'réception : plafond atteint → refus MÊME avec le bon code');
+/* UNE SESSION VALIDE NE CONSOMME PAS LE QUOTA (audit du 02/10/2026). La
+   liste se relit toutes les 30 s : comptée, elle épuisait seule les 60
+   essais en une demi-heure et la tablette du comptoir se bloquait. Le
+   plafond protège le CODE, pas la lecture d'une réception déjà entrée. */
+{
+  quotaAppels=0;
+  const sessionRec=(await (await hp('easyhotel-9F3K2Q')).json()).session;
+  ok(typeof sessionRec==='string'&&sessionRec.length>20,'réception : le bon code rend une session signée');
+  const hs=(session)=>hc(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},body:JSON.stringify({hotel:'easyhotel-aeroville',session})}));
+  quotaAppels=60;
+  ok((await hs(sessionRec)).status===200,'réception : plafond atteint, mais une session VALIDE lit encore sa liste');
+  ok(quotaAppels===60,'réception : la lecture par session n\'a consommé AUCUN essai du quota');
+  ok((await hs(sessionRec+'x')).status===429,'réception : une session FAUSSE compte comme un essai et tombe sur le plafond');
+}
 
 /* LE PRIX NE SORT QUE TANT QUE LA COURSE EST À VENIR (30/09/2026). On cherche
    la VALEUR dans la réponse brute, pas le mot « prix » : c'est ce que lirait

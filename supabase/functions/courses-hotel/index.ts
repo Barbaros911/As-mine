@@ -178,20 +178,30 @@ Deno.serve(async (req: Request) => {
       { status: 401, headers: entetes(origin) });
   }
 
-  const quota = await quotaOk(req);
-  if (quota === null) {
-    return new Response(JSON.stringify({ erreur: "service indisponible" }),
-      { status: 503, headers: entetes(origin) });
-  }
-  if (!quota) {
-    return new Response(JSON.stringify({ erreur: "trop d'essais, réessayez dans une heure" }),
-      { status: 429, headers: entetes(origin) });
-  }
-
   const attendu = Deno.env.get(nomSecretHotel(cle)) ?? "";
   const sessionValide = session
     ? await validerSessionHotel(session, cle, attendu)
     : false;
+  /* LE QUOTA NE COMPTE QUE LES ESSAIS DE CODE, JAMAIS UNE SESSION VALIDE
+     (audit du 2 octobre 2026). Compté sur chaque appel, il était épuisé par
+     la liste elle-même : elle se relit toutes les 30 s, soit 120 appels par
+     heure pour un plafond de 60 — la tablette du comptoir se bloquait seule
+     au bout d'une demi-heure, et la confirmation d'une course n'y arrivait
+     plus. Ce que le plafond protège, c'est le CODE contre qui le devine ; une
+     session signée n'a plus rien à deviner. Le compte reste pris AVANT la
+     comparaison du code, sinon l'essai gagnant passerait une fois la limite
+     atteinte. */
+  if (!sessionValide) {
+    const quota = await quotaOk(req);
+    if (quota === null) {
+      return new Response(JSON.stringify({ erreur: "service indisponible" }),
+        { status: 503, headers: entetes(origin) });
+    }
+    if (!quota) {
+      return new Response(JSON.stringify({ erreur: "trop d'essais, réessayez dans une heure" }),
+        { status: 429, headers: entetes(origin) });
+    }
+  }
   if (!sessionValide && !memeCode(code, attendu)) {
     /* Une attente sur l'échec, jamais sur le succès. Elle ne transforme pas
        cette serrure en coffre — on peut paralléliser — mais elle rend un
