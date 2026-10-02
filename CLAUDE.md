@@ -6554,9 +6554,28 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   garde ses 60 par session ; l'anonyme ordinaire ses 12. Un attaquant qui
   connaît la clé de l'hôtel (elle est dans les liens du QR) gagne 30 au lieu
   de 12, rien de plus. Quatre contrôles dans `test-securite-fonctions`.
-- **RESTE À VÉRIFIER PAR BARBAROS** : l'en-tête d'autorisation du webhook sur
+- **LA CLÉ DU WEBHOOK SE LIT D'ICI, SANS L'AFFICHER** (3 octobre 2026,
+  Barbaros : « regarde toi-même »). L'en-tête d'autorisation du webhook sur
   `courses` (créé dans le tableau de bord) doit porter la clé publique, pas
-  une clé service_role : non vérifiable d'ici.
+  une clé service_role. `20261003020000_diagnostic_webhook_autorisation.sql`
+  lit la définition des déclencheurs `http_request` et **classe** l'en-tête
+  — publique, secrète, ou jeton JWT avec son rôle — sans jamais sortir la
+  valeur, le journal GitHub étant public. Le rôle se lit dans la partie
+  centrale du jeton, qui est du JSON encodé, pas chiffré.
+  - **`analyse` EST UN MOT RÉSERVÉ DE POSTGRESQL** (l'orthographe britannique
+    d'`ANALYZE`) : le premier jet nommait ainsi une CTE, et la base l'a
+    refusé en production — après une fusion, donc une PR de plus à faire
+    relire. **Un SQL de diagnostic s'éprouve AVANT d'être poussé, et c'est
+    possible ici** : cette machine a PostgreSQL 16 complet dans
+    `/usr/lib/postgresql/16/bin` (`initdb`, `postgres`, `psql`), à lancer
+    sous l'utilisateur `postgres` dans `/tmp` — le bac à sable n'est pas
+    traversable par cet utilisateur. La PR #285 affirmait « pas de serveur
+    PostgreSQL sur la machine de travail » : c'était faux, personne n'avait
+    regardé. Éprouvé ensuite sur six déclencheurs factices (anon,
+    service_role, `sb_publishable_`, `sb_secret_`, sans en-tête, et un
+    déclencheur ordinaire qui ne doit pas apparaître) : la version de `main`
+    rend mot pour mot l'erreur de la CI, la version corrigée classe les cinq
+    webhooks et ignore le sixième.
 - **LE VRAI BLOQUANT EST ADMINISTRATIF** : SIRET, RC Pro de la centrale,
   déclaration d'activité au ministère des transports (L3142-2, preuve
   d'immatriculation + attestation RC, par mail, valable un an), papiers des

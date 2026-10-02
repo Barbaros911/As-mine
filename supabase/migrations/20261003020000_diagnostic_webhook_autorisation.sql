@@ -21,7 +21,9 @@ with declencheurs as (
     join pg_class c on c.oid = t.tgrelid
     join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'public' and not t.tgisinternal
-), analyse as (
+), extraction as (
+  -- « analyse » est un MOT RÉSERVÉ de PostgreSQL (alias britannique
+  -- d'ANALYZE) : le premier jet s'appelait ainsi et la base l'a refusé.
   select tbl, tgname,
          (regexp_match(def, '(https?://[^''"[:space:]]+)'))[1]                              as url,
          (regexp_match(def, 'authorization[^A-Za-z0-9]+(Bearer [A-Za-z0-9._-]+)', 'i'))[1]  as autorisation,
@@ -32,7 +34,7 @@ with declencheurs as (
   select tbl, tgname, url, autorisation, apikey,
          case when autorisation like 'Bearer eyJ%'
               then split_part(substr(autorisation, 8), '.', 2) end as charge_b64
-    from analyse
+    from extraction
 )
 select tbl as "table",
        tgname as declencheur,
