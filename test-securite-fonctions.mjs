@@ -15,6 +15,8 @@ async function charger(dir, env){
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ela-fn-'));
   for(const f of fs.readdirSync(R+dir)){ if(f.endsWith('.js')) fs.copyFileSync(R+dir+'/'+f,tmp+'/'+f); }
   let js=m.stripTypeScriptTypes(fs.readFileSync(R+dir+'/index.ts','utf8'));
+  /* L'import de types « jsr: » de deposer-course n'existe pas pour Node. */
+  js=js.replace(/^import "jsr:[^"]+";\s*$/m,'');
   /* La Réception partage désormais la signature de session avec la fonction
      de dépôt. Le test reste autonome : il transpile ce module localement au
      lieu de tenter d'importer un .ts depuis le dossier temporaire. */
@@ -115,6 +117,42 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   env.VAPID_PUBLIQUE=(await import('node:crypto')).randomBytes(32).toString('hex');
   r=await hk(new Request('http://x',{method:'POST',body:'{}'}));
   ok(r.status===503,'une valeur mal collée (une empreinte) est refusée, pas servie aux navigateurs');
+}
+/* deposer-course : LE QUOTA D'UNE RÉCEPTION IDENTIFIÉE EST LE SIEN, PAS CELUI
+   DU WIFI (2/10/2026). Douze dépôts par heure et par IP : la tablette du
+   comptoir et les clients sur le wifi de l'hôtel partagent la même adresse.
+   On lit la CLÉ de quota envoyée au serveur : deux dépôts depuis la même IP,
+   l'un anonyme, l'autre par la réception, ne doivent pas se compter ensemble. */
+{
+  const clesQuota=[];
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){clesQuota.push(JSON.parse(init.body));return new Response('true');}
+    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
+    if(url.includes('/rpc/ela_deposer_course_serveur')) return new Response('"ok"');
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',HOTEL_EASYHOTEL_AEROVILLE_CODE:'easyhotel-9F3K2Q'});
+  const tmpS=fs.mkdtempSync(path.join(os.tmpdir(),'ela-sess-'));
+  fs.writeFileSync(tmpS+'/hotel-session.mjs',m.stripTypeScriptTypes(fs.readFileSync(R+'_shared/hotel-session.ts','utf8')));
+  const {creerSessionHotel}=await import(tmpS+'/hotel-session.mjs');
+  const session=await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q');
+  const bon=(ref,reception)=>({ref,course:{depart:'easyHotel Aéroville',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30,chambre:reception?'214':''},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'carte',provenanceCle:reception?'easyhotel-aeroville':'',parReception:!!reception});
+  const depot=(ref,reception)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.9','content-type':'application/json'},
+    body:JSON.stringify({bon:bon(ref,reception),sessionReception:reception?session:''})}));
+  const r1=await depot('ELA-26-10-QA1AA',false), r2=await depot('ELA-26-10-QB2BB',true);
+  ok(r1.status===201&&r2.status===201,'deposer-course : un dépôt anonyme et un dépôt de réception passent ('+r1.status+'/'+r2.status+')');
+  ok(clesQuota.length===2&&clesQuota[0].p_cle!==clesQuota[1].p_cle,'deposer-course : la réception identifiée a SA clé de quota, pas celle du wifi');
+  ok(clesQuota[0]?.p_limite===12&&clesQuota[1]?.p_limite===60,'deposer-course : 12 par heure et par IP pour un anonyme, 60 pour une réception');
+  const {createHash}=await import('node:crypto');
+  const heure=new Date().toISOString().slice(0,13);
+  ok(clesQuota[1]?.p_cle===createHash('sha256').update('reception|easyhotel-aeroville|'+heure).digest('hex'),'deposer-course : la clé de la réception est celle de l\'hôtel et de l\'heure, jamais l\'adresse IP');
+  const r3=await depot('ELA-26-10-QC3CC',true);
+  globalThis.fetch=fetchAvant;
+  ok(r3.status===201&&clesQuota[2]?.p_cle===clesQuota[1]?.p_cle,'deposer-course : deux dépôts de la même réception comptent sur la même clé');
 }
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

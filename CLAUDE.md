@@ -6471,3 +6471,35 @@ son, et la vraie demande suivante passait avec.
   saisies retirée, effacement retiré, arrêt au départ retiré) tombent en
   nommant le défaut. `test-securite-fonctions` éprouve le webhook sur une
   saisie sans empreinte.
+
+## LE CHIEN DE GARDE, LE DIAGNOSTIC, ET LE QUOTA DE LA RÉCEPTION
+
+2 octobre 2026, même demande : « vérifier que je reçois tout, vraiment comme
+un salarié 24-24 ». Ce que je ne peux pas être (je ne tourne pas en continu),
+GitHub le fait.
+- **`.github/workflows/chien-de-garde.yml`**, toutes les 15 min : lit UNE
+  ligne JSON sur le serveur (`.github/scripts/sante-serveur.sql`, lecture
+  seule, comptes et secondes seulement — le journal est public), et
+  **n'écrit qu'en cas de panne** : demande du site en attente depuis plus de
+  2 min sans alerte réussie, relance pg_cron absente ou muette depuis plus de
+  5 min, dix passages ratés au quart d'heure, Telegram qui ne refuse QUE des
+  envois depuis une heure. Une Issue unique (marqueur), mise à jour tant que
+  ça dure, fermée seule au retour à la normale ; jamais Telegram (il n'en
+  veut pas plus). **Le juge est à part** (`chien-de-garde.mjs`) et
+  éprouvé sans réseau par `test-chien-de-garde.mjs` : une nuit sans demande
+  ne doit pas aboyer, une réponse illisible doit aboyer.
+- **L'appel à l'API de gestion est copié du workflow des migrations**, qui
+  marche en production — on ne devine pas un paramètre d'API qu'on ne peut
+  pas vérifier d'ici (« NE DEVINE PLUS JAMAIS »).
+- **`20261002010000_diagnostic_fiabilite.sql`** : le même état, lisible,
+  pour le 10 octobre — à lancer par le workflow des migrations. Il ne
+  modifie rien. Chaque ligne dit ce qu'elle doit valoir.
+- **Le quota de `deposer-course` est celui de la réception, pas du wifi** :
+  12 dépôts par heure et par IP pour un anonyme ; une réception dont la
+  session est vérifiée compte sur `reception|<hôtel>|<heure>`, 60 par heure.
+  À l'hôtel, le comptoir et les clients sur le wifi partagent une adresse.
+  **Piège rencontré** : `heure` existait déjà dans la fonction (l'heure de la
+  course) ; ma variable l'a redéclarée, et c'est le test, pas la relecture,
+  qui l'a vu (« Identifier 'heure' has already been declared »).
+  `test-securite-fonctions` charge maintenant `deposer-course` (import
+  `jsr:` retiré au chargement) et lit la clé de quota envoyée.
