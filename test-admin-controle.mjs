@@ -97,7 +97,7 @@ async function espace(role='admin'){
         return route.fulfill({status:201, body:''});
       }
       if (u.includes('parametres_commerciaux?cle=eq.commission_canaux')) return route.fulfill(J([{valeur:TAUX}]));
-      if (u.includes('/rest/v1/courses?select=ref&')) return route.fulfill(J([{ref:SERVEUR[0].ref}]));
+      if ((u.includes('/rest/v1/courses?select=ref&') || u.includes('/rest/v1/courses?select=ref,version&'))) return route.fulfill(J([{ref:SERVEUR[0].ref}]));
       if (u.includes('/rest/v1/courses')) return route.fulfill(J(SERVEUR.map(bon => ({bon, statut:bon.statut}))));
       if (u.includes('/rest/v1/')) return route.fulfill(J([]));
       return route.fulfill(J({}));

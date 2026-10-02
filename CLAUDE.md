@@ -6369,3 +6369,137 @@ visuelle, notification, tout ce qui est possible ».
   attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
   l'icône. Sans nombre (notification d'un client), un simple point.
   `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
+
+## LE SERVEUR EST LA SEULE VÉRITÉ — L'ADMIN N'EST PLUS QU'UNE COPIE
+
+2 octobre 2026, Barbaros : « je valide une course, ça revient ; je refuse,
+ça revient ». Le projet démarre le 12, tout doit être fiable le 10.
+**La cause n'était pas un bouton, c'était une architecture à deux vérités.**
+Le téléphone gardait sa liste, le serveur la sienne. `fusionner` ne faisait
+qu'AJOUTER ce que l'appareil ne connaissait pas — une course confirmée sur
+l'ordinateur restait « en attente » sur le téléphone pour toujours. Et
+`pousser` partait en « on verra » (8 s, pas de reprise, pas de témoin, pas de
+`keepalive`) : l'écran disait « refusée », le serveur « en attente », et la
+relance Telegram sonnait sur une course qu'il croyait réglée. Un appareil
+périmé pouvait même ÉCRASER l'état du serveur (POST merge-duplicates du bon
+entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
+- **Migration `20261002000000_courses_version.sql`** : `version` (monte à
+  chaque modification, par déclencheur) et `modifie_le` sur `courses`.
+  **À appliquer en production AVANT de fusionner** (workflow « Appliquer une
+  migration Supabase »). Le site publié avant la migration tient quand même :
+  un 400 sur la colonne fait retomber la page sur l'ancienne lecture et
+  l'ancien dépôt-ou-mise-à-jour (`serveurSansVersion`), éprouvé par le
+  bloc e) de `test-admin-arrivee`.
+- **`reconcilier()` remplace `fusionner()` pour la lecture serveur** : le
+  serveur remplace la copie locale s'il est plus récent (`_v`), une course
+  qu'il ne montre plus s'efface ici (seulement si on l'avait lue de lui et
+  si la liste n'est pas tronquée à 1000), une course jamais partie d'ici est
+  remise en file. `fusionner` reste pour la restauration d'une sauvegarde,
+  qui AJOUTE et n'efface jamais.
+- **La file d'attente `ela_file`** : `nuage.pousser(bon)` met en file et
+  `viderFile()` envoie, une course à la fois, avec reprise (3 s, 6, 12…
+  60 s au plus), relancée par la sonde, au retour sur l'onglet et au retour
+  du réseau. Elle survit à un rechargement. `keepalive:true` sur les
+  écritures : elles survivent au gel de la page quand WhatsApp s'ouvre.
+- **On écrit SOUS CONDITION DE VERSION** (`PATCH ?ref=eq.X&version=eq.N`,
+  `return=representation`) : zéro ligne rendue = la version a bougé ; on
+  relit, **le serveur gagne**, la copie locale est remplacée, et l'écran le
+  DIT — sur le tableau de bord (`#bordConflit`) et sur le bon ouvert
+  (`#bbModifNote`, amené à l'écran). Une course jamais lue du serveur part
+  en POST `ignore-duplicates` : si elle existait déjà, même règle.
+  Pourquoi le serveur et pas le dernier geste : le geste perdu a été fait
+  sur une information fausse ; mieux vaut le remontrer que d'exécuter un
+  refus sur une course déjà confirmée ailleurs.
+- **Le témoin `#bordSynchro`** : « N modification(s) en cours d'envoi… »,
+  rouge à partir de 30 s, « reconnectez-vous » sans session. Plus jamais un
+  écran et un serveur qui se contredisent sans que personne le sache.
+- **La sonde demande la course modifiée le plus RÉCEMMENT**
+  (`select=ref,version&order=modifie_le.desc`), plus la dernière arrivée :
+  un changement fait ailleurs arrive ici en 8 s, plus 45. **Son repère est
+  reposé après chaque lecture complète** — sans ça, son premier passage ne
+  faisait qu'enregistrer la réponse, et un changement survenu entre
+  l'ouverture et ce passage attendait le tour de fond. Trouvé par le test.
+- **Les suites qui simulent le serveur** (`test-admin-arrivee`, `-alertes`,
+  `-controle`) reconnaissent les deux formes de la sonde.
+- `test-admin-arrivee` bloc 4, cinq scènes, toutes contre un faux serveur à
+  versions : changée ailleurs → ici en moins de 15 s ; panne → en file, témoin,
+  repart seule ; copie périmée → refusée, serveur gagne, écran le dit ;
+  supprimée ailleurs → disparaît ; serveur d'avant la migration → lu et écrit
+  à l'ancienne. **Éprouvé contre l'ancien code : six contrôles tombent.**
+- **PIÈGE DE CAPTURE, QUATRIÈME FOIS** : les premières captures montraient
+  l'ANCIEN admin sans témoin — la falsification (`git stash`) avait
+  reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
+  rien. `sh construire.sh` avant toute capture, toujours.
+- `sw.js` CACHE v120.
+
+## UN CANAL QUI INSISTE, UN CANAL QUI INFORME — LA CADENCE DES ALERTES
+
+2 octobre 2026, Barbaros : « je ne veux pas recevoir trop d'alertes sur
+Telegram… des fois je reçois une notification, je ne réponds pas, après ça
+passe en mode silencieux ». **Mesuré dans le code** : Telegram partait toutes
+les 20 s pendant 10 min, puis toutes les 20 s dès H-30 et **jusqu'à 6 h après
+le départ** tant que la course restait « en attente » et non vue — jusqu'à un
+millier de messages pour une course oubliée. C'est le téléphone qui coupait le
+son, et la vraie demande suivante passait avec.
+- **La notification ELA est l'alarme** (elle se REMPLACE sur le téléphone,
+  même étiquette) : à chaque tour de 20 s les 10 premières minutes et à H-30
+  ou moins, toutes les 10 min entre H-2 et H-30, rien avant H-2.
+- **Telegram informe** : +3 min, +10 min, puis toutes les 15 min la première
+  heure ; silence jusqu'à H-2 (toutes les 15 min) ; toutes les 5 min sous
+  H-30. **Chaque rappel EFFACE le précédent** (`deleteMessage`, identifiant
+  gardé dans `journal.detail` sous `message_id=N`) : une seule ligne de
+  rappel visible, jamais une pile. L'annonce initiale n'est jamais effacée.
+- **À l'heure du départ, un dernier message** (`rappel_final`, `titreFinal`)
+  sur les deux canaux, puis plus rien. Une course oubliée se clôt dans
+  l'admin, elle ne sonne pas six heures.
+- **Les saisies de l'exploitant ne sont ni annoncées ni relancées** (à sa
+  demande : « aucune alerte du tout »). Une demande passée par le site porte
+  `securite.empreinteDepot`, posée par `deposer-course` ; les siennes
+  (« Coller une demande », « Saisir par téléphone ») jamais —
+  `saisieExploitant()`. Le webhook INSERT et la relance l'appliquent tous
+  deux.
+- **Les délais se comptent depuis l'ANNONCE, pas depuis la création** : une
+  demande rattrapée 15 min après son dépôt aurait eu son « +3 min » au tour
+  suivant. Trouvé par le test.
+- **Les heures du bon sont celles de Paris, l'horloge du test est en UTC** :
+  deux contrôles sont tombés parce qu'un départ « 14:00 » (12:00 UTC) était
+  déjà à H-2 quand le test croyait être loin. Même famille que les fixtures
+  SQL datées dans le mauvais fuseau.
+- `pg_cron` reste à 20 s : c'est la cadence de l'alarme (notification), la
+  cadence Telegram vient du journal.
+- `test-relance-alertes` : 61 contrôles ; trois falsifications (règle des
+  saisies retirée, effacement retiré, arrêt au départ retiré) tombent en
+  nommant le défaut. `test-securite-fonctions` éprouve le webhook sur une
+  saisie sans empreinte.
+
+## LE CHIEN DE GARDE, LE DIAGNOSTIC, ET LE QUOTA DE LA RÉCEPTION
+
+2 octobre 2026, même demande : « vérifier que je reçois tout, vraiment comme
+un salarié 24-24 ». Ce que je ne peux pas être (je ne tourne pas en continu),
+GitHub le fait.
+- **`.github/workflows/chien-de-garde.yml`**, toutes les 15 min : lit UNE
+  ligne JSON sur le serveur (`.github/scripts/sante-serveur.sql`, lecture
+  seule, comptes et secondes seulement — le journal est public), et
+  **n'écrit qu'en cas de panne** : demande du site en attente depuis plus de
+  2 min sans alerte réussie, relance pg_cron absente ou muette depuis plus de
+  5 min, dix passages ratés au quart d'heure, Telegram qui ne refuse QUE des
+  envois depuis une heure. Une Issue unique (marqueur), mise à jour tant que
+  ça dure, fermée seule au retour à la normale ; jamais Telegram (il n'en
+  veut pas plus). **Le juge est à part** (`chien-de-garde.mjs`) et
+  éprouvé sans réseau par `test-chien-de-garde.mjs` : une nuit sans demande
+  ne doit pas aboyer, une réponse illisible doit aboyer.
+- **L'appel à l'API de gestion est copié du workflow des migrations**, qui
+  marche en production — on ne devine pas un paramètre d'API qu'on ne peut
+  pas vérifier d'ici (« NE DEVINE PLUS JAMAIS »).
+- **`20261002010000_diagnostic_fiabilite.sql`** : le même état, lisible,
+  pour le 10 octobre — à lancer par le workflow des migrations. Il ne
+  modifie rien. Chaque ligne dit ce qu'elle doit valoir.
+- **Le quota de `deposer-course` est celui de la réception, pas du wifi** :
+  12 dépôts par heure et par IP pour un anonyme ; une réception dont la
+  session est vérifiée compte sur `reception|<hôtel>|<heure>`, 60 par heure.
+  À l'hôtel, le comptoir et les clients sur le wifi partagent une adresse.
+  **Piège rencontré** : `heure` existait déjà dans la fonction (l'heure de la
+  course) ; ma variable l'a redéclarée, et c'est le test, pas la relecture,
+  qui l'a vu (« Identifier 'heure' has already been declared »).
+  `test-securite-fonctions` charge maintenant `deposer-course` (import
+  `jsr:` retiré au chargement) et lit la clé de quota envoyée.

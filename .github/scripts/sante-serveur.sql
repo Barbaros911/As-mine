@@ -1,0 +1,31 @@
+-- LE CHIEN DE GARDE (2 octobre 2026). Lecture seule, une seule ligne JSON,
+-- lue par .github/scripts/chien-de-garde.mjs toutes les 15 minutes.
+-- AUCUNE donnée personnelle : des comptes et des secondes.
+select json_build_object(
+  'sans_alerte', (
+    select count(*) from public.courses c
+     where c.statut = 'attente'
+       and (c.bon->'securite'->>'empreinteDepot') is not null
+       and c.cree_le between now() - interval '6 hours' and now() - interval '2 minutes'
+       and not exists (select 1 from public.journal_notifications_admin j
+                        where j.course_ref = c.ref and j.statut = 'envoye')),
+  'relance_active', coalesce((select active from cron.job where jobname = 'ela-relance-alertes'), false),
+  'derniere_relance_s', (
+    select round(extract(epoch from now() - max(r.end_time)))
+      from cron.job j join cron.job_run_details r on r.jobid = j.jobid
+     where j.jobname = 'ela-relance-alertes'),
+  'relances_echouees_15min', (
+    select count(*) from cron.job j join cron.job_run_details r on r.jobid = j.jobid
+     where j.jobname = 'ela-relance-alertes' and r.status <> 'succeeded'
+       and r.start_time >= now() - interval '15 minutes'),
+  'telegram_echecs_1h', (
+    select count(*) from public.journal_notifications_admin
+     where canal = 'telegram' and statut = 'echec' and cree_le >= now() - interval '1 hour'),
+  'telegram_ok_1h', (
+    select count(*) from public.journal_notifications_admin
+     where canal = 'telegram' and statut = 'envoye' and cree_le >= now() - interval '1 hour'),
+  'demandes_24h', (
+    select count(*) from public.courses
+     where cree_le >= now() - interval '24 hours'
+       and (bon->'securite'->>'empreinteDepot') is not null)
+) as sante;
