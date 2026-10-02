@@ -10707,21 +10707,18 @@ window.ELA_TEXTES = {
      dernière arrivée (2 octobre 2026) : une confirmation faite sur un autre
      appareil change la réponse, et la relecture complète part dans les 8 s.
      Avant, seule une NOUVELLE course la faisait partir — un changement
-     ailleurs attendait le tour de fond, 45 s. Un serveur d'avant la
-     migration n'a pas « version » : on retombe sur l'ancienne question. */
-  var serveurSansVersion = false;
+     ailleurs attendait le tour de fond, 45 s.
+     IL N'Y A PLUS DE REPLI « SERVEUR SANS VERSION » (2 octobre 2026, le
+     soir) : la migration est appliquée en production — lu dans le journal
+     du workflow, colonnes « version » et « modifie_le » listées. Le repli se
+     déclenchait sur TOUT message contenant « 400 » et repassait l'admin en
+     écrasement complet pour la session entière : exactement le défaut que
+     la version existe pour fermer. Une colonne absente est désormais une
+     erreur AFFICHÉE (#bordHorsLigne), jamais un écrasement muet. */
   nuage.derniere = function(){
     if(!this.connecte()) return Promise.resolve(null);
-    var moi = this;
-    if(serveurSansVersion)
-      return this.appel("/rest/v1/courses?select=ref&order=cree_le.desc&limit=1")
-        .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) || ""; });
     return this.appel("/rest/v1/courses?select=ref,version&order=modifie_le.desc&limit=1")
-      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) ? r[0].ref + ":" + (r[0].version || "") : ""; })
-      .catch(function(e){
-        if(String(e && e.message).indexOf("400") >= 0){ serveurSansVersion = true; return moi.derniere(); }
-        throw e;
-      });
+      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) ? r[0].ref + ":" + (r[0].version || "") : ""; });
   };
   nuage.lister = function(){
     if(!this.connecte()) return Promise.resolve(null);
@@ -10730,10 +10727,10 @@ window.ELA_TEXTES = {
        un : une lecture refusée rendait « null », exactement comme « pas
        connecté », et le tableau de bord ne disait rien. Une panne qui
        ressemble à un état normal ne se répare jamais. L'erreur remonte donc
-       à l'appelant, qui l'affiche. Le seul repli : un serveur d'avant la
-       migration de version (400 sur la colonne), qu'on relit à l'ancienne. */
-    var lire = function(avecVersion){
-      var champs = avecVersion ? "bon,statut,version,modifie_le,cree_le" : "bon,statut,cree_le";
+       à l'appelant, qui l'affiche. Aucun repli : une colonne « version »
+       absente est une erreur affichée, pas une lecture à l'ancienne. */
+    var lire = function(){
+      var champs = "bon,statut,version,modifie_le,cree_le";
       return moi.appel("/rest/v1/courses?select=" + champs + "&order=cree_le.desc&limit=1000")
         .then(function(r){
           return Array.isArray(r) ? r.map(function(x){
@@ -10746,11 +10743,7 @@ window.ELA_TEXTES = {
           }).filter(Boolean) : [];
         });
     };
-    if(serveurSansVersion) return lire(false);
-    return lire(true).catch(function(e){
-      if(String(e && e.message).indexOf("400") >= 0){ serveurSansVersion = true; return lire(false); }
-      throw e;
-    });
+    return lire();
   };
   /* « POUSSER » METTRE EN FILE, ET LA FILE ENVOIE. Les appelants n'ont pas
      changé — ils donnent le bon à envoyer — mais plus rien ne part en
@@ -10781,7 +10774,7 @@ window.ELA_TEXTES = {
     var opts = { keepalive: true };
     function relire(){
       return moi.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref)
-                       + "&select=bon,statut" + (serveurSansVersion ? ",cree_le" : ",version,modifie_le,cree_le") + "&limit=1")
+                       + "&select=bon,statut,version,modifie_le,cree_le&limit=1")
         .then(function(r){ return Array.isArray(r) && r[0] ? r[0] : null; });
     }
     function conflit(ligne){
@@ -10789,14 +10782,10 @@ window.ELA_TEXTES = {
       if(d) remplacerLocal(d);
       return "conflit";
     }
-    /* Serveur d'avant la migration : l'ancien dépôt-ou-mise-à-jour, le
-       temps que la migration soit appliquée. */
-    function ancienne(){
-      return moi.appel("/rest/v1/courses", { method:"POST", keepalive:true,
-        headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
-        body: JSON.stringify({ ref: ref, statut: statut, bon: b }) }).then(function(){ return "ok"; });
-    }
-    if(serveurSansVersion) return ancienne();
+    /* PLUS AUCUN « merge-duplicates » NULLE PART (2 octobre 2026, le
+       soir). C'était l'ancien dépôt-ou-mise-à-jour, gardé « le temps que
+       la migration soit appliquée » : elle l'est. Un écrasement du bon
+       entier n'a plus aucun chemin pour partir d'ici. */
     if(c._v){
       /* « modifie la version N » : zéro ligne rendue = la version a bougé
          (ou la ligne a disparu). On relit pour savoir lequel des deux. */
@@ -10829,7 +10818,6 @@ window.ELA_TEXTES = {
       if(Array.isArray(r) && r.length === 0){
         return relire().then(function(ligne){
           if(!ligne) return "attendre";
-          if(ligne.version === undefined){ serveurSansVersion = true; return ancienne(); }
           return conflit(ligne);
         });
       }
