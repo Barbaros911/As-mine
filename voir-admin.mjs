@@ -18,7 +18,7 @@ if(existsSync('/tmp/asmine-tests.verrou')){
     +"qu'elle tourne efface le dossier « site » sous ses pieds.");
   process.exit(1);
 }
-execSync('sh construire.sh', {stdio:'ignore'});
+execSync('sh construire.sh', {stdio:'ignore', env:{...process.env, ELA_AVEC_ADMIN_V2:'1'}});
 const TYPES={'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
  '.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'};
 const srv=createServer(async(rq,rs)=>{try{let c=decodeURIComponent(rq.url.split('?')[0]);
