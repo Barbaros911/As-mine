@@ -6595,6 +6595,15 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   réelles du 10**, pas avant. Leçon : **on ne droppe pas un nom lu dans une
   doc, on droppe un nom lu dans `pg_policies`** — le diagnostic du 15/09
   l'avait sous les yeux.
+  **L'épreuve SQL avait le même défaut, et c'est pour ça que rien ne l'a vu**
+  (3 octobre 2026, Issue #190). `courses-sans-anon.sql` reposait la policy
+  sous le nom de la doc — celui que la migration du 28/09 droppait — et
+  passait donc au vert sur un drop qui, en production, visait le vide. Elle
+  repose maintenant « depot client », enchaîne les deux migrations, et
+  vérifie séparément la policy et le droit sur la table. Éprouvé sur un
+  PostgreSQL local : sans la migration du 03/10 elle tombe en nommant
+  « depot client » ; avec un `grant insert … to anon` rendu, elle tombe aussi.
+  **Une épreuve qui repose l'état qu'on imagine éprouve la doc, pas la base.**
 - **AUCUN REGISTRE DES MIGRATIONS.** Le workflow exécute du SQL brut par
   l'API de gestion et n'écrit rien dans `schema_migrations`. Sur 29 fichiers,
   12 sont passés par lui ; 17 ont été collés dans l'éditeur SQL, et des
