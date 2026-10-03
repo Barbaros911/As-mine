@@ -99,17 +99,21 @@ Dis-leur aussi **« Fermer la session »**, en bas de l'écran : c'est le geste
 ## Ce que la réception voit, et ce qu'elle ne peut pas faire
 
 **Elle voit** ses courses à elle : l'heure, l'état à jour, la chambre, le
-nom et le numéro du client, le trajet, le véhicule, le prix annoncé, le
-mode de règlement — et le chauffeur avec son numéro dès que la course est
+nom et le numéro du client, le trajet, le véhicule, le prix annoncé
+(**seulement tant que la course est à venir** : une fois faite, non prise ou
+annulée, aucun montant n'est plus envoyé à l'hôtel), le mode de règlement — et le chauffeur avec son numéro dès que la course est
 confirmée. C'est ce qui lui évite de t'appeler pour répondre à son client.
 
 **Elle ne voit pas** les courses d'un autre hôtel, ni celles de tes clients
 directs, ni ton registre, ni tes chiffres.
 
-**Elle ne décide rien.** Le bouton « Demander l'annulation » ne change
-jamais l'état d'une course : il te transmet la demande par WhatsApp et
-marque la course « annulation demandée ». Une course annulée à 5 h du matin
-libère un chauffeur que tu as déjà engagé, et toi seul peux le rappeler.
+**Elle ne décide rien, et elle n'annule rien.** Depuis le 30/09/2026 il n'y a
+plus de bouton « Demander l'annulation » : pour annuler ou changer une
+course, elle t'appelle. C'est toi qui annules ou modifies, depuis le bon dans
+ton admin (« Annuler la course », « Modifier la course ») ; elle voit
+« Annulée » ou « Modifiée par Elatransfer » sous 30 secondes. Une course
+annulée à 5 h du matin libère un chauffeur que tu as déjà engagé, et toi seul
+peux le rappeler.
 
 ---
 

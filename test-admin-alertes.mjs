@@ -72,7 +72,7 @@ async function espace(chemin){
       if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
       /* La sonde ne demande que la dernière référence : on lui répond comme
          le vrai serveur, UNE ligne, sinon elle lirait « undefined ». */
-      if (u.includes('/rest/v1/courses?select=ref&')) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
+      if ((u.includes('/rest/v1/courses?select=ref&') || u.includes('/rest/v1/courses?select=ref,version&'))) { sondes++; return route.fulfill(J(serveurCourses.slice(0,1).map(b => ({ref:b.ref})))); }
       if (u.includes('/rest/v1/courses')) { lectures++; return route.fulfill(J(serveurCourses.map(bon => ({bon, statut:bon.statut})))); }
       if (u.includes('/rest/v1/')) return route.fulfill(J([]));
       return route.fulfill(J({}));

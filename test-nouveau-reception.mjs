@@ -12,12 +12,14 @@
       SERVEUR. Un contrôle cherche qu'aucun code ne traîne dans la page :
       écrit ici, même en empreinte, il s'attaquerait hors ligne.
 
-   3. RIEN NE S'ANNULE TOUT SEUL. Le bouton transmet et pose un drapeau ;
-      il ne change jamais le statut. Une course annulée à 5 h du matin
-      libère un chauffeur déjà engagé, et Barbaros seul peut le rappeler.
+   3. RIEN NE S'ANNULE DEPUIS LE COMPTOIR. Depuis le 30/09/2026 il n'y a même
+      plus de bouton de demande : la réception appelle, Barbaros annule.
+      Une course annulée à 5 h du matin libère un chauffeur déjà engagé,
+      et Barbaros seul peut le rappeler.
 
    4. CE QU'UNE RÉSERVATION PORTE, à sa demande : la chambre ou le nom, LE
-      NUMÉRO du client, le trajet, LE PRIX et le MODE DE PAIEMENT.
+      NUMÉRO du client, le trajet, LE PRIX (tant que la course est à
+      venir — plus aucun montant une fois finie) et le MODE DE PAIEMENT.
 
    5. LE PRIX NE SE FAIT JAMAIS TRONQUER par une adresse longue — c'est le
       chiffre que la réception a annoncé au client. Le contrôle MESURE des
@@ -58,8 +60,11 @@ await ctx.route('**://*/**', r => r.request().url().startsWith('http://127.0.0.1
   ? r.continue() : r.abort());
 
 let appels = [];
+let etat0043 = 'attente';
+let tel0043 = '06 98 76 54 32';   // Barbaros la validera en cours de suite
+let heure0042 = '06:00', modif0042 = '';   // … puis la modifiera depuis son admin
 const COURSES = () => ([
-  { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:'06:00',
+  { ref:'ELA-26-09-0042', statut:'confirmee', date:jour(1), heure:heure0042, modifie:modif0042,
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Orly 1 — Aéroport de Paris-Orly',
     vehicule:'Berline', prix:100, client:'M. Dupont', tel:'06 12 34 56 78', chambre:'214',
     paiement:'Espèces', annulationDemandee:false, chauffeur:{nom:'Mehmet', telephone:'0612345678'},
@@ -75,15 +80,21 @@ const COURSES = () => ([
     montantChauffeur: 7500, taux_commission: 25,
     stripePaymentIntent: 'pi_3QTESTinterne0001',
     autrePartenaire: 'Ibis Roissy', carnetChauffeurs: ['Mehmet','Ayse','Karim'] },
-  { ref:'ELA-26-09-0043', statut:'attente', date:jour(1), heure:'14:30',
+  { ref:'ELA-26-09-0043', statut:etat0043, date:jour(1), heure:'14:30',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne',
     arrivee:'Parc des Expositions de Paris-Nord Villepinte, 93420 Villepinte',
-    vehicule:'Van', prix:120, client:'Famille Chen', tel:'06 98 76 54 32', chambre:'302',
+    vehicule:'Van', prix:120, client:'Famille Chen', tel:tel0043, chambre:'302',
     paiement:'Carte bancaire', annulationDemandee:false, chauffeur:{nom:'',telephone:''} },
   { ref:'ELA-26-09-0031', statut:'attente', date:jour(-1), heure:'07:00',
     depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Beauvais',
     vehicule:'Van', prix:240, client:'Groupe Silva', tel:'07 11 22 33 44', chambre:'',
-    paiement:'Carte bancaire', annulationDemandee:false, chauffeur:{nom:'',telephone:''} }
+    paiement:'Carte bancaire', annulationDemandee:false, chauffeur:{nom:'',telephone:''} },
+  /* UNE COURSE FAITE, pour l'historique (30/09/2026) : cachée de « À venir »,
+     elle ne doit reparaître que dans « Passées », « Toutes » et la recherche. */
+  { ref:'ELA-26-09-0020', statut:'realisee', date:jour(-3), heure:'10:15',
+    depart:'easyHotel Aéroville, 10 rue de la Belle Borne', arrivee:'Disneyland Paris',
+    vehicule:'Berline', prix:80, client:'Mme Laurent', tel:'06 55 44 33 22', chambre:'118',
+    paiement:'Espèces', annulationDemandee:false, chauffeur:{nom:'Samir',telephone:'0611111111'} }
 ]);
 await ctx.route('**/functions/v1/courses-hotel', r => {
   const c = JSON.parse(r.request().postData() || '{}');
@@ -188,8 +199,11 @@ check('les trois courses sont là', (await p.locator('.rec-course').count()) ===
 check('le code brut n\'est jamais conservé dans le navigateur',
   await p.evaluate(code => !Object.values(localStorage).some(v => String(v).includes(code))
     && !Object.values(sessionStorage).some(v => String(v).includes(code)), CODE));
-check('seul le jeton de session signé est conservé dans l\'onglet',
-  await p.evaluate(session => Object.values(sessionStorage).some(v => String(v).includes(session)), SESSION));
+/* 12 H SUR L'APPAREIL (30/09/2026, à sa demande) : le jeton vit dans le
+   localStorage, plus dans l'onglet — fermer la tablette ne redemande plus le
+   code. C'est le SERVEUR qui fixe la fin, dans le jeton. */
+check('seul le jeton de session signé est conservé, sur l\'appareil',
+  await p.evaluate(session => Object.values(localStorage).some(v => String(v).includes(session)), SESSION));
 
 /* IL N'EST DEMANDÉ QU'UNE FOIS. Un comptoir qui retape un code à chaque
    client cesse d'utiliser l'outil au bout de trois jours. */
@@ -275,6 +289,137 @@ const chiffres = await p.locator('.rec-chiffre b').allTextContents();
 check('deux courses en attente sont comptées', chiffres[1] === '2', chiffres.join('/'));
 check('et ce compteur-là s\'allume, seul', await p.locator('.rec-chiffre.chaud').count() === 1);
 
+/* ═══ RETROUVER UNE COURSE (30/09/2026) ═══ Trois onglets qui portent leur
+   compte, et une recherche qui fouille TOUT l'historique, quel que soit
+   l'onglet. On lit ce qui est à l'écran, pas l'état interne. */
+const refsVisibles = () => p.locator('.rec-course').evaluateAll(els => els.map(e => e.dataset.ref));
+const comptes = await p.locator('.rec-vues button b').allTextContents();
+check('les onglets portent leur compte : 3 à venir, 1 passée, 4 en tout',
+  comptes.join('/') === '3/1/4', comptes.join('/'));
+check('« À venir » est l\'onglet ouvert, et la course faite n\'y est pas',
+  !(await refsVisibles()).includes('ELA-26-09-0020'));
+await p.locator('.rec-vues button[data-vue="passees"]').click();
+check('« Passées » ne montre que la course faite',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.locator('.rec-vues button[data-vue="toutes"]').click();
+check('« Toutes » montre les quatre', (await refsVisibles()).length === 4);
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
+await p.fill('#recRecherche', '118');
+check('la recherche par CHAMBRE retrouve une course passée, même depuis « À venir »',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', '0655 44');
+check('par TÉLÉPHONE, chiffres seuls (espaces indifférents)',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', 'laurent');
+check('par NOM, sans majuscule', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]');
+/* ═══ UNE COURSE FAITE NE PORTE PLUS AUCUN PRIX (30/09/2026, à sa demande :
+   « aucune trace du chiffre ne doit rester ») ═══ Le faux serveur ENVOIE
+   encore 80 € sur cette course : c'est exprès. Le vrai ne l'envoie plus
+   (test-securite-fonctions), et l'écran est la seconde défense — on éprouve
+   donc la page seule. Et plus de « Renvoyer le bon » : sans prix il ne sert
+   plus de justificatif. */
+const faite = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0020' });
+check('une course effectuée n\'affiche AUCUN montant, même si on le lui envoie',
+  !/80|€/.test(await faite.textContent()) && (await faite.locator('.rec-prix').count()) === 0,
+  await faite.textContent());
+check('…et ne porte plus aucun bouton (ni renvoi du bon, ni annulation)',
+  (await faite.locator('button').count()) === 0);
+await p.fill('#recRecherche', 'ELA-26-09-0043');
+check('par RÉFÉRENCE', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0043"]');
+await p.fill('#recRecherche', 'zzz introuvable');
+check('rien trouvé : on le dit, avec ce qu\'on a cherché',
+  (await refsVisibles()).length === 0 && /zzz introuvable/.test(await p.locator('#recVide').textContent()));
+await p.fill('#recRecherche', '');
+check('recherche vidée : retour à « À venir »',
+  (await refsVisibles()).length === 3
+  && (await p.locator('.rec-vues button[data-vue="avenir"]').getAttribute('aria-selected')) === 'true');
+
+/* ═══ UN BON SE RETROUVE PAR SA DATE (30/09/2026) ═══ « le client du 12/09 » :
+   la forme que tape une réception, pas « 2026-09-12 ». */
+const jj = s => s.slice(8,10) + '/' + s.slice(5,7);
+await p.fill('#recRecherche', jj(jour(-3)));
+check('par DATE « JJ/MM » : on retrouve la course de ce jour-là, et elle seule',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
+await p.fill('#recRecherche', '');
+
+/* ═══ ACTUALISER EST EN HAUT, ET IL DIT QUAND (30/09/2026) ═══ Il était en bas
+   d'une liste qui s'allonge : personne ne le trouvait. On le MESURE à l'arrêt,
+   page remontée, sans défilement — et on vérifie qu'il relit vraiment. */
+await p.evaluate(() => window.scrollTo(0, 0));
+const rectMaj = await p.locator('#btnRecActualiser').boundingBox();
+check('« Actualiser » est dans le premier écran, sans défiler',
+  !!rectMaj && rectMaj.y + rectMaj.height <= 844, JSON.stringify(rectMaj));
+const avantMaj = appels.length;
+await p.locator('#btnRecActualiser').click();
+await p.waitForTimeout(400);
+check('…il relit vraiment le serveur', appels.length === avantMaj + 1, (appels.length - avantMaj) + ' appel(s)');
+check('…et il écrit l\'heure de la lecture',
+  /^Mis à jour à \d\d:\d\d$/.test((await p.locator('#recMaj').textContent()).trim()),
+  await p.locator('#recMaj').textContent());
+
+/* ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026) ═══ On lit l'ordre et le
+   bilan à l'écran, jamais l'état interne ; les attendus sont recalculés depuis
+   le jeu de courses, pas recopiés de la page. */
+await p.locator('.rec-vues button[data-vue="date"]').click();
+check('« Par date » ouvre la barre de période, sur AUJOURD\'HUI',
+  await p.locator('#recPeriode').isVisible()
+  && (await p.locator('#recJourChoix').inputValue()) === jour(0));
+check('aujourd\'hui, aucune course : on le dit',
+  (await refsVisibles()).length === 0
+  && /Aucune course sur cette période/.test(await p.locator('#recBilan').textContent()));
+await p.locator('#btnRecApres').click();
+check('« › » passe à demain : les deux courses, dans l\'ordre de l\'heure',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0042","ELA-26-09-0043"]', JSON.stringify(await refsVisibles()));
+check('…et le bilan les compte', /^2 courses/.test(await p.locator('#recBilan').textContent()),
+  await p.locator('#recBilan').textContent());
+await p.locator('#recJourChoix').fill(jour(-3));
+check('le calendrier choisit un jour précis : la course faite, comptée SANS montant',
+  JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]'
+  && /1 effectuée/.test(await p.locator('#recBilan').textContent())
+  && !/80|€/.test(await p.locator('#recBilan').textContent()),
+  JSON.stringify(await refsVisibles()) + ' ' + await p.locator('#recBilan').textContent());
+check('sur une course passée, pas de titre « En retard » en mode date',
+  (await p.locator('.rec-jour.retard').count()) === 0);
+await p.locator('#btnRecAujourdhui').click();
+await p.locator('.rec-echelle button[data-echelle="mois"]').click();
+const duMois = COURSES().filter(c => c.date.slice(0,7) === jour(0).slice(0,7)).map(c => c.ref).sort();
+check('« Mois » montre toutes les courses du mois en cours, et seulement elles',
+  JSON.stringify((await refsVisibles()).slice().sort()) === JSON.stringify(duMois),
+  JSON.stringify(await refsVisibles()) + ' attendu ' + JSON.stringify(duMois));
+check('en mode mois, le choix d\'un jour est masqué', await p.locator('#recJourChoix').isHidden());
+await p.locator('#btnRecAvant').click();
+const moisAvant = (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth() - 1, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); })();
+const duMoisAvant = COURSES().filter(c => c.date.slice(0,7) === moisAvant).map(c => c.ref).sort();
+check('« ‹ » recule d\'un MOIS entier',
+  JSON.stringify((await refsVisibles()).slice().sort()) === JSON.stringify(duMoisAvant),
+  JSON.stringify(await refsVisibles()) + ' attendu ' + JSON.stringify(duMoisAvant));
+await p.locator('.rec-echelle button[data-echelle="jour"]').click();
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
+check('retour à « À venir » : la barre de période se referme',
+  await p.locator('#recPeriode').isHidden() && (await refsVisibles()).length === 3);
+
+/* ═══ L'AUDIT DU 30/09/2026 ═══ Une course EN RETARD ne propose plus
+   d'annulation (son heure est passée : on appelle), la référence a sa ligne
+   entière, et le comptoir n'a plus de barre du bas ni de flèche qui ouvrait
+   le formulaire en se faisant passer pour un retour. */
+const retard = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0031' });
+check('une course en retard porte « Appeler Elatransfer »…',
+  (await retard.locator('a.rec-appel').getAttribute('href')) === 'tel:+33759312433');
+check('…et pas « Demander l\'annulation »',
+  (await retard.locator('button', { hasText:"Demander l'annulation" }).count()) === 0);
+check('« Demander l\'annulation » n\'existe plus nulle part : la réception appelle',
+  (await p.locator('#ecran-reception button', { hasText:/annulation/i }).count()) === 0);
+const refLigne = await carte.locator('.rec-reference').evaluate(el => ({
+  texte: el.textContent, entier: el.scrollWidth <= el.clientWidth + 1 }));
+check('la référence a sa ligne, entière', refLigne.texte === 'Réf. ELA-26-09-0042' && refLigne.entier,
+  JSON.stringify(refLigne));
+const hTel = await carte.locator('.rec-tel a').evaluate(el => el.getBoundingClientRect().height);
+check('le numéro du client se touche au doigt (44 px)', hTel >= 44, String(hTel));
+/* La barre du bas et la flèche sont retirées par hotel-engine-polish.css,
+   que seul le site CONSTRUIT charge : leur contrôle vit dans
+   test-cloisonnement-hotel.mjs, qui éprouve ce site-là. */
+
 /* ═══ « RÉSERVATION VALIDÉE », LE SEUL MOT QUI RÉPOND À LA QUESTION ═══
    À sa demande : « si moi je confirme sur le site, chez la réception ça
    doit être réservation validée ». « Confirmée » est le vocabulaire du
@@ -321,28 +466,122 @@ check('avec le téléphone ET WhatsApp',
   (await p.locator('.rec-aide a[href^="tel:"]').count()) === 1
   && (await p.locator('#recAideWa').getAttribute('href')).includes('wa.me'));
 
+/* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ On lit le message qui
+   part, pas seulement la présence du bouton : un bouton qui envoie un
+   message vide ou faux serait pire que pas de bouton. */
+/* ═══ LE BON EST UNE IMAGE (30/09/2026, à sa demande) ═══ Le bouton ouvre
+   un aperçu où l'image est fabriquée dans la page ; le texte WhatsApp reste
+   en secours. On éprouve les deux : l'image existe vraiment (on lit ses
+   dimensions), et le texte part au bon numéro avec le bon contenu. */
+await p.evaluate(() => { window.__bon = []; window.open = (u) => { window.__bon.push(u); return null; }; });
+await carte.locator('button', { hasText:'Envoyer le bon au client' }).click();
+const imageBon = await p.waitForFunction(() => {
+  const i = document.querySelector('#bonVisuel .bv-img');
+  return i && i.complete && i.naturalWidth > 0 ? { l:i.naturalWidth, h:i.naturalHeight } : false;
+}, null, { timeout:8000 }).then(h => h.jsonValue()).catch(() => null);
+check('« Envoyer le bon au client » fabrique une vraie image du bon',
+  !!imageBon && imageBon.l === 1080 && imageBon.h >= 1350, JSON.stringify(imageBon));
+check('…qu\'on peut enregistrer (ou partager quand l\'appareil le sait)',
+  await p.locator('#bvEnregistrer').isVisible()
+  && /^bon-ELA-26-09-0042\.png$/.test(await p.locator('#bvEnregistrer').getAttribute('download') || ''));
+/* LE CHOIX IMAGE / ÉCRIT (30/09/2026) : l'image s'ouvre d'abord, l'onglet
+   « Message écrit » montre le texte exact avant de l'envoyer. */
+check('la feuille propose le choix : bon en image ou message écrit',
+  await p.locator('#bvOngletImage').isVisible() && await p.locator('#bvOngletTexte').isVisible()
+  && (await p.locator('#bvOngletImage').getAttribute('aria-selected')) === 'true');
+await p.locator('#bvOngletTexte').click();
+check('« Message écrit » montre le texte qui partira, et cache l\'image',
+  /ELA-26-09-0042/.test(await p.locator('#bvApercuTexte').textContent())
+  && await p.locator('#bonVisuel .bv-img').isHidden());
+await p.locator('#bvTexte').click();
+const bonEnvoye = await p.evaluate(() => (window.__bon || []).map(u => decodeURIComponent(u)));
+check('« Envoyer le bon au client » écrit au NUMÉRO DU CLIENT',
+  bonEnvoye.length === 1 && bonEnvoye[0].startsWith('https://wa.me/33612345678?text='), bonEnvoye.join(' '));
+check('…avec la référence, l\'heure, le trajet et le prix',
+  bonEnvoye.length === 1 && /ELA-26-09-0042/.test(bonEnvoye[0]) && /06:00/.test(bonEnvoye[0])
+  && /Orly 1/.test(bonEnvoye[0]) && /100,00 €/.test(bonEnvoye[0]), bonEnvoye.join(' '));
+check('…et le chauffeur, la course étant confirmée',
+  bonEnvoye.length === 1 && /Mehmet/.test(bonEnvoye[0]), bonEnvoye.join(' '));
+await p.locator('#bvFermer').click();
+check('« Fermer » referme l\'aperçu', await p.locator('#bonVisuel').isHidden());
+
+
+/* ═══ LA LISTE SE MET À JOUR TOUTE SEULE, ET LE CHANGEMENT SE VOIT ═══
+   Barbaros valide 0043 ; le retour sur l'onglet suffit à le faire apparaître,
+   sans appuyer sur « Actualiser » — et un bandeau le dit. */
+etat0043 = 'confirmee'; tel0043 = '';
+const avantAuto = appels.length;
+await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+await p.waitForTimeout(700);
+check('au retour sur l\'onglet, la liste se relit toute seule', appels.length === avantAuto + 1,
+  `${avantAuto} → ${appels.length}`);
+check('la course validée par Barbaros passe à « Réservation validée »',
+  /Réservation validée/.test(await attente.locator('.rec-etat').textContent()));
+check('…et un bandeau le signale en haut',
+  await p.locator('#recAlerte').isVisible()
+  && /Réservation validée : 14:30/.test(await p.locator('#recAlerte').textContent()),
+  await p.locator('#recAlerte').textContent());
+check('…la carte concernée s\'éclaire', await attente.evaluate(el => el.classList.contains('rec-nouveau')));
+/* Gardé : si le bandeau manque, la suite doit le DIRE, pas mourir sur un
+   délai d'attente en cliquant un bouton caché. */
+const bandeauVu = await p.locator('#recAlerte').isVisible();
+if(bandeauVu) await p.locator('#btnRecAlerteOk').click();
+check('« Vu » retire le bandeau', bandeauVu && await p.locator('#recAlerte').isHidden());
+/* Sans numéro, l'image sert encore (on la montre, on la photographie) ;
+   seul l'envoi en texte, qui vise un numéro, disparaît. 0043 est relue sans
+   numéro depuis le dernier rafraîchissement. */
+const btnSansTel = attente.locator('button', { hasText:'Envoyer le bon au client' });
+if(await btnSansTel.count()){
+  await btnSansTel.click();
+  await p.waitForTimeout(600);
+}
+const imageSansTel = await p.locator('#bonVisuel .bv-img').isVisible();
+await p.locator('#bvOngletTexte').click();
+check('sans numéro : l\'image oui ; à l\'écrit, « copier » remplace l\'envoi',
+  (await btnSansTel.count()) === 1 && imageSansTel
+  && await p.locator('#bvTexte').isHidden() && await p.locator('#bvCopier').isVisible());
+/* À la réouverture, on repart sur l'image : le choix d'avant ne colle pas. */
+if(await p.locator('#bonVisuel').isVisible()) await p.locator('#bvFermer').click();
+const avantCache = appels.length;
+await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable:true, get:() => true });
+  document.dispatchEvent(new Event('visibilitychange')); });
+await p.waitForTimeout(400);
+check('onglet en arrière-plan : aucune relecture (batterie, quota)', appels.length === avantCache);
+await p.evaluate(() => { delete document.hidden; });
+
 /* ---------------------------------------------------------------------
-   5. RIEN NE S'ANNULE TOUT SEUL
+   5. RIEN NE S'ANNULE DEPUIS LE COMPTOIR — ET CE QUE BARBAROS CHANGE SE VOIT
    --------------------------------------------------------------------- */
 appels = [];
-await p.context().grantPermissions([]);
-/* On empêche l'ouverture réelle de WhatsApp : ce qu'on éprouve est ce que
-   la page ENVOIE au serveur, pas le comportement de l'onglet. */
-await p.evaluate(() => { window.__wa = []; window.open = (u) => { window.__wa.push(u); return null; }; });
-await attente.locator('button', { hasText:"Demander l'annulation" }).click();
-await p.waitForTimeout(700);
-const envoye = appels.filter(a => a.action === 'annulation');
-check('la demande part au serveur avec la bonne référence',
-  envoye.length === 1 && envoye[0].ref === 'ELA-26-09-0043', JSON.stringify(envoye));
-check('elle ne demande JAMAIS de changer le statut',
-  envoye.length === 1 && !('statut' in envoye[0]), JSON.stringify(envoye[0]));
-const wa = await p.evaluate(()=>window.__wa || []);
-check('et Barbaros est prévenu par WhatsApp — seul canal tant que Telegram dort',
-  wa.length === 1 && wa[0].includes('wa.me') && decodeURIComponent(wa[0]).includes('ELA-26-09-0043'),
-  wa.join(' '));
-check('la course affiche « annulation demandée », pas « annulée »',
-  /Annulation demandée/.test(await attente.textContent())
-  && !/Annulée/.test(await attente.textContent()));
+/* La réception ne fait QUE lire : aucun appel autre que la liste n'est
+   jamais parti de la page pendant toute la suite. */
+check('aucune demande d\'annulation n\'est jamais partie au serveur',
+  !appels.some(a => a.action && a.action !== 'liste'), JSON.stringify(appels.filter(a => a.action)));
+
+/* ═══ ANNULÉE ET MODIFIÉE PAR ELATRANSFER (30/09/2026) ═══ Barbaros annule
+   0043 et déplace 0042 de 6 h à 7 h depuis son admin. La réception doit le
+   VOIR : un bandeau qui dit l'ancienne et la nouvelle heure, la carte qui
+   porte « Modifiée », et l'annulée sans prix. */
+etat0043 = 'annulee'; heure0042 = '07:00'; modif0042 = new Date().toISOString();
+await p.locator('#btnRecActualiser').click();
+await p.waitForTimeout(600);
+const texteAlerte = (await p.locator('#recAlerte').textContent()) || '';
+check('le bandeau dit « Annulée par Elatransfer »', /Annulée par Elatransfer/.test(texteAlerte), texteAlerte);
+check('…et « Course modifiée », de 06:00 à 07:00', /Course modifiée par Elatransfer.*06:00 → 07:00/.test(texteAlerte), texteAlerte);
+await p.locator('.rec-vues button[data-vue="toutes"]').click();
+const annulee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0043' });
+check('la course annulée dit « Annulée », pas « Non prise »',
+  (await annulee.locator('.rec-etat').textContent()).trim() === 'Annulée');
+check('…sans aucun prix, ni aucun bouton',
+  !/120|€/.test(await annulee.textContent()) && (await annulee.locator('button').count()) === 0,
+  await annulee.textContent());
+const modifiee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0042' });
+check('la course modifiée porte « Modifiée par Elatransfer le … »',
+  /Modifiée par Elatransfer le \d\d\/\d\d à \d\d:\d\d/.test(await modifiee.textContent()));
+check('…garde sa référence, et son prix (elle est encore à venir)',
+  /07:00/.test(await modifiee.textContent()) && /100,00/.test(await modifiee.textContent()));
+if(await p.locator('#recAlerte').isVisible()) await p.locator('#btnRecAlerteOk').click();
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
 
 /* ---------------------------------------------------------------------
    6. « FERMER LA SESSION » — LE GESTE D'UNE TABLETTE QU'ON PRÊTE
@@ -359,6 +598,42 @@ await p.locator('#btnReception').click();
 await p.waitForTimeout(700);
 check('et il ne revient pas tout seul au rechargement : le code est oublié',
   await p.locator('#recVerrou').isVisible());
+
+/* ═══ LES 12 H ═══ Un jeton dont la fin (fixée par le serveur, dans le
+   jeton) est passée est oublié SANS appel : la liste ne s'ouvre pas sur une
+   session morte. Et un jeton que le serveur refuse dit « 12 h terminées »,
+   pas « code faux » — sinon on chercherait une faute de frappe. */
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const perime = b64({ v:1, hotel:'easyhotel-aeroville', exp: Date.now() - 60000 }) + '.sig';
+await p.evaluate(j => localStorage.setItem('ela_session_reception',
+  JSON.stringify({ 'easyhotel-aeroville': j })), perime);
+appels = [];
+await p.reload({waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+await p.locator('#btnReception').click();
+await p.waitForTimeout(500);
+check('un jeton dont les 12 h sont passées redemande le code, sans appel',
+  await p.locator('#recVerrou').isVisible() && !appels.some(a => a.session === perime),
+  JSON.stringify(appels));
+const refuse = b64({ v:1, hotel:'easyhotel-aeroville', exp: Date.now() + 3600e3 }) + '.refusee';
+await p.evaluate(j => localStorage.setItem('ela_session_reception',
+  JSON.stringify({ 'easyhotel-aeroville': j })), refuse);
+await p.reload({waitUntil:'domcontentloaded'});
+await p.waitForTimeout(700);
+await p.locator('#btnReception').click();
+await p.waitForTimeout(700);
+/* LA DURÉE ÉCRITE DOIT ÊTRE CELLE DU SERVEUR : on la LIT dans
+   _shared/hotel-session.ts. La constante bouge, la phrase reste — c'est le
+   piège déjà payé sur le préavis de 15 minutes. */
+const dureeMs = eval(readFileSync('supabase/functions/_shared/hotel-session.ts','utf8')
+  .match(/DUREE_SESSION_MS\s*=\s*([\d\s*]+);/)[1]);
+const dureeTexte = dureeMs % 864e5 === 0 ? (dureeMs / 864e5) + ' jours' : (dureeMs / 36e5) + ' h';
+check('un jeton refusé par le serveur dit que la session est terminée, avec sa durée',
+  (await p.locator('#recErreur').textContent()).includes(dureeTexte),
+  dureeTexte + ' / ' + await p.locator('#recErreur').textContent());
+check('…et la même durée est annoncée avant la saisie',
+  (await p.locator('#recVerrou .rec-intro').textContent()).includes(dureeTexte),
+  await p.locator('#recVerrou .rec-intro').textContent());
 
 /* ---------------------------------------------------------------------
    7. UN HÔTEL INCONNU NE DIT PAS QU'IL EST INCONNU
@@ -578,6 +853,13 @@ check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi').textContent());
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
+/* LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT : la chambre 307 ne doit
+   pas rester posée pour le client suivant. */
+await p.locator('#btnNouvelleCourse').click();
+check('« Réserver une autre course » vide la chambre, le nom et le téléphone',
+  await p.evaluate(() => ['chambre','clientNom','clientTel'].every(id => document.getElementById(id).value === '')));
+check('…et redemande le mode de règlement',
+  (await p.locator('[data-paiement][aria-pressed="true"]').count()) === 0);
 /* ═══ LE CAS NORMAL : LA DEMANDE EST ARRIVÉE, IL N'Y A PLUS RIEN À ENVOYER ═══
    C'est ici, et seulement ici, que sa demande se mesure : sur un dépôt
    RÉUSSI. Le contrôle plus haut tourne sur un serveur injoignable, où le

@@ -55,7 +55,7 @@ fi
 
 # LES TROIS SUITES HORS NAVIGATEUR, NOMMÉES UNE SEULE FOIS. Elles tournent
 # dans la seconde boucle ; les autres sont toutes des suites de navigateur.
-HORS_NAV="test-doc.mjs test-notification.mjs test-push.mjs"
+HORS_NAV="test-doc.mjs test-notification.mjs test-push.mjs test-chien-de-garde.mjs"
 
 # ON RAMASSE « test-*.mjs », PAS « test-nouveau* ». Le préfixe « nouveau »
 # est un vestige de la bascule de septembre : une suite écrite aujourd'hui

@@ -5546,8 +5546,18 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   252 px — la colonne commençait à 252 px et le contenu passait dessous.
   Les règles `body.espace` en ont été retirées. Une seconde feuille qui
   habille le même écran finit toujours par le casser.
-- **Le blocage des papiers périmés à l'attribution n'est pas encore porté**
-  ici (Admin v2 l'impose côté serveur ; l'ancien avertit seulement).
+- **« Confirmer la course » exige un chauffeur, et refuse un papier périmé**
+  (audit du 30/09/2026). Sans chauffeur, le client recevait « Transfert
+  confirmé — Chauffeur : — ». Un chauffeur du carnet dont un papier est
+  PÉRIMÉ est refusé ; hors carnet, l'avertissement orange reste, sans
+  blocage — même règle que Admin v2. Ce contrôle est dans l'écran : Admin v2
+  seul l'impose côté serveur.
+- **« Refuser la course » demande deux appuis**, comme « Supprimer » : un
+  refus ne se défait pas depuis le bon, et il est juste sous « Marquer comme
+  réalisée ».
+- **L'outil « Fabriquer les clés » des notifications est caché** tant que le
+  serveur a une clé : une paire recollée par erreur couperait tous les
+  abonnements.
 - **SUR TÉLÉPHONE, LE MENU EST UNE GRILLE DE TUILES, PLUS UNE RANGÉE QUI
   DÉFILE.** Capture de Barbaros : « j'ai que cette page, il n'y a rien
   d'autre ». Les pastilles défilaient de côté et seules deux étaient à
@@ -5725,6 +5735,30 @@ c'est une fonction de `index.html`) :
   pas seulement Paris contre le reste. Les suites `test-nouveau`, `-hotel`,
   `-geoloc`, `-itineraire`, `test-admin-prix` restent toutes vertes.
 
+**« SACRÉ COEUR », « CHAMPS ELYSEE », « AMST » — CE QU'ON CHERCHE PAR SON NOM
+PASSE DEVANT** (30/09/2026, à sa demande : « il me propose des bars alors que
+je parle de la basilique… amst doit montrer la rue d'Amsterdam mais aussi
+Amsterdam aux Pays-Bas »). Trois causes, lues dans le code (le réseau d'ici
+ne joint ni la BAN ni Photon) :
+- **« œ » n'était pas ramené à « oe »** par `sansAccents` (NFD ne défait pas
+  une ligature) : « coeur » ne retrouvait pas « Cœur », et le bar écrit
+  « Coeur » passait devant la basilique.
+- **Un lieu de culte n'était dans aucune catégorie** (`categorieDuLieu` :
+  `place_of_worship` et la clé `historic` vont maintenant en « culture »), et
+  une avenue n'avait pas le bonus de « lieu nommé » des commerces qui portent
+  son nom. `note()` : +3 à un monument qui répond au nom tapé, +3 à une rue
+  dont tout le nom est tapé (la BAN garde son `type`), −2 à un bar ou un
+  restaurant si le client n'a écrit ni « restaurant » ni « bar »… Rien n'est
+  retiré de la liste, l'ordre seul change.
+- **Photon était filtré sur la France.** Le filtre est retiré : l'étranger
+  apparaît, plus bas (`bonusDistance`), avec son pays écrit (« Amsterdam,
+  Pays-Bas »). **La zone des 90 km tient au moment du CHOIX** : choisir
+  Amsterdam affiche « hors zone » avec appel et WhatsApp — décidé, on ne vend
+  pas un Paris → Amsterdam en ligne au prix du kilomètre.
+`test-nouveau-recherche.mjs` rejoue ses trois exemples, réponses données
+dans l'ordre le plus défavorable ; sur l'ancien code il rend exactement ce
+qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
+
 ## UN SEUL TARIF AU KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN
 
 28 septembre 2026, à sa demande : « je veux que tout le monde ait le même
@@ -5863,13 +5897,79 @@ notifications Telegram 1 minute après, c'est trop long ».
   le dépôt raté pendant que WhatsApp s'ouvre, retenté au retour du client
   (`reprendreDepot()`).
 
+## LE CENTRE DE CONTRÔLE — LA COMMISSION PAR CANAL
+
+30 septembre 2026, à sa demande : « un tableau qui indique le taux de
+commission sur les courses public, site client hôtel, flyer ou prix km… un
+vrai centre de contrôle depuis ma page admin », puis « un changement de
+commission pour le site public ne doit pas affecter easyHotel… je dois
+pouvoir attribuer un montant précis par course ou chauffeur ».
+- **Écran `#ecran-controle`**, entrée « Centre de contrôle » du menu, cachée
+  à l'agent (`agent-role-ui.mjs`) et retirée des pages publiques
+  (`construire-espaces-hotel.mjs`). Quatre blocs : résultats par canal
+  (Semaine / Mois / Année / Tout), commission par canal (modifiable),
+  commission par chauffeur, tarifs en vigueur (lus dans `GAMMES` et `HOTELS`,
+  bouton vers Réglages pour les changer).
+- **QUATRE CANAUX** (`canalDe`) : réception (`parReception`), flyer hôtel
+  (`provenanceCle`), saisie au téléphone (`canal:"admin"`, posé par « Saisir
+  par téléphone »), site public (tout le reste). **Une demande COLLÉE reste
+  « site public »** : son message est celui que fabrique le site.
+- **L'ORDRE DE LA COMMISSION va du plus précis au plus général** : montant
+  posé sur la course, puis taux du chauffeur (carnet, en % OU en € par
+  course — `tauxMode`), puis taux du canal. Chaque canal a son propre taux,
+  en % ou en € : changer le site public ne touche pas easyHotel.
+- **Les taux par canal vivent sur le serveur** (`parametres_commerciaux`,
+  clé `commission_canaux`), copiés sur l'appareil (`ela_commission_canaux`).
+  Aucune migration : la table accepte toute clé, l'écriture est réservée à
+  l'admin depuis `20260929030000_role_agent_serveur.sql`.
+- **Un champ de taux vide n'est pas zéro.** Le carnet enregistrait `0` pour
+  un champ vide : une vieille fiche à `0` sans unité est donc lue « pas de
+  taux », sinon elle masquerait le taux du canal. Une fiche enregistrée
+  depuis porte son unité, et son zéro est alors voulu.
+- `test-admin-controle.mjs` recalcule les totaux à la main ; il tombe si le
+  chauffeur passe après le canal, ou si le vieux `0` masque le canal.
+
+### CE QUE LES CHAUFFEURS DOIVENT — LE GRAND LIVRE DES COMMISSIONS
+
+30 septembre 2026, à sa demande : « un bouton et une alerte qui dit que le
+chauffeur doit une commission ou pas… analyse comme un expert ».
+- **Le client paie le chauffeur, jamais Elatransfer** : chaque course
+  RÉALISÉE crée une dette du chauffeur. Dû = commissions des réalisées ;
+  reçu = paiements enregistrés ; reste = la différence (`soldesChauffeurs`).
+- **LE SEUL LEVIER EST LA COURSE SUIVANTE.** L'alerte est donc sur le bon, à
+  l'instant où l'on saisit le chauffeur (`#bbDette`) : « Mehmet vous doit
+  47 €, dont 20 € depuis plus de 30 jours ». Un **seuil** facultatif
+  (centre de contrôle, clé serveur `seuil_dette_chauffeur`) BLOQUE
+  « Confirmer » au-delà. Vide par défaut : sans lui, on signale seulement.
+- **Le retard se compte course par course** : un paiement solde d'abord les
+  plus anciennes. Ce qui reste dû sur une course de plus de 30 jours est en
+  retard (délai par défaut entre professionnels, L441-10). Le tableau de
+  bord ne s'allume (`#bordDettes`) QUE sur un retard.
+- **Boutons** : « Paiement reçu » (montant proposé = le reste, date, moyen)
+  et « Relancer par WhatsApp » (sur le numéro du chauffeur, avec la liste des
+  courses — une relance sans détail appelle une discussion). Un paiement se
+  retire en deux appuis.
+- **LA COMMISSION SE FIGE AU PASSAGE EN « RÉALISÉE »** (`commissionFigee`,
+  dans `majCourse`). Avant, elle était recalculée à chaque affichage :
+  changer un taux de canal réécrivait après coup ce que devait un chauffeur
+  pour une course déjà faite. Un montant posé sur la course reste modifiable.
+  Les courses réalisées avant le 30/09/2026 n'ont pas de valeur figée.
+- **Une course réalisée sans aucune règle de commission est signalée**, pas
+  comptée à zéro en silence : c'est de l'argent oublié.
+- **Les paiements vivent sur l'appareil** (`ela_paiements_chauffeurs`),
+  comme le carnet et les factures, et partent dans la sauvegarde (restaurés
+  en ajout, par identifiant). Changer de téléphone sans sauvegarde les perd.
+- Caché à l'agent. `test-admin-controle.mjs` tombe si la commission n'est
+  plus figée ou si le seuil ne bloque plus.
+
 ## COMMISSION PAR COURSE, GRAPHIQUE DES CHAUFFEURS, NOTIFICATIONS ELA
 
 29 septembre 2026, à sa demande (« une commission en % ou en € sur chaque
 course », « un graphique des courses réalisées par les chauffeurs »).
 - **Commission** : `commissionDe(course)` est le seul calcul — celle posée
   sur la course (% ou € fixes, jamais plus que le prix), sinon le taux du
-  carnet, sinon rien (on ne devine pas un taux). Bon, registre, export CSV
+  carnet, sinon celui du canal (centre de contrôle, voir plus haut), sinon
+  rien (on ne devine pas un taux). Bon, registre, export CSV
   et facture l'utilisent tous. `test-admin-commission`.
 - **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
   compte que les courses réalisées.
@@ -6025,6 +6125,167 @@ générique, ouverte dans Safari.
 - `test-cloisonnement-hotel` lit le manifeste comme le navigateur et tombe
   sur l'ancien code (« trouvé : 2 »).
 
+## LA PAGE RÉCEPTION, AUDITÉE BOUTON PAR BOUTON — CE QUI EN EST PARTI
+
+30 septembre 2026, à sa demande (« vérifie toutes les touches… corrige comme
+un pro, laisse le FR/EN »). Audit fait sur le SITE CONSTRUIT
+(`/easyhotel-reception/`), à 390 et 1280 px : tous les boutons répondaient,
+le défaut était ailleurs — des doublons et des phrases écrites pour un client.
+- **La permanence humaine est 5 h–22 h**, tranché par Barbaros. Le bandeau
+  du site public disait « 24 h/24 · 7 j/7 » pendant que la réception disait
+  5 h–22 h. Il dit maintenant « Réservation 24 h/24 · Assistance 5 h–22 h » :
+  la réservation en ligne, elle, reste ouverte jour et nuit.
+- **Une tuile par écran**, celle qui mène à l'autre : « Nouvelle course » sur
+  la liste, « Réservations de l'hôtel » sur le formulaire. Chacune avait un
+  doublon qui ne faisait que défiler sur l'écran où l'on était déjà.
+- **Retirés au comptoir** (CSS sous `.reception-premium`) : la flèche « ‹ »
+  de la liste (elle ouvrait le formulaire, pas la page d'avant), la barre du
+  bas (« Accueil » en double, et un menu WhatsApp écrit pour un client, en
+  double du bloc « Un imprévu ? »), « Disponibilité confirmée par WhatsApp ou
+  SMS » (faux ici : la réponse apparaît dans la liste), les trois étapes du
+  tunnel client, « Aucun paiement en ligne ».
+- **Une course EN RETARD porte « Appeler Elatransfer »**, plus « Demander
+  l'annulation » : annuler une course dont l'heure est passée n'a pas d'objet.
+- **La référence a sa ligne, entière** (`.rec-reference` — `.rec-ref` est déjà
+  pris par le tableau de bord de l'exploitant). Elle était tronquée en fin de
+  ligne grise, alors que c'est ce qu'on nous lit au téléphone.
+- **Les numéros de téléphone de la liste font 44 px de haut**, plus 15.
+- **Le bon, après l'envoi, parle à la réception** (`bon_note_comptoir`,
+  `envoi_ok_comptoir`) et porte « Voir les réservations de l'hôtel » : la
+  réception restait coincée sur le bon, sans chemin vers sa liste.
+- **Le FR/EN est gardé**, donc plus de libellés doublés (« Chambre / Room »,
+  « Nom du client / Guest name ») au comptoir : `index.html` y pose ses clés
+  (`nom_comptoir`, `ph_nom_comptoir`, `aide_tel_comptoir`) et le sélecteur
+  traduit. Le côté client du flyer garde ses libellés doublés.
+- **LE PIÈGE QUE L'AUDIT A TROUVÉ : après 7 s, la langue ne suivait plus.**
+  `hotel-engine-polish.js` coupe son observateur à 7 s (pour ne pas boucler) :
+  un FR/EN touché ensuite, ou un « Actualiser », rendait les textes d'origine,
+  et repasser en FR laissait « Pending » et « Tomorrow ». Deux observateurs
+  ÉTROITS restent (l'attribut `lang`, les enfants directs de `#recListe`), et
+  le français d'origine est gardé sur l'élément (`data-fr`) pour y revenir.
+- **Suite du même jour, à sa demande (« ok fait 12 h en leur affichant ce
+  message afin qu'ils n'oublient pas ») :**
+  - **La session tient 30 JOURS sur l'appareil** (`localStorage`, plus l'onglet)
+    — d'abord 12 h, puis 30 jours le même soir, à sa demande (« personne ne
+    verra le code à part la réception »). **Le code ne peut pas disparaître** :
+    la clé de l'hôtel (`easyhotel-aeroville`) est publique, écrite dans les
+    liens de la page du QR ; sans code, n'importe qui appellerait
+    `courses-hotel` et lirait noms et téléphones des clients. La session est
+    signée AVEC le code : le changer dans les secrets Supabase coupe toutes
+    les tablettes d'un coup. `test-nouveau-reception` lit la durée dans
+    `hotel-session.ts` et exige la même dans les phrases.
+    La fin est celle du jeton signé par le serveur (`exp`,
+    `DUREE_SESSION_MS` de `_shared/hotel-session.ts`) : le navigateur la lit
+    pour l'afficher et oublier le jeton à l'heure dite, il ne peut pas la
+    repousser. Le code brut n'est toujours conservé nulle part.
+  - **Le rappel est écrit deux fois** : avant la saisie (« actif 30 jours,
+    puis redemandé : gardez-le bien ») et en haut de la liste (« Code gardé
+    sur cet appareil jusqu'au jeudi 29 octobre »). Un jeton refusé dit « la
+    session est terminée, ou le code a changé », jamais « code faux ».
+  - **La liste se relit toute seule** toutes les 30 s et au retour sur
+    l'onglet — jamais onglet caché, liste fermée ou sans session. En fond,
+    une panne réseau ne dit rien ; seul un refus du jeton reverrouille.
+  - **Ce qui change se voit** : « Réservation validée » (vert) ou « Non
+    prise — prévenez le client » (rouge) dans un bandeau en haut, avec « Vu »,
+    et la carte s'éclaire. Aucun bandeau au premier chargement.
+  - **« Envoyer le bon au client » fabrique une IMAGE du bon** (à sa
+    demande : « un bon visuel plutôt qu'un message ») : logo, état, référence,
+    date, trajet, véhicule et paiement, chauffeur si confirmé, prix ferme.
+    Dessinée dans la page (`dessinerBonImage`, canvas 1080 px de large, la
+    hauteur suit le contenu — une hauteur fixe coupait la ligne du chauffeur),
+    jamais chez un tiers. Couleurs du bon du site, pas celles du partenaire.
+  - **Elle passe par un aperçu** (`ouvrirBonVisuel`) : Safari ne partage un
+    fichier que dans la foulée immédiate d'un appui, et l'image met un instant
+    à se fabriquer. On la fabrique à l'ouverture ; « Envoyer l'image »
+    (`navigator.share`, seulement si l'appareil sait partager un fichier) ou
+    « Enregistrer l'image » partent ensuite sans attente.
+  - **LE CHOIX IMAGE / ÉCRIT EST EN TÊTE DE LA FEUILLE** (à sa demande : « il
+    faut qu'on puisse avoir le choix »). Deux onglets, « Bon en image » (ouvert
+    par défaut) et « Message écrit », et chacun MONTRE ce qui partira avant
+    l'envoi. L'écrit garde son avantage : il écrit DIRECTEMENT au numéro du
+    client, là où l'image passe par le partage du téléphone. Sans numéro,
+    « Copier le message » remplace l'envoi. Le texte suit la langue affichée ;
+    le chauffeur n'y figure que sur une course confirmée.
+  - **LE BON A QUITTÉ L'ANCIEN VERT CÉLADON** (à sa demande : « il garde
+    encore la trace verte ancienne »), sur le site COMME sur l'image : pastille
+    « Confirmé » `#0E5FA8`, encart du prix `#EAF3FC` / `#062f55`, bloc du
+    chauffeur et écriteau « demande reçue » en bleu ELA. Contrastes mesurés
+    (blanc sur `#0E5FA8` 6,5 ; `#0B4F8C` sur fond clair 7,5). **La pastille
+    « Réservation validée » de la LISTE de la réception reste verte** : c'est
+    une couleur d'état, pas le bon.
+- **RETROUVER UNE COURSE — L'HISTORIQUE DU COMPTOIR** (30/09/2026, à sa
+  demande : « un moyen de retrouver les courses, l'historique, on a oublié
+  ça »). Au-dessus de la liste : un champ « Retrouver une course » et trois
+  onglets qui portent leur compte — **À venir** (ouvert par défaut : attente
+  et confirmée, en retard compris, puisqu'elles demandent encore quelque
+  chose), **Passées** (effectuées et non prises, la plus récente en haut),
+  **Toutes**.
+  - **La recherche fouille TOUT, quel que soit l'onglet** : chambre, nom,
+    téléphone (par ses chiffres — « 0655 44 » trouve « 06 55 44 33 22 »),
+    référence, adresse, chauffeur. Un client repasse au comptoir pour une
+    course de mardi : on ne lui fait pas chercher le bon onglet d'abord.
+  - **Rien n'est redemandé au serveur** pour trier ou chercher : la liste
+    est déjà là. `courses-hotel` en rend désormais **500** (au lieu de 200)
+    — des mois d'un hôtel actif. Au-delà, les plus anciennes ne s'affichent
+    plus : le jour où ça arrive, il faudra une recherche côté serveur.
+  - Classes `.rec-outils` / `.rec-vues`, neuves (vérifiées libres).
+    `test-nouveau-reception` a une course effectuée dans son jeu de données
+    et éprouve les comptes, chaque onglet et les quatre recherches ; il tombe
+    si « passée » n'est plus reconnue (six contrôles).
+- **VÉRIFIÉ EN SE METTANT À LA PLACE DE LA RÉCEPTION** (30/09/2026, à sa
+  demande : « met toi à la place de la réception »). Deux manques :
+  - **« Réserver une autre course » gardait la chambre, le nom et le
+    téléphone du client précédent.** Réservé à la chaîne, le client suivant
+    partait avec la chambre d'un autre, et son numéro recevait le bon d'un
+    inconnu. Au comptoir, ces champs, le vol, la pancarte et le règlement
+    sont vidés ; côté client on garde (c'est le même voyageur).
+  - **Une course effectuée se renvoie** : « Renvoyer le bon au client »
+    (le justificatif d'une note de frais). Le bon dit « EFFECTUÉE » / « Course
+    effectuée », avec son chauffeur. Rien sur une course non prise.
+
+- **ACTUALISER EN HAUT, PAR DATE, ET RETROUVER UN BON PAR SA DATE**
+  (30/09/2026, à sa demande). « Actualiser » était en bas d'une liste qui
+  s'allonge (mesuré à 1 360 px) : il est remonté sous les trois chiffres,
+  avec l'heure de la dernière lecture (`#recMaj`, `dessinerMaj()`), et
+  tourne pendant la lecture. Un quatrième onglet **« Par date »** ouvre une
+  barre Jour / Mois, ‹ ›, un calendrier et « Aujourd'hui » ; la liste y est
+  dans l'ordre du calendrier, sans « En retard », avec le bilan de la
+  période (courses, effectuées, à venir, non prises, et le montant des
+  seules EFFECTUÉES — même règle que le registre). La recherche trouve
+  aussi une date tapée « 12/09 », « 12/09/2026 » ou « 12 septembre ». Les
+  dates sont composées en local (`isoLocal`), jamais par `toISOString`.
+  Le libellé d'« Actualiser » est écrit par la page, plus par la finition
+  (`hotel-engine-polish.js`) : elle l'écrasait pendant la lecture.
+
+- **UNE COURSE FINIE NE PORTE PLUS AUCUN PRIX CÔTÉ RÉCEPTION** (30/09/2026, à
+  sa demande : « aucune trace du chiffre ne doit rester »). Réalisée, non
+  prise ou annulée : `courses-hotel` n'envoie plus le champ `prix` (ABSENT,
+  pas mis à zéro — masquer à l'écran laissait le montant dans la réponse,
+  lisible par les outils du navigateur), et la page ne le dessine pas non
+  plus (deux défenses, deux contrôles : `test-securite-fonctions`,
+  `test-nouveau-reception`). Le bilan « Par date » ne compte plus que des
+  courses, jamais un montant. « Renvoyer le bon » est retiré des courses
+  faites : sans prix, ce n'est plus un justificatif. Le prix reste dans
+  l'admin (registre, commissions, factures) et sur le téléphone du client.
+- **LA RÉCEPTION NE PEUT PLUS ANNULER, NI MÊME LE DEMANDER** (30/09/2026, à sa
+  demande). Le bouton « Demander l'annulation » est retiré et `courses-hotel`
+  refuse toute action autre que la liste (403). Elle appelle : « Un imprévu ? »
+  est affiché en permanence. Le drapeau `annulationDemandee` n'est plus lu.
+- **« ANNULER LA COURSE » ET « MODIFIER LA COURSE » DANS L'ADMIN** (bon
+  exploitant, 30/09/2026). Nouveau statut **`annulee`** : fini comme un refus,
+  jamais compté, mais la réception et le client lisent « Annulée », pas « Non
+  prise » (qui dit qu'aucun chauffeur n'était libre). Deux appuis pour
+  annuler. Modifier garde la RÉFÉRENCE, écrit `modifieLe` (+ `modifications`,
+  les 20 dernières), recompose `depart` = `departPublic` + « (ch. N) », et ne
+  recalcule PAS le prix : un trajet changé se renégocie. La réception voit
+  « Modifiée par Elatransfer le … » sur la carte et, en direct, un bandeau
+  « 06:00 → 07:00 ». Rien ne part chez le chauffeur : un rappel « Prévenez le
+  chauffeur » s'affiche s'il y en a un. `test-admin-arrivee` (bloc 2 ter).
+  **Tout endroit qui teste `"refusee"` pour dire « finie » doit aussi tester
+  `"annulee"`** — c'est la liste qu'on a dû parcourir ce jour-là.
+- **Pas encore fait, décidé pour un second temps** : changer ou couper le code
+  de la réception depuis l'admin (le code vit dans les secrets Supabase).
+
 ## LES PRIX DU FLYER SE RÈGLENT HÔTEL PAR HÔTEL
 
 29 septembre 2026, à sa demande. Réglages → « Prix du flyer, par hôtel » :
@@ -6053,7 +6314,7 @@ visuelle, notification, tout ce qui est possible ».
   créait un lecteur de son hors de tout geste ; iPhone et Android le laissent
   suspendu, sans erreur. Un seul lecteur maintenant, débloqué au premier appui
   n'importe où, et un bandeau `#sonCoupe` le dit tant que ce n'est pas fait.
-- **L'alarme se répète toutes les 20 s** (quatre notes fortes + vibration
+- **L'alarme se répète toutes les 10 s** (quatre notes fortes + vibration
   Android + titre d'onglet qui clignote) jusqu'à un appui sur l'écriteau ou
   l'ouverture d'une course, dix minutes au plus. **Pastille sur l'icône** =
   nombre de demandes en attente (`setAppBadge`).
@@ -6066,22 +6327,36 @@ visuelle, notification, tout ce qui est possible ».
   `nouvelle-demande` avec `{type:"RELANCE"}`
   (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
   attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
-  **Telegram toutes les 20 s** tant qu'elle reste en attente ET qu'il ne l'a
-  pas VUE (à sa demande : « tant que je n'ai pas ouvert la demande reçue sur
-  Telegram »). **Telegram ne dit jamais à un bot qu'un message est lu** : « vu »
+  **La cadence suit l'urgence** (ChatGPT, 30/09/2026, validé par Barbaros,
+  puis resserrée le soir même à sa demande : « tout sonne plusieurs fois par
+  minute ») : les **10 premières minutes** d'une demande non vue, et tout
+  départ dans 30 min ou moins → Telegram ET notification **à chaque tour de
+  20 s** (seuil 15 s : pg_cron ne tombe jamais pile) ;
+  entre 30 min et 2 h → toutes les 10 min ; plus de 2 h → aucun rappel avant
+  H-2. Arrêt dès qu'elle est VUE, confirmée ou refusée. **Telegram ne dit
+  jamais à un bot qu'un message est lu** : « vu »
   est donc un GESTE — le bouton « ✅ Vu » sous chaque alerte (fonction
   `telegram-bot`, déployée sans JWT, qui vérifie l'en-tête secret du webhook
   et que l'appui vient de `TELEGRAM_CHAT`), ou la course ouverte dans l'admin
   (`signalerVue()` → RPC `ela_marquer_vue`). Les deux écrivent `vue` au
   journal. Le secret du webhook est dérivé du jeton du bot (SHA-256 de
   « jeton:webhook-ela ») : aucun secret de plus. Le webhook est posé par
-  `{type:"INSTALLER_TELEGRAM"}`, appelé par la même migration. Seule borne :
-  la fenêtre de 6 h. Notification du téléphone : toutes les 10 min, 3 au plus. Le son et la vibration de chaque message Telegram sont
+  `{type:"INSTALLER_TELEGRAM"}`, appelé par la même migration.
+  **LA FENÊTRE DE 6 H SE COMPTE DEPUIS LE DÉPART, PAS DEPUIS LA CRÉATION.**
+  Comptée depuis la création, elle écartait toute demande faite plus de 6 h
+  avant le départ (un hôtel qui réserve la veille : le cas le plus courant) —
+  aucun rappel à H-20 min. Trouvé en relisant le travail de ChatGPT, prouvé
+  par un test qui tombait. On lit 7 jours de demandes en attente ; le
+  rattrapage d'une demande jamais annoncée garde sa borne de 6 h depuis la
+  création. Le son et la vibration de chaque message Telegram sont
   réglés dans Telegram sur son téléphone, pas ici.
   Tout est relu sur le serveur et la cadence vient du journal : l'appeler plus
   souvent n'envoie rien de plus. **La migration ne part pas toute seule** —
   workflow « Appliquer une migration Supabase », ce fichier. Si la base refuse
   `pg_cron` ou `pg_net`, le journal du workflow le dira.
+- **WhatsApp ne peut PAS sonner tout seul chez lui** : l'API WhatsApp
+  Business exige une vérification d'entreprise et un numéro dédié (voir plus
+  haut). Ce qui sonne : Telegram, la notification ELA, et l'admin ouvert.
 - **Le code de l'alarme vit dans le bloc exploitant**, retiré des pages
   publiques : un bouton branché ailleurs y appellerait des fonctions absentes
   (`test-easyhotel-client` l'a vu).
@@ -6094,3 +6369,304 @@ visuelle, notification, tout ce qui est possible ».
   attente sur 30 jours, compté par `nbAttente()`), que `sw.js` pose sur
   l'icône. Sans nombre (notification d'un client), un simple point.
   `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
+
+## LE SERVEUR EST LA SEULE VÉRITÉ — L'ADMIN N'EST PLUS QU'UNE COPIE
+
+2 octobre 2026, Barbaros : « je valide une course, ça revient ; je refuse,
+ça revient ». Le projet démarre le 12, tout doit être fiable le 10.
+**La cause n'était pas un bouton, c'était une architecture à deux vérités.**
+Le téléphone gardait sa liste, le serveur la sienne. `fusionner` ne faisait
+qu'AJOUTER ce que l'appareil ne connaissait pas — une course confirmée sur
+l'ordinateur restait « en attente » sur le téléphone pour toujours. Et
+`pousser` partait en « on verra » (8 s, pas de reprise, pas de témoin, pas de
+`keepalive`) : l'écran disait « refusée », le serveur « en attente », et la
+relance Telegram sonnait sur une course qu'il croyait réglée. Un appareil
+périmé pouvait même ÉCRASER l'état du serveur (POST merge-duplicates du bon
+entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
+- **Migration `20261002000000_courses_version.sql`** : `version` (monte à
+  chaque modification, par déclencheur) et `modifie_le` sur `courses`.
+  **À appliquer en production AVANT de fusionner** (workflow « Appliquer une
+  migration Supabase »). Le site publié avant la migration tenait quand même
+  grâce à un repli (`serveurSansVersion`) : un 400 sur la colonne faisait
+  retomber la page sur l'ancienne lecture et l'ancien dépôt-ou-mise-à-jour.
+  **CE REPLI A ÉTÉ RETIRÉ LE SOIR MÊME, une fois la migration confirmée en
+  production** — voir « SEULE MAIN TOUCHE LA PRODUCTION » en fin de fichier.
+  Le bloc e) de `test-admin-arrivee` éprouve maintenant l'inverse.
+- **`reconcilier()` remplace `fusionner()` pour la lecture serveur** : le
+  serveur remplace la copie locale s'il est plus récent (`_v`), une course
+  qu'il ne montre plus s'efface ici (seulement si on l'avait lue de lui et
+  si la liste n'est pas tronquée à 1000), une course jamais partie d'ici est
+  remise en file. `fusionner` reste pour la restauration d'une sauvegarde,
+  qui AJOUTE et n'efface jamais.
+- **La file d'attente `ela_file`** : `nuage.pousser(bon)` met en file et
+  `viderFile()` envoie, une course à la fois, avec reprise (3 s, 6, 12…
+  60 s au plus), relancée par la sonde, au retour sur l'onglet et au retour
+  du réseau. Elle survit à un rechargement. `keepalive:true` sur les
+  écritures : elles survivent au gel de la page quand WhatsApp s'ouvre.
+- **On écrit SOUS CONDITION DE VERSION** (`PATCH ?ref=eq.X&version=eq.N`,
+  `return=representation`) : zéro ligne rendue = la version a bougé ; on
+  relit, **le serveur gagne**, la copie locale est remplacée, et l'écran le
+  DIT — sur le tableau de bord (`#bordConflit`) et sur le bon ouvert
+  (`#bbModifNote`, amené à l'écran). Une course jamais lue du serveur part
+  en POST `ignore-duplicates` : si elle existait déjà, même règle.
+  Pourquoi le serveur et pas le dernier geste : le geste perdu a été fait
+  sur une information fausse ; mieux vaut le remontrer que d'exécuter un
+  refus sur une course déjà confirmée ailleurs.
+- **Le témoin `#bordSynchro`** : « N modification(s) en cours d'envoi… »,
+  rouge à partir de 30 s, « reconnectez-vous » sans session. Plus jamais un
+  écran et un serveur qui se contredisent sans que personne le sache.
+- **La sonde demande la course modifiée le plus RÉCEMMENT**
+  (`select=ref,version&order=modifie_le.desc`), plus la dernière arrivée :
+  un changement fait ailleurs arrive ici en 8 s, plus 45. **Son repère est
+  reposé après chaque lecture complète** — sans ça, son premier passage ne
+  faisait qu'enregistrer la réponse, et un changement survenu entre
+  l'ouverture et ce passage attendait le tour de fond. Trouvé par le test.
+- **Les suites qui simulent le serveur** (`test-admin-arrivee`, `-alertes`,
+  `-controle`) reconnaissent les deux formes de la sonde.
+- `test-admin-arrivee` bloc 4, cinq scènes, toutes contre un faux serveur à
+  versions : changée ailleurs → ici en moins de 15 s ; panne → en file, témoin,
+  repart seule ; copie périmée → refusée, serveur gagne, écran le dit ;
+  supprimée ailleurs → disparaît ; serveur d'avant la migration → lu et écrit
+  à l'ancienne. **Éprouvé contre l'ancien code : six contrôles tombent.**
+- **PIÈGE DE CAPTURE, QUATRIÈME FOIS** : les premières captures montraient
+  l'ANCIEN admin sans témoin — la falsification (`git stash`) avait
+  reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
+  rien. `sh construire.sh` avant toute capture, toujours.
+- `sw.js` CACHE v120.
+
+## UN CANAL QUI INSISTE, UN CANAL QUI INFORME — LA CADENCE DES ALERTES
+
+2 octobre 2026, Barbaros : « je ne veux pas recevoir trop d'alertes sur
+Telegram… des fois je reçois une notification, je ne réponds pas, après ça
+passe en mode silencieux ». **Mesuré dans le code** : Telegram partait toutes
+les 20 s pendant 10 min, puis toutes les 20 s dès H-30 et **jusqu'à 6 h après
+le départ** tant que la course restait « en attente » et non vue — jusqu'à un
+millier de messages pour une course oubliée. C'est le téléphone qui coupait le
+son, et la vraie demande suivante passait avec.
+- **La notification ELA est l'alarme** (elle se REMPLACE sur le téléphone,
+  même étiquette) : à chaque tour de 20 s les 10 premières minutes et à H-30
+  ou moins, toutes les 10 min entre H-2 et H-30, rien avant H-2.
+- **Telegram informe** : +3 min, +10 min, puis toutes les 15 min la première
+  heure ; silence jusqu'à H-2 (toutes les 15 min) ; toutes les 5 min sous
+  H-30. **Chaque rappel EFFACE le précédent** (`deleteMessage`, identifiant
+  gardé dans `journal.detail` sous `message_id=N`) : une seule ligne de
+  rappel visible, jamais une pile. L'annonce initiale n'est jamais effacée.
+- **À l'heure du départ, un dernier message** (`rappel_final`, `titreFinal`)
+  sur les deux canaux, puis plus rien. Une course oubliée se clôt dans
+  l'admin, elle ne sonne pas six heures.
+- **Les saisies de l'exploitant ne sont ni annoncées ni relancées** (à sa
+  demande : « aucune alerte du tout »). Une demande passée par le site porte
+  `securite.empreinteDepot`, posée par `deposer-course` ; les siennes
+  (« Coller une demande », « Saisir par téléphone ») jamais —
+  `saisieExploitant()`. Le webhook INSERT et la relance l'appliquent tous
+  deux.
+- **Les délais se comptent depuis l'ANNONCE, pas depuis la création** : une
+  demande rattrapée 15 min après son dépôt aurait eu son « +3 min » au tour
+  suivant. Trouvé par le test.
+- **Les heures du bon sont celles de Paris, l'horloge du test est en UTC** :
+  deux contrôles sont tombés parce qu'un départ « 14:00 » (12:00 UTC) était
+  déjà à H-2 quand le test croyait être loin. Même famille que les fixtures
+  SQL datées dans le mauvais fuseau.
+- `pg_cron` reste à 20 s : c'est la cadence de l'alarme (notification), la
+  cadence Telegram vient du journal.
+- `test-relance-alertes` : 61 contrôles ; trois falsifications (règle des
+  saisies retirée, effacement retiré, arrêt au départ retiré) tombent en
+  nommant le défaut. `test-securite-fonctions` éprouve le webhook sur une
+  saisie sans empreinte.
+
+## LE CHIEN DE GARDE, LE DIAGNOSTIC, ET LE QUOTA DE LA RÉCEPTION
+
+2 octobre 2026, même demande : « vérifier que je reçois tout, vraiment comme
+un salarié 24-24 ». Ce que je ne peux pas être (je ne tourne pas en continu),
+GitHub le fait.
+- **`.github/workflows/chien-de-garde.yml`**, toutes les 15 min : lit UNE
+  ligne JSON sur le serveur (`.github/scripts/sante-serveur.sql`, lecture
+  seule, comptes et secondes seulement — le journal est public), et
+  **n'écrit qu'en cas de panne** : demande du site en attente depuis plus de
+  2 min sans alerte réussie, relance pg_cron absente ou muette depuis plus de
+  5 min, dix passages ratés au quart d'heure, Telegram qui ne refuse QUE des
+  envois depuis une heure. Une Issue unique (marqueur), mise à jour tant que
+  ça dure, fermée seule au retour à la normale ; jamais Telegram (il n'en
+  veut pas plus). **Le juge est à part** (`chien-de-garde.mjs`) et
+  éprouvé sans réseau par `test-chien-de-garde.mjs` : une nuit sans demande
+  ne doit pas aboyer, une réponse illisible doit aboyer.
+- **L'appel à l'API de gestion est copié du workflow des migrations**, qui
+  marche en production — on ne devine pas un paramètre d'API qu'on ne peut
+  pas vérifier d'ici (« NE DEVINE PLUS JAMAIS »).
+- **`20261002010000_diagnostic_fiabilite.sql`** : le même état, lisible,
+  pour le 10 octobre — à lancer par le workflow des migrations. Il ne
+  modifie rien. Chaque ligne dit ce qu'elle doit valoir.
+- **Le quota de `deposer-course` est celui de la réception, pas du wifi** :
+  12 dépôts par heure et par IP pour un anonyme ; une réception dont la
+  session est vérifiée compte sur `reception|<hôtel>|<heure>`, 60 par heure.
+  À l'hôtel, le comptoir et les clients sur le wifi partagent une adresse.
+  **Piège rencontré** : `heure` existait déjà dans la fonction (l'heure de la
+  course) ; ma variable l'a redéclarée, et c'est le test, pas la relecture,
+  qui l'a vu (« Identifier 'heure' has already been declared »).
+  `test-securite-fonctions` charge maintenant `deposer-course` (import
+  `jsr:` retiré au chargement) et lit la clé de quota envoyée.
+
+## SEULE MAIN TOUCHE LA PRODUCTION — ET LE REPLI « SERVEUR SANS VERSION » EST PARTI
+
+2 octobre 2026, le soir, à sa demande (« fait le comme un expert »), après
+la vérification d'avant lancement — le projet démarre le 12. **Ce qui a été
+LU en production, pas supposé** : le journal du workflow des migrations
+(colonnes `version` et `modifie_le` listées à 18 h 15 ; diagnostic de
+fiabilité à 18 h 47 : 12 demandes du site en 7 jours, **0 sans alerte
+réussie**, Telegram 16/0, notifications 13 réussies, relance pg_cron active,
+dernier passage 19 s), et le journal des déploiements : les 11 fonctions
+déployées depuis `main` à 18 h 46.
+
+**LE CORRECTIF « SEULE MAIN DÉPLOIE » DE #283 NE PROTÉGEAIT PAS.** Retirer
+une branche de la liste `branches:` ne change que la copie du workflow qui
+est sur `main` ; GitHub exécute **la copie présente sur la branche
+poussée**. Mesuré sur `git ls-remote` : 45 branches portaient encore une
+copie qui déploie depuis la branche mini-van (du 11 septembre), dont la
+`prevenir-client` **sans contrôle d'exploitant** — la faille fermée le
+28 septembre. Un push sur cette branche, ou un lancement manuel depuis
+n'importe laquelle, la remettait en production sans un mot.
+- **La protection est le SECRET, pas la liste.** Les trois workflows qui
+  portent `SUPABASE_ACCESS_TOKEN` (fonctions, migrations, chien de garde)
+  déclarent `environment: production`, et chacun refuse à voix haute toute
+  branche autre que `main` à sa première étape. **Ce que seul Barbaros peut
+  faire, dans cet ordre** : fusionner, PUIS créer l'environnement
+  « production » (Settings → Environments) restreint à `main`, y poser le
+  jeton — **en refaire un neuf chez Supabase et révoquer l'ancien**, Supabase
+  ne remontre jamais une valeur — et supprimer le secret au niveau du dépôt.
+  Fait dans l'autre ordre, les copies de `main` perdraient le jeton avant la
+  fusion. Une fois le secret déplacé, toute vieille copie s'arrête à
+  « jeton absent ». La branche mini-van reste à supprimer, sur son accord.
+- **Le chien de garde a mis QUATRE HEURES à tourner seul** : fusionné à
+  18 h 05, premier passage planifié à 22 h 08 — et dans l'heure qui a suivi,
+  un passage sur quatre seulement. J'avais d'abord accusé l'expression
+  `7-59/15` et l'avais réécrite en liste ; mesure faite, elle était juste,
+  et la réécriture est retirée : **retoucher le fichier d'un planning peut
+  réenclencher ce délai**. GitHub est lent à enregistrer un planning neuf et
+  le livre avec retard sous charge — c'est connu, et c'est pour ça que ses
+  Issues sont un filet, pas une horloge. **À constater sur 24 h** avant de
+  le compter comme régulier, et ses Issues ne servent que si Barbaros reçoit
+  les notifications GitHub sur son téléphone.
+
+**LE REPLI `serveurSansVersion` EST RETIRÉ** d'`index.html`. Il avait une
+lame : il se déclenchait sur TOUT message d'erreur contenant « 400 » et
+repassait l'admin, pour toute la session, en écrasement complet du bon
+(`merge-duplicates`) — le défaut même que la version existe pour fermer.
+La migration étant confirmée en production, il n'avait plus de raison
+d'être. Une colonne absente est désormais une panne AFFICHÉE
+(`#bordHorsLigne`, « nuage 400 ») et un geste reste en file, jamais forcé.
+Le bloc e) de `test-admin-arrivee` éprouve l'inverse de ce qu'il éprouvait ;
+contre l'ancien code, cinq contrôles tombent et nomment le
+`merge-duplicates` parti.
+
+**`verifier-production.mjs` SURVEILLE DIX PORTES, PLUS CINQ.** Manquaient :
+`application.html` (où mènent les cartes du flyer), `/ela-admin/`,
+`/easyhotel-client/`, et la réception sous ses deux adresses. Éprouvé : la
+page propre retirée, il tombe en la nommant.
+
+**CE QUI RESTE À FAIRE PAR BARBAROS, ET QUE LE CODE NE PEUT PAS FAIRE** :
+- fermer puis rouvrir l'admin sur CHAQUE téléphone et tablette — un onglet
+  gardé en mémoire depuis avant 18 h 05 porte l'ancien code, et la base,
+  elle, accepte toujours une écriture sans version ;
+- la course test de bout en bout (flyer → Telegram → confirmer sur un
+  appareil → modifier sur un autre → réception → réaliser → supprimer) :
+  rien de la synchronisation par version n'a encore servi sur une vraie
+  course ;
+- une sauvegarde par semaine : le carnet des chauffeurs, leurs paiements,
+  les factures et leur numérotation, l'identité de l'émetteur et le lien
+  d'avis ne vivent QUE sur l'appareil. Les réservations, elles, sont toutes
+  sur le serveur.
+- `sw.js` CACHE v121.
+
+## AUDIT DU 2 OCTOBRE 2026 — CE QUE LA PRODUCTION CONTIENT VRAIMENT
+
+Audit demandé par Barbaros avant l'exploitation du 12. Lecture seule, à
+partir des journaux des 17 exécutions du workflow de migration (la seule
+trace de ce que la base a reçu), du diagnostic de fiabilité et du chien de
+garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
+
+- **LA POLICY ANONYME S'APPELLE « depot client » EN PRODUCTION**, pas « un
+  client peut deposer sa demande » comme l'écrivait `SUPABASE.md`. Le `drop
+  policy` du 28/09 a donc visé le vide ; le `revoke insert … from anon` de la
+  même migration, lui, a été exécuté (29/09, 00 h 26). PostgreSQL vérifie le
+  droit sur la table avant les policies : anon ne peut plus écrire, la
+  policy est inerte mais reste **affichée** dans le tableau de bord — c'est
+  ce que Barbaros voyait comme « encore active ». `20261003000000` la
+  supprime par son vrai nom ; **à appliquer après les trois réservations
+  réelles du 10**, pas avant. Leçon : **on ne droppe pas un nom lu dans une
+  doc, on droppe un nom lu dans `pg_policies`** — le diagnostic du 15/09
+  l'avait sous les yeux.
+- **AUCUN REGISTRE DES MIGRATIONS.** Le workflow exécute du SQL brut par
+  l'API de gestion et n'écrit rien dans `schema_migrations`. Sur 29 fichiers,
+  12 sont passés par lui ; 17 ont été collés dans l'éditeur SQL, et des
+  objets vivent en production sans migration (`courses`, `abonnements`,
+  `presence_operateurs`, `role_operateur`, `signaler_presence`,
+  `presences_operateurs`, le webhook INSERT → nouvelle-demande).
+  `20261003010000_inventaire_schema.sql` liste le schéma réel en lecture
+  seule, sans donnée ni argument de déclencheur : **le lancer avant d'écrire
+  une migration qui touche un objet existant.**
+- **DEUX MIGRATIONS NE DOIVENT PLUS JAMAIS ÊTRE REJOUÉES** :
+  `20260916100000_current_tariff_source.sql` (upsert des forfaits) et
+  `20260928120000_tarif_unifie.sql` (UPDATE du tarif au kilomètre). Depuis
+  que les prix se règlent depuis l'admin (Réglages → Tarifs, Prix du flyer),
+  les rejouer **écraserait** ce que Barbaros a réglé, sans un mot.
+  `20260916070000_stripe_test_manual_capture.sql` crée ses policies sans
+  `drop` préalable : rejouée, elle échoue, ce qui est sans dégât.
+- **SEULE `main` PUBLIE, DÉPLOIE ET MIGRE.** `pages.yml`, `fonctions.yml` et
+  `migrations.yml` acceptaient `workflow_dispatch` sur n'importe quelle
+  branche — les migrations ont été lancées depuis une branche le 15/09. Les
+  trois jobs portent `if: github.ref == 'refs/heads/main'`. Un diagnostic se
+  fusionne d'abord, se lance ensuite.
+- **LE QUOTA DES CLIENTS DU QR EST TRANCHÉ** (3 octobre 2026, Barbaros :
+  « la 2 »). Le plafond anonyme de 12 dépôts par heure et par adresse IP
+  valait aussi pour les clients qui scannent le flyer sur le **wifi de
+  l'hôtel**, qui partagent l'adresse de la box : le treizième lisait « non
+  transmise » et personne n'était alerté. Une demande qui porte la clé d'un
+  partenaire **réel** — vérifiée dans `partenaires`, jamais crue sur parole,
+  sinon chaque clé inventée serait un compteur neuf — compte désormais sur sa
+  propre clé « hôtel + adresse + heure », plafonnée à **30**. La réception
+  garde ses 60 par session ; l'anonyme ordinaire ses 12. Un attaquant qui
+  connaît la clé de l'hôtel (elle est dans les liens du QR) gagne 30 au lieu
+  de 12, rien de plus. Quatre contrôles dans `test-securite-fonctions`.
+- **LA CLÉ DU WEBHOOK SE LIT D'ICI, SANS L'AFFICHER** (3 octobre 2026,
+  Barbaros : « regarde toi-même »). L'en-tête d'autorisation du webhook sur
+  `courses` (créé dans le tableau de bord) doit porter la clé publique, pas
+  une clé service_role. `20261003020000_diagnostic_webhook_autorisation.sql`
+  lit la définition des déclencheurs `http_request` et **classe** l'en-tête
+  — publique, secrète, ou jeton JWT avec son rôle — sans jamais sortir la
+  valeur, le journal GitHub étant public. Le rôle se lit dans la partie
+  centrale du jeton, qui est du JSON encodé, pas chiffré.
+  - **`analyse` EST UN MOT RÉSERVÉ DE POSTGRESQL** (l'orthographe britannique
+    d'`ANALYZE`) : le premier jet nommait ainsi une CTE, et la base l'a
+    refusé en production — après une fusion, donc une PR de plus à faire
+    relire. **Un SQL de diagnostic s'éprouve AVANT d'être poussé, et c'est
+    possible ici** : cette machine a PostgreSQL 16 complet dans
+    `/usr/lib/postgresql/16/bin` (`initdb`, `postgres`, `psql`), à lancer
+    sous l'utilisateur `postgres` dans `/tmp` — le bac à sable n'est pas
+    traversable par cet utilisateur. La PR #285 affirmait « pas de serveur
+    PostgreSQL sur la machine de travail » : c'était faux, personne n'avait
+    regardé. Éprouvé ensuite sur six déclencheurs factices (anon,
+    service_role, `sb_publishable_`, `sb_secret_`, sans en-tête, et un
+    déclencheur ordinaire qui ne doit pas apparaître) : la version de `main`
+    rend mot pour mot l'erreur de la CI, la version corrigée classe les cinq
+    webhooks et ignore le sixième.
+  - **VERDICT RENDU LE 3 OCTOBRE 2026 : LE WEBHOOK PORTAIT UN JETON
+    `service_role`.** Un seul webhook, `nouvelle-demande` sur `courses`,
+    sans en-tête `apikey`. Rien ne l'avait montré dans un journal public
+    (aucun diagnostic antérieur ne lisait les déclencheurs) : pas de
+    rotation forcée. Barbaros : « fais-le pour moi » —
+    `20261003030000_webhook_cle_publique.sql` relit la définition du
+    déclencheur, remplace la valeur d'`Authorization` par la clé publique,
+    ajoute `apikey` avec la même clé (les deux en-têtes que la relance
+    pg_cron envoie depuis le 30/09, combinaison éprouvée en production — la
+    fonction lit la base avec ses propres droits, jamais avec l'en-tête
+    reçu), et rejoue la définition en `CREATE OR REPLACE TRIGGER`. Elle
+    **refuse** s'il y a zéro ou plusieurs webhooks sur `courses`, ou si
+    l'en-tête n'est pas « Bearer <jeton JWT> » ; rejouée, elle constate et
+    ne fait rien ; elle n'affiche jamais l'ancienne définition. Éprouvée
+    sur le PostgreSQL local : cas réel, rejouée, déclencheur qui tire
+    encore, deux refus, `apikey` déjà présente — six scènes.
+- **LE VRAI BLOQUANT EST ADMINISTRATIF** : SIRET, RC Pro de la centrale,
+  déclaration d'activité au ministère des transports (L3142-2, preuve
+  d'immatriculation + attestation RC, par mail, valable un an), papiers des
+  chauffeurs dans le carnet, médiateur sous 30 jours. Rien de tout cela ne se
+  code.

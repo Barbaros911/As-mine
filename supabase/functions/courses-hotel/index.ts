@@ -44,7 +44,8 @@
    ═══ CE QU'ELLE REND, ET CE QU'ELLE NE REND PAS ═══
    Ce dont un comptoir a besoin pour répondre à son client sans appeler
    Barbaros : la référence, la date, l'heure, la destination, le véhicule,
-   le prix, le nom du client, sa chambre, l'état, et — seulement sur une
+   le prix (SEULEMENT tant que la course est à venir), le nom du client,
+   sa chambre, l'état, et — seulement sur une
    course confirmée ou réalisée — le prénom du chauffeur et son numéro.
    LE TÉLÉPHONE DU CLIENT EN FAIT PARTIE, et c'est une DÉCISION, pas un
    oubli. Il avait d'abord été écarté au nom de la minimisation. Barbaros a
@@ -58,10 +59,10 @@
 
    ═══ RIEN NE S'ANNULE DEPUIS UNE TABLETTE D'HÔTEL ═══
    Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
-   déjà engagé, et il est le seul à pouvoir le rappeler. Le bouton de la
-   réception ne change donc **jamais** le statut : il pose un drapeau
-   « annulation demandée » sur le bon, et c'est Barbaros qui tranche. Un
-   contrôle vérifie que le statut est intact après l'appel.
+   déjà engagé, et il est le seul à pouvoir le rappeler. Depuis le
+   30/09/2026 la réception ne peut même plus le DEMANDER par un bouton :
+   elle appelle, et Barbaros annule depuis son admin. Cette fonction ne
+   fait que lire ; toute autre action est refusée.
    ===================================================================== */
 
 import {
@@ -177,20 +178,30 @@ Deno.serve(async (req: Request) => {
       { status: 401, headers: entetes(origin) });
   }
 
-  const quota = await quotaOk(req);
-  if (quota === null) {
-    return new Response(JSON.stringify({ erreur: "service indisponible" }),
-      { status: 503, headers: entetes(origin) });
-  }
-  if (!quota) {
-    return new Response(JSON.stringify({ erreur: "trop d'essais, réessayez dans une heure" }),
-      { status: 429, headers: entetes(origin) });
-  }
-
   const attendu = Deno.env.get(nomSecretHotel(cle)) ?? "";
   const sessionValide = session
     ? await validerSessionHotel(session, cle, attendu)
     : false;
+  /* LE QUOTA NE COMPTE QUE LES ESSAIS DE CODE, JAMAIS UNE SESSION VALIDE
+     (audit du 2 octobre 2026). Compté sur chaque appel, il était épuisé par
+     la liste elle-même : elle se relit toutes les 30 s, soit 120 appels par
+     heure pour un plafond de 60 — la tablette du comptoir se bloquait seule
+     au bout d'une demi-heure, et la confirmation d'une course n'y arrivait
+     plus. Ce que le plafond protège, c'est le CODE contre qui le devine ; une
+     session signée n'a plus rien à deviner. Le compte reste pris AVANT la
+     comparaison du code, sinon l'essai gagnant passerait une fois la limite
+     atteinte. */
+  if (!sessionValide) {
+    const quota = await quotaOk(req);
+    if (quota === null) {
+      return new Response(JSON.stringify({ erreur: "service indisponible" }),
+        { status: 503, headers: entetes(origin) });
+    }
+    if (!quota) {
+      return new Response(JSON.stringify({ erreur: "trop d'essais, réessayez dans une heure" }),
+        { status: 429, headers: entetes(origin) });
+    }
+  }
   if (!sessionValide && !memeCode(code, attendu)) {
     /* Une attente sur l'échec, jamais sur le succès. Elle ne transforme pas
        cette serrure en coffre — on peut paralléliser — mais elle rend un
@@ -202,48 +213,16 @@ Deno.serve(async (req: Request) => {
   }
   const sessionCourante = sessionValide ? session : await creerSessionHotel(cle, attendu);
 
-  /* ---- La demande d'annulation ---------------------------------------
-     Elle ne décide rien. On relit le bon, on pose le drapeau, on réécrit
-     le bon — et on ne touche PAS à la colonne « statut ». */
-  if (action === "annulation") {
-    const ref = String(corps.ref ?? "").trim();
-    if (!ref) {
-      return new Response(JSON.stringify({ erreur: "référence manquante" }),
-        { status: 400, headers: entetes(origin) });
-    }
-    const lu = await fetch(
-      `${SUPABASE_URL}/rest/v1/courses?select=ref,statut,bon&ref=eq.${encodeURIComponent(ref)}&limit=1`,
-      { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
-    if (!lu.ok) {
-      return new Response(JSON.stringify({ erreur: "lecture refusée" }),
-        { status: 502, headers: entetes(origin) });
-    }
-    const lignes = await lu.json();
-    const ligne = Array.isArray(lignes) ? lignes[0] : null;
-    const bon = (ligne && ligne.bon) || null;
-    /* UN HÔTEL NE PEUT DEMANDER L'ANNULATION QUE DE SES PROPRES COURSES.
-       Sans ce contrôle, un code d'hôtel valable ouvrirait le droit de
-       toucher aux courses de tous les autres — c'est la même erreur que
-       d'ouvrir la modification d'une ligne au visiteur anonyme. */
-    if (!bon || String(bon.provenanceCle ?? "") !== cle) {
-      return new Response(JSON.stringify({ inconnue: true }),
-        { status: 404, headers: entetes(origin) });
-    }
-    bon.annulationDemandee = true;
-    const ecrit = await fetch(
-      `${SUPABASE_URL}/rest/v1/courses?ref=eq.${encodeURIComponent(ref)}`,
-      { method: "PATCH",
-        headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`,
-                   "Content-Type": "application/json", Prefer: "return=minimal" },
-        /* On n'envoie QUE « bon ». Écrire « statut » ici, même à sa valeur
-           actuelle, serait le premier pas vers une annulation silencieuse. */
-        body: JSON.stringify({ bon: bon }) });
-    if (!ecrit.ok) {
-      return new Response(JSON.stringify({ erreur: "écriture refusée" }),
-        { status: 502, headers: entetes(origin) });
-    }
-    return new Response(JSON.stringify({ ok: true, ref: ref, session: sessionCourante }),
-      { headers: entetes(origin) });
+  /* ---- La réception ne fait QUE lire ------------------------------
+     (30/09/2026, à la demande de Barbaros : « la réception ne peut
+     annuler »). Il y avait ici une action « annulation » qui posait un
+     drapeau sur le bon. Elle est retirée : pour annuler, la réception
+     appelle, et c'est Barbaros qui annule depuis son admin. Toute action
+     autre que la liste est REFUSÉE ici, en plus du bouton retiré de la
+     page — un bouton retiré n'empêche pas un appel direct. */
+  if (action !== "liste") {
+    return new Response(JSON.stringify({ erreur: "action non autorisée" }),
+      { status: 403, headers: entetes(origin) });
   }
 
   /* ---- La liste des courses de cet hôtel ------------------------------
@@ -254,7 +233,12 @@ Deno.serve(async (req: Request) => {
   const url = `${SUPABASE_URL}/rest/v1/courses`
     + `?select=ref,statut,cree_le,bon`
     + `&bon->>provenanceCle=eq.${encodeURIComponent(cle)}`
-    + `&order=cree_le.desc&limit=200`;
+    /* 500 et plus 200 (30/09/2026) : la réception retrouve maintenant son
+       HISTORIQUE (onglet « Passées », recherche). 200 couvrait quelques
+       semaines d'un hôtel actif ; 500 couvre des mois, pour quelques
+       centaines de Ko relus toutes les 30 s seulement quand l'écran est
+       ouvert et visible. */
+    + `&order=cree_le.desc&limit=500`;
   const r = await fetch(url,
     { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
   if (!r.ok) {
@@ -288,7 +272,15 @@ Deno.serve(async (req: Request) => {
       depart: String(co.departPublic || co.depart || ""),
       arrivee: String(co.arrivee || ""),
       vehicule: String(co.vehicule || ""),
-      prix: Number(bon.prix && bon.prix.total) || 0,
+      /* LE PRIX NE SORT QUE TANT QUE LA COURSE EST À VENIR (30/09/2026, à
+         la demande de Barbaros : « une fois les courses réalisées, aucune
+         trace du chiffre ne doit rester »). La réception en a besoin pour
+         l'annoncer ; une fois la course faite, non prise ou annulée, elle
+         ne sert plus qu'à additionner ce qu'Elatransfer encaisse. Le champ
+         n'est pas mis à zéro, il est ABSENT : masquer à l'écran laisserait
+         le montant dans la réponse, lisible par les outils du navigateur. */
+      ...(statut === "attente" || statut === "confirmee"
+        ? { prix: Number(bon.prix && bon.prix.total) || 0 } : {}),
       /* Le nom, la chambre ET le numéro : ce sont SES clients, c'est elle
          qui les a saisis, et c'est ce qu'un comptoir doit avoir sous les
          yeux quand la voiture est en bas. Voir l'en-tête. */
@@ -311,7 +303,11 @@ Deno.serve(async (req: Request) => {
          chauffeur se présente avec ou sans terminal de carte selon cette
          seule réponse. */
       paiement: String(bon.paiementNom || bon.paiement || ""),
-      annulationDemandee: !!bon.annulationDemandee,
+      /* Le moment où Barbaros a MODIFIÉ la course depuis son admin (heure,
+         adresses…). La réception l'affiche sur la carte : un changement
+         d'heure qui ne se voit pas fait descendre le client à la mauvaise
+         heure. */
+      modifie: String(bon.modifieLe || ""),
       /* Le chauffeur seulement quand la course est réellement attribuée :
          sur une course en attente, un nom écrit pour mémoire promettrait
          une voiture qui n'a rien accepté. */

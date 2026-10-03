@@ -62,6 +62,17 @@ export function titreRappel(bon, minutes) {
     + ", " + quand(bon);
 }
 
+/* LE DERNIER MESSAGE, à l'heure du départ : il dit que c'est fini, pas
+   « rappel ». Après lui, plus rien ne part — une course oubliée se clôt dans
+   l'admin, elle ne sonne pas six heures. */
+export function titreFinal(bon) {
+  const c = bon.course ?? {};
+  return "DÉPART PASSÉ, non traitée — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
 export function corps(bon, adresseAdmin) {
   const c = bon.course ?? {};
   const l = [

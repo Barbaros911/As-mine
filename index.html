@@ -916,8 +916,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* Le vert n'est employé QU'ICI, et pour une seule chose : la demande est
    arrivée. C'est le seul fait dont le site soit certain — pas que la course
    soit confirmée, seulement qu'elle nous est parvenue. */
-.envoi.ok{border-color:#1F6F6B;background:rgba(31,111,107,.06);}
-.envoi.ok p{color:#123F3D;font-weight:600;}
+/* BLEU ELA, PLUS L'ANCIEN VERT CÉLADON (30/09/2026, à sa demande : « il
+   garde encore la trace verte ancienne »). Le bon suit la palette de la
+   façade en ligne (--ela-navy, --ela-blue) ; contrastes mesurés : texte
+   #0B4F8C sur fond clair 7,5 ; blanc sur #0E5FA8 6,5. */
+.envoi.ok{border-color:#147edc;background:rgba(20,126,220,.06);}
+.envoi.ok p{color:#0B4F8C;font-weight:600;}
 .envoi.ko{border-color:#C9302F;background:rgba(201,48,47,.05);}
 .envoi.ko p{color:#9E1F1E;font-weight:600;}
 /* ---------- LE BON DE RÉSERVATION ---------- */
@@ -950,19 +954,19 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    ne change pas de nuance ni de teinte d'une page à l'autre. C'est le seul
    endroit du site où l'état d'un bon change de couleur, et il ne le fait
    qu'une fois, quand la réponse arrive. */
-.bon-etat.confirme{background:#1F6F6B;}
+.bon-etat.confirme{background:#0E5FA8;}
 /* Le prix est mis en évidence dans le bloc du trajet, pas dans l'en-tête :
    c'est la dernière chose qu'on relit avant de fermer le bon. */
 #bonDetail .ligne.total{margin-top:10px;padding:14px 16px;border-radius:14px;
-  background:#EFF7F6;border-top:none;}
-#bonDetail .ligne.total span{color:#175E5B;font-weight:800;
+  background:#EAF3FC;border-top:none;}
+#bonDetail .ligne.total span{color:#062f55;font-weight:800;
   text-transform:uppercase;font-size:11.5px;letter-spacing:.05em;}
-#bonDetail .ligne.total b{color:#175E5B;}
+#bonDetail .ligne.total b{color:#062f55;}
 /* Le bloc du chauffeur est cerclé de vert, pas rempli : c'est une bonne
    nouvelle, pas une alerte. */
-.bloc-confirme{border-color:#8FC9C5;background:#EFF7F6;}
-.bloc-confirme .bloc-titre{color:#175E5B;}
-#bonAppelChauffeur{border-color:#8FC9C5;color:#175E5B;}
+.bloc-confirme{border-color:#A9CDEF;background:#EAF3FC;}
+.bloc-confirme .bloc-titre{color:#0E5FA8;}
+#bonAppelChauffeur{border-color:#A9CDEF;color:#0E5FA8;}
 /* Une action secondaire ne prend pas l'or : il n'y a qu'un bouton principal
    par écran, sinon plus aucun ne l'est. */
 /* « display:block » et non le défaut : cette classe habille aussi des liens
@@ -1107,6 +1111,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   background:#fbe9e9;border:1px solid #f0cfcf;}
 .hors-ligne p{margin:0;font-size:12.5px;line-height:1.45;color:#8f2220;}
 .hors-ligne .bouton-fantome{margin-top:10px;min-height:40px;font-size:12.5px;}
+/* Le témoin d'envoi : discret tant que ça part, rouge quand ça traîne. */
+.synchro{margin:10px 20px 0;padding:9px 12px;border-radius:11px;font-size:12.5px;line-height:1.45;
+  background:#eef3f8;border:1px solid #d5e0ea;color:#2c4a63;}
+.synchro.tard{background:#fbe9e9;border-color:#f0cfcf;color:#8f2220;font-weight:600;}
+.synchro.conflit{background:#fff4e5;border-color:#f3dbb5;color:#7a4a08;}
 
 /* ---------- LE BANDEAU DU HAUT ---------- */
 .admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
@@ -1744,6 +1753,103 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   background:var(--accent-clair);font-size:13px;color:var(--accent-encre);
   font-weight:600;}
 .rec-chauffeur a{color:inherit;}
+/* LES NUMÉROS SE TOUCHENT AU DOIGT : 44 px de haut, pas 15 (30/09/2026).
+   Le texte ne grossit pas, c'est la zone d'appui qui s'élargit. */
+.rec-tel a,.rec-chauffeur a{display:inline-flex;align-items:center;min-height:44px;
+  padding:0 4px;text-decoration:underline;}
+.rec-tel{margin:0;}
+.rec-chauffeur{padding-top:0;padding-bottom:0;}
+/* « rec-reference » et pas « rec-ref » : ce nom est déjà pris par le tableau
+   de bord de l'exploitant, et une classe partagée ramasse un jour une règle
+   écrite pour l'autre écran. */
+.rec-reference{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.02em;
+  color:var(--gris);font-variant-numeric:tabular-nums;}
+.rec-course .rec-appel{display:flex;align-items:center;justify-content:center;
+  text-decoration:none;}
+/* Deux gestes côte à côte : envoyer le bon, demander l'annulation. */
+.rec-actions{display:flex;gap:8px;margin-top:10px;}
+.rec-actions .bouton-fantome{flex:1 1 0;margin:0;min-height:44px;font-size:13.5px;
+  line-height:1.2;padding:8px 10px;}
+.rec-actions .rec-envoyer{border-color:#25D366;color:#128C4A;}
+/* Le rappel des 12 h : discret mais toujours là, en haut de la liste. */
+.rec-session{margin:0 2px 12px;padding:9px 12px;border-radius:10px;
+  background:#EEF4F8;color:#24485F;font-size:12.5px;line-height:1.35;}
+/* Ce qui vient de changer. Le vert dit « la voiture est acquise », le rouge
+   « prévenez le client » — les deux seuls changements qu'on signale. */
+.rec-alerte{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:12px 14px;
+  border-radius:12px;background:#E7F6EE;border:1px solid #9FD3B6;color:#12653F;
+  font-size:14px;font-weight:700;white-space:pre-line;}
+.rec-alerte.refus{background:#FDECEC;border-color:#F0A8A8;color:#9B1C1C;}
+.rec-alerte span{flex:1 1 auto;}
+.rec-alerte-ok{flex:0 0 auto;min-height:40px;min-width:56px;border-radius:10px;
+  border:1px solid currentColor;background:#fff;color:inherit;font-weight:800;cursor:pointer;}
+.rec-course.rec-nouveau{box-shadow:0 0 0 2px #25A06A;}
+/* Retrouver une course : le champ de recherche, puis trois onglets qui
+   portent leur compte. Même mesure qu'un pouce : 44 px. */
+.rec-outils{margin:14px 0 4px;display:flex;flex-direction:column;gap:10px;}
+.rec-vues{display:flex;gap:6px;padding:4px;border-radius:14px;background:#EEF3F7;}
+.rec-vues button{flex:1 1 0;min-height:44px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:13.5px;font-weight:800;color:#14344e;cursor:pointer;}
+.rec-vues button b{font-weight:800;opacity:.7;}
+.rec-vues button.actif{background:#062f55;color:#fff;}
+.rec-vues button.actif b{opacity:1;}
+.rec-maj{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:-4px 2px 14px;font-size:12.5px;color:var(--gris);}
+.rec-maj #btnRecActualiser{display:inline-flex;align-items:center;gap:6px;min-height:44px;
+  padding:0 16px;border:1px solid #C9D6E2;border-radius:12px;background:#fff;color:#062f55;
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.rec-maj #btnRecActualiser[disabled]{opacity:.6;}
+.rec-maj #btnRecActualiser[disabled] svg{animation:rec-tourne .9s linear infinite;}
+@keyframes rec-tourne{to{transform:rotate(360deg);}}
+.rec-vues button{white-space:nowrap;padding:0 4px;}
+@media (max-width:420px){.rec-vues{gap:4px;}.rec-vues button{font-size:12.5px;}}
+.rec-periode{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--filet);
+  border-radius:14px;background:#fff;}
+.rec-periode[hidden]{display:none;}
+.rec-echelle{display:flex;gap:6px;}
+.rec-echelle button{flex:1 1 0;min-height:40px;border:1px solid #C9D6E2;border-radius:10px;
+  background:#fff;font:inherit;font-size:13.5px;font-weight:700;color:#062f55;cursor:pointer;}
+.rec-echelle button.actif{background:#062f55;border-color:#062f55;color:#fff;}
+.rec-nav{display:flex;align-items:center;gap:6px;}
+.rec-nav > button{flex:0 0 44px;height:44px;border:1px solid #C9D6E2;border-radius:10px;
+  background:#fff;font-size:22px;line-height:1;color:#062f55;cursor:pointer;}
+.rec-choix{position:relative;flex:1 1 auto;min-width:0;min-height:44px;display:flex;
+  align-items:center;justify-content:center;border-radius:10px;background:#EEF3F7;
+  font-size:15px;font-weight:800;color:#062f55;text-align:center;}
+.rec-choix span::first-letter{text-transform:uppercase;}
+.rec-choix span{display:block;}
+.rec-choix input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;cursor:pointer;}
+.rec-choix input[hidden]{display:none;}
+.rec-choix input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;opacity:0;cursor:pointer;}
+.rec-auj{align-self:center;min-height:44px;padding:0 14px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:13px;font-weight:700;color:#0E5FA8;text-decoration:underline;cursor:pointer;}
+.rec-bilan{margin:0;font-size:13px;color:var(--encre);text-align:center;}
+.rec-bilan b{font-weight:800;}
+/* L'aperçu du bon en image. Au-dessus de TOUT (la barre, les feuilles) :
+   une feuille passée dessous laisse ses boutons inaccessibles. */
+.bv{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+.bv[hidden]{display:none;}
+.bv-voile{position:absolute;inset:0;background:rgba(3,28,52,.55);}
+.bv-corps{position:relative;width:100%;max-width:480px;max-height:100%;overflow:auto;
+  background:var(--carte,#fff);border-radius:20px 20px 0 0;padding:16px 16px
+  calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
+.bv-img{display:block;width:100%;max-height:58vh;object-fit:contain;border-radius:12px;
+  background:#EEF3F7;min-height:120px;}
+.bv-etat{margin:0;text-align:center;font-size:13.5px;color:var(--gris);}
+.bv-corps .bouton,.bv-corps .bouton-fantome{margin:0;width:100%;min-height:48px;}
+.bv-corps a.bouton-fantome{display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.bv-fermer{min-height:44px;border:0;background:none;color:var(--gris);font-weight:700;cursor:pointer;}
+.bv-titre{margin:2px 0 0;text-align:center;font-size:16px;font-weight:800;color:#062f55;}
+/* Deux onglets de même largeur ; l'onglet choisi est en bleu ELA plein. */
+.bv-choix{display:flex;gap:6px;padding:4px;border-radius:14px;background:#EEF3F7;}
+.bv-choix button{flex:1 1 0;min-height:44px;border:0;border-radius:10px;background:none;
+  font:inherit;font-size:14px;font-weight:800;color:#14344e;cursor:pointer;}
+.bv-choix button.actif{background:#0E5FA8;color:#fff;}
+.bv-pan{display:flex;flex-direction:column;gap:10px;}
+.bv-pan[hidden]{display:none;}
+.bv-texte{margin:0;padding:14px;border-radius:12px;background:#EEF3F7;color:#14344e;
+  font:600 14px/1.5 inherit;font-family:inherit;white-space:pre-wrap;word-break:break-word;}
+.bv-note{margin:0;text-align:center;font-size:12.5px;line-height:1.4;color:var(--gris);}
 /* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
    prend aucune place en hauteur — la carte vient justement de maigrir de
    142 à 111 px — et il ne recouvre rien. */
@@ -1775,7 +1881,9 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-note{margin:8px 0 0;padding:7px 10px;border-radius:10px;
   background:var(--fond);font-size:12.5px;color:var(--encre);
   border-left:3px solid var(--filet);}
-.rec-annul{margin:8px 0 0;font-size:12.5px;font-weight:700;color:#C9302F;}
+.rec-modif{margin:6px 0 0;padding:6px 10px;border-radius:10px;background:#EAF3FC;
+  font-size:12.5px;font-weight:700;color:#0B4F8C;}
+.rec-etat.annulee{background:transparent;color:var(--gris);text-decoration:line-through;}
 .rec-course .bouton-fantome{margin-top:8px;min-height:38px;font-size:13.5px;}
 body:not(.reception) .hotel-acces{display:none;}
 
@@ -2045,6 +2153,31 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .forfait-nom{font-size:15px;font-weight:600;color:var(--encre);min-width:0}
 .forfait-ligne input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
 .forfait-ligne input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
+/* Centre de contrôle : des tableaux qui tiennent à 320 px. La première
+   colonne prend le reste, les chiffres sont alignés à droite. */
+.cc-table{margin:10px 0 14px;border:1px solid var(--filet);border-radius:12px;overflow:hidden;background:var(--carte)}
+.cc-ligne{display:grid;grid-template-columns:minmax(0,1fr) repeat(var(--cc-col,3),minmax(0,auto));gap:10px;align-items:center;padding:9px 12px;border-top:1px solid var(--filet);font-size:14px}
+.cc-ligne:first-child{border-top:0}
+.cc-ligne > span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cc-tete{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px}
+.cc-total{font-weight:800;background:var(--fond)}
+.cc-nom{font-weight:600;color:var(--encre);min-width:0;overflow-wrap:anywhere}
+.cc-nom small{display:block;font-weight:500;color:var(--gris);font-size:12px}
+.cc-taux{display:flex;gap:6px;align-items:center}
+.cc-taux select,.cc-taux input{min-height:44px;border:1px solid var(--filet);border-radius:10px;background:var(--fond);color:var(--encre);font-size:16px}
+.cc-taux select{width:64px;padding:0 4px}
+.cc-taux input{width:76px;text-align:center;font-weight:700}
+.cc-taux input.modifie,.cc-taux select.modifie{border-color:#1C7FE0;background:#E8F2FD}
+.cc-retard{color:#B4231F;font-weight:700}
+.cc-actions{display:flex;gap:8px;padding:0 12px 10px;flex-wrap:wrap}
+.cc-actions button{flex:1 1 130px;min-height:44px;border-radius:10px;border:1px solid var(--filet);background:var(--carte);font-weight:700;font-size:14px;color:var(--encre)}
+.cc-actions .cc-payer{background:#E6F4EA;border-color:#9BD3AE;color:#14532D}
+.cc-paiement{margin:0 0 14px;padding:12px;border:1px solid #1C7FE0;border-radius:12px;background:#F2F8FE}
+.cc-paiement-titre{margin:0 0 8px;font-weight:700}
+.cc-histo summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}
+.dettes-bord{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:#FDECEC;border:1px solid #F3B7B5;color:#7F1D1D}
+.dettes-bord p{margin:0 0 8px;font-weight:600;font-size:14px}
+@media (min-width:900px){ body.espace .dettes-bord{margin:16px 28px 0;} }
 </style>
 </head>
 <body>
@@ -2108,6 +2241,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-4H4v4Zm10-11h6V4h-6v5Z"
                 fill="currentColor"/>
         </svg>Tableau de bord</button>
+      <!-- LE CENTRE DE CONTRÔLE (30/09/2026, à sa demande : « un vrai centre
+           de contrôle »). Les tarifs en vigueur, la commission par canal, et
+           ce que chaque canal rapporte — sur un seul écran. Caché à l'agent :
+           c'est de l'argent. -->
+      <button class="admin-lien" type="button" id="btnControle">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 18a8 8 0 1 1 16 0" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round"/>
+          <path d="M12 18l4-6" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round"/>
+        </svg>Centre de contrôle</button>
       <!-- LA SAISIE À LA MAIN EST LA DEUXIÈME ENTRÉE, juste après le tableau
            de bord : c'est le geste du jour, celui qu'on fait pendant qu'un
            hôtel est encore au téléphone. -->
@@ -2262,7 +2406,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            qu'elle est censée provoquer. -->
       <button class="hero-cta" type="button" id="btnHeroReserver"
               data-t="hero_cta">Réserver mon trajet</button>
-      <p class="hero-notes" data-t="hero_notes">24 h/24 · 7 j/7 · Confirmation rapide</p>
+      <p class="hero-notes" data-t="hero_notes">Réservation 24 h/24 · Assistance 5 h–22 h</p>
     </div>
   </section>
 
@@ -3282,6 +3426,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <!-- SANS SESSION, AUCUNE DEMANDE N'ARRIVE ICI. On ne le dit pas en
          petit dans le bloc du serveur, tout en bas : c'est la différence
          entre voir ses clients et ne pas les voir. -->
+    <!-- LES COMMISSIONS EN RETARD (30/09/2026). Il n'apparaît que s'il y a un
+         retard : sa présence est l'alerte, comme les papiers à surveiller. -->
+    <div class="dettes-bord" id="bordDettes" hidden>
+      <p id="bordDettesTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnBordDettes">Voir et relancer</button>
+    </div>
     <div class="hors-ligne" id="bordHorsLigne" hidden>
       <p id="bordHorsLigneTexte">Vous ne recevez pas les demandes de vos clients
          sur cet appareil : vous ne voyez que les courses saisies ici.</p>
@@ -3289,6 +3439,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         Se connecter au serveur
       </button>
     </div>
+    <!-- LE TÉMOIN DE LA FILE D'ATTENTE (2 octobre 2026). Tant qu'une
+         modification n'est pas arrivée sur le serveur, il le dit ; rouge
+         au-delà de 30 s. Sans lui, « refusée » à l'écran et « en attente »
+         sur le serveur pouvaient coexister des heures sans que rien ne le
+         signale. -->
+    <p class="synchro" id="bordSynchro" hidden></p>
+    <p class="synchro conflit" id="bordConflit" hidden></p>
 
     <!-- ═══ LE BLOC A MAIGRI DE MOITIÉ ═══
          Septembre 2026, à sa demande : « ça prend beaucoup de place ». Il
@@ -3406,6 +3563,97 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        Un seul écran remplace les trois. Le menu compte donc six entrées qui
        mènent chacune ailleurs, et c'est ce qu'un test vérifie.
        ===================================================================== -->
+  <!-- =====================================================================
+       LE CENTRE DE CONTRÔLE
+       Trois questions, dans l'ordre où on se les pose : à quel prix
+       vend-on, combien garde-t-on, et d'où vient l'argent.
+       ===================================================================== -->
+  <section class="ecran" id="ecran-controle">
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourControle" aria-label="Retour">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Centre de contrôle</h1>
+    </div>
+
+    <!-- CE QUE LES CHAUFFEURS VOUS DOIVENT. L'argent ne passe jamais par
+         Elatransfer : chaque course réalisée crée une dette du chauffeur. -->
+    <div class="bloc" id="blocDettes">
+      <h2 class="bloc-titre">Commissions dues par les chauffeurs</h2>
+      <p class="bloc-note" id="ccDettesResume"></p>
+      <div class="cc-table" id="ccDettes"></div>
+      <div class="cc-paiement" id="ccPaiement" hidden>
+        <p class="cc-paiement-titre" id="ccPaiementTitre"></p>
+        <div class="duo">
+          <label class="champ" for="ccPaiementMontant"><span class="champ-corps">
+            <span class="champ-titre">Montant reçu (€)</span>
+            <input id="ccPaiementMontant" type="number" min="0" step="0.01" inputmode="decimal"></span></label>
+          <label class="champ" for="ccPaiementDate"><span class="champ-corps">
+            <span class="champ-titre">Reçu le</span>
+            <input id="ccPaiementDate" type="date"></span></label>
+        </div>
+        <label class="champ" for="ccPaiementMode"><span class="champ-corps">
+          <span class="champ-titre">Moyen</span>
+          <select id="ccPaiementMode">
+            <option value="virement">Virement</option>
+            <option value="especes">Espèces</option>
+            <option value="carte">Carte</option>
+            <option value="autre">Autre</option>
+          </select></span></label>
+        <button class="bouton vert" type="button" id="btnCcPaiementOk"><span>Enregistrer le paiement</span></button>
+        <button class="bouton-fantome" type="button" id="btnCcPaiementAnnuler">Annuler</button>
+      </div>
+      <p class="champ-aide" id="ccDettesEtat" hidden></p>
+      <label class="champ" for="ccSeuil"><span class="champ-corps">
+        <span class="champ-titre">Bloquer la confirmation d'une course si le chauffeur doit plus de (€)</span>
+        <input id="ccSeuil" type="number" min="0" step="1" inputmode="numeric" placeholder="pas de blocage"></span></label>
+      <button class="bouton-fantome" type="button" id="btnCcSeuil">Enregistrer le seuil</button>
+      <details class="cc-histo">
+        <summary>Paiements enregistrés</summary>
+        <div class="cc-table" id="ccPaiements"></div>
+      </details>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Résultats par canal</h2>
+      <div class="periodes">
+        <button class="periode actif" type="button" data-ccperiode="semaine">Semaine</button>
+        <button class="periode" type="button" data-ccperiode="mois">Mois</button>
+        <button class="periode" type="button" data-ccperiode="annee">Année</button>
+        <button class="periode" type="button" data-ccperiode="tout">Tout</button>
+      </div>
+      <div class="cc-table" id="ccCanaux"></div>
+      <p class="bloc-note">Chiffre d'affaires et commission : courses réalisées
+        seulement. Demandes : toutes les courses de la période.</p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Commission par canal</h2>
+      <p class="bloc-note">Chaque canal a son propre taux : changer celui du site
+        public ne touche pas easyHotel. Il s'applique quand rien n'est posé sur la
+        course ni sur le chauffeur. Ordre : <b>montant saisi sur la course</b>,
+        puis <b>taux du chauffeur</b> (carnet), puis <b>taux du canal</b>.</p>
+      <div class="cc-table" id="ccTaux"></div>
+      <button class="bouton" type="button" id="btnCcTaux"><span>Enregistrer les taux</span></button>
+      <p class="champ-aide" id="ccTauxEtat" hidden></p>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Commission par chauffeur</h2>
+      <div class="cc-table" id="ccChauffeurs"></div>
+      <button class="bouton-fantome" type="button" id="btnCcCarnet">Modifier dans le carnet</button>
+    </div>
+
+    <div class="bloc">
+      <h2 class="bloc-titre">Tarifs en vigueur</h2>
+      <div class="cc-table" id="ccTarifs"></div>
+      <button class="bouton-fantome" type="button" id="btnCcTarifs">Modifier les tarifs</button>
+    </div>
+  </section>
+
   <section class="ecran" id="ecran-reglages">
     <div class="bord-tete">
       <button class="retour" type="button" id="btnRetourReglages" aria-label="Retour">
@@ -4124,9 +4372,20 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <input id="chAssuranceFin" type="date">
         </span>
       </label>
+      <label class="champ" for="chTauxMode">
+        <span class="champ-corps">
+          <span class="champ-titre">Commission de ce chauffeur, en</span>
+          <!-- Vide = pas de taux propre : c'est alors le taux du canal qui
+               s'applique (centre de contrôle). -->
+          <select id="chTauxMode">
+            <option value="pct">% du prix</option>
+            <option value="eur">euros par course</option>
+          </select>
+        </span>
+      </label>
       <label class="champ" for="chTaux">
         <span class="champ-corps">
-          <span class="champ-titre">Votre commission (%)</span>
+          <span class="champ-titre">Montant (vide = taux du canal)</span>
           <input id="chTaux" type="number" inputmode="decimal" min="0" max="100" step="0.5"
                  placeholder="15">
         </span>
@@ -4329,6 +4588,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            c'est l'instant précis où Elatransfer engage sa responsabilité de
            centrale de réservation. Écrit ailleurs, il ne serait jamais lu. -->
       <p class="ch-alerte" id="bbChauffeurAlerte" hidden></p>
+      <p class="ch-alerte" id="bbDette" hidden></p>
       <label class="champ" for="bbChauffeurNom">
         <span class="champ-corps">
           <span class="champ-titre">Nom</span>
@@ -4373,6 +4633,51 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p class="bloc-note" id="bbComCalc"></p>
     </div>
 
+    <!-- ═══ MODIFIER LA COURSE (30/09/2026, à sa demande) ═══
+         La réception appelle : « le client part à 7 h, plus à 6 h ». Il
+         fallait supprimer et recréer — nouvelle référence, et un client qui
+         ne retrouvait plus son bon. On corrige ici, LA RÉFÉRENCE NE CHANGE
+         PAS, et la réception voit « Course modifiée par Elatransfer » sur sa
+         liste. Le prix ne se recalcule pas tout seul : un trajet changé se
+         renégocie, c'est Barbaros qui fixe le montant. -->
+    <div class="bloc" id="bbModif" hidden>
+      <h2 class="bloc-titre">Modifier la course</h2>
+      <div class="duo">
+        <label class="champ" for="mdDate"><span class="champ-corps">
+          <span class="champ-titre">Date</span><input id="mdDate" type="date"></span></label>
+        <label class="champ" for="mdHeure"><span class="champ-corps">
+          <span class="champ-titre">Heure</span><input id="mdHeure" type="time" step="300"></span></label>
+      </div>
+      <label class="champ" for="mdDepart"><span class="champ-corps">
+        <span class="champ-titre">Départ</span><input id="mdDepart" type="text" autocomplete="off"></span></label>
+      <label class="champ" for="mdArrivee"><span class="champ-corps">
+        <span class="champ-titre">Arrivée</span><input id="mdArrivee" type="text" autocomplete="off"></span></label>
+      <div class="duo">
+        <label class="champ" for="mdChambre"><span class="champ-corps">
+          <span class="champ-titre">Chambre</span><input id="mdChambre" type="text" autocomplete="off" placeholder="—"></span></label>
+        <label class="champ" for="mdVehicule"><span class="champ-corps">
+          <span class="champ-titre">Véhicule</span>
+          <select id="mdVehicule">
+            <option value="berline">Berline</option>
+            <option value="van">Van</option>
+          </select></span></label>
+      </div>
+      <label class="champ" for="mdPrix"><span class="champ-corps">
+        <span class="champ-titre">Prix (€)</span><input id="mdPrix" type="text" inputmode="decimal" autocomplete="off"></span></label>
+      <div class="duo">
+        <label class="champ" for="mdNom"><span class="champ-corps">
+          <span class="champ-titre">Nom du client</span><input id="mdNom" type="text" autocomplete="off"></span></label>
+        <label class="champ" for="mdTel"><span class="champ-corps">
+          <span class="champ-titre">Téléphone</span><input id="mdTel" type="tel" autocomplete="off"></span></label>
+      </div>
+      <label class="champ" for="mdNote"><span class="champ-corps">
+        <span class="champ-titre">Précision</span><input id="mdNote" type="text" autocomplete="off" placeholder="Bagages, fauteuil…"></span></label>
+      <p class="refus" id="mdErreur" hidden></p>
+      <button class="bouton" type="button" id="btnMdEnregistrer"><span>Enregistrer les modifications</span></button>
+      <button class="bouton-fantome" type="button" id="btnMdFermer">Fermer sans modifier</button>
+    </div>
+    <p class="bloc-note" id="bbModifNote" hidden></p>
+
     <div class="veh-action" id="bbActions">
       <!-- ACCUSER RÉCEPTION — le message qui manquait.
            Le client appuie sur « Confirmer » et n'a plus AUCUNE nouvelle
@@ -4401,6 +4706,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton" type="button" id="btnConfirmerCourse">
         <span>Confirmer la course</span>
       </button>
+      <p class="champ-aide" id="confirmerEtat" hidden style="color:#B4231F"></p>
       <!-- CONFIRMER ET PRÉVENIR SONT DEUX GESTES, ET C'EST VOULU.
            Le premier range la course chez Barbaros ; le second la dit au
            client. Les fondre en un seul enverrait le message avant qu'il ait
@@ -4417,7 +4723,16 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton vert" type="button" id="btnRealisee">
         <span>Marquer comme réalisée</span>
       </button>
+      <button class="bouton-fantome" type="button" id="btnModifierCourse">Modifier la course</button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
+      <p class="champ-aide" id="refusEtat" hidden style="color:#B4231F"></p>
+      <!-- ANNULER N'EST PAS REFUSER (30/09/2026). « Refuser » dit « aucun
+           chauffeur n'a pu la prendre » : la réception lit « Non prise ».
+           « Annuler » dit « la course n'aura pas lieu » — le client, l'hôtel
+           ou Barbaros l'a décidé — et la réception lit « Annulée ». Deux
+           appuis, comme la suppression : un pouce qui glisse ne doit pas
+           libérer un chauffeur engagé. -->
+      <button class="bouton-fantome rouge" type="button" id="btnAnnulerCourse">Annuler la course</button>
       <!-- SUPPRIMER N'EST PAS REFUSER. « Refuser » est une RÉPONSE : la course
            passe au gris, elle reste au registre, et c'est ce qu'on veut d'une
            vraie demande qu'on n'a pas pu assurer. « Supprimer » efface — c'est
@@ -4485,7 +4800,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          sans que personne le sache. C'est la différence assumée avec le
          code de l'espace exploitant. -->
     <div id="recVerrou">
-      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il n'est demandé qu'une fois sur cet appareil.</p>
+      <p class="rec-intro">Ce code vous a été remis par Elatransfer. Il reste actif 30 jours sur cet appareil, puis il vous sera redemandé : gardez-le bien.</p>
       <label class="champ" for="recCode">
         <span class="champ-corps">
           <span class="champ-titre">Code de la réception</span>
@@ -4514,10 +4829,38 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 
       <!-- Trois chiffres, de front. « Aujourd'hui » d'abord : c'est la
            seule question qu'un comptoir se pose en arrivant le matin. -->
+      <!-- LE RAPPEL DES 12 H, EN HAUT, pour qu'on n'oublie pas le code : il dit
+           à quelle heure il sera redemandé. -->
+      <p class="rec-session" id="recSession" hidden></p>
+
+      <!-- Ce qui vient de changer — « validée » ou « non prise » — depuis le
+           dernier regard. Caché tant qu'il n'y a rien à dire. -->
+      <div class="rec-alerte" id="recAlerte" hidden role="status">
+        <span></span>
+        <button type="button" class="rec-alerte-ok" id="btnRecAlerteOk">Vu</button>
+      </div>
+
       <div class="rec-chiffres">
         <div class="rec-chiffre"><b id="recNbJour">0</b><span>aujourd'hui</span></div>
         <div class="rec-chiffre"><b id="recNbAttente">0</b><span>en attente</span></div>
         <div class="rec-chiffre"><b id="recNbAVenir">0</b><span>à venir</span></div>
+      </div>
+
+      <!-- ═══ ACTUALISER, EN HAUT (30/09/2026, à sa demande) ═══
+           Le bouton existait, mais EN BAS d'une liste qui s'allonge chaque
+           jour : mesuré à 390 px avec deux semaines d'historique, il était
+           à 1 360 px — personne ne le trouvait. Il est ici, sous les
+           chiffres, avec l'heure de la dernière lecture : « Actualiser »
+           sans heure ne dit pas si la liste a vraiment été relue. -->
+      <div class="rec-maj">
+        <span id="recMaj" aria-live="polite"></span>
+        <button type="button" id="btnRecActualiser">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Actualiser</span>
+        </button>
       </div>
 
       <!-- ═══ « UN IMPRÉVU ? » — TOUJOURS VISIBLE, JAMAIS DANS UN MENU ═══
@@ -4536,14 +4879,57 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </div>
       </div>
 
+      <!-- ═══ RETROUVER UNE COURSE (30/09/2026, à sa demande : « un moyen de
+           retrouver les courses, l'historique ») ═══
+           Un client repasse au comptoir : « c'était combien, mon taxi de
+           mardi ? ». La réception cherche par CHAMBRE, NOM, TÉLÉPHONE ou
+           RÉFÉRENCE — la recherche porte sur TOUTES les courses, quel que
+           soit l'onglet. Les onglets trient ce qu'on regarde sans chercher :
+           ce qui reste à faire (en retard compris), ce qui est fini, tout. -->
+      <div class="rec-outils">
+        <label class="champ rec-recherche" for="recRecherche">
+          <span class="champ-corps">
+            <span class="champ-titre">Retrouver une course</span>
+            <input id="recRecherche" type="search" autocomplete="off"
+                   placeholder="Chambre, nom, téléphone ou référence">
+          </span>
+        </label>
+        <div class="rec-vues" role="tablist">
+          <button type="button" role="tab" data-vue="avenir" class="actif" aria-selected="true"><span>À venir</span> <b></b></button>
+          <button type="button" role="tab" data-vue="passees" aria-selected="false"><span>Passées</span> <b></b></button>
+          <button type="button" role="tab" data-vue="toutes" aria-selected="false"><span>Toutes</span> <b></b></button>
+          <button type="button" role="tab" data-vue="date" aria-selected="false"><span>Par date</span></button>
+        </div>
+        <!-- ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026, à sa demande) ═══
+             « Passées » met tout l'historique bout à bout : au bout de trois
+             mois, retrouver le bon de mardi dernier, c'est faire défiler cent
+             cartes. Ici on choisit un JOUR ou un MOIS, on avance et on recule
+             d'un appui, et le bilan de la période est écrit en tête. -->
+        <div class="rec-periode" id="recPeriode" hidden>
+          <div class="rec-echelle" role="group" aria-label="Afficher par">
+            <button type="button" data-echelle="jour" class="actif" aria-pressed="true">Jour</button>
+            <button type="button" data-echelle="mois" aria-pressed="false">Mois</button>
+          </div>
+          <div class="rec-nav">
+            <button type="button" id="btnRecAvant" aria-label="Période précédente">‹</button>
+            <label class="rec-choix" for="recJourChoix">
+              <span id="recPeriodeNom"></span>
+              <input type="date" id="recJourChoix" aria-label="Choisir un jour">
+            </label>
+            <button type="button" id="btnRecApres" aria-label="Période suivante">›</button>
+          </div>
+          <button type="button" class="rec-auj" id="btnRecAujourdhui">Aujourd'hui</button>
+          <p class="rec-bilan" id="recBilan"></p>
+        </div>
+      </div>
+
       <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
       <div id="recListe"></div>
 
-      <!-- Ces deux-là ferment la page : on les met EN BAS. « Fermer la
-           session » en tête d'écran, c'est le bouton qu'on effleure par
-           erreur en voulant faire défiler. -->
+      <!-- « Fermer la session » ferme la page : on la met EN BAS. En tête
+           d'écran, c'est le bouton qu'on effleure par erreur en voulant
+           faire défiler. « Actualiser » est remonté sous les chiffres. -->
       <div class="rec-barre">
-        <button type="button" class="bouton-fantome" id="btnRecActualiser">Actualiser</button>
         <button type="button" class="bouton-fantome" id="btnRecFermer">Fermer la session</button>
       </div>
     </div>
@@ -4877,7 +5263,7 @@ window.ELA_TEXTES = {
     hero_sous:"Aéroports · Gares · Hôtels · Disneyland",
     hero_prix:"Prix ferme, connu avant le départ.",
     hero_cta:"Réserver mon trajet",
-    hero_notes:"24 h/24 · 7 j/7 · Confirmation rapide",
+    hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     zone_titre:"Cette adresse est en dehors de notre zone.",
     zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
     appeler:"Appeler",
@@ -4895,6 +5281,14 @@ window.ELA_TEXTES = {
     reserver_prix:"Valider la réservation",
     client_titre:"Le client",
     aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
+    /* LE COMPTOIR SAISIT QUELQU'UN D'AUTRE : aucune phrase en « vous », aucun
+       libellé doublé en deux langues — le sélecteur FR/EN fait ce travail. */
+    nom_comptoir:"Nom du client", ph_nom_comptoir:"Nom du client", ph_tel_comptoir:"06 12 34 56 78",
+    aide_tel_comptoir:"Numéro étranger : ajoutez l'indicatif (+34, +44…).",
+    bon_note_comptoir:"Nous cherchons un chauffeur. La course passera à « Réservation validée » dans les réservations de l'hôtel dès qu'il est attribué.",
+    envoi_ok_comptoir:"Demande bien reçue. Elatransfer est prévenu automatiquement : rien d'autre à faire.",
+    voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
+    envoyer_bon_client:"Envoyer le bon au client",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
     btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
@@ -5042,7 +5436,7 @@ window.ELA_TEXTES = {
     trajets_titre:"Mes trajets effectués",
     trajets_note:"Vos courses passées, depuis ce téléphone.",
     trajets_vide:"Aucun trajet effectué pour l'instant.",
-    etat_faite:"Terminé", etat_refusee:"Non prise",
+    etat_faite:"Terminé", etat_refusee:"Non prise", etat_annulee:"Annulée",
     pied_legal:"Nous joindre et informations légales",
     courses_vide:"Aucune réservation en cours.",
     courses_vide_cta:"Réserver un trajet",
@@ -5059,7 +5453,7 @@ window.ELA_TEXTES = {
     hero_sous:"Airports · Stations · Hotels · Disneyland",
     hero_prix:"A firm price, known before you leave.",
     hero_cta:"Book my ride",
-    hero_notes:"24/7 · Fast confirmation",
+    hero_notes:"Book 24/7 · Support 5 am–10 pm",
     zone_titre:"This address is outside our service area.",
     zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
     appeler:"Call",
@@ -5077,6 +5471,12 @@ window.ELA_TEXTES = {
     reserver_prix:"Confirm booking",
     client_titre:"The guest",
     aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
+    nom_comptoir:"Guest name", ph_nom_comptoir:"Guest name", ph_tel_comptoir:"+33 6 12 34 56 78",
+    aide_tel_comptoir:"Foreign number: add the country code (+34, +44…).",
+    bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
+    envoi_ok_comptoir:"Request received. Elatransfer is alerted automatically: nothing else to do.",
+    voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
+    envoyer_bon_client:"Send the voucher to the guest",
     err_identite:"Enter the room number, or the guest's name and phone number.",
     btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
@@ -5209,7 +5609,7 @@ window.ELA_TEXTES = {
     trajets_titre:"My completed rides",
     trajets_note:"Your past rides, from this phone.",
     trajets_vide:"No completed ride yet.",
-    etat_faite:"Completed", etat_refusee:"Not taken",
+    etat_faite:"Completed", etat_refusee:"Not taken", etat_annulee:"Cancelled",
     pied_legal:"Contact us and legal information",
     courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
@@ -5346,8 +5746,12 @@ window.ELA_TEXTES = {
      prix : c'est la différence entre une adresse et une intention. */
   var choix = { depart:null, arrivee:null };
 
+  /* « œ » et « æ » ne sont PAS des lettres accentuées : NFD ne les défait
+     pas. Sans ces deux remplacements, « coeur » tapé ne retrouvait jamais
+     « Sacré-Cœur », et un bar écrit « Coeur » passait devant la basilique. */
   function sansAccents(s){
-    return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+    return (s||"").toLowerCase().replace(/œ/g,"oe").replace(/æ/g,"ae")
+             .normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
   }
   function retarder(fn, delai){
     var t; return function(){ clearTimeout(t); t = setTimeout(fn, delai); };
@@ -5468,12 +5872,33 @@ window.ELA_TEXTES = {
     var route = window.ELA_ROUTE;
     return route && route.volDoiseauKm ? route.volDoiseauKm(CENTRE_RECHERCHE, item) : null;
   }
+  /* Ce que le client tape quand il cherche un restaurant : sans l'un de ces
+     mots, un bar homonyme n'a pas à passer devant le monument ou la rue. */
+  var MOTS_RESTO = ["restaurant","resto","brasserie","cafe","bar","pub","bistrot","pizza","pizzeria"];
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    var utiles = 0, touches = 0;
     mots.forEach(function(m){
-      if(m.length < 2 || l.indexOf(m) === -1) return;
-      s += MOTS_COURANTS.indexOf(m) > -1 ? 1 : 3;
+      if(m.length < 2) return;
+      var courant = MOTS_COURANTS.indexOf(m) > -1;
+      if(!courant) utiles++;
+      if(l.indexOf(m) === -1) return;
+      if(!courant) touches++;
+      s += courant ? 1 : 3;
     });
+    var toutTrouve = utiles > 0 && touches === utiles;
+    /* ═══ CE QU'ON CHERCHE PAR SON NOM PASSE DEVANT (30/09/2026) ═══
+       « sacré coeur » : la basilique avant le bar du même nom ; « champs
+       elysee » : l'avenue avant les hôtels qui portent son nom. Un
+       monument qui répond au nom tapé gagne 3 ; une RUE dont le nom est
+       entièrement tapé gagne 3 (une rue n'a pas le bonus de « lieu nommé »
+       qu'ont les commerces) ; un bar ou un restaurant en perd 2 si le
+       client n'a pas écrit « restaurant », « bar »… Rien n'est retiré :
+       l'ordre change, la liste reste la même. */
+    if(item.categorie === "culture" && touches > 0) s += 3;
+    if(item.categorie === "voie" && toutTrouve) s += 3;
+    if(item.categorie === "restauration"
+       && !mots.some(function(m){ return MOTS_RESTO.indexOf(m) > -1; })) s -= 2;
     var km = distanceParis(item);
     if(km !== null) s += bonusDistance(km);
     return s;
@@ -6052,24 +6477,70 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var recHotel = null;         // l'hôtel dont on tient le comptoir
   var recCourses = [];
-  /* Le code brut n'est jamais conservé. Après vérification, le serveur rend
-     un jeton hôtel signé et limité dans le temps ; seul ce jeton vit dans le
-     sessionStorage de l'onglet. Fermer l'onglet ferme donc aussi la session. */
+  /* ═══ LA SESSION TIENT 12 HEURES SUR L'APPAREIL (30/09/2026) ═══
+     À la demande de Barbaros. Elle vivait dans le sessionStorage de
+     l'onglet : fermer l'onglet — ou la tablette qui le fait toute seule —
+     redemandait le code, alors que l'écran promettait « une fois sur cet
+     appareil ». Un comptoir qui retape son code dix fois par jour cesse
+     d'utiliser l'outil.
+     LE CODE BRUT N'EST TOUJOURS PAS CONSERVÉ : seul le jeton signé par le
+     serveur l'est, et c'est le SERVEUR qui fixe sa fin (12 h après la saisie
+     du code, `exp` dans le jeton) — le navigateur ne peut pas la repousser.
+     On relit `exp` pour l'AFFICHER et pour oublier le jeton à l'heure dite ;
+     la vérification, elle, reste celle du serveur.
+     « Fermer la session » efface tout, tout de suite : c'est le geste d'une
+     tablette qu'on prête. */
   var CLE_CODE_REC = "ela_session_reception";
 
+  function finSession(jeton){
+    try{
+      var b = String(jeton || "").split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+      while(b.length % 4) b += "=";
+      var exp = JSON.parse(atob(b)).exp;
+      return typeof exp === "number" ? exp : 0;
+    }catch(e){ return 0; }
+  }
+  function lireSessions(stockage){
+    try{ return JSON.parse(stockage.getItem(CLE_CODE_REC) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
   function codeRetenu(cle){
-    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
-         return (o && o[cle]) || ""; }catch(e){ return ""; }
+    var jeton = "";
+    try{ jeton = lireSessions(localStorage)[cle] || ""; }catch(e){}
+    /* Une session d'avant ce changement, posée dans l'onglet : on la lit
+       encore, pour ne pas faire retaper le code le jour de la mise en ligne. */
+    if(!jeton){ try{ jeton = lireSessions(sessionStorage)[cle] || ""; }catch(e){} }
+    var fin = finSession(jeton);
+    if(jeton && fin && fin <= Date.now()){ oublierCode(cle); return ""; }
+    return jeton;
   }
   function retenirCode(cle, session){
-    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
-         o[cle] = session; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
+    try{ var o = lireSessions(localStorage);
+         o[cle] = session; localStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
     }catch(e){ /* stockage refusé : la connexion sera redemandée */ }
   }
   function oublierCode(cle){
-    try{ var o = JSON.parse(sessionStorage.getItem(CLE_CODE_REC) || "{}");
-         delete o[cle]; sessionStorage.setItem(CLE_CODE_REC, JSON.stringify(o));
-    }catch(e){}
+    [function(){ return localStorage; }, function(){ return sessionStorage; }].forEach(function(f){
+      try{ var st = f(), o = lireSessions(st);
+           delete o[cle]; st.setItem(CLE_CODE_REC, JSON.stringify(o)); }catch(e){}
+    });
+  }
+
+  /* LE RAPPEL, À L'ÉCRAN, POUR QU'ON N'OUBLIE PAS LE CODE : il sera
+     redemandé à telle heure. Écrit en français ; la finition du comptoir le
+     traduit (elle repart de « data-fin »). */
+  function dessinerSession(){
+    var el = document.getElementById("recSession");
+    if(!el || !recHotel) return;
+    var fin = finSession(codeRetenu(recHotel.cle));
+    if(!fin){ el.hidden = true; return; }
+    var d = new Date(fin);
+    var jour = d.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" });
+    el.dataset.fin = String(fin);
+    delete el.dataset.fr;
+    el.textContent = "Code gardé sur cet appareil jusqu’au " + jour
+      + ". Gardez-le bien : il vous sera redemandé ensuite.";
+    el.hidden = false;
   }
 
   /* Elle reçoit la PHRASE, pas une clé : cet écran n'est pas traduit. */
@@ -6109,28 +6580,49 @@ window.ELA_TEXTES = {
     chargerReception(code);
   }
 
-  function chargerReception(identifiant){
+  /* Ce que la liste savait au dernier chargement : référence → état. Sert à
+     repérer ce qui a CHANGÉ depuis — une course que Barbaros vient de
+     valider, ou qu'il n'a pas pu placer. « null » au premier chargement :
+     tout y serait « nouveau », et l'écran s'allumerait pour rien. */
+  var recEtatsConnus = null;
+
+  function chargerReception(identifiant, silencieux){
     var btn = document.getElementById("btnRecActualiser");
-    btn.disabled = true;
+    if(!silencieux){ btn.disabled = true; recLecture = true; dessinerMaj(); }
     var dejaSession = identifiant && identifiant.indexOf(".") > 0;
     nuage.coursesHotel(recHotel.cle,
       dejaSession ? { session:identifiant } : { code:identifiant }).then(function(d){
       btn.disabled = false;
+      recLecture = false; recLuA = new Date();
       if(d && d.session) retenirCode(recHotel.cle, d.session);
       recCourses = (d && d.courses) || [];
+      signalerChangements(recCourses);
       montrerVerrou(false);
       direRec(null);
       dessinerReception();
+      dessinerSession();
     }).catch(function(err){
       btn.disabled = false;
+      if(!silencieux){ recLecture = false; dessinerMaj(); }
+      /* EN ARRIÈRE-PLAN, UNE PANNE DU RÉSEAU NE DIT RIEN. La liste affichée
+         reste juste à quelques secondes près ; la remplacer par un écran de
+         connexion parce qu'un appel de fond a échoué ferait croire à la
+         réception qu'elle a été déconnectée. Seul un refus du jeton compte. */
+      if(silencieux && String(err && err.message) !== "code") return;
       /* UN CODE REFUSÉ EFFACE CELUI QU'ON GARDAIT. Sinon la réception
          resterait devant une liste vide sans comprendre, avec un code
          périmé retenu dans l'appareil — le jour où Barbaros le change,
          personne ne s'en sort. */
       if(String(err && err.message) === "code"){
         oublierCode(recHotel.cle);
+        recEtatsConnus = null;
         montrerVerrou(true);
-        direRec("Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
+        /* Un JETON refusé n'est pas un code faux : ce sont les 12 h qui sont
+           passées (ou le code a été changé). Le dire autrement ferait
+           chercher une faute de frappe qui n'existe pas. */
+        direRec(dejaSession
+          ? "La session de 30 jours est terminée, ou le code a changé. Saisissez à nouveau le code de la réception."
+          : "Ce code n'est pas le bon. Vérifiez-le auprès d'Elatransfer.");
       } else if(String(err && err.message) === "quota"){
         /* Trop d'essais depuis cette connexion : le code n'est PAS oublié,
            il peut être le bon — c'est le nombre d'essais qui bloque. */
@@ -6165,7 +6657,11 @@ window.ELA_TEXTES = {
      colonne « statut » sur le serveur, « courses-hotel » la relit, la liste
      se rafraîchit. Seul le libellé manquait. */
   var ETATS_REC = { attente:"En attente", confirmee:"Réservation validée",
-                    realisee:"Effectuée", refusee:"Non prise" };
+                    realisee:"Effectuée", refusee:"Non prise", annulee:"Annulée" };
+  /* Une course FINIE n'attend plus rien : faite, non prise, ou annulée par
+     Elatransfer (30/09/2026 — la réception ne peut plus annuler, elle
+     appelle, et Barbaros annule depuis son admin). */
+  function statutFini(st){ return st === "realisee" || st === "refusee" || st === "annulee"; }
 
   /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
      Même leçon que le tableau de bord de Barbaros : une liste à plat met
@@ -6178,7 +6674,7 @@ window.ELA_TEXTES = {
   function jourRec(c){
     var d = new Date((c.date || "") + "T" + (c.heure || ""));
     if(isNaN(d.getTime())) return { rang: 9, titre: "Date inconnue" };
-    var fini = c.statut === "realisee" || c.statut === "refusee";
+    var fini = statutFini(c.statut);
     var maintenant = new Date();
     var minuit = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
     var jour = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -6192,17 +6688,154 @@ window.ELA_TEXTES = {
               { weekday:"long", day:"numeric", month:"long" }) };
   }
 
+  /* L'onglet regardé et la recherche en cours. La recherche l'emporte sur
+     l'onglet : on cherche dans TOUT l'historique. */
+  var recVue = "avenir", recRecherche = "";
+  function recFinie(c){ return statutFini(c.statut); }
+  /* Une réception retrouve souvent un bon par sa DATE : « le client du
+     12/09 ». On range donc dans le texte fouillé les formes qu'elle tape —
+     « JJ/MM », « JJ/MM/AAAA » ou le mois en toutes lettres. */
+  function datesCherchables(c){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(c.date || "");
+    if(!m) return "";
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return [m[3] + "/" + m[2] + "/" + m[1], (+m[3]) + "/" + (+m[2]) + "/" + m[1],
+            d.toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" }),
+            d.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })].join(" ");
+  }
+  function recCorrespond(c, q){
+    if(!q) return true;
+    var texte = sansAccents([c.ref, c.chambre, c.client, c.depart, c.arrivee, c.vehicule,
+                             c.chauffeur && c.chauffeur.nom, datesCherchables(c)]
+                             .filter(Boolean).join(" ")).toLowerCase();
+    var mots = sansAccents(q).toLowerCase().split(/\s+/).filter(Boolean);
+    var chiffresQ = q.replace(/\D/g, ""), chiffresTel = String(c.tel || "").replace(/\D/g, "");
+    /* Un numéro se cherche par ses chiffres : « 06 98 » et « 0698 » sont le
+       même début de numéro. Une DATE (« 12/09 ») a des chiffres aussi : elle
+       ne passe pas par là, elle se lit dans le texte. */
+    if(chiffresQ.length >= 4 && q.indexOf("/") === -1 && chiffresTel.indexOf(chiffresQ) !== -1) return true;
+    return mots.every(function(m){ return texte.indexOf(m) !== -1; });
+  }
+
+  /* ═══ PAR DATE : UN JOUR OU UN MOIS (30/09/2026) ═══
+     Le curseur est un jour à minuit ; en mode « mois », seul son mois
+     compte. On compare des CHAÎNES « AAAA-MM-JJ » composées en local —
+     jamais toISOString, qui rend de l'UTC et décale d'un jour entre minuit
+     et 2 h (défaut déjà payé sur le formulaire). */
+  var recEchelle = "jour", recCurseur = null;
+  function isoLocal(d){
+    var z = function(x){ return String(x).padStart(2, "0"); };
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+  }
+  function aujourdhuiMinuit(){ var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+  function recEnAnglais(){ return document.documentElement.lang === "en"; }
+  function dansPeriode(c){
+    if(!c.date || !recCurseur) return false;
+    var k = isoLocal(recCurseur);
+    return recEchelle === "jour" ? c.date === k : c.date.slice(0, 7) === k.slice(0, 7);
+  }
+  function dessinerPeriode(visibles){
+    var bloc = document.getElementById("recPeriode");
+    var montre = recVue === "date" && !recRecherche;
+    bloc.hidden = !montre;
+    if(!montre) return;
+    var en = recEnAnglais(), loc = en ? "en-GB" : "fr-FR";
+    document.getElementById("recPeriodeNom").textContent = recEchelle === "jour"
+      ? recCurseur.toLocaleDateString(loc, { weekday:"long", day:"numeric", month:"long", year:"numeric" })
+      : recCurseur.toLocaleDateString(loc, { month:"long", year:"numeric" });
+    var choix = document.getElementById("recJourChoix");
+    choix.hidden = recEchelle !== "jour";
+    choix.value = isoLocal(recCurseur);
+    var ech = document.querySelectorAll(".rec-echelle button");
+    for(var i = 0; i < ech.length; i++){
+      var a = ech[i].dataset.echelle === recEchelle;
+      ech[i].classList.toggle("actif", a);
+      ech[i].setAttribute("aria-pressed", a ? "true" : "false");
+      ech[i].textContent = ech[i].dataset.echelle === "jour" ? (en ? "Day" : "Jour") : (en ? "Month" : "Mois");
+    }
+    document.getElementById("btnRecAvant").setAttribute("aria-label", en ? "Previous" : "Période précédente");
+    document.getElementById("btnRecApres").setAttribute("aria-label", en ? "Next" : "Période suivante");
+    document.getElementById("btnRecAujourdhui").textContent = recEchelle === "jour"
+      ? (en ? "Today" : "Aujourd'hui") : (en ? "This month" : "Ce mois-ci");
+    /* LE BILAN DE LA PÉRIODE — DES COMPTES, JAMAIS DE MONTANT (30/09/2026,
+       à la demande de Barbaros). Le prix d'une course finie ne sort plus
+       du serveur : additionner ce qui reste reviendrait à dire à l'hôtel
+       ce qu'Elatransfer encaisse. */
+    var fait = 0, non = 0, reste = 0, annul = 0;
+    visibles.forEach(function(c){
+      if(c.statut === "realisee") fait++;
+      else if(c.statut === "refusee") non++;
+      else if(c.statut === "annulee") annul++;
+      else reste++;
+    });
+    var bil = document.getElementById("recBilan");
+    bil.textContent = "";
+    if(!visibles.length){ bil.textContent = en ? "No ride in this period." : "Aucune course sur cette période."; return; }
+    var gras = document.createElement("b");
+    gras.textContent = visibles.length + (en ? (visibles.length > 1 ? " rides" : " ride")
+                                             : (visibles.length > 1 ? " courses" : " course"));
+    bil.appendChild(gras);
+    var morceaux = [];
+    if(fait)  morceaux.push(fait + (en ? " completed" : (fait > 1 ? " effectuées" : " effectuée")));
+    if(reste) morceaux.push(reste + (en ? " to come" : " à venir"));
+    if(non)   morceaux.push(non + (en ? " not taken" : (non > 1 ? " non prises" : " non prise")));
+    if(annul) morceaux.push(annul + (en ? " cancelled" : (annul > 1 ? " annulées" : " annulée")));
+    if(morceaux.length) bil.appendChild(document.createTextNode(" · " + morceaux.join(" · ")));
+  }
+  /* L'heure de la dernière lecture, à côté du bouton. */
+  var recLuA = null, recLecture = false;
+  function dessinerMaj(){
+    var en = recEnAnglais();
+    var btn = document.getElementById("btnRecActualiser");
+    btn.querySelector("span").textContent = recLecture ? (en ? "Refreshing…" : "Actualisation…")
+                                                       : (en ? "Refresh" : "Actualiser");
+    var z = function(x){ return String(x).padStart(2, "0"); };
+    document.getElementById("recMaj").textContent = recLuA
+      ? (en ? "Updated at " : "Mis à jour à ") + z(recLuA.getHours()) + ":" + z(recLuA.getMinutes())
+      : "";
+  }
+
   function dessinerReception(){
+    dessinerMaj();
     var liste = document.getElementById("recListe");
     liste.innerHTML = "";
-    document.getElementById("recVide").hidden = recCourses.length > 0;
+    if(recVue === "date" && !recCurseur) recCurseur = aujourdhuiMinuit();
+    var nbAvenir = 0, nbPassees = 0;
+    recCourses.forEach(function(c){ if(recFinie(c)) nbPassees++; else nbAvenir++; });
+    var vues = document.querySelectorAll(".rec-vues button");
+    for(var iv = 0; iv < vues.length; iv++){
+      var v = vues[iv].dataset.vue;
+      var compte = vues[iv].querySelector("b");
+      if(compte) compte.textContent =
+        v === "avenir" ? nbAvenir : v === "passees" ? nbPassees : recCourses.length;
+      var actif = !recRecherche && v === recVue;
+      vues[iv].classList.toggle("actif", actif);
+      vues[iv].setAttribute("aria-selected", actif ? "true" : "false");
+    }
+    var visibles = recCourses.filter(function(c){
+      if(recRecherche) return recCorrespond(c, recRecherche);
+      if(recVue === "avenir") return !recFinie(c);
+      if(recVue === "passees") return recFinie(c);
+      if(recVue === "date") return dansPeriode(c);
+      return true;
+    });
+    dessinerPeriode(visibles);
+    var vide = document.getElementById("recVide");
+    vide.hidden = visibles.length > 0;
+    vide.textContent = !recCourses.length ? "Aucune réservation pour le moment."
+      : recRecherche ? "Aucune course ne correspond à « " + recRecherche + " »."
+      : recVue === "avenir" ? "Aucune course à venir."
+      : recVue === "passees" ? "Aucune course passée pour le moment."
+      : recVue === "date" ? "Aucune course sur cette période."
+      : "Aucune réservation pour le moment.";
+    delete vide.dataset.fr;
 
     /* Trois chiffres, et « aujourd'hui » d'abord : c'est la seule question
        qu'un comptoir se pose en prenant son service. */
     var auj = 0, att = 0, ave = 0, maintenant = Date.now();
     recCourses.forEach(function(c){
       var d = new Date((c.date || "") + "T" + (c.heure || ""));
-      var fini = c.statut === "realisee" || c.statut === "refusee";
+      var fini = statutFini(c.statut);
       if(!isNaN(d.getTime())){
         var n = new Date();
         if(d.toDateString() === n.toDateString()) auj++;
@@ -6220,7 +6853,11 @@ window.ELA_TEXTES = {
 
     /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
        liste est déjà triée, et deux parcours finiraient par diverger. */
-    var triees = recCourses.slice().sort(function(a, b){
+    /* PAR DATE, L'ORDRE EST CELUI DU CALENDRIER, et chaque jour porte sa
+       date : on consulte une période, « en retard » n'y a pas sa place. */
+    var parDate = recVue === "date" && !recRecherche;
+    var triees = visibles.slice().sort(function(a, b){
+      if(parDate) return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
       var ja = jourRec(a), jb = jourRec(b);
       if(ja.rang !== jb.rang) return ja.rang - jb.rang;
       return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
@@ -6229,16 +6866,21 @@ window.ELA_TEXTES = {
     var titreCourant = null;
     triees.forEach(function(c){
       var j = jourRec(c);
+      if(parDate){
+        var dj = new Date((c.date || "") + "T12:00");
+        j = { rang: j.rang, titre: isNaN(dj.getTime()) ? "Date inconnue"
+              : dj.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" }) };
+      }
       if(j.titre !== titreCourant){
         titreCourant = j.titre;
         var h = document.createElement("p");
-        h.className = "rec-jour" + (j.rang === 0 ? " retard" : "");
+        h.className = "rec-jour" + (j.rang === 0 && !parDate ? " retard" : "");
         h.textContent = j.titre;
         liste.appendChild(h);
       }
 
       var d = document.createElement("div");
-      d.className = "rec-course";
+      d.className = "rec-course" + (recNouveaux[c.ref] ? " rec-nouveau" : "");
       d.dataset.ref = c.ref;
 
       /* L'HEURE EN GROS, L'ÉTAT À DROITE. Un comptoir lit une heure, pas
@@ -6302,12 +6944,46 @@ window.ELA_TEXTES = {
       bas.className = "rec-bas";
       var gauche = document.createElement("span");
       gauche.className = "rec-detail";
-      gauche.textContent = [c.vehicule, c.paiement, c.ref].filter(Boolean).join(" · ");
-      var prix = document.createElement("b");
-      prix.className = "rec-prix";
-      prix.textContent = c.prix ? eurosFR(c.prix) : "—";
-      bas.appendChild(gauche); bas.appendChild(prix);
+      gauche.textContent = [c.vehicule, c.paiement].filter(Boolean).join(" · ");
+      bas.appendChild(gauche);
+      /* LE PRIX NE S'AFFICHE QUE SUR UNE COURSE À VENIR (30/09/2026, à sa
+         demande). Le serveur ne l'envoie d'ailleurs plus pour une course
+         finie ; on ne dessine pas non plus de « — » à sa place, qui dirait
+         qu'un chiffre existe et qu'on le cache. */
+      if(!recFinie(c) && typeof c.prix === "number"){
+        var prix = document.createElement("b");
+        prix.className = "rec-prix";
+        prix.textContent = c.prix ? eurosFR(c.prix) : "—";
+        bas.appendChild(prix);
+      }
       d.appendChild(bas);
+
+      /* LA RÉFÉRENCE A SA LIGNE, ENTIÈRE (30/09/2026). En fin de ligne grise
+         elle était la première tronquée (« ELA-26-09-JK… ») — or c'est ce que
+         la réception lit au téléphone pour nous citer une course. */
+      if(c.ref){
+        var rf = document.createElement("p");
+        rf.className = "rec-reference";
+        rf.textContent = "Réf. " + c.ref;
+        d.appendChild(rf);
+      }
+
+      /* ═══ MODIFIÉE PAR ELATRANSFER (30/09/2026) ═══ Barbaros peut changer
+         l'heure ou les adresses depuis son admin. Tant que la course est à
+         venir, la carte le DIT, avec le moment du changement : une heure
+         changée sans rien qui se voie fait descendre le client trop tard. */
+      if(c.modifie && !recFinie(c)){
+        var dm = new Date(c.modifie);
+        if(!isNaN(dm.getTime())){
+          var enM = recEnAnglais(), zm = function(x){ return String(x).padStart(2, "0"); };
+          var md = document.createElement("p");
+          md.className = "rec-modif";
+          md.textContent = (enM ? "Updated by Elatransfer on " : "Modifiée par Elatransfer le ")
+            + zm(dm.getDate()) + "/" + zm(dm.getMonth() + 1) + (enM ? " at " : " à ")
+            + zm(dm.getHours()) + ":" + zm(dm.getMinutes());
+          d.appendChild(md);
+        }
+      }
 
       /* ═══ LA PRÉCISION QU'ELLE A ÉCRITE ELLE-MÊME ═══
          Elle est SOUS le prix, pas dans la ligne grise : celle-ci tronque
@@ -6339,46 +7015,177 @@ window.ELA_TEXTES = {
         d.appendChild(ch);
       }
 
-      if(c.annulationDemandee){
-        var av = document.createElement("p");
-        av.className = "rec-annul";
-        av.textContent = "Annulation demandée — nous vous confirmons.";
-        d.appendChild(av);
+      if(j.rang === 0){
+        /* ═══ UNE COURSE EN RETARD SE RÈGLE AU TÉLÉPHONE (30/09/2026) ═══ Son
+           heure est passée : soit elle a été faite, soit quelque chose
+           cloche. Ce qu'il faut, c'est nous parler. */
+        var ap = document.createElement("a");
+        ap.className = "bouton-fantome rec-appel";
+        ap.href = "tel:+" + NUMERO_WA;
+        ap.textContent = "Appeler Elatransfer";
+        d.appendChild(ap);
       } else if(c.statut === "attente" || c.statut === "confirmee"){
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "bouton-fantome";
-        b.textContent = "Demander l'annulation";
-        b.addEventListener("click", function(){ demanderAnnulation(c, b); });
-        d.appendChild(b);
+        /* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ Sans lui, il
+           n'a ni la référence, ni l'heure, ni le prix — et c'est la
+           réception qu'il revient voir.
+           PLUS DE « DEMANDER L'ANNULATION » (30/09/2026, à la demande de
+           Barbaros : « la réception ne peut annuler ») : elle appelle, le
+           numéro est écrit en permanence dans « Un imprévu ? ».
+           PLUS DE « RENVOYER LE BON » SUR UNE COURSE FAITE : le bon sans son
+           prix ne servirait plus de justificatif, et le prix d'une course
+           finie ne sort plus du serveur. Le client a son bon sur son
+           téléphone ; sinon c'est Elatransfer qui le lui renvoie. */
+        var rang = document.createElement("div");
+        rang.className = "rec-actions";
+        var numeroClient = telWa(c.tel);
+        var env = document.createElement("button");
+        env.type = "button"; env.className = "bouton-fantome rec-envoyer";
+        env.textContent = "Envoyer le bon au client";
+        env.addEventListener("click", function(){ ouvrirBonVisuel(bonDeCarte(c), numeroClient); });
+        rang.appendChild(env);
+        d.appendChild(rang);
       }
       liste.appendChild(d);
     });
   }
 
-  /* ═══ ELLE NE DÉCIDE RIEN, ET C'EST TOUT SON INTÉRÊT ═══
-     Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
-     déjà engagé, et lui seul peut le rappeler. Le serveur pose un drapeau
-     et ne touche PAS au statut ; WhatsApp part vers Barbaros dans le geste
-     du clic — sans « await » avant, sinon Safari iOS bloque la fenêtre.
-     Tant que l'alerte Telegram n'est pas branchée, ce message EST le seul
-     moyen qu'il l'apprenne : ne pas le retirer. */
-  function demanderAnnulation(c, bouton){
-    var msg = "Demande d'annulation — " + (recHotel ? recHotel.nom : "")
-            + "\nCourse " + c.ref + ", " + dateFr(c.date, c.heure)
-            + ".\nMerci de confirmer.";
-    window.open("https://wa.me/" + NUMERO_WA + "?text=" + encodeURIComponent(msg),
-                "_blank", "noopener");
-    bouton.disabled = true;
-    nuage.coursesHotel(recHotel.cle,
-                       { session:codeRetenu(recHotel.cle), action:"annulation", ref:c.ref })
-      .then(function(){ c.annulationDemandee = true; dessinerReception(); })
-      .catch(function(){
-        /* Le message est parti chez Barbaros de toute façon : on le dit
-           plutôt que de laisser croire que rien ne s'est passé. */
-        bouton.disabled = false;
-        direRec("Le serveur n'a pas répondu. Réessayez dans un instant.");
-      });
+  /* La course telle que la liste la reçoit, mise à la forme commune du
+     message au client. */
+  function bonDeCarte(c){
+    return { ref:c.ref, date:c.date, heure:c.heure,
+             depart:(c.depart || (recHotel ? recHotel.nom : "")).split(",")[0],
+             arrivee:(c.arrivee || (recHotel ? recHotel.nom : "")).split(",")[0],
+             vehicule:c.vehicule, prix:c.prix, paiement:c.paiement, statut:c.statut,
+             chauffeur:((c.statut === "confirmee" || c.statut === "realisee") && c.chauffeur) ? c.chauffeur : null };
   }
+
+  /* ═══ CE QUI A CHANGÉ DEPUIS LE DERNIER REGARD (30/09/2026) ═══
+     La liste se met à jour toute seule ; encore faut-il qu'un changement SE
+     VOIE. Une pastille qui passe au vert au milieu de dix cartes ne se
+     remarque pas : un bandeau le dit en haut, et la carte s'éclaire.
+     Seuls deux changements comptent pour un comptoir — « validée » (la
+     voiture est acquise) et « non prise » (il faut prévenir le client). */
+  var recNouveaux = {};
+  /* Ce qui compte pour un comptoir : validée, non prise, ANNULÉE par
+     Elatransfer, et MODIFIÉE (heure, date, adresses) — celle-là dit
+     l'ancienne heure et la nouvelle, sinon on ne sait pas quoi corriger. */
+  function signalerChangements(liste){
+    var avant = recEtatsConnus, changes = [];
+    recEtatsConnus = {};
+    liste.forEach(function(c){
+      var quand = (c.date || "") + " " + (c.heure || "");
+      recEtatsConnus[c.ref] = { statut:c.statut, quand:quand, ou:(c.depart || "") + "|" + (c.arrivee || "") };
+      var a = avant && avant[c.ref];
+      if(!a) return;
+      if(a.statut !== c.statut
+         && (c.statut === "confirmee" || c.statut === "refusee" || c.statut === "annulee"))
+        changes.push({ c:c, type:c.statut });
+      else if(!statutFini(c.statut) && (a.quand !== quand || a.ou !== recEtatsConnus[c.ref].ou))
+        changes.push({ c:c, type:"modifiee", ancienne:a.quand });
+    });
+    if(!changes.length) return;
+    changes.forEach(function(x){ recNouveaux[x.c.ref] = true; });
+    var al = document.getElementById("recAlerte");
+    if(!al) return;
+    var refus = changes.some(function(x){ return x.type === "refusee" || x.type === "annulee"; });
+    al.className = "rec-alerte" + (refus ? " refus" : "");
+    al.querySelector("span").textContent = changes.map(function(x){
+      var c = x.c, en = document.documentElement.lang === "en";
+      var qui = (c.chambre ? (en ? " · room " : " · chambre ") + c.chambre : (c.client ? " · " + c.client : ""));
+      if(x.type === "modifiee"){
+        var hAvant = (x.ancienne || "").split(" ")[1] || "";
+        var jAvant = (x.ancienne || "").split(" ")[0] || "";
+        var dit = jAvant && jAvant !== c.date
+          ? jj(jAvant) + " " + hAvant + " → " + jj(c.date) + " " + (c.heure || "")
+          : (hAvant !== (c.heure || "") ? hAvant + " → " + (c.heure || "") : (c.heure || ""));
+        return (en ? "Updated by Elatransfer" : "Course modifiée par Elatransfer") + qui + " : " + dit;
+      }
+      return (x.type === "confirmee" ? (en ? "Confirmed" : "Réservation validée")
+              : x.type === "annulee" ? (en ? "Cancelled by Elatransfer" : "Annulée par Elatransfer")
+              : (en ? "Not taken — let the guest know" : "Non prise — prévenez le client"))
+        + " : " + (c.heure || "") + qui;
+    }).join("\n");
+    function jj(iso){ var m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? m[2] + "/" + m[1] : iso; }
+    al.hidden = false;
+    try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){}
+  }
+
+  /* ═══ LA LISTE SE MET À JOUR TOUTE SEULE (30/09/2026) ═══
+     Sans ça, une course confirmée par Barbaros restait « En attente » tant
+     que personne n'appuyait sur « Actualiser », et la réception l'appelait
+     pour demander ce qu'elle aurait pu lire.
+     Toutes les 30 s, mais JAMAIS DANS LE VIDE : ni onglet en arrière-plan,
+     ni liste fermée, ni session absente — c'est de la batterie et du quota
+     serveur brûlés pour personne. Et au RETOUR sur l'onglet, tout de suite :
+     c'est le moment où l'on regarde. */
+  function ecouteReception(){
+    var corps = document.getElementById("recCorps");
+    return !!recHotel && !document.hidden && corps && !corps.hidden
+           && !!corps.offsetParent && !!codeRetenu(recHotel.cle);
+  }
+  function rafraichirReception(){
+    if(ecouteReception()) chargerReception(codeRetenu(recHotel.cle), true);
+    else if(recHotel) dessinerSession();
+  }
+  setInterval(rafraichirReception, 30000);
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden) rafraichirReception();
+  });
+  /* Les onglets et la recherche redessinent sans rien redemander au
+     serveur : tout l'historique est déjà là. */
+  var vuesRec = document.querySelectorAll(".rec-vues button");
+  for(var ivr = 0; ivr < vuesRec.length; ivr++){
+    vuesRec[ivr].addEventListener("click", function(){
+      recVue = this.dataset.vue;
+      recRecherche = ""; document.getElementById("recRecherche").value = "";
+      dessinerReception();
+    });
+  }
+  /* Par date : on ouvre sur AUJOURD'HUI, c'est la question du matin. */
+  function recAller(pas){
+    if(!recCurseur) recCurseur = aujourdhuiMinuit();
+    recCurseur = recEchelle === "jour"
+      ? new Date(recCurseur.getFullYear(), recCurseur.getMonth(), recCurseur.getDate() + pas)
+      : new Date(recCurseur.getFullYear(), recCurseur.getMonth() + pas, 1);
+    dessinerReception();
+  }
+  var echRec = document.querySelectorAll(".rec-echelle button");
+  for(var ie = 0; ie < echRec.length; ie++){
+    echRec[ie].addEventListener("click", function(){
+      recEchelle = this.dataset.echelle;
+      dessinerReception();
+    });
+  }
+  document.getElementById("btnRecAvant").addEventListener("click", function(){ recAller(-1); });
+  document.getElementById("btnRecApres").addEventListener("click", function(){ recAller(1); });
+  document.getElementById("btnRecAujourdhui").addEventListener("click", function(){
+    recCurseur = aujourdhuiMinuit(); dessinerReception();
+  });
+  var choixJour = document.getElementById("recJourChoix");
+  choixJour.addEventListener("change", function(){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(this.value);
+    if(!m) return;
+    recCurseur = new Date(+m[1], +m[2] - 1, +m[3]);
+    dessinerReception();
+  });
+  /* Sur ordinateur, un clic sur le champ transparent n'ouvre pas toujours
+     le calendrier : on le lui demande. */
+  choixJour.addEventListener("click", function(){
+    try{ if(this.showPicker) this.showPicker(); }catch(e){}
+  });
+  /* La langue change : les libellés écrits par la page suivent. */
+  new MutationObserver(function(){
+    if(recHotel && !document.getElementById("recCorps").hidden) dessinerReception();
+  }).observe(document.documentElement, { attributes:true, attributeFilter:["lang"] });
+  document.getElementById("recRecherche").addEventListener("input", function(){
+    recRecherche = this.value.trim();
+    dessinerReception();
+  });
+  document.getElementById("btnRecAlerteOk").addEventListener("click", function(){
+    document.getElementById("recAlerte").hidden = true;
+    recNouveaux = {};
+    dessinerReception();
+  });
 
   document.getElementById("btnReception")
           .addEventListener("click", ouvrirReception);
@@ -6414,6 +7221,12 @@ window.ELA_TEXTES = {
     if(!recHotel) return;
     oublierCode(recHotel.cle);
     recCourses = [];
+    recEtatsConnus = null; recNouveaux = {};
+    recVue = "avenir"; recRecherche = ""; document.getElementById("recRecherche").value = "";
+    recCurseur = null; recEchelle = "jour"; recLuA = null;
+    document.getElementById("recPeriode").hidden = true;
+    document.getElementById("recAlerte").hidden = true;
+    document.getElementById("recSession").hidden = true;
     document.getElementById("recListe").innerHTML = "";
     document.getElementById("recCode").value = "";
     montrerVerrou(true);
@@ -6524,6 +7337,54 @@ window.ELA_TEXTES = {
          fait vraiment à cet instant : rattraper un envoi, pas prévenir. */
       document.getElementById("noteRenvoi").setAttribute("data-t", "renvoi_note_comptoir");
       document.getElementById("noteRenvoi").textContent = T("renvoi_note_comptoir");
+      /* ═══ LE FORMULAIRE PARLE À LA RÉCEPTION (30/09/2026) ═══
+         On réécrit les ATTRIBUTS de traduction, pas seulement le texte :
+         le sélecteur FR/EN reste, et il doit retrouver ces libellés-ci. */
+      [["label[for='clientNom'] .champ-titre", "data-t", "nom_comptoir"],
+       ["#clientNom", "data-t-ph", "ph_nom_comptoir"],
+       ["#clientTel", "data-t-ph", "ph_tel_comptoir"],
+       ["[data-t='aide_tel']", "data-t", "aide_tel_comptoir"]].forEach(function(r){
+        var el = document.querySelector(r[0]);
+        if(!el) return;
+        el.setAttribute(r[1], r[2]);
+        if(r[1] === "data-t") el.textContent = T(r[2]); else el.placeholder = T(r[2]);
+      });
+      /* ═══ APRÈS L'ENVOI, LE CHEMIN DU RETOUR ═══
+         Le bon n'offrait que « Réserver une autre course » : la réception
+         qui voulait vérifier sa liste restait coincée. */
+      if(!document.getElementById("btnBonVersReception")){
+        var versRec = document.createElement("button");
+        versRec.type = "button"; versRec.className = "bouton";
+        versRec.id = "btnBonVersReception";
+        versRec.setAttribute("data-t", "voir_reservations_hotel");
+        versRec.textContent = T("voir_reservations_hotel");
+        versRec.addEventListener("click", function(){
+          var acces = document.getElementById("btnReception");
+          if(acces) acces.click();
+        });
+        var actionsBon = document.getElementById("actionsBon");
+        actionsBon.insertBefore(versRec, document.getElementById("btnNouvelleCourse"));
+        /* Et le client repart avec son bon, dans le même geste. */
+        var envBon = document.createElement("button");
+        envBon.type = "button"; envBon.className = "bouton-fantome";
+        envBon.id = "btnBonEnvoyerClient"; envBon.hidden = true;
+        envBon.setAttribute("data-t", "envoyer_bon_client");
+        envBon.textContent = T("envoyer_bon_client");
+        envBon.addEventListener("click", function(){
+          if(!bonCourant) return;
+          var num = telWa(bonCourant.client && bonCourant.client.telephone);
+          var co = bonCourant.course || {};
+          ouvrirBonVisuel({
+            ref:bonCourant.ref, date:co.date, heure:co.heure,
+            depart:(co.departPublic || co.depart || "").split(",")[0],
+            arrivee:(co.arriveePublic || co.arrivee || "").split(",")[0],
+            vehicule:co.vehicule, prix:bonCourant.prix && bonCourant.prix.total,
+            paiement:bonCourant.paiement ? T(bonCourant.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "",
+            statut:bonCourant.statut, chauffeur:bonCourant.statut === "confirmee" ? bonCourant.chauffeur : null
+          }, num);
+        });
+        actionsBon.insertBefore(envBon, versRec);
+      }
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
       ["listeVehicules", "blocCoordonnees", "blocPaiement"].forEach(function(id){
@@ -8250,8 +9111,12 @@ window.ELA_TEXTES = {
     etat.setAttribute("data-t", confirme ? "bon_etat_ok" : "bon_etat");
     etat.classList.toggle("confirme", confirme);
     var note = document.getElementById("bonNote");
-    note.textContent = T(confirme ? "bon_note_ok" : "bon_note");
-    note.setAttribute("data-t", confirme ? "bon_note_ok" : "bon_note");
+    /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
+       la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
+       de l'hôtel. */
+    var cleNote = confirme ? "bon_note_ok" : (recHotel ? "bon_note_comptoir" : "bon_note");
+    note.textContent = T(cleNote);
+    note.setAttribute("data-t", cleNote);
     /* On réécrit l'ATTRIBUT « data-t », pas seulement le texte : sans ça, un
        changement de langue rendrait au bon confirmé la phrase de l'attente. */
 
@@ -8617,7 +9482,7 @@ window.ELA_TEXTES = {
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
     /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
        bouton pour ça, et la réception a notre numéro. Elle appelle. */
-    texteEnvoi.textContent = T(etat === true ? "envoi_ok"
+    texteEnvoi.textContent = T(etat === true ? (recHotel ? "envoi_ok_comptoir" : "envoi_ok")
                              : etat === false ? (recHotel ? "envoi_ko_comptoir" : "envoi_ko")
                              : "envoi_cours");
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
@@ -8651,14 +9516,316 @@ window.ELA_TEXTES = {
      l'absence de repli — il désignerait une porte qui n'existe plus.
      RIEN DE TOUT ÇA CÔTÉ CLIENT : lui garde son bouton en permanence, son
      message WhatsApp est le second chemin par lequel sa demande arrive. */
+  /* ═══ LE BON ENVOYÉ AU CLIENT PAR LA RÉCEPTION (30/09/2026) ═══
+     Sept lignes, dans la langue choisie à l'écran (le sélecteur FR/EN sert
+     justement quand le client devant le comptoir est étranger). Ce sont SES
+     informations, envoyées à SON numéro : rien d'autre que sa course. Le
+     chauffeur n'y figure que sur une course confirmée — avant, rien n'est
+     acquis, et un nom promettrait une voiture que personne n'a acceptée. */
+  function langueMessage(){ return document.documentElement.lang === "en" ? "en" : "fr"; }
+  function messageBonClient(b, langue){
+    var en = langue === "en";
+    var d = new Date((b.date || "") + "T" + (b.heure || ""));
+    var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
+      : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
+        + (en ? " at " : " à ") + (b.heure || "");
+    var prix = (typeof b.prix === "number" && b.prix)
+      ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "";
+    var etat = (b.statut === "confirmee" || b.statut === "realisee")
+      ? (b.statut === "realisee" ? (en ? "Completed" : "Course effectuée") : (en ? "Confirmed" : "Confirmé"))
+        + (b.chauffeur && b.chauffeur.nom ? (en ? " — driver " : " — chauffeur ") + b.chauffeur.nom
+           + (b.chauffeur.telephone ? ", " + b.chauffeur.telephone : "") : "")
+      : (en ? "Awaiting confirmation — we will confirm shortly" : "En attente de confirmation — nous confirmons très vite");
+    return [
+      en ? "Elatransfer — your transfer" : "Elatransfer — votre transfert",
+      (en ? "Ref. " : "Réf. ") + (b.ref || ""),
+      quand.charAt(0).toUpperCase() + quand.slice(1),
+      (b.depart || "—") + " → " + (b.arrivee || "—"),
+      [b.vehicule, prix, b.paiement].filter(Boolean).join(" · "),
+      etat,
+      (en ? "Questions: " : "Une question : ") + "+33 7 59 31 24 33"
+    ].join("\n");
+  }
+
+  /* ═══ LE BON EN IMAGE (30/09/2026, à sa demande : « un bon visuel plutôt
+     qu'un message ») ═══
+     Une image se montre au client devant le comptoir, se photographie, et
+     arrive dans WhatsApp comme un vrai bon — le même que celui du site :
+     le logo, l'état, la référence, le trajet, le prix ferme.
+     DESSINÉE DANS LA PAGE (canvas), pas chez un tiers : les informations
+     d'un client ne partent vers aucun service pour être mises en forme.
+     LE PARTAGE PASSE PAR UN APERÇU, et ce n'est pas un détour. Safari
+     n'autorise le partage d'un fichier que dans la foulée immédiate d'un
+     appui ; fabriquer l'image prend un instant. On la fabrique donc à
+     l'ouverture de l'aperçu, et le bouton « Envoyer » la partage d'un
+     coup, sans attente.
+     LE TEXTE RESTE EN SECOURS : un partage de fichier ne sait pas viser un
+     numéro, et certains navigateurs ne partagent pas d'image du tout. */
+  function sautsDeLigne(ctx, texte, largeur, maxLignes){
+    var mots = String(texte || "").split(/\s+/), lignes = [], cur = "";
+    mots.forEach(function(m){
+      var essai = cur ? cur + " " + m : m;
+      if(ctx.measureText(essai).width > largeur && cur){ lignes.push(cur); cur = m; }
+      else cur = essai;
+    });
+    if(cur) lignes.push(cur);
+    if(lignes.length > maxLignes){
+      lignes = lignes.slice(0, maxLignes);
+      var der = lignes[maxLignes - 1];
+      while(der.length > 1 && ctx.measureText(der + "…").width > largeur) der = der.slice(0, -1);
+      lignes[maxLignes - 1] = der + "…";
+    }
+    return lignes;
+  }
+  function rectArrondi(ctx, x, y, l, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + l, y, x + l, y + h, r);
+    ctx.arcTo(x + l, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + l, y, r); ctx.closePath();
+  }
+  function dessinerBonImage(b, langue){
+    var en = langue === "en";
+    var P = "Figtree, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+    var W = 1080, H = 1350;
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+    var logo = new Image(); logo.src = "brand-logo.webp";
+    var pret = (logo.decode ? logo.decode() : Promise.resolve()).catch(function(){ logo = null; });
+    var polices = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
+    return Promise.all([pret, polices]).then(function(){
+      /* Une course EFFECTUÉE se renvoie aussi (30/09/2026) : un client
+         qui revient au comptoir pour sa note de frais veut la référence,
+         le trajet et le prix. Elle garde le bleu et son chauffeur. */
+      var effectuee = b.statut === "realisee";
+      var confirme = b.statut === "confirmee" || effectuee;
+      var d = new Date((b.date || "") + "T" + (b.heure || ""));
+      var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
+        : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
+          + " · " + (b.heure || "");
+      quand = quand.charAt(0).toUpperCase() + quand.slice(1);
+      var lignes = [
+        [en ? "Date & time" : "Date et heure", quand, 44],
+        [en ? "Pick-up" : "Départ", b.depart || "—", 36],
+        [en ? "Drop-off" : "Arrivée", b.arrivee || "—", 36],
+        [en ? "Vehicle · payment" : "Véhicule · paiement",
+          [b.vehicule, b.paiement].filter(Boolean).join(" · ") || "—", 36]
+      ];
+      if(confirme && b.chauffeur && b.chauffeur.nom){
+        lignes.push([en ? "Driver" : "Chauffeur",
+          b.chauffeur.nom + (b.chauffeur.telephone ? " · " + b.chauffeur.telephone : ""), 36]);
+      }
+      /* LA HAUTEUR SUIT LE CONTENU. Une hauteur fixe coupait la dernière
+         ligne — celle du chauffeur, justement celle qui compte sur un bon
+         confirmé. On mesure d'abord, on dessine ensuite. */
+      lignes.forEach(function(l){
+        ctx.font = "700 " + l[2] + "px " + P;
+        l.push(sautsDeLigne(ctx, l[1], 840, 2));
+      });
+      var HAUT_LIGNES = 575, finLignes = HAUT_LIGNES;
+      function hauteurLigne(l){ return 12 + l[3].length * (l[2] + 10) + 44; }
+      lignes.forEach(function(l){ finLignes += hauteurLigne(l); });
+      H = Math.max(1350, finLignes + 300);
+      cv.height = H;
+      var bas = H;
+
+      ctx.fillStyle = "#EEF3F7"; ctx.fillRect(0, 0, W, H);
+      ctx.save(); ctx.shadowColor = "rgba(6,47,85,.12)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+      rectArrondi(ctx, 60, 60, 960, H - 120, 44); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore();
+      ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+      if(logo && logo.naturalWidth){
+        var lw = 380, lh = lw * logo.naturalHeight / logo.naturalWidth;
+        ctx.drawImage(logo, (W - lw) / 2, 105, lw, lh);
+      } else {
+        ctx.fillStyle = "#062f55"; ctx.font = "800 72px " + P; ctx.fillText("ELA TRANSFER", W / 2, 220);
+      }
+      /* L'état : gris tant qu'on cherche, vert plein une fois confirmé —
+         la même règle que le bon du site. */
+      var etat = effectuee ? (en ? "COMPLETED" : "EFFECTUÉE")
+        : confirme ? (en ? "CONFIRMED" : "CONFIRMÉ") : (en ? "REQUEST RECEIVED" : "DEMANDE REÇUE");
+      ctx.font = "800 28px " + P;
+      var pl = ctx.measureText(etat).width + 60;
+      rectArrondi(ctx, (W - pl) / 2, 305, pl, 56, 28);
+      ctx.fillStyle = confirme ? "#0E5FA8" : "#6B7780"; ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText(etat, W / 2, 343);
+      ctx.fillStyle = "#14344e"; ctx.font = "800 64px " + P; ctx.fillText(b.ref || "", W / 2, 440);
+      ctx.fillStyle = "#6f7f8b"; ctx.font = "700 26px " + P;
+      ctx.fillText(en ? "BOOKING VOUCHER" : "BON DE RÉSERVATION", W / 2, 482);
+      ctx.fillStyle = "#dbe6ed"; ctx.fillRect(120, 518, 840, 2);
+
+      ctx.textAlign = "left";
+      var y = HAUT_LIGNES;
+      lignes.forEach(function(l){
+        ctx.fillStyle = "#6f7f8b"; ctx.font = "600 26px " + P; ctx.fillText(l[0], 120, y);
+        ctx.fillStyle = "#14344e"; ctx.font = "700 " + l[2] + "px " + P;
+        l[3].forEach(function(t, i){ ctx.fillText(t, 120, y + 12 + l[2] + i * (l[2] + 10)); });
+        y += hauteurLigne(l);
+      });
+      var yPrix = bas - 290;
+
+      /* Le prix dans son encart bleu clair : c'est la dernière chose qu'on relit. */
+      rectArrondi(ctx, 120, yPrix, 840, 130, 28); ctx.fillStyle = "#EAF3FC"; ctx.fill();
+      ctx.fillStyle = "#062f55"; ctx.font = "800 28px " + P; ctx.textAlign = "left";
+      ctx.fillText(en ? "FIRM PRICE" : "PRIX FERME", 160, yPrix + 78);
+      var prix = (typeof b.prix === "number" && b.prix)
+        ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "—";
+      ctx.font = "800 60px " + P; ctx.textAlign = "right"; ctx.fillText(prix, 920, yPrix + 86);
+
+      ctx.textAlign = "center"; ctx.fillStyle = "#6f7f8b"; ctx.font = "500 26px " + P;
+      ctx.fillText((en ? "Paid directly to the driver · " : "Réglé directement au chauffeur · ") + "+33 7 59 31 24 33", W / 2, bas - 110);
+      return new Promise(function(ok, ko){
+        cv.toBlob(function(bl){ bl ? ok(bl) : ko(new Error("image")); }, "image/png");
+      });
+    });
+  }
+
+  /* ═══ LE CHOIX : BON EN IMAGE OU MESSAGE ÉCRIT (30/09/2026) ═══
+     À sa demande : « il faut qu'on puisse avoir le choix entre le bon en
+     image et en écrit ». Deux onglets en tête de la feuille, et chacun MONTRE
+     ce qui partira avant qu'on l'envoie — l'image, ou le texte exact.
+     - IMAGE : « Envoyer l'image » ouvre le partage du téléphone (on y choisit
+       WhatsApp puis le client) ; sans partage possible, « Enregistrer
+       l'image » la range dans la galerie.
+     - ÉCRIT : « Envoyer sur WhatsApp » écrit DIRECTEMENT au numéro du client
+       — c'est son avantage sur l'image. Sans numéro, on copie le message.
+     L'image s'ouvre par défaut : c'est la demande de Barbaros, et c'est ce
+     qu'un client relit le plus facilement. Créée au premier usage — la page
+     du client n'en a jamais besoin. */
+  function ouvrirBonVisuel(b, numero){
+    var en = langueMessage() === "en";
+    var f = document.getElementById("bonVisuel");
+    if(!f){
+      f = document.createElement("div");
+      f.id = "bonVisuel"; f.className = "bv"; f.setAttribute("role", "dialog");
+      f.setAttribute("aria-modal", "true");
+      f.innerHTML = '<div class="bv-voile"></div><div class="bv-corps">'
+        + '<p class="bv-titre" id="bvTitre"></p>'
+        + '<div class="bv-choix" role="tablist">'
+        +   '<button type="button" role="tab" data-bv="image" id="bvOngletImage"></button>'
+        +   '<button type="button" role="tab" data-bv="texte" id="bvOngletTexte"></button>'
+        + '</div>'
+        + '<div class="bv-pan" data-pan="image">'
+        +   '<img class="bv-img" alt="">'
+        +   '<p class="bv-etat"></p>'
+        +   '<button type="button" class="bouton" id="bvPartager"></button>'
+        +   '<a class="bouton-fantome" id="bvEnregistrer"></a>'
+        +   '<p class="bv-note" id="bvNoteImage"></p>'
+        + '</div>'
+        + '<div class="bv-pan" data-pan="texte" hidden>'
+        +   '<pre class="bv-texte" id="bvApercuTexte"></pre>'
+        +   '<button type="button" class="bouton" id="bvTexte"></button>'
+        +   '<button type="button" class="bouton-fantome" id="bvCopier"></button>'
+        +   '<p class="bv-note" id="bvNoteTexte"></p>'
+        + '</div>'
+        + '<button type="button" class="bv-fermer" id="bvFermer"></button></div>';
+      document.body.appendChild(f);
+      var fermer = function(){
+        f.hidden = true;
+        if(f.dataset.url){ URL.revokeObjectURL(f.dataset.url); delete f.dataset.url; }
+      };
+      f.querySelector(".bv-voile").addEventListener("click", fermer);
+      document.getElementById("bvFermer").addEventListener("click", fermer);
+      f.querySelectorAll(".bv-choix button").forEach(function(o){
+        o.addEventListener("click", function(){ montrerChoixBon(o.dataset.bv); });
+      });
+      document.getElementById("bvPartager").addEventListener("click", function(){
+        var fichier = f._fichier;
+        if(fichier && navigator.canShare && navigator.canShare({ files:[fichier] })){
+          navigator.share({ files:[fichier], title:f._titre }).catch(function(){});
+        } else {
+          document.getElementById("bvEnregistrer").click();
+        }
+      });
+      document.getElementById("bvTexte").addEventListener("click", function(){
+        if(!f._numero) return;
+        window.open("https://wa.me/" + f._numero + "?text="
+          + encodeURIComponent(f._message), "_blank", "noopener");
+      });
+      document.getElementById("bvCopier").addEventListener("click", function(){
+        var bouton = this, en2 = langueMessage() === "en";
+        var fait = function(){ bouton.textContent = en2 ? "Message copied" : "Message copié"; };
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(f._message).then(fait).catch(function(){ selectionnerTexte(); });
+        } else selectionnerTexte();
+      });
+    }
+    function selectionnerTexte(){
+      var pre = document.getElementById("bvApercuTexte");
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    }
+    f._bon = b; f._numero = numero || ""; f._fichier = null;
+    f._message = messageBonClient(b, langueMessage());
+    f._titre = (en ? "Voucher " : "Bon ") + (b.ref || "");
+    document.getElementById("bvTitre").textContent = en ? "Send the voucher to the guest" : "Envoyer le bon au client";
+    document.getElementById("bvOngletImage").textContent = en ? "Image voucher" : "Bon en image";
+    document.getElementById("bvOngletTexte").textContent = en ? "Written message" : "Message écrit";
+    var img = f.querySelector(".bv-img"), etat = f.querySelector(".bv-etat");
+    var partager = document.getElementById("bvPartager"), enreg = document.getElementById("bvEnregistrer");
+    var noteImage = document.getElementById("bvNoteImage");
+    img.alt = f._titre; img.removeAttribute("src");
+    etat.textContent = en ? "Preparing the voucher…" : "Préparation du bon…"; etat.hidden = false;
+    partager.textContent = en ? "Send the image" : "Envoyer l'image";
+    enreg.textContent = en ? "Save the image" : "Enregistrer l'image";
+    partager.hidden = true; enreg.hidden = true; noteImage.hidden = true;
+    /* Le texte : on MONTRE exactement ce qui partira. */
+    document.getElementById("bvApercuTexte").textContent = f._message;
+    var btnTexte = document.getElementById("bvTexte"), btnCopier = document.getElementById("bvCopier");
+    var noteTexte = document.getElementById("bvNoteTexte");
+    btnTexte.textContent = en ? "Send on WhatsApp" : "Envoyer sur WhatsApp";
+    btnCopier.textContent = en ? "Copy the message" : "Copier le message";
+    btnTexte.hidden = !numero;
+    btnCopier.className = numero ? "bouton-fantome" : "bouton";
+    noteTexte.textContent = numero
+      ? (en ? "Opens WhatsApp directly on the guest's number." : "Ouvre WhatsApp directement sur le numéro du client.")
+      : (en ? "No phone number for this guest: copy the message and send it yourself."
+            : "Pas de numéro pour ce client : copiez le message pour l'envoyer vous-même.");
+    document.getElementById("bvFermer").textContent = en ? "Close" : "Fermer";
+    montrerChoixBon("image");
+    f.hidden = false;
+    dessinerBonImage(b, langueMessage()).then(function(blob){
+      if(f.dataset.url) URL.revokeObjectURL(f.dataset.url);
+      var url = URL.createObjectURL(blob); f.dataset.url = url;
+      img.src = url;
+      var nom = "bon-" + (b.ref || "elatransfer") + ".png";
+      try{ f._fichier = new File([blob], nom, { type:"image/png" }); }catch(e){ f._fichier = null; }
+      enreg.href = url; enreg.download = nom; enreg.hidden = false;
+      /* « Envoyer l'image » n'apparaît que si l'appareil sait partager un
+         fichier ; sinon on enregistre, et on dit quoi faire ensuite. */
+      var peutPartager = !!(f._fichier && navigator.canShare && navigator.canShare({ files:[f._fichier] }));
+      partager.hidden = !peutPartager;
+      enreg.className = peutPartager ? "bouton-fantome" : "bouton";
+      noteImage.textContent = peutPartager
+        ? (en ? "Choose WhatsApp, then the guest." : "Choisissez WhatsApp, puis le client.")
+        : (en ? "Save it, then send it from your photos — or show the screen to the guest."
+              : "Enregistrez-la puis envoyez-la depuis vos photos — ou montrez l'écran au client.");
+      noteImage.hidden = false;
+      etat.hidden = true;
+    }).catch(function(){
+      etat.textContent = en ? "The image could not be created: use the written message."
+                            : "L'image n'a pas pu être créée : utilisez le message écrit.";
+    });
+  }
+  function montrerChoixBon(choix){
+    var f = document.getElementById("bonVisuel");
+    if(!f) return;
+    f.querySelectorAll(".bv-choix button").forEach(function(o){
+      var actif = o.dataset.bv === choix;
+      o.classList.toggle("actif", actif);
+      o.setAttribute("aria-selected", actif ? "true" : "false");
+    });
+    f.querySelectorAll(".bv-pan").forEach(function(p){ p.hidden = p.dataset.pan !== choix; });
+  }
+
   function jugerRenvoiComptoir(){
     if(!recHotel) return;
     btnRenvoyer.hidden = true;
+    var envBon = document.getElementById("btnBonEnvoyerClient");
+    if(envBon) envBon.hidden = !bonCourant;
     /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
        rouge posé juste au-dessus porte déjà la consigne et le numéro ;
        deux phrases pour une même chose, c'est le doublon qu'on vient de
        retirer du récapitulatif. */
-    document.getElementById("noteRenvoi").hidden = (envoiEtat === false);
+    document.getElementById("noteRenvoi").hidden = true;
   }
 
   /* ═══ UN ÉCHEC MESURÉ EN ARRIÈRE-PLAN NE VEUT RIEN DIRE ═══
@@ -8918,6 +10085,20 @@ window.ELA_TEXTES = {
   /* La paire VAPID : P-256, publique = 65 octets non compressés, privée =
      32 octets bruts, en base64url — exactement ce qu'attend chiffrer.js. */
   var elClesVapid = document.getElementById("btnClesVapid");
+  /* LES CLÉS SONT POSÉES DEPUIS LE 29/09/2026 (audit du 30/09). Une nouvelle
+     paire recollée par erreur dans Supabase couperait TOUS les abonnements
+     existants, sans un message. Le bloc ne s'affiche donc que tant que le
+     serveur n'a pas de clé valable. */
+  var blocClesVapid = document.getElementById("blocClesVapid");
+  /* On ne demande la clé qu'une fois l'espace ouvert : sur la page d'un
+     client, cet appel n'a rien à faire. */
+  if(blocClesVapid){
+    blocClesVapid.hidden = true;
+    document.addEventListener("ela:espace", function(){
+      cleVapid().then(function(){ blocClesVapid.hidden = true; },
+                      function(){ blocClesVapid.hidden = false; });
+    });
+  }
   if(elClesVapid) elClesVapid.addEventListener("click", function(){
     crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
       .then(function(k){ return crypto.subtle.exportKey("jwk", k.privateKey); })
@@ -8949,6 +10130,19 @@ window.ELA_TEXTES = {
                 + encodeURIComponent(messageDemande(bonCourant)), "_blank");
   });
   document.getElementById("btnNouvelleCourse").addEventListener("click", function(){
+    /* ═══ AU COMPTOIR, LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT
+       (30/09/2026) ═══ La chambre, le nom et le téléphone du précédent
+       restaient remplis : réservé à la chaîne, le client suivant partait
+       avec la chambre d'un autre — et son numéro recevait le bon d'un
+       inconnu. Côté client, on garde : c'est le même voyageur. */
+    if(recHotel){
+      ["chambre", "clientNom", "clientTel", "vol", "pancarteNom"].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el){ el.value = ""; el.dispatchEvent(new Event("input", { bubbles:true })); }
+      });
+      paiementChoisi = null; marquerPaiement();
+      heureTouchee = false; poserDefautHeure(); jugerDelai();
+    }
     ecran("ecran-accueil");
   });
 
@@ -8976,7 +10170,7 @@ window.ELA_TEXTES = {
      rien : ils vont dans l'autre liste. Laisser un refus parmi les
      réservations ferait attendre une réponse déjà donnée. */
   function estFinie(bon){
-    return bon && (bon.statut === "realisee" || bon.statut === "refusee");
+    return bon && (bon.statut === "realisee" || bon.statut === "refusee" || bon.statut === "annulee");
   }
 
   /* ═══ L'ÉTAT VIENT DU SERVEUR, PAS DU TÉLÉPHONE ═══
@@ -9080,12 +10274,13 @@ window.ELA_TEXTES = {
       var et = bon.statut === "confirmee" ? "etat_confirme"
              : bon.statut === "realisee"  ? "etat_faite"
              : bon.statut === "refusee"   ? "etat_refusee"
+             : bon.statut === "annulee"   ? "etat_annulee"
              : "etat_court";
       var pastille = b.querySelector(".course-etat");
       pastille.textContent = T(et);
       pastille.classList.toggle("ok",   et === "etat_confirme");
       pastille.classList.toggle("fini", et === "etat_faite");
-      pastille.classList.toggle("non",  et === "etat_refusee");
+      pastille.classList.toggle("non",  et === "etat_refusee" || et === "etat_annulee");
       b.querySelector(".course-date").textContent = dateLisible(bon);
       b.querySelector(".course-prix").textContent = euros(bon.prix.total);
       b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
@@ -9242,6 +10437,121 @@ window.ELA_TEXTES = {
     return neuves.length;
   }
 
+  /* ═══ LE SERVEUR EST LA SEULE VÉRITÉ, L'APPAREIL N'EST QU'UNE COPIE ═══
+     2 octobre 2026, Barbaros : « je valide une course, ça revient ; je
+     refuse, ça revient ». La cause n'était pas un bouton : c'était DEUX
+     vérités. « fusionner » ne faisait qu'AJOUTER ce que l'appareil ne
+     connaissait pas — une course confirmée sur l'ordinateur restait « en
+     attente » sur le téléphone pour toujours. Et « pousser » partait sans
+     regarder s'il arrivait : l'écran disait « refusée », le serveur disait
+     « en attente », et la relance Telegram sonnait sur une course qu'il
+     croyait réglée. « Ça revient. »
+
+     TROIS RÈGLES, ET ELLES TIENNENT ENSEMBLE :
+     1. Chaque course porte sur le serveur un NUMÉRO DE VERSION (migration
+        20261002000000). L'appareil garde celui qu'il a lu (« _v »). Quand
+        le serveur est plus récent, sa copie est REMPLACÉE, plus complétée.
+     2. Toute modification entre dans une FILE D'ATTENTE sur l'appareil
+        (« ela_file »), envoyée tout de suite, réessayée si ça échoue —
+        réseau, retour de WhatsApp, session expirée — et qui survit à un
+        rechargement. Un témoin le dit à l'écran tant qu'elle n'est pas
+        vide. Plus jamais un écran qui dit une chose pendant que le serveur
+        en dit une autre, sans que personne le sache.
+     3. On écrit SOUS CONDITION : « modifie la version N ». Si la version a
+        bougé — un autre appareil est passé avant — le serveur ne touche à
+        rien, on relit, le serveur gagne, et on le DIT. Impossible d'écraser
+        du frais avec du vieux.
+
+     POURQUOI « LE SERVEUR GAGNE » ET PAS « LE DERNIER GESTE GAGNE » : le
+     geste perdu a été fait sur une copie périmée, donc sur une information
+     fausse. Mieux vaut le lui remontrer et qu'il le refasse en connaissance
+     de cause qu'exécuter un refus sur une course déjà confirmée ailleurs.
+     Avec un seul exploitant, le cas est rare ; il doit juste ne jamais
+     passer en silence.
+
+     « _v » et « _cree » ne quittent jamais l'appareil : ils sont retirés
+     du bon avant l'envoi. */
+  var CLE_FILE = "ela_file";
+  function fileAttente(){
+    try{ var f = JSON.parse(localStorage.getItem(CLE_FILE) || "{}"); return f && typeof f === "object" ? f : {}; }
+    catch(e){ return {}; }
+  }
+  function ecrireFile(f){ try{ localStorage.setItem(CLE_FILE, JSON.stringify(f)); }catch(e){} }
+  function enFile(ref){ return !!fileAttente()[ref]; }
+  function mettreEnFile(ref){
+    var f = fileAttente();
+    if(!f[ref]) f[ref] = { depuis: Date.now(), essais: 0 };
+    ecrireFile(f);
+  }
+  function retirerDeFile(ref){
+    var f = fileAttente();
+    if(f[ref]){ delete f[ref]; ecrireFile(f); }
+  }
+  function remplacerLocal(c){
+    var liste = registre(), trouve = false;
+    for(var i=0;i<liste.length;i++) if(liste[i] && liste[i].ref === c.ref){ liste[i] = c; trouve = true; }
+    if(!trouve) liste.unshift(c);
+    ecrireRegistre(liste);
+  }
+  /* Ce que lit « lister » : des bons portant « _v » (version serveur) et
+     « _cree » (date d'arrivée serveur), le statut de la COLONNE faisant
+     foi sur celui du JSON — c'est la colonne que lisent la relance et la
+     réception. Un serveur d'avant la migration ne rend pas de version :
+     « _v » reste alors absent et on retombe sur l'ancien comportement. */
+  function reconcilier(distantes){
+    var local = registre();
+    var parRef = {};
+    local.forEach(function(c){ if(c && c.ref) parRef[c.ref] = c; });
+    var file = fileAttente();
+    var neuves = [], changees = [];
+    var plusAncienne = null;
+    distantes.forEach(function(d){
+      if(!d || !d.ref) return;
+      if(d._cree && (!plusAncienne || d._cree < plusAncienne)) plusAncienne = d._cree;
+      var l = parRef[d.ref];
+      if(!l){ neuves.push(d); parRef[d.ref] = d; return; }
+      /* Une modification de CET appareil attend encore de partir : on garde
+         sa copie, c'est l'envoi qui tranchera (sous condition de version). */
+      if(file[d.ref]) return;
+      var vS = Number(d._v) || 0, vL = Number(l._v) || 0;
+      if(vS > vL){
+        parRef[d.ref] = d;
+        if((l.statut || "attente") !== (d.statut || "attente")) changees.push(d.ref);
+      }
+    });
+    /* UNE COURSE QUE LE SERVEUR NE MONTRE PLUS A ÉTÉ SUPPRIMÉE AILLEURS :
+       elle s'efface ici aussi. Seulement si on l'avait bien lue du serveur
+       un jour (« _v »), et seulement si la liste n'est pas tronquée à cet
+       endroit — au-delà de 1000 lignes, « absente de la liste » ne veut
+       plus dire « absente du serveur ». Une course jamais partie d'ici (sans
+       « _v », pas en file) est remise en file : c'est exactement celle qui
+       « ne vivait que dans son téléphone ». */
+    var presentes = {};
+    distantes.forEach(function(d){ if(d && d.ref) presentes[d.ref] = true; });
+    var tronquee = distantes.length >= 1000;
+    var resultat = [];
+    Object.keys(parRef).forEach(function(ref){
+      var c = parRef[ref];
+      if(presentes[ref] || file[ref]){ resultat.push(c); return; }
+      if(c._v){
+        if(!tronquee || (c._cree && plusAncienne && c._cree >= plusAncienne)) return;
+        resultat.push(c); return;
+      }
+      resultat.push(c);
+      mettreEnFile(ref);
+    });
+    /* L'ordre du serveur d'abord (le plus récent en tête), puis le reste. */
+    var rangs = {};
+    distantes.forEach(function(d, i){ if(d && d.ref) rangs[d.ref] = i; });
+    resultat.sort(function(a, b){
+      var ra = rangs[a.ref] !== undefined ? rangs[a.ref] : 1e9;
+      var rb = rangs[b.ref] !== undefined ? rangs[b.ref] : 1e9;
+      return ra - rb;
+    });
+    ecrireRegistre(resultat);
+    return { neuves: neuves.length, changees: changees };
+  }
+
   /* Le serveur, côté exploitant : se connecter, lire, et remonter une
      course qu'on vient de modifier. */
   var CLE_SESSION = "ela_nuage_session";
@@ -9297,6 +10607,11 @@ window.ELA_TEXTES = {
     if(this.connecte()) entetes.Authorization = "Bearer " + this.session.access_token;
     return fetch(SUPABASE_URL + chemin, {
       method: options.method || "GET", body: options.body,
+      /* « keepalive » : une écriture lancée juste avant que WhatsApp prenne
+         l'écran (« Prévenir le client ») survit au gel de la page. Sans lui,
+         iOS l'abandonnait et l'admin disait « confirmée » pendant que le
+         serveur disait « en attente ». */
+      keepalive: !!options.keepalive,
       signal: ctrl.signal, headers: entetes
     }).then(function(r){
       clearTimeout(minuteur);
@@ -9388,35 +10703,223 @@ window.ELA_TEXTES = {
      ou au tour de fond. C'est ce qui permet de voir une demande en
      quelques secondes sans faire télécharger la liste entière à chaque
      fois sur un téléphone en 4G. */
+  /* LA SONDE DEMANDE « LA COURSE MODIFIÉE LE PLUS RÉCEMMENT », pas la
+     dernière arrivée (2 octobre 2026) : une confirmation faite sur un autre
+     appareil change la réponse, et la relecture complète part dans les 8 s.
+     Avant, seule une NOUVELLE course la faisait partir — un changement
+     ailleurs attendait le tour de fond, 45 s.
+     IL N'Y A PLUS DE REPLI « SERVEUR SANS VERSION » (2 octobre 2026, le
+     soir) : la migration est appliquée en production — lu dans le journal
+     du workflow, colonnes « version » et « modifie_le » listées. Le repli se
+     déclenchait sur TOUT message contenant « 400 » et repassait l'admin en
+     écrasement complet pour la session entière : exactement le défaut que
+     la version existe pour fermer. Une colonne absente est désormais une
+     erreur AFFICHÉE (#bordHorsLigne), jamais un écrasement muet. */
   nuage.derniere = function(){
     if(!this.connecte()) return Promise.resolve(null);
-    return this.appel("/rest/v1/courses?select=ref&order=cree_le.desc&limit=1")
-      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) || ""; });
+    return this.appel("/rest/v1/courses?select=ref,version&order=modifie_le.desc&limit=1")
+      .then(function(r){ return (Array.isArray(r) && r[0] && r[0].ref) ? r[0].ref + ":" + (r[0].version || "") : ""; });
   };
   nuage.lister = function(){
     if(!this.connecte()) return Promise.resolve(null);
-    /* AUCUN « catch » ICI, ET C'EST DÉLIBÉRÉ. Il y en avait un : une lecture
-       refusée rendait « null », exactement comme « pas connecté », et le
-       tableau de bord ne disait rien. Une panne qui ressemble à un état
-       normal ne se répare jamais. L'erreur remonte donc à l'appelant, qui
-       l'affiche. */
-    return this.appel("/rest/v1/courses?select=bon&order=cree_le.desc&limit=1000")
-      .then(function(r){
-        return Array.isArray(r) ? r.map(function(x){ return x.bon; }).filter(Boolean) : [];
-      });
+    var moi = this;
+    /* AUCUN « catch » QUI RENDE null ICI, ET C'EST DÉLIBÉRÉ. Il y en avait
+       un : une lecture refusée rendait « null », exactement comme « pas
+       connecté », et le tableau de bord ne disait rien. Une panne qui
+       ressemble à un état normal ne se répare jamais. L'erreur remonte donc
+       à l'appelant, qui l'affiche. Aucun repli : une colonne « version »
+       absente est une erreur affichée, pas une lecture à l'ancienne. */
+    var lire = function(){
+      var champs = "bon,statut,version,modifie_le,cree_le";
+      return moi.appel("/rest/v1/courses?select=" + champs + "&order=cree_le.desc&limit=1000")
+        .then(function(r){
+          return Array.isArray(r) ? r.map(function(x){
+            var b = x && x.bon;
+            if(!b || !b.ref) return null;
+            if(x.statut) b.statut = x.statut;
+            if(x.version) b._v = x.version;
+            if(x.cree_le) b._cree = x.cree_le;
+            return b;
+          }).filter(Boolean) : [];
+        });
+    };
+    return lire();
   };
-  /* DÉPÔT-OU-MISE-À-JOUR. Un simple PATCH ne modifierait qu'une ligne
-     existante : il ne pourrait rien faire d'une course que Barbaros saisit
-     lui-même, qui n'a jamais été déposée par un client. Ces courses-là ne
-     vivraient que dans son téléphone, et changer d'appareil les perdrait. */
+  /* « POUSSER » METTRE EN FILE, ET LA FILE ENVOIE. Les appelants n'ont pas
+     changé — ils donnent le bon à envoyer — mais plus rien ne part en
+     « on verra » : la file réessaie jusqu'à ce que le serveur ait répondu,
+     et le témoin de l'écran dit tant que ce n'est pas fait. */
   nuage.pousser = function(bon){
-    if(!this.connecte() || !bon || !bon.ref) return Promise.resolve(false);
-    return this.appel("/rest/v1/courses", {
-      method:"POST",
-      headers:{ Prefer:"return=minimal,resolution=merge-duplicates" },
-      body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
-    }).then(function(){ return true; }).catch(function(){ return false; });
+    if(!bon || !bon.ref) return Promise.resolve(false);
+    mettreEnFile(bon.ref);
+    jugerSynchro();
+    return viderFile();
   };
+  /* L'ENVOI D'UNE COURSE, SOUS CONDITION DE VERSION.
+     Résultats : « ok » (écrite), « conflit » (le serveur était plus récent :
+     sa version a remplacé la nôtre), « attendre » (réseau, session — on
+     réessaie). Jamais de silence. */
+  function bonPourEnvoi(c){
+    var b = JSON.parse(JSON.stringify(c)); delete b._v; delete b._cree; return b;
+  }
+  function depuisServeur(x){
+    var b = x && x.bon; if(!b) return null;
+    if(x.statut) b.statut = x.statut;
+    if(x.version) b._v = x.version;
+    if(x.cree_le) b._cree = x.cree_le;
+    return b;
+  }
+  nuage.envoyerCourse = function(c){
+    var moi = this, ref = c.ref, b = bonPourEnvoi(c), statut = c.statut || "attente";
+    var opts = { keepalive: true };
+    function relire(){
+      return moi.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref)
+                       + "&select=bon,statut,version,modifie_le,cree_le&limit=1")
+        .then(function(r){ return Array.isArray(r) && r[0] ? r[0] : null; });
+    }
+    function conflit(ligne){
+      var d = depuisServeur(ligne);
+      if(d) remplacerLocal(d);
+      return "conflit";
+    }
+    /* PLUS AUCUN « merge-duplicates » NULLE PART (2 octobre 2026, le
+       soir). C'était l'ancien dépôt-ou-mise-à-jour, gardé « le temps que
+       la migration soit appliquée » : elle l'est. Un écrasement du bon
+       entier n'a plus aucun chemin pour partir d'ici. */
+    if(c._v){
+      /* « modifie la version N » : zéro ligne rendue = la version a bougé
+         (ou la ligne a disparu). On relit pour savoir lequel des deux. */
+      return moi.appel("/rest/v1/courses?ref=eq." + encodeURIComponent(ref) + "&version=eq." + Number(c._v)
+                       + "&select=version,cree_le", { method:"PATCH", keepalive:true,
+        headers:{ Prefer:"return=representation" },
+        body: JSON.stringify({ statut: statut, bon: b }) })
+      .then(function(r){
+        if(Array.isArray(r) && r.length){
+          var l = registre();
+          for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ref){ l[i]._v = r[0].version; if(r[0].cree_le) l[i]._cree = r[0].cree_le; }
+          ecrireRegistre(l);
+          return "ok";
+        }
+        return relire().then(function(ligne){
+          if(ligne) return conflit(ligne);
+          /* Disparue du serveur : supprimée ailleurs. On n'insiste pas, et
+             la réconciliation l'effacera ici. */
+          return "ok";
+        });
+      });
+    }
+    /* Jamais lue du serveur : on DÉPOSE, sans écraser. Si la ligne existe
+       déjà — déposée par le client, ou lue par un autre appareil — le
+       serveur gagne : on la relit et elle remplace la nôtre. */
+    return moi.appel("/rest/v1/courses?select=version,cree_le", { method:"POST", keepalive:true,
+      headers:{ Prefer:"return=representation,resolution=ignore-duplicates" },
+      body: JSON.stringify({ ref: ref, statut: statut, bon: b }) })
+    .then(function(r){
+      if(Array.isArray(r) && r.length === 0){
+        return relire().then(function(ligne){
+          if(!ligne) return "attendre";
+          return conflit(ligne);
+        });
+      }
+      if(Array.isArray(r) && r[0] && r[0].version){
+        var l = registre();
+        for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ref){ l[i]._v = r[0].version; if(r[0].cree_le) l[i]._cree = r[0].cree_le; }
+        ecrireRegistre(l);
+      }
+      return "ok";
+    });
+  };
+
+  /* LA FILE SE VIDE UNE COURSE À LA FOIS, dans l'ordre d'entrée, et
+     réessaie avec un délai qui s'allonge (3 s, 6, 12… 60 s au plus). Elle
+     est aussi relancée par la sonde, au retour sur l'onglet, et au retour
+     du réseau. Un conflit n'est pas un échec : la course est à jour, on
+     passe à la suivante et on le dit. */
+  var fileEnCours = false, minuterieFile = null, conflitsRecents = [];
+  function viderFile(){
+    if(fileEnCours) return Promise.resolve(false);
+    if(!nuage.connecte()){ jugerSynchro(); return Promise.resolve(false); }
+    var f = fileAttente(), refs = Object.keys(f);
+    if(!refs.length){ jugerSynchro(); return Promise.resolve(true); }
+    var maintenant = Date.now();
+    var prets = refs.filter(function(r){ return !f[r].prochain || f[r].prochain <= maintenant; });
+    if(!prets.length){ programmerFile(); return Promise.resolve(false); }
+    fileEnCours = true;
+    var ref = prets[0];
+    var c = registre().filter(function(x){ return x && x.ref === ref; })[0];
+    if(!c){ retirerDeFile(ref); fileEnCours = false; return viderFile(); }
+    return nuage.envoyerCourse(c).then(function(res){
+      if(res === "ok" || res === "conflit"){
+        retirerDeFile(ref);
+        if(res === "conflit"){
+          conflitsRecents.push(ref);
+          dessinerBord();
+          /* Le bon d'abord (il remet ses notes à zéro), le message ensuite. */
+          if(bonBord && bonBord.ref === ref) ouvrirBonBord(ref);
+          direConflit(ref);
+        }
+      } else {
+        reporter(ref);
+      }
+    }).catch(function(){ reporter(ref); })
+    .then(function(){
+      fileEnCours = false;
+      jugerSynchro();
+      var reste = Object.keys(fileAttente());
+      if(reste.length) return viderFile();
+      return true;
+    });
+  }
+  function reporter(ref){
+    var f = fileAttente(); if(!f[ref]) return;
+    f[ref].essais = (f[ref].essais || 0) + 1;
+    f[ref].prochain = Date.now() + Math.min(60000, 3000 * Math.pow(2, Math.min(5, f[ref].essais - 1)));
+    ecrireFile(f);
+    programmerFile();
+  }
+  function programmerFile(){
+    if(minuterieFile) clearTimeout(minuterieFile);
+    var f = fileAttente(), refs = Object.keys(f); if(!refs.length) return;
+    var prochain = Math.min.apply(null, refs.map(function(r){ return f[r].prochain || 0; }));
+    minuterieFile = setTimeout(function(){ minuterieFile = null; viderFile(); },
+                               Math.max(500, prochain - Date.now()));
+  }
+  /* LE TÉMOIN. Caché quand tout est parti ; « en cours d'envoi » sinon ;
+     rouge au-delà de 30 s — le temps au bout duquel un réseau capricieux
+     devient une panne qu'il faut voir. */
+  function jugerSynchro(){
+    var el = document.getElementById("bordSynchro"); if(!el) return;
+    var f = fileAttente(), refs = Object.keys(f);
+    if(!refs.length){ el.hidden = true; el.classList.remove("tard"); return; }
+    var plusVieux = Math.min.apply(null, refs.map(function(r){ return f[r].depuis || Date.now(); }));
+    var attente = Math.round((Date.now() - plusVieux) / 1000);
+    var tard = attente >= 30;
+    el.hidden = false;
+    el.classList.toggle("tard", tard);
+    var n = refs.length;
+    el.textContent = !nuage.connecte()
+      ? n + " modification" + (n > 1 ? "s" : "") + " en attente d'envoi : reconnectez-vous au serveur pour qu'elle" + (n > 1 ? "s partent" : " parte") + "."
+      : tard
+        ? n + " modification" + (n > 1 ? "s" : "") + " non envoyée" + (n > 1 ? "s" : "") + " depuis " + attente + " s — le serveur ne répond pas, on réessaie. Vérifiez le réseau."
+        : n + " modification" + (n > 1 ? "s" : "") + " en cours d'envoi…";
+  }
+  setInterval(function(){ if(Object.keys(fileAttente()).length) jugerSynchro(); }, 5000);
+  function direConflit(ref){
+    var phrase = "La course " + ref + " avait été modifiée sur un autre appareil : l'écran a été mis à jour "
+               + "avec la version du serveur. Vérifiez-la et refaites votre geste si besoin.";
+    var el = document.getElementById("bordConflit");
+    if(el){ el.hidden = false; el.textContent = phrase; }
+    /* Le geste vient en général du bon lui-même : c'est là qu'il regarde,
+       pas sur le tableau de bord derrière. On le dit aux deux endroits. */
+    var note = document.getElementById("bbModifNote");
+    if(note && bonBord && bonBord.ref === ref){
+      note.hidden = false; note.textContent = phrase;
+      /* La note vit sous le bloc client, hors de l'écran sur un téléphone :
+         on l'amène sous les yeux, sinon le geste perdu passe inaperçu. */
+      try{ note.scrollIntoView({ block:"center", behavior:"smooth" }); }catch(e){}
+    }
+  }
+  window.addEventListener("online", function(){ viderFile(); });
 
   /* ═══ SUPPRIMER POUR DE BON — LE SERVEUR D'ABORD, L'APPAREIL ENSUITE ═══
      Septembre 2026, à sa demande : « supprime les demandes de test ». Il
@@ -9488,6 +10991,38 @@ window.ELA_TEXTES = {
       headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
       body: JSON.stringify({ cle: "tarif_general_" + gamme, valeur: valeur,
                               actif: true, date_effet: new Date().toISOString(),
+                              modifie_le: new Date().toISOString() })
+    });
+  };
+
+  nuage.lireParametre = function(cle){
+    if(!this.connecte()) return Promise.resolve(null);
+    return this.appel("/rest/v1/parametres_commerciaux?cle=eq." + encodeURIComponent(cle) + "&select=valeur&limit=1")
+      .then(function(r){ return Array.isArray(r) && r[0] ? r[0].valeur : null; });
+  };
+  nuage.majParametre = function(cle, valeur){
+    if(!this.connecte()) return Promise.reject(new Error("non connecte"));
+    return this.appel("/rest/v1/parametres_commerciaux?on_conflict=cle", {
+      method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ cle: cle, valeur: valeur, actif: true,
+                              date_effet: new Date().toISOString(), modifie_le: new Date().toISOString() })
+    });
+  };
+  /* ═══ LA COMMISSION PAR CANAL ═══ (30/09/2026) Même table, même geste
+     que le tarif. Lecture : « null » si rien n'est encore posé, pour ne pas
+     effacer la copie de l'appareil sur un simple silence du serveur. */
+  nuage.lireCommissionCanaux = function(){
+    if(!this.connecte()) return Promise.resolve(null);
+    return this.appel("/rest/v1/parametres_commerciaux?cle=eq.commission_canaux&select=valeur&limit=1")
+      .then(function(r){ return Array.isArray(r) && r[0] && r[0].valeur && typeof r[0].valeur === "object" ? r[0].valeur : null; });
+  };
+  nuage.majCommissionCanaux = function(valeur){
+    if(!this.connecte()) return Promise.reject(new Error("non connecte"));
+    return this.appel("/rest/v1/parametres_commerciaux?on_conflict=cle", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ cle: "commission_canaux", valeur: valeur, actif: true,
+                              date_effet: new Date().toISOString(),
                               modifie_le: new Date().toISOString() })
     });
   };
@@ -9593,9 +11128,11 @@ window.ELA_TEXTES = {
   function libelleEtat(st){
     return st === "attente" ? "En attente"
          : st === "confirmee" ? "Confirmée"
-         : st === "realisee" ? "Réalisée" : "Refusée";
+         : st === "realisee" ? "Réalisée"
+         : st === "annulee" ? "Annulée" : "Refusée";
   }
   function dessinerBord(){
+    if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     var liste = document.getElementById("listeBord");
     var vide  = document.getElementById("videBord");
     var tout  = registre();
@@ -9821,7 +11358,7 @@ window.ELA_TEXTES = {
     att.className = "kpi-var" + (parEtat.attente ? " baisse" : "");
 
     var duJour = tout.filter(function(c){
-      return c.course && c.course.date === aujourdhui && c.statut !== "refusee";
+      return c.course && c.course.date === aujourdhui && c.statut !== "refusee" && c.statut !== "annulee";
     });
     document.getElementById("kpiJour").textContent = duJour.length;
     var reste = duJour.filter(function(c){ return c.statut !== "realisee"; }).length;
@@ -9850,7 +11387,7 @@ window.ELA_TEXTES = {
                        maintenant.getDate() - i);
       var cle = dateLocale(d);
       jours.push(tout.filter(function(c){
-        return c.course && c.course.date === cle && c.statut !== "refusee";
+        return c.course && c.course.date === cle && c.statut !== "refusee" && c.statut !== "annulee";
       }).length);
       noms.push(d.toLocaleDateString("fr-FR", { weekday:"short" }).replace(".", ""));
     }
@@ -9892,7 +11429,7 @@ window.ELA_TEXTES = {
     /* ---- Berline ou van ----
        UN SEUL CERCLE, dont on décale le trait : deux arcs dessinés séparément
        laissent une couture blanche à chaque jonction. */
-    var vivantes = tout.filter(function(c){ return c.statut !== "refusee"; });
+    var vivantes = tout.filter(function(c){ return c.statut !== "refusee" && c.statut !== "annulee"; });
     var parGamme = { berline:0, van:0 };
     vivantes.forEach(function(c){
       var k = (c.course && c.course.vehiculeCle) || "";
@@ -9929,8 +11466,9 @@ window.ELA_TEXTES = {
     var etats = [["attente","En attente","#C9302F"],
                  ["confirmee","À assurer","#0E6FC7"],
                  ["realisee","Réalisées","#12C4EE"],
-                 ["refusee","Refusées","#8a97a3"]];
-    var parTout = { attente:0, confirmee:0, realisee:0, refusee:0 };
+                 ["refusee","Refusées","#8a97a3"],
+                 ["annulee","Annulées","#b8c2cc"]];
+    var parTout = { attente:0, confirmee:0, realisee:0, refusee:0, annulee:0 };
     tout.forEach(function(c){
       var s = c.statut || "attente";
       if(parTout[s] !== undefined) parTout[s]++;
@@ -10011,6 +11549,16 @@ window.ELA_TEXTES = {
     if(i < 0) return null;
     liste[i].statut = statut;
     if(extra) Object.keys(extra).forEach(function(k){ liste[i][k] = extra[k]; });
+    /* LA COMMISSION SE FIGE QUAND LA COURSE EST FAITE (30/09/2026). C'est à
+       cet instant que le chauffeur contracte sa dette ; changer un taux de
+       canal ou de carnet le mois suivant ne doit pas réécrire ce qu'il
+       devait. Un montant posé sur la course reste, lui, modifiable. */
+    if(statut === "realisee" && !liste[i].commissionFigee){
+      var cmF = commissionDe(liste[i]);
+      if(cmF.source !== "aucune" && cmF.source !== "course")
+        liste[i].commissionFigee = { montant: cmF.montant, taux: cmF.taux, mode: cmF.mode, source: cmF.source,
+                                     le: new Date().toISOString() };
+    }
     ecrireRegistre(liste);
     nuage.pousser(liste[i]);
     dessinerBord();
@@ -10146,6 +11694,9 @@ window.ELA_TEXTES = {
        une course puis quitté, il s'appliquerait à la suivante au premier
        appui. */
     desarmerSuppr();
+    desarmerRefus();
+    direConfirmer("");
+    setTimeout(jugerDetteBon, 0);
     var c = bonBord;
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
@@ -10204,8 +11755,15 @@ window.ELA_TEXTES = {
     var etape = c.statut || "attente";
     document.getElementById("btnConfirmerCourse").hidden = etape !== "attente";
     document.getElementById("btnRealisee").hidden = etape !== "confirmee";
-    document.getElementById("btnRefuser").hidden =
-      etape === "realisee" || etape === "refusee";
+    var finie = etape === "realisee" || etape === "refusee" || etape === "annulee";
+    document.getElementById("btnRefuser").hidden = finie;
+    /* Annuler et modifier n'ont de sens que tant que la course est à venir :
+       une course faite ne se change plus, elle est au registre. */
+    document.getElementById("btnAnnulerCourse").hidden = finie;
+    document.getElementById("btnModifierCourse").hidden = finie;
+    desarmerAnnul();
+    fermerModif();
+    document.getElementById("bbModifNote").hidden = true;
     /* L'accusé de réception ne vaut QUE pour une demande pas encore
        tranchée : une fois la course confirmée, c'est « Prévenir le client »
        qui parle, et lui dit bien plus. Deux messages coup sur coup diraient
@@ -10223,7 +11781,7 @@ window.ELA_TEXTES = {
     var bDif = document.getElementById("btnDiffuserGroupe");
     var aChauffeur = !!(c.chauffeur && (c.chauffeur.nom || c.chauffeur.telephone));
     bDif.hidden = aChauffeur
-               || ["realisee", "refusee"].indexOf(c.statut || "attente") >= 0;
+               || ["realisee", "refusee", "annulee"].indexOf(c.statut || "attente") >= 0;
     /* Le libellé dit si l'annonce est déjà partie — sur une nuit chargée on
        ne se souvient pas de ce qu'on a diffusé. Il reste cliquable : une
        course que personne n'a prise se rediffuse. */
@@ -10246,10 +11804,62 @@ window.ELA_TEXTES = {
       }
       return { montant: Math.round(prix * +m.valeur) / 100, taux: +m.valeur, mode: "pct", source: "course" };
     }
+    var fg = c.commissionFigee;
+    if(fg && c.statut === "realisee" && isFinite(fg.montant))
+      return { montant: +fg.montant, taux: fg.taux, mode: fg.mode, source: fg.source, figee: true };
     ch = ch || trouverChauffeur(c.chauffeur && c.chauffeur.nom, c.chauffeur && c.chauffeur.telephone);
-    if(ch && (ch.taux || ch.taux === 0))
-      return { montant: Math.round(prix * ch.taux) / 100, taux: ch.taux, mode: "pct", source: "carnet" };
+    if(ch && tauxChauffeur(ch)) return appliquerTaux(prix, ch.tauxMode, ch.taux, "carnet");
+    /* LE TAUX DU CANAL EN DERNIER (30/09/2026) : le plus général. Un
+       montant posé sur la course ou sur le chauffeur est un choix précis,
+       il passe devant. */
+    var cn = commissionsCanaux()[canalDe(c)];
+    if(cn && cn.valeur !== "" && cn.valeur !== null && isFinite(cn.valeur) && +cn.valeur >= 0)
+      return appliquerTaux(prix, cn.mode, +cn.valeur, "canal");
     return { montant: 0, taux: null, mode: "pct", source: "aucune" };
+  }
+  function appliquerTaux(prix, mode, valeur, source){
+    if(mode === "eur"){
+      var e = Math.min(prix, Math.round(valeur * 100) / 100);
+      return { montant: e, taux: prix ? Math.round(e / prix * 1000) / 10 : 0, mode: "eur", source: source };
+    }
+    return { montant: Math.round(prix * valeur) / 100, taux: valeur, mode: "pct", source: source };
+  }
+  /* UN TAUX DE CHAUFFEUR N'EXISTE QUE S'IL A ÉTÉ POSÉ. Les anciennes
+     fiches enregistraient « 0 » pour un champ vide : sans mode déclaré, un
+     zéro est lu comme « pas de taux ». Une fiche enregistrée depuis le
+     30/09/2026 porte son mode, et son zéro est alors voulu. */
+  function tauxChauffeur(ch){
+    if(!ch || ch.taux === null || ch.taux === undefined || ch.taux === "" || !isFinite(ch.taux)) return false;
+    return +ch.taux > 0 || !!ch.tauxMode;
+  }
+  /* LE CANAL D'UNE COURSE : d'où elle est venue. Une demande COLLÉE reste
+     « site public » : son message est celui que le site fabrique, c'est une
+     réservation du site dont le dépôt a raté. Seule une course créée à la
+     main (« Saisir par téléphone ») est marquée « admin ». Une course
+     ancienne sans marque retombe sur le site public. */
+  var CANAUX = [
+    { cle: "public",    nom: "Site public",        aide: "elatransfer.com" },
+    { cle: "hotel",     nom: "Flyer hôtel",        aide: "client qui scanne le QR" },
+    { cle: "reception", nom: "Réception de l'hôtel", aide: "comptoir easyHotel" },
+    { cle: "admin",     nom: "Saisie au téléphone", aide: "créée dans l'admin" }
+  ];
+  function canalDe(c){
+    if(!c) return "public";
+    if(c.parReception) return "reception";
+    if(c.provenanceCle) return "hotel";
+    if(c.canal === "admin") return "admin";
+    return "public";
+  }
+  /* LES TAUX PAR CANAL VIVENT SUR LE SERVEUR (parametres_commerciaux,
+     « commission_canaux ») : ils valent sur tous ses appareils. Une copie
+     reste sur l'appareil pour calculer même sans réseau. */
+  var CLE_COM_CANAUX = "ela_commission_canaux";
+  function commissionsCanaux(){
+    try{ var o = JSON.parse(localStorage.getItem(CLE_COM_CANAUX) || "{}"); return o && typeof o === "object" ? o : {}; }
+    catch(e){ return {}; }
+  }
+  function ecrireCommissionsCanaux(o){
+    try{ localStorage.setItem(CLE_COM_CANAUX, JSON.stringify(o || {})); }catch(e){}
   }
   function commissionSaisie(){
     var v = document.getElementById("bbComValeur").value.trim().replace(",", ".");
@@ -10258,17 +11868,21 @@ window.ELA_TEXTES = {
   }
   function jugerCommissionBon(){
     if(!bonBord) return;
-    var essai = { prix: bonBord.prix, commission: commissionSaisie(), chauffeur: chauffeurSaisi() };
+    var essai = { prix: bonBord.prix, commission: commissionSaisie(), chauffeur: chauffeurSaisi(),
+                  parReception: bonBord.parReception, provenanceCle: bonBord.provenanceCle, canal: bonBord.canal,
+                  statut: bonBord.statut, commissionFigee: bonBord.commissionFigee };
     var cm = commissionDe(essai), prix = (bonBord.prix && bonBord.prix.total) || 0;
     var el = document.getElementById("bbComCalc");
     if(cm.source === "aucune"){
-      el.textContent = "Aucune commission : saisissez-en une, ou posez le taux du chauffeur dans son carnet.";
+      el.textContent = "Aucune commission : saisissez-en une, posez le taux du chauffeur dans son carnet, ou celui du canal dans le centre de contrôle.";
       return;
     }
     el.textContent = "Commission : " + euros(cm.montant)
       + (cm.mode === "pct" ? " (" + cm.taux + " %)" : "")
       + " · reste au chauffeur : " + euros(Math.max(0, prix - cm.montant))
-      + (cm.source === "carnet" ? " — taux du carnet" : "");
+      + (cm.source === "carnet" ? " — taux du carnet" : "")
+      + (cm.figee ? " — figée à la fin de la course" : "")
+      + (cm.source === "canal" && !cm.figee ? " — taux du canal (" + CANAUX.filter(function(x){ return x.cle === canalDe(essai); })[0].nom + ")" : "");
   }
   ["bbComMode","bbComValeur","bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
     var el = document.getElementById(id);   // absent de la page publique
@@ -10313,8 +11927,43 @@ window.ELA_TEXTES = {
     }).catch(function(){ /* détachée : une notification perdue ne casse rien */ });
   }
 
+  /* CONFIRMER, C'EST PROMETTRE UNE VOITURE (audit du 30/09/2026).
+     Le bouton partait sans chauffeur : le client recevait « Transfert
+     confirmé — Chauffeur : — », c'est-à-dire une promesse sans personne
+     derrière. Il faut donc un chauffeur retenu. Et un chauffeur du carnet
+     dont un papier est PÉRIMÉ est refusé ici : c'est l'instant où
+     Elatransfer engage sa responsabilité (L3142-1). Seul « périmé » bloque
+     — un fait connu, une date passée — comme dans Admin v2 ; un chauffeur
+     hors carnet garde l'avertissement orange, sans blocage. */
+  function direConfirmer(t){
+    var e = document.getElementById("confirmerEtat");
+    e.hidden = !t; e.textContent = t || "";
+  }
+  function refusConfirmation(){
+    var nom = document.getElementById("bbChauffeurNom").value.trim();
+    var tel = document.getElementById("bbChauffeurTel").value.trim();
+    if(!nom) return "Indiquez d'abord le chauffeur retenu : confirmer sans lui "
+      + "promettrait au client une voiture que personne n'a acceptée.";
+    var dette = detteDe(nom, tel), seuil = seuilDette();
+    if(dette && seuil !== null && dette.solde > seuil)
+      return dette.nom + " doit " + euros(dette.solde) + " de commission, au-delà de votre seuil ("
+        + euros(seuil) + ") : enregistrez son paiement dans le centre de contrôle, ou choisissez un autre chauffeur.";
+    var c = trouverChauffeur(nom, tel);
+    if(c && [c.carteFin, c.registreFin, c.assuranceFin].some(function(d){ return etatPapier(d) === "perime"; }))
+      return "Papier périmé dans le carnet (" + c.nom + ") : choisissez un autre "
+        + "chauffeur, ou mettez sa fiche à jour dans « Chauffeurs ».";
+    return "";
+  }
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
     if(!bonBord) return;
+    var refus = refusConfirmation();
+    if(refus){
+      direConfirmer(refus);
+      var champ = document.getElementById("bbChauffeurNom");
+      if(!champ.value.trim()){ champ.scrollIntoView({block:"center"}); champ.focus(); }
+      return;
+    }
+    direConfirmer("");
     bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     pousserNotification(bonBord);
     ouvrirBonBord(bonBord.ref);
@@ -10482,10 +12131,145 @@ window.ELA_TEXTES = {
     majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     ecran("ecran-bord");
   });
+  /* REFUSER DEMANDE DEUX APPUIS (audit du 30/09/2026). Un seul appui
+     refusait la course sans retour possible — le bon n'offre plus aucun
+     geste sur une course refusée — et « Refuser » est juste sous
+     « Marquer comme réalisée » : un pouce qui glisse, et un client est
+     éconduit. Même mécanisme que « Supprimer ». */
+  var refusArme = null, refusMinuteur = null;
+  function desarmerRefus(){
+    refusArme = null;
+    if(refusMinuteur){ clearTimeout(refusMinuteur); refusMinuteur = null; }
+    var b = document.getElementById("btnRefuser"), e = document.getElementById("refusEtat");
+    b.textContent = "Refuser la course";
+    e.hidden = true; e.textContent = "";
+  }
   document.getElementById("btnRefuser").addEventListener("click", function(){
     if(!bonBord) return;
-    majCourse(bonBord.ref, "refusee");
+    if(refusArme !== bonBord.ref){
+      refusArme = bonBord.ref;
+      this.textContent = "Confirmer le refus";
+      var e = document.getElementById("refusEtat");
+      e.hidden = false;
+      e.textContent = "La course passera en « non prise ». Appuyez encore pour confirmer.";
+      refusMinuteur = setTimeout(desarmerRefus, 8000);
+      return;
+    }
+    var ref = bonBord.ref;
+    desarmerRefus();
+    majCourse(ref, "refusee");
     ecran("ecran-bord");
+  });
+
+  /* ═══ ANNULER LA COURSE (30/09/2026, à sa demande) ═══
+     La réception ne peut plus annuler : elle appelle, et c'est ici qu'on
+     annule. Deux appuis, le second porte un autre mot ; l'armement retombe
+     seul après 8 s. La course reste au registre (preuve), ne compte pas dans
+     les chiffres, et la réception lit « Annulée ». */
+  var annulArme = null, annulMinuteur = null;
+  function desarmerAnnul(){
+    annulArme = null;
+    if(annulMinuteur){ clearTimeout(annulMinuteur); annulMinuteur = null; }
+    var b = document.getElementById("btnAnnulerCourse");
+    if(b) b.textContent = "Annuler la course";
+  }
+  document.getElementById("btnAnnulerCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    if(annulArme !== bonBord.ref){
+      annulArme = bonBord.ref;
+      this.textContent = "Confirmer l'annulation";
+      annulMinuteur = setTimeout(desarmerAnnul, 8000);
+      return;
+    }
+    var avecChauffeur = !!(bonBord.chauffeur && (bonBord.chauffeur.nom || bonBord.chauffeur.telephone));
+    desarmerAnnul();
+    var ref = bonBord.ref;
+    majCourse(ref, "annulee", { annuleeLe: new Date().toISOString() });
+    /* On RESTE sur le bon, qui dit maintenant « Annulée » : c'est la preuve
+       que le geste a pris. Et rien ne part tout seul chez le chauffeur — on
+       le rappelle, sinon la voiture part quand même. */
+    ouvrirBonBord(ref);
+    var note = document.getElementById("bbModifNote");
+    note.textContent = "Course annulée. La réception le verra sous 30 secondes."
+      + (avecChauffeur ? " Prévenez le chauffeur : rien ne lui est envoyé automatiquement." : "");
+    note.hidden = false;
+  });
+
+  /* ═══ MODIFIER LA COURSE (30/09/2026, à sa demande) ═══
+     La référence ne change pas. On garde la trace du moment (« modifieLe »),
+     que la réception affiche sur sa carte. Le prix ne se recalcule pas tout
+     seul : un trajet changé se renégocie. */
+  function fermerModif(){
+    var f = document.getElementById("bbModif");
+    if(f) f.hidden = true;
+    var e = document.getElementById("mdErreur");
+    if(e) e.hidden = true;
+  }
+  function sansChambre(libelle){
+    return String(libelle || "").replace(/\s*\(ch\.\s*[^)]{1,12}\)\s*$/, "");
+  }
+  document.getElementById("btnModifierCourse").addEventListener("click", function(){
+    if(!bonBord) return;
+    var c = bonBord, co = c.course || {};
+    document.getElementById("mdDate").value    = co.date || "";
+    document.getElementById("mdHeure").value   = co.heure || "";
+    document.getElementById("mdDepart").value  = co.departPublic || sansChambre(co.depart);
+    document.getElementById("mdArrivee").value = co.arriveePublic || co.arrivee || "";
+    var m = /\(ch\.\s*([^)]{1,12})\)\s*$/.exec(co.depart || "");
+    document.getElementById("mdChambre").value = co.chambre || (m ? m[1].trim() : "");
+    document.getElementById("mdVehicule").value = co.vehiculeCle === "van" ? "van" : "berline";
+    document.getElementById("mdPrix").value    = c.prix && c.prix.total ? String(c.prix.total).replace(".", ",") : "";
+    document.getElementById("mdNom").value     = (c.client && c.client.nom) || "";
+    document.getElementById("mdTel").value     = (c.client && c.client.telephone) || "";
+    document.getElementById("mdNote").value    = co.note || "";
+    document.getElementById("mdErreur").hidden = true;
+    var f = document.getElementById("bbModif");
+    f.hidden = false;
+    f.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+  document.getElementById("btnMdFermer").addEventListener("click", fermerModif);
+  document.getElementById("btnMdEnregistrer").addEventListener("click", function(){
+    if(!bonBord) return;
+    var err = document.getElementById("mdErreur");
+    var dire = function(t){ err.textContent = t; err.hidden = false; };
+    var date = document.getElementById("mdDate").value;
+    var heure = document.getElementById("mdHeure").value;
+    var dep = document.getElementById("mdDepart").value.trim();
+    var arr = document.getElementById("mdArrivee").value.trim();
+    var chambre = document.getElementById("mdChambre").value.trim();
+    var prix = Number(document.getElementById("mdPrix").value.replace(",", ".").replace(/[^\d.]/g, ""));
+    var nom = document.getElementById("mdNom").value.trim();
+    var tel = document.getElementById("mdTel").value.trim();
+    /* On dit CE qui manque, pas « formulaire incomplet ». */
+    if(!date || !heure) return dire("La date et l'heure sont obligatoires.");
+    if(!dep || !arr) return dire("Le départ et l'arrivée sont obligatoires.");
+    if(!(prix > 0)) return dire("Le prix doit être un montant supérieur à 0.");
+    if(tel && !telValide(tel)) return dire("Le téléphone du client ne semble pas valable — relisez-le.");
+    var c = bonBord, co = JSON.parse(JSON.stringify(c.course || {}));
+    var gamme = GAMMES.filter(function(g){ return g.cle === document.getElementById("mdVehicule").value; })[0] || GAMMES[0];
+    var avant = (co.date || "") + " " + (co.heure || "");
+    co.date = date; co.heure = heure;
+    co.departPublic = dep; co.arriveePublic = arr;
+    co.depart = dep + (chambre ? " (ch. " + chambre + ")" : "");
+    co.arrivee = arr;
+    co.chambre = chambre;
+    co.note = document.getElementById("mdNote").value.trim();
+    co.vehicule = gamme.nom; co.vehiculeCle = gamme.cle;
+    var p = JSON.parse(JSON.stringify(c.prix || {}));
+    p.total = Math.round(prix * 100) / 100;
+    p.ht = p.total / 1.10; p.tva = p.total - p.ht;
+    var modifs = (c.modifications || []).concat([{ le: new Date().toISOString(), avant: avant }]).slice(-20);
+    var client = { nom: nom, telephone: tel };
+    Object.keys(c.client || {}).forEach(function(k){ if(!(k in client)) client[k] = c.client[k]; });
+    var maj = majCourse(c.ref, c.statut || "attente",
+      { course: co, prix: p, client: client, modifieLe: new Date().toISOString(), modifications: modifs });
+    fermerModif();
+    ouvrirBonBord(c.ref);
+    var note = document.getElementById("bbModifNote");
+    var aChauffeur = maj && maj.chauffeur && (maj.chauffeur.nom || maj.chauffeur.telephone);
+    note.textContent = "Course modifiée. La réception le verra sous 30 secondes."
+      + (aChauffeur ? " Prévenez le chauffeur : rien ne lui est envoyé automatiquement." : "");
+    note.hidden = false;
   });
 
   /* ═══ EFFACER UNE COURSE POUR DE BON ═══
@@ -10512,6 +12296,10 @@ window.ELA_TEXTES = {
   }
   function retirerDuRegistre(ref){
     ecrireRegistre(registre().filter(function(c){ return c && c.ref !== ref; }));
+    /* Une modification encore en file sur une course qu'on vient de
+       supprimer la ferait RENAÎTRE sur le serveur au prochain envoi. */
+    retirerDeFile(ref);
+    jugerSynchro();
   }
   document.getElementById("btnSupprimerCourse").addEventListener("click", function(){
     if(!bonBord) return;
@@ -10567,6 +12355,8 @@ window.ELA_TEXTES = {
     filtreBord = "attente";
     dessinerBord();
   });
+  var elConflit = document.getElementById("bordConflit");
+  if(elConflit) elConflit.addEventListener("click", function(){ this.hidden = true; });
 
   /* ---- Le serveur, côté exploitant ---- */
   function jugerNuage(){
@@ -10602,10 +12392,22 @@ window.ELA_TEXTES = {
       if(!distantes) return null;
       panneServeur = "";
       jugerReception();
-      var n = fusionner(distantes);
+      /* RÉCONCILIER, PLUS FUSIONNER : le serveur remplace ce qu'il a de plus
+         récent, et une course qu'il ne montre plus s'efface ici. */
+      var r = reconcilier(distantes);
+      var n = r.neuves;
+      /* Le bon ouvert a changé d'état ailleurs : on le redessine, sinon il
+         montrerait « en attente » sur une course confirmée à côté. */
+      if(bonBord && r.changees.indexOf(bonBord.ref) >= 0) ouvrirBonBord(bonBord.ref);
       dessinerBord();
       if(n && !premiereLecture) annoncerArrivee(n);
       premiereLecture = false;
+      viderFile();
+      /* LA SONDE REPART DE CE QU'ON VIENT DE LIRE. Sans ce repère, son
+         premier passage ne faisait qu'enregistrer la réponse : un changement
+         survenu entre l'ouverture et ce premier passage attendait le tour de
+         fond (45 s). Trouvé par le test, pas en relisant. */
+      nuage.derniere().then(function(k){ if(k !== null) derniereVue = k; }).catch(function(){});
       return n;
     }).catch(function(e){
       /* UNE LECTURE QUI ÉCHOUE DOIT SE VOIR. Sans ça, Barbaros a une
@@ -10646,6 +12448,7 @@ window.ELA_TEXTES = {
   var minuterieEcoute = null;
   var derniereVue = null, dernierComplet = 0;
   function sonder(){
+    if(Object.keys(fileAttente()).length) viderFile();
     if(Date.now() - dernierComplet >= PAS_ECOUTE_MS) return synchroniser();
     return nuage.derniere().then(function(ref){
       if(ref === null) return;
@@ -10689,7 +12492,8 @@ window.ELA_TEXTES = {
      de tout geste. iPhone et Android le laissent alors « suspendu » — le
      bip ne sonnait jamais sur un téléphone, et rien ne le disait. Un seul
      lecteur, débloqué au premier appui n'importe où, et gardé.
-     L'ALARME SE RÉPÈTE toutes les 20 s tant que personne n'a touché
+     L'ALARME SE RÉPÈTE toutes les 10 s (six fois par minute, à sa demande :
+     « tout sonne plusieurs fois par minute ») tant que personne n'a touché
      l'écriteau ou ouvert une course, dix minutes au plus. Un bip unique se
      rate dès qu'on a le dos tourné. */
   var sonCtx = null;
@@ -10760,7 +12564,7 @@ window.ELA_TEXTES = {
     minuterieAlarme = setInterval(function(){
       if(Date.now() - debut > 10 * 60000){ arreterAlarme(); return; }
       sonner();
-    }, 20000);
+    }, 10000);
     /* LE TITRE DE L'ONGLET CLIGNOTE : c'est ce qu'on voit d'un onglet
        rangé derrière un autre, sur un ordinateur. */
     titreAvant = document.title;
@@ -11181,16 +12985,396 @@ window.ELA_TEXTES = {
   }
 
   var periodeReg = "semaine";
-  document.querySelectorAll(".periode").forEach(function(b){
+  /* « [data-periode] » : le centre de contrôle a ses propres boutons de
+     période, qui ne doivent pas changer celle du registre. */
+  document.querySelectorAll(".periode[data-periode]").forEach(function(b){
     b.addEventListener("click", function(){
       periodeReg = b.dataset.periode;
-      document.querySelectorAll(".periode").forEach(function(x){
+      document.querySelectorAll(".periode[data-periode]").forEach(function(x){
         x.classList.toggle("actif", x === b);
       });
       dessinerRegistre();
     });
   });
   document.getElementById("regRecherche").addEventListener("input", chercherRegistre);
+
+/* =====================================================================
+   LE CENTRE DE CONTRÔLE (30/09/2026, à sa demande : « un tableau qui
+   indique le taux de commission sur les courses public, site client
+   hôtel, flyer ou prix km… un vrai centre de contrôle »).
+   ON N'Y RECALCULE RIEN À PART : la commission vient de commissionDe(),
+   les tarifs de GAMMES et HOTELS, la date de dateCourse() — les mêmes que
+   le registre, le bon et la facture. Deux calculs finissent par diverger.
+   ===================================================================== */
+  var periodeCc = "semaine";
+  function ligneCc(cellules, classe, colonnes){
+    var d = document.createElement("div");
+    d.className = "cc-ligne" + (classe ? " " + classe : "");
+    d.style.setProperty("--cc-col", String(colonnes || cellules.length - 1));
+    cellules.forEach(function(x, i){
+      var sp = document.createElement("span");
+      if(i === 0 && classe !== "cc-tete") sp.className = "cc-nom";
+      if(x && x.nodeType) sp.appendChild(x);
+      else if(x && typeof x === "object"){ sp.textContent = x.t; if(x.aide){ var sm = document.createElement("small"); sm.textContent = x.aide; sp.appendChild(sm); } }
+      else sp.textContent = x;
+      d.appendChild(sp);
+    });
+    return d;
+  }
+  function viderCc(id){ var z = document.getElementById(id); while(z.firstChild) z.removeChild(z.firstChild); return z; }
+  function debutPeriodeCc(){
+    var auj = new Date();
+    if(periodeCc === "annee") return new Date(auj.getFullYear(), 0, 1);
+    if(periodeCc === "mois") return new Date(auj.getFullYear(), auj.getMonth(), 1);
+    if(periodeCc === "tout") return null;
+    return lundiDe(auj);
+  }
+  function dansPeriodeCc(c, debut){
+    if(!debut) return true;
+    var d = dateCourse(c);
+    return !!d && d >= debut;
+  }
+  function regleTexte(mode, valeur){
+    return mode === "eur" ? euros(valeur) + " / course" : String(valeur).replace(".", ",") + " %";
+  }
+  function dessinerControle(){
+    dessinerDettes();
+    var liste = registre(), debut = debutPeriodeCc();
+    /* 1. RÉSULTATS PAR CANAL. Demandes = tout ce qui est arrivé ; argent =
+       les seules réalisées (une course confirmée n'est pas une course faite). */
+    var par = {};
+    CANAUX.forEach(function(k){ par[k.cle] = { dem: 0, n: 0, ca: 0, com: 0 }; });
+    liste.forEach(function(c){
+      if(!c || !dansPeriodeCc(c, debut)) return;
+      var v = par[canalDe(c)]; v.dem++;
+      if(c.statut !== "realisee") return;
+      v.n++; v.ca += (c.prix && c.prix.total) || 0; v.com += commissionDe(c).montant;
+    });
+    var z = viderCc("ccCanaux"), tot = { dem: 0, n: 0, ca: 0, com: 0 };
+    z.appendChild(ligneCc(["Canal", "Dem.", "Faites", "CA", "Com."], "cc-tete"));
+    CANAUX.forEach(function(k){
+      var v = par[k.cle];
+      ["dem","n","ca","com"].forEach(function(x){ tot[x] += v[x]; });
+      z.appendChild(ligneCc([{ t: k.nom, aide: v.ca ? "taux moyen " + (Math.round(v.com / v.ca * 1000) / 10).toString().replace(".", ",") + " %" : k.aide },
+                             String(v.dem), String(v.n), eurosRond(v.ca), euros(v.com)]));
+    });
+    z.appendChild(ligneCc(["Total", String(tot.dem), String(tot.n), eurosRond(tot.ca), euros(tot.com)], "cc-total"));
+
+    /* 2. LES TAUX PAR CANAL, modifiables. */
+    var taux = commissionsCanaux(), zt = viderCc("ccTaux");
+    zt.appendChild(ligneCc(["Canal", "Commission"], "cc-tete"));
+    CANAUX.forEach(function(k){
+      var t = taux[k.cle] || {}, bloc = document.createElement("span");
+      bloc.className = "cc-taux";
+      var sel = document.createElement("select");
+      sel.id = "ccMode_" + k.cle; sel.setAttribute("aria-label", "Commission " + k.nom + " : unité");
+      [["pct","%"],["eur","€"]].forEach(function(o){ var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
+      sel.value = t.mode === "eur" ? "eur" : "pct";
+      var inp = document.createElement("input");
+      inp.id = "ccVal_" + k.cle; inp.type = "number"; inp.min = "0"; inp.step = "0.5"; inp.inputMode = "decimal";
+      inp.placeholder = "—"; inp.setAttribute("aria-label", "Commission " + k.nom + " : montant");
+      inp.value = (t.valeur === 0 || t.valeur) ? t.valeur : "";
+      [sel, inp].forEach(function(x){
+        x.dataset.initial = x.value;
+        x.addEventListener("input", function(){ x.classList.toggle("modifie", x.value !== x.dataset.initial); direCcTaux(""); });
+        x.addEventListener("change", function(){ x.classList.toggle("modifie", x.value !== x.dataset.initial); });
+      });
+      bloc.appendChild(sel); bloc.appendChild(inp);
+      zt.appendChild(ligneCc([{ t: k.nom, aide: k.aide }, bloc], "", 1));
+    });
+
+    /* 3. PAR CHAUFFEUR : sa règle, et ce qu'il a rapporté sur la période. */
+    var zc = viderCc("ccChauffeurs"), fiches = chauffeurs(), parCh = {};
+    liste.forEach(function(c){
+      if(!c || c.statut !== "realisee" || !dansPeriodeCc(c, debut)) return;
+      var nom = (c.chauffeur && c.chauffeur.nom || "").trim(); if(!nom) return;
+      var k = nom.toLowerCase(), v = parCh[k] = parCh[k] || { nom: nom, n: 0, com: 0 };
+      v.n++; v.com += commissionDe(c).montant;
+    });
+    zc.appendChild(ligneCc(["Chauffeur", "Règle", "Faites", "Com."], "cc-tete"));
+    fiches.forEach(function(ch){
+      var v = parCh[(ch.nom || "").trim().toLowerCase()] || { n: 0, com: 0 };
+      delete parCh[(ch.nom || "").trim().toLowerCase()];
+      zc.appendChild(ligneCc([ch.nom || "—", tauxChauffeur(ch) ? regleTexte(ch.tauxMode, ch.taux) : "canal",
+                              String(v.n), euros(v.com)]));
+    });
+    Object.keys(parCh).forEach(function(k){
+      var v = parCh[k];
+      zc.appendChild(ligneCc([{ t: v.nom, aide: "hors carnet" }, "canal", String(v.n), euros(v.com)]));
+    });
+    if(!fiches.length && !Object.keys(parCh).length)
+      zc.appendChild(ligneCc(["Aucun chauffeur dans le carnet", "", "", ""]));
+
+    /* 4. LES TARIFS EN VIGUEUR : ceux que le client voit à l'instant. */
+    var zf = viderCc("ccTarifs");
+    zf.appendChild(ligneCc(["Au kilomètre", "€/km", "Minimum"], "cc-tete"));
+    GAMMES.forEach(function(g){
+      zf.appendChild(ligneCc([g.nom, euros(g.parKm), eurosRond(g.mini)]));
+    });
+    Object.keys(HOTELS).forEach(function(hk){
+      var h = HOTELS[hk];
+      zf.appendChild(ligneCc(["Flyer " + (h.court || h.nom), "Berline", "Van"], "cc-tete"));
+      h.destinations.forEach(function(d){
+        zf.appendChild(ligneCc([d.nom, eurosRond(d.forfait.berline || 0), eurosRond(d.forfait.van || 0)]));
+      });
+    });
+  }
+  function direCcTaux(t, erreur){
+    var e = document.getElementById("ccTauxEtat");
+    e.hidden = !t; e.textContent = t || ""; e.style.color = erreur ? "#C9302F" : "";
+  }
+  function ouvrirControle(){
+    ecran("ecran-controle");
+    allumerAdmin(document.getElementById("btnControle"));
+    dessinerControle();
+    /* Les taux du serveur font foi : on les relit à chaque ouverture, et on
+       redessine s'ils ont changé depuis un autre appareil. */
+    nuage.lireCommissionCanaux().then(function(o){
+      if(!o) return;
+      if(JSON.stringify(o) !== JSON.stringify(commissionsCanaux())){ ecrireCommissionsCanaux(o); dessinerControle(); }
+    }, function(){});
+  }
+  document.getElementById("btnControle").addEventListener("click", ouvrirControle);
+  document.getElementById("btnRetourControle").addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
+  document.querySelectorAll(".periode[data-ccperiode]").forEach(function(b){
+    b.addEventListener("click", function(){
+      periodeCc = b.dataset.ccperiode;
+      document.querySelectorAll(".periode[data-ccperiode]").forEach(function(x){ x.classList.toggle("actif", x === b); });
+      dessinerControle();
+    });
+  });
+  document.getElementById("btnCcCarnet").addEventListener("click", function(){
+    document.getElementById("btnChauffeurs").click();
+  });
+  document.getElementById("btnCcTarifs").addEventListener("click", function(){
+    ouvrirReglages("blocTarifs");
+  });
+  document.getElementById("btnCcTaux").addEventListener("click", function(){
+    var o = {}, faute = "";
+    CANAUX.forEach(function(k){
+      var v = document.getElementById("ccVal_" + k.cle).value.trim().replace(",", ".");
+      var m = document.getElementById("ccMode_" + k.cle).value === "eur" ? "eur" : "pct";
+      if(v === "") return;                           // vide = pas de taux pour ce canal
+      if(!isFinite(v) || +v < 0 || (m === "pct" && +v > 100)){ faute = faute || k.nom; return; }
+      o[k.cle] = { mode: m, valeur: +v };
+    });
+    if(faute){ direCcTaux("Montant invalide : " + faute + " (un pourcentage va de 0 à 100).", true); return; }
+    if(!nuage.connecte()){ direCcTaux("Connectez-vous d'abord au serveur : les taux doivent valoir sur tous vos appareils.", true); return; }
+    var b = this; b.disabled = true;
+    nuage.majCommissionCanaux(o).then(function(){
+      ecrireCommissionsCanaux(o);
+      dessinerControle();
+      direCcTaux("Taux enregistrés. Ils s'appliquent aux courses sans commission propre.", false);
+    }, function(){
+      direCcTaux("Le serveur a refusé l'enregistrement : rien n'a changé.", true);
+    }).then(function(){ b.disabled = false; });
+  });
+  document.addEventListener("ela:espace", function(){
+    nuage.lireCommissionCanaux().then(function(o){ if(o) ecrireCommissionsCanaux(o); }, function(){});
+    nuage.lireParametre("seuil_dette_chauffeur").then(function(v){
+      if(v && (v.euros === null || isFinite(v.euros))){ ecrireSeuilDette(v.euros); dessinerDettesBord(); }
+    }, function(){});
+  });
+
+/* =====================================================================
+   CE QUE LES CHAUFFEURS DOIVENT (30/09/2026, à sa demande : « un bouton et
+   une alerte qui dit que le chauffeur doit une commission ou pas »).
+   LE PRINCIPE : le client paie le chauffeur, jamais Elatransfer. Chaque
+   course RÉALISÉE crée donc une dette du chauffeur — sa commission. On
+   tient un grand livre tout simple : dû (commissions des réalisées), reçu
+   (paiements enregistrés ici), reste.
+   LE RETARD SE COMPTE COURSE PAR COURSE : un paiement solde d'abord les
+   plus anciennes (comme un relevé bancaire). Ce qui reste dû sur une
+   course de plus de 30 jours est « en retard » — le délai de paiement par
+   défaut entre professionnels (L441-10 Code de commerce).
+   LES PAIEMENTS VIVENT SUR CET APPAREIL, comme le carnet et les factures,
+   et partent dans la sauvegarde. Le dire plutôt que le cacher.
+   ===================================================================== */
+  var DELAI_COMMISSION_J = 30;
+  var CLE_PAIEMENTS = "ela_paiements_chauffeurs";
+  var CLE_SEUIL_DETTE = "ela_seuil_dette";
+  function paiementsChauffeurs(){
+    try{ var l = JSON.parse(localStorage.getItem(CLE_PAIEMENTS) || "[]"); return Array.isArray(l) ? l : []; }
+    catch(e){ return []; }
+  }
+  function ecrirePaiements(l){ try{ localStorage.setItem(CLE_PAIEMENTS, JSON.stringify(l)); }catch(e){} }
+  function seuilDette(){
+    try{ var v = JSON.parse(localStorage.getItem(CLE_SEUIL_DETTE) || "null"); return v === null || !isFinite(v) ? null : +v; }
+    catch(e){ return null; }
+  }
+  function ecrireSeuilDette(v){ try{ localStorage.setItem(CLE_SEUIL_DETTE, JSON.stringify(v === null || v === "" ? null : +v)); }catch(e){} }
+  /* Le même chauffeur s'écrit « Mehmet », « mehmet », « Mehmet Y. » : on
+     le reconnaît d'abord par le carnet (numéro), sinon par son nom. */
+  function cleDette(nom, tel){
+    var ch = trouverChauffeur(nom, tel);
+    return ch ? "id:" + ch.id : "nom:" + String(nom || "").trim().toLowerCase();
+  }
+  function soldesChauffeurs(){
+    var par = {}, sansRegle = [], limite = new Date(); limite.setHours(0,0,0,0);
+    limite.setDate(limite.getDate() - DELAI_COMMISSION_J);
+    registre().forEach(function(c){
+      if(!c || c.statut !== "realisee") return;
+      var nom = (c.chauffeur && c.chauffeur.nom || "").trim();
+      if(!nom) return;
+      var tel = (c.chauffeur && c.chauffeur.telephone) || "";
+      var cm = commissionDe(c);
+      if(cm.source === "aucune"){ sansRegle.push(c.ref); return; }
+      var k = cleDette(nom, tel), ch = trouverChauffeur(nom, tel);
+      var v = par[k] = par[k] || { cle: k, nom: ch ? ch.nom : nom, tel: (ch && ch.telephone) || tel,
+                                   du: 0, recu: 0, solde: 0, retard: 0, lignes: [] };
+      v.du += cm.montant;
+      v.lignes.push({ ref: c.ref, date: dateCourse(c), montant: cm.montant, reste: cm.montant });
+    });
+    paiementsChauffeurs().forEach(function(pmt){
+      var v = par[pmt.cle] = par[pmt.cle] || { cle: pmt.cle, nom: pmt.nom, tel: pmt.tel || "",
+                                               du: 0, recu: 0, solde: 0, retard: 0, lignes: [] };
+      v.recu += +pmt.montant || 0;
+    });
+    Object.keys(par).forEach(function(k){
+      var v = par[k], aImputer = v.recu;
+      v.lignes.sort(function(a, b){ return (a.date || 0) - (b.date || 0); });
+      v.lignes.forEach(function(l){
+        var pris = Math.min(l.montant, aImputer); l.reste = Math.round((l.montant - pris) * 100) / 100; aImputer -= pris;
+        if(l.reste > 0 && l.date && l.date < limite) v.retard += l.reste;
+      });
+      v.du = Math.round(v.du * 100) / 100; v.recu = Math.round(v.recu * 100) / 100;
+      v.solde = Math.round((v.du - v.recu) * 100) / 100; v.retard = Math.round(v.retard * 100) / 100;
+    });
+    return { par: par, sansRegle: sansRegle };
+  }
+  function detteDe(nom, tel){
+    var v = soldesChauffeurs().par[cleDette(nom, tel)];
+    return v || null;
+  }
+  /* LE BANDEAU DU TABLEAU DE BORD : seulement s'il y a un RETARD. Une dette
+     récente est normale ; un bandeau toujours allumé ne se lit plus. */
+  function dessinerDettesBord(){
+    var el = document.getElementById("bordDettes");
+    if(!el) return;
+    var par = soldesChauffeurs().par, enRetard = Object.keys(par).map(function(k){ return par[k]; })
+      .filter(function(v){ return v.retard > 0.004; });
+    if(!enRetard.length){ el.hidden = true; return; }
+    var total = enRetard.reduce(function(s, v){ return s + v.retard; }, 0);
+    el.hidden = false;
+    document.getElementById("bordDettesTexte").textContent = "Commissions en retard : "
+      + (enRetard.length === 1 ? enRetard[0].nom + " doit " : enRetard.length + " chauffeurs doivent ")
+      + euros(total) + " depuis plus de " + DELAI_COMMISSION_J + " jours.";
+  }
+  document.getElementById("btnBordDettes").addEventListener("click", ouvrirControle);
+
+  /* LA RELANCE : un message au chauffeur, sur SON numéro, avec les courses
+     concernées. Une relance qui dit « vous me devez 47 € » sans dire pour
+     quoi appelle une discussion ; la liste la clôt. */
+  function messageRelance(v){
+    var dues = v.lignes.filter(function(l){ return l.reste > 0; });
+    var l = ["Bonjour " + v.nom + ", récapitulatif de vos commissions Elatransfer :"];
+    dues.slice(0, 8).forEach(function(x){
+      l.push("• " + x.ref + (x.date ? " du " + x.date.toLocaleDateString("fr-FR") : "") + " : " + euros(x.reste));
+    });
+    if(dues.length > 8) l.push("• et " + (dues.length - 8) + " autre(s)");
+    l.push("Total à régler : " + euros(v.solde)
+      + (v.retard > 0.004 ? " (dont " + euros(v.retard) + " de plus de " + DELAI_COMMISSION_J + " jours)" : "") + ".");
+    l.push("Merci !");
+    return l.join("\n");
+  }
+  var paiementPour = null;
+  function direDettes(t, erreur){
+    var e = document.getElementById("ccDettesEtat");
+    e.hidden = !t; e.textContent = t || ""; e.style.color = erreur ? "#C9302F" : "";
+  }
+  function dessinerDettes(){
+    var r = soldesChauffeurs(), par = r.par, z = viderCc("ccDettes");
+    var l = Object.keys(par).map(function(k){ return par[k]; })
+      .filter(function(v){ return v.du > 0.004 || v.recu > 0.004; })
+      .sort(function(a, b){ return b.retard - a.retard || b.solde - a.solde; });
+    var totalSolde = l.reduce(function(s, v){ return s + Math.max(0, v.solde); }, 0);
+    var totalRetard = l.reduce(function(s, v){ return s + v.retard; }, 0);
+    var resume = document.getElementById("ccDettesResume");
+    resume.textContent = (totalSolde > 0.004
+        ? "À encaisser : " + euros(totalSolde) + (totalRetard > 0.004 ? ", dont " + euros(totalRetard) + " en retard (plus de " + DELAI_COMMISSION_J + " jours)." : ".")
+        : "Aucun chauffeur ne vous doit de commission.")
+      + (r.sansRegle.length ? " Attention : " + r.sansRegle.length + " course(s) réalisée(s) sans commission définie — posez un taux de canal ou de chauffeur." : "");
+    if(!l.length) return;
+    z.appendChild(ligneCc(["Chauffeur", "Dû", "Reçu", "Reste"], "cc-tete"));
+    l.forEach(function(v){
+      var etat = v.solde <= 0.004 ? "à jour" : v.retard > 0.004 ? "retard " + euros(v.retard) : "dans les délais";
+      var ligne = ligneCc([{ t: v.nom, aide: etat }, euros(v.du), euros(v.recu), euros(Math.max(0, v.solde))]);
+      if(v.retard > 0.004) ligne.querySelector("small").className = "cc-retard";
+      ligne.dataset.cle = v.cle;
+      z.appendChild(ligne);
+      if(v.solde > 0.004){
+        var act = document.createElement("div"); act.className = "cc-actions";
+        var bp = document.createElement("button"); bp.type = "button"; bp.className = "cc-payer";
+        bp.textContent = "Paiement reçu"; bp.dataset.payer = v.cle;
+        bp.addEventListener("click", function(){ ouvrirPaiement(v); });
+        act.appendChild(bp);
+        var tel = typeof telWa === "function" ? telWa(v.tel) : "";
+        var br = document.createElement("button"); br.type = "button";
+        br.textContent = tel ? "Relancer par WhatsApp" : "Relancer (pas de numéro)"; br.disabled = !tel;
+        br.dataset.relancer = v.cle;
+        br.addEventListener("click", function(){
+          window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(messageRelance(v)), "_blank");
+        });
+        act.appendChild(br);
+        z.appendChild(act);
+      }
+    });
+    var zp = viderCc("ccPaiements"), pmts = paiementsChauffeurs().slice().reverse();
+    if(!pmts.length){ zp.appendChild(ligneCc(["Aucun paiement enregistré", ""])); }
+    pmts.slice(0, 30).forEach(function(pmt){
+      var b = document.createElement("button"); b.type = "button"; b.className = "bouton-fantome rouge";
+      b.textContent = "Retirer"; b.style.minHeight = "40px";
+      b.addEventListener("click", function(){
+        if(b.dataset.arme !== "1"){ b.dataset.arme = "1"; b.textContent = "Confirmer"; setTimeout(function(){ b.dataset.arme = ""; b.textContent = "Retirer"; }, 6000); return; }
+        ecrirePaiements(paiementsChauffeurs().filter(function(x){ return x.id !== pmt.id; }));
+        dessinerDettes(); dessinerDettesBord();
+      });
+      zp.appendChild(ligneCc([{ t: pmt.nom + " · " + euros(+pmt.montant), aide: (pmt.date || "").split("-").reverse().join("/") + " · " + (pmt.mode || "") }, b], "", 1));
+    });
+    var seuil = seuilDette();
+    document.getElementById("ccSeuil").value = seuil === null ? "" : seuil;
+  }
+  function ouvrirPaiement(v){
+    paiementPour = v;
+    document.getElementById("ccPaiement").hidden = false;
+    document.getElementById("ccPaiementTitre").textContent = "Paiement de " + v.nom + " (reste " + euros(v.solde) + ")";
+    document.getElementById("ccPaiementMontant").value = v.solde.toFixed(2);
+    document.getElementById("ccPaiementDate").value = dateLocale(new Date());
+    document.getElementById("ccPaiement").scrollIntoView({ block: "center" });
+  }
+  document.getElementById("btnCcPaiementAnnuler").addEventListener("click", function(){
+    paiementPour = null; document.getElementById("ccPaiement").hidden = true;
+  });
+  document.getElementById("btnCcPaiementOk").addEventListener("click", function(){
+    if(!paiementPour) return;
+    var m = document.getElementById("ccPaiementMontant").value.trim().replace(",", ".");
+    if(m === "" || !isFinite(m) || +m <= 0){ direDettes("Indiquez le montant reçu.", true); return; }
+    var l = paiementsChauffeurs();
+    l.push({ id: "P-" + Date.now().toString(36), cle: paiementPour.cle, nom: paiementPour.nom, tel: paiementPour.tel,
+             montant: Math.round(+m * 100) / 100, date: document.getElementById("ccPaiementDate").value || dateLocale(new Date()),
+             mode: document.getElementById("ccPaiementMode").value, cree: new Date().toISOString() });
+    ecrirePaiements(l);
+    var nom = paiementPour.nom; paiementPour = null;
+    document.getElementById("ccPaiement").hidden = true;
+    dessinerDettes(); dessinerDettesBord();
+    direDettes("Paiement de " + nom + " enregistré (" + euros(Math.round(+m * 100) / 100) + ").", false);
+  });
+  document.getElementById("btnCcSeuil").addEventListener("click", function(){
+    var v = document.getElementById("ccSeuil").value.trim().replace(",", ".");
+    if(v !== "" && (!isFinite(v) || +v < 0)){ direDettes("Seuil invalide.", true); return; }
+    var val = v === "" ? null : +v;
+    ecrireSeuilDette(val);
+    direDettes(val === null ? "Aucun blocage : la dette est seulement signalée."
+                            : "Au-delà de " + euros(val) + " dus, la confirmation d'une course sera bloquée.", false);
+    /* Le seuil vaut sur tous ses appareils ; sans serveur il reste ici. */
+    if(nuage.connecte()) nuage.majParametre("seuil_dette_chauffeur", { euros: val }).catch(function(){
+      direDettes("Seuil gardé sur cet appareil : le serveur a refusé de l'enregistrer.", true);
+    });
+  });
 /* =====================================================================
    LA COLONNE DE GAUCHE
    ---------------------------------------------------------------------
@@ -11595,6 +13779,7 @@ window.ELA_TEXTES = {
       /* La langue sert plus tard, à la demande d'avis : une course prise au
          téléphone par Barbaros est en français. */
       langue: "fr",
+      canal: "admin",
       dateMsg: date.split("-").reverse().join("/") + " " + heure
     };
     if(chNom || chTel) c.chauffeur = { nom:chNom, telephone:chTel };
@@ -11695,6 +13880,7 @@ window.ELA_TEXTES = {
      "chRegistreFin","chAssurance","chAssuranceFin","chTaux"].forEach(function(id){
       document.getElementById(id).value = "";
     });
+    document.getElementById("chTauxMode").value = "pct";
     chEnCours = null;
     document.getElementById("chTitreForm").textContent = "Ajouter un chauffeur";
     document.getElementById("btnChAnnuler").hidden = true;
@@ -11711,7 +13897,8 @@ window.ELA_TEXTES = {
     document.getElementById("chRegistreFin").value = c.registreFin || "";
     document.getElementById("chAssurance").value = c.assurance || "";
     document.getElementById("chAssuranceFin").value = c.assuranceFin || "";
-    document.getElementById("chTaux").value = (c.taux === 0 || c.taux) ? c.taux : "";
+    document.getElementById("chTaux").value = tauxChauffeur(c) ? c.taux : "";
+    document.getElementById("chTauxMode").value = c.tauxMode === "eur" ? "eur" : "pct";
     chEnCours = c.id;
     document.getElementById("chTitreForm").textContent = "Modifier " + (c.nom || "ce chauffeur");
     document.getElementById("btnChAnnuler").hidden = false;
@@ -11821,7 +14008,12 @@ window.ELA_TEXTES = {
       registreFin: document.getElementById("chRegistreFin").value,
       assurance: document.getElementById("chAssurance").value.trim(),
       assuranceFin: document.getElementById("chAssuranceFin").value,
-      taux: parseFloat(document.getElementById("chTaux").value) || 0
+      /* VIDE N'EST PAS ZÉRO (30/09/2026). « || 0 » transformait un champ
+         laissé vide en « 0 % » : le chauffeur aurait alors masqué le taux
+         du canal avec une commission nulle. Vide = pas de taux propre. */
+      taux: (function(v){ v = v.trim().replace(",", "."); return v === "" || !isFinite(v) || +v < 0 ? null : +v; })
+            (document.getElementById("chTaux").value),
+      tauxMode: document.getElementById("chTauxMode").value === "eur" ? "eur" : "pct"
     };
     var i = -1, k;
     for(k = 0; k < l.length; k++) if(l[k].id === fiche.id) i = k;
@@ -11893,7 +14085,26 @@ window.ELA_TEXTES = {
   }
   ["bbChauffeurNom","bbChauffeurTel"].forEach(function(id){
     document.getElementById(id).addEventListener("input", jugerChauffeurBon);
+    document.getElementById(id).addEventListener("input", jugerDetteBon);
   });
+  /* CE QUE LE CHAUFFEUR DOIT, DIT AU MOMENT DE LUI CONFIER UNE COURSE
+     (30/09/2026). C'est le seul levier réel : l'argent ne passe jamais par
+     Elatransfer, et un chauffeur qui ne règle pas continue de recevoir des
+     courses tant que personne ne le voit à cet instant-là. */
+  function jugerDetteBon(){
+    var el = document.getElementById("bbDette");
+    if(!el) return;
+    var nom = document.getElementById("bbChauffeurNom").value.trim();
+    var tel = document.getElementById("bbChauffeurTel").value.trim();
+    var d = nom ? detteDe(nom, tel) : null;
+    if(!d || d.solde <= 0.004){ el.hidden = true; return; }
+    var seuil = seuilDette(), bloque = seuil !== null && d.solde > seuil;
+    el.hidden = false;
+    el.className = "ch-alerte " + (bloque || d.retard > 0.004 ? "rouge" : "orange");
+    el.textContent = d.nom + " vous doit " + euros(d.solde) + " de commission"
+      + (d.retard > 0.004 ? ", dont " + euros(d.retard) + " depuis plus de " + DELAI_COMMISSION_J + " jours" : "")
+      + "." + (bloque ? " C'est au-delà de votre seuil (" + euros(seuil) + ") : la confirmation est bloquée." : "");
+  }
 
 /* =====================================================================
    LA FACTURE DE COMMISSION
@@ -12251,7 +14462,8 @@ window.ELA_TEXTES = {
     telecharger("elatransfer-registre-" + horodatage() + ".json",
                 JSON.stringify({ format: "elatransfer-1", courses: registre(),
                                  chauffeurs: chauffeurs(), factures: factures(),
-                                 rangFacture: rang, entreprise: entreprise() }, null, 1),
+                                 rangFacture: rang, entreprise: entreprise(),
+                                 paiementsChauffeurs: paiementsChauffeurs() }, null, 1),
                 "application/json");
     document.getElementById("regSauvEtat").textContent =
       "Sauvegarde téléchargée — courses, chauffeurs et factures. "
@@ -12308,6 +14520,15 @@ window.ELA_TEXTES = {
             var neufs = brut.chauffeurs.filter(function(c){ return c && c.id && !vus[c.id]; });
             if(neufs.length){ ecrireChauffeurs(ici.concat(neufs)); dessinerChauffeurs(); }
             sup += " " + neufs.length + " chauffeur" + (neufs.length > 1 ? "s ajoutés." : " ajouté.");
+          }
+          /* LES PAIEMENTS AJOUTENT AUSSI, par identifiant : un paiement
+             en double ferait croire une dette réglée. */
+          if(Array.isArray(brut.paiementsChauffeurs)){
+            var p0 = paiementsChauffeurs(), pv = {};
+            p0.forEach(function(x){ pv[x.id] = true; });
+            var np = brut.paiementsChauffeurs.filter(function(x){ return x && x.id && !pv[x.id]; });
+            if(np.length) ecrirePaiements(p0.concat(np));
+            sup += " " + np.length + " paiement" + (np.length > 1 ? "s ajoutés." : " ajouté.");
           }
           if(Array.isArray(brut.factures)){
             var f0 = factures(), vues = {};
