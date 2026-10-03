@@ -6536,6 +6536,16 @@ n'importe laquelle, la remettait en production sans un mot.
   Fait dans l'autre ordre, les copies de `main` perdraient le jeton avant la
   fusion. Une fois le secret déplacé, toute vieille copie s'arrête à
   « jeton absent ». La branche mini-van reste à supprimer, sur son accord.
+- **FAIT LE 4 OCTOBRE 2026 VERS 1 h 20**, depuis son iPhone. Nouveau jeton
+  Supabase `github-production` (portée : l'organisation Barbaros911,
+  préréglage « Full access », **expire le 1er octobre 2027** — à refaire
+  avant), rangé dans l'environnement « production » seulement. Les deux
+  anciens jetons (« Github », « GitHub ») sont supprimés chez Supabase, le
+  secret du dépôt aussi. **Éprouvé après la suppression**, sur `main` :
+  chien de garde, migrations (inventaire en lecture seule) et déploiement
+  des onze fonctions, tous verts. Supabase propose désormais des jetons à
+  droits choisis ; « Read-only » ne déploie rien, et un réglage plus fin
+  n'a pas été tenté faute de pouvoir l'éprouver avant.
 - **Le chien de garde a mis QUATRE HEURES à tourner seul** : fusionné à
   18 h 05, premier passage planifié à 22 h 08 — et dans l'heure qui a suivi,
   un passage sur quatre seulement. J'avais d'abord accusé l'expression
