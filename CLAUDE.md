@@ -6591,8 +6591,10 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   droit sur la table avant les policies : anon ne peut plus écrire, la
   policy est inerte mais reste **affichée** dans le tableau de bord — c'est
   ce que Barbaros voyait comme « encore active ». `20261003000000` la
-  supprime par son vrai nom ; **à appliquer après les trois réservations
-  réelles du 10**, pas avant. Leçon : **on ne droppe pas un nom lu dans une
+  supprime par son vrai nom. **APPLIQUÉE LE 3 OCTOBRE 2026 À 16 h 34**
+  (workflow des migrations, exécution n° 23), après validation par Barbaros
+  des trois parcours réels. Journal lu : il ne reste sur `courses` que les
+  quatre policies `authenticated` et aucun droit pour `anon`. Leçon : **on ne droppe pas un nom lu dans une
   doc, on droppe un nom lu dans `pg_policies`** — le diagnostic du 15/09
   l'avait sous les yeux.
   **L'épreuve SQL avait le même défaut, et c'est pour ça que rien ne l'a vu**
