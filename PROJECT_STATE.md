@@ -215,7 +215,7 @@ parce qu'une liste les nomme.
 | Garde-fou Playwright mobile 390×844 + desktop 1280×800 | QA/DevOps | #213/#215 · PR #210 |
 | Test contrôlé réel de la chaîne multi-agents | Équipe | #200/#215 |
 | Kanban Agile Produit + Opérations (distinct du board de traitement des courses) | Admin/Produit | #197 |
-| Sécurité finale : fermer l'ancien INSERT anon après validation des 4 parcours | Security | #190 |
+| Sécurité finale : ancien INSERT anon fermé le 03/10/2026 (policy « depot client » supprimée) — reste un dépôt de contrôle depuis le site | Security | #190 |
 | Paiement Stripe à empreinte/capture, Live désactivé jusqu'à validation | Booking/Security | #173 |
 | Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
 

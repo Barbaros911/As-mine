@@ -6535,7 +6535,24 @@ n'importe laquelle, la remettait en production sans un mot.
   ne remontre jamais une valeur — et supprimer le secret au niveau du dépôt.
   Fait dans l'autre ordre, les copies de `main` perdraient le jeton avant la
   fusion. Une fois le secret déplacé, toute vieille copie s'arrête à
-  « jeton absent ». La branche mini-van reste à supprimer, sur son accord.
+  « jeton absent ».
+  **La branche « mini-van » N'EXISTE PAS** (vérifié le 4 octobre 2026 :
+  `git ls-remote` et l'API GitHub rendent tous deux « absente »). Ce sont
+  43 vieilles branches qui la NOMMENT dans leur `fonctions.yml`
+  (`branches: [main, mini-van]`). Il faudrait donc la recréer pour
+  déclencher l'une de ces copies — et même alors, sans jeton hors de
+  l'environnement « production », elle s'arrêterait sur « jeton absent ».
+  Rien à supprimer.
+- **FAIT LE 4 OCTOBRE 2026 VERS 1 h 20**, depuis son iPhone. Nouveau jeton
+  Supabase `github-production` (portée : l'organisation Barbaros911,
+  préréglage « Full access », **expire le 1er octobre 2027** — à refaire
+  avant), rangé dans l'environnement « production » seulement. Les deux
+  anciens jetons (« Github », « GitHub ») sont supprimés chez Supabase, le
+  secret du dépôt aussi. **Éprouvé après la suppression**, sur `main` :
+  chien de garde, migrations (inventaire en lecture seule) et déploiement
+  des onze fonctions, tous verts. Supabase propose désormais des jetons à
+  droits choisis ; « Read-only » ne déploie rien, et un réglage plus fin
+  n'a pas été tenté faute de pouvoir l'éprouver avant.
 - **Le chien de garde a mis QUATRE HEURES à tourner seul** : fusionné à
   18 h 05, premier passage planifié à 22 h 08 — et dans l'heure qui a suivi,
   un passage sur quatre seulement. J'avais d'abord accusé l'expression
@@ -6591,10 +6608,21 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   droit sur la table avant les policies : anon ne peut plus écrire, la
   policy est inerte mais reste **affichée** dans le tableau de bord — c'est
   ce que Barbaros voyait comme « encore active ». `20261003000000` la
-  supprime par son vrai nom ; **à appliquer après les trois réservations
-  réelles du 10**, pas avant. Leçon : **on ne droppe pas un nom lu dans une
+  supprime par son vrai nom. **APPLIQUÉE LE 3 OCTOBRE 2026 À 16 h 34**
+  (workflow des migrations, exécution n° 23), après validation par Barbaros
+  des trois parcours réels. Journal lu : il ne reste sur `courses` que les
+  quatre policies `authenticated` et aucun droit pour `anon`. Leçon : **on ne droppe pas un nom lu dans une
   doc, on droppe un nom lu dans `pg_policies`** — le diagnostic du 15/09
   l'avait sous les yeux.
+  **L'épreuve SQL avait le même défaut, et c'est pour ça que rien ne l'a vu**
+  (3 octobre 2026, Issue #190). `courses-sans-anon.sql` reposait la policy
+  sous le nom de la doc — celui que la migration du 28/09 droppait — et
+  passait donc au vert sur un drop qui, en production, visait le vide. Elle
+  repose maintenant « depot client », enchaîne les deux migrations, et
+  vérifie séparément la policy et le droit sur la table. Éprouvé sur un
+  PostgreSQL local : sans la migration du 03/10 elle tombe en nommant
+  « depot client » ; avec un `grant insert … to anon` rendu, elle tombe aussi.
+  **Une épreuve qui repose l'état qu'on imagine éprouve la doc, pas la base.**
 - **AUCUN REGISTRE DES MIGRATIONS.** Le workflow exécute du SQL brut par
   l'API de gestion et n'écrit rien dans `schema_migrations`. Sur 29 fichiers,
   12 sont passés par lui ; 17 ont été collés dans l'éditeur SQL, et des

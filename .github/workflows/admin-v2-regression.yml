@@ -161,12 +161,17 @@ jobs:
             -f supabase/tests/gestes-client.sql
           # Audit du 28/09/2026 : plus aucune ecriture directe d'anon dans
           # courses. L'epreuve repose l'etat d'origine, verifie qu'il laisse
-          # passer, applique la migration, puis exige le refus.
+          # passer, applique les DEUX migrations dans l'ordre de la
+          # production, puis exige le refus ET l'absence de toute policy anon.
+          # Issue #190 : la policy est reposee sous son vrai nom de production,
+          # « depot client ». Sans la migration du 03/10 l'epreuve tombe — c'est
+          # l'etat reel de la base tant qu'elle n'est pas appliquee.
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database coursesanon;'
           psql -h 127.0.0.1 -U postgres -d coursesanon -X -q -v ON_ERROR_STOP=1 \
             -f supabase/tests/socle.sql \
             -f supabase/tests/courses-sans-anon.sql \
             -f supabase/migrations/20260928120000_courses_sans_depot_anonyme.sql \
+            -f supabase/migrations/20261003000000_courses_policy_depot_client.sql \
             -f supabase/tests/courses-sans-anon-apres.sql
           # Le rôle agent : l'agent est refusé sur les prix, les réglages et
           # l'argent, l'admin passe. Les deux côtés sont éprouvés.
