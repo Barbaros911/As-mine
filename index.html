@@ -619,6 +619,20 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-appeler{background:rgba(255,255,255,.16);color:#fff;}
 .demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
 .d-clore{background:#1F6F6B;color:#fff;}
+/* « TERMINÉE » ARMÉ (3 octobre 2026) : avant l'heure de départ, le premier
+   appui ne ferme rien, il demande confirmation. En ambre, la couleur de ce
+   qui reste à faire, jamais le rouge de l'attente. */
+.d-clore.arme{background:#B45309;color:#fff;}
+/* LE CHAUFFEUR SUR LA CARTE (3 octobre 2026) : l'état qui fait rater une
+   course est « confirmée, mais personne pour conduire ». */
+.d-ch{margin-left:6px;font-weight:600;letter-spacing:0;}
+.d-ch-manque{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;
+  background:#FEF3C7;color:#92400E;font-weight:700;letter-spacing:0;}
+.sans-chauffeur-bord{display:block;width:calc(100% - 40px);margin:12px 20px 0;min-height:44px;
+  padding:10px 14px;border:1.5px solid #F2C94C;border-radius:12px;background:#FFF8E1;color:#7A4B00;
+  font:inherit;font-weight:600;text-align:left;cursor:pointer;}
+.sans-chauffeur-bord[hidden]{display:none}
+@media (min-width:900px){ body.espace .sans-chauffeur-bord{margin:16px 28px 0;width:calc(100% - 56px);} }
 /* La demande d'avis n'est PAS l'action principale d'une course réalisée :
    elle est en creux, contour seul. Un second bouton plein ferait deux
    actions qui crient sur une ligne qui n'attend plus personne. */
@@ -2088,6 +2102,7 @@ body.exploitant .bouton-fantome:hover{background:#f6f9fc;border-color:#c3d3e2;}
 body.exploitant .bouton-fantome.rouge{color:#b3261e;border-color:#f0c2c2;}
 body.exploitant .bouton.vert,
 body.exploitant .d-clore{background:#0e6fc7;color:#fff;}
+body.exploitant .d-clore.arme{background:#B45309;}
 
 /* ---------- LES CHAMPS ---------- */
 body.exploitant .champ{background:var(--carte);border-color:#dbe4ec;border-radius:13px;
@@ -3446,6 +3461,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          signale. -->
     <p class="synchro" id="bordSynchro" hidden></p>
     <p class="synchro conflit" id="bordConflit" hidden></p>
+    <!-- UNE COURSE CONFIRMÉE SANS CHAUFFEUR (3 octobre 2026, audit) : c'est
+         l'état qui fait rater une course, et rien d'autre ne le rappelle —
+         la relance ne vise que les demandes en attente. Comme les dettes,
+         l'écriteau n'existe que s'il y a quelque chose à faire. -->
+    <button class="sans-chauffeur-bord" type="button" id="bordSansChauffeur" hidden></button>
 
     <!-- ═══ LE BLOC A MAIGRI DE MOITIÉ ═══
          Septembre 2026, à sa demande : « ça prend beaucoup de place ». Il
@@ -4723,6 +4743,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton vert" type="button" id="btnRealisee">
         <span>Marquer comme réalisée</span>
       </button>
+      <p class="champ-aide" id="realEtat" hidden style="color:#92400E"></p>
+      <!-- UNE COURSE FERMÉE PAR ERREUR SE ROUVRE (3 octobre 2026, audit) :
+           sans ce bouton, la seule issue était de supprimer la course et de
+           la recréer sous une autre référence. -->
+      <button class="bouton-fantome" type="button" id="btnRouvrir" hidden>Remettre en confirmée</button>
+      <p class="champ-aide" id="rouvrirEtat" hidden></p>
       <button class="bouton-fantome" type="button" id="btnModifierCourse">Modifier la course</button>
       <button class="bouton-fantome" type="button" id="btnRefuser">Refuser la course</button>
       <p class="champ-aide" id="refusEtat" hidden style="color:#B4231F"></p>
@@ -11131,6 +11157,45 @@ window.ELA_TEXTES = {
          : st === "realisee" ? "Réalisée"
          : st === "annulee" ? "Annulée" : "Refusée";
   }
+  /* « TERMINÉE » AVANT L'HEURE DEMANDE DEUX APPUIS (3 octobre 2026,
+     décision de Barbaros : « seconde appui »). Un seul appui fermait une
+     course à venir — le bouton est collé à « Appeler » — et rien ne la
+     rouvrait : elle quittait « À assurer », la réception lisait
+     « Effectuée », et personne ne la conduisait. Après l'heure de départ,
+     un appui suffit toujours : c'est le geste du soir, fait à la chaîne.
+     700 ms au moins entre les deux appuis : un double appui involontaire
+     arrive en moins de 300, il ne vaut pas confirmation. Une date
+     illisible compte comme passée, pour ne bloquer aucune vieille course. */
+  function departPasse(c){
+    var d = new Date((c.course && c.course.date) + "T" + ((c.course && c.course.heure) || "00:00"));
+    return isNaN(d.getTime()) || d.getTime() <= Date.now();
+  }
+  /* UN DOUBLE APPUI NE FERME JAMAIS DEUX COURSES (3 octobre 2026). Mesuré
+     sur l'ancien code : la carte fermée disparaît, la page se raccourcit,
+     et le second appui tombe sur le « Terminée » d'une AUTRE course, qui
+     se fermait aussi. Pendant 700 ms après une fermeture depuis la liste,
+     plus aucun « Terminée » ne répond, quelle que soit la carte visée. */
+  var dernierClore = 0;
+  function armerClore(b, c){
+    b.dataset.arme = String(Date.now());
+    b.classList.add("arme");
+    b.textContent = "Confirmer la fin";
+    b.title = "Départ prévu " + dateLisible(c) + " : appuyez encore pour la marquer terminée.";
+    setTimeout(function(){
+      if(!b.isConnected) return;
+      delete b.dataset.arme;
+      b.classList.remove("arme");
+      b.textContent = "Terminée";
+      b.removeAttribute("title");
+    }, 5000);
+  }
+  /* « SANS CHAUFFEUR » (3 octobre 2026, décision de Barbaros : une course
+     saisie au téléphone sans chauffeur reste CONFIRMÉE). Elle doit donc se
+     voir : sur sa carte, et par un écriteau en tête du tableau de bord. */
+  function sansChauffeur(c){
+    return (c.statut || "attente") === "confirmee"
+      && !(c.chauffeur && String(c.chauffeur.nom || "").trim());
+  }
   function dessinerBord(){
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     var liste = document.getElementById("listeBord");
@@ -11148,6 +11213,14 @@ window.ELA_TEXTES = {
     jugerSon();
     document.querySelector('.compteur[data-filtre="attente"]')
             .classList.toggle("urgent", parEtat.attente > 0);
+    var nbSansCh = tout.filter(sansChauffeur).length;
+    var ecSansCh = document.getElementById("bordSansChauffeur");
+    if(ecSansCh){
+      ecSansCh.hidden = !nbSansCh;
+      ecSansCh.textContent = nbSansCh === 1
+        ? "1 course confirmée n'a pas de chauffeur — la voir"
+        : nbSansCh + " courses confirmées n'ont pas de chauffeur — les voir";
+    }
     document.querySelectorAll(".compteur").forEach(function(b){
       b.classList.toggle("actif", b.dataset.filtre === filtreBord);
     });
@@ -11214,6 +11287,15 @@ window.ELA_TEXTES = {
       + '<span class="d-bas"><span class="d-gris"></span><span class="d-boutons"></span></span>';
       el.querySelector(".d-ref").textContent = c.ref
         + (st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "");
+      /* LE CHAUFFEUR SE LIT SUR LA CARTE (3 octobre 2026, audit). Sans lui,
+         « À assurer » mêlait les courses placées et celles qui n'avaient
+         personne : il fallait ouvrir chaque bon pour le savoir. */
+      if(st === "confirmee" || st === "realisee"){
+        var dch = document.createElement("span");
+        if(sansChauffeur(c)){ dch.className = "d-ch-manque"; dch.textContent = "Sans chauffeur"; }
+        else if(c.chauffeur && c.chauffeur.nom){ dch.className = "d-ch"; dch.textContent = "· " + c.chauffeur.nom; }
+        if(dch.className) el.querySelector(".d-ref").appendChild(dch);
+      }
       /* ═══ D'OÙ VIENT CETTE DEMANDE, VU D'UN COUP D'ŒIL ═══
          À sa demande : « l'adresse easyHotel, tu peux mettre un code
          couleur visuel orange, une façon pour moi de savoir que c'est
@@ -11271,6 +11353,13 @@ window.ELA_TEXTES = {
         clore.textContent = "Terminée";
         clore.addEventListener("click", function(e){
           e.stopPropagation();
+          if(Date.now() - dernierClore < 700) return;
+          if(!departPasse(c)){
+            var arme = Number(clore.dataset.arme || 0);
+            if(!arme){ armerClore(clore, c); return; }
+            if(Date.now() - arme < 700) return;
+          }
+          dernierClore = Date.now();
           majCourse(c.ref, "realisee");
         });
         boutons.appendChild(clore);
@@ -11743,7 +11832,8 @@ window.ELA_TEXTES = {
        s'il y a un numéro où écrire. Un bouton visible qui n'envoie rien fait
        croire à Barbaros que le client est prévenu — et le client attend. */
     document.getElementById("btnPrevenirClient").hidden =
-      (c.statut !== "confirmee") || !tel;
+      (c.statut !== "confirmee") || !tel
+      || !document.getElementById("bbChauffeurNom").value.trim();
     /* UN SEUL GESTE PRINCIPAL À LA FOIS (23/09/2026, à sa demande : « fais
        comme tu penses être le mieux »). « Confirmer » et « Marquer comme
        réalisée » étaient deux gros boutons l'un sous l'autre, même sur une
@@ -11761,6 +11851,9 @@ window.ELA_TEXTES = {
        une course faite ne se change plus, elle est au registre. */
     document.getElementById("btnAnnulerCourse").hidden = finie;
     document.getElementById("btnModifierCourse").hidden = finie;
+    document.getElementById("btnRouvrir").hidden = etape !== "realisee";
+    desarmerReal();
+    desarmerRouvrir();
     desarmerAnnul();
     fermerModif();
     document.getElementById("bbModifNote").hidden = true;
@@ -12119,17 +12212,100 @@ window.ELA_TEXTES = {
               { diffusee: new Date().toISOString() });
     this.textContent = "Déjà placée au groupe — rediffuser";
   });
+  /* « PRÉVENIR LE CLIENT » ATTEND UN CHAUFFEUR (3 octobre 2026, audit) : le
+     message annonce « Chauffeur : … », et sans nom il partait avec un
+     tiret. Il apparaît dès qu'un nom est tapé sur une course confirmée. */
+  document.getElementById("bbChauffeurNom").addEventListener("input", function(){
+    if(!bonBord) return;
+    var tel = telWa(bonBord.client && bonBord.client.telephone);
+    document.getElementById("btnPrevenirClient").hidden =
+      (bonBord.statut !== "confirmee") || !tel || !this.value.trim();
+  });
   document.getElementById("btnPrevenirClient").addEventListener("click", function(){
     if(!bonBord) return;
     var tel = telWa(bonBord.client && bonBord.client.telephone);
     if(!tel) return;
+    /* Le chauffeur tapé sur la fiche est enregistré AVANT d'écrire au
+       client, avec le même contrôle que « Confirmer » (papiers, dette) :
+       le message annonce ce nom, il doit être celui du registre. Rien
+       n'est attendu avant window.open : Safari exige le geste. */
+    var saisi = chauffeurSaisi(), actuel = bonBord.chauffeur || {};
+    if(saisi.nom !== (actuel.nom || "") || saisi.telephone !== (actuel.telephone || "")){
+      var refus = refusConfirmation();
+      if(refus){ direConfirmer(refus); return; }
+      bonBord = majCourse(bonBord.ref, bonBord.statut,
+                          { chauffeur: saisi, commission: commissionSaisie() }) || bonBord;
+    }
     window.open("https://wa.me/" + tel + "?text="
                 + encodeURIComponent(messageConfirmation(bonBord)), "_blank");
   });
+  /* MÊME RÈGLE SUR LA FICHE (3 octobre 2026) : avant l'heure de départ,
+     « Marquer comme réalisée » demande un second appui. */
+  var realArme = null, realLe = 0, realMinuteur = null;
+  function desarmerReal(){
+    realArme = null; realLe = 0;
+    if(realMinuteur){ clearTimeout(realMinuteur); realMinuteur = null; }
+    var s = document.querySelector("#btnRealisee span");
+    if(s) s.textContent = "Marquer comme réalisée";
+    var e = document.getElementById("realEtat");
+    if(e){ e.hidden = true; e.textContent = ""; }
+  }
   document.getElementById("btnRealisee").addEventListener("click", function(){
     if(!bonBord) return;
+    if(!departPasse(bonBord)){
+      if(realArme !== bonBord.ref){
+        realArme = bonBord.ref; realLe = Date.now();
+        var s = this.querySelector("span");
+        if(s) s.textContent = "Confirmer : elle n'est pas encore partie";
+        var e = document.getElementById("realEtat");
+        e.hidden = false;
+        e.textContent = "Départ prévu " + dateLisible(bonBord) + ". Appuyez encore pour la marquer réalisée.";
+        realMinuteur = setTimeout(desarmerReal, 8000);
+        return;
+      }
+      if(Date.now() - realLe < 700) return;
+    }
+    desarmerReal();
     majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
     ecran("ecran-bord");
+  });
+  /* UNE COURSE FERMÉE PAR ERREUR SE ROUVRE (3 octobre 2026, audit). Deux
+     appuis, comme « Refuser ». La commission figée est levée : elle se
+     refigera à la vraie fin, aux taux du moment. UNE COURSE DÉJÀ FACTURÉE
+     NE SE ROUVRE PAS : sa facture est émise, la rouvrir la ferait compter
+     deux fois. */
+  var rouvrirArme = null, rouvrirMinuteur = null;
+  function desarmerRouvrir(){
+    rouvrirArme = null;
+    if(rouvrirMinuteur){ clearTimeout(rouvrirMinuteur); rouvrirMinuteur = null; }
+    var b = document.getElementById("btnRouvrir");
+    if(b) b.textContent = "Remettre en confirmée";
+    var e = document.getElementById("rouvrirEtat");
+    if(e){ e.hidden = true; e.textContent = ""; }
+  }
+  document.getElementById("btnRouvrir").addEventListener("click", function(){
+    if(!bonBord || bonBord.statut !== "realisee") return;
+    var e = document.getElementById("rouvrirEtat");
+    if(bonBord.factureNum){
+      e.hidden = false;
+      e.textContent = "Cette course figure sur la facture " + bonBord.factureNum + " : elle ne se rouvre pas.";
+      return;
+    }
+    if(rouvrirArme !== bonBord.ref){
+      rouvrirArme = bonBord.ref;
+      this.textContent = "Confirmer : la remettre à assurer";
+      e.hidden = false;
+      e.textContent = "Elle quittera les réalisées et reviendra dans « À assurer ». Appuyez encore pour confirmer.";
+      rouvrirMinuteur = setTimeout(desarmerRouvrir, 8000);
+      return;
+    }
+    var ref = bonBord.ref;
+    desarmerRouvrir();
+    majCourse(ref, "confirmee", { commissionFigee: null, rouverteLe: new Date().toISOString() });
+    ouvrirBonBord(ref);
+    var note = document.getElementById("bbModifNote");
+    note.textContent = "Course remise à assurer. La réception la verra « confirmée » sous 30 secondes.";
+    note.hidden = false;
   });
   /* REFUSER DEMANDE DEUX APPUIS (audit du 30/09/2026). Un seul appui
      refusait la course sans retour possible — le bon n'offre plus aucun
@@ -12343,6 +12519,16 @@ window.ELA_TEXTES = {
       ecran("ecran-bord");
     });
   });
+  /* L'écriteau « sans chauffeur » emmène aux courses à assurer, où la
+     carte porte le repère. */
+  (function(){
+    var b = document.getElementById("bordSansChauffeur");
+    if(b) b.addEventListener("click", function(){
+      filtreBord = "confirmee"; dessinerBord();
+      var l = document.getElementById("listeBord");
+      if(l) l.scrollIntoView({ block:"start" });
+    });
+  })();
   document.querySelectorAll(".compteur").forEach(function(b){
     b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
   });

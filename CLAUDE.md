@@ -6670,3 +6670,42 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   d'immatriculation + attestation RC, par mail, valable un an), papiers des
   chauffeurs dans le carnet, médiateur sous 30 jours. Rien de tout cela ne se
   code.
+
+## « TERMINÉE » DEMANDE DEUX APPUIS AVANT L'HEURE, ET « SANS CHAUFFEUR » SE VOIT
+
+3 octobre 2026, audit de l'admin puis décisions de Barbaros : « seconde appui »
+avant l'heure de départ, et une course saisie au téléphone sans chauffeur reste
+confirmée. **Il n'y a pas d'agent de réservation pour l'instant** : il travaille
+seul.
+- **« Terminée » fermait une course À VENIR d'un seul appui**, collé à
+  « Appeler », sans retour possible : elle quittait « À assurer », la réception
+  lisait « Effectuée », et personne ne la conduisait. Avant l'heure de départ
+  (`departPasse()`), le premier appui arme (« Confirmer la fin », en ambre) et le
+  second ferme ; moins de 700 ms entre les deux ne compte pas. Après l'heure, un
+  appui suffit : c'est le geste du soir. Même règle sur la fiche, pour
+  « Marquer comme réalisée ».
+- **UN DOUBLE APPUI FERMAIT DEUX COURSES.** Mesuré sur l'ancien code : la carte
+  fermée disparaît, la page se raccourcit, et le second appui tombe sur le
+  « Terminée » d'une autre course. L'audit l'avait d'abord déclaré réfuté sur UN
+  rejeu : un rejeu dans une seule mise en page ne prouve rien sur les autres.
+  Garde globale : pendant 700 ms après une fermeture, plus aucun « Terminée » ne
+  répond.
+- **« Remettre en confirmée »** sur la fiche d'une course réalisée, en deux
+  appuis. La commission figée est levée et se refige à la vraie fin. Une course
+  déjà facturée (`factureNum`) ne se rouvre pas : sa facture est émise.
+- **« Sans chauffeur »** : une course confirmée sans nom de chauffeur porte une
+  pastille ambre sur sa carte, et un écriteau en tête du tableau de bord la
+  compte et emmène aux courses à assurer. Les autres cartes confirmées ou
+  réalisées portent le nom du chauffeur. L'ambre n'est ni le rouge de l'attente
+  ni l'orange d'un partenaire.
+- **« Prévenir le client » attend un chauffeur** : caché tant qu'aucun nom n'est
+  saisi, il apparaît dès qu'on le tape, et il ENREGISTRE le chauffeur avant
+  d'écrire, avec le même contrôle que « Confirmer » (papiers, dette).
+- **Ce qui reste ouvert** : la relance serveur ne vise que les demandes en
+  attente, donc une course confirmée sans chauffeur n'envoie aucun rappel.
+  L'écriteau est le seul filet ; un rappel serveur deux heures avant le départ
+  reste à décider.
+- `test-admin-cloture.mjs`, sur le site construit. Éprouvée contre l'ancien
+  code : 16 contrôles tombent, dont le double appui qui ferme deux courses.
+  `test-admin-controle.mjs` pose désormais sa course QQQQ6 à minuit : sinon le
+  second appui s'appliquait selon l'heure de la journée.

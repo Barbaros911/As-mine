@@ -187,7 +187,10 @@ try {
     course('ELA-26-09-AAAA3', 70, 'Ali', { commission:{ mode:'eur', valeur:7 } }),
     course('ELA-26-09-SSSS4', 60, 'Sami', { provenanceCle:'easyhotel-aeroville', parReception:true }),
     course('ELA-26-09-PPPP5', 90, '', { statut:'attente', chauffeur:undefined }),
-    course('ELA-26-09-QQQQ6', 80, 'Ali', { statut:'confirmee' }) ];
+    /* Départ à minuit : depuis le 3 octobre 2026, « Marquer comme réalisée »
+       demande un second appui avant l'heure de départ. Le sujet ici est la
+       commission figée, pas ce garde-fou. */
+    (c => (c.course.heure = '00:00', c))(course('ELA-26-09-QQQQ6', 80, 'Ali', { statut:'confirmee' })) ];
   TAUX = { public:{mode:'pct', valeur:10} };
   SERVEUR[3].chauffeur.telephone = '0600000009';
   const d = await espace();
