@@ -40,6 +40,9 @@ jobs:
         with: {node-version: '22'}
       - run: node --check admin-v2-actions.js
       - run: bash construire.sh
+        # Admin v2 n'est plus publié : ce contrôle le demande explicitement.
+        env:
+          ELA_AVEC_ADMIN_V2: "1"
       - name: Vérifier Admin v2
         shell: bash
         run: |

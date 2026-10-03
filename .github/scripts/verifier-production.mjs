@@ -74,7 +74,10 @@ const PAGES = [
   { chemin: "admin.html", quoi: "le raccourci exploitant", titre: "Espace exploitant" },
   { chemin: "exploitant/", quoi: "l'espace exploitant", titre: "Espace exploitant" },
   { chemin: "ela-admin/", quoi: "l'admin historique (o\u00f9 m\u00e8ne admin.html)", titre: "Administration" },
-  { chemin: "admin-v2.html", quoi: "l'Admin v2", titre: "Admin" },
+  /* Admin v2 n'est plus publié (3 octobre 2026) : son ancienne adresse doit
+     RENVOYER vers l'admin, pas rendre un 404 ni rouvrir Admin v2. « Admin »
+     seul aurait accepté les deux titres : on exige celui de la redirection. */
+  { chemin: "admin-v2.html", quoi: "l'ancienne adresse d'Admin v2 (renvoie vers l'admin)", titre: "Espace exploitant" },
   { chemin: "easyhotel-client/", quoi: "la page du QR easyHotel", titre: "easyHotel A\u00e9roville" },
   { chemin: "easyhotel-reception/", quoi: "la r\u00e9ception easyHotel (ancienne adresse, ic\u00f4nes d\u00e9j\u00e0 pos\u00e9es)", titre: "R\u00e9ception easyHotel" },
   { chemin: "reception/easyhotel-aeroville/", quoi: "la r\u00e9ception easyHotel (adresse propre)", titre: "R\u00e9ception easyHotel" },

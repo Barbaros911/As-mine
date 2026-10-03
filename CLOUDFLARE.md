@@ -92,6 +92,10 @@ gérer le domaine racine et que la redirection vers `www` ne convient pas.
 
 C'est exactement la même commande que celle qu'exécute GitHub Actions —
 `construire.sh` est la seule recette, partagée par les deux.
+**Admin v2 n'est jamais publié** (3 octobre 2026) : `construire.sh` le retire
+par défaut, sans aucun réglage à poser ici. Ne JAMAIS ajouter
+`ELA_AVEC_ADMIN_V2=1` à cette commande — ce drapeau n'existe que pour les
+suites de test qui éprouvent Admin v2.
 
 ## Étape 2 — Vérifier AVANT de toucher au domaine
 

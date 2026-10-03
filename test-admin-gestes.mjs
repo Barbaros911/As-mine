@@ -34,7 +34,8 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { execSync } from 'node:child_process';
 
-execSync('sh construire.sh', {stdio:'ignore'});
+// Admin v2 n'est plus publié : on le demande explicitement pour l'éprouver.
+execSync('sh construire.sh', {stdio:'ignore', env:{...process.env, ELA_AVEC_ADMIN_V2:'1'}});
 const TYPES = {'.html':'text/html','.css':'text/css','.js':'text/javascript',
   '.mjs':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json',
   '.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg',

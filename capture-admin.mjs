@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { readFile, stat, mkdir } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { execSync } from 'node:child_process';
-execSync('sh construire.sh',{stdio:'inherit'});
+execSync('sh construire.sh',{stdio:'inherit',env:{...process.env,ELA_AVEC_ADMIN_V2:'1'}});
 await mkdir('captures-admin',{recursive:true});
 const TYPES={'.html':'text/html','.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer(async(req,res)=>{try{let p=normalize(decodeURIComponent(req.url.split('?')[0])).replace(/^(\.\.[/\\])+/,'');let f=join(process.cwd(),'site',p);try{if((await stat(f)).isDirectory())f=join(f,'index.html')}catch{res.writeHead(404).end();return}res.writeHead(200,{'Content-Type':TYPES[extname(f)]||'application/octet-stream'});res.end(await readFile(f))}catch{res.writeHead(404).end()}});

@@ -477,6 +477,39 @@ for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
     + "plus jamais appelé, sans le moindre message. Écouter « ela:ecran ».");
 }
 
+/* ADMIN V2 NE PART PAS EN LIGNE (3 octobre 2026, à la demande de
+   Barbaros). Premier jet : un drapeau à POSER pour le retirer, dans
+   pages.yml. Or elatransfer.com est servi par Cloudflare (Workers Builds),
+   dont la commande se règle hors du dépôt : le drapeau n'y était pas, et
+   Admin v2 serait resté en ligne sans que rien ne le dise. Le retrait est
+   donc la RÈGLE PAR DÉFAUT de la recette, et seul ELA_AVEC_ADMIN_V2=1 —
+   réservé aux suites qui éprouvent Admin v2 — le garde. On vérifie les
+   deux faces : la recette retire par défaut, et aucune configuration de
+   PUBLICATION ne pose le drapeau qui le garderait. On lit les seules lignes
+   de commande : un contrôle qui trouve son mot dans une phrase
+   d'explication ne vérifie rien. */
+{
+  const sansCommentaires = t => t.split("\n").filter(l => !/^\s*(#|\/\/)/.test(l)).join("\n");
+  const recette = sansCommentaires(readFileSync("construire.sh", "utf8"));
+  verifier("construire.sh retire Admin v2 PAR DÉFAUT (sauf ELA_AVEC_ADMIN_V2=1)",
+    /if \[ "\$\{ELA_AVEC_ADMIN_V2:-\}" != "1" \]; then\s*\n\s*rm -f site\/admin-v2-\*\.js site\/admin-v2-responsive\.css\s*\n\s*cp site\/admin\.html site\/admin-v2\.html/.test(recette),
+    "la recette ne retire plus Admin v2 par défaut, ou son ancienne adresse ne renvoie plus vers l'admin.");
+  const publication = [
+    [".github/workflows/pages.yml", sansCommentaires(readFileSync(".github/workflows/pages.yml", "utf8"))],
+    ["wrangler.jsonc", sansCommentaires(readFileSync("wrangler.jsonc", "utf8"))],
+    ["CLOUDFLARE.md (commande de construction)",
+      (readFileSync("CLOUDFLARE.md", "utf8").match(/^.*Build command.*$/m) || [""])[0]],
+  ];
+  for(const [nom, texte] of publication){
+    verifier(`${nom} ne garde pas Admin v2 en ligne`,
+      !/ELA_AVEC_ADMIN_V2/.test(texte),
+      "ce drapeau n'existe que pour les suites de test : posé ici, il remettrait Admin v2 en ligne.");
+  }
+  verifier("la commande de construction Cloudflare reste la recette, seule",
+    /Build command \| `sh construire\.sh` \|/.test(readFileSync("CLOUDFLARE.md", "utf8")),
+    "CLOUDFLARE.md ne donne plus « sh construire.sh » comme commande de construction.");
+}
+
 /* --------------------------------------------------------------- */
 console.log("");
 if(echecs.length){

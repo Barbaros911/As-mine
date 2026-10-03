@@ -44,7 +44,9 @@ const [mode, ...reste] = process.argv.slice(2);
    liste trop longue rend le rapport illisible, donc ignoré. */
 const ECRANS = [
   { nom: "accueil-client", chemin: "" },
-  { nom: "admin-v2", chemin: "admin-v2.html" },
+  /* L'exploitant, c'est l'admin retenu. Admin v2 n'est plus publié
+     (3 octobre 2026) : sa capture n'aurait montré qu'une redirection. */
+  { nom: "admin", chemin: "ela-admin/" },
   { nom: "facade-publique", chemin: "ela-public/" },
   { nom: "easyhotel-client", chemin: "easyhotel-client/" },
 ];

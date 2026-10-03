@@ -4,7 +4,7 @@ import { readFile, stat, mkdir } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { execSync } from 'node:child_process';
 
-execSync('sh construire.sh',{stdio:'inherit'});
+execSync('sh construire.sh',{stdio:'inherit',env:{...process.env,ELA_AVEC_ADMIN_V2:'1'}});
 await mkdir('captures',{recursive:true});
 const ROOT=join(process.cwd(),'site');
 const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'};
