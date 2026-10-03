@@ -6535,7 +6535,14 @@ n'importe laquelle, la remettait en production sans un mot.
   ne remontre jamais une valeur — et supprimer le secret au niveau du dépôt.
   Fait dans l'autre ordre, les copies de `main` perdraient le jeton avant la
   fusion. Une fois le secret déplacé, toute vieille copie s'arrête à
-  « jeton absent ». La branche mini-van reste à supprimer, sur son accord.
+  « jeton absent ».
+  **La branche « mini-van » N'EXISTE PAS** (vérifié le 4 octobre 2026 :
+  `git ls-remote` et l'API GitHub rendent tous deux « absente »). Ce sont
+  43 vieilles branches qui la NOMMENT dans leur `fonctions.yml`
+  (`branches: [main, mini-van]`). Il faudrait donc la recréer pour
+  déclencher l'une de ces copies — et même alors, sans jeton hors de
+  l'environnement « production », elle s'arrêterait sur « jeton absent ».
+  Rien à supprimer.
 - **FAIT LE 4 OCTOBRE 2026 VERS 1 h 20**, depuis son iPhone. Nouveau jeton
   Supabase `github-production` (portée : l'organisation Barbaros911,
   préréglage « Full access », **expire le 1er octobre 2027** — à refaire
