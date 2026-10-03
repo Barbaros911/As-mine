@@ -477,6 +477,28 @@ for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
     + "plus jamais appelé, sans le moindre message. Écouter « ela:ecran ».");
 }
 
+/* ADMIN V2 NE PART PAS EN LIGNE (3 octobre 2026, à la demande de
+   Barbaros). Le retrait tient à UN drapeau, posé à deux endroits : le job
+   de publication GitHub et la commande de construction Cloudflare. L'oublier
+   ne casse rien de visible — Admin v2 revient simplement en ligne. On lit
+   les seules lignes de commande, jamais les commentaires : un contrôle qui
+   trouve son mot dans une phrase d'explication ne vérifie rien. */
+{
+  const sansCommentaires = t => t.split("\n").filter(l => !/^\s*#/.test(l)).join("\n");
+  const pages = sansCommentaires(readFileSync(".github/workflows/pages.yml", "utf8"));
+  verifier("la publication GitHub construit sans Admin v2 (ELA_PUBLICATION)",
+    /\n\s+env:\s*\n\s+ELA_PUBLICATION:\s*["']?1["']?/.test(pages),
+    "pages.yml ne pose plus ELA_PUBLICATION=1 sur le job : Admin v2 repartirait en ligne.");
+  const recette = sansCommentaires(readFileSync("construire.sh", "utf8"));
+  verifier("construire.sh retire Admin v2 quand ELA_PUBLICATION vaut 1",
+    /ELA_PUBLICATION[\s\S]{0,80}rm -f site\/admin-v2-\*\.js[\s\S]{0,120}cp site\/admin\.html site\/admin-v2\.html/.test(recette),
+    "la recette ne retire plus les scripts d'Admin v2, ou son ancienne adresse ne renvoie plus vers l'admin.");
+  const cf = readFileSync("CLOUDFLARE.md", "utf8");
+  verifier("la commande de construction Cloudflare pose ELA_PUBLICATION=1",
+    /Build command \| `ELA_PUBLICATION=1 sh construire\.sh`/.test(cf),
+    "CLOUDFLARE.md : sans le drapeau, Cloudflare publierait Admin v2.");
+}
+
 /* --------------------------------------------------------------- */
 console.log("");
 if(echecs.length){

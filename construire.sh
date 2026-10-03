@@ -65,4 +65,23 @@ node .github/scripts/masquer-commentaires.mjs \
   site/admin-v2-registre.js site/admin-v2-factures.js site/admin-v2-gestes.js \
   site/admin-v2-affiche.js site/admin-v2-maquette.js
 
+# ADMIN V2 N'EST PLUS PUBLIÉ — 3 octobre 2026, à la demande de Barbaros
+# (« retire »). Il travaille seul, dans l'admin historique (/ela-admin/) ;
+# un second espace en ligne, c'était une porte de plus vers les données des
+# clients et une seconde adresse où se tromper d'outil à 5 h du matin.
+# LE CODE RESTE DANS LE DÉPÔT, et ses suites continuent de tourner : il
+# porte la tarification serveur, les partenaires et la règle des papiers
+# imposée par le serveur — le jour où Barbaros le redemande, rien n'est à
+# réécrire. On ne retire que ce qui part EN LIGNE, et seulement quand la
+# construction est celle d'une publication (pages.yml, Cloudflare) : les
+# suites qui éprouvent Admin v2 construisent sans ce drapeau.
+# L'ANCIENNE ADRESSE NE REND PAS UN 404 : une icône posée sur un téléphone
+# ou un lien gardé ramène à l'admin, exactement comme admin.html — c'est
+# le même fichier, donc la même redirection et le même manifeste.
+if [ "${ELA_PUBLICATION:-}" = "1" ]; then
+  rm -f site/admin-v2-*.js site/admin-v2-responsive.css
+  cp site/admin.html site/admin-v2.html
+  echo "Admin v2 retiré de la publication : /admin-v2.html renvoie vers /ela-admin/"
+fi
+
 echo "site/ construit : $(find site -type f | wc -l) fichiers"

@@ -624,10 +624,16 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    qui reste à faire, jamais le rouge de l'attente. */
 .d-clore.arme{background:#B45309;color:#fff;}
 /* LE CHAUFFEUR SUR LA CARTE (3 octobre 2026) : l'état qui fait rater une
-   course est « confirmée, mais personne pour conduire ». */
-.d-ch{margin-left:6px;font-weight:600;letter-spacing:0;}
-.d-ch-manque{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;
-  background:#FEF3C7;color:#92400E;font-weight:700;letter-spacing:0;}
+   course est « confirmée, mais personne pour conduire ».
+   UNE PASTILLE À CÔTÉ DE LA RÉFÉRENCE, JAMAIS DEDANS : `.d-ref` se lit
+   comme la référence seule (le registre, la recherche, les suites la
+   lisent ainsi). Posée dedans, « Sans chauffeur » se collait au numéro.
+   `margin-right:auto` la garde contre la référence et laisse le prix au
+   bout ; un nom long se coupe, il ne repousse pas le prix. */
+.d-ch,.d-ch-manque{margin-right:auto;font-size:12px;white-space:nowrap;}
+.d-ch{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
+.d-ch-manque{flex:none;padding:1px 8px;border-radius:999px;
+  background:#FEF3C7;color:#92400E;font-weight:700;}
 .sans-chauffeur-bord{display:block;width:calc(100% - 40px);margin:12px 20px 0;min-height:44px;
   padding:10px 14px;border:1.5px solid #F2C94C;border-radius:12px;background:#FFF8E1;color:#7A4B00;
   font:inherit;font-weight:600;text-align:left;cursor:pointer;}
@@ -11176,18 +11182,32 @@ window.ELA_TEXTES = {
      se fermait aussi. Pendant 700 ms après une fermeture depuis la liste,
      plus aucun « Terminée » ne répond, quelle que soit la carte visée. */
   var dernierClore = 0;
-  function armerClore(b, c){
-    b.dataset.arme = String(Date.now());
+  /* L'ARMEMENT SURVIT À UN REDESSIN. La liste se redessine seule (sonde de
+     8 s, relecture de 45 s) : gardé sur le bouton, un « Confirmer la fin »
+     redevenait « Terminée » sous le doigt, et le second appui ré-armait au
+     lieu de fermer. Une seule course armée à la fois, 5 secondes. */
+  var cloreArme = { ref:null, le:0 };
+  function poserArme(b, c){
+    b.dataset.arme = String(cloreArme.le);
     b.classList.add("arme");
     b.textContent = "Confirmer la fin";
     b.title = "Départ prévu " + dateLisible(c) + " : appuyez encore pour la marquer terminée.";
-    setTimeout(function(){
-      if(!b.isConnected) return;
-      delete b.dataset.arme;
-      b.classList.remove("arme");
-      b.textContent = "Terminée";
-      b.removeAttribute("title");
-    }, 5000);
+  }
+  function desarmerClore(){
+    cloreArme = { ref:null, le:0 };
+    document.querySelectorAll("#listeBord .d-clore.arme").forEach(function(x){
+      delete x.dataset.arme;
+      x.classList.remove("arme");
+      x.textContent = "Terminée";
+      x.removeAttribute("title");
+    });
+  }
+  function armerClore(b, c){
+    desarmerClore();
+    var le = Date.now();
+    cloreArme = { ref:c.ref, le:le };
+    poserArme(b, c);
+    setTimeout(function(){ if(cloreArme.le === le) desarmerClore(); }, 5000);
   }
   /* « SANS CHAUFFEUR » (3 octobre 2026, décision de Barbaros : une course
      saisie au téléphone sans chauffeur reste CONFIRMÉE). Elle doit donc se
@@ -11293,8 +11313,8 @@ window.ELA_TEXTES = {
       if(st === "confirmee" || st === "realisee"){
         var dch = document.createElement("span");
         if(sansChauffeur(c)){ dch.className = "d-ch-manque"; dch.textContent = "Sans chauffeur"; }
-        else if(c.chauffeur && c.chauffeur.nom){ dch.className = "d-ch"; dch.textContent = "· " + c.chauffeur.nom; }
-        if(dch.className) el.querySelector(".d-ref").appendChild(dch);
+        else if(c.chauffeur && c.chauffeur.nom){ dch.className = "d-ch"; dch.textContent = c.chauffeur.nom; }
+        if(dch.className) el.querySelector(".d-haut").insertBefore(dch, el.querySelector(".d-prix"));
       }
       /* ═══ D'OÙ VIENT CETTE DEMANDE, VU D'UN COUP D'ŒIL ═══
          À sa demande : « l'adresse easyHotel, tu peux mettre un code
@@ -11351,6 +11371,7 @@ window.ELA_TEXTES = {
         var clore = document.createElement("button");
         clore.type = "button"; clore.className = "d-action d-clore";
         clore.textContent = "Terminée";
+        if(cloreArme.ref === c.ref && Date.now() - cloreArme.le < 5000) poserArme(clore, c);
         clore.addEventListener("click", function(e){
           e.stopPropagation();
           if(Date.now() - dernierClore < 700) return;
@@ -11359,6 +11380,7 @@ window.ELA_TEXTES = {
             if(!arme){ armerClore(clore, c); return; }
             if(Date.now() - arme < 700) return;
           }
+          desarmerClore();
           dernierClore = Date.now();
           majCourse(c.ref, "realisee");
         });
@@ -11388,10 +11410,21 @@ window.ELA_TEXTES = {
         appel.href = "tel:+" + tel;
         appel.textContent = "Appeler";
         /* Appeler le client ne doit pas ouvrir son bon au passage. */
-        appel.addEventListener("click", function(e){ e.stopPropagation(); });
+        appel.addEventListener("click", function(e){
+          e.stopPropagation();
+          if(Date.now() - dernierClore < 700) e.preventDefault();
+        });
         boutons.appendChild(appel);
       }
-      el.addEventListener("click", function(){ ouvrirBonBord(c.ref); });
+      /* Juste après une fermeture, la liste a bougé sous le doigt. Mesuré à
+         390 px, le second appui retombe sur un autre « Terminée » (gardé
+         plus haut) ou sur les filtres ; à une autre largeur il pourrait
+         tomber sur une carte ou sur « Appeler ». La règle est donc la même
+         partout : 700 ms sans réponse de la liste après une fermeture. */
+      el.addEventListener("click", function(){
+        if(Date.now() - dernierClore < 700) return;
+        ouvrirBonBord(c.ref);
+      });
       liste.appendChild(el);
     });
     /* Le tableau de bord ne porte plus que le panneau des papiers : les
@@ -12267,6 +12300,10 @@ window.ELA_TEXTES = {
     }
     desarmerReal();
     majCourse(bonBord.ref, "realisee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
+    /* On revient à la liste SOUS LE DOIGT : même garde de 700 ms que depuis
+       la liste (mesuré à 390 px, le doigt retombe sur les filtres, mais un
+       bon plus court l'amènerait sur une carte). */
+    dernierClore = Date.now();
     ecran("ecran-bord");
   });
   /* UNE COURSE FERMÉE PAR ERREUR SE ROUVRE (3 octobre 2026, audit). Deux
@@ -12274,9 +12311,9 @@ window.ELA_TEXTES = {
      refigera à la vraie fin, aux taux du moment. UNE COURSE DÉJÀ FACTURÉE
      NE SE ROUVRE PAS : sa facture est émise, la rouvrir la ferait compter
      deux fois. */
-  var rouvrirArme = null, rouvrirMinuteur = null;
+  var rouvrirArme = null, rouvrirArmeLe = 0, rouvrirMinuteur = null;
   function desarmerRouvrir(){
-    rouvrirArme = null;
+    rouvrirArme = null; rouvrirArmeLe = 0;
     if(rouvrirMinuteur){ clearTimeout(rouvrirMinuteur); rouvrirMinuteur = null; }
     var b = document.getElementById("btnRouvrir");
     if(b) b.textContent = "Remettre en confirmée";
@@ -12292,13 +12329,15 @@ window.ELA_TEXTES = {
       return;
     }
     if(rouvrirArme !== bonBord.ref){
-      rouvrirArme = bonBord.ref;
+      rouvrirArme = bonBord.ref; rouvrirArmeLe = Date.now();
       this.textContent = "Confirmer : la remettre à assurer";
       e.hidden = false;
       e.textContent = "Elle quittera les réalisées et reviendra dans « À assurer ». Appuyez encore pour confirmer.";
       rouvrirMinuteur = setTimeout(desarmerRouvrir, 8000);
       return;
     }
+    /* Un double appui involontaire ne vaut pas confirmation. */
+    if(Date.now() - rouvrirArmeLe < 700) return;
     var ref = bonBord.ref;
     desarmerRouvrir();
     majCourse(ref, "confirmee", { commissionFigee: null, rouverteLe: new Date().toISOString() });

@@ -6688,13 +6688,20 @@ seul.
   fermée disparaît, la page se raccourcit, et le second appui tombe sur le
   « Terminée » d'une autre course. L'audit l'avait d'abord déclaré réfuté sur UN
   rejeu : un rejeu dans une seule mise en page ne prouve rien sur les autres.
-  Garde globale : pendant 700 ms après une fermeture, plus aucun « Terminée » ne
-  répond.
+  Garde globale : pendant 700 ms après une fermeture, la liste ne répond plus
+  (« Terminée », carte, « Appeler »), et c'est vrai aussi au retour de la fiche
+  après « Marquer comme réalisée ».
+- **L'ARMEMENT EST GARDÉ HORS DU BOUTON** (`cloreArme`) : la liste se redessine
+  seule (sonde de 8 s, relecture de 45 s), et un « Confirmer la fin » gardé sur
+  le bouton redevenait « Terminée » sous le doigt — le second appui ré-armait au
+  lieu de fermer. Une seule course armée à la fois, 5 secondes.
 - **« Remettre en confirmée »** sur la fiche d'une course réalisée, en deux
-  appuis. La commission figée est levée et se refige à la vraie fin. Une course
+  appuis espacés d'au moins 700 ms. La commission figée est levée et se refige à la vraie fin. Une course
   déjà facturée (`factureNum`) ne se rouvre pas : sa facture est émise.
 - **« Sans chauffeur »** : une course confirmée sans nom de chauffeur porte une
-  pastille ambre sur sa carte, et un écriteau en tête du tableau de bord la
+  pastille ambre sur sa carte, À CÔTÉ de la référence et jamais dedans —
+  `.d-ref` se lit comme la référence seule, et `test-nouveau-exploitant` est
+  tombé le jour où la pastille y a été posée, et un écriteau en tête du tableau de bord la
   compte et emmène aux courses à assurer. Les autres cartes confirmées ou
   réalisées portent le nom du chauffeur. L'ambre n'est ni le rouge de l'attente
   ni l'orange d'un partenaire.
@@ -6704,8 +6711,43 @@ seul.
 - **Ce qui reste ouvert** : la relance serveur ne vise que les demandes en
   attente, donc une course confirmée sans chauffeur n'envoie aucun rappel.
   L'écriteau est le seul filet ; un rappel serveur deux heures avant le départ
-  reste à décider.
+  reste à décider. Et le téléphone d'un CLIENT cesse d'interroger le serveur
+  sur une course réalisée : une course rouverte par erreur y reste
+  « Terminé » — c'est l'exploitant qui le prévient.
+- **Deux gardes ont été écrites puis retirées, parce qu'aucune mesure ne les
+  justifiait** : mesuré, le bouton « Marquer comme réalisée » d'une course
+  rouverte apparaît HORS de l'écran, pas sous le doigt. Un contrôle qui ne
+  peut pas tomber ne vérifie rien ; une garde qui ne protège de rien non plus.
 - `test-admin-cloture.mjs`, sur le site construit. Éprouvée contre l'ancien
-  code : 16 contrôles tombent, dont le double appui qui ferme deux courses.
+  code : 16 contrôles tombent, dont le double appui qui ferme deux courses ;
+  contre le premier correctif, 5 (pastille dans la référence, armement perdu
+  au redessin, double appui qui rouvre).
   `test-admin-controle.mjs` pose désormais sa course QQQQ6 à minuit : sinon le
   second appui s'appliquait selon l'heure de la journée.
+
+## ADMIN V2 N'EST PLUS PUBLIÉ
+
+3 octobre 2026, Barbaros : « retire ». Il travaille seul, dans l'admin
+historique ; Admin v2 en ligne n'était qu'une seconde porte vers les données
+des clients et une seconde adresse où se tromper d'outil.
+- **Retiré de la PUBLICATION, pas du dépôt.** `construire.sh`, sous
+  `ELA_PUBLICATION=1`, supprime `admin-v2-*.js` et `admin-v2-responsive.css`
+  de `site/` et remplace `admin-v2.html` par une copie d'`admin.html` : une
+  icône posée ou un lien gardé ramène à `/ela-admin/` (paramètres compris),
+  jamais un 404. Le drapeau est posé sur le JOB de `pages.yml` et dans la
+  commande Cloudflare de `CLOUDFLARE.md` ; `test-doc.mjs` vérifie les trois
+  endroits, chacun tombe seul quand on le retire.
+- **Le code et ses suites restent**, et tournent sans le drapeau : ils portent
+  la tarification serveur, les partenaires, la règle des papiers imposée par
+  le serveur, et des fichiers PARTAGÉS avec l'admin retenu
+  (`intake-demande.js`, `qr-affiche.js`, `itineraire-partage.js`). Le jour où
+  il le redemande, rien n'est à réécrire.
+- `verifier-production.mjs` exige désormais que `/admin-v2.html` serve la
+  redirection (titre « Espace exploitant ») : construit sans le drapeau, il
+  tombe en nommant la page.
+- **Les migrations et les fonctions qu'Admin v2 utilise restent en
+  production** : elles ne s'appellent qu'avec une session exploitant. Ce que
+  le retrait coûte, il faut le dire : l'admin retenu n'appelle pas
+  `ela_attribuer_chauffeur`, donc la règle des papiers n'y est qu'un contrôle
+  d'ÉCRAN (« Confirmer » refuse un papier périmé), pas une frontière serveur.
+

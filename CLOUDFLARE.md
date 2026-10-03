@@ -84,7 +84,7 @@ gérer le domaine racine et que la redirection vers `www` ne convient pas.
    | Champ | Valeur |
    |---|---|
    | Production branch | `main` |
-   | Build command | `sh construire.sh` |
+   | Build command | `ELA_PUBLICATION=1 sh construire.sh` |
    | Build output directory | `site` |
    | Root directory | *(vide)* |
 
@@ -92,6 +92,9 @@ gérer le domaine racine et que la redirection vers `www` ne convient pas.
 
 C'est exactement la même commande que celle qu'exécute GitHub Actions —
 `construire.sh` est la seule recette, partagée par les deux.
+**`ELA_PUBLICATION=1` n'est pas facultatif** (3 octobre 2026) : c'est lui
+qui retire Admin v2 de ce qui part en ligne. Sans lui, Cloudflare publierait
+un second espace exploitant que Barbaros a fait retirer.
 
 ## Étape 2 — Vérifier AVANT de toucher au domaine
 

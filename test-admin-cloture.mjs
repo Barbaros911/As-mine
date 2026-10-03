@@ -122,6 +122,10 @@ try {
       (await carte('ELA-26-10-FUTUR').locator('.d-ch-manque').count()) === 1);
     check('la carte avec chauffeur porte son nom',
       /Mehmet Yilmaz/.test(await texteDe(carte('ELA-26-10-AVECC'))) && (await carte('ELA-26-10-AVECC').locator('.d-ch-manque').count()) === 0);
+    /* La pastille est À CÔTÉ de la référence, pas dedans : `.d-ref` se lit
+       comme la référence seule (test-nouveau-exploitant la lit ainsi). */
+    const refLue = await carte('ELA-26-10-FUTUR').locator('.d-ref').textContent({ timeout: 3000 }).catch(() => '');
+    check('la référence reste seule dans son champ', refLue === 'ELA-26-10-FUTUR', refLue);
 
     /* 2. « TERMINÉE » AVANT L'HEURE : DEUX APPUIS, ET UN DOUBLE APPUI NE COMPTE PAS. */
     ecritures = [];
@@ -131,7 +135,12 @@ try {
       JSON.stringify(ecritures.map(e => e.ref + ':' + e.statut)));
     const libelle = await b.textContent({ timeout: 3000 }).catch(() => '(bouton absent)');
     check('il demande un second appui, en clair', /Confirmer/.test(libelle), libelle);
-    await p.waitForTimeout(800);
+    /* La liste se redessine seule (sonde, relecture) : l'armement doit y
+       survivre, sinon le second appui ré-arme au lieu de fermer. */
+    await p.click('.compteur[data-filtre="confirmee"]', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(250);
+    const apres = await b.textContent({ timeout: 3000 }).catch(() => '(bouton absent)');
+    check('l\'armement survit à un redessin de la liste', /Confirmer/.test(apres), apres);
+    await p.waitForTimeout(500);
     await b.click({ timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
     check('un second appui délibéré la ferme', ecrit('ELA-26-10-FUTUR', 'realisee').length === 1);
 
@@ -180,10 +189,12 @@ try {
     const { ctx, p } = await espace('/ela-admin/?ref=ELA-26-10-FAITE'); await surBon(p);
     check('une course réalisée propose « Remettre en confirmée »', await p.locator('#btnRouvrir').isVisible());
     ecritures = [];
-    await p.click('#btnRouvrir', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(250);
-    check('un premier appui ne rouvre rien', ecrit('ELA-26-10-FAITE').length === 0);
+    await p.dblclick('#btnRouvrir', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(250);
+    check('un double appui ne rouvre rien', ecrit('ELA-26-10-FAITE').length === 0,
+      JSON.stringify(ecritures.map(e => e.ref + ':' + e.statut)));
+    await p.waitForTimeout(800);
     await p.click('#btnRouvrir', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
-    const e = ecrit('ELA-26-10-FAITE').pop();
+    const e = ecrit('ELA-26-10-FAITE').filter(x => x.statut === 'confirmee').pop();
     check('le second appui la remet en confirmée, même référence', !!e && e.statut === 'confirmee', JSON.stringify(e && e.statut));
     check('la commission figée est levée, elle se refigera à la vraie fin',
       !!e && e.bon && !e.bon.commissionFigee, JSON.stringify(e && e.bon && e.bon.commissionFigee));
@@ -193,7 +204,7 @@ try {
   {
     const { ctx, p } = await espace('/ela-admin/?ref=ELA-26-10-FACTU'); await surBon(p);
     ecritures = [];
-    await p.click('#btnRouvrir', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(250);
+    await p.click('#btnRouvrir', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(800);
     await p.click('#btnRouvrir', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(250);
     check('une course déjà facturée ne se rouvre pas, et on le dit',
       ecrit('ELA-26-10-FACTU').length === 0 && /facture/.test(await p.textContent('#rouvrirEtat', { timeout: 3000 }).catch(() => '')), await p.textContent('#rouvrirEtat', { timeout: 3000 }).catch(() => ''));
