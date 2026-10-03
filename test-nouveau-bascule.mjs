@@ -733,6 +733,87 @@ for (const [entree, adresse] of [['site client', '/'],
     vues.size >= 4, vues.size + ' référence(s)');
 }
 
+/* « VOIR MON PRIX » ENTIER AU-DESSUS DE LA BARRE DU BAS — SUR LE SITE PUBLIÉ.
+   Le contrôle de test-nouveau éprouve le DÉPÔT, que la façade ne met pas en
+   page : le 3 octobre 2026, le nouveau texte d'accueil a remis le bouton à
+   cheval sur la barre EN LIGNE (753–806 pour une barre à 784, à 390 × 844),
+   un pouce dans le bas du bouton ouvrait un onglet. On mesure ce que reçoit
+   le doigt en quatre points du bouton, pas seulement le rectangle : une
+   marge transparente qui avale l'appui ne se voit pas sur un rectangle.
+   390 × 844 seulement, et c'est délibéré : sur un écran plus court le bouton
+   est SOUS le premier écran — le client fait défiler, il ne voit rien de
+   coupé. Le défaut, c'est un bouton visible à moitié. FR et EN : les deux
+   langues n'ont pas la même hauteur de bandeau. */
+for (const langue of ['fr-FR', 'en-US']) {
+  const cx = await b.newContext({viewport:{width:390,height:844}, locale:langue});
+  const pw = await cx.newPage();
+  await pw.route('**/*', r => r.request().url().startsWith(SITE) ? r.continue() : r.abort());
+  await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
+  await pw.waitForTimeout(700);
+  const m = await pw.evaluate(() => {
+    const lab = document.querySelector('[data-t="btn_prix"]');
+    const bt = lab && (lab.closest('button,a') || lab);
+    if (!bt) return { absent: true };
+    const r = bt.getBoundingClientRect();
+    const barre = [...document.querySelectorAll('.barre, nav')].find(n => {
+      const st = getComputedStyle(n);
+      return (st.position === 'fixed' || st.position === 'sticky') && n.offsetHeight > 0
+        && n.getBoundingClientRect().bottom >= innerHeight - 2;
+    });
+    const limite = barre ? barre.getBoundingClientRect().top : innerHeight;
+    const doigts = [0.15, 0.5, 0.85].map(f => {
+      const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * f);
+      return !!el && (el === bt || bt.contains(el));
+    });
+    return { haut: Math.round(r.top), bas: Math.round(r.bottom), limite: Math.round(limite), doigts };
+  });
+  check(`site publié (${langue}) : « Voir mon prix » est entier au-dessus de la barre du bas`,
+    !m.absent && m.bas <= m.limite,
+    m.absent ? 'bouton absent' : 'bouton ' + m.haut + '–' + m.bas + ' · barre à ' + m.limite);
+  check(`site publié (${langue}) : un doigt posé sur le bouton tombe bien sur lui`,
+    !m.absent && m.doigts.every(Boolean), m.absent ? 'bouton absent' : JSON.stringify(m.doigts));
+  await cx.close();
+}
+
+/* LE MESSAGE AUX PROFESSIONNELS N'EST PLUS DANS LE BANDEAU, MAIS IL EXISTE.
+   Sorti du bandeau pour rendre sa place au bouton (voir plus haut) — un
+   contrôle qui ne dirait que « absent du bandeau » passerait au vert si on
+   l'avait effacé. On éprouve les deux faces. */
+{
+  const cx = await b.newContext({viewport:{width:390,height:844}, locale:'fr-FR'});
+  const pw = await cx.newPage();
+  await pw.route('**/*', r => r.request().url().startsWith(SITE) ? r.continue() : r.abort());
+  await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
+  await pw.waitForTimeout(500);
+  const pro = await pw.evaluate(() => {
+    const e = document.querySelector('[data-t-html="pro_bloc"]');
+    return { existe: !!e && e.offsetHeight > 0, dansBandeau: !!e && !!e.closest('.hero'),
+             texte: e ? e.textContent.trim().slice(0, 40) : '' };
+  });
+  check('le message aux hôtels, agences et entreprises est affiché', pro.existe, pro.texte || 'absent');
+  check('…et il n\'est plus dans le bandeau d\'accueil', !pro.dansBandeau);
+  await cx.close();
+}
+
+/* SUR ORDINATEUR, LA LIGNE DES ÉTAPES OCCUPE LA LARGEUR DE LA CARTE. La
+   façade place les enfants de la carte un par un dans 12 colonnes ; oubliée
+   de la liste, la ligne tombait dans UNE colonne de 86 px, chiffres rognés. */
+for (const large of [1024, 1280]) {
+  const cx = await b.newContext({viewport:{width:large,height:900}, locale:'fr-FR'});
+  const pw = await cx.newPage();
+  await pw.route('**/*', r => r.request().url().startsWith(SITE) ? r.continue() : r.abort());
+  await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
+  await pw.waitForTimeout(500);
+  const e = await pw.evaluate(() => {
+    const l = document.querySelector('.etapes-ligne').getBoundingClientRect();
+    const c = document.querySelector('.reserver').getBoundingClientRect();
+    return { ligne: Math.round(l.width), carte: Math.round(c.width) };
+  });
+  check(`à ${large} px, la ligne des étapes occupe la largeur de la carte`,
+    e.ligne >= e.carte * 0.8, e.ligne + ' px pour une carte de ' + e.carte);
+  await cx.close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));

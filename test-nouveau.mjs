@@ -181,15 +181,19 @@ check('le bouton du bandeau tient dans le premier écran',
 check('le bouton du bandeau est assez grand pour le doigt',
   !!cta && cta.height >= 44, cta ? Math.round(cta.height)+' px' : 'absent');
 
-/* LE SOUS-TITRE EST UNE LISTE DE DESTINATIONS : cassée en deux, elle se
-   lit comme deux listes. C'est exactement ce que faisait le « max-width »
-   hérité de la phrase qu'elle a remplacée. */
-const lignesSous = await p7.evaluate(()=>{
-  const e = document.querySelector('.hero-sous');
+/* LA LISTE DU BANDEAU TIENT SUR UNE LIGNE : cassée en deux, elle se lit
+   comme deux listes. Ce contrôle visait le sous-titre tant qu'il était la
+   liste des destinations ; depuis le texte d'accueil du 3 octobre 2026, le
+   sous-titre est une PHRASE et la liste est la ligne des points médians
+   (« Transferts · Chauffeurs · … », .hero-prix). On vise la règle — une
+   liste ne casse pas — pas l'élément qui la portait hier : figé sur
+   .hero-sous, ce contrôle tombait sur une phrase légitime. */
+const lignesListe = await p7.evaluate(()=>{
+  const e = document.querySelector('.hero-prix');
   return Math.round(e.getBoundingClientRect().height /
                     parseFloat(getComputedStyle(e).lineHeight));
 });
-check('le sous-titre du bandeau tient sur une ligne', lignesSous === 1, lignesSous+' ligne(s)');
+check('la liste du bandeau tient sur une ligne', lignesListe === 1, lignesListe+' ligne(s)');
 
 /* LE BANDEAU N'A PLUS DE HAUTEUR FIXE : le titre est passé à trois
    lignes, et une hauteur écrite à la main aurait laissé le texte sortir
@@ -234,7 +238,10 @@ const titre320 = await p8.evaluate(()=>{
   return Math.round(e.getBoundingClientRect().height /
                     parseFloat(getComputedStyle(e).lineHeight));
 });
-check('le titre reste sur trois lignes à 320 px', titre320 === 3, titre320+' ligne(s)');
+/* « Au plus trois », pas « exactement trois » : l'ancien titre était coupé
+   à la main en trois lignes, le contrôle avait figé ce compte. Le titre du
+   3 octobre 2026 en fait deux ; ce qui est interdit, c'est la quatrième. */
+check('le titre ne dépasse pas trois lignes à 320 px', titre320 >= 1 && titre320 <= 3, titre320+' ligne(s)');
 
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ===');
