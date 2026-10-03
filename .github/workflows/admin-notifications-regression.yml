@@ -17,6 +17,9 @@ jobs:
         run: node --check admin-v2-push.js
       - name: Construire
         run: bash construire.sh
+        # Admin v2 n'est plus publié : ce contrôle le demande explicitement.
+        env:
+          ELA_AVEC_ADMIN_V2: "1"
       - name: Contrôler les invariants
         shell: bash
         run: |

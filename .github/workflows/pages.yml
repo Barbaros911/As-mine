@@ -30,11 +30,6 @@ jobs:
     # « main » à la main ; il ne sert plus à rien ailleurs.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    # ADMIN V2 NE PART PAS EN LIGNE (3 octobre 2026). Le drapeau est posé sur
-    # le JOB, pas sur une étape : toute construction faite ici est celle
-    # qu'on publie. La recette reste construire.sh, seule.
-    env:
-      ELA_PUBLICATION: "1"
     environment:
       name: github-pages
       url: ${{ steps.deploiement.outputs.page_url }}

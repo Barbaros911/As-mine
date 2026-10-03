@@ -478,25 +478,36 @@ for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
 }
 
 /* ADMIN V2 NE PART PAS EN LIGNE (3 octobre 2026, à la demande de
-   Barbaros). Le retrait tient à UN drapeau, posé à deux endroits : le job
-   de publication GitHub et la commande de construction Cloudflare. L'oublier
-   ne casse rien de visible — Admin v2 revient simplement en ligne. On lit
-   les seules lignes de commande, jamais les commentaires : un contrôle qui
-   trouve son mot dans une phrase d'explication ne vérifie rien. */
+   Barbaros). Premier jet : un drapeau à POSER pour le retirer, dans
+   pages.yml. Or elatransfer.com est servi par Cloudflare (Workers Builds),
+   dont la commande se règle hors du dépôt : le drapeau n'y était pas, et
+   Admin v2 serait resté en ligne sans que rien ne le dise. Le retrait est
+   donc la RÈGLE PAR DÉFAUT de la recette, et seul ELA_AVEC_ADMIN_V2=1 —
+   réservé aux suites qui éprouvent Admin v2 — le garde. On vérifie les
+   deux faces : la recette retire par défaut, et aucune configuration de
+   PUBLICATION ne pose le drapeau qui le garderait. On lit les seules lignes
+   de commande : un contrôle qui trouve son mot dans une phrase
+   d'explication ne vérifie rien. */
 {
-  const sansCommentaires = t => t.split("\n").filter(l => !/^\s*#/.test(l)).join("\n");
-  const pages = sansCommentaires(readFileSync(".github/workflows/pages.yml", "utf8"));
-  verifier("la publication GitHub construit sans Admin v2 (ELA_PUBLICATION)",
-    /\n\s+env:\s*\n\s+ELA_PUBLICATION:\s*["']?1["']?/.test(pages),
-    "pages.yml ne pose plus ELA_PUBLICATION=1 sur le job : Admin v2 repartirait en ligne.");
+  const sansCommentaires = t => t.split("\n").filter(l => !/^\s*(#|\/\/)/.test(l)).join("\n");
   const recette = sansCommentaires(readFileSync("construire.sh", "utf8"));
-  verifier("construire.sh retire Admin v2 quand ELA_PUBLICATION vaut 1",
-    /ELA_PUBLICATION[\s\S]{0,80}rm -f site\/admin-v2-\*\.js[\s\S]{0,120}cp site\/admin\.html site\/admin-v2\.html/.test(recette),
-    "la recette ne retire plus les scripts d'Admin v2, ou son ancienne adresse ne renvoie plus vers l'admin.");
-  const cf = readFileSync("CLOUDFLARE.md", "utf8");
-  verifier("la commande de construction Cloudflare pose ELA_PUBLICATION=1",
-    /Build command \| `ELA_PUBLICATION=1 sh construire\.sh`/.test(cf),
-    "CLOUDFLARE.md : sans le drapeau, Cloudflare publierait Admin v2.");
+  verifier("construire.sh retire Admin v2 PAR DÉFAUT (sauf ELA_AVEC_ADMIN_V2=1)",
+    /if \[ "\$\{ELA_AVEC_ADMIN_V2:-\}" != "1" \]; then\s*\n\s*rm -f site\/admin-v2-\*\.js site\/admin-v2-responsive\.css\s*\n\s*cp site\/admin\.html site\/admin-v2\.html/.test(recette),
+    "la recette ne retire plus Admin v2 par défaut, ou son ancienne adresse ne renvoie plus vers l'admin.");
+  const publication = [
+    [".github/workflows/pages.yml", sansCommentaires(readFileSync(".github/workflows/pages.yml", "utf8"))],
+    ["wrangler.jsonc", sansCommentaires(readFileSync("wrangler.jsonc", "utf8"))],
+    ["CLOUDFLARE.md (commande de construction)",
+      (readFileSync("CLOUDFLARE.md", "utf8").match(/^.*Build command.*$/m) || [""])[0]],
+  ];
+  for(const [nom, texte] of publication){
+    verifier(`${nom} ne garde pas Admin v2 en ligne`,
+      !/ELA_AVEC_ADMIN_V2/.test(texte),
+      "ce drapeau n'existe que pour les suites de test : posé ici, il remettrait Admin v2 en ligne.");
+  }
+  verifier("la commande de construction Cloudflare reste la recette, seule",
+    /Build command \| `sh construire\.sh` \|/.test(readFileSync("CLOUDFLARE.md", "utf8")),
+    "CLOUDFLARE.md ne donne plus « sh construire.sh » comme commande de construction.");
 }
 
 /* --------------------------------------------------------------- */

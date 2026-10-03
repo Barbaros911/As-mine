@@ -72,16 +72,22 @@ node .github/scripts/masquer-commentaires.mjs \
 # LE CODE RESTE DANS LE DÉPÔT, et ses suites continuent de tourner : il
 # porte la tarification serveur, les partenaires et la règle des papiers
 # imposée par le serveur — le jour où Barbaros le redemande, rien n'est à
-# réécrire. On ne retire que ce qui part EN LIGNE, et seulement quand la
-# construction est celle d'une publication (pages.yml, Cloudflare) : les
-# suites qui éprouvent Admin v2 construisent sans ce drapeau.
+# réécrire. On ne retire que ce qui part EN LIGNE.
+# LE RETRAIT EST LA RÈGLE PAR DÉFAUT, ET C'EST TOUT LE POINT. Premier jet :
+# un drapeau à poser pour retirer (ELA_PUBLICATION=1, dans pages.yml). Or
+# elatransfer.com est servi par CLOUDFLARE (Workers Builds, projet
+# « as-mine »), dont la commande de construction se règle dans SON tableau
+# de bord, hors du dépôt et invisible d'ici : Admin v2 serait resté en
+# ligne sur le vrai domaine sans que rien ne le dise. Désormais toute
+# construction le retire ; seules les suites qui l'éprouvent le demandent
+# (ELA_AVEC_ADMIN_V2=1). Un oubli ne peut plus que retirer, jamais publier.
 # L'ANCIENNE ADRESSE NE REND PAS UN 404 : une icône posée sur un téléphone
 # ou un lien gardé ramène à l'admin, exactement comme admin.html — c'est
 # le même fichier, donc la même redirection et le même manifeste.
-if [ "${ELA_PUBLICATION:-}" = "1" ]; then
+if [ "${ELA_AVEC_ADMIN_V2:-}" != "1" ]; then
   rm -f site/admin-v2-*.js site/admin-v2-responsive.css
   cp site/admin.html site/admin-v2.html
-  echo "Admin v2 retiré de la publication : /admin-v2.html renvoie vers /ela-admin/"
+  echo "Admin v2 retiré : /admin-v2.html renvoie vers /ela-admin/"
 fi
 
 echo "site/ construit : $(find site -type f | wc -l) fichiers"

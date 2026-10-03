@@ -6730,21 +6730,40 @@ seul.
 3 octobre 2026, Barbaros : « retire ». Il travaille seul, dans l'admin
 historique ; Admin v2 en ligne n'était qu'une seconde porte vers les données
 des clients et une seconde adresse où se tromper d'outil.
-- **Retiré de la PUBLICATION, pas du dépôt.** `construire.sh`, sous
-  `ELA_PUBLICATION=1`, supprime `admin-v2-*.js` et `admin-v2-responsive.css`
-  de `site/` et remplace `admin-v2.html` par une copie d'`admin.html` : une
-  icône posée ou un lien gardé ramène à `/ela-admin/` (paramètres compris),
-  jamais un 404. Le drapeau est posé sur le JOB de `pages.yml` et dans la
-  commande Cloudflare de `CLOUDFLARE.md` ; `test-doc.mjs` vérifie les trois
-  endroits, chacun tombe seul quand on le retire.
-- **Le code et ses suites restent**, et tournent sans le drapeau : ils portent
-  la tarification serveur, les partenaires, la règle des papiers imposée par
-  le serveur, et des fichiers PARTAGÉS avec l'admin retenu
+- **Retiré de la PUBLICATION, pas du dépôt.** `construire.sh` supprime
+  `admin-v2-*.js` et `admin-v2-responsive.css` de `site/` et remplace
+  `admin-v2.html` par une copie d'`admin.html` : une icône posée ou un lien
+  gardé ramène à `/ela-admin/` (paramètres compris), jamais un 404.
+- **LE RETRAIT EST LA RÈGLE PAR DÉFAUT, ET LE PREMIER JET L'AVAIT À
+  L'ENVERS.** Il fallait POSER un drapeau pour retirer (`ELA_PUBLICATION=1`,
+  dans `pages.yml`). La demande de fusion #294 a montré un contrôle
+  « Workers Builds: as-mine » : **Cloudflare construit et déploie ce dépôt**,
+  avec une commande réglée dans SON tableau de bord, invisible d'ici — et
+  `elatransfer.com` résout vers des adresses Cloudflare (`2606:4700:…`,
+  mesuré). Admin v2 serait resté en ligne sur le vrai domaine, sans un mot.
+  Désormais **toute construction le retire** ; seul `ELA_AVEC_ADMIN_V2=1`
+  le garde, et il n'est posé que par les suites qui l'éprouvent (huit
+  `test-admin-*`, `capture-admin-165.mjs`) et par les quatre contrôles
+  automatiques qui le lisent dans `site/`. **Un oubli ne peut plus que
+  retirer, jamais publier.** `test-doc.mjs` vérifie que la recette retire
+  par défaut et qu'aucune configuration de publication (`pages.yml`,
+  `wrangler.jsonc`, la commande de `CLOUDFLARE.md`) ne pose le drapeau ;
+  chaque contrôle tombe seul quand on le casse.
+- **LES NOTES « CLOUDFLARE RESTE BLOQUÉ » PLUS HAUT SONT PÉRIMÉES** sur un
+  point au moins : un projet Workers « as-mine » construit le dépôt. Ce que
+  je n'ai PAS pu mesurer d'ici : si le domaine est servi par ce Worker ou
+  par GitHub Pages derrière le proxy Cloudflare. La règle par défaut tient
+  dans les deux cas — c'est pour ça qu'elle a été choisie.
+- **Le code et ses suites restent**, et tournent avec le drapeau : ils
+  portent la tarification serveur, les partenaires, la règle des papiers
+  imposée par le serveur, et des fichiers PARTAGÉS avec l'admin retenu
   (`intake-demande.js`, `qr-affiche.js`, `itineraire-partage.js`). Le jour où
   il le redemande, rien n'est à réécrire.
+- La régression visuelle capture désormais l'admin retenu (`/ela-admin/`)
+  au lieu d'Admin v2.
 - `verifier-production.mjs` exige désormais que `/admin-v2.html` serve la
-  redirection (titre « Espace exploitant ») : construit sans le drapeau, il
-  tombe en nommant la page.
+  redirection (titre « Espace exploitant ») : construit avec
+  `ELA_AVEC_ADMIN_V2=1`, il tombe en nommant la page — mesuré.
 - **Les migrations et les fonctions qu'Admin v2 utilise restent en
   production** : elles ne s'appellent qu'avec une session exploitant. Ce que
   le retrait coûte, il faut le dire : l'admin retenu n'appelle pas
