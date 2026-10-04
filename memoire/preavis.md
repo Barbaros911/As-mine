@@ -143,9 +143,10 @@ navigateur figée et avancée à la main :
 choisie — grisait le bouton sur `heureDepassee()` sans faire ni l'un ni
 l'autre. Et le clic, s'il remettait l'heure, s'arrêtait aussitôt.
 
-- `jugerBoutonPrix()` rappelle `jugerDelai()` quand l'heure non choisie est
-  passée (pas de boucle : remise, elle ne l'est plus), et pose
-  `#heurePassee` dès qu'il grise. **Un bouton gris dit toujours pourquoi.**
+- `jugerBoutonPrix()` remet l'heure non choisie au prochain créneau, et
+  pose `#heurePassee` dès qu'il grise pour une heure passée. **Le premier
+  jet rappelait `jugerDelai()` d'ici, « pas de boucle : remise, elle ne
+  l'est plus » — c'était faux**, voir plus bas.
 - Le clic continue jusqu'aux prix si la remise a suffi.
 - Une heure CHOISIE n'est jamais changée : elle est dite passée, avec la
   sortie « Partir dès que possible ».
@@ -155,3 +156,43 @@ l'autre. Et le clic, s'il remettait l'heure, s'arrêtait aussitôt.
   l'ancienne page, six contrôles tombent, dont « gris=true message=false ».
   Les clics y sont bornés : sur un bouton gris, Playwright attendait 30 s et
   plantait sans nommer le défaut.
+
+### Ce que la relecture indépendante a trouvé avant la publication
+
+Une relecture en trois angles (logique, comptoir, tests), chaque constat
+rejoué par un second relecteur, sur le premier jet du correctif. Trois vrais
+défauts, tous corrigés, et chacun a maintenant sa scène dans
+`test-nouveau-preavis` :
+- **LA PAGE ENTIÈRE TOMBAIT LA NUIT DU CHANGEMENT D'HEURE.** Le 25/10/2026,
+  de 2 h à 2 h 59, chaque minute existe deux fois, et le navigateur lit
+  « 02:35 » en heure d'été — une heure trop tôt. L'heure proposée restait
+  donc « passée » après sa remise, et les deux juges se rappelaient sans
+  fin : « Maximum call stack size exceeded » au chargement, site, flyer,
+  comptoir et admin compris (même script). Mesuré sous Chromium, horloge
+  posée à 01:31 UTC. **Avant le correctif**, pas de plantage, mais le
+  formulaire refusait sa propre heure proposée pendant une heure entière :
+  défaut plus ancien, réparé du même coup — `heureDepassee()` garde la
+  lecture la plus tardive d'une heure ambiguë. Et plus aucun juge n'en
+  rappelle un autre (`rafraichirHeureProposee()`, appelée par tous) : même
+  si une heure restait passée, rien ne tournerait en rond.
+- **« CONFIRMER » NE RELISAIT PAS L'HEURE.** Un client qui met cinq minutes
+  à remplir le récapitulatif — ou une réception qui parle avec son
+  client : au comptoir, « Réserver » déclenche « Confirmer » sans passer par
+  « Voir mon prix » — envoyait une heure passée, sans un mot. Le serveur,
+  voyant un départ passé, annonçait aussitôt « DÉPART PASSÉ, plus aucun
+  rappel » : l'alarme sautait pour la demande la plus pressée. À l'envoi,
+  une heure proposée se remet à jour et part ; une heure choisie et passée
+  ne part pas, le client est ramené au message et à sa sortie.
+- **AU COMPTOIR, CHOISIR UNE GAMME RALLUMAIT « RÉSERVER »** sur une heure
+  choisie et passée, sans message. `jugerBoutonReserver()` regarde l'heure.
+- **Écarté, et dit** : changer la DATE compte comme toucher à l'heure. Un
+  client qui choisit demain puis revient à aujourd'hui et traîne cinq
+  minutes voit « heure passée » — avec le message et sa sortie, donc jamais
+  en silence. Séparer les deux voudrait que la remise ne touche plus la
+  date ; à faire s'il le redemande.
+- **« Un bouton gris montre toujours `#heurePassee` » était trop large** :
+  au comptoir le bouton est aussi gris tant qu'aucune gamme n'est choisie,
+  et partout pendant le « Calcul… ». La règle vraie : **une heure passée ne
+  grise jamais le bouton sans le dire.**
+- Contre le premier jet, 9 contrôles tombent, dont « Maximum call stack size
+  exceeded » ; contre le site en ligne (b90ee2a), 14.

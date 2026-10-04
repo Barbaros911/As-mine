@@ -3074,13 +3074,13 @@ Le préavis de 15 minutes a été **supprimé le 4 octobre 2026** (histoire dans
 - **LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** : `step="300"` (secondes) sur le
   champ et `PAS_MINUTES` dans le script, comparés par un test. `step` se
   compte à partir de `min` : la borne est arrondie au pas SUPÉRIEUR.
-- Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`), sans
-  délai ajouté, et la borne du champ est ce même moment. Tant que le client
-  n'a pas touché à l'heure, elle se recalcule (`heureTouchee`) — **aussi dans
-  `jugerBoutonPrix()` et au clic** : sinon, adresses tapées en 5 min, bouton
-  gris SANS UN MOT (4/10/2026, `memoire/preavis.md`). Un bouton gris montre
-  toujours `#heurePassee`.
-- La minute en cours n'est pas « passée » : on rabote les secondes.
+- Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`) ;
+  la borne du champ est ce moment. Une heure non touchée se recalcule
+  (`rafraichirHeureProposee()`) à chaque juge ET à « Confirmer » ; une heure
+  choisie et passée n'est jamais envoyée, elle est DITE (`#heurePassee`).
+  Aucun juge n'en rappelle un autre : ça a bouclé (`memoire/preavis.md`).
+- La minute en cours n'est pas « passée » : on rabote les secondes. Le
+  25 octobre, « 02:35 » existe deux fois : on garde la lecture la plus tardive.
 - `min` sur un champ d'heure n'a de sens que pour AUJOURD'HUI : retiré sinon.
 - Sur téléphone, la molette du système ignore la borne : c'est l'écriteau
   `#heurePassee` qui tranche, avec sa sortie « Partir dès que possible ».
