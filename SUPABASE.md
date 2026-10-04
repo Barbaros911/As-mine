@@ -136,10 +136,27 @@ l'appareil.
 piège le plus coûteux de cette page : sans elle le compte est créé, le mot
 de passe est le bon, **et la connexion est refusée quand même**. On cherche
 alors une heure du côté du mot de passe. C'est arrivé en septembre 2026.
-Si le compte existe déjà sans être confirmé, le plus simple depuis un
-téléphone est de le **supprimer et de le recréer** avec la case cochée —
-rien n'est perdu : les courses appartiennent à la table, pas à un compte, et
-les règles autorisent **tout compte connecté**, pas un compte précis.
+⛔ **SI LE COMPTE EXISTE DÉJÀ SANS ÊTRE CONFIRMÉ, NE PAS LE SUPPRIMER.**
+Ce paragraphe conseillait l'inverse jusqu'au 4 octobre 2026, et c'était
+devenu faux. Depuis `20260915_operator_auth_server.sql`, l'admin n'est plus
+ouvert à « tout compte connecté » : il l'est à un compte **précis**, inscrit
+dans la table `operateurs` par son identifiant (`user_id`), et cette ligne est
+**effacée avec le compte** (`on delete cascade`). Un compte supprimé puis
+recréé a un nouvel identifiant : l'admin le refuse, même avec le bon mot de
+passe. Les courses, elles, ne sont pas perdues — c'est l'accès qui l'est.
+- **Pour confirmer le compte sans le supprimer** : une migration passée par
+  le workflow « Appliquer une migration Supabase » le fait en une ligne, **sans
+  écrire l'adresse e-mail dans le dépôt** — il est public, et le journal du
+  workflow aussi :
+  `update auth.users set email_confirmed_at = now() where id in (select user_id from public.operateurs) and email_confirmed_at is null;`
+  Ne pas chercher le geste dans le tableau de bord : on ne peut pas le
+  vérifier d'ici, et deux adresses données de mémoire ont déjà mené à des
+  pages d'erreur.
+- **Si le compte a déjà été recréé** : le nouvel identifiant doit être
+  ajouté à `operateurs`, côté serveur, par une migration — jamais depuis la
+  page, qui n'a pas ce droit.
+- Même règle pour un mot de passe oublié : on le change depuis l'admin
+  (Réglages), on ne recrée pas le compte.
 
 Le site le dit maintenant lui-même : depuis septembre 2026, un refus de
 connexion affiche **la raison** et le geste à faire — compte non confirmé,

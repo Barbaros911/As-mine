@@ -508,6 +508,20 @@ for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
   verifier("la commande de construction Cloudflare reste la recette, seule",
     /Build command \| `sh construire\.sh` \|/.test(readFileSync("CLOUDFLARE.md", "utf8")),
     "CLOUDFLARE.md ne donne plus « sh construire.sh » comme commande de construction.");
+  /* L'AUTRE FACE (relecture du 4 octobre 2026) : tout script qui OUVRE
+     Admin v2 dans un navigateur doit le construire avec le drapeau. Sans
+     lui, /admin-v2.html est la redirection vers l'admin historique, et le
+     script mesure la mauvaise page en disant que tout va bien — c'est ce
+     que faisait qui-deborde.mjs. On cherche le geste (« goto » vers la
+     page), pas le mot : une suite qui relit le fichier source d'Admin v2
+     n'a pas besoin du drapeau. */
+  for(const f of readdirSync(".").filter(n => /\.mjs$/.test(n))){
+    const texte = readFileSync(f, "utf8");
+    if(!/goto\([^)]*admin-v2\.html/.test(texte)) continue;
+    verifier(`${f} construit Admin v2 avant de l'ouvrir`,
+      /ELA_AVEC_ADMIN_V2/.test(texte),
+      "il ouvre /admin-v2.html sans ELA_AVEC_ADMIN_V2=1 : il mesurerait la redirection vers l'admin historique.");
+  }
 }
 
 /* --------------------------------------------------------------- */

@@ -42,15 +42,28 @@ trap 'exit 130' INT TERM
 }
 
 # Le serveur local, s'il ne tourne pas déjà.
+# « npx » lance http-server comme ENFANT : tuer $SERVEUR n'arrête que
+# l'enveloppe, et le vrai serveur restait ouvert après la série (4 octobre
+# 2026 : trouvé vivant le lendemain, enraciné sur une ancienne copie de
+# travail). On arrête donc aussi ses enfants.
 if ! curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null; then
   npx --yes http-server . -s -p 8099 >/tmp/asmine-serveur.log 2>&1 &
   SERVEUR=$!
-  trap 'c=$?; rm -f "$VERROU"; kill $SERVEUR 2>/dev/null; exit $c' EXIT
+  trap 'c=$?; rm -f "$VERROU"; pkill -P $SERVEUR 2>/dev/null; kill $SERVEUR 2>/dev/null; exit $c' EXIT
   i=0; while [ $i -lt 15 ]; do
     curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null && break
     i=$((i+1)); sleep 1
   done
   echo "Serveur local démarré."
+fi
+# UN 200 NE DIT PAS QUI A RÉPONDU. Un serveur resté ouvert sur un autre
+# dossier répond aussi « 200 » à « / » — la série éprouvait alors une autre
+# copie du site, toute verte, sans un mot. On compare la page servie à
+# celle de ce dépôt avant de lancer quoi que ce soit.
+if ! curl -s http://127.0.0.1:8099/index.html | cmp -s - index.html; then
+  echo "LE PORT 8099 SERT UN AUTRE DOSSIER QUE CE DÉPÔT : la série éprouverait une autre copie."
+  echo "Arrêter ce serveur, puis relancer."
+  exit 1
 fi
 
 # LES TROIS SUITES HORS NAVIGATEUR, NOMMÉES UNE SEULE FOIS. Elles tournent

@@ -623,6 +623,14 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    appui ne ferme rien, il demande confirmation. En ambre, la couleur de ce
    qui reste à faire, jamais le rouge de l'attente. */
 .d-clore.arme{background:#B45309;color:#fff;}
+/* ARMÉ, LA LIGNE NE PORTE QUE LES DEUX BOUTONS (4 octobre 2026, vu sur les
+   captures à 320 px). « Confirmer la fin » est plus long que « Terminée » :
+   la pastille de l'hôtel tombait à « e… » et l'état à « C… », illisibles.
+   Pendant ces 5 secondes on ne lit que le bouton ; le reste revient au
+   désarmement. « margin-left:auto » garde les boutons à droite, là où le
+   pouce les attend — « Appeler » ne bouge pas d'un pixel. */
+.d-boutons{margin-left:auto;}
+.d-bas:has(.d-clore.arme) > :not(.d-boutons){display:none;}
 /* LE CHAUFFEUR SUR LA CARTE (3 octobre 2026) : l'état qui fait rater une
    course est « confirmée, mais personne pour conduire ».
    UNE PASTILLE À CÔTÉ DE LA RÉFÉRENCE, JAMAIS DEDANS : `.d-ref` se lit
@@ -634,6 +642,20 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-ch{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
 .d-ch-manque{flex:none;padding:1px 8px;border-radius:999px;
   background:#FEF3C7;color:#92400E;font-weight:700;}
+/* SOUS 390 px, LE CHAUFFEUR PASSE SOUS LA RÉFÉRENCE (relecture du 4 octobre
+   2026). Posé entre la référence et le prix, il les faisait passer chacun
+   sur deux lignes (« ELA-26-10- » / « K7M3Q », « 70,00 » / « € ») sur la
+   plupart des cartes à 320 px. Couper la pastille n'était pas mieux : « Sans
+   chau… » ne se lit plus comme un avertissement. Une ligne de plus, sur les
+   seules cartes qui en portent une, et rien n'est coupé. Le « ::after » est
+   le saut de ligne ; « :has » le réserve à ces cartes — un navigateur qui
+   ne le connaît pas ignore la règle et garde la mise en page d'avant. */
+@media (max-width:389px){
+  .d-haut:has(> .d-ch, > .d-ch-manque){flex-wrap:wrap;row-gap:3px;}
+  .d-haut:has(> .d-ch, > .d-ch-manque)::after{content:"";order:2;flex-basis:100%;height:0;}
+  .d-haut > .d-ch, .d-haut > .d-ch-manque{order:3;}
+  .d-haut > .d-prix{order:1;}
+}
 .sans-chauffeur-bord{display:block;width:calc(100% - 40px);margin:12px 20px 0;min-height:44px;
   padding:10px 14px;border:1.5px solid #F2C94C;border-radius:12px;background:#FFF8E1;color:#7A4B00;
   font:inherit;font-weight:600;text-align:left;cursor:pointer;}
@@ -1912,10 +1934,18 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .d-vers{display:block;margin-top:1px;font-size:13.5px;color:var(--gris);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .demande.attente .d-vers, .demande.retard .d-vers{color:rgba(255,255,255,.82);}
-.d-prov{flex:0 0 auto;margin:0 8px 0 0;padding:2px 8px;border-radius:999px;
+.d-prov{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  margin:0 8px 0 0;padding:2px 8px;border-radius:999px;
   background:var(--prov-pale, var(--accent-clair));color:var(--prov-encre, var(--accent-encre));
   font-size:11px;font-weight:800;letter-spacing:.02em;
   white-space:nowrap;align-self:center;}
+/* LA PASTILLE DE PROVENANCE CÈDE LA PLACE, PAS LES BOUTONS (relecture du
+   4 octobre 2026). Elle ne rétrécissait jamais (flex:0 0 auto) : sur une
+   course du comptoir, « Confirmer la fin », plus long que « Terminée »,
+   poussait « Appeler » hors de la carte — et sous le doigt qui visait
+   « Appeler », c'est « Confirmer la fin » qui tombait. À 320 px elle
+   débordait déjà de 38 px au repos. Elle se coupe maintenant (« easyHotel ·
+   compt… »), les boutons restent où le pouce les attend. */
 .rec-note{margin:8px 0 0;padding:7px 10px;border-radius:10px;
   background:var(--fond);font-size:12.5px;color:var(--encre);
   border-left:3px solid var(--filet);}
@@ -2225,6 +2255,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .dettes-bord{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:#FDECEC;border:1px solid #F3B7B5;color:#7F1D1D}
 .dettes-bord p{margin:0 0 8px;font-weight:600;font-size:14px}
 @media (min-width:900px){ body.espace .dettes-bord{margin:16px 28px 0;} }
+/* Pas de rouge : rien n'attend ici, c'est un rappel. Le rouge reste à
+   ce qui attend une réponse. */
+.sauvegarde-bord{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:#EEF4FB;border:1px solid #C8DAEE;color:#123B63}
+.sauvegarde-bord p{margin:0 0 8px;font-size:14px;line-height:1.45}
+.sauvegarde-bord[hidden]{display:none}
+@media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
 </style>
 </head>
 <body>
@@ -3453,6 +3489,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="dettes-bord" id="bordDettes" hidden>
       <p id="bordDettesTexte"></p>
       <button class="bouton-fantome" type="button" id="btnBordDettes">Voir et relancer</button>
+    </div>
+    <!-- LE RAPPEL DE SAUVEGARDE, SUR TÉLÉPHONE AUSSI (4 octobre 2026, audit,
+         P1-9). Les courses sont sur le serveur ; le carnet des chauffeurs,
+         leurs paiements et les factures, NON : ils ne vivent que sur cet
+         appareil. Le seul rappel était dans la colonne de gauche, qui
+         n'existe que sur ordinateur — et c'est sur un téléphone qu'on perd
+         un appareil. Il n'apparaît qu'au-delà de 7 jours sans sauvegarde,
+         et seulement s'il y a quelque chose à perdre. -->
+    <div class="sauvegarde-bord" id="bordSauvegarde" hidden>
+      <p id="bordSauvegardeTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnBordSauver">Télécharger une sauvegarde</button>
     </div>
     <div class="hors-ligne" id="bordHorsLigne" hidden>
       <p id="bordHorsLigneTexte">Vous ne recevez pas les demandes de vos clients
@@ -10513,9 +10560,17 @@ window.ELA_TEXTES = {
   }
   function ecrireFile(f){ try{ localStorage.setItem(CLE_FILE, JSON.stringify(f)); }catch(e){} }
   function enFile(ref){ return !!fileAttente()[ref]; }
+  /* CHAQUE MODIFICATION PORTE UN NUMÉRO (« gen »), et ce n'est pas un
+     détail (4 octobre 2026, audit, P1-2). Une course modifiée PENDANT son
+     propre envoi était déjà dans la file : la seconde modification ne
+     changeait rien à l'entrée, et l'accusé du premier envoi la retirait. Le
+     second geste ne partait jamais, et rien ne le disait. On ne retire
+     maintenant une entrée que si aucune modification n'est arrivée depuis
+     le départ de l'envoi ; sinon elle repart, avec la version neuve. */
   function mettreEnFile(ref){
     var f = fileAttente();
     if(!f[ref]) f[ref] = { depuis: Date.now(), essais: 0 };
+    f[ref].gen = (f[ref].gen || 0) + 1;
     ecrireFile(f);
   }
   function retirerDeFile(ref){
@@ -10605,20 +10660,34 @@ window.ELA_TEXTES = {
      Supabase rend un « refresh_token » avec chaque session : il sert
      exactement à ça et vit bien plus longtemps. On s'en sert à la première
      réponse 401, une seule fois, puis on rejoue l'appel. */
+  /* UNE PANNE N'EST PAS UN REFUS (4 octobre 2026, audit de l'admin, P1-1).
+     Toute réponse en erreur effaçait la session : un serveur en 503, un
+     quota en 429, ou un appel qui ne revenait jamais (aucun minuteur ici)
+     déconnectait Barbaros comme un mot de passe changé. Seul le serveur
+     qui DIT non (400, 401, 403 : jeton de renouvellement inconnu ou
+     révoqué) efface la session. Le reste la garde, et l'appel suivant
+     réessaie.
+     UN SEUL RENOUVELLEMENT À LA FOIS : au retour du réseau après une heure,
+     la sonde, la relecture et la vérification d'accès reçoivent toutes un
+     401 en même temps. Trois renouvellements avec le même jeton, et le
+     deuxième peut être refusé comme un jeton déjà servi — donc effacer la
+     session qu'on venait de renouveler. */
   nuage.rafraichir = function(){
     var moi = this;
     var jeton = this.session && this.session.refresh_token;
     if(!jeton) return Promise.resolve(false);
+    if(this._renouvellement) return this._renouvellement;
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 8000);
     /* L'appel de renouvellement ne porte PAS le jeton périmé : il n'a besoin
        que de la clé publique et du « refresh_token ». Le lui envoyer ferait
        refuser la demande qui doit justement le remplacer. */
-    return fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
-      method: "POST",
+    this._renouvellement = fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST", signal: ctrl.signal,
       headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: jeton })
-    }).then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(j){
-        if(!j || !j.access_token){
+    }).then(function(r){
+        if(r.status === 400 || r.status === 401 || r.status === 403){
           /* Le renouvellement lui-même est refusé : la session est morte
              pour de bon. On l'efface, pour que l'écriteau revienne et dise
              à Barbaros de se reconnecter — plutôt que de laisser une
@@ -10626,10 +10695,16 @@ window.ELA_TEXTES = {
           moi.deconnexion();
           return false;
         }
-        moi.session = j;
-        try{ localStorage.setItem(CLE_SESSION, JSON.stringify(j)); }catch(e){}
-        return true;
-      }).catch(function(){ return false; });
+        if(!r.ok) return false;
+        return r.json().then(function(j){
+          if(!j || !j.access_token) return false;
+          moi.session = j;
+          try{ localStorage.setItem(CLE_SESSION, JSON.stringify(j)); }catch(e){}
+          return true;
+        });
+      }).catch(function(){ return false; })
+      .then(function(ok){ clearTimeout(minuteur); moi._renouvellement = null; return ok; });
+    return this._renouvellement;
   };
 
   nuage.appel = function(chemin, options, reessai){
@@ -10655,7 +10730,10 @@ window.ELA_TEXTES = {
          boucler l'appel indéfiniment. */
       if(r.status === 401 && !reessai && moi.session && moi.session.refresh_token){
         return moi.rafraichir().then(function(ok){
-          if(!ok) throw new Error("session expiree");
+          /* Session effacée = le serveur l'a refusée. Session gardée = le
+             renouvellement n'a pas abouti (réseau, serveur en panne) : ce
+             n'est pas une expiration, et l'écran ne doit pas le dire. */
+          if(!ok) throw new Error(moi.connecte() ? "renouvellement impossible" : "session expiree");
           return moi.appel(chemin, options, true);
         });
       }
@@ -10880,19 +10958,26 @@ window.ELA_TEXTES = {
     var prets = refs.filter(function(r){ return !f[r].prochain || f[r].prochain <= maintenant; });
     if(!prets.length){ programmerFile(); return Promise.resolve(false); }
     fileEnCours = true;
-    var ref = prets[0];
+    var ref = prets[0], gen = f[ref].gen || 0;
     var c = registre().filter(function(x){ return x && x.ref === ref; })[0];
     if(!c){ retirerDeFile(ref); fileEnCours = false; return viderFile(); }
     return nuage.envoyerCourse(c).then(function(res){
-      if(res === "ok" || res === "conflit"){
+      if(res === "ok"){
+        /* Modifiée pendant l'envoi : elle reste en file et repart aussitôt
+           (la version vient d'être mise à jour par l'accusé). */
+        var f2 = fileAttente();
+        if(f2[ref] && (f2[ref].gen || 0) !== gen){
+          f2[ref].essais = 0; delete f2[ref].prochain; ecrireFile(f2);
+        } else retirerDeFile(ref);
+      } else if(res === "conflit"){
+        /* Le serveur gagne : sa version a remplacé la nôtre, y compris un
+           geste fait entre-temps sur la copie périmée — et on le dit. */
         retirerDeFile(ref);
-        if(res === "conflit"){
-          conflitsRecents.push(ref);
-          dessinerBord();
-          /* Le bon d'abord (il remet ses notes à zéro), le message ensuite. */
-          if(bonBord && bonBord.ref === ref) ouvrirBonBord(ref);
-          direConflit(ref);
-        }
+        conflitsRecents.push(ref);
+        dessinerBord();
+        /* Le bon d'abord (il remet ses notes à zéro), le message ensuite. */
+        if(bonBord && bonBord.ref === ref) ouvrirBonBord(ref);
+        direConflit(ref);
       } else {
         reporter(ref);
       }
@@ -11216,11 +11301,16 @@ window.ELA_TEXTES = {
      saisie au téléphone sans chauffeur reste CONFIRMÉE). Elle doit donc se
      voir : sur sa carte, et par un écriteau en tête du tableau de bord. */
   function sansChauffeur(c){
-    return (c.statut || "attente") === "confirmee"
-      && !(c.chauffeur && String(c.chauffeur.nom || "").trim());
+    return (c.statut || "attente") === "confirmee" && sansChauffeurNom(c);
+  }
+  /* Une seule définition du « chauffeur connu » pour la carte, l'écriteau
+     et le bon : un NOM (relecture du 4 octobre 2026). */
+  function sansChauffeurNom(c){
+    return !(c.chauffeur && String(c.chauffeur.nom || "").trim());
   }
   function dessinerBord(){
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
+    if(typeof dessinerSauvegardeBord === "function") dessinerSauvegardeBord();
     var liste = document.getElementById("listeBord");
     var vide  = document.getElementById("videBord");
     var tout  = registre();
@@ -11908,7 +11998,7 @@ window.ELA_TEXTES = {
        proposer à 800 personnes ferait répondre des chauffeurs pour rien, et
        la fois d'après ils ne liraient plus. */
     var bDif = document.getElementById("btnDiffuserGroupe");
-    var aChauffeur = !!(c.chauffeur && (c.chauffeur.nom || c.chauffeur.telephone));
+    var aChauffeur = !sansChauffeurNom(c);
     bDif.hidden = aChauffeur
                || ["realisee", "refusee", "annulee"].indexOf(c.statut || "attente") >= 0;
     /* Le libellé dit si l'annonce est déjà partie — sur une nuit chargée on
@@ -12020,15 +12110,56 @@ window.ELA_TEXTES = {
     el.addEventListener("change", jugerCommissionBon);
   });
   function chauffeurSaisi(){
-    return {
-      nom: document.getElementById("bbChauffeurNom").value.trim(),
-      telephone: document.getElementById("bbChauffeurTel").value.trim()
-    };
+    return completerChauffeur(document.getElementById("bbChauffeurNom").value.trim(),
+                              document.getElementById("bbChauffeurTel").value.trim());
+  }
+  /* LE NOM VIENT DU CARNET QUAND SEUL LE NUMÉRO EST DONNÉ (relecture du
+     4 octobre 2026). Un chauffeur saisi par son seul numéro était « Sans
+     chauffeur » sur la carte, mais reconnu par le bon, qui cachait alors
+     « Placer au groupe » : l'écriteau envoyait vers une course que le bon
+     présentait comme attribuée. C'est le NOM qui fait un chauffeur — c'est
+     lui que lit le client — et le carnet le connaît : on le reprend. Un
+     numéro inconnu du carnet reste un numéro, et la course reste « Sans
+     chauffeur », sur la carte comme sur le bon. */
+  function completerChauffeur(nom, tel){
+    if(!nom && tel){
+      var c = trouverChauffeur("", tel);
+      if(c && c.nom) nom = c.nom;
+    }
+    return { nom: nom, telephone: tel };
   }
   document.getElementById("btnRetourBord").addEventListener("click", function(){
     /* On enregistre le chauffeur en quittant : sinon Barbaros le saisit,
-       revient en arrière, et son travail est perdu sans un mot. */
-    if(bonBord) majCourse(bonBord.ref, bonBord.statut || "attente", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
+       revient en arrière, et son travail est perdu sans un mot.
+       RIEN N'A CHANGÉ, RIEN NE PART (4 octobre 2026, audit, P1-3). Le retour
+       réécrivait la course à chaque fois : une écriture pour rien, qui fait
+       monter la version et relire tous les autres appareils — et, partie
+       d'une copie pas encore rafraîchie, un conflit affiché pour un geste
+       que personne n'a fait.
+       CHANGER LE CHAUFFEUR D'UNE COURSE CONFIRMÉE, C'EST L'ATTRIBUER (P1-4).
+       Le retour enregistrait n'importe quel nom sans le contrôle de
+       « Confirmer » : un chauffeur aux papiers périmés, ou au-delà du seuil
+       de dette, passait par cette porte-là. Même contrôle ici ; refusé, on
+       reste sur le bon et on dit pourquoi. Sur une course en attente le nom
+       n'est qu'une note (personne n'est encore promis au client), et sur une
+       course faite la créance est déjà née : pas de contrôle. */
+    if(bonBord){
+      var actuelle = registre().filter(function(x){ return x && x.ref === bonBord.ref; })[0] || bonBord;
+      var ch = chauffeurSaisi(), cm = commissionSaisie(), avant = actuelle.chauffeur || {};
+      var chChange = ch.nom !== (avant.nom || "") || ch.telephone !== (avant.telephone || "");
+      var cmChange = JSON.stringify(cm || null) !== JSON.stringify(actuelle.commission || null);
+      if(chChange && ch.nom && (actuelle.statut || "attente") === "confirmee"){
+        var refus = refusConfirmation();
+        if(refus){
+          direConfirmer(refus);
+          var msg = document.getElementById("confirmerEtat");
+          if(msg && msg.scrollIntoView) msg.scrollIntoView({ block:"center" });
+          return;
+        }
+      }
+      if(chChange || cmChange)
+        majCourse(actuelle.ref, actuelle.statut || "attente", { chauffeur: ch, commission: cm });
+    }
     ecran("ecran-bord");
   });
   /* LA NOTIFICATION PART TOUTE SEULE À LA CONFIRMATION, et elle ne peut pas
@@ -12059,28 +12190,39 @@ window.ELA_TEXTES = {
   /* CONFIRMER, C'EST PROMETTRE UNE VOITURE (audit du 30/09/2026).
      Le bouton partait sans chauffeur : le client recevait « Transfert
      confirmé — Chauffeur : — », c'est-à-dire une promesse sans personne
-     derrière. Il faut donc un chauffeur retenu. Et un chauffeur du carnet
-     dont un papier est PÉRIMÉ est refusé ici : c'est l'instant où
-     Elatransfer engage sa responsabilité (L3142-1). Seul « périmé » bloque
-     — un fait connu, une date passée — comme dans Admin v2 ; un chauffeur
-     hors carnet garde l'avertissement orange, sans blocage. */
+     derrière. Il faut donc un chauffeur retenu.
+     LES PAPIERS N'ARRÊTENT PLUS LE GESTE (4 octobre 2026, Barbaros : « ne
+     fais pas bloquer les chauffeurs liés aux papiers »). Un papier périmé
+     refusait la confirmation depuis le 30/09 ; il ne fait plus qu'AVERTIR,
+     en rouge, sur le bon (« jugerChauffeurBon ») — l'avertissement reste,
+     c'est lui qui engage sa responsabilité en connaissance de cause
+     (L3142-1), et c'est lui qui décide. */
   function direConfirmer(t){
     var e = document.getElementById("confirmerEtat");
     e.hidden = !t; e.textContent = t || "";
   }
   function refusConfirmation(){
-    var nom = document.getElementById("bbChauffeurNom").value.trim();
-    var tel = document.getElementById("bbChauffeurTel").value.trim();
-    if(!nom) return "Indiquez d'abord le chauffeur retenu : confirmer sans lui "
+    var ch = chauffeurSaisi();
+    if(!ch.nom) return "Indiquez d'abord le chauffeur retenu : confirmer sans lui "
       + "promettrait au client une voiture que personne n'a acceptée.";
+    return refusAttribution(ch.nom, ch.telephone);
+  }
+  /* LA RÈGLE D'ATTRIBUTION, ÉCRITE UNE FOIS (4 octobre 2026, audit, P1-4).
+     Trois portes confient une course à un chauffeur — « Confirmer », le
+     changement de chauffeur sur une course confirmée, et la saisie par
+     téléphone d'une course déjà confirmée — et seule la première
+     contrôlait. Une règle recopiée à trois endroits finit par diverger :
+     elle vit ici, et les trois l'appellent.
+     LA SEULE CHOSE QUI REFUSE EST LE SEUIL DE DETTE, et il est facultatif
+     (vide par défaut, réglé par Barbaros dans le centre de contrôle). Les
+     papiers du chauffeur ne refusent JAMAIS — décision du 4 octobre 2026 —
+     ils avertissent sur le bon. Ne pas remettre ici un contrôle sur
+     « etatPapier » : il y était, il a été retiré à sa demande. */
+  function refusAttribution(nom, tel){
     var dette = detteDe(nom, tel), seuil = seuilDette();
     if(dette && seuil !== null && dette.solde > seuil)
       return dette.nom + " doit " + euros(dette.solde) + " de commission, au-delà de votre seuil ("
         + euros(seuil) + ") : enregistrez son paiement dans le centre de contrôle, ou choisissez un autre chauffeur.";
-    var c = trouverChauffeur(nom, tel);
-    if(c && [c.carteFin, c.registreFin, c.assuranceFin].some(function(d){ return etatPapier(d) === "perime"; }))
-      return "Papier périmé dans le carnet (" + c.nom + ") : choisissez un autre "
-        + "chauffeur, ou mettez sa fiche à jour dans « Chauffeurs ».";
     return "";
   }
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
@@ -12253,6 +12395,11 @@ window.ELA_TEXTES = {
      tiret. Il apparaît dès qu'un nom est tapé sur une course confirmée. */
   document.getElementById("bbChauffeurNom").addEventListener("input", function(){
     if(!bonBord) return;
+    /* Le nom change : un refus affiché pour l'ancien nom ne vaut plus.
+       Laissé là, il contredisait « Papiers à jour » juste au-dessus, et
+       faisait croire qu'un envoi réussi avait échoué (relecture du
+       4 octobre 2026). */
+    direConfirmer("");
     var tel = telWa(bonBord.client && bonBord.client.telephone);
     document.getElementById("btnPrevenirClient").hidden =
       (bonBord.statut !== "confirmee") || !tel || !this.value.trim();
@@ -12272,6 +12419,7 @@ window.ELA_TEXTES = {
       bonBord = majCourse(bonBord.ref, bonBord.statut,
                           { chauffeur: saisi, commission: commissionSaisie() }) || bonBord;
     }
+    direConfirmer("");
     window.open("https://wa.me/" + tel + "?text="
                 + encodeURIComponent(messageConfirmation(bonBord)), "_blank");
   });
@@ -12591,18 +12739,10 @@ window.ELA_TEXTES = {
     var connecte = nuage.connecte();
     document.getElementById("nuageFormulaire").hidden = connecte;
     document.getElementById("nuageActions").hidden = !connecte;
-    document.getElementById("nuageEtat").textContent = connecte
-      ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
-      : "Non connecté : vous ne voyez que les courses de cet appareil.";
-    /* La pastille de la colonne dit la MÊME chose que le bloc, en trois
-       mots. Deux endroits qui affichent l'état du serveur doivent être
-       écrits au même endroit, sinon l'un des deux ment un jour. */
-    document.getElementById("adminEtat").classList.toggle("ok", connecte);
-    document.getElementById("adminEtatTexte").textContent =
-      connecte ? "Serveur connecté" : "Cet appareil seul";
-    /* L'état du serveur décide de DEUX choses à la fois : ce qu'on affiche
-       et si l'on interroge. Les séparer, c'est se retrouver un jour avec une
-       pastille verte et aucune écoute. */
+    /* La pastille de la colonne et la phrase du bloc sont écrites par
+       « jugerReception », avec le bandeau : trois endroits qui disent l'état
+       du serveur doivent être écrits au même endroit, sinon l'un des trois
+       ment un jour. L'état du serveur décide aussi de si l'on interroge. */
     jugerReception();
   }
   /* LA PREMIÈRE LECTURE NE SONNE PAS. À l'ouverture de l'espace, tout ce
@@ -12706,6 +12846,11 @@ window.ELA_TEXTES = {
   document.addEventListener("visibilitychange", function(){
     if(!document.hidden && ecouteUtile()) synchroniser();
     reglerEcoute();
+  });
+  /* LE RÉSEAU REVIENT : on relit tout de suite. Sans ça, l'écriteau « pas
+     de réseau » restait jusqu'au tour complet suivant, 45 s plus tard. */
+  window.addEventListener("online", function(){
+    if(ecouteUtile()) synchroniser();
   });
 
   /* CE QUI SE VOIT ET CE QUI S'ENTEND. Une ligne qui apparaît en silence
@@ -12864,6 +13009,20 @@ window.ELA_TEXTES = {
          paraissait normal, et les demandes tombaient dans le vide. */
       var connecte = nuage.connecte();
       el.hidden = connecte && !panneServeur;
+      /* QUATRIÈME SITUATION (4 octobre 2026) : PAS DE RÉSEAU. Un serveur qui
+         répond par un code (« nuage 503 ») est en panne ; un appel qui ne
+         part pas ou ne revient pas (« Failed to fetch » chez Chrome, « Load
+         failed » chez Safari, délai dépassé) veut dire que le téléphone n'a
+         pas de réseau. Ce n'est pas le même geste : il n'y a rien à
+         actualiser, il faut attendre le réseau — et la liste affichée est
+         celle gardée sur le téléphone, ce qu'il doit savoir avant de croire
+         qu'aucune demande n'est arrivée. */
+      var sansReseau = connecte && panneServeur && !/^nuage \d/.test(panneServeur);
+      /* « Se connecter au serveur » ne sert qu'à qui n'a PAS de session : sans
+         réseau ou serveur muet, ce n'est pas un mot de passe qui manque, et
+         le formulaire qu'il ouvre est de toute façon masqué. */
+      var allerConnexion = el.querySelector("[data-admin-vers]");
+      if(allerConnexion) allerConnexion.hidden = connecte;
       if(txt){
         txt.textContent = !connecte
           ? (panneServeur
@@ -12871,11 +13030,33 @@ window.ELA_TEXTES = {
                 + "demandes de vos clients n'arrivent plus ici."
               : "Vous ne recevez pas les demandes de vos clients sur cet "
                 + "appareil : vous ne voyez que les courses saisies ici.")
-          : "Le serveur n'a pas répondu (" + panneServeur + "). Les demandes "
-            + "de vos clients n'arrivent pas pour l'instant — réessayez avec "
-            + "« Actualiser ».";
+          : sansReseau
+            ? "Pas de réseau : vous voyez les courses gardées sur ce téléphone. "
+              + "Les nouvelles demandes arriveront dès que le réseau revient."
+            : "Le serveur n'a pas répondu (" + panneServeur + "). Les demandes "
+              + "de vos clients n'arrivent pas pour l'instant — réessayez avec "
+              + "« Actualiser ».";
       }
     }
+    /* LA PASTILLE NE DIT « CONNECTÉ » QUE SI LE SERVEUR RÉPOND (4 octobre
+       2026). Elle ne regardait que la session : depuis qu'une coupure GARDE
+       la session, elle affichait « Serveur connecté » en vert à côté du
+       bandeau « Pas de réseau ». Deux phrases contraires sur le même écran,
+       et c'est la verte qu'on croit. */
+    var c2 = nuage.connecte();
+    var sansReseau2 = c2 && panneServeur && !/^nuage \d/.test(panneServeur);
+    var pastille = document.getElementById("adminEtat");
+    var pastilleTxt = document.getElementById("adminEtatTexte");
+    if(pastille) pastille.classList.toggle("ok", c2 && !panneServeur);
+    if(pastilleTxt) pastilleTxt.textContent = !c2 ? "Cet appareil seul"
+      : !panneServeur ? "Serveur connecté"
+      : sansReseau2 ? "Pas de réseau" : "Serveur injoignable";
+    var etatBloc = document.getElementById("nuageEtat");
+    if(etatBloc) etatBloc.textContent = !c2
+      ? "Non connecté : vous ne voyez que les courses de cet appareil."
+      : !panneServeur ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
+      : sansReseau2 ? "Pas de réseau : les demandes arriveront dès qu'il revient."
+      : "Le serveur ne répond pas pour l'instant (" + panneServeur + ").";
     reglerEcoute();
   }
   document.getElementById("btnNuageConnexion").addEventListener("click", function(){
@@ -12889,9 +13070,14 @@ window.ELA_TEXTES = {
            un compte non confirmé envoie chercher pendant une heure du côté
            du mot de passe, qui est le bon. */
         var dit = {
-          non_confirme: "Ce compte n'est pas confirmé. Dans Supabase → "
-            + "Authentication → Users, supprimez-le et recréez-le en cochant "
-            + "« Auto Confirm User ».",
+          /* NE PLUS CONSEILLER DE LE RECRÉER (4 octobre 2026). L'accès à
+             l'admin est lié à CE compte (table « operateurs », effacée avec
+             lui) : un compte recréé a un autre identifiant, et l'admin le
+             refuse. Le message envoyait perdre l'accès en croyant le
+             réparer. */
+          non_confirme: "Ce compte n'est pas confirmé (case « Auto Confirm User » "
+            + "non cochée à sa création). Ne le supprimez pas : l'accès à l'admin "
+            + "est lié à ce compte précis. Il se confirme côté serveur — voir SUPABASE.md.",
           identifiants: "E-mail ou mot de passe refusé. L'e-mail est celui de "
             + "Supabase → Authentication → Users.",
           desactive: "La connexion par e-mail est désactivée dans Supabase → "
@@ -13494,6 +13680,29 @@ window.ELA_TEXTES = {
   }
   document.getElementById("btnBordDettes").addEventListener("click", ouvrirControle);
 
+  /* LE RAPPEL DE SAUVEGARDE (4 octobre 2026, audit, P1-9) : 7 jours, et
+     seulement s'il existe des données qui ne vivent que sur cet appareil. */
+  var CLE_DERNIERE_SAUVEGARDE = "ela_derniere_sauvegarde", JOURS_SAUVEGARDE = 7;
+  function dessinerSauvegardeBord(){
+    var el = document.getElementById("bordSauvegarde");
+    if(!el) return;
+    var aPerdre = chauffeurs().length + factures().length + paiementsChauffeurs().length;
+    if(!aPerdre){ el.hidden = true; return; }
+    var der = 0;
+    try{ der = Number(localStorage.getItem(CLE_DERNIERE_SAUVEGARDE)) || 0; }catch(e){}
+    var jours = der ? Math.floor((Date.now() - der) / 86400000) : null;
+    if(jours !== null && jours < JOURS_SAUVEGARDE){ el.hidden = true; return; }
+    el.hidden = false;
+    document.getElementById("bordSauvegardeTexte").textContent =
+      (jours === null ? "Aucune sauvegarde faite sur ce téléphone. "
+                      : "Dernière sauvegarde il y a " + jours + " jours. ")
+      + "Vos chauffeurs, leurs paiements et vos factures ne sont que sur cet "
+      + "appareil : s'il est perdu, ils le sont aussi.";
+  }
+  document.getElementById("btnBordSauver").addEventListener("click", function(){
+    document.getElementById("btnSauver").click();
+  });
+
   /* LA RELANCE : un message au chauffeur, sur SON numéro, avec les courses
      concernées. Une relance qui dit « vous me devez 47 € » sans dire pour
      quoi appelle une discussion ; la liste la clôt. */
@@ -13984,6 +14193,18 @@ window.ELA_TEXTES = {
     if(chTel && !telValide(chTel)){
       direCreer("Le téléphone du chauffeur ne semble pas valable — relisez-le.");
       return;
+    }
+    /* LA COURSE ENTRE CONFIRMÉE : NOMMER LE CHAUFFEUR ICI, C'EST LE LUI
+       CONFIER (4 octobre 2026, audit, P1-4). Même contrôle que
+       « Confirmer » — le seuil de dette, s'il est réglé ; les papiers
+       n'arrêtent rien, ils s'affichent sur le bon qui s'ouvre juste après.
+       Sans chauffeur, la course reste possible (décision du 3 octobre) :
+       elle sera « Sans chauffeur » sur le tableau de bord. */
+    var chComplet = completerChauffeur(chNom, chTel);
+    chNom = chComplet.nom;
+    if(chNom){
+      var refusCr = refusAttribution(chNom, chTel);
+      if(refusCr){ direCreer(refusCr); return; }
     }
     var gamme = GAMMES.filter(function(g){
       return g.cle === document.getElementById("crVehicule").value;
@@ -14691,11 +14912,14 @@ window.ELA_TEXTES = {
                 JSON.stringify({ format: "elatransfer-1", courses: registre(),
                                  chauffeurs: chauffeurs(), factures: factures(),
                                  rangFacture: rang, entreprise: entreprise(),
-                                 paiementsChauffeurs: paiementsChauffeurs() }, null, 1),
+                                 paiementsChauffeurs: paiementsChauffeurs(),
+                                 lienAvis: lienAvis() }, null, 1),
                 "application/json");
     document.getElementById("regSauvEtat").textContent =
       "Sauvegarde téléchargée — courses, chauffeurs et factures. "
       + "Gardez-la ailleurs que sur ce téléphone.";
+    try{ localStorage.setItem(CLE_DERNIERE_SAUVEGARDE, String(Date.now())); }catch(e){}
+    dessinerSauvegardeBord();
   });
   document.getElementById("btnCSV").addEventListener("click", function(){
     var colonnes = ["Référence","Date","Heure","État","Client","Téléphone",
@@ -14768,6 +14992,25 @@ window.ELA_TEXTES = {
             }
             sup += " " + nf.length + " facture" + (nf.length > 1 ? "s ajoutées." : " ajoutée.");
           }
+          /* L'IDENTITÉ DE L'ÉMETTEUR ET LE LIEN D'AVIS (4 octobre 2026,
+             audit, P1-9). La sauvegarde portait l'identité et ne la rendait
+             jamais ; le lien d'avis n'y était pas du tout. Après un
+             changement de téléphone, les factures repartaient sans
+             émetteur. Même règle que le reste : on AJOUTE ce qui manque ici,
+             on n'écrase jamais une valeur déjà saisie sur cet appareil. */
+          var entIci = entreprise();
+          if(brut.entreprise && typeof brut.entreprise === "object"
+             && !entIci.nom && !entIci.siret && !entIci.adresse){
+            try{ localStorage.setItem(CLE_ENTREPRISE, JSON.stringify(brut.entreprise)); }catch(x){}
+            lireEntreprise();
+            sup += " Identité de l'émetteur rétablie.";
+          }
+          if(typeof brut.lienAvis === "string" && brut.lienAvis.trim() && !lienAvis()){
+            try{ localStorage.setItem(CLE_LIEN_AVIS, brut.lienAvis.trim()); }catch(x){}
+            var champAvis = document.getElementById("lienAvis");
+            if(champAvis) champAvis.value = brut.lienAvis.trim();
+            sup += " Lien d'avis rétabli.";
+          }
           /* LE RANG NE RECULE JAMAIS : on garde le plus grand des deux. Le
              reprendre tel quel réémettrait des numéros déjà utilisés. */
           if(brut.rangFacture && brut.rangFacture.annee){
@@ -14784,6 +15027,7 @@ window.ELA_TEXTES = {
           }
         }
         dessinerRegistre();
+        dessinerSauvegardeBord();
         etat.textContent = n + (n > 1 ? " courses ajoutées." : " course ajoutée.")
           + " Celles déjà présentes n'ont pas été touchées." + sup;
       }catch(err){

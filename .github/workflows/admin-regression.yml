@@ -1,0 +1,69 @@
+name: Contrôle de l'admin retenu
+# L'ADMIN QUE BARBAROS UTILISE N'AVAIT AUCUNE SUITE EN CI (audit du 3 octobre
+# 2026, P1-15). Sept des neuf suites lancées par GitHub visaient Admin v2 --
+# l'espace qu'il n'utilise pas, retiré de la publication depuis. Celles de
+# l'admin retenu (le tableau de bord, la clôture, la synchronisation, le mode
+# sans réseau) ne tournaient qu'à la main, donc pas du tout le jour où l'on
+# oublie : une régression partait en ligne sans que rien ne tombe.
+on:
+  pull_request:
+    # DES MOTIFS, PAS UNE LISTE DE FICHIERS : une liste survit au fichier
+    # qu'on ajoute (même leçon que le filtre d'Admin v2 et que la barre du
+    # bas figée sur quatre onglets).
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'construire.sh'
+      - 'telephone.js'
+      - 'intake-demande.js'
+      - 'qr-affiche.js'
+      - 'itineraire-partage.js'
+      - '.github/scripts/**'
+      - 'test-admin-*.mjs'
+      - 'test-nouveau-*.mjs'
+      - '.github/workflows/admin-regression.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      # La MÊME version que la machine de travail : une autre version de
+      # Playwright n'ordonne pas les routes de la même façon, et une suite
+      # verte ici est tombée là-bas pour cette seule raison (septembre 2026).
+      - name: Navigateur
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Suites de l'admin retenu
+        shell: bash
+        run: |
+          set -uo pipefail
+          # Quatre suites éprouvent l'espace exploitant dans le DÉPÔT, servi tel
+          # quel sur le port 8099 ; les autres construisent et servent le site
+          # elles-mêmes.
+          npx --yes http-server . -s -p 8099 >/tmp/serveur.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8099/ && break; sleep 1; done
+          # LA RÈGLE, PAS LA LISTE : toute suite « test-admin-* » qui ne demande
+          # pas Admin v2 éprouve l'admin retenu. Celles qui posent
+          # ELA_AVEC_ADMIN_V2 tournent dans « Contrôle Admin v2 ».
+          suites=""
+          for f in test-admin-*.mjs; do
+            grep -q ELA_AVEC_ADMIN_V2 "$f" && continue
+            suites="$suites ${f%.mjs}"
+          done
+          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp"
+          echecs=""
+          # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
+          # Et le contrôle ne s'arrête jamais à la première rouge.
+          for t in $suites; do
+            echo "::group::$t"
+            if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
+            echo "::endgroup::"
+          done
+          if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
+          echo "Toutes les suites de l'admin retenu sont au vert."
