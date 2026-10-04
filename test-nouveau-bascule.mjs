@@ -122,6 +122,17 @@ check('la description nomme la marque et le métier',
   check('le site construit porte le même titre que le dépôt',
     tPub === titre.replace(/&amp;/g, '&').trim(), tPub + ' ≠ ' + titre);
   check('et la même description', dPub === desc, dPub.slice(0, 60) + '… ≠ ' + String(desc).slice(0, 60));
+  // LES APERÇUS DE PARTAGE (Facebook, WhatsApp, Twitter). Le site publié en
+  // porte DEUX exemplaires : celui de la page, puis celui que `seo-ela.mjs`
+  // ajoute. Le 4 octobre 2026, le premier vendait encore « mises à
+  // disposition », retirée du site en septembre, et c'est en général le
+  // premier qu'un réseau social lit. On exige donc que TOUS disent la
+  // description de la page, pas seulement l'un d'eux.
+  const apercus = [...pub.matchAll(/<meta\s+(?:property|name)=["'](?:og|twitter):description["']\s+content=["']([^"']*)["']/gi)]
+    .map(m => m[1]);
+  check('chaque aperçu de partage dit la description de la page',
+    apercus.length >= 2 && apercus.every(a => a === desc),
+    apercus.filter(a => a !== desc).map(a => a.slice(0, 50)).join(' | ') || apercus.length + ' trouvé(s)');
 }
 
 const robots = await p.getAttribute('meta[name=robots]','content');
