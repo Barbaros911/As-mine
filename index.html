@@ -8676,22 +8676,27 @@ window.ELA_TEXTES = {
      borne dépend de la date choisie, et elle change à minuit. */
   function heureDepassee(){
     if(typeof quandAsap !== "undefined" && quandAsap) return false;
-    var d = new Date(champDate.value + "T" + champHeure.value);
-    if(isNaN(d.getTime())) return false;
-    /* L'HEURE RÉPÉTÉE DU PASSAGE À L'HEURE D'HIVER (dernier dimanche
-       d'octobre) : de 2 h à 2 h 59, chaque minute existe deux fois, et le
-       navigateur lit « 02:35 » comme la PREMIÈRE, en heure d'été — une heure
-       trop tôt. Le créneau proposé à 2 h 31 (heure d'hiver) était donc
-       « passé » dès sa pose, et le formulaire refusait sa propre heure
-       pendant une heure entière. Mesuré sous Chromium, horloge posée la
-       nuit du 25/10/2026 (test-nouveau-preavis).
-       Quand la lecture une heure plus tard porte la même date et la même
-       heure, c'est la même minute pour le client : on garde la plus tardive. */
-    var ensuite = new Date(d.getTime() + 3600000);
-    if(dateLocale(ensuite) === champDate.value && hhmm(ensuite) === champHeure.value) d = ensuite;
-    /* À la MINUTE près : le créneau de la minute en cours n'est pas
+    if(!champDate.value || !champHeure.value) return false;
+    /* ON COMPARE L'HEURE AFFICHÉE, PAS UN INSTANT — comme le serveur, qui
+       lit « 02:35 » en heure civile de Paris pour décider qu'un départ est
+       passé. Sur un téléphone réglé à l'heure de Paris, les deux disent la
+       même chose ; un appareil dans un autre fuseau compte à SON heure,
+       comme toute la page le faisait déjà. « AAAA-MM-JJTHH:MM » se
+       compare en texte.
+       Lire le champ comme un instant cassait la nuit du passage à l'heure
+       d'hiver (25/10/2026), où chaque minute de 2 h à 2 h 59 existe deux
+       fois : le navigateur prend la première, la page refusait sa propre
+       heure proposée, et le premier jet de ce correctif y bouclait sans
+       fin — la page entière tombait au chargement. Le second jet gardait
+       la lecture la plus tardive, et c'est l'autre moitié de la nuit qui
+       mentait : rien n'y était jamais « passé » pour la page, tout l'était
+       pour le serveur. Deux relectures indépendantes, deux défauts ; une
+       seule règle les ferme tous les deux : celle du serveur.
+       À la MINUTE près : le créneau de la minute en cours n'est pas
        « passé » — sans ça, 14 h 05 choisi à 14 h 05 et 20 s serait refusé. */
-    return d.getTime() < Math.floor(Date.now() / 60000) * 60000;
+    var maintenant = new Date();
+    return (champDate.value + "T" + champHeure.value.slice(0, 5))
+         < (dateLocale(maintenant) + "T" + hhmm(maintenant));
   }
 
   /* ---------------------------------------------------------------------
@@ -8723,7 +8728,18 @@ window.ELA_TEXTES = {
        donc 2 h 30 ». Le prix se calcule au centime près, le préavis se
        compte à la minute. */
     var minute = Math.floor(Date.now() / 60000) * 60000;
-    return new Date(Math.ceil(minute / pas) * pas);
+    var c = new Date(Math.ceil(minute / pas) * pas);
+    /* LE CRÉNEAU NE DOIT PAS S'AFFICHER AVANT L'HEURE DE LA MONTRE, et ça
+       n'arrive qu'une nuit par an : à 2 h 56 (heure d'été) le 25 octobre,
+       le créneau suivant s'affiche « 02:00 » (heure d'hiver). heureDepassee()
+       compare l'heure AFFICHÉE et le refuserait — un formulaire qui refuse
+       sa propre proposition. On avance donc de créneau en créneau jusqu'à
+       une heure affichée qui ne recule pas ; borné, rien ne tourne en rond. */
+    var montre = new Date(minute);
+    for(var i = 0; i < 24 && dateLocale(c) + hhmm(c) < dateLocale(montre) + hhmm(montre); i++){
+      c = new Date(c.getTime() + pas);
+    }
+    return c;
   }
   function hhmm(d){
     var z = function(n){ return String(n).padStart(2, "0"); };

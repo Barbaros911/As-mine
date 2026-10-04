@@ -285,6 +285,30 @@ const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif')
   await p4b.fill('#heure','02:35'); await p4b.waitForTimeout(200);
   check('… mais 2 h 35 choisi à 2 h 50 (heure d\'hiver) reste « déjà passée »', await p4b.locator('#heurePassee').isVisible());
   await c4b.close();
+  /* L'AUTRE MOITIÉ DE LA NUIT, celle que le second jet oubliait : la
+     première heure 2 h–2 h 59, encore en heure d'été. Il gardait la lecture
+     la plus tardive, donc aucune heure « 02:xx » n'y était jamais passée
+     pour la page — alors que le serveur, qui compte en heure affichée, la
+     disait passée et coupait les rappels. La page compte maintenant comme
+     lui. 00:01 UTC = 2 h 01, heure d'été. */
+  const { ctx:c4c, p:p4c } = await pageHorloge('2026-10-25T00:01:00Z');
+  check('2 h 01 (heure d\'été) : l\'heure proposée est 2 h 05', await p4c.locator('#heure').inputValue()==='02:05', await p4c.locator('#heure').inputValue());
+  await p4c.clock.fastForward('39:00');
+  await adresses(p4c);
+  check('… adresses tapées à 2 h 40 : elle se remet à 2 h 40, comme le serveur la compterait', await p4c.locator('#heure').inputValue()==='02:40', await p4c.locator('#heure').inputValue());
+  check('… sans refus', await p4c.locator('#heurePassee').isHidden() && !(await p4c.locator('#btnVoirPrix').isDisabled()));
+  await c4c.close();
+  const { ctx:c4d, p:p4d } = await pageHorloge('2026-10-25T00:20:00Z');
+  await p4d.fill('#heure','02:35'); await p4d.waitForTimeout(200);
+  await p4d.clock.fastForward('30:00');
+  await adresses(p4d);
+  check('2 h 35 choisi à 2 h 20, adresses à 2 h 50 (heure d\'été) : « déjà passée », et dit', await p4d.locator('#heurePassee').isVisible() && await p4d.locator('#btnVoirPrix').isDisabled());
+  await c4d.close();
+  /* À 2 h 56 (été), le créneau suivant s'afficherait « 02:00 » (hiver) :
+     une heure affichée qui recule, que la page refuserait aussitôt. */
+  const { ctx:c4e, p:p4e } = await pageHorloge('2026-10-25T00:56:00Z');
+  check('2 h 56 (heure d\'été) : la page ne propose pas une heure affichée qui recule', await p4e.locator('#heure').inputValue()==='03:00' && await p4e.locator('#heurePassee').isHidden(), await p4e.locator('#heure').inputValue());
+  await c4e.close();
 }
 {
   /* 5. L'heure PROPOSÉE passe pendant le récapitulatif. Rien ne la relisait

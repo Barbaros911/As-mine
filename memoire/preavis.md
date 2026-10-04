@@ -171,8 +171,9 @@ défauts, tous corrigés, et chacun a maintenant sa scène dans
   comptoir et admin compris (même script). Mesuré sous Chromium, horloge
   posée à 01:31 UTC. **Avant le correctif**, pas de plantage, mais le
   formulaire refusait sa propre heure proposée pendant une heure entière :
-  défaut plus ancien, réparé du même coup — `heureDepassee()` garde la
-  lecture la plus tardive d'une heure ambiguë. Et plus aucun juge n'en
+  défaut plus ancien, réparé du même coup — d'abord en gardant la lecture
+  la plus tardive d'une heure ambiguë, ce qui était faux à son tour (voir la
+  seconde relecture, plus bas). Et plus aucun juge n'en
   rappelle un autre (`rafraichirHeureProposee()`, appelée par tous) : même
   si une heure restait passée, rien ne tournerait en rond.
 - **« CONFIRMER » NE RELISAIT PAS L'HEURE.** Un client qui met cinq minutes
@@ -196,3 +197,50 @@ défauts, tous corrigés, et chacun a maintenant sa scène dans
   grise jamais le bouton sans le dire.**
 - Contre le premier jet, 9 contrôles tombent, dont « Maximum call stack size
   exceeded » ; contre le site en ligne (b90ee2a), 14.
+
+### La seconde relecture, sur les corrections elles-mêmes
+
+Même méthode, sur le second jet. Deux vrais défauts, corrigés :
+- **L'AUTRE MOITIÉ DE LA NUIT.** « Garder la lecture la plus tardive » ne
+  laissait plus RIEN passer pendant la première heure 2 h–2 h 59 (heure
+  d'été) : 0 heure « passée » sur 3 600 combinaisons, mesuré. Or le serveur
+  compte en heure AFFICHÉE de Paris : une demande « 02:05 » envoyée à
+  2 h 40 était pour lui passée de 35 min — message final, alarme coupée.
+  `heureDepassee()` compare maintenant l'heure affichée, en texte
+  (« AAAA-MM-JJTHH:MM »), exactement comme le serveur : la page et lui ne
+  peuvent plus se contredire. `prochainCreneau()` avance de créneau en
+  créneau tant que l'heure affichée recule (2 h 56 été → « 03:00 », une
+  nuit par an), borné à 24 pas.
+- **« POUR MAINTENANT » COUPAIT LES RAPPELS.** L'heure proposée vaut souvent
+  la minute en cours ; le serveur la voyait « passée » au tour suivant
+  (20 s), envoyait le message final et coupait l'alarme. Défaut plus ancien
+  que le correctif (un client qui garde l'heure proposée et confirme vite),
+  que la remise à jour à « Confirmer » rendait plus fréquent. Corrigé côté
+  SERVEUR (`nouvelle-demande`) : une demande n'est jamais « passée » dans
+  ses 30 premières minutes — comme une demande immédiate.
+  `test-relance-alertes` : contre l'ancien serveur, 3 contrôles tombent.
+- **Écarté** : à « Confirmer », une heure proposée remise à jour part sans
+  être réaffichée sur le récapitulatif (10 h 05 lu, 10 h 10 parti). Le bon
+  qui s'ouvre aussitôt porte la bonne heure ; à revoir s'il le demande.
+- `test-nouveau-preavis` : 63 contrôles. Contre le second jet, 3 tombent ;
+  contre le premier, 10 ; contre le site en ligne (b90ee2a), 18.
+- **Piège de banc, encore** : mon propre rejeu Node a d'abord rendu un faux
+  « pas passée ». Il remplaçait `Date.now` mais pas `new Date()`, que le
+  code appelle : une horloge figée à moitié. Le navigateur de Playwright,
+  lui, fige les deux.
+
+### La troisième relecture : rien de neuf, trois limites plus anciennes
+
+Aucun défaut retenu sur les corrections. Trois limites antérieures, dites
+pour qu'on ne les redécouvre pas :
+- **L'heure d'arrivée affichée et « Terminée »** (`departPasse`) lisent
+  encore le champ comme un instant : une heure par an (nuit du 25 octobre),
+  l'arrivée annoncée est fausse d'une heure et « Terminée » se ferme d'un
+  appui. À reprendre à part, avec la même comparaison en heure affichée.
+- **Hors du fuseau de Paris**, la page compte à l'heure de l'appareil et le
+  serveur à celle de Paris. C'était déjà le cas ; le plancher de 30 min
+  côté serveur l'atténue.
+- **Panne des deux canaux d'alerte plus de 30 min** : la demande pressée
+  reçoit l'annonce puis, aussitôt, le message final. Les deux sont vrais,
+  et c'était pire avant (aucune alarme du tout).
+
