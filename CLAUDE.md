@@ -6960,9 +6960,14 @@ l'empreinte du contrôleur qui était un libellé.
   (« il ne restait que la méta-description ») : les deux ont été retirés
   avant la fusion. L'anglais garde donc ses trois lignes d'avant, ce que
   son commit disait déjà (« la version anglaise conserve sa traduction
-  dédiée »). Les lignes de partage parlent encore de « mises à
-  disposition », retirée du site en septembre : **signalé, pas corrigé** —
-  à lui de trancher. *Une consigne écrite dans un commentaire de commit
-  est une consigne, pas un oubli à rattraper.*
+  dédiée »). *Une consigne écrite dans un commentaire de commit est une
+  consigne, pas un oubli à rattraper.*
+- **LES APERÇUS DE PARTAGE ONT SUIVI, ENSUITE, À SA DEMANDE** (« Oui », même
+  nuit). `og:description` et `twitter:description` disent la description de
+  la page. **Le site publié porte DEUX exemplaires de chaque aperçu** —
+  celui de `index.html`, puis celui qu'ajoute `seo-ela.mjs` — et un réseau
+  social lit en général le premier : c'était l'ancien, qui vendait encore
+  « mises à disposition ». `test-nouveau-bascule` exige maintenant que TOUS
+  les exemplaires disent la description.
 - **La PR #302 a été fermée sans fusion** : elle portait la même
   description, et elle était en conflit avec `main` depuis le push direct.
