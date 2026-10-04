@@ -8676,10 +8676,27 @@ window.ELA_TEXTES = {
      borne dépend de la date choisie, et elle change à minuit. */
   function heureDepassee(){
     if(typeof quandAsap !== "undefined" && quandAsap) return false;
-    var d = new Date(champDate.value + "T" + champHeure.value);
-    /* À la MINUTE près : le créneau de la minute en cours n'est pas
+    if(!champDate.value || !champHeure.value) return false;
+    /* ON COMPARE L'HEURE AFFICHÉE, PAS UN INSTANT — comme le serveur, qui
+       lit « 02:35 » en heure civile de Paris pour décider qu'un départ est
+       passé. Sur un téléphone réglé à l'heure de Paris, les deux disent la
+       même chose ; un appareil dans un autre fuseau compte à SON heure,
+       comme toute la page le faisait déjà. « AAAA-MM-JJTHH:MM » se
+       compare en texte.
+       Lire le champ comme un instant cassait la nuit du passage à l'heure
+       d'hiver (25/10/2026), où chaque minute de 2 h à 2 h 59 existe deux
+       fois : le navigateur prend la première, la page refusait sa propre
+       heure proposée, et le premier jet de ce correctif y bouclait sans
+       fin — la page entière tombait au chargement. Le second jet gardait
+       la lecture la plus tardive, et c'est l'autre moitié de la nuit qui
+       mentait : rien n'y était jamais « passé » pour la page, tout l'était
+       pour le serveur. Deux relectures indépendantes, deux défauts ; une
+       seule règle les ferme tous les deux : celle du serveur.
+       À la MINUTE près : le créneau de la minute en cours n'est pas
        « passé » — sans ça, 14 h 05 choisi à 14 h 05 et 20 s serait refusé. */
-    return !isNaN(d.getTime()) && d.getTime() < Math.floor(Date.now() / 60000) * 60000;
+    var maintenant = new Date();
+    return (champDate.value + "T" + champHeure.value.slice(0, 5))
+         < (dateLocale(maintenant) + "T" + hhmm(maintenant));
   }
 
   /* ---------------------------------------------------------------------
@@ -8711,7 +8728,18 @@ window.ELA_TEXTES = {
        donc 2 h 30 ». Le prix se calcule au centime près, le préavis se
        compte à la minute. */
     var minute = Math.floor(Date.now() / 60000) * 60000;
-    return new Date(Math.ceil(minute / pas) * pas);
+    var c = new Date(Math.ceil(minute / pas) * pas);
+    /* LE CRÉNEAU NE DOIT PAS S'AFFICHER AVANT L'HEURE DE LA MONTRE, et ça
+       n'arrive qu'une nuit par an : à 2 h 56 (heure d'été) le 25 octobre,
+       le créneau suivant s'affiche « 02:00 » (heure d'hiver). heureDepassee()
+       compare l'heure AFFICHÉE et le refuserait — un formulaire qui refuse
+       sa propre proposition. On avance donc de créneau en créneau jusqu'à
+       une heure affichée qui ne recule pas ; borné, rien ne tourne en rond. */
+    var montre = new Date(minute);
+    for(var i = 0; i < 24 && dateLocale(c) + hhmm(c) < dateLocale(montre) + hhmm(montre); i++){
+      c = new Date(c.getTime() + pas);
+    }
+    return c;
   }
   function hhmm(d){
     var z = function(n){ return String(n).padStart(2, "0"); };
@@ -8777,8 +8805,27 @@ window.ELA_TEXTES = {
      La zone et le préavis ne refusent plus rien. Le point de rendez-vous
      reste — le comptoir y branche son propre juge. */
   function jugerBoutonPrix(){
+    /* L'HEURE PROPOSÉE NE PÉRIME JAMAIS EN SILENCE (4 octobre 2026). Elle
+       vaut le prochain créneau de 5 minutes ; un client qui met cinq
+       minutes à taper ses adresses la voyait passer, et ce juge — appelé à
+       chaque adresse choisie — grisait « Voir mon prix » SANS LE MOINDRE
+       MOT : le message « heure passée » n'était posé que par jugerDelai().
+       Mesuré, horloge figée : page à 10 h 01, adresses à 10 h 06, bouton
+       gris, rien à l'écran, plus de réservation possible. Barbaros : « qu'il
+       puisse commander à l'heure qu'il veut, sous réserve de confirmation ».
+       Une heure que le client n'a pas choisie se remet donc à jour ici ; et
+       une heure qu'il a choisie et qui est passée DIT pourquoi le bouton est
+       gris, avec sa sortie « Partir dès que possible ».
+       ON NE RAPPELLE PAS jugerDelai() D'ICI : il rappelle ce juge, et le
+       premier jet de ce correctif bouclait sans fin dès que l'heure remise
+       restait « passée » — c'est arrivé, la nuit du changement d'heure, et
+       la page entière tombait au chargement (trouvé par une relecture
+       indépendante, pas par les tests). La remise à jour est faite sur
+       place ; rien ne peut plus tourner en rond. */
+    rafraichirHeureProposee();
     var bloque = heureDepassee();
     boutonPrix.disabled = bloque;
+    blocPassee.hidden = !bloque;
     /* ═══ TOUT NOUVEAU JUGE DU BOUTON PASSE PAR ICI ═══
        La règle date du préavis minimum : sans ce point de rendez-vous, le
        second juge à s'exécuter rallume le bouton que le premier vient
@@ -8800,7 +8847,7 @@ window.ELA_TEXTES = {
     /* Le temps a passé sur une page restée ouverte, et le défaut n'est plus
        réservable. Tant que le client n'y a pas touché, on le remet à jour
        plutôt que de lui opposer un refus qu'il n'a pas provoqué. */
-    else if(!heureTouchee && heureDepassee()) poserDefautHeure();
+    else rafraichirHeureProposee();
     bornerHeure();
     var passee = heureDepassee();
     blocPassee.hidden = !passee;
@@ -8827,6 +8874,13 @@ window.ELA_TEXTES = {
     var c = prochainCreneau();
     champDate.value = dateLocale(c);
     champHeure.value = hhmm(c);
+  }
+  /* L'heure PROPOSÉE (jamais touchée par le client) qui vient de passer se
+     remet au prochain créneau. Elle n'appelle aucun juge : trois juges
+     l'appellent (le bouton, l'envoi, le comptoir), et un juge qui en
+     rappelle un autre finit par boucler. */
+  function rafraichirHeureProposee(){
+    if(!heureTouchee && heureDepassee()){ poserDefautHeure(); bornerHeure(); }
   }
   poserDefautHeure();
   jugerDelai();
@@ -8884,7 +8938,12 @@ window.ELA_TEXTES = {
     }
     if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }
     if(quandAsap) heureMaintenant();
-    if(heureDepassee()){ jugerDelai(); blocPassee.scrollIntoView({block:"nearest"}); champHeure.focus(); return; }
+    /* jugerDelai() remet à jour une heure que le client n'a pas choisie :
+       si elle n'est plus passée, on CONTINUE. Avant, on s'arrêtait là après
+       l'avoir remise — l'heure changeait sous ses yeux et rien ne
+       s'ouvrait, il fallait appuyer une seconde fois. */
+    if(heureDepassee()) jugerDelai();
+    if(heureDepassee()){ blocPassee.scrollIntoView({block:"nearest"}); champHeure.focus(); return; }
     /* PLUS DE REFUS POUR LA ZONE, LE PRÉAVIS NI LE NOMBRE DE PASSAGERS
        (4 octobre 2026). Neuf passagers, c'est deux voitures, pas une
        impasse : l'écran des prix propose « Plusieurs véhicules », tarif à
@@ -8980,8 +9039,16 @@ window.ELA_TEXTES = {
      partirait à 0,00 € — un bon qui annonce zéro euro est un bon faux. */
   function jugerBoutonReserver(){
     if(!document.body.classList.contains("compte-unique")) return;
+    /* L'HEURE AUSSI, PAS SEULEMENT LA GAMME. Choisir une gamme passe par
+       ici seul : une heure passée pendant que la réception parlait au client
+       rallumait « Réserver », le message « heure passée » encore à l'écran
+       juste au-dessus. Une heure proposée se remet à jour, une heure choisie
+       et passée garde le bouton éteint ET le dit. */
+    rafraichirHeureProposee();
+    var passee = heureDepassee();
+    blocPassee.hidden = !passee;
     var pret = !!course.gamme;
-    boutonPrix.disabled = !pret;
+    boutonPrix.disabled = !pret || passee;
     var lib = boutonPrix.querySelector("span");
     lib.setAttribute("data-t", pret ? "reserver_prix" : "btn_prix_attente");
     lib.textContent = pret
@@ -9746,6 +9813,25 @@ window.ELA_TEXTES = {
       return;
     }
     erreurPaiement.hidden = true;
+    /* ═══ L'HEURE EST REJUGÉE À L'ENVOI ═══
+       Rien ne la relisait entre « Voir mon prix » et ici : un client qui
+       met cinq minutes à remplir le récapitulatif — ou une réception qui
+       parle avec son client — envoyait une heure déjà passée, sans un mot.
+       Et le serveur, voyant un départ passé, annonçait aussitôt « DÉPART
+       PASSÉ, plus aucun rappel » : l'alarme sautait justement pour la
+       demande la plus pressée. Une heure PROPOSÉE se remet au prochain
+       créneau et la demande part ; une heure CHOISIE et passée ne part pas,
+       et le client est ramené au message, avec sa sortie « Partir dès que
+       possible ». */
+    if(!quandAsap){
+      rafraichirHeureProposee();
+      if(heureDepassee()){
+        if(!document.body.classList.contains("compte-unique")) ecran("ecran-accueil");
+        jugerDelai();
+        blocPassee.scrollIntoView({ block:"nearest" });
+        return;
+      }
+    }
     var chambre = chambreSaisie();
     var vol = (blocVol.hidden ? "" : champVol.value.trim().toUpperCase());
     /* LA PRÉCISION EST LUE À TRAVERS LE BLOC, comme la chambre et le vol :

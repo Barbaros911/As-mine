@@ -211,6 +211,27 @@ try {
     check('il dit « demande immédiate sans réponse »', /^DEMANDE IMMÉDIATE/.test(tg.at(-1) || '') && /Rappelez le client/.test(tg.at(-1) || ''), (tg.at(-1) || '').split('\n')[0]);
   }
 
+  /* 7 quater. RÉSERVÉE POUR LA MINUTE MÊME, sans « Maintenant » (4 octobre
+     2026, trouvé par une relecture indépendante). L'heure proposée par le
+     site vaut souvent la minute en cours ; le départ était donc « passé »
+     au tour suivant — message final, plus d'alarme, pour la demande la
+     plus pressée. Elle doit sonner comme une demande immédiate, puis
+     recevoir son dernier message après 30 min sans réponse. */
+  {
+    const presse = 'ELA-26-09-PRES7';
+    const d = parisDans0(0), b = bon(presse, d.heure); b.course.date = d.date;
+    courses.push({ ref: presse, statut: 'attente', cree_le: iso(maintenant), bon: b });
+    journal.push({ type_evenement: 'nouvelle_reservation', course_ref: presse, canal: 'telegram', statut: 'envoye', cree_le: iso(maintenant) });
+    journal.push({ type_evenement: 'nouvelle_reservation', course_ref: presse, canal: 'push', statut: 'envoye', cree_le: iso(maintenant) });
+    minutes(1); await relance();
+    const tot = journal.filter(j => j.course_ref === presse && j.type_evenement === 'rappel_final');
+    check('réservée pour la minute même, 1 min après : PAS de « départ passé »', tot.length === 0, String(tot.length));
+    check('…et l\'alarme sonne', nbRappels(presse, 'push') >= 1, String(nbRappels(presse, 'push')));
+    minutes(31); await relance();
+    const fin = journal.filter(j => j.course_ref === presse && j.type_evenement === 'rappel_final' && j.canal === 'telegram');
+    check('32 min sans réponse : un dernier message, qui dit que le départ est passé', fin.length === 1 && /^DÉPART PASSÉ/.test(tg.at(-1) || ''), String(fin.length) + ' ' + (tg.at(-1) || '').split('\n')[0]);
+  }
+
   /* 8. Une alerte qui a ÉCHOUÉ est rattrapée, sans tempête toutes les 20 s. */
   courses.push({ ref: 'ELA-26-09-CCCC3', statut: 'attente', cree_le: iso(maintenant - 15 * 60000), bon: bon('ELA-26-09-CCCC3', '20:00') });
   journal.push({ type_evenement: 'nouvelle_reservation', course_ref: 'ELA-26-09-CCCC3', canal: 'telegram', statut: 'echec', cree_le: iso(maintenant - 15 * 60000) });

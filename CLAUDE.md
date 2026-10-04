@@ -3057,10 +3057,13 @@ Le préavis de 15 minutes a été **supprimé le 4 octobre 2026** (histoire dans
 - **LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** : `step="300"` (secondes) sur le
   champ et `PAS_MINUTES` dans le script, comparés par un test. `step` se
   compte à partir de `min` : la borne est arrondie au pas SUPÉRIEUR.
-- Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`), sans
-  délai ajouté, et la borne du champ est ce même moment. Tant que le client
-  n'a pas touché à l'heure, elle se recalcule (`heureTouchee`).
-- La minute en cours n'est pas « passée » : on rabote les secondes.
+- Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`) ;
+  la borne du champ est ce moment. Une heure non touchée se recalcule
+  (`rafraichirHeureProposee()`) à chaque juge ET à « Confirmer » ; une heure
+  choisie et passée n'est jamais envoyée, elle est DITE (`#heurePassee`).
+  Aucun juge n'en rappelle un autre : ça a bouclé (`memoire/preavis.md`).
+- « Passée » se juge sur l'HEURE AFFICHÉE, minute en cours comprise, comme
+  le serveur : lue en instant, la nuit du 25 octobre la page bouclait.
 - `min` sur un champ d'heure n'a de sens que pour AUJOURD'HUI : retiré sinon.
 - Sur téléphone, la molette du système ignore la borne : c'est l'écriteau
   `#heurePassee` qui tranche, avec sa sortie « Partir dès que possible ».
@@ -4744,6 +4747,8 @@ son, et la vraie demande suivante passait avec.
   SQL datées dans le mauvais fuseau.
 - `pg_cron` reste à 20 s : c'est la cadence de l'alarme (notification), la
   cadence Telegram vient du journal.
+- **Aucune demande n'est « passée » dans ses 30 premières minutes** : faite
+  pour la minute même, elle sonne comme une immédiate (`memoire/preavis.md`).
 - `test-relance-alertes` : 61 contrôles ; trois falsifications (règle des
   saisies retirée, effacement retiré, arrêt au départ retiré) tombent en
   nommant le défaut. `test-securite-fonctions` éprouve le webhook sur une

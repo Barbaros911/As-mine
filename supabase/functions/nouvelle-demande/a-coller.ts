@@ -329,7 +329,15 @@ async function relancer():Promise<string>{
        demande en attente sans bruit qu'on veut justement éviter. Sa référence
        devient création + 30 min : 30 minutes d'alarme pleine, puis un
        dernier message (4 octobre 2026). */
-    const age=Date.now()-cree,reste=bon.course?.immediat===true?cree+IMMEDIAT_MS-Date.now():resteAvantDepart(bon);
+    /* ET AUCUNE DEMANDE N'EST « PASSÉE » DANS SES 30 PREMIÈRES MINUTES. Un
+       client qui réserve pour la minute même — l'heure proposée par le site,
+       ou celle qu'il lit sur sa montre — avait un départ « passé » au tour
+       suivant : message final, plus aucune alarme, pour la demande la plus
+       pressée de toutes. Elle est traitée comme une demande immédiate ; une
+       demande faite à l'avance n'y voit aucune différence (4 octobre 2026). */
+    const age=Date.now()-cree,plancher=cree+IMMEDIAT_MS-Date.now();
+    const brut=bon.course?.immediat===true?plancher:resteAvantDepart(bon);
+    const reste=brut===null?null:Math.max(brut,plancher);
     if(!encoreUtile(age,reste))continue;
     const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,detail,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
     if(!j.ok)continue;
