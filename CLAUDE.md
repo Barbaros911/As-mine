@@ -6971,3 +6971,103 @@ l'empreinte du contrôleur qui était un libellé.
   les exemplaires disent la description.
 - **La PR #302 a été fermée sans fusion** : elle portait la même
   description, et elle était en conflit avec `main` depuis le push direct.
+
+## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
+
+4 octobre 2026, mission « moteur de réservation 10/10 » (prompt rédigé avec
+ChatGPT, travail demandé « sans mon intervention »). Audit d'abord, puis
+évolution de l'existant ; rien n'a été reconstruit.
+
+**MAPBOX SEARCH BOX N'A PAS ÉTÉ BRANCHÉ, ET C'EST UNE DÉCISION.** Le prompt le
+voulait comme moteur principal. Trois raisons de ne pas le faire, dont deux
+juridiques : (1) ses résultats sont « temporaires » — affichés puis jetés — or
+une réservation consiste précisément à GARDER le lieu choisi ; l'offre
+« permanente » de Mapbox ne couvre que les adresses, pas les lieux (hôtels,
+restaurants) ; (2) ses suggestions doivent s'afficher sur une carte Mapbox, le
+site est sur Leaflet + OpenStreetMap ; (3) il faut une carte bancaire, que
+Barbaros a refusée en septembre. **Ces conditions n'ont pas pu être lues
+d'ici** (mapbox.com est bloqué par le réseau de la machine) : elles viennent de
+leur documentation citée par des moteurs de recherche. À relire sur le texte
+avant de rouvrir le sujet, dans un sens comme dans l'autre.
+
+**Ce qui a changé**, tout en gardant BAN + Photon :
+- **UNE PANNE N'EST PLUS GARDÉE EN MÉMOIRE.** `chercher()` mettait en cache la
+  liste vide d'un service muet : une seconde de réseau perdue, et la même
+  adresse retapée répondait « Aucune adresse trouvée » jusqu'au rechargement.
+  Mesuré sur l'ancien code. `depuisBAN`/`depuisPhoton` marquent maintenant une
+  panne (`liste.echec`), rien n'est mis en cache dans ce cas, et la liste dit
+  « Recherche momentanément indisponible » (`recherche_indispo`, FR/EN).
+- **L'ADMIN CHOISIT SES LIEUX.** « Saisir par téléphone » prenait le premier
+  résultat sans demander (« Ibis » → un Ibis, et le prix partait de lui).
+  `crDepart`/`crArrivee` sont branchés sur **le même `brancher()`** que le site
+  — même recherche, même classement, même garde « texte modifié = coordonnées
+  oubliées ». Un texte tapé sans choisir est encore résolu au premier
+  résultat (le chemin qui a toujours marché), mais il est POSÉ par la prise,
+  et l'écran dit « Adresse prise d'office : vérifiez-la ».
+- **LE LIEU STRUCTURÉ** : `course.departLieu` / `course.arriveeLieu` =
+  `{nom, adresse, latitude, longitude, provider, providerId, categorie}`,
+  fabriqués par `lieuStructure()` depuis un élément CHOISI, jamais depuis du
+  texte. `provider` vaut `ban`, `photon` ou `elatransfer` (terminaux, hôtels,
+  destinations du flyer). **Les anciens champs texte restent la source de ce
+  qui s'affiche** : le message WhatsApp, « Coller une demande », le bon et la
+  réception les lisent. Aucune migration : les lieux vivent dans le `bon`.
+- **`deposer-course` JETAIT LES COORDONNÉES** (`departPos` n'était pas dans sa
+  liste blanche). Il garde maintenant les deux lieux, bornés (coordonnées hors
+  du globe → `null`, texte coupé, source inconnue → `inconnu`), plus
+  `itineraireSource`. Facultatifs : une page plus ancienne gardée en mémoire
+  par un téléphone dépose comme avant.
+- **« Modifier la course » efface le lieu d'une adresse retapée** — sinon le
+  texte dirait un endroit et les coordonnées un autre.
+- **Tolérance aux fautes** dans NOTRE classement (`motProche`, `distanceEdition`) :
+  un mot de 5 lettres ou plus compte à une lettre près (deux à partir de 8),
+  un peu moins qu'un mot exact. Les terminaux aussi (`cleProche`), mais
+  seulement sur les clés de 6 lettres et plus : « tilly » (Yvelines) ne doit
+  pas faire proposer Beauvais-Tillé. Pas de correcteur maison au-delà.
+- **Les terminaux ne passent plus devant ce qu'on nomme** : « novotel roissy »
+  cherche un hôtel. Si la saisie porte un mot distinctif hors aéroport
+  (« novotel », « ibis ») et qu'un résultat les porte TOUS, il passe devant
+  les terminaux, qui restent juste après. « cdg », « roissy », « orly 4 » :
+  terminaux en tête, comme avant.
+- **Le biais suit le contexte** : l'autre bout du trajet s'il est choisi,
+  sinon l'hôtel de la page, sinon la position « Me localiser » (en mémoire
+  seulement), sinon Paris. Arrondi à 4 décimales dans l'URL. **Le classement
+  maison garde sa référence Paris** — c'est la zone desservie, elle ne bouge
+  pas avec le client. Le cache inclut le contexte et la langue.
+- **Photon dans la langue du client** (`lang=en` pour un anglophone).
+- **`itineraire()` rend `source`** (`mapbox`/`ors`/`osrm`/`vol`), gardée sur
+  la course : la surveillance des pannes de calcul se lit dans les courses
+  elles-mêmes, sans rien stocker d'autre.
+
+**LE CONTRÔLE DU PRIX AU KILOMÈTRE CÔTÉ SERVEUR : SIGNALER, JAMAIS REFUSER.**
+N'importe qui pouvait déposer « Vendôme → Roissy, 5 € » depuis la console.
+Recalculer l'itinéraire sur le serveur aurait coûté un appel et une seconde par
+réservation, et donné un SECOND calcul — une autre distance que celle
+annoncée, sur un prix ferme. Le contrôle retenu est gratuit : **aucune route
+n'est plus courte que la ligne droite**. Minimum = ligne droite × tarif du
+serveur, arrondi à la dizaine INFÉRIEURE (on ne recopie pas l'arrondi de
+Barbaros : un plancher plus bas ne se trompe jamais), relevé au montant
+minimum. En dessous : `securite.prixSousLigneDroite`, et le bon de l'admin
+affiche « Prix à vérifier » (`#bbPrixSuspect`). **Jamais un refus** : quand
+Barbaros augmente un tarif, un téléphone qui garde l'ancienne page annonce
+honnêtement moins. Un forfait partenaire n'est pas jugé ainsi (prix d'appel
+voulu). Ce contrôle ne prouve pas que les coordonnées sont vraies.
+
+**PIÈGES RENCONTRÉS, ENCORE** : `pkill -f "http-server . -s -p 8098"` a tué
+le shell qui l'exécutait, en pleine série de tests — et le serveur, lui, est
+resté ouvert sur un dossier supprimé, faisant tomber `test-nouveau-bascule`
+(port occupé) à la série suivante. Fermer un serveur par son numéro de
+processus, toujours, et vérifier qu'il est fermé. Et un test qui tape puis
+lit la liste SANS attendre le délai de 250 ms lit la liste de la saisie
+précédente : c'est arrivé ici, sur le contrôle « roissy seul ».
+
+Suites : `test-nouveau-lieux.mjs` (38 contrôles, onze tombent sur l'ancien
+code), plus des contrôles dans `test-nouveau-serveur.mjs` et
+`test-securite-fonctions.mjs` (six tombent sur l'ancien `deposer-course`).
+`test-securite-fonctions`, `test-nouveau-lieux` et `test-nouveau-recherche`
+tournent désormais dans la CI de l'admin.
+
+**CE QUI RESTE (P2, décisions de Barbaros)** : Mapbox Directions (le code est
+prêt, il manque sa clé) ; un second fournisseur de lieux qui autorise le
+stockage, en secours de Photon (gratuit, sans engagement) ; une validation
+serveur complète (recherche + itinéraire côté serveur) ; un lien « ouvrir dans
+le GPS » sur le bon, depuis les coordonnées désormais gardées.

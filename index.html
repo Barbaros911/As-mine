@@ -4020,18 +4020,30 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 
     <div class="bloc">
       <h2 class="bloc-titre">Trajet</h2>
-      <label class="champ" for="crDepart">
-        <span class="champ-corps">
-          <span class="champ-titre">Départ</span>
-          <input id="crDepart" type="text" autocomplete="off" placeholder="Hôtel Ibis CDG, Roissy">
-        </span>
-      </label>
-      <label class="champ" for="crArrivee">
-        <span class="champ-corps">
-          <span class="champ-titre">Arrivée</span>
-          <input id="crArrivee" type="text" autocomplete="off" placeholder="Place Vendôme, Paris">
-        </span>
-      </label>
+      <!-- LE MÊME MOTEUR QUE LE SITE (4 octobre 2026). Ces deux champs
+           prenaient le PREMIER résultat sans demander : « Ibis » donnait un
+           Ibis, et le prix partait de lui. Ils ouvrent maintenant la même
+           liste que le client, et le prix part du lieu CHOISI. -->
+      <div class="champ-bloc">
+        <label class="champ" for="crDepart">
+          <span class="champ-corps">
+            <span class="champ-titre">Départ</span>
+            <input id="crDepart" type="text" autocomplete="off" placeholder="Hôtel Ibis CDG, Roissy"
+                   role="combobox" aria-expanded="false" aria-controls="crDepartList" aria-autocomplete="list">
+          </span>
+        </label>
+        <div class="suggest-list" id="crDepartList" role="listbox" aria-label="Suggestions de départ" hidden></div>
+      </div>
+      <div class="champ-bloc">
+        <label class="champ" for="crArrivee">
+          <span class="champ-corps">
+            <span class="champ-titre">Arrivée</span>
+            <input id="crArrivee" type="text" autocomplete="off" placeholder="Place Vendôme, Paris"
+                   role="combobox" aria-expanded="false" aria-controls="crArriveeList" aria-autocomplete="list">
+          </span>
+        </label>
+        <div class="suggest-list" id="crArriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
+      </div>
       <div class="duo">
         <label class="champ" for="crDate">
           <span class="champ-corps">
@@ -4639,6 +4651,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            « carte » veut dire « emporte ton terminal ». -->
       <div class="ligne"><span>Paiement</span><b id="bbPaiement">—</b></div>
       <div class="ligne total"><span>Prix</span><b id="bbPrix">—</b></div>
+      <!-- Posé par le SERVEUR au dépôt (4 octobre 2026) : le prix annoncé
+           est plus bas que ce que coûterait le trajet EN LIGNE DROITE, ce
+           qu'aucune route ne permet. Prix modifié dans le navigateur, ou
+           page gardée en mémoire avec un ancien tarif. Signalé, jamais
+           refusé : c'est Barbaros qui tranche. -->
+      <p class="ch-alerte orange" id="bbPrixSuspect" hidden></p>
     </div>
 
     <div class="bloc">
@@ -5529,6 +5547,7 @@ window.ELA_TEXTES = {
     contact_wa:"Écrivez-nous, on répond vite",
     voir_bon:"Voir le bon",
     recherche:"Recherche…", aucune_adresse:"Aucune adresse trouvée",
+    recherche_indispo:"Recherche momentanément indisponible — vérifiez votre connexion, puis retapez l'adresse.",
     passager_un:"passager", passager_pl:"passagers", bagage_un:"bagage", bagage_pl:"bagages"
   },
   en:{
@@ -5703,6 +5722,7 @@ window.ELA_TEXTES = {
     contact_wa:"Message us, we answer quickly",
     voir_bon:"View voucher",
     recherche:"Searching…", aucune_adresse:"No address found",
+    recherche_indispo:"Search temporarily unavailable — check your connection, then type the address again.",
     passager_un:"passenger", passager_pl:"passengers", bagage_un:"bag", bagage_pl:"bags"
   }
 };
@@ -5831,6 +5851,35 @@ window.ELA_TEXTES = {
      prix : c'est la différence entre une adresse et une intention. */
   var choix = { depart:null, arrivee:null };
 
+  /* La position donnée par « Me localiser », EN MÉMOIRE seulement : elle
+     oriente la recherche (un client à Orly qui tape « ibis » voit d'abord
+     ceux d'Orly) et disparaît avec la page. Rien ne la garde, rien ne
+     l'envoie — même règle que la géolocalisation elle-même. */
+  var positionClient = null;
+
+  /* ═══ LE LIEU STRUCTURÉ (4 octobre 2026) ═══
+     Une course n'était que du texte : « depart », « arrivee ». Les
+     coordonnées du choix servaient au prix puis disparaissaient — le
+     serveur jetait même « departPos ». On garde désormais, à côté des
+     anciens champs (qui restent : « Coller une demande », le message
+     WhatsApp, le bon et la réception les lisent), un objet par bout du
+     trajet : ce qui a été CHOISI, d'où il vient, et où il est.
+     « provider » dit la source : « ban », « photon », ou « elatransfer »
+     pour nos propres données (terminaux, hôtels partenaires). Le texte et
+     les coordonnées viennent du MÊME choix : c'est la règle qui protège le
+     prix, et elle tient parce qu'on ne fabrique ce lieu qu'ici, depuis un
+     élément retenu dans une liste. */
+  function lieuStructure(it){
+    if(!it || typeof it.lat !== "number" || typeof it.lon !== "number"
+       || !isFinite(it.lat) || !isFinite(it.lon)) return null;
+    var nom = it.nom || (it.lieuNomme ? String(it.label || "").split(/,| — /)[0] : "");
+    return { nom:String(nom || "").slice(0, 160), adresse:String(it.label || "").slice(0, 300),
+             latitude:Math.round(it.lat*1e6)/1e6, longitude:Math.round(it.lon*1e6)/1e6,
+             provider:it.source || "elatransfer", providerId:String(it.sourceId || "").slice(0, 120),
+             categorie:it.categorie || "adresse" };
+  }
+  window.__lieuStructure = lieuStructure;
+
   /* « œ » et « æ » ne sont PAS des lettres accentuées : NFD ne les défait
      pas. Sans ces deux remplacements, « coeur » tapé ne retrouvait jamais
      « Sacré-Cœur », et un bar écrit « Coeur » passait devant la basilique. */
@@ -5892,6 +5941,14 @@ window.ELA_TEXTES = {
   };
   /* Un mot ENTIER, jamais un début de mot : « ro » déclencherait Roissy
      sur « Rouen », qui est à 112 km et hors zone. */
+  /* UNE FAUTE DE FRAPPE N'ÉTEINT PLUS LES TERMINAUX (4 octobre 2026) :
+     « roisy », « charle de gaule », « beauvai ». Seulement sur les clés de
+     six lettres et plus, et à une lettre près : « tille » (cinq lettres)
+     n'est pas concernée, sinon « Tilly », dans les Yvelines, ferait
+     proposer Beauvais. */
+  function cleProche(m, cle){
+    return cle.length >= 6 && m.length >= 5 && distanceEdition(m, cle, 1) <= 1;
+  }
   function terminauxPourSaisie(q){
     var n = sansAccents(q);
     if(!n) return [];
@@ -5899,12 +5956,15 @@ window.ELA_TEXTES = {
     var sortie = [];
     Object.keys(AEROPORTS).forEach(function(cle){
       var ap = AEROPORTS[cle], clefs = ap.mots.map(sansAccents);
-      var touche = mots.some(function(m){ return clefs.indexOf(m)>-1; }) || clefs.indexOf(n)>-1;
+      var touche = mots.some(function(m){
+                     return clefs.indexOf(m)>-1 || clefs.some(function(k){ return cleProche(m, k); });
+                   }) || clefs.indexOf(n)>-1;
       if(!touche) return;
       Object.keys(ap.terminaux).forEach(function(t){
         var p = ap.terminaux[t];
         sortie.push({ label:t+" — "+ap.nom, lat:p[0], lon:p[1],
-                      icon:"✈️", categorie:"aeroport", lieuNomme:true });
+                      icon:"✈️", categorie:"aeroport", lieuNomme:true,
+                      source:"elatransfer", sourceId:"aeroport:"+cle+":"+t });
       });
     });
     return sortie;
@@ -5960,14 +6020,54 @@ window.ELA_TEXTES = {
   /* Ce que le client tape quand il cherche un restaurant : sans l'un de ces
      mots, un bar homonyme n'a pas à passer devant le monument ou la rue. */
   var MOTS_RESTO = ["restaurant","resto","brasserie","cafe","bar","pub","bistrot","pizza","pizzeria"];
+  /* ═══ LA TOLÉRANCE AUX FAUTES (4 octobre 2026) ═══
+     Les services en ont déjà une partie (Photon cherche « à peu près »).
+     Ce qui manquait, c'est NOTRE classement : il ne comptait que les mots
+     écrits exactement. « novotel roisy » rendait bien les Novotel, mais
+     celui de Roissy n'avait aucun point de plus qu'un autre. Un mot de
+     cinq lettres ou plus compte désormais s'il est à une lettre près d'un
+     mot du libellé (deux à partir de huit lettres) — un peu moins qu'un
+     mot exact. En dessous de cinq lettres, rien : « orly » et « orli »
+     restent distincts, et « bar » ne devient pas « bac ».
+     Pas de correcteur maison au-delà : le reste est l'affaire des services. */
+  function distanceEdition(a, b, max){
+    if(Math.abs(a.length - b.length) > max) return max + 1;
+    var prec = [], i, j;
+    for(j = 0; j <= b.length; j++) prec[j] = j;
+    for(i = 1; i <= a.length; i++){
+      var cour = [i], mini = i;
+      for(j = 1; j <= b.length; j++){
+        cour[j] = Math.min(prec[j] + 1, cour[j-1] + 1,
+                           prec[j-1] + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+        if(cour[j] < mini) mini = cour[j];
+      }
+      if(mini > max) return max + 1;
+      prec = cour;
+    }
+    return prec[b.length];
+  }
+  function motProche(m, motsLibelle){
+    if(m.length < 5) return false;
+    var tol = m.length >= 8 ? 2 : 1;
+    return motsLibelle.some(function(w){
+      /* Le client n'a peut-être pas fini d'écrire : « disneylan » se compare
+         au début de « disneyland » autant qu'au mot entier. */
+      return distanceEdition(m, w, tol) <= tol
+          || (w.length > m.length && distanceEdition(m, w.slice(0, m.length), tol) <= tol);
+    });
+  }
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    var motsLibelle = l.split(/[^a-z0-9]+/).filter(Boolean);
     var utiles = 0, touches = 0;
     mots.forEach(function(m){
       if(m.length < 2) return;
       var courant = MOTS_COURANTS.indexOf(m) > -1;
       if(!courant) utiles++;
-      if(l.indexOf(m) === -1) return;
+      if(l.indexOf(m) === -1){
+        if(!courant && motProche(m, motsLibelle)){ touches++; s += 2; }
+        return;
+      }
       if(!courant) touches++;
       s += courant ? 1 : 3;
     });
@@ -6016,15 +6116,31 @@ window.ELA_TEXTES = {
     return sortie;
   }
 
+  /* LE CACHE TIENT COMPTE DU CONTEXTE ET DE LA LANGUE (4 octobre 2026) :
+     la même saisie, biaisée autour d'Orly ou de Roissy, ne rend pas la même
+     liste — servir l'une pour l'autre serait servir la réponse d'une autre
+     question. Et UNE PANNE N'EST JAMAIS GARDÉE : voir plus bas. */
   var cache = {};
-  function chercher(q){
+  function chercher(q, ctx){
     if(!q || q.trim().length < 2) return Promise.resolve([]);
-    var clef = q.trim().toLowerCase();
+    var contexte = { lang:LANGUE,
+      lat:ctx && typeof ctx.lat === "number" ? ctx.lat : undefined,
+      lon:ctx && typeof ctx.lon === "number" ? ctx.lon : undefined };
+    var clef = q.trim().toLowerCase() + "|" + contexte.lang + "|"
+             + (contexte.lat !== undefined ? contexte.lat.toFixed(4) + "," + contexte.lon.toFixed(4) : "paris");
     if(cache[clef]) return Promise.resolve(cache[clef]);
     var terminaux = terminauxPourSaisie(q);
     var formes = variantes(q);
-    return Promise.all([depuisBAN(q)].concat(formes.map(depuisPhoton)))
+    return Promise.all([depuisBAN(q, contexte)].concat(formes.map(function(f){ return depuisPhoton(f, contexte); })))
       .then(function(res){
+        /* UN SERVICE MUET N'EST PAS UN SERVICE QUI N'A RIEN TROUVÉ. Avant,
+           une seconde de réseau perdue faisait garder une liste VIDE pour
+           cette saisie : le client retapait son adresse et lisait « Aucune
+           adresse trouvée » jusqu'au rechargement de la page. On ne garde
+           donc rien quand un service n'a pas répondu, et une liste vide due
+           à une panne le DIT (« echec ») pour que l'écran propose de
+           réessayer plutôt que de déclarer l'adresse introuvable. */
+        var panne = res.some(function(r){ return r && r.echec; });
         var ban = res[0];
         var photon = res.slice(1).reduce(function(a,b){ return a.concat(b); }, []);
         var nommes = photon.filter(function(r){ return r.lieuNomme; });
@@ -6039,10 +6155,34 @@ window.ELA_TEXTES = {
                   .sort(function(a,b){ return b.s - a.s || a.i - b.i; })
                   .map(function(x){ return x.it; });
         };
-        var ordre = chercheAdresse
-          ? terminaux.concat(classer(ban.concat(nommes, simples)))
-          : terminaux.concat(classer(nommes.concat(ban, simples)));
-        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+3 : 8);
+        var reste = chercheAdresse ? classer(ban.concat(nommes, simples))
+                                   : classer(nommes.concat(ban, simples));
+        /* « NOVOTEL ROISSY » CHERCHE UN HÔTEL, PAS UN TERMINAL (4 octobre
+           2026). Les terminaux passaient TOUJOURS en tête dès qu'un mot
+           d'aéroport était tapé : neuf lignes de Roissy avant le Novotel
+           qu'on cherchait. Ils restent en tête pour « cdg » ou « orly 4 » ;
+           mais si la saisie porte un autre mot distinctif (« novotel »,
+           « ibis ») et qu'un résultat les porte TOUS, celui-là passe devant. */
+        var clesAero = [];
+        Object.keys(AEROPORTS).forEach(function(k){ clesAero = clesAero.concat(AEROPORTS[k].mots.map(sansAccents)); });
+        var distinctifs = mots.filter(function(m){
+          return m.length >= 3 && MOTS_COURANTS.indexOf(m) === -1 && !/^\d/.test(m) && m !== "terminal"
+                 && clesAero.indexOf(m) === -1 && !clesAero.some(function(k){ return cleProche(m, k); });
+        });
+        var devant = [];
+        if(terminaux.length && distinctifs.length){
+          devant = reste.filter(function(it){
+            var l = sansAccents(it.label), ml = l.split(/[^a-z0-9]+/).filter(Boolean);
+            return distinctifs.every(function(m){ return l.indexOf(m) > -1 || motProche(m, ml); });
+          });
+          reste = reste.filter(function(it){ return devant.indexOf(it) === -1; });
+        }
+        var ordre = devant.concat(terminaux, reste);
+        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+devant.length+3 : 8);
+        if(panne){
+          if(!sortie.length) sortie.echec = true;
+          return sortie;
+        }
         cache[clef] = sortie;
         return sortie;
       });
@@ -6112,7 +6252,7 @@ window.ELA_TEXTES = {
   }
 
   /* ---- Brancher un champ ---------------------------------------------- */
-  function brancher(champ, liste, quand){
+  function brancher(champ, liste, quand, contexte){
     var rang = 0;        // une réponse lente ne doit pas écraser une plus récente
     var choisi = null;   // le libellé réellement retenu dans la liste
     var actif = -1;      // ligne survolée au clavier
@@ -6141,7 +6281,7 @@ window.ELA_TEXTES = {
         var vide = document.createElement("div");
         vide.className = "suggest-vide";
         vide.setAttribute("role","status");
-        vide.textContent = T("aucune_adresse");
+        vide.textContent = T(items.echec ? "recherche_indispo" : "aucune_adresse");
         liste.appendChild(vide);
       }else{
         items.forEach(function(item){
@@ -6182,7 +6322,7 @@ window.ELA_TEXTES = {
       liste.hidden = false;
       champ.setAttribute("aria-expanded","true");
       jugerBouton();
-      chercher(q).then(function(items){
+      chercher(q, contexte ? contexte() : null).then(function(items){
         if(mien !== rang) return;   // une frappe plus récente a pris la main
         actif = -1;
         dessiner(items);
@@ -6234,16 +6374,30 @@ window.ELA_TEXTES = {
     } };
   }
 
+  /* ═══ LE BIAIS SUIT LE CONTEXTE (4 octobre 2026) ═══
+     Dans l'ordre : l'autre bout du trajet s'il est choisi, l'hôtel
+     partenaire de la page, la position « Me localiser », sinon Paris. Un
+     biais RAPPROCHE sans exclure : la liste est la même, l'ordre change. Le
+     classement maison garde, lui, sa référence Paris — c'est la zone
+     desservie, elle ne bouge pas avec le client. */
+  function pointConnu(it){
+    return it && typeof it.lat === "number" && typeof it.lon === "number" ? { lat:it.lat, lon:it.lon } : null;
+  }
+  function contexteRecherche(autre){
+    return function(){
+      return pointConnu(choix[autre]) || pointConnu(hotel) || positionClient || null;
+    };
+  }
   var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
     choix.depart = item; jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
-  });
+  }, contexteRecherche("arrivee"));
   /* LA PRISE DE L'ARRIVÉE EST RETENUE ELLE AUSSI. Elle ne servait à rien
      tant qu'une seule fonction posait une adresse de l'extérieur (« me
      localiser », au départ) ; le mode hôtel fige l'un OU l'autre des deux
      champs selon le sens du trajet, et il lui faut les deux prises. */
   var priseArrivee = brancher(champArrivee, document.getElementById("arriveeList"), function(item){
     choix.arrivee = item; jugerVol(); jugerZone(); jugerForfait();
-  });
+  }, contexteRecherche("depart"));
 
 /* =====================================================================
    LE MODE HÔTEL — CE QUE VOIT UNE RÉCEPTION
@@ -6289,7 +6443,8 @@ window.ELA_TEXTES = {
        et dans le message du chauffeur. « easyHotel » seul ne suffit pas —
        plusieurs portent ce nom autour de Roissy. */
     return { label:h.nom + ", " + h.adresse, lat:h.lat, lon:h.lon,
-             icon:"🏨", categorie:"hotel", lieuNomme:true };
+             icon:"🏨", categorie:"hotel", lieuNomme:true,
+             source:"elatransfer", sourceId:"hotel:" + (h.cle || "") };
   }
   function itemDest(dest, terminal){
     if(dest.aeroport && terminal){
@@ -6300,10 +6455,12 @@ window.ELA_TEXTES = {
          et l'option pancarte. Un libellé écrit autrement les éteindrait
          tous les deux sans le moindre message. */
       return { label:terminal + " — " + ap.nom, lat:pt[0], lon:pt[1],
-               icon:"✈️", categorie:"aeroport", lieuNomme:true };
+               icon:"✈️", categorie:"aeroport", lieuNomme:true,
+               source:"elatransfer", sourceId:"aeroport:" + dest.aeroport + ":" + terminal };
     }
     return { label:dest.label || dest.nom, lat:dest.lat, lon:dest.lon,
-             icon:"📍", categorie:"adresse", lieuNomme:true };
+             icon:"📍", categorie:"adresse", lieuNomme:true,
+             source:"elatransfer", sourceId:"destination:" + (dest.cle || "") };
   }
 
   /* DANS LE SENS « ARRIVÉE À L'HÔTEL », ON ÉCHANGE VRAIMENT LES DEUX CHAMPS
@@ -7584,7 +7741,8 @@ window.ELA_TEXTES = {
         if(!f || !f.properties || !f.geometry) return null;
         return { label:f.properties.label,
                  lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
-                 icon:"📍", lieuNomme:false };
+                 icon:"📍", lieuNomme:false, categorie:"adresse",
+                 source:"ban", sourceId:String(f.properties.id || "") };
       });
   }
 
@@ -7599,6 +7757,7 @@ window.ELA_TEXTES = {
     direGeo("geo_recherche");
 
     navigator.geolocation.getCurrentPosition(function(pos){
+      positionClient = { lat:pos.coords.latitude, lon:pos.coords.longitude };
       adresseDuPoint(pos.coords.latitude, pos.coords.longitude).then(function(item){
         finGeo();
         /* PAS D'ADRESSE TROUVÉE ≠ ÉCHEC DE LA LOCALISATION. Le client est
@@ -8562,6 +8721,7 @@ window.ELA_TEXTES = {
       libelle.textContent = avant;
       boutonPrix.disabled = false;
       course.km = r.km; course.min = r.min; course.estime = r.estime;
+      course.source = r.source || "";
       document.getElementById("resumeDepart").textContent  = choix.depart.label;
       document.getElementById("resumeArrivee").textContent = choix.arrivee.label;
       /* « trafic pris en compte » n'apparaît que si c'est VRAI — donc
@@ -9395,6 +9555,10 @@ window.ELA_TEXTES = {
         departPublic: choix.depart.label,
         arriveePublic: choix.arrivee.label,
         departPos: [choix.depart.lat, choix.depart.lon],
+        /* Le lieu STRUCTURÉ, à côté des anciens champs qu'il ne remplace
+           pas encore : nom, adresse, coordonnées, source. */
+        departLieu: lieuStructure(choix.depart),
+        arriveeLieu: lieuStructure(choix.arrivee),
         date: champDate.value, heure: champHeure.value,
         terminal: terminalDuLibelle(choix.depart.label)
                   || terminalDuLibelle(choix.arrivee.label) || null,
@@ -9427,7 +9591,11 @@ window.ELA_TEXTES = {
            raté s'y voit deux fois. */
         passagers: paxLisible(),
         distanceKm: Math.round(course.km * 10) / 10,
-        estimee: course.estime
+        estimee: course.estime,
+        /* Quel calculateur a donné la distance : « mapbox », « ors »,
+           « osrm » ou « vol ». C'est la surveillance des pannes, lue dans
+           les courses elles-mêmes. */
+        itineraireSource: course.source || ""
       },
       client: { nom: nom, telephone: tel },
       /* LA LANGUE DU CLIENT EST GARDÉE SUR LA COURSE. Elle ne sert à rien
@@ -11940,6 +12108,15 @@ window.ELA_TEXTES = {
        libellé déposé avec la course, pas une traduction. */
     document.getElementById("bbPaiement").textContent = c.paiementNom || "—";
     document.getElementById("bbPrix").textContent     = euros(c.prix.total);
+    var suspect = c.securite && c.securite.prixSousLigneDroite;
+    var bps = document.getElementById("bbPrixSuspect");
+    bps.hidden = !suspect;
+    bps.textContent = suspect
+      ? "Prix à vérifier : même en ligne droite (" + String(suspect.ligneDroiteKm).replace(".", ",")
+        + " km), ce trajet coûte au moins " + euros(suspect.minimum)
+        + " avec la grille actuelle. Le prix a pu être modifié dans le navigateur du client, "
+        + "ou sa page gardait un ancien tarif."
+      : "";
     document.getElementById("bbNom").textContent      = (c.client && c.client.nom) || "—";
     document.getElementById("bbTel").textContent      = (c.client && c.client.telephone) || "—";
     var tel = telWa(c.client && c.client.telephone);
@@ -12618,6 +12795,14 @@ window.ELA_TEXTES = {
     var gamme = GAMMES.filter(function(g){ return g.cle === document.getElementById("mdVehicule").value; })[0] || GAMMES[0];
     var avant = (co.date || "") + " " + (co.heure || "");
     co.date = date; co.heure = heure;
+    /* UNE ADRESSE RETAPÉE PERD SES COORDONNÉES (4 octobre 2026). Le lieu
+       structuré décrit l'endroit CHOISI ; si le texte change ici, il décrit
+       un autre endroit que celui écrit, et la règle « texte = coordonnées »
+       serait cassée côté admin. On l'efface plutôt que de garder un point
+       faux. */
+    if(co.departLieu && dep !== (co.departPublic || "")) co.departLieu = null;
+    if(co.arriveeLieu && arr !== (co.arriveePublic || "")) co.arriveeLieu = null;
+    if(dep !== (co.departPublic || "")) delete co.departPos;
     co.departPublic = dep; co.arriveePublic = arr;
     co.depart = dep + (chambre ? " (ch. " + chambre + ")" : "");
     co.arrivee = arr;
@@ -14045,11 +14230,25 @@ window.ELA_TEXTES = {
     e.hidden = !texte;
     e.textContent = texte || "";
   }
+  /* ═══ LA SAISIE AU TÉLÉPHONE CHOISIT SES LIEUX (4 octobre 2026) ═══
+     « brancher » est la fonction du site client : même recherche, même
+     classement, même garde « texte modifié = coordonnées oubliées ». Rien
+     n'est recopié. Le biais suit l'autre bout du trajet, comme côté client. */
+  var crChoix = { depart:null, arrivee:null }, crMesure = null;
+  var priseCrDepart = brancher(document.getElementById("crDepart"),
+    document.getElementById("crDepartList"),
+    function(item){ crChoix.depart = item; crMesure = null; },
+    function(){ return pointConnu(crChoix.arrivee); });
+  var priseCrArrivee = brancher(document.getElementById("crArrivee"),
+    document.getElementById("crArriveeList"),
+    function(item){ crChoix.arrivee = item; crMesure = null; },
+    function(){ return pointConnu(crChoix.depart); });
   function videCreer(){
     ["crNom","crTel","crDepart","crArrivee","crDate","crHeure","crPrix",
      "crChNom","crChTel"].forEach(function(id){
       document.getElementById(id).value = "";
     });
+    crChoix = { depart:null, arrivee:null }; crMesure = null;
     document.getElementById("crVehicule").value = "berline";
     direCreer("");
   }
@@ -14115,6 +14314,17 @@ window.ELA_TEXTES = {
   function premierLieu(saisie){
     return chercher(saisie).then(function(res){ return (res && res[0]) || null; });
   }
+  /* Le lieu CHOISI dans la liste s'il correspond encore au texte du champ ;
+     sinon le premier trouvé, comme avant — mais il est alors POSÉ par la
+     prise, donc relié à son texte, et l'écran dit qu'il n'a pas été choisi. */
+  function lieuSaisi(cote, saisie, prise){
+    var c = crChoix[cote];
+    if(c && c.label === saisie) return Promise.resolve({ it:c, choisi:true });
+    return premierLieu(saisie).then(function(it){
+      if(it) prise.poser(it);
+      return { it:it, choisi:false };
+    });
+  }
   document.getElementById("btnCalculerPrix").addEventListener("click", function(){
     var bouton = this;
     var note = document.getElementById("crCalcul");
@@ -14124,8 +14334,10 @@ window.ELA_TEXTES = {
     if(!dep || !arr){ dire("Écrivez d'abord le départ et l'arrivée."); return; }
     bouton.disabled = true;
     dire("Recherche des adresses…");
-    Promise.all([premierLieu(dep), premierLieu(arr)]).then(function(r){
-      var a = r[0], b = r[1];
+    Promise.all([lieuSaisi("depart", dep, priseCrDepart),
+                 lieuSaisi("arrivee", arr, priseCrArrivee)]).then(function(r){
+      var a = r[0].it, b = r[1].it;
+      var devine = (r[0].it && !r[0].choisi) || (r[1].it && !r[1].choisi);
       if(!a || !b){
         /* On NOMME celle qui manque : « adresse introuvable » sur deux
            champs oblige à tout reprendre. */
@@ -14134,8 +14346,6 @@ window.ELA_TEXTES = {
         bouton.disabled = false;
         return;
       }
-      document.getElementById("crDepart").value  = a.label;
-      document.getElementById("crArrivee").value = b.label;
       dire("Calcul de l'itinéraire…");
       return itineraire(a, b, { date:document.getElementById("crDate").value,
                                 heure:document.getElementById("crHeure").value })
@@ -14151,11 +14361,15 @@ window.ELA_TEXTES = {
            2026 — il n'y a plus d'heure à consulter ici. */
         var p = prix(gamme, it.km);
         document.getElementById("crPrix").value = p;
+        crMesure = { depart:a, arrivee:b, km:it.km, estime:!!it.estime, source:it.source || "" };
         dire(a.label + " → " + b.label + " · "
              + (it.estime ? "≈ " : "")
              + it.km.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " km · "
              + gamme.nom
-             + " → " + eurosFR(p) + (it.estime ? " (distance estimée)" : ""));
+             + " → " + eurosFR(p) + (it.estime ? " (distance estimée)" : "")
+             /* Un lieu pris d'office doit se voir : « Ibis » a des dizaines
+                d'homonymes, et le prix est ferme. */
+             + (devine ? " — Adresse prise d'office : vérifiez-la, ou choisissez-la dans la liste." : ""));
         bouton.disabled = false;
       });
     }).catch(function(){
@@ -14219,9 +14433,19 @@ window.ELA_TEXTES = {
       cree: new Date().toISOString(),
       course: { type:"Trajet simple", depart:dep, arrivee:arr,
                 departPublic:dep, arriveePublic:arr,
+                /* Le lieu structuré n'est gardé que s'il correspond ENCORE
+                   au texte du champ : un départ retapé après le choix n'a
+                   plus de coordonnées, et on ne lui en invente pas. */
+                departLieu: crChoix.depart && crChoix.depart.label === dep ? lieuStructure(crChoix.depart) : null,
+                arriveeLieu: crChoix.arrivee && crChoix.arrivee.label === arr ? lieuStructure(crChoix.arrivee) : null,
                 date:date, heure:heure, terminal:null, vol:"",
                 vehicule:gamme.nom, vehiculeCle:gamme.cle,
-                passagers:"1 passager", distanceKm:0, estimee:true },
+                passagers:"1 passager",
+                distanceKm: crMesure && crMesure.depart === crChoix.depart && crMesure.arrivee === crChoix.arrivee
+                            ? Math.round(crMesure.km * 10) / 10 : 0,
+                estimee: !(crMesure && crMesure.depart === crChoix.depart && crMesure.arrivee === crChoix.arrivee && !crMesure.estime),
+                itineraireSource: crMesure && crMesure.depart === crChoix.depart && crMesure.arrivee === crChoix.arrivee
+                                  ? crMesure.source : "" },
       client: { nom:nom, telephone:tel },
       /* LE RÈGLEMENT N'EST PAS DEMANDÉ ICI : il se convient de vive voix, et
          inventer « espèces » par défaut ferait partir le chauffeur sans son

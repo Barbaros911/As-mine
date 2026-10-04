@@ -21,6 +21,8 @@ on:
       - '.github/scripts/**'
       - 'test-admin-*.mjs'
       - 'test-nouveau-*.mjs'
+      - 'test-securite-fonctions.mjs'
+      - 'supabase/functions/**'
       - '.github/workflows/admin-regression.yml'
   workflow_dispatch:
 permissions: {contents: read}
@@ -56,7 +58,7 @@ jobs:
             grep -q ELA_AVEC_ADMIN_V2 "$f" && continue
             suites="$suites ${f%.mjs}"
           done
-          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp"
+          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-lieux test-nouveau-recherche test-securite-fonctions"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.
