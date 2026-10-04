@@ -166,6 +166,83 @@ for (const [instant, attendu] of [['2026-09-07T09:55:00+02:00', '09:55'],
   await ch.close();
 }
 
+/* --- L'HEURE PROPOSÉE NE PÉRIME JAMAIS EN SILENCE (4 octobre 2026) ----
+   Mesuré sur le site en ligne, horloge figée : page ouverte à 10 h 01,
+   heure proposée 10 h 05, adresses tapées à 10 h 06 sans toucher l'heure —
+   « Voir mon prix » GRIS, aucun message, plus de réservation possible. Et
+   sur la page du flyer, l'appui remettait l'heure puis s'arrêtait : il
+   fallait appuyer deux fois. Les autres scènes de ce fichier posent l'heure
+   À LA MAIN ; aucune ne laissait le temps passer pendant la saisie.
+   L'horloge de Playwright avance quand on le lui demande : c'est la seule
+   façon d'atteindre ce défaut sans attendre cinq vraies minutes. */
+async function pageHorloge(instant){
+  const ctx = await b.newContext({viewport:{width:390,height:844},locale:'fr-FR',timezoneId:'Europe/Paris'});
+  await ctx.clock.install({ time: new Date(instant) });
+  const p = await ctx.newPage();
+  p.on('pageerror',e=>errs.push(e.message));
+  await p.route('**://photon.komoot.io/**', r => r.fulfill({contentType:'application/json',body:JSON.stringify({features:[
+    {geometry:{coordinates:[2.3376,48.8606]},properties:{name:"Place Vendôme",osm_key:"tourism",osm_value:"attraction",postcode:"75001",city:"Paris",countrycode:"FR"}}]})}));
+  await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'application/json',body:JSON.stringify({features:[
+    {geometry:{coordinates:[2.2467,48.9478]},properties:{label:"Argenteuil, 95100 Argenteuil"}}]})}));
+  await p.route('**://api.openrouteservice.org/**', r => r.abort());
+  await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
+    body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
+  await p.route('**supabase.co/**', r => r.abort());
+  await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(400);
+  return { ctx, p };
+}
+async function adresses(p){
+  await p.type('#depart','vendome',{delay:10}); await p.waitForTimeout(850);
+  await p.locator('#departList [role=option]').first().click();
+  await p.type('#arrivee','argenteuil',{delay:10}); await p.waitForTimeout(850);
+  await p.locator('#arriveeList [role=option]').first().click();
+  await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+}
+const auxPrix = p => p.waitForFunction(()=>document.getElementById('ecran-vehicules').getBoundingClientRect().height>0,null,{timeout:5000}).then(()=>true).catch(()=>false);
+{
+  /* 1. L'heure proposée périme PENDANT la saisie des adresses. */
+  const { ctx:c1, p:p1 } = await pageHorloge('2026-10-05T10:01:00+02:00');
+  check('à 10 h 01, l\'heure proposée est 10 h 05', await p1.locator('#heure').inputValue()==='10:05', await p1.locator('#heure').inputValue());
+  await p1.clock.fastForward('05:00');
+  await adresses(p1);
+  const h1 = await p1.locator('#heure').inputValue();
+  check('adresses tapées à 10 h 06 : l\'heure proposée s\'est remise à jour toute seule', h1==='10:10', h1);
+  check('… le bouton « Voir mon prix » reste allumé', !(await p1.locator('#btnVoirPrix').isDisabled()));
+  check('… aucun refus n\'est affiché', await p1.locator('#heurePassee').isHidden());
+  /* Clic borné : sur un bouton gris, Playwright attendrait 30 s puis
+     planterait sans nommer le défaut. Une attente qui expire doit dire ce
+     qu'elle attendait — c'est le contrôle qui le dit. */
+  await p1.locator('#btnVoirPrix').click({timeout:3000}).catch(()=>{});
+  check('… et UN appui mène aux prix', await auxPrix(p1));
+  await c1.close();
+}
+{
+  /* 2. Adresses déjà tapées, le client attend, PUIS appuie. */
+  const { ctx:c2, p:p2 } = await pageHorloge('2026-10-05T10:01:00+02:00');
+  await adresses(p2);
+  await p2.clock.fastForward('06:00');
+  await p2.locator('#btnVoirPrix').click({timeout:3000}).catch(()=>{});
+  check('appui à 10 h 07 sur une heure proposée périmée : UN appui suffit pour les prix', await auxPrix(p2));
+  const h2 = await p2.locator('#heure').inputValue();
+  check('… avec l\'heure remise au prochain créneau', h2==='10:10', h2);
+  await c2.close();
+}
+{
+  /* 3. Une heure CHOISIE par le client, passée pendant la saisie : elle
+        n'est pas touchée (c'est son choix), mais le bouton gris le DIT. */
+  const { ctx:c3, p:p3 } = await pageHorloge('2026-10-05T10:01:00+02:00');
+  await p3.fill('#heure','10:05'); await p3.waitForTimeout(200);
+  await p3.clock.fastForward('06:00');
+  await adresses(p3);
+  check('heure choisie 10 h 05, adresses à 10 h 07 : l\'heure du client n\'est pas changée', await p3.locator('#heure').inputValue()==='10:05', await p3.locator('#heure').inputValue());
+  const gris = await p3.locator('#btnVoirPrix').isDisabled();
+  const dit = await p3.locator('#heurePassee').isVisible();
+  check('… le bouton est gris ET le message « heure passée » est à l\'écran — jamais l\'un sans l\'autre', gris && dit, 'gris='+gris+' message='+dit);
+  check('… avec la sortie « Partir dès que possible »', await p3.locator('#btnPasseAsap').isVisible());
+  await c3.close();
+}
+
 /* --- LE PAS DES CRÉNEAUX, ET PLUS AUCUNE TRACE DU PRÉAVIS ------------- */
 const src = await (await fetch('http://127.0.0.1:8099/index.html')).text();
 const step = src.match(/id="heure"[^>]*step="(\d+)"/);

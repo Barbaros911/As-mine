@@ -8777,8 +8777,23 @@ window.ELA_TEXTES = {
      La zone et le préavis ne refusent plus rien. Le point de rendez-vous
      reste — le comptoir y branche son propre juge. */
   function jugerBoutonPrix(){
+    /* L'HEURE PROPOSÉE NE PÉRIME JAMAIS EN SILENCE (4 octobre 2026). Elle
+       vaut le prochain créneau de 5 minutes ; un client qui met cinq
+       minutes à taper ses adresses la voyait passer, et ce juge — appelé à
+       chaque adresse choisie — grisait « Voir mon prix » SANS LE MOINDRE
+       MOT : le message « heure passée » n'était posé que par jugerDelai().
+       Mesuré, horloge figée : page à 10 h 01, adresses à 10 h 06, bouton
+       gris, rien à l'écran, plus de réservation possible. Barbaros : « qu'il
+       puisse commander à l'heure qu'il veut, sous réserve de confirmation ».
+       Une heure que le client n'a pas choisie se remet donc à jour ici ; et
+       une heure qu'il a choisie et qui est passée DIT pourquoi le bouton est
+       gris, avec sa sortie « Partir dès que possible ». jugerDelai() rappelle
+       ce juge une fois l'heure remise : pas de boucle, elle n'est plus
+       passée. */
+    if(!heureTouchee && heureDepassee()){ jugerDelai(); return; }
     var bloque = heureDepassee();
     boutonPrix.disabled = bloque;
+    blocPassee.hidden = !bloque;
     /* ═══ TOUT NOUVEAU JUGE DU BOUTON PASSE PAR ICI ═══
        La règle date du préavis minimum : sans ce point de rendez-vous, le
        second juge à s'exécuter rallume le bouton que le premier vient
@@ -8884,7 +8899,12 @@ window.ELA_TEXTES = {
     }
     if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }
     if(quandAsap) heureMaintenant();
-    if(heureDepassee()){ jugerDelai(); blocPassee.scrollIntoView({block:"nearest"}); champHeure.focus(); return; }
+    /* jugerDelai() remet à jour une heure que le client n'a pas choisie :
+       si elle n'est plus passée, on CONTINUE. Avant, on s'arrêtait là après
+       l'avoir remise — l'heure changeait sous ses yeux et rien ne
+       s'ouvrait, il fallait appuyer une seconde fois. */
+    if(heureDepassee()) jugerDelai();
+    if(heureDepassee()){ blocPassee.scrollIntoView({block:"nearest"}); champHeure.focus(); return; }
     /* PLUS DE REFUS POUR LA ZONE, LE PRÉAVIS NI LE NOMBRE DE PASSAGERS
        (4 octobre 2026). Neuf passagers, c'est deux voitures, pas une
        impasse : l'écran des prix propose « Plusieurs véhicules », tarif à

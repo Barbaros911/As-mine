@@ -122,3 +122,36 @@ capture à l'appui, le client qui veut une voiture tout de suite voyait
   vingt minutes rouvrait sur une heure déjà refusée. **Dès qu'il choisit
   lui-même, on ne touche plus à rien** — écraser le choix d'un client est
   pire que lui proposer une heure passée.
+
+## L'HEURE PROPOSÉE PÉRIMAIT EN SILENCE — 4 octobre 2026
+
+Trouvé par `test-easyhotel-client`, rouge de temps en temps dans la série
+complète, toujours vers une minute ronde. Seule, la suite passait.
+**Ce n'était pas le test : c'était le site, en ligne.** Mesuré, horloge du
+navigateur figée et avancée à la main :
+- site public, page à 10 h 01 (heure proposée 10 h 05), adresses tapées à
+  10 h 06 sans toucher l'heure : **« Voir mon prix » gris, aucun message**,
+  plus de réservation possible. À 3 min ça passait, à 5 min non.
+- flyer easyHotel, page à 10 h 05 min 57, appui à 10 h 06 min 02 : l'heure
+  passait seule à 10 h 10 et **rien ne s'ouvrait** ; il fallait un second
+  appui. (Avant la suppression du préavis, même chose à la bascule des
+  15 minutes.)
+
+**LA CAUSE : DEUX JUGES, UN SEUL QUI RAFRAÎCHISSAIT.** `jugerDelai()` remet
+à jour l'heure que le client n'a pas choisie et pose le message
+`#heurePassee`. Mais `jugerBoutonPrix()` — appelé à chaque adresse
+choisie — grisait le bouton sur `heureDepassee()` sans faire ni l'un ni
+l'autre. Et le clic, s'il remettait l'heure, s'arrêtait aussitôt.
+
+- `jugerBoutonPrix()` rappelle `jugerDelai()` quand l'heure non choisie est
+  passée (pas de boucle : remise, elle ne l'est plus), et pose
+  `#heurePassee` dès qu'il grise. **Un bouton gris dit toujours pourquoi.**
+- Le clic continue jusqu'aux prix si la remise a suffi.
+- Une heure CHOISIE n'est jamais changée : elle est dite passée, avec la
+  sortie « Partir dès que possible ».
+- Barbaros, le même jour : « qu'il puisse commander à l'heure qu'il veut,
+  sous réserve de confirmation ».
+- `test-nouveau-preavis` a trois scènes à horloge qui avance ; contre
+  l'ancienne page, six contrôles tombent, dont « gris=true message=false ».
+  Les clics y sont bornés : sur un bouton gris, Playwright attendait 30 s et
+  plantait sans nommer le défaut.

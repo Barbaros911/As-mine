@@ -3076,7 +3076,10 @@ Le préavis de 15 minutes a été **supprimé le 4 octobre 2026** (histoire dans
   compte à partir de `min` : la borne est arrondie au pas SUPÉRIEUR.
 - Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`), sans
   délai ajouté, et la borne du champ est ce même moment. Tant que le client
-  n'a pas touché à l'heure, elle se recalcule (`heureTouchee`).
+  n'a pas touché à l'heure, elle se recalcule (`heureTouchee`) — **aussi dans
+  `jugerBoutonPrix()` et au clic** : sinon, adresses tapées en 5 min, bouton
+  gris SANS UN MOT (4/10/2026, `memoire/preavis.md`). Un bouton gris montre
+  toujours `#heurePassee`.
 - La minute en cours n'est pas « passée » : on rabote les secondes.
 - `min` sur un champ d'heure n'a de sens que pour AUJOURD'HUI : retiré sinon.
 - Sur téléphone, la molette du système ignore la borne : c'est l'écriteau
