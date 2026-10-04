@@ -417,6 +417,30 @@ img{display:block;max-width:100%;}
    il tombe derrière le bandeau de cookies, et le client voit un bouton gris
    sans la moindre raison. On ne le renvoie pas les mains vides — un
    Paris → Deauville est une belle course, elle se négocie de vive voix. */
+/* L'information « longue distance » : pas un refus, donc pas de rouge. */
+.info-douce{border:1px solid var(--filet);border-radius:14px;padding:12px 13px;
+  margin-bottom:14px;background:var(--accent-clair);}
+.info-douce b{display:block;font-size:13px;color:var(--accent-encre);}
+.info-douce p{margin:4px 0 0;font-size:12px;color:var(--encre);line-height:1.4;}
+/* « Maintenant » / « Programmer » : des liens, pas des boutons pleins — le
+   choix ne doit coûter aucune hauteur au formulaire. La zone d'appui est
+   agrandie par la marge négative, au-dessus du sélecteur de date étiré. */
+.titre-date{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;}
+.titre-date > span{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.lien-maintenant{position:relative;z-index:2;border:0;background:none;color:var(--accent);
+  font:inherit;font-size:11.5px;font-weight:800;padding:9px 0 9px 6px;margin:-9px 0 -9px -6px;cursor:pointer;color:var(--ela-blue,var(--accent));
+  text-decoration:underline;text-underline-offset:2px;white-space:nowrap;}
+.asap-boite{margin-bottom:10px;min-height:68px;border-color:var(--accent);background:var(--accent-clair);}
+.asap-boite .champ-corps{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.asap-titre{font-size:15px;color:var(--ela-navy,var(--accent-encre));}
+.asap-note{font-size:11.5px;line-height:1.3;color:var(--encre);}
+#heurePassee span{display:block;}
+.lien-asap{margin-top:8px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--accent);
+  background:var(--carte);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;}
+/* Pastilles d'état d'une demande hors cas standard, côté admin. */
+.d-drapeau{display:inline-block;flex:0 0 auto;margin:0 4px 0 0;padding:1px 7px;border-radius:999px;font-size:10.5px;
+  font-weight:800;letter-spacing:.02em;background:#fbf1e4;color:#7a4f0e;border:1px solid #eedcc2;vertical-align:middle;}
+.d-drapeau.urgent{background:#fbe9e9;color:#8f2220;border-color:#f0cfcf;}
 .hors-zone{border:1px solid #C9302F;border-radius:14px;padding:13px 13px 14px;
   margin-bottom:14px;background:rgba(201,48,47,.05);}
 .hors-zone b{display:block;font-size:13px;color:#9E1F1E;}
@@ -994,6 +1018,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .bon-ref{margin:15px 0 0;font-size:24px;font-weight:800;letter-spacing:.02em;
   font-variant-numeric:tabular-nums;}
 .bon-note{margin:9px 0 0;font-size:12px;line-height:1.42;color:var(--gris);}
+.bon-note-asap{margin:9px 0 0;font-size:12px;line-height:1.42;color:var(--encre);}
 /* CONFIRMÉ : la pastille passe au vert plein — le SEUL vert du bon, et il
    ne change pas de nuance ni de teinte d'une page à l'autre. C'est le seul
    endroit du site où l'état d'un bon change de couleur, et il ne le fait
@@ -1045,6 +1070,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .suggest-item:hover,.suggest-item[aria-selected="true"]{background:var(--accent-clair);}
 .suggest-item .ico{flex:0 0 auto;font-size:14.5px;}
 .suggest-vide{padding:12px 10px;font-size:13px;color:var(--gris);}
+/* La sortie de secours se distingue des vrais résultats : en dernier, en
+   italique, séparée par un filet. */
+.suggest-manuel{border-top:1px solid var(--filet);margin-top:3px;font-style:italic;color:var(--accent-encre);}
 /* PAS DE MARGE NÉGATIVE ICI, ET C'EST UNE LEÇON PAYÉE (22 septembre 2026,
    vu par Barbaros sur son téléphone : « il y a des incohérences »).
    Elle valait -4px, taillée pour un champ qui porte 10px de marge basse :
@@ -2495,51 +2523,30 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          barre. La règle « le formulaire entier tient dans le premier écran »
          est donc tenue, et c'est ce bloc-là qui la payait. -->
 
-    <!-- LA ZONE DESSERVIE — 90 km autour de Paris.
-         Sans ce garde-fou, Lille → Marseille passait sans un mot : 1 084 km,
-         un prix ferme annoncé, et une course à assurer à perte ou un
-         engagement à retirer — ce que le Code de la consommation appelle une
-         pratique commerciale trompeuse. On mesure la distance à vol d'oiseau
-         depuis Paris, et PAS le département : la latitude et la longitude
-         sont la seule donnée présente sur toutes les adresses. 90 km couvre
-         l'Île-de-France avec de la marge et garde Beauvais-Tillé (69 km),
-         que le site propose lui-même. -->
-    <div class="hors-zone" id="horsZone" hidden>
-      <b data-t="zone_titre">Cette adresse est en dehors de notre zone.</b>
-      <p id="horsZoneLieu"></p>
-      <p data-t="zone_note">Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus
-         long, appelez-nous : nous vous ferons un prix sur mesure.</p>
-      <div class="duo">
-        <a href="tel:+33759312433" data-t="appeler">Appeler</a>
-        <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
-      </div>
+    <!-- LONGUE DISTANCE — PLUS UN REFUS, UNE INFORMATION (4 octobre 2026,
+         à sa demande : « je ne veux plus que cette règle empêche un client
+         d'envoyer sa demande »). Au-delà de 90 km de Paris la demande PART,
+         mais sans prix automatique : la grille au kilomètre est taillée pour
+         l'Île-de-France, et un Paris → Lyon porte un retour à vide, des
+         péages, des temps de repos. Un montant calculé ici serait FERME,
+         donc opposable — soit une perte, soit hors marché. Elatransfer le
+         fixe et le communique avant la course.
+         Pas de rouge : ce n'est pas une erreur du client, c'est une belle
+         course. Le préavis de 15 minutes, lui, a disparu entièrement. -->
+    <div class="info-douce" id="infoLongue" hidden>
+      <b data-t="longue_titre">Trajet longue distance</b>
+      <p id="infoLongueLieu"></p>
+      <p data-t="longue_note">Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.</p>
     </div>
 
-    <!-- TROP TÔT — 15 MINUTES DE PRÉAVIS (septembre 2026, à sa demande).
-         Un chauffeur doit être trouvé, prévenu, et il doit rouler jusqu'au
-         client. Accepter une course pour dans cinq minutes, c'est promettre
-         ce qu'on ne peut pas tenir — et chez Elatransfer le prix comme
-         l'heure sont fermes.
-         ON NE RENVOIE PAS LE CLIENT SANS RIEN, exactement comme pour une
-         adresse hors zone : quelqu'un qui veut une voiture tout de suite
-         est un client, pas une erreur de saisie. Le téléphone et WhatsApp
-         sont là, et Barbaros place ces courses-là de vive voix. -->
-    <div class="hors-zone" id="tropTot" hidden>
-      <b data-t="tot_titre">Ce départ est trop proche.</b>
-      <p data-t="tot_note">Il faut au moins 15 minutes pour vous envoyer un chauffeur.
-         Pour un départ tout de suite, appelez-nous : on regarde ce qui est
-         disponible autour de vous.</p>
-      <div class="duo">
-        <a href="tel:+33759312433" data-t="appeler">Appeler</a>
-        <a href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
-      </div>
+    <!-- UNE HEURE DÉJÀ PASSÉE : la seule borne de temps qui reste, et elle
+         a une SORTIE. Choisir hier est une faute de saisie ; mais quelqu'un
+         qui a laissé passer l'heure veut souvent partir maintenant — le
+         bouton l'y emmène d'un geste. -->
+    <div class="refus" id="heurePassee" hidden>
+      <span data-t="err_heure_passee">Cette heure est déjà passée. Choisissez une heure à venir.</span>
+      <button type="button" class="lien-asap" id="btnPasseAsap" data-t="partir_asap">Partir dès que possible</button>
     </div>
-
-    <!-- UNE HEURE DÉJÀ PASSÉE. Écriteau séparé de « trop proche », et SANS
-         les boutons d'appel : choisir hier est une faute de saisie, pas un
-         client pressé à qui l'on peut vendre quelque chose. -->
-    <p class="refus" id="heurePassee" hidden data-t="err_heure_passee">Cette heure est déjà
-       passée. Choisissez une heure à venir.</p>
 
     <!-- Les refus du formulaire s'affichent EN HAUT, comme « hors zone » :
          posés sous le bouton ils tombent derrière le bandeau de cookies, et
@@ -2691,14 +2698,38 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p class="champ-aide" id="aideVol">Le chauffeur suit votre vol et ajuste l'heure en cas de retard.</p>
     </div>
 
-    <div class="duo">
+    <!-- ═══ « DÈS QUE POSSIBLE » OU « PROGRAMMER » (4 octobre 2026) ═══
+         « Programmer » par défaut : la plupart des courses sont des
+         aéroports réservés à l'avance, et un défaut « tout de suite » ferait
+         partir des demandes immédiates pour un vol de la semaine suivante.
+         « Dès que possible » ne promet AUCUN délai.
+         ET LE CHOIX NE COÛTE AUCUN PIXEL DE HAUTEUR, c'est mesuré : une
+         rangée de deux boutons repoussait « Voir mon prix » sous la barre
+         du bas (bouton 773–826, barre à 784) — le défaut déjà payé une fois.
+         « Maintenant » est un lien dans l'en-tête du champ Date ; en mode
+         immédiat, un encadré de la même hauteur remplace la date et
+         l'heure, et porte « Programmer » pour revenir. -->
+    <div class="champ asap-boite" id="blocAsap" hidden>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" stroke="#1F6F6B" stroke-width="1.7"/>
+        <path d="M12 7.5V12l3 2" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      <span class="champ-corps">
+        <b class="asap-titre" data-t="asap_libelle">Dès que possible</b>
+        <span class="asap-note" id="noteAsap" hidden></span>
+      </span>
+      <button class="lien-maintenant" type="button" id="btnQuandProg" aria-pressed="true" data-t="quand_prog">Programmer</button>
+    </div>
+
+    <div class="duo" id="blocDateHeure">
       <label class="champ" for="date">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#1F6F6B" stroke-width="1.7"/>
           <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
-          <span class="champ-titre" data-t="date">Date</span>
+          <span class="champ-titre titre-date"><span data-t="date">Date</span><button class="lien-maintenant"
+            type="button" id="btnQuandAsap" aria-pressed="false" data-t="quand_asap_court">Maintenant</button></span>
           <input id="date" type="date">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -2734,7 +2765,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="passagers">Passagers</span>
-          <input id="passagers" type="number" min="1" max="7" value="1" inputmode="numeric">
+          <input id="passagers" type="number" min="1" max="60" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -3147,6 +3178,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="bloc">
       <div class="ligne" id="ligneOption" hidden><span data-t="pancarte_court">Pancarte</span><b id="recapOption">—</b></div>
       <div class="ligne total"><span data-t="total">Total à régler</span><b id="recapTotal">—</b></div>
+      <p class="champ-aide" id="recapTarifNote" hidden></p>
       <!-- LA PHRASE DE RÉASSURANCE A DÉMÉNAGÉ D'UNE LIGNE PLUS BAS.
            « Règlement au chauffeur, à bord, en espèces ou par carte. Aucun
            paiement en ligne, aucune donnée bancaire » disait, en deux lignes
@@ -3350,6 +3382,10 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <span class="bon-sous" data-t="bon_sous">Bon de réservation</span>
       <p class="bon-note" id="bonNote" data-t="bon_note">Nous vérifions la disponibilité
          d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.</p>
+      <!-- Une demande immédiate ne promet aucun délai, et ne laisse pas le
+           client attendre sans recours : le numéro est là. -->
+      <p class="bon-note-asap" id="bonAsap" hidden><span data-t="bon_asap">Demande immédiate, soumise à disponibilité. Pour une réponse plus rapide, appelez-nous.</span>
+         <a href="tel:+33759312433" data-t="appeler">Appeler</a></p>
     </div>
 
     <!-- CE QUE LE CLIENT ATTEND VRAIMENT DE SAVOIR : qui vient le chercher.
@@ -4047,18 +4083,30 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 
     <div class="bloc">
       <h2 class="bloc-titre">Trajet</h2>
-      <label class="champ" for="crDepart">
-        <span class="champ-corps">
-          <span class="champ-titre">Départ</span>
-          <input id="crDepart" type="text" autocomplete="off" placeholder="Hôtel Ibis CDG, Roissy">
-        </span>
-      </label>
-      <label class="champ" for="crArrivee">
-        <span class="champ-corps">
-          <span class="champ-titre">Arrivée</span>
-          <input id="crArrivee" type="text" autocomplete="off" placeholder="Place Vendôme, Paris">
-        </span>
-      </label>
+      <!-- LE MÊME MOTEUR QUE LE SITE (4 octobre 2026). Ces deux champs
+           prenaient le PREMIER résultat sans demander : « Ibis » donnait un
+           Ibis, et le prix partait de lui. Ils ouvrent maintenant la même
+           liste que le client, et le prix part du lieu CHOISI. -->
+      <div class="champ-bloc">
+        <label class="champ" for="crDepart">
+          <span class="champ-corps">
+            <span class="champ-titre">Départ</span>
+            <input id="crDepart" type="text" autocomplete="off" placeholder="Hôtel Ibis CDG, Roissy"
+                   role="combobox" aria-expanded="false" aria-controls="crDepartList" aria-autocomplete="list">
+          </span>
+        </label>
+        <div class="suggest-list" id="crDepartList" role="listbox" aria-label="Suggestions de départ" hidden></div>
+      </div>
+      <div class="champ-bloc">
+        <label class="champ" for="crArrivee">
+          <span class="champ-corps">
+            <span class="champ-titre">Arrivée</span>
+            <input id="crArrivee" type="text" autocomplete="off" placeholder="Place Vendôme, Paris"
+                   role="combobox" aria-expanded="false" aria-controls="crArriveeList" aria-autocomplete="list">
+          </span>
+        </label>
+        <div class="suggest-list" id="crArriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
+      </div>
       <div class="duo">
         <label class="champ" for="crDate">
           <span class="champ-corps">
@@ -4666,6 +4714,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            « carte » veut dire « emporte ton terminal ». -->
       <div class="ligne"><span>Paiement</span><b id="bbPaiement">—</b></div>
       <div class="ligne total"><span>Prix</span><b id="bbPrix">—</b></div>
+      <!-- Posé par le SERVEUR au dépôt (4 octobre 2026) : le prix annoncé
+           est plus bas que ce que coûterait le trajet EN LIGNE DROITE, ce
+           qu'aucune route ne permet. Prix modifié dans le navigateur, ou
+           page gardée en mémoire avec un ancien tarif. Signalé, jamais
+           refusé : c'est Barbaros qui tranche. -->
+      <p class="ch-alerte orange" id="bbPrixSuspect" hidden></p>
+      <p class="ch-alerte orange" id="bbTarifAConfirmer" hidden></p>
     </div>
 
     <div class="bloc">
@@ -5383,8 +5438,19 @@ window.ELA_TEXTES = {
     pro_bloc:"Elatransfer ne se limite pas au transport. Nous créons pour chaque partenaire une solution de réservation à son image : page personnalisée, lien dédié, QR code et tablette de réservation si nécessaire. Le client effectue sa demande en quelques instants, directement depuis l’établissement ou son téléphone. Elatransfer prend ensuite le relais et gère l’ensemble du transport jusqu’à sa réalisation.",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
-    zone_titre:"Cette adresse est en dehors de notre zone.",
-    zone_note:"Elatransfer dessert Paris et l'Île-de-France. Pour un trajet plus long, appelez-nous : nous vous ferons un prix sur mesure.",
+    longue_titre:"Trajet longue distance",
+    longue_note:"Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
+    quand_aria:"Quand partir ?", quand_asap:"Dès que possible", quand_asap_court:"Maintenant", quand_prog:"Programmer",
+    asap_note:"Soumise à disponibilité, sans délai garanti.",
+    asap_nuit:"Réponse plus lente de 22 h à 5 h.",
+    asap_libelle:"Dès que possible", partir_asap:"Partir dès que possible",
+    tarif_a_confirmer:"Tarif à confirmer",
+    tarif_note:"Le tarif vous sera communiqué par Elatransfer avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
+    multi_nom:"Plusieurs véhicules", multi_detail:"{{n}} passagers · Elatransfer organise les véhicules",
+    adresse_manuelle:"Mon adresse n'est pas dans la liste — l'envoyer telle quelle",
+    adresse_verifier:"Adresse à vérifier par Elatransfer : pas de prix automatique.",
+    mesure_manuelle:"Distance calculée par Elatransfer",
+    bon_asap:"Demande immédiate, soumise à disponibilité. Pour une réponse plus rapide, appelez-nous.",
     appeler:"Appeler",
     lieu_depart:"Lieu de départ", lieu_arrivee:"Lieu d'arrivée",
     ph_adresse:"Adresse, aéroport, hôtel…",
@@ -5496,9 +5562,6 @@ window.ELA_TEXTES = {
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
-    tot_titre:"Ce départ est trop proche.",
-    tot_note:"Il faut au moins 15 minutes pour vous envoyer un chauffeur. Pour un départ tout de suite, appelez-nous : on regarde ce qui est disponible autour de vous.",
-    err_trop_grand:"Nous n'avons pas de véhicule pour {{n}} passagers en une seule course. Appelez-nous : on organise deux voitures.",
     pancarte_titre:"À votre arrivée",
     pancarte_option:"Pancarte à votre nom",
     pancarte_sous_air:"Votre chauffeur vous attend devant la porte du terminal, votre nom à la main.",
@@ -5545,7 +5608,7 @@ window.ELA_TEXTES = {
     legal_cgv:"Conditions générales de vente",
     legal_mentions:"Mentions légales",
     legal_privacy:"Politique de confidentialité",
-    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 22 septembre 2026\n\n1. Objet et champ d'application\nLes présentes conditions encadrent l'utilisation du service ELA Transfer pour rechercher, organiser et réserver une course auprès d'un chauffeur professionnel indépendant.\n\nELA Transfer intervient comme intermédiaire entre le Client et le chauffeur. Le contrat de transport est conclu directement entre le Client et le chauffeur affecté à la course, à compter de la confirmation de la réservation.\n\nL'envoi d'une demande implique l'acceptation des présentes conditions par le Client.\n\n2. Service proposé et rôle d'ELA Transfer\nELA Transfer reçoit la demande du Client, recherche un chauffeur professionnel disponible et transmet au Client la confirmation de la course lorsqu'un chauffeur a été affecté.\n\nELA Transfer ne possède pas les véhicules et n'exécute pas directement le transport. La course est réalisée sous la responsabilité du chauffeur indépendant confirmé au Client. Le chauffeur demeure responsable de ses autorisations professionnelles, de son assurance, de son véhicule et de la bonne exécution du transport.\n\nLes mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service. Ils sont organisés par téléphone ou WhatsApp, et leur prix ainsi que leurs conditions sont communiqués au Client avant confirmation.\n\n3. Demande et confirmation de la réservation\nLe Client transmet une demande de réservation en indiquant notamment les adresses de départ et d'arrivée, la date, l'heure, le nombre de passagers, la catégorie de véhicule souhaitée ainsi que ses coordonnées.\n\nL'envoi de cette demande ne garantit pas immédiatement la disponibilité d'un chauffeur et ne constitue pas une réservation ferme.\n\nLa réservation devient ferme uniquement lorsque ELA Transfer adresse au Client une confirmation expresse indiquant qu'un chauffeur a été affecté à la course. La confirmation rappelle le trajet, la date, l'heure, la catégorie de véhicule, le prix total et le moyen de paiement prévu. L'identité ou les coordonnées utiles du chauffeur sont communiquées au Client au plus tard avant la prise en charge.\n\nSi aucun chauffeur n'est disponible, ELA Transfer en informe le Client dans les meilleurs délais. Aucun paiement ni frais d'annulation ne peut être réclamé pour une demande qui n'a pas été confirmée.\n\nLe Client est responsable de l'exactitude des informations transmises et doit signaler rapidement toute modification susceptible d'affecter la course.\n\n4. Prix de la course\nAvant l'envoi de sa demande, le Client voit le prix total correspondant au trajet et à la catégorie de véhicule sélectionnée.\n\nLe prix est calculé selon la distance estimée de l'itinéraire et le tarif kilométrique de la catégorie choisie. Le montant obtenu est arrondi à la dizaine d'euros la plus proche et un montant minimum s'applique à chaque course. Il ne fait l'objet d'aucune majoration de nuit ou de week-end.\n\nLorsque la course relie un hôtel partenaire d'ELA Transfer à l'une des destinations prévues par l'accord conclu avec cet hôtel, un prix forfaitaire propre à ce partenaire remplace le calcul kilométrique décrit ci-dessus. Ce forfait dépend de la destination et de la catégorie de véhicule retenues. Il n'est ni arrondi à la dizaine d'euros, ni soumis au montant minimum, et ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié. Il est affiché au Client avant l'envoi de sa demande. Toute autre destination, ainsi qu'une adresse située hors de la zone couverte par le forfait, revient au calcul kilométrique.\n\nLorsque le Client choisit l'option d'accueil avec un panneau à son nom, un supplément forfaitaire de 10 € s'ajoute au prix de la course. Cette option n'est proposée que pour une prise en charge en aéroport ou en gare et n'est jamais présélectionnée. Son montant s'ajoute après l'arrondi et après l'application du montant minimum : il n'est ni arrondi, ni majoré.\n\nLes tarifs kilométriques et les prix minimums applicables sont ceux affichés par le Service au moment de la demande.\n\nLe prix devient ferme lorsque ELA Transfer confirme la réservation. Il ne peut être modifié sans l'accord préalable du Client, sauf si celui-ci demande ensuite une modification du trajet, de l'horaire, de la catégorie de véhicule ou des conditions de prise en charge.\n\nLe prix total est réglé directement au chauffeur. Aucun frais distinct de mise en relation n'est facturé au Client par ELA Transfer.\n\n5. Paiement\nLe prix de la course est réglé directement au chauffeur chargé d'effectuer le transport. ELA Transfer n'encaisse pas le prix de la course et ne collecte aucune donnée bancaire du Client.\n\nLe Client indique son mode de règlement lors de l'envoi de la demande. Le règlement s'effectue à bord du véhicule, en espèces ou par carte bancaire, selon le moyen de paiement confirmé au Client.\n\nLe chauffeur remet au Client la facture correspondant au transport réalisé. ELA Transfer peut être rémunérée par le chauffeur pour son service de mise en relation, sans supplément ajouté au prix confirmé au Client.\n\n6. Absence de droit de rétractation\nConformément à l'article L. 221-2, 9° du Code de la consommation, les contrats portant sur des services de transport de passagers sont exclus des règles relatives au droit de rétractation applicables aux contrats conclus à distance.\n\nLe délai de rétractation de quatorze jours ne s'applique donc pas à une course confirmée. Cette absence de droit de rétractation ne prive pas le Client de la possibilité d'annuler dans les conditions prévues à l'article 7.\n\n7. Annulation et absence\nLe présent barème s'applique uniquement à une réservation déjà confirmée. Le Client peut annuler en contactant ELA Transfer dès qu'il connaît son empêchement.\n\nLes frais sont calculés sur le prix confirmé, selon l'heure de prise en charge convenue :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\n\nLe Client est considéré absent s'il ne se présente pas au point de rendez-vous et reste injoignable à l'issue du temps d'attente inclus : 60 minutes après l'heure réelle d'atterrissage pour une prise en charge en aéroport lorsque le numéro de vol a été fourni et peut être suivi, ou 30 minutes après l'heure convenue dans les autres cas. La totalité du prix confirmé peut alors être facturée.\n\nLes éventuels frais d'annulation ou d'absence sont facturés et encaissés par le chauffeur affecté, bénéficiaire de ces sommes. ELA Transfer n'encaisse pas ces frais. Aucun frais n'est dû tant que la demande n'a pas été confirmée.\n\n8. Exécution du transport\nLe transport est exécuté par le chauffeur indépendant confirmé au Client, sous ses autorisations professionnelles et son assurance. ELA Transfer assure la transmission de la demande, la recherche d'un chauffeur et la coordination des informations utiles avant la prise en charge.\n\nLa catégorie réservée correspond à un niveau de capacité et de service, et non à la garantie d'un modèle précis. Lorsque l'option a été choisie et confirmée, le chauffeur attend le Client avec un panneau à son nom au point de rendez-vous indiqué. Le temps d'attente inclus est celui défini à l'article 7.\n\nLe Client doit être joignable, se présenter à l'heure et transmettre des informations exactes sur les passagers, bagages, vol ou train. Une modification importante demandée après confirmation peut nécessiter un nouveau prix ou un autre chauffeur ; elle ne devient applicable qu'après accord du Client.\n\n9. Responsabilité et force majeure\nELA Transfer répond de la bonne exécution de son service de mise en relation dans les conditions prévues par la loi. Le chauffeur répond de l'exécution du transport, de la sécurité des passagers, de son véhicule, de son assurance et du respect de ses obligations professionnelles.\n\nChaque partie n'est pas responsable d'un manquement causé par un événement de force majeure répondant aux critères légaux et rendant l'obligation impossible à exécuter. Les difficultés de circulation ordinaires ne constituent pas automatiquement un cas de force majeure.\n\nAucune clause des présentes CGV ne limite les droits impératifs du consommateur, ni la responsabilité qui ne peut être exclue par la loi.\n\n10. Réclamations et règlement des litiges\nToute réclamation doit être adressée à ELA Transfer par email à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33, en indiquant la référence de la course et les éléments utiles. ELA Transfer transmet au chauffeur les réclamations qui concernent l'exécution du transport et aide les parties à rechercher une solution amiable.\n\nAprès une réclamation écrite préalable restée sans solution, le Client consommateur conserve le droit de recourir gratuitement à un médiateur de la consommation compétent ainsi que d'exercer tout recours prévu par la loi.\n\n11. Données personnelles\nLes traitements de données personnelles, leurs finalités, leurs destinataires et les droits du Client sont décrits dans la Politique de confidentialité accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français, sans priver le consommateur des protections impératives éventuellement applicables dans son pays de résidence. En cas de litige non résolu à l'amiable, les juridictions compétentes sont déterminées conformément aux règles impératives de procédure et de protection des consommateurs.",
+    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 4 octobre 2026\n\n1. Objet et champ d'application\nLes présentes conditions encadrent l'utilisation du service ELA Transfer pour rechercher, organiser et réserver une course auprès d'un chauffeur professionnel indépendant.\n\nELA Transfer intervient comme intermédiaire entre le Client et le chauffeur. Le contrat de transport est conclu directement entre le Client et le chauffeur affecté à la course, à compter de la confirmation de la réservation.\n\nL'envoi d'une demande implique l'acceptation des présentes conditions par le Client.\n\n2. Service proposé et rôle d'ELA Transfer\nELA Transfer reçoit la demande du Client, recherche un chauffeur professionnel disponible et transmet au Client la confirmation de la course lorsqu'un chauffeur a été affecté.\n\nELA Transfer ne possède pas les véhicules et n'exécute pas directement le transport. La course est réalisée sous la responsabilité du chauffeur indépendant confirmé au Client. Le chauffeur demeure responsable de ses autorisations professionnelles, de son assurance, de son véhicule et de la bonne exécution du transport.\n\nLes mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service. Ils sont organisés par téléphone ou WhatsApp, et leur prix ainsi que leurs conditions sont communiqués au Client avant confirmation.\n\n3. Demande et confirmation de la réservation\nLe Client transmet une demande de réservation en indiquant notamment les adresses de départ et d'arrivée, la date, l'heure, le nombre de passagers, la catégorie de véhicule souhaitée ainsi que ses coordonnées.\n\nL'envoi de cette demande ne garantit pas immédiatement la disponibilité d'un chauffeur et ne constitue pas une réservation ferme.\n\nLa réservation devient ferme uniquement lorsque ELA Transfer adresse au Client une confirmation expresse indiquant qu'un chauffeur a été affecté à la course. La confirmation rappelle le trajet, la date, l'heure, la catégorie de véhicule, le prix total et le moyen de paiement prévu. L'identité ou les coordonnées utiles du chauffeur sont communiquées au Client au plus tard avant la prise en charge.\n\nSi aucun chauffeur n'est disponible, ELA Transfer en informe le Client dans les meilleurs délais. Aucun paiement ni frais d'annulation ne peut être réclamé pour une demande qui n'a pas été confirmée.\n\nLe Client est responsable de l'exactitude des informations transmises et doit signaler rapidement toute modification susceptible d'affecter la course.\n\n4. Prix de la course\nAvant l'envoi de sa demande, le Client voit le prix total correspondant au trajet et à la catégorie de véhicule sélectionnée.\n\nPour un trajet dont le départ ou l'arrivée se situe à plus de 90 km de Paris, pour un groupe de plus de sept passagers nécessitant plusieurs véhicules, ou pour une adresse saisie sans être reconnue par le Service, aucun prix n'est affiché et la demande est transmise avec la mention « Tarif à confirmer ». ELA Transfer communique alors au Client le prix total avant toute confirmation. Une telle demande n'engage le Client qu'une fois ce prix porté à sa connaissance et accepté.\n\nLe prix est calculé selon la distance estimée de l'itinéraire et le tarif kilométrique de la catégorie choisie. Le montant obtenu est arrondi à la dizaine d'euros la plus proche et un montant minimum s'applique à chaque course. Il ne fait l'objet d'aucune majoration de nuit ou de week-end.\n\nLorsque la course relie un hôtel partenaire d'ELA Transfer à l'une des destinations prévues par l'accord conclu avec cet hôtel, un prix forfaitaire propre à ce partenaire remplace le calcul kilométrique décrit ci-dessus. Ce forfait dépend de la destination et de la catégorie de véhicule retenues. Il n'est ni arrondi à la dizaine d'euros, ni soumis au montant minimum, et ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié. Il est affiché au Client avant l'envoi de sa demande. Toute autre destination, ainsi qu'une adresse située hors de la zone couverte par le forfait, revient au calcul kilométrique.\n\nLorsque le Client choisit l'option d'accueil avec un panneau à son nom, un supplément forfaitaire de 10 € s'ajoute au prix de la course. Cette option n'est proposée que pour une prise en charge en aéroport ou en gare et n'est jamais présélectionnée. Son montant s'ajoute après l'arrondi et après l'application du montant minimum : il n'est ni arrondi, ni majoré.\n\nLes tarifs kilométriques et les prix minimums applicables sont ceux affichés par le Service au moment de la demande.\n\nLe prix devient ferme lorsque ELA Transfer confirme la réservation. Il ne peut être modifié sans l'accord préalable du Client, sauf si celui-ci demande ensuite une modification du trajet, de l'horaire, de la catégorie de véhicule ou des conditions de prise en charge.\n\nLe prix total est réglé directement au chauffeur. Aucun frais distinct de mise en relation n'est facturé au Client par ELA Transfer.\n\n5. Paiement\nLe prix de la course est réglé directement au chauffeur chargé d'effectuer le transport. ELA Transfer n'encaisse pas le prix de la course et ne collecte aucune donnée bancaire du Client.\n\nLe Client indique son mode de règlement lors de l'envoi de la demande. Le règlement s'effectue à bord du véhicule, en espèces ou par carte bancaire, selon le moyen de paiement confirmé au Client.\n\nLe chauffeur remet au Client la facture correspondant au transport réalisé. ELA Transfer peut être rémunérée par le chauffeur pour son service de mise en relation, sans supplément ajouté au prix confirmé au Client.\n\n6. Absence de droit de rétractation\nConformément à l'article L. 221-2, 9° du Code de la consommation, les contrats portant sur des services de transport de passagers sont exclus des règles relatives au droit de rétractation applicables aux contrats conclus à distance.\n\nLe délai de rétractation de quatorze jours ne s'applique donc pas à une course confirmée. Cette absence de droit de rétractation ne prive pas le Client de la possibilité d'annuler dans les conditions prévues à l'article 7.\n\n7. Annulation et absence\nLe présent barème s'applique uniquement à une réservation déjà confirmée. Le Client peut annuler en contactant ELA Transfer dès qu'il connaît son empêchement.\n\nLes frais sont calculés sur le prix confirmé, selon l'heure de prise en charge convenue :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\n\nLe Client est considéré absent s'il ne se présente pas au point de rendez-vous et reste injoignable à l'issue du temps d'attente inclus : 60 minutes après l'heure réelle d'atterrissage pour une prise en charge en aéroport lorsque le numéro de vol a été fourni et peut être suivi, ou 30 minutes après l'heure convenue dans les autres cas. La totalité du prix confirmé peut alors être facturée.\n\nLes éventuels frais d'annulation ou d'absence sont facturés et encaissés par le chauffeur affecté, bénéficiaire de ces sommes. ELA Transfer n'encaisse pas ces frais. Aucun frais n'est dû tant que la demande n'a pas été confirmée.\n\n8. Exécution du transport\nLe transport est exécuté par le chauffeur indépendant confirmé au Client, sous ses autorisations professionnelles et son assurance. ELA Transfer assure la transmission de la demande, la recherche d'un chauffeur et la coordination des informations utiles avant la prise en charge.\n\nLa catégorie réservée correspond à un niveau de capacité et de service, et non à la garantie d'un modèle précis. Lorsque l'option a été choisie et confirmée, le chauffeur attend le Client avec un panneau à son nom au point de rendez-vous indiqué. Le temps d'attente inclus est celui défini à l'article 7.\n\nLe Client doit être joignable, se présenter à l'heure et transmettre des informations exactes sur les passagers, bagages, vol ou train. Une modification importante demandée après confirmation peut nécessiter un nouveau prix ou un autre chauffeur ; elle ne devient applicable qu'après accord du Client.\n\n9. Responsabilité et force majeure\nELA Transfer répond de la bonne exécution de son service de mise en relation dans les conditions prévues par la loi. Le chauffeur répond de l'exécution du transport, de la sécurité des passagers, de son véhicule, de son assurance et du respect de ses obligations professionnelles.\n\nChaque partie n'est pas responsable d'un manquement causé par un événement de force majeure répondant aux critères légaux et rendant l'obligation impossible à exécuter. Les difficultés de circulation ordinaires ne constituent pas automatiquement un cas de force majeure.\n\nAucune clause des présentes CGV ne limite les droits impératifs du consommateur, ni la responsabilité qui ne peut être exclue par la loi.\n\n10. Réclamations et règlement des litiges\nToute réclamation doit être adressée à ELA Transfer par email à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33, en indiquant la référence de la course et les éléments utiles. ELA Transfer transmet au chauffeur les réclamations qui concernent l'exécution du transport et aide les parties à rechercher une solution amiable.\n\nAprès une réclamation écrite préalable restée sans solution, le Client consommateur conserve le droit de recourir gratuitement à un médiateur de la consommation compétent ainsi que d'exercer tout recours prévu par la loi.\n\n11. Données personnelles\nLes traitements de données personnelles, leurs finalités, leurs destinataires et les droits du Client sont décrits dans la Politique de confidentialité accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français, sans priver le consommateur des protections impératives éventuellement applicables dans son pays de résidence. En cas de litige non résolu à l'amiable, les juridictions compétentes sont déterminées conformément aux règles impératives de procédure et de protection des consommateurs.",
     legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 12 septembre 2026\n\n1. Responsable du traitement et contact\nElatransfer détermine les finalités et les moyens des traitements réalisés par le Service. Pour toute question ou demande relative aux données personnelles : contact@elatransfer.com ou WhatsApp au +33 7 59 31 24 33. Les autres informations d'identification figurent dans les Mentions légales.\n\n2. Données traitées\nLe Service peut traiter :\n— les coordonnées du Client : nom et numéro de téléphone ;\n— les données de course : adresses, coordonnées géographiques associées, date, heure, catégorie de véhicule, passagers, bagages, prix, moyen de paiement prévu, note facultative, terminal, numéro de vol ou de train et, dans le parcours hôtel, numéro de chambre ;\n— les données de suivi : référence, état de la demande, chauffeur affecté et échanges nécessaires à la confirmation ;\n— la position de l'appareil uniquement si le Client active « Me localiser » et accorde l'autorisation au navigateur ;\n— les données techniques nécessaires aux connexions : adresse IP, navigateur, appareil, horodatage et journaux de sécurité susceptibles d'être reçus par l'hébergeur et les prestataires techniques.\n\nELA Transfer ne collecte aucune donnée de carte bancaire : le Client règle actuellement le chauffeur directement.\n\n3. Finalités et bases légales\nLes données sont utilisées pour :\n— afficher un itinéraire et un prix, répondre à une demande et rechercher un chauffeur : mesures précontractuelles demandées par le Client ;\n— confirmer, suivre et exécuter la réservation : exécution du contrat et coordination avec le chauffeur ;\n— prévenir les abus, sécuriser le Service, conserver la preuve des demandes et défendre des droits : intérêt légitime ;\n— respecter les obligations légales et comptables applicables : obligation légale ;\n— utiliser la position de l'appareil : permission déclenchée volontairement par le Client, révocable dans les réglages du navigateur.\n\nAucune prospection commerciale n'est effectuée à partir des données de réservation sans une base légale distincte et, lorsque la loi l'exige, sans consentement préalable.\n\n4. Destinataires et prestataires\nELA Transfer et les personnes autorisées à gérer les demandes accèdent aux données dans la limite de leurs fonctions. Les informations nécessaires au transport sont communiquées au seul chauffeur finalement affecté.\n\nPour rechercher un chauffeur, une annonce limitée peut être diffusée au réseau de chauffeurs partenaires sans le nom, le téléphone ni le numéro de chambre du Client. Le chauffeur retenu reçoit ensuite les informations nécessaires à la prise en charge.\n\nLe fonctionnement du Service implique également :\n— Supabase, pour l'authentification de l'espace exploitant, la base de données et le stockage des demandes ;\n— la Base Adresse Nationale et Photon, auxquels le texte d'adresse saisi est transmis pour proposer des adresses ;\n— OpenRouteService et OSRM, auxquels les coordonnées de départ et d'arrivée sont transmises pour calculer l'itinéraire ;\n— WhatsApp, uniquement lorsque le Client choisit d'ouvrir ou d'envoyer un message, lequel peut contenir les informations de la demande ;\n— GitHub, pour l'hébergement du site, et Google Fonts, pour la fourniture des polices et les données techniques liées à leur chargement.\n\nAucune donnée personnelle n'est vendue. Aucun prestataire de paiement ne reçoit de données tant qu'aucun paiement en ligne n'est proposé.\n\n5. Transferts hors de l'Espace économique européen\nCertains prestataires, notamment GitHub, Google ou WhatsApp, sont établis ou peuvent traiter des données hors de l'Espace économique européen. Ces traitements relèvent des garanties mises en place par chaque prestataire conformément au RGPD, telles qu'une décision d'adéquation ou des clauses contractuelles types lorsqu'elles sont requises. Des informations complémentaires peuvent être demandées à l'adresse de contact.\n\n6. Durées de conservation\nLes demandes et réservations sont conservées pendant la durée nécessaire à leur traitement, au suivi de la relation et à la preuve des opérations, puis supprimées ou archivées selon les délais de prescription applicables. Les pièces comptables effectivement émises sont conservées pendant leur durée légale ; une simple demande de réservation n'est pas automatiquement une facture.\n\nL'historique des courses, la langue choisie et certaines préférences sont aussi enregistrés dans le stockage local du navigateur jusqu'à leur suppression par l'utilisateur ou l'effacement des données du site. Les journaux techniques sont conservés selon les durées de sécurité propres aux prestataires concernés.\n\n7. Stockage local, cookies et services externes\nLe Service utilise le stockage local du navigateur pour mémoriser la langue, les références et l'historique des demandes sur l'appareil. L'espace exploitant utilise également un stockage local nécessaire à sa session et à ses fonctions de gestion.\n\nÀ la date de mise à jour, ELA Transfer n'active aucun outil de mesure d'audience publicitaire ou marketing et ne dépose pas volontairement de traceur optionnel nécessitant un bandeau de consentement. Le chargement de services externes peut néanmoins transmettre aux prestataires des données techniques telles que l'adresse IP. Si un outil optionnel est ajouté, il devra être bloqué jusqu'au recueil du consentement lorsqu'il est requis et la présente politique devra être mise à jour.\n\n8. Sécurité\nELA Transfer met en œuvre des mesures techniques et organisationnelles proportionnées aux risques, notamment des restrictions d'accès à la base de données et une authentification de l'espace exploitant. Aucun service en ligne ne pouvant garantir une sécurité absolue, tout incident avéré est traité conformément aux obligations applicables.\n\n9. Droits\nSelon les conditions prévues par le RGPD, toute personne dispose de droits d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité. Elle peut également retirer un consentement à tout moment lorsque le traitement repose sur celui-ci, sans remettre en cause les traitements antérieurs.\n\nCes droits s'exercent à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33. Une preuve d'identité peut être demandée uniquement en cas de doute raisonnable sur l'identité du demandeur.\n\n10. Caractère obligatoire et décision automatisée\nLes champs signalés comme nécessaires sont indispensables pour rechercher un chauffeur et confirmer la course. Sans eux, ELA Transfer ne peut pas traiter la demande. Les autres champs sont facultatifs. Aucune décision produisant un effet juridique n'est prise exclusivement par un traitement automatisé : la réservation devient ferme après confirmation d'un chauffeur.\n\n11. Réclamation\nToute personne peut introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés, www.cnil.fr, ou auprès de l'autorité de contrôle compétente dans son pays de résidence.",
     etat_court:"En attente",
@@ -5564,6 +5627,7 @@ window.ELA_TEXTES = {
     contact_wa:"Écrivez-nous, on répond vite",
     voir_bon:"Voir le bon",
     recherche:"Recherche…", aucune_adresse:"Aucune adresse trouvée",
+    recherche_indispo:"Recherche momentanément indisponible — vérifiez votre connexion, puis retapez l'adresse.",
     passager_un:"passager", passager_pl:"passagers", bagage_un:"bagage", bagage_pl:"bagages"
   },
   en:{
@@ -5574,8 +5638,19 @@ window.ELA_TEXTES = {
     pro_bloc:"<strong>Hotels • Agencies • Businesses</strong><br>Dedicated booking solutions for your clients and teams.<br>Custom page • QR code • Booking tool",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
-    zone_titre:"This address is outside our service area.",
-    zone_note:"Elatransfer serves Paris and the Île-de-France region. For a longer journey, call us: we will quote you a bespoke price.",
+    longue_titre:"Long-distance journey",
+    longue_note:"You can send your request: Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
+    quand_aria:"When do you want to leave?", quand_asap:"As soon as possible", quand_asap_court:"Now", quand_prog:"Schedule",
+    asap_note:"Subject to availability, no pickup time guaranteed.",
+    asap_nuit:"Slower reply from 10 pm to 5 am.",
+    asap_libelle:"As soon as possible", partir_asap:"Leave as soon as possible",
+    tarif_a_confirmer:"Fare to be confirmed",
+    tarif_note:"Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
+    multi_nom:"Several vehicles", multi_detail:"{{n}} passengers · Elatransfer arranges the vehicles",
+    adresse_manuelle:"My address is not in the list — send it as typed",
+    adresse_verifier:"Address to be checked by Elatransfer: no automatic fare.",
+    mesure_manuelle:"Distance worked out by Elatransfer",
+    bon_asap:"Immediate request, subject to availability. For a faster answer, call us.",
     appeler:"Call",
     lieu_depart:"Pick-up location", lieu_arrivee:"Drop-off location",
     ph_adresse:"Address, airport, hotel…",
@@ -5675,9 +5750,6 @@ window.ELA_TEXTES = {
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
-    tot_titre:"That pickup is too soon.",
-    tot_note:"We need at least 15 minutes to send you a chauffeur. For an immediate pickup, call us: we will see what is available near you.",
-    err_trop_grand:"We have no single vehicle for {{n}} passengers. Call us: we will arrange two cars.",
     pancarte_titre:"When you arrive",
     pancarte_option:"Name sign",
     pancarte_sous_air:"Your chauffeur waits at the terminal door, your name in hand.",
@@ -5719,7 +5791,7 @@ window.ELA_TEXTES = {
     legal_cgv:"Terms and conditions",
     legal_mentions:"Legal notice",
     legal_privacy:"Privacy policy",
-    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 22 September 2026\n\n1. Purpose and scope\nThese terms govern the use of the ELA Transfer service to search for, arrange and book a journey with an independent professional driver.\n\nELA Transfer acts as an intermediary between the Client and the driver. The transport contract is entered into directly between the Client and the driver assigned to the journey once the booking is confirmed.\n\nSubmitting a request implies the Client's acceptance of these terms.\n\n2. Service offered and ELA Transfer's role\nELA Transfer receives the Client's request, searches for an available professional driver and sends confirmation once a driver has been assigned.\n\nELA Transfer does not own the vehicles and does not directly perform the transport. The journey is performed under the responsibility of the independent driver confirmed to the Client. The driver remains responsible for their professional authorisations, insurance, vehicle and proper performance of the transport.\n\nHourly hire and bespoke journeys cannot be booked through the Service. They are arranged by phone or WhatsApp, and their price and conditions are communicated to the Client before confirmation.\n\n3. Booking request and confirmation\nThe Client submits a booking request stating, in particular, the pickup and drop-off addresses, date, time, number of passengers, requested vehicle category and contact details.\n\nSubmitting a request does not immediately guarantee the availability of a driver and does not constitute a confirmed booking.\n\nThe booking becomes firm only when ELA Transfer sends express confirmation that a driver has been assigned. The confirmation includes the journey, date, time, vehicle category, total price and intended payment method. The driver's identity or relevant contact details are communicated to the Client no later than before pickup.\n\nIf no driver is available, ELA Transfer informs the Client as soon as reasonably possible. No payment or cancellation fee may be charged for a request that has not been confirmed.\n\nThe Client is responsible for the accuracy of the information provided and must promptly report any change that may affect the journey.\n\n4. Journey price\nBefore submitting a request, the Client is shown the total price corresponding to the journey and selected vehicle category.\n\nThe price is calculated according to the estimated route distance and the per-kilometre rate for the selected category. The resulting amount is rounded to the nearest ten euros and a minimum fare applies to every journey. No night-time or weekend surcharge applies.\n\nWhere the journey connects a hotel partnered with ELA Transfer to one of the destinations set out in the agreement with that hotel, a flat fare specific to that partner replaces the per-kilometre calculation described above. That flat fare depends on the destination and the vehicle category selected. It is neither rounded to the nearest ten euros nor subject to the minimum fare, and no night-time, weekend or public-holiday surcharge applies to it. It is shown to the Client before the request is submitted. Any other destination, and any address outside the area covered by the flat fare, reverts to the per-kilometre calculation.\n\nWhere the Client selects the optional extra of a meet-and-greet with a sign bearing their name, a flat supplement of €10 is added to the fare. This optional extra is offered only for an airport or railway station pick-up and is never pre-selected. Its amount is added after rounding and after the minimum fare has been applied: it is neither rounded nor increased.\n\nThe applicable per-kilometre rates and minimum fares are those displayed by the Service when the request is submitted.\n\nThe price becomes firm once ELA Transfer confirms the booking. It cannot be changed without the Client's prior agreement unless the Client subsequently requests a change to the journey, time, vehicle category or pickup conditions.\n\nThe total price is paid directly to the driver. ELA Transfer does not charge the Client a separate intermediation fee.\n\n5. Payment\nThe journey price is paid directly to the driver performing the transport. ELA Transfer does not collect the journey price or any of the Client's banking data.\n\nThe Client states the intended payment method when submitting the request. Payment is made on board the vehicle, in cash or by card, according to the payment method confirmed to the Client.\n\nThe driver issues the Client an invoice for the transport performed. ELA Transfer may be paid by the driver for its intermediation service, without any surcharge being added to the price confirmed to the Client.\n\n6. No right of withdrawal\nUnder Article L. 221-2(9) of the French Consumer Code, contracts for passenger transport services are excluded from the rules on withdrawal rights applicable to distance contracts.\n\nThe fourteen-day withdrawal period therefore does not apply to a confirmed journey. This does not prevent the Client from cancelling under the conditions set out in Article 7.\n\n7. Cancellation and no-show\nThis scale applies only to a booking that has already been confirmed. The Client may cancel by contacting ELA Transfer as soon as they become aware that they cannot travel.\n\nFees are calculated on the confirmed price, by reference to the agreed pickup time:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the price;\n— less than 3 hours before: 50% of the price.\n\nThe Client is considered a no-show if they do not attend the meeting point and cannot be reached once the included waiting time has elapsed: 60 minutes after the actual landing time for an airport pickup where a flight number was provided and can be tracked, or 30 minutes after the agreed time in all other cases. The full confirmed price may then be charged.\n\nAny cancellation or no-show fee is invoiced and collected by the assigned driver, who receives that amount. ELA Transfer does not collect those fees. No fee is due before the request has been confirmed.\n\n8. Performance of the transport\nThe transport is performed by the independent driver confirmed to the Client, under that driver's professional authorisations and insurance. ELA Transfer transmits the request, searches for a driver and coordinates relevant information before pickup.\n\nThe booked category corresponds to a level of capacity and service and does not guarantee a specific vehicle model. Where the option has been selected and confirmed, the driver waits with a sign bearing the Client's name at the stated meeting point. The included waiting time is defined in Article 7.\n\nThe Client must remain reachable, attend on time and provide accurate passenger, luggage, flight or train information. A material change requested after confirmation may require a new price or a different driver; it applies only after the Client agrees.\n\n9. Liability and force majeure\nELA Transfer is responsible for properly performing its intermediation service as required by law. The driver is responsible for performing the transport, passenger safety, the vehicle, insurance and compliance with professional duties.\n\nA party is not liable for a failure caused by a force majeure event meeting the legal criteria and making performance impossible. Ordinary traffic difficulties do not automatically constitute force majeure.\n\nNothing in these terms limits mandatory consumer rights or any liability that cannot lawfully be excluded.\n\n10. Complaints and dispute resolution\nComplaints must be sent to ELA Transfer by email at contact@elatransfer.com or by WhatsApp to +33 7 59 31 24 33, quoting the booking reference and relevant supporting information. ELA Transfer forwards complaints about the transport to the driver and helps the parties seek an amicable solution.\n\nAfter a prior written complaint remains unresolved, a consumer Client retains the right to use a competent consumer mediator free of charge and to exercise any remedy available by law.\n\n11. Personal data\nPersonal-data processing, its purposes and recipients, and the Client's rights are described in the Privacy Policy available from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law, without depriving consumers of mandatory protections that may apply in their country of residence. If a dispute is not resolved amicably, jurisdiction is determined under the mandatory rules of procedure and consumer protection.",
+    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 4 October 2026\n\n1. Purpose and scope\nThese terms govern the use of the ELA Transfer service to search for, arrange and book a journey with an independent professional driver.\n\nELA Transfer acts as an intermediary between the Client and the driver. The transport contract is entered into directly between the Client and the driver assigned to the journey once the booking is confirmed.\n\nSubmitting a request implies the Client's acceptance of these terms.\n\n2. Service offered and ELA Transfer's role\nELA Transfer receives the Client's request, searches for an available professional driver and sends confirmation once a driver has been assigned.\n\nELA Transfer does not own the vehicles and does not directly perform the transport. The journey is performed under the responsibility of the independent driver confirmed to the Client. The driver remains responsible for their professional authorisations, insurance, vehicle and proper performance of the transport.\n\nHourly hire and bespoke journeys cannot be booked through the Service. They are arranged by phone or WhatsApp, and their price and conditions are communicated to the Client before confirmation.\n\n3. Booking request and confirmation\nThe Client submits a booking request stating, in particular, the pickup and drop-off addresses, date, time, number of passengers, requested vehicle category and contact details.\n\nSubmitting a request does not immediately guarantee the availability of a driver and does not constitute a confirmed booking.\n\nThe booking becomes firm only when ELA Transfer sends express confirmation that a driver has been assigned. The confirmation includes the journey, date, time, vehicle category, total price and intended payment method. The driver's identity or relevant contact details are communicated to the Client no later than before pickup.\n\nIf no driver is available, ELA Transfer informs the Client as soon as reasonably possible. No payment or cancellation fee may be charged for a request that has not been confirmed.\n\nThe Client is responsible for the accuracy of the information provided and must promptly report any change that may affect the journey.\n\n4. Journey price\nBefore submitting a request, the Client is shown the total price corresponding to the journey and selected vehicle category.\n\nFor a journey whose pickup or drop-off is more than 90 km from Paris, for a group of more than seven passengers requiring several vehicles, or for an address entered without being recognised by the Service, no price is shown and the request is sent marked \"Price to be confirmed\". ELA Transfer then informs the Client of the total price before any confirmation. Such a request binds the Client only once that price has been communicated to and accepted by them.\n\nThe price is calculated according to the estimated route distance and the per-kilometre rate for the selected category. The resulting amount is rounded to the nearest ten euros and a minimum fare applies to every journey. No night-time or weekend surcharge applies.\n\nWhere the journey connects a hotel partnered with ELA Transfer to one of the destinations set out in the agreement with that hotel, a flat fare specific to that partner replaces the per-kilometre calculation described above. That flat fare depends on the destination and the vehicle category selected. It is neither rounded to the nearest ten euros nor subject to the minimum fare, and no night-time, weekend or public-holiday surcharge applies to it. It is shown to the Client before the request is submitted. Any other destination, and any address outside the area covered by the flat fare, reverts to the per-kilometre calculation.\n\nWhere the Client selects the optional extra of a meet-and-greet with a sign bearing their name, a flat supplement of €10 is added to the fare. This optional extra is offered only for an airport or railway station pick-up and is never pre-selected. Its amount is added after rounding and after the minimum fare has been applied: it is neither rounded nor increased.\n\nThe applicable per-kilometre rates and minimum fares are those displayed by the Service when the request is submitted.\n\nThe price becomes firm once ELA Transfer confirms the booking. It cannot be changed without the Client's prior agreement unless the Client subsequently requests a change to the journey, time, vehicle category or pickup conditions.\n\nThe total price is paid directly to the driver. ELA Transfer does not charge the Client a separate intermediation fee.\n\n5. Payment\nThe journey price is paid directly to the driver performing the transport. ELA Transfer does not collect the journey price or any of the Client's banking data.\n\nThe Client states the intended payment method when submitting the request. Payment is made on board the vehicle, in cash or by card, according to the payment method confirmed to the Client.\n\nThe driver issues the Client an invoice for the transport performed. ELA Transfer may be paid by the driver for its intermediation service, without any surcharge being added to the price confirmed to the Client.\n\n6. No right of withdrawal\nUnder Article L. 221-2(9) of the French Consumer Code, contracts for passenger transport services are excluded from the rules on withdrawal rights applicable to distance contracts.\n\nThe fourteen-day withdrawal period therefore does not apply to a confirmed journey. This does not prevent the Client from cancelling under the conditions set out in Article 7.\n\n7. Cancellation and no-show\nThis scale applies only to a booking that has already been confirmed. The Client may cancel by contacting ELA Transfer as soon as they become aware that they cannot travel.\n\nFees are calculated on the confirmed price, by reference to the agreed pickup time:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the price;\n— less than 3 hours before: 50% of the price.\n\nThe Client is considered a no-show if they do not attend the meeting point and cannot be reached once the included waiting time has elapsed: 60 minutes after the actual landing time for an airport pickup where a flight number was provided and can be tracked, or 30 minutes after the agreed time in all other cases. The full confirmed price may then be charged.\n\nAny cancellation or no-show fee is invoiced and collected by the assigned driver, who receives that amount. ELA Transfer does not collect those fees. No fee is due before the request has been confirmed.\n\n8. Performance of the transport\nThe transport is performed by the independent driver confirmed to the Client, under that driver's professional authorisations and insurance. ELA Transfer transmits the request, searches for a driver and coordinates relevant information before pickup.\n\nThe booked category corresponds to a level of capacity and service and does not guarantee a specific vehicle model. Where the option has been selected and confirmed, the driver waits with a sign bearing the Client's name at the stated meeting point. The included waiting time is defined in Article 7.\n\nThe Client must remain reachable, attend on time and provide accurate passenger, luggage, flight or train information. A material change requested after confirmation may require a new price or a different driver; it applies only after the Client agrees.\n\n9. Liability and force majeure\nELA Transfer is responsible for properly performing its intermediation service as required by law. The driver is responsible for performing the transport, passenger safety, the vehicle, insurance and compliance with professional duties.\n\nA party is not liable for a failure caused by a force majeure event meeting the legal criteria and making performance impossible. Ordinary traffic difficulties do not automatically constitute force majeure.\n\nNothing in these terms limits mandatory consumer rights or any liability that cannot lawfully be excluded.\n\n10. Complaints and dispute resolution\nComplaints must be sent to ELA Transfer by email at contact@elatransfer.com or by WhatsApp to +33 7 59 31 24 33, quoting the booking reference and relevant supporting information. ELA Transfer forwards complaints about the transport to the driver and helps the parties seek an amicable solution.\n\nAfter a prior written complaint remains unresolved, a consumer Client retains the right to use a competent consumer mediator free of charge and to exercise any remedy available by law.\n\n11. Personal data\nPersonal-data processing, its purposes and recipients, and the Client's rights are described in the Privacy Policy available from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law, without depriving consumers of mandatory protections that may apply in their country of residence. If a dispute is not resolved amicably, jurisdiction is determined under the mandatory rules of procedure and consumer protection.",
     legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 12 September 2026\n\n1. Controller and contact\nElatransfer determines the purposes and means of processing carried out through the Service. For questions or requests about personal data: contact@elatransfer.com or WhatsApp at +33 7 59 31 24 33. Other identifying information appears in the Legal Notice.\n\n2. Data processed\nThe Service may process:\n— Client contact details: name and phone number;\n— journey data: addresses, related geographic coordinates, date, time, vehicle category, passengers, luggage, price, intended payment method, optional note, terminal, flight or train number and, in the hotel journey, room number;\n— tracking data: reference, request status, assigned driver and communications needed for confirmation;\n— device location only if the Client selects “Locate me” and grants browser permission;\n— connection data needed for technical operation: IP address, browser, device, timestamp and security logs that may be received by the host and technical providers.\n\nELA Transfer does not collect card details: the Client currently pays the driver directly.\n\n3. Purposes and legal bases\nData is used to:\n— display a route and price, answer a request and search for a driver: steps requested by the Client before entering into a contract;\n— confirm, track and perform the booking: performance of the contract and coordination with the driver;\n— prevent abuse, secure the Service, retain evidence of requests and defend legal rights: legitimate interests;\n— comply with applicable legal and accounting duties: legal obligation;\n— use device location: permission voluntarily triggered by the Client and revocable in browser settings.\n\nBooking data is not used for direct marketing without a separate lawful basis and, where required, prior consent.\n\n4. Recipients and providers\nELA Transfer and people authorised to manage requests access data only as required for their duties. Information required for transport is disclosed only to the driver ultimately assigned.\n\nTo find a driver, a limited notice may be shared with the partner-driver network without the Client's name, phone number or room number. The selected driver then receives the information needed for pickup.\n\nThe Service also relies on:\n— Supabase, for operator-area authentication, the database and storage of requests;\n— Base Adresse Nationale and Photon, which receive address text entered to suggest addresses;\n— OpenRouteService and OSRM, which receive pickup and drop-off coordinates to calculate the route;\n— WhatsApp, only when the Client chooses to open or send a message, which may contain request details;\n— GitHub, for site hosting, and Google Fonts, for fonts and technical data associated with loading them.\n\nPersonal data is not sold. No payment provider receives data while online payment is not offered.\n\n5. Transfers outside the European Economic Area\nSome providers, including GitHub, Google or WhatsApp, are established or may process data outside the European Economic Area. Such processing is subject to the safeguards implemented by each provider under the GDPR, such as an adequacy decision or standard contractual clauses where required. Further information may be requested using the contact details above.\n\n6. Retention\nRequests and bookings are retained for as long as needed to handle them, manage the relationship and evidence transactions, then deleted or archived according to applicable limitation periods. Accounting records actually issued are retained for the statutory period; a booking request is not automatically an invoice.\n\nJourney history, selected language and certain preferences are also stored locally in the browser until the user removes them or clears site data. Technical logs are retained according to the relevant providers' security schedules.\n\n7. Local storage, cookies and external services\nThe Service uses browser local storage to remember language, references and request history on the device. The operator area also uses local storage required for its session and management features.\n\nAs of the update date, ELA Transfer does not enable advertising or marketing analytics and does not intentionally set optional trackers requiring a consent banner. Loading external services may nevertheless disclose technical data such as an IP address to those providers. If an optional tool is added, it must be blocked until consent is collected where required and this policy must be updated.\n\n8. Security\nELA Transfer implements technical and organisational measures proportionate to the risks, including database access restrictions and operator-area authentication. As no online service can guarantee absolute security, confirmed incidents are handled under applicable obligations.\n\n9. Rights\nSubject to the conditions in the GDPR, individuals have rights of access, rectification, erasure, restriction, objection and portability. Where processing relies on consent, consent may be withdrawn at any time without affecting earlier processing.\n\nRights may be exercised at contact@elatransfer.com or by WhatsApp at +33 7 59 31 24 33. Identity evidence may be requested only where there is reasonable doubt about the requester's identity.\n\n10. Required information and automated decisions\nFields marked as required are needed to search for a driver and confirm the journey. Without them, ELA Transfer cannot process the request. Other fields are optional. No decision producing legal effects is made solely by automated processing: the booking becomes firm only after a driver is confirmed.\n\n11. Complaint\nIndividuals may lodge a complaint with the French data protection authority, the Commission Nationale de l'Informatique et des Libertés at www.cnil.fr, or with the competent authority in their country of residence.",
     etat_court:"Awaiting",
@@ -5738,6 +5810,7 @@ window.ELA_TEXTES = {
     contact_wa:"Message us, we answer quickly",
     voir_bon:"View voucher",
     recherche:"Searching…", aucune_adresse:"No address found",
+    recherche_indispo:"Search temporarily unavailable — check your connection, then type the address again.",
     passager_un:"passenger", passager_pl:"passengers", bagage_un:"bag", bagage_pl:"bags"
   }
 };
@@ -5866,6 +5939,35 @@ window.ELA_TEXTES = {
      prix : c'est la différence entre une adresse et une intention. */
   var choix = { depart:null, arrivee:null };
 
+  /* La position donnée par « Me localiser », EN MÉMOIRE seulement : elle
+     oriente la recherche (un client à Orly qui tape « ibis » voit d'abord
+     ceux d'Orly) et disparaît avec la page. Rien ne la garde, rien ne
+     l'envoie — même règle que la géolocalisation elle-même. */
+  var positionClient = null;
+
+  /* ═══ LE LIEU STRUCTURÉ (4 octobre 2026) ═══
+     Une course n'était que du texte : « depart », « arrivee ». Les
+     coordonnées du choix servaient au prix puis disparaissaient — le
+     serveur jetait même « departPos ». On garde désormais, à côté des
+     anciens champs (qui restent : « Coller une demande », le message
+     WhatsApp, le bon et la réception les lisent), un objet par bout du
+     trajet : ce qui a été CHOISI, d'où il vient, et où il est.
+     « provider » dit la source : « ban », « photon », ou « elatransfer »
+     pour nos propres données (terminaux, hôtels partenaires). Le texte et
+     les coordonnées viennent du MÊME choix : c'est la règle qui protège le
+     prix, et elle tient parce qu'on ne fabrique ce lieu qu'ici, depuis un
+     élément retenu dans une liste. */
+  function lieuStructure(it){
+    if(!it || typeof it.lat !== "number" || typeof it.lon !== "number"
+       || !isFinite(it.lat) || !isFinite(it.lon)) return null;
+    var nom = it.nom || (it.lieuNomme ? String(it.label || "").split(/,| — /)[0] : "");
+    return { nom:String(nom || "").slice(0, 160), adresse:String(it.label || "").slice(0, 300),
+             latitude:Math.round(it.lat*1e6)/1e6, longitude:Math.round(it.lon*1e6)/1e6,
+             provider:it.source || "elatransfer", providerId:String(it.sourceId || "").slice(0, 120),
+             categorie:it.categorie || "adresse" };
+  }
+  window.__lieuStructure = lieuStructure;
+
   /* « œ » et « æ » ne sont PAS des lettres accentuées : NFD ne les défait
      pas. Sans ces deux remplacements, « coeur » tapé ne retrouvait jamais
      « Sacré-Cœur », et un bar écrit « Coeur » passait devant la basilique. */
@@ -5927,6 +6029,14 @@ window.ELA_TEXTES = {
   };
   /* Un mot ENTIER, jamais un début de mot : « ro » déclencherait Roissy
      sur « Rouen », qui est à 112 km et hors zone. */
+  /* UNE FAUTE DE FRAPPE N'ÉTEINT PLUS LES TERMINAUX (4 octobre 2026) :
+     « roisy », « charle de gaule », « beauvai ». Seulement sur les clés de
+     six lettres et plus, et à une lettre près : « tille » (cinq lettres)
+     n'est pas concernée, sinon « Tilly », dans les Yvelines, ferait
+     proposer Beauvais. */
+  function cleProche(m, cle){
+    return cle.length >= 6 && m.length >= 5 && distanceEdition(m, cle, 1) <= 1;
+  }
   function terminauxPourSaisie(q){
     var n = sansAccents(q);
     if(!n) return [];
@@ -5934,12 +6044,15 @@ window.ELA_TEXTES = {
     var sortie = [];
     Object.keys(AEROPORTS).forEach(function(cle){
       var ap = AEROPORTS[cle], clefs = ap.mots.map(sansAccents);
-      var touche = mots.some(function(m){ return clefs.indexOf(m)>-1; }) || clefs.indexOf(n)>-1;
+      var touche = mots.some(function(m){
+                     return clefs.indexOf(m)>-1 || clefs.some(function(k){ return cleProche(m, k); });
+                   }) || clefs.indexOf(n)>-1;
       if(!touche) return;
       Object.keys(ap.terminaux).forEach(function(t){
         var p = ap.terminaux[t];
         sortie.push({ label:t+" — "+ap.nom, lat:p[0], lon:p[1],
-                      icon:"✈️", categorie:"aeroport", lieuNomme:true });
+                      icon:"✈️", categorie:"aeroport", lieuNomme:true,
+                      source:"elatransfer", sourceId:"aeroport:"+cle+":"+t });
       });
     });
     return sortie;
@@ -5995,14 +6108,54 @@ window.ELA_TEXTES = {
   /* Ce que le client tape quand il cherche un restaurant : sans l'un de ces
      mots, un bar homonyme n'a pas à passer devant le monument ou la rue. */
   var MOTS_RESTO = ["restaurant","resto","brasserie","cafe","bar","pub","bistrot","pizza","pizzeria"];
+  /* ═══ LA TOLÉRANCE AUX FAUTES (4 octobre 2026) ═══
+     Les services en ont déjà une partie (Photon cherche « à peu près »).
+     Ce qui manquait, c'est NOTRE classement : il ne comptait que les mots
+     écrits exactement. « novotel roisy » rendait bien les Novotel, mais
+     celui de Roissy n'avait aucun point de plus qu'un autre. Un mot de
+     cinq lettres ou plus compte désormais s'il est à une lettre près d'un
+     mot du libellé (deux à partir de huit lettres) — un peu moins qu'un
+     mot exact. En dessous de cinq lettres, rien : « orly » et « orli »
+     restent distincts, et « bar » ne devient pas « bac ».
+     Pas de correcteur maison au-delà : le reste est l'affaire des services. */
+  function distanceEdition(a, b, max){
+    if(Math.abs(a.length - b.length) > max) return max + 1;
+    var prec = [], i, j;
+    for(j = 0; j <= b.length; j++) prec[j] = j;
+    for(i = 1; i <= a.length; i++){
+      var cour = [i], mini = i;
+      for(j = 1; j <= b.length; j++){
+        cour[j] = Math.min(prec[j] + 1, cour[j-1] + 1,
+                           prec[j-1] + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+        if(cour[j] < mini) mini = cour[j];
+      }
+      if(mini > max) return max + 1;
+      prec = cour;
+    }
+    return prec[b.length];
+  }
+  function motProche(m, motsLibelle){
+    if(m.length < 5) return false;
+    var tol = m.length >= 8 ? 2 : 1;
+    return motsLibelle.some(function(w){
+      /* Le client n'a peut-être pas fini d'écrire : « disneylan » se compare
+         au début de « disneyland » autant qu'au mot entier. */
+      return distanceEdition(m, w, tol) <= tol
+          || (w.length > m.length && distanceEdition(m, w.slice(0, m.length), tol) <= tol);
+    });
+  }
   function note(item, mots){
     var l = sansAccents(item.label), s = item.lieuNomme ? 2 : 0;
+    var motsLibelle = l.split(/[^a-z0-9]+/).filter(Boolean);
     var utiles = 0, touches = 0;
     mots.forEach(function(m){
       if(m.length < 2) return;
       var courant = MOTS_COURANTS.indexOf(m) > -1;
       if(!courant) utiles++;
-      if(l.indexOf(m) === -1) return;
+      if(l.indexOf(m) === -1){
+        if(!courant && motProche(m, motsLibelle)){ touches++; s += 2; }
+        return;
+      }
       if(!courant) touches++;
       s += courant ? 1 : 3;
     });
@@ -6051,15 +6204,31 @@ window.ELA_TEXTES = {
     return sortie;
   }
 
+  /* LE CACHE TIENT COMPTE DU CONTEXTE ET DE LA LANGUE (4 octobre 2026) :
+     la même saisie, biaisée autour d'Orly ou de Roissy, ne rend pas la même
+     liste — servir l'une pour l'autre serait servir la réponse d'une autre
+     question. Et UNE PANNE N'EST JAMAIS GARDÉE : voir plus bas. */
   var cache = {};
-  function chercher(q){
+  function chercher(q, ctx){
     if(!q || q.trim().length < 2) return Promise.resolve([]);
-    var clef = q.trim().toLowerCase();
+    var contexte = { lang:LANGUE,
+      lat:ctx && typeof ctx.lat === "number" ? ctx.lat : undefined,
+      lon:ctx && typeof ctx.lon === "number" ? ctx.lon : undefined };
+    var clef = q.trim().toLowerCase() + "|" + contexte.lang + "|"
+             + (contexte.lat !== undefined ? contexte.lat.toFixed(4) + "," + contexte.lon.toFixed(4) : "paris");
     if(cache[clef]) return Promise.resolve(cache[clef]);
     var terminaux = terminauxPourSaisie(q);
     var formes = variantes(q);
-    return Promise.all([depuisBAN(q)].concat(formes.map(depuisPhoton)))
+    return Promise.all([depuisBAN(q, contexte)].concat(formes.map(function(f){ return depuisPhoton(f, contexte); })))
       .then(function(res){
+        /* UN SERVICE MUET N'EST PAS UN SERVICE QUI N'A RIEN TROUVÉ. Avant,
+           une seconde de réseau perdue faisait garder une liste VIDE pour
+           cette saisie : le client retapait son adresse et lisait « Aucune
+           adresse trouvée » jusqu'au rechargement de la page. On ne garde
+           donc rien quand un service n'a pas répondu, et une liste vide due
+           à une panne le DIT (« echec ») pour que l'écran propose de
+           réessayer plutôt que de déclarer l'adresse introuvable. */
+        var panne = res.some(function(r){ return r && r.echec; });
         var ban = res[0];
         var photon = res.slice(1).reduce(function(a,b){ return a.concat(b); }, []);
         var nommes = photon.filter(function(r){ return r.lieuNomme; });
@@ -6074,10 +6243,34 @@ window.ELA_TEXTES = {
                   .sort(function(a,b){ return b.s - a.s || a.i - b.i; })
                   .map(function(x){ return x.it; });
         };
-        var ordre = chercheAdresse
-          ? terminaux.concat(classer(ban.concat(nommes, simples)))
-          : terminaux.concat(classer(nommes.concat(ban, simples)));
-        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+3 : 8);
+        var reste = chercheAdresse ? classer(ban.concat(nommes, simples))
+                                   : classer(nommes.concat(ban, simples));
+        /* « NOVOTEL ROISSY » CHERCHE UN HÔTEL, PAS UN TERMINAL (4 octobre
+           2026). Les terminaux passaient TOUJOURS en tête dès qu'un mot
+           d'aéroport était tapé : neuf lignes de Roissy avant le Novotel
+           qu'on cherchait. Ils restent en tête pour « cdg » ou « orly 4 » ;
+           mais si la saisie porte un autre mot distinctif (« novotel »,
+           « ibis ») et qu'un résultat les porte TOUS, celui-là passe devant. */
+        var clesAero = [];
+        Object.keys(AEROPORTS).forEach(function(k){ clesAero = clesAero.concat(AEROPORTS[k].mots.map(sansAccents)); });
+        var distinctifs = mots.filter(function(m){
+          return m.length >= 3 && MOTS_COURANTS.indexOf(m) === -1 && !/^\d/.test(m) && m !== "terminal"
+                 && clesAero.indexOf(m) === -1 && !clesAero.some(function(k){ return cleProche(m, k); });
+        });
+        var devant = [];
+        if(terminaux.length && distinctifs.length){
+          devant = reste.filter(function(it){
+            var l = sansAccents(it.label), ml = l.split(/[^a-z0-9]+/).filter(Boolean);
+            return distinctifs.every(function(m){ return l.indexOf(m) > -1 || motProche(m, ml); });
+          });
+          reste = reste.filter(function(it){ return devant.indexOf(it) === -1; });
+        }
+        var ordre = devant.concat(terminaux, reste);
+        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+devant.length+3 : 8);
+        if(panne){
+          if(!sortie.length) sortie.echec = true;
+          return sortie;
+        }
         cache[clef] = sortie;
         return sortie;
       });
@@ -6147,7 +6340,8 @@ window.ELA_TEXTES = {
   }
 
   /* ---- Brancher un champ ---------------------------------------------- */
-  function brancher(champ, liste, quand){
+  function brancher(champ, liste, quand, contexte, options){
+    options = options || {};
     var rang = 0;        // une réponse lente ne doit pas écraser une plus récente
     var choisi = null;   // le libellé réellement retenu dans la liste
     var actif = -1;      // ligne survolée au clavier
@@ -6170,13 +6364,60 @@ window.ELA_TEXTES = {
       champ.setAttribute("aria-activedescendant", el.id);
       el.scrollIntoView({ block:"nearest" });
     }
+    /* ═══ LA SORTIE DE SECOURS : L'ADRESSE QU'AUCUN SERVICE NE CONNAÎT ═══
+       (4 octobre 2026, à sa demande : « un client avec une demande réelle
+       doit toujours disposer d'une sortie »). Une résidence neuve, un
+       hangar d'aéroport d'affaires, un lieu-dit : le bouton ne faisait que
+       remettre le curseur dans le champ, sans un mot. La dernière ligne de
+       la liste permet d'envoyer le texte TEL QUEL — sans coordonnées
+       inventées, donc sans prix : « Adresse à vérifier », « Tarif à
+       confirmer ». Réservée au client : dans l'admin on tape librement. */
+    var noteManuelle = null;
+    function direManuelle(oui){
+      if(!options.manuel) return;
+      if(!noteManuelle){
+        noteManuelle = document.createElement("p");
+        noteManuelle.className = "champ-aide note-manuelle";
+        liste.parentNode.insertBefore(noteManuelle, liste.nextSibling);
+      }
+      noteManuelle.hidden = !oui;
+      noteManuelle.setAttribute("data-t", "adresse_verifier");
+      noteManuelle.textContent = T("adresse_verifier");
+    }
+    function ligneManuelle(){
+      var q = champ.value.replace(/\s+/g, " ").trim();
+      if(!options.manuel || q.length < 4 || !/[a-zà-ÿ]/i.test(q)) return null;
+      var l = document.createElement("div");
+      l.className = "suggest-item suggest-manuel";
+      l.setAttribute("role","option");
+      l.setAttribute("tabindex","0");
+      var i = document.createElement("span");
+      i.className = "ico"; i.textContent = "✏️";
+      var t = document.createElement("span");
+      t.textContent = T("adresse_manuelle") + " : « " + q.slice(0, 160) + " »";
+      l.appendChild(i); l.appendChild(t);
+      function prendre(){
+        var item = { label:q.slice(0, 200), manuel:true, icon:"✏️", categorie:"adresse",
+                     lieuNomme:false, source:"saisie" };
+        champ.value = item.label;
+        choisi = item.label;
+        fermer();
+        quand(item);
+        direManuelle(true);
+      }
+      l.addEventListener("click", prendre);
+      l.addEventListener("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); prendre(); }
+      });
+      return l;
+    }
     function dessiner(items){
       liste.innerHTML = "";
       if(!items.length){
         var vide = document.createElement("div");
         vide.className = "suggest-vide";
         vide.setAttribute("role","status");
-        vide.textContent = T("aucune_adresse");
+        vide.textContent = T(items.echec ? "recherche_indispo" : "aucune_adresse");
         liste.appendChild(vide);
       }else{
         items.forEach(function(item){
@@ -6202,6 +6443,8 @@ window.ELA_TEXTES = {
           liste.appendChild(l);
         });
       }
+      var manuelle = ligneManuelle();
+      if(manuelle) liste.appendChild(manuelle);
       liste.hidden = false;
       champ.setAttribute("aria-expanded","true");
       jugerBouton();
@@ -6217,7 +6460,7 @@ window.ELA_TEXTES = {
       liste.hidden = false;
       champ.setAttribute("aria-expanded","true");
       jugerBouton();
-      chercher(q).then(function(items){
+      chercher(q, contexte ? contexte() : null).then(function(items){
         if(mien !== rang) return;   // une frappe plus récente a pris la main
         actif = -1;
         dessiner(items);
@@ -6229,7 +6472,7 @@ window.ELA_TEXTES = {
          correspond plus à ce qui est écrit, on l'invalide. Sans ça, le
          client corrige son adresse et part avec les coordonnées de
          l'ancienne. */
-      if(choisi !== null && champ.value !== choisi){ choisi = null; quand(null); }
+      if(choisi !== null && champ.value !== choisi){ choisi = null; quand(null); direManuelle(false); }
       ferme = false;
       lancer();
     });
@@ -6266,19 +6509,34 @@ window.ELA_TEXTES = {
       choisi = item.label;
       fermer();
       quand(item);
+      direManuelle(!!item.manuel);
     } };
   }
 
+  /* ═══ LE BIAIS SUIT LE CONTEXTE (4 octobre 2026) ═══
+     Dans l'ordre : l'autre bout du trajet s'il est choisi, l'hôtel
+     partenaire de la page, la position « Me localiser », sinon Paris. Un
+     biais RAPPROCHE sans exclure : la liste est la même, l'ordre change. Le
+     classement maison garde, lui, sa référence Paris — c'est la zone
+     desservie, elle ne bouge pas avec le client. */
+  function pointConnu(it){
+    return it && typeof it.lat === "number" && typeof it.lon === "number" ? { lat:it.lat, lon:it.lon } : null;
+  }
+  function contexteRecherche(autre){
+    return function(){
+      return pointConnu(choix[autre]) || pointConnu(hotel) || positionClient || null;
+    };
+  }
   var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
     choix.depart = item; jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
-  });
+  }, contexteRecherche("arrivee"), { manuel:true });
   /* LA PRISE DE L'ARRIVÉE EST RETENUE ELLE AUSSI. Elle ne servait à rien
      tant qu'une seule fonction posait une adresse de l'extérieur (« me
      localiser », au départ) ; le mode hôtel fige l'un OU l'autre des deux
      champs selon le sens du trajet, et il lui faut les deux prises. */
   var priseArrivee = brancher(champArrivee, document.getElementById("arriveeList"), function(item){
     choix.arrivee = item; jugerVol(); jugerZone(); jugerForfait();
-  });
+  }, contexteRecherche("depart"), { manuel:true });
 
 /* =====================================================================
    LE MODE HÔTEL — CE QUE VOIT UNE RÉCEPTION
@@ -6324,7 +6582,8 @@ window.ELA_TEXTES = {
        et dans le message du chauffeur. « easyHotel » seul ne suffit pas —
        plusieurs portent ce nom autour de Roissy. */
     return { label:h.nom + ", " + h.adresse, lat:h.lat, lon:h.lon,
-             icon:"🏨", categorie:"hotel", lieuNomme:true };
+             icon:"🏨", categorie:"hotel", lieuNomme:true,
+             source:"elatransfer", sourceId:"hotel:" + (h.cle || "") };
   }
   function itemDest(dest, terminal){
     if(dest.aeroport && terminal){
@@ -6335,10 +6594,12 @@ window.ELA_TEXTES = {
          et l'option pancarte. Un libellé écrit autrement les éteindrait
          tous les deux sans le moindre message. */
       return { label:terminal + " — " + ap.nom, lat:pt[0], lon:pt[1],
-               icon:"✈️", categorie:"aeroport", lieuNomme:true };
+               icon:"✈️", categorie:"aeroport", lieuNomme:true,
+               source:"elatransfer", sourceId:"aeroport:" + dest.aeroport + ":" + terminal };
     }
     return { label:dest.label || dest.nom, lat:dest.lat, lon:dest.lon,
-             icon:"📍", categorie:"adresse", lieuNomme:true };
+             icon:"📍", categorie:"adresse", lieuNomme:true,
+             source:"elatransfer", sourceId:"destination:" + (dest.cle || "") };
   }
 
   /* DANS LE SENS « ARRIVÉE À L'HÔTEL », ON ÉCHANGE VRAIMENT LES DEUX CHAMPS
@@ -7073,7 +7334,7 @@ window.ELA_TEXTES = {
       if(!recFinie(c) && typeof c.prix === "number"){
         var prix = document.createElement("b");
         prix.className = "rec-prix";
-        prix.textContent = c.prix ? eurosFR(c.prix) : "—";
+        prix.textContent = c.prix ? eurosFR(c.prix) : T("tarif_a_confirmer");
         bas.appendChild(prix);
       }
       d.appendChild(bas);
@@ -7619,7 +7880,8 @@ window.ELA_TEXTES = {
         if(!f || !f.properties || !f.geometry) return null;
         return { label:f.properties.label,
                  lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
-                 icon:"📍", lieuNomme:false };
+                 icon:"📍", lieuNomme:false, categorie:"adresse",
+                 source:"ban", sourceId:String(f.properties.id || "") };
       });
   }
 
@@ -7634,6 +7896,7 @@ window.ELA_TEXTES = {
     direGeo("geo_recherche");
 
     navigator.geolocation.getCurrentPosition(function(pos){
+      positionClient = { lat:pos.coords.latitude, lon:pos.coords.longitude };
       adresseDuPoint(pos.coords.latitude, pos.coords.longitude).then(function(item){
         finGeo();
         /* PAS D'ADRESSE TROUVÉE ≠ ÉCHEC DE LA LOCALISATION. Le client est
@@ -7677,21 +7940,42 @@ window.ELA_TEXTES = {
     if(!lieu || typeof lieu.lat !== "number") return false;
     return volDoiseauKm(CENTRE_ZONE, lieu) > RAYON_ZONE_KM;
   }
-  var blocZone = document.getElementById("horsZone");
-  var zoneLieu = document.getElementById("horsZoneLieu");
+  /* ═══ LES 90 KM NE BLOQUENT PLUS RIEN (4 octobre 2026) ═══
+     Ils étaient un REFUS : bouton éteint, « appelez-nous ». Ils sont
+     devenus la limite du PRIX AUTOMATIQUE : au-delà, la demande part avec
+     « Tarif à confirmer », qu'Elatransfer fixe avant la course. Chercher un
+     lieu, l'envoyer, et en donner le prix sont trois choses distinctes. */
+  var blocLongue = document.getElementById("infoLongue");
+  var longueLieu = document.getElementById("infoLongueLieu");
   function lieuHorsZone(){
     if(horsZone(choix.depart)) return choix.depart;
     if(horsZone(choix.arrivee)) return choix.arrivee;
     return null;
   }
   function jugerZone(){
-    var mauvais = lieuHorsZone();
-    blocZone.hidden = !mauvais;
-    zoneLieu.textContent = mauvais ? mauvais.label : "";
-    /* Le bouton n'est plus éteint ici : la zone n'est pas son seul juge
-       depuis le préavis minimum. Voir « jugerBoutonPrix ». */
+    var loin = lieuHorsZone();
+    blocLongue.hidden = !loin;
+    longueLieu.textContent = loin ? loin.label : "";
     if(window.__jugerBoutonPrix) window.__jugerBoutonPrix();
   }
+  /* ═══ CE QUI EMPÊCHE UN PRIX AUTOMATIQUE — JAMAIS UNE DEMANDE ═══
+     Trois cas, une seule réponse : « Tarif à confirmer ». Une adresse saisie
+     à la main n'a pas de coordonnées, donc pas de distance ; au-delà de
+     90 km la grille ne s'applique pas ; au-delà de la capacité du plus
+     grand véhicule, c'est Elatransfer qui compose les voitures. On ne
+     fabrique AUCUN montant dans ces cas : un prix affiché est ferme. */
+  function lieuManuel(l){ return !!(l && l.manuel); }
+  function paxNombre(){ return Math.max(1, parseInt(champPax.value, 10) || 1); }
+  function plusGrandVehicule(){ return Math.max.apply(null, GAMMES.map(function(g){ return g.places; })); }
+  function paxGroupe(){ return paxNombre() > plusGrandVehicule(); }
+  function motifsTarif(){
+    var m = [];
+    if(lieuManuel(choix.depart) || lieuManuel(choix.arrivee)) m.push("adresse");
+    if(lieuHorsZone()) m.push("longue");
+    if(paxGroupe()) m.push("groupe");
+    return m;
+  }
+  function tarifAConfirmer(){ return motifsTarif().length > 0; }
 
 /* =====================================================================
    LE PRIX
@@ -7992,6 +8276,7 @@ window.ELA_TEXTES = {
      pas : on le découvre le jour où un client compare, et le prix est ferme
      donc opposable. C'est la faute déjà évitée deux fois sur ce projet. */
   function prixGamme(g){
+    if(tarifAConfirmer()) return 0;
     if(course.forfait && typeof course.forfait[g.cle] === "number")
       return course.forfait[g.cle];
     return prix(g, course.km);
@@ -8003,7 +8288,14 @@ window.ELA_TEXTES = {
     return (optionPancarte && pancarteProposee()) ? OPTION_PANCARTE_EUR : 0;
   }
   function totalCourse(){
+    /* Sans prix automatique, pas de total — pas même les 10 € de la
+       pancarte : un « 10 € » seul se lirait comme le prix de la course. */
+    if(tarifAConfirmer()) return 0;
     return prixGamme(course.gamme) + supplementPancarte();
+  }
+  /* Le montant tel qu'un client doit le lire : jamais « 0,00 € ». */
+  function prixAffiche(n, approx){
+    return tarifAConfirmer() ? T("tarif_a_confirmer") : (approx ? "≈ " : "") + euros(n);
   }
 
 
@@ -8301,13 +8593,21 @@ window.ELA_TEXTES = {
     /* Le nombre de passagers n'écarte QUE les véhicules trop petits : un
        client seul garde le droit de vouloir un van, et c'est une course
        plus chère. Il choisit, ou rien n'est réservé. */
-    GAMMES.filter(function(g){ return g.places >= pax; }).forEach(function(g){
+    /* UN GROUPE PLUS GRAND QUE LE PLUS GRAND VÉHICULE : une seule ligne,
+       « Plusieurs véhicules », que le client choisit comme une autre. On
+       n'invente ni combinaison ni prix : Elatransfer compose. La clé reste
+       « van » — c'est ce qu'on enverra le plus souvent, et l'historique ne
+       connaît que deux clés. */
+    var offre = paxGroupe()
+      ? [{ cle:"van", nom:T("multi_nom"), places:pax, multi:true }]
+      : GAMMES.filter(function(g){ return g.places >= pax; });
+    offre.forEach(function(g){
       var p = prixGamme(g);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "veh-carte";
       b.dataset.cle = g.cle;
-      var heureArrivee = isNaN(arrBas.getTime()) ? "" :
+      var heureArrivee = (isNaN(arrBas.getTime()) || !(course.km > 0)) ? "" :
         (" · " + T("arrivee_h") + " " + hhmmLoc(arrBas) + "–" + hhmmLoc(arrHaut));
       b.innerHTML = '<span class="veh-corps">'
         +   '<span class="veh-nom"></span>'
@@ -8322,9 +8622,10 @@ window.ELA_TEXTES = {
          « 43–48 min · arrivée 10:43–10:48 » ne tenait plus sur une ligne de
          téléphone, et c'est l'HEURE D'ARRIVÉE que le client regarde : c'est
          elle qu'il compare à l'heure d'enregistrement de son vol. */
-      b.querySelector(".veh-detail").textContent =
-        T("jusqua") + " " + g.places + " " + T("passagers_bas") + heureArrivee;
-      b.querySelector(".veh-prix").textContent = (course.estime ? "≈ " : "") + euros(p);
+      b.querySelector(".veh-detail").textContent = g.multi
+        ? T("multi_detail").replace("{{n}}", pax)
+        : T("jusqua") + " " + g.places + " " + T("passagers_bas") + heureArrivee;
+      b.querySelector(".veh-prix").textContent = prixAffiche(p, course.estime);
       b.addEventListener("click", function(){
         course.gamme = g;
         Array.prototype.forEach.call(liste.children, function(c){
@@ -8374,40 +8675,21 @@ window.ELA_TEXTES = {
   /* Une heure déjà passée. Le champ ne peut pas la borner tout seul : sa
      borne dépend de la date choisie, et elle change à minuit. */
   function heureDepassee(){
+    if(typeof quandAsap !== "undefined" && quandAsap) return false;
     var d = new Date(champDate.value + "T" + champHeure.value);
-    return !isNaN(d.getTime()) && d.getTime() < Date.now();
+    /* À la MINUTE près : le créneau de la minute en cours n'est pas
+       « passé » — sans ça, 14 h 05 choisi à 14 h 05 et 20 s serait refusé. */
+    return !isNaN(d.getTime()) && d.getTime() < Math.floor(Date.now() / 60000) * 60000;
   }
 
   /* ---------------------------------------------------------------------
-     LE PRÉAVIS DE 15 MINUTES (septembre 2026, à la demande de Barbaros).
-     Il faut trouver un chauffeur, le prévenir, et qu'il roule jusqu'au
-     client. Accepter un départ dans cinq minutes, c'est promettre ce qu'on
-     ne peut pas tenir — et chez Elatransfer l'heure est ferme comme le
-     prix.
-
-     CE N'EST PAS LE RETOUR DU DÉLAI DE 3 HEURES, retiré en septembre 2026 à
-     sa demande. Celui-là était un AVERTISSEMENT sur des heures entières, qui
-     décourageait des courses parfaitement plaçables ; celui-ci est un
-     REFUS de vingt minutes, le temps matériel d'envoyer une voiture. Ne pas
-     les confondre, et ne pas rétablir l'ancien en croyant compléter
-     celui-ci.
-
-     UNE HEURE DÉJÀ PASSÉE N'EST PAS « TROP PROCHE » : elle a son propre
-     message, qui dit ce qui ne va pas. D'où le « > maintenant » ci-dessous.
+     IL N'Y A PLUS DE PRÉAVIS MINIMUM (4 octobre 2026, à sa demande : « je
+     veux pouvoir recevoir une demande même lorsque le client souhaite
+     partir immédiatement »). Le préavis de 15 minutes REFUSAIT la course ;
+     elle est maintenant transmise, soumise à disponibilité, et rien ne
+     promet de délai. Seule l'heure RÉELLEMENT passée reste refusée — avec
+     une sortie : « Partir dès que possible ».
      --------------------------------------------------------------------- */
-  var DELAI_MINIMUM_MIN = 15;
-  function tropTot(){
-    if(!champDate.value || !champHeure.value) return false;
-    var d = new Date(champDate.value + "T" + champHeure.value).getTime();
-    if(isNaN(d)) return false;
-    /* La MÊME minute rabotée que « prochainCreneau », sinon la borne
-       proposerait un créneau que ce juge refuserait aussitôt : le champ
-       dirait 2 h 30 et l'écriteau dirait non. Les deux doivent compter le
-       temps de la même façon. */
-    var minute = Math.floor(Date.now() / 60000) * 60000;
-    return d > Date.now() && d < minute + DELAI_MINIMUM_MIN * 60000;
-  }
-  var blocTropTot = document.getElementById("tropTot");
   var blocPassee = document.getElementById("heurePassee");
 
   /* LE PAS DES CRÉNEAUX. Un client ne choisit pas un départ à 10 h 07 : il
@@ -8415,10 +8697,9 @@ window.ELA_TEXTES = {
      — 300 secondes — et ce nombre-ci doit rester d'accord avec lui ; un
      test compare les deux. */
   var PAS_MINUTES = 5;
-  /* Le premier moment réservable : maintenant + le préavis, arrondi au PAS
-     supérieur. À 1 h 41, c'est 2 h 00 — et pas 1 h 56, qui ne serait pas
-     sur la grille et décalerait tous les créneaux proposés ensuite,
-     « step » étant compté à partir de « min ». */
+  /* Le premier créneau de la grille des 5 minutes, à partir de maintenant.
+     À 1 h 41, c'est 1 h 45 — sur la grille, puisque « step » est compté à
+     partir de « min ». Il n'y a plus de préavis ajouté. */
   function prochainCreneau(){
     var pas = PAS_MINUTES * 60000;
     /* ON PART DE LA MINUTE EN COURS, SECONDES RABOTÉES, et ce n'est pas un
@@ -8430,7 +8711,7 @@ window.ELA_TEXTES = {
        donc 2 h 30 ». Le prix se calcule au centime près, le préavis se
        compte à la minute. */
     var minute = Math.floor(Date.now() / 60000) * 60000;
-    return new Date(Math.ceil((minute + DELAI_MINIMUM_MIN * 60000) / pas) * pas);
+    return new Date(Math.ceil(minute / pas) * pas);
   }
   function hhmm(d){
     var z = function(n){ return String(n).padStart(2, "0"); };
@@ -8457,11 +8738,46 @@ window.ELA_TEXTES = {
        pose donc pas : l'écriteau tranche. */
     else champHeure.removeAttribute("min");
   }
-  /* Le bouton a DEUX juges — la zone et le préavis — et ils ne doivent pas
-     se contredire. Sans ce point de rendez-vous, le second à s'exécuter
-     rallumerait le bouton que le premier vient d'éteindre. */
+  /* ═══ « DÈS QUE POSSIBLE » ═══
+     La date et l'heure sont posées à MAINTENANT, et le resteront jusqu'à
+     l'envoi (« heureMaintenant » au clic de confirmation) : l'itinéraire,
+     la durée et le bon en ont besoin. La course porte « immediat », et
+     l'heure réelle de la demande est son heure de création. */
+  var quandAsap = false;
+  var btnQuandAsap = document.getElementById("btnQuandAsap");
+  var btnQuandProg = document.getElementById("btnQuandProg");
+  var blocDateHeure = document.getElementById("blocDateHeure");
+  var noteAsap = document.getElementById("noteAsap");
+  function heureMaintenant(){
+    var d = new Date();
+    champDate.value = dateLocale(d);
+    champHeure.value = hhmm(d);
+  }
+  function ecrireNoteAsap(){
+    var h = new Date().getHours();
+    noteAsap.textContent = T("asap_note") + ((h >= 22 || h < 5) ? " " + T("asap_nuit") : "");
+  }
+  function choisirQuand(asap){
+    quandAsap = !!asap;
+    btnQuandAsap.setAttribute("aria-pressed", String(quandAsap));
+    btnQuandProg.setAttribute("aria-pressed", String(!quandAsap));
+    blocDateHeure.hidden = quandAsap;
+    document.getElementById("blocAsap").hidden = !quandAsap;
+    noteAsap.hidden = !quandAsap;
+    if(quandAsap){ ecrireNoteAsap(); heureMaintenant(); }
+    else { heureTouchee = false; poserDefautHeure(); }
+    jugerDelai();
+  }
+  window.__quandAsap = function(){ return quandAsap; };
+  btnQuandAsap.addEventListener("click", function(){ choisirQuand(true); });
+  btnQuandProg.addEventListener("click", function(){ choisirQuand(false); });
+  document.getElementById("btnPasseAsap").addEventListener("click", function(){ choisirQuand(true); });
+
+  /* Le bouton n'a plus qu'UN juge côté client : l'heure réellement passée.
+     La zone et le préavis ne refusent plus rien. Le point de rendez-vous
+     reste — le comptoir y branche son propre juge. */
   function jugerBoutonPrix(){
-    var bloque = !!lieuHorsZone() || tropTot() || heureDepassee();
+    var bloque = heureDepassee();
     boutonPrix.disabled = bloque;
     /* ═══ TOUT NOUVEAU JUGE DU BOUTON PASSE PAR ICI ═══
        La règle date du préavis minimum : sans ce point de rendez-vous, le
@@ -8477,18 +8793,17 @@ window.ELA_TEXTES = {
     }
   }
   window.__jugerBoutonPrix = jugerBoutonPrix;
-  /* Les deux écriteaux s'excluent : « trop proche » et « déjà passée » ne
-     peuvent pas être vrais ensemble, et en afficher deux ferait douter le
-     client de ce qu'il doit corriger. */
   function jugerDelai(){
+    /* « Dès que possible » : l'heure suit l'horloge, elle ne peut pas être
+       passée. */
+    if(quandAsap) heureMaintenant();
     /* Le temps a passé sur une page restée ouverte, et le défaut n'est plus
        réservable. Tant que le client n'y a pas touché, on le remet à jour
        plutôt que de lui opposer un refus qu'il n'a pas provoqué. */
-    if(!heureTouchee && (tropTot() || heureDepassee())) poserDefautHeure();
+    else if(!heureTouchee && heureDepassee()) poserDefautHeure();
     bornerHeure();
     var passee = heureDepassee();
     blocPassee.hidden = !passee;
-    blocTropTot.hidden = passee || !tropTot();
     /* Le flyer a deux colonnes, jour et nuit : l'heure choisie décide de
        celle qu'on affiche. Sans ce rappel, une réception qui passe le
        départ de 20 h à 22 h continuerait de lire le tarif de jour. */
@@ -8567,21 +8882,13 @@ window.ELA_TEXTES = {
       (choix.depart ? champArrivee : champDepart).focus();
       return;
     }
-    if(lieuHorsZone()) return;
     if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }
-    if(heureDepassee()){ refuser("err_heure_passee"); champHeure.focus(); return; }
-    /* Le préavis. L'écriteau est déjà affiché par « jugerDelai », mais le
-       contrôle est REFAIT ici : entre l'instant où le client a choisi son
-       heure et celui où il appuie, le temps a passé — une réservation
-       laissée ouverte deux minutes devient trop proche toute seule. */
-    if(tropTot()){ jugerDelai(); blocTropTot.scrollIntoView({block:"nearest"});
-                   champHeure.focus(); return; }
-    /* Plus de passagers que le plus grand véhicule : l'écran des prix
-       s'ouvrait VIDE, avec un bouton gris et pas un mot. Un groupe de neuf
-       est une belle course — deux voitures — pas une impasse. */
-    var pax = Math.max(1, parseInt(champPax.value, 10) || 1);
-    var plusGrand = Math.max.apply(null, GAMMES.map(function(g){ return g.places; }));
-    if(pax > plusGrand){ refuser("err_trop_grand", { n:pax }); champPax.focus(); return; }
+    if(quandAsap) heureMaintenant();
+    if(heureDepassee()){ jugerDelai(); blocPassee.scrollIntoView({block:"nearest"}); champHeure.focus(); return; }
+    /* PLUS DE REFUS POUR LA ZONE, LE PRÉAVIS NI LE NOMBRE DE PASSAGERS
+       (4 octobre 2026). Neuf passagers, c'est deux voitures, pas une
+       impasse : l'écran des prix propose « Plusieurs véhicules », tarif à
+       confirmer. Voir « motifsTarif ». */
     /* Le forfait d'un hôtel est REJUGÉ ici, sur l'heure réellement
        retenue : entre le choix de la destination et l'appui sur le bouton,
        la réception a pu repousser le départ de 20 h 50 à 21 h 10 — ce qui
@@ -8594,14 +8901,19 @@ window.ELA_TEXTES = {
     boutonPrix.disabled = true;
     /* La bibliothèque de la carte part MAINTENANT, en même temps que le
        calcul du prix — pas après lui. Voir « prechargerCarte ». */
-    prechargerCarte();
+    /* UNE ADRESSE SAISIE À LA MAIN N'A PAS DE COORDONNÉES : on n'invente
+       ni distance ni prix, on passe directement au choix du véhicule. */
+    var sansCoord = lieuManuel(choix.depart) || lieuManuel(choix.arrivee);
+    if(!sansCoord) prechargerCarte();
     tarifsLus.then(function(){
+      if(sansCoord) return { km:0, min:0, estime:true, source:"", trace:null, manuel:true };
       return itineraire(choix.depart, choix.arrivee,
                         { date:champDate.value, heure:champHeure.value });
     }).then(function(r){
       libelle.textContent = avant;
       boutonPrix.disabled = false;
       course.km = r.km; course.min = r.min; course.estime = r.estime;
+      course.source = r.source || "";
       document.getElementById("resumeDepart").textContent  = choix.depart.label;
       document.getElementById("resumeArrivee").textContent = choix.arrivee.label;
       /* « trafic pris en compte » n'apparaît que si c'est VRAI — donc
@@ -8610,7 +8922,7 @@ window.ELA_TEXTES = {
          une décoration, et un client qui se fie à une heure d'arrivée la
          vérifie une fois. */
       var dv = dureeAnnoncee(r.min);
-      document.getElementById("resumeMesure").textContent =
+      document.getElementById("resumeMesure").textContent = r.manuel ? T("mesure_manuelle") :
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
         + " km · " + dv.bas + "–" + dv.haut + " " + T("min")
         + (r.trafic ? " · " + T("trafic") : "");
@@ -8629,7 +8941,8 @@ window.ELA_TEXTES = {
          moment où on la crée, et un cadre encore masqué mesure zéro — la
          carte sortirait grise. Exactement le piège de la courbe du tableau
          de bord, tracée sur un écran non affiché. */
-      tracerCarte(r.trace, choix.depart, choix.arrivee);
+      if(r.manuel){ var cadreCarte = document.getElementById("carteTrajet"); if(cadreCarte) cadreCarte.hidden = true; }
+      else tracerCarte(r.trace, choix.depart, choix.arrivee);
     }).catch(function(){
       /* UN CALCUL QUI ÉCHOUE NE DOIT PAS LAISSER LE BOUTON MORT. Il était
          remis en état dans le « then » seulement : un refus du calculateur
@@ -8672,7 +8985,7 @@ window.ELA_TEXTES = {
     var lib = boutonPrix.querySelector("span");
     lib.setAttribute("data-t", pret ? "reserver_prix" : "btn_prix_attente");
     lib.textContent = pret
-      ? T("reserver_prix") + " · " + euros(totalCourse())
+      ? T("reserver_prix") + " · " + prixAffiche(totalCourse())
       : T("btn_prix_attente");
   }
 
@@ -8930,6 +9243,10 @@ window.ELA_TEXTES = {
          + nb + (nb > 1 ? " bagages" : " bagage");
   }
   function dateLisible(bon){
+    if(bon.course && bon.course.immediat) return T("asap_libelle") + " · " + dateLisibleBrute(bon);
+    return dateLisibleBrute(bon);
+  }
+  function dateLisibleBrute(bon){
     var d = new Date(bon.course.date + "T" + bon.course.heure);
     if(isNaN(d.getTime())) return bon.course.date + " " + bon.course.heure;
     return d.toLocaleDateString(locale()) + " " +
@@ -8998,7 +9315,9 @@ window.ELA_TEXTES = {
        à « — », elle ferait chercher au client ce qu'il n'a pas demandé. */
     document.getElementById("ligneOption").hidden = supplementPancarte() === 0;
     document.getElementById("recapOption").textContent = "+" + euros(OPTION_PANCARTE_EUR);
-    document.getElementById("recapTotal").textContent = (course.estime ? "≈ " : "") + euros(total);
+    document.getElementById("recapTotal").textContent = prixAffiche(total, course.estime);
+    var noteTarif = document.getElementById("recapTarifNote");
+    if(noteTarif){ noteTarif.hidden = !tarifAConfirmer(); noteTarif.textContent = T("tarif_note"); }
   }
   /* LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE, et elle vaut
      désormais pour les DEUX lieux où l'on attend quelqu'un : un terminal
@@ -9159,12 +9478,17 @@ window.ELA_TEXTES = {
      les deux premières lignes « … : … » pour les deux adresses, le dernier
      montant en euros, et « nom — téléphone » en dernière ligne. Changer
      cette forme oblige à changer le lecteur en même temps. */
+  function motifsLisibles(m){
+    var noms = { adresse:"adresse à vérifier", longue:"longue distance", groupe:"plusieurs véhicules" };
+    var l = (m || []).map(function(x){ return noms[x]; }).filter(Boolean);
+    return l.length ? " (" + l.join(", ") + ")" : "";
+  }
   function messageDemande(bon){
     return [
       "Demande de réservation — " + bon.ref,
       "Départ : " + bon.course.depart,
       "Arrivée : " + bon.course.arrivee,
-      "Date : " + bon.dateMsg,
+      "Date : " + (bon.course.immediat ? "dès que possible — demandé le " : "") + bon.dateMsg,
       "Passagers : " + bon.course.passagers,
       "Véhicule : " + bon.course.vehicule,
       /* Le règlement est posé AVANT le prix, et pas après : le lecteur de
@@ -9177,7 +9501,10 @@ window.ELA_TEXTES = {
          euros comme prix de la course. Une ligne portant « +10,00 € »
          glissée après le prix le remplacerait, et Barbaros recréerait la
          course à 10 € au lieu de 90. */
-      bon.course.pancarte ? "Option : pancarte à votre nom (+" + eurosFR(OPTION_PANCARTE_EUR) + ")" : null,
+      /* SANS PRIX AUTOMATIQUE, LA PANCARTE N'A PAS DE MONTANT DANS LE
+         MESSAGE : « +10 € » serait alors le DERNIER montant du message, et
+         le lecteur de demandes recréerait la course à 10 €. */
+      bon.course.pancarte ? "Option : pancarte à votre nom" + (bon.course.tarifAConfirmer ? "" : " (+" + eurosFR(OPTION_PANCARTE_EUR) + ")") : null,
       /* La précision est posée AVANT le prix, pour la troisième fois la
          même raison : le lecteur de demandes retient le DERNIER montant en
          euros comme prix de la course. Une réception qui écrit « prévoir
@@ -9186,7 +9513,9 @@ window.ELA_TEXTES = {
          premières valeurs « … : … » du message — une précision contenant
          un deux-points ne peut donc pas se faire prendre pour une adresse. */
       bon.course.note ? "Précision : " + bon.course.note : null,
-      "Prix : " + eurosFR(bon.prix.total),
+      /* Une demande « à confirmer » ne porte AUCUN montant : le lecteur de
+         demandes la recrée alors à zéro, c'est-à-dire « à confirmer ». */
+      "Prix : " + (bon.course.tarifAConfirmer ? "à confirmer" + motifsLisibles(bon.course.motifsTarif) : eurosFR(bon.prix.total)),
       bon.client.nom + " — " + bon.client.telephone
     ].filter(Boolean).join("\n");
   }
@@ -9198,6 +9527,14 @@ window.ELA_TEXTES = {
     catch(e){ return ""; }
   }
 
+  /* UN BON N'ANNONCE JAMAIS « 0,00 € » : sans prix, il dit « Tarif à
+     confirmer ». C'est le cas d'une demande longue distance, d'un groupe,
+     d'une adresse saisie à la main — et de toute course reçue sans montant. */
+  function prixDuBon(bon){
+    var t = bon && bon.prix && bon.prix.total;
+    if((bon && bon.course && bon.course.tarifAConfirmer && !(t > 0)) || !(t > 0)) return T("tarif_a_confirmer");
+    return euros(t);
+  }
   var bonCourant = null;
   function remplirBon(bon){
     document.getElementById("bonRef").textContent      = bon.ref;
@@ -9213,7 +9550,10 @@ window.ELA_TEXTES = {
     var note = (bon.course && bon.course.note) || "";
     document.getElementById("lignePrecision").hidden = !note;
     document.getElementById("bonPrecision").textContent = note;
-    document.getElementById("bonPrix").textContent     = euros(bon.prix.total);
+    document.getElementById("bonPrix").textContent     = prixDuBon(bon);
+    var noteAsapBon = document.getElementById("bonAsap");
+    if(noteAsapBon) noteAsapBon.hidden = !(bon.course && bon.course.immediat) || bon.statut === "confirmee"
+                                         || bon.statut === "realisee" || bon.statut === "refusee" || bon.statut === "annulee";
 
     /* LES DEUX VISAGES DU BON. Un seul est vrai à la fois : afficher
        « en attente » sur une course déjà attribuée ferait rappeler un client
@@ -9281,6 +9621,9 @@ window.ELA_TEXTES = {
     var ch = bon.chauffeur || {};
     var d = { r:bon.ref, c:ch.nom || "", t:ch.telephone || "",
               v:bon.course.vehicule, d:bon.course.date, h:bon.course.heure };
+    /* Le prix n'y entre QUE s'il a été fixé après coup (tarif à confirmer) :
+       le client ne l'a alors pas sur son bon. Sinon il l'a déjà. */
+    if(bon.course.prixFixeApres && bon.prix && bon.prix.total > 0) d.p = bon.prix.total;
     /* base64url : le « + », le « / » et le « = » du base64 ordinaire se font
        manger ou réécrire en route par les applications de messagerie. */
     return btoa(unescape(encodeURIComponent(JSON.stringify(d))))
@@ -9307,6 +9650,11 @@ window.ELA_TEXTES = {
       liste[i].chauffeur = { nom:d.c, telephone:d.t };
       if(d.d) liste[i].course.date = d.d;
       if(d.h) liste[i].course.heure = d.h;
+      if(d.p > 0){
+        liste[i].prix = liste[i].prix || {};
+        liste[i].prix.total = Number(d.p);
+        liste[i].course.tarifAConfirmer = false;
+      }
       trouve = liste[i];
       break;
     }
@@ -9320,7 +9668,7 @@ window.ELA_TEXTES = {
       chauffeur: { nom:d.c, telephone:d.t },
       course: { depart:"", arrivee:"", date:d.d || "", heure:d.h || "",
                 vehicule: d.v || "—" },
-      client: {}, prix: { total:0 }, dateMsg:""
+      client: {}, prix: { total: d.p > 0 ? Number(d.p) : 0 }, dateMsg:""
     };
   }
 
@@ -9417,6 +9765,10 @@ window.ELA_TEXTES = {
        La date y est en AAAA-MM-JJ et l'heure à part : c'est ainsi qu'il
        peut dire « aujourd'hui » ou « demain » plutôt qu'une date à
        décoder à 3 h du matin. */
+    /* « Dès que possible » : l'heure est celle de l'ENVOI, pas celle où le
+       client a appuyé sur le bouton trois écrans plus tôt. */
+    if(quandAsap) heureMaintenant();
+    var motifs = motifsTarif();
     var total = totalCourse();
     var ht = total / 1.10;
     bonCourant = {
@@ -9435,6 +9787,10 @@ window.ELA_TEXTES = {
         departPublic: choix.depart.label,
         arriveePublic: choix.arrivee.label,
         departPos: [choix.depart.lat, choix.depart.lon],
+        /* Le lieu STRUCTURÉ, à côté des anciens champs qu'il ne remplace
+           pas encore : nom, adresse, coordonnées, source. */
+        departLieu: lieuStructure(choix.depart),
+        arriveeLieu: lieuStructure(choix.arrivee),
         date: champDate.value, heure: champHeure.value,
         terminal: terminalDuLibelle(choix.depart.label)
                   || terminalDuLibelle(choix.arrivee.label) || null,
@@ -9467,7 +9823,21 @@ window.ELA_TEXTES = {
            raté s'y voit deux fois. */
         passagers: paxLisible(),
         distanceKm: Math.round(course.km * 10) / 10,
-        estimee: course.estime
+        estimee: course.estime,
+        /* Quel calculateur a donné la distance : « mapbox », « ors »,
+           « osrm » ou « vol ». C'est la surveillance des pannes, lue dans
+           les courses elles-mêmes. */
+        itineraireSource: course.source || "",
+        /* ═══ LES DEMANDES HORS CAS STANDARD (4 octobre 2026) ═══
+           Elles PARTENT, et elles le disent : l'admin les marque d'une
+           pastille, le serveur force leur prix à zéro tant qu'Elatransfer
+           ne l'a pas fixé, et les rappels d'une demande immédiate ne
+           s'éteignent pas à la seconde où elle est déposée. */
+        immediat: !!quandAsap,
+        tarifAConfirmer: motifs.length > 0,
+        motifsTarif: motifs,
+        adresseAVerifier: motifs.indexOf("adresse") > -1,
+        multiVehicules: motifs.indexOf("groupe") > -1
       },
       client: { nom: nom, telephone: tel },
       /* LA LANGUE DU CLIENT EST GARDÉE SUR LA COURSE. Elle ne sert à rien
@@ -9479,7 +9849,7 @@ window.ELA_TEXTES = {
       langue: LANGUE,
       /* Version des documents affichés au moment de l'envoi : elle permet
          de prouver quel texte accompagnait exactement la demande. */
-      conditionsAcceptees: { version: "2026-09-12", langue: LANGUE },
+      conditionsAcceptees: { version: "2026-10-04", langue: LANGUE },
       /* D'OÙ VIENT CE CLIENT : l'hôtel dont il a scanné l'affiche, s'il en a
          scanné une. C'est ce qui dit quelle affiche travaille et laquelle
          dort. Absent pour un client venu directement — et un champ vide se
@@ -9790,9 +10160,11 @@ window.ELA_TEXTES = {
       /* Le prix dans son encart bleu clair : c'est la dernière chose qu'on relit. */
       rectArrondi(ctx, 120, yPrix, 840, 130, 28); ctx.fillStyle = "#EAF3FC"; ctx.fill();
       ctx.fillStyle = "#062f55"; ctx.font = "800 28px " + P; ctx.textAlign = "left";
-      ctx.fillText(en ? "FIRM PRICE" : "PRIX FERME", 160, yPrix + 78);
-      var prix = (typeof b.prix === "number" && b.prix)
-        ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "—";
+      var aPrix = typeof b.prix === "number" && b.prix > 0;
+      ctx.fillText(aPrix ? (en ? "FIRM PRICE" : "PRIX FERME") : (en ? "PRICE" : "PRIX"), 160, yPrix + 78);
+      var prix = aPrix
+        ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €"
+        : (en ? "To be confirmed" : "À confirmer");
       ctx.font = "800 60px " + P; ctx.textAlign = "right"; ctx.fillText(prix, 920, yPrix + 86);
 
       ctx.textAlign = "center"; ctx.fillStyle = "#6f7f8b"; ctx.font = "500 26px " + P;
@@ -10407,7 +10779,7 @@ window.ELA_TEXTES = {
       pastille.classList.toggle("fini", et === "etat_faite");
       pastille.classList.toggle("non",  et === "etat_refusee" || et === "etat_annulee");
       b.querySelector(".course-date").textContent = dateLisible(bon);
-      b.querySelector(".course-prix").textContent = euros(bon.prix.total);
+      b.querySelector(".course-prix").textContent = prixDuBon(bon);
       b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
       b.addEventListener("click", function(){
         bonCourant = bon;
@@ -11343,6 +11715,18 @@ window.ELA_TEXTES = {
   /* « SANS CHAUFFEUR » (3 octobre 2026, décision de Barbaros : une course
      saisie au téléphone sans chauffeur reste CONFIRMÉE). Elle doit donc se
      voir : sur sa carte, et par un écriteau en tête du tableau de bord. */
+  /* Les pastilles d'une demande hors cas standard. Une course finie n'en
+     porte plus : elles appellent un geste, et il n'y en a plus à faire. */
+  function drapeauxCourse(c){
+    var st = c.statut || "attente", co = c.course || {}, l = [];
+    if(st === "realisee" || st === "refusee" || st === "annulee") return l;
+    if(co.immediat && st === "attente") l.push({ t:"Immédiat", urgent:true });
+    if(co.tarifAConfirmer && !(c.prix && c.prix.total > 0)) l.push({ t:"Tarif à confirmer" });
+    if(co.adresseAVerifier) l.push({ t:"Adresse à vérifier" });
+    if(co.multiVehicules) l.push({ t:"Plusieurs véhicules" });
+    return l;
+  }
+  function sansPrix(c){ return !(c && c.prix && c.prix.total > 0); }
   function sansChauffeur(c){
     return (c.statut || "attente") === "confirmee" && sansChauffeurNom(c);
   }
@@ -11479,7 +11863,23 @@ window.ELA_TEXTES = {
         var lbas = el.querySelector(".d-bas");
         lbas.insertBefore(pas, lbas.firstChild);
       }
-      el.querySelector(".d-prix").textContent = euros(c.prix.total);
+      el.querySelector(".d-prix").textContent = (c.prix && c.prix.total > 0) ? euros(c.prix.total) : "À confirmer";
+      /* LES DEMANDES HORS CAS STANDARD SE VOIENT SANS OUVRIR LE BON
+         (4 octobre 2026). Depuis que rien ne bloque plus le client, une
+         demande peut arriver sans prix, pour tout de suite, sur une adresse
+         tapée à la main ou pour un groupe : chacune appelle un geste. */
+      var drap = drapeauxCourse(c);
+      if(drap.length){
+        /* Sur la ligne du bas, pas à côté de la référence : mesuré à 390 px,
+           deux pastilles y faisaient passer la référence sur deux lignes. */
+        var basD = el.querySelector(".d-bas"), grisD = el.querySelector(".d-gris");
+        drap.forEach(function(d){
+          var sp = document.createElement("span");
+          sp.className = "d-drapeau" + (d.urgent ? " urgent" : "");
+          sp.textContent = d.t;
+          basD.insertBefore(sp, grisD);
+        });
+      }
       /* ═══ L'ARRIVÉE SUR SA PROPRE LIGNE ═══
          À sa demande : « il faut que je puisse voir l'adresse d'arrivée
          juste en dessous de celle de départ ».
@@ -11979,7 +12379,25 @@ window.ELA_TEXTES = {
     /* L'espace exploitant est en français quoi qu'il arrive : on affiche le
        libellé déposé avec la course, pas une traduction. */
     document.getElementById("bbPaiement").textContent = c.paiementNom || "—";
-    document.getElementById("bbPrix").textContent     = euros(c.prix.total);
+    document.getElementById("bbPrix").textContent     = sansPrix(c) ? "À confirmer" : euros(c.prix.total);
+    var bta = document.getElementById("bbTarifAConfirmer");
+    if(bta){
+      var mt = (c.course && c.course.motifsTarif) || [];
+      bta.hidden = !sansPrix(c) && !(c.course && c.course.adresseAVerifier);
+      bta.textContent = sansPrix(c)
+        ? "Tarif à confirmer" + motifsAdmin(mt) + " : fixez le prix avec « Modifier la course », puis confirmez. "
+          + "Le client doit connaître le prix avant le départ."
+        : "Adresse tapée à la main par le client : vérifiez-la avant d'envoyer un chauffeur.";
+    }
+    var suspect = c.securite && c.securite.prixSousLigneDroite;
+    var bps = document.getElementById("bbPrixSuspect");
+    bps.hidden = !suspect;
+    bps.textContent = suspect
+      ? "Prix à vérifier : même en ligne droite (" + String(suspect.ligneDroiteKm).replace(".", ",")
+        + " km), ce trajet coûte au moins " + euros(suspect.minimum)
+        + " avec la grille actuelle. Le prix a pu être modifié dans le navigateur du client, "
+        + "ou sa page gardait un ancien tarif."
+      : "";
     document.getElementById("bbNom").textContent      = (c.client && c.client.nom) || "—";
     document.getElementById("bbTel").textContent      = (c.client && c.client.telephone) || "—";
     var tel = telWa(c.client && c.client.telephone);
@@ -12244,7 +12662,17 @@ window.ELA_TEXTES = {
     var e = document.getElementById("confirmerEtat");
     e.hidden = !t; e.textContent = t || "";
   }
+  function motifsAdmin(m){
+    var noms = { longue:"longue distance", groupe:"plusieurs véhicules", adresse:"adresse à vérifier" };
+    var l = (m || []).map(function(k){ return noms[k] || k; });
+    return l.length ? " (" + l.join(", ") + ")" : "";
+  }
   function refusConfirmation(){
+    /* PAS DE CONFIRMATION SANS PRIX (4 octobre 2026). Une demande « tarif à
+       confirmer » arrive sans montant ; un VTC doit annoncer son prix AVANT
+       le départ, et c'est la confirmation qui le rend ferme. */
+    if(bonBord && sansPrix(bonBord))
+      return "Fixez d'abord le prix avec « Modifier la course » : le client doit le connaître avant le départ.";
     var ch = chauffeurSaisi();
     if(!ch.nom) return "Indiquez d'abord le chauffeur retenu : confirmer sans lui "
       + "promettrait au client une voiture que personne n'a acceptée.";
@@ -12306,6 +12734,8 @@ window.ELA_TEXTES = {
       "Heure : " + dateLisible(bon)
     ];
     if(ch.telephone) l.push("Son numéro : " + ch.telephone);
+    if(bon.course && bon.course.prixFixeApres && bon.prix && bon.prix.total > 0)
+      l.push("Prix : " + eurosFR(bon.prix.total) + " (ferme, réglé au chauffeur)");
     l.push("Votre bon : " + lien);
     return l.join("\n");
   }
@@ -12658,12 +13088,25 @@ window.ELA_TEXTES = {
     var gamme = GAMMES.filter(function(g){ return g.cle === document.getElementById("mdVehicule").value; })[0] || GAMMES[0];
     var avant = (co.date || "") + " " + (co.heure || "");
     co.date = date; co.heure = heure;
+    /* UNE ADRESSE RETAPÉE PERD SES COORDONNÉES (4 octobre 2026). Le lieu
+       structuré décrit l'endroit CHOISI ; si le texte change ici, il décrit
+       un autre endroit que celui écrit, et la règle « texte = coordonnées »
+       serait cassée côté admin. On l'efface plutôt que de garder un point
+       faux. */
+    if(co.departLieu && dep !== (co.departPublic || "")) co.departLieu = null;
+    if(co.arriveeLieu && arr !== (co.arriveePublic || "")) co.arriveeLieu = null;
+    if(dep !== (co.departPublic || "")) delete co.departPos;
     co.departPublic = dep; co.arriveePublic = arr;
     co.depart = dep + (chambre ? " (ch. " + chambre + ")" : "");
     co.arrivee = arr;
     co.chambre = chambre;
     co.note = document.getElementById("mdNote").value.trim();
     co.vehicule = gamme.nom; co.vehiculeCle = gamme.cle;
+    /* UN PRIX FIXÉ ICI LÈVE « TARIF À CONFIRMER », et on s'en souvient :
+       « Prévenir le client » doit alors lui annoncer ce prix, qu'il n'a pas
+       sur son bon. Une adresse retapée par Barbaros est une adresse vérifiée. */
+    if(co.tarifAConfirmer){ co.tarifAConfirmer = false; co.prixFixeApres = true; }
+    if(co.adresseAVerifier && (dep !== (c.course.departPublic || "") || arr !== (c.course.arriveePublic || ""))) co.adresseAVerifier = false;
     var p = JSON.parse(JSON.stringify(c.prix || {}));
     p.total = Math.round(prix * 100) / 100;
     p.ht = p.total / 1.10; p.tva = p.total - p.ht;
@@ -14218,11 +14661,25 @@ window.ELA_TEXTES = {
     e.hidden = !texte;
     e.textContent = texte || "";
   }
+  /* ═══ LA SAISIE AU TÉLÉPHONE CHOISIT SES LIEUX (4 octobre 2026) ═══
+     « brancher » est la fonction du site client : même recherche, même
+     classement, même garde « texte modifié = coordonnées oubliées ». Rien
+     n'est recopié. Le biais suit l'autre bout du trajet, comme côté client. */
+  var crChoix = { depart:null, arrivee:null }, crMesure = null;
+  var priseCrDepart = brancher(document.getElementById("crDepart"),
+    document.getElementById("crDepartList"),
+    function(item){ crChoix.depart = item; crMesure = null; },
+    function(){ return pointConnu(crChoix.arrivee); });
+  var priseCrArrivee = brancher(document.getElementById("crArrivee"),
+    document.getElementById("crArriveeList"),
+    function(item){ crChoix.arrivee = item; crMesure = null; },
+    function(){ return pointConnu(crChoix.depart); });
   function videCreer(){
     ["crNom","crTel","crDepart","crArrivee","crDate","crHeure","crPrix",
      "crChNom","crChTel"].forEach(function(id){
       document.getElementById(id).value = "";
     });
+    crChoix = { depart:null, arrivee:null }; crMesure = null;
     document.getElementById("crVehicule").value = "berline";
     direCreer("");
   }
@@ -14288,6 +14745,17 @@ window.ELA_TEXTES = {
   function premierLieu(saisie){
     return chercher(saisie).then(function(res){ return (res && res[0]) || null; });
   }
+  /* Le lieu CHOISI dans la liste s'il correspond encore au texte du champ ;
+     sinon le premier trouvé, comme avant — mais il est alors POSÉ par la
+     prise, donc relié à son texte, et l'écran dit qu'il n'a pas été choisi. */
+  function lieuSaisi(cote, saisie, prise){
+    var c = crChoix[cote];
+    if(c && c.label === saisie) return Promise.resolve({ it:c, choisi:true });
+    return premierLieu(saisie).then(function(it){
+      if(it) prise.poser(it);
+      return { it:it, choisi:false };
+    });
+  }
   document.getElementById("btnCalculerPrix").addEventListener("click", function(){
     var bouton = this;
     var note = document.getElementById("crCalcul");
@@ -14297,8 +14765,10 @@ window.ELA_TEXTES = {
     if(!dep || !arr){ dire("Écrivez d'abord le départ et l'arrivée."); return; }
     bouton.disabled = true;
     dire("Recherche des adresses…");
-    Promise.all([premierLieu(dep), premierLieu(arr)]).then(function(r){
-      var a = r[0], b = r[1];
+    Promise.all([lieuSaisi("depart", dep, priseCrDepart),
+                 lieuSaisi("arrivee", arr, priseCrArrivee)]).then(function(r){
+      var a = r[0].it, b = r[1].it;
+      var devine = (r[0].it && !r[0].choisi) || (r[1].it && !r[1].choisi);
       if(!a || !b){
         /* On NOMME celle qui manque : « adresse introuvable » sur deux
            champs oblige à tout reprendre. */
@@ -14307,8 +14777,6 @@ window.ELA_TEXTES = {
         bouton.disabled = false;
         return;
       }
-      document.getElementById("crDepart").value  = a.label;
-      document.getElementById("crArrivee").value = b.label;
       dire("Calcul de l'itinéraire…");
       return itineraire(a, b, { date:document.getElementById("crDate").value,
                                 heure:document.getElementById("crHeure").value })
@@ -14324,11 +14792,15 @@ window.ELA_TEXTES = {
            2026 — il n'y a plus d'heure à consulter ici. */
         var p = prix(gamme, it.km);
         document.getElementById("crPrix").value = p;
+        crMesure = { depart:a, arrivee:b, km:it.km, estime:!!it.estime, source:it.source || "" };
         dire(a.label + " → " + b.label + " · "
              + (it.estime ? "≈ " : "")
              + it.km.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " km · "
              + gamme.nom
-             + " → " + eurosFR(p) + (it.estime ? " (distance estimée)" : ""));
+             + " → " + eurosFR(p) + (it.estime ? " (distance estimée)" : "")
+             /* Un lieu pris d'office doit se voir : « Ibis » a des dizaines
+                d'homonymes, et le prix est ferme. */
+             + (devine ? " — Adresse prise d'office : vérifiez-la, ou choisissez-la dans la liste." : ""));
         bouton.disabled = false;
       });
     }).catch(function(){
@@ -14392,9 +14864,19 @@ window.ELA_TEXTES = {
       cree: new Date().toISOString(),
       course: { type:"Trajet simple", depart:dep, arrivee:arr,
                 departPublic:dep, arriveePublic:arr,
+                /* Le lieu structuré n'est gardé que s'il correspond ENCORE
+                   au texte du champ : un départ retapé après le choix n'a
+                   plus de coordonnées, et on ne lui en invente pas. */
+                departLieu: crChoix.depart && crChoix.depart.label === dep ? lieuStructure(crChoix.depart) : null,
+                arriveeLieu: crChoix.arrivee && crChoix.arrivee.label === arr ? lieuStructure(crChoix.arrivee) : null,
                 date:date, heure:heure, terminal:null, vol:"",
                 vehicule:gamme.nom, vehiculeCle:gamme.cle,
-                passagers:"1 passager", distanceKm:0, estimee:true },
+                passagers:"1 passager",
+                distanceKm: crMesure && crMesure.depart === crChoix.depart && crMesure.arrivee === crChoix.arrivee
+                            ? Math.round(crMesure.km * 10) / 10 : 0,
+                estimee: !(crMesure && crMesure.depart === crChoix.depart && crMesure.arrivee === crChoix.arrivee && !crMesure.estime),
+                itineraireSource: crMesure && crMesure.depart === crChoix.depart && crMesure.arrivee === crChoix.arrivee
+                                  ? crMesure.source : "" },
       client: { nom:nom, telephone:tel },
       /* LE RÈGLEMENT N'EST PAS DEMANDÉ ICI : il se convient de vive voix, et
          inventer « espèces » par défaut ferait partir le chauffeur sans son

@@ -114,17 +114,21 @@ await p.evaluate(()=>{ document.getElementById('btnVoirPrix').disabled = false; 
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(600);
 check('et le filet de la soumission tient toujours',
   await p.locator('#ecran-accueil').isVisible()
-  && (await p.locator('#refus').textContent()).includes('déjà passée'),
-  await p.locator('#refus').textContent());
+  && await p.locator('#heurePassee').isVisible(),
+  await p.locator('#heurePassee').textContent());
 
-// --- Plus de passagers que le plus grand véhicule ---
+/* --- Plus de passagers que le plus grand véhicule ---
+   Depuis le 4 octobre 2026, la demande PART : une seule offre « Plusieurs
+   véhicules », sans prix inventé (Elatransfer le fixe). Ce n'est plus un
+   refus — voir test-nouveau-sans-blocage. */
 await p.fill('#date', d3); await p.fill('#heure','10:00');
 await p.evaluate(()=>{ document.getElementById('passagers').value='9'; });
-await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(600);
-check('9 passagers : plus d\'écran vide', await p.locator('#ecran-accueil').isVisible());
-const t9 = await p.locator('#refus').textContent();
-check('on propose deux voitures plutôt qu\'une impasse',
-  t9.includes('9') && t9.toLowerCase().includes('deux voitures'), t9);
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
+check('9 passagers : plus d\'impasse, on va aux véhicules', await p.locator('#ecran-vehicules').isVisible());
+const t9 = (await p.locator('.veh-carte').allInnerTexts()).join(' | ');
+check('une offre « Plusieurs véhicules », tarif à confirmer',
+  /Plusieurs véhicules/.test(t9) && /confirmer/i.test(t9), t9);
+await p.locator('#btnRetourAccueil').click(); await p.waitForTimeout(200);
 
 // --- Le tunnel passe toujours ---
 await p.evaluate(()=>{ document.getElementById('passagers').value='1'; });

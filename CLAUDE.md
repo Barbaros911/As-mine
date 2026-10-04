@@ -3067,116 +3067,20 @@ du chauffeur. Il est tombé le jour où l'option a dit « devant la porte du
 terminal » — un terminal d'aéroport. Il porte maintenant sur le seul
 `#blocPaiement`, qui est son sujet.
 
-## LE PRÉAVIS MINIMUM AVANT UN DÉPART — 15 MINUTES
+## LE PAS DES CRÉNEAUX ET L'HEURE PASSÉE
 
-Septembre 2026, à sa demande : « lorsque le client réserve il faut qu'il ne
-puisse pas réserver avant 20 min », **ramené à 15 minutes le lendemain**. Il faut trouver un chauffeur, le
-prévenir, et qu'il roule jusqu'au client. Accepter un départ dans cinq
-minutes, c'est promettre ce qu'on ne peut pas tenir — et chez Elatransfer
-l'heure est ferme comme le prix.
-
-- **CE N'EST PAS LE RETOUR DU DÉLAI DE 3 HEURES**, retiré en septembre 2026
-  à sa demande. Celui-là était un **avertissement** sur des heures
-  entières, qui décourageait des courses parfaitement plaçables ; celui-ci
-  est un **refus** de quinze minutes, le temps matériel d'envoyer une
-  voiture. Ne pas rétablir l'ancien en croyant compléter celui-ci.
-- **`DELAI_MINIMUM_MIN` vaut 15**, et la phrase de l'écriteau annonce le
-  même nombre — dans les deux langues. **Un test lit la constante DANS la
-  page et la cherche dans les deux phrases** : c'est le vrai piège de ce
-  genre de règle, la constante bouge, la phrase reste, et le site annonce
-  un délai en en exigeant un autre. **Ça a servi dès le premier
-  changement** — passer de 20 à 15 minutes touche la constante, les deux
-  phrases, et toute la table d'exemples du test.
-- **UN CONTRÔLE VERROUILLE LA VALEUR ELLE-MÊME** (« elle vaut 15 minutes »).
-  Les exemples chiffrés du test la supposent : s'il change, c'est lui qui
-  tombe en premier, et on sait qu'il faut **recalculer la table** plutôt
-  que de chercher un bug ailleurs.
-- **ON NE RENVOIE PAS LE CLIENT SANS RIEN.** L'écriteau porte appel et
-  WhatsApp, exactement comme « hors zone » : quelqu'un qui veut une voiture
-  tout de suite est un client, pas une erreur de saisie, et Barbaros place
-  ces courses-là de vive voix.
-- **UNE HEURE DÉJÀ PASSÉE GARDE SON PROPRE MESSAGE** (`err_heure_passee`).
-  « Trop proche » ne veut rien dire pour hier — d'où le `> maintenant`
-  dans `tropTot()`.
-- **LE CONTRÔLE EST REFAIT À LA SOUMISSION.** Entre l'instant où le client
-  choisit son heure et celui où il appuie, le temps passe : une page
-  laissée ouverte devient trop proche toute seule. Sans ce second contrôle,
-  elle passerait.
-- **LE BOUTON A DEUX JUGES — la zone et le préavis — et ils se parlent.**
-  `jugerBoutonPrix()` est le point de rendez-vous ; sans lui, le second à
-  s'exécuter rallumerait le bouton que le premier vient d'éteindre.
-  `jugerZone()` n'éteint donc plus le bouton elle-même. **Tout nouveau
-  juge du bouton doit passer par là.**
-- Le test éprouve **les deux côtés de la frontière** — 10 min refusé,
-  25 et 40 min acceptés. Un test qui ne vérifierait que le refus laisserait
-  passer un code qui refuse tout.
-
-**LA BORNE DU CHAMP D'HEURE — CE QU'ELLE FAIT ET CE QU'ELLE NE FAIT PAS**
-(à sa demande : « il est 1 h 41, je dois pas pouvoir sélectionner 1 h 40 »).
-- Sur un **ordinateur**, le navigateur refuse une heure sous `min`.
-- Sur un **téléphone**, la molette est dessinée par iOS ou Android : elle
-  **ignore la borne**. Le client peut faire défiler jusqu'à l'heure
-  interdite, et c'est l'écriteau qui prend le relais. **Aucun site ne peut
-  griser des entrées dans un sélecteur du système** — le dire à Barbaros
-  plutôt que de laisser croire le contraire.
-- `min` sur un champ d'heure est une **heure dans la journée, sans date** :
-  elle n'a de sens que si la date choisie est **aujourd'hui**, et il faut la
-  **retirer** sinon — sans quoi une course pour demain 8 h serait refusée
-  parce que 8 h est passé aujourd'hui. Un test le vérifie.
-- **Le cas de minuit** : à 23 h 50, le premier créneau est demain 0 h 10.
-  Aucune heure d'aujourd'hui ne convient, et une borne « 00:10 »
-  autoriserait à tort toute la journée. On n'en pose donc **pas** ;
-  l'écriteau tranche.
-- **SON EXEMPLE EXACT TOMBE DANS L'AUTRE CAS** : à 1 h 41, « 1 h 40 » est
-  *déjà passé* d'une minute, donc c'est `#heurePassee` qui parle, pas
-  « trop proche ». Le test éprouve les deux refus voisins — les confondre
-  dirait au client de corriger la mauvaise chose.
-
-**LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** (à sa demande : « fait en sorte que
-les clients puissent commander toutes les 5 minutes »). Un client ne choisit
-pas un départ à 10 h 07 : il pense en quarts et en cinquièmes d'heure.
-- Le pas vit à **deux endroits** — l'attribut `step="300"` du champ, **en
-  secondes**, et `PAS_MINUTES` dans le script. **Un test compare les deux** :
-  s'ils se désaccordent, la borne tombe hors de la grille et le champ
-  propose des heures que personne ne veut.
-- **`step` est compté À PARTIR DE `min`**, pas de minuit. D'où l'arrondi du
-  premier créneau au pas supérieur : à 1 h 41 la borne est **2 h 00**, pas
-  1 h 56 — qui donnerait la grille 1 h 56, 2 h 01, 2 h 06.
-- **LE CALCUL PART DE LA MINUTE EN COURS, SECONDES RABOTÉES**, et ce n'est
-  pas un détail. À 2 h 10 pile, l'horloge marque 2 h 10 et 123 ms : le
-  préavis tombait sous la barre d'une fraction de seconde, le créneau juste
-  atteignable était refusé, et le client poussé au suivant — **cinq minutes
-  perdues pour un délai qu'il ne voit même pas**. C'est aussi la façon dont il lit sa
-  montre : « il est 2 h 10, donc 2 h 30 ». Le prix se compte au centime, le
-  préavis à la minute.
-  **`tropTot()` rabote la même minute** : sinon le champ proposerait 2 h 30
-  et l'écriteau le refuserait — deux façons de compter le temps dans la
-  même page.
-  Trouvé par le test, pas en production. Les trois cas de Barbaros —
-  2 h 08, 2 h 10, 2 h 11 — sont éprouvés, **recalculés pour 15 minutes** :
-  2 h 25, 2 h 25, 2 h 30.
-
-**LE CHAMP S'OUVRE SUR LE PREMIER CRÉNEAU RÉSERVABLE** (septembre 2026, à sa
-demande : « il faut que le choix de l'heure commence à notre heure plus
-15 minutes »). Il s'ouvrait sur **10 h**, déplacé seulement quand 10 h était
-déjà refusé — ce qui réglait le bouton éteint, pas le vrai problème : **la
-molette d'un téléphone se pose sur la VALEUR du champ**. À 3 h 27 du matin,
-capture à l'appui, le client qui veut une voiture tout de suite voyait
-10 h 00 et devait remonter sept heures.
-- Le défaut est maintenant `prochainCreneau()` — à 3 h 27, **3 h 45** (3 h 42
-  arrondi au pas de 5). La **valeur proposée et la borne sont le même
-  moment** ; un test le vérifie, sinon le champ s'ouvrirait sur une heure
-  que lui-même refuse.
-- **Le test lit la VALEUR, plus seulement « est-elle acceptable »** :
-  l'ancien contrôle passait au vert à 1 h 41 avec 10 h, sans rien voir du
-  problème. Un contrôle qui ne demande que « est-ce refusé ? » ne dit rien
-  de ce que le client a sous les yeux.
-- **Tant que le client n'y a pas touché, le défaut se recalcule**
-  (`heureTouchee`, au retour sur l'onglet et à chaque jugement). Avec 10 h
-  ce n'était pas nécessaire ; avec « maintenant + 15 », une page ouverte
-  vingt minutes rouvrait sur une heure déjà refusée. **Dès qu'il choisit
-  lui-même, on ne touche plus à rien** — écraser le choix d'un client est
-  pire que lui proposer une heure passée.
+Le préavis de 15 minutes a été **supprimé le 4 octobre 2026** (histoire dans
+`memoire/preavis.md`). Ce qui reste, et pourquoi :
+- **LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** : `step="300"` (secondes) sur le
+  champ et `PAS_MINUTES` dans le script, comparés par un test. `step` se
+  compte à partir de `min` : la borne est arrondie au pas SUPÉRIEUR.
+- Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`), sans
+  délai ajouté, et la borne du champ est ce même moment. Tant que le client
+  n'a pas touché à l'heure, elle se recalcule (`heureTouchee`).
+- La minute en cours n'est pas « passée » : on rabote les secondes.
+- `min` sur un champ d'heure n'a de sens que pour AUJOURD'HUI : retiré sinon.
+- Sur téléphone, la molette du système ignore la borne : c'est l'écriteau
+  `#heurePassee` qui tranche, avec sa sortie « Partir dès que possible ».
 
 ## LA DATE DU JOUR SE COMPOSE EN LOCAL, JAMAIS EN UTC
 
@@ -5419,3 +5323,75 @@ l'empreinte du contrôleur qui était un libellé.
   les exemplaires disent la description.
 - **La PR #302 a été fermée sans fusion** : elle portait la même
   description, et elle était en conflit avec `main` depuis le push direct.
+
+## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
+
+4 octobre 2026, mission « moteur 10/10 ». On garde BAN + Photon.
+**MAPBOX SEARCH BOX N'EST PAS BRANCHÉ, C'EST UNE DÉCISION** : ses résultats
+sont « temporaires » (une réservation doit GARDER le lieu ; l'offre permanente
+ne couvre pas les lieux), ils doivent s'afficher sur une carte Mapbox, et il
+faut une carte bancaire. Conditions lues dans des citations, pas sur leur
+texte (mapbox.com est bloqué d'ici) : à relire avant de rouvrir le sujet.
+- **Une panne n'est plus mise en cache** comme « aucune adresse » ; la liste
+  dit « Recherche momentanément indisponible » (`liste.echec`).
+- **L'admin choisit ses lieux** : `crDepart`/`crArrivee` passent par le même
+  `brancher()` que le site. Un texte tapé sans choisir est résolu au premier
+  résultat, et l'écran dit « Adresse prise d'office : vérifiez-la ».
+- **Lieu structuré** `course.departLieu`/`arriveeLieu` (`lieuStructure()`,
+  depuis un élément CHOISI) : nom, adresse, coordonnées, `provider`
+  (`ban`/`photon`/`elatransfer`). Les champs texte restent ce qui s'affiche.
+  `deposer-course` les garde (il jetait `departPos`), bornés, facultatifs.
+  « Modifier la course » efface le lieu d'une adresse retapée.
+- Fautes de frappe (`motProche`, `cleProche` sur 6 lettres et plus : « tilly »
+  ne doit pas proposer Beauvais-Tillé) ; un nom distinctif (« novotel »)
+  passe devant les terminaux ; biais selon le contexte (autre bout, hôtel,
+  « Me localiser », Paris) — le classement garde Paris comme référence ;
+  Photon dans la langue du client ; `itineraire()` rend sa `source`.
+- **Prix au km contrôlé côté serveur : SIGNALER, JAMAIS REFUSER.** Aucune
+  route n'est plus courte que la ligne droite : minimum = ligne droite ×
+  tarif serveur, arrondi à la dizaine INFÉRIEURE, relevé au minimum. En
+  dessous : `securite.prixSousLigneDroite`, « Prix à vérifier » sur le bon
+  admin. Un téléphone qui garde un ancien tarif n'est pas une fraude.
+- Piège : `pkill -f "http-server …"` tue le shell qui le lance, et le serveur
+  reste ouvert. Fermer par numéro de processus, toujours.
+- Suites : `test-nouveau-lieux.mjs`, plus des contrôles dans
+  `test-nouveau-serveur.mjs` et `test-securite-fonctions.mjs`.
+- Reste (P2, à lui) : clé Mapbox Directions ; un second fournisseur de lieux
+  qui autorise le stockage ; validation serveur complète ; lien GPS sur le bon.
+
+## PLUS AUCUN BLOCAGE COMMERCIAL — UNE DEMANDE RÉELLE PART TOUJOURS
+
+4 octobre 2026, à sa demande (« un client avec une demande réelle doit
+toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
+- **Préavis de 15 min supprimé.** Seule l'heure réellement passée est
+  refusée, avec la sortie « Partir dès que possible ».
+- **« Maintenant » / « Programmer »** (défaut : programmer — les aéroports se
+  réservent à l'avance). **Aucun pixel de hauteur** : une rangée de boutons
+  repoussait « Voir mon prix » sous la barre du bas (mesuré 773–826 pour une
+  barre à 784). « Maintenant » est un lien dans le titre du champ Date ; en
+  mode immédiat un encadré (`#blocAsap`) de même hauteur remplace date et
+  heure. `course.immediat` ; « soumise à disponibilité, sans délai garanti »,
+  « réponse plus lente de 22 h à 5 h » — **jamais un blocage**.
+- **« TARIF À CONFIRMER »** (`tarifAConfirmer`, `motifsTarif` parmi
+  `longue`/`groupe`/`adresse`) : la demande PART sans aucun montant affiché —
+  au-delà de 90 km (`#infoLongue` ; `RAYON_ZONE_KM` est devenu le seuil du
+  PRIX AUTOMATIQUE), plus de 7 passagers (« Plusieurs véhicules »), adresse
+  introuvable envoyée telle quelle (`adresseAVerifier`, sans coordonnées).
+  **Piège attrapé par le test** : le client envoyait `longue_distance`, le
+  serveur attendait `longue` — toute longue distance aurait été refusée.
+- **`deposer-course`** force le prix à 0 sur une demande à confirmer, exige
+  sinon un prix positif (le 0 € passait), accepte 60 passagers et 5 000 km.
+- **Admin** : pastilles Immédiat / Tarif à confirmer / Adresse à vérifier /
+  Plusieurs véhicules (ligne du bas de la carte), « À confirmer » au lieu de
+  0 €. **« Confirmer » refusé tant que le prix n'est pas fixé** (un VTC
+  annonce son prix avant le départ). « Modifier la course » fixe le prix et
+  pose `prixFixeApres` : « Prévenir le client » l'annonce, `?ok=` le porte.
+- **`nouvelle-demande`** : une demande immédiate a pour référence création +
+  30 min. Comptée sur sa date, elle recevait aussitôt « DÉPART PASSÉ » puis
+  le silence.
+- **CGV art. 4** (FR/EN) décrivent les demandes sans prix affiché.
+- Toujours refusés : heure passée, départ = arrivée, coordonnées d'une
+  adresse modifiée, identité/téléphone, règlement, quotas, doublons.
+- Suites : `test-nouveau-sans-blocage.mjs` (site construit, client + admin),
+  `test-nouveau-preavis.mjs` (verrouille l'ABSENCE du préavis),
+  `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.

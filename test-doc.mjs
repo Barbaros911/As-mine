@@ -137,9 +137,7 @@ verifier("le tableau de la grille est lisible dans CLAUDE.md", lignesLues >= 2,
    bouger ensemble. */
 const chiffres = [
   { nom:"RAYON_ZONE_KM",       motif:/(\d+)\s*km autour de Paris/i,
-    quoi:"le rayon de la zone desservie" },
-  { nom:"DELAI_MINIMUM_MIN",   motif:/`DELAI_MINIMUM_MIN`\s*vaut\s*(\d+)/i,
-    quoi:"le préavis minimum avant un départ" },
+    quoi:"le rayon du prix automatique (au-delà : tarif à confirmer)" },
   { nom:"OPTION_PANCARTE_EUR", motif:/OPTION_PANCARTE_EUR[^\n]*?|PANCARTE EST UNE OPTION À\s*(\d+)\s*€/i,
     motifVrai:/UNE OPTION À\s*(\d+)\s*€/i, quoi:"le prix de la pancarte" },
   { nom:"JOURS_ALERTE",        motif:/\*\*(\d+)\s*jours d'avance\*\*\s*\(`JOURS_ALERTE`\)/i,

@@ -173,6 +173,22 @@ check('la clé publique ne va que dans « apikey », jamais en Bearer',
 
 // La forme du bon : c'est elle que lit le tableau de bord de l'exploitant.
 const bon = d0.corps.bon;
+/* ═══ LE LIEU STRUCTURÉ PART AVEC LA COURSE (4 octobre 2026) ═══
+   Les coordonnées du CHOIX, pas seulement le texte : c'est ce qui permet au
+   serveur de contrôler la vraisemblance du prix, et à Barbaros de savoir
+   quel point exact a servi. On lit les VALEURS envoyées, pas la présence
+   d'une clé : un objet vide passerait un contrôle de présence. */
+const dl = bon.course.departLieu || {}, al = bon.course.arriveeLieu || {};
+check('le départ part en lieu structuré : coordonnées du choix, source Photon',
+  dl.latitude === 48.8606 && dl.longitude === 2.3376 && dl.provider === 'photon'
+  && /Vendôme/.test(dl.adresse) && dl.nom === 'Place Vendôme', JSON.stringify(dl));
+check('l\'arrivée aussi, source BAN',
+  al.latitude === 48.9478 && al.longitude === 2.2467 && al.provider === 'ban'
+  && /Argenteuil/.test(al.adresse), JSON.stringify(al));
+check('les anciens champs texte restent (le tableau de bord et WhatsApp les lisent)',
+  /Vendôme/.test(bon.course.departPublic) && /Argenteuil/.test(bon.course.arriveePublic));
+check('la course dit QUEL calculateur a donné la distance (ici OSRM, ORS étant coupé)',
+  bon.course.itineraireSource === 'osrm', String(bon.course.itineraireSource));
 check('la course entre en « attente », jamais confirmée d\'office',
   d0.corps.statut==='attente' && bon.statut==='attente', d0.corps.statut);
 check('le bon porte prix.total, que le tableau de bord affiche',
