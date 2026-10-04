@@ -839,6 +839,32 @@ for (const large of [1024, 1280]) {
   await cx.close();
 }
 
+/* AUCUNE NOTE DE TRAVAIL DANS LES PAGES ELA PUBLIÉES (4 octobre 2026).
+   La règle du 28 septembre ne valait que pour la page publique : /ela-admin/
+   partait en ligne avec 841 blocs de commentaires — comment l'espace est
+   protégé, ses anciennes failles —, la réception avec 578. On ne cherche pas
+   « /* » (une chaîne peut le contenir) : on prend des passages des VRAIS
+   commentaires de la source et on exige qu'aucun ne se retrouve en ligne. */
+{
+  /* Les trois sources de ces pages : la page du site (admin et réception en
+     sont fabriqués), la page du QR easyHotel, et la redirection /exploitant/. */
+  const source = (await Promise.all(['index.html', 'sites/easyhotel-client/index.html', 'exploitant/index.html']
+    .map(f => readFile(f, 'utf8')))).join('\n');
+  const passages = [];
+  for (const m of source.matchAll(/\/\*([\s\S]*?)\*\/|<!--([\s\S]*?)-->/g)) {
+    const t = (m[1] || m[2] || '').replace(/\s+/g, ' ').trim();
+    if (t.length >= 80) passages.push(t.slice(Math.floor(t.length / 2) - 20, Math.floor(t.length / 2) + 20));
+  }
+  check('la source fournit assez de commentaires pour éprouver le contrôle', passages.length > 200, passages.length + ' passages');
+  for (const page of ['/ela-admin/', '/easyhotel-reception/', '/reception/easyhotel-aeroville/', '/exploitant/', '/easyhotel-client/', '/', '/application.html']) {
+    const html = (await (await fetch(SITE + page)).text()).replace(/\s+/g, ' ');
+    const restes = passages.filter(x => html.includes(x));
+    check(`${page} : aucune note de travail de la source n'est publiée`, restes.length === 0,
+      restes.length ? restes.length + ' passage(s), dont « ' + restes[0] + ' »' : '');
+    check(`${page} : aucun commentaire HTML`, !html.includes('<!--'));
+  }
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));

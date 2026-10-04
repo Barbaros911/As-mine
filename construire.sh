@@ -57,13 +57,22 @@ node .github/scripts/galerie.mjs
 # retire de la copie posée dans site/, jamais du dépôt : elle s'exécute en
 # DERNIER, sur ce que construire.sh vient d'assembler, pour ne rien laisser
 # passer d'une étape précédente.
+# L'ADMIN ET LA RÉCEPTION Y SONT DEPUIS LE 4 OCTOBRE 2026. Ces pages sont
+# fabriquées par construire-espaces-hotel.mjs, ajouté après cette étape, et
+# personne ne les avait ajoutées ici : /ela-admin/ partait en ligne avec 841
+# blocs de commentaires — comment l'espace est protégé, ses anciennes
+# failles. La règle valait pour la page publique seulement.
+# test-nouveau-bascule vérifie qu'aucune page ELA publiée n'en porte plus.
 node .github/scripts/masquer-commentaires.mjs \
   site/index.html site/application.html site/admin.html site/admin-v2.html \
   site/telephone.js site/intake-demande.js site/qr-affiche.js site/itineraire-partage.js site/admin-sante.js \
   site/hotel-engine-polish.js site/sw.js \
   site/admin-v2-actions.js site/admin-v2-push.js site/admin-v2-finance.js \
   site/admin-v2-registre.js site/admin-v2-factures.js site/admin-v2-gestes.js \
-  site/admin-v2-affiche.js site/admin-v2-maquette.js
+  site/admin-v2-affiche.js site/admin-v2-maquette.js \
+  site/ela-admin/index.html site/exploitant/index.html \
+  site/easyhotel-reception/index.html site/reception/*/index.html \
+  site/easyhotel-client/index.html
 
 # ADMIN V2 N'EST PLUS PUBLIÉ — 3 octobre 2026, à la demande de Barbaros
 # (« retire »). Il travaille seul, dans l'admin historique (/ela-admin/) ;
