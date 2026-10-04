@@ -945,8 +945,24 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,90 € | 30 € |
+| Berline (4 places) | 2,90 € | 35 € |
 | Van (7 places) | 4,70 € | 50 € |
+
+**LE MINIMUM BERLINE EST À 35 €** (4 octobre 2026, Barbaros : « Oui le 35
+c'est moi »). Il l'avait réglé en production depuis l'admin ; le repli
+`GAMMES`, ce tableau et la source serveur du dépôt disaient encore 30 €, et
+les trois contrôles restaient verts parce qu'ils se comparaient entre eux.
+**Aucun contrôle ne lit la production** : c'est la première suite branchée
+sur le vrai serveur (test-nouveau-exploitant, en CI) qui l'a montré.
+- **Le plancher n'est plus une dizaine, et c'est voulu** : le plancher a le
+  dernier mot. Tout trajet berline de 12,06 km ou moins (2,90 × km ≤ 35)
+  coûte 35 € ; au-delà, rien ne change. Ne pas le « corriger » en 30 ou 40.
+- **Pourquoi le repli comptait** : Réglages → Tarifs se remplit depuis
+  `GAMMES` quand la lecture du serveur échoue. Un appui sur « Enregistrer »
+  aurait alors réécrit 30 € en production, en silence.
+- La source du dépôt est `20261004000000_minimum_berline_35.sql`, une
+  écriture **conditionnelle** : sans effet en production, sans effet sur un
+  tarif réglé depuis l'admin. Elle n'a pas à être appliquée.
 
 **CE TABLEAU A MENTI PENDANT DES JOURS** (corrigé le 16 septembre 2026). Il
 annonçait encore 2,35 et 4,08 €/km alors que la PR #123 les avait portés à
@@ -973,8 +989,8 @@ contractuel. Ne pas y écrire de tarif chiffré.
   `2,0600000000000023` et afficherait `100,000000001 €`.
 - **L'ordre est fixé** : kilométrage → majoration de nuit → arrondi →
   plancher. Arrondir avant de majorer redonne un prix qui n'est plus une
-  dizaine ; majorer après le plancher ferait payer 36 € une course
-  annoncée à 30 €. Le plancher a le dernier mot.
+  dizaine ; majorer après le plancher ferait payer 42 € une course
+  annoncée à 35 €. Le plancher a le dernier mot.
 - **IL N'Y A PLUS DE MAJORATION DU TOUT** (septembre 2026) — voir la
   section dédiée plus bas. Le reste inchangé : TVA 10 % incluse, prix ferme,
   zone de 90 km autour de Paris.
@@ -6648,6 +6664,10 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   les rejouer **écraserait** ce que Barbaros a réglé, sans un mot.
   `20260916070000_stripe_test_manual_capture.sql` crée ses policies sans
   `drop` préalable : rejouée, elle échoue, ce qui est sans dégât.
+  `20261004000000_minimum_berline_35.sql`, elle, se rejoue sans danger :
+  elle n'écrit que si la ligne porte encore la valeur du 28 septembre à
+  l'identique. **Toute future migration de tarif doit suivre cette forme
+  conditionnelle**, ou rejoindre la liste des deux ci-dessus.
 - **SEULE `main` PUBLIE, DÉPLOIE ET MIGRE.** `pages.yml`, `fonctions.yml` et
   `migrations.yml` acceptaient `workflow_dispatch` sur n'importe quelle
   branche — les migrations ont été lancées depuis une branche le 15/09. Les
@@ -6921,9 +6941,90 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   enfants (`pkill -P`). Et pour fermer un serveur à la main, viser son
   numéro, jamais `pgrep -f "http.server"` : le motif attrape aussi la
   commande qui le tape — vu une fois de plus ce jour-là.
-- **Ce qui reste ouvert** : le chien de garde GitHub passe six fois en 21 h
-  au lieu de toutes les 15 min (P1-10) — à trancher par Barbaros : un
-  déclencheur extérieur gratuit, ou un indicateur de santé dans l'admin.
+- **Le chien de garde qui ne passe que six fois en 21 h (P1-10) est
+  tranché** : un voyant dans l'admin. Voir la section suivante.
+
+## LE VOYANT DES ALERTES DANS L'ADMIN
+
+4 octobre 2026, Barbaros : « Ok voyant ». Le chien de garde GitHub devait
+vérifier toutes les 15 min que les alertes partent ; GitHub ne le réveillait
+que 6 fois en 21 h. Deux solutions lui ont été montrées : un réveil extérieur
+(un compte de plus, une clé GitHub à confier) ou un voyant dans l'admin. Il a
+choisi le voyant, après avoir demandé si une panne d'alerte lui ferait perdre
+des courses : **non, la course arrive toujours sur le serveur et dans
+l'admin, seule la sonnerie s'arrête**. C'est la phrase que dit le bandeau.
+
+- **Sous « Serveur connecté », une ligne : « Alertes OK », « Alertes en
+  panne » ou « Alertes : non vérifiées »** (`#adminAlertes`). En panne, un
+  bandeau rouge sur le tableau de bord (`#bordAlertes`) dit LAQUELLE et le
+  geste qui reste : garder l'écran ouvert, il sonne tout seul.
+- **UN SEUL JUGE** : `admin-sante.js`, chargé par l'admin et importé par
+  `chien-de-garde.mjs`. Deux juges finiraient par se contredire — un voyant
+  vert pendant que l'Issue crie. Il rend deux phrases par panne, écrites à la
+  même ligne de décision : la précise pour l'Issue, la simple pour l'admin.
+- **UNE SEULE MESURE** : `ela_sante_alertes()` (migration
+  `20261004010000_sante_alertes.sql`) rend les sept mesures de
+  `sante-serveur.sql`, au caractère près — `test-chien-de-garde.mjs` compare
+  les deux textes. Elle est réservée à un exploitant connecté ; la mesure
+  elle-même (`ela_sante_mesures`) n'est accordée à personne.
+- **LE GRIS N'EST PAS UN DÉTAIL.** Vert = mesure lue il y a moins de 3 min,
+  et saine. Rouge = mesure lue, et une alerte ne part plus. Gris = on ne sait
+  pas : sans session, sans réseau, fonction pas encore installée, réponse
+  illisible, mesure trop vieille. **On ne garde jamais un ancien vert** : un
+  vert qui n'a rien mesuré est pire que pas de voyant. Une réponse illisible
+  est grise, pas rouge.
+- **Il se mesure au rythme de la relecture du serveur, pas de la sonde** :
+  au plus une fois toutes les 40 s, jamais onglet caché ni hors de l'espace.
+- **À FAIRE APRÈS LA FUSION** : appliquer la migration en production
+  (workflow « Appliquer une migration Supabase »,
+  `20261004010000_sante_alertes.sql`). Tant que ce n'est pas fait, le voyant
+  reste gris : il ne prétend rien.
+- **Le chien de garde GitHub reste** : quand il passe, il ouvre une Issue.
+  Le voyant ne le remplace pas, il couvre les heures où GitHub dort.
+- `test-admin-voyant.mjs` (52 contrôles, site construit),
+  `supabase/tests/sante-alertes*.sql` (CI, vrai PostgreSQL).
+
+### CE QUE LA RELECTURE A TROUVÉ AVANT LA PUBLICATION
+
+Une relecture indépendante en quatre angles, chaque constat reproduit par un
+second relecteur avant d'être corrigé. Tout est réparé ; ce qui suit est la
+mémoire de POURQUOI c'est écrit ainsi.
+- **« VU » N'EST PAS UN ENVOI.** Ouvrir une course dans l'admin
+  (`ela_marquer_vue`) ou appuyer sur « Vu » dans Telegram écrit au journal
+  canal `telegram`, statut `envoye`, type `vue`. Compté comme un envoi
+  réussi, il faisait passer le voyant au VERT pendant une panne de
+  Telegram — le geste même qu'on fait en regardant l'admin. Le chien de
+  garde avait le même angle mort depuis le 2 octobre.
+- **« indisponible » EST UN ÉCHEC** : c'est ce que journalise un secret
+  Telegram absent ou mal nommé. Non compté, Telegram non configuré donnait
+  « Alertes OK ».
+- **L'ÉPREUVE SQL POSE LES PRIVILÈGES PAR DÉFAUT DE SUPABASE.** Un PostgreSQL
+  nu n'accorde l'exécution qu'à PUBLIC ; Supabase l'accorde à `anon` et
+  `authenticated`. Sans cette ligne, une migration qui n'ôterait que PUBLIC
+  passait l'épreuve et un anonyme lisait les mesures en production.
+- **UNE COMPARAISON AVEC NULL NE TOMBE JAMAIS** — `null not between 5 and
+  60` vaut NULL. Même famille que `<>` sur une valeur NULL, déjà consignée.
+- **LE BANDEAU REMPLACE « Son des alertes coupé »** quand les deux
+  s'affichent : empilés, ils faisaient sortir de l'écran (390 × 844) la
+  demande en attente qu'ils disent de surveiller. Il dit la PREMIÈRE panne
+  et le nombre des autres ; la liste entière reste sur le voyant.
+- **IL N'EST RÉÉCRIT QUE S'IL CHANGE** : c'est une région « alert », un
+  lecteur d'écran relisait la même panne trois fois par minute.
+- **UN ANCIEN VERDICT NE REVIENT PAS** après une coupure ou une
+  reconnexion : il est oublié dès que le voyant passe au gris faute de
+  session ou de serveur, et la prochaine relecture mesure aussitôt.
+- **UNE SESSION PERDUE PENDANT LA SONDE SE DIT** (`sessionPerdue()`). Défaut
+  antérieur au voyant : un mot de passe changé sur un autre appareil
+  arrêtait l'écoute, et la pastille restait « Serveur connecté ».
+- **L'EN-TÊTE NE SAUTE PLUS** : la ligne du voyant garde la largeur de son
+  état le plus long.
+- Contre le code d'avant ces corrections, 18 des 52 contrôles tombent ; neuf
+  falsifications de la fonction serveur tombent toutes.
+- **Constat en passant, pas corrigé** : `/ela-admin/` et les pages de la
+  réception sont publiées AVEC leurs commentaires de travail —
+  `masquer-commentaires.mjs` ne traite que `site/index.html` et
+  `site/application.html`. La règle du 28 septembre ne vaut donc pas pour
+  l'admin. À trancher avec Barbaros.
 
 ## LE SITE SE PRÉSENTE PAR SA MARQUE — ET LE CONTRÔLE DE PRODUCTION A CRIÉ
 

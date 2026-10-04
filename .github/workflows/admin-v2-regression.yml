@@ -184,3 +184,13 @@ jobs:
             -f supabase/tests/role-agent-avant.sql \
             -f supabase/migrations/20260929030000_role_agent_serveur.sql \
             -f supabase/tests/role-agent.sql
+          # Le voyant des alertes (4 octobre 2026) : un anonyme ne lit rien,
+          # un non-exploitant est refusé par la fonction elle-même, et les
+          # mesures disent vrai. Le schéma « cron » n'existe que chez
+          # Supabase : l'épreuve en pose un faux avant la migration.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database sante;'
+          psql -h 127.0.0.1 -U postgres -d sante -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/sante-alertes.sql \
+            -f supabase/migrations/20261004010000_sante_alertes.sql \
+            -f supabase/tests/sante-alertes-apres.sql

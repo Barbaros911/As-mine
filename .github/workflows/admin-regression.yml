@@ -18,6 +18,11 @@ on:
       - 'intake-demande.js'
       - 'qr-affiche.js'
       - 'itineraire-partage.js'
+      - 'admin-sante.js'
+      - 'test-chien-de-garde.mjs'
+      # La mesure du voyant vit dans une migration : la modifier seule doit
+      # relancer test-chien-de-garde, qui la compare au chien de garde.
+      - 'supabase/migrations/**'
       - '.github/scripts/**'
       - 'test-admin-*.mjs'
       - 'test-nouveau-*.mjs'
@@ -65,5 +70,10 @@ jobs:
             if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
             echo "::endgroup::"
           done
+          # Le juge du voyant est aussi celui du chien de garde : il s'éprouve
+          # sans navigateur, et aucun autre workflow ne le lançait.
+          echo "::group::test-chien-de-garde"
+          if node test-chien-de-garde.mjs; then echo "test-chien-de-garde : au vert"; else echo "::error::test-chien-de-garde est tombé"; echecs="$echecs test-chien-de-garde"; fi
+          echo "::endgroup::"
           if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
           echo "Toutes les suites de l'admin retenu sont au vert."
