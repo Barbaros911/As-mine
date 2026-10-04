@@ -68,9 +68,17 @@ const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[
    (PR #281) et l'ancienne, que des icônes posées sur des tablettes
    continuent d'ouvrir. Toutes sont construites par la recette ; aucune
    n'était vérifiée une fois en ligne. */
+/* L'EMPREINTE DU SITE PUBLIC EST LA MARQUE, PAS LE MÉTIER (4 octobre 2026).
+   Elle était « Chauffeur privé » : le jour où Barbaros a retitré le site
+   (« Elatransfer — Transferts privés & solutions de réservation »), ce
+   contrôle a crié sur une page parfaitement servie et ouvert l'Issue #300.
+   Un libellé se reformule, une marque non. « Elatransfer » en un mot ne
+   figure dans AUCUNE autre porte — l'admin dit « ELA Transfer », l'hôtel
+   « easyHotel Aéroville × ELA Transfer » — donc l'empreinte distingue
+   toujours le site de réservation d'une mauvaise page ou d'un listage. */
 const PAGES = [
-  { chemin: "", quoi: "le site de réservation", titre: "Chauffeur priv\u00e9" },
-  { chemin: "application.html", quoi: "le tunnel de r\u00e9servation (cartes du flyer)", titre: "Chauffeur priv\u00e9" },
+  { chemin: "", quoi: "le site de réservation", titre: "Elatransfer" },
+  { chemin: "application.html", quoi: "le tunnel de r\u00e9servation (cartes du flyer)", titre: "Elatransfer" },
   { chemin: "admin.html", quoi: "le raccourci exploitant", titre: "Espace exploitant" },
   { chemin: "exploitant/", quoi: "l'espace exploitant", titre: "Espace exploitant" },
   { chemin: "ela-admin/", quoi: "l'admin historique (o\u00f9 m\u00e8ne admin.html)", titre: "Administration" },

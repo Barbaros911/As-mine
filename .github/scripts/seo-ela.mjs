@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const file = process.argv[2] || 'site/index.html';
 let html = fs.readFileSync(file, 'utf8');
 
-const title = 'ELA Transfer — Chauffeur privé à Paris et en Île-de-France';
-const description = 'Chauffeur privé à Paris et en Île-de-France. Transferts aéroports, hôtels, gares et trajets sur réservation. Prix annoncé avant la demande.';
+const title = 'Elatransfer — Transferts privés & solutions de réservation';
+const description = 'Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.';
 
 html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
 html = html.replace(/<meta\s+name=["']description["'][^>]*>/i, `<meta name="description" content="${description}">`);
@@ -17,7 +17,7 @@ const extra = `
 <meta name="theme-color" content="#0b2f63">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="ELA Transfer">
+<meta property="og:site_name" content="Elatransfer">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <meta property="og:url" content="https://elatransfer.com/">
@@ -28,7 +28,7 @@ const extra = `
 <script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
-  name: 'ELA Transfer',
+  name: 'Elatransfer',
   url: 'https://elatransfer.com/',
   logo: 'https://elatransfer.com/brand-logo.webp',
   image: 'https://elatransfer.com/brand-logo.webp',
@@ -44,7 +44,7 @@ const extra = `
 <script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'ELA Transfer',
+  name: 'Elatransfer',
   url: 'https://elatransfer.com/'
 })}</script>
 <style>
