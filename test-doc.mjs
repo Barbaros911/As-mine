@@ -39,34 +39,30 @@ const doc  = readFileSync("CLAUDE.md", "utf8");
 const reglesTexte = existsSync("TEAM_RULES.md")
   ? readFileSync("TEAM_RULES.md", "utf8") : null;
 
-/* LA SECTION QUI FAIT FOI. CLAUDE.md garde volontairement la description
-   de l'ANCIEN site « pour comprendre d'où viennent les décisions » — on y
-   lit encore 1,75 €/km, quatre gammes et des packs. Les y chercher ferait
-   tomber la suite sur de l'histoire correctement archivée. CLAUDE.md le
-   dit lui-même : « En cas de contradiction, c'est cette section-ci qui dit
-   vrai. » On ne lit donc que celle-là. */
+/* LA SECTION QUI FAIT FOI. On ne lit la grille et les constantes que
+   depuis « # LE SITE » : l'en-tête du mémo (règles de l'équipe, règles
+   légales, conseils acquis) ne porte aucun tarif, et l'ANCIEN site — où
+   l'on lit encore 1,75 €/km, quatre gammes et des packs — vit depuis le
+   4 octobre 2026 dans memoire/ancien-site.md, hors de ce fichier. Cette
+   archive nomme des fichiers disparus EXPRÈS (test6.mjs, styles.css…) :
+   on ne lui applique donc pas le contrôle des fichiers cités, seulement
+   celui des secrets, plus bas. */
 const depart = doc.search(/^# LE SITE\b/m);
 const courant = depart < 0 ? "" : doc.slice(depart);
 
-/* LE MÊME DÉCOUPAGE SERT AUX FICHIERS ET AUX BRANCHES, mais à l'envers :
-   là, le mémo général du début (construire.sh, CLOUDFLARE.md, les règles
-   de publication) est VIVANT, seul le bloc du milieu est de l'histoire.
-   `vivant` = tout le document SAUF la description de l'ancien site. Sans
-   ce retrait, la suite réclamait test.mjs et tailwind.config.js, supprimés
-   à la bascule et cités précisément pour dire qu'ils l'ont été. Un contrôle
-   qui se plaint d'une archive correcte finit par être désactivé en entier. */
-const archiveDebut = doc.search(/^# Asmine — l'application de réservation\s*$/m);
-let vivant = (archiveDebut > 0 && depart > archiveDebut)
-  ? doc.slice(0, archiveDebut) + doc.slice(depart)
-  : doc;
+/* LES ARCHIVES : un fichier par sujet dans memoire/, lus pour les secrets
+   et pour vérifier qu'ils se retrouvent depuis le mémo. */
+const memoire = existsSync("memoire")
+  ? readdirSync("memoire").filter(f => f.endsWith(".md")).sort() : [];
 
-/* UNE SECONDE DÉCOUPE, PLUS FINE. La section du site actuel s'ouvre sur
-   la liste de ce qui a été SUPPRIMÉ à la bascule — elle nomme des fichiers
-   précisément pour dire qu'ils n'existent plus. Les exiger reviendrait à
-   demander qu'on ressuscite ce qu'on vient d'enterrer. Le retrait est
-   nommé et borné, jamais deviné d'après la présence du mot « supprimé » :
-   une heuristique sur la prose finirait par excuser un vrai oubli. */
-vivant = vivant.replace(
+/* `vivant` = ce qui, dans CLAUDE.md, désigne du présent — tout le fichier,
+   moins la liste de ce qui a été SUPPRIMÉ à la bascule : elle nomme des
+   fichiers précisément pour dire qu'ils n'existent plus. Les exiger
+   reviendrait à demander qu'on ressuscite ce qu'on vient d'enterrer. Le
+   retrait est nommé et borné, jamais deviné d'après la présence du mot
+   « supprimé » : une heuristique sur la prose finirait par excuser un vrai
+   oubli. */
+let vivant = doc.replace(
   /\*\*CE QUI A ÉTÉ SUPPRIMÉ À LA BASCULE[\s\S]*?(?=\n\*\*IL N'Y A PAS DE PAGE DE SECOURS)/,
   "");
 
@@ -195,7 +191,8 @@ if(step) verifier("l'attribut step du champ d'heure suit PAS_MINUTES",
    une valeur — « protégé par le code X », « mot de passe X » — et on exige
    que la valeur contienne un chiffre : un secret d'ici en porte, un nom de
    fonction non. */
-for (const [nom, texte] of [["CLAUDE.md", doc], ["TEAM_RULES.md", reglesTexte]]) {
+for (const [nom, texte] of [["CLAUDE.md", doc], ["TEAM_RULES.md", reglesTexte],
+     ...memoire.map(f => ["memoire/" + f, readFileSync("memoire/" + f, "utf8")])]) {
   if (texte === null) continue;
   const annonces = [
     /protégé[e]?\s+par\s+le\s+code\s*[«"`']?([A-Za-z0-9!@#$%^&*_-]{6,32})[»"`']?/i,
@@ -286,6 +283,41 @@ if(refs){
   }
 } else {
   console.log("  (dépôt distant injoignable : le contrôle des branches est sauté)");
+}
+
+/* ═══ 8. LE MÉMO A UN PLAFOND, ET SES ARCHIVES SE RETROUVENT ═══
+   Le 4 octobre 2026, CLAUDE.md faisait 455 Ko — sept mille lignes, lues
+   en entier au début de CHAQUE session avant le premier mot de Barbaros,
+   et il grossissait de 16 Ko par jour. Un mémo de cette taille, c'est
+   d'abord des notes qui vieillissent : ce fichier-là raconte six fois
+   qu'une note périmée a fait perdre des heures.
+   LA RÈGLE : une décision tient dans CLAUDE.md en trois lignes ; son
+   histoire va dans memoire/, un fichier par sujet, lu seulement si le
+   sujet revient. Pour écrire dans CLAUDE.md, on range d'abord.
+   LE PLAFOND NE MONTE JAMAIS. Un contrôle qui bloque finit par être
+   « réparé » en relevant son nombre — c'est écrit ici pour que la
+   prochaine session ne le fasse pas : s'il tombe, on déplace l'histoire
+   du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
+   Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
+   PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
+const PLAFOND_MEMO = 350000; // octets — ne monte jamais, descend à chaque rangement
+{
+  const taille = Buffer.byteLength(doc, "utf8");
+  verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",
+    taille <= PLAFOND_MEMO,
+    "il fait " + Math.round(taille / 1000) + " Ko. Ne pas relever PLAFOND_MEMO : déplacer " +
+    "l'histoire du sujet touché vers memoire/, ne garder ici que la règle (trois lignes).");
+
+  /* Les archives doivent se retrouver depuis le mémo, et le mémo ne doit
+     renvoyer qu'à des archives qui existent : une archive que rien ne
+     nomme est perdue, un renvoi vers un fichier absent fait chercher. */
+  const citees = new Set([...doc.matchAll(/`memoire\/([A-Za-z0-9_.-]+\.md)`/g)].map(m => m[1]));
+  for (const f of [...citees].sort())
+    verifier("l'archive « memoire/" + f + " » que CLAUDE.md nomme existe", existsSync("memoire/" + f),
+      "CLAUDE.md y renvoie et elle n'est pas dans le dépôt.");
+  for (const f of memoire)
+    verifier("l'archive « memoire/" + f + " » est nommée dans CLAUDE.md", citees.has(f),
+      "une archive que le mémo ne nomme pas ne sera jamais relue : y renvoyer depuis la règle qu'elle explique.");
 }
 
 /* =====================================================================
