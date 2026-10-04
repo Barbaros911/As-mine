@@ -923,7 +923,27 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   transition:border-color .14s,background .14s,color .14s;}
 .choix svg{flex:0 0 auto;}
 /* Quatre canaux sur deux rangées : à 390 px, quatre de front ne tiennent pas. */
-.choix-envoi{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.choix-envoi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+/* Le pictogramme à gauche, le nom à côté : on reconnaît l'application avant
+   de lire son nom. Le choix retenu porte une coche, en plus du contour : la
+   couleur ne dit jamais le sens toute seule. */
+.choix-envoi .choix{justify-content:flex-start;gap:10px;min-height:56px;padding:0 12px;
+  color:var(--encre);font-size:14.5px;text-align:left;position:relative;}
+.canal-ico{width:28px;height:28px;flex:0 0 28px;}
+.choix-envoi .choix{min-width:0;padding-right:24px;}
+.choix-envoi .choix span{min-width:0;}
+#blocContact .bloc-note{margin-bottom:12px;}
+/* Un iPhone se fait 320 px : deux colonnes de 125 px n'ont pas la place de
+   la marge, du pictogramme ET de « WhatsApp » — le mot se coupait en deux.
+   Le pictogramme passe AU-DESSUS du nom, centré. */
+@media (max-width:360px){
+  .choix-envoi{gap:8px;}
+  .choix-envoi .choix{flex-direction:column;justify-content:center;gap:5px;
+    min-height:72px;padding:8px 6px;text-align:center;font-size:13.5px;}
+}
+.choix-envoi .choix[aria-pressed="true"]{box-shadow:0 2px 10px rgba(14,111,199,.14);}
+.choix-envoi .choix[aria-pressed="true"]::after{content:"";position:absolute;top:7px;right:8px;
+  width:16px;height:16px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat;}
 .tel-relu{margin:10px 0 6px;font-size:14px;color:var(--encre);}
 #blocContact{margin-top:20px;padding-top:16px;border-top:1px solid var(--filet);}
 .tel-relu b{white-space:nowrap;}
@@ -3304,29 +3324,35 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="bloc" id="blocEnvoi">
       <h2 class="bloc-titre" data-t="envoi_titre">Envoyer ma demande par</h2>
       <div class="choix-envoi">
+        <!-- LES PICTOGRAMMES DES APPLICATIONS (4 octobre 2026, à sa demande).
+             WhatsApp et Telegram : leur marque, employée comme on l'emploie
+             partout pour dire « joignez-nous par là » — usage descriptif, le
+             vert WhatsApp est déjà dans la barre du bas. Messages : une
+             bulle générique, PAS l'icône d'Apple, dont les règles interdisent
+             la reprise. Le site : un globe. Dessinés ici, rien de chargé. -->
         <button class="choix" type="button" data-envoi="whatsapp" aria-pressed="true">
-          <span data-t="canal_whatsapp">WhatsApp</span></button>
+          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#25D366" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/><path fill="#fff" d="M9.1 7.6c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.7-.8c-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.3-.1-1.1-.4-2-1.3-.8-.7-1.3-1.5-1.4-1.8-.2-.3 0-.4.1-.5l.4-.4.3-.4c.1-.2 0-.3 0-.5l-.8-1.9z"/></svg><span data-t="canal_whatsapp">WhatsApp</span></button>
         <button class="choix" type="button" data-envoi="telegram" aria-pressed="false">
-          <span data-t="canal_telegram">Telegram</span></button>
+          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#29A9EB"/><path fill="#fff" d="M5.5 11.6l11.3-4.4c.5-.2 1 .1.8.9l-1.9 9c-.1.6-.5.8-1 .5l-2.9-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span data-t="canal_telegram">Telegram</span></button>
         <button class="choix" type="button" data-envoi="messages" aria-pressed="false">
-          <span data-t="canal_messages">Messages</span></button>
+          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="#0A84FF"/><path fill="#fff" d="M12 6.2c-3.6 0-6.4 2.3-6.4 5.2 0 1.6.9 3.1 2.4 4-.1.9-.6 1.8-1.3 2.4 1.5 0 2.8-.6 3.7-1.3.5.1 1 .2 1.6.2 3.6 0 6.4-2.3 6.4-5.3S15.6 6.2 12 6.2z"/></svg><span data-t="canal_messages">Messages</span></button>
         <button class="choix" type="button" data-envoi="site" aria-pressed="false">
-          <span data-t="canal_site">Le site seulement</span></button>
+          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#E8F2FD"/><g fill="none" stroke="#0E6FC7" stroke-width="1.5"><circle cx="12" cy="12" r="6"/><path d="M6 12h12M12 6c1.8 1.7 2.6 3.7 2.6 6s-.8 4.3-2.6 6c-1.8-1.7-2.6-3.7-2.6-6S10.2 7.7 12 6z"/></g></svg><span data-t="canal_site">Le site seulement</span></button>
       </div>
       <div id="blocContact" hidden>
-        <h2 class="bloc-titre" data-t="joindre_titre">Comment voulez-vous être contacté ?</h2>
+        <h2 class="bloc-titre" data-t="joindre_titre">Par où Elatransfer doit-il vous confirmer votre course ?</h2>
         <p class="bloc-note" data-t="joindre_note">Votre numéro est étranger : choisissez
-           l'application par laquelle nous vous confirmerons la course.</p>
+           l'application sur laquelle vous recevrez la confirmation.</p>
         <div class="choix-envoi">
           <button class="choix" type="button" data-contact="whatsapp" aria-pressed="false">
-            <span data-t="canal_whatsapp">WhatsApp</span></button>
+            <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#25D366" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/><path fill="#fff" d="M9.1 7.6c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.7-.8c-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.3-.1-1.1-.4-2-1.3-.8-.7-1.3-1.5-1.4-1.8-.2-.3 0-.4.1-.5l.4-.4.3-.4c.1-.2 0-.3 0-.5l-.8-1.9z"/></svg><span data-t="canal_whatsapp">WhatsApp</span></button>
           <button class="choix" type="button" data-contact="telegram" aria-pressed="false">
-            <span data-t="canal_telegram">Telegram</span></button>
+            <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#29A9EB"/><path fill="#fff" d="M5.5 11.6l11.3-4.4c.5-.2 1 .1.8.9l-1.9 9c-.1.6-.5.8-1 .5l-2.9-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span data-t="canal_telegram">Telegram</span></button>
           <button class="choix" type="button" data-contact="messages" aria-pressed="false">
-            <span data-t="canal_imessage">iMessage</span></button>
+            <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="#0A84FF"/><path fill="#fff" d="M12 6.2c-3.6 0-6.4 2.3-6.4 5.2 0 1.6.9 3.1 2.4 4-.1.9-.6 1.8-1.3 2.4 1.5 0 2.8-.6 3.7-1.3.5.1 1 .2 1.6.2 3.6 0 6.4-2.3 6.4-5.3S15.6 6.2 12 6.2z"/></svg><span data-t="canal_imessage">iMessage</span></button>
         </div>
-        <p class="refus" id="erreurContact" hidden data-t="err_contact">Choisissez comment
-           nous pouvons vous joindre.</p>
+        <p class="refus" id="erreurContact" hidden data-t="err_contact">Choisissez où
+           vous recevrez la confirmation.</p>
       </div>
     </div>
 
@@ -5615,9 +5641,9 @@ window.ELA_TEXTES = {
     envoi_titre:"Envoyer ma demande par",
     canal_whatsapp:"WhatsApp", canal_telegram:"Telegram", canal_messages:"Messages",
     canal_imessage:"iMessage", canal_site:"Le site seulement",
-    joindre_titre:"Comment voulez-vous être contacté ?",
-    joindre_note:"Votre numéro est étranger : choisissez l'application par laquelle nous vous confirmerons la course.",
-    err_contact:"Choisissez comment nous pouvons vous joindre.",
+    joindre_titre:"Par où Elatransfer doit-il vous confirmer votre course ?",
+    joindre_note:"Votre numéro est étranger : choisissez l'application sur laquelle vous recevrez la confirmation.",
+    err_contact:"Choisissez où vous recevrez la confirmation.",
     suite_3:"La réponse s'affiche ici, dans « Réservations », et vous est envoyée.",
     bon_sous:"Bon de réservation",
     /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
@@ -5818,9 +5844,9 @@ window.ELA_TEXTES = {
     envoi_titre:"Send my request via",
     canal_whatsapp:"WhatsApp", canal_telegram:"Telegram", canal_messages:"Messages",
     canal_imessage:"iMessage", canal_site:"Website only",
-    joindre_titre:"How would you like to be contacted?",
-    joindre_note:"Your number is from abroad: choose the app we will use to confirm your transfer.",
-    err_contact:"Please choose how we can reach you.",
+    joindre_titre:"Where should Elatransfer confirm your transfer?",
+    joindre_note:"Your number is from abroad: choose the app on which you will receive the confirmation.",
+    err_contact:"Please choose where you will receive the confirmation.",
     suite_3:"The answer appears here, under « Bookings », and is sent to you.",
     bon_sous:"Booking voucher",
     bon_etat:"Request received",
@@ -9318,7 +9344,7 @@ window.ELA_TEXTES = {
      la demande — un bouton qui n'ouvrirait rien serait pire que pas de
      bouton. Il reste proposé pour être CONTACTÉ : c'est le Telegram du
      client, Barbaros l'ouvre depuis le sien. */
-  var TELEGRAM_ELA = "";
+  var TELEGRAM_ELA = "Elatransfer";
 
   /* ═══════════════════════════════════════════════════════════════════
      LE BOUTON WHATSAPP OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT

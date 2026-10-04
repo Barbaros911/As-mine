@@ -33,13 +33,22 @@ passe ».
 - **« Envoyer ma demande par »** : WhatsApp (choix d'ouverture, comme avant),
   Telegram, Messages, le site seulement. La demande part sur le serveur dans
   TOUS les cas ; le message est un second chemin.
-  - **Telegram n'est proposé pour l'envoi que si `TELEGRAM_ELA` est rempli** :
-    Telegram n'ouvre une conversation avec un message écrit QUE par un nom
-    d'utilisateur (`t.me/<nom>?text=`), jamais par un numéro.
+  - **Telegram passe par `TELEGRAM_ELA` = « Elatransfer »** (donné par
+    Barbaros, « je crois » — invérifiable d'ici, le réseau bloque t.me ;
+    publication soumise à sa vérification de https://t.me/Elatransfer). Telegram n'ouvre
+    une conversation avec un message écrit QUE par un nom d'utilisateur
+    (`t.me/<nom>?text=`), jamais par un numéro. **Un nom faux enverrait le
+    nom et le téléphone du client à un inconnu** : à revérifier s'il change
+    de compte. Vide, le choix disparaît de lui-même.
   - **Messages** ouvre `sms:` : iOS lit `&body=`, Android `?body=` (RFC 5724).
     Sur iPhone, l'envoi part en iMessage, gratuit, si le destinataire en a un.
+- **Les pictogrammes** (à sa demande, « plus stylé ») : la marque de
+  WhatsApp et de Telegram, usage descriptif ; pour Messages une bulle
+  générique, JAMAIS l'icône d'Apple ; un globe pour le site. Sous 360 px,
+  le pictogramme passe au-dessus du nom — sinon « WhatsApp » se coupait.
 - **La seule question** : numéro ÉTRANGER + « le site seulement » →
-  « Comment voulez-vous être contacté ? » WhatsApp / Telegram / iMessage,
+  « Par où Elatransfer doit-il vous confirmer votre course ? » (formulée par
+  Barbaros : qui confirme, et pourquoi on demande) WhatsApp / Telegram / iMessage,
   obligatoire dans ce cas. Envoyée par une application, la demande prouve le
   numéro et dit où répondre ; un numéro français se joint par appel ou SMS,
   gratuits.

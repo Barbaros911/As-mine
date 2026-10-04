@@ -16,8 +16,8 @@
    — la question n'apparaît QUE pour un numéro étranger envoyé par le site,
      et elle est obligatoire dans ce cas ;
    — Messages ouvre « sms: » vers Elatransfer, message écrit ;
-   — Telegram n'est pas proposé pour l'envoi tant qu'Elatransfer n'a pas
-     de nom d'utilisateur : un bouton qui n'ouvre rien est pire qu'absent ;
+   — Telegram ouvre la conversation d'Elatransfer par son nom d'utilisateur,
+     message écrit (Telegram n'accepte pas de message écrit vers un numéro) ;
    — le choix part sur le bon déposé ;
    — dans l'admin, le canal est dit, son bouton passe en plein, et
      « Accuser réception » écrit par CE canal.
@@ -80,8 +80,10 @@ async function tunnel(options){
     await p.locator('#blocEnvoi').isVisible());
   check('WhatsApp est le choix d\'ouverture : le défaut ne change pas',
     await p.locator('[data-envoi="whatsapp"]').getAttribute('aria-pressed') === 'true');
-  check('Telegram n\'est PAS proposé pour l\'envoi sans nom d\'utilisateur Elatransfer',
-    await p.locator('[data-envoi="telegram"]').isHidden());
+  check('Telegram est proposé pour l\'envoi : Elatransfer a un nom d\'utilisateur',
+    await p.locator('[data-envoi="telegram"]').isVisible());
+  const icones = await p.locator('#blocEnvoi [data-envoi] svg.canal-ico').count();
+  check('chaque canal porte son pictogramme', icones === 4, String(icones));
   const relu = (await p.locator('#telRelu').textContent()) || '';
   check('le numéro est relu tel qu\'on le composera, avec le pays',
     await p.locator('#telRelu').isVisible() && relu.includes('+33 6 12 34 56 78') && relu.includes('(France)'), relu);
@@ -141,8 +143,8 @@ async function tunnel(options){
     await p.locator('#blocContact').isVisible());
   /* La question doit être LA SIENNE : deux clés de texte portant le même nom
      qu'un autre écran l'avaient remplacée par « Nous joindre ». */
-  check('la question dit bien « Comment voulez-vous être contacté ? »',
-    (await p.locator('#blocContact .bloc-titre').textContent()).includes('Comment voulez-vous être contacté'),
+  check('la question dit bien qui confirme et pourquoi on demande',
+    (await p.locator('#blocContact .bloc-titre').textContent()).includes('Elatransfer doit-il vous confirmer'),
     await p.locator('#blocContact .bloc-titre').textContent());
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
   check('sans réponse, la demande ne part pas et on le dit',
@@ -175,6 +177,50 @@ async function tunnel(options){
   await ctx.close();
 }
 
+/* ---- 5 bis. Telegram : la conversation d'Elatransfer, message écrit ---- */
+{
+  const { ctx, p, depots } = await tunnel({ tel:'+49 151 23456789' });
+  await p.locator('[data-envoi="telegram"]').click();
+  check('« Ce qui se passe ensuite » annonce Telegram',
+    (await p.locator('#suite1').textContent()).includes('Telegram'));
+  await p.locator('#btnConfirmer').click(); await p.waitForTimeout(1000);
+  const ouverts = await p.evaluate(()=>window.__ouverts);
+  check('Telegram s\'ouvre sur le compte d\'Elatransfer, message déjà écrit',
+    ouverts.length === 1 && ouverts[0].startsWith('https://t.me/Elatransfer?text=Demande'), JSON.stringify(ouverts));
+  const bon = depots[0] && depots[0].bon;
+  check('le bon déposé dit « envoyée par Telegram »',
+    bon && bon.contact && bon.contact.envoi === 'telegram' && bon.contact.prefere === 'telegram',
+    JSON.stringify(bon && bon.contact));
+  await ctx.close();
+}
+
+/* ---- 5 ter. Aucun bouton ne sort de sa carte, jusqu'à 320 px ---- */
+for (const largeur of [320, 390]) {
+  const { ctx, p } = await tunnel({ tel:'+44 7700 900123' });
+  await p.setViewportSize({ width: largeur, height: 844 });
+  await p.locator('[data-envoi="site"]').click(); await p.waitForTimeout(150);
+  const sortis = await p.evaluate(()=>{
+    const carte = document.getElementById('blocEnvoi').getBoundingClientRect();
+    return Array.from(document.querySelectorAll('#blocEnvoi .choix')).filter(b=>{
+      const r = b.getBoundingClientRect();
+      return r.width && (r.left < carte.left - 0.5 || r.right > carte.right + 0.5);
+    }).map(b=>b.textContent.trim());
+  });
+  check(largeur + ' px : aucun choix ne déborde de sa carte', sortis.length === 0, sortis.join(', '));
+  /* Un nom d'application coupé au milieu (« WhatsAp » / « p ») ne se lit
+     plus : chaque mot doit tenir entier dans son bouton. */
+  const coupes = await p.evaluate(()=>Array.from(document.querySelectorAll('#blocEnvoi .choix span')).filter(s=>{
+    if(!s.offsetWidth) return false;
+    return s.textContent.trim().split(/\s+/).some(mot=>{
+      const m = document.createElement('span'); m.style.cssText = getComputedStyle(s).font ? 'font:' + getComputedStyle(s).font + ';position:absolute;white-space:nowrap' : '';
+      m.textContent = mot; document.body.appendChild(m); const w = m.getBoundingClientRect().width; m.remove();
+      return w > s.getBoundingClientRect().width + 0.5;
+    });
+  }).map(s=>s.textContent.trim()));
+  check(largeur + ' px : aucun nom d\'application n\'est coupé en deux', coupes.length === 0, coupes.join(', '));
+  await ctx.close();
+}
+
 /* ---- 6. En anglais ---- */
 {
   const { ctx, p } = await tunnel({ tel:'+44 7700 900123', langue:'en' });
@@ -182,7 +228,7 @@ async function tunnel(options){
     await p.locator('#telRelu').textContent());
   check('et nomme le pays en anglais', (await p.locator('#telRelu').textContent()).includes('United Kingdom'));
   await p.locator('[data-envoi="site"]').click();
-  check('la question est traduite', (await p.locator('#blocContact .bloc-titre').textContent()).includes('How would you like'),
+  check('la question est traduite', (await p.locator('#blocContact .bloc-titre').textContent()).includes('Where should Elatransfer confirm'),
     await p.locator('#blocContact .bloc-titre').textContent());
   check('« Website only » est traduit', (await p.locator('[data-envoi="site"]').textContent()).includes('Website only'));
   await ctx.close();
