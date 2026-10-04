@@ -35,7 +35,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 
 /* =====================================================================
@@ -837,6 +837,88 @@ for (const large of [1024, 1280]) {
   check(`à ${large} px, la ligne des étapes occupe la largeur de la carte`,
     e.ligne >= e.carte * 0.8, e.ligne + ' px pour une carte de ' + e.carte);
   await cx.close();
+}
+
+/* AUCUNE NOTE DE TRAVAIL DANS LES PAGES ELA PUBLIÉES (4 octobre 2026).
+   La règle du 28 septembre ne valait que pour la page publique : /ela-admin/
+   partait en ligne avec 841 blocs de commentaires — comment l'espace est
+   protégé, ses anciennes failles —, la réception avec 578. On ne cherche pas
+   « /* » (une chaîne peut le contenir) : on prend des passages des VRAIS
+   commentaires de la source et on exige qu'aucun ne se retrouve en ligne.
+   TROIS TROUS TROUVÉS EN RELECTURE, et bouchés ici :
+   - une adresse qui rend un 404, ou une AUTRE page, passait au vert — une
+     page vide ne contient aucune note. On exige donc 200 et la marque de la
+     bonne page avant de juger son contenu ;
+   - les commentaires « // » n'étaient pas échantillonnés : un nettoyeur qui
+     les aurait laissés passer restait vert ;
+   - une liste d'adresses survit à la page qu'on ajoute. Toute page publiée
+     qui porte « data-ela-space » (donc fabriquée depuis la page du site) est
+     passée au crible, où qu'elle soit. */
+{
+  /* Les trois sources de ces pages : la page du site (admin et réception en
+     sont fabriqués), la page du QR easyHotel, et la redirection /exploitant/. */
+  const source = (await Promise.all(['index.html', 'sites/easyhotel-client/index.html', 'exploitant/index.html']
+    .map(f => readFile(f, 'utf8')))).join('\n');
+  const milieu = (t, n) => t.slice(Math.floor(t.length / 2) - n, Math.floor(t.length / 2) + n);
+  const passages = [];
+  for (const m of source.matchAll(/\/\*([\s\S]*?)\*\/|<!--([\s\S]*?)-->/g)) {
+    const t = (m[1] || m[2] || '').replace(/\s+/g, ' ').trim();
+    if (t.length >= 80) passages.push(milieu(t, 20));
+  }
+  /* Les « // », dans les scripts intégrés. Ils sont tous en FIN de ligne
+     (« var rang = 0;  // une réponse lente… ») : on prend ceux qu'un espace
+     précède et suit. Une adresse (« https:// ») n'en a pas. Un « // » pris
+     dans une chaîne ferait tomber le contrôle sur un site propre : on le
+     verrait tout de suite, pas en silence. */
+  const lignes = [];
+  for (const sc of source.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+    for (const l of sc[1].split('\n')) {
+      const m = l.match(/(?:^|\s)\/\/\s+(.*)$/);
+      const t = m ? m[1].replace(/\s+/g, ' ').trim() : '';
+      if (t.length >= 30) lignes.push(milieu(t, 15));
+    }
+  }
+  check('la source fournit assez de commentaires « /* » et « <!-- » pour éprouver le contrôle', passages.length > 200, passages.length + ' passages');
+  check('la source fournit assez de commentaires « // » pour éprouver le contrôle', lignes.length >= 10, lignes.length + ' passages');
+  const tous = passages.concat(lignes);
+  const restesDe = html => tous.filter(x => html.includes(x));
+
+  const PAGES = [
+    ['/ela-admin/', 'data-ela-space="admin"'],
+    ['/easyhotel-reception/', 'data-ela-space="hotel-reception"'],
+    ['/reception/easyhotel-aeroville/', 'data-ela-space="hotel-reception"'],
+    ['/exploitant/', 'Espace exploitant</title>'],
+    ['/easyhotel-client/', 'easyHotel Aéroville × ELA Transfer</title>'],
+    ['/', 'data-ela-space="public"'],
+    ['/application.html', 'data-ela-space="hotel-client"'],
+  ];
+  for (const [page, marque] of PAGES) {
+    const r = await fetch(SITE + page);
+    const brut = await r.text();
+    const bonne = r.status === 200 && brut.includes(marque);
+    check(`${page} : c'est bien la bonne page qui répond`, bonne,
+      bonne ? '' : 'HTTP ' + r.status + ', ' + brut.length + ' caractères, marque « ' + marque + ' » ' + (brut.includes(marque) ? 'présente' : 'absente'));
+    if (!bonne) continue;
+    const html = brut.replace(/\s+/g, ' ');
+    const restes = restesDe(html);
+    check(`${page} : aucune note de travail de la source n'est publiée`, restes.length === 0,
+      restes.length ? restes.length + ' passage(s), dont « ' + restes[0] + ' »' : '');
+    check(`${page} : aucun commentaire HTML`, !html.includes('<!--'));
+  }
+
+  /* LE BALAYAGE : des motifs, pas une liste. */
+  const fabriquees = [];
+  for (const f of await readdir('site', { recursive: true })) {
+    if (!f.endsWith('.html')) continue;
+    const brut = await readFile(join('site', f), 'utf8');
+    if (brut.includes('data-ela-space=')) fabriquees.push([f, brut.replace(/\s+/g, ' ')]);
+  }
+  const plancher = PAGES.filter(([, m]) => m.startsWith('data-ela-space')).length;
+  check('le balayage trouve toutes les pages fabriquées depuis la page du site', fabriquees.length >= plancher,
+    fabriquees.length + ' trouvée(s), au moins ' + plancher + ' attendue(s)');
+  const salies = fabriquees.filter(([, h]) => h.includes('<!--') || restesDe(h).length)
+    .map(([f, h]) => f + ' (' + restesDe(h).length + ' passage(s)' + (h.includes('<!--') ? ', « <!-- »' : '') + ')');
+  check('aucune page publiée fabriquée depuis la page du site ne porte une note de travail', salies.length === 0, salies.join(' ; '));
 }
 
 await b.close();

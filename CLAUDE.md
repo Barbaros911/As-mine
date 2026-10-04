@@ -5672,6 +5672,42 @@ pour qui cherche une faille, sans même un mot de passe à deviner.
   pourrait tromper le retrait des commentaires HTML qui suit.
 - Validé contre la **suite complète** (28 suites navigateur + doc +
   notification + push + facade unifiée), toutes au vert après retrait.
+- **L'ADMIN ET LA RÉCEPTION N'Y ÉTAIENT PAS** (corrigé le 4 octobre 2026,
+  Barbaros : « comme tu veux »). Leurs pages sont fabriquées par
+  `construire-espaces-hotel.mjs`, ajouté APRÈS cette étape, et personne ne
+  les avait mises dans la liste : `/ela-admin/` partait en ligne avec 841
+  blocs de commentaires (813 Ko, 485 Ko sans), la réception avec 578. Sont
+  nettoyées maintenant : `/ela-admin/`, `/easyhotel-reception/`,
+  `/reception/*/`, `/exploitant/` et `/easyhotel-client/`.
+  - **Prouvé sans s'en remettre au nettoyeur** : l'analyseur de TypeScript
+    (installé sur la machine, jamais dans la construction) a comparé l'arbre
+    de chaque script avant et après — 157 558 nœuds, zéro écart — et il
+    voit bien un seul caractère changé dans une expression régulière.
+  - `test-nouveau-bascule` prend des passages des VRAIS commentaires des
+    sources et exige qu'aucun ne soit en ligne. Il ne cherche pas « /* » :
+    une chaîne peut le contenir. Avec l'ancienne recette, il tombe sur onze
+    contrôles. **Il tourne maintenant en CI** (« Contrôle de l'admin
+    retenu ») : hors CI, l'oubli d'une ligne dans la recette passait sans
+    bruit — c'est exactement ce qui était arrivé.
+  - **TROIS TROUS DE CE CONTRÔLE, TROUVÉS PAR UNE RELECTURE INDÉPENDANTE ET
+    BOUCHÉS AVANT LA FUSION.** Un 404 ou une AUTRE page passait au vert — une
+    page vide ne contient aucune note : il exige 200 et la marque de la
+    bonne page (`data-ela-space`, ou le titre). Les commentaires `//` n'étaient
+    pas prélevés : ils sont tous en FIN de ligne dans la page, il les prend
+    là, précédés d'un espace (une adresse `https://` n'en a pas). Et une
+    liste de sept adresses survit à la page qu'on ajoute : il passe aussi au
+    crible TOUTE page publiée qui porte `data-ela-space`, où qu'elle soit.
+    Chaque trou a été rouvert exprès et le fait tomber en nommant la page.
+  - **CE QUI GARDE ENCORE DES NOTES EN LIGNE, ET QUI N'EST PAS TRANCHÉ.**
+    Ces fichiers sont copiés tels quels, et ce n'est pas nouveau :
+    `robots.txt` explique en clair que `?h=` donne des forfaits plus bas que
+    le site et que la réception ouvre l'historique des clients d'un hôtel ;
+    `hotel-engine-polish.css` dit que la photo de l'en-tête vient du site
+    d'easyHotel sans accord écrit ; `application-facade.css` ne parle que de
+    mise en page ; `_headers` justifie les en-têtes de sécurité, qui se
+    lisent de toute façon dans chaque réponse. `_headers` ne se touche pas
+    d'ici : Cloudflare le lit, et un réglage qu'on ne peut pas éprouver garde
+    son défaut.
 - **Le cloisonnement complet des écrans admin/réception hors du fichier
   public n'a PAS été fait** : les données restent protégées côté serveur
   (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus
@@ -6975,10 +7011,11 @@ l'admin, seule la sonnerie s'arrête**. C'est la phrase que dit le bandeau.
   est grise, pas rouge.
 - **Il se mesure au rythme de la relecture du serveur, pas de la sonde** :
   au plus une fois toutes les 40 s, jamais onglet caché ni hors de l'espace.
-- **À FAIRE APRÈS LA FUSION** : appliquer la migration en production
-  (workflow « Appliquer une migration Supabase »,
-  `20261004010000_sante_alertes.sql`). Tant que ce n'est pas fait, le voyant
-  reste gris : il ne prétend rien.
+- **LA MIGRATION EST APPLIQUÉE EN PRODUCTION** (4 octobre 2026 à 04 h 17,
+  workflow « Appliquer une migration Supabase », exécution n° 26, réponse
+  201), juste après la fusion de #305 ; Barbaros a vu « Alertes OK » en
+  rouvrant l'admin. Si elle disparaissait un jour, le voyant redeviendrait
+  gris (« non vérifiées ») : il ne prétend rien.
 - **Le chien de garde GitHub reste** : quand il passe, il ouvre une Issue.
   Le voyant ne le remplace pas, il couvre les heures où GitHub dort.
 - `test-admin-voyant.mjs` (52 contrôles, site construit),
@@ -7020,11 +7057,9 @@ mémoire de POURQUOI c'est écrit ainsi.
   état le plus long.
 - Contre le code d'avant ces corrections, 18 des 52 contrôles tombent ; neuf
   falsifications de la fonction serveur tombent toutes.
-- **Constat en passant, pas corrigé** : `/ela-admin/` et les pages de la
-  réception sont publiées AVEC leurs commentaires de travail —
-  `masquer-commentaires.mjs` ne traite que `site/index.html` et
-  `site/application.html`. La règle du 28 septembre ne vaut donc pas pour
-  l'admin. À trancher avec Barbaros.
+- **Les commentaires de l'admin et de la réception publiés** : constatés
+  pendant ce travail, retirés ensuite à sa décision — voir « LES
+  COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
 
 ## LE SITE SE PRÉSENTE PAR SA MARQUE — ET LE CONTRÔLE DE PRODUCTION A CRIÉ
 
