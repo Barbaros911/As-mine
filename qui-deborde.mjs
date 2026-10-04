@@ -2,6 +2,12 @@ import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
+import { execSync } from 'node:child_process';
+/* Ce diagnostic ouvre ADMIN V2, qui n'est plus publié par défaut : sans le
+   drapeau, /admin-v2.html est la redirection vers /ela-admin/ et le script
+   mesurait l'admin historique en affichant « rien ne déborde » (relecture
+   du 4 octobre 2026). Il construit donc lui-même, avec le drapeau. */
+execSync('sh construire.sh', { stdio: 'ignore', env: { ...process.env, ELA_AVEC_ADMIN_V2: '1' } });
 const T={'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'};
 const srv=createServer(async(rq,rs)=>{try{let c=decodeURIComponent(rq.url.split('?')[0]);c=normalize(c).replace(/^(\.\.[/\\])+/,'');let f=join(process.cwd(),'site',c);
  try{if((await stat(f)).isDirectory())f=join(f,'index.html')}catch{rs.writeHead(404).end('non');return}
@@ -24,6 +30,7 @@ await ctx.route('**/*',r=>{const u=r.request().url();if(u.startsWith(B))return r
  return J([]);});
 await ctx.addInitScript(()=>sessionStorage.setItem('ela_admin_session',JSON.stringify({access_token:'t',refresh_token:'r',user:{email:'exploitant@ela'}})));
 const p=await ctx.newPage();await p.goto(B+'/admin-v2.html',{waitUntil:'domcontentloaded'});await p.waitForTimeout(900);
+if(!p.url().endsWith('/admin-v2.html')) throw new Error('Admin v2 n\'a pas été ouvert (arrivé sur '+p.url()+') : rien ne serait mesuré.');
 const r=await p.evaluate(()=>{const out=[];for(const e of document.querySelectorAll('*')){const b=e.getBoundingClientRect();
   if(b.right>innerWidth+1&&b.width>0)out.push({q:e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(typeof e.className==='string'&&e.className?'.'+e.className.trim().split(/\s+/).join('.'):''),d:Math.round(b.right-innerWidth),l:Math.round(b.left),w:Math.round(b.width)});}
   return {vue:innerWidth,doc:document.documentElement.scrollWidth,liste:out.slice(0,10)};});

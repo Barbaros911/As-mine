@@ -1834,10 +1834,13 @@ site** : une panne qu'on ne sait pas nommer ne se répare pas.
   Supabase. Le compte existe, le mot de passe est le bon, la connexion est
   refusée — et on cherche une heure du côté du mot de passe. C'est écrit
   dans `SUPABASE.md` et le site le dit lui-même.
-- **Supprimer un compte ne fait rien perdre** : les policies autorisent
-  `authenticated` en général, jamais un compte précis, et les courses
-  appartiennent à la table. Recréer est plus simple que réinitialiser depuis
-  un téléphone.
+- **NE JAMAIS CONSEILLER DE SUPPRIMER ET RECRÉER LE COMPTE** (corrigé le
+  4 octobre 2026). Cette ligne disait l'inverse — « supprimer un compte ne
+  fait rien perdre » — et c'était vrai jusqu'à
+  `20260915_operator_auth_server.sql` : depuis, l'admin est réservé à un
+  compte précis de la table `operateurs`, effacé avec le compte. Le message
+  du site, `SUPABASE.md` et ce fichier le conseillaient encore tous les
+  trois ; un compte non confirmé se confirme côté serveur, par une migration.
 - Quatre cas éprouvés dans `test-nouveau-serveur.mjs`, plus le retour du
   bouton à l'état utilisable : laissé sur « … » et désactivé, il ferait
   croire à une connexion en cours pour toujours.
@@ -6827,3 +6830,58 @@ défaut déjà payé une fois** (« LA BARRE DU BAS MANGEAIT « VOIR MON PRIX »
 - **`test-nouveau-bascule` mesure le bouton SUR LE SITE CONSTRUIT** : c'est
   la façade, injectée par `construire.sh`, qui fixe la hauteur du bandeau.
   Contre l'ancien `index.html`, cinq contrôles tombent en nommant le défaut.
+
+## L'ADMIN SANS RÉSEAU, LA FILE QUI NE PERD RIEN, LE RAPPEL DE SAUVEGARDE
+
+4 octobre 2026, suite de l'audit de l'admin, à sa demande (« oui » à
+l'ouverture sans réseau). Ce que le lot change, et pourquoi.
+- **UNE PANNE N'EST PLUS UN REFUS.** Au chargement, le serveur revalide
+  l'accès (`est_exploitant`). Une coupure valait « non » : la session était
+  effacée et l'écran de connexion cachait jusqu'aux courses gardées sur le
+  téléphone — dans un parking d'aéroport, à 5 h. `nuage.verifierExploitant()`
+  rend maintenant **trois** réponses : « oui », « non » (le serveur a dit
+  faux, 401/403, ou il a refusé de renouveler la session) et « panne » (tout
+  le reste). Sur « panne », la session est gardée ; l'espace s'ouvre en
+  lecture locale **seulement si ce compte a déjà été reconnu par le serveur
+  sur CET appareil** (`ela_acces_verifie` = l'identifiant du compte, jamais
+  un secret) — sinon un compte quelconque connecté pendant une panne verrait
+  les courses du téléphone. On revérifie toutes les 15 s, au retour du réseau
+  et de l'onglet ; un refus arrivé plus tard referme l'espace.
+- **`rafraichir()` distingue aussi les deux** : 400/401/403 effacent la
+  session, une erreur 5xx ou un délai (8 s) la gardent. Deux appels
+  simultanés partagent un seul renouvellement — deux échanges du même jeton
+  de renouvellement, et Supabase peut révoquer le second.
+- **LE RÔLE AGENT TIENT HORS LIGNE** (`ela_role_connu`, rattaché au compte) :
+  sans réseau, `agent-role-ui.mjs` appliquait les droits d'admin à l'agent.
+- **UNE MODIFICATION FAITE PENDANT UN ENVOI N'EST PLUS PERDUE.** La file
+  retirait la course à la réponse de l'envoi précédent, même si une nouvelle
+  modification était arrivée pendant le trajet. Chaque entrée porte un
+  compteur (`gen`) : on ne la retire que s'il n'a pas bougé.
+- **« Retour » n'écrit que ce qui a changé**, et un chauffeur saisi sur une
+  course déjà confirmée passe par le **même contrôle que « Confirmer »**
+  (`refusAttribution` : papier périmé, dette au-delà du seuil) — avant, le
+  bouton « Retour » attribuait sans aucun contrôle. Même contrôle sur
+  « Prévenir le client » et sur « Saisir par téléphone ».
+- **UN NUMÉRO DU CARNET DONNE LE NOM** (`completerChauffeur`) : avant, un
+  chauffeur saisi par son seul numéro restait « Sans chauffeur » sur la
+  carte et le bon proposait de « Placer au groupe » une course attribuée.
+- **LE RAPPEL DE SAUVEGARDE EST SUR LE TÉLÉPHONE** (`#bordSauvegarde`) : il
+  apparaît sur le tableau de bord quand l'appareil porte un carnet, des
+  factures ou des paiements, et que la dernière sauvegarde a 7 jours ou n'a
+  jamais été faite. Ce sont les seules données qui ne vivent pas sur le
+  serveur. La sauvegarde emporte désormais le lien d'avis, et la
+  restauration rend l'identité de l'émetteur et ce lien **sans écraser** ce
+  qui est déjà saisi.
+- **L'ADMIN RETENU A SA CI** (`.github/workflows/admin-regression.yml`) :
+  toute suite `test-admin-*` qui ne demande pas Admin v2, plus cinq
+  `test-nouveau-*` de l'espace exploitant. Avant, sept des neuf suites en CI
+  éprouvaient Admin v2, retiré de la publication.
+- **Mise en page des cartes à 320–390 px** : la référence et le prix tiennent
+  sur une ligne, la pastille du chauffeur passe dessous, et « Confirmer la
+  fin » ne pousse plus « Appeler » hors de la carte.
+- Suites : `test-admin-hors-ligne`, `test-admin-envoi`, `test-admin-audit`,
+  toutes sur le site construit. Contre l'ancien code : 23, 6 et 15 contrôles
+  tombent.
+- **Ce qui reste ouvert** : le chien de garde GitHub passe six fois en 21 h
+  au lieu de toutes les 15 min (P1-10) — à trancher par Barbaros : un
+  déclencheur extérieur gratuit, ou un indicateur de santé dans l'admin.

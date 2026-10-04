@@ -418,6 +418,11 @@ for(const cas of [
   const dit = await pg.locator('#nuageEtat').textContent();
   check(cas.nom + ' : le message dit quoi faire',
     dit.includes(cas.attendu), dit);
+  /* Il conseillait de supprimer et recréer le compte, ce qui retire l'accès
+     à l'admin (la ligne « operateurs » part avec le compte). On vérifie le
+     geste, pas la phrase : aucun message ne dit de supprimer. */
+  check(cas.nom + ' : le message ne conseille jamais de supprimer le compte',
+    !/supprimez-le|recréez-le/i.test(dit), dit);
   /* Le bouton revient TOUJOURS : laissé sur « … » et désactivé, il ferait
      croire que la connexion est en cours pour toujours. */
   check(cas.nom + ' : le bouton redevient utilisable',
