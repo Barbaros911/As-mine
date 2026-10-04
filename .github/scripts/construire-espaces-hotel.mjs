@@ -87,7 +87,7 @@ function sansAdmin() {
   let html = source;
   html = retirerNavigationAdmin(html);
   for (const id of sectionsAdmin) html = retirerElementParId(html, 'section', id);
-  html = html.replace(/<script\b[^>]*src=["'](?:intake-demande|qr-affiche)\.js["'][^>]*><\/script>\s*/gi, '');
+  html = html.replace(/<script\b[^>]*src=["'](?:intake-demande|qr-affiche|admin-sante)\.js["'][^>]*><\/script>\s*/gi, '');
   html = html.replace(/<style\b[^>]*id=["']ela-role-style["'][^>]*>[\s\S]*?<\/style>\s*/gi, '');
   html = retirerScriptsContenant(html, ['nuage.roleOperateur=', 'presencesOperateurs=function']);
 
@@ -233,14 +233,14 @@ const adminHtml = admin();
 const interditsClient = [
   'id="ecran-reception"', 'id="ecran-chauffeurs"', 'id="ecran-facture"',
   'id="ecran-reglages"', 'id="ecran-controle"', 'CODE_EXPLOITANT', 'coursesHotel: function',
-  'nuage.roleOperateur', 'class="admin-nav"',
+  'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes',
 ];
 for (const interdit of interditsClient) {
   if (clientHtml.includes(interdit)) throw new Error(`fuite Client : ${interdit}`);
 }
 const interditsReception = [
   'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
-  'CODE_EXPLOITANT', 'nuage.roleOperateur', 'class="admin-nav"',
+  'CODE_EXPLOITANT', 'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes',
 ];
 for (const interdit of interditsReception) {
   if (receptionHtml.includes(interdit)) throw new Error(`fuite Réception : ${interdit}`);
@@ -248,7 +248,7 @@ for (const interdit of interditsReception) {
 const interditsPublic = [
   'id="ecran-reception"', 'id="ecran-verrou"', 'id="ecran-bord"',
   'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
-  'coursesHotel: function', 'nuage.roleOperateur', 'class="admin-nav"',
+  'coursesHotel: function', 'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes',
 ];
 for (const interdit of interditsPublic) {
   if (publicHtml.includes(interdit)) throw new Error(`fuite Public : ${interdit}`);

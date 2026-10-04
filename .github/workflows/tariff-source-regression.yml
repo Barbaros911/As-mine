@@ -3,8 +3,10 @@ on:
   pull_request:
     paths:
       - 'index.html'
-      - 'supabase/migrations/20260916100000_current_tariff_source.sql'
-      - 'supabase/migrations/20260928120000_tarif_unifie.sql'
+      # UN MOTIF, PLUS DEUX NOMS (4 octobre 2026). La liste nommait les deux
+      # migrations de tarif du jour où elle a été écrite : une troisième,
+      # poussée seule, n'aurait déclenché aucun contrôle.
+      - 'supabase/migrations/**'
       - '.github/scripts/verifier-tarif-hotel.mjs'
       - '.github/workflows/tariff-source-regression.yml'
       - 'sites/easyhotel-client/**'
