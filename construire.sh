@@ -63,6 +63,13 @@ node .github/scripts/galerie.mjs
 # blocs de commentaires — comment l'espace est protégé, ses anciennes
 # failles. La règle valait pour la page publique seulement.
 # test-nouveau-bascule vérifie qu'aucune page ELA publiée n'en porte plus.
+# LES FEUILLES DE STYLE ET « robots.txt » AUSSI (4 octobre 2026) :
+# « hotel-engine-polish.css » publiait 23 blocs de notes, et « robots.txt »
+# expliquait que ?h= donne des forfaits plus bas que le site. « site/*.css »
+# est un motif, pas une liste : une feuille ajoutée demain est prise d'office.
+# « carte/ » (Leaflet) n'est pas visé : sa licence doit rester avec lui.
+# « _headers » non plus : Cloudflare le lit, et un réglage qu'on ne peut pas
+# éprouver d'ici garde son défaut.
 node .github/scripts/masquer-commentaires.mjs \
   site/index.html site/application.html site/admin.html site/admin-v2.html \
   site/telephone.js site/intake-demande.js site/qr-affiche.js site/itineraire-partage.js site/admin-sante.js \
@@ -72,7 +79,8 @@ node .github/scripts/masquer-commentaires.mjs \
   site/admin-v2-affiche.js site/admin-v2-maquette.js \
   site/ela-admin/index.html site/exploitant/index.html \
   site/easyhotel-reception/index.html site/reception/*/index.html \
-  site/easyhotel-client/index.html
+  site/easyhotel-client/index.html \
+  site/*.css site/robots.txt
 
 # ADMIN V2 N'EST PLUS PUBLIÉ — 3 octobre 2026, à la demande de Barbaros
 # (« retire »). Il travaille seul, dans l'admin historique (/ela-admin/) ;
