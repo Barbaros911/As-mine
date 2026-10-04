@@ -1,42 +1,18 @@
-# Ménage du 4 octobre 2026, validé par Barbaros (« Oui mais fait le sans risque »).
-# Une ligne = « branche numéro-du-dernier-commit ». Si la branche a bougé
-# depuis ce relevé, elle est REFUSÉE : quelqu'un y a travaillé entre-temps.
-# Toutes datent d'avant la réécriture de main (aucune histoire commune),
-# sauf claude/ela-audit-pre-launch-21hbcp, déjà entièrement fusionnée.
-# Sauvegarde complète des 52 branches faite avant (git bundle).
-bascule-nouveau-site 71824347a036976bae9c88410ba2c3fa69020adc
-chatgpt/pr191-final-parity b9da08b3ebd91893e8a1a77047234f5aa6de3c3b
-chatgpt/pr191-final-parity-2 a826b20ed4c616e6c019102910728f172d479b57
-chore/agent-governance-hardening a519540d24241e00abd3d396b4ca67876053a53f
-chore/clore-maquette-exacte f4d7f9e51f5b88aa819b0c21f7543a66de5b6021
-chore/ecc-safe-integration 5b3d5bc7db6dc219d3ab950204c5d4755c4f121d
-claude/agent-myjyik 068c8ac536c935b997b44f4de94b425992c95fed
-claude/ela-audit-pre-launch-21hbcp d0b6cbf610afe55203df63d2459a7ae13478dad3
-claude/ela-vision-20260913 4f09221b7d109125894af099bf266fd762c7ce56
-claude/logo-carte-exact-mobile 3a3038e95a47e3745975081043e9d54903a48bc7
-claude/mettre-maquette-ela-en-accueil e0ab73c65b71199afc53c88c9ed58a0f4f294fcf
-claude/reception-easyhotel-prix-final 7928230bd8a98a4a31802dc284ed6900c4b67dc1
-codex/ajouter-la-route-worker-pour-elatransfer.com 44e4cf4bc0b3106ce17b64bc4de4a1c455c902a5
-coordination/team-workflow b923dbe10bab2cd35f87051447d450fda28b8d68
-design/public-mobile-10 ff5b86e03538254bdf2ecaeaba4cfeb0e4bc3e60
-ela/easyhotel-client-v2 77f7b77e147d3ef692a270cccc86768723088516
-elatransfer-refonte-10-10 cf7527cd0d1aef2201c8a87da83bc7ba8c559abb
-elatransfer-tarifs-easyhotel-aeroville b7a6b84c31b6e850107950d771df1ed821292412
-fix/admin-visuel-coherent ba0f474241f71f74919dd665fa07c93fe4954cf9
-fix/easyhotel-build-anchors 69e767955b295183fe3f6d7b3f156b3875be2a11
-fix/facade-mobile-reference 9557194e0ca568b54351fb940d6841d3464a9cb8
-fix/publier-maquette-exacte 829f167dc00e6fd102b4bdb1419e95ac46c883e2
-fix/seo-pages-roundtrip 2d88f33abef25d9ace46925c7a7ca0c5f11ca68e
-governance/coordination-agents 71fded7eff82dc867f2733388fff8817e59a19a3
-governance/enforce-preflight e77dec0abf385ad8e9fe15c6da0e36deb7439da9
-legal-tarifs-propres 07cc6f2b231da03b95f2dd235ffd1638b27fdbb5
-refonte-4-interfaces 4214a35df9fe45371330b90a4637143d4264a24a
-security/agent-reservation-rbac e2006def610ef9072e1a83f68151308c48650814
-security/agent-reservation-rbac-v2 e2006def610ef9072e1a83f68151308c48650814
-security/agent-reservation-rbac-v3 e2006def610ef9072e1a83f68151308c48650814
-security/agent-reservation-rbac-v4 104ca9f87c01b8d95a7aa0f98847417499936489
-security/harden-ela 7e10ff69306060990b33741653be597d7df6e2d7
-security/public-booking-gateway 0b7b3844432e55f21727b9996f8f05d2a8429c3d
-seo-google-ela-logo 655d9d4e9e4e8d895cac5d20386f31e895d3b4d9
-tmp-do-not-use a826b20ed4c616e6c019102910728f172d479b57
-ui/refonte-validee-2026-09-16 3906c2a8a6a0c46bdab6fe3381ff53e5fb9f2015
+# Second ménage du 4 octobre 2026, à la demande de Barbaros (« fais-le
+# comme un expert »). Une ligne = « branche numéro-du-dernier-commit » :
+# une branche qui a bougé depuis ce relevé est REFUSÉE.
+# - six brouillons jamais fusionnés, tous dépassés par ce qui est en ligne
+#   (recherche d'adresse, trois étapes, envoi de la demande) ou jamais
+#   demandés (assistant de pilotage, accélération des tests) ;
+# - claude/page-directe-0finaj : antérieure à la réécriture de main, les
+#   prix se règlent désormais depuis l'admin ;
+# - feature/paris-discovery : module « Visiter Paris » de septembre, jamais
+#   repris, sa demande de fusion (#131) est fermée.
+claude/ela-easyhotel-landing-refonte-7dyt9t 8257fb1937a50ac7c0bf687020413376dc815dc8
+claude/ela-transfer-pilot-assistant-1lkopi 93b14cea93e273783e8e202c6ee04c4ef4c1ffa1
+claude/ela-transfer-recovery-av15wy 51f98fd10ff89400efa599b5467e82428fd65518
+claude/reception-bon-commande-ybc0j1 57b3f8b0a61bc13582830b1a1aaa255de36e134a
+claude/slowest-test-analysis-poc5g0 37ed22364d59ed964274abee9da6833311dd4899
+claude/tests-sh-garde-fou-flmfku 47eaf7fff1a979fd1714d443f07bb74f9c2f13ec
+claude/page-directe-0finaj 2103f21fd55a5fd22401183a5ef32daad222fead
+feature/paris-discovery 7fa26366561ab844e5f76f87eb5b662a9ca18e80

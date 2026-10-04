@@ -162,10 +162,8 @@ l'état réel de `main`, sans recréer une seconde interface ni réintroduire un
 ancienne branche. #165 doit servir d'historique/coordination jusqu'à sa mise à
 jour ou sa clôture, pas de source technique concurrente.
 
-La branche `claude/page-directe-0finaj` ne doit pas être fusionnée telle
-quelle : elle diverge de `main`. Seules ses corrections tarifaires encore
-nécessaires et démontrées peuvent être extraites dans une PR technique neuve
-depuis le dernier `main`. Le détail historique des briques et de leurs pièges
+La branche `claude/page-directe-0finaj` a été supprimée le 4 octobre 2026 :
+les prix se règlent depuis l'admin, elle n'avait plus rien à apporter. Le détail historique des briques et de leurs pièges
 reste dans `CLAUDE.md`. `/etat` signale en rouge quand `main` a bougé
 pendant la session.
 
