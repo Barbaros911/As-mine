@@ -932,7 +932,8 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .canal-ico{width:28px;height:28px;flex:0 0 28px;}
 .choix-envoi .choix{min-width:0;padding-right:24px;}
 .choix-envoi .choix span{min-width:0;}
-#blocContact .bloc-note{margin-bottom:12px;}
+#blocContact .bloc-note{margin:-2px 0 12px;}
+#blocContact .refus{margin-top:12px;}
 /* Un iPhone se fait 320 px : deux colonnes de 125 px n'ont pas la place de
    la marge, du pictogramme ET de « WhatsApp » — le mot se coupait en deux.
    Le pictogramme passe AU-DESSUS du nom, centré. */
@@ -945,7 +946,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .choix-envoi .choix[aria-pressed="true"]::after{content:"";position:absolute;top:7px;right:8px;
   width:16px;height:16px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat;}
 .tel-relu{margin:10px 0 6px;font-size:14px;color:var(--encre);}
-#blocContact{margin-top:20px;padding-top:16px;border-top:1px solid var(--filet);}
 .tel-relu b{white-space:nowrap;}
 .choix[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-clair);
   color:var(--accent-encre);}
@@ -3305,55 +3305,40 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            la règle tant qu'il peut encore corriger : sans réponse, pas de
            chauffeur. -->
       <p class="tel-relu" id="telRelu" hidden></p>
-      <p class="champ-aide" data-t="regle_contact">Nous vous contactons pour confirmer.
-         Sans réponse de votre part, aucun chauffeur n'est envoyé.</p>
+      <p class="champ-aide" data-t="regle_contact">Elatransfer vous contacte pour confirmer
+         votre réservation. Sans réponse de votre part, elle ne pourra pas être confirmée.</p>
     </div>
 
-    <!-- ═══ PAR OÙ PART LA DEMANDE, ET PAR OÙ ON JOINT LE CLIENT (4 octobre 2026) ═══
-         À sa demande. Le client choisit d'envoyer sa demande par WhatsApp,
-         Telegram ou Messages — un message parti de SON téléphone prouve son
-         numéro et dit à Barbaros où répondre : on ne lui demande rien de
-         plus. Par « le site seulement », un numéro FRANÇAIS se joint par
-         appel ou SMS, gratuits pour Barbaros : rien à demander non plus. Un
-         numéro ÉTRANGER, lui, coûterait cher à appeler : c'est le seul cas
-         où l'on demande par quelle application le joindre.
-         LA DEMANDE ARRIVE SUR LE SERVEUR DANS TOUS LES CAS. Le message est un
-         second chemin, jamais le seul. WhatsApp reste le choix d'ouverture :
-         c'est ce que le site faisait jusqu'ici, et le client peut changer.
-         Masqué au comptoir d'un hôtel : la chambre y identifie le client. -->
-    <div class="bloc" id="blocEnvoi">
-      <h2 class="bloc-titre" data-t="envoi_titre">Envoyer ma demande par</h2>
+    <!-- ═══ OÙ LE CLIENT REÇOIT SA CONFIRMATION (4 octobre 2026) ═══
+         Barbaros, option A : UNE seule question, posée à tout le monde. La
+         demande part TOUJOURS du site — aucune application ne s'ouvre au
+         clic : changer d'application au moment de valider fait perdre des
+         clients, et la demande arrive de toute façon dans l'admin, annoncée
+         par Telegram. Barbaros confirme ensuite par le moyen choisi ; sans
+         réponse, aucun chauffeur ne part : un faux numéro ne coûte rien.
+         Numéro FRANÇAIS : appel / SMS ou WhatsApp, gratuits pour lui.
+         Numéro ÉTRANGER : WhatsApp, Telegram ou iMessage — un appel
+         international coûterait cher, une application ne coûte rien.
+         Masqué au comptoir d'un hôtel : la chambre y identifie le client.
+         PICTOGRAMMES : la marque de WhatsApp et de Telegram, employée comme
+         partout pour dire « par là » ; pour iMessage une bulle générique,
+         JAMAIS l'icône d'Apple, dont les règles interdisent la reprise. -->
+    <div class="bloc" id="blocContact">
+      <h2 class="bloc-titre" data-t="joindre_titre">Où souhaitez-vous recevoir votre confirmation ?</h2>
+      <p class="bloc-note" id="noteContactEtranger" hidden data-t="joindre_note">Numéro international :
+         choisissez votre application, la confirmation vous parvient sans frais.</p>
       <div class="choix-envoi">
-        <!-- LES PICTOGRAMMES DES APPLICATIONS (4 octobre 2026, à sa demande).
-             WhatsApp et Telegram : leur marque, employée comme on l'emploie
-             partout pour dire « joignez-nous par là » — usage descriptif, le
-             vert WhatsApp est déjà dans la barre du bas. Messages : une
-             bulle générique, PAS l'icône d'Apple, dont les règles interdisent
-             la reprise. Le site : un globe. Dessinés ici, rien de chargé. -->
-        <button class="choix" type="button" data-envoi="whatsapp" aria-pressed="true">
+        <button class="choix" type="button" data-contact="telephone" aria-pressed="false">
+          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0E6FC7"/><path fill="#fff" d="M9.3 6.6c.3-.1.6 0 .8.3l1.1 2c.2.3.1.7-.1.9l-.8.8c.5 1.2 1.6 2.4 2.9 2.9l.8-.8c.2-.3.6-.3.9-.1l2 1.1c.3.2.4.5.3.8l-.5 1.5c-.2.5-.7.8-1.2.7-3.7-.5-6.6-3.4-7.1-7.1-.1-.5.2-1 .7-1.2l1.2-.8z"/></svg><span data-t="canal_telephone">Appel / SMS</span></button>
+        <button class="choix" type="button" data-contact="whatsapp" aria-pressed="false">
           <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#25D366" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/><path fill="#fff" d="M9.1 7.6c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.7-.8c-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.3-.1-1.1-.4-2-1.3-.8-.7-1.3-1.5-1.4-1.8-.2-.3 0-.4.1-.5l.4-.4.3-.4c.1-.2 0-.3 0-.5l-.8-1.9z"/></svg><span data-t="canal_whatsapp">WhatsApp</span></button>
-        <button class="choix" type="button" data-envoi="telegram" aria-pressed="false">
+        <button class="choix" type="button" data-contact="telegram" aria-pressed="false">
           <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#29A9EB"/><path fill="#fff" d="M5.5 11.6l11.3-4.4c.5-.2 1 .1.8.9l-1.9 9c-.1.6-.5.8-1 .5l-2.9-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span data-t="canal_telegram">Telegram</span></button>
-        <button class="choix" type="button" data-envoi="messages" aria-pressed="false">
-          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="#0A84FF"/><path fill="#fff" d="M12 6.2c-3.6 0-6.4 2.3-6.4 5.2 0 1.6.9 3.1 2.4 4-.1.9-.6 1.8-1.3 2.4 1.5 0 2.8-.6 3.7-1.3.5.1 1 .2 1.6.2 3.6 0 6.4-2.3 6.4-5.3S15.6 6.2 12 6.2z"/></svg><span data-t="canal_messages">Messages</span></button>
-        <button class="choix" type="button" data-envoi="site" aria-pressed="false">
-          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#E8F2FD"/><g fill="none" stroke="#0E6FC7" stroke-width="1.5"><circle cx="12" cy="12" r="6"/><path d="M6 12h12M12 6c1.8 1.7 2.6 3.7 2.6 6s-.8 4.3-2.6 6c-1.8-1.7-2.6-3.7-2.6-6S10.2 7.7 12 6z"/></g></svg><span data-t="canal_site">Le site seulement</span></button>
+        <button class="choix" type="button" data-contact="messages" aria-pressed="false">
+          <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="#0A84FF"/><path fill="#fff" d="M12 6.2c-3.6 0-6.4 2.3-6.4 5.2 0 1.6.9 3.1 2.4 4-.1.9-.6 1.8-1.3 2.4 1.5 0 2.8-.6 3.7-1.3.5.1 1 .2 1.6.2 3.6 0 6.4-2.3 6.4-5.3S15.6 6.2 12 6.2z"/></svg><span data-t="canal_imessage">iMessage</span></button>
       </div>
-      <div id="blocContact" hidden>
-        <h2 class="bloc-titre" data-t="joindre_titre">Par où Elatransfer doit-il vous confirmer votre course ?</h2>
-        <p class="bloc-note" data-t="joindre_note">Votre numéro est étranger : choisissez
-           l'application sur laquelle vous recevrez la confirmation.</p>
-        <div class="choix-envoi">
-          <button class="choix" type="button" data-contact="whatsapp" aria-pressed="false">
-            <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#25D366" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/><path fill="#fff" d="M9.1 7.6c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.7-.8c-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.3-.1-1.1-.4-2-1.3-.8-.7-1.3-1.5-1.4-1.8-.2-.3 0-.4.1-.5l.4-.4.3-.4c.1-.2 0-.3 0-.5l-.8-1.9z"/></svg><span data-t="canal_whatsapp">WhatsApp</span></button>
-          <button class="choix" type="button" data-contact="telegram" aria-pressed="false">
-            <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#29A9EB"/><path fill="#fff" d="M5.5 11.6l11.3-4.4c.5-.2 1 .1.8.9l-1.9 9c-.1.6-.5.8-1 .5l-2.9-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span data-t="canal_telegram">Telegram</span></button>
-          <button class="choix" type="button" data-contact="messages" aria-pressed="false">
-            <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="#0A84FF"/><path fill="#fff" d="M12 6.2c-3.6 0-6.4 2.3-6.4 5.2 0 1.6.9 3.1 2.4 4-.1.9-.6 1.8-1.3 2.4 1.5 0 2.8-.6 3.7-1.3.5.1 1 .2 1.6.2 3.6 0 6.4-2.3 6.4-5.3S15.6 6.2 12 6.2z"/></svg><span data-t="canal_imessage">iMessage</span></button>
-        </div>
-        <p class="refus" id="erreurContact" hidden data-t="err_contact">Choisissez où
-           vous recevrez la confirmation.</p>
-      </div>
+      <p class="refus" id="erreurContact" hidden data-t="err_contact">Indiquez où vous
+         souhaitez recevoir votre confirmation.</p>
     </div>
 
     <!-- LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE.
@@ -3414,9 +3399,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="bloc suite">
       <h2 class="bloc-titre" data-t="suite_titre">Ce qui se passe ensuite</h2>
       <ol class="suite-liste">
-        <li id="suite1" data-t="suite_1">WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.</li>
-        <li data-t="suite_2">Votre demande arrive chez Elatransfer dans tous les cas, même si le message n'est pas envoyé.</li>
-        <li data-t="suite_3">La réponse s'affiche ici, dans « Réservations », et vous est envoyée.</li>
+        <li data-t="suite_1">Votre demande nous parvient immédiatement, directement depuis le site.</li>
+        <li data-t="suite_2">Nous vérifions la disponibilité d'un chauffeur professionnel pour votre trajet.</li>
+        <li data-t="suite_3">Vous recevez la confirmation de votre course, qui s'affiche aussi ici, dans « Réservations ».</li>
       </ol>
     </div>
 
@@ -5631,20 +5616,16 @@ window.ELA_TEXTES = {
     legal_accept_prefix:"En envoyant ma demande, j’accepte les", legal_accept_cgv:"CGV",
     legal_accept_join:"et je reconnais avoir lu la", legal_accept_privacy:"politique de confidentialité",
     suite_titre:"Ce qui se passe ensuite",
-    suite_1:"WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
-    suite_1_telegram:"Telegram s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
-    suite_1_messages:"Messages s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
-    suite_1_site:"Votre demande part directement depuis le site, sans application à ouvrir.",
-    suite_2:"Votre demande arrive chez Elatransfer dans tous les cas, même si le message n'est pas envoyé.",
-    regle_contact:"Nous vous contactons pour confirmer. Sans réponse de votre part, aucun chauffeur n'est envoyé.",
+    suite_1:"Votre demande nous parvient immédiatement, directement depuis le site.",
+    suite_2:"Nous vérifions la disponibilité d'un chauffeur professionnel pour votre trajet.",
+    regle_contact:"Elatransfer vous contacte pour confirmer votre réservation. Sans réponse de votre part, elle ne pourra pas être confirmée.",
     tel_relu:"Nous vous contacterons au",
-    envoi_titre:"Envoyer ma demande par",
-    canal_whatsapp:"WhatsApp", canal_telegram:"Telegram", canal_messages:"Messages",
-    canal_imessage:"iMessage", canal_site:"Le site seulement",
-    joindre_titre:"Par où Elatransfer doit-il vous confirmer votre course ?",
-    joindre_note:"Votre numéro est étranger : choisissez l'application sur laquelle vous recevrez la confirmation.",
-    err_contact:"Choisissez où vous recevrez la confirmation.",
-    suite_3:"La réponse s'affiche ici, dans « Réservations », et vous est envoyée.",
+    canal_telephone:"Appel / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
+    canal_imessage:"iMessage",
+    joindre_titre:"Où souhaitez-vous recevoir votre confirmation ?",
+    joindre_note:"Numéro international : choisissez votre application, la confirmation vous parvient sans frais.",
+    err_contact:"Indiquez où vous souhaitez recevoir votre confirmation.",
+    suite_3:"Vous recevez la confirmation de votre course, qui s'affiche aussi ici, dans « Réservations ».",
     bon_sous:"Bon de réservation",
     /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
        on cherche un chauffeur — plutôt que de renvoyer le client vers
@@ -5834,20 +5815,16 @@ window.ELA_TEXTES = {
     legal_accept_prefix:"By sending my request, I accept the", legal_accept_cgv:"terms and conditions",
     legal_accept_join:"and acknowledge that I have read the", legal_accept_privacy:"privacy policy",
     suite_titre:"What happens next",
-    suite_1:"WhatsApp opens with your request already written: just send it.",
-    suite_1_telegram:"Telegram opens with your request already written: just send it.",
-    suite_1_messages:"Messages opens with your request already written: just send it.",
-    suite_1_site:"Your request is sent directly from the website, no app to open.",
-    suite_2:"Your request reaches Elatransfer either way, even if the message is not sent.",
-    regle_contact:"We will contact you to confirm. Without a reply from you, no chauffeur is sent.",
+    suite_1:"Your request reaches us instantly, directly from the website.",
+    suite_2:"We check the availability of a professional chauffeur for your journey.",
+    regle_contact:"Elatransfer will contact you to confirm your booking. Without a reply from you, it cannot be confirmed.",
     tel_relu:"We will contact you on",
-    envoi_titre:"Send my request via",
-    canal_whatsapp:"WhatsApp", canal_telegram:"Telegram", canal_messages:"Messages",
-    canal_imessage:"iMessage", canal_site:"Website only",
-    joindre_titre:"Where should Elatransfer confirm your transfer?",
-    joindre_note:"Your number is from abroad: choose the app on which you will receive the confirmation.",
-    err_contact:"Please choose where you will receive the confirmation.",
-    suite_3:"The answer appears here, under « Bookings », and is sent to you.",
+    canal_telephone:"Call / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
+    canal_imessage:"iMessage",
+    joindre_titre:"Where would you like to receive your confirmation?",
+    joindre_note:"International number: choose your app and receive your confirmation free of charge.",
+    err_contact:"Please choose where you would like to receive your confirmation.",
+    suite_3:"You receive the confirmation of your transfer, which also appears here, under « Bookings ».",
     bon_sous:"Booking voucher",
     bon_etat:"Request received",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
@@ -9337,14 +9314,6 @@ window.ELA_TEXTES = {
    LE RÉCAPITULATIF, PUIS LE BON
    ===================================================================== */
   var NUMERO_WA = "33759312433";
-  /* LE NOM D'UTILISATEUR TELEGRAM D'ELATRANSFER, sans « @ ». Telegram n'ouvre
-     une conversation avec un message déjà écrit QUE par un nom
-     d'utilisateur (« t.me/<nom>?text= », documentation officielle), pas par
-     un numéro. Vide : le choix « Telegram » n'est pas proposé pour ENVOYER
-     la demande — un bouton qui n'ouvrirait rien serait pire que pas de
-     bouton. Il reste proposé pour être CONTACTÉ : c'est le Telegram du
-     client, Barbaros l'ouvre depuis le sien. */
-  var TELEGRAM_ELA = "Elatransfer";
 
   /* ═══════════════════════════════════════════════════════════════════
      LE BOUTON WHATSAPP OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT
@@ -9607,17 +9576,13 @@ window.ELA_TEXTES = {
   }
 
   /* =====================================================================
-     PAR OÙ PART LA DEMANDE, PAR OÙ ON JOINT LE CLIENT (4 octobre 2026)
+     OÙ LE CLIENT REÇOIT SA CONFIRMATION (4 octobre 2026, option A)
      ---------------------------------------------------------------------
-     Voir le bloc « blocEnvoi ». Trois règles :
-     — envoyée par WhatsApp, Telegram ou Messages : le message prouve le
-       numéro et dit où répondre, on ne demande rien ;
-     — « le site seulement » et numéro FRANÇAIS : appel ou SMS, gratuits
-       pour Barbaros, on ne demande rien ;
-     — « le site seulement » et numéro ÉTRANGER : on demande l'application,
-       parce qu'un appel international coûte cher.
-     On ne devine pas le pays au libellé : on lit l'indicatif du numéro tel
-     que « telWa » le composera — le même que celui qu'on appellera.
+     Voir le bloc « blocContact ». Une seule question, des réponses qui
+     dépendent du numéro : français → appel / SMS ou WhatsApp ; étranger →
+     WhatsApp, Telegram ou iMessage. On ne devine pas le pays au libellé :
+     on lit l'indicatif du numéro tel que « telWa » le composera — le même
+     que celui qu'on appellera.
      ===================================================================== */
   var PAYS_INDICATIF = [
     ["33","France","France"],["44","Royaume-Uni","United Kingdom"],
@@ -9653,36 +9618,27 @@ window.ELA_TEXTES = {
     var c = telWa(brut);
     return !!c && c.indexOf("33") !== 0;
   }
-  var envoiChoisi   = "whatsapp";
   var contactChoisi = null;
-  var boutonsEnvoi   = Array.prototype.slice.call(document.querySelectorAll("[data-envoi]"));
   var boutonsContact = Array.prototype.slice.call(document.querySelectorAll("[data-contact]"));
-  var SUITE_1 = { whatsapp:"suite_1", telegram:"suite_1_telegram",
-                  messages:"suite_1_messages", site:"suite_1_site" };
-  /* Le contact n'est demandé QUE dans ce cas : le site seul, et un numéro
-     étranger valable. Un numéro encore faux sera refusé de toute façon. */
-  function contactDemande(){
+  var CANAUX_FR = ["telephone", "whatsapp"], CANAUX_ETRANGER = ["whatsapp", "telegram", "messages"];
+  /* Tant que le numéro n'est pas complet, on propose le cas le plus courant
+     du site — un numéro français. Il bascule dès que l'indicatif est lu. */
+  function canauxProposes(){
     var tel = document.getElementById("clientTel").value.trim();
-    return !recHotel && envoiChoisi === "site" && telValide(tel) && telEtranger(tel);
+    return (telValide(tel) && telEtranger(tel)) ? CANAUX_ETRANGER : CANAUX_FR;
   }
+  function contactDemande(){ return !recHotel; }
   function jugerContact(){
-    document.getElementById("blocEnvoi").hidden = !!recHotel;
-    var btTg = document.querySelector('[data-envoi="telegram"]');
-    btTg.hidden = !TELEGRAM_ELA;
-    if(!TELEGRAM_ELA && envoiChoisi === "telegram") envoiChoisi = "whatsapp";
-    boutonsEnvoi.forEach(function(b){
-      b.setAttribute("aria-pressed", String(b.dataset.envoi === envoiChoisi));
-    });
+    document.getElementById("blocContact").hidden = !contactDemande();
+    var proposes = canauxProposes();
+    /* Un choix qui n'est plus proposé (« Appel / SMS » puis un numéro
+       anglais) est oublié : il serait invisible et pourtant envoyé. */
+    if(contactChoisi && proposes.indexOf(contactChoisi) < 0) contactChoisi = null;
     boutonsContact.forEach(function(b){
+      b.hidden = proposes.indexOf(b.dataset.contact) < 0;
       b.setAttribute("aria-pressed", String(b.dataset.contact === contactChoisi));
     });
-    var demande = contactDemande();
-    document.getElementById("blocContact").hidden = !demande;
-    if(!demande) document.getElementById("erreurContact").hidden = true;
-    var li = document.getElementById("suite1");
-    var cle = recHotel ? "suite_1_site" : SUITE_1[envoiChoisi];
-    li.setAttribute("data-t", cle);
-    li.textContent = T(cle);
+    document.getElementById("noteContactEtranger").hidden = proposes !== CANAUX_ETRANGER;
     var tel = document.getElementById("clientTel").value.trim();
     var relu = document.getElementById("telRelu");
     relu.hidden = !telValide(tel);
@@ -9694,9 +9650,6 @@ window.ELA_TEXTES = {
       relu.appendChild(b);
     }
   }
-  boutonsEnvoi.forEach(function(b){
-    b.addEventListener("click", function(){ envoiChoisi = b.dataset.envoi; jugerContact(); });
-  });
   boutonsContact.forEach(function(b){
     b.addEventListener("click", function(){
       contactChoisi = b.dataset.contact;
@@ -9708,26 +9661,10 @@ window.ELA_TEXTES = {
   document.querySelectorAll(".langues button").forEach(function(b){
     b.addEventListener("click", jugerContact);
   });
-  /* Ce qui part sur le bon : par où la demande est partie, et par où
-     joindre le client. « prefere » vide = numéro français envoyé par le
-     site seul : appel ou SMS, au choix de Barbaros. */
+  /* Ce qui part sur le bon : la demande part toujours du site, et
+     « prefere » dit où confirmer. Vide au comptoir. */
   function contactDuBon(){
-    if(recHotel) return { envoi:"site", prefere:"" };
-    return { envoi: envoiChoisi,
-             prefere: envoiChoisi !== "site" ? envoiChoisi : (contactDemande() ? (contactChoisi || "") : "") };
-  }
-  /* Les liens d'ouverture, un par application. Messages : iOS lit
-     « &body= », Android « ?body= » (RFC 5724) — sur iPhone, l'envoi part en
-     iMessage, gratuit, quand le destinataire en a un. */
-  function lienEnvoi(canal, texte){
-    var t = encodeURIComponent(texte);
-    if(canal === "telegram") return "https://t.me/" + TELEGRAM_ELA + "?text=" + t;
-    if(canal === "messages"){
-      var ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
-             || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      return "sms:+" + NUMERO_WA + (ios ? "&body=" : "?body=") + t;
-    }
-    return "https://wa.me/" + NUMERO_WA + "?text=" + t;
+    return { envoi: "site", prefere: recHotel ? "" : (contactChoisi || "") };
   }
 
   document.getElementById("btnContinuer").addEventListener("click", function(){
@@ -10068,7 +10005,7 @@ window.ELA_TEXTES = {
     if(contactDemande() && !contactChoisi){
       var errC = document.getElementById("erreurContact");
       errC.hidden = false;
-      boutonsContact[0].focus();
+      boutonsContact.filter(function(b){ return !b.hidden; })[0].focus();
       errC.scrollIntoView({ block:"nearest" });
       return;
     }
@@ -10226,60 +10163,18 @@ window.ELA_TEXTES = {
       prix: { total: total, ht: ht, tva: total - ht, majoration: course.majoration },
       dateMsg: dateMessage()
     };
-    /* ═══ LE DÉPÔT PART AVANT WHATSAPP, ET DANS LE MÊME GESTE ═══
-       Septembre 2026, signalé par Barbaros : « j'ai fait une commande sur le
-       site mais quand j'envoie et que je reviens dessus je vois ça » — le
-       bon portait « Votre demande n'a pas pu nous être transmise », en
-       rouge.
-
-       LA CAUSE ÉTAIT L'ORDRE. Le dépôt partait APRÈS l'ouverture de
-       WhatsApp, c'est-à-dire au moment précis où iOS met la page en
-       arrière-plan pour changer d'application. Safari y gèle le JavaScript
-       et coupe les requêtes en cours ; au retour, le minuteur de huit
-       secondes se réveillait et abandonnait un appel qui n'avait jamais eu
-       sa chance. **Le client lisait un échec alors que rien n'était
-       cassé** — et un client qui lit « votre demande ne nous est pas
-       parvenue » ne réserve pas ailleurs, il ne réserve plus du tout.
-
-       WHATSAPP RESTE OUVERT DANS LE MÊME TICK QUE LE CLIC, et c'est ce qui
-       compte pour Safari : il n'autorise l'ouverture d'un onglet que dans
-       la foulée d'un geste de l'utilisateur. Rien n'est attendu entre les
-       deux — « deposer » n'est pas attendu, il est seulement LANCÉ avant.
-       L'ordre change, la règle est intacte.
-
-       Les deux chemins vivent ensemble et ne se remplacent pas : le dépôt
-       met la demande dans le tableau de bord, le message prévient Barbaros
-       sur son téléphone. L'un sans l'autre laisse un trou — soit il n'est
-       pas averti, soit il n'a rien à ouvrir. */
+    /* ═══ LE DÉPÔT EST LE SEUL CHEMIN AU CLIC ═══
+       Il n'est pas attendu : le bon s'affiche tout de suite, et
+       « afficherEtatEnvoi » dit ensuite si la demande est arrivée. Il part
+       avec « keepalive » (voir « nuage.deposer ») et « reprendreDepot »
+       réessaie une fois au retour sur l'onglet. Histoire de l'ancienne
+       ouverture automatique de WhatsApp : memoire/contact-client.md. */
     var depot = nuage.deposer(bonCourant);
-    /* ═══ AU COMPTOIR, WHATSAPP NE S'OUVRE PLUS TOUT SEUL ═══
-       Septembre 2026, à sa demande : « il ne s'ouvre plus, un bouton
-       reste ». Une réception enchaîne les arrivées ; lui faire traverser
-       WhatsApp à chaque réservation, c'est une application qui prend
-       l'écran, un message à envoyer à la main, et une tablette qui reste
-       dans une conversation au lieu de revenir au comptoir.
-
-       CE QUI REND CE RETRAIT POSSIBLE, C'EST TELEGRAM, ET RIEN D'AUTRE.
-       L'alerte part de « nouvelle-demande », déclenchée par le serveur à
-       l'écriture de la ligne — donc indépendante du navigateur du
-       comptoir, et même de WhatsApp. Elle tourne depuis le 11 septembre
-       2026. La règle écrite jusqu'ici (« ne pas supprimer l'ouverture
-       automatique avant que le webhook Telegram fonctionne ») est donc
-       remplie : c'est exactement le jour où on la retire.
-       ELLE RESTE EN PLACE POUR LE CLIENT, qui n'a pas de Telegram et dont
-       le message est encore le second chemin vers Barbaros.
-
-       LE BOUTON DU BON RESTE, et ce n'est pas un vestige : si le dépôt
-       échoue, il redevient le SEUL chemin par lequel la demande peut nous
-       parvenir. Il ne part simplement plus tout seul. */
-    /* L'APPLICATION CHOISIE PAR LE CLIENT (4 octobre 2026). Rien ne s'ouvre
-       au comptoir ni pour « le site seulement ». Messages est un lien
-       « sms: » : il ouvre l'application sans quitter la page, on ne lui
-       donne donc pas d'onglet. */
-    var envoi = bonCourant.contact.envoi;
-    if(envoi === "messages") window.location.href = lienEnvoi("messages", messageDemande(bonCourant));
-    else if(envoi === "whatsapp" || envoi === "telegram")
-      window.open(lienEnvoi(envoi, messageDemande(bonCourant)), "_blank");
+    /* ═══ PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC (4 octobre 2026) ═══
+       Option A, décidée par Barbaros. Le dépôt suffit : la demande arrive
+       dans l'admin et Telegram l'annonce, le client reste sur son bon. Le
+       bouton « Renvoyer par WhatsApp » du bon reste : si le dépôt échoue,
+       il redevient le seul chemin — le repli est sacré. */
     try{
       var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
       deja.unshift(bonCourant);
@@ -12762,8 +12657,10 @@ window.ELA_TEXTES = {
     ["bbAppeler","bbWhatsapp","bbMessages","bbTelegram"].forEach(function(id){
       document.getElementById(id).className = "bouton-fantome";
     });
-    var idPref = { whatsapp:"bbWhatsapp", messages:"bbMessages", telegram:"bbTelegram" }[pref];
-    if(idPref && tel) document.getElementById(idPref).className = "bouton";
+    /* « Appel / SMS » allume les deux : c'est à Barbaros de choisir. */
+    var idsPref = { whatsapp:["bbWhatsapp"], messages:["bbMessages"], telegram:["bbTelegram"],
+                    telephone:["bbAppeler","bbMessages"] }[pref] || [];
+    if(tel) idsPref.forEach(function(id){ document.getElementById(id).className = "bouton"; });
     var bc = document.getElementById("bbContact");
     bc.textContent = phraseContact(c);
     bc.hidden = !bc.textContent;
@@ -13202,32 +13099,26 @@ window.ELA_TEXTES = {
     ].join("\n");
   }
   /* ═══ LE CANAL DU CLIENT (4 octobre 2026) ═══
-     « prefere » vient du site : l'application par laquelle il a envoyé sa
-     demande, ou celle qu'il a choisie pour être contacté. Vide (numéro
-     français envoyé par le site seul, saisie au téléphone, demande collée,
-     course plus ancienne) : WhatsApp, comme toujours. */
-  var NOM_CANAL = { whatsapp:"WhatsApp", telegram:"Telegram", messages:"Messages (iMessage / SMS)" };
+     « prefere » vient du site : où le client veut recevoir sa
+     confirmation. Vide (comptoir, saisie au téléphone, demande collée,
+     course plus ancienne) : WhatsApp, comme toujours. « telephone » écrit
+     par SMS — gratuit vers un numéro français, iMessage s'il a un iPhone. */
+  var NOM_CANAL = { telephone:"appel ou SMS", whatsapp:"WhatsApp", telegram:"Telegram",
+                    messages:"iMessage" };
   function canalClient(c){
     var p = c && c.contact && c.contact.prefere;
     return NOM_CANAL[p] ? p : "";
   }
   function phraseContact(c){
-    var k = c && c.contact;
-    if(!k || !k.envoi) return "";
-    if(k.envoi !== "site")
-      return "Demande envoyée par " + (NOM_CANAL[k.envoi] || k.envoi)
-           + " : si son message vous est arrivé, le numéro est le bon. Répondez par là.";
-    if(canalClient(c))
-      return "Numéro étranger, demande envoyée par le site : le client veut être contacté par "
-           + NOM_CANAL[canalClient(c)] + ".";
-    return "Demande envoyée par le site seul : appel ou SMS.";
+    var p = canalClient(c);
+    return p ? "Le client souhaite recevoir sa confirmation par " + NOM_CANAL[p] + "." : "";
   }
   /* Écrire au client par SON canal. Rien n'est attendu avant l'ouverture :
      Safari exige le geste. Telegram n'accepte pas de message tout écrit
      vers un numéro : il est copié, Barbaros le colle. */
   function ecrireAuClient(c, tel, texte){
     var canal = canalClient(c) || "whatsapp", t = encodeURIComponent(texte);
-    if(canal === "messages"){
+    if(canal === "messages" || canal === "telephone"){
       var ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
              || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       window.location.href = "sms:+" + tel + (ios ? "&body=" : "?body=") + t;

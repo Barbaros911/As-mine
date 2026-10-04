@@ -148,7 +148,12 @@ const RECAP = '#ecran-recap .bloc-pancarte';
 
   await p.fill('#clientTel','06 12 34 56 78');
   await p.locator('[data-paiement="especes"]').click();
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
+  /* Le message ne part plus au clic (option A, 4/10/2026) : il part par le
+     repli du bon, « Renvoyer par WhatsApp ». */
+  await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(300);
   const msg = await p.evaluate(()=> decodeURIComponent(
     (window.__liens.find(u=>/wa\.me|whatsapp/.test(u))||'').split('text=')[1]||''));
   const lignes = msg.split('\n');

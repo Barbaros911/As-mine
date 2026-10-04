@@ -137,6 +137,8 @@ async function reserver(serveurRepond, sansPush, cachee){
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
   await p.locator('[data-paiement="especes"]').click();
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p.locator('#btnConfirmer').click();
   return { p, ctx, depots };
 }
@@ -156,8 +158,10 @@ check('une demande a bien été déposée', depots.length===1, String(depots.len
    WhatsApp reste ouvert dans le même TICK que le clic — ce qui compte pour
    Safari — mais après le lancement du dépôt. */
 const ordre = await p.evaluate(()=>window.__ordre);
-check('le dépôt part AVANT que WhatsApp prenne l\'écran',
-  ordre.indexOf('depot') >= 0 && ordre.indexOf('depot') < ordre.indexOf('whatsapp'),
+/* Depuis le 4 octobre 2026 (option A), plus aucune application ne s'ouvre
+   au clic : le dépôt est le seul chemin, WhatsApp reste en repli sur le bon. */
+check('le dépôt part, et aucune application ne prend l\'écran au clic',
+  ordre.indexOf('depot') >= 0 && ordre.indexOf('whatsapp') < 0,
   ordre.join(' → '));
 /* « keepalive » est ce qui fait survivre la requête au gel de la page : le
    navigateur s'engage à la mener à terme même si la page est mise de côté.
@@ -211,11 +215,10 @@ check('et la clé technique du véhicule, jamais son nom commercial seul',
 check('le client lit que sa demande est arrivée',
   (await p.locator('#envoiTexte').textContent()).includes('bien parvenue'),
   await p.locator('#envoiTexte').textContent());
-// Le message WhatsApp part DANS TOUS LES CAS depuis que Barbaros a demandé
-// à être prévenu sur son téléphone : le dépôt remplit le tableau de bord,
-// le message le réveille. Les deux ne se remplacent pas.
-check('le message WhatsApp part aussi, même quand le dépôt réussit',
-  (await p.evaluate(()=>window.__liens)).length===1,
+// Le message WhatsApp ne part plus au clic (option A, 4/10/2026) : c'est
+// Telegram qui réveille Barbaros. Quand le dépôt réussit, rien ne s'ouvre.
+check('aucun message WhatsApp ne s\'ouvre quand le dépôt réussit',
+  (await p.evaluate(()=>window.__liens)).length===0,
   String((await p.evaluate(()=>window.__liens)).length));
 check('le renvoi reste en retrait',
   (await p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome');

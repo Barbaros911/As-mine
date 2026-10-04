@@ -1155,9 +1155,9 @@ Elatransfer même si le message WhatsApp n'est pas envoyé**.
 la demande arrive dans son tableau de bord. Ce qui manquait, c'est que le
 site disait le contraire.
 
-**WHATSAPP RESTE LE CHOIX D'OUVERTURE CÔTÉ CLIENT** ; depuis le 4/10/2026 il
-peut choisir Telegram, Messages ou « le site seul » (`memoire/contact-client.md`).
-Numéro étranger + site seul : on lui demande l'application où le joindre.
+**PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC** (4/10/2026, option A) : le client
+dit où recevoir sa confirmation ; repli « Renvoyer par WhatsApp » sur le bon.
+Si Telegram tombe, rouvrir cette décision (`memoire/contact-client.md`).
 **AU COMPTOIR D'HÔTEL, IL NE S'OUVRE PLUS** — voir la section dédiée plus
 bas. C'est l'application de la règle qui figurait ici (« ne pas supprimer
 l'ouverture automatique avant que le webhook Telegram fonctionne ») : il
@@ -2391,11 +2391,9 @@ sur les deux questions posées : **« en attente, comme aujourd'hui »** et
   fonctionne ») est donc **remplie**, pas enfreinte. **Si l'alerte Telegram
   tombe un jour, c'est cette décision-ci qu'il faut rouvrir en premier** :
   sans elle, une demande du comptoir n'avertit plus personne.
-- **LE RETRAIT EST LOCAL AU COMPTOIR** (`if(!recHotel)`), jamais global. Le
-  client et le flyer `?h=` gardent l'ouverture automatique : eux n'ont pas
-  de Telegram, et leur message est le second chemin si le dépôt échoue.
-  `test-nouveau-whatsapp` et `test-nouveau-hotel` éprouvent ces deux
-  chemins-là — ils tombent si on retire la condition au lieu de la poser.
+- **LE RETRAIT EST DEVENU GLOBAL LE 4 OCTOBRE 2026** (option A) : le client
+  et le flyer `?h=` n'ouvrent plus WhatsApp non plus, ils disent où recevoir
+  leur confirmation. `memoire/contact-client.md`.
 - **LE BOUTON RESTE SUR LE BON, ET CE N'EST PAS UN VESTIGE.** Si le dépôt
   échoue, il redevient le SEUL chemin par lequel la demande peut nous
   parvenir. **Le repli est sacré** — même règle que côté client. Le test

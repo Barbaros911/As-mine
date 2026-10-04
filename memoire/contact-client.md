@@ -1,4 +1,4 @@
-# Par où part la demande, par où joindre le client
+# Où le client reçoit sa confirmation
 
 4 octobre 2026, décidé avec Barbaros au fil d'une conversation partie d'une
 question simple : « je peux inventer des numéros qui commencent par 03 et ça
@@ -16,56 +16,66 @@ passe ».
   exactement la forme d'un mobile français.
 - **Un fixe doit pouvoir commander** (Barbaros) : une entreprise réserve pour
   un collaborateur depuis son standard.
-- **Écartés** : le code par SMS (payant, compte à ouvrir, SIRET, touriste sans
-  réseau, impossible au comptoir, contraire à « aucun blocage commercial ») ;
-  l'API WhatsApp Business (vérification d'entreprise, numéro dédié).
-- Le contrôle de forme côté serveur (`deposer-course` n'exige que 6
-  caractères) a été jugé utile mais secondaire : il ne gêne que celui qui
-  contourne la page exprès. Pas fait, à rouvrir si besoin.
+- **Le coût de joindre le client** : appel et SMS vers un numéro français
+  sont dans les forfaits courants ; vers l'étranger ils peuvent coûter cher,
+  WhatsApp, Telegram et iMessage (depuis son iPhone) non.
+- **Écartés** : le code par SMS (payant, compte à ouvrir, SIRET, touriste
+  sans réseau, impossible au comptoir, contraire à « aucun blocage
+  commercial ») ; l'API WhatsApp Business (vérification d'entreprise, numéro
+  dédié). Le contrôle de forme côté serveur (`deposer-course` n'exige que 6
+  caractères) : utile mais secondaire, il ne gêne que celui qui contourne la
+  page exprès — pas fait.
 
-## Ce qui a été construit
+## Deux versions, et celle qui a été retenue
 
-- **Le numéro est relu** sous le champ, tel qu'on le composera, avec le pays :
-  « +33 7 70 09 00 12 (France) » sous les yeux d'un Anglais, l'erreur saute aux
-  yeux (`telLisible`, table `PAYS_INDICATIF`).
-- **La règle est dite avant l'envoi** : « Nous vous contactons pour confirmer.
-  Sans réponse de votre part, aucun chauffeur n'est envoyé. »
-- **« Envoyer ma demande par »** : WhatsApp (choix d'ouverture, comme avant),
-  Telegram, Messages, le site seulement. La demande part sur le serveur dans
-  TOUS les cas ; le message est un second chemin.
-  - **Telegram passe par `TELEGRAM_ELA` = « Elatransfer »** (donné par
-    Barbaros, « je crois » — invérifiable d'ici, le réseau bloque t.me ;
-    publication soumise à sa vérification de https://t.me/Elatransfer). Telegram n'ouvre
-    une conversation avec un message écrit QUE par un nom d'utilisateur
-    (`t.me/<nom>?text=`), jamais par un numéro. **Un nom faux enverrait le
-    nom et le téléphone du client à un inconnu** : à revérifier s'il change
-    de compte. Vide, le choix disparaît de lui-même.
-  - **Messages** ouvre `sms:` : iOS lit `&body=`, Android `?body=` (RFC 5724).
-    Sur iPhone, l'envoi part en iMessage, gratuit, si le destinataire en a un.
-- **Les pictogrammes** (à sa demande, « plus stylé ») : la marque de
-  WhatsApp et de Telegram, usage descriptif ; pour Messages une bulle
-  générique, JAMAIS l'icône d'Apple ; un globe pour le site. Sous 360 px,
-  le pictogramme passe au-dessus du nom — sinon « WhatsApp » se coupait.
-- **La seule question** : numéro ÉTRANGER + « le site seulement » →
-  « Par où Elatransfer doit-il vous confirmer votre course ? » (formulée par
-  Barbaros : qui confirme, et pourquoi on demande) WhatsApp / Telegram / iMessage,
-  obligatoire dans ce cas. Envoyée par une application, la demande prouve le
-  numéro et dit où répondre ; un numéro français se joint par appel ou SMS,
-  gratuits.
-- **Le bon porte `contact: {envoi, prefere}`**, gardé par `deposer-course`
-  (deux listes fermées). Absent sur les anciennes courses, les saisies et
-  les demandes collées.
-- **Admin** : la phrase `#bbContact` dit le canal ; quatre boutons (Appeler,
-  WhatsApp, Messages, Telegram), celui du client en plein. « Accuser
-  réception » et « Prévenir le client » écrivent par ce canal. Telegram vers
-  un numéro (`t.me/+<numéro>`, si le client l'autorise) n'accepte pas de
+Une première version faisait choisir au client « Envoyer ma demande par »
+(WhatsApp, Telegram, Messages, le site seul), plus une seconde question pour
+un étranger passé par le site. **Barbaros a retenu l'option A** : UNE seule
+question, la demande part toujours du site. Raisons : deux questions sur le
+même sujet font hésiter au moment de valider ; ouvrir une application au
+clic fait perdre des clients (le téléphone change d'application) ; et
+c'était devenu inutile — la demande arrive dans l'admin, Telegram l'annonce.
+
+**AUCUNE APPLICATION NE S'OUVRE PLUS AU CLIC SUR « ENVOYER MA DEMANDE ».**
+L'ouverture automatique de WhatsApp (septembre 2026, « second chemin si le
+dépôt échoue ») est retirée pour tout le monde ; le comptoir ne l'avait déjà
+plus. **Le repli reste** : le bouton « Renvoyer par WhatsApp » du bon, qui
+devient le seul chemin si le dépôt échoue. Si l'alerte Telegram de Barbaros
+tombe un jour, c'est cette décision qu'il faut rouvrir.
+
+## Ce qui existe
+
+- **« Où souhaitez-vous recevoir votre confirmation ? »** (`#blocContact`),
+  obligatoire, rien de présélectionné, masquée au comptoir. Les choix suivent
+  le numéro : français → Appel / SMS, WhatsApp ; étranger → WhatsApp,
+  Telegram, iMessage, avec « Numéro international : … sans frais ». Un choix
+  devenu invisible (Appel / SMS puis un +44) est oublié.
+- **Le numéro est relu** sous le champ avec son pays : « +33 7 70 09 00 12
+  (France) » sous les yeux d'un Anglais, l'erreur saute aux yeux
+  (`telLisible`, `PAYS_INDICATIF`).
+- **La règle est dite avant l'envoi** : « Elatransfer vous contacte pour
+  confirmer votre réservation. Sans réponse de votre part, elle ne pourra pas
+  être confirmée. »
+- **Pictogrammes** : la marque de WhatsApp et de Telegram (usage descriptif),
+  une bulle générique pour iMessage — JAMAIS l'icône d'Apple —, un combiné
+  pour l'appel. Sous 360 px le pictogramme passe au-dessus du nom, sinon
+  « WhatsApp » se coupait.
+- **Le bon porte `contact: {envoi:"site", prefere}`**, gardé par
+  `deposer-course` (listes fermées). Absent sur les anciennes courses, les
+  saisies et les demandes collées.
+- **Admin** : `#bbContact` dit le canal ; quatre boutons (Appeler, WhatsApp,
+  Messages, Telegram), celui du client en plein (« appel ou SMS » allume
+  Appeler et Messages). « Accuser réception » et « Prévenir le client »
+  écrivent par ce canal ; « appel ou SMS » part en SMS. Telegram vers un
+  numéro (`t.me/+<numéro>`, si le client l'autorise) n'accepte pas de
   texte : il est copié, Barbaros le colle.
-- **Au comptoir rien ne change** : le bloc est masqué, rien ne s'ouvre.
+- **Le Telegram d'Elatransfer est @elatransfer** (confirmé par Barbaros). Il
+  ne sert plus côté client dans l'option A ; utile pour le bot à venir.
 
 ## La suite décidée
 
 Après le lancement : un second bot Telegram réservé aux clients, qui vérifie
-le numéro par « Partager mon numéro » (le numéro vérifié par Telegram) et
-envoie la confirmation tout seul. Gratuit, monde entier.
+le numéro par « Partager mon numéro » et envoie la confirmation tout seul.
 
-Suites : `test-nouveau-contact.mjs`, `test-securite-fonctions.mjs`.
+Suites : `test-nouveau-contact.mjs`, `test-securite-fonctions.mjs`,
+`test-nouveau-whatsapp.mjs` (le message, par le repli du bon).
