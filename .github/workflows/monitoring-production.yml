@@ -55,7 +55,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Récupérer le dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Utiliser Node 22
         uses: actions/setup-node@v4
