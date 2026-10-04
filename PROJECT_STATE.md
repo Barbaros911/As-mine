@@ -72,9 +72,8 @@ ne doit pas enfreindre sans le rouvrir.
   deviennent pas des versions à maintenir.
 - **Multi-établissements dès la conception** : easyHotel ne doit pas être un
   cas codé en dur. Chaque hôtel aura sa configuration, le moteur reste commun.
-- **Les autres projets sortent de la publication ELA** (Point Clôtures)
-  — **sans supprimer son travail**. Ici Cuisine a été supprimé du dépôt le
-  4 octobre 2026, à la demande de Barbaros.
+- **Les projets d'autres clients ne vivent plus dans ce dépôt** (4 octobre
+  2026, à la demande de Barbaros).
 - Le QR de l'affiche ouvre l'espace **Client easyHotel existant**, et le
   contexte (hôtel, destination, tarif, provenance) est conservé **jusqu'à la
   confirmation** — pas de perte silencieuse en changeant d'écran.
