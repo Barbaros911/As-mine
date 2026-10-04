@@ -226,6 +226,23 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(bd.course?.arriveeLieu?.provider==='inconnu'&&bd.course.arriveeLieu.adresse.length<=300&&bd.course.itineraireSource==='','deposer-course : source inconnue, texte borné, itinéraire inconnu vidé');
   const e5=await dep(bonKm('ELA-26-10-LE5EE',90,{departLieu:undefined,arriveeLieu:undefined,itineraireSource:undefined}));
   ok(e5.status===201&&(deposes[4]||{}).course?.departLieu===null,'deposer-course : une page ancienne sans lieux structurés passe comme avant');
+  /* LES DEMANDES HORS CAS STANDARD (4 octobre 2026) : elles passent, mais
+     leur prix est FORCÉ À ZÉRO — un client ne peut pas y glisser un montant
+     — et ailleurs un prix positif est EXIGÉ : le 0 € passait sans un mot. */
+  const n0=deposes.length;
+  const f6=await dep(bonKm('ELA-26-10-LF6FF',5,{tarifAConfirmer:true,motifsTarif:['longue','pirate'],immediat:true,distanceKm:4200}));
+  const bf=deposes[n0]||{};
+  ok(f6.status===201,'deposer-course : une longue distance (4 200 km) « tarif à confirmer » passe ('+f6.status+')');
+  ok(bf.prix?.total===0&&bf.course?.tarifAConfirmer===true,'deposer-course : le prix d\'une demande « à confirmer » est forcé à 0 (envoyé : 5 €, gardé : '+bf.prix?.total+')');
+  ok(JSON.stringify(bf.course?.motifsTarif)==='["longue"]'&&bf.course?.immediat===true,'deposer-course : motifs filtrés (« pirate » écarté), « immédiat » gardé');
+  ok(!bf.securite?.prixSousLigneDroite,'deposer-course : une demande « à confirmer » n\'est pas jugée au kilomètre');
+  const g7=await dep(bonKm('ELA-26-10-LG7GG',0));
+  ok(g7.status===400&&deposes.length===n0+1,'deposer-course : un prix à 0 € sans « tarif à confirmer » est REFUSÉ ('+g7.status+')');
+  const h8=await dep(bonKm('ELA-26-10-LH8HH',0,{tarifAConfirmer:true,motifsTarif:[]}));
+  ok(h8.status===400,'deposer-course : « à confirmer » sans motif reconnu ne contourne pas la règle du prix ('+h8.status+')');
+  const i9=await dep(bonKm('ELA-26-10-LI9II',0,{tarifAConfirmer:true,motifsTarif:['groupe'],passagers:'12 passagers · 14 bagages'}));
+  const bi=deposes[deposes.length-1]||{};
+  ok(i9.status===201&&bi.course?.passagersNombre===12&&bi.course?.multiVehicules===true,'deposer-course : un groupe de 12 passe, marqué « plusieurs véhicules » ('+i9.status+')');
   globalThis.fetch=fetchAvant;
 }
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));

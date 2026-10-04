@@ -133,7 +133,7 @@ function saisieExploitant(bon:Record<string,any>):boolean{
    - LES SAISIES DE L'EXPLOITANT NE SONT NI ANNONCÉES NI RELANCÉES.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
    vient du journal. */
-const MIN_MS=60*1000;
+const MIN_MS=60*1000,IMMEDIAT_MS=30*60*1000;
 /* SOUPLESSE : pg_cron ne tombe jamais pile. Un rappel dû à 3 min vérifié à
    2 min 59 s partirait au tour suivant, 20 s plus tard — ou, pour la
    notification « à chaque tour », une fois sur deux. */
@@ -194,7 +194,13 @@ async function relancer():Promise<string>{
     const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
     const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
     if(saisieExploitant(bon))continue;
-    const age=Date.now()-cree,reste=resteAvantDepart(bon);
+    /* UNE DEMANDE IMMÉDIATE N'A PAS DE RENDEZ-VOUS : son « départ » est
+       l'instant même où elle a été faite. Comptée sur lui, elle recevait au
+       tour suivant le message final « départ passé », puis le silence — la
+       demande en attente sans bruit qu'on veut justement éviter. Sa référence
+       devient création + 30 min : 30 minutes d'alarme pleine, puis un
+       dernier message (4 octobre 2026). */
+    const age=Date.now()-cree,reste=bon.course?.immediat===true?cree+IMMEDIAT_MS-Date.now():resteAvantDepart(bon);
     if(!encoreUtile(age,reste))continue;
     const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,detail,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
     if(!j.ok)continue;
@@ -220,7 +226,7 @@ async function relancer():Promise<string>{
       const t=titreFinal(bon);finals++;
       await effacerTelegram(dernierRappelTelegram(journalRef));
       const [tg,push]=await Promise.all([
-        parTelegram(t,`Réf. ${ref} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
+        parTelegram(t,bon.course?.immediat===true?`Réf. ${ref} — demande immédiate toujours en attente après 30 min. Rappelez le client ou refusez-la dans l'admin. Plus aucun rappel ne partira.`:`Réf. ${ref} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
         parPush(t,ref),
       ]);
       await Promise.all([journal("rappel_final",ref,"telegram",tg),journal("rappel_final",ref,"push",push)]);

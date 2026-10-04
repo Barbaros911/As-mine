@@ -603,6 +603,10 @@ l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
 pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
 point médian, pas une phrase.
 
+> Les 90 km ne BLOQUENT plus depuis le 4 octobre 2026 : ils sont le seuil
+> du prix automatique. Voir « PLUS AUCUN BLOCAGE COMMERCIAL » en fin de
+> fichier.
+
 **LA ZONE DESSERVIE — 90 km autour de Paris** (septembre 2026, phase 2 de
 l'audit, à la demande de Barbaros : « seuls les clients qui sont en
 Île-de-France peuvent réserver »). Avant cette règle, **Lille → Marseille
@@ -3674,6 +3678,12 @@ terminal » — un terminal d'aéroport. Il porte maintenant sur le seul
 `#blocPaiement`, qui est son sujet.
 
 ## LE PRÉAVIS MINIMUM AVANT UN DÉPART — 15 MINUTES
+
+> **CETTE SECTION EST PÉRIMÉE DEPUIS LE 4 OCTOBRE 2026** : le préavis est
+> SUPPRIMÉ (`DELAI_MINIMUM_MIN`, `tropTot()`, `#tropTot` n'existent plus).
+> Voir « PLUS AUCUN BLOCAGE COMMERCIAL » en fin de fichier. Ce qui reste
+> vrai ici : l'heure réellement passée, la grille des 5 minutes, la date
+> composée en local.
 
 Septembre 2026, à sa demande : « lorsque le client réserve il faut qu'il ne
 puisse pas réserver avant 20 min », **ramené à 15 minutes le lendemain**. Il faut trouver un chauffeur, le
@@ -7071,3 +7081,69 @@ prêt, il manque sa clé) ; un second fournisseur de lieux qui autorise le
 stockage, en secours de Photon (gratuit, sans engagement) ; une validation
 serveur complète (recherche + itinéraire côté serveur) ; un lien « ouvrir dans
 le GPS » sur le bon, depuis les coordonnées désormais gardées.
+
+## PLUS AUCUN BLOCAGE COMMERCIAL — UNE DEMANDE RÉELLE PART TOUJOURS
+
+4 octobre 2026, à sa demande (« je veux recevoir une demande même lorsque le
+client souhaite partir immédiatement… un client avec une demande réelle doit
+toujours disposer d'une sortie »). Audit des 20 règles qui pouvaient bloquer
+une réservation, présenté AVANT de toucher au code : 4 retirées ou
+assouplies, 2 durcies, le reste gardé. Ce qui change :
+
+- **LE PRÉAVIS DE 15 MINUTES EST SUPPRIMÉ** — constante, écriteau, borne à
+  +15 min, phrases, tests. Le formulaire s'ouvre sur le prochain créneau de
+  5 minutes, sans délai ajouté. **Seule l'heure réellement passée reste
+  refusée**, avec une sortie : « Partir dès que possible ».
+- **« DÈS QUE POSSIBLE » / « PROGRAMMER »** au-dessus de la date. Par défaut
+  « Programmer » : la plupart des courses (aéroports) se réservent à
+  l'avance, un défaut « tout de suite » ferait partir des vols de la semaine
+  prochaine en demande immédiate. La demande immédiate garde l'heure réelle
+  de sa création, porte `course.immediat`, dit « soumise à disponibilité,
+  aucun délai garanti » (et « la réponse peut prendre plus de temps » entre
+  22 h et 5 h — **jamais un blocage** : les horaires 5 h–22 h ne sont qu'une
+  information).
+- **« TARIF À CONFIRMER »** (`course.tarifAConfirmer` + `course.motifsTarif`,
+  parmi `longue` / `groupe` / `adresse`) : la demande PART sans prix.
+  - **au-delà de 90 km** (`#infoLongue`, plus de `#horsZone`) : distance et
+    durée affichées, **aucun montant, même indicatif** — la grille au km est
+    taillée pour l'Île-de-France, et un prix affiché est ferme, donc
+    opposable. `RAYON_ZONE_KM` est devenu le seuil du PRIX AUTOMATIQUE.
+  - **plus de 7 passagers** : une seule ligne « Plusieurs véhicules »
+    (`multiVehicules`), aucune combinaison inventée.
+  - **adresse introuvable** : dernière ligne de la liste, « l'envoyer telle
+    quelle » (`adresseAVerifier`) — sans coordonnées inventées, donc sans
+    itinéraire ni prix. Client seulement : dans l'admin on tape librement.
+- **LE SERVEUR** (`deposer-course`) **force le prix à 0** d'une demande « à
+  confirmer » (un client ne peut pas y glisser un montant), filtre les
+  motifs, et **exige sinon un prix positif** — le 0 € passait sans un mot.
+  Bornes élargies : 60 passagers, 60 bagages, 5 000 km.
+  **PIÈGE ATTRAPÉ PAR LE TEST** : le client envoyait `longue_distance`, le
+  serveur attendait `longue` — toute demande longue distance aurait été
+  refusée en 400. Une seule orthographe, `longue`, partout.
+- **L'ADMIN** : pastilles « Immédiat » (rouge), « Tarif à confirmer »,
+  « Adresse à vérifier », « Plusieurs véhicules » sur la carte ; « À
+  confirmer » à la place de 0,00 € (carte, bon, réception, image du bon).
+  **« Confirmer » est REFUSÉ tant que le prix n'est pas fixé** — un VTC doit
+  annoncer son prix avant le départ (L3120-2 et la règle de ce fichier).
+  Le prix se fixe par « Modifier la course », qui lève `tarifAConfirmer` et
+  pose `prixFixeApres` : **« Prévenir le client » annonce alors le prix**, et
+  le lien `?ok=` le porte (`p`) pour que le bon du client l'affiche.
+- **LES RAPPELS D'UNE DEMANDE IMMÉDIATE** (`nouvelle-demande`) : sa date est
+  l'instant où elle a été faite, donc « déjà passée » au tour suivant —
+  comptée sur elle, elle recevait aussitôt « DÉPART PASSÉ » puis le silence.
+  Sa référence devient **création + 30 min** : 30 minutes d'alarme pleine,
+  puis « DEMANDE IMMÉDIATE sans réponse depuis 30 min ». Le titre Telegram
+  dit « IMMÉDIAT », le corps « Prix : À CONFIRMER (motif) ».
+- **Ce qui reste refusé, et doit le rester** : heure passée, départ = arrivée,
+  coordonnées d'une adresse modifiée, nom + téléphone (ou chambre), téléphone
+  valide, mode de règlement, quotas, référence en double, double clic,
+  sécurité Supabase.
+- **Le risque accepté** : un client peut forcer « à confirmer » pour ne pas
+  voir de prix — la seule conséquence est que Barbaros le fixe lui-même.
+  Davantage de demandes arriveront sans prix : c'est le prix de ne plus
+  perdre ces clients.
+- Suites : `test-nouveau-sans-blocage.mjs` (site construit, client et admin),
+  `test-nouveau-preavis.mjs` réécrite (elle verrouille l'ABSENCE du
+  préavis), contrôles ajoutés à `test-securite-fonctions.mjs` et
+  `test-relance-alertes.mjs`. Toutes dans la CI de l'admin.
+
