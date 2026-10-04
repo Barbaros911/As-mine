@@ -5684,12 +5684,30 @@ pour qui cherche une faille, sans même un mot de passe à deviner.
     de chaque script avant et après — 157 558 nœuds, zéro écart — et il
     voit bien un seul caractère changé dans une expression régulière.
   - `test-nouveau-bascule` prend des passages des VRAIS commentaires des
-    sources et exige qu'aucun ne soit en ligne, sur sept pages. Il ne
-    cherche pas « /* » : une chaîne peut le contenir. Avec l'ancienne
-    recette, il tombe sur dix contrôles.
-  - Les feuilles de style (`application-facade.css`,
-    `hotel-engine-polish.css`) gardent leurs commentaires : ils ne disent
-    que la mise en page, et le nettoyeur ne lit pas le CSS seul.
+    sources et exige qu'aucun ne soit en ligne. Il ne cherche pas « /* » :
+    une chaîne peut le contenir. Avec l'ancienne recette, il tombe sur onze
+    contrôles. **Il tourne maintenant en CI** (« Contrôle de l'admin
+    retenu ») : hors CI, l'oubli d'une ligne dans la recette passait sans
+    bruit — c'est exactement ce qui était arrivé.
+  - **TROIS TROUS DE CE CONTRÔLE, TROUVÉS PAR UNE RELECTURE INDÉPENDANTE ET
+    BOUCHÉS AVANT LA FUSION.** Un 404 ou une AUTRE page passait au vert — une
+    page vide ne contient aucune note : il exige 200 et la marque de la
+    bonne page (`data-ela-space`, ou le titre). Les commentaires `//` n'étaient
+    pas prélevés : ils sont tous en FIN de ligne dans la page, il les prend
+    là, précédés d'un espace (une adresse `https://` n'en a pas). Et une
+    liste de sept adresses survit à la page qu'on ajoute : il passe aussi au
+    crible TOUTE page publiée qui porte `data-ela-space`, où qu'elle soit.
+    Chaque trou a été rouvert exprès et le fait tomber en nommant la page.
+  - **CE QUI GARDE ENCORE DES NOTES EN LIGNE, ET QUI N'EST PAS TRANCHÉ.**
+    Ces fichiers sont copiés tels quels, et ce n'est pas nouveau :
+    `robots.txt` explique en clair que `?h=` donne des forfaits plus bas que
+    le site et que la réception ouvre l'historique des clients d'un hôtel ;
+    `hotel-engine-polish.css` dit que la photo de l'en-tête vient du site
+    d'easyHotel sans accord écrit ; `application-facade.css` ne parle que de
+    mise en page ; `_headers` justifie les en-têtes de sécurité, qui se
+    lisent de toute façon dans chaque réponse. `_headers` ne se touche pas
+    d'ici : Cloudflare le lit, et un réglage qu'on ne peut pas éprouver garde
+    son défaut.
 - **Le cloisonnement complet des écrans admin/réception hors du fichier
   public n'a PAS été fait** : les données restent protégées côté serveur
   (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus
