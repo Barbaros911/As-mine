@@ -4065,18 +4065,15 @@ anonymes et **corrige ces valeurs en mémoire** si le serveur répond. Le
 repli est sacré, comme partout ailleurs sur ce site : un échec (hors ligne,
 minuterie, format inattendu) ne touche à rien, le client garde le chiffre
 écrit en dur, sans le moindre message.
-- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** `parametres_commerciaux`
-  et `tarifs_partenaires` restent fermées à `anon` comme depuis leur
-  création — la première porte AUSSI `commission_ela_defaut`, la marge
-  d'Elatransfer, qui ne doit JAMAIS être visible d'un visiteur ni d'un
-  comptoir d'hôtel (voir plus haut, « CE QUE LE COMPTOIR NE DOIT JAMAIS
-  VOIR »). Deux vues, `tarif_public` et `forfaits_partenaires_publics`, ne
-  rendent QUE des chiffres déjà publics par nature — le tarif au kilomètre
-  affiché sur le site, les prix d'un flyer imprimé — et sont accordées en
-  lecture à `anon`. Elles tournent avec les droits du PROPRIÉTAIRE de la
-  vue (pas de `security_invoker`), qui possède aussi les tables : c'est ce
-  qui laisse `anon` interroger la vue sans jamais toucher aux tables
-  elles-mêmes.
+- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** Les tables restent
+  fermées (`parametres_commerciaux` porte aussi la commission) ; `anon` lit
+  `tarif_public` et `forfaits_partenaires_publics`, qui tournent avec les
+  droits de leur PROPRIÉTAIRE, donc SANS les policies.
+  **UNE VUE NE S'ÉCRIT JAMAIS** (audit du 4 octobre 2026) : Supabase donne
+  par défaut TOUS les droits à `anon` sur tout objet neuf, et une vue sur
+  une seule table est modifiable — un anonyme effaçait le tarif berline.
+  `20261005000000_vues_lecture_seule.sql` retire l'écriture à toute vue ;
+  la rejouer après toute vue créée (elle s'arrête si un droit survit).
 - **L'ÉCRITURE EXISTAIT DÉJÀ, IL NE MANQUAIT QUE L'ÉCRAN.** Les deux tables
   ont depuis leur création une policy « authenticated + `est_exploitant()`
   » en écriture — Admin v2 s'en sert déjà pour la commission. Le nouvel
