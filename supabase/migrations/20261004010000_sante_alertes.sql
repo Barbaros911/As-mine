@@ -31,6 +31,14 @@
 -- création, et le schéma « cron » n'existe que chez Supabase. L'épreuve en
 -- CI (supabase/tests/sante-alertes.sql) en pose un faux.
 --
+-- DEUX PIÈGES DU JOURNAL, TROUVÉS EN RELECTURE (4 octobre 2026), corrigés
+-- dans les deux textes :
+--   - une ligne « vue » (course ouverte dans l'admin, ou bouton « Vu » de
+--     Telegram) porte canal « telegram » et statut « envoye » : elle faisait
+--     passer le voyant au VERT pendant une panne de Telegram ;
+--   - « indisponible » (secret Telegram absent ou mal nommé) n'était pas
+--     compté comme un échec : Telegram non configuré donnait un voyant vert.
+--
 -- RIEN N'EST ÉCRIT : lecture seule, aucune donnée personnelle.
 -- À APPLIQUER EN PRODUCTION après la fusion (workflow « Appliquer une
 -- migration Supabase », ce fichier). Tant que ce n'est pas fait, le voyant
@@ -59,10 +67,11 @@ select json_build_object(
        and r.start_time >= now() - interval '15 minutes'),
   'telegram_echecs_1h', (
     select count(*) from public.journal_notifications_admin
-     where canal = 'telegram' and statut = 'echec' and cree_le >= now() - interval '1 hour'),
+     where canal = 'telegram' and statut in ('echec', 'indisponible') and cree_le >= now() - interval '1 hour'),
   'telegram_ok_1h', (
     select count(*) from public.journal_notifications_admin
-     where canal = 'telegram' and statut = 'envoye' and cree_le >= now() - interval '1 hour'),
+     where canal = 'telegram' and statut = 'envoye' and type_evenement <> 'vue'
+       and cree_le >= now() - interval '1 hour'),
   'demandes_24h', (
     select count(*) from public.courses
      where cree_le >= now() - interval '24 hours'

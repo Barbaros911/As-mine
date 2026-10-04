@@ -46,7 +46,7 @@ begin
     raise exception 'la fonction ne rend pas les sept mesures : %', m; end if;
   if (m->>'sans_alerte')::int is distinct from 0 then raise exception 'sans_alerte faux a vide : %', m; end if;
   if (m->>'relance_active')::boolean is distinct from true then raise exception 'relance non lue : %', m; end if;
-  if (m->>'derniere_relance_s')::numeric not between 5 and 60 then
+  if (m->>'derniere_relance_s') is null or (m->>'derniere_relance_s')::numeric not between 5 and 60 then
     raise exception 'dernier passage de la relance mal lu : %', m; end if;
   if (m->>'demandes_24h')::int is distinct from 0 then raise exception 'demandes_24h faux a vide : %', m; end if;
 end $$;
@@ -62,6 +62,11 @@ insert into public.courses(ref, statut, bon, cree_le) values
  ('ELA-26-10-FFFFF','attente',  '{"securite":{"empreinteDepot":"x"}}', now() - interval '7 hours');     -- hors fenetre
 insert into public.journal_notifications_admin(type_evenement, course_ref, canal, statut)
   values ('nouvelle_demande', 'ELA-26-10-BBBBB', 'telegram', 'envoye');
+-- Ce qui n'est PAS une alerte reussie pour AAAAA : un push sans abonne, un
+-- Telegram indisponible. Elle doit rester comptee sans alerte.
+insert into public.journal_notifications_admin(type_evenement, course_ref, canal, statut) values
+  ('nouvelle_demande', 'ELA-26-10-AAAAA', 'push', 'aucun_abonne'),
+  ('nouvelle_demande', 'ELA-26-10-AAAAA', 'telegram', 'indisponible');
 do $$
 declare m json := public.ela_sante_alertes();
 begin
@@ -70,21 +75,41 @@ begin
   if (m->>'demandes_24h')::int is distinct from 5 then
     raise exception 'demandes_24h devrait compter les 5 demandes du site, pas la saisie : %', m; end if;
   if (m->>'telegram_ok_1h')::int is distinct from 1 then raise exception 'telegram_ok_1h faux : %', m; end if;
+  if (m->>'telegram_echecs_1h')::int is distinct from 1 then
+    raise exception '« indisponible » (Telegram non configure) doit compter comme un echec : %', m; end if;
 end $$;
 
 -- 5. TELEGRAM : les echecs de la derniere heure, pas ceux d'avant.
 insert into public.journal_notifications_admin(type_evenement, course_ref, canal, statut, cree_le) values
   ('relance', 'ELA-26-10-AAAAA', 'telegram', 'echec', now() - interval '10 minutes'),
   ('relance', 'ELA-26-10-AAAAA', 'telegram', 'echec', now() - interval '20 minutes'),
-  ('relance', 'ELA-26-10-AAAAA', 'telegram', 'echec', now() - interval '2 hours'),
-  ('relance', 'ELA-26-10-AAAAA', 'push',     'echec', now() - interval '5 minutes');
+  ('relance', 'ELA-26-10-AAAAA', 'telegram', 'echec', now() - interval '90 minutes'),
+  ('relance', 'ELA-26-10-AAAAA', 'push',     'echec', now() - interval '5 minutes'),
+  -- Un envoi reussi d'il y a 90 min ne compte pas : un succes d'hier
+  -- masquerait une panne complete d'aujourd'hui.
+  ('nouvelle_demande', 'ELA-26-10-FFFFF', 'telegram', 'envoye', now() - interval '90 minutes');
 do $$
 declare m json := public.ela_sante_alertes();
 begin
-  if (m->>'telegram_echecs_1h')::int is distinct from 2 then
-    raise exception 'telegram_echecs_1h devrait etre 2 (ni l''ancien, ni le push) : %', m; end if;
+  if (m->>'telegram_echecs_1h')::int is distinct from 3 then
+    raise exception 'telegram_echecs_1h devrait etre 3 (2 echecs + 1 indisponible ; ni l''ancien, ni le push) : %', m; end if;
+  if (m->>'telegram_ok_1h')::int is distinct from 1 then
+    raise exception 'un envoi reussi d''il y a 90 min ne doit pas compter : %', m; end if;
   -- Un echec de push n'efface pas l'absence d'alerte reussie.
   if (m->>'sans_alerte')::int is distinct from 1 then raise exception 'sans_alerte a bouge : %', m; end if;
+end $$;
+
+-- 5 bis. « VU » N'EST PAS UN ENVOI. Ouvrir une course dans l'admin (ela_marquer_vue)
+--        ou appuyer sur « Vu » dans Telegram ecrit canal 'telegram', statut
+--        'envoye', type 'vue'. Ce n'est pas une alerte partie : pendant une
+--        panne de Telegram, ces lignes faisaient passer le voyant au vert.
+insert into public.journal_notifications_admin(type_evenement, course_ref, canal, statut, detail)
+  values ('vue', 'ELA-26-10-AAAAA', 'telegram', 'envoye', 'ouverte dans l''admin');
+do $$
+declare m json := public.ela_sante_alertes();
+begin
+  if (m->>'telegram_ok_1h')::int is distinct from 1 then
+    raise exception 'une ligne « vue » a ete comptee comme un envoi Telegram reussi : %', m; end if;
 end $$;
 
 -- 6. LA RELANCE : passages rates du dernier quart d'heure, puis tache arretee, puis absente.
@@ -98,6 +123,9 @@ begin
   m := public.ela_sante_alertes();
   if (m->>'relances_echouees_15min')::int is distinct from 2 then
     raise exception 'relances_echouees_15min devrait etre 2 : %', m; end if;
+  -- Le dernier passage est le PLUS RECENT (il y a 10 s), pas le plus ancien.
+  if (m->>'derniere_relance_s') is null or (m->>'derniere_relance_s')::numeric not between 5 and 60 then
+    raise exception 'le dernier passage de la relance n''est pas le plus recent : %', m; end if;
   update cron.job set active = false where jobname = 'ela-relance-alertes';
   m := public.ela_sante_alertes();
   if (m->>'relance_active')::boolean is distinct from false then raise exception 'relance arretee non vue : %', m; end if;

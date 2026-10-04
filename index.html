@@ -1148,7 +1148,10 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .admin-point{width:6px;height:6px;border-radius:50%;background:#8a97a3;}
 .admin-etat.ok .admin-point{background:var(--accent-vif);}
 /* Le voyant des alertes, sous l'état du serveur : sa propre ligne. */
-.admin-alertes{display:flex;width:max-content;}
+.admin-alertes{display:flex;width:max-content;min-width:11em;}
+/* « min-width » : la ligne garde la largeur de son état le plus long
+   (« Alertes : non vérifiées »). Sans elle, l'avatar et le nom sautaient
+   de 19 px à chaque changement d'état, sur téléphone. */
 .admin-alertes.ko{color:#fca5a5;font-weight:700;}
 .admin-alertes.ko .admin-point{background:#f87171;}
 .admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;
@@ -1174,6 +1177,7 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .alertes-bord b{display:block;font-size:14px;margin-bottom:2px;}
 .alertes-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .alertes-bord{margin:16px 28px 0;} }
+@media (min-width:900px){ body.espace .son-coupe{margin:16px 28px 0;width:calc(100% - 56px);} }
 .arrivee-avis{display:block;width:calc(100% - 40px);margin:14px 20px 0;
   padding:12px 14px;border:0;border-radius:13px;background:var(--accent);
   color:#fff;font:inherit;font-size:13px;font-weight:700;text-align:left;
@@ -12873,13 +12877,18 @@ window.ELA_TEXTES = {
       sante.verdict = juge.juger(m); sante.lu = Date.now(); sante.erreur = "";
     }).catch(function(e){
       sante.verdict = null; sante.erreur = String((e && e.message) || e);
+      sessionPerdue();
     }).then(function(){ sante.enCours = false; jugerAlertes(); });
   }
   function jugerAlertes(){
     if(!sante) return;
     var ligne = document.getElementById("adminAlertes");
     var txt = document.getElementById("adminAlertesTexte");
-    var bord = document.getElementById("bordAlertes");
+    /* GRIS FAUTE DE SESSION OU DE SERVEUR : l'ancien verdict est OUBLIÉ, et
+       la prochaine relecture réussie mesure aussitôt. Gardé, il revenait au
+       vert dès le retour du réseau, sans aucune mesure, pendant que Telegram
+       était tombé entre-temps (relecture du 4 octobre 2026). */
+    if(!nuage.connecte() || panneServeur){ sante.verdict = null; sante.essai = 0; }
     var v = sante.verdict;
     var frais = !!v && (Date.now() - sante.lu < SANTE_PERIME_MS);
     var etat = (!nuage.connecte() || panneServeur || !frais) ? "gris" : (v.ok ? "ok" : "ko");
@@ -12887,6 +12896,7 @@ window.ELA_TEXTES = {
       : panneServeur ? "le serveur ne répond pas"
       : sante.erreur ? "lecture impossible (" + sante.erreur + ")"
       : !v ? "pas encore mesurées" : !frais ? "dernière mesure trop ancienne" : "";
+    sante.etat = etat;
     if(ligne){
       ligne.classList.toggle("ok", etat === "ok");
       ligne.classList.toggle("ko", etat === "ko");
@@ -12896,18 +12906,40 @@ window.ELA_TEXTES = {
     }
     if(txt) txt.textContent = etat === "ok" ? "Alertes OK"
       : etat === "ko" ? "Alertes en panne" : "Alertes : non vérifiées";
-    if(bord){
-      bord.hidden = etat !== "ko";
-      if(etat === "ko"){
-        bord.textContent = "";
-        var titre = document.createElement("b");
-        titre.textContent = "Alertes en panne — " + v.simples.join(" ");
-        bord.appendChild(titre);
-        bord.appendChild(document.createTextNode(
-          "Les demandes arrivent quand même ici : gardez cet écran ouvert, "
-          + "il sonne à chaque nouvelle demande."));
-      }
-    }
+    dessinerBandeauAlertes();
+    jugerSon();
+  }
+  /* LE BANDEAU ROUGE. Trois règles, toutes venues de la relecture :
+     — IL REMPLACE « Son des alertes coupé » quand les deux s'affichent :
+       empilés, ils faisaient sortir de l'écran (390 × 844) la demande en
+       attente qu'ils disent de surveiller. Le geste du son est donc dans sa
+       phrase : quand Telegram tombe, c'est le son de cet écran qui reste.
+     — IL N'EST RÉÉCRIT QUE S'IL CHANGE : c'est une région « alert », et un
+       lecteur d'écran relisait la même panne trois fois par minute.
+     — Deux phrases courtes : ce qui ne marche plus, puis le geste. Avec
+       plusieurs pannes, la PREMIÈRE et le nombre des autres : la liste
+       entière (quatre phrases) repoussait la demande hors de l'écran. Elle
+       reste au complet sur le voyant (« title ») et dans l'Issue GitHub. */
+  function dessinerBandeauAlertes(){
+    var bord = document.getElementById("bordAlertes");
+    if(!bord || !sante) return;
+    var ko = sante.etat === "ko" && !!sante.verdict;
+    bord.hidden = !ko;
+    if(!ko){ bord.dataset.texte = ""; return; }
+    var s = sante.verdict.simples;
+    var titre = "Alertes en panne : " + s[0]
+      + (s.length > 2 ? " Et " + (s.length - 1) + " autres problèmes."
+        : s.length > 1 ? " Et 1 autre problème." : "");
+    var geste = sonPret()
+      ? "Les demandes arrivent quand même ici, et cet écran sonne : gardez-le ouvert."
+      : "Les demandes arrivent quand même ici : touchez l'écran pour qu'il sonne.";
+    if(bord.dataset.texte === titre + "|" + geste) return;
+    bord.dataset.texte = titre + "|" + geste;
+    bord.textContent = "";
+    var b = document.createElement("b");
+    b.textContent = titre;
+    bord.appendChild(b);
+    bord.appendChild(document.createTextNode(geste));
   }
   /* Une mesure vieillit même quand rien ne bouge : on rejuge chaque minute,
      sans rien demander au serveur, pour que le vert retombe au gris. */
@@ -12950,7 +12982,19 @@ window.ELA_TEXTES = {
         return synchroniser().then(function(){ derniereVue = ref; });
       }
       derniereVue = ref;
-    }).catch(function(){ /* la relecture complète dira la panne */ });
+    }).catch(function(){
+      /* La relecture complète dira une panne du serveur. Mais une SESSION
+         PERDUE ici (jeton refusé, renouvellement refusé — un mot de passe
+         changé sur un autre appareil) arrête l'écoute sans que rien ne le
+         dise : la pastille restait « Serveur connecté » pendant que plus
+         aucune demande n'arrivait (relecture du 4 octobre 2026). */
+      sessionPerdue();
+    });
+  }
+  function sessionPerdue(){
+    if(nuage.connecte()) return;
+    panneServeur = panneServeur || "session expirée";
+    jugerNuage();
   }
 
   function espaceOuvert(){
@@ -13002,6 +13046,11 @@ window.ELA_TEXTES = {
     if(!el) return;
     var C = window.AudioContext || window.webkitAudioContext;
     var cacher = !C || sonPret() || !document.body.classList.contains("espace");
+    /* Le bandeau des alertes en panne dit déjà de toucher l'écran : on ne
+       les empile pas (voir dessinerBandeauAlertes). Sa phrase change dès que
+       le son est débloqué. */
+    var bordAlertes = document.getElementById("bordAlertes");
+    if(bordAlertes && !bordAlertes.hidden){ el.hidden = true; dessinerBandeauAlertes(); return; }
     if(!cacher){ el.hidden = false; return; }
     /* ON LE RETIRE UNE DEMI-SECONDE APRÈS L'APPUI, PAS PENDANT. Le premier
        appui débloque le son ; retiré aussitôt, le bandeau faisait remonter

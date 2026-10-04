@@ -51,6 +51,11 @@ const J = (b, status = 200) => ({ status, contentType: 'application/json', body:
 
 const SAIN = { sans_alerte: 0, relance_active: true, derniere_relance_s: 12, relances_echouees_15min: 0,
   telegram_echecs_1h: 0, telegram_ok_1h: 3, demandes_24h: 5 };
+const demain = new Date(Date.now() + 86400e3).toLocaleString('sv-SE', { timeZone: 'Europe/Paris' }).slice(0, 10);
+const ATTENTE = { ref: 'ELA-26-10-K7M2P', statut: 'attente', cree: new Date(Date.now() - 3600e3).toISOString(),
+  course: { depart: 'Place Vendôme, 75001 Paris', departPublic: 'Place Vendôme, 75001 Paris', arrivee: 'Aéroport Charles-de-Gaulle, Terminal 2E',
+    date: demain, heure: '10:00', vehicule: 'Berline', vehiculeCle: 'berline', passagers: '2 passagers', vol: '' },
+  client: { nom: 'Client K7M2P', telephone: '06 12 34 56 78' }, prix: { total: 90 }, langue: 'fr' };
 const SESSION = { access_token: 'JETON', refresh_token: 'R', token_type: 'bearer', user: { id: 'u-barbaros' } };
 
 const erreurs = [];
@@ -75,7 +80,7 @@ async function ouvrir({ session = SESSION, etat, largeur = 390, hauteur = 844, h
     if (u.startsWith(BASE)) return route.continue();
     if (!u.includes('supabase.co')) return route.abort();
     if (etat.reseau === 'coupe') return route.abort('internetdisconnected');
-    if (u.includes('/rpc/ela_sante_alertes')) {
+    if (u.includes('/rpc/ela_sante_alertes') && !etat.refus) {
       etat.appels.push(req.method());
       etat.auth.push(req.headers()['authorization'] || '');
       const s = etat.sante;
@@ -87,9 +92,12 @@ async function ouvrir({ session = SESSION, etat, largeur = 390, hauteur = 844, h
     if (u.includes('/rpc/role_operateur')) return route.fulfill(J('admin'));
     if (u.includes('/rpc/presences_operateurs')) return route.fulfill(J([]));
     if (u.includes('/rpc/') || u.includes('/functions/v1/')) return route.fulfill(J({ ok: true }));
+    if (u.includes('grant_type=refresh_token')) return route.fulfill(J({ error_code: 'refresh_token_not_found' }, etat.refus ? 400 : 200));
+    if (etat.refus) return route.fulfill({ status: 401, body: '' });
     if (u.includes('/rest/v1/courses')) {
-      if (u.includes('select=ref')) return route.fulfill(J([]));
-      return route.fulfill(J([]));
+      const liste = etat.courses || [];
+      if (u.includes('select=ref')) return route.fulfill(J(liste.slice(0, 1).map(c => ({ ref: c.ref, version: 1, modifie_le: '2026-10-04T08:00:00Z' }))));
+      return route.fulfill(J(liste.map(c => ({ bon: c, statut: c.statut, version: 1, modifie_le: '2026-10-04T08:00:00Z', cree_le: c.cree }))));
     }
     return route.fulfill(J([]));
   });
@@ -150,7 +158,7 @@ try {
     const b = await bandeau(p);
     check('B. le bandeau rouge apparaît sur le tableau de bord', /Alertes en panne/.test(b), b);
     check('B. il dit laquelle : Telegram', /Telegram ne reçoit plus les alertes/.test(b), b);
-    check('B. il dit le geste qui reste', /arrivent quand même ici/.test(b) && /gardez cet écran ouvert/.test(b), b);
+    check('B. il dit le geste qui reste', /arrivent quand même ici/.test(b) && /touchez l'écran pour qu'il sonne/.test(b), b);
     /* UN SEUL JUGE : le bandeau porte chaque phrase que rend le juge du
        chien de garde pour les mêmes mesures. */
     const v = juger(m);
@@ -169,8 +177,10 @@ try {
     const { ctx, p } = await ouvrir({ etat, largeur: 320, hauteur: 568 });
     await attendreVoyant(p, 'panne');
     const b = await bandeau(p);
-    check('C. deux demandes sans alerte : le bandeau les compte', /2 demandes sont arrivées sans alerte/.test(b), b);
-    check('C. les rappels arrêtés sont dits aussi', /rappels automatiques sont arrêtés/.test(b), b);
+    check('C. deux pannes : le bandeau dit la première', /2 demandes sont arrivées sans alerte/.test(b), b);
+    check('C. et le nombre des autres', /Et 1 autre problème/.test(b), b);
+    const titre = await p.evaluate(() => document.getElementById('adminAlertes').title);
+    check('C. la liste entière reste sur le voyant', /2 demandes sont arrivées sans alerte/.test(titre) && /rappels automatiques sont arrêtés/.test(titre), titre);
     const mesure = await p.evaluate(() => {
       const e = document.getElementById('adminAlertes').getBoundingClientRect();
       const r = document.getElementById('bordAlertes').getBoundingClientRect();
@@ -216,7 +226,15 @@ try {
     await p.evaluate(() => window.dispatchEvent(new Event('online')));
     const gris = await attendreVoyant(p, 'non vérifiées');
     check('F. plus de réseau : le vert retombe au gris', gris, await voyant(p));
+    /* Pendant la coupure, Telegram tombe. Au retour du réseau, l'ancien vert
+       ne doit PAS revenir : la première chose affichée est la vraie mesure. */
+    etat.sante = { ...SAIN, telegram_echecs_1h: 2, telegram_ok_1h: 0 };
     etat.reseau = '';
+    const vus = [];
+    await p.evaluate(() => window.dispatchEvent(new Event('online')));
+    for (let i = 0; i < 20; i++) { vus.push(await voyant(p)); await p.waitForTimeout(200); }
+    check('F. au retour du réseau, l\'ancien vert ne revient pas sans mesure', !vus.includes('Alertes OK [vert]'), [...new Set(vus)].join(' → '));
+    check('F. la première mesure après le retour est la vraie : rouge', vus[vus.length - 1] === 'Alertes en panne [rouge]', [...new Set(vus)].join(' → '));
     await ctx.close();
   }
 
@@ -256,6 +274,77 @@ try {
     etat.sante = SAIN;
     await p.clock.fastForward('00:50');
     check('J. la mesure revient : le vert revient tout seul', await attendreVoyant(p, '^Alertes OK$', 6000), await voyant(p));
+    await ctx.close();
+  }
+
+  /* K. 390 × 844, SON PAS ENCORE DÉBLOQUÉ, TELEGRAM EN PANNE : la demande en
+     attente reste à l'écran. Les deux bandeaux empilés la faisaient sortir
+     (relecture du 4 octobre 2026). */
+  for (const [nom, m] of [['une panne', { ...SAIN, telegram_echecs_1h: 3, telegram_ok_1h: 0 }],
+                          ['quatre pannes', { ...SAIN, sans_alerte: 2, derniere_relance_s: 1200, relances_echouees_15min: 12, telegram_echecs_1h: 3, telegram_ok_1h: 0 }]]) {
+    const etat = { sante: m, courses: [ATTENTE] };
+    const { ctx, p } = await ouvrir({ etat });
+    await attendreVoyant(p, 'panne');
+    await p.waitForSelector('#listeBord .demande', { timeout: 8000 }).catch(() => {});
+    const r = await p.evaluate(() => {
+      const d = document.querySelector('#listeBord .demande'), s = document.getElementById('sonCoupe');
+      return { bas: d ? Math.round(d.getBoundingClientRect().bottom) : null, vue: innerHeight, sonCoupe: !!s && !s.hidden };
+    });
+    check(`K. ${nom} : « Son coupé » ne s'empile pas sur le bandeau rouge`, r.sonCoupe === false, JSON.stringify(r));
+    check(`K. ${nom} : la demande en attente reste entière à l'écran (390 × 844)`, r.bas !== null && r.bas <= r.vue, JSON.stringify(r));
+    const b = await bandeau(p);
+    check(`K. ${nom} : le bandeau dit de toucher l'écran pour que le son marche`, /touchez l'écran/.test(b), b);
+    /* Un appui débloque le son : la phrase change, sans réafficher « Son coupé ». */
+    await p.mouse.click(200, 20);
+    await p.waitForTimeout(900);
+    const apres = await bandeau(p);
+    const son = await p.evaluate(() => { const s = document.getElementById('sonCoupe'); return !!s && !s.hidden; });
+    check(`K. ${nom} : après l'appui, il dit que l'écran sonne`, /cet écran sonne/.test(apres) && !son, apres);
+    await ctx.close();
+  }
+
+  /* L. L'EN-TÊTE NE SAUTE PAS quand le voyant change d'état (téléphone). */
+  for (const largeur of [320, 390]) {
+    const etat = { sante: SAIN };
+    const { ctx, p } = await ouvrir({ etat, largeur });
+    await p.waitForFunction(() => document.body.classList.contains('espace'), null, { timeout: 8000 }).catch(() => {});
+    const gris = await p.evaluate(() => Math.round(document.querySelector('.admin-ava').getBoundingClientRect().left));
+    await attendreVoyant(p, '^Alertes OK$');
+    const vert = await p.evaluate(() => Math.round(document.querySelector('.admin-ava').getBoundingClientRect().left));
+    check(`L. ${largeur} px : l'avatar ne bouge pas entre gris et vert`, gris === vert, `${gris} → ${vert}`);
+    await ctx.close();
+  }
+
+  /* M. LE BANDEAU N'EST PAS RÉÉCRIT À L'IDENTIQUE : c'est une région « alert »,
+     un lecteur d'écran relirait la même panne à chaque réécriture. */
+  {
+    const etat = { sante: { ...SAIN, telegram_echecs_1h: 3, telegram_ok_1h: 0 } };
+    const { ctx, p } = await ouvrir({ etat, horloge: true });
+    await attendreVoyant(p, 'panne');
+    await p.evaluate(() => { window.__mutations = 0;
+      new MutationObserver(l => { window.__mutations += l.length; }).observe(document.getElementById('bordAlertes'), { childList: true, characterData: true, subtree: true }); });
+    for (let i = 0; i < 3; i++) { await p.clock.fastForward('01:00'); await p.waitForTimeout(300); }
+    const n = await p.evaluate(() => window.__mutations);
+    check('M. trois minutes de la même panne : le bandeau n\'est jamais réécrit', n === 0, n + ' réécriture(s)');
+    check('M. et il est toujours là', /Telegram/.test(await bandeau(p)), await bandeau(p));
+    await ctx.close();
+  }
+
+  /* N. LA SESSION SE PERD PENDANT QU'IL REGARDE (mot de passe changé ailleurs) :
+     la pastille et le voyant le disent, au lieu de rester au vert. */
+  {
+    const etat = { sante: SAIN, courses: [ATTENTE] };
+    const { ctx, p } = await ouvrir({ etat });
+    await attendreVoyant(p, '^Alertes OK$');
+    etat.refus = true;
+    const perdu = await p.waitForFunction(() => {
+      const t = document.getElementById('adminEtatTexte'); return !!t && /appareil seul/.test(t.textContent);
+    }, null, { timeout: 15000 }).then(() => true, () => false);
+    const pastille = await p.evaluate(() => document.getElementById('adminEtatTexte').textContent.trim());
+    check('N. session perdue : la pastille ne dit plus « Serveur connecté »', perdu, pastille);
+    check('N. et le voyant retombe au gris', (await voyant(p)) === 'Alertes : non vérifiées', await voyant(p));
+    const ecriteau = await p.evaluate(() => { const e = document.getElementById('bordHorsLigne'); return e && !e.hidden ? e.innerText.trim() : ''; });
+    check('N. et le tableau de bord dit que la session a expiré', /session a expiré/.test(ecriteau), ecriteau);
     await ctx.close();
   }
 

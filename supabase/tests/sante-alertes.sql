@@ -30,3 +30,10 @@ create table if not exists public.journal_notifications_admin (
 
 -- Le socle ne porte pas la date de creation des courses ; la fonction la lit.
 alter table public.courses add column if not exists cree_le timestamptz not null default now();
+
+-- LES PRIVILEGES PAR DEFAUT DE SUPABASE. Un PostgreSQL nu n'accorde
+-- l'execution qu'a PUBLIC ; Supabase l'accorde directement a anon et a
+-- authenticated sur toute fonction creee dans « public ». Sans cette ligne,
+-- une migration qui n'oterait l'execution qu'a PUBLIC passerait l'epreuve,
+-- et un anonyme lirait les mesures en production (relecture du 4/10/2026).
+alter default privileges in schema public grant execute on functions to anon, authenticated;

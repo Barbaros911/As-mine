@@ -6981,9 +6981,45 @@ l'admin, seule la sonnerie s'arrête**. C'est la phrase que dit le bandeau.
   reste gris : il ne prétend rien.
 - **Le chien de garde GitHub reste** : quand il passe, il ouvre une Issue.
   Le voyant ne le remplace pas, il couvre les heures où GitHub dort.
-- `test-admin-voyant.mjs` (34 contrôles, site construit),
-  `supabase/tests/sante-alertes*.sql` (CI, vrai PostgreSQL). Six
-  falsifications du voyant et cinq de la fonction tombent toutes.
+- `test-admin-voyant.mjs` (52 contrôles, site construit),
+  `supabase/tests/sante-alertes*.sql` (CI, vrai PostgreSQL).
+
+### CE QUE LA RELECTURE A TROUVÉ AVANT LA PUBLICATION
+
+Une relecture indépendante en quatre angles, chaque constat reproduit par un
+second relecteur avant d'être corrigé. Tout est réparé ; ce qui suit est la
+mémoire de POURQUOI c'est écrit ainsi.
+- **« VU » N'EST PAS UN ENVOI.** Ouvrir une course dans l'admin
+  (`ela_marquer_vue`) ou appuyer sur « Vu » dans Telegram écrit au journal
+  canal `telegram`, statut `envoye`, type `vue`. Compté comme un envoi
+  réussi, il faisait passer le voyant au VERT pendant une panne de
+  Telegram — le geste même qu'on fait en regardant l'admin. Le chien de
+  garde avait le même angle mort depuis le 2 octobre.
+- **« indisponible » EST UN ÉCHEC** : c'est ce que journalise un secret
+  Telegram absent ou mal nommé. Non compté, Telegram non configuré donnait
+  « Alertes OK ».
+- **L'ÉPREUVE SQL POSE LES PRIVILÈGES PAR DÉFAUT DE SUPABASE.** Un PostgreSQL
+  nu n'accorde l'exécution qu'à PUBLIC ; Supabase l'accorde à `anon` et
+  `authenticated`. Sans cette ligne, une migration qui n'ôterait que PUBLIC
+  passait l'épreuve et un anonyme lisait les mesures en production.
+- **UNE COMPARAISON AVEC NULL NE TOMBE JAMAIS** — `null not between 5 and
+  60` vaut NULL. Même famille que `<>` sur une valeur NULL, déjà consignée.
+- **LE BANDEAU REMPLACE « Son des alertes coupé »** quand les deux
+  s'affichent : empilés, ils faisaient sortir de l'écran (390 × 844) la
+  demande en attente qu'ils disent de surveiller. Il dit la PREMIÈRE panne
+  et le nombre des autres ; la liste entière reste sur le voyant.
+- **IL N'EST RÉÉCRIT QUE S'IL CHANGE** : c'est une région « alert », un
+  lecteur d'écran relisait la même panne trois fois par minute.
+- **UN ANCIEN VERDICT NE REVIENT PAS** après une coupure ou une
+  reconnexion : il est oublié dès que le voyant passe au gris faute de
+  session ou de serveur, et la prochaine relecture mesure aussitôt.
+- **UNE SESSION PERDUE PENDANT LA SONDE SE DIT** (`sessionPerdue()`). Défaut
+  antérieur au voyant : un mot de passe changé sur un autre appareil
+  arrêtait l'écoute, et la pastille restait « Serveur connecté ».
+- **L'EN-TÊTE NE SAUTE PLUS** : la ligne du voyant garde la largeur de son
+  état le plus long.
+- Contre le code d'avant ces corrections, 18 des 52 contrôles tombent ; neuf
+  falsifications de la fonction serveur tombent toutes.
 - **Constat en passant, pas corrigé** : `/ela-admin/` et les pages de la
   réception sont publiées AVEC leurs commentaires de travail —
   `masquer-commentaires.mjs` ne traite que `site/index.html` et
