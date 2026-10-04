@@ -49,7 +49,12 @@ check('tout va bien : aucune phrase de panne pour l\'admin non plus', juger(sain
     return texte.slice(i, j + 1).replace(/\s+/g, ' ').trim();
   };
   const chien = corps(readFileSync('.github/scripts/sante-serveur.sql', 'utf8'));
-  const fichier = readdirSync('supabase/migrations').filter(f => /_sante_alertes\.sql$/.test(f)).sort().pop();
+  /* LA DERNIÈRE MIGRATION QUI DÉFINIT LA MESURE, quel que soit son nom : une
+     redéfinition future dans un fichier autrement nommé serait sinon
+     ignorée, et la comparaison porterait sur l'ancienne (relecture du
+     4 octobre 2026). */
+  const fichier = readdirSync('supabase/migrations').filter(f => f.endsWith('.sql')).sort()
+    .filter(f => /create\s+or\s+replace\s+function\s+public\.ela_sante_mesures\s*\(/i.test(readFileSync('supabase/migrations/' + f, 'utf8'))).pop();
   const voyant = fichier ? corps(readFileSync('supabase/migrations/' + fichier, 'utf8')) : null;
   check('la fonction du voyant existe dans les migrations', !!voyant, fichier || 'aucune migration « …_sante_alertes.sql »');
   check('le voyant et le chien de garde mesurent exactement la même chose', !!chien && chien === voyant,
