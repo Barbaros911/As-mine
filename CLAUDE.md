@@ -1316,55 +1316,38 @@ l'éditeur du tableau de bord Supabase déploie une fonction qu'on colle.
   à cacher la clé d'itinéraire, à laisser un client consulter sa course
   par sa référence, et à tenir les comptes chauffeurs.
 
-## LA PALETTE — « ENCRE & CÉLADON », ET PLUS UN GRAMME D'OR
+## LA PALETTE — LE BLEU ELA, PLUS AUCUN VERT
 
-Septembre 2026, à sa demande : « les couleurs noir et dorée sont trop
-souvent utilisées par les IA pour créer des sites, propose-moi des
-couleurs dignes d'un expert ». Il a raison — marine + or est la teinte par
-défaut de tout ce qu'on génère à qui on dit « chauffeur privé ». Trois
-directions lui ont été montrées en image ; il a choisi la deuxième.
+**Le vert céladon est retiré de partout le 4 octobre 2026** (Barbaros, capture
+de l'écran des prix : « il y a encore l'ancienne couleur verte, enlève les
+anciennes couleurs de partout »). Les rôles gardent leur nom, seules leurs
+valeurs ont changé, et ce sont celles de l'admin :
 
 | Rôle | Valeur | Où |
 |---|---|---|
-| `--fond` | `#F4F6F5` | le papier — **jamais `#FFF`** |
+| `--fond` | `#F2F5F9` | le papier — **jamais `#FFF`** |
 | `--carte` | `#FFFFFF` | seulement les cartes posées dessus |
 | `--noir` | `#16232B` | l'en-tête, le bandeau |
 | `--encre` | `#151C22` | le texte |
-| `--gris` | `#616E6B` | le texte secondaire |
-| `--filet` | `#DDE4E2` | les bordures |
-| `--accent` | `#1F6F6B` | boutons, sélection, onglet actif |
-| `--accent-clair` | `#E2F0EE` | les fonds d'accent |
-| `--accent-vif` | `#3FA9A2` | la marque : filet du logo, « TRANSFER » |
-| `--accent-encre` | `#185754` | l'accent en TEXTE sur `--accent-clair` |
+| `--gris` | `#5A6A7B` | le texte secondaire |
+| `--filet` | `#E1E8EF` | les bordures |
+| `--accent` | `#0E6FC7` | boutons, sélection, onglet actif, tracé de la carte |
+| `--accent-clair` | `#E8F2FD` | les fonds d'accent |
+| `--accent-vif` | `#12C4EE` | la marque |
+| `--accent-encre` | `#0A4F91` | l'accent en TEXTE sur `--accent-clair` |
 
-- **LES VARIABLES ONT ÉTÉ RENOMMÉES** : `--or*` → `--accent*`. Un rôle
-  nommé par sa couleur finit par ramener la couleur — c'est arrivé sur
-  l'ancien site, où le logo est repassé au vert parce qu'il empruntait
-  `--gold`. **Ne jamais renommer ces variables d'après la teinte du jour.**
-- **LE VRAI LEVIER EST LE FOND, pas l'accent.** Le blanc pur est la
-  signature d'une page générée. Ne pas remettre `--fond:#FFFFFF`.
-- **LE ROUGE DE L'ATTENTE N'A PAS BOUGÉ** (`#C9302F`) et ne doit pas :
-  c'est la seule chose qui crie sur le tableau de bord. L'accent en est à
-  **171° de teinte**. Tout accent futur doit rester à plus de 60° du rouge,
-  sinon les deux se disputent l'attention.
-- **LE VERT « CONFIRMÉ » A ÉTÉ FONDU DANS L'ACCENT.** Il y avait deux
-  familles vertes, trop proches pour se distinguer et trop nombreuses pour
-  faire un système. Une seule couleur : rouge = on attend, accent = c'est
-  bon, gris = c'est fini.
-- **Le vert WhatsApp `#25D366` est INTOUCHABLE** : c'est une marque. Il
-  jure un peu plus à côté du céladon qu'à côté de l'or ; c'est signalé à
-  Barbaros, il tranchera.
-- **L'ICÔNE A SUIVI** (septembre 2026, à sa demande : « change l'icône
-  aussi », puis « on garde le rond et on ajoute Transfer »). Voir la
-  section dédiée plus bas.
-- Le manifeste suit la page : `background_color` = `--fond`,
-  `theme_color` = `--noir`, comme la balise `theme-color`. Ils se
-  contredisaient avant.
-- Contrastes mesurés (WCAG) : encre/fond 15,8 · accent/fond 5,5 ·
-  blanc/accent 5,9 · gris/fond 4,9 · accent-encre/accent-clair 7,1 ·
-  accent-vif/noir 5,7 · rouge/fond 4,9. Le gris et les chevrons ont été
-  **assombris au passage** — ils étaient sous les seuils avant.
-
+- **Ce qui le cachait** : la façade (`application-facade.css`) repeignait une
+  partie du site en bleu, mais `index.html` gardait le céladon à la racine ET
+  écrit en dur dans une trentaine de dessins, le tracé de la carte et ses
+  repères. On a changé la SOURCE, pas ajouté une couche de plus.
+- **Ne jamais renommer ces variables d'après la teinte du jour** : un rôle
+  nommé par sa couleur finit par ramener la couleur.
+- **Restent, et ce sont des états ou des marques** : le rouge de l'attente
+  (`#C9302F`), le vert WhatsApp (`#25D366`, une marque), le vert « Réservation
+  validée » de la liste de la réception (un état), l'orange d'un partenaire.
+- Contrôle : sur le site construit, aucune couleur verte calculée hors
+  WhatsApp sur l'écran des prix (vérifié le 4/10/2026). Blanc sur `--accent`
+  5,1 ; `--accent-encre` sur `--accent-clair` 7,6.
 ## L'ICÔNE — LE ROND, ET « TRANSFER » DESSOUS
 
 Septembre 2026. Deux demandes successives : « change l'icône aussi »,

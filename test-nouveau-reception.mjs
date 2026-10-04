@@ -147,8 +147,14 @@ check('sur le site public, aucune trace du comptoir',
    la feuille de style : une règle trop large se voit à l'écran, pas dans
    le CSS. */
 const boutonPublic = await p.evaluate(()=>getComputedStyle(document.getElementById('btnVoirPrix')).backgroundColor);
-check('le bouton du site public reste vert, pas orange',
-  boutonPublic.replace(/\s/g,'') === 'rgb(31,111,107)', boutonPublic);
+/* On compare à l'accent DE LA PAGE (lu à la racine), pas à une teinte
+   écrite ici : la palette a déjà changé deux fois (céladon, puis bleu ELA
+   le 4/10/2026), et un test qui fige une teinte tombe sur un choix légitime. */
+const accentRacine = await p.evaluate(()=>{ const d=document.createElement('i');
+  d.style.color='var(--accent)'; document.documentElement.appendChild(d);
+  const c=getComputedStyle(d).color; d.remove(); return c; });
+check('le bouton du site public garde l\'accent du site, pas l\'orange',
+  boutonPublic === accentRacine && !/255,\s*102,\s*0|194,\s*65,\s*12/.test(boutonPublic), boutonPublic+' / '+accentRacine);
 
 /* ---------------------------------------------------------------------
    2. L'ADRESSE DE LA RÉCEPTION, ET LE CODE
@@ -453,8 +459,11 @@ check('la pastille tient sur la ligne de l\'heure, sans déborder ni la rogner',
    pastilles d'état, « confirmée » dirait la MARQUE et non plus l'ÉTAT. */
 const pastille = await p.locator('.rec-etat.confirmee').first()
   .evaluate(el => getComputedStyle(el).color);
-check('« confirmée » reste verte, distincte de la marque orange',
-  pastille.replace(/\s/g,'') === 'rgb(24,87,84)', pastille);
+const encreRacine = await p.evaluate(()=>{ const d=document.createElement('i');
+  d.style.color='var(--accent-encre)'; document.documentElement.appendChild(d);
+  const c=getComputedStyle(d).color; d.remove(); return c; });
+check('« confirmée » garde la couleur d\'état du site, distincte de la marque orange',
+  pastille === encreRacine && !/255,\s*102,\s*0|194,\s*65,\s*12|124,\s*45,\s*18/.test(pastille), pastille+' / '+encreRacine);
 const aide = await p.locator('.rec-aide').evaluate(el => getComputedStyle(el).backgroundColor);
 check('le bloc d\'aide, lui, porte bien l\'orange du partenaire',
   aide.replace(/\s/g,'') === 'rgb(255,241,232)', aide);
