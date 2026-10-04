@@ -6936,6 +6936,52 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   enfants (`pkill -P`). Et pour fermer un serveur à la main, viser son
   numéro, jamais `pgrep -f "http.server"` : le motif attrape aussi la
   commande qui le tape — vu une fois de plus ce jour-là.
-- **Ce qui reste ouvert** : le chien de garde GitHub passe six fois en 21 h
-  au lieu de toutes les 15 min (P1-10) — à trancher par Barbaros : un
-  déclencheur extérieur gratuit, ou un indicateur de santé dans l'admin.
+- **Le chien de garde qui ne passe que six fois en 21 h (P1-10) est
+  tranché** : un voyant dans l'admin. Voir la section suivante.
+
+## LE VOYANT DES ALERTES DANS L'ADMIN
+
+4 octobre 2026, Barbaros : « Ok voyant ». Le chien de garde GitHub devait
+vérifier toutes les 15 min que les alertes partent ; GitHub ne le réveillait
+que 6 fois en 21 h. Deux solutions lui ont été montrées : un réveil extérieur
+(un compte de plus, une clé GitHub à confier) ou un voyant dans l'admin. Il a
+choisi le voyant, après avoir demandé si une panne d'alerte lui ferait perdre
+des courses : **non, la course arrive toujours sur le serveur et dans
+l'admin, seule la sonnerie s'arrête**. C'est la phrase que dit le bandeau.
+
+- **Sous « Serveur connecté », une ligne : « Alertes OK », « Alertes en
+  panne » ou « Alertes : non vérifiées »** (`#adminAlertes`). En panne, un
+  bandeau rouge sur le tableau de bord (`#bordAlertes`) dit LAQUELLE et le
+  geste qui reste : garder l'écran ouvert, il sonne tout seul.
+- **UN SEUL JUGE** : `admin-sante.js`, chargé par l'admin et importé par
+  `chien-de-garde.mjs`. Deux juges finiraient par se contredire — un voyant
+  vert pendant que l'Issue crie. Il rend deux phrases par panne, écrites à la
+  même ligne de décision : la précise pour l'Issue, la simple pour l'admin.
+- **UNE SEULE MESURE** : `ela_sante_alertes()` (migration
+  `20261004010000_sante_alertes.sql`) rend les sept mesures de
+  `sante-serveur.sql`, au caractère près — `test-chien-de-garde.mjs` compare
+  les deux textes. Elle est réservée à un exploitant connecté ; la mesure
+  elle-même (`ela_sante_mesures`) n'est accordée à personne.
+- **LE GRIS N'EST PAS UN DÉTAIL.** Vert = mesure lue il y a moins de 3 min,
+  et saine. Rouge = mesure lue, et une alerte ne part plus. Gris = on ne sait
+  pas : sans session, sans réseau, fonction pas encore installée, réponse
+  illisible, mesure trop vieille. **On ne garde jamais un ancien vert** : un
+  vert qui n'a rien mesuré est pire que pas de voyant. Une réponse illisible
+  est grise, pas rouge.
+- **Il se mesure au rythme de la relecture du serveur, pas de la sonde** :
+  au plus une fois toutes les 40 s, jamais onglet caché ni hors de l'espace.
+- **À FAIRE APRÈS LA FUSION** : appliquer la migration en production
+  (workflow « Appliquer une migration Supabase »,
+  `20261004010000_sante_alertes.sql`). Tant que ce n'est pas fait, le voyant
+  reste gris : il ne prétend rien.
+- **Le chien de garde GitHub reste** : quand il passe, il ouvre une Issue.
+  Le voyant ne le remplace pas, il couvre les heures où GitHub dort.
+- `test-admin-voyant.mjs` (34 contrôles, site construit),
+  `supabase/tests/sante-alertes*.sql` (CI, vrai PostgreSQL). Six
+  falsifications du voyant et cinq de la fonction tombent toutes.
+- **Constat en passant, pas corrigé** : `/ela-admin/` et les pages de la
+  réception sont publiées AVEC leurs commentaires de travail —
+  `masquer-commentaires.mjs` ne traite que `site/index.html` et
+  `site/application.html`. La règle du 28 septembre ne vaut donc pas pour
+  l'admin. À trancher avec Barbaros.
+

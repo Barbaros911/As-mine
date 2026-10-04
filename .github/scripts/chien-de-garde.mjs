@@ -19,32 +19,14 @@
    plus), par une Issue unique qui se ferme seule au retour à la normale.
    ===================================================================== */
 
-export function juger(sante) {
-  const s = sante && typeof sante === "object" ? sante : null;
-  if (!s) return { ok: false, pannes: ["Le serveur n'a pas rendu d'état lisible (réponse vide ou illisible)."] };
-  const n = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
-  const pannes = [];
-
-  const sansAlerte = n(s.sans_alerte);
-  if (sansAlerte === null) pannes.push("Impossible de compter les demandes sans alerte.");
-  else if (sansAlerte > 0) pannes.push(`${sansAlerte} demande(s) du site en attente depuis plus de 2 min SANS AUCUNE alerte réussie — Barbaros ne les a probablement pas vues.`);
-
-  if (s.relance_active !== true) pannes.push("La relance automatique (tâche pg_cron « ela-relance-alertes ») est ABSENTE ou inactive : plus de rappel, plus de rattrapage.");
-
-  const derniere = n(s.derniere_relance_s);
-  if (s.relance_active === true) {
-    if (derniere === null) pannes.push("La relance n'a jamais tourné (aucun passage enregistré).");
-    else if (derniere > 300) pannes.push(`Le dernier passage de la relance remonte à ${Math.round(derniere / 60)} min (attendu : moins d'une minute).`);
-  }
-
-  const echecsRelance = n(s.relances_echouees_15min) || 0;
-  if (echecsRelance >= 10) pannes.push(`${echecsRelance} passages de la relance en échec sur le dernier quart d'heure.`);
-
-  const tgEchecs = n(s.telegram_echecs_1h) || 0, tgOk = n(s.telegram_ok_1h) || 0;
-  if (tgEchecs > 0 && tgOk === 0) pannes.push(`Telegram refuse tous les envois depuis une heure (${tgEchecs} échec(s), 0 réussite) — jeton ou conversation à vérifier.`);
-
-  return { ok: pannes.length === 0, pannes };
-}
+/* LE JUGE VIT DANS « admin-sante.js », À LA RACINE (4 octobre 2026). Le
+   voyant de l'admin juge les mêmes mesures : deux copies de la règle
+   finiraient par se contredire — un voyant vert pendant que l'Issue crie.
+   Le fichier est un script de navigateur qui pose « ELA_SANTE » sur l'objet
+   global ; Node le charge tel quel (le dépôt n'a pas « type: module », donc
+   un .js est du CommonJS, et un import nommé échouerait). */
+import '../../admin-sante.js';
+export const juger = globalThis.ELA_SANTE.juger;
 
 /* En ligne de commande : le JSON en argument ou sur l'entrée standard. */
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").pop())) {

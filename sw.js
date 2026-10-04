@@ -43,6 +43,8 @@ const SHELL = ["./", "./index.html", "./application.html",
                   première ligne hors ligne : ce n'est pas le prix qu'on
                   perdrait, c'est la page entière. */
                "./itineraire-partage.js",
+               /* Le juge du voyant des alertes, chargé par l'admin seul. */
+               "./admin-sante.js",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
                "./brand-logo.webp", "./brand-logo-white.png"];

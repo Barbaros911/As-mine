@@ -1145,6 +1145,10 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   color:rgba(255,255,255,.62);margin-top:2px;}
 .admin-point{width:6px;height:6px;border-radius:50%;background:#8a97a3;}
 .admin-etat.ok .admin-point{background:var(--accent-vif);}
+/* Le voyant des alertes, sous l'état du serveur : sa propre ligne. */
+.admin-alertes{display:flex;width:max-content;}
+.admin-alertes.ko{color:#fca5a5;font-weight:700;}
+.admin-alertes.ko .admin-point{background:#f87171;}
 .admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;
   scrollbar-width:none;}
 .admin-liens::-webkit-scrollbar{display:none;}
@@ -1163,6 +1167,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    liste prend le relais toute seule. */
 .son-coupe{display:block;width:calc(100% - 40px);margin:14px 20px 0;min-height:44px;padding:10px 14px;border:1.5px dashed #C9302F;border-radius:12px;background:#FFF4F4;color:#8E1F1E;font:inherit;font-weight:700;text-align:left}
 .son-coupe[hidden]{display:none}
+.alertes-bord{margin:14px 20px 0;padding:11px 14px;border-radius:12px;background:#fbe9e9;
+  border:1.5px solid #e2a3a2;color:#8f2220;font-size:13px;line-height:1.45;}
+.alertes-bord b{display:block;font-size:14px;margin-bottom:2px;}
+.alertes-bord[hidden]{display:none}
+@media (min-width:900px){ body.espace .alertes-bord{margin:16px 28px 0;} }
 .arrivee-avis{display:block;width:calc(100% - 40px);margin:14px 20px 0;
   padding:12px 14px;border:0;border-radius:13px;background:var(--accent);
   color:#fff;font:inherit;font-size:13px;font-weight:700;text-align:left;
@@ -2315,6 +2324,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
              toutes ses courses ou seulement celles de ce téléphone. -->
         <span class="admin-etat" id="adminEtat">
           <i class="admin-point"></i><span id="adminEtatTexte">Cet appareil seul</span>
+        </span>
+        <!-- LE VOYANT DES ALERTES (4 octobre 2026, « Ok voyant »). Il dit si
+             Telegram et les rappels automatiques marchent, mesuré sur le
+             serveur. GRIS AU DÉPART, jamais vert : il ne devient vert
+             qu'une fois la mesure lue, et retombe au gris dès qu'elle
+             vieillit ou que la lecture échoue. Un vert qui n'a rien mesuré
+             serait pire que pas de voyant. -->
+        <span class="admin-etat admin-alertes" id="adminAlertes">
+          <i class="admin-point"></i><span id="adminAlertesTexte">Alertes : non vérifiées</span>
         </span>
       </span>
     </div>
@@ -3481,6 +3499,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          autorisé : l'ancien bip se taisait donc presque toujours, sans rien
          dire. On le DIT, et le premier appui n'importe où le débloque. -->
     <button class="son-coupe" type="button" id="sonCoupe" hidden>Son des alertes coupé — touchez ici pour l'activer</button>
+    <!-- LES ALERTES EN PANNE (4 octobre 2026). N'apparaît QUE si la mesure
+         du serveur dit qu'une alerte ne part plus : sa présence est
+         l'alerte. Elle dit aussi le geste qui reste — les demandes arrivent
+         ici quoi qu'il arrive, et cet écran sonne tout seul. -->
+    <p class="alertes-bord" id="bordAlertes" role="alert" hidden></p>
     <!-- SANS SESSION, AUCUNE DEMANDE N'ARRIVE ICI. On ne le dit pas en
          petit dans le bloc du serveur, tout en bas : c'est la différence
          entre voir ses clients et ne pas les voir. -->
@@ -5277,6 +5300,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
      autres — le script principal lit ses clés et ses fonctions dès sa
      première ligne, et un « defer » les ferait arriver après. -->
 <script src="itineraire-partage.js"></script>
+
+<!-- LE JUGE DES ALERTES, PARTAGÉ AVEC LE CHIEN DE GARDE GITHUB (4 octobre
+     2026). Le voyant de l'admin et le chien de garde jugent les mêmes
+     mesures avec la même règle : deux juges finiraient par se contredire.
+     Il n'est lu qu'au moment de juger, jamais au chargement : s'il manque,
+     le voyant reste gris (« non vérifiées »), la page continue de vivre.
+     La construction le retire des pages publiques. -->
+<script src="admin-sante.js"></script>
 
 <script>
 
@@ -12781,6 +12812,9 @@ window.ELA_TEXTES = {
          survenu entre l'ouverture et ce premier passage attendait le tour de
          fond (45 s). Trouvé par le test, pas en relisant. */
       nuage.derniere().then(function(k){ if(k !== null) derniereVue = k; }).catch(function(){});
+      /* LE VOYANT DES ALERTES SE MESURE AU MÊME RYTHME, et s'arrête avec
+         lui : onglet caché, hors de l'espace, sans session. */
+      lireSanteAlertes();
       return n;
     }).catch(function(e){
       /* UNE LECTURE QUI ÉCHOUE DOIT SE VOIR. Sans ça, Barbaros a une
@@ -12791,6 +12825,90 @@ window.ELA_TEXTES = {
       return null;
     });
   }
+
+/* =====================================================================
+   LE VOYANT DES ALERTES — 4 octobre 2026, à la demande de Barbaros
+   ---------------------------------------------------------------------
+   Le chien de garde GitHub devait vérifier toutes les 15 min que les
+   alertes partent (Telegram, rappels automatiques) ; GitHub ne le
+   réveillait que 6 fois en 21 h. Barbaros a choisi un voyant dans
+   l'admin plutôt qu'un réveil extérieur : rien à créer, aucune clé à
+   confier, et il l'a sous les yeux plusieurs fois par jour.
+
+   LES MESURES VIENNENT DU SERVEUR (fonction « ela_sante_alertes »,
+   réservée à un exploitant connecté), LE JUGEMENT D'« admin-sante.js » —
+   le même fichier que le chien de garde. Deux juges finiraient par se
+   contredire.
+
+   TROIS ÉTATS, ET LE GRIS N'EST PAS UN DÉTAIL :
+   — vert : la mesure a été lue il y a moins de 3 min, et elle est saine ;
+   — rouge : la mesure a été lue, et une alerte ne part plus — le bandeau
+     du tableau de bord dit laquelle, et le geste qui reste ;
+   — gris : on ne sait pas. Sans session, sans réseau, serveur muet,
+     fonction pas encore installée, réponse illisible, mesure trop vieille.
+     On ne garde JAMAIS un ancien vert : un voyant vert qui n'a rien mesuré
+     est pire que pas de voyant, c'est lui qu'on croirait la nuit où
+     Telegram tombe.
+   UNE RÉPONSE ILLISIBLE N'EST PAS ROUGE : rouge veut dire « on a mesuré,
+   et ça ne marche pas ». Ne pas savoir, c'est gris.
+   ===================================================================== */
+  var SANTE_PAS_MS = 40000, SANTE_PERIME_MS = 180000;
+  var sante = { verdict:null, lu:0, essai:0, erreur:"", enCours:false };
+  /* « sante » est posé plus bas que les premiers appels possibles (le
+     tableau de bord se juge pendant le chargement) : sans cette garde, un
+     appel trop tôt lèverait une erreur et arrêterait le script. Le voyant
+     garde alors son gris de départ, écrit dans la page. */
+  function lireSanteAlertes(){
+    if(!sante || sante.enCours || !nuage.connecte()) return;
+    if(Date.now() - sante.essai < SANTE_PAS_MS) return;
+    sante.essai = Date.now(); sante.enCours = true;
+    nuage.appel("/rest/v1/rpc/ela_sante_alertes", { method:"POST", body:"{}" }).then(function(m){
+      if(typeof m === "string"){ try{ m = JSON.parse(m); }catch(e){ m = null; } }
+      var juge = window.ELA_SANTE;
+      if(!juge) throw new Error("juge absent");
+      if(!juge.mesuresLisibles(m)) throw new Error("réponse illisible");
+      sante.verdict = juge.juger(m); sante.lu = Date.now(); sante.erreur = "";
+    }).catch(function(e){
+      sante.verdict = null; sante.erreur = String((e && e.message) || e);
+    }).then(function(){ sante.enCours = false; jugerAlertes(); });
+  }
+  function jugerAlertes(){
+    if(!sante) return;
+    var ligne = document.getElementById("adminAlertes");
+    var txt = document.getElementById("adminAlertesTexte");
+    var bord = document.getElementById("bordAlertes");
+    var v = sante.verdict;
+    var frais = !!v && (Date.now() - sante.lu < SANTE_PERIME_MS);
+    var etat = (!nuage.connecte() || panneServeur || !frais) ? "gris" : (v.ok ? "ok" : "ko");
+    var raison = !nuage.connecte() ? "pas de session"
+      : panneServeur ? "le serveur ne répond pas"
+      : sante.erreur ? "lecture impossible (" + sante.erreur + ")"
+      : !v ? "pas encore mesurées" : !frais ? "dernière mesure trop ancienne" : "";
+    if(ligne){
+      ligne.classList.toggle("ok", etat === "ok");
+      ligne.classList.toggle("ko", etat === "ko");
+      ligne.title = etat === "gris" ? "Alertes non vérifiées : " + raison
+        : etat === "ok" ? "Telegram et les rappels automatiques marchent."
+        : v.simples.join(" ");
+    }
+    if(txt) txt.textContent = etat === "ok" ? "Alertes OK"
+      : etat === "ko" ? "Alertes en panne" : "Alertes : non vérifiées";
+    if(bord){
+      bord.hidden = etat !== "ko";
+      if(etat === "ko"){
+        bord.textContent = "";
+        var titre = document.createElement("b");
+        titre.textContent = "Alertes en panne — " + v.simples.join(" ");
+        bord.appendChild(titre);
+        bord.appendChild(document.createTextNode(
+          "Les demandes arrivent quand même ici : gardez cet écran ouvert, "
+          + "il sonne à chaque nouvelle demande."));
+      }
+    }
+  }
+  /* Une mesure vieillit même quand rien ne bouge : on rejuge chaque minute,
+     sans rien demander au serveur, pour que le vert retombe au gris. */
+  setInterval(jugerAlertes, 60000);
 
 /* =====================================================================
    LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
@@ -13062,6 +13180,7 @@ window.ELA_TEXTES = {
       : !panneServeur ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
       : sansReseau2 ? "Pas de réseau : les demandes arriveront dès qu'il revient."
       : "Le serveur ne répond pas pour l'instant (" + panneServeur + ").";
+    jugerAlertes();
     reglerEcoute();
   }
   document.getElementById("btnNuageConnexion").addEventListener("click", function(){

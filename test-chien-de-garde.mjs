@@ -19,5 +19,42 @@ check('Telegram : que des échecs depuis une heure : il aboie', /Telegram/.test(
 check('réponse illisible : il aboie plutôt que de se taire', !juger(null).ok && !juger('x').ok);
 check('les nombres arrivent parfois en texte : il les lit', !juger({ ...sain, sans_alerte: '2' }).ok && juger({ ...sain, derniere_relance_s: '30' }).ok);
 
+/* LE VOYANT DE L'ADMIN (4 octobre 2026) juge avec le même fichier : il lit
+   la phrase SIMPLE de chaque panne, celle qu'on comprend la nuit sur un
+   téléphone. Une panne sans phrase simple laisserait un bandeau rouge muet. */
+for (const [nom, m] of [['demande sans alerte', { ...sain, sans_alerte: 1 }], ['relance arrêtée', { ...sain, relance_active: false }],
+                        ['relance muette', { ...sain, derniere_relance_s: 1200 }], ['Telegram', { ...sain, telegram_echecs_1h: 2, telegram_ok_1h: 0 }],
+                        ['réponse illisible', null]]) {
+  const v = juger(m);
+  check(`${nom} : chaque panne a sa phrase simple pour l'admin`, Array.isArray(v.simples) && v.simples.length === v.pannes.length && v.simples.every(x => typeof x === 'string' && x.length > 10), JSON.stringify(v.simples));
+}
+check('tout va bien : aucune phrase de panne pour l\'admin non plus', juger(sain).simples.length === 0);
+
+/* LE CHIEN DE GARDE ET LE VOYANT MESURENT LA MÊME CHOSE. Le chien de garde
+   lit .github/scripts/sante-serveur.sql par l'API de gestion ; le voyant
+   appelle « ela_sante_mesures », posée par la migration du 4 octobre. Les
+   deux requêtes doivent rester identiques, au caractère près une fois les
+   blancs ramenés à un seul : sinon le voyant pourrait dire vert pendant que
+   l'Issue crie. */
+{
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const corps = (texte) => {
+    const i = texte.indexOf('json_build_object(');
+    if (i < 0) return null;
+    let profondeur = 0, j = i + 'json_build_object'.length;
+    for (; j < texte.length; j++) {
+      if (texte[j] === '(') profondeur++;
+      else if (texte[j] === ')' && --profondeur === 0) break;
+    }
+    return texte.slice(i, j + 1).replace(/\s+/g, ' ').trim();
+  };
+  const chien = corps(readFileSync('.github/scripts/sante-serveur.sql', 'utf8'));
+  const fichier = readdirSync('supabase/migrations').filter(f => /_sante_alertes\.sql$/.test(f)).sort().pop();
+  const voyant = fichier ? corps(readFileSync('supabase/migrations/' + fichier, 'utf8')) : null;
+  check('la fonction du voyant existe dans les migrations', !!voyant, fichier || 'aucune migration « …_sante_alertes.sql »');
+  check('le voyant et le chien de garde mesurent exactement la même chose', !!chien && chien === voyant,
+    chien === voyant ? '' : 'les deux requêtes ont divergé');
+}
+
 console.log(`=== RÉUSSIS (${ok.length}) ===`); ok.forEach(x => console.log('  ✓ ' + x));
 if (ko.length) { console.log(`=== ÉCHECS (${ko.length}) ===`); ko.forEach(x => console.log('  ✗ ' + x)); process.exit(1); }
