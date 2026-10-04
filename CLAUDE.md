@@ -945,8 +945,24 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,90 € | 30 € |
+| Berline (4 places) | 2,90 € | 35 € |
 | Van (7 places) | 4,70 € | 50 € |
+
+**LE MINIMUM BERLINE EST À 35 €** (4 octobre 2026, Barbaros : « Oui le 35
+c'est moi »). Il l'avait réglé en production depuis l'admin ; le repli
+`GAMMES`, ce tableau et la source serveur du dépôt disaient encore 30 €, et
+les trois contrôles restaient verts parce qu'ils se comparaient entre eux.
+**Aucun contrôle ne lit la production** : c'est la première suite branchée
+sur le vrai serveur (test-nouveau-exploitant, en CI) qui l'a montré.
+- **Le plancher n'est plus une dizaine, et c'est voulu** : le plancher a le
+  dernier mot. Tout trajet berline de 12,06 km ou moins (2,90 × km ≤ 35)
+  coûte 35 € ; au-delà, rien ne change. Ne pas le « corriger » en 30 ou 40.
+- **Pourquoi le repli comptait** : Réglages → Tarifs se remplit depuis
+  `GAMMES` quand la lecture du serveur échoue. Un appui sur « Enregistrer »
+  aurait alors réécrit 30 € en production, en silence.
+- La source du dépôt est `20261004000000_minimum_berline_35.sql`, une
+  écriture **conditionnelle** : sans effet en production, sans effet sur un
+  tarif réglé depuis l'admin. Elle n'a pas à être appliquée.
 
 **CE TABLEAU A MENTI PENDANT DES JOURS** (corrigé le 16 septembre 2026). Il
 annonçait encore 2,35 et 4,08 €/km alors que la PR #123 les avait portés à
@@ -973,8 +989,8 @@ contractuel. Ne pas y écrire de tarif chiffré.
   `2,0600000000000023` et afficherait `100,000000001 €`.
 - **L'ordre est fixé** : kilométrage → majoration de nuit → arrondi →
   plancher. Arrondir avant de majorer redonne un prix qui n'est plus une
-  dizaine ; majorer après le plancher ferait payer 36 € une course
-  annoncée à 30 €. Le plancher a le dernier mot.
+  dizaine ; majorer après le plancher ferait payer 42 € une course
+  annoncée à 35 €. Le plancher a le dernier mot.
 - **IL N'Y A PLUS DE MAJORATION DU TOUT** (septembre 2026) — voir la
   section dédiée plus bas. Le reste inchangé : TVA 10 % incluse, prix ferme,
   zone de 90 km autour de Paris.
@@ -6648,6 +6664,10 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   les rejouer **écraserait** ce que Barbaros a réglé, sans un mot.
   `20260916070000_stripe_test_manual_capture.sql` crée ses policies sans
   `drop` préalable : rejouée, elle échoue, ce qui est sans dégât.
+  `20261004000000_minimum_berline_35.sql`, elle, se rejoue sans danger :
+  elle n'écrit que si la ligne porte encore la valeur du 28 septembre à
+  l'identique. **Toute future migration de tarif doit suivre cette forme
+  conditionnelle**, ou rejoindre la liste des deux ci-dessus.
 - **SEULE `main` PUBLIE, DÉPLOIE ET MIGRE.** `pages.yml`, `fonctions.yml` et
   `migrations.yml` acceptaient `workflow_dispatch` sur n'importe quelle
   branche — les migrations ont été lancées depuis une branche le 15/09. Les

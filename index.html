@@ -7684,7 +7684,11 @@ window.ELA_TEXTES = {
        le chauffeur traverse Paris pour venir la prendre, et ce trajet-là
        n'est facturé à personne.
      — L'ARRONDI À LA DIZAINE. Un prix rond s'annonce au téléphone, se
-       retient, et se règle en espèces sans chercher la monnaie. */
+       retient, et se règle en espèces sans chercher la monnaie.
+     — SAUF LE PLANCHER BERLINE, À 35 € (4 octobre 2026, décision de
+       Barbaros, réglée d'abord en production depuis l'admin). Ce n'est
+       pas une dizaine, et c'est voulu : le plancher a le dernier mot. Ne
+       pas le « corriger » en 30 ou en 40. */
   /* CES VALEURS SONT UN REPLI, PLUS LA VÉRITÉ.
      Depuis le 28 septembre 2026, le tarif au kilomètre est LU sur le
      serveur au chargement de la page (voir « chargerTarifsServeur »,
@@ -7698,7 +7702,7 @@ window.ELA_TEXTES = {
      fichier est écrit ; un changement fait depuis l'admin les corrige
      en mémoire, il ne les réécrit jamais ici. */
   var GAMMES = [
-    { cle:"berline", nom:"Berline", parKm:2.90, mini:30, places:4 },
+    { cle:"berline", nom:"Berline", parKm:2.90, mini:35, places:4 },
     { cle:"van",     nom:"Van",     parKm:4.70, mini:50, places:7 }
   ];
 
@@ -7726,7 +7730,8 @@ window.ELA_TEXTES = {
   /* L'OPTION PANCARTE — 10 €, à sa demande (septembre 2026).
      ELLE S'AJOUTE APRÈS TOUT LE RESTE, et cet ordre n'est pas indifférent :
      le prix de la course est arrondi à la dizaine puis plancheré, et un
-     supplément de 10 € pile garde un total rond. Le faire entrer AVANT
+     supplément de 10 € pile s'y ajoute tel quel — 35 + 10 = 45 sur une
+     berline au plancher, sans arrondi derrière. Le faire entrer AVANT
      l'arrondi le ferait disparaître une fois sur deux — 10 € ajoutés à
      42 € s'arrondissent à 50, mais ajoutés à 46 € ils donnent 56 € qui
      redescend à 60 : le client paierait 14 € une option annoncée à 10.
