@@ -642,7 +642,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-action{min-height:38px;padding:0 11px;border-radius:10px;border:0;
   font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
   display:inline-flex;align-items:center;flex:0 0 auto;}
-.d-appeler{background:rgba(255,255,255,.16);color:#fff;}
+.d-appeler{background:rgba(255,255,255,.16);color:#fff;text-decoration:none;}
 .demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
 .d-clore{background:#0E6FC7;color:#fff;}
 /* « TERMINÉE » ARMÉ (3 octobre 2026) : avant l'heure de départ, le premier
@@ -12188,8 +12188,14 @@ window.ELA_TEXTES = {
       if(tel){
         var appel = document.createElement("a");
         appel.className = "d-action d-appeler";
-        appel.href = "tel:+" + tel;
-        appel.textContent = "Appeler";
+        /* UN NUMÉRO ÉTRANGER NE S'APPELLE PAS PAR LE RÉSEAU (4 octobre 2026,
+           Barbaros : « on ne doit pas proposer d'appeler un téléphone normal
+           un client étranger »). Le bouton garde sa place, mais ouvre
+           l'application choisie par le client — WhatsApp par défaut. */
+        var joindre = lienJoindre(c, tel);
+        appel.href = joindre.href;
+        appel.textContent = joindre.libelle;
+        if(joindre.href.indexOf("https:") === 0){ appel.target = "_blank"; appel.rel = "noopener"; }
         /* Appeler le client ne doit pas ouvrir son bon au passage. */
         appel.addEventListener("click", function(e){
           e.stopPropagation();
@@ -12657,6 +12663,11 @@ window.ELA_TEXTES = {
     ["bbAppeler","bbWhatsapp","bbMessages","bbTelegram"].forEach(function(id){
       document.getElementById(id).className = "bouton-fantome";
     });
+    /* Numéro étranger : pas d'appel par le réseau, et « Messages » ne sert
+       qu'en iMessage (gratuit) — il le dit. */
+    var etranger = telEtranger(c.client && c.client.telephone);
+    document.getElementById("bbAppeler").hidden = etranger;
+    document.getElementById("bbMessages").textContent = etranger ? "iMessage" : "Messages";
     /* « Appel / SMS » allume les deux : c'est à Barbaros de choisir. */
     var idsPref = { whatsapp:["bbWhatsapp"], messages:["bbMessages"], telegram:["bbTelegram"],
                     telephone:["bbAppeler","bbMessages"] }[pref] || [];
@@ -13108,6 +13119,15 @@ window.ELA_TEXTES = {
   function canalClient(c){
     var p = c && c.contact && c.contact.prefere;
     return NOM_CANAL[p] ? p : "";
+  }
+  /* Le bouton « joindre » d'une carte du tableau de bord : un appel pour un
+     numéro français, l'application choisie pour un numéro étranger. */
+  function lienJoindre(c, tel){
+    if(!telEtranger(c.client && c.client.telephone)) return { href:"tel:+" + tel, libelle:"Appeler" };
+    var p = canalClient(c);
+    if(p === "telegram") return { href:"https://t.me/+" + tel, libelle:"Telegram" };
+    if(p === "messages") return { href:"sms:+" + tel, libelle:"iMessage" };
+    return { href:"https://wa.me/" + tel, libelle:"WhatsApp" };
   }
   function phraseContact(c){
     var p = canalClient(c);

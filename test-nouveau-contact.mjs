@@ -206,7 +206,21 @@ for (const largeur of [320, 390]) {
   await p.locator('#btnDeverrouiller').click(); await p.waitForTimeout(700);
   const ouvrir = async (nom) => { await p.locator('.demande', { hasText: nom }).first().click(); await p.waitForTimeout(400); };
 
+  /* PAS D'APPEL PAR LE RÉSEAU VERS L'ÉTRANGER (4/10/2026, Barbaros). La
+     carte garde son bouton, mais il ouvre l'application du client. */
+  const carteDe = (nom) => p.locator('.demande', { hasText: nom }).first().locator('.d-appeler');
+  check('carte, numéro étranger : pas d\'« Appeler », l\'application choisie à la place',
+    (await carteDe('Anna Smith').textContent()) === 'Telegram'
+    && (await carteDe('Anna Smith').getAttribute('href')) === 'https://t.me/+447700900123',
+    (await carteDe('Anna Smith').textContent()) + ' ' + (await carteDe('Anna Smith').getAttribute('href')));
+  check('carte, numéro français : « Appeler » reste',
+    (await carteDe('Jean Martin').textContent()) === 'Appeler'
+    && (await carteDe('Jean Martin').getAttribute('href')) === 'tel:+33612345678');
   await ouvrir('Anna Smith');
+  check('fiche, numéro étranger : aucun bouton d\'appel par le réseau',
+    await p.locator('#bbAppeler').isHidden());
+  check('fiche, numéro étranger : « Messages » se dit « iMessage »',
+    (await p.locator('#bbMessages').textContent()) === 'iMessage');
   check('admin : le canal choisi est dit en clair',
     (await p.locator('#bbContact').textContent()).includes('Telegram'), await p.locator('#bbContact').textContent());
   check('admin : le bouton Telegram passe en plein, les autres restent en creux',
@@ -240,6 +254,7 @@ for (const largeur of [320, 390]) {
   await p.fill('#codeExploitant','12345678').catch(()=>{});
   await p.locator('#btnDeverrouiller').click().catch(()=>{}); await p.waitForTimeout(700);
   await ouvrir('Jean Martin');
+  check('fiche, numéro français : « Appeler » reste', await p.locator('#bbAppeler').isVisible());
   check('admin : une course sans canal (ancienne, saisie, collée) ne dit rien de plus',
     await p.locator('#bbContact').isHidden());
   await p.evaluate(()=>{ window.__ouverts = []; });
