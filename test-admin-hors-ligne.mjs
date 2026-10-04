@@ -128,6 +128,13 @@ const carte = (p, ref) => p.locator('#listeBord .demande').filter({ hasText: ref
 const ecriteau = p => p.evaluate(() => { const e = document.getElementById('bordHorsLigne'); return e && !e.hidden ? e.innerText.trim() : ''; });
 const verrou = p => p.evaluate(() => { const v = document.getElementById('ecran-verrou'); return !!v && v.classList.contains('actif'); });
 const messageVerrou = p => p.evaluate(() => { const e = document.getElementById('codeErreur'); return e && !e.hidden ? e.textContent.trim() : ''; });
+/* LA PASTILLE DE L'EN-TÊTE ET LE BOUTON DU BANDEAU (relecture des captures du
+   4 octobre 2026) : sans réseau, la pastille disait « Serveur connecté » en
+   vert à côté du bandeau « Pas de réseau », et le bandeau proposait « Se
+   connecter au serveur » à quelqu'un qui l'était déjà. */
+const pastille = p => p.evaluate(() => { const e = document.getElementById('adminEtat'), t = document.getElementById('adminEtatTexte');
+  return (t ? t.textContent.trim() : '?') + (e && e.classList.contains('ok') ? ' [vert]' : ''); });
+const boutonConnexionBandeau = p => p.evaluate(() => { const b = document.querySelector('#bordHorsLigne [data-admin-vers]'); return !!b && !b.hidden && b.offsetParent !== null; });
 
 try {
   /* A. SANS RÉSEAU, COMPTE DÉJÀ RECONNU ICI : L'ESPACE S'OUVRE SUR LE TÉLÉPHONE. */
@@ -141,6 +148,9 @@ try {
     check('A. et il DIT qu\'il n\'y a pas de réseau', /Pas de réseau/.test(ec) && /gardées sur ce téléphone/.test(ec), ec.slice(0, 120));
     check('A. la session est gardée', (await session(p))?.access_token === 'JETON');
     check('A. l\'écran de connexion n\'est pas affiché', !(await verrou(p)));
+    const pa = await pastille(p);
+    check('A. la pastille de l\'en-tête dit « Pas de réseau », pas « connecté »', pa === 'Pas de réseau', pa);
+    check('A. le bandeau ne propose pas « Se connecter au serveur » (la session est là)', !(await boutonConnexionBandeau(p)));
 
     /* Le réseau revient : on ne recharge rien, on prévient comme le fait
        le téléphone. */
@@ -151,6 +161,8 @@ try {
       return (!e || e.hidden) && [...document.querySelectorAll('#listeBord .demande')].some(d => /ELA-26-10-SERVR/.test(d.textContent));
     }, null, { timeout: 8000 }).then(() => true, () => false);
     check('A. au retour du réseau, l\'écriteau part et la course du serveur arrive', revenu, (await ecriteau(p)).slice(0, 80));
+    const paRevenu = await pastille(p);
+    check('A. et la pastille repasse à « Serveur connecté », en vert', paRevenu === 'Serveur connecté [vert]', paRevenu);
     check('A. le compte reste reconnu sur cet appareil', (await p.evaluate(() => localStorage.getItem('ela_acces_verifie'))) === 'u-barbaros');
     /* La vérification s'arrête une fois l'accès confirmé : sinon elle
        tourne toute la nuit sur la batterie du téléphone. */
@@ -209,6 +221,8 @@ try {
     check('E. la session est gardée', (await session(p))?.access_token === 'JETON');
     const ec = await ecriteau(p);
     check('E. l\'écriteau parle du serveur, avec son code', /n'a pas répondu/.test(ec) && /503/.test(ec), ec.slice(0, 120));
+    const pe = await pastille(p);
+    check('E. la pastille dit « Serveur injoignable », pas en vert', pe === 'Serveur injoignable', pe);
     await ctx.close();
   }
 
@@ -281,6 +295,8 @@ try {
     await p.waitForTimeout(1200);
     check('K. et lit le serveur', (await carte(p, 'ELA-26-10-SERVR')) === 1);
     check('K. sans écriteau', !(await ecriteau(p)));
+    const pk = await pastille(p);
+    check('K. la pastille dit « Serveur connecté », en vert', pk === 'Serveur connecté [vert]', pk);
     await ctx.close();
   }
 

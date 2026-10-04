@@ -130,6 +130,12 @@ try {
       !!avant && !!apres && Math.abs(avant.x - apres.x) < 1 && apres.x + apres.width <= carteBox.x + carteBox.width + 0.5,
       avant && apres ? `x ${Math.round(avant.x)} → ${Math.round(apres.x)}, bord droit ${Math.round(apres.x + apres.width)} pour une carte à ${Math.round(carteBox.x + carteBox.width)}` : 'introuvable');
     check(`${w} px : le doigt posé sur « Appeler » tombe sur « Appeler »`, /d-appeler/.test(recoit), recoit);
+    /* Armé, rien de la ligne ne doit être coupé en « e… » / « C… » : la
+       pastille de l'hôtel et l'état s'effacent le temps du second appui. */
+    const tronques = await c.locator('.d-bas').evaluate(b => [...b.querySelectorAll('*')]
+      .filter(e => e.offsetParent !== null && getComputedStyle(e).textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1)
+      .map(e => e.className + ' « ' + e.textContent.trim().slice(0, 14) + ' »')).catch(() => ['introuvable']);
+    check(`${w} px : armé, rien n'est coupé sur la ligne du bas`, tronques.length === 0, tronques.join(', '));
     await ctx.close();
   }
 

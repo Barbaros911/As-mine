@@ -6893,7 +6893,17 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   éprouvaient Admin v2, retiré de la publication.
 - **Mise en page des cartes à 320–390 px** : la référence et le prix tiennent
   sur une ligne, la pastille du chauffeur passe dessous, et « Confirmer la
-  fin » ne pousse plus « Appeler » hors de la carte.
+  fin » ne pousse plus « Appeler » hors de la carte. **Armée, la ligne du bas
+  ne porte que les deux boutons** : la pastille de l'hôtel tombait à « e… »
+  et l'état à « C… » — vu sur les captures, pas en relisant.
+- **SANS RÉSEAU, LA PASTILLE DE L'EN-TÊTE DISAIT « SERVEUR CONNECTÉ » EN
+  VERT**, à côté du bandeau « Pas de réseau » — effet direct de la session
+  désormais gardée pendant une coupure. Trouvé sur les captures. Pastille,
+  phrase du bloc « Serveur » et bandeau sont maintenant écrits au même
+  endroit (`jugerReception`) : « Serveur connecté », « Pas de réseau » ou
+  « Serveur injoignable ». Le bouton « Se connecter au serveur » du bandeau
+  ne s'affiche plus quand la session existe : ce n'est pas un mot de passe
+  qui manque.
 - Suites : `test-admin-hors-ligne`, `test-admin-envoi`, `test-admin-audit`,
   toutes sur le site construit. Contre l'ancien code : 23, 6 et 15 contrôles
   tombent.

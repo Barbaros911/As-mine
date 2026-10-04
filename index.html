@@ -623,6 +623,14 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    appui ne ferme rien, il demande confirmation. En ambre, la couleur de ce
    qui reste à faire, jamais le rouge de l'attente. */
 .d-clore.arme{background:#B45309;color:#fff;}
+/* ARMÉ, LA LIGNE NE PORTE QUE LES DEUX BOUTONS (4 octobre 2026, vu sur les
+   captures à 320 px). « Confirmer la fin » est plus long que « Terminée » :
+   la pastille de l'hôtel tombait à « e… » et l'état à « C… », illisibles.
+   Pendant ces 5 secondes on ne lit que le bouton ; le reste revient au
+   désarmement. « margin-left:auto » garde les boutons à droite, là où le
+   pouce les attend — « Appeler » ne bouge pas d'un pixel. */
+.d-boutons{margin-left:auto;}
+.d-bas:has(.d-clore.arme) > :not(.d-boutons){display:none;}
 /* LE CHAUFFEUR SUR LA CARTE (3 octobre 2026) : l'état qui fait rater une
    course est « confirmée, mais personne pour conduire ».
    UNE PASTILLE À CÔTÉ DE LA RÉFÉRENCE, JAMAIS DEDANS : `.d-ref` se lit
@@ -12731,18 +12739,10 @@ window.ELA_TEXTES = {
     var connecte = nuage.connecte();
     document.getElementById("nuageFormulaire").hidden = connecte;
     document.getElementById("nuageActions").hidden = !connecte;
-    document.getElementById("nuageEtat").textContent = connecte
-      ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
-      : "Non connecté : vous ne voyez que les courses de cet appareil.";
-    /* La pastille de la colonne dit la MÊME chose que le bloc, en trois
-       mots. Deux endroits qui affichent l'état du serveur doivent être
-       écrits au même endroit, sinon l'un des deux ment un jour. */
-    document.getElementById("adminEtat").classList.toggle("ok", connecte);
-    document.getElementById("adminEtatTexte").textContent =
-      connecte ? "Serveur connecté" : "Cet appareil seul";
-    /* L'état du serveur décide de DEUX choses à la fois : ce qu'on affiche
-       et si l'on interroge. Les séparer, c'est se retrouver un jour avec une
-       pastille verte et aucune écoute. */
+    /* La pastille de la colonne et la phrase du bloc sont écrites par
+       « jugerReception », avec le bandeau : trois endroits qui disent l'état
+       du serveur doivent être écrits au même endroit, sinon l'un des trois
+       ment un jour. L'état du serveur décide aussi de si l'on interroge. */
     jugerReception();
   }
   /* LA PREMIÈRE LECTURE NE SONNE PAS. À l'ouverture de l'espace, tout ce
@@ -13018,6 +13018,11 @@ window.ELA_TEXTES = {
          celle gardée sur le téléphone, ce qu'il doit savoir avant de croire
          qu'aucune demande n'est arrivée. */
       var sansReseau = connecte && panneServeur && !/^nuage \d/.test(panneServeur);
+      /* « Se connecter au serveur » ne sert qu'à qui n'a PAS de session : sans
+         réseau ou serveur muet, ce n'est pas un mot de passe qui manque, et
+         le formulaire qu'il ouvre est de toute façon masqué. */
+      var allerConnexion = el.querySelector("[data-admin-vers]");
+      if(allerConnexion) allerConnexion.hidden = connecte;
       if(txt){
         txt.textContent = !connecte
           ? (panneServeur
@@ -13033,6 +13038,25 @@ window.ELA_TEXTES = {
               + "« Actualiser ».";
       }
     }
+    /* LA PASTILLE NE DIT « CONNECTÉ » QUE SI LE SERVEUR RÉPOND (4 octobre
+       2026). Elle ne regardait que la session : depuis qu'une coupure GARDE
+       la session, elle affichait « Serveur connecté » en vert à côté du
+       bandeau « Pas de réseau ». Deux phrases contraires sur le même écran,
+       et c'est la verte qu'on croit. */
+    var c2 = nuage.connecte();
+    var sansReseau2 = c2 && panneServeur && !/^nuage \d/.test(panneServeur);
+    var pastille = document.getElementById("adminEtat");
+    var pastilleTxt = document.getElementById("adminEtatTexte");
+    if(pastille) pastille.classList.toggle("ok", c2 && !panneServeur);
+    if(pastilleTxt) pastilleTxt.textContent = !c2 ? "Cet appareil seul"
+      : !panneServeur ? "Serveur connecté"
+      : sansReseau2 ? "Pas de réseau" : "Serveur injoignable";
+    var etatBloc = document.getElementById("nuageEtat");
+    if(etatBloc) etatBloc.textContent = !c2
+      ? "Non connecté : vous ne voyez que les courses de cet appareil."
+      : !panneServeur ? "Connecté. Les demandes de vos clients arrivent ici toutes seules."
+      : sansReseau2 ? "Pas de réseau : les demandes arriveront dès qu'il revient."
+      : "Le serveur ne répond pas pour l'instant (" + panneServeur + ").";
     reglerEcoute();
   }
   document.getElementById("btnNuageConnexion").addEventListener("click", function(){
