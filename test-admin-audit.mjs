@@ -10,7 +10,9 @@
    - Un chauffeur saisi par son seul numéro était « Sans chauffeur » sur la
      carte mais reconnu par le bon : le nom vient maintenant du carnet.
    - La saisie par téléphone d'une course confirmée contournait le contrôle
-     des papiers : même règle que « Confirmer ».
+     de « Confirmer » (le seuil de dette) ; les papiers, eux, n'arrêtent
+     rien (4 octobre 2026, Barbaros) : le bon qui s'ouvre après la création
+     les affiche en rouge.
    - Le rappel de sauvegarde n'existait que sur ordinateur ; la restauration
      ne rendait ni l'identité de l'émetteur ni le lien d'avis.
 
@@ -170,7 +172,10 @@ try {
       return { creee: apres > avant, err };
     };
     const r1 = await saisir('Pierre Perime', '06 99 88 77 66');
-    check('saisie par téléphone : un chauffeur aux papiers périmés est refusé', !r1.creee && /périmé/i.test(r1.err), r1.err);
+    await p.waitForTimeout(600);
+    const alerteCr = await p.evaluate(() => { const e = document.getElementById('bbChauffeurAlerte'); return e && !e.hidden ? e.className : ''; });
+    check('saisie par téléphone : un chauffeur aux papiers périmés est accepté (décision du 4 octobre)', r1.creee && !r1.err, r1.err);
+    check('et le bon qui s\'ouvre l\'avertit en rouge', /rouge/.test(alerteCr), alerteCr);
     const r2 = await saisir('', '');
     check('saisie par téléphone : sans chauffeur, la course est créée (décision du 3 octobre)', r2.creee, r2.err);
     const r3 = await saisir('', '06 11 22 33 44');

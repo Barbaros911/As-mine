@@ -12182,11 +12182,13 @@ window.ELA_TEXTES = {
   /* CONFIRMER, C'EST PROMETTRE UNE VOITURE (audit du 30/09/2026).
      Le bouton partait sans chauffeur : le client recevait « Transfert
      confirmé — Chauffeur : — », c'est-à-dire une promesse sans personne
-     derrière. Il faut donc un chauffeur retenu. Et un chauffeur du carnet
-     dont un papier est PÉRIMÉ est refusé ici : c'est l'instant où
-     Elatransfer engage sa responsabilité (L3142-1). Seul « périmé » bloque
-     — un fait connu, une date passée — comme dans Admin v2 ; un chauffeur
-     hors carnet garde l'avertissement orange, sans blocage. */
+     derrière. Il faut donc un chauffeur retenu.
+     LES PAPIERS N'ARRÊTENT PLUS LE GESTE (4 octobre 2026, Barbaros : « ne
+     fais pas bloquer les chauffeurs liés aux papiers »). Un papier périmé
+     refusait la confirmation depuis le 30/09 ; il ne fait plus qu'AVERTIR,
+     en rouge, sur le bon (« jugerChauffeurBon ») — l'avertissement reste,
+     c'est lui qui engage sa responsabilité en connaissance de cause
+     (L3142-1), et c'est lui qui décide. */
   function direConfirmer(t){
     var e = document.getElementById("confirmerEtat");
     e.hidden = !t; e.textContent = t || "";
@@ -12202,16 +12204,17 @@ window.ELA_TEXTES = {
      changement de chauffeur sur une course confirmée, et la saisie par
      téléphone d'une course déjà confirmée — et seule la première
      contrôlait. Une règle recopiée à trois endroits finit par diverger :
-     elle vit ici, et les trois l'appellent. */
+     elle vit ici, et les trois l'appellent.
+     LA SEULE CHOSE QUI REFUSE EST LE SEUIL DE DETTE, et il est facultatif
+     (vide par défaut, réglé par Barbaros dans le centre de contrôle). Les
+     papiers du chauffeur ne refusent JAMAIS — décision du 4 octobre 2026 —
+     ils avertissent sur le bon. Ne pas remettre ici un contrôle sur
+     « etatPapier » : il y était, il a été retiré à sa demande. */
   function refusAttribution(nom, tel){
     var dette = detteDe(nom, tel), seuil = seuilDette();
     if(dette && seuil !== null && dette.solde > seuil)
       return dette.nom + " doit " + euros(dette.solde) + " de commission, au-delà de votre seuil ("
         + euros(seuil) + ") : enregistrez son paiement dans le centre de contrôle, ou choisissez un autre chauffeur.";
-    var c = trouverChauffeur(nom, tel);
-    if(c && [c.carteFin, c.registreFin, c.assuranceFin].some(function(d){ return etatPapier(d) === "perime"; }))
-      return "Papier périmé dans le carnet (" + c.nom + ") : choisissez un autre "
-        + "chauffeur, ou mettez sa fiche à jour dans « Chauffeurs ».";
     return "";
   }
   document.getElementById("btnConfirmerCourse").addEventListener("click", function(){
@@ -14169,9 +14172,10 @@ window.ELA_TEXTES = {
     }
     /* LA COURSE ENTRE CONFIRMÉE : NOMMER LE CHAUFFEUR ICI, C'EST LE LUI
        CONFIER (4 octobre 2026, audit, P1-4). Même contrôle que
-       « Confirmer » — papiers périmés, dette au-delà du seuil. Sans
-       chauffeur, la course reste possible (décision du 3 octobre) : elle
-       sera « Sans chauffeur » sur le tableau de bord. */
+       « Confirmer » — le seuil de dette, s'il est réglé ; les papiers
+       n'arrêtent rien, ils s'affichent sur le bon qui s'ouvre juste après.
+       Sans chauffeur, la course reste possible (décision du 3 octobre) :
+       elle sera « Sans chauffeur » sur le tableau de bord. */
     var chComplet = completerChauffeur(chNom, chTel);
     chNom = chComplet.nom;
     if(chNom){

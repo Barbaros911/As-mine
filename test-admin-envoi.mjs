@@ -6,9 +6,15 @@
      modification — l'accusé du premier envoi la retirait de la file ;
    - P1-3 : « Retour » réécrivait la course même sans aucun changement ;
    - P1-4 : changer le chauffeur d'une course CONFIRMÉE par « Retour »
-     contournait le contrôle des papiers (et de la dette) de « Confirmer ».
+     contournait le contrôle de « Confirmer » (le seuil de dette), et le bon
+     ne montrait pas l'avertissement sur ses papiers.
    Plus un constat de la relecture : un refus restait affiché sous le bon
    après qu'on avait corrigé le nom.
+   LES PAPIERS N'ARRÊTENT PLUS RIEN (4 octobre 2026, Barbaros : « ne fais
+   pas bloquer les chauffeurs liés aux papiers ») : un papier périmé est
+   AVERTI en rouge sur le bon, le chauffeur est enregistré quand même. Les
+   contrôles ci-dessous éprouvent l'avertissement ET le passage — un refus
+   remis les fait tomber.
 
    On lit ce qui PART au serveur, pas l'état interne : c'est ce que la
    réception, le client et les autres appareils relisent. Le faux serveur
@@ -132,55 +138,56 @@ try {
       String(ecritesPour('ELA-26-10-ATTN1').length) + ' écriture(s)');
   }
 
-  /* P1-4. CHAUFFEUR CHANGÉ SUR UNE COURSE CONFIRMÉE : MÊME CONTRÔLE QUE « CONFIRMER ». */
+  /* P1-4. CHAUFFEUR CHANGÉ SUR UNE COURSE CONFIRMÉE : LE BON AVERTIT SUR
+     SES PAPIERS, ET « RETOUR » L'ENREGISTRE QUAND MÊME. */
+  const alerteBon = () => p.evaluate(() => { const e = document.getElementById('bbChauffeurAlerte'); return e && !e.hidden ? e.className + ' | ' + e.textContent.trim().slice(0, 50) : ''; });
   {
     check('P1-4 : le bon confirmé s\'ouvre', await ouvrirBon('ELA-26-10-CONF1', 'confirmee'));
     await saisir('#bbChauffeurNom', 'Pierre Perime');
-    await saisir('#bbChauffeurTel', '06 99 88 77 66');
-    await p.click('#btnRetourBord'); await p.waitForTimeout(1200);
-    const resteSurBon = await p.evaluate(() => document.getElementById('ecran-bord-bon').classList.contains('actif'));
-    check('P1-4 : un chauffeur aux papiers périmés n\'est pas enregistré par « Retour »',
-      !ecritesPour('ELA-26-10-CONF1').some(e => e.bon && e.bon.chauffeur && /Pierre/.test(e.bon.chauffeur.nom)),
-      JSON.stringify(ecritesPour('ELA-26-10-CONF1').map(e => e.bon && e.bon.chauffeur && e.bon.chauffeur.nom)));
-    check('P1-4 : on reste sur le bon', resteSurBon);
-    const msg = await etatMsg();
-    check('P1-4 : et on dit pourquoi', /périmé/i.test(msg), msg);
-    /* Sur l'ancien code le bon s'est refermé : on le rouvre, pour que la
-       suite éprouve encore les points suivants au lieu de s'arrêter ici. */
-    if (!resteSurBon) await ouvrirBon('ELA-26-10-CONF1', 'confirmee');
-    /* Relecture : le refus s'efface dès qu'on change le nom. */
-    await saisir('#bbChauffeurNom', 'Mehmet Valide'); await p.waitForTimeout(150);
-    check('le refus s\'efface dès qu\'on change le nom', !(await etatMsg()), await etatMsg());
-    await saisir('#bbChauffeurTel', '06 55 66 77 88');
+    await saisir('#bbChauffeurTel', '06 99 88 77 66'); await p.waitForTimeout(200);
+    const alerte = await alerteBon();
+    check('un papier périmé est AVERTI en rouge sur le bon', /rouge/.test(alerte), alerte);
     await p.click('#btnRetourBord'); await surBord(); await p.waitForTimeout(1500);
-    check('P1-4 : un chauffeur en règle passe, et part au serveur',
+    check('P1-4 : « Retour » enregistre le chauffeur malgré le papier périmé (décision du 4 octobre), et il part au serveur',
+      ecritesPour('ELA-26-10-CONF1').some(e => e.bon && e.bon.chauffeur && /Pierre/.test(e.bon.chauffeur.nom)),
+      JSON.stringify(ecritesPour('ELA-26-10-CONF1').map(e => e.bon && e.bon.chauffeur && e.bon.chauffeur.nom)));
+    check('P1-4 : le bon confirmé se rouvre', await ouvrirBon('ELA-26-10-CONF1', 'confirmee'));
+    await saisir('#bbChauffeurNom', 'Mehmet Valide');
+    await saisir('#bbChauffeurTel', '06 55 66 77 88'); await p.waitForTimeout(200);
+    const alerteOk = await alerteBon();
+    check('un chauffeur en règle est dit en règle (vert)', /vert/.test(alerteOk), alerteOk);
+    await p.click('#btnRetourBord'); await surBord(); await p.waitForTimeout(1500);
+    check('P1-4 : il passe aussi, et part au serveur',
       ecritesPour('ELA-26-10-CONF1').some(e => e.bon && e.bon.chauffeur && e.bon.chauffeur.nom === 'Mehmet Valide'));
   }
 
-  /* Sur une course EN ATTENTE, le nom n'est qu'une note : pas de contrôle. */
+  /* Sur une course EN ATTENTE, le nom n'est qu'une note. Et c'est ici
+     qu'on éprouve le constat de la relecture — un refus (ici « pas de
+     chauffeur ») doit s'effacer dès qu'on corrige. */
   {
     await ouvrirBon('ELA-26-10-ATTN1', 'attente');
-    await saisir('#bbChauffeurNom', 'Pierre Perime');
+    await saisir('#bbChauffeurNom', ''); await saisir('#bbChauffeurTel', '');
+    await p.click('#btnConfirmerCourse', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(300);
+    const refusSans = await etatMsg();
+    check('« Confirmer » sans chauffeur est refusé, et le dit', /chauffeur retenu/.test(refusSans), refusSans);
+    await saisir('#bbChauffeurNom', 'Pierre Perime'); await p.waitForTimeout(150);
+    check('le refus s\'efface dès qu\'on tape un nom', !(await etatMsg()), await etatMsg());
     await p.click('#btnRetourBord'); await surBord(); await p.waitForTimeout(1500);
     check('sur une course en attente, le nom est enregistré (une note, pas une attribution)',
       ecritesPour('ELA-26-10-ATTN1').some(e => e.bon && e.bon.chauffeur && e.bon.chauffeur.nom === 'Pierre Perime'));
   }
 
-  /* LE CAS EXACT DE LA RELECTURE : « Prévenir le client » refuse un
-     chauffeur aux papiers périmés, on corrige, et le refus restait affiché
-     sous le bouton alors que le message était parti. */
+  /* « PRÉVENIR LE CLIENT » part avec un chauffeur aux papiers périmés : il
+     est averti, pas bloqué — et le chauffeur est enregistré avant d'écrire. */
   {
     await ouvrirBon('ELA-26-10-SANSC', 'confirmee');
     await saisir('#bbChauffeurNom', 'Pierre Perime');
-    await saisir('#bbChauffeurTel', '06 99 88 77 66');
+    await saisir('#bbChauffeurTel', '06 99 88 77 66'); await p.waitForTimeout(200);
     await p.click('#btnPrevenirClient', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(300);
-    const refus = await etatMsg();
-    check('« Prévenir » refuse le chauffeur aux papiers périmés', /périmé/i.test(refus) && (await p.evaluate(() => window.__liens.length)) === 0, refus);
-    await saisir('#bbChauffeurNom', 'Mehmet Valide');
-    await saisir('#bbChauffeurTel', '06 55 66 77 88');
-    await p.click('#btnPrevenirClient', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(300);
-    check('après correction, le message part', (await p.evaluate(() => window.__liens.length)) === 1);
-    check('et le refus n\'est plus affiché', !(await etatMsg()), await etatMsg());
+    const liens = await p.evaluate(() => window.__liens.length);
+    check('« Prévenir » part avec un chauffeur aux papiers périmés (averti, pas bloqué)', liens === 1 && !(await etatMsg()), liens + ' lien(s), message : ' + (await etatMsg()));
+    check('et le chauffeur est enregistré sur la course avant d\'écrire',
+      ecritesPour('ELA-26-10-SANSC').some(e => e.bon && e.bon.chauffeur && /Pierre/.test(e.bon.chauffeur.nom)));
     await p.click('#btnRetourBord').catch(() => {}); await surBord();
   }
 

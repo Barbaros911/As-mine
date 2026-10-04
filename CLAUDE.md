@@ -5555,6 +5555,12 @@ reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
   PÉRIMÉ est refusé ; hors carnet, l'avertissement orange reste, sans
   blocage — même règle que Admin v2. Ce contrôle est dans l'écran : Admin v2
   seul l'impose côté serveur.
+  **LE REFUS SUR LES PAPIERS EST RETIRÉ DEPUIS LE 4 OCTOBRE 2026** (Barbaros :
+  « ne fais pas bloquer les chauffeurs liés aux papiers »). L'avertissement
+  rouge reste sur le bon ; « Confirmer », « Retour », « Prévenir le client »
+  et la saisie par téléphone passent. **Ne pas le remettre** sans qu'il le
+  redemande. Le chauffeur reste obligatoire pour confirmer, et le seuil de
+  dette (facultatif) bloque encore.
 - **« Refuser la course » demande deux appuis**, comme « Supprimer » : un
   refus ne se défait pas depuis le bon, et il est juste sous « Marquer comme
   réalisée ».
@@ -6798,8 +6804,9 @@ des clients et une seconde adresse où se tromper d'outil.
 - **Les migrations et les fonctions qu'Admin v2 utilise restent en
   production** : elles ne s'appellent qu'avec une session exploitant. Ce que
   le retrait coûte, il faut le dire : l'admin retenu n'appelle pas
-  `ela_attribuer_chauffeur`, donc la règle des papiers n'y est qu'un contrôle
-  d'ÉCRAN (« Confirmer » refuse un papier périmé), pas une frontière serveur.
+  `ela_attribuer_chauffeur`, donc la règle des papiers n'y est qu'un
+  AVERTISSEMENT d'écran (et plus un refus depuis le 4 octobre 2026, à sa
+  demande), pas une frontière serveur.
 
 
 ## « HÔTELS • AGENCES • ENTREPRISES » EST SOUS LE FORMULAIRE
@@ -6859,9 +6866,17 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   compteur (`gen`) : on ne la retire que s'il n'a pas bougé.
 - **« Retour » n'écrit que ce qui a changé**, et un chauffeur saisi sur une
   course déjà confirmée passe par le **même contrôle que « Confirmer »**
-  (`refusAttribution` : papier périmé, dette au-delà du seuil) — avant, le
-  bouton « Retour » attribuait sans aucun contrôle. Même contrôle sur
-  « Prévenir le client » et sur « Saisir par téléphone ».
+  (`refusAttribution`) — avant, le bouton « Retour » attribuait sans aucun
+  contrôle. Même contrôle sur « Prévenir le client » et sur « Saisir par
+  téléphone ».
+- **LES PAPIERS NE BLOQUENT PLUS, ILS AVERTISSENT** (le même jour, Barbaros :
+  « ne fais pas bloquer les chauffeurs liés aux papiers »). Le refus sur un
+  papier périmé — posé le 30/09 sur « Confirmer », étendu le matin même aux
+  trois autres portes — est retiré de `refusAttribution`. Il ne reste que le
+  seuil de dette, facultatif et vide par défaut. L'avertissement rouge du bon
+  (`jugerChauffeurBon`) reste : c'est lui qui l'informe, et c'est lui qui
+  décide. Trois suites éprouvent maintenant que le chauffeur PASSE et que
+  l'avertissement est visible ; le refus remis, elles tombent.
 - **UN NUMÉRO DU CARNET DONNE LE NOM** (`completerChauffeur`) : avant, un
   chauffeur saisi par son seul numéro restait « Sans chauffeur » sur la
   carte et le bon proposait de « Placer au groupe » une course attribuée.
