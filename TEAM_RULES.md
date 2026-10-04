@@ -202,9 +202,12 @@ est.
 
 ## Ce qui reste hors de ce fichier
 
-- **`CLAUDE.md`** : l'historique des décisions du produit et les pièges
-  techniques rencontrés. C'est une mémoire, pas un règlement — et elle vaut
-  cher : chaque section y explique **pourquoi** une chose est comme elle est.
+- **`CLAUDE.md`** : les règles du produit en vigueur — ce qui est vrai
+  aujourd'hui, ce qu'il ne faut jamais faire, et pourquoi en une phrase. C'est
+  une mémoire, pas un règlement. Son **histoire** (quand, comment on l'a
+  trouvé) est dans `memoire/`, un fichier par sujet, lu seulement si le sujet
+  revient. Le fichier a un plafond, tenu par `test-doc.mjs` : pour y écrire,
+  on range d'abord, dans la même PR.
 - **`AGENTS.md`** : les zones critiques et les états de tâche.
 - **`PROJECT_STATE.md`** : l'état courant.
 
