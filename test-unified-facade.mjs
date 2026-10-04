@@ -73,7 +73,7 @@ for (const [name, html, exemples] of [
   }
 }
 assert.equal(existsSync("site/as-mine-transport"), false, "l’ancienne maquette As-mine ne doit plus être publiée");
-for (const projetClient of ["point-clotures", "ici-cuisine"]) {
+for (const projetClient of ["point-clotures"]) {
   assert.equal(existsSync(`site/${projetClient}`), false, `${projetClient} reste dans GitHub mais ne doit pas être publié avec ELA`);
   assert.equal(demos.includes(projetClient), false, `${projetClient} ne doit pas apparaître dans la galerie ELA`);
 }

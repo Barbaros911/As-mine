@@ -32,7 +32,7 @@ function echapper(texte) {
 
 const sites = [];
 const INTERFACES_INTERNES = new Set(["ela-public", "ela-admin", "easyhotel-reception"]);
-const PROJETS_CLIENTS_HORS_ELA = new Set(["point-clotures", "ici-cuisine"]);
+const PROJETS_CLIENTS_HORS_ELA = new Set(["point-clotures"]);
 
 if (existsSync(SOURCE)) {
   for (const nom of readdirSync(SOURCE, { withFileTypes: true })) {

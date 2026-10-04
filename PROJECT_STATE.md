@@ -72,8 +72,9 @@ ne doit pas enfreindre sans le rouvrir.
   deviennent pas des versions à maintenir.
 - **Multi-établissements dès la conception** : easyHotel ne doit pas être un
   cas codé en dur. Chaque hôtel aura sa configuration, le moteur reste commun.
-- **Les autres projets sortent de la publication ELA** (Point Clôtures, Ici
-  Cuisine) — **sans supprimer leur travail**.
+- **Les autres projets sortent de la publication ELA** (Point Clôtures)
+  — **sans supprimer son travail**. Ici Cuisine a été supprimé du dépôt le
+  4 octobre 2026, à la demande de Barbaros.
 - Le QR de l'affiche ouvre l'espace **Client easyHotel existant**, et le
   contexte (hôtel, destination, tarif, provenance) est conservé **jusqu'à la
   confirmation** — pas de perte silencieuse en changeant d'écran.
@@ -162,10 +163,8 @@ l'état réel de `main`, sans recréer une seconde interface ni réintroduire un
 ancienne branche. #165 doit servir d'historique/coordination jusqu'à sa mise à
 jour ou sa clôture, pas de source technique concurrente.
 
-La branche `claude/page-directe-0finaj` ne doit pas être fusionnée telle
-quelle : elle diverge de `main`. Seules ses corrections tarifaires encore
-nécessaires et démontrées peuvent être extraites dans une PR technique neuve
-depuis le dernier `main`. Le détail historique des briques et de leurs pièges
+La branche `claude/page-directe-0finaj` a été supprimée le 4 octobre 2026 :
+les prix se règlent depuis l'admin, elle n'avait plus rien à apporter. Le détail historique des briques et de leurs pièges
 reste dans `CLAUDE.md`. `/etat` signale en rouge quand `main` a bougé
 pendant la session.
 

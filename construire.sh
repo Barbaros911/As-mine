@@ -40,7 +40,7 @@ if [ -d sites ]; then
     nom=$(basename "$dossier")
     case "$nom" in
       _*) echo "Ignoré : $nom (modèle interne)"; continue;;
-      point-clotures|ici-cuisine) echo "Ignoré : $nom (projet client hors publication ELA)"; continue;;
+      point-clotures) echo "Ignoré : $nom (projet client hors publication ELA)"; continue;;
     esac
     for reserve in $reserves; do if [ "$nom" = "$reserve" ]; then echo "ERREUR : le dossier sites/$nom porte le nom d'un fichier réservé." >&2; exit 1; fi; done
     echo "Publication du site « $nom » sur /$nom/"; cp -r "$dossier" "site/$nom"

@@ -171,17 +171,17 @@
    ===================================================================== */
 :root{
   --noir:#16232B;         /* l'encre profonde du bandeau et de l'en-tête */
-  --fond:#F4F6F5;         /* le papier — jamais #FFF, c'est ce qui date une page */
+  --fond:#F2F5F9;         /* le papier — jamais #FFF, c'est ce qui date une page */
   --carte:#FFFFFF;        /* le blanc ne sert plus qu'aux cartes posées dessus */
   --encre:#151C22;
-  --gris:#616E6B;
-  --filet:#DDE4E2;
-  --accent:#1F6F6B;       /* céladon profond : ni le vert de Bolt, ni le noir d'Uber */
-  --accent-clair:#E2F0EE;
-  --accent-vif:#3FA9A2;   /* la marque : le filet du logo, le « TRANSFER » */
+  --gris:#5A6A7B;
+  --filet:#E1E8EF;
+  --accent:#0E6FC7;       /* bleu ELA (le vert céladon est retiré : 4 octobre 2026) */
+  --accent-clair:#E8F2FD;
+  --accent-vif:#12C4EE;   /* la marque : le filet du logo, le « TRANSFER » */
   /* L'ACCENT EN TEXTE, sur l'accent pâle. L'accent d'aplat n'y ferait que
      1,3 de contraste — illisible. Celui-ci en fait 7,1. */
-  --accent-encre:#185754;
+  --accent-encre:#0A4F91;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -644,7 +644,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   display:inline-flex;align-items:center;flex:0 0 auto;}
 .d-appeler{background:rgba(255,255,255,.16);color:#fff;}
 .demande:not(.attente) .d-appeler{background:var(--panel-2);color:var(--encre);}
-.d-clore{background:#1F6F6B;color:#fff;}
+.d-clore{background:#0E6FC7;color:#fff;}
 /* « TERMINÉE » ARMÉ (3 octobre 2026) : avant l'heure de départ, le premier
    appui ne ferme rien, il demande confirmation. En ambre, la couleur de ce
    qui reste à faire, jamais le rouge de l'attente. */
@@ -693,7 +693,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-avis{background:transparent;color:var(--accent-encre);
   box-shadow:inset 0 0 0 1.5px var(--accent);}
 .d-avis.fait{color:var(--gris);box-shadow:inset 0 0 0 1.5px var(--filet);}
-.bouton.vert{background:#1F6F6B;color:#fff;}
+.bouton.vert{background:#0E6FC7;color:#fff;}
 .bouton.vert svg path{stroke:#fff;}
 #nuageActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 #nuageActions .bouton-fantome{margin-top:0;}
@@ -1126,9 +1126,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    se lit comme une information, pas comme une seconde action — le seul
    bouton fort du premier écran reste « Voir mon prix ». */
 .pro-bloc{margin:22px 12px 0;padding:14px 16px;border-radius:14px;
-  background:var(--carte,#fff);border:1px solid var(--filet,#dde4e2);
+  background:var(--carte,#fff);border:1px solid var(--filet,#E1E8EF);
   border-left:4px solid var(--ela-blue,var(--accent));}
-.pro-bloc p{margin:0;font-size:13px;line-height:1.5;color:var(--gris,#616e6b);}
+.pro-bloc p{margin:0;font-size:13px;line-height:1.5;color:var(--gris,#5A6A7B);}
 .pro-bloc strong{display:block;margin-bottom:2px;font-size:14px;
   color:var(--ela-navy,var(--encre));}
 /* Le texte vient de la traduction, avec son « <br> » après le titre : le
@@ -1699,7 +1699,7 @@ body.hotel .veh-carte.choisi{border-color:var(--h-bouton, var(--accent));
 
 /* ═══ LES PICTOGRAMMES SUIVENT LA PAGE ═══
    Ils portent la couleur d'Elatransfer écrite EN DUR dans le SVG
-   (fill="#1F6F6B"). Laissés tels quels sous un bandeau orange, ils
+   (fill="#0E6FC7"). Laissés tels quels sous un bandeau orange, ils
    faisaient trois couleurs qui ne se parlent pas.
    ON VISE LA VALEUR EXACTE, pas « tous les svg » : plusieurs de ces
    dessins ont un point blanc à l'intérieur (le creux du repère de carte),
@@ -1707,8 +1707,8 @@ body.hotel .veh-carte.choisi{border-color:var(--h-bouton, var(--accent));
    UN ATTRIBUT DE PRÉSENTATION PERD TOUJOURS CONTRE UNE RÈGLE CSS : c'est
    ce qui permet de les reteindre sans toucher au HTML, donc sans risquer
    de casser le site public. */
-body.hotel .champ svg [fill="#1F6F6B"]{fill:var(--h-bouton, var(--accent));}
-body.hotel .champ svg [stroke="#1F6F6B"]{stroke:var(--h-bouton, var(--accent));}
+body.hotel .champ svg [fill="#0E6FC7"]{fill:var(--h-bouton, var(--accent));}
+body.hotel .champ svg [stroke="#0E6FC7"]{stroke:var(--h-bouton, var(--accent));}
 body.hotel .rec-aide-lien.rec-wa{background:#25D366;}
 /* ═══ « CONFIRMÉE » RESTE VERTE, MÊME SUR UNE PAGE ORANGE ═══
    Passée à l'orange du partenaire, la pastille disait la MARQUE et non
@@ -2556,7 +2556,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="champ-bloc" id="blocDepart">
       <label class="champ" for="depart">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#0E6FC7"/>
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
@@ -2602,8 +2602,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <label class="champ" for="chambre">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="4.6" y="3.4" width="12.4" height="17.2" rx="1.9"
-                stroke="#1F6F6B" stroke-width="1.8"/>
-          <circle cx="13.7" cy="12" r="1.15" fill="#1F6F6B"/>
+                stroke="#0E6FC7" stroke-width="1.8"/>
+          <circle cx="13.7" cy="12" r="1.15" fill="#0E6FC7"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="chambre">Numéro de chambre</span>
@@ -2628,7 +2628,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div id="blocDest" hidden>
       <label class="champ" for="hotelDest">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#0E6FC7"/>
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
@@ -2650,7 +2650,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <label class="champ" for="hotelTerminal">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
-                fill="#1F6F6B"/>
+                fill="#0E6FC7"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="hotel_terminal">Terminal</span>
@@ -2662,7 +2662,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="champ-bloc" id="blocArrivee">
       <label class="champ" for="arrivee">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#1F6F6B"/>
+          <path d="M12 21.5s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="#0E6FC7"/>
           <circle cx="12" cy="10.3" r="2.4" fill="#fff"/>
         </svg>
         <span class="champ-corps">
@@ -2672,7 +2672,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
                  aria-controls="arriveeList" aria-autocomplete="list">
         </span>
         <svg class="fleche" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <div class="suggest-list" id="arriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
@@ -2687,7 +2687,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <label class="champ" for="vol">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
-                fill="#1F6F6B"/>
+                fill="#0E6FC7"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" id="titreVol" data-t="vol">Numéro de vol</span>
@@ -2711,8 +2711,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          l'heure, et porte « Programmer » pour revenir. -->
     <div class="champ asap-boite" id="blocAsap" hidden>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="8.5" stroke="#1F6F6B" stroke-width="1.7"/>
-        <path d="M12 7.5V12l3 2" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="8.5" stroke="#0E6FC7" stroke-width="1.7"/>
+        <path d="M12 7.5V12l3 2" stroke="#0E6FC7" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
       <span class="champ-corps">
         <b class="asap-titre" data-t="asap_libelle">Dès que possible</b>
@@ -2724,8 +2724,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="duo" id="blocDateHeure">
       <label class="champ" for="date">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#1F6F6B" stroke-width="1.7"/>
-          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+          <rect x="3.5" y="5" width="17" height="15" rx="2.6" stroke="#0E6FC7" stroke-width="1.7"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="#0E6FC7" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre titre-date"><span data-t="date">Date</span><button class="lien-maintenant"
@@ -2733,13 +2733,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <input id="date" type="date">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8494A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <label class="champ" for="heure">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.6" stroke="#1F6F6B" stroke-width="1.7"/>
-          <path d="M12 7.4V12l3.1 2" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="8.6" stroke="#0E6FC7" stroke-width="1.7"/>
+          <path d="M12 7.4V12l3.1 2" stroke="#0E6FC7" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="heure">Heure</span>
@@ -2752,7 +2752,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <input id="heure" type="time" value="10:00" step="300">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8494A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
     </div>
@@ -2760,22 +2760,22 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="duo">
       <label class="champ" for="passagers">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.5" stroke="#1F6F6B" stroke-width="1.7"/>
-          <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#1F6F6B" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="12" cy="8" r="3.5" stroke="#0E6FC7" stroke-width="1.7"/>
+          <path d="M5.2 20c0-3.5 3-5.9 6.8-5.9s6.8 2.4 6.8 5.9" stroke="#0E6FC7" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
           <span class="champ-titre" data-t="passagers">Passagers</span>
           <input id="passagers" type="number" min="1" max="60" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8494A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
       <label class="champ" for="bagages">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="4" y="7.6" width="16" height="12.4" rx="2.4" fill="#1F6F6B"/>
+          <rect x="4" y="7.6" width="16" height="12.4" rx="2.4" fill="#0E6FC7"/>
           <path d="M9 7.6V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5v2.1"
-                stroke="#1F6F6B" stroke-width="1.8" stroke-linecap="round"/>
+                stroke="#0E6FC7" stroke-width="1.8" stroke-linecap="round"/>
           <path d="M12 10.4v6.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
@@ -2783,7 +2783,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <input id="bagages" type="number" min="0" max="9" value="1" inputmode="numeric">
         </span>
         <svg class="fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" stroke="#8A9592" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#8494A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
     </div>
@@ -2805,9 +2805,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div id="blocNote" hidden>
       <label class="champ champ-note" for="noteCourse">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M5.4 4.6h13.2v11.2l-4 4H5.4z" stroke="#1F6F6B" stroke-width="1.8"
+          <path d="M5.4 4.6h13.2v11.2l-4 4H5.4z" stroke="#0E6FC7" stroke-width="1.8"
                 stroke-linejoin="round"/>
-          <path d="M8.6 9.2h6.8M8.6 12.6h4.2" stroke="#1F6F6B" stroke-width="1.7"
+          <path d="M8.6 9.2h6.8M8.6 12.6h4.2" stroke="#0E6FC7" stroke-width="1.7"
                 stroke-linecap="round"/>
         </svg>
         <span class="champ-corps">
@@ -2888,7 +2888,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <div class="promesse">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
-            fill="#185754"/>
+            fill="#0A4F91"/>
     </svg>
     <p>
       <b data-t="retard_titre">Vol ou train en retard ? Votre chauffeur s'adapte.</b>
@@ -2965,7 +2965,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
                   stroke-width="1.7" stroke-linejoin="round"/>
             <path d="M2.2 20.6h19.6" stroke="#151C22" stroke-width="1.7" stroke-linecap="round"/>
             <path d="M6.6 7.4h2.1M11 7.4h2.1M6.6 11.2h2.1M11 11.2h2.1"
-                  stroke="#1F6F6B" stroke-width="1.6" stroke-linecap="round"/>
+                  stroke="#0E6FC7" stroke-width="1.6" stroke-linecap="round"/>
             <path d="M8.2 20.6v-4.1h3.3v4.1" stroke="#151C22" stroke-width="1.7"
                   stroke-linejoin="round"/>
           </svg>
@@ -2981,8 +2981,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
             <rect x="5.1" y="2.9" width="13.8" height="13.2" rx="3.4"
                   stroke="#151C22" stroke-width="1.7"/>
             <path d="M5.1 9.5h13.8" stroke="#151C22" stroke-width="1.7"/>
-            <circle cx="8.4" cy="12.9" r="1.25" fill="#1F6F6B"/>
-            <circle cx="15.6" cy="12.9" r="1.25" fill="#1F6F6B"/>
+            <circle cx="8.4" cy="12.9" r="1.25" fill="#0E6FC7"/>
+            <circle cx="15.6" cy="12.9" r="1.25" fill="#0E6FC7"/>
             <path d="M8.6 16.1L6.4 20.6M15.4 16.1l2.2 4.5" stroke="#151C22"
                   stroke-width="1.7" stroke-linecap="round"/>
           </svg>
@@ -2999,7 +2999,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
                   stroke="#151C22" stroke-width="1.7"/>
             <path d="M8.6 7.1V5.3a1.7 1.7 0 011.7-1.7h3.4a1.7 1.7 0 011.7 1.7v1.8"
                   stroke="#151C22" stroke-width="1.7" stroke-linejoin="round"/>
-            <path d="M2.9 12.3h18.2" stroke="#1F6F6B" stroke-width="1.7"/>
+            <path d="M2.9 12.3h18.2" stroke="#0E6FC7" stroke-width="1.7"/>
             <path d="M10.4 12.3h3.2" stroke="#151C22" stroke-width="1.9" stroke-linecap="round"/>
           </svg>
         </span>
@@ -3018,7 +3018,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span class="service-icone">
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle cx="12" cy="12" r="9.1" stroke="#151C22" stroke-width="1.7"/>
-            <path d="M12 6.6V12l3.6 2.1" stroke="#1F6F6B" stroke-width="1.8"
+            <path d="M12 6.6V12l3.6 2.1" stroke="#0E6FC7" stroke-width="1.8"
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
@@ -5146,7 +5146,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <a class="contact-lien" href="tel:+33759312433">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z"
-                stroke="#1F6F6B" stroke-width="1.7" stroke-linejoin="round"/>
+                stroke="#0E6FC7" stroke-width="1.7" stroke-linejoin="round"/>
         </svg>
         <span class="contact-corps">
           <b data-t="appeler">Appeler</b>
@@ -5173,19 +5173,19 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="legal-lien" type="button" data-doc="cgv">
         <span data-t="legal_cgv">Conditions générales de vente</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2"
+          <path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="legal-lien" type="button" data-doc="mentions">
         <span data-t="legal_mentions">Mentions légales</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2"
+          <path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="legal-lien" type="button" data-doc="privacy">
         <span data-t="legal_privacy">Politique de confidentialité</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2"
+          <path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <p class="bloc-note" data-t="legal_note">Ces documents sont ceux qui vous
@@ -8546,7 +8546,7 @@ window.ELA_TEXTES = {
       /* DEUX TRAITS SUPERPOSÉS : un large et clair dessous, l'accent dessus.
          Un trait unique se perd sur les zones sombres du fond de plan. */
       L.polyline(trace, { color:"#FFFFFF", weight:7, opacity:.9 }).addTo(groupe);
-      L.polyline(trace, { color:"#1F6F6B", weight:4, opacity:1 }).addTo(groupe);
+      L.polyline(trace, { color:"#0E6FC7", weight:4, opacity:1 }).addTo(groupe);
       var pastille = function(couleur){
         return L.divIcon({ className:"",
           html:'<span style="display:block;width:13px;height:13px;border-radius:50%;'
@@ -8555,7 +8555,7 @@ window.ELA_TEXTES = {
           iconSize:[13,13], iconAnchor:[6.5,6.5] });
       };
       L.marker([a.lat, a.lon], { icon:pastille("#151C22"), interactive:false }).addTo(groupe);
-      L.marker([b.lat, b.lon], { icon:pastille("#1F6F6B"), interactive:false }).addTo(groupe);
+      L.marker([b.lat, b.lon], { icon:pastille("#0E6FC7"), interactive:false }).addTo(groupe);
       carteTrajet.fitBounds(L.latLngBounds(trace), { padding:[22,22] });
       /* La carte est dessinée pendant que son cadre vient d'apparaître :
          Leaflet a mesuré une hauteur qui pouvait encore valoir zéro, et la
@@ -10841,7 +10841,7 @@ window.ELA_TEXTES = {
       +     '<span class="course-prix"></span></span>'
       + '</span>'
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-      +   '<path d="M9 6l6 6-6 6" stroke="#8A9592" stroke-width="2" '
+      +   '<path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2" '
       +   'stroke-linecap="round" stroke-linejoin="round"/></svg>';
       b.querySelector(".course-ref").textContent = bon.ref;
       /* Une flèche plutôt que le mot « vers » : elle se lit dans les deux
@@ -12350,7 +12350,7 @@ window.ELA_TEXTES = {
   function direColler(texte, bon){
     collerEtat.hidden = false;
     collerEtat.textContent = texte;
-    collerEtat.style.color = bon ? "#1F6F6B" : "#B4231F";
+    collerEtat.style.color = bon ? "#0E6FC7" : "#B4231F";
   }
   function traiterColle(texte){
     var d = lireDemandeCollee(texte);

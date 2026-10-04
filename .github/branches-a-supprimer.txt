@@ -1,12 +1,18 @@
-ela/easyhotel-client-10-10
-ela/easyhotel-engine-mobile-10
-ela/rebuild-easyhotel-client-ui
-fix/logo-officiel-unique
-fix/mobile-public-fidelity
-fix/mobile-public-reference
-fix/nettoyer-galerie-publiee
-fix/unifier-facade-application
-fix/unifier-routes-publiees
-claude/publier-interfaces-ela-validees
-claude/reproduire-4-maquettes-fideles
-maquette-exacte-4-interfaces
+# Second ménage du 4 octobre 2026, à la demande de Barbaros (« fais-le
+# comme un expert »). Une ligne = « branche numéro-du-dernier-commit » :
+# une branche qui a bougé depuis ce relevé est REFUSÉE.
+# - six brouillons jamais fusionnés, tous dépassés par ce qui est en ligne
+#   (recherche d'adresse, trois étapes, envoi de la demande) ou jamais
+#   demandés (assistant de pilotage, accélération des tests) ;
+# - claude/page-directe-0finaj : antérieure à la réécriture de main, les
+#   prix se règlent désormais depuis l'admin ;
+# - feature/paris-discovery : module « Visiter Paris » de septembre, jamais
+#   repris, sa demande de fusion (#131) est fermée.
+claude/ela-easyhotel-landing-refonte-7dyt9t 8257fb1937a50ac7c0bf687020413376dc815dc8
+claude/ela-transfer-pilot-assistant-1lkopi 93b14cea93e273783e8e202c6ee04c4ef4c1ffa1
+claude/ela-transfer-recovery-av15wy 51f98fd10ff89400efa599b5467e82428fd65518
+claude/reception-bon-commande-ybc0j1 57b3f8b0a61bc13582830b1a1aaa255de36e134a
+claude/slowest-test-analysis-poc5g0 37ed22364d59ed964274abee9da6833311dd4899
+claude/tests-sh-garde-fou-flmfku 47eaf7fff1a979fd1714d443f07bb74f9c2f13ec
+claude/page-directe-0finaj 2103f21fd55a5fd22401183a5ef32daad222fead
+feature/paris-discovery 7fa26366561ab844e5f76f87eb5b662a9ca18e80
