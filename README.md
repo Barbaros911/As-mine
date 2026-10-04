@@ -15,7 +15,7 @@ ELA Transfer est une plateforme de réservation et de gestion de courses avec ch
 - **PWA** : `manifest.webmanifest`, `sw.js` et les icônes.
 - **Construction** : `construire.sh` est l’unique recette qui fabrique `site/`.
 
-Le dépôt conserve également des projets clients indépendants dans `sites/`. **Point Clôtures et ICI Cuisine restent dans GitHub mais ne sont pas publiés avec ELA Transfer.**
+Le dépôt conserve également des projets clients indépendants dans `sites/`. **Point Clôtures reste dans GitHub mais n'est pas publié avec ELA Transfer.**
 
 ## Publication
 
