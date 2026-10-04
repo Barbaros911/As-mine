@@ -6882,6 +6882,15 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
 - Suites : `test-admin-hors-ligne`, `test-admin-envoi`, `test-admin-audit`,
   toutes sur le site construit. Contre l'ancien code : 23, 6 et 15 contrôles
   tombent.
+- **LE LANCEUR ÉPROUVAIT PEUT-ÊTRE UNE AUTRE COPIE DU SITE.** Un serveur
+  trouvé ouvert sur 8099, enraciné sur une ancienne copie de travail,
+  répondait 200 : `tests.sh` le réutilisait sans regarder. Il compare
+  maintenant la page servie à `index.html` et refuse de démarrer sinon
+  (éprouvé avec un serveur posé sur l'ancien code). Le serveur restait ouvert
+  parce que `npx` le lance en ENFANT : la fin de série arrête aussi ses
+  enfants (`pkill -P`). Et pour fermer un serveur à la main, viser son
+  numéro, jamais `pgrep -f "http.server"` : le motif attrape aussi la
+  commande qui le tape — vu une fois de plus ce jour-là.
 - **Ce qui reste ouvert** : le chien de garde GitHub passe six fois en 21 h
   au lieu de toutes les 15 min (P1-10) — à trancher par Barbaros : un
   déclencheur extérieur gratuit, ou un indicateur de santé dans l'admin.
