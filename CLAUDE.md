@@ -3880,9 +3880,12 @@ pour qui cherche une faille, sans même un mot de passe à deviner.
   « / » pour savoir si c'est une division ou le début d'une expression
   régulière — la même règle qu'un vrai analyseur, ramenée à ce dont on a
   besoin ici.
-- Les commentaires HTML (`<!-- -->`) et CSS retirés par expression régulière
-  simple : leur syntaxe ne peut pas se cacher dans une chaîne comme celle
-  de JS.
+- Les commentaires HTML (`<!-- -->`) sont retirés par expression régulière
+  simple. **Le CSS, non** : cette ligne disait qu'il en allait de même, et
+  c'était faux — une chaîne CSS peut contenir « /* » (`content:"/*"`), une
+  adresse aussi (`url(/*.png)`). `nettoyerCss()` recopie donc chaînes et
+  `url(…)` telles quelles (4 octobre 2026). Sur les pages déjà nettoyées, le
+  résultat est resté identique octet pour octet : ça ne tenait que par chance.
 - **GARDE-FOU** : si un `<script>` ou `<style>` contient littéralement
   `<!--`, le nettoyage s'arrête plutôt que de deviner — cette séquence
   pourrait tromper le retrait des commentaires HTML qui suit.
@@ -3914,16 +3917,28 @@ pour qui cherche une faille, sans même un mot de passe à deviner.
     liste de sept adresses survit à la page qu'on ajoute : il passe aussi au
     crible TOUTE page publiée qui porte `data-ela-space`, où qu'elle soit.
     Chaque trou a été rouvert exprès et le fait tomber en nommant la page.
-  - **CE QUI GARDE ENCORE DES NOTES EN LIGNE, ET QUI N'EST PAS TRANCHÉ.**
-    Ces fichiers sont copiés tels quels, et ce n'est pas nouveau :
-    `robots.txt` explique en clair que `?h=` donne des forfaits plus bas que
-    le site et que la réception ouvre l'historique des clients d'un hôtel ;
-    `hotel-engine-polish.css` dit que la photo de l'en-tête vient du site
-    d'easyHotel sans accord écrit ; `application-facade.css` ne parle que de
-    mise en page ; `_headers` justifie les en-têtes de sécurité, qui se
-    lisent de toute façon dans chaque réponse. `_headers` ne se touche pas
-    d'ici : Cloudflare le lit, et un réglage qu'on ne peut pas éprouver garde
-    son défaut.
+  - **LES FEUILLES DE STYLE ET `robots.txt` ONT SUIVI** (4 octobre 2026,
+    Barbaros : « oui »). Ils étaient copiés tels quels : `robots.txt`
+    expliquait en clair que `?h=` donne des forfaits plus bas que le site et
+    que la réception ouvre l'historique des clients d'un hôtel ;
+    `hotel-engine-polish.css` (23 blocs) disait que la photo de l'en-tête
+    vient du site d'easyHotel sans accord écrit. `construire.sh` passe
+    maintenant `site/*.css` — un motif : une feuille ajoutée demain est prise
+    d'office — et `site/robots.txt` au nettoyeur.
+    - **`robots.txt` garde ses lignes vides** : un vieux robot y lit la fin
+      d'un groupe, les retirer changerait ce que le fichier interdit. On ôte
+      les lignes de note et la fin de ligne après « # » (RFC 9309).
+    - **Le contrôle compare ce que lit la machine, pas le texte** : les
+      règles CSS par le navigateur lui-même (CSSOM, 69 et 141 règles, à
+      l'identique), et les consignes de `robots.txt` avec la place des
+      lignes vides. Retirer une note en emportant une règle serait pire que
+      la note. Quatre défauts rouverts exprès le font tomber.
+    - **Restent, et c'est délibéré** : `_headers` (Cloudflare le lit, et un
+      réglage qu'on ne peut pas éprouver d'ici garde son défaut — les
+      en-têtes se lisent de toute façon dans chaque réponse), `carte/`
+      (la licence de Leaflet doit rester avec lui), et la ligne « page
+      construite automatiquement » de `/demos/`, qui ne dit rien d'utile à
+      personne.
 - **Le cloisonnement complet des écrans admin/réception hors du fichier
   public n'a PAS été fait** : les données restent protégées côté serveur
   (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus

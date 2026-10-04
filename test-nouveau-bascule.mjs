@@ -921,6 +921,80 @@ for (const large of [1024, 1280]) {
   check('aucune page publiée fabriquée depuis la page du site ne porte une note de travail', salies.length === 0, salies.join(' ; '));
 }
 
+/* LES FEUILLES DE STYLE ET « robots.txt » PUBLIÉS (4 octobre 2026, Barbaros :
+   « oui »). Le nettoyage ne lisait que le HTML et le JS : la feuille de style
+   des hôtels partait avec 23 blocs de notes, et « robots.txt » expliquait en
+   clair que ?h= donne des forfaits plus bas que le site.
+   Deux exigences par fichier, et la seconde compte autant que la première :
+   AUCUNE note publiée, et RIEN d'autre de changé — les règles de style lues
+   par le navigateur, les consignes lues par un robot. Retirer une note en
+   emportant une règle serait pire que la note. */
+{
+  /* robots.txt : on ne refait pas le nettoyage, on lit ce qu'un robot lit —
+     la suite des consignes, et où tombent les lignes vides entre elles (un
+     vieux robot y voit la fin d'un groupe). */
+  const lire = t => {
+    const out = []; let vide = false;
+    for (const l of t.split('\n')) {
+      if (/^\s*#/.test(l)) continue;
+      const d = l.replace(/#.*$/, '').trim();
+      if (!d) { vide = true; continue; }
+      out.push((vide && out.length ? '| ' : '') + d.replace(/\s+/g, ' '));
+      vide = false;
+    }
+    return out;
+  };
+  const src = await readFile('robots.txt', 'utf8');
+  const r = await fetch(SITE + '/robots.txt');
+  const pub = await r.text();
+  check('robots.txt : la source porte des notes à retirer (sinon le contrôle ne prouve rien)', /^\s*#/m.test(src));
+  check('robots.txt publié répond', r.status === 200 && /^User-agent:/mi.test(pub), 'HTTP ' + r.status);
+  check('robots.txt publié ne porte aucune note', !pub.includes('#'),
+    (pub.split('\n').find(l => l.includes('#')) || '').slice(0, 80));
+  const a = lire(src), b2 = lire(pub);
+  check('robots.txt publié donne exactement les mêmes consignes, aux mêmes places', JSON.stringify(a) === JSON.stringify(b2),
+    'source ' + JSON.stringify(a) + ' / publié ' + JSON.stringify(b2));
+  check('robots.txt publié écarte toujours ?h= et ?reception=', /Disallow:\s*\/\*\?h=/.test(pub) && /Disallow:\s*\/\*\?reception=/.test(pub));
+
+  /* Les feuilles de style : toutes celles publiées à la racine — un motif,
+     pas une liste. Les règles sont comparées par le NAVIGATEUR (CSSOM), pas
+     relues : c'est lui qui décide si un retrait a emporté une accolade. */
+  const pc = await b.newPage();
+  await pc.goto(SITE + '/robots.txt');
+  let total = 0;
+  const feuilles = (await readdir('site')).filter(f => f.endsWith('.css'));
+  check('le site publie au moins les deux feuilles de style de la façade et des hôtels',
+    feuilles.includes('application-facade.css') && feuilles.includes('hotel-engine-polish.css'), feuilles.join(', '));
+  for (const f of feuilles) {
+    const publie = await readFile(join('site', f), 'utf8');
+    let source = null;
+    try { source = await readFile(f, 'utf8'); } catch {}
+    if (source === null) {
+      check(`${f} : aucune note publiée (pas de source à la racine)`, !publie.includes('/*'));
+      continue;
+    }
+    const passages = [];
+    for (const m of source.matchAll(/\/\*([\s\S]*?)\*\//g)) {
+      const t = m[1].replace(/\s+/g, ' ').trim();
+      if (t.length >= 40) passages.push(t.slice(Math.floor(t.length / 2) - 15, Math.floor(t.length / 2) + 15));
+    }
+    total += passages.length;
+    const plat = publie.replace(/\s+/g, ' ');
+    const restes = passages.filter(x => plat.includes(x));
+    check(`${f} : aucune note de la source n'est publiée`, restes.length === 0,
+      restes.length ? restes.length + ' passage(s), dont « ' + restes[0] + ' »' : '');
+    const regles = await pc.evaluate(([s1, s2]) => {
+      const lire = t => { const f = new CSSStyleSheet(); f.replaceSync(t); return Array.from(f.cssRules, r => r.cssText); };
+      return [lire(s1), lire(s2)];
+    }, [source, publie]);
+    check(`${f} : le navigateur lit exactement les mêmes règles qu'avant`,
+      regles[0].length > 0 && JSON.stringify(regles[0]) === JSON.stringify(regles[1]),
+      regles[0].length + ' règles dans la source, ' + regles[1].length + ' publiées');
+  }
+  check('les feuilles de style de la source portent des notes (sinon le contrôle ne prouve rien)', total >= 20, total + ' passages');
+  await pc.close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
