@@ -13,7 +13,7 @@ jobs:
   secrets-publics:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Vérifier qu'aucune service-role key Supabase n'est publiée
         shell: bash
