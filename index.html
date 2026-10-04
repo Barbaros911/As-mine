@@ -922,6 +922,11 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   font-weight:700;cursor:pointer;text-align:center;
   transition:border-color .14s,background .14s,color .14s;}
 .choix svg{flex:0 0 auto;}
+/* Quatre canaux sur deux rangées : à 390 px, quatre de front ne tiennent pas. */
+.choix-envoi{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tel-relu{margin:10px 0 6px;font-size:14px;color:var(--encre);}
+#blocContact{margin-top:20px;padding-top:16px;border-top:1px solid var(--filet);}
+.tel-relu b{white-space:nowrap;}
 .choix[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-clair);
   color:var(--accent-encre);}
 .choix:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
@@ -3269,6 +3274,60 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            gestes différents, donc deux phrases. -->
       <p class="champ-aide" id="erreurTel" hidden data-t="err_tel">Ce numéro ne semble pas
          valable. Vérifiez-le : c'est par là que nous vous confirmons la course.</p>
+      <!-- ═══ LE NUMÉRO RELU, ET LA RÈGLE DITE AVANT L'ENVOI (4 octobre 2026) ═══
+           Barbaros : « s'il met un faux numéro, j'envoie personne ». Le vrai
+           risque n'est pas le tricheur — sans réponse, aucun chauffeur ne
+           part — c'est le VRAI client qui se trompe, surtout l'étranger qui
+           oublie son indicatif : un « 07700 90012 » britannique tapé sans
+           +44 a exactement la forme d'un mobile français. On lui RELIT donc
+           son numéro tel qu'on le composera, avec le pays : « +33 … (France) »
+           sous les yeux d'un Anglais, l'erreur saute aux yeux. Et on lui dit
+           la règle tant qu'il peut encore corriger : sans réponse, pas de
+           chauffeur. -->
+      <p class="tel-relu" id="telRelu" hidden></p>
+      <p class="champ-aide" data-t="regle_contact">Nous vous contactons pour confirmer.
+         Sans réponse de votre part, aucun chauffeur n'est envoyé.</p>
+    </div>
+
+    <!-- ═══ PAR OÙ PART LA DEMANDE, ET PAR OÙ ON JOINT LE CLIENT (4 octobre 2026) ═══
+         À sa demande. Le client choisit d'envoyer sa demande par WhatsApp,
+         Telegram ou Messages — un message parti de SON téléphone prouve son
+         numéro et dit à Barbaros où répondre : on ne lui demande rien de
+         plus. Par « le site seulement », un numéro FRANÇAIS se joint par
+         appel ou SMS, gratuits pour Barbaros : rien à demander non plus. Un
+         numéro ÉTRANGER, lui, coûterait cher à appeler : c'est le seul cas
+         où l'on demande par quelle application le joindre.
+         LA DEMANDE ARRIVE SUR LE SERVEUR DANS TOUS LES CAS. Le message est un
+         second chemin, jamais le seul. WhatsApp reste le choix d'ouverture :
+         c'est ce que le site faisait jusqu'ici, et le client peut changer.
+         Masqué au comptoir d'un hôtel : la chambre y identifie le client. -->
+    <div class="bloc" id="blocEnvoi">
+      <h2 class="bloc-titre" data-t="envoi_titre">Envoyer ma demande par</h2>
+      <div class="choix-envoi">
+        <button class="choix" type="button" data-envoi="whatsapp" aria-pressed="true">
+          <span data-t="canal_whatsapp">WhatsApp</span></button>
+        <button class="choix" type="button" data-envoi="telegram" aria-pressed="false">
+          <span data-t="canal_telegram">Telegram</span></button>
+        <button class="choix" type="button" data-envoi="messages" aria-pressed="false">
+          <span data-t="canal_messages">Messages</span></button>
+        <button class="choix" type="button" data-envoi="site" aria-pressed="false">
+          <span data-t="canal_site">Le site seulement</span></button>
+      </div>
+      <div id="blocContact" hidden>
+        <h2 class="bloc-titre" data-t="joindre_titre">Comment voulez-vous être contacté ?</h2>
+        <p class="bloc-note" data-t="joindre_note">Votre numéro est étranger : choisissez
+           l'application par laquelle nous vous confirmerons la course.</p>
+        <div class="choix-envoi">
+          <button class="choix" type="button" data-contact="whatsapp" aria-pressed="false">
+            <span data-t="canal_whatsapp">WhatsApp</span></button>
+          <button class="choix" type="button" data-contact="telegram" aria-pressed="false">
+            <span data-t="canal_telegram">Telegram</span></button>
+          <button class="choix" type="button" data-contact="messages" aria-pressed="false">
+            <span data-t="canal_imessage">iMessage</span></button>
+        </div>
+        <p class="refus" id="erreurContact" hidden data-t="err_contact">Choisissez comment
+           nous pouvons vous joindre.</p>
+      </div>
     </div>
 
     <!-- LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE.
@@ -3329,8 +3388,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="bloc suite">
       <h2 class="bloc-titre" data-t="suite_titre">Ce qui se passe ensuite</h2>
       <ol class="suite-liste">
-        <li data-t="suite_1">WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.</li>
-        <li data-t="suite_2">Votre demande arrive chez Elatransfer dans tous les cas, même sans WhatsApp.</li>
+        <li id="suite1" data-t="suite_1">WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.</li>
+        <li data-t="suite_2">Votre demande arrive chez Elatransfer dans tous les cas, même si le message n'est pas envoyé.</li>
         <li data-t="suite_3">La réponse s'affiche ici, dans « Réservations », et vous est envoyée.</li>
       </ol>
     </div>
@@ -4731,9 +4790,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            lien mort, et il le resterait si le client n'avait pas laissé de
            numéro. L'adresse est posée à l'ouverture du bon, et le bloc
            disparaît quand il n'y a pas de téléphone. -->
+      <!-- PAR OÙ JOINDRE LE CLIENT (4 octobre 2026) : le canal qu'il a choisi
+           est dit, et son bouton passe en plein. Messages ouvre l'application
+           de l'iPhone — iMessage, gratuit, si le client en a un (bouton
+           d'envoi bleu) ; SMS sinon (vert). Telegram ouvre la conversation
+           par le numéro, si le client l'autorise dans ses réglages. -->
+      <p class="champ-aide" id="bbContact" hidden></p>
       <div class="duo" id="bbJoindre" style="margin-top:12px">
         <a class="bouton-fantome" id="bbAppeler">Appeler</a>
         <a class="bouton-fantome" id="bbWhatsapp" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="bouton-fantome" id="bbMessages">Messages</a>
+        <a class="bouton-fantome" id="bbTelegram" target="_blank" rel="noopener">Telegram</a>
       </div>
     </div>
 
@@ -5539,7 +5606,18 @@ window.ELA_TEXTES = {
     legal_accept_join:"et je reconnais avoir lu la", legal_accept_privacy:"politique de confidentialité",
     suite_titre:"Ce qui se passe ensuite",
     suite_1:"WhatsApp s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
-    suite_2:"Votre demande arrive chez Elatransfer dans tous les cas, même sans WhatsApp.",
+    suite_1_telegram:"Telegram s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
+    suite_1_messages:"Messages s'ouvre avec votre demande déjà écrite : il ne reste qu'à l'envoyer.",
+    suite_1_site:"Votre demande part directement depuis le site, sans application à ouvrir.",
+    suite_2:"Votre demande arrive chez Elatransfer dans tous les cas, même si le message n'est pas envoyé.",
+    regle_contact:"Nous vous contactons pour confirmer. Sans réponse de votre part, aucun chauffeur n'est envoyé.",
+    tel_relu:"Nous vous contacterons au",
+    envoi_titre:"Envoyer ma demande par",
+    canal_whatsapp:"WhatsApp", canal_telegram:"Telegram", canal_messages:"Messages",
+    canal_imessage:"iMessage", canal_site:"Le site seulement",
+    joindre_titre:"Comment voulez-vous être contacté ?",
+    joindre_note:"Votre numéro est étranger : choisissez l'application par laquelle nous vous confirmerons la course.",
+    err_contact:"Choisissez comment nous pouvons vous joindre.",
     suite_3:"La réponse s'affiche ici, dans « Réservations », et vous est envoyée.",
     bon_sous:"Bon de réservation",
     /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
@@ -5731,7 +5809,18 @@ window.ELA_TEXTES = {
     legal_accept_join:"and acknowledge that I have read the", legal_accept_privacy:"privacy policy",
     suite_titre:"What happens next",
     suite_1:"WhatsApp opens with your request already written: just send it.",
-    suite_2:"Your request reaches Elatransfer either way, even without WhatsApp.",
+    suite_1_telegram:"Telegram opens with your request already written: just send it.",
+    suite_1_messages:"Messages opens with your request already written: just send it.",
+    suite_1_site:"Your request is sent directly from the website, no app to open.",
+    suite_2:"Your request reaches Elatransfer either way, even if the message is not sent.",
+    regle_contact:"We will contact you to confirm. Without a reply from you, no chauffeur is sent.",
+    tel_relu:"We will contact you on",
+    envoi_titre:"Send my request via",
+    canal_whatsapp:"WhatsApp", canal_telegram:"Telegram", canal_messages:"Messages",
+    canal_imessage:"iMessage", canal_site:"Website only",
+    joindre_titre:"How would you like to be contacted?",
+    joindre_note:"Your number is from abroad: choose the app we will use to confirm your transfer.",
+    err_contact:"Please choose how we can reach you.",
     suite_3:"The answer appears here, under « Bookings », and is sent to you.",
     bon_sous:"Booking voucher",
     bon_etat:"Request received",
@@ -9222,6 +9311,14 @@ window.ELA_TEXTES = {
    LE RÉCAPITULATIF, PUIS LE BON
    ===================================================================== */
   var NUMERO_WA = "33759312433";
+  /* LE NOM D'UTILISATEUR TELEGRAM D'ELATRANSFER, sans « @ ». Telegram n'ouvre
+     une conversation avec un message déjà écrit QUE par un nom
+     d'utilisateur (« t.me/<nom>?text= », documentation officielle), pas par
+     un numéro. Vide : le choix « Telegram » n'est pas proposé pour ENVOYER
+     la demande — un bouton qui n'ouvrirait rien serait pire que pas de
+     bouton. Il reste proposé pour être CONTACTÉ : c'est le Telegram du
+     client, Barbaros l'ouvre depuis le sien. */
+  var TELEGRAM_ELA = "";
 
   /* ═══════════════════════════════════════════════════════════════════
      LE BOUTON WHATSAPP OUVRE UN CHOIX, PLUS UN MESSAGE TOUT ÉCRIT
@@ -9483,8 +9580,133 @@ window.ELA_TEXTES = {
     return cle === "carte" ? "Carte bancaire" : "Espèces";
   }
 
+  /* =====================================================================
+     PAR OÙ PART LA DEMANDE, PAR OÙ ON JOINT LE CLIENT (4 octobre 2026)
+     ---------------------------------------------------------------------
+     Voir le bloc « blocEnvoi ». Trois règles :
+     — envoyée par WhatsApp, Telegram ou Messages : le message prouve le
+       numéro et dit où répondre, on ne demande rien ;
+     — « le site seulement » et numéro FRANÇAIS : appel ou SMS, gratuits
+       pour Barbaros, on ne demande rien ;
+     — « le site seulement » et numéro ÉTRANGER : on demande l'application,
+       parce qu'un appel international coûte cher.
+     On ne devine pas le pays au libellé : on lit l'indicatif du numéro tel
+     que « telWa » le composera — le même que celui qu'on appellera.
+     ===================================================================== */
+  var PAYS_INDICATIF = [
+    ["33","France","France"],["44","Royaume-Uni","United Kingdom"],
+    ["1","États-Unis / Canada","USA / Canada"],["34","Espagne","Spain"],
+    ["39","Italie","Italy"],["49","Allemagne","Germany"],["32","Belgique","Belgium"],
+    ["41","Suisse","Switzerland"],["31","Pays-Bas","Netherlands"],["43","Autriche","Austria"],
+    ["351","Portugal","Portugal"],["353","Irlande","Ireland"],["30","Grèce","Greece"],
+    ["48","Pologne","Poland"],["45","Danemark","Denmark"],["46","Suède","Sweden"],
+    ["47","Norvège","Norway"],["212","Maroc","Morocco"],["213","Algérie","Algeria"],
+    ["216","Tunisie","Tunisia"],["20","Égypte","Egypt"],["90","Turquie","Türkiye"],
+    ["971","Émirats arabes unis","United Arab Emirates"],["966","Arabie saoudite","Saudi Arabia"],
+    ["974","Qatar","Qatar"],["972","Israël","Israel"],["961","Liban","Lebanon"],
+    ["86","Chine","China"],["81","Japon","Japan"],["82","Corée du Sud","South Korea"],
+    ["91","Inde","India"],["55","Brésil","Brazil"],["52","Mexique","Mexico"],
+    ["61","Australie","Australia"],["7","Russie / Kazakhstan","Russia / Kazakhstan"]
+  ].sort(function(a, b){ return b[0].length - a[0].length; });
+  function indicatifDe(chiffres){
+    for(var i = 0; i < PAYS_INDICATIF.length; i++)
+      if(chiffres.indexOf(PAYS_INDICATIF[i][0]) === 0) return PAYS_INDICATIF[i];
+    return null;
+  }
+  /* « +33 6 12 34 56 78 (France) » : le numéro tel qu'on le composera. */
+  function telLisible(brut){
+    var c = telWa(brut);
+    if(!c) return "";
+    var pays = indicatifDe(c), ind = pays ? pays[0] : "", reste = c.slice(ind.length);
+    if(ind === "33" && reste.length === 9)
+      reste = reste.charAt(0) + " " + reste.slice(1).replace(/(\d{2})(?=\d)/g, "$1 ");
+    return "+" + (ind ? ind + " " : "") + reste
+         + (pays ? " (" + (LANGUE === "en" ? pays[2] : pays[1]) + ")" : "");
+  }
+  function telEtranger(brut){
+    var c = telWa(brut);
+    return !!c && c.indexOf("33") !== 0;
+  }
+  var envoiChoisi   = "whatsapp";
+  var contactChoisi = null;
+  var boutonsEnvoi   = Array.prototype.slice.call(document.querySelectorAll("[data-envoi]"));
+  var boutonsContact = Array.prototype.slice.call(document.querySelectorAll("[data-contact]"));
+  var SUITE_1 = { whatsapp:"suite_1", telegram:"suite_1_telegram",
+                  messages:"suite_1_messages", site:"suite_1_site" };
+  /* Le contact n'est demandé QUE dans ce cas : le site seul, et un numéro
+     étranger valable. Un numéro encore faux sera refusé de toute façon. */
+  function contactDemande(){
+    var tel = document.getElementById("clientTel").value.trim();
+    return !recHotel && envoiChoisi === "site" && telValide(tel) && telEtranger(tel);
+  }
+  function jugerContact(){
+    document.getElementById("blocEnvoi").hidden = !!recHotel;
+    var btTg = document.querySelector('[data-envoi="telegram"]');
+    btTg.hidden = !TELEGRAM_ELA;
+    if(!TELEGRAM_ELA && envoiChoisi === "telegram") envoiChoisi = "whatsapp";
+    boutonsEnvoi.forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.envoi === envoiChoisi));
+    });
+    boutonsContact.forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.contact === contactChoisi));
+    });
+    var demande = contactDemande();
+    document.getElementById("blocContact").hidden = !demande;
+    if(!demande) document.getElementById("erreurContact").hidden = true;
+    var li = document.getElementById("suite1");
+    var cle = recHotel ? "suite_1_site" : SUITE_1[envoiChoisi];
+    li.setAttribute("data-t", cle);
+    li.textContent = T(cle);
+    var tel = document.getElementById("clientTel").value.trim();
+    var relu = document.getElementById("telRelu");
+    relu.hidden = !telValide(tel);
+    relu.textContent = "";
+    if(!relu.hidden){
+      relu.appendChild(document.createTextNode(T("tel_relu") + " "));
+      var b = document.createElement("b");
+      b.textContent = telLisible(tel);
+      relu.appendChild(b);
+    }
+  }
+  boutonsEnvoi.forEach(function(b){
+    b.addEventListener("click", function(){ envoiChoisi = b.dataset.envoi; jugerContact(); });
+  });
+  boutonsContact.forEach(function(b){
+    b.addEventListener("click", function(){
+      contactChoisi = b.dataset.contact;
+      document.getElementById("erreurContact").hidden = true;
+      jugerContact();
+    });
+  });
+  document.getElementById("clientTel").addEventListener("input", jugerContact);
+  document.querySelectorAll(".langues button").forEach(function(b){
+    b.addEventListener("click", jugerContact);
+  });
+  /* Ce qui part sur le bon : par où la demande est partie, et par où
+     joindre le client. « prefere » vide = numéro français envoyé par le
+     site seul : appel ou SMS, au choix de Barbaros. */
+  function contactDuBon(){
+    if(recHotel) return { envoi:"site", prefere:"" };
+    return { envoi: envoiChoisi,
+             prefere: envoiChoisi !== "site" ? envoiChoisi : (contactDemande() ? (contactChoisi || "") : "") };
+  }
+  /* Les liens d'ouverture, un par application. Messages : iOS lit
+     « &body= », Android « ?body= » (RFC 5724) — sur iPhone, l'envoi part en
+     iMessage, gratuit, quand le destinataire en a un. */
+  function lienEnvoi(canal, texte){
+    var t = encodeURIComponent(texte);
+    if(canal === "telegram") return "https://t.me/" + TELEGRAM_ELA + "?text=" + t;
+    if(canal === "messages"){
+      var ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+             || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      return "sms:+" + NUMERO_WA + (ios ? "&body=" : "?body=") + t;
+    }
+    return "https://wa.me/" + NUMERO_WA + "?text=" + t;
+  }
+
   document.getElementById("btnContinuer").addEventListener("click", function(){
     if(!course.gamme) return;
+    jugerContact();
     remplirRecap();
     jugerPancarte();
     ecrirePancarte();
@@ -9813,6 +10035,17 @@ window.ELA_TEXTES = {
       return;
     }
     erreurPaiement.hidden = true;
+    /* Numéro étranger et demande envoyée par le site seul : sans
+       l'application où le joindre, Barbaros n'aurait qu'un appel
+       international pour confirmer. Même geste que le règlement. */
+    jugerContact();
+    if(contactDemande() && !contactChoisi){
+      var errC = document.getElementById("erreurContact");
+      errC.hidden = false;
+      boutonsContact[0].focus();
+      errC.scrollIntoView({ block:"nearest" });
+      return;
+    }
     /* ═══ L'HEURE EST REJUGÉE À L'ENVOI ═══
        Rien ne la relisait entre « Voir mon prix » et ici : un client qui
        met cinq minutes à remplir le récapitulatif — ou une réception qui
@@ -9963,6 +10196,7 @@ window.ELA_TEXTES = {
          sans ce champ reste lisible — l'affichage retombe sur un tiret. */
       paiement: paiementChoisi,
       paiementNom: paiementLisible(paiementChoisi),
+      contact: contactDuBon(),
       prix: { total: total, ht: ht, tva: total - ht, majoration: course.majoration },
       dateMsg: dateMessage()
     };
@@ -10012,10 +10246,14 @@ window.ELA_TEXTES = {
        LE BOUTON DU BON RESTE, et ce n'est pas un vestige : si le dépôt
        échoue, il redevient le SEUL chemin par lequel la demande peut nous
        parvenir. Il ne part simplement plus tout seul. */
-    if(!recHotel){
-      window.open("https://wa.me/" + NUMERO_WA + "?text="
-                  + encodeURIComponent(messageDemande(bonCourant)), "_blank");
-    }
+    /* L'APPLICATION CHOISIE PAR LE CLIENT (4 octobre 2026). Rien ne s'ouvre
+       au comptoir ni pour « le site seulement ». Messages est un lien
+       « sms: » : il ouvre l'application sans quitter la page, on ne lui
+       donne donc pas d'onglet. */
+    var envoi = bonCourant.contact.envoi;
+    if(envoi === "messages") window.location.href = lienEnvoi("messages", messageDemande(bonCourant));
+    else if(envoi === "whatsapp" || envoi === "telegram")
+      window.open(lienEnvoi(envoi, messageDemande(bonCourant)), "_blank");
     try{
       var deja = JSON.parse(localStorage.getItem("ela_courses") || "[]");
       deja.unshift(bonCourant);
@@ -12491,7 +12729,18 @@ window.ELA_TEXTES = {
     if(tel){
       document.getElementById("bbAppeler").href  = "tel:+" + tel;
       document.getElementById("bbWhatsapp").href = "https://wa.me/" + tel;
+      document.getElementById("bbMessages").href = "sms:+" + tel;
+      document.getElementById("bbTelegram").href = "https://t.me/+" + tel;
     }
+    var pref = canalClient(c);
+    ["bbAppeler","bbWhatsapp","bbMessages","bbTelegram"].forEach(function(id){
+      document.getElementById(id).className = "bouton-fantome";
+    });
+    var idPref = { whatsapp:"bbWhatsapp", messages:"bbMessages", telegram:"bbTelegram" }[pref];
+    if(idPref && tel) document.getElementById(idPref).className = "bouton";
+    var bc = document.getElementById("bbContact");
+    bc.textContent = phraseContact(c);
+    bc.hidden = !bc.textContent;
     document.getElementById("bbChauffeurNom").value = (c.chauffeur && c.chauffeur.nom) || "";
     document.getElementById("bbChauffeurTel").value = (c.chauffeur && c.chauffeur.telephone) || "";
     document.getElementById("bbComMode").value = (c.commission && c.commission.mode) || "pct";
@@ -12926,12 +13175,53 @@ window.ELA_TEXTES = {
         + "répondons très vite. Votre réservation sera ferme dès notre confirmation."
     ].join("\n");
   }
+  /* ═══ LE CANAL DU CLIENT (4 octobre 2026) ═══
+     « prefere » vient du site : l'application par laquelle il a envoyé sa
+     demande, ou celle qu'il a choisie pour être contacté. Vide (numéro
+     français envoyé par le site seul, saisie au téléphone, demande collée,
+     course plus ancienne) : WhatsApp, comme toujours. */
+  var NOM_CANAL = { whatsapp:"WhatsApp", telegram:"Telegram", messages:"Messages (iMessage / SMS)" };
+  function canalClient(c){
+    var p = c && c.contact && c.contact.prefere;
+    return NOM_CANAL[p] ? p : "";
+  }
+  function phraseContact(c){
+    var k = c && c.contact;
+    if(!k || !k.envoi) return "";
+    if(k.envoi !== "site")
+      return "Demande envoyée par " + (NOM_CANAL[k.envoi] || k.envoi)
+           + " : si son message vous est arrivé, le numéro est le bon. Répondez par là.";
+    if(canalClient(c))
+      return "Numéro étranger, demande envoyée par le site : le client veut être contacté par "
+           + NOM_CANAL[canalClient(c)] + ".";
+    return "Demande envoyée par le site seul : appel ou SMS.";
+  }
+  /* Écrire au client par SON canal. Rien n'est attendu avant l'ouverture :
+     Safari exige le geste. Telegram n'accepte pas de message tout écrit
+     vers un numéro : il est copié, Barbaros le colle. */
+  function ecrireAuClient(c, tel, texte){
+    var canal = canalClient(c) || "whatsapp", t = encodeURIComponent(texte);
+    if(canal === "messages"){
+      var ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+             || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      window.location.href = "sms:+" + tel + (ios ? "&body=" : "?body=") + t;
+      return;
+    }
+    if(canal === "telegram"){
+      try{ navigator.clipboard.writeText(texte).catch(function(){}); }catch(e){}
+      window.open("https://t.me/+" + tel, "_blank");
+      var n = document.getElementById("bbContact");
+      n.hidden = false;
+      n.textContent = "Message copié : collez-le dans la conversation Telegram du client.";
+      return;
+    }
+    window.open("https://wa.me/" + tel + "?text=" + t, "_blank");
+  }
   document.getElementById("btnAccuserReception").addEventListener("click", function(){
     if(!bonBord) return;
     var tel = telWa(bonBord.client && bonBord.client.telephone);
     if(!tel) return;
-    window.open("https://wa.me/" + tel + "?text="
-                + encodeURIComponent(messageAccuse(bonBord)), "_blank");
+    ecrireAuClient(bonBord, tel, messageAccuse(bonBord));
     /* On garde la trace : sur une liste de dix demandes reçues la nuit, on
        ne se souvient pas de qui a déjà eu un mot. */
     majCourse(bonBord.ref, bonBord.statut || "attente",
@@ -12979,8 +13269,7 @@ window.ELA_TEXTES = {
                           { chauffeur: saisi, commission: commissionSaisie() }) || bonBord;
     }
     direConfirmer("");
-    window.open("https://wa.me/" + tel + "?text="
-                + encodeURIComponent(messageConfirmation(bonBord)), "_blank");
+    ecrireAuClient(bonBord, tel, messageConfirmation(bonBord));
   });
   /* MÊME RÈGLE SUR LA FICHE (3 octobre 2026) : avant l'heure de départ,
      « Marquer comme réalisée » demande un second appui. */

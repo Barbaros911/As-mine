@@ -68,7 +68,7 @@ jobs:
           # vérifie qu'aucune page de l'admin ni de la réception ne publie ses
           # notes de travail. Hors CI, l'oubli d'une ligne dans construire.sh
           # passait sans bruit (relecture de la PR #306, 4 octobre 2026).
-          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes"
+          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

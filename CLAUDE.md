@@ -1155,10 +1155,9 @@ Elatransfer même si le message WhatsApp n'est pas envoyé**.
 la demande arrive dans son tableau de bord. Ce qui manquait, c'est que le
 site disait le contraire.
 
-**WHATSAPP CONTINUE DE S'OUVRIR TOUT SEUL POUR LE CLIENT, ET C'EST TOUJOURS
-DÉLIBÉRÉ.** Le client, lui, n'a pas de Telegram : son message reste le
-second chemin par lequel sa demande peut nous parvenir si le dépôt échoue.
-Ne pas le retirer côté client.
+**WHATSAPP RESTE LE CHOIX D'OUVERTURE CÔTÉ CLIENT** ; depuis le 4/10/2026 il
+peut choisir Telegram, Messages ou « le site seul » (`memoire/contact-client.md`).
+Numéro étranger + site seul : on lui demande l'application où le joindre.
 **AU COMPTOIR D'HÔTEL, IL NE S'OUVRE PLUS** — voir la section dédiée plus
 bas. C'est l'application de la règle qui figurait ici (« ne pas supprimer
 l'ouverture automatique avant que le webhook Telegram fonctionne ») : il

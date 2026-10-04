@@ -110,7 +110,10 @@ check('la demande est déposée aussi : les deux chemins vivent ensemble',
    ne reproduira jamais le blocage. */
 const source = await (await fetch('http://127.0.0.1:8099/index.html')).text();
 const debut = source.indexOf('getElementById("btnConfirmer").addEventListener');
-const ouverture = source.indexOf('window.open("https://wa.me/', debut);
+/* Depuis le 4 octobre 2026 le client choisit son application : l'ouverture
+   passe par « lienEnvoi », et c'est CE premier appel qu'on vise — chercher
+   encore « wa.me » ferait glisser la recherche jusqu'à un autre écran. */
+const ouverture = source.indexOf('window.open(lienEnvoi(', debut);
 const avant = source.slice(debut, ouverture);
 check('les deux partent : WhatsApp et le dépôt',
   j.some(e=>e.quoi==='wa') && j.some(e=>e.quoi==='depot'),
