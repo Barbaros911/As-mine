@@ -7,10 +7,13 @@
 
    — LE RÉFÉRENCEMENT. Une page sans titre ni description disparaît de
      Google en quelques jours, et personne ne s'en aperçoit avant que
-     le téléphone arrête de sonner. Le titre MÈNE avec le métier et la
-     zone, les aéroports viennent après : l'ancien site menait avec
-     « Roissy CDG · Orly » et était absent de « chauffeur privé Paris ».
-     Un contrôle vérifie donc l'ORDRE, pas la simple présence.
+     le téléphone arrête de sonner. Depuis le 4 octobre 2026 (titre et
+     description validés par Barbaros), le titre MÈNE avec la marque et
+     dit ce qu'elle vend — des transferts — et la description nomme les
+     deux aussi. L'ancienne règle (« le métier avant les aéroports »)
+     datait de l'époque où le site se vendait comme chauffeur privé ;
+     elle est tombée avec ce positionnement, et un contrôle qui la
+     gardait aurait exigé un texte que Barbaros a retiré.
    — « noindex » A DISPARU. Il protégeait le site pendant sa
      construction ; laissé en place, il interdit purement et simplement
      l'indexation de la page d'accueil.
@@ -98,17 +101,28 @@ check('la racine sert bien le nouveau site',
 // ---- Le référencement ----
 const titre = await p.title();
 check('la page a un titre', titre.length > 10 && titre.includes('Elatransfer'), titre);
-// L'ORDRE compte : le métier et la zone AVANT les aéroports.
-const iMetier = titre.toLowerCase().indexOf('chauffeur privé');
-check('le titre mène avec le métier', iMetier >= 0 && iMetier < 12, titre);
+// LA MARQUE D'ABORD, puis ce qu'elle vend (4 octobre 2026). On vérifie la
+// règle, pas le libellé du jour : une reformulation légitime doit passer,
+// un titre qui rangerait la marque en queue ou oublierait le métier non.
+check('le titre mène avec la marque', titre.trim().toLowerCase().startsWith('elatransfer'), titre);
+check('…et dit ce qu\'on vend : des transferts', /transfert/i.test(titre), titre);
 const desc = await p.getAttribute('meta[name=description]','content');
 check('la page a une description', desc && desc.length > 80 && desc.length < 320,
   String(desc && desc.length));
-const iM = desc.toLowerCase().indexOf('chauffeur privé');
-const iA = Math.min(...['roissy','orly','beauvais'].map(x=>{
-  const i = desc.toLowerCase().indexOf(x); return i < 0 ? 9999 : i; }));
-check('la description aussi : le métier avant les aéroports', iM >= 0 && iM < iA,
-  'métier@'+iM+' aéroport@'+iA);
+check('la description nomme la marque et le métier',
+  /elatransfer/i.test(desc || '') && /transfert/i.test(desc || ''), String(desc));
+// Le site construit réécrit ces deux lignes (`seo-ela.mjs`) : dépôt et site
+// publié doivent dire la même chose, sinon Google lit l'un et le client
+// l'autre. On compare au site servi sur SITE, pas à une constante recopiée.
+{
+  const pub = await (await fetch(SITE + '/')).text();
+  const tPub = (pub.match(/<title>([^<]*)<\/title>/i) || [, ''])[1]
+    .replace(/&amp;/g, '&').trim();
+  const dPub = (pub.match(/<meta\s+name=["']description["']\s+content=["']([^"']*)["']/i) || [, ''])[1];
+  check('le site construit porte le même titre que le dépôt',
+    tPub === titre.replace(/&amp;/g, '&').trim(), tPub + ' ≠ ' + titre);
+  check('et la même description', dPub === desc, dPub.slice(0, 60) + '… ≠ ' + String(desc).slice(0, 60));
+}
 
 const robots = await p.getAttribute('meta[name=robots]','content');
 check('« noindex » a disparu — sinon la page ne serait jamais indexée',
