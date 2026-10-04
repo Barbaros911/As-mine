@@ -62,7 +62,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Utiliser Node 22
         uses: actions/setup-node@v4
