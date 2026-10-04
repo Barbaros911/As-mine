@@ -1069,6 +1069,24 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    cinquième se serait fondue dans la série au lieu de se lire comme une
    promesse. Pas de bordure — l'aplat suffit à la détacher du gris du fond.
    Le texte accent sur accent-clair est mesuré à 7,1 de contraste. */
+/* LE BLOC DES PROFESSIONNELS (3 octobre 2026) — sorti du bandeau, voir le
+   commentaire du HTML. Une carte claire et sobre, filet bleu à gauche : elle
+   se lit comme une information, pas comme une seconde action — le seul
+   bouton fort du premier écran reste « Voir mon prix ». */
+.pro-bloc{margin:22px 12px 0;padding:14px 16px;border-radius:14px;
+  background:var(--carte,#fff);border:1px solid var(--filet,#dde4e2);
+  border-left:4px solid var(--ela-blue,var(--accent));}
+.pro-bloc p{margin:0;font-size:13px;line-height:1.5;color:var(--gris,#616e6b);}
+.pro-bloc strong{display:block;margin-bottom:2px;font-size:14px;
+  color:var(--ela-navy,var(--encre));}
+/* Le texte vient de la traduction, avec son « <br> » après le titre : le
+   titre étant déjà un bloc, ce saut-là ferait une ligne vide. */
+.pro-bloc strong + br{display:none;}
+/* Calé sur la carte du formulaire juste au-dessus : mêmes bords à 12 px
+   sur téléphone (8 px sous 340), même largeur de 1180 px sur ordinateur. */
+@media (max-width:340px){ .pro-bloc{margin-left:8px;margin-right:8px;} }
+@media (min-width:900px){ .pro-bloc{max-width:1180px;margin:26px auto 0;box-sizing:border-box;} }
+body.hotel .pro-bloc{display:none;}
 .promesse{display:flex;gap:12px;align-items:flex-start;margin:26px 20px 0;
   padding:15px 16px;border-radius:15px;background:var(--accent-clair);}
 .promesse > svg{flex:none;margin-top:2px;}
@@ -2007,6 +2025,14 @@ body.espace #panneauProvenance{display:none;}
 .etapes-ligne b{width:20px;height:20px;border-radius:50%;background:#147edc;color:#fff;
   font-size:11px;display:inline-grid;place-items:center}
 .etapes-ligne i{font-style:normal;color:#12c4ee;margin:0 2px}
+/* SUR ORDINATEUR, LA CARTE EST UNE GRILLE DE 12 COLONNES (façade), qui place
+   ses enfants UN PAR UN : bouton, phrase rassurante, écriteaux… La ligne des
+   étapes, ajoutée après, n'y figurait pas : elle tombait dans UNE colonne,
+   86 px de large au bord gauche de la carte, chiffres rognés (mesuré à 1024
+   et 1280 px, 3 octobre 2026). Même famille que la barre du bas figée sur
+   quatre onglets : une liste écrite pour les éléments du jour. Elle prend
+   toute la largeur, comme le bouton au-dessus ; hors grille, sans effet. */
+.reserver > .etapes-ligne{grid-column:1/-1;}
 .inclus{background:linear-gradient(135deg,#062f55,#094a78);color:#fff;border-radius:22px;padding:22px 18px 10px}
 .inclus-sur{margin:0;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#12c4ee}
 .section .inclus h2{color:#fff;margin:4px 0 8px;font-size:22px}
@@ -2380,7 +2406,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <h1 data-t-html="hero_titre">Tous vos déplacements, une seule solution.</h1>
       <p class="hero-sous" data-t="hero_sous">ELA TRANSFER organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.</p>
       <p class="hero-prix" data-t="hero_prix">Transferts · Chauffeurs · Conciergerie · Sur mesure</p>
-      <p class="hero-notes" data-t-html="hero_pro"><strong>Hôtels • Agences • Entreprises</strong><br>Des solutions de réservation dédiées à vos clients et à vos équipes.<br>Page personnalisée • QR code • Outil de réservation</p>
       <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
            Sans lui, un bandeau plus haut ne ferait que repousser le
            formulaire hors du premier écran : l'accroche coûterait le geste
@@ -2744,6 +2769,22 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <b>3</b><span data-t="etape3">Confirmation</span>
     </p>
   </section>
+
+  <!-- « HÔTELS • AGENCES • ENTREPRISES » VIT SOUS LE FORMULAIRE, PAS DANS
+       LE BANDEAU (3 octobre 2026, à sa demande : « fais comme un expert »).
+       Posé dans le bandeau, ce bloc de trois lignes l'a allongé de ~100 px
+       et a remis « Voir mon prix » À CHEVAL SUR LA BARRE DU BAS : mesuré à
+       390 × 844, bouton 753–806 pour une barre à 784 — un pouce posé dans le
+       bas du bouton ouvrait un onglet au lieu du prix. C'est le défaut le
+       plus coûteux déjà payé une fois (voir « LA BARRE DU BAS MANGEAIT
+       « VOIR MON PRIX » » dans CLAUDE.md).
+       LE PREMIER ÉCRAN APPARTIENT AU CLIENT QUI RÉSERVE. Le message aux
+       professionnels n'est pas retiré : il est juste après l'action, là où
+       un hôtel ou une agence qui fait défiler le lit tout de suite. Son
+       texte est celui de Barbaros, inchangé, dans les deux langues. -->
+  <div class="pro-bloc">
+    <p data-t-html="pro_bloc"><strong>Hôtels • Agences • Entreprises</strong><br>Des solutions de réservation dédiées à vos clients et à vos équipes.<br>Page personnalisée • QR code • Outil de réservation</p>
+  </div>
 
   <!-- LA PROMESSE D'ARRIVÉE (septembre 2026, à sa demande).
        Elle reprend l'avion du champ « numéro de vol » : c'est le même
@@ -5254,7 +5295,7 @@ window.ELA_TEXTES = {
     hero_titre:"Tous vos déplacements, une seule solution.",
     hero_sous:"ELA TRANSFER organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.",
     hero_prix:"Transferts · Chauffeurs · Conciergerie · Sur mesure",
-    hero_pro:"<strong>Hôtels • Agences • Entreprises</strong><br>Des solutions de réservation dédiées à vos clients et à vos équipes.<br>Page personnalisée • QR code • Outil de réservation",
+    pro_bloc:"<strong>Hôtels • Agences • Entreprises</strong><br>Des solutions de réservation dédiées à vos clients et à vos équipes.<br>Page personnalisée • QR code • Outil de réservation",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     zone_titre:"Cette adresse est en dehors de notre zone.",
@@ -5445,7 +5486,7 @@ window.ELA_TEXTES = {
     hero_titre:"All your journeys, one solution.",
     hero_sous:"ELA TRANSFER organises your transfers and mobility solutions, for individuals and professionals alike.",
     hero_prix:"Transfers · Chauffeurs · Concierge services · Tailored solutions",
-    hero_pro:"<strong>Hotels • Agencies • Businesses</strong><br>Dedicated booking solutions for your clients and teams.<br>Custom page • QR code • Booking tool",
+    pro_bloc:"<strong>Hotels • Agencies • Businesses</strong><br>Dedicated booking solutions for your clients and teams.<br>Custom page • QR code • Booking tool",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     zone_titre:"This address is outside our service area.",

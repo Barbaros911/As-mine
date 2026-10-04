@@ -84,9 +84,24 @@ check('un navigateur allemand ouvre en anglais, pas en français',
    l'écran. */
 const bandeau = await p.evaluate(()=>[...document.querySelectorAll('.hero-texte > *')]
   .map(e=>e.textContent.trim()).join(' | '));
+/* CHAQUE LIGNE est comparée à SA version française, lue dans la page : une
+   ligne restée en français, ou une clé oubliée, rend un texte identique.
+   Le premier jet exigeait les mots « private chauffeur » — il figeait le
+   titre du jour et est tombé le 3 octobre 2026 sur un nouveau titre
+   parfaitement traduit. On vise la règle (tout est traduit), pas le texte. */
+const restees = await p.evaluate(()=>{
+  const fr = (window.ELA_TEXTES || {}).fr || {};
+  const brut = h => String(h || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  return [...document.querySelectorAll('.hero-texte > *')].map(e => {
+    const cle = e.getAttribute('data-t') || e.getAttribute('data-t-html');
+    const texte = e.textContent.replace(/\s+/g, ' ').trim();
+    if (!cle) return 'sans clé : ' + texte;
+    return brut(fr[cle]) === texte ? 'en français : ' + cle : null;
+  }).filter(Boolean);
+});
 check('tout le bandeau d\'accueil parle anglais',
-  !/[àéèêîôûç]/i.test(bandeau.replace(/Île-de-France/g,'')) && /private chauffeur/i.test(bandeau),
-  bandeau);
+  !restees.length && !/[àéèêîôûç]/i.test(bandeau.replace(/Île-de-France/g,'')),
+  restees.length ? restees.join(' · ') : bandeau);
 
 // --- Il n'existe que deux langues ---
 const boutons = await p.locator('.langues button').allTextContents();
