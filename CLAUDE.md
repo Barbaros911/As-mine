@@ -6811,9 +6811,10 @@ des clients et une seconde adresse où se tromper d'outil.
 
 ## « HÔTELS • AGENCES • ENTREPRISES » EST SOUS LE FORMULAIRE
 
-> **Le texte de ce bloc a changé le 4 octobre 2026** — voir « LE SITE SE
-> PRÉSENTE PAR SA MARQUE » en fin de fichier. La PLACE décrite ici reste
-> la bonne ; le contenu n'est plus trois lignes mais un paragraphe.
+> **Le texte FRANÇAIS de ce bloc a changé le 4 octobre 2026** : c'est un
+> paragraphe, plus trois lignes. **L'anglais garde volontairement ses trois
+> lignes** — décision de Barbaros, voir « LE SITE SE PRÉSENTE PAR SA
+> MARQUE » en fin de fichier. La PLACE décrite ici reste la bonne.
 
 3 octobre 2026, à sa demande (« fais comme un expert »). Le nouveau texte
 d'accueil (79e06a8) avait mis ce bloc de trois lignes DANS le bandeau : il
@@ -6951,16 +6952,17 @@ l'empreinte du contrôleur qui était un libellé.
   réécrit le titre et la description dans `site/index.html` : la nuit du
   4 octobre, le dépôt disait l'ancienne description et le script la
   nouvelle — deux vérités, Google lit l'une et le client l'autre. Les deux
-  sont alignées, `og:description` et `twitter:description` aussi (elles
-  vendaient encore « mises à disposition », retirée du site en septembre),
-  et un contrôle de `test-nouveau-bascule` compare désormais le site servi
-  au dépôt plutôt qu'à une constante recopiée.
-- **L'anglais du bloc des professionnels est traduit phrase pour phrase.**
-  Le commit disait « la version anglaise conserve sa traduction dédiée » :
-  elle gardait les TROIS LIGNES d'avant pendant que le français était un
-  paragraphe — deux textes différents pour le même partenaire selon sa
-  langue. Les règles `.pro-bloc strong` sont parties avec le titre en gras.
-- **La PR #302 devient sans objet** une fois ce lot fusionné : elle portait
-  la même description, et elle était en conflit avec `main` depuis le push
-  direct. La fermer, pas la fusionner par-dessus.
-- `sw.js` CACHE v126.
+  sont alignées, et un contrôle de `test-nouveau-bascule` compare désormais
+  le site servi au dépôt plutôt qu'à une constante recopiée.
+- **CE QUI N'A PAS ÉTÉ TOUCHÉ, ET C'EST SA DÉCISION.** Un premier jet avait
+  traduit en anglais le nouveau paragraphe des professionnels et réécrit
+  `og:description` / `twitter:description`. Barbaros ne l'avait pas demandé
+  (« il ne restait que la méta-description ») : les deux ont été retirés
+  avant la fusion. L'anglais garde donc ses trois lignes d'avant, ce que
+  son commit disait déjà (« la version anglaise conserve sa traduction
+  dédiée »). Les lignes de partage parlent encore de « mises à
+  disposition », retirée du site en septembre : **signalé, pas corrigé** —
+  à lui de trancher. *Une consigne écrite dans un commentaire de commit
+  est une consigne, pas un oubli à rattraper.*
+- **La PR #302 a été fermée sans fusion** : elle portait la même
+  description, et elle était en conflit avec `main` depuis le push direct.

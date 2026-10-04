@@ -6,11 +6,10 @@
 <!-- LE RÉFÉRENCEMENT MÈNE AVEC LA MARQUE, puis dit ce qu'elle vend (4 octobre
      2026, titre et description validés par Barbaros). Elatransfer ne se
      présente plus comme « chauffeur privé » : des transferts privés ET des
-     solutions de réservation pour ses partenaires. Les aéroports ne sont plus
-     dans le titre — ils restent dans le texte de la page, où ils apportent
-     des clients. Ce que ces deux lignes disent ici, `.github/scripts/seo-ela.mjs`
-     le réécrit À L'IDENTIQUE dans le site construit : changer l'un sans
-     l'autre fait diverger le dépôt et le site publié sans un mot. -->
+     solutions de réservation pour ses partenaires. Ce que ces deux lignes
+     disent ici, `.github/scripts/seo-ela.mjs` le réécrit À L'IDENTIQUE dans
+     le site construit : changer l'un sans l'autre fait diverger le dépôt et
+     le site publié sans un mot. -->
 <title>Elatransfer — Transferts privés &amp; solutions de réservation</title>
 <meta name="description" content="Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -26,13 +25,13 @@
 <link rel="alternate" hreflang="x-default" href="https://elatransfer.com/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Elatransfer — Transferts privés &amp; solutions de réservation">
-<meta property="og:description" content="Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.">
+<meta property="og:description" content="Transferts privés, mises à disposition et déplacements sur mesure. Prix ferme, annoncé avant de partir, réglé au chauffeur.">
 <meta property="og:site_name" content="Elatransfer">
 <meta property="og:url" content="https://elatransfer.com/">
 <meta property="og:locale" content="fr_FR">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Elatransfer — Transferts privés &amp; solutions de réservation">
-<meta name="twitter:description" content="Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.">
+<meta name="twitter:description" content="Prix ferme annoncé avant la réservation. Réservation en deux minutes, aucun paiement en ligne.">
 <meta name="geo.region" content="FR-IDF">
 <meta name="geo.placename" content="Paris">
 <meta name="theme-color" content="#16232B">
@@ -1101,10 +1100,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .pro-bloc{margin:22px 12px 0;padding:14px 16px;border-radius:14px;
   background:var(--carte,#fff);border:1px solid var(--filet,#dde4e2);
   border-left:4px solid var(--ela-blue,var(--accent));}
-/* Un seul paragraphe depuis le 4 octobre 2026 (texte de Barbaros) : plus de
-   titre en gras ni de sauts de ligne, donc plus de règle pour eux — une règle
-   sans élément finit par ramasser autre chose. */
 .pro-bloc p{margin:0;font-size:13px;line-height:1.5;color:var(--gris,#616e6b);}
+.pro-bloc strong{display:block;margin-bottom:2px;font-size:14px;
+  color:var(--ela-navy,var(--encre));}
+/* Le texte vient de la traduction, avec son « <br> » après le titre : le
+   titre étant déjà un bloc, ce saut-là ferait une ligne vide. */
+.pro-bloc strong + br{display:none;}
 /* Calé sur la carte du formulaire juste au-dessus : mêmes bords à 12 px
    sur téléphone (8 px sous 340), même largeur de 1180 px sur ordinateur. */
 @media (max-width:340px){ .pro-bloc{margin-left:8px;margin-right:8px;} }
@@ -2817,10 +2818,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        « VOIR MON PRIX » » dans CLAUDE.md).
        LE PREMIER ÉCRAN APPARTIENT AU CLIENT QUI RÉSERVE. Le message aux
        professionnels n'est pas retiré : il est juste après l'action, là où
-       un hôtel ou une agence qui fait défiler le lit tout de suite. Le texte
-       français est celui validé par Barbaros (4 octobre 2026) ; l'anglais en
-       est la traduction, phrase pour phrase — les deux langues doivent dire
-       la même chose, c'est le même partenaire qui lit. -->
+       un hôtel ou une agence qui fait défiler le lit tout de suite. Le
+       contenu français ci-dessous est celui validé par Barbaros ; la version
+       anglaise conserve sa traduction dédiée. -->
   <div class="pro-bloc">
     <p data-t-html="pro_bloc">Elatransfer ne se limite pas au transport. Nous créons pour chaque partenaire une solution de réservation à son image : page personnalisée, lien dédié, QR code et tablette de réservation si nécessaire. Le client effectue sa demande en quelques instants, directement depuis l’établissement ou son téléphone. Elatransfer prend ensuite le relais et gère l’ensemble du transport jusqu’à sa réalisation.</p>
   </div>
@@ -5536,7 +5536,7 @@ window.ELA_TEXTES = {
     hero_titre:"All your journeys, one solution.",
     hero_sous:"ELA TRANSFER organises your transfers and mobility solutions, for individuals and professionals alike.",
     hero_prix:"Transfers · Chauffeurs · Concierge services · Tailored solutions",
-    pro_bloc:"Elatransfer is more than transport. For every partner we build a booking solution in their own image: a dedicated page, a dedicated link, a QR code and, where needed, a booking tablet. Guests make their request in moments, straight from the venue or from their phone. Elatransfer then takes over and manages the whole journey through to completion.",
+    pro_bloc:"<strong>Hotels • Agencies • Businesses</strong><br>Dedicated booking solutions for your clients and teams.<br>Custom page • QR code • Booking tool",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     zone_titre:"This address is outside our service area.",
