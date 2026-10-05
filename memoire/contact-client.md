@@ -72,6 +72,19 @@ tombe un jour, c'est cette décision qu'il faut rouvrir.
 - **Le Telegram d'Elatransfer est @elatransfer** (confirmé par Barbaros). Il
   ne sert plus côté client dans l'option A ; utile pour le bot à venir.
 
+## Relu à la place du client (5 octobre 2026)
+
+- **Le bon promettait « sur WhatsApp » à tout le monde**, y compris au client
+  qui venait de choisir Telegram ou iMessage. La promesse (`#notifWa`) nomme
+  maintenant le moyen choisi, et les messages de notification disent « par
+  le moyen choisi ». Un bon ancien sans choix retombe sur WhatsApp.
+- **La phrase sous le numéro rassure au lieu de menacer** : « Elatransfer vous
+  contacte rapidement pour confirmer votre réservation. Gardez votre
+  téléphone à portée de main. »
+- **La politique de confidentialité nomme Telegram, iMessage et l'opérateur
+  téléphonique** (FR/EN, mise à jour du 5 octobre 2026) : un numéro qui passe
+  par ces services doit y être écrit.
+
 ## La suite décidée
 
 Après le lancement : un second bot Telegram réservé aux clients, qui vérifie

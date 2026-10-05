@@ -88,7 +88,7 @@ async function tunnel(options){
   check('le numéro est relu tel qu\'on le composera, avec le pays',
     await p.locator('#telRelu').isVisible() && relu.includes('+33 6 12 34 56 78') && relu.includes('(France)'), relu);
   check('la règle est dite avant l\'envoi',
-    (await p.locator('#blocCoordonnees [data-t="regle_contact"]').textContent()).includes('ne pourra pas être confirmée'));
+    (await p.locator('#blocCoordonnees [data-t="regle_contact"]').textContent()).includes('Gardez votre téléphone à portée de main'));
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
   check('sans réponse, la demande ne part pas et on le dit',
     depots.length === 0 && await p.locator('#erreurContact').isVisible(), 'dépôts : ' + depots.length);
@@ -136,6 +136,21 @@ async function tunnel(options){
   const bon = depots[0] && depots[0].bon;
   check('le bon déposé dit « à confirmer par Telegram »',
     bon && bon.contact && bon.contact.prefere === 'telegram', JSON.stringify(bon && bon.contact));
+  /* LE BON TIENT LA PROMESSE DU CHOIX (5/10/2026) : il disait « sur WhatsApp »
+     à tout le monde, y compris à ce client qui vient de choisir Telegram. */
+  const promesse = (await p.locator('#notifWa').textContent()) || '';
+  check('le bon promet la confirmation SUR TELEGRAM, pas sur WhatsApp',
+    await p.locator('#notifWa').isVisible() && promesse.includes('Telegram') && !promesse.includes('WhatsApp'), promesse.trim());
+  await ctx.close();
+}
+
+/* ---- 3 bis. La politique de confidentialité nomme les messageries employées ---- */
+{
+  const { ctx, p } = await tunnel({ tel:'06 12 34 56 78' });
+  const pol = await p.evaluate(()=>({ fr: window.ELA_TEXTES.fr.legal_privacy_body, en: window.ELA_TEXTES.en.legal_privacy_body }));
+  check('la politique de confidentialité nomme Telegram et iMessage, en français',
+    pol.fr.includes('Telegram') && pol.fr.includes('iMessage') && pol.fr.includes('moyen de contact choisi'));
+  check('et en anglais', pol.en.includes('Telegram') && pol.en.includes('iMessage') && pol.en.includes('channel chosen'));
   await ctx.close();
 }
 

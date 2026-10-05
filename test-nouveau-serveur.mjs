@@ -239,8 +239,11 @@ check('le bloc « Être prévenu » s\'affiche une fois la demande déposée',
    fait. Sans cette ligne, ce client-là lisait « Être prévenu » et repartait
    sans savoir par quoi. Le NUMÉRO y est, parce que c'est le dernier moment
    où il peut voir qu'il a tapé un chiffre de travers. */
-check('la promesse WhatsApp est annoncée, avec le numéro du client',
-  (await p.locator('#notifWa').textContent()).includes('WhatsApp')
+/* Depuis le 5 octobre 2026, la promesse nomme le moyen CHOISI par le client
+   (ici « appel ou SMS », le premier proposé pour un numéro français). */
+check('la promesse est annoncée par le moyen choisi, avec le numéro du client',
+  (await p.locator('#notifWa').textContent()).includes('appel ou SMS')
+  && !(await p.locator('#notifWa').textContent()).includes('WhatsApp')
   && (await p.locator('#notifWaNum').textContent()) === '06 12 34 56 78',
   await p.locator('#notifWaNum').textContent());
 /* ET ELLE PASSE AVANT LA NOTIFICATION — l'ordre dit ce sur quoi le client
@@ -264,8 +267,8 @@ await ctx.close();
 await p.waitForTimeout(1200);
 check('sans notification possible, le bloc « Être prévenu » reste affiché',
   await p.locator('#blocNotif').isVisible());
-check('et la promesse WhatsApp aussi — c\'est le seul canal de ce client',
-  (await p.locator('#notifWa').textContent()).includes('WhatsApp'));
+check('et la promesse aussi — c\'est le seul canal de ce client',
+  (await p.locator('#notifWa').textContent()).includes('appel ou SMS'));
 check('mais le bouton disparaît : il ne pourrait rien faire',
   !(await p.locator('#btnNotif').isVisible()));
 /* Et la phrase qui l'annonçait part avec lui. Laissée seule, elle promet
