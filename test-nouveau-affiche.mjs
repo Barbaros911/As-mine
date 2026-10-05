@@ -210,6 +210,8 @@ await pc.locator('.veh-carte').first().click();
 await pc.locator('#btnContinuer').click(); await pc.waitForTimeout(300);
 await pc.fill('#clientNom','Sophie Durand'); await pc.fill('#clientTel','06 11 22 33 44');
 await pc.locator('[data-paiement="especes"]').click();
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await pc.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await pc.locator('#btnConfirmer').click(); await pc.waitForTimeout(900);
 
 const gardee = await pc.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]')[0]);

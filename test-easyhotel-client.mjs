@@ -242,6 +242,8 @@ const etatsEH = p => p.evaluate(()=>({
   await p.locator('#ecran-vehicules .veh-action .bouton').first().click();
   await p.waitForSelector('#ecran-recap:not([hidden])',{timeout:5000}).catch(()=>{});
   await p.locator('[data-paiement="carte"]').click().catch(()=>{});
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p.locator('#btnConfirmer').click();
   const bon=await p.waitForFunction(()=>document.getElementById('ecran-bon').getBoundingClientRect().height>0,null,{timeout:8000}).then(()=>true).catch(()=>false);
   check('« Envoyer ma demande » ouvre le bon', bon);

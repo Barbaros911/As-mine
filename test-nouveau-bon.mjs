@@ -86,6 +86,8 @@ check('le total à régler au chauffeur est celui de l\'écran des prix',
   tot.replace(/\s/g,'')==='70,00€', tot);
 
 // Sans coordonnées, rien ne part.
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(300);
 check('pas d\'envoi sans nom ni téléphone', await p.locator('#ecran-recap').isVisible());
 check('et on dit pourquoi', await p.locator('#erreurCoordonnees').isVisible());
@@ -112,6 +114,8 @@ await p.fill('#clientNom','Jean Martin');
 for (const faux of ['000000', '061234567', '0812345678',
                     '12345678', '612345678', '1234567890', '+0612345678']) {
   await p.fill('#clientTel', faux);
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
   check('« ' + faux +' » est refusé',
     await p.locator('#ecran-recap').isVisible()
@@ -130,16 +134,22 @@ check('et ce n\'est pas le message « il en manque un »',
 for (const bon of ['06 12 34 56 78', '01 45 67 89 01', '+44 7700 900123',
                    '+34 612 345 678', '0034 612 345 678']) {
   await p.fill('#clientTel', bon);
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
   check('« ' + bon + ' » passe', !(await p.locator('#erreurTel').isVisible()));
 }
 await p.fill('#clientTel','06 12 34 56 78');
 // Le mode de règlement est obligatoire : sans lui le chauffeur partirait
 // sans savoir s'il doit emporter son terminal.
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(200);
 check('pas d\'envoi sans mode de règlement', await p.locator('#ecran-recap').isVisible());
 check('et on dit pourquoi', await p.locator('#erreurPaiement').isVisible());
 await p.locator('[data-paiement="carte"]').click();
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
 
 check('le bon s\'affiche', await p.locator('#ecran-bon').isVisible());

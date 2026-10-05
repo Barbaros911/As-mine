@@ -1,6 +1,10 @@
 /* =====================================================================
    TEST-NOUVEAU-WHATSAPP.MJS — le message envoyé à Barbaros
    ---------------------------------------------------------------------
+   DEPUIS LE 4 OCTOBRE 2026, il ne s'ouvre plus au clic : il part par le
+   bouton « Renvoyer par WhatsApp » du bon (option A, voir
+   memoire/contact-client.md). Ce qui suit reste vrai pour ce bouton.
+
    Une page web ne peut PAS envoyer un WhatsApp toute seule : « wa.me »
    ouvre WhatsApp sur le téléphone du CLIENT avec le message pré-écrit,
    et c'est lui qui appuie sur envoyer. Le seul moyen d'un envoi vraiment
@@ -81,51 +85,29 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
 await p.locator('[data-paiement="carte"]').click();
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(1200);
 
 const j = await p.evaluate(()=>window.__journal);
-check('le message WhatsApp part même quand le serveur répond',
-  j.some(e=>e.quoi==='wa'), JSON.stringify(j.map(e=>e.quoi)));
-check('la demande est déposée aussi : les deux chemins vivent ensemble',
-  j.some(e=>e.quoi==='depot'));
-/* ═══ CE QUE SAFARI EXIGE VRAIMENT, ET CE QU'IL N'EXIGE PAS ═══
-   Ce contrôle demandait que WhatsApp parte AVANT le dépôt. C'était une
-   lecture trop stricte de la règle, et elle a coûté cher : le dépôt partait
-   donc APRÈS l'ouverture de WhatsApp, c'est-à-dire à l'instant où iOS met
-   la page en arrière-plan — Safari y gèle le JavaScript et coupe les
-   requêtes en cours. Le client revenait sur « votre demande n'a pas pu nous
-   être transmise » alors que rien n'était cassé. Signalé par Barbaros,
-   capture à l'appui, septembre 2026.
+/* ═══ PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC (4 octobre 2026) ═══
+   Option A, décidée par Barbaros : la demande part du site seul, et le
+   client dit où recevoir sa confirmation. Ce banc vérifiait l'inverse —
+   que WhatsApp s'ouvre tout seul, sans attente avant (la règle de Safari).
+   Il éprouve maintenant la nouvelle règle, et le message reste éprouvé
+   ligne par ligne : il part toujours par « Renvoyer par WhatsApp », le
+   repli du bon, et « Coller une demande » le relit toujours. */
+check('aucune application ne s\'ouvre au clic sur « Envoyer ma demande »',
+  !j.some(e=>e.quoi==='wa'), JSON.stringify(j.map(e=>e.quoi)));
+check('la demande est déposée sur le serveur', j.some(e=>e.quoi==='depot'));
+check('le repli « Renvoyer par WhatsApp » est sur le bon', await p.locator('#btnRenvoyer').isVisible());
+await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(300);
+const jr = await p.evaluate(()=>window.__journal);
+const wa = jr.find(e=>e.quoi==='wa');
+check('il ouvre WhatsApp vers Elatransfer, demande écrite',
+  !!wa && wa.url.startsWith('https://wa.me/33759312433?text='), wa ? wa.url.slice(0,40) : 'rien');
 
-   LA VRAIE RÈGLE N'EST PAS UN ORDRE, C'EST UN TICK : Safari n'autorise
-   l'ouverture d'un onglet que pendant l'exécution SYNCHRONE du gestionnaire
-   de clic. Un « await » avant « window.open » le bloque ; un « fetch »
-   lancé sans être attendu ne le bloque pas — il rend sa promesse
-   immédiatement et ne cède jamais la main.
-
-   On éprouve donc la règle exacte, à la source : entre le début du
-   gestionnaire de « Confirmer » et l'appel à « window.open », il ne doit y
-   avoir NI « await » NI « .then( ». C'est ce qui casserait vraiment
-   l'ouverture, et c'est invisible autrement — un banc de test sans Safari
-   ne reproduira jamais le blocage. */
-const source = await (await fetch('http://127.0.0.1:8099/index.html')).text();
-const debut = source.indexOf('getElementById("btnConfirmer").addEventListener');
-const ouverture = source.indexOf('window.open("https://wa.me/', debut);
-const avant = source.slice(debut, ouverture);
-check('les deux partent : WhatsApp et le dépôt',
-  j.some(e=>e.quoi==='wa') && j.some(e=>e.quoi==='depot'),
-  j.map(e=>e.quoi).join(' → '));
-check('rien n\'est ATTENDU avant l\'ouverture de WhatsApp — Safari la bloquerait',
-  debut > 0 && ouverture > debut
-  && !/\bawait\b/.test(avant) && !/\.then\s*\(/.test(avant),
-  (avant.match(/\bawait\b|\.then\s*\(/g) || ['rien']).join(' '));
-/* Et le dépôt part quand même EN PREMIER : c'est ce qui lui donne ses
-   quelques millisecondes de réseau avant que WhatsApp prenne l'écran. */
-check('mais le dépôt est LANCÉ avant, pour survivre au passage en arrière-plan',
-  j.findIndex(e=>e.quoi==='depot') < j.findIndex(e=>e.quoi==='wa'),
-  j.map(e=>e.quoi).join(' → '));
-
-const msg = decodeURIComponent(j.find(e=>e.quoi==='wa').url.split('text=')[1]);
+const msg = decodeURIComponent(((wa && wa.url) || '').split('text=')[1] || '');
 const L = msg.split('\n');
 check('neuf lignes', L.length===9, L.length+'');
 check('il commence par « Demande de réservation »', L[0].startsWith('Demande de réservation — '), L[0]);

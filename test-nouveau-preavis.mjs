@@ -318,6 +318,8 @@ const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif')
   await adresses(p5);
   await jusquAuRecap(p5);
   await p5.clock.fastForward('06:00');
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p5.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p5.locator('#btnConfirmer').click({timeout:3000}).catch(()=>{});
   await p5.waitForTimeout(400);
   const cs = await lireCourses(p5);
@@ -333,6 +335,8 @@ const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif')
   await adresses(p6);
   await jusquAuRecap(p6);
   await p6.clock.fastForward('06:00');
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p6.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p6.locator('#btnConfirmer').click({timeout:3000}).catch(()=>{});
   await p6.waitForTimeout(400);
   check('« Confirmer » à 10 h 07 sur 10 h 05 choisi : rien ne part', (await lireCourses(p6)).length === 0 && (await p6.evaluate(()=>window.__wa.length)) === 0);
