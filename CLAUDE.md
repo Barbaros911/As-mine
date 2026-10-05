@@ -18,6 +18,19 @@ Il évite de redemander les mêmes règles à chaque fois.
 > un code d'accès mort depuis des jours : des heures de travail sur une carte
 > périmée. **Vérifier avant de s'en servir pour refuser quelque chose** — un
 > `grep` dans le dépôt tranche plus vite qu'une note.
+>
+> **CE FICHIER A UN PLAFOND** (4 octobre 2026, décidé avec Barbaros). Il
+> faisait 455 Ko — sept mille lignes, lues en entier au début de CHAQUE
+> session, avant son premier mot — et grossissait de 16 Ko par jour. Désormais
+> une décision tient ici en **trois lignes** : ce qui est vrai aujourd'hui,
+> ce qu'il ne faut jamais faire, et pourquoi en une phrase. Son **histoire**
+> — quand, comment on l'a trouvé, ce qui a été essayé — va dans `memoire/`,
+> un fichier par sujet, qu'une session ne lit que si le sujet revient.
+> `test-doc.mjs` refuse que ce fichier regrossisse : pour y écrire, on range
+> d'abord le sujet qu'on touche, **dans la même PR** — jamais une PR à part.
+> Le plafond ne monte jamais ; il descend à chaque rangement.
+> **Ne jamais lire `index.html` d'un bloc** (900 Ko, deux fois ce mémo) :
+> chercher dedans, quelques lignes de contexte à la fois.
 
 Ce dépôt sert à **deux activités distinctes**. Lire d'abord laquelle est
 demandée :
@@ -180,9 +193,7 @@ va pas, proposer, trancher.
 
 ---
 
-# Asmine — l'application de réservation
-
-Tout ce qui suit ne concerne que le site à la racine du dépôt.
+# Asmine — ce qui ne change pas
 
 ## Ce qu'est Asmine
 
@@ -197,107 +208,8 @@ porte que l'identité d'Asmine, la **facture** porte le SIRET du chauffeur.
 Barbaros a intégré un **groupe WhatsApp de plus de 800 chauffeurs** pour
 placer les courses qu'il ne peut pas assurer lui-même.
 
-## Modèle économique
-
-- Le client paie **directement le chauffeur**, à bord, espèces ou carte.
-  Aucun paiement en ligne, aucune donnée bancaire sur le site.
-- `COMMISSION_APPORT` (haut d'`index.html`) n'est qu'un **affichage** sur
-  l'annonce envoyée aux chauffeurs. **Le taux réel n'est pas arrêté** — ne
-  rien construire dessus tant que Barbaros n'a pas tranché.
-- Rien n'organise aujourd'hui le reversement de la commission : l'argent
-  ne passe jamais par Asmine. C'est le point ouvert du modèle.
-- **Il n'y a plus de codes promo** — supprimés en août 2026 à la demande de
-  Barbaros. Les deux qui existaient (−10 % et −15 %) n'avaient ni date de fin,
-  ni compteur, ni limite par client : le −15 % annulait exactement la hausse de
-  tarifs, à vie, pour qui le connaissait. Ne pas en réintroduire sans durée de
-  validité et limite d'usage — donc pas avant d'avoir un serveur.
-
-## Tarification
-
-Ela One 5,75 € + 1,75 €/km (4 pass.) · Ela First 11,50 € + 2,55 €/km (3) ·
-Van 11,50 € + 2,90 €/km (7) · Van Premium 17,25 € + 4,05 €/km (6).
-**Mise à disposition, tarif dégressif** (août 2026) : les 3 premières heures
-au plein tarif, chaque heure au-delà au tarif de supplément, plus bas.
-Ela One 60 €/h puis 45 · Ela First 80 puis 60 · Van 90 puis 70 ·
-Van Premium 120 puis 100. `SEUIL_HORAIRE_H` vaut 3 pour les quatre gammes —
-un seul repère à retenir, pour le client comme pour Barbaros au téléphone.
-Le calcul est dans `prixHoraire()`. Sans `hourlyPlus` déclaré, on reste au
-plein tarif : mieux vaut facturer trop cher qu'offrir des heures par accident.
-+20 % nuit et week-end. TVA 10 % incluse.
-Grille relevée de 15 % en août 2026, à la demande de Barbaros.
-60 min d'attente offertes en aéroport, 30 min ailleurs.
-**Barème d'annulation** (CGV art. 7, août 2026) : gratuit au-delà de 24 h,
-30 % entre 24 h et 3 h, 50 % en deçà, 100 % si le client ne se présente pas.
-Barbaros a retiré « Annulation gratuite » des promesses de l'accueil : le
-barème l'a remplacé dans le contrat. Ne pas remettre l'argument en vitrine
-sans qu'il le redemande, et ne pas descendre à zéro fenêtre gratuite — en
-B2C, une clause d'annulation sans aucune tolérance est attaquable comme
-clause abusive (L212-1 Code conso.).
-
-**Le prix est ferme, arrêté à la réservation.** Le client l'accepte avant
-de monter, le chauffeur l'encaisse tel quel, rien n'est recalculé à
-l'arrivée — un VTC n'a pas le droit d'un taximètre. Départ **et** arrivée
-sont donc obligatoires : sans les deux, pas de réservation.
-
-**Il n'y a plus d'aller-retour ni de course à destination ouverte** —
-supprimés à la demande de Barbaros.
-
-**« ELA » est la marque, « Elatransfer » l'un de ses services** (août 2026).
-La signature **« Private Driver & Paris Experiences »** est posée sous le titre
-d'accueil (`.accroche-signature`), **en anglais dans les six langues** — une
-signature de marque ne se traduit pas. Elle ne vend rien : c'est le titre
-au-dessus qui vend, elle dit ce qu'est ELA à qui ne la connaît pas, et c'est
-elle qui permettra demain de porter autre chose que du transfert sans que la
-marque paraisse sortir de son rôle. Le nom de domaine reste `elatransfer.com`.
-
-**IL N'Y A PLUS DE PACKS** (septembre 2026, à la demande de Barbaros :
-« Enleve tout les packs »). Le rayon « Explorez Paris avec ELA » et ses six
-offres — Paris Essentiel, Paris Illuminé, Paris en Famille, Paris Vision,
-Ela Prestige et la Mise à Disposition — ont été retirés en entier, avec les
-fiches, l'écran `screen-tour`, le carrousel de photos, les teintes et le
-chargement à l'approche. Ce qui a disparu du code : `TOURS`, `renderTours`,
-`prixDepartTour`, `ouvrirFicheTour`, `animerRubanFiche`, `chargerFondsVisibles`,
-`choisirTour`, tout le CSS `.tours*` / `.tour-*` / `.fiche-*` / `.teinte-*`, et
-la branche du rayon dans le jugement de la pastille WhatsApp.
-- **LA MISE À DISPOSITION EST PARTIE AUSSI** (septembre 2026, quelques heures
-  après les packs : « oui »). Le site ne vend plus qu'un trajet d'une adresse
-  à une autre. Partis avec elle : les deux onglets, `selectTripTab()`,
-  `formDisposal` et ses six champs, le curseur de durée, `#btnRetourSimple`,
-  `prixHoraire()`, la branche « disposal » de la soumission et du calcul du
-  prix, et la ligne « Mise à disposition » du bloc de référencement — **y
-  compris dans le paragraphe `seo_texte` des six langues**, qui la vendait
-  encore après le retrait de la puce. Un site qui décrit une prestation qu'on
-  ne peut pas réserver est une promesse en l'air.
-- **CE QUI RESTE, ET CE N'EST PAS UN OUBLI.** `state.tripType` demeure, figé
-  sur `"simple"`, et les trois branches `tripType==="disposal"` du bon de
-  réservation, du message WhatsApp et du récapitulatif aussi. Elles ne servent
-  plus à créer une course : elles servent à **relire celles déjà enregistrées**
-  sur l'appareil et sur le serveur, qui portent ce champ. Les retirer rendrait
-  illisible une partie de l'historique — même raison que les alias des anciens
-  noms de gammes.
-  De même, `hourly`, `hourlyPlus` et `SEUIL_HORAIRE_H` restent dans `VEHICLES` :
-  c'est la grille de Barbaros, elle vaut au téléphone même si le site ne la
-  vend plus. `prixHoraire()`, elle, est partie — elle n'avait plus d'appelant,
-  et le jour où la prestation revient elle tient en huit lignes.
-- **Les clés de traduction des offres n'ont PAS été supprimées** (`tours_*`,
-  `tour_*`, `fiche_*` dans les six langues). Elles sont inertes — rien ne les
-  lit — et les retirer voudrait dire réécrire six blocs d'une seule ligne de
-  plusieurs milliers de caractères, pour un gain nul et un vrai risque de
-  casser une langue. Elles seront enlevées à la prochaine reprise de l'objet
-  `I18N`, pas à l'arrache.
-- **Le dossier `photos/` reste dans le dépôt**, plus rien n'y pointe. Les
-  treize vues envoyées par Barbaros sont conservées pour le jour où il
-  redemandera des offres ; `construire.sh` les publie encore, ce qui ne coûte
-  rien puisque aucune page ne les appelle. Ne pas les supprimer sans le lui
-  demander : c'est du travail qu'il a fourni.
-- **Ne pas réintroduire de packs sans qu'il le redemande explicitement.**
-  C'est le deuxième produit qu'il fait retirer après le pack Disneyland.
-
-**LES PHOTOS — la règle survit aux packs.** Le dossier `photos/` reste dans le
-dépôt, plus rien ne le lit ; les treize vues envoyées par Barbaros y dorment.
-Les douze photos d'origine, elles, venaient de Google Images — il l'a confirmé
-— et ont été supprimées en août 2026. Ce qui suit vaut pour toute image qu'on
-remettrait un jour, sur une offre ou ailleurs :
+**LES PHOTOS.** Ce qui suit vaut pour toute image qu'on poserait un jour,
+sur le site ou ailleurs :
 - **Ne jamais installer une photo sans savoir d'où elle vient.** Google
   n'héberge rien : chaque image appartient à un photographe. Contrefaçon,
   L335-2 CPI — en pratique, une lettre réclamant plusieurs milliers d'euros.
@@ -311,532 +223,10 @@ remettrait un jour, sur une offre ou ailleurs :
 - Deux vues de Disneyland ont été écartées pour la même raison : filigrane
   SORTIRAPARIS.COM sur l'une, château et architecture Disney sur l'autre.
 
-**Le bandeau de cookies recouvrait les boutons d'action.** Mesuré à 390 px : il
-occupait 667–780 px, le bouton 674–726 — **entièrement caché**, sur l'écran des
-tarifs. Un client qui n'avait pas encore répondu au bandeau ne pouvait pas
-continuer sa réservation. `mesurerBandeau()` pose sa hauteur réelle dans
-`--h-bandeau`, et `.veh-action` s'en sert pour remonter d'autant. À
-**remesurer** à l'affichage, à la fermeture, au dépliage des détails, au
-changement de langue et au redimensionnement — sa hauteur change à chaque fois.
-
-**La marque s'écrit « Asmine »**, jamais « As-mine » ni « as.mine ».
-Seule exception : l'adresse du dépôt `github.io/As-mine/`, qu'on ne peut
-pas changer sans casser tous les liens déjà envoyés.
-
-**Référence de course : `ASM-AA-MM-NNNN`** (`referenceSuivante`), le rang
-repart à 1 chaque mois. Le numéro de FACTURE reste séparé et propre à
-chaque chauffeur — la loi lui interdit trous et doublons.
-
-**Le mode exploitant suit l'ADRESSE, pas l'appareil.** Sans
-`?exploitant=1`, on est côté client — même sur le téléphone déverrouillé.
-Sinon Barbaros ne peut plus voir son propre site public ; l'erreur a déjà
-été faite. Le lien `?a=` vise `admin.html`.
-
-**Deux espaces distincts, un seul fichier.** Client : `.../As-mine/`.
-Exploitant : `.../As-mine/admin.html` (redirection vers `?exploitant=1`,
-transmet les paramètres). En mode exploitant : liseré doré, badge, onglet
-« Créer », bouton « Quitter », et tout le décor client masqué. Ne jamais
-dupliquer `index.html` pour créer un second site : il divergerait.
-
-**L'espace exploitant est en français uniquement** — le sélecteur de langue
-y est masqué et la page force `fr`. Les six langues restent au client. Les
-suites de tests ne doivent donc plus régler `#langSelect` sur une page
-exploitant.
-
-**La page « Créer »** tient « Coller une demande » puis le formulaire de
-création rapide (nom, deux adresses, date, véhicule, prix, chauffeur
-facultatif → course `confirmee` d'entrée). La liste « Mes réservations » et
-son titre ne s'affichent plus côté exploitant — c'était un écran de client
-sur un outil de travail.
-
-**La page « Registre »** tient les trois indicateurs « Cette semaine » avec
-la semaine précédente en rappel, le tableau des chauffeurs, le résultat par
-**semaine / mois / année**, la **recherche libre** dans tout le registre, et
-la sauvegarde (JSON + restauration additive + export CSV). **Les tableaux ne
-comptent que les courses `realisee`** : une course confirmée n'est pas une
-course faite.
-
-**Coller une demande** (`lireDemandeCollee`) relit le message WhatsApp du
-client. Il ne devine rien à partir des libellés — un client espagnol écrit
-« Salida » — il lit la structure : `ASM-AA-MM-NNNN`, `JJ/MM/AAAA HH:MM`, les
-deux premières lignes « … : … », la ligne à points médians, la dernière
-ligne « nom — téléphone », le dernier montant en euros. **Ne jamais changer
-la forme du message client sans adapter ce lecteur**, et inversement.
-
-**Le registre ne vit que dans le navigateur (sans serveur).** `saveBooking` en garde 1000 (et
-non 10 comme au début, qui effaçait trois jours de travail). Le dire à
-Barbaros : sauvegarder chaque semaine tant qu'il n'y a pas de serveur.
-
-**Le cycle d'une demande** : le message WhatsApp du client ne porte **plus
-aucun lien** — six lignes lisibles, rien d'autre → l'exploitant le copie et
-appuie sur **« Coller une demande reçue »**, en haut du tableau de bord : la
-course entre **en attente**, en or → il saisit le chauffeur, lui envoie la
-course **en toutes lettres** → il confirme (`?ok=`) ou refuse (`?no=`) au
-client, qui ouvre le lien et voit son bon passer au vert ou au rouge.
-La page Créer garde le même lecteur avec le formulaire complet, pour saisir
-aussi le chauffeur au passage.
-
-**Une demande venue d'un client entre TOUJOURS en `attente`.** Il attend une
-réponse : la lui donner comme déjà confirmée serait mentir sur l'état réel.
-Seule une course que l'exploitant saisit lui-même de zéro — un hôtel vient
-d'appeler — est `confirmee` d'entrée. Ne pas confondre les deux chemins.
-
-**Rien ne peut voyager tout seul d'un téléphone à l'autre sans serveur.**
-Ni notification, ni synchronisation. Le presse-papiers est le transport :
-`navigator.clipboard.readText()` sur un geste de l'utilisateur, et repli sur
-le champ de saisie si le navigateur refuse. Le dire clairement à Barbaros
-plutôt que de laisser croire à une arrivée automatique.
-
-**Plus rien ne fabrique de lien `?a=` ni `?c=`.** Les lecteurs restent en
-place pour que les liens déjà partis dans WhatsApp continuent de s'ouvrir,
-mais l'écran chauffeur n'est plus alimenté : le chauffeur n'a rien à
-cliquer, il lit son message et il y va. Ne pas les recréer sans demande
-explicite de Barbaros.
-
-**Le tableau de bord se lit d'un coup d'œil.** Une demande pas encore
-tranchée est en **rouge plein, texte clair, qui respire** — c'est la seule
-ligne de tout le site qui prend cette couleur, et elle ne veut dire qu'une
-chose : quelqu'un attend une réponse. Le compteur « En attente » s'allume en
-rouge avec elle. Une course confirmée mais pas encore faite est seulement
-**cerclée d'or** : elle reste à assurer, mais elle n'attend plus personne.
-Les réalisées et les refus retombent en gris. Trois degrés, un seul qui crie :
-si tout criait pareil, plus rien ne crierait. **Ne jamais remettre l'attente
-en or** — essayé, refusé. Chaque ligne porte **depuis combien de temps** le bon est là (rouge
-au-delà d'une heure sur une demande non tranchée) et un bouton **Appeler**.
-Les prochains départs passent devant les courses passées.
-
-**Le code QR n'existe plus côté exploitant** : l'onglet **Registre** a pris
-sa place (indicateurs de la semaine, chauffeurs, résultat par semaine / mois
-/ année, recherche libre, sauvegarde). La page **Créer** ne garde que la
-saisie.
-
-**Les messages WhatsApp doivent rester courts** — Barbaros les lit sur un
-téléphone, la nuit. Demande du client : 6 lignes. Annonce au groupe : 8.
-Fin de course : 1. Ne jamais y recopier ce que le lien contient déjà.
-
-**Clore une course est le geste le plus fréquent** : c'est lui qui la fait
-entrer au registre et alimente les chiffres. Deux chemins, tous deux à
-garder : un bouton vert **« Terminée »** sur la ligne du tableau de bord
-(un appui, sans ouvrir le bon — le geste du soir, fait à la chaîne), et
-**« Marquer comme réalisée »** sur le bon, en vert plein lui aussi. Il était
-gris à côté d'un « Refuser » rouge : l'action la plus courante était la moins
-visible. Ne pas le regriser.
-
-**L'écran chauffeur n'envoie AUCUN message automatique.** Barbaros attribue
-la course lui-même (champ libre nom + téléphone sur le bon) : il sait déjà
-qui roule. Les étapes ne servent qu'au chauffeur. Il clôt lui-même par
-« Marquer comme réalisée ».
-
-**L'annonce au groupe ne porte JAMAIS le lien de course.** 350 caractères
-illisibles pour 800 personnes qui n'en ont pas l'usage. Le lien `?c=` part
-en privé, au seul chauffeur retenu, depuis le bon. Les messages au client
-partent droit sur son numéro (`numeroWhatsApp`), jamais via le sélecteur.
-
-**Le mode exploitant est protégé par un code** (`CODE_EXPLOITANT`, stocké en
-empreinte dans la page). Diffusion au groupe, confirmation à distance,
-attribution du chauffeur et export du registre sont derrière.
-
-**SA VALEUR N'EST PLUS ÉCRITE ICI, ET ELLE NE DOIT PLUS L'ÊTRE** (16 septembre
-2026, à la demande de ChatGPT, et il a raison). Ce fichier annonçait le code en
-toutes lettres. **Le dépôt est public** : une valeur publiée doit être tenue
-pour exposée, définitivement — la retirer ne la reprend pas, l'historique git la
-garde. Ne la recopier ni ici, ni dans une Issue, ni dans un message.
-- **Pire encore, un contrôle l'EXIGEAIT.** `test-doc.mjs` lisait le code en
-  clair dans ce fichier et vérifiait qu'il correspondait à l'empreinte de la
-  page : le retirer faisait tomber la construction. Un outil censé empêcher la
-  documentation de mentir imposait de publier un secret. Il fait maintenant
-  l'inverse — il **refuse** qu'un code en clair réapparaisse.
-- **C'est une serrure, pas un coffre**, et ça l'était déjà avant : l'empreinte
-  part dans la page, donc elle s'attaque hors ligne, autant d'essais qu'on veut.
-  Le dire à Barbaros plutôt que de laisser croire à une vraie sécurité.
-- **CE QUI PROTÈGE VRAIMENT LES DONNÉES CLIENTS, C'EST SUPABASE** — Auth et Row
-  Level Security, côté serveur. Le code de l'espace exploitant ne garde qu'un
-  écran ; il ne garde aucune donnée. Ne jamais inverser ces deux rôles.
-- **À FAIRE PAR BARBAROS, séparément** : changer ce code s'il lui sert encore.
-  La nouvelle valeur ne s'écrit nulle part dans le dépôt — elle se tape, et on
-  ne garde ici que son empreinte.
-
-**Confirmer une course du client** se fait sur son bon : chauffeur retenu →
-« Confirmer la course » → « Prévenir le client », qui envoie le lien `?ok=`.
-Le bloc « Confirmer une course à distance » a été **supprimé** — recopier une
-référence à la main pour reconstruire une course qu'on n'a pas ne servait à
-personne, et depuis « Coller une demande » la course est toujours là. Ne pas
-le réintroduire.
-
-**IL N'Y A PLUS DE DÉLAI DE 3 H — MAIS IL Y A UN PRÉAVIS DE 20 MINUTES**
-(voir la section dédiée en fin de fichier). Les deux ne sont pas la même
-chose et ne doivent pas être confondus : l'un était un AVERTISSEMENT sur
-des heures entières, l'autre est un REFUS de vingt minutes.
-(septembre 2026, à la demande de Barbaros).
-`DELAI_RESERVATION_H`, `courseImminente()`, le champ `imminente` des courses,
-l'encadré de l'accueil, l'avertissement rouge de l'écran de confirmation et le
-rappel du bon ont tous été retirés, ainsi que huit clés de traduction × six
-langues. Une course pour dans vingt minutes se réserve comme une autre.
-- **Ce qui rassure encore le client n'a pas disparu** : le bon dit toujours
-  « En attente de confirmation » et « Ce bon devient ferme dès qu'Elatransfer
-  confirme ». C'est ce qui remplace l'avertissement — ne pas le retirer, ce
-  serait laisser croire à une place réservée qui n'existe pas.
-- **Piège rencontré** : l'encadré des 3 h portait aussi **le seul numéro de
-  téléphone de la page d'accueil**. Le retirer emportait le numéro avec lui.
-  Un bloc de contact l'a remplacé, sans aucune mention de délai. `test6.mjs`
-  le verrouille.
-- Deux autres pièges à la découpe : une **accolade orpheline** est restée
-  après le `if(d.imminente)` du bon (page blanche, « Unexpected token } »), et
-  `applyLanguage()` écrivait dans `#texteAppel`, qui n'existait plus.
-- `lead_time_call` et `lead_time_whatsapp` sont **conservées** : l'écriteau
-  « hors zone » les réutilise.
-
-**LE RETOUR SUIT LE CHEMIN PARCOURU, ET IL EST SUR TOUS LES ÉCRANS**
-(septembre 2026, à la demande de Barbaros). Chaque bouton portait une
-destination **fixe** écrite dans le HTML : ça marche tant qu'un écran n'a
-qu'une porte d'entrée, et ça ment dès qu'il en a deux — le bon de réservation
-s'ouvre depuis la confirmation ET depuis « Mes réservations », et il ramenait
-toujours à la confirmation.
-- `pileEcrans` empile l'écran quitté à chaque `showScreen()` ;
-  `revenirEnArriere()` dépile. Le `data-target` du HTML n'est plus qu'un
-  **secours**, utilisé quand la pile est vide — un client arrivé par un lien
-  direct, par exemple. Douze entrées au maximum.
-- `.nav-item` et `.btn-back` ne partagent plus le même gestionnaire : la barre
-  du bas **emmène** quelque part, le retour **ramène** d'où l'on vient.
-- **La confirmation vide la pile.** Sans ça, « Retour » ramenait à l'écran de
-  paiement, où le client n'avait qu'à réappuyer sur « Confirmer » pour créer
-  une seconde course identique.
-- Trois écrans n'avaient aucun retour — **confirmation, espace chauffeur,
-  Infos**. Un test liste les écrans sans `.btn-back` et n'accepte que
-  l'accueil : tout nouvel écran est donc couvert d'office.
-
-**Le bouton « Retour » est un vrai bouton** (septembre 2026). C'était un
-« ‹ Retour » gris de 16 px, sans fond ni contour : Barbaros l'a cherché sur la
-fiche d'une offre et ne l'a pas trouvé, il appuyait sur « Accueil » dans la
-barre du bas — ce qui lui faisait perdre l'offre qu'il regardait. Il fait
-maintenant 44 px de haut, avec fond, contour et flèche à la couleur du texte.
-Le sélecteur est `button.btn-back` — **élément + classe**, pour passer devant
-les classes utilitaires du HTML sans réécrire les sept blocs qui l'utilisent.
-La flèche était peinte en gris dans le SVG lui-même : `stroke:currentColor` la
-fait suivre.
-
-**Le nombre de passagers n'écarte que les véhicules trop petits.** Les
-quatre catégories restent proposées à un client seul — il a le droit de
-vouloir un van, et c'est une course plus chère. Pas d'option « peu
-importe » pour autant : il choisit, ou rien n'est réservé.
-
-**Quatre gammes, et des silhouettes dessinées.** Août 2026, à la demande de
-Barbaros, après quatre refus successifs des illustrations de voiture : il
-les veut, façon Uber. Les gammes sont **Ela One** (4 places), **Ela First**
-(3), **Van** (7), **Van Premium** (6).
-- Les **clés techniques ne changent jamais** (`berline`, `berline_vip`,
-  `van`, `van_vip`) même quand le nom commercial change : elles sont écrites
-  dans les courses déjà enregistrées sur l'appareil, et une clé renommée
-  rendrait illisible le véhicule de tout l'historique.
-- Un nom de gamme est une marque : **il ne se traduit pas**, il est
-  identique dans les six langues, comme « UberX » l'est partout.
-- Les anciens noms (`anciensNoms` : « Berline », « Sedán », « 商务车 »…)
-  restent reconnus par `vehiculeDepuisNom()`. Barbaros a des mois de
-  messages WhatsApp qui les portent, et « Coller une demande » doit
-  continuer à les relire. **Renommer une gamme sans ajouter l'ancien nom
-  aux alias rend muet tout l'historique.**
-- Les silhouettes (`SILHOUETTES`) sont deux SVG dessinés dans la page —
-  berline et van, de profil, **sans calandre ni logo**. Aucune marque n'est
-  reconnaissable, et c'est voulu : dessiner une Classe E serait une promesse
-  qu'on ne tient pas si une autre voiture se présente. La gamme haute se
-  distingue par la **couleur** de la silhouette (marine contre gris-bleu),
-  jamais par un modèle inventé.
-- Les **emojis de voiture restent bannis** : ils changent de dessin d'un
-  téléphone à l'autre et grossissent mal. Deux tests le vérifient.
-- Piste encore ouverte : de vraies photos des véhicules, fournies par
-  Barbaros, qui remplaceraient les silhouettes.
-
-**L'écran des véhicules se lit comme une application de course** : la carte
-en haut sur toute la largeur, la liste qui remonte par-dessus dans une
-feuille à coins arrondis (`.veh-feuille`, marge négative de 22 px), et le
-bouton d'action collé au-dessus de la barre de navigation (`.veh-action`,
-`position:sticky`). Chaque ligne porte la pastille des places, le nom,
-« N passagers · heure d'arrivée · durée », et le prix à droite. Le bouton
-se nomme — « Continuer · Berline » — parce qu'on ne confirme pas dans le
-vide. Trois pièges :
-- Si la carte ne s'affiche pas (Leaflet injoignable, client hors ligne), la
-  règle `#tripMap.hidden + .veh-feuille` remet une mise en page ordinaire.
-  Sans elle, il reste un coin arrondi et une poignée dans le vide.
-- Le cadrage réserve **54 px en bas** (`paddingBottomRight`) : la feuille
-  mord sur la carte, et sans cette marge le repère d'arrivée se cache
-  dessous.
-- Les tuiles OpenStreetMap sont désaturées en CSS. La couleur doit rester
-  au tracé et aux repères, pas aux enseignes de magasins.
-
-**La règle « la pastille s'efface devant le rayon d'offres » a été retirée**
-avec le rayon (septembre 2026). Elle avait servi : la pastille passait en
-travers de la promesse d'une carte. Si un rayon revient un jour, la leçon
-tient toujours — on ne compare pas le rayon à la fenêtre entière (trop large :
-sur une page de 2090 px il reste visible jusqu'en bas et la pastille ne
-revient jamais) mais **au rectangle de la pastille**.
-
-**La pastille WhatsApp ne s'affiche QUE sur l'accueil.** Elle ne regardait
-que le défilement : sur l'écran des véhicules, qui tient dans une page, elle
-se posait pile sur « Continuer ». C'est le défaut déjà écrit pour « Voir les
-tarifs », qui valait en fait pour tous les boutons d'action. `showScreen`
-appelle `window.__jugerPastilleWa()` à chaque changement d'écran — sans ça
-elle restait visible une seconde de trop, le temps que la minuterie repasse.
-
-**Les suites visent les rôles, pas les balises.** Trois tests cherchaient le
-prix par `.veh-card p.font-mono` : changer le `<p>` en `<span>` les a fait
-tomber alors que rien n'était cassé. Viser `.veh-prix`, `.veh-nom`,
-`.veh-detail` — des classes qui disent ce que l'élément est.
-
-**Il n'y a plus de forfait aéroport** — supprimés à la demande de Barbaros.
-Les terminaux restent proposés comme adresses.
-
-**L'or ne sert plus qu'à la marque.** Août 2026, à la demande de Barbaros :
-la couleur d'accent du site est le **vert** (`--gold`, `--gold-soft`,
-`--gold-dim` — des rôles, pas des couleurs, qui portent aujourd'hui du vert),
-et l'or ne subsiste que dans le logo — le filet de la pastille et le
-`TRANSFER` de l'enseigne, via `--or-marque` et `--or-marque-nom`. Ne pas
-reprendre `--gold` pour habiller le logo : c'est ce qui l'a fait virer au
-vert une première fois. Et `--gold-dim` reste un ton **pâle** : il ne sert
-qu'à des filets posés sur de l'ivoire, le passer en foncé noircit des
-bordures qui doivent rester discrètes.
-
-**Le titre d'accueil ne se pose JAMAIS sur la photo.** Il y était, en vert,
-sur un ruban de six vues qui change toutes les six secondes : lisible sur la
-Joconde, invisible sur les Champs illuminés. Aucun réglage de voile ne
-rattrape ça — une image qui change ne peut pas garantir un contraste. Ne pas
-l'y remettre. L'accroche courte au-dessus (`tagline`) tient dans une
-pastille : la garder **courte**, sinon elle passe à la ligne — deux mots, un
-point médian, pas une phrase.
-
-**LA ZONE DESSERVIE — 90 km autour de Paris** (septembre 2026, phase 2 de
-l'audit, à la demande de Barbaros : « seuls les clients qui sont en
-Île-de-France peuvent réserver »). Avant cette règle, **Lille → Marseille
-passait sans un mot** : 1 084 km, 1 902,91 € annoncés en Ela One, réservation
-acceptée. Et le prix d'Elatransfer est **ferme** — il aurait fallu assurer la
-course à perte, ou se dédire sur un prix annoncé, ce que le Code de la
-consommation appelle une pratique commerciale trompeuse.
-- `CENTRE_ZONE` + `RAYON_ZONE_KM` (90), `horsZone()`, `lieuHorsZone()`,
-  `jugerZone()`. On mesure **la distance à vol d'oiseau depuis Paris**, et
-  **pas le département** : la latitude et la longitude sont la seule donnée
-  présente sur TOUTES les adresses (BAN, Photon, terminaux, repli hors ligne).
-  Le code postal n'est qu'un morceau de libellé, au format variable selon la
-  source — s'y fier, c'est accepter qu'un jour une adresse valable soit
-  refusée parce qu'elle est écrite autrement.
-- **90 km et pas les huit départements** : Beauvais-Tillé est dans l'Oise, à
-  69 km. Une règle départementale aurait refusé l'un des trois aéroports que
-  le site propose lui-même. 90 km couvre toute l'Île-de-France avec de la
-  marge et écarte Lille (204 km), Rouen (112), Orléans (110), Reims (129).
-- **Une adresse sans coordonnées n'est PAS hors zone** : elle n'est pas encore
-  choisie dans la liste, et le formulaire a déjà un message pour ça. Sinon on
-  afficherait « hors zone » sur un champ en cours de saisie.
-- Le contrôle se fait **au choix de l'adresse** (les trois rappels de
-  `jugerZone()` dans les `attachAutocomplete`) **et à la soumission**, dans
-  les deux branches — trajet simple et mise à disposition.
-- **L'écriteau est EN HAUT du formulaire**, pas sous le bouton. Posé en bas il
-  tombait derrière le bandeau de cookies (mesuré : écriteau à 578–770 px,
-  bandeau à 667) et le client voyait un bouton gris sans la moindre raison.
-- On ne renvoie pas le client sans rien : **appel et WhatsApp** sous le
-  message. Un Paris → Deauville est une belle course, elle se négocie de vive
-  voix. L'impasse devient une piste.
-
-**Incrémenter `CACHE` dans `sw.js` à CHAQUE changement visible.** Oublié à la
-phase 1 : Barbaros a publié et n'a rien vu changer sur son téléphone. Le HTML
+**Incrémenter `CACHE` dans `sw.js` à CHAQUE changement visible.** Oublié une
+fois : Barbaros a publié et n'a rien vu changer sur son téléphone. Le HTML
 est servi « réseau d'abord », mais les téléphones qui ont **installé
-l'application** gardent le reste. `elatransfer-v16` au 5 septembre 2026.
-
-**LE SITE N'EST PLUS UNE NAVETTE D'AÉROPORT** (septembre 2026, phase 1 de
-l'audit). Quatre endroits disaient « aéroport » avant de dire « chauffeur
-privé » : l'enseigne, le titre, la description, et la promesse sous le bouton.
-- L'enseigne dit **« Paris · Île-de-France »**, plus « Paris · Roissy CDG ·
-  Orly ». Elle est sur CHAQUE écran : deux aéroports sur trois mots y
-  définissaient la marque. Les aéroports restent proposés à la saisie.
-- Le **titre**, la **description**, `seo_titre` et `seo_texte` (six langues)
-  mènent avec le métier et la zone ; Roissy, Orly et Beauvais sont nommés
-  **après**. Deux contrôles de `test3.mjs` vérifient l'**ordre**, pas la
-  simple présence.
-- Les données structurées déclarent **`LimousineService`**, plus
-  `TaxiService` : un VTC n'a ni licence de taxi, ni taximètre, ni droit de
-  maraude. C'était factuellement faux.
-- La **promesse sous le bouton** (`#noteReassurance`) est universelle par
-  défaut et ne bascule sur l'attente aéroport que si une des deux adresses
-  est un terminal — `jugerNoteAttente()`, appelée depuis `champVol.sync()`,
-  qui calcule déjà ce signal pour le champ « numéro de vol ». Elle réécrit
-  **l'attribut `data-i18n`**, pas seulement le texte : sinon un changement de
-  langue ramènerait la promesse générale sur une course Roissy.
-- Le bouton dit **« Voir mon prix »**, plus « Voir les tarifs » : une grille ?
-  un devis ? un paiement ? Le nouveau libellé dit ce que le clic donne. Les
-  commentaires du code ont suivi — chercher l'ancien nom ne donnait plus rien.
-- Une ligne **« 3 étapes · aucun paiement en ligne »** sous le bouton :
-  l'incertitude sur la longueur d'un tunnel fait abandonner plus sûrement que
-  sa longueur réelle.
-
-**L'accueil ne télécharge plus AUCUNE photo** (septembre 2026). Le rayon
-portait treize vignettes qui partaient toutes au chargement — **1,8 Mo avant
-l'affichage du formulaire**, en 4G. On les avait retenues par un
-`IntersectionObserver` (`chargerFondsVisibles`) ; le rayon retiré, il n'y a
-plus rien à retenir et l'observateur est parti avec. `test.mjs` garde la
-garantie sous sa forme la plus forte : on descend toute la page et rien du
-dossier `photos/` ne part.
-Les deux leçons restent vraies si des images reviennent un jour :
-- **120 px d'avance, pas 300.** Il ne restait que 178 px entre le bas de
-  l'écran et le haut du rayon : à 300 px les deux premières cartes se
-  chargeaient encore, et l'observateur ne servait à rien.
-- Un fond CSS n'est **pas** une balise `<img>` : `loading="lazy"` ne s'y
-  applique pas, il faut un `IntersectionObserver`.
-
-**Zones tactiles : ne JAMAIS poser `position:relative` sur un bouton déjà en
-`absolute`.** Le bouton « me localiser » est positionné par une classe
-Tailwind ; un sélecteur d'identifiant l'emporte sur une classe, et la règle
-l'a fait retomber dans le flux, **à gauche du champ d'adresse**. Un élément
-déjà positionné sert de repère à son propre pseudo-élément. Le sélecteur de
-langue, lui, est un `<select>` : Chrome n'y dessine aucun pseudo-élément, on
-l'agrandit pour de vrai (`min-height:44px`).
-
-**L'accueil ne pose qu'une question : d'où à où, et quand.** Août 2026, à la
-demande de Barbaros — « fait comme Uber ». Le formulaire d'accueil ne porte
-plus que les deux adresses, la date et l'heure. Ce qui en est parti :
-- **Les deux onglets** « Trajet simple / Mise à disposition » — masqués en
-  août, brièvement revenus en septembre au retrait des packs, puis
-  **supprimés pour de bon** quand Barbaros a fait retirer la mise à
-  disposition elle-même. Il n'y a plus qu'un formulaire, ouvert d'emblée.
-- **Le nombre de passagers et la gamme.** Ils sont passés sur l'écran des
-  prix (`#paxVehicles`, au-dessus de la liste) : on ne fait pas choisir une
-  gamme à quelqu'un qui n'en connaît pas encore le prix. Changer le nombre
-  redessine la liste tout de suite et **efface un choix devenu impossible**
-  — sinon on continuerait avec une berline pour six.
-- **La mise à disposition** a fini par être **retirée entièrement**
-  (septembre 2026). Voir la section des packs plus haut.
-
-**Pas de raccourcis de destination sur l'accueil.** Essayés en août 2026
-(CDG · Orly · Gare du Nord, sous le champ d'arrivée), **retirés à la demande
-de Barbaros** le jour même. Ne pas les réintroduire sans qu'il le redemande.
-
-**Le site s'ouvre dans la langue du visiteur** (`langueDuNavigateur()`, août
-2026, à la demande de Barbaros) : un client espagnol qui tombe sur du français
-ne cherche pas le sélecteur, il retourne à sa liste de résultats. Trois règles,
-dans cet ordre : le **choix explicite** du visiteur (mémorisé) l'emporte
-toujours ; sinon `navigator.languages` (on ne lit que la partie avant le tiret,
-« es-MX » et « es-ES » sont tous deux de l'espagnol) ; sinon l'**anglais** —
-et non le français : un Allemand, un Italien, un Japonais qui arrivent ici
-lisent bien plus probablement l'anglais. Le français reste servi à qui le
-demande, il est reconnu comme les cinq autres.
-**Conséquence à ne pas manquer : le bloc de référencement (`#seoContent`) est
-désormais TRADUIT et n'est plus masqué selon la langue.** Il était en français
-et caché ailleurs ; avec le repli anglais, l'explorateur de Google — qui
-s'annonce en anglais — ne le voyait plus du tout, et le référencement local
-français partait avec. Du texte présent mais caché aux visiteurs est de toute
-façon ce que Google sanctionne. Ne pas remettre de masquage par langue.
-L'espace exploitant reste en français quoi qu'il arrive. **La détection ne
-s'écrit PAS dans `localStorage`** : ce n'est pas un choix du visiteur, et
-l'y inscrire figerait la langue du premier chargement.
-Conséquence pour les tests : **une suite qui vérifie des libellés français doit
-fixer `locale: 'fr-FR'`** à la création du contexte, sinon elle lit de l'anglais
-et échoue sur des formats de nombres (`18.49 €` contre `18,49 €`).
-
-**L'écran « Infos » (`screen-qr`) est le pied de page du site.** Il porte les
-quatre documents légaux et les moyens de nous joindre. Le **code QR** n'y
-apparaît qu'en **mode exploitant** (`#blocQr`) : il sert à imprimer l'affiche
-d'un comptoir d'hôtel, c'est un outil de travail, et un client qui cherche les
-CGV n'a que faire d'un QR du site où il se trouve déjà. **Ne jamais déplacer
-les documents légaux derrière le mode exploitant** — la LCEN impose qu'ils
-restent accessibles. L'onglet `screen-bookings` non plus ne se masque pas côté
-exploitant : c'est son tableau de bord, celui qui porte « Coller une demande » ;
-seul son libellé bascule en « Créer ».
-
-**Le bouton « Voir les tarifs » s'efface sous une liste d'adresses ouverte**
-(`jugerBoutonRecherche()`, classe `.efface` = `visibility:hidden`). Mesuré à
-390 px : depuis que le formulaire tient dans un écran, la liste descend à
-598 px et le bouton occupe 528–580 — le client qui visait le bouton appuyait
-sur une rue. On garde sa place (`visibility`, pas `display`) pour que la page
-ne sursaute pas. Deux tests le verrouillent.
-
-**L'accueil se lit dans cet ordre : bandeau marine, formulaire, photos.**
-Le titre est posé sur un aplat marine plein (`.accroche`), en ivoire, avec
-le filet doré de la marque qui sort du cadre en bas à gauche — la seule idée
-du logo, à l'échelle de la page, et le seul or admis hors de l'enseigne. Le
-contraste y est acquis une fois pour toutes.
-Le ruban de photos est passé **sous le formulaire** : en haut il occupait la
-place du premier champ, et il servait de fond à un titre qu'il rendait
-illisible. Plus bas il ne porte plus rien, il reprend de la hauteur (186 px
-au lieu de 132), et le client qui veut réserver n'a plus à le franchir. Le
-formulaire entier — bouton « Voir les tarifs » compris — tient désormais
-dans le premier écran d'un téléphone. Ne pas le remonter.
-Sa marge basse de 20 px n'est pas cosmétique : la section « À l'arrivée de
-votre vol » qui suit est elle aussi sur fond marine, et sans cet intervalle
-les deux masses sombres se collent.
-
-**LE SERVEUR EST BRANCHÉ.** `SUPABASE_URL` et `SUPABASE_CLE` (haut du script)
-sont **remplis** depuis août 2026 — ne pas répéter qu'ils sont vides, l'erreur
-a déjà été faite en septembre. Le client appuie sur « Confirmer » et c'est
-fini pour lui : la demande arrive dans le tableau de bord, sur n'importe quel
-appareil. Marche à suivre complète et manœuvre de changement de téléphone
-dans `SUPABASE.md`.
-- Le module `nuage` fait tout : `deposer` (le client, en anonyme),
-  `connexion`, `lister`, `suivi`, `pousser`. Aucune bibliothèque chargée —
-  de simples appels REST.
-- **`pousser` est un dépôt-OU-mise-à-jour, et ça a été un vrai trou**
-  (corrigé septembre 2026). C'était `majStatut`, un PATCH : il ne modifie
-  qu'une ligne existante. Les courses déposées par un CLIENT en ont une ;
-  celles que Barbaros saisit LUI-MÊME — un hôtel qui appelle, une demande
-  collée depuis WhatsApp — n'en ont aucune. L'appel partait, ne trouvait
-  rien, et ne disait rien : **ces courses-là ne vivaient que dans son
-  téléphone**, et changer d'appareil les perdait. C'est une bonne part de son
-  travail. `saveBooking()` et `majBookingStocke()` appellent maintenant
-  `pousser()`, qui envoie un POST avec
-  `Prefer: resolution=merge-duplicates`. Trois contrôles de `test9.mjs` le
-  verrouillent, dont un sur l'en-tête lui-même.
-- **Ce correctif exige une policy INSERT pour `authenticated`** dans Supabase.
-  Elle manquait au script d'origine ; elle est dans `SUPABASE.md`, à coller
-  seule si le projet est antérieur. Sans elle, le serveur refuse, `pousser`
-  rend `false` en silence, et le registre local reste juste — on ne perd
-  rien, on ne gagne simplement pas la copie.
-- `afficherEtatEnvoi(true | false | null)` décide de ce que voit le client.
-  **`null` n'affiche NI l'un NI l'autre**, et c'est important : le féliciter
-  avant que le dépôt ait répondu lui ferait fermer la page sur une course
-  qui n'existe pas.
-- **Le repli est sacré.** Si le dépôt échoue, les trois boutons d'envoi
-  reviennent. Ne jamais les retirer sans que le serveur soit là : un bouton
-  « Confirmer » qui ne confirme rien, c'est un client qui attend un
-  chauffeur à 5 h du matin pendant que personne ne sait rien.
-- **Sans serveur, WhatsApp s'ouvre AVANT tout appel réseau**, dans le même
-  geste que le clic. `window.open()` après un `await` est bloqué par Safari
-  iOS. Ne pas rendre `finalizeBooking` asynchrone sur ce chemin.
-- **La clé `anon` est publique et ne protège RIEN.** Ce qui protège les
-  clients, c'est la Row Level Security posée dans Supabase : dépôt autorisé
-  au visiteur anonyme, **lecture jamais**. Ajouter une policy de lecture
-  pour `anon` exposerait les noms, téléphones et adresses de tous les
-  clients — RGPD. Ne jamais coller la clé `service_role` dans la page :
-  elle contourne toutes les règles.
-- `fusionnerCourses()` AJOUTE et n'écrase jamais : une course déjà sur
-  l'appareil peut avoir avancé depuis (chauffeur attribué, course réalisée).
-- `test9.mjs` couvre les deux chemins, en réécrivant la page au vol pour y
-  poser de faux identifiants. Il vérifie aussi que la page ne prétend jamais
-  avoir lu quoi que ce soit sans jeton.
-
-**Les services extérieurs sont le point faible du site.** La carte et le
-prix dépendent de deux serveurs qui ne nous appartiennent pas :
-- `router.project-osrm.org` calcule l'itinéraire. C'est un serveur de
-  **démonstration** : aucun engagement, débit limité, usage commercial
-  déconseillé par ses auteurs. Quand il refuse, le prix retombe sur la
-  distance à vol d'oiseau × 1,3 et la course est marquée « ≈ ». **Ce n'est
-  pas un détail de confort : ça change le prix payé.** Sur un Roissy →
-  Paris l'écart se compte en euros.
-- `tile.openstreetmap.org` dessine le fond de plan. La politique de la
-  fondation **interdit l'usage commercial soutenu** ; le site peut être
-  coupé sans préavis.
-
-`CLE_MAPBOX` (haut du script) répond aux deux d'un coup : dès qu'une clé y
-est posée, la carte et les itinéraires passent par Mapbox, qui a un
-engagement de service. Le palier gratuit (50 000 cartes et 100 000
-itinéraires par mois) est très au-dessus du volume d'Asmine. Sans clé, le
-site fonctionne exactement comme avant — la bascule est une ligne.
-La clé Mapbox est **publique par construction** (elle part dans la page,
-et le dépôt l'est aussi) : la restreindre au domaine `elatransfer.com`
-depuis le tableau de bord Mapbox, sinon n'importe qui consomme le quota.
-
-**Il n'existe AUCUNE API publique Uber** pour les prix en direct ni la
-position des chauffeurs. L'API publique a été fermée il y a des années ;
-ce qui reste (Uber Direct, Uber for Business) sert à la livraison et aux
-comptes entreprise. Aspirer leur application violerait leurs conditions,
-casserait à chaque mise à jour de leur côté, et ferait dépendre le prix
-d'Asmine d'un concurrent. Ne pas le proposer. **Afficher un prix indexé
-sur un tarif variable est en plus incompatible avec la règle VTC** : le
-prix doit être ferme et connu avant le départ.
+l'application** gardent le reste.
 
 ## Règles à ne jamais enfreindre
 
@@ -853,8 +243,8 @@ prix doit être ferme et connu avant le départ.
    classeur `suivi-as-mine.xlsx` n'est committé que vide.
 4. **Un VTC n'a pas le droit d'avoir un taximètre.** Le prix doit être
    connu ou calculable **avant** le départ. Une course à destination
-   ouverte doit donc annoncer la **grille** (« 5,75 € + 1,75 €/km ») et non
-   « prix à définir ».
+   ouverte doit donc annoncer la **grille** (le tarif au kilomètre en
+   vigueur) et non « prix à définir ».
 5. **En confiant des courses à des tiers, Asmine est une centrale de
    réservation** (Code des transports L3142-1 et s.) : obligation de
    pouvoir prouver que chaque chauffeur a carte professionnelle,
@@ -880,12 +270,6 @@ prix doit être ferme et connu avant le départ.
 
 ## Ce qui est décidé, ce qui ne l'est pas
 
-**Décidé** : intermédiaire ; paiement au chauffeur ; pas de forfait
-aéroport ; pas d'aller-retour ; pas de destination ouverte ; prix ferme à
-la réservation ; les quatre véhicules proposés dès lors qu'ils sont assez
-grands ; français par défaut avec 5 autres langues au sélecteur ; mode
-exploitant via `?exploitant=1` ; diffusion anonymisée.
-
 **Décidé en septembre 2026** : **il ne conduit pas, il place seulement**
 (« Je place seulement »). Elatransfer est donc une centrale de réservation,
 et le taux de commission se règle désormais **par chauffeur**, dans le
@@ -895,17 +279,11 @@ carnet — il n'y a plus de taux global à trancher dans le code.
 point bloquant** · volume visé · clientèle cible (particuliers / hôtels /
 entreprises) · budget · règle du temps d'attente.
 
-## Feuille de route convenue
-
-Sans serveur (gratuit, fait) : lien de course et écran chauffeur
-(accepter / sur place / démarrer / terminer / renvoyer la confirmation),
-le tout par lien et WhatsApp.
-
-Avec serveur (quand Barbaros paiera) : comptes chauffeurs par SMS, page
-admin, premier qui accepte prend la course, suivi en direct, tableau de
-bord chauffeur avec commission due et **blocage automatique au-delà d'un
-seuil**, dates d'expiration des papiers avec alerte, avis clients, export
-comptable, gestion des désistements et des clients absents.
+**L'histoire de l'ancien site** — sa grille, ses packs, le délai de 3 h,
+les codes promo, tout ce qui a été essayé puis retiré entre août et
+septembre 2026 — est dans `memoire/ancien-site.md`, figée telle qu'elle
+était écrite. Ne l'ouvrir que si un sujet d'alors revient. Pour savoir ce
+que fait le site aujourd'hui, c'est la section « LE SITE » qui dit vrai.
 
 ---
 
@@ -914,10 +292,10 @@ comptable, gestion des désistements et des clients absents.
 **LA BASCULE EST FAITE** (6 septembre 2026, à sa demande : « Non je veux que
 les gens voit mon nouveau site »). `nouveau.html` est devenu `index.html` :
 c'est LUI que voient les clients à la racine du domaine. Tout ce qui suit
-le décrit. La section « Asmine — l'application de réservation » plus haut
-décrit l'ANCIEN site, qui n'existe plus : la garder sert à comprendre d'où
-viennent les décisions, pas à savoir ce que fait le site aujourd'hui. En
-cas de contradiction, **c'est cette section-ci qui dit vrai**.
+le décrit. L'ANCIEN site, qui n'existe plus, est décrit dans
+`memoire/ancien-site.md` : il sert à comprendre d'où viennent les décisions,
+pas à savoir ce que fait le site aujourd'hui. En cas de contradiction,
+**c'est cette section-ci qui dit vrai**.
 
 **CE QUI A ÉTÉ SUPPRIMÉ À LA BASCULE, ET POURQUOI ON NE LE REMET PAS :**
 - l'ancien `index.html`, `styles.css`, `tailwind.config.js`,
@@ -945,8 +323,24 @@ pas une refonte.
 
 | Gamme | Au kilomètre | Minimum |
 |---|---|---|
-| Berline (4 places) | 2,90 € | 30 € |
+| Berline (4 places) | 2,90 € | 35 € |
 | Van (7 places) | 4,70 € | 50 € |
+
+**LE MINIMUM BERLINE EST À 35 €** (4 octobre 2026, Barbaros : « Oui le 35
+c'est moi »). Il l'avait réglé en production depuis l'admin ; le repli
+`GAMMES`, ce tableau et la source serveur du dépôt disaient encore 30 €, et
+les trois contrôles restaient verts parce qu'ils se comparaient entre eux.
+**Aucun contrôle ne lit la production** : c'est la première suite branchée
+sur le vrai serveur (test-nouveau-exploitant, en CI) qui l'a montré.
+- **Le plancher n'est plus une dizaine, et c'est voulu** : le plancher a le
+  dernier mot. Tout trajet berline de 12,06 km ou moins (2,90 × km ≤ 35)
+  coûte 35 € ; au-delà, rien ne change. Ne pas le « corriger » en 30 ou 40.
+- **Pourquoi le repli comptait** : Réglages → Tarifs se remplit depuis
+  `GAMMES` quand la lecture du serveur échoue. Un appui sur « Enregistrer »
+  aurait alors réécrit 30 € en production, en silence.
+- La source du dépôt est `20261004000000_minimum_berline_35.sql`, une
+  écriture **conditionnelle** : sans effet en production, sans effet sur un
+  tarif réglé depuis l'admin. Elle n'a pas à être appliquée.
 
 **CE TABLEAU A MENTI PENDANT DES JOURS** (corrigé le 16 septembre 2026). Il
 annonçait encore 2,35 et 4,08 €/km alors que la PR #123 les avait portés à
@@ -973,8 +367,8 @@ contractuel. Ne pas y écrire de tarif chiffré.
   `2,0600000000000023` et afficherait `100,000000001 €`.
 - **L'ordre est fixé** : kilométrage → majoration de nuit → arrondi →
   plancher. Arrondir avant de majorer redonne un prix qui n'est plus une
-  dizaine ; majorer après le plancher ferait payer 36 € une course
-  annoncée à 30 €. Le plancher a le dernier mot.
+  dizaine ; majorer après le plancher ferait payer 42 € une course
+  annoncée à 35 €. Le plancher a le dernier mot.
 - **IL N'Y A PLUS DE MAJORATION DU TOUT** (septembre 2026) — voir la
   section dédiée plus bas. Le reste inchangé : TVA 10 % incluse, prix ferme,
   zone de 90 km autour de Paris.
@@ -1922,55 +1316,38 @@ l'éditeur du tableau de bord Supabase déploie une fonction qu'on colle.
   à cacher la clé d'itinéraire, à laisser un client consulter sa course
   par sa référence, et à tenir les comptes chauffeurs.
 
-## LA PALETTE — « ENCRE & CÉLADON », ET PLUS UN GRAMME D'OR
+## LA PALETTE — LE BLEU ELA, PLUS AUCUN VERT
 
-Septembre 2026, à sa demande : « les couleurs noir et dorée sont trop
-souvent utilisées par les IA pour créer des sites, propose-moi des
-couleurs dignes d'un expert ». Il a raison — marine + or est la teinte par
-défaut de tout ce qu'on génère à qui on dit « chauffeur privé ». Trois
-directions lui ont été montrées en image ; il a choisi la deuxième.
+**Le vert céladon est retiré de partout le 4 octobre 2026** (Barbaros, capture
+de l'écran des prix : « il y a encore l'ancienne couleur verte, enlève les
+anciennes couleurs de partout »). Les rôles gardent leur nom, seules leurs
+valeurs ont changé, et ce sont celles de l'admin :
 
 | Rôle | Valeur | Où |
 |---|---|---|
-| `--fond` | `#F4F6F5` | le papier — **jamais `#FFF`** |
+| `--fond` | `#F2F5F9` | le papier — **jamais `#FFF`** |
 | `--carte` | `#FFFFFF` | seulement les cartes posées dessus |
 | `--noir` | `#16232B` | l'en-tête, le bandeau |
 | `--encre` | `#151C22` | le texte |
-| `--gris` | `#616E6B` | le texte secondaire |
-| `--filet` | `#DDE4E2` | les bordures |
-| `--accent` | `#1F6F6B` | boutons, sélection, onglet actif |
-| `--accent-clair` | `#E2F0EE` | les fonds d'accent |
-| `--accent-vif` | `#3FA9A2` | la marque : filet du logo, « TRANSFER » |
-| `--accent-encre` | `#185754` | l'accent en TEXTE sur `--accent-clair` |
+| `--gris` | `#5A6A7B` | le texte secondaire |
+| `--filet` | `#E1E8EF` | les bordures |
+| `--accent` | `#0E6FC7` | boutons, sélection, onglet actif, tracé de la carte |
+| `--accent-clair` | `#E8F2FD` | les fonds d'accent |
+| `--accent-vif` | `#12C4EE` | la marque |
+| `--accent-encre` | `#0A4F91` | l'accent en TEXTE sur `--accent-clair` |
 
-- **LES VARIABLES ONT ÉTÉ RENOMMÉES** : `--or*` → `--accent*`. Un rôle
-  nommé par sa couleur finit par ramener la couleur — c'est arrivé sur
-  l'ancien site, où le logo est repassé au vert parce qu'il empruntait
-  `--gold`. **Ne jamais renommer ces variables d'après la teinte du jour.**
-- **LE VRAI LEVIER EST LE FOND, pas l'accent.** Le blanc pur est la
-  signature d'une page générée. Ne pas remettre `--fond:#FFFFFF`.
-- **LE ROUGE DE L'ATTENTE N'A PAS BOUGÉ** (`#C9302F`) et ne doit pas :
-  c'est la seule chose qui crie sur le tableau de bord. L'accent en est à
-  **171° de teinte**. Tout accent futur doit rester à plus de 60° du rouge,
-  sinon les deux se disputent l'attention.
-- **LE VERT « CONFIRMÉ » A ÉTÉ FONDU DANS L'ACCENT.** Il y avait deux
-  familles vertes, trop proches pour se distinguer et trop nombreuses pour
-  faire un système. Une seule couleur : rouge = on attend, accent = c'est
-  bon, gris = c'est fini.
-- **Le vert WhatsApp `#25D366` est INTOUCHABLE** : c'est une marque. Il
-  jure un peu plus à côté du céladon qu'à côté de l'or ; c'est signalé à
-  Barbaros, il tranchera.
-- **L'ICÔNE A SUIVI** (septembre 2026, à sa demande : « change l'icône
-  aussi », puis « on garde le rond et on ajoute Transfer »). Voir la
-  section dédiée plus bas.
-- Le manifeste suit la page : `background_color` = `--fond`,
-  `theme_color` = `--noir`, comme la balise `theme-color`. Ils se
-  contredisaient avant.
-- Contrastes mesurés (WCAG) : encre/fond 15,8 · accent/fond 5,5 ·
-  blanc/accent 5,9 · gris/fond 4,9 · accent-encre/accent-clair 7,1 ·
-  accent-vif/noir 5,7 · rouge/fond 4,9. Le gris et les chevrons ont été
-  **assombris au passage** — ils étaient sous les seuils avant.
-
+- **Ce qui le cachait** : la façade (`application-facade.css`) repeignait une
+  partie du site en bleu, mais `index.html` gardait le céladon à la racine ET
+  écrit en dur dans une trentaine de dessins, le tracé de la carte et ses
+  repères. On a changé la SOURCE, pas ajouté une couche de plus.
+- **Ne jamais renommer ces variables d'après la teinte du jour** : un rôle
+  nommé par sa couleur finit par ramener la couleur.
+- **Restent, et ce sont des états ou des marques** : le rouge de l'attente
+  (`#C9302F`), le vert WhatsApp (`#25D366`, une marque), le vert « Réservation
+  validée » de la liste de la réception (un état), l'orange d'un partenaire.
+- Contrôle : sur le site construit, aucune couleur verte calculée hors
+  WhatsApp sur l'écran des prix (vérifié le 4/10/2026). Blanc sur `--accent`
+  5,1 ; `--accent-encre` sur `--accent-clair` 7,6.
 ## L'ICÔNE — LE ROND, ET « TRANSFER » DESSOUS
 
 Septembre 2026. Deux demandes successives : « change l'icône aussi »,
@@ -3673,116 +3050,23 @@ du chauffeur. Il est tombé le jour où l'option a dit « devant la porte du
 terminal » — un terminal d'aéroport. Il porte maintenant sur le seul
 `#blocPaiement`, qui est son sujet.
 
-## LE PRÉAVIS MINIMUM AVANT UN DÉPART — 15 MINUTES
+## LE PAS DES CRÉNEAUX ET L'HEURE PASSÉE
 
-Septembre 2026, à sa demande : « lorsque le client réserve il faut qu'il ne
-puisse pas réserver avant 20 min », **ramené à 15 minutes le lendemain**. Il faut trouver un chauffeur, le
-prévenir, et qu'il roule jusqu'au client. Accepter un départ dans cinq
-minutes, c'est promettre ce qu'on ne peut pas tenir — et chez Elatransfer
-l'heure est ferme comme le prix.
-
-- **CE N'EST PAS LE RETOUR DU DÉLAI DE 3 HEURES**, retiré en septembre 2026
-  à sa demande. Celui-là était un **avertissement** sur des heures
-  entières, qui décourageait des courses parfaitement plaçables ; celui-ci
-  est un **refus** de quinze minutes, le temps matériel d'envoyer une
-  voiture. Ne pas rétablir l'ancien en croyant compléter celui-ci.
-- **`DELAI_MINIMUM_MIN` vaut 15**, et la phrase de l'écriteau annonce le
-  même nombre — dans les deux langues. **Un test lit la constante DANS la
-  page et la cherche dans les deux phrases** : c'est le vrai piège de ce
-  genre de règle, la constante bouge, la phrase reste, et le site annonce
-  un délai en en exigeant un autre. **Ça a servi dès le premier
-  changement** — passer de 20 à 15 minutes touche la constante, les deux
-  phrases, et toute la table d'exemples du test.
-- **UN CONTRÔLE VERROUILLE LA VALEUR ELLE-MÊME** (« elle vaut 15 minutes »).
-  Les exemples chiffrés du test la supposent : s'il change, c'est lui qui
-  tombe en premier, et on sait qu'il faut **recalculer la table** plutôt
-  que de chercher un bug ailleurs.
-- **ON NE RENVOIE PAS LE CLIENT SANS RIEN.** L'écriteau porte appel et
-  WhatsApp, exactement comme « hors zone » : quelqu'un qui veut une voiture
-  tout de suite est un client, pas une erreur de saisie, et Barbaros place
-  ces courses-là de vive voix.
-- **UNE HEURE DÉJÀ PASSÉE GARDE SON PROPRE MESSAGE** (`err_heure_passee`).
-  « Trop proche » ne veut rien dire pour hier — d'où le `> maintenant`
-  dans `tropTot()`.
-- **LE CONTRÔLE EST REFAIT À LA SOUMISSION.** Entre l'instant où le client
-  choisit son heure et celui où il appuie, le temps passe : une page
-  laissée ouverte devient trop proche toute seule. Sans ce second contrôle,
-  elle passerait.
-- **LE BOUTON A DEUX JUGES — la zone et le préavis — et ils se parlent.**
-  `jugerBoutonPrix()` est le point de rendez-vous ; sans lui, le second à
-  s'exécuter rallumerait le bouton que le premier vient d'éteindre.
-  `jugerZone()` n'éteint donc plus le bouton elle-même. **Tout nouveau
-  juge du bouton doit passer par là.**
-- Le test éprouve **les deux côtés de la frontière** — 10 min refusé,
-  25 et 40 min acceptés. Un test qui ne vérifierait que le refus laisserait
-  passer un code qui refuse tout.
-
-**LA BORNE DU CHAMP D'HEURE — CE QU'ELLE FAIT ET CE QU'ELLE NE FAIT PAS**
-(à sa demande : « il est 1 h 41, je dois pas pouvoir sélectionner 1 h 40 »).
-- Sur un **ordinateur**, le navigateur refuse une heure sous `min`.
-- Sur un **téléphone**, la molette est dessinée par iOS ou Android : elle
-  **ignore la borne**. Le client peut faire défiler jusqu'à l'heure
-  interdite, et c'est l'écriteau qui prend le relais. **Aucun site ne peut
-  griser des entrées dans un sélecteur du système** — le dire à Barbaros
-  plutôt que de laisser croire le contraire.
-- `min` sur un champ d'heure est une **heure dans la journée, sans date** :
-  elle n'a de sens que si la date choisie est **aujourd'hui**, et il faut la
-  **retirer** sinon — sans quoi une course pour demain 8 h serait refusée
-  parce que 8 h est passé aujourd'hui. Un test le vérifie.
-- **Le cas de minuit** : à 23 h 50, le premier créneau est demain 0 h 10.
-  Aucune heure d'aujourd'hui ne convient, et une borne « 00:10 »
-  autoriserait à tort toute la journée. On n'en pose donc **pas** ;
-  l'écriteau tranche.
-- **SON EXEMPLE EXACT TOMBE DANS L'AUTRE CAS** : à 1 h 41, « 1 h 40 » est
-  *déjà passé* d'une minute, donc c'est `#heurePassee` qui parle, pas
-  « trop proche ». Le test éprouve les deux refus voisins — les confondre
-  dirait au client de corriger la mauvaise chose.
-
-**LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** (à sa demande : « fait en sorte que
-les clients puissent commander toutes les 5 minutes »). Un client ne choisit
-pas un départ à 10 h 07 : il pense en quarts et en cinquièmes d'heure.
-- Le pas vit à **deux endroits** — l'attribut `step="300"` du champ, **en
-  secondes**, et `PAS_MINUTES` dans le script. **Un test compare les deux** :
-  s'ils se désaccordent, la borne tombe hors de la grille et le champ
-  propose des heures que personne ne veut.
-- **`step` est compté À PARTIR DE `min`**, pas de minuit. D'où l'arrondi du
-  premier créneau au pas supérieur : à 1 h 41 la borne est **2 h 00**, pas
-  1 h 56 — qui donnerait la grille 1 h 56, 2 h 01, 2 h 06.
-- **LE CALCUL PART DE LA MINUTE EN COURS, SECONDES RABOTÉES**, et ce n'est
-  pas un détail. À 2 h 10 pile, l'horloge marque 2 h 10 et 123 ms : le
-  préavis tombait sous la barre d'une fraction de seconde, le créneau juste
-  atteignable était refusé, et le client poussé au suivant — **cinq minutes
-  perdues pour un délai qu'il ne voit même pas**. C'est aussi la façon dont il lit sa
-  montre : « il est 2 h 10, donc 2 h 30 ». Le prix se compte au centime, le
-  préavis à la minute.
-  **`tropTot()` rabote la même minute** : sinon le champ proposerait 2 h 30
-  et l'écriteau le refuserait — deux façons de compter le temps dans la
-  même page.
-  Trouvé par le test, pas en production. Les trois cas de Barbaros —
-  2 h 08, 2 h 10, 2 h 11 — sont éprouvés, **recalculés pour 15 minutes** :
-  2 h 25, 2 h 25, 2 h 30.
-
-**LE CHAMP S'OUVRE SUR LE PREMIER CRÉNEAU RÉSERVABLE** (septembre 2026, à sa
-demande : « il faut que le choix de l'heure commence à notre heure plus
-15 minutes »). Il s'ouvrait sur **10 h**, déplacé seulement quand 10 h était
-déjà refusé — ce qui réglait le bouton éteint, pas le vrai problème : **la
-molette d'un téléphone se pose sur la VALEUR du champ**. À 3 h 27 du matin,
-capture à l'appui, le client qui veut une voiture tout de suite voyait
-10 h 00 et devait remonter sept heures.
-- Le défaut est maintenant `prochainCreneau()` — à 3 h 27, **3 h 45** (3 h 42
-  arrondi au pas de 5). La **valeur proposée et la borne sont le même
-  moment** ; un test le vérifie, sinon le champ s'ouvrirait sur une heure
-  que lui-même refuse.
-- **Le test lit la VALEUR, plus seulement « est-elle acceptable »** :
-  l'ancien contrôle passait au vert à 1 h 41 avec 10 h, sans rien voir du
-  problème. Un contrôle qui ne demande que « est-ce refusé ? » ne dit rien
-  de ce que le client a sous les yeux.
-- **Tant que le client n'y a pas touché, le défaut se recalcule**
-  (`heureTouchee`, au retour sur l'onglet et à chaque jugement). Avec 10 h
-  ce n'était pas nécessaire ; avec « maintenant + 15 », une page ouverte
-  vingt minutes rouvrait sur une heure déjà refusée. **Dès qu'il choisit
-  lui-même, on ne touche plus à rien** — écraser le choix d'un client est
-  pire que lui proposer une heure passée.
+Le préavis de 15 minutes a été **supprimé le 4 octobre 2026** (histoire dans
+`memoire/preavis.md`). Ce qui reste, et pourquoi :
+- **LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** : `step="300"` (secondes) sur le
+  champ et `PAS_MINUTES` dans le script, comparés par un test. `step` se
+  compte à partir de `min` : la borne est arrondie au pas SUPÉRIEUR.
+- Le formulaire s'ouvre sur le prochain créneau (`prochainCreneau()`) ;
+  la borne du champ est ce moment. Une heure non touchée se recalcule
+  (`rafraichirHeureProposee()`) à chaque juge ET à « Confirmer » ; une heure
+  choisie et passée n'est jamais envoyée, elle est DITE (`#heurePassee`).
+  Aucun juge n'en rappelle un autre : ça a bouclé (`memoire/preavis.md`).
+- « Passée » se juge sur l'HEURE AFFICHÉE, minute en cours comprise, comme
+  le serveur : lue en instant, la nuit du 25 octobre la page bouclait.
+- `min` sur un champ d'heure n'a de sens que pour AUJOURD'HUI : retiré sinon.
+- Sur téléphone, la molette du système ignore la borne : c'est l'écriteau
+  `#heurePassee` qui tranche, avec sa sortie « Partir dès que possible ».
 
 ## LA DATE DU JOUR SE COMPOSE EN LOCAL, JAMAIS EN UTC
 
@@ -3903,363 +3187,18 @@ première tourne.
 « pas concernée ». La boucle de lancement le signale maintenant en toutes
 lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
 
-## ADMIN V2 — UN SECOND ESPACE EXPLOITANT, EN PRÉVERSION
+## ADMIN V2 — CONSTRUIT, ÉCARTÉ, ARCHIVÉ
 
-Septembre 2026. Une **autre session Claude** a construit un espace exploitant
-neuf, côté serveur : `admin-v2.html` et ses trois scripts, quatre migrations
-Supabase, trois workflows. PR #176 à #185. **Il est publié mais `admin.html`
-n'y bascule pas** : c'est une préversion.
-
-**CE PARAGRAPHE A ÉTÉ VRAI, PUIS FAUX PENDANT DES JOURS** (corrigé le
-21 septembre 2026). Il annonçait qu'Admin v2 n'avait ni « Coller une demande »,
-ni la saisie par téléphone, ni le registre, ni l'export CSV, ni la facture de
-commission, ni l'affiche QR, ni la demande d'avis, ni l'accusé de réception —
-et il concluait qu'une bascule retirerait à Barbaros son geste principal.
-**Les sept lots de parité ont tout porté**, et chacun a sa suite de contrôles.
-Vérifié à la demande de Barbaros, suites en main : `test-admin-intake`,
-`test-admin-registre`, `test-admin-factures`, `test-admin-affiche`,
-`test-admin-gestes`, `test-admin-prix`. La note, elle, n'avait pas suivi.
-**C'est exactement le défaut que ce fichier se reproche partout** : une note
-qui vieillit sans bruit, et qui aurait servi à refuser une bascule pour une
-raison qui n'existait plus.
-
-**CE QUI RESTE VRAI, ET CE N'EST PAS LA MÊME CHOSE** : l'espace historique
-**fonctionne sans serveur**. Session expirée, Supabase muet, il affiche quand
-même les courses gardées dans le navigateur. Admin v2, non — il lit le
-serveur. C'est le seul vrai argument en faveur de l'ancien, et il compte à
-5 h du matin. En sens inverse : le registre de l'ancien ne vit que dans CE
-navigateur (changer de téléphone le perd), ses règles de papiers ne sont qu'un
-avertissement d'écran quand Admin v2 les fait imposer par le SERVEUR — un
-filtre d'écran n'est pas une frontière, et l'attribution est l'instant où
-Elatransfer engage sa responsabilité (L3142-1) — et il fait peser ~190 Ko de
-back-office sur la page de chaque client.
-**Ne pas lire « Admin v2 existe » comme « Admin v2 remplace »** pour autant :
-la bascule de `admin.html` reste une décision de Barbaros, et elle n'est pas
-prise.
-
-Ce qu'il apporte en revanche, et qu'il ne faut PAS reconstruire : partenaires,
-tarification serveur, codes promo, finances, paiement Stripe TEST, historique
-des réservations, file « Action requise ».
-
-### LE POSTE DE TRAVAIL — UN TABLEAU, ET UN BON QUI NE DIT QUE L'UTILE
-
-21 septembre 2026, à sa demande, après avoir ouvert Admin v2 pour de vrai :
-« j'arrive pas à traiter les courses, c'est mal fait, des touches qui ne
-fonctionnent pas ». Les trois reproches étaient justes, et mesurables.
-
-**LES BOUTONS ÉTAIENT RÉELLEMENT MORTS.** Feuille du bon à `z-index` 20, barre
-de navigation du bas à 29 : la barre passait DEVANT une feuille modale. Le bon
-défile sur 934 px pour 774 visibles, donc **chaque bouton mourait en
-descendant dans les 78 px du bas** — « Accuser réception au client », à
-782 px, recevait le doigt de la barre. Rien à l'écran ne le disait.
-C'est le défaut que le site client avait corrigé des semaines plus tôt (« la
-feuille est au-dessus de la barre ») et qui n'avait jamais été reporté ici.
-**On masque la barre plutôt que de monter la feuille** : une navigation
-visible sous un bon invite à quitter un travail en cours. La montée reste en
-repli pour les navigateurs sans `:has` — deux défenses, parce qu'un bouton
-mort ne se voit pas.
-
-**LA VRAIE DIFFÉRENCE AVEC L'ESPACE HISTORIQUE N'ÉTAIT PAS UNE FONCTION,
-C'ÉTAIT UN GESTE.** Là-bas, la ligne d'une course porte « Terminée » et
-« Appeler » : un appui. Ici la ligne entière n'était qu'un bouton qui OUVRE le
-bon — dix courses à clore le soir, dix ouvertures, dix défilements, dix
-fermetures. `gesteRapide` appelle `changeStatus` et `driverPicker`, **jamais
-une copie** : deux chemins pour un même geste finissent par diverger, et c'est
-celui qu'on oublie qui laisserait une course dans un état illisible.
-- **Un seul geste par ligne**, celui que le statut appelle. Une course finie
-  n'en porte aucun : un bouton de plus serait du bruit.
-- **La confirmation reste.** Un geste irréversible à un doigt, dans une liste,
-  sur un téléphone tenu d'une main, c'est une course clôturée par erreur à 3 h.
-- **La ligne ne pouvait pas rester un `<button>`** : un bouton dans un bouton
-  est du HTML invalide, et chaque navigateur le défait à sa façon.
-
-**LE TABLEAU DE TRAITEMENT** (écran « Courses ») : quatre colonnes qui sont les
-étapes réelles du cycle — Nouvelles, À attribuer, En course, Clôturées. Chaque
-carte porte le geste qui la fait avancer d'une colonne.
-- **Même HTML aux deux tailles** : une colonne à la fois sur téléphone, choisie
-  par des onglets qui portent le compte ; les quatre de front sur ordinateur.
-  Deux balisages, et le jour où l'un gagne une colonne l'autre l'oublie.
-- **Pas de glisser-déposer.** Ici « déplacer une carte » veut dire changer
-  l'état d'une vraie course : c'est un bouton, avec sa question.
-- **Le menu « Tous statuts » est parti** : les colonnes SONT le tri. Deux
-  commandes pour un même tri se contredisent — filtrer « réalisée » en
-  regardant « Nouvelles » vidait le tableau sans que rien ne l'explique.
-- **CE N'EST PAS LE KANBAN DE L'ISSUE #197**, qui pilote le PRODUIT (backlog,
-  priorités, agents) et dont la spécification dit elle-même de ne pas le mêler
-  au cycle métier des réservations. Ne pas fondre les deux.
-
-**LA PAGE DE TRAITEMENT NE GARDE QUE CE QUI SERT À DÉCIDER.** Mesuré avant :
-« Confirmer la réservation » était à **588 px**, après le prix, la marge ELA,
-le montant dû au chauffeur et l'état du paiement — le geste pour lequel on
-ouvre un bon était le cinquième élément de la page. Il est à **182 px**, et la
-feuille ne défile presque plus (788 px pour 774, contre 934).
-L'ordre dit ce qu'on vient faire : l'état, les actions, la course, à qui l'on
-parle. Les chiffres, le paiement et l'historique passent sous un repli — ils
-servent à **vérifier**, pas à décider. Le tarif et le paiement TEST descendent
-avec eux : le bouton le plus visible d'un bon en attente ne pouvait pas être
-une fonction que Stripe Live n'active même pas.
-- **`#bookingActions` garde son nom** : deux autres modules y greffent leurs
-  boutons (accusé de réception, demande d'avis, tarif serveur). Le renommer
-  les détacherait en silence. `#bookingActionsPlus`, dans le repli, accueille
-  ce qui ne sert pas à décider maintenant — et le module retombe sur la zone
-  d'origine si elle manque : une greffe qui ne trouve pas son hôte ne doit pas
-  disparaître sans un mot.
-
-**TROIS PIÈGES DE PEAU, TOUS DÉJÀ CONSIGNÉS AILLEURS DANS CE FICHIER :**
-- **`.urgent` existait déjà**, avec un filet DORÉ. La colonne qui doit crier
-  sortait donc en or. Quatrième fois après `.arrivee`, `class="carte"` et
-  `.service span span` : **une classe déjà prise ramasse une règle écrite pour
-  autre chose**. Le modificateur s'appelle `kanban-urgent`.
-- **`.ko` vaut `#ffc1c7`**, un rose pâle dessiné pour le fond SOMBRE de
-  l'ancienne feuille. La refonte l'a mise en blanc : contraste mesuré **1,3
-  pour 4,5 exigé**, et Barbaros l'a vu sur sa capture. Une couleur choisie
-  pour un décor et non pour un rôle — c'est ce qui avait fait virer le logo au
-  vert avec `--gold`.
-- **La carte du tableau gardait la grille d'une ligne de liste**, qui réclame
-  555 px de minimum. Dans une colonne de 330 px, le trajet se faisait couper
-  et le prix sortait du cadre. Invisible sur téléphone, où la règle des 800 px
-  empilait déjà tout : **seul l'écran large le montrait**.
-
-**LE MESSAGE QUI ENVOYAIT CHERCHER UN ÉCRAN INEXISTANT.** « Le lien d'avis se
-règle dans *Tarification* » : l'onglet s'appelle **Tarifs et réglages**. Le
-contrôle qui le surveillait figeait le mauvais nom, donc verrouillait le
-mensonge. Il lit désormais le libellé DANS le menu et exige que les deux
-disent la même chose.
-
-**ET UNE FAUTE DE MA MAIN, QUI VAUT D'ÊTRE ÉCRITE** : en retirant le menu des
-statuts, j'ai laissé `$('#fBooking').onchange` qui l'écoutait. L'erreur cassait
-**tout** le script d'initialisation — plus de hamburger, plus de tableau — et
-ne se voyait que dans la console. **Retirer un élément, c'est retirer ce qui le
-regarde.**
-
-### L'AUDIT DES BOUTONS, ET POURQUOI IL A FAILLI MENTIR DEUX FOIS
-
-Même date, à sa demande : « je veux toutes les fonctions actives ». 42 boutons
-appuyés sur les neuf écrans : **aucun mort, aucune erreur JavaScript**.
-
-**« CE BOUTON A-T-IL UN GESTIONNAIRE ? » NE PROUVE RIEN** : un écouteur posé
-sur `document` attrape tous les clics, et la réponse serait « oui » partout. On
-mesure donc l'EFFET — un dialogue, un appel réseau, un téléchargement, le DOM
-qui bouge. Les dialogues sont **refusés** : leur apparition suffit à prouver
-que le bouton vit, et refuser laisse l'état tranquille pour le suivant.
-
-- **PREMIER DÉTECTEUR, VINGT FAUSSES ALERTES.** Il comparait la LONGUEUR du DOM
-  avec un seuil de 40 caractères : ouvrir un champ retire l'attribut `hidden`,
-  sept caractères, et vingt boutons vivants étaient déclarés morts. On compare
-  le DOM **à l'identique**, jamais sa taille.
-- **DEUXIÈME PASSE, MAUVAISE CIBLE.** Mon clic de vérification visait le
-  premier bouton du formulaire et non celui que j'accusais : j'attribuais son
-  silence au voisin. Une liste de fausses alertes est pire qu'aucun audit.
-- **CE QUE L'AUDIT NE PEUT PAS VOIR, ET QU'IL FAUT DIRE** : la bulle de
-  validation du navigateur n'est pas dans le DOM. « Créer la course » sur un
-  formulaire vide ne change donc rien de mesurable — il déplace le focus sur le
-  premier champ manquant et le navigateur affiche sa bulle. Le bouton est
-  actif ; le détecteur est aveugle à ce retour-là.
-- **UN ONGLET DÉJÀ SÉLECTIONNÉ NE FAIT RIEN, ET C'EST CORRECT.**
-
-**CE QUI RESTE EST LE GARDE-FOU, PAS L'AUDIT.** Un audit qu'on lance une fois
-ne surveille rien. `test-admin-papiers.mjs` éprouve désormais la RÈGLE dont ce
-défaut est le cas, aux trois largeurs : **aucun bouton visible ne doit recevoir
-le doigt d'un autre élément**. On ne relit pas le CSS — on demande au
-navigateur qui reçoit le doigt au centre de chaque bouton, parce qu'une règle
-d'empilement se casse sans bruit, d'un `z-index` ajouté ailleurs.
-Deux resserrements, chacun pour une fausse alerte mesurée : une feuille
-**modale** recouvre légitimement tout ce qui est derrière (feuille ouverte, on
-n'éprouve que SES boutons), et un élément **rogné** n'est pas un élément
-recouvert (le contenu d'une feuille qui défile garde des rectangles dans la
-fenêtre alors qu'il est hors de sa boîte).
-**Éprouvé contre le défaut d'origine** : la barre remise devant la feuille, il
-tombe à 320 et 390 px en nommant le bouton mangé, et reste vert à 1280 où la
-barre ne s'affiche pas.
-
-**LE MANDAT DE CHATGPT EST D'EN TERMINER UN SEUL** (#165, septembre 2026) :
-la cible est le remplacement propre de l'espace actuel **quand la parité est
-atteinte**, jamais deux espaces tenus en parallèle.
-
-### LES PAPIERS D'UN CHAUFFEUR EXPIRENT TOUT SEULS — Admin v2 ne le voyait pas
-
-Le premier défaut trouvé en reprenant le chantier, et il engageait une
-responsabilité. L'état d'un chauffeur était un champ `statut` posé **à la
-main** dans un menu déroulant, la colonne `documents` était déclarée et
-**jamais écrite**, et **aucune date d'expiration n'était collectée**. Une
-assurance expirée hier laissait donc le chauffeur « Validé » pour toujours, et
-`validDrivers()` le proposait encore à l'attribution — l'instant précis où
-Elatransfer engage sa responsabilité (L3142-1).
-
-**UN ÉTAT STOCKÉ NE VIEILLIT PAS.** C'est tout le défaut, et il ne se voit
-pas : l'écran affiche « Validé », il est simplement faux. C'est la même faute
-que le tableau de tarifs qui a menti pendant des jours — **une valeur recopiée
-survit au changement qui l'invalide**.
-
-- **LES DATES SONT DES COLONNES, PAS UN JSONB** : une colonne se compare,
-  s'indexe et se lit en SQL. Le `documents jsonb` d'origine ne servait à rien
-  parce que rien ne pouvait l'interroger.
-- **L'ÉTAT EST DÉRIVÉ, À UN SEUL ENDROIT** — la vue `chauffeurs_etat`. La page
-  ne recalcule rien, elle traduit. Deux calculs qui divergent ne se voient pas :
-  c'est la leçon déjà payée sur le prix client contre le prix exploitant.
-- **`security_invoker = true` SUR LA VUE.** Sans lui, elle servirait de porte
-  dérobée autour des policies de la table.
-- **« PÉRIMÉ » ET « MANQUANT » SONT DEUX VALEURS, ET LES DEUX SONT AU ROUGE**
-  — un papier absent ne prouve pas plus qu'un papier expiré. Mais **seul
-  « périmé » BLOQUE** l'attribution : c'est un fait connu, une date passée.
-  « Manquant » est une ignorance ; bloquer dessus reviendrait à inventer un
-  fait, et surtout **rendrait TOUS les chauffeurs inattribuables le jour du
-  déploiement**, puisque aucune date n'est encore saisie. On ne casse pas le
-  geste principal de quelqu'un pour appliquer une règle à la lettre.
-- **LE NOM DU TYPE D'ACTION EST LU PAR DU CODE.** Le tableau de bord compte
-  « Sans chauffeur » avec un `includes('chauffeur')` sur le type : un type
-  nommé `papiers_chauffeur` aurait gonflé cette métrique **sans que rien ne le
-  signale**. Il s'appelle `papiers_a_regulariser`.
-- **DEUX NULL SONT DISTINCTS POUR UN INDEX UNIQUE POSTGRES.** Une action liée à
-  un chauffeur n'a pas de `course_ref` : l'index partiel existant n'aurait rien
-  dédupliqué et la file se serait remplie de doublons à chaque rafraîchissement.
-  D'où une colonne `chauffeur_id` et son propre index.
-- **LA FONCTION `ela_rafraichir_actions` EST REMPLACÉE EN ENTIER** : ses trois
-  inserts d'origine sont recopiés à l'identique. En oublier un les supprimerait
-  en silence — un contrôle compte qu'il y en a quatre.
-
-#### L'ÉCRAN CACHAIT, LE SERVEUR N'IMPOSAIT PAS — LE VRAI BLOQUEUR
-
-Trouvé par ChatGPT en relisant la première version de ce correctif, et il avait
-raison : la liste déroulante ne montrait plus les chauffeurs aux papiers
-périmés, **mais les deux RPC continuaient de les accepter**. Elles
-choisissaient le chauffeur avec `actif and statut='valide'` — le champ posé à
-la main, celui-là même qui ne vieillit pas et que ce correctif existe pour
-remplacer. **Un filtre d'écran n'est pas une frontière de sécurité** : un appel
-direct passe à côté, et l'attribution est l'instant précis où Elatransfer
-engage sa responsabilité (L3142-1).
-
-- **UNE SEULE RÈGLE, ÉCRITE UNE SEULE FOIS** : `ela_chauffeur_attribuable()`.
-  La vue l'appelle, les deux RPC l'imposent. Écrire la même condition aux trois
-  endroits, c'est se donner rendez-vous avec la divergence — le projet l'a déjà
-  payé sur le prix client contre le prix exploitant.
-- **LA VUE ÉTAIT PLUS PERMISSIVE QUE LE SERVEUR, et je ne l'avais pas vu.**
-  Elle acceptait `statut not in ('bloque','a_verifier')`, les RPC exigeaient
-  `= 'valide'` : une fiche au statut hérité `a_renouveler` s'affichait
-  attribuable et se faisait refuser à l'attribution. On s'aligne sur le
-  serveur, qui était le plus strict — et `etat_effectif` suit, sinon la fiche
-  dirait « à jour » pendant que l'attribution la refuse.
-- **`create or replace` REMPLACE LA DÉFINITION ENTIÈRE** : `security definer`
-  et `set search_path` doivent être réécrits, sinon la fonction retombe en
-  *invoker* et perd son chemin figé. Ça ne se voit qu'en production — d'où un
-  contrôle qui relit `pg_proc` après la migration, et un autre qui vérifie
-  qu'`anon` n'a pas l'exécution.
-- **LE 30e JOUR N'ÉTAIT PAS DANS LA FENÊTRE.** Le SQL disait `< aujourd'hui +
-  30`, le site dit `j <= JOURS_ALERTE`. Le serveur aurait donc répondu « à
-  jour » le jour même où l'écran affiche « expire dans 30 j ». Aucun symptôme,
-  aucun message : les deux se contredisent en silence, et on l'apprend au
-  contrôle. Deux fiches encadrent la borne dans le test, au 30e et au 31e jour.
-- **LE COMMENTAIRE SQL RACONTAIT L'INVERSE DU CODE** : il annonçait
-  « NULL = non renseigné, ce qui vaut périmé » alors que `manquant` est rouge
-  mais **non bloquant**. Une documentation qui ment est pire qu'une absente —
-  la prochaine session l'aurait lue comme la règle.
-- **LE TEST APPELLE LES DEUX RPC, il ne relit pas leur source.** Il vérifie
-  aussi qu'un refus **n'écrit rien** (ni attribution, ni changement de statut),
-  et — le contrôle qui lève le doute — qu'un chauffeur **en règle passe** : une
-  RPC qui refuserait tout rendrait exactement les mêmes erreurs. Un dernier bloc
-  éteint l'exploitant pour prouver que le refus venait bien du chauffeur et non
-  d'un refus d'accès global.
-- **ÉPROUVÉ CONTRE QUATRE FALSIFICATIONS**, chacune sur un vrai PostgreSQL :
-  les RPC remises sur `statut` (le test rend mot pour mot « A ACCEPTÉ Ayse,
-  assurance expirée depuis 2 jours »), la borne remise à `<`, `security
-  definer` retiré, et l'exécution rendue à `anon`. Les quatre tombent.
-
-**TROIS DATES NE FONT PAS UNE CONFORMITÉ CHAUFFEUR — À NE PAS PRÉSENTER
-AINSI.** Ce correctif suit `carte_vtc_fin`, `registre_fin` et `assurance_fin`.
-ChatGPT signale que le Code des transports en demande davantage à une centrale
-de réservation — permis de conduire, assurance du véhicule, état du véhicule,
-vérification avant première mise en relation puis contrôles périodiques
-(R3141-1 à R3141-4). **Je n'ai pas pu lire ces articles : le réseau de cette
-machine ne joint pas Legifrance.** C'est donc rapporté, pas vérifié, et à
-confirmer sur le texte avant d'en faire une règle. Ce qui est sûr en revanche :
-**ne pas laisser croire que le carnet actuel suffit**, et traiter la suite
-comme une matrice « obligation → preuve → échéance → règle d'attribution →
-test », sans rien inventer.
-
-**« DATE ABSENTE = ROUGE MAIS NON BLOQUANT » EST UNE RÈGLE DE MIGRATION, PAS
-UNE POLITIQUE.** Elle existe parce qu'aucune date n'est encore saisie : bloquer
-dessus rendrait tout le carnet inattribuable le jour du déploiement. Elle se
-durcira quand le carnet sera rempli — **ce sera une décision de Barbaros**, pas
-un correctif appliqué en silence. Le test le dit à l'endroit même du contrôle,
-pour que la prochaine session ne le « répare » pas.
-
-#### LA SUITE SQL EST TOMBÉE À 00 h 21, ET C'ÉTAIT LE TEST QUI AVAIT TORT
-
-16 septembre 2026, premier rouge en CI sur la brique suivante. Message :
-« un papier qui expire aujourd'hui est declare perime ».
-
-**LE CODE ÉTAIT JUSTE, LES FIXTURES DATAIENT DANS LE MAUVAIS FUSEAU.** Elles
-posaient `current_date` — le jour de la **session**, donc UTC sur un coureur
-GitHub — pendant que la règle compare au jour de **Paris**. À 22 h 21 UTC il
-est 00 h 21 à Paris : ce ne sont plus le même jour, et « expire aujourd'hui »
-devenait « expire hier ».
-
-- **ELLE PASSAIT AU VERT DEPUIS DES HEURES POUR UNE SEULE RAISON** : on ne
-  l'avait lancée qu'à des heures où UTC et Paris tombaient le même jour. C'est
-  la même famille que le `toISOString` du site, qui ne se voyait qu'entre
-  minuit et 2 h — **exactement quand personne ne teste**. La fenêtre ici est
-  22 h–minuit UTC, tous les jours.
-- Les fixtures datent maintenant depuis `(now() at time zone 'Europe/Paris')`,
-  **le même repère que la règle**. Une fixture et la règle qu'elle éprouve
-  doivent parler du même calendrier.
-
-**ET LE CONTRÔLE QUE J'AI AJOUTÉ POUR ÇA NE PROUVAIT RIEN AU PREMIER JET.**
-Il décalait la session à Kiritimati (UTC+14) et comparait au jour de Paris.
-Or à 22 h UTC les deux tombent le **même** jour : il passait au vert sur la
-version fausse. **Un contrôle qui ne mord qu'à certaines heures est exactement
-le défaut qu'on répare.**
-Il est maintenant déterministe : Midway (UTC-11) et Kiritimati (UTC+14) sont à
-**vingt-cinq heures d'écart**, donc toujours sur deux jours différents. On
-prend « aujourd'hui » vu de Midway et on demande son état depuis les deux
-fuseaux — une règle ancrée à Paris rend deux fois la même chose, une règle qui
-lit `current_date` rend « valide » ici et « périmé » là-bas.
-Éprouvé sous **quatre** configurations : le vrai code vert en session UTC,
-Paris et Kiritimati ; la version fausse tombe, et nomme l'écart.
-
-**`test-admin-papiers.mjs` ÉPROUVE LE SITE CONSTRUIT, PAS LE DÉPÔT**, et
-**construit et sert elle-même**. Les trois scripts d'Admin v2 ne sont rattachés
-à la page que par `construire.sh` : ouverte depuis le dépôt, `admin-v2.html`
-n'a ni sélecteur de chauffeur ni file d'actions, et la suite serait passée au
-vert sans rien avoir éprouvé. Un serveur lancé à côté est un serveur qu'on
-finit par laisser sur le mauvais dossier — **rencontré ce jour-là, une
-demi-heure perdue à mesurer le dépôt en croyant mesurer le site publié**.
-Éprouvée contre le défaut d'origine : elle tombe sur trois contrôles et nomme
-le chauffeur qui n'aurait pas dû être proposé.
-
-**ELLE EST TOMBÉE À SON PREMIER PASSAGE EN CI, ET LA CAUSE EST GÉNÉRALE.**
-Elle attendait des **durées fixes** — 1200 ms après le chargement, 300 ms après
-l'ouverture du bon. Ça passe sur la machine de travail et ça tombe sur un
-coureur plus lent : `load()` n'avait pas fini, `state.courses` était vide,
-`openBooking()` rendait la main sans rien ouvrir, et le clic tombait sur
-`null`. **Un délai fixe n'est pas une attente, c'est un pari sur la vitesse
-de la machine.** On attend ce qu'on veut voir — `waitForSelector`,
-`waitForFunction` — jamais une durée.
-- **La condition doit couvrir TOUT ce dont la suite se sert ensuite.** Le
-  premier correctif n'attendait que `state.drivers` : `load()` remplit chaque
-  source indépendamment dans un `Promise.all`, donc les chauffeurs arrivaient
-  pendant que les courses manquaient encore. Même panne, plus loin.
-- **Éprouvé en retardant le serveur de 3 s** : l'ancienne version rend
-  « Cannot read properties of null », la nouvelle passe. Reproduire la
-  lenteur vaut mieux que supposer qu'on l'a corrigée.
-- **ET LA VRAIE CAUSE ÉTAIT AILLEURS ENCORE : LA VERSION DE PLAYWRIGHT.**
-  1.56.1 sur la machine de travail, **1.47.2** épinglée dans le workflow —
-  et **l'ordre de priorité des routes n'est pas le même**. La suite posait une
-  route générique (« tout ce qui n'est pas le site local, on coupe ») puis une
-  route spécifique pour le faux serveur : en 1.56 la spécifique l'emporte, en
-  1.47 la générique avalait tout. **Aucune donnée n'arrivait**, `state.courses`
-  restait vide, et le bon s'ouvrait sur rien. Zéro ligne de code différente
-  entre les deux machines, deux comportements.
-  - **Correction de fond : UNE SEULE ROUTE qui décide de tout.** Deux routes
-    obligent à connaître un ordre ; une seule ne peut pas se tromper.
-  - **Et la CI est alignée sur la version d'ici.** Deux recettes finissent
-    toujours par diverger — celle-ci l'avait déjà fait. Le Chromium de 1.47
-    n'étant pas téléchargeable depuis cette machine, **je n'ai pas pu éprouver
-    la suite sur 1.47** : plutôt que de supposer, on supprime l'écart.
-- **PIÈGE DE DIAGNOSTIC** : le journal de la CI affichait six
-  « role "root" does not exist » du service PostgreSQL, juste avant l'échec.
-  Ce n'était **pas** la cause — `pg_isready` sans `-U` rend quand même 0,
-  vérifié. Du bruit qui ressemble à une panne fait perdre un quart d'heure ;
-  le `-U postgres` a été posé pour que personne ne le rechasse.
+Un second espace exploitant, côté serveur, construit en septembre 2026 par
+une autre session puis porté à parité en sept briques. Barbaros l'a essayé
+le 23 septembre (« on garde l'ancien ») et l'a fait **retirer de la
+publication le 3 octobre** — voir « ADMIN V2 N'EST PLUS PUBLIÉ » plus bas,
+qui dit ce qui vaut aujourd'hui. Ce qu'il a laissé à l'admin retenu : les
+fichiers **partagés** (`intake-demande.js`, `itineraire-partage.js`,
+`qr-affiche.js`, `telephone.js`) et les règles serveur (papiers des
+chauffeurs, facture sans trou ni doublon). Toute son histoire — les briques,
+les audits, les pièges de test — est dans `memoire/admin-v2.md`. Ne l'ouvrir
+que s'il est redemandé.
 
 ### DEUX PHOTOS DE L'ACCUEIL ONT DISPARU DU SITE EN LIGNE
 
@@ -4301,727 +3240,6 @@ de chercher**.
 **ET MA PREMIÈRE POSE DU BLOC ÉTAIT APRÈS `serveur.close()`** : la suite
 mourait sur `ECONNREFUSED` et n'affichait **rien**. Une suite muette est un
 échec — ne jamais la lire comme « pas concernée ».
-
-### PARITÉ, BRIQUE 7 — LA CHAÎNE DU PRIX EST PARTAGÉE
-
-18 septembre 2026, dernière brique de la parité. « Calculer le prix depuis les
-adresses » n'existait que côté site : quand un hôtel appelle, Admin v2 ne
-savait qu'accepter un montant tapé à la main.
-
-**CE QUI DIVERGERAIT SERAIT LE PRIX, et c'est pour ça que cette brique est la
-plus exposée des sept.** Barbaros annonce un montant au téléphone depuis
-l'espace exploitant ; le client en voit un autre sur le site. Le prix est
-**ferme donc opposable** : c'est le client qui aurait raison. Et rien ne
-l'annonce — le prix s'affiche des deux côtés, il est simplement différent, et
-on le découvre le jour où quelqu'un compare.
-
-**LA CHAÎNE N'EST PAS RECOPIÉE, ELLE A DÉMÉNAGÉ** dans
-`itineraire-partage.js` : même chemin que `intake-demande.js` à la brique 1 et
-`qr-affiche.js` à la brique 6. Ce qui y vit : les quatre niveaux d'itinéraire
-et leurs deux clés, les trois lecteurs de réponse, le tracé GeoJSON, le
-minuteur par appel, `departAt`, le vol d'oiseau de secours, **l'arrondi de
-Barbaros**, `prix`, et les appels d'adresse BAN/Photon.
-
-- **LA GRILLE EST UN PARAMÈTRE OBLIGATOIRE**, jamais un défaut caché.
-  `prix(gamme, km)` : le site passe `GAMMES`, Admin v2 passe la grille du
-  **serveur**. Un défaut dans le fichier partagé serait une **deuxième
-  grille**, muette le jour où la vraie change — même règle que le lecteur de
-  demandes. Un contrôle relit la signature dans la source.
-- **CE QUI RESTE DANS LA PAGE, ET CE N'EST PAS UN OUBLI** : le **classement**
-  des résultats d'adresse (`chercher`, `note`, `variantes`, `dedoublonner`,
-  les terminaux, `sansAccents`). Il est lié à l'autocomplétion du site — le
-  chemin le plus emprunté du produit — et le déplacer aurait mêlé une refonte
-  de l'ergonomie client à un partage de calcul. Le fichier partagé porte les
-  **appels** et leur lecture, donc les coordonnées ; `lieu()` y rend le
-  premier résultat plausible, ce dont Admin v2 a besoin. **La limite est
-  nommée plutôt que cachée.**
-- **`prix` RESTE UNE FONCTION DE LA PAGE**, même si elle ne calcule plus
-  rien elle-même — elle délègue à `window.ELA_ROUTE.prix`.
-  **CETTE SECTION DÉCRIT UN ÉTAT DÉPASSÉ** — voir « UN SEUL TARIF AU
-  KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN » (28 septembre 2026) en fin
-  de fichier, qui dit vrai aujourd'hui : le mode hôtel avait une SECONDE
-  grille au kilomètre pour « autre destination » (2,55 et 4,10 €/km,
-  arrondi à l'euro), injectée à la construction par
-  .github/scripts/appliquer-regles-easyhotel.mjs. Barbaros a demandé
-  qu'il n'y en ait plus qu'une pour tout le monde : le transformateur a été
-  **supprimé**, il n'avait plus rien à faire une fois les deux grilles
-  unifiées, et retiré de `construire.sh`.
-- **SANS GRILLE SERVEUR, ADMIN V2 NE CALCULE PAS**, et il le dit. Inventer un
-  tarif par défaut ferait annoncer au téléphone un prix que personne n'a
-  validé. Même règle que `ecrireGrilleV2` : trois contrôles tombent si on
-  invente une grille de repli.
-- **LES ADRESSES RETENUES SONT RÉÉCRITES DANS LES CHAMPS.** La recherche rend
-  le premier résultat plausible ; si ce n'est pas le bon Ibis, le kilométrage
-  est faux et le prix avec. Barbaros doit **voir** ce sur quoi il annonce un
-  montant. Et **le prix reste modifiable** : c'est une négociation.
-- **UN ÉCHEC NE BLOQUE RIEN.** La saisie à la main a toujours marché, et c'est
-  elle le chemin sûr : le calcul le dit et rend la main.
-
-**LE CONTRÔLE QUI COMPTE LE PLUS EST L'ÉGALITÉ AU CENTIME AVEC LE SITE**, sur
-la même distance et la même grille. Et **l'arrondi s'éprouve sur un 5 pile** :
-à 16,25 km et 4,00 €/km la course fait exactement 65 €, le seul cas où `>` et
-`>=` se séparent. Sa règle est que le 5 pile **descend** — 60 €, pas 70.
-- **PREMIER JET RATÉ, ET LA LEÇON VAUT** : j'avais posé ce cas à 11,25 km,
-  soit 45 € pile — mais **le plancher du van est à 50 €, et il a le dernier
-  mot**. Le contrôle tombait sur le code juste. Un cas d'arrondi ne prouve
-  rien s'il est repris par le plancher : il faut le poser **au-dessus**.
-- **LE FAUX SERVICE D'ADRESSES RÉPOND SELON LA QUESTION POSÉE.** Le premier
-  jet rendait la **même** place pour les deux champs : le trajet faisait alors
-  0 km, le prix tombait au **plancher**, et deux contrôles passaient au vert
-  sur un prix faux. Un défaut qui résoudrait les deux adresses au même endroit
-  rendrait exactement ça — 30 € sur un Paris → Argenteuil — sans un mot.
-- **UN CONTRÔLE QUI PASSE PAR CHANCE DE CALENDRIER NE VÉRIFIE RIEN.** La scène
-  « sans grille serveur » n'attendait qu'un texte non vide : elle attrapait
-  « Recherche des adresses… » et « aucun prix n'est inventé » passait au vert
-  parce que le calcul n'avait pas fini d'écrire. Elle attend maintenant un état
-  qui a **tranché**. Éprouvé : sans cette attente, un seul des trois contrôles
-  tombait.
-- **PIÈGE DE BANC RENCONTRÉ ICI** : `state` est déclaré en `let` au premier
-  niveau d'un script classique — il vit donc dans la portée **lexicale**
-  globale et **n'est pas sur `window`**. `window.state` rend `undefined`, et
-  l'attente expirait sur une page parfaitement chargée.
-
-**LA SUITE ITINÉRAIRE RÉÉCRIT MAINTENANT LE FICHIER PARTAGÉ, plus la page.**
-Les clés ont suivi le code qui les lit. Viser `index.html` passait au vert en
-ne remplaçant **rien** : un `replace` sur une chaîne absente ne lève pas, il
-rend le texte tel quel, et la suite aurait éprouvé la **vraie** clé au lieu de
-la fausse. Éprouvé en reculant : douze contrôles tombent.
-
-`test-admin-prix.mjs`, **32 contrôles**, branchée en CI. Quatre
-falsifications, toutes tombent en nommant le défaut — dont celle qui recopie
-l'arithmétique dans Admin v2, qui diverge de 10 € et se fait prendre par le
-prix ET par la source.
-
-#### LE TARIF HÔTEL AU KILOMÈTRE POUVAIT DÉRIVER SANS QUE RIEN NE TOMBE
-
-18 septembre 2026, trouvé en contrôlant le travail de ChatGPT à la demande de
-Barbaros. Le workflow « Contrôle source tarifaire serveur » compare les tarifs
-**généraux** et les **forfaits** du site publié à la source serveur. Il ne
-comparait **pas** le taux hôtel **au kilomètre** — celui qui s'applique quand
-une réception envoie un client vers « autre destination ».
-
-**MESURÉ, PAS SUPPOSÉ.** En posant `9.99 : 8.88` dans le transformateur, le
-site publié facturait **9,99 €/km** en mode hôtel et **tous les contrôles
-restaient au vert**.
-- **PREMIÈRE FALSIFICATION RATÉE, ET ELLE VAUT D'ÊTRE ÉCRITE** : mon `sed`
-  n'avait rien remplacé (les guillemets du motif sont échappés dans une chaîne
-  JS), le taux était resté le bon, et le vert ne prouvait donc rien. J'ai
-  failli conclure d'une mesure qui n'avait pas mordu. **Une falsification qui
-  ne change rien est un test qui ne teste rien** : toujours vérifier que le
-  défaut est bien en place avant de lire le verdict.
-
-**POURQUOI ÇA NE SE VOIT PAS** : ce taux n'existe que dans le site
-**construit**. Le dépôt ne le porte pas — c'est le transformateur qui
-l'injecte — donc **aucune suite qui éprouve le dépôt ne peut le voir**. Même
-famille que le débordement de 6 px, que seul le site publié montrait.
-
-`.github/scripts/verifier-tarif-hotel.mjs` **ne fige aucun nombre** : il lit le taux dans le
-site publié, lit la source serveur, et exige l'égalité. Une baisse décidée par
-Barbaros touche les deux et reste verte ; n'en toucher qu'un tombe, et le
-message **nomme la gamme et l'écart au centime**. Trois falsifications : le
-build qui dérive, la source serveur qui dérive, le transformateur qui ne
-s'applique plus — les trois tombent.
-
-#### CE QUE LE CONTRÔLE DU TRAVAIL DE CHATGPT A DONNÉ DE BON
-
-Même date, même demande. Ce qui a été éprouvé et tient :
-- **Aucun secret dans le dépôt** : ni clé Stripe secrète, ni `service_role`,
-  ni `whsec_`. Les seules occurrences de ces motifs sont les workflows qui les
-  **cherchent** — des garde-fous, pas des fuites. Aucune trace de Stripe Live.
-- **Aucune policy de lecture pour `anon`**, nulle part. Les tables sensibles
-  portent toutes `revoke all ... from anon`, et les `select` sont réservés à
-  `authenticated` **plus** `est_exploitant()`. C'est la frontière qui protège
-  les noms, téléphones et adresses des clients (RGPD).
-- **Le webhook Stripe est solide** : signature HMAC SHA-256 sur le corps
-  **brut**, comparaison à **temps constant**, fenêtre de 300 s contre le
-  rejeu, et surtout **l'`event_id` n'est marqué qu'APRÈS l'écriture
-  financière** — si la base tombe entre les deux, Stripe rejoue et rien n'est
-  perdu. C'est le bon ordre, et il est commenté.
-- **Autorisé n'est pas encaissé** : `requires_capture` → « autorise »,
-  `succeeded` → « encaisse », et les deux montants vivent dans deux colonnes
-  distinctes. La capture est **manuelle** (`capture_method=manual`).
-- La référence de course venue des métadonnées Stripe est **validée par une
-  expression régulière** avant toute écriture — une donnée qui vient de
-  l'extérieur n'entre pas telle quelle.
-
-**RIEN DE BLOQUANT TROUVÉ SUR CE PÉRIMÈTRE.** Le seul trou est celui du tarif
-hôtel ci-dessus, et il est bouché.
-
-#### LE MODULE RECOPIÉ EST ARRIVÉ EN MÊME TEMPS, ET IL ANNONÇAIT 10 € DE TROP
-
-18 septembre 2026. Pendant que cette brique s'écrivait, admin-v2-itineraire.js
-est entré dans `main` par un autre chemin, juste avant la fusion de #191
-(commits `37540d6`, `b9da08b`, `ee3b7f2`). **Il fonctionnait**, et il respectait
-la bonne règle : la grille vient exclusivement du serveur. Mais il **recopiait**
-la chaîne au lieu de la partager — exactement ce que cette brique existe pour
-éviter.
-
-**MESURÉ, PAS SUPPOSÉ.** Sur les distances de 1 à 60 km par pas de 250 m,
-**dix-neuf** donnaient un prix différent de celui du site, **toujours 10 € plus
-cher** :
-
-| Distance | Gamme | Le site | Le module recopié |
-|---|---|---|---|
-| 13,75 km | Van | **50 €** | 60 € |
-| 16,25 km | Van | **60 €** | 70 € |
-| 23,75 km | Van | **90 €** | 100 € |
-
-- **LA CAUSE EST L'ARRONDI.** Il utilisait `Math.round(p/10)*10`, l'arrondi de
-  l'école, qui **monte** sur un 5 pile. Chez Barbaros le 5 pile **descend** —
-  c'est écrit dans ce fichier depuis septembre, et c'est le montant qu'il
-  annonce au téléphone. **Le prix est ferme donc opposable : c'est le client
-  qui aurait raison.**
-- **ET UN SECOND ÉCART, STRUCTUREL** : il n'appelait **qu'OSRM**, le serveur de
-  démonstration, quand le site passe d'abord par ORS — dont la clé est remplie.
-  Deux moteurs de routage, deux distances, donc deux prix sur **presque toutes**
-  les courses, pas seulement les 5 piles. *L'ampleur de cet écart n'a pas pu
-  être mesurée d'ici : le réseau de cette machine ne joint aucun des deux
-  services. C'est donc rapporté comme structurel, pas chiffré.*
-- **IL N'AVAIT NI MAPBOX, NI LE VOL D'OISEAU.** OSRM muet, et l'espace
-  exploitant ne sait plus donner un prix du tout, là où le site en donne un.
-- **SON TEST NE LISAIT QUE DES CHAÎNES DE CARACTÈRES** — « le module est
-  publié », « le bouton existe », « BAN est appelé ». Onze contrôles, aucun
-  comportemental : **l'arrondi n'était vérifié par rien**. Un test qui cherche
-  des mots dans un fichier ne dit rien du prix qui sort.
-
-**LES DEUX ONT MÊME COEXISTÉ UNE CONSTRUCTION**, le temps d'une résolution de
-conflit : l'écran portait alors **deux boutons « Calculer le prix depuis les
-adresses »**, côte à côte, rendant deux prix. **Pire que l'un ou l'autre.**
-
-Le module recopié et son test ont donc été **retirés** au profit de la chaîne
-partagée. Trois contrôles gardent la trace : aucun tarif kilométrique recopié
-côté exploitant (c'est ce que son test verrouillait de bon, et ça survit), le
-fichier n'existe plus, la recette ne le publie plus.
-
-**LA LEÇON N'EST PAS « l'autre s'est trompé ».** Les deux travaux ont commencé
-du même constat juste, et le sien marchait. Ce qui a coûté les 10 €, c'est
-d'avoir **réécrit** un calcul au lieu d'aller le chercher — et personne ne
-l'aurait vu, puisque le prix s'affiche des deux côtés. **C'est la règle du
-dépôt, éprouvée une fois de plus sur l'objet le plus cher qu'il protège.**
-
-**ERREUR DE MA PART À LA REPRISE, ET ELLE VAUT D'ÊTRE ÉCRITE** : le rebase
-avait **trois** conflits, pas deux. Mon `grep -c "<<<<<<<\|>>>>>>>"` a rendu
-« 2 » et je l'ai lu comme du contexte au lieu de deux marqueurs restants — le
-troisième est parti dans un commit, et `construire.sh` ne s'exécutait plus
-(« Syntax error: redirection unexpected »). **J'ai mesuré, et j'ai mal lu la
-mesure** ; c'est la même famille que les quatre fautes de lecture déjà
-consignées ici. Ce qui l'a rattrapé : **exécuter la recette**, pas la relire.
-
-### PARITÉ, BRIQUE 6 — L'AFFICHE DE COMPTOIR ET SON QR
-
-17 septembre 2026. Admin v2 n'avait pas l'affiche hôtel : la piste
-commerciale à coût zéro — le concierge ne téléphone pas, il montre
-l'affiche, le client scanne et son adresse de départ est déjà remplie.
-
-**L'ENCODEUR N'A PAS ÉTÉ RECOPIÉ, IL A DÉMÉNAGÉ** dans `qr-affiche.js`,
-partagé par les deux espaces. Même chemin que `intake-demande.js` à la
-brique 1, et ici la raison est plus forte qu'ailleurs : **un encodeur QR ne
-se vérifie pas tout seul**. Le premier jet de celui-ci passait TOUS les
-contrôles internes — format relu, masque, zigzag, Reed-Solomon divisible,
-dix syndromes nuls — et n'était lisible par **aucun téléphone** :
-l'information de format était écrite bit à l'envers, et le décodeur maison
-reproduisait la même erreur. Deux copies dont une dérive, ce sont des
-affiches imprimées que personne ne peut scanner, et **on ne l'apprend qu'au
-comptoir, des semaines plus tard**.
-
-- **LA BASE DU LIEN EST UN PARAMÈTRE OBLIGATOIRE** de `lienHotel(base, nom)`,
-  jamais devinée par le fichier partagé. C'est le danger propre à cet
-  espace : le site client vit à la racine, **Admin v2 sur
-  `/admin-v2.html`**. Prendre `location.pathname` tel quel — ce que fait
-  légitimement la page cliente — fabriquerait des affiches qui envoient le
-  client du comptoir **dans le back-office**. Rien à l'écran ne le dirait :
-  l'affiche s'imprime, elle est simplement fausse. `baseClient()` retire le
-  dernier segment ; un contrôle lit le lien imprimé et refuse toute trace
-  d'« admin ».
-- **LA LISTE DES HÔTELS VIENT DU SERVEUR** (`state.partners`), et le nom
-  choisi est **recopié dans un champ libre** plutôt que dessiné depuis le
-  menu : c'est le nom IMPRIMÉ qui compte, une réception s'appelle parfois
-  autrement que la raison sociale. Et **un hôtel pas encore partenaire se
-  saisit à la main** — l'affiche est justement l'outil de prospection, on
-  l'imprime avant de signer.
-- **RIEN N'EST DESSINÉ TANT QU'AUCUN NOM N'EST DONNÉ.** Une affiche « Votre
-  hôtel » imprimée par mégarde est du papier perdu, et surtout un QR qui
-  envoie tout le monde au même endroit **sans provenance** — c'est-à-dire
-  sans la seule chose qui dise ce que l'hôtel rapporte.
-- **À L'IMPRESSION, SEULE L'AFFICHE SORT** — `visibility`, jamais `display`,
-  qui s'hérite. Sans cette règle, le tableau de bord (**noms et téléphones
-  de clients**) partirait sur le papier posé au comptoir d'un hôtel. Le test
-  **mesure la visibilité calculée** sous `media: print` au lieu de relire le
-  CSS.
-
-**LE DÉFAUT QUE CETTE BRIQUE A DÉCOUVERT : `hidden` ÉTAIT CONTREDIT PAR UNE
-CLASSE.** L'attribut ne pose `display:none` que par la feuille du navigateur
-— la moindre règle d'auteur qui fixe `display` l'emporte, **en silence**.
-`.row{display:flex}` laissait donc le bouton « Imprimer l'affiche » visible
-**sans affiche** : on imprimait le tableau de bord. La règle est posée
-**générale** (`[hidden]{display:none!important}`) et non sur `.row` : un
-élément ajouté demain n'héritera pas du piège. Même famille que la barre du
-bas figée sur quatre onglets — *une règle taillée pour un cas unique survit
-au jour où le cas se généralise*.
-
-**LE DÉCODEUR EST UN TIERS, ET SON ABSENCE EST UN ÉCHEC.** `jsqr` vit dans
-le bac à sable ou dans `node_modules`, jamais dans le dépôt ; s'il manque,
-`test-admin-affiche.mjs` **s'arrête** au lieu de sauter en silence le seul
-contrôle qui prouve qu'une affiche se scanne. Même règle que `http_ece` pour
-le chiffrement des notifications. Il est donc **installé en CI** : un vert
-qui n'a rien décodé ne dit rien.
-
-**`qr-affiche.js` EST ENTRÉ DANS LE FILTRE DE LA CI ET DANS `test-doc`.**
-C'est un fichier **partagé**, comme `intake-demande.js` : sans lui dans les
-motifs, le modifier seul ne déclencherait **aucune** suite — exactement le
-trou bouché la veille. Le contrôle de couverture devait le connaître, sinon
-il gardait le trou qu'il a été écrit pour fermer.
-
-- `test-admin-affiche.mjs`, **27 contrôles**. Sept falsifications, toutes
-  tombent en nommant le défaut — dont la vraie d'origine, l'information de
-  format à l'envers, qui rend `null` au décodage.
-
-### PARITÉ, BRIQUE 5 — L'ACCUSÉ DE RÉCEPTION ET LA DEMANDE D'AVIS
-
-17 septembre 2026. Les deux gestes de l'exploitant vers le client, portés
-ensemble parce qu'ils partagent le même mécanisme : un message WhatsApp parti
-du téléphone de Barbaros, et une **trace** gardée sur la course.
-`admin-v2-gestes.js`, `ela_marquer_geste_client`.
-
-- **CE NE SONT PAS DES ENVOIS AUTOMATIQUES, ET ILS NE PEUVENT PAS L'ÊTRE.** Le
-  site n'a aucun moyen d'envoyer un SMS tout seul. Ne pas promettre l'inverse.
-- **LA RÈGLE QUI STRUCTURE LA BRIQUE : chaque geste n'a de sens que dans un
-  état, et c'est le SERVEUR qui l'impose.** L'accusé sur une course en
-  **attente** — une fois confirmée, c'est « Prévenir le client » qui parle, et
-  deux messages coup sur coup diraient au client qu'on ne sait pas où on en
-  est. L'avis sur une **réalisée** — on ne demande pas à quelqu'un ce qu'il a
-  pensé d'un trajet qu'il n'a pas fait.
-  **Pourquoi côté serveur et pas dans l'écran** : toute l'utilité de la marque
-  est d'être vraie (« sur dix demandes reçues la nuit, on ne se souvient pas
-  de qui a eu une réponse »). Une marque posée dans le mauvais état fait
-  croire à Barbaros qu'il a répondu à quelqu'un à qui il n'a rien dit, et il
-  ne le découvre que quand le client rappelle.
-- **UN REFUS N'ÉCRIT RIEN.** Un refus qui laisserait quand même la trace
-  serait pire qu'un refus muet : la marque mentirait de toute façon.
-- **ON PEUT REFAIRE LE GESTE**, et la date se rafraîchit : un client peut dire
-  « oui oui » et oublier. Ce qu'on interdit, c'est le mauvais état.
-- **DEUX GESTES SEULEMENT, ET NOMMÉS.** Accepter n'importe quelle chaîne
-  ferait entrer une marque que rien n'affiche — donc une trace perdue.
-- **LE MESSAGE SUIT `bon.langue`, ET LA DATE AVEC LUI.** « 09/20/2026 » à un
-  anglophone, « 20/09/2026 » à un francophone : le même jour, lu correctement
-  des deux côtés. Une course ancienne sans ce champ retombe sur le français.
-- **L'ACCUSÉ NE PROMET NI CHAUFFEUR NI VÉHICULE** : on ne les connaît pas
-  encore, et promettre une voiture qu'on n'a pas placée est le meilleur moyen
-  de laisser quelqu'un sur un trottoir. Quatre lignes, pas un paragraphe.
-- **SANS LIEN D'AVIS, RIEN NE PART** — le message se terminerait dans le vide.
-  Le lien vit dans `parametres_commerciaux` (`lien_avis`), pas dans le code :
-  c'est le sien, et un identifiant de son compte Google n'a rien à faire dans
-  un dépôt public. **Une adresse invalide est refusée** : un lien cassé envoyé
-  à un client est pire qu'un lien absent — lui, au moins, ne se clique pas.
-- **SANS NUMÉRO, AUCUN BOUTON, et on le DIT.** Un bouton qui n'envoie rien
-  ferait croire que le client est prévenu.
-- **`window.open` EST DANS LE GESTE DU CLIC**, sans aucun `await` avant :
-  Safari iOS bloque une fenêtre ouverte après une attente. La marque part
-  ensuite, et **si elle échoue on le dit** plutôt que d'afficher « envoyé »
-  sur une trace qui n'existe pas.
-- **LES AVIS NE S'INVENTENT PAS** — c'est le seul point où l'on ne suit pas
-  Barbaros, et il est rappelé dans le bloc de réglage lui-même (L132-2).
-
-**LE PIÈGE SQL QUE CETTE BRIQUE A DÉCOUVERT, ET QUI TOUCHAIT LES ÉPREUVES
-PRÉCÉDENTES.** Une falsification est restée **verte** : la marque écrasait le
-bon entier et le contrôle ne le voyait pas. La cause est la logique ternaire
-de SQL — `null <> 'Jean Martin'` vaut **NULL, pas TRUE**, donc le `if` ne se
-déclenche jamais. **Un contrôle écrit ainsi ne peut pas échouer.** Quinze
-comparaisons du même type dormaient dans les quatre épreuves déjà écrites ;
-toutes sont passées à `is distinct from`, et les quatre repassent au vert.
-**Écrire `<>` sur une valeur qui peut être NULL, c'est écrire un contrôle
-décoratif.**
-
-**PIÈGE DE TEST, PAS DE CODE** : la suite calait sur un clic d'onglet, et
-Playwright accusait l'écriteau de recouvrir le bouton. **Mesuré : aucun
-chevauchement** — bouton 693–737, écriteau 753–788, `elementFromPoint` rend
-bien le bouton. C'était **la feuille du bon, restée ouverte**, qui couvre
-toute la page : elle est modale par construction, et c'est ce qui empêche de
-cliquer derrière par accident. Un vrai doigt la ferme avant d'aller ailleurs ;
-le test le fait maintenant aussi. *Sans la mesure, j'aurais « corrigé » une
-mise en page qui n'avait rien.*
-
-- `test-admin-gestes.mjs`, **37 contrôles** ; `gestes-client.sql`, **8 blocs**.
-  Onze falsifications, toutes tombent en nommant le défaut.
-
-### LA FACTURE POUVAIT SORTIR VIDE, À 0,00 € — TROUVÉ EN RELECTURE
-
-17 septembre 2026, bloquant relevé par ChatGPT sur #191. **Le pire défaut de
-la brique 4, et il ne se voyait pas** : le document s'imprime, il est
-simplement faux.
-
-`ela_emettre_facture_commission` verrouillait les courses (`for update`) pour
-obtenir `refs`, puis **reconstruisait `lignes` et `v_ht` par un SECOND appel
-indépendant** à `ela_lignes_facture`, sur toute la période, **sans jamais
-comparer le résultat à l'ensemble verrouillé**. Les `coalesce` ramenaient
-alors `'[]'` et `0` **sans un mot**.
-
-**MESURÉ SUR UN VRAI POSTGRESQL, À DEUX SESSIONS** — pas supposé : facture
-`F-2026-0001` émise à **0,00 €, zéro ligne**, **un numéro consommé**, et les
-deux courses marquées `factureNum` — donc **plus jamais facturables**. De
-l'argent qui n'entre jamais, et on ne l'apprend que chez le comptable.
-
-- **LA SÉQUENCE DÉCRITE EN RELECTURE NE SE REPRODUIT PAS, ET CE N'EST PAS UN
-  DÉSACCORD.** Deux émissions simultanées sur le même lot : la seconde est
-  bien refusée, parce que le `for update` revalide et rend `refs` vide. Le
-  **trou structurel** désigné, lui, est réel — il fallait seulement trouver
-  par où il passe.
-- **IL PASSE PAR `attributions_chauffeur`, QUE LE VERROU NE COUVRE PAS.** Le
-  `for update` porte sur `courses`. Une attribution retirée pendant l'attente
-  du verrou suffit : au réveil, le second calcul prend un **nouveau
-  snapshot**, ne voit plus rien, et la facture part à zéro.
-- **LE DOCUMENT VIENT MAINTENANT DU SEUL ENSEMBLE VERROUILLÉ**
-  (`where l.ref = any(refs)`), et **on refuse avant de consommer un numéro**
-  si cet ensemble est vide ou s'il diffère. Un lot qui a bougé se refuse :
-  le facturer en silence ferait perdre les courses disparues, un refus laisse
-  simplement recommencer.
-- **DEUX REFUS, DEUX GESTES, ET LE TEST L'EXIGE.** Un lot **vide** rend
-  `aucune_course_a_facturer` — « il n'y a rien à facturer », ça se constate.
-  Un lot qui a **rétréci** rend `lot_modifie_pendant_emission` — « recommence ».
-  Les confondre enverrait tourner en rond, ou faire renoncer alors qu'un
-  aperçu suffit. **Sans cette exigence, la garde du lot vide était
-  décorative** : la garde de divergence l'attrapait de toute façon.
-- **L'AUTRE BORD DE LA RÈGLE COMPTE AUTANT** : une course devenue facturable
-  **pendant** l'attente ne doit PAS bloquer l'émission. Sans la restriction au
-  lot verrouillé, l'ensemble « différerait » et un compte actif **ne
-  facturerait plus jamais**. C'est ce cas qui rend la restriction observable —
-  sans lui, elle n'était éprouvée par rien.
-
-**L'ÉPREUVE EST À DEUX VRAIES SESSIONS, par `dblink`** : une divergence de
-snapshot ne se fabrique pas dans une seule transaction. Et **le blocage sur un
-verrou est ce qui la rend déterministe** — on sait exactement où la session
-bloquée se trouve. Quatre blocs (`9a` à `9d`), branchés en CI.
-
-**L'ÉPREUVE DES « 100 INCRÉMENTS » NE COUVRAIT PAS ÇA.** Elle prouve que le
-**compteur** est atomique, et c'est vrai ; elle ne dit rien de deux émissions
-concurrentes **sur les mêmes courses**. *Un test vert sur le sujet d'à côté
-rassure sans protéger.*
-
-**PIÈGE RENCONTRÉ EN CORRIGEANT** : mon premier remplacement a atterri dans la
-fonction d'**aperçu**, dont le bloc de calcul est identique à une ligne près.
-La migration a refusé de s'appliquer (`refs_valides is not a known variable`)
-— c'est le fait de **l'exécuter** et non de la relire qui l'a dit.
-
-- **Quatre falsifications**, toutes tombent en nommant le défaut : la fonction
-  d'origine, la garde de divergence retirée, la restriction au lot retirée, la
-  garde du lot vide retirée.
-
-### PARITÉ, BRIQUE 4 — LA FACTURE DE COMMISSION
-
-17 septembre 2026. L'argent ne passe **jamais** par Elatransfer : le client
-paie le chauffeur. La commission ne s'encaisse donc pas toute seule, elle se
-**facture** — et Admin v2 n'avait rien pour ça.
-
-- **LE SUJET DE CETTE BRIQUE EST LA NUMÉROTATION, PAS LE DOCUMENT.** Dans
-  l'espace actuel le rang vit dans `localStorage` : un appareil, une main,
-  aucun conflit possible. Ici **deux appareils peuvent émettre en même
-  temps**, et la loi interdit au numéro de facture les **trous** comme les
-  **doublons** (L441-9). Lire le rang puis l'écrire serait exactement la
-  faute — deux émissions simultanées liraient N et écriraient toutes deux
-  N+1, donc **deux factures au même numéro**. Et ça ne se voit pas : les deux
-  documents s'impriment normalement, on l'apprend chez le comptable.
-  D'où **une seule instruction** : `insert … on conflict do update …
-  returning`, atomique, la ligne verrouillée par Postgres le temps de
-  l'incrément. Une épreuve fait cent incréments et vérifie qu'ils sont **cent
-  valeurs distinctes et contiguës**.
-- **LE RANG EST CONSOMMÉ À L'ÉMISSION, JAMAIS À L'APERÇU** — un numéro brûlé
-  sans facture est un **trou**, donc la même infraction à l'envers. Deux
-  fonctions séparées : `ela_apercu_facture_commission` est `stable`, ne prend
-  rien et n'écrit rien.
-- **PAS DE SIRET, PAS DE FACTURE** — mais **l'aperçu reste possible**. C'est
-  le cas réel : Barbaros n'a pas encore de SIRET, et un écran qui refuserait
-  même de montrer ce qu'il facturera ne servirait à rien d'ici là. Le bouton
-  « Émettre » est **caché** tant qu'il manque quelque chose, et l'écriteau
-  **nomme ce qui manque et où le remplir** — un bouton qui échoue à chaque
-  appui ferait croire à une panne.
-- **LE DÉFAUT TROUVÉ AVANT D'ÉCRIRE UNE LIGNE : le bon ne porte PAS
-  l'identifiant du chauffeur.** `ela_attribuer_chauffeur` n'y écrit que le
-  nom, le téléphone et la carte. Filtrer sur le bon aurait rendu **aucune
-  course** — une facture vide, sans le moindre message. Et s'y rabattre par
-  le NOM répéterait la faiblesse de l'espace actuel, où il est saisi à la
-  main (« Mehmet », « mehmet », « Mehmet Y. »). C'est
-  **`attributions_chauffeur`** qui fait foi : une ligne structurée, pas du
-  texte dans un JSON.
-- **LA MARQUE SUR LES COURSES EST DANS LA MÊME TRANSACTION QUE LA FACTURE.**
-  Séparées, une panne entre les deux brûlerait un numéro (trou) ou laisserait
-  des courses refacturables (doublon). Et on **verrouille** les courses avant
-  de les marquer (`for update`) : sans ça deux émissions simultanées pour le
-  même chauffeur prendraient les mêmes courses. *Piège rencontré :
-  `for update` ne se combine pas à un agrégat — on verrouille dans la
-  sous-requête, on additionne au-dessus.*
-- **AUCUNE POLICY D'ÉCRITURE SUR `factures_commission`**, et c'est voulu :
-  seule la fonction sait prendre un numéro sans trou ni doublon. Une écriture
-  directe contournerait le compteur. Un contrôle cherche qu'il n'existe
-  aucune policy `INSERT`/`UPDATE`/`DELETE`.
-- **LE TAUX EST PAR CHAUFFEUR** (`chauffeurs.taux_commission`), et retombe
-  sur `commission_ela_defaut` quand il n'est pas renseigné — c'est la
-  décision de septembre 2026 (« je place seulement »). La colonne `adresse`
-  manquait aussi : sans elle le document n'est pas une facture.
-- **LE SÉLECTEUR PORTE TOUS LES CHAUFFEURS**, pas seulement les
-  attribuables : on facture aussi celui dont les papiers ont expiré **depuis**
-  la course. **Ce qui bloque une attribution ne bloque pas une créance déjà
-  née.**
-- **LA FACTURE EST FIGÉE À L'ÉMISSION** : émetteur, client et lignes sont
-  recopiés dedans. Le test **change l'identité de l'émetteur après coup, force
-  la page à relire, puis rouvre l'ancienne facture**.
-- **À L'IMPRESSION, SEULE LA FACTURE SORT** (`visibility`, jamais `display` —
-  elle s'hérite). Sans cette règle, le tableau de bord — **noms et téléphones
-  de clients** — partirait sur le papier envoyé au chauffeur. Le test **mesure
-  la visibilité calculée** sous `media: print` plutôt que de relire le CSS.
-- **DEUX FAIBLESSES DE TEST TROUVÉES PAR LA FALSIFICATION, PAS PAR LA
-  RELECTURE.** (1) Mon faux serveur marquait les courses facturées **avant**
-  de composer le document : la facture émise sortait sans ses lignes et à 0 €,
-  et les contrôles ne regardaient que son en-tête. **Un faux serveur qui ment
-  autrement que le vrai ne prouve rien.** (2) Le contrôle de la facture figée
-  ne mordait pas : je changeais l'émetteur côté serveur sans faire relire la
-  page, donc `state.params` gardait l'ancien — **un contrôle qui ne peut pas
-  échouer ne vérifie rien.**
-- `test-admin-factures.mjs`, **37 contrôles** ; `factures-commission.sql`,
-  **8 blocs**. Onze falsifications, toutes tombent en nommant le défaut.
-- **`parametres_commerciaux` a rejoint `supabase/tests/socle.sql`** : la
-  facture y lit le taux par défaut et l'identité de l'émetteur.
-
-### LE FILTRE DE LA CI NOMMAIT LES FICHIERS D'UN AUTRE JOUR
-
-17 septembre 2026, trouvé en vérifiant une durée de CI qui m'avait paru
-suspecte. **La durée, elle, était juste** — le coureur GitHub a Chromium en
-cache, tout avait réellement tourné. *J'avais supposé au lieu de mesurer,
-pour la cinquième fois dans ce projet ; le journal a tranché en une lecture.*
-
-**Le vrai défaut était à côté.** `admin-v2-regression.yml` ne se déclenche
-que sur les chemins qu'il **énumère**, et la liste nommait les quatre
-fichiers qui existaient le jour où elle a été écrite. N'y étaient pas :
-`intake-demande.js` — **le lecteur PARTAGÉ par les deux espaces** —,
-`admin-v2-registre.js`, `test-admin-intake.mjs` et `test-admin-registre.mjs`.
-
-- **LES MODIFIER SEULS N'AURAIT DÉCLENCHÉ AUCUN CONTRÔLE**, et rien ne
-  l'aurait signalé. Le trou était masqué depuis la brique 1 parce que chaque
-  commit touchait *aussi* `construire.sh` ou une migration — **une couverture
-  obtenue par accident n'est pas une couverture**.
-- **Même famille que la barre du bas figée sur quatre onglets, que le lanceur
-  qui ne ramassait que `test-nouveau*`, et que la section « Tests » qui
-  annonçait 23 suites.** Une liste écrite en dur survit au changement qui
-  l'invalide, sans rien casser de visible.
-- Le filtre porte maintenant des **motifs** (`admin-v2*`, `test-admin-*.mjs`,
-  `supabase/**`), pas des noms.
-- **LE CONTRÔLE NE FIGE PAS DE LISTE NON PLUS** — ce serait la même faute d'un
-  cran plus loin. `test-doc.mjs` **traduit les motifs du workflow en
-  expressions régulières** et vérifie que tout fichier d'Admin v2 présent dans
-  le dépôt est attrapé par au moins un. Une suite ajoutée demain est couverte
-  d'office ; un fichier qui sortirait du filet fait tomber le contrôle en le
-  **nommant**. Éprouvé en remettant la liste d'origine : il tombe sur les
-  quatre fichiers, un par un.
-
-### PARITÉ, BRIQUE 3 — LE REGISTRE, LA SAUVEGARDE ET L'EXPORT CSV
-
-17 septembre 2026. Admin v2 montrait ce qui ARRIVE, jamais ce qui a été
-FAIT : pas de résultat par semaine, pas de tableau des chauffeurs, pas
-d'export comptable. `admin-v2-registre.js`, onglet « Registre ».
-
-- **LE DÉFAUT QU'IL A FALLU TRAITER EN PREMIER : `load()` NE LIT QUE LES 300
-  DERNIÈRES COURSES.** Parfait pour un tableau de bord qui montre ce qui
-  arrive, **mensonger pour un registre qui additionne une année**. Un total
-  calculé sur une liste tronquée s'affiche sans un mot : il est simplement
-  faux, et c'est le chiffre qu'on recopie dans une déclaration. Le registre
-  fait donc **sa propre lecture** (`PLAFOND`, 5000) et, s'il touche ce
-  plafond, **il le DIT** au lieu d'afficher un total qu'il sait incomplet.
-  C'est la même famille que le tableau de tarifs qui a menti pendant des
-  jours — **un document ne se trompe jamais bruyamment**.
-- **LES TABLEAUX NE COMPTENT QUE LES `realisee`**, et **la date retenue est
-  celle de la COURSE** : les deux règles de l'espace actuel, portées telles
-  quelles. Une confirmée est une promesse ; la date de saisie décalerait les
-  semaines au fil des oublis.
-- **ON NE LIT LE REGISTRE QU'À L'OUVERTURE DE SON ÉCRAN.** Cinq mille lignes
-  tirées au chargement, sur un téléphone, pour un écran qu'on n'ouvre pas
-  tous les jours — c'est de la 4G brûlée.
-- **LA RECHERCHE LIBRE N'A PAS ÉTÉ REFAITE** : l'écran « Réservations » la
-  porte déjà, sur tout le registre. La rebâtir aurait été un second champ à
-  tenir pour le même besoin.
-- **LA SAUVEGARDE GARDE LE FORMAT `elatransfer-1`**, celui de l'espace
-  actuel. Tant que les deux espaces coexistent, un fichier pris d'un côté
-  doit se restaurer de l'autre — deux formats voudraient dire deux lecteurs,
-  et c'est celui qu'on oublie qui refuserait le fichier le jour où il sert.
-  Ce qu'elle n'est plus, en revanche : **le filet de survie**. Là-bas le
-  registre ne vit que dans le navigateur ; ici les courses sont sur le
-  serveur. Elle reste la copie de Barbaros, indépendante d'un hébergeur
-  qu'il ne maîtrise pas, et le fichier que réclame un comptable.
-- **LA RESTAURATION EST UNE RPC DE PLUS, ET C'EST VOULU**
-  (`ela_restaurer_courses_exploitant`). `ela_creer_course_exploitant`
-  n'accepte que `attente` et `confirmee`, **et c'est juste** : c'est la porte
-  de SAISIE, et une course qu'on saisit ne peut pas être déjà réalisée. Une
-  restauration ramène des courses **déjà vécues**. Élargir la porte de
-  saisie pour les faire passer aurait ouvert une porte qu'on ne rétrécit
-  jamais — et un exploitant aurait pu créer de toutes pièces une course
-  « réalisée », c'est-à-dire **de l'argent qui n'est jamais entré**.
-- **ELLE AJOUTE, ELLE N'ÉCRASE JAMAIS, et la règle est POSÉE CÔTÉ SERVEUR.**
-  Une course d'ici peut avoir avancé depuis la sauvegarde — chauffeur
-  attribué, course réalisée — et remplacer ferait **reculer** le travail au
-  lieu de le rendre. C'est `fusionnerCourses()` porté côté serveur. Une
-  garde d'écran n'aurait pas suffi : un appel direct passe à côté.
-- **UNE LIGNE MAUVAISE NE FAIT PAS PERDRE LES AUTRES** : sans référence, avec
-  un statut inconnu, ou qui n'est pas un objet — elle est comptée `refusee`
-  et on continue. Sur une sauvegarde de trois cents lignes, s'arrêter à la
-  première ferait perdre les deux cent quatre-vingt-dix-neuf autres.
-- **UN FICHIER ILLISIBLE EST ARRÊTÉ DANS L'ÉCRAN**, il ne part pas au
-  serveur : l'envoyer ferait lire à Barbaros un message de base de données
-  là où l'écran savait déjà quoi dire.
-- **LE STATUT NE RESTE PAS EN DOUBLE DANS LE BON** (`ligne - 'statut'`) : la
-  colonne fait foi, et deux copies divergent au premier changement d'état.
-- **`sw.js` N'A PAS BOUGÉ, ET C'EST DÉLIBÉRÉ.** Le module lit le serveur à
-  chaque ouverture : hors ligne il n'a rien à montrer. Le mettre dans le
-  `SHELL` aurait ajouté un point de rupture à un `addAll` tout-ou-rien pour
-  un gain nul. Seul `intake-demande.js` y est, parce qu'il est **partagé**
-  avec `index.html`.
-- **LE TEST ANCRE L'HORLOGE DU NAVIGATEUR** au jeudi 17/09/2026. Une semaine
-  « en cours » calculée depuis « aujourd'hui » rendrait la suite dépendante
-  du jour où on la lance — **exactement le défaut que la CI a trouvé sur les
-  fixtures SQL**. Et il **recalcule les totaux à la main** depuis le jeu de
-  courses : un test qui prend la sortie pour référence ne vérifie plus rien.
-- **LE TABLEAU DES CHAUFFEURS S'ÉPROUVE PAR SON ORDRE, pas par sa
-  présence** : c'est lui qui sert à décider à qui confier la prochaine
-  course. Un contrôle de présence serait passé au vert sur un tri inversé.
-  Même leçon que la barre du bas et que les jours du tableau de bord.
-- `test-admin-registre.mjs`, **52 contrôles** ; `registre-restauration.sql`,
-  **8 blocs**. Sept falsifications, toutes tombent en nommant le défaut.
-
-### PARITÉ, BRIQUE 2 — SAISIR UNE COURSE REÇUE PAR TÉLÉPHONE
-
-16 septembre 2026. « Coller une demande » ne couvre que le client qui
-**écrit** ; quand un hôtel **appelle**, il aurait fallu fabriquer un faux
-message WhatsApp pour le coller.
-
-- **ELLE ENTRE `confirmee`**, contrairement à une demande collée : une demande
-  venue d'un client attend une réponse, une course convenue de vive voix
-  n'attend personne. Même RPC que la brique 1, avec l'autre statut — les deux
-  portes existaient déjà dans la fonction, elles servent enfin toutes les deux.
-- **LA GRILLE AFFICHÉE VIENT DU SERVEUR** (`state.params`), jamais réécrite
-  dans la page. C'est sur elle que Barbaros annonce un montant au téléphone :
-  un nombre recopié ici resterait périmé au premier changement de tarif, sans
-  que rien ne le signale. Même règle que `ecrireGrille()` côté site. **Sans
-  grille serveur, on le DIT** — en afficher une par défaut ferait annoncer un
-  prix sur un tarif que personne n'a validé.
-- **LE CHAUFFEUR PASSE PAR LA RPC D'ATTRIBUTION**, jamais par le bon écrit à
-  la main. C'est ce qui fait que la règle des papiers s'applique ici comme
-  ailleurs : **on ne peut pas la contourner en créant la course avec un
-  chauffeur déjà dedans**. Et si elle refuse, **la course existe quand même** —
-  on ne perd pas un appel parce qu'un chauffeur n'était pas attribuable. Le
-  refus est **dit**, jamais avalé.
-- **LE RÈGLEMENT N'EST PAS DEMANDÉ** : il se convient de vive voix, et inventer
-  « espèces » par défaut ferait partir le chauffeur sans son terminal.
-- **`telValide` A REJOINT LA SOURCE PARTAGÉE.** La consigne « même contrôle que
-  côté client » ne vaut que s'il n'y a **qu'un** contrôle : deux règles
-  séparées, c'est un numéro accepté ici et refusé là, et le client qu'on ne
-  rappelle pas.
-- **ON DIT CE QUI MANQUE, PAS « formulaire incomplet »** — à 3 h du matin, un
-  message qui ne nomme pas le champ oblige à tout relire.
-- **LE BOUTON OUVRE, IL NE BASCULE PAS.** Premier jet : il refermait ce qu'on
-  venait d'ouvrir, et la suite attendait un formulaire qui se cachait. Un
-  bouton qui fait deux choses selon l'état se lit comme un bouton cassé —
-  c'est « Annuler » qui ferme.
-
-**DEUX PIÈGES DE TEST, ET LE PREMIER PROUVAIT LE PRODUIT.** La suite a calé
-sur un clic « intercepté par la feuille » : c'était le **bon qui s'ouvrait
-vraiment** après la création, comme il doit. Le second : le contrôle lisait le
-titre de la feuille **avant** qu'`openBooking` ait fini — asynchrone. Et on
-mesure le **titre**, pas `isVisible` : la feuille est toujours dans le DOM,
-c'est une classe qui la montre, donc `isVisible` aurait pu répondre oui sans
-que le bon soit le bon.
-
-**CE QUI N'ÉTAIT PAS ENCORE PORTÉ À CE MOMENT-LÀ** : « Calculer le prix depuis
-les adresses ». Côté site il passait par la chaîne d'itinéraire à quatre
-niveaux ; la recopier dans Admin v2 aurait été exactement la divergence que ce
-lot évite. **C'est fait — voir la brique 7** : la chaîne a déménagé dans
-`itineraire-partage.js`, comme le lecteur.
-
-### LA GRILLE DU CLIENT ET CELLE DU SERVEUR NE S'ACCORDAIENT QUE PAR CHANCE
-
-16 septembre 2026, trouvé en préparant la saisie par téléphone. Le site
-calcule le prix dans le navigateur (`GAMMES`) ; Admin v2 s'appuie sur une
-source **serveur** semée par `20260916100000_current_tariff_source.sql`. Les
-deux portaient les mêmes nombres — **et rien ne vérifiait qu'ils le restent**.
-
-- **CE QUE ÇA COÛTERAIT** : Barbaros annonce un montant au téléphone depuis
-  l'Admin, le client en voit un autre sur le site. Le prix est **ferme donc
-  opposable** : c'est le client qui aurait raison.
-- **L'ÉCART TRAVERSAIT LA FRONTIÈRE CLIENT/SERVEUR**, et c'est pour ça qu'il
-  échappait à tout. `test-doc` comparait déjà `CLAUDE.md` à `GAMMES` — mais un
-  changement du seul SQL laissait la doc et le site d'accord entre eux :
-  **aucun contrôle ne bronchait**. Éprouvé : sur les quatre falsifications,
-  celle qui ne touche que le serveur n'est vue que par le nouveau contrôle.
-- **ON NE FIGE AUCUN CHIFFRE, on éprouve l'ACCORD.** Une baisse décidée par
-  Barbaros touche les deux et reste verte ; n'en toucher qu'un tombe, et le
-  message dit lequel et de combien.
-
-### PARITÉ, BRIQUE 1 — « COLLER UNE DEMANDE » EXISTE DANS ADMIN V2
-
-16 septembre 2026, première brique de la parité demandée par ChatGPT (#191).
-Neuf courses sur dix arrivent par message : Admin v2 ne savait que **relire**
-ce que le serveur contenait déjà. Basculer dessus aurait retiré à Barbaros son
-geste le plus fréquent, sans rien pour le remplacer.
-
-**LE LECTEUR N'EST PAS RECOPIÉ, IL A DÉMÉNAGÉ.** `intake-demande.js` est
-désormais la source unique : `index.html` l'appelle, `admin-v2.html` aussi.
-Le recopier aurait été la faute que ce fichier reproche partout — deux
-recettes pour une seule chose — et elle ne se serait vue qu'à la course
-suivante, sur un message dont la forme aurait changé d'un seul côté.
-- **LA GRILLE EST UN PARAMÈTRE OBLIGATOIRE, jamais un défaut caché.** Un
-  défaut dans le lecteur serait une **deuxième grille** : elle se tairait le
-  jour où la vraie change, et le véhicule d'une course collée serait faux sans
-  que rien ne le signale. Un appelant qui ne la fournit pas est arrêté.
-- **LE STATUT ET LA RÉFÉRENCE SONT DES PARAMÈTRES AUSSI.** Le fichier LIT, il
-  ne range pas : les deux espaces ont deux portes (une demande collée attend,
-  une course prise au téléphone est déjà convenue) et ne comptent pas les
-  références au même endroit — l'un dans le téléphone, l'autre sur le serveur.
-- `construire.sh` le publie et l'injecte **avant** `admin-v2-actions.js`, qui
-  l'appelle : un navigateur exécute les scripts dans l'ordre déclaré. Il est
-  aussi dans le `SHELL` de `sw.js` — sans ça, un exploitant hors ligne appuie
-  sur « Coller une demande » et rien ne se passe.
-
-**LE CHEMIN SERVEUR EST UNE FONCTION DE PLUS, ET C'EST VOULU**
-(`ela_creer_course_exploitant`). `ela_deposer_course_serveur` existait déjà
-mais est réservée à `service_role` : c'est la passerelle **publique**, appelée
-par une Edge Function pour un visiteur anonyme. L'ouvrir à `authenticated`
-aurait mélangé deux portes qui n'ont pas les mêmes règles — et **une porte
-qu'on élargit ne se rétrécit jamais**.
-- **ELLE REFUSE UNE RÉFÉRENCE DÉJÀ PRISE, ELLE N'ÉCRASE PAS.** Coller deux
-  fois le même message est exactement ce qui arrive la nuit, sur dix demandes
-  d'affilée. Un `upsert` effacerait une course qui a **avancé** depuis —
-  chauffeur attribué, course réalisée. C'est la règle de `fusionnerCourses()`,
-  posée côté serveur.
-- **Deux statuts seulement, et nommés.** Accepter n'importe quelle chaîne
-  ferait entrer un jour un statut que le reste du système ne sait pas lire.
-- Elle appelle `ela_rafraichir_actions()` : sans ça la file « Action requise »
-  ne verrait la course qu'au prochain rafraîchissement, c'est-à-dire pas au
-  moment où l'exploitant regarde.
-
-**LE CONTRÔLE D'ACCÈS QUE LA FALSIFICATION A CORRIGÉ.** Le premier jet
-vérifiait qu'un non-exploitant reçoit `acces_refuse` — et il restait **au
-vert** quand on retirait le verrou de la fonction. Le refus venait en réalité
-de `ela_rafraichir_actions()`, appelée à la fin, qui porte le sien. La course
-était bien refusée, mais **par accident**, après avoir tenté l'écriture :
-réordonner deux lignes, ou retirer un jour le verrou du callee, et le trou
-s'ouvrait sans que rien ne tombe.
-Ce qu'on éprouve maintenant est un **ordre**, pas une présence : un
-non-exploitant qui vise une référence **déjà prise** doit recevoir
-`acces_refuse`, jamais `reference_existante`. Seul un verrou posé dans cette
-fonction-là, avant sa propre logique, rend cette réponse — et au passage on
-n'apprend pas à un inconnu quelles références existent.
-
-**UNE ATTENTE QUI EXPIRE DOIT NOMMER CE QU'ELLE ATTENDAIT.** Éprouvée contre
-cinq falsifications, `test-admin-intake.mjs` en faisait tomber trois sur un
-**délai d'attente nu** : elle échouait bien, sans dire pourquoi. « Une suite
-muette est un échec » vaut aussi pour une suite qui plante. Chaque attente
-passe par un `attendre()` qui transforme le délai en contrôle rouge nommé, et
-le parcours de secours est **gardé** — sans ça un `fill()` sur un champ masqué
-tuait la suite avant qu'elle imprime son bilan.
-
-**CE QUI RESTAIT À LA PARITÉ APRÈS CETTE BRIQUE-LÀ** : saisie par téléphone,
-registre et sauvegarde, export CSV, facture de commission, affiche QR des
-hôtels, demande d'avis, accusé de réception, et la chaîne du prix partagée.
-**Les sept briques sont faites au 18 septembre 2026** (1 à 7, dans cet
-ordre). **Aucune bascule de `admin.html` pour autant** : la parité des gestes
-n'est pas une relecture — c'est ChatGPT qui contrôle, brique par brique, et
-c'est Barbaros qui décide.
 
 ### LE BANDEAU COLLANT MANGEAIT 18 % DE L'ÉCRAN — ET J'AVAIS MAL DIAGNOSTIQUÉ
 
@@ -5648,14 +3866,65 @@ pour qui cherche une faille, sans même un mot de passe à deviner.
   « / » pour savoir si c'est une division ou le début d'une expression
   régulière — la même règle qu'un vrai analyseur, ramenée à ce dont on a
   besoin ici.
-- Les commentaires HTML (`<!-- -->`) et CSS retirés par expression régulière
-  simple : leur syntaxe ne peut pas se cacher dans une chaîne comme celle
-  de JS.
+- Les commentaires HTML (`<!-- -->`) sont retirés par expression régulière
+  simple. **Le CSS, non** : cette ligne disait qu'il en allait de même, et
+  c'était faux — une chaîne CSS peut contenir « /* » (`content:"/*"`), une
+  adresse aussi (`url(/*.png)`). `nettoyerCss()` recopie donc chaînes et
+  `url(…)` telles quelles (4 octobre 2026). Sur les pages déjà nettoyées, le
+  résultat est resté identique octet pour octet : ça ne tenait que par chance.
 - **GARDE-FOU** : si un `<script>` ou `<style>` contient littéralement
   `<!--`, le nettoyage s'arrête plutôt que de deviner — cette séquence
   pourrait tromper le retrait des commentaires HTML qui suit.
 - Validé contre la **suite complète** (28 suites navigateur + doc +
   notification + push + facade unifiée), toutes au vert après retrait.
+- **L'ADMIN ET LA RÉCEPTION N'Y ÉTAIENT PAS** (corrigé le 4 octobre 2026,
+  Barbaros : « comme tu veux »). Leurs pages sont fabriquées par
+  `construire-espaces-hotel.mjs`, ajouté APRÈS cette étape, et personne ne
+  les avait mises dans la liste : `/ela-admin/` partait en ligne avec 841
+  blocs de commentaires (813 Ko, 485 Ko sans), la réception avec 578. Sont
+  nettoyées maintenant : `/ela-admin/`, `/easyhotel-reception/`,
+  `/reception/*/`, `/exploitant/` et `/easyhotel-client/`.
+  - **Prouvé sans s'en remettre au nettoyeur** : l'analyseur de TypeScript
+    (installé sur la machine, jamais dans la construction) a comparé l'arbre
+    de chaque script avant et après — 157 558 nœuds, zéro écart — et il
+    voit bien un seul caractère changé dans une expression régulière.
+  - `test-nouveau-bascule` prend des passages des VRAIS commentaires des
+    sources et exige qu'aucun ne soit en ligne. Il ne cherche pas « /* » :
+    une chaîne peut le contenir. Avec l'ancienne recette, il tombe sur onze
+    contrôles. **Il tourne maintenant en CI** (« Contrôle de l'admin
+    retenu ») : hors CI, l'oubli d'une ligne dans la recette passait sans
+    bruit — c'est exactement ce qui était arrivé.
+  - **TROIS TROUS DE CE CONTRÔLE, TROUVÉS PAR UNE RELECTURE INDÉPENDANTE ET
+    BOUCHÉS AVANT LA FUSION.** Un 404 ou une AUTRE page passait au vert — une
+    page vide ne contient aucune note : il exige 200 et la marque de la
+    bonne page (`data-ela-space`, ou le titre). Les commentaires `//` n'étaient
+    pas prélevés : ils sont tous en FIN de ligne dans la page, il les prend
+    là, précédés d'un espace (une adresse `https://` n'en a pas). Et une
+    liste de sept adresses survit à la page qu'on ajoute : il passe aussi au
+    crible TOUTE page publiée qui porte `data-ela-space`, où qu'elle soit.
+    Chaque trou a été rouvert exprès et le fait tomber en nommant la page.
+  - **LES FEUILLES DE STYLE ET `robots.txt` ONT SUIVI** (4 octobre 2026,
+    Barbaros : « oui »). Ils étaient copiés tels quels : `robots.txt`
+    expliquait en clair que `?h=` donne des forfaits plus bas que le site et
+    que la réception ouvre l'historique des clients d'un hôtel ;
+    `hotel-engine-polish.css` (23 blocs) disait que la photo de l'en-tête
+    vient du site d'easyHotel sans accord écrit. `construire.sh` passe
+    maintenant `site/*.css` — un motif : une feuille ajoutée demain est prise
+    d'office — et `site/robots.txt` au nettoyeur.
+    - **`robots.txt` garde ses lignes vides** : un vieux robot y lit la fin
+      d'un groupe, les retirer changerait ce que le fichier interdit. On ôte
+      les lignes de note et la fin de ligne après « # » (RFC 9309).
+    - **Le contrôle compare ce que lit la machine, pas le texte** : les
+      règles CSS par le navigateur lui-même (CSSOM, 69 et 141 règles, à
+      l'identique), et les consignes de `robots.txt` avec la place des
+      lignes vides. Retirer une note en emportant une règle serait pire que
+      la note. Quatre défauts rouverts exprès le font tomber.
+    - **Restent, et c'est délibéré** : `_headers` (Cloudflare le lit, et un
+      réglage qu'on ne peut pas éprouver d'ici garde son défaut — les
+      en-têtes se lisent de toute façon dans chaque réponse), `carte/`
+      (la licence de Leaflet doit rester avec lui), et la ligne « page
+      construite automatiquement » de `/demos/`, qui ne dit rien d'utile à
+      personne.
 - **Le cloisonnement complet des écrans admin/réception hors du fichier
   public n'a PAS été fait** : les données restent protégées côté serveur
   (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus
@@ -5796,18 +4065,15 @@ anonymes et **corrige ces valeurs en mémoire** si le serveur répond. Le
 repli est sacré, comme partout ailleurs sur ce site : un échec (hors ligne,
 minuterie, format inattendu) ne touche à rien, le client garde le chiffre
 écrit en dur, sans le moindre message.
-- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** `parametres_commerciaux`
-  et `tarifs_partenaires` restent fermées à `anon` comme depuis leur
-  création — la première porte AUSSI `commission_ela_defaut`, la marge
-  d'Elatransfer, qui ne doit JAMAIS être visible d'un visiteur ni d'un
-  comptoir d'hôtel (voir plus haut, « CE QUE LE COMPTOIR NE DOIT JAMAIS
-  VOIR »). Deux vues, `tarif_public` et `forfaits_partenaires_publics`, ne
-  rendent QUE des chiffres déjà publics par nature — le tarif au kilomètre
-  affiché sur le site, les prix d'un flyer imprimé — et sont accordées en
-  lecture à `anon`. Elles tournent avec les droits du PROPRIÉTAIRE de la
-  vue (pas de `security_invoker`), qui possède aussi les tables : c'est ce
-  qui laisse `anon` interroger la vue sans jamais toucher aux tables
-  elles-mêmes.
+- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** Les tables restent
+  fermées (`parametres_commerciaux` porte aussi la commission) ; `anon` lit
+  `tarif_public` et `forfaits_partenaires_publics`, qui tournent avec les
+  droits de leur PROPRIÉTAIRE, donc SANS les policies.
+  **UNE VUE NE S'ÉCRIT JAMAIS** (audit du 4 octobre 2026) : Supabase donne
+  par défaut TOUS les droits à `anon` sur tout objet neuf, et une vue sur
+  une seule table est modifiable — un anonyme effaçait le tarif berline.
+  `20261005000000_vues_lecture_seule.sql` retire l'écriture à toute vue ;
+  la rejouer après toute vue créée (elle s'arrête si un droit survit).
 - **L'ÉCRITURE EXISTAIT DÉJÀ, IL NE MANQUAIT QUE L'ÉCRAN.** Les deux tables
   ont depuis leur création une policy « authenticated + `est_exploitant()`
   » en écriture — Admin v2 s'en sert déjà pour la commission. Le nouvel
@@ -6478,6 +4744,8 @@ son, et la vraie demande suivante passait avec.
   SQL datées dans le mauvais fuseau.
 - `pg_cron` reste à 20 s : c'est la cadence de l'alarme (notification), la
   cadence Telegram vient du journal.
+- **Aucune demande n'est « passée » dans ses 30 premières minutes** : faite
+  pour la minute même, elle sonne comme une immédiate (`memoire/preavis.md`).
 - `test-relance-alertes` : 61 contrôles ; trois falsifications (règle des
   saisies retirée, effacement retiré, arrêt au départ retiré) tombent en
   nommant le défaut. `test-securite-fonctions` éprouve le webhook sur une
@@ -6648,6 +4916,10 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   les rejouer **écraserait** ce que Barbaros a réglé, sans un mot.
   `20260916070000_stripe_test_manual_capture.sql` crée ses policies sans
   `drop` préalable : rejouée, elle échoue, ce qui est sans dégât.
+  `20261004000000_minimum_berline_35.sql`, elle, se rejoue sans danger :
+  elle n'écrit que si la ligne porte encore la valeur du 28 septembre à
+  l'identique. **Toute future migration de tarif doit suivre cette forme
+  conditionnelle**, ou rejoindre la liste des deux ci-dessus.
 - **SEULE `main` PUBLIE, DÉPLOIE ET MIGRE.** `pages.yml`, `fonctions.yml` et
   `migrations.yml` acceptaient `workflow_dispatch` sur n'importe quelle
   branche — les migrations ont été lancées depuis une branche le 15/09. Les
@@ -6811,6 +5083,11 @@ des clients et une seconde adresse où se tromper d'outil.
 
 ## « HÔTELS • AGENCES • ENTREPRISES » EST SOUS LE FORMULAIRE
 
+> **Le texte FRANÇAIS de ce bloc a changé le 4 octobre 2026** : c'est un
+> paragraphe, plus trois lignes. **L'anglais garde volontairement ses trois
+> lignes** — décision de Barbaros, voir « LE SITE SE PRÉSENTE PAR SA
+> MARQUE » en fin de fichier. La PLACE décrite ici reste la bonne.
+
 3 octobre 2026, à sa demande (« fais comme un expert »). Le nouveau texte
 d'accueil (79e06a8) avait mis ce bloc de trois lignes DANS le bandeau : il
 l'allongeait d'environ 100 px et remettait « Voir mon prix » à cheval sur la
@@ -6916,6 +5193,205 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   enfants (`pkill -P`). Et pour fermer un serveur à la main, viser son
   numéro, jamais `pgrep -f "http.server"` : le motif attrape aussi la
   commande qui le tape — vu une fois de plus ce jour-là.
-- **Ce qui reste ouvert** : le chien de garde GitHub passe six fois en 21 h
-  au lieu de toutes les 15 min (P1-10) — à trancher par Barbaros : un
-  déclencheur extérieur gratuit, ou un indicateur de santé dans l'admin.
+- **Le chien de garde qui ne passe que six fois en 21 h (P1-10) est
+  tranché** : un voyant dans l'admin. Voir la section suivante.
+
+## LE VOYANT DES ALERTES DANS L'ADMIN
+
+4 octobre 2026, Barbaros : « Ok voyant ». Le chien de garde GitHub devait
+vérifier toutes les 15 min que les alertes partent ; GitHub ne le réveillait
+que 6 fois en 21 h. Deux solutions lui ont été montrées : un réveil extérieur
+(un compte de plus, une clé GitHub à confier) ou un voyant dans l'admin. Il a
+choisi le voyant, après avoir demandé si une panne d'alerte lui ferait perdre
+des courses : **non, la course arrive toujours sur le serveur et dans
+l'admin, seule la sonnerie s'arrête**. C'est la phrase que dit le bandeau.
+
+- **Sous « Serveur connecté », une ligne : « Alertes OK », « Alertes en
+  panne » ou « Alertes : non vérifiées »** (`#adminAlertes`). En panne, un
+  bandeau rouge sur le tableau de bord (`#bordAlertes`) dit LAQUELLE et le
+  geste qui reste : garder l'écran ouvert, il sonne tout seul.
+- **UN SEUL JUGE** : `admin-sante.js`, chargé par l'admin et importé par
+  `chien-de-garde.mjs`. Deux juges finiraient par se contredire — un voyant
+  vert pendant que l'Issue crie. Il rend deux phrases par panne, écrites à la
+  même ligne de décision : la précise pour l'Issue, la simple pour l'admin.
+- **UNE SEULE MESURE** : `ela_sante_alertes()` (migration
+  `20261004010000_sante_alertes.sql`) rend les sept mesures de
+  `sante-serveur.sql`, au caractère près — `test-chien-de-garde.mjs` compare
+  les deux textes. Elle est réservée à un exploitant connecté ; la mesure
+  elle-même (`ela_sante_mesures`) n'est accordée à personne.
+- **LE GRIS N'EST PAS UN DÉTAIL.** Vert = mesure lue il y a moins de 3 min,
+  et saine. Rouge = mesure lue, et une alerte ne part plus. Gris = on ne sait
+  pas : sans session, sans réseau, fonction pas encore installée, réponse
+  illisible, mesure trop vieille. **On ne garde jamais un ancien vert** : un
+  vert qui n'a rien mesuré est pire que pas de voyant. Une réponse illisible
+  est grise, pas rouge.
+- **Il se mesure au rythme de la relecture du serveur, pas de la sonde** :
+  au plus une fois toutes les 40 s, jamais onglet caché ni hors de l'espace.
+- **LA MIGRATION EST APPLIQUÉE EN PRODUCTION** (4 octobre 2026 à 04 h 17,
+  workflow « Appliquer une migration Supabase », exécution n° 26, réponse
+  201), juste après la fusion de #305 ; Barbaros a vu « Alertes OK » en
+  rouvrant l'admin. Si elle disparaissait un jour, le voyant redeviendrait
+  gris (« non vérifiées ») : il ne prétend rien.
+- **Le chien de garde GitHub reste** : quand il passe, il ouvre une Issue.
+  Le voyant ne le remplace pas, il couvre les heures où GitHub dort.
+- `test-admin-voyant.mjs` (52 contrôles, site construit),
+  `supabase/tests/sante-alertes*.sql` (CI, vrai PostgreSQL).
+
+### CE QUE LA RELECTURE A TROUVÉ AVANT LA PUBLICATION
+
+Une relecture indépendante en quatre angles, chaque constat reproduit par un
+second relecteur avant d'être corrigé. Tout est réparé ; ce qui suit est la
+mémoire de POURQUOI c'est écrit ainsi.
+- **« VU » N'EST PAS UN ENVOI.** Ouvrir une course dans l'admin
+  (`ela_marquer_vue`) ou appuyer sur « Vu » dans Telegram écrit au journal
+  canal `telegram`, statut `envoye`, type `vue`. Compté comme un envoi
+  réussi, il faisait passer le voyant au VERT pendant une panne de
+  Telegram — le geste même qu'on fait en regardant l'admin. Le chien de
+  garde avait le même angle mort depuis le 2 octobre.
+- **« indisponible » EST UN ÉCHEC** : c'est ce que journalise un secret
+  Telegram absent ou mal nommé. Non compté, Telegram non configuré donnait
+  « Alertes OK ».
+- **L'ÉPREUVE SQL POSE LES PRIVILÈGES PAR DÉFAUT DE SUPABASE.** Un PostgreSQL
+  nu n'accorde l'exécution qu'à PUBLIC ; Supabase l'accorde à `anon` et
+  `authenticated`. Sans cette ligne, une migration qui n'ôterait que PUBLIC
+  passait l'épreuve et un anonyme lisait les mesures en production.
+- **UNE COMPARAISON AVEC NULL NE TOMBE JAMAIS** — `null not between 5 and
+  60` vaut NULL. Même famille que `<>` sur une valeur NULL, déjà consignée.
+- **LE BANDEAU REMPLACE « Son des alertes coupé »** quand les deux
+  s'affichent : empilés, ils faisaient sortir de l'écran (390 × 844) la
+  demande en attente qu'ils disent de surveiller. Il dit la PREMIÈRE panne
+  et le nombre des autres ; la liste entière reste sur le voyant.
+- **IL N'EST RÉÉCRIT QUE S'IL CHANGE** : c'est une région « alert », un
+  lecteur d'écran relisait la même panne trois fois par minute.
+- **UN ANCIEN VERDICT NE REVIENT PAS** après une coupure ou une
+  reconnexion : il est oublié dès que le voyant passe au gris faute de
+  session ou de serveur, et la prochaine relecture mesure aussitôt.
+- **UNE SESSION PERDUE PENDANT LA SONDE SE DIT** (`sessionPerdue()`). Défaut
+  antérieur au voyant : un mot de passe changé sur un autre appareil
+  arrêtait l'écoute, et la pastille restait « Serveur connecté ».
+- **L'EN-TÊTE NE SAUTE PLUS** : la ligne du voyant garde la largeur de son
+  état le plus long.
+- Contre le code d'avant ces corrections, 18 des 52 contrôles tombent ; neuf
+  falsifications de la fonction serveur tombent toutes.
+- **Les commentaires de l'admin et de la réception publiés** : constatés
+  pendant ce travail, retirés ensuite à sa décision — voir « LES
+  COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
+
+## LE SITE SE PRÉSENTE PAR SA MARQUE — ET LE CONTRÔLE DE PRODUCTION A CRIÉ
+
+4 octobre 2026. Barbaros a poussé directement sur `main` (7dc2349) un
+nouveau titre — « Elatransfer — Transferts privés & solutions de
+réservation » — et un nouveau paragraphe pour les professionnels ; la PR
+#302 (branche `ai-dev`, ChatGPT) portait la description assortie, validée
+par lui. Deux minutes après la publication, le monitoring a ouvert l'Issue
+#300 : « sert une AUTRE page ». **Le site était parfaitement servi** — c'est
+l'empreinte du contrôleur qui était un libellé.
+- **« Chauffeur privé » n'est plus la règle du référencement.** Depuis la
+  phase 1 de l'audit (septembre), le titre devait « mener avec le métier,
+  les aéroports après ». Barbaros a repositionné le site : des transferts
+  privés ET des solutions de réservation pour ses partenaires. Le titre
+  mène donc avec la **marque**, puis dit ce qu'elle vend. `test-nouveau-bascule`
+  éprouve cette règle-là (marque en tête, « transfert » dans le titre et la
+  description) et plus l'ancienne — un contrôle qui l'aurait gardée aurait
+  exigé un texte que Barbaros a retiré.
+- **L'empreinte de `verifier-production.mjs` est « Elatransfer »**, en un
+  mot, pour `/` et `application.html`. Aucune autre porte ne le porte ainsi
+  (l'admin dit « ELA Transfer », l'hôtel « × ELA Transfer ») : l'empreinte
+  distingue toujours la bonne page d'un listage ou d'un mauvais réglage,
+  et elle survit au prochain changement de titre. *Un libellé se reformule,
+  une marque non.*
+- **DÉPÔT ET SITE CONSTRUIT DOIVENT DIRE LA MÊME CHOSE.** `seo-ela.mjs`
+  réécrit le titre et la description dans `site/index.html` : la nuit du
+  4 octobre, le dépôt disait l'ancienne description et le script la
+  nouvelle — deux vérités, Google lit l'une et le client l'autre. Les deux
+  sont alignées, et un contrôle de `test-nouveau-bascule` compare désormais
+  le site servi au dépôt plutôt qu'à une constante recopiée.
+- **CE QUI N'A PAS ÉTÉ TOUCHÉ, ET C'EST SA DÉCISION.** Un premier jet avait
+  traduit en anglais le nouveau paragraphe des professionnels et réécrit
+  `og:description` / `twitter:description`. Barbaros ne l'avait pas demandé
+  (« il ne restait que la méta-description ») : les deux ont été retirés
+  avant la fusion. L'anglais garde donc ses trois lignes d'avant, ce que
+  son commit disait déjà (« la version anglaise conserve sa traduction
+  dédiée »). *Une consigne écrite dans un commentaire de commit est une
+  consigne, pas un oubli à rattraper.*
+- **LES APERÇUS DE PARTAGE ONT SUIVI, ENSUITE, À SA DEMANDE** (« Oui », même
+  nuit). `og:description` et `twitter:description` disent la description de
+  la page. **Le site publié porte DEUX exemplaires de chaque aperçu** —
+  celui de `index.html`, puis celui qu'ajoute `seo-ela.mjs` — et un réseau
+  social lit en général le premier : c'était l'ancien, qui vendait encore
+  « mises à disposition ». `test-nouveau-bascule` exige maintenant que TOUS
+  les exemplaires disent la description.
+- **La PR #302 a été fermée sans fusion** : elle portait la même
+  description, et elle était en conflit avec `main` depuis le push direct.
+
+## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
+
+4 octobre 2026, mission « moteur 10/10 ». On garde BAN + Photon.
+**MAPBOX SEARCH BOX N'EST PAS BRANCHÉ, C'EST UNE DÉCISION** : ses résultats
+sont « temporaires » (une réservation doit GARDER le lieu ; l'offre permanente
+ne couvre pas les lieux), ils doivent s'afficher sur une carte Mapbox, et il
+faut une carte bancaire. Conditions lues dans des citations, pas sur leur
+texte (mapbox.com est bloqué d'ici) : à relire avant de rouvrir le sujet.
+- **Une panne n'est plus mise en cache** comme « aucune adresse » ; la liste
+  dit « Recherche momentanément indisponible » (`liste.echec`).
+- **L'admin choisit ses lieux** : `crDepart`/`crArrivee` passent par le même
+  `brancher()` que le site. Un texte tapé sans choisir est résolu au premier
+  résultat, et l'écran dit « Adresse prise d'office : vérifiez-la ».
+- **Lieu structuré** `course.departLieu`/`arriveeLieu` (`lieuStructure()`,
+  depuis un élément CHOISI) : nom, adresse, coordonnées, `provider`
+  (`ban`/`photon`/`elatransfer`). Les champs texte restent ce qui s'affiche.
+  `deposer-course` les garde (il jetait `departPos`), bornés, facultatifs.
+  « Modifier la course » efface le lieu d'une adresse retapée.
+- Fautes de frappe (`motProche`, `cleProche` sur 6 lettres et plus : « tilly »
+  ne doit pas proposer Beauvais-Tillé) ; un nom distinctif (« novotel »)
+  passe devant les terminaux ; biais selon le contexte (autre bout, hôtel,
+  « Me localiser », Paris) — le classement garde Paris comme référence ;
+  Photon dans la langue du client ; `itineraire()` rend sa `source`.
+- **Prix au km contrôlé côté serveur : SIGNALER, JAMAIS REFUSER.** Aucune
+  route n'est plus courte que la ligne droite : minimum = ligne droite ×
+  tarif serveur, arrondi à la dizaine INFÉRIEURE, relevé au minimum. En
+  dessous : `securite.prixSousLigneDroite`, « Prix à vérifier » sur le bon
+  admin. Un téléphone qui garde un ancien tarif n'est pas une fraude.
+- Piège : `pkill -f "http-server …"` tue le shell qui le lance, et le serveur
+  reste ouvert. Fermer par numéro de processus, toujours.
+- Suites : `test-nouveau-lieux.mjs`, plus des contrôles dans
+  `test-nouveau-serveur.mjs` et `test-securite-fonctions.mjs`.
+- Reste (P2, à lui) : clé Mapbox Directions ; un second fournisseur de lieux
+  qui autorise le stockage ; validation serveur complète ; lien GPS sur le bon.
+
+## PLUS AUCUN BLOCAGE COMMERCIAL — UNE DEMANDE RÉELLE PART TOUJOURS
+
+4 octobre 2026, à sa demande (« un client avec une demande réelle doit
+toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
+- **Préavis de 15 min supprimé.** Seule l'heure réellement passée est
+  refusée, avec la sortie « Partir dès que possible ».
+- **« Maintenant » / « Programmer »** (défaut : programmer — les aéroports se
+  réservent à l'avance). **Aucun pixel de hauteur** : une rangée de boutons
+  repoussait « Voir mon prix » sous la barre du bas (mesuré 773–826 pour une
+  barre à 784). « Maintenant » est un lien dans le titre du champ Date ; en
+  mode immédiat un encadré (`#blocAsap`) de même hauteur remplace date et
+  heure. `course.immediat` ; « soumise à disponibilité, sans délai garanti »,
+  « réponse plus lente de 22 h à 5 h » — **jamais un blocage**.
+- **« TARIF À CONFIRMER »** (`tarifAConfirmer`, `motifsTarif` parmi
+  `longue`/`groupe`/`adresse`) : la demande PART sans aucun montant affiché —
+  au-delà de 90 km (`#infoLongue` ; `RAYON_ZONE_KM` est devenu le seuil du
+  PRIX AUTOMATIQUE), plus de 7 passagers (« Plusieurs véhicules »), adresse
+  introuvable envoyée telle quelle (`adresseAVerifier`, sans coordonnées).
+  **Piège attrapé par le test** : le client envoyait `longue_distance`, le
+  serveur attendait `longue` — toute longue distance aurait été refusée.
+- **`deposer-course`** force le prix à 0 sur une demande à confirmer, exige
+  sinon un prix positif (le 0 € passait), accepte 60 passagers et 5 000 km.
+- **Admin** : pastilles Immédiat / Tarif à confirmer / Adresse à vérifier /
+  Plusieurs véhicules (ligne du bas de la carte), « À confirmer » au lieu de
+  0 €. **« Confirmer » refusé tant que le prix n'est pas fixé** (un VTC
+  annonce son prix avant le départ). « Modifier la course » fixe le prix et
+  pose `prixFixeApres` : « Prévenir le client » l'annonce, `?ok=` le porte.
+- **`nouvelle-demande`** : une demande immédiate a pour référence création +
+  30 min. Comptée sur sa date, elle recevait aussitôt « DÉPART PASSÉ » puis
+  le silence.
+- **CGV art. 4** (FR/EN) décrivent les demandes sans prix affiché.
+- Toujours refusés : heure passée, départ = arrivée, coordonnées d'une
+  adresse modifiée, identité/téléphone, règlement, quotas, doublons.
+- Suites : `test-nouveau-sans-blocage.mjs` (site construit, client + admin),
+  `test-nouveau-preavis.mjs` (verrouille l'ABSENCE du préavis),
+  `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.

@@ -46,8 +46,11 @@ function court(texte: any, max: any = 42) {
   return (espace > max * 0.6 ? coupe.slice(0, espace) : coupe) + "…";
 }
 
+/* Une demande « dès que possible » le dit d'abord : sa date est l'instant où
+   elle a été faite, pas un rendez-vous (4 octobre 2026). */
 function quand(bon: any) {
   const c = bon.course ?? {};
+  if (c.immediat) return "IMMÉDIAT";
   const brut = bon.dateMsg ?? `${c.date ?? ""} ${c.heure ?? ""}`;
   return String(brut).trim() || "—";
 }
@@ -78,10 +81,17 @@ function titreRappel(bon: any, minutes: any) {
    l'admin, elle ne sonne pas six heures. */
 function titreFinal(bon: any) {
   const c = bon.course ?? {};
-  return "DÉPART PASSÉ, non traitée — "
+  return (c.immediat ? "DEMANDE IMMÉDIATE sans réponse depuis 30 min — " : "DÉPART PASSÉ, non traitée — ")
     + court(c.departPublic ?? c.depart, 20)
     + " → " + court(c.arriveePublic ?? c.arrivee, 20)
     + ", " + quand(bon);
+}
+
+/* Le tarif à confirmer dit POURQUOI : c'est ce qui dit quoi faire. */
+function motifs(m: any) {
+  const noms = { longue: "longue distance", groupe: "plusieurs véhicules", adresse: "adresse à vérifier" };
+  const l = (Array.isArray(m) ? m : []).map((k) => noms[k]).filter(Boolean);
+  return l.length ? " (" + l.join(", ") + ")" : "";
 }
 
 function corps(bon: any, adresseAdmin: any) {
@@ -93,12 +103,13 @@ function corps(bon: any, adresseAdmin: any) {
        ça dans le bon. La chambre ne regarde que le chauffeur retenu. */
     "Départ : " + (c.departPublic || c.depart || "—"),
     "Arrivée : " + (c.arriveePublic || c.arrivee || "—"),
-    "Quand : " + quand(bon),
+    "Quand : " + (c.immediat ? "dès que possible (demandé le " + (`${c.date ?? ""} ${c.heure ?? ""}`.trim() || "—") + ")" : quand(bon)),
     "",
     (c.vehicule || "—") + " · " + (c.passagers || "—"),
     "Paiement : " + (bon.paiementNom || "—"),
-    "Prix : " + euros(bon.prix && bon.prix.total),
+    "Prix : " + (c.tarifAConfirmer ? "À CONFIRMER" + motifs(c.motifsTarif) : euros(bon.prix && bon.prix.total)),
   ];
+  if (c.adresseAVerifier) l.push("Adresse tapée à la main : à vérifier");
   if (c.vol) l.push("Vol : " + c.vol);
   /* D'où vient ce client : c'est ce qui dit quelle affiche d'hôtel
      travaille. Rien du tout pour une venue directe — un tiret se lirait
@@ -251,7 +262,7 @@ function saisieExploitant(bon:Record<string,any>):boolean{
    - LES SAISIES DE L'EXPLOITANT NE SONT NI ANNONCÉES NI RELANCÉES.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
    vient du journal. */
-const MIN_MS=60*1000;
+const MIN_MS=60*1000,IMMEDIAT_MS=30*60*1000;
 /* SOUPLESSE : pg_cron ne tombe jamais pile. Un rappel dû à 3 min vérifié à
    2 min 59 s partirait au tour suivant, 20 s plus tard — ou, pour la
    notification « à chaque tour », une fois sur deux. */
@@ -312,7 +323,21 @@ async function relancer():Promise<string>{
     const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
     const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
     if(saisieExploitant(bon))continue;
-    const age=Date.now()-cree,reste=resteAvantDepart(bon);
+    /* UNE DEMANDE IMMÉDIATE N'A PAS DE RENDEZ-VOUS : son « départ » est
+       l'instant même où elle a été faite. Comptée sur lui, elle recevait au
+       tour suivant le message final « départ passé », puis le silence — la
+       demande en attente sans bruit qu'on veut justement éviter. Sa référence
+       devient création + 30 min : 30 minutes d'alarme pleine, puis un
+       dernier message (4 octobre 2026). */
+    /* ET AUCUNE DEMANDE N'EST « PASSÉE » DANS SES 30 PREMIÈRES MINUTES. Un
+       client qui réserve pour la minute même — l'heure proposée par le site,
+       ou celle qu'il lit sur sa montre — avait un départ « passé » au tour
+       suivant : message final, plus aucune alarme, pour la demande la plus
+       pressée de toutes. Elle est traitée comme une demande immédiate ; une
+       demande faite à l'avance n'y voit aucune différence (4 octobre 2026). */
+    const age=Date.now()-cree,plancher=cree+IMMEDIAT_MS-Date.now();
+    const brut=bon.course?.immediat===true?plancher:resteAvantDepart(bon);
+    const reste=brut===null?null:Math.max(brut,plancher);
     if(!encoreUtile(age,reste))continue;
     const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,detail,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
     if(!j.ok)continue;
@@ -338,7 +363,7 @@ async function relancer():Promise<string>{
       const t=titreFinal(bon);finals++;
       await effacerTelegram(dernierRappelTelegram(journalRef));
       const [tg,push]=await Promise.all([
-        parTelegram(t,`Réf. ${ref} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
+        parTelegram(t,bon.course?.immediat===true?`Réf. ${ref} — demande immédiate toujours en attente après 30 min. Rappelez le client ou refusez-la dans l'admin. Plus aucun rappel ne partira.`:`Réf. ${ref} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
         parPush(t,ref),
       ]);
       await Promise.all([journal("rappel_final",ref,"telegram",tg),journal("rappel_final",ref,"push",push)]);

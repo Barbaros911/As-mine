@@ -39,8 +39,11 @@ const errs=[];
    découlent — 2,90 €/km (tarif unifié du 28 septembre 2026 : il n'y a
    plus qu'une seule grille au kilomètre, pour tout le monde), arrondi à
    la dizaine, le 5 pile qui descend :
-     Mapbox   10,0 km →  29,00 € →  30 €  (le plancher ne joue plus : 29,00
-                                           monte déjà à 30 tout seul)
+     Mapbox   18,0 km →  52,20 € →  50 €  (au-dessus du plancher berline,
+                                           35 € depuis le 4/10/2026 : un
+                                           niveau reconnu au plancher le
+                                           serait aussi par une course de
+                                           0 km, et ne prouverait rien)
      ORS      40,0 km → 116,00 € → 120 €
      OSRM     24,3 km →  70,47 € →  70 €
      Vol d'oiseau : Vendôme → Argenteuil ≈ 11,8 km × 1,3 ≈ 15,3 km
@@ -57,7 +60,7 @@ const errs=[];
    pour une vraie raison personne ne le verrait. RECALCULÉ À LA MAIN depuis
    GAMMES, jamais recopié de ce que la page affiche — un test qui prend la
    sortie pour référence ne vérifie plus rien. */
-const KM = { mapbox:10000, ors:40000, osrm:24300 };
+const KM = { mapbox:18000, ors:40000, osrm:24300 };
 
 async function course({ mapbox, ors, osrm, sansCles, jours }){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
@@ -87,6 +90,9 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
   await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'application/json',body:JSON.stringify({features:[
     {geometry:{coordinates:[2.2467,48.9478]},properties:{label:"Argenteuil, 95100 Argenteuil"}}]})}));
 
+  /* Le tarif se lit sur le vrai serveur au chargement : coupé, la page
+     garde son repli GAMMES, celui sur lequel ces prix sont calculés. */
+  await p.route('**://*.supabase.co/**', r => r.abort());
   await p.route('**://api.mapbox.com/**', route => {
     appels.push(route.request().url());
     if(mapbox) return route.fulfill({contentType:'application/json',
@@ -194,7 +200,7 @@ check('et la course est marquée « ≈ », sur la mesure ET sur le prix',
 
 /* --- 4. Le jour où la clé Mapbox est posée, elle passe devant --------- */
 r = await course({ mapbox:true, ors:true, osrm:true });
-check('avec la clé Mapbox, c\'est elle qui donne la distance', r.prix==='30,00€', r.prix);
+check('avec la clé Mapbox, c\'est elle qui donne la distance', r.prix==='50,00€', r.prix);
 check('ORS n\'est alors pas appelé', r.versORS.length===0, r.versORS.join(' '));
 check('OSRM non plus', r.versOSRM.length===0, r.versOSRM.join(' '));
 check('la clé Mapbox part en « access_token »',
@@ -252,7 +258,7 @@ check('sans Mapbox, on ne prétend PAS tenir compte du trafic',
 r = await course({ mapbox:true, ors:true, osrm:true, jours:30 });
 check('une course dans un mois : Mapbox est appelé sans « depart_at »',
   r.versMapbox[0] && !r.versMapbox[0].includes('depart_at'), r.versMapbox[0]);
-check('et elle passe quand même par Mapbox', r.prix==='30,00€', r.prix);
+check('et elle passe quand même par Mapbox', r.prix==='50,00€', r.prix);
 
 /* --- 6. Les trois en panne : le vol d'oiseau, et les trois essayés ---- */
 r = await course({ mapbox:false, ors:false, osrm:false });

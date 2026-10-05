@@ -29,6 +29,13 @@ on:
       - ".github/workflows/fonctions.yml"
   workflow_dispatch:
 
+# LE JETON GITHUB NE SERT QU'À LIRE LE DÉPÔT (4 octobre 2026). Le réglage
+# du dépôt donne déjà « lecture » par défaut — mesuré dans le journal du
+# déploiement — mais un réglage de dépôt se change d'un clic, sans PR. On
+# l'écrit ici : un workflow de production n'a jamais besoin d'écrire.
+permissions:
+  contents: read
+
 jobs:
   deployer:
     # SEULE « main » DÉPLOIE (audit du 2 octobre 2026). Le déclencheur
@@ -65,11 +72,18 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+
+      # « latest » n'est pas épinglé, faute de savoir d'ici quelle version
+      # tourne aujourd'hui (on ne devine pas un numéro). Le journal la dit
+      # désormais : le jour où une mise à jour de la CLI casse le
+      # déploiement, on lit ici la dernière qui marchait et on l'épingle.
+      - name: Version de la CLI Supabase
+        run: supabase --version
 
       # ON S'ARRÊTE NET SI LE JETON MANQUE. Sans ce contrôle, la commande
       # échouerait plus loin avec un message d'authentification que
