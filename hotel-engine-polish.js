@@ -298,10 +298,8 @@
       }
       texte(document.querySelector('.rec-aide-titre'),anglais?'Something unexpected?':'Un imprévu ?');
       texte(document.querySelector('.rec-aide-texte'),anglais
-        ? 'For a delay, time change or cancellation, call us and we will handle it.'
-        : 'Un retard, un changement d’heure ou une annulation : appelez-nous, on s’en occupe.');
-      var compteurs=document.querySelectorAll('.rec-chiffre span');
-      [anglais?'today':'aujourd’hui',anglais?'pending':'en attente',anglais?'upcoming':'à venir'].forEach(function(v,i){texte(compteurs[i],v);});
+        ? 'Delay, change, cancellation: call us.'
+        : 'Retard, changement, annulation : appelez-nous.');
       /* « Actualiser » est écrit par la page elle-même (dessinerMaj) : il
          change pendant la lecture, la finition ne doit pas l'écraser. */
       texte(document.getElementById('btnRecFermer'),anglais?'Close session':'Fermer la session');
@@ -323,7 +321,7 @@
         var jours={"Aujourd'hui":'Today','Demain':'Tomorrow','En retard':'Overdue','Date inconnue':'Unknown date'};
         trad(j,jours[(j.dataset.fr||j.textContent).trim()]);
       });
-      var boutons={"Demander l'annulation":'Request cancellation','Appeler Elatransfer':'Call Elatransfer','Envoyer le bon au client':'Send voucher to guest','Renvoyer le bon au client':'Resend voucher to guest'};
+      var boutons={'Appeler Elatransfer':'Call Elatransfer','Voir le bon':'View voucher'};
       document.querySelectorAll('#recListe .bouton-fantome').forEach(function(x){
         trad(x,boutons[(x.dataset.fr||x.textContent).trim()]);
       });
@@ -337,7 +335,7 @@
         if(mRech) enVide='No ride matches “'+mRech[1]+'”.';
         else enVide={'Aucune réservation pour le moment.':'No booking yet.',
           'Aucune course à venir.':'No upcoming ride.',
-          'Aucune course passée pour le moment.':'No past ride yet.',
+          'Aucune course passée pour le moment.':'No ride in the history yet.',
           'Aucune course sur cette période.':'No ride in this period.'}[frVide]||null;
         trad(vide,enVide);
       }
@@ -345,7 +343,7 @@
       texte(titreRech,anglais?'Find a ride':'Retrouver une course');
       var champRech=document.getElementById('recRecherche');
       if(champRech) champRech.placeholder=anglais?'Room, name, phone or reference':'Chambre, nom, téléphone ou référence';
-      var nomsVues={avenir:['À venir','Upcoming'],passees:['Passées','Past'],toutes:['Toutes','All'],date:['Par date','By date']};
+      var nomsVues={avenir:['À venir','Upcoming'],passees:['Historique','History'],date:['Par date','By date']};
       document.querySelectorAll('.rec-vues button').forEach(function(bv){
         var n=nomsVues[bv.dataset.vue];if(n) texte(bv.querySelector('span'),anglais?n[1]:n[0]);
       });

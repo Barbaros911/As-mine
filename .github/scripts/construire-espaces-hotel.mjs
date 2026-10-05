@@ -135,8 +135,14 @@ function injecterBootstrap(html, role) {
   return html;
 }
 
+/* Le bon de la réception et de l'admin (bon-client.js) n'a rien à faire
+   dans les pages publiques : le client a son propre bon dans le tunnel. */
+function sansBonComptoir(html) {
+  return html.replace(/<script\b[^>]*src=["']bon-client\.js["'][^>]*><\/script>\s*/gi, '');
+}
+
 function publicEla() {
-  let html = sansReception(sansAdmin());
+  let html = sansBonComptoir(sansReception(sansAdmin()));
   html = injecterBootstrap(html, 'public');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="public">');
   const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var r=p.toString();location.replace('/reception/easyhotel-aeroville/'+(r?'?'+r:'')+location.hash);return}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
@@ -145,7 +151,7 @@ function publicEla() {
 }
 
 function client() {
-  let html = sansReception(sansAdmin());
+  let html = sansBonComptoir(sansReception(sansAdmin()));
   html = injecterBootstrap(html, 'client');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
   const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/reception/easyhotel-aeroville/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
