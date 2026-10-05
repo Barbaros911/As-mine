@@ -99,21 +99,11 @@ GitHub : les visiteurs voyaient la licorne rose de GitHub pendant que le site
 - **`_headers` ne sert QUE sur Cloudflare.** GitHub Pages ne sait pas définir
   d'en-têtes HTTP — c'est pour ça que `frame-ancestors` ne pouvait pas être
   appliqué : les navigateurs l'ignorent dans une balise `<meta>`.
-- **Le danger de la bascule n'est pas le site, c'est l'EMAIL.**
-  `contact@elatransfer.com` reçoit du vrai courrier — confirmé par Barbaros.
-  **On branche donc le domaine par un simple CNAME chez son hébergeur DNS
-  actuel** (voie A), sans déplacer les serveurs de noms : les MX ne sont
-  jamais touchés, l'email ne peut pas casser. Ne PAS proposer la voie
-  « nameservers chez Cloudflare » par confort : ce qui casse alors n'est pas
-  le MX lui-même mais ce qui l'accompagne — SPF, DKIM, DMARC, autodiscover —
-  et le courrier part en indésirable sans message d'erreur.
-- **Le domaine racine est le point à trancher** : il ne peut pas porter un
-  CNAME. Si l'hébergeur DNS propose `ALIAS`/`ANAME`, tout reste identique ;
-  sinon il faut rediriger la racine vers `www`, et alors **changer l'adresse
-  canonique et `sitemap.xml`**, qui déclarent `https://elatransfer.com/`.
-- Vérifier sur l'adresse temporaire `*.pages.dev` avant de toucher au
-  domaine, et garder GitHub Pages actif quelques jours : c'est la porte de
-  sortie si quelque chose tourne mal.
+- **LE DOMAINE EST DÉJÀ CHEZ CLOUDFLARE** (mesuré le 5/10/2026 : serveurs
+  de noms `jill`/`jarred.ns.cloudflare.com`). Le courrier reste chez IONOS
+  (MX `mx00`/`mx01.ionos.fr`, SPF IONOS) : **ne jamais toucher ces lignes**,
+  ni `google-site-verification`. L'ancienne consigne « ne pas déplacer les
+  serveurs de noms » est caduque : `memoire/cloudflare-dns.md`.
 - **Cloudflare tombe aussi.** Plus rarement et moins longtemps, mais aucun
   hébergeur ne garantit 100 %. Ne pas le vendre comme une immunité.
 
@@ -725,8 +715,8 @@ les hôtels**.
 4. **Une langue de plus si le besoin se voit** : l'espagnol et l'arabe sont
    les deux qui apporteraient à Paris. L'arabe demande de retourner toute
    la page de droite à gauche — ce n'est pas qu'une affaire de textes.
-5. **Cloudflare** reste bloqué : voir `CLOUDFLARE.md`. Ne pas déplacer les
-   serveurs de noms — l'email de Barbaros en dépend.
+5. **Cloudflare** sert le site et porte le DNS (voir plus haut). Ne jamais
+   toucher aux lignes du courrier IONOS.
 6. **La clé Mapbox** : elle reste le premier niveau du calcul
    d'itinéraire, et la seule qui se restreigne au domaine. Marche à suivre
    dans `MAPBOX.md`. Ce n'est plus urgent depuis qu'ORS est branché — c'est
@@ -5152,6 +5142,19 @@ dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
   à la marque seule, qui est désormais partout.
 - L'histoire (titre du 4 octobre, Issue #300, aperçus en double) :
   `memoire/marque-et-referencement.md`.
+
+## GOOGLE — UNE SEULE ENTREPRISE, ET DES PAGES DE SERVICE LIÉES
+
+- **Search Console** : propriété « domaine » du compte Google
+  **orucburak001**, pas `contact@`. Au 5/10/2026 : 4 pages au plan, 2
+  indexées ; CDG et Orly, que l'accueil ne liait pas, sont liées depuis son
+  pied et enrichies (faits du site et des CGV, aucun prix ni avis).
+- **Un seul graphe de données structurées**, dans `index.html`
+  (Organization `#organisation`, WebSite, Service) ; `seo-ela.mjs` n'en
+  ajoute plus, les pages de service désignent `#organisation`. Jamais
+  « VTC », jamais `LocalBusiness` sans adresse réelle.
+- Leurs réponses sont celles de l'accueil, mot pour mot : en changer une
+  veut dire changer les deux (`test-nouveau-bascule`).
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 

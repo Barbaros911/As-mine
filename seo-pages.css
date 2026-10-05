@@ -44,3 +44,16 @@ footer { padding: 28px 22px; color: #dcecf7; background: var(--navy-deep); text-
   .grid { grid-template-columns: 1fr; }
   .actions, .button { width: 100%; }
 }
+/* Le contenu des pages de service (5 octobre 2026) : étapes, inclus,
+   véhicules, questions. Des faits repris du site et des CGV, rien d'autre. */
+.bloc { margin-top: 44px; }
+.bloc h2 { margin: 0 0 14px; }
+.bloc h3 { margin: 0 0 6px; color: var(--navy); font-size: 18px; }
+.grid.deux { grid-template-columns: repeat(2, 1fr); }
+.etapes, .inclus { margin: 0; padding-left: 22px; }
+.etapes li, .inclus li { margin: 0 0 10px; }
+.faq details { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.faq summary { min-height: 28px; color: var(--navy); font-weight: 750; cursor: pointer; }
+.faq details p { margin: 8px 0 0; color: var(--muted); }
+footer a { color: #fff; font-weight: 750; }
+@media (max-width: 760px) { .grid.deux { grid-template-columns: 1fr; } }
