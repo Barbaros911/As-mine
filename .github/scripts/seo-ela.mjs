@@ -25,28 +25,6 @@ const extra = `
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
-<script type="application/ld+json">${JSON.stringify({
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: 'Elatransfer',
-  url: 'https://elatransfer.com/',
-  logo: 'https://elatransfer.com/brand-logo.webp',
-  image: 'https://elatransfer.com/brand-logo.webp',
-  telephone: '+33759312433',
-  email: 'contact@elatransfer.com',
-  areaServed: [
-    { '@type': 'City', name: 'Paris' },
-    { '@type': 'AdministrativeArea', name: 'Île-de-France' }
-  ],
-  description,
-  sameAs: []
-})}</script>
-<script type="application/ld+json">${JSON.stringify({
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Elatransfer',
-  url: 'https://elatransfer.com/'
-})}</script>
 <style>
 .brandReal{display:block;width:182px;height:auto;max-height:64px;object-fit:contain}
 .drawer .brandReal{width:190px}

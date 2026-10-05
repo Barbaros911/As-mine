@@ -151,16 +151,34 @@ check('aucune langue déclarée sur la même adresse que la page',
   !hreflangs.some(h=>h.endsWith('=https://elatransfer.com/') && !h.startsWith('fr=') && !h.startsWith('x-default=')),
   hreflangs.join(', '));
 
-// Les données structurées : « LimousineService », jamais « TaxiService » —
-// un VTC n'a ni licence de taxi, ni taximètre, ni droit de maraude.
-const ld = JSON.parse(await p.locator('script[type="application/ld+json"]').first().textContent());
-check('les données structurées déclarent un service de voiture avec chauffeur',
-  ld['@type']==='LimousineService', ld['@type']);
-check('et jamais un taxi : ce serait factuellement faux',
-  !JSON.stringify(ld).includes('TaxiService'));
-// Aucun avis inventé : L132-2 du Code de la consommation.
-check('aucune note ni avis déclarés — nous n\'en avons reçu aucun',
-  !('aggregateRating' in ld) && !('review' in ld));
+/* UNE SEULE ENTREPRISE DANS LES DONNÉES STRUCTURÉES (5 octobre 2026).
+   La page construite en déclarait trois sans lien entre elles
+   (« LimousineService », « LocalBusiness », « WebSite ») : trois entreprises
+   possibles pour Google. On lit le SITE CONSTRUIT, là où seo-ela.mjs
+   ajoutait les deux autres. Jamais « VTC » (Barbaros ne veut pas
+   l'afficher), jamais « TaxiService » (pas de maraude), aucun avis. */
+{
+  const pd = await b.newPage();
+  await pd.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  await pd.goto(SITE + '/', { waitUntil: 'domcontentloaded' });
+  const blocs = await pd.$$eval('script[type="application/ld+json"]', l => l.map(s => s.textContent));
+  check('la page construite ne porte qu\'un seul bloc de données structurées', blocs.length === 1, String(blocs.length));
+  let ld = {}; try { ld = JSON.parse(blocs[0] || '{}'); } catch (e) { check('les données structurées se lisent', false, e.message); }
+  const noeuds = ld['@graph'] || [ld];
+  const orgs = noeuds.filter(n => ['Organization','LocalBusiness','LimousineService','TaxiService'].includes(n['@type']));
+  check('une seule entreprise déclarée, l\'« Organization » #organisation',
+    orgs.length === 1 && orgs[0]['@type'] === 'Organization' && orgs[0]['@id'] === 'https://elatransfer.com/#organisation',
+    orgs.map(o => o['@type'] + ' ' + o['@id']).join(', '));
+  const refs = noeuds.filter(n => n !== orgs[0]).map(n => (n.provider || n.publisher || {})['@id']);
+  check('les autres éléments désignent cette entreprise, sans en créer une autre',
+    refs.length >= 1 && refs.every(r => r === 'https://elatransfer.com/#organisation'), refs.join(', '));
+  const brut = blocs.join(' ');
+  check('jamais « VTC » ni « TaxiService » dans les données structurées', !/VTC|TaxiService/.test(brut));
+  check('aucune note ni avis déclarés — nous n\'en avons reçu aucun', !/aggregateRating|"review"/.test(brut));
+  const telPage = (await pd.getAttribute('a[href^="tel:"]', 'href') || '').replace('tel:', '');
+  check('le téléphone déclaré est celui de la page', orgs[0] && orgs[0].telephone === telPage, (orgs[0]||{}).telephone + ' / ' + telPage);
+  await pd.close();
+}
 
 // ---- L'application installable ----
 check('le manifeste est déclaré',
@@ -1029,6 +1047,43 @@ for (const large of [1024, 1280]) {
     }
   }
   await pr.close();
+}
+
+/* LES PAGES DE SERVICE NE SONT PLUS DES COQUILLES (5 octobre 2026).
+   Search Console : 4 pages dans le plan du site, 2 hors de l'index. L'accueil
+   ne les liait pas, et elles tenaient en quatre-vingts mots. On vérifie ce
+   qui ne vieillit pas : chaque page du plan est liée depuis l'accueil par un
+   vrai lien, elle désigne la même entreprise, elle ne dit jamais « VTC », et
+   ses réponses aux questions sont MOT POUR MOT celles de l'accueil — qui
+   reprennent les CGV : une réponse qui dirait autre chose serait opposable. */
+{
+  const sitemap = await (await fetch(SITE + '/sitemap.xml')).text();
+  const pagesSeo = [...sitemap.matchAll(/<loc>https:\/\/elatransfer\.com\/([^<]+)<\/loc>/g)].map(m => m[1]);
+  check('le plan du site date chaque page (lastmod)', (sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) || []).length === (sitemap.match(/<url>/g) || []).length);
+  const ps = await b.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
+  await ps.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  await ps.goto(SITE + '/', { waitUntil: 'domcontentloaded' });
+  const liensAccueil = await ps.$$eval('a[href]', l => l.map(a => a.getAttribute('href')));
+  const reponses = await ps.evaluate(() => { const fr = (window.ELA_TEXTES || {}).fr || {};
+    return Object.keys(fr).filter(k => /^faq\d+r$/.test(k)).map(k => fr[k]); });
+  check('les réponses de l\'accueil se lisent (sinon le contrôle ne prouve rien)', reponses.length >= 1, String(reponses.length));
+  for (const chemin of pagesSeo.filter(c => c !== '')) {
+    check(`${chemin} : liée depuis l'accueil par un vrai lien`, liensAccueil.includes('/' + chemin));
+    await ps.goto(SITE + '/' + chemin, { waitUntil: 'domcontentloaded' });
+    const lu = await ps.evaluate(() => ({
+      tete: document.title + ' ' + (document.querySelector('meta[name=description]') || {}).content,
+      ld: [...document.querySelectorAll('script[type="application/ld+json"]')].map(s => s.textContent),
+      texte: document.body.innerText,
+      faq: [...document.querySelectorAll('details p')].map(p => p.textContent.trim()) }));
+    check(`${chemin} : jamais « VTC » dans le titre, la description ou les données`, !/VTC/.test(lu.tete + lu.ld.join(' ')));
+    let prov = ''; try { prov = (JSON.parse(lu.ld[0]).provider || {})['@id']; } catch (e) {}
+    check(`${chemin} : désigne l'entreprise #organisation`, prov === 'https://elatransfer.com/#organisation', prov);
+    const mots = lu.texte.split(/\s+/).filter(Boolean).length;
+    check(`${chemin} : plus qu'une coquille (au moins 250 mots)`, mots >= 250, mots + ' mots');
+    const ecarts = lu.faq.filter(r => !reponses.includes(r));
+    check(`${chemin} : ses réponses sont celles de l'accueil, mot pour mot`, lu.faq.length >= 1 && ecarts.length === 0, ecarts.join(' | '));
+  }
+  await ps.close();
 }
 
 await b.close();
