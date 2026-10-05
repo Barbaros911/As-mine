@@ -3188,46 +3188,11 @@ chauffeurs, facture sans trou ni doublon). Toute son histoire — les briques,
 les audits, les pièges de test — est dans `memoire/admin-v2.md`. Ne l'ouvrir
 que s'il est redemandé.
 
-### DEUX PHOTOS DE L'ACCUEIL ONT DISPARU DU SITE EN LIGNE
+### LES PHOTOS DE L'ACCUEIL — ON N'EN SUPPRIME AUCUNE
 
-18 septembre 2026. Un nettoyage du dépôt fusionné dans `main` (`a87db4a`) a
-supprimé le dossier `photos/` — que ce fichier demande explicitement de **ne
-pas** supprimer sans l'accord de Barbaros : *« c'est du travail qu'il a
-fourni »*.
-
-**MESURÉ SUR LE SITE CONSTRUIT, pas supposé** : deux des **cinq** cartes de
-services de l'accueil avaient perdu leur fond — la deuxième (Hôtel) et la
-cinquième (Mise à disposition). C'est ce que voyait un client arrivant sur
-elatransfer.com.
-
-- **POURQUOI RIEN NE L'A ATTRAPÉ** : une image de fond qui manque **ne casse
-  rien**. Aucune erreur levée, la page se charge, la mise en page tient. Il
-  reste un trou gris — et ça ne se voit qu'en **regardant** la page, ce
-  qu'aucune suite ne faisait pour les images.
-- **ON A ÉTÉ JUSTE DANS L'IMPUTATION** : `easyhotel.jpg` manquait **déjà
-  avant** le nettoyage ; les deux autres non. Vérifié commit par commit
-  plutôt que de tout mettre sur le même dos.
-- Les deux fichiers ont été **restaurés depuis l'historique**. Les onze
-  autres photos ne sont plus référencées par rien : elles restent dans
-  l'historique git, récupérables, et leur sort est **une décision de
-  Barbaros** — pas un nettoyage appliqué en passant.
-
-**LE CONTRÔLE NE FIGE AUCUNE LISTE** : il lit ce que le site **construit** va
-chercher et vérifie que chaque fichier existe. Une photo retirée
-volontairement, avec sa référence, reste verte ; une référence orpheline
-tombe, et le message **nomme le fichier**. Même famille que le débordement de
-6 px : seul le site publié le montre.
-
-**QUATRIÈME FOIS QUE CE PROJET SE FAIT PRENDRE PAR UN CONTRÔLE QUI LIT UN
-COMMENTAIRE.** Le premier jet tombait sur `photos/easyhotel.jpg` — qui n'est
-pas une référence mais un **exemple écrit dans un commentaire**, au-dessus
-d'un champ `photo:""` vide. Après `cp -r carte`, `cp -r exploitant` et la
-section des tests, la règle est acquise : **on retire les commentaires avant
-de chercher**.
-
-**ET MA PREMIÈRE POSE DU BLOC ÉTAIT APRÈS `serveur.close()`** : la suite
-mourait sur `ECONNREFUSED` et n'affichait **rien**. Une suite muette est un
-échec — ne jamais la lire comme « pas concernée ».
+`photos/` est le travail de Barbaros : rien ne s'y supprime sans lui. Les
+vignettes publiées sont des **copies allégées** (`-480.webp`) posées à côté
+des originaux. Histoire (photos perdues le 18/09, contrôle) : `memoire/photos-accueil.md`.
 
 ### LE BANDEAU COLLANT MANGEAIT 18 % DE L'ÉCRAN — ET J'AVAIS MAL DIAGNOSTIQUÉ
 
@@ -5155,6 +5120,13 @@ dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
   « VTC », jamais `LocalBusiness` sans adresse réelle.
 - Leurs réponses sont celles de l'accueil, mot pour mot : en changer une
   veut dire changer les deux (`test-nouveau-bascule`).
+- **Lot P2 (6/10/2026)** : une seule série de partage, un manifeste, une
+  couleur ; aucune canonique sur une page `noindex` ; les fichiers des hôtels
+  hors de l'accueil ; vignettes en WebP 480 px (accueil 1 148 → 607 Ko).
+- **Le logo et les icônes ne bougent pas** : `test-nouveau-bascule` en garde
+  les empreintes et l'affichage. Image de partage 1200×630 : non décidée.
+- `www` ne répond pas : à régler par Barbaros dans le DNS Cloudflare.
+  Histoire : `memoire/marque-et-referencement.md`.
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 
