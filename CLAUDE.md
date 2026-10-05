@@ -4398,7 +4398,8 @@ statut `annulee` — est dans `memoire/reception.md`.
 - **Le nom et le téléphone du client en tête, en gros** — sur un bon AFFICHÉ.
   Le lien `?ok=` ne les porte toujours pas.
 - « Prix annoncé » en attente, « Prix ferme » une fois confirmé (CGV art. 3
-  et 4). Course finie : aucun prix, même s'il arrivait (seconde défense).
+  et 4) — le bon du site client aussi (`#bonPrixLib`). Course finie au
+  comptoir : aucun prix, même s'il arrivait (seconde défense).
 - **« Une question ? » sur le bon : le numéro EN CLAIR, Appel, WhatsApp et
   Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
   boutons : au comptoir, le client lit l'écran du PC.

@@ -3478,7 +3478,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            s'affiche que si elle existe — une ligne vide à côté du prix
            ferait douter d'un bon par ailleurs juste. -->
       <div class="ligne" id="lignePrecision" hidden><span data-t="note_court">Précision</span><b id="bonPrecision">—</b></div>
-      <div class="ligne total"><span data-t="prix_ferme">Prix ferme</span><b id="bonPrix">—</b></div>
+      <div class="ligne total"><span id="bonPrixLib" data-t="prix_annonce">Prix annoncé</span><b id="bonPrix">—</b></div>
     </div>
 
     <!-- L'ÉTAT DE L'ENVOI. Trois états, et le troisième compte autant que
@@ -5631,7 +5631,7 @@ window.ELA_TEXTES = {
     chauffeur:"Chauffeur", heure:"Heure",
     appeler_chauffeur:"Appeler le chauffeur",
     etat_confirme:"Confirmé",
-    depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
+    depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme", prix_annonce:"Prix annoncé",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
@@ -5832,7 +5832,7 @@ window.ELA_TEXTES = {
     chauffeur:"Chauffeur", heure:"Time",
     appeler_chauffeur:"Call your chauffeur",
     etat_confirme:"Confirmed",
-    depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
+    depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price", prix_annonce:"Quoted price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
@@ -9856,6 +9856,16 @@ window.ELA_TEXTES = {
     var cleNote = confirme ? "bon_note_ok" : (recHotel ? "bon_note_comptoir" : "bon_note");
     note.textContent = T(cleNote);
     note.setAttribute("data-t", cleNote);
+    /* « PRIX FERME » SEULEMENT UNE FOIS LA COURSE CONFIRMÉE (CGV art. 3 et
+       4) — 5 octobre 2026. En attente, le bon disait déjà « Prix ferme »
+       alors que la demande n'était acceptée par personne : il dit « Prix
+       annoncé », comme le bon de la réception et de l'admin. */
+    var ferme = confirme || bon.statut === "realisee";
+    var libPrix = document.getElementById("bonPrixLib");
+    if(libPrix){
+      libPrix.textContent = T(ferme ? "prix_ferme" : "prix_annonce");
+      libPrix.setAttribute("data-t", ferme ? "prix_ferme" : "prix_annonce");
+    }
     /* On réécrit l'ATTRIBUT « data-t », pas seulement le texte : sans ça, un
        changement de langue rendrait au bon confirmé la phrase de l'attente. */
 

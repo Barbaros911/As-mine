@@ -132,6 +132,10 @@ try {
       (await p.locator('#bonRef').textContent()) === 'N° 1043', await p.locator('#bonRef').textContent());
     check('…la référence technique reste écrite dessous',
       await p.locator('#bonRefTech').isVisible() && /^Réf\. ELA-/.test(await p.locator('#bonRefTech').textContent()));
+    /* CGV art. 3 et 4 : une demande en attente n'a pas de prix ferme. Le bon
+       disait « Prix ferme » dès l'envoi (corrigé le 5 octobre 2026). */
+    check('la demande en attente annonce son prix, elle ne le dit pas « ferme »',
+      (await p.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)')) === 'Prix annoncé', await p.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)'));
     await p.click('#btnBonVoirClient', { timeout:3000 }).catch(() => {});
     check('« Voir le bon du client » montre le même N°',
       (await p.locator('#bonClient .ebon-ref').textContent().catch(() => '')) === 'N° 1043');
@@ -250,6 +254,22 @@ try {
     await c.goto(BASE + '/?ok=' + lien({ r:'ELA-26-10-R3TXW', c:'Mehmet', t:'0698765432', v:'Van', d:DEMAIN, h:'11:00' }));
     await c.waitForTimeout(600);
     check('un lien sans N° (envoyé avant la migration) s\'ouvre comme avant', (await c.locator('#bonRef').textContent()) === 'ELA-26-10-R3TXW');
+
+    /* Le même client, sur le téléphone qui a fait la demande : son bon passe
+       de « Prix annoncé » à « Prix ferme » quand la confirmation arrive. */
+    const bonClient = { ref:'ELA-26-10-PRIXF', statut:'attente', cree:new Date().toISOString(),
+      course:{ depart:'10 rue de Rivoli, Paris', arrivee:'Orly 1 — Aéroport de Paris-Orly', date:DEMAIN, heure:'09:00', vehicule:'Berline' },
+      client:{ nom:'Client', telephone:'0612345678' }, prix:{ total:60 }, paiement:'carte', langue:'fr' };
+    await c.evaluate(b => localStorage.setItem('ela_courses', JSON.stringify([b])), bonClient);
+    await c.goto(BASE + '/?ok=' + lien({ r:'ELA-26-10-PRIXF', c:'Mehmet', t:'0698765432', v:'Berline', d:DEMAIN, h:'09:00' }));
+    await c.waitForTimeout(600);
+    check('confirmée, le bon du client dit « Prix ferme »',
+      await c.locator('#bonDetail').isVisible() && (await c.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)')) === 'Prix ferme',
+      await c.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)'));
+    await c.evaluate(() => { const b = document.querySelector('.langues button[data-langue="en"], [data-langue="en"]'); if (b) b.click(); });
+    await c.waitForTimeout(300);
+    check('…et « Firm price » en anglais (la traduction suit l\'état)',
+      (await c.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)')) === 'Firm price', await c.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)'));
     await ctxC.close();
   }
 } finally {
