@@ -4415,6 +4415,9 @@ statut `annulee` — est dans `memoire/reception.md`.
   Le lien `?ok=` ne les porte toujours pas.
 - « Prix annoncé » en attente, « Prix ferme » une fois confirmé (CGV art. 3
   et 4). Course finie : aucun prix, même s'il arrivait (seconde défense).
+- **« Une question ? » sur le bon : le numéro EN CLAIR, Appel, WhatsApp et
+  Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
+  boutons : au comptoir, le client lit l'écran du PC.
 - **Après une réservation au comptoir, « À dire au client » : « Votre
   réservation sera confirmée par Elatransfer. »** Il se tait si le dépôt
   échoue — l'écriteau rouge dit alors d'appeler.

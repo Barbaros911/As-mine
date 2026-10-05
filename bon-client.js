@@ -35,7 +35,7 @@
      ne peut pas cliquer dessus. Telegram ne s'affiche que s'il est rempli —
      on ne pose pas un lien qu'on n'a pas pu éprouver. */
   var WHATSAPP_ELA = "https://wa.me/33759312433";
-  var TELEGRAM_ELA = "";
+  var TELEGRAM_ELA = "https://t.me/elatransfer", TELEGRAM_NOM = "@elatransfer";
 
   var TXT = {
     fr: { titre:"Bon de réservation", ref:"Réf.", client:"Client", chambre:"Chambre",
@@ -45,7 +45,7 @@
           aConfirmer:"À confirmer", payeChauffeur:"Réglé directement au chauffeur",
           confirmation:"La confirmation vous sera envoyée par Elatransfer.",
           question:"Une question ? Elatransfer vous répond", canaux:"Appel et WhatsApp",
-          canauxTg:"Appel, WhatsApp et Telegram", appeler:"Appeler", fermer:"Fermer", sansNom:"Client non nommé", a:" à ",
+          canauxTg:"Appel, WhatsApp — Telegram ", appeler:"Appeler", fermer:"Fermer", sansNom:"Client non nommé", a:" à ",
           etats:{ attente:"Demande reçue", confirmee:"Confirmé", realisee:"Effectuée",
                   refusee:"Non prise", annulee:"Annulée" } },
     en: { titre:"Booking voucher", ref:"Ref.", client:"Guest", chambre:"Room",
@@ -55,7 +55,7 @@
           aConfirmer:"To be confirmed", payeChauffeur:"Paid directly to the driver",
           confirmation:"Your confirmation will be sent by Elatransfer.",
           question:"Questions? Elatransfer is here to help", canaux:"Call and WhatsApp",
-          canauxTg:"Call, WhatsApp and Telegram", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
+          canauxTg:"Call, WhatsApp — Telegram ", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
           etats:{ attente:"Request received", confirmee:"Confirmed", realisee:"Completed",
                   refusee:"Not taken", annulee:"Cancelled" } }
   };
@@ -197,7 +197,9 @@
     var pied = el("section", "ebon-contact");
     pied.appendChild(el("p", "ebon-contact-titre", L.question));
     pied.appendChild(el("p", "ebon-contact-num", TEL_ELA));
-    pied.appendChild(el("p", "ebon-contact-canaux", TELEGRAM_ELA ? L.canauxTg : L.canaux));
+    /* L'identifiant Telegram est ÉCRIT, comme le numéro : sur le PC de
+       l'hôtel le client le recopie, il ne clique pas. */
+    pied.appendChild(el("p", "ebon-contact-canaux", TELEGRAM_ELA ? L.canauxTg + TELEGRAM_NOM : L.canaux));
     var liens = el("div", "ebon-contact-liens");
     function canal(texte, href, classe){
       var a = el("a", "ebon-canal " + classe, texte); a.href = href;

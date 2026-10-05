@@ -120,6 +120,9 @@ try {
     (await contact.locator('a.ebon-canal.tel').getAttribute('href').catch(() => '')) === 'tel:+33759312433'
     && (await contact.locator('a.ebon-canal.wa').getAttribute('href').catch(() => '')) === 'https://wa.me/33759312433'
     && /WhatsApp/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => '')));
+  check('…et Telegram, l\'identifiant écrit en clair et le bouton',
+    /Telegram @elatransfer/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => ''))
+    && (await contact.locator('a.ebon-canal.tg').getAttribute('href').catch(() => '')) === 'https://t.me/elatransfer');
   /* L'en-tête collant de la page passait PAR-DESSUS la fenêtre : FR/EN et
      « Fermer » ne recevaient plus le clic. On mesure ce que reçoit le doigt. */
   const recoit = await p.evaluate(() => ['.ebon-langues button[data-langue="en"]', '#bonClientFermer'].map(s => {
