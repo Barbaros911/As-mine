@@ -135,7 +135,7 @@
 
     var tete = el("header", "ebon-tete");
     var logo = el("img", "ebon-logo");
-    logo.src = "brand-logo.webp"; logo.alt = "ELA Transfer";
+    logo.src = "brand-logo.webp"; logo.alt = "Elatransfer";
     tete.appendChild(logo);
     tete.appendChild(el("span", "ebon-etat " + statut, L.etats[statut] || L.etats.attente));
     tete.appendChild(el("p", "ebon-titre", L.titre));

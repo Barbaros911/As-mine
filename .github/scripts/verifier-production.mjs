@@ -72,13 +72,14 @@ const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[
    Elle était « Chauffeur privé » : le jour où Barbaros a retitré le site
    (« Elatransfer — Transferts privés & solutions de réservation »), ce
    contrôle a crié sur une page parfaitement servie et ouvert l'Issue #300.
-   Un libellé se reformule, une marque non. « Elatransfer » en un mot ne
-   figure dans AUCUNE autre porte — l'admin dit « ELA Transfer », l'hôtel
-   « easyHotel Aéroville × ELA Transfer » — donc l'empreinte distingue
-   toujours le site de réservation d'une mauvaise page ou d'un listage. */
+   Un libellé se reformule, une marque non.
+   DEPUIS LE 5 OCTOBRE 2026 LA MARQUE EST PARTOUT « Elatransfer », admin et
+   hôtel compris : elle ne distingue plus une porte d'une autre. Chaque page
+   construite porte son espace (« data-ela-space ») ; on l'exige en plus du
+   titre là où il existe — c'est lui qui dit QUELLE page a répondu. */
 const PAGES = [
-  { chemin: "", quoi: "le site de réservation", titre: "Elatransfer" },
-  { chemin: "application.html", quoi: "le tunnel de r\u00e9servation (cartes du flyer)", titre: "Elatransfer" },
+  { chemin: "", quoi: "le site de réservation", titre: "Elatransfer", espace: "public" },
+  { chemin: "application.html", quoi: "le tunnel de r\u00e9servation (cartes du flyer)", titre: "Elatransfer", espace: "hotel-client" },
   { chemin: "admin.html", quoi: "le raccourci exploitant", titre: "Espace exploitant" },
   { chemin: "exploitant/", quoi: "l'espace exploitant", titre: "Espace exploitant" },
   { chemin: "ela-admin/", quoi: "l'admin historique (o\u00f9 m\u00e8ne admin.html)", titre: "Administration" },
@@ -118,7 +119,9 @@ for (const p of PAGES) {
     if (!r.ok) { ko(`${p.quoi} (${url}) r\u00e9pond ${r.status}`); continue; }
     const html = await r.text();
     const titre = (html.match(/<title>([^<]*)<\/title>/i) || [, ""])[1];
-    if (titre.includes(p.titre)) ok(`${p.quoi} \u2014 ${r.status}, c'est bien la bonne page`);
+    const espace = (html.match(/data-ela-space="([^"]*)"/i) || [, ""])[1];
+    if (p.espace && espace !== p.espace) ko(`${p.quoi} (${url}) r\u00e9pond ${r.status} mais sert une AUTRE page \u2014 espace lu : \u00ab ${espace || "(aucun)"} \u00bb`);
+    else if (titre.includes(p.titre)) ok(`${p.quoi} \u2014 ${r.status}, c'est bien la bonne page`);
     else ko(`${p.quoi} (${url}) r\u00e9pond ${r.status} mais sert une AUTRE page \u2014 titre lu : \u00ab ${titre.trim() || "(aucun)"} \u00bb`);
   } catch (e) {
     ko(`${p.quoi} (${url}) injoignable : ${e.message}`);

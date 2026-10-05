@@ -76,6 +76,6 @@ assert.equal(existsSync("site/as-mine-transport"), false, "l’ancienne maquette
 for (const ancienneRoute of ["as-mine-transport", "ela-public", "ela-admin", "easyhotel-reception"]) {
   assert.equal(demos.includes(ancienneRoute), false, "la galerie ne doit pas lister l’ancienne route : " + ancienneRoute);
 }
-assert.equal(demos.includes("Application de réservation ELA Transfer"), true, "la galerie utilise la marque ELA Transfer");
+assert.equal(demos.includes("Application de réservation Elatransfer"), true, "la galerie utilise la marque Elatransfer");
 
 console.log("OK — façade, réservation, anciennes routes et verrou exploitant serveur contrôlés.");
