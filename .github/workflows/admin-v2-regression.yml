@@ -35,7 +35,7 @@ jobs:
           --health-cmd "pg_isready -U postgres -d postgres"
           --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7
         with: {node-version: '22'}
       - run: node --check admin-v2-actions.js
@@ -194,3 +194,32 @@ jobs:
             -f supabase/tests/sante-alertes.sql \
             -f supabase/migrations/20261004010000_sante_alertes.sql \
             -f supabase/tests/sante-alertes-apres.sql
+          # Les vues publiques en lecture seule (5 octobre 2026). L'épreuve
+          # repose les privilèges par défaut de Supabase et les vues de la VRAIE
+          # migration de tarif, exige que le trou SE REPRODUISE (un anonyme
+          # efface le tarif berline à travers la vue), puis applique la
+          # correction DEUX fois (elle doit se rejouer) et exige le refus, la
+          # lecture intacte, et une vue future couverte sans être nommée.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database vues;'
+          psql -h 127.0.0.1 -U postgres -d vues -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/vues-lecture-seule.sql \
+            -f supabase/migrations/20260928120000_tarif_unifie.sql \
+            -f supabase/tests/vues-lecture-seule-sonde.sql \
+            -f supabase/migrations/20261005000000_vues_lecture_seule.sql \
+            -f supabase/migrations/20261005000000_vues_lecture_seule.sql \
+            -f supabase/tests/vues-lecture-seule-apres.sql
+          # Le diagnostic qui suit la correction en production : il doit
+          # s'exécuter, et ne sortir aucune adresse e-mail (journal public).
+          psql -h 127.0.0.1 -U postgres -d vues -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/diagnostic-cloisonnement-socle.sql
+          psql -h 127.0.0.1 -U postgres -d vues -X -q -v ON_ERROR_STOP=1 -t -A \
+            -f supabase/migrations/20261005000100_diagnostic_cloisonnement.sql > /tmp/diagnostic.txt
+          cat /tmp/diagnostic.txt
+          grep -q '"comptes_sans_droit": 1' /tmp/diagnostic.txt \
+            || { echo "::error::le diagnostic ne compte pas le compte sans droit"; exit 1; }
+          grep -qx 'vues_modifiables|\[\]' /tmp/diagnostic.txt \
+            || { echo "::error::le diagnostic voit encore une vue modifiable"; exit 1; }
+          if grep -q '@' /tmp/diagnostic.txt; then
+            echo "::error::le diagnostic sort une adresse e-mail dans un journal public"; exit 1
+          fi

@@ -18,7 +18,7 @@ jobs:
   verifier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Vérifier le mode TEST et les invariants financiers
         shell: bash
         run: |
