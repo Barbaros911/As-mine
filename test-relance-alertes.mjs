@@ -269,6 +269,12 @@ try {
     : f(url, init))(globalThis.fetch);
   await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-EEEE5' } });
   check('le webhook INSERT annonce toujours la nouvelle demande', tg.length === avant4 + 1, String(tg.length - avant4));
+  /* Le N° court (5 octobre 2026) : la base le recopie dans le bon. En tête
+     du message quand il y est, absent sinon — avant la migration. */
+  check('sans N° dans le bon, l\'alerte n\'en invente pas', !/N° \d/.test(tg[tg.length - 1] || ''));
+  courses.push({ ref: 'ELA-26-09-NNNN7', statut: 'attente', cree_le: iso(maintenant - 5000), bon: { ...bon('ELA-26-09-NNNN7'), numero: 1043 } });
+  { const n = tg.length; await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-NNNN7' } });
+    check('l\'alerte porte le N° court attribué par la base', tg.length === n + 1 && (tg[tg.length - 1] || '').includes('N° 1043 · Réf. ELA-26-09-NNNN7'), (tg[tg.length - 1] || '').split('\n').slice(0, 3).join(' | ')); }
   { const b = bon('ELA-26-09-FFFF6'); delete b.securite;
     courses.push({ ref: 'ELA-26-09-FFFF6', statut: 'attente', cree_le: iso(maintenant - 5000), bon: b });
     const n = tg.length; await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-FFFF6' } });

@@ -115,6 +115,9 @@ Deno.serve(async (req: Request) => {
 
   return new Response(JSON.stringify({
     ref: ref,
+    /* Le N° court (recopié dans le bon par la base) : le client le cite au
+       téléphone. Il est déjà le sien. */
+    ...(Number(bon.numero) > 0 ? { numero: Number(bon.numero) } : {}),
     statut: statut,
     /* Le chauffeur n'est renvoyé QUE sur une course confirmée ou réalisée.
        Sur une course encore en attente, Barbaros a pu écrire un nom dans

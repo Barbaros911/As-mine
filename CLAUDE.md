@@ -4266,29 +4266,16 @@ course », « un graphique des courses réalisées par les chauffeurs »).
   secrets Supabase. Écrire soi-même dans ses secrets a été refusé par la
   sécurité de l'environnement : ne pas retenter.
 
-## LA RÉFÉRENCE EST TIRÉE AU SORT — LE COMPTEUR PAR APPAREIL FAISAIT REFUSER LES DEMANDES
+## LA RÉFÉRENCE EST TIRÉE AU SORT — ET LE N° COURT VIENT DU SERVEUR
 
-29 septembre 2026, capture de Barbaros à 5 h 28 : une demande du comptoir
-easyHotel refusée, « Votre demande n'a pas pu nous être transmise ».
-**Mesuré** sur le journal du diagnostic de la nuit (workflow des
-migrations) : le serveur portait déjà `ELA-26-09-0001` à `0023`, arrivées de
-plusieurs appareils dans le désordre ; le téléphone venait de fabriquer
-`ELA-26-09-0008`. `deposer-course` refuse une référence déjà prise (409).
-- **Le compteur vivait dans le navigateur** (`ela_rang`), hérité de l'ancien
-  site où seul Barbaros numérotait. Tout nouvel appareil repartait à 0001 :
-  sa première demande du mois était refusée dès que le mois en avait une.
-  Côté exploitant, `pousser` fusionne : une course saisie à la main pouvait
-  **écraser** celle d'un client au même numéro.
-- `referenceSuivante()` tire maintenant cinq signes dans un alphabet sans
-  0/O/1/I/L (28 millions par mois). Ne pas revenir à un compteur local : une
-  numérotation continue exige que le SERVEUR attribue le numéro, ce qui est
-  impossible avant l'ouverture de WhatsApp (Safari, geste de l'utilisateur).
-- `intake-demande.js` lit les deux formes ; `test-admin-intake` en éprouve
-  une de chaque.
-- **Admin v2 triait par référence** (`order=ref.desc`, liste et registre) :
-  un tirage au sort n'a pas d'ordre. Les deux lisent maintenant par
-  `cree_le.desc`, comme l'espace historique et la réception. Sans ça, la
-  limite de 300 lignes aurait pu écarter la demande arrivée à l'instant.
+La référence `ELA-AA-MM-XXXXX` est tirée au sort sur l'appareil
+(`referenceSuivante()`), et elle reste LA clé d'une course. **Ne jamais revenir
+à un compteur local** : chaque appareil repartait à 0001 et le serveur
+refusait la demande (29/09/2026). Le **N° court** (« N° 1042 », dès 1001) est
+attribué par la **base** à l'écriture (`20261006000000_numero_court.sql`),
+immuable, et **recopié dans le bon** (`bon.numero`) : c'est là que tout le
+monde le lit. Ne pas nommer la colonne dans une lecture, ni passer à
+`select=*` (perd le garde-fou de `version`). Histoire : `memoire/reference.md`.
 
 ## « ENVOYER MA DEMANDE » NE PARTAIT PLUS — LE CLOISONNEMENT AVAIT EMPORTÉ `telValide`
 
@@ -4402,7 +4389,8 @@ statut `annulee` — est dans `memoire/reception.md`.
 - **Le nom et le téléphone du client en tête, en gros** — sur un bon AFFICHÉ.
   Le lien `?ok=` ne les porte toujours pas.
 - « Prix annoncé » en attente, « Prix ferme » une fois confirmé (CGV art. 3
-  et 4). Course finie : aucun prix, même s'il arrivait (seconde défense).
+  et 4) — le bon du site client aussi (`#bonPrixLib`). Course finie au
+  comptoir : aucun prix, même s'il arrivait (seconde défense).
 - **« Une question ? » sur le bon : le numéro EN CLAIR, Appel, WhatsApp et
   Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
   boutons : au comptoir, le client lit l'écran du PC.

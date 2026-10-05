@@ -635,6 +635,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .d-haut{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .d-ref{font-size:12px;font-weight:700;letter-spacing:.03em;
   font-variant-numeric:tabular-nums;}
+/* Le N° court À CÔTÉ de la référence, jamais dedans : « .d-ref » se lit
+   comme la référence seule (même règle que la pastille du chauffeur). */
+.d-num{font-size:13px;font-weight:800;color:inherit;
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+.d-ref.d-ref-tech{font-weight:600;opacity:.78;margin-right:auto;}
+@media (max-width:600px){ .d-ref.d-ref-tech{display:none;} }
 .d-prix{font-size:15px;font-weight:800;letter-spacing:-.02em;}
 .d-trajet{display:block;font-size:13.5px;font-weight:700;margin-top:3px;
   line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1055,6 +1061,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   background:var(--gris);border-radius:999px;padding:7px 14px;}
 .bon-ref{margin:15px 0 0;font-size:24px;font-weight:800;letter-spacing:.02em;
   font-variant-numeric:tabular-nums;}
+/* Le N° court en gros, la référence technique dessous, en petit : c'est le
+   N° qu'on dicte au téléphone (5 octobre 2026). */
+.bon-ref-tech{margin:2px 0 0;font-size:12px;color:var(--gris);font-variant-numeric:tabular-nums;}
 .bon-note{margin:9px 0 0;font-size:12px;line-height:1.42;color:var(--gris);}
 .bon-note-asap{margin:9px 0 0;font-size:12px;line-height:1.42;color:var(--encre);}
 /* CONFIRMÉ : la pastille passe au vert plein — le SEUL vert du bon, et il
@@ -1898,6 +1907,7 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 /* « rec-reference » et pas « rec-ref » : ce nom est déjà pris par le tableau
    de bord de l'exploitant, et une classe partagée ramasse un jour une règle
    écrite pour l'autre écran. */
+.rec-numero{color:var(--encre);font-size:14px;font-weight:800;}
 .rec-reference{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.02em;
   color:var(--gris);font-variant-numeric:tabular-nums;}
 .rec-course .rec-appel{display:flex;align-items:center;justify-content:center;
@@ -3447,6 +3457,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            demander ; l'inverse serait promettre une voiture qu'on n'a pas. -->
       <span class="bon-etat" id="bonEtat" data-t="bon_etat">En attente de confirmation</span>
       <p class="bon-ref" id="bonRef">—</p>
+      <p class="bon-ref-tech" id="bonRefTech" hidden></p>
       <span class="bon-sous" data-t="bon_sous">Bon de réservation</span>
       <p class="bon-note" id="bonNote" data-t="bon_note">Nous vérifions la disponibilité
          d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.</p>
@@ -3489,7 +3500,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            s'affiche que si elle existe — une ligne vide à côté du prix
            ferait douter d'un bon par ailleurs juste. -->
       <div class="ligne" id="lignePrecision" hidden><span data-t="note_court">Précision</span><b id="bonPrecision">—</b></div>
-      <div class="ligne total"><span data-t="prix_ferme">Prix ferme</span><b id="bonPrix">—</b></div>
+      <div class="ligne total"><span id="bonPrixLib" data-t="prix_annonce">Prix annoncé</span><b id="bonPrix">—</b></div>
     </div>
 
     <!-- L'ÉTAT DE L'ENVOI. Trois états, et le troisième compte autant que
@@ -4766,6 +4777,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <button class="bouton-fantome" type="button" id="btnBbVoirBon">Voir le bon du client</button>
 
     <div class="bloc">
+      <div class="ligne" id="bbNumLigne" hidden><span>N°</span><b id="bbNum">—</b></div>
       <div class="ligne"><span>Référence</span><b id="bbRef">—</b></div>
       <div class="ligne"><span>État</span><b id="bbEtat">—</b></div>
       <div class="ligne"><span>Date</span><b id="bbDate">—</b></div>
@@ -5628,6 +5640,7 @@ window.ELA_TEXTES = {
     err_contact:"Indiquez où vous souhaitez recevoir votre confirmation.",
     suite_3:"Vous recevez la confirmation de votre course, qui s'affiche aussi ici, dans « Réservations ».",
     bon_sous:"Bon de réservation",
+    bon_ref_tech:"Réf.",
     /* LES DEUX VISAGES DU BON. Le premier dit ce qui se passe MAINTENANT —
        on cherche un chauffeur — plutôt que de renvoyer le client vers
        WhatsApp : il vient d'y envoyer sa demande, le lui répéter n'apprend
@@ -5640,7 +5653,7 @@ window.ELA_TEXTES = {
     chauffeur:"Chauffeur", heure:"Heure",
     appeler_chauffeur:"Appeler le chauffeur",
     etat_confirme:"Confirmé",
-    depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme",
+    depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme", prix_annonce:"Prix annoncé",
     renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
@@ -5833,6 +5846,7 @@ window.ELA_TEXTES = {
     err_contact:"Please choose where you would like to receive your confirmation.",
     suite_3:"You receive the confirmation of your transfer, which also appears here, under « Bookings ».",
     bon_sous:"Booking voucher",
+    bon_ref_tech:"Ref.",
     bon_etat:"Request received",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
     bon_etat_ok:"Transfer confirmed",
@@ -5841,7 +5855,7 @@ window.ELA_TEXTES = {
     chauffeur:"Chauffeur", heure:"Time",
     appeler_chauffeur:"Call your chauffeur",
     etat_confirme:"Confirmed",
-    depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price",
+    depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price", prix_annonce:"Quoted price",
     renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
@@ -7206,7 +7220,8 @@ window.ELA_TEXTES = {
   }
   function recCorrespond(c, q){
     if(!q) return true;
-    var texte = sansAccents([c.ref, c.chambre, c.client, c.depart, c.arrivee, c.vehicule,
+    var texte = sansAccents([c.ref, numeroDe(c) ? "n°" + numeroDe(c) + " " + numeroDe(c) : "",
+                             c.chambre, c.client, c.depart, c.arrivee, c.vehicule,
                              c.chauffeur && c.chauffeur.nom, datesCherchables(c)]
                              .filter(Boolean).join(" ")).toLowerCase();
     var mots = sansAccents(q).toLowerCase().split(/\s+/).filter(Boolean);
@@ -7450,7 +7465,15 @@ window.ELA_TEXTES = {
       if(c.ref){
         var rf = document.createElement("p");
         rf.className = "rec-reference";
-        rf.textContent = "Réf. " + c.ref;
+        /* LE N° COURT D'ABORD (5 octobre 2026) : « N° 1042 » se dicte, une
+           référence tirée au sort non. Elle reste à côté, entière. */
+        if(numeroDe(c)){
+          var rn = document.createElement("b");
+          rn.className = "rec-numero"; rn.textContent = "N° " + numeroDe(c);
+          rf.appendChild(rn);
+          rf.appendChild(document.createTextNode(" · "));
+        }
+        rf.appendChild(document.createTextNode("Réf. " + c.ref));
         d.appendChild(rf);
       }
 
@@ -9238,7 +9261,16 @@ window.ELA_TEXTES = {
                    Prefer: "return=minimal" },
         body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
       })
-      .then(function(r){ return r.ok; })
+      /* La réponse porte le N° court que la base vient d'attribuer. Une
+         réponse vide ou illisible n'est PAS un échec : la demande est
+         arrivée, seul le N° manque. */
+      .then(function(r){
+        if(!r.ok) return false;
+        return r.json().then(function(j){
+          if(j && Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
+          return true;
+        }, function(){ return true; });
+      })
       .catch(function(){ return false; })
       .then(function(ok){ clearTimeout(minuteur); return ok; });
     },
@@ -9798,8 +9830,29 @@ window.ELA_TEXTES = {
     return euros(t);
   }
   var bonCourant = null;
+  /* ═══ LE N° COURT (5 octobre 2026) ═══ « N° 1042 », attribué par le
+     serveur au dépôt et rendu par « deposer-course » ou « etat-course ».
+     Il remplace la référence en gros sur le bon ; la référence reste
+     dessous, en petit — c'est elle la clé de la course. Sans N° (dépôt
+     raté, migration pas encore appliquée), le bon reste tel qu'avant. */
+  function ecrireRefBon(bon){
+    var n = numeroDe(bon);
+    document.getElementById("bonRef").textContent = n ? "N° " + n : bon.ref;
+    var tech = document.getElementById("bonRefTech");
+    if(tech){ tech.hidden = !n; tech.textContent = n ? T("bon_ref_tech") + " " + bon.ref : ""; }
+  }
+  function poserNumeroClient(bon, n){
+    if(!bon || !(n > 0) || bon.numero === n) return;
+    bon.numero = n;
+    try{
+      var l = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === bon.ref) l[i].numero = n;
+      localStorage.setItem("ela_courses", JSON.stringify(l));
+    }catch(e){ /* stockage refusé : le N° reste affiché sur ce bon */ }
+    if(bonCourant && bonCourant.ref === bon.ref){ bonCourant.numero = n; ecrireRefBon(bonCourant); }
+  }
   function remplirBon(bon){
-    document.getElementById("bonRef").textContent      = bon.ref;
+    ecrireRefBon(bon);
     document.getElementById("bonDepart").textContent   = bon.course.depart;
     document.getElementById("bonArrivee").textContent  = bon.course.arrivee;
     document.getElementById("bonDate").textContent     = dateLisible(bon);
@@ -9844,6 +9897,16 @@ window.ELA_TEXTES = {
     var cleNote = confirme ? "bon_note_ok" : (recHotel ? "bon_note_comptoir" : "bon_note");
     note.textContent = T(cleNote);
     note.setAttribute("data-t", cleNote);
+    /* « PRIX FERME » SEULEMENT UNE FOIS LA COURSE CONFIRMÉE (CGV art. 3 et
+       4) — 5 octobre 2026. En attente, le bon disait déjà « Prix ferme »
+       alors que la demande n'était acceptée par personne : il dit « Prix
+       annoncé », comme le bon de la réception et de l'admin. */
+    var ferme = confirme || bon.statut === "realisee";
+    var libPrix = document.getElementById("bonPrixLib");
+    if(libPrix){
+      libPrix.textContent = T(ferme ? "prix_ferme" : "prix_annonce");
+      libPrix.setAttribute("data-t", ferme ? "prix_ferme" : "prix_annonce");
+    }
     /* On réécrit l'ATTRIBUT « data-t », pas seulement le texte : sans ça, un
        changement de langue rendrait au bon confirmé la phrase de l'attente. */
 
@@ -9879,10 +9942,16 @@ window.ELA_TEXTES = {
    chauffeur, son téléphone, le véhicule, l'heure. Jamais le nom ni le
    numéro du client — un lien se transfère, et ce qu'il porte se lit.
    ===================================================================== */
+  /* Le N° court d'une course (5 octobre 2026) : la base l'attribue et le
+     recopie dans le bon (« numero ») ; les fonctions le rendent sous le même
+     nom au client et à la réception. Absent avant la migration : 0. */
+  function numeroDe(c){ var n = Number(c && c.numero); return n > 0 ? n : 0; }
   function encoderOk(bon){
     var ch = bon.chauffeur || {};
     var d = { r:bon.ref, c:ch.nom || "", t:ch.telephone || "",
               v:bon.course.vehicule, d:bon.course.date, h:bon.course.heure };
+    /* Le N° court : un compteur, pas une donnée du client. */
+    if(numeroDe(bon)) d.n = numeroDe(bon);
     /* Le prix n'y entre QUE s'il a été fixé après coup (tarif à confirmer) :
        le client ne l'a alors pas sur son bon. Sinon il l'a déjà. */
     if(bon.course.prixFixeApres && bon.prix && bon.prix.total > 0) d.p = bon.prix.total;
@@ -9910,6 +9979,7 @@ window.ELA_TEXTES = {
     for(var i=0;i<liste.length;i++) if(liste[i].ref === d.r){
       liste[i].statut = "confirmee";
       liste[i].chauffeur = { nom:d.c, telephone:d.t };
+      if(Number(d.n) > 0) liste[i].numero = Number(d.n);
       if(d.d) liste[i].course.date = d.d;
       if(d.h) liste[i].course.heure = d.h;
       if(d.p > 0){
@@ -9926,7 +9996,7 @@ window.ELA_TEXTES = {
       return trouve;
     }
     return {
-      ref: d.r, statut:"confirmee", partiel:true,
+      ref: d.r, numero: Number(d.n) > 0 ? Number(d.n) : undefined, statut:"confirmee", partiel:true,
       chauffeur: { nom:d.c, telephone:d.t },
       course: { depart:"", arrivee:"", date:d.d || "", heure:d.h || "",
                 vehicule: d.v || "—" },
@@ -10670,6 +10740,7 @@ window.ELA_TEXTES = {
         if(!d) return false;
         var change = false;
         if(d.statut && d.statut !== b.statut){ b.statut = d.statut; change = true; }
+        if(Number(d.numero) > 0 && b.numero !== Number(d.numero)){ b.numero = Number(d.numero); change = true; }
         var ch = d.chauffeur || {};
         if(ch.nom || ch.telephone){
           var avant = b.chauffeur || {};
@@ -10725,7 +10796,7 @@ window.ELA_TEXTES = {
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
       +   '<path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2" '
       +   'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      b.querySelector(".course-ref").textContent = bon.ref;
+      b.querySelector(".course-ref").textContent = numeroDe(bon) ? "N° " + numeroDe(bon) + " · " + bon.ref : bon.ref;
       /* Une flèche plutôt que le mot « vers » : elle se lit dans les deux
          langues et ne prend pas de place sur un libellé déjà long. */
       b.querySelector(".course-trajet").textContent =
@@ -10985,6 +11056,10 @@ window.ELA_TEXTES = {
       if(!l){ neuves.push(d); parRef[d.ref] = d; return; }
       /* Une modification de CET appareil attend encore de partir : on garde
          sa copie, c'est l'envoi qui tranchera (sous condition de version). */
+      /* LE N° COURT EST CELUI DU SERVEUR, quelle que soit la version : une
+         course saisie ici a la même version que sa copie serveur, mais pas
+         encore son N° — et seule la base numérote. */
+      if(numeroDe(d) && numeroDe(l) !== numeroDe(d)) l.numero = numeroDe(d);
       if(file[d.ref]) return;
       var vS = Number(d._v) || 0, vL = Number(l._v) || 0;
       if(vS > vL){
@@ -11793,8 +11868,20 @@ window.ELA_TEXTES = {
         '<span class="d-haut"><span class="d-ref"></span><span class="d-prix"></span></span>'
       + '<span class="d-trajet"></span><span class="d-vers"></span>'
       + '<span class="d-bas"><span class="d-gris"></span><span class="d-boutons"></span></span>';
-      el.querySelector(".d-ref").textContent = c.ref
-        + (st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "");
+      var depuisAttente = st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "";
+      el.querySelector(".d-ref").textContent = c.ref + (numeroDe(c) ? "" : depuisAttente);
+      /* LE N° COURT DEVANT LA RÉFÉRENCE, dans son propre élément — jamais
+         dedans : « .d-ref » se lit comme la référence seule. Il emporte la
+         durée d'attente (le signal d'urgence), et sur téléphone la
+         référence technique s'efface (« .d-ref-tech ») : mesuré à 390 px,
+         N°, référence, attente et prix ne tenaient pas sur une ligne — le
+         prix se coupait en « 35,00 / € ». Elle reste sur la fiche. */
+      if(numeroDe(c)){
+        var dn = document.createElement("span");
+        dn.className = "d-num"; dn.textContent = "N° " + numeroDe(c) + depuisAttente;
+        el.querySelector(".d-haut").insertBefore(dn, el.querySelector(".d-ref"));
+        el.querySelector(".d-ref").classList.add("d-ref-tech");
+      }
       /* LE CHAUFFEUR SE LIT SUR LA CARTE (3 octobre 2026, audit). Sans lui,
          « À assurer » mêlait les courses placées et celles qui n'avaient
          personne : il fallait ouvrir chaque bon pour le savoir. */
@@ -12337,6 +12424,8 @@ window.ELA_TEXTES = {
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
     document.getElementById("bbRef").textContent      = c.ref;
+    document.getElementById("bbNumLigne").hidden = !numeroDe(c);
+    document.getElementById("bbNum").textContent = numeroDe(c) ? "N° " + numeroDe(c) : "—";
     document.getElementById("bbEtat").textContent     = libelleEtat(c.statut || "attente");
     document.getElementById("bbDate").textContent     = dateLisible(c);
     document.getElementById("bbVehicule").textContent = c.course.vehicule;
@@ -12720,11 +12809,14 @@ window.ELA_TEXTES = {
    vert. Sans ce lien, il aurait le message mais un bon resté « en
    attente » — deux versions de la même course, et il rappellerait.
    ===================================================================== */
+  /* « N° 1042 (ELA-26-10-K7QPM) » : le N° pour se parler, la référence
+     pour retrouver. Sans N°, la référence seule, comme avant. */
+  function refParlee(bon){ var n = numeroDe(bon); return n ? "N° " + n + " (" + bon.ref + ")" : bon.ref; }
   function messageConfirmation(bon){
     var ch = bon.chauffeur || {};
     var lien = location.origin + location.pathname + "?ok=" + encoderOk(bon);
     var l = [
-      "Transfert confirmé — " + bon.ref,
+      "Transfert confirmé — " + refParlee(bon),
       "Chauffeur : " + (ch.nom || "—"),
       "Véhicule : " + bon.course.vehicule,
       "Heure : " + dateLisible(bon)
@@ -12784,7 +12876,7 @@ window.ELA_TEXTES = {
     var de = c.departPublic || c.depart || "";
     var vers = c.arriveePublic || c.arrivee || "";
     return [
-      "Course à placer — " + bon.ref,
+      "Course à placer — " + refParlee(bon),
       "Départ : " + de,
       "Arrivée : " + vers,
       /* LA DATE EST COMPOSÉE, PAS RECOPIÉE. « bon.dateMsg » n'existe que sur
@@ -12820,7 +12912,7 @@ window.ELA_TEXTES = {
     if((bon.langue || "fr") === "en"){
       return [
         (prenom ? "Hello " + prenom + ", " : "Hello, ")
-          + "Elatransfer has received your request " + bon.ref + ".",
+          + "Elatransfer has received your request " + refParlee(bon) + ".",
         de + " → " + vers,
         quand,
         "We are checking a professional driver's availability and will come "
@@ -12829,7 +12921,7 @@ window.ELA_TEXTES = {
     }
     return [
       (prenom ? "Bonjour " + prenom + ", " : "Bonjour, ")
-        + "Elatransfer a bien reçu votre demande " + bon.ref + ".",
+        + "Elatransfer a bien reçu votre demande " + refParlee(bon) + ".",
       de + " → " + vers,
       quand,
       "Nous vérifions la disponibilité d'un chauffeur professionnel et vous "
@@ -14042,7 +14134,7 @@ window.ELA_TEXTES = {
     if(!q){ poser("regResultats", [], ""); return; }
     var qCompact = q.replace(/\s/g, "");
     var trouves = registre().filter(function(c){
-      var champs = sansAccents([c.ref, c.client && c.client.nom,
+      var champs = sansAccents([c.ref, numeroDe(c) ? "n°" + numeroDe(c) + " " + numeroDe(c) : "", c.client && c.client.nom,
               c.client && c.client.telephone,
               c.course && c.course.depart, c.course && c.course.arrivee,
               c.chauffeur && c.chauffeur.nom, c.provenance].join(" "));
@@ -14050,7 +14142,7 @@ window.ELA_TEXTES = {
           || (qCompact && champs.replace(/\s/g, "").indexOf(qCompact) >= 0);
     }).slice(0, 20);
     poser("regResultats", trouves.map(function(c){
-      return { nom: c.ref + " · " + ((c.client && c.client.nom) || "—"),
+      return { nom: (numeroDe(c) ? "N° " + numeroDe(c) + " · " : "") + c.ref + " · " + ((c.client && c.client.nom) || "—"),
                sous: (c.course.depart + " → " + c.course.arrivee) + " · " + libelleEtat(c.statut || "attente"),
                val: euros((c.prix && c.prix.total) || 0) };
     }), "Aucune course ne correspond.");
