@@ -37,9 +37,24 @@
 // pour qu'un « // » ou un « /* » qui s'y trouve ne soit jamais pris pour un
 // commentaire.
 //
-// LES COMMENTAIRES HTML (<!-- -->) ET CSS (/* */ dans <style>) N'ONT PAS CE
-// PROBLÈME : leur syntaxe ne peut pas se cacher dans une chaîne de la même
-// façon. Une expression régulière simple suffit pour eux.
+// LES COMMENTAIRES HTML (<!-- -->) N'ONT PAS CE PROBLÈME : une expression
+// régulière simple suffit pour eux.
+// LE CSS, SI — et c'était écrit à tort ici jusqu'au 4 octobre 2026. Une
+// chaîne CSS peut contenir « /* » (`content:"/*"`), une adresse aussi
+// (`url(/*.png)`). `nettoyerCss()` recopie donc les chaînes et les `url(…)`
+// sans guillemets telles quelles, comme `nettoyerJs()` le fait pour le JS.
+// Sur les pages déjà nettoyées, le résultat est le même octet pour octet :
+// aucune de leurs chaînes ne contenait « /* ». Ça ne valait que par chance.
+//
+// LES FEUILLES DE STYLE PUBLIÉES SEULES ET « robots.txt » (4 octobre 2026,
+// Barbaros : « oui »). Le nettoyage ne lisait que le HTML et le JS :
+// `hotel-engine-polish.css` partait en ligne avec 23 blocs de notes — dont
+// une sur la photo d'easyHotel prise sans accord écrit —, et `robots.txt`
+// expliquait en clair que `?h=` donne des forfaits plus bas que le site.
+// Pour « robots.txt », on retire les lignes de commentaire ET la fin de ligne
+// après « # » (RFC 9309 : un « # » ouvre un commentaire jusqu'à la fin de la
+// ligne), mais on GARDE les lignes vides : elles délimitent les groupes pour
+// les vieux robots, et les retirer changerait ce que le fichier interdit.
 //
 // GARDE-FOU : si un bloc <script> ou <style> contient littéralement la
 // séquence "<!--" (le vieux truc pour cacher du JS aux navigateurs
@@ -161,7 +176,46 @@ function nettoyerJs(source) {
 }
 
 function nettoyerCss(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, '');
+  let out = '';
+  let i = 0;
+  const n = source.length;
+  while (i < n) {
+    const c = source[i];
+    if (c === '"' || c === "'") {
+      let j = i + 1;
+      while (j < n && source[j] !== c && source[j] !== '\n') {
+        if (source[j] === '\\') j++;
+        j++;
+      }
+      out += source.slice(i, j + 1);
+      i = j + 1;
+      continue;
+    }
+    // url( sans guillemets : tout jusqu'à la parenthèse fermante est l'adresse.
+    if ((c === 'u' || c === 'U') && /^url\(\s*[^\s"')]/i.test(source.slice(i, i + 40))
+        && !/[\w-]/.test(source[i - 1] || '')) {
+      const fin = source.indexOf(')', i);
+      const j = fin === -1 ? n : fin + 1;
+      out += source.slice(i, j);
+      i = j;
+      continue;
+    }
+    if (c === '/' && source[i + 1] === '*') {
+      const fin = source.indexOf('*/', i + 2);
+      i = fin === -1 ? n : fin + 2;
+      continue;
+    }
+    out += c;
+    i++;
+  }
+  return out;
+}
+
+function nettoyerRobots(source) {
+  return source.split('\n')
+    .filter(l => !/^\s*#/.test(l))
+    .map(l => l.replace(/\s*#.*$/, ''))
+    .join('\n');
 }
 
 function nettoyerHtmlComments(source) {
@@ -206,6 +260,10 @@ for (const chemin of cibles) {
   } else if (chemin.endsWith('.html')) {
     apres = traiterScriptsEtStyles(avant);
     apres = nettoyerHtmlComments(apres);
+  } else if (chemin.endsWith('.css')) {
+    apres = nettoyerCss(avant);
+  } else if (chemin.endsWith('/robots.txt') || chemin === 'robots.txt') {
+    apres = nettoyerRobots(avant);
   } else {
     console.error(`Type non pris en charge, ignoré : ${chemin}`);
     continue;

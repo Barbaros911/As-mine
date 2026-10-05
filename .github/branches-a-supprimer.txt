@@ -1,12 +1,3 @@
-ela/easyhotel-client-10-10
-ela/easyhotel-engine-mobile-10
-ela/rebuild-easyhotel-client-ui
-fix/logo-officiel-unique
-fix/mobile-public-fidelity
-fix/mobile-public-reference
-fix/nettoyer-galerie-publiee
-fix/unifier-facade-application
-fix/unifier-routes-publiees
-claude/publier-interfaces-ela-validees
-claude/reproduire-4-maquettes-fideles
-maquette-exacte-4-interfaces
+# Troisième ménage du 4 octobre 2026, à la demande de Barbaros : ce projet
+# client vit désormais dans son propre dépôt privé (copie vérifiée).
+claude/point-cloture-test-client-q1wzbn ec6f2446c3cfc75d4f942c6f8f134ec7dcd6a295

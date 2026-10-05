@@ -7,10 +7,13 @@
 
    — LE RÉFÉRENCEMENT. Une page sans titre ni description disparaît de
      Google en quelques jours, et personne ne s'en aperçoit avant que
-     le téléphone arrête de sonner. Le titre MÈNE avec le métier et la
-     zone, les aéroports viennent après : l'ancien site menait avec
-     « Roissy CDG · Orly » et était absent de « chauffeur privé Paris ».
-     Un contrôle vérifie donc l'ORDRE, pas la simple présence.
+     le téléphone arrête de sonner. Depuis le 4 octobre 2026 (titre et
+     description validés par Barbaros), le titre MÈNE avec la marque et
+     dit ce qu'elle vend — des transferts — et la description nomme les
+     deux aussi. L'ancienne règle (« le métier avant les aéroports »)
+     datait de l'époque où le site se vendait comme chauffeur privé ;
+     elle est tombée avec ce positionnement, et un contrôle qui la
+     gardait aurait exigé un texte que Barbaros a retiré.
    — « noindex » A DISPARU. Il protégeait le site pendant sa
      construction ; laissé en place, il interdit purement et simplement
      l'indexation de la page d'accueil.
@@ -32,7 +35,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 
 /* =====================================================================
@@ -98,17 +101,39 @@ check('la racine sert bien le nouveau site',
 // ---- Le référencement ----
 const titre = await p.title();
 check('la page a un titre', titre.length > 10 && titre.includes('Elatransfer'), titre);
-// L'ORDRE compte : le métier et la zone AVANT les aéroports.
-const iMetier = titre.toLowerCase().indexOf('chauffeur privé');
-check('le titre mène avec le métier', iMetier >= 0 && iMetier < 12, titre);
+// LA MARQUE D'ABORD, puis ce qu'elle vend (4 octobre 2026). On vérifie la
+// règle, pas le libellé du jour : une reformulation légitime doit passer,
+// un titre qui rangerait la marque en queue ou oublierait le métier non.
+check('le titre mène avec la marque', titre.trim().toLowerCase().startsWith('elatransfer'), titre);
+check('…et dit ce qu\'on vend : des transferts', /transfert/i.test(titre), titre);
 const desc = await p.getAttribute('meta[name=description]','content');
 check('la page a une description', desc && desc.length > 80 && desc.length < 320,
   String(desc && desc.length));
-const iM = desc.toLowerCase().indexOf('chauffeur privé');
-const iA = Math.min(...['roissy','orly','beauvais'].map(x=>{
-  const i = desc.toLowerCase().indexOf(x); return i < 0 ? 9999 : i; }));
-check('la description aussi : le métier avant les aéroports', iM >= 0 && iM < iA,
-  'métier@'+iM+' aéroport@'+iA);
+check('la description nomme la marque et le métier',
+  /elatransfer/i.test(desc || '') && /transfert/i.test(desc || ''), String(desc));
+// Le site construit réécrit ces deux lignes (`seo-ela.mjs`) : dépôt et site
+// publié doivent dire la même chose, sinon Google lit l'un et le client
+// l'autre. On compare au site servi sur SITE, pas à une constante recopiée.
+{
+  const pub = await (await fetch(SITE + '/')).text();
+  const tPub = (pub.match(/<title>([^<]*)<\/title>/i) || [, ''])[1]
+    .replace(/&amp;/g, '&').trim();
+  const dPub = (pub.match(/<meta\s+name=["']description["']\s+content=["']([^"']*)["']/i) || [, ''])[1];
+  check('le site construit porte le même titre que le dépôt',
+    tPub === titre.replace(/&amp;/g, '&').trim(), tPub + ' ≠ ' + titre);
+  check('et la même description', dPub === desc, dPub.slice(0, 60) + '… ≠ ' + String(desc).slice(0, 60));
+  // LES APERÇUS DE PARTAGE (Facebook, WhatsApp, Twitter). Le site publié en
+  // porte DEUX exemplaires : celui de la page, puis celui que `seo-ela.mjs`
+  // ajoute. Le 4 octobre 2026, le premier vendait encore « mises à
+  // disposition », retirée du site en septembre, et c'est en général le
+  // premier qu'un réseau social lit. On exige donc que TOUS disent la
+  // description de la page, pas seulement l'un d'eux.
+  const apercus = [...pub.matchAll(/<meta\s+(?:property|name)=["'](?:og|twitter):description["']\s+content=["']([^"']*)["']/gi)]
+    .map(m => m[1]);
+  check('chaque aperçu de partage dit la description de la page',
+    apercus.length >= 2 && apercus.every(a => a === desc),
+    apercus.filter(a => a !== desc).map(a => a.slice(0, 50)).join(' | ') || apercus.length + ' trouvé(s)');
+}
 
 const robots = await p.getAttribute('meta[name=robots]','content');
 check('« noindex » a disparu — sinon la page ne serait jamais indexée',
@@ -812,6 +837,162 @@ for (const large of [1024, 1280]) {
   check(`à ${large} px, la ligne des étapes occupe la largeur de la carte`,
     e.ligne >= e.carte * 0.8, e.ligne + ' px pour une carte de ' + e.carte);
   await cx.close();
+}
+
+/* AUCUNE NOTE DE TRAVAIL DANS LES PAGES ELA PUBLIÉES (4 octobre 2026).
+   La règle du 28 septembre ne valait que pour la page publique : /ela-admin/
+   partait en ligne avec 841 blocs de commentaires — comment l'espace est
+   protégé, ses anciennes failles —, la réception avec 578. On ne cherche pas
+   « /* » (une chaîne peut le contenir) : on prend des passages des VRAIS
+   commentaires de la source et on exige qu'aucun ne se retrouve en ligne.
+   TROIS TROUS TROUVÉS EN RELECTURE, et bouchés ici :
+   - une adresse qui rend un 404, ou une AUTRE page, passait au vert — une
+     page vide ne contient aucune note. On exige donc 200 et la marque de la
+     bonne page avant de juger son contenu ;
+   - les commentaires « // » n'étaient pas échantillonnés : un nettoyeur qui
+     les aurait laissés passer restait vert ;
+   - une liste d'adresses survit à la page qu'on ajoute. Toute page publiée
+     qui porte « data-ela-space » (donc fabriquée depuis la page du site) est
+     passée au crible, où qu'elle soit. */
+{
+  /* Les trois sources de ces pages : la page du site (admin et réception en
+     sont fabriqués), la page du QR easyHotel, et la redirection /exploitant/. */
+  const source = (await Promise.all(['index.html', 'sites/easyhotel-client/index.html', 'exploitant/index.html']
+    .map(f => readFile(f, 'utf8')))).join('\n');
+  const milieu = (t, n) => t.slice(Math.floor(t.length / 2) - n, Math.floor(t.length / 2) + n);
+  const passages = [];
+  for (const m of source.matchAll(/\/\*([\s\S]*?)\*\/|<!--([\s\S]*?)-->/g)) {
+    const t = (m[1] || m[2] || '').replace(/\s+/g, ' ').trim();
+    if (t.length >= 80) passages.push(milieu(t, 20));
+  }
+  /* Les « // », dans les scripts intégrés. Ils sont tous en FIN de ligne
+     (« var rang = 0;  // une réponse lente… ») : on prend ceux qu'un espace
+     précède et suit. Une adresse (« https:// ») n'en a pas. Un « // » pris
+     dans une chaîne ferait tomber le contrôle sur un site propre : on le
+     verrait tout de suite, pas en silence. */
+  const lignes = [];
+  for (const sc of source.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+    for (const l of sc[1].split('\n')) {
+      const m = l.match(/(?:^|\s)\/\/\s+(.*)$/);
+      const t = m ? m[1].replace(/\s+/g, ' ').trim() : '';
+      if (t.length >= 30) lignes.push(milieu(t, 15));
+    }
+  }
+  check('la source fournit assez de commentaires « /* » et « <!-- » pour éprouver le contrôle', passages.length > 200, passages.length + ' passages');
+  check('la source fournit assez de commentaires « // » pour éprouver le contrôle', lignes.length >= 10, lignes.length + ' passages');
+  const tous = passages.concat(lignes);
+  const restesDe = html => tous.filter(x => html.includes(x));
+
+  const PAGES = [
+    ['/ela-admin/', 'data-ela-space="admin"'],
+    ['/easyhotel-reception/', 'data-ela-space="hotel-reception"'],
+    ['/reception/easyhotel-aeroville/', 'data-ela-space="hotel-reception"'],
+    ['/exploitant/', 'Espace exploitant</title>'],
+    ['/easyhotel-client/', 'easyHotel Aéroville × ELA Transfer</title>'],
+    ['/', 'data-ela-space="public"'],
+    ['/application.html', 'data-ela-space="hotel-client"'],
+  ];
+  for (const [page, marque] of PAGES) {
+    const r = await fetch(SITE + page);
+    const brut = await r.text();
+    const bonne = r.status === 200 && brut.includes(marque);
+    check(`${page} : c'est bien la bonne page qui répond`, bonne,
+      bonne ? '' : 'HTTP ' + r.status + ', ' + brut.length + ' caractères, marque « ' + marque + ' » ' + (brut.includes(marque) ? 'présente' : 'absente'));
+    if (!bonne) continue;
+    const html = brut.replace(/\s+/g, ' ');
+    const restes = restesDe(html);
+    check(`${page} : aucune note de travail de la source n'est publiée`, restes.length === 0,
+      restes.length ? restes.length + ' passage(s), dont « ' + restes[0] + ' »' : '');
+    check(`${page} : aucun commentaire HTML`, !html.includes('<!--'));
+  }
+
+  /* LE BALAYAGE : des motifs, pas une liste. */
+  const fabriquees = [];
+  for (const f of await readdir('site', { recursive: true })) {
+    if (!f.endsWith('.html')) continue;
+    const brut = await readFile(join('site', f), 'utf8');
+    if (brut.includes('data-ela-space=')) fabriquees.push([f, brut.replace(/\s+/g, ' ')]);
+  }
+  const plancher = PAGES.filter(([, m]) => m.startsWith('data-ela-space')).length;
+  check('le balayage trouve toutes les pages fabriquées depuis la page du site', fabriquees.length >= plancher,
+    fabriquees.length + ' trouvée(s), au moins ' + plancher + ' attendue(s)');
+  const salies = fabriquees.filter(([, h]) => h.includes('<!--') || restesDe(h).length)
+    .map(([f, h]) => f + ' (' + restesDe(h).length + ' passage(s)' + (h.includes('<!--') ? ', « <!-- »' : '') + ')');
+  check('aucune page publiée fabriquée depuis la page du site ne porte une note de travail', salies.length === 0, salies.join(' ; '));
+}
+
+/* LES FEUILLES DE STYLE ET « robots.txt » PUBLIÉS (4 octobre 2026, Barbaros :
+   « oui »). Le nettoyage ne lisait que le HTML et le JS : la feuille de style
+   des hôtels partait avec 23 blocs de notes, et « robots.txt » expliquait en
+   clair que ?h= donne des forfaits plus bas que le site.
+   Deux exigences par fichier, et la seconde compte autant que la première :
+   AUCUNE note publiée, et RIEN d'autre de changé — les règles de style lues
+   par le navigateur, les consignes lues par un robot. Retirer une note en
+   emportant une règle serait pire que la note. */
+{
+  /* robots.txt : on ne refait pas le nettoyage, on lit ce qu'un robot lit —
+     la suite des consignes, et où tombent les lignes vides entre elles (un
+     vieux robot y voit la fin d'un groupe). */
+  const lire = t => {
+    const out = []; let vide = false;
+    for (const l of t.split('\n')) {
+      if (/^\s*#/.test(l)) continue;
+      const d = l.replace(/#.*$/, '').trim();
+      if (!d) { vide = true; continue; }
+      out.push((vide && out.length ? '| ' : '') + d.replace(/\s+/g, ' '));
+      vide = false;
+    }
+    return out;
+  };
+  const src = await readFile('robots.txt', 'utf8');
+  const r = await fetch(SITE + '/robots.txt');
+  const pub = await r.text();
+  check('robots.txt : la source porte des notes à retirer (sinon le contrôle ne prouve rien)', /^\s*#/m.test(src));
+  check('robots.txt publié répond', r.status === 200 && /^User-agent:/mi.test(pub), 'HTTP ' + r.status);
+  check('robots.txt publié ne porte aucune note', !pub.includes('#'),
+    (pub.split('\n').find(l => l.includes('#')) || '').slice(0, 80));
+  const a = lire(src), b2 = lire(pub);
+  check('robots.txt publié donne exactement les mêmes consignes, aux mêmes places', JSON.stringify(a) === JSON.stringify(b2),
+    'source ' + JSON.stringify(a) + ' / publié ' + JSON.stringify(b2));
+  check('robots.txt publié écarte toujours ?h= et ?reception=', /Disallow:\s*\/\*\?h=/.test(pub) && /Disallow:\s*\/\*\?reception=/.test(pub));
+
+  /* Les feuilles de style : toutes celles publiées à la racine — un motif,
+     pas une liste. Les règles sont comparées par le NAVIGATEUR (CSSOM), pas
+     relues : c'est lui qui décide si un retrait a emporté une accolade. */
+  const pc = await b.newPage();
+  await pc.goto(SITE + '/robots.txt');
+  let total = 0;
+  const feuilles = (await readdir('site')).filter(f => f.endsWith('.css'));
+  check('le site publie au moins les deux feuilles de style de la façade et des hôtels',
+    feuilles.includes('application-facade.css') && feuilles.includes('hotel-engine-polish.css'), feuilles.join(', '));
+  for (const f of feuilles) {
+    const publie = await readFile(join('site', f), 'utf8');
+    let source = null;
+    try { source = await readFile(f, 'utf8'); } catch {}
+    if (source === null) {
+      check(`${f} : aucune note publiée (pas de source à la racine)`, !publie.includes('/*'));
+      continue;
+    }
+    const passages = [];
+    for (const m of source.matchAll(/\/\*([\s\S]*?)\*\//g)) {
+      const t = m[1].replace(/\s+/g, ' ').trim();
+      if (t.length >= 40) passages.push(t.slice(Math.floor(t.length / 2) - 15, Math.floor(t.length / 2) + 15));
+    }
+    total += passages.length;
+    const plat = publie.replace(/\s+/g, ' ');
+    const restes = passages.filter(x => plat.includes(x));
+    check(`${f} : aucune note de la source n'est publiée`, restes.length === 0,
+      restes.length ? restes.length + ' passage(s), dont « ' + restes[0] + ' »' : '');
+    const regles = await pc.evaluate(([s1, s2]) => {
+      const lire = t => { const f = new CSSStyleSheet(); f.replaceSync(t); return Array.from(f.cssRules, r => r.cssText); };
+      return [lire(s1), lire(s2)];
+    }, [source, publie]);
+    check(`${f} : le navigateur lit exactement les mêmes règles qu'avant`,
+      regles[0].length > 0 && JSON.stringify(regles[0]) === JSON.stringify(regles[1]),
+      regles[0].length + ' règles dans la source, ' + regles[1].length + ' publiées');
+  }
+  check('les feuilles de style de la source portent des notes (sinon le contrôle ne prouve rien)', total >= 20, total + ' passages');
+  await pc.close();
 }
 
 await b.close();

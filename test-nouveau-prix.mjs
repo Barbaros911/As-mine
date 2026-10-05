@@ -35,6 +35,10 @@ await p.route('**://api-adresse.data.gouv.fr/**', r => r.fulfill({contentType:'a
    service, avec une vraie distance, et les prix vérifiés plus bas ne
    tomberaient plus juste. On le coupe donc explicitement. */
 await p.route('**://api.openrouteservice.org/**', r => r.abort());
+/* Le tarif se lit sur le vrai serveur au chargement. Sans cette coupure, la
+   suite comparerait les prix de la production — que Barbaros change depuis
+   l'admin — aux valeurs calculées ici sur le repli GAMMES. */
+await p.route('**://*.supabase.co/**', r => r.abort());
 await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'application/json',
   body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
 
@@ -106,7 +110,8 @@ check('à 6 passagers, il ne reste que le van',
    Une course de 2 km coûterait 5,90 € au kilométrage seul — arrondie, 10 €.
    Ce n'est pas un prix : le chauffeur traverse Paris pour venir la prendre,
    et ce trajet-là n'est facturé à personne. Le plancher est donc le dernier
-   mot du calcul, et il ne s'arrondit pas : c'est déjà une dizaine.
+   mot du calcul, et il ne s'arrondit pas — 35 € reste 35 € (minimum
+   berline depuis le 4/10/2026), alors que ce n'est PAS une dizaine.
    On refait la course pour de vrai plutôt que de recalculer la formule dans
    le test — un test qui réimplémente ce qu'il vérifie ne vérifie rien.
    --------------------------------------------------------------------- */
@@ -117,8 +122,8 @@ await p.locator('#btnRetourAccueil').click(); await p.waitForTimeout(300);
 await p.fill('#passagers','1');
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
 const court = await p.locator('.veh-prix').allTextContents();
-check('2 km en berline : le plancher de 30 €, pas 10 €',
-  court[0].replace(/\s/g,'')==='30,00€', court[0]);
+check('2 km en berline : le plancher de 35 €, pas 10 €',
+  court[0].replace(/\s/g,'')==='35,00€', court[0]);
 check('2 km en van : le plancher de 50 €',
   court[1].replace(/\s/g,'')==='50,00€', court[1]);
 

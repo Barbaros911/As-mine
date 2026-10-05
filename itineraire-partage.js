@@ -141,17 +141,53 @@ function libellePhoton(p){
    se remplisse de villes de province avant que le classement par distance
    ait un exemplaire francilien à faire remonter. Le classement fait le
    tri ensuite ; ici on lui donne simplement plus de candidats. */
-function depuisBAN(q){
-  return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=10&autocomplete=1&lat=48.8566&lon=2.3522")
+/* ═══ LE CONTEXTE DE LA RECHERCHE (4 octobre 2026) ═══
+   Le biais n'est plus TOUJOURS Paris : la page passe le point le plus
+   parlant qu'elle connaît — l'autre bout du trajet, l'hôtel partenaire, la
+   position donnée par « Me localiser » — et Paris sinon. Un biais
+   RAPPROCHE, il n'exclut rien : c'est l'ordre qui change, pas la liste.
+   La langue suit celle du client pour Photon (« Eiffel Tower » pour un
+   anglophone) ; la BAN n'a qu'une langue, le français des adresses.
+   Sans contexte, l'appel est EXACTEMENT celui d'avant : Admin v2 et toute
+   page qui n'en passe pas gardent leur comportement. */
+var PARIS = { lat:48.8566, lon:2.3522 };
+function pointBiais(ctx){
+  var ok = ctx && typeof ctx.lat === "number" && typeof ctx.lon === "number"
+           && isFinite(ctx.lat) && isFinite(ctx.lon);
+  /* Arrondi à 4 décimales (~10 m) : l'adresse précise de l'autre bout du
+     trajet n'a rien à faire dans l'URL d'un service tiers, un quartier
+     suffit à orienter le classement. */
+  return ok ? { lat:Math.round(ctx.lat*1e4)/1e4, lon:Math.round(ctx.lon*1e4)/1e4 } : PARIS;
+}
+function langueBiais(ctx){ return ctx && ctx.lang === "en" ? "en" : "fr"; }
+
+/* ═══ UNE PANNE N'EST PAS « AUCUN RÉSULTAT » (4 octobre 2026) ═══
+   « appeler » rend null quand le service ne répond pas. On le disait avec
+   une liste vide, exactement comme « rien trouvé » — et la page mettait
+   cette liste vide en cache : une seconde de réseau perdue, et la même
+   adresse retapée répondait « Aucune adresse trouvée » jusqu'au
+   rechargement. Le client croyait que son adresse n'existait pas. La liste
+   porte maintenant « echec » quand le service n'a pas répondu ; c'est à la
+   page de ne pas la garder et de dire « réessayez ». */
+function vide(echec){ var l = []; if(echec) l.echec = true; return l; }
+
+function depuisBAN(q, ctx){
+  var b = pointBiais(ctx);
+  return appeler("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(q)+"&limit=10&autocomplete=1&lat="+b.lat+"&lon="+b.lon)
     .then(function(d){
-      if(!d || !Array.isArray(d.features)) return [];
+      if(!d) return vide(true);
+      if(!Array.isArray(d.features)) return vide(false);
       return d.features.map(function(f){
         /* Le TYPE est gardé : une rue entière (« Avenue des Champs-Élysées »)
            doit pouvoir passer devant un commerce qui porte son nom. */
         var t = f.properties.type;
         return { label:f.properties.label, lat:f.geometry.coordinates[1],
                  lon:f.geometry.coordinates[0], icon:"📍", lieuNomme:false,
-                 categorie: t === "street" ? "voie" : "adresse" };
+                 categorie: t === "street" ? "voie" : "adresse",
+                 /* D'où vient le lieu, et son identifiant chez la source :
+                    c'est ce qui permet, plus tard, de dire quel point exact
+                    a servi au prix. */
+                 source:"ban", sourceId:String(f.properties.id || "") };
       });
     });
 }
@@ -159,11 +195,13 @@ function depuisBAN(q){
 /* limit=15 : un nom de chaîne (« ibis », « gare du nord ») renvoie beaucoup
    d'homonymes ; en demander trop peu revenait à n'en montrer aucun de bon.
    Le biais rapproche de Paris sans exclure le reste de la France. */
-function depuisPhoton(q){
+function depuisPhoton(q, ctx){
+  var b = pointBiais(ctx);
   return appeler("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+
-                 "&limit=15&lang=fr&lat=48.8566&lon=2.3522&location_bias_scale=0.4")
+                 "&limit=15&lang="+langueBiais(ctx)+"&lat="+b.lat+"&lon="+b.lon+"&location_bias_scale=0.4")
     .then(function(d){
-      if(!d || !Array.isArray(d.features)) return [];
+      if(!d) return vide(true);
+      if(!Array.isArray(d.features)) return vide(false);
       /* PLUS DE FILTRE « FRANCE SEULEMENT » (30/09/2026, à sa demande :
          « amst doit montrer la rue d'Amsterdam à Paris mais aussi Amsterdam
          aux Pays-Bas »). Le classement par distance (bonusDistance, dans la
@@ -177,7 +215,11 @@ function depuisPhoton(q){
                  icon:ICONES[cat] || "📍", categorie:cat, lieuNomme:r.lieuNomme,
                  /* Le type brut est conservé : « gare » couvre aussi les
                     bouches de métro, et seul ce détail les distingue. */
-                 osm:(p.osm_value || "").toLowerCase() };
+                 osm:(p.osm_value || "").toLowerCase(),
+                 /* « N123 », « W456 » : l'objet OpenStreetMap exact. */
+                 source:"photon",
+                 sourceId:(p.osm_type && p.osm_id) ? String(p.osm_type) + p.osm_id : "",
+                 nom:r.lieuNomme ? p.name : "" };
       }).filter(function(r){ return r.label; });
     });
 }
@@ -303,7 +345,8 @@ function itineraire(a, b, quand){
     return fetchLimite("https://router.project-osrm.org/route/v1/driving/"
                        + couple + "?overview=simplified&geometries=geojson")
       .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
-      .then(lireRoute);
+      .then(lireRoute)
+      .then(function(r){ r.source = "osrm"; return r; });
   }
   /* « driving-traffic » ET NON « driving » : c'est le seul des deux
      profils qui regarde la circulation. Le nom se ressemble, le résultat
@@ -317,7 +360,7 @@ function itineraire(a, b, quand){
     if(at) url += "&depart_at=" + encodeURIComponent(at);
     return fetchLimite(url)
       .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
-      .then(function(d){ return lireRoute(d, true); });
+      .then(function(d){ var r = lireRoute(d, true); r.source = "mapbox"; return r; });
   }
   /* ORS prend ses points en deux paramètres séparés, et « lon,lat » —
      l'ordre inverse de celui qu'on écrit d'habitude. Une inversion ici
@@ -328,7 +371,8 @@ function itineraire(a, b, quand){
                        + "&start=" + a.lon + "," + a.lat
                        + "&end="   + b.lon + "," + b.lat)
       .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
-      .then(lireRouteORS);
+      .then(lireRouteORS)
+      .then(function(r){ r.source = "ors"; return r; });
   }
 
   /* On empile les niveaux disponibles, puis on les enchaîne : chacun
@@ -345,7 +389,11 @@ function itineraire(a, b, quand){
 
   return chaine.catch(function(){
     var km = volDoiseauKm(a, b) * 1.3;
-    return { km:km, min:Math.round(km / 30 * 60), estime:true };
+    /* « source » dit QUEL niveau a répondu. Gardé sur la course, c'est la
+       surveillance la plus simple qui soit : si les prix partent souvent en
+       « vol d'oiseau », les trois services sont en difficulté — et on le
+       lit dans les courses elles-mêmes, sans rien stocker d'autre. */
+    return { km:km, min:Math.round(km / 30 * 60), estime:true, source:"vol" };
   });
 }
 
@@ -367,8 +415,8 @@ function arrondiDizaine(p){
 /* L'ORDRE COMPTE ENCORE, MÊME À DEUX OPÉRATIONS.
    1. le kilométrage, 2. l'arrondi, 3. le plancher. Le plancher est le
    DERNIER mot : c'est un montant plancher, pas une base de calcul, et
-   l'arrondir ensuite ferait payer 30 € une course annoncée à 30 €… ou
-   40 selon le sens de l'arrondi.
+   l'arrondir ensuite ferait payer 30 € une course annoncée à 35 € (le
+   minimum berline depuis le 4/10/2026) — le 5 pile descend.
    LA MAJORATION A DISPARU DE CETTE FONCTION (septembre 2026) — voir le
    commentaire plus haut. Le paramètre n'est plus accepté du tout, et
    c'est délibéré : laissé en place mais ignoré, il aurait laissé croire

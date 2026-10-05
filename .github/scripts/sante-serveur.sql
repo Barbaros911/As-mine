@@ -1,6 +1,12 @@
 -- LE CHIEN DE GARDE (2 octobre 2026). Lecture seule, une seule ligne JSON,
 -- lue par .github/scripts/chien-de-garde.mjs toutes les 15 minutes.
 -- AUCUNE donnée personnelle : des comptes et des secondes.
+-- MÊME TEXTE que la fonction « ela_sante_mesures » du voyant de l'admin
+-- (migration 20261004010000) : test-chien-de-garde.mjs les compare.
+-- Telegram : « indisponible » (secret absent ou mal nommé) compte comme un
+-- échec, et une ligne « vue » (course ouverte dans l'admin, bouton « Vu »)
+-- n'est pas un envoi réussi — elle porte pourtant canal « telegram » et
+-- statut « envoye » (relecture du 4 octobre 2026).
 select json_build_object(
   'sans_alerte', (
     select count(*) from public.courses c
@@ -20,10 +26,11 @@ select json_build_object(
        and r.start_time >= now() - interval '15 minutes'),
   'telegram_echecs_1h', (
     select count(*) from public.journal_notifications_admin
-     where canal = 'telegram' and statut = 'echec' and cree_le >= now() - interval '1 hour'),
+     where canal = 'telegram' and statut in ('echec', 'indisponible') and cree_le >= now() - interval '1 hour'),
   'telegram_ok_1h', (
     select count(*) from public.journal_notifications_admin
-     where canal = 'telegram' and statut = 'envoye' and cree_le >= now() - interval '1 hour'),
+     where canal = 'telegram' and statut = 'envoye' and type_evenement <> 'vue'
+       and cree_le >= now() - interval '1 hour'),
   'demandes_24h', (
     select count(*) from public.courses
      where cree_le >= now() - interval '24 hours'

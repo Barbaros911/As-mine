@@ -28,7 +28,7 @@ const ICI = dirname(fileURLToPath(import.meta.url));
    bouge, c'est qu'une signature a été ajoutée ou retirée sans qu'on le
    sache — mieux vaut s'arrêter ici que déployer un fichier qui ne
    compilera pas chez Supabase. */
-const ATTENDUS = { "message.js": 10, "chiffrer.js": 15 };
+const ATTENDUS = { "message.js": 11, "chiffrer.js": 15 };
 
 /* ON INLINE TOUT CE QU'« index.ts » IMPORTE LOCALEMENT, pas un fichier
    nommé en dur — et c'est un correctif (16 septembre 2026).

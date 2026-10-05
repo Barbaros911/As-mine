@@ -394,7 +394,7 @@
     pose('hotelDest','ok');
     ['depart','hotelTerminal','passagers','bagages'].forEach(function(id){pose(id,val(id)?'ok':'manque');});
     if(vis($('arrivee'))) pose('arrivee',val('arrivee')?'ok':'manque');
-    var heureKo=vis($('heurePassee'))||vis($('tropTot'));
+    var heureKo=vis($('heurePassee'));
     pose('date', !val('date')?'manque':(touches.date||tentative)?'ok':'neutre');
     pose('heure', !val('heure')||heureKo?'manque':(touches.heure||tentative)?'ok':'neutre');
     ['vol','noteCourse'].forEach(function(id){pose(id,val(id)?'ok':'neutre');});

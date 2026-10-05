@@ -179,5 +179,71 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   globalThis.fetch=fetchAvant;
   ok(r5.status===201&&clesQuota[4]?.p_limite===12&&clesQuota[4]?.p_cle===clesQuota[0]?.p_cle,'deposer-course : une clé d\'hôtel inconnue reste comptée comme un anonyme ordinaire (12, même compteur)');
 }
+/* deposer-course : LE LIEU STRUCTURÉ EST GARDÉ, ET LE PRIX AU KILOMÈTRE EST
+   CONTRÔLÉ (4 octobre 2026). Avant, le serveur jetait les coordonnées et
+   acceptait « Paris → Roissy, 5 € » envoyé depuis la console. Aucune route
+   n'est plus courte que la ligne droite : en dessous de ce minimum, la
+   course est SIGNALÉE — jamais refusée, un ancien tarif gardé en mémoire
+   par un téléphone n'est pas une fraude. On lit le bon tel qu'il part en
+   base, pas la réponse HTTP. */
+{
+  const deposes=[];
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')) return new Response('true');
+    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
+    if(url.includes('parametres_commerciaux?cle=eq.tarif_general_berline')) return new Response(JSON.stringify([{valeur:{par_km_centimes:290,minimum_centimes:3000}}]));
+    if(url.includes('/rpc/ela_deposer_course_serveur')){deposes.push(JSON.parse(init.body).p_bon);return new Response('"ok"');}
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  /* Place Vendôme → Terminal 2E de Roissy : 23,2 km en ligne droite, donc
+     au moins 2,90 × 23,2 = 67,3 → 60 € (dizaine INFÉRIEURE) avant même de
+     prendre la route. Calculé à la main, pas relu dans la sortie. */
+  const vendome={nom:'Place Vendôme',adresse:'Place Vendôme, 75001 Paris',latitude:48.8675,longitude:2.3292,provider:'photon',providerId:'N1',categorie:'culture'};
+  const cdg={nom:'Terminal 2E',adresse:'Terminal 2E — Aéroport Roissy-Charles de Gaulle',latitude:48.9998,longitude:2.5740,provider:'elatransfer',providerId:'aeroport:cdg:Terminal 2E',categorie:'aeroport'};
+  const bonKm=(ref,total,extra={})=>({ref,course:Object.assign({depart:'Place Vendôme',arrivee:'Terminal 2E',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:31,departLieu:vendome,arriveeLieu:cdg,itineraireSource:'ors'},extra),
+    client:{nom:'Client',telephone:'0612345678'},prix:{total},paiement:'carte'});
+  const dep=(bon)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.7','content-type':'application/json'},body:JSON.stringify({bon})}));
+  const a=await dep(bonKm('ELA-26-10-LA1AA',90));
+  const ba=deposes[0]||{};
+  ok(a.status===201,'deposer-course : une course au kilomètre honnête passe ('+a.status+')');
+  ok(ba.course?.departLieu?.latitude===48.8675&&ba.course?.arriveeLieu?.provider==='elatransfer','deposer-course : les lieux structurés sont GARDÉS en base (avant : jetés)');
+  ok(ba.course?.itineraireSource==='ors','deposer-course : la source de l\'itinéraire est gardée');
+  ok(!ba.securite?.prixSousLigneDroite,'deposer-course : un prix honnête n\'est pas signalé');
+  const b2=await dep(bonKm('ELA-26-10-LB2BB',5));
+  const bb=deposes[1]||{};
+  ok(b2.status===201,'deposer-course : un prix trop bas est SIGNALÉ, pas refusé ('+b2.status+')');
+  ok(bb.securite?.prixSousLigneDroite?.minimum===60&&bb.securite.prixSousLigneDroite.ligneDroiteKm===23.2,
+     'deposer-course : « Vendôme → Roissy à 5 € » porte le signalement, minimum 60 € sur 23,2 km ('+JSON.stringify(bb.securite?.prixSousLigneDroite)+')');
+  const c3=await dep(bonKm('ELA-26-10-LC3CC',5,{destinationCle:'cdg'}));
+  ok(c3.status===201&&!(deposes[2]||{}).securite?.prixSousLigneDroite,'deposer-course : un forfait partenaire n\'est pas jugé au kilomètre (prix d\'appel voulu)');
+  const d4=await dep(bonKm('ELA-26-10-LD4DD',90,{departLieu:{latitude:200,longitude:2,adresse:'x'},arriveeLieu:{latitude:'48.9',longitude:2.5,adresse:'<b>'.repeat(200),provider:'pirate'},itineraireSource:'google'}));
+  const bd=deposes[3]||{};
+  ok(d4.status===201&&bd.course?.departLieu===null,'deposer-course : des coordonnées hors du globe sont écartées, la course passe');
+  ok(bd.course?.arriveeLieu?.provider==='inconnu'&&bd.course.arriveeLieu.adresse.length<=300&&bd.course.itineraireSource==='','deposer-course : source inconnue, texte borné, itinéraire inconnu vidé');
+  const e5=await dep(bonKm('ELA-26-10-LE5EE',90,{departLieu:undefined,arriveeLieu:undefined,itineraireSource:undefined}));
+  ok(e5.status===201&&(deposes[4]||{}).course?.departLieu===null,'deposer-course : une page ancienne sans lieux structurés passe comme avant');
+  /* LES DEMANDES HORS CAS STANDARD (4 octobre 2026) : elles passent, mais
+     leur prix est FORCÉ À ZÉRO — un client ne peut pas y glisser un montant
+     — et ailleurs un prix positif est EXIGÉ : le 0 € passait sans un mot. */
+  const n0=deposes.length;
+  const f6=await dep(bonKm('ELA-26-10-LF6FF',5,{tarifAConfirmer:true,motifsTarif:['longue','pirate'],immediat:true,distanceKm:4200}));
+  const bf=deposes[n0]||{};
+  ok(f6.status===201,'deposer-course : une longue distance (4 200 km) « tarif à confirmer » passe ('+f6.status+')');
+  ok(bf.prix?.total===0&&bf.course?.tarifAConfirmer===true,'deposer-course : le prix d\'une demande « à confirmer » est forcé à 0 (envoyé : 5 €, gardé : '+bf.prix?.total+')');
+  ok(JSON.stringify(bf.course?.motifsTarif)==='["longue"]'&&bf.course?.immediat===true,'deposer-course : motifs filtrés (« pirate » écarté), « immédiat » gardé');
+  ok(!bf.securite?.prixSousLigneDroite,'deposer-course : une demande « à confirmer » n\'est pas jugée au kilomètre');
+  const g7=await dep(bonKm('ELA-26-10-LG7GG',0));
+  ok(g7.status===400&&deposes.length===n0+1,'deposer-course : un prix à 0 € sans « tarif à confirmer » est REFUSÉ ('+g7.status+')');
+  const h8=await dep(bonKm('ELA-26-10-LH8HH',0,{tarifAConfirmer:true,motifsTarif:[]}));
+  ok(h8.status===400,'deposer-course : « à confirmer » sans motif reconnu ne contourne pas la règle du prix ('+h8.status+')');
+  const i9=await dep(bonKm('ELA-26-10-LI9II',0,{tarifAConfirmer:true,motifsTarif:['groupe'],passagers:'12 passagers · 14 bagages'}));
+  const bi=deposes[deposes.length-1]||{};
+  ok(i9.status===201&&bi.course?.passagersNombre===12&&bi.course?.multiVehicules===true,'deposer-course : un groupe de 12 passe, marqué « plusieurs véhicules » ('+i9.status+')');
+  globalThis.fetch=fetchAvant;
+}
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

@@ -58,13 +58,14 @@ const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
    grilles différentes. Elle est lue dans « itineraire-partage.js » plus
    bas pour vérifier qu'elles ne se sont pas séparées. */
 const PARAMS = [
-  { cle:'tarif_general_berline', valeur:{par_km_centimes:290, minimum_centimes:3000} },
+  { cle:'tarif_general_berline', valeur:{par_km_centimes:290, minimum_centimes:3500} },
   { cle:'tarif_general_van',     valeur:{par_km_centimes:470, minimum_centimes:5000} },
   { cle:'commission_ela_defaut', valeur:{pourcentage:20} },
 ];
 /* Quatre distances, une par niveau, et elles rendent quatre prix
-   DISTINCTS en berline : 24,3 km → 60 €, 40 km → 110 €, 10 km → 30 €
-   (le plancher), 2 km → 30 € aussi. Deux prix qui coïncideraient
+   DISTINCTS : 24,3 km → 70 € et 40 km → 120 € en berline, 50 km → 230 €
+   en van (le 5 pile). Aucune n'est au plancher berline (35 €, atteint à
+   12 km ou moins). Deux prix qui coïncideraient
    rendraient la suite AVEUGLE sans qu'elle tombe. */
 const M = { ors:24300, osrm:40000, pile:50000 };
 
@@ -88,7 +89,7 @@ async function scene({ ors, osrm, sansParams, distanceOrs }){
        deux champs : le trajet faisait alors 0 km, le prix tombait au
        PLANCHER, et deux contrôles passaient au vert sur un prix faux.
        Un défaut qui résoudrait les deux adresses au même endroit rendrait
-       exactement ça — 30 € sur un Paris → Argenteuil — sans un mot. */
+       exactement ça — 35 € sur un Paris → Argenteuil — sans un mot. */
     const q = decodeURIComponent((u.match(/[?&]q=([^&]*)/) || [,''])[1]).toLowerCase();
     if(u.includes('api-adresse.data.gouv.fr')) return J({features:
       q.includes('argenteuil')
@@ -350,7 +351,7 @@ check('l’arrondi compare le reste à 5 avec un « > », jamais un « >= »',
 /* LA GRILLE DU FAUX SERVEUR EST CELLE DU DÉPÔT. Si elles se séparaient, le
    contrôle de parité au centime plus haut n'éprouverait plus rien. */
 check('la grille du test est celle du dépôt',
-  /parKm:2\.90[\s\S]{0,60}mini:30/.test(page) && /parKm:4\.70[\s\S]{0,60}mini:50/.test(page));
+  /parKm:2\.90[\s\S]{0,60}mini:35/.test(page) && /parKm:4\.70[\s\S]{0,60}mini:50/.test(page));
 /* LE FICHIER PARTAGÉ EST PUBLIÉ ET INJECTÉ. Oublié dans la recette, il
    marche en local — où le serveur sert le dépôt entier — et reste
    introuvable en ligne. Le contrôle ne lit que les lignes de COMMANDE :

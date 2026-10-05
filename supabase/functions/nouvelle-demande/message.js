@@ -35,8 +35,11 @@ export function court(texte, max = 42) {
   return (espace > max * 0.6 ? coupe.slice(0, espace) : coupe) + "…";
 }
 
+/* Une demande « dès que possible » le dit d'abord : sa date est l'instant où
+   elle a été faite, pas un rendez-vous (4 octobre 2026). */
 function quand(bon) {
   const c = bon.course ?? {};
+  if (c.immediat) return "IMMÉDIAT";
   const brut = bon.dateMsg ?? `${c.date ?? ""} ${c.heure ?? ""}`;
   return String(brut).trim() || "—";
 }
@@ -67,10 +70,17 @@ export function titreRappel(bon, minutes) {
    l'admin, elle ne sonne pas six heures. */
 export function titreFinal(bon) {
   const c = bon.course ?? {};
-  return "DÉPART PASSÉ, non traitée — "
+  return (c.immediat ? "DEMANDE IMMÉDIATE sans réponse depuis 30 min — " : "DÉPART PASSÉ, non traitée — ")
     + court(c.departPublic ?? c.depart, 20)
     + " → " + court(c.arriveePublic ?? c.arrivee, 20)
     + ", " + quand(bon);
+}
+
+/* Le tarif à confirmer dit POURQUOI : c'est ce qui dit quoi faire. */
+function motifs(m) {
+  const noms = { longue: "longue distance", groupe: "plusieurs véhicules", adresse: "adresse à vérifier" };
+  const l = (Array.isArray(m) ? m : []).map((k) => noms[k]).filter(Boolean);
+  return l.length ? " (" + l.join(", ") + ")" : "";
 }
 
 export function corps(bon, adresseAdmin) {
@@ -82,12 +92,13 @@ export function corps(bon, adresseAdmin) {
        ça dans le bon. La chambre ne regarde que le chauffeur retenu. */
     "Départ : " + (c.departPublic || c.depart || "—"),
     "Arrivée : " + (c.arriveePublic || c.arrivee || "—"),
-    "Quand : " + quand(bon),
+    "Quand : " + (c.immediat ? "dès que possible (demandé le " + (`${c.date ?? ""} ${c.heure ?? ""}`.trim() || "—") + ")" : quand(bon)),
     "",
     (c.vehicule || "—") + " · " + (c.passagers || "—"),
     "Paiement : " + (bon.paiementNom || "—"),
-    "Prix : " + euros(bon.prix && bon.prix.total),
+    "Prix : " + (c.tarifAConfirmer ? "À CONFIRMER" + motifs(c.motifsTarif) : euros(bon.prix && bon.prix.total)),
   ];
+  if (c.adresseAVerifier) l.push("Adresse tapée à la main : à vérifier");
   if (c.vol) l.push("Vol : " + c.vol);
   /* D'où vient ce client : c'est ce qui dit quelle affiche d'hôtel
      travaille. Rien du tout pour une venue directe — un tiret se lirait
