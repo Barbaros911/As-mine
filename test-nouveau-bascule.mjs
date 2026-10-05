@@ -814,7 +814,7 @@ for (const langue of ['fr-FR', 'en-US']) {
   await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
   await pw.waitForTimeout(500);
   const pro = await pw.evaluate(() => {
-    const e = document.querySelector('[data-t-html="pro_bloc"]');
+    const e = document.querySelector('.pro-bloc');
     return { existe: !!e && e.offsetHeight > 0, dansBandeau: !!e && !!e.closest('.hero'),
              texte: e ? e.textContent.trim().slice(0, 40) : '' };
   });

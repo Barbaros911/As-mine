@@ -2112,6 +2112,40 @@ body.espace #panneauProvenance{display:none;}
    quatre onglets : une liste écrite pour les éléments du jour. Elle prend
    toute la largeur, comme le bouton au-dessus ; hors grille, sans effet. */
 .reserver > .etapes-ligne{grid-column:1/-1;}
+/* CE QU'EST ELATRANSFER — carte claire, pas un second aplat marine :
+   « Inclus dans chaque course » l'est déjà, deux blocs sombres se
+   confondraient. Le bloc professionnel est sur l'accent clair. */
+.pro-lien{display:block;text-decoration:none;font-size:13.5px;line-height:1.4;color:var(--gris,#5A6A7B);}
+.pro-lien b{color:var(--ela-navy,var(--encre));}
+.pro-lien span{color:var(--accent,#0E6FC7);font-weight:600;}
+.pro-lien span::after{content:" →";}
+.modele-sur{margin:0 0 4px;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--accent,#0E6FC7);}
+.section.modele h2{margin-bottom:10px;}
+.modele-intro{margin:0 0 18px;font-size:15px;line-height:1.55;color:var(--encre,#151C22);}
+.modele-etapes{list-style:none;margin:0;padding:0;display:grid;gap:10px;}
+.modele-etapes li{display:flex;gap:12px;align-items:flex-start;background:var(--carte,#fff);
+  border:1px solid var(--filet,#E1E8EF);border-radius:14px;padding:13px 14px;}
+.modele-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent,#0E6FC7);color:#fff;font-weight:800;font-size:14px;}
+.modele-etapes b{display:block;font-size:15px;color:var(--encre,#151C22);}
+.modele-etapes span[data-t]{display:block;font-size:13.5px;line-height:1.4;color:var(--gris,#5A6A7B);}
+.modele-pro{margin-top:14px;border-radius:18px;padding:18px 16px;background:var(--accent-clair,#E8F2FD);}
+.modele-pro-t{margin:0;font-weight:800;font-size:17px;color:var(--accent-encre,#0A4F91);}
+.modele-pro-s{margin:4px 0 10px;font-size:14px;color:var(--encre,#151C22);}
+.modele-pro ul{margin:0 0 14px;padding:0;list-style:none;}
+.modele-pro li{position:relative;padding:6px 0 6px 24px;font-size:14px;color:var(--encre,#151C22);}
+.modele-pro li::before{content:"";position:absolute;left:2px;top:10px;width:12px;height:7px;
+  border-left:2.2px solid var(--accent,#0E6FC7);border-bottom:2.2px solid var(--accent,#0E6FC7);transform:rotate(-45deg);}
+.modele-cta{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:12px;
+  background:var(--ela-navy,#16232B);color:#fff;font-weight:700;font-size:15px;text-decoration:none;}
+@media (min-width:900px){
+  .modele-etapes{grid-template-columns:repeat(3,1fr);}
+  .modele-intro{max-width:760px;}
+  .modele-pro{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;padding:24px 28px;}
+  .modele-pro-t,.modele-pro-s{grid-column:1;} .modele-pro ul{grid-column:2;grid-row:1/4;margin:0;}
+  .modele-cta{grid-column:1;align-self:start;max-width:320px;}
+}
+body.hotel .modele{display:none;}
 .inclus{background:linear-gradient(135deg,#062f55,#094a78);color:#fff;border-radius:22px;padding:22px 18px 10px}
 .inclus-sur{margin:0;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#12c4ee}
 .section .inclus h2{color:#fff;margin:4px 0 8px;font-size:22px}
@@ -2881,7 +2915,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        contenu français ci-dessous est celui validé par Barbaros ; la version
        anglaise conserve sa traduction dédiée. -->
   <div class="pro-bloc">
-    <p data-t-html="pro_bloc">Elatransfer ne se limite pas au transport. Nous créons pour chaque partenaire une solution de réservation à son image : page personnalisée, lien dédié, QR code et tablette de réservation si nécessaire. Le client effectue sa demande en quelques instants, directement depuis l’établissement ou son téléphone. Elatransfer prend ensuite le relais et gère l’ensemble du transport jusqu’à sa réalisation.</p>
+    <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrez nos solutions de réservation</span></a>
   </div>
 
   <!-- LA PROMESSE D'ARRIVÉE (septembre 2026, à sa demande).
@@ -3032,6 +3066,35 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span data-t="srv5s">Chauffeur à l'heure · Paris, Disneyland</span>
         </span>
       </a>
+    </div>
+  </section>
+
+  <!-- CE QU'EST ELATRANSFER (octobre 2026, maquette soumise à Barbaros).
+       Le moteur de réservation prend toute l'attention : un visiteur en
+       conclut « un site pour commander un chauffeur ». Ce bloc dit le
+       modèle — une centrale qui organise, des chauffeurs professionnels
+       partenaires qui conduisent — et c'est AUSSI la transparence que
+       demande le statut d'intermédiaire : le client doit savoir qui
+       transporte. Aucune promesse qui ne soit vraie aujourd'hui. -->
+  <section class="section modele" id="modele">
+    <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
+    <h2 data-t="modele_titre">Nous organisons, des chauffeurs professionnels conduisent.</h2>
+    <p class="modele-intro" data-t="modele_intro">Elatransfer est une centrale de réservation. Nous recevons votre demande, choisissons le chauffeur, confirmons la course et la suivons jusqu'à l'arrivée. Le trajet est réalisé par un chauffeur professionnel partenaire, sous sa propre licence et son assurance.</p>
+    <ol class="modele-etapes">
+      <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
+      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous organisons</b><span data-t="modele_e2s">Choix du chauffeur, confirmation, suivi de votre vol ou de votre train.</span></div></li>
+      <li><span class="modele-n">3</span><div><b data-t="modele_e3">Le chauffeur vous conduit</b><span data-t="modele_e3s">Au prix annoncé, réglé directement à bord.</span></div></li>
+    </ol>
+    <div class="modele-pro">
+      <p class="modele-pro-t" data-t="modele_pro_t">Pour les hôtels, agences et entreprises</p>
+      <p class="modele-pro-s" data-t="modele_pro_s">Vos clients réservent chez vous, Elatransfer s'occupe du reste.</p>
+      <ul>
+        <li data-t="modele_p1">Une page de réservation à votre nom</li>
+        <li data-t="modele_p2">Un lien et un QR code pour vos clients</li>
+        <li data-t="modele_p3">Un accès réception pour suivre chaque demande</li>
+        <li data-t="modele_p4">Des forfaits négociés vers les aéroports et Paris</li>
+      </ul>
+      <a class="modele-cta" href="#" data-ecran="ecran-contact" data-onglet="accueil" data-t="modele_cta">Parler de votre établissement</a>
     </div>
   </section>
 
@@ -5586,6 +5649,16 @@ window.ELA_TEXTES = {
     srv3:"Gare", srv3s:"Gares de Paris et d'Île-de-France",
     srv4:"Professionnel", srv4s:"Clients, collaborateurs, rendez-vous",
     srv5:"Mise à disposition", srv5s:"Chauffeur à l'heure · Paris, Disneyland",
+    pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Découvrez nos solutions de réservation",
+    modele_sur:"QUI SOMMES-NOUS", modele_titre:"Nous organisons, des chauffeurs professionnels conduisent.",
+    modele_intro:"Elatransfer est une centrale de réservation. Nous recevons votre demande, choisissons le chauffeur, confirmons la course et la suivons jusqu'à l'arrivée. Le trajet est réalisé par un chauffeur professionnel partenaire, sous sa propre licence et son assurance.",
+    modele_e1:"Vous demandez", modele_e1s:"En ligne, au comptoir de votre hôtel ou par téléphone.",
+    modele_e2:"Nous organisons", modele_e2s:"Choix du chauffeur, confirmation, suivi de votre vol ou de votre train.",
+    modele_e3:"Le chauffeur vous conduit", modele_e3s:"Au prix annoncé, réglé directement à bord.",
+    modele_pro_t:"Pour les hôtels, agences et entreprises", modele_pro_s:"Vos clients réservent chez vous, Elatransfer s'occupe du reste.",
+    modele_p1:"Une page de réservation à votre nom", modele_p2:"Un lien et un QR code pour vos clients",
+    modele_p3:"Un accès réception pour suivre chaque demande", modele_p4:"Des forfaits négociés vers les aéroports et Paris",
+    modele_cta:"Parler de votre établissement",
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
@@ -5791,6 +5864,16 @@ window.ELA_TEXTES = {
     srv3:"Station", srv3s:"Paris and Île-de-France stations",
     srv4:"Business", srv4s:"Clients, colleagues, meetings",
     srv5:"Hourly hire", srv5s:"A chauffeur by the hour · Paris, Disneyland",
+    pro_lien_t:"Hotel, agency, business?", pro_lien_s:"See our booking solutions",
+    modele_sur:"WHO WE ARE", modele_titre:"We organise, professional chauffeurs drive.",
+    modele_intro:"Elatransfer is a booking centre. We receive your request, choose the chauffeur, confirm the ride and follow it until arrival. The journey is carried out by a professional partner chauffeur, under their own licence and insurance.",
+    modele_e1:"You request", modele_e1s:"Online, at your hotel's front desk or by phone.",
+    modele_e2:"We organise", modele_e2s:"Chauffeur selection, confirmation, flight or train tracking.",
+    modele_e3:"Your chauffeur drives you", modele_e3s:"At the quoted price, paid directly on board.",
+    modele_pro_t:"For hotels, agencies and businesses", modele_pro_s:"Your guests book with you, Elatransfer handles the rest.",
+    modele_p1:"A booking page in your name", modele_p2:"A link and a QR code for your guests",
+    modele_p3:"Front-desk access to follow every request", modele_p4:"Negotiated flat rates to the airports and Paris",
+    modele_cta:"Talk about your business",
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
