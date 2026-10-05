@@ -2145,6 +2145,13 @@ body.espace #panneauProvenance{display:none;}
   .modele-pro-t,.modele-pro-s{grid-column:1;} .modele-pro ul{grid-column:2;grid-row:1/4;margin:0;}
   .modele-cta{grid-column:1;align-self:start;max-width:320px;}
 }
+.modele-devis{margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+  justify-content:space-between;background:var(--carte,#fff);border:1px dashed var(--accent,#0E6FC7);
+  border-radius:14px;padding:13px 14px;}
+.modele-devis p{margin:0;flex:1 1 220px;font-size:14px;line-height:1.45;color:var(--gris,#5A6A7B);}
+.modele-devis b{color:var(--encre,#151C22);}
+.modele-devis a{flex:none;display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;
+  border:1.5px solid var(--accent,#0E6FC7);color:var(--accent,#0E6FC7);font-weight:700;font-size:14px;text-decoration:none;}
 body.hotel .modele{display:none;}
 .inclus{background:linear-gradient(135deg,#062f55,#094a78);color:#fff;border-radius:22px;padding:22px 18px 10px}
 .inclus-sur{margin:0;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#12c4ee}
@@ -3085,10 +3092,18 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous organisons</b><span data-t="modele_e2s">Choix du chauffeur et confirmation par WhatsApp ou SMS.</span></div></li>
       <li><span class="modele-n">3</span><div><b data-t="modele_e3">Le chauffeur vous conduit</b><span data-t="modele_e3s">Au prix annoncé, réglé directement à bord.</span></div></li>
     </ol>
+    <!-- « SUR MESURE » EST ANNONCÉ DANS LE BANDEAU : il doit mener quelque
+         part. Il se fait sur devis, par e-mail (sujet seul, rien de
+         pré-rempli). -->
+    <div class="modele-devis">
+      <p><b data-t="devis_t">Un besoin sur mesure ?</b> <span data-t="devis_s">Groupe, événement, journée avec chauffeur : nous établissons un devis.</span></p>
+      <a href="mailto:contact@elatransfer.com?subject=Demande%20de%20devis" data-t="devis_cta">Demander un devis</a>
+    </div>
     <div class="modele-pro">
       <p class="modele-pro-t" data-t="modele_pro_t">Pour les hôtels, agences et entreprises</p>
       <p class="modele-pro-s" data-t="modele_pro_s">Vos clients réservent chez vous, Elatransfer s'occupe du reste.</p>
       <ul>
+        <li data-t="modele_p0">Mise en place gratuite et rapide</li>
         <li data-t="modele_p1">Une page de réservation à votre nom</li>
         <li data-t="modele_p2">Un lien et un QR code pour vos clients</li>
         <li data-t="modele_p3">Un accès dédié pour suivre chaque réservation</li>
@@ -5286,6 +5301,19 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <span class="contact-detail" data-t="contact_wa">Écrivez-nous, on répond vite</span>
         </span>
       </a>
+      <!-- L'E-MAIL (octobre 2026, à sa demande) : un hôtel ou une entreprise
+           écrit un e-mail, et c'est par là qu'arrivent les devis. Sujet
+           seul, aucun texte pré-rempli : même règle que WhatsApp. -->
+      <a class="contact-lien" href="mailto:contact@elatransfer.com">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="2" stroke="#0E6FC7" stroke-width="1.7"/>
+          <path d="M3.5 6.5l8.5 6.5 8.5-6.5" stroke="#0E6FC7" stroke-width="1.7" stroke-linejoin="round"/>
+        </svg>
+        <span class="contact-corps">
+          <b data-t="contact_mail_t">E-mail · devis et partenariats</b>
+          <span class="contact-detail">contact@elatransfer.com</span>
+        </span>
+      </a>
     </div>
 
     <!-- LES DOCUMENTS LÉGAUX RESTENT ACCESSIBLES SANS COMPTE ET SANS
@@ -5656,7 +5684,9 @@ window.ELA_TEXTES = {
     modele_e2:"Nous organisons", modele_e2s:"Choix du chauffeur et confirmation par WhatsApp ou SMS.",
     modele_e3:"Le chauffeur vous conduit", modele_e3s:"Au prix annoncé, réglé directement à bord.",
     modele_pro_t:"Pour les hôtels, agences et entreprises", modele_pro_s:"Vos clients réservent chez vous, Elatransfer s'occupe du reste.",
-    modele_p1:"Une page de réservation à votre nom", modele_p2:"Un lien et un QR code pour vos clients",
+    modele_p0:"Mise en place gratuite et rapide", modele_p1:"Une page de réservation à votre nom",
+    devis_t:"Un besoin sur mesure ?", devis_s:"Groupe, événement, journée avec chauffeur : nous établissons un devis.", devis_cta:"Demander un devis",
+    contact_mail_t:"E-mail · devis et partenariats", modele_p2:"Un lien et un QR code pour vos clients",
     modele_p3:"Un accès dédié pour suivre chaque réservation", modele_p4:"Des forfaits négociés vers les aéroports et Paris",
     modele_cta:"Parler de votre établissement",
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
@@ -5871,7 +5901,9 @@ window.ELA_TEXTES = {
     modele_e2:"We organise", modele_e2s:"Chauffeur selection and confirmation by WhatsApp or SMS.",
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the quoted price, paid directly on board.",
     modele_pro_t:"For hotels, agencies and businesses", modele_pro_s:"Your guests book with you, Elatransfer handles the rest.",
-    modele_p1:"A booking page in your name", modele_p2:"A link and a QR code for your guests",
+    modele_p0:"Free and fast set-up", modele_p1:"A booking page in your name",
+    devis_t:"A tailor-made need?", devis_s:"Group, event, a day with a chauffeur: we prepare a quote.", devis_cta:"Request a quote",
+    contact_mail_t:"Email · quotes and partnerships", modele_p2:"A link and a QR code for your guests",
     modele_p3:"Dedicated access to follow every booking", modele_p4:"Negotiated flat rates to the airports and Paris",
     modele_cta:"Talk about your business",
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
