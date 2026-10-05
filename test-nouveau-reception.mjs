@@ -291,24 +291,26 @@ check('« En retard » passe avant les autres jours',
   jours[0] === 'En retard', jours.join(' | '));
 check('le titre « En retard » est le seul en rouge',
   await p.locator('.rec-jour.retard').count() === 1);
-const chiffres = await p.locator('.rec-chiffre b').allTextContents();
-check('deux courses en attente sont comptées', chiffres[1] === '2', chiffres.join('/'));
-check('et ce compteur-là s\'allume, seul', await p.locator('.rec-chiffre.chaud').count() === 1);
+/* LES TROIS GROS CHIFFRES SONT PARTIS (5 octobre 2026) : les onglets portent
+   déjà leur compte, et sur un PC ils poussaient la liste hors de l'écran. */
+check('plus de bloc de trois chiffres au-dessus de la liste',
+  await p.locator('.rec-chiffres, .rec-chiffre').count() === 0);
 
 /* ═══ RETROUVER UNE COURSE (30/09/2026) ═══ Trois onglets qui portent leur
    compte, et une recherche qui fouille TOUT l'historique, quel que soit
    l'onglet. On lit ce qui est à l'écran, pas l'état interne. */
 const refsVisibles = () => p.locator('.rec-course').evaluateAll(els => els.map(e => e.dataset.ref));
 const comptes = await p.locator('.rec-vues button b').allTextContents();
-check('les onglets portent leur compte : 3 à venir, 1 passée, 4 en tout',
-  comptes.join('/') === '3/1/4', comptes.join('/'));
+check('les onglets portent leur compte : 3 à venir, 1 dans l\'historique',
+  comptes.join('/') === '3/1', comptes.join('/'));
+check('« Toutes » a disparu, « Passées » s\'appelle « Historique »',
+  await p.locator('.rec-vues button[data-vue="toutes"]').count() === 0
+  && /^Historique/.test((await p.locator('.rec-vues button[data-vue="passees"]').textContent()).trim()));
 check('« À venir » est l\'onglet ouvert, et la course faite n\'y est pas',
   !(await refsVisibles()).includes('ELA-26-09-0020'));
 await p.locator('.rec-vues button[data-vue="passees"]').click();
-check('« Passées » ne montre que la course faite',
+check('« Historique » ne montre que la course faite',
   JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
-await p.locator('.rec-vues button[data-vue="toutes"]').click();
-check('« Toutes » montre les quatre', (await refsVisibles()).length === 4);
 await p.locator('.rec-vues button[data-vue="avenir"]').click();
 await p.fill('#recRecherche', '118');
 check('la recherche par CHAMBRE retrouve une course passée, même depuis « À venir »',
@@ -328,8 +330,17 @@ const faite = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0020' });
 check('une course effectuée n\'affiche AUCUN montant, même si on le lui envoie',
   !/80|€/.test(await faite.textContent()) && (await faite.locator('.rec-prix').count()) === 0,
   await faite.textContent());
-check('…et ne porte plus aucun bouton (ni renvoi du bon, ni annulation)',
-  (await faite.locator('button').count()) === 0);
+check('…et ne porte que « Voir le bon » (ni renvoi, ni annulation)',
+  JSON.stringify(await faite.locator('button').allTextContents()) === '["Voir le bon"]',
+  JSON.stringify(await faite.locator('button').allTextContents()));
+/* Son bon s'ouvre SANS prix : le serveur ne l'envoie plus pour une course
+   finie, et la page n'en dessine pas même s'il arrivait. */
+await faite.locator('button', { hasText:'Voir le bon' }).click();
+check('le bon d\'une course effectuée ne porte aucun prix, même si on le lui envoie',
+  await p.locator('#bonClient').isVisible() && (await p.locator('#bonClient .ebon-prix').count()) === 0
+  && !/80|€/.test(await p.locator('#bonClient .ebon').textContent()),
+  await p.locator('#bonClient .ebon').textContent());
+await p.locator('#bonClientFermer').click();
 await p.fill('#recRecherche', 'ELA-26-09-0043');
 check('par RÉFÉRENCE', JSON.stringify(await refsVisibles()) === '["ELA-26-09-0043"]');
 await p.fill('#recRecherche', 'zzz introuvable');
@@ -474,45 +485,42 @@ check('« Un imprévu ? » est à l\'écran en permanence',
 check('avec le téléphone ET WhatsApp',
   (await p.locator('.rec-aide a[href^="tel:"]').count()) === 1
   && (await p.locator('#recAideWa').getAttribute('href')).includes('wa.me'));
+/* Sur le PC d'un hôtel, « Appeler » ne compose rien : il faut le NUMÉRO. */
+check('le numéro d\'Elatransfer est écrit en clair, pas seulement « Appeler »',
+  /\+33 7 59 31 24 33/.test(await p.locator('.rec-aide').textContent()));
 
-/* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ On lit le message qui
-   part, pas seulement la présence du bouton : un bouton qui envoie un
-   message vide ou faux serait pire que pas de bouton. */
-/* ═══ LE BON EST UNE IMAGE (30/09/2026, à sa demande) ═══ Le bouton ouvre
-   un aperçu où l'image est fabriquée dans la page ; le texte WhatsApp reste
-   en secours. On éprouve les deux : l'image existe vraiment (on lit ses
-   dimensions), et le texte part au bon numéro avec le bon contenu. */
+/* ═══ LE BON S'AFFICHE, IL NE PART PLUS (5 octobre 2026, à sa demande) ═══
+   « la réception n'a pas besoin d'envoyer de bons, on peut juste afficher un
+   bon ». On lit ce que montre la fenêtre, et on vérifie que RIEN ne part :
+   ni WhatsApp, ni partage. */
 await p.evaluate(() => { window.__bon = []; window.open = (u) => { window.__bon.push(u); return null; }; });
-await carte.locator('button', { hasText:'Envoyer le bon au client' }).click();
-const imageBon = await p.waitForFunction(() => {
-  const i = document.querySelector('#bonVisuel .bv-img');
-  return i && i.complete && i.naturalWidth > 0 ? { l:i.naturalWidth, h:i.naturalHeight } : false;
-}, null, { timeout:8000 }).then(h => h.jsonValue()).catch(() => null);
-check('« Envoyer le bon au client » fabrique une vraie image du bon',
-  !!imageBon && imageBon.l === 1080 && imageBon.h >= 1350, JSON.stringify(imageBon));
-check('…qu\'on peut enregistrer (ou partager quand l\'appareil le sait)',
-  await p.locator('#bvEnregistrer').isVisible()
-  && /^bon-ELA-26-09-0042\.png$/.test(await p.locator('#bvEnregistrer').getAttribute('download') || ''));
-/* LE CHOIX IMAGE / ÉCRIT (30/09/2026) : l'image s'ouvre d'abord, l'onglet
-   « Message écrit » montre le texte exact avant de l'envoyer. */
-check('la feuille propose le choix : bon en image ou message écrit',
-  await p.locator('#bvOngletImage').isVisible() && await p.locator('#bvOngletTexte').isVisible()
-  && (await p.locator('#bvOngletImage').getAttribute('aria-selected')) === 'true');
-await p.locator('#bvOngletTexte').click();
-check('« Message écrit » montre le texte qui partira, et cache l\'image',
-  /ELA-26-09-0042/.test(await p.locator('#bvApercuTexte').textContent())
-  && await p.locator('#bonVisuel .bv-img').isHidden());
-await p.locator('#bvTexte').click();
-const bonEnvoye = await p.evaluate(() => (window.__bon || []).map(u => decodeURIComponent(u)));
-check('« Envoyer le bon au client » écrit au NUMÉRO DU CLIENT',
-  bonEnvoye.length === 1 && bonEnvoye[0].startsWith('https://wa.me/33612345678?text='), bonEnvoye.join(' '));
-check('…avec la référence, l\'heure, le trajet et le prix',
-  bonEnvoye.length === 1 && /ELA-26-09-0042/.test(bonEnvoye[0]) && /06:00/.test(bonEnvoye[0])
-  && /Orly 1/.test(bonEnvoye[0]) && /100,00 €/.test(bonEnvoye[0]), bonEnvoye.join(' '));
-check('…et le chauffeur, la course étant confirmée',
-  bonEnvoye.length === 1 && /Mehmet/.test(bonEnvoye[0]), bonEnvoye.join(' '));
-await p.locator('#bvFermer').click();
-check('« Fermer » referme l\'aperçu', await p.locator('#bonVisuel').isHidden());
+check('plus aucun bouton « Envoyer le bon » dans la liste',
+  await p.locator('#recListe button', { hasText:/Envoyer|Renvoyer/ }).count() === 0);
+await carte.locator('button', { hasText:'Voir le bon' }).click();
+const fenBon = p.locator('#bonClient');
+check('« Voir le bon » ouvre le bon du client', await fenBon.isVisible());
+check('le NOM et le TÉLÉPHONE du client y sont, en tête et en gros',
+  (await fenBon.locator('.ebon-nom').textContent()) === 'M. Dupont'
+  && (await fenBon.locator('.ebon-tel').textContent()) === '06 12 34 56 78'
+  && /Chambre 214/.test(await fenBon.locator('.ebon-chambre').textContent()));
+const tailleNom = await fenBon.locator('.ebon-nom').evaluate(e => parseFloat(getComputedStyle(e).fontSize));
+check('…en gros : au moins 22 px', tailleNom >= 22, tailleNom + ' px');
+check('la référence, le trajet, le prix ferme (course confirmée) et le chauffeur',
+  /ELA-26-09-0042/.test(await fenBon.textContent()) && /Orly 1/.test(await fenBon.textContent())
+  && /Prix ferme/.test(await fenBon.textContent()) && /100,00 €/.test(await fenBon.textContent())
+  && /Mehmet/.test(await fenBon.textContent()), await fenBon.textContent());
+check('le bon dit que la confirmation vient d\'Elatransfer',
+  /La confirmation vous sera envoyée par Elatransfer/.test(await fenBon.locator('.ebon-confirmation').textContent()));
+await fenBon.locator('.ebon-langues button[data-langue="en"]').click();
+check('la bascule EN traduit le bon sans toucher à la page',
+  /Booking voucher/.test(await fenBon.textContent()) && /Firm price/.test(await fenBon.textContent())
+  && (await p.evaluate(() => document.documentElement.lang)) === 'fr');
+check('aucune donnée interne n\'est sur le bon (commission, montant chauffeur)',
+  !/25 %|commission|7500|75,00/i.test(await fenBon.textContent()), await fenBon.textContent());
+await p.keyboard.press('Escape');
+check('Échap referme le bon', await fenBon.isHidden());
+check('et rien n\'est parti : ni WhatsApp, ni autre fenêtre',
+  (await p.evaluate(() => window.__bon.length)) === 0);
 
 
 /* ═══ LA LISTE SE MET À JOUR TOUTE SEULE, ET LE CHANGEMENT SE VOIT ═══
@@ -536,21 +544,13 @@ check('…la carte concernée s\'éclaire', await attente.evaluate(el => el.clas
 const bandeauVu = await p.locator('#recAlerte').isVisible();
 if(bandeauVu) await p.locator('#btnRecAlerteOk').click();
 check('« Vu » retire le bandeau', bandeauVu && await p.locator('#recAlerte').isHidden());
-/* Sans numéro, l'image sert encore (on la montre, on la photographie) ;
-   seul l'envoi en texte, qui vise un numéro, disparaît. 0043 est relue sans
-   numéro depuis le dernier rafraîchissement. */
-const btnSansTel = attente.locator('button', { hasText:'Envoyer le bon au client' });
-if(await btnSansTel.count()){
-  await btnSansTel.click();
-  await p.waitForTimeout(600);
-}
-const imageSansTel = await p.locator('#bonVisuel .bv-img').isVisible();
-await p.locator('#bvOngletTexte').click();
-check('sans numéro : l\'image oui ; à l\'écrit, « copier » remplace l\'envoi',
-  (await btnSansTel.count()) === 1 && imageSansTel
-  && await p.locator('#bvTexte').isHidden() && await p.locator('#bvCopier').isVisible());
-/* À la réouverture, on repart sur l'image : le choix d'avant ne colle pas. */
-if(await p.locator('#bonVisuel').isVisible()) await p.locator('#bvFermer').click();
+/* Sans numéro, le bon s'affiche quand même : il n'y a simplement pas de
+   ligne de téléphone. 0043 est relue sans numéro depuis le dernier
+   rafraîchissement. */
+await attente.locator('button', { hasText:'Voir le bon' }).click();
+check('sans numéro : le bon s\'affiche, sans ligne de téléphone',
+  await p.locator('#bonClient').isVisible() && await p.locator('#bonClient .ebon-tel').count() === 0);
+await p.locator('#bonClientFermer').click();
 const avantCache = appels.length;
 await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable:true, get:() => true });
   document.dispatchEvent(new Event('visibilitychange')); });
@@ -577,13 +577,14 @@ await p.waitForTimeout(600);
 const texteAlerte = (await p.locator('#recAlerte').textContent()) || '';
 check('le bandeau dit « Annulée par Elatransfer »', /Annulée par Elatransfer/.test(texteAlerte), texteAlerte);
 check('…et « Course modifiée », de 06:00 à 07:00', /Course modifiée par Elatransfer.*06:00 → 07:00/.test(texteAlerte), texteAlerte);
-await p.locator('.rec-vues button[data-vue="toutes"]').click();
+await p.locator('.rec-vues button[data-vue="passees"]').click();
 const annulee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0043' });
 check('la course annulée dit « Annulée », pas « Non prise »',
   (await annulee.locator('.rec-etat').textContent()).trim() === 'Annulée');
 check('…sans aucun prix, ni aucun bouton',
   !/120|€/.test(await annulee.textContent()) && (await annulee.locator('button').count()) === 0,
   await annulee.textContent());
+await p.locator('.rec-vues button[data-vue="avenir"]').click();
 const modifiee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0042' });
 check('la course modifiée porte « Modifiée par Elatransfer le … »',
   /Modifiée par Elatransfer le \d\d\/\d\d à \d\d:\d\d/.test(await modifiee.textContent()));
@@ -752,6 +753,11 @@ check('LA CHAMBRE SEULE SUFFIT — le chauffeur monte la chercher à l\'hôtel',
 check('le bon porte la chambre',
   /214/.test(await p.locator('#bonDepart').textContent()),
   await p.locator('#bonDepart').textContent());
+/* Ici le serveur est INJOIGNABLE : rien n'est encore à confirmer, et
+   l'écriteau rouge dit d'appeler. La consigne « confirmé par Elatransfer »
+   se tait — elle mentirait. */
+check('dépôt échoué : pas de « À dire au client »',
+  await p.locator('#consigneComptoir').isHidden());
 
 /* =====================================================================
    10. LA RÉCEPTION VALIDE SUR LE SITE — WHATSAPP NE S'OUVRE PLUS
@@ -862,6 +868,19 @@ check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi').textContent());
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
+/* ═══ « BIEN DIRE AU CLIENT QUE LA CONFIRMATION SE FAIT PAR ELATRANSFER »
+   (5 octobre 2026, à sa demande) ═══ Un encadré en tête du bon, à
+   l'écran, pas une ligne grise. */
+check('après la réservation, la réception lit « À dire au client »',
+  await p.locator('#consigneComptoir').isVisible()
+  && /Votre réservation sera confirmée par Elatransfer/.test(await p.locator('#consigneComptoir').textContent()),
+  await p.locator('#consigneComptoir').textContent().catch(() => 'absent'));
+const yConsigne = (await p.locator('#consigneComptoir').boundingBox() || {}).y;
+const yBon = (await p.locator('#ecran-bon .bon-tete').boundingBox() || {}).y;
+check('…au-dessus du bon, là où l\'œil arrive', yConsigne < yBon, yConsigne + ' / ' + yBon);
+check('« Voir le bon du client » remplace l\'ancien envoi',
+  await p.locator('#btnBonVoirClient').isVisible()
+  && await p.locator('#btnBonEnvoyerClient').count() === 0);
 /* LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT : la chambre 307 ne doit
    pas rester posée pour le client suivant. */
 await p.locator('#btnNouvelleCourse').click();
