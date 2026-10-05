@@ -65,13 +65,42 @@ await p.waitForTimeout(500);
 check('un navigateur français ouvre en français',
   (await p.locator('[data-t="btn_prix"]').textContent())==='Voir mon prix');
 
-// --- Un visiteur allemand : ni français ni anglais → anglais ---
+/* LE SITE PUBLIC S'OUVRE EN FRANÇAIS POUR TOUT LE MONDE (5 octobre 2026,
+   décision de Barbaros). Il suivait la langue du navigateur, et le robot de
+   Google se présente en anglais américain : Google lisait l'accueil en
+   anglais sous un titre français. Le contrôle joue donc ce robot-là. */
 await ctx.close();
+for (const loc of ['en-US', 'de-DE']) {
+  ctx = await b.newContext({viewport:{width:390,height:844},locale:loc});
+  p = await page(ctx);
+  await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(500);
+  const lu = await p.evaluate(()=>[document.documentElement.lang,
+    document.querySelector('[data-t="btn_prix"]').textContent].join(' / '));
+  check('le site public ouvre en français, même pour un navigateur ' + loc, lu === 'fr / Voir mon prix', lu);
+  await ctx.close();
+}
+/* MAIS LA PAGE DU FLYER easyHotel GARDE LA DÉTECTION : elle n'est pas
+   indexée, et elle est scannée par des voyageurs étrangers à Roissy. Un
+   Allemand qui scanne le QR lit l'anglais, pas le français. */
+ctx = await b.newContext({viewport:{width:390,height:844},locale:'de-DE'});
+p = await page(ctx);
+await p.goto('http://127.0.0.1:8099/index.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'});
+await p.waitForTimeout(500);
+check('la page du flyer suit encore la langue du voyageur (allemand → anglais)',
+  await p.evaluate(()=>document.documentElement.lang) === 'en',
+  await p.evaluate(()=>document.documentElement.lang));
+await ctx.close();
+
+/* L'anglais du site public reste à UN appui : la suite éprouve la page
+   anglaise après ce geste, depuis un navigateur allemand. */
 ctx = await b.newContext({viewport:{width:390,height:844},locale:'de-DE'});
 p = await page(ctx);
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(500);
-check('un navigateur allemand ouvre en anglais, pas en français',
+await p.locator('.langues button[data-langue="en"]').click();
+await p.waitForTimeout(250);
+check('un appui sur EN passe le site public en anglais',
   (await p.locator('[data-t="btn_prix"]').textContent())==='See my price',
   await p.locator('[data-t="btn_prix"]').textContent());
 

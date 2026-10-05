@@ -177,7 +177,7 @@ function reception() {
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
     '<meta name="robots" content="noindex,nofollow">');
   html = html.replace(/<title>[\s\S]*?<\/title>/i,
-    '<title>Réception easyHotel Aéroville — ELA Transfer</title>');
+    '<title>Réception easyHotel Aéroville — Elatransfer</title>');
   return html;
 }
 
@@ -217,7 +217,7 @@ function admin() {
     + html.slice(positionAdmin);
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
     '<meta name="robots" content="noindex,nofollow">');
-  html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>Administration — ELA Transfer</title>');
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>Administration — Elatransfer</title>');
   const mode = `var MODE_EXPLOITANT = false;\n  try{\n    MODE_EXPLOITANT = new URLSearchParams(location.search).get("exploitant") === "1";\n  }catch(e){ MODE_EXPLOITANT = false; }`;
   if (!html.includes(mode)) throw new Error('sélecteur du mode exploitant introuvable');
   html = html.replace(mode, 'var MODE_EXPLOITANT = true;');
@@ -268,7 +268,7 @@ const dossierReception = path.join(sortie, 'easyhotel-reception');
 fs.mkdirSync(dossierReception, { recursive: true });
 fs.writeFileSync(path.join(dossierReception, 'index.html'), receptionHtml);
 fs.writeFileSync(path.join(dossierReception, 'manifest.webmanifest'), JSON.stringify({
-  name: 'Réception easyHotel Aéroville — ELA Transfer',
+  name: 'Réception easyHotel Aéroville — Elatransfer',
   short_name: 'Réception',
   description: 'Réservations de la réception easyHotel Aéroville.',
   lang: 'fr',

@@ -194,6 +194,9 @@ await ctx.close();
 // ================= EN ANGLAIS =================
 ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:1, locale:'en-GB' });
 p = await ctx.newPage();
+/* Le site public s'ouvre en français pour tout le monde depuis le 5 octobre
+   2026 : un client anglophone est celui qui a CHOISI l'anglais. */
+await p.addInitScript(()=>{ try{ localStorage.setItem('ela_langue','en'); }catch(e){} });
 await brancherFaux(p);
 await p.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);

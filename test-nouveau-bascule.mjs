@@ -142,11 +142,14 @@ check('l\'adresse canonique est la racine du domaine',
   (await p.getAttribute('link[rel=canonical]','href'))==='https://elatransfer.com/',
   await p.getAttribute('link[rel=canonical]','href'));
 
-// Deux langues sur une adresse : ni plus, ni moins. Déclarer une langue
-// qu'on ne sert plus fait retomber la page dans les résultats.
-const hreflangs = await p.$$eval('link[rel=alternate]', l=>l.map(x=>x.hreflang).sort());
-check('deux langues déclarées, plus les six de l\'ancien site',
-  hreflangs.join(',')==='en,fr,x-default', hreflangs.join(','));
+/* AUCUN « hreflang » TANT QUE L'ANGLAIS N'A PAS SA PROPRE ADRESSE
+   (5 octobre 2026). Le premier jet déclarait « fr » et « en » sur la même
+   adresse : pour Google ça ne veut rien dire. Une langue déclarée doit
+   avoir une adresse à elle, différente de celle-ci. */
+const hreflangs = await p.$$eval('link[rel=alternate][hreflang]', l=>l.map(x=>x.hreflang+'='+x.href));
+check('aucune langue déclarée sur la même adresse que la page',
+  !hreflangs.some(h=>h.endsWith('=https://elatransfer.com/') && !h.startsWith('fr=') && !h.startsWith('x-default=')),
+  hreflangs.join(', '));
 
 // Les données structurées : « LimousineService », jamais « TaxiService » —
 // un VTC n'a ni licence de taxi, ni taximètre, ni droit de maraude.
@@ -888,7 +891,7 @@ for (const large of [1024, 1280]) {
     ['/easyhotel-reception/', 'data-ela-space="hotel-reception"'],
     ['/reception/easyhotel-aeroville/', 'data-ela-space="hotel-reception"'],
     ['/exploitant/', 'Espace exploitant</title>'],
-    ['/easyhotel-client/', 'easyHotel Aéroville × ELA Transfer</title>'],
+    ['/easyhotel-client/', 'easyHotel Aéroville × Elatransfer</title>'],
     ['/', 'data-ela-space="public"'],
     ['/application.html', 'data-ela-space="hotel-client"'],
   ];
@@ -993,6 +996,39 @@ for (const large of [1024, 1280]) {
   }
   check('les feuilles de style de la source portent des notes (sinon le contrôle ne prouve rien)', total >= 20, total + ' passages');
   await pc.close();
+}
+
+/* =====================================================================
+   « RÉSERVER » NE MÈNE JAMAIS CHEZ UN PARTENAIRE (5 octobre 2026)
+   ---------------------------------------------------------------------
+   Capture de Barbaros : depuis la page « Transfert CDG », « Réserver »
+   ouvrait /application.html — la page du FLYER easyHotel, construite comme
+   espace « hotel-client ». Un visiteur venu de Google lisait « easyHotel »
+   en haut et remplissait « Nom du client / Guest name ». On lit les pages
+   que le sitemap donne à Google, sur le site construit, et on y appuie
+   vraiment : l'adresse d'arrivée doit être l'espace public.
+   ===================================================================== */
+{
+  const sitemap = await (await fetch(SITE + '/sitemap.xml')).text();
+  const pagesSeo = [...sitemap.matchAll(/<loc>https:\/\/elatransfer\.com\/([^<]+)<\/loc>/g)].map(m => m[1]);
+  check('le sitemap donne des pages à éprouver (sinon le contrôle ne prouve rien)', pagesSeo.length >= 1, pagesSeo.join(', '));
+  const pr = await b.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
+  await pr.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  for (const chemin of pagesSeo) {
+    await pr.goto(SITE + '/' + chemin, { waitUntil: 'domcontentloaded' });
+    const cibles = await pr.$$eval('a[href]', l => l.map(a => a.getAttribute('href')));
+    const versHotel = cibles.filter(h => /application\.html|[?&](h|reception)=/.test(h));
+    check(`${chemin} : aucun lien vers une page d'hôtel`, versHotel.length === 0, versHotel.join(', '));
+    const reserver = cibles.filter(h => /^\/(\?|$)/.test(h) && h !== '/');
+    for (const h of reserver) {
+      await pr.goto(SITE + h, { waitUntil: 'load' });
+      await pr.waitForTimeout(600);
+      const lu = await pr.evaluate(() => [document.documentElement.getAttribute('data-ela-space'),
+        /easyhotel/i.test(document.body.innerText)].join(' / '));
+      check(`${chemin} → ${h} : on arrive sur le site public, sans easyHotel`, lu === 'public / false', lu);
+    }
+  }
+  await pr.close();
 }
 
 await b.close();

@@ -128,7 +128,7 @@ const page = `<!doctype html>
   </div>
 
   <footer>
-    Application de réservation ELA Transfer : <a href="../">voir le site</a>.
+    Application de réservation Elatransfer : <a href="../">voir le site</a>.
   </footer>
 </main>
 </body>

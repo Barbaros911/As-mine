@@ -379,8 +379,9 @@ contractuel. Ne pas y écrire de tarif chiffré.
 
 - **Deux gammes seulement**, Berline et Van. Les clés `berline` et `van` ne
   changent jamais : elles sont dans l'historique.
-- **Deux langues**, français et anglais, et l'anglais est le repli — un
-  Allemand ou un Japonais lit plus probablement l'anglais. Ajouter une
+- **Deux langues**, français et anglais. Le site public s'ouvre en
+  français ; les pages d'hôtel suivent le navigateur, et l'anglais y est le
+  repli (voir « LE SITE SE PRÉSENTE PAR SA MARQUE »). Ajouter une
   langue veut dire écrire ~110 phrases à la main ; pas de traduction
   automatique sur un site où le prix engage.
 - **Le mode de règlement est demandé au client** (espèces ou carte), rien
@@ -5277,52 +5278,26 @@ mémoire de POURQUOI c'est écrit ainsi.
   pendant ce travail, retirés ensuite à sa décision — voir « LES
   COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
 
-## LE SITE SE PRÉSENTE PAR SA MARQUE — ET LE CONTRÔLE DE PRODUCTION A CRIÉ
+## LE SITE SE PRÉSENTE PAR SA MARQUE — « Elatransfer », PARTOUT
 
-4 octobre 2026. Barbaros a poussé directement sur `main` (7dc2349) un
-nouveau titre — « Elatransfer — Transferts privés & solutions de
-réservation » — et un nouveau paragraphe pour les professionnels ; la PR
-#302 (branche `ai-dev`, ChatGPT) portait la description assortie, validée
-par lui. Deux minutes après la publication, le monitoring a ouvert l'Issue
-#300 : « sert une AUTRE page ». **Le site était parfaitement servi** — c'est
-l'empreinte du contrôleur qui était un libellé.
-- **« Chauffeur privé » n'est plus la règle du référencement.** Depuis la
-  phase 1 de l'audit (septembre), le titre devait « mener avec le métier,
-  les aéroports après ». Barbaros a repositionné le site : des transferts
-  privés ET des solutions de réservation pour ses partenaires. Le titre
-  mène donc avec la **marque**, puis dit ce qu'elle vend. `test-nouveau-bascule`
-  éprouve cette règle-là (marque en tête, « transfert » dans le titre et la
-  description) et plus l'ancienne — un contrôle qui l'aurait gardée aurait
-  exigé un texte que Barbaros a retiré.
-- **L'empreinte de `verifier-production.mjs` est « Elatransfer »**, en un
-  mot, pour `/` et `application.html`. Aucune autre porte ne le porte ainsi
-  (l'admin dit « ELA Transfer », l'hôtel « × ELA Transfer ») : l'empreinte
-  distingue toujours la bonne page d'un listage ou d'un mauvais réglage,
-  et elle survit au prochain changement de titre. *Un libellé se reformule,
-  une marque non.*
-- **DÉPÔT ET SITE CONSTRUIT DOIVENT DIRE LA MÊME CHOSE.** `seo-ela.mjs`
-  réécrit le titre et la description dans `site/index.html` : la nuit du
-  4 octobre, le dépôt disait l'ancienne description et le script la
-  nouvelle — deux vérités, Google lit l'une et le client l'autre. Les deux
-  sont alignées, et un contrôle de `test-nouveau-bascule` compare désormais
-  le site servi au dépôt plutôt qu'à une constante recopiée.
-- **CE QUI N'A PAS ÉTÉ TOUCHÉ, ET C'EST SA DÉCISION.** Un premier jet avait
-  traduit en anglais le nouveau paragraphe des professionnels et réécrit
-  `og:description` / `twitter:description`. Barbaros ne l'avait pas demandé
-  (« il ne restait que la méta-description ») : les deux ont été retirés
-  avant la fusion. L'anglais garde donc ses trois lignes d'avant, ce que
-  son commit disait déjà (« la version anglaise conserve sa traduction
-  dédiée »). *Une consigne écrite dans un commentaire de commit est une
-  consigne, pas un oubli à rattraper.*
-- **LES APERÇUS DE PARTAGE ONT SUIVI, ENSUITE, À SA DEMANDE** (« Oui », même
-  nuit). `og:description` et `twitter:description` disent la description de
-  la page. **Le site publié porte DEUX exemplaires de chaque aperçu** —
-  celui de `index.html`, puis celui qu'ajoute `seo-ela.mjs` — et un réseau
-  social lit en général le premier : c'était l'ancien, qui vendait encore
-  « mises à disposition ». `test-nouveau-bascule` exige maintenant que TOUS
-  les exemplaires disent la description.
-- **La PR #302 a été fermée sans fusion** : elle portait la même
-  description, et elle était en conflit avec `main` depuis le push direct.
+5 octobre 2026, Barbaros : « Elatransfer partout ». Un mot, un E majuscule,
+dans tout texte publié — titres, pages, admin, réception, manifestes, CGV.
+Le LOGO (image, et le mot-symbole « ELA TRANSFER » de l'affiche hôtel) ne
+change pas. Le titre mène avec la marque, puis dit ce qu'elle vend ; le
+dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
+- **Le site public s'ouvre en français pour tout le monde** : le robot de
+  Google se présente en anglais américain et lisait l'accueil en anglais
+  sous un titre français. L'anglais est à un appui et se mémorise. **Pas de
+  `hreflang`** tant que l'anglais n'a pas sa propre adresse. Les pages
+  d'hôtel (non indexées) gardent la détection : le flyer est scanné par des
+  voyageurs étrangers.
+- **Aucun lien public ne mène à `/application.html`** : c'est la page du
+  FLYER easyHotel (espace « hotel-client »). Les pages du sitemap réservent
+  vers `/?aeroport=…`. `test-nouveau-bascule` y appuie, sur le site construit.
+- `verifier-production.mjs` reconnaît une porte à son `data-ela-space`, plus
+  à la marque seule, qui est désormais partout.
+- L'histoire (titre du 4 octobre, Issue #300, aperçus en double) :
+  `memoire/marque-et-referencement.md`.
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 

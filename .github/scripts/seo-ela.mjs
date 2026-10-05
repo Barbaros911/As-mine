@@ -60,7 +60,7 @@ if (!html.includes('ELA SEO / identité')) {
 }
 
 const brandPattern = /<a class="brand" href="\/">\s*<span class="mark">ELA<\/span>\s*<span class="word">TRANSFER<small>PRIVATE DRIVER SERVICE<\/small><\/span>\s*<\/a>/g;
-html = html.replace(brandPattern, '<a class="brand" href="/" aria-label="ELA Transfer"><img class="brandReal" src="/brand-logo.webp" alt="ELA Transfer"></a>');
+html = html.replace(brandPattern, '<a class="brand" href="/" aria-label="Elatransfer"><img class="brandReal" src="/brand-logo.webp" alt="Elatransfer"></a>');
 
 fs.writeFileSync(file, html);
 console.log(`SEO ELA appliqué à ${file}`);
