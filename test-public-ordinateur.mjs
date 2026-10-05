@@ -85,7 +85,7 @@ for (const [w, h] of ORDIS) {
     const m = await p.evaluate(() => {
       const r = s => document.querySelector(s).getBoundingClientRect();
       return { sw: document.documentElement.scrollWidth, carte: r('.reserver'),
-        logo: r('.logo-image'), pied: r('.pied') };
+        logo: r('.logo-image'), pied: r('.pied'), titre: r('.hero h1') };
     });
     check(`${tag} : aucun débordement horizontal`, m.sw === w, `largeur ${m.sw}`);
     check(`${tag} : « Voir mon prix » reçoit le clic en entier, sans défiler`,
@@ -94,6 +94,8 @@ for (const [w, h] of ORDIS) {
       m.carte.left >= 16 && m.carte.right <= w - 16, `${Math.round(m.carte.left)}→${Math.round(m.carte.right)}`);
     check(`${tag} : le logo s'aligne sur le bord de la carte`,
       Math.abs(m.logo.left - m.carte.left) <= 2, `logo ${Math.round(m.logo.left)}, carte ${Math.round(m.carte.left)}`);
+    check(`${tag} : le titre du bandeau s'aligne sur le logo et la carte`,
+      Math.abs(m.titre.left - m.carte.left) <= 2, `titre ${Math.round(m.titre.left)}, carte ${Math.round(m.carte.left)}`);
     check(`${tag} : le pied suit la même colonne que la carte`,
       m.pied.left >= m.carte.left - 2 && m.pied.right <= m.carte.right + 2,
       `pied ${Math.round(m.pied.left)}→${Math.round(m.pied.right)}`);

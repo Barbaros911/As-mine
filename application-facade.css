@@ -107,4 +107,5 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{padding-l
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pro-bloc,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .promesse,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .paiement,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied{width:var(--ela-colonne);max-width:none;margin-left:auto;margin-right:auto}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .section{--gouttiere:0px;width:var(--ela-colonne);max-width:none;margin-left:auto;margin-right:auto}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .ecran:not(#ecran-accueil){max-width:720px;margin-left:auto;margin-right:auto}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{width:var(--ela-colonne);max-width:none;padding-left:0;padding-right:0}
 }
