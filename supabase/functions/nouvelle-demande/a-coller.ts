@@ -97,7 +97,9 @@ function motifs(m: any) {
 function corps(bon: any, adresseAdmin: any) {
   const c = bon.course ?? {};
   const l = [
-    "Réf. " + (bon.ref || "—"),
+    /* Le N° court d'abord (5 octobre 2026) : c'est lui qu'on se dit au
+       téléphone. Absent tant que sa migration n'est pas appliquée. */
+    (Number(bon.numero) > 0 ? "N° " + bon.numero + " · " : "") + "Réf. " + (bon.ref || "—"),
     "",
     /* Le départ SANS le numéro de chambre : « departPublic » existe pour
        ça dans le bon. La chambre ne regarde que le chauffeur retenu. */
