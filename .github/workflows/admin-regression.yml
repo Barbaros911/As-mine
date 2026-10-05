@@ -81,7 +81,7 @@ jobs:
           # liens réduits à des redirections. Elle ne tournait qu'à la main —
           # c'est ainsi que « telValide » est parti en ligne le 29 septembre
           # (audit du cloisonnement, 4 octobre 2026).
-          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel"
+          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.
