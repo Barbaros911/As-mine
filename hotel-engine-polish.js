@@ -347,9 +347,14 @@
       document.querySelectorAll('.rec-vues button').forEach(function(bv){
         var n=nomsVues[bv.dataset.vue];if(n) texte(bv.querySelector('span'),anglais?n[1]:n[0]);
       });
+      /* Seul le DERNIER morceau de texte se traduit (« Réf. … ») : réécrire
+         toute la ligne effacerait le N° court en gras posé devant. On
+         n'écrit que s'il diffère — sinon l'observateur se rappelle lui-même. */
       document.querySelectorAll('#recListe .rec-reference').forEach(function(x){
-        var fr=x.dataset.fr||x.textContent;
-        trad(x,fr.replace(/^Réf\. /,'Ref. '));
+        var t=x.lastChild;if(!t||t.nodeType!==3) return;
+        if(!x.dataset.fr) x.dataset.fr=t.nodeValue;
+        var v=anglais?x.dataset.fr.replace(/^Réf\. /,'Ref. '):x.dataset.fr;
+        if(t.nodeValue!==v) t.nodeValue=v;
       });
     }
   }

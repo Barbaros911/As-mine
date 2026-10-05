@@ -179,6 +179,37 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   globalThis.fetch=fetchAvant;
   ok(r5.status===201&&clesQuota[4]?.p_limite===12&&clesQuota[4]?.p_cle===clesQuota[0]?.p_cle,'deposer-course : une clé d\'hôtel inconnue reste comptée comme un anonyme ordinaire (12, même compteur)');
 }
+/* deposer-course : LE N° COURT REVIENT AU CLIENT (5 octobre 2026). La base
+   l'attribue à l'écriture et le recopie dans le bon ; la fonction le relit
+   et le rend. AVANT la migration le bon n'en porte pas : le dépôt passe
+   comme avant — la demande est enregistrée, seul le N° manque. */
+{
+  let apres=false, colonne=true;
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')) return new Response('true');
+    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.')){
+      if(!apres) return new Response('[]');
+      if(!colonne) return new Response(JSON.stringify([{bon:{ref:'x'}}]));
+      return new Response(JSON.stringify([{bon:{ref:'x',numero:1042}}]));
+    }
+    if(url.includes('parametres_commerciaux?cle=eq.tarif_general_berline')) return new Response(JSON.stringify([{valeur:{par_km_centimes:290,minimum_centimes:3500}}]));
+    if(url.includes('/rpc/ela_deposer_course_serveur')){apres=true;return new Response('"ok"');}
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bonN=ref=>({ref,course:{depart:'10 rue de Rivoli, Paris',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:20},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:60},paiement:'carte'});
+  const depotN=ref=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.7','content-type':'application/json'},body:JSON.stringify({bon:bonN(ref)})}));
+  const a=await depotN('ELA-26-10-NA1AA'); const ja=await a.json().catch(()=>({}));
+  ok(a.status===201&&ja.numero===1042,'deposer-course : le N° court attribué par la base revient au client ('+a.status+', '+ja.numero+')');
+  apres=false; colonne=false;
+  const b=await depotN('ELA-26-10-NB2BB'); const jb=await b.json().catch(()=>({}));
+  ok(b.status===201&&!('numero' in jb),'deposer-course : sans la colonne (migration pas encore appliquée), le dépôt passe sans N° ('+b.status+')');
+  globalThis.fetch=fetchAvant;
+}
 /* deposer-course : LE LIEU STRUCTURÉ EST GARDÉ, ET LE PRIX AU KILOMÈTRE EST
    CONTRÔLÉ (4 octobre 2026). Avant, le serveur jetait les coordonnées et
    acceptait « Paris → Roissy, 5 € » envoyé depuis la console. Aucune route

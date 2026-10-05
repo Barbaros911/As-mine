@@ -223,3 +223,19 @@ jobs:
           if grep -q '@' /tmp/diagnostic.txt; then
             echo "::error::le diagnostic sort une adresse e-mail dans un journal public"; exit 1
           fi
+          # Le numéro court « N° 1042 » (5 octobre 2026). Deux sentinelles
+          # remplacent les déclencheurs de production dont le code n'est pas
+          # dans le dépôt : la numérotation des courses existantes ne doit
+          # passer par aucun. Puis : ordre de création à partir de 1001,
+          # numéro imposé par le serveur, immuable, unique, et la migration
+          # rejouée trois fois sans renuméroter. Éprouvée sans la coupure des
+          # déclencheurs, sans l'immuabilité, sans le déclencheur d'insertion :
+          # elle tombe les trois fois.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database numero;'
+          psql -h 127.0.0.1 -U postgres -d numero -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/migrations/20261002000000_courses_version.sql \
+            -f supabase/tests/numero-court.sql \
+            -f supabase/migrations/20261006000000_numero_court.sql \
+            -f supabase/migrations/20261006000000_numero_court.sql \
+            -f supabase/tests/numero-court-apres.sql

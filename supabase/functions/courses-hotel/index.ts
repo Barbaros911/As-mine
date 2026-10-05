@@ -266,6 +266,9 @@ Deno.serve(async (req: Request) => {
     const statut = String(l.statut || bon.statut || "attente");
     return {
       ref: String(l.ref || ""),
+      /* Le N° court (5 octobre 2026), pour se parler au téléphone. La base
+         le recopie dans le bon ; il n'ouvre rien : la clé reste la référence. */
+      ...(Number(bon.numero) > 0 ? { numero: Number(bon.numero) } : {}),
       statut: statut,
       date: String(co.date || ""),
       heure: String(co.heure || ""),
