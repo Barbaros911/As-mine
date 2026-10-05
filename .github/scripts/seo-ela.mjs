@@ -9,22 +9,18 @@ const description = 'Elatransfer propose des transferts privés et crée pour se
 html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
 html = html.replace(/<meta\s+name=["']description["'][^>]*>/i, `<meta name="description" content="${description}">`);
 
+/* PLUS DE SECOND MANIFESTE, DE SECONDE COULEUR NI DE SECONDE SÉRIE DE
+   PARTAGE (6 octobre 2026). index.html porte déjà les siens : en double, un
+   réseau social lisait l'une ou l'autre série, et un second manifeste
+   pouvait contredire l'échange de l'espace exploitant (id="manifeste").
+   L'image de partage vit désormais dans index.html, avec le reste.
+   LES DEUX LIGNES D'ICÔNES RESTENT, et c'est délibéré : en retirer une peut
+   changer l'image que le navigateur choisit pour l'onglet — c'est le logo,
+   on n'y touche pas sans Barbaros. Même chose pour le style .brandReal. */
 const extra = `
 <!-- ELA SEO / identité -->
 <link rel="icon" href="/icon-180.png" type="image/png">
 <link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180">
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0b2f63">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="Elatransfer">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${description}">
-<meta property="og:url" content="https://elatransfer.com/">
-<meta property="og:image" content="https://elatransfer.com/icon-180.png">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="${title}">
-<meta name="twitter:description" content="${description}">
 <style>
 .brandReal{display:block;width:182px;height:auto;max-height:64px;object-fit:contain}
 .drawer .brandReal{width:190px}

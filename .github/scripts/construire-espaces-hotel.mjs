@@ -77,6 +77,14 @@ function remplacerEntreApres(html, apres, debut, fin, remplacement = '') {
   return html.slice(0, a) + remplacement + html.slice(b);
 }
 
+/* UNE PAGE CACHÉE À GOOGLE NE DÉSIGNE PAS D'ADRESSE CANONIQUE (6 octobre
+   2026). Elles héritent de celle de l'accueil : « ne m'indexe pas » et
+   « c'est moi, l'adresse de référence de l'accueil » à la fois, deux
+   consignes qui se contredisent. Seule la page publique la garde. */
+function sansCanonique(html) {
+  return html.replace(/<link\b[^>]*rel=["']canonical["'][^>]*>\s*/gi, '');
+}
+
 const sectionsAdmin = [
   'ecran-verrou', 'ecran-bord', 'ecran-reglages', 'ecran-creer',
   'ecran-registre', 'ecran-chauffeurs', 'ecran-facture', 'ecran-bord-bon',
@@ -145,6 +153,12 @@ function publicEla() {
   let html = sansBonComptoir(sansReception(sansAdmin()));
   html = injecterBootstrap(html, 'public');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="public">');
+  /* LES FICHIERS DES HÔTELS NE SONT PAS POUR L'ACCUEIL (6 octobre 2026) :
+     45 Ko et deux requêtes dont chaque règle vise une page d'hôtel. Ici,
+     ?h= part vers /application.html avant tout dessin (ci-dessous), et ce
+     sont l'application et la réception qui les gardent. */
+  html = html.replace(/<script\b[^>]*src=["']\/hotel-engine-polish\.js["'][^>]*><\/script>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*href=["']\/hotel-engine-polish\.css["'][^>]*>\s*/gi, '');
   const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var r=p.toString();location.replace('/reception/easyhotel-aeroville/'+(r?'?'+r:'')+location.hash);return}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
@@ -182,6 +196,7 @@ function reception() {
     + '<meta name="mobile-web-app-capable" content="yes">');
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
     '<meta name="robots" content="noindex,nofollow">');
+  html = sansCanonique(html);
   html = html.replace(/<title>[\s\S]*?<\/title>/i,
     '<title>Réception easyHotel Aéroville — Elatransfer</title>');
   return html;
@@ -223,6 +238,7 @@ function admin() {
     + html.slice(positionAdmin);
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/i,
     '<meta name="robots" content="noindex,nofollow">');
+  html = sansCanonique(html);
   html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>Administration — Elatransfer</title>');
   const mode = `var MODE_EXPLOITANT = false;\n  try{\n    MODE_EXPLOITANT = new URLSearchParams(location.search).get("exploitant") === "1";\n  }catch(e){ MODE_EXPLOITANT = false; }`;
   if (!html.includes(mode)) throw new Error('sélecteur du mode exploitant introuvable');
