@@ -29,6 +29,13 @@
   "use strict";
   var doc = racine.document;
   var TEL_ELA = "+33 7 59 31 24 33", TEL_ELA_LIEN = "tel:+33759312433";
+  /* LE CLIENT A LE CHOIX DU CANAL (5 octobre 2026, à sa demande : « pas
+     seulement le numéro de téléphone seul »). Le numéro est écrit EN CLAIR
+     en plus des boutons : sur le PC d'un hôtel, le client lit l'écran, il
+     ne peut pas cliquer dessus. Telegram ne s'affiche que s'il est rempli —
+     on ne pose pas un lien qu'on n'a pas pu éprouver. */
+  var WHATSAPP_ELA = "https://wa.me/33759312433";
+  var TELEGRAM_ELA = "";
 
   var TXT = {
     fr: { titre:"Bon de réservation", ref:"Réf.", client:"Client", chambre:"Chambre",
@@ -37,7 +44,8 @@
           prixAnnonce:"Prix annoncé", prixFerme:"Prix ferme", prix:"Prix",
           aConfirmer:"À confirmer", payeChauffeur:"Réglé directement au chauffeur",
           confirmation:"La confirmation vous sera envoyée par Elatransfer.",
-          question:"Une question :", fermer:"Fermer", sansNom:"Client non nommé", a:" à ",
+          question:"Une question ? Elatransfer vous répond", canaux:"Appel et WhatsApp",
+          canauxTg:"Appel, WhatsApp et Telegram", appeler:"Appeler", fermer:"Fermer", sansNom:"Client non nommé", a:" à ",
           etats:{ attente:"Demande reçue", confirmee:"Confirmé", realisee:"Effectuée",
                   refusee:"Non prise", annulee:"Annulée" } },
     en: { titre:"Booking voucher", ref:"Ref.", client:"Guest", chambre:"Room",
@@ -46,7 +54,8 @@
           prixAnnonce:"Quoted price", prixFerme:"Firm price", prix:"Price",
           aConfirmer:"To be confirmed", payeChauffeur:"Paid directly to the driver",
           confirmation:"Your confirmation will be sent by Elatransfer.",
-          question:"Questions:", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
+          question:"Questions? Elatransfer is here to help", canaux:"Call and WhatsApp",
+          canauxTg:"Call, WhatsApp and Telegram", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
           etats:{ attente:"Request received", confirmee:"Confirmed", realisee:"Completed",
                   refusee:"Not taken", annulee:"Cancelled" } }
   };
@@ -185,16 +194,27 @@
     /* LA PHRASE QUE LA RÉCEPTION DOIT DIRE, ÉCRITE SUR LE BON MÊME (à sa
        demande) : c'est Elatransfer qui confirme, pas l'hôtel. */
     if(!fini) bon.appendChild(el("p", "ebon-confirmation", L.confirmation));
-    var pied = el("p", "ebon-pied", L.question + " ");
-    var lienEla = el("a", null, TEL_ELA); lienEla.href = TEL_ELA_LIEN;
-    pied.appendChild(lienEla);
+    var pied = el("section", "ebon-contact");
+    pied.appendChild(el("p", "ebon-contact-titre", L.question));
+    pied.appendChild(el("p", "ebon-contact-num", TEL_ELA));
+    pied.appendChild(el("p", "ebon-contact-canaux", TELEGRAM_ELA ? L.canauxTg : L.canaux));
+    var liens = el("div", "ebon-contact-liens");
+    function canal(texte, href, classe){
+      var a = el("a", "ebon-canal " + classe, texte); a.href = href;
+      if(/^https?:/.test(href)){ a.target = "_blank"; a.rel = "noopener"; }
+      liens.appendChild(a);
+    }
+    canal(L.appeler, TEL_ELA_LIEN, "tel");
+    canal("WhatsApp", WHATSAPP_ELA, "wa");
+    if(TELEGRAM_ELA) canal("Telegram", TELEGRAM_ELA, "tg");
+    pied.appendChild(liens);
     bon.appendChild(pied);
     return bon;
   }
 
   var STYLE = ""
     + ".ebon-fenetre{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;"
-    +   "padding:24px 12px;overflow-y:auto;background:rgba(6,23,38,.62);}"
+    +   "padding:12px;overflow-y:auto;background:rgba(6,23,38,.62);}"
     + ".ebon-fenetre[hidden]{display:none;}"
     + ".ebon-boite{width:100%;max-width:440px;margin:auto 0;}"
     + ".ebon-barre{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 10px;}"
@@ -204,36 +224,43 @@
     + ".ebon-langues button[aria-pressed=true]{background:#062f55;color:#fff;}"
     + ".ebon-fermer{min-height:40px;padding:0 18px;border:0;border-radius:999px;background:#fff;color:#14344e;"
     +   "font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}"
-    + ".ebon{background:#fff;color:#14344e;border-radius:22px;padding:22px 22px 18px;"
+    + ".ebon{background:#fff;color:#14344e;border-radius:22px;padding:16px 20px 14px;"
     +   "box-shadow:0 18px 40px rgba(6,47,85,.25);font-family:inherit;}"
-    + ".ebon-tete{text-align:center;padding:0 0 14px;border-bottom:1px solid #dbe6ed;}"
-    + ".ebon-logo{display:block;width:130px;height:auto;margin:0 auto 10px;}"
+    + ".ebon-tete{text-align:center;padding:0 0 10px;border-bottom:1px solid #dbe6ed;}"
+    + ".ebon-logo{display:block;width:96px;height:auto;margin:0 auto 8px;}"
     + ".ebon-etat{display:inline-block;padding:5px 14px;border-radius:999px;background:#6B7780;color:#fff;"
     +   "font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}"
     + ".ebon-etat.confirmee,.ebon-etat.realisee{background:#0E5FA8;}"
     + ".ebon-etat.refusee,.ebon-etat.annulee{background:#fff;color:#5A6A7B;box-shadow:inset 0 0 0 1px #c9d4dd;}"
-    + ".ebon-titre{margin:10px 0 0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6f7f8b;}"
-    + ".ebon-ref{margin:2px 0 0;font-size:26px;font-weight:800;letter-spacing:.02em;}"
+    + ".ebon-titre{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6f7f8b;}"
+    + ".ebon-ref{margin:0;font-size:24px;font-weight:800;letter-spacing:.02em;}"
     + ".ebon-ref-tech{margin:2px 0 0;font-size:12px;color:#6f7f8b;}"
-    + ".ebon-client{margin:16px 0 4px;padding:14px 16px;border-radius:16px;background:#EAF3FC;"
+    + ".ebon-client{margin:12px 0 2px;padding:10px 14px;border-radius:16px;background:#EAF3FC;"
     +   "border-left:5px solid #0E5FA8;}"
     + ".ebon-lib{margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0B4F8C;}"
     + ".ebon-nom{margin:4px 0 0;font-size:24px;line-height:1.2;font-weight:800;color:#062f55;overflow-wrap:anywhere;}"
     + ".ebon-tel{display:inline-block;margin:6px 0 0;font-size:22px;font-weight:800;color:#0B4F8C;"
     +   "text-decoration:none;letter-spacing:.02em;}"
     + ".ebon-chambre{margin:6px 0 0;font-size:16px;font-weight:700;color:#062f55;}"
-    + ".ebon-lignes{margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;}"
+    + ".ebon-lignes{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;}"
     + ".ebon-lignes dt{font-size:13px;color:#6f7f8b;font-weight:600;}"
     + ".ebon-lignes dd{margin:0;font-size:15px;font-weight:700;overflow-wrap:anywhere;}"
-    + ".ebon-prix{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px 0 0;"
-    +   "padding:14px 16px;border-radius:14px;background:#F2F5F9;}"
+    + ".ebon-prix{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 0;"
+    +   "padding:10px 14px;border-radius:14px;background:#F2F5F9;}"
     + ".ebon-prix span{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}"
     + ".ebon-prix b{font-size:24px;font-weight:800;}"
     + ".ebon-regle{margin:6px 0 0;font-size:12px;color:#6f7f8b;text-align:right;}"
-    + ".ebon-confirmation{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:#062f55;color:#fff;"
+    + ".ebon-confirmation{margin:10px 0 0;padding:10px 14px;border-radius:12px;background:#062f55;color:#fff;"
     +   "font-size:15px;font-weight:700;text-align:center;}"
-    + ".ebon-pied{margin:12px 0 0;font-size:13px;color:#5A6A7B;text-align:center;}"
-    + ".ebon-pied a{color:#0B4F8C;font-weight:700;}";
+    + ".ebon-contact{margin:10px 0 0;padding:10px 12px;border-radius:14px;background:#F2F5F9;text-align:center;}"
+    + ".ebon-contact-titre{margin:0;font-size:13px;font-weight:700;color:#5A6A7B;}"
+    + ".ebon-contact-num{margin:4px 0 0;font-size:22px;font-weight:800;color:#062f55;letter-spacing:.02em;}"
+    + ".ebon-contact-canaux{margin:2px 0 0;font-size:13px;color:#5A6A7B;}"
+    + ".ebon-contact-liens{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:8px 0 0;}"
+    + ".ebon-canal{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;"
+    +   "border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#0E5FA8;}"
+    + ".ebon-canal.wa{background:#128C4A;}"
+    + ".ebon-canal.tg{background:#1B75A8;}";
 
   var fenetre = null, courant = null, langueCourante = "fr", retourFocus = null;
   function poserStyle(){

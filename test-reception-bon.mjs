@@ -110,6 +110,16 @@ try {
     /Prix annoncé/.test(await bon.textContent()) && !/Prix ferme/.test(await bon.textContent()));
   check('le bon dit que la confirmation vient d\'Elatransfer',
     /La confirmation vous sera envoyée par Elatransfer/.test(await bon.textContent()));
+  /* « Une question » : le numéro EN CLAIR (sur un PC le client lit l'écran,
+     il ne clique pas), et les canaux à côté — pas le seul téléphone. */
+  const contact = bon.locator('.ebon-contact');
+  check('le bon écrit le numéro d\'Elatransfer en clair, en gros',
+    (await contact.locator('.ebon-contact-num').textContent().catch(() => '')) === '+33 7 59 31 24 33'
+    && (await contact.locator('.ebon-contact-num').evaluate(e => parseFloat(getComputedStyle(e).fontSize)).catch(() => 0)) >= 20);
+  check('…avec Appeler ET WhatsApp, et dit que les deux marchent',
+    (await contact.locator('a.ebon-canal.tel').getAttribute('href').catch(() => '')) === 'tel:+33759312433'
+    && (await contact.locator('a.ebon-canal.wa').getAttribute('href').catch(() => '')) === 'https://wa.me/33759312433'
+    && /WhatsApp/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => '')));
   /* L'en-tête collant de la page passait PAR-DESSUS la fenêtre : FR/EN et
      « Fermer » ne recevaient plus le clic. On mesure ce que reçoit le doigt. */
   const recoit = await p.evaluate(() => ['.ebon-langues button[data-langue="en"]', '#bonClientFermer'].map(s => {
