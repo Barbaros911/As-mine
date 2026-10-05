@@ -158,7 +158,12 @@ try {
     const bonDe = (ref, statut, nom) => ({ ref, statut, cree:new Date().toISOString(),
       course:{ depart:'easyHotel Aéroville, 10 rue de la Belle Borne', departPublic:'easyHotel Aéroville, 10 rue de la Belle Borne',
         arrivee:'Orly 1 — Aéroport de Paris-Orly', date:DEMAIN, heure:'09:00', vehicule:'Berline' },
-      client:{ nom, telephone:'+44 7412 345678' }, prix:{ total:90 }, paiementNom:'Carte bancaire', langue:'fr',
+      client:{ nom, telephone:'+44 7412 345678' }, prix:{ total:35 }, paiementNom:'Carte bancaire', langue:'fr',
+      /* Une course du comptoir easyHotel : c'est le cas réel, et sa carte
+         porte la bande du partenaire, qui mange de la largeur. Sans elle,
+         le contrôle de la ligne passait au vert sur la mise en page qui se
+         coupait en deux à l'écran. */
+      provenance:'easyHotel Aéroville', provenanceCle:'easyhotel-aeroville', parReception:true,
       securite:{ empreinteDepot:'e' } });
     /* La base recopie le N° dans le bon : c'est là que l'admin le lit, sans
        nommer la colonne (nommée, elle ferait refuser la lecture avant la
@@ -187,9 +192,9 @@ try {
     await a.waitForSelector('.demande', { timeout:15000 }).catch(() => {});
     await a.waitForTimeout(500);
     const carte = a.locator('.demande').filter({ hasText:'ELA-26-10-K7QPM' }).first();
-    check(largeur + ' px — la carte de l\'admin porte « N° 1042 »', (await carte.locator('.d-num').textContent().catch(() => '')) === 'N° 1042');
+    check(largeur + ' px — la carte de l\'admin porte « N° 1042 »', /^N° 1042\b/.test(await carte.locator('.d-num').textContent().catch(() => '')));
     check(largeur + ' px — …à côté de la référence, jamais dedans',
-      /^ELA-26-10-K7QPM( · .*)?$/.test(await carte.locator('.d-ref').textContent().catch(() => '')), await carte.locator('.d-ref').textContent().catch(() => ''));
+      (await carte.locator('.d-ref').textContent().catch(() => '')) === 'ELA-26-10-K7QPM', await carte.locator('.d-ref').textContent().catch(() => ''));
     check(largeur + ' px — une course sans N° n\'en affiche pas',
       await a.locator('.demande').filter({ hasText:'ELA-26-10-R3TXW' }).first().locator('.d-num').count() === 0);
     const deborde = await carte.evaluate(c => {
@@ -197,11 +202,22 @@ try {
       return [...h.children].filter(x => { const r = x.getBoundingClientRect(); return r.width && (r.right > b.right + 1 || r.left < b.left - 1); }).map(x => x.className);
     });
     check(largeur + ' px — rien ne déborde de la carte', deborde.length === 0, JSON.stringify(deborde));
+    /* Chaque élément sur UNE ligne, et tous sur la même. Le premier jet ne
+       comparait que les hauts : il est passé au vert sur un téléphone où la
+       référence et le prix (« 35,00 / € ») se coupaient en deux lignes. */
     const ligneHaut = await carte.locator('.d-haut').evaluate(h => {
-      const ys = [...h.children].filter(x => x.getBoundingClientRect().width).map(x => Math.round(x.getBoundingClientRect().top));
-      return Math.max(...ys) - Math.min(...ys);
+      const vis = [...h.children].filter(x => x.getBoundingClientRect().width);
+      const ys = vis.map(x => Math.round(x.getBoundingClientRect().top));
+      const coupes = vis.filter(x => x.getBoundingClientRect().height > parseFloat(getComputedStyle(x).fontSize) * 1.7).map(x => x.className);
+      const mesures = vis.map(x => x.className + ' : ' + Math.round(x.getBoundingClientRect().height) + ' px de haut');
+      return { ecart: Math.max(...ys) - Math.min(...ys), coupes, mesures };
     });
-    check(largeur + ' px — le N°, la référence et le prix tiennent sur une ligne', ligneHaut <= 6, ligneHaut + ' px d\'écart');
+    check(largeur + ' px — le N°, l\'attente et le prix tiennent sur une ligne, sans rien couper',
+      ligneHaut.ecart <= 6 && ligneHaut.coupes.length === 0, JSON.stringify(ligneHaut));
+    check(largeur + ' px — le N° porte la durée d\'attente (le signal d\'urgence)',
+      /^N° 1042 · depuis /.test(await carte.locator('.d-num').textContent().catch(() => '')), await carte.locator('.d-num').textContent().catch(() => ''));
+    check(largeur + ' px — la référence technique ' + (largeur > 600 ? 'reste visible' : 's\'efface (elle reste sur la fiche)'),
+      (await carte.locator('.d-ref').isVisible()) === (largeur > 600));
 
     if (largeur === 1366) {
       await carte.click({ timeout:3000 }).catch(() => {});

@@ -627,8 +627,10 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   font-variant-numeric:tabular-nums;}
 /* Le N° court À CÔTÉ de la référence, jamais dedans : « .d-ref » se lit
    comme la référence seule (même règle que la pastille du chauffeur). */
-.d-num{font-size:13px;font-weight:800;color:var(--encre);margin-right:6px;
+.d-num{font-size:13px;font-weight:800;color:inherit;
   font-variant-numeric:tabular-nums;white-space:nowrap;}
+.d-ref.d-ref-tech{font-weight:600;opacity:.78;margin-right:auto;}
+@media (max-width:600px){ .d-ref.d-ref-tech{display:none;} }
 .d-prix{font-size:15px;font-weight:800;letter-spacing:-.02em;}
 .d-trajet{display:block;font-size:13.5px;font-weight:700;margin-top:3px;
   line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -11815,14 +11817,19 @@ window.ELA_TEXTES = {
         '<span class="d-haut"><span class="d-ref"></span><span class="d-prix"></span></span>'
       + '<span class="d-trajet"></span><span class="d-vers"></span>'
       + '<span class="d-bas"><span class="d-gris"></span><span class="d-boutons"></span></span>';
-      el.querySelector(".d-ref").textContent = c.ref
-        + (st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "");
-      /* Le N° court DEVANT la référence, dans son propre élément — jamais
-         dedans : « .d-ref » se lit comme la référence seule. */
+      var depuisAttente = st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "";
+      el.querySelector(".d-ref").textContent = c.ref + (numeroDe(c) ? "" : depuisAttente);
+      /* LE N° COURT DEVANT LA RÉFÉRENCE, dans son propre élément — jamais
+         dedans : « .d-ref » se lit comme la référence seule. Il emporte la
+         durée d'attente (le signal d'urgence), et sur téléphone la
+         référence technique s'efface (« .d-ref-tech ») : mesuré à 390 px,
+         N°, référence, attente et prix ne tenaient pas sur une ligne — le
+         prix se coupait en « 35,00 / € ». Elle reste sur la fiche. */
       if(numeroDe(c)){
         var dn = document.createElement("span");
-        dn.className = "d-num"; dn.textContent = "N° " + numeroDe(c);
+        dn.className = "d-num"; dn.textContent = "N° " + numeroDe(c) + depuisAttente;
         el.querySelector(".d-haut").insertBefore(dn, el.querySelector(".d-ref"));
+        el.querySelector(".d-ref").classList.add("d-ref-tech");
       }
       /* LE CHAUFFEUR SE LIT SUR LA CARTE (3 octobre 2026, audit). Sans lui,
          « À assurer » mêlait les courses placées et celles qui n'avaient
