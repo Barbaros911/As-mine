@@ -1813,28 +1813,20 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-hotel{margin:2px 0 0;font-size:13px;color:var(--gris);}
 .rec-intro{margin:0 0 12px;font-size:13.5px;color:var(--gris);}
 #btnRecReserver{margin:0 0 14px;}
-.rec-chiffres{display:flex;gap:8px;margin:0 0 14px;}
-.rec-chiffre{flex:1 1 0;padding:10px 6px;border:1px solid var(--filet);
-  border-radius:14px;background:var(--carte);text-align:center;}
-.rec-chiffre b{display:block;font-size:21px;line-height:1.1;}
-.rec-chiffre span{display:block;margin-top:2px;font-size:11.5px;color:var(--gris);}
-/* Le seul des trois qui demande quelque chose à quelqu'un s'allume. Si les
-   trois criaient, plus aucun ne crierait — même règle que le tableau de
-   bord de Barbaros, où l'attente est la seule ligne rouge. */
-.rec-chiffre.chaud{border-color:#C9302F;}
-.rec-chiffre.chaud b{color:#C9302F;}
 
 /* « Un imprévu ? » — un aplat d'accent, pas une carte blanche de plus :
    les cartes de course sont blanches, ce bloc ne doit pas se fondre dans
    la série. Il reste à l'écran en permanence, au-dessus de la liste. */
-.rec-aide{margin:0 0 16px;padding:14px 16px;border-radius:16px;
-  background:var(--accent-clair);}
-.rec-aide-titre{margin:0;font-size:15px;font-weight:800;color:var(--accent-encre);}
-.rec-aide-texte{margin:4px 0 10px;font-size:13px;color:var(--accent-encre);}
-.rec-aide .duo{gap:8px;}
-.rec-aide-lien{display:flex;align-items:center;justify-content:center;
-  min-height:44px;border-radius:12px;background:var(--accent);color:#fff;
-  font-size:14px;font-weight:700;text-decoration:none;}
+/* UNE SEULE LIGNE (5 octobre 2026) : titre, phrase, NUMÉRO EN CLAIR, WhatsApp.
+   Elle passe à la ligne d'elle-même sur un téléphone. */
+.rec-aide{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 14px;
+  padding:10px 14px;border-radius:14px;background:var(--accent-clair);}
+.rec-aide-titre{margin:0;font-size:14px;font-weight:800;color:var(--accent-encre);}
+.rec-aide-texte{flex:1 1 180px;margin:0;font-size:13px;color:var(--accent-encre);}
+.rec-aide-lien{display:inline-flex;align-items:center;justify-content:center;
+  min-height:40px;padding:0 14px;border-radius:10px;background:var(--accent);color:#fff;
+  font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;}
+.rec-aide-tel{font-variant-numeric:tabular-nums;letter-spacing:.02em;}
 .rec-aide-lien.rec-wa{background:#25D366;}
 
 .rec-jour{margin:18px 2px 8px;font-size:12px;font-weight:800;
@@ -1843,7 +1835,7 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
    dit — quelqu'un doit s'en occuper. Ce sont les deux seuls rouges. */
 .rec-jour.retard{color:#C9302F;}
 .rec-heure{font-size:19px;font-weight:800;}
-.rec-tel{margin:2px 0 0;font-size:13.5px;font-weight:600;}
+.rec-tel{margin:2px 0 0;font-size:15px;font-weight:800;}
 .rec-tel a{color:var(--encre);}
 .rec-bas{display:flex;justify-content:space-between;align-items:baseline;
   gap:10px;margin:6px 0 0;}
@@ -1870,7 +1862,10 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .rec-quand{margin:6px 0 0;font-size:15px;font-weight:800;}
 .rec-ou{margin:6px 0 0;font-size:13.5px;color:var(--encre);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rec-qui{margin:2px 0 0;font-size:13px;color:var(--gris);
+/* LE CLIENT EST CE QUE LA RÉCEPTION CHERCHE DES YEUX (5 octobre 2026, à sa
+   demande : « le nom du client et son numéro […] très visibles ») : en noir,
+   en gras, plus en gris. */
+.rec-qui{margin:4px 0 0;font-size:16px;font-weight:800;color:var(--encre);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rec-chauffeur{margin:8px 0 0;padding:8px 10px;border-radius:10px;
   background:var(--accent-clair);font-size:13px;color:var(--accent-encre);
@@ -1889,11 +1884,17 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   color:var(--gris);font-variant-numeric:tabular-nums;}
 .rec-course .rec-appel{display:flex;align-items:center;justify-content:center;
   text-decoration:none;}
-/* Deux gestes côte à côte : envoyer le bon, demander l'annulation. */
+/* « À dire au client » : la consigne de la réception après une réservation.
+   Un aplat sombre, pas une ligne grise : c'est la phrase à prononcer. */
+.consigne-comptoir{margin:0 20px 14px;padding:14px 16px;border-radius:14px;background:#062f55;color:#fff;}
+.consigne-comptoir[hidden]{display:none;}
+.consigne-titre{margin:0;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.8;}
+.consigne-texte{margin:6px 0 0;font-size:16px;line-height:1.4;font-weight:700;}
+#btnBbVoirBon{margin:0 0 12px;width:100%;}
+/* Les gestes d'une carte : voir le bon, appeler. */
 .rec-actions{display:flex;gap:8px;margin-top:10px;}
 .rec-actions .bouton-fantome{flex:1 1 0;margin:0;min-height:44px;font-size:13.5px;
   line-height:1.2;padding:8px 10px;}
-.rec-actions .rec-envoyer{border-color:#25D366;color:#128C4A;}
 /* Le rappel des 12 h : discret mais toujours là, en haut de la liste. */
 .rec-session{margin:0 2px 12px;padding:9px 12px;border-radius:10px;
   background:#EEF4F8;color:#24485F;font-size:12.5px;line-height:1.35;}
@@ -1948,31 +1949,6 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   font:inherit;font-size:13px;font-weight:700;color:#0E5FA8;text-decoration:underline;cursor:pointer;}
 .rec-bilan{margin:0;font-size:13px;color:var(--encre);text-align:center;}
 .rec-bilan b{font-weight:800;}
-/* L'aperçu du bon en image. Au-dessus de TOUT (la barre, les feuilles) :
-   une feuille passée dessous laisse ses boutons inaccessibles. */
-.bv{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;}
-.bv[hidden]{display:none;}
-.bv-voile{position:absolute;inset:0;background:rgba(3,28,52,.55);}
-.bv-corps{position:relative;width:100%;max-width:480px;max-height:100%;overflow:auto;
-  background:var(--carte,#fff);border-radius:20px 20px 0 0;padding:16px 16px
-  calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
-.bv-img{display:block;width:100%;max-height:58vh;object-fit:contain;border-radius:12px;
-  background:#EEF3F7;min-height:120px;}
-.bv-etat{margin:0;text-align:center;font-size:13.5px;color:var(--gris);}
-.bv-corps .bouton,.bv-corps .bouton-fantome{margin:0;width:100%;min-height:48px;}
-.bv-corps a.bouton-fantome{display:flex;align-items:center;justify-content:center;text-decoration:none;}
-.bv-fermer{min-height:44px;border:0;background:none;color:var(--gris);font-weight:700;cursor:pointer;}
-.bv-titre{margin:2px 0 0;text-align:center;font-size:16px;font-weight:800;color:#062f55;}
-/* Deux onglets de même largeur ; l'onglet choisi est en bleu ELA plein. */
-.bv-choix{display:flex;gap:6px;padding:4px;border-radius:14px;background:#EEF3F7;}
-.bv-choix button{flex:1 1 0;min-height:44px;border:0;border-radius:10px;background:none;
-  font:inherit;font-size:14px;font-weight:800;color:#14344e;cursor:pointer;}
-.bv-choix button.actif{background:#0E5FA8;color:#fff;}
-.bv-pan{display:flex;flex-direction:column;gap:10px;}
-.bv-pan[hidden]{display:none;}
-.bv-texte{margin:0;padding:14px;border-radius:12px;background:#EEF3F7;color:#14344e;
-  font:600 14px/1.5 inherit;font-family:inherit;white-space:pre-wrap;word-break:break-word;}
-.bv-note{margin:0;text-align:center;font-size:12.5px;line-height:1.4;color:var(--gris);}
 /* Le filet tient sur le bord GAUCHE, là où l'œil descend la liste. Il ne
    prend aucune place en hauteur — la carte vient justement de maigrir de
    142 à 111 px — et il ne recouvre rien. */
@@ -4757,6 +4733,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </div>
     </div>
 
+    <!-- LE BON QUE VOIT LA RÉCEPTION, TEL QUEL (5 octobre 2026, à sa
+         demande : « les bons que voit la réception doivent être les mêmes
+         chez moi »). Même fichier, même dessin : bon-client.js. -->
+    <button class="bouton-fantome" type="button" id="btnBbVoirBon">Voir le bon du client</button>
+
     <div class="bloc">
       <div class="ligne"><span>Référence</span><b id="bbRef">—</b></div>
       <div class="ligne"><span>État</span><b id="bbEtat">—</b></div>
@@ -5065,8 +5046,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </svg>
       </button>
 
-      <!-- Trois chiffres, de front. « Aujourd'hui » d'abord : c'est la
-           seule question qu'un comptoir se pose en arrivant le matin. -->
       <!-- LE RAPPEL DES 12 H, EN HAUT, pour qu'on n'oublie pas le code : il dit
            à quelle heure il sera redemandé. -->
       <p class="rec-session" id="recSession" hidden></p>
@@ -5078,28 +5057,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <button type="button" class="rec-alerte-ok" id="btnRecAlerteOk">Vu</button>
       </div>
 
-      <div class="rec-chiffres">
-        <div class="rec-chiffre"><b id="recNbJour">0</b><span>aujourd'hui</span></div>
-        <div class="rec-chiffre"><b id="recNbAttente">0</b><span>en attente</span></div>
-        <div class="rec-chiffre"><b id="recNbAVenir">0</b><span>à venir</span></div>
-      </div>
-
-      <!-- ═══ ACTUALISER, EN HAUT (30/09/2026, à sa demande) ═══
-           Le bouton existait, mais EN BAS d'une liste qui s'allonge chaque
-           jour : mesuré à 390 px avec deux semaines d'historique, il était
-           à 1 360 px — personne ne le trouvait. Il est ici, sous les
-           chiffres, avec l'heure de la dernière lecture : « Actualiser »
-           sans heure ne dit pas si la liste a vraiment été relue. -->
-      <div class="rec-maj">
-        <span id="recMaj" aria-live="polite"></span>
-        <button type="button" id="btnRecActualiser">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" stroke="currentColor" stroke-width="2.2"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Actualiser</span>
-        </button>
-      </div>
+      <!-- LES TROIS GROS CHIFFRES SONT PARTIS (5 octobre 2026) : les onglets
+           portent déjà leur compte, et sur un PC 1366×768 ils poussaient la
+           première course SOUS le bas de l'écran (mesuré : y = 723 sur 768). -->
 
       <!-- ═══ « UN IMPRÉVU ? » — TOUJOURS VISIBLE, JAMAIS DANS UN MENU ═══
            À sa demande. Un comptoir gère des imprévus toute la journée : un
@@ -5109,12 +5069,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            taxi de la borne. Il est donc écrit en clair, en permanence, et
            il ne dépend d'aucune course sélectionnée. -->
       <div class="rec-aide">
+        <!-- UNE LIGNE, ET LE NUMÉRO ÉCRIT EN CLAIR (5 octobre 2026). Sur le PC
+             d'un hôtel, « Appeler » ouvre au mieux une fenêtre de Windows :
+             la réception compose sur le téléphone du comptoir, il lui faut
+             le NUMÉRO sous les yeux. -->
         <p class="rec-aide-titre">Un imprévu ?</p>
-        <p class="rec-aide-texte">Un retard, un changement d'heure, une annulation : appelez-nous, on s'en occupe tout de suite.</p>
-        <div class="duo">
-          <a class="rec-aide-lien" href="tel:+33759312433" data-t="appeler">Appeler</a>
-          <a class="rec-aide-lien rec-wa" id="recAideWa" href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
-        </div>
+        <p class="rec-aide-texte">Retard, changement, annulation : appelez-nous.</p>
+        <a class="rec-aide-lien rec-aide-tel" href="tel:+33759312433">+33 7 59 31 24 33</a>
+        <a class="rec-aide-lien rec-wa" id="recAideWa" href="https://wa.me/33759312433" target="_blank" rel="noopener">WhatsApp</a>
       </div>
 
       <!-- ═══ RETROUVER UNE COURSE (30/09/2026, à sa demande : « un moyen de
@@ -5134,8 +5096,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </label>
         <div class="rec-vues" role="tablist">
           <button type="button" role="tab" data-vue="avenir" class="actif" aria-selected="true"><span>À venir</span> <b></b></button>
-          <button type="button" role="tab" data-vue="passees" aria-selected="false"><span>Passées</span> <b></b></button>
-          <button type="button" role="tab" data-vue="toutes" aria-selected="false"><span>Toutes</span> <b></b></button>
+          <button type="button" role="tab" data-vue="passees" aria-selected="false"><span>Historique</span> <b></b></button>
           <button type="button" role="tab" data-vue="date" aria-selected="false"><span>Par date</span></button>
         </div>
         <!-- ═══ LA RÉCEPTION D'UN JOUR, D'UN MOIS (30/09/2026, à sa demande) ═══
@@ -5161,12 +5122,27 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </div>
       </div>
 
+      <!-- ═══ ACTUALISER, JUSTE AU-DESSUS DE LA LISTE (5 octobre 2026) ═══
+           À sa demande : « il faut pouvoir l'actualiser ». Le bouton était en
+           haut de page, loin de l'historique qu'on consulte ; il est ici, au
+           bout des onglets, avec l'heure de la dernière lecture. -->
+      <div class="rec-maj">
+        <span id="recMaj" aria-live="polite"></span>
+        <button type="button" id="btnRecActualiser">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Actualiser</span>
+        </button>
+      </div>
+
       <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
       <div id="recListe"></div>
 
       <!-- « Fermer la session » ferme la page : on la met EN BAS. En tête
            d'écran, c'est le bouton qu'on effleure par erreur en voulant
-           faire défiler. « Actualiser » est remonté sous les chiffres. -->
+           faire défiler. « Actualiser » est juste au-dessus de la liste. -->
       <div class="rec-barre">
         <button type="button" class="bouton-fantome" id="btnRecFermer">Fermer la session</button>
       </div>
@@ -5418,6 +5394,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
      arriver après. C'est la seule dépendance de fichier de cette page — et
      elle existe pour qu'il n'y ait pas DEUX lecteurs à tenir. -->
 <script src="telephone.js"></script>
+<script src="bon-client.js"></script>
 <script src="intake-demande.js"></script>
 
 <!-- L'ENCODEUR QR DE L'AFFICHE HÔTEL, PARTAGÉ AVEC ADMIN V2.
@@ -5546,7 +5523,9 @@ window.ELA_TEXTES = {
     bon_note_comptoir:"Nous cherchons un chauffeur. La course passera à « Réservation validée » dans les réservations de l'hôtel dès qu'il est attribué.",
     envoi_ok_comptoir:"Demande bien reçue. Elatransfer est prévenu automatiquement : rien d'autre à faire.",
     voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
-    envoyer_bon_client:"Envoyer le bon au client",
+    voir_bon_client:"Voir le bon du client",
+    consigne_comptoir_titre:"À dire au client",
+    consigne_comptoir:"« Votre réservation sera confirmée par Elatransfer. » Vous verrez aussi la confirmation ici, dans les réservations de l'hôtel.",
     err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
     btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
@@ -5754,7 +5733,9 @@ window.ELA_TEXTES = {
     bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
     envoi_ok_comptoir:"Request received. Elatransfer is alerted automatically: nothing else to do.",
     voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
-    envoyer_bon_client:"Send the voucher to the guest",
+    voir_bon_client:"View the guest's voucher",
+    consigne_comptoir_titre:"Tell the guest",
+    consigne_comptoir:"“Your booking will be confirmed by Elatransfer.” You will also see the confirmation here, in the hotel bookings.",
     err_identite:"Enter the room number, or the guest's name and phone number.",
     btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
@@ -7297,8 +7278,7 @@ window.ELA_TEXTES = {
     for(var iv = 0; iv < vues.length; iv++){
       var v = vues[iv].dataset.vue;
       var compte = vues[iv].querySelector("b");
-      if(compte) compte.textContent =
-        v === "avenir" ? nbAvenir : v === "passees" ? nbPassees : recCourses.length;
+      if(compte) compte.textContent = v === "avenir" ? nbAvenir : nbPassees;
       var actif = !recRecherche && v === recVue;
       vues[iv].classList.toggle("actif", actif);
       vues[iv].setAttribute("aria-selected", actif ? "true" : "false");
@@ -7321,33 +7301,19 @@ window.ELA_TEXTES = {
       : "Aucune réservation pour le moment.";
     delete vide.dataset.fr;
 
-    /* Trois chiffres, et « aujourd'hui » d'abord : c'est la seule question
-       qu'un comptoir se pose en prenant son service. */
-    var auj = 0, att = 0, ave = 0, maintenant = Date.now();
-    recCourses.forEach(function(c){
-      var d = new Date((c.date || "") + "T" + (c.heure || ""));
-      var fini = statutFini(c.statut);
-      if(!isNaN(d.getTime())){
-        var n = new Date();
-        if(d.toDateString() === n.toDateString()) auj++;
-        if(!fini && d.getTime() > maintenant) ave++;
-      }
-      if(c.statut === "attente") att++;
-    });
-    document.getElementById("recNbJour").textContent    = auj;
-    document.getElementById("recNbAttente").textContent = att;
-    document.getElementById("recNbAVenir").textContent  = ave;
-    /* Le compteur « en attente » s'allume : c'est le seul des trois qui
-       demande quelque chose à quelqu'un. */
-    document.getElementById("recNbAttente").parentNode
-            .classList.toggle("chaud", att > 0);
 
     /* Les titres sont posés AU FIL de la liste, pas calculés à part : la
        liste est déjà triée, et deux parcours finiraient par diverger. */
     /* PAR DATE, L'ORDRE EST CELUI DU CALENDRIER, et chaque jour porte sa
        date : on consulte une période, « en retard » n'y a pas sa place. */
     var parDate = recVue === "date" && !recRecherche;
+    /* L'HISTORIQUE DU PLUS RÉCENT AU PLUS ANCIEN, HEURE COMPRISE (5 octobre
+       2026, à sa demande). Les jours l'étaient déjà ; à l'intérieur d'une
+       journée, 8 h passait encore avant 18 h — la course qu'on vient de
+       finir était en bas de son jour. */
+    var historique = recVue === "passees" && !recRecherche;
     var triees = visibles.slice().sort(function(a, b){
+      if(historique) return ((b.date || "") + (b.heure || "")).localeCompare((a.date || "") + (a.heure || ""));
       if(parDate) return ((a.date || "") + (a.heure || "")).localeCompare((b.date || "") + (b.heure || ""));
       var ja = jourRec(a), jb = jourRec(b);
       if(ja.rang !== jb.rang) return ja.rang - jb.rang;
@@ -7506,48 +7472,35 @@ window.ELA_TEXTES = {
         d.appendChild(ch);
       }
 
-      if(j.rang === 0){
-        /* ═══ UNE COURSE EN RETARD SE RÈGLE AU TÉLÉPHONE (30/09/2026) ═══ Son
-           heure est passée : soit elle a été faite, soit quelque chose
-           cloche. Ce qu'il faut, c'est nous parler. */
-        var ap = document.createElement("a");
-        ap.className = "bouton-fantome rec-appel";
-        ap.href = "tel:+" + NUMERO_WA;
-        ap.textContent = "Appeler Elatransfer";
-        d.appendChild(ap);
-      } else if(c.statut === "attente" || c.statut === "confirmee"){
-        /* ═══ LE CLIENT REPART AVEC SON BON (30/09/2026) ═══ Sans lui, il
-           n'a ni la référence, ni l'heure, ni le prix — et c'est la
-           réception qu'il revient voir.
-           PLUS DE « DEMANDER L'ANNULATION » (30/09/2026, à la demande de
-           Barbaros : « la réception ne peut annuler ») : elle appelle, le
-           numéro est écrit en permanence dans « Un imprévu ? ».
-           PLUS DE « RENVOYER LE BON » SUR UNE COURSE FAITE : le bon sans son
-           prix ne servirait plus de justificatif, et le prix d'une course
-           finie ne sort plus du serveur. Le client a son bon sur son
-           téléphone ; sinon c'est Elatransfer qui le lui renvoie. */
+      /* ═══ LE BON S'AFFICHE, IL NE PART PLUS (5 octobre 2026) ═══
+         À sa demande : « la réception n'a pas besoin d'envoyer de bons, on
+         peut juste afficher un bon ». Elle tourne l'écran vers le client ;
+         c'est Elatransfer qui confirme. Le dessin est celui de l'admin
+         (bon-client.js) : les deux voient le même bon.
+         PAS DE BON POUR UNE COURSE NON PRISE OU ANNULÉE : il n'y a plus rien
+         à remettre. Une course EN RETARD garde « Appeler Elatransfer » —
+         soit elle a été faite, soit quelque chose cloche. */
+      if(c.statut !== "refusee" && c.statut !== "annulee"){
         var rang = document.createElement("div");
         rang.className = "rec-actions";
-        var numeroClient = telWa(c.tel);
-        var env = document.createElement("button");
-        env.type = "button"; env.className = "bouton-fantome rec-envoyer";
-        env.textContent = "Envoyer le bon au client";
-        env.addEventListener("click", function(){ ouvrirBonVisuel(bonDeCarte(c), numeroClient); });
-        rang.appendChild(env);
+        var voir = document.createElement("button");
+        voir.type = "button"; voir.className = "bouton-fantome rec-voir-bon";
+        voir.textContent = "Voir le bon";
+        voir.addEventListener("click", function(){
+          if(window.ELA_BON) window.ELA_BON.ouvrir(window.ELA_BON.depuisListe(c), recEnAnglais() ? "en" : "fr");
+        });
+        rang.appendChild(voir);
+        if(j.rang === 0){
+          var ap = document.createElement("a");
+          ap.className = "bouton-fantome rec-appel";
+          ap.href = "tel:+" + NUMERO_WA;
+          ap.textContent = "Appeler Elatransfer";
+          rang.appendChild(ap);
+        }
         d.appendChild(rang);
       }
       liste.appendChild(d);
     });
-  }
-
-  /* La course telle que la liste la reçoit, mise à la forme commune du
-     message au client. */
-  function bonDeCarte(c){
-    return { ref:c.ref, date:c.date, heure:c.heure,
-             depart:(c.depart || (recHotel ? recHotel.nom : "")).split(",")[0],
-             arrivee:(c.arrivee || (recHotel ? recHotel.nom : "")).split(",")[0],
-             vehicule:c.vehicule, prix:c.prix, paiement:c.paiement, statut:c.statut,
-             chauffeur:((c.statut === "confirmee" || c.statut === "realisee") && c.chauffeur) ? c.chauffeur : null };
   }
 
   /* ═══ CE QUI A CHANGÉ DEPUIS LE DERNIER REGARD (30/09/2026) ═══
@@ -7855,26 +7808,36 @@ window.ELA_TEXTES = {
         });
         var actionsBon = document.getElementById("actionsBon");
         actionsBon.insertBefore(versRec, document.getElementById("btnNouvelleCourse"));
-        /* Et le client repart avec son bon, dans le même geste. */
+        /* LE BON S'AFFICHE, IL NE PART PLUS (5 octobre 2026) : le même que
+           dans la liste et dans l'admin (bon-client.js). */
         var envBon = document.createElement("button");
         envBon.type = "button"; envBon.className = "bouton-fantome";
-        envBon.id = "btnBonEnvoyerClient"; envBon.hidden = true;
-        envBon.setAttribute("data-t", "envoyer_bon_client");
-        envBon.textContent = T("envoyer_bon_client");
+        envBon.id = "btnBonVoirClient"; envBon.hidden = true;
+        envBon.setAttribute("data-t", "voir_bon_client");
+        envBon.textContent = T("voir_bon_client");
         envBon.addEventListener("click", function(){
-          if(!bonCourant) return;
-          var num = telWa(bonCourant.client && bonCourant.client.telephone);
-          var co = bonCourant.course || {};
-          ouvrirBonVisuel({
-            ref:bonCourant.ref, date:co.date, heure:co.heure,
-            depart:(co.departPublic || co.depart || "").split(",")[0],
-            arrivee:(co.arriveePublic || co.arrivee || "").split(",")[0],
-            vehicule:co.vehicule, prix:bonCourant.prix && bonCourant.prix.total,
-            paiement:bonCourant.paiement ? T(bonCourant.paiement === "carte" ? "paiement_carte" : "paiement_especes") : "",
-            statut:bonCourant.statut, chauffeur:bonCourant.statut === "confirmee" ? bonCourant.chauffeur : null
-          }, num);
+          if(!bonCourant || !window.ELA_BON) return;
+          window.ELA_BON.ouvrir(window.ELA_BON.depuisRegistre(bonCourant), LANGUE === "en" ? "en" : "fr");
         });
         actionsBon.insertBefore(envBon, versRec);
+        /* ═══ CE QU'IL FAUT DIRE AU CLIENT (5 octobre 2026, à sa demande) ═══
+           « une fois la réservation faite par l'hôtel, bien dire au client
+           que la confirmation se fait par Elatransfer ». Un encadré en tête
+           du bon, pas une ligne grise : c'est la consigne de la réception.
+           Il se tait si le dépôt échoue — l'écriteau rouge dit alors
+           d'appeler, et rien n'est encore à confirmer. */
+        var consigne = document.createElement("div");
+        consigne.id = "consigneComptoir"; consigne.className = "consigne-comptoir";
+        consigne.setAttribute("role", "note");
+        var cTitre = document.createElement("p");
+        cTitre.className = "consigne-titre"; cTitre.setAttribute("data-t", "consigne_comptoir_titre");
+        cTitre.textContent = T("consigne_comptoir_titre");
+        var cTexte = document.createElement("p");
+        cTexte.className = "consigne-texte"; cTexte.setAttribute("data-t", "consigne_comptoir");
+        cTexte.textContent = T("consigne_comptoir");
+        consigne.appendChild(cTitre); consigne.appendChild(cTexte);
+        var ecranBon = document.getElementById("ecran-bon");
+        ecranBon.insertBefore(consigne, ecranBon.firstElementChild);
       }
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
@@ -10274,313 +10237,16 @@ window.ELA_TEXTES = {
      l'absence de repli — il désignerait une porte qui n'existe plus.
      RIEN DE TOUT ÇA CÔTÉ CLIENT : lui garde son bouton en permanence, son
      message WhatsApp est le second chemin par lequel sa demande arrive. */
-  /* ═══ LE BON ENVOYÉ AU CLIENT PAR LA RÉCEPTION (30/09/2026) ═══
-     Sept lignes, dans la langue choisie à l'écran (le sélecteur FR/EN sert
-     justement quand le client devant le comptoir est étranger). Ce sont SES
-     informations, envoyées à SON numéro : rien d'autre que sa course. Le
-     chauffeur n'y figure que sur une course confirmée — avant, rien n'est
-     acquis, et un nom promettrait une voiture que personne n'a acceptée. */
-  function langueMessage(){ return document.documentElement.lang === "en" ? "en" : "fr"; }
-  function messageBonClient(b, langue){
-    var en = langue === "en";
-    var d = new Date((b.date || "") + "T" + (b.heure || ""));
-    var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
-      : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
-        + (en ? " at " : " à ") + (b.heure || "");
-    var prix = (typeof b.prix === "number" && b.prix)
-      ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €" : "";
-    var etat = (b.statut === "confirmee" || b.statut === "realisee")
-      ? (b.statut === "realisee" ? (en ? "Completed" : "Course effectuée") : (en ? "Confirmed" : "Confirmé"))
-        + (b.chauffeur && b.chauffeur.nom ? (en ? " — driver " : " — chauffeur ") + b.chauffeur.nom
-           + (b.chauffeur.telephone ? ", " + b.chauffeur.telephone : "") : "")
-      : (en ? "Awaiting confirmation — we will confirm shortly" : "En attente de confirmation — nous confirmons très vite");
-    return [
-      en ? "Elatransfer — your transfer" : "Elatransfer — votre transfert",
-      (en ? "Ref. " : "Réf. ") + (b.ref || ""),
-      quand.charAt(0).toUpperCase() + quand.slice(1),
-      (b.depart || "—") + " → " + (b.arrivee || "—"),
-      [b.vehicule, prix, b.paiement].filter(Boolean).join(" · "),
-      etat,
-      (en ? "Questions: " : "Une question : ") + "+33 7 59 31 24 33"
-    ].join("\n");
-  }
-
-  /* ═══ LE BON EN IMAGE (30/09/2026, à sa demande : « un bon visuel plutôt
-     qu'un message ») ═══
-     Une image se montre au client devant le comptoir, se photographie, et
-     arrive dans WhatsApp comme un vrai bon — le même que celui du site :
-     le logo, l'état, la référence, le trajet, le prix ferme.
-     DESSINÉE DANS LA PAGE (canvas), pas chez un tiers : les informations
-     d'un client ne partent vers aucun service pour être mises en forme.
-     LE PARTAGE PASSE PAR UN APERÇU, et ce n'est pas un détour. Safari
-     n'autorise le partage d'un fichier que dans la foulée immédiate d'un
-     appui ; fabriquer l'image prend un instant. On la fabrique donc à
-     l'ouverture de l'aperçu, et le bouton « Envoyer » la partage d'un
-     coup, sans attente.
-     LE TEXTE RESTE EN SECOURS : un partage de fichier ne sait pas viser un
-     numéro, et certains navigateurs ne partagent pas d'image du tout. */
-  function sautsDeLigne(ctx, texte, largeur, maxLignes){
-    var mots = String(texte || "").split(/\s+/), lignes = [], cur = "";
-    mots.forEach(function(m){
-      var essai = cur ? cur + " " + m : m;
-      if(ctx.measureText(essai).width > largeur && cur){ lignes.push(cur); cur = m; }
-      else cur = essai;
-    });
-    if(cur) lignes.push(cur);
-    if(lignes.length > maxLignes){
-      lignes = lignes.slice(0, maxLignes);
-      var der = lignes[maxLignes - 1];
-      while(der.length > 1 && ctx.measureText(der + "…").width > largeur) der = der.slice(0, -1);
-      lignes[maxLignes - 1] = der + "…";
-    }
-    return lignes;
-  }
-  function rectArrondi(ctx, x, y, l, h, r){
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + l, y, x + l, y + h, r);
-    ctx.arcTo(x + l, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + l, y, r); ctx.closePath();
-  }
-  function dessinerBonImage(b, langue){
-    var en = langue === "en";
-    var P = "Figtree, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-    var W = 1080, H = 1350;
-    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-    var ctx = cv.getContext("2d");
-    var logo = new Image(); logo.src = "brand-logo.webp";
-    var pret = (logo.decode ? logo.decode() : Promise.resolve()).catch(function(){ logo = null; });
-    var polices = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
-    return Promise.all([pret, polices]).then(function(){
-      /* Une course EFFECTUÉE se renvoie aussi (30/09/2026) : un client
-         qui revient au comptoir pour sa note de frais veut la référence,
-         le trajet et le prix. Elle garde le bleu et son chauffeur. */
-      var effectuee = b.statut === "realisee";
-      var confirme = b.statut === "confirmee" || effectuee;
-      var d = new Date((b.date || "") + "T" + (b.heure || ""));
-      var quand = isNaN(d.getTime()) ? ((b.date || "") + " " + (b.heure || "")).trim()
-        : d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday:"long", day:"numeric", month:"long" })
-          + " · " + (b.heure || "");
-      quand = quand.charAt(0).toUpperCase() + quand.slice(1);
-      var lignes = [
-        [en ? "Date & time" : "Date et heure", quand, 44],
-        [en ? "Pick-up" : "Départ", b.depart || "—", 36],
-        [en ? "Drop-off" : "Arrivée", b.arrivee || "—", 36],
-        [en ? "Vehicle · payment" : "Véhicule · paiement",
-          [b.vehicule, b.paiement].filter(Boolean).join(" · ") || "—", 36]
-      ];
-      if(confirme && b.chauffeur && b.chauffeur.nom){
-        lignes.push([en ? "Driver" : "Chauffeur",
-          b.chauffeur.nom + (b.chauffeur.telephone ? " · " + b.chauffeur.telephone : ""), 36]);
-      }
-      /* LA HAUTEUR SUIT LE CONTENU. Une hauteur fixe coupait la dernière
-         ligne — celle du chauffeur, justement celle qui compte sur un bon
-         confirmé. On mesure d'abord, on dessine ensuite. */
-      lignes.forEach(function(l){
-        ctx.font = "700 " + l[2] + "px " + P;
-        l.push(sautsDeLigne(ctx, l[1], 840, 2));
-      });
-      var HAUT_LIGNES = 575, finLignes = HAUT_LIGNES;
-      function hauteurLigne(l){ return 12 + l[3].length * (l[2] + 10) + 44; }
-      lignes.forEach(function(l){ finLignes += hauteurLigne(l); });
-      H = Math.max(1350, finLignes + 300);
-      cv.height = H;
-      var bas = H;
-
-      ctx.fillStyle = "#EEF3F7"; ctx.fillRect(0, 0, W, H);
-      ctx.save(); ctx.shadowColor = "rgba(6,47,85,.12)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
-      rectArrondi(ctx, 60, 60, 960, H - 120, 44); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore();
-      ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-      if(logo && logo.naturalWidth){
-        var lw = 380, lh = lw * logo.naturalHeight / logo.naturalWidth;
-        ctx.drawImage(logo, (W - lw) / 2, 105, lw, lh);
-      } else {
-        ctx.fillStyle = "#062f55"; ctx.font = "800 72px " + P; ctx.fillText("Elatransfer", W / 2, 220);
-      }
-      /* L'état : gris tant qu'on cherche, vert plein une fois confirmé —
-         la même règle que le bon du site. */
-      var etat = effectuee ? (en ? "COMPLETED" : "EFFECTUÉE")
-        : confirme ? (en ? "CONFIRMED" : "CONFIRMÉ") : (en ? "REQUEST RECEIVED" : "DEMANDE REÇUE");
-      ctx.font = "800 28px " + P;
-      var pl = ctx.measureText(etat).width + 60;
-      rectArrondi(ctx, (W - pl) / 2, 305, pl, 56, 28);
-      ctx.fillStyle = confirme ? "#0E5FA8" : "#6B7780"; ctx.fill();
-      ctx.fillStyle = "#fff"; ctx.fillText(etat, W / 2, 343);
-      ctx.fillStyle = "#14344e"; ctx.font = "800 64px " + P; ctx.fillText(b.ref || "", W / 2, 440);
-      ctx.fillStyle = "#6f7f8b"; ctx.font = "700 26px " + P;
-      ctx.fillText(en ? "BOOKING VOUCHER" : "BON DE RÉSERVATION", W / 2, 482);
-      ctx.fillStyle = "#dbe6ed"; ctx.fillRect(120, 518, 840, 2);
-
-      ctx.textAlign = "left";
-      var y = HAUT_LIGNES;
-      lignes.forEach(function(l){
-        ctx.fillStyle = "#6f7f8b"; ctx.font = "600 26px " + P; ctx.fillText(l[0], 120, y);
-        ctx.fillStyle = "#14344e"; ctx.font = "700 " + l[2] + "px " + P;
-        l[3].forEach(function(t, i){ ctx.fillText(t, 120, y + 12 + l[2] + i * (l[2] + 10)); });
-        y += hauteurLigne(l);
-      });
-      var yPrix = bas - 290;
-
-      /* Le prix dans son encart bleu clair : c'est la dernière chose qu'on relit. */
-      rectArrondi(ctx, 120, yPrix, 840, 130, 28); ctx.fillStyle = "#EAF3FC"; ctx.fill();
-      ctx.fillStyle = "#062f55"; ctx.font = "800 28px " + P; ctx.textAlign = "left";
-      var aPrix = typeof b.prix === "number" && b.prix > 0;
-      ctx.fillText(aPrix ? (en ? "FIRM PRICE" : "PRIX FERME") : (en ? "PRICE" : "PRIX"), 160, yPrix + 78);
-      var prix = aPrix
-        ? b.prix.toLocaleString(en ? "en-GB" : "fr-FR", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €"
-        : (en ? "To be confirmed" : "À confirmer");
-      ctx.font = "800 60px " + P; ctx.textAlign = "right"; ctx.fillText(prix, 920, yPrix + 86);
-
-      ctx.textAlign = "center"; ctx.fillStyle = "#6f7f8b"; ctx.font = "500 26px " + P;
-      ctx.fillText((en ? "Paid directly to the driver · " : "Réglé directement au chauffeur · ") + "+33 7 59 31 24 33", W / 2, bas - 110);
-      return new Promise(function(ok, ko){
-        cv.toBlob(function(bl){ bl ? ok(bl) : ko(new Error("image")); }, "image/png");
-      });
-    });
-  }
-
-  /* ═══ LE CHOIX : BON EN IMAGE OU MESSAGE ÉCRIT (30/09/2026) ═══
-     À sa demande : « il faut qu'on puisse avoir le choix entre le bon en
-     image et en écrit ». Deux onglets en tête de la feuille, et chacun MONTRE
-     ce qui partira avant qu'on l'envoie — l'image, ou le texte exact.
-     - IMAGE : « Envoyer l'image » ouvre le partage du téléphone (on y choisit
-       WhatsApp puis le client) ; sans partage possible, « Enregistrer
-       l'image » la range dans la galerie.
-     - ÉCRIT : « Envoyer sur WhatsApp » écrit DIRECTEMENT au numéro du client
-       — c'est son avantage sur l'image. Sans numéro, on copie le message.
-     L'image s'ouvre par défaut : c'est la demande de Barbaros, et c'est ce
-     qu'un client relit le plus facilement. Créée au premier usage — la page
-     du client n'en a jamais besoin. */
-  function ouvrirBonVisuel(b, numero){
-    var en = langueMessage() === "en";
-    var f = document.getElementById("bonVisuel");
-    if(!f){
-      f = document.createElement("div");
-      f.id = "bonVisuel"; f.className = "bv"; f.setAttribute("role", "dialog");
-      f.setAttribute("aria-modal", "true");
-      f.innerHTML = '<div class="bv-voile"></div><div class="bv-corps">'
-        + '<p class="bv-titre" id="bvTitre"></p>'
-        + '<div class="bv-choix" role="tablist">'
-        +   '<button type="button" role="tab" data-bv="image" id="bvOngletImage"></button>'
-        +   '<button type="button" role="tab" data-bv="texte" id="bvOngletTexte"></button>'
-        + '</div>'
-        + '<div class="bv-pan" data-pan="image">'
-        +   '<img class="bv-img" alt="">'
-        +   '<p class="bv-etat"></p>'
-        +   '<button type="button" class="bouton" id="bvPartager"></button>'
-        +   '<a class="bouton-fantome" id="bvEnregistrer"></a>'
-        +   '<p class="bv-note" id="bvNoteImage"></p>'
-        + '</div>'
-        + '<div class="bv-pan" data-pan="texte" hidden>'
-        +   '<pre class="bv-texte" id="bvApercuTexte"></pre>'
-        +   '<button type="button" class="bouton" id="bvTexte"></button>'
-        +   '<button type="button" class="bouton-fantome" id="bvCopier"></button>'
-        +   '<p class="bv-note" id="bvNoteTexte"></p>'
-        + '</div>'
-        + '<button type="button" class="bv-fermer" id="bvFermer"></button></div>';
-      document.body.appendChild(f);
-      var fermer = function(){
-        f.hidden = true;
-        if(f.dataset.url){ URL.revokeObjectURL(f.dataset.url); delete f.dataset.url; }
-      };
-      f.querySelector(".bv-voile").addEventListener("click", fermer);
-      document.getElementById("bvFermer").addEventListener("click", fermer);
-      f.querySelectorAll(".bv-choix button").forEach(function(o){
-        o.addEventListener("click", function(){ montrerChoixBon(o.dataset.bv); });
-      });
-      document.getElementById("bvPartager").addEventListener("click", function(){
-        var fichier = f._fichier;
-        if(fichier && navigator.canShare && navigator.canShare({ files:[fichier] })){
-          navigator.share({ files:[fichier], title:f._titre }).catch(function(){});
-        } else {
-          document.getElementById("bvEnregistrer").click();
-        }
-      });
-      document.getElementById("bvTexte").addEventListener("click", function(){
-        if(!f._numero) return;
-        window.open("https://wa.me/" + f._numero + "?text="
-          + encodeURIComponent(f._message), "_blank", "noopener");
-      });
-      document.getElementById("bvCopier").addEventListener("click", function(){
-        var bouton = this, en2 = langueMessage() === "en";
-        var fait = function(){ bouton.textContent = en2 ? "Message copied" : "Message copié"; };
-        if(navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(f._message).then(fait).catch(function(){ selectionnerTexte(); });
-        } else selectionnerTexte();
-      });
-    }
-    function selectionnerTexte(){
-      var pre = document.getElementById("bvApercuTexte");
-      var r = document.createRange(); r.selectNodeContents(pre);
-      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
-    }
-    f._bon = b; f._numero = numero || ""; f._fichier = null;
-    f._message = messageBonClient(b, langueMessage());
-    f._titre = (en ? "Voucher " : "Bon ") + (b.ref || "");
-    document.getElementById("bvTitre").textContent = en ? "Send the voucher to the guest" : "Envoyer le bon au client";
-    document.getElementById("bvOngletImage").textContent = en ? "Image voucher" : "Bon en image";
-    document.getElementById("bvOngletTexte").textContent = en ? "Written message" : "Message écrit";
-    var img = f.querySelector(".bv-img"), etat = f.querySelector(".bv-etat");
-    var partager = document.getElementById("bvPartager"), enreg = document.getElementById("bvEnregistrer");
-    var noteImage = document.getElementById("bvNoteImage");
-    img.alt = f._titre; img.removeAttribute("src");
-    etat.textContent = en ? "Preparing the voucher…" : "Préparation du bon…"; etat.hidden = false;
-    partager.textContent = en ? "Send the image" : "Envoyer l'image";
-    enreg.textContent = en ? "Save the image" : "Enregistrer l'image";
-    partager.hidden = true; enreg.hidden = true; noteImage.hidden = true;
-    /* Le texte : on MONTRE exactement ce qui partira. */
-    document.getElementById("bvApercuTexte").textContent = f._message;
-    var btnTexte = document.getElementById("bvTexte"), btnCopier = document.getElementById("bvCopier");
-    var noteTexte = document.getElementById("bvNoteTexte");
-    btnTexte.textContent = en ? "Send on WhatsApp" : "Envoyer sur WhatsApp";
-    btnCopier.textContent = en ? "Copy the message" : "Copier le message";
-    btnTexte.hidden = !numero;
-    btnCopier.className = numero ? "bouton-fantome" : "bouton";
-    noteTexte.textContent = numero
-      ? (en ? "Opens WhatsApp directly on the guest's number." : "Ouvre WhatsApp directement sur le numéro du client.")
-      : (en ? "No phone number for this guest: copy the message and send it yourself."
-            : "Pas de numéro pour ce client : copiez le message pour l'envoyer vous-même.");
-    document.getElementById("bvFermer").textContent = en ? "Close" : "Fermer";
-    montrerChoixBon("image");
-    f.hidden = false;
-    dessinerBonImage(b, langueMessage()).then(function(blob){
-      if(f.dataset.url) URL.revokeObjectURL(f.dataset.url);
-      var url = URL.createObjectURL(blob); f.dataset.url = url;
-      img.src = url;
-      var nom = "bon-" + (b.ref || "elatransfer") + ".png";
-      try{ f._fichier = new File([blob], nom, { type:"image/png" }); }catch(e){ f._fichier = null; }
-      enreg.href = url; enreg.download = nom; enreg.hidden = false;
-      /* « Envoyer l'image » n'apparaît que si l'appareil sait partager un
-         fichier ; sinon on enregistre, et on dit quoi faire ensuite. */
-      var peutPartager = !!(f._fichier && navigator.canShare && navigator.canShare({ files:[f._fichier] }));
-      partager.hidden = !peutPartager;
-      enreg.className = peutPartager ? "bouton-fantome" : "bouton";
-      noteImage.textContent = peutPartager
-        ? (en ? "Choose WhatsApp, then the guest." : "Choisissez WhatsApp, puis le client.")
-        : (en ? "Save it, then send it from your photos — or show the screen to the guest."
-              : "Enregistrez-la puis envoyez-la depuis vos photos — ou montrez l'écran au client.");
-      noteImage.hidden = false;
-      etat.hidden = true;
-    }).catch(function(){
-      etat.textContent = en ? "The image could not be created: use the written message."
-                            : "L'image n'a pas pu être créée : utilisez le message écrit.";
-    });
-  }
-  function montrerChoixBon(choix){
-    var f = document.getElementById("bonVisuel");
-    if(!f) return;
-    f.querySelectorAll(".bv-choix button").forEach(function(o){
-      var actif = o.dataset.bv === choix;
-      o.classList.toggle("actif", actif);
-      o.setAttribute("aria-selected", actif ? "true" : "false");
-    });
-    f.querySelectorAll(".bv-pan").forEach(function(p){ p.hidden = p.dataset.pan !== choix; });
-  }
-
+  /* LE BON N'EST PLUS ENVOYÉ PAR LA RÉCEPTION (5 octobre 2026) : il
+     s'affiche, et il est dessiné par bon-client.js, le même fichier que
+     l'admin. L'image fabriquée et le message WhatsApp sont partis avec. */
   function jugerRenvoiComptoir(){
     if(!recHotel) return;
     btnRenvoyer.hidden = true;
-    var envBon = document.getElementById("btnBonEnvoyerClient");
+    var envBon = document.getElementById("btnBonVoirClient");
     if(envBon) envBon.hidden = !bonCourant;
+    var consigne = document.getElementById("consigneComptoir");
+    if(consigne) consigne.hidden = envoiEtat === false;
     /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
        rouge posé juste au-dessus porte déjà la consigne et le numéro ;
        deux phrases pour une même chose, c'est le doublon qu'on vient de
@@ -12621,6 +12287,10 @@ window.ELA_TEXTES = {
     nuage.appel("/rest/v1/rpc/ela_marquer_vue", { method:"POST", body: JSON.stringify({ p_ref: ref }) })
       .catch(function(){ vuesSignalees[ref] = false; });
   }
+  var btnBbVoirBon = document.getElementById("btnBbVoirBon");
+  if(btnBbVoirBon) btnBbVoirBon.addEventListener("click", function(){
+    if(bonBord && window.ELA_BON) window.ELA_BON.ouvrir(window.ELA_BON.depuisRegistre(bonBord), "fr");
+  });
   function ouvrirBonBord(ref){
     arreterAlarme();
     signalerVue(ref);
