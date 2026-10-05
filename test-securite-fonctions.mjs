@@ -226,6 +226,19 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(bd.course?.arriveeLieu?.provider==='inconnu'&&bd.course.arriveeLieu.adresse.length<=300&&bd.course.itineraireSource==='','deposer-course : source inconnue, texte borné, itinéraire inconnu vidé');
   const e5=await dep(bonKm('ELA-26-10-LE5EE',90,{departLieu:undefined,arriveeLieu:undefined,itineraireSource:undefined}));
   ok(e5.status===201&&(deposes[4]||{}).course?.departLieu===null,'deposer-course : une page ancienne sans lieux structurés passe comme avant');
+  /* PAR OÙ JOINDRE LE CLIENT (4 octobre 2026) : le choix du site est GARDÉ
+     en base — sans lui l'admin ne le voit jamais — et seules deux listes
+     fermées passent. Une page ancienne sans ce champ dépose comme avant. */
+  const nc=deposes.length;
+  const avecContact=(ref,contact)=>{const x=bonKm(ref,90);x.contact=contact;return x;};
+  const k1=await dep(avecContact('ELA-26-10-LK1KK',{envoi:'site',prefere:'telegram'}));
+  ok(k1.status===201&&deposes[nc]?.contact?.envoi==='site'&&deposes[nc]?.contact?.prefere==='telegram',
+     'deposer-course : le canal du client est gardé en base ('+JSON.stringify(deposes[nc]?.contact)+')');
+  const k2=await dep(avecContact('ELA-26-10-LK2KK',{envoi:'pigeon',prefere:'telegram'}));
+  ok(k2.status===201&&deposes[nc+1]?.contact===null,'deposer-course : un canal d\'envoi inconnu est écarté, la course passe');
+  const k3=await dep(avecContact('ELA-26-10-LK3KK',{envoi:'whatsapp',prefere:'<script>'}));
+  ok(k3.status===201&&deposes[nc+2]?.contact?.prefere==='','deposer-course : une préférence inconnue est vidée');
+  ok((deposes[4]||{}).contact===null,'deposer-course : une page sans ce champ dépose comme avant (contact nul)');
   /* LES DEMANDES HORS CAS STANDARD (4 octobre 2026) : elles passent, mais
      leur prix est FORCÉ À ZÉRO — un client ne peut pas y glisser un montant
      — et ailleurs un prix positif est EXIGÉ : le 0 € passait sans un mot. */

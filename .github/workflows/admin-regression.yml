@@ -88,7 +88,7 @@ jobs:
           # tournaient qu'à la main, alors que l'hôtel s'en sert dès le 12.
           # Toute suite « test-reception-* » est prise d'office.
           for f in test-reception-*.mjs; do suites="$suites ${f%.mjs}"; done
-          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel test-nouveau-reception test-easyhotel-client"
+          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel test-nouveau-reception test-easyhotel-client"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

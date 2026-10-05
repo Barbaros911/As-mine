@@ -96,6 +96,8 @@ async function jusquAuBon(p, nom = 'Jean Martin') {
   await p.fill('#clientNom', nom).catch(() => {});
   await p.fill('#clientTel', '06 12 34 56 78').catch(() => {});
   await p.locator('[data-paiement="especes"]').click().catch(() => {});
+  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
   await p.locator('#btnConfirmer').click().catch(() => {});
   await p.waitForTimeout(1200);
 }

@@ -134,6 +134,8 @@ check('chaque bouton fait au moins 44 px de haut', hauteurs.every(h=>h>=44), hau
 
 // ---- Sans choix, rien ne part ----
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(250);
 check('sans mode de règlement, la course ne part pas',
   await p.locator('#ecran-recap').isVisible() && !(await p.locator('#ecran-bon').isVisible()));
@@ -157,6 +159,8 @@ const fonds = await p.evaluate(()=>[...document.querySelectorAll('[data-paiement
 check('le bouton choisi se distingue à l\'œil aussi', fonds[0]!==fonds[1], fonds.join(' / '));
 
 // ---- Le bon du client ----
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(800);
 check('la course part une fois le mode choisi', await p.locator('#ecran-bon').isVisible());
 check('le bon porte le mode de règlement',
@@ -164,6 +168,8 @@ check('le bon porte le mode de règlement',
   await p.locator('#bonPaiement').textContent());
 
 // ---- Le message à Barbaros ----
+// Il ne part plus au clic (option A, 4/10/2026) : par le repli du bon.
+await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(300);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 const L = msg.split('\n');
 check('le message porte la ligne « Paiement »',
@@ -203,15 +209,21 @@ check('et il affirme en anglais aussi',
   !/[?？]\s*$/.test(await p.locator('#blocPaiement .bloc-titre').textContent()),
   await p.locator('#blocPaiement .bloc-titre').textContent());
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(250);
 check('le refus est traduit lui aussi',
   /pay/i.test(await p.locator('#erreurPaiement').textContent()),
   await p.locator('#erreurPaiement').textContent());
 await p.locator('[data-paiement="especes"]').click();
+/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
+await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(800);
 check('le bon anglais affiche « Cash »',
   (await p.locator('#bonPaiement').textContent())==='Cash',
   await p.locator('#bonPaiement').textContent());
+await p.evaluate(()=>{ window.__liens = []; });
+await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(300);
 const msgEn = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('mais le message à Barbaros reste en français',
   msgEn.includes('Paiement : Espèces'),
