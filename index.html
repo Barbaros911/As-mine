@@ -78,51 +78,66 @@
 <link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="icon-180.png">
 
-<!-- DONNÉES STRUCTURÉES. « LimousineService », jamais « TaxiService » : un
-     VTC n'a ni licence de taxi, ni taximètre, ni droit de maraude. Le
-     déclarer serait factuellement faux.
-     Ni prix ni avis ici : la grille bouge, et nous n'avons aucun avis client
-     réellement reçu. Déclarer une note inventée est une pratique commerciale
-     trompeuse (L132-2 Code conso.), et Google sanctionne des données
-     structurées qui ne correspondent pas à la page. -->
+<!-- DONNÉES STRUCTURÉES — UNE SEULE ENTREPRISE (5 octobre 2026).
+     La page construite en déclarait trois qui ne se reliaient pas :
+     « LimousineService » ici, « LocalBusiness » et « WebSite » posés par
+     seo-ela.mjs. Pour Google, trois entités au même nom sans lien entre
+     elles, c'est trois entreprises possibles. Un seul graphe, une seule
+     fiche (#organisation) que le site et les pages de service désignent.
+     « Organization » et non « LocalBusiness » : on n'a pas d'adresse où le
+     client se présente, et une adresse inventée est interdite.
+     JAMAIS « VTC » : Barbaros ne veut pas l'afficher, ses chauffeurs peuvent
+     être VTC ou taxi. JAMAIS « TaxiService » : on ne fait pas de maraude.
+     Ni prix ni avis : la grille se règle depuis l'admin, et une note
+     inventée est une pratique commerciale trompeuse (L132-2 Code conso.). -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "LimousineService",
-  "@id": "https://elatransfer.com/#service",
-  "name": "Elatransfer — Chauffeur privé VTC",
-  "description": "Chauffeur privé à Paris et en Île-de-France. Transferts vers Roissy-Charles de Gaulle, Orly et Beauvais, trajets d'une adresse à une autre. Prix ferme annoncé avant la réservation.",
-  "url": "https://elatransfer.com/",
-  "image": "https://elatransfer.com/brand-logo.webp",
-  "telephone": "+33759312433",
-  "priceRange": "€€",
-  "currenciesAccepted": "EUR",
-  "paymentAccepted": "Espèces, carte bancaire à bord",
-  "openingHoursSpecification": {
-    "@type": "OpeningHoursSpecification",
-    "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
-    "opens": "00:00",
-    "closes": "23:59"
-  },
-  "provider": {
-    "@type": "LocalBusiness",
-    "name": "Elatransfer",
-    "telephone": "+33759312433",
-    "areaServed": [
-      {"@type":"City","name":"Paris"},
-      {"@type":"AdministrativeArea","name":"Île-de-France"}
-    ],
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Paris",
-      "addressRegion": "Île-de-France",
-      "addressCountry": "FR"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://elatransfer.com/#organisation",
+      "name": "Elatransfer",
+      "url": "https://elatransfer.com/",
+      "logo": {"@type": "ImageObject", "url": "https://elatransfer.com/brand-logo.webp"},
+      "image": "https://elatransfer.com/brand-logo.webp",
+      "description": "Transferts privés avec chauffeur à Paris et en Île-de-France : aéroports Roissy-Charles de Gaulle, Orly et Beauvais, gares, hôtels, d'une adresse à une autre. Prix ferme annoncé avant la réservation, réglé au chauffeur.",
+      "telephone": "+33759312433",
+      "email": "contact@elatransfer.com",
+      "areaServed": [
+        {"@type": "City", "name": "Paris"},
+        {"@type": "AdministrativeArea", "name": "Île-de-France"}
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+33759312433",
+        "email": "contact@elatransfer.com",
+        "contactType": "customer service",
+        "areaServed": "FR",
+        "availableLanguage": ["French", "English"]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://elatransfer.com/#site",
+      "name": "Elatransfer",
+      "url": "https://elatransfer.com/",
+      "inLanguage": "fr-FR",
+      "publisher": {"@id": "https://elatransfer.com/#organisation"}
+    },
+    {
+      "@type": "Service",
+      "@id": "https://elatransfer.com/#transferts",
+      "name": "Transferts privés avec chauffeur",
+      "serviceType": "Transfert privé avec chauffeur, sur réservation",
+      "provider": {"@id": "https://elatransfer.com/#organisation"},
+      "areaServed": [
+        {"@type": "Airport", "name": "Aéroport Paris-Charles de Gaulle", "iataCode": "CDG"},
+        {"@type": "Airport", "name": "Aéroport de Paris-Orly", "iataCode": "ORY"},
+        {"@type": "Airport", "name": "Aéroport de Beauvais-Tillé", "iataCode": "BVA"},
+        {"@type": "AdministrativeArea", "name": "Île-de-France"}
+      ]
     }
-  },
-  "areaServed": [
-    {"@type":"Airport","name":"Aéroport Paris-Charles de Gaulle","iataCode":"CDG"},
-    {"@type":"Airport","name":"Aéroport de Paris-Orly","iataCode":"ORY"},
-    {"@type":"Airport","name":"Aéroport de Beauvais-Tillé","iataCode":"BVA"}
   ]
 }
 </script>
@@ -783,6 +798,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   color:var(--accent-encre);font-size:14px;font-weight:700;text-decoration:none;}
 .pied-lien{font-size:12px;color:var(--gris);text-decoration:underline;
   padding:6px 4px;}
+.pied-pages{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 14px;}
+.pied-pages a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;
+  font-size:13px;font-weight:600;color:var(--accent-encre);text-decoration:none;}
 
 /* ---------- LE REGISTRE ---------- */
 /* Trois chiffres de front sur 390 px : chacun a 110 px, de quoi tenir
@@ -3056,6 +3074,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </svg>
       <span>+33 7 59 31 24 33</span>
     </a>
+    <!-- LES PAGES DE SERVICE, LIÉES D'ICI (5 octobre 2026). L'accueil ne
+         menait nulle part ailleurs : Google ne trouvait les pages CDG et Orly
+         que par le plan du site, et en a laissé deux hors de son index. Un
+         vrai lien <a href>, lisible sans JavaScript. -->
+    <nav class="pied-pages" aria-label="Nos transferts" data-t-aria="pied_pages">
+      <a href="/transfert-cdg-paris.html" data-t="pied_cdg">Transfert Roissy-CDG</a>
+      <a href="/transfert-orly-paris.html" data-t="pied_orly">Transfert Orly</a>
+      <a href="/chauffeur-prive-paris.html" data-t="pied_chauffeur">Chauffeur privé à Paris</a>
+    </nav>
     <a class="pied-lien" href="#" data-ecran="ecran-contact" data-onglet="accueil"
        data-t="pied_legal">Nous joindre et informations légales</a>
   </footer>
@@ -5682,6 +5709,7 @@ window.ELA_TEXTES = {
     trajets_vide:"Aucun trajet effectué pour l'instant.",
     etat_faite:"Terminé", etat_refusee:"Non prise", etat_annulee:"Annulée",
     pied_legal:"Nous joindre et informations légales",
+    pied_pages:"Nos transferts", pied_cdg:"Transfert Roissy-CDG", pied_orly:"Transfert Orly", pied_chauffeur:"Chauffeur privé à Paris",
     courses_vide:"Aucune réservation en cours.",
     courses_vide_cta:"Réserver un trajet",
     contact_titre:"Nous joindre",
@@ -5877,6 +5905,7 @@ window.ELA_TEXTES = {
     trajets_vide:"No completed ride yet.",
     etat_faite:"Completed", etat_refusee:"Not taken", etat_annulee:"Cancelled",
     pied_legal:"Contact us and legal information",
+    pied_pages:"Our transfers", pied_cdg:"Roissy-CDG transfer", pied_orly:"Orly transfer", pied_chauffeur:"Private driver in Paris",
     courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
     contact_titre:"Contact us",
