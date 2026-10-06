@@ -28,6 +28,21 @@
    gagne : la fiche montre sa version à jour et dit quels changements n'ont
    pas été appliqués — comme les courses.
 
+   BLOC 3 (6 octobre 2026) — L'ORDINATEUR ET LE QUOTIDIEN :
+   · au-delà de 1 200 px, les cinq étapes de front. UN SEUL DESSIN pour le
+     téléphone et l'ordinateur : les cinq colonnes sont toujours dessinées,
+     la feuille de style montre la seule étape choisie sur téléphone, les
+     cinq sur ordinateur — pas de second écran à tenir, pas d'écouteur de
+     taille de fenêtre ;
+   · une recherche et trois filtres, SUR LES CARTES DÉJÀ LUES : aucune
+     requête par lettre tapée, aucune écriture, rien de gardé sur
+     l'appareil. Une alerte (retard, blocage) n'est jamais cachée par un
+     filtre : le résumé et les points des tableaux comptent tout ;
+   · l'historique d'une carte, lu À LA DEMANDE et dit en phrases. L'écran
+     n'en affiche qu'une liste fermée de champs : le journal ne garde pas
+     le contenu des champs libres, et l'écran n'irait pas le chercher s'il
+     s'y trouvait.
+
    Chargé par l'admin seulement : la construction le retire des pages
    publiques (construire-espaces-hotel.mjs).
    ===================================================================== */
@@ -46,8 +61,14 @@
     tableau: "produit", statut: "idee", vue: "liste",
     cartes: [], archives: null, lu: false, luLe: null,
     chargement: false, erreur: null, message: null, surligner: null,
-    fiche: null
+    fiche: null,
+    /* Bloc 3 : en mémoire seulement, jamais sur l'appareil — un filtre
+       oublié cacherait demain des cartes sans qu'on s'en souvienne. */
+    recherche: "", filtres: { bloquees: false, retard: false, prioritaires: false, responsable: "" },
+    filtresOuverts: false
   };
+  var LIMITE_HISTORIQUE = 100;
+  var SANS_RESPONSABLE = "__aucun__";
   var tour = 0;
 
   /* ═══ OUTILS DE DESSIN ═══ */
@@ -138,6 +159,90 @@
     if(etat.archives) etat.archives.sort(comparer);
   }
 
+  /* « Terminé » se lit par date de fin, la plus récente d'abord : trié par
+     priorité, une vieille P0 terminée resterait en tête pour toujours. */
+  function parFin(a, b){
+    return String(b.termine_le || "").localeCompare(String(a.termine_le || "")) || comparer(a, b);
+  }
+  /* Sur ordinateur, une carte neuve part des « Idées » : il n'y a pas
+     d'étape choisie à l'écran, les cinq sont de front. */
+  function large(){
+    try{ return !!(racine.matchMedia && racine.matchMedia("(min-width:1200px)").matches
+      && document.body.classList.contains("espace")); }catch(e){ return false; }
+  }
+
+  /* ═══ RECHERCHER ET FILTRER (bloc 3) ═══
+     Sur les cartes DÉJÀ LUES : aucune requête, aucune écriture. Majuscules
+     et accents ne comptent pas (« siret » trouve « SIRET », « echeance »
+     trouve « échéance » ; « œ » n'est pas défait par NFD, d'où la ligne à
+     part — leçon de la recherche d'adresse du 30/09). */
+  function plat(s){
+    return String(s == null ? "" : s).toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  function motsCherches(){ return plat(etat.recherche).split(/\s+/).filter(Boolean); }
+  /* Ce qui se cherche : ce que Barbaros a écrit et relit. JAMAIS
+     l'identifiant, la version, l'auteur ni les dates. Un champ « nom » est
+     un champ que la carte de la liste ne montre pas : quand c'est lui qui
+     répond, la carte le dit (« Trouvé dans : description »), sinon on
+     voit une carte sans comprendre pourquoi elle est là. */
+  function champsCherches(c){
+    var crit = Array.isArray(c.checklist) ? c.checklist : [];
+    return [
+      { v: c.titre }, { v: categorieLibelle(c.tableau, c.categorie) }, { v: c.responsable },
+      { v: c.prochaine_action }, { v: c.bloque ? c.raison_blocage : "" },
+      { v: c.lien_github ? numeroGithub(c.lien_github) + " github" : "" },
+      { nom: "description", v: c.description },
+      { nom: "critères", v: crit.map(function(x){ return x && x.texte; }).join(" ") }
+    ].map(function(x){ return { nom: x.nom, v: plat(x.v) }; });
+  }
+  /* null : la carte ne répond pas. Sinon la liste des champs cachés qui
+     ont servi (vide : tout se voit sur la carte). Chaque mot doit être
+     quelque part, et dans UN champ : les champs ne sont pas mis bout à
+     bout, un mot ne se trouve pas à cheval sur deux. */
+  function trouver(c, mots){
+    if(!mots.length) return [];
+    var champs = champsCherches(c), caches = [];
+    for(var i = 0; i < mots.length; i++){
+      var m = mots[i];
+      if(champs.some(function(x){ return !x.nom && x.v.indexOf(m) !== -1; })) continue;
+      var la = champs.filter(function(x){ return x.nom && x.v.indexOf(m) !== -1; });
+      if(!la.length) return null;
+      la.forEach(function(x){ if(caches.indexOf(x.nom) === -1) caches.push(x.nom); });
+    }
+    return caches;
+  }
+  function nbFiltres(){
+    var f = etat.filtres;
+    return (f.bloquees ? 1 : 0) + (f.retard ? 1 : 0) + (f.prioritaires ? 1 : 0) + (f.responsable ? 1 : 0);
+  }
+  function filtreActif(){ return nbFiltres() > 0 || motsCherches().length > 0; }
+  /* Les filtres se COMBINENT : une carte doit passer chacun d'eux. */
+  function passeFiltres(c){
+    var f = etat.filtres;
+    if(f.bloquees && !c.bloque) return false;
+    if(f.retard && !enRetard(c)) return false;
+    if(f.prioritaires && c.priorite !== "P0" && c.priorite !== "P1") return false;
+    if(f.responsable === SANS_RESPONSABLE) return !c.responsable;
+    if(f.responsable && plat(c.responsable).trim() !== plat(f.responsable).trim()) return false;
+    return true;
+  }
+  /* null si la carte est écartée ; sinon les champs cachés trouvés. */
+  function retenue(c){ return passeFiltres(c) ? trouver(c, motsCherches()) : null; }
+  function viderFiltres(){
+    etat.recherche = "";
+    etat.filtres = { bloquees: false, retard: false, prioritaires: false, responsable: "" };
+  }
+  /* Sur téléphone on voit UNE étape : si la recherche la vide alors qu'une
+     autre a des résultats, on y va — chercher, c'est vouloir voir. */
+  function suivreResultats(){
+    if(!filtreActif()) return;
+    var ici = actives(etat.tableau);
+    var nb = function(s){ return ici.filter(function(c){ return c.statut === s && retenue(c); }).length; };
+    if(nb(etat.statut)) return;
+    for(var i = 0; i < P.STATUTS.length; i++) if(nb(P.STATUTS[i].cle)){ etat.statut = P.STATUTS[i].cle; return; }
+  }
+
   function client(){
     try{ return P.client(racine.ELA_NUAGE); }catch(e){ return null; }
   }
@@ -191,19 +296,38 @@
   /* ═══ DESSINER ═══
      Tout est redessiné d'un coup ; le contrôle qui avait le focus le
      retrouve (data-f), sinon un appui sur une puce renverrait le clavier
-     et le lecteur d'écran en haut de la page. */
+     et le lecteur d'écran en haut de la page.
+     UNE ERREUR D'AFFICHAGE SE DIT ICI ET S'ARRÊTE ICI (bloc 3) : une carte
+     au contenu inattendu ne doit ni laisser l'écran à moitié dessiné, ni
+     remonter plus haut. Les courses vivent dans un autre script. */
   function dessiner(){
     if(!zone) return;
-    var actif = document.activeElement, cle = actif && zone.contains(actif) ? actif.getAttribute("data-f") : null;
-    var contenu = etat.vue === "fiche" ? dessinerFiche()
-      : etat.vue === "archives" ? dessinerArchives() : dessinerListe();
+    try{
+      var actif = document.activeElement, cle = actif && zone.contains(actif) ? actif.getAttribute("data-f") : null;
+      var contenu = etat.vue === "fiche" ? dessinerFiche()
+        : etat.vue === "archives" ? dessinerArchives() : dessinerListe();
+      while(zone.firstChild) zone.removeChild(zone.firstChild);
+      zone.appendChild(contenu);
+      if(ecranRacine) ecranRacine.classList.toggle("pil-en-fiche", etat.vue !== "liste");
+      ajusterTitre();
+      if(cle){
+        var cible = zone.querySelector('[data-f="' + cle.replace(/"/g, "") + '"]');
+        if(cible){ try{ cible.focus({ preventScroll: true }); }catch(e){ cible.focus(); } }
+      }
+    }catch(e){ montrerPanne(e); }
+  }
+  function sur(f){ try{ f(); }catch(e){ montrerPanne(e); } }
+  function montrerPanne(e){
+    try{ if(racine.console) racine.console.error("Pilotage :", e); }catch(x){}
+    if(!zone) return;
     while(zone.firstChild) zone.removeChild(zone.firstChild);
-    zone.appendChild(contenu);
-    if(ecranRacine) ecranRacine.classList.toggle("pil-en-fiche", etat.vue !== "liste");
-    if(cle){
-      var cible = zone.querySelector('[data-f="' + cle.replace(/"/g, "") + '"]');
-      if(cible){ try{ cible.focus({ preventScroll: true }); }catch(e){ cible.focus(); } }
-    }
+    if(ecranRacine) ecranRacine.classList.remove("pil-en-fiche");
+    zone.appendChild(el("div", { classe: "pil-erreur", attrs: { role: "alert", id: "pilPanne" } }, [
+      el("p", { texte: "L'écran du Pilotage a rencontré une erreur d'affichage. Vos cartes restent sur le serveur, et les courses ne sont pas concernées." }),
+      bouton("Recharger le Pilotage", "bouton-fantome", function(){
+        etat.vue = "liste"; etat.fiche = null; etat.message = null; charger();
+      }, { "data-f": "recharger", id: "pilRecharger" })
+    ]));
   }
 
   function messageBloc(m){
@@ -220,16 +344,19 @@
     return null;
   }
 
+  /* LA LISTE, DE HAUT EN BAS : les deux tableaux, ce qui demande attention,
+     la recherche et les filtres, l'état du filtre et les cinq étapes, le
+     bouton « Nouvelle carte », puis les cinq colonnes. Sur ordinateur la
+     feuille de style range les trois premiers sur une ligne. */
   function dessinerListe(){
     var f = el("div", { classe: "pil-liste-vue" });
-    var attente = etatChargement();
 
     var groupe = el("div", { classe: "pil-tableaux", attrs: { role: "group", "aria-label": "Tableau" } });
     P.TABLEAUX.forEach(function(t){
       var cartes = actives(t.cle), alerte = cartes.some(enAlerte);
       groupe.appendChild(el("button", { classe: "pil-tableau", attrs: { type: "button", "aria-pressed": String(etat.tableau === t.cle),
         "data-tableau": t.cle, "data-f": "tableau-" + t.cle },
-        clic: function(){ etat.tableau = t.cle; etat.message = null; dessiner(); } }, [
+        clic: function(){ etat.tableau = t.cle; etat.message = null; suivreResultats(); dessiner(); } }, [
         el("span", { texte: t.libelle }),
         el("span", { classe: "pil-nb", texte: etat.lu ? String(cartes.length) : "" }),
         alerte ? el("span", { classe: "pil-point", attrs: { title: "Une carte demande votre attention" } }) : null
@@ -237,19 +364,110 @@
     });
     f.appendChild(groupe);
 
+    /* CE QUI DEMANDE ATTENTION COMPTE TOUTES LES CARTES, filtre ou pas : un
+       filtre peut cacher une carte, jamais une alerte. Chaque chiffre est un
+       bouton qui pose le filtre : un nombre qui ne mène nulle part n'aide à
+       rien décider. */
     var ici = actives(etat.tableau);
     var nbBloquees = ici.filter(function(c){ return c.bloque; }).length;
     var nbRetard = ici.filter(enRetard).length;
     if(etat.lu && (nbBloquees || nbRetard)){
-      var morceaux = [];
-      if(nbRetard) morceaux.push(nbRetard + (nbRetard > 1 ? " cartes en retard" : " carte en retard"));
-      if(nbBloquees) morceaux.push(nbBloquees + (nbBloquees > 1 ? " bloquées ou en attente" : " bloquée ou en attente"));
-      f.appendChild(el("p", { classe: "pil-resume", texte: morceaux.join(" · ") }));
+      var resume = el("div", { classe: "pil-resume", attrs: { role: "group", "aria-label": "Ce qui demande votre attention" } });
+      if(nbRetard) resume.appendChild(boutonFiltre(nbRetard + (nbRetard > 1 ? " cartes en retard" : " carte en retard"), "retard", "pil-resume-lien"));
+      if(nbBloquees) resume.appendChild(boutonFiltre(nbBloquees + (nbBloquees > 1 ? " bloquées ou en attente" : " bloquée ou en attente"), "bloquees", "pil-resume-lien"));
+      f.appendChild(resume);
     }
 
+    f.appendChild(dessinerOutils());
+    f.appendChild(el("div", { classe: "pil-vue-etat", attrs: { id: "pilVueEtat" } }, contenuVueEtat()));
+    f.appendChild(el("button", { classe: "bouton pil-nouvelle", attrs: { type: "button", id: "pilNouvelle", "data-f": "nouvelle" },
+      clic: function(){ ouvrirFiche(null); } }, [icone(PLUS), el("span", { texte: "Nouvelle carte" })]));
+    ajout(f, messageBloc(etat.message));
+    f.appendChild(el("div", { classe: "pil-resultats", attrs: { id: "pilResultats" } }, contenuResultats()));
+
+    f.appendChild(el("div", { classe: "pil-pied" }, [
+      el("span", { classe: "pil-lu", texte: etat.luLe ? "Lu à " + heure(etat.luLe) : "" }),
+      bouton("Actualiser", "pil-lien", function(){ etat.message = null; charger(); }, { "data-f": "actualiser", id: "pilActualiser" }),
+      bouton("Archives", "pil-lien", function(){ etat.vue = "archives"; etat.message = null; chargerArchives(); window.scrollTo(0, 0); },
+        { "data-f": "archives", id: "pilArchives" })
+    ]));
+    return f;
+  }
+
+  function boutonFiltre(texte, cle, classe){
+    return bouton(texte, classe, function(){
+      etat.filtres[cle] = !etat.filtres[cle]; etat.message = null; suivreResultats(); dessiner();
+    }, { "aria-pressed": String(!!etat.filtres[cle]), "data-filtre": cle, "data-f": classe + "-" + cle });
+  }
+
+  /* LA RECHERCHE NE REDESSINE QUE LES RÉSULTATS. Redessiner le champ à
+     chaque lettre ferait sauter le clavier du téléphone et perdre le
+     curseur ; il reste en place, seuls les compteurs et les cartes changent. */
+  function dessinerOutils(){
+    var nb = nbFiltres();
+    var boite = el("div", { classe: "pil-outils" + (etat.filtresOuverts ? " ouverts" : "") });
+    var champ = el("input", { attrs: { type: "search", id: "pilRecherche", "data-f": "recherche", maxlength: "100",
+      placeholder: "Rechercher une carte", "aria-label": "Rechercher une carte : titre, catégorie, responsable, Issue…",
+      autocomplete: "off", autocapitalize: "off", spellcheck: "false", enterkeyhint: "search" } });
+    champ.value = etat.recherche;
+    champ.addEventListener("input", function(){ etat.recherche = champ.value; sur(function(){ suivreResultats(); majResultats(); }); });
+    champ.addEventListener("keydown", function(ev){
+      if(ev.key === "Escape" && champ.value){ ev.preventDefault(); champ.value = ""; etat.recherche = ""; majResultats(); }
+      else if(ev.key === "Enter"){ ev.preventDefault(); champ.blur(); }
+    });
+    boite.appendChild(el("div", { classe: "pil-cherche" }, [champ,
+      el("button", { classe: "pil-filtrer", attrs: { type: "button", id: "pilFiltrer", "data-f": "filtrer",
+        "aria-expanded": String(!!etat.filtresOuverts), "aria-controls": "pilFiltres" },
+        clic: function(){ etat.filtresOuverts = !etat.filtresOuverts; dessiner(); } },
+        [el("span", { texte: "Filtres" }), nb ? el("span", { classe: "pil-nb", texte: String(nb) }) : null])
+    ]));
+    boite.appendChild(el("div", { classe: "pil-filtres", attrs: { id: "pilFiltres", role: "group", "aria-label": "Filtres" } }, [
+      boutonFiltre("Bloquées", "bloquees", "pil-puce"),
+      boutonFiltre("En retard", "retard", "pil-puce"),
+      boutonFiltre("Prioritaires (P0–P1)", "prioritaires", "pil-puce"),
+      selectResponsable()
+    ]));
+    return boite;
+  }
+  /* Les responsables sont ceux des cartes : une liste figée oublierait le
+     prochain. Le nom reste du texte (option.textContent). */
+  function selectResponsable(){
+    var noms = [], choisi = etat.filtres.responsable;
+    etat.cartes.forEach(function(c){ if(!c.archivee && c.responsable && noms.indexOf(c.responsable) === -1) noms.push(c.responsable); });
+    noms.sort(function(a, b){ return a.localeCompare(b, "fr"); });
+    if(choisi && choisi !== SANS_RESPONSABLE && noms.indexOf(choisi) === -1) noms.push(choisi);
+    var s = el("select", { attrs: { id: "pilFiltreResp", "data-f": "filtre-resp", "aria-label": "Filtrer par responsable" } });
+    s.appendChild(el("option", { attrs: { value: "" }, texte: "Tous les responsables" }));
+    noms.forEach(function(n){ s.appendChild(el("option", { attrs: { value: n }, texte: n })); });
+    s.appendChild(el("option", { attrs: { value: SANS_RESPONSABLE }, texte: "Sans responsable" }));
+    s.value = choisi || "";
+    s.addEventListener("change", function(){ etat.filtres.responsable = s.value; etat.message = null; suivreResultats(); dessiner(); });
+    return el("div", { classe: "pil-champ pil-filtre-resp" + (choisi ? " actif" : "") }, [s]);
+  }
+
+  /* L'ÉTAT DU FILTRE, PUIS LES CINQ ÉTAPES (sélecteur du téléphone). Les
+     compteurs disent ce qu'on verra en appuyant : ils suivent le filtre, et
+     le bandeau dit combien de cartes il laisse voir, et où sont les autres. */
+  function contenuVueEtat(){
+    var n = [], ici = actives(etat.tableau);
+    if(etat.lu && filtreActif()){
+      var vues = ici.filter(function(c){ return retenue(c); }).length;
+      var nom = libelle(P.TABLEAUX, etat.tableau);
+      var autre = P.TABLEAUX.filter(function(t){ return t.cle !== etat.tableau; })[0];
+      var ailleurs = autre ? actives(autre.cle).filter(function(c){ return retenue(c); }).length : 0;
+      n.push(el("div", { classe: "pil-filtre-etat", attrs: { role: "status", id: "pilFiltreEtat" } }, [
+        el("span", { texte: vues ? vues + (vues > 1 ? " cartes" : " carte") + " sur " + ici.length + " dans " + nom + "."
+          : "Aucune carte ne correspond dans " + nom + "." }),
+        bouton("Tout afficher", "pil-lien", function(){ viderFiltres(); etat.message = null; dessiner(); },
+          { "data-f": "tout-afficher", id: "pilToutAfficher" }),
+        ailleurs ? bouton(ailleurs + " dans " + autre.libelle, "pil-lien", function(){
+          etat.tableau = autre.cle; etat.message = null; suivreResultats(); dessiner();
+        }, { "data-f": "ailleurs", id: "pilAilleurs" }) : null
+      ]));
+    }
     var etapes = el("div", { classe: "pil-etapes", attrs: { role: "group", "aria-label": "Étape" } });
     P.STATUTS.forEach(function(s){
-      var la = ici.filter(function(c){ return c.statut === s.cle; });
+      var la = ici.filter(function(c){ return c.statut === s.cle && retenue(c); });
       var retard = la.some(enRetard), bloque = la.some(function(c){ return c.bloque; });
       var dit = s.libelle + " : " + la.length + (la.length > 1 ? " cartes" : " carte")
         + (retard ? ", dont en retard" : "") + (bloque ? ", dont bloquée" : "");
@@ -261,36 +479,62 @@
         (retard || bloque) ? el("span", { classe: "pil-point" + (retard ? "" : " ambre") }) : null
       ]));
     });
-    f.appendChild(etapes);
-
-    f.appendChild(el("button", { classe: "bouton pil-nouvelle", attrs: { type: "button", id: "pilNouvelle", "data-f": "nouvelle" },
-      clic: function(){ ouvrirFiche(null); } }, [icone(PLUS), el("span", { texte: "Nouvelle carte" })]));
-    ajout(f, messageBloc(etat.message));
-
-    if(attente) f.appendChild(attente);
-    else{
-      var la = ici.filter(function(c){ return c.statut === etat.statut; });
-      if(!la.length){
-        f.appendChild(el("p", { classe: "pil-vide", texte: etat.statut === "idee"
-          ? "Aucune idée notée ici. Une idée se note en un appui, sans catégorie : « Nouvelle carte »."
-          : "Aucune carte à l'étape « " + libelle(P.STATUTS, etat.statut) + " »." }));
-      } else {
-        var liste = el("div", { classe: "pil-liste", attrs: { "aria-label": libelle(P.STATUTS, etat.statut) } });
-        la.forEach(function(c){ liste.appendChild(carteListe(c)); });
-        f.appendChild(liste);
-      }
-    }
-
-    f.appendChild(el("div", { classe: "pil-pied" }, [
-      el("span", { classe: "pil-lu", texte: etat.luLe ? "Lu à " + heure(etat.luLe) : "" }),
-      bouton("Actualiser", "pil-lien", function(){ etat.message = null; charger(); }, { "data-f": "actualiser", id: "pilActualiser" }),
-      bouton("Archives", "pil-lien", function(){ etat.vue = "archives"; etat.message = null; chargerArchives(); window.scrollTo(0, 0); },
-        { "data-f": "archives", id: "pilArchives" })
-    ]));
-    return f;
+    n.push(etapes);
+    return n;
   }
 
-  function carteListe(c){
+  /* LES CINQ COLONNES, TOUJOURS DESSINÉES. Le téléphone n'en montre qu'une
+     (celle de l'étape choisie), l'ordinateur les cinq : c'est la feuille de
+     style qui tranche, au même seuil pour tout le monde. */
+  function contenuResultats(){
+    var attente = etatChargement();
+    if(attente) return [attente];
+    var ici = actives(etat.tableau), filtre = filtreActif();
+    var colonnes = el("div", { classe: "pil-colonnes" });
+    P.STATUTS.forEach(function(s){
+      var la = [], caches = {};
+      ici.forEach(function(c){
+        if(c.statut !== s.cle) return;
+        var r = retenue(c);
+        if(r){ la.push(c); caches[c.id] = r; }
+      });
+      la.sort(s.cle === "termine" ? parFin : comparer);
+      var retard = la.some(enRetard), bloque = la.some(function(c){ return c.bloque; });
+      var col = el("section", { classe: "pil-colonne" + (etat.statut === s.cle ? " choisie" : ""),
+        attrs: { "data-colonne": s.cle, "aria-label": s.libelle } });
+      col.appendChild(el("h2", { classe: "pil-colonne-tete" }, [
+        el("span", { classe: "pil-colonne-nom", texte: s.libelle }),
+        el("span", { classe: "pil-nb", texte: String(la.length) }),
+        (retard || bloque) ? el("span", { classe: "pil-point" + (retard ? "" : " ambre"),
+          attrs: { title: retard ? "Une carte en retard" : "Une carte bloquée ou en attente" } }) : null
+      ]));
+      if(!la.length){
+        col.appendChild(el("p", { classe: "pil-vide", texte: filtre ? "Aucune carte ne correspond à cette étape."
+          : s.cle === "idee" ? "Aucune idée notée ici. Une idée se note en un appui, sans catégorie : « Nouvelle carte »."
+          : "Aucune carte à l'étape « " + s.libelle + " »." }));
+      } else {
+        var liste = el("div", { classe: "pil-liste" });
+        la.forEach(function(c){ liste.appendChild(carteListe(c, caches[c.id])); });
+        col.appendChild(liste);
+      }
+      colonnes.appendChild(col);
+    });
+    return [colonnes];
+  }
+  function remplir(n, enfants){
+    while(n.firstChild) n.removeChild(n.firstChild);
+    enfants.forEach(function(c){ if(c) n.appendChild(c); });
+  }
+  function majResultats(){
+    sur(function(){
+      var a = zone && zone.querySelector("#pilVueEtat"), b = zone && zone.querySelector("#pilResultats");
+      if(etat.vue !== "liste" || !a || !b){ dessiner(); return; }
+      remplir(a, contenuVueEtat());
+      remplir(b, contenuResultats());
+    });
+  }
+
+  function carteListe(c, caches){
     var retard = enRetard(c);
     var classe = "pil-carte" + (retard ? " retard" : c.bloque ? " bloquee" : "") + (etat.surligner === c.id ? " surlignee" : "");
     var crit = Array.isArray(c.checklist) ? c.checklist : [];
@@ -310,7 +554,8 @@
         c.responsable ? el("span", { texte: c.responsable }) : null,
         crit.length ? el("span", { classe: faits === crit.length ? "complet" : "", texte: faits + "/" + crit.length + " critères" }) : null,
         c.lien_github ? el("span", { texte: numeroGithub(c.lien_github) }) : null
-      ]) : null
+      ]) : null,
+      caches && caches.length ? el("span", { classe: "pil-trouve", texte: "Trouvé dans : " + caches.join(", ") }) : null
     ]);
   }
 
@@ -339,14 +584,14 @@
      « modifs » ne garde que ce qui DIFFÈRE de la carte du serveur : c'est ce
      qui part, et seulement ça. Une carte neuve part entière. */
   function defauts(){
-    return { tableau: etat.tableau, statut: etat.statut === "termine" ? "idee" : etat.statut, priorite: "P2",
+    return { tableau: etat.tableau, statut: etat.statut === "termine" || large() ? "idee" : etat.statut, priorite: "P2",
       categorie: null, titre: "", description: "", responsable: null, prochaine_action: null, impacts: [],
       echeance: null, bloque: false, raison_blocage: null, checklist: [], lien_github: null, dependances: [] };
   }
   function ouvrirFiche(carte){
     etat.fiche = { carte: carte, base: carte || defauts(), modifs: {}, erreurs: [], message: null,
       armeArchive: 0, armeQuitter: 0, blocage: false, raison: "", envoi: false, nouveau: "",
-      depuis: etat.vue };
+      depuis: etat.vue, historique: null };
     etat.vue = "fiche"; etat.message = null;
     dessiner();
     window.scrollTo(0, 0);
@@ -429,6 +674,7 @@
       f.carte = carte; f.base = carte; f.modifs = {}; f.blocage = false; f.raison = ""; f.armeArchive = 0;
       for(var r in restantes) changer(r, restantes[r]);
       succes(carte);
+      if(etat.fiche === f && f.historique) chargerHistorique(f);
     }, function(e){
       if(etat.fiche !== f) return;
       f.envoi = false;
@@ -452,6 +698,7 @@
       }
       dessiner();
       montrerMessage();
+      if(e && e.code === "conflit" && etat.fiche === f && f.historique) chargerHistorique(f);
     });
   }
   function montrerMessage(){
@@ -470,13 +717,22 @@
     }
   }
 
+  /* « Carte créée » sur une liste où elle n'apparaît pas, parce qu'un
+     filtre l'écarte : on croirait la carte perdue. On lève les filtres, et
+     on le dit. */
+  function leverFiltresPour(carte){
+    if(!filtreActif() || retenue(carte)) return "";
+    viderFiltres();
+    return " Les filtres ont été retirés pour l'afficher.";
+  }
+
   function enregistrer(){
     var f = etat.fiche, nouvelle = !f.carte;
     if(!nouvelle && !modifie()){ f.message = { type: "info", texte: "Rien à enregistrer." }; dessiner(); return; }
     envoyer(null, function(carte){
       if(nouvelle){
         etat.tableau = carte.tableau; etat.statut = carte.statut;
-        revenirListe({ type: "ok", texte: "Carte créée." }, carte.id);
+        revenirListe({ type: "ok", texte: "Carte créée." + leverFiltresPour(carte) }, carte.id);
       } else {
         f.message = { type: "ok", texte: "Enregistré." };
         dessiner();
@@ -499,6 +755,10 @@
       el("h2", { classe: "pil-fiche-titre", attrs: { tabindex: "-1" },
         texte: !c ? "Nouvelle carte" : archivee ? "Carte archivée" : "Modifier la carte" })
     ]));
+    /* LA DERNIÈRE MODIFICATION SE LIT D'ABORD (bloc 3) : elle était tout en
+       bas, après une page entière de champs. */
+    if(c) racineFiche.appendChild(el("p", { classe: "pil-trace", attrs: { id: "pilTrace" },
+      texte: "Modifiée le " + horodatage(c.modifie_le) + " · créée le " + horodatage(c.cree_le) }));
     if(f.armeQuitter) racineFiche.appendChild(el("p", { classe: "pil-message erreur", attrs: { role: "alert" },
       texte: "Modifications non enregistrées. Appuyez encore sur Retour pour les abandonner, ou enregistrez en bas de la fiche." }));
     ajout(racineFiche, messageBloc(f.message));
@@ -515,7 +775,8 @@
           envoyer({ archivee: false }, function(carte){
             etat.tableau = carte.tableau; etat.statut = carte.statut;
             etat.fiche.depuis = "liste";
-            revenirListe({ type: "ok", texte: "Carte restaurée à l'étape « " + libelle(P.STATUTS, carte.statut) + " »." }, carte.id);
+            revenirListe({ type: "ok", texte: "Carte restaurée à l'étape « " + libelle(P.STATUTS, carte.statut) + " »."
+              + leverFiltresPour(carte) }, carte.id);
           });
         }, { "aria-busy": f.envoi ? "true" : null, "data-f": "restaurer", id: "pilRestaurer" })
       ]));
@@ -575,8 +836,24 @@
     parts.blocage = (section("Blocage", zoneBloc, statut === "termine" && !bloque ? "Une carte terminée n'a plus rien qui la bloque." : null, invalides.raison_blocage || invalides.bloque));
 
     /* — LE CONTENU — */
-    parts.titre = (champTexte("titre", "Titre", val("titre"), function(v){ changer("titre", v); },
-      { maxlength: P.LIMITES.titreMax, id: "pilTitre", required: true, disabled: fige, placeholder: "Ex. : Déclarer l'activité au ministère" }, invalides.titre));
+    /* LE TITRE SE LIT EN ENTIER (bloc 3) : dans un champ d'une ligne, un
+       titre de 120 caractères était coupé à 390 px — l'information
+       principale de la carte. Une zone de texte qui grandit avec lui, mais
+       sans retour à la ligne : la base refuse tout caractère de contrôle. */
+    var titre = el("textarea", { classe: "pil-titre-champ", attrs: { id: "pilTitre", rows: "1", "data-f": "champ-titre",
+      maxlength: String(P.LIMITES.titreMax), required: true, disabled: fige, placeholder: "Ex. : Déclarer l'activité au ministère",
+      "aria-invalid": invalides.titre ? "true" : null } });
+    titre.value = val("titre") || "";
+    titre.addEventListener("keydown", function(ev){ if(ev.key === "Enter") ev.preventDefault(); });
+    titre.addEventListener("input", function(){
+      if(/[\r\n\t]/.test(titre.value)){
+        var p = titre.selectionStart;
+        titre.value = titre.value.replace(/[\r\n\t]+/g, " ");
+        try{ titre.setSelectionRange(p, p); }catch(e){}
+      }
+      changer("titre", titre.value); majEtat(); ajusterTitre();
+    });
+    parts.titre = enveloppe("Titre", titre, "pilTitre", invalides.titre);
 
     var segTableau = el("div", { classe: "pil-segment deux", attrs: { role: "group", "aria-label": "Tableau" } });
     P.TABLEAUX.forEach(function(t){
@@ -679,8 +956,7 @@
       }, { "data-f": "archiver", id: "pilArchiver" }));
       if(arme) racineFiche.appendChild(el("p", { classe: "pil-aide", texte: "La carte quitte le tableau. Rien n'est effacé : elle se restaure depuis « Archives »." }));
     }
-    if(c) racineFiche.appendChild(el("p", { classe: "pil-trace", texte: "Créée le " + horodatage(c.cree_le) + " · modifiée le "
-      + horodatage(c.modifie_le) + " · version " + c.version }));
+    if(c) racineFiche.appendChild(dessinerHistorique(f));
     return racineFiche;
   }
 
@@ -742,6 +1018,158 @@
   function majEtat(){
     var e = zone && zone.querySelector("#pilEtatSaisie");
     if(e && etat.fiche && etat.fiche.carte) e.textContent = modifie() ? "Modifications non enregistrées." : "Tout est enregistré.";
+  }
+
+  /* Le titre grandit avec son texte. Seulement si l'écran est affiché :
+     masqué, il mesure zéro (le piège de la courbe du tableau de bord). */
+  function ajusterTitre(){
+    var t = zone && zone.querySelector("#pilTitre");
+    if(!t || !t.scrollHeight) return;
+    t.style.height = "auto";
+    t.style.height = (t.scrollHeight + t.offsetHeight - t.clientHeight) + "px";
+  }
+
+  /* ═══ L'HISTORIQUE (bloc 3) ═══
+     LU À LA DEMANDE, pas à l'ouverture de la fiche : une lecture de plus
+     seulement quand on veut savoir. Les 100 derniers changements.
+     DIT EN PHRASES, À PARTIR D'UNE LISTE FERMÉE. Pour chaque type de ligne,
+     l'écran ne lit que les champs qu'il connaît : étape, priorité, tableau
+     et catégorie passent par leurs libellés (une valeur inconnue devient
+     « ? », jamais recopiée) ; le responsable et la raison du blocage, que le
+     journal garde par décision du bloc 1, sont dits tels quels ; pour les
+     champs libres, le journal ne garde que leur NOM, et l'écran ne montre
+     que ce nom traduit. Si un jour une ligne portait davantage, l'écran ne
+     l'afficherait pas. */
+  var NOMS_CONTENU = { titre: "titre", description: "description", prochaine_action: "prochaine action",
+    impacts: "impacts", dependances: "dépendances", checklist: "critères", lien_github: "lien GitHub" };
+  function connu(liste, k){
+    for(var i = 0; i < liste.length; i++) if(liste[i].cle === k) return liste[i].libelle;
+    return null;
+  }
+  function lire(o, k){
+    if(!o || typeof o !== "object" || Array.isArray(o) || !Object.prototype.hasOwnProperty.call(o, k)) return undefined;
+    var v = o[k];
+    return (typeof v === "string" || typeof v === "boolean" || typeof v === "number") ? v : undefined;
+  }
+  function libre(v){
+    if(typeof v !== "string") return "";
+    var a = Array.from(v);
+    return a.length > 200 ? a.slice(0, 200).join("") + "…" : v;
+  }
+  function categorieDite(k){
+    if(k === undefined || k === "") return "aucune";
+    return connu(P.CATEGORIES.produit || [], k) || connu(P.CATEGORIES.operations || [], k) || "?";
+  }
+  function annee(d){
+    try{ return new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", year: "numeric" }).format(d); }
+    catch(e){ return String(d.getFullYear()); }
+  }
+  /* « 06/10 18:42 », à l'heure de Paris ; l'année seulement si ce n'est pas
+     celle-ci. */
+  function quand(ts){
+    var d = new Date(ts);
+    if(isNaN(d)) return "";
+    try{
+      var o = {};
+      new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).forEach(function(x){ o[x.type] = x.value; });
+      return o.day + "/" + o.month + (o.year !== annee(new Date()) ? "/" + o.year : "") + " " + o.hour + ":" + o.minute;
+    }catch(e){ return d.toISOString().slice(0, 16).replace("T", " "); }
+  }
+  function dateDite(s){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ""));
+    if(!m) return "";
+    return m[3] + "/" + m[2] + (m[1] !== annee(new Date()) ? "/" + m[1] : "");
+  }
+  function phrase(l){
+    var a = l && l.avant, b = l && l.apres;
+    switch(l && l.action){
+      case "creation":
+        return "Carte créée à l'étape « " + (connu(P.STATUTS, lire(b, "statut")) || "?") + " »"
+          + (lire(b, "bloque") === true ? ", bloquée : " + libre(lire(b, "raison")) : "");
+      case "statut":
+        return (connu(P.STATUTS, lire(a, "statut")) || "?") + " → " + (connu(P.STATUTS, lire(b, "statut")) || "?");
+      case "priorite":
+        return "Priorité " + (connu(P.PRIORITES, lire(a, "priorite")) || "?") + " → " + (connu(P.PRIORITES, lire(b, "priorite")) || "?");
+      case "responsable":
+        var ra = libre(lire(a, "responsable")), rb = libre(lire(b, "responsable"));
+        return rb ? "Responsable : " + (ra ? ra + " → " : "") + rb : "Responsable retiré" + (ra ? " (" + ra + ")" : "");
+      case "tableau":
+        return "Tableau : " + (connu(P.TABLEAUX, lire(a, "tableau")) || "?") + " → " + (connu(P.TABLEAUX, lire(b, "tableau")) || "?");
+      case "categorie":
+        return "Catégorie : " + categorieDite(lire(a, "categorie")) + " → " + categorieDite(lire(b, "categorie"));
+      case "echeance":
+        var ea = dateDite(lire(a, "echeance")), eb = dateDite(lire(b, "echeance"));
+        return eb ? (ea ? "Échéance : " + ea + " → " + eb : "Échéance fixée au " + eb) : "Échéance retirée";
+      case "blocage":
+        return (lire(a, "bloque") === true ? "Raison du blocage changée : " : "Bloquée : ") + libre(lire(b, "raison"));
+      case "deblocage": return "Débloquée";
+      case "archivage": return "Archivée";
+      case "restauration": return "Restaurée";
+      case "contenu":
+        var champs = b && typeof b === "object" && Array.isArray(b.champs) ? b.champs : [], noms = [];
+        champs.forEach(function(k){
+          if(typeof k === "string" && Object.prototype.hasOwnProperty.call(NOMS_CONTENU, k) && noms.indexOf(NOMS_CONTENU[k]) === -1)
+            noms.push(NOMS_CONTENU[k]);
+        });
+        return "Carte modifiée" + (noms.length ? " : " + noms.join(", ") : "");
+      default: return "Changement enregistré";
+    }
+  }
+  function dessinerHistorique(f){
+    var h = f.historique, boite = el("div", { classe: "pil-historique-bloc", attrs: { id: "pilHistoriqueBloc" } });
+    boite.appendChild(el("p", { classe: "pil-section-titre", texte: "Historique" }));
+    if(!h){
+      boite.appendChild(bouton("Voir l'historique", "bouton-fantome", function(){ chargerHistorique(f); },
+        { id: "pilHistorique", "data-f": "historique" }));
+      return boite;
+    }
+    if(h.etat === "lecture"){
+      boite.appendChild(el("p", { classe: "pil-aide", attrs: { role: "status" }, texte: "Lecture de l'historique…" }));
+      return boite;
+    }
+    if(h.etat === "erreur"){
+      boite.appendChild(el("div", { classe: "pil-erreur", attrs: { role: "alert" } }, [
+        el("p", { texte: h.message }),
+        bouton("Réessayer", "bouton-fantome", function(){ chargerHistorique(f); }, { "data-f": "historique-reessayer", id: "pilHistoriqueReessayer" })
+      ]));
+      return boite;
+    }
+    if(!h.lignes.length) boite.appendChild(el("p", { classe: "pil-aide", texte: "Aucun changement enregistré." }));
+    else{
+      var ol = el("ol", { classe: "pil-historique", attrs: { id: "pilHistoriqueListe" } });
+      h.lignes.forEach(function(l){
+        ol.appendChild(el("li", {}, [
+          el("time", { classe: "pil-hist-quand", attrs: { datetime: String(lire(l, "cree_le") || "") }, texte: quand(lire(l, "cree_le")) }),
+          el("span", { classe: "pil-hist-quoi", texte: phrase(l) })
+        ]));
+      });
+      boite.appendChild(ol);
+      if(h.lignes.length >= LIMITE_HISTORIQUE)
+        boite.appendChild(el("p", { classe: "pil-aide", texte: "Les " + LIMITE_HISTORIQUE + " derniers changements." }));
+    }
+    boite.appendChild(bouton("Masquer l'historique", "pil-lien", function(){ f.historique = null; dessiner(); },
+      { "data-f": "historique-masquer", id: "pilHistoriqueMasquer" }));
+    return boite;
+  }
+  function chargerHistorique(f){
+    var c = client(), jeton = {};
+    if(!c || !f.carte){
+      f.historique = { etat: "erreur", message: "La connexion au serveur n'est pas prête : rechargez la page." };
+      dessiner(); return;
+    }
+    f.historique = { etat: "lecture", jeton: jeton };
+    dessiner();
+    c.journal(f.carte.id, { limite: LIMITE_HISTORIQUE }).then(function(r){
+      if(etat.fiche !== f || !f.historique || f.historique.jeton !== jeton) return;
+      f.historique = { etat: "ok", lignes: Array.isArray(r) ? r : [] };
+    }, function(e){
+      if(etat.fiche !== f || !f.historique || f.historique.jeton !== jeton) return;
+      var code = e && e.code;
+      f.historique = { etat: "erreur", message: code === "reseau" ? "Serveur injoignable : l'historique n'a pas pu être lu."
+        : code === "serveur" ? "Le serveur ne répond pas correctement. Réessayez dans un instant."
+        : (e && e.message) || "L'historique n'a pas pu être lu." };
+    }).then(function(){ if(etat.fiche === f && etat.vue === "fiche") dessiner(); });
   }
 
   function section(titre, contenu, aide, invalide){

@@ -1,5 +1,5 @@
 /* =====================================================================
-   LE PILOTAGE — L'ÉCRAN (Issue #197, bloc 2)
+   LE PILOTAGE — L'ÉCRAN (Issue #197, blocs 2 et 3)
    ---------------------------------------------------------------------
    Chargée par l'admin seulement : la construction retire ce lien des pages
    publiques. Toutes les classes commencent par « pil- » : le Pilotage ne
@@ -39,7 +39,41 @@
   box-shadow:0 0 0 2px var(--carte);}
 .pil-point.ambre{background:#B45309;}
 .pil-tableau .pil-point{position:absolute;top:8px;right:10px;}
-.pil-resume{margin:10px 2px 0;font-size:13px;font-weight:700;color:#9B1C1C;}
+/* Ce qui demande attention : des boutons qui posent le filtre, à l'air de
+   texte mais à la taille d'un pouce (44 px). */
+.pil-resume{display:flex;flex-wrap:wrap;gap:0 16px;margin:4px 2px 0;}
+.pil-resume-lien{min-height:44px;padding:0;border:0;background:none;color:#9B1C1C;font-family:inherit;
+  font-size:13px;font-weight:750;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;}
+.pil-resume-lien[aria-pressed="true"]{text-decoration:underline solid 2px;}
+
+/* ---------- RECHERCHE ET FILTRES (bloc 3) ----------
+   Sur téléphone, les filtres se replient derrière un bouton : la liste
+   reste à portée de pouce. Sur ordinateur, ils sont à plat. */
+.pil-outils{margin:12px 0 0;}
+.pil-cherche{display:flex;gap:8px;min-width:0;}
+.pil-cherche input{flex:1 1 auto;min-width:0;min-height:46px;padding:10px 13px;border:1px solid #d3dee9;
+  border-radius:12px;background:var(--carte);color:var(--encre);font-family:inherit;
+  -webkit-appearance:none;appearance:none;}
+.pil-cherche input:focus{outline:none;border-color:#147edc;box-shadow:0 0 0 4px rgba(20,126,220,.13);}
+.pil-filtrer{flex:none;min-height:46px;min-width:44px;display:inline-flex;align-items:center;gap:7px;padding:0 14px;
+  border:1px solid #d3dee9;border-radius:12px;background:var(--carte);color:var(--encre);font-family:inherit;
+  font-size:15px;font-weight:750;cursor:pointer;}
+.pil-filtrer[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-clair);color:var(--accent-encre);}
+.pil-filtres{display:none;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;}
+.pil-outils.ouverts .pil-filtres{display:flex;}
+.pil-filtres .pil-champ{flex:1 1 200px;min-width:0;margin:0;}
+.pil-filtre-resp.actif select{border-color:var(--accent);background-color:var(--accent-clair);color:var(--accent-encre);font-weight:700;}
+.pil-filtre-etat{display:flex;flex-wrap:wrap;align-items:center;gap:0 16px;margin:10px 0 0;padding:0 12px;
+  border-radius:12px;background:var(--accent-clair);color:var(--accent-encre);font-size:13.5px;font-weight:650;}
+.pil-filtre-etat > span{padding:11px 0;}
+
+/* ---------- LES CINQ COLONNES ----------
+   Toujours dessinées : sur téléphone (et jusqu'à 1 199 px) seule l'étape
+   choisie se montre, sans son en-tête — le sélecteur des étapes en tient
+   lieu. */
+.pil-colonne{display:none;min-width:0;}
+.pil-colonne.choisie{display:block;}
+.pil-colonne-tete{display:none;}
 
 /* ---------- LES CINQ ÉTAPES ----------
    Cinq colonnes égales, même à 320 px : 56 px chacune. Le libellé passe à
@@ -100,6 +134,7 @@
   font-size:13px;color:var(--gris);}
 .pil-carte-bas{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12.5px;color:var(--gris);}
 .pil-carte-bas .complet{color:var(--accent-encre);font-weight:750;}
+.pil-trouve{display:block;margin-top:6px;font-size:12px;font-style:italic;color:var(--accent-encre);}
 
 .pil-pied{display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;margin:16px 0 0;
   font-size:13px;color:var(--gris);}
@@ -179,12 +214,22 @@ a.pil-lien{display:inline-flex;align-items:center;}
 .pil-etat-saisie:empty{display:none;}
 .pil-enregistrer{margin-top:8px;}
 .pil-archiver{margin-top:12px;}
-.pil-trace{margin:20px 0 0;font-size:12px;line-height:1.45;color:var(--gris);text-align:center;}
+.pil-trace{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--gris);}
+/* Le titre se lit en entier : il grandit avec son texte (pilotage-ecran.js). */
+.pil-champ textarea.pil-titre-champ{min-height:46px;resize:none;overflow:hidden;}
+
+/* ---------- L'HISTORIQUE (bloc 3) ---------- */
+.pil-historique-bloc{margin:26px 0 0;padding-top:18px;border-top:1px solid var(--filet);}
+.pil-historique{margin:4px 0 0;padding:0;list-style:none;}
+.pil-historique li{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #e8eef4;font-size:14px;line-height:1.4;
+  overflow-wrap:anywhere;}
+.pil-hist-quand{flex:none;min-width:84px;font-variant-numeric:tabular-nums;font-weight:700;color:var(--gris);}
+.pil-historique-bloc .pil-lien{margin-top:4px;}
 
 /* ---------- ORDINATEUR ----------
    Le même écran, plus large : les cartes passent sur deux colonnes, la
-   fiche garde une largeur de lecture. Les cinq colonnes de front, les
-   filtres et la recherche sont le bloc 3. */
+   fiche garde une largeur de lecture. Les cinq colonnes de front viennent
+   au-delà de 1 200 px (plus bas). */
 @media (min-width:900px){
   body.espace #ecran-pilotage .pil-intro{margin-left:28px;margin-right:28px;}
   body.espace .pil{padding:2px 28px 44px;}
@@ -194,4 +239,44 @@ a.pil-lien{display:inline-flex;align-items:center;}
   body.espace .pil-fiche{max-width:760px;}
   body.espace .pil-etape{min-height:64px;}
   body.espace .pil-etape-nom{font-size:12.5px;}
+}
+
+/* ---------- ORDINATEUR LARGE : LES CINQ ÉTAPES DE FRONT (bloc 3) ----------
+   À partir de 1 200 px seulement : en dessous, avec la colonne de l'admin
+   (252 px), une colonne d'étape tomberait sous 170 px. Le Pilotage seul
+   s'élargit jusqu'à 1 500 px — la limite de 1 080 px de l'admin protège un
+   tableau à six colonnes de chiffres, pas cinq piles de cartes.
+   Les tableaux, ce qui demande attention et « Nouvelle carte » tiennent sur
+   UNE ligne : à 1366×768, chaque ligne gagnée est une carte de plus.
+   On déplace toujours une carte par sa fiche : pas de glisser-déposer. */
+@media (min-width:1200px){
+  body.espace #ecran-pilotage{max-width:1500px;}
+  body.espace .pil{padding-left:24px;padding-right:24px;}
+  body.espace .pil-liste-vue{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:18px;align-items:center;}
+  body.espace .pil-liste-vue > *{grid-column:1 / -1;}
+  body.espace .pil-liste-vue > .pil-tableaux{grid-column:1;grid-row:1;width:400px;max-width:none;}
+  body.espace .pil-liste-vue > .pil-resume{grid-column:2;grid-row:1;margin:14px 0 0;}
+  body.espace .pil-liste-vue > .pil-nouvelle{grid-column:3;grid-row:1;margin-top:14px;}
+  body.espace .pil-outils{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+  body.espace .pil-cherche{flex:0 1 340px;}
+  body.espace .pil-filtrer{display:none;}
+  body.espace .pil-filtres{display:flex;margin-top:0;}
+  body.espace .pil-filtres .pil-champ{flex:0 1 220px;}
+  body.espace .pil-etapes{display:none;}
+  body.espace .pil-colonnes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start;margin-top:14px;}
+  body.espace .pil-colonne{display:block;}
+  /* L'en-tête reste visible quand une colonne est longue : sans lui, plus
+     rien ne dit à quelle étape appartient la carte qu'on regarde. */
+  body.espace .pil-colonne-tete{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;
+    margin:0;padding:10px 4px 8px;background:#eef4f8;font-size:14px;font-weight:800;color:var(--encre);
+    border-bottom:2px solid var(--filet);}
+  body.espace .pil-colonne-nom{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  body.espace .pil-colonne-tete .pil-point{flex:none;}
+  body.espace .pil-colonne .pil-liste{grid-template-columns:minmax(0,1fr);gap:8px;margin-top:8px;}
+  body.espace .pil-colonne .pil-carte{padding:10px 11px 10px 10px;border-radius:12px;}
+  body.espace .pil-colonne .pil-carte-haut{flex-wrap:wrap;gap:4px 6px;}
+  body.espace .pil-colonne .pil-carte-titre{margin-top:6px;font-size:14.5px;-webkit-line-clamp:3;}
+  body.espace .pil-colonne .pil-carte-bloc,
+  body.espace .pil-colonne .pil-carte-suite{font-size:12.5px;}
+  body.espace .pil-colonne .pil-vide{margin-top:8px;padding:14px 10px;font-size:12.5px;}
 }

@@ -314,10 +314,15 @@
       debloquer: function(carte){ return this.modifier(carte, { bloque: false }); },
       archiver: function(carte){ return this.modifier(carte, { archivee: true }); },
       restaurer: function(carte){ return this.modifier(carte, { archivee: false }); },
-      /* L'historique d'une carte, le plus récent d'abord. */
-      journal: function(id){
+      /* L'historique d'une carte, le plus récent d'abord. « limite » (bloc 3)
+         borne la réponse : une carte vivante accumule des lignes, l'écran
+         n'en montre que les dernières. Sans elle, la requête reste celle
+         du bloc 1, à l'octet près. */
+      journal: function(id, options){
         if(!UUID.test(String(id || ""))) return Promise.reject(erreur("introuvable", "Carte introuvable."));
-        return pret() || appel("/rest/v1/pilotage_journal?select=*&carte_id=eq." + id + "&order=id.desc")
+        var n = options && Math.floor(Number(options.limite));
+        var limite = n > 0 ? "&limit=" + Math.min(n, 1000) : "";
+        return pret() || appel("/rest/v1/pilotage_journal?select=*&carte_id=eq." + id + "&order=id.desc" + limite)
           .then(function(r){ return Array.isArray(r) ? r : []; });
       }
     };
