@@ -86,8 +86,11 @@ check('l\'accueil ne télécharge aucune photo', imagesParties.length===0,
    et on VÉRIFIE qu'un clic y mène vraiment. Un « data-ecran » qui vise un
    écran inexistant ne casse rien à l'œil — le client appuie, rien ne
    bouge, et il en conclut que le site est cassé. */
+/* LES CARTES D'« AU-DELÀ DU TRAJET » SUIVENT LA MÊME RÈGLE (octobre 2026) :
+   le chauffeur à l'heure a quitté les services pour ce bloc, avec les
+   groupes et l'accueil à l'aéroport. On les éprouve ensemble. */
 const cibles = await p.evaluate(()=>
-  [...document.querySelectorAll('.service')].map(e=>({
+  [...document.querySelectorAll('.service, .plus-carte')].map(e=>({
     nom: e.querySelector('b').textContent.trim(),
     vers: e.getAttribute('data-ecran')
   })));
@@ -98,7 +101,7 @@ check('chaque carte déclare un écran qui existe',
 for(const [i, c] of cibles.entries()){
   await p.locator('.onglet[data-onglet="accueil"]').click();
   await p.waitForTimeout(200);
-  await p.locator('.service').nth(i).click();
+  await p.locator('.service, .plus-carte').nth(i).click();
   await p.waitForTimeout(350);
   check('« '+c.nom+' » ouvre bien l\'écran qu\'elle annonce',
     await p.locator('#'+c.vers).isVisible(), c.vers);
@@ -109,7 +112,7 @@ for(const [i, c] of cibles.entries()){
    le formulaire — y compris le chauffeur à l'heure — passerait au vert. */
 check('au moins une carte mène au formulaire',
   cibles.some(c => c.vers === 'ecran-accueil'));
-check('et la mise à disposition n\'y mène pas',
+check('et le chauffeur à l\'heure n\'y mène pas',
   cibles.some(c => c.vers !== 'ecran-accueil'),
   cibles.filter(c=>c.vers!=='ecran-accueil').map(c=>c.nom).join(', '));
 

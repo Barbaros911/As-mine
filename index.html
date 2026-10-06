@@ -224,6 +224,10 @@ img{display:block;max-width:100%;}
 .logo-sous{font-size:8px;font-weight:600;letter-spacing:.26em;
   color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
 .entete-actions{display:flex;align-items:center;gap:12px;flex:0 0 auto;}
+.entete-nav{display:none;}
+/* Un bouton sans « color » prend celle du système (bleu iOS) : même caché, il
+   s'habille ici — la façade le met en forme sur l'ordinateur public. */
+.entete-lien{color:inherit;background:none;border:0;font:inherit;}
 /* 44 px de haut : c'est la taille d'un pouce, et un sélecteur de langue plus
    petit se rate. Deux boutons plutôt qu'un menu déroulant — à deux langues,
    un menu demande deux gestes là où un bouton en demande un. */
@@ -1163,16 +1167,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   color:var(--accent-encre);font:inherit;font-weight:700;text-decoration:underline;
   text-underline-offset:2px;cursor:pointer;}
 
-/* ---------- LA PROMESSE D'ARRIVÉE ---------- */
-/* Le client qui atterrit ne se demande pas combien coûte la course : il se
-   demande ce qui se passe si son vol a deux heures de retard. C'est la
-   seule inquiétude que le formulaire ne traite pas, et elle arrive juste
-   après le bouton — d'où sa place, entre le formulaire et les engagements.
-   Elle est POSÉE SUR UN APLAT D'ACCENT, pas dans une carte blanche : les
-   engagements et les services sont déjà des cartes blanches, et une
-   cinquième se serait fondue dans la série au lieu de se lire comme une
-   promesse. Pas de bordure — l'aplat suffit à la détacher du gris du fond.
-   Le texte accent sur accent-clair est mesuré à 7,1 de contraste. */
 /* LE BLOC DES PROFESSIONNELS (3 octobre 2026) — sorti du bandeau, voir le
    commentaire du HTML. Une carte claire et sobre, filet bleu à gauche : elle
    se lit comme une information, pas comme une seconde action — le seul
@@ -1185,12 +1179,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 @media (max-width:340px){ .pro-bloc{margin-left:8px;margin-right:8px;} }
 @media (min-width:900px){ .pro-bloc{max-width:1180px;margin:26px auto 0;box-sizing:border-box;} }
 body.hotel .pro-bloc{display:none;}
-.promesse{display:flex;gap:12px;align-items:flex-start;margin:26px 20px 0;
-  padding:15px 16px;border-radius:15px;background:var(--accent-clair);}
-.promesse > svg{flex:none;margin-top:2px;}
-.promesse p{margin:0;font-size:13px;line-height:1.45;color:var(--encre);}
-.promesse b{display:block;margin-bottom:3px;font-size:13.5px;
-  color:var(--accent-encre);}
 
 
 /* =====================================================================
@@ -1668,7 +1656,6 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    vidé à chaque fermeture.
    ═══════════════════════════════════════════════════════════════════════ */
 body.hotel .hero,
-body.hotel .promesse,
 body.hotel .section,
 body.hotel .pied{display:none;}
 body.hotel .reserver{margin-top:0;}
@@ -2147,6 +2134,7 @@ body.espace #panneauProvenance{display:none;}
 .modele-etapes b{display:block;font-size:15px;color:var(--encre,#151C22);}
 .modele-etapes span[data-t]{display:block;font-size:13.5px;line-height:1.4;color:var(--gris,#5A6A7B);}
 .modele-pro{margin-top:14px;border-radius:18px;padding:18px 16px;background:var(--accent-clair,#E8F2FD);}
+.modele-pro:first-child{margin-top:0;}
 .modele-pro-t{margin:0;font-weight:800;font-size:17px;color:var(--accent-encre,#0A4F91);}
 .modele-pro-s{margin:4px 0 10px;font-size:14px;color:var(--encre,#151C22);}
 .modele-pro ul{margin:0 0 14px;padding:0;list-style:none;}
@@ -2162,14 +2150,32 @@ body.espace #panneauProvenance{display:none;}
   .modele-pro-t,.modele-pro-s{grid-column:1;} .modele-pro ul{grid-column:2;grid-row:1/4;margin:0;}
   .modele-cta{grid-column:1;align-self:start;max-width:320px;}
 }
-.modele-devis{margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
-  justify-content:space-between;background:var(--carte,#fff);border:1px dashed var(--accent,#0E6FC7);
-  border-radius:14px;padding:13px 14px;}
-.modele-devis p{margin:0;flex:1 1 220px;font-size:14px;line-height:1.45;color:var(--gris,#5A6A7B);}
-.modele-devis b{color:var(--encre,#151C22);}
-.modele-devis a{flex:none;display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;
-  border:1.5px solid var(--accent,#0E6FC7);color:var(--accent,#0E6FC7);font-weight:700;font-size:14px;text-decoration:none;}
 body.hotel .modele{display:none;}
+/* AU-DELÀ DU TRAJET — des cartes à pictogramme, pas à photo : on ne pose
+   pas une image dont on ne connaît pas l'auteur, et elles se distinguent
+   ainsi d'un coup d'œil des trajets du dessus. Une colonne sur téléphone,
+   trois de front sur ordinateur. */
+.plus-cartes{display:grid;gap:10px;}
+/* Sur téléphone, le dessin à GAUCHE du texte : empilé au-dessus, il coûtait
+   une ligne par carte, et trois cartes allongeaient la page de 580 px. */
+.plus-carte{display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:14px;row-gap:3px;
+  align-content:start;padding:14px;border:1px solid var(--filet,#E1E8EF);border-radius:16px;
+  background:var(--carte,#fff);color:var(--encre,#151C22);text-decoration:none;}
+.plus-carte > *{grid-column:2;}
+.plus-icone{grid-column:1;grid-row:1 / span 4;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:var(--accent-clair,#E8F2FD);color:var(--accent,#0E6FC7);}
+.plus-carte > b{font-size:16px;font-weight:800;}
+.plus-texte{font-size:14px;line-height:1.45;color:var(--gris,#5A6A7B);}
+.plus-prix-ligne{font-size:13.5px;color:var(--encre,#151C22);}
+.plus-prix{white-space:nowrap;}
+.plus-action{margin-top:auto;padding-top:6px;font-size:14px;font-weight:700;color:var(--accent,#0E6FC7);}
+.plus-action::after{content:" →";}
+.plus-carte:hover .plus-action{text-decoration:underline;}
+@media (min-width:900px){
+  .plus-cartes{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .plus-carte{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:20px;}
+  .plus-icone{margin-bottom:8px;}
+}
 .inclus{background:linear-gradient(135deg,#062f55,#094a78);color:#fff;border-radius:22px;padding:22px 18px 10px}
 .inclus-sur{margin:0;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#12c4ee}
 .section .inclus h2{color:#fff;margin:4px 0 8px;font-size:22px}
@@ -2377,6 +2383,26 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <a class="logo" href="/" aria-label="Elatransfer">
       <img class="logo-image" src="brand-logo-white.png" alt="Elatransfer">
     </a>
+    <!-- LE MENU DE L'ORDINATEUR (lot P0-B, octobre 2026). Caché partout sauf
+         sur la page publique au-delà de 900 px (application-facade.css), où
+         il REMPLACE la barre du bas : une seule navigation par écran, jamais
+         deux. Chaque entrée mène à quelque chose qui existe — un bloc de
+         l'accueil, un écran, ou la feuille de contact de la barre (la même,
+         avec la référence de la course en cours). Les liens portent un vrai
+         « href » : sans script, ils descendent quand même au bloc. -->
+    <nav class="entete-nav" aria-label="Navigation principale" data-t-aria="nav_aria">
+      <a class="entete-lien" href="#services" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="services" data-t="nav_services">Services</a>
+      <a class="entete-lien" href="#modele" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="modele" data-t="nav_pros">Professionnels</a>
+      <a class="entete-lien" href="#questions" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="questions" data-t="nav_questions">Questions</a>
+      <details class="entete-menu" data-onglets="courses trajets">
+        <summary class="entete-lien" data-t="nav_mes_courses">Mes courses</summary>
+        <div class="entete-sous">
+          <a href="#" data-ecran="ecran-courses" data-onglet="courses" data-t="nav_courses">Réservations</a>
+          <a href="#" data-ecran="ecran-trajets" data-onglet="trajets" data-t="nav_trajets">Trajets</a>
+        </div>
+      </details>
+      <button class="entete-lien" type="button" data-ouvre-wa data-t="nav_contact">Contact</button>
+    </nav>
     <div class="entete-actions">
       <!-- DEUX LANGUES, ET C'EST UN CHOIX. Le français pour l'Île-de-France,
            l'anglais pour tous les autres — un voyageur allemand, italien ou
@@ -2564,7 +2590,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="hero-texte">
       <h1 data-t-html="hero_titre">Tous vos déplacements, une seule solution.</h1>
       <p class="hero-sous" data-t="hero_sous">Elatransfer organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.</p>
-      <p class="hero-prix" data-t="hero_prix">Transferts · Chauffeurs · Conciergerie · Sur mesure</p>
+      <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Salons · Chauffeur à l'heure</p>
       <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
            Sans lui, un bandeau plus haut ne ferait que repousser le
            formulaire hors du premier écran : l'accroche coûterait le geste
@@ -2943,30 +2969,36 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        LE PREMIER ÉCRAN APPARTIENT AU CLIENT QUI RÉSERVE. Le message aux
        professionnels n'est pas retiré : il est juste après l'action, là où
        un hôtel ou une agence qui fait défiler le lit tout de suite.
-       DEPUIS LE 5 OCTOBRE 2026 CE N'EST PLUS QU'UNE LIGNE qui descend au
-       bloc « Qui sommes-nous » (#modele) : le pavé de 70 mots qui était ici
-       a été retiré à sa demande, son contenu vit là-bas, structuré. -->
+       DEPUIS LE 5 OCTOBRE 2026 CE N'EST PLUS QU'UNE LIGNE qui descend à
+       l'encart des professionnels (#modele) : le pavé de 70 mots qui était
+       ici a été retiré à sa demande, son contenu vit là-bas, structuré. -->
   <div class="pro-bloc">
     <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrez nos solutions de réservation</span></a>
   </div>
 
-  <!-- LA PROMESSE D'ARRIVÉE (septembre 2026, à sa demande).
-       Elle reprend l'avion du champ « numéro de vol » : c'est le même
-       service dit deux fois, une fois en vitrine et une fois au moment de
-       le rendre. Le titre et le texte sont deux clés distinctes — le gras
-       se lit seul, en diagonale, et c'est lui qui doit porter la promesse.
-       ON NE PROMET AUCUNE GRATUITÉ D'ATTENTE : la règle du temps d'attente
-       n'est pas arrêtée, et l'écrire ici l'arrêterait à notre place. -->
-  <div class="promesse">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
-            fill="#0A4F91"/>
-    </svg>
-    <p>
-      <b data-t="retard_titre">Vol ou train en retard ? Votre chauffeur s'adapte.</b>
-      <span data-t="retard_texte">Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.</span>
-    </p>
-  </div>
+  <!-- COMMENT ÇA MARCHE, JUSTE SOUS LE FORMULAIRE (6 octobre 2026, à sa
+       demande : « le 1.2.3 est trop bas »). Ces trois étapes répondent à ce
+       que se demande quelqu'un qui vient de remplir le formulaire — qui va
+       me conduire, qui confirme, comment je paie : elles étaient sous les
+       services et l'offre « Au-delà du trajet », à 2 400 px sur téléphone.
+       L'encart des professionnels, lui, reste plus bas (#modele) : il ne
+       parle pas au client qui réserve. Sur le site public, la petite ligne
+       « 1 Trajet → 2 Prix → 3 Confirmation » de la carte est masquée — deux
+       suites numérotées l'une sous l'autre se contredisaient ; elle reste
+       sur la page easyHotel, qui n'a pas ce bloc.
+       Le bandeau « Vol ou train en retard ? » qui était ici est retiré : il
+       disait mot pour mot la carte « Suivi du vol ou du train » posée juste
+       en dessous, et la question fréquente le redit. -->
+  <section class="section modele" id="comment">
+    <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
+    <h2 data-t="modele_titre">Vous réservez, nous organisons tout.</h2>
+    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.</p>
+    <ol class="modele-etapes">
+      <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
+      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.</span></div></li>
+      <li><span class="modele-n">3</span><div><b data-t="modele_e3">Votre chauffeur vous conduit</b><span data-t="modele_e3s">À l'heure convenue, au prix annoncé, réglé directement à bord.</span></div></li>
+    </ol>
+  </section>
 
   <!-- « INCLUS DANS CHAQUE COURSE » remplace « Pourquoi choisir
        Elatransfer ? » (septembre 2026, maquette validée par Barbaros).
@@ -2987,7 +3019,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   </section>
 
 
-  <section class="section">
+  <section class="section" id="services">
     <div class="services-tete">
       <h2 data-t="services">Nos services</h2>
       <!-- « Voir tous » menait à une liste de services qui n'existe pas, et
@@ -3008,12 +3040,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          dessin d'un téléphone à l'autre et grossissent mal ; les cinq
          pictogrammes sont dessinés dans la même langue que les engagements —
          contour seul, trait de 1,7, un seul accent par icône.
-         LES QUATRE PREMIÈRES MÈNENT AU FORMULAIRE, la cinquième non : le
-         site ne sait réserver qu'un trajet d'une adresse à une autre. Un
-         hôtel, une gare et un rendez-vous d'affaires SONT des adresses ; un
-         chauffeur à l'heure n'en est pas une, et l'envoyer vers un
-         formulaire qui ne peut pas le prendre serait promettre puis se
-         dédire au dernier écran. -->
+         LES CINQ MÈNENT AU FORMULAIRE : le site ne sait réserver qu'un
+         trajet d'une adresse à une autre, et un hôtel, une gare, un
+         rendez-vous d'affaires ou un parc des expositions SONT des adresses.
+         Le chauffeur à l'heure n'en est pas une : il a quitté cette liste
+         pour « Au-delà du trajet », juste en dessous, où il mène à un devis
+         (octobre 2026 — « Salons & expositions » a pris sa place, à la
+         demande de Barbaros). -->
     <div class="services">
       <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
         <span class="service-corps">
@@ -3079,24 +3112,69 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span data-t="srv4s">Clients, collaborateurs, rendez-vous</span>
         </span>
       </a>
-      <!-- LA MISE À DISPOSITION OUVRE « NOUS JOINDRE », PAS LE FORMULAIRE.
-           Un chauffeur à l'heure se négocie de vive voix, et c'est de toute
-           façon ce qui se passerait. C'est aussi elle qui porte les visites —
-           Paris, Disneyland : ce ne sont PAS des offres à prix fixe, les
-           packs ont été retirés deux fois à sa demande. On nomme des
-           destinations, on ne vend pas un forfait. -->
-      <a class="service" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+      <!-- LES SALONS : Paris Expo Porte de Versailles, Paris Nord Villepinte,
+           Le Bourget. Ce sont des adresses, donc la carte mène au
+           formulaire, comme les quatre autres. -->
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
         <span class="service-corps">
         <span class="service-icone">
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9.1" stroke="#151C22" stroke-width="1.7"/>
-            <path d="M12 6.6V12l3.6 2.1" stroke="#0E6FC7" stroke-width="1.8"
+            <rect x="5.6" y="8.2" width="12.8" height="12.6" rx="2.2"
+                  stroke="#151C22" stroke-width="1.7"/>
+            <path d="M9 8.2l3-5.2 3 5.2" stroke="#151C22" stroke-width="1.7"
                   stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9.1 13.1h5.8M9.1 16.4h3.6" stroke="#0E6FC7" stroke-width="1.7"
+                  stroke-linecap="round"/>
           </svg>
         </span>
-        <b data-t="srv5">Mise à disposition</b>
-        <span data-t="srv5s">Chauffeur à l'heure · Paris, Disneyland</span>
+        <b data-t="srv5">Salons &amp; expositions</b>
+        <span data-t="srv5s">Porte de Versailles · Villepinte · Le Bourget</span>
         </span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ AU-DELÀ DU TRAJET (octobre 2026, à la demande de Barbaros) ═══
+       Ce qu'il fait VRAIMENT en plus du trajet — et rien d'autre : il a coché
+       chauffeur à l'heure, groupes et événements, accueil à l'aéroport ; pas
+       la conciergerie, qui a donc quitté le bandeau.
+       DEUX DEVIS, UNE OPTION. Les deux premières se négocient : elles ouvrent
+       « Nous joindre » (téléphone, WhatsApp, e-mail « devis »), comme la
+       mise à disposition l'a toujours fait. L'accueil est l'option pancarte
+       du formulaire, et son prix est LU dans OPTION_PANCARTE_EUR : un second
+       « 10 € » écrit à la main divergerait au premier changement.
+       PAS « VIP » : le mot fait attendre plus qu'une pancarte, et les CGV
+       parlent de pancarte. PAS DE FORFAIT GROUPÉ (transport + hôtel +
+       activité) : ce serait un forfait touristique, réservé aux agents de
+       voyages immatriculés (Code du tourisme L211-1). -->
+  <section class="section plus" id="plus">
+    <h2 data-t="plus_titre">Au-delà du trajet</h2>
+    <div class="plus-cartes">
+      <a class="plus-carte" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+        <span class="plus-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.1" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M12 6.6V12l3.6 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <b data-t="plus1">Chauffeur à l'heure</b>
+        <span class="plus-texte" data-t="plus1s">Rendez-vous, visites, Disneyland : votre chauffeur reste avec vous, à l'heure ou à la journée.</span>
+        <span class="plus-action" data-t="plus_devis">Demander un devis</span>
+      </a>
+      <a class="plus-carte" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+        <span class="plus-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="9" cy="8.2" r="3.1" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M3.3 19.4c.5-3.3 2.8-5.2 5.7-5.2s5.2 1.9 5.7 5.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M15.6 5.4a3 3 0 010 5.6M17.4 14.5c1.8.6 3 2.3 3.3 4.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <b data-t="plus2">Groupes &amp; événements</b>
+        <span class="plus-texte" data-t="plus2s">Mariages, séminaires, salons : plusieurs véhicules coordonnés, un seul interlocuteur.</span>
+        <span class="plus-action" data-t="plus_devis">Demander un devis</span>
+      </a>
+      <a class="plus-carte" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
+        <span class="plus-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.2" y="5.2" width="17.6" height="10.4" rx="1.8" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M7.4 10.4h9.2M9 15.6v4.2M15 15.6v4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <b data-t="plus3">Accueil personnalisé</b>
+        <span class="plus-texte" data-t="plus3s">À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.</span>
+        <span class="plus-prix-ligne"><span data-t="plus3_option">En option à la réservation :</span> <b class="plus-prix">+10,00 €</b></span>
+        <span class="plus-action" data-t="plus_reserver">Réserver un trajet</span>
       </a>
     </div>
   </section>
@@ -3107,23 +3185,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        modèle — une centrale qui organise, des chauffeurs professionnels
        partenaires qui conduisent — et c'est AUSSI la transparence que
        demande le statut d'intermédiaire : le client doit savoir qui
-       transporte. Aucune promesse qui ne soit vraie aujourd'hui. -->
+       transporte. Aucune promesse qui ne soit vraie aujourd'hui.
+       DEPUIS LE 6 OCTOBRE 2026 NE RESTE ICI QUE L'ENCART DES PROFESSIONNELS :
+       le titre, le modèle et ses trois étapes sont montés sous le formulaire
+       (#comment). « Professionnels » du menu et la ligne sous le formulaire
+       mènent donc ici, à ce qui leur parle. -->
   <section class="section modele" id="modele">
-    <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
-    <h2 data-t="modele_titre">Vous réservez, nous organisons tout.</h2>
-    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.</p>
-    <ol class="modele-etapes">
-      <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
-      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.</span></div></li>
-      <li><span class="modele-n">3</span><div><b data-t="modele_e3">Votre chauffeur vous conduit</b><span data-t="modele_e3s">À l'heure convenue, au prix annoncé, réglé directement à bord.</span></div></li>
-    </ol>
-    <!-- « SUR MESURE » EST ANNONCÉ DANS LE BANDEAU : il doit mener quelque
-         part. Il se fait sur devis, par e-mail (sujet seul, rien de
-         pré-rempli). -->
-    <div class="modele-devis">
-      <p><b data-t="devis_t">Une demande particulière ?</b> <span data-t="devis_s">Groupe, événement, chauffeur à disposition : recevez une proposition sur mesure.</span></p>
-      <a href="mailto:contact@elatransfer.com?subject=Demande%20de%20devis" data-t="devis_cta">Demander un devis</a>
-    </div>
     <div class="modele-pro">
       <p class="modele-pro-t" data-t="modele_pro_t">Pour les hôtels, agences et entreprises</p>
       <p class="modele-pro-s" data-t="modele_pro_s">Vos clients réservent chez vous, Elatransfer s'occupe du reste.</p>
@@ -3153,7 +3220,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <!-- LES QUESTIONS FRÉQUENTES, EN BAS DE L'ACCUEIL. Chaque réponse
        reprend les CGV (articles 5, 7, 8) : une réponse qui dirait autre
        chose que le contrat serait opposable contre nous. -->
-  <section class="section faq">
+  <section class="section faq" id="questions">
     <h2 data-t="faq_titre">Questions fréquentes</h2>
     <details class="faq-q"><summary data-t="faq1q">x</summary><p data-t="faq1r">x</p></details>
     <details class="faq-q"><summary data-t="faq2q">x</summary><p data-t="faq2r">x</p></details>
@@ -5655,7 +5722,7 @@ window.ELA_TEXTES = {
     entete_sous:"CHAUFFEURS PRIVÉS",
     hero_titre:"Tous vos déplacements, une seule solution.",
     hero_sous:"Elatransfer organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.",
-    hero_prix:"Transferts · Chauffeurs · Conciergerie · Sur mesure",
+    hero_prix:"Aéroports · Gares · Salons · Chauffeur à l'heure",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
@@ -5725,8 +5792,6 @@ window.ELA_TEXTES = {
        passe VRAIMENT après le clic — le barème d'annulation, lui, reste
        dans les CGV, où il engage. */
     dispo:"Disponibilité confirmée par WhatsApp ou SMS",
-    retard_titre:"Vol ou train en retard ? Votre chauffeur s'adapte.",
-    retard_texte:"Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.",
     engagements:"Inclus dans chaque course", inclus_sur:"SANS SUPPLÉMENT",
     eng1:"60 min d'attente incluses", eng1s:"à l'aéroport avec votre n° de vol · 30 min ailleurs",
     eng2:"Prix ferme", eng2s:"jamais recalculé à l'arrivée",
@@ -5743,7 +5808,12 @@ window.ELA_TEXTES = {
     srv2:"Hôtel", srv2s:"Vers l'aéroport, Paris ou une gare",
     srv3:"Gare", srv3s:"Gares de Paris et d'Île-de-France",
     srv4:"Professionnel", srv4s:"Clients, collaborateurs, rendez-vous",
-    srv5:"Mise à disposition", srv5s:"Chauffeur à l'heure · Paris, Disneyland",
+    srv5:"Salons & expositions", srv5s:"Porte de Versailles · Villepinte · Le Bourget",
+    plus_titre:"Au-delà du trajet", plus_devis:"Demander un devis", plus_reserver:"Réserver un trajet",
+    plus1:"Chauffeur à l'heure", plus1s:"Rendez-vous, visites, Disneyland : votre chauffeur reste avec vous, à l'heure ou à la journée.",
+    plus2:"Groupes & événements", plus2s:"Mariages, séminaires, salons : plusieurs véhicules coordonnés, un seul interlocuteur.",
+    plus3:"Accueil personnalisé", plus3s:"À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.",
+    plus3_option:"En option à la réservation :",
     pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Découvrez nos solutions de réservation",
     modele_sur:"QUI SOMMES-NOUS", modele_titre:"Vous réservez, nous organisons tout.",
     modele_intro:"Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.",
@@ -5752,7 +5822,6 @@ window.ELA_TEXTES = {
     modele_e3:"Votre chauffeur vous conduit", modele_e3s:"À l'heure convenue, au prix annoncé, réglé directement à bord.",
     modele_pro_t:"Pour les hôtels, agences et entreprises", modele_pro_s:"Vos clients réservent chez vous, Elatransfer s'occupe du reste.",
     modele_p0:"Mise en place gratuite et rapide", modele_p1:"Une page de réservation à votre nom",
-    devis_t:"Une demande particulière ?", devis_s:"Groupe, événement, chauffeur à disposition : recevez une proposition sur mesure.", devis_cta:"Demander un devis",
     contact_mail_t:"E-mail · devis et partenariats", modele_p2:"Un lien et un QR code dédiés",
     modele_p3:"Un accès pour suivre chaque réservation", modele_p4:"Des forfaits négociés depuis votre établissement",
     modele_cta:"Parler de votre établissement",
@@ -5801,6 +5870,8 @@ window.ELA_TEXTES = {
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
+    nav_services:"Services", nav_pros:"Professionnels", nav_questions:"Questions",
+    nav_mes_courses:"Mes courses", nav_aria:"Navigation principale",
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
@@ -5854,7 +5925,7 @@ window.ELA_TEXTES = {
     legal_mentions:"Mentions légales",
     legal_privacy:"Politique de confidentialité",
     legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 5 octobre 2026\n\n1. Objet et champ d'application\nLes présentes conditions encadrent l'utilisation du service Elatransfer pour rechercher, organiser et réserver une course auprès d'un chauffeur professionnel indépendant.\n\nElatransfer intervient comme intermédiaire entre le Client et le chauffeur. Le contrat de transport est conclu directement entre le Client et le chauffeur affecté à la course, à compter de la confirmation de la réservation.\n\nL'envoi d'une demande implique l'acceptation des présentes conditions par le Client.\n\n2. Service proposé et rôle d'Elatransfer\nElatransfer reçoit la demande du Client, recherche un chauffeur professionnel disponible et transmet au Client la confirmation de la course lorsqu'un chauffeur a été affecté.\n\nElatransfer ne possède pas les véhicules et n'exécute pas directement le transport. La course est réalisée sous la responsabilité du chauffeur indépendant confirmé au Client. Le chauffeur demeure responsable de ses autorisations professionnelles, de son assurance, de son véhicule et de la bonne exécution du transport.\n\nLes mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service. Ils sont organisés par téléphone ou WhatsApp, et leur prix ainsi que leurs conditions sont communiqués au Client avant confirmation.\n\n3. Demande et confirmation de la réservation\nLe Client transmet une demande de réservation en indiquant notamment les adresses de départ et d'arrivée, la date, l'heure, le nombre de passagers, la catégorie de véhicule souhaitée ainsi que ses coordonnées.\n\nL'envoi de cette demande ne garantit pas immédiatement la disponibilité d'un chauffeur et ne constitue pas une réservation ferme.\n\nLa réservation devient ferme uniquement lorsque Elatransfer adresse au Client une confirmation expresse indiquant qu'un chauffeur a été affecté à la course. La confirmation rappelle le trajet, la date, l'heure, la catégorie de véhicule, le prix total et le moyen de paiement prévu. L'identité ou les coordonnées utiles du chauffeur sont communiquées au Client au plus tard avant la prise en charge.\n\nSi aucun chauffeur n'est disponible, Elatransfer en informe le Client dans les meilleurs délais. Aucun paiement ni frais d'annulation ne peut être réclamé pour une demande qui n'a pas été confirmée.\n\nLe Client est responsable de l'exactitude des informations transmises et doit signaler rapidement toute modification susceptible d'affecter la course.\n\n4. Prix de la course\nAvant l'envoi de sa demande, le Client voit le prix total correspondant au trajet et à la catégorie de véhicule sélectionnée.\n\nPour un trajet dont le départ ou l'arrivée se situe à plus de 90 km de Paris, pour un groupe de plus de sept passagers nécessitant plusieurs véhicules, ou pour une adresse saisie sans être reconnue par le Service, aucun prix n'est affiché et la demande est transmise avec la mention « Tarif à confirmer ». Elatransfer communique alors au Client le prix total avant toute confirmation. Une telle demande n'engage le Client qu'une fois ce prix porté à sa connaissance et accepté.\n\nLe prix est calculé selon la distance estimée de l'itinéraire et le tarif kilométrique de la catégorie choisie. Le montant obtenu est arrondi à la dizaine d'euros la plus proche et un montant minimum s'applique à chaque course. Il ne fait l'objet d'aucune majoration de nuit ou de week-end.\n\nLorsque la course relie un hôtel partenaire d'Elatransfer à l'une des destinations prévues par l'accord conclu avec cet hôtel, un prix forfaitaire propre à ce partenaire remplace le calcul kilométrique décrit ci-dessus. Ce forfait dépend de la destination et de la catégorie de véhicule retenues. Il n'est ni arrondi à la dizaine d'euros, ni soumis au montant minimum, et ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié. Il est affiché au Client avant l'envoi de sa demande. Toute autre destination, ainsi qu'une adresse située hors de la zone couverte par le forfait, revient au calcul kilométrique.\n\nLorsque le Client choisit l'option d'accueil avec un panneau à son nom, un supplément forfaitaire de 10 € s'ajoute au prix de la course. Cette option n'est proposée que pour une prise en charge en aéroport ou en gare et n'est jamais présélectionnée. Son montant s'ajoute après l'arrondi et après l'application du montant minimum : il n'est ni arrondi, ni majoré.\n\nLes tarifs kilométriques et les prix minimums applicables sont ceux affichés par le Service au moment de la demande.\n\nLe prix devient ferme lorsque Elatransfer confirme la réservation. Il ne peut être modifié sans l'accord préalable du Client, sauf si celui-ci demande ensuite une modification du trajet, de l'horaire, de la catégorie de véhicule ou des conditions de prise en charge.\n\nLe prix total est réglé directement au chauffeur. Aucun frais distinct de mise en relation n'est facturé au Client par Elatransfer.\n\n5. Paiement\nLe prix de la course est réglé directement au chauffeur chargé d'effectuer le transport. Elatransfer n'encaisse pas le prix de la course et ne collecte aucune donnée bancaire du Client.\n\nLe Client indique son mode de règlement lors de l'envoi de la demande. Le règlement s'effectue à bord du véhicule, en espèces ou par carte bancaire, selon le moyen de paiement confirmé au Client.\n\nLe chauffeur remet au Client la facture correspondant au transport réalisé. Elatransfer peut être rémunérée par le chauffeur pour son service de mise en relation, sans supplément ajouté au prix confirmé au Client.\n\n6. Absence de droit de rétractation\nConformément à l'article L. 221-2, 9° du Code de la consommation, les contrats portant sur des services de transport de passagers sont exclus des règles relatives au droit de rétractation applicables aux contrats conclus à distance.\n\nLe délai de rétractation de quatorze jours ne s'applique donc pas à une course confirmée. Cette absence de droit de rétractation ne prive pas le Client de la possibilité d'annuler dans les conditions prévues à l'article 7.\n\n7. Annulation et absence\nLe présent barème s'applique uniquement à une réservation déjà confirmée. Le Client peut annuler en contactant Elatransfer dès qu'il connaît son empêchement.\n\nLes frais sont calculés sur le prix confirmé, selon l'heure de prise en charge convenue :\n— plus de 24 heures avant la prise en charge : aucun frais ;\n— entre 24 heures et 3 heures avant : 30 % du prix ;\n— moins de 3 heures avant : 50 % du prix.\n\nLe Client est considéré absent s'il ne se présente pas au point de rendez-vous et reste injoignable à l'issue du temps d'attente inclus : 60 minutes après l'heure réelle d'atterrissage pour une prise en charge en aéroport lorsque le numéro de vol a été fourni et peut être suivi, ou 30 minutes après l'heure convenue dans les autres cas. La totalité du prix confirmé peut alors être facturée.\n\nLes éventuels frais d'annulation ou d'absence sont facturés et encaissés par le chauffeur affecté, bénéficiaire de ces sommes. Elatransfer n'encaisse pas ces frais. Aucun frais n'est dû tant que la demande n'a pas été confirmée.\n\n8. Exécution du transport\nLe transport est exécuté par le chauffeur indépendant confirmé au Client, sous ses autorisations professionnelles et son assurance. Elatransfer assure la transmission de la demande, la recherche d'un chauffeur et la coordination des informations utiles avant la prise en charge.\n\nLa catégorie réservée correspond à un niveau de capacité et de service, et non à la garantie d'un modèle précis. Lorsque l'option a été choisie et confirmée, le chauffeur attend le Client avec un panneau à son nom au point de rendez-vous indiqué. Le temps d'attente inclus est celui défini à l'article 7.\n\nLe Client doit être joignable, se présenter à l'heure et transmettre des informations exactes sur les passagers, bagages, vol ou train. Une modification importante demandée après confirmation peut nécessiter un nouveau prix ou un autre chauffeur ; elle ne devient applicable qu'après accord du Client.\n\n9. Responsabilité et force majeure\nElatransfer répond de la bonne exécution de son service de mise en relation dans les conditions prévues par la loi. Le chauffeur répond de l'exécution du transport, de la sécurité des passagers, de son véhicule, de son assurance et du respect de ses obligations professionnelles.\n\nChaque partie n'est pas responsable d'un manquement causé par un événement de force majeure répondant aux critères légaux et rendant l'obligation impossible à exécuter. Les difficultés de circulation ordinaires ne constituent pas automatiquement un cas de force majeure.\n\nAucune clause des présentes CGV ne limite les droits impératifs du consommateur, ni la responsabilité qui ne peut être exclue par la loi.\n\n10. Réclamations et règlement des litiges\nToute réclamation doit être adressée à Elatransfer par email à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33, en indiquant la référence de la course et les éléments utiles. Elatransfer transmet au chauffeur les réclamations qui concernent l'exécution du transport et aide les parties à rechercher une solution amiable.\n\nAprès une réclamation écrite préalable restée sans solution, le Client consommateur conserve le droit de recourir gratuitement à un médiateur de la consommation compétent ainsi que d'exercer tout recours prévu par la loi.\n\n11. Données personnelles\nLes traitements de données personnelles, leurs finalités, leurs destinataires et les droits du Client sont décrits dans la Politique de confidentialité accessible depuis le Service.\n\n12. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français, sans priver le consommateur des protections impératives éventuellement applicables dans son pays de résidence. En cas de litige non résolu à l'amiable, les juridictions compétentes sont déterminées conformément aux règles impératives de procédure et de protection des consommateurs.",
-    legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
+    legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nCloudflare, Inc. — 101 Townsend Street, San Francisco, CA 94107, États-Unis — +1 888 993 5273 — cloudflare.com\nLe site est aussi publié par GitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 5 octobre 2026\n\n1. Responsable du traitement et contact\nElatransfer détermine les finalités et les moyens des traitements réalisés par le Service. Pour toute question ou demande relative aux données personnelles : contact@elatransfer.com ou WhatsApp au +33 7 59 31 24 33. Les autres informations d'identification figurent dans les Mentions légales.\n\n2. Données traitées\nLe Service peut traiter :\n— les coordonnées du Client : nom, numéro de téléphone et moyen de contact choisi pour recevoir la confirmation ;\n— les données de course : adresses, coordonnées géographiques associées, date, heure, catégorie de véhicule, passagers, bagages, prix, moyen de paiement prévu, note facultative, terminal, numéro de vol ou de train et, dans le parcours hôtel, numéro de chambre ;\n— les données de suivi : référence, état de la demande, chauffeur affecté et échanges nécessaires à la confirmation ;\n— la position de l'appareil uniquement si le Client active « Me localiser » et accorde l'autorisation au navigateur ;\n— les données techniques nécessaires aux connexions : adresse IP, navigateur, appareil, horodatage et journaux de sécurité susceptibles d'être reçus par l'hébergeur et les prestataires techniques.\n\nElatransfer ne collecte aucune donnée de carte bancaire : le Client règle actuellement le chauffeur directement.\n\n3. Finalités et bases légales\nLes données sont utilisées pour :\n— afficher un itinéraire et un prix, répondre à une demande et rechercher un chauffeur : mesures précontractuelles demandées par le Client ;\n— confirmer, suivre et exécuter la réservation : exécution du contrat et coordination avec le chauffeur ;\n— prévenir les abus, sécuriser le Service, conserver la preuve des demandes et défendre des droits : intérêt légitime ;\n— respecter les obligations légales et comptables applicables : obligation légale ;\n— utiliser la position de l'appareil : permission déclenchée volontairement par le Client, révocable dans les réglages du navigateur.\n\nAucune prospection commerciale n'est effectuée à partir des données de réservation sans une base légale distincte et, lorsque la loi l'exige, sans consentement préalable.\n\n4. Destinataires et prestataires\nElatransfer et les personnes autorisées à gérer les demandes accèdent aux données dans la limite de leurs fonctions. Les informations nécessaires au transport sont communiquées au seul chauffeur finalement affecté.\n\nPour rechercher un chauffeur, une annonce limitée peut être diffusée au réseau de chauffeurs partenaires sans le nom, le téléphone ni le numéro de chambre du Client. Le chauffeur retenu reçoit ensuite les informations nécessaires à la prise en charge.\n\nLe fonctionnement du Service implique également :\n— Supabase, pour l'authentification de l'espace exploitant, la base de données et le stockage des demandes ;\n— la Base Adresse Nationale et Photon, auxquels le texte d'adresse saisi est transmis pour proposer des adresses ;\n— OpenRouteService et OSRM, auxquels les coordonnées de départ et d'arrivée sont transmises pour calculer l'itinéraire ;\n— WhatsApp, Telegram ou la messagerie d'Apple (iMessage) et l'opérateur téléphonique, uniquement pour contacter le Client par le moyen qu'il a choisi, ou lorsque le Client choisit d'envoyer un message, lequel peut contenir les informations de la demande ;\n— GitHub, pour l'hébergement du site, et Google Fonts, pour la fourniture des polices et les données techniques liées à leur chargement.\n\nAucune donnée personnelle n'est vendue. Aucun prestataire de paiement ne reçoit de données tant qu'aucun paiement en ligne n'est proposé.\n\n5. Transferts hors de l'Espace économique européen\nCertains prestataires, notamment GitHub, Google, WhatsApp, Telegram ou Apple, sont établis ou peuvent traiter des données hors de l'Espace économique européen. Ces traitements relèvent des garanties mises en place par chaque prestataire conformément au RGPD, telles qu'une décision d'adéquation ou des clauses contractuelles types lorsqu'elles sont requises. Des informations complémentaires peuvent être demandées à l'adresse de contact.\n\n6. Durées de conservation\nLes demandes et réservations sont conservées pendant la durée nécessaire à leur traitement, au suivi de la relation et à la preuve des opérations, puis supprimées ou archivées selon les délais de prescription applicables. Les pièces comptables effectivement émises sont conservées pendant leur durée légale ; une simple demande de réservation n'est pas automatiquement une facture.\n\nL'historique des courses, la langue choisie et certaines préférences sont aussi enregistrés dans le stockage local du navigateur jusqu'à leur suppression par l'utilisateur ou l'effacement des données du site. Les journaux techniques sont conservés selon les durées de sécurité propres aux prestataires concernés.\n\n7. Stockage local, cookies et services externes\nLe Service utilise le stockage local du navigateur pour mémoriser la langue, les références et l'historique des demandes sur l'appareil. L'espace exploitant utilise également un stockage local nécessaire à sa session et à ses fonctions de gestion.\n\nÀ la date de mise à jour, Elatransfer n'active aucun outil de mesure d'audience publicitaire ou marketing et ne dépose pas volontairement de traceur optionnel nécessitant un bandeau de consentement. Le chargement de services externes peut néanmoins transmettre aux prestataires des données techniques telles que l'adresse IP. Si un outil optionnel est ajouté, il devra être bloqué jusqu'au recueil du consentement lorsqu'il est requis et la présente politique devra être mise à jour.\n\n8. Sécurité\nElatransfer met en œuvre des mesures techniques et organisationnelles proportionnées aux risques, notamment des restrictions d'accès à la base de données et une authentification de l'espace exploitant. Aucun service en ligne ne pouvant garantir une sécurité absolue, tout incident avéré est traité conformément aux obligations applicables.\n\n9. Droits\nSelon les conditions prévues par le RGPD, toute personne dispose de droits d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité. Elle peut également retirer un consentement à tout moment lorsque le traitement repose sur celui-ci, sans remettre en cause les traitements antérieurs.\n\nCes droits s'exercent à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33. Une preuve d'identité peut être demandée uniquement en cas de doute raisonnable sur l'identité du demandeur.\n\n10. Caractère obligatoire et décision automatisée\nLes champs signalés comme nécessaires sont indispensables pour rechercher un chauffeur et confirmer la course. Sans eux, Elatransfer ne peut pas traiter la demande. Les autres champs sont facultatifs. Aucune décision produisant un effet juridique n'est prise exclusivement par un traitement automatisé : la réservation devient ferme après confirmation d'un chauffeur.\n\n11. Réclamation\nToute personne peut introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés, www.cnil.fr, ou auprès de l'autorité de contrôle compétente dans son pays de résidence.",
     etat_court:"En attente",
     courses_titre:"Mes réservations",
@@ -5880,7 +5951,7 @@ window.ELA_TEXTES = {
     entete_sous:"PRIVATE CHAUFFEURS",
     hero_titre:"All your journeys, one solution.",
     hero_sous:"Elatransfer organises your transfers and mobility solutions, for individuals and professionals alike.",
-    hero_prix:"Transfers · Chauffeurs · Concierge services · Tailored solutions",
+    hero_prix:"Airports · Stations · Trade fairs · Hourly chauffeur",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
@@ -5942,8 +6013,6 @@ window.ELA_TEXTES = {
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
     btn_prix:"See my price", calcul:"Calculating the price…",
     dispo:"Availability confirmed by WhatsApp or SMS",
-    retard_titre:"Flight or train delayed? Your chauffeur adapts.",
-    retard_texte:"Give us your flight or train number: we track your arrival and adjust the pick-up time.",
     engagements:"Included in every ride", inclus_sur:"NO EXTRA CHARGE",
     eng1:"60 min waiting included", eng1s:"at the airport with your flight no. · 30 min elsewhere",
     eng2:"Firm price", eng2s:"never recalculated on arrival",
@@ -5960,7 +6029,12 @@ window.ELA_TEXTES = {
     srv2:"Hotel", srv2s:"To the airport, Paris or a station",
     srv3:"Station", srv3s:"Paris and Île-de-France stations",
     srv4:"Business", srv4s:"Clients, colleagues, meetings",
-    srv5:"Hourly hire", srv5s:"A chauffeur by the hour · Paris, Disneyland",
+    srv5:"Trade fairs & exhibitions", srv5s:"Porte de Versailles · Villepinte · Le Bourget",
+    plus_titre:"Beyond the ride", plus_devis:"Request a quote", plus_reserver:"Book a ride",
+    plus1:"Hourly chauffeur", plus1s:"Meetings, sightseeing, Disneyland: your chauffeur stays with you, by the hour or for the day.",
+    plus2:"Groups & events", plus2s:"Weddings, seminars, trade fairs: several coordinated vehicles, one point of contact.",
+    plus3:"Personal meet & greet", plus3s:"At the airport, your chauffeur waits for you with a sign bearing your name.",
+    plus3_option:"Optional when booking:",
     pro_lien_t:"Hotel, agency, business?", pro_lien_s:"See our booking solutions",
     modele_sur:"WHO WE ARE", modele_titre:"You book, we organise everything.",
     modele_intro:"Elatransfer receives your request, chooses the chauffeur, confirms the ride and follows it until you arrive. The journey is carried out by a professional partner chauffeur, with their professional licence and insurance.",
@@ -5969,7 +6043,6 @@ window.ELA_TEXTES = {
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the agreed time and the quoted price, paid directly on board.",
     modele_pro_t:"For hotels, agencies and businesses", modele_pro_s:"Your guests book with you, Elatransfer handles the rest.",
     modele_p0:"Free and fast set-up", modele_p1:"A booking page in your name",
-    devis_t:"A special request?", devis_s:"Group, event, a chauffeur at your disposal: receive a tailored proposal.", devis_cta:"Request a quote",
     contact_mail_t:"Email · quotes and partnerships", modele_p2:"A dedicated link and QR code",
     modele_p3:"Access to follow every booking", modele_p4:"Negotiated flat rates from your premises",
     modele_cta:"Talk about your business",
@@ -6014,6 +6087,8 @@ window.ELA_TEXTES = {
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
+    nav_services:"Services", nav_pros:"For business", nav_questions:"FAQ",
+    nav_mes_courses:"My rides", nav_aria:"Main navigation",
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
@@ -6062,7 +6137,7 @@ window.ELA_TEXTES = {
     legal_mentions:"Legal notice",
     legal_privacy:"Privacy policy",
     legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 5 October 2026\n\n1. Purpose and scope\nThese terms govern the use of the Elatransfer service to search for, arrange and book a journey with an independent professional driver.\n\nElatransfer acts as an intermediary between the Client and the driver. The transport contract is entered into directly between the Client and the driver assigned to the journey once the booking is confirmed.\n\nSubmitting a request implies the Client's acceptance of these terms.\n\n2. Service offered and Elatransfer's role\nElatransfer receives the Client's request, searches for an available professional driver and sends confirmation once a driver has been assigned.\n\nElatransfer does not own the vehicles and does not directly perform the transport. The journey is performed under the responsibility of the independent driver confirmed to the Client. The driver remains responsible for their professional authorisations, insurance, vehicle and proper performance of the transport.\n\nHourly hire and bespoke journeys cannot be booked through the Service. They are arranged by phone or WhatsApp, and their price and conditions are communicated to the Client before confirmation.\n\n3. Booking request and confirmation\nThe Client submits a booking request stating, in particular, the pickup and drop-off addresses, date, time, number of passengers, requested vehicle category and contact details.\n\nSubmitting a request does not immediately guarantee the availability of a driver and does not constitute a confirmed booking.\n\nThe booking becomes firm only when Elatransfer sends express confirmation that a driver has been assigned. The confirmation includes the journey, date, time, vehicle category, total price and intended payment method. The driver's identity or relevant contact details are communicated to the Client no later than before pickup.\n\nIf no driver is available, Elatransfer informs the Client as soon as reasonably possible. No payment or cancellation fee may be charged for a request that has not been confirmed.\n\nThe Client is responsible for the accuracy of the information provided and must promptly report any change that may affect the journey.\n\n4. Journey price\nBefore submitting a request, the Client is shown the total price corresponding to the journey and selected vehicle category.\n\nFor a journey whose pickup or drop-off is more than 90 km from Paris, for a group of more than seven passengers requiring several vehicles, or for an address entered without being recognised by the Service, no price is shown and the request is sent marked \"Price to be confirmed\". Elatransfer then informs the Client of the total price before any confirmation. Such a request binds the Client only once that price has been communicated to and accepted by them.\n\nThe price is calculated according to the estimated route distance and the per-kilometre rate for the selected category. The resulting amount is rounded to the nearest ten euros and a minimum fare applies to every journey. No night-time or weekend surcharge applies.\n\nWhere the journey connects a hotel partnered with Elatransfer to one of the destinations set out in the agreement with that hotel, a flat fare specific to that partner replaces the per-kilometre calculation described above. That flat fare depends on the destination and the vehicle category selected. It is neither rounded to the nearest ten euros nor subject to the minimum fare, and no night-time, weekend or public-holiday surcharge applies to it. It is shown to the Client before the request is submitted. Any other destination, and any address outside the area covered by the flat fare, reverts to the per-kilometre calculation.\n\nWhere the Client selects the optional extra of a meet-and-greet with a sign bearing their name, a flat supplement of €10 is added to the fare. This optional extra is offered only for an airport or railway station pick-up and is never pre-selected. Its amount is added after rounding and after the minimum fare has been applied: it is neither rounded nor increased.\n\nThe applicable per-kilometre rates and minimum fares are those displayed by the Service when the request is submitted.\n\nThe price becomes firm once Elatransfer confirms the booking. It cannot be changed without the Client's prior agreement unless the Client subsequently requests a change to the journey, time, vehicle category or pickup conditions.\n\nThe total price is paid directly to the driver. Elatransfer does not charge the Client a separate intermediation fee.\n\n5. Payment\nThe journey price is paid directly to the driver performing the transport. Elatransfer does not collect the journey price or any of the Client's banking data.\n\nThe Client states the intended payment method when submitting the request. Payment is made on board the vehicle, in cash or by card, according to the payment method confirmed to the Client.\n\nThe driver issues the Client an invoice for the transport performed. Elatransfer may be paid by the driver for its intermediation service, without any surcharge being added to the price confirmed to the Client.\n\n6. No right of withdrawal\nUnder Article L. 221-2(9) of the French Consumer Code, contracts for passenger transport services are excluded from the rules on withdrawal rights applicable to distance contracts.\n\nThe fourteen-day withdrawal period therefore does not apply to a confirmed journey. This does not prevent the Client from cancelling under the conditions set out in Article 7.\n\n7. Cancellation and no-show\nThis scale applies only to a booking that has already been confirmed. The Client may cancel by contacting Elatransfer as soon as they become aware that they cannot travel.\n\nFees are calculated on the confirmed price, by reference to the agreed pickup time:\n— more than 24 hours before pickup: no charge;\n— between 24 hours and 3 hours before: 30% of the price;\n— less than 3 hours before: 50% of the price.\n\nThe Client is considered a no-show if they do not attend the meeting point and cannot be reached once the included waiting time has elapsed: 60 minutes after the actual landing time for an airport pickup where a flight number was provided and can be tracked, or 30 minutes after the agreed time in all other cases. The full confirmed price may then be charged.\n\nAny cancellation or no-show fee is invoiced and collected by the assigned driver, who receives that amount. Elatransfer does not collect those fees. No fee is due before the request has been confirmed.\n\n8. Performance of the transport\nThe transport is performed by the independent driver confirmed to the Client, under that driver's professional authorisations and insurance. Elatransfer transmits the request, searches for a driver and coordinates relevant information before pickup.\n\nThe booked category corresponds to a level of capacity and service and does not guarantee a specific vehicle model. Where the option has been selected and confirmed, the driver waits with a sign bearing the Client's name at the stated meeting point. The included waiting time is defined in Article 7.\n\nThe Client must remain reachable, attend on time and provide accurate passenger, luggage, flight or train information. A material change requested after confirmation may require a new price or a different driver; it applies only after the Client agrees.\n\n9. Liability and force majeure\nElatransfer is responsible for properly performing its intermediation service as required by law. The driver is responsible for performing the transport, passenger safety, the vehicle, insurance and compliance with professional duties.\n\nA party is not liable for a failure caused by a force majeure event meeting the legal criteria and making performance impossible. Ordinary traffic difficulties do not automatically constitute force majeure.\n\nNothing in these terms limits mandatory consumer rights or any liability that cannot lawfully be excluded.\n\n10. Complaints and dispute resolution\nComplaints must be sent to Elatransfer by email at contact@elatransfer.com or by WhatsApp to +33 7 59 31 24 33, quoting the booking reference and relevant supporting information. Elatransfer forwards complaints about the transport to the driver and helps the parties seek an amicable solution.\n\nAfter a prior written complaint remains unresolved, a consumer Client retains the right to use a competent consumer mediator free of charge and to exercise any remedy available by law.\n\n11. Personal data\nPersonal-data processing, its purposes and recipients, and the Client's rights are described in the Privacy Policy available from the Service.\n\n12. Governing law and jurisdiction\nThese terms are governed by French law, without depriving consumers of mandatory protections that may apply in their country of residence. If a dispute is not resolved amicably, jurisdiction is determined under the mandatory rules of procedure and consumer protection.",
-    legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nGitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
+    legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nCloudflare, Inc. — 101 Townsend Street, San Francisco, CA 94107, USA — +1 888 993 5273 — cloudflare.com\nThe site is also published by GitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 5 October 2026\n\n1. Controller and contact\nElatransfer determines the purposes and means of processing carried out through the Service. For questions or requests about personal data: contact@elatransfer.com or WhatsApp at +33 7 59 31 24 33. Other identifying information appears in the Legal Notice.\n\n2. Data processed\nThe Service may process:\n— Client contact details: name, phone number and the channel chosen to receive the confirmation;\n— journey data: addresses, related geographic coordinates, date, time, vehicle category, passengers, luggage, price, intended payment method, optional note, terminal, flight or train number and, in the hotel journey, room number;\n— tracking data: reference, request status, assigned driver and communications needed for confirmation;\n— device location only if the Client selects “Locate me” and grants browser permission;\n— connection data needed for technical operation: IP address, browser, device, timestamp and security logs that may be received by the host and technical providers.\n\nElatransfer does not collect card details: the Client currently pays the driver directly.\n\n3. Purposes and legal bases\nData is used to:\n— display a route and price, answer a request and search for a driver: steps requested by the Client before entering into a contract;\n— confirm, track and perform the booking: performance of the contract and coordination with the driver;\n— prevent abuse, secure the Service, retain evidence of requests and defend legal rights: legitimate interests;\n— comply with applicable legal and accounting duties: legal obligation;\n— use device location: permission voluntarily triggered by the Client and revocable in browser settings.\n\nBooking data is not used for direct marketing without a separate lawful basis and, where required, prior consent.\n\n4. Recipients and providers\nElatransfer and people authorised to manage requests access data only as required for their duties. Information required for transport is disclosed only to the driver ultimately assigned.\n\nTo find a driver, a limited notice may be shared with the partner-driver network without the Client's name, phone number or room number. The selected driver then receives the information needed for pickup.\n\nThe Service also relies on:\n— Supabase, for operator-area authentication, the database and storage of requests;\n— Base Adresse Nationale and Photon, which receive address text entered to suggest addresses;\n— OpenRouteService and OSRM, which receive pickup and drop-off coordinates to calculate the route;\n— WhatsApp, Telegram or Apple's messaging service (iMessage) and the telephone carrier, only to contact the Client through the channel the Client chose, or when the Client chooses to send a message, which may contain request details;\n— GitHub, for site hosting, and Google Fonts, for fonts and technical data associated with loading them.\n\nPersonal data is not sold. No payment provider receives data while online payment is not offered.\n\n5. Transfers outside the European Economic Area\nSome providers, including GitHub, Google, WhatsApp, Telegram or Apple, are established or may process data outside the European Economic Area. Such processing is subject to the safeguards implemented by each provider under the GDPR, such as an adequacy decision or standard contractual clauses where required. Further information may be requested using the contact details above.\n\n6. Retention\nRequests and bookings are retained for as long as needed to handle them, manage the relationship and evidence transactions, then deleted or archived according to applicable limitation periods. Accounting records actually issued are retained for the statutory period; a booking request is not automatically an invoice.\n\nJourney history, selected language and certain preferences are also stored locally in the browser until the user removes them or clears site data. Technical logs are retained according to the relevant providers' security schedules.\n\n7. Local storage, cookies and external services\nThe Service uses browser local storage to remember language, references and request history on the device. The operator area also uses local storage required for its session and management features.\n\nAs of the update date, Elatransfer does not enable advertising or marketing analytics and does not intentionally set optional trackers requiring a consent banner. Loading external services may nevertheless disclose technical data such as an IP address to those providers. If an optional tool is added, it must be blocked until consent is collected where required and this policy must be updated.\n\n8. Security\nElatransfer implements technical and organisational measures proportionate to the risks, including database access restrictions and operator-area authentication. As no online service can guarantee absolute security, confirmed incidents are handled under applicable obligations.\n\n9. Rights\nSubject to the conditions in the GDPR, individuals have rights of access, rectification, erasure, restriction, objection and portability. Where processing relies on consent, consent may be withdrawn at any time without affecting earlier processing.\n\nRights may be exercised at contact@elatransfer.com or by WhatsApp at +33 7 59 31 24 33. Identity evidence may be requested only where there is reasonable doubt about the requester's identity.\n\n10. Required information and automated decisions\nFields marked as required are needed to search for a driver and confirm the journey. Without them, Elatransfer cannot process the request. Other fields are optional. No decision producing legal effects is made solely by automated processing: the booking becomes firm only after a driver is confirmed.\n\n11. Complaint\nIndividuals may lodge a complaint with the French data protection authority, the Commission Nationale de l'Informatique et des Libertés at www.cnil.fr, or with the competent authority in their country of residence.",
     etat_court:"Awaiting",
     courses_titre:"My bookings",
@@ -8655,6 +8730,9 @@ window.ELA_TEXTES = {
     document.querySelectorAll(".onglet").forEach(function(o){
       o.classList.toggle("actif", o.dataset.onglet === onglet);
     });
+    document.querySelectorAll(".entete-nav [data-onglets]").forEach(function(m){
+      m.classList.toggle("actif", m.dataset.onglets.split(" ").indexOf(onglet) >= 0);
+    });
     window.scrollTo(0, 0);
   }
 
@@ -9557,6 +9635,11 @@ window.ELA_TEXTES = {
   if(feuilleWa){
     var btnWa = document.getElementById("btnWa");
     if(btnWa) btnWa.addEventListener("click", ouvrirFeuilleWa);
+    /* Le « Contact » du menu d'ordinateur ouvre la MÊME feuille : la barre
+       qui la portait n'y est plus affichée. */
+    document.querySelectorAll("[data-ouvre-wa]").forEach(function(b){
+      b.addEventListener("click", ouvrirFeuilleWa);
+    });
     feuilleWa.addEventListener("click", function(e){
       if(e.target.closest("[data-fermer-wa]")){ fermerFeuilleWa(); return; }
       var choix = e.target.closest("[data-wa]");
@@ -10991,6 +11074,21 @@ window.ELA_TEXTES = {
    onglet en moins, le client appuie, rien ne bouge, et il en conclut que
    le site est cassé.
    ===================================================================== */
+  /* La liste « Mes courses » du menu d'ordinateur se referme d'un clic
+     ailleurs ou avec Échap, comme toute liste déroulante : « details » ne
+     le fait pas tout seul, et une liste restée ouverte cache la page. */
+  document.addEventListener("click", function(e){
+    document.querySelectorAll(".entete-menu[open]").forEach(function(m){
+      if(!m.contains(e.target)) m.open = false;
+    });
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    document.querySelectorAll(".entete-menu[open]").forEach(function(m){
+      m.open = false;
+      m.querySelector("summary").focus();
+    });
+  });
   document.querySelectorAll("[data-ecran]").forEach(function(el){
     el.addEventListener("click", function(e){
       e.preventDefault();
@@ -11011,6 +11109,16 @@ window.ELA_TEXTES = {
         });
       }
       ecran(cible, el.dataset.onglet);
+      /* Le menu d'ordinateur : on referme la liste « Mes courses », et un
+         lien vers un bloc de l'accueil y descend — depuis n'importe quel
+         écran, puisque « ecran() » vient de remonter en haut de page. */
+      var menu = el.closest("details");
+      if(menu) menu.open = false;
+      if(el.dataset.defiler){
+        var bloc = document.getElementById(el.dataset.defiler);
+        if(bloc) bloc.scrollIntoView({ block:"start",
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      }
       if(el.dataset.focus){
         var champ = document.getElementById(el.dataset.focus);
         if(champ) champ.focus({ preventScroll:true });
@@ -16243,7 +16351,16 @@ window.ELA_TEXTES = {
     if(docLegalOuvert && document.getElementById("ecran-legal").classList.contains("actif"))
       ouvrirDocLegal(docLegalOuvert);
     jugerVol();
+    ecrirePrixAccueil();
   };
+  /* Le prix de l'accueil personnalisé (« Au-delà du trajet ») : LU dans
+     OPTION_PANCARTE_EUR, au format de la langue — jamais un second « 10 € »
+     écrit à la main, qui survivrait au premier changement de prix. */
+  function ecrirePrixAccueil(){
+    chaque(document.querySelectorAll(".plus-prix"), function(e){
+      e.textContent = "+" + euros(OPTION_PANCARTE_EUR); });
+  }
+  ecrirePrixAccueil();
 
 /* =====================================================================
    LES DOCUMENTS LÉGAUX
