@@ -78,7 +78,7 @@ async function cliquable(p, sel) {
 
 /* 1366×657 : la hauteur UTILE d'un portable 1366×768 dans Chrome (onglets,
    barre d'adresse, barre des tâches). C'est elle qui compte, pas l'écran. */
-const ORDIS = [[1024,768],[1280,800],[1366,657],[1366,768],[1440,900],[1920,1080]];
+const ORDIS = [[1024,768],[1099,768],[1100,700],[1280,800],[1366,657],[1366,768],[1440,900],[1920,1080]];
 for (const [w, h] of ORDIS) {
   for (const langue of ['fr', 'en']) {
     if (langue === 'en' && !(w === 1366 && h === 657)) continue;
@@ -87,30 +87,54 @@ for (const [w, h] of ORDIS) {
     const m = await p.evaluate(() => {
       const r = s => document.querySelector(s).getBoundingClientRect();
       return { sw: document.documentElement.scrollWidth, carte: r('.reserver'),
-        logo: r('.logo-image'), pied: r('.pied'), titre: r('.hero h1') };
+        logo: r('.logo-image'), pied: r('.pied'), titre: r('.hero h1'), langues: r('.langues'),
+        hero: r('.hero'), cta: getComputedStyle(document.getElementById('btnHeroReserver')).display };
     });
+    /* LA COLONNE : 1180 px au plus, 24 px de marge au moins. Tout s'y aligne —
+       logo à gauche, FR/EN à droite, et le pied. Le formulaire en occupe toute
+       la largeur sous 1100 px ; au-delà il se pose À DROITE du titre (P0-C). */
+    const col = { left: Math.max(24, (w - 1180) / 2), right: w - Math.max(24, (w - 1180) / 2) };
+    const deuxColonnes = w >= 1100;
     check(`${tag} : aucun débordement horizontal`, m.sw === w, `largeur ${m.sw}`);
     check(`${tag} : « Voir mon prix » reçoit le clic en entier, sans défiler`,
       (await cliquable(p, '#btnVoirPrix')) === 'ok', await cliquable(p, '#btnVoirPrix'));
     check(`${tag} : la carte du formulaire garde une marge de chaque côté`,
       m.carte.left >= 16 && m.carte.right <= w - 16, `${Math.round(m.carte.left)}→${Math.round(m.carte.right)}`);
-    check(`${tag} : le logo s'aligne sur le bord de la carte`,
-      Math.abs(m.logo.left - m.carte.left) <= 2, `logo ${Math.round(m.logo.left)}, carte ${Math.round(m.carte.left)}`);
-    check(`${tag} : le titre du bandeau s'aligne sur le logo et la carte`,
-      Math.abs(m.titre.left - m.carte.left) <= 2, `titre ${Math.round(m.titre.left)}, carte ${Math.round(m.carte.left)}`);
-    check(`${tag} : le pied suit la même colonne que la carte`,
-      m.pied.left >= m.carte.left - 2 && m.pied.right <= m.carte.right + 2,
+    check(`${tag} : le logo et le titre du bandeau partent du bord gauche de la colonne`,
+      Math.abs(m.logo.left - col.left) <= 2 && Math.abs(m.titre.left - col.left) <= 2,
+      `logo ${Math.round(m.logo.left)}, titre ${Math.round(m.titre.left)}, colonne ${col.left}`);
+    check(`${tag} : FR/EN et le formulaire s'arrêtent au bord droit de la colonne`,
+      Math.abs(m.langues.right - col.right) <= 2 && Math.abs(m.carte.right - col.right) <= 2,
+      `FR/EN ${Math.round(m.langues.right)}, carte ${Math.round(m.carte.right)}, colonne ${col.right}`);
+    check(`${tag} : le pied suit la même colonne`,
+      m.pied.left >= col.left - 2 && m.pied.right <= col.right + 2,
       `pied ${Math.round(m.pied.left)}→${Math.round(m.pied.right)}`);
-
-    // Date/Heure et Passagers/Bagages sur UNE ligne : la ligne du dessous
-    // laissait un trou d'une demi-largeur et repoussait le bouton.
-    const lignes = await p.evaluate(() => {
-      const a = document.getElementById('blocDateHeure').getBoundingClientRect();
-      const bb = document.querySelector('.reserver > .duo:not(#blocDateHeure)').getBoundingClientRect();
-      return { memeLigne: Math.abs(a.top - bb.top) < 2, a: Math.round(a.width), b: Math.round(bb.width) };
-    });
-    check(`${tag} : Date/Heure et Passagers/Bagages partagent une ligne`, lignes.memeLigne,
-      JSON.stringify(lignes));
+    if (deuxColonnes) {
+      // P0-C : le formulaire DANS le bandeau, à droite du titre, sans le toucher.
+      check(`${tag} : le formulaire est dans le bandeau, à droite du titre`,
+        m.carte.top >= m.hero.top && m.carte.bottom <= m.hero.bottom && m.carte.left > m.titre.right + 16
+        && m.carte.top < m.titre.bottom && m.carte.bottom > m.titre.top,
+        `carte ${Math.round(m.carte.left)},${Math.round(m.carte.top)}–${Math.round(m.carte.bottom)} · titre →${Math.round(m.titre.right)} · bandeau ${Math.round(m.hero.top)}–${Math.round(m.hero.bottom)}`);
+      check(`${tag} : un seul bouton principal — « Réserver mon trajet » s'efface`, m.cta === 'none', m.cta);
+    } else {
+      check(`${tag} : le formulaire prend toute la colonne`, Math.abs(m.carte.left - col.left) <= 2, `carte ${Math.round(m.carte.left)}`);
+      check(`${tag} : « Réserver mon trajet » reste (le formulaire est sous le bandeau)`, m.cta !== 'none', m.cta);
+      // Date/Heure et Passagers/Bagages sur UNE ligne : la ligne du dessous
+      // laissait un trou d'une demi-largeur et repoussait le bouton.
+      const lignes = await p.evaluate(() => {
+        const a = document.getElementById('blocDateHeure').getBoundingClientRect();
+        const bb = document.querySelector('.reserver > .duo:not(#blocDateHeure)').getBoundingClientRect();
+        return { memeLigne: Math.abs(a.top - bb.top) < 2, a: Math.round(a.width), b: Math.round(bb.width) };
+      });
+      check(`${tag} : Date/Heure et Passagers/Bagages partagent une ligne`, lignes.memeLigne,
+        JSON.stringify(lignes));
+    }
+    // Aucun libellé de champ coupé : « Date » à côté de « Maintenant » a déjà
+    // disparu en « D… » sur téléphone. Dans la carte de 440 px, on le mesure.
+    const coupes = await p.evaluate(() => [...document.querySelectorAll('.reserver .champ-titre, .reserver .lien-maintenant')]
+      .filter(t => t.offsetParent && (t.scrollWidth > t.clientWidth + 1 || t.getBoundingClientRect().width < 20))
+      .map(t => t.textContent.trim()));
+    check(`${tag} : aucun libellé de champ coupé`, coupes.length === 0, coupes.join(', '));
 
     // LA RÈGLE, PAS LA LISTE : on montre TOUS les enfants cachés de la carte,
     // et aucun ne doit tomber dans une colonne étroite. C'est ce qui était
@@ -148,9 +172,10 @@ for (const [w, h] of ORDIS) {
   const r = await p.evaluate(() => {
     const a = document.getElementById('blocAsap').getBoundingClientRect();
     const bb = document.querySelector('.reserver > .duo:not(#blocDateHeure)').getBoundingClientRect();
-    return { visible: a.width > 0, memeLigne: Math.abs(a.top - bb.top) < 2 };
+    const d = document.getElementById('blocDateHeure').getBoundingClientRect();
+    return { visible: a.width > 0, cache: d.width === 0, avantPassagers: a.bottom <= bb.top + 1 };
   });
-  check('1366×768 « Maintenant » : l’encadré prend la place de Date/Heure', r.visible && r.memeLigne, JSON.stringify(r));
+  check('1366×768 « Maintenant » : l’encadré prend la place de Date/Heure', r.visible && r.cache && r.avantPassagers, JSON.stringify(r));
   check('1366×768 « Maintenant » : « Voir mon prix » reçoit le clic en entier',
     (await cliquable(p, '#btnVoirPrix')) === 'ok', await cliquable(p, '#btnVoirPrix'));
   await p.context().close();
@@ -297,6 +322,46 @@ for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
     menu: (document.querySelector('.entete-nav') ? getComputedStyle(document.querySelector('.entete-nav')).display : 'none'),
     barre: getComputedStyle(document.querySelector('.barre')).display }));
   check('page hôtel : pas de menu d’ordinateur, la barre reste', r.hotel && r.menu === 'none' && r.barre !== 'none', JSON.stringify(r));
+  await p.context().close();
+}
+
+// ═══ LOT P0-C : « AU-DELÀ DU TRAJET » ET LA LIGNE DE RÉSUMÉ ═══
+// La règle des destinations : une carte mène au formulaire SI ET SEULEMENT
+// SI ce qu'elle annonce est une adresse. On lit la cible déclarée et on
+// appuie pour vérifier qu'on y arrive.
+{
+  const source = (await import('node:fs')).readFileSync('index.html', 'utf8');
+  const pancarte = Number((source.match(/var OPTION_PANCARTE_EUR\s*=\s*(\d+(?:\.\d+)?)/) || [])[1]);
+  for (const langue of ['fr', 'en']) {
+    const p = await ouvrir(1366, 768, langue);
+    const resume = await p.locator('.hero-prix').textContent();
+    check(`${langue.toUpperCase()} : la ligne de résumé nomme les salons et ne promet plus de conciergerie`,
+      /Salons|Trade fairs/.test(resume) && !/oncierge/i.test(resume), resume);
+    const prixAff = (await p.evaluate(() => (document.querySelector('.plus-prix') || {}).textContent || 'absent')).replace(/\s/g, ' ');
+    const attendu = '+' + pancarte.toLocaleString(langue === 'en' ? 'en-GB' : 'fr-FR', { minimumFractionDigits: 2 }) + ' €';
+    check(`${langue.toUpperCase()} : le prix de l'accueil personnalisé est celui de l'option pancarte (${pancarte} €), au format de la langue`,
+      prixAff.replace(/[  ]/g, ' ') === attendu.replace(/[  ]/g, ' '), `affiché « ${prixAff} », attendu « ${attendu} »`);
+    await p.context().close();
+  }
+  const p = await ouvrir(1366, 768);
+  const cartes = await p.evaluate(() => [...document.querySelectorAll('.plus-carte')].map(e => ({
+    nom: e.querySelector('b').textContent.trim(), vers: e.getAttribute('data-ecran') })));
+  check('« Au-delà du trajet » porte ses trois cartes', cartes.length === 3, cartes.map(c => c.nom).join(', '));
+  for (const [i, c] of cartes.entries()) {
+    if (!c.vers) { check(`« ${c.nom} » déclare un écran`, false); continue; }
+    await p.evaluate(() => scrollTo(0, 0));
+    await p.locator('.plus-carte').nth(i).click(); await p.waitForTimeout(300);
+    check(`« ${c.nom} » ouvre l'écran qu'elle annonce (${c.vers})`,
+      await p.evaluate(id => document.getElementById(id).classList.contains('actif'), c.vers));
+    await p.click('.entete .logo').catch(() => {}); await p.goto(SITE); await p.waitForTimeout(300);
+  }
+  check('les deux devis mènent à « Nous joindre », l’accueil au formulaire',
+    cartes.filter(c => c.vers === 'ecran-contact').length === 2 && cartes.filter(c => c.vers === 'ecran-accueil').length === 1,
+    JSON.stringify(cartes));
+  const trois = await p.evaluate(() => { const r = [...document.querySelectorAll('.plus-carte')].map(e => e.getBoundingClientRect());
+    return r.every(x => Math.abs(x.top - r[0].top) < 2); });
+  check('sur ordinateur, les trois cartes sont de front', trois);
+  check('aucune erreur JavaScript', p._errs.length === 0, p._errs.join(' | '));
   await p.context().close();
 }
 

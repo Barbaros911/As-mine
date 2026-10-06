@@ -2166,6 +2166,31 @@ body.espace #panneauProvenance{display:none;}
 .modele-devis a{flex:none;display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;
   border:1.5px solid var(--accent,#0E6FC7);color:var(--accent,#0E6FC7);font-weight:700;font-size:14px;text-decoration:none;}
 body.hotel .modele{display:none;}
+/* AU-DELÀ DU TRAJET — des cartes à pictogramme, pas à photo : on ne pose
+   pas une image dont on ne connaît pas l'auteur, et elles se distinguent
+   ainsi d'un coup d'œil des trajets du dessus. Une colonne sur téléphone,
+   trois de front sur ordinateur. */
+.plus-cartes{display:grid;gap:10px;}
+/* Sur téléphone, le dessin à GAUCHE du texte : empilé au-dessus, il coûtait
+   une ligne par carte, et trois cartes allongeaient la page de 580 px. */
+.plus-carte{display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:14px;row-gap:3px;
+  align-content:start;padding:14px;border:1px solid var(--filet,#E1E8EF);border-radius:16px;
+  background:var(--carte,#fff);color:var(--encre,#151C22);text-decoration:none;}
+.plus-carte > *{grid-column:2;}
+.plus-icone{grid-column:1;grid-row:1 / span 4;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:var(--accent-clair,#E8F2FD);color:var(--accent,#0E6FC7);}
+.plus-carte > b{font-size:16px;font-weight:800;}
+.plus-texte{font-size:14px;line-height:1.45;color:var(--gris,#5A6A7B);}
+.plus-prix-ligne{font-size:13.5px;color:var(--encre,#151C22);}
+.plus-prix{white-space:nowrap;}
+.plus-action{margin-top:auto;padding-top:6px;font-size:14px;font-weight:700;color:var(--accent,#0E6FC7);}
+.plus-action::after{content:" →";}
+.plus-carte:hover .plus-action{text-decoration:underline;}
+@media (min-width:900px){
+  .plus-cartes{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .plus-carte{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:20px;}
+  .plus-icone{margin-bottom:8px;}
+}
 .inclus{background:linear-gradient(135deg,#062f55,#094a78);color:#fff;border-radius:22px;padding:22px 18px 10px}
 .inclus-sur{margin:0;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#12c4ee}
 .section .inclus h2{color:#fff;margin:4px 0 8px;font-size:22px}
@@ -2573,7 +2598,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="hero-texte">
       <h1 data-t-html="hero_titre">Tous vos déplacements, une seule solution.</h1>
       <p class="hero-sous" data-t="hero_sous">Elatransfer organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.</p>
-      <p class="hero-prix" data-t="hero_prix">Transferts · Chauffeurs · Conciergerie · Sur mesure</p>
+      <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Salons · Chauffeur à l'heure</p>
       <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
            Sans lui, un bandeau plus haut ne ferait que repousser le
            formulaire hors du premier écran : l'accroche coûterait le geste
@@ -3017,12 +3042,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          dessin d'un téléphone à l'autre et grossissent mal ; les cinq
          pictogrammes sont dessinés dans la même langue que les engagements —
          contour seul, trait de 1,7, un seul accent par icône.
-         LES QUATRE PREMIÈRES MÈNENT AU FORMULAIRE, la cinquième non : le
-         site ne sait réserver qu'un trajet d'une adresse à une autre. Un
-         hôtel, une gare et un rendez-vous d'affaires SONT des adresses ; un
-         chauffeur à l'heure n'en est pas une, et l'envoyer vers un
-         formulaire qui ne peut pas le prendre serait promettre puis se
-         dédire au dernier écran. -->
+         LES CINQ MÈNENT AU FORMULAIRE : le site ne sait réserver qu'un
+         trajet d'une adresse à une autre, et un hôtel, une gare, un
+         rendez-vous d'affaires ou un parc des expositions SONT des adresses.
+         Le chauffeur à l'heure n'en est pas une : il a quitté cette liste
+         pour « Au-delà du trajet », juste en dessous, où il mène à un devis
+         (octobre 2026 — « Salons & expositions » a pris sa place, à la
+         demande de Barbaros). -->
     <div class="services">
       <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
         <span class="service-corps">
@@ -3088,24 +3114,69 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span data-t="srv4s">Clients, collaborateurs, rendez-vous</span>
         </span>
       </a>
-      <!-- LA MISE À DISPOSITION OUVRE « NOUS JOINDRE », PAS LE FORMULAIRE.
-           Un chauffeur à l'heure se négocie de vive voix, et c'est de toute
-           façon ce qui se passerait. C'est aussi elle qui porte les visites —
-           Paris, Disneyland : ce ne sont PAS des offres à prix fixe, les
-           packs ont été retirés deux fois à sa demande. On nomme des
-           destinations, on ne vend pas un forfait. -->
-      <a class="service" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+      <!-- LES SALONS : Paris Expo Porte de Versailles, Paris Nord Villepinte,
+           Le Bourget. Ce sont des adresses, donc la carte mène au
+           formulaire, comme les quatre autres. -->
+      <a class="service" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
         <span class="service-corps">
         <span class="service-icone">
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9.1" stroke="#151C22" stroke-width="1.7"/>
-            <path d="M12 6.6V12l3.6 2.1" stroke="#0E6FC7" stroke-width="1.8"
+            <rect x="5.6" y="8.2" width="12.8" height="12.6" rx="2.2"
+                  stroke="#151C22" stroke-width="1.7"/>
+            <path d="M9 8.2l3-5.2 3 5.2" stroke="#151C22" stroke-width="1.7"
                   stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9.1 13.1h5.8M9.1 16.4h3.6" stroke="#0E6FC7" stroke-width="1.7"
+                  stroke-linecap="round"/>
           </svg>
         </span>
-        <b data-t="srv5">Mise à disposition</b>
-        <span data-t="srv5s">Chauffeur à l'heure · Paris, Disneyland</span>
+        <b data-t="srv5">Salons &amp; expositions</b>
+        <span data-t="srv5s">Porte de Versailles · Villepinte · Le Bourget</span>
         </span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ AU-DELÀ DU TRAJET (octobre 2026, à la demande de Barbaros) ═══
+       Ce qu'il fait VRAIMENT en plus du trajet — et rien d'autre : il a coché
+       chauffeur à l'heure, groupes et événements, accueil à l'aéroport ; pas
+       la conciergerie, qui a donc quitté le bandeau.
+       DEUX DEVIS, UNE OPTION. Les deux premières se négocient : elles ouvrent
+       « Nous joindre » (téléphone, WhatsApp, e-mail « devis »), comme la
+       mise à disposition l'a toujours fait. L'accueil est l'option pancarte
+       du formulaire, et son prix est LU dans OPTION_PANCARTE_EUR : un second
+       « 10 € » écrit à la main divergerait au premier changement.
+       PAS « VIP » : le mot fait attendre plus qu'une pancarte, et les CGV
+       parlent de pancarte. PAS DE FORFAIT GROUPÉ (transport + hôtel +
+       activité) : ce serait un forfait touristique, réservé aux agents de
+       voyages immatriculés (Code du tourisme L211-1). -->
+  <section class="section plus" id="plus">
+    <h2 data-t="plus_titre">Au-delà du trajet</h2>
+    <div class="plus-cartes">
+      <a class="plus-carte" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+        <span class="plus-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.1" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M12 6.6V12l3.6 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <b data-t="plus1">Chauffeur à l'heure</b>
+        <span class="plus-texte" data-t="plus1s">Rendez-vous, visites, Disneyland : votre chauffeur reste avec vous, à l'heure ou à la journée.</span>
+        <span class="plus-action" data-t="plus_devis">Demander un devis</span>
+      </a>
+      <a class="plus-carte" href="#" data-ecran="ecran-contact" data-onglet="accueil">
+        <span class="plus-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="9" cy="8.2" r="3.1" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M3.3 19.4c.5-3.3 2.8-5.2 5.7-5.2s5.2 1.9 5.7 5.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M15.6 5.4a3 3 0 010 5.6M17.4 14.5c1.8.6 3 2.3 3.3 4.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <b data-t="plus2">Groupes &amp; événements</b>
+        <span class="plus-texte" data-t="plus2s">Mariages, séminaires, salons : plusieurs véhicules coordonnés, un seul interlocuteur.</span>
+        <span class="plus-action" data-t="plus_devis">Demander un devis</span>
+      </a>
+      <a class="plus-carte" href="#" data-ecran="ecran-accueil" data-focus="depart" data-onglet="accueil">
+        <span class="plus-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.2" y="5.2" width="17.6" height="10.4" rx="1.8" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M7.4 10.4h9.2M9 15.6v4.2M15 15.6v4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <b data-t="plus3">Accueil personnalisé</b>
+        <span class="plus-texte" data-t="plus3s">À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.</span>
+        <span class="plus-prix-ligne"><span data-t="plus3_option">En option à la réservation :</span> <b class="plus-prix">+10,00 €</b></span>
+        <span class="plus-action" data-t="plus_reserver">Réserver un trajet</span>
       </a>
     </div>
   </section>
@@ -5630,7 +5701,7 @@ window.ELA_TEXTES = {
     entete_sous:"CHAUFFEURS PRIVÉS",
     hero_titre:"Tous vos déplacements, une seule solution.",
     hero_sous:"Elatransfer organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.",
-    hero_prix:"Transferts · Chauffeurs · Conciergerie · Sur mesure",
+    hero_prix:"Aéroports · Gares · Salons · Chauffeur à l'heure",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
@@ -5718,7 +5789,12 @@ window.ELA_TEXTES = {
     srv2:"Hôtel", srv2s:"Vers l'aéroport, Paris ou une gare",
     srv3:"Gare", srv3s:"Gares de Paris et d'Île-de-France",
     srv4:"Professionnel", srv4s:"Clients, collaborateurs, rendez-vous",
-    srv5:"Mise à disposition", srv5s:"Chauffeur à l'heure · Paris, Disneyland",
+    srv5:"Salons & expositions", srv5s:"Porte de Versailles · Villepinte · Le Bourget",
+    plus_titre:"Au-delà du trajet", plus_devis:"Demander un devis", plus_reserver:"Réserver un trajet",
+    plus1:"Chauffeur à l'heure", plus1s:"Rendez-vous, visites, Disneyland : votre chauffeur reste avec vous, à l'heure ou à la journée.",
+    plus2:"Groupes & événements", plus2s:"Mariages, séminaires, salons : plusieurs véhicules coordonnés, un seul interlocuteur.",
+    plus3:"Accueil personnalisé", plus3s:"À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.",
+    plus3_option:"En option à la réservation :",
     pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Découvrez nos solutions de réservation",
     modele_sur:"QUI SOMMES-NOUS", modele_titre:"Vous réservez, nous organisons tout.",
     modele_intro:"Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.",
@@ -5857,7 +5933,7 @@ window.ELA_TEXTES = {
     entete_sous:"PRIVATE CHAUFFEURS",
     hero_titre:"All your journeys, one solution.",
     hero_sous:"Elatransfer organises your transfers and mobility solutions, for individuals and professionals alike.",
-    hero_prix:"Transfers · Chauffeurs · Concierge services · Tailored solutions",
+    hero_prix:"Airports · Stations · Trade fairs · Hourly chauffeur",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
@@ -5937,7 +6013,12 @@ window.ELA_TEXTES = {
     srv2:"Hotel", srv2s:"To the airport, Paris or a station",
     srv3:"Station", srv3s:"Paris and Île-de-France stations",
     srv4:"Business", srv4s:"Clients, colleagues, meetings",
-    srv5:"Hourly hire", srv5s:"A chauffeur by the hour · Paris, Disneyland",
+    srv5:"Trade fairs & exhibitions", srv5s:"Porte de Versailles · Villepinte · Le Bourget",
+    plus_titre:"Beyond the ride", plus_devis:"Request a quote", plus_reserver:"Book a ride",
+    plus1:"Hourly chauffeur", plus1s:"Meetings, sightseeing, Disneyland: your chauffeur stays with you, by the hour or for the day.",
+    plus2:"Groups & events", plus2s:"Weddings, seminars, trade fairs: several coordinated vehicles, one point of contact.",
+    plus3:"Personal meet & greet", plus3s:"At the airport, your chauffeur waits for you with a sign bearing your name.",
+    plus3_option:"Optional when booking:",
     pro_lien_t:"Hotel, agency, business?", pro_lien_s:"See our booking solutions",
     modele_sur:"WHO WE ARE", modele_titre:"You book, we organise everything.",
     modele_intro:"Elatransfer receives your request, chooses the chauffeur, confirms the ride and follows it until you arrive. The journey is carried out by a professional partner chauffeur, with their professional licence and insurance.",
@@ -16235,7 +16316,16 @@ window.ELA_TEXTES = {
     if(docLegalOuvert && document.getElementById("ecran-legal").classList.contains("actif"))
       ouvrirDocLegal(docLegalOuvert);
     jugerVol();
+    ecrirePrixAccueil();
   };
+  /* Le prix de l'accueil personnalisé (« Au-delà du trajet ») : LU dans
+     OPTION_PANCARTE_EUR, au format de la langue — jamais un second « 10 € »
+     écrit à la main, qui survivrait au premier changement de prix. */
+  function ecrirePrixAccueil(){
+    chaque(document.querySelectorAll(".plus-prix"), function(e){
+      e.textContent = "+" + euros(OPTION_PANCARTE_EUR); });
+  }
+  ecrirePrixAccueil();
 
 /* =====================================================================
    LES DOCUMENTS LÉGAUX

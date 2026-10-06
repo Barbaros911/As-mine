@@ -142,3 +142,27 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous a:ho
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-nav{margin-left:16px}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien{padding:0 9px;font-size:14px}
 }
+
+/* ═══ ORDINATEUR — LOT P0-C (6 octobre 2026) : LE BANDEAU EN DEUX COLONNES ═══
+   Au-delà de 1100 px : la promesse à gauche, le formulaire À DROITE, dans le
+   bandeau. Le formulaire ne bouge PAS dans le code — mêmes identifiants,
+   mêmes champs, même ordre au clavier : c'est l'écran d'accueil qui devient
+   une grille, et la carte se pose sur la première rangée, à côté du texte.
+   Elle y reprend sa forme de téléphone (une colonne, 440 px) : la plus
+   éprouvée, et la largeur naturelle d'un formulaire.
+   UN SEUL BOUTON PRINCIPAL : « Réserver mon trajet » ne fait que descendre
+   au formulaire — qui est maintenant juste à côté. Il reste sur téléphone.
+   Entre 900 et 1099 px, rien ne change : à cette largeur le texte n'aurait
+   plus que 400 px à côté du formulaire. */
+@media(min-width:1100px){
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif{display:grid;grid-template-columns:minmax(0,1fr)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>*{grid-column:1;min-width:0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>.hero{grid-row:1;display:flex;min-height:0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>.reserver{grid-row:1;align-self:center;justify-self:end;width:440px;margin:44px max(24px,calc((100% - 1180px)/2)) 44px 0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:0;padding:56px 488px 56px 0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnHeroReserver{display:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{text-wrap:balance}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{margin-bottom:8px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{grid-template-columns:minmax(0,1fr)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocDepart,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocArrivee,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.duo,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocAsap{grid-column:1/-1}
+}

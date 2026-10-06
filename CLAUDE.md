@@ -1570,46 +1570,10 @@ bouton, et la réassurance.
   descriptif — on dit où l'on conduit. **Ne pas en refaire un « pack »** : il
   a été retiré à sa demande, c'était le premier des deux.
 
-### CE QUE LE BANDEAU A CASSÉ — LA BARRE DU BAS MANGEAIT « VOIR MON PRIX »
-
-Septembre 2026, trouvé par les suites juste avant la mise en ligne. **Le
-défaut le plus coûteux de la soirée, et il était invisible.**
-
-Le bandeau plus haut a poussé « Voir mon prix » à **774–827** pendant que la
-barre du bas occupe **784–844**. Sa moitié basse passait **derrière** la
-barre : un client qui ouvre la page, remplit le formulaire et appuie au
-milieu du bouton **ouvrait l'onglet « Trajets »**. Il ne voyait pas son prix,
-il changeait d'écran, sans le moindre message.
-
-- **LA NOTE « le formulaire entier tient dans le premier écran, ne pas le
-  remonter » N'ÉTAIT PAS DE LA COQUETTERIE.** Elle protégeait exactement ça,
-  et je l'ai enfreinte en croyant ne coûter qu'un défilement.
-- **LA RÈGLE EXISTANTE NE COUVRAIT PAS CE CAS** : le contrôle des éléments
-  flottants de `test-nouveau-bon` **exclut explicitement `.barre`**, parce
-  qu'elle est légitime et toujours là. C'est précisément pour ça qu'il en
-  fallait une autre — **ce qui est toujours là ne se remarque plus**.
-- **CE QUI A PAYÉ LES 68 px : le bloc « Réserver un trajet / Simple, rapide
-  et sécurisé ».** C'est exactement celui qu'il avait désigné en demandant
-  une vraie accroche. Le bandeau dit maintenant qui l'on est, ce qu'on vend
-  et à quel prix, et il porte un bouton qui descend ici : répéter le titre
-  juste en dessous, avec une icône de 50 px, c'était accueillir deux fois.
-  Une correction de mise en page qui supprime un doublon vaut mieux qu'une
-  correction qui grignote cinq marges.
-- **LE TÉMOIN DE LANGUE VISAIT CE BLOC** — `[data-t="reserver_titre"]`, dans
-  quatre contrôles de `test-nouveau-langues`. Il vise désormais
-  `[data-t="btn_prix"]` : **un témoin doit viser ce qui ne peut pas
-  disparaître**, ici le bouton sans lequel il n'y a pas de réservation.
-- **LE SYMPTÔME N'AVAIT AUCUN RAPPORT AVEC LA CAUSE.** `test-nouveau-option`
-  s'arrêtait sur un délai en cherchant `.veh-carte`, parce qu'un
-  `click({force:true})` avait atterri sur la barre et ouvert l'écran des
-  trajets. **`force:true` ne signale pas un bouton recouvert : il clique à
-  côté et continue.** Une suite qui n'affiche ni réussite ni échec est un
-  échec — ne jamais la lire comme « pas concernée ».
-- **LE PREMIER JET DU NOUVEAU CONTRÔLE PASSAIT AU VERT SUR LA VERSION
-  CASSÉE.** Il était placé **après** le clic sur le bouton du bandeau, donc
-  sur une page déjà défilée : il lisait 365 px là où le client voit 774. Un
-  contrôle de position se mesure **à l'arrêt, avant tout geste**. Éprouvé
-  ensuite contre l'ancien code : il rend « reçoit : onglet ».
+### LA BARRE DU BAS NE DOIT JAMAIS COUVRIR « VOIR MON PRIX »
+Ce qui est toujours là ne se remarque plus : on MESURE (`elementFromPoint`),
+à l'arrêt, avant tout geste — `force:true` clique à côté sans rien dire.
+Histoire (septembre puis octobre 2026, sur ordinateur) : `memoire/ordinateur.md`.
 
 ### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
 
@@ -1701,8 +1665,9 @@ lui : **Chauffeur professionnel · Prix ferme · Suivi du vol · Assistance
   « véhicules haut de gamme » — laissée en place, elle aurait dit « berline »
   à côté d'un titre qui parle d'argent.
 
-**Les services** passent de trois à **cinq** : Aéroport · Hôtel · Gare ·
-Professionnel · Mise à disposition.
+**Les services** sont **cinq** : Aéroport · Hôtel · Gare · Professionnel ·
+Salons & expositions. La mise à disposition est passée dans « Au-delà du
+trajet » (octobre 2026, voir « LE SITE SUR ORDINATEUR »).
 - **LES PHOTOS SONT PARTIES, REMPLACÉES PAR DES PICTOGRAMMES.** Il en aurait
   fallu deux de plus, et **une photo ne s'installe pas sans savoir d'où elle
   vient** — les douze premières venaient de Google Images. Sa maquette est de
@@ -1721,8 +1686,8 @@ Professionnel · Mise à disposition.
   vérifie qu'un clic y mène vraiment, carte par carte, plus les deux bornes
   (au moins une vers le formulaire, au moins une ailleurs) : sans elles, un
   code qui enverrait tout vers le formulaire passerait au vert.
-- **LES VISITES SONT PORTÉES PAR LA MISE À DISPOSITION** (« Chauffeur à
-  l'heure · Paris, Disneyland »), pas par une carte à elles. **Ce ne sont pas
+- **LES VISITES SONT PORTÉES PAR « CHAUFFEUR À L'HEURE »** (« Au-delà du
+  trajet » : rendez-vous, visites, Disneyland), pas par une carte à elles. **Ce ne sont pas
   des offres** : les packs ont été retirés deux fois à sa demande. On nomme
   des destinations, on ne vend pas un forfait — et c'est justement la carte
   qui ouvre la négociation de vive voix.
@@ -5210,3 +5175,8 @@ toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
 - Suites : `test-nouveau-sans-blocage.mjs` (site construit, client + admin),
   `test-nouveau-preavis.mjs` (verrouille l'ABSENCE du préavis),
   `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.
+
+## LE SITE SUR ORDINATEUR — UN MENU EN HAUT, LE FORMULAIRE DANS LE BANDEAU
+Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ; au-delà de 1100 px, formulaire à droite du titre, un seul bouton principal. Le téléphone ne bouge pas.
+Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fait pas (« conciergerie » retirée, accueil = pancarte, pas « VIP »). `test-public-ordinateur.mjs`.
+Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.
