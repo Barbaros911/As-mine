@@ -69,6 +69,20 @@ du bouton. Seul le retrait de la barre sur ordinateur le règle.
   forfait touristique, réservé aux agents de voyages immatriculés (Code du
   tourisme L211-1). Chaque service séparément, sur devis, n'en est pas un.
 
+## P0-D — le bas de page
+
+- « Hôtel, agence, entreprise ? » est masqué au-delà de 900 px : le menu du
+  haut porte « Professionnels », qui mène au même bloc. Il reste sur
+  téléphone, où il n'y a pas de menu.
+- « Inclus dans chaque course » passe ses quatre faits de front ; les titres
+  de section passent de 20,5 à 27 px, les sections s'espacent de 56 px.
+- La FAQ (au-delà de 1100 px) : titre à gauche, questions à droite. **Piège
+  rencontré** : la marge basse du titre agrandissait la première rangée de la
+  grille, et l'écart sous la première question devenait plus grand que les
+  autres. Le contrôle mesure les écarts entre questions.
+- Le pied sur une ligne : téléphone, pages, mentions.
+- Téléphone et tablette : pages entières identiques au pixel, de 320 à 899 px.
+
 ## Deux corrections au passage (6 octobre 2026, Barbaros : « 1 retire 2 corrige »)
 
 - **« Une demande particulière ? »** (bloc « Qui sommes-nous », #325) redisait

@@ -5149,6 +5149,6 @@ toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
   `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.
 
 ## LE SITE SUR ORDINATEUR — UN MENU EN HAUT, LE FORMULAIRE DANS LE BANDEAU
-Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ; au-delà de 1100 px, formulaire à droite du titre, un seul bouton principal. Le téléphone ne bouge pas.
+Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire à droite du titre, un seul bouton principal. Le téléphone ne bouge pas.
 Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fait pas (« conciergerie » retirée, accueil = pancarte, pas « VIP »). `test-public-ordinateur.mjs`.
 Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.

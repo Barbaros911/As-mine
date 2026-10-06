@@ -365,6 +365,38 @@ for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
   await p.context().close();
 }
 
+// ═══ LOT P0-D : LE BAS DE PAGE SUR ORDINATEUR ═══
+// On mesure la mise en page, pas le CSS : une règle d'affichage se casse sans
+// bruit, il suffit d'un sélecteur trop large.
+for (const [w, h] of [[1024, 768], [1440, 900]]) {
+  const p = await ouvrir(w, h);
+  const m = await p.evaluate(() => {
+    const r = e => e.getBoundingClientRect();
+    const inc = [...document.querySelectorAll('.inclus-l')].map(r);
+    const faq = document.querySelector('.faq'), h2 = r(faq.querySelector('h2'));
+    const qs = [...faq.querySelectorAll('.faq-q')].map(r);
+    const pied = [...document.querySelector('.pied').children].filter(e => e.offsetHeight).map(r);
+    const titres = [...document.querySelectorAll('#ecran-accueil .section > h2')].filter(e => e.offsetHeight)
+      .map(e => parseFloat(getComputedStyle(e).fontSize));
+    return {
+      pro: getComputedStyle(document.querySelector('.pro-bloc')).display,
+      incLigne: inc.length === 4 && inc.every(x => Math.abs(x.top - inc[0].top) < 2),
+      faqCote: h2.right < qs[0].left && Math.abs(h2.top - qs[0].top) < 24,
+      faqEcarts: qs.slice(1).map((x, i) => Math.round(x.top - qs[i].bottom)),
+      piedLigne: pied.every(x => Math.abs((x.top + x.bottom) / 2 - (pied[0].top + pied[0].bottom) / 2) < 6),
+      titreMin: Math.min(...titres),
+    };
+  });
+  check(`${w} px : « Hôtel, agence, entreprise ? » s'efface (le menu porte « Professionnels »)`, m.pro === 'none', m.pro);
+  check(`${w} px : les quatre faits de « Inclus » sont de front`, m.incLigne);
+  check(`${w} px : les titres de section sont à l'échelle d'un écran d'ordinateur (≥ 24 px)`, m.titreMin >= 24, String(m.titreMin));
+  check(`${w} px : le pied tient sur une ligne`, m.piedLigne);
+  check(`${w} px : les questions sont régulièrement espacées`, new Set(m.faqEcarts).size === 1, m.faqEcarts.join(','));
+  if (w >= 1100) check(`${w} px : la FAQ a son titre à gauche, les questions à droite`, m.faqCote);
+  check(`${w} px bas de page : aucune erreur JavaScript`, p._errs.length === 0, p._errs.join(' | '));
+  await p.context().close();
+}
+
 // ── LE LOGO : le fichier officiel, affiché sans déformation.
 {
   const p = await ouvrir(1440, 900);
