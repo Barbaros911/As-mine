@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const file = process.argv[2] || 'site/index.html';
 let html = fs.readFileSync(file, 'utf8');
 
-const title = 'Elatransfer — Transferts privés & solutions de réservation';
-const description = 'Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.';
+const title = 'Elatransfer — Transferts privés & réservation pour partenaires';
+const description = 'Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.';
 
 html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
 html = html.replace(/<meta\s+name=["']description["'][^>]*>/i, `<meta name="description" content="${description}">`);
