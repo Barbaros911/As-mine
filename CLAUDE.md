@@ -578,7 +578,7 @@ vide.** Un contrôle de `test-nouveau-bascule.mjs` cherche le CROCHET dans
 les six textes — la forme survit à une reformulation, pas la formule.
 - **Les mentions légales ont été réécrites**, pas rapiécées : sur onze
   lignes, neuf étaient des trous. Il ne reste que le vérifiable — nom
-  commercial, activité, hébergeur (GitHub, Inc.), contact, propriété
+  commercial, activité, hébergeur (Cloudflare ; GitHub, qui publie aussi), contact, propriété
   intellectuelle, CNIL.
 - **Aucun médiateur de la consommation n'est nommé** tant qu'aucun n'est
   désigné : le client écrirait à une adresse morte en croyant avoir saisi
@@ -1570,46 +1570,10 @@ bouton, et la réassurance.
   descriptif — on dit où l'on conduit. **Ne pas en refaire un « pack »** : il
   a été retiré à sa demande, c'était le premier des deux.
 
-### CE QUE LE BANDEAU A CASSÉ — LA BARRE DU BAS MANGEAIT « VOIR MON PRIX »
-
-Septembre 2026, trouvé par les suites juste avant la mise en ligne. **Le
-défaut le plus coûteux de la soirée, et il était invisible.**
-
-Le bandeau plus haut a poussé « Voir mon prix » à **774–827** pendant que la
-barre du bas occupe **784–844**. Sa moitié basse passait **derrière** la
-barre : un client qui ouvre la page, remplit le formulaire et appuie au
-milieu du bouton **ouvrait l'onglet « Trajets »**. Il ne voyait pas son prix,
-il changeait d'écran, sans le moindre message.
-
-- **LA NOTE « le formulaire entier tient dans le premier écran, ne pas le
-  remonter » N'ÉTAIT PAS DE LA COQUETTERIE.** Elle protégeait exactement ça,
-  et je l'ai enfreinte en croyant ne coûter qu'un défilement.
-- **LA RÈGLE EXISTANTE NE COUVRAIT PAS CE CAS** : le contrôle des éléments
-  flottants de `test-nouveau-bon` **exclut explicitement `.barre`**, parce
-  qu'elle est légitime et toujours là. C'est précisément pour ça qu'il en
-  fallait une autre — **ce qui est toujours là ne se remarque plus**.
-- **CE QUI A PAYÉ LES 68 px : le bloc « Réserver un trajet / Simple, rapide
-  et sécurisé ».** C'est exactement celui qu'il avait désigné en demandant
-  une vraie accroche. Le bandeau dit maintenant qui l'on est, ce qu'on vend
-  et à quel prix, et il porte un bouton qui descend ici : répéter le titre
-  juste en dessous, avec une icône de 50 px, c'était accueillir deux fois.
-  Une correction de mise en page qui supprime un doublon vaut mieux qu'une
-  correction qui grignote cinq marges.
-- **LE TÉMOIN DE LANGUE VISAIT CE BLOC** — `[data-t="reserver_titre"]`, dans
-  quatre contrôles de `test-nouveau-langues`. Il vise désormais
-  `[data-t="btn_prix"]` : **un témoin doit viser ce qui ne peut pas
-  disparaître**, ici le bouton sans lequel il n'y a pas de réservation.
-- **LE SYMPTÔME N'AVAIT AUCUN RAPPORT AVEC LA CAUSE.** `test-nouveau-option`
-  s'arrêtait sur un délai en cherchant `.veh-carte`, parce qu'un
-  `click({force:true})` avait atterri sur la barre et ouvert l'écran des
-  trajets. **`force:true` ne signale pas un bouton recouvert : il clique à
-  côté et continue.** Une suite qui n'affiche ni réussite ni échec est un
-  échec — ne jamais la lire comme « pas concernée ».
-- **LE PREMIER JET DU NOUVEAU CONTRÔLE PASSAIT AU VERT SUR LA VERSION
-  CASSÉE.** Il était placé **après** le clic sur le bouton du bandeau, donc
-  sur une page déjà défilée : il lisait 365 px là où le client voit 774. Un
-  contrôle de position se mesure **à l'arrêt, avant tout geste**. Éprouvé
-  ensuite contre l'ancien code : il rend « reçoit : onglet ».
+### LA BARRE DU BAS NE DOIT JAMAIS COUVRIR « VOIR MON PRIX »
+Ce qui est toujours là ne se remarque plus : on MESURE (`elementFromPoint`),
+à l'arrêt, avant tout geste — `force:true` clique à côté sans rien dire.
+Histoire (septembre puis octobre 2026, sur ordinateur) : `memoire/ordinateur.md`.
 
 ### L'ESPACE EXPLOITANT A SON PROPRE MANIFESTE
 
@@ -1687,22 +1651,17 @@ lui : **Chauffeur professionnel · Prix ferme · Suivi du vol · Assistance
   donc reversé dans son propre argument : « Prix ferme — **connu avant le
   départ, réglé au chauffeur** ». Un argument retiré peut emporter une
   information qui n'était nulle part ailleurs.
-- **« SUIVI DU VOL » RÉPÈTE L'ENCADRÉ VERT JUSTE AU-DESSUS**, et c'est
-  assumé : l'encadré s'adresse au client qui atterrit et lui fait remplir son
-  numéro de vol ; la carte est un argument dans une liste lue en diagonale.
-  Les deux formulations sont différentes — **c'est la répétition mot pour mot
-  qui fait relire**, pas le sujet commun. **À lui de trancher s'il veut n'en
-  garder qu'un** : c'est signalé.
-- **L'AVION DE LA CARTE N'EST PAS CELUI DE L'ENCADRÉ.** Posés à trois
-  centimètres, deux dessins identiques se lisent comme un copier-coller.
-  Celui de la carte penche et traîne une trajectoire pointillée : il ne dit
-  pas « avion », il dit « on le suit ».
+- **LE SUIVI DU VOL N'EST PLUS DIT QU'UNE FOIS** (6/10/2026) : l'encadré
+  « Vol ou train en retard ? » qui le répétait juste au-dessus est retiré ;
+  restent la carte d'« Inclus » et la question fréquente
+  (`memoire/ordre-accueil.md`).
 - L'icône de « Prix ferme » est une **étiquette**, pas la voiture héritée de
   « véhicules haut de gamme » — laissée en place, elle aurait dit « berline »
   à côté d'un titre qui parle d'argent.
 
-**Les services** passent de trois à **cinq** : Aéroport · Hôtel · Gare ·
-Professionnel · Mise à disposition.
+**Les services** sont **cinq** : Aéroport · Hôtel · Gare · Professionnel ·
+Salons & expositions. La mise à disposition est passée dans « Au-delà du
+trajet » (octobre 2026, voir « LE SITE SUR ORDINATEUR »).
 - **LES PHOTOS SONT PARTIES, REMPLACÉES PAR DES PICTOGRAMMES.** Il en aurait
   fallu deux de plus, et **une photo ne s'installe pas sans savoir d'où elle
   vient** — les douze premières venaient de Google Images. Sa maquette est de
@@ -1721,8 +1680,8 @@ Professionnel · Mise à disposition.
   vérifie qu'un clic y mène vraiment, carte par carte, plus les deux bornes
   (au moins une vers le formulaire, au moins une ailleurs) : sans elles, un
   code qui enverrait tout vers le formulaire passerait au vert.
-- **LES VISITES SONT PORTÉES PAR LA MISE À DISPOSITION** (« Chauffeur à
-  l'heure · Paris, Disneyland »), pas par une carte à elles. **Ce ne sont pas
+- **LES VISITES SONT PORTÉES PAR « CHAUFFEUR À L'HEURE »** (« Au-delà du
+  trajet » : rendez-vous, visites, Disneyland), pas par une carte à elles. **Ce ne sont pas
   des offres** : les packs ont été retirés deux fois à sa demande. On nomme
   des destinations, on ne vend pas un forfait — et c'est justement la carte
   qui ouvre la négociation de vive voix.
@@ -2963,17 +2922,9 @@ l'ancien texte**. C'est la deuxième fois que cet argument est retiré de la
 vitrine — il était déjà parti de l'ancien site et il est revenu à la refonte —
 d'où un test dans les deux langues.
 
-**LA PROMESSE D'ARRIVÉE** (`.promesse`, entre le formulaire et « Nos
-engagements »). Le client qui atterrit ne se demande pas combien coûte la
-course : il se demande ce qui se passe si son vol a deux heures de retard.
-- **Sur un aplat d'accent, pas dans une carte blanche.** Les engagements et les
-  services sont déjà des cartes blanches ; une cinquième se serait fondue dans
-  la série au lieu de se lire comme une promesse.
-- **La classe `.arrivee` était déjà prise** par les trois lignes de trajet
-  (`trajet-ligne arrivee`) : la règle les aurait toutes repassées en flex sur
-  fond vert, dans le bon comme dans le récapitulatif. Attrapé par le sélecteur
-  strict de Playwright, qui a rendu quatre éléments au lieu d'un.
-- Le titre et le texte sont **deux clés** : le gras se lit seul, en diagonale.
+**L'ENCADRÉ « VOL OU TRAIN EN RETARD ? » (`.promesse`) EST RETIRÉ** le
+6/10/2026 : il redisait la carte « Suivi du vol » posée juste en dessous. Son
+histoire : `memoire/ordre-accueil.md`.
 
 **LE MÊME CHAMP PREND LE NUMÉRO DE VOL OU DE TRAIN.** La promesse parlait du
 train ; il fallait un endroit où l'écrire.
@@ -3783,9 +3734,9 @@ lui ont été montrés en capture ; il a choisi le **B**.
   adjectifs. Les clés `eng1`…`eng4s` sont gardées, leurs textes ont changé.
 - **Aucune mention « VTC »** : il ne veut pas l'afficher, ses chauffeurs
   peuvent être VTC ou taxi.
-- Les trois étapes tiennent sur **une ligne** sous le seul « Voir mon prix »
-  (`.etapes-ligne`). Un second bouton plus bas a été refusé : il rallongeait
-  la page pour rien.
+- **Les trois étapes sont un bloc juste sous le formulaire** (`#comment`,
+  6/10/2026) ; la ligne `.etapes-ligne` de la carte n'est plus affichée que
+  sur la page easyHotel. Un second « Voir mon prix » plus bas reste refusé.
 - Les **questions fréquentes** sont en bas de l'accueil, au-dessus du pied.
   Chaque réponse reprend les CGV : en changer une, c'est relire le contrat.
 - **Les couleurs sont celles de la façade en ligne** (`--ela-navy`,
@@ -4818,11 +4769,13 @@ des clients et une seconde adresse où se tromper d'outil.
 ## QUI SOMMES-NOUS — LE MODÈLE DIT EN CLAIR
 
 5 octobre 2026, à sa demande. Le site ne disait nulle part ce qu'est
-Elatransfer : un bloc `#modele` après « Nos services » le dit (titre « Vous
-réservez, nous organisons tout. », trois étapes, « Une demande
-particulière ? » vers un devis par e-mail, encart hôtels/agences/entreprises).
+Elatransfer : `#comment`, JUSTE SOUS LE FORMULAIRE, le dit (« Vous réservez,
+nous organisons tout. », trois étapes) ; l'encart hôtels/agences/entreprises
+est `#modele`, après « Au-delà du trajet ». Devis : « Au-delà du trajet ».
 - **Le premier écran reste au client qui réserve.** Sous le formulaire, une
-  seule ligne (`.pro-bloc`) mène au bloc ; le pavé de 70 mots est retiré.
+  seule ligne (`.pro-bloc`) mène à l'encart ; le pavé de 70 mots est retiré.
+- **L'ordre de l'accueil est verrouillé** (`test-public-ordinateur`) : formulaire,
+  étapes, inclus, services, au-delà, professionnels, questions, pied.
 - **« Chauffeur professionnel », jamais « taxi » ni « VTC »** sur une page
   client : vrai pour les deux, et « taxi » fait attendre un compteur à côté
   d'un prix ferme. L'exactitude va aux mentions légales.
@@ -5106,6 +5059,11 @@ toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
 - Suites : `test-nouveau-sans-blocage.mjs` (site construit, client + admin),
   `test-nouveau-preavis.mjs` (verrouille l'ABSENCE du préavis),
   `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.
+
+## LE SITE SUR ORDINATEUR — UN MENU EN HAUT, LE FORMULAIRE DANS LE BANDEAU
+Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire à droite du titre, un seul bouton principal. Le téléphone ne bouge pas.
+Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fait pas (« conciergerie » retirée, accueil = pancarte, pas « VIP »). `test-public-ordinateur.mjs`.
+Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)
 
