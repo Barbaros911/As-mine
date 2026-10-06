@@ -17,6 +17,9 @@ on:
       - 'telephone.js'
       - 'qr-affiche.js'
       - 'itineraire-partage.js'
+      # Le module du Pilotage : son miroir des règles est éprouvé contre la
+      # vraie base dans l'étape HTTP ci-dessous.
+      - 'pilotage.js'
       - 'test-admin-*.mjs'
       - 'capture-admin.mjs'
       - 'construire.sh'
@@ -239,3 +242,45 @@ jobs:
             -f supabase/migrations/20261006000000_numero_court.sql \
             -f supabase/migrations/20261006000000_numero_court.sql \
             -f supabase/tests/numero-court-apres.sql
+          # Le Pilotage (Issue #197, bloc 1, 6 octobre 2026). Le décor repose
+          # les opérateurs sous leur vraie RLS, la VRAIE est_admin(), et les
+          # privilèges par défaut de Supabase — en exigeant que le trou se
+          # reproduise sur une table sonde. La migration est appliquée deux
+          # fois (elle doit se rejouer). Puis : anon, l'agent et un compte
+          # quelconque refusés POUR LA BONNE RAISON, l'admin crée, modifie,
+          # déplace, bloque, termine, archive ; le journal garde tout sauf le
+          # contenu des champs libres ; aucune suppression, même à l'admin ; la
+          # table des courses inchangée. Éprouvée contre quatorze migrations
+          # faussées : elle tombe les quatorze fois.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database pilotage;'
+          psql -h 127.0.0.1 -U postgres -d pilotage -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/pilotage.sql \
+            -f supabase/migrations/20261006010000_pilotage.sql \
+            -f supabase/migrations/20261006010000_pilotage.sql \
+            -f supabase/tests/pilotage-apres.sql
+          # RELU DANS UNE AUTRE SESSION : ce qui est relu a été gardé par la
+          # base, pas seulement vu dans la transaction qui l'a écrit.
+          psql -h 127.0.0.1 -U postgres -d pilotage -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/pilotage-persistance.sql
+
+      # LE PILOTAGE PAR LA PORTE DU NAVIGATEUR : PostgREST, le serveur que
+      # Supabase place devant la base, avec de vrais jetons signés. La porte
+      # publique fermée, pilotage.js qui parle la bonne langue, et son miroir
+      # des règles qui rend le même verdict que la base sur tout un corpus.
+      # PostgREST est téléchargé depuis sa page officielle, VERSION ET
+      # EMPREINTE FIGÉES (celle du binaire éprouvé le 6 octobre 2026) : un
+      # fichier qui changerait sous nos pieds arrête l'étape au lieu de
+      # tourner. Il ne sert qu'ici : rien n'en part en ligne.
+      - name: Le Pilotage en HTTP (PostgREST)
+        shell: bash
+        env: {PGHOST: 127.0.0.1, PGPORT: '5432', PGUSER: postgres, PGPASSWORD: postgres}
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/postgrest.tar.xz" \
+            https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz
+          echo "9f71269e61ac3a940281e93ff415760f5957e430e475ba4c3889f3ede7d5527c  $RUNNER_TEMP/postgrest.tar.xz" | sha256sum -c -
+          tar -xf "$RUNNER_TEMP/postgrest.tar.xz" -C "$RUNNER_TEMP"
+          POSTGREST="$RUNNER_TEMP/postgrest" node supabase/tests/pilotage-http.mjs
