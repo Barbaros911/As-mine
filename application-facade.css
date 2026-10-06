@@ -125,7 +125,11 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{width
    hauteur la barre couvrait encore 52 px sur 54 du bouton après le lot A.
    Pas de bouton « Réserver » ici : le formulaire est à l'écran, ce serait
    un troisième bouton principal pour la même action. La place réservée à
-   la barre en bas de page n'a plus lieu d'être : « padding-bottom:0 ». */
+   la barre en bas de page n'a plus lieu d'être : « padding-bottom:0 ».
+   Fermé, le sous-menu de « Mes courses » ne garde AUCUNE boîte : Chrome
+   mesure encore les liens d'un <details> fermé (ils ne sont pas dessinés,
+   mais ils ont une place), et le vérificateur de la CI les voyait
+   « recouverts » par le bandeau. */
 @media(min-width:900px){
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant){padding-bottom:0}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .barre{display:none}
@@ -139,6 +143,7 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu>summ
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu[open]>summary::after{margin-top:3px;transform:rotate(-135deg)}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu.actif>summary{color:var(--ela-blue)}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous{position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:210px;padding:6px;background:#fff;border:1px solid var(--ela-line);border-radius:14px;box-shadow:var(--ela-shadow)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu:not([open])>.entete-sous{display:none}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ela-ink);font-weight:700;text-decoration:none}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous a:hover{background:var(--ela-soft);color:var(--ela-blue)}
 }

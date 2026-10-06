@@ -280,6 +280,11 @@ for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
     const t = await haut(bloc);
     check(`menu « ${lien} » : descend au bloc`, (await actif()) === 'ecran-accueil' && t >= -2 && t < 120, `haut du bloc ${t}`);
   }
+  // Fermée, la liste ne garde aucune boîte : Chrome mesure encore les liens
+  // d'un <details> fermé, et le vérificateur de la CI les disait recouverts.
+  check('liste « Mes courses » fermée : ses liens n’ont aucune boîte',
+    await p.evaluate(() => [...document.querySelectorAll('.entete-sous a')]
+      .every(a => { const r = a.getBoundingClientRect(); return r.width === 0 && r.height === 0; })));
   // Mes courses → Réservations, puis Trajets.
   await p.click('.entete-menu > summary');
   check('« Mes courses » ouvre sa liste', await p.locator('.entete-sous a[data-ecran="ecran-courses"]').isVisible());
