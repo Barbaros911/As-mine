@@ -20,6 +20,7 @@ on:
       - 'qr-affiche.js'
       - 'itineraire-partage.js'
       - 'admin-sante.js'
+      - 'pilotage.js'
       - 'test-chien-de-garde.mjs'
       # La mesure du voyant vit dans une migration : la modifier seule doit
       # relancer test-chien-de-garde, qui la compare au chien de garde.
