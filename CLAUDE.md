@@ -1651,16 +1651,10 @@ lui : **Chauffeur professionnel · Prix ferme · Suivi du vol · Assistance
   donc reversé dans son propre argument : « Prix ferme — **connu avant le
   départ, réglé au chauffeur** ». Un argument retiré peut emporter une
   information qui n'était nulle part ailleurs.
-- **« SUIVI DU VOL » RÉPÈTE L'ENCADRÉ VERT JUSTE AU-DESSUS**, et c'est
-  assumé : l'encadré s'adresse au client qui atterrit et lui fait remplir son
-  numéro de vol ; la carte est un argument dans une liste lue en diagonale.
-  Les deux formulations sont différentes — **c'est la répétition mot pour mot
-  qui fait relire**, pas le sujet commun. **À lui de trancher s'il veut n'en
-  garder qu'un** : c'est signalé.
-- **L'AVION DE LA CARTE N'EST PAS CELUI DE L'ENCADRÉ.** Posés à trois
-  centimètres, deux dessins identiques se lisent comme un copier-coller.
-  Celui de la carte penche et traîne une trajectoire pointillée : il ne dit
-  pas « avion », il dit « on le suit ».
+- **LE SUIVI DU VOL N'EST PLUS DIT QU'UNE FOIS** (6/10/2026) : l'encadré
+  « Vol ou train en retard ? » qui le répétait juste au-dessus est retiré ;
+  restent la carte d'« Inclus » et la question fréquente
+  (`memoire/ordre-accueil.md`).
 - L'icône de « Prix ferme » est une **étiquette**, pas la voiture héritée de
   « véhicules haut de gamme » — laissée en place, elle aurait dit « berline »
   à côté d'un titre qui parle d'argent.
@@ -2928,17 +2922,9 @@ l'ancien texte**. C'est la deuxième fois que cet argument est retiré de la
 vitrine — il était déjà parti de l'ancien site et il est revenu à la refonte —
 d'où un test dans les deux langues.
 
-**LA PROMESSE D'ARRIVÉE** (`.promesse`, entre le formulaire et « Nos
-engagements »). Le client qui atterrit ne se demande pas combien coûte la
-course : il se demande ce qui se passe si son vol a deux heures de retard.
-- **Sur un aplat d'accent, pas dans une carte blanche.** Les engagements et les
-  services sont déjà des cartes blanches ; une cinquième se serait fondue dans
-  la série au lieu de se lire comme une promesse.
-- **La classe `.arrivee` était déjà prise** par les trois lignes de trajet
-  (`trajet-ligne arrivee`) : la règle les aurait toutes repassées en flex sur
-  fond vert, dans le bon comme dans le récapitulatif. Attrapé par le sélecteur
-  strict de Playwright, qui a rendu quatre éléments au lieu d'un.
-- Le titre et le texte sont **deux clés** : le gras se lit seul, en diagonale.
+**L'ENCADRÉ « VOL OU TRAIN EN RETARD ? » (`.promesse`) EST RETIRÉ** le
+6/10/2026 : il redisait la carte « Suivi du vol » posée juste en dessous. Son
+histoire : `memoire/ordre-accueil.md`.
 
 **LE MÊME CHAMP PREND LE NUMÉRO DE VOL OU DE TRAIN.** La promesse parlait du
 train ; il fallait un endroit où l'écrire.
@@ -3748,9 +3734,9 @@ lui ont été montrés en capture ; il a choisi le **B**.
   adjectifs. Les clés `eng1`…`eng4s` sont gardées, leurs textes ont changé.
 - **Aucune mention « VTC »** : il ne veut pas l'afficher, ses chauffeurs
   peuvent être VTC ou taxi.
-- Les trois étapes tiennent sur **une ligne** sous le seul « Voir mon prix »
-  (`.etapes-ligne`). Un second bouton plus bas a été refusé : il rallongeait
-  la page pour rien.
+- **Les trois étapes sont un bloc juste sous le formulaire** (`#comment`,
+  6/10/2026) ; la ligne `.etapes-ligne` de la carte n'est plus affichée que
+  sur la page easyHotel. Un second « Voir mon prix » plus bas reste refusé.
 - Les **questions fréquentes** sont en bas de l'accueil, au-dessus du pied.
   Chaque réponse reprend les CGV : en changer une, c'est relire le contrat.
 - **Les couleurs sont celles de la façade en ligne** (`--ela-navy`,
@@ -4859,11 +4845,13 @@ des clients et une seconde adresse où se tromper d'outil.
 ## QUI SOMMES-NOUS — LE MODÈLE DIT EN CLAIR
 
 5 octobre 2026, à sa demande. Le site ne disait nulle part ce qu'est
-Elatransfer : un bloc `#modele` après « Nos services » le dit (titre « Vous
-réservez, nous organisons tout. », trois étapes, encart hôtels/agences/
-entreprises). Les devis passent par « Au-delà du trajet » depuis le 6/10/2026.
+Elatransfer : `#comment`, JUSTE SOUS LE FORMULAIRE, le dit (« Vous réservez,
+nous organisons tout. », trois étapes) ; l'encart hôtels/agences/entreprises
+est `#modele`, après « Au-delà du trajet ». Devis : « Au-delà du trajet ».
 - **Le premier écran reste au client qui réserve.** Sous le formulaire, une
-  seule ligne (`.pro-bloc`) mène au bloc ; le pavé de 70 mots est retiré.
+  seule ligne (`.pro-bloc`) mène à l'encart ; le pavé de 70 mots est retiré.
+- **L'ordre de l'accueil est verrouillé** (`test-public-ordinateur`) : formulaire,
+  étapes, inclus, services, au-delà, professionnels, questions, pied.
 - **« Chauffeur professionnel », jamais « taxi » ni « VTC »** sur une page
   client : vrai pour les deux, et « taxi » fait attendre un compteur à côté
   d'un prix ferme. L'exactitude va aux mentions légales.

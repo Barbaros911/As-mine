@@ -402,6 +402,63 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
   await p.context().close();
 }
 
+// ═══ L'ORDRE DE L'ACCUEIL (6 octobre 2026, « le 1.2.3 est trop bas ») ═══
+// Le récit d'une page qui vend un trajet : l'action, ce qui se passe après,
+// ce qui est inclus, où l'on va, le reste, les professionnels, les
+// questions, le pied. On lit l'ordre À L'ÉCRAN (le haut de chaque bloc), pas
+// dans le code : une grille ou un ordre CSS peut inverser les deux.
+for (const [w, h, langue] of [[320, 700, 'fr'], [390, 844, 'fr'], [390, 844, 'en'], [1024, 768, 'fr'], [1366, 657, 'fr'], [1920, 1080, 'en']]) {
+  const p = await ouvrir(w, h, langue);
+  const o = await p.evaluate(() => {
+    const vu = e => !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().height > 0;
+    const haut = s => { const e = document.querySelector(s); return vu(e) ? Math.round(e.getBoundingClientRect().top + scrollY) : null; };
+    const suite = ['.reserver', '#comment', '#ecran-accueil .inclus', '#services', '#plus', '#modele', '#questions', '#ecran-accueil .pied'];
+    const form = document.querySelector('.reserver').getBoundingClientRect();
+    // Ce qui vient juste sous le formulaire, la ligne des professionnels mise à part.
+    const sous = [...document.querySelectorAll('#ecran-accueil > *')]
+      .filter(e => vu(e) && !e.matches('.pro-bloc, .hero, .reserver, .hotel-tete') && e.getBoundingClientRect().top >= form.bottom - 1)
+      .sort((a, c) => a.getBoundingClientRect().top - c.getBoundingClientRect().top);
+    return {
+      hauts: suite.map(s => [s, haut(s)]),
+      premier: sous[0] ? (sous[0].id || sous[0].className) : 'rien',
+      suites: [...document.querySelectorAll('.etapes-ligne, .modele-etapes')].filter(vu).length,
+      etapesDansComment: !!document.querySelector('#comment .modele-etapes'),
+      proSansEtapes: !!document.querySelector('#modele .modele-pro') && !document.querySelector('#modele .modele-etapes'),
+      lienPro: (document.querySelector('.pro-lien') || {}).getAttribute?.('href') || '',
+      promesse: !!document.querySelector('.promesse'),
+      retard: [...document.querySelectorAll('#ecran-accueil > :not(.faq) *')].some(e => vu(e) && e.children.length === 0 && /(Vol ou train en retard|Flight or train delayed)/.test(e.textContent)),
+    };
+  });
+  const absents = o.hauts.filter(([, y]) => y === null).map(([s]) => s);
+  check(`${w} px ${langue} ordre : tous les blocs de l'accueil sont affichés`, absents.length === 0, absents.join(', '));
+  const enDesordre = o.hauts.slice(1).filter(([, y], i) => y !== null && o.hauts[i][1] !== null && y <= o.hauts[i][1]).map(([s]) => s);
+  check(`${w} px ${langue} ordre : formulaire → étapes → inclus → services → au-delà → professionnels → questions → pied`,
+    enDesordre.length === 0, o.hauts.map(([s, y]) => s.replace('#ecran-accueil ', '') + '=' + y).join(' '));
+  check(`${w} px ${langue} ordre : les trois étapes sont le premier bloc sous le formulaire`, o.premier === 'comment', o.premier);
+  check(`${w} px ${langue} ordre : une seule suite numérotée 1 · 2 · 3 à l'écran`, o.suites === 1 && o.etapesDansComment, String(o.suites));
+  check(`${w} px ${langue} ordre : « Professionnels » mène à l'encart des professionnels, sans les étapes`, o.proSansEtapes && o.lienPro === '#modele', o.lienPro);
+  check(`${w} px ${langue} ordre : le suivi du vol n'est plus dit deux fois de suite`, !o.promesse && !o.retard);
+  check(`${w} px ${langue} ordre : aucune erreur JavaScript`, p._errs.length === 0, p._errs.join(' | '));
+  await p.context().close();
+}
+// La page easyHotel n'a pas le bloc des étapes : elle garde la petite ligne
+// de la carte, à la largeur de la carte (elle tombait dans une colonne de
+// 86 px quand la façade plaçait les enfants de la carte un par un).
+for (const [w, h] of [[390, 844], [1280, 800]]) {
+  const p = await ouvrir(w, h);
+  await p.goto(SITE + 'application.html?h=easyhotel-aeroville'); await p.waitForTimeout(500);
+  const r = await p.evaluate(() => {
+    const l = document.querySelector('.etapes-ligne'), c = document.querySelector('.reserver');
+    const comment = document.querySelector('#comment');
+    return { ligne: getComputedStyle(l).display, large: Math.round(l.getBoundingClientRect().width), carte: Math.round(c.getBoundingClientRect().width),
+      comment: comment ? getComputedStyle(comment).display : 'absent' };
+  });
+  check(`page hôtel ${w} px : la ligne « 1 Trajet → 2 Prix → 3 Confirmation » reste, à la largeur de la carte`,
+    r.ligne !== 'none' && r.large >= r.carte * 0.8, JSON.stringify(r));
+  check(`page hôtel ${w} px : le bloc des étapes du site public n'y est pas`, r.comment === 'none' || r.comment === 'absent', r.comment);
+  await p.context().close();
+}
+
 // ── LE LOGO : le fichier officiel, affiché sans déformation.
 {
   const p = await ouvrir(1440, 900);

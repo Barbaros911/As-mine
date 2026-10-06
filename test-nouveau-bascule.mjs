@@ -844,19 +844,22 @@ for (const langue of ['fr-FR', 'en-US']) {
 
 /* SUR ORDINATEUR, LA LIGNE DES ÉTAPES OCCUPE LA LARGEUR DE LA CARTE. La
    façade place les enfants de la carte un par un dans 12 colonnes ; oubliée
-   de la liste, la ligne tombait dans UNE colonne de 86 px, chiffres rognés. */
+   de la liste, la ligne tombait dans UNE colonne de 86 px, chiffres rognés.
+   Depuis le 6 octobre 2026 elle n'est plus affichée que sur la page easyHotel
+   (le site public a le bloc des trois étapes juste sous la carte) : c'est
+   donc là qu'on la mesure. */
 for (const large of [1024, 1280]) {
   const cx = await b.newContext({viewport:{width:large,height:900}, locale:'fr-FR'});
   const pw = await cx.newPage();
   await pw.route('**/*', r => r.request().url().startsWith(SITE) ? r.continue() : r.abort());
-  await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
+  await pw.goto(SITE + '/application.html?h=easyhotel-aeroville', {waitUntil:'domcontentloaded'});
   await pw.waitForTimeout(500);
   const e = await pw.evaluate(() => {
     const l = document.querySelector('.etapes-ligne').getBoundingClientRect();
     const c = document.querySelector('.reserver').getBoundingClientRect();
     return { ligne: Math.round(l.width), carte: Math.round(c.width) };
   });
-  check(`à ${large} px, la ligne des étapes occupe la largeur de la carte`,
+  check(`page easyHotel à ${large} px, la ligne des étapes occupe la largeur de la carte`,
     e.ligne >= e.carte * 0.8, e.ligne + ' px pour une carte de ' + e.carte);
   await cx.close();
 }

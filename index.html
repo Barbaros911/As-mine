@@ -1167,16 +1167,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   color:var(--accent-encre);font:inherit;font-weight:700;text-decoration:underline;
   text-underline-offset:2px;cursor:pointer;}
 
-/* ---------- LA PROMESSE D'ARRIVÉE ---------- */
-/* Le client qui atterrit ne se demande pas combien coûte la course : il se
-   demande ce qui se passe si son vol a deux heures de retard. C'est la
-   seule inquiétude que le formulaire ne traite pas, et elle arrive juste
-   après le bouton — d'où sa place, entre le formulaire et les engagements.
-   Elle est POSÉE SUR UN APLAT D'ACCENT, pas dans une carte blanche : les
-   engagements et les services sont déjà des cartes blanches, et une
-   cinquième se serait fondue dans la série au lieu de se lire comme une
-   promesse. Pas de bordure — l'aplat suffit à la détacher du gris du fond.
-   Le texte accent sur accent-clair est mesuré à 7,1 de contraste. */
 /* LE BLOC DES PROFESSIONNELS (3 octobre 2026) — sorti du bandeau, voir le
    commentaire du HTML. Une carte claire et sobre, filet bleu à gauche : elle
    se lit comme une information, pas comme une seconde action — le seul
@@ -1189,12 +1179,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 @media (max-width:340px){ .pro-bloc{margin-left:8px;margin-right:8px;} }
 @media (min-width:900px){ .pro-bloc{max-width:1180px;margin:26px auto 0;box-sizing:border-box;} }
 body.hotel .pro-bloc{display:none;}
-.promesse{display:flex;gap:12px;align-items:flex-start;margin:26px 20px 0;
-  padding:15px 16px;border-radius:15px;background:var(--accent-clair);}
-.promesse > svg{flex:none;margin-top:2px;}
-.promesse p{margin:0;font-size:13px;line-height:1.45;color:var(--encre);}
-.promesse b{display:block;margin-bottom:3px;font-size:13.5px;
-  color:var(--accent-encre);}
 
 
 /* =====================================================================
@@ -1672,7 +1656,6 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
    vidé à chaque fermeture.
    ═══════════════════════════════════════════════════════════════════════ */
 body.hotel .hero,
-body.hotel .promesse,
 body.hotel .section,
 body.hotel .pied{display:none;}
 body.hotel .reserver{margin-top:0;}
@@ -2151,6 +2134,7 @@ body.espace #panneauProvenance{display:none;}
 .modele-etapes b{display:block;font-size:15px;color:var(--encre,#151C22);}
 .modele-etapes span[data-t]{display:block;font-size:13.5px;line-height:1.4;color:var(--gris,#5A6A7B);}
 .modele-pro{margin-top:14px;border-radius:18px;padding:18px 16px;background:var(--accent-clair,#E8F2FD);}
+.modele-pro:first-child{margin-top:0;}
 .modele-pro-t{margin:0;font-weight:800;font-size:17px;color:var(--accent-encre,#0A4F91);}
 .modele-pro-s{margin:4px 0 10px;font-size:14px;color:var(--encre,#151C22);}
 .modele-pro ul{margin:0 0 14px;padding:0;list-style:none;}
@@ -2978,30 +2962,36 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        LE PREMIER ÉCRAN APPARTIENT AU CLIENT QUI RÉSERVE. Le message aux
        professionnels n'est pas retiré : il est juste après l'action, là où
        un hôtel ou une agence qui fait défiler le lit tout de suite.
-       DEPUIS LE 5 OCTOBRE 2026 CE N'EST PLUS QU'UNE LIGNE qui descend au
-       bloc « Qui sommes-nous » (#modele) : le pavé de 70 mots qui était ici
-       a été retiré à sa demande, son contenu vit là-bas, structuré. -->
+       DEPUIS LE 5 OCTOBRE 2026 CE N'EST PLUS QU'UNE LIGNE qui descend à
+       l'encart des professionnels (#modele) : le pavé de 70 mots qui était
+       ici a été retiré à sa demande, son contenu vit là-bas, structuré. -->
   <div class="pro-bloc">
     <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrez nos solutions de réservation</span></a>
   </div>
 
-  <!-- LA PROMESSE D'ARRIVÉE (septembre 2026, à sa demande).
-       Elle reprend l'avion du champ « numéro de vol » : c'est le même
-       service dit deux fois, une fois en vitrine et une fois au moment de
-       le rendre. Le titre et le texte sont deux clés distinctes — le gras
-       se lit seul, en diagonale, et c'est lui qui doit porter la promesse.
-       ON NE PROMET AUCUNE GRATUITÉ D'ATTENTE : la règle du temps d'attente
-       n'est pas arrêtée, et l'écrire ici l'arrêterait à notre place. -->
-  <div class="promesse">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M10.3 3.1a1.6 1.6 0 013.2 0l.2 6.1 6.9 3.7v2.3l-6.9-2.1-.3 3.9 2.5 1.9v1.7l-3.9-1.1-3.9 1.1v-1.7l2.5-1.9-.3-3.9-6.9 2.1v-2.3l6.9-3.7z"
-            fill="#0A4F91"/>
-    </svg>
-    <p>
-      <b data-t="retard_titre">Vol ou train en retard ? Votre chauffeur s'adapte.</b>
-      <span data-t="retard_texte">Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.</span>
-    </p>
-  </div>
+  <!-- COMMENT ÇA MARCHE, JUSTE SOUS LE FORMULAIRE (6 octobre 2026, à sa
+       demande : « le 1.2.3 est trop bas »). Ces trois étapes répondent à ce
+       que se demande quelqu'un qui vient de remplir le formulaire — qui va
+       me conduire, qui confirme, comment je paie : elles étaient sous les
+       services et l'offre « Au-delà du trajet », à 2 400 px sur téléphone.
+       L'encart des professionnels, lui, reste plus bas (#modele) : il ne
+       parle pas au client qui réserve. Sur le site public, la petite ligne
+       « 1 Trajet → 2 Prix → 3 Confirmation » de la carte est masquée — deux
+       suites numérotées l'une sous l'autre se contredisaient ; elle reste
+       sur la page easyHotel, qui n'a pas ce bloc.
+       Le bandeau « Vol ou train en retard ? » qui était ici est retiré : il
+       disait mot pour mot la carte « Suivi du vol ou du train » posée juste
+       en dessous, et la question fréquente le redit. -->
+  <section class="section modele" id="comment">
+    <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
+    <h2 data-t="modele_titre">Vous réservez, nous organisons tout.</h2>
+    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.</p>
+    <ol class="modele-etapes">
+      <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
+      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.</span></div></li>
+      <li><span class="modele-n">3</span><div><b data-t="modele_e3">Votre chauffeur vous conduit</b><span data-t="modele_e3s">À l'heure convenue, au prix annoncé, réglé directement à bord.</span></div></li>
+    </ol>
+  </section>
 
   <!-- « INCLUS DANS CHAQUE COURSE » remplace « Pourquoi choisir
        Elatransfer ? » (septembre 2026, maquette validée par Barbaros).
@@ -3188,16 +3178,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        modèle — une centrale qui organise, des chauffeurs professionnels
        partenaires qui conduisent — et c'est AUSSI la transparence que
        demande le statut d'intermédiaire : le client doit savoir qui
-       transporte. Aucune promesse qui ne soit vraie aujourd'hui. -->
+       transporte. Aucune promesse qui ne soit vraie aujourd'hui.
+       DEPUIS LE 6 OCTOBRE 2026 NE RESTE ICI QUE L'ENCART DES PROFESSIONNELS :
+       le titre, le modèle et ses trois étapes sont montés sous le formulaire
+       (#comment). « Professionnels » du menu et la ligne sous le formulaire
+       mènent donc ici, à ce qui leur parle. -->
   <section class="section modele" id="modele">
-    <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
-    <h2 data-t="modele_titre">Vous réservez, nous organisons tout.</h2>
-    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.</p>
-    <ol class="modele-etapes">
-      <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
-      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.</span></div></li>
-      <li><span class="modele-n">3</span><div><b data-t="modele_e3">Votre chauffeur vous conduit</b><span data-t="modele_e3s">À l'heure convenue, au prix annoncé, réglé directement à bord.</span></div></li>
-    </ol>
     <div class="modele-pro">
       <p class="modele-pro-t" data-t="modele_pro_t">Pour les hôtels, agences et entreprises</p>
       <p class="modele-pro-s" data-t="modele_pro_s">Vos clients réservent chez vous, Elatransfer s'occupe du reste.</p>
@@ -5765,8 +5751,6 @@ window.ELA_TEXTES = {
        passe VRAIMENT après le clic — le barème d'annulation, lui, reste
        dans les CGV, où il engage. */
     dispo:"Disponibilité confirmée par WhatsApp ou SMS",
-    retard_titre:"Vol ou train en retard ? Votre chauffeur s'adapte.",
-    retard_texte:"Indiquez votre numéro de vol ou de train : nous suivons votre arrivée et ajustons l'heure de prise en charge.",
     engagements:"Inclus dans chaque course", inclus_sur:"SANS SUPPLÉMENT",
     eng1:"60 min d'attente incluses", eng1s:"à l'aéroport avec votre n° de vol · 30 min ailleurs",
     eng2:"Prix ferme", eng2s:"jamais recalculé à l'arrivée",
@@ -5988,8 +5972,6 @@ window.ELA_TEXTES = {
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
     btn_prix:"See my price", calcul:"Calculating the price…",
     dispo:"Availability confirmed by WhatsApp or SMS",
-    retard_titre:"Flight or train delayed? Your chauffeur adapts.",
-    retard_texte:"Give us your flight or train number: we track your arrival and adjust the pick-up time.",
     engagements:"Included in every ride", inclus_sur:"NO EXTRA CHARGE",
     eng1:"60 min waiting included", eng1s:"at the airport with your flight no. · 30 min elsewhere",
     eng2:"Firm price", eng2s:"never recalculated on arrival",
