@@ -1196,7 +1196,13 @@ for (const large of [1024, 1280]) {
     if (lu !== e) changes.push(f + ' (' + lu + ')');
   }
   check('les fichiers du logo et des icônes sont identiques à main', changes.length === 0, changes.join(', '));
-  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 18 } };
+  /* LA PLACE À 1280 px A CHANGÉ, ET C'EST AUTORISÉ (6 octobre 2026, lot P0-A
+     de la refonte ordinateur). La règle de Barbaros interdit de toucher au
+     logo — fichier, couleurs, proportions — mais permet de le REPOSITIONNER
+     dans l'en-tête. Il s'aligne désormais sur la colonne de 1180 px du
+     contenu : (1280 − 1180) / 2 = 50 px, au lieu d'être collé au bord à 18.
+     Fichier, taille, filtre et opacité restent exigés à l'identique. */
+  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 50 } };
   const ICONES = ['icon icon-32.png 32x32', 'apple-touch-icon icon-180.png ', 'icon /icon-180.png ', 'apple-touch-icon /icon-180.png 180x180'];
   for (const [largeur, attendu] of Object.entries(AFFICHAGE)) {
     const pl = await b.newPage({ viewport: { width: +largeur, height: 844 }, locale: 'fr-FR' });

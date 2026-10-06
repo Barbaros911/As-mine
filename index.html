@@ -225,6 +225,9 @@ img{display:block;max-width:100%;}
   color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
 .entete-actions{display:flex;align-items:center;gap:12px;flex:0 0 auto;}
 .entete-nav{display:none;}
+/* Un bouton sans « color » prend celle du système (bleu iOS) : même caché, il
+   s'habille ici — la façade le met en forme sur l'ordinateur public. */
+.entete-lien{color:inherit;background:none;border:0;font:inherit;}
 /* 44 px de haut : c'est la taille d'un pouce, et un sélecteur de langue plus
    petit se rate. Deux boutons plutôt qu'un menu déroulant — à deux langues,
    un menu demande deux gestes là où un bouton en demande un. */
