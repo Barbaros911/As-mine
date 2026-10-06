@@ -3956,10 +3956,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div class="cc-table" id="ccTarifs"></div>
       <button class="bouton-fantome" type="button" id="btnCcTarifs">Modifier les tarifs</button>
     </div>
-  </section>
-
-  <section class="ecran" id="ecran-pilotage">
-    <!-- LE PILOTAGE (Issue #197, bloc 2 — 6 octobre 2026). Le suivi du
+  </section><section class="ecran" id="ecran-pilotage">
+    <!-- Collée à la fin du centre de contrôle, et ce n'est pas un oubli :
+         la construction retire cette section des pages publiques, qui
+         restent ainsi identiques octet pour octet — pas même une ligne vide
+         de plus.
+         LE PILOTAGE (Issue #197, bloc 2 — 6 octobre 2026). Le suivi du
          produit et des opérations : deux tableaux, cinq étapes, une fiche
          par carte. Le contenu est dessiné par le script de l'écran, à
          l'ouverture, en textContent ; le serveur n'est interrogé QUE quand on

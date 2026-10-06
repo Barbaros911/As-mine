@@ -128,7 +128,7 @@ function fauxServeur() {
   return s;
 }
 
-async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv }) {
+async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv, ecranDuPilotage = 'normal' }) {
   const ctx = await nav.newContext({ viewport: { width: largeur, height: hauteur }, locale: 'fr-FR', timezoneId: 'Europe/Paris' });
   await ctx.addInitScript(({ session }) => {
     if (sessionStorage.getItem('__pose')) return;
@@ -152,6 +152,11 @@ async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv
     if (u.includes('/rpc/') || u.includes('/functions/v1/')) return route.fulfill(J({ ok: true }));
     return route.fulfill(J([]));
   });
+  /* Le script de l'écran introuvable, ou qui plante à son chargement : la
+     route posée en dernier est consultée en premier. */
+  if (ecranDuPilotage === 'absent') await ctx.route('**/pilotage-ecran.js', r => r.abort());
+  if (ecranDuPilotage === 'casse') await ctx.route('**/pilotage-ecran.js', r => r.fulfill({ status: 200,
+    contentType: 'text/javascript', body: 'throw new Error("panne volontaire du Pilotage");' }));
   const p = await ctx.newPage();
   const erreurs = [];
   p.on('pageerror', e => erreurs.push(e.message.split('\n')[0]));
@@ -453,6 +458,41 @@ try {
     typeof window.ELA_PILOTAGE_ECRAN === 'undefined' && !document.getElementById('ecran-pilotage')
     && ![...document.styleSheets].some(s => /pilotage/.test(s.href || ''))));
   await pub.close();
+
+  /* ── 15. LE PILOTAGE NE PEUT RIEN BLOQUER ───────────────────────── *
+     Demande de Barbaros (6/10/2026) : « rien ne doit empêcher de faire des
+     réservations ». On casse le Pilotage de trois façons — script absent,
+     script qui plante, serveur du Pilotage en panne — et le traitement des
+     courses doit continuer comme si de rien n'était. */
+  for (const cas of ['absent', 'casse']) {
+    const v = await contexte(nav, { srv: fauxServeur(), ecranDuPilotage: cas });
+    const dit = cas === 'absent' ? 'script introuvable' : 'script qui plante';
+    check(`15 ${dit} : l'admin s'ouvre sur les courses, lues sur le serveur`, await v.p.evaluate(() =>
+      document.getElementById('ecran-bord').classList.contains('actif')) && v.courses.length > 0);
+    await v.p.click('#btnCreerNav'); await pause(v.p, 300);
+    check(`15 ${dit} : « Nouvelle course » s'ouvre`, await v.p.evaluate(() =>
+      document.getElementById('ecran-creer').classList.contains('actif')));
+    await v.p.click('#btnPilotage'); await pause(v.p, 300);
+    check(`15 ${dit} : l'écran Pilotage le DIT au lieu de rester vide`,
+      /n'a pas pu se charger/.test(await texte(v.p, '#pilZone')));
+    await v.p.click('#btnAdminBord'); await pause(v.p, 300);
+    check(`15 ${dit} : on revient au tableau de bord`, await v.p.evaluate(() =>
+      document.getElementById('ecran-bord').classList.contains('actif')));
+    const autres = v.erreurs.filter(m => !/panne volontaire/.test(m));
+    check(`15 ${dit} : aucune autre erreur dans la page`, autres.length === 0, autres.join(' | '));
+    await v.ctx.close();
+  }
+  const enPanne = fauxServeur(); enPanne.panne = 99;
+  const z = await contexte(nav, { srv: enPanne });
+  const lusAvant = z.courses.length;
+  await ouvrirPilotage(z.p);
+  check('15 serveur du Pilotage en panne : l\'écran le dit', /serveur/i.test(await texte(z.p, '.pil-erreur')));
+  await z.p.click('#btnAdminBord'); await pause(z.p, 300);
+  await z.p.click('#btnCreerNav'); await pause(z.p, 300);
+  check('15 serveur du Pilotage en panne : les courses et « Nouvelle course » répondent', lusAvant > 0
+    && await z.p.evaluate(() => document.getElementById('ecran-creer').classList.contains('actif')));
+  check('15 serveur du Pilotage en panne : aucune erreur dans la page', z.erreurs.length === 0, z.erreurs.join(' | '));
+  await z.ctx.close();
 } catch (e) {
   check('la suite s\'est déroulée jusqu\'au bout', false, e.stack || String(e));
 } finally {
