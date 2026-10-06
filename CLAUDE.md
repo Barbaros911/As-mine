@@ -5033,20 +5033,21 @@ Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordin
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)
 
-Entrée « Pilotage » de l'admin : blocs 1 et 2 faits le 6 octobre 2026 (bloc 3 :
-cinq colonnes sur ordinateur, filtres, recherche, historique lisible).
+Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
 - `pilotage_cartes` + `pilotage_journal` (`20261006010000_pilotage.sql`,
   **appliquée en production le 6/10**). **Ce n'est pas le tableau des
   courses** : aucune donnée commune, aucune alerte, rien n'est lu au
-  chargement de l'admin — seulement à l'ouverture de l'écran.
+  chargement de l'admin.
 - **Admin seul** (`est_admin()`, entrée cachée à l'agent), rien pour `anon`,
   **jamais de suppression** (on archive). Les règles sont DANS la base ;
-  `pilotage.js` en est le miroir, `pilotage-ecran.js` les dit avant d'envoyer.
-- L'écran n'envoie que les champs changés, sous condition de version ; une
-  action (étape, blocage) part AVEC la saisie en cours ; une carte changée
-  ailleurs : le serveur gagne et l'écran le dit. Tout texte en `textContent`.
-- `pilotage.js`, `pilotage-ecran.js`, `pilotage.css` sont servis cache
-  d'abord : les modifier = monter `CACHE`. Leurs noms ne s'écrivent dans aucun
-  commentaire hors de l'espace exploitant (la construction refuse la page).
+  `pilotage.js` en est le miroir, l'écran les dit avant d'envoyer.
+- Seuls les champs changés partent, sous condition de version, avec la
+  saisie en cours ; changée ailleurs, le serveur gagne. Tout en `textContent`.
+- **Cinq colonnes au-delà de 1 200 px**, une étape en dessous (un seul
+  dessin) ; on déplace par la fiche, jamais en glissant. Recherche et
+  filtres : aucune requête, rien sur l'appareil, **jamais une alerte
+  cachée**. L'historique (à la demande) ne dit qu'une LISTE FERMÉE de champs.
+- Fichiers servis cache d'abord : les modifier = monter `CACHE`. Leurs noms
+  hors de l'espace exploitant font refuser la page à la construction.
 - Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
   `memoire/pilotage.md`.

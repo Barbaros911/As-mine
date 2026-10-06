@@ -1,6 +1,6 @@
 # Le Pilotage (Issue #197) — décisions et suite
 
-> Archive ouverte le 6 octobre 2026, au bloc 1 sur 3. Ce qui est vrai
+> Archive ouverte le 6 octobre 2026, au bloc 1 sur 3 ; blocs 2 et 3 le même jour. Ce qui est vrai
 > aujourd'hui tient en quelques lignes dans `CLAUDE.md`, section « LE
 > PILOTAGE — LE COCKPIT INTERNE ». Ici : pourquoi c'est ainsi, et ce qui
 > reste à faire. À compléter aux blocs 2 et 3, sans réécrire le passé.
@@ -156,12 +156,88 @@ manquants non nommés, étape sans la saisie en cours, dernier geste qui
 écrase, innerHTML, archivage en un appui, fiche quittée sans prévenir, entrée
 visible pour l'agent, lecture au chargement, puces sous 44 px.
 
+## Bloc 3 (6 octobre 2026) — l'ordinateur et le quotidien
+
+Mission de Barbaros : « audit expert + avis avant modification ». L'avis
+rendu AVANT le code, puis appliqué :
+
+- **Utile, mais pas sur le chemin critique du 12 octobre.** Ce qui bloque le
+  lancement est administratif (SIRET, RC Pro, déclaration au ministère,
+  papiers des chauffeurs, médiateur). Fait quand même, parce que le bloc 3
+  ne touche QUE l'écran : aucune migration, aucun appel serveur nouveau,
+  `index.html` intact. Les pages publiques construites sont identiques avant
+  et après, empreinte par empreinte.
+- **Le plus utile n'est pas du code** : que Barbaros y saisisse les cartes du
+  lancement. Une recherche sur une table vide ne sert à rien.
+- **Retenu** : cinq colonnes au-delà de 1 200 px (en dessous, avec la
+  colonne de l'admin, une étape tomberait sous 170 px) ; recherche locale ;
+  trois filtres (Bloquées, En retard, Prioritaires P0–P1) et Responsable ;
+  historique à la demande ; titre de la fiche sur plusieurs lignes et
+  « Modifiée le » sous le titre ; le résumé rouge devenu deux boutons qui
+  posent le filtre ; « Terminé » trié par date de fin.
+- **Écarté, et pourquoi** : glisser-déposer et flèches « avancer » (un geste
+  involontaire déplacerait une carte sans passer par les critères de
+  « Terminé ») ; sélecteur de dépendances (la raison du blocage couvre le
+  vrai besoin ; aucune carte n'en a) ; filtres catégorie, GitHub, récentes
+  (la recherche trouve la catégorie et « #197 » ; « récentes » ne décide de
+  rien quand on est seul à écrire) ; Archivées et Terminé comme filtres (une
+  colonne et un écran à part) ; filtres gardés sur l'appareil (un filtre
+  oublié cacherait des cartes le lendemain) ; pagination ; tableau de bord
+  chiffré ; vue « les deux tableaux » ; raccourcis clavier globaux.
+
+**Comment c'est construit :**
+- **Un seul dessin** : les cinq colonnes sont toujours dans la page ; la
+  feuille de style n'en montre qu'une (l'étape choisie) sous 1 200 px. Pas
+  de second écran, pas d'écouteur de taille de fenêtre. Au-delà, l'écran du
+  Pilotage s'élargit seul jusqu'à 1 500 px : la limite de 1 080 px de
+  l'admin protège un tableau de chiffres, pas cinq piles de cartes.
+- **La recherche ne redessine que les résultats** (`#pilVueEtat`,
+  `#pilResultats`) : redessiner le champ ferait sauter le clavier du
+  téléphone. Insensible aux majuscules et aux accents ; chaque mot doit se
+  trouver dans UN champ. Jamais l'identifiant, la version, l'auteur. Trouvée
+  par un champ que la carte ne montre pas, la carte dit « Trouvé dans :
+  description ».
+- **Un filtre ne cache jamais une alerte** : le résumé rouge et les points des
+  tableaux comptent toutes les cartes ; les compteurs des étapes suivent le
+  filtre, et un bandeau dit « 3 cartes sur 9 » avec « Tout afficher ».
+- **Une carte créée ou restaurée que le filtre cacherait lève les filtres**, et
+  l'écran le dit : sinon « Carte créée » sur une liste où elle n'est pas.
+- **L'historique** (`journal(id, { limite: 100 })`, lu seulement sur « Voir
+  l'historique », relu après une écriture s'il est ouvert) est dit à partir
+  d'une LISTE FERMÉE : libellés pour étape, priorité, tableau, catégorie (une
+  valeur inconnue devient « ? ») ; responsable et raison du blocage tels
+  quels (le journal les garde par décision du bloc 1) ; pour un champ libre,
+  son nom traduit et rien d'autre. Heure de Paris, « 06/10 18:42 ».
+- **Une erreur d'affichage du Pilotage s'arrête à son écran** (`sur()`,
+  `montrerPanne()`) : elle se dit, ne remonte pas, et les courses répondent.
+
+**Les preuves** : `test-admin-pilotage-vue.mjs` (site construit, faux
+serveur, horloge fixée au 6/10 à 18 h 45 de Paris) — ordinateur 1280 à
+1920 px, téléphone 320 à 430 px, recherche, filtres, historique, panne
+d'affichage, aucune page hors de l'admin qui connaisse le Pilotage.
+Éprouvée contre 18 falsifications, toutes tombent : colonnes d'ordinateur
+retirées, « Terminé » trié par priorité, recherche qui redessine le champ ou
+relit le serveur, identifiant cherché, accents comptés, filtres en OU, résumé
+qui suit le filtre, filtres gardés sur l'appareil, carte créée cachée par le
+filtre, historique qui recopie le journal ou un champ libre, historique lu à
+l'ouverture ou sans limite, heure en UTC, garde d'affichage retirée, toutes
+les colonnes sur téléphone, carte neuve à l'étape suivie sur ordinateur.
+**La falsification des accents a trouvé un défaut** : la plage des accents
+était écrite en caractères combinants LITTÉRAUX, pas en `\u0300-\u036f`.
+Juste à l'exécution, invisible à la relecture (le crochet se dessine
+par-dessus) — et la falsification n'en trouvait pas le motif. Réécrite
+échappée ; aucun caractère combinant ne reste dans les fichiers du Pilotage.
+La suite du bloc 2 a été ajustée : elle attendait le sélecteur des étapes,
+masqué sur ordinateur, et son contrôle « cinq étapes sur une ligne » ne
+compte plus que ce qui est AFFICHÉ — des boutons masqués ont tous un « top »
+nul et passaient le contrôle sans rien prouver.
+
 ## Ce qui reste
 
-**Bloc 3 — l'ordinateur et le confort** : les cinq colonnes de front,
-filtres (tableau, priorité, responsable, en retard, bloqué), recherche,
-journal lisible, dépendances (« bloquée par »), clavier. Les P0 bloquées ou
-en retard ressortent.
+**Bloc 4, seulement si le besoin se voit** : recherche dans les archives
+(elles grossiront) ; un nom d'auteur dans l'historique et un rôle dédié côté
+base le jour où plusieurs personnes écrivent ; dépendances visibles
+(« bloquée par ») si la raison du blocage ne suffit plus.
 
 **Toujours** : toute modification publiée de `pilotage.js`,
 `pilotage-ecran.js` ou `pilotage.css` exige de monter `CACHE` dans `sw.js`.

@@ -169,7 +169,9 @@ const pause = (p, ms) => p.waitForTimeout(ms);
 const texte = (p, sel) => p.locator(sel).first().innerText().catch(() => '');
 async function ouvrirPilotage(p) {
   await p.click('#btnPilotage');
-  await p.waitForSelector('#ecran-pilotage.actif .pil-etapes', { timeout: 5000 });
+  /* La liste, pas le sélecteur des étapes : au-delà de 1 200 px (bloc 3), les
+     cinq étapes sont des colonnes et le sélecteur du téléphone est masqué. */
+  await p.waitForSelector('#ecran-pilotage.actif .pil-liste-vue', { timeout: 5000 });
   await p.waitForFunction(() => !document.querySelector('#pilZone .pil-vide[role="status"]'), null, { timeout: 5000 });
 }
 async function majeure(p, sel) { await p.click(sel); await pause(p, 250); }
@@ -426,7 +428,7 @@ try {
   for (const [largeur, hauteur] of [[320, 640], [390, 844], [1280, 800]]) {
     const v = await contexte(nav, { largeur, hauteur, srv: etat });
     await ouvrirPilotage(v.p);
-    await majeure(v.p, '.pil-etape[data-statut="en_cours"]');
+    if (largeur < 1200) await majeure(v.p, '.pil-etape[data-statut="en_cours"]');
     const mesure = () => v.p.evaluate(() => {
       const trop = document.documentElement.scrollWidth - window.innerWidth;
       const petits = [...document.querySelectorAll('#ecran-pilotage button, #ecran-pilotage input, #ecran-pilotage select, #ecran-pilotage label.pil-coche')]
@@ -434,14 +436,20 @@ try {
         .map(e => { const r = e.getBoundingClientRect(); return { e, h: r.height, w: r.width }; })
         .filter(x => x.e.type !== 'checkbox' && (x.h < 44 || x.w < 44))
         .map(x => (x.e.id || x.e.className || x.e.tagName) + ' ' + Math.round(x.w) + '×' + Math.round(x.h));
-      const etapes = [...document.querySelectorAll('.pil-etape')].map(b => Math.round(b.getBoundingClientRect().top));
-      return { trop, petits, uneLigne: new Set(etapes).size === 1 };
+      /* Le sélecteur sur téléphone, les colonnes sur ordinateur (bloc 3) :
+         ce qui se voit doit montrer les CINQ étapes, sur une ligne. Compter
+         seulement ce qui est affiché — des boutons masqués ont tous le même
+         « top » (zéro) et passeraient le contrôle sans rien prouver. */
+      const vus = e => [...document.querySelectorAll(e)].filter(x => x.offsetParent !== null);
+      const etapes = vus('.pil-etape').length ? vus('.pil-etape') : vus('.pil-colonne');
+      const hauts = etapes.map(b => Math.round(b.getBoundingClientRect().top));
+      return { trop, petits, uneLigne: etapes.length === 5 && new Set(hauts).size === 1 };
     });
     let m = await mesure();
     check(`13 ${largeur} px, liste : aucun débordement de côté`, m.trop <= 0, String(m.trop));
     check(`13 ${largeur} px, liste : tout ce qui se touche fait au moins 44 px`, m.petits.length === 0, m.petits.join(', '));
     check(`13 ${largeur} px : les cinq étapes tiennent sur une ligne`, m.uneLigne);
-    await majeure(v.p, '.pil-carte');
+    await v.p.locator('.pil-carte:visible').first().click(); await pause(v.p, 250);
     m = await mesure();
     check(`13 ${largeur} px, fiche : aucun débordement de côté`, m.trop <= 0, String(m.trop));
     check(`13 ${largeur} px, fiche : tout ce qui se touche fait au moins 44 px`, m.petits.length === 0, m.petits.join(', '));
