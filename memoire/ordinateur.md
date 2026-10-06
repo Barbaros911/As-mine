@@ -69,12 +69,18 @@ du bouton. Seul le retrait de la barre sur ordinateur le règle.
   forfait touristique, réservé aux agents de voyages immatriculés (Code du
   tourisme L211-1). Chaque service séparément, sur devis, n'en est pas un.
 
-## Ce que l'audit a vu sans le corriger
+## Deux corrections au passage (6 octobre 2026, Barbaros : « 1 retire 2 corrige »)
 
-- Les mentions légales disent l'hébergeur « GitHub, Inc. » alors que le site
-  est servi par Cloudflare.
-- « Une demande particulière ? » (bloc « Qui sommes-nous », #325) redit en
-  une ligne ce que « Au-delà du trajet » montre en cartes.
+- **« Une demande particulière ? »** (bloc « Qui sommes-nous », #325) redisait
+  en une ligne ce que « Au-delà du trajet » montre en cartes : retiré, avec
+  ses clés `devis_*` et ses styles. Le bandeau n'annonce plus « sur mesure ».
+- **Les mentions légales nommaient GitHub seul comme hébergeur.** Le domaine
+  pointe vers Cloudflare, qui construit et déploie le site, et `pages.yml`
+  publie toujours sur GitHub Pages. Lequel des deux sert les visiteurs
+  derrière Cloudflare n'a jamais pu être mesuré d'ici : les deux sont donc
+  nommés, ce qui est vrai dans les deux cas. Adresse et téléphone de
+  Cloudflare : ceux de ses rapports annuels à la SEC (101 Townsend Street,
+  +1 888 993 5273). Le jour où GitHub Pages est éteint, retirer sa ligne.
 
 ---
 

@@ -578,7 +578,7 @@ vide.** Un contrôle de `test-nouveau-bascule.mjs` cherche le CROCHET dans
 les six textes — la forme survit à une reformulation, pas la formule.
 - **Les mentions légales ont été réécrites**, pas rapiécées : sur onze
   lignes, neuf étaient des trous. Il ne reste que le vérifiable — nom
-  commercial, activité, hébergeur (GitHub, Inc.), contact, propriété
+  commercial, activité, hébergeur (Cloudflare ; GitHub, qui publie aussi), contact, propriété
   intellectuelle, CNIL.
 - **Aucun médiateur de la consommation n'est nommé** tant qu'aucun n'est
   désigné : le client écrirait à une adresse morte en croyant avoir saisi
@@ -4895,8 +4895,8 @@ des clients et une seconde adresse où se tromper d'outil.
 
 5 octobre 2026, à sa demande. Le site ne disait nulle part ce qu'est
 Elatransfer : un bloc `#modele` après « Nos services » le dit (titre « Vous
-réservez, nous organisons tout. », trois étapes, « Une demande
-particulière ? » vers un devis par e-mail, encart hôtels/agences/entreprises).
+réservez, nous organisons tout. », trois étapes, encart hôtels/agences/
+entreprises). Les devis passent par « Au-delà du trajet » depuis le 6/10/2026.
 - **Le premier écran reste au client qui réserve.** Sous le formulaire, une
   seule ligne (`.pro-bloc`) mène au bloc ; le pavé de 70 mots est retiré.
 - **« Chauffeur professionnel », jamais « taxi » ni « VTC »** sur une page
