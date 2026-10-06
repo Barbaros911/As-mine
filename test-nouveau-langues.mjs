@@ -227,11 +227,14 @@ await p.locator('#btnContinuer').click(); await p.waitForTimeout(400);
 // La barre du bas porte son libellé À CÔTÉ d'une icône : remplacer le texte
 // de tout l'élément effacerait le dessin. Ces trois-là sont donc les plus
 // faciles à oublier en traduisant.
+// « .barre » devant : depuis octobre 2026 le menu d'ordinateur de l'en-tête
+// porte aussi « Réservations » et « Trajets », avec les mêmes clés. Ce
+// contrôle vise la barre ; le menu a le sien dans test-public-ordinateur.
 check('la barre du bas parle anglais elle aussi',
-  (await p.locator('[data-t="nav_accueil"]').textContent())==='Home'
-  && (await p.locator('[data-t="nav_courses"]').textContent())==='Bookings'
-  && (await p.locator('[data-t="nav_trajets"]').textContent())==='Rides',
-  await p.locator('[data-t="nav_accueil"]').textContent());
+  (await p.locator('.barre [data-t="nav_accueil"]').textContent())==='Home'
+  && (await p.locator('.barre [data-t="nav_courses"]').textContent())==='Bookings'
+  && (await p.locator('.barre [data-t="nav_trajets"]').textContent())==='Rides',
+  await p.locator('.barre [data-t="nav_accueil"]').textContent());
 /* ON NE FIGE PAS LE COMPTE. Un test qui écrivait « trois » est tombé le
    jour où WhatsApp est devenu le quatrième onglet, alors que rien n'était
    cassé — même leçon que la barre figée sur quatre colonnes. Ce qui compte

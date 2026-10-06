@@ -89,8 +89,8 @@ body.reception{background:#edf3f7}body.reception .entete{background:#fff;color:v
    · LE BAS DE PAGE SOUS LA BARRE : la façade remettait « padding-bottom » à
      zéro sur ordinateur alors que la barre y reste fixée. Le pied — les
      documents légaux, que la LCEN veut accessibles — et « Envoyer ma
-     demande » passaient dessous. La place est rendue tant que la barre est
-     là (lot P0-B : elle partira, et cette marge avec elle).
+     demande » passaient dessous. Réglé au lot P0-B : la barre n'est plus
+     affichée sur ordinateur.
    · LE TUNNEL EST UNE COLONNE DE LECTURE (720 px). Prix, récapitulatif, bon,
      courses, contact s'étiraient d'un bord à l'autre : à 1440 px le prix
      était à 1 380 px de son libellé, et « Envoyer ma demande » faisait
@@ -102,10 +102,43 @@ body.reception{background:#edf3f7}body.reception .entete{background:#fff;color:v
    enfant prend maintenant la ligne entière, et seuls les quatre qui vont
    par deux sont nommés. test-public-ordinateur.mjs. */
 @media(min-width:900px){
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant){--ela-colonne:min(1180px,calc(100% - 48px));padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant){--ela-colonne:min(1180px,calc(100% - 48px))}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{padding-left:max(24px,calc((100% - 1180px)/2));padding-right:max(24px,calc((100% - 1180px)/2))}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pro-bloc,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .promesse,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .paiement,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied{width:var(--ela-colonne);max-width:none;margin-left:auto;margin-right:auto}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .section{--gouttiere:0px;width:var(--ela-colonne);max-width:none;margin-left:auto;margin-right:auto}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .ecran:not(#ecran-accueil){max-width:720px;margin-left:auto;margin-right:auto}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{width:var(--ela-colonne);max-width:none;padding-left:0;padding-right:0}
+}
+
+/* ═══ ORDINATEUR — LOT P0-B (6 octobre 2026) : LE MENU REMPLACE LA BARRE ═══
+   Au-delà de 900 px, la barre du bas — un menu de téléphone — disparaît, et
+   l'en-tête porte un vrai menu. AUCUNE FONCTION NE SE PERD : Accueil = le
+   logo, Réservations et Trajets = « Mes courses », WhatsApp = « Contact »
+   (la même feuille, référence de la course comprise). Et le menu ajoute ce
+   que la barre n'avait pas : Services, Professionnels, Questions.
+   C'est ce qui règle pour de bon « Voir mon prix » mangé par la barre : un
+   portable 1366×768 n'offre que ~657 px utiles dans Chrome, et à cette
+   hauteur la barre couvrait encore 52 px sur 54 du bouton après le lot A.
+   Pas de bouton « Réserver » ici : le formulaire est à l'écran, ce serait
+   un troisième bouton principal pour la même action. La place réservée à
+   la barre en bas de page n'a plus lieu d'être : « padding-bottom:0 ». */
+@media(min-width:900px){
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant){padding-bottom:0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .barre{display:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-nav{display:flex;align-items:center;gap:2px;margin:0 auto 0 28px;min-width:0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:0;border-radius:10px;background:none;color:var(--ela-ink);font:inherit;font-size:15px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien:hover,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu[open]>summary{background:var(--ela-soft);color:var(--ela-blue)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu{position:relative}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu>summary{list-style:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu>summary::-webkit-details-marker{display:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu>summary::after{content:"";width:6px;height:6px;margin:-3px 0 0 9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu[open]>summary::after{margin-top:3px;transform:rotate(-135deg)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu.actif>summary{color:var(--ela-blue)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous{position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:210px;padding:6px;background:#fff;border:1px solid var(--ela-line);border-radius:14px;box-shadow:var(--ela-shadow)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ela-ink);font-weight:700;text-decoration:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-sous a:hover{background:var(--ela-soft);color:var(--ela-blue)}
+}
+@media(min-width:900px) and (max-width:1099px){
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-nav{margin-left:16px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien{padding:0 9px;font-size:14px}
 }

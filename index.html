@@ -219,6 +219,7 @@ img{display:block;max-width:100%;}
 .logo-sous{font-size:8px;font-weight:600;letter-spacing:.26em;
   color:rgba(255,255,255,.55);white-space:nowrap;margin-top:3px;}
 .entete-actions{display:flex;align-items:center;gap:12px;flex:0 0 auto;}
+.entete-nav{display:none;}
 /* 44 px de haut : c'est la taille d'un pouce, et un sélecteur de langue plus
    petit se rate. Deux boutons plutôt qu'un menu déroulant — à deux langues,
    un menu demande deux gestes là où un bouton en demande un. */
@@ -2372,6 +2373,26 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <a class="logo" href="/" aria-label="Elatransfer">
       <img class="logo-image" src="brand-logo-white.png" alt="Elatransfer">
     </a>
+    <!-- LE MENU DE L'ORDINATEUR (lot P0-B, octobre 2026). Caché partout sauf
+         sur la page publique au-delà de 900 px (application-facade.css), où
+         il REMPLACE la barre du bas : une seule navigation par écran, jamais
+         deux. Chaque entrée mène à quelque chose qui existe — un bloc de
+         l'accueil, un écran, ou la feuille de contact de la barre (la même,
+         avec la référence de la course en cours). Les liens portent un vrai
+         « href » : sans script, ils descendent quand même au bloc. -->
+    <nav class="entete-nav" aria-label="Navigation principale" data-t-aria="nav_aria">
+      <a class="entete-lien" href="#services" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="services" data-t="nav_services">Services</a>
+      <a class="entete-lien" href="#modele" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="modele" data-t="nav_pros">Professionnels</a>
+      <a class="entete-lien" href="#questions" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="questions" data-t="nav_questions">Questions</a>
+      <details class="entete-menu" data-onglets="courses trajets">
+        <summary class="entete-lien" data-t="nav_mes_courses">Mes courses</summary>
+        <div class="entete-sous">
+          <a href="#" data-ecran="ecran-courses" data-onglet="courses" data-t="nav_courses">Réservations</a>
+          <a href="#" data-ecran="ecran-trajets" data-onglet="trajets" data-t="nav_trajets">Trajets</a>
+        </div>
+      </details>
+      <button class="entete-lien" type="button" data-ouvre-wa data-t="nav_contact">Contact</button>
+    </nav>
     <div class="entete-actions">
       <!-- DEUX LANGUES, ET C'EST UN CHOIX. Le français pour l'Île-de-France,
            l'anglais pour tous les autres — un voyageur allemand, italien ou
@@ -2975,7 +2996,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   </section>
 
 
-  <section class="section">
+  <section class="section" id="services">
     <div class="services-tete">
       <h2 data-t="services">Nos services</h2>
       <!-- « Voir tous » menait à une liste de services qui n'existe pas, et
@@ -3141,7 +3162,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <!-- LES QUESTIONS FRÉQUENTES, EN BAS DE L'ACCUEIL. Chaque réponse
        reprend les CGV (articles 5, 7, 8) : une réponse qui dirait autre
        chose que le contrat serait opposable contre nous. -->
-  <section class="section faq">
+  <section class="section faq" id="questions">
     <h2 data-t="faq_titre">Questions fréquentes</h2>
     <details class="faq-q"><summary data-t="faq1q">x</summary><p data-t="faq1r">x</p></details>
     <details class="faq-q"><summary data-t="faq2q">x</summary><p data-t="faq2r">x</p></details>
@@ -5755,6 +5776,8 @@ window.ELA_TEXTES = {
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
+    nav_services:"Services", nav_pros:"Professionnels", nav_questions:"Questions",
+    nav_mes_courses:"Mes courses", nav_aria:"Navigation principale",
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
@@ -5968,6 +5991,8 @@ window.ELA_TEXTES = {
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
+    nav_services:"Services", nav_pros:"For business", nav_questions:"FAQ",
+    nav_mes_courses:"My rides", nav_aria:"Main navigation",
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
@@ -8609,6 +8634,9 @@ window.ELA_TEXTES = {
     document.querySelectorAll(".onglet").forEach(function(o){
       o.classList.toggle("actif", o.dataset.onglet === onglet);
     });
+    document.querySelectorAll(".entete-nav [data-onglets]").forEach(function(m){
+      m.classList.toggle("actif", m.dataset.onglets.split(" ").indexOf(onglet) >= 0);
+    });
     window.scrollTo(0, 0);
   }
 
@@ -9511,6 +9539,11 @@ window.ELA_TEXTES = {
   if(feuilleWa){
     var btnWa = document.getElementById("btnWa");
     if(btnWa) btnWa.addEventListener("click", ouvrirFeuilleWa);
+    /* Le « Contact » du menu d'ordinateur ouvre la MÊME feuille : la barre
+       qui la portait n'y est plus affichée. */
+    document.querySelectorAll("[data-ouvre-wa]").forEach(function(b){
+      b.addEventListener("click", ouvrirFeuilleWa);
+    });
     feuilleWa.addEventListener("click", function(e){
       if(e.target.closest("[data-fermer-wa]")){ fermerFeuilleWa(); return; }
       var choix = e.target.closest("[data-wa]");
@@ -10945,6 +10978,21 @@ window.ELA_TEXTES = {
    onglet en moins, le client appuie, rien ne bouge, et il en conclut que
    le site est cassé.
    ===================================================================== */
+  /* La liste « Mes courses » du menu d'ordinateur se referme d'un clic
+     ailleurs ou avec Échap, comme toute liste déroulante : « details » ne
+     le fait pas tout seul, et une liste restée ouverte cache la page. */
+  document.addEventListener("click", function(e){
+    document.querySelectorAll(".entete-menu[open]").forEach(function(m){
+      if(!m.contains(e.target)) m.open = false;
+    });
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    document.querySelectorAll(".entete-menu[open]").forEach(function(m){
+      m.open = false;
+      m.querySelector("summary").focus();
+    });
+  });
   document.querySelectorAll("[data-ecran]").forEach(function(el){
     el.addEventListener("click", function(e){
       e.preventDefault();
@@ -10965,6 +11013,16 @@ window.ELA_TEXTES = {
         });
       }
       ecran(cible, el.dataset.onglet);
+      /* Le menu d'ordinateur : on referme la liste « Mes courses », et un
+         lien vers un bloc de l'accueil y descend — depuis n'importe quel
+         écran, puisque « ecran() » vient de remonter en haut de page. */
+      var menu = el.closest("details");
+      if(menu) menu.open = false;
+      if(el.dataset.defiler){
+        var bloc = document.getElementById(el.dataset.defiler);
+        if(bloc) bloc.scrollIntoView({ block:"start",
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      }
       if(el.dataset.focus){
         var champ = document.getElementById(el.dataset.focus);
         if(champ) champ.focus({ preventScroll:true });

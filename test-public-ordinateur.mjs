@@ -76,10 +76,12 @@ async function cliquable(p, sel) {
   }, sel);
 }
 
-const ORDIS = [[1024,768],[1280,800],[1366,768],[1440,900],[1920,1080]];
+/* 1366×657 : la hauteur UTILE d'un portable 1366×768 dans Chrome (onglets,
+   barre d'adresse, barre des tâches). C'est elle qui compte, pas l'écran. */
+const ORDIS = [[1024,768],[1280,800],[1366,657],[1366,768],[1440,900],[1920,1080]];
 for (const [w, h] of ORDIS) {
   for (const langue of ['fr', 'en']) {
-    if (langue === 'en' && w !== 1366) continue;
+    if (langue === 'en' && !(w === 1366 && h === 657)) continue;
     const p = await ouvrir(w, h, langue);
     const tag = `${w}×${h}${langue === 'en' ? ' EN' : ''}`;
     const m = await p.evaluate(() => {
@@ -189,15 +191,112 @@ for (const [w, h] of [[1024, 768], [1440, 900], [1920, 1080]]) {
 // ── Le téléphone et la tablette gardent leur mise en page : la grille et
 //    les colonnes de lecture ne s'allument qu'à partir de 900 px.
 for (const [w, h] of [[320, 700], [390, 844], [768, 1024], [899, 900]]) {
+  /* et le menu d'ordinateur n'y apparaît pas : une navigation par écran. */
   const p = await ouvrir(w, h);
   const r = await p.evaluate(() => ({
     sw: document.documentElement.scrollWidth,
     grille: getComputedStyle(document.querySelector('.reserver')).display,
     barre: getComputedStyle(document.querySelector('.barre')).display,
+    menu: (document.querySelector('.entete-nav') ? getComputedStyle(document.querySelector('.entete-nav')).display : 'none'),
   }));
+  check(`${w} px : pas de menu d'ordinateur dans l'en-tête`, r.menu === 'none', r.menu);
   check(`${w} px : aucun débordement`, r.sw === w, String(r.sw));
   check(`${w} px : le formulaire reste en une colonne`, r.grille !== 'grid', r.grille);
   check(`${w} px : la barre du bas est là`, r.barre !== 'none', r.barre);
+  await p.context().close();
+}
+
+
+// ═══ LOT P0-B : LE MENU DE L'EN-TÊTE REMPLACE LA BARRE DU BAS ═══
+// Chaque entrée doit MENER quelque part — on appuie et on regarde où l'on
+// arrive, depuis l'accueil ET depuis un écran du tunnel. Une entrée qui
+// n'ouvre rien est pire qu'une entrée absente.
+for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
+  for (const langue of ['fr', 'en']) {
+    const p = await ouvrir(w, h, langue);
+    const tag = `${w}×${h} ${langue.toUpperCase()}`;
+    const e = await p.evaluate(() => {
+      const nav = document.querySelector('.entete-nav'), lg = document.querySelector('.langues');
+      if (!nav) return { barre: getComputedStyle(document.querySelector('.barre')).display, nav: 'absent' };
+      const en = document.querySelector('.entete'), n = nav.getBoundingClientRect(), l = lg.getBoundingClientRect();
+      return { barre: getComputedStyle(document.querySelector('.barre')).display,
+        nav: getComputedStyle(nav).display, hEntete: Math.round(en.getBoundingClientRect().height),
+        chevauche: n.right > l.left - 4, deborde: nav.scrollWidth > nav.clientWidth + 1,
+        hauteurs: [...nav.querySelectorAll(':scope > .entete-lien, :scope > details > summary')].map(x => Math.round(x.getBoundingClientRect().height)) };
+    });
+    check(`${tag} : la barre du bas n'est plus affichée`, e.barre === 'none', e.barre);
+    const libelles = await p.evaluate(() => [...document.querySelectorAll('.entete-nav [data-t]')].map(x => x.textContent.trim()).join(' · '));
+    check(`${tag} : le menu parle la langue choisie`, langue === 'en'
+      ? /For business/.test(libelles) && /FAQ/.test(libelles) && /My rides/.test(libelles) && /Bookings/.test(libelles)
+      : /Professionnels/.test(libelles) && /Questions/.test(libelles) && /Mes courses/.test(libelles) && /Réservations/.test(libelles),
+      libelles);
+    check(`${tag} : le menu est dans l'en-tête, sur une ligne, sans toucher FR/EN`,
+      e.nav === 'flex' && !e.chevauche && !e.deborde && e.hEntete <= 72 && e.hauteurs.every(x => x >= 44 && x <= 48),
+      JSON.stringify(e));
+    await p.context().close();
+  }
+}
+{
+  const p = await ouvrir(1366, 657);
+  if (!(await p.locator('.entete-nav').count())) { check('le menu d’ordinateur existe', false); } else {
+  await p.evaluate(() => { window.__ouvert = []; window.open = u => { window.__ouvert.push(String(u)); return null; }; });
+  const actif = () => p.evaluate(() => document.querySelector('.ecran.actif').id);
+  /* « Arrivé au bloc » : son haut est en haut de l'écran — ou, pour le
+     dernier bloc de la page, la page est au bout et le bloc est entier à
+     l'écran (on ne peut pas défiler plus bas que la fin). */
+  const haut = id => p.evaluate(id => {
+    const r = document.getElementById(id).getBoundingClientRect();
+    const auBout = scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
+    return (auBout && r.top >= 0 && r.top < innerHeight / 2) ? 0 : Math.round(r.top);
+  }, id);
+  // Les trois blocs de l'accueil.
+  for (const [lien, bloc] of [['services', 'services'], ['modele', 'modele'], ['questions', 'questions']]) {
+    await p.click(`.entete-nav [data-defiler="${lien}"]`); await p.waitForTimeout(900);
+    const t = await haut(bloc);
+    check(`menu « ${lien} » : descend au bloc`, (await actif()) === 'ecran-accueil' && t >= -2 && t < 120, `haut du bloc ${t}`);
+  }
+  // Mes courses → Réservations, puis Trajets.
+  await p.click('.entete-menu > summary');
+  check('« Mes courses » ouvre sa liste', await p.locator('.entete-sous a[data-ecran="ecran-courses"]').isVisible());
+  await p.click('.entete-sous a[data-ecran="ecran-courses"]'); await p.waitForTimeout(300);
+  check('« Réservations » ouvre l’écran des réservations', (await actif()) === 'ecran-courses');
+  check('…referme la liste, et « Mes courses » s’allume',
+    !(await p.locator('.entete-menu').evaluate(d => d.open)) && await p.locator('.entete-menu').evaluate(d => d.classList.contains('actif')));
+  await p.click('.entete-menu > summary'); await p.click('.entete-sous a[data-ecran="ecran-trajets"]'); await p.waitForTimeout(300);
+  check('« Trajets » ouvre l’écran des trajets', (await actif()) === 'ecran-trajets');
+  // Depuis un écran du tunnel, un lien de bloc ramène à l'accueil.
+  await p.click('.entete-nav [data-defiler="questions"]'); await p.waitForTimeout(900);
+  check('depuis un autre écran, « Questions » ramène à l’accueil et descend au bloc',
+    (await actif()) === 'ecran-accueil' && (await haut('questions')) < 120);
+  check('…et « Mes courses » s’éteint', !(await p.locator('.entete-menu').evaluate(d => d.classList.contains('actif'))));
+  // La liste se referme d'un clic ailleurs et avec Échap.
+  await p.click('.entete-menu > summary'); await p.mouse.click(700, 400);
+  check('la liste « Mes courses » se referme d’un clic ailleurs', !(await p.locator('.entete-menu').evaluate(d => d.open)));
+  await p.click('.entete-menu > summary'); await p.keyboard.press('Escape');
+  check('…et avec Échap, le focus revenant sur « Mes courses »',
+    !(await p.locator('.entete-menu').evaluate(d => d.open)) && await p.evaluate(() => document.activeElement.matches('.entete-menu > summary')));
+  // Contact = la feuille de la barre, jusqu'au lien qui part.
+  await p.click('.entete-nav [data-ouvre-wa]'); await p.waitForTimeout(200);
+  check('« Contact » ouvre la feuille de contact', await p.locator('#feuilleWa').isVisible());
+  await p.click('#feuilleWa [data-wa="infos"]'); await p.waitForTimeout(200);
+  const parti = await p.evaluate(() => window.__ouvert);
+  check('…et un choix y ouvre bien WhatsApp vers Elatransfer', parti.some(u => /wa\.me\/33759312433/.test(u)), parti.join(' '));
+  // Le clavier : après le logo vient le menu.
+  await p.evaluate(() => document.querySelector('.entete .logo').focus());
+  await p.keyboard.press('Tab');
+  check('au clavier, le menu suit le logo', await p.evaluate(() => document.activeElement.matches('.entete-nav [data-defiler="services"]')));
+  check('menu : aucune erreur JavaScript', p._errs.length === 0, p._errs.join(' | '));
+  }
+  await p.context().close();
+}
+// Les pages d'hôtel ne changent pas : barre du bas, pas de menu d'ordinateur.
+{
+  const p = await ouvrir(1366, 768);
+  await p.goto(SITE + 'application.html?h=easyhotel-aeroville'); await p.waitForTimeout(500);
+  const r = await p.evaluate(() => ({ hotel: document.body.classList.contains('hotel'),
+    menu: (document.querySelector('.entete-nav') ? getComputedStyle(document.querySelector('.entete-nav')).display : 'none'),
+    barre: getComputedStyle(document.querySelector('.barre')).display }));
+  check('page hôtel : pas de menu d’ordinateur, la barre reste', r.hotel && r.menu === 'none' && r.barre !== 'none', JSON.stringify(r));
   await p.context().close();
 }
 
