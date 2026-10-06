@@ -2479,6 +2479,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <path d="M9.5 8h5M9.5 12h5" stroke="currentColor" stroke-width="1.8"
                 stroke-linecap="round"/>
         </svg>Facturer</button>
+      <!-- LE PILOTAGE (#197, bloc 2) : le suivi du produit et des opérations.
+           Ce n'est PAS le traitement des courses. Caché à l'agent. -->
+      <button class="admin-lien" type="button" id="btnPilotage">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4v16M5 5h12l-2.5 4L17 13H5" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>Pilotage</button>
       <!-- UNE SEULE ENTRÉE À LA PLACE DE TROIS. « Affiche hôtel », « Avis »
            et « Serveur » faisaient DESCENDRE sur le tableau de bord, toutes
            les trois au même endroit : le bas de la page. On y arrivait sans
@@ -3949,6 +3956,27 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div class="cc-table" id="ccTarifs"></div>
       <button class="bouton-fantome" type="button" id="btnCcTarifs">Modifier les tarifs</button>
     </div>
+  </section>
+
+  <section class="ecran" id="ecran-pilotage">
+    <!-- LE PILOTAGE (Issue #197, bloc 2 — 6 octobre 2026). Le suivi du
+         produit et des opérations : deux tableaux, cinq étapes, une fiche
+         par carte. Le contenu est dessiné par le script de l'écran, à
+         l'ouverture, en textContent ; le serveur n'est interrogé QUE quand on
+         ouvre cet écran. Caché à l'agent ; la construction retire l'écran
+         entier des pages publiques. Le commentaire est DANS la section : il
+         part avec elle. -->
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourPilotage" aria-label="Retour au tableau de bord">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Pilotage</h1>
+    </div>
+    <p class="pil-intro">Le suivi du produit et des opérations. Les courses, elles, se traitent au tableau de bord.</p>
+    <div class="pil" id="pilZone"></div>
   </section>
 
   <section class="ecran" id="ecran-reglages">
@@ -5552,10 +5580,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
      LE PILOTAGE (Issue #197, bloc 1, 6 octobre 2026) : le second script porte
      les données du cockpit interne, Produit et Opérations. Ce n'est PAS le
      tableau des courses : rien n'y est lu ni écrit, aucun appel au chargement,
-     aucune alerte, pas encore d'écran (bloc 2). Retiré aussi des pages
-     publiques. -->
+     aucune alerte. Retiré aussi des pages publiques, comme son écran
+     (bloc 2) et sa feuille de style, posée ICI et pas dans l'en-tête :
+     l'écran est caché jusqu'à ce qu'on l'ouvre. Ce commentaire ne nomme
+     aucun de ces fichiers : la construction s'arrête si une page publique
+     en porte le nom. -->
 <script src="admin-sante.js"></script>
 <script src="pilotage.js"></script>
+<link rel="stylesheet" href="pilotage.css">
+<script src="pilotage-ecran.js"></script>
 
 <script>
 
@@ -14418,6 +14451,26 @@ window.ELA_TEXTES = {
     }, function(){});
   }
   document.getElementById("btnControle").addEventListener("click", ouvrirControle);
+  /* ═══ LE PILOTAGE (#197, bloc 2) ═══
+     L'écran d'abord, le dessin ensuite — comme partout ici. Le dessin et
+     la lecture du serveur sont dans pilotage-ecran.js ; s'il n'a pas pu se
+     charger (hors ligne, cache incomplet), l'écran le DIT au lieu de rester
+     vide. Gardes « if » : la page publique n'a ni ce bouton ni cet écran. */
+  function ouvrirPilotage(){
+    ecran("ecran-pilotage");
+    allumerAdmin(document.getElementById("btnPilotage"));
+    var zonePil = document.getElementById("pilZone");
+    if(window.ELA_PILOTAGE_ECRAN) window.ELA_PILOTAGE_ECRAN.ouvrir(zonePil);
+    else if(zonePil) zonePil.textContent = "Le Pilotage n'a pas pu se charger : rechargez la page avec du réseau.";
+  }
+  var btnPilotage = document.getElementById("btnPilotage");
+  if(btnPilotage) btnPilotage.addEventListener("click", ouvrirPilotage);
+  var btnRetourPilotage = document.getElementById("btnRetourPilotage");
+  if(btnRetourPilotage) btnRetourPilotage.addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
   document.getElementById("btnRetourControle").addEventListener("click", function(){
     ecran("ecran-bord");
     dessinerBord();

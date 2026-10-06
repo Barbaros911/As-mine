@@ -88,14 +88,15 @@ function sansCanonique(html) {
 const sectionsAdmin = [
   'ecran-verrou', 'ecran-bord', 'ecran-reglages', 'ecran-creer',
   'ecran-registre', 'ecran-chauffeurs', 'ecran-facture', 'ecran-bord-bon',
-  'ecran-controle',
+  'ecran-controle', 'ecran-pilotage',
 ];
 
 function sansAdmin() {
   let html = source;
   html = retirerNavigationAdmin(html);
   for (const id of sectionsAdmin) html = retirerElementParId(html, 'section', id);
-  html = html.replace(/<script\b[^>]*src=["'](?:intake-demande|qr-affiche|admin-sante|pilotage)\.js["'][^>]*><\/script>\s*/gi, '');
+  html = html.replace(/<script\b[^>]*src=["'](?:intake-demande|qr-affiche|admin-sante|pilotage|pilotage-ecran)\.js["'][^>]*><\/script>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*href=["']pilotage\.css["'][^>]*>\s*/gi, '');
   html = html.replace(/<style\b[^>]*id=["']ela-role-style["'][^>]*>[\s\S]*?<\/style>\s*/gi, '');
   html = retirerScriptsContenant(html, ['nuage.roleOperateur=', 'presencesOperateurs=function']);
 
@@ -256,6 +257,7 @@ const interditsClient = [
   'id="ecran-reception"', 'id="ecran-chauffeurs"', 'id="ecran-facture"',
   'id="ecran-reglages"', 'id="ecran-controle"', 'CODE_EXPLOITANT', 'coursesHotel: function',
   'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes', 'pilotage.js', 'ELA_PILOTAGE', 'pilotage_cartes',
+  'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
 ];
 for (const interdit of interditsClient) {
   if (clientHtml.includes(interdit)) throw new Error(`fuite Client : ${interdit}`);
@@ -263,6 +265,7 @@ for (const interdit of interditsClient) {
 const interditsReception = [
   'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
   'CODE_EXPLOITANT', 'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes', 'pilotage.js', 'ELA_PILOTAGE', 'pilotage_cartes',
+  'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
 ];
 for (const interdit of interditsReception) {
   if (receptionHtml.includes(interdit)) throw new Error(`fuite Réception : ${interdit}`);
@@ -271,6 +274,7 @@ const interditsPublic = [
   'id="ecran-reception"', 'id="ecran-verrou"', 'id="ecran-bord"',
   'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
   'coursesHotel: function', 'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes', 'pilotage.js', 'ELA_PILOTAGE', 'pilotage_cartes',
+  'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
 ];
 for (const interdit of interditsPublic) {
   if (publicHtml.includes(interdit)) throw new Error(`fuite Public : ${interdit}`);

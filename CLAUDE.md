@@ -4770,50 +4770,16 @@ seul.
 
 ## ADMIN V2 N'EST PLUS PUBLIÉ
 
-3 octobre 2026, Barbaros : « retire ». Il travaille seul, dans l'admin
-historique ; Admin v2 en ligne n'était qu'une seconde porte vers les données
-des clients et une seconde adresse où se tromper d'outil.
-- **Retiré de la PUBLICATION, pas du dépôt.** `construire.sh` supprime
-  `admin-v2-*.js` et `admin-v2-responsive.css` de `site/` et remplace
-  `admin-v2.html` par une copie d'`admin.html` : une icône posée ou un lien
-  gardé ramène à `/ela-admin/` (paramètres compris), jamais un 404.
-- **LE RETRAIT EST LA RÈGLE PAR DÉFAUT, ET LE PREMIER JET L'AVAIT À
-  L'ENVERS.** Il fallait POSER un drapeau pour retirer (`ELA_PUBLICATION=1`,
-  dans `pages.yml`). La demande de fusion #294 a montré un contrôle
-  « Workers Builds: as-mine » : **Cloudflare construit et déploie ce dépôt**,
-  avec une commande réglée dans SON tableau de bord, invisible d'ici — et
-  `elatransfer.com` résout vers des adresses Cloudflare (`2606:4700:…`,
-  mesuré). Admin v2 serait resté en ligne sur le vrai domaine, sans un mot.
-  Désormais **toute construction le retire** ; seul `ELA_AVEC_ADMIN_V2=1`
-  le garde, et il n'est posé que par les suites qui l'éprouvent (huit
-  `test-admin-*`, `capture-admin-165.mjs`) et par les quatre contrôles
-  automatiques qui le lisent dans `site/`. **Un oubli ne peut plus que
-  retirer, jamais publier.** `test-doc.mjs` vérifie que la recette retire
-  par défaut et qu'aucune configuration de publication (`pages.yml`,
-  `wrangler.jsonc`, la commande de `CLOUDFLARE.md`) ne pose le drapeau ;
-  chaque contrôle tombe seul quand on le casse.
-- **LES NOTES « CLOUDFLARE RESTE BLOQUÉ » PLUS HAUT SONT PÉRIMÉES** sur un
-  point au moins : un projet Workers « as-mine » construit le dépôt. Ce que
-  je n'ai PAS pu mesurer d'ici : si le domaine est servi par ce Worker ou
-  par GitHub Pages derrière le proxy Cloudflare. La règle par défaut tient
-  dans les deux cas — c'est pour ça qu'elle a été choisie.
-- **Le code et ses suites restent**, et tournent avec le drapeau : ils
-  portent la tarification serveur, les partenaires, la règle des papiers
-  imposée par le serveur, et des fichiers PARTAGÉS avec l'admin retenu
-  (`intake-demande.js`, `qr-affiche.js`, `itineraire-partage.js`). Le jour où
-  il le redemande, rien n'est à réécrire.
-- La régression visuelle capture désormais l'admin retenu (`/ela-admin/`)
-  au lieu d'Admin v2.
-- `verifier-production.mjs` exige désormais que `/admin-v2.html` serve la
-  redirection (titre « Espace exploitant ») : construit avec
-  `ELA_AVEC_ADMIN_V2=1`, il tombe en nommant la page — mesuré.
-- **Les migrations et les fonctions qu'Admin v2 utilise restent en
-  production** : elles ne s'appellent qu'avec une session exploitant. Ce que
-  le retrait coûte, il faut le dire : l'admin retenu n'appelle pas
-  `ela_attribuer_chauffeur`, donc la règle des papiers n'y est qu'un
-  AVERTISSEMENT d'écran (et plus un refus depuis le 4 octobre 2026, à sa
-  demande), pas une frontière serveur.
-
+3 octobre 2026, Barbaros : « retire ». **Retiré de la PUBLICATION, pas du
+dépôt** : `construire.sh` le retire de `site/` et `/admin-v2.html` renvoie
+vers `/ela-admin/`, jamais un 404.
+- **LE RETRAIT EST LA RÈGLE PAR DÉFAUT** : Cloudflare construit aussi ce dépôt,
+  avec une commande invisible d'ici. Seul `ELA_AVEC_ADMIN_V2=1` le garde, posé
+  par les seules suites qui l'éprouvent ; `test-doc.mjs` refuse qu'une
+  configuration de publication le pose. Un oubli ne peut que retirer.
+- Son code, ses suites, ses migrations et ses fonctions restent (fichiers
+  partagés avec l'admin retenu). La règle des papiers n'est donc, dans l'admin
+  retenu, qu'un avertissement d'écran. Histoire : `memoire/admin-v2.md`.
 
 ## QUI SOMMES-NOUS — LE MODÈLE DIT EN CLAIR
 
@@ -5109,19 +5075,20 @@ toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)
 
-6 octobre 2026, bloc 1 sur 3 : la base et le module de données, **aucun
-écran** (bloc 2 : l'écran, mobile d'abord, captures, validation de Barbaros).
-- `pilotage_cartes` + `pilotage_journal` (`20261006010000_pilotage.sql`, **à
-  appliquer en production** par le workflow des migrations). **Ce n'est pas
-  le tableau des courses** : aucune donnée commune, aucune alerte, aucun appel
-  au chargement de l'admin.
-- **Admin seul** (`est_admin()`, pas l'agent), rien pour `anon`, **jamais de
-  suppression** (on archive). Les règles sont DANS la base : checklist cochée
-  pour « Terminé », raison pour « Bloqué », catégorie dès « À faire », version
-  comme les courses. Le journal ne garde jamais le contenu des champs libres.
-- Un seul déroulé (Idées → À faire → En cours → À valider → Terminé) et un
-  marqueur « Bloqué / en attente » ; pas de catégorie « Lancement ».
-  `pilotage.js` en est le miroir : `test-admin-pilotage.mjs` et l'épreuve HTTP
-  exigent l'accord. Il est servi cache d'abord : le modifier = monter `CACHE`.
-- Ne pas recopier GitHub Projects : une carte RÉFÉRENCE une Issue, elle n'en
-  suit pas l'état. Décisions et suite : `memoire/pilotage.md`.
+Entrée « Pilotage » de l'admin : blocs 1 et 2 faits le 6 octobre 2026 (bloc 3 :
+cinq colonnes sur ordinateur, filtres, recherche, historique lisible).
+- `pilotage_cartes` + `pilotage_journal` (`20261006010000_pilotage.sql`,
+  **appliquée en production le 6/10**). **Ce n'est pas le tableau des
+  courses** : aucune donnée commune, aucune alerte, rien n'est lu au
+  chargement de l'admin — seulement à l'ouverture de l'écran.
+- **Admin seul** (`est_admin()`, entrée cachée à l'agent), rien pour `anon`,
+  **jamais de suppression** (on archive). Les règles sont DANS la base ;
+  `pilotage.js` en est le miroir, `pilotage-ecran.js` les dit avant d'envoyer.
+- L'écran n'envoie que les champs changés, sous condition de version ; une
+  action (étape, blocage) part AVEC la saisie en cours ; une carte changée
+  ailleurs : le serveur gagne et l'écran le dit. Tout texte en `textContent`.
+- `pilotage.js`, `pilotage-ecran.js`, `pilotage.css` sont servis cache
+  d'abord : les modifier = monter `CACHE`. Leurs noms ne s'écrivent dans aucun
+  commentaire hors de l'espace exploitant (la construction refuse la page).
+- Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
+  `memoire/pilotage.md`.
