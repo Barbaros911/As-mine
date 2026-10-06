@@ -37,6 +37,7 @@ import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { createHash } from 'node:crypto';
 
 /* =====================================================================
    CETTE SUITE ÉPROUVE LE SITE CONSTRUIT, PAS LE DÉPÔT
@@ -1084,6 +1085,136 @@ for (const large of [1024, 1280]) {
     check(`${chemin} : ses réponses sont celles de l'accueil, mot pour mot`, lu.faq.length >= 1 && ecarts.length === 0, ecarts.join(' | '));
   }
   await ps.close();
+}
+
+/* LOT P2 DU RÉFÉRENCEMENT (6 octobre 2026). Cinq défauts du SITE CONSTRUIT,
+   invisibles depuis le dépôt : chacun naissait d'une étape de construire.sh.
+   Tout est lu dans site/, là où les clients et Google le lisent. */
+{
+  const pages = (await readdir('site', { recursive: true }))
+    .filter(f => f.endsWith('.html') && !f.startsWith('carte'));
+  // 1. Une page cachée à Google ne désigne pas d'adresse canonique.
+  let cachees = 0;
+  for (const f of pages) {
+    const h = await readFile(join('site', f), 'utf8');
+    const robotsMeta = (h.match(/<meta\s+name=["']robots["'][^>]*>/i) || [''])[0];
+    if (!/noindex/i.test(robotsMeta)) continue;
+    cachees++;
+    check(`${f} : cachée à Google, sans adresse canonique`, !/<link\b[^>]*rel=["']canonical["']/i.test(h));
+  }
+  check('les pages cachées à Google sont bien trouvées (sinon le contrôle ne prouve rien)', cachees >= 4, String(cachees));
+
+  for (const chemin of ['/', '/application.html']) {
+    const h = await (await fetch(SITE + chemin)).text();
+    // 2. Une seule série de balises de partage, et elle porte une image.
+    const props = [...h.matchAll(/<meta\s+(?:property|name)=["']((?:og|twitter):[a-z_:]+)["']/gi)].map(m => m[1]);
+    const doubles = [...new Set(props.filter((x, i) => props.indexOf(x) !== i))];
+    check(`${chemin} : chaque balise de partage n'apparaît qu'une fois`, props.length >= 6 && doubles.length === 0,
+      doubles.join(', ') || props.length + ' balise(s)');
+    check(`${chemin} : l'aperçu de partage porte une image, en adresse complète`,
+      /<meta\s+property=["']og:image["']\s+content=["']https:\/\/elatransfer\.com\/[^"']+["']/i.test(h));
+    // 3. Un seul manifeste, une seule couleur — et le manifeste qui reste est
+    //    celui que le script d'échange de l'espace exploitant remplit.
+    const manifestes = h.match(/<link\b[^>]*rel=["']manifest["'][^>]*>/gi) || [];
+    check(`${chemin} : un seul manifeste, celui de l'échange (id="manifeste")`,
+      manifestes.length === 1 && /id=["']manifeste["']/.test(manifestes[0]), manifestes.join(' | '));
+    const couleurs = h.match(/<meta\s+name=["']theme-color["'][^>]*>/gi) || [];
+    check(`${chemin} : une seule couleur de thème`, couleurs.length === 1, couleurs.join(' | '));
+  }
+
+  // 4. Les fichiers des hôtels ne partent pas avec l'accueil, et restent là
+  //    où ils servent : sans eux, le flyer easyHotel perd son moteur.
+  const demandes = async (chemin) => {
+    const pg = await b.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
+    await pg.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+    const vus = [];
+    pg.on('request', r => vus.push(new URL(r.url()).pathname));
+    await pg.goto(SITE + chemin, { waitUntil: 'load' });
+    await pg.waitForTimeout(400);
+    return { pg, vus };
+  };
+  {
+    const { pg, vus } = await demandes('/');
+    const hotel = vus.filter(v => v.includes('hotel-engine-polish'));
+    check('l\'accueil ne charge aucun fichier des pages d\'hôtel', hotel.length === 0, hotel.join(', '));
+
+    // 5. Les vignettes des services : légères, mais pas floues. Une vignette
+    //    tient au plus 216 px de large ; on exige au moins le double en
+    //    pixels réels (écran fin), et pas plus de 60 Ko par image.
+    await pg.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 300) { scrollTo(0, y); await new Promise(r => setTimeout(r, 40)); } });
+    const vignettes = await pg.evaluate(async () => Promise.all([...document.querySelectorAll('.service')].map(async e => {
+      const st = getComputedStyle(e, '::before');
+      const url = (st.backgroundImage.match(/url\("?([^")]+)"?\)/) || [])[1];
+      if (!url) return null;
+      const im = new Image(); im.src = url; await im.decode().catch(() => {});
+      return { url: new URL(url).pathname, large: parseFloat(st.width), naturelle: im.naturalWidth };
+    })));
+    const photos = vignettes.filter(Boolean);
+    check('les vignettes des services sont trouvées (sinon le contrôle ne prouve rien)', photos.length >= 3, String(photos.length));
+    for (const v of photos) {
+      const poids = (await stat(join('site', v.url))).size;
+      check(`${v.url} : moins de 60 Ko pour une vignette`, poids <= 60 * 1024, Math.round(poids / 1024) + ' Ko');
+      check(`${v.url} : assez de pixels pour rester nette (double de l'affichage)`, v.naturelle >= 2 * v.large,
+        v.naturelle + ' px pour ' + Math.round(v.large) + ' affichés');
+    }
+    await pg.close();
+  }
+  {
+    const { pg, vus } = await demandes('/application.html?h=easyhotel-aeroville');
+    check('la page du flyer easyHotel charge toujours ses deux fichiers d\'hôtel',
+      vus.some(v => v.endsWith('/hotel-engine-polish.css')) && vus.some(v => v.endsWith('/hotel-engine-polish.js')), vus.filter(v => v.includes('hotel')).join(', '));
+    await pg.close();
+  }
+  // Les copies allégées ne remplacent rien : chaque original reste au dépôt.
+  const facade = await readFile('application-facade.css', 'utf8');
+  for (const m of facade.matchAll(/photos\/([\w-]+)-480\.webp/g)) {
+    const originaux = (await readdir('photos')).filter(f => f.startsWith(m[1] + '.'));
+    check(`photos/${m[1]} : l'original de Barbaros reste dans le dépôt`, originaux.length === 1, originaux.join(', '));
+  }
+}
+
+/* LE LOGO NE BOUGE PAS (6 octobre 2026, règle absolue de Barbaros). Ni ses
+   fichiers, ni son affichage sur l'accueil. Les empreintes sont celles de
+   main au 6 octobre 2026 : changer le logo est SA décision, et la prise
+   consiste alors à mettre à jour cette table dans la même PR — jamais à
+   contourner le contrôle. */
+{
+  const EMPREINTES = {
+    'brand-logo-officiel.jpeg': '3543f52757a29440', 'brand-logo-white.png': 'bbcdaaccb57a131b',
+    'brand-logo.svg': '72ad55c6e0fdaf20', 'brand-logo.webp': '8ed02e907b782ae5',
+    'icon-180.png': '4244c5cb988282a2', 'icon-32.png': 'febfba43bb9da37c', 'icon-512.png': '6822a0401f373c1b',
+    'icon-maskable.svg': '6262e8f0ec8accec', 'icon.svg': '6262e8f0ec8accec',
+    'icones/admin-180.png': '4f682716b7e063bf', 'icones/admin-32.png': 'f585c56905212222', 'icones/admin-512.png': '01508f0a878f2934',
+    'icones/reception-180.png': 'cd29e78b3f0a9270', 'icones/reception-32.png': '3fbafe02c6b81132', 'icones/reception-512.png': '706cc5b56ca3a31b',
+    'sites/easyhotel-client/icon-180.png': '911913a6adfea750', 'sites/easyhotel-client/icon-32.png': '951f8f0b81462657',
+    'sites/easyhotel-client/icon-512.png': 'f4f71c261cc8127f',
+  };
+  const changes = [];
+  for (const [f, e] of Object.entries(EMPREINTES)) {
+    let lu = 'absent';
+    try { lu = createHash('sha256').update(await readFile(f)).digest('hex').slice(0, 16); } catch {}
+    if (lu !== e) changes.push(f + ' (' + lu + ')');
+  }
+  check('les fichiers du logo et des icônes sont identiques à main', changes.length === 0, changes.join(', '));
+  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 18 } };
+  const ICONES = ['icon icon-32.png 32x32', 'apple-touch-icon icon-180.png ', 'icon /icon-180.png ', 'apple-touch-icon /icon-180.png 180x180'];
+  for (const [largeur, attendu] of Object.entries(AFFICHAGE)) {
+    const pl = await b.newPage({ viewport: { width: +largeur, height: 844 }, locale: 'fr-FR' });
+    await pl.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+    await pl.goto(SITE + '/', { waitUntil: 'load' });
+    const lu = await pl.evaluate(() => {
+      const i = document.querySelector('.entete img.logo-image, img.logo-image');
+      if (!i) return null;
+      const r = i.getBoundingClientRect(), st = getComputedStyle(i);
+      return { src: i.getAttribute('src'), w: r.width, h: r.height, x: r.x, filtre: st.filter, op: st.opacity,
+        icones: [...document.querySelectorAll('link[rel*=icon]')].map(x => x.rel + ' ' + x.getAttribute('href') + ' ' + (x.sizes || '')) };
+    });
+    const memePlace = lu && lu.src === 'brand-logo.webp' && Math.abs(lu.w - attendu.w) < 0.6
+      && Math.abs(lu.h - attendu.h) < 0.6 && Math.abs(lu.x - attendu.x) < 0.6 && lu.filtre === 'none' && lu.op === '1';
+    check(`${largeur} px : le logo de l'accueil s'affiche comme sur main (fichier, taille, place, couleur)`, memePlace, JSON.stringify(lu && { ...lu, icones: undefined }));
+    check(`${largeur} px : les icônes déclarées sont celles de main`, lu && JSON.stringify(lu.icones) === JSON.stringify(ICONES), JSON.stringify(lu && lu.icones));
+    await pl.close();
+  }
 }
 
 await b.close();

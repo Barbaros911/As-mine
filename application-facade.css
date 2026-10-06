@@ -41,14 +41,18 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .engagement-pasti
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .trait{border-color:#e7eef2}
 
 /* SERVICES : vraies vignettes avec les fichiers réellement présents dans le dépôt. */
+/* COPIES ALLÉGÉES (6 octobre 2026) : une vignette s'affiche au plus en
+   216 × 88 px, et 480 px de large couvrent même un écran de téléphone à
+   triple densité (154 × 3 = 462). Les originaux restent dans photos/ :
+   c'est le travail de Barbaros, on ne les supprime pas. 611 Ko → 118 Ko. */
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .services{gap:12px}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service{position:relative;overflow:hidden;border:1px solid var(--ela-line);border-radius:16px;background:#fff;box-shadow:0 6px 18px rgba(11,48,73,.08);min-height:170px;padding:96px 13px 14px;text-decoration:none}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service::before{content:"";position:absolute;left:0;right:0;top:0;height:88px;background-size:cover;background-position:center;transition:transform .2s ease}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(1)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/service-aeroport.webp")}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(2)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/service-chauffeur.jpg")}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(3)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/eiffel-trocadero.jpg")}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(4)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/service-deplacement-pro.jpg")}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/champs-depuis-arc.jpg")}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(2)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/service-chauffeur-480.webp")}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(3)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/eiffel-trocadero-480.webp")}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(4)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/service-deplacement-pro-480.webp")}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5)::before{background-image:linear-gradient(180deg,rgba(3,28,52,.02),rgba(3,28,52,.16)),url("./photos/champs-depuis-arc-480.webp")}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:hover::before{transform:scale(1.025)}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service-corps{position:relative;z-index:1}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service-icone{display:none}
