@@ -10,8 +10,8 @@
      disent ici, `.github/scripts/seo-ela.mjs` le réécrit À L'IDENTIQUE dans
      le site construit : changer l'un sans l'autre fait diverger le dépôt et
      le site publié sans un mot. -->
-<title>Elatransfer — Transferts privés &amp; solutions de réservation</title>
-<meta name="description" content="Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.">
+<title>Elatransfer — Transferts privés &amp; réservation pour partenaires</title>
+<meta name="description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://elatransfer.com/">
 <!-- AUCUNE BALISE « hreflang » (5 octobre 2026). Cette adresse est en
@@ -19,8 +19,8 @@
      la MÊME adresse ne veut rien dire pour Google. Le jour où l'anglais aura
      sa propre adresse, les deux se déclareront l'une l'autre. -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Elatransfer — Transferts privés &amp; solutions de réservation">
-<meta property="og:description" content="Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.">
+<meta property="og:title" content="Elatransfer — Transferts privés &amp; réservation pour partenaires">
+<meta property="og:description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
 <meta property="og:site_name" content="Elatransfer">
 <meta property="og:url" content="https://elatransfer.com/">
 <meta property="og:locale" content="fr_FR">
@@ -30,8 +30,8 @@
      ferait avec le logo : décision de Barbaros, non prise à ce jour. -->
 <meta property="og:image" content="https://elatransfer.com/icon-180.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Elatransfer — Transferts privés &amp; solutions de réservation">
-<meta name="twitter:description" content="Elatransfer propose des transferts privés et crée pour ses partenaires des solutions de réservation personnalisées : page dédiée, lien et QR code.">
+<meta name="twitter:title" content="Elatransfer — Transferts privés &amp; réservation pour partenaires">
+<meta name="twitter:description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
 <meta name="geo.region" content="FR-IDF">
 <meta name="geo.placename" content="Paris">
 <meta name="theme-color" content="#16232B">
@@ -106,7 +106,7 @@
       "url": "https://elatransfer.com/",
       "logo": {"@type": "ImageObject", "url": "https://elatransfer.com/brand-logo.webp"},
       "image": "https://elatransfer.com/brand-logo.webp",
-      "description": "Transferts privés avec chauffeur à Paris et en Île-de-France : aéroports Roissy-Charles de Gaulle, Orly et Beauvais, gares, hôtels, d'une adresse à une autre. Prix ferme annoncé avant la réservation, réglé au chauffeur.",
+      "description": "Elatransfer organise des transferts avec chauffeur à Paris et en Île-de-France (aéroports Roissy-Charles de Gaulle, Orly et Beauvais, gares, hôtels, événements) et crée pour les hôtels, agences et entreprises une page de réservation à leur nom et un espace réception, puis gère chaque transport. Prix ferme annoncé avant la réservation, réglé au chauffeur.",
       "telephone": "+33759312433",
       "email": "contact@elatransfer.com",
       "areaServed": [
@@ -142,6 +142,15 @@
         {"@type": "Airport", "name": "Aéroport de Beauvais-Tillé", "iataCode": "BVA"},
         {"@type": "AdministrativeArea", "name": "Île-de-France"}
       ]
+    },
+    {
+      "@type": "Service",
+      "@id": "https://elatransfer.com/#partenaires",
+      "name": "Canal de réservation pour partenaires",
+      "serviceType": "Page de réservation au nom de l'établissement, espace réception, lien et QR code ; Elatransfer organise et suit chaque transport",
+      "provider": {"@id": "https://elatransfer.com/#organisation"},
+      "audience": {"@type": "BusinessAudience", "audienceType": "Hôtels, agences et entreprises"},
+      "areaServed": {"@type": "AdministrativeArea", "name": "Île-de-France"}
     }
   ]
 }
@@ -809,6 +818,8 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    c'est un bouton d'appel, pas une mention. */
 .pied{margin:26px 20px 0;padding:18px 0 4px;border-top:1px solid var(--filet);
   display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.pied-contact{display:flex;flex-direction:column;align-items:center;}
+@media (min-width:900px){.pied-contact{align-items:flex-start;}}
 .pied-tel{display:inline-flex;align-items:center;gap:8px;min-height:44px;
   color:var(--accent-encre);font-size:14px;font-weight:700;text-decoration:none;}
 .pied-lien{font-size:12px;color:var(--gris);text-decoration:underline;
@@ -2136,7 +2147,11 @@ body.espace #panneauProvenance{display:none;}
 .modele-pro{margin-top:14px;border-radius:18px;padding:18px 16px;background:var(--accent-clair,#E8F2FD);}
 .modele-pro:first-child{margin-top:0;}
 .modele-pro-t{margin:0;font-weight:800;font-size:17px;color:var(--accent-encre,#0A4F91);}
+.modele-pro-h{margin:6px 0 8px;font-size:21px;line-height:1.2;font-weight:800;color:var(--encre,#151C22);}
 .modele-pro-s{margin:4px 0 10px;font-size:14px;color:var(--encre,#151C22);}
+.modele-pro-promesse{margin:2px 0 12px;font-size:15px;font-weight:800;color:var(--accent-encre,#0A4F91);}
+.modele-mail{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:4px;
+  font-size:14px;font-weight:700;color:var(--accent-encre,#0A4F91);text-decoration:underline;}
 .modele-pro ul{margin:0 0 14px;padding:0;list-style:none;}
 .modele-pro li{position:relative;padding:6px 0 6px 24px;font-size:14px;color:var(--encre,#151C22);}
 .modele-pro li::before{content:"";position:absolute;left:2px;top:10px;width:12px;height:7px;
@@ -2147,8 +2162,9 @@ body.espace #panneauProvenance{display:none;}
   .modele-etapes{grid-template-columns:repeat(3,1fr);}
   .modele-intro{max-width:760px;}
   .modele-pro{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;padding:24px 28px;}
-  .modele-pro-t,.modele-pro-s{grid-column:1;} .modele-pro ul{grid-column:2;grid-row:1/4;margin:0;}
-  .modele-cta{grid-column:1;align-self:start;max-width:320px;}
+  .modele-pro > :not(ul){grid-column:1;} .modele-pro ul{grid-column:2;grid-row:1/9;margin:0;}
+  .modele-pro-h{font-size:26px;}
+  .modele-cta{align-self:start;max-width:320px;} .modele-mail{justify-content:flex-start;}
 }
 body.hotel .modele{display:none;}
 /* AU-DELÀ DU TRAJET — des cartes à pictogramme, pas à photo : on ne pose
@@ -2589,8 +2605,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="hero-image"></div>
     <div class="hero-texte">
       <h1 data-t-html="hero_titre">Tous vos déplacements, une seule solution.</h1>
-      <p class="hero-sous" data-t="hero_sous">Elatransfer organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.</p>
-      <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Salons · Chauffeur à l'heure</p>
+      <p class="hero-sous" data-t="hero_sous">Transferts avec chauffeur, organisés de A à Z. Hôtels, agences, entreprises : une page à votre nom, et nous gérons le reste.</p>
+      <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Salons · Hôtels &amp; entreprises</p>
       <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
            Sans lui, un bandeau plus haut ne ferait que repousser le
            formulaire hors du premier écran : l'accroche coûterait le geste
@@ -2973,7 +2989,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        l'encart des professionnels (#modele) : le pavé de 70 mots qui était
        ici a été retiré à sa demande, son contenu vit là-bas, structuré. -->
   <div class="pro-bloc">
-    <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrez nos solutions de réservation</span></a>
+    <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Votre propre canal de réservation, géré par nous.</span></a>
   </div>
 
   <!-- COMMENT ÇA MARCHE, JUSTE SOUS LE FORMULAIRE (6 octobre 2026, à sa
@@ -3192,16 +3208,21 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        mènent donc ici, à ce qui leur parle. -->
   <section class="section modele" id="modele">
     <div class="modele-pro">
-      <p class="modele-pro-t" data-t="modele_pro_t">Pour les hôtels, agences et entreprises</p>
-      <p class="modele-pro-s" data-t="modele_pro_s">Vos clients réservent chez vous, Elatransfer s'occupe du reste.</p>
+      <p class="modele-pro-t" data-t="modele_pro_t">Hôtels · Agences · Entreprises</p>
+      <h2 class="modele-pro-h" data-t="modele_pro_h">Offrez le transport à vos clients, sans travail pour vos équipes.</h2>
+      <p class="modele-pro-s" data-t="modele_pro_s">Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace où votre réception enregistre elle-même une demande.</p>
+      <p class="modele-pro-s" data-t="modele_pro_s2">Ensuite nous prenons le relais : vérification, chauffeur, confirmation au client et suivi jusqu'à la réalisation du trajet.</p>
+      <p class="modele-pro-promesse" data-t="modele_pro_promesse">Votre réception réserve. Elatransfer gère tout le reste.</p>
       <ul>
-        <li data-t="modele_p0">Mise en place gratuite et rapide</li>
-        <li data-t="modele_p1">Une page de réservation à votre nom</li>
-        <li data-t="modele_p2">Un lien et un QR code dédiés</li>
-        <li data-t="modele_p3">Un accès pour suivre chaque réservation</li>
-        <li data-t="modele_p4">Des forfaits négociés depuis votre établissement</li>
+        <li data-t="modele_p1">Page à votre nom</li>
+        <li data-t="modele_p3">Espace réception</li>
+        <li data-t="modele_p2">Lien et QR code</li>
+        <li data-t="modele_p5">Prise en charge complète du transport</li>
+        <li data-t="modele_p0">Mise en place gratuite</li>
+        <li data-t="modele_p4">Tarifs négociés pour votre établissement</li>
       </ul>
       <a class="modele-cta" href="#" data-ecran="ecran-contact" data-onglet="accueil" data-t="modele_cta">Parler de votre établissement</a>
+      <a class="modele-mail" href="mailto:contact@elatransfer.com">contact@elatransfer.com</a>
     </div>
   </section>
 
@@ -3229,6 +3250,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   </section>
 
   <footer class="pied">
+    <div class="pied-contact">
     <a class="pied-tel" href="tel:+33759312433">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 4h3.5l1.5 4-2 1.5a12 12 0 005.5 5.5l1.5-2 4 1.5V18a2 2 0 01-2.2 2A16 16 0 013 6.2 2 2 0 015 4z"
@@ -3236,6 +3258,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </svg>
       <span>+33 7 59 31 24 33</span>
     </a>
+    <a class="pied-tel pied-mail" href="mailto:contact@elatransfer.com">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M3.5 6.5l8.5 6.5 8.5-6.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      <span>contact@elatransfer.com</span>
+    </a>
+    </div>
     <!-- LES PAGES DE SERVICE, LIÉES D'ICI (5 octobre 2026). L'accueil ne
          menait nulle part ailleurs : Google ne trouvait les pages CDG et Orly
          que par le plan du site, et en a laissé deux hors de son index. Un
@@ -5721,8 +5751,8 @@ window.ELA_TEXTES = {
   fr:{
     entete_sous:"CHAUFFEURS PRIVÉS",
     hero_titre:"Tous vos déplacements, une seule solution.",
-    hero_sous:"Elatransfer organise vos transferts et solutions de mobilité, pour les particuliers comme pour les professionnels.",
-    hero_prix:"Aéroports · Gares · Salons · Chauffeur à l'heure",
+    hero_sous:"Transferts avec chauffeur, organisés de A à Z. Hôtels, agences, entreprises : une page à votre nom, et nous gérons le reste.",
+    hero_prix:"Aéroports · Gares · Salons · Hôtels & entreprises",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
@@ -5814,16 +5844,21 @@ window.ELA_TEXTES = {
     plus2:"Groupes & événements", plus2s:"Mariages, séminaires, salons : plusieurs véhicules coordonnés, un seul interlocuteur.",
     plus3:"Accueil personnalisé", plus3s:"À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.",
     plus3_option:"En option à la réservation :",
-    pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Découvrez nos solutions de réservation",
+    pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Votre propre canal de réservation, géré par nous.",
     modele_sur:"QUI SOMMES-NOUS", modele_titre:"Vous réservez, nous organisons tout.",
     modele_intro:"Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.",
     modele_e1:"Vous demandez", modele_e1s:"En ligne, au comptoir de votre hôtel ou par téléphone.",
     modele_e2:"Nous confirmons", modele_e2s:"Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.",
     modele_e3:"Votre chauffeur vous conduit", modele_e3s:"À l'heure convenue, au prix annoncé, réglé directement à bord.",
-    modele_pro_t:"Pour les hôtels, agences et entreprises", modele_pro_s:"Vos clients réservent chez vous, Elatransfer s'occupe du reste.",
-    modele_p0:"Mise en place gratuite et rapide", modele_p1:"Une page de réservation à votre nom",
-    contact_mail_t:"E-mail · devis et partenariats", modele_p2:"Un lien et un QR code dédiés",
-    modele_p3:"Un accès pour suivre chaque réservation", modele_p4:"Des forfaits négociés depuis votre établissement",
+    modele_pro_t:"Hôtels · Agences · Entreprises",
+    modele_pro_h:"Offrez le transport à vos clients, sans travail pour vos équipes.",
+    modele_pro_s:"Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace où votre réception enregistre elle-même une demande.",
+    modele_pro_s2:"Ensuite nous prenons le relais : vérification, chauffeur, confirmation au client et suivi jusqu'à la réalisation du trajet.",
+    modele_pro_promesse:"Votre réception réserve. Elatransfer gère tout le reste.",
+    modele_p0:"Mise en place gratuite", modele_p1:"Page à votre nom",
+    contact_mail_t:"E-mail · devis et partenariats", modele_p2:"Lien et QR code",
+    modele_p3:"Espace réception", modele_p4:"Tarifs négociés pour votre établissement",
+    modele_p5:"Prise en charge complète du transport",
     modele_cta:"Parler de votre établissement",
     tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
@@ -5950,8 +5985,8 @@ window.ELA_TEXTES = {
   en:{
     entete_sous:"PRIVATE CHAUFFEURS",
     hero_titre:"All your journeys, one solution.",
-    hero_sous:"Elatransfer organises your transfers and mobility solutions, for individuals and professionals alike.",
-    hero_prix:"Airports · Stations · Trade fairs · Hourly chauffeur",
+    hero_sous:"Chauffeur-driven transfers, organised end to end. Hotels, agencies, businesses: a page in your name, and we handle the rest.",
+    hero_prix:"Airports · Stations · Trade fairs · Hotels & businesses",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
@@ -6035,17 +6070,22 @@ window.ELA_TEXTES = {
     plus2:"Groups & events", plus2s:"Weddings, seminars, trade fairs: several coordinated vehicles, one point of contact.",
     plus3:"Personal meet & greet", plus3s:"At the airport, your chauffeur waits for you with a sign bearing your name.",
     plus3_option:"Optional when booking:",
-    pro_lien_t:"Hotel, agency, business?", pro_lien_s:"See our booking solutions",
+    pro_lien_t:"Hotel, agency, business?", pro_lien_s:"Your own booking channel, run by us.",
     modele_sur:"WHO WE ARE", modele_titre:"You book, we organise everything.",
     modele_intro:"Elatransfer receives your request, chooses the chauffeur, confirms the ride and follows it until you arrive. The journey is carried out by a professional partner chauffeur, with their professional licence and insurance.",
     modele_e1:"You request", modele_e1s:"Online, at your hotel's front desk or by phone.",
     modele_e2:"We confirm", modele_e2s:"Your request is checked, then confirmed by WhatsApp or SMS with your chauffeur's name.",
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the agreed time and the quoted price, paid directly on board.",
-    modele_pro_t:"For hotels, agencies and businesses", modele_pro_s:"Your guests book with you, Elatransfer handles the rest.",
-    modele_p0:"Free and fast set-up", modele_p1:"A booking page in your name",
-    contact_mail_t:"Email · quotes and partnerships", modele_p2:"A dedicated link and QR code",
-    modele_p3:"Access to follow every booking", modele_p4:"Negotiated flat rates from your premises",
-    modele_cta:"Talk about your business",
+    modele_pro_t:"Hotels · Agencies · Businesses",
+    modele_pro_h:"Offer transport to your guests, with no extra work for your team.",
+    modele_pro_s:"Elatransfer builds your establishment a booking page in your name and colours, which your guests open via a link or QR code, and a front-desk interface where your reception records a request itself.",
+    modele_pro_s2:"From there, we take over: checking the request, assigning the chauffeur, confirming with the guest and following the journey through to completion.",
+    modele_pro_promesse:"Your front desk books. Elatransfer takes care of everything else.",
+    modele_p0:"Free set-up", modele_p1:"Page in your name",
+    contact_mail_t:"Email · quotes and partnerships", modele_p2:"Link and QR code",
+    modele_p3:"Front-desk interface", modele_p4:"Negotiated rates for your establishment",
+    modele_p5:"Full transport handling",
+    modele_cta:"Tell us about your establishment",
     tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
