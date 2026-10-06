@@ -100,23 +100,68 @@ policies, droits, colonnes) est identique avant et après la migration.
   qui crée `ELA_NUAGE`. Refait à l'ouverture de l'espace, il fait bien tomber
   la suite. Une falsification qui ne reproduit pas le défaut ne prouve rien.
 
-## Ce qui reste
+## Mise en production du bloc 1 (6 octobre 2026)
 
-**Bloc 2 — l'écran, mobile d'abord** (décision de Barbaros du 20/09) :
-entrée « Pilotage » dans la colonne de l'admin (cachée à l'agent dans
-`agent-role-ui.mjs`), une étape à la fois sur téléphone avec onglets
-compteurs, fiche de création/édition, déplacer par boutons (pas de
-glisser-déposer), bloquer avec raison, checklist, archiver/restaurer,
-conflit de version expliqué. Rendu en `textContent`, jamais `innerHTML`.
-Captures 320/390 px et ordinateur, puis validation de Barbaros.
+PR #327 fusionnée par Barbaros à 06 h 53 UTC ; la migration appliquée par le
+workflow des migrations à 06 h 55 (exécution n° 30, réponse 201). Le journal
+a rendu les quatre policies attendues (création, lecture, modification pour
+`authenticated` ; lecture du journal) et la migration est allée au bout :
+son contrôle final, qui l'arrête si `anon` garde un droit ou si la
+suppression est permise, est donc passé EN PRODUCTION, pas seulement sur le
+banc. Aucune carte créée.
+
+## Bloc 2 (6 octobre 2026) — l'écran, mobile d'abord
+
+Plan présenté en clair à Barbaros, accepté (« Ok »), puis construit :
+- **Où** : entrée « Pilotage » entre « Facturer » et « Réglages », cachée à
+  l'agent (`agent-role-ui.mjs`, style ET interception du clic). L'écran
+  `#ecran-pilotage` porte une phrase qui dit qu'il n'est pas le traitement
+  des courses. Tout son contenu est dessiné par `pilotage-ecran.js`.
+- **Liste** : deux tableaux en bascule, cinq étapes à compteurs sur UNE
+  ligne même à 320 px (le libellé passe à la ligne plutôt que de pousser la
+  page), un point sur l'étape et le tableau qui contiennent une carte en
+  retard (rouge) ou bloquée (ambre), un résumé en mots, puis les cartes.
+- **Fiche** : titre, tableau, catégorie, étape, blocage, priorité,
+  responsable (Barbaros, Claude, ChatGPT en un appui), prochaine action,
+  échéance, critères, impacts, description, lien GitHub. L'ordre a été
+  changé après la première capture : l'étape et le blocage passaient AVANT
+  le titre.
+- **Ce qui part** : seulement les champs changés (comparés à la carte du
+  serveur, une fois normalisés comme la base les garderait), sous condition
+  de version. Une action (étape, blocage, archivage) part AVEC la saisie en
+  cours : cocher le dernier critère puis appuyer sur « Terminé » marche.
+  Ce qui a été tapé PENDANT un envoi n'est pas effacé à son retour.
+- **Conflit** : le serveur gagne, la fiche se recharge, et le message nomme
+  les champs non appliqués.
+- **Deux appuis** (0,7 à 5 s d'écart) pour archiver et pour quitter une
+  fiche non enregistrée — un double appui involontaire ne vaut pas accord.
+  Une fiche entamée survit à un détour par les courses.
+- **Une erreur seule se dit seule** ; plusieurs, en liste. « Terminé »
+  refusé nomme les critères qui restent.
+- **Champs en 16 px** : en dessous, l'iPhone zoome à chaque saisie (la page
+  n'interdit pas le zoom, et ne doit pas).
+
+**Ce que les épreuves ont trouvé, pas la relecture :**
+- la construction a REFUSÉ la page publique : un commentaire partagé nommait
+  le fichier de l'écran. Le garde-fou du bloc 1 a servi au premier essai ;
+  les commentaires sont maintenant DANS la section retirée.
+- un message absent faisait planter l'écran (`appendChild(null)`).
+- une première falsification « le dernier geste écrase » ne faisait rien —
+  la vraie suite a été renforcée pour attendre un éventuel second envoi, et
+  la falsification réécrite : elle tombe.
+
+`test-admin-pilotage-ecran.mjs` (89 contrôles, site construit, faux serveur à
+versions) tombe contre 10 défauts : tout le formulaire envoyé, critères
+manquants non nommés, étape sans la saisie en cours, dernier geste qui
+écrase, innerHTML, archivage en un appui, fiche quittée sans prévenir, entrée
+visible pour l'agent, lecture au chargement, puces sous 44 px.
+
+## Ce qui reste
 
 **Bloc 3 — l'ordinateur et le confort** : les cinq colonnes de front,
 filtres (tableau, priorité, responsable, en retard, bloqué), recherche,
 journal lisible, dépendances (« bloquée par »), clavier. Les P0 bloquées ou
 en retard ressortent.
 
-**À la mise en production** : appliquer la migration par le workflow des
-migrations APRÈS la fusion ; elle exige `est_admin()` (posée par
-20260929030000_role_agent_serveur.sql) et s'arrête à voix haute si elle
-manque. Toute modification
-publiée de `pilotage.js` exige de monter `CACHE` dans `sw.js`.
+**Toujours** : toute modification publiée de `pilotage.js`,
+`pilotage-ecran.js` ou `pilotage.css` exige de monter `CACHE` dans `sw.js`.

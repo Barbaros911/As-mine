@@ -212,7 +212,7 @@ parce qu'une liste les nomme.
 | Gouvernance branches agents → `ai-dev` → promotion contrôlée vers `main` | Équipe · validation Barbaros | #212/#215 · PR #209 |
 | Garde-fou Playwright mobile 390×844 + desktop 1280×800 | QA/DevOps | #213/#215 · PR #210 |
 | Test contrôlé réel de la chaîne multi-agents | Équipe | #200/#215 |
-| Pilotage Produit + Opérations (distinct du board de traitement des courses) — bloc 1/3 (base, sécurité, module de données) codé et testé, à valider ; blocs 2 (écran mobile) et 3 à venir | Admin/Produit | #197 |
+| Pilotage Produit + Opérations (distinct du board de traitement des courses) — bloc 1/3 (base, sécurité, module de données) fusionné et migration appliquée en production le 6/10 ; bloc 2/3 (écran mobile d'abord) codé et testé, à valider ; bloc 3 à venir | Admin/Produit | #197 |
 | Sécurité finale : ancien INSERT anon fermé le 03/10/2026 (policy « depot client » supprimée) — reste un dépôt de contrôle depuis le site | Security | #190 |
 | Paiement Stripe à empreinte/capture, Live désactivé jusqu'à validation | Booking/Security | #173 |
 | Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |

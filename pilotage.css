@@ -1,0 +1,197 @@
+/* =====================================================================
+   LE PILOTAGE — L'ÉCRAN (Issue #197, bloc 2)
+   ---------------------------------------------------------------------
+   Chargée par l'admin seulement : la construction retire ce lien des pages
+   publiques. Toutes les classes commencent par « pil- » : le Pilotage ne
+   partage aucune classe avec le traitement des courses (les « kanban-* »
+   d'Admin v2 restent à eux).
+
+   MOBILE D'ABORD (décision de Barbaros du 20/09) : une étape à la fois,
+   aucun défilement de côté, 44 px au moins sous le pouce, et des champs en
+   16 px — en dessous, l'iPhone zoome sur la page à chaque saisie.
+
+   LES COULEURS SONT CELLES DE L'ADMIN (« bleu nuit »). Le rouge dit EN
+   RETARD, l'ambre dit BLOQUÉE ou EN ATTENTE : deux états, deux couleurs,
+   jamais un décor. Contrastes mesurés (WCAG) : #9B1C1C sur #FDECEC 7,3 ·
+   #92400E sur #FEF3C7 6,4 · #78350F sur #FEF3C7 8,6 · --accent-encre sur
+   --accent-clair 7,6.
+   ===================================================================== */
+#ecran-pilotage .pil-intro{margin:8px 20px 0;font-size:13.5px;line-height:1.45;color:var(--gris);}
+#ecran-pilotage.pil-en-fiche > .bord-tete,
+#ecran-pilotage.pil-en-fiche > .pil-intro{display:none;}
+.pil{padding:2px 20px 36px;}
+.pil input,.pil select,.pil textarea{font-size:16px;}
+.pil button{-webkit-tap-highlight-color:transparent;}
+.pil :focus-visible{outline:3px solid rgba(20,126,220,.45);outline-offset:2px;}
+
+/* ---------- LES DEUX TABLEAUX ---------- */
+.pil-tableaux{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:14px 0 0;
+  padding:4px;border-radius:15px;background:#e6edf4;}
+.pil-tableau{position:relative;min-height:46px;display:flex;align-items:center;justify-content:center;
+  gap:8px;border:0;border-radius:11px;background:transparent;color:var(--gris);
+  font-family:inherit;font-size:15px;font-weight:750;cursor:pointer;}
+.pil-tableau[aria-pressed="true"]{background:var(--carte);color:var(--encre);
+  box-shadow:0 1px 2px rgba(6,47,85,.08),0 6px 14px rgba(6,47,85,.08);}
+.pil-nb{min-width:24px;padding:1px 7px;border-radius:999px;background:rgba(14,111,199,.1);
+  color:var(--accent-encre);font-size:12.5px;font-weight:800;text-align:center;}
+.pil-nb:empty{display:none;}
+.pil-point{display:block;width:9px;height:9px;border-radius:50%;background:#C9302F;
+  box-shadow:0 0 0 2px var(--carte);}
+.pil-point.ambre{background:#B45309;}
+.pil-tableau .pil-point{position:absolute;top:8px;right:10px;}
+.pil-resume{margin:10px 2px 0;font-size:13px;font-weight:700;color:#9B1C1C;}
+
+/* ---------- LES CINQ ÉTAPES ----------
+   Cinq colonnes égales, même à 320 px : 56 px chacune. Le libellé passe à
+   la ligne plutôt que de pousser la page de côté. */
+.pil-etapes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:12px 0 0;}
+.pil-etape{position:relative;min-height:60px;min-width:0;padding:7px 2px 6px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border:1px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--encre);
+  font-family:inherit;cursor:pointer;}
+.pil-etape-nb{font-size:18px;font-weight:800;line-height:1;}
+.pil-etape-nom{font-size:11px;font-weight:650;line-height:1.1;color:var(--gris);text-align:center;
+  overflow-wrap:anywhere;}
+.pil-etape[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-clair);
+  box-shadow:0 0 0 1.5px var(--accent);}
+.pil-etape[aria-pressed="true"] .pil-etape-nom{color:var(--accent-encre);}
+.pil-etape .pil-point{position:absolute;top:6px;right:6px;width:8px;height:8px;}
+
+.pil-nouvelle{margin-top:14px;}
+.pil-nouvelle svg{width:19px;height:19px;}
+
+/* ---------- LES MESSAGES ---------- */
+.pil-message{margin:12px 0 0;padding:11px 13px;border-radius:12px;font-size:14px;line-height:1.4;
+  background:var(--accent-clair);color:var(--accent-encre);}
+.pil-message.erreur{background:#FDECEC;color:#8F2220;}
+.pil-erreurs{margin:8px 0 0;padding:10px 14px 10px 30px;border-radius:12px;background:#FDECEC;
+  color:#8F2220;font-size:14px;line-height:1.45;}
+.pil-vide{margin:16px 0 0;padding:20px 16px;border:1px dashed #cdd8e3;border-radius:14px;
+  text-align:center;font-size:14px;line-height:1.45;color:var(--gris);}
+.pil-erreur{margin:16px 0 0;padding:14px;border-radius:14px;background:#FDECEC;color:#8F2220;
+  font-size:14px;line-height:1.45;}
+.pil-erreur p{margin:0;}
+.pil-note{margin:8px 0 0;font-size:13px;line-height:1.45;color:var(--gris);}
+
+/* ---------- LES CARTES ---------- */
+.pil-liste{display:grid;gap:10px;margin:14px 0 0;}
+.pil-carte{display:block;width:100%;min-width:0;margin:0;padding:12px 14px 12px 13px;
+  border:1px solid var(--filet);border-left:4px solid var(--filet);border-radius:14px;
+  background:var(--carte);color:var(--encre);font-family:inherit;text-align:left;cursor:pointer;
+  box-shadow:0 1px 2px rgba(6,47,85,.05),0 8px 20px rgba(6,47,85,.05);}
+.pil-carte.retard{border-left-color:#C9302F;}
+.pil-carte.bloquee{border-left-color:#B45309;}
+.pil-carte.surlignee{box-shadow:0 0 0 2px var(--accent),0 8px 20px rgba(6,47,85,.08);}
+.pil-carte-haut{display:flex;align-items:center;gap:8px;min-width:0;}
+.pil-prio{flex:none;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.02em;}
+.pil-prio.p0{background:#FDECEC;color:#9B1C1C;}
+.pil-prio.p1{background:#FEF3C7;color:#92400E;}
+.pil-prio.p2{background:var(--accent-clair);color:var(--accent-encre);}
+.pil-prio.p3{background:#EEF2F6;color:#4A5868;}
+.pil-cat{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12.5px;color:var(--gris);}
+.pil-ech{flex:none;font-size:12.5px;font-weight:700;color:var(--gris);}
+.pil-ech.retard{color:#B42318;}
+.pil-carte-titre{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  margin-top:7px;font-size:15.5px;font-weight:750;line-height:1.3;overflow-wrap:anywhere;}
+.pil-carte-bloc{display:block;margin-top:7px;font-size:13px;font-weight:650;line-height:1.35;
+  color:#92400E;overflow-wrap:anywhere;}
+.pil-carte-suite{display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:13px;color:var(--gris);}
+.pil-carte-bas{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12.5px;color:var(--gris);}
+.pil-carte-bas .complet{color:var(--accent-encre);font-weight:750;}
+
+.pil-pied{display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;margin:16px 0 0;
+  font-size:13px;color:var(--gris);}
+.pil-lu{flex:1 1 auto;}
+.pil-lien{min-height:44px;padding:0 2px;border:0;background:none;color:var(--accent-encre);
+  font-family:inherit;font-size:14px;font-weight:700;text-decoration:underline;
+  text-underline-offset:3px;cursor:pointer;}
+a.pil-lien{display:inline-flex;align-items:center;}
+
+/* ---------- LA FICHE ---------- */
+.pil-fiche-tete{display:flex;align-items:center;gap:12px;margin:18px 0 0;}
+.pil-fiche-titre{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--encre);}
+.pil-fiche-titre:focus{outline:none;}
+.pil-section,.pil-champ,.pil-criteres,.pil-blocage{margin:18px 0 0;}
+.pil-section-titre{display:block;margin:0 0 7px;font-size:13px;font-weight:750;color:var(--encre);}
+.pil-aide{margin:7px 0 0;font-size:12.5px;line-height:1.4;color:var(--gris);}
+.pil-champ input,.pil-champ select,.pil-champ textarea,.pil-critere input[type="text"],
+.pil-blocage input{display:block;width:100%;min-width:0;min-height:46px;padding:10px 13px;
+  border:1px solid #d3dee9;border-radius:12px;background:var(--carte);color:var(--encre);
+  font-family:inherit;line-height:1.3;}
+.pil-champ textarea{min-height:108px;resize:vertical;}
+.pil-champ select{appearance:none;-webkit-appearance:none;padding-right:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235A6A7B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;}
+.pil-champ input:focus,.pil-champ select:focus,.pil-champ textarea:focus,
+.pil-critere input[type="text"]:focus{outline:none;border-color:#147edc;
+  box-shadow:0 0 0 4px rgba(20,126,220,.13);}
+.pil-champ input:disabled,.pil-champ select:disabled,.pil-champ textarea:disabled,
+.pil-critere input:disabled{background:#f4f7fa;color:var(--gris);}
+.pil-invalide input,.pil-invalide select,.pil-invalide textarea,.pil [aria-invalid="true"]{border-color:#C9302F;}
+.pil-invalide > .pil-section-titre{color:#8F2220;}
+.pil-champ .pil-lien{margin-top:4px;}
+
+.pil-segment{display:grid;gap:6px;}
+.pil-segment.deux{grid-template-columns:1fr 1fr;}
+.pil-segment.quatre{grid-template-columns:repeat(4,minmax(0,1fr));}
+.pil-seg,.pil-etape-choix,.pil-puce{min-height:46px;min-width:0;border:1px solid #d3dee9;border-radius:12px;
+  background:var(--carte);color:var(--encre);font-family:inherit;font-size:15px;font-weight:750;cursor:pointer;}
+.pil-seg[aria-pressed="true"],.pil-etape-choix[aria-pressed="true"],.pil-puce[aria-pressed="true"]{
+  border-color:var(--accent);background:var(--accent-clair);color:var(--accent-encre);
+  box-shadow:0 0 0 1.5px var(--accent);}
+.pil-seg.prio-p0[aria-pressed="true"]{border-color:#C9302F;background:#FDECEC;color:#9B1C1C;box-shadow:0 0 0 1.5px #C9302F;}
+.pil-seg.prio-p1[aria-pressed="true"]{border-color:#B45309;background:#FEF3C7;color:#92400E;box-shadow:0 0 0 1.5px #B45309;}
+.pil-seg:disabled,.pil-etape-choix:disabled,.pil-puce:disabled{cursor:default;opacity:.62;}
+
+.pil-fiche-etapes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;}
+.pil-etape-choix{padding:4px 2px;font-size:12px;line-height:1.1;overflow-wrap:anywhere;}
+
+.pil-puces{display:flex;flex-wrap:wrap;gap:6px;}
+.pil-champ .pil-puces{margin-top:8px;}
+.pil-puce{min-height:44px;padding:0 15px;border-radius:999px;font-size:14px;font-weight:700;}
+
+.pil-bandeau{margin:16px 0 0;padding:12px 14px;border-radius:14px;}
+.pil-bandeau p{margin:0;font-size:14px;line-height:1.45;overflow-wrap:anywhere;}
+.pil-bandeau.bloque{border:1px solid #F1D29B;background:#FEF3C7;color:#78350F;}
+.pil-bandeau.archive{border:1px solid var(--filet);background:#EEF2F6;color:var(--encre);}
+.pil-blocage .pil-bandeau{margin-top:0;}
+.pil-blocage .pil-champ{margin-top:0;}
+.pil-duo-boutons{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
+.pil-duo-boutons .bouton,.pil-duo-boutons .bouton-fantome{margin-top:10px;}
+.pil-duo-boutons .bouton-fantome{padding-left:16px;padding-right:16px;}
+
+/* ---------- LES CRITÈRES DE VALIDATION ---------- */
+.pil-criteres > .pil-aide{margin:0 0 4px;}
+.pil-critere{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.pil-coche{flex:none;width:46px;height:46px;display:flex;align-items:center;justify-content:center;
+  border:1px solid #d3dee9;border-radius:12px;background:var(--carte);cursor:pointer;}
+.pil-coche input{width:22px;height:22px;margin:0;accent-color:#0e6fc7;cursor:pointer;}
+.pil-critere input[type="text"]{flex:1 1 auto;}
+.pil-critere.fait input[type="text"]{color:var(--gris);text-decoration:line-through;}
+.pil-retirer,.pil-ajouter{flex:none;width:46px;height:46px;display:flex;align-items:center;justify-content:center;
+  border:1px solid #d3dee9;border-radius:12px;background:var(--carte);color:var(--gris);cursor:pointer;}
+.pil-ajouter{border-color:#0e6fc7;background:#0e6fc7;color:#fff;}
+.pil-criteres.pil-invalide .pil-critere:not(.nouveau) input[type="text"]{border-color:#C9302F;}
+
+.pil-etat-saisie{margin:22px 0 0;font-size:13px;color:var(--gris);text-align:center;}
+.pil-etat-saisie:empty{display:none;}
+.pil-enregistrer{margin-top:8px;}
+.pil-archiver{margin-top:12px;}
+.pil-trace{margin:20px 0 0;font-size:12px;line-height:1.45;color:var(--gris);text-align:center;}
+
+/* ---------- ORDINATEUR ----------
+   Le même écran, plus large : les cartes passent sur deux colonnes, la
+   fiche garde une largeur de lecture. Les cinq colonnes de front, les
+   filtres et la recherche sont le bloc 3. */
+@media (min-width:900px){
+  body.espace #ecran-pilotage .pil-intro{margin-left:28px;margin-right:28px;}
+  body.espace .pil{padding:2px 28px 44px;}
+  body.espace .pil-tableaux{max-width:440px;}
+  body.espace .pil-nouvelle{display:inline-flex;width:auto;padding:13px 22px;font-size:15px;}
+  body.espace .pil-liste{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+  body.espace .pil-fiche{max-width:760px;}
+  body.espace .pil-etape{min-height:64px;}
+  body.espace .pil-etape-nom{font-size:12.5px;}
+}
