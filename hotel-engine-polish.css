@@ -311,12 +311,13 @@ body.hotel.reception-premium #receptionActions,body.hotel.reception-premium #rec
      ouvrait le formulaire, comme « Nouvelle course » juste en dessous ;
    — la barre du bas : « Accueil » refaisait la même chose, et « WhatsApp »
      ouvrait un menu écrit pour un client, en double du bloc « Un imprévu ? » ;
-   — la promesse « confirmée par WhatsApp ou SMS » (fausse ici : la réponse
-     apparaît dans la liste de l'hôtel), les trois étapes du tunnel client,
+   — la ligne qui rassure sous le bouton (elle parle au client, et l'ancienne
+     « confirmée par WhatsApp ou SMS » était fausse ici : la réponse apparaît
+     dans la liste de l'hôtel), les trois étapes du tunnel client,
      et « aucun paiement en ligne », qui rassure un client, pas un comptoir. */
 body.hotel.reception-premium #btnRetourReception,
 body.hotel.reception-premium .barre,
-body.hotel.reception-premium #ecran-accueil .rassure:has([data-t="dispo"]),
+body.hotel.reception-premium #ecran-accueil .reserver > .rassure,
 body.hotel.reception-premium #ecran-accueil .etapes-ligne,
 body.hotel.reception-premium #blocPaiement [data-t="paiement_note"]{display:none!important}
 body.hotel.reception-premium .page{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}

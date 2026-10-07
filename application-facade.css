@@ -258,3 +258,218 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-s
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-notes{font-size:13px;margin-top:10px}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{background:linear-gradient(90deg,rgba(3,22,44,.78) 0%,rgba(3,22,44,.60) 34%,rgba(3,22,44,.22) 50%,rgba(3,22,44,0) 62%)}
 }
+
+/* ═══ BLOC 3 (7 octobre 2026) : LE FORMULAIRE AU NIVEAU DU BANDEAU ═══════════════
+   Le formulaire était une dalle blanche posée sur la photo de nuit, et son
+   bouton principal était le texte le MOINS lisible de l'écran (blanc sur un
+   dégradé bleu → cyan clair : 2,8:1 sous le texte). Il passe en bleu nuit,
+   comme la photo ; le bouton passe en cyan plein, texte bleu nuit (8,3:1).
+   AUCUN CHAMP NE BOUGE DANS LE CODE : mêmes identifiants, même ordre, même
+   ordre au clavier. Tout est ici, en dessin.
+   LA PORTÉE EST DOUBLE, ET C'EST VOULU : « html[data-ela-space=public] » est
+   posé dans la page à la construction, donc dès le premier rendu — la page
+   d'un hôtel, la réception et l'admin portent la MÊME carte, et ne doivent
+   jamais voir passer ce bleu, même un instant. « body:not(.hotel)… » écarte
+   en plus l'ancienne adresse « ?h= », qui pose sa classe par script.
+   LES HAUTEURS SONT UN BUDGET, PAS UN GOÛT. À 390 × 844 la barre du bas est à
+   782 : le bouton finit à 751 et la rassurance à 779, entière (elle était
+   coupée par la barre). Sur un portable 1366 × 657 le bouton finit à 646.
+   Les contrastes sont mesurés : libellés 7,9:1, valeurs 15,5:1, pictogrammes
+   7,5:1 sur le fond des champs. test-public-formulaire.mjs les éprouve. */
+
+/* ---------- La carte ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{
+  --f-cyan:#12c4ee; --f-cyan-doux:#7fdcf6; --f-libelle:#a9c3db; --f-doux:#8fa9c3;
+  --f-champ:rgba(255,255,255,.055); --f-filet:rgba(255,255,255,.14); --f-filet-fort:rgba(255,255,255,.26);
+  --f-erreur:#ff8f8f; --f-erreur-texte:#ffc2c2;
+  color:#fff;
+  background:linear-gradient(180deg,#0d2a4b 0%,#0a2141 55%,#081c37 100%);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 26px 60px rgba(2,12,28,.34),0 3px 10px rgba(2,12,28,.22),inset 0 1px 0 rgba(255,255,255,.07);
+  padding:14px 12px 12px;
+}
+
+/* ---------- Les champs ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ{
+  background:var(--f-champ); border:1px solid var(--f-filet); border-radius:14px;
+  min-height:54px; padding:7px 14px; gap:12px; margin-bottom:8px; box-shadow:none;
+  transition:border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ:hover{border-color:var(--f-filet-fort);} }
+/* LE CHAMP ACTIF SE VOIT. Avant, seul un contour cyan à 25 % (1,2:1) était
+   dessiné autour de la saisie, en rectangle, À L'INTÉRIEUR du cadre arrondi. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ:focus-within{
+  border-color:var(--f-cyan); background:rgba(18,196,238,.075);
+  box-shadow:0 0 0 3px rgba(18,196,238,.22);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ-titre{color:var(--f-libelle); font-size:12px; font-weight:600; line-height:16px; letter-spacing:.01em;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ input, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ select, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ textarea{
+  color:#fff; font-size:16px; font-weight:500; line-height:22px; margin-top:1px;
+  color-scheme:dark; outline:none!important; text-overflow:ellipsis;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ input::placeholder, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ textarea::placeholder{color:var(--f-doux); opacity:1; font-weight:400;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ input::-webkit-datetime-edit{color:#fff;}
+/* Les chevrons étaient décoratifs, et faux : Passagers et Bagages ne sont pas
+   des menus, l'arrivée n'ouvre rien. Ils coupaient « Date » en « D… ». */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ > .fleche{display:none;}
+
+/* Une seule famille de pictogrammes, au trait. Les dessins du HTML restent
+   intacts : la page d'un hôtel les recolore par leurs attributs. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ > svg:first-of-type{width:20px; height:20px; flex:0 0 20px; color:var(--f-cyan);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ > svg:first-of-type *{fill:none!important; stroke:currentColor!important; stroke-width:1.75;}
+
+/* LE TRAJET SE LIT D'UN COUP D'ŒIL : un point au départ, l'épingle à
+   l'arrivée, reliés. Le trait s'efface dès que quelque chose s'intercale
+   (message sous le départ, numéro de chambre, liste ouverte) : il relierait
+   alors deux champs qui ne se touchent plus. Sans « :has », il s'efface
+   toujours — la règle entière est ignorée, rien n'est cassé. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocDepart .champ > svg:first-of-type{display:none;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocDepart .champ::before{content:""; flex:0 0 20px; height:20px; border-radius:50%;
+  background:radial-gradient(circle, var(--f-cyan) 0 4px, rgba(18,196,238,.25) 4.6px 8.4px, transparent 9px);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocArrivee::before{content:""; position:absolute; left:24px; top:-27px; height:46px;
+  border-left:2px dotted rgba(18,196,238,.62); pointer-events:none; z-index:1;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocDepart:has(> p:not([hidden])) ~ #blocArrivee::before,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocDepart:has(.suggest-list:not([hidden])) ~ #blocArrivee::before,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocChambre:not([hidden]) ~ #blocArrivee::before{display:none;}
+
+/* Me localiser */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .geoloc{color:var(--f-cyan);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .geoloc svg *{stroke:currentColor!important;}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .geoloc:hover{background:rgba(18,196,238,.12);} }
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .geoloc:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .geo-etat{color:var(--f-libelle);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .geo-etat.raté{color:var(--f-erreur-texte);}
+
+/* ---------- Date, heure, passagers, bagages : des cases compactes ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo{gap:8px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ{padding:8px 12px; min-height:60px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ > svg:first-of-type{display:none;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .titre-date{gap:8px;}
+/* « Maintenant » : une pastille lisible (4,2:1 en 11,5 px souligné avant),
+   sa zone d'appui agrandie sans prendre de hauteur. */
+/* La zone d'appui est le bouton lui-même, agrandi par sa marge intérieure et
+   repris par une marge négative ; la pastille est dessinée DEDANS (::before).
+   Une zone d'appui dessinée en débord (::after en « inset » négatif) faisait
+   déborder le titre « Date » : un débordement que rien ne voit, sauf le
+   contrôle qui cherche les libellés coupés — et qui avait raison de crier. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant{
+  color:var(--f-cyan-doux); text-decoration:none; font-size:11px; font-weight:700; line-height:14px;
+  padding:10px 8px 10px 14px; margin:-10px 0 -10px -6px; isolation:isolate;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant::before{content:""; position:absolute; inset:9px 0 9px 6px; z-index:-1;
+  border:1px solid rgba(18,196,238,.45); border-radius:999px; background:rgba(18,196,238,.09);}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:hover{color:#fff;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:hover::before{background:rgba(18,196,238,.18);} }
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:2px;}
+
+/* « Dès que possible » : la même place que Date et Heure. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .asap-boite{min-height:60px; border-color:rgba(18,196,238,.55); background:rgba(18,196,238,.09);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .asap-boite > svg *{stroke:var(--f-cyan)!important;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .asap-titre{color:#fff;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .asap-note{color:var(--f-libelle);}
+
+/* ---------- Le bouton ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{
+  min-height:56px; margin-top:6px; border-radius:14px; background:#12c4ee; color:#04182f;
+  font-size:17px; font-weight:800; letter-spacing:-.005em;
+  box-shadow:0 10px 26px rgba(18,196,238,.26), inset 0 1px 0 rgba(255,255,255,.45);
+  transition:background-color .16s ease, box-shadow .16s ease, transform .12s ease;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix svg path{stroke:currentColor;}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:hover:not(:disabled){background:#3ad1f4; box-shadow:0 14px 32px rgba(18,196,238,.36), inset 0 1px 0 rgba(255,255,255,.5);} }
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:active:not(:disabled){transform:translateY(1px) scale(.995);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:focus-visible{outline:3px solid #fff!important; outline-offset:3px;}
+/* DEUX « DÉSACTIVÉ » QUI NE DISENT PAS LA MÊME CHOSE. Pendant le calcul, le
+   bouton garde sa couleur, tourne, et dit « Calcul du prix… ». Sur une heure
+   passée, il s'éteint pour de bon — l'écriteau du haut dit pourquoi. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:disabled{cursor:progress;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:disabled svg{display:none;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:disabled::before{content:""; width:16px; height:16px; border-radius:50%;
+  border:2px solid rgba(4,24,47,.25); border-top-color:#04182f; animation:f-tourne .8s linear infinite;}
+@keyframes f-tourne{to{transform:rotate(360deg);}}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver:has(#heurePassee:not([hidden])) #btnVoirPrix:disabled{background:rgba(255,255,255,.09); color:rgba(255,255,255,.55);
+  box-shadow:none; cursor:not-allowed;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver:has(#heurePassee:not([hidden])) #btnVoirPrix:disabled::before{display:none;}
+@media (prefers-reduced-motion:reduce){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:disabled::before{animation:none; border-top-color:rgba(4,24,47,.25);}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{transition:none;}
+}
+
+/* ---------- La rassurance : les deux faits de « Inclus » ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .rassure{margin:12px 0 0; color:var(--f-libelle); font-size:12.5px; line-height:16px; gap:7px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .rassure svg *{stroke:var(--f-cyan);}
+
+/* ---------- Les écriteaux, sur fond sombre : tous, sinon illisibles ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .refus{background:rgba(255,100,100,.12); border:1px solid rgba(255,143,143,.5); color:var(--f-erreur-texte);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-asap{background:transparent; border-color:var(--f-cyan); color:var(--f-cyan-doux);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .info-douce{background:rgba(18,196,238,.09); border-color:rgba(18,196,238,.38);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .info-douce b{color:var(--f-cyan-doux);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .info-douce p{color:#d5e5f3;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .hors-zone{background:rgba(255,100,100,.1); border-color:rgba(255,143,143,.5);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .hors-zone b{color:var(--f-erreur-texte);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .hors-zone p{color:var(--f-libelle);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .hors-zone a{border-color:var(--f-cyan); color:var(--f-cyan-doux);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ-aide{color:var(--f-libelle);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ-bloc.en-erreur .champ{border-color:var(--f-erreur); box-shadow:0 0 0 3px rgba(255,107,107,.16);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ-erreur{display:flex; align-items:center; gap:7px; margin:6px 4px 8px; font-size:12.5px; line-height:1.35; color:var(--f-erreur-texte);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ-erreur::before{content:"!"; flex:0 0 16px; height:16px; border-radius:50%; background:var(--f-erreur);
+  color:#3b0a0a; font-size:11px; font-weight:900; display:grid; place-items:center;}
+
+/* ---------- Les suggestions : des pictogrammes au trait, plus d'emoji ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-list{top:calc(100% + 4px); background:#10294a; border:1px solid rgba(255,255,255,.15); border-radius:14px;
+  box-shadow:0 24px 50px rgba(1,10,24,.55); padding:6px; max-height:min(340px,62vh);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item{color:#eef4fa; font-size:14.5px; line-height:1.35; gap:12px; padding:11px 10px; border-radius:10px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item:hover, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item[aria-selected="true"]{background:rgba(18,196,238,.15);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:-2px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico{flex:0 0 20px; width:20px; height:20px; margin-top:-1px; font-size:0; color:transparent;
+  background:var(--f-cyan-doux); -webkit-mask:var(--ico-adresse) center/20px 20px no-repeat; mask:var(--ico-adresse) center/20px 20px no-repeat;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-manuel{border-top:1px solid rgba(255,255,255,.12); color:var(--f-cyan-doux); font-style:normal;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-vide{color:var(--f-libelle);}
+/* Les pictogrammes des suggestions, au trait de 1,75 px comme ceux des champs.
+   La catégorie est posée par index.html (data-cat) ; inconnue, c'est l'épingle. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{--ico-adresse:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2021s7-6.2%207-11.5a7%207%200%201%200-14%200C5%2014.8%2012%2021%2012%2021z%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%229.5%22%20r%3D%222.5%22%2F%3E%3C%2Fsvg%3E");--ico-aeroport:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10.3%203.1a1.6%201.6%200%20013.2%200l.2%206.1%206.9%203.7v2.3l-6.9-2.1-.3%203.9%202.5%201.9v1.7l-3.9-1.1-3.9%201.1v-1.7l2.5-1.9-.3-3.9-6.9%202.1v-2.3l6.9-3.7z%22%2F%3E%3C%2Fsvg%3E");--ico-gare:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%226%22%20y%3D%223%22%20width%3D%2212%22%20height%3D%2213%22%20rx%3D%223%22%2F%3E%3Cpath%20d%3D%22M6%2010h12M9%2020l1.5-4M15%2020l-1.5-4%22%2F%3E%3Ccircle%20cx%3D%229.5%22%20cy%3D%2213%22%20r%3D%22.6%22%2F%3E%3Ccircle%20cx%3D%2214.5%22%20cy%3D%2213%22%20r%3D%22.6%22%2F%3E%3C%2Fsvg%3E");--ico-hotel:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2018.5V6.5M3%2014h18v4.5M21%2014v-1.5a3%203%200%2000-3-3h-7V14%22%2F%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2211%22%20r%3D%221.6%22%2F%3E%3C%2Fsvg%3E");--ico-culture:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2020h17M5%2017h14M6.5%2010.5V17M10.2%2010.5V17M13.8%2010.5V17M17.5%2010.5V17M4%2010.5h16L12%204.5z%22%2F%3E%3C%2Fsvg%3E");--ico-sante:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%223.5%22%2F%3E%3Cpath%20d%3D%22M12%208.5v7M8.5%2012h7%22%2F%3E%3C%2Fsvg%3E");--ico-restauration:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%203.5V11M5%203.5V8a2%202%200%20004%200V3.5M7%2011v9.5M17%2020.5V3.5c-2.2%201-3.5%204-3.5%207.5H17%22%2F%3E%3C%2Fsvg%3E");--ico-education:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%209.5%2012%205l9.5%204.5L12%2014z%22%2F%3E%3Cpath%20d%3D%22M6.5%2011.5v4.3c3.3%202%207.7%202%2011%200v-4.3%22%2F%3E%3C%2Fsvg%3E");--ico-spectacle:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207h16v3a2%202%200%20000%204v3H4v-3a2%202%200%20000-4z%22%2F%3E%3Cpath%20d%3D%22M13.5%207v2M13.5%2011v2M13.5%2015v2%22%2F%3E%3C%2Fsvg%3E");--ico-voie:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8.5%203.5%205.5%2020.5M15.5%203.5l3%2017M12%205v2.2M12%2011v2.2M12%2017v2.2%22%2F%3E%3C%2Fsvg%3E");--ico-manuel:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4.5%2019.5h4l10-10-4-4-10%2010z%22%2F%3E%3Cpath%20d%3D%22M13%207l4%204%22%2F%3E%3C%2Fsvg%3E");}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="adresse"]{-webkit-mask-image:var(--ico-adresse);mask-image:var(--ico-adresse);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="aeroport"]{-webkit-mask-image:var(--ico-aeroport);mask-image:var(--ico-aeroport);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="gare"]{-webkit-mask-image:var(--ico-gare);mask-image:var(--ico-gare);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="hotel"]{-webkit-mask-image:var(--ico-hotel);mask-image:var(--ico-hotel);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="culture"]{-webkit-mask-image:var(--ico-culture);mask-image:var(--ico-culture);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="sante"]{-webkit-mask-image:var(--ico-sante);mask-image:var(--ico-sante);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="restauration"]{-webkit-mask-image:var(--ico-restauration);mask-image:var(--ico-restauration);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="education"]{-webkit-mask-image:var(--ico-education);mask-image:var(--ico-education);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="spectacle"]{-webkit-mask-image:var(--ico-spectacle);mask-image:var(--ico-spectacle);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="voie"]{-webkit-mask-image:var(--ico-voie);mask-image:var(--ico-voie);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico[data-cat="manuel"]{-webkit-mask-image:var(--ico-manuel);mask-image:var(--ico-manuel);}
+
+/* ---------- Tablette et ordinateur : deux rangées ---------- */
+/* Départ | Arrivée, puis Date · Heure · Passagers · Bagages. La tablette
+   n'est plus le téléphone étiré (des champs de 718 px) ; l'ordinateur passe
+   de trois rangées à deux, et rend de la place à la photo. La date prend un
+   peu plus que l'heure : « Date » + « Maintenant » tiennent sans coupure. */
+@media (min-width:600px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:10px; row-gap:10px; padding:16px 16px 14px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > *{grid-column:1/-1;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > #blocDepart, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > #blocArrivee, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > .duo, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > #blocAsap{grid-column:auto;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ{margin-bottom:0;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocArrivee::before{display:none;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #blocDateHeure{grid-template-columns:minmax(0,1.22fr) minmax(0,.78fr);}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{margin-top:4px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .rassure{margin-top:2px;}
+}
+@media (min-width:1100px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > .duo, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver > #blocAsap{grid-column:auto;}
+  /* Posée sur la photo : un verre bleu nuit, le texte garde son contraste
+     (le fond reste à 86 % au moins). */
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif > .reserver{padding:16px 16px 20px;
+    background:linear-gradient(180deg,rgba(13,42,75,.86) 0%,rgba(8,28,55,.9) 100%);
+    -webkit-backdrop-filter:blur(14px) saturate(1.15); backdrop-filter:blur(14px) saturate(1.15);}
+}
+@media (max-width:360px){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .titre-date{gap:6px;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant{padding-left:12px; padding-right:6px;} }
+@media (max-width:340px){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{padding:12px 9px 10px;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ{padding-left:10px; padding-right:10px;} }
+
+/* ---------- Un seul bouton principal par écran ---------- */
+/* « Réserver mon trajet » ne fait que descendre au formulaire, qui est juste
+   en dessous : en contour, il reste là sans disputer l'attention à « Voir mon
+   prix ». (Au-delà de 1100 px il est déjà masqué : le formulaire est à côté.) */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta{background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.72); color:#fff; box-shadow:none;
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta:hover{background:rgba(255,255,255,.14); border-color:#fff;} }
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta:focus-visible{outline:3px solid var(--ela-cyan)!important; outline-offset:3px;}

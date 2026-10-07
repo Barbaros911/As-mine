@@ -388,6 +388,9 @@ img{display:block;max-width:100%;}
    d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
 .duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
 .fleche{flex:0 0 auto;}
+/* Une adresse manque (Bloc 3) : le message vit SOUS le champ concerné. */
+.champ-erreur{margin:6px 4px 8px;font-size:12.5px;line-height:1.35;color:#B4231F;}
+.champ-bloc.en-erreur .champ{border-color:#C9302F;}
 
 /* ---------- « ME LOCALISER » ----------
    44 px de côté : c'est le minimum sous lequel un pouce rate sa cible, et
@@ -2960,8 +2963,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <!-- L'attribut de traduction était posé sur la balise FERMANTE du SVG
            (« </svg data-t="annulation"> ») : sans effet, la phrase restait en
            français en anglais. Il ne peut pas non plus aller sur le <p> — la
-           traduction écrit du texte et effacerait l'icône. D'où ce <span>. -->
-      <span data-t="dispo">Disponibilité confirmée par WhatsApp ou SMS</span>
+           traduction écrit du texte et effacerait l'icône. D'où ces <span>.
+           LES DEUX FAITS DE « INCLUS », AVEC SES CLÉS (Bloc 3, 7 octobre 2026).
+           « Disponibilité confirmée par WhatsApp ou SMS » était devenu faux
+           le 4 octobre : le client choisit où recevoir sa confirmation
+           (appel, SMS, WhatsApp, Telegram, iMessage). Rien de neuf n'est
+           promis ici : ce sont les clés eng2 et eng4, écrites une seule fois. -->
+      <span><span data-t="eng2">Prix ferme</span> · <span data-t="eng4">Réglé au chauffeur</span></span>
     </p>
     <!-- LES TROIS ÉTAPES TIENNENT SUR UNE LIGNE, SOUS LE SEUL BOUTON
          (septembre 2026, à sa demande). Un bloc « Comment ça marche » avec
@@ -5818,10 +5826,10 @@ window.ELA_TEXTES = {
     /* LA LIGNE SOUS LE BOUTON NE PARLE PLUS D'ANNULATION (septembre 2026, à
        sa demande) : « le client ne paie que le chauffeur », il n'y a donc
        rien à annuler côté site, et promettre la gratuité d'un geste qui ne
-       coûte déjà rien ne rassure personne. Elle dit maintenant ce qui se
-       passe VRAIMENT après le clic — le barème d'annulation, lui, reste
+       coûte déjà rien ne rassure personne. Depuis le Bloc 3 (7 octobre
+       2026) elle reprend « eng2 · eng4 » ci-dessous : deux faits déjà
+       promis, écrits une seule fois — le barème d'annulation, lui, reste
        dans les CGV, où il engage. */
-    dispo:"Disponibilité confirmée par WhatsApp ou SMS",
     engagements:"Inclus dans chaque course", inclus_sur:"SANS SUPPLÉMENT",
     eng1:"60 min d'attente incluses", eng1s:"à l'aéroport avec votre n° de vol · 30 min ailleurs",
     eng2:"Prix ferme", eng2s:"jamais recalculé à l'arrivée",
@@ -5909,6 +5917,8 @@ window.ELA_TEXTES = {
     nav_mes_courses:"Mes courses", nav_aria:"Navigation principale",
     nav_contact:"Contact",
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
+    err_depart_vide:"Indiquez votre lieu de départ.", err_arrivee_vide:"Indiquez votre lieu d'arrivée.",
+    err_choisir_adresse:"Choisissez une adresse dans la liste.",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
     pancarte_titre:"À votre arrivée",
     pancarte_option:"Pancarte à votre nom",
@@ -6047,7 +6057,6 @@ window.ELA_TEXTES = {
     vol_aide_arrivee:"So we drop you at the right terminal — they are several kilometres apart.",
     date:"Date", heure:"Time", passagers:"Passengers", bagages:"Luggage",
     btn_prix:"See my price", calcul:"Calculating the price…",
-    dispo:"Availability confirmed by WhatsApp or SMS",
     engagements:"Included in every ride", inclus_sur:"NO EXTRA CHARGE",
     eng1:"60 min waiting included", eng1s:"at the airport with your flight no. · 30 min elsewhere",
     eng2:"Firm price", eng2s:"never recalculated on arrival",
@@ -6131,6 +6140,8 @@ window.ELA_TEXTES = {
     nav_mes_courses:"My rides", nav_aria:"Main navigation",
     nav_contact:"Contact",
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
+    err_depart_vide:"Enter your pick-up location.", err_arrivee_vide:"Enter your drop-off location.",
+    err_choisir_adresse:"Select an address from the list.",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
     pancarte_titre:"When you arrive",
     pancarte_option:"Name sign",
@@ -6795,7 +6806,7 @@ window.ELA_TEXTES = {
       l.setAttribute("role","option");
       l.setAttribute("tabindex","0");
       var i = document.createElement("span");
-      i.className = "ico"; i.textContent = "✏️";
+      i.className = "ico"; i.textContent = "✏️"; i.setAttribute("data-cat", "manuel");
       var t = document.createElement("span");
       t.textContent = T("adresse_manuelle") + " : « " + q.slice(0, 160) + " »";
       l.appendChild(i); l.appendChild(t);
@@ -6830,6 +6841,9 @@ window.ELA_TEXTES = {
           l.setAttribute("tabindex","0");
           var i = document.createElement("span");
           i.className = "ico"; i.textContent = item.icon || "📍";
+          /* La catégorie voyage avec l'icône : la façade publique dessine un
+             pictogramme au trait à la place de l'emoji (Bloc 3). */
+          i.setAttribute("data-cat", item.categorie || "adresse");
           var t = document.createElement("span");
           t.textContent = item.label;
           l.appendChild(i); l.appendChild(t);
@@ -6913,6 +6927,11 @@ window.ELA_TEXTES = {
       fermer();
       quand(item);
       direManuelle(!!item.manuel);
+    }, rouvrir: function(){
+      /* « Choisissez une adresse dans la liste » n'a de sens que si la liste
+         est sous les yeux : un clic ailleurs l'avait fermée, et le focus
+         seul ne la rouvre pas. */
+      ferme = false; lancer();
     } };
   }
 
@@ -6931,14 +6950,16 @@ window.ELA_TEXTES = {
     };
   }
   var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
-    choix.depart = item; jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
+    choix.depart = item; if(item) effacerErreurAdresse(champDepart);
+    jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
   }, contexteRecherche("arrivee"), { manuel:true });
   /* LA PRISE DE L'ARRIVÉE EST RETENUE ELLE AUSSI. Elle ne servait à rien
      tant qu'une seule fonction posait une adresse de l'extérieur (« me
      localiser », au départ) ; le mode hôtel fige l'un OU l'autre des deux
      champs selon le sens du trajet, et il lui faut les deux prises. */
   var priseArrivee = brancher(champArrivee, document.getElementById("arriveeList"), function(item){
-    choix.arrivee = item; jugerVol(); jugerZone(); jugerForfait();
+    choix.arrivee = item; if(item) effacerErreurAdresse(champArrivee);
+    jugerVol(); jugerZone(); jugerForfait();
   }, contexteRecherche("depart"), { manuel:true });
 
 /* =====================================================================
@@ -9060,6 +9081,53 @@ window.ELA_TEXTES = {
   }
   function effacerRefus(){ blocRefus.hidden = true; blocRefus.textContent = ""; }
 
+  /* ═══ UNE ADRESSE MANQUE : ON LE DIT SOUS LE CHAMP (Bloc 3, 7 octobre 2026) ═══
+     « Voir mon prix » sans départ ou sans arrivée ne faisait que poser le
+     curseur dans le champ, sans un mot : le client voyait un bouton qui ne
+     répond pas. Le message dit quoi faire, LÀ où il faut le faire — vide :
+     « Indiquez… » ; écrit mais pas choisi : « Choisissez une adresse dans la
+     liste », et la liste se rouvre, avec sa dernière ligne « Mon adresse
+     n'est pas dans la liste » : ce n'est jamais une impasse.
+     Le site public seulement : la page d'un hôtel et le comptoir gardent
+     leur comportement (une demande de Barbaros sur le formulaire public). */
+  function signalerAdresse(champ, prise){
+    if(document.body.classList.contains("hotel")) return;
+    var bloc = champ.closest(".champ-bloc");
+    if(!bloc) return;
+    var p = bloc.querySelector(".champ-erreur");
+    if(!p){
+      p = document.createElement("p");
+      p.className = "champ-erreur";
+      p.id = champ.id + "Erreur";
+      p.setAttribute("role", "alert");
+      bloc.appendChild(p);
+    }
+    var cle = champ.value.trim() ? "err_choisir_adresse"
+            : (champ === champDepart ? "err_depart_vide" : "err_arrivee_vide");
+    p.setAttribute("data-t", cle);
+    p.textContent = T(cle);
+    p.hidden = false;
+    bloc.classList.add("en-erreur");
+    champ.setAttribute("aria-invalid", "true");
+    champ.setAttribute("aria-describedby", p.id);
+    /* APRÈS le clic, pas pendant : le clic sur « Voir mon prix » remonte
+       ensuite jusqu'au document, où « clic ailleurs » referme la liste —
+       rouverte trop tôt, elle se refermait dans la même milliseconde. */
+    if(champ.value.trim() && prise && prise.rouvrir) setTimeout(prise.rouvrir, 0);
+  }
+  function effacerErreurAdresse(champ){
+    var bloc = champ.closest(".champ-bloc");
+    var p = bloc && bloc.querySelector(".champ-erreur");
+    if(!p || p.hidden) return;
+    p.hidden = true;
+    bloc.classList.remove("en-erreur");
+    champ.removeAttribute("aria-invalid");
+    champ.removeAttribute("aria-describedby");
+  }
+  [champDepart, champArrivee].forEach(function(c){
+    if(c) c.addEventListener("input", function(){ effacerErreurAdresse(c); });
+  });
+
   /* Deux points identiques ne font pas une course. Sans ce contrôle, choisir
      deux fois la même adresse donnait « 0 km » et un prix ferme de 5,75 € —
      mesuré. On compare les COORDONNÉES, pas les libellés : deux sources
@@ -9330,7 +9398,9 @@ window.ELA_TEXTES = {
        réservation, et sans les deux bouts il n'y a pas de distance donc pas
        de prix. Un VTC n'a pas le droit d'un taximètre. */
     if(!choix.depart || !choix.arrivee){
-      (choix.depart ? champArrivee : champDepart).focus();
+      var manque = choix.depart ? champArrivee : champDepart;
+      signalerAdresse(manque, manque === champDepart ? priseDepart : priseArrivee);
+      manque.focus();
       return;
     }
     if(memeEndroit()){ refuser("err_meme_adresse"); champArrivee.focus(); return; }

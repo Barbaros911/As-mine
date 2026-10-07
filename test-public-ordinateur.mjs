@@ -172,15 +172,22 @@ for (const [w, h] of ORDIS) {
 //    la même place, et le bouton reste entier à 1366×768.
 {
   const p = await ouvrir(1366, 768);
+  // LA PLACE, PAS LA RANGÉE (Bloc 3, 7 octobre 2026) : ce contrôle exigeait
+  // l'encadré AU-DESSUS de Passagers/Bagages, c'est-à-dire la mise en page du
+  // jour. Le formulaire passe de trois rangées à deux (Date/Heure à côté de
+  // Passagers/Bagages) : la règle durable est que l'encadré prend EXACTEMENT
+  // la place que Date/Heure occupait — ni ailleurs, ni dans une case étroite.
+  const avant = await p.evaluate(() => { const d = document.getElementById('blocDateHeure').getBoundingClientRect();
+    return { l: d.left, t: d.top, w: d.width }; });
   await p.click('#btnQuandAsap');
   await p.waitForTimeout(200);
-  const r = await p.evaluate(() => {
+  const r = await p.evaluate(avant => {
     const a = document.getElementById('blocAsap').getBoundingClientRect();
-    const bb = document.querySelector('.reserver > .duo:not(#blocDateHeure)').getBoundingClientRect();
     const d = document.getElementById('blocDateHeure').getBoundingClientRect();
-    return { visible: a.width > 0, cache: d.width === 0, avantPassagers: a.bottom <= bb.top + 1 };
-  });
-  check('1366×768 « Maintenant » : l’encadré prend la place de Date/Heure', r.visible && r.cache && r.avantPassagers, JSON.stringify(r));
+    return { visible: a.width > 0, cache: d.width === 0,
+      memePlace: Math.abs(a.left - avant.l) < 2 && Math.abs(a.top - avant.t) < 2 && Math.abs(a.width - avant.w) < 2 };
+  }, avant);
+  check('1366×768 « Maintenant » : l’encadré prend la place de Date/Heure', r.visible && r.cache && r.memePlace, JSON.stringify(r));
   check('1366×768 « Maintenant » : « Voir mon prix » reçoit le clic en entier',
     (await cliquable(p, '#btnVoirPrix')) === 'ok', await cliquable(p, '#btnVoirPrix'));
   await p.context().close();
