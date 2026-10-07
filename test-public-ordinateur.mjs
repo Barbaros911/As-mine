@@ -103,17 +103,22 @@ for (const [w, h] of ORDIS) {
     check(`${tag} : le logo et le titre du bandeau partent du bord gauche de la colonne`,
       Math.abs(m.logo.left - col.left) <= 2 && Math.abs(m.titre.left - col.left) <= 2,
       `logo ${Math.round(m.logo.left)}, titre ${Math.round(m.titre.left)}, colonne ${col.left}`);
-    check(`${tag} : FR/EN et le formulaire s'arrêtent au bord droit de la colonne`,
-      Math.abs(m.langues.right - col.right) <= 2 && Math.abs(m.carte.right - col.right) <= 2,
-      `FR/EN ${Math.round(m.langues.right)}, carte ${Math.round(m.carte.right)}, colonne ${col.right}`);
+    // Bloc 2 (7/10/2026) : au-delà de 1100 px la carte est calée à GAUCHE, sous la
+    // promesse, et laisse la moitié droite à la photo ; en dessous elle prend la colonne.
+    check(`${tag} : FR/EN s'arrête au bord droit de la colonne, et le formulaire ${deuxColonnes ? 'part du bord gauche' : 's\'arrête au bord droit'}`,
+      Math.abs(m.langues.right - col.right) <= 2
+      && (deuxColonnes ? Math.abs(m.carte.left - col.left) <= 2 && m.carte.right <= w * 0.6 : Math.abs(m.carte.right - col.right) <= 2),
+      `FR/EN ${Math.round(m.langues.right)}, carte ${Math.round(m.carte.left)}→${Math.round(m.carte.right)}, colonne ${col.left}→${col.right}`);
     check(`${tag} : le pied suit la même colonne`,
       m.pied.left >= col.left - 2 && m.pied.right <= col.right + 2,
       `pied ${Math.round(m.pied.left)}→${Math.round(m.pied.right)}`);
     if (deuxColonnes) {
-      // P0-C : le formulaire DANS le bandeau, à droite du titre, sans le toucher.
-      check(`${tag} : le formulaire est dans le bandeau, à droite du titre`,
-        m.carte.top >= m.hero.top && m.carte.bottom <= m.hero.bottom && m.carte.left > m.titre.right + 16
-        && m.carte.top < m.titre.bottom && m.carte.bottom > m.titre.top,
+      // Bloc 2 : le formulaire DANS le bandeau, SOUS la promesse, sans la recouvrir —
+      // la moitié droite reste à la scène de la photo. (Le 6/10 il était à droite
+      // du titre et recouvrait le chauffeur et la cliente.)
+      check(`${tag} : le formulaire est dans le bandeau, sous le titre, à gauche`,
+        m.carte.top >= m.hero.top && m.carte.bottom <= m.hero.bottom && m.carte.top >= m.titre.bottom + 8
+        && Math.abs(m.carte.left - m.titre.left) <= 2,
         `carte ${Math.round(m.carte.left)},${Math.round(m.carte.top)}–${Math.round(m.carte.bottom)} · titre →${Math.round(m.titre.right)} · bandeau ${Math.round(m.hero.top)}–${Math.round(m.hero.bottom)}`);
       check(`${tag} : un seul bouton principal — « Réserver mon trajet » s'efface`, m.cta === 'none', m.cta);
     } else {
@@ -457,6 +462,48 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
     r.ligne !== 'none' && r.large >= r.carte * 0.8, JSON.stringify(r));
   check(`page hôtel ${w} px : le bloc des étapes du site public n'y est pas`, r.comment === 'none' || r.comment === 'absent', r.comment);
   await p.context().close();
+}
+
+// ── LA PHOTO DU BANDEAU (Bloc 2, 7 octobre 2026) : le bon fichier par écran,
+//    léger, et le texte lisible dessus. Trois fichiers d'une seule photo :
+//    recadrage téléphone sous 600 px, 1200 px sur tablette, 1672 px au-delà.
+//    La lisibilité se MESURE : on cache le texte, on capture le bandeau, et on
+//    lit la luminance des pixels sous chaque ligne — par le navigateur lui-même
+//    (canvas), sans dépendance, comme la régression visuelle. Un voile qu'on
+//    allège « à l'œil » se voit ici, pas en relisant le CSS.
+for (const [w, h, fichier] of [[390, 844, 'accueil-paris-nuit-tel.webp'], [820, 1180, 'accueil-paris-nuit-tab.webp'], [1440, 900, 'accueil-paris-nuit.webp']]) {
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, locale: 'fr-FR' });
+  const p = await ctx.newPage();
+  const vus = []; p.on('request', r => vus.push(new URL(r.url()).pathname));
+  await p.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  await p.goto(SITE, { waitUntil: 'load' }); await p.waitForTimeout(400);
+  const photos = vus.filter(v => v.includes('accueil-paris-nuit'));
+  check(`${w} px : le bandeau charge ${fichier}, et lui seul`, photos.length === 1 && photos[0].endsWith('/' + fichier), photos.join(', '));
+  const poids = (await stat(join('site', 'photos', fichier))).size;
+  check(`${fichier} : au plus 160 Ko`, poids <= 160 * 1024, Math.round(poids / 1024) + ' Ko');
+  const boites = await p.evaluate(() => Object.fromEntries(['.hero h1', '.hero-sous', '.hero-prix'].map(s => {
+    const r = document.querySelector(s).getBoundingClientRect();
+    return [s, { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom) }];
+  })));
+  const hero = await p.evaluate(() => { const r = document.querySelector('.hero').getBoundingClientRect(); return { t: Math.round(r.top), b: Math.round(r.bottom) }; });
+  await p.addStyleTag({ content: '.hero-texte *{visibility:hidden!important}' });
+  const png = await p.screenshot({ clip: { x: 0, y: 0, width: w, height: Math.min(h, hero.b) } });
+  const lum = await p.evaluate(async ({ data, boites }) => {
+    const img = new Image(); img.src = 'data:image/png;base64,' + data; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    const out = {};
+    for (const [s, bx] of Object.entries(boites)) {
+      const d = g.getImageData(bx.l, bx.t, bx.r - bx.l, bx.b - bx.t).data;
+      let som = 0, n = 0, max = 0;
+      for (let i = 0; i < d.length; i += 4) { const L = .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; som += L; n++; if (L > max) max = L; }
+      out[s] = { moy: Math.round(som / n), max: Math.round(max) };
+    }
+    return out;
+  }, { data: png.toString('base64'), boites });
+  for (const [s, v] of Object.entries(lum))
+    check(`${w} px : fond sombre sous « ${s} » (moyenne ≤ 60, pic ≤ 150 sur 255)`, v.moy <= 60 && v.max <= 150, JSON.stringify(v));
+  await ctx.close();
 }
 
 // ── LE LOGO : le fichier officiel, affiché sans déformation.

@@ -11,10 +11,11 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues button{m
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues button[aria-pressed="true"]{background:var(--ela-navy);color:#fff}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .menu span{background:var(--ela-navy)}
 
-/* HERO : compact, photo lisible, même identité que la maquette validée. */
+/* HERO : la photo « Paris la nuit » (Bloc 2, 7/10/2026). Les recadrages par écran et le
+   formulaire à gauche sur ordinateur sont dans la section BLOC 2, en fin de fichier. */
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{height:auto;min-height:330px;background:var(--ela-deep);border:0;overflow:hidden}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{background-image:url("./photos/accueil-bandeau.jpg");background-position:center 45%;background-size:cover;transform:none;filter:saturate(.94) contrast(1.03)}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{background:linear-gradient(90deg,rgba(3,28,52,.91) 0%,rgba(4,38,68,.72) 45%,rgba(4,35,62,.18) 100%)}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{background-image:url("./photos/accueil-paris-nuit.webp");background-position:50% 58%;background-size:cover;transform:none;filter:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{background:linear-gradient(90deg,rgba(3,22,44,.80) 0%,rgba(3,22,44,.66) 30%,rgba(3,22,44,.40) 52%,rgba(3,22,44,0) 70%)}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:330px;max-width:1180px;margin:auto;padding:46px 28px 108px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{max-width:620px;margin:0 0 12px;font-size:42px;line-height:1.01;letter-spacing:-1.3px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.3)}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{margin:0 0 10px;color:#fff;font-size:13px;line-height:1.4;font-weight:650}
@@ -70,7 +71,7 @@ body.reception{background:#edf3f7}body.reception .entete{background:#fff;color:v
 
 @media(min-width:900px){body{padding-bottom:0}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:start}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>*{grid-column:1/-1}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocDepart,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocArrivee,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.duo,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocAsap{grid-column:span 6}}
 
-@media(max-width:899px){.page{max-width:100%}input,select,textarea{font-size:16px!important}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{height:62px;min-height:62px;padding:0 14px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .logo-image{width:116px;max-height:56px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{min-height:286px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{background-position:60% center}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:286px;padding:24px 16px 82px;justify-content:flex-start}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{max-width:310px;margin-top:2px;font-size:29px;line-height:1.02;letter-spacing:-.8px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{max-width:290px;font-size:10px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-size:11px;margin-bottom:13px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta{min-height:42px;font-size:11px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{margin:-50px 12px 0;padding:12px;border-radius:17px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .champ{min-height:54px;margin-bottom:8px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{min-height:52px;margin-top:2px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .section{--gouttiere:14px;padding-left:var(--gouttiere);padding-right:var(--gouttiere)}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .engagements{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .engagement{padding:14px 12px;min-height:142px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .services{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service{min-height:158px;padding:90px 11px 12px;border-radius:14px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service::before{height:82px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5){grid-column:1/-1;min-height:148px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5)::before{height:78px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .nav-mobile{min-height:60px}body.reception #ecran-reception{padding:14px 12px 28px}}
+@media(max-width:899px){.page{max-width:100%}input,select,textarea{font-size:16px!important}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{height:62px;min-height:62px;padding:0 14px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .logo-image{width:116px;max-height:56px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{min-height:286px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{background-position:50% 55%}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:286px;padding:24px 16px 82px;justify-content:flex-start}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{max-width:310px;margin-top:2px;font-size:29px;line-height:1.02;letter-spacing:-.8px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{max-width:290px;font-size:10px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-size:11px;margin-bottom:13px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta{min-height:42px;font-size:11px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{margin:-50px 12px 0;padding:12px;border-radius:17px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .champ{min-height:54px;margin-bottom:8px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{min-height:52px;margin-top:2px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .section{--gouttiere:14px;padding-left:var(--gouttiere);padding-right:var(--gouttiere)}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .engagements{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .engagement{padding:14px 12px;min-height:142px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .services{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service{min-height:158px;padding:90px 11px 12px;border-radius:14px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service::before{height:82px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5){grid-column:1/-1;min-height:148px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5)::before{height:78px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .nav-mobile{min-height:60px}body.reception #ecran-reception{padding:14px 12px 28px}}
 
 @media(max-width:520px){body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero{min-height:282px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:282px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{margin-top:-46px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .section h2{font-size:25px;line-height:1.05;letter-spacing:-.6px}}
 @media(max-width:340px){body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{font-size:26px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{margin-left:8px;margin-right:8px;padding:9px}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .services{grid-template-columns:1fr}body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:nth-child(5){grid-column:auto}}
@@ -151,13 +152,19 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-nav{margi
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien{padding:0 9px;font-size:14px}
 }
 
-/* ═══ ORDINATEUR — LOT P0-C (6 octobre 2026) : LE BANDEAU EN DEUX COLONNES ═══
-   Au-delà de 1100 px : la promesse à gauche, le formulaire À DROITE, dans le
-   bandeau. Le formulaire ne bouge PAS dans le code — mêmes identifiants,
-   mêmes champs, même ordre au clavier : c'est l'écran d'accueil qui devient
-   une grille, et la carte se pose sur la première rangée, à côté du texte.
-   Elle y reprend sa forme de téléphone (une colonne, 440 px) : la plus
-   éprouvée, et la largeur naturelle d'un formulaire.
+/* ═══ ORDINATEUR — LOT P0-C (6 octobre 2026), RECOMPOSÉ AU BLOC 2 (7 octobre) ═══
+   Au-delà de 1100 px : la promesse PUIS le formulaire, l'un sous l'autre, à
+   GAUCHE ; la scène de la photo (chauffeur, cliente, portière, hôtel) occupe
+   la moitié droite, et la tour Eiffel tombe au centre, entre les deux.
+   Le 6 octobre la carte était à DROITE du titre : mesuré avec la photo, elle
+   recouvrait exactement les sujets (ils sont à 62–90 % de la largeur, la
+   carte à 60–91 %). Le formulaire ne bouge PAS dans le code — mêmes
+   identifiants, mêmes champs, même ordre au clavier : c'est l'écran d'accueil
+   qui devient une grille, et la carte se pose sur la première rangée, calée
+   en bas à gauche. Elle est en DEUX colonnes (620 px) : la forme qu'elle a
+   déjà entre 900 et 1099 px. Quatre champs par ligne ont été essayés : la
+   date se tronquait en « 10/06/202 ».
+   « Voir mon prix » reste dans l'écran d'un portable 1366×657 (mesuré 591–645).
    UN SEUL BOUTON PRINCIPAL : « Réserver mon trajet » ne fait que descendre
    au formulaire — qui est maintenant juste à côté. Il reste sur téléphone.
    Entre 900 et 1099 px, rien ne change : à cette largeur le texte n'aurait
@@ -166,13 +173,14 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien{padd
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif{display:grid;grid-template-columns:minmax(0,1fr)}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>*{grid-column:1;min-width:0}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>.hero{grid-row:1;display:flex;min-height:0}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>.reserver{grid-row:1;align-self:center;justify-self:end;width:440px;margin:44px max(24px,calc((100% - 1180px)/2)) 44px 0}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:0;padding:56px 488px 56px 0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif>.reserver{grid-row:1;align-self:end;justify-self:start;width:620px;margin:0 0 40px max(24px,calc((100% - 1180px)/2));padding:14px 14px 10px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:0;padding:44px 0 420px;justify-content:flex-start;max-width:none}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnHeroReserver{display:none}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{text-wrap:balance}
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{margin-bottom:8px}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{grid-template-columns:minmax(0,1fr)}
-body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocDepart,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocArrivee,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.duo,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocAsap{grid-column:1/-1}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocDepart,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocArrivee{grid-column:auto}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>.duo,body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver>#blocAsap{grid-column:1/-1}
 }
 
 /* ═══ ORDINATEUR — LOT P0-D (6 octobre 2026) : LE BAS DE PAGE ═══
@@ -214,3 +222,39 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq>.faq-q:first
    même que celle de la page easyHotel, qui n'a pas le bloc des étapes et la
    garde. */
 body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .etapes-ligne{display:none}
+
+/* ═══ BLOC 2 (7 octobre 2026) : LA PHOTO « PARIS LA NUIT » PAR ÉCRAN ═══════════
+   Une seule photo (photos/accueil-paris-nuit*.webp), trois fichiers : entière
+   pour l'ordinateur (1672 px), réduite pour la tablette (1200 px), et un
+   RECADRAGE pour le téléphone — la moitié droite : entrée de l'hôtel,
+   chauffeur, cliente, portière. En « cover » plein cadre sur un bandeau
+   presque carré, le téléphone ne montrait que le ciel et la tour sous le
+   titre. La source PNG (3 Mo) n'est PAS dans le dépôt : construire.sh publie
+   tout « photos/ ».
+   LE VOILE N'EST PLUS UN RIDEAU : la photo est sombre à gauche (luminance
+   23–40/255), le dégradé est LOCAL, derrière le texte, et s'arrête là où la
+   scène commence. Mesuré derrière chaque ligne : moyenne 20–42, pics ≤ 137,
+   soit plus de 4,5:1 pour du blanc partout. L'ombre portée du texte reste.
+   Le bandeau du téléphone garde sa hauteur (396 px) : « Voir mon prix » reste
+   au-dessus de la barre (705–759 pour une barre à 784, EN compris). */
+@media(max-width:599px){
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{background-image:url("./photos/accueil-paris-nuit-tel.webp");background-position:100% 50%}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{background:linear-gradient(180deg,rgba(3,22,44,.74) 0%,rgba(3,22,44,.56) 42%,rgba(3,22,44,.28) 72%,rgba(3,22,44,.12) 100%),linear-gradient(90deg,rgba(3,22,44,.45) 0%,rgba(3,22,44,0) 70%)}
+}
+/* Tablette : le texte prend la moitié gauche et grossit ; la scène est à droite,
+   la tour dans l'intervalle. « margin:0 » : la façade centre le bloc de texte
+   (margin:auto), et un bloc à 50 % centré flottait au milieu de l'écran. */
+@media(min-width:600px) and (max-width:899px){
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-image{background-image:url("./photos/accueil-paris-nuit-tab.webp");background-position:50% 55%}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{max-width:50%;margin:0;padding-left:28px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{font-size:32px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{font-size:14.5px;max-width:none}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-size:14px}
+}
+@media(min-width:1100px){
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{max-width:600px;font-size:44px;margin-bottom:12px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{max-width:600px;font-size:16px;margin-bottom:8px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-size:15px;margin-bottom:0}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-notes{font-size:13px;margin-top:10px}
+body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{background:linear-gradient(90deg,rgba(3,22,44,.78) 0%,rgba(3,22,44,.60) 34%,rgba(3,22,44,.22) 50%,rgba(3,22,44,0) 62%)}
+}

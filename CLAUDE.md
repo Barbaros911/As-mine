@@ -1498,6 +1498,12 @@ Le titre « qui, quoi, où » de septembre et l'accroche en cinq lignes sont dan
 hauteur fixe, le bouton reste dans les 844 px, le titre se règle à la taille
 sous 360 px — et son TEXTE est fixé par « LE POSITIONNEMENT — DEUX ACTIVITÉS,
 UN SEUL SITE » en fin de fichier.
+**LA PHOTO EST « PARIS LA NUIT »** (Bloc 2, 7/10/2026, image fournie par
+Barbaros, tour illuminée acceptée par lui en connaissance de cause) : trois
+WebP dans `photos/accueil-paris-nuit*.webp`, un recadrage par écran, voile
+local et jamais de rideau ; sur ordinateur le formulaire est À GAUCHE sous
+la promesse, la scène à droite. La source PNG (3 Mo) reste hors dépôt.
+Histoire, mesures et choix écartés : `memoire/bandeau-photo.md`.
 
 ### LA BARRE DU BAS NE DOIT JAMAIS COUVRIR « VOIR MON PRIX »
 Ce qui est toujours là ne se remarque plus : on MESURE (`elementFromPoint`),
@@ -4977,7 +4983,7 @@ toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
   `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.
 
 ## LE SITE SUR ORDINATEUR — UN MENU EN HAUT, LE FORMULAIRE DANS LE BANDEAU
-Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire à droite du titre, un seul bouton principal. Le téléphone ne bouge pas.
+Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire À GAUCHE sous la promesse (Bloc 2), un seul bouton principal. Le téléphone ne bouge pas.
 Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fait pas (« conciergerie » retirée, accueil = pancarte, pas « VIP »). `test-public-ordinateur.mjs`.
 Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.
 
