@@ -2846,16 +2846,10 @@ de vide à droite**.
 
 Septembre 2026, quatre demandes qui se suivent et qui tiennent ensemble.
 
-**LA LIGNE SOUS LE BOUTON NE PARLE PLUS D'ANNULATION.** Sa raison, et elle est
-juste : « le client ne paie que le chauffeur ». Rien n'est encaissé par le
-site, donc annuler ne coûte rien de toute façon — et une promesse qui ne coûte
-rien ne rassure personne. Elle dit maintenant ce qui se passe après le clic :
-**« Disponibilité confirmée par WhatsApp ou SMS »**. Le barème d'annulation
-reste dans les CGV, là où il engage. La clé `annulation` est devenue `dispo` :
-**un nom de clé qui décrit autre chose que son contenu finit par ramener
-l'ancien texte**. C'est la deuxième fois que cet argument est retiré de la
-vitrine — il était déjà parti de l'ancien site et il est revenu à la refonte —
-d'où un test dans les deux langues.
+**LA LIGNE SOUS LE BOUTON DIT « Prix ferme · Réglé au chauffeur »** (Bloc 3,
+clés `eng2` et `eng4` de « Inclus », rien de neuf). Jamais l'annulation
+gratuite (retirée deux fois), jamais « WhatsApp ou SMS » (faux depuis l'option
+A). Histoire : `memoire/formulaire-public.md`.
 
 **L'ENCADRÉ « VOL OU TRAIN EN RETARD ? » (`.promesse`) EST RETIRÉ** le
 6/10/2026 : il redisait la carte « Suivi du vol » posée juste en dessous. Son
@@ -4986,6 +4980,11 @@ toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
 Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire À GAUCHE sous la promesse (Bloc 2), un seul bouton principal. Le téléphone ne bouge pas.
 Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fait pas (« conciergerie » retirée, accueil = pancarte, pas « VIP »). `test-public-ordinateur.mjs`.
 Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.
+
+## LE FORMULAIRE PUBLIC — BLEU NUIT, UN SEUL BOUTON PRINCIPAL (Bloc 3)
+7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), « Réserver mon trajet » en contour, deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
+Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. Budget : bouton ≤ 751 et rassurance ≤ 779 à 390×844 (barre à 782). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
+Histoire, mesures, pièges : `memoire/formulaire-public.md`.
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)
 
