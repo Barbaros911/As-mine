@@ -489,3 +489,27 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
   -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);}
 @media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta:hover{background:rgba(255,255,255,.14); border-color:#fff;} }
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-cta:focus-visible{outline:3px solid var(--ela-cyan)!important; outline-offset:3px;}
+
+/* ---------- L'en-tête bleu nuit, le logo d'origine sur son cartouche ---------- */
+/* Décidé par Barbaros sur trois captures (7 octobre 2026) : l'en-tête et la
+   photo ne font plus qu'un bloc sombre, et le logo reste L'ORIGINAL — ni la
+   version blanche, ni un filtre. Ses lettres sont bleu nuit (≈ #002048) :
+   posées directement sur cet en-tête, contraste mesuré 1,1:1, il disparaît.
+   Le cartouche blanc lui rend le fond pour lequel il est dessiné (16:1).
+   C'EST LE CARTOUCHE QUI S'ALIGNE SUR LA COLONNE, pas le logo dedans : la
+   forme qu'on voit est le rectangle blanc. Calé sur le logo, il collait au
+   bord du téléphone (4 px) et dépassait la colonne du titre sur ordinateur.
+   Le logo se décale donc de 10 px, même taille, même fichier, sans filtre —
+   test-nouveau-bascule le vérifie au demi-pixel. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete{background:#041a31; color:#fff; border-bottom:1px solid rgba(255,255,255,.07); box-shadow:0 6px 18px rgba(1,10,24,.22);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete .logo{display:inline-flex; align-items:center; background:#fff; border-radius:11px; padding:2px 10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete .logo:focus-visible{outline:3px solid var(--ela-cyan)!important; outline-offset:3px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues button{color:rgba(255,255,255,.76);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .langues button[aria-pressed="true"]{background:#fff; color:var(--ela-navy);}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien{color:rgba(255,255,255,.9);}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien:hover, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu[open] > summary{background:rgba(255,255,255,.09); color:#fff;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu.actif > summary{color:var(--ela-cyan);}
+}

@@ -79,10 +79,22 @@ bandeau sur captures.
 
 ## L'en-tête et le logo
 
-Le logo d'origine a des lettres bleu nuit (≈ #002048) : sur un en-tête bleu
-nuit, contraste 1,1:1, il disparaît. Montré à Barbaros en trois images
-(blanc / bleu nuit sans rien / bleu nuit avec cartouche blanc) ; il garde son
-logo d'origine. Voir la section du mémo pour le choix retenu.
+Il voulait que le haut de la page ne soit plus blanc, puis : « je veux garder
+mon logo original ». Or ses lettres sont bleu nuit (≈ #002048) : sur un
+en-tête bleu nuit, contraste mesuré 1,1:1, il disparaît. La version blanche
+officielle (`brand-logo-white.png`) a été montrée et refusée — c'est un autre
+logo à ses yeux. Trois images (A blanc / B bleu nuit sans rien / C bleu nuit
+avec cartouche blanc) : **il a choisi C**.
+- Le cartouche est blanc, arrondi, avec une ombre légère : il rend au logo le
+  fond pour lequel il est dessiné (16:1).
+- **C'est le cartouche qui s'aligne sur la colonne**, pas le logo dedans.
+  Calé sur le logo, il collait au bord du téléphone (4 px) et dépassait de
+  10 px la colonne du titre sur ordinateur. Le logo s'est donc décalé de
+  10 px (24 au lieu de 14 à 390 px, 60 au lieu de 50 à 1280 px) ; fichier,
+  taille, filtre et opacité sont inchangés. La table de test-nouveau-bascule
+  et la mesure d'alignement de test-public-ordinateur ont suivi.
+- La hauteur de l'en-tête ne bouge pas (62 / 68 px) : la grandir aurait
+  repoussé « Voir mon prix » sous la barre du bas.
 
 ## Ce qui reste, hors de ce bloc
 

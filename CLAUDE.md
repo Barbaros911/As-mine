@@ -4983,7 +4983,7 @@ Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordin
 
 ## LE FORMULAIRE PUBLIC — BLEU NUIT, UN SEUL BOUTON PRINCIPAL (Bloc 3)
 7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), « Réserver mon trajet » en contour, deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
-Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. Budget : bouton ≤ 751 et rassurance ≤ 779 à 390×844 (barre à 782). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
+Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. L'en-tête est bleu nuit, le logo D'ORIGINE sur un cartouche blanc (ses lettres bleu nuit y disparaissent : 1,1:1) ; c'est le cartouche qui s'aligne sur la colonne. Budget : bouton ≤ 751 et rassurance ≤ 779 à 390×844 (barre à 782). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
 Histoire, mesures, pièges : `memoire/formulaire-public.md`.
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)

@@ -1205,7 +1205,12 @@ for (const large of [1024, 1280]) {
      dans l'en-tête. Il s'aligne désormais sur la colonne de 1180 px du
      contenu : (1280 − 1180) / 2 = 50 px, au lieu d'être collé au bord à 18.
      Fichier, taille, filtre et opacité restent exigés à l'identique. */
-  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 50 } };
+  /* ET ELLE A CHANGÉ UNE SECONDE FOIS (7 octobre 2026, Bloc 3) : Barbaros a
+     choisi l'en-tête bleu nuit avec son logo d'ORIGINE sur un cartouche blanc
+     (ses lettres bleu nuit disparaissent sur le bleu nuit : 1,1:1). C'est le
+     cartouche qui s'aligne sur la colonne ; le logo, dedans, se décale de
+     10 px. Fichier, taille, filtre et opacité : toujours exigés à l'identique. */
+  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 24 }, 1280: { w: 128, h: 56.3, x: 60 } };
   const ICONES = ['icon icon-32.png 32x32', 'apple-touch-icon icon-180.png ', 'icon /icon-180.png ', 'apple-touch-icon /icon-180.png 180x180'];
   for (const [largeur, attendu] of Object.entries(AFFICHAGE)) {
     const pl = await b.newPage({ viewport: { width: +largeur, height: 844 }, locale: 'fr-FR' });
