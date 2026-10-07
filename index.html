@@ -388,6 +388,10 @@ img{display:block;max-width:100%;}
    d'écart, « 09/05/2026 » perdait son dernier chiffre sous le chevron. */
 .duo > .champ{min-width:0;gap:9px;padding-left:12px;padding-right:10px;}
 .fleche{flex:0 0 auto;}
+/* Les boutons « − / + » (Bloc 3) n'existent visuellement que sur le site
+   public, que la façade habille : ailleurs le champ reste tel qu'avant. */
+.pas{display:contents;}
+.pas-btn{display:none;}
 /* Une adresse manque (Bloc 3) : le message vit SOUS le champ concerné. */
 .champ-erreur{margin:6px 4px 8px;font-size:12.5px;line-height:1.35;color:#B4231F;}
 .champ-bloc.en-erreur .champ{border-color:#C9302F;}
@@ -5919,6 +5923,8 @@ window.ELA_TEXTES = {
     err_meme_adresse:"Le départ et l'arrivée sont au même endroit. Choisissez une autre destination.",
     err_depart_vide:"Indiquez votre lieu de départ.", err_arrivee_vide:"Indiquez votre lieu d'arrivée.",
     err_choisir_adresse:"Choisissez une adresse dans la liste.",
+    pas_moins_pax:"Retirer un passager", pas_plus_pax:"Ajouter un passager",
+    pas_moins_bag:"Retirer un bagage", pas_plus_bag:"Ajouter un bagage",
     err_heure_passee:"Cette heure est déjà passée. Choisissez une heure à venir.",
     pancarte_titre:"À votre arrivée",
     pancarte_option:"Pancarte à votre nom",
@@ -6142,6 +6148,8 @@ window.ELA_TEXTES = {
     err_meme_adresse:"Pick-up and drop-off are the same place. Choose another destination.",
     err_depart_vide:"Enter your pick-up location.", err_arrivee_vide:"Enter your drop-off location.",
     err_choisir_adresse:"Select an address from the list.",
+    pas_moins_pax:"Remove a passenger", pas_plus_pax:"Add a passenger",
+    pas_moins_bag:"Remove a bag", pas_plus_bag:"Add a bag",
     err_heure_passee:"That time has already passed. Choose a time still to come.",
     pancarte_titre:"When you arrive",
     pancarte_option:"Name sign",
@@ -9773,6 +9781,59 @@ window.ELA_TEXTES = {
     });
   }
   var champBagages = document.getElementById("bagages");
+  /* ═══ « − / + » POUR LES PASSAGERS ET LES BAGAGES (Bloc 3, 7 octobre 2026) ═══
+     Passer de 1 à 2 passagers demandait d'ouvrir le clavier, d'effacer le
+     « 1 », de taper « 2 » et de refermer le clavier — qui recouvre « Voir
+     mon prix ». Les boutons font la même chose qu'une frappe : le MÊME champ,
+     les MÊMES bornes (min / max du HTML), les MÊMES événements « input » puis
+     « change ». Le chiffre reste tapable : un groupe de 40 ne clique pas
+     40 fois.
+     HORS DE L'ORDRE DE TABULATION (tabindex −1) : au clavier, les flèches du
+     champ font déjà ce travail, et l'ordre de tabulation reste celui d'avant.
+     Un lecteur d'écran les atteint quand même, nommés.
+     INVISIBLES PAR DÉFAUT : seule la façade du site public les affiche. La
+     page d'un hôtel, le comptoir et l'admin ne voient aucun changement. */
+  [[champPax, "pax"], [champBagages, "bag"]].forEach(function(c){
+    var input = c[0], suffixe = c[1];
+    /* « isConnected » ET PAS SEULEMENT « input » : l'admin retire l'écran
+       public de la page avant ce point — le champ existe encore en mémoire,
+       sans parent. Sans cette garde, tout le script de l'admin s'arrêtait
+       ici (vu par test-admin-arrivee, 7 octobre 2026). */
+    if(!input || !input.isConnected || input.closest(".pas")) return;
+    var titre = input.parentNode.querySelector(".champ-titre");
+    if(titre){ titre.id = titre.id || ("titre-" + input.id); input.setAttribute("aria-labelledby", titre.id); }
+    var pas = document.createElement("span");
+    pas.className = "pas";
+    function bouton(sens){
+      var b = document.createElement("button"), cle = "pas_" + (sens < 0 ? "moins" : "plus") + "_" + suffixe;
+      b.type = "button"; b.className = "pas-btn"; b.tabIndex = -1;
+      b.setAttribute("data-t-aria", cle); b.setAttribute("aria-label", T(cle));
+      b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="'
+        + (sens < 0 ? "M6 12h12" : "M6 12h12M12 6v12") + '" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+      b.addEventListener("click", function(e){
+        e.preventDefault();
+        var avant = input.value;
+        if(sens < 0) input.stepDown(); else input.stepUp();
+        if(input.value !== avant){
+          input.dispatchEvent(new Event("input", { bubbles:true }));
+          input.dispatchEvent(new Event("change", { bubbles:true }));
+        }
+        juger();
+      });
+      return b;
+    }
+    var moins = bouton(-1), plus = bouton(1);
+    function juger(){
+      var v = Number(input.value);
+      moins.disabled = !(v > Number(input.min));
+      plus.disabled = !(v < Number(input.max));
+    }
+    input.parentNode.insertBefore(pas, input);
+    pas.appendChild(moins); pas.appendChild(input); pas.appendChild(plus);
+    input.addEventListener("input", juger);
+    input.addEventListener("change", juger);
+    juger();
+  });
   var champNom = document.getElementById("clientNom");
   var champTel = document.getElementById("clientTel");
   var erreurCoord = document.getElementById("erreurCoordonnees");

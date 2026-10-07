@@ -343,6 +343,7 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
 /* ---------- Date, heure, passagers, bagages : des cases compactes ---------- */
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo{gap:8px;}
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ{padding:8px 12px; min-height:60px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ:has(.pas){padding-top:6px; padding-bottom:6px;}
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ > svg:first-of-type{display:none;}
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .titre-date{gap:8px;}
 /* « Maintenant » : une pastille lisible (4,2:1 en 11,5 px souligné avant),
@@ -360,6 +361,21 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
   border:1px solid rgba(18,196,238,.45); border-radius:999px; background:rgba(18,196,238,.09);}
 @media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:hover{color:#fff;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:hover::before{background:rgba(18,196,238,.18);} }
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:2px;}
+
+/* Les boutons « − / + » (créés par index.html, invisibles ailleurs). */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:2px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas input{flex:1 1 auto; width:3ch; min-width:0; text-align:center; margin:0; font-size:17px; font-weight:600;
+  -moz-appearance:textfield; appearance:textfield;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas input::-webkit-inner-spin-button, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas input::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn{position:relative; display:grid; place-items:center; flex:0 0 28px; width:28px; height:28px; padding:0;
+  border-radius:50%; border:1px solid rgba(255,255,255,.24); background:rgba(255,255,255,.07); color:#fff; cursor:pointer;
+  transition:background-color .14s, border-color .14s, transform .12s;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn::after{content:""; position:absolute; inset:-8px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn svg *{stroke:currentColor!important;}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn:hover:not(:disabled){border-color:var(--f-cyan); background:rgba(18,196,238,.16);} }
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn:active:not(:disabled){transform:scale(.94);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn:disabled{opacity:.32; cursor:default;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:2px;}
 
 /* « Dès que possible » : la même place que Date et Heure. */
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .asap-boite{min-height:60px; border-color:rgba(18,196,238,.55); background:rgba(18,196,238,.09);}
@@ -391,7 +407,7 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver:has(#heurePassee:not([hidden])) #btnVoirPrix:disabled::before{display:none;}
 @media (prefers-reduced-motion:reduce){
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix:disabled::before{animation:none; border-top-color:rgba(4,24,47,.25);}
-  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix{transition:none;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .champ, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #btnVoirPrix, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas-btn{transition:none;}
 }
 
 /* ---------- La rassurance : les deux faits de « Inclus » ---------- */

@@ -8,6 +8,7 @@
 //  · rien n'est coupé, de 320 à 1920 px ;
 //  · rien n'est à moitié caché par la barre du bas au premier écran ;
 //  · le champ actif se voit ;
+//  · « − / + » font exactement ce que fait une frappe ;
 //  · une adresse manquante est DITE sous son champ ;
 //  · la page d'un hôtel, la réception et l'admin ne changent pas.
 import { chromium } from 'playwright';
@@ -196,6 +197,50 @@ for (const [w, h] of [[390, 844], [1440, 900]]) {
   await p.focus('#depart'); await p.waitForTimeout(50);
   const apres = await p.evaluate(() => { const s = getComputedStyle(document.querySelector('#blocDepart .champ')); return { bord: s.borderTopColor, ombre: s.boxShadow }; });
   check('le champ actif change de bord et porte un halo', avant !== apres.bord + '|' + apres.ombre && apres.ombre !== 'none', JSON.stringify(apres));
+  await p.context().close();
+}
+
+// ── 4. « − / + » : la même chose qu'une frappe.
+{
+  const p = await ouvrir(390, 844);
+  await p.evaluate(() => { window.__ev = []; ['input', 'change'].forEach(t => document.getElementById('passagers').addEventListener(t, () => window.__ev.push(t))); });
+  const btn = (champ, i) => p.locator(`#${champ}`).locator('xpath=..').locator('.pas-btn').nth(i);
+  // Absents (l'ancien code), on le DIT et on va au bout : une suite qui
+  // s'arrête au premier bouton manquant ne nomme pas les autres défauts.
+  const nb = await p.locator('.reserver .pas-btn:visible').count();
+  check('les boutons « − / + » sont là, quatre', nb === 4, nb + ' visible(s)');
+  if (nb === 4) {
+  check('« − » des passagers est éteint à 1', await btn('passagers', 0).isDisabled());
+  await btn('passagers', 1).click();
+  check('« + » ajoute un passager', (await p.inputValue('#passagers')) === '2', await p.inputValue('#passagers'));
+  check('…et déclenche « input » puis « change », comme une frappe', JSON.stringify(await p.evaluate(() => window.__ev)) === '["input","change"]',
+    JSON.stringify(await p.evaluate(() => window.__ev)));
+  check('« − » des bagages descend jusqu\'à 0, puis s\'éteint', await (async () => { await btn('bagages', 0).click(); return (await p.inputValue('#bagages')) === '0' && await btn('bagages', 0).isDisabled(); })());
+  await p.fill('#bagages', '9'); await p.dispatchEvent('#bagages', 'input');
+  check('« + » des bagages s\'éteint au maximum (9)', await btn('bagages', 1).isDisabled());
+  await p.fill('#passagers', '12'); await p.dispatchEvent('#passagers', 'input');
+  check('le nombre reste tapable (un groupe de 12)', (await p.inputValue('#passagers')) === '12' && !(await btn('passagers', 0).isDisabled()));
+  const noms = await p.evaluate(() => [...document.querySelectorAll('.pas-btn')].map(b => b.getAttribute('aria-label')));
+  check('les quatre boutons sont nommés', noms.length === 4 && noms.every(Boolean), JSON.stringify(noms));
+  check('le champ garde son nom : « Passagers »', (await p.evaluate(() => {
+    const i = document.getElementById('passagers'); return document.getElementById(i.getAttribute('aria-labelledby')).textContent.trim(); })) === 'Passagers');
+  await p.focus('#passagers'); await p.keyboard.press('Tab');
+  check('l\'ordre au clavier ne change pas : de Passagers on passe à Bagages', (await p.evaluate(() => document.activeElement.id)) === 'bagages',
+    await p.evaluate(() => document.activeElement.id));
+  await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(200);
+  check('les boutons parlent anglais en anglais', (await btn('passagers', 1).getAttribute('aria-label')) === 'Add a passenger');
+  }
+  await p.context().close();
+}
+{ // Le nombre choisi au « + » décide vraiment des véhicules proposés.
+  const p = await ouvrir(390, 844);
+  await choisir(p, '#depart', 'vendome'); await choisir(p, '#arrivee', 'argenteuil');
+  const plus = p.locator('#passagers').locator('xpath=..').locator('.pas-btn').nth(1);
+  if (await plus.isVisible()) for (let i = 0; i < 4; i++) await plus.click();
+  await p.click('#btnVoirPrix'); await p.waitForTimeout(1200);
+  const vehicules = await p.locator('#ecran-vehicules .veh-carte').count();
+  check('5 passagers choisis au « + » : la berline (4 places) n\'est plus proposée', vehicules === 1, vehicules + ' véhicule(s)');
+  check('aucune erreur JavaScript dans le tunnel', p._errs.length === 0, p._errs.join(' | '));
   await p.context().close();
 }
 
