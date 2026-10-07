@@ -179,15 +179,19 @@ for (const [w, h] of ORDIS) {
   // jour. Le formulaire passe de trois rangées à deux (Date/Heure à côté de
   // Passagers/Bagages) : la règle durable est que l'encadré prend EXACTEMENT
   // la place que Date/Heure occupait — ni ailleurs, ni dans une case étroite.
+  // Mesuré PAR RAPPORT À LA CARTE : elle est calée en bas du bandeau, et un
+  // encadré plus haut que Date/Heure la fait monter tout entière.
   const avant = await p.evaluate(() => { const d = document.getElementById('blocDateHeure').getBoundingClientRect();
-    return { l: d.left, t: d.top, w: d.width }; });
+    const c = document.querySelector('.reserver').getBoundingClientRect();
+    return { l: d.left - c.left, t: d.top - c.top, w: d.width }; });
   await p.click('#btnQuandAsap');
   await p.waitForTimeout(200);
   const r = await p.evaluate(avant => {
     const a = document.getElementById('blocAsap').getBoundingClientRect();
     const d = document.getElementById('blocDateHeure').getBoundingClientRect();
+    const c = document.querySelector('.reserver').getBoundingClientRect();
     return { visible: a.width > 0, cache: d.width === 0,
-      memePlace: Math.abs(a.left - avant.l) < 2 && Math.abs(a.top - avant.t) < 2 && Math.abs(a.width - avant.w) < 2 };
+      memePlace: Math.abs(a.left - c.left - avant.l) < 2 && Math.abs(a.top - c.top - avant.t) < 2 && Math.abs(a.width - avant.w) < 2 };
   }, avant);
   check('1366×768 « Maintenant » : l’encadré prend la place de Date/Heure', r.visible && r.cache && r.memePlace, JSON.stringify(r));
   check('1366×768 « Maintenant » : « Voir mon prix » reçoit le clic en entier',
@@ -227,20 +231,25 @@ for (const [w, h] of [[1024, 768], [1440, 900], [1920, 1080]]) {
   await p.context().close();
 }
 
-// ── Le téléphone et la tablette gardent leur mise en page : la grille et
-//    les colonnes de lecture ne s'allument qu'à partir de 900 px.
+// ── Le téléphone garde sa colonne ; la TABLETTE n'est plus le téléphone
+//    étiré (Bloc 3, 7 octobre 2026 : des champs de 718 px de large) — départ
+//    et arrivée y passent côte à côte. Le menu d'ordinateur et les colonnes
+//    de lecture, eux, ne s'allument toujours qu'à partir de 900 px.
 for (const [w, h] of [[320, 700], [390, 844], [768, 1024], [899, 900]]) {
   /* et le menu d'ordinateur n'y apparaît pas : une navigation par écran. */
   const p = await ouvrir(w, h);
   const r = await p.evaluate(() => ({
     sw: document.documentElement.scrollWidth,
     grille: getComputedStyle(document.querySelector('.reserver')).display,
+    cote: Math.abs(document.getElementById('blocDepart').getBoundingClientRect().top
+      - document.getElementById('blocArrivee').getBoundingClientRect().top) < 2,
     barre: getComputedStyle(document.querySelector('.barre')).display,
     menu: (document.querySelector('.entete-nav') ? getComputedStyle(document.querySelector('.entete-nav')).display : 'none'),
   }));
   check(`${w} px : pas de menu d'ordinateur dans l'en-tête`, r.menu === 'none', r.menu);
   check(`${w} px : aucun débordement`, r.sw === w, String(r.sw));
-  check(`${w} px : le formulaire reste en une colonne`, r.grille !== 'grid', r.grille);
+  if (w < 600) check(`${w} px : le formulaire reste en une colonne (téléphone)`, r.grille !== 'grid' && !r.cote, r.grille);
+  else check(`${w} px : tablette — départ et arrivée côte à côte, plus le téléphone étiré`, r.cote, JSON.stringify(r));
   check(`${w} px : la barre du bas est là`, r.barre !== 'none', r.barre);
   await p.context().close();
 }
