@@ -171,10 +171,16 @@ check('aucun « data-t » sur une balise fermante', fermantes.length===0, ferman
 
 /* Et le cas réel, mesuré à l'écran plutôt que dans le code : la ligne qui
    rassure sous le bouton parle bien anglais. */
+/* LE TEXTE DE LA PAGE, PAS UNE PHRASE RECOPIÉE (Bloc 3, 7 octobre 2026) :
+   ce contrôle attendait mot pour mot « Availability confirmed by WhatsApp or
+   SMS », devenue fausse le 4 octobre. Il éprouve maintenant la règle — la
+   ligne dit, en anglais, ce que la page dit elle-même dans ELA_TEXTES, et
+   l'anglais n'est pas le français recopié. */
+const textesPage = await p.evaluate(() => window.ELA_TEXTES);
+const ligneEn = (await p.locator('p.rassure').first().innerText()).replace(/\s+/g, ' ').trim();
 check('la ligne sous le bouton est traduite elle aussi',
-  (await p.locator('p.rassure').first().innerText()).trim()
-    === 'Availability confirmed by WhatsApp or SMS',
-  (await p.locator('p.rassure').first().innerText()).trim());
+  ligneEn === textesPage.en.eng2 + ' · ' + textesPage.en.eng4
+    && ligneEn !== textesPage.fr.eng2 + ' · ' + textesPage.fr.eng4, ligneEn);
 check('et son icône n\'a pas été effacée par la traduction',
   (await p.locator('p.rassure svg').first().count())===1);
 

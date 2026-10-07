@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v155";
+const CACHE = "elatransfer-v156";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -49,7 +49,7 @@ const SHELL = ["./", "./index.html", "./application.html",
                "./admin-sante.js",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
-               "./brand-logo.webp", "./brand-logo-white.png"];
+               "./brand-logo.webp", "./brand-logo-negatif.webp", "./brand-logo-white.png"];
 const NETWORK_FIRST_ASSETS = [
   "/application-facade.css",
   "/hotel-engine-polish.css",

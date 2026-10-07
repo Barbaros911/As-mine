@@ -3,7 +3,7 @@ set -e
 rm -rf site
 mkdir -p site
 cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css manifest.webmanifest sw.js \
-   icon.svg icon-maskable.svg icon-32.png icon-32.png icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml \
+   icon.svg icon-maskable.svg icon-32.png icon-32.png icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html site/
 node .github/scripts/public-booking-gateway.mjs site/index.html
 node .github/scripts/harden-exploitant-auth.mjs site/index.html
@@ -34,7 +34,7 @@ cp CNAME site/
 [ -d photos ] && cp -r photos site/photos || true
 touch site/.nojekyll
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte icones exploitant reception"
+  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css styles.css seo-pages.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html demos _headers carte icones exploitant reception"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")

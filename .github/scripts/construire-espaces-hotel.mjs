@@ -154,6 +154,13 @@ function publicEla() {
   let html = sansBonComptoir(sansReception(sansAdmin()));
   html = injecterBootstrap(html, 'public');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="public">');
+  /* LE LOGO EN VERSION NÉGATIVE, ICI SEULEMENT (7 octobre 2026, Bloc 3,
+     choix de Barbaros). L'en-tête public est bleu nuit, où les lettres bleu
+     nuit de l'original disparaissent (1,1:1). La page d'un hôtel, la
+     réception et l'admin ont un en-tête clair : elles gardent l'original. */
+  const avant = html;
+  html = html.replace('<img class="logo-image" src="brand-logo.webp"', '<img class="logo-image" src="brand-logo-negatif.webp"');
+  if (html === avant) throw new Error('publicEla : logo de l’en-tête introuvable, la version négative n’a pas été posée');
   /* LES FICHIERS DES HÔTELS NE SONT PAS POUR L'ACCUEIL (6 octobre 2026) :
      45 Ko et deux requêtes dont chaque règle vise une page d'hôtel. Ici,
      ?h= part vers /application.html avant tout dessin (ci-dessous), et ce
