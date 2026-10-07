@@ -87,9 +87,7 @@ for (const [w, h] of ORDIS) {
     const m = await p.evaluate(() => {
       const r = s => document.querySelector(s).getBoundingClientRect();
       return { sw: document.documentElement.scrollWidth, carte: r('.reserver'),
-        // Ce qui se voit du logo est son CARTOUCHE blanc (en-tête bleu nuit,
-        // Bloc 3, 7 octobre 2026) : c'est lui qui s'aligne sur la colonne.
-        logo: r('.entete .logo'), pied: r('.pied'), titre: r('.hero h1'), langues: r('.langues'),
+        logo: r('.logo-image'), pied: r('.pied'), titre: r('.hero h1'), langues: r('.langues'),
         hero: r('.hero'), cta: getComputedStyle(document.getElementById('btnHeroReserver')).display };
     });
     /* LA COLONNE : 1180 px au plus, 24 px de marge au moins. Tout s'y aligne —
@@ -532,7 +530,8 @@ for (const [w, h, fichier] of [[390, 844, 'accueil-paris-nuit-tel.webp'], [820, 
     const r = i.getBoundingClientRect();
     return { src: i.getAttribute('src'), ecart: Math.abs(r.width / r.height - i.naturalWidth / i.naturalHeight) };
   });
-  check('le logo de l’en-tête est le fichier officiel', l.src === 'brand-logo.webp', l.src);
+  // Sur l'en-tête bleu nuit, la version négative choisie par Barbaros (Bloc 3).
+  check('le logo de l’en-tête est la version négative officielle', l.src === 'brand-logo-negatif.webp', l.src);
   check('le logo garde ses proportions', l.ecart < 0.02, l.ecart.toFixed(3));
   await p.context().close();
 }

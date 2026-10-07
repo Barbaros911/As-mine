@@ -49,7 +49,7 @@ const SHELL = ["./", "./index.html", "./application.html",
                "./admin-sante.js",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
-               "./brand-logo.webp", "./brand-logo-white.png"];
+               "./brand-logo.webp", "./brand-logo-negatif.webp", "./brand-logo-white.png"];
 const NETWORK_FIRST_ASSETS = [
   "/application-facade.css",
   "/hotel-engine-polish.css",

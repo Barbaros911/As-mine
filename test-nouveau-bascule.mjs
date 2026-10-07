@@ -1185,6 +1185,7 @@ for (const large of [1024, 1280]) {
   const EMPREINTES = {
     'brand-logo-officiel.jpeg': '3543f52757a29440', 'brand-logo-white.png': 'bbcdaaccb57a131b',
     'brand-logo.svg': '72ad55c6e0fdaf20', 'brand-logo.webp': '8ed02e907b782ae5',
+    'brand-logo-negatif.webp': '99513c72c79b8f00',
     'icon-180.png': '4244c5cb988282a2', 'icon-32.png': 'febfba43bb9da37c', 'icon-512.png': '6822a0401f373c1b',
     'icon-maskable.svg': '6262e8f0ec8accec', 'icon.svg': '6262e8f0ec8accec',
     'icones/admin-180.png': '4f682716b7e063bf', 'icones/admin-32.png': 'f585c56905212222', 'icones/admin-512.png': '01508f0a878f2934',
@@ -1205,12 +1206,16 @@ for (const large of [1024, 1280]) {
      dans l'en-tête. Il s'aligne désormais sur la colonne de 1180 px du
      contenu : (1280 − 1180) / 2 = 50 px, au lieu d'être collé au bord à 18.
      Fichier, taille, filtre et opacité restent exigés à l'identique. */
-  /* ET ELLE A CHANGÉ UNE SECONDE FOIS (7 octobre 2026, Bloc 3) : Barbaros a
-     choisi l'en-tête bleu nuit avec son logo d'ORIGINE sur un cartouche blanc
-     (ses lettres bleu nuit disparaissent sur le bleu nuit : 1,1:1). C'est le
-     cartouche qui s'aligne sur la colonne ; le logo, dedans, se décale de
-     10 px. Fichier, taille, filtre et opacité : toujours exigés à l'identique. */
-  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 24 }, 1280: { w: 128, h: 56.3, x: 60 } };
+  /* LE FICHIER DE L'ACCUEIL A CHANGÉ, ET C'EST SA DÉCISION (7 octobre 2026,
+     Bloc 3). Barbaros a choisi l'en-tête bleu nuit, où les lettres bleu nuit
+     de l'original disparaissent (1,1:1) ; un cartouche blanc a été refusé
+     (« ça casse le visuel »). L'accueil porte donc la VERSION NÉGATIVE
+     (lettres blanches, courbe cyan), ajoutée à la table ci-dessus, même
+     silhouette au pixel près. Place, taille, filtre et opacité : inchangés.
+     La page d'un hôtel, la réception et l'admin gardent l'original : c'est
+     test-public-formulaire qui le vérifie. */
+  const LOGO_ACCUEIL = 'brand-logo-negatif.webp';
+  const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 50 } };
   const ICONES = ['icon icon-32.png 32x32', 'apple-touch-icon icon-180.png ', 'icon /icon-180.png ', 'apple-touch-icon /icon-180.png 180x180'];
   for (const [largeur, attendu] of Object.entries(AFFICHAGE)) {
     const pl = await b.newPage({ viewport: { width: +largeur, height: 844 }, locale: 'fr-FR' });
@@ -1223,9 +1228,9 @@ for (const large of [1024, 1280]) {
       return { src: i.getAttribute('src'), w: r.width, h: r.height, x: r.x, filtre: st.filter, op: st.opacity,
         icones: [...document.querySelectorAll('link[rel*=icon]')].map(x => x.rel + ' ' + x.getAttribute('href') + ' ' + (x.sizes || '')) };
     });
-    const memePlace = lu && lu.src === 'brand-logo.webp' && Math.abs(lu.w - attendu.w) < 0.6
+    const memePlace = lu && lu.src === LOGO_ACCUEIL && Math.abs(lu.w - attendu.w) < 0.6
       && Math.abs(lu.h - attendu.h) < 0.6 && Math.abs(lu.x - attendu.x) < 0.6 && lu.filtre === 'none' && lu.op === '1';
-    check(`${largeur} px : le logo de l'accueil s'affiche comme sur main (fichier, taille, place, couleur)`, memePlace, JSON.stringify(lu && { ...lu, icones: undefined }));
+    check(`${largeur} px : le logo de l'accueil est la version choisie, à la taille et à la place de main, sans filtre`, memePlace, JSON.stringify(lu && { ...lu, icones: undefined }));
     check(`${largeur} px : les icônes déclarées sont celles de main`, lu && JSON.stringify(lu.icones) === JSON.stringify(ICONES), JSON.stringify(lu && lu.icones));
     await pl.close();
   }

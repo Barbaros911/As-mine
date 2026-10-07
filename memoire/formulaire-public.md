@@ -3,8 +3,8 @@
 Suite des Blocs 1 (positionnement) et 2 (photo « Paris la nuit »). Mission :
 amener le formulaire de réservation au niveau du bandeau, **sans toucher à sa
 logique**. Barbaros a délégué les choix (« comme si c'était ton site ») après
-avoir vu un prototype en images ; il a tranché l'en-tête et le bouton du
-bandeau sur captures.
+avoir vu un prototype en images ; il a tranché l'en-tête, le logo et le
+bouton du bandeau sur captures.
 
 ## Ce que l'audit a mesuré avant d'écrire une ligne
 
@@ -84,17 +84,28 @@ mon logo original ». Or ses lettres sont bleu nuit (≈ #002048) : sur un
 en-tête bleu nuit, contraste mesuré 1,1:1, il disparaît. La version blanche
 officielle (`brand-logo-white.png`) a été montrée et refusée — c'est un autre
 logo à ses yeux. Trois images (A blanc / B bleu nuit sans rien / C bleu nuit
-avec cartouche blanc) : **il a choisi C**.
-- Le cartouche est blanc, arrondi, avec une ombre légère : il rend au logo le
-  fond pour lequel il est dessiné (16:1).
-- **C'est le cartouche qui s'aligne sur la colonne**, pas le logo dedans.
-  Calé sur le logo, il collait au bord du téléphone (4 px) et dépassait de
-  10 px la colonne du titre sur ordinateur. Le logo s'est donc décalé de
-  10 px (24 au lieu de 14 à 390 px, 60 au lieu de 50 à 1280 px) ; fichier,
-  taille, filtre et opacité sont inchangés. La table de test-nouveau-bascule
-  et la mesure d'alignement de test-public-ordinateur ont suivi.
+avec cartouche blanc) : il a d'abord choisi C, puis l'a refusé une fois posé
+(« j'aime pas mon logo sur fond blanc, ça casse le visuel »).
+- **Il a choisi D : la version négative de SON logo** (`brand-logo-negatif.webp`).
+  Lettres bleu nuit → blanc, courbe cyan conservée, même silhouette au pixel
+  près (canal alpha identique à l'original, vérifié). Fabriquée par un
+  mappage de luminance sur `brand-logo.webp` : les pixels sombres passent au
+  blanc, le cyan reste, avec une transition douce sur les bords pour ne pas
+  créer de liseré. WebP sans perte (36 Ko contre 145 Ko pour l'original).
+- **Elle n'est posée que sur la page publique**, par `publicEla()` dans
+  `construire-espaces-hotel.mjs` (la construction s'arrête si elle ne trouve
+  pas l'image à remplacer). La page d'un hôtel et la réception ont un
+  en-tête clair : elles gardent l'original, et `test-public-formulaire`
+  le vérifie.
+- **Place, taille, filtre et opacité sont ceux de main** (14 px à 390, 50 px
+  à 1280) : le cartouche les avait décalés de 10 px, ce décalage est parti
+  avec lui. `test-nouveau-bascule` garde l'empreinte du nouveau fichier.
 - La hauteur de l'en-tête ne bouge pas (62 / 68 px) : la grandir aurait
   repoussé « Voir mon prix » sous la barre du bas.
+- **Conseil donné** : demander à son graphiste un original VECTORIEL (SVG ou
+  PDF) du logo, en version positive ET négative. Le négatif d'aujourd'hui est
+  fabriqué depuis une image ; il est net à la taille de l'en-tête, mais un
+  master vectoriel servira pour l'impression et les grands formats.
 
 ## Ce qui reste, hors de ce bloc
 
