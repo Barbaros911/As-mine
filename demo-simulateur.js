@@ -316,6 +316,7 @@
     var photo = document.getElementById("demoPhotoTexte");
     if(photo) photo.textContent = texte("Votre photo ici", "Your photo here");
     traduire(document.getElementById("demoPerso"));
+    try{ if(window.ELA_DEMO_PAGE && window.ELA_DEMO_PAGE.dessinerCartes) window.ELA_DEMO_PAGE.dessinerCartes(); }catch(e){}
     dessinerSuivi();
   }
 

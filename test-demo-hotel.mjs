@@ -153,6 +153,21 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
 /* ═══ 3. LE PARCOURS CLIENT → RÉCEPTION ═══ */
 {
   const { ctx, p } = await ouvrir();
+  /* LA PAGE D'ARRIVÉE : les cartes d'abord, le formulaire ensuite. */
+  check('arrivée : « Où souhaitez-vous aller ? » et les cartes à l\'ouverture', /Où souhaitez-vous aller/.test(await texte(p, '#demoCartes')) && await visible(p, '.demo-carte[data-dest="cdg"]'));
+  check('arrivée : le formulaire attend qu\'on choisisse', !(await visible(p, '#btnVoirPrix')));
+  check('arrivée : une carte par destination, plus « Autre destination »',
+    await p.evaluate(() => document.querySelectorAll('.demo-carte').length === document.querySelectorAll('#hotelDest option').length));
+  check('arrivée : les prix des cartes sont ceux du menu (CDG 45 / 65 €)', /45,00\s€[\s\S]*65,00\s€/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
+  check('arrivée : une carte ouvre le formulaire sur SA destination', (await p.inputValue('#hotelDest')) === 'orly' && await visible(p, '#btnVoirPrix'));
+  check('arrivée : « Toutes les destinations » est à l\'écran après le choix', await p.evaluate(() => { const r = document.getElementById('demoRetourCartes').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.height > 0; }));
+  await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
+  check('arrivée : « Toutes les destinations » ramène aux cartes', await visible(p, '.demo-carte[data-dest="cdg"]') && !(await visible(p, '#btnVoirPrix')));
+  await p.click('.demo-autre'); await p.waitForTimeout(300);
+  check('arrivée : « Autre destination » ouvre le formulaire sans forfait', (await p.inputValue('#hotelDest')) === '' && await visible(p, '#btnVoirPrix'));
+  await p.click('#demoRetourCartes'); await p.waitForTimeout(200);
+  await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(300);
   await p.click('#btnVoirPrix');
   await p.waitForSelector('.veh-carte', { timeout: 8000 });
   await p.locator('.veh-carte').first().click();
@@ -186,6 +201,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('retour à la vue client par l\'onglet', await visible(p, '#hotelTete'));
   /* EN ANGLAIS */
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
+  check('en anglais, les cartes suivent', /Where would you like to go/.test(await texte(p, '#demoCartes')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   check('en anglais, le cadre de la démo suit', (await texte(p, '#demoBandeau')) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
   check('aucune erreur JavaScript sur le parcours', p.errs.length === 0, p.errs.join(' ; '));
   check('aucun appel à Supabase hors demande-demo sur le parcours', p.supabase.length === 0, p.supabase.join(' '));
@@ -249,8 +265,9 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : un prix à 0 € est refusé, et on dit pourquoi', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')));
   await p.click('#demoPersoVoir');
   check('perso : « Voir ma page » referme le panneau', !(await p.evaluate(() => document.getElementById('demoPerso').open)));
-  await p.selectOption('#hotelDest', 'perso-0'); await p.waitForTimeout(400);
-  check('perso : son forfait s\'affiche avec la destination', /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
+  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60,00\s€[\s\S]*90,00\s€/.test(await texte(p, '.demo-carte[data-dest="perso-0"]')));
+  await p.click('.demo-carte[data-dest="perso-0"]'); await p.waitForTimeout(400);
+  check('perso : son forfait s\'affiche avec la destination', (await p.inputValue('#hotelDest')) === 'perso-0' && /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
   check('perso : le vrai stockage du site n\'a rien reçu', await p.evaluate(() => Object.keys(localStorage).every(k => k === 'ela_demo_session' || k.startsWith('ela_demo__'))));
   check('perso : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);

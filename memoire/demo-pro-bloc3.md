@@ -55,6 +55,22 @@
   `/professionnels/#contact` (dans le suivi une fois « Effectuée », et en pied
   avec le QR code vers `https://elatransfer.com/professionnels/`).
 
+## La page d'arrivée — « Où souhaitez-vous aller ? » (8/10/2026)
+
+Barbaros : « le résultat final sera comme pour easyHotel ? ». La démo ouvrait
+directement le formulaire ; la vraie page d'un partenaire ouvre d'abord ses
+destinations en cartes. Désormais la vue client fait pareil :
+- `ELA_DEMO_PAGE.dessinerCartes()` construit les cartes depuis `HOTELS` — la
+  même liste que le menu du formulaire —, destinations ajoutées comprises :
+  jamais recopiées, elles ne peuvent pas contredire le menu.
+- Tant que rien n'est choisi (`body.demo-choix`), seuls l'en-tête de l'hôtel
+  et les cartes sont à l'écran. Une carte pose la destination par le menu
+  (`change`, le chemin du moteur) et ouvre le formulaire ; « ← Toutes les
+  destinations » revient. « Autre destination » = menu à valeur vide.
+- Codes d'aéroport (CDG, ORY, LBG, BVA), un repère dessiné ailleurs : jamais
+  un texte saisi en `innerHTML`.
+- Pas sur la vue réception : le comptoir réserve sur une seule page.
+
 ## « Personnaliser ma page » (8/10/2026, à la demande de Barbaros)
 
 « Couleur, nom, photo, et même on peut ajouter des éléments qu'ils voudront

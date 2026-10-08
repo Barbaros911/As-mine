@@ -151,3 +151,33 @@ html[data-ela-space="demo"] .langues button[aria-pressed="true"]{background:var(
 .demo-photo.avec-photo #demoPhotoTexte{display:none}
 .demo-message{margin:6px 0 0;font-size:15px;font-weight:600;color:var(--h-charbon,var(--demo-nuit));overflow-wrap:anywhere}
 .demo-message[hidden]{display:none}
+
+/* ═══ LA PAGE D'ARRIVÉE : « OÙ SOUHAITEZ-VOUS ALLER ? » ═══
+   Tant que le client n'a pas choisi, seules l'en-tête de l'hôtel et les
+   cartes sont à l'écran ; le formulaire vient ensuite, destination posée. */
+body.demo-choix #ecran-accueil > :not(#hotelTete):not(#demoCartes){display:none !important}
+body:not(.demo-choix) #demoCartes{display:none}
+body.demo-choix #demoRetourCartes{display:none}
+.demo-cartes{margin:0 0 18px;padding:0 16px}
+.demo-cartes-titre{margin:4px 0 4px;font-size:22px;font-weight:800;color:#151C22}
+.demo-cartes-cap{margin:0 0 12px;color:#5A6A7B;font-size:14px}
+.demo-grille{display:grid;grid-template-columns:1fr;gap:10px;margin:0;padding:0;list-style:none}
+@media (min-width:600px){.demo-grille{grid-template-columns:1fr 1fr}}
+@media (min-width:1000px){.demo-grille{grid-template-columns:1fr 1fr 1fr}}
+.demo-carte{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;border:1px solid var(--demo-filet);
+  border-radius:14px;background:#fff;color:#151C22;font:inherit;text-align:left;cursor:pointer;box-shadow:0 2px 8px rgba(6,47,85,.05)}
+.demo-carte:hover{border-color:var(--h-bouton,var(--demo-bleu))}
+.demo-carte:focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
+.demo-pict{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;
+  background:var(--h-pale,var(--demo-pale));color:var(--h-paleEncre,var(--demo-encre));font-weight:800;font-size:14px;letter-spacing:.5px}
+.demo-carte-nom{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.demo-carte-nom b{font-size:16px;overflow-wrap:anywhere}
+.demo-carte-nom small{color:var(--h-bouton,var(--demo-bleu));font-weight:700;font-size:13px}
+.demo-carte-prix{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.demo-carte-prix span{display:flex;gap:6px;align-items:baseline}
+.demo-carte-prix i{font-style:normal;color:#5A6A7B;font-size:12.5px}
+.demo-carte-prix b{font-size:15px}
+.demo-autre{border-style:dashed}
+.demo-autre .demo-carte-nom small{color:#5A6A7B;font-weight:500}
+.demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
+  color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}

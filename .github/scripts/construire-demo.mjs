@@ -163,6 +163,86 @@ const PERSO = `
       hotelDest = garde;
       selDest.value = garde ? garde.cle : "";
       if(hotel) appliquerHotel();
+      window.ELA_DEMO_PAGE.dessinerCartes();
+    },
+    /* LA PAGE D'ARRIVÉE, COMME CELLE DU QR D'UN VRAI PARTENAIRE : « Où
+       souhaitez-vous aller ? », une carte par destination avec ses deux prix,
+       puis « Autre destination ». Construite depuis HOTELS — la MÊME liste
+       que le menu du formulaire —, jamais recopiée : destinations ajoutées
+       comprises, la carte et le formulaire ne peuvent pas se contredire. */
+    dessinerCartes: function(){
+      if(document.documentElement.getAttribute("data-demo-vue") !== "client") return;
+      var h = HOTELS["demo-hotel"], tete = document.getElementById("hotelTete");
+      if(!h || !tete) return;
+      var en = LANGUE === "en";
+      var bloc = document.getElementById("demoCartes");
+      if(!bloc){
+        bloc = document.createElement("section");
+        bloc.id = "demoCartes"; bloc.className = "demo-cartes";
+        tete.parentNode.insertBefore(bloc, tete.nextSibling);
+        var retour = document.createElement("button");
+        retour.type = "button"; retour.id = "demoRetourCartes"; retour.className = "demo-retour-cartes";
+        retour.addEventListener("click", function(){
+          document.body.classList.add("demo-choix");
+          var b = document.getElementById("demoBandeau");
+          window.scrollTo(0, Math.max(0, tete.getBoundingClientRect().top + window.scrollY - (b ? b.offsetHeight + 8 : 0)));
+        });
+        bloc.parentNode.insertBefore(retour, bloc.nextSibling);
+        document.body.classList.add("demo-choix");
+      }
+      document.getElementById("demoRetourCartes").textContent = en ? "← All destinations" : "← Toutes les destinations";
+      bloc.textContent = "";
+      var titre = document.createElement("h2"); titre.className = "demo-cartes-titre";
+      titre.textContent = en ? "Where would you like to go?" : "Où souhaitez-vous aller ?";
+      var cap = document.createElement("p"); cap.className = "demo-cartes-cap";
+      cap.textContent = en ? "Fixed prices · Sedan up to 4 passengers · Van up to 7"
+                           : "Prix fixes · Berline jusqu’à 4 passagers · Van jusqu’à 7";
+      bloc.appendChild(titre); bloc.appendChild(cap);
+      var CODES = { cdg:"CDG", orly:"ORY", bourget:"LBG", beauvais:"BVA" };
+      var ul = document.createElement("ul"); ul.className = "demo-grille";
+      function choisir(cle){
+        selDest.value = cle;
+        selDest.dispatchEvent(new Event("change", { bubbles:true }));
+        document.body.classList.remove("demo-choix");
+        var form = document.getElementById("demoRetourCartes") || selDest;
+        var b = document.getElementById("demoBandeau");
+        window.scrollTo(0, Math.max(0, form.getBoundingClientRect().top + window.scrollY - (b ? b.offsetHeight + 8 : 0)));
+      }
+      h.destinations.forEach(function(d){
+        var li = document.createElement("li");
+        var a = document.createElement("button"); a.type = "button"; a.className = "demo-carte";
+        a.setAttribute("data-dest", d.cle);
+        var pict = document.createElement("span"); pict.className = "demo-pict"; pict.setAttribute("aria-hidden", "true");
+        /* Un code d'aéroport se lit plus vite qu'une photo ; ailleurs, un repère
+           dessiné (constant, jamais construit à partir d'un texte saisi). */
+        if(CODES[d.cle]) pict.textContent = CODES[d.cle];
+        else pict.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+        var nom = document.createElement("span"); nom.className = "demo-carte-nom";
+        var b = document.createElement("b"); b.textContent = d.nom;
+        var go = document.createElement("small"); go.textContent = en ? "Choose →" : "Choisir →";
+        nom.appendChild(b); nom.appendChild(go);
+        var prix = document.createElement("span"); prix.className = "demo-carte-prix";
+        [["berline", en ? "Sedan" : "Berline"], ["van", "Van"]].forEach(function(g){
+          var px = document.createElement("span");
+          var i = document.createElement("i"); i.textContent = g[1];
+          var m = document.createElement("b"); m.textContent = euros(d.forfait[g[0]]);
+          px.appendChild(i); px.appendChild(m); prix.appendChild(px);
+        });
+        a.appendChild(pict); a.appendChild(nom); a.appendChild(prix);
+        a.addEventListener("click", function(){ choisir(d.cle); });
+        li.appendChild(a); ul.appendChild(li);
+      });
+      var liA = document.createElement("li"); liA.className = "demo-li-autre";
+      var autre = document.createElement("button"); autre.type = "button"; autre.className = "demo-carte demo-autre";
+      autre.setAttribute("data-dest", "");
+      var ab = document.createElement("b"); ab.textContent = en ? "Other destination" : "Autre destination";
+      var as = document.createElement("small");
+      as.textContent = en ? "Enter the address · price shown before booking" : "Saisissez l’adresse · prix calculé avant réservation";
+      var an = document.createElement("span"); an.className = "demo-carte-nom"; an.appendChild(ab); an.appendChild(as);
+      autre.appendChild(an);
+      autre.addEventListener("click", function(){ choisir(""); });
+      liA.appendChild(autre); ul.appendChild(liA);
+      bloc.appendChild(ul);
     }
   };
 `;
