@@ -2846,10 +2846,10 @@ de vide à droite**.
 
 Septembre 2026, quatre demandes qui se suivent et qui tiennent ensemble.
 
-**LA LIGNE SOUS LE BOUTON DIT « Prix ferme · Réglé au chauffeur »** (Bloc 3,
-clés `eng2` et `eng4` de « Inclus », rien de neuf). Jamais l'annulation
-gratuite (retirée deux fois), jamais « WhatsApp ou SMS » (faux depuis l'option
-A). Histoire : `memoire/formulaire-public.md`.
+**LA LIGNE SOUS LE BOUTON DIT « Prix annoncé à l'avance · Réglé au chauffeur »**
+(clés `eng2` et `eng4` de « Inclus »). Jamais « prix ferme » (8/10/2026),
+ni l'annulation gratuite, ni « WhatsApp ou SMS ». Histoire :
+`memoire/formulaire-public.md`.
 
 **L'ENCADRÉ « VOL OU TRAIN EN RETARD ? » (`.promesse`) EST RETIRÉ** le
 6/10/2026 : il redisait la carte « Suivi du vol » posée juste en dessous. Son
@@ -4661,25 +4661,6 @@ vers `/ela-admin/`, jamais un 404.
   partagés avec l'admin retenu). La règle des papiers n'est donc, dans l'admin
   retenu, qu'un avertissement d'écran. Histoire : `memoire/admin-v2.md`.
 
-## QUI SOMMES-NOUS — LE MODÈLE DIT EN CLAIR
-
-5 octobre 2026, à sa demande. Le site ne disait nulle part ce qu'est
-Elatransfer : `#comment`, JUSTE SOUS LE FORMULAIRE, le dit (« Vous réservez,
-nous organisons tout. », trois étapes) ; l'encart hôtels/agences/entreprises
-est `#modele`, après « Au-delà du trajet ». Devis : « Au-delà du trajet ».
-- **Le premier écran reste au client qui réserve.** Sous le formulaire, une
-  seule ligne (`.pro-bloc`) mène à l'encart ; le pavé de 70 mots est retiré.
-- **L'ordre de l'accueil est verrouillé** (`test-public-ordinateur`) : formulaire,
-  étapes, inclus, services, au-delà, professionnels, questions, pied.
-- **« Chauffeur professionnel », jamais « taxi » ni « VTC »** sur une page
-  client : vrai pour les deux, et « taxi » fait attendre un compteur à côté
-  d'un prix ferme. L'exactitude va aux mentions légales.
-- **« Mise en place gratuite » n'est vrai que si l'hôtel ne paie rien.** Le
-  jour où il facture une installation ou un abonnement, retirer la ligne.
-- Aucun client cité (pas d'accord écrit), aucun chiffre, aucun délai promis.
-- `contact@elatransfer.com` est sur « Nous joindre » (devis, partenariats).
-- Histoire de l'ancien emplacement : `memoire/accueil-pro.md`.
-
 ## L'ADMIN SANS RÉSEAU, LA FILE QUI NE PERD RIEN, LE RAPPEL DE SAUVEGARDE
 
 4 octobre 2026, suite de l'audit de l'admin, à sa demande (« oui » à
@@ -4865,24 +4846,39 @@ dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
 
 ## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
 
-6 octobre 2026, bloc 1 de la mission « positionnement » (Barbaros : « corrige
-comme un expert »). Elatransfer organise des transferts avec chauffeur (B2C)
-ET crée pour chaque partenaire un canal de réservation — page à son nom,
-espace réception, lien et QR code — puis gère chaque transport (B2B).
-- **Jamais « solution(s) », « mobilité », « plateforme », « conciergerie »** sur
-  une page publique : un directeur d'hôtel doit lire ce qu'on crée (page,
-  espace réception, QR) et ce qu'on fait après (vérification, chauffeur,
-  confirmation, suivi jusqu'à la réalisation). « Suivi » = humain, jamais
-  « temps réel ». « À votre nom et à vos couleurs », pas « à votre image ».
-- **Le bandeau ne grossit pas** : sous-titre ≤ 125 caractères, ligne de
-  services sur UNE ligne à 390 px (« Salons » / « Trade fairs » y restent, un
-  contrôle les cherche) ; sinon « Voir mon prix » repasse sous la barre.
-- `contact@elatransfer.com` en `mailto:` dans le pied ET le bloc pro, jamais
-  dans le H1, le title ni la description. Title et description vivent à DEUX
-  endroits (`index.html`, `seo-ela.mjs`) et doivent rester identiques ; le
-  JSON-LD décrit les deux activités (Organization + deux Service).
-- Promesse B2B : « Votre réception réserve. Elatransfer gère tout le reste. »
-  / « Your front desk books. Elatransfer takes care of everything else. »
+Bloc 1 (6/10/2026) puis audit éditorial (8/10), chaque point tranché par
+Barbaros. Elatransfer organise des transferts avec chauffeur (B2C) ET crée
+pour chaque partenaire sa page de réservation, son QR code et son espace
+réception, puis gère chaque transport (B2B). Histoire et variantes écartées :
+`memoire/textes-publics.md` ; ancien emplacement du bloc pro :
+`memoire/accueil-pro.md`.
+- **Le grand titre dit le métier** (« Transferts avec chauffeur, organisés de
+  A à Z. »), le sous-titre parle aux pros. **Aucun lieu dans l'un ni l'autre**
+  (« il ne faut pas se fixer en France ») ; les lieux restent dans ce qui
+  décrit le service. Ni « Europe » ni « monde » : le prix en ligne s'arrête à
+  90 km.
+- **Jamais « solution », « mobilité », « plateforme », « conciergerie »,
+  « canal »** sur une page publique : on nomme ce qu'on crée et ce qu'on fait
+  après. « Suivi » = humain, jamais « temps réel ».
+- **« Prix ferme » ne vend plus** : « Prix annoncé à l'avance ». « Ferme »
+  reste au contrat : étiquette du bon confirmé, phrase avant « Confirmer »,
+  CGV. **Rien sous le logo.**
+- Le chauffeur est « professionnel indépendant, sous sa propre carte
+  professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni
+  « VTC » côté client, et aucun contrôle de papiers promis. La confirmation
+  part par le moyen choisi par le client, jamais « WhatsApp ou SMS ».
+- **Le premier écran reste au client qui réserve** : une ligne (`.pro-bloc`)
+  mène à `#modele` ; ordre de l'accueil verrouillé (`test-public-ordinateur`) ;
+  sous-titre ≤ 125 caractères, services sur une ligne à 390 px.
+- « Mise en place gratuite » est vraie (confirmé le 8/10) : la retirer le jour
+  où un hôtel paie. Aucun client cité, aucun chiffre, aucun délai promis.
+- **LA FICHE GOOGLE N'A PAS ÉTÉ TOUCHÉE** (à sa demande, 8/10) : titre et
+  description disent encore « Transferts privés » et « prix ferme ». Ils
+  vivent à DEUX endroits (`index.html`, `seo-ela.mjs`), identiques.
+- `contact@elatransfer.com` : pied, bloc pro, « Nous joindre ». Promesse B2B :
+  « Votre réception réserve. Elatransfer gère tout le reste. »
+- `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
+  code d'avant).
 
 ## GOOGLE — UNE SEULE ENTREPRISE, ET DES PAGES DE SERVICE LIÉES
 

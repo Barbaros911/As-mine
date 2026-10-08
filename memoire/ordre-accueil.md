@@ -1,7 +1,7 @@
 # L'ordre de l'accueil — histoire
 
 Archive sortie de CLAUDE.md. La règle en vigueur est dans CLAUDE.md
-(« QUI SOMMES-NOUS — LE MODÈLE DIT EN CLAIR ») ; ici, le pourquoi.
+(« LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE ») ; ici, le pourquoi.
 
 ## 6 octobre 2026 — « le 1.2.3 est trop bas »
 
