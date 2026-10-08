@@ -69,7 +69,7 @@ async function ouvrir({ w = 390, h = 844, session = 's.test', reponse = {}, chem
         if (reponse === 'muet') return r.abort();
         if (typeof reponse === 'number') return r.fulfill({ status: reponse, contentType: 'application/json', body: JSON.stringify({ erreur: 'session' }) });
         return r.fulfill({ status: 200, contentType: 'application/json',
-          body: JSON.stringify({ ok: true, etablissement: 'Hôtel Ibis Roissy', type: 'hotel', expire: Date.now() + 864e5, ...reponse }) });
+          body: JSON.stringify({ ok: true, etablissement: 'Hôtel Ibis Roissy', type: 'hotel', expire: new Date(Date.now() + 6048e5).toISOString(), ...reponse }) });
       }
       p.supabase.push(u);
       return r.abort();
@@ -134,7 +134,8 @@ const texte = (p, sel) => p.evaluate(s => document.querySelector(s)?.textContent
   check('… et la session refusée est oubliée', await p.evaluate(() => localStorage.getItem('ela_demo_session') === null));
   await ctx.close();
 }
-for (const panne of ['muet', 503]) {
+/* 403 « origine » et 413 « taille » (contrat du bloc 2) : un refus, jamais la démo. */
+for (const panne of ['muet', 503, 403, 413]) {
   const { ctx, p } = await ouvrir({ reponse: panne });
   check(`serveur ${panne} → « Démonstration momentanément indisponible »`, /Démonstration momentanément indisponible/.test(await texte(p, '#demoIndispo')) && await visible(p, '#demoIndispo'));
   check(`serveur ${panne} → un contact est proposé`, await p.evaluate(() => !!document.querySelector('#demoIndispo a[href="/professionnels/#contact"]')));
@@ -189,6 +190,25 @@ for (const panne of ['muet', 503]) {
   /* La page ne doit même pas ESSAYER : une tentative bloquée par la CSP
      serait une défense 3 cassée que la défense 1 cache. */
   check('la page ne tente aucune connexion interdite sur le parcours', p.violations.length === 0, p.violations.join(' | '));
+  await ctx.close();
+}
+
+/* ═══ 3 bis. LA RÉCEPTION RÉSERVE ELLE-MÊME, ET LA COURSE ARRIVE DANS SA LISTE ═══ */
+{
+  const { ctx, p } = await ouvrir({ chemin: '/demo/hotel/reception/' });
+  await p.click('#btnRecReserver'); await p.waitForTimeout(500);
+  await p.fill('#chambre', '412');
+  await p.waitForSelector('.veh-carte', { timeout: 8000 });
+  await p.locator('.veh-carte').first().click();
+  await p.locator('[data-paiement="especes"]').click();
+  await p.locator('#btnVoirPrix').click();
+  await p.waitForTimeout(900);
+  check('comptoir : la réservation ouvre le bon', await visible(p, '#ecran-bon'));
+  check('comptoir : le suivi de la démo apparaît', await visible(p, '#demoSuivi'));
+  await p.click('#demoOngletReception'); await p.waitForTimeout(1500);
+  check('comptoir : la course apparaît dans la liste de la réception', await p.evaluate(() => /Chambre 412/.test(document.getElementById('ecran-reception').innerText)));
+  check('comptoir : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
+  check('comptoir : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
   await ctx.close();
 }
 

@@ -3,8 +3,9 @@
 > Mission « Démo professionnels », cadrée et validée par Barbaros le
 > 8 octobre 2026. Trois sessions en parallèle : bloc 1 = /professionnels/,
 > bloc 2 = la fonction `demande-demo` (serveur des prospects), bloc 3 = la
-> démo. Ce fichier est la mémoire du bloc 3. CLAUDE.md n'a pas été touché
-> (plafond, sessions parallèles) : le bloc 6 y rangera trois lignes.
+> démo. Ce fichier est la mémoire du bloc 3. CLAUDE.md n'en porte qu'UNE
+> ligne (section « LA DÉMO PROFESSIONNELS (en cours) ») : test-doc exige que
+> toute archive de memoire/ y soit nommée. Le bloc 6 y rangera la suite.
 
 ## Ce qui existe
 
@@ -35,8 +36,10 @@
 - **Accès fermé par défaut** : page masquée (`html.demo-attente`) tant que
   `demande-demo` n'a pas répondu à `{action:"ouvrir", session}`. Pas de
   `ela_demo_session` ou 401 → `/professionnels/#demo` (session oubliée) ;
-  serveur muet, 5xx ou réponse illisible → « Démonstration momentanément
-  indisponible » + contact, jamais la démo. Aucune clé Supabase n'est envoyée.
+  serveur muet, 5xx, 403 « origine », 413 « taille » ou réponse illisible →
+  « Démonstration momentanément indisponible » + contact, jamais la démo.
+  Aucune clé Supabase n'est envoyée. `expire` (ISO 8601) n'est pas lu : c'est
+  le serveur qui juge la session à chaque ouverture.
 - **Le nom** vient de la réponse d'« ouvrir », posé en `textContent`, coupé à
   60 caractères ; vide → « Hôtel Démo · Roissy » (tous types, tranché).
   Rond aux initiales à la place d'un logo, zone « Votre photo ici ».
@@ -92,6 +95,16 @@
   écrit dans le script du moteur : il ne compte plus que les balises.
 
 ## Reste ouvert
+
+- **L'écran réception reste en français** même quand le prospect passe en
+  anglais : le comptoir est français par décision de Barbaros (« c'est des
+  Français »), et le moteur n'a pas de textes anglais pour cet écran. Le
+  cadre de la démo (bandeau, onglets, suivi, fin) et la page client, eux,
+  sont traduits. À trancher s'il veut démarcher des hôtels anglophones.
+- **Une navigation** (pas un `fetch`) vers une adresse Supabase n'est pas
+  couverte par la CSP — aucune règle ne le permet. Sans clé, une telle
+  requête GET ne peut ni lire ni écrire ; et la démo ne contient ni l'adresse
+  ni la clé (défense 2).
 
 - **La photo** : Unsplash, Pexels et Pixabay sont bloqués par le réseau de la
   machine de travail (403 du proxy, 8/10/2026). La zone est un fond neutre

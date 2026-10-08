@@ -5002,3 +5002,6 @@ Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
   hors de l'espace exploitant font refuser la page à la construction.
 - Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
   `memoire/pilotage.md`.
+
+## LA DÉMO PROFESSIONNELS (en cours)
+`memoire/demo-pro-bloc3.md` : la démo /demo/hotel/ (bloc 3), son simulateur local et ses trois défenses d'isolation.
