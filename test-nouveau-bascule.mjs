@@ -1084,7 +1084,15 @@ for (const large of [1024, 1280]) {
     check(`${chemin} : désigne l'entreprise #organisation`, prov === 'https://elatransfer.com/#organisation', prov);
     const mots = lu.texte.split(/\s+/).filter(Boolean).length;
     check(`${chemin} : plus qu'une coquille (au moins 250 mots)`, mots >= 250, mots + ' mots');
-    const ecarts = lu.faq.filter(r => !reponses.includes(r));
+    // LA PAGE DES PROFESSIONNELS (8 octobre 2026) répond à des questions
+    // que l'accueil ne pose pas (coût pour l'hôtel, engagement, données) :
+    // celles-là sont éprouvées par test-pro-page. Celle qu'elle partage
+    // avec l'accueil — le vol en retard, CGV art. 7 — parle du client de
+    // l'hôtel, mais la RÈGLE (« jusqu'à … sans frais ») reste mot pour mot.
+    const regleVol = (reponses.find(r => /numéro de vol/.test(r)) || '').replace(/^.*?(jusqu'à)/, '$1');
+    const ecarts = chemin === 'professionnels/'
+      ? (regleVol.length > 20 && lu.faq.some(r => r.endsWith(regleVol)) ? [] : ['règle « vol en retard » absente ou réécrite : ' + regleVol])
+      : lu.faq.filter(r => !reponses.includes(r));
     check(`${chemin} : ses réponses sont celles de l'accueil, mot pour mot`, lu.faq.length >= 1 && ecarts.length === 0, ecarts.join(' | '));
   }
   await ps.close();

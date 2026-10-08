@@ -156,7 +156,7 @@ for (const langue of ['fr', 'en']) {
 }
 
 // 8. Les pages CDG, Orly et « Chauffeur à Paris » suivent la même règle du prix.
-for (const page of ['transfert-cdg-paris.html', 'transfert-orly-paris.html', 'chauffeur-prive-paris.html']) {
+for (const page of ['transfert-cdg-paris.html', 'transfert-orly-paris.html', 'chauffeur-prive-paris.html', 'professionnels/']) {
   const p = await ouvrir('fr', 1280, 900, page);
   const corps = await p.evaluate(() => document.body.innerText);
   check(`${page} : la page s'ouvre`, corps.length > 500, corps.length + ' caractères');
