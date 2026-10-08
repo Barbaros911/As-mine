@@ -221,6 +221,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.fill('#recRecherche', ''); await p.click('.rec-vues [data-vue="avenir"]'); await p.waitForTimeout(300);
   await p.click('.rec-voir-bon'); await p.waitForTimeout(600);
   check('réception EN : le bon montré au client est en anglais', await p.evaluate(() => { const t = document.getElementById('bonClient').innerText; return /BOOKING VOUCHER|Booking voucher/i.test(t) && !/\(exemple\)/.test(t); }));
+  check('le bon d\'une course d\'exemple part de l\'hôtel du prospect', await p.evaluate(() => { const t = document.getElementById('bonClient').innerText; return t.includes('Hôtel Ibis Roissy') && !t.includes('Hôtel Démo'); }));
   await p.click('#bonClientFermer'); await p.waitForTimeout(300);
   await p.click('.langues [data-langue="fr"]'); await p.waitForTimeout(500);
   const recFr = await p.evaluate(() => document.getElementById('ecran-reception').innerText);

@@ -130,6 +130,9 @@
       paiement: String(b.paiementNom || b.paiement || ""), modifie: "",
       chauffeur: n >= 2 ? { nom: CHAUFFEUR.nom, telephone: CHAUFFEUR.telephone } : { nom: "", telephone: "" } };
     if(c.fixe){
+      /* Les courses d'exemple partent de l'hôtel du prospect, sous le nom
+         qu'il voit en tête de page — pas du nom de repli écrit à la semence. */
+      v.depart = lirePerso().nom || (info && info.etablissement) || NOM_REPLI;
       var fix = ((lirePerso().prix || {})[c.destCle] || {})[c.gamme];
       if(n < 3 && fix > 0) v.prix = fix;
     } else if(n < 3) v.prix = Number(b.prix && b.prix.total) || 0;
