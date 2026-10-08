@@ -36,6 +36,7 @@ depuis l'accueil.
   la FAQ ; jamais « nos partenaires », ni easyHotel, ni « prix ferme ».
 
 ## Tests
-`test-pro-page.mjs` (70 contrôles, site construit, 9 largeurs × 2 langues).
+`test-pro-page.mjs` (site construit, 9 largeurs × 2 langues — le nombre de
+contrôles n'est pas écrit ici : il a déjà vieilli une fois).
 Éprouvé contre un débordement, un mot interdit et l'ancien bouton de
 l'accueil : il tombe à chaque fois. `test-public-textes` lit aussi la page.
