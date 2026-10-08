@@ -265,6 +265,31 @@ jobs:
           # base, pas seulement vu dans la transaction qui l'a écrit.
           psql -h 127.0.0.1 -U postgres -d pilotage -X -q -v ON_ERROR_STOP=1 \
             -f supabase/tests/pilotage-persistance.sql
+          # Les prospects de la démo professionnels (bloc 2, 8 octobre 2026).
+          # Même décor que le Pilotage (vraie est_admin(), privilèges par défaut
+          # de Supabase, plus service_role), migration appliquée deux fois. Puis :
+          # anon, l'agent et un compte quelconque refusés pour la bonne raison ;
+          # l'admin lit et ne change QUE le statut et la note ; l'empreinte du
+          # jeton illisible ; 3 demandes par e-mail et par 24 h ; visites
+          # comptées par demi-heure ; jeton à usage unique et de 48 h ; aucune
+          # suppression. Éprouvée contre dix-sept migrations faussées.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database prospects;'
+          psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/prospects.sql \
+            -f supabase/migrations/20261008000000_prospects.sql \
+            -f supabase/migrations/20261008000000_prospects.sql \
+            -f supabase/tests/prospects-apres.sql
+          # Une vue sur les prospects, lisible par anon (privilèges par défaut) :
+          # la migration rejouée DOIT s'arrêter.
+          psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/prospects-vue-sonde.sql
+          if psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \
+               -f supabase/migrations/20261008000000_prospects.sql; then
+            echo "La migration des prospects accepte une vue lisible par anon"; exit 1
+          fi
 
       # LE PILOTAGE PAR LA PORTE DU NAVIGATEUR : PostgREST, le serveur que
       # Supabase place devant la base, avec de vrais jetons signés. La porte
