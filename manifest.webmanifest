@@ -1,7 +1,7 @@
 {
-  "name": "Elatransfer — Chauffeur privé",
+  "name": "Elatransfer",
   "short_name": "Elatransfer",
-  "description": "Chauffeur privé à Paris et en Île-de-France. Transferts aéroports, hôtels, gares et trajets sur réservation.",
+  "description": "Transferts avec chauffeur, organisés de A à Z, pour les particuliers et les professionnels.",
   "lang": "fr",
   "id": "/",
   "start_url": "./",

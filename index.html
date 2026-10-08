@@ -2432,7 +2432,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            japonais qui atterrit à Roissy lit bien plus probablement l'anglais
            que sa propre langue sur un site français. Deux langues tenues à
            jour valent mieux que six à moitié traduites. -->
-      <div class="langues" role="group" aria-label="Langue">
+      <div class="langues" role="group" aria-label="Langue" data-t-aria="langue_aria">
         <button type="button" data-langue="fr" aria-pressed="true">FR</button>
         <button type="button" data-langue="en" aria-pressed="false">EN</button>
       </div>
@@ -2611,9 +2611,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <section class="hero">
     <div class="hero-image"></div>
     <div class="hero-texte">
-      <h1 data-t-html="hero_titre">Tous vos déplacements, une seule solution.</h1>
-      <p class="hero-sous" data-t="hero_sous">Transferts avec chauffeur, organisés de A à Z. Hôtels, agences, entreprises : une page à votre nom, et nous gérons le reste.</p>
-      <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Salons · Hôtels &amp; entreprises</p>
+      <h1 data-t-html="hero_titre">Transferts avec chauffeur, organisés de A à Z.</h1>
+      <p class="hero-sous" data-t="hero_sous">Hôtels, agences, entreprises : une page de réservation à votre nom, un QR code, et nous gérons le reste.</p>
+      <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Hôtels · Salons</p>
       <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
            Sans lui, un bandeau plus haut ne ferait que repousser le
            formulaire hors du premier écran : l'accroche coûterait le geste
@@ -2705,7 +2705,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           </svg>
         </button>
       </label>
-      <div class="suggest-list" id="departList" role="listbox" aria-label="Suggestions de départ" hidden></div>
+      <div class="suggest-list" id="departList" role="listbox" aria-label="Suggestions de départ" data-t-aria="sugg_depart" hidden></div>
       <!-- Le message vit SOUS le champ, pas dans une alerte : un refus de
            géolocalisation n'est pas une erreur du client, et une fenêtre
            surgissante lui ferait perdre ce qu'il était en train de faire. -->
@@ -2795,7 +2795,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </label>
-      <div class="suggest-list" id="arriveeList" role="listbox" aria-label="Suggestions d'arrivée" hidden></div>
+      <div class="suggest-list" id="arriveeList" role="listbox" aria-label="Suggestions d'arrivée" data-t-aria="sugg_arrivee" hidden></div>
     </div>
 
     <!-- LE NUMÉRO DE VOL SUIT LES DEUX BOUTS DU TRAJET.
@@ -2973,7 +2973,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            le 4 octobre : le client choisit où recevoir sa confirmation
            (appel, SMS, WhatsApp, Telegram, iMessage). Rien de neuf n'est
            promis ici : ce sont les clés eng2 et eng4, écrites une seule fois. -->
-      <span><span data-t="eng2">Prix ferme</span> · <span data-t="eng4">Réglé au chauffeur</span></span>
+      <span><span data-t="eng2">Prix annoncé à l'avance</span> · <span data-t="eng4">Réglé au chauffeur</span></span>
     </p>
     <!-- LES TROIS ÉTAPES TIENNENT SUR UNE LIGNE, SOUS LE SEUL BOUTON
          (septembre 2026, à sa demande). Un bloc « Comment ça marche » avec
@@ -3001,7 +3001,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        l'encart des professionnels (#modele) : le pavé de 70 mots qui était
        ici a été retiré à sa demande, son contenu vit là-bas, structuré. -->
   <div class="pro-bloc">
-    <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Votre propre canal de réservation, géré par nous.</span></a>
+    <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrir l'offre professionnels</span></a>
   </div>
 
   <!-- COMMENT ÇA MARCHE, JUSTE SOUS LE FORMULAIRE (6 octobre 2026, à sa
@@ -3020,10 +3020,10 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <section class="section modele" id="comment">
     <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
     <h2 data-t="modele_titre">Vous réservez, nous organisons tout.</h2>
-    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.</p>
+    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel indépendant, sous sa propre carte professionnelle et son assurance.</p>
     <ol class="modele-etapes">
       <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
-      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.</span></div></li>
+      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par appel ou message, selon votre choix, avec le nom de votre chauffeur.</span></div></li>
       <li><span class="modele-n">3</span><div><b data-t="modele_e3">Votre chauffeur vous conduit</b><span data-t="modele_e3s">À l'heure convenue, au prix annoncé, réglé directement à bord.</span></div></li>
     </ol>
   </section>
@@ -3136,7 +3136,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
             <path d="M10.4 12.3h3.2" stroke="#151C22" stroke-width="1.9" stroke-linecap="round"/>
           </svg>
         </span>
-        <b data-t="srv4">Professionnel</b>
+        <b data-t="srv4">Affaires</b>
         <span data-t="srv4s">Clients, collaborateurs, rendez-vous</span>
         </span>
       </a>
@@ -3200,7 +3200,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <rect x="3.2" y="5.2" width="17.6" height="10.4" rx="1.8" stroke="currentColor" stroke-width="1.7"/>
           <path d="M7.4 10.4h9.2M9 15.6v4.2M15 15.6v4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
         <b data-t="plus3">Accueil personnalisé</b>
-        <span class="plus-texte" data-t="plus3s">À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.</span>
+        <span class="plus-texte" data-t="plus3s">À l'aéroport ou en gare, votre chauffeur vous attend avec une pancarte à votre nom.</span>
         <span class="plus-prix-ligne"><span data-t="plus3_option">En option à la réservation :</span> <b class="plus-prix">+10,00 €</b></span>
         <span class="plus-action" data-t="plus_reserver">Réserver un trajet</span>
       </a>
@@ -3221,15 +3221,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <section class="section modele" id="modele">
     <div class="modele-pro">
       <p class="modele-pro-t" data-t="modele_pro_t">Hôtels · Agences · Entreprises</p>
-      <h2 class="modele-pro-h" data-t="modele_pro_h">Offrez le transport à vos clients, sans travail pour vos équipes.</h2>
-      <p class="modele-pro-s" data-t="modele_pro_s">Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace où votre réception enregistre elle-même une demande.</p>
+      <h2 class="modele-pro-h" data-t="modele_pro_h">Proposez des transferts à vos clients, sans rien organiser vous-même.</h2>
+      <p class="modele-pro-s" data-t="modele_pro_s">Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace réception où votre équipe réserve pour eux et suit chaque course.</p>
       <p class="modele-pro-s" data-t="modele_pro_s2">Ensuite nous prenons le relais : vérification, chauffeur, confirmation au client et suivi jusqu'à la réalisation du trajet.</p>
       <p class="modele-pro-promesse" data-t="modele_pro_promesse">Votre réception réserve. Elatransfer gère tout le reste.</p>
       <ul>
         <li data-t="modele_p1">Page à votre nom</li>
         <li data-t="modele_p3">Espace réception</li>
         <li data-t="modele_p2">Lien et QR code</li>
-        <li data-t="modele_p5">Prise en charge complète du transport</li>
+        <li data-t="modele_p5">Organisation complète des trajets</li>
         <li data-t="modele_p0">Mise en place gratuite</li>
         <li data-t="modele_p4">Tarifs négociés pour votre établissement</li>
       </ul>
@@ -5761,10 +5761,10 @@ var HOTEL_OSM          = window.ELA_ROUTE.HOTEL_OSM,
    ===================================================================== */
 window.ELA_TEXTES = {
   fr:{
-    entete_sous:"CHAUFFEURS PRIVÉS",
-    hero_titre:"Tous vos déplacements, une seule solution.",
-    hero_sous:"Transferts avec chauffeur, organisés de A à Z. Hôtels, agences, entreprises : une page à votre nom, et nous gérons le reste.",
-    hero_prix:"Aéroports · Gares · Salons · Hôtels & entreprises",
+    langue_aria:"Langue", sugg_depart:"Suggestions de départ", sugg_arrivee:"Suggestions d'arrivée",
+    hero_titre:"Transferts avec chauffeur, organisés de A à Z.",
+    hero_sous:"Hôtels, agences, entreprises : une page de réservation à votre nom, un QR code, et nous gérons le reste.",
+    hero_prix:"Aéroports · Gares · Hôtels · Salons",
     hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
@@ -5836,7 +5836,7 @@ window.ELA_TEXTES = {
        dans les CGV, où il engage. */
     engagements:"Inclus dans chaque course", inclus_sur:"SANS SUPPLÉMENT",
     eng1:"60 min d'attente incluses", eng1s:"à l'aéroport avec votre n° de vol · 30 min ailleurs",
-    eng2:"Prix ferme", eng2s:"jamais recalculé à l'arrivée",
+    eng2:"Prix annoncé à l'avance", eng2s:"jamais recalculé à l'arrivée",
     eng3:"Suivi du vol ou du train", eng3s:"l'heure de prise en charge s'ajuste",
     eng4:"Réglé au chauffeur", eng4s:"espèces ou carte, rien à payer en ligne",
     etape1:"Trajet", etape2:"Prix", etape3:"Confirmation",
@@ -5849,30 +5849,30 @@ window.ELA_TEXTES = {
     srv1:"Aéroport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
     srv2:"Hôtel", srv2s:"Vers l'aéroport, Paris ou une gare",
     srv3:"Gare", srv3s:"Gares de Paris et d'Île-de-France",
-    srv4:"Professionnel", srv4s:"Clients, collaborateurs, rendez-vous",
+    srv4:"Affaires", srv4s:"Clients, collaborateurs, rendez-vous",
     srv5:"Salons & expositions", srv5s:"Porte de Versailles · Villepinte · Le Bourget",
     plus_titre:"Au-delà du trajet", plus_devis:"Demander un devis", plus_reserver:"Réserver un trajet",
     plus1:"Chauffeur à l'heure", plus1s:"Rendez-vous, visites, Disneyland : votre chauffeur reste avec vous, à l'heure ou à la journée.",
     plus2:"Groupes & événements", plus2s:"Mariages, séminaires, salons : plusieurs véhicules coordonnés, un seul interlocuteur.",
-    plus3:"Accueil personnalisé", plus3s:"À l'aéroport, votre chauffeur vous attend avec une pancarte à votre nom.",
+    plus3:"Accueil personnalisé", plus3s:"À l'aéroport ou en gare, votre chauffeur vous attend avec une pancarte à votre nom.",
     plus3_option:"En option à la réservation :",
-    pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Votre propre canal de réservation, géré par nous.",
+    pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Découvrir l'offre professionnels",
     modele_sur:"QUI SOMMES-NOUS", modele_titre:"Vous réservez, nous organisons tout.",
-    modele_intro:"Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel partenaire, avec sa carte professionnelle et son assurance.",
+    modele_intro:"Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel indépendant, sous sa propre carte professionnelle et son assurance.",
     modele_e1:"Vous demandez", modele_e1s:"En ligne, au comptoir de votre hôtel ou par téléphone.",
-    modele_e2:"Nous confirmons", modele_e2s:"Votre demande est vérifiée, puis confirmée par WhatsApp ou SMS avec le nom de votre chauffeur.",
+    modele_e2:"Nous confirmons", modele_e2s:"Votre demande est vérifiée, puis confirmée par appel ou message, selon votre choix, avec le nom de votre chauffeur.",
     modele_e3:"Votre chauffeur vous conduit", modele_e3s:"À l'heure convenue, au prix annoncé, réglé directement à bord.",
     modele_pro_t:"Hôtels · Agences · Entreprises",
-    modele_pro_h:"Offrez le transport à vos clients, sans travail pour vos équipes.",
-    modele_pro_s:"Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace où votre réception enregistre elle-même une demande.",
+    modele_pro_h:"Proposez des transferts à vos clients, sans rien organiser vous-même.",
+    modele_pro_s:"Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace réception où votre équipe réserve pour eux et suit chaque course.",
     modele_pro_s2:"Ensuite nous prenons le relais : vérification, chauffeur, confirmation au client et suivi jusqu'à la réalisation du trajet.",
     modele_pro_promesse:"Votre réception réserve. Elatransfer gère tout le reste.",
     modele_p0:"Mise en place gratuite", modele_p1:"Page à votre nom",
     contact_mail_t:"E-mail · devis et partenariats", modele_p2:"Lien et QR code",
     modele_p3:"Espace réception", modele_p4:"Tarifs négociés pour votre établissement",
-    modele_p5:"Prise en charge complète du transport",
+    modele_p5:"Organisation complète des trajets",
     modele_cta:"Parler de votre établissement",
-    tva_note:"Prix TTC, TVA 10 % incluse. Ferme : il ne bouge plus après la réservation.",
+    tva_note:"Prix TTC, TVA 10 % incluse. Annoncé à l'avance : il n'est pas recalculé à l'arrivée.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
     trafic:"trafic pris en compte",
@@ -5999,10 +5999,10 @@ window.ELA_TEXTES = {
     passager_un:"passager", passager_pl:"passagers", bagage_un:"bagage", bagage_pl:"bagages"
   },
   en:{
-    entete_sous:"PRIVATE CHAUFFEURS",
-    hero_titre:"All your journeys, one solution.",
-    hero_sous:"Chauffeur-driven transfers, organised end to end. Hotels, agencies, businesses: a page in your name, and we handle the rest.",
-    hero_prix:"Airports · Stations · Trade fairs · Hotels & businesses",
+    langue_aria:"Language", sugg_depart:"Pick-up suggestions", sugg_arrivee:"Drop-off suggestions",
+    hero_titre:"Chauffeur transfers, organised end to end.",
+    hero_sous:"Hotels, agencies, businesses: your own booking page and QR code, and we handle the rest.",
+    hero_prix:"Airports · Stations · Hotels · Trade fairs",
     hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
@@ -6065,7 +6065,7 @@ window.ELA_TEXTES = {
     btn_prix:"See my price", calcul:"Calculating the price…",
     engagements:"Included in every ride", inclus_sur:"NO EXTRA CHARGE",
     eng1:"60 min waiting included", eng1s:"at the airport with your flight no. · 30 min elsewhere",
-    eng2:"Firm price", eng2s:"never recalculated on arrival",
+    eng2:"Price agreed in advance", eng2s:"never recalculated on arrival",
     eng3:"Flight or train tracking", eng3s:"the pick-up time adjusts",
     eng4:"Paid to your chauffeur", eng4s:"cash or card, nothing to pay online",
     etape1:"Journey", etape2:"Price", etape3:"Confirmation",
@@ -6078,30 +6078,30 @@ window.ELA_TEXTES = {
     srv1:"Airport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
     srv2:"Hotel", srv2s:"To the airport, Paris or a station",
     srv3:"Station", srv3s:"Paris and Île-de-France stations",
-    srv4:"Business", srv4s:"Clients, colleagues, meetings",
+    srv4:"Business travel", srv4s:"Clients, colleagues, meetings",
     srv5:"Trade fairs & exhibitions", srv5s:"Porte de Versailles · Villepinte · Le Bourget",
     plus_titre:"Beyond the ride", plus_devis:"Request a quote", plus_reserver:"Book a ride",
-    plus1:"Hourly chauffeur", plus1s:"Meetings, sightseeing, Disneyland: your chauffeur stays with you, by the hour or for the day.",
+    plus1:"Chauffeur by the hour", plus1s:"Meetings, sightseeing, Disneyland: your chauffeur stays with you, by the hour or for the day.",
     plus2:"Groups & events", plus2s:"Weddings, seminars, trade fairs: several coordinated vehicles, one point of contact.",
-    plus3:"Personal meet & greet", plus3s:"At the airport, your chauffeur waits for you with a sign bearing your name.",
+    plus3:"Personal meet & greet", plus3s:"At the airport or station, your chauffeur waits for you with a sign bearing your name.",
     plus3_option:"Optional when booking:",
-    pro_lien_t:"Hotel, agency, business?", pro_lien_s:"Your own booking channel, run by us.",
+    pro_lien_t:"Hotel, agency, business?", pro_lien_s:"See what we offer businesses",
     modele_sur:"WHO WE ARE", modele_titre:"You book, we organise everything.",
-    modele_intro:"Elatransfer receives your request, chooses the chauffeur, confirms the ride and follows it until you arrive. The journey is carried out by a professional partner chauffeur, with their professional licence and insurance.",
+    modele_intro:"Elatransfer receives your request, chooses the chauffeur, confirms the ride and follows it until you arrive. The journey is carried out by an independent professional chauffeur, under their own licence and insurance.",
     modele_e1:"You request", modele_e1s:"Online, at your hotel's front desk or by phone.",
-    modele_e2:"We confirm", modele_e2s:"Your request is checked, then confirmed by WhatsApp or SMS with your chauffeur's name.",
+    modele_e2:"We confirm", modele_e2s:"Your request is checked, then confirmed by call or message — your choice — with your chauffeur's name.",
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the agreed time and the quoted price, paid directly on board.",
     modele_pro_t:"Hotels · Agencies · Businesses",
-    modele_pro_h:"Offer transport to your guests, with no extra work for your team.",
-    modele_pro_s:"Elatransfer builds your establishment a booking page in your name and colours, which your guests open via a link or QR code, and a front-desk interface where your reception records a request itself.",
+    modele_pro_h:"Offer your guests chauffeur transfers, without organising anything yourself.",
+    modele_pro_s:"Elatransfer sets up a booking page with your name and colours, which your guests open from a link or QR code, and a front-desk space where your team books for them and follows every ride.",
     modele_pro_s2:"From there, we take over: checking the request, assigning the chauffeur, confirming with the guest and following the journey through to completion.",
     modele_pro_promesse:"Your front desk books. Elatransfer takes care of everything else.",
-    modele_p0:"Free set-up", modele_p1:"Page in your name",
+    modele_p0:"Free set-up", modele_p1:"Your own booking page",
     contact_mail_t:"Email · quotes and partnerships", modele_p2:"Link and QR code",
-    modele_p3:"Front-desk interface", modele_p4:"Negotiated rates for your establishment",
+    modele_p3:"Front-desk space", modele_p4:"Negotiated rates for your establishment",
     modele_p5:"Full transport handling",
     modele_cta:"Tell us about your establishment",
-    tva_note:"Prices include 10% VAT. Firm: it does not change after booking.",
+    tva_note:"Prices include 10% VAT. Agreed in advance: it is not recalculated on arrival.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
     trafic:"live traffic included",
@@ -6191,7 +6191,7 @@ window.ELA_TEXTES = {
     err_paiement:"Tell us how you will pay.",
     paiement:"Payment",
     legal_titre:"Legal information",
-    legal_note:"These are the documents that bind you and Elatransfer. They are available at any time, with no account and no searching.",
+    legal_note:"These documents set out your agreement with Elatransfer. You can read them at any time, no account needed.",
     legal_cgv:"Terms and conditions",
     legal_mentions:"Legal notice",
     legal_privacy:"Privacy policy",
@@ -6211,7 +6211,7 @@ window.ELA_TEXTES = {
     courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
     contact_titre:"Contact us",
-    contact_note:"A question, a change of time, a ride for right now: call us, it is the fastest.",
+    contact_note:"A question, a new time, a ride right now? Calling is fastest.",
     contact_wa:"Message us, we answer quickly",
     voir_bon:"View voucher",
     recherche:"Searching…", aucune_adresse:"No address found",
