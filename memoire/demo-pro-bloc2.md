@@ -93,6 +93,10 @@
    **Changé au bloc 4** : `TURNSTILE_SECRET` est devenu FACULTATIF (option B
    de Barbaros) — sans lui la vérification est sautée ; seul
    `DEMO_SESSION_SECRET` reste obligatoire. Voir `memoire/demo-pro-bloc4.md`.
+   **Changé le 8/10/2026 (« le minimum de manip »)** : `DEMO_SESSION_SECRET`
+   n'est plus obligatoire non plus. Absent, la fonction le dérive de la clé
+   service_role (SHA-256 de « elatransfer:demo-session:v1: » + la clé), que
+   la plateforme fournit d'office. Posé, il l'emporte. Rien à poser.
 3. Le déploiement de `demande-demo` se fait seul à la fusion (`fonctions.yml`).
    `RESEND_CLE` / `EMAIL_EXPEDITEUR` sont facultatifs : sans eux, aucun
    e-mail ne part et la démo s'ouvre quand même.
