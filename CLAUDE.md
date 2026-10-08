@@ -5005,6 +5005,7 @@ Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
 
 ## LA DÉMO PROFESSIONNELS (en cours)
 
+- Bloc 1, la page `/professionnels/` (8/10/2026) : ce qui existe et pourquoi, dans `memoire/demo-pro-bloc1.md`.
 - Bloc 2, le serveur des prospects (table `prospects`, fonction `demande-demo`, refus « demo » dans `deposer-course`) : `memoire/demo-pro-bloc2.md`.
 - Bloc 3, la démo `/demo/hotel/` (client et réception, simulateur local, personnalisation, trois défenses d'isolation) : `memoire/demo-pro-bloc3.md`.
 - Bloc 5, l'écran « Prospects » de l'admin (lecture à l'ouverture, statut et note seuls, caché à l'agent, retiré du public) : `memoire/demo-pro-bloc5.md`.

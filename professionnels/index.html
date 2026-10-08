@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Elatransfer pour les hôtels, agences et entreprises | Transferts avec chauffeur</title>
+  <meta name="description" content="Une page de réservation à votre nom, un QR code pour vos clients, un espace pour votre équipe. Elatransfer trouve le chauffeur, confirme au client et suit le trajet. Mise en place gratuite, sans engagement.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://elatransfer.com/professionnels/">
+  <meta name="theme-color" content="#062f55">
+  <link rel="icon" href="/icon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace réception, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences et entreprises"},"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
+  <!-- LA PAGE DES PROFESSIONNELS — 8 octobre 2026, mission « Démo
+       professionnels », bloc 1. Mémoire : memoire/demo-pro-bloc1.md.
+       Elle est autonome (styles et textes ici) : la page du site public
+       porte le tunnel de réservation, celle-ci ne réserve rien.
+       Vocabulaire : règles « LE POSITIONNEMENT » de CLAUDE.md — aucun mot
+       abstrait, jamais « prix ferme », aucun chiffre ni délai promis.
+       Le formulaire de démonstration arrive au bloc 4, dans #demo. -->
+  <style>
+    :root{
+      --navy:#062f55; --navy-deep:#001f3b; --cyan:#20c4f4; --cyan-light:#6ee5ff;
+      --ink:#082f52; --muted:#5b6e80; --line:#dce8f0; --ice:#effaff; --fond:#f2f5f9;
+    }
+    *{box-sizing:border-box;}
+    html{scroll-behavior:smooth;scroll-padding-top:84px;}
+    body{margin:0;color:var(--ink);background:#fff;font:16px/1.6 'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
+    a{color:inherit;}
+    .tete{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:16px;
+      min-height:68px;padding:10px clamp(16px,5vw,72px);background:var(--navy-deep);}
+    .tete-logo{display:block;line-height:0;}
+    .tete-logo img{height:40px;width:auto;}
+    .tete-nav{display:flex;align-items:center;gap:20px;}
+    .tete-nav a{color:#dcecf7;font-size:14px;font-weight:700;text-decoration:none;}
+    .tete-nav a:hover{color:#fff;}
+    .langue{min-width:44px;min-height:44px;padding:0 10px;border:1px solid rgba(110,229,255,.5);border-radius:10px;
+      color:#fff;background:transparent;font:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+    .hero{padding:clamp(48px,8vw,104px) 16px clamp(44px,7vw,88px);color:#fff;
+      background:linear-gradient(120deg,var(--navy-deep),var(--navy));}
+    .hero-in{width:min(1080px,100%);margin:0 auto;}
+    .hero-in h1{max-width:860px;}
+    .surtitre{margin:0 0 14px;color:var(--cyan-light);font-size:12.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;}
+    h1{margin:0 0 20px;font-size:clamp(32px,5.4vw,60px);line-height:1.06;letter-spacing:-.02em;font-weight:800;}
+    .lead{max-width:700px;margin:0;color:#e3f2fb;font-size:clamp(17px,2vw,20px);}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;}
+    .bouton{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:12px 22px;border-radius:12px;
+      border:2px solid var(--cyan);color:var(--navy-deep);background:var(--cyan);font-weight:800;text-decoration:none;}
+    .bouton.creux{color:#fff;background:transparent;border-color:var(--cyan-light);}
+    .bouton.clair{color:var(--navy);background:#fff;border-color:var(--line);}
+    .points{margin:22px 0 0;color:#cfe8f6;font-size:15px;font-weight:600;}
+    .reference{margin:8px 0 0;color:var(--cyan-light);font-size:15px;font-weight:700;}
+    main section.bloc{width:min(1080px,calc(100% - 32px));margin:0 auto;padding:56px 0 0;}
+    .bloc > h2{margin:0 0 8px;color:var(--navy);font-size:clamp(24px,3vw,32px);line-height:1.2;letter-spacing:-.01em;}
+    .bloc > .intro{margin:0 0 22px;color:var(--muted);max-width:720px;}
+    .grille{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px;}
+    .carte{padding:24px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(8,47,82,.07);}
+    .carte h3{margin:0 0 8px;color:var(--navy);font-size:19px;line-height:1.3;}
+    .carte p{margin:0;color:var(--muted);}
+    .vecu .carte{background:var(--fond);box-shadow:none;}
+    .vecu .carte p{color:var(--ink);font-size:17px;font-weight:600;line-height:1.45;}
+    .pastille{width:42px;height:42px;display:grid;place-items:center;margin-bottom:12px;border-radius:12px;color:var(--navy);background:var(--ice);}
+    .pastille svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .etapes{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+    .etapes li{display:flex;gap:14px;align-items:flex-start;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff;}
+    .num{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--navy);font-weight:800;}
+    .etapes p{margin:4px 0 0;}
+    .change h3{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#0a6fa0;}
+    .change .carte p{color:var(--ink);font-size:17px;}
+    .demo{margin-top:56px;padding:clamp(28px,5vw,48px) clamp(16px,5vw,56px);color:#fff;background:linear-gradient(120deg,var(--navy-deep),var(--navy));}
+    .demo-in{width:min(1080px,100%);margin:0 auto;}
+    .demo h2{margin:0 0 10px;font-size:clamp(24px,3vw,32px);line-height:1.2;}
+    .demo p{margin:0;color:#e3f2fb;max-width:720px;}
+    .faq{padding-bottom:8px;}
+    .faq details{border-bottom:1px solid var(--line);}
+    .faq summary{display:flex;align-items:center;min-height:56px;padding:10px 0;color:var(--navy);font-weight:750;cursor:pointer;}
+    .faq details p{margin:0 0 16px;color:var(--muted);max-width:780px;}
+    .faq details a{color:#0a5f8f;font-weight:700;}
+    .contact{margin-top:56px;padding:48px clamp(16px,5vw,56px);background:var(--fond);}
+    .contact-in{width:min(1080px,100%);margin:0 auto;}
+    .contact h2{margin:0 0 6px;color:var(--navy);font-size:clamp(24px,3vw,32px);}
+    .contact p{margin:0;color:var(--muted);}
+    .moyens{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px;}
+    .moyen{display:flex;flex-direction:column;justify-content:center;min-height:76px;padding:14px 18px;border:1px solid var(--line);
+      border-radius:14px;background:#fff;text-decoration:none;}
+    .moyen b{color:var(--navy);font-size:13px;letter-spacing:.06em;text-transform:uppercase;}
+    .moyen span{color:var(--ink);font-size:18px;font-weight:700;overflow-wrap:anywhere;}
+    footer{padding:26px 16px;color:#dcecf7;background:var(--navy-deep);text-align:center;font-size:14px;}
+    footer a{display:inline-block;margin:4px 8px;color:#fff;font-weight:700;}
+    @media (max-width:900px){
+      .moyens{grid-template-columns:1fr;}
+    }
+    @media (max-width:700px){
+      .grille,.etapes{grid-template-columns:1fr;}
+    }
+    @media (max-width:640px){
+      .tete-nav a{display:none;}
+      .tete-logo img{height:34px;}
+      .actions .bouton{width:100%;}
+    }
+  </style>
+</head>
+<body>
+  <header class="tete">
+    <a class="tete-logo" href="/" aria-label="Elatransfer — accueil" data-t-aria="aria_accueil"><img src="/brand-logo-negatif.webp" alt="Elatransfer" width="91" height="40"></a>
+    <nav class="tete-nav" aria-label="Navigation" data-t-aria="aria_nav">
+      <a href="/" data-t="nav_reserver">Réserver un trajet</a>
+      <a href="#questions" data-t="nav_questions">Questions</a>
+      <a href="#contact" data-t="nav_contact">Contact</a>
+      <button type="button" class="langue" id="langue" aria-label="Read in English" data-t-aria="aria_langue">EN</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-in">
+        <p class="surtitre" data-t="surtitre">Hôtels · Agences · Entreprises</p>
+        <h1 data-t="titre">Votre réception réserve. Elatransfer gère tout le reste.</h1>
+        <p class="lead" data-t="sous_titre">Une page de réservation à votre nom, un QR code pour vos clients, un espace pour votre équipe. Nous trouvons le chauffeur, confirmons au client et suivons le trajet jusqu'au bout.</p>
+        <div class="actions">
+          <a class="bouton" href="#demo" data-t="cta_demo">Voir la démo hôtel</a>
+          <a class="bouton creux" href="tel:+33759312433" data-t="cta_appel">Nous appeler</a>
+        </div>
+        <p class="points" data-t="points">Mise en place gratuite · Sans engagement · Tarifs négociés pour votre établissement</p>
+        <p class="reference" data-t="reference">Déjà en service dans un hôtel de la zone de Roissy-CDG.</p>
+      </div>
+    </section>
+
+    <section class="bloc vecu" aria-labelledby="t-vecu">
+      <h2 id="t-vecu" data-t="vecu_titre">Ce que vit votre réception</h2>
+      <div class="grille">
+        <div class="carte"><p data-t="vecu1">Un client doit être à Roissy à 7 h. Il le demande à 5 h.</p></div>
+        <div class="carte"><p data-t="vecu2">On cherche un numéro, on rappelle, et personne ne sait si la voiture viendra.</p></div>
+        <div class="carte"><p data-t="vecu3">Si le chauffeur ne vient pas, c'est à l'hôtel qu'on le reproche.</p></div>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-cree">
+      <h2 id="t-cree" data-t="cree_titre">Ce que nous créons pour vous</h2>
+      <div class="grille">
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+          <h3 data-t="cree1_t">Votre page</h3>
+          <p data-t="cree1">Une page à votre nom, avec la photo de votre établissement et votre logo, que vous nous confiez. Vos clients l'ouvrent par un lien ou en scannant un QR code.</p>
+        </article>
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V10h14v10M9 10V6h6v4"/></svg></div>
+          <h3 data-t="cree2_t">Votre espace réception</h3>
+          <p data-t="cree2">Votre équipe réserve par le numéro de chambre ou le nom du client, voit l'état de chaque course et retrouve l'historique.</p>
+        </article>
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></div>
+          <h3 data-t="cree3_t">Notre prise en charge</h3>
+          <p data-t="cree3">Nous vérifions chaque demande, plaçons un chauffeur professionnel, confirmons au client et suivons le trajet jusqu'à l'arrivée.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-comment">
+      <h2 id="t-comment" data-t="comment_titre">Comment ça se passe</h2>
+      <ol class="etapes">
+        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou la réception saisit la demande pour lui.</p></div></li>
+        <li><span class="num">2</span><div><b data-t="etape2_t">Elatransfer s'en occupe</b><p data-t="etape2">Nous vérifions la demande, plaçons un chauffeur professionnel et confirmons au client.</p></div></li>
+        <li><span class="num">3</span><div><b data-t="etape3_t">La réception suit</b><p data-t="etape3">Elle voit la course passer à « confirmée », puis à « effectuée ».</p></div></li>
+      </ol>
+    </section>
+
+    <section class="bloc change" aria-labelledby="t-change">
+      <h2 id="t-change" data-t="change_titre">Ce que ça change</h2>
+      <div class="grille">
+        <div class="carte"><h3 data-t="change1_t">Pour la direction</h3><p data-t="change1">Un service en plus pour vos clients, sans personnel ni véhicule à gérer.</p></div>
+        <div class="carte"><h3 data-t="change2_t">Pour la réception</h3><p data-t="change2">Plus d'appels à passer : la demande, la confirmation et l'historique sont au même endroit.</p></div>
+        <div class="carte"><h3 data-t="change3_t">Pour vos clients</h3><p data-t="change3">Un prix annoncé à l'avance, réglé directement au chauffeur, en français ou en anglais.</p></div>
+      </div>
+    </section>
+
+    <section class="demo" id="demo" aria-labelledby="t-demo">
+      <div class="demo-in">
+        <h2 id="t-demo" data-t="demo_titre">Une démonstration ? Appelez-nous ou écrivez-nous.</h2>
+        <p data-t="demo_texte">Nous vous montrons comment votre réception réserverait, et nous préparons avec vous la page de votre établissement.</p>
+        <div class="actions">
+          <a class="bouton" href="tel:+33759312433" data-t="demo_appel">Appeler le +33 7 59 31 24 33</a>
+          <a class="bouton creux" href="https://wa.me/33759312433" target="_blank" rel="noopener" data-t="demo_wa">Écrire sur WhatsApp</a>
+          <a class="bouton creux" href="mailto:contact@elatransfer.com" data-t="demo_mail">contact@elatransfer.com</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="bloc faq" id="questions" aria-labelledby="t-faq">
+      <h2 id="t-faq" data-t="faq_titre">Les questions des professionnels</h2>
+      <details><summary data-t="q1">Combien ça coûte à l'établissement ?</summary><p data-t="r1">Rien. La mise en place est gratuite, et chaque client règle son trajet directement au chauffeur.</p></details>
+      <details><summary data-t="q2">Qui sont les chauffeurs ?</summary><p data-t="r2">Des chauffeurs professionnels indépendants, qui conduisent sous leur propre carte professionnelle et leur assurance. Elatransfer choisit le chauffeur, confirme la course et la suit.</p></details>
+      <details><summary data-t="q3">Peut-on avoir nos propres tarifs ?</summary><p data-t="r3">Oui. Les tarifs sont négociés pour votre établissement et affichés sur votre page : votre client voit le prix avant de réserver.</p></details>
+      <details><summary data-t="q4">Et si le vol d'un client est en retard ?</summary><p data-t="r4">Votre client indique son numéro de vol : nous suivons son arrivée et le chauffeur l'attend jusqu'à 60 minutes après l'atterrissage réel, sans frais.</p></details>
+      <details><summary data-t="q5">Qui voit les données de nos clients ?</summary><p data-t="r5">Votre espace réception ne montre que les courses de votre établissement. Les informations nécessaires au trajet ne sont communiquées qu'au chauffeur retenu, et aucune donnée n'est vendue.</p></details>
+      <details><summary data-t="q6">Y a-t-il un engagement ?</summary><p data-t="r6">Non. Sans engagement : vous arrêtez quand vous voulez, sans frais.</p></details>
+      <details><summary data-t="q7">Que faut-il vous fournir ?</summary><p data-t="r7">Une photo de votre établissement, votre logo si vous le souhaitez, vos destinations habituelles et un contact à la réception.</p></details>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="t-contact">
+      <div class="contact-in">
+        <h2 id="t-contact" data-t="contact_titre">Parlons de votre établissement</h2>
+        <p data-t="contact_texte">Par téléphone, sur WhatsApp ou par e-mail : nous vous recontactons.</p>
+        <div class="moyens">
+          <a class="moyen" href="tel:+33759312433"><b data-t="m_tel">Téléphone</b><span>+33 7 59 31 24 33</span></a>
+          <a class="moyen" href="https://wa.me/33759312433" target="_blank" rel="noopener"><b>WhatsApp</b><span>+33 7 59 31 24 33</span></a>
+          <a class="moyen" href="mailto:contact@elatransfer.com"><b data-t="m_mail">E-mail</b><span>contact@elatransfer.com</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span data-t="pied">Elatransfer · Transferts avec chauffeur, pour les voyageurs et les professionnels</span><br>
+    <a href="/" data-t="pied_accueil">Accueil</a>
+    <a href="/?doc=mentions" data-t="pied_mentions">Mentions légales</a>
+    <a href="/?doc=privacy" data-t="pied_privacy">Politique de confidentialité</a>
+  </footer>
+
+  <script>
+  /* Deux langues, sans dépendance. Le français est écrit dans la page (c'est
+     lui que lit Google) ; l'anglais remplace les textes à l'appui du bouton,
+     et le choix se mémorise sous la même clé que le site (ela_langue). */
+  (function(){
+    var EN = {
+      _titre_page:"Elatransfer for hotels, agencies and businesses | Chauffeur transfers",
+      _description:"A booking page with your name, a QR code for your guests, a space for your team. Elatransfer finds the chauffeur, confirms with the guest and follows the journey. Free set-up, no commitment.",
+      aria_accueil:"Elatransfer — home", aria_nav:"Navigation", aria_langue:"Lire en français",
+      nav_reserver:"Book a ride", nav_questions:"FAQ", nav_contact:"Contact",
+      surtitre:"Hotels · Agencies · Businesses",
+      titre:"Your front desk books. Elatransfer takes care of everything else.",
+      sous_titre:"A booking page with your name, a QR code for your guests, a space for your team. We find the chauffeur, confirm with the guest and follow the journey all the way.",
+      cta_demo:"See the hotel demo", cta_appel:"Call us",
+      points:"Free set-up · No commitment · Rates negotiated for your establishment",
+      reference:"Already running in a hotel in the Roissy-CDG area.",
+      vecu_titre:"What your front desk goes through",
+      vecu1:"A guest has to be at Roissy at 7 am. They ask at 5 am.",
+      vecu2:"Someone looks for a number, calls back, and nobody knows whether the car will come.",
+      vecu3:"If the driver doesn't show up, it's the hotel that gets the blame.",
+      cree_titre:"What we set up for you",
+      cree1_t:"Your page", cree1:"A page with your name, the photo of your establishment and your logo, which you entrust to us. Your guests open it from a link or by scanning a QR code.",
+      cree2_t:"Your front-desk space", cree2:"Your team books by room number or guest name, sees the status of every ride and finds the history.",
+      cree3_t:"What we take care of", cree3:"We check every request, assign a professional chauffeur, confirm with the guest and follow the journey through to arrival.",
+      comment_titre:"How it works",
+      etape1_t:"The request", etape1:"The guest scans the QR code, or the front desk enters the request for them.",
+      etape2_t:"Elatransfer takes over", etape2:"We check the request, assign a professional chauffeur and confirm with the guest.",
+      etape3_t:"The front desk follows", etape3:"It sees the ride move to “confirmed”, then to “completed”.",
+      change_titre:"What it changes",
+      change1_t:"For management", change1:"One more service for your guests, with no staff or vehicle to manage.",
+      change2_t:"For the front desk", change2:"No more calls to make: the request, the confirmation and the history are in one place.",
+      change3_t:"For your guests", change3:"A price given in advance, paid directly to the chauffeur, in French or in English.",
+      demo_titre:"A demonstration? Call us or write to us.",
+      demo_texte:"We show you how your front desk would book, and we prepare the page for your establishment with you.",
+      demo_appel:"Call +33 7 59 31 24 33", demo_wa:"Message us on WhatsApp", demo_mail:"contact@elatransfer.com",
+      faq_titre:"Questions from businesses",
+      q1:"What does it cost the establishment?", r1:"Nothing. Set-up is free, and each guest pays for their ride directly to the chauffeur.",
+      q2:"Who are the chauffeurs?", r2:"Independent professional chauffeurs, driving under their own professional licence and insurance. Elatransfer chooses the chauffeur, confirms the ride and follows it.",
+      q3:"Can we have our own rates?", r3:"Yes. Rates are negotiated for your establishment and shown on your page: your guest sees the price before booking.",
+      q4:"What if a guest's flight is delayed?", r4:"Your guest gives their flight number: we track their arrival and the chauffeur waits up to 60 minutes after the actual landing, at no charge.",
+      q5:"Who sees our guests' data?", r5:"Your front-desk space only shows your establishment's rides. The information needed for the journey is shared only with the assigned chauffeur, and no data is sold.",
+      q6:"Is there any commitment?", r6:"No. No commitment: you stop whenever you like, at no cost.",
+      q7:"What do you need from us?", r7:"A photo of your establishment, your logo if you wish, your usual destinations and a contact at the front desk.",
+      contact_titre:"Let's talk about your establishment",
+      contact_texte:"By phone, on WhatsApp or by email: we will get back to you.",
+      m_tel:"Phone", m_mail:"Email",
+      pied:"Elatransfer · Chauffeur transfers, for travellers and businesses",
+      pied_accueil:"Home", pied_mentions:"Legal notice", pied_privacy:"Privacy policy"
+    };
+    var FR = {};
+    function lire(){
+      FR._titre_page = document.title;
+      FR._description = document.querySelector('meta[name=description]').getAttribute('content');
+      document.querySelectorAll('[data-t]').forEach(function(e){ FR[e.getAttribute('data-t')] = e.textContent; });
+      document.querySelectorAll('[data-t-aria]').forEach(function(e){ FR[e.getAttribute('data-t-aria')] = e.getAttribute('aria-label'); });
+    }
+    function appliquer(l){
+      var T = l === 'en' ? EN : FR;
+      document.documentElement.lang = l;
+      document.title = T._titre_page;
+      document.querySelector('meta[name=description]').setAttribute('content', T._description);
+      document.querySelectorAll('[data-t]').forEach(function(e){ var k = e.getAttribute('data-t'); if (T[k] != null) e.textContent = T[k]; });
+      document.querySelectorAll('[data-t-aria]').forEach(function(e){ var k = e.getAttribute('data-t-aria'); if (T[k] != null) e.setAttribute('aria-label', T[k]); });
+      var b = document.getElementById('langue');
+      b.textContent = l === 'en' ? 'FR' : 'EN';
+      b.setAttribute('aria-label', l === 'en' ? 'Lire en français' : 'Read in English');
+    }
+    lire();
+    var langue = 'fr';
+    try { langue = localStorage.getItem('ela_langue') === 'en' ? 'en' : 'fr'; } catch (e) {}
+    var q = /[?&]lang=(fr|en)\b/.exec(location.search);
+    if (q) langue = q[1];
+    if (langue === 'en') appliquer('en');
+    document.getElementById('langue').addEventListener('click', function(){
+      langue = langue === 'en' ? 'fr' : 'en';
+      try { localStorage.setItem('ela_langue', langue); } catch (e) {}
+      appliquer(langue);
+    });
+  })();
+  </script>
+</body>
+</html>
