@@ -67,7 +67,10 @@ html[data-ela-space="demo"] .entete{background:#fff;color:var(--demo-nuit);borde
   background:var(--h-charbon,var(--demo-nuit));color:#fff;font-size:12.5px;font-weight:800;line-height:1.3}
 
 /* ═══ LE QR CODE ET LA FIN ═══ */
-.demo-pied{max-width:640px;margin:24px auto 110px;padding:20px 16px;border-radius:16px;background:#fff;
+/* Pas de marge basse en plus : le site réserve déjà sous la page la hauteur de
+   la barre du bas (80 px pour 62). Les 110 px d'avant s'y ajoutaient — près de
+   200 px de vide au bout de la page sur téléphone (recette du 8/10/2026). */
+.demo-pied{max-width:640px;margin:24px auto;padding:20px 16px;border-radius:16px;background:#fff;
   border:1px solid var(--demo-filet);text-align:center;color:#151C22}
 .demo-pied-titre{margin:0 0 6px;font-size:18px;font-weight:800}
 .demo-pied-texte{margin:0 0 12px;color:#5A6A7B;font-size:14.5px}
@@ -183,6 +186,18 @@ body.demo-choix #demoRetourCartes{display:none}
 .demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
   color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}
 
+/* SUR ORDINATEUR, LA VUE CLIENT A LES PROPORTIONS DE LA VRAIE PAGE D'UN
+   PARTENAIRE (recette du 8/10/2026). Sans la finition easyHotel, qui n'est
+   pas chargée ici, rien ne bornait la page : les champs du formulaire
+   s'étalaient sur 1 300 px quand la page easyHotel les centre sur 780. Le
+   prospect doit voir ce que verront ses clients — mêmes mesures que
+   hotel-engine-polish.css : la page à 1 180 px, le formulaire à 780. */
+@media (min-width:761px){
+  html[data-ela-space="demo"][data-demo-vue="client"] .page{max-width:1180px;margin-left:auto;margin-right:auto}
+  html[data-ela-space="demo"][data-demo-vue="client"] #ecran-accueil > .reserver{max-width:780px;margin-left:auto;margin-right:auto}
+  html[data-ela-space="demo"][data-demo-vue="client"] .demo-retour-cartes{display:flex;width:100%;max-width:780px;margin:0 auto 8px}
+}
+
 /* « Vos prix » et l'explication du flyer. */
 .demo-prix-aide{margin:0 0 10px;color:#5A6A7B;font-size:13.5px;line-height:1.4}
 .demo-prix-table{border:1px solid var(--demo-filet);border-radius:12px;overflow:hidden}
@@ -198,5 +213,6 @@ body.demo-choix #demoRetourCartes{display:none}
 /* La consigne qui mène à la suite du parcours : visible, juste sous le titre. */
 .demo-cartes-aide{display:flex;align-items:center;gap:8px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;
   background:var(--h-bouton,var(--demo-bleu));color:#fff;font-size:15px;font-weight:800;line-height:1.35}
-.demo-cartes-aide::before{content:"";flex:0 0 auto;width:9px;height:9px;margin:0 4px 0 2px;border-right:2.5px solid currentColor;
-  border-bottom:2.5px solid currentColor;transform:rotate(45deg) translate(-2px,-2px)}
+/* Une FLÈCHE vers les cartes, pas un chevron : sur un bandeau bleu plein, le
+   chevron se lisait comme un menu à déplier (recette du 8/10/2026). */
+.demo-cartes-aide::before{content:"\2193";flex:0 0 auto;font-size:18px;font-weight:800;line-height:1;margin:0 2px}

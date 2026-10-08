@@ -268,6 +268,30 @@ masquées par défaut, `noindex`), et ouvre la démo SANS session : elle doit
 renvoyer au formulaire sans appeler le serveur. **Il n'exige jamais que la
 démo s'ouvre** : c'est le serveur qui en décide.
 
+## La recette (bloc 6) — ce qu'elle a trouvé et corrigé
+
+Parcours relu comme un directeur d'hôtel, au téléphone (390×844) et sur
+ordinateur (1366×768), sur le site construit. Quatre défauts, tous corrigés
+et verrouillés par un contrôle éprouvé contre l'ancien code.
+- **Sur téléphone, `#demo` montrait trois liens avant le formulaire** : le
+  formulaire commençait à 467 px du haut de la section. Sur une colonne, le
+  texte devient des éléments de la grille (`display:contents`) et
+  « Vous préférez nous parler ? » passe sous le formulaire (289 px).
+  `test-pro-formulaire`, bloc 11.
+- **Sur ordinateur, la vue client de la démo s'étalait sur 1 300 px** : sans
+  `hotel-engine-polish`, rien ne la bornait. `demo.css` reprend les mesures de
+  la vraie page (page 1 180 px, formulaire 780 px, centrés).
+- **La façade retirait à TOUTES les pages, au-delà de 900 px, la place de la
+  barre du bas** (`body{padding-bottom:0}`). Le site public n'a plus de barre ;
+  la page du flyer d'un hôtel et la démo l'ont gardée, et leur dernière ligne
+  passait dessous — **en ligne sur la vraie page easyHotel**. La règle est
+  bornée au site public. Les 110 px de marge que la démo ajoutait pour
+  compenser laissaient sur téléphone ~200 px de vide : retirés.
+  `test-easyhotel-client` 5 bis, `test-demo-hotel` 6.
+- **« Prix fixes » au-dessus de cartes « à fixer »** : l'en-tête dit « Un prix
+  par destination » ; la consigne porte une flèche ↓, plus un chevron qui se
+  lisait comme un menu à déplier.
+
 ## Épreuves
 
 - `test-pro-page.mjs`, `test-pro-formulaire.mjs` (site construit, neuf
