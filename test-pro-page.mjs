@@ -74,6 +74,10 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
       fautif: [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1)
         .slice(0, 3).map(e => e.tagName + '.' + e.className + ' [' + Math.round(e.getBoundingClientRect().right) + ']') }));
     check(`${w} px ${langue.toUpperCase()} : aucun débordement horizontal`, m.doc <= m.vue && m.fautif.length === 0, JSON.stringify(m));
+    // Un numéro ou une adresse coupés en deux ne se relisent plus d'un trait.
+    const coupes = await p.evaluate(() => [...document.querySelectorAll('.moyen span')]
+      .filter(e => e.getBoundingClientRect().height > parseFloat(getComputedStyle(e).lineHeight) * 1.5).map(e => e.textContent));
+    check(`${w} px ${langue.toUpperCase()} : le numéro et l'e-mail du contact tiennent sur une ligne`, coupes.length === 0, coupes.join(' | '));
     check(`${w} px ${langue.toUpperCase()} : aucune erreur, aucun fichier manquant`, p._errs.length === 0 && p._404.length === 0, p._errs.concat(p._404).join(' | '));
     await p.context().close();
   }

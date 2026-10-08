@@ -1086,10 +1086,12 @@ for (const large of [1024, 1280]) {
     check(`${chemin} : plus qu'une coquille (au moins 250 mots)`, mots >= 250, mots + ' mots');
     // LA PAGE DES PROFESSIONNELS (8 octobre 2026) répond à des questions
     // que l'accueil ne pose pas (coût pour l'hôtel, engagement, données) :
-    // celles-là sont éprouvées par test-pro-page. La seule qu'elle partage
-    // avec l'accueil — le vol en retard, CGV art. 7 — reste mot pour mot.
+    // celles-là sont éprouvées par test-pro-page. Celle qu'elle partage
+    // avec l'accueil — le vol en retard, CGV art. 7 — parle du client de
+    // l'hôtel, mais la RÈGLE (« jusqu'à … sans frais ») reste mot pour mot.
+    const regleVol = (reponses.find(r => /numéro de vol/.test(r)) || '').replace(/^.*?(jusqu'à)/, '$1');
     const ecarts = chemin === 'professionnels/'
-      ? (lu.faq.some(r => reponses.includes(r) && /vol/.test(r)) ? [] : ['réponse « vol en retard » absente ou réécrite'])
+      ? (regleVol.length > 20 && lu.faq.some(r => r.endsWith(regleVol)) ? [] : ['règle « vol en retard » absente ou réécrite : ' + regleVol])
       : lu.faq.filter(r => !reponses.includes(r));
     check(`${chemin} : ses réponses sont celles de l'accueil, mot pour mot`, lu.faq.length >= 1 && ecarts.length === 0, ecarts.join(' | '));
   }

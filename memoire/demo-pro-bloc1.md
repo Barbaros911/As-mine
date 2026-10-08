@@ -23,7 +23,7 @@ depuis l'accueil.
   `NOS_DOSSIERS` est laissé au réseau, ce qui suffit à une page de vente.
 
 ## Pourquoi c'est écrit ainsi
-- **Le vol en retard reprend MOT POUR MOT la réponse de l'accueil** (CGV
+- **Le vol en retard reprend MOT POUR MOT la règle de l'accueil** (« jusqu'à 60 minutes… sans frais », CGV
   art. 7). `test-nouveau-bascule` exige des pages du plan des réponses
   identiques à l'accueil ; la page pro pose des questions que l'accueil ne
   pose pas (coût, engagement, données), donc elle seule est éprouvée sur la
