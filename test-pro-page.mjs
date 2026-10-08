@@ -141,8 +141,10 @@ for (const l of ['fr', 'en']) {
   const t = textes[l].corps + ' ' + textes[l].titre + ' ' + textes[l].desc;
   const m = t.match(INTERDITS[l]);
   check(`${l.toUpperCase()} : aucun mot interdit (positionnement, VTC, taxi, prix ferme, temps réel, partenaires, easyHotel)`, !m, m ? m[0] : '');
-  // Aucun chiffre promis : hors du numéro, de l'heure du récit et des 60 min de la FAQ (CGV art. 7).
+  // Aucun chiffre promis : hors du numéro, de l'heure du récit, des 60 min de la FAQ (CGV art. 7)
+  // et de la durée d'accès à la démonstration (une limite, pas une promesse — bloc 4).
   const chiffres = t.replace(/\+33 7 59 31 24 33/g, '').replace(/\b[57] (h|am)\b/g, '').replace(/60 minutes/g, '')
+    .replace(/valable 7 jours sur cet appareil|valid for 7 days on this device/g, '')
     .replace(/Roissy-CDG/g, '').match(/\d+\s*(%|€|jours?|days?|heures?|hours?|min)/i);
   check(`${l.toUpperCase()} : aucun chiffre ni délai promis`, !chiffres, chiffres ? chiffres[0] : '');
 }
@@ -152,13 +154,13 @@ for (const langue of ['fr', 'en']) {
   const p = await ouvrir(390, 844, langue, SITE);
   const cta = await p.evaluate(() => { const a = document.querySelector('#modele .modele-cta');
     return a ? { href: a.getAttribute('href'), texte: a.textContent.trim(), mail: !!document.querySelector('#modele a[href="mailto:contact@elatransfer.com"]') } : null; });
-  check(`accueil ${langue.toUpperCase()} : le bouton de l'encart est « ${langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'} » vers /professionnels/`,
-    cta && cta.href === '/professionnels/' && cta.texte === (langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'), JSON.stringify(cta));
+  check(`accueil ${langue.toUpperCase()} : le bouton de l'encart est « ${langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'} » vers le formulaire /professionnels/#demo`,
+    cta && cta.href === '/professionnels/#demo' && cta.texte === (langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'), JSON.stringify(cta));
   check(`accueil ${langue.toUpperCase()} : l'encart garde son lien e-mail`, cta && cta.mail);
   if (langue === 'fr') {
     await p.evaluate(() => document.querySelector('#modele').scrollIntoView());
     await p.click('#modele .modele-cta'); await p.waitForLoadState('load');
-    check('accueil : un appui ouvre vraiment /professionnels/', p.url() === PAGE, p.url());
+    check('accueil : un appui ouvre vraiment le formulaire /professionnels/#demo', p.url() === PAGE + '#demo', p.url());
   }
   await p.context().close();
 }
