@@ -96,7 +96,7 @@ const texte = (p, sel) => p.evaluate(s => document.querySelector(s)?.textContent
   check('le nom rendu par « ouvrir » est affiché', (await texte(p, '#hotelTeteNom')) === 'Hôtel Ibis Roissy', await texte(p, '#hotelTeteNom'));
   check('un rond porte les initiales, pas un logo', (await texte(p, '.demo-initiales')) === 'HI', await texte(p, '.demo-initiales'));
   check('la zone photo dit « Votre photo ici »', (await texte(p, '#demoPhotoTexte')) === 'Votre photo ici');
-  check('les tarifs sont marqués d\'exemple', /Tarifs d'exemple — les vôtres seront négociés/.test(await texte(p, '#demoExemple')));
+  check('la pastille dit que les prix sont ceux du flyer', /Vos prix : ceux de votre flyer/.test(await texte(p, '#demoExemple')));
   check('le bandeau dit « Démonstration — aucune réservation réelle »', (await texte(p, '#demoBandeau')) === 'Démonstration — aucune réservation réelle');
   check('les deux onglets sont là', (await texte(p, '#demoOngletClient')) === 'Ce que voit votre client' && (await texte(p, '#demoOngletReception')) === 'Ce que voit votre réception');
   check('le bandeau reste en haut après défilement', await p.evaluate(() => { scrollTo(0, 900); const r = document.getElementById('demoBandeau').getBoundingClientRect(); return r.top <= 1 && r.bottom > 10; }));
@@ -158,7 +158,11 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('arrivée : le formulaire attend qu\'on choisisse', !(await visible(p, '#btnVoirPrix')));
   check('arrivée : une carte par destination, plus « Autre destination »',
     await p.evaluate(() => document.querySelectorAll('.demo-carte').length === document.querySelectorAll('#hotelDest option').length));
-  check('arrivée : les prix des cartes sont ceux du menu (CDG 45 / 65 €)', /45,00\s€[\s\S]*65,00\s€/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  /* AUCUN PRIX PROPOSÉ (8/10/2026) : l'hôtel fixe les siens, ceux de son flyer. */
+  check('arrivée : aucun prix proposé, toutes les cartes disent « à fixer »', await p.evaluate(() =>
+    [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d+,\d\d\s€/.test(c.innerText))));
+  check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
+  check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
   check('arrivée : une carte ouvre le formulaire sur SA destination', (await p.inputValue('#hotelDest')) === 'orly' && await visible(p, '#btnVoirPrix'));
   check('arrivée : « Toutes les destinations » est à l\'écran après le choix', await p.evaluate(() => { const r = document.getElementById('demoRetourCartes').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.height > 0; }));
@@ -193,6 +197,8 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('la réception s\'ouvre sans code', await visible(p, '#recCorps') && !(await visible(p, '#recVerrou')));
   check('la course du client apparaît chez la réception', await p.evaluate(r => document.body.innerText.includes('Jean Martin') && document.body.innerText.includes(r), ref));
   check('des courses fictives sont préremplies', await p.evaluate(() => document.body.innerText.includes('Mme Laurent (exemple)')));
+  check('les courses d\'exemple ne portent aucun prix proposé', await p.evaluate(() => {
+    const t = document.getElementById('ecran-reception').innerText; return !/(45|65|85|125|75|115),00\s€/.test(t); }));
   await p.click('#demoSuivi .demo-suivant');
   await p.waitForTimeout(800);
   check('… → Effectuée, et la fin propose « Mettre ça en place »', (await texte(p, '.demo-etapes li.en-cours')) === 'Effectuée'
@@ -265,9 +271,17 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : un prix à 0 € est refusé, et on dit pourquoi', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')));
   await p.click('#demoPersoVoir');
   check('perso : « Voir ma page » referme le panneau', !(await p.evaluate(() => document.getElementById('demoPerso').open)));
-  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60,00\s€[\s\S]*90,00\s€/.test(await texte(p, '.demo-carte[data-dest="perso-0"]')));
-  await p.click('.demo-carte[data-dest="perso-0"]'); await p.waitForTimeout(400);
-  check('perso : son forfait s\'affiche avec la destination', (await p.inputValue('#hotelDest')) === 'perso-0' && /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
+  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60,00\s€[\s\S]*90,00\s€/.test(await texte(p, '.demo-carte[data-dest^="perso-"]')));
+  /* Le prix fixé dans « Vos prix » passe sur la carte, puis au formulaire. */
+  await p.click('#demoPerso summary');
+  await p.fill('#demoPrixTable input[data-cle="cdg"][data-gamme="berline"]', '52'); await p.press('#demoPrixTable input[data-cle="cdg"][data-gamme="berline"]', 'Tab');
+  await p.waitForTimeout(200);
+  check('perso : un prix fixé dans « Vos prix » passe sur la carte', /52,00\s€[\s\S]*à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  await p.fill('#demoPrixTable input[data-cle="cdg"][data-gamme="van"]', '0'); await p.press('#demoPrixTable input[data-cle="cdg"][data-gamme="van"]', 'Tab');
+  check('perso : « Vos prix » refuse un prix à 0 €', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')) && /à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  await p.click('#demoPersoVoir');
+  await p.click('.demo-carte[data-dest^="perso-"]'); await p.waitForTimeout(400);
+  check('perso : son forfait s\'affiche avec la destination', (await p.inputValue('#hotelDest')).startsWith('perso-') && /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
   check('perso : le vrai stockage du site n\'a rien reçu', await p.evaluate(() => Object.keys(localStorage).every(k => k === 'ela_demo_session' || k.startsWith('ela_demo__'))));
   check('perso : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
@@ -287,7 +301,7 @@ for (const w of [320, 390, 768, 1366]) {
   await p.click('#demoPerso summary'); await p.waitForTimeout(200);
   const d = await p.evaluate(() => ({ large: document.documentElement.scrollWidth, W: document.documentElement.clientWidth }));
   check(`perso ${w} px : panneau ouvert sans débordement`, d.large <= d.W, JSON.stringify(d));
-  check(`perso ${w} px : « Ajouter » cliquable`, await p.evaluate(() => { const b = document.getElementById('demoDestAjouter'); b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !!e.closest('#demoDestAjouter'); }));
+  check(`perso ${w} px : « Ajouter » cliquable`, await p.evaluate(() => { const b = document.getElementById('demoDestAjouter'); b.scrollIntoView({ block: 'center', behavior: 'instant' }); const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !!e.closest('#demoDestAjouter'); }));
   await ctx.close();
 }
 

@@ -87,19 +87,22 @@
      aux œuvres de fiction). */
   function semer(){
     var adresse = "Hôtel — " + NOM_REPLI;
-    function c(ref, statut, j, heure, arrivee, nom, chambre, prix, veh){
-      return { ref: ref, cree: Date.now() - 86400000, avance: 0, fixe: statut,
+    /* AUCUN PRIX N'EST ÉCRIT DANS LES COURSES D'EXEMPLE : il vient des prix
+       que le prospect a fixés (destCle + gamme), et la ligne n'en montre pas
+       tant qu'il n'en a fixé aucun. */
+    function c(ref, statut, j, heure, arrivee, nom, chambre, destCle, gamme, veh){
+      return { ref: ref, cree: Date.now() - 86400000, avance: 0, fixe: statut, destCle: destCle, gamme: gamme,
         bon: { ref: ref, statut: statut, provenanceCle: "demo-hotel", parReception: true,
           client: { nom: nom, telephone: "+33 6 39 98 00 1" + ref.slice(-1) },
           paiement: "carte", paiementNom: "Carte bancaire",
           course: { date: jour(j), heure: heure, depart: adresse, departPublic: adresse,
                     arrivee: arrivee, vehicule: veh, chambre: chambre },
-          prix: { total: prix } } };
+          prix: { total: 0 } } };
     }
     return { version: 1, courses: [
-      c("ELA-DEMO-00003", "confirmee", 1, "06:30", "Aéroport CDG — Terminal 2E", "Mme Laurent (exemple)", "214", 45, "Berline"),
-      c("ELA-DEMO-00002", "attente", 0, "18:15", "Orly", "M. Dubois (exemple)", "108", 85, "Van"),
-      c("ELA-DEMO-00001", "realisee", -1, "09:00", "Paris — Gare de Lyon", "Mme Bernard (exemple)", "305", 75, "Berline")
+      c("ELA-DEMO-00003", "confirmee", 1, "06:30", "Aéroport CDG — Terminal 2E", "Mme Laurent (exemple)", "214", "cdg", "berline", "Berline"),
+      c("ELA-DEMO-00002", "attente", 0, "18:15", "Orly", "M. Dubois (exemple)", "108", "orly", "van", "Van"),
+      c("ELA-DEMO-00001", "realisee", -1, "09:00", "Paris — Gare de Lyon", "Mme Bernard (exemple)", "305", "paris", "berline", "Berline")
     ] };
   }
 
@@ -126,7 +129,10 @@
       chambre: String(co.chambre || ""), note: String(co.note || ""),
       paiement: String(b.paiementNom || b.paiement || ""), modifie: "",
       chauffeur: n >= 2 ? { nom: CHAUFFEUR.nom, telephone: CHAUFFEUR.telephone } : { nom: "", telephone: "" } };
-    if(n < 3) v.prix = Number(b.prix && b.prix.total) || 0;
+    if(c.fixe){
+      var fix = ((lirePerso().prix || {})[c.destCle] || {})[c.gamme];
+      if(n < 3 && fix > 0) v.prix = fix;
+    } else if(n < 3) v.prix = Number(b.prix && b.prix.total) || 0;
     return v;
   }
 
@@ -312,10 +318,11 @@
     document.querySelector("#demoSuivi .demo-fin-texte").textContent =
       texte("C'est tout : la course est faite, et rien n'a été réservé pour de vrai.", "That's it: the ride is done, and nothing was really booked.");
     var exemple = document.getElementById("demoExemple");
-    if(exemple) exemple.textContent = texte("Tarifs d'exemple — les vôtres seront négociés", "Sample prices — yours will be negotiated");
+    if(exemple) exemple.textContent = texte("Vos prix : ceux de votre flyer", "Your prices: the ones on your flyer");
     var photo = document.getElementById("demoPhotoTexte");
     if(photo) photo.textContent = texte("Votre photo ici", "Your photo here");
     traduire(document.getElementById("demoPerso"));
+    dessinerPrix();
     try{ if(window.ELA_DEMO_PAGE && window.ELA_DEMO_PAGE.dessinerCartes) window.ELA_DEMO_PAGE.dessinerCartes(); }catch(e){}
     dessinerSuivi();
   }
@@ -358,7 +365,13 @@
                   ["#2F3A45", "Anthracite", "Charcoal"], ["#5B3FA0", "Violet", "Purple"]];
 
   function lirePerso(){
-    try{ var p = JSON.parse(stockage.getItem(CLE_PERSO) || "null"); if(p && typeof p === "object") return p; }catch(e){}
+    try{
+      var p = JSON.parse(stockage.getItem(CLE_PERSO) || "null");
+      if(p && typeof p === "object"){
+        (p.destinations || []).forEach(function(d, i){ if(!d.id) d.id = "d" + i; });
+        return p;
+      }
+    }catch(e){}
     return {};
   }
   function ecrirePerso(p){
@@ -403,9 +416,10 @@
     }
     var msg = document.getElementById("demoMessage");
     if(msg){ msg.textContent = p.message || ""; msg.hidden = !p.message; }
-    try{ if(window.ELA_DEMO_PAGE) window.ELA_DEMO_PAGE.appliquer({ nom: p.nom, destinations: p.destinations }); }
+    try{ if(window.ELA_DEMO_PAGE) window.ELA_DEMO_PAGE.appliquer({ nom: p.nom, destinations: p.destinations, prix: p.prix }); }
     catch(e){ /* la page n'a pas d'hôtel ouvert : rien à repeindre */ }
     dessinerListeDest();
+    dessinerPrix();
   }
 
   function modifier(f){ var p = lirePerso(); f(p); var ok = ecrirePerso(p); appliquerPerso(); return ok; }
@@ -439,9 +453,11 @@
     liste.forEach(function(d, i){
       var li = el("li", "demo-dest");
       li.appendChild(el("span", "demo-dest-nom", d.nom));
-      li.appendChild(el("span", "demo-dest-prix", "Berline " + d.berline + " € · Van " + d.van + " €"));
       var x = bilingue("button", "demo-dest-retirer", "Retirer", "Remove"); x.type = "button";
-      x.addEventListener("click", function(){ modifier(function(q){ q.destinations.splice(i, 1); }); });
+      x.addEventListener("click", function(){ modifier(function(q){
+        q.destinations = (q.destinations || []).filter(function(y){ return y.id !== d.id; });
+        if(q.prix) delete q.prix["perso-" + d.id];
+      }); });
       li.appendChild(x);
       ul.appendChild(li);
     });
@@ -490,8 +506,12 @@
     var berline = Math.round(Number(document.getElementById("demoDestBerline").value));
     var van = Math.round(Number(document.getElementById("demoDestVan").value));
     if(nom.length < 2){ direPerso("Indiquez un lieu, par exemple « Stade de France ».", "Enter a place, e.g. “Stade de France”."); return; }
-    if(!(berline >= 1 && berline <= 2000 && van >= 1 && van <= 2000)){
-      direPerso("Indiquez un prix entre 1 et 2 000 € pour la berline et pour le van.", "Enter a price between €1 and €2,000 for the sedan and the van."); return;
+    /* Les prix sont FACULTATIFS ici : ils se fixent aussi plus tard, dans
+       « Vos prix ». Mais un prix écrit doit être un vrai prix. */
+    var videB = document.getElementById("demoDestBerline").value.trim() === "";
+    var videV = document.getElementById("demoDestVan").value.trim() === "";
+    if((!videB && !(berline >= 1 && berline <= 2000)) || (!videV && !(van >= 1 && van <= 2000))){
+      direPerso("Indiquez un prix entre 1 et 2 000 €, ou laissez la case vide.", "Enter a price between €1 and €2,000, or leave it empty."); return;
     }
     if((lirePerso().destinations || []).length >= MAX_DEST){ direPerso("Quatre destinations au plus dans la démo.", "Four destinations at most in the demo."); return; }
     var bouton = document.getElementById("demoDestAjouter");
@@ -504,15 +524,76 @@
         direPerso("Lieu introuvable : précisez la ville, par exemple « Stade de France, Saint-Denis ».",
                   "Place not found: add the town, e.g. “Stade de France, Saint-Denis”."); return;
       }
+      var id = Date.now().toString(36);
       modifier(function(p){
-        (p.destinations = p.destinations || []).push({ nom: nom, label: String(l.label || nom).slice(0, 120),
-          lat: Number(l.lat), lon: Number(l.lon), berline: berline, van: van });
+        (p.destinations = p.destinations || []).push({ id: id, nom: nom, label: String(l.label || nom).slice(0, 120),
+          lat: Number(l.lat), lon: Number(l.lon) });
+        var f = {};
+        if(!videB) f.berline = berline;
+        if(!videV) f.van = van;
+        if(f.berline || f.van){ p.prix = p.prix || {}; p.prix["perso-" + id] = f; }
       });
       ["demoDestNom", "demoDestBerline", "demoDestVan"].forEach(function(id){ document.getElementById(id).value = ""; });
       direPerso("Destination ajoutée au menu de votre page.", "Destination added to your page's menu.");
     }, function(){
       bouton.disabled = false;
       direPerso("Recherche indisponible, réessayez.", "Search unavailable, please try again.");
+    });
+  }
+
+  /* ═══ « VOS PRIX » — CEUX DE SON FLYER ═══
+     8 octobre 2026, Barbaros : « ne mets pas les prix suggérés, il faut
+     laisser l'hôtel choisir ». Une ligne par destination, deux cases vides.
+     Le tableau n'est redessiné que si la LISTE change : le redessiner à
+     chaque chiffre ferait perdre la case en cours de saisie. */
+  var signaturePrix = "";
+  function dessinerPrix(){
+    var table = document.getElementById("demoPrixTable");
+    if(!table || !window.ELA_DEMO_PAGE || !window.ELA_DEMO_PAGE.destinations) return;
+    var dest = window.ELA_DEMO_PAGE.destinations(), prix = lirePerso().prix || {};
+    var sig = dest.map(function(d){ return d.cle + ":" + d.nom; }).join("|") + "|" + racine.lang;
+    if(sig === signaturePrix){
+      table.querySelectorAll("input[data-cle]").forEach(function(i){
+        if(document.activeElement === i) return;
+        var v = (prix[i.getAttribute("data-cle")] || {})[i.getAttribute("data-gamme")];
+        i.value = v > 0 ? String(v) : "";
+      });
+      return;
+    }
+    signaturePrix = sig;
+    table.textContent = "";
+    var tete = el("div", "demo-prix-ligne demo-prix-tete");
+    tete.appendChild(el("span", "", texte("Destination", "Destination")));
+    tete.appendChild(el("span", "", texte("Berline €", "Sedan €")));
+    tete.appendChild(el("span", "", "Van €"));
+    table.appendChild(tete);
+    dest.forEach(function(d){
+      var ligne = el("div", "demo-prix-ligne");
+      ligne.appendChild(el("span", "demo-prix-nom", d.nom));
+      ["berline", "van"].forEach(function(g){
+        var i = el("input"); i.type = "number"; i.min = "1"; i.max = "2000"; i.inputMode = "numeric";
+        i.setAttribute("data-cle", d.cle); i.setAttribute("data-gamme", g);
+        i.setAttribute("aria-label", d.nom + " — " + (g === "van" ? "Van" : texte("Berline", "Sedan")));
+        var v = (prix[d.cle] || {})[g];
+        i.value = v > 0 ? String(v) : "";
+        i.placeholder = "—";
+        i.addEventListener("change", function(){
+          var brut = i.value.trim(), n = Math.round(Number(brut));
+          if(brut !== "" && !(n >= 1 && n <= 2000)){
+            direPerso("Indiquez un prix entre 1 et 2 000 €, ou laissez la case vide.", "Enter a price between €1 and €2,000, or leave it empty.");
+            i.value = ""; return;
+          }
+          modifier(function(q){
+            q.prix = q.prix || {};
+            var f = q.prix[d.cle] = q.prix[d.cle] || {};
+            if(brut === "") delete f[g]; else f[g] = n;
+            if(!f.berline && !f.van) delete q.prix[d.cle];
+          });
+          direPerso("", "");
+        });
+        ligne.appendChild(i);
+      });
+      table.appendChild(ligne);
     });
   }
 
@@ -523,8 +604,8 @@
     bloc.appendChild(titre);
     var corps = el("div", "demo-perso-corps");
     corps.appendChild(bilingue("p", "demo-perso-intro",
-      "Essayez votre nom, votre couleur, votre photo. Tout reste sur votre appareil : rien n'est envoyé.",
-      "Try your name, colour and photo. Everything stays on your device: nothing is sent."));
+      "Essayez votre nom, votre couleur, votre photo et vos prix. Tout reste sur votre appareil : rien n'est envoyé.",
+      "Try your name, colour, photo and prices. Everything stays on your device: nothing is sent."));
 
     var nom = el("input"); nom.id = "demoPersoNom"; nom.type = "text"; nom.maxLength = 60; nom.autocomplete = "organization";
     nom.value = p.nom || "";
@@ -564,8 +645,17 @@
     msg.addEventListener("input", function(){ var v = msg.value.trim().slice(0, 160); modifier(function(q){ if(v) q.message = v; else delete q.message; }); });
     corps.appendChild(champ("Message d'accueil (facultatif)", "Welcome message (optional)", msg));
 
+    var blocPrix = el("fieldset", "demo-dest-bloc demo-prix-bloc");
+    blocPrix.appendChild(bilingue("legend", "demo-champ-titre", "Vos prix par destination", "Your prices per destination"));
+    blocPrix.appendChild(bilingue("p", "demo-prix-aide",
+      "C'est vous qui les fixez : ce sont les prix de votre flyer. Vos clients scannent son QR code et arrivent sur cette page, à ces prix. Une case vide : le prix est calculé au kilomètre.",
+      "You set them: they are the prices on your flyer. Your guests scan its QR code and land on this page, at these prices. An empty box: the price is calculated by distance."));
+    var table = el("div", "demo-prix-table"); table.id = "demoPrixTable";
+    blocPrix.appendChild(table);
+    corps.appendChild(blocPrix);
+
     var dest = el("fieldset", "demo-dest-bloc");
-    dest.appendChild(bilingue("legend", "demo-champ-titre", "Ajouter une destination", "Add a destination"));
+    dest.appendChild(bilingue("legend", "demo-champ-titre", "Ajouter une destination (prix facultatifs)", "Add a destination (prices optional)"));
     var dn = el("input"); dn.id = "demoDestNom"; dn.type = "text"; dn.maxLength = 50;
     dn.setAttribute("data-demo-fr", "Lieu, ex. Stade de France"); dn.setAttribute("data-demo-en", "Place, e.g. Stade de France");
     var db = el("input"); db.id = "demoDestBerline"; db.type = "number"; db.min = "1"; db.max = "2000"; db.inputMode = "numeric";

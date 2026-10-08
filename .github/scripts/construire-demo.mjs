@@ -44,9 +44,11 @@ export const CSP_DEMO = [
   "form-action 'self'",
 ].join('; ');
 
-/* L'HÔTEL FICTIF. Ses montants sont des EXEMPLES, et aucun n'est celui de
-   la grille négociée d'un vrai partenaire : verifier-demo.mjs le contrôle
-   en relisant cette grille dans index.html. */
+/* L'HÔTEL FICTIF. AUCUN PRIX N'EST PROPOSÉ (8/10/2026, Barbaros : « ne mets
+   pas les prix suggérés, il faut laisser l'hôtel choisir ») : c'est le
+   prospect qui fixe les siens dans « Personnaliser ma page » — ce sont ceux
+   de son flyer. Sans prix, le moteur calcule au kilomètre. verifier-demo.mjs
+   refuse en plus tout montant de la grille d'un vrai partenaire. */
 const HOTELS_DEMO = `var HOTELS = {
     "demo-hotel": {
       nom:"Hôtel Démo · Roissy",
@@ -59,22 +61,22 @@ const HOTELS_DEMO = `var HOTELS = {
       alias:[],
       destinations:[
         { cle:"cdg",        nom:"Aéroport CDG",           aeroport:"cdg",
-          forfait:{ berline:45,  van:65  } },
+          forfait:null },
         { cle:"orly",       nom:"Orly",                   aeroport:"orly",
-          forfait:{ berline:85,  van:125 } },
+          forfait:null },
         { cle:"bourget",    nom:"Le Bourget",
           label:"Aéroport de Paris-Le Bourget, 93350 Le Bourget",
           lat:48.9694, lon:2.4414, rayonKm:2.5,
-          forfait:{ berline:55,  van:75  } },
+          forfait:null },
         { cle:"beauvais",   nom:"Beauvais",               aeroport:"beauvais",
-          forfait:{ berline:165, van:225 } },
+          forfait:null },
         { cle:"disney",     nom:"Disney",
           label:"Disneyland Paris, 77700 Marne-la-Vallée",
           lat:48.8722, lon:2.7758, rayonKm:3,
-          forfait:{ berline:95,  van:135 } },
+          forfait:null },
         { cle:"paris",      nom:"Paris", label:"Paris", adresseLibre:true,
           lat:48.8566, lon:2.3522, rayonKm:7,
-          forfait:{ berline:75,  van:115 } }
+          forfait:null }
       ]
     }
   };
@@ -138,9 +140,18 @@ const PERSO = `
       if(!h.__base) h.__base = h.destinations.slice();
       h.nom = p.nom || window.ELA_DEMO_INFO.etablissement;
       h.court = h.nom;
-      h.destinations = h.__base.concat((p.destinations || []).map(function(d, i){
-        return { cle:"perso-" + i, nom:d.nom, label:d.label, lat:d.lat, lon:d.lon, rayonKm:1.5,
-                 forfait:{ berline:d.berline, van:d.van } };
+      var prix = p.prix || {};
+      function forfaitDe(cle){
+        var x = prix[cle] || {}, f = {};
+        if(x.berline > 0) f.berline = x.berline;
+        if(x.van > 0) f.van = x.van;
+        return (f.berline || f.van) ? f : null;
+      }
+      h.destinations = h.__base.map(function(d){
+        return Object.assign({}, d, { forfait: forfaitDe(d.cle) });
+      }).concat((p.destinations || []).map(function(d){
+        var cle = "perso-" + d.id;
+        return { cle:cle, nom:d.nom, label:d.label, lat:d.lat, lon:d.lon, rayonKm:1.5, forfait: forfaitDe(cle) };
       }));
       try{ sessionStorage.setItem("ela_provenance", h.nom); }catch(e){}
       document.getElementById("hotelTeteNom").textContent = h.nom;
@@ -170,6 +181,10 @@ const PERSO = `
        puis « Autre destination ». Construite depuis HOTELS — la MÊME liste
        que le menu du formulaire —, jamais recopiée : destinations ajoutées
        comprises, la carte et le formulaire ne peuvent pas se contredire. */
+    destinations: function(){
+      var h = HOTELS["demo-hotel"];
+      return h ? h.destinations.map(function(d){ return { cle:d.cle, nom:d.nom }; }) : [];
+    },
     dessinerCartes: function(){
       if(document.documentElement.getAttribute("data-demo-vue") !== "client") return;
       var h = HOTELS["demo-hotel"], tete = document.getElementById("hotelTete");
@@ -197,7 +212,14 @@ const PERSO = `
       var cap = document.createElement("p"); cap.className = "demo-cartes-cap";
       cap.textContent = en ? "Fixed prices · Sedan up to 4 passengers · Van up to 7"
                            : "Prix fixes · Berline jusqu’à 4 passagers · Van jusqu’à 7";
-      bloc.appendChild(titre); bloc.appendChild(cap);
+      /* CE QUE LE PROSPECT DOIT COMPRENDRE : ces prix sont ceux de SON flyer,
+         et le QR code du flyer amène ses clients exactement ici. */
+      var flyer = document.createElement("p"); flyer.className = "demo-cartes-flyer"; flyer.id = "demoCartesFlyer";
+      var aucunPrix = h.destinations.every(function(d){ return !d.forfait; });
+      flyer.textContent = en
+        ? "These are the prices on your flyer: your guests scan its QR code and land on this page." + (aucunPrix ? " Set them in “Customise my page”." : "")
+        : "Ces prix sont ceux de votre flyer : vos clients scannent son QR code et arrivent sur cette page." + (aucunPrix ? " Fixez-les dans « Personnaliser ma page »." : "");
+      bloc.appendChild(titre); bloc.appendChild(cap); bloc.appendChild(flyer);
       var CODES = { cdg:"CDG", orly:"ORY", bourget:"LBG", beauvais:"BVA" };
       var ul = document.createElement("ul"); ul.className = "demo-grille";
       function choisir(cle){
@@ -225,7 +247,10 @@ const PERSO = `
         [["berline", en ? "Sedan" : "Berline"], ["van", "Van"]].forEach(function(g){
           var px = document.createElement("span");
           var i = document.createElement("i"); i.textContent = g[1];
-          var m = document.createElement("b"); m.textContent = euros(d.forfait[g[0]]);
+          var m = document.createElement("b");
+          var v = d.forfait && d.forfait[g[0]];
+          m.textContent = v > 0 ? euros(v) : (en ? "to set" : "à fixer");
+          if(!(v > 0)) m.className = "demo-a-fixer";
           px.appendChild(i); px.appendChild(m); prix.appendChild(px);
         });
         a.appendChild(pict); a.appendChild(nom); a.appendChild(prix);
@@ -341,6 +366,13 @@ function demoiser(html, vue) {
   // 8. Les langues : comme une page d'hôtel, la démo suit le navigateur.
   html = remplacerUne(html, 'if(espace === "hotel-client" || espace === "hotel-reception") return true;',
     'if(espace === "hotel-client" || espace === "hotel-reception" || espace === "demo") return true;', 'langue');
+
+  // 8 bis. Le prospect peut ne fixer QU'UN des deux prix d'une destination :
+  //    le moteur écrivait alors « Van » + euros(undefined) et plantait. Le prix
+  //    absent se dit « au kilomètre », c'est ce que le moteur facturera.
+  html = remplacerUne(html, 'return g.nom + " " + euros(course.forfait[g.cle]);',
+    'return g.nom + " " + (typeof course.forfait[g.cle] === "number" ? euros(course.forfait[g.cle]) : (LANGUE === "en" ? "by distance" : "au kilomètre"));',
+    'forfait partiel');
 
   // 9. Le démarrage : plus aucun paramètre d'adresse n'est lu.
   if (vue === 'client') {

@@ -43,10 +43,8 @@
 - **Le nom** vient de la réponse d'« ouvrir », posé en `textContent`, coupé à
   60 caractères ; vide → « Hôtel Démo · Roissy » (tous types, tranché).
   Rond aux initiales à la place d'un logo, zone « Votre photo ici ».
-- **Forfaits d'exemple** (CDG 45/65, Orly 85/125, Le Bourget 55/75, Beauvais
-  165/225, Disney 95/135, Paris 75/115), marqués « Tarifs d'exemple — les
-  vôtres seront négociés ». Aucun n'égale un montant de la grille easyHotel :
-  `verifier-demo.mjs` le contrôle en RELISANT cette grille dans `index.html`.
+- **Aucun prix proposé** (voir plus bas) ; `verifier-demo.mjs` refuse en plus
+  tout montant de la grille easyHotel, RELUE dans `index.html`.
 - **Thème bleu Elatransfer** : la façade peint `body.hotel` et
   `body.reception` en orange partenaire ; `demo.css` les repeint, et
   `hotel-engine-polish.js/.css` (propres à easyHotel, photo de leur CDN) ne
@@ -70,6 +68,26 @@ destinations en cartes. Désormais la vue client fait pareil :
 - Codes d'aéroport (CDG, ORY, LBG, BVA), un repère dessiné ailleurs : jamais
   un texte saisi en `innerHTML`.
 - Pas sur la vue réception : le comptoir réserve sur une seule page.
+
+## Aucun prix proposé — l'hôtel fixe les siens (8/10/2026)
+
+Barbaros : « ne mets pas les prix suggérés, il faut laisser l'hôtel choisir et
+expliquer que ces prix reflètent le flyer mis en place avec le QR code qui va
+rediriger sur cette page ». Les forfaits d'exemple sont retirés
+(`forfait:null` partout dans `HOTELS_DEMO`).
+- Cartes : « à fixer » tant que l'hôtel n'a rien saisi ; au-dessus, la phrase
+  « Ces prix sont ceux de votre flyer : vos clients scannent son QR code et
+  arrivent sur cette page. » La pastille dit « Vos prix : ceux de votre flyer ».
+- « Vos prix par destination » dans « Personnaliser ma page » : deux cases
+  vides par destination (ajoutées comprises), 1 à 2 000 €, case vide = calcul
+  au kilomètre. Redessiné seulement si la LISTE change (sinon la case en cours
+  de saisie perd le curseur). Stocké dans `perso.prix[cle]`.
+- Les destinations ajoutées ont une clé STABLE (`perso-<id>`) : avec l'index,
+  en retirer une décalait les prix des suivantes.
+- Les courses d'exemple de la réception n'ont un prix que si l'hôtel l'a fixé.
+- **Défaut trouvé par la suite** : un seul prix sur deux faisait planter
+  l'écriteau du forfait (`euros(undefined)`). La sortie démo écrit « au
+  kilomètre » à la place.
 
 ## « Personnaliser ma page » (8/10/2026, à la demande de Barbaros)
 
