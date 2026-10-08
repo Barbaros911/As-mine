@@ -41,7 +41,21 @@ import { b64url, lireContenuSigne, signerContenu } from "../_shared/session-sign
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const SECRET_SESSION = Deno.env.get("DEMO_SESSION_SECRET") ?? "";
+/* LE SECRET DES SESSIONS DE DÉMO SE FABRIQUE TOUT SEUL (8/10/2026, à la
+   demande de Barbaros : « le minimum de manip »). Posé dans Supabase,
+   DEMO_SESSION_SECRET l'emporte ; absent, on le dérive de la clé
+   service_role, que la plateforme fournit à toute fonction et qui ne sort
+   jamais du serveur — même méthode que le secret du webhook Telegram. Le
+   libellé le sépare de tout autre usage de cette clé : une session de démo
+   ne peut pas servir ailleurs, ni l'inverse. Changer la clé service_role
+   ferme les démos ouvertes : elles durent sept jours, c'est acceptable. */
+const SECRET_SESSION_POSE = Deno.env.get("DEMO_SESSION_SECRET") ?? "";
+let secretSessionDerive: Promise<string> | null = null;
+function secretSession(): Promise<string> {
+  if (SECRET_SESSION_POSE) return Promise.resolve(SECRET_SESSION_POSE);
+  if (!SERVICE_ROLE) return Promise.resolve("");
+  return secretSessionDerive ??= sha256("elatransfer:demo-session:v1:" + SERVICE_ROLE);
+}
 const SECRET_TURNSTILE = Deno.env.get("TURNSTILE_SECRET") ?? "";
 const TELEGRAM_TOKEN = Deno.env.get("TELEGRAM_TOKEN") ?? "";
 const TELEGRAM_CHAT = Deno.env.get("TELEGRAM_CHAT") ?? "";
@@ -248,6 +262,7 @@ async function envoyerEmail(destinataire: string, langue: string, lien: string):
 
 /* ── LES TROIS ACTIONS ─────────────────────────────────────────────── */
 async function demander(entree: any, req: Request, origin: string): Promise<Response> {
+  const SECRET_SESSION = await secretSession();
   if (!SECRET_SESSION) return reponse(503, { erreur: "indisponible" }, origin);
 
   /* LE CHAMP PIÈGE ET LE DÉLAI MINIMUM : invisibles pour un humain. On rend
@@ -344,6 +359,7 @@ export async function lireSessionDemo(session: unknown, secret: string): Promise
 }
 
 async function ouvrir(entree: any, req: Request, origin: string): Promise<Response> {
+  const SECRET_SESSION = await secretSession();
   if (!SECRET_SESSION) return reponse(503, { erreur: "indisponible" }, origin);
   const d = await lireSessionDemo(entree.session, SECRET_SESSION);
   if (!d) {

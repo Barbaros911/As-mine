@@ -114,6 +114,25 @@ peut-être. » Un panneau repliable sous les onglets, sur les deux vues :
 - Tout vit dans `ela_demo__ela_demo_perso` ; « Revenir à la page d'origine »
   efface tout. Rien de cela ne crée de requête vers le serveur (contrôlé).
 
+## La photo du prospect, et la réception en anglais (8/10/2026)
+
+À sa demande : « la personne doit mettre sa photo, la réception doit pouvoir
+passer en anglais aussi ».
+- **Aucune photo d'illustration n'est posée** : c'est la sienne, ou rien.
+  Le cadre « Votre photo ici » ouvre le choix du fichier (rôle bouton,
+  clavier compris) ; le champ du panneau reste. Elle ne quitte toujours pas
+  son navigateur.
+- **La réception de la démo se traduit à l'affichage**, dans
+  `demo-simulateur.js` (`traduireReception`) : le moteur écrit le comptoir
+  en français, et la traduction de la vraie réception vit dans la finition
+  easyHotel, que la démo ne charge pas (elle nomme easyHotel). Chaque texte
+  garde son français d'origine, et on n'écrit que si le texte change —
+  sinon l'observateur boucle, comme le moteur easyHotel figé en septembre.
+- **La vraie réception easyHotel n'a pas été touchée.**
+- Le bon affiché a déjà son FR/EN ; seuls les noms d'exemple y sont repris.
+- Éprouvé : sans la traduction, six contrôles tombent ; sans le cadre
+  cliquable, un.
+
 ## L'isolation — trois défenses, éprouvées séparément le 8/10/2026
 
 1. **CSP** dans la page (`<meta>`) et la même dans `_headers` pour `/demo/*`
