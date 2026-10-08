@@ -303,7 +303,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
    n'est prouvé que si rien n'a été écrit ni envoyé.
    ===================================================================== */
 {
-  const {createHash,createHmac,randomUUID}=await import('node:crypto');
+  const {createHash,createHmac,randomUUID,randomBytes}=await import('node:crypto');
   const sha=v=>createHash('sha256').update(v).digest('hex');
   const fetchAvant=globalThis.fetch;
   const F={quota:true,turnstile:0,crees:[],ouverts:[],tg:[],mails:[],tgPanne:false,
@@ -325,7 +325,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     if(url.includes('api.resend.com')){F.mails.push(JSON.parse(init.body));return new Response('{}');}
     return new Response('?',{status:404});
   };
-  const ENV={SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',DEMO_SESSION_SECRET:'secret-demo-de-test-assez-long',
+  const ENV={SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',DEMO_SESSION_SECRET:randomBytes(24).toString('hex'),
     TURNSTILE_SECRET:'ts',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RESEND_CLE:'re_x',EMAIL_EXPEDITEUR:'Elatransfer <demo@elatransfer.com>'};
   const dd=await charger('demande-demo',ENV);
   const appel=(fn,corps,o={})=>fn(new Request('http://x',{method:'POST',headers:Object.assign({origin:'https://elatransfer.com','x-forwarded-for':'10.9.9.9','content-type':'application/json'},o.headers||{}),body:JSON.stringify(corps)}));
