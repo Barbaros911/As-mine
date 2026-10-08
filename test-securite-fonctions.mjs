@@ -330,17 +330,37 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const dd=await charger('demande-demo',ENV);
   const appel=(fn,corps,o={})=>fn(new Request('http://x',{method:'POST',headers:Object.assign({origin:'https://elatransfer.com','x-forwarded-for':'10.9.9.9','content-type':'application/json'},o.headers||{}),body:JSON.stringify(corps)}));
   const base={action:'demander',type:'hotel',etablissement:'Hôtel des Lilas',nom:'Marie Dupont',fonction:'Directrice',
-    email:'Direction@HotelDesLilas.fr',telephone:'06 12 34 56 78',langue:'fr',turnstile:'humain',site:''};
+    email:'Direction@HotelDesLilas.fr',telephone:'06 12 34 56 78',langue:'fr',turnstile:'humain',site:'',duree:6000};
   const demande=(extra={},fn=dd,o)=>appel(fn,Object.assign({},base,extra),o);
   const rien=()=>F.crees.length===0&&F.tg.length===0&&F.mails.length===0;
   const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];};
 
-  // Secrets absents : rien ne passe.
-  for(const manque of ['TURNSTILE_SECRET','DEMO_SESSION_SECRET']){
-    raz();const fn=await charger('demande-demo',Object.assign({},ENV,{[manque]:''}));
-    const r=await demande({},fn);const j=await r.json();
-    ok(r.status===503&&j.erreur==='indisponible'&&rien()&&F.turnstile===0,'demande-demo : sans '+manque+' → 503, rien d\'écrit ('+r.status+')');
+  // Secret de session absent : rien ne passe.
+  {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{DEMO_SESSION_SECRET:''}));
+   const r=await demande({},fn);const j=await r.json();
+   ok(r.status===503&&j.erreur==='indisponible'&&rien()&&F.turnstile===0,'demande-demo : sans DEMO_SESSION_SECRET → 503, rien d\'écrit ('+r.status+')');}
+  /* TURNSTILE FACULTATIF (bloc 4, option B de Barbaros) : sans secret, la
+     vérification est sautée — Cloudflare n'est jamais appelé, la demande
+     passe sans jeton. Avec le secret, elle est exigée (plus bas). */
+  {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{TURNSTILE_SECRET:''}));
+   const r=await demande({turnstile:undefined},fn);const j=await r.json();
+   ok(r.status===200&&typeof j.session==='string'&&F.crees.length===1&&F.turnstile===0,'demande-demo : sans TURNSTILE_SECRET → la demande passe sans jeton, Cloudflare jamais appelé ('+r.status+')');
+   raz();const r2=await demande({turnstile:'robot'},fn);
+   ok(r2.status===200&&F.turnstile===0,'demande-demo : sans TURNSTILE_SECRET → un jeton envoyé quand même est ignoré, pas vérifié');
+   raz();F.quota=false;
+   ok((await demande({turnstile:undefined},fn)).status===429&&rien(),'demande-demo : sans TURNSTILE_SECRET → le quota par IP tient toujours (429)');
+   raz();
+   ok((await demande({turnstile:undefined,site:'x'},fn)).status===200&&rien(),'demande-demo : sans TURNSTILE_SECRET → le champ piège tient toujours (factice, rien écrit)');
+   raz();
+   ok((await demande({turnstile:undefined,duree:500},fn)).status===200&&rien(),'demande-demo : sans TURNSTILE_SECRET → le délai minimum tient toujours (factice, rien écrit)');}
+  /* LE DÉLAI MINIMUM : moins de 2,5 s entre l'affichage et l'envoi, ou une
+     durée absente / illisible = traité comme le champ piège. */
+  for(const [lib,val] of [['1 ms',1],['2 499 ms',2499],['absente',undefined],['en texte','6000'],['négative',-6000],['infinie (null en JSON)',Infinity]]){
+    raz();const r=await demande({duree:val});const j=await r.json();
+    ok(r.status===200&&typeof j.session==='string'&&rien()&&F.turnstile===0&&F.quotaCles.length===0,'demande-demo : durée '+lib+' → réponse factice, rien écrit ni compté');
   }
+  raz();
+  ok((await demande({duree:2500})).status===200&&F.crees.length===1,'demande-demo : durée de 2 500 ms tout juste → la demande passe');
   // Origine.
   raz();
   ok((await demande({},dd,{headers:{origin:''}})).status===403&&rien(),'demande-demo : sans origine → 403');

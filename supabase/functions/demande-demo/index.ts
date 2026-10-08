@@ -2,7 +2,7 @@
    DEMANDE-DEMO — un professionnel demande la démo, et l'ouvre aussitôt
    ---------------------------------------------------------------------
    8 octobre 2026, mission « Démo professionnels » (bloc 2, le serveur).
-   Parcours : /professionnels/ → formulaire → Turnstile → ICI → session →
+   Parcours : /professionnels/ → formulaire → ICI → session →
    /demo/hotel/ s'ouvre tout de suite, au nom de l'établissement saisi. Un
    lien de confirmation part par e-mail sans rien bloquer. Barbaros est
    prévenu sur Telegram.
@@ -10,11 +10,20 @@
    ═══ AUCUNE CLÉ SUPABASE CÔTÉ NAVIGATEUR ═══
    Déployée --no-verify-jwt, comme telegram-bot : la page de démo ne porte
    aucune clé. Tout ce qui protège est donc ICI : origine, taille, champ
-   piège, Turnstile, quotas, validation, signature de la session.
+   piège, délai minimum de remplissage, quotas, validation, signature de la
+   session — et Turnstile, s'il est configuré (voir plus bas).
+
+   ═══ TURNSTILE EST FACULTATIF (bloc 4, décision de Barbaros : option B) ═══
+   Sans le secret TURNSTILE_SECRET, la vérification est SAUTÉE : la
+   protection repose sur le champ piège, le délai minimum et les quotas.
+   Pour la réactiver, il suffit de poser le secret TURNSTILE_SECRET dans
+   Supabase ET la clé publique du widget dans /professionnels/
+   (constante CLE_TURNSTILE) : la page envoie alors « turnstile », et la
+   fonction l'EXIGE comme avant. Aucune autre ligne à changer.
 
    ═══ LE CONTRAT (les blocs 1, 3 et 4 s'appuient dessus) ═══
    {action:"demander", type, etablissement, nom, fonction, email, telephone,
-    langue, turnstile, site:""}
+    langue, duree, site:"", turnstile (seulement si configuré)}
      → 200 {session, expire, etablissement} · 400 {erreur:"champ", champ}
      · 403 {erreur:"robot"} · 429 {erreur:"quota"} · 503 {erreur:"indisponible"}
    {action:"ouvrir", session} → 200 {ok, etablissement, type, expire}
@@ -43,6 +52,13 @@ const ORIGINS = new Set(["https://elatransfer.com", "https://www.elatransfer.com
 const MAX_BODY = 4_000;
 const DUREE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const LIEN_CONFIRMATION = "https://elatransfer.com/professionnels/?confirmer=";
+/* LE DÉLAI MINIMUM : « duree » = millisecondes entre l'affichage du
+   formulaire et l'envoi, mesurées par la page. Un humain met plus de 2,5 s
+   à remplir six champs ; un robot qui poste directement n'en met aucune.
+   Absent, illisible ou trop court : traité comme le champ piège. Le
+   remplissage automatique du navigateur ne trompe pas ce contrôle : il faut
+   encore lire et appuyer sur le bouton. */
+const DUREE_MIN_MS = 2_500;
 
 /* LES QUOTAS (propositions, à revoir avec Barbaros s'ils gênent).
    · 5 demandes par heure et par adresse IP : un hôtel remplit le formulaire
@@ -232,12 +248,14 @@ async function envoyerEmail(destinataire: string, langue: string, lien: string):
 
 /* ── LES TROIS ACTIONS ─────────────────────────────────────────────── */
 async function demander(entree: any, req: Request, origin: string): Promise<Response> {
-  if (!SECRET_TURNSTILE || !SECRET_SESSION) return reponse(503, { erreur: "indisponible" }, origin);
+  if (!SECRET_SESSION) return reponse(503, { erreur: "indisponible" }, origin);
 
-  /* LE CHAMP PIÈGE : invisible pour un humain, rempli par un robot. On rend
+  /* LE CHAMP PIÈGE ET LE DÉLAI MINIMUM : invisibles pour un humain. On rend
      une réponse qui a l'air normale — le robot n'apprend rien — et rien
      n'est écrit, rien n'est envoyé. La session factice ne s'ouvre pas. */
-  if (typeof entree.site !== "string" || entree.site !== "") {
+  const duree = entree.duree;
+  const tropRapide = typeof duree !== "number" || !Number.isFinite(duree) || duree < DUREE_MIN_MS;
+  if (typeof entree.site !== "string" || entree.site !== "" || tropRapide) {
     return reponse(200, {
       session: aleatoire(48) + "." + aleatoire(32),
       expire: new Date(Date.now() + DUREE_SESSION_MS).toISOString(),
@@ -258,8 +276,11 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
   const telephone = telephoneNormalise(entree.telephone);
   if (telephone === null) return reponse(400, { erreur: "champ", champ: "telephone" }, origin);
   const langue = entree.langue === "en" ? "en" : "fr";
+  /* Turnstile seulement s'il est configuré : sans secret, rien à vérifier. */
   const jetonTurnstile = typeof entree.turnstile === "string" ? entree.turnstile : "";
-  if (!jetonTurnstile || jetonTurnstile.length > 2048) return reponse(403, { erreur: "robot" }, origin);
+  if (SECRET_TURNSTILE && (!jetonTurnstile || jetonTurnstile.length > 2048)) {
+    return reponse(403, { erreur: "robot" }, origin);
+  }
 
   /* Le quota par adresse AVANT Turnstile : un robot qui insiste ne nous
      fait pas appeler Cloudflare cinq cents fois. */
@@ -267,9 +288,11 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
   if (q === null) return reponse(503, { erreur: "indisponible" }, origin);
   if (!q) return reponse(429, { erreur: "quota" }, origin);
 
-  const humain = await turnstileOk(jetonTurnstile, req);
-  if (humain === null) return reponse(503, { erreur: "indisponible" }, origin);
-  if (!humain) return reponse(403, { erreur: "robot" }, origin);
+  if (SECRET_TURNSTILE) {
+    const humain = await turnstileOk(jetonTurnstile, req);
+    if (humain === null) return reponse(503, { erreur: "indisponible" }, origin);
+    if (!humain) return reponse(403, { erreur: "robot" }, origin);
+  }
 
   /* Le jeton de confirmation : 32 octets tirés au sort. Seule son empreinte
      va en base ; le jeton lui-même ne vit que dans l'e-mail. */
