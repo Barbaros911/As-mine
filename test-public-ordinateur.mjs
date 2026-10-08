@@ -182,7 +182,9 @@ for (const [w, h] of ORDIS) {
   const avant = await p.evaluate(() => { const d = document.getElementById('blocDateHeure').getBoundingClientRect();
     const c = document.querySelector('.reserver').getBoundingClientRect();
     return { l: d.left - c.left, t: d.top - c.top, w: d.width }; });
-  await p.click('#btnQuandAsap');
+  // Le lien « Maintenant » est retiré de la case Date (8/10/2026) : le mode
+  // immédiat s'ouvre par la sortie « Partir dès que possible ».
+  await p.evaluate(() => document.getElementById('btnPasseAsap').click());
   await p.waitForTimeout(200);
   const r = await p.evaluate(avant => {
     const a = document.getElementById('blocAsap').getBoundingClientRect();
@@ -191,8 +193,8 @@ for (const [w, h] of ORDIS) {
     return { visible: a.width > 0, cache: d.width === 0,
       memePlace: Math.abs(a.left - c.left - avant.l) < 2 && Math.abs(a.top - c.top - avant.t) < 2 && Math.abs(a.width - avant.w) < 2 };
   }, avant);
-  check('1366×768 « Maintenant » : l’encadré prend la place de Date/Heure', r.visible && r.cache && r.memePlace, JSON.stringify(r));
-  check('1366×768 « Maintenant » : « Voir mon prix » reçoit le clic en entier',
+  check('1366×768 « Dès que possible » : l’encadré prend la place de Date/Heure', r.visible && r.cache && r.memePlace, JSON.stringify(r));
+  check('1366×768 « Dès que possible » : « Voir mon prix » reçoit le clic en entier',
     (await cliquable(p, '#btnVoirPrix')) === 'ok', await cliquable(p, '#btnVoirPrix'));
   await p.context().close();
 }

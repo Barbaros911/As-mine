@@ -4941,13 +4941,10 @@ texte (mapbox.com est bloqué d'ici) : à relire avant de rouvrir le sujet.
 toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
 - **Préavis de 15 min supprimé.** Seule l'heure réellement passée est
   refusée, avec la sortie « Partir dès que possible ».
-- **« Maintenant » / « Programmer »** (défaut : programmer — les aéroports se
-  réservent à l'avance). **Aucun pixel de hauteur** : une rangée de boutons
-  repoussait « Voir mon prix » sous la barre du bas (mesuré 773–826 pour une
-  barre à 784). « Maintenant » est un lien dans le titre du champ Date ; en
-  mode immédiat un encadré (`#blocAsap`) de même hauteur remplace date et
-  heure. `course.immediat` ; « soumise à disponibilité, sans délai garanti »,
-  « réponse plus lente de 22 h à 5 h » — **jamais un blocage**.
+- **« Dès que possible »** : plus de lien « Maintenant » dans la case Date
+  (8/10/2026, Barbaros : « le supprimer de partout ») ; on y entre par
+  « Partir dès que possible » (heure passée). Un encadré (`#blocAsap`) de même
+  hauteur remplace date et heure. `course.immediat`, jamais un blocage.
 - **« TARIF À CONFIRMER »** (`tarifAConfirmer`, `motifsTarif` parmi
   `longue`/`groupe`/`adresse`) : la demande PART sans aucun montant affiché —
   au-delà de 90 km (`#infoLongue` ; `RAYON_ZONE_KM` est devenu le seuil du
