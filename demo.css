@@ -1,0 +1,201 @@
+/* DEMO.CSS — le cadre de la démo /demo/hotel/ (bloc 3).
+   Tout est sous html[data-ela-space="demo"] : aucune autre page du site ne
+   charge ce fichier, et aucune règle ne peut s'en échapper. Les couleurs
+   sont celles d'Elatransfer : la façade habille tout « body.hotel » en
+   orange partenaire, la démo le repeint en bleu. */
+
+html[data-ela-space="demo"]{
+  --demo-nuit:#062F55; --demo-bleu:#0E6FC7; --demo-cyan:#12C4EE;
+  --demo-pale:#E8F2FD; --demo-encre:#0A4F91; --demo-filet:#D6E2EE;
+}
+
+/* Fermé par défaut : rien ne s'affiche tant que la session n'est pas validée. */
+html.demo-attente body{visibility:hidden}
+html.demo-ferme body > *{display:none !important}
+html.demo-ferme body > #demoIndispo{display:block !important}
+
+/* Le thème : bleu Elatransfer, jamais l'orange d'un partenaire. */
+html[data-ela-space="demo"] body.hotel{background:#F2F5F9}
+html[data-ela-space="demo"] body.reception{background:#EDF3F7}
+html[data-ela-space="demo"] body.hotel .bouton,
+html[data-ela-space="demo"] body.reception .bouton{background:var(--h-bouton,var(--demo-bleu));color:#fff}
+
+/* Le menu du site public n'a rien à faire ici : la démo est un parcours. */
+html[data-ela-space="demo"] .entete-nav{display:none !important}
+
+/* ═══ LE BANDEAU ET LES DEUX ONGLETS ═══ */
+.demo-cadre{position:relative;background:var(--demo-nuit);color:#fff}
+.demo-bandeau{position:sticky;top:0;z-index:70;box-shadow:0 2px 8px rgba(1,10,24,.18);margin:0;padding:7px 16px;background:var(--demo-cyan);color:var(--demo-nuit);
+  font-size:13px;font-weight:800;text-align:center;letter-spacing:.1px;line-height:1.3}
+.demo-onglets{display:flex;gap:6px;max-width:1180px;margin:0 auto;padding:8px 12px}
+.demo-onglet{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;
+  min-height:44px;padding:6px 10px;border-radius:10px;color:#fff;background:rgba(255,255,255,.08);
+  font-size:14px;font-weight:700;text-align:center;text-decoration:none;line-height:1.2}
+.demo-onglet.actif{background:#fff;color:var(--demo-nuit)}
+.demo-onglet:focus-visible,.demo-suivant:focus-visible,.demo-fin-bouton:focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
+
+/* ═══ LE SUIVI DE LA COURSE D'ESSAI ═══ */
+.demo-suivi{max-width:1180px;margin:0 auto;padding:4px 12px 12px;color:#fff}
+.demo-suivi[hidden]{display:none}
+.demo-suivi-titre{margin:2px 0 8px;font-size:13px;font-weight:700;opacity:.92;overflow-wrap:anywhere}
+.demo-etapes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 8px;padding:0;list-style:none;counter-reset:etape}
+.demo-etapes li{counter-increment:etape;padding:6px 4px;border-radius:8px;background:rgba(255,255,255,.08);
+  font-size:12px;line-height:1.25;text-align:center;color:rgba(255,255,255,.75);overflow-wrap:anywhere}
+.demo-etapes li::before{content:counter(etape);display:block;font-weight:800}
+.demo-etapes li.fait{background:rgba(18,196,238,.22);color:#fff}
+.demo-etapes li.en-cours{background:var(--demo-cyan);color:var(--demo-nuit);font-weight:800}
+.demo-suivant{display:block;width:100%;min-height:44px;border:1px solid rgba(255,255,255,.55);border-radius:10px;
+  background:transparent;color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
+.demo-suivant[hidden],.demo-fin[hidden]{display:none}
+.demo-fin-texte{margin:0 0 8px;font-size:14px}
+.demo-fin-bouton{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px 16px;border-radius:12px;
+  background:var(--demo-cyan);color:var(--demo-nuit);font-weight:800;text-align:center;text-decoration:none;line-height:1.25}
+
+/* ═══ LE NOM, LES INITIALES, LA PHOTO ═══ */
+html[data-ela-space="demo"] .hotel-tete .hotel-adresse,
+html[data-ela-space="demo"] .hotel-sens-btn:not(.actif){color:var(--h-charbon,var(--demo-nuit))}
+html[data-ela-space="demo"] .entete{background:#fff;color:var(--demo-nuit);border-bottom:1px solid var(--demo-filet)}
+.demo-marque{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.demo-initiales{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:52px;height:52px;
+  border-radius:50%;background:var(--h-charbon,var(--demo-nuit));color:#fff;font-size:19px;font-weight:800;letter-spacing:.5px}
+.demo-photo{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;min-height:72px;
+  border:2px dashed rgba(6,47,85,.40);border-radius:12px;
+  background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.20));
+  color:var(--demo-nuit);font-size:14px;font-weight:700;text-align:center;padding:8px}
+.demo-exemple{display:inline-block;margin:4px 0 8px;padding:5px 10px;border-radius:999px;
+  background:var(--h-charbon,var(--demo-nuit));color:#fff;font-size:12.5px;font-weight:800;line-height:1.3}
+
+/* ═══ LE QR CODE ET LA FIN ═══ */
+.demo-pied{max-width:640px;margin:24px auto 110px;padding:20px 16px;border-radius:16px;background:#fff;
+  border:1px solid var(--demo-filet);text-align:center;color:#151C22}
+.demo-pied-titre{margin:0 0 6px;font-size:18px;font-weight:800}
+.demo-pied-texte{margin:0 0 12px;color:#5A6A7B;font-size:14.5px}
+.demo-qr{display:flex;justify-content:center;margin:0 0 14px}
+.demo-qr svg{max-width:150px;height:auto}
+html[data-ela-space="demo"] body.reception .demo-pied{margin-bottom:40px}
+
+/* ═══ L'ÉCRITEAU « RIEN N'EST ENVOYÉ » ═══ */
+.demo-toast{position:fixed;left:50%;bottom:96px;z-index:90;transform:translateX(-50%);max-width:calc(100% - 32px);
+  margin:0;padding:10px 16px;border-radius:12px;background:var(--demo-nuit);color:#fff;font-size:14px;font-weight:700;
+  box-shadow:0 8px 24px rgba(1,10,24,.25)}
+.demo-toast[hidden]{display:none}
+
+/* ═══ SERVEUR MUET ═══ */
+.demo-indispo{max-width:520px;margin:12vh auto;padding:24px 20px;text-align:center;color:#151C22;font-family:inherit}
+.demo-indispo h1{margin:0 0 10px;font-size:22px}
+.demo-indispo p{margin:0 0 14px;color:#5A6A7B}
+
+@media (min-width:900px){
+  .demo-bandeau{font-size:14px}
+  .demo-onglet{flex:0 1 280px}
+  .demo-onglets{justify-content:center}
+}
+
+/* La démo n'a pas de code à oublier : « Fermer la session » ouvrirait un
+   écran de code qui n'a pas de sens ici. */
+html[data-ela-space="demo"] #btnRecFermer{display:none !important}
+
+/* L'en-tête de la démo est blanc : le choix de langue reprend l'encre. */
+html[data-ela-space="demo"] .langues{background:#fff;border:1px solid var(--demo-filet)}
+html[data-ela-space="demo"] .langues button{color:#5A6A7B;background:transparent}
+html[data-ela-space="demo"] .langues button[aria-pressed="true"]{background:var(--demo-nuit);color:#fff}
+
+/* ═══ « PERSONNALISER MA PAGE » ═══ */
+.demo-perso{max-width:1180px;margin:0 auto 10px;padding:0 12px}
+.demo-perso-titre{display:flex;align-items:center;justify-content:center;min-height:44px;padding:6px 12px;border-radius:10px;
+  background:var(--demo-cyan);color:var(--demo-nuit);font-weight:800;font-size:14.5px;cursor:pointer;list-style:none;text-align:center}
+.demo-perso-titre::-webkit-details-marker{display:none}
+.demo-perso-titre::after{content:"";width:7px;height:7px;margin:-4px 0 0 10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
+.demo-perso[open] .demo-perso-titre::after{margin-top:4px;transform:rotate(-135deg)}
+.demo-perso-corps{margin-top:8px;padding:14px;border-radius:14px;background:#fff;color:#151C22}
+.demo-perso-intro{margin:0 0 12px;color:#5A6A7B;font-size:14px}
+.demo-champ{display:block;position:relative;margin:0 0 12px}
+.demo-champ-titre{display:block;margin:0 0 5px;font-size:13px;font-weight:800;color:#151C22;padding:0}
+.demo-perso input[type=text],.demo-perso input[type=number],.demo-perso textarea{width:100%;min-height:44px;padding:9px 11px;
+  border:1px solid var(--demo-filet);border-radius:10px;font:inherit;font-size:16px;color:#151C22;background:#fff;box-sizing:border-box}
+.demo-perso textarea{resize:vertical}
+.demo-fichier{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.demo-perso-fichier{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px dashed var(--demo-bleu);border-radius:10px;
+  background:var(--demo-pale);color:var(--demo-encre);font-weight:800;font-size:14px;cursor:pointer}
+.demo-champ:focus-within .demo-perso-fichier{outline:3px solid var(--demo-cyan);outline-offset:2px}
+.demo-perso-actions{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1}
+.demo-perso-actions .demo-perso-voir{flex:1 1 200px}
+.demo-perso-actions .demo-perso-raz{flex:1 1 200px;min-height:44px}
+.demo-nuancier{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.demo-pastille{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--demo-filet);cursor:pointer;padding:0}
+.demo-pastille[aria-pressed="true"]{box-shadow:0 0 0 3px #151C22}
+.demo-couleur-libre{width:52px;height:42px;padding:2px;border:1px solid var(--demo-filet);border-radius:10px;background:#fff;cursor:pointer}
+.demo-dest-bloc{margin:0 0 12px;padding:0;border:0;min-width:0}
+.demo-dest-saisie{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.demo-dest-saisie #demoDestNom{grid-column:1/-1}
+@media (min-width:600px){.demo-dest-saisie{grid-template-columns:minmax(0,1fr) 120px 120px}.demo-dest-saisie #demoDestNom{grid-column:auto}}
+.demo-perso-bouton{grid-column:1/-1;min-height:44px;border:0;border-radius:10px;background:var(--demo-bleu);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+.demo-perso-bouton:disabled{opacity:.5;cursor:default}
+.demo-dest-liste{margin:8px 0 0;padding:0;list-style:none}
+.demo-dest{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 0;border-top:1px solid var(--demo-filet);font-size:14px}
+.demo-dest-nom{font-weight:800;overflow-wrap:anywhere}
+.demo-dest-prix{color:#5A6A7B}
+.demo-dest-retirer{margin-left:auto;min-height:36px;padding:0 12px;border:1px solid var(--demo-filet);border-radius:8px;background:#fff;color:#151C22;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.demo-perso-etat{margin:0 0 10px;padding:8px 10px;border-radius:10px;background:var(--demo-pale);color:var(--demo-encre);font-size:14px;font-weight:700}
+.demo-perso-etat[hidden]{display:none}
+.demo-perso-raz{min-height:40px;padding:0 12px;border:1px solid var(--demo-filet);border-radius:10px;background:#fff;color:#151C22;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.demo-perso :focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
+@media (min-width:900px){
+  .demo-perso-corps{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+  .demo-perso-intro,.demo-dest-bloc,.demo-perso-etat{grid-column:1/-1}
+  .demo-perso-titre{max-width:420px;margin:0 auto}
+}
+
+/* La photo du prospect dans son cadre, et son message d'accueil. */
+.demo-photo.avec-photo{background-size:cover;background-position:center;border-style:solid;min-height:96px}
+.demo-photo.avec-photo #demoPhotoTexte{display:none}
+.demo-message{margin:6px 0 0;font-size:15px;font-weight:600;color:var(--h-charbon,var(--demo-nuit));overflow-wrap:anywhere}
+.demo-message[hidden]{display:none}
+
+/* ═══ LA PAGE D'ARRIVÉE : « OÙ SOUHAITEZ-VOUS ALLER ? » ═══
+   Tant que le client n'a pas choisi, seules l'en-tête de l'hôtel et les
+   cartes sont à l'écran ; le formulaire vient ensuite, destination posée. */
+body.demo-choix #ecran-accueil > :not(#hotelTete):not(#demoCartes){display:none !important}
+body:not(.demo-choix) #demoCartes{display:none}
+body.demo-choix #demoRetourCartes{display:none}
+.demo-cartes{margin:0 0 18px;padding:0 16px}
+.demo-cartes-titre{margin:4px 0 4px;font-size:22px;font-weight:800;color:#151C22}
+.demo-cartes-cap{margin:0 0 12px;color:#5A6A7B;font-size:14px}
+.demo-grille{display:grid;grid-template-columns:1fr;gap:10px;margin:0;padding:0;list-style:none}
+@media (min-width:600px){.demo-grille{grid-template-columns:1fr 1fr}}
+@media (min-width:1000px){.demo-grille{grid-template-columns:1fr 1fr 1fr}}
+.demo-carte{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;border:1px solid var(--demo-filet);
+  border-radius:14px;background:#fff;color:#151C22;font:inherit;text-align:left;cursor:pointer;box-shadow:0 2px 8px rgba(6,47,85,.05)}
+.demo-carte:hover{border-color:var(--h-bouton,var(--demo-bleu))}
+.demo-carte:focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
+.demo-pict{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;
+  background:var(--h-pale,var(--demo-pale));color:var(--h-paleEncre,var(--demo-encre));font-weight:800;font-size:14px;letter-spacing:.5px}
+.demo-carte-nom{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.demo-carte-nom b{font-size:16px;overflow-wrap:anywhere}
+.demo-carte-nom small{color:var(--h-bouton,var(--demo-bleu));font-weight:700;font-size:13px}
+.demo-carte-prix{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.demo-carte-prix span{display:flex;gap:6px;align-items:baseline}
+.demo-carte-prix i{font-style:normal;color:#5A6A7B;font-size:12.5px}
+.demo-carte-prix b{font-size:15px}
+.demo-autre{border-style:dashed}
+.demo-autre .demo-carte-nom small{color:#5A6A7B;font-weight:500}
+.demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
+  color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}
+
+/* « Vos prix » et l'explication du flyer. */
+.demo-prix-aide{margin:0 0 10px;color:#5A6A7B;font-size:13.5px;line-height:1.4}
+.demo-prix-table{border:1px solid var(--demo-filet);border-radius:12px;overflow:hidden}
+.demo-prix-ligne{display:grid;grid-template-columns:minmax(0,1fr) 84px 84px;gap:8px;align-items:center;padding:6px 10px;border-top:1px solid var(--demo-filet)}
+.demo-prix-ligne:first-child{border-top:0}
+.demo-prix-tete{font-size:12px;font-weight:800;color:#5A6A7B;text-transform:uppercase;letter-spacing:.04em}
+.demo-prix-nom{font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
+.demo-prix-ligne input{text-align:center;font-weight:700}
+.demo-cartes-flyer{margin:-6px 0 12px;padding:10px 12px;border-radius:12px;background:var(--h-pale,var(--demo-pale));
+  color:var(--h-paleEncre,var(--demo-encre));font-size:14px;font-weight:600;line-height:1.4}
+.demo-carte-prix b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
+
+/* La consigne qui mène à la suite du parcours : visible, juste sous le titre. */
+.demo-cartes-aide{display:flex;align-items:center;gap:8px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;
+  background:var(--h-bouton,var(--demo-bleu));color:#fff;font-size:15px;font-weight:800;line-height:1.35}
+.demo-cartes-aide::before{content:"";flex:0 0 auto;width:9px;height:9px;margin:0 4px 0 2px;border-right:2.5px solid currentColor;
+  border-bottom:2.5px solid currentColor;transform:rotate(45deg) translate(-2px,-2px)}

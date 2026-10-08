@@ -109,7 +109,7 @@ check('avec son message à elle, toujours affiché', /passée/i.test(refus) && a
 await p.locator('#btnPasseAsap').click(); await p.waitForTimeout(300);
 check('« Partir dès que possible » enlève le refus', await p.locator('#heurePassee').isHidden());
 check('et rallume le bouton', !(await p.locator('#btnVoirPrix').isDisabled()));
-check('en mode « Dès que possible »', (await p.locator('#btnQuandAsap').getAttribute('aria-pressed')) === 'true');
+check('en mode « Dès que possible »', await p.locator('#blocAsap').isVisible() && await p.locator('#blocDateHeure').isHidden());
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
 check('et la demande va jusqu\'aux prix', await p.locator('#ecran-vehicules').isVisible());
 await ctx.close();
@@ -118,7 +118,12 @@ await ctx.close();
 ({ ctx, p } = await page());
 check('par défaut, on programme (la plupart des courses sont réservées à l\'avance)',
   (await p.locator('#btnQuandProg').getAttribute('aria-pressed')) === 'true' && await p.locator('#blocDateHeure').isVisible());
-await p.locator('#btnQuandAsap').click(); await p.waitForTimeout(200);
+/* PLUS DE LIEN « MAINTENANT » DANS LA CASE DATE (8/10/2026, Barbaros : « il
+   faut le supprimer de partout »). Le mode immédiat n'est plus joignable que
+   par la sortie de l'heure passée, éprouvée juste au-dessus. */
+check('la case Date ne porte plus « Maintenant »', (await p.locator('#btnQuandAsap').count()) === 0
+  && !/maintenant/i.test(await p.locator('#blocDateHeure').innerText()), await p.locator('#blocDateHeure').innerText());
+await p.evaluate(() => document.getElementById('btnPasseAsap').click()); await p.waitForTimeout(200);
 const note = await p.locator('#noteAsap').innerText();
 check('« Dès que possible » ne promet aucun délai', /disponibilit/i.test(note) && !/\d+\s*min/.test(note), note);
 await p.locator('#btnQuandProg').click(); await p.waitForTimeout(200);

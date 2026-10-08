@@ -47,6 +47,10 @@ if [ -d sites ]; then
   done
 fi
 node .github/scripts/construire-espaces-hotel.mjs site/index.html site
+# LA DÉMO DES PROFESSIONNELS (/demo/hotel/, octobre 2026) : tirée des deux
+# pages qu'on vient de construire, sans aucune couche serveur. Elle est
+# vérifiée tout en bas, APRÈS le retrait des commentaires.
+node .github/scripts/construire-demo.mjs site
 node .github/scripts/galerie.mjs
 
 # LES COMMENTAIRES DE TRAVAIL NE PARTENT JAMAIS EN LIGNE — septembre 2026.
@@ -80,7 +84,14 @@ node .github/scripts/masquer-commentaires.mjs \
   site/ela-admin/index.html site/exploitant/index.html \
   site/easyhotel-reception/index.html site/reception/*/index.html \
   site/easyhotel-client/index.html site/professionnels/index.html \
+  site/demo/hotel/index.html site/demo/hotel/reception/index.html \
+  site/demo/demo-simulateur.js site/demo/bon-client.js site/demo/demo.css \
   site/*.css site/robots.txt
+
+# LA DÉMO NE DOIT RIEN POUVOIR TOUCHER EN PRODUCTION : la construction
+# échoue si une seule trace du serveur, de WhatsApp, de Telegram ou d'un
+# partenaire réel y revient (voir verifier-demo.mjs).
+node .github/scripts/verifier-demo.mjs site index.html
 
 # ADMIN V2 N'EST PLUS PUBLIÉ — 3 octobre 2026, à la demande de Barbaros
 # (« retire »). Il travaille seul, dans l'admin historique (/ela-admin/) ;
