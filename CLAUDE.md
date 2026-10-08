@@ -5002,3 +5002,7 @@ Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
   hors de l'espace exploitant font refuser la page à la construction.
 - Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
   `memoire/pilotage.md`.
+
+## LA DÉMO PROFESSIONNELS (en cours)
+
+- Bloc 2, le serveur des prospects (table `prospects`, fonction `demande-demo`, refus « demo » dans `deposer-course`) : `memoire/demo-pro-bloc2.md`.
