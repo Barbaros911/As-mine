@@ -303,6 +303,18 @@
     var b = document.getElementById("demoBandeau");
     if(!b) return;
     b.textContent = texte("Démonstration — aucune réservation réelle", "Demo — no real booking");
+    /* L'échéance de l'accès (bloc 4, Barbaros : « il faut préciser à celui
+       qui teste que ce n'est pas indéfini »). Elle vient de la réponse
+       d'« ouvrir » ; illisible, on se tait plutôt que d'inventer une date. */
+    var exp = info && Date.parse(info.expire);
+    if(exp && isFinite(exp)){
+      var d = new Date(exp);
+      var jj = ("0" + d.getDate()).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2);
+      var acces = el("span", "demo-bandeau-acces",
+        texte("Accès valable jusqu'au " + jj + " sur cet appareil", "Access valid until " + jj + " on this device"));
+      acces.id = "demoAcces";
+      b.appendChild(acces);
+    }
     document.getElementById("demoOngletClient").textContent = texte("Ce que voit votre client", "What your guest sees");
     document.getElementById("demoOngletReception").textContent = equipe()
       ? texte("Ce que voit votre équipe", "What your team sees")

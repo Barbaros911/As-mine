@@ -88,7 +88,16 @@ async function ouvrir({ w = 390, h = 844, session = 's.test', reponse = {}, chem
 }
 const visible = (p, sel) => p.evaluate(s => { const e = document.querySelector(s); if (!e) return false; const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; }, sel);
 const texte = (p, sel) => p.evaluate(s => document.querySelector(s)?.textContent || '', sel);
+/* Le bandeau, sans la ligne de l'échéance posée dessous (bloc 4). */
+const bandeau = p => p.evaluate(() => document.getElementById('demoBandeau')?.firstChild?.textContent || '');
+const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2); };
 
+/* ═══ 0. UNE ÉCHÉANCE ILLISIBLE NE S'INVENTE PAS ═══ */
+{
+  const { ctx, p } = await ouvrir({ reponse: { expire: 'demain' } });
+  check('échéance illisible : la démo s\'ouvre, et le bandeau n\'invente aucune date', await visible(p, '#hotelTete') && !(await p.$('#demoAcces')));
+  await ctx.close();
+}
 /* ═══ 1. LE NOM VIENT DE LA RÉPONSE, EN TEXTE ═══ */
 {
   const { ctx, p } = await ouvrir();
@@ -97,7 +106,10 @@ const texte = (p, sel) => p.evaluate(s => document.querySelector(s)?.textContent
   check('un rond porte les initiales, pas un logo', (await texte(p, '.demo-initiales')) === 'HI', await texte(p, '.demo-initiales'));
   check('la zone photo dit « Votre photo ici »', (await texte(p, '#demoPhotoTexte')) === 'Votre photo ici');
   check('la pastille dit que les prix sont ceux du flyer', /Vos prix : ceux de votre flyer/.test(await texte(p, '#demoExemple')));
-  check('le bandeau dit « Démonstration — aucune réservation réelle »', (await texte(p, '#demoBandeau')) === 'Démonstration — aucune réservation réelle');
+  check('le bandeau dit « Démonstration — aucune réservation réelle »', (await bandeau(p)) === 'Démonstration — aucune réservation réelle');
+  /* « Ce n'est pas indéfini » (bloc 4) : l'échéance rendue par « ouvrir ». */
+  const jj = jjmm(Date.now() + 6048e5);
+  check('le bandeau dit l\'échéance de l\'accès (« jusqu\'au ' + jj + ' »)', (await texte(p, '#demoAcces')) === 'Accès valable jusqu\'au ' + jj + ' sur cet appareil', await texte(p, '#demoAcces'));
   check('les deux onglets sont là', (await texte(p, '#demoOngletClient')) === 'Ce que voit votre client' && (await texte(p, '#demoOngletReception')) === 'Ce que voit votre réception');
   check('le bandeau reste en haut après défilement', await p.evaluate(() => { scrollTo(0, 900); const r = document.getElementById('demoBandeau').getBoundingClientRect(); return r.top <= 1 && r.bottom > 10; }));
   check('« ouvrir » est appelé avec la session et sans clé Supabase', p.appels.length >= 1 && p.appels[0].action === 'ouvrir' && p.appels[0].session === 's.test' && !JSON.stringify(p.appels).includes('apikey'));
@@ -209,7 +221,8 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   /* EN ANGLAIS */
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
   check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoCartes')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
-  check('en anglais, le cadre de la démo suit', (await texte(p, '#demoBandeau')) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
+  check('en anglais, l\'échéance suit', /^Access valid until \d\d\/\d\d on this device$/.test(await texte(p, '#demoAcces')), await texte(p, '#demoAcces'));
+  check('en anglais, le cadre de la démo suit', (await bandeau(p)) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
   check('aucune erreur JavaScript sur le parcours', p.errs.length === 0, p.errs.join(' ; '));
   check('aucun appel à Supabase hors demande-demo sur le parcours', p.supabase.length === 0, p.supabase.join(' '));
   /* La page ne doit même pas ESSAYER : une tentative bloquée par la CSP
