@@ -599,7 +599,12 @@
     voir.addEventListener("click", function(){
       bloc.open = false;
       var cible = document.getElementById("hotelTete");
-      if(cible && cible.getBoundingClientRect().height) cible.scrollIntoView({ block: "start" });
+      /* On s'arrête SOUS le bandeau collé en haut, sinon il mange le haut
+         de la page qu'on vient montrer. */
+      var bandeau = document.getElementById("demoBandeau");
+      var marge = (bandeau ? bandeau.getBoundingClientRect().height : 0) + 8;
+      if(cible && cible.getBoundingClientRect().height)
+        window.scrollTo(0, Math.max(0, cible.getBoundingClientRect().top + window.scrollY - marge));
       else window.scrollTo(0, 0);
     });
     var actions = el("div", "demo-perso-actions");
