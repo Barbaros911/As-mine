@@ -90,6 +90,9 @@
    `DEMO_SESSION_SECRET` (une longue chaîne tirée au sort) et
    `TURNSTILE_SECRET` (la clé secrète du widget Turnstile, chez Cloudflare).
    Sans eux, la fonction répond 503 et rien ne passe.
+   **Changé au bloc 4** : `TURNSTILE_SECRET` est devenu FACULTATIF (option B
+   de Barbaros) — sans lui la vérification est sautée ; seul
+   `DEMO_SESSION_SECRET` reste obligatoire. Voir `memoire/demo-pro-bloc4.md`.
 3. Le déploiement de `demande-demo` se fait seul à la fusion (`fonctions.yml`).
    `RESEND_CLE` / `EMAIL_EXPEDITEUR` sont facultatifs : sans eux, aucun
    e-mail ne part et la démo s'ouvre quand même.

@@ -20,7 +20,8 @@
        porte le tunnel de réservation, celle-ci ne réserve rien.
        Vocabulaire : règles « LE POSITIONNEMENT » de CLAUDE.md — aucun mot
        abstrait, jamais « prix ferme », aucun chiffre ni délai promis.
-       Le formulaire de démonstration arrive au bloc 4, dans #demo. -->
+       Le formulaire de démonstration (bloc 4) est dans #demo :
+       memoire/demo-pro-bloc4.md. -->
   <style>
     :root{
       --navy:#062f55; --navy-deep:#001f3b; --cyan:#20c4f4; --cyan-light:#6ee5ff;
@@ -74,6 +75,53 @@
     .demo-in{width:min(1080px,100%);margin:0 auto;}
     .demo h2{margin:0 0 10px;font-size:clamp(24px,3vw,32px);line-height:1.2;}
     .demo p{margin:0;color:#e3f2fb;max-width:720px;}
+    .demo-grille{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(24px,4vw,56px);align-items:start;}
+    .demo-acces{margin-top:16px !important;color:var(--cyan-light) !important;font-weight:700;}
+    .demo-autres{margin-top:22px !important;font-size:15px;}
+    .demo-autres a{display:inline-flex;align-items:center;min-height:44px;margin-right:18px;color:#fff;font-weight:700;}
+    .formulaire,.reprise{position:relative;padding:clamp(20px,3vw,32px);border-radius:18px;color:var(--ink);background:#fff;
+      box-shadow:0 24px 60px rgba(0,16,32,.35);}
+    .formulaire p,.reprise p{color:var(--muted);}
+    .champ{margin:0 0 16px;}
+    .champ > label,.champ legend{display:block;margin:0 0 6px;padding:0;color:var(--navy);font-size:14px;font-weight:800;}
+    .champ legend{float:left;width:100%;}
+    .champ .facultatif{color:var(--muted);font-weight:600;}
+    .champ input[type=text],.champ input[type=email],.champ input[type=tel]{width:100%;min-height:48px;padding:10px 14px;
+      border:1.5px solid #b9cbd9;border-radius:12px;color:var(--ink);background:#fff;font:inherit;font-size:16px;}
+    .champ input:focus{outline:3px solid rgba(32,196,244,.45);outline-offset:1px;border-color:var(--navy);}
+    .champ input[aria-invalid=true]{border-color:#c9302f;}
+    fieldset.champ{border:0;padding:0;min-width:0;}
+    .types{clear:both;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .types label{position:relative;display:block;cursor:pointer;}
+    .types input{position:absolute;opacity:0;width:1px;height:1px;}
+    .types span{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px 6px;border:1.5px solid #b9cbd9;
+      border-radius:12px;color:var(--navy);font-weight:700;font-size:15px;text-align:center;}
+    .types input:checked + span{border-color:var(--navy);background:var(--navy);color:#fff;}
+    .types input:focus-visible + span{outline:3px solid rgba(32,196,244,.6);outline-offset:2px;}
+    .duo{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+    .demo-grille > *,.duo > *{min-width:0;}
+    .erreur-champ,.message,.avis{overflow-wrap:anywhere;}
+    .erreur-champ{margin:6px 0 0 !important;color:#b42318 !important;font-size:14px;font-weight:700;}
+    .piege{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;}
+    .envoyer{width:100%;min-height:54px;margin-top:6px;border:0;border-radius:12px;color:var(--navy-deep);background:var(--cyan);
+      font:inherit;font-size:17px;font-weight:800;cursor:pointer;}
+    .envoyer[disabled]{opacity:.7;cursor:progress;}
+    .rgpd{margin:14px 0 0 !important;font-size:13.5px;line-height:1.5;}
+    .rgpd a{color:#0a5f8f;font-weight:700;}
+    .message{margin:14px 0 0 !important;padding:12px 14px;border-radius:12px;font-size:15px;font-weight:600;line-height:1.5;}
+    .message.ko{color:#7a1d14 !important;background:#fdecea;border:1px solid #f4c7c1;}
+    .message.ok{color:#0b4a2a !important;background:#e7f6ee;border:1px solid #bfe5cf;}
+    .message a{color:inherit;font-weight:800;white-space:nowrap;}
+    .reprise h3{margin:0 0 8px;color:var(--navy);font-size:20px;}
+    .reprise .bouton{width:100%;margin-top:16px;}
+    .lien-discret{display:inline-flex;align-items:center;min-height:44px;margin-top:6px;padding:0;border:0;background:none;
+      color:#0a5f8f;font:inherit;font-size:15px;font-weight:700;text-decoration:underline;cursor:pointer;}
+    .avis{position:relative;z-index:9;width:min(1080px,calc(100% - 32px));margin:16px auto 0;padding:14px 48px 14px 16px;border-radius:12px;
+      font-weight:700;}
+    .avis.ok{color:#0b4a2a;background:#e7f6ee;border:1px solid #bfe5cf;}
+    .avis.ko{color:#7a1d14;background:#fdecea;border:1px solid #f4c7c1;}
+    .avis button{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;background:none;
+      color:inherit;font-size:22px;cursor:pointer;}
     .faq{padding-bottom:8px;}
     .faq details{border-bottom:1px solid var(--line);}
     .faq summary{display:flex;align-items:center;min-height:56px;padding:10px 0;color:var(--navy);font-weight:750;cursor:pointer;}
@@ -92,6 +140,11 @@
     footer a{display:inline-block;margin:4px 8px;color:#fff;font-weight:700;}
     @media (max-width:900px){
       .moyens{grid-template-columns:1fr;}
+      .demo-grille{grid-template-columns:1fr;}
+    }
+    @media (max-width:420px){
+      .duo{grid-template-columns:1fr;}
+      .types span{font-size:14px;}
     }
     @media (max-width:700px){
       .grille,.etapes{grid-template-columns:1fr;}
@@ -115,6 +168,7 @@
   </header>
 
   <main>
+    <p class="avis" id="avisConfirmation" role="status" hidden><span></span><button type="button" aria-label="Fermer" data-t-aria="aria_fermer">×</button></p>
     <section class="hero">
       <div class="hero-in">
         <p class="surtitre" data-t="surtitre">Hôtels · Agences · Entreprises</p>
@@ -178,14 +232,78 @@
     </section>
 
     <section class="demo" id="demo" aria-labelledby="t-demo">
-      <div class="demo-in">
-        <h2 id="t-demo" data-t="demo_titre">Une démonstration ? Appelez-nous ou écrivez-nous.</h2>
-        <p data-t="demo_texte">Nous vous montrons comment votre réception réserverait, et nous préparons avec vous la page de votre établissement.</p>
-        <div class="actions">
-          <a class="bouton" href="tel:+33759312433" data-t="demo_appel">Appeler le +33 7 59 31 24 33</a>
-          <a class="bouton creux" href="https://wa.me/33759312433" target="_blank" rel="noopener" data-t="demo_wa">Écrire sur WhatsApp</a>
-          <a class="bouton creux" href="mailto:contact@elatransfer.com" data-t="demo_mail">contact@elatransfer.com</a>
+      <div class="demo-in demo-grille">
+        <div>
+          <h2 id="t-demo" data-t="demo_titre">Voir la démo hôtel, à votre nom</h2>
+          <p data-t="demo_texte">Vous découvrez ce que verraient vos clients et votre réception : la page de réservation, le suivi des courses et le QR code. Aucune réservation réelle n'est faite.</p>
+          <p class="demo-acces" data-t="demo_acces">Accès immédiat, valable 7 jours sur cet appareil.</p>
+          <p class="demo-autres"><span data-t="demo_autres">Vous préférez nous parler ?</span><br>
+            <a href="tel:+33759312433" data-t="demo_appel">Appeler le +33 7 59 31 24 33</a>
+            <a href="https://wa.me/33759312433" target="_blank" rel="noopener" data-t="demo_wa">Écrire sur WhatsApp</a>
+            <a href="mailto:contact@elatransfer.com">contact@elatransfer.com</a></p>
         </div>
+
+        <div class="reprise" id="demoReprise" hidden>
+          <h3 data-t="reprise_titre">Votre démonstration est ouverte</h3>
+          <p id="repriseTexte"></p>
+          <a class="bouton" href="/demo/hotel/" id="repriseOuvrir" data-t="reprise_ouvrir">Ouvrir ma démonstration</a>
+          <button type="button" class="lien-discret" id="repriseNouvelle" data-t="reprise_nouvelle">Faire une demande pour un autre établissement</button>
+        </div>
+
+        <form class="formulaire" id="formDemo" novalidate>
+          <fieldset class="champ" id="champ-type">
+            <legend data-t="f_type">Vous êtes</legend>
+            <div class="types">
+              <label><input type="radio" name="type" value="hotel" checked><span data-t="f_hotel">Hôtel</span></label>
+              <label><input type="radio" name="type" value="agence"><span data-t="f_agence">Agence</span></label>
+              <label><input type="radio" name="type" value="entreprise"><span data-t="f_entreprise">Entreprise</span></label>
+            </div>
+            <p class="erreur-champ" id="err-type" hidden></p>
+          </fieldset>
+          <div class="champ" id="champ-etablissement">
+            <label for="fEtablissement" data-t="f_etablissement">Nom de l'établissement</label>
+            <input type="text" id="fEtablissement" name="organization" autocomplete="organization" maxlength="60" required aria-describedby="err-etablissement">
+            <p class="erreur-champ" id="err-etablissement" hidden></p>
+          </div>
+          <div class="duo">
+            <div class="champ" id="champ-nom">
+              <label for="fNom" data-t="f_nom">Nom complet</label>
+              <input type="text" id="fNom" name="name" autocomplete="name" maxlength="80" required aria-describedby="err-nom">
+              <p class="erreur-champ" id="err-nom" hidden></p>
+            </div>
+            <div class="champ" id="champ-fonction">
+              <label for="fFonction"><span data-t="f_fonction">Fonction</span> <span class="facultatif" data-t="f_facultatif">(facultatif)</span></label>
+              <input type="text" id="fFonction" name="organization-title" autocomplete="organization-title" maxlength="60" aria-describedby="err-fonction">
+              <p class="erreur-champ" id="err-fonction" hidden></p>
+            </div>
+          </div>
+          <div class="duo">
+            <div class="champ" id="champ-email">
+              <label for="fEmail" data-t="f_email">E-mail professionnel</label>
+              <input type="email" id="fEmail" name="email" autocomplete="email" inputmode="email" maxlength="254" required aria-describedby="err-email">
+              <p class="erreur-champ" id="err-email" hidden></p>
+            </div>
+            <div class="champ" id="champ-telephone">
+              <label for="fTelephone" data-t="f_telephone">Téléphone</label>
+              <input type="tel" id="fTelephone" name="tel" autocomplete="tel" inputmode="tel" maxlength="30" required aria-describedby="err-telephone">
+              <p class="erreur-champ" id="err-telephone" hidden></p>
+            </div>
+          </div>
+          <!-- Le champ piège : hors écran, jamais atteint au clavier ni lu
+               par un lecteur d'écran. Son nom ne ressemble à aucun champ que
+               le navigateur remplirait tout seul (ni « site », ni « url »,
+               ni « website ») : un humain dont le remplissage automatique
+               l'aurait rempli serait traité comme un robot sans le savoir.
+               Ce qui part au serveur, c'est TOUJOURS « site » vide. -->
+          <div class="piege" aria-hidden="true">
+            <label for="fCtrl">Ne pas remplir</label>
+            <input type="text" id="fCtrl" name="ctrl_x9" tabindex="-1" autocomplete="off" value="">
+          </div>
+          <button type="submit" class="envoyer" id="fEnvoyer" data-t="f_envoyer">Ouvrir la démonstration</button>
+          <p class="message" id="fMessage" role="alert" hidden></p>
+          <p class="rgpd"><span data-t="f_rgpd">Vos coordonnées sont utilisées pour vous donner accès à la démonstration et vous recontacter au sujet des services Elatransfer. Vous pouvez vous y opposer à tout moment.</span>
+            <a href="/?doc=privacy" data-t="f_rgpd_lien">Politique de confidentialité</a></p>
+        </form>
       </div>
     </section>
 
@@ -252,9 +370,18 @@
       change1_t:"For management", change1:"One more service for your guests, with no staff or vehicle to manage.",
       change2_t:"For the front desk", change2:"No more calls to make: the request, the confirmation and the history are in one place.",
       change3_t:"For your guests", change3:"A price given in advance, paid directly to the chauffeur, in French or in English.",
-      demo_titre:"A demonstration? Call us or write to us.",
-      demo_texte:"We show you how your front desk would book, and we prepare the page for your establishment with you.",
-      demo_appel:"Call +33 7 59 31 24 33", demo_wa:"Message us on WhatsApp", demo_mail:"contact@elatransfer.com",
+      demo_titre:"See the hotel demo, with your name",
+      demo_texte:"You see what your guests and your front desk would see: the booking page, ride tracking and the QR code. No real booking is made.",
+      demo_acces:"Instant access, valid for 7 days on this device.",
+      demo_autres:"Would you rather talk to us?",
+      demo_appel:"Call +33 7 59 31 24 33", demo_wa:"Message us on WhatsApp",
+      reprise_titre:"Your demonstration is open", reprise_ouvrir:"Open my demonstration",
+      reprise_nouvelle:"Make a request for another establishment",
+      f_type:"You are", f_hotel:"Hotel", f_agence:"Agency", f_entreprise:"Business",
+      f_etablissement:"Establishment name", f_nom:"Full name", f_fonction:"Job title", f_facultatif:"(optional)",
+      f_email:"Business email", f_telephone:"Phone", f_envoyer:"Open the demonstration",
+      f_rgpd:"Your details are used to give you access to the demonstration and to contact you about Elatransfer's services. You can object at any time.",
+      f_rgpd_lien:"Privacy policy", aria_fermer:"Close",
       faq_titre:"Questions from businesses",
       q1:"What does it cost the establishment?", r1:"Nothing. Set-up is free, and each guest pays for their ride directly to the chauffeur.",
       q2:"Who are the chauffeurs?", r2:"Independent professional chauffeurs, driving under their own professional licence and insurance. Elatransfer chooses the chauffeur, confirms the ride and follows it.",
@@ -298,6 +425,218 @@
       try { localStorage.setItem('ela_langue', langue); } catch (e) {}
       appliquer(langue);
     });
+  })();
+  </script>
+  <script src="/telephone.js"></script>
+  <script>
+  /* LE FORMULAIRE DE DÉMONSTRATION — bloc 4 (memoire/demo-pro-bloc4.md).
+     Il appelle la fonction demande-demo (« demander »), garde la session
+     sur l'appareil et ouvre /demo/hotel/. Aucune clé Supabase ici : la
+     fonction est la seule porte, et elle refuse toute autre origine.
+     Jamais un faux succès : une démo ne s'ouvre que sur une session rendue
+     par le serveur. Aucune photo ne part d'ici. */
+  (function(){
+    var URL_DEMANDE = 'https://yyhzutnuhuytokarynaw.supabase.co/functions/v1/demande-demo';
+    var CLE_SESSION = 'ela_demo_session';   /* lu tel quel par la démo (bloc 3) */
+    var CLE_EXPIRE = 'ela_demo_expire';     /* ISO 8601, rendu par le serveur */
+    var DEMO = '/demo/hotel/';
+    /* Le serveur traite comme un robot un envoi fait moins de 2,5 s après
+       l'affichage. Un humain pressé (remplissage automatique, un appui) ne
+       doit JAMAIS tomber dans ce piège sans le savoir : la page attend
+       elle-même ce qui manque avant d'envoyer. */
+    var DUREE_MIN_MS = 2600;
+    /* TURNSTILE (facultatif, décision de Barbaros : option B). Pour le
+       réactiver : poser ici la clé PUBLIQUE du widget, et le secret
+       TURNSTILE_SECRET dans Supabase. Vide = aucun widget, rien n'est
+       chargé de chez Cloudflare. */
+    var CLE_TURNSTILE = '';
+    var debut = Date.now();
+
+    var M = {
+      req: {fr:'Ce champ est obligatoire.', en:'This field is required.'},
+      type: {fr:'Choisissez Hôtel, Agence ou Entreprise.', en:'Choose Hotel, Agency or Business.'},
+      etablissement: {fr:'Indiquez le nom de votre établissement (2 à 60 caractères, sans < ni >).', en:'Enter the name of your establishment (2 to 60 characters, no < or >).'},
+      nom: {fr:'Indiquez votre nom complet (2 à 80 caractères, sans < ni >).', en:'Enter your full name (2 to 80 characters, no < or >).'},
+      fonction: {fr:'60 caractères au plus, sans < ni >.', en:'60 characters at most, no < or >.'},
+      email: {fr:'Cette adresse e-mail ne semble pas valide.', en:'This email address does not look valid.'},
+      telephone: {fr:'Ce numéro ne semble pas valide : 10 chiffres (06…) ou avec l\'indicatif (+44…).', en:'This number does not look valid: include the country code (+44…), or 10 digits for France (06…).'},
+      envoi: {fr:'Ouverture de votre démonstration…', en:'Opening your demonstration…'},
+      ok: {fr:'Votre démonstration est ouverte — accès valable 7 jours sur cet appareil.', en:'Your demonstration is open — access valid for 7 days on this device.'},
+      quota: {fr:'Vous avez atteint le nombre de demandes possibles pour le moment : 5 par heure depuis une même connexion et 3 par jour pour une même adresse e-mail. Si vous avez déjà ouvert la démonstration, elle reste accessible 7 jours sur cet appareil. Pour aller plus vite, appelez-nous au +33 7 59 31 24 33.',
+              en:'You have reached the number of requests possible for now: 5 per hour from the same connection and 3 per day for the same email address. If you have already opened the demonstration, it remains available for 7 days on this device. For a quicker answer, call us on +33 7 59 31 24 33.'},
+      indispo: {fr:'Service momentanément indisponible. Appelez-nous au +33 7 59 31 24 33 ou écrivez à contact@elatransfer.com.',
+                en:'Service temporarily unavailable. Call us on +33 7 59 31 24 33 or write to contact@elatransfer.com.'},
+      reprise: {fr:'Accès valable jusqu\'au {d} sur cet appareil.', en:'Access valid until {d} on this device.'},
+      confOk: {fr:'Adresse e-mail confirmée, merci.', en:'Email address confirmed, thank you.'},
+      confKo: {fr:'Ce lien a expiré ou a déjà servi.', en:'This link has expired or has already been used.'},
+      confPanne: {fr:'La confirmation n\'a pas pu aboutir pour le moment. Rouvrez le lien un peu plus tard.', en:'The confirmation could not be completed for now. Please open the link again a little later.'}
+    };
+    function langue(){ return document.documentElement.lang === 'en' ? 'en' : 'fr'; }
+    function t(cle){ return M[cle][langue()]; }
+    function $(id){ return document.getElementById(id); }
+    function lireStock(k){ try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+    function ecrireStock(k, v){ try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+
+    /* ── LA SESSION DÉJÀ OUVERTE ─────────────────────────────────────
+       Un visiteur qui revient avant l'échéance retrouve sa démo sans
+       refaire le formulaire — sinon il brûlerait son quota pour rien.
+       Le serveur rejuge la session à chaque ouverture : si elle a été
+       révoquée, la démo renvoie ici et l'efface. */
+    function sessionValable(){
+      var s = lireStock(CLE_SESSION), e = Date.parse(lireStock(CLE_EXPIRE));
+      return s && isFinite(e) && e > Date.now() ? e : 0;
+    }
+    function dateCourte(ms){
+      var d = new Date(ms);
+      return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2);
+    }
+
+    var form = $('formDemo'), reprise = $('demoReprise'), bouton = $('fEnvoyer'), message = $('fMessage');
+    var dernierMessage = null, erreurs = {}, nouvelleDemande = false;
+
+    function dessinerReprise(){
+      var e = sessionValable();
+      var montre = !!e && !nouvelleDemande;
+      reprise.hidden = !montre;
+      form.hidden = montre;
+      if (e) $('repriseTexte').textContent = t('reprise').replace('{d}', dateCourte(e));
+      /* « Voir la démo hôtel » du haut : directement la démo si elle est ouverte. */
+      var cta = document.querySelector('.hero a.bouton');
+      if (cta) cta.setAttribute('href', e ? DEMO : '#demo');
+    }
+
+    function montrerMessage(cle, genre){
+      dernierMessage = cle ? {cle: cle, genre: genre} : null;
+      message.hidden = !cle;
+      message.className = 'message ' + (genre || '');
+      message.textContent = cle ? t(cle) : '';
+    }
+    function erreurChamp(champ, cle){
+      erreurs[champ] = cle;
+      var p = $('err-' + champ), entree = form.querySelector('#champ-' + champ + ' input');
+      if (!p) return;
+      p.hidden = !cle; p.textContent = cle ? t(cle) : '';
+      if (entree && champ !== 'type') entree.setAttribute('aria-invalid', cle ? 'true' : 'false');
+    }
+    function effacerErreurs(){ ['type','etablissement','nom','fonction','email','telephone'].forEach(function(c){ erreurChamp(c, null); }); }
+
+    /* Les mêmes règles que la fonction demande-demo : un refus ici évite un
+       aller-retour, un refus là-bas s'affiche au même endroit. */
+    function texteOk(v, min, max){ v = v.replace(/\s+/g, ' ').trim(); return v.length >= min && v.length <= max && !/[\u0000-\u001f\u007f<>]/.test(v); }
+    function emailOk(v){ v = v.trim().toLowerCase(); return v.length <= 254 && /^[^\s@<>()",;:]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(v); }
+    function telOk(v){ return !!(window.ELA_TEL && window.ELA_TEL.telValide(v)); }
+
+    function valeurs(){
+      var type = form.querySelector('input[name=type]:checked');
+      return { type: type ? type.value : '', etablissement: $('fEtablissement').value, nom: $('fNom').value,
+        fonction: $('fFonction').value, email: $('fEmail').value, telephone: $('fTelephone').value };
+    }
+    function verifier(v){
+      var premier = null;
+      function ko(c, cle){ erreurChamp(c, cle); if (!premier) premier = c; }
+      if (['hotel','agence','entreprise'].indexOf(v.type) < 0) ko('type', 'type');
+      if (!v.etablissement.trim()) ko('etablissement', 'req'); else if (!texteOk(v.etablissement, 2, 60)) ko('etablissement', 'etablissement');
+      if (!v.nom.trim()) ko('nom', 'req'); else if (!texteOk(v.nom, 2, 80)) ko('nom', 'nom');
+      if (v.fonction.trim() && !texteOk(v.fonction, 0, 60)) ko('fonction', 'fonction');
+      if (!v.email.trim()) ko('email', 'req'); else if (!emailOk(v.email)) ko('email', 'email');
+      if (!v.telephone.trim()) ko('telephone', 'req'); else if (!telOk(v.telephone)) ko('telephone', 'telephone');
+      return premier;
+    }
+    function allerAuChamp(c){
+      var e = form.querySelector('#champ-' + c + ' input');
+      if (e) { try { e.focus({preventScroll: true}); } catch (x) { e.focus(); } e.scrollIntoView({block: 'center'}); }
+    }
+
+    var enCours = false;
+    form.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      if (enCours) return;
+      montrerMessage(null);
+      effacerErreurs();
+      var v = valeurs();
+      var premier = verifier(v);
+      if (premier) { allerAuChamp(premier); return; }
+      enCours = true; bouton.disabled = true;
+      montrerMessage('envoi', '');
+      var corps = { action: 'demander', type: v.type, etablissement: v.etablissement.replace(/\s+/g, ' ').trim(),
+        nom: v.nom.replace(/\s+/g, ' ').trim(), fonction: v.fonction.replace(/\s+/g, ' ').trim(),
+        email: v.email.trim(), telephone: v.telephone.trim(), langue: langue(),
+        /* Toujours VIDE : c'est l'absence de robot que le serveur lit ici. */
+        site: '' };
+      var attente = Math.max(0, DUREE_MIN_MS - (Date.now() - debut));
+      setTimeout(function(){
+        corps.duree = Date.now() - debut;
+        var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+        var minuteur = setTimeout(function(){ if (ctl) ctl.abort(); }, 12000);
+        fetch(URL_DEMANDE, { method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(corps), signal: ctl ? ctl.signal : undefined, credentials: 'omit' })
+          .then(function(r){
+            return r.json().catch(function(){ return null; }).then(function(d){ return {statut: r.status, d: d}; });
+          })
+          .then(function(x){
+            clearTimeout(minuteur);
+            var d = x.d || {};
+            if (x.statut === 200 && typeof d.session === 'string' && d.session.indexOf('.') > 0 && isFinite(Date.parse(d.expire))) {
+              if (!ecrireStock(CLE_SESSION, d.session) || !ecrireStock(CLE_EXPIRE, d.expire)) { echec('indispo'); return; }
+              montrerMessage('ok', 'ok');
+              setTimeout(function(){ location.href = DEMO; }, 1600);
+              return;
+            }
+            if (x.statut === 400 && d.erreur === 'champ' && $('err-' + d.champ)) {
+              erreurChamp(d.champ, d.champ === 'type' ? 'type' : d.champ);
+              montrerMessage(null); fin(); allerAuChamp(d.champ); return;
+            }
+            echec(x.statut === 429 ? 'quota' : 'indispo');
+          })
+          .catch(function(){ clearTimeout(minuteur); echec('indispo'); });
+      }, attente);
+    });
+    function fin(){ enCours = false; bouton.disabled = false; }
+    function echec(cle){ fin(); montrerMessage(cle, 'ko'); }
+
+    $('repriseNouvelle').addEventListener('click', function(){
+      nouvelleDemande = true; dessinerReprise(); $('fEtablissement').focus();
+    });
+
+    /* ── LE LIEN DE CONFIRMATION DE L'E-MAIL ─────────────────────────── */
+    var avis = $('avisConfirmation'), avisCle = null;
+    function montrerAvis(cle, genre){
+      avisCle = cle; avis.className = 'avis ' + genre; avis.hidden = false;
+      avis.querySelector('span').textContent = t(cle);
+    }
+    avis.querySelector('button').addEventListener('click', function(){ avis.hidden = true; avisCle = null; });
+    var m = /[?&]confirmer=([^&#]*)/.exec(location.search);
+    if (m) {
+      var jeton = decodeURIComponent(m[1] || '');
+      var effacer = function(){
+        try {
+          var u = new URL(location.href); u.searchParams.delete('confirmer');
+          history.replaceState(null, '', u.pathname + u.search + u.hash);
+        } catch (e) {}
+      };
+      fetch(URL_DEMANDE, { method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'omit',
+        body: JSON.stringify({ action: 'confirmer', jeton: jeton }) })
+        .then(function(r){ return r.json().catch(function(){ return null; }).then(function(d){ return {statut: r.status, d: d}; }); })
+        .then(function(x){
+          if (x.statut === 200 && x.d && x.d.ok === true) { montrerAvis('confOk', 'ok'); effacer(); }
+          else if (x.statut === 410) { montrerAvis('confKo', 'ko'); effacer(); }
+          /* Une panne n'est ni un succès ni un lien mort : on le dit, et le
+             lien reste dans la barre pour qu'un rechargement réessaie. */
+          else montrerAvis('confPanne', 'ko');
+        })
+        .catch(function(){ montrerAvis('confPanne', 'ko'); });
+    }
+
+    /* Un changement de langue réécrit ce qui est déjà affiché. */
+    new MutationObserver(function(){
+      if (dernierMessage) montrerMessage(dernierMessage.cle, dernierMessage.genre);
+      Object.keys(erreurs).forEach(function(c){ erreurChamp(c, erreurs[c]); });
+      if (avisCle && !avis.hidden) avis.querySelector('span').textContent = t(avisCle);
+      dessinerReprise();
+    }).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
+
+    dessinerReprise();
+    window.addEventListener('pageshow', function(){ fin(); if (dernierMessage && dernierMessage.cle === 'envoi') montrerMessage(null); dessinerReprise(); });
   })();
   </script>
 </body>
