@@ -283,7 +283,12 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
   if (!r.ok) {
     const brut = await r.text().catch(() => "");
     if (brut.includes("quota_email")) return reponse(429, { erreur: "quota" }, origin);
-    console.warn("demande-demo : écriture refusée", r.status, brut.slice(0, 200));
+    /* JAMAIS le corps de l'erreur dans le journal : une contrainte refusée
+       y recopie la ligne entière — nom, téléphone, e-mail du prospect. On
+       ne garde que le statut et le code d'erreur PostgreSQL. */
+    let code = "";
+    try { code = String(JSON.parse(brut)?.code ?? "").slice(0, 8); } catch (_e) { code = ""; }
+    console.warn("demande-demo : écriture refusée", r.status, code);
     return reponse(503, { erreur: "indisponible" }, origin);
   }
   let ligne: any = null;

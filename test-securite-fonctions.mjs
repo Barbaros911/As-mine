@@ -316,6 +316,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
       if(j==='panne')return new Response('x',{status:500});return new Response(JSON.stringify({success:j==='humain'}));}
     if(url.includes('/rpc/ela_prospect_creer')){const a=JSON.parse(init.body);
       if(a.p_email.startsWith('quota@'))return new Response('{"message":"quota_email"}',{status:400});
+      if(a.p_email.startsWith('refus@'))return new Response(JSON.stringify({code:'23514',message:'new row violates check constraint',details:'Failing row contains ('+a.p_nom+', '+a.p_email+', '+a.p_telephone+')'}),{status:400});
       const id=randomUUID();F.crees.push(a);F.prospects.add(id);F.jetons.set(a.p_jeton_empreinte,id);
       return new Response(JSON.stringify([{id,domaine_pro:!a.p_email.endsWith('@gmail.com')}]));}
     if(url.includes('/rpc/ela_prospect_ouvrir')){const a=JSON.parse(init.body);F.ouverts.push(a.p_id);return new Response(JSON.stringify(F.prospects.has(a.p_id)));}
@@ -375,6 +376,13 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok((await demande()).status===503&&rien(),'demande-demo : compteur de quota en panne → 503, rien ne passe');
   raz();
   ok(F.quota===true&&(await demande({email:'quota@hoteldeslilas.fr'})).status===429&&F.tg.length===0,'demande-demo : quota par e-mail (compté en base) → 429, aucune alerte');
+  /* LES JOURNAUX NE RECOPIENT AUCUNE DONNÉE DU PROSPECT : une contrainte
+     refusée par PostgreSQL renvoie la ligne entière dans son message. */
+  raz();
+  {const journalise=[];const w=console.warn;console.warn=(...x)=>journalise.push(x.join(' '));
+   const r=await demande({email:'refus@hoteldeslilas.fr'});console.warn=w;const t=journalise.join('|');
+   ok(r.status===503&&rien(),'demande-demo : écriture refusée par la base → 503, rien envoyé');
+   ok(t.includes('23514')&&!t.includes('Marie')&&!t.includes('hoteldeslilas')&&!t.includes('612345678'),'demande-demo : le journal garde le code d\'erreur, jamais le nom, l\'e-mail ni le téléphone ('+t.slice(0,80)+')');}
   raz();
   {await demande();const k=F.quotaCles[0];
    ok(k&&k.p_limite===5&&/^[0-9a-f]{64}$/.test(k.p_cle)&&!JSON.stringify(F.quotaCles).includes('10.9.9.9'),'demande-demo : 5 demandes/heure/IP, sous une empreinte — jamais l\'IP en clair');
