@@ -1067,7 +1067,10 @@ for (const large of [1024, 1280]) {
   const ps = await b.newPage({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   await ps.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
   await ps.goto(SITE + '/', { waitUntil: 'domcontentloaded' });
-  const liensAccueil = await ps.$$eval('a[href]', l => l.map(a => a.getAttribute('href')));
+  /* L'ancre ne change pas la page visée : « /professionnels/#demo » (bloc 4,
+     le bouton de l'accueil mène au formulaire) est un vrai lien vers
+     /professionnels/, et c'est ainsi que Google le lit. */
+  const liensAccueil = await ps.$$eval('a[href]', l => l.map(a => a.getAttribute('href').split('#')[0]));
   const reponses = await ps.evaluate(() => { const fr = (window.ELA_TEXTES || {}).fr || {};
     return Object.keys(fr).filter(k => /^faq\d+r$/.test(k)).map(k => fr[k]); });
   check('les réponses de l\'accueil se lisent (sinon le contrôle ne prouve rien)', reponses.length >= 1, String(reponses.length));
