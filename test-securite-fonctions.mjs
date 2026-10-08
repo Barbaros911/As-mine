@@ -11,20 +11,26 @@
 import m from 'node:module'; import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const R=path.join(path.dirname(fileURLToPath(import.meta.url)),'supabase/functions')+'/';
+function partages(tmp,js){
+  for(const f of fs.readdirSync(R+'_shared')){
+    if(!f.endsWith('.ts'))continue;
+    const nom=f.replace(/\.ts$/,'.mjs');
+    let src=m.stripTypeScriptTypes(fs.readFileSync(R+'_shared/'+f,'utf8'));
+    src=src.replace(/from "\.\/([a-z-]+)\.ts"/g,'from "./$1.mjs"');
+    fs.writeFileSync(tmp+'/'+nom,src);
+  }
+  return js.replace(/from "\.\.\/_shared\/([a-z-]+)\.ts"/g,'from "./$1.mjs"');
+}
 async function charger(dir, env){
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ela-fn-'));
   for(const f of fs.readdirSync(R+dir)){ if(f.endsWith('.js')) fs.copyFileSync(R+dir+'/'+f,tmp+'/'+f); }
   let js=m.stripTypeScriptTypes(fs.readFileSync(R+dir+'/index.ts','utf8'));
   /* L'import de types « jsr: » de deposer-course n'existe pas pour Node. */
   js=js.replace(/^import "jsr:[^"]+";\s*$/m,'');
-  /* La Réception partage désormais la signature de session avec la fonction
-     de dépôt. Le test reste autonome : il transpile ce module localement au
-     lieu de tenter d'importer un .ts depuis le dossier temporaire. */
-  if(js.includes('../_shared/hotel-session.ts')){
-    const partage=m.stripTypeScriptTypes(fs.readFileSync(R+'_shared/hotel-session.ts','utf8'));
-    fs.writeFileSync(tmp+'/hotel-session.mjs',partage);
-    js=js.replace('../_shared/hotel-session.ts','./hotel-session.mjs');
-  }
+  /* Les modules partagés (_shared/*.ts : la session de la réception, la
+     session signée commune à la démo) sont transpilés localement à côté de
+     la fonction : Node n'importe pas un .ts depuis le dossier temporaire. */
+  js=partages(tmp,js);
   fs.writeFileSync(tmp+'/index.mjs',js);
   let h; globalThis.Deno={env:{get:k=>env[k]},serve:f=>{h=f}};
   await import(tmp+'/index.mjs?'+Math.random()); return h;
@@ -151,7 +157,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   };
   const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',HOTEL_EASYHOTEL_AEROVILLE_CODE:'easyhotel-9F3K2Q'});
   const tmpS=fs.mkdtempSync(path.join(os.tmpdir(),'ela-sess-'));
-  fs.writeFileSync(tmpS+'/hotel-session.mjs',m.stripTypeScriptTypes(fs.readFileSync(R+'_shared/hotel-session.ts','utf8')));
+  partages(tmpS,'');
   const {creerSessionHotel}=await import(tmpS+'/hotel-session.mjs');
   const session=await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q');
   const bon=(ref,reception,prov)=>({ref,course:{depart:'easyHotel Aéroville',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30,chambre:reception?'214':''},
@@ -287,6 +293,206 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const i9=await dep(bonKm('ELA-26-10-LI9II',0,{tarifAConfirmer:true,motifsTarif:['groupe'],passagers:'12 passagers · 14 bagages'}));
   const bi=deposes[deposes.length-1]||{};
   ok(i9.status===201&&bi.course?.passagersNombre===12&&bi.course?.multiVehicules===true,'deposer-course : un groupe de 12 passe, marqué « plusieurs véhicules » ('+i9.status+')');
+  globalThis.fetch=fetchAvant;
+}
+/* =====================================================================
+   DEMANDE-DEMO (8 octobre 2026, démo professionnels, bloc 2). Déployée
+   SANS vérification de JWT : tout ce qui protège est dans la fonction. On
+   éprouve chaque garde contre ce qu'elle surveille, avec un faux serveur
+   qui ENREGISTRE ce qui part (base, Turnstile, Telegram, Resend) : un refus
+   n'est prouvé que si rien n'a été écrit ni envoyé.
+   ===================================================================== */
+{
+  const {createHash,createHmac,randomUUID,randomBytes}=await import('node:crypto');
+  const sha=v=>createHash('sha256').update(v).digest('hex');
+  const fetchAvant=globalThis.fetch;
+  const F={quota:true,turnstile:0,crees:[],ouverts:[],tg:[],mails:[],tgPanne:false,
+           prospects:new Set(),jetons:new Map()};
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){F.quotaCles=(F.quotaCles||[]);F.quotaCles.push(JSON.parse(init.body));
+      if(F.quota===null)return new Response('panne',{status:503});return new Response(JSON.stringify(F.quota));}
+    if(url.includes('challenges.cloudflare.com/turnstile')){F.turnstile++;const j=new URLSearchParams(String(init.body)).get('response');
+      if(j==='panne')return new Response('x',{status:500});return new Response(JSON.stringify({success:j==='humain'}));}
+    if(url.includes('/rpc/ela_prospect_creer')){const a=JSON.parse(init.body);
+      if(a.p_email.startsWith('quota@'))return new Response('{"message":"quota_email"}',{status:400});
+      if(a.p_email.startsWith('refus@'))return new Response(JSON.stringify({code:'23514',message:'new row violates check constraint',details:'Failing row contains ('+a.p_nom+', '+a.p_email+', '+a.p_telephone+')'}),{status:400});
+      const id=randomUUID();F.crees.push(a);F.prospects.add(id);F.jetons.set(a.p_jeton_empreinte,id);
+      return new Response(JSON.stringify([{id,domaine_pro:!a.p_email.endsWith('@gmail.com')}]));}
+    if(url.includes('/rpc/ela_prospect_ouvrir')){const a=JSON.parse(init.body);F.ouverts.push(a.p_id);return new Response(JSON.stringify(F.prospects.has(a.p_id)));}
+    if(url.includes('/rpc/ela_prospect_confirmer')){const a=JSON.parse(init.body);const ok=F.jetons.has(a.p_empreinte);F.jetons.delete(a.p_empreinte);return new Response(JSON.stringify(ok));}
+    if(url.includes('api.telegram.org')){if(F.tgPanne)throw new Error('réseau');F.tg.push(JSON.parse(init.body));return new Response('{}');}
+    if(url.includes('api.resend.com')){F.mails.push(JSON.parse(init.body));return new Response('{}');}
+    return new Response('?',{status:404});
+  };
+  const ENV={SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',DEMO_SESSION_SECRET:randomBytes(24).toString('hex'),
+    TURNSTILE_SECRET:'ts',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RESEND_CLE:'re_x',EMAIL_EXPEDITEUR:'Elatransfer <demo@elatransfer.com>'};
+  const dd=await charger('demande-demo',ENV);
+  const appel=(fn,corps,o={})=>fn(new Request('http://x',{method:'POST',headers:Object.assign({origin:'https://elatransfer.com','x-forwarded-for':'10.9.9.9','content-type':'application/json'},o.headers||{}),body:JSON.stringify(corps)}));
+  const base={action:'demander',type:'hotel',etablissement:'Hôtel des Lilas',nom:'Marie Dupont',fonction:'Directrice',
+    email:'Direction@HotelDesLilas.fr',telephone:'06 12 34 56 78',langue:'fr',turnstile:'humain',site:''};
+  const demande=(extra={},fn=dd,o)=>appel(fn,Object.assign({},base,extra),o);
+  const rien=()=>F.crees.length===0&&F.tg.length===0&&F.mails.length===0;
+  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];};
+
+  // Secrets absents : rien ne passe.
+  for(const manque of ['TURNSTILE_SECRET','DEMO_SESSION_SECRET']){
+    raz();const fn=await charger('demande-demo',Object.assign({},ENV,{[manque]:''}));
+    const r=await demande({},fn);const j=await r.json();
+    ok(r.status===503&&j.erreur==='indisponible'&&rien()&&F.turnstile===0,'demande-demo : sans '+manque+' → 503, rien d\'écrit ('+r.status+')');
+  }
+  // Origine.
+  raz();
+  ok((await demande({},dd,{headers:{origin:''}})).status===403&&rien(),'demande-demo : sans origine → 403');
+  ok((await demande({},dd,{headers:{origin:'https://pirate.example'}})).status===403&&rien(),'demande-demo : origine étrangère → 403');
+  // Le champ piège.
+  raz();
+  {const r=await demande({site:'http://spam.example'});const j=await r.json();
+   ok(r.status===200&&typeof j.session==='string'&&j.session.includes('.'),'demande-demo : champ piège rempli → 200 qui a l\'air normal');
+   ok(rien()&&F.turnstile===0&&F.quotaCles.length===0,'demande-demo : champ piège → rien écrit, rien envoyé, ni Turnstile ni quota appelés');
+   const o=await appel(dd,{action:'ouvrir',session:j.session});
+   ok(o.status===401,'demande-demo : la session factice du piège n\'ouvre pas la démo ('+o.status+')');}
+  raz();
+  ok((await demande({site:undefined})).status===200&&rien(),'demande-demo : champ piège ABSENT (robot qui ne l\'envoie pas) → réponse factice, rien écrit');
+  // Les champs invalides : 400 qui NOMME le champ, rien d'écrit, Turnstile jamais appelé.
+  for(const [champ,val] of [['type','taxi'],['etablissement','<b>Hôtel</b>'],['etablissement','A'],['nom',''],['nom','x'.repeat(81)],
+      ['email','pas-une-adresse'],['email','a@b'],['telephone','87654321'],['telephone','0000000000'],['telephone','08 12 34 56 78'],['fonction','x'.repeat(61)]]){
+    raz();const r=await demande({[champ]:val});const j=await r.json();
+    ok(r.status===400&&j.erreur==='champ'&&j.champ===champ&&rien()&&F.turnstile===0,'demande-demo : '+champ+' = « '+String(val).slice(0,20)+' » → 400 champ '+champ+' ('+r.status+' '+j.champ+')');
+  }
+  raz();
+  ok((await demande({action:'supprimer'})).status===400&&rien(),'demande-demo : action inconnue → 400');
+  // Turnstile.
+  raz();
+  {const r=await demande({turnstile:''});ok(r.status===403&&(await r.json()).erreur==='robot'&&rien()&&F.turnstile===0,'demande-demo : Turnstile absent → 403 robot');}
+  raz();
+  {const r=await demande({turnstile:'robot'});ok(r.status===403&&(await r.json()).erreur==='robot'&&rien()&&F.turnstile===1,'demande-demo : Turnstile refusé par Cloudflare → 403 robot, rien écrit');}
+  raz();
+  {const r=await demande({turnstile:'panne'});ok(r.status===503&&rien(),'demande-demo : Cloudflare injoignable → 503 (une panne n\'est pas un robot), rien écrit');}
+  // Quotas.
+  raz();F.quota=false;
+  {const r=await demande();ok(r.status===429&&(await r.json()).erreur==='quota'&&rien()&&F.turnstile===0,'demande-demo : quota par IP atteint → 429, Turnstile même pas appelé');}
+  raz();F.quota=null;
+  ok((await demande()).status===503&&rien(),'demande-demo : compteur de quota en panne → 503, rien ne passe');
+  raz();
+  ok(F.quota===true&&(await demande({email:'quota@hoteldeslilas.fr'})).status===429&&F.tg.length===0,'demande-demo : quota par e-mail (compté en base) → 429, aucune alerte');
+  /* LES JOURNAUX NE RECOPIENT AUCUNE DONNÉE DU PROSPECT : une contrainte
+     refusée par PostgreSQL renvoie la ligne entière dans son message. */
+  raz();
+  {const journalise=[];const w=console.warn;console.warn=(...x)=>journalise.push(x.join(' '));
+   const r=await demande({email:'refus@hoteldeslilas.fr'});console.warn=w;const t=journalise.join('|');
+   ok(r.status===503&&rien(),'demande-demo : écriture refusée par la base → 503, rien envoyé');
+   ok(t.includes('23514')&&!t.includes('Marie')&&!t.includes('hoteldeslilas')&&!t.includes('612345678'),'demande-demo : le journal garde le code d\'erreur, jamais le nom, l\'e-mail ni le téléphone ('+t.slice(0,80)+')');}
+  raz();
+  {await demande();const k=F.quotaCles[0];
+   ok(k&&k.p_limite===5&&/^[0-9a-f]{64}$/.test(k.p_cle)&&!JSON.stringify(F.quotaCles).includes('10.9.9.9'),'demande-demo : 5 demandes/heure/IP, sous une empreinte — jamais l\'IP en clair');
+   ok(F.crees[0]?.p_par_jour===3,'demande-demo : 3 demandes par jour et par e-mail');}
+  // Le succès, et ce qui sort — ou pas.
+  raz();
+  let sessionOk='',jetonOk='';
+  {const r=await demande();const t=await r.text();const j=JSON.parse(t);const a=F.crees[0]||{};
+   ok(r.status===200&&j.etablissement==='Hôtel des Lilas'&&typeof j.session==='string','demande-demo : demande valide → 200 avec session et établissement');
+   const exp=Date.parse(j.expire);
+   ok(Math.abs(exp-Date.now()-7*864e5)<60e3&&/Z$/.test(j.expire),'demande-demo : « expire » = dans 7 jours, en ISO 8601 ('+j.expire+')');
+   ok(a.p_telephone==='+33612345678'&&a.p_email==='direction@hoteldeslilas.fr'&&a.p_type==='hotel'&&a.p_langue==='fr','demande-demo : téléphone normalisé (+33…), e-mail en minuscules');
+   ok(!/domaine|pro"/.test(t)&&!t.includes('hoteldeslilas')&&!t.includes(a.p_jeton_empreinte),'demande-demo : la réponse ne porte ni domaine_pro, ni l\'e-mail, ni le jeton');
+   const lien=(F.mails[0]?.text||'').match(/https:\/\/elatransfer\.com\/professionnels\/\?confirmer=([A-Za-z0-9_-]{43})/);
+   jetonOk=lien?lien[1]:'';
+   ok(!!lien&&sha(jetonOk)===a.p_jeton_empreinte,'demande-demo : l\'e-mail porte le lien /professionnels/?confirmer=, et la base n\'a que l\'EMPREINTE du jeton');
+   ok(F.mails[0]?.to?.[0]==='direction@hoteldeslilas.fr'&&/Confirmez/.test(F.mails[0]?.subject),'demande-demo : l\'e-mail part au prospect, en français');
+   const m=F.tg[0]||{};
+   ok(m.text?.includes('Hôtel des Lilas')&&m.text.includes('Marie Dupont')&&m.text.includes('+33612345678')&&m.text.includes('Directrice')&&m.text.includes('Hôtel'),'demande-demo : l\'alerte Telegram dit établissement, type, nom, fonction, téléphone');
+   ok(!m.text?.toLowerCase().includes('hoteldeslilas')&&!('parse_mode' in m),'demande-demo : l\'alerte ne porte PAS l\'e-mail, et aucun parse_mode');
+   ok(/professionnelle/.test(m.text||''),'demande-demo : l\'alerte dit si l\'adresse est professionnelle');
+   sessionOk=j.session;}
+  raz();
+  {const r=await demande({langue:'en',email:'x.y@gmail.com',fonction:undefined});
+   ok(r.status===200&&/Confirm/.test(F.mails[0]?.subject||'')&&/grand public/.test(F.tg[0]?.text||''),'demande-demo : en anglais → e-mail anglais ; @gmail → « grand public » dans l\'alerte');
+   ok(F.crees[0]?.p_fonction==='','demande-demo : fonction facultative');}
+  raz();F.tgPanne=true;
+  ok((await demande()).status===200,'demande-demo : Telegram en panne → la demande passe quand même');
+  raz();
+  {const fn=await charger('demande-demo',Object.assign({},ENV,{RESEND_CLE:'',EMAIL_EXPEDITEUR:''}));
+   const r=await demande({},fn);ok(r.status===200&&F.mails.length===0&&F.crees.length===1,'demande-demo : Resend non configuré → aucun e-mail, la demande passe');}
+  // OUVRIR.
+  raz();
+  {const r=await appel(dd,{action:'ouvrir',session:sessionOk,etablissement:'Ritz Paris',type:'agence'});const j=await r.json();
+   ok(r.status===200&&j.ok===true&&j.etablissement==='Hôtel des Lilas'&&j.type==='hotel'&&Date.parse(j.expire)>Date.now(),'demande-demo : ouvrir une session valide → 200, établissement et type DE LA SESSION (jamais ceux envoyés avec elle)');
+   ok(F.ouverts.length===1&&F.quotaCles.length===0,'demande-demo : ouvrir met à jour le prospect, sans consommer de quota');}
+  const [contenu,signature]=sessionOk.split('.');
+  const donnees=JSON.parse(Buffer.from(contenu,'base64url').toString());
+  const forge=(d,secret)=>{const c=Buffer.from(JSON.stringify(d)).toString('base64url');return c+'.'+createHmac('sha256',secret).update(c).digest('base64url');};
+  const S=ENV.DEMO_SESSION_SECRET;
+  ok(forge(donnees,S)===sessionOk,'demande-demo : la session est un HMAC-SHA256 standard (recalculé indépendamment avec node:crypto)');
+  for(const [lib,sess] of [
+    ['établissement réécrit, signature d\'origine',Buffer.from(JSON.stringify({...donnees,e:'Ritz Paris'})).toString('base64url')+'.'+signature],
+    ['signée avec un AUTRE secret',forge(donnees,'un-autre-secret')],
+    ['expirée',forge({...donnees,exp:Date.now()-1000},S)],
+    ['valable un an',forge({...donnees,exp:Date.now()+365*864e5},S)],
+    ['version inconnue',forge({...donnees,v:2},S)],
+    ['type inconnu',forge({...donnees,t:'admin'},S)],
+    ['session de RÉCEPTION d\'hôtel',forge({v:1,hotel:'easyhotel-aeroville',iat:Date.now(),exp:Date.now()+864e5},S)],
+    ['charabia','abc'],['vide',''],['un objet',{p:donnees.p}]]){
+    raz();const r=await appel(dd,{action:'ouvrir',session:sess});const j=await r.json();
+    ok(r.status===401&&j.erreur==='session'&&F.ouverts.length===0,'demande-demo : session '+lib+' → 401, rien mis à jour ('+r.status+')');
+  }
+  raz();F.prospects.clear();
+  ok((await appel(dd,{action:'ouvrir',session:sessionOk})).status===401,'demande-demo : session valide d\'un prospect effacé → 401');
+  raz();F.quota=false;
+  ok((await appel(dd,{action:'ouvrir',session:'faux.faux'})).status===429,'demande-demo : trop de sessions fausses depuis une adresse → 429');
+  // CONFIRMER.
+  raz();
+  {const r=await appel(dd,{action:'confirmer',jeton:jetonOk});ok(r.status===200&&(await r.json()).ok===true,'demande-demo : confirmer avec le jeton de l\'e-mail → 200');}
+  raz();
+  {const r=await appel(dd,{action:'confirmer',jeton:jetonOk});ok(r.status===410&&(await r.json()).erreur==='jeton','demande-demo : jeton RÉUTILISÉ → 410');}
+  raz();
+  ok((await appel(dd,{action:'confirmer',jeton:'x'.repeat(43)})).status===410,'demande-demo : jeton inconnu ou expiré (refusé par la base) → 410');
+  ok((await appel(dd,{action:'confirmer',jeton:'<script>'})).status===410,'demande-demo : jeton mal formé → 410');
+  raz();F.quota=false;
+  ok((await appel(dd,{action:'confirmer',jeton:jetonOk})).status===429,'demande-demo : confirmer est plafonné par adresse → 429');
+  // Taille.
+  raz();
+  ok((await demande({nom:'x'.repeat(5000)})).status===413&&rien(),'demande-demo : corps de plus de 4 Ko → 413');
+  globalThis.fetch=fetchAvant;
+}
+/* LA SESSION DE RÉCEPTION N'A PAS CHANGÉ DE FORMAT en passant par l'outil
+   partagé : une session fabriquée INDÉPENDAMMENT (node:crypto) selon
+   l'ancien code est toujours acceptée — sinon chaque tablette de comptoir
+   aurait été déconnectée à la mise en ligne. */
+{
+  const {createHmac}=await import('node:crypto');
+  const tmpH=fs.mkdtempSync(path.join(os.tmpdir(),'ela-hs-'));partages(tmpH,'');
+  const {validerSessionHotel,creerSessionHotel}=await import(tmpH+'/hotel-session.mjs');
+  const c=Buffer.from(JSON.stringify({v:1,hotel:'easyhotel-aeroville',iat:Date.now()-864e5,exp:Date.now()+20*864e5})).toString('base64url');
+  const ancienne=c+'.'+createHmac('sha256','easyhotel-9F3K2Q').update(c).digest('base64url');
+  ok(await validerSessionHotel(ancienne,'easyhotel-aeroville','easyhotel-9F3K2Q'),'réception : une session au format d\'avant le partage reste valable');
+  ok(!(await validerSessionHotel(ancienne,'autre-hotel','easyhotel-9F3K2Q')),'réception : elle ne vaut que pour SON hôtel');
+  const neuve=await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q');
+  const [nc,ns]=neuve.split('.');
+  ok(createHmac('sha256','easyhotel-9F3K2Q').update(nc).digest('base64url')===ns,'réception : une session neuve est signée exactement comme avant');
+}
+/* deposer-course : UNE COURSE DE DÉMONSTRATION N'EST JAMAIS ENREGISTRÉE
+   (8 octobre 2026). Refusée AVANT le quota et avant toute lecture en base. */
+{
+  const appels=[];const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{url=String(url);appels.push(url);
+    if(url.includes('/rpc/consommer_quota_reservation'))return new Response('true');
+    if(url.includes('/rest/v1/partenaires'))return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.'))return new Response('[]');
+    if(url.includes('/rpc/ela_deposer_course_serveur'))return new Response('"ok"');
+    return new Response('[]');};
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bonD=(ref,extra)=>Object.assign({ref,course:{depart:'Hôtel Démo · Roissy',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'carte'},extra);
+  const dep=b=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.5','content-type':'application/json'},body:JSON.stringify({bon:b})}));
+  for(const [lib,extra] of [['provenance « demo-hotel »',{provenance:'demo-hotel'}],['clé partenaire « demo »',{provenanceCle:'demo'}],
+      ['provenance « Démo hôtel » (accent, majuscule)',{provenance:' Démo hôtel'}],['clé « DEMO-hotel »',{provenanceCle:'DEMO-hotel'}]]){
+    appels.length=0;const r=await dep(bonD('ELA-26-10-DM1AA',extra));
+    ok(r.status===403&&appels.length===0,'deposer-course : '+lib+' → 403, sans quota ni écriture ('+r.status+', '+appels.length+' appel(s))');
+  }
+  appels.length=0;
+  const r=await dep(bonD('ELA-26-10-DM2BB',{provenance:'easyHotel Aéroville'}));
+  ok(r.status===201&&appels.some(u=>u.includes('ela_deposer_course_serveur')),'deposer-course : une provenance ordinaire passe toujours ('+r.status+')');
   globalThis.fetch=fetchAvant;
 }
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));

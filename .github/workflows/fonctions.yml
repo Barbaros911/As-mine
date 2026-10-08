@@ -145,6 +145,15 @@ jobs:
       - name: Déployer deposer-course
         run: supabase functions deploy deposer-course --no-verify-jwt --project-ref "$PROJET"
 
+      # « demande-demo » (8 octobre 2026) : un professionnel demande la démo
+      # depuis /professionnels/, puis la page /demo/hotel/ l'ouvre. Ni l'une ni
+      # l'autre ne porte de clé Supabase : pas de JWT, comme telegram-bot. La
+      # fonction fait ses propres contrôles — origine, champ piège, Turnstile
+      # (secret TURNSTILE_SECRET), quotas, session signée (DEMO_SESSION_SECRET).
+      # Sans ces deux secrets elle répond 503 : rien ne passe.
+      - name: Déployer demande-demo
+        run: supabase functions deploy demande-demo --no-verify-jwt --project-ref "$PROJET"
+
       # Stripe reste en TEST : creer-empreinte ne reçoit pas de session
       # client mais exige référence + téléphone et un snapshot financier
       # serveur verrouillé. Capture/annulation exigent une session exploitant.
