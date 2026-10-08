@@ -140,7 +140,17 @@
     footer a{display:inline-block;margin:4px 8px;color:#fff;font-weight:700;}
     @media (max-width:900px){
       .moyens{grid-template-columns:1fr;}
-      .demo-grille{grid-template-columns:1fr;}
+      .demo-grille{grid-template-columns:1fr;row-gap:0;}
+      /* SUR UNE COLONNE, LE FORMULAIRE PASSE AVANT « Vous préférez nous
+         parler ? » (recette du 8/10/2026). Empilés dans l'ordre du code, le
+         téléphone, WhatsApp et l'e-mail arrivaient AVANT le formulaire : le
+         directeur qui touche « Voir la démo hôtel » tombait sur trois liens,
+         et le formulaire commençait 467 px plus bas. Les liens restent
+         juste dessous, comme sur ordinateur à côté. Le texte du bloc devient
+         une suite d'éléments de la grille pour pouvoir être réordonné. */
+      .demo-grille > div:first-child{display:contents;}
+      .demo-grille > .formulaire,.demo-grille > .reprise{margin-top:24px;}
+      .demo-autres{order:1;}
     }
     @media (max-width:420px){
       .duo{grid-template-columns:1fr;}
