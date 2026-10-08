@@ -5002,3 +5002,7 @@ Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
   hors de l'espace exploitant font refuser la page à la construction.
 - Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
   `memoire/pilotage.md`.
+
+## LA DÉMO PROFESSIONNELS (en cours)
+
+- Bloc 1, la page `/professionnels/` (8/10/2026) : ce qui existe et pourquoi, dans `memoire/demo-pro-bloc1.md`.
