@@ -4,7 +4,7 @@ if(!fichier) throw new Error('fichier manquant');
 let html=fs.readFileSync(fichier,'utf8');
 const ajout=`
 <style id="ela-role-style">
-body.role-agent_reservation #btnControle,body.role-agent_reservation #btnPilotage,body.role-agent_reservation #ecran-pilotage,body.role-agent_reservation #bordSauvegarde,body.role-agent_reservation #bordDettes,body.role-agent_reservation #bbDette,body.role-agent_reservation #ecran-controle,body.role-agent_reservation label[for="chTauxMode"],body.role-agent_reservation #btnRegistre,body.role-agent_reservation #btnFactures,body.role-agent_reservation #btnReglages,body.role-agent_reservation #ecran-registre,body.role-agent_reservation #ecran-facture,body.role-agent_reservation #ecran-reglages,body.role-agent_reservation #blocCommission,body.role-agent_reservation label[for="chTaux"]{display:none!important}
+body.role-agent_reservation #btnControle,body.role-agent_reservation #btnPilotage,body.role-agent_reservation #ecran-pilotage,body.role-agent_reservation #btnProspects,body.role-agent_reservation #ecran-prospects,body.role-agent_reservation #bordSauvegarde,body.role-agent_reservation #bordDettes,body.role-agent_reservation #bbDette,body.role-agent_reservation #ecran-controle,body.role-agent_reservation label[for="chTauxMode"],body.role-agent_reservation #btnRegistre,body.role-agent_reservation #btnFactures,body.role-agent_reservation #btnReglages,body.role-agent_reservation #ecran-registre,body.role-agent_reservation #ecran-facture,body.role-agent_reservation #ecran-reglages,body.role-agent_reservation #blocCommission,body.role-agent_reservation label[for="chTaux"]{display:none!important}
 #presenceEquipe{font-size:12px;line-height:1.45;padding:10px 12px;margin:8px 0;border:1px solid #dbe4e2;border-radius:10px;background:#fff;color:#52605d}#presenceEquipe b{color:#183c39}
 </style>
 <script>
@@ -23,7 +23,7 @@ body.role-agent_reservation #btnControle,body.role-agent_reservation #btnPilotag
  document.addEventListener('ela:espace',function(){appliquerRole()});
  document.addEventListener('ela:acces',function(){appliquerRole()});
  setInterval(function(){if(nuage.connecte()){nuage.signalerPresence();if(window.ELA_ROLE==='admin')rafraichirPresences()}},60000);
- document.addEventListener('click',function(e){if(window.ELA_ROLE!=='agent_reservation')return;var interdit=e.target.closest&&e.target.closest('#btnControle,#btnPilotage,#btnRegistre,#btnFactures,#btnReglages,[data-admin-vers="ecran-registre"],[data-admin-vers="ecran-facture"],[data-admin-vers="ecran-reglages"]');if(interdit){e.preventDefault();e.stopImmediatePropagation()}},true);
+ document.addEventListener('click',function(e){if(window.ELA_ROLE!=='agent_reservation')return;var interdit=e.target.closest&&e.target.closest('#btnControle,#btnPilotage,#btnProspects,#btnRegistre,#btnFactures,#btnReglages,[data-admin-vers="ecran-registre"],[data-admin-vers="ecran-facture"],[data-admin-vers="ecran-reglages"]');if(interdit){e.preventDefault();e.stopImmediatePropagation()}},true);
  if(nuage.connecte())appliquerRole();
 })();
 </script>`;

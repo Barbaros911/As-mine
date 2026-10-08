@@ -1,0 +1,102 @@
+/* =====================================================================
+   LES PROSPECTS — L'ÉCRAN (démo professionnels, bloc 5)
+   ---------------------------------------------------------------------
+   Chargée par l'admin seulement : la construction retire ce lien des pages
+   publiques. Toutes les classes commencent par « prs- » (« pro- » est déjà
+   pris par le bloc professionnels de l'accueil public).
+
+   MOBILE D'ABORD : une colonne, aucun défilement de côté, 44 px au moins
+   sous le pouce, champs en 16 px (sinon l'iPhone zoome à chaque saisie).
+   Couleurs de l'admin. Le vert dit OUI (e-mail confirmé, démo ouverte), le
+   gris dit NON : deux états, jamais un décor. Contrastes (WCAG) : #166534
+   sur #DCFCE7 6,5 · #9B1C1C sur #FDECEC 7,3 · --accent-encre sur
+   --accent-clair 7,6 · #92400E sur #FEF3C7 6,4.
+   ===================================================================== */
+#ecran-prospects .prs-intro{margin:8px 20px 0;font-size:13.5px;line-height:1.45;color:var(--gris);}
+.prs{padding:2px 20px 36px;}
+.prs select,.prs textarea{font-size:16px;font-family:inherit;}
+.prs :focus-visible{outline:3px solid rgba(20,126,220,.45);outline-offset:2px;}
+
+.prs-tete{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 0;}
+.prs-resume{margin:0;min-width:0;font-size:13.5px;color:var(--gris);}
+.prs-actualiser{flex:none;width:auto;min-height:44px;margin:0;padding:0 16px;}
+
+.prs-erreur{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#FDECEC;color:#9B1C1C;
+  font-size:14px;font-weight:650;line-height:1.4;}
+.prs-erreur p{margin:0;}
+.prs-erreur .prs-erreur-aide{margin-top:4px;font-weight:500;}
+.prs-aide{margin:10px 0 0;font-size:13px;color:var(--gris);}
+.prs-vide{margin:22px 0 0;padding:18px;border:1px dashed #cdd9e5;border-radius:14px;
+  text-align:center;color:var(--gris);font-size:14.5px;}
+
+/* ---------- LES FILTRES ----------
+   Ils passent à la ligne au lieu de défiler : un filtre caché à droite
+   n'existe pas (la leçon du menu de l'admin en pastilles). « Nouveaux »
+   est le premier et porte l'accent : c'est la pile à rappeler. */
+.prs-filtres{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;}
+.prs-filtre{min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:0 13px;
+  border:1px solid #d3dee9;border-radius:999px;background:var(--carte);color:var(--encre);
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.prs-filtre-nb{min-width:22px;padding:1px 6px;border-radius:999px;background:#eef3f8;
+  color:var(--gris);font-size:12.5px;font-weight:800;text-align:center;}
+.prs-filtre-nouveaux{border-color:var(--accent);color:var(--accent-encre);}
+.prs-filtre-nouveaux .prs-filtre-nb{background:var(--accent-clair);color:var(--accent-encre);}
+.prs-filtre.actif{background:var(--accent);border-color:var(--accent);color:#fff;}
+.prs-filtre.actif .prs-filtre-nb{background:rgba(255,255,255,.22);color:#fff;}
+
+/* ---------- UNE CARTE PAR PROSPECT ---------- */
+.prs-liste{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px;}
+.prs-carte{min-width:0;padding:14px 14px 12px;border:1px solid var(--filet);border-radius:16px;
+  background:var(--carte);box-shadow:0 1px 2px rgba(6,47,85,.05);}
+.prs-carte.prs-nouveau{border-left:4px solid var(--accent);}
+.prs-haut{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:6px 10px;}
+.prs-etab{margin:0;min-width:0;font-size:17px;line-height:1.25;font-weight:800;color:var(--encre);
+  overflow-wrap:anywhere;}
+.prs-pastilles{display:flex;flex-wrap:wrap;gap:5px;}
+.prs-pastille{padding:3px 9px;border-radius:999px;background:#eef3f8;color:#3b4b5c;
+  font-size:12px;font-weight:750;white-space:nowrap;}
+.prs-pastille.prs-pro{background:var(--accent-clair);color:var(--accent-encre);}
+.prs-pastille.prs-gp{background:#FEF3C7;color:#92400E;}
+.prs-qui{margin:4px 0 0;font-size:14.5px;color:var(--encre);overflow-wrap:anywhere;}
+
+.prs-contact{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:8px 0 0;}
+.prs-tel,.prs-mail{min-height:44px;display:inline-flex;align-items:center;color:var(--accent-encre);
+  font-size:15px;font-weight:700;text-decoration:underline;text-underline-offset:3px;
+  overflow-wrap:anywhere;min-width:0;}
+.prs-mail{font-weight:600;}
+.prs-bouton{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border-radius:12px;
+  font-size:14px;font-weight:750;text-decoration:none;}
+/* Le vert WhatsApp est une MARQUE, pas un état ; texte foncé dessus (8,1). */
+.prs-wa{background:#25D366;color:#06301a;}
+
+.prs-faits{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:3px;font-size:13.5px;}
+.prs-faits li{display:flex;gap:8px;min-width:0;}
+.prs-fait-lib{flex:none;min-width:116px;color:var(--gris);}
+.prs-fait-val{min-width:0;color:var(--encre);overflow-wrap:anywhere;}
+.prs-oui .prs-fait-val{color:#166534;font-weight:700;}
+.prs-non .prs-fait-val{color:var(--gris);}
+
+.prs-edition{display:grid;gap:5px;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--filet);}
+.prs-lib{font-size:12.5px;font-weight:750;color:var(--gris);}
+.prs-statut,.prs-note{width:100%;min-width:0;box-sizing:border-box;min-height:46px;padding:10px 12px;
+  border:1px solid #d3dee9;border-radius:12px;background:var(--carte);color:var(--encre);}
+.prs-note{resize:vertical;line-height:1.4;}
+.prs-statut:focus,.prs-note:focus{outline:none;border-color:#147edc;box-shadow:0 0 0 4px rgba(20,126,220,.13);}
+.prs-pied{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;}
+.prs-msg{margin:0;min-width:0;font-size:13px;color:var(--gris);}
+.prs-msg-erreur{color:#9B1C1C;font-weight:700;}
+.prs-enregistrer{flex:none;width:auto;min-height:44px;margin:0;padding:0 18px;}
+/* Éteint mais LISIBLE : un bouton presque transparent se lit « cassé ».
+   #5A6A7B sur #E6EDF4 : 4,9.
+   La façade peint « .bouton » d'un dégradé : « !important » est le seul
+   moyen de l'éteindre ici sans toucher la façade. */
+#ecran-prospects .prs-enregistrer:disabled{opacity:1;background:#e6edf4!important;border-color:#e6edf4!important;
+  color:#5A6A7B!important;box-shadow:none!important;cursor:default;}
+
+/* ---------- ORDINATEUR ----------
+   Deux cartes de front : à 1366×768, un prospect tient sans défiler. */
+@media (min-width:900px){
+  body.espace #ecran-prospects .prs-intro{margin-left:28px;margin-right:28px;}
+  body.espace .prs{padding:2px 28px 44px;}
+  body.espace .prs-liste{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+}
