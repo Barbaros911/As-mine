@@ -68,6 +68,9 @@ destinations en cartes. Désormais la vue client fait pareil :
 - Codes d'aéroport (CDG, ORY, LBG, BVA), un repère dessiné ailleurs : jamais
   un texte saisi en `innerHTML`.
 - Pas sur la vue réception : le comptoir réserve sur une seule page.
+- Sous le titre, une consigne pleine : « Touchez une destination pour faire
+  une réservation d'essai, comme vos clients. » Barbaros a demandé « quand
+  est-ce qu'il va voir la seconde page ? » : rien ne disait de toucher une carte.
 
 ## Aucun prix proposé — l'hôtel fixe les siens (8/10/2026)
 

@@ -161,6 +161,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   /* AUCUN PRIX PROPOSÉ (8/10/2026) : l'hôtel fixe les siens, ceux de son flyer. */
   check('arrivée : aucun prix proposé, toutes les cartes disent « à fixer »', await p.evaluate(() =>
     [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d+,\d\d\s€/.test(c.innerText))));
+  check('arrivée : une consigne dit de toucher une destination pour continuer', /Touchez une destination/.test(await texte(p, '#demoCartesAide')) && await visible(p, '#demoCartesAide'));
   check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
   check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
@@ -207,7 +208,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('retour à la vue client par l\'onglet', await visible(p, '#hotelTete'));
   /* EN ANGLAIS */
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
-  check('en anglais, les cartes suivent', /Where would you like to go/.test(await texte(p, '#demoCartes')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoCartes')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   check('en anglais, le cadre de la démo suit', (await texte(p, '#demoBandeau')) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
   check('aucune erreur JavaScript sur le parcours', p.errs.length === 0, p.errs.join(' ; '));
   check('aucun appel à Supabase hors demande-demo sur le parcours', p.supabase.length === 0, p.supabase.join(' '));

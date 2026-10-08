@@ -193,3 +193,9 @@ body.demo-choix #demoRetourCartes{display:none}
 .demo-cartes-flyer{margin:-6px 0 12px;padding:10px 12px;border-radius:12px;background:var(--h-pale,var(--demo-pale));
   color:var(--h-paleEncre,var(--demo-encre));font-size:14px;font-weight:600;line-height:1.4}
 .demo-carte-prix b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
+
+/* La consigne qui mène à la suite du parcours : visible, juste sous le titre. */
+.demo-cartes-aide{display:flex;align-items:center;gap:8px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;
+  background:var(--h-bouton,var(--demo-bleu));color:#fff;font-size:15px;font-weight:800;line-height:1.35}
+.demo-cartes-aide::before{content:"";flex:0 0 auto;width:9px;height:9px;margin:0 4px 0 2px;border-right:2.5px solid currentColor;
+  border-bottom:2.5px solid currentColor;transform:rotate(45deg) translate(-2px,-2px)}

@@ -219,7 +219,13 @@ const PERSO = `
       flyer.textContent = en
         ? "These are the prices on your flyer: your guests scan its QR code and land on this page." + (aucunPrix ? " Set them in “Customise my page”." : "")
         : "Ces prix sont ceux de votre flyer : vos clients scannent son QR code et arrivent sur cette page." + (aucunPrix ? " Fixez-les dans « Personnaliser ma page »." : "");
-      bloc.appendChild(titre); bloc.appendChild(cap); bloc.appendChild(flyer);
+      /* LE PROSPECT DOIT SAVOIR QU'IL PEUT CONTINUER (8/10/2026, Barbaros :
+         « quand est-ce qu'il va voir la seconde page ? »). Rien ne disait qu'il
+         fallait toucher une carte : il restait devant les prix. */
+      var aide = document.createElement("p"); aide.className = "demo-cartes-aide"; aide.id = "demoCartesAide";
+      aide.textContent = en ? "Tap a destination to make a test booking, just like your guests."
+                            : "Touchez une destination pour faire une réservation d’essai, comme vos clients.";
+      bloc.appendChild(titre); bloc.appendChild(aide); bloc.appendChild(cap); bloc.appendChild(flyer);
       var CODES = { cdg:"CDG", orly:"ORY", bourget:"LBG", beauvais:"BVA" };
       var ul = document.createElement("ul"); ul.className = "demo-grille";
       function choisir(cle){
