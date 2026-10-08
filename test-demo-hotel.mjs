@@ -204,6 +204,28 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.waitForTimeout(800);
   check('… → Effectuée, et la fin propose « Mettre ça en place »', (await texte(p, '.demo-etapes li.en-cours')) === 'Effectuée'
     && await visible(p, '#demoMettreEnPlace') && (await p.getAttribute('#demoMettreEnPlace', 'href')) === '/professionnels/#contact');
+  /* LA RÉCEPTION EN ANGLAIS (8/10/2026, à la demande de Barbaros). On lit
+     l'écran entier : un mot oublié se voit à l'œil du prospect, pas dans
+     une liste de clés. */
+  await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(500);
+  const recEn = await p.evaluate(() => document.getElementById('ecran-reception').innerText);
+  check('réception EN : les libellés passent en anglais', ['Front desk', 'Book a driver', 'Something unexpected?', 'Find a ride', 'Upcoming', 'History', 'By date', 'Refresh', 'View voucher', 'Room 214', 'Ref. ELA-DEMO', 'Driver: '].every(m => recEn.includes(m)), recEn.slice(0, 300));
+  check('réception EN : les états et les jours passent en anglais', /CONFIRMED|Confirmed/.test(recEn) && /TOMORROW|Tomorrow/.test(recEn) && /Sedan · Card/.test(recEn));
+  const restes = ['Réserver un chauffeur', 'Retrouver une course', 'À venir', 'Historique', 'Actualiser', 'Voir le bon', 'Chambre ', 'Réf. ', 'Chauffeur : ', 'En attente', 'Réservation validée', 'Effectuée', 'Demain', "l'hôtel", 'Carte bancaire', '(exemple)'].filter(m => recEn.includes(m));
+  check('réception EN : aucun libellé français ne reste', restes.length === 0, restes.join(' | '));
+  check('réception EN : la recherche suit', (await p.getAttribute('#recRecherche', 'placeholder')) === 'Room, name, phone or reference');
+  await p.click('.rec-vues [data-vue="passees"]'); await p.waitForTimeout(300);
+  check('réception EN : l\'historique suit', /Completed|COMPLETED/.test(await texte(p, '#recListe')) && !/Effectuée/.test(await texte(p, '#recListe')));
+  await p.fill('#recRecherche', 'zzz'); await p.waitForTimeout(300);
+  check('réception EN : « aucune course » suit', /^No ride matches/.test(await texte(p, '#recVide')));
+  await p.fill('#recRecherche', ''); await p.click('.rec-vues [data-vue="avenir"]'); await p.waitForTimeout(300);
+  await p.click('.rec-voir-bon'); await p.waitForTimeout(600);
+  check('réception EN : le bon montré au client est en anglais', await p.evaluate(() => { const t = document.getElementById('bonClient').innerText; return /BOOKING VOUCHER|Booking voucher/i.test(t) && !/\(exemple\)/.test(t); }));
+  await p.click('#bonClientFermer'); await p.waitForTimeout(300);
+  await p.click('.langues [data-langue="fr"]'); await p.waitForTimeout(500);
+  const recFr = await p.evaluate(() => document.getElementById('ecran-reception').innerText);
+  check('réception : revenir en français rend le français', ['Réserver un chauffeur', 'Voir le bon', 'Chambre 214', 'Mme Laurent (exemple)'].every(m => recFr.includes(m)) && !/Book a driver|Room 214/.test(recFr));
+  check('réception EN : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
   await p.click('#demoOngletClient'); await p.waitForURL(/\/demo\/hotel\/$/); await p.waitForTimeout(800);
   check('retour à la vue client par l\'onglet', await visible(p, '#hotelTete'));
   /* EN ANGLAIS */
@@ -257,9 +279,14 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.click('.demo-pastille[data-couleur="#8B1E3F"]');
   check('perso : une pastille du nuancier repeint le bouton', (await p.evaluate(() => getComputedStyle(document.getElementById('btnVoirPrix')).backgroundColor)) === 'rgb(139, 30, 63)');
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
-  /* Une photo : générée dans la page, déposée dans le champ. */
+  /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE
+     « Votre photo ici » — c'est là que le prospect la cherche. */
   const png = await p.evaluate(() => { const c = document.createElement('canvas'); c.width = 1400; c.height = 900; const g = c.getContext('2d'); g.fillStyle = '#7799bb'; g.fillRect(0, 0, 1400, 900); return c.toDataURL('image/png').split(',')[1]; });
-  await p.setInputFiles('#demoPersoPhoto', { name: 'hotel.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
+  check('perso : le cadre photo se présente comme un bouton', await p.evaluate(() => { const c = document.querySelector('.demo-photo'); return c.getAttribute('role') === 'button' && c.tabIndex === 0 && !!c.getAttribute('aria-label'); }));
+  const [choix] = await Promise.all([p.waitForEvent('filechooser', { timeout: 3000 }).catch(() => null), p.click('.demo-photo')]);
+  check('perso : appuyer sur le cadre « Votre photo ici » ouvre le choix du fichier', !!choix);
+  if (choix) await choix.setFiles({ name: 'hotel.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
+  else await p.setInputFiles('#demoPersoPhoto', { name: 'hotel.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
   await p.waitForTimeout(800);
   check('perso : la photo s\'affiche dans le cadre', await p.evaluate(() => /url\("data:image\/jpeg/.test(document.querySelector('.demo-photo').style.backgroundImage)));
   check('perso : … réduite à 1000 px au plus', await p.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok(Math.max(i.width, i.height) <= 1000); i.src = document.querySelector('.demo-photo').style.backgroundImage.slice(5, -2); })));

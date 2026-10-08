@@ -199,3 +199,6 @@ body.demo-choix #demoRetourCartes{display:none}
   background:var(--h-bouton,var(--demo-bleu));color:#fff;font-size:15px;font-weight:800;line-height:1.35}
 .demo-cartes-aide::before{content:"";flex:0 0 auto;width:9px;height:9px;margin:0 4px 0 2px;border-right:2.5px solid currentColor;
   border-bottom:2.5px solid currentColor;transform:rotate(45deg) translate(-2px,-2px)}
+/* Le cadre photo s'appuie : il ouvre le choix du fichier. */
+html[data-ela-space="demo"] .demo-photo{cursor:pointer}
+html[data-ela-space="demo"] .demo-photo:focus-visible{outline:3px solid var(--h-bouton,#0E6FC7);outline-offset:2px}

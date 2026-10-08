@@ -320,7 +320,10 @@
     var exemple = document.getElementById("demoExemple");
     if(exemple) exemple.textContent = texte("Vos prix : ceux de votre flyer", "Your prices: the ones on your flyer");
     var photo = document.getElementById("demoPhotoTexte");
-    if(photo) photo.textContent = texte("Votre photo ici", "Your photo here");
+    if(photo){
+      photo.textContent = texte("Votre photo ici", "Your photo here");
+      photo.parentNode.setAttribute("aria-label", texte("Choisir la photo de votre établissement", "Choose a photo of your business"));
+    }
     traduire(document.getElementById("demoPerso"));
     dessinerPrix();
     try{ if(window.ELA_DEMO_PAGE && window.ELA_DEMO_PAGE.dessinerCartes) window.ELA_DEMO_PAGE.dessinerCartes(); }catch(e){}
@@ -336,6 +339,7 @@
     rond.setAttribute("aria-hidden", "true");
     marque.appendChild(rond);
     var photo = el("div", "demo-photo");
+    photo.setAttribute("role", "button"); photo.tabIndex = 0;
     photo.appendChild(el("span", "", ""));
     photo.firstChild.id = "demoPhotoTexte";
     marque.appendChild(photo);
@@ -779,7 +783,123 @@
     info: function(){ return info; }, etape: etape, dire: dire
   };
 
-  new MutationObserver(function(){ if(info) ecrireTextes(); })
+  /* ═══ LA RÉCEPTION EN ANGLAIS (8 octobre 2026, à la demande de Barbaros) ═══
+     L'écran du comptoir est écrit en français dans le moteur. La vraie
+     réception easyHotel est traduite par SA finition (hotel-engine-polish.js),
+     que la démo ne charge pas : elle porte le nom et la photo d'easyHotel.
+     On traduit donc ici, à l'affichage, dans la démo seulement.
+     CHAQUE TEXTE GARDE SON FRANÇAIS D'ORIGINE (Map nœud → {fr, en}) : on
+     rend l'anglais si la page est en anglais, le français sinon, et l'on
+     n'écrit QUE si le texte change. Réécrire un texte identique est une
+     mutation : sous un observateur, c'est la boucle qui a figé le moteur
+     easyHotel pendant une semaine. */
+  var MOTS_REC = {
+    "Réception": "Front desk", "Réserver un chauffeur": "Book a driver", "Vu": "Got it",
+    "Un imprévu ?": "Something unexpected?",
+    "Retard, changement, annulation : appelez-nous.": "Delay, change, cancellation: call us.",
+    "Retrouver une course": "Find a ride", "À venir": "Upcoming", "Historique": "History",
+    "Par date": "By date", "Jour": "Day", "Mois": "Month", "Fermer la session": "Close session",
+    "En attente": "Pending", "Réservation validée": "Confirmed", "Effectuée": "Completed",
+    "Non prise": "Not taken", "Annulée": "Cancelled", "En retard": "Overdue",
+    "Aujourd'hui": "Today", "Demain": "Tomorrow", "Date inconnue": "Unknown date",
+    "Voir le bon": "View voucher", "Appeler Elatransfer": "Call Elatransfer",
+    "Client non nommé": "Unnamed guest", "Aucune réservation pour le moment.": "No booking yet.",
+    "Aucune course à venir.": "No upcoming ride.", "Aucune course passée pour le moment.": "No past ride yet.",
+    "Aucune course sur cette période.": "No ride in this period.",
+    "Berline": "Sedan", "Van": "Van", "Carte bancaire": "Card", "Carte": "Card", "Espèces": "Cash",
+    "Code de la réception": "Front desk code", "Ouvrir": "Open"
+  };
+  var JOURS_SEM = { lundi:"Monday", mardi:"Tuesday", mercredi:"Wednesday", jeudi:"Thursday",
+                    vendredi:"Friday", samedi:"Saturday", dimanche:"Sunday" };
+  var MOIS_AN = { janvier:"January", "février":"February", mars:"March", avril:"April", mai:"May", juin:"June",
+                  juillet:"July", "août":"August", septembre:"September", octobre:"October",
+                  novembre:"November", "décembre":"December" };
+  function enAnglais(fr){
+    var t = fr.trim();
+    if(!t) return fr;
+    var avant = fr.slice(0, fr.indexOf(t.charAt(0))), apres = fr.slice(fr.lastIndexOf(t.charAt(t.length - 1)) + 1);
+    var en = MOTS_REC[t], m;
+    if(en !== undefined) return avant + en + apres;
+    if((m = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche) (\d{1,2}) ([a-zéû]+)$/.exec(t)) && MOIS_AN[m[3]])
+      en = JOURS_SEM[m[1]] + " " + m[2] + " " + MOIS_AN[m[3]];
+    else if((m = /^Aucune course ne correspond à « (.*) »\.$/.exec(t))) en = "No ride matches “" + m[1] + "”.";
+    else en = t.split(" · ").map(morceauAnglais).join(" · ");
+    return avant + en + apres;
+  }
+  /* Un morceau d'une ligne « Chambre 108 · M. Dubois (exemple) ». */
+  function morceauAnglais(x){
+    if(MOTS_REC[x] !== undefined) return MOTS_REC[x];
+    return x.replace(/^Chambre /, "Room ")
+            .replace(/^Réf\. /, "Ref. ")
+            .replace(/^Chauffeur : /, "Driver: ")
+            .replace(/l'hôtel/g, "the hotel")
+            .replace(/\(exemple\)/g, "(example)")
+            .replace(/chauffeur fictif/g, "fictional driver")
+            .replace(/^Mme /, "Ms ").replace(/^M\. /, "Mr ")
+            .replace(/Aéroport CDG/g, "CDG Airport");
+  }
+  var ORIGINES = new Map();
+  function traduireReception(){
+    var ecranRec = document.getElementById("ecran-reception");
+    if(!ecranRec) return;
+    var anglais = racine.lang === "en";
+    var marche = document.createTreeWalker(ecranRec, NodeFilter.SHOW_TEXT, null);
+    for(var n = marche.nextNode(); n; n = marche.nextNode()){
+      var o = ORIGINES.get(n), v = n.nodeValue;
+      if(!o || (v !== o.fr && v !== o.en)){ o = { fr: v, en: enAnglais(v) }; ORIGINES.set(n, o); }
+      var voulu = anglais ? o.en : o.fr;
+      if(v !== voulu) n.nodeValue = voulu;
+    }
+    var rech = document.getElementById("recRecherche");
+    if(rech){
+      if(!rech.hasAttribute("data-demo-fr-ph")) rech.setAttribute("data-demo-fr-ph", rech.placeholder);
+      var ph = anglais ? "Room, name, phone or reference" : rech.getAttribute("data-demo-fr-ph");
+      if(rech.placeholder !== ph) rech.placeholder = ph;
+    }
+  }
+  /* Le bon affiché a son propre choix FR / EN, et il est déjà traduit : seuls
+     les noms des clients d'exemple (« Mme Laurent (exemple) ») y restent en
+     français. On ne touche qu'eux. */
+  function traduireBon(){
+    var f = document.getElementById("bonClient");
+    if(!f) return;
+    var anglais = !!f.querySelector('[data-langue="en"][aria-pressed="true"]');
+    var marche = document.createTreeWalker(f, NodeFilter.SHOW_TEXT, null);
+    for(var n = marche.nextNode(); n; n = marche.nextNode()){
+      var o = ORIGINES.get(n), v = n.nodeValue;
+      if(!o || (v !== o.fr && v !== o.en)){
+        if(v.indexOf("(exemple)") === -1) continue;
+        o = { fr: v, en: enAnglais(v) }; ORIGINES.set(n, o);
+      }
+      var voulu = anglais ? o.en : o.fr;
+      if(v !== voulu) n.nodeValue = voulu;
+    }
+  }
+  /* Le simulateur est chargé dans l'en-tête : l'écran n'existe qu'ensuite. */
+  function brancherReception(){
+    var ecranRec = document.getElementById("ecran-reception");
+    if(!ecranRec || racine.getAttribute("data-demo-vue") !== "reception") return;
+    new MutationObserver(function(){ traduireReception(); traduireBon(); })
+      .observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-pressed"] });
+    traduireReception();
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", brancherReception);
+  else brancherReception();
+
+  /* LE CADRE « VOTRE PHOTO ICI » OUVRE LE CHOIX DU FICHIER. C'est à cet
+     endroit que le prospect veut la voir : le chercher dans le panneau du
+     haut serait un détour. */
+  document.addEventListener("click", function(e){
+    var cadre = e.target && e.target.closest && e.target.closest(".demo-photo");
+    var champ = document.getElementById("demoPersoPhoto");
+    if(cadre && champ) champ.click();
+  });
+  document.addEventListener("keydown", function(e){
+    var cadre = e.target && e.target.classList && e.target.classList.contains("demo-photo");
+    if(cadre && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); e.target.click(); }
+  });
+
+  new MutationObserver(function(){ if(info) ecrireTextes(); traduireReception(); })
     .observe(racine, { attributes: true, attributeFilter: ["lang"] });
   setInterval(function(){ if(info) dessinerSuivi(); }, 1000);
 
