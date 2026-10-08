@@ -2535,6 +2535,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <path d="M5 4v16M5 5h12l-2.5 4L17 13H5" stroke="currentColor"
                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>Pilotage</button>
+      <!-- LES PROSPECTS (démo professionnels, bloc 5) : les demandes de démo
+           à rappeler. Pas un CRM : un statut, une note. Caché à l'agent. -->
+      <button class="admin-lien" type="button" id="btnProspects">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 20V9l8-5 8 5v11H4Z" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round"/>
+          <path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round"/>
+        </svg>Prospects</button>
       <!-- UNE SEULE ENTRÉE À LA PLACE DE TROIS. « Affiche hôtel », « Avis »
            et « Serveur » faisaient DESCENDRE sur le tableau de bord, toutes
            les trois au même endroit : le bas de la page. On y arrivait sans
@@ -4088,6 +4097,26 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     </div>
     <p class="pil-intro">Le suivi du produit et des opérations. Les courses, elles, se traitent au tableau de bord.</p>
     <div class="pil" id="pilZone"></div>
+  </section><section class="ecran" id="ecran-prospects">
+    <!-- Collée à la fin du Pilotage, pour la même raison : la construction
+         retire cette section des pages publiques, qui restent identiques
+         octet pour octet.
+         LES PROSPECTS (démo professionnels, bloc 5 — 8 octobre 2026). Les
+         demandes de démo des hôtels, agences et entreprises, à rappeler. Le
+         contenu est dessiné à l'ouverture, en textContent ; le serveur n'est
+         interrogé QUE quand on ouvre cet écran ou qu'on appuie sur
+         « Actualiser ». Admin seulement. -->
+    <div class="bord-tete">
+      <button class="retour" type="button" id="btnRetourProspects" aria-label="Retour au tableau de bord">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="ecran-titre">Prospects</h1>
+    </div>
+    <p class="prs-intro">Les professionnels qui ont demandé la démo, du plus récent au plus ancien. À rappeler.</p>
+    <div class="prs" id="prsZone"></div>
   </section>
 
   <section class="ecran" id="ecran-reglages">
@@ -5693,13 +5722,16 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
      tableau des courses : rien n'y est lu ni écrit, aucun appel au chargement,
      aucune alerte. Retiré aussi des pages publiques, comme son écran
      (bloc 2) et sa feuille de style, posée ICI et pas dans l'en-tête :
-     l'écran est caché jusqu'à ce qu'on l'ouvre. Ce commentaire ne nomme
+     l'écran est caché jusqu'à ce qu'on l'ouvre. L'écran des prospects (démo
+     professionnels, bloc 5) suit la même règle. Ce commentaire ne nomme
      aucun de ces fichiers : la construction s'arrête si une page publique
      en porte le nom. -->
 <script src="admin-sante.js"></script>
 <script src="pilotage.js"></script>
 <link rel="stylesheet" href="pilotage.css">
 <script src="pilotage-ecran.js"></script>
+<script src="prospects.js"></script>
+<link rel="stylesheet" href="prospects.css">
 
 <script>
 
@@ -14746,6 +14778,24 @@ window.ELA_TEXTES = {
   }
   var btnPilotage = document.getElementById("btnPilotage");
   if(btnPilotage) btnPilotage.addEventListener("click", ouvrirPilotage);
+  /* ═══ LES PROSPECTS (démo professionnels, bloc 5) ═══
+     Même règle : l'écran d'abord, la lecture ensuite, et RIEN n'est lu au
+     chargement de l'admin. Script absent : l'écran le dit. */
+  function ouvrirProspects(){
+    ecran("ecran-prospects");
+    allumerAdmin(document.getElementById("btnProspects"));
+    var zonePrs = document.getElementById("prsZone");
+    if(window.ELA_PROSPECTS) window.ELA_PROSPECTS.ouvrir(zonePrs);
+    else if(zonePrs) zonePrs.textContent = "L'écran des prospects n'a pas pu se charger : rechargez la page avec du réseau.";
+  }
+  var btnProspects = document.getElementById("btnProspects");
+  if(btnProspects) btnProspects.addEventListener("click", ouvrirProspects);
+  var btnRetourProspects = document.getElementById("btnRetourProspects");
+  if(btnRetourProspects) btnRetourProspects.addEventListener("click", function(){
+    ecran("ecran-bord");
+    dessinerBord();
+    allumerAdmin(document.getElementById("btnAdminBord"));
+  });
   var btnRetourPilotage = document.getElementById("btnRetourPilotage");
   if(btnRetourPilotage) btnRetourPilotage.addEventListener("click", function(){
     ecran("ecran-bord");

@@ -23,6 +23,8 @@ on:
       - 'pilotage.js'
       - 'pilotage-ecran.js'
       - 'pilotage.css'
+      - 'prospects.js'
+      - 'prospects.css'
       - 'test-chien-de-garde.mjs'
       # La mesure du voyant vit dans une migration : la modifier seule doit
       # relancer test-chien-de-garde, qui la compare au chien de garde.
