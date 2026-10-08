@@ -157,8 +157,10 @@ const lire = (p, k) => p.evaluate(k => localStorage.getItem(k), k);
   // « Faire une demande pour un autre établissement » rouvre le formulaire.
   const p2 = await ouvrir({ stock: { ela_demo_session: 'abc.def', ela_demo_expire: exp.toISOString() } });
   await p2.evaluate(() => document.getElementById('demo').scrollIntoView());
-  await p2.click('#repriseNouvelle');
-  check('revenu : « autre établissement » rouvre le formulaire', await p2.evaluate(() => !document.getElementById('formDemo').hidden));
+  const vu = await p2.isVisible('#repriseNouvelle');
+  check('revenu : « Faire une demande pour un autre établissement » est proposé', vu);
+  if (vu) await p2.click('#repriseNouvelle');
+  check('revenu : « autre établissement » rouvre le formulaire', vu && await p2.evaluate(() => !document.getElementById('formDemo').hidden));
   await p2.context().close();
   // Session expirée : le formulaire, pas la démo.
   const p3 = await ouvrir({ stock: { ela_demo_session: 'abc.def', ela_demo_expire: new Date(Date.now() - 1000).toISOString() } });
