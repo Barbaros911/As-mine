@@ -706,7 +706,15 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    `margin-right:auto` la garde contre la référence et laisse le prix au
    bout ; un nom long se coupe, il ne repousse pas le prix. */
 .d-ch,.d-ch-manque{margin-right:auto;font-size:12px;white-space:nowrap;}
-.d-ch{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
+.d-ch{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;
+  flex:1 1 0;}
+/* « flex:1 1 0 » : LE NOM NE PREND QUE LA PLACE QUI RESTE (8 octobre 2026,
+   mesuré à 390 px tout juste, où la règle « sous 390 px » ne joue plus).
+   Avec la taille par défaut, nom, référence et prix rétrécissaient ensemble :
+   la référence se coupait à ses tirets et le prix à son espace (« 185,00 » /
+   « € ») pendant que le nom gardait de la place. Figer la référence et le
+   prix ne valait pas mieux : sans chauffeur, une carte en attente déborde
+   alors à 320 px. C'est au nom seul de céder. */
 .d-ch-manque{flex:none;padding:1px 8px;border-radius:999px;
   background:#FEF3C7;color:#92400E;font-weight:700;}
 /* SOUS 390 px, LE CHAUFFEUR PASSE SOUS LA RÉFÉRENCE (relecture du 4 octobre
@@ -1228,10 +1236,19 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .admin-point{width:6px;height:6px;border-radius:50%;background:#8a97a3;}
 .admin-etat.ok .admin-point{background:var(--accent-vif);}
 /* Le voyant des alertes, sous l'état du serveur : sa propre ligne. */
-.admin-alertes{display:flex;width:max-content;min-width:11em;}
-/* « min-width » : la ligne garde la largeur de son état le plus long
-   (« Alertes : non vérifiées »). Sans elle, l'avatar et le nom sautaient
-   de 19 px à chaque changement d'état, sur téléphone. */
+.admin-alertes{display:flex;width:max-content;}
+/* La ligne garde la largeur de son état le plus long (« Alertes : non
+   vérifiées », en gras — le gras de la panne est la graisse la plus large).
+   Sans elle, l'avatar et le nom sautaient à chaque changement d'état, sur
+   téléphone. ON NE DEVINE PLUS CETTE LARGEUR EN « em » : « min-width:11em »
+   valait 115 px, et le texte en a fait 119 le jour où l'admin a changé de
+   police — l'avatar sautait de nouveau de 4 px (8 octobre 2026, mesuré).
+   Le texte le plus long est posé, invisible et sans hauteur, dans la même
+   colonne que le vrai : c'est lui qui donne la largeur, dans la police du
+   moment. */
+#adminAlertesTexte{display:inline-flex;flex-direction:column;}
+#adminAlertesTexte::after{content:"Alertes : non vérifiées";font-weight:700;
+  height:0;overflow:hidden;visibility:hidden;}
 .admin-alertes.ko{color:#fca5a5;font-weight:700;}
 .admin-alertes.ko .admin-point{background:#f87171;}
 .admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;

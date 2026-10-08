@@ -286,6 +286,15 @@ try {
     const { ctx, p } = await ouvrir({ etat });
     await attendreVoyant(p, 'panne');
     await p.waitForSelector('#listeBord .demande', { timeout: 8000 }).catch(() => {});
+    /* On mesure l'écran POSÉ. Il entre par une animation (« apparait »,
+       0,26 s, 6 px vers le haut) : quand la mesure des alertes arrive tout de
+       suite, le bandeau s'affiche pendant qu'elle court, et la demande lue à
+       cet instant est 4 à 5 px plus bas qu'elle ne le sera (mesuré le
+       8 octobre 2026 : 845 ou 846 pendant l'animation, 841 une fois posé).
+       Le seuil, lui, ne bouge pas. */
+    await p.evaluate(() => Promise.all(document.getAnimations()
+      .filter(a => a.effect && a.effect.getComputedTiming().endTime !== Infinity)
+      .map(a => a.finished.catch(() => {}))));
     const r = await p.evaluate(() => {
       const d = document.querySelector('#listeBord .demande'), s = document.getElementById('sonCoupe');
       return { bas: d ? Math.round(d.getBoundingClientRect().bottom) : null, vue: innerHeight, sonCoupe: !!s && !s.hidden };
