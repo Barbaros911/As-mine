@@ -345,22 +345,23 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ{padding:8px 12px; min-height:60px;}
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ:has(.pas){padding-top:6px; padding-bottom:6px;}
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ > svg:first-of-type{display:none;}
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .titre-date{gap:8px;}
-/* « Maintenant » : une pastille lisible (4,2:1 en 11,5 px souligné avant),
-   sa zone d'appui agrandie sans prendre de hauteur. */
+/* « Programmer » (dans l'encadré « Dès que possible ») : une pastille
+   lisible (4,2:1 en 11,5 px souligné avant), sa zone d'appui agrandie sans
+   prendre de hauteur. Elle s'appelait « lien-maintenant » tant que la case
+   Date portait aussi « Maintenant », retiré le 8 octobre 2026. */
 /* La zone d'appui est le bouton lui-même, agrandi par sa marge intérieure et
    repris par une marge négative ; la pastille est dessinée DEDANS (::before).
    Une zone d'appui dessinée en débord (::after en « inset » négatif) faisait
    déborder le titre « Date » : un débordement que rien ne voit, sauf le
    contrôle qui cherche les libellés coupés — et qui avait raison de crier. */
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant{
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-quand{
   color:var(--f-cyan-doux); text-decoration:none; font-size:11px; font-weight:700; line-height:14px;
   padding:10px 8px 10px 14px; margin:-10px 0 -10px -6px; isolation:isolate;
 }
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant::before{content:""; position:absolute; inset:9px 0 9px 6px; z-index:-1;
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-quand::before{content:""; position:absolute; inset:9px 0 9px 6px; z-index:-1;
   border:1px solid rgba(18,196,238,.45); border-radius:999px; background:rgba(18,196,238,.09);}
-@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:hover{color:#fff;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:hover::before{background:rgba(18,196,238,.18);} }
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:2px;}
+@media (hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-quand:hover{color:#fff;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-quand:hover::before{background:rgba(18,196,238,.18);} }
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-quand:focus-visible{outline:2px solid var(--f-cyan)!important; outline-offset:2px;}
 
 /* Les boutons « − / + » (créés par index.html, invisibles ailleurs). */
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .pas{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:2px;}
@@ -478,7 +479,7 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
     background:linear-gradient(180deg,rgba(13,42,75,.86) 0%,rgba(8,28,55,.9) 100%);
     -webkit-backdrop-filter:blur(14px) saturate(1.15); backdrop-filter:blur(14px) saturate(1.15);}
 }
-@media (max-width:360px){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .titre-date{gap:6px;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-maintenant{padding-left:12px; padding-right:6px;} }
+@media (max-width:360px){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .lien-quand{padding-left:12px; padding-right:6px;} }
 @media (max-width:340px){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{padding:12px 9px 10px;} html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .duo > .champ{padding-left:10px; padding-right:10px;} }
 
 /* ---------- Un seul bouton principal par écran ---------- */

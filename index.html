@@ -457,12 +457,13 @@ img{display:block;max-width:100%;}
   margin-bottom:14px;background:var(--accent-clair);}
 .info-douce b{display:block;font-size:13px;color:var(--accent-encre);}
 .info-douce p{margin:4px 0 0;font-size:12px;color:var(--encre);line-height:1.4;}
-/* « Maintenant » / « Programmer » : des liens, pas des boutons pleins — le
-   choix ne doit coûter aucune hauteur au formulaire. La zone d'appui est
-   agrandie par la marge négative, au-dessus du sélecteur de date étiré. */
-.titre-date{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;}
+/* « Programmer » : un lien, pas un bouton plein — il ne doit coûter aucune
+   hauteur à l'encadré « Dès que possible ». La zone d'appui est agrandie par
+   la marge négative. (« Maintenant », son pendant dans la case Date, est
+   retiré depuis le 8 octobre 2026 : la case ne porte plus que son titre.) */
+.titre-date{display:flex;align-items:center;min-width:0;}
 .titre-date > span{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.lien-maintenant{position:relative;z-index:2;border:0;background:none;color:var(--accent);
+.lien-quand{position:relative;z-index:2;border:0;background:none;color:var(--accent);
   font:inherit;font-size:11.5px;font-weight:800;padding:9px 0 9px 6px;margin:-9px 0 -9px -6px;cursor:pointer;color:var(--ela-blue,var(--accent));
   text-decoration:underline;text-underline-offset:2px;white-space:nowrap;}
 .asap-boite{margin-bottom:10px;min-height:68px;border-color:var(--accent);background:var(--accent-clair);}
@@ -2865,7 +2866,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <b class="asap-titre" data-t="asap_libelle">Dès que possible</b>
         <span class="asap-note" id="noteAsap" hidden></span>
       </span>
-      <button class="lien-maintenant" type="button" id="btnQuandProg" aria-pressed="true" data-t="quand_prog">Programmer</button>
+      <button class="lien-quand" type="button" id="btnQuandProg" aria-pressed="true" data-t="quand_prog">Programmer</button>
     </div>
 
     <div class="duo" id="blocDateHeure">
@@ -5834,7 +5835,7 @@ window.ELA_TEXTES = {
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
     longue_note:"Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
-    quand_aria:"Quand partir ?", quand_asap:"Dès que possible", quand_asap_court:"Maintenant", quand_prog:"Programmer",
+    quand_prog:"Programmer",
     asap_note:"Soumise à disponibilité, sans délai garanti.",
     asap_nuit:"Réponse plus lente de 22 h à 5 h.",
     asap_libelle:"Dès que possible", partir_asap:"Partir dès que possible",
@@ -6072,7 +6073,7 @@ window.ELA_TEXTES = {
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
     longue_note:"You can send your request: Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
-    quand_aria:"When do you want to leave?", quand_asap:"As soon as possible", quand_asap_court:"Now", quand_prog:"Schedule",
+    quand_prog:"Schedule",
     asap_note:"Subject to availability, no pickup time guaranteed.",
     asap_nuit:"Slower reply from 10 pm to 5 am.",
     asap_libelle:"As soon as possible", partir_asap:"Leave as soon as possible",
@@ -9310,7 +9311,6 @@ window.ELA_TEXTES = {
      la durée et le bon en ont besoin. La course porte « immediat », et
      l'heure réelle de la demande est son heure de création. */
   var quandAsap = false;
-  var btnQuandAsap = document.getElementById("btnQuandAsap");
   var btnQuandProg = document.getElementById("btnQuandProg");
   var blocDateHeure = document.getElementById("blocDateHeure");
   var noteAsap = document.getElementById("noteAsap");
@@ -9325,7 +9325,6 @@ window.ELA_TEXTES = {
   }
   function choisirQuand(asap){
     quandAsap = !!asap;
-    if(btnQuandAsap) btnQuandAsap.setAttribute("aria-pressed", String(quandAsap));
     btnQuandProg.setAttribute("aria-pressed", String(!quandAsap));
     blocDateHeure.hidden = quandAsap;
     document.getElementById("blocAsap").hidden = !quandAsap;
@@ -9335,7 +9334,6 @@ window.ELA_TEXTES = {
     jugerDelai();
   }
   window.__quandAsap = function(){ return quandAsap; };
-  if(btnQuandAsap) btnQuandAsap.addEventListener("click", function(){ choisirQuand(true); });
   btnQuandProg.addEventListener("click", function(){ choisirQuand(false); });
   document.getElementById("btnPasseAsap").addEventListener("click", function(){ choisirQuand(true); });
 

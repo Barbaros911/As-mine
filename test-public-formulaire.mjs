@@ -127,7 +127,7 @@ for (const [w, h] of TAILLES) {
   const tag = `${w}×${h}`;
   const m = await p.evaluate(() => ({
     sw: document.documentElement.scrollWidth,
-    coupes: [...document.querySelectorAll('.reserver .champ-titre, .reserver .champ-titre > span, .reserver .lien-maintenant, .reserver .rassure')]
+    coupes: [...document.querySelectorAll('.reserver .champ-titre, .reserver .champ-titre > span, .reserver .lien-quand, .reserver .rassure')]
       .filter(t => t.offsetParent && t.scrollWidth > t.clientWidth + 1).map(t => t.textContent.trim()),
     valeurs: [...document.querySelectorAll('#date, #heure, #passagers, #bagages')]
       .filter(i => i.offsetParent && i.scrollWidth > i.clientWidth + 1).map(i => i.id + ' (' + i.scrollWidth + ' > ' + i.clientWidth + ')'),

@@ -136,7 +136,7 @@ for (const [w, h] of ORDIS) {
     }
     // Aucun libellé de champ coupé : « Date » à côté de « Maintenant » a déjà
     // disparu en « D… » sur téléphone. Dans la carte de 440 px, on le mesure.
-    const coupes = await p.evaluate(() => [...document.querySelectorAll('.reserver .champ-titre, .reserver .lien-maintenant')]
+    const coupes = await p.evaluate(() => [...document.querySelectorAll('.reserver .champ-titre, .reserver .lien-quand')]
       .filter(t => t.offsetParent && (t.scrollWidth > t.clientWidth + 1 || t.getBoundingClientRect().width < 20))
       .map(t => t.textContent.trim()));
     check(`${tag} : aucun libellé de champ coupé`, coupes.length === 0, coupes.join(', '));
