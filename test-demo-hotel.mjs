@@ -137,7 +137,7 @@ const texte = (p, sel) => p.evaluate(s => document.querySelector(s)?.textContent
   await ctx.close();
 }
 /* 403 « origine » et 413 « taille » (contrat du bloc 2) : un refus, jamais la démo. */
-for (const panne of ['muet', 503, 403, 413]) {
+for (const panne of ['muet', 503, 403, 413, 429]) {
   const { ctx, p } = await ouvrir({ reponse: panne });
   check(`serveur ${panne} → « Démonstration momentanément indisponible »`, /Démonstration momentanément indisponible/.test(await texte(p, '#demoIndispo')) && await visible(p, '#demoIndispo'));
   check(`serveur ${panne} → un contact est proposé`, await p.evaluate(() => !!document.querySelector('#demoIndispo a[href="/professionnels/#contact"]')));

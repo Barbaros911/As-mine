@@ -31,6 +31,9 @@ on:
       - 'test-admin-*.mjs'
       - 'test-nouveau-*.mjs'
       - 'test-securite-fonctions.mjs'
+      # Les fonctions qu'elle éprouve (demande-demo, deposer-course…) : sans
+      # ce motif, changer une fonction seule ne relançait pas son épreuve.
+      - 'supabase/functions/**'
       - 'test-relance-alertes.mjs'
       # Le cloisonnement des quatre espaces (Public, Client hôtel, Réception,
       # Admin) se prouve sur le site CONSTRUIT : ce qui le fabrique doit
