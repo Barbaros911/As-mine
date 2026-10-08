@@ -55,6 +55,28 @@
   `/professionnels/#contact` (dans le suivi une fois « Effectuée », et en pied
   avec le QR code vers `https://elatransfer.com/professionnels/`).
 
+## « Personnaliser ma page » (8/10/2026, à la demande de Barbaros)
+
+« Couleur, nom, photo, et même on peut ajouter des éléments qu'ils voudront
+peut-être. » Un panneau repliable sous les onglets, sur les deux vues :
+- **Nom** (60 car.) : en-tête, initiales, départ du formulaire, bon, et la
+  réception. Les initiales sautent les articles (« Le Relais de Roissy » → RR).
+- **Couleur** : six pastilles + sélecteur libre. Elle n'est PAS prise telle
+  quelle : le bouton est assombri jusqu'à 4,6:1 avec le blanc, l'en-tête est
+  la même teinte très éclaircie sous une encre à 7,5:1. Un jaune pâle reste
+  lisible (contrôlé). Le cadre de la démo garde le bleu Elatransfer.
+- **Photo** : lue et RÉDUITE dans le navigateur (1000 px, JPEG), jamais
+  envoyée. Trop lourde pour le stockage : affichée, puis perdue au changement
+  de page, et on le dit. Le bouton du navigateur (« Choose File », dans SA
+  langue) est caché derrière le nôtre.
+- **Message d'accueil** (160 car.) sous le nom, en textContent.
+- **Destinations ajoutées** (4 au plus) : lieu retrouvé par la recherche du
+  site (`ELA_ROUTE.lieu`), prix berline/van de 1 à 2 000 €, rayon 1,5 km.
+  Elles entrent dans le menu par `ELA_DEMO_PAGE.appliquer`, posée DANS la
+  portée du moteur par construire-demo.mjs.
+- Tout vit dans `ela_demo__ela_demo_perso` ; « Revenir à la page d'origine »
+  efface tout. Rien de cela ne crée de requête vers le serveur (contrôlé).
+
 ## L'isolation — trois défenses, éprouvées séparément le 8/10/2026
 
 1. **CSP** dans la page (`<meta>`) et la même dans `_headers` pour `/demo/*`

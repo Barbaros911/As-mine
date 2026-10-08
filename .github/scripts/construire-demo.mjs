@@ -124,6 +124,49 @@ const SUIVI_BON = `
   }, 1200);
 `;
 
+/* LA PERSONNALISATION (8/10/2026, à la demande de Barbaros : « couleur, nom,
+   photo, et même ajouter des éléments »). Le panneau vit dans le simulateur ;
+   ce qui touche au moteur (le nom qui part sur le bon, les destinations du
+   menu) passe par cette prise, posée DANS la portée du moteur. Tout reste
+   dans le navigateur du prospect. */
+const PERSO = `
+  window.ELA_DEMO_PAGE = {
+    appliquer: function(p){
+      var h = HOTELS["demo-hotel"];
+      if(!h || !window.ELA_DEMO_INFO) return;
+      p = p || {};
+      if(!h.__base) h.__base = h.destinations.slice();
+      h.nom = p.nom || window.ELA_DEMO_INFO.etablissement;
+      h.court = h.nom;
+      h.destinations = h.__base.concat((p.destinations || []).map(function(d, i){
+        return { cle:"perso-" + i, nom:d.nom, label:d.label, lat:d.lat, lon:d.lon, rayonKm:1.5,
+                 forfait:{ berline:d.berline, van:d.van } };
+      }));
+      try{ sessionStorage.setItem("ela_provenance", h.nom); }catch(e){}
+      document.getElementById("hotelTeteNom").textContent = h.nom;
+      var rh = document.getElementById("recHotel");
+      if(rh && recHotel) rh.textContent = h.nom;
+      var avant = selDest.value;
+      selDest.textContent = "";
+      h.destinations.forEach(function(d){
+        var o = document.createElement("option");
+        o.value = d.cle; o.textContent = d.nom;
+        selDest.appendChild(o);
+      });
+      var autre = document.createElement("option");
+      autre.value = ""; autre.setAttribute("data-t", "hotel_autre");
+      autre.textContent = T("hotel_autre");
+      selDest.appendChild(autre);
+      var garde = null;
+      h.destinations.forEach(function(d){ if(d.cle === avant) garde = d; });
+      if(!garde && avant !== "") garde = h.destinations[0];
+      hotelDest = garde;
+      selDest.value = garde ? garde.cle : "";
+      if(hotel) appliquerHotel();
+    }
+  };
+`;
+
 function bootstrap(vue) {
   const commun = `var h = HOTELS["demo-hotel"];
     h.nom = window.ELA_DEMO_INFO.etablissement;
@@ -131,7 +174,7 @@ function bootstrap(vue) {
     try{ sessionStorage.setItem("ela_provenance", h.nom); }catch(e){}`;
   if (vue === 'client') {
     return `/* Démo : l'hôtel vient de la réponse d'« ouvrir », jamais de l'adresse. */
-  window.addEventListener("ela:demo-pret", function(){
+${PERSO}  window.addEventListener("ela:demo-pret", function(){
     ${commun}
     ouvrirModeHotel(h);
     window.ELA_DEMO.habillerHotel();
@@ -139,7 +182,7 @@ function bootstrap(vue) {
 ${SUIVI_BON}`;
   }
   return `/* Démo : la réception de l'hôtel fictif, ouverte sans code. */
-  window.addEventListener("ela:demo-pret", function(){
+${PERSO}  window.addEventListener("ela:demo-pret", function(){
     ${commun}
     recHotel = h;
     document.body.classList.add("reception");

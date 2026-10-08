@@ -74,6 +74,8 @@ async function ouvrir({ w = 390, h = 844, session = 's.test', reponse = {}, chem
       p.supabase.push(u);
       return r.abort();
     }
+    if (u.includes('api-adresse.data.gouv.fr') && decodeURIComponent(u).toLowerCase().includes('stade'))
+      return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: [{ geometry: { coordinates: [2.3601, 48.9245] }, properties: { label: 'Stade de France, 93200 Saint-Denis', type: 'poi', score: 0.9 } }] }) });
     if (u.includes('photon.komoot.io') || u.includes('api-adresse.data.gouv.fr'))
       return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: [] }) });
     if (u.includes('router.project-osrm.org'))
@@ -209,6 +211,66 @@ for (const panne of ['muet', 503, 403, 413]) {
   check('comptoir : la course apparaît dans la liste de la réception', await p.evaluate(() => /Chambre 412/.test(document.getElementById('ecran-reception').innerText)));
   check('comptoir : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
   check('comptoir : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
+  await ctx.close();
+}
+
+/* ═══ 3 ter. LA PERSONNALISATION — nom, couleur, photo, message, destination ═══ */
+{
+  const { ctx, p } = await ouvrir();
+  await p.click('#demoPerso summary');
+  const piege = 'Le Relais <img src=x onerror="window.__pirate=1">';
+  await p.fill('#demoPersoNom', piege);
+  check('perso : le nom saisi remplace celui de l\'en-tête, en texte', (await texte(p, '#hotelTeteNom')) === piege && await p.evaluate(() => !window.__pirate && !document.querySelector('#hotelTete img')));
+  check('perso : les initiales sautent les articles', (await texte(p, '.demo-initiales')) === 'RI', await texte(p, '.demo-initiales'));
+  check('perso : le départ du formulaire porte le nouveau nom', (await p.inputValue('#depart')).startsWith(piege));
+  /* Un jaune pâle : le bouton doit rester lisible (blanc à 4,5:1 au moins). */
+  await p.evaluate(() => { const c = document.getElementById('demoPersoCouleur'); c.value = '#ffe14d'; c.dispatchEvent(new Event('input', { bubbles: true })); });
+  const ratio = await p.evaluate(() => {
+    const rvb = getComputedStyle(document.getElementById('btnVoirPrix')).backgroundColor.match(/\d+/g).map(Number);
+    const l = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
+    return 1.05 / (l(rvb) + .05);
+  });
+  check('perso : un jaune pâle donne un bouton lisible (≥ 4,5:1 avec le blanc)', ratio >= 4.5, ratio.toFixed(2));
+  await p.click('.demo-pastille[data-couleur="#8B1E3F"]');
+  check('perso : une pastille du nuancier repeint le bouton', (await p.evaluate(() => getComputedStyle(document.getElementById('btnVoirPrix')).backgroundColor)) === 'rgb(139, 30, 63)');
+  check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
+  /* Une photo : générée dans la page, déposée dans le champ. */
+  const png = await p.evaluate(() => { const c = document.createElement('canvas'); c.width = 1400; c.height = 900; const g = c.getContext('2d'); g.fillStyle = '#7799bb'; g.fillRect(0, 0, 1400, 900); return c.toDataURL('image/png').split(',')[1]; });
+  await p.setInputFiles('#demoPersoPhoto', { name: 'hotel.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
+  await p.waitForTimeout(800);
+  check('perso : la photo s\'affiche dans le cadre', await p.evaluate(() => /url\("data:image\/jpeg/.test(document.querySelector('.demo-photo').style.backgroundImage)));
+  check('perso : … réduite à 1000 px au plus', await p.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok(Math.max(i.width, i.height) <= 1000); i.src = document.querySelector('.demo-photo').style.backgroundImage.slice(5, -2); })));
+  await p.fill('#demoPersoMessage', 'Bienvenue <b>chez nous</b>');
+  check('perso : le message d\'accueil s\'affiche, en texte', (await texte(p, '#demoMessage')) === 'Bienvenue <b>chez nous</b>' && await visible(p, '#demoMessage'));
+  await p.fill('#demoDestNom', 'Stade de France'); await p.fill('#demoDestBerline', '60'); await p.fill('#demoDestVan', '90');
+  await p.click('#demoDestAjouter'); await p.waitForTimeout(900);
+  check('perso : la destination ajoutée entre dans le menu', await p.evaluate(() => [...document.querySelectorAll('#hotelDest option')].some(o => o.textContent === 'Stade de France')));
+  await p.fill('#demoDestNom', 'Gare du Nord'); await p.fill('#demoDestBerline', '0'); await p.fill('#demoDestVan', '50'); await p.click('#demoDestAjouter');
+  check('perso : un prix à 0 € est refusé, et on dit pourquoi', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')));
+  await p.click('#demoPersoVoir');
+  check('perso : « Voir ma page » referme le panneau', !(await p.evaluate(() => document.getElementById('demoPerso').open)));
+  await p.selectOption('#hotelDest', 'perso-0'); await p.waitForTimeout(400);
+  check('perso : son forfait s\'affiche avec la destination', /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
+  check('perso : le vrai stockage du site n\'a rien reçu', await p.evaluate(() => Object.keys(localStorage).every(k => k === 'ela_demo_session' || k.startsWith('ela_demo__'))));
+  check('perso : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
+  await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
+  check('perso : la réception porte le même nom', (await texte(p, '#recHotel')) === piege);
+  check('perso : … et la même couleur', (await p.evaluate(() => getComputedStyle(document.getElementById('btnRecReserver')).backgroundColor)) === 'rgb(139, 30, 63)');
+  await p.click('#demoPerso summary'); await p.click('#demoPersoRaz'); await p.waitForTimeout(300);
+  check('perso : « Revenir à la page d\'origine » rend le nom d\'origine', (await texte(p, '#recHotel')) === 'Hôtel Ibis Roissy');
+  check('perso : … et le bleu d\'origine', (await p.evaluate(() => getComputedStyle(document.getElementById('btnRecReserver')).backgroundColor)) === 'rgb(14, 111, 199)');
+  /* En anglais, le panneau suit. */
+  await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
+  check('perso : en anglais, le panneau suit', (await texte(p, '#demoPerso summary')) === 'Customise my page' && (await texte(p, '.demo-perso-fichier')) === 'Choose a photo');
+  check('perso : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
+  await ctx.close();
+}
+for (const w of [320, 390, 768, 1366]) {
+  const { ctx, p } = await ouvrir({ w, h: w < 900 ? 844 : 800 });
+  await p.click('#demoPerso summary'); await p.waitForTimeout(200);
+  const d = await p.evaluate(() => ({ large: document.documentElement.scrollWidth, W: document.documentElement.clientWidth }));
+  check(`perso ${w} px : panneau ouvert sans débordement`, d.large <= d.W, JSON.stringify(d));
+  check(`perso ${w} px : « Ajouter » cliquable`, await p.evaluate(() => { const b = document.getElementById('demoDestAjouter'); b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !!e.closest('#demoDestAjouter'); }));
   await ctx.close();
 }
 
