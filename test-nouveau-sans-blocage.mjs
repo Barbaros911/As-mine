@@ -171,7 +171,9 @@ try {
     const { ctx, p, depots } = await client();
     await adresse(p, 'depart', 'vendome', 'Vendôme');
     await adresse(p, 'arrivee', 'argenteuil', 'Argenteuil');
-    await p.locator('#btnQuandAsap').click(); await p.waitForTimeout(200);
+    /* Le lien « Maintenant » est retiré de la case Date (8/10/2026) : on entre
+       en mode immédiat par la sortie « Partir dès que possible ». */
+    await p.evaluate(() => document.getElementById('btnPasseAsap').click()); await p.waitForTimeout(200);
     check('« Dès que possible » : la date et l\'heure s\'effacent', await p.locator('#blocDateHeure').isHidden());
     check('…et la note dit « soumise à disponibilité »', /disponibilit/i.test(await p.locator('#noteAsap').innerText()), await p.locator('#noteAsap').innerText());
     await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);

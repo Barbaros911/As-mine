@@ -15,4 +15,7 @@ Disallow: /*?h=
 # annuaire. La page pose en plus sa propre balise « noindex ».
 Disallow: /*?reception=
 
+# La démo des professionnels : on y entre par le formulaire, jamais par Google.
+Disallow: /demo/
+
 Sitemap: https://elatransfer.com/sitemap.xml
