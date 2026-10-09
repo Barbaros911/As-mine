@@ -331,7 +331,7 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
     ? { ...commun, p_nom: nom, p_prenom: prenom }
     : { ...commun, p_nom: nom });
   /* LA BASE NE CONNAÎT PAS ENCORE LE PRÉNOM. La fusion déploie cette fonction
-     AVANT que 20261009000000_prospects_prenom.sql soit appliquée : PostgREST
+     AVANT que 20261009010000_prospects_prenom.sql soit appliquée : PostgREST
      répond alors 404 (PGRST202, « fonction introuvable avec ces
      paramètres »). On rappelle SANS p_prenom, et le nom complet va dans
      « nom » (80 caractères au plus, la limite de la colonne). Jamais de 503

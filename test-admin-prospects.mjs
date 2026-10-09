@@ -44,7 +44,7 @@ const ACCORDEES = /grant select \(([^)]*)\)\s*on table public\.prospects/i.exec(
   .split(',').map(s => s.trim()).filter(Boolean);
 /* Le prénom (9 octobre 2026) est accordé par sa propre migration : relu là
    aussi, et ajouté aux colonnes que l'écran a le droit de demander. */
-const migPrenom = readFileSync('supabase/migrations/20261009000000_prospects_prenom.sql', 'utf8');
+const migPrenom = readFileSync('supabase/migrations/20261009010000_prospects_prenom.sql', 'utf8');
 for (const m of migPrenom.matchAll(/grant select \(([^)]*)\)\s*on table public\.prospects\s+to authenticated/gi))
   for (const c of m[1].split(',').map(x => x.trim()).filter(Boolean)) if (!ACCORDEES.includes(c)) ACCORDEES.push(c);
 const ECRITES = /grant update \(([^)]*)\)\s*on table public\.prospects/i.exec(migration)[1]

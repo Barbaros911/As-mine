@@ -35,7 +35,7 @@
 (function(racine){
   "use strict";
 
-  /* « prenom » (9 octobre 2026) : tant que 20261009000000_prospects_prenom.sql
+  /* « prenom » (9 octobre 2026) : tant que 20261009010000_prospects_prenom.sql
      n'est pas appliquée, la base répond 400 sur cette colonne ; on relit
      alors sans elle (le nom complet est dans « nom »). */
   var COLONNES = ["id", "cree_le", "type", "etablissement", "prenom", "nom", "fonction", "email",

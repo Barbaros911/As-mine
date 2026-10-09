@@ -288,8 +288,8 @@ jobs:
           # de création, l'appel sans prénom toujours accepté, prénom lisible
           # par l'admin seul et modifiable par personne.
           psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \
-            -f supabase/migrations/20261009000000_prospects_prenom.sql \
-            -f supabase/migrations/20261009000000_prospects_prenom.sql \
+            -f supabase/migrations/20261009010000_prospects_prenom.sql \
+            -f supabase/migrations/20261009010000_prospects_prenom.sql \
             -f supabase/tests/prospects-prenom-apres.sql
           # Une vue sur les prospects, lisible par anon (privilèges par défaut) :
           # la migration rejouée DOIT s'arrêter.
