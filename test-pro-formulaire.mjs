@@ -81,10 +81,10 @@ async function ouvrir({ w = 390, h = 844, langue = 'fr', url = PAGE, reponse = '
   return p;
 }
 async function remplir(p, v = {}) {
-  const d = Object.assign({ etablissement: 'Hôtel des Lilas', nom: 'Marie Dupont', fonction: 'Directrice',
+  const d = Object.assign({ etablissement: 'Hôtel des Lilas', prenom: 'Marie', nom: 'Dupont', fonction: 'Directrice',
     email: 'direction@hoteldeslilas.fr', telephone: '06 12 34 56 78' }, v);
   await p.evaluate(() => document.getElementById('demo').scrollIntoView());
-  await p.fill('#fEtablissement', d.etablissement); await p.fill('#fNom', d.nom);
+  await p.fill('#fEtablissement', d.etablissement); await p.fill('#fPrenom', d.prenom); await p.fill('#fNom', d.nom);
   await p.fill('#fFonction', d.fonction); await p.fill('#fEmail', d.email); await p.fill('#fTelephone', d.telephone);
 }
 const lireMessage = p => p.evaluate(() => { const m = document.getElementById('fMessage'); return m.hidden ? '' : m.textContent; });
@@ -108,11 +108,11 @@ const lire = (p, k) => p.evaluate(k => localStorage.getItem(k), k);
   check('succès : /demo/hotel/ s\'ouvre ensuite', p.url() === SITE + 'demo/hotel/' && p._demo >= 1, p.url());
   const c = p._corps[0] || {};
   check('le corps : action « demander » et les champs saisis', c.action === 'demander' && c.type === 'agence' && c.etablissement === 'Hôtel des Lilas'
-    && c.nom === 'Marie Dupont' && c.fonction === 'Directrice' && c.email === 'direction@hoteldeslilas.fr' && c.telephone === '06 12 34 56 78' && c.langue === 'fr', JSON.stringify(c));
+    && c.prenom === 'Marie' && c.nom === 'Dupont' && c.fonction === 'Directrice' && c.email === 'direction@hoteldeslilas.fr' && c.telephone === '06 12 34 56 78' && c.langue === 'fr', JSON.stringify(c));
   check('le corps : « site » toujours présent et VIDE', Object.prototype.hasOwnProperty.call(c, 'site') && c.site === '', JSON.stringify(c.site));
   check('le corps : « duree » d\'au moins 2 500 ms, même pour un envoi immédiat', typeof c.duree === 'number' && c.duree >= 2500, String(c.duree));
   check('le corps : aucune photo, aucune clé inattendue', !/photo|image|data:/i.test(JSON.stringify(c))
-    && Object.keys(c).sort().join() === 'action,duree,email,etablissement,fonction,langue,nom,site,telephone,type', Object.keys(c).sort().join());
+    && Object.keys(c).sort().join() === 'action,duree,email,etablissement,fonction,langue,nom,prenom,site,telephone,type', Object.keys(c).sort().join());
   check('le corps : un seul envoi', p._corps.length === 1, String(p._corps.length));
   check('succès : aucune erreur JavaScript', p._errs.length === 0, p._errs.join(' | '));
   await p.context().close();
@@ -194,7 +194,7 @@ for (const [rep, attendu, lib] of [['quota', QUOTA_FR, '429'], ['indispo', INDIS
 }
 
 // 5. 400 : le message sous LE champ nommé par le serveur.
-for (const champ of ['etablissement', 'nom', 'fonction', 'email', 'telephone', 'type']) {
+for (const champ of ['etablissement', 'prenom', 'nom', 'fonction', 'email', 'telephone', 'type']) {
   const p = await ouvrir({ reponse: 'champ:' + champ });
   await remplir(p); await p.click('#fEnvoyer');
   await p.waitForFunction(c => !document.getElementById('err-' + c).hidden, champ, { timeout: 8000 }).catch(() => {});
@@ -211,8 +211,8 @@ for (const champ of ['etablissement', 'nom', 'fonction', 'email', 'telephone', '
   const p = await ouvrir();
   await p.evaluate(() => document.getElementById('demo').scrollIntoView());
   await p.click('#fEnvoyer'); await p.waitForTimeout(300);
-  const vides = await p.evaluate(() => ['etablissement', 'nom', 'email', 'telephone'].filter(c => !document.getElementById('err-' + c).hidden));
-  check('vide : les quatre champs obligatoires le disent, sous eux', vides.length === 4, vides.join());
+  const vides = await p.evaluate(() => ['etablissement', 'prenom', 'nom', 'email', 'telephone'].filter(c => !document.getElementById('err-' + c).hidden));
+  check('vide : les cinq champs obligatoires le disent, sous eux', vides.length === 5, vides.join());
   check('vide : rien ne part', p._corps.length === 0);
   check('vide : la fonction est facultative', await p.evaluate(() => document.getElementById('err-fonction').hidden));
   check('vide : le curseur va au premier champ en erreur', await p.evaluate(() => document.activeElement.id) === 'fEtablissement');
@@ -244,7 +244,7 @@ for (const [conf, attendu, efface] of [['ok', 'Adresse e-mail confirmée, merci.
 {
   const p = await ouvrir({ langue: 'en', reponse: 'quota' });
   const t = await p.evaluate(() => document.getElementById('demo').innerText);
-  check('EN : la section est en anglais', /See the hotel demo/.test(t) && /valid for 7 days on this device/.test(t) && /Business email/.test(t) && !/Nom complet|Téléphone|facultatif/.test(t), t.slice(0, 200));
+  check('EN : la section est en anglais', /See the hotel demo/.test(t) && /valid for 7 days on this device/.test(t) && /Business email/.test(t) && /First name/.test(t) && /Last name/.test(t) && !/Nom complet|Prénom|Téléphone|facultatif/.test(t), t.slice(0, 200));
   check('EN : la phrase de données personnelles est en anglais', /You can object at any time/.test(t));
   await remplir(p); await p.click('#fEnvoyer');
   await p.waitForFunction(() => !document.getElementById('fMessage').hidden && document.getElementById('fMessage').classList.contains('ko'), null, { timeout: 8000 }).catch(() => {});
@@ -265,6 +265,28 @@ for (const [conf, attendu, efface] of [['ok', 'Adresse e-mail confirmée, merci.
   check('aucune case à cocher (rien de précoché, aucune lettre d\'information)', await p.evaluate(() => document.querySelectorAll('#formDemo input[type=checkbox]').length === 0));
   check('téléphone, WhatsApp et e-mail restent sous le formulaire', await p.evaluate(() => ['tel:+33759312433', 'https://wa.me/33759312433', 'mailto:contact@elatransfer.com']
     .every(h => document.querySelector('#demo a[href="' + h + '"]'))));
+  await p.context().close();
+}
+
+// 8 bis. Prénom et Nom : deux champs, remplissables par le navigateur, côte à
+// côte dès 600 px et l'un sous l'autre sur téléphone ; un prénom refusé l'est
+// sous SON champ, avant tout envoi.
+for (const [w, cote] of [[390, false], [599, false], [600, true], [1366, true]]) {
+  const p = await ouvrir({ w, h: 900 });
+  const r = await p.evaluate(() => { const a = document.getElementById('fPrenom'), b = document.getElementById('fNom');
+    const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    return { ac: a.getAttribute('autocomplete') + '/' + b.getAttribute('autocomplete'), memeLigne: Math.abs(ra.top - rb.top) < 2 && rb.left > ra.right,
+      dessous: rb.top >= ra.bottom }; });
+  check(`${w} px : Prénom et Nom ${cote ? 'côte à côte' : 'l\'un sous l\'autre'}`, cote ? r.memeLigne : r.dessous, JSON.stringify(r));
+  if (w === 390) check('autocomplete given-name / family-name', r.ac === 'given-name/family-name', r.ac);
+  await p.context().close();
+}
+{
+  const p = await ouvrir();
+  await remplir(p, { prenom: '<b>' }); await p.click('#fEnvoyer'); await p.waitForTimeout(300);
+  const e = await p.evaluate(() => ({ prenom: document.getElementById('err-prenom').hidden ? '' : document.getElementById('err-prenom').textContent,
+    nom: document.getElementById('err-nom').hidden, actif: document.activeElement.id }));
+  check('prénom refusé : le message est sous Prénom, pas sous Nom, et rien ne part', /prénom/.test(e.prenom) && e.nom && e.actif === 'fPrenom' && p._corps.length === 0, JSON.stringify(e));
   await p.context().close();
 }
 

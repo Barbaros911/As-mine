@@ -283,6 +283,14 @@ jobs:
             -f supabase/migrations/20261008000000_prospects.sql \
             -f supabase/migrations/20261008000000_prospects.sql \
             -f supabase/tests/prospects-apres.sql
+          # Le prénom à part du nom (9 octobre 2026) : migration appliquée deux
+          # fois sur la base laissée par l'épreuve précédente, une seule porte
+          # de création, l'appel sans prénom toujours accepté, prénom lisible
+          # par l'admin seul et modifiable par personne.
+          psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261009010000_prospects_prenom.sql \
+            -f supabase/migrations/20261009010000_prospects_prenom.sql \
+            -f supabase/tests/prospects-prenom-apres.sql
           # Une vue sur les prospects, lisible par anon (privilèges par défaut) :
           # la migration rejouée DOIT s'arrêter.
           psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \

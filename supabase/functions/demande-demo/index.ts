@@ -22,8 +22,11 @@
    fonction l'EXIGE comme avant. Aucune autre ligne à changer.
 
    ═══ LE CONTRAT (les blocs 1, 3 et 4 s'appuient dessus) ═══
-   {action:"demander", type, etablissement, nom, fonction, email, telephone,
-    langue, duree, site:"", turnstile (seulement si configuré)}
+   {action:"demander", type, etablissement, prenom, nom, fonction, email,
+    telephone, langue, duree, site:"", turnstile (seulement si configuré)}
+   « prenom » (9 octobre 2026) : présent = nouvelle page, il est EXIGÉ et
+   « nom » est le nom de famille ; absent = page ancienne restée en cache,
+   « nom » est le nom complet, comme avant.
      → 200 {session, expire, etablissement} · 400 {erreur:"champ", champ}
      · 403 {erreur:"robot"} · 429 {erreur:"quota"} · 503 {erreur:"indisponible"}
    {action:"ouvrir", session} → 200 {ok, etablissement, type, expire}
@@ -206,7 +209,7 @@ export function messageTelegram(p: Record<string, any>, domainePro: boolean | nu
     "Nouveau prospect — démo " + (LIBELLE_TYPE[p.type] ?? p.type).toLowerCase(),
     "Établissement : " + p.etablissement,
     "Type : " + (LIBELLE_TYPE[p.type] ?? p.type),
-    "Nom : " + p.nom,
+    "Nom : " + (p.prenom ? p.prenom + " " + p.nom : p.nom),
     "Fonction : " + (p.fonction || "—"),
     "Téléphone : " + p.telephone,
     "Adresse e-mail : " + (domainePro === null ? "—" : domainePro ? "professionnelle" : "grand public"),
@@ -282,6 +285,13 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
   if (!type) return reponse(400, { erreur: "champ", champ: "type" }, origin);
   const etablissement = texte(entree.etablissement, 2, 60);
   if (etablissement === null) return reponse(400, { erreur: "champ", champ: "etablissement" }, origin);
+  /* LE PRÉNOM (9 octobre 2026). Absent : une page restée en cache envoie
+     encore le nom complet dans « nom » — on l'accepte comme avant plutôt que
+     de refuser un prospect pour une version de page. Présent : il est exigé,
+     et « nom » est le nom de famille. */
+  const avecPrenom = entree.prenom !== undefined && entree.prenom !== null;
+  const prenom = avecPrenom ? texte(entree.prenom, 1, 60) : "";
+  if (prenom === null) return reponse(400, { erreur: "champ", champ: "prenom" }, origin);
   const nom = texte(entree.nom, 2, 80);
   if (nom === null) return reponse(400, { erreur: "champ", champ: "nom" }, origin);
   const fonction = entree.fonction === undefined || entree.fonction === null ? "" : texte(entree.fonction, 0, 60);
@@ -312,11 +322,29 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
   /* Le jeton de confirmation : 32 octets tirés au sort. Seule son empreinte
      va en base ; le jeton lui-même ne vit que dans l'e-mail. */
   const jeton = aleatoire(32);
-  const r = await rpc("ela_prospect_creer", {
-    p_type: type, p_etablissement: etablissement, p_nom: nom, p_fonction: fonction,
+  const commun = {
+    p_type: type, p_etablissement: etablissement, p_fonction: fonction,
     p_email: mail, p_telephone: telephone, p_langue: langue,
     p_jeton_empreinte: await sha256(jeton), p_par_jour: DEMANDES_PAR_JOUR_EMAIL,
-  });
+  };
+  let r = await rpc("ela_prospect_creer", prenom
+    ? { ...commun, p_nom: nom, p_prenom: prenom }
+    : { ...commun, p_nom: nom });
+  /* LA BASE NE CONNAÎT PAS ENCORE LE PRÉNOM. La fusion déploie cette fonction
+     AVANT que 20261009010000_prospects_prenom.sql soit appliquée : PostgREST
+     répond alors 404 (PGRST202, « fonction introuvable avec ces
+     paramètres »). On rappelle SANS p_prenom, et le nom complet va dans
+     « nom » (80 caractères au plus, la limite de la colonne). Jamais de 503
+     pour un prospect pendant la transition. */
+  if (r && !r.ok && prenom) {
+    const brut = await r.clone().text().catch(() => "");
+    let code = "";
+    try { code = String(JSON.parse(brut)?.code ?? ""); } catch (_e) { code = ""; }
+    if (r.status === 404 || code === "PGRST202") {
+      console.warn("demande-demo : base sans prénom, nom complet rangé dans « nom »");
+      r = await rpc("ela_prospect_creer", { ...commun, p_nom: (prenom + " " + nom).slice(0, 80).trim() });
+    }
+  }
   if (!r) return reponse(503, { erreur: "indisponible" }, origin);
   if (!r.ok) {
     const brut = await r.text().catch(() => "");
@@ -335,7 +363,7 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
 
   const domainePro = typeof ligne.domaine_pro === "boolean" ? ligne.domaine_pro : null;
   await Promise.all([
-    prevenirBarbaros(messageTelegram({ type, etablissement, nom, fonction, telephone, langue }, domainePro)),
+    prevenirBarbaros(messageTelegram({ type, etablissement, prenom, nom, fonction, telephone, langue }, domainePro)),
     envoyerEmail(mail, langue, LIEN_CONFIRMATION + jeton),
   ]).catch(() => null);
 

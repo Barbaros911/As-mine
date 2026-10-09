@@ -334,7 +334,8 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
       if(F.quota===null)return new Response('panne',{status:503});return new Response(JSON.stringify(F.quota));}
     if(url.includes('challenges.cloudflare.com/turnstile')){F.turnstile++;const j=new URLSearchParams(String(init.body)).get('response');
       if(j==='panne')return new Response('x',{status:500});return new Response(JSON.stringify({success:j==='humain'}));}
-    if(url.includes('/rpc/ela_prospect_creer')){const a=JSON.parse(init.body);
+    if(url.includes('/rpc/ela_prospect_creer')){const a=JSON.parse(init.body);F.appelsCreer=(F.appelsCreer||0)+1;
+      if(F.sansPrenom&&'p_prenom' in a)return new Response(JSON.stringify({code:'PGRST202',message:'Could not find the function public.ela_prospect_creer(...p_prenom...) in the schema cache'}),{status:404});
       if(a.p_email.startsWith('quota@'))return new Response('{"message":"quota_email"}',{status:400});
       if(a.p_email.startsWith('refus@'))return new Response(JSON.stringify({code:'23514',message:'new row violates check constraint',details:'Failing row contains ('+a.p_nom+', '+a.p_email+', '+a.p_telephone+')'}),{status:400});
       const id=randomUUID();F.crees.push(a);F.prospects.add(id);F.jetons.set(a.p_jeton_empreinte,id);
@@ -353,7 +354,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     email:'Direction@HotelDesLilas.fr',telephone:'06 12 34 56 78',langue:'fr',turnstile:'humain',site:'',duree:6000};
   const demande=(extra={},fn=dd,o)=>appel(fn,Object.assign({},base,extra),o);
   const rien=()=>F.crees.length===0&&F.tg.length===0&&F.mails.length===0;
-  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];};
+  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];F.sansPrenom=false;F.appelsCreer=0;};
 
   // Aucun secret possible (ni posé, ni clé service_role à dériver) : rien ne passe.
   {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{DEMO_SESSION_SECRET:'',SUPABASE_SERVICE_ROLE_KEY:''}));
@@ -465,6 +466,32 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   {const r=await demande({langue:'en',email:'x.y@gmail.com',fonction:undefined});
    ok(r.status===200&&/Confirm/.test(F.mails[0]?.subject||'')&&/grand public/.test(F.tg[0]?.text||''),'demande-demo : en anglais → e-mail anglais ; @gmail → « grand public » dans l\'alerte');
    ok(F.crees[0]?.p_fonction==='','demande-demo : fonction facultative');}
+  /* LE PRÉNOM (9 octobre 2026) : stocké à part quand la page l'envoie ;
+     une page ancienne (sans « prenom ») passe comme avant ; une base pas
+     encore migrée reçoit le nom complet, jamais un 503. */
+  raz();
+  {const r=await demande({prenom:' Marie ',nom:'Dupont'});const a=F.crees[0]||{};
+   ok(r.status===200&&a.p_prenom==='Marie'&&a.p_nom==='Dupont'&&F.appelsCreer===1,'demande-demo : prénom et nom partent SÉPARÉMENT ('+a.p_prenom+' / '+a.p_nom+')');
+   ok(/Nom : Marie Dupont\n/.test((F.tg[0]?.text||'')+'\n'),'demande-demo : Telegram dit « Nom : Prénom Nom »');}
+  raz();
+  {const r=await demande({nom:'Marie Dupont'});const a=F.crees[0]||{};
+   ok(r.status===200&&!('p_prenom' in a)&&a.p_nom==='Marie Dupont','demande-demo : page ancienne (sans prénom) → nom complet, comme avant');}
+  for(const [lib,val] of [['vide',''],['espaces','   '],['chevron','<b>'],['61 caractères','x'.repeat(61)]]){
+    raz();const r=await demande({prenom:val,nom:'Dupont'});const j=await r.json();
+    ok(r.status===400&&j.champ==='prenom'&&rien(),'demande-demo : prénom '+lib+' → 400 champ prenom, rien écrit');
+  }
+  raz();F.sansPrenom=true;
+  {const r=await demande({prenom:'Marie',nom:'Dupont'});const a=F.crees[0]||{};
+   ok(r.status===200&&F.appelsCreer===2&&!('p_prenom' in a)&&a.p_nom==='Marie Dupont','demande-demo : base pas encore migrée → second appel sans p_prenom, nom complet dans « nom » ('+r.status+', '+F.appelsCreer+' appels)');
+   ok(/Nom : Marie Dupont/.test(F.tg[0]?.text||''),'demande-demo : base pas encore migrée → l\'alerte part quand même');}
+  raz();F.sansPrenom=true;
+  {const r=await demande({prenom:'P'.repeat(60),nom:'N'.repeat(80)});const a=F.crees[0]||{};
+   ok(r.status===200&&a.p_nom.length<=80,'demande-demo : base pas encore migrée, noms longs → le nom complet tient dans 80 caractères');}
+  raz();F.sansPrenom=true;
+  ok((await demande({prenom:'Marie',nom:'Dupont',email:'quota@hoteldeslilas.fr'})).status===429,'demande-demo : base pas encore migrée → le quota par e-mail tient toujours');
+  raz();
+  {const r=await demande({prenom:'Marie',nom:'Dupont',email:'refus@hoteldeslilas.fr'});
+   ok(r.status===503&&F.appelsCreer===1,'demande-demo : un autre refus de la base n\'est PAS rejoué sans prénom (503, un seul appel)');}
   raz();F.tgPanne=true;
   ok((await demande()).status===200,'demande-demo : Telegram en panne → la demande passe quand même');
   raz();
