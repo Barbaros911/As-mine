@@ -7,6 +7,11 @@
 -- échec, et une ligne « vue » (course ouverte dans l'admin, bouton « Vu »)
 -- n'est pas un envoi réussi — elle porte pourtant canal « telegram » et
 -- statut « envoye » (relecture du 4 octobre 2026).
+-- Les dépôts refusés (9 octobre 2026) : « journal_depots », écrit par
+-- deposer-course à chaque refus — code, motif, référence, jamais de donnée
+-- personnelle. Migration 20261009000000, à appliquer aussitôt après la
+-- fusion qui porte ce fichier : sans la table, cette requête échoue et le
+-- chien de garde ouvre une Issue « réponse illisible », qui se ferme seule.
 select json_build_object(
   'sans_alerte', (
     select count(*) from public.courses c
@@ -34,5 +39,14 @@ select json_build_object(
   'demandes_24h', (
     select count(*) from public.courses
      where cree_le >= now() - interval '24 hours'
-       and (bon->'securite'->>'empreinteDepot') is not null)
+       and (bon->'securite'->>'empreinteDepot') is not null),
+  'depots_indisponibles_1h', (
+    select count(*) from public.journal_depots
+     where code >= 500 and cree_le >= now() - interval '1 hour'),
+  'depots_quota_1h', (
+    select count(*) from public.journal_depots
+     where motif = 'quota' and cree_le >= now() - interval '1 hour'),
+  'depots_refuses_1h', (
+    select count(*) from public.journal_depots
+     where code < 500 and motif <> 'quota' and cree_le >= now() - interval '1 hour')
 ) as sante;

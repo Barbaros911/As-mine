@@ -196,6 +196,7 @@ jobs:
             -f supabase/tests/socle.sql \
             -f supabase/tests/sante-alertes.sql \
             -f supabase/migrations/20261004010000_sante_alertes.sql \
+            -f supabase/migrations/20261009000000_journal_depots.sql \
             -f supabase/tests/sante-alertes-apres.sql
           # Les vues publiques en lecture seule (5 octobre 2026). L'épreuve
           # repose les privilèges par défaut de Supabase et les vues de la VRAIE

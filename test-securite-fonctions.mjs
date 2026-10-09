@@ -73,6 +73,26 @@ const pp=(auth)=>p(new Request('http://x',{method:'POST',headers:auth?{authoriza
 ok((await pp()).status===403,'prevenir-client sans jeton : 403');
 ok((await pp('Bearer sb_publishable_xxx')).status===403,'prevenir-client avec la clé publique : 403');
 ok((await pp('Bearer ADMIN')).status===200,'prevenir-client exploitant : accepté');
+/* LE PRÉFLIGHT CORS (audit du 9 octobre 2026, P2). L'admin envoie
+   Authorization + apikey + JSON depuis elatransfer.com vers *.supabase.co :
+   le navigateur demande d'abord OPTIONS, et n'envoie le POST que si la
+   réponse porte les en-têtes Access-Control-*. La fonction répondait 405 nu :
+   le POST ne partait JAMAIS, en silence — la notification « Transfert
+   confirmé » n'arrivait à aucun client. Un faux serveur Playwright répond
+   lui-même au préflight : seule la fonction chargée telle quelle le montre.
+   Contre l'ancien code, les trois premiers contrôles tombent. */
+{
+  const opt=(origin)=>p(new Request('http://x',{method:'OPTIONS',headers:{origin,'access-control-request-method':'POST','access-control-request-headers':'authorization, apikey, content-type'}}));
+  const r=await opt('https://elatransfer.com');
+  ok(r.status===204&&r.headers.get('access-control-allow-origin')==='https://elatransfer.com','prevenir-client : préflight CORS depuis le site → 204 avec l\'origine autorisée ('+r.status+')');
+  const permis=(r.headers.get('access-control-allow-headers')||'').toLowerCase();
+  ok(permis.includes('authorization')&&permis.includes('apikey')&&permis.includes('content-type'),'prevenir-client : le préflight autorise Authorization, apikey et Content-Type — ce que l\'admin envoie');
+  const r2=await p(new Request('http://x',{method:'POST',headers:{authorization:'Bearer ADMIN',origin:'https://elatransfer.com'},body:JSON.stringify({ref:'ELA-26-09-0007'})}));
+  ok(r2.status===200&&r2.headers.get('access-control-allow-origin')==='https://elatransfer.com','prevenir-client : la réponse au POST porte l\'origine autorisée, sinon le navigateur la jette');
+  ok((await opt('https://pirate.example')).status===403,'prevenir-client : préflight depuis une origine étrangère → 403');
+  const r3=await p(new Request('http://x',{method:'POST',headers:{authorization:'Bearer ADMIN',origin:'https://pirate.example'},body:JSON.stringify({ref:'ELA-26-09-0007'})}));
+  ok(!r3.headers.get('access-control-allow-origin'),'prevenir-client : aucune origine étrangère n\'est jamais autorisée en retour');
+}
 
 // courses-hotel : le code de la réception est plafonné en nombre d'essais,
 // et le plafond est vérifié AVANT la comparaison du code.
@@ -491,21 +511,32 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok((await demande({nom:'x'.repeat(5000)})).status===413&&rien(),'demande-demo : corps de plus de 4 Ko → 413');
   globalThis.fetch=fetchAvant;
 }
-/* LA SESSION DE RÉCEPTION N'A PAS CHANGÉ DE FORMAT en passant par l'outil
-   partagé : une session fabriquée INDÉPENDAMMENT (node:crypto) selon
-   l'ancien code est toujours acceptée — sinon chaque tablette de comptoir
-   aurait été déconnectée à la mise en ligne. */
+/* LA SESSION DE RÉCEPTION N'EST PLUS SIGNÉE AVEC LE CODE LUI-MÊME (audit du
+   9 octobre 2026, P1). Le jeton vit 30 jours dans la tablette et part dans
+   chaque requête : signé avec le code brut, il permettait de deviner le code
+   HORS LIGNE, sans plafond d'essais. La clé est désormais dérivée du code ET
+   d'un secret serveur. Le contrôle d'avant (« signée exactement comme
+   avant ») figeait ce défaut : il est inversé. Conséquence assumée : une
+   session de l'ancien format est refusée, la tablette retape son code. */
 {
   const {createHmac}=await import('node:crypto');
   const tmpH=fs.mkdtempSync(path.join(os.tmpdir(),'ela-hs-'));partages(tmpH,'');
+  globalThis.Deno={env:{get:k=>({SUPABASE_SERVICE_ROLE_KEY:'S'})[k]}};
   const {validerSessionHotel,creerSessionHotel}=await import(tmpH+'/hotel-session.mjs');
   const c=Buffer.from(JSON.stringify({v:1,hotel:'easyhotel-aeroville',iat:Date.now()-864e5,exp:Date.now()+20*864e5})).toString('base64url');
   const ancienne=c+'.'+createHmac('sha256','easyhotel-9F3K2Q').update(c).digest('base64url');
-  ok(await validerSessionHotel(ancienne,'easyhotel-aeroville','easyhotel-9F3K2Q'),'réception : une session au format d\'avant le partage reste valable');
-  ok(!(await validerSessionHotel(ancienne,'autre-hotel','easyhotel-9F3K2Q')),'réception : elle ne vaut que pour SON hôtel');
+  ok(!(await validerSessionHotel(ancienne,'easyhotel-aeroville','easyhotel-9F3K2Q')),'réception : une session signée avec le code BRUT (ancien format) est refusée — elle était un oracle hors ligne du code');
   const neuve=await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q');
   const [nc,ns]=neuve.split('.');
-  ok(createHmac('sha256','easyhotel-9F3K2Q').update(nc).digest('base64url')===ns,'réception : une session neuve est signée exactement comme avant');
+  ok(nc&&ns&&createHmac('sha256','easyhotel-9F3K2Q').update(nc).digest('base64url')!==ns,'réception : une session neuve n\'est PAS signée avec le code — un jeton qui fuit ne permet plus de le deviner');
+  ok(await validerSessionHotel(neuve,'easyhotel-aeroville','easyhotel-9F3K2Q'),'réception : la session neuve est acceptée par SON hôtel');
+  ok(!(await validerSessionHotel(neuve,'autre-hotel','easyhotel-9F3K2Q')),'réception : elle ne vaut que pour SON hôtel');
+  ok(!(await validerSessionHotel(neuve,'easyhotel-aeroville','autre-code')),'réception : changer le code dans les secrets coupe la session');
+  /* Sans le secret du serveur, rien n'est signé ni validé : un secret absent
+     ne vaut jamais « tout est signé ». */
+  globalThis.Deno={env:{get:()=>undefined}};
+  ok((await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q'))===''&&!(await validerSessionHotel(neuve,'easyhotel-aeroville','easyhotel-9F3K2Q')),'réception : sans le secret du serveur, aucune session n\'est créée ni acceptée');
+  globalThis.Deno={env:{get:k=>({SUPABASE_SERVICE_ROLE_KEY:'S'})[k]}};
 }
 /* deposer-course : UNE COURSE DE DÉMONSTRATION N'EST JAMAIS ENREGISTRÉE
    (8 octobre 2026). Refusée AVANT le quota et avant toute lecture en base. */
@@ -529,6 +560,48 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   appels.length=0;
   const r=await dep(bonD('ELA-26-10-DM2BB',{provenance:'easyHotel Aéroville'}));
   ok(r.status===201&&appels.some(u=>u.includes('ela_deposer_course_serveur')),'deposer-course : une provenance ordinaire passe toujours ('+r.status+')');
+  globalThis.fetch=fetchAvant;
+}
+/* deposer-course : UN DÉPÔT REFUSÉ EST ÉCRIT DANS journal_depots (audit du
+   9 octobre 2026, P1). Le client lisait « demande non transmise » et personne
+   d'autre ne l'apprenait. Chaque refus écrit code + motif + référence — jamais
+   le nom, le téléphone ni l'adresse IP — ; un dépôt réussi n'écrit rien ; la
+   démo (refus voulu) n'écrit rien ; un journal injoignable ne change pas la
+   réponse au client. Contre l'ancien code, les six « est écrit » tombent. */
+{
+  const journalDepots=[];const fetchAvant=globalThis.fetch;let quotaOk=true,quotaPanne=false,insertionPanne=false;
+  globalThis.fetch=async(url,init={})=>{url=String(url);
+    if(url.includes('/rest/v1/journal_depots')){journalDepots.push(JSON.parse(init.body));return new Response('',{status:201});}
+    if(url.includes('/rpc/consommer_quota_reservation'))return quotaPanne?new Response('x',{status:500}):new Response(JSON.stringify(quotaOk));
+    if(url.includes('/rest/v1/partenaires'))return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.'))return new Response('[]');
+    if(url.includes('/rpc/ela_deposer_course_serveur'))return insertionPanne?new Response('x',{status:500}):new Response('"ok"');
+    return new Response('[]');};
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bonJ=(ref,extra)=>Object.assign({ref,course:{depart:'12 rue de la Paix, Paris',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},
+    client:{nom:'Client Journal',telephone:'0612345678'},prix:{total:90},paiement:'carte'},extra);
+  const dep=(b,origin='https://elatransfer.com')=>dc(new Request('http://x',{method:'POST',headers:{origin,'x-forwarded-for':'10.0.0.7','content-type':'application/json'},body:JSON.stringify({bon:b})}));
+  let r=await dep(bonJ('ELA-26-10-JD1AA'));
+  ok(r.status===201&&journalDepots.length===0,'journal des dépôts : un dépôt réussi n\'écrit rien ('+r.status+', '+journalDepots.length+' ligne(s))');
+  quotaOk=false;r=await dep(bonJ('ELA-26-10-JD2BB'));quotaOk=true;
+  ok(r.status===429&&journalDepots.length===1&&journalDepots[0].code===429&&journalDepots[0].motif==='quota'&&journalDepots[0].ref==='ELA-26-10-JD2BB','journal des dépôts : un refus par le plafond (429) est écrit avec son motif et sa référence');
+  quotaPanne=true;r=await dep(bonJ('ELA-26-10-JD3CC'));quotaPanne=false;
+  ok(r.status===503&&journalDepots[1]?.code===503&&journalDepots[1]?.motif==='indisponible','journal des dépôts : un serveur indisponible au quota (503) est écrit');
+  insertionPanne=true;r=await dep(bonJ('ELA-26-10-JD4DD'));insertionPanne=false;
+  ok(r.status===503&&journalDepots[2]?.code===503&&journalDepots[2]?.motif==='indisponible','journal des dépôts : une écriture en base refusée (503) est écrite');
+  r=await dep(bonJ('ELA-26-10-JD5EE',{prix:{total:-5}}));
+  ok(r.status===400&&journalDepots[3]?.code===400&&journalDepots[3]?.motif==='invalide'&&journalDepots[3]?.ref==='ELA-26-10-JD5EE','journal des dépôts : une demande invalide (400) est écrite avec sa référence');
+  r=await dep(bonJ('ELA-26-10-JD6FF'),'https://pirate.example');
+  ok(r.status===403&&journalDepots[4]?.code===403&&journalDepots[4]?.motif==='origine','journal des dépôts : une origine refusée (403) est écrite');
+  r=await dep(bonJ('ELA-26-10-JD7GG',{parReception:true,provenanceCle:'easyhotel-aeroville'}));
+  ok(r.status===401&&journalDepots[5]?.motif==='session'&&journalDepots[5]?.provenance_cle==='easyhotel-aeroville'&&journalDepots[5]?.par_reception===true,'journal des dépôts : une session de réception refusée (401) est écrite avec la clé de l\'hôtel');
+  const brut=JSON.stringify(journalDepots);
+  ok(!brut.includes('0612345678')&&!brut.includes('Client Journal')&&!brut.includes('10.0.0.7')&&!brut.includes('rue de la Paix'),'journal des dépôts : ni téléphone, ni nom, ni adresse, ni adresse IP dans le journal');
+  const avant=journalDepots.length;r=await dep(bonJ('ELA-26-10-JD8HH',{provenance:'demo-hotel'}));
+  ok(r.status===403&&journalDepots.length===avant,'journal des dépôts : la démo (refus voulu) n\'est pas journalisée');
+  globalThis.fetch=async(url,init={})=>{url=String(url);if(url.includes('/rest/v1/journal_depots'))throw new Error('journal injoignable');if(url.includes('/rpc/consommer_quota_reservation'))return new Response('false');return new Response('[]');};
+  r=await dep(bonJ('ELA-26-10-JD9II'));
+  ok(r.status===429,'journal des dépôts : un journal injoignable ne change pas la réponse au client ('+r.status+')');
   globalThis.fetch=fetchAvant;
 }
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
