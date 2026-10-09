@@ -74,6 +74,27 @@
     if(tgEchecs > 0 && tgOk === 0) panne("Telegram refuse tous les envois depuis une heure (" + tgEchecs + " échec(s), 0 réussite) — jeton ou conversation à vérifier.",
       "Telegram ne reçoit plus les alertes.");
 
+    /* LES DÉPÔTS REFUSÉS (audit du 9 octobre 2026). Jusqu'ici, un client qui
+       lisait « votre demande n'a pas pu nous être transmise » était le seul à
+       le savoir : le voyant et le chien de garde ne regardent que les alertes
+       d'une course déjà écrite. « deposer-course » écrit maintenant chaque
+       refus dans « journal_depots », et la mesure les compte sur une heure.
+       CLÉS FACULTATIVES : un serveur d'avant la migration 20261009000000 ne
+       les rend pas, et le voyant ne doit pas passer au gris pour autant —
+       « mesuresLisibles » n'en exige que les sept d'origine.
+       Les seuils sont un point de départ, à régler après une semaine :
+       un échec du serveur (5xx) est une panne dès le premier — ce client-là
+       est perdu ; le plafond (429) à partir de trois dans l'heure — un wifi
+       d'hôtel saturé ou une rafale ; les autres refus (demande invalide,
+       origine, session) à partir de dix — un robot qui tâte la porte. */
+    var dIndispo = n(s.depots_indisponibles_1h), dQuota = n(s.depots_quota_1h), dRefus = n(s.depots_refuses_1h);
+    if(dIndispo !== null && dIndispo > 0) panne(dIndispo + " dépôt(s) de demande en échec dans l'heure (serveur indisponible, code 5xx) : ces clients ont lu « demande non transmise ».",
+      dIndispo > 1 ? dIndispo + " demandes de clients n'ont pas pu être enregistrées." : "Une demande de client n'a pas pu être enregistrée.");
+    if(dQuota !== null && dQuota >= 3) panne(dQuota + " dépôts refusés par le plafond horaire (429) dans l'heure : un wifi d'hôtel saturé, ou une rafale.",
+      "Des demandes sont refusées par le plafond horaire.");
+    if(dRefus !== null && dRefus >= 10) panne(dRefus + " dépôts refusés dans l'heure (demande invalide, origine ou session) : à lire dans journal_depots.",
+      "Beaucoup de demandes sont refusées à l'entrée.");
+
     return { ok: pannes.length === 0, pannes: pannes, simples: simples };
   }
 
