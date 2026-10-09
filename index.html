@@ -2058,6 +2058,23 @@ body:not(.reception) .hotel-acces{display:none;}
 body.reception .onglet[data-onglet="courses"],
 body.reception .onglet[data-onglet="trajets"]{display:none;}
 
+/* ═══ SUR UN ORDINATEUR, LA RÉCEPTION N'A PLUS DE WHATSAPP ═══
+   9 octobre 2026, Barbaros : « retire le WhatsApp de l'écran ordinateur pour
+   la réception ». Sur le PC d'un comptoir, WhatsApp n'ouvre au mieux que
+   WhatsApp Web, qui réclame le téléphone de quelqu'un : la réception
+   décroche et compose le numéro, écrit en clair dans « Un imprévu ? ».
+   « ORDINATEUR » = un écran large ET piloté à la souris : une tablette de
+   comptoir, au doigt, garde WhatsApp, qui y fonctionne.
+   Deux boutons partent : celui d'« Un imprévu ? » et celui du bon (« Une
+   question ? »). La LIGNE ÉCRITE du bon (« Appel, WhatsApp — Telegram »)
+   reste : le client la lit sur l'écran et s'en sert depuis son téléphone.
+   L'onglet WhatsApp de la barre n'est pas à retirer ici : la réception n'a
+   déjà plus de barre (« reception-premium », hotel-engine-polish.css). */
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  body.reception #recAideWa,
+  body.reception .ebon-canal.wa{display:none;}
+}
+
 .hotel-forfait{margin:6px 2px 14px;font-size:13px;font-weight:700;
   color:var(--accent-encre);}
 .hotel-libre{margin:6px 2px 0;font-size:12.5px;color:var(--gris);}

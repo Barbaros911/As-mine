@@ -179,6 +179,9 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('arrivée : l\'en-tête des cartes ne dit pas « Prix fixes » quand les prix sont à fixer',
     !/prix fixes/i.test(await texte(p, '#demoCartes .demo-cartes-cap')) && /destination/i.test(await texte(p, '#demoCartes .demo-cartes-cap')),
     await texte(p, '#demoCartes .demo-cartes-cap'));
+  check('arrivée : à 390 px, cet en-tête tient sur une ligne', await p.evaluate(() => {
+    const e = document.querySelector('#demoCartes .demo-cartes-cap'); const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
+    return e.getBoundingClientRect().height < lh * 1.5; }));
   check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
   check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
@@ -411,6 +414,16 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
       const f = await p.evaluate(() => { const r = document.getElementById('btnVoirPrix').getBoundingClientRect();
         return { largeur: Math.round(r.width), centre: Math.round(r.left + r.width / 2), milieu: Math.round(document.documentElement.clientWidth / 2) }; });
       check(`${w} px client : le formulaire est centré et ne dépasse pas 800 px`, f.largeur <= 800 && Math.abs(f.centre - f.milieu) < 30, JSON.stringify(f));
+    }
+    /* LA RÉCEPTION DE LA DÉMO RESSEMBLE À LA VRAIE (9/10/2026) : pas de barre
+       du bas, et sur un ordinateur (large, à la souris) pas de WhatsApp. */
+    if (vue === 'réception') {
+      const r = await p.evaluate(() => ({
+        barre: [...document.querySelectorAll('nav.barre')].some(b => getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0),
+        wa: getComputedStyle(document.getElementById('recAideWa')).display !== 'none' }));
+      check(`${w} px réception : pas de barre du bas, comme la vraie réception`, !r.barre, JSON.stringify(r));
+      check(`${w} px réception : ${w >= 900 ? 'sur ordinateur, plus de bouton WhatsApp' : 'le bouton WhatsApp d\'« Un imprévu ? » reste'}`,
+        w >= 900 ? !r.wa : r.wa, JSON.stringify(r));
     }
     check(`${w} px ${vue} : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
     await ctx.close();

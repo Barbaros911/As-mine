@@ -77,6 +77,13 @@ html[data-ela-space="demo"] .entete{background:#fff;color:var(--demo-nuit);borde
 .demo-qr{display:flex;justify-content:center;margin:0 0 14px}
 .demo-qr svg{max-width:150px;height:auto}
 html[data-ela-space="demo"] body.reception .demo-pied{margin-bottom:40px}
+/* LA RÉCEPTION DE LA DÉMO N'A PAS DE BARRE DU BAS, COMME LA VRAIE (9/10/2026).
+   La vraie la retire (« reception-premium », hotel-engine-polish.css, qui
+   n'est pas chargé ici) : « Accueil » y refaisait « Réserver un chauffeur »
+   et « WhatsApp » doublait « Un imprévu ? ». La démo la montrait encore au
+   prospect, onglet WhatsApp compris. */
+html[data-ela-space="demo"][data-demo-vue="reception"] nav.barre{display:none}
+html[data-ela-space="demo"][data-demo-vue="reception"] body{padding-bottom:0}
 
 /* ═══ L'ÉCRITEAU « RIEN N'EST ENVOYÉ » ═══ */
 .demo-toast{position:fixed;left:50%;bottom:96px;z-index:90;transform:translateX(-50%);max-width:calc(100% - 32px);

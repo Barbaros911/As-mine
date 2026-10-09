@@ -2279,11 +2279,9 @@ sur les deux questions posées : **« en attente, comme aujourd'hui »** et
 - **LE RETRAIT EST DEVENU GLOBAL LE 4 OCTOBRE 2026** (option A) : le client
   et le flyer `?h=` n'ouvrent plus WhatsApp non plus, ils disent où recevoir
   leur confirmation. `memoire/contact-client.md`.
-- **LE BOUTON RESTE SUR LE BON, ET CE N'EST PAS UN VESTIGE.** Si le dépôt
-  échoue, il redevient le SEUL chemin par lequel la demande peut nous
-  parvenir. **Le repli est sacré** — même règle que côté client. Le test
-  ne se contente pas de le voir : il **appuie dessus** et lit le lien qui
-  part, un bouton mort au bout d'un écran étant pire qu'un bouton absent.
+- **AU COMPTOIR, PLUS AUCUN BOUTON WHATSAPP DE SECOURS** (Barbaros : « ils
+  auront déjà mon numéro »). Si le dépôt échoue, l'écriteau rouge dit
+  d'APPELER et porte le numéro. Côté client, le repli reste sacré.
 - **SA PHRASE A CHANGÉ AVEC SON SUJET.** « Si WhatsApp ne s'est pas
   ouvert… » enverrait une réception chercher une application qui n'est
   jamais venue, et lui ferait croire sa réservation restée en route. Elle
@@ -4163,6 +4161,10 @@ statut `annulee` — est dans `memoire/reception.md`.
 - **« Une question ? » sur le bon : le numéro EN CLAIR, Appel, WhatsApp et
   Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
   boutons : au comptoir, le client lit l'écran du PC.
+- **Sur un ordinateur (large ET à la souris), aucun bouton WhatsApp à la
+  réception** (9/10/2026, Barbaros) — ni sur le bon, ni dans « Un imprévu ? » :
+  il n'ouvrirait que WhatsApp Web. La ligne écrite reste ; une tablette au
+  doigt garde le bouton. La réception n'a pas de barre du bas, ni sa place.
 - **Après une réservation au comptoir, « À dire au client » : « Votre
   réservation sera confirmée par Elatransfer. »** Il se tait si le dépôt
   échoue — l'écriteau rouge dit alors d'appeler.

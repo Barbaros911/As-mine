@@ -288,9 +288,15 @@ et verrouillés par un contrôle éprouvé contre l'ancien code.
   bornée au site public. Les 110 px de marge que la démo ajoutait pour
   compenser laissaient sur téléphone ~200 px de vide : retirés.
   `test-easyhotel-client` 5 bis, `test-demo-hotel` 6.
-- **« Prix fixes » au-dessus de cartes « à fixer »** : l'en-tête dit « Un prix
-  par destination » ; la consigne porte une flèche ↓, plus un chevron qui se
-  lisait comme un menu à déplier.
+- **« Prix fixes » au-dessus de cartes « à fixer »** : l'en-tête dit « Prix
+  par destination · Berline 4 places · Van 7 places », sur une ligne à 390 px ;
+  la consigne porte une flèche ↓, plus un chevron qui se lisait comme un menu
+  à déplier.
+- **La réception de la démo montrait une barre du bas** (Accueil, WhatsApp)
+  que la vraie n'a pas (`reception-premium`, dans `hotel-engine-polish.css`,
+  non chargé par la démo) : retirée. Et, à la demande de Barbaros (9/10), sur
+  un ordinateur (large ET à la souris) la réception — vraie et démo — n'a plus
+  aucun bouton WhatsApp ; une tablette au doigt le garde.
 
 ## Épreuves
 
