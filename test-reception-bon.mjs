@@ -87,6 +87,14 @@ try {
     /\+33 7 59 31 24 33/.test(await p.locator('.rec-aide').innerText()));
   const largeur = await p.evaluate(() => document.documentElement.scrollWidth);
   check('aucun débordement horizontal', largeur <= 1366, largeur + ' px');
+  /* SUR UN ORDINATEUR, PLUS DE WHATSAPP (9/10/2026, Barbaros) : sur le PC
+     d'un comptoir il n'ouvrirait que WhatsApp Web. La réception compose le
+     numéro écrit en clair. */
+  check('sur un PC, « Un imprévu ? » n\'a plus de bouton WhatsApp, le numéro reste',
+    await p.locator('#recAideWa').isHidden() && await p.locator('.rec-aide a[href^="tel:"]').isVisible());
+  const bas = await p.evaluate(() => ({ barre: [...document.querySelectorAll('nav.barre')].some(b => b.getBoundingClientRect().height > 0 && getComputedStyle(b).display !== 'none'),
+    reserve: getComputedStyle(document.body).paddingBottom }));
+  check('sur un PC, pas de barre du bas, ni de place réservée pour elle', !bas.barre && bas.reserve === '0px', JSON.stringify(bas));
 
   /* Le nom et le téléphone sur la carte : en noir et en gras, plus en gris. */
   const qui = await p.locator('.rec-qui').first().evaluate(e => {
@@ -116,9 +124,12 @@ try {
   check('le bon écrit le numéro d\'Elatransfer en clair, en gros',
     (await contact.locator('.ebon-contact-num').textContent().catch(() => '')) === '+33 7 59 31 24 33'
     && (await contact.locator('.ebon-contact-num').evaluate(e => parseFloat(getComputedStyle(e).fontSize)).catch(() => 0)) >= 20);
-  check('…avec Appeler ET WhatsApp, et dit que les deux marchent',
+  /* Sur le PC de la réception, le bouton WhatsApp du bon part ; la ligne
+     ÉCRITE reste : le client la lit et s'en sert depuis son téléphone. */
+  check('…avec Appeler en bouton ; sur un PC, WhatsApp n\'est plus un bouton mais reste écrit',
     (await contact.locator('a.ebon-canal.tel').getAttribute('href').catch(() => '')) === 'tel:+33759312433'
-    && (await contact.locator('a.ebon-canal.wa').getAttribute('href').catch(() => '')) === 'https://wa.me/33759312433'
+    && await contact.locator('a.ebon-canal.tel').isVisible()
+    && await contact.locator('a.ebon-canal.wa').isHidden()
     && /WhatsApp/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => '')));
   check('…et Telegram, l\'identifiant écrit en clair et le bouton',
     /Telegram @elatransfer/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => ''))
@@ -208,7 +219,41 @@ try {
     /easyHotel Aéroville, 10 rue de la Belle Borne$/m.test(await bonA.locator('.ebon-lignes').innerText().catch(() => ''))
     && !/\(ch\./.test(await bonA.textContent().catch(() => '')));
   check('le bon anglais existe aussi côté réception (libellés traduits)', libellesRec.length === libellesRecFr.length && libellesRec[0] !== libellesRecFr[0]);
+  /* Le retrait ne vaut que pour la RÉCEPTION : chez Barbaros, le même bon
+     garde son bouton WhatsApp. */
+  check('chez Barbaros, le bon garde son bouton WhatsApp (le retrait ne vise que la réception)',
+    await bonA.locator('a.ebon-canal.wa').isVisible().catch(() => false));
   await ctxA.close();
+
+  /* ---------------------------------------------------------------
+     1 bis. LA TABLETTE D'UN COMPTOIR, AU DOIGT, GARDE WHATSAPP
+     WhatsApp y fonctionne : « ordinateur » veut dire écran large ET souris.
+     --------------------------------------------------------------- */
+  const ctxT = await nav.newContext({ viewport:{ width:1024, height:768 }, isMobile:true, hasTouch:true, locale:'fr-FR', timezoneId:'Europe/Paris' });
+  await ctxT.route('**/*', r => {
+    const u = r.request().url();
+    if (u.startsWith(BASE)) return r.continue();
+    if (u.includes('/functions/v1/courses-hotel'))
+      return r.fulfill(J({ hotel:'easyhotel-aeroville', courses:LISTE, session:'s.sig', expire:Date.now() + 864e5 }));
+    return r.abort();
+  });
+  const t = await ctxT.newPage();
+  t.on('pageerror', e => erreurs.push('tablette: ' + e.message.split('\n')[0]));
+  await t.goto(BASE + '/reception/easyhotel-aeroville/', { waitUntil:'domcontentloaded' });
+  await t.waitForTimeout(700);
+  await t.fill('#recCode', 'code-de-test');
+  await t.click('#btnRecEntrer');
+  await t.waitForSelector('#recListe .rec-course', { timeout:8000 }).catch(() => {});
+  check('sur une tablette (au doigt), « Un imprévu ? » garde son bouton WhatsApp',
+    await t.locator('#recAideWa').isVisible() && /wa\.me/.test(await t.locator('#recAideWa').getAttribute('href')));
+  await t.locator('.rec-course').first().locator('button', { hasText:'Voir le bon' }).click({ timeout:3000 }).catch(() => {});
+  check('…et le bon garde son bouton WhatsApp', await t.locator('#bonClient a.ebon-canal.wa').isVisible().catch(() => false));
+  await t.keyboard.press('Escape');
+  /* La réception n'a pas de barre du bas (« reception-premium ») : elle ne
+     réserve donc plus 80 px de vide sous la page, sur aucun écran. */
+  check('la réception, sans barre, ne réserve plus de place vide sous la page',
+    await t.evaluate(() => getComputedStyle(document.body).paddingBottom) === '0px');
+  await ctxT.close();
 
   /* ---------------------------------------------------------------
      3. LES PAGES PUBLIQUES NE CHARGENT PAS CE BON

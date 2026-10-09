@@ -170,6 +170,25 @@ for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024]
   check('aucune seconde grille : deux prix par carte, pas un de plus', (await p.locator('[data-g]').count())===2*Object.keys(ATT).length);
   check('une carte par forfait de la source serveur', (await p.locator('.carte').count())===Object.keys(ATT).length);
   await ctx.close(); }
+// 5 bis. SUR ORDINATEUR, RIEN DE LA PAGE DU FLYER NE PASSE SOUS LA BARRE DU BAS
+// (recette du 8/10/2026). La façade retirait à TOUTES les pages, au-delà de
+// 900 px, la place réservée à la barre ; la page d'un hôtel la garde, et
+// « Prix annoncé à l'avance · Réglé au chauffeur » finissait dessous.
+for(const [w,h] of [[1024,768],[1280,800],[1366,768]]){
+  const {ctx,p}=await nouveau('fr-FR',w,h);
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'}); await p.waitForTimeout(1500);
+  const r=await p.evaluate(()=>{
+    document.documentElement.style.scrollBehavior='auto'; window.scrollTo(0,document.documentElement.scrollHeight);
+    const barre=[...document.querySelectorAll('nav.barre, .barre')].find(x=>getComputedStyle(x).display!=='none'&&x.getBoundingClientRect().height>0);
+    if(!barre) return {barre:false,dessous:[]};
+    const haut=barre.getBoundingClientRect().top;
+    const dessous=[...document.body.querySelectorAll('p, a, button, h2, h3, li, label')].filter(e=>{const q=e.getBoundingClientRect();
+      return q.height>0&&e.offsetParent&&!e.closest('nav.barre, .barre')&&getComputedStyle(e).position!=='fixed'&&q.bottom>haut+1&&q.top<innerHeight;})
+      .map(e=>e.tagName+' « '+e.textContent.trim().slice(0,30)+' »');
+    return {barre:true,dessous:dessous.slice(0,3)};});
+  check(`${w}×${h} : en bas de la page du flyer, rien ne passe sous la barre`, r.dessous.length===0, JSON.stringify(r));
+  await ctx.close();
+}
 // 6. CLIENT ET RÉCEPTION SONT DEUX DOCUMENTS DISTINCTS. L'ancienne URL
 //    ?reception= reste compatible, mais redirige vers l'espace Réception :
 //    elle ne transforme plus cette page client en comptoir.

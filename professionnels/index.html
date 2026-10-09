@@ -15,13 +15,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace réception, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences et entreprises"},"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
   <!-- LA PAGE DES PROFESSIONNELS — 8 octobre 2026, mission « Démo
-       professionnels », bloc 1. Mémoire : memoire/demo-pro-bloc1.md.
+       professionnels », bloc 1. Mémoire : memoire/demo-pro.md.
        Elle est autonome (styles et textes ici) : la page du site public
        porte le tunnel de réservation, celle-ci ne réserve rien.
        Vocabulaire : règles « LE POSITIONNEMENT » de CLAUDE.md — aucun mot
        abstrait, jamais « prix ferme », aucun chiffre ni délai promis.
        Le formulaire de démonstration (bloc 4) est dans #demo :
-       memoire/demo-pro-bloc4.md. -->
+       memoire/demo-pro.md, « Le formulaire ». -->
   <style>
     :root{
       --navy:#062f55; --navy-deep:#001f3b; --cyan:#20c4f4; --cyan-light:#6ee5ff;
@@ -140,7 +140,17 @@
     footer a{display:inline-block;margin:4px 8px;color:#fff;font-weight:700;}
     @media (max-width:900px){
       .moyens{grid-template-columns:1fr;}
-      .demo-grille{grid-template-columns:1fr;}
+      .demo-grille{grid-template-columns:1fr;row-gap:0;}
+      /* SUR UNE COLONNE, LE FORMULAIRE PASSE AVANT « Vous préférez nous
+         parler ? » (recette du 8/10/2026). Empilés dans l'ordre du code, le
+         téléphone, WhatsApp et l'e-mail arrivaient AVANT le formulaire : le
+         directeur qui touche « Voir la démo hôtel » tombait sur trois liens,
+         et le formulaire commençait 467 px plus bas. Les liens restent
+         juste dessous, comme sur ordinateur à côté. Le texte du bloc devient
+         une suite d'éléments de la grille pour pouvoir être réordonné. */
+      .demo-grille > div:first-child{display:contents;}
+      .demo-grille > .formulaire,.demo-grille > .reprise{margin-top:24px;}
+      .demo-autres{order:1;}
     }
     @media (max-width:420px){
       .duo{grid-template-columns:1fr;}
@@ -429,7 +439,7 @@
   </script>
   <script src="/telephone.js"></script>
   <script>
-  /* LE FORMULAIRE DE DÉMONSTRATION — bloc 4 (memoire/demo-pro-bloc4.md).
+  /* LE FORMULAIRE DE DÉMONSTRATION — bloc 4 (memoire/demo-pro.md).
      Il appelle la fonction demande-demo (« demander »), garde la session
      sur l'appareil et ouvre /demo/hotel/. Aucune clé Supabase ici : la
      fonction est la seule porte, et elle refuse toute autre origine.

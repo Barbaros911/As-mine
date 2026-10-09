@@ -121,7 +121,10 @@ check('le pied de l\'accueil mène aux informations légales',
 check('les trois documents y sont',
   (await p.locator('.legal-lien').count())===3,
   String(await p.locator('.legal-lien').count()));
-const tel = await p.locator('.pied-tel').getAttribute('href');
+/* Le pied porte aussi l'e-mail, habillé de la même classe (« pied-tel
+   pied-mail », audit éditorial d'octobre 2026) : on vise le lien du NUMÉRO,
+   et on exige toujours son « tel: » exact. */
+const tel = await p.locator('#ecran-accueil .pied-tel:not(.pied-mail)').getAttribute('href');
 check('et le numéro est appelable depuis l\'accueil', tel==='tel:+33759312433', tel);
 
 // --- Une réservation, puis on la retrouve ---

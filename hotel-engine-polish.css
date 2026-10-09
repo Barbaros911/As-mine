@@ -321,6 +321,10 @@ body.hotel.reception-premium #ecran-accueil .reserver > .rassure,
 body.hotel.reception-premium #ecran-accueil .etapes-ligne,
 body.hotel.reception-premium #blocPaiement [data-t="paiement_note"]{display:none!important}
 body.hotel.reception-premium .page{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
+/* Sans barre, plus de place réservée pour elle sous la page (9/10/2026) : la
+   règle générale du site garde 80 px pour la barre du bas, et la réception,
+   qui n'en a pas, finissait sur 80 px de vide. */
+body.hotel.reception-premium{padding-bottom:0!important}
 body.hotel.reception-premium #btnBonVersReception{margin-bottom:10px}
 body.hotel.reception-premium .reception-action{
   display:flex!important;align-items:center!important;gap:12px!important;width:100%!important;min-height:76px!important;
