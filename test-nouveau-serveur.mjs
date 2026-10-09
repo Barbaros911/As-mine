@@ -33,7 +33,7 @@ const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
-async function reserver(serveurRepond, sansPush, cachee){
+async function reserver(serveurRepond, sansPush, cachee, doubleClic){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
@@ -139,7 +139,10 @@ async function reserver(serveurRepond, sansPush, cachee){
   await p.locator('[data-paiement="especes"]').click();
   /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
   await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
-  await p.locator('#btnConfirmer').click();
+  /* « doubleClic » : deux clics coup sur coup, comme un pouce pressé — voir
+     le bloc « LE DOUBLE CLIC NE DÉPOSE QU'UNE FOIS » en fin de suite. */
+  if(doubleClic) await p.locator('#btnConfirmer').dblclick();
+  else await p.locator('#btnConfirmer').click();
   return { p, ctx, depots };
 }
 
@@ -761,7 +764,26 @@ for(const cas of [
   await c.close();
 }
 
+/* ═══ LE DOUBLE CLIC NE DÉPOSE QU'UNE FOIS (audit du 9 octobre 2026) ═══
+   Le bouton « Confirmer » n'a aucune garde explicite : ce qui le protège,
+   c'est que le gestionnaire change d'écran de façon SYNCHRONE — le bouton a
+   disparu sous le doigt avant que le second clic ne soit délivré, et celui-ci
+   tombe sur le bon. À l'audit c'était une déduction ; ici on le MESURE : un
+   second dépôt porterait une seconde référence tirée au sort, c'est-à-dire
+   une réservation en double chez Barbaros. Si un jour l'écran se met à
+   changer avec un délai (animation, attente du serveur), ce contrôle tombe
+   avant un client. */
+{
+  const r = await reserver(true, false, false, true);
+  await r.p.waitForTimeout(1200);
+  check('un double clic sur « Confirmer » ne dépose qu\'une seule demande', r.depots.length===1, r.depots.length+' dépôt(s)');
+  const courses = await r.p.evaluate(()=>{ try{ return JSON.parse(localStorage.getItem('ela_courses')||'[]').length; }catch(e){ return -1; } });
+  check('et ne garde qu\'une seule course sur l\'appareil', courses===1, courses+' course(s)');
+  check('le bon est affiché après le double clic', await r.p.locator('#ecran-bon').isVisible());
+  await r.ctx.close();
+}
 await b.close();
+
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}
 if(errs.length){console.log('\n=== ERREURS JS ==='); [...new Set(errs)].forEach(e=>console.log('  ! '+e));}

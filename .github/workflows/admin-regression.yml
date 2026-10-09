@@ -5,53 +5,18 @@ name: Contrôle de l'admin retenu
 # l'admin retenu (le tableau de bord, la clôture, la synchronisation, le mode
 # sans réseau) ne tournaient qu'à la main, donc pas du tout le jour où l'on
 # oublie : une régression partait en ligne sans que rien ne tombe.
+# SUR TOUTES LES PULL REQUESTS, SANS FILTRE DE CHEMINS (audit du 9 octobre
+# 2026). Ce contrôle est celui qui doit INTERDIRE la fusion quand une suite
+# est rouge — or GitHub ne peut exiger qu'un contrôle qui tourne à chaque
+# PR : filtré par chemins, il n'est pas lancé sur une PR qui ne touche pas
+# ses motifs, et une exigence « admin » bloquerait alors la fusion pour
+# toujours (« Expected — waiting for status »). Il y avait ici une liste de
+# motifs, plus longue à chaque bloc ; elle tombait de toute façon dès qu'un
+# fichier était oublié. Le prix : 20 à 25 minutes par PR, y compris une PR
+# de documentation. Pour une publication qui engage un prix ferme, c'est le
+# bon prix.
 on:
   pull_request:
-    # DES MOTIFS, PAS UNE LISTE DE FICHIERS : une liste survit au fichier
-    # qu'on ajoute (même leçon que le filtre d'Admin v2 et que la barre du
-    # bas figée sur quatre onglets).
-    paths:
-      - 'index.html'
-      - 'sw.js'
-      - 'construire.sh'
-      - 'telephone.js'
-      - 'bon-client.js'
-      - 'intake-demande.js'
-      - 'qr-affiche.js'
-      - 'itineraire-partage.js'
-      - 'admin-sante.js'
-      - 'pilotage.js'
-      - 'pilotage-ecran.js'
-      - 'pilotage.css'
-      - 'prospects.js'
-      - 'prospects.css'
-      - 'test-chien-de-garde.mjs'
-      # La mesure du voyant vit dans une migration : la modifier seule doit
-      # relancer test-chien-de-garde, qui la compare au chien de garde.
-      - 'supabase/migrations/**'
-      - '.github/scripts/**'
-      - 'test-admin-*.mjs'
-      - 'test-nouveau-*.mjs'
-      - 'test-securite-fonctions.mjs'
-      # Les fonctions qu'elle éprouve (demande-demo, deposer-course…) : sans
-      # ce motif, changer une fonction seule ne relançait pas son épreuve.
-      - 'supabase/functions/**'
-      - 'test-relance-alertes.mjs'
-      # Le cloisonnement des quatre espaces (Public, Client hôtel, Réception,
-      # Admin) se prouve sur le site CONSTRUIT : ce qui le fabrique doit
-      # relancer l'épreuve.
-      - 'test-cloisonnement-hotel.mjs'
-      - 'test-reception-*.mjs'
-      - 'test-easyhotel-client.mjs'
-      - 'hotel-engine-polish.*'
-      # Le site public se dessine dans la façade (Bloc 3, 7 octobre 2026) : une
-      # feuille qui change seule doit relancer les suites qui la mesurent.
-      - 'application-facade.css'
-      - 'test-public-*.mjs'
-      - 'sites/**'
-      - '*.webmanifest'
-      - 'supabase/functions/**'
-      - '.github/workflows/admin-regression.yml'
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
@@ -106,6 +71,12 @@ jobs:
           # sans que rien ne tombe. Toute suite « test-public-* » est prise.
           for f in test-public-*.mjs; do suites="$suites ${f%.mjs}"; done
           suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel test-nouveau-reception test-easyhotel-client"
+          # LES SUITES QUI GARDENT LE PRIX ET LE TUNNEL (audit du 9 octobre 2026) :
+          # elles ne tournaient qu'en local, donc pas du tout le jour où l'on
+          # oublie. Le prix est ferme donc opposable ; ce qui le calcule et ce
+          # qui le lit sur le serveur doit tourner avant la fusion. Toutes
+          # vertes en local le 9/10 avant d'entrer ici.
+          suites="$suites test-nouveau-prix test-nouveau-hotel test-nouveau-confirmation test-nouveau-bon test-nouveau-itineraire test-tarifs-serveur test-demo-hotel test-pro-page test-pro-formulaire"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

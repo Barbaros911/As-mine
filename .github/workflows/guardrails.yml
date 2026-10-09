@@ -18,6 +18,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      # UN FICHIER « CACHE D'ABORD » NE CHANGE PAS SANS INCRÉMENT DE CACHE
+      # (audit du 9 octobre 2026). sw.js garde telephone.js, itineraire-
+      # partage.js, bon-client.js, intake-demande.js, les icônes… jusqu'au
+      # prochain changement de version : sans incrément, un téléphone qui a
+      # installé l'application reçoit le nouveau index.html avec les anciens
+      # scripts, et plus aucune demande ne part pour lui. Le script lit la
+      # liste dans sw.js lui-même — jamais une liste recopiée ici.
+      - name: Fichiers « cache d'abord » du service worker modifiés sans incrément de CACHE
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          TETE: ${{ github.event.pull_request.head.sha }}
+        run: node .github/scripts/verifier-cache-sw.mjs "$BASE" "$TETE"
+
       - name: Reject committed private material
         shell: bash
         run: |

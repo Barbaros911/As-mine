@@ -70,7 +70,41 @@ async function exploitant(req: Request): Promise<boolean> {
   } catch (_e) { return false; }
 }
 
+/* ═══ LE PRÉFLIGHT CORS (audit du 9 octobre 2026, P2) ═══
+   L'admin appelle cette fonction depuis elatransfer.com vers *.supabase.co
+   avec « Authorization », « apikey » et un corps JSON : le navigateur envoie
+   d'abord une requête OPTIONS, et n'envoie le POST que si la réponse porte
+   les en-têtes Access-Control-*. La fonction répondait « 405 méthode
+   refusée », sans ces en-têtes : le POST ne partait JAMAIS, et l'appel
+   détaché de la page avalait l'erreur. La notification « Transfert
+   confirmé » n'arrivait donc à aucun client, en silence — et aucune suite
+   ne pouvait le voir : un faux serveur de test répond lui-même au
+   préflight. Les six autres fonctions appelées par un navigateur traitaient
+   OPTIONS ; celle-ci était la seule à l'oublier.
+   Seules les origines du site sont acceptées : les mêmes que pour le lien. */
+function corsPour(origin: string): Record<string, string> {
+  return ORIGINES.has(origin) ? { "Access-Control-Allow-Origin": origin, "Vary": "Origin" } : {};
+}
+
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("origin") ?? "";
+  if (req.method === "OPTIONS") {
+    if (!ORIGINES.has(origin)) return new Response(null, { status: 403 });
+    return new Response(null, { status: 204, headers: {
+      ...corsPour(origin),
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+      "Access-Control-Max-Age": "600",
+    } });
+  }
+  const reponse = await traiter(req);
+  /* Les en-têtes CORS sur la réponse aussi : sans eux, le navigateur la
+     jette, et la page ne saurait jamais combien de notifications sont parties. */
+  for (const [k, v] of Object.entries(corsPour(origin))) reponse.headers.set(k, v);
+  return reponse;
+});
+
+async function traiter(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response("méthode refusée", { status: 405 });
   }
@@ -156,4 +190,4 @@ Deno.serve(async (req: Request) => {
 
   return new Response(JSON.stringify({ envoyes, abonnes: lignes.length, retires: perimes.length }),
     { headers: { "Content-Type": "application/json" } });
-});
+}

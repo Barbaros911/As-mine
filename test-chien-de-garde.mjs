@@ -19,11 +19,24 @@ check('Telegram : que des échecs depuis une heure : il aboie', /Telegram/.test(
 check('réponse illisible : il aboie plutôt que de se taire', !juger(null).ok && !juger('x').ok);
 check('les nombres arrivent parfois en texte : il les lit', !juger({ ...sain, sans_alerte: '2' }).ok && juger({ ...sain, derniere_relance_s: '30' }).ok);
 
+/* LES DÉPÔTS REFUSÉS (audit du 9 octobre 2026) : clés FACULTATIVES — un
+   serveur d'avant la migration 20261009000000 ne les rend pas, et le voyant
+   ne passe pas au gris pour autant. Un dépôt en échec serveur (5xx) est une
+   panne dès le premier ; le plafond (429) à partir de trois ; les autres
+   refus à partir de dix. Contre l'ancien juge, les trois « il aboie » tombent. */
+check('dépôts refusés : clés absentes (serveur d\'avant la migration) : il se tait', juger(sain).ok);
+check('dépôts refusés : zéro partout : il se tait', juger({ ...sain, depots_indisponibles_1h: 0, depots_quota_1h: 0, depots_refuses_1h: 0 }).ok);
+check('un dépôt en échec serveur (5xx) : il aboie et le dit', /dépôt/.test(juger({ ...sain, depots_indisponibles_1h: 1, depots_quota_1h: 0, depots_refuses_1h: 0 }).pannes.join(' ')));
+check('deux refus par le plafond : rien ; trois : il aboie', juger({ ...sain, depots_quota_1h: 2 }).ok && /plafond/.test(juger({ ...sain, depots_quota_1h: 3 }).pannes.join(' ')));
+check('neuf refus divers : rien ; dix : il aboie', juger({ ...sain, depots_refuses_1h: 9 }).ok && !juger({ ...sain, depots_refuses_1h: 10 }).ok);
+check('dépôts refusés : les nombres en texte sont lus aussi', !juger({ ...sain, depots_indisponibles_1h: '1' }).ok);
+
 /* LE VOYANT DE L'ADMIN (4 octobre 2026) juge avec le même fichier : il lit
    la phrase SIMPLE de chaque panne, celle qu'on comprend la nuit sur un
    téléphone. Une panne sans phrase simple laisserait un bandeau rouge muet. */
 for (const [nom, m] of [['demande sans alerte', { ...sain, sans_alerte: 1 }], ['relance arrêtée', { ...sain, relance_active: false }],
                         ['relance muette', { ...sain, derniere_relance_s: 1200 }], ['Telegram', { ...sain, telegram_echecs_1h: 2, telegram_ok_1h: 0 }],
+                        ['dépôt en échec serveur', { ...sain, depots_indisponibles_1h: 1 }], ['plafond atteint', { ...sain, depots_quota_1h: 3 }],
                         ['réponse illisible', null]]) {
   const v = juger(m);
   check(`${nom} : chaque panne a sa phrase simple pour l'admin`, Array.isArray(v.simples) && v.simples.length === v.pannes.length && v.simples.every(x => typeof x === 'string' && x.length > 10), JSON.stringify(v.simples));

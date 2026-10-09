@@ -42,8 +42,11 @@ insert into cron.job_run_details(jobid, status, start_time, end_time)
 do $$
 declare m json := public.ela_sante_alertes();
 begin
-  if (select count(*) from json_object_keys(m)) is distinct from 7::bigint then
-    raise exception 'la fonction ne rend pas les sept mesures : %', m; end if;
+  if (select count(*) from json_object_keys(m)) is distinct from 10::bigint then
+    raise exception 'la fonction ne rend pas les dix mesures (sept d''origine + trois sur les depots refuses) : %', m; end if;
+  if (m->>'depots_indisponibles_1h')::int is distinct from 0 or (m->>'depots_quota_1h')::int is distinct from 0
+     or (m->>'depots_refuses_1h')::int is distinct from 0 then
+    raise exception 'depots refuses faux a vide : %', m; end if;
   if (m->>'sans_alerte')::int is distinct from 0 then raise exception 'sans_alerte faux a vide : %', m; end if;
   if (m->>'relance_active')::boolean is distinct from true then raise exception 'relance non lue : %', m; end if;
   if (m->>'derniere_relance_s') is null or (m->>'derniere_relance_s')::numeric not between 5 and 60 then
@@ -133,6 +136,54 @@ begin
   m := public.ela_sante_alertes();
   if (m->>'relance_active')::boolean is distinct from false then raise exception 'relance absente non vue : %', m; end if;
   if (m->>'derniere_relance_s') is not null then raise exception 'relance absente : aucun passage attendu : %', m; end if;
+end $$;
+
+-- 8. LE JOURNAL DES DEPOTS REFUSES (9 octobre 2026, migration 20261009000000).
+--    Un anonyme n'y lit ni n'y ecrit rien ; un exploitant lit, n'ecrit pas ;
+--    la mesure compte sur une heure, par famille : serveur indisponible
+--    (5xx), plafond (429), autres refus (4xx) — une ligne de plus d'une heure
+--    n'est pas comptee.
+do $$
+begin
+  if has_table_privilege('anon', 'public.journal_depots', 'select')
+     or has_table_privilege('anon', 'public.journal_depots', 'insert') then
+    raise exception 'anon a un droit sur journal_depots'; end if;
+  if not has_table_privilege('authenticated', 'public.journal_depots', 'select') then
+    raise exception 'un exploitant ne peut pas lire journal_depots'; end if;
+  if has_table_privilege('authenticated', 'public.journal_depots', 'insert')
+     or has_table_privilege('authenticated', 'public.journal_depots', 'update')
+     or has_table_privilege('authenticated', 'public.journal_depots', 'delete') then
+    raise exception 'authenticated peut ecrire journal_depots'; end if;
+  if (select count(*) from pg_policies where tablename = 'journal_depots' and cmd = 'SELECT') is distinct from 1::bigint then
+    raise exception 'la policy de lecture de journal_depots manque ou est en double'; end if;
+end $$;
+insert into public.journal_depots(ref, code, motif, provenance_cle, cree_le) values
+ ('ELA-26-10-JD1AA', 503, 'indisponible', null, now() - interval '5 minutes'),    -- comptee (5xx)
+ ('ELA-26-10-JD2BB', 503, 'indisponible', null, now() - interval '2 hours'),      -- trop ancienne
+ ('ELA-26-10-JD3CC', 429, 'quota', 'easyhotel-aeroville', now() - interval '1 minute'), -- plafond
+ (null,              400, 'invalide', null, now() - interval '30 minutes'),       -- refus 4xx
+ ('ELA-26-10-JD5EE', 401, 'session', 'easyhotel-aeroville', now() - interval '3 minutes'); -- refus 4xx
+do $$
+declare m json := public.ela_sante_alertes();
+begin
+  if (m->>'depots_indisponibles_1h')::int is distinct from 1 then
+    raise exception 'depots_indisponibles_1h devrait etre 1 (la ligne de 2 h est hors fenetre) : %', m; end if;
+  if (m->>'depots_quota_1h')::int is distinct from 1 then
+    raise exception 'depots_quota_1h devrait etre 1 : %', m; end if;
+  if (m->>'depots_refuses_1h')::int is distinct from 2 then
+    raise exception 'depots_refuses_1h devrait etre 2 (400 et 401, pas le 429 ni le 503) : %', m; end if;
+end $$;
+-- Les contraintes : un code hors HTTP ou un motif hors liste est refuse.
+do $$
+declare erreur text := '';
+begin
+  begin insert into public.journal_depots(code, motif) values (200, 'invalide');
+  exception when others then erreur := sqlstate; end;
+  if erreur is distinct from '23514' then raise exception 'un code 200 devrait etre refuse (recu %)', erreur; end if;
+  erreur := '';
+  begin insert into public.journal_depots(code, motif) values (400, 'autre');
+  exception when others then erreur := sqlstate; end;
+  if erreur is distinct from '23514' then raise exception 'un motif hors liste devrait etre refuse (recu %)', erreur; end if;
 end $$;
 
 select 'sante-alertes : toutes les epreuves passent' as resultat;
