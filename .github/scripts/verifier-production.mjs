@@ -12,7 +12,7 @@
    passer la panne. C'est aussi ce qui le rend éprouvable depuis une
    machine sans réseau : on le fait tourner contre `site/`.
 
-   CE QU'IL ÉPROUVE, ET POURQUOI CES QUATRE-LÀ :
+   CE QU'IL ÉPROUVE, ET POURQUOI CES CINQ-LÀ :
 
    1. LES PAGES CRITIQUES RÉPONDENT. Le site a dix portes d'entrée et
       une seule est sur la page d'accueil. Une redirection cassée ne se
@@ -36,6 +36,10 @@
    4. CE QUI PERMET DE RÉSERVER EST BIEN LÀ. Deux adresses et le bouton
       « Voir mon prix ». Sans eux la page est en ligne et ne sert à rien
       — et c'est exactement ce qu'un contrôle de code HTTP ne voit pas.
+
+   5. LA DÉMO DES PROFESSIONNELS RESTE FERMÉE. Sans session, elle renvoie
+      au formulaire et n'appelle pas le serveur. On n'exige JAMAIS qu'elle
+      s'ouvre : c'est le serveur qui en décide, sur une session.
 
    Lancer :
      node .github/scripts/verifier-production.mjs https://elatransfer.com/
@@ -61,7 +65,8 @@ const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[
    par code passait.
    `demos/` éprouve en plus la résolution d'un DOSSIER, qui est un
    mécanisme de service différent d'un fichier exact. */
-/* DIX PORTES DEPUIS LE 2 OCTOBRE 2026. Les cinq ajoutées sont celles que
+/* DIX PORTES DEPUIS LE 2 OCTOBRE 2026, TREIZE DEPUIS LE 8 OCTOBRE (la démo des
+   professionnels, en fin de liste). Les cinq ajoutées sont celles que
    la vérification d'avant lancement a trouvées sans surveillance : le
    tunnel visé par les cartes du flyer, l'admin où mène admin.html, la page
    du QR easyHotel, et la réception sous ses DEUX adresses — la nouvelle
@@ -91,7 +96,28 @@ const PAGES = [
   { chemin: "easyhotel-reception/", quoi: "la r\u00e9ception easyHotel (ancienne adresse, ic\u00f4nes d\u00e9j\u00e0 pos\u00e9es)", titre: "R\u00e9ception easyHotel" },
   { chemin: "reception/easyhotel-aeroville/", quoi: "la r\u00e9ception easyHotel (adresse propre)", titre: "R\u00e9ception easyHotel" },
   { chemin: "demos/", quoi: "la galerie (r\u00e9solution de dossier)", titre: "D\u00e9monstrations" },
+  /* LA DÉMO DES PROFESSIONNELS (8 octobre 2026). La page de vente doit
+     rester dans Google ; la démo n'y doit jamais entrer, et elle doit
+     arriver FERMÉE — c'est le serveur qui l'ouvre, sur une session. On ne
+     vérifie donc jamais qu'elle s'ouvre : seulement qu'elle est servie,
+     masquée et hors de Google. Le titre de la page pro contient la marque,
+     comme celui de l'accueil : c'est son adresse canonique qui dit qu'on
+     n'a pas reçu l'accueil à sa place (le piège de `/demos/`). */
+  { chemin: "professionnels/", quoi: "la page des professionnels", titre: "Elatransfer",
+    marqueur: 'href="https://elatransfer.com/professionnels/"', robots: "index" },
+  { chemin: "demo/hotel/", quoi: "la d\u00e9mo h\u00f4tel (vue client)", titre: "D\u00e9monstration", espace: "demo",
+    marqueur: "html.demo-attente body{visibility:hidden}", robots: "noindex" },
+  { chemin: "demo/hotel/reception/", quoi: "la d\u00e9mo h\u00f4tel (vue r\u00e9ception)", titre: "D\u00e9monstration", espace: "demo",
+    marqueur: "html.demo-attente body{visibility:hidden}", robots: "noindex" },
 ];
+
+/* La balise robots lue comme le ferait Google : `noindex` dans le contenu
+   de la balise <meta name="robots">, ou dans l'en-tête X-Robots-Tag
+   (Cloudflare le pose sur /demo/*). Absente = indexable. */
+function indexable(html, entete) {
+  const balises = [...html.matchAll(/<meta[^>]+name=["']robots["'][^>]*>/gi)].map((m) => m[0]);
+  return !/noindex/i.test(balises.join(" ") + " " + (entete || ""));
+}
 
 /* Ce sans quoi on ne peut pas réserver. On vise des RÔLES stables, pas
    des libellés : un libellé se reformule, un champ de départ non. */
@@ -121,8 +147,14 @@ for (const p of PAGES) {
     const titre = (html.match(/<title>([^<]*)<\/title>/i) || [, ""])[1];
     const espace = (html.match(/data-ela-space="([^"]*)"/i) || [, ""])[1];
     if (p.espace && espace !== p.espace) ko(`${p.quoi} (${url}) r\u00e9pond ${r.status} mais sert une AUTRE page \u2014 espace lu : \u00ab ${espace || "(aucun)"} \u00bb`);
-    else if (titre.includes(p.titre)) ok(`${p.quoi} \u2014 ${r.status}, c'est bien la bonne page`);
-    else ko(`${p.quoi} (${url}) r\u00e9pond ${r.status} mais sert une AUTRE page \u2014 titre lu : \u00ab ${titre.trim() || "(aucun)"} \u00bb`);
+    else if (!titre.includes(p.titre)) ko(`${p.quoi} (${url}) r\u00e9pond ${r.status} mais sert une AUTRE page \u2014 titre lu : \u00ab ${titre.trim() || "(aucun)"} \u00bb`);
+    else if (p.marqueur && !html.includes(p.marqueur)) ko(`${p.quoi} (${url}) r\u00e9pond ${r.status} mais sert une AUTRE page \u2014 il y manque \u00ab ${p.marqueur} \u00bb`);
+    else ok(`${p.quoi} \u2014 ${r.status}, c'est bien la bonne page`);
+    if (p.robots) {
+      const lu = indexable(html, r.headers.get("x-robots-tag")) ? "index" : "noindex";
+      if (lu === p.robots) ok(`${p.quoi} \u2014 ${p.robots === "index" ? "indexable par Google" : "hors de Google (noindex)"}`);
+      else ko(`${p.quoi} (${url}) est ${lu === "index" ? "INDEXABLE alors qu'elle ne doit pas sortir dans Google" : "en NOINDEX alors qu'elle doit sortir dans Google"}`);
+    }
   } catch (e) {
     ko(`${p.quoi} (${url}) injoignable : ${e.message}`);
   }
@@ -188,6 +220,29 @@ if (ouverte) {
   if (trop > 1) ko(`la page déborde de ${trop} px à 390 px`);
   else ok("aucun débordement horizontal à 390 px");
 }
+
+/* ---- 5. La démo reste fermée sans session ---------------------------
+   Un visiteur qui arrive sur /demo/hotel/ sans avoir rempli le formulaire
+   doit être renvoyé à /professionnels/#demo, sans jamais voir la démo et
+   sans que la page appelle le serveur (sans session, il n'y a rien à
+   demander). Le contexte est neuf : aucun stockage, donc aucune session. */
+console.log("\nLa démo, ouverte sans session :");
+const ctxDemo = await navigateur.newContext({ viewport: { width: 390, height: 844 }, locale: "fr-FR" });
+const pDemo = await ctxDemo.newPage();
+const appelsDemo = [];
+pDemo.on("request", (r) => { if (/supabase\.co/i.test(r.url())) appelsDemo.push(r.url()); });
+try {
+  await pDemo.goto(BASE + "demo/hotel/", { waitUntil: "domcontentloaded", timeout: 30000 });
+  await pDemo.waitForURL((u) => new URL(u).pathname.startsWith(new URL(BASE).pathname + "professionnels/"), { timeout: 10000 });
+  ok("sans session, la démo renvoie au formulaire des professionnels");
+} catch (e) {
+  const ou = pDemo.url();
+  const visible = await pDemo.evaluate(() => !document.documentElement.classList.contains("demo-attente")).catch(() => null);
+  ko(`sans session, la démo ne renvoie pas au formulaire \u2014 adresse finale : ${ou}${visible ? " (et la page est AFFICHÉE)" : ""}`);
+}
+if (appelsDemo.length) ko(`sans session, la démo a appelé le serveur : ${appelsDemo[0]}`);
+else ok("sans session, la démo n'appelle pas le serveur");
+await ctxDemo.close();
 
 await navigateur.close();
 

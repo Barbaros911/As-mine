@@ -457,12 +457,13 @@ img{display:block;max-width:100%;}
   margin-bottom:14px;background:var(--accent-clair);}
 .info-douce b{display:block;font-size:13px;color:var(--accent-encre);}
 .info-douce p{margin:4px 0 0;font-size:12px;color:var(--encre);line-height:1.4;}
-/* « Maintenant » / « Programmer » : des liens, pas des boutons pleins — le
-   choix ne doit coûter aucune hauteur au formulaire. La zone d'appui est
-   agrandie par la marge négative, au-dessus du sélecteur de date étiré. */
-.titre-date{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;}
+/* « Programmer » : un lien, pas un bouton plein — il ne doit coûter aucune
+   hauteur à l'encadré « Dès que possible ». La zone d'appui est agrandie par
+   la marge négative. (« Maintenant », son pendant dans la case Date, est
+   retiré depuis le 8 octobre 2026 : la case ne porte plus que son titre.) */
+.titre-date{display:flex;align-items:center;min-width:0;}
 .titre-date > span{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.lien-maintenant{position:relative;z-index:2;border:0;background:none;color:var(--accent);
+.lien-quand{position:relative;z-index:2;border:0;background:none;color:var(--accent);
   font:inherit;font-size:11.5px;font-weight:800;padding:9px 0 9px 6px;margin:-9px 0 -9px -6px;cursor:pointer;color:var(--ela-blue,var(--accent));
   text-decoration:underline;text-underline-offset:2px;white-space:nowrap;}
 .asap-boite{margin-bottom:10px;min-height:68px;border-color:var(--accent);background:var(--accent-clair);}
@@ -706,7 +707,15 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    `margin-right:auto` la garde contre la référence et laisse le prix au
    bout ; un nom long se coupe, il ne repousse pas le prix. */
 .d-ch,.d-ch-manque{margin-right:auto;font-size:12px;white-space:nowrap;}
-.d-ch{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
+.d-ch{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;
+  flex:1 1 0;}
+/* « flex:1 1 0 » : LE NOM NE PREND QUE LA PLACE QUI RESTE (8 octobre 2026,
+   mesuré à 390 px tout juste, où la règle « sous 390 px » ne joue plus).
+   Avec la taille par défaut, nom, référence et prix rétrécissaient ensemble :
+   la référence se coupait à ses tirets et le prix à son espace (« 185,00 » /
+   « € ») pendant que le nom gardait de la place. Figer la référence et le
+   prix ne valait pas mieux : sans chauffeur, une carte en attente déborde
+   alors à 320 px. C'est au nom seul de céder. */
 .d-ch-manque{flex:none;padding:1px 8px;border-radius:999px;
   background:#FEF3C7;color:#92400E;font-weight:700;}
 /* SOUS 390 px, LE CHAUFFEUR PASSE SOUS LA RÉFÉRENCE (relecture du 4 octobre
@@ -1228,10 +1237,19 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .admin-point{width:6px;height:6px;border-radius:50%;background:#8a97a3;}
 .admin-etat.ok .admin-point{background:var(--accent-vif);}
 /* Le voyant des alertes, sous l'état du serveur : sa propre ligne. */
-.admin-alertes{display:flex;width:max-content;min-width:11em;}
-/* « min-width » : la ligne garde la largeur de son état le plus long
-   (« Alertes : non vérifiées »). Sans elle, l'avatar et le nom sautaient
-   de 19 px à chaque changement d'état, sur téléphone. */
+.admin-alertes{display:flex;width:max-content;}
+/* La ligne garde la largeur de son état le plus long (« Alertes : non
+   vérifiées », en gras — le gras de la panne est la graisse la plus large).
+   Sans elle, l'avatar et le nom sautaient à chaque changement d'état, sur
+   téléphone. ON NE DEVINE PLUS CETTE LARGEUR EN « em » : « min-width:11em »
+   valait 115 px, et le texte en a fait 119 le jour où l'admin a changé de
+   police — l'avatar sautait de nouveau de 4 px (8 octobre 2026, mesuré).
+   Le texte le plus long est posé, invisible et sans hauteur, dans la même
+   colonne que le vrai : c'est lui qui donne la largeur, dans la police du
+   moment. */
+#adminAlertesTexte{display:inline-flex;flex-direction:column;}
+#adminAlertesTexte::after{content:"Alertes : non vérifiées";font-weight:700;
+  height:0;overflow:hidden;visibility:hidden;}
 .admin-alertes.ko{color:#fca5a5;font-weight:700;}
 .admin-alertes.ko .admin-point{background:#f87171;}
 .admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;
@@ -2039,6 +2057,23 @@ body:not(.reception) .hotel-acces{display:none;}
    téléphone du client ; il ne vaut pas ici. */
 body.reception .onglet[data-onglet="courses"],
 body.reception .onglet[data-onglet="trajets"]{display:none;}
+
+/* ═══ SUR UN ORDINATEUR, LA RÉCEPTION N'A PLUS DE WHATSAPP ═══
+   9 octobre 2026, Barbaros : « retire le WhatsApp de l'écran ordinateur pour
+   la réception ». Sur le PC d'un comptoir, WhatsApp n'ouvre au mieux que
+   WhatsApp Web, qui réclame le téléphone de quelqu'un : la réception
+   décroche et compose le numéro, écrit en clair dans « Un imprévu ? ».
+   « ORDINATEUR » = un écran large ET piloté à la souris : une tablette de
+   comptoir, au doigt, garde WhatsApp, qui y fonctionne.
+   Deux boutons partent : celui d'« Un imprévu ? » et celui du bon (« Une
+   question ? »). La LIGNE ÉCRITE du bon (« Appel, WhatsApp — Telegram »)
+   reste : le client la lit sur l'écran et s'en sert depuis son téléphone.
+   L'onglet WhatsApp de la barre n'est pas à retirer ici : la réception n'a
+   déjà plus de barre (« reception-premium », hotel-engine-polish.css). */
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  body.reception #recAideWa,
+  body.reception .ebon-canal.wa{display:none;}
+}
 
 .hotel-forfait{margin:6px 2px 14px;font-size:13px;font-weight:700;
   color:var(--accent-encre);}
@@ -2848,7 +2883,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <b class="asap-titre" data-t="asap_libelle">Dès que possible</b>
         <span class="asap-note" id="noteAsap" hidden></span>
       </span>
-      <button class="lien-maintenant" type="button" id="btnQuandProg" aria-pressed="true" data-t="quand_prog">Programmer</button>
+      <button class="lien-quand" type="button" id="btnQuandProg" aria-pressed="true" data-t="quand_prog">Programmer</button>
     </div>
 
     <div class="duo" id="blocDateHeure">
@@ -5817,7 +5852,7 @@ window.ELA_TEXTES = {
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
     longue_note:"Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
-    quand_aria:"Quand partir ?", quand_asap:"Dès que possible", quand_asap_court:"Maintenant", quand_prog:"Programmer",
+    quand_prog:"Programmer",
     asap_note:"Soumise à disponibilité, sans délai garanti.",
     asap_nuit:"Réponse plus lente de 22 h à 5 h.",
     asap_libelle:"Dès que possible", partir_asap:"Partir dès que possible",
@@ -6055,7 +6090,7 @@ window.ELA_TEXTES = {
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
     longue_note:"You can send your request: Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
-    quand_aria:"When do you want to leave?", quand_asap:"As soon as possible", quand_asap_court:"Now", quand_prog:"Schedule",
+    quand_prog:"Schedule",
     asap_note:"Subject to availability, no pickup time guaranteed.",
     asap_nuit:"Slower reply from 10 pm to 5 am.",
     asap_libelle:"As soon as possible", partir_asap:"Leave as soon as possible",
@@ -9293,7 +9328,6 @@ window.ELA_TEXTES = {
      la durée et le bon en ont besoin. La course porte « immediat », et
      l'heure réelle de la demande est son heure de création. */
   var quandAsap = false;
-  var btnQuandAsap = document.getElementById("btnQuandAsap");
   var btnQuandProg = document.getElementById("btnQuandProg");
   var blocDateHeure = document.getElementById("blocDateHeure");
   var noteAsap = document.getElementById("noteAsap");
@@ -9308,7 +9342,6 @@ window.ELA_TEXTES = {
   }
   function choisirQuand(asap){
     quandAsap = !!asap;
-    if(btnQuandAsap) btnQuandAsap.setAttribute("aria-pressed", String(quandAsap));
     btnQuandProg.setAttribute("aria-pressed", String(!quandAsap));
     blocDateHeure.hidden = quandAsap;
     document.getElementById("blocAsap").hidden = !quandAsap;
@@ -9318,7 +9351,6 @@ window.ELA_TEXTES = {
     jugerDelai();
   }
   window.__quandAsap = function(){ return quandAsap; };
-  if(btnQuandAsap) btnQuandAsap.addEventListener("click", function(){ choisirQuand(true); });
   btnQuandProg.addEventListener("click", function(){ choisirQuand(false); });
   document.getElementById("btnPasseAsap").addEventListener("click", function(){ choisirQuand(true); });
 

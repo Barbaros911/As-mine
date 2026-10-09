@@ -2279,11 +2279,9 @@ sur les deux questions posées : **« en attente, comme aujourd'hui »** et
 - **LE RETRAIT EST DEVENU GLOBAL LE 4 OCTOBRE 2026** (option A) : le client
   et le flyer `?h=` n'ouvrent plus WhatsApp non plus, ils disent où recevoir
   leur confirmation. `memoire/contact-client.md`.
-- **LE BOUTON RESTE SUR LE BON, ET CE N'EST PAS UN VESTIGE.** Si le dépôt
-  échoue, il redevient le SEUL chemin par lequel la demande peut nous
-  parvenir. **Le repli est sacré** — même règle que côté client. Le test
-  ne se contente pas de le voir : il **appuie dessus** et lit le lien qui
-  part, un bouton mort au bout d'un écran étant pire qu'un bouton absent.
+- **AU COMPTOIR, PLUS AUCUN BOUTON WHATSAPP DE SECOURS** (Barbaros : « ils
+  auront déjà mon numéro »). Si le dépôt échoue, l'écriteau rouge dit
+  d'APPELER et porte le numéro. Côté client, le repli reste sacré.
 - **SA PHRASE A CHANGÉ AVEC SON SUJET.** « Si WhatsApp ne s'est pas
   ouvert… » enverrait une réception chercher une application qui n'est
   jamais venue, et lui ferait croire sa réservation restée en route. Elle
@@ -4163,6 +4161,10 @@ statut `annulee` — est dans `memoire/reception.md`.
 - **« Une question ? » sur le bon : le numéro EN CLAIR, Appel, WhatsApp et
   Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
   boutons : au comptoir, le client lit l'écran du PC.
+- **Sur un ordinateur (large ET à la souris), aucun bouton WhatsApp à la
+  réception** (9/10/2026, Barbaros) — ni sur le bon, ni dans « Un imprévu ? » :
+  il n'ouvrirait que WhatsApp Web. La ligne écrite reste ; une tablette au
+  doigt garde le bouton. La réception n'a pas de barre du bas, ni sa place.
 - **Après une réservation au comptoir, « À dire au client » : « Votre
   réservation sera confirmée par Elatransfer. »** Il se tait si le dépôt
   échoue — l'écriteau rouge dit alors d'appeler.
@@ -5000,10 +5002,23 @@ Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
 - Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
   `memoire/pilotage.md`.
 
-## LA DÉMO PROFESSIONNELS (en cours)
+## LA DÉMO PROFESSIONNELS
 
-- Bloc 1, la page `/professionnels/` (8/10/2026) : ce qui existe et pourquoi, dans `memoire/demo-pro-bloc1.md`.
-- Bloc 2, le serveur des prospects (table `prospects`, fonction `demande-demo`, refus « demo » dans `deposer-course`) : `memoire/demo-pro-bloc2.md`.
-- Bloc 3, la démo `/demo/hotel/` (client et réception, simulateur local, personnalisation, trois défenses d'isolation) : `memoire/demo-pro-bloc3.md`.
-- Bloc 5, l'écran « Prospects » de l'admin (lecture à l'ouverture, statut et note seuls, caché à l'agent, retiré du public) : `memoire/demo-pro-bloc5.md`.
-- Bloc 4, le formulaire de /professionnels/#demo branché sur la démo (Turnstile facultatif, délai minimum, accès 7 jours dit partout) : `memoire/demo-pro-bloc4.md`.
+Livrée le 8/10/2026 : `/professionnels/` (indexable) → formulaire →
+`demande-demo` → `/demo/hotel/` (client et réception, simulateur local) ; les
+demandes arrivent dans l'admin, écran « Prospects » (admin seul, rien pour
+l'agent). Tout, et pourquoi : `memoire/demo-pro.md`.
+- **La démo n'atteint jamais la production** : CSP, `verifier-demo.mjs` à la
+  construction, `test-demo-hotel` ; `deposer-course` refuse tout « demo ».
+  Elle arrive FERMÉE et ne s'ouvre que sur une session du serveur : le
+  contrôle de production n'exige jamais qu'elle s'ouvre.
+- **Le texte ne promet que le vrai** : coût zéro, sans engagement, « Déjà en
+  service dans un hôtel de la zone de Roissy-CDG » au singulier (jamais « nos
+  partenaires » ; à retirer si le partenariat cesse). Aucun prix proposé,
+  aucune photo envoyée, des initiales au lieu d'un logo, le nom du prospect
+  venu du serveur et jamais de l'adresse.
+- **Ni robot ni humain bloqué** : pas de Turnstile (option B ;
+  `TURNSTILE_SECRET` + `CLE_TURNSTILE` le réactivent), champ piège, délai
+  minimum attendu par la page, 5 demandes/h/IP et 3/jour/e-mail. L'accès dure
+  7 jours, et c'est écrit partout. Aucun secret à poser : celui des sessions
+  se dérive de la clé service_role (`DEMO_SESSION_SECRET` posé l'emporte).

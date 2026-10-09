@@ -210,8 +210,11 @@ const PERSO = `
       var titre = document.createElement("h2"); titre.className = "demo-cartes-titre";
       titre.textContent = en ? "Where would you like to go?" : "Où souhaitez-vous aller ?";
       var cap = document.createElement("p"); cap.className = "demo-cartes-cap";
-      cap.textContent = en ? "Fixed prices · Sedan up to 4 passengers · Van up to 7"
-                           : "Prix fixes · Berline jusqu’à 4 passagers · Van jusqu’à 7";
+      /* « Prix par destination », plus « Prix fixes » : juste au-dessus de
+         cartes qui disent « à fixer », les deux mots se contredisaient
+         (recette du 8/10/2026). */
+      cap.textContent = en ? "Price per destination · Sedan 4 seats · Van 7 seats"
+                           : "Prix par destination · Berline 4 places · Van 7 places";
       /* CE QUE LE PROSPECT DOIT COMPRENDRE : ces prix sont ceux de SON flyer,
          et le QR code du flyer amène ses clients exactement ici. */
       var flyer = document.createElement("p"); flyer.className = "demo-cartes-flyer"; flyer.id = "demoCartesFlyer";

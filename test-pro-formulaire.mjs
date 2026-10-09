@@ -296,6 +296,22 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   await p.context().close();
 }
 
+// 11. Sur téléphone, le formulaire vient AVANT « Vous préférez nous parler ? »
+//     (recette du 8/10/2026 : les trois liens repoussaient le formulaire de
+//     467 px). Sur ordinateur, les liens restent dans la colonne de gauche.
+for (const [w, h] of [[390, 844], [1280, 800]]) {
+  const p = await ouvrir({ w, h });
+  const r = await p.evaluate(() => { const f = document.getElementById('formDemo').getBoundingClientRect(),
+    a = document.querySelector('.demo-autres').getBoundingClientRect(), d = document.getElementById('demo').getBoundingClientRect();
+    return { formHaut: Math.round(f.top - d.top), formBas: Math.round(f.bottom - d.top), formGauche: Math.round(f.left),
+      liensHaut: Math.round(a.top - d.top), liensDroite: Math.round(a.right), liensVisibles: a.height > 0 }; });
+  if (w < 900) check(`${w} px : le formulaire passe avant les liens d'appel, qui restent juste dessous`,
+    r.liensVisibles && r.formBas <= r.liensHaut && r.liensHaut - r.formBas < 80, JSON.stringify(r));
+  else check(`${w} px : les liens d'appel restent dans la colonne de gauche, à côté du formulaire`,
+    r.liensVisibles && r.liensDroite <= r.formGauche && r.liensHaut < r.formBas, JSON.stringify(r));
+  await p.context().close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS (' + ok.length + ') ==='); ok.forEach(t => console.log('  ✔ ' + t));

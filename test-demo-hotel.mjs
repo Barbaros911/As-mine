@@ -174,6 +174,14 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('arrivée : aucun prix proposé, toutes les cartes disent « à fixer »', await p.evaluate(() =>
     [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d+,\d\d\s€/.test(c.innerText))));
   check('arrivée : une consigne dit de toucher une destination pour continuer', /Touchez une destination/.test(await texte(p, '#demoCartesAide')) && await visible(p, '#demoCartesAide'));
+  /* « Prix fixes » au-dessus de cartes « à fixer » se contredisait (recette du
+     8/10/2026) : la phrase d'en-tête ne promet pas un prix qui n'existe pas. */
+  check('arrivée : l\'en-tête des cartes ne dit pas « Prix fixes » quand les prix sont à fixer',
+    !/prix fixes/i.test(await texte(p, '#demoCartes .demo-cartes-cap')) && /destination/i.test(await texte(p, '#demoCartes .demo-cartes-cap')),
+    await texte(p, '#demoCartes .demo-cartes-cap'));
+  check('arrivée : à 390 px, cet en-tête tient sur une ligne', await p.evaluate(() => {
+    const e = document.querySelector('#demoCartes .demo-cartes-cap'); const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
+    return e.getBoundingClientRect().height < lh * 1.5; }));
   check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
   check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
@@ -409,6 +417,42 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
     check(`${w} px ${vue} : bandeau et onglets visibles`, await visible(p, '#demoBandeau') && await visible(p, '#demoOngletReception'));
     check(`${w} px ${vue} : onglets cliquables (rien ne les recouvre)`, await p.evaluate(() => ['demoOngletClient', 'demoOngletReception'].every(id => {
       const r = document.getElementById(id).getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return e && e.closest('#' + id); })));
+    /* LE BAS DE LA PAGE (recette du 8/10/2026) : le dernier bouton ne passe
+       jamais sous la barre du bas, et il n'y a pas 200 px de vide après lui.
+       Sur ordinateur, la façade retirait à toutes les pages la place de la
+       barre, que la démo garde ; les 110 px de marge qui compensaient
+       laissaient sur téléphone un grand vide. */
+    const bas = await p.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo(0, document.documentElement.scrollHeight);
+      const bt = document.getElementById('demoMettreEnPlacePied').getBoundingClientRect();
+      const barre = [...document.querySelectorAll('nav.barre, .barre')].find(x => getComputedStyle(x).display !== 'none' && x.getBoundingClientRect().height > 0);
+      const haut = barre ? barre.getBoundingClientRect().top : innerHeight;
+      const e = document.elementFromPoint(bt.left + bt.width / 2, bt.top + bt.height / 2);
+      return { recu: !!(e && e.closest('#demoMettreEnPlacePied')), basBouton: Math.round(bt.bottom), barre: Math.round(haut),
+        vide: Math.round(haut - document.querySelector('.demo-pied').getBoundingClientRect().bottom) };
+    });
+    check(`${w} px ${vue} : « Mettre ça en place » du pied n'est pas sous la barre, et rien de grand ne reste vide dessous`,
+      bas.recu && bas.basBouton <= bas.barre && bas.vide >= 0 && bas.vide < 100, JSON.stringify(bas));
+    /* LE FORMULAIRE A LES PROPORTIONS DE LA VRAIE PAGE D'UN PARTENAIRE : sur
+       ordinateur, centré et borné à 780 px, plus étalé sur toute la largeur. */
+    if (vue === 'client' && w >= 768) {
+      await p.evaluate(() => window.scrollTo(0, 0));
+      await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(300);
+      const f = await p.evaluate(() => { const r = document.getElementById('btnVoirPrix').getBoundingClientRect();
+        return { largeur: Math.round(r.width), centre: Math.round(r.left + r.width / 2), milieu: Math.round(document.documentElement.clientWidth / 2) }; });
+      check(`${w} px client : le formulaire est centré et ne dépasse pas 800 px`, f.largeur <= 800 && Math.abs(f.centre - f.milieu) < 30, JSON.stringify(f));
+    }
+    /* LA RÉCEPTION DE LA DÉMO RESSEMBLE À LA VRAIE (9/10/2026) : pas de barre
+       du bas, et sur un ordinateur (large, à la souris) pas de WhatsApp. */
+    if (vue === 'réception') {
+      const r = await p.evaluate(() => ({
+        barre: [...document.querySelectorAll('nav.barre')].some(b => getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0),
+        wa: getComputedStyle(document.getElementById('recAideWa')).display !== 'none' }));
+      check(`${w} px réception : pas de barre du bas, comme la vraie réception`, !r.barre, JSON.stringify(r));
+      check(`${w} px réception : ${w >= 900 ? 'sur ordinateur, plus de bouton WhatsApp' : 'le bouton WhatsApp d\'« Un imprévu ? » reste'}`,
+        w >= 900 ? !r.wa : r.wa, JSON.stringify(r));
+    }
     check(`${w} px ${vue} : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
     await ctx.close();
   }
