@@ -491,21 +491,32 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok((await demande({nom:'x'.repeat(5000)})).status===413&&rien(),'demande-demo : corps de plus de 4 Ko → 413');
   globalThis.fetch=fetchAvant;
 }
-/* LA SESSION DE RÉCEPTION N'A PAS CHANGÉ DE FORMAT en passant par l'outil
-   partagé : une session fabriquée INDÉPENDAMMENT (node:crypto) selon
-   l'ancien code est toujours acceptée — sinon chaque tablette de comptoir
-   aurait été déconnectée à la mise en ligne. */
+/* LA SESSION DE RÉCEPTION N'EST PLUS SIGNÉE AVEC LE CODE LUI-MÊME (audit du
+   9 octobre 2026, P1). Le jeton vit 30 jours dans la tablette et part dans
+   chaque requête : signé avec le code brut, il permettait de deviner le code
+   HORS LIGNE, sans plafond d'essais. La clé est désormais dérivée du code ET
+   d'un secret serveur. Le contrôle d'avant (« signée exactement comme
+   avant ») figeait ce défaut : il est inversé. Conséquence assumée : une
+   session de l'ancien format est refusée, la tablette retape son code. */
 {
   const {createHmac}=await import('node:crypto');
   const tmpH=fs.mkdtempSync(path.join(os.tmpdir(),'ela-hs-'));partages(tmpH,'');
+  globalThis.Deno={env:{get:k=>({SUPABASE_SERVICE_ROLE_KEY:'S'})[k]}};
   const {validerSessionHotel,creerSessionHotel}=await import(tmpH+'/hotel-session.mjs');
   const c=Buffer.from(JSON.stringify({v:1,hotel:'easyhotel-aeroville',iat:Date.now()-864e5,exp:Date.now()+20*864e5})).toString('base64url');
   const ancienne=c+'.'+createHmac('sha256','easyhotel-9F3K2Q').update(c).digest('base64url');
-  ok(await validerSessionHotel(ancienne,'easyhotel-aeroville','easyhotel-9F3K2Q'),'réception : une session au format d\'avant le partage reste valable');
-  ok(!(await validerSessionHotel(ancienne,'autre-hotel','easyhotel-9F3K2Q')),'réception : elle ne vaut que pour SON hôtel');
+  ok(!(await validerSessionHotel(ancienne,'easyhotel-aeroville','easyhotel-9F3K2Q')),'réception : une session signée avec le code BRUT (ancien format) est refusée — elle était un oracle hors ligne du code');
   const neuve=await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q');
   const [nc,ns]=neuve.split('.');
-  ok(createHmac('sha256','easyhotel-9F3K2Q').update(nc).digest('base64url')===ns,'réception : une session neuve est signée exactement comme avant');
+  ok(nc&&ns&&createHmac('sha256','easyhotel-9F3K2Q').update(nc).digest('base64url')!==ns,'réception : une session neuve n\'est PAS signée avec le code — un jeton qui fuit ne permet plus de le deviner');
+  ok(await validerSessionHotel(neuve,'easyhotel-aeroville','easyhotel-9F3K2Q'),'réception : la session neuve est acceptée par SON hôtel');
+  ok(!(await validerSessionHotel(neuve,'autre-hotel','easyhotel-9F3K2Q')),'réception : elle ne vaut que pour SON hôtel');
+  ok(!(await validerSessionHotel(neuve,'easyhotel-aeroville','autre-code')),'réception : changer le code dans les secrets coupe la session');
+  /* Sans le secret du serveur, rien n'est signé ni validé : un secret absent
+     ne vaut jamais « tout est signé ». */
+  globalThis.Deno={env:{get:()=>undefined}};
+  ok((await creerSessionHotel('easyhotel-aeroville','easyhotel-9F3K2Q'))===''&&!(await validerSessionHotel(neuve,'easyhotel-aeroville','easyhotel-9F3K2Q')),'réception : sans le secret du serveur, aucune session n\'est créée ni acceptée');
+  globalThis.Deno={env:{get:k=>({SUPABASE_SERVICE_ROLE_KEY:'S'})[k]}};
 }
 /* deposer-course : UNE COURSE DE DÉMONSTRATION N'EST JAMAIS ENREGISTRÉE
    (8 octobre 2026). Refusée AVANT le quota et avant toute lecture en base. */
