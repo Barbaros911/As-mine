@@ -137,6 +137,12 @@ jobs:
               await github.rest.issues.update({ owner, repo, issue_number: incident.number, body: corps });
               core.setFailed(`Toujours en panne — incident #${incident.number} mis à jour.`);
             } else {
-              const cree = await github.rest.issues.create({ owner, repo, title: titre, body: corps });
+              /* L'ISSUE EST ASSIGNÉE À BARBAROS (audit du 9 octobre 2026). Une Issue
+                 créée par le robot ne notifie personne : seuls ceux qui y
+                 « participent » reçoivent les mises à jour. Assigné, il reçoit
+                 l'ouverture et chaque mise à jour — dès que l'application GitHub
+                 de son iPhone a ses notifications activées. Un chien de garde
+                 qui aboie dans une pièce vide ne garde rien. */
+              const cree = await github.rest.issues.create({ owner, repo, title: titre, body: corps, assignees: [owner] });
               core.setFailed(`Panne détectée — incident #${cree.data.number} ouvert.`);
             }

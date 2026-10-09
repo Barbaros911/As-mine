@@ -211,8 +211,10 @@ jobs:
               });
               core.setFailed(`Panne toujours en cours — incident #${incident.number} mis à jour.`);
             } else {
+              /* Assignée au propriétaire du dépôt : une Issue du robot ne notifie
+                 que ceux qui y participent (audit du 9 octobre 2026). */
               const cree = await github.rest.issues.create({
-                owner, repo, title: titre, body: corps
+                owner, repo, title: titre, body: corps, assignees: [owner]
               });
               core.setFailed(`Panne détectée — incident #${cree.data.number} ouvert.`);
             }
