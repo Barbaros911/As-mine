@@ -9,7 +9,9 @@
 -- statut « envoye » (relecture du 4 octobre 2026).
 -- Les dépôts refusés (9 octobre 2026) : « journal_depots », écrit par
 -- deposer-course à chaque refus — code, motif, référence, jamais de donnée
--- personnelle. Migration 20261009000000 ; sans elle, cette requête échoue.
+-- personnelle. Migration 20261009000000, à appliquer aussitôt après la
+-- fusion qui porte ce fichier : sans la table, cette requête échoue et le
+-- chien de garde ouvre une Issue « réponse illisible », qui se ferme seule.
 select json_build_object(
   'sans_alerte', (
     select count(*) from public.courses c

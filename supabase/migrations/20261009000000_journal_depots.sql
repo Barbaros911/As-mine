@@ -26,10 +26,15 @@
 -- FACULTATIVES par admin-sante.js : un serveur d'avant cette migration ne
 -- fait pas passer le voyant au gris.
 --
--- À APPLIQUER EN PRODUCTION AVANT DE FUSIONNER (workflow « Appliquer une
--- migration Supabase », ce fichier) : le chien de garde lit sante-serveur.sql
--- tel qu'il est sur main — sans la table, sa requête échoue et il ouvre une
--- Issue « réponse illisible » à chaque passage. Rejouable sans dégât.
+-- À APPLIQUER EN PRODUCTION AUSSITÔT APRÈS LA FUSION (workflow « Appliquer
+-- une migration Supabase », ce fichier). Pas avant : le workflow ne lit que
+-- main, où ce fichier n'existe qu'une fois fusionné. Entre les deux, rien ne
+-- casse — deposer-course rend son refus même si la table manque (il le dit
+-- dans ses journaux), et le voyant garde ses sept mesures d'origine. Seul le
+-- chien de garde, s'il passe dans l'intervalle, lit sante-serveur.sql tel
+-- qu'il est sur main, échoue sur la table absente et ouvre une Issue
+-- « réponse illisible » ; elle se ferme seule au passage suivant. Rejouable
+-- sans dégât.
 create table if not exists public.journal_depots (
   id bigint generated always as identity primary key,
   ref text,
