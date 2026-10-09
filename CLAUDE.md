@@ -5020,4 +5020,5 @@ l'agent). Tout, et pourquoi : `memoire/demo-pro.md`.
 - **Ni robot ni humain bloqué** : pas de Turnstile (option B ;
   `TURNSTILE_SECRET` + `CLE_TURNSTILE` le réactivent), champ piège, délai
   minimum attendu par la page, 5 demandes/h/IP et 3/jour/e-mail. L'accès dure
-  7 jours, et c'est écrit partout.
+  7 jours, et c'est écrit partout. Aucun secret à poser : celui des sessions
+  se dérive de la clé service_role (`DEMO_SESSION_SECRET` posé l'emporte).

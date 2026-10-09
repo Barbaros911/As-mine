@@ -335,10 +335,26 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const rien=()=>F.crees.length===0&&F.tg.length===0&&F.mails.length===0;
   const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];};
 
-  // Secret de session absent : rien ne passe.
+  // Aucun secret possible (ni posé, ni clé service_role à dériver) : rien ne passe.
+  {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{DEMO_SESSION_SECRET:'',SUPABASE_SERVICE_ROLE_KEY:''}));
+   const r=await demande({},fn);const j=await r.json();
+   ok(r.status===503&&j.erreur==='indisponible'&&rien()&&F.turnstile===0,'demande-demo : sans secret ni clé service_role → 503, rien d\'écrit ('+r.status+')');}
+  /* LE SECRET SE FABRIQUE TOUT SEUL (8/10/2026) : sans DEMO_SESSION_SECRET,
+     il est dérivé de la clé service_role, avec un libellé propre. On le
+     recalcule ici indépendamment (node:crypto) : une session signée ainsi
+     s'ouvre, une session signée avec la clé service_role BRUTE non. */
   {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{DEMO_SESSION_SECRET:''}));
    const r=await demande({},fn);const j=await r.json();
-   ok(r.status===503&&j.erreur==='indisponible'&&rien()&&F.turnstile===0,'demande-demo : sans DEMO_SESSION_SECRET → 503, rien d\'écrit ('+r.status+')');}
+   const derive=createHash('sha256').update('elatransfer:demo-session:v1:'+ENV.SUPABASE_SERVICE_ROLE_KEY).digest('hex');
+   const [c]=String(j.session||'').split('.');
+   ok(r.status===200&&j.session===c+'.'+createHmac('sha256',derive).update(c).digest('base64url'),'demande-demo : sans DEMO_SESSION_SECRET, la session est signée avec le secret dérivé de la clé service_role ('+r.status+')');
+   raz();const o=await appel(fn,{action:'ouvrir',session:j.session});
+   ok(o.status===200,'demande-demo : … et elle s\'ouvre ('+o.status+')');
+   raz();const brute=c+'.'+createHmac('sha256',ENV.SUPABASE_SERVICE_ROLE_KEY).update(c).digest('base64url');
+   const o2=await appel(fn,{action:'ouvrir',session:brute});
+   ok(o2.status===401,'demande-demo : une session signée avec la clé service_role brute → 401 ('+o2.status+')');
+   raz();const o3=await appel(dd,{action:'ouvrir',session:j.session});
+   ok(o3.status===401,'demande-demo : un secret posé l\'emporte sur le dérivé → l\'ancienne session est refusée ('+o3.status+')');}
   /* TURNSTILE FACULTATIF (bloc 4, option B de Barbaros) : sans secret, la
      vérification est sautée — Cloudflare n'est jamais appelé, la demande
      passe sans jeton. Avec le secret, elle est exigée (plus bas). */

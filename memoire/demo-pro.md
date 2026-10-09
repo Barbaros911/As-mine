@@ -38,12 +38,14 @@ alerte Telegram.
   jour où Barbaros en fournit une libre de droits (≥ 1000 px, source notée
   ici), elle va dans `photos/` et dans `HOTELS_DEMO.photo`. Une photo
   choisie par le prospect est réduite dans son navigateur et **n'est jamais
-  envoyée**.
+  envoyée**. C'est la sienne, ou rien (8/10/2026, à sa demande : « la
+  personne doit mettre sa photo ») : le cadre « Votre photo ici » ouvre le
+  choix du fichier (rôle bouton, clavier compris), le champ du panneau reste.
 - **Initiales au lieu d'un logo** (« Le Relais de Roissy » → RR, les articles
   sautés).
-- La réception de la démo reste en français même quand le prospect passe en
-  anglais (« c'est des Français ») — à trancher s'il démarche des hôtels
-  anglophones.
+- **La réception de la démo passe en anglais aussi** (8/10/2026, à sa
+  demande : « la réception doit pouvoir passer en anglais aussi » — il avait
+  d'abord dit « c'est des Français »). Voir « La démo » plus bas.
 
 ## La page `/professionnels/`
 
@@ -161,9 +163,12 @@ alerte Telegram.
 - **En production** : migration `20261008000000_prospects.sql` appliquée par
   le workflow des migrations, `demande-demo` déployée seule à la fusion
   (`fonctions.yml`, `--no-verify-jwt`).
-- **Secrets** : `DEMO_SESSION_SECRET` obligatoire (sans lui, 503) ;
-  `TURNSTILE_SECRET`, `RESEND_CLE` / `EMAIL_EXPEDITEUR` facultatifs — sans
-  e-mail, la démo s'ouvre quand même.
+- **Secrets : RIEN à poser** (8/10/2026, « le minimum de manip »).
+  `DEMO_SESSION_SECRET`, s'il est posé, l'emporte ; absent, la fonction le
+  dérive de la clé service_role (SHA-256 de « elatransfer:demo-session:v1: »
+  + la clé), que la plateforme fournit d'office. `TURNSTILE_SECRET`,
+  `RESEND_CLE` / `EMAIL_EXPEDITEUR` facultatifs — sans e-mail, la démo
+  s'ouvre quand même.
 
 ## La démo `/demo/hotel/`
 
@@ -182,6 +187,15 @@ alerte Telegram.
   (6 s) → Chauffeur confirmé (14 s) → Effectuée (30 s) ; « Étape suivante »
   avance tout de suite. Trois courses d'exemple (noms « (exemple) », numéros
   en 06 39 98, plage réservée à la fiction), « Karim — chauffeur fictif ».
+  Elles partent de l'hôtel du prospect, sous le nom qu'il voit en tête de
+  page, pas du nom de repli écrit à la semence.
+- **La réception se traduit à l'affichage** (`traduireReception` dans
+  `demo-simulateur.js`) : le moteur écrit le comptoir en français, et la
+  traduction de la vraie réception vit dans la finition easyHotel, que la
+  démo ne charge pas (elle nomme easyHotel). Chaque texte garde son français
+  d'origine, et on n'écrit que si le texte change — sinon l'observateur
+  boucle, comme le moteur easyHotel figé en septembre. La vraie réception
+  n'a pas été touchée ; le bon affiché avait déjà son FR/EN.
 - **Le stockage est préfixé** (`ela_demo__…`) : la démo est sur le même
   domaine, et sans préfixe ses courses fictives apparaissaient dans « Mes
   réservations » d'un vrai client du même téléphone.
@@ -308,3 +322,5 @@ et verrouillés par un contrôle éprouvé contre l'ancien code.
   falsifications du formulaire, vingt-deux de la fonction, dix-sept
   migrations faussées, quatorze de l'écran Prospects) : elle tombe à chaque
   fois en nommant le défaut.
+- Réception en anglais et cadre photo : sans la traduction, six contrôles de
+  `test-demo-hotel` tombent ; sans le cadre cliquable, un.
