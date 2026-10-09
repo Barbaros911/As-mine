@@ -562,5 +562,47 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(r.status===201&&appels.some(u=>u.includes('ela_deposer_course_serveur')),'deposer-course : une provenance ordinaire passe toujours ('+r.status+')');
   globalThis.fetch=fetchAvant;
 }
+/* deposer-course : UN DÉPÔT REFUSÉ EST ÉCRIT DANS journal_depots (audit du
+   9 octobre 2026, P1). Le client lisait « demande non transmise » et personne
+   d'autre ne l'apprenait. Chaque refus écrit code + motif + référence — jamais
+   le nom, le téléphone ni l'adresse IP — ; un dépôt réussi n'écrit rien ; la
+   démo (refus voulu) n'écrit rien ; un journal injoignable ne change pas la
+   réponse au client. Contre l'ancien code, les six « est écrit » tombent. */
+{
+  const journalDepots=[];const fetchAvant=globalThis.fetch;let quotaOk=true,quotaPanne=false,insertionPanne=false;
+  globalThis.fetch=async(url,init={})=>{url=String(url);
+    if(url.includes('/rest/v1/journal_depots')){journalDepots.push(JSON.parse(init.body));return new Response('',{status:201});}
+    if(url.includes('/rpc/consommer_quota_reservation'))return quotaPanne?new Response('x',{status:500}):new Response(JSON.stringify(quotaOk));
+    if(url.includes('/rest/v1/partenaires'))return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.'))return new Response('[]');
+    if(url.includes('/rpc/ela_deposer_course_serveur'))return insertionPanne?new Response('x',{status:500}):new Response('"ok"');
+    return new Response('[]');};
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bonJ=(ref,extra)=>Object.assign({ref,course:{depart:'12 rue de la Paix, Paris',arrivee:'Orly',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},
+    client:{nom:'Client Journal',telephone:'0612345678'},prix:{total:90},paiement:'carte'},extra);
+  const dep=(b,origin='https://elatransfer.com')=>dc(new Request('http://x',{method:'POST',headers:{origin,'x-forwarded-for':'10.0.0.7','content-type':'application/json'},body:JSON.stringify({bon:b})}));
+  let r=await dep(bonJ('ELA-26-10-JD1AA'));
+  ok(r.status===201&&journalDepots.length===0,'journal des dépôts : un dépôt réussi n\'écrit rien ('+r.status+', '+journalDepots.length+' ligne(s))');
+  quotaOk=false;r=await dep(bonJ('ELA-26-10-JD2BB'));quotaOk=true;
+  ok(r.status===429&&journalDepots.length===1&&journalDepots[0].code===429&&journalDepots[0].motif==='quota'&&journalDepots[0].ref==='ELA-26-10-JD2BB','journal des dépôts : un refus par le plafond (429) est écrit avec son motif et sa référence');
+  quotaPanne=true;r=await dep(bonJ('ELA-26-10-JD3CC'));quotaPanne=false;
+  ok(r.status===503&&journalDepots[1]?.code===503&&journalDepots[1]?.motif==='indisponible','journal des dépôts : un serveur indisponible au quota (503) est écrit');
+  insertionPanne=true;r=await dep(bonJ('ELA-26-10-JD4DD'));insertionPanne=false;
+  ok(r.status===503&&journalDepots[2]?.code===503&&journalDepots[2]?.motif==='indisponible','journal des dépôts : une écriture en base refusée (503) est écrite');
+  r=await dep(bonJ('ELA-26-10-JD5EE',{prix:{total:-5}}));
+  ok(r.status===400&&journalDepots[3]?.code===400&&journalDepots[3]?.motif==='invalide'&&journalDepots[3]?.ref==='ELA-26-10-JD5EE','journal des dépôts : une demande invalide (400) est écrite avec sa référence');
+  r=await dep(bonJ('ELA-26-10-JD6FF'),'https://pirate.example');
+  ok(r.status===403&&journalDepots[4]?.code===403&&journalDepots[4]?.motif==='origine','journal des dépôts : une origine refusée (403) est écrite');
+  r=await dep(bonJ('ELA-26-10-JD7GG',{parReception:true,provenanceCle:'easyhotel-aeroville'}));
+  ok(r.status===401&&journalDepots[5]?.motif==='session'&&journalDepots[5]?.provenance_cle==='easyhotel-aeroville'&&journalDepots[5]?.par_reception===true,'journal des dépôts : une session de réception refusée (401) est écrite avec la clé de l\'hôtel');
+  const brut=JSON.stringify(journalDepots);
+  ok(!brut.includes('0612345678')&&!brut.includes('Client Journal')&&!brut.includes('10.0.0.7')&&!brut.includes('rue de la Paix'),'journal des dépôts : ni téléphone, ni nom, ni adresse, ni adresse IP dans le journal');
+  const avant=journalDepots.length;r=await dep(bonJ('ELA-26-10-JD8HH',{provenance:'demo-hotel'}));
+  ok(r.status===403&&journalDepots.length===avant,'journal des dépôts : la démo (refus voulu) n\'est pas journalisée');
+  globalThis.fetch=async(url,init={})=>{url=String(url);if(url.includes('/rest/v1/journal_depots'))throw new Error('journal injoignable');if(url.includes('/rpc/consommer_quota_reservation'))return new Response('false');return new Response('[]');};
+  r=await dep(bonJ('ELA-26-10-JD9II'));
+  ok(r.status===429,'journal des dépôts : un journal injoignable ne change pas la réponse au client ('+r.status+')');
+  globalThis.fetch=fetchAvant;
+}
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}
