@@ -154,6 +154,10 @@ note d'ici**. Elle a mis des mois à s'écrire, elle vieillit en un soir.
 
 - Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
   jamais directement sur `main`.
+- **`main` est protégée par un ruleset GitHub** (9/10/2026, importé depuis
+  `.github/ruleset-main.json`) : pull request obligatoire, fusion seulement si
+  `admin`, `guardrails`, `build-mobile-desktop`, `secrets-publics` et
+  `gitleaks` sont verts, personne d'exempté. Compter ~22 min de CI par PR.
 - Toujours vérifier `git branch --show-current` avant un `git push` — déjà
   fait l'erreur de pousser vers le mauvais nom de branche une fois.
 - Une fois l'accord donné : ouvrir la pull request **et la fusionner** —
@@ -4337,9 +4341,10 @@ son, et la vraie demande suivante passait avec.
 - **La notification ELA est l'alarme** (elle se REMPLACE sur le téléphone,
   même étiquette) : à chaque tour de 20 s les 10 premières minutes et à H-30
   ou moins, toutes les 10 min entre H-2 et H-30, rien avant H-2.
-- **Telegram informe** : +3 min, +10 min, puis toutes les 15 min la première
-  heure ; silence jusqu'à H-2 (toutes les 15 min) ; toutes les 5 min sous
-  H-30. **Chaque rappel EFFACE le précédent** (`deleteMessage`, identifiant
+- **Telegram informe** : toutes les 90 s les 10 premières minutes (9/10/2026,
+  à sa demande, éprouvé admin fermé ; c'était +3 et +10 min), puis toutes les
+  15 min la première heure ; silence jusqu'à H-2 (toutes les 15 min) ; toutes
+  les 5 min sous H-30. **Chaque rappel EFFACE le précédent** (`deleteMessage`, identifiant
   gardé dans `journal.detail` sous `message_id=N`) : une seule ligne de
   rappel visible, jamais une pile. L'annonce initiale n'est jamais effacée.
 - **À l'heure du départ, un dernier message** (`rappel_final`, `titreFinal`)
