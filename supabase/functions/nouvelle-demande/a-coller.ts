@@ -97,9 +97,12 @@ function motifs(m: any) {
 function corps(bon: any, adresseAdmin: any) {
   const c = bon.course ?? {};
   const l = [
-    /* Le N° court d'abord (5 octobre 2026) : c'est lui qu'on se dit au
-       téléphone. Absent tant que sa migration n'est pas appliquée. */
-    (Number(bon.numero) > 0 ? "N° " + bon.numero + " · " : "") + "Réf. " + (bon.ref || "—"),
+    /* LE N° COURT SEUL EN TÊTE (5 octobre 2026, puis 9 octobre : « je
+       voudrais que tous les numéros soient pareils ») : c'est lui que lisent
+       le client sur son bon, la réception et l'admin. La référence longue,
+       clé technique, descend en fin de message — elle y reste cherchable.
+       Sans N° (migration pas encore appliquée), la référence tient la tête. */
+    (Number(bon.numero) > 0 ? "N° " + bon.numero : "Réf. " + (bon.ref || "—")),
     "",
     /* Le départ SANS le numéro de chambre : « departPublic » existe pour
        ça dans le bon. La chambre ne regarde que le chauffeur retenu. */
@@ -122,7 +125,9 @@ function corps(bon: any, adresseAdmin: any) {
      d'oiseau. Il est ferme quand même — il faut donc qu'il le SACHE avant
      de confier la course, pas en la facturant. */
   if (c.estimee) l.push("(distance estimée — prix à vérifier)");
-  l.push("", "Le client attend une réponse.", adresseAdmin);
+  l.push("", "Le client attend une réponse.");
+  if (Number(bon.numero) > 0) l.push("Réf. " + (bon.ref || "—"));
+  l.push(adresseAdmin);
   return l.join("\n");
 }
 function versB64u(octets: any){let s="";const t=new Uint8Array(octets);for(let i=0;i<t.length;i++)s+=String.fromCharCode(t[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
@@ -197,10 +202,10 @@ async function nbAttente():Promise<number>{
   if(!r||!r.ok)return 0;
   const l=await r.json().catch(()=>[]);return Array.isArray(l)?l.length:0;
 }
-async function parPush(t:string,ref:string):Promise<Resultat>{
+async function parPush(t:string,ref:string,etiq=ref):Promise<Resultat>{
   if(!U||!S||!VAPID_PUBLIQUE||!VAPID_PRIVEE)return{ok:false,detail:"push_non_configure",statut:"indisponible"};
   const r=await db("abonnements_admin?select=id,abonnement&actif=eq.true");if(!r.ok)return{ok:false,detail:"lecture_abonnements_refusee",statut:"echec"};const lignes=await r.json();if(!Array.isArray(lignes)||!lignes.length)return{ok:false,detail:"aucun_abonne",statut:"aucun_abonne"};
-  const charge=JSON.stringify({titre:t,corps:`${ref} — action requise`,ref,attente:await nbAttente(),url:`${ADMIN}?ref=${encodeURIComponent(ref)}`});let envoyes=0,echecs=0;
+  const charge=JSON.stringify({titre:t,corps:`${etiq} — action requise`,ref,attente:await nbAttente(),url:`${ADMIN}?ref=${encodeURIComponent(ref)}`});let envoyes=0,echecs=0;
   for(const ligne of lignes){const ab=ligne.abonnement;if(!ab?.endpoint||!ab?.keys?.p256dh||!ab?.keys?.auth){echecs++;continue;}try{const paquet=await chiffrer(charge,ab.keys.p256dh,ab.keys.auth),origine=new URL(ab.endpoint).origin,jeton=await jetonVapid(origine,VAPID_SUJET,VAPID_PRIVEE,VAPID_PUBLIQUE),rep=await fetch(ab.endpoint,{method:"POST",headers:{Authorization:`vapid t=${jeton}, k=${VAPID_PUBLIQUE}`,"Content-Encoding":"aes128gcm","Content-Type":"application/octet-stream",TTL:"14400"},body:paquet});if(rep.ok)envoyes++;else{echecs++;if(rep.status===404||rep.status===410)await db(`abonnements_admin?id=eq.${encodeURIComponent(ligne.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({actif:false,modifie_le:new Date().toISOString()})}).catch(()=>{});}}catch{echecs++;}}
   return envoyes?{ok:true,detail:`${envoyes}/${lignes.length} push`,statut:"envoye"}:{ok:false,detail:`0/${lignes.length} push; ${echecs} échec(s)`,statut:"echec"};
 }
@@ -278,6 +283,11 @@ const RATTRAPAGE_MS=60*1000,PAS_ALARME_MS=20*1000-SOUPLESSE_MS,ALARME_MS=10*MIN_
 /* Telegram pendant la fenêtre d'alarme : 90 s (9 octobre 2026). */
 const PAS_TELEGRAM_ALARME_MS=90*1000;
 const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
+/* L'ÉTIQUETTE D'UNE COURSE DANS UNE ALERTE (9 octobre 2026, Barbaros : « je
+   voudrais que tous les numéros soient pareils »). Le N° court quand la base
+   l'a attribué, la référence sinon — jamais les deux en tête : la référence
+   longue reste la clé technique (bouton, lien, journal), pas ce qu'on lit. */
+function etiquette(bon:Record<string,any>|null|undefined,ref:string):string{const n=Number(bon?.numero);return n>0?`N° ${n}`:`Réf. ${ref}`;}
 /* Date et heure du bon sont des heures civiles de Paris. Les convertir en
    pseudo-UTC, comme l'horloge de Paris courante, évite que le serveur UTC
    décale le seuil d'une ou deux heures lors des changements été/hiver. */
@@ -360,7 +370,7 @@ async function relancer():Promise<string>{
       const derniereTentative=plusRecent(journalRef.filter(x=>x.type_evenement==="nouvelle_reservation"),cree);
       if(age<RATTRAPAGE_MS||age>FENETRE_MS||Date.now()-derniereTentative<RATTRAPAGE_MS)continue;
       const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
-      const [push,telegram]=await Promise.all([parPush(t,ref),parTelegram(t,m,ref)]);
+      const [push,telegram]=await Promise.all([parPush(t,ref,etiquette(bon,ref)),parTelegram(t,m,ref)]);
       await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
       continue;
     }
@@ -370,8 +380,8 @@ async function relancer():Promise<string>{
       const t=titreFinal(bon);finals++;
       await effacerTelegram(dernierRappelTelegram(journalRef));
       const [tg,push]=await Promise.all([
-        parTelegram(t,bon.course?.immediat===true?`Réf. ${ref} — demande immédiate toujours en attente après 30 min. Rappelez le client ou refusez-la dans l'admin. Plus aucun rappel ne partira.`:`Réf. ${ref} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
-        parPush(t,ref),
+        parTelegram(t,bon.course?.immediat===true?`${etiquette(bon,ref)} — demande immédiate toujours en attente après 30 min. Rappelez le client ou refusez-la dans l'admin. Plus aucun rappel ne partira.`:`${etiquette(bon,ref)} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
+        parPush(t,ref,etiquette(bon,ref)),
       ]);
       await Promise.all([journal("rappel_final",ref,"telegram",tg),journal("rappel_final",ref,"push",push)]);
       continue;
@@ -386,11 +396,11 @@ async function relancer():Promise<string>{
     if(doitTelegram){
       /* Le rappel précédent s'efface AVANT d'envoyer le suivant. */
       await effacerTelegram(dernierRappelTelegram(journalRef));
-      const tg=await parTelegram(t,`Réf. ${ref} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref);
+      const tg=await parTelegram(t,`${etiquette(bon,ref)} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref);
       await journal("rappel_reservation",ref,"telegram",tg);rappelsTg++;
     }
     if(doitPush){
-      const push=await parPush(t,ref);
+      const push=await parPush(t,ref,etiquette(bon,ref));
       await journal("rappel_reservation",ref,"push",push);rappelsPush++;
     }
   }
@@ -411,7 +421,7 @@ Deno.serve(async(req)=>{
 
   /* Push ELA + Telegram partent en parallèle. L'un ne bloque jamais l'autre.
      L'e-mail reste un troisième filet facultatif. */
-  const [push,telegram,email]=await Promise.all([parPush(t,ref),parTelegram(t,m,ref),parEmail(t,m)]);
+  const [push,telegram,email]=await Promise.all([parPush(t,ref,etiquette(bon,ref)),parTelegram(t,m,ref),parEmail(t,m)]);
   await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram),journal("nouvelle_reservation",ref,"email",email)]);
   const utiles=[push,telegram,email].filter(x=>x.statut!=="indisponible");
   const bilan=`push : ${push.ok?"ok":push.detail} | telegram : ${telegram.ok?"ok":telegram.detail} | email : ${email.ok?"ok":email.detail}`;

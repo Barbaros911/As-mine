@@ -4045,7 +4045,10 @@ La référence `ELA-AA-MM-XXXXX` est tirée au sort sur l'appareil
 refusait la demande (29/09/2026). Le **N° court** (« N° 1042 », dès 1001) est
 attribué par la **base** à l'écriture (`20261006000000_numero_court.sql`),
 immuable, et **recopié dans le bon** (`bon.numero`) : c'est là que tout le
-monde le lit. Ne pas nommer la colonne dans une lecture, ni passer à
+monde le lit. **Il tient seul la tête de toute alerte** (notification ELA,
+rappels, dernier message, annonce Telegram) et du message WhatsApp du client
+(9/10/2026, Barbaros : « tous les numéros pareils ») ; la référence longue
+n'est plus qu'en fin de message Telegram, clé technique des liens et du journal. Ne pas nommer la colonne dans une lecture, ni passer à
 `select=*` (perd le garde-fou de `version`). Histoire : `memoire/reference.md`.
 
 ## « ENVOYER MA DEMANDE » NE PARTAIT PLUS — LE CLOISONNEMENT AVAIT EMPORTÉ `telValide`

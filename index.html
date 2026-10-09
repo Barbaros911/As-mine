@@ -4641,7 +4641,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <label class="champ" for="regRecherche">
         <span class="champ-corps">
           <span class="champ-titre">Nom, téléphone, adresse, référence</span>
-          <input id="regRecherche" type="search" autocomplete="off" placeholder="Martin, Roissy, ELA-26-09…">
+          <input id="regRecherche" type="search" autocomplete="off" placeholder="Martin, Roissy, 1024…">
         </span>
       </label>
       <div id="regResultats"></div>
@@ -10267,7 +10267,10 @@ window.ELA_TEXTES = {
   }
   function messageDemande(bon){
     return [
-      "Demande de réservation — " + bon.ref,
+      /* LE N° COURT D'ABORD quand il est connu (9 octobre 2026) : c'est lui
+         que Barbaros lit partout ailleurs. La référence reste : le lecteur de
+         demandes la retrouve n'importe où dans la ligne. */
+      "Demande de réservation — " + (numeroDe(bon) ? "N° " + numeroDe(bon) + " · " : "") + bon.ref,
       "Départ : " + bon.course.depart,
       "Arrivée : " + bon.course.arrivee,
       "Date : " + (bon.course.immediat ? "dès que possible — demandé le " : "") + bon.dateMsg,
