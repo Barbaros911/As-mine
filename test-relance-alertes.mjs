@@ -8,9 +8,10 @@
      → annoncée maintenant (webhook tombé, Telegram en panne un instant) ;
    · LA NOTIFICATION ELA EST L'ALARME : à chaque tour (20 s) les 10 premières
      minutes et à H-30 ou moins, toutes les 10 min entre H-2 et H-30 ;
-   · TELEGRAM INFORME (2/10/2026 : « pas trop d'alertes sur Telegram ») :
-     +3 min, +10 min, puis toutes les 15 min la première heure, silence
-     jusqu'à H-2, toutes les 5 min sous H-30, chaque rappel EFFAÇANT le
+   · TELEGRAM INFORME (2/10/2026 : « pas trop d'alertes sur Telegram » ;
+     9/10/2026 : « toutes les 90 secondes », éprouvé admin fermé) : toutes
+     les 90 s les 10 premières minutes, puis toutes les 15 min la première
+     heure, silence jusqu'à H-2, toutes les 5 min sous H-30, chaque rappel EFFAÇANT le
      précédent ; un dernier message à l'heure du départ, puis plus rien ;
    · les saisies de l'exploitant ne sont ni annoncées ni relancées ;
    · « telegram-bot » n'accepte l'appui que de Telegram et de SA conversation ;
@@ -86,16 +87,21 @@ try {
   check('sur la première minute : la notification à chaque tour', nbRappels('ELA-26-09-AAAA1', 'push') >= 3, String(nbRappels('ELA-26-09-AAAA1', 'push')));
   check('…et toujours aucun Telegram', nbTg('ELA-26-09-AAAA1') === 1, String(nbTg('ELA-26-09-AAAA1')));
   maintenant = Date.parse('2026-09-30T10:04:35Z'); await relance();
-  check('+3 min : premier rappel Telegram', nbTg('ELA-26-09-AAAA1') === 2, String(nbTg('ELA-26-09-AAAA1')));
+  check('+3 min 05, premier tour à plus de 90 s de l\'annonce : premier rappel Telegram', nbTg('ELA-26-09-AAAA1') === 2, String(nbTg('ELA-26-09-AAAA1')));
   check('le titre du rappel tient sous 90 caractères', (tg.at(-1) || '').split('\n')[0].length < 90, String((tg.at(-1) || '').split('\n')[0].length));
   check('le rappel porte le bouton qui ouvre la course', (tgCorps.at(-1)?.reply_markup?.inline_keyboard?.[1]?.[0]?.url || '').includes('?ref=ELA-26-09-AAAA1'), JSON.stringify(tgCorps.at(-1)?.reply_markup));
   check('le premier rappel n\'efface rien (l\'annonce reste)', effacements().length === 0, JSON.stringify(effacements()));
   const idRappel1 = tgCorps.length;
+  /* 90 s DANS LA FENÊTRE D'ALARME (9/10/2026). Avant : rien jusqu'à +10.
+     Au tour suivant à moins de 90 s, rien ; à plus de 90 s, un rappel. */
+  maintenant = Date.parse('2026-09-30T10:05:35Z'); await relance();
+  check('+4 min 05, soit 60 s après le premier rappel : Telegram se tait encore', nbTg('ELA-26-09-AAAA1') === 2, String(nbTg('ELA-26-09-AAAA1')));
   maintenant = Date.parse('2026-09-30T10:07:00Z'); await relance();
-  check('+5 min 30 : pas de deuxième rappel (le suivant est à +10)', nbTg('ELA-26-09-AAAA1') === 2, String(nbTg('ELA-26-09-AAAA1')));
-  maintenant = Date.parse('2026-09-30T10:11:35Z'); await relance();
-  check('+10 min : deuxième rappel Telegram', nbTg('ELA-26-09-AAAA1') === 3, String(nbTg('ELA-26-09-AAAA1')));
+  check('+5 min 30, soit 145 s après le premier : DEUXIÈME rappel Telegram (toutes les 90 s dans la fenêtre d\'alarme)', nbTg('ELA-26-09-AAAA1') === 3, String(nbTg('ELA-26-09-AAAA1')));
   check('…qui EFFACE le premier rappel, pas l\'annonce', effacements().length === 1 && effacements()[0] === idRappel1 && !effacements().includes(idAnnonce), JSON.stringify({ effaces: effacements(), annonce: idAnnonce, rappel1: idRappel1 }));
+  const avantFinFenetre = nbTg('ELA-26-09-AAAA1');
+  maintenant = Date.parse('2026-09-30T10:11:35Z'); await relance();
+  check('+10 min 05 : la fenêtre d\'alarme est close, Telegram ne rappelle plus toutes les 90 s (il attend 15 min)', nbTg('ELA-26-09-AAAA1') === avantFinFenetre, String(nbTg('ELA-26-09-AAAA1') - avantFinFenetre));
   const pushApres10 = nbRappels('ELA-26-09-AAAA1', 'push');
   maintenant = Date.parse('2026-09-30T10:20:00Z'); await relance();
   check('passé 10 min, départ à plus de 2 h : la notification se tait', nbRappels('ELA-26-09-AAAA1', 'push') === pushApres10, String(nbRappels('ELA-26-09-AAAA1', 'push') - pushApres10));

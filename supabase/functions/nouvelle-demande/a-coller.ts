@@ -252,10 +252,15 @@ function saisieExploitant(bon:Record<string,any>):boolean{
      minutes et à H-30 ou moins, toutes les 10 min entre H-2 et H-30, rien
      avant H-2. Elle REMPLACE la précédente sur le téléphone (même étiquette),
      elle ne s'empile pas.
-   - TELEGRAM INFORME : un rappel à +3 min, un à +10 min, puis toutes les
-     15 min pendant la première heure ; silence ensuite jusqu'à H-2 (toutes
-     les 15 min), toutes les 5 min sous H-30. Chaque rappel EFFACE le
-     précédent : une seule ligne de rappel visible, jamais une pile.
+   - TELEGRAM INFORME : toutes les 90 s pendant la fenêtre d'alarme (les
+     10 premières minutes), puis toutes les 15 min pendant la première
+     heure ; silence ensuite jusqu'à H-2 (toutes les 15 min), toutes les
+     5 min sous H-30. Chaque rappel EFFACE le précédent : une seule ligne de
+     rappel visible, jamais une pile.
+     LES 90 s DATENT DU 9 OCTOBRE 2026, à sa demande, après l'avoir éprouvé
+     admin fermé sur une vraie réservation : c'était +3 min puis +10 min.
+     Pas moins de 90 s : à 20 s, le téléphone finissait par couper le son de
+     Telegram (ci-dessus), et la notification ELA sonne déjà à chaque tour.
    - À L'HEURE DU DÉPART, UN DERNIER MESSAGE sur les deux canaux (« départ
      passé, non traitée »), puis plus rien. Une course oubliée se clôt dans
      l'admin, elle ne sonne pas six heures.
@@ -270,6 +275,8 @@ const MIN_MS=60*1000,IMMEDIAT_MS=30*60*1000;
    notification « à chaque tour », une fois sur deux. */
 const SOUPLESSE_MS=5*1000;
 const RATTRAPAGE_MS=60*1000,PAS_ALARME_MS=20*1000-SOUPLESSE_MS,ALARME_MS=10*MIN_MS,PAS_PROCHE_MS=10*MIN_MS,FENETRE_MS=6*3600*1000;
+/* Telegram pendant la fenêtre d'alarme : 90 s (9 octobre 2026). */
+const PAS_TELEGRAM_ALARME_MS=90*1000;
 const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
 /* Date et heure du bon sont des heures civiles de Paris. Les convertir en
    pseudo-UTC, comme l'horloge de Paris courante, évite que le serveur UTC
@@ -290,15 +297,13 @@ function cadencePush(reste:number|null,age:number):number|null{
   if(reste<=2*3600*1000)return PAS_PROCHE_MS;
   return null;
 }
-/* TELEGRAM — l'information. « n » = rappels Telegram déjà tentés (réussis
-   ou non : un échec compte, sinon une panne de Telegram ferait réessayer à
-   chaque tour), « depuisDernier » = temps écoulé depuis le dernier envoi
-   Telegram, annonce comprise. */
-function telegramDu(age:number,reste:number|null,n:number,depuisDernier:number):boolean{
+/* TELEGRAM — l'information. « depuisDernier » = temps écoulé depuis le
+   dernier envoi Telegram, annonce comprise, réussi OU NON : un échec compte,
+   sinon une panne de Telegram ferait réessayer à chaque tour. */
+function telegramDu(age:number,reste:number|null,depuisDernier:number):boolean{
   if(reste!==null&&reste<=0)return false;
   if(reste!==null&&reste<=30*MIN_MS)return depuisDernier>=5*MIN_MS-SOUPLESSE_MS;
-  if(n===0)return age>=3*MIN_MS-SOUPLESSE_MS;
-  if(n===1)return age>=10*MIN_MS-SOUPLESSE_MS;
+  if(age<=ALARME_MS)return depuisDernier>=PAS_TELEGRAM_ALARME_MS-SOUPLESSE_MS;
   if(age>60*MIN_MS&&(reste===null||reste>2*3600*1000))return false;
   return depuisDernier>=15*MIN_MS-SOUPLESSE_MS;
 }
@@ -374,8 +379,7 @@ async function relancer():Promise<string>{
     const minutes=Math.max(1,Math.round(age/60000));
     const t=titreRappel(bon,minutes);
     const tgTous=journalRef.filter(x=>x.canal==="telegram");
-    const tgRappels=tgTous.filter(x=>x.type_evenement==="rappel_reservation");
-    const doitTelegram=!!(TELEGRAM_TOKEN&&TELEGRAM_CHAT)&&telegramDu(ageAnnonce,reste,tgRappels.length,Date.now()-plusRecent(tgTous,cree));
+    const doitTelegram=!!(TELEGRAM_TOKEN&&TELEGRAM_CHAT)&&telegramDu(ageAnnonce,reste,Date.now()-plusRecent(tgTous,cree));
     const cadence=cadencePush(reste,ageAnnonce);
     const pushDernier=plusRecent(journalRef.filter(x=>x.canal==="push"),cree);
     const doitPush=cadence!==null&&Date.now()-pushDernier>=cadence;
