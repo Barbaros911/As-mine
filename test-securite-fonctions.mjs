@@ -73,6 +73,26 @@ const pp=(auth)=>p(new Request('http://x',{method:'POST',headers:auth?{authoriza
 ok((await pp()).status===403,'prevenir-client sans jeton : 403');
 ok((await pp('Bearer sb_publishable_xxx')).status===403,'prevenir-client avec la clé publique : 403');
 ok((await pp('Bearer ADMIN')).status===200,'prevenir-client exploitant : accepté');
+/* LE PRÉFLIGHT CORS (audit du 9 octobre 2026, P2). L'admin envoie
+   Authorization + apikey + JSON depuis elatransfer.com vers *.supabase.co :
+   le navigateur demande d'abord OPTIONS, et n'envoie le POST que si la
+   réponse porte les en-têtes Access-Control-*. La fonction répondait 405 nu :
+   le POST ne partait JAMAIS, en silence — la notification « Transfert
+   confirmé » n'arrivait à aucun client. Un faux serveur Playwright répond
+   lui-même au préflight : seule la fonction chargée telle quelle le montre.
+   Contre l'ancien code, les trois premiers contrôles tombent. */
+{
+  const opt=(origin)=>p(new Request('http://x',{method:'OPTIONS',headers:{origin,'access-control-request-method':'POST','access-control-request-headers':'authorization, apikey, content-type'}}));
+  const r=await opt('https://elatransfer.com');
+  ok(r.status===204&&r.headers.get('access-control-allow-origin')==='https://elatransfer.com','prevenir-client : préflight CORS depuis le site → 204 avec l\'origine autorisée ('+r.status+')');
+  const permis=(r.headers.get('access-control-allow-headers')||'').toLowerCase();
+  ok(permis.includes('authorization')&&permis.includes('apikey')&&permis.includes('content-type'),'prevenir-client : le préflight autorise Authorization, apikey et Content-Type — ce que l\'admin envoie');
+  const r2=await p(new Request('http://x',{method:'POST',headers:{authorization:'Bearer ADMIN',origin:'https://elatransfer.com'},body:JSON.stringify({ref:'ELA-26-09-0007'})}));
+  ok(r2.status===200&&r2.headers.get('access-control-allow-origin')==='https://elatransfer.com','prevenir-client : la réponse au POST porte l\'origine autorisée, sinon le navigateur la jette');
+  ok((await opt('https://pirate.example')).status===403,'prevenir-client : préflight depuis une origine étrangère → 403');
+  const r3=await p(new Request('http://x',{method:'POST',headers:{authorization:'Bearer ADMIN',origin:'https://pirate.example'},body:JSON.stringify({ref:'ELA-26-09-0007'})}));
+  ok(!r3.headers.get('access-control-allow-origin'),'prevenir-client : aucune origine étrangère n\'est jamais autorisée en retour');
+}
 
 // courses-hotel : le code de la réception est plafonné en nombre d'essais,
 // et le plafond est vérifié AVANT la comparaison du code.
