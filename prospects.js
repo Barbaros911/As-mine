@@ -35,7 +35,10 @@
 (function(racine){
   "use strict";
 
-  var COLONNES = ["id", "cree_le", "type", "etablissement", "nom", "fonction", "email",
+  /* « prenom » (9 octobre 2026) : tant que 20261009000000_prospects_prenom.sql
+     n'est pas appliquée, la base répond 400 sur cette colonne ; on relit
+     alors sans elle (le nom complet est dans « nom »). */
+  var COLONNES = ["id", "cree_le", "type", "etablissement", "prenom", "nom", "fonction", "email",
     "telephone", "langue", "domaine_pro", "email_confirme_le", "demo_ouverte_le",
     "derniere_visite_le", "nb_visites", "statut", "note", "dernier_contact_le"];
   var STATUTS = [
@@ -75,6 +78,10 @@
     return erreur("reseau", "Serveur injoignable : vérifiez le réseau, puis réessayez.");
   }
 
+  /* Appris une fois pour toute la page : sans lui, chaque écriture
+     redemanderait la colonne absente et paierait un aller-retour refusé. */
+  var sansPrenom = false;
+
   /* ═══ LE CLIENT — deux appels, rien d'autre ═══ */
   function client(nuage){
     if(!nuage || typeof nuage.appel !== "function") throw erreur("absent", "Connexion au serveur absente : rechargez la page.");
@@ -83,10 +90,25 @@
         return Promise.reject(erreur("session", "Pas de session : connectez-vous avec le compte administrateur."));
       return null;
     }
+    function colonnes(){
+      return (sansPrenom ? COLONNES.filter(function(c){ return c !== "prenom"; }) : COLONNES).join(",");
+    }
+    /* Un 400 sur la lecture avec « prenom » : la colonne n'existe pas encore. */
+    function avecRepli(faire){
+      return faire().catch(function(e){
+        if(!sansPrenom && /nuage 400/.test(String(e && e.message || ""))){
+          sansPrenom = true;
+          return faire();
+        }
+        throw e;
+      });
+    }
     return {
       lister: function(){
-        return pret() || nuage.appel("/rest/v1/prospects?select=" + COLONNES.join(",")
-            + "&order=cree_le.desc&limit=" + LIMITE)
+        return pret() || avecRepli(function(){
+          return nuage.appel("/rest/v1/prospects?select=" + colonnes()
+            + "&order=cree_le.desc&limit=" + LIMITE);
+        })
           .then(function(r){
             if(!Array.isArray(r)) throw erreur("illisible", "Réponse du serveur illisible : réessayez.");
             return r;
@@ -100,9 +122,11 @@
         if(Object.prototype.hasOwnProperty.call(champs, "statut")) corps.statut = champs.statut;
         if(Object.prototype.hasOwnProperty.call(champs, "note")) corps.note = champs.note;
         if(!Object.keys(corps).length) return Promise.resolve(null);
-        return pret() || nuage.appel("/rest/v1/prospects?id=eq." + id + "&select=" + COLONNES.join(","), {
-          method: "PATCH", body: JSON.stringify(corps),
-          headers: { Prefer: "return=representation" }
+        return pret() || avecRepli(function(){
+          return nuage.appel("/rest/v1/prospects?id=eq." + id + "&select=" + colonnes(), {
+            method: "PATCH", body: JSON.stringify(corps),
+            headers: { Prefer: "return=representation" }
+          });
         }).then(function(r){
           if(!Array.isArray(r) || r.length !== 1)
             throw erreur("introuvable", "Le serveur n'a rien modifié : ce prospect n'est plus accessible. Actualisez.");
@@ -230,6 +254,12 @@
     return li;
   }
 
+  /* « Prénom Nom » ; un prospect d'avant le 9 octobre n'a pas de prénom, son
+     « nom » est déjà le nom complet. */
+  function nomComplet(p){
+    return (p.prenom ? p.prenom + " " : "") + (p.nom || "");
+  }
+
   function carte(p, emails){
     var li = el("li", "prs-carte" + (p.statut === "nouveau" ? " prs-nouveau" : ""));
     li.dataset.id = p.id;
@@ -244,7 +274,7 @@
     haut.appendChild(pastilles);
     li.appendChild(haut);
 
-    li.appendChild(el("p", "prs-qui", p.nom + (p.fonction ? " · " + p.fonction : "")));
+    li.appendChild(el("p", "prs-qui", nomComplet(p) + (p.fonction ? " · " + p.fonction : "")));
 
     var contact = el("div", "prs-contact");
     var tel = String(p.telephone || "");

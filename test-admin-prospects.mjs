@@ -42,6 +42,11 @@ const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
 const migration = readFileSync('supabase/migrations/20261008000000_prospects.sql', 'utf8');
 const ACCORDEES = /grant select \(([^)]*)\)\s*on table public\.prospects/i.exec(migration)[1]
   .split(',').map(s => s.trim()).filter(Boolean);
+/* Le prénom (9 octobre 2026) est accordé par sa propre migration : relu là
+   aussi, et ajouté aux colonnes que l'écran a le droit de demander. */
+const migPrenom = readFileSync('supabase/migrations/20261009000000_prospects_prenom.sql', 'utf8');
+for (const m of migPrenom.matchAll(/grant select \(([^)]*)\)\s*on table public\.prospects\s+to authenticated/gi))
+  for (const c of m[1].split(',').map(x => x.trim()).filter(Boolean)) if (!ACCORDEES.includes(c)) ACCORDEES.push(c);
 const ECRITES = /grant update \(([^)]*)\)\s*on table public\.prospects/i.exec(migration)[1]
   .split(',').map(s => s.trim());
 
@@ -104,7 +109,7 @@ function prospects() {
       fonction: null, email: 'claire.dubois@gmail.com', telephone: '+33698765432', langue: 'fr', domaine_pro: false,
       email_confirme_le: null, demo_ouverte_le: null, derniere_visite_le: null, nb_visites: 0, statut: 'contacte',
       note: 'Rappeler jeudi', dernier_contact_le: '2026-10-07T10:00:00Z' },
-    { id: ID(1), cree_le: '2026-10-08T12:02:00Z', type: 'hotel', etablissement: 'Hôtel des Lilas', nom: 'Marc Lefèvre',
+    { id: ID(1), cree_le: '2026-10-08T12:02:00Z', type: 'hotel', etablissement: 'Hôtel des Lilas', prenom: 'Marc', nom: 'Lefèvre',
       fonction: 'Directeur', email: 'direction@hotel-lilas.fr', telephone: '+33612345678', langue: 'fr', domaine_pro: true,
       email_confirme_le: '2026-10-08T12:10:00Z', demo_ouverte_le: '2026-10-08T12:03:00Z', derniere_visite_le: '2026-10-08T15:40:00Z',
       nb_visites: 3, statut: 'nouveau', note: null, dernier_contact_le: '2026-10-08T15:40:00Z' },
@@ -136,6 +141,9 @@ function fauxServeur() {
       if (s.mode === 'vide') return route.fulfill(J([]));
       if (s.mode === 'expire') return route.fulfill(J({ message: 'JWT expired' }, 401));
       const cols = (q.get('select') || '*').split(',');
+      /* Base pas encore migrée : PostgREST refuse la colonne inconnue (400). */
+      if (s.mode === 'sansPrenom' && cols.includes('prenom'))
+        return route.fulfill(J({ code: '42703', message: 'column prospects.prenom does not exist' }, 400));
       if (cols.some(c => !ACCORDEES.includes(c))) return route.fulfill(J({ message: 'permission denied' }, 401));
       let l = s.lignes.slice();
       if (q.get('order') === 'cree_le.desc') l.sort((a, b) => b.cree_le.localeCompare(a.cree_le));
@@ -143,6 +151,8 @@ function fauxServeur() {
     }
     if (m === 'PATCH') {
       if (s.patchMode === 'panne') return route.fulfill(J({ message: 'panne' }, 503));
+      if (s.mode === 'sansPrenom' && (q.get('select') || '').split(',').includes('prenom'))
+        return route.fulfill(J({ code: '42703', message: 'column prospects.prenom does not exist' }, 400));
       if (!corps || Object.keys(corps).some(k => !ECRITES.includes(k))) return route.fulfill(J({ message: 'permission denied' }, 403));
       const id = (q.get('id') || '').replace('eq.', '');
       const p = s.lignes.find(x => x.id === id);
@@ -376,6 +386,30 @@ try {
     await ouvrir(c.p);
     const msg = await texte(c.p, '.prs-erreur');
     check('6 session expirée (renouvellement refusé) : « reconnectez-vous »', /Session expirée/.test(msg) && await c.p.locator('.prs-vide').count() === 0, msg);
+    await c.ctx.close();
+  });
+  /* LA BASE N'A PAS ENCORE LE PRÉNOM : la fusion déploie l'écran avant que
+     la migration soit appliquée. L'écran relit sans la colonne, et les
+     prospects s'affichent quand même — jamais « accès refusé ». */
+  await partie('6-7', async () => {
+    const s = fauxServeur(); s.mode = 'sansPrenom';
+    for (const l of s.lignes) delete l.prenom;
+    s.lignes.find(l => l.id === ID(1)).nom = 'Marc Lefèvre';
+    const c = await contexte(nav, { srv: s });
+    await ouvrir(c.p);
+    const sel = s.lectures().map(r => new URL(r.url).searchParams.get('select'));
+    check('6 base sans prénom : la liste s\'affiche quand même, sans erreur',
+      await c.p.locator('.prs-carte').count() === 4 && await c.p.locator('.prs-erreur').count() === 0, sel.join(' | '));
+    check('6 base sans prénom : une relecture SANS la colonne, une seule',
+      sel.length === 2 && sel[0].split(',').includes('prenom') && !sel[1].split(',').includes('prenom'), sel.join(' | '));
+    check('6 base sans prénom : le nom complet s\'affiche tel quel',
+      (await carteDe(c.p, 1).locator('.prs-qui').innerText()) === 'Marc Lefèvre · Directeur');
+    await carteDe(c.p, 1).locator('select').selectOption('contacte');
+    await carteDe(c.p, 1).locator('.prs-enregistrer').click();
+    await c.p.waitForTimeout(500);
+    const w = s.ecritures();
+    check('6 base sans prénom : l\'enregistrement ne redemande pas la colonne absente',
+      w.length === 1 && !new URL(w[0].url).searchParams.get('select').split(',').includes('prenom'), w.map(x => x.url).join(' '));
     await c.ctx.close();
   });
   await partie('6-7', async () => {
