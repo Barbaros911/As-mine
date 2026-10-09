@@ -429,7 +429,15 @@ try {
     const v = await contexte(nav, { largeur, hauteur, srv: etat });
     await ouvrirPilotage(v.p);
     if (largeur < 1200) await majeure(v.p, '.pil-etape[data-statut="en_cours"]');
-    const mesure = () => v.p.evaluate(() => {
+    /* ON MESURE L'ÉCRAN POSÉ (9 octobre 2026). L'écran entre par l'animation
+       « apparait » (0,26 s, 6 px vers le haut) : mesuré pendant qu'elle court,
+       un bouton de 44 px rend 43,999… sous un translateY fractionnaire, et le
+       contrôle tombait sur un élément différent à chaque passage (« 44×44 »
+       refusé). Même règle que test-admin-voyant, K : on attend la fin de
+       toute animation bornée avant de lire un rectangle. */
+    const mesure = async () => { await v.p.evaluate(() => Promise.all(document.getAnimations()
+      .filter(a => a.effect && a.effect.getComputedTiming().endTime !== Infinity)
+      .map(a => a.finished.catch(() => {})))); return v.p.evaluate(() => {
       const trop = document.documentElement.scrollWidth - window.innerWidth;
       const petits = [...document.querySelectorAll('#ecran-pilotage button, #ecran-pilotage input, #ecran-pilotage select, #ecran-pilotage label.pil-coche')]
         .filter(e => e.offsetParent !== null && !e.disabled)
@@ -444,7 +452,7 @@ try {
       const etapes = vus('.pil-etape').length ? vus('.pil-etape') : vus('.pil-colonne');
       const hauts = etapes.map(b => Math.round(b.getBoundingClientRect().top));
       return { trop, petits, uneLigne: etapes.length === 5 && new Set(hauts).size === 1 };
-    });
+    }); };
     let m = await mesure();
     check(`13 ${largeur} px, liste : aucun débordement de côté`, m.trop <= 0, String(m.trop));
     check(`13 ${largeur} px, liste : tout ce qui se touche fait au moins 44 px`, m.petits.length === 0, m.petits.join(', '));

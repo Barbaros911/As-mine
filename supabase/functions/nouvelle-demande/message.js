@@ -86,9 +86,12 @@ function motifs(m) {
 export function corps(bon, adresseAdmin) {
   const c = bon.course ?? {};
   const l = [
-    /* Le N° court d'abord (5 octobre 2026) : c'est lui qu'on se dit au
-       téléphone. Absent tant que sa migration n'est pas appliquée. */
-    (Number(bon.numero) > 0 ? "N° " + bon.numero + " · " : "") + "Réf. " + (bon.ref || "—"),
+    /* LE N° COURT SEUL EN TÊTE (5 octobre 2026, puis 9 octobre : « je
+       voudrais que tous les numéros soient pareils ») : c'est lui que lisent
+       le client sur son bon, la réception et l'admin. La référence longue,
+       clé technique, descend en fin de message — elle y reste cherchable.
+       Sans N° (migration pas encore appliquée), la référence tient la tête. */
+    (Number(bon.numero) > 0 ? "N° " + bon.numero : "Réf. " + (bon.ref || "—")),
     "",
     /* Le départ SANS le numéro de chambre : « departPublic » existe pour
        ça dans le bon. La chambre ne regarde que le chauffeur retenu. */
@@ -111,6 +114,8 @@ export function corps(bon, adresseAdmin) {
      d'oiseau. Il est ferme quand même — il faut donc qu'il le SACHE avant
      de confier la course, pas en la facturant. */
   if (c.estimee) l.push("(distance estimée — prix à vérifier)");
-  l.push("", "Le client attend une réponse.", adresseAdmin);
+  l.push("", "Le client attend une réponse.");
+  if (Number(bon.numero) > 0) l.push("Réf. " + (bon.ref || "—"));
+  l.push(adresseAdmin);
   return l.join("\n");
 }

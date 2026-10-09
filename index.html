@@ -673,7 +673,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* La ligne grise TRONQUE plutôt que de passer à la ligne : une carte dont la
    hauteur dépend de la longueur d'une adresse ne se parcourt plus du regard,
    et c'est justement ce qu'on vient réparer. */
-.d-gris{color:var(--gris);font-size:11px;min-width:0;overflow:hidden;
+.d-gris{flex:1 1 0;color:var(--gris);font-size:11px;min-width:0;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;}
 .d-bas{display:flex;align-items:center;justify-content:space-between;
   gap:8px;margin-top:5px;}
@@ -1293,11 +1293,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 /* ---------- LE BANDEAU DU HAUT ---------- */
 .admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
   gap:14px;margin:18px 20px 0;}
+.admin-titre{flex:1 1 auto;min-width:0;}
 .admin-bonjour{margin:0;font-size:20px;font-weight:800;letter-spacing:-.022em;}
-.admin-sous{margin:3px 0 0;font-size:12.5px;color:var(--gris);}
-.admin-date{flex:none;font-size:11.5px;font-weight:600;color:var(--gris);
-  border:1px solid var(--filet);border-radius:10px;padding:8px 11px;
-  background:var(--carte);white-space:nowrap;}
+/* Une seule ligne, qui tronque : l'heure de lecture d'abord, la date ensuite. */
+.admin-sous{margin:3px 0 0;font-size:12.5px;color:var(--gris);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.admin-sous::first-letter{text-transform:uppercase;}
+#bordActualiseTexte:empty + .admin-sep{display:none;}
+.admin-date{font-weight:600;}
+/* Les deux outils du tableau de bord : des ronds de 36 px, à la hauteur du
+   titre — aucune rangée de plus avant la première demande. */
+.admin-outils{display:flex;gap:6px;flex:none;}
+.outil{width:36px;height:36px;padding:0;border-radius:999px;border:1px solid var(--filet);
+  background:var(--carte);color:var(--encre);display:inline-flex;align-items:center;
+  justify-content:center;cursor:pointer;}
+.outil.actif{border-color:var(--encre);box-shadow:0 0 0 1.5px var(--encre);}
+.outil:disabled{opacity:.6;}
+.outil.tourne svg{animation:rec-tourne .9s linear infinite;}
 
 /* ---------- LES QUATRE CHIFFRES ---------- */
 /* ═══ ILS PRENAIENT 230 PIXELS AVANT LA PREMIÈRE COURSE ═══
@@ -2028,13 +2040,17 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   background:var(--prov-pale, var(--accent-clair));color:var(--prov-encre, var(--accent-encre));
   font-size:11px;font-weight:800;letter-spacing:.02em;
   white-space:nowrap;align-self:center;}
-/* LA PASTILLE DE PROVENANCE CÈDE LA PLACE, PAS LES BOUTONS (relecture du
-   4 octobre 2026). Elle ne rétrécissait jamais (flex:0 0 auto) : sur une
-   course du comptoir, « Confirmer la fin », plus long que « Terminée »,
-   poussait « Appeler » hors de la carte — et sous le doigt qui visait
-   « Appeler », c'est « Confirmer la fin » qui tombait. À 320 px elle
-   débordait déjà de 38 px au repos. Elle se coupe maintenant (« easyHotel ·
-   compt… »), les boutons restent où le pouce les attend. */
+/* L'ORDRE DANS LEQUEL LA LIGNE DU BAS CÈDE (9 octobre 2026) : la ligne grise
+   d'abord (elle ne prend que le reste, « flex:1 1 0 », et tronque par
+   nature), la pastille de l'hôtel ensuite (« flex:0 1 auto » : entière
+   tant que pastille + drapeaux + boutons tiennent, coupée seulement
+   au-delà), les boutons jamais. Deux défauts payés avant cette règle :
+   la pastille ne rétrécissait pas (« flex:0 0 auto », puis « max-width:42% »)
+   et « Appeler » sortait de la carte à 320 px — sous le doigt qui le
+   visait tombait « Confirmer la fin » ; ou elle rétrécissait comme la
+   ligne grise, au prorata, et se lisait « easyHotel A… » à 390 px alors
+   que la place existait. test-admin-audit et test-admin-ergonomie
+   éprouvent chacun un côté. */
 .rec-note{margin:8px 0 0;padding:7px 10px;border-radius:10px;
   background:var(--fond);font-size:12.5px;color:var(--encre);
   border-left:3px solid var(--filet);}
@@ -2311,9 +2327,6 @@ body.exploitant .bloc-titre,
 body.exploitant .panneau-titre{color:var(--encre);}
 body.exploitant .ecran-titre,
 body.exploitant .admin-bonjour{color:var(--encre);letter-spacing:-.03em;}
-body.exploitant .admin-date{border-color:var(--filet);border-radius:999px;
-  padding:8px 13px;color:var(--accent-encre);background:var(--accent-clair);
-  border-color:transparent;}
 
 /* LE RETOUR ET SON TITRE SE LISENT ENSEMBLE, À GAUCHE. Le titre partait au
    bord droit (« space-between »), et sur « Nouvelle course » le bouton
@@ -2432,6 +2445,38 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .sauvegarde-bord p{margin:0 0 8px;font-size:14px;line-height:1.45}
 .sauvegarde-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
+/* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026) : bandeaux compacts, Actualiser,
+   recherche instantanée, sélection multiple, course d'essai. ═══ */
+.sauvegarde-bord{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.sauvegarde-bord p{margin:0;font-size:12.5px;line-height:1.35;flex:1 1 auto;min-width:0}
+.sauvegarde-bord .bouton-fantome{margin:0;flex:none;width:auto;min-height:36px;padding:0 12px;font-size:12.5px}
+.son-coupe{min-height:36px;padding:6px 12px;font-size:12.5px;margin-top:10px}
+.bord-outils{display:flex;gap:8px;align-items:center;margin:12px 20px 0}
+.bord-outils[hidden]{display:none}
+.bord-fermer{flex:none;width:44px;height:44px;padding:0;border:1px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--gris);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.bord-recherche{flex:1 1 auto;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--gris);min-width:0}
+.bord-recherche input{flex:1 1 auto;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:var(--encre)}
+.bord-recherche input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.bord-selection{flex:none;min-height:44px;padding:0 12px;border:1px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--encre);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.bord-selection.actif{border-color:var(--encre);box-shadow:0 0 0 1.5px var(--encre)}
+.selection-barre{display:flex;align-items:center;gap:8px;margin:8px 20px 0;padding:8px 12px;border-radius:12px;background:var(--accent-clair);color:var(--accent-encre)}
+.selection-barre[hidden]{display:none}
+.selection-texte{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700}
+.selection-barre .d-action{flex:none;min-height:34px;padding:0 10px;border-radius:999px;border:1px solid var(--filet);background:var(--carte);color:var(--encre);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.selection-barre .d-action.d-rouge{border-color:#C9302F;color:#8E1F1E;background:#FFF4F4}
+.selection-barre .d-action:disabled{opacity:.5}
+.selection-etat{margin:6px 20px 0;color:#8E1F1E}
+.d-coche{display:none;flex:none;width:20px;height:20px;border-radius:6px;border:2px solid currentColor;margin-right:4px;position:relative}
+.liste-selection .d-coche{display:inline-block}
+.liste-selection .demande.choisie .d-coche::after{content:"";position:absolute;inset:3px;border-radius:3px;background:currentColor}
+.liste-selection .demande.choisie{outline:3px solid var(--accent);outline-offset:2px}
+.liste-selection .d-boutons{display:none}
+.d-drapeau.essai{background:#EEF1F5;color:#4A5563;border-color:#D5DCE5}
+.demande.attente .d-drapeau.essai{background:rgba(255,255,255,.88);color:#4A5563;border-color:transparent}
+.essai-toggle{display:flex;align-items:flex-start;gap:10px;margin:14px 20px 0;padding:10px 12px;border:1px dashed var(--filet);border-radius:12px;font-size:12.5px;color:var(--gris);cursor:pointer}
+.essai-toggle input{margin:2px 0 0;width:18px;height:18px;flex:none}
+.essai-toggle b{color:var(--encre)}
+@media (min-width:900px){ body.espace .bord-outils, body.espace .selection-barre, body.espace .selection-etat, body.espace .essai-toggle{margin-left:28px;margin-right:28px} }
 </style>
 </head>
 <body>
@@ -3857,11 +3902,40 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <!-- « Quitter » est passé dans la colonne de gauche : il est de la même
          nature que « Registre » ou « Affiche », pas un titre de page. -->
     <div class="admin-tete">
-      <div>
+      <div class="admin-titre">
         <h1 class="admin-bonjour">Tableau de bord</h1>
-        <p class="admin-sous" id="adminSous">L'activité d'Elatransfer.</p>
+        <!-- LA SOUS-LIGNE DIT L'HEURE DE LA DERNIÈRE LECTURE, PUIS LA DATE
+             (9 octobre 2026). « À jour · 15:20 » remplace une phrase qui ne
+             disait rien ; la date, elle, a quitté sa pastille de droite pour
+             laisser la place aux deux outils. Une seule ligne, qui tronque :
+             l'heure d'abord, c'est elle qui informe. -->
+        <p class="admin-sous" id="adminSous"><span id="bordActualiseTexte"></span><span class="admin-sep" aria-hidden="true"> · </span><span class="admin-date" id="adminDate"></span></p>
       </div>
-      <div class="admin-date" id="adminDate"></div>
+      <!-- DEUX OUTILS EN TÊTE, ET PAS UNE RANGÉE DE PLUS (9 octobre 2026,
+           Barbaros : « rafraîchir, actualiser… retrouver facilement une course
+           avec son numéro »). Une rangée permanente recherche + sélection
+           coûtait 56 px, et le bouton Actualiser empilé sous la date 30 de
+           plus : à 390 × 844, bandeau d'alerte affiché, la première demande en
+           attente passait SOUS le bord de l'écran (test-admin-voyant, K). Le
+           champ de recherche s'ouvre d'un appui sur la loupe et se replie ;
+           l'icône seule ne coûte rien en hauteur. -->
+      <div class="admin-outils">
+        <button class="outil" type="button" id="btnBordRecherche" aria-label="Rechercher une course" aria-expanded="false" aria-controls="bordOutils">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/>
+            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <!-- ACTUALISER À LA MAIN : la sonde relit le serveur toutes les 8 s,
+             mais un geste qu'on ne peut pas faire soi-même laisse douter de
+             ce qu'on voit. L'heure de la lecture s'écrit dans la sous-ligne. -->
+        <button class="outil" type="button" id="btnBordActualiser" aria-label="Actualiser">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M20 4v5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- CE QUI ARRIVE PENDANT QU'IL REGARDE L'ÉCRAN.
@@ -3874,7 +3948,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          iPhone et Android refusent de jouer un son qu'aucun doigt n'a
          autorisé : l'ancien bip se taisait donc presque toujours, sans rien
          dire. On le DIT, et le premier appui n'importe où le débloque. -->
-    <button class="son-coupe" type="button" id="sonCoupe" hidden>Son des alertes coupé — touchez ici pour l'activer</button>
+    <button class="son-coupe" type="button" id="sonCoupe" hidden>Son des alertes coupé — touchez pour l'activer</button>
     <!-- LES ALERTES EN PANNE (4 octobre 2026). N'apparaît QUE si la mesure
          du serveur dit qu'une alerte ne part plus : sa présence est
          l'alerte. Elle dit aussi le geste qui reste — les demandes arrivent
@@ -3898,7 +3972,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          et seulement s'il y a quelque chose à perdre. -->
     <div class="sauvegarde-bord" id="bordSauvegarde" hidden>
       <p id="bordSauvegardeTexte"></p>
-      <button class="bouton-fantome" type="button" id="btnBordSauver">Télécharger une sauvegarde</button>
+      <button class="bouton-fantome" type="button" id="btnBordSauver">Sauvegarder</button>
     </div>
     <div class="hors-ligne" id="bordHorsLigne" hidden>
       <p id="bordHorsLigneTexte">Vous ne recevez pas les demandes de vos clients
@@ -3970,6 +4044,34 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          LA LISTE EST REMONTÉE ICI, juste sous « Coller une demande » : c'est
          le travail. L'affiche et le serveur se règlent une fois et ne se
          regardent plus — ils sont passés en bas. -->
+    <!-- RETROUVER UNE COURSE VITE (9 octobre 2026, Barbaros : « retrouver
+         facilement une course avec son numéro »). La recherche du registre
+         était au milieu d'une page de cinq écrans ; ici, N°, nom, téléphone
+         ou adresse filtrent la liste à la frappe, tous états confondus.
+         « Sélectionner » ouvre la suppression de plusieurs courses d'un coup
+         — vingt essais à nettoyer, c'était quarante appuis depuis les fiches. -->
+    <div class="bord-outils" id="bordOutils" hidden>
+      <label class="bord-recherche" for="bordRecherche">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/>
+          <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <input id="bordRecherche" type="search" autocomplete="off" placeholder="N°, nom, téléphone, adresse…" aria-label="Rechercher une course">
+      </label>
+      <button class="bord-selection" type="button" id="btnBordSelection">Sélectionner</button>
+      <button class="bord-fermer" type="button" id="btnBordRechercheFermer" aria-label="Fermer la recherche">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="selection-barre" id="bordSelectionBarre" hidden>
+      <span class="selection-texte" id="bordSelectionTexte">Touchez les courses à supprimer</span>
+      <button class="d-action" type="button" id="btnBordToutSel">Tout</button>
+      <button class="d-action d-rouge" type="button" id="btnBordSupprimerSel" disabled>Supprimer</button>
+      <button class="d-action" type="button" id="btnBordAnnulerSel">Fermer</button>
+    </div>
+    <p class="bloc-note selection-etat" id="bordSelectionEtat" hidden></p>
     <div class="compteurs">
       <button class="compteur" type="button" data-filtre="attente">
         <span class="chiffre" id="cptAttente">0</span>
@@ -4181,6 +4283,51 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <h1 class="ecran-titre">Réglages</h1>
     </div>
 
+    <!-- LES NOTIFICATIONS D'ABORD (9 octobre 2026) : c'est le réglage qui
+         décide si une demande le réveille. Il était en bas de six écrans. -->
+    <div class="bloc" id="blocPushAdmin">
+      <h2 class="bloc-titre">Notifications ELA</h2>
+      <p class="bloc-note">Recevez chaque nouvelle demande sur ce téléphone,
+        en plus de Telegram.</p>
+      <button class="bouton" type="button" id="btnPushAdmin">
+        <span>Activer les notifications</span>
+      </button>
+      <p class="champ-aide" id="pushAdminEtat" hidden></p>
+      <p class="champ-aide" id="pushAdminAppareil" hidden></p>
+      <!-- ÉPROUVER SUR SON PROPRE TÉLÉPHONE, PAS SUR UNE PROMESSE. Le bouton
+           fait sonner, vibrer et notifier exactement comme une vraie
+           demande, et dit ce qui a marché sur CET appareil. -->
+      <button class="bouton-fantome" type="button" id="btnTesterAlertes" style="margin-top:10px">
+        <span>Tester mes alertes</span>
+      </button>
+      <p class="champ-aide" id="testAlertesEtat" hidden></p>
+      <!-- FABRIQUER LA PAIRE DE CLÉS, SUR SON PROPRE TÉLÉPHONE (29/09/2026).
+           Les secrets VAPID manquaient chez Supabase et la clé privée
+           d'origine n'est gardée nulle part. La paire est fabriquée ICI, dans
+           son navigateur, par Web Crypto : la clé privée ne part vers aucun
+           serveur, ni vers le dépôt, ni vers une conversation — il la colle
+           lui-même dans les secrets Supabase. -->
+      <details id="blocClesVapid" style="margin-top:14px">
+        <summary>Fabriquer les clés des notifications</summary>
+        <p class="bloc-note">À faire une seule fois. Collez chaque valeur dans
+          les secrets Supabase, sous le nom indiqué. La clé secrète ne doit
+          être envoyée à personne.</p>
+        <button class="bouton-fantome" type="button" id="btnClesVapid">Fabriquer les clés</button>
+        <div id="clesVapid" hidden>
+          <label class="champ" for="cleVapidPub"><span class="champ-corps">
+            <span class="champ-titre">VAPID_PUBLIQUE</span>
+            <input id="cleVapidPub" type="text" readonly></span></label>
+          <button class="bouton-fantome" type="button" data-copier="cleVapidPub">Copier VAPID_PUBLIQUE</button>
+          <label class="champ" for="cleVapidPriv"><span class="champ-corps">
+            <span class="champ-titre">VAPID_PRIVEE (secrète)</span>
+            <input id="cleVapidPriv" type="text" readonly></span></label>
+          <button class="bouton-fantome" type="button" data-copier="cleVapidPriv">Copier VAPID_PRIVEE</button>
+        </div>
+      </details>
+    </div>
+
+
+
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
          montre l'affiche. Le client scanne, le site s'ouvre avec l'hôtel déjà
          en adresse de départ, et il n'a plus qu'à dire où il va. -->
@@ -4370,47 +4517,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          n'avait donc aucun moyen de s'abonner, et le serveur n'avait
          personne à qui envoyer. Même table et même RPC qu'Admin v2
          (abonnements_admin, ela_enregistrer_push_admin) : un seul chemin. -->
-    <div class="bloc" id="blocPushAdmin">
-      <h2 class="bloc-titre">Notifications ELA</h2>
-      <p class="bloc-note">Recevez chaque nouvelle demande sur ce téléphone,
-        en plus de Telegram.</p>
-      <button class="bouton" type="button" id="btnPushAdmin">
-        <span>Activer les notifications</span>
-      </button>
-      <p class="champ-aide" id="pushAdminEtat" hidden></p>
-      <p class="champ-aide" id="pushAdminAppareil" hidden></p>
-      <!-- ÉPROUVER SUR SON PROPRE TÉLÉPHONE, PAS SUR UNE PROMESSE. Le bouton
-           fait sonner, vibrer et notifier exactement comme une vraie
-           demande, et dit ce qui a marché sur CET appareil. -->
-      <button class="bouton-fantome" type="button" id="btnTesterAlertes" style="margin-top:10px">
-        <span>Tester mes alertes</span>
-      </button>
-      <p class="champ-aide" id="testAlertesEtat" hidden></p>
-      <!-- FABRIQUER LA PAIRE DE CLÉS, SUR SON PROPRE TÉLÉPHONE (29/09/2026).
-           Les secrets VAPID manquaient chez Supabase et la clé privée
-           d'origine n'est gardée nulle part. La paire est fabriquée ICI, dans
-           son navigateur, par Web Crypto : la clé privée ne part vers aucun
-           serveur, ni vers le dépôt, ni vers une conversation — il la colle
-           lui-même dans les secrets Supabase. -->
-      <details id="blocClesVapid" style="margin-top:14px">
-        <summary>Fabriquer les clés des notifications</summary>
-        <p class="bloc-note">À faire une seule fois. Collez chaque valeur dans
-          les secrets Supabase, sous le nom indiqué. La clé secrète ne doit
-          être envoyée à personne.</p>
-        <button class="bouton-fantome" type="button" id="btnClesVapid">Fabriquer les clés</button>
-        <div id="clesVapid" hidden>
-          <label class="champ" for="cleVapidPub"><span class="champ-corps">
-            <span class="champ-titre">VAPID_PUBLIQUE</span>
-            <input id="cleVapidPub" type="text" readonly></span></label>
-          <button class="bouton-fantome" type="button" data-copier="cleVapidPub">Copier VAPID_PUBLIQUE</button>
-          <label class="champ" for="cleVapidPriv"><span class="champ-corps">
-            <span class="champ-titre">VAPID_PRIVEE (secrète)</span>
-            <input id="cleVapidPriv" type="text" readonly></span></label>
-          <button class="bouton-fantome" type="button" data-copier="cleVapidPriv">Copier VAPID_PRIVEE</button>
-        </div>
-      </details>
-    </div>
-
   </section>
 
   <!-- =====================================================================
@@ -4578,6 +4684,21 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <h1 class="ecran-titre">Registre</h1>
     </div>
 
+    <!-- LA RECHERCHE EN TÊTE (9 octobre 2026) : quand un client rappelle,
+         c'est la première chose qu'on fait ici. Elle était après les
+         graphiques, au milieu d'une page de cinq écrans. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Rechercher</h2>
+      <label class="champ" for="regRecherche">
+        <span class="champ-corps">
+          <span class="champ-titre">Nom, téléphone, adresse, référence</span>
+          <input id="regRecherche" type="search" autocomplete="off" placeholder="Martin, Roissy, 1024…">
+        </span>
+      </label>
+      <div id="regResultats"></div>
+    </div>
+
+
     <!-- LA SEMAINE EN COURS, AVEC LA PRÉCÉDENTE EN RAPPEL. Un chiffre seul ne
          dit rien : 12 courses, c'est beaucoup ou peu ? À côté de « 9 la
          semaine dernière », il devient une information. -->
@@ -4634,17 +4755,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div id="regProvenance"></div>
       <p class="bloc-note" id="regProvenanceVide" hidden>Aucun client venu par une affiche
          pour l'instant. Les courses réservées directement ne comptent pas ici.</p>
-    </div>
-
-    <div class="bloc">
-      <h2 class="bloc-titre">Rechercher</h2>
-      <label class="champ" for="regRecherche">
-        <span class="champ-corps">
-          <span class="champ-titre">Nom, téléphone, adresse, référence</span>
-          <input id="regRecherche" type="search" autocomplete="off" placeholder="Martin, Roissy, ELA-26-09…">
-        </span>
-      </label>
-      <div id="regResultats"></div>
     </div>
 
     <!-- LE REGISTRE NE VIT QUE DANS CE NAVIGATEUR tant que le serveur n'est
@@ -4829,6 +4939,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div id="papiersBord"></div>
     </div>
 
+    <!-- LA LISTE D'ABORD (9 octobre 2026) : on vient ici chercher un chauffeur,
+         pas remplir douze champs. Le formulaire suit. -->
+    <div id="chListe"></div>
+    <div class="vide" id="chVide">
+      <p>Aucun chauffeur enregistré. Ajoutez ceux à qui vous confiez
+         régulièrement des courses : c'est ce carnet qui prouve qu'ils sont
+         en règle.</p>
+    </div>
+
     <div class="bloc">
       <h2 class="bloc-titre" id="chTitreForm">Ajouter un chauffeur</h2>
       <label class="champ" for="chNom">
@@ -4927,12 +5046,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p class="bloc-note" id="chEtat" hidden></p>
     </div>
 
-    <div id="chListe"></div>
-    <div class="vide" id="chVide">
-      <p>Aucun chauffeur enregistré. Ajoutez ceux à qui vous confiez
-         régulièrement des courses : c'est ce carnet qui prouve qu'ils sont
-         en règle.</p>
-    </div>
   </section>
 
   <!-- =====================================================================
@@ -5241,6 +5354,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            IL NE PROMET RIEN D'AUTRE QUE LE DÉLAI D'UNE RÉPONSE — annoncer un
            chauffeur qu'on n'a pas encore serait un engagement qu'on ne tient
            pas, sur un site où le prix ET l'heure sont fermes. -->
+      <!-- COURSE D'ESSAI (9 octobre 2026, Barbaros : « mets en place course
+           test »). Un essai doit pouvoir rester — pour vérifier une alerte,
+           montrer l'admin — sans compter dans le chiffre d'affaires, les
+           commissions ni le registre. La carte porte une pastille « Essai ». -->
+      <label class="essai-toggle" for="bbEssai">
+        <input type="checkbox" id="bbEssai">
+        <span><b>Course d'essai</b> — exclue du registre, du chiffre d'affaires et des commissions</span>
+      </label>
       <button class="bouton-fantome" type="button" id="btnAccuserReception" hidden>
         Accuser réception au client
       </button>
@@ -10267,7 +10388,10 @@ window.ELA_TEXTES = {
   }
   function messageDemande(bon){
     return [
-      "Demande de réservation — " + bon.ref,
+      /* LE N° COURT D'ABORD quand il est connu (9 octobre 2026) : c'est lui
+         que Barbaros lit partout ailleurs. La référence reste : le lecteur de
+         demandes la retrouve n'importe où dans la ligne. */
+      "Demande de réservation — " + (numeroDe(bon) ? "N° " + numeroDe(bon) + " · " : "") + bon.ref,
       "Départ : " + bon.course.depart,
       "Arrivée : " + bon.course.arrivee,
       "Date : " + (bon.course.immediat ? "dès que possible — demandé le " : "") + bon.dateMsg,
@@ -12321,7 +12445,15 @@ window.ELA_TEXTES = {
       b.classList.toggle("actif", b.dataset.filtre === filtreBord);
     });
 
-    var visibles = tout.filter(function(c){ return (c.statut || "attente") === filtreBord; });
+    /* LA RECHERCHE L'EMPORTE SUR LE FILTRE (9 octobre 2026) : quand on
+       cherche « 1024 » ou « Martin », on veut la course, quel que soit son
+       état. Sans recherche, la liste reste celle du filtre. */
+    var qBord = sansAccents(String(rechercheBord || "")).trim(), qBordCompact = qBord.replace(/\s/g, "");
+    var visibles = qBord
+      ? tout.filter(function(c){ return correspondCourse(c, qBord, qBordCompact); })
+      : tout.filter(function(c){ return (c.statut || "attente") === filtreBord; });
+    liste.classList.toggle("liste-selection", !!modeSelection);
+    dessinerSelectionBarre();
     /* Les prochains départs passent devant : ce qui roule dans deux heures
        compte plus que ce qui roulait la semaine dernière. */
     visibles.sort(function(a,b){
@@ -12329,6 +12461,11 @@ window.ELA_TEXTES = {
     });
     liste.innerHTML = "";
     vide.hidden = visibles.length > 0;
+    var videP = vide.querySelector("p");
+    if(videP){
+      if(!videP.dataset.defaut) videP.dataset.defaut = videP.textContent;
+      videP.textContent = qBord ? "Aucune course ne correspond à « " + String(rechercheBord).trim() + " »." : videP.dataset.defaut;
+    }
     /* =====================================================================
        LES COURSES SONT GROUPÉES PAR JOUR
        ---------------------------------------------------------------------
@@ -12346,10 +12483,13 @@ window.ELA_TEXTES = {
        ===================================================================== */
     var aujourdhui = dateLocale(new Date());
     var demain = dateLocale(new Date(Date.now() + 864e5));
-    var titreJour = function(date){
+    var titreJour = function(c){
+      var date = c.course.date, st = c.statut || "attente";
       if(date === aujourdhui) return "Aujourd'hui";
       if(date === demain)     return "Demain";
-      if(date < aujourdhui && filtreBord !== "realisee") return "En retard";
+      /* En recherche, la liste mêle les états : seule une course encore
+         ouverte (attente, confirmée) peut être « en retard ». */
+      if(date < aujourdhui && (qBord ? (st === "attente" || st === "confirmee") : filtreBord !== "realisee")) return "En retard";
       var d = new Date(date + "T12:00");
       if(isNaN(d.getTime())) return date || "Sans date";
       return d.toLocaleDateString("fr-FR",
@@ -12359,7 +12499,7 @@ window.ELA_TEXTES = {
     visibles.forEach(function(c){
       /* Le titre est posé au fil de la liste, pas calculé à part : les
          courses sont déjà triées, deux parcours pourraient diverger. */
-      var t = titreJour(c.course.date);
+      var t = titreJour(c);
       if(t !== jourCourant){
         jourCourant = t;
         var h = document.createElement("p");
@@ -12371,6 +12511,11 @@ window.ELA_TEXTES = {
       var el = document.createElement("button");
       el.type = "button";
       el.className = "demande " + st;
+      el.dataset.ref = c.ref;
+      if(modeSelection){
+        el.classList.add("selectionnable");
+        if(selectionBord && selectionBord[c.ref]) el.classList.add("choisie");
+      }
       var tel = telWa(c.client && c.client.telephone);
       /* TROIS LIGNES, PLUS QUATRE. Les deux lignes grises disaient la même
          chose au même endroit ; elles n'en font plus qu'une. La DURÉE
@@ -12378,7 +12523,7 @@ window.ELA_TEXTES = {
          d'urgence, et en fin de ligne grise il aurait été le premier
          tronqué sur une adresse longue. */
       el.innerHTML =
-        '<span class="d-haut"><span class="d-ref"></span><span class="d-prix"></span></span>'
+        '<span class="d-haut"><span class="d-coche" aria-hidden="true"></span><span class="d-ref"></span><span class="d-prix"></span></span>'
       + '<span class="d-trajet"></span><span class="d-vers"></span>'
       + '<span class="d-bas"><span class="d-gris"></span><span class="d-boutons"></span></span>';
       var depuisAttente = st === "attente" ? " · " + depuisLisible(minutesDepuis(c.cree)) : "";
@@ -12448,6 +12593,14 @@ window.ELA_TEXTES = {
           basD.insertBefore(sp, grisD);
         });
       }
+      /* COURSE D'ESSAI (9 octobre 2026) : une pastille grise, et rien d'autre
+         — elle n'est ni rouge ni orange, ce n'est pas un état qui crie. */
+      if(c.essai){
+        var basE = el.querySelector(".d-bas"), grisE = el.querySelector(".d-gris");
+        var se = document.createElement("span");
+        se.className = "d-drapeau essai"; se.textContent = "Essai";
+        basE.insertBefore(se, grisE);
+      }
       /* ═══ L'ARRIVÉE SUR SA PROPRE LIGNE ═══
          À sa demande : « il faut que je puisse voir l'adresse d'arrivée
          juste en dessous de celle de départ ».
@@ -12466,7 +12619,7 @@ window.ELA_TEXTES = {
       /* L'ÉTAT RESTE ÉCRIT, même quand la couleur le dit déjà : la couleur
          ne porte jamais le sens toute seule. */
       el.querySelector(".d-gris").textContent =
-        libelleEtat(st) + " · " + dateLisible(c) + " · " + c.course.vehicule
+        libelleEtat(st) + " · " + quandCarte(c, t) + " · " + c.course.vehicule
         + " · " + (c.client && c.client.nom ? c.client.nom : "—");
       var boutons = el.querySelector(".d-boutons");
       /* CLORE DEPUIS LA LISTE : c'est le geste du soir, fait à la chaîne.
@@ -12532,6 +12685,7 @@ window.ELA_TEXTES = {
          tomber sur une carte ou sur « Appeler ». La règle est donc la même
          partout : 700 ms sans réponse de la liste après une fermeture. */
       el.addEventListener("click", function(){
+        if(modeSelection){ basculerSelection(c.ref); return; }
         if(Date.now() - dernierClore < 700) return;
         ouvrirBonBord(c.ref);
       });
@@ -12937,6 +13091,7 @@ window.ELA_TEXTES = {
     document.getElementById("bbDepart").textContent   = c.course.depart;
     document.getElementById("bbArrivee").textContent  = c.course.arrivee;
     document.getElementById("bbRef").textContent      = c.ref;
+    var bbEss = document.getElementById("bbEssai"); if(bbEss) bbEss.checked = !!c.essai;
     document.getElementById("bbNumLigne").hidden = !numeroDe(c);
     document.getElementById("bbNum").textContent = numeroDe(c) ? "N° " + numeroDe(c) : "—";
     document.getElementById("bbEtat").textContent     = libelleEtat(c.statut || "attente");
@@ -13839,6 +13994,171 @@ window.ELA_TEXTES = {
       ecran("ecran-bord");
     });
   });
+
+  /* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026, Barbaros : « supprimer une
+     course, ne plus l'afficher, rafraîchir, actualiser, retour… rends mon
+     admin logique, ergonomique, mets en place course test »).
+     Revue sur le site construit à 390 px : la première demande en attente
+     arrivait SOUS le bord de l'écran, la recherche était au milieu du
+     registre, supprimer se faisait une course à la fois, et un essai se
+     confondait avec une vraie course jusque dans le chiffre d'affaires. ═══ */
+  var rechercheBord = "", modeSelection = false, selectionBord = {};
+  var supprSelArme = 0, supprSelMinuteur = null;
+
+  /* L'heure seule quand le titre du jour dit déjà la date : la ligne grise
+     gagne la place que la pastille de l'hôtel perdait (« eas… »). En retard
+     ou sans date, la date complète reste : là, elle informe. */
+  function quandCarte(c, titre){
+    var h = c && c.course && c.course.heure;
+    if(!h || titre === "En retard" || titre === "Sans date" || !c.course.date) return dateLisible(c);
+    return h;
+  }
+
+  /* Une course « d'essai » ne compte nulle part où l'on compte de l'argent. */
+  function comptable(c){ return !(c && c.essai); }
+
+  /* L'heure de la dernière lecture réussie du serveur, dans la sous-ligne du
+     titre — après chaque lecture (sonde, fond, Actualiser), pas seulement
+     après le geste. */
+  function direAJour(){
+    var t = document.getElementById("bordActualiseTexte");
+    if(t) t.textContent = "À jour · " + new Date().toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+  }
+  function basculerSelection(ref){
+    if(selectionBord[ref]) delete selectionBord[ref]; else selectionBord[ref] = true;
+    desarmerSupprSel();
+    dessinerBord();
+  }
+  function direSelEtat(texte){
+    var e = document.getElementById("bordSelectionEtat");
+    if(!e) return;
+    e.hidden = !texte; e.textContent = texte || "";
+  }
+  function desarmerSupprSel(){
+    supprSelArme = 0;
+    if(supprSelMinuteur){ clearTimeout(supprSelMinuteur); supprSelMinuteur = null; }
+    var b = document.getElementById("btnBordSupprimerSel");
+    if(b){ b.textContent = "Supprimer"; b.disabled = !Object.keys(selectionBord || {}).length; }
+    direSelEtat("");
+  }
+  function dessinerSelectionBarre(){
+    var barre = document.getElementById("bordSelectionBarre"), btn = document.getElementById("btnBordSelection");
+    if(!barre || !btn) return;
+    barre.hidden = !modeSelection;
+    btn.textContent = modeSelection ? "Terminer" : "Sélectionner";
+    btn.classList.toggle("actif", !!modeSelection);
+    var n = Object.keys(selectionBord || {}).length;
+    document.getElementById("bordSelectionTexte").textContent =
+      n === 0 ? "Touchez les courses à supprimer" : (n === 1 ? "1 course sélectionnée" : n + " courses sélectionnées");
+    var sup = document.getElementById("btnBordSupprimerSel");
+    if(sup && !supprSelArme) sup.disabled = !n;
+  }
+  function quitterSelection(){
+    modeSelection = false; selectionBord = {};
+    desarmerSupprSel();
+    dessinerBord();
+  }
+  (function(){
+    var rech = document.getElementById("bordRecherche"), outils = document.getElementById("bordOutils"),
+        loupe = document.getElementById("btnBordRecherche");
+    if(rech){
+      var relire = function(){ rechercheBord = rech.value || ""; dessinerBord(); };
+      rech.addEventListener("input", relire);
+      rech.addEventListener("search", relire);
+    }
+    /* LA LOUPE OUVRE LA RANGÉE (recherche + « Sélectionner ») ET LA REPLIE.
+       Replier efface ce qui était tapé : une liste filtrée par un mot qu'on
+       ne voit plus serait une liste qui ment. */
+    var ouvrirOutils = function(ouvert){
+      if(!outils || !loupe) return;
+      outils.hidden = !ouvert;
+      loupe.setAttribute("aria-expanded", ouvert ? "true" : "false");
+      loupe.classList.toggle("actif", !!ouvert);
+      if(ouvert){ if(rech) rech.focus(); return; }
+      if(rech && rech.value){ rech.value = ""; rechercheBord = ""; dessinerBord(); }
+    };
+    if(loupe) loupe.addEventListener("click", function(){ ouvrirOutils(outils && outils.hidden); });
+    var fermerR = document.getElementById("btnBordRechercheFermer");
+    if(fermerR) fermerR.addEventListener("click", function(){ ouvrirOutils(false); });
+    if(rech) rech.addEventListener("keydown", function(e){ if(e.key === "Escape") ouvrirOutils(false); });
+    var sel = document.getElementById("btnBordSelection");
+    if(sel) sel.addEventListener("click", function(){
+      if(modeSelection){ quitterSelection(); return; }
+      modeSelection = true; selectionBord = {};
+      dessinerBord();
+    });
+    var ann = document.getElementById("btnBordAnnulerSel");
+    if(ann) ann.addEventListener("click", quitterSelection);
+    var tout = document.getElementById("btnBordToutSel");
+    if(tout) tout.addEventListener("click", function(){
+      document.querySelectorAll("#listeBord .demande").forEach(function(el){ if(el.dataset.ref) selectionBord[el.dataset.ref] = true; });
+      desarmerSupprSel();
+      dessinerBord();
+    });
+    var sup = document.getElementById("btnBordSupprimerSel");
+    if(sup) sup.addEventListener("click", function(){
+      var refs = Object.keys(selectionBord || {});
+      if(!refs.length) return;
+      /* Deux appuis, comme sur la fiche, et jamais moins de 700 ms entre les
+         deux : un doigt qui rebondit n'efface pas vingt courses. */
+      if(!supprSelArme){
+        supprSelArme = Date.now();
+        sup.textContent = "Confirmer la suppression (" + refs.length + ")";
+        direSelEtat("Effacées d'ici ET du serveur, définitivement. Une vraie course non assurée se refuse depuis sa fiche.");
+        supprSelMinuteur = setTimeout(desarmerSupprSel, 8000);
+        return;
+      }
+      if(Date.now() - supprSelArme < 700) return;
+      if(supprSelMinuteur){ clearTimeout(supprSelMinuteur); supprSelMinuteur = null; }
+      if(!nuage.connecte()){
+        desarmerSupprSel();
+        direSelEtat("Connectez-vous au serveur d'abord : sans lui, les courses reviendraient ici toutes seules.");
+        return;
+      }
+      sup.disabled = true; sup.textContent = "Suppression…";
+      var faites = 0, refus = 0;
+      (function suivante(i){
+        if(i >= refs.length){
+          selectionBord = {}; modeSelection = false;
+          desarmerSupprSel();
+          dessinerBord();
+          direSelEtat(faites + (faites > 1 ? " courses supprimées" : " course supprimée")
+                      + (refus ? ", " + refus + " refusée(s) par le serveur" : "") + ".");
+          setTimeout(function(){ direSelEtat(""); }, 6000);
+          return;
+        }
+        nuage.supprimer(refs[i]).then(function(issue){
+          if(issue === "refus") refus++; else { retirerDuRegistre(refs[i]); faites++; }
+          suivante(i + 1);
+        }, function(){ refus++; suivante(i + 1); });
+      })(0);
+    });
+    /* Actualiser : la sonde relit toutes les 8 s, mais un geste qu'on fait
+       soi-même rassure, et il dit l'heure de la lecture. */
+    var act = document.getElementById("btnBordActualiser"), actT = document.getElementById("bordActualiseTexte");
+    if(act) act.addEventListener("click", function(){
+      if(act.disabled) return;
+      if(!nuage.connecte()){
+        dessinerBord();
+        var avantHL = actT.textContent; actT.textContent = "Hors ligne";
+        setTimeout(function(){ if(actT.textContent === "Hors ligne") actT.textContent = avantHL; }, 1800);
+        return;
+      }
+      act.disabled = true; act.classList.add("tourne"); actT.textContent = "Mise à jour…";
+      Promise.resolve().then(synchroniser).catch(function(){}).then(function(){
+        act.disabled = false; act.classList.remove("tourne");
+        direAJour();
+      });
+    });
+    /* Course d'essai : l'interrupteur de la fiche écrit la course et la
+       pousse, comme n'importe quel autre changement. */
+    var ess = document.getElementById("bbEssai");
+    if(ess) ess.addEventListener("change", function(){
+      if(!bonBord) return;
+      var m = majCourse(bonBord.ref, bonBord.statut || "attente", { essai: !!ess.checked });
+      if(m) bonBord = m;
+    });
+  })();
   /* L'écriteau « sans chauffeur » emmène aux courses à assurer, où la
      carte porte le repère. */
   (function(){
@@ -13898,6 +14218,7 @@ window.ELA_TEXTES = {
          montrerait « en attente » sur une course confirmée à côté. */
       if(bonBord && r.changees.indexOf(bonBord.ref) >= 0) ouvrirBonBord(bonBord.ref);
       dessinerBord();
+      direAJour();
       if(n && !premiereLecture) annoncerArrivee(n);
       premiereLecture = false;
       viderFile();
@@ -14447,7 +14768,7 @@ window.ELA_TEXTES = {
    décalent au fil des oublis.
    ===================================================================== */
   function realisees(){
-    return registre().filter(function(c){ return c.statut === "realisee"; });
+    return registre().filter(function(c){ return comptable(c) && c.statut === "realisee"; });
   }
   /* Le lundi comme premier jour : c'est la semaine française, et c'est
      celle que Barbaros a en tête quand il dit « cette semaine ». */
@@ -14586,7 +14907,7 @@ window.ELA_TEXTES = {
        L'argent, lui, ne compte que les réalisées — les deux chiffres
        répondent à deux questions différentes. */
     var parProv = {};
-    registre().forEach(function(c){
+    registre().filter(comptable).forEach(function(c){
       var p = (c.provenance || "").trim();
       if(!p) return;
       (parProv[p] = parProv[p] || []).push(c);
@@ -14642,18 +14963,25 @@ window.ELA_TEXTES = {
      ON RÉUTILISE « sansAccents », écrite pour la recherche d'adresses. Une
      seconde fonction identique à côté finirait par diverger de la première
      le jour où l'une des deux est corrigée. */
+  /* UN SEUL JUGE pour les deux recherches (registre, tableau de bord) : deux
+     listes de champs finiraient par diverger, et c'est celle qu'on oublie qui
+     ne trouverait plus le N°. */
+  function champsCourse(c){
+    return sansAccents([c.ref, numeroDe(c) ? "n°" + numeroDe(c) + " " + numeroDe(c) : "", c.client && c.client.nom,
+              c.client && c.client.telephone,
+              c.course && c.course.depart, c.course && c.course.arrivee,
+              c.chauffeur && c.chauffeur.nom, c.provenance].join(" "));
+  }
+  function correspondCourse(c, q, qCompact){
+    var champs = champsCourse(c);
+    return champs.indexOf(q) >= 0
+        || (!!qCompact && champs.replace(/\s/g, "").indexOf(qCompact) >= 0);
+  }
   function chercherRegistre(){
     var q = sansAccents(document.getElementById("regRecherche").value);
     if(!q){ poser("regResultats", [], ""); return; }
     var qCompact = q.replace(/\s/g, "");
-    var trouves = registre().filter(function(c){
-      var champs = sansAccents([c.ref, numeroDe(c) ? "n°" + numeroDe(c) + " " + numeroDe(c) : "", c.client && c.client.nom,
-              c.client && c.client.telephone,
-              c.course && c.course.depart, c.course && c.course.arrivee,
-              c.chauffeur && c.chauffeur.nom, c.provenance].join(" "));
-      return champs.indexOf(q) >= 0
-          || (qCompact && champs.replace(/\s/g, "").indexOf(qCompact) >= 0);
-    }).slice(0, 20);
+    var trouves = registre().filter(function(c){ return correspondCourse(c, q, qCompact); }).slice(0, 20);
     poser("regResultats", trouves.map(function(c){
       return { nom: (numeroDe(c) ? "N° " + numeroDe(c) + " · " : "") + c.ref + " · " + ((c.client && c.client.nom) || "—"),
                sous: (c.course.depart + " → " + c.course.arrivee) + " · " + libelleEtat(c.statut || "attente"),
@@ -14716,7 +15044,7 @@ window.ELA_TEXTES = {
   }
   function dessinerControle(){
     dessinerDettes();
-    var liste = registre(), debut = debutPeriodeCc();
+    var liste = registre().filter(comptable), debut = debutPeriodeCc();
     /* 1. RÉSULTATS PAR CANAL. Demandes = tout ce qui est arrivé ; argent =
        les seules réalisées (une course confirmée n'est pas une course faite). */
     var par = {};
@@ -14931,7 +15259,7 @@ window.ELA_TEXTES = {
   function soldesChauffeurs(){
     var par = {}, sansRegle = [], limite = new Date(); limite.setHours(0,0,0,0);
     limite.setDate(limite.getDate() - DELAI_COMMISSION_J);
-    registre().forEach(function(c){
+    registre().filter(comptable).forEach(function(c){
       if(!c || c.statut !== "realisee") return;
       var nom = (c.chauffeur && c.chauffeur.nom || "").trim();
       if(!nom) return;
@@ -14995,10 +15323,9 @@ window.ELA_TEXTES = {
     if(jours !== null && jours < JOURS_SAUVEGARDE){ el.hidden = true; return; }
     el.hidden = false;
     document.getElementById("bordSauvegardeTexte").textContent =
-      (jours === null ? "Aucune sauvegarde faite sur ce téléphone. "
-                      : "Dernière sauvegarde il y a " + jours + " jours. ")
-      + "Vos chauffeurs, leurs paiements et vos factures ne sont que sur cet "
-      + "appareil : s'il est perdu, ils le sont aussi.";
+      (jours === null ? "Aucune sauvegarde sur ce téléphone."
+                      : "Dernière sauvegarde il y a " + jours + " jours.")
+      + " Chauffeurs, paiements et factures ne vivent qu'ici.";
   }
   document.getElementById("btnBordSauver").addEventListener("click", function(){
     document.getElementById("btnSauver").click();
@@ -15935,7 +16262,7 @@ window.ELA_TEXTES = {
   }
 
   function coursesAFacturer(ch, du, au){
-    return registre().filter(function(c){
+    return registre().filter(comptable).filter(function(c){
       if(c.statut !== "realisee" || c.factureNum) return false;
       var d = c.course && c.course.date;
       if(!d || d < du || d > au) return false;

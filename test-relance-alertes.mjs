@@ -280,11 +280,34 @@ try {
   check('sans N° dans le bon, l\'alerte n\'en invente pas', !/N° \d/.test(tg[tg.length - 1] || ''));
   courses.push({ ref: 'ELA-26-09-NNNN7', statut: 'attente', cree_le: iso(maintenant - 5000), bon: { ...bon('ELA-26-09-NNNN7'), numero: 1043 } });
   { const n = tg.length; await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-NNNN7' } });
-    check('l\'alerte porte le N° court attribué par la base', tg.length === n + 1 && (tg[tg.length - 1] || '').includes('N° 1043 · Réf. ELA-26-09-NNNN7'), (tg[tg.length - 1] || '').split('\n').slice(0, 3).join(' | ')); }
+    check('l\'alerte porte le N° court attribué par la base', tg.length === n + 1 && (tg[tg.length - 1] || '').includes('N° 1043'), (tg[tg.length - 1] || '').split('\n').slice(0, 3).join(' | '));
+    /* 9 octobre 2026 : « je voudrais que tous les numéros soient pareils ».
+       Le N° court tient SEUL la tête de l'annonce ; la référence longue, clé
+       technique, descend en fin de message et y reste cherchable. */
+    const lignesN = (tg[tg.length - 1] || '').split('\n');
+    /* Le texte Telegram est « titre, ligne vide, corps » : le corps commence à la troisième ligne. */
+    check('l\'annonce commence par le N° court seul', lignesN[2] === 'N° 1043', lignesN.slice(0, 3).join(' | '));
+    check('…et la référence longue est en fin de message, pas en tête', lignesN.slice(1).includes('Réf. ELA-26-09-NNNN7'), lignesN.slice(-3).join(' | ')); }
   { const b = bon('ELA-26-09-FFFF6'); delete b.securite;
     courses.push({ ref: 'ELA-26-09-FFFF6', statut: 'attente', cree_le: iso(maintenant - 5000), bon: b });
     const n = tg.length; await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-FFFF6' } });
     check('le webhook INSERT ignore une saisie de l\'exploitant (collée, saisie au téléphone)', tg.length === n, String(tg.length - n)); }
+  /* 11 bis. LES RAPPELS DISENT LE N° COURT (9 octobre 2026). Une course
+     numérotée est rappelée « N° 1044 — … », jamais « Réf. ELA-… » ; sans N°,
+     la référence reste. Départ le surlendemain : loin de toute fenêtre. */
+  { const bNum = bon('ELA-26-09-NNNN8'); bNum.course.date = '2026-10-02'; bNum.numero = 1044;
+    const bSans = bon('ELA-26-09-EEEE8'); bSans.course.date = '2026-10-02';
+    courses.push({ ref: 'ELA-26-09-NNNN8', statut: 'attente', cree_le: iso(maintenant - 5000), bon: bNum });
+    courses.push({ ref: 'ELA-26-09-EEEE8', statut: 'attente', cree_le: iso(maintenant - 5000), bon: bSans });
+    await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-NNNN8' } });
+    await relance({ type: 'INSERT', table: 'courses', record: { ref: 'ELA-26-09-EEEE8' } });
+    minutes(2); await relance();
+    const rappelDe = (ref) => tgCorps.filter(c => /toujours en attente/.test(c.text || '') && (c.reply_markup?.inline_keyboard?.[1]?.[0]?.url || '').includes(ref)).at(-1);
+    const rN = rappelDe('ELA-26-09-NNNN8'), rS = rappelDe('ELA-26-09-EEEE8');
+    const corpsDe = (c) => (c.text || '').split('\n\n').slice(1).join('\n\n');
+    check('le rappel Telegram d\'une course numérotée commence par son N° court', !!rN && corpsDe(rN).startsWith('N° 1044 — '), rN ? corpsDe(rN).split('\n')[0] : 'aucun rappel');
+    check('…et ne met plus la référence longue en tête', !!rN && !/^Réf\./.test(corpsDe(rN)), rN ? corpsDe(rN).split('\n')[0] : 'aucun rappel');
+    check('sans N°, le rappel garde la référence', !!rS && corpsDe(rS).startsWith('Réf. ELA-26-09-EEEE8 — '), rS ? corpsDe(rS).split('\n')[0] : 'aucun rappel'); }
   /* 12. LA PASTILLE, MÊME ADMIN FERMÉ. Le service worker est le seul code
      qui tourne quand l'application est fermée : on le fait tourner pour de
      vrai, avec une fausse notification, et on lit ce qu'il pose sur l'icône. */
