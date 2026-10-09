@@ -99,6 +99,8 @@
     .types input:checked + span{border-color:var(--navy);background:var(--navy);color:#fff;}
     .types input:focus-visible + span{outline:3px solid rgba(32,196,244,.6);outline-offset:2px;}
     .duo{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+    /* Prénom et Nom côte à côte dès 600 px, l'un sous l'autre en dessous. */
+    @media (max-width:599px){ .duo-noms{grid-template-columns:1fr;} }
     .demo-grille > *,.duo > *{min-width:0;}
     .erreur-champ,.message,.avis{overflow-wrap:anywhere;}
     .erreur-champ{margin:6px 0 0 !important;color:#b42318 !important;font-size:14px;font-weight:700;}
@@ -275,17 +277,22 @@
             <input type="text" id="fEtablissement" name="organization" autocomplete="organization" maxlength="60" required aria-describedby="err-etablissement">
             <p class="erreur-champ" id="err-etablissement" hidden></p>
           </div>
-          <div class="duo">
+          <div class="duo duo-noms">
+            <div class="champ" id="champ-prenom">
+              <label for="fPrenom" data-t="f_prenom">Prénom</label>
+              <input type="text" id="fPrenom" name="given-name" autocomplete="given-name" maxlength="60" required aria-describedby="err-prenom">
+              <p class="erreur-champ" id="err-prenom" hidden></p>
+            </div>
             <div class="champ" id="champ-nom">
-              <label for="fNom" data-t="f_nom">Nom complet</label>
-              <input type="text" id="fNom" name="name" autocomplete="name" maxlength="80" required aria-describedby="err-nom">
+              <label for="fNom" data-t="f_nom">Nom</label>
+              <input type="text" id="fNom" name="family-name" autocomplete="family-name" maxlength="80" required aria-describedby="err-nom">
               <p class="erreur-champ" id="err-nom" hidden></p>
             </div>
-            <div class="champ" id="champ-fonction">
-              <label for="fFonction"><span data-t="f_fonction">Fonction</span> <span class="facultatif" data-t="f_facultatif">(facultatif)</span></label>
-              <input type="text" id="fFonction" name="organization-title" autocomplete="organization-title" maxlength="60" aria-describedby="err-fonction">
-              <p class="erreur-champ" id="err-fonction" hidden></p>
-            </div>
+          </div>
+          <div class="champ" id="champ-fonction">
+            <label for="fFonction"><span data-t="f_fonction">Fonction</span> <span class="facultatif" data-t="f_facultatif">(facultatif)</span></label>
+            <input type="text" id="fFonction" name="organization-title" autocomplete="organization-title" maxlength="60" aria-describedby="err-fonction">
+            <p class="erreur-champ" id="err-fonction" hidden></p>
           </div>
           <div class="duo">
             <div class="champ" id="champ-email">
@@ -388,7 +395,7 @@
       reprise_titre:"Your demonstration is open", reprise_ouvrir:"Open my demonstration",
       reprise_nouvelle:"Make a request for another establishment",
       f_type:"You are", f_hotel:"Hotel", f_agence:"Agency", f_entreprise:"Business",
-      f_etablissement:"Establishment name", f_nom:"Full name", f_fonction:"Job title", f_facultatif:"(optional)",
+      f_etablissement:"Establishment name", f_prenom:"First name", f_nom:"Last name", f_fonction:"Job title", f_facultatif:"(optional)",
       f_email:"Business email", f_telephone:"Phone", f_envoyer:"Open the demonstration",
       f_rgpd:"Your details are used to give you access to the demonstration and to contact you about Elatransfer's services. You can object at any time.",
       f_rgpd_lien:"Privacy policy", f_piege:"Leave empty", aria_fermer:"Close",
@@ -466,7 +473,8 @@
       req: {fr:'Ce champ est obligatoire.', en:'This field is required.'},
       type: {fr:'Choisissez Hôtel, Agence ou Entreprise.', en:'Choose Hotel, Agency or Business.'},
       etablissement: {fr:'Indiquez le nom de votre établissement (2 à 60 caractères, sans < ni >).', en:'Enter the name of your establishment (2 to 60 characters, no < or >).'},
-      nom: {fr:'Indiquez votre nom complet (2 à 80 caractères, sans < ni >).', en:'Enter your full name (2 to 80 characters, no < or >).'},
+      prenom: {fr:'Indiquez votre prénom (60 caractères au plus, sans < ni >).', en:'Enter your first name (60 characters at most, no < or >).'},
+      nom: {fr:'Indiquez votre nom (2 à 80 caractères, sans < ni >).', en:'Enter your last name (2 to 80 characters, no < or >).'},
       fonction: {fr:'60 caractères au plus, sans < ni >.', en:'60 characters at most, no < or >.'},
       email: {fr:'Cette adresse e-mail ne semble pas valide.', en:'This email address does not look valid.'},
       telephone: {fr:'Ce numéro ne semble pas valide : 10 chiffres (06…) ou avec l\'indicatif (+44…).', en:'This number does not look valid: include the country code (+44…), or 10 digits for France (06…).'},
@@ -528,7 +536,7 @@
       p.hidden = !cle; p.textContent = cle ? t(cle) : '';
       if (entree && champ !== 'type') entree.setAttribute('aria-invalid', cle ? 'true' : 'false');
     }
-    function effacerErreurs(){ ['type','etablissement','nom','fonction','email','telephone'].forEach(function(c){ erreurChamp(c, null); }); }
+    function effacerErreurs(){ ['type','etablissement','prenom','nom','fonction','email','telephone'].forEach(function(c){ erreurChamp(c, null); }); }
 
     /* Les mêmes règles que la fonction demande-demo : un refus ici évite un
        aller-retour, un refus là-bas s'affiche au même endroit. */
@@ -538,7 +546,7 @@
 
     function valeurs(){
       var type = form.querySelector('input[name=type]:checked');
-      return { type: type ? type.value : '', etablissement: $('fEtablissement').value, nom: $('fNom').value,
+      return { type: type ? type.value : '', etablissement: $('fEtablissement').value, prenom: $('fPrenom').value, nom: $('fNom').value,
         fonction: $('fFonction').value, email: $('fEmail').value, telephone: $('fTelephone').value };
     }
     function verifier(v){
@@ -546,6 +554,7 @@
       function ko(c, cle){ erreurChamp(c, cle); if (!premier) premier = c; }
       if (['hotel','agence','entreprise'].indexOf(v.type) < 0) ko('type', 'type');
       if (!v.etablissement.trim()) ko('etablissement', 'req'); else if (!texteOk(v.etablissement, 2, 60)) ko('etablissement', 'etablissement');
+      if (!v.prenom.trim()) ko('prenom', 'req'); else if (!texteOk(v.prenom, 1, 60)) ko('prenom', 'prenom');
       if (!v.nom.trim()) ko('nom', 'req'); else if (!texteOk(v.nom, 2, 80)) ko('nom', 'nom');
       if (v.fonction.trim() && !texteOk(v.fonction, 0, 60)) ko('fonction', 'fonction');
       if (!v.email.trim()) ko('email', 'req'); else if (!emailOk(v.email)) ko('email', 'email');
@@ -569,7 +578,7 @@
       enCours = true; bouton.disabled = true;
       montrerMessage('envoi', '');
       var corps = { action: 'demander', type: v.type, etablissement: v.etablissement.replace(/\s+/g, ' ').trim(),
-        nom: v.nom.replace(/\s+/g, ' ').trim(), fonction: v.fonction.replace(/\s+/g, ' ').trim(),
+        prenom: v.prenom.replace(/\s+/g, ' ').trim(), nom: v.nom.replace(/\s+/g, ' ').trim(), fonction: v.fonction.replace(/\s+/g, ' ').trim(),
         email: v.email.trim(), telephone: v.telephone.trim(), langue: langue(),
         /* Toujours VIDE : c'est l'absence de robot que le serveur lit ici. */
         site: '' };

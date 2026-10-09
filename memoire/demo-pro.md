@@ -312,6 +312,38 @@ et verrouillés par un contrôle éprouvé contre l'ancien code.
   un ordinateur (large ET à la souris) la réception — vraie et démo — n'a plus
   aucun bouton WhatsApp ; une tablette au doigt le garde.
 
+## Prénom et nom, séparés (9 octobre 2026)
+
+À la demande de Barbaros : le formulaire demande « Prénom » et « Nom », et la
+base les garde à part (`prospects.prenom`, 1 à 60 caractères). « nom » porte
+désormais le nom de famille seul ; un prospect d'avant garde `prenom` NULL et
+son nom complet dans « nom » — on ne coupe pas « Jean-Marc de la Tour » en
+deux au hasard. L'admin affiche « Prénom Nom », Telegram « Nom : Prénom Nom ».
+Côte à côte dès 600 px, l'un sous l'autre en dessous, `given-name` /
+`family-name`. La politique de confidentialité dit « le prénom et le nom ».
+L'écran Prospects n'a pas de recherche : il n'y avait rien à étendre.
+- **L'ORDRE DE MISE EN LIGNE EST À L'ENVERS** : la fusion déploie la fonction
+  et l'admin AVANT que `20261009010000_prospects_prenom.sql` soit appliquée.
+  `demande-demo` appelle donc la base AVEC `p_prenom`, et sur un 404/PGRST202
+  (fonction inconnue avec ce paramètre) rappelle SANS, le nom complet dans
+  « nom » (80 caractères au plus). Seul ce refus-là est rejoué : une contrainte
+  refusée reste un 503. L'admin, sur un 400, relit sans la colonne, et retient
+  le repli pour toute la page (sinon chaque écriture redemandait la colonne).
+- **Une seule `ela_prospect_creer`** : l'ancienne signature (9 paramètres) est
+  retirée et `p_prenom` vient EN DERNIER avec un défaut NULL — deux fonctions
+  du même nom, et PostgREST refuserait l'appel ; un appel sans prénom trouve
+  toujours la sienne. **Rejouer `20261008000000_prospects.sql` APRÈS celle-ci
+  recrée l'ancienne signature** : rejouer `20261009010000` juste derrière.
+- La migration est renommée `20261009010000` : `main` avait déjà un
+  `20261009000000` (journal des dépôts) le même jour.
+- Une page restée en cache (sans « prenom ») passe comme avant ; un prénom
+  présent mais vide, avec un chevron ou de 61 caractères est un 400 « prenom ».
+- Épreuves : `prospects-prenom-apres.sql` (CI, après la migration rejouée),
+  trois migrations faussées (ancienne signature gardée, prénom modifiable,
+  contrainte absente) ; `test-securite-fonctions` (repli, page ancienne,
+  refus non rejoué) ; `test-admin-prospects` (base sans colonne) ;
+  `test-pro-formulaire` (disposition à 599/600 px, erreur sous Prénom).
+
 ## Épreuves
 
 - `test-pro-page.mjs`, `test-pro-formulaire.mjs` (site construit, neuf
