@@ -4268,6 +4268,23 @@ visuelle, notification, tout ce qui est possible ».
   l'icône. Sans nombre (notification d'un client), un simple point.
   `test-relance-alertes` fait tourner `sw.js` pour de vrai et lit la pastille.
 
+## L'ADMIN ERGONOMIQUE (9/10/2026) — RECHERCHE, SÉLECTION, ESSAI, ACTUALISER
+
+Revue sur le site construit à 390 px (Barbaros : « rends mon admin logique,
+ergonomique, mets en place course test ») : la première demande en attente
+arrivait SOUS le bord de l'écran. Ce qui vaut : le tableau de bord porte
+**Actualiser** (relit le serveur, dit l'heure), une **recherche instantanée**
+(N°, nom, téléphone, adresse — elle l'emporte sur le filtre et partage ses
+champs avec le registre : `correspondCourse`), **Sélectionner → Supprimer N**
+en deux appuis (700 ms, serveur compris) ; la fiche a **« Course d'essai »**
+(`bon.essai`, pastille grise, exclue partout où l'on compte de l'argent :
+`comptable()`) ; la ligne grise d'une carte dit l'heure seule quand le titre
+du jour dit la date. Registre : recherche en tête ; Réglages : notifications
+en tête ; Chauffeurs : la liste avant le formulaire. Les trois boutons
+négatifs de la fiche restent : Refuser (pas de chauffeur), Annuler (le
+client annule), Supprimer (effacer) — `test-admin-arrivee` les fige.
+`test-admin-ergonomie.mjs` (site construit).
+
 ## LE SERVEUR EST LA SEULE VÉRITÉ — L'ADMIN N'EST PLUS QU'UNE COPIE
 
 2 octobre 2026, Barbaros : « je valide une course, ça revient ; je refuse,
