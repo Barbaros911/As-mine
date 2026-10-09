@@ -7,9 +7,15 @@
    se confondait avec une vraie course jusque dans le chiffre d'affaires.
 
    CE QUE CETTE SUITE VERROUILLE, SUR LE SITE CONSTRUIT :
-   · « Actualiser » relit vraiment le serveur et dit l'heure ;
+   · deux outils en tête du tableau de bord, à la hauteur du titre, et pas une
+     rangée de plus : la loupe ouvre la recherche et « Sélectionner », et les
+     replie (ce qui était tapé s'efface) ; « Actualiser » relit vraiment le
+     serveur et écrit l'heure de la lecture dans la sous-ligne ;
    · la recherche instantanée trouve par N° court, par nom, et L'EMPORTE sur le
      filtre d'état — une réalisée trouvée n'est pas titrée « En retard » ;
+   · les bandeaux « son coupé » et « sauvegarde » tiennent chacun sur une
+     ligne ; le budget de l'écran (la première demande entière à 390 × 844,
+     bandeau d'alerte affiché) est tenu par test-admin-voyant, K ;
    · la ligne grise d'une carte dit l'heure seule quand le titre du jour dit
      déjà la date, et la pastille de l'hôtel n'est plus tronquée ;
    · le rappel de sauvegarde tient sur une ligne ;
@@ -116,8 +122,12 @@ try {
   /* 1. LE TABLEAU DE BORD : Actualiser, recherche, carte, bandeau. */
   {
     const { ctx, p, journal, erreurs } = await espace();
-    check('le tableau de bord porte « Actualiser », la recherche et « Sélectionner »',
-      await vis(p, '#btnBordActualiser') && await vis(p, '#bordRecherche') && await vis(p, '#btnBordSelection'));
+    check('le tableau de bord porte la loupe et « Actualiser » en tête, et la recherche est repliée',
+      await vis(p, '#btnBordRecherche') && await vis(p, '#btnBordActualiser') && !(await vis(p, '#bordRecherche')) && !(await vis(p, '#btnBordSelection')));
+    const tete = await p.locator('.admin-tete').boundingBox();
+    check('les deux outils ne font pas grandir le bandeau du titre (42 px ou moins)', tete && tete.height <= 42, tete && Math.round(tete.height) + ' px');
+    const son = await p.locator('#sonCoupe').boundingBox();
+    check('« Son des alertes coupé » tient sur une ligne (40 px ou moins)', son && son.height <= 40, son && Math.round(son.height) + ' px');
     const avant = journal.lectures;
     await p.click('#btnBordActualiser');
     await p.waitForTimeout(900);
@@ -125,6 +135,9 @@ try {
     check('…et dit l\'heure de la lecture', /^À jour · \d{2}:\d{2}$/.test((await p.textContent('#bordActualiseTexte')).trim()), await p.textContent('#bordActualiseTexte'));
 
     check('sans recherche, la liste est celle du filtre « en attente » (3)', (await refsVisibles(p)).length === 3, String((await refsVisibles(p)).length));
+    await p.click('#btnBordRecherche'); await p.waitForTimeout(200);
+    check('la loupe ouvre la recherche et « Sélectionner », le curseur dans le champ',
+      await vis(p, '#bordRecherche') && await vis(p, '#btnBordSelection') && await p.evaluate(() => document.activeElement && document.activeElement.id === 'bordRecherche'));
     await p.fill('#bordRecherche', '1023'); await p.waitForTimeout(300);
     check('« 1023 » trouve la course par son N° court', JSON.stringify(await refsVisibles(p)) === JSON.stringify(['ELA-26-10-TEST1']), JSON.stringify(await refsVisibles(p)));
     await p.fill('#bordRecherche', 'sarah'); await p.waitForTimeout(300);
@@ -137,6 +150,10 @@ try {
     check('rien trouvé : la liste le dit, avec ce qui a été tapé', /Aucune course ne correspond à « zzzz »/.test(await p.textContent('#videBord')), (await p.textContent('#videBord')).trim());
     await p.fill('#bordRecherche', ''); await p.dispatchEvent('#bordRecherche', 'input'); await p.waitForTimeout(300);
     check('recherche vidée : la liste du filtre revient (3)', (await refsVisibles(p)).length === 3, String((await refsVisibles(p)).length));
+    await p.fill('#bordRecherche', '1027'); await p.waitForTimeout(300);
+    await p.click('#btnBordRechercheFermer'); await p.waitForTimeout(300);
+    check('replier la recherche efface ce qui était tapé : la liste du filtre revient (3)',
+      !(await vis(p, '#bordRecherche')) && (await refsVisibles(p)).length === 3 && !(await p.evaluate(() => document.getElementById('btnBordRecherche').classList.contains('actif'))), String((await refsVisibles(p)).length));
 
     const gris = await p.textContent('#listeBord .demande[data-ref="ELA-26-10-ATT01"] .d-gris');
     check('sous « Aujourd\'hui », la ligne grise dit l\'heure seule, pas la date', /18:30/.test(gris) && !/\/20\d\d/.test(gris), gris.trim());
@@ -151,6 +168,7 @@ try {
   /* 2. SÉLECTIONNER, PUIS SUPPRIMER PLUSIEURS COURSES D'UN COUP. */
   {
     const { ctx, p, journal, erreurs } = await espace();
+    await p.click('#btnBordRecherche'); await p.waitForTimeout(200);
     await p.click('#btnBordSelection'); await p.waitForTimeout(300);
     check('« Sélectionner » met la liste en mode sélection', await p.evaluate(() => document.getElementById('listeBord').classList.contains('liste-selection')));
     check('…et masque « Appeler » sur les cartes', !(await vis(p, '#listeBord .demande .d-appeler')));
@@ -183,6 +201,7 @@ try {
     const avant = await lire();
     check('avant : les deux réalisées de la semaine comptent (140 €)', avant === 140, String(avant));
     await p.click('#btnRetourRegistre'); await p.waitForTimeout(300);
+    await p.click('#btnBordRecherche'); await p.waitForTimeout(200);
     await p.fill('#bordRecherche', '1027'); await p.waitForTimeout(300);
     await p.locator('#listeBord .demande[data-ref="ELA-26-10-FAITE"]').click();
     await p.waitForFunction(() => document.getElementById('ecran-bord-bon').classList.contains('actif'), null, { timeout: 8000 }).catch(() => {});

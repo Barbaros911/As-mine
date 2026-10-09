@@ -4272,18 +4272,25 @@ visuelle, notification, tout ce qui est possible ».
 
 Revue sur le site construit à 390 px (Barbaros : « rends mon admin logique,
 ergonomique, mets en place course test ») : la première demande en attente
-arrivait SOUS le bord de l'écran. Ce qui vaut : le tableau de bord porte
-**Actualiser** (relit le serveur, dit l'heure), une **recherche instantanée**
-(N°, nom, téléphone, adresse — elle l'emporte sur le filtre et partage ses
-champs avec le registre : `correspondCourse`), **Sélectionner → Supprimer N**
-en deux appuis (700 ms, serveur compris) ; la fiche a **« Course d'essai »**
-(`bon.essai`, pastille grise, exclue partout où l'on compte de l'argent :
-`comptable()`) ; la ligne grise d'une carte dit l'heure seule quand le titre
-du jour dit la date. Registre : recherche en tête ; Réglages : notifications
-en tête ; Chauffeurs : la liste avant le formulaire. Les trois boutons
-négatifs de la fiche restent : Refuser (pas de chauffeur), Annuler (le
-client annule), Supprimer (effacer) — `test-admin-arrivee` les fige.
-`test-admin-ergonomie.mjs` (site construit).
+arrivait SOUS le bord de l'écran. Ce qui vaut : **deux outils en tête, à la
+hauteur du titre, et pas une rangée de plus** — la loupe ouvre la recherche
+instantanée (N°, nom, téléphone, adresse ; elle l'emporte sur le filtre et
+partage ses champs avec le registre : `correspondCourse`) et « Sélectionner →
+Supprimer N » (deux appuis, 700 ms, serveur compris), puis les replie en
+effaçant ce qui était tapé ; **Actualiser** relit le serveur, et la sous-ligne
+du titre dit « À jour · HH:MM » puis la date. **Le budget est mesuré, pas
+deviné** : à 390 × 844, bandeau d'alerte affiché, la première demande finit à
+841 px sur 844 (`test-admin-voyant`, K) — une rangée permanente d'outils
+(+56 px) et un bouton sous la date (+30) l'ont fait tomber à 927. Sur la
+ligne du bas d'une carte, **l'ordre dans lequel on cède** : la ligne grise
+d'abord (`flex:1 1 0`), la pastille de l'hôtel ensuite, les boutons jamais
+(`test-admin-audit` à 320 px, `test-admin-ergonomie` à 390). La fiche a
+**« Course d'essai »** (`bon.essai`, pastille grise, exclue partout où l'on
+compte de l'argent : `comptable()`) ; la ligne grise dit l'heure seule quand
+le titre du jour dit la date. Registre : recherche en tête ; Réglages :
+notifications en tête ; Chauffeurs : la liste avant le formulaire. Les trois
+boutons négatifs de la fiche restent (Refuser, Annuler, Supprimer :
+`test-admin-arrivee` les fige). `test-admin-ergonomie.mjs` (site construit).
 
 ## LE SERVEUR EST LA SEULE VÉRITÉ — L'ADMIN N'EST PLUS QU'UNE COPIE
 

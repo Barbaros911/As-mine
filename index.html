@@ -673,7 +673,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* La ligne grise TRONQUE plutôt que de passer à la ligne : une carte dont la
    hauteur dépend de la longueur d'une adresse ne se parcourt plus du regard,
    et c'est justement ce qu'on vient réparer. */
-.d-gris{color:var(--gris);font-size:11px;min-width:0;overflow:hidden;
+.d-gris{flex:1 1 0;color:var(--gris);font-size:11px;min-width:0;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;}
 .d-bas{display:flex;align-items:center;justify-content:space-between;
   gap:8px;margin-top:5px;}
@@ -1293,11 +1293,23 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 /* ---------- LE BANDEAU DU HAUT ---------- */
 .admin-tete{display:flex;align-items:flex-start;justify-content:space-between;
   gap:14px;margin:18px 20px 0;}
+.admin-titre{flex:1 1 auto;min-width:0;}
 .admin-bonjour{margin:0;font-size:20px;font-weight:800;letter-spacing:-.022em;}
-.admin-sous{margin:3px 0 0;font-size:12.5px;color:var(--gris);}
-.admin-date{flex:none;font-size:11.5px;font-weight:600;color:var(--gris);
-  border:1px solid var(--filet);border-radius:10px;padding:8px 11px;
-  background:var(--carte);white-space:nowrap;}
+/* Une seule ligne, qui tronque : l'heure de lecture d'abord, la date ensuite. */
+.admin-sous{margin:3px 0 0;font-size:12.5px;color:var(--gris);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.admin-sous::first-letter{text-transform:uppercase;}
+#bordActualiseTexte:empty + .admin-sep{display:none;}
+.admin-date{font-weight:600;}
+/* Les deux outils du tableau de bord : des ronds de 36 px, à la hauteur du
+   titre — aucune rangée de plus avant la première demande. */
+.admin-outils{display:flex;gap:6px;flex:none;}
+.outil{width:36px;height:36px;padding:0;border-radius:999px;border:1px solid var(--filet);
+  background:var(--carte);color:var(--encre);display:inline-flex;align-items:center;
+  justify-content:center;cursor:pointer;}
+.outil.actif{border-color:var(--encre);box-shadow:0 0 0 1.5px var(--encre);}
+.outil:disabled{opacity:.6;}
+.outil.tourne svg{animation:rec-tourne .9s linear infinite;}
 
 /* ---------- LES QUATRE CHIFFRES ---------- */
 /* ═══ ILS PRENAIENT 230 PIXELS AVANT LA PREMIÈRE COURSE ═══
@@ -2023,18 +2035,22 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
 .d-vers{display:block;margin-top:1px;font-size:13.5px;color:var(--gris);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .demande.attente .d-vers, .demande.retard .d-vers{color:rgba(255,255,255,.82);}
-.d-prov{flex:0 0 auto;max-width:42%;min-width:0;overflow:hidden;text-overflow:ellipsis;
+.d-prov{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
   margin:0 8px 0 0;padding:2px 8px;border-radius:999px;
   background:var(--prov-pale, var(--accent-clair));color:var(--prov-encre, var(--accent-encre));
   font-size:11px;font-weight:800;letter-spacing:.02em;
   white-space:nowrap;align-self:center;}
-/* LA PASTILLE DE PROVENANCE CÈDE LA PLACE, PAS LES BOUTONS (relecture du
-   4 octobre 2026). Elle ne rétrécissait jamais (flex:0 0 auto) : sur une
-   course du comptoir, « Confirmer la fin », plus long que « Terminée »,
-   poussait « Appeler » hors de la carte — et sous le doigt qui visait
-   « Appeler », c'est « Confirmer la fin » qui tombait. À 320 px elle
-   débordait déjà de 38 px au repos. Elle se coupe maintenant (« easyHotel ·
-   compt… »), les boutons restent où le pouce les attend. */
+/* L'ORDRE DANS LEQUEL LA LIGNE DU BAS CÈDE (9 octobre 2026) : la ligne grise
+   d'abord (elle ne prend que le reste, « flex:1 1 0 », et tronque par
+   nature), la pastille de l'hôtel ensuite (« flex:0 1 auto » : entière
+   tant que pastille + drapeaux + boutons tiennent, coupée seulement
+   au-delà), les boutons jamais. Deux défauts payés avant cette règle :
+   la pastille ne rétrécissait pas (« flex:0 0 auto », puis « max-width:42% »)
+   et « Appeler » sortait de la carte à 320 px — sous le doigt qui le
+   visait tombait « Confirmer la fin » ; ou elle rétrécissait comme la
+   ligne grise, au prorata, et se lisait « easyHotel A… » à 390 px alors
+   que la place existait. test-admin-audit et test-admin-ergonomie
+   éprouvent chacun un côté. */
 .rec-note{margin:8px 0 0;padding:7px 10px;border-radius:10px;
   background:var(--fond);font-size:12.5px;color:var(--encre);
   border-left:3px solid var(--filet);}
@@ -2311,9 +2327,6 @@ body.exploitant .bloc-titre,
 body.exploitant .panneau-titre{color:var(--encre);}
 body.exploitant .ecran-titre,
 body.exploitant .admin-bonjour{color:var(--encre);letter-spacing:-.03em;}
-body.exploitant .admin-date{border-color:var(--filet);border-radius:999px;
-  padding:8px 13px;color:var(--accent-encre);background:var(--accent-clair);
-  border-color:transparent;}
 
 /* LE RETOUR ET SON TITRE SE LISENT ENSEMBLE, À GAUCHE. Le titre partait au
    bord droit (« space-between »), et sur « Nouvelle course » le bouton
@@ -2438,11 +2451,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .sauvegarde-bord p{margin:0;font-size:12.5px;line-height:1.35;flex:1 1 auto;min-width:0}
 .sauvegarde-bord .bouton-fantome{margin:0;flex:none;width:auto;min-height:36px;padding:0 12px;font-size:12.5px}
 .son-coupe{min-height:36px;padding:6px 12px;font-size:12.5px;margin-top:10px}
-.admin-droite{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
-.bord-actualiser{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 10px;border:1px solid var(--filet);border-radius:999px;background:var(--carte);color:var(--encre);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
-.bord-actualiser:disabled{opacity:.6}
-.bord-actualiser.tourne svg{animation:rec-tourne .9s linear infinite}
 .bord-outils{display:flex;gap:8px;align-items:center;margin:12px 20px 0}
+.bord-outils[hidden]{display:none}
+.bord-fermer{flex:none;width:44px;height:44px;padding:0;border:1px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--gris);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 .bord-recherche{flex:1 1 auto;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--gris);min-width:0}
 .bord-recherche input{flex:1 1 auto;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:var(--encre)}
 .bord-recherche input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
@@ -3891,21 +3902,38 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <!-- « Quitter » est passé dans la colonne de gauche : il est de la même
          nature que « Registre » ou « Affiche », pas un titre de page. -->
     <div class="admin-tete">
-      <div>
+      <div class="admin-titre">
         <h1 class="admin-bonjour">Tableau de bord</h1>
-        <p class="admin-sous" id="adminSous">L'activité d'Elatransfer.</p>
+        <!-- LA SOUS-LIGNE DIT L'HEURE DE LA DERNIÈRE LECTURE, PUIS LA DATE
+             (9 octobre 2026). « À jour · 15:20 » remplace une phrase qui ne
+             disait rien ; la date, elle, a quitté sa pastille de droite pour
+             laisser la place aux deux outils. Une seule ligne, qui tronque :
+             l'heure d'abord, c'est elle qui informe. -->
+        <p class="admin-sous" id="adminSous"><span id="bordActualiseTexte"></span><span class="admin-sep" aria-hidden="true"> · </span><span class="admin-date" id="adminDate"></span></p>
       </div>
-      <div class="admin-droite">
-        <div class="admin-date" id="adminDate"></div>
-        <!-- ACTUALISER À LA MAIN (9 octobre 2026, Barbaros : « rafraîchir,
-             actualiser »). La sonde relit le serveur toutes les 8 s, mais un
-             geste qu'on ne peut pas faire soi-même laisse douter de ce qu'on
-             voit. Le bouton dit ce qu'il fait, puis l'heure de la lecture. -->
-        <button class="bord-actualiser" type="button" id="btnBordActualiser">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <!-- DEUX OUTILS EN TÊTE, ET PAS UNE RANGÉE DE PLUS (9 octobre 2026,
+           Barbaros : « rafraîchir, actualiser… retrouver facilement une course
+           avec son numéro »). Une rangée permanente recherche + sélection
+           coûtait 56 px, et le bouton Actualiser empilé sous la date 30 de
+           plus : à 390 × 844, bandeau d'alerte affiché, la première demande en
+           attente passait SOUS le bord de l'écran (test-admin-voyant, K). Le
+           champ de recherche s'ouvre d'un appui sur la loupe et se replie ;
+           l'icône seule ne coûte rien en hauteur. -->
+      <div class="admin-outils">
+        <button class="outil" type="button" id="btnBordRecherche" aria-label="Rechercher une course" aria-expanded="false" aria-controls="bordOutils">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/>
+            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <!-- ACTUALISER À LA MAIN : la sonde relit le serveur toutes les 8 s,
+             mais un geste qu'on ne peut pas faire soi-même laisse douter de
+             ce qu'on voit. L'heure de la lecture s'écrit dans la sous-ligne. -->
+        <button class="outil" type="button" id="btnBordActualiser" aria-label="Actualiser">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
             <path d="M20 4v5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg><span id="bordActualiseTexte">Actualiser</span>
+          </svg>
         </button>
       </div>
     </div>
@@ -4022,7 +4050,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          ou adresse filtrent la liste à la frappe, tous états confondus.
          « Sélectionner » ouvre la suppression de plusieurs courses d'un coup
          — vingt essais à nettoyer, c'était quarante appuis depuis les fiches. -->
-    <div class="bord-outils">
+    <div class="bord-outils" id="bordOutils" hidden>
       <label class="bord-recherche" for="bordRecherche">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/>
@@ -4031,6 +4059,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <input id="bordRecherche" type="search" autocomplete="off" placeholder="N°, nom, téléphone, adresse…" aria-label="Rechercher une course">
       </label>
       <button class="bord-selection" type="button" id="btnBordSelection">Sélectionner</button>
+      <button class="bord-fermer" type="button" id="btnBordRechercheFermer" aria-label="Fermer la recherche">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
     <div class="selection-barre" id="bordSelectionBarre" hidden>
       <span class="selection-texte" id="bordSelectionTexte">Touchez les courses à supprimer</span>
@@ -13984,6 +14017,13 @@ window.ELA_TEXTES = {
   /* Une course « d'essai » ne compte nulle part où l'on compte de l'argent. */
   function comptable(c){ return !(c && c.essai); }
 
+  /* L'heure de la dernière lecture réussie du serveur, dans la sous-ligne du
+     titre — après chaque lecture (sonde, fond, Actualiser), pas seulement
+     après le geste. */
+  function direAJour(){
+    var t = document.getElementById("bordActualiseTexte");
+    if(t) t.textContent = "À jour · " + new Date().toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+  }
   function basculerSelection(ref){
     if(selectionBord[ref]) delete selectionBord[ref]; else selectionBord[ref] = true;
     desarmerSupprSel();
@@ -14019,12 +14059,28 @@ window.ELA_TEXTES = {
     dessinerBord();
   }
   (function(){
-    var rech = document.getElementById("bordRecherche");
+    var rech = document.getElementById("bordRecherche"), outils = document.getElementById("bordOutils"),
+        loupe = document.getElementById("btnBordRecherche");
     if(rech){
       var relire = function(){ rechercheBord = rech.value || ""; dessinerBord(); };
       rech.addEventListener("input", relire);
       rech.addEventListener("search", relire);
     }
+    /* LA LOUPE OUVRE LA RANGÉE (recherche + « Sélectionner ») ET LA REPLIE.
+       Replier efface ce qui était tapé : une liste filtrée par un mot qu'on
+       ne voit plus serait une liste qui ment. */
+    var ouvrirOutils = function(ouvert){
+      if(!outils || !loupe) return;
+      outils.hidden = !ouvert;
+      loupe.setAttribute("aria-expanded", ouvert ? "true" : "false");
+      loupe.classList.toggle("actif", !!ouvert);
+      if(ouvert){ if(rech) rech.focus(); return; }
+      if(rech && rech.value){ rech.value = ""; rechercheBord = ""; dessinerBord(); }
+    };
+    if(loupe) loupe.addEventListener("click", function(){ ouvrirOutils(outils && outils.hidden); });
+    var fermerR = document.getElementById("btnBordRechercheFermer");
+    if(fermerR) fermerR.addEventListener("click", function(){ ouvrirOutils(false); });
+    if(rech) rech.addEventListener("keydown", function(e){ if(e.key === "Escape") ouvrirOutils(false); });
     var sel = document.getElementById("btnBordSelection");
     if(sel) sel.addEventListener("click", function(){
       if(modeSelection){ quitterSelection(); return; }
@@ -14083,15 +14139,15 @@ window.ELA_TEXTES = {
     if(act) act.addEventListener("click", function(){
       if(act.disabled) return;
       if(!nuage.connecte()){
-        dessinerBord(); actT.textContent = "Hors ligne";
-        setTimeout(function(){ actT.textContent = "Actualiser"; }, 1800);
+        dessinerBord();
+        var avantHL = actT.textContent; actT.textContent = "Hors ligne";
+        setTimeout(function(){ if(actT.textContent === "Hors ligne") actT.textContent = avantHL; }, 1800);
         return;
       }
       act.disabled = true; act.classList.add("tourne"); actT.textContent = "Mise à jour…";
       Promise.resolve().then(synchroniser).catch(function(){}).then(function(){
         act.disabled = false; act.classList.remove("tourne");
-        actT.textContent = "À jour · " + new Date().toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
-        setTimeout(function(){ actT.textContent = "Actualiser"; }, 5000);
+        direAJour();
       });
     });
     /* Course d'essai : l'interrupteur de la fiche écrit la course et la
@@ -14162,6 +14218,7 @@ window.ELA_TEXTES = {
          montrerait « en attente » sur une course confirmée à côté. */
       if(bonBord && r.changees.indexOf(bonBord.ref) >= 0) ouvrirBonBord(bonBord.ref);
       dessinerBord();
+      direAJour();
       if(n && !premiereLecture) annoncerArrivee(n);
       premiereLecture = false;
       viderFile();
