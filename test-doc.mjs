@@ -300,7 +300,7 @@ if(refs){
    du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
    Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
    PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
-const PLAFOND_MEMO = 325000; // octets — ne monte jamais, descend à chaque rangement
+const PLAFOND_MEMO = 324800; // octets — ne monte jamais, descend à chaque rangement (325000 → 324800 le 10/10/2026, rangement de l'admin ergonomique)
 {
   const taille = Buffer.byteLength(doc, "utf8");
   verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",

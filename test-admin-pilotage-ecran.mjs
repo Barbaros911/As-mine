@@ -485,7 +485,8 @@ try {
     const dit = cas === 'absent' ? 'script introuvable' : 'script qui plante';
     check(`15 ${dit} : l'admin s'ouvre sur les courses, lues sur le serveur`, await v.p.evaluate(() =>
       document.getElementById('ecran-bord').classList.contains('actif')) && v.courses.length > 0);
-    await v.p.click('#btnCreerNav'); await pause(v.p, 300);
+    /* « Nouvelle course » n'est plus une tuile du menu sur téléphone (10/10/2026) : on passe par le bouton du tableau de bord, comme Barbaros. */
+    await v.p.click('#btnSaisirCourse'); await pause(v.p, 300);
     check(`15 ${dit} : « Nouvelle course » s'ouvre`, await v.p.evaluate(() =>
       document.getElementById('ecran-creer').classList.contains('actif')));
     await v.p.click('#btnPilotage'); await pause(v.p, 300);
@@ -504,7 +505,7 @@ try {
   await ouvrirPilotage(z.p);
   check('15 serveur du Pilotage en panne : l\'écran le dit', /serveur/i.test(await texte(z.p, '.pil-erreur')));
   await z.p.click('#btnAdminBord'); await pause(z.p, 300);
-  await z.p.click('#btnCreerNav'); await pause(z.p, 300);
+  await z.p.click('#btnSaisirCourse'); await pause(z.p, 300);
   check('15 serveur du Pilotage en panne : les courses et « Nouvelle course » répondent', lusAvant > 0
     && await z.p.evaluate(() => document.getElementById('ecran-creer').classList.contains('actif')));
   check('15 serveur du Pilotage en panne : aucune erreur dans la page', z.erreurs.length === 0, z.erreurs.join(' | '));

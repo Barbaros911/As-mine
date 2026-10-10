@@ -24,7 +24,11 @@
    · « Course d'essai » : écrite et poussée au serveur, pastille « Essai »,
      et exclue du chiffre d'affaires du registre ;
    · registre : la recherche en tête ; réglages : les notifications en tête ;
-     chauffeurs : la liste avant le formulaire.
+     chauffeurs : la liste avant le formulaire ;
+   · (10/10) le menu tient en deux rangées — « Nouvelle course » rendue au
+     tableau de bord, « Quitter » et « Se déconnecter » dans la barre du haut —,
+     le bloc « Équipe » n'apparaît qu'avec un compte agent, et le pire cas
+     (trois bandeaux) laisse la première demande dans l'écran.
    Même montage que test-admin-cloture.mjs (faux serveur, 390×844).
    Lancer :  node test-admin-ergonomie.mjs */
 import { chromium } from 'playwright';
@@ -75,7 +79,7 @@ const JEU = [
   course('ELA-26-10-REFUS', 'refusee', jour(-1, '12:00')),
 ];
 const nav = await chromium.launch();
-async function espace(chemin = '/ela-admin/') {
+async function espace(chemin = '/ela-admin/', { presences = [] } = {}) {
   const ctx = await nav.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris' });
   await ctx.addInitScript(() => {
     localStorage.setItem('ela_nuage_session', JSON.stringify({ access_token: 'JETON', refresh_token: 'R' }));
@@ -91,7 +95,7 @@ async function espace(chemin = '/ela-admin/') {
     if (!u.includes('supabase.co')) return route.abort();
     if (u.includes('/rpc/est_exploitant') || u.includes('/rpc/est_admin')) return route.fulfill(J(true));
     if (u.includes('/rpc/role_operateur')) return route.fulfill(J('admin'));
-    if (u.includes('/rpc/presences_operateurs')) return route.fulfill(J([]));
+    if (u.includes('/rpc/presences_operateurs')) return route.fulfill(J(presences));
     if (u.includes('/rpc/') || u.includes('/functions/v1/')) return route.fulfill(J({ ok: true }));
     if (u.includes('/auth/v1/')) return route.fulfill(J({ access_token: 'JETON2', refresh_token: 'R2', email: 'test@ela.fr' }));
     if (u.includes('/rest/v1/courses')) {
@@ -234,6 +238,60 @@ try {
     check('registre : la recherche est le premier bloc', ordre.registre);
     check('réglages : « Notifications ELA » est le premier bloc', ordre.reglages);
     check('chauffeurs : la liste précède le formulaire', ordre.chauffeurs);
+    await ctx.close();
+  }
+
+  /* 4. LE MENU EN DEUX RANGÉES, ET « ÉQUIPE » SEULEMENT S'IL Y A UNE ÉQUIPE
+     (10/10/2026, Barbaros : « Corrige tout »). Avant : onze tuiles sur trois
+     rangées plus un bloc « Agent réservation : hors ligne » — 357 px de menu
+     pour un homme qui travaille seul. Ce qu'on verrouille : la forme du menu
+     (deux rangées, « Nouvelle course » rendue au tableau de bord, « Quitter »
+     et « Se déconnecter » dans la barre du haut, hors de la grille, assez
+     grands pour un pouce), l'absence du bloc sans agent, sa présence avec,
+     et LE PIRE CAS MESURÉ : son coupé, rappel de sauvegarde et « sans
+     chauffeur » affichés tous les trois, la première demande en attente finit
+     dans l'écran. Hier elle finissait à 923 px. */
+  {
+    const { ctx, p } = await espace();
+    await p.evaluate(() => Promise.all(document.getAnimations()
+      .filter(a => a.effect && a.effect.getComputedTiming().endTime !== Infinity)
+      .map(a => a.finished.catch(() => {}))));
+    const tuiles = await p.evaluate(() => [...document.querySelectorAll('.admin-liens .admin-lien')]
+      .filter(b => b.offsetParent !== null).map(b => ({ id: b.id, top: Math.round(b.getBoundingClientRect().top) })));
+    const rangees = new Set(tuiles.map(t => t.top)).size;
+    check('le menu tient en deux rangées de tuiles à 390 px', rangees === 2 && tuiles.length >= 6, `${tuiles.length} tuiles sur ${rangees} rangée(s)`);
+    check('« Nouvelle course » n\'est plus une tuile : elle vit sous le titre (« Saisir par téléphone »)',
+      !tuiles.some(t => t.id === 'btnCreerNav') && await vis(p, '#btnSaisirCourse'));
+    const sortie = await p.evaluate(() => {
+      const liens = document.querySelector('.admin-liens').getBoundingClientRect();
+      return ['btnQuitter', 'btnDeconnexionNav'].map(id => {
+        const e = document.getElementById(id);
+        if (!e) return { id, absent: true };
+        const r = e.getBoundingClientRect();
+        return { id, texte: e.textContent.trim(), visible: e.offsetParent !== null, dansGrille: !!e.closest('.admin-liens'),
+          bas: Math.round(r.bottom), hautGrille: Math.round(liens.top), h: Math.round(r.height), l: Math.round(r.width),
+          tronque: e.scrollWidth > e.clientWidth + 1 };
+      });
+    });
+    for (const s of sortie) {
+      check(`« ${s.texte || s.id} » est un lien de la barre du haut : visible, au-dessus des tuiles, hors de la grille`,
+        !s.absent && s.visible && !s.dansGrille && s.bas <= s.hautGrille, JSON.stringify(s));
+      check(`« ${s.texte || s.id} » se presse (34 px de haut, 44 de large au moins) et se lit en entier`,
+        !s.absent && s.h >= 34 && s.l >= 44 && !s.tronque, s.absent ? 'absent' : `${s.l} × ${s.h} px`);
+    }
+    check('sans compte agent, le bloc « Équipe » ne s\'affiche pas', !(await vis(p, '#presenceEquipe')));
+    const bandeaux = { son: await vis(p, '#sonCoupe'), sauvegarde: await vis(p, '#bordSauvegarde'), sansChauffeur: await vis(p, '#bordSansChauffeur') };
+    check('le pire cas est posé : son coupé, rappel de sauvegarde et « sans chauffeur » affichés tous les trois',
+      bandeaux.son && bandeaux.sauvegarde && bandeaux.sansChauffeur, JSON.stringify(bandeaux));
+    const carte = await p.evaluate(() => { const e = document.querySelector('#listeBord .demande.attente'); const r = e && e.getBoundingClientRect(); return r ? { bas: Math.round(r.bottom), vue: innerHeight } : null; });
+    check('…et la première demande en attente finit dans l\'écran, sans défiler', !!carte && carte.bas <= carte.vue, carte ? `${carte.bas} px sur ${carte.vue}` : 'aucune carte');
+    await ctx.close();
+  }
+  {
+    const { ctx, p } = await espace('/ela-admin/', { presences: [{ role: 'admin', en_ligne: true }, { role: 'agent_reservation', en_ligne: true }] });
+    await p.waitForTimeout(400);
+    const t = await p.evaluate(() => { const e = document.getElementById('presenceEquipe'); return e && e.offsetParent !== null ? e.textContent.replace(/\s+/g, ' ').trim() : ''; });
+    check('avec un compte agent, le bloc « Équipe » revient et dit s\'il est en ligne', /Équipe/.test(t) && /Agent réservation : en ligne/.test(t), t || 'absent');
     await ctx.close();
   }
 } catch (e) {
