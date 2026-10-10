@@ -520,7 +520,8 @@ try {
     check('6 l\'erreur ne remonte pas dans la page', v.erreurs.length === 0, v.erreurs.join(' | '));
     await p.click('#btnAdminBord'); await pause(p, 300);
     check('6 les courses s\'ouvrent', await p.evaluate(() => document.getElementById('ecran-bord').classList.contains('actif')) && v.courses.length > 0);
-    await p.click('#btnCreerNav'); await pause(p, 300);
+    /* « Nouvelle course » n'est plus une tuile du menu sur téléphone (10/10/2026) : on passe par le bouton du tableau de bord, comme Barbaros. */
+    await p.click('#btnSaisirCourse'); await pause(p, 300);
     check('6 « Nouvelle course » s\'ouvre', await p.evaluate(() => document.getElementById('ecran-creer').classList.contains('actif')));
     check('6 aucune écriture n\'est partie', srv.ecritures().length === 0);
     await v.ctx.close();

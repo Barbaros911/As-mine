@@ -1252,6 +1252,20 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
   height:0;overflow:hidden;visibility:hidden;}
 .admin-alertes.ko{color:#fca5a5;font-weight:700;}
 .admin-alertes.ko .admin-point{background:#f87171;}
+/* QUITTER ET SE DÉCONNECTER VIVENT ICI, SOUS L'ÉTAT DU COMPTE, et plus dans
+   les tuiles du menu (10/10/2026) : deux actions sur le compte, à côté de ce
+   qui le décrit. Des liens, pas des boutons pleins — ils ne doivent pas
+   crier à côté des tuiles — mais 34 px de haut au moins : « Quitter » se
+   presse dix fois par jour. Ils passent à la ligne plutôt que de déborder
+   si la largeur manque (320 px). */
+.admin-sortie{display:flex;flex-wrap:wrap;align-items:center;gap:0 2px;margin:3px 0 0 -8px;}
+.admin-sortie-lien{display:inline-flex;align-items:center;gap:5px;min-height:34px;
+  padding:0 8px;border:0;border-radius:8px;background:transparent;
+  color:rgba(255,255,255,.74);font:inherit;font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;}
+.admin-sortie-lien:hover{color:#fff;background:rgba(255,255,255,.09);}
+.admin-sortie-lien svg{width:14px;height:14px;flex:none;}
+.admin-sortie-sep{color:rgba(255,255,255,.32);font-size:12px;}
 .admin-liens{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;
   scrollbar-width:none;}
 .admin-liens::-webkit-scrollbar{display:none;}
@@ -2159,6 +2173,23 @@ body.espace #panneauProvenance{display:none;}
   /* La présence de l'équipe est ajoutée DANS ce menu à la construction :
      sans cette ligne elle deviendrait une tuile de plus. */
   body.espace #presenceEquipe{grid-column:1 / -1;}
+  /* « NOUVELLE COURSE » N'EST PLUS UNE TUILE SUR TÉLÉPHONE (10/10/2026) :
+     elle vit déjà sous le titre du tableau de bord (« Saisir par
+     téléphone »). Huit tuiles, deux rangées, et la première demande en
+     attente remonte d'une rangée. Sur ordinateur, la colonne a la place :
+     l'entrée y reste. */
+  body.espace #btnCreerNav{display:none;}
+  /* Sans leurs icônes : à 320 px, « Quitter · Se déconnecter » doit tenir
+     à côté du logo sans rien faire déborder. */
+  body.espace .admin-sortie-lien svg{display:none;}
+}
+@media (max-width:359px){
+  /* SUR UN TÉLÉPHONE ÉTROIT, LA PASTILLE « EL » S'EFFACE. Mesuré à 320 px :
+     logo 104 px, pastille 44, et il reste 152 px pour une colonne qui en
+     demande 164 — « Se déconnecter » passait seul à la ligne sous un
+     « Quitter · » orphelin. La pastille ne dit rien que le logo ne dise
+     déjà ; les deux liens, eux, se pressent. */
+  body.espace .admin-ava{display:none;}
   /* Sous les quatre chiffres du registre, la phrase de comparaison était
      coupée à « Clients qui a… » : illisible, et le bloc « Cette semaine »
      juste au-dessus dit déjà la comparaison. */
@@ -2561,6 +2592,29 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span class="admin-etat admin-alertes" id="adminAlertes">
           <i class="admin-point"></i><span id="adminAlertesTexte">Alertes : non vérifiées</span>
         </span>
+        <!-- QUITTER ET SE DÉCONNECTER SONT DEUX LIENS SOUS L'ÉTAT DU COMPTE,
+             PLUS DEUX TUILES (10/10/2026, Barbaros : « Corrige tout »). Avec
+             « Nouvelle course » rendue au tableau de bord, le menu tient en
+             DEUX rangées sur téléphone, et la première demande remonte d'une
+             rangée. « Quitter » garde la session (aller-retour vers le site
+             public, dix fois par jour) ; « Se déconnecter » la ferme, et il
+             reste visible pour l'agent, qui n'a pas Réglages : sans lui, un
+             appareil où l'agent s'est connecté ne pouvait plus changer de
+             compte. Les identifiants ne changent pas : six suites les
+             cliquent. -->
+        <span class="admin-sortie">
+          <button class="admin-sortie-lien" type="button" id="btnQuitter">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10 20H5V4h5M15 8l4 4-4 4M19 12H9" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>Quitter</button>
+          <span class="admin-sortie-sep" aria-hidden="true">·</span>
+          <button class="admin-sortie-lien" type="button" id="btnDeconnexionNav">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v8M7.1 6.3a8 8 0 1 0 9.8 0" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round"/>
+            </svg>Se déconnecter</button>
+        </span>
       </span>
     </div>
     <div class="admin-liens">
@@ -2635,21 +2689,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <path d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6"
                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
         </svg>Réglages</button>
-      <button class="admin-lien" type="button" id="btnQuitter">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M10 20H5V4h5M15 8l4 4-4 4M19 12H9" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>Quitter</button>
-      <!-- « Quitter » garde la session (aller-retour vers le site public) ;
-           celui-ci la ferme. Il doit être dans le menu et pas seulement dans
-           Réglages : Réglages est caché à l'agent, et sans ce bouton un
-           appareil où l'agent s'est connecté ne pouvait plus changer de
-           compte. -->
-      <button class="admin-lien" type="button" id="btnDeconnexionNav">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 3v8M7.1 6.3a8 8 0 1 0 9.8 0" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round"/>
-        </svg>Se déconnecter</button>
     </div>
     <!-- LE SEUL CONSEIL QUI TIENT ICI EST CELUI QU'ON OUBLIE : sans serveur,
          le registre ne vit que dans ce navigateur, et vider les données du
