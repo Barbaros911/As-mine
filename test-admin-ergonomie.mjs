@@ -202,7 +202,7 @@ try {
   {
     const { ctx, p, journal, erreurs } = await espace();
     await p.click('#btnBordSelection'); await p.waitForTimeout(300);
-    check('« Réalisées » est éteint tant que rien n\'est choisi', await p.isDisabled('#btnBordRealiserSel'));
+    check('« Marquer réalisées » est éteint tant que rien n\'est choisi', await p.isDisabled('#btnBordRealiserSel'));
     await p.locator('#listeBord .demande[data-ref="ELA-26-10-TEST1"]').click();
     await p.locator('#listeBord .demande[data-ref="ELA-26-10-ATT02"]').click();
     await p.waitForTimeout(300);
@@ -224,7 +224,7 @@ try {
     await p.fill('#bordRecherche', '1027'); await p.waitForTimeout(300);
     await p.click('#btnBordSelection'); await p.waitForTimeout(300);
     await p.locator('#listeBord .demande[data-ref="ELA-26-10-FAITE"]').click(); await p.waitForTimeout(300);
-    check('une course déjà réalisée, choisie seule, laisse « Réalisées » éteint (Supprimer reste possible)',
+    check('une course déjà réalisée, choisie seule, laisse « Marquer réalisées » éteint (Supprimer reste possible)',
       await p.isDisabled('#btnBordRealiserSel') && !(await p.isDisabled('#btnBordSupprimerSel')));
     const barre = await p.locator('#bordSelectionBarre').boundingBox();
     const deborde = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);

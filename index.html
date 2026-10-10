@@ -4119,7 +4119,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="selection-barre" id="bordSelectionBarre" hidden>
       <span class="selection-texte" id="bordSelectionTexte">Touchez les courses à choisir</span>
       <button class="d-action" type="button" id="btnBordToutSel">Tout</button>
-      <button class="d-action" type="button" id="btnBordRealiserSel" disabled>Réalisées</button>
+      <button class="d-action" type="button" id="btnBordRealiserSel" disabled>Marquer réalisées</button>
       <button class="d-action d-rouge" type="button" id="btnBordSupprimerSel" disabled>Supprimer</button>
       <button class="d-action" type="button" id="btnBordAnnulerSel">Fermer</button>
     </div>
@@ -14108,7 +14108,7 @@ window.ELA_TEXTES = {
     realSelArme = 0;
     if(realSelMinuteur){ clearTimeout(realSelMinuteur); realSelMinuteur = null; }
     var r = document.getElementById("btnBordRealiserSel");
-    if(r){ r.classList.remove("d-faite"); r.textContent = "Réalisées"; r.disabled = !realisablesSel().length; }
+    if(r){ r.classList.remove("d-faite"); r.textContent = "Marquer réalisées"; r.disabled = !realisablesSel().length; }
   }
   function dessinerSelectionBarre(){
     var barre = document.getElementById("bordSelectionBarre"), btn = document.getElementById("btnBordSelection");
