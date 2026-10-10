@@ -288,8 +288,13 @@ check('… l\'arrondi à la dizaine', /arrondi à la dizaine/i.test(cgv));
 check('… et le montant minimum par course', /montant minimum/i.test(cgv));
 check('elles ne promettent plus une mise à disposition réservable en ligne',
   /ne se réservent pas depuis le Service/i.test(cgv));
-check('le mode de règlement déclaré par le client y figure',
-  /indique son mode de règlement/i.test(cgv));
+/* Depuis le 10/10/2026 le client ne déclare plus de mode : il paie le lien
+   du chauffeur avant le départ. Les CGV doivent le dire, avec la limite, le
+   non-remboursement et le remboursement intégral quand la course n'a pas
+   lieu de notre fait. */
+check('le paiement par lien avant le départ y figure, avec ses deux règles de remboursement',
+  /lien de paiement du chauffeur/i.test(cgv) && /2 heures avant/.test(cgv)
+  && /n'est pas remboursé/.test(cgv) && /totalité du prix payé/.test(cgv));
 check('le barème d\'annulation y est, avec sa fenêtre gratuite',
   /24 heures/.test(cgv) && /30 %/.test(cgv) && /50 %/.test(cgv));
 check('plus aucun « {{m}} » non remplacé', !cgv.includes('{{m}}'));

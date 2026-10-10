@@ -133,21 +133,15 @@ check('et ce n\'est pas le message « il en manque un »',
    passerait au vert. */
 for (const bon of ['06 12 34 56 78', '01 45 67 89 01', '+44 7700 900123',
                    '+34 612 345 678', '0034 612 345 678']) {
-  await p.fill('#clientTel', bon);
-  /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
-  await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
-  await p.locator('#btnConfirmer').click(); await p.waitForTimeout(150);
-  check('« ' + bon + ' » passe', !(await p.locator('#erreurTel').isVisible()));
+  /* On interroge le MÊME contrôle que « Confirmer » (telephone.js) sans
+     appuyer : depuis que le client ne choisit plus son règlement
+     (10/10/2026), plus rien ne retenait la course, et le premier bon numéro
+     la faisait partir au milieu de la série. */
+  check('« ' + bon + ' » passe', await p.evaluate(t => window.ELA_TEL.telValide(t), bon));
 }
 await p.fill('#clientTel','06 12 34 56 78');
-// Le mode de règlement est obligatoire : sans lui le chauffeur partirait
-// sans savoir s'il doit emporter son terminal.
-/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
-await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
-await p.locator('#btnConfirmer').click(); await p.waitForTimeout(200);
-check('pas d\'envoi sans mode de règlement', await p.locator('#ecran-recap').isVisible());
-check('et on dit pourquoi', await p.locator('#erreurPaiement').isVisible());
-/* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien. */
+/* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien,
+   la course part sans qu'on lui demande un mode de règlement. */
 /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
