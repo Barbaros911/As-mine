@@ -4272,10 +4272,10 @@ visuelle, notification, tout ce qui est possible ».
 
 Mesuré sur le site construit à 390 × 844 ; histoire, mesures et détour de CI
 dans `memoire/admin-ergonomie.md`. Ce qui vaut :
-- **Deux outils en tête du tableau de bord, et pas une rangée de plus** : la
-  loupe ouvre la recherche instantanée (`correspondCourse`, partagée avec le
-  registre) et « Sélectionner → Supprimer N » (deux appuis, 700 ms) ;
-  **Actualiser** relit le serveur et la sous-ligne dit « À jour · HH:MM ».
+- **Trois icônes en tête, pas une rangée de plus** : loupe (recherche,
+  `correspondCourse`), **« Sélectionner » visible** (10/10 : derrière la loupe
+  il ne l'avait pas trouvé) → « Marquer réalisées » ou « Supprimer », deux appuis,
+  700 ms ; Actualiser. La réception reste en lecture (sa décision).
 - **Le menu tient en deux rangées** (10/10, « Corrige tout ») : sur téléphone
   « Nouvelle course » n'est plus une tuile (elle vit sous le titre), « Quitter »
   et « Se déconnecter » sont deux liens sous l'état du compte (`.admin-sortie`,
