@@ -284,7 +284,7 @@ check('et le prix repasse au format français',
 await p.locator('.langues button[data-langue="en"]').click();
 await p.waitForTimeout(200);
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
-await p.locator('[data-paiement="carte"]').click();
+/* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien. */
 /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(500);

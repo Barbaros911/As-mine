@@ -96,7 +96,12 @@
     d.vehiculeCle = gamme.cle;
     d.vehicule    = gamme.nom;
 
-    if(/carte/i.test(bas)){ d.paiement = "carte";   d.paiementNom = "Carte bancaire"; }
+    /* « lien » d'abord : la ligne du site dit « Lien de paiement, avant le
+       départ », et rien d'autre du message ne porte ce mot. */
+    if(/paiement : lien|lien de paiement|payment link/i.test(bas)){
+      d.paiement = "lien"; d.paiementNom = "Lien de paiement, avant le départ";
+    }
+    else if(/carte/i.test(bas)){ d.paiement = "carte";   d.paiementNom = "Carte bancaire"; }
     else if(/esp[eè]ce/i.test(bas)){ d.paiement = "especes"; d.paiementNom = "Espèces"; }
 
     var pax = lignes.filter(function(l){ return /passager/i.test(l); })[0];

@@ -1,5 +1,21 @@
 /* =====================================================================
-   TEST-NOUVEAU-PAIEMENT.MJS — espèces ou carte
+   TEST-NOUVEAU-PAIEMENT.MJS — par lien, avant le départ (10/10/2026)
+   ---------------------------------------------------------------------
+   DEPUIS LE 10 OCTOBRE 2026 LE CLIENT NE CHOISIT PLUS. Barbaros : « le
+   client paie avant quoi qu'il arrive ». Il paie le CHAUFFEUR, par le lien
+   que celui-ci envoie et qu'Elatransfer transmet avec la confirmation, au
+   plus tard 2 h avant le départ (la veille avant 22 h avant 8 h). Une
+   annulation du client n'est pas remboursée. Le COMPTOIR d'hôtel garde sa
+   question carte / espèces : test-nouveau-reception l'éprouve.
+   Ce qui est verrouillé ici, côté client : plus de boutons, les trois
+   règles écrites AVANT « Confirmer », la course part sans choix, le bon et
+   le message disent « lien », l'anglais suit. Côté exploitant : le lien
+   collé part dans « Prévenir le client » avec le montant et l'heure
+   limite, un lien non https est refusé, un service inconnu est signalé,
+   « Payé » retire la ligne, et l'écriteau « Paiement attendu » s'allume
+   dans l'heure qui précède la limite — et pas avant.
+
+   CE QUI SUIT EST L'HISTOIRE DE LA QUESTION D'AVANT (gardée pour le comptoir) :
    ---------------------------------------------------------------------
    POURQUOI CETTE QUESTION EXISTE. Le prix ne change pas d'un mode à
    l'autre : ce n'est pas un choix commercial, c'est une information de
@@ -72,114 +88,64 @@ await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 
-// ---- La question est posée, et elle est visible ----
-const especes = p.locator('[data-paiement="especes"]');
-const carte   = p.locator('[data-paiement="carte"]');
-check('la question est posée sur le récapitulatif',
-  await especes.isVisible() && await carte.isVisible());
-// On demande, on n'explique pas. Le terminal du chauffeur est notre affaire,
-// pas celle du client : une question suivie d'une justification donne
-// l'impression qu'on se justifie de la poser.
-/* LE CONTRÔLE PORTE SUR LE BLOC DU PAIEMENT, PAS SUR TOUT L'ÉCRAN.
-   Il lisait le récapitulatif entier, et il est tombé le jour où l'option
-   d'accueil a dit « devant la porte du terminal » — un terminal d'aéroport,
-   qui n'a rien à voir avec le terminal de carte du chauffeur. Un contrôle
-   trop large finit par interdire des mots au reste de la page : c'est la
-   QUESTION du règlement qui ne doit pas se justifier. */
-check('la question est posée sans explication de coulisses',
-  !(await p.locator('#blocPaiement').textContent()).toLowerCase().includes('terminal'));
-check('rien n\'est présélectionné',
-  (await especes.getAttribute('aria-pressed'))==='false'
-  && (await carte.getAttribute('aria-pressed'))==='false');
-
-/* ═══ LE BLOC AFFIRME AVANT DE DEMANDER ═══
-   Septembre 2026, à sa demande : « pour un touriste étranger, je
-   simplifierais énormément ». Le titre répond d'abord — on paie le
-   chauffeur, pas le site — et les deux boutons deviennent le détail d'une
-   chose déjà comprise.
-   ON ÉPROUVE QU'IL N'INTERROGE PAS, pas le libellé exact : une
-   reformulation légitime ne doit pas faire tomber la suite, un retour à
-   « Comment réglerez-vous ? » si. */
+// ---- Plus de question : la règle, écrite avant « Confirmer » ----
+check('les boutons carte / espèces ne sont plus montrés au client',
+  !(await p.locator('[data-paiement="especes"]').isVisible())
+  && !(await p.locator('[data-paiement="carte"]').isVisible()));
+check('le bloc dit « par lien de paiement, avant le départ »',
+  await p.locator('#paiementLien').isVisible()
+  && /lien de paiement, avant le départ/i.test(await p.locator('#paiementLien').innerText()));
+const regles = await p.locator('#paiementLien li').allInnerTexts();
+check('les trois règles sont écrites : lien avec la confirmation, limite, remboursement',
+  regles.length === 3 && /confirmation/.test(regles[0]) && /2 h avant/.test(regles[1])
+  && /22 h/.test(regles[1]) && /annulée/.test(regles[1]) && /pas remboursée/.test(regles[2])
+  && /totalité/.test(regles[2]), regles.join(' | '));
+/* LA RÈGLE EST LUE AVANT LE BOUTON : une règle de non-remboursement lue
+   après coup ne protège personne. On compare les positions à l'écran. */
+const posRegle = await p.evaluate(()=>({
+  r: document.getElementById('paiementLien').getBoundingClientRect().top + scrollY,
+  b: document.getElementById('btnConfirmer').getBoundingClientRect().top + scrollY }));
+check('la règle est au-dessus de « Confirmer »', posRegle.r < posRegle.b, JSON.stringify(posRegle));
+check('le bloc ne parle pas du terminal du chauffeur',
+  !(await p.locator('#blocPaiement').innerText()).toLowerCase().includes('terminal'));
 check('le titre du paiement affirme, il n\'interroge pas',
   !/[?？]\s*$/.test(await p.locator('#blocPaiement .bloc-titre').textContent()),
   await p.locator('#blocPaiement .bloc-titre').textContent());
-
-/* LA CARTE EST ÉCRITE EN PREMIER, dans son ordre à lui : c'est ce que
-   cherche un client qui atterrit sans un euro sur lui. On compare les
-   POSITIONS À L'ÉCRAN, pas l'ordre dans le code — c'est ce que le client
-   lit, et une règle de mise en page peut inverser les deux. */
-const rangs = await p.evaluate(()=>{
-  const q = s => document.querySelector('[data-paiement="'+s+'"]').getBoundingClientRect();
-  return { carte: Math.round(q('carte').left), especes: Math.round(q('especes').left) };
-});
-check('la carte bancaire est proposée avant les espèces',
-  rangs.carte < rangs.especes, JSON.stringify(rangs));
-
-/* ═══ LE FAIT N'EST DIT QU'UNE FOIS ═══
-   « Règlement au chauffeur, à bord, en espèces ou par carte. Aucun paiement
-   en ligne, aucune donnée bancaire » vivait sous le TOTAL, une ligne
-   au-dessus d'un bloc qui dit la même chose en trois mots et deux dessins.
-   Deux formulations du même fait ne rassurent pas deux fois plus : elles
-   font relire. On COMPTE, parce qu'un doublon ne casse rien — il alourdit,
-   et c'est exactement ce qui ne se voit pas en relisant le code. */
+/* « Aucun paiement en ligne » était VRAI avec le paiement à bord ; il est
+   devenu faux. Il ne doit plus se lire nulle part sur le récapitulatif. */
 const foisEnLigne = await p.evaluate(()=>
   (document.getElementById('ecran-recap').innerText.match(/paiement en ligne/gi) || []).length);
-check('« aucun paiement en ligne » n\'est écrit qu\'une fois sur le récapitulatif',
-  foisEnLigne === 1, foisEnLigne + ' fois');
+check('« aucun paiement en ligne » n\'est plus écrit sur le récapitulatif',
+  foisEnLigne === 0, foisEnLigne + ' fois');
 
-// Deux boutons sur lesquels on appuie une fois : ils doivent être atteignables.
-const hauteurs = await p.evaluate(()=>
-  [...document.querySelectorAll('[data-paiement]')].map(e=>Math.round(e.getBoundingClientRect().height)));
-check('chaque bouton fait au moins 44 px de haut', hauteurs.every(h=>h>=44), hauteurs.join(' / '));
-
-// ---- Sans choix, rien ne part ----
+// ---- La course part sans choix ----
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
-/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
-await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
-await p.locator('#btnConfirmer').click(); await p.waitForTimeout(250);
-check('sans mode de règlement, la course ne part pas',
-  await p.locator('#ecran-recap').isVisible() && !(await p.locator('#ecran-bon').isVisible()));
-check('et la page dit pourquoi', await p.locator('#erreurPaiement').isVisible());
-check('aucun message n\'est parti non plus',
-  (await p.evaluate(()=>window.__liens.length))===0);
-
-// ---- Un seul des deux à la fois ----
-await especes.click(); await p.waitForTimeout(120);
-check('choisir efface le message d\'erreur', !(await p.locator('#erreurPaiement').isVisible()));
-check('« Espèces » est marqué choisi',
-  (await especes.getAttribute('aria-pressed'))==='true'
-  && (await carte.getAttribute('aria-pressed'))==='false');
-await carte.click(); await p.waitForTimeout(120);
-check('changer d\'avis déplace la marque, sans en laisser deux',
-  (await carte.getAttribute('aria-pressed'))==='true'
-  && (await especes.getAttribute('aria-pressed'))==='false');
-// L'état ne doit pas tenir qu'à la couleur : mesuré, pas supposé.
-const fonds = await p.evaluate(()=>[...document.querySelectorAll('[data-paiement]')]
-  .map(e=>getComputedStyle(e).backgroundColor));
-check('le bouton choisi se distingue à l\'œil aussi', fonds[0]!==fonds[1], fonds.join(' / '));
-
-// ---- Le bon du client ----
-/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(800);
-check('la course part une fois le mode choisi', await p.locator('#ecran-bon').isVisible());
-check('le bon porte le mode de règlement',
-  (await p.locator('#bonPaiement').textContent())==='Carte bancaire',
+check('la course part sans qu\'on demande un mode de règlement', await p.locator('#ecran-bon').isVisible());
+check('aucun refus « indiquez comment vous réglerez »', !(await p.locator('#erreurPaiement').isVisible()));
+check('le bon dit « Par lien, avant le départ »',
+  (await p.locator('#bonPaiement').textContent())==='Par lien, avant le départ',
   await p.locator('#bonPaiement').textContent());
+const enregistre = await p.evaluate(()=>{ const l = JSON.parse(localStorage.getItem('ela_courses')||'[]'); return l[l.length-1] || {}; });
+check('la course enregistrée porte « lien »', enregistre.paiement === 'lien', String(enregistre.paiement));
 
 // ---- Le message à Barbaros ----
-// Il ne part plus au clic (option A, 4/10/2026) : par le repli du bon.
 await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(300);
 const msg = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 const L = msg.split('\n');
-check('le message porte la ligne « Paiement »',
-  L.some(x=>x==='Paiement : Carte bancaire'), L.join(' | '));
+check('le message porte la ligne « Paiement : Lien de paiement »',
+  L.some(x=>x==='Paiement : Lien de paiement, avant le départ'), L.join(' | '));
 check('elle est posée AVANT le prix, pour ne pas voler le dernier montant',
   L.findIndex(x=>x.startsWith('Paiement :')) < L.findIndex(x=>x.startsWith('Prix :')));
 check('le dernier montant en euros reste le prix de la course',
   (msg.match(/(\d[\d\s ]*[.,]\d{2})\s*€/g)||[]).pop().replace(/\s/g,'')==='70,00€');
 check('la dernière ligne reste « nom — téléphone »',
   L[L.length-1]==='Jean Martin — 06 12 34 56 78', L[L.length-1]);
+/* « Coller une demande » relit ce même message : il doit y retrouver « lien ». */
+const relu = await p.evaluate(m => window.ELA_INTAKE.lireDemande(m,
+  [{cle:"berline",nom:"Berline"},{cle:"van",nom:"Van"}]), msg).catch(e => ({ erreur: String(e) }));
+check('le lecteur de demandes relit « lien »', relu && relu.paiement === 'lien', JSON.stringify(relu && (relu.erreur || relu.paiement)));
 
 // ---- En anglais : le client lit sa langue, Barbaros lit le français ----
 await p.evaluate(()=>localStorage.removeItem('ela_courses'));
@@ -194,69 +160,158 @@ await p.fill('#date', d); await p.fill('#heure','10:00');
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
-check('les deux modes sont traduits',
-  (await p.locator('[data-paiement="especes"] span').textContent())==='Cash'
-  && (await p.locator('[data-paiement="carte"] span').textContent())==='Card',
-  await p.locator('[data-paiement="especes"] span').textContent());
-/* LE BLOC ENTIER SUIT, PAS SEULEMENT LES DEUX MOTS. Le titre et la phrase
-   de réassurance ont été ajoutés après coup : c'est exactement le genre de
-   ligne qui reste en français chez un client anglophone, et c'est LUI que
-   cette simplification vise. */
 const blocEn = await p.locator('#blocPaiement').innerText();
 check('tout le bloc du paiement parle anglais',
-  !/[àéèêîôûç]/i.test(blocEn) && /pay/i.test(blocEn), blocEn.replace(/\n/g,' | '));
-check('et il affirme en anglais aussi',
-  !/[?？]\s*$/.test(await p.locator('#blocPaiement .bloc-titre').textContent()),
-  await p.locator('#blocPaiement .bloc-titre').textContent());
+  !/[àéèêîôûç]/i.test(blocEn) && /payment link/i.test(blocEn) && /not refunded/i.test(blocEn),
+  blocEn.replace(/\n/g,' | '));
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
-/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
-await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
-await p.locator('#btnConfirmer').click(); await p.waitForTimeout(250);
-check('le refus est traduit lui aussi',
-  /pay/i.test(await p.locator('#erreurPaiement').textContent()),
-  await p.locator('#erreurPaiement').textContent());
-await p.locator('[data-paiement="especes"]').click();
-/* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(800);
-check('le bon anglais affiche « Cash »',
-  (await p.locator('#bonPaiement').textContent())==='Cash',
+check('le bon anglais affiche « By link, before departure »',
+  (await p.locator('#bonPaiement').textContent())==='By link, before departure',
   await p.locator('#bonPaiement').textContent());
 await p.evaluate(()=>{ window.__liens = []; });
 await p.locator('#btnRenvoyer').click(); await p.waitForTimeout(300);
 const msgEn = decodeURIComponent((await p.evaluate(()=>window.__liens[0])).split('text=')[1]);
 check('mais le message à Barbaros reste en français',
-  msgEn.includes('Paiement : Espèces'),
+  msgEn.includes('Paiement : Lien de paiement, avant le départ'),
   msgEn.split('\n').find(x=>x.startsWith('Paiement')));
 
 // ---- Côté exploitant ----
-const course = (ref, extra) => Object.assign({
-  ref, statut:"attente", cree:new Date().toISOString(),
-  course:{ depart:"Place Vendôme, 75001 Paris", arrivee:"Argenteuil, 95100 Argenteuil",
+/* Les dates se composent dans le fuseau du navigateur, comme la page. */
+const jourDans = n => { const x = new Date(Date.now() + n*864e5);
+  return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); };
+const dansH = h => { const x = new Date(Date.now() + h*3600e3);
+  return { date: x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'),
+           heure: String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0') }; };
+const course = (ref, extra, co) => Object.assign({
+  ref, statut:"attente", cree:(() => { const x = new Date(); x.setHours(12, 0, 0, 0); return x.toISOString(); })(),
+  course:Object.assign({ depart:"Place Vendôme, 75001 Paris", arrivee:"Argenteuil, 95100 Argenteuil",
            date:"2026-09-20", heure:"10:00", vehicule:"Berline", vehiculeCle:"berline",
-           passagers:"2 passagers · 1 bagage", vol:"" },
+           passagers:"2 passagers · 1 bagage", vol:"" }, co || {}),
   client:{ nom:"Jean Martin", telephone:"06 12 34 56 78" },
-  prix:{ total:48.28, ht:43.89, tva:4.39 }
+  prix:{ total:70, ht:63.64, tva:6.36 }
 }, extra);
+const LIEN = { paiement:"lien", paiementNom:"Lien de paiement, avant le départ" };
+const CH = { chauffeur:{ nom:"Mehmet", telephone:"06 11 22 33 44" } };
+/* Bientôt : départ dans 2 h 30 → limite dans 30 min → l'écriteau s'allume.
+   Plus tard : départ demain 15:00 → limite à 13:00, loin → rien.
+   Tôt : départ demain 07:00 → limite LA VEILLE à 22:00. */
+/* L'HORLOGE EST FIGÉE à 12:00 aujourd'hui : sans ça, la suite dépendait de
+   l'heure où elle tourne (lancée à 23 h, « dans 2 h 30 » tombait avant 8 h
+   et changeait de règle). Les heures sont posées par rapport à MIDI. */
+const midi = new Date(); midi.setHours(12, 0, 0, 0);
+const aMidi = h => { const x = new Date(midi.getTime() + h*3600e3);
+  return { date: x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'),
+           heure: String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0') }; };
+const bientot = aMidi(2.5);               // 14:30 → limite 12:30, dans l'heure
+const derniere = aMidi(1.5);              // 13:30, demandée à midi → avant l'arrivée du chauffeur
 const ctx2 = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 const p2 = await ctx2.newPage();
+await p2.clock.setFixedTime(midi);
 p2.on('pageerror',e=>errs.push(e.message));
-await ctx2.addInitScript(([a,c])=>{
-  localStorage.setItem('ela_bookings', JSON.stringify([a,c]));
+await p2.route('**supabase.co/**', r => r.abort());
+await ctx2.addInitScript(()=>{ window.__liens = []; window.open = (u)=>{ window.__liens.push(u); return null; }; });
+await ctx2.addInitScript((liste)=>{
+  if(!sessionStorage.getItem('__pose')){
+    localStorage.setItem('ela_bookings', JSON.stringify(liste));
+    sessionStorage.setItem('__pose','1');
+  }
   localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, [course("ELA-26-09-0001",{paiement:"carte", paiementNom:"Carte bancaire"}),
-    course("ELA-26-09-0002",{})]);
+    course("ELA-26-09-0002",{}),
+    course("ELA-26-10-LIEN1",Object.assign({statut:"confirmee"},LIEN,CH),{date:bientot.date, heure:bientot.heure}),
+    course("ELA-26-10-LIEN2",Object.assign({statut:"confirmee"},LIEN,CH),{date:jourDans(1), heure:"15:00"}),
+    course("ELA-26-10-LIEN3",Object.assign({statut:"confirmee"},LIEN,CH),{date:jourDans(1), heure:"07:00"}),
+    course("ELA-26-10-LIEN4",Object.assign({statut:"confirmee"},LIEN,CH),{date:derniere.date, heure:derniere.heure})]);
 await p2.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-await p2.waitForTimeout(600);
-await p2.locator('.demande, .course-bord').first().click(); await p2.waitForTimeout(300);
-check('le bon de l\'exploitant porte le mode de règlement',
-  (await p2.locator('#bbPaiement').textContent())==='Carte bancaire',
+await p2.waitForTimeout(700);
+/* Le bon se rouvre par la recherche du tableau de bord : c'est le geste réel. */
+async function ouvrirBon(ref){
+  if(await p2.locator('#ecran-bord-bon').isVisible()){ await p2.locator('#btnRetourBord').click(); await p2.waitForTimeout(250); }
+  await p2.evaluate(r => { const c = document.querySelector('[data-ref="'+r+'"]'); if(c) c.click(); }, ref);
+  await p2.waitForTimeout(250);
+  if(!(await p2.locator('#ecran-bord-bon').isVisible())){
+    for(const f of ['attente','confirmee','realisee']){
+      await p2.locator('.compteur[data-filtre="'+f+'"]').click(); await p2.waitForTimeout(150);
+      const n = await p2.locator('.demande, .course-bord').filter({ hasText: ref.slice(-5) }).count();
+      if(n){ await p2.locator('.demande, .course-bord').filter({ hasText: ref.slice(-5) }).first().click(); break; }
+    }
+    await p2.waitForTimeout(250);
+  }
+  return (await p2.locator('#bbRef').textContent()) === ref;
+}
+check('ancienne course : le bon de l\'exploitant porte son mode de règlement',
+  await ouvrirBon("ELA-26-09-0001") && (await p2.locator('#bbPaiement').textContent())==='Carte bancaire',
   await p2.locator('#bbPaiement').textContent());
+check('… et ne propose pas de lien (réglée à bord)', !(await p2.locator('#blocLienPaiement').isVisible()));
+check('une course enregistrée avant le choix reste lisible : un tiret, pas une invention',
+  await ouvrirBon("ELA-26-09-0002") && (await p2.locator('#bbPaiement').textContent())==='—',
+  await p2.locator('#bbPaiement').textContent());
+
+// L'écriteau : allumé pour la course dont la limite tombe dans l'heure, et elle seule.
 await p2.locator('#btnRetourBord').click(); await p2.waitForTimeout(300);
-await p2.locator('.demande, .course-bord').nth(1).click(); await p2.waitForTimeout(300);
-check('une course enregistrée avant ce choix reste lisible : un tiret, pas une invention',
-  (await p2.locator('#bbPaiement').textContent())==='—',
-  await p2.locator('#bbPaiement').textContent());
+const ecriteau = await p2.locator('#bordPaiement').isVisible();
+const texteEc = ecriteau ? await p2.locator('#bordPaiement').textContent() : '';
+check('« Paiement attendu » s\'allume quand la limite tombe dans l\'heure', ecriteau && /Paiement attendu/.test(texteEc), texteEc);
+check('… pour cette course-là seulement (pas celle de demain)', !/courses/.test(texteEc), texteEc);
+await p2.locator('#bordPaiement').click(); await p2.waitForTimeout(300);
+check('l\'écriteau ouvre le bon de la course à relancer',
+  (await p2.locator('#bbRef').textContent())==='ELA-26-10-LIEN1', await p2.locator('#bbRef').textContent());
+check('le bon montre le bloc « Paiement du client »', await p2.locator('#blocLienPaiement').isVisible());
+
+// Un lien non https est refusé, et rien ne part.
+await p2.fill('#bbLienPaiement', 'http://pay.sumup.com/b2c/ABC');
+check('un lien non https est signalé', await p2.locator('#bbLienAlerte').isVisible()
+  && /https/.test(await p2.locator('#bbLienAlerte').textContent()));
+await p2.evaluate(()=>{ window.__liens = []; });
+await p2.locator('#btnPrevenirClient').click(); await p2.waitForTimeout(250);
+check('… et « Prévenir le client » n\'envoie rien', (await p2.evaluate(()=>window.__liens.length))===0);
+// Un service inconnu est signalé, sans bloquer.
+await p2.fill('#bbLienPaiement', 'https://paie-moi.example/x');
+check('un service de paiement inconnu est signalé', await p2.locator('#bbLienAlerte').isVisible()
+  && /inconnu/.test(await p2.locator('#bbLienAlerte').textContent()));
+// Le bon lien part, avec le montant et l'heure limite.
+await p2.fill('#bbLienPaiement', 'https://pay.sumup.com/b2c/QWERTY');
+check('un lien SumUp ne déclenche aucune alerte', !(await p2.locator('#bbLienAlerte').isVisible()));
+await p2.evaluate(()=>{ window.__liens = []; });
+await p2.locator('#btnPrevenirClient').click(); await p2.waitForTimeout(300);
+const envoi = await p2.evaluate(()=>window.__liens[0] || '');
+const conf = decodeURIComponent(envoi.split('text=')[1] || '');
+const limAttendue = await p2.evaluate(o => { const x = new Date(new Date(o.date+'T'+o.heure).getTime() - 2*3600e3);
+  return 'avant ' + String(x.getHours()).padStart(2,'0') + ':' + String(x.getMinutes()).padStart(2,'0')
+    + ' le ' + String(x.getDate()).padStart(2,'0') + '/' + String(x.getMonth()+1).padStart(2,'0'); }, bientot);
+check('« Prévenir le client » écrit le lien de paiement', conf.includes('Lien de paiement : https://pay.sumup.com/b2c/QWERTY'), conf.replace(/\n/g,' | '));
+check('… avec le montant et l\'heure limite (2 h avant)',
+  conf.includes('Paiement à votre chauffeur : 70,00 €, ' + limAttendue), limAttendue + ' ⇢ ' + conf.split('\n').find(x=>x.startsWith('Paiement')));
+check('… et dit que l\'argent va au chauffeur, pas à Elatransfer', /Paiement à votre chauffeur/.test(conf));
+const lienGarde = await p2.evaluate(()=>{ const c = JSON.parse(localStorage.getItem('ela_bookings')||'[]').find(x=>x.ref==='ELA-26-10-LIEN1'); return c && c.lienPaiement; });
+check('le lien est enregistré sur la course', lienGarde === 'https://pay.sumup.com/b2c/QWERTY', String(lienGarde));
+// « Payé » : la course ne réclame plus rien.
+await p2.locator('#bbPaye').check(); await p2.waitForTimeout(250);
+const paye = await p2.evaluate(()=>{ const c = JSON.parse(localStorage.getItem('ela_bookings')||'[]').find(x=>x.ref==='ELA-26-10-LIEN1'); return c && c.paye; });
+check('« Payé » s\'enregistre sur la course', !!paye, String(paye));
+await p2.evaluate(()=>{ window.__liens = []; });
+await p2.locator('#btnPrevenirClient').click(); await p2.waitForTimeout(300);
+const conf2 = decodeURIComponent(((await p2.evaluate(()=>window.__liens[0])) || '').split('text=')[1] || '');
+check('une course payée ne réclame plus de paiement', conf2 && !/Lien de paiement/.test(conf2), conf2.replace(/\n/g,' | '));
+await p2.locator('#btnRetourBord').click(); await p2.waitForTimeout(300);
+check('payée, elle éteint l\'écriteau', !(await p2.locator('#bordPaiement').isVisible()));
+// Départ avant 8 h : limite la veille à 22:00.
+await ouvrirBon("ELA-26-10-LIEN3");
+const noteTot = await p2.locator('#bbLimitePaiement').textContent();
+const veille = await p2.evaluate(j => { const x = new Date(j+'T07:00'); x.setDate(x.getDate()-1);
+  return 'avant 22:00 le ' + String(x.getDate()).padStart(2,'0') + '/' + String(x.getMonth()+1).padStart(2,'0'); }, jourDans(1));
+check('départ avant 8 h : la limite est la veille à 22:00', noteTot.includes(veille), veille + ' ⇢ ' + noteTot);
+await ouvrirBon("ELA-26-10-LIEN4");
+check('demande de dernière minute (faite après sa limite) : avant l\'arrivée du chauffeur',
+  /avant l'arrivée du chauffeur/.test(await p2.locator('#bbLimitePaiement').textContent()),
+  await p2.locator('#bbLimitePaiement').textContent());
+await ouvrirBon("ELA-26-10-LIEN2");
+check('départ à 15:00 : la limite est 13:00', /avant 13:00 le/.test(await p2.locator('#bbLimitePaiement').textContent()),
+  await p2.locator('#bbLimitePaiement').textContent());
+check('aucun débordement horizontal dans l\'admin',
+  (await p2.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
 
 check('aucun débordement horizontal',
   (await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);

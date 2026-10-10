@@ -67,7 +67,7 @@ async function tunnel(options){
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin');
   await p.fill('#clientTel', options.tel);
-  await p.locator('[data-paiement="carte"]').click();
+  /* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien. */
   return { ctx, p, depots, sms };
 }
 

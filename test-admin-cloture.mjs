@@ -170,6 +170,12 @@ try {
     await p.click('#btnPrevenirClient', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
     const lien = decodeURIComponent(await p.evaluate(() => window.__liens[0] || ''));
     check('le message porte le nom du chauffeur', lien.includes('Mehmet Yilmaz'), lien.slice(0, 120));
+    /* LE LIEN DU BON MÈNE AU SITE CLIENT (10/10/2026). Construit depuis
+       l'adresse de l'admin publié, il valait « /ela-admin/?ok= » : le client
+       tombait sur l'écran de connexion de l'exploitant. */
+    const bonLien = (lien.match(/Votre bon : (\S+)/) || [])[1] || '';
+    check('le lien « Votre bon » mène au site client, pas à l\'admin',
+      bonLien.startsWith(BASE + '/?ok='), bonLien.slice(0, 60));
     const e = ecrit('ELA-26-10-FUTUR').pop();
     check('et le chauffeur est enregistré sur la course avant l\'envoi',
       !!e && e.bon && e.bon.chauffeur && e.bon.chauffeur.nom === 'Mehmet Yilmaz', JSON.stringify(e && e.bon && e.bon.chauffeur));

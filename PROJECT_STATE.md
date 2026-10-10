@@ -29,14 +29,13 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
 
 - **Barbaros ne conduit pas, il place.** Elatransfer est une centrale de
   réservation (Code des transports L3142-1), pas un transporteur.
-- **Le client paie le chauffeur**, à bord. Aucun paiement en ligne — **c'est
-  ce que fait le site AUJOURD'HUI, et ce que disent les CGV publiées.**
-  Cette règle fondatrice est **en cours de remplacement** par l'empreinte
-  bancaire Stripe (voir plus bas) : décidée, en construction, **pas encore
-  active**. Les deux ne se contredisent que si l'on confond ce qui tourne
-  avec ce qui est décidé. **Tant que Stripe Live est éteint, c'est cette
-  ligne-ci qui dit vrai au client** — et les CGV ne changent que dans la PR
-  qui active réellement l'autre modèle.
+- **Le client paie le chauffeur, AVANT le départ, par le lien de paiement
+  du chauffeur** (10/10/2026, Barbaros) — transmis par Elatransfer avec la
+  confirmation, au plus tard 2 h avant. **C'est ce que fait le site et ce que
+  disent les CGV** (art. 5 et 7). L'argent ne passe jamais par Elatransfer.
+  Seul le comptoir d'hôtel règle encore à bord. L'empreinte Stripe (voir
+  plus bas) reste construite en test et **pas active** ; elle demande le
+  SIRET. Détail : `memoire/paiement-lien.md`.
 - **Le prix est ferme**, arrêté à la réservation, donc **opposable**.
   Conséquence de tout : toucher à la grille veut dire toucher aux CGV, dans
   les deux langues.

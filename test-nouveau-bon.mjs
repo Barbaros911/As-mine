@@ -147,7 +147,7 @@ await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="tr
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(200);
 check('pas d\'envoi sans mode de règlement', await p.locator('#ecran-recap').isVisible());
 check('et on dit pourquoi', await p.locator('#erreurPaiement').isVisible());
-await p.locator('[data-paiement="carte"]').click();
+/* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien. */
 /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(600);
