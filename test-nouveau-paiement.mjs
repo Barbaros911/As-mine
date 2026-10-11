@@ -96,14 +96,14 @@ check('le bloc dit « par lien de paiement, avant le départ »',
   await p.locator('#paiementLien').isVisible()
   && /lien de paiement, avant le départ/i.test(await p.locator('#paiementLien').innerText()));
 const regles = await p.locator('#paiementLien li').allInnerTexts();
-check('les trois règles sont écrites : lien avec la confirmation, on paie puis le chauffeur part, la garantie',
-  regles.length === 3 && /confirmer/.test(regles[0]) && /lien de paiement/.test(regles[0])
-  && /se met en route/.test(regles[1]) && /de notre fait/.test(regles[2])
-  && /totalité/.test(regles[2]), regles.join(' | '));
-/* LE SITE NE DIT QUE LA GARANTIE (11/10/2026, Barbaros) : la règle
-   d'annulation part avec le lien de paiement, et reste aux CGV. */
-check('le site ne met pas en avant le non-remboursement',
-  !/pas remboursée/.test(regles.join(' ')), regles.join(' | '));
+check('les deux règles sont écrites : lien avec la confirmation, on paie puis le chauffeur part',
+  regles.length === 2 && /confirmer/.test(regles[0]) && /lien de paiement/.test(regles[0])
+  && /se met en route/.test(regles[1]), regles.join(' | '));
+/* NI ANNULATION NI GARANTIE AVANT « CONFIRMER » (11/10/2026, Barbaros) :
+   la règle d'annulation part avec le lien de paiement, le remboursement
+   d'une course non assurée reste aux seules CGV. */
+check('le récapitulatif ne parle pas de remboursement',
+  !/rembours/i.test(regles.join(' ')), regles.join(' | '));
 /* AUCUN DÉLAI (11/10/2026, Barbaros) : « tu commandes, je confirme avec le
    lien, tu paies, le chauffeur arrive ». Ni heure limite, ni « 2 h ». */
 check('aucune heure limite n\'est annoncée au client',
@@ -172,7 +172,7 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 const blocEn = await p.locator('#blocPaiement').innerText();
 check('tout le bloc du paiement parle anglais',
-  !/[àéèêîôûç]/i.test(blocEn) && /payment link/i.test(blocEn) && /refunded in full/i.test(blocEn)
+  !/[àéèêîôûç]/i.test(blocEn) && /payment link/i.test(blocEn) && !/refund/i.test(blocEn)
   && /sets off/i.test(blocEn) && /by phone/i.test(blocEn),
   blocEn.replace(/\n/g,' | '));
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
@@ -275,8 +275,8 @@ check('… avec le montant, et sans heure limite',
   conf.includes('Paiement à votre chauffeur : 70,00 €. Votre chauffeur se met en route dès réception.')
   && !/avant \d\d:\d\d|annulée/.test(conf), conf.split('\n').find(x=>x.startsWith('Paiement')));
 check('… et dit que l\'argent va au chauffeur, pas à Elatransfer', /Paiement à votre chauffeur/.test(conf));
-check('… et dit la règle d\'annulation au moment où le client paie',
-  /Annulation de votre part : non remboursée/.test(conf) && /remboursée en totalité/.test(conf), conf.replace(/\n/g,' | '));
+check('… et dit la règle d\'annulation au moment où le client paie, sans annoncer de garantie',
+  /annulation de votre part, le paiement n'est pas remboursé/.test(conf) && !/totalité/.test(conf), conf.replace(/\n/g,' | '));
 const lienGarde = await p2.evaluate(()=>{ const c = JSON.parse(localStorage.getItem('ela_bookings')||'[]').find(x=>x.ref==='ELA-26-10-LIEN1'); return c && c.lienPaiement; });
 check('le lien est enregistré sur la course', lienGarde === 'https://pay.sumup.com/b2c/QWERTY', String(lienGarde));
 // « Payé » : la course ne réclame plus rien.

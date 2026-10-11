@@ -3611,7 +3611,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <ul class="paiement-regles">
           <li data-t="paiement_r1">Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.</li>
           <li data-t="paiement_r2">Vous payez, votre chauffeur se met en route.</li>
-          <li data-t="paiement_r3">Si votre course n'a pas lieu de notre fait, vous êtes remboursé en totalité.</li>
         </ul>
         <!-- Départ immédiat ou réservation de vive voix : le numéro est ICI, là
              où le client lit comment payer (11/10/2026, Barbaros). -->
@@ -6146,7 +6145,7 @@ window.ELA_TEXTES = {
     faq_titre:"Questions fréquentes",
     faq1q:"Et si mon vol est en retard ?", faq1r:"Indiquez votre numéro de vol : nous suivons votre arrivée et le chauffeur vous attend jusqu'à 60 minutes après l'atterrissage réel, sans frais.",
     faq2q:"Comment je paie ?", faq2r:"Directement à votre chauffeur, par le lien de paiement qu'Elatransfer vous envoie avec la confirmation. Votre chauffeur se met en route dès que le paiement est reçu. Rien n'est payé à la réservation.",
-    faq3q:"Puis-je annuler ?", faq3r:"Oui. Sans frais tant que vous n'avez pas payé, même une fois la course confirmée. Après le paiement, une annulation de votre part n'est pas remboursée. Si la course n'a pas lieu de notre fait, vous êtes remboursé en totalité.",
+    faq3q:"Puis-je annuler ?", faq3r:"Oui. Sans frais tant que vous n'avez pas payé, même une fois la course confirmée. Après le paiement, une annulation de votre part n'est pas remboursée.",
     faq4q:"Où m'attend le chauffeur ?", faq4r:"À l'adresse de départ indiquée. À l'aéroport ou en gare, vous pouvez choisir l'accueil avec un panneau à votre nom.",
     services:"Nos services", voir_tous:"Voir tous",
     srv1:"Aéroport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
@@ -6274,7 +6273,6 @@ window.ELA_TEXTES = {
     paiement_r1:"Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.",
     paiement_r2:"Vous payez, votre chauffeur se met en route.",
     paiement_tel:"Départ immédiat ou réservation par téléphone :",
-    paiement_r3:"Si votre course n'a pas lieu de notre fait, vous êtes remboursé en totalité.",
     paiement_especes:"Espèces",
     paiement_carte:"Carte bancaire",
     err_paiement:"Indiquez comment vous réglerez.",
@@ -6381,7 +6379,7 @@ window.ELA_TEXTES = {
     faq_titre:"Frequently asked questions",
     faq1q:"What if my flight is delayed?", faq1r:"Give us your flight number: we track your arrival and the chauffeur waits up to 60 minutes after the actual landing, at no charge.",
     faq2q:"How do I pay?", faq2r:"Directly to your chauffeur, through the payment link Elatransfer sends you with the confirmation. Your chauffeur sets off as soon as payment is received. Nothing is paid when you book.",
-    faq3q:"Can I cancel?", faq3r:"Yes. Free of charge until you pay, even once your ride is confirmed. After payment, a cancellation on your part is not refunded. If the ride does not take place because of us, you are refunded in full.",
+    faq3q:"Can I cancel?", faq3r:"Yes. Free of charge until you pay, even once your ride is confirmed. After payment, a cancellation on your part is not refunded.",
     faq4q:"Where will the chauffeur meet me?", faq4r:"At the pick-up address you gave. At an airport or station, you can choose a meet-and-greet with a sign bearing your name.",
     services:"Our services", voir_tous:"See all",
     srv1:"Airport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
@@ -6500,7 +6498,6 @@ window.ELA_TEXTES = {
     paiement_r1:"Elatransfer contacts you to confirm your ride and sends you your chauffeur's payment link.",
     paiement_r2:"You pay, your chauffeur sets off.",
     paiement_tel:"Immediate departure or booking by phone:",
-    paiement_r3:"If your ride does not take place because of us, you are refunded in full.",
     paiement_especes:"Cash",
     paiement_carte:"Card",
     err_paiement:"Tell us how you will pay.",
@@ -13695,9 +13692,10 @@ window.ELA_TEXTES = {
       l.push("Lien de paiement : " + bon.lienPaiement);
       /* LA RÈGLE D'ANNULATION EST DITE ICI, au moment où le client paie
          (11/10/2026) : c'est là qu'elle engage, et c'est ce message qu'on
-         montre à une banque si le paiement est contesté. Le site, lui, ne
-         dit que la garantie ; le contrat entier est aux CGV (art. 7). */
-      l.push("Annulation de votre part : non remboursée. Course non assurée de notre fait : remboursée en totalité.");
+         montre à une banque si le paiement est contesté. Le remboursement
+         d'une course que nous n'assurons pas est aux seules CGV (art. 7) :
+         Barbaros ne veut pas l'annoncer, il est dû de toute façon. */
+      l.push("En cas d'annulation de votre part, le paiement n'est pas remboursé.");
     }
     l.push("Votre bon : " + lien);
     return l.join("\n");

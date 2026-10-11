@@ -92,6 +92,12 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   frais tant que le client n'a pas payé, non remboursée après, remboursée en
   totalité si la course n'a pas lieu de notre fait. Le barème ne vaut plus
   qu'au comptoir, payé à bord (CGV art. 7).
+- **PUIS, LE MÊME SOIR : PLUS AUCUNE GARANTIE ANNONCÉE** (Barbaros : « il
+  n'y a pas de raison que je n'assure pas la course, pourquoi mettre un
+  message »). Retirée du récapitulatif, du message au client et de la FAQ.
+  Elle reste aux CGV (art. 7), et le remboursement reste dû de toute façon.
+  Le message garde une ligne : « En cas d'annulation de votre part, le
+  paiement n'est pas remboursé. »
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.
