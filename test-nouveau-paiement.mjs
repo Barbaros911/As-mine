@@ -297,15 +297,15 @@ await ctx2.close(); await ctx.close(); await b.close();
 
 /* « PUIS-JE ANNULER ? » A ANNONCÉ L'ANCIEN BARÈME (gratuit à plus de 24 h,
    30 %, 50 %) un jour entier après le passage au lien, sur l'accueil et les
-   trois pages de service (11/10/2026). Il ne vaut plus qu'au comptoir, payé
-   à bord, et n'a rien à faire dans une réponse au public. */
+   trois pages de service. Puis la question a été RETIRÉE (11/10/2026,
+   Barbaros : « ça sert à rien ») : l'annulation n'est dite qu'aux CGV
+   (art. 7) et dans le message qui porte le lien. Elle ne revient pas. */
 {
   const { readFileSync } = await import('node:fs');
   for (const f of ['index.html','chauffeur-prive-paris.html','transfert-cdg-paris.html','transfert-orly-paris.html']) {
     const s = readFileSync(new URL('./' + f, import.meta.url), 'utf8');
-    const fr = (s.match(/Puis-je annuler[\s\S]{0,400}/) || [''])[0];
-    check(`${f} : « Puis-je annuler ? » ne promet plus l'ancien barème`,
-      fr && !/24 h|30 ?%|50 ?%/.test(fr) && /Prévenez-nous/.test(fr) && /conditions générales/.test(fr), fr.slice(0,160));
+    check(`${f} : la question « Puis-je annuler ? » n'est plus affichée`,
+      !/Puis-je annuler|Can I cancel/.test(s) && !/faq3/.test(s));
   }
 }
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));

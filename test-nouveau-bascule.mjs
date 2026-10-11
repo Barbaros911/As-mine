@@ -294,7 +294,13 @@ check('elles ne promettent plus une mise à disposition réservable en ligne',
    lieu de notre fait. */
 check('le paiement par lien avant le départ y figure, avec ses deux règles de remboursement',
   /lien de paiement du chauffeur/i.test(cgv) && /se met en route une fois le paiement reçu/.test(cgv)
-  && /n'est pas remboursé/.test(cgv) && /totalité du prix payé/.test(cgv));
+  && /totalité du prix payé/.test(cgv));
+/* UNE FOIS PAYÉE, LA COURSE NE S'ANNULE PLUS (11/10/2026, Barbaros) : le
+   paiement engage le Client, et l'article dit POURQUOI — le chauffeur a
+   réservé le créneau et refusé d'autres courses. */
+check('après paiement : engagement ferme, plus d\'annulation, aucun remboursement, et la raison',
+  /engagement ferme et définitif/.test(cgv) && /ne peut plus être annulée par le Client/.test(cgv)
+  && /aucun remboursement, ni total ni partiel/.test(cgv) && /renonce à accepter d'autres courses/.test(cgv));
 check('le barème d\'annulation y est, avec sa fenêtre gratuite',
   /24 heures/.test(cgv) && /30 %/.test(cgv) && /50 %/.test(cgv));
 check('plus aucun « {{m}} » non remplacé', !cgv.includes('{{m}}'));

@@ -105,6 +105,17 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   n'apprenait rien. Le renvoi aux CGV reste : un « Oui » sec, sans signaler
   de condition, serait une omission trompeuse (L121-3 Code conso.). La règle
   est aux CGV et dans le message qui porte le lien.
+- **PUIS LA QUESTION A ÉTÉ RETIRÉE** (Barbaros : « enlève complètement, ça
+  sert à rien ») de l'accueil et des trois pages de service. L'annulation
+  n'est plus dite qu'aux CGV et dans le message qui porte le lien.
+- **CGV art. 7 réécrit** (FR/EN, mise à jour du 11 octobre 2026) : avant
+  paiement, le client renonce sans frais ; le paiement vaut **engagement
+  ferme et définitif** ; la raison est écrite (le chauffeur réserve le
+  créneau et refuse d'autres courses) ; après paiement, plus d'annulation,
+  aucun remboursement ni total ni partiel, report soumis à accord. Le
+  remboursement quand la course rate de notre fait reste écrit : c'est ce
+  qui rend la clause équilibrée, donc non abusive. L'article 6 (pas de droit
+  de rétractation, L221-2 9°) était déjà là.
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.
