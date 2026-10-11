@@ -99,10 +99,12 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   Le message garde une ligne : « En cas d'annulation de votre part, le
   paiement n'est pas remboursé. »
 - **« Puis-je annuler ? » NE DIT PLUS LE NON-REMBOURSEMENT** (même soir,
-  Barbaros) : « Oui. Sans frais jusqu'au paiement », puis renvoi aux CGV. Le
-  « jusqu'au » garde la réponse vraie : ne dire que « Oui, sans frais »
-  serait une omission trompeuse (L121-3 Code conso.) dans la réponse même à
-  la question. La règle est aux CGV et dans le message qui porte le lien.
+  Barbaros) : « Oui. Prévenez-nous simplement par téléphone ou par
+  message », puis renvoi aux CGV. « Sans frais jusqu'au paiement » a été
+  essayé et retiré : la course n'est actée qu'au paiement, la phrase
+  n'apprenait rien. Le renvoi aux CGV reste : un « Oui » sec, sans signaler
+  de condition, serait une omission trompeuse (L121-3 Code conso.). La règle
+  est aux CGV et dans le message qui porte le lien.
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.
