@@ -9,32 +9,63 @@
      finition pour deux entrées, sinon l'une vieillit pendant que l'autre
      avance. Ce qui diffère au comptoir est dit à l'endroit où ça diffère. */
   if(!p) return;
-  var espace=document.documentElement.getAttribute('data-ela-space')||'';
-  var comptoir=espace==='hotel-reception'||p.get('reception')==='easyhotel-aeroville';
-  var clientHotel=espace==='hotel-client'||p.get('h')==='easyhotel-aeroville';
-  if(!clientHotel && !comptoir) return;
-  var accueil=comptoir?'/easyhotel-reception/':'/easyhotel-client/';
+  /* ═══ UNE FINITION POUR TOUS LES HÔTELS (11/10/2026, à la demande de
+     Barbaros : « fait le comme un expert ») ═══
+     Elle était écrite pour easyHotel seul : son nom, son adresse, son
+     adresse de page et sa photo y étaient en dur. Un second partenaire
+     aurait eu le moteur nu, et la démo ne pouvait pas la charger (elle
+     nommait un partenaire réel). Désormais RIEN ici ne nomme un hôtel :
+     tout vient de la fiche de l'hôtel ouvert (HOTELS, dans la page), que le
+     moteur expose par window.ELA_HOTEL_ACTIF. verifier-demo.mjs refuserait
+     la construction si un nom de partenaire revenait dans ce fichier. */
+  var racine=document.documentElement;
+  var espace=racine.getAttribute('data-ela-space')||'';
+  if(espace!=='hotel-client' && espace!=='hotel-reception' && espace!=='demo'
+     && !p.get('h') && !p.get('reception')) return;
+  function hotelActif(){try{return window.ELA_HOTEL_ACTIF?window.ELA_HOTEL_ACTIF():null;}catch(e){return null;}}
+  /* LE COMPTOIR SE RECONNAÎT À LA PAGE, PAS AU NOM DE L'HÔTEL : sur sa page
+     dédiée (data-ela-space), ou quand le moteur a ouvert la réception
+     (body.reception — c'est le cas de la démo, qui s'ouvre plus tard, après
+     la réponse du serveur des démonstrations). */
+  var comptoir=false;
+  function estComptoir(){return espace==='hotel-reception'||!!(document.body&&document.body.classList.contains('reception'));}
 
   function enhanceHotel(){
+    var h=hotelActif();
+    if(!h || !document.body.classList.contains('hotel')) return;
+    comptoir=estComptoir();
     document.body.classList.add('hotel-enhanced');
+    /* SANS PHOTO, LE BANDEAU N'EST PAS UN GRAND VIDE : il passe en aplat,
+       comme au comptoir (hotel-engine-polish.css). */
+    document.body.classList.toggle('eh-sans-photo',!h.photoEntete);
 
     var head=document.querySelector('.entete');
     var actions=document.querySelector('.entete-actions');
-    if(head && actions && !document.querySelector('.hotel-partner-chip')){
-      var chip=document.createElement('div');
+    var chip=document.querySelector('.hotel-partner-chip');
+    if(head && actions && !chip){
+      chip=document.createElement('div');
       chip.className='hotel-partner-chip';
-      chip.innerHTML='<b>easyHotel</b><span>Aéroville</span>';
+      chip.appendChild(document.createElement('b'));
+      chip.appendChild(document.createElement('span'));
       head.insertBefore(chip,actions);
-      var logoLink=head.querySelector('.logo');
-      if(logoLink){logoLink.href=accueil;logoLink.setAttribute('aria-label','Retour à la page easyHotel Aéroville');}
     }
-
-    /* ON N'ÉCRIT QUE SI LE TEXTE DIFFÈRE. Réécrire un texte identique est
-       quand même une mutation : l'observateur plus bas rappelait cette
-       fonction, qui réécrivait, qui rappelait… une boucle de micro-tâches
-       qui ne rend jamais la main — la page de réservation easyHotel se
-       figeait (mesuré sous Chromium, 22/09/2026). */
-    document.querySelectorAll('.hotel-nom').forEach(function(el){if(el.textContent!=='easyHotel Aéroville')el.textContent='easyHotel Aéroville';});
+    /* LA PASTILLE DIT LE NOM COURT EN GROS, LE RESTE DESSOUS : « easyHotel »
+       puis « Aéroville ». Posé en textContent, jamais en HTML : dans la démo
+       ce nom est saisi par le prospect. */
+    if(chip){
+      var court=h.court||h.nom||'', reste='';
+      if(h.nom && court && h.nom.indexOf(court)===0) reste=h.nom.slice(court.length).replace(/^[\s·,\-–—]+/,'');
+      var cb=chip.querySelector('b'), cs=chip.querySelector('span');
+      if(cb && cb.textContent!==court) cb.textContent=court;
+      if(cs && cs.textContent!==reste) cs.textContent=reste;
+      chip.classList.toggle('eh-chip-long',court.length>12);
+    }
+    var logoLink=head&&head.querySelector('.logo');
+    var accueil=comptoir?(espace==='hotel-reception'?location.pathname:''):(h.pageClient||'');
+    if(logoLink && accueil && logoLink.getAttribute('href')!==accueil){
+      logoLink.href=accueil;
+      logoLink.setAttribute('aria-label',(comptoir?'Retour à l’espace réception ':'Retour à la page ')+h.nom);
+    }
 
     var chambre=document.getElementById('blocChambre');
     var blocCoord=document.getElementById('blocCoordonnees');
@@ -119,7 +150,7 @@
      actions, regroupe visuellement le tunnel et précise les catégories de
      véhicule. */
   function receptionPremium(){
-    if(!comptoir) return;
+    if(!comptoir || !hotelActif()) return;
     document.body.classList.add('reception-premium');
     var anglais=document.documentElement.lang==='en';
     function texte(el,valeur){if(el && el.textContent!==valeur) el.textContent=valeur;}
@@ -239,7 +270,8 @@
       var adresseRec=document.getElementById('recAdresseHotel');
       if(!adresseRec){adresseRec=document.createElement('p');adresseRec.id='recAdresseHotel';adresseRec.className='rec-adresse';
         if(hotelListe) hotelListe.insertAdjacentElement('afterend',adresseRec);}
-      texte(adresseRec,'10 rue de la Belle Borne, 93410 Tremblay-en-France');
+      var hRec=hotelActif();
+      texte(adresseRec,hRec&&hRec.adresse||'');
 
       var corpsRec=document.getElementById('recCorps');
       var chiffres=document.querySelector('.rec-chiffres');
@@ -317,9 +349,17 @@
         Object.keys(traductions).some(function(c){if(etat.classList.contains(c)){en=traductions[c];return true;}return false;});
         trad(etat,en);
       });
+      /* LES AUTRES JOURS SE TRADUISENT AUSSI (11/10/2026) : « lundi 13
+         octobre » restait en français en anglais. La démo le faisait de son
+         côté ; la finition étant commune, c'est ici qu'il vit désormais. */
+      var JOURS_EN={lundi:'Monday',mardi:'Tuesday',mercredi:'Wednesday',jeudi:'Thursday',vendredi:'Friday',samedi:'Saturday',dimanche:'Sunday'};
+      var MOIS_EN={janvier:'January','février':'February',mars:'March',avril:'April',mai:'May',juin:'June',juillet:'July','août':'August',septembre:'September',octobre:'October',novembre:'November','décembre':'December'};
       document.querySelectorAll('.rec-jour').forEach(function(j){
         var jours={"Aujourd'hui":'Today','Demain':'Tomorrow','En retard':'Overdue','Date inconnue':'Unknown date'};
-        trad(j,jours[(j.dataset.fr||j.textContent).trim()]);
+        var fr=(j.dataset.fr||j.textContent).trim(), en=jours[fr];
+        var m=/^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche) (\d{1,2}) ([a-zéû]+)$/i.exec(fr);
+        if(!en && m && MOIS_EN[m[3].toLowerCase()]) en=JOURS_EN[m[1].toLowerCase()]+' '+m[2]+' '+MOIS_EN[m[3].toLowerCase()];
+        trad(j,en);
       });
       var boutons={'Appeler Elatransfer':'Call Elatransfer','Voir le bon':'View voucher'};
       document.querySelectorAll('#recListe .bouton-fantome').forEach(function(x){
@@ -473,19 +513,30 @@
   }
 
   /* Le moteur historique construit le mode hôtel après le premier chargement.
-     On applique donc la finition tout de suite ET après ses mutations. */
-  function tout(){enhanceHotel();receptionPremium();brancherValidation();if(document.body.dataset.ehValidation)peindre();}
-  enhanceHotel();
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',tout,{once:true});
-  window.addEventListener('load',tout,{once:true});
-  var attempts=0;
-  var timer=setInterval(function(){
-    tout();attempts++;
-    if(attempts>=20 || (document.getElementById('blocChambre') && document.getElementById('hotelDest') && document.getElementById('hotelDest').dataset.landingPresetApplied)) clearInterval(timer);
-  },250);
-  var observer=new MutationObserver(function(){enhanceHotel();receptionPremium();});
-  observer.observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(function(){observer.disconnect();},7000);
+     On applique donc la finition tout de suite ET après ses mutations.
+     LE MOTEUR PRÉVIENT QUAND UN HÔTEL S'OUVRE (événement « ela:hotel ») :
+     sur la page d'un hôtel, c'est pendant le chargement ; dans la démo,
+     après la réponse du serveur des démonstrations — parfois plus de sept
+     secondes plus tard, quand l'observateur ci-dessous s'est déjà coupé.
+     Chaque annonce rouvre donc une fenêtre de finition. */
+  function tout(){enhanceHotel();receptionPremium();if(document.body.classList.contains('hotel-enhanced'))brancherValidation();if(document.body.dataset.ehValidation)peindre();}
+  var timer=null, observer=null, coupure=null, comptoirBranche=false;
+  function demarrer(){
+    tout();
+    clearInterval(timer);
+    var attempts=0;
+    timer=setInterval(function(){
+      tout();attempts++;
+      if(attempts>=20 || (document.getElementById('blocChambre') && document.getElementById('hotelDest') && document.getElementById('hotelDest').dataset.landingPresetApplied)) clearInterval(timer);
+    },250);
+    if(!observer){
+      observer=new MutationObserver(function(){enhanceHotel();receptionPremium();});
+      observer.observe(document.documentElement,{subtree:true,childList:true});
+    }
+    clearTimeout(coupure);
+    coupure=setTimeout(function(){if(observer){observer.disconnect();observer=null;}},7000);
+    brancherComptoir();
+  }
   /* ═══ APRÈS SEPT SECONDES, LA LANGUE ET LA LISTE SUIVENT QUAND MÊME ═══
      (30/09/2026). L'observateur général se coupe à 7 s, et c'est voulu —
      mais un FR/EN touché ensuite, ou une liste redessinée par
@@ -493,7 +544,9 @@
      observateurs ÉTROITS restent : l'attribut « lang » de la page, et les
      enfants DIRECTS de la liste. Ce que la finition réécrit est plus
      profond que ces enfants : elle ne se rappelle pas elle-même. */
-  if(comptoir){
+  function brancherComptoir(){
+    if(comptoirBranche || !comptoir) return;
+    comptoirBranche=true;
     new MutationObserver(function(){tout();})
       .observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
     var brancherListe=setInterval(function(){
@@ -504,4 +557,8 @@
     },250);
     setTimeout(function(){clearInterval(brancherListe);},10000);
   }
+  window.addEventListener('ela:hotel',demarrer);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',demarrer,{once:true});
+  else demarrer();
+  window.addEventListener('load',tout,{once:true});
 }());

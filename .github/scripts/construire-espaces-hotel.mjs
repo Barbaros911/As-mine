@@ -1,9 +1,46 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const sourcePath = process.argv[2] || 'site/index.html';
 const sortie = process.argv[3] || 'site';
 const source = fs.readFileSync(sourcePath, 'utf8');
+
+/* ═══ LES HÔTELS PARTENAIRES SONT LUS DANS LA PAGE, JAMAIS RECOPIÉS ═══
+   11/10/2026. Cette recette ne fabriquait que la réception d'easyHotel,
+   son nom écrit en dur : un second partenaire ajouté à HOTELS n'aurait pas
+   eu de page de comptoir. On évalue la fiche telle que la page la porte
+   (un objet JavaScript, commentaires compris), à l'écart du reste. */
+function lireHotels(html) {
+  const debut = html.indexOf('var HOTELS = {');
+  const fin = html.indexOf('Object.keys(HOTELS).forEach', debut);
+  if (debut < 0 || fin < 0) throw new Error('fiche HOTELS introuvable dans la page');
+  const hotels = vm.runInNewContext(html.slice(debut, fin) + '\nHOTELS;', {});
+  const cles = Object.keys(hotels);
+  if (!cles.length) throw new Error('aucun hôtel partenaire dans HOTELS');
+  for (const cle of cles) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cle)) throw new Error(`clé d'hôtel inutilisable dans une adresse : « ${cle} »`);
+    if (!hotels[cle].nom) throw new Error(`l'hôtel « ${cle} » n'a pas de nom`);
+  }
+  return hotels;
+}
+const HOTELS = lireHotels(source);
+/* La même mise à plat que hotelDuParametre() dans la page : « easyHotel
+   Aéroville », « easyhotel-aeroville » et un alias mènent au même hôtel. */
+const aPlat = (s) => String(s || '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const NOMS_RECEPTION = {};
+for (const [cle, h] of Object.entries(HOTELS)) {
+  for (const n of [cle, h.nom, ...(h.alias || [])]) {
+    const k = aPlat(n);
+    if (k && !(k in NOMS_RECEPTION)) NOMS_RECEPTION[k] = cle;
+  }
+}
+/* « ?reception=… » mène à la page de comptoir DE CET HÔTEL. Une valeur
+   inconnue ne mène nulle part (on reste sur la page) : répondre « cet
+   hôtel n'existe pas » dirait à qui essaie des noms lesquels sont
+   partenaires — la règle de lireHotel() dans la page. */
+const versReception = `var R=${JSON.stringify(NOMS_RECEPTION)};var k=R[String(p.get('reception')).toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()];p.delete('reception');if(k){var r=p.toString();location.replace('/reception/'+k+'/'+(r?'?'+r:'')+location.hash);return}`;
 
 function retirerElementParId(html, tag, id) {
   const ouverture = new RegExp(`<${tag}\\b[^>]*\\bid=["']${id}["'][^>]*>`, 'i');
@@ -167,7 +204,7 @@ function publicEla() {
      sont l'application et la réception qui les gardent. */
   html = html.replace(/<script\b[^>]*src=["']\/hotel-engine-polish\.js["'][^>]*><\/script>\s*/gi, '');
   html = html.replace(/<link\b[^>]*href=["']\/hotel-engine-polish\.css["'][^>]*>\s*/gi, '');
-  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var r=p.toString();location.replace('/reception/easyhotel-aeroville/'+(r?'?'+r:'')+location.hash);return}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){${versReception}}if(p.get('h')){location.replace('/application.html?'+p.toString()+location.hash)}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
 }
@@ -176,15 +213,20 @@ function client() {
   let html = sansBonComptoir(sansReception(sansAdmin()));
   html = injecterBootstrap(html, 'client');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
-  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){p.delete('reception');var q=p.toString();location.replace('/reception/easyhotel-aeroville/'+(q?'?'+q:'')+location.hash)}}catch(e){}}());</script>`;
+  const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){${versReception}}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
   return html;
 }
 
-function reception() {
+/* LA PAGE DE COMPTOIR D'UN HÔTEL. Une par partenaire de HOTELS, à
+   /reception/<clé>/ : c'est le DOCUMENT qui dit quel hôtel il sert
+   (data-ela-hotel), jamais un paramètre qu'on pourrait réécrire. */
+function reception(cle) {
+  const h = HOTELS[cle];
+  const adresse = `/reception/${cle}/`;
   let html = sansAdmin();
   html = injecterBootstrap(html, 'reception');
-  html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-reception" data-ela-hotel="easyhotel-aeroville">');
+  html = html.replace('<html lang="fr">', `<html lang="fr" data-ela-space="hotel-reception" data-ela-hotel="${cle}">`);
   /* SON PROPRE MANIFESTE (29/09/2026). La page héritait de celui du site
      client (« start_url: ./ », donc la racine) : une icône posée depuis la
      réception rouvrait le site PUBLIC. iOS lit le manifeste de la page, pas
@@ -196,7 +238,7 @@ function reception() {
   /* ELA orange sur blanc (29/09/2026, à sa demande) : on reconnaît la
      réception d'un coup d'œil à côté de l'icône client, noir sur orange. */
   html = html.replace('<head>', '<head>\n<base href="/">\n'
-    + '<link rel="manifest" href="/easyhotel-reception/manifest.webmanifest">\n'
+    + `<link rel="manifest" href="${adresse}manifest.webmanifest">\n`
     + '<link rel="apple-touch-icon" href="/icones/reception-180.png">\n'
     + '<link rel="icon" href="/icones/reception-32.png" type="image/png" sizes="32x32">\n'
     + '<meta name="apple-mobile-web-app-title" content="Réception">\n'
@@ -206,8 +248,32 @@ function reception() {
     '<meta name="robots" content="noindex,nofollow">');
   html = sansCanonique(html);
   html = html.replace(/<title>[\s\S]*?<\/title>/i,
-    '<title>Réception easyHotel Aéroville — Elatransfer</title>');
+    `<title>Réception ${echapper(h.nom)} — Elatransfer</title>`);
   return html;
+}
+function echapper(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+/* Son manifeste : une icône posée depuis cette page rouvre CETTE page. */
+function manifesteReception(cle, adresse) {
+  const h = HOTELS[cle];
+  return JSON.stringify({
+    name: `Réception ${h.nom} — Elatransfer`,
+    short_name: 'Réception',
+    description: `Réservations de la réception ${h.nom}.`,
+    lang: 'fr',
+    id: adresse,
+    start_url: adresse,
+    scope: '/',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#FFFFFF',
+    theme_color: '#FFFFFF',
+    icons: [
+      { src: '/icones/reception-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+      { src: '/icones/reception-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    ],
+  }, null, 2) + '\n';
 }
 
 function admin() {
@@ -257,7 +323,7 @@ function admin() {
 
 const publicHtml = publicEla();
 const clientHtml = client();
-const receptionHtml = reception();
+const receptions = Object.fromEntries(Object.keys(HOTELS).map((cle) => [cle, reception(cle)]));
 const adminHtml = admin();
 
 const interditsClient = [
@@ -276,8 +342,10 @@ const interditsReception = [
   'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
   'prospects.js', 'prospects.css', 'ELA_PROSPECTS', 'id="ecran-prospects"', 'btnProspects', '/rest/v1/prospects',
 ];
-for (const interdit of interditsReception) {
-  if (receptionHtml.includes(interdit)) throw new Error(`fuite Réception : ${interdit}`);
+for (const [cle, receptionHtml] of Object.entries(receptions)) {
+  for (const interdit of interditsReception) {
+    if (receptionHtml.includes(interdit)) throw new Error(`fuite Réception (${cle}) : ${interdit}`);
+  }
 }
 const interditsPublic = [
   'id="ecran-reception"', 'id="ecran-verrou"', 'id="ecran-bord"',
@@ -300,39 +368,30 @@ for (const interdit of interditsAdmin) {
 fs.mkdirSync(sortie, { recursive: true });
 fs.writeFileSync(path.join(sortie, 'index.html'), publicHtml);
 fs.writeFileSync(path.join(sortie, 'application.html'), clientHtml);
-const dossierReception = path.join(sortie, 'easyhotel-reception');
-fs.mkdirSync(dossierReception, { recursive: true });
-fs.writeFileSync(path.join(dossierReception, 'index.html'), receptionHtml);
-fs.writeFileSync(path.join(dossierReception, 'manifest.webmanifest'), JSON.stringify({
-  name: 'Réception easyHotel Aéroville — Elatransfer',
-  short_name: 'Réception',
-  description: 'Réservations de la réception easyHotel Aéroville.',
-  lang: 'fr',
-  id: '/easyhotel-reception/',
-  start_url: '/easyhotel-reception/',
-  scope: '/',
-  display: 'standalone',
-  orientation: 'portrait',
-  background_color: '#FFFFFF',
-  theme_color: '#FFFFFF',
-  icons: [
-    { src: '/icones/reception-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
-    { src: '/icones/reception-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-  ],
-}, null, 2) + '\n');
-/* ADRESSE PROPRE (01/10/2026) : /reception/easyhotel-aeroville/ sert la MÊME
-   page que /easyhotel-reception/, qui reste intacte (icônes déjà posées).
-   Seul le manifeste diffère, pour qu'une icône posée d'ici rouvre ici. */
-const dossierReceptionPropre = path.join(sortie, 'reception', 'easyhotel-aeroville');
-fs.mkdirSync(dossierReceptionPropre, { recursive: true });
-fs.writeFileSync(path.join(dossierReceptionPropre, 'index.html'),
-  receptionHtml.replace('href="/easyhotel-reception/manifest.webmanifest"', 'href="/reception/easyhotel-aeroville/manifest.webmanifest"'));
-const manifesteReception = JSON.parse(fs.readFileSync(path.join(dossierReception, 'manifest.webmanifest'), 'utf8'));
-fs.writeFileSync(path.join(dossierReceptionPropre, 'manifest.webmanifest'), JSON.stringify({
-  ...manifesteReception, id: '/reception/easyhotel-aeroville/', start_url: '/reception/easyhotel-aeroville/',
-}, null, 2) + '\n');
+/* UNE PAGE DE COMPTOIR PAR HÔTEL (11/10/2026) : /reception/<clé>/, avec
+   son manifeste — une icône posée d'ici rouvre ici. */
+for (const [cle, receptionHtml] of Object.entries(receptions)) {
+  const adresse = `/reception/${cle}/`;
+  const dossier = path.join(sortie, 'reception', cle);
+  fs.mkdirSync(dossier, { recursive: true });
+  fs.writeFileSync(path.join(dossier, 'index.html'), receptionHtml);
+  fs.writeFileSync(path.join(dossier, 'manifest.webmanifest'), manifesteReception(cle, adresse));
+}
+/* L'ANCIENNE ADRESSE D'EASYHOTEL RESTE (01/10/2026) : des icônes et des
+   favoris sont posés sur /easyhotel-reception/. Même page, son propre
+   manifeste. Un partenaire ajouté demain n'a que l'adresse propre. */
+const ANCIENNES_ADRESSES = { 'easyhotel-aeroville': 'easyhotel-reception' };
+for (const [cle, dossierAncien] of Object.entries(ANCIENNES_ADRESSES)) {
+  if (!receptions[cle]) continue;
+  const adresse = `/${dossierAncien}/`;
+  const dossier = path.join(sortie, dossierAncien);
+  fs.mkdirSync(dossier, { recursive: true });
+  fs.writeFileSync(path.join(dossier, 'index.html'),
+    receptions[cle].replace(`href="/reception/${cle}/manifest.webmanifest"`, `href="${adresse}manifest.webmanifest"`));
+  fs.writeFileSync(path.join(dossier, 'manifest.webmanifest'), manifesteReception(cle, adresse));
+}
 const dossierAdmin = path.join(sortie, 'ela-admin');
 fs.mkdirSync(dossierAdmin, { recursive: true });
 fs.writeFileSync(path.join(dossierAdmin, 'index.html'), adminHtml);
 
-console.log(`Quatre espaces construits : Public ${publicHtml.length} octets · Client ${clientHtml.length} octets · Réception ${receptionHtml.length} octets · Admin ${adminHtml.length} octets.`);
+console.log(`Quatre espaces construits : Public ${publicHtml.length} octets · Client ${clientHtml.length} octets · Réception ×${Object.keys(receptions).length} (${Object.keys(receptions).join(', ')}) · Admin ${adminHtml.length} octets.`);

@@ -157,10 +157,21 @@ html[data-ela-space="demo"] .langues button[aria-pressed="true"]{background:var(
   .demo-perso-titre{max-width:420px;margin:0 auto}
 }
 
-/* La photo du prospect dans son cadre, et son message d'accueil. */
-.demo-photo.avec-photo{background-size:cover;background-position:center;border-style:solid;min-height:96px}
-.demo-photo.avec-photo #demoPhotoTexte{display:none}
+/* Le message d'accueil du prospect. Sa photo n'est plus dans le cadre : elle
+   est dans le BANDEAU, comme chez un partenaire (la finition commune) ; le
+   cadre ne garde que son rôle de bouton (« Changer la photo »). */
+.demo-photo.avec-photo{min-height:44px}
 .demo-message{margin:6px 0 0;font-size:15px;font-weight:600;color:var(--h-charbon,var(--demo-nuit));overflow-wrap:anywhere}
+
+/* ═══ SOUS LA FINITION COMMUNE DES PAGES D'HÔTEL (11/10/2026) ═══
+   Le bandeau du client est celui de tout partenaire : un aplat marine sans
+   photo, la photo en grand quand il y en a une. Ce qui y est posé par la
+   démo passe donc en clair — en sombre, « Votre photo ici » et le message
+   disparaissaient sur le marine (mesuré sur capture). */
+html[data-ela-space="demo"] body.hotel-enhanced .demo-photo{border-color:rgba(255,255,255,.6);
+  background:rgba(255,255,255,.12);color:#fff}
+html[data-ela-space="demo"] body.hotel-enhanced .demo-initiales{box-shadow:0 0 0 2px rgba(255,255,255,.75)}
+html[data-ela-space="demo"] body.hotel-enhanced .demo-message{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.45)}
 .demo-message[hidden]{display:none}
 
 /* ═══ LA PAGE D'ARRIVÉE : « OÙ SOUHAITEZ-VOUS ALLER ? » ═══

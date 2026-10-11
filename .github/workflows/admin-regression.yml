@@ -77,6 +77,10 @@ jobs:
           # qui le lit sur le serveur doit tourner avant la fusion. Toutes
           # vertes en local le 9/10 avant d'entrer ici.
           suites="$suites test-nouveau-prix test-nouveau-hotel test-nouveau-confirmation test-nouveau-bon test-nouveau-itineraire test-tarifs-serveur test-demo-hotel test-pro-page test-pro-formulaire"
+          # LA FINITION COMMUNE DES PAGES D'HÔTEL (11 octobre 2026) : un second
+          # partenaire ajouté à HOTELS doit avoir la finition d'easyHotel, à ses
+          # couleurs, sans une ligne de code de plus — et easyHotel ne bouge pas.
+          suites="$suites test-finition-commune"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

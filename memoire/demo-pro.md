@@ -190,9 +190,10 @@ alerte Telegram.
   Elles partent de l'hôtel du prospect, sous le nom qu'il voit en tête de
   page, pas du nom de repli écrit à la semence.
 - **La réception se traduit à l'affichage** (`traduireReception` dans
-  `demo-simulateur.js`) : le moteur écrit le comptoir en français, et la
-  traduction de la vraie réception vit dans la finition easyHotel, que la
-  démo ne charge pas (elle nomme easyHotel). Chaque texte garde son français
+  `demo-simulateur.js`) : le moteur écrit le comptoir en français. Depuis le
+  11/10/2026 la finition commune en traduit l'essentiel ; ce traducteur-ci
+  garde ce qui est propre à la démo (exemples, chauffeur fictif, lignes de
+  détail) — `memoire/finition-commune.md`. Chaque texte garde son français
   d'origine, et on n'écrit que si le texte change — sinon l'observateur
   boucle, comme le moteur easyHotel figé en septembre. La vraie réception
   n'a pas été touchée ; le bon affiché avait déjà son FR/EN.
@@ -214,15 +215,18 @@ alerte Telegram.
 - **« Personnaliser ma page »** (sur les deux vues) : nom (60 car.), couleur
   (six pastilles + sélecteur ; assombrie jusqu'à 4,6:1 pour le bouton, encre
   à 7,5:1 sur l'en-tête), photo (réduite à 1000 px, jamais envoyée, perdue au
-  changement de page — et on le dit), message d'accueil (160 car.), jusqu'à
+  changement de page — et on le dit ; depuis le 11/10/2026 elle s'affiche dans
+  le bandeau, comme chez un partenaire), message d'accueil (160 car.), jusqu'à
   quatre destinations ajoutées (clé stable `perso-<id>`), prix par
   destination (1 à 2 000 €, vide = au kilomètre). Tout dans
   `ela_demo__ela_demo_perso` ; « Revenir à la page d'origine » efface tout.
   Aucune requête serveur.
-- Thème bleu Elatransfer (`demo.css` repeint l'orange partenaire) ;
-  `hotel-engine-polish.*` (propres à easyHotel) non chargés.
-- Pièges : sans la finition easyHotel, nom et téléphone se saisissent au
-  récapitulatif ; la redirection de tête (`?exploitant=`, `?reception=`) est
+- Thème bleu Elatransfer. **Depuis le 11/10/2026 la démo charge la finition
+  des pages d'hôtel**, devenue commune (`memoire/finition-commune.md`) : nom
+  et téléphone sur la première page, vert/rouge, comptoir « ESPACE
+  RÉCEPTION » — ce qu'a un partenaire. Avant, elle nommait easyHotel et la
+  démo ne pouvait pas la charger.
+- Pièges : la redirection de tête (`?exploitant=`, `?reception=`) est
   retirée, sinon `?exploitant=1` sortait de la démo ; pas de service worker
   ni de notifications (`CLE_VAPID` vide) ; « Fermer la session » masqué ; un
   seul prix sur deux faisait planter l'écriteau (`euros(undefined)`) ; le

@@ -8369,6 +8369,19 @@ window.ELA_TEXTES = {
     return trouve;
   }
 
+  /* ═══ CE QUE LA FINITION A LE DROIT DE SAVOIR DE L'HÔTEL OUVERT ═══
+     11/10/2026. La finition vit hors de ce script : elle lisait le nom et
+     l'adresse d'easyHotel écrits en dur chez elle. Elle les demande ici,
+     pour l'hôtel ouvert quel qu'il soit — rien de la grille, rien du
+     comptoir, seulement ce qu'elle affiche. Une fonction et pas une copie :
+     dans la démo, le nom change quand le prospect le personnalise. */
+  window.ELA_HOTEL_ACTIF = function(){
+    if(!hotel) return null;
+    return { cle:hotel.cle, nom:hotel.nom, court:hotel.court || hotel.nom,
+             adresse:hotel.adresse || "", pageClient:hotel.pageClient || "",
+             photoEntete:!!hotel.photoEntete };
+  };
+
   function ouvrirModeHotel(h){
     hotel = h;
     hotelSens = "depuis";
@@ -8381,6 +8394,8 @@ window.ELA_TEXTES = {
     var m = h.marque || {};
     var racine = document.documentElement;
     Object.keys(m).forEach(function(k){ racine.style.setProperty("--h-" + k, m[k]); });
+    if(h.photoEntete) racine.style.setProperty("--h-photo-entete", 'url("' + h.photoEntete + '")');
+    else racine.style.removeProperty("--h-photo-entete");
     var photo = document.getElementById("hotelPhoto");
     /* Sans photo, le cadre n'est pas vide : il est simplement uni. Un bloc
        gris « image manquante » ferait plus de mal que pas d'image du tout. */
@@ -8561,6 +8576,10 @@ window.ELA_TEXTES = {
        rouvrirait sur le site public et referait ses courses au kilométrage
        sans s'en apercevoir. */
     appliquerHotel();
+    /* LA FINITION EST PRÉVENUE (hotel-engine-polish.js) : elle habille
+       l'hôtel qui vient de s'ouvrir, quel qu'il soit et quel que soit le
+       moment — dans la démo, c'est après la réponse du serveur. */
+    try{ window.dispatchEvent(new Event("ela:hotel")); }catch(e){}
 
     /* LES COORDONNÉES VIENNENT DU MÊME SERVICE QUE TOUTES LES AUTRES
        ADRESSES DU SITE. On ne pose pas un point sur une carte à la main
@@ -8872,7 +8891,13 @@ window.ELA_TEXTES = {
          bouton principal, le bloc d'aide — et **jamais la liste**, qui
          reste neutre pour que son seul rouge continue de crier. */
       marque: { charbon:"#1B1B1B", vif:"#FF6600", bouton:"#C2410C",
-                pale:"#FFF1E8", paleEncre:"#7C2D12" },
+                pale:"#FFF1E8", paleEncre:"#7C2D12",
+                /* LE DÉGRADÉ DE LA FINITION (hotel-engine-polish.css), validé
+                   par Barbaros en septembre. Ces quatre clés sont propres à
+                   easyHotel : un hôtel qui ne les porte pas prend ses
+                   actions sur « bouton » et ses bandeaux sur « vif ». */
+                finition:"#ff5a0a", finition2:"#ff761b",
+                finitionPale:"#fff0e7", finitionEncre:"#9a3500" },
       /* LA PHOTO DE L'HÔTEL — vide tant qu'il ne l'a pas fournie, et
          l'en-tête est dessiné pour tenir sans elle. On ne va PAS la
          chercher sur Internet : une photo appartient à son photographe ou
@@ -8880,6 +8905,15 @@ window.ELA_TEXTES = {
          sur Google. Elle viendra d'easyHotel, qui a des photos de presse.
          Poser ici un chemin relatif, par exemple "photos/easyhotel.jpg". */
       photo:"",
+      /* LA PHOTO DU BANDEAU DE LA PAGE CLIENT (la finition), jamais reprise
+         au comptoir. Elle était écrite en dur dans hotel-engine-polish.css :
+         elle vit désormais avec l'hôtel, comme ses couleurs, et un hôtel
+         sans photo a un bandeau en aplat. ELLE VIENT DU SITE D'EASYHOTEL,
+         SANS ACCORD ÉCRIT : signalé à Barbaros le 23/09/2026, à lui de
+         trancher — la retirer, c'est vider cette ligne. */
+      photoEntete:"https://www.easyhotel.com/cdn-cgi/image/width=1200,height=800,format=auto/https://cdn.easyhotel.com/1_easy_Hotel_CDG_1067422f0b.png",
+      /* La page du QR de l'hôtel, où ramène le logo de sa page client. */
+      pageClient:"/easyhotel-client/",
       /* MAIS L'ADRESSE POSTALE COMPLÈTE PART CHEZ LE CHAUFFEUR. Plusieurs
          easyHotel entourent Roissy : un nom de marque seul envoie la
          voiture au mauvais, à 5 h du matin, avec un vol à prendre. Le nom

@@ -2,7 +2,7 @@
 //
 // Elle part des deux pages DÉJÀ construites par construire-espaces-hotel.mjs :
 //   site/application.html                 → /demo/hotel/            (ce que voit le client)
-//   site/easyhotel-reception/index.html   → /demo/hotel/reception/  (ce que voit la réception)
+//   site/reception/<un hôtel>/index.html  → /demo/hotel/reception/  (ce que voit la réception)
 // Ces deux pages ont déjà perdu tout l'espace exploitant (et ses contrôles
 // anti-fuite sont passés) : la démo n'a donc rien à retirer de l'admin.
 //
@@ -154,6 +154,12 @@ const PERSO = `
         return { cle:cle, nom:d.nom, label:d.label, lat:d.lat, lon:d.lon, rayonKm:1.5, forfait: forfaitDe(cle) };
       }));
       try{ sessionStorage.setItem("ela_provenance", h.nom); }catch(e){}
+      /* SA PHOTO VA DANS LE BANDEAU, comme celle d'un partenaire : le
+         prospect voit sa page telle qu'elle serait. Elle ne quitte pas le
+         navigateur (une adresse « data: », jamais envoyée). */
+      h.photoEntete = p.photo || "";
+      if(p.photo) document.documentElement.style.setProperty("--h-photo-entete", 'url("' + p.photo + '")');
+      else document.documentElement.style.removeProperty("--h-photo-entete");
       document.getElementById("hotelTeteNom").textContent = h.nom;
       var rh = document.getElementById("recHotel");
       if(rh && recHotel) rh.textContent = h.nom;
@@ -175,6 +181,8 @@ const PERSO = `
       selDest.value = garde ? garde.cle : "";
       if(hotel) appliquerHotel();
       window.ELA_DEMO_PAGE.dessinerCartes();
+      /* La finition suit le nom personnalisé (sa pastille, son en-tête). */
+      try{ window.dispatchEvent(new Event("ela:hotel")); }catch(e){}
     },
     /* LA PAGE D'ARRIVÉE, COMME CELLE DU QR D'UN VRAI PARTENAIRE : « Où
        souhaitez-vous aller ? », une carte par destination avec ses deux prix,
@@ -330,8 +338,10 @@ function demoiser(html, vue) {
   html = html.replace(/<base\b[^>]*>\s*/gi, '');
   html = html.replace(/<meta\b[^>]*name=["']apple-mobile-web-app-[^>]*>\s*/gi, '');
   html = html.replace(/<meta\b[^>]*name=["']mobile-web-app-capable["'][^>]*>\s*/gi, '');
-  html = html.replace(/<script\b[^>]*src=["']\/?hotel-engine-polish\.js["'][^>]*><\/script>\s*/gi, '');
-  html = html.replace(/<link\b[^>]*href=["']\/?hotel-engine-polish\.css["'][^>]*>\s*/gi, '');
+  /* LA FINITION DES PAGES D'HÔTEL RESTE (11/10/2026) : elle est commune à
+     tous les partenaires et ne nomme plus personne. Le prospect voit
+     exactement ce que voit un hôtel partenaire — c'était tout le reproche
+     fait à la démo. verifier-demo.mjs la relit comme tout script chargé. */
   html = html.replace(/<link\b[^>]*rel=["']canonical["'][^>]*>\s*/gi, '');
   html = html.replace(/<meta\s+name=["']robots["'][^>]*>/gi, '');
   html = html.replace(/<meta\b[^>]*property=["']og:[^>]*>\s*/gi, '');
@@ -394,7 +404,11 @@ function demoiser(html, vue) {
 }
 
 const client = demoiser(lireSortie('application.html'), 'client');
-const reception = demoiser(lireSortie(path.join('easyhotel-reception', 'index.html')), 'reception');
+/* N'importe quelle page de comptoir fait l'affaire : elles ne diffèrent que
+   par l'hôtel servi, que la démo remplace. La première, pour être stable. */
+const comptoirs = fs.readdirSync(path.join(sortie, 'reception')).filter((d) => fs.existsSync(path.join(sortie, 'reception', d, 'index.html'))).sort();
+if (!comptoirs.length) throw new Error('construire-demo : aucune page de comptoir construite dans site/reception/');
+const reception = demoiser(lireSortie(path.join('reception', comptoirs[0], 'index.html')), 'reception');
 
 const bon = fs.readFileSync(path.join(sortie, 'bon-client.js'), 'utf8')
   .replace(/https:\/\/wa\.me\/[0-9]*/g, '/professionnels/#contact')
