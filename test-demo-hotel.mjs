@@ -48,6 +48,9 @@ const SUPA = 'yyhzutnuhuytokarynaw.supabase.co';
 const DEMANDE = `https://${SUPA}/functions/v1/demande-demo`;
 
 const b = await chromium.launch();
+/* La couleur qu'on VOIT : la première du dégradé s'il y en a un, sinon le fond. */
+const peinte = (p, sel) => p.evaluate(s => { const c = getComputedStyle(document.querySelector(s));
+  return (/rgb\([^)]*\)/.exec(c.backgroundImage) || [c.backgroundColor])[0]; }, sel);
 
 /* Une page de démo, avec un faux demande-demo. `reponse` : objet rendu par
    « ouvrir », ou un statut (401, 503), ou « muet » (le réseau tombe). */
@@ -193,12 +196,20 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('arrivée : « Autre destination » ouvre le formulaire sans forfait', (await p.inputValue('#hotelDest')) === '' && await visible(p, '#btnVoirPrix'));
   await p.click('#demoRetourCartes'); await p.waitForTimeout(200);
   await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(300);
+  /* LA FINITION COMMUNE (11/10/2026) : comme chez un partenaire, le nom et le
+     téléphone sont sur la PREMIÈRE page, et ce qui manque s'encadre de rouge
+     avant de la quitter. */
+  check('comme chez un partenaire : le client est saisi sur la première page', await p.evaluate(() => !!document.querySelector('#blocCoordonnees.hotel-guest-early')));
+  await p.click('#btnVoirPrix'); await p.waitForTimeout(400);
+  check('comme chez un partenaire : sans nom ni téléphone, on reste, et ce qui manque est en rouge',
+    await p.evaluate(() => !!document.querySelector('#blocCoordonnees .champ.eh-manque')) && !(await visible(p, '.veh-carte')));
+  await p.fill('#clientNom', 'Jean Martin'); await p.fill('#clientTel', '06 12 34 56 78');
   await p.click('#btnVoirPrix');
   await p.waitForSelector('.veh-carte', { timeout: 8000 });
   await p.locator('.veh-carte').first().click();
   await p.locator('#ecran-vehicules .veh-action .bouton').first().click();
-  await p.fill('#clientNom', 'Jean Martin'); await p.fill('#clientTel', '06 12 34 56 78');
-  /* Le client du flyer paie par lien depuis le 10/10/2026 : plus de choix ici. */
+  /* Le client du flyer paie par lien depuis le 10/10/2026 : plus de choix ici.
+     Son nom et son téléphone sont déjà saisis, sur la première page. */
   await p.evaluate(() => { if (document.querySelector('#blocContact [aria-pressed="true"]')) return; const x = [...document.querySelectorAll('#blocContact [data-contact]')].find(e => e.offsetParent); if (x) x.click(); });
   await p.locator('#btnConfirmer').click();
   await p.waitForTimeout(800);
@@ -229,9 +240,9 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
      une liste de clés. */
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(500);
   const recEn = await p.evaluate(() => document.getElementById('ecran-reception').innerText);
-  check('réception EN : les libellés passent en anglais', ['Front desk', 'Book a driver', 'Something unexpected?', 'Find a ride', 'Upcoming', 'History', 'By date', 'Refresh', 'View voucher', 'Room 214', 'Ref. ELA-DEMO', 'Driver: '].every(m => recEn.includes(m)), recEn.slice(0, 300));
+  check('réception EN : les libellés passent en anglais', ['RECEPTION DESK', 'NEW RIDE', 'Something unexpected?', 'Find a ride', 'Upcoming', 'History', 'By date', 'Refresh', 'View voucher', 'Room 214', 'Ref. ELA-DEMO', 'Driver: '].every(m => recEn.includes(m)), recEn.slice(0, 300));
   check('réception EN : les états et les jours passent en anglais', /CONFIRMED|Confirmed/.test(recEn) && /TOMORROW|Tomorrow/.test(recEn) && /Sedan · Card/.test(recEn));
-  const restes = ['Réserver un chauffeur', 'Retrouver une course', 'À venir', 'Historique', 'Actualiser', 'Voir le bon', 'Chambre ', 'Réf. ', 'Chauffeur : ', 'En attente', 'Réservation validée', 'Effectuée', 'Demain', "l'hôtel", 'Carte bancaire', '(exemple)'].filter(m => recEn.includes(m));
+  const restes = ['ESPACE RÉCEPTION', 'NOUVELLE COURSE', 'Retrouver une course', 'À venir', 'Historique', 'Actualiser', 'Voir le bon', 'Chambre ', 'Réf. ', 'Chauffeur : ', 'En attente', 'Réservation validée', 'Effectuée', 'Demain', "l'hôtel", 'Carte bancaire', '(exemple)'].filter(m => recEn.includes(m));
   check('réception EN : aucun libellé français ne reste', restes.length === 0, restes.join(' | '));
   check('réception EN : la recherche suit', (await p.getAttribute('#recRecherche', 'placeholder')) === 'Room, name, phone or reference');
   await p.click('.rec-vues [data-vue="passees"]'); await p.waitForTimeout(300);
@@ -245,7 +256,12 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.click('#bonClientFermer'); await p.waitForTimeout(300);
   await p.click('.langues [data-langue="fr"]'); await p.waitForTimeout(500);
   const recFr = await p.evaluate(() => document.getElementById('ecran-reception').innerText);
-  check('réception : revenir en français rend le français', ['Réserver un chauffeur', 'Voir le bon', 'Chambre 214', 'Mme Laurent (exemple)'].every(m => recFr.includes(m)) && !/Book a driver|Room 214/.test(recFr));
+  /* « En attente » est écrit en capitales par la feuille de style : innerText
+     rend « EN ATTENTE ». C'est l'état que la finition traduit, et qu'elle
+     doit savoir rendre en français (elle retient l'original). */
+  const attendusFr = ['NOUVELLE COURSE', 'Voir le bon', 'Chambre 214', 'Mme Laurent (exemple)'];
+  check('réception : revenir en français rend le français', attendusFr.every(m => recFr.includes(m)) && /en attente/i.test(recFr) && !/NEW RIDE|Room 214|Pending/i.test(recFr),
+    'manque : ' + attendusFr.filter(m => !recFr.includes(m)).join(', ') + ' · reste : ' + (recFr.match(/NEW RIDE|Room 214|Pending/gi) || []).join(', '));
   check('réception EN : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
   await p.click('#demoOngletClient'); await p.waitForURL(/\/demo\/hotel\/$/); await p.waitForTimeout(800);
   check('retour à la vue client par l\'onglet', await visible(p, '#hotelTete'));
@@ -295,14 +311,19 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : le départ du formulaire porte le nouveau nom', (await p.inputValue('#depart')).startsWith(piege));
   /* Un jaune pâle : le bouton doit rester lisible (blanc à 4,5:1 au moins). */
   await p.evaluate(() => { const c = document.getElementById('demoPersoCouleur'); c.value = '#ffe14d'; c.dispatchEvent(new Event('input', { bubbles: true })); });
+  /* LA COULEUR PEINTE, PAS LA SEULE « backgroundColor » : sous la finition
+     commune (11/10/2026), le bouton est un dégradé, et sa couleur de fond
+     est transparente — lue seule, elle rendait un rapport de 21 et ce
+     contrôle passait sans rien vérifier. */
   const ratio = await p.evaluate(() => {
-    const rvb = getComputedStyle(document.getElementById('btnVoirPrix')).backgroundColor.match(/\d+/g).map(Number);
+    const s = getComputedStyle(document.getElementById('btnVoirPrix'));
+    const rvb = (/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0].match(/\d+/g).slice(0, 3).map(Number);
     const l = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
     return 1.05 / (l(rvb) + .05);
   });
   check('perso : un jaune pâle donne un bouton lisible (≥ 4,5:1 avec le blanc)', ratio >= 4.5, ratio.toFixed(2));
   await p.click('.demo-pastille[data-couleur="#8B1E3F"]');
-  check('perso : une pastille du nuancier repeint le bouton', (await p.evaluate(() => getComputedStyle(document.getElementById('btnVoirPrix')).backgroundColor)) === 'rgb(139, 30, 63)');
+  check('perso : une pastille du nuancier repeint le bouton', (await peinte(p, '#btnVoirPrix')) === 'rgb(139, 30, 63)', await peinte(p, '#btnVoirPrix'));
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
   /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE
      « Votre photo ici » — c'est là que le prospect la cherche. */
@@ -313,8 +334,14 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   if (choix) await choix.setFiles({ name: 'hotel.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
   else await p.setInputFiles('#demoPersoPhoto', { name: 'hotel.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
   await p.waitForTimeout(800);
-  check('perso : la photo s\'affiche dans le cadre', await p.evaluate(() => /url\("data:image\/jpeg/.test(document.querySelector('.demo-photo').style.backgroundImage)));
-  check('perso : … réduite à 1000 px au plus', await p.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok(Math.max(i.width, i.height) <= 1000); i.src = document.querySelector('.demo-photo').style.backgroundImage.slice(5, -2); })));
+  /* DEPUIS LE 11/10/2026, LA PHOTO EST DANS LE BANDEAU, comme chez un
+     partenaire (la finition commune) : on la lit dans ce que l'écran peint,
+     pas dans le cadre, qui ne garde que son rôle de bouton. */
+  check('perso : la photo s\'affiche dans le bandeau de l\'hôtel, comme chez un partenaire', await p.evaluate(() =>
+    /url\("data:image\/jpeg/.test(getComputedStyle(document.getElementById('hotelTete')).backgroundImage) && !document.body.classList.contains('eh-sans-photo')));
+  check('perso : … et le cadre devient « Changer la photo »', (await texte(p, '#demoPhotoTexte')) === 'Changer la photo');
+  check('perso : … réduite à 1000 px au plus', await p.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok(Math.max(i.width, i.height) <= 1000); i.onerror = () => ok(false);
+    i.src = /url\("([^"]+)"\)/.exec(document.documentElement.style.getPropertyValue('--h-photo-entete'))[1]; })));
   await p.fill('#demoPersoMessage', 'Bienvenue <b>chez nous</b>');
   check('perso : le message d\'accueil s\'affiche, en texte', (await texte(p, '#demoMessage')) === 'Bienvenue <b>chez nous</b>' && await visible(p, '#demoMessage'));
   await p.fill('#demoDestNom', 'Stade de France'); await p.fill('#demoDestBerline', '60'); await p.fill('#demoDestVan', '90');
@@ -339,10 +366,10 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
   check('perso : la réception porte le même nom', (await texte(p, '#recHotel')) === piege);
-  check('perso : … et la même couleur', (await p.evaluate(() => getComputedStyle(document.getElementById('btnRecReserver')).backgroundColor)) === 'rgb(139, 30, 63)');
+  check('perso : … et la même couleur', (await peinte(p, '#btnRecReserver')) === 'rgb(139, 30, 63)', await peinte(p, '#btnRecReserver'));
   await p.click('#demoPerso summary'); await p.click('#demoPersoRaz'); await p.waitForTimeout(300);
   check('perso : « Revenir à la page d\'origine » rend le nom d\'origine', (await texte(p, '#recHotel')) === 'Hôtel Ibis Roissy');
-  check('perso : … et le bleu d\'origine', (await p.evaluate(() => getComputedStyle(document.getElementById('btnRecReserver')).backgroundColor)) === 'rgb(14, 111, 199)');
+  check('perso : … et le bleu d\'origine', (await peinte(p, '#btnRecReserver')) === 'rgb(14, 111, 199)', await peinte(p, '#btnRecReserver'));
   /* En anglais, le panneau suit. */
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
   check('perso : en anglais, le panneau suit', (await texte(p, '#demoPerso summary')) === 'Customise my page' && (await texte(p, '.demo-perso-fichier')) === 'Choose a photo');
