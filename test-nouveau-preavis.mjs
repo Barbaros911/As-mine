@@ -264,8 +264,13 @@ async function jusquAuRecap(p){
   await p.locator('#btnContinuer').click({timeout:3000}).catch(()=>{});
   await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
-  /* Côté client, plus de choix carte / espèces (10/10/2026) ; au comptoir, oui. */
+  /* Plus de choix carte / espèces nulle part (comptoir compris depuis le
+     11/10/2026) ; le moyen de confirmation, lui, se choisit partout. */
   if(await p.locator('[data-paiement="carte"]').isVisible()) await p.locator('[data-paiement="carte"]').click();
+  if(!(await p.locator('#blocContact [aria-pressed="true"]').count())){
+    const canal = p.locator('#blocContact [data-contact]:visible').first();
+    if(await canal.count()) await canal.click({timeout:3000}).catch(()=>{});
+  }
 }
 const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif') || {}).id || '');
 {
@@ -361,8 +366,11 @@ const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif')
   await p7.waitForTimeout(700);
   await p7.selectOption('#hotelDest','orly'); await p7.waitForTimeout(1700);
   await p7.locator('#listeVehicules .veh-carte').first().click({timeout:3000}).catch(()=>{});
-  await p7.locator('[data-paiement="especes"]').click({timeout:3000}).catch(()=>{});
+  /* Le comptoir paie par lien depuis le 11/10/2026 : nom, téléphone et
+     moyen de confirmation, la chambre ne suffit plus. */
   await p7.fill('#chambre','214');
+  await p7.fill('#clientNom','Jean Martin'); await p7.fill('#clientTel','06 12 34 56 78');
+  await p7.locator('#blocContact [data-contact="whatsapp"]').click({timeout:3000}).catch(()=>{});
   await p7.clock.fastForward('06:00');
   await p7.locator('#btnVoirPrix').click({timeout:3000}).catch(()=>{});
   await p7.waitForTimeout(600);

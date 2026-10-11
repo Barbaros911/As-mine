@@ -131,6 +131,18 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   vérifier le « 9° » écrit jusque-là. Le bloc Professionnels disait encore
   « réglé directement à bord » : corrigé. **L'écran du comptoir demandait
   encore carte ou espèces** le jour de cette réécriture.
+- **PUIS LE COMPTOIR AUSSI PAIE PAR LIEN** (même soir, Barbaros, après
+  avoir d'abord dit « on laisse carte ou espèce ») : « pour le comptoir aussi
+  je vais envoyer un lien de paiement ». L'exception de CGV posée entre-temps
+  est annulée (revert) ; les CGV redisent « aucun paiement à bord ».
+  Au comptoir : plus de boutons carte / espèces (laissés dans la page, jamais
+  affichés), le choix du moyen de confirmation est demandé (bloc déplacé
+  dans l'écran unique de la réception), et le **nom et le téléphone sont
+  exigés** — la chambre ne suffit plus, le lien part sur ce numéro. Le serveur
+  accepte toujours « chambre seule » (`parChambre`) : inoffensif, le site
+  ne l'envoie plus. « À dire au client » annonce la confirmation ET le lien.
+- **Un numéro français propose aussi Telegram** (Appel / SMS, WhatsApp,
+  Telegram) ; un numéro étranger : WhatsApp ou Telegram.
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.

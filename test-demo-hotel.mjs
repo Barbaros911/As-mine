@@ -285,7 +285,10 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.fill('#chambre', '412');
   await p.waitForSelector('.veh-carte', { timeout: 8000 });
   await p.locator('.veh-carte').first().click();
-  await p.locator('[data-paiement="especes"]').click();
+  /* Le comptoir paie par lien depuis le 11/10/2026 : nom, téléphone et
+     moyen de confirmation du client, plus de carte ni d'espèces. */
+  await p.fill('#clientNom', 'Jean Martin'); await p.fill('#clientTel', '06 12 34 56 78');
+  await p.locator('#blocContact [data-contact="whatsapp"]').click();
   await p.locator('#btnVoirPrix').click();
   await p.waitForTimeout(900);
   check('comptoir : la réservation ouvre le bon', await visible(p, '#ecran-bon'));

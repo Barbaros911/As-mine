@@ -79,11 +79,12 @@ async function tunnel(options){
     && (await p.locator('#blocContact .bloc-titre').textContent()).includes('Où souhaitez-vous recevoir votre confirmation'),
     await p.locator('#blocContact .bloc-titre').textContent());
   const visibles = await p.locator('#blocContact [data-contact]:visible').evaluateAll(l=>l.map(b=>b.dataset.contact));
-  check('numéro français : appel / SMS ou WhatsApp', visibles.join(',') === 'telephone,whatsapp', visibles.join(','));
+  /* Telegram ajouté pour les numéros français le 11/10/2026 (Barbaros). */
+  check('numéro français : appel / SMS, WhatsApp ou Telegram', visibles.join(',') === 'telephone,whatsapp,telegram', visibles.join(','));
   check('rien n\'est présélectionné : c\'est au client de répondre',
     (await p.locator('#blocContact [aria-pressed="true"]').count()) === 0);
   check('chaque choix porte son pictogramme',
-    (await p.locator('#blocContact [data-contact]:visible svg.canal-ico').count()) === 2);
+    (await p.locator('#blocContact [data-contact]:visible svg.canal-ico').count()) === 3);
   const relu = (await p.locator('#telRelu').textContent()) || '';
   check('le numéro est relu tel qu\'on le composera, avec le pays',
     await p.locator('#telRelu').isVisible() && relu.includes('+33 6 12 34 56 78') && relu.includes('(France)'), relu);

@@ -78,8 +78,10 @@ async function reserverAuComptoir(p) {
   await p.selectOption('#hotelDest', 'orly');
   await p.waitForTimeout(1500);
   await p.locator('#listeVehicules .veh-carte').first().click({ timeout:3000 });
-  await p.locator('[data-paiement="especes"]').click({ timeout:3000 });
+  /* Le comptoir paie par lien depuis le 11/10/2026 : plus de carte ni
+     d'espèces, mais le moyen de confirmation du client à choisir. */
   await p.fill('#chambre', '307'); await p.fill('#clientNom', 'Ms Anna Berg'); await p.fill('#clientTel', '+46 70 123 45 67');
+  await p.locator('#blocContact [data-contact="whatsapp"]').click({ timeout:3000 });
   await p.locator('#btnVoirPrix').click({ timeout:3000 });
   await p.waitForFunction(() => document.getElementById('ecran-bon')?.classList.contains('actif'), null, { timeout:8000 });
   await p.waitForTimeout(800);
