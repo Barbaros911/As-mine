@@ -162,7 +162,7 @@ try {
 
   /* Sur le bon, la commission dit d'où elle vient. */
   await p.click('#btnRetourControle');
-  await p.locator('button', {hasText:'Réalisées'}).first().click(); await p.waitForTimeout(200);
+  await p.click('.compteur[data-filtre="realisee"]'); await p.waitForTimeout(200);
   await p.locator('.demande').filter({hasText:'ELA-26-09-AAAAA'}).first().click(); await p.waitForTimeout(400);
   const calc = await p.textContent('#bbComCalc');
   check('le bon dit « taux du canal (Site public) » et 12 €', /taux du canal \(Site public\)/.test(calc) && /12,00\s€/.test(calc), calc);

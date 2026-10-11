@@ -107,3 +107,18 @@ présence du bloc « Équipe » (faux serveur sans agent, puis avec), et le pire
 cas mesuré ; `test-nouveau-exploitant` ne parcourt plus que les tuiles
 VISIBLES (une tuile masquée ne se clique pas) ; les suites du Pilotage
 ouvrent « Nouvelle course » par le bouton du tableau de bord.
+
+## 10 octobre 2026 — « Sélectionner » sort de la loupe, et la sélection sait « Réalisées »
+
+Barbaros, capture de 20 courses d'essai réalisées : « il faut que je puisse
+supprimer ces courses test ou réaliser quand je le souhaite, et pareil pour la
+page réception ». La suppression groupée existait depuis la veille, mais rangée
+derrière la loupe : il ne l'avait pas trouvée. Elle est devenue une troisième
+icône en tête (`#btnBordSelection`, même identifiant), et la barre de sélection
+porte « Réalisées » à côté de « Supprimer » : deux appuis, 700 ms au moins, par
+`majCourse` (commission figée, file d'envoi, version) ; une course déjà
+réalisée, refusée ou annulée est laissée telle quelle.
+**La réception reste en lecture**, question posée : « toi seul supprimes ». Une
+course supprimée ou réalisée dans l'admin change chez eux à la relecture
+suivante (30 s). La règle du 30/09 (« la réception ne peut annuler ») tient.
+`test-admin-ergonomie` (bloc 2 bis).

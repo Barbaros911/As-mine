@@ -21,6 +21,10 @@
    · le rappel de sauvegarde tient sur une ligne ;
    · « Sélectionner » puis « Supprimer » : deux appuis, jamais moins de 700 ms,
      un DELETE par course, les cartes et le registre local suivent ;
+   · (10/10) « Sélectionner » est EN TÊTE, plus derrière la loupe, et la
+     sélection sait aussi « Réalisées » : deux appuis, les courses en attente
+     ou confirmées passent en « realisee » au serveur, une course déjà
+     réalisée seule laisse le bouton éteint ;
    · « Course d'essai » : écrite et poussée au serveur, pastille « Essai »,
      et exclue du chiffre d'affaires du registre ;
    · registre : la recherche en tête ; réglages : les notifications en tête ;
@@ -126,10 +130,10 @@ try {
   /* 1. LE TABLEAU DE BORD : Actualiser, recherche, carte, bandeau. */
   {
     const { ctx, p, journal, erreurs } = await espace();
-    check('le tableau de bord porte la loupe et « Actualiser » en tête, et la recherche est repliée',
-      await vis(p, '#btnBordRecherche') && await vis(p, '#btnBordActualiser') && !(await vis(p, '#bordRecherche')) && !(await vis(p, '#btnBordSelection')));
+    check('le tableau de bord porte la loupe, « Sélectionner » et « Actualiser » en tête, et la recherche est repliée',
+      await vis(p, '#btnBordRecherche') && await vis(p, '#btnBordSelection') && await vis(p, '#btnBordActualiser') && !(await vis(p, '#bordRecherche')));
     const tete = await p.locator('.admin-tete').boundingBox();
-    check('les deux outils ne font pas grandir le bandeau du titre (42 px ou moins)', tete && tete.height <= 42, tete && Math.round(tete.height) + ' px');
+    check('les trois outils ne font pas grandir le bandeau du titre (42 px ou moins)', tete && tete.height <= 42, tete && Math.round(tete.height) + ' px');
     const son = await p.locator('#sonCoupe').boundingBox();
     check('« Son des alertes coupé » tient sur une ligne (40 px ou moins)', son && son.height <= 40, son && Math.round(son.height) + ' px');
     const avant = journal.lectures;
@@ -140,8 +144,8 @@ try {
 
     check('sans recherche, la liste est celle du filtre « en attente » (3)', (await refsVisibles(p)).length === 3, String((await refsVisibles(p)).length));
     await p.click('#btnBordRecherche'); await p.waitForTimeout(200);
-    check('la loupe ouvre la recherche et « Sélectionner », le curseur dans le champ',
-      await vis(p, '#bordRecherche') && await vis(p, '#btnBordSelection') && await p.evaluate(() => document.activeElement && document.activeElement.id === 'bordRecherche'));
+    check('la loupe ouvre la recherche, le curseur dans le champ',
+      await vis(p, '#bordRecherche') && await p.evaluate(() => document.activeElement && document.activeElement.id === 'bordRecherche'));
     await p.fill('#bordRecherche', '1023'); await p.waitForTimeout(300);
     check('« 1023 » trouve la course par son N° court', JSON.stringify(await refsVisibles(p)) === JSON.stringify(['ELA-26-10-TEST1']), JSON.stringify(await refsVisibles(p)));
     await p.fill('#bordRecherche', 'sarah'); await p.waitForTimeout(300);
@@ -172,7 +176,6 @@ try {
   /* 2. SÉLECTIONNER, PUIS SUPPRIMER PLUSIEURS COURSES D'UN COUP. */
   {
     const { ctx, p, journal, erreurs } = await espace();
-    await p.click('#btnBordRecherche'); await p.waitForTimeout(200);
     await p.click('#btnBordSelection'); await p.waitForTimeout(300);
     check('« Sélectionner » met la liste en mode sélection', await p.evaluate(() => document.getElementById('listeBord').classList.contains('liste-selection')));
     check('…et masque « Appeler » sur les cartes', !(await vis(p, '#listeBord .demande .d-appeler')));
@@ -191,6 +194,41 @@ try {
     check('…et le registre de l\'appareil ne les a plus', !locales.includes('ELA-26-10-TEST1') && !locales.includes('ELA-26-10-ATT02') && locales.includes('ELA-26-10-ATT01'), locales.join(','));
     check('la liste ne les montre plus, et le mode sélection se referme', JSON.stringify(await refsVisibles(p)) === JSON.stringify(['ELA-26-10-ATT01']) && !(await p.evaluate(() => document.getElementById('listeBord').classList.contains('liste-selection'))), JSON.stringify(await refsVisibles(p)));
     check('l\'écran dit ce qui a été fait', /2 courses supprimées/.test(await p.textContent('#bordSelectionEtat')), (await p.textContent('#bordSelectionEtat')).trim());
+    check('aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
+    await ctx.close();
+  }
+
+  /* 2 bis. SÉLECTIONNER, PUIS MARQUER RÉALISÉES (10/10/2026). */
+  {
+    const { ctx, p, journal, erreurs } = await espace();
+    await p.click('#btnBordSelection'); await p.waitForTimeout(300);
+    check('« Marquer réalisées » est éteint tant que rien n\'est choisi', await p.isDisabled('#btnBordRealiserSel'));
+    await p.locator('#listeBord .demande[data-ref="ELA-26-10-TEST1"]').click();
+    await p.locator('#listeBord .demande[data-ref="ELA-26-10-ATT02"]').click();
+    await p.waitForTimeout(300);
+    await p.click('#btnBordRealiserSel'); await p.waitForTimeout(150);
+    const ecritsAvant = journal.ecritures.filter(e => e.statut === 'realisee').length;
+    check('un premier appui ne marque RIEN, il demande confirmation', ecritsAvant === 0 && /Confirmer : réalisées \(2\)/.test((await p.textContent('#btnBordRealiserSel')).trim()), (await p.textContent('#btnBordRealiserSel')).trim());
+    await p.click('#btnBordRealiserSel'); await p.waitForTimeout(150);
+    check('un second appui à moins de 700 ms ne compte pas', journal.ecritures.filter(e => e.statut === 'realisee').length === 0);
+    await p.waitForTimeout(700);
+    await p.click('#btnBordRealiserSel'); await p.waitForTimeout(1500);
+    const faites = [...new Set(journal.ecritures.filter(e => e.statut === 'realisee').map(e => e.ref))].sort();
+    check('le second appui envoie les deux au serveur en « realisee »', JSON.stringify(faites) === JSON.stringify(['ELA-26-10-ATT02', 'ELA-26-10-TEST1']), JSON.stringify(faites));
+    const locales = await p.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]').filter(c => c.statut === 'realisee').map(c => c.ref));
+    check('…le registre de l\'appareil les dit réalisées', locales.includes('ELA-26-10-ATT02') && locales.includes('ELA-26-10-TEST1'), locales.join(','));
+    check('…elles quittent « en attente », et le mode sélection se referme', JSON.stringify(await refsVisibles(p)) === JSON.stringify(['ELA-26-10-ATT01']) && !(await p.evaluate(() => document.getElementById('listeBord').classList.contains('liste-selection'))), JSON.stringify(await refsVisibles(p)));
+    check('l\'écran dit ce qui a été fait', /2 courses marquées réalisées/.test(await p.textContent('#bordSelectionEtat')), (await p.textContent('#bordSelectionEtat')).trim());
+    /* Une course déjà réalisée, choisie seule : rien à marquer. */
+    await p.click('#btnBordRecherche'); await p.waitForTimeout(200);
+    await p.fill('#bordRecherche', '1027'); await p.waitForTimeout(300);
+    await p.click('#btnBordSelection'); await p.waitForTimeout(300);
+    await p.locator('#listeBord .demande[data-ref="ELA-26-10-FAITE"]').click(); await p.waitForTimeout(300);
+    check('une course déjà réalisée, choisie seule, laisse « Marquer réalisées » éteint (Supprimer reste possible)',
+      await p.isDisabled('#btnBordRealiserSel') && !(await p.isDisabled('#btnBordSupprimerSel')));
+    const barre = await p.locator('#bordSelectionBarre').boundingBox();
+    const deborde = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+    check('la barre de sélection tient dans l\'écran à 390 px', barre && barre.x >= 0 && barre.x + barre.width <= 390 && !deborde, barre && `${Math.round(barre.x)}→${Math.round(barre.x + barre.width)}`);
     check('aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
     await ctx.close();
   }
