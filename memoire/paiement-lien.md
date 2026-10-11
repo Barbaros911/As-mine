@@ -131,14 +131,6 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   vérifier le « 9° » écrit jusque-là. Le bloc Professionnels disait encore
   « réglé directement à bord » : corrigé. **L'écran du comptoir demandait
   encore carte ou espèces** le jour de cette réécriture.
-- **PUIS, LE MÊME SOIR : « pour le comptoir on laisse carte ou espèce »**
-  (Barbaros). Le comptoir d'un hôtel partenaire reste réglé à bord. Les CGV
-  le disent (art. 5 : seule exception au paiement par lien ; art. 3 : le
-  contrat y devient définitif à la confirmation ; art. 7 : le barème
-  24 h / 30 % / 50 % et l'absence au prix entier ne valent que pour lui).
-  Le bloc Professionnels dit « réglé directement à votre chauffeur », vrai
-  dans les deux cas. `test-nouveau-bascule` exige que toute phrase du barème
-  nomme le comptoir réglé à bord.
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.

@@ -301,20 +301,12 @@ check('le paiement par lien avant le départ y figure, avec ses deux règles de 
 check('après paiement : engagement ferme, plus d\'annulation, aucun remboursement, et la raison',
   /engagement ferme et définitif/.test(cgv) && /ne peut plus être annulée par le Client/.test(cgv)
   && /aucun remboursement, ni total ni partiel/.test(cgv) && /renonce à accepter d'autres courses/.test(cgv));
-/* LE RÈGLEMENT À BORD N'EXISTE QU'AU COMPTOIR D'UN HÔTEL (11/10/2026,
-   Barbaros : « pour le comptoir on laisse carte ou espèce »). Partout
-   ailleurs on paie par lien avant la prise en charge. Le barème 30 % / 50 %
-   ne vaut que pour ce règlement à bord : chaque phrase qui le cite doit
-   nommer le comptoir, sinon il s'appliquerait à une course payée par lien. */
-check('à bord : seulement au comptoir d\'un hôtel partenaire',
-  /Sauf réservation passée au comptoir d'un hôtel partenaire, aucun paiement n'est accepté à bord du véhicule/.test(cgv)
-  && /comptoir d'un hôtel partenaire est réglée à bord du véhicule, au chauffeur, en espèces ou par carte bancaire/.test(cgv));
-{
-  const paras = cgv.split(/\n\n/).filter(x => /30 %|50 %/.test(x));
-  check('le barème 30 % / 50 % ne vise que le comptoir réglé à bord',
-    paras.length > 0 && paras.every(x => /comptoir d'un hôtel partenaire et réglée à bord/.test(x)),
-    paras.map(x => x.slice(0, 90)).join(' | '));
-}
+/* PLUS AUCUN RÈGLEMENT À BORD (11/10/2026, Barbaros) : toute course est
+   payée par lien avant la prise en charge, comptoir d'hôtel compris. Le
+   barème 30 % / 50 % n'existait que pour le paiement à bord : il part avec. */
+check('plus aucun règlement à bord, et plus de barème d\'annulation',
+  /Aucun paiement n'est accepté à bord du véhicule/.test(cgv)
+  && !/30 %|50 %|réglée à bord|en espèces ou par carte bancaire/.test(cgv));
 check('le Client paie avant la prise en charge, et un impayé lève la réservation sans frais',
   /payée en totalité avant la prise en charge/.test(cgv) && /lever la réservation/.test(cgv));
 check('plus aucun « {{m}} » non remplacé', !cgv.includes('{{m}}'));
