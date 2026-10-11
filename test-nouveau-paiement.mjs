@@ -305,7 +305,7 @@ await ctx2.close(); await ctx.close(); await b.close();
     const s = readFileSync(new URL('./' + f, import.meta.url), 'utf8');
     const fr = (s.match(/Puis-je annuler[\s\S]{0,400}/) || [''])[0];
     check(`${f} : « Puis-je annuler ? » ne promet plus l'ancien barème`,
-      fr && !/24 h|30 ?%|50 ?%/.test(fr) && /payé/.test(fr), fr.slice(0,160));
+      fr && !/24 h|30 ?%|50 ?%/.test(fr) && /jusqu'au paiement/.test(fr) && /conditions générales/.test(fr), fr.slice(0,160));
   }
 }
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));

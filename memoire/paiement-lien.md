@@ -98,6 +98,11 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   Elle reste aux CGV (art. 7), et le remboursement reste dû de toute façon.
   Le message garde une ligne : « En cas d'annulation de votre part, le
   paiement n'est pas remboursé. »
+- **« Puis-je annuler ? » NE DIT PLUS LE NON-REMBOURSEMENT** (même soir,
+  Barbaros) : « Oui. Sans frais jusqu'au paiement », puis renvoi aux CGV. Le
+  « jusqu'au » garde la réponse vraie : ne dire que « Oui, sans frais »
+  serait une omission trompeuse (L121-3 Code conso.) dans la réponse même à
+  la question. La règle est aux CGV et dans le message qui porte le lien.
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.
