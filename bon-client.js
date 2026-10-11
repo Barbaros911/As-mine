@@ -59,7 +59,8 @@
           etats:{ attente:"Request received", confirmee:"Confirmed", realisee:"Completed",
                   refusee:"Not taken", annulee:"Cancelled" } }
   };
-  var PAIEMENTS = { carte:{fr:"Carte bancaire", en:"Card"}, especes:{fr:"Espèces", en:"Cash"} };
+  var PAIEMENTS = { carte:{fr:"Carte bancaire", en:"Card"}, especes:{fr:"Espèces", en:"Cash"},
+                    lien:{fr:"Par lien, avant le départ", en:"By link, before departure"} };
 
   /* ═══ DEUX FORMES DE COURSE, UNE SEULE FORME DE BON ═══
      La réception reçoit une ligne aplatie du serveur (courses-hotel) ; l'admin
@@ -108,6 +109,7 @@
   function paiementLu(p, langue){
     var cle = String(p || "").toLowerCase();
     if(PAIEMENTS[cle]) return PAIEMENTS[cle][langue];
+    if(/lien|link/.test(cle)) return PAIEMENTS.lien[langue];
     if(/carte|card/.test(cle)) return PAIEMENTS.carte[langue];
     if(/esp|cash/.test(cle)) return PAIEMENTS.especes[langue];
     return p || "";

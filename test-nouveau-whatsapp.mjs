@@ -84,7 +84,7 @@ await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
-await p.locator('[data-paiement="carte"]').click();
+/* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien. */
 /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(1200);
@@ -120,7 +120,7 @@ check('berline ou van', L[5]==='Véhicule : Berline', L[5]);
 // Le chauffeur doit savoir s'il emporte son terminal : c'est la seule
 // raison d'être de cette ligne, et elle passe AVANT le prix pour que le
 // dernier montant en euros du message reste celui de la course.
-check('mode de règlement, en français', L[6]==='Paiement : Carte bancaire', L[6]);
+check('mode de règlement, en français', L[6]==='Paiement : Lien de paiement, avant le départ', L[6]);
 check('prix du site', L[7]==='Prix : 70,00 €', L[7]);
 check('nom et téléphone du client, en dernier',
   L[8]==='Jean Martin — 06 12 34 56 78', L[8]);

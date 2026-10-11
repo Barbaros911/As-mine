@@ -469,7 +469,7 @@ check('elle est rappelée sur le récapitulatif, avant de confirmer',
   && (await p.locator('#recapNote').textContent()) === PRECISION);
 await p.fill('#clientNom','M. Dupont');
 await p.fill('#clientTel','06 12 34 56 78');
-await p.locator('[data-paiement="especes"]').click();
+/* Plus de choix carte / espèces côté client (10/10/2026) : il paie par lien. */
 await p.evaluate(()=>{ window.__wa=[]; window.open=(u)=>{ window.__wa.push(u); return null; }; });
 /* « Où recevoir votre confirmation ? » est obligatoire depuis le 4/10/2026 (masquée au comptoir). */
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });

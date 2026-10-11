@@ -198,7 +198,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.locator('.veh-carte').first().click();
   await p.locator('#ecran-vehicules .veh-action .bouton').first().click();
   await p.fill('#clientNom', 'Jean Martin'); await p.fill('#clientTel', '06 12 34 56 78');
-  await p.locator('[data-paiement="carte"]').click();
+  /* Le client du flyer paie par lien depuis le 10/10/2026 : plus de choix ici. */
   await p.evaluate(() => { if (document.querySelector('#blocContact [aria-pressed="true"]')) return; const x = [...document.querySelectorAll('#blocContact [data-contact]')].find(e => e.offsetParent); if (x) x.click(); });
   await p.locator('#btnConfirmer').click();
   await p.waitForTimeout(800);
