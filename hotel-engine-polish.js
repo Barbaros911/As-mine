@@ -66,16 +66,11 @@
          personne n'a demandé de tenir. */
       var nomLabel=blocCoord.querySelector('label[for="clientNom"]');
       var tCh=chambre.querySelector('.champ-titre');
-      if(comptoir){
-        /* AU COMPTOIR LA CHAMBRE VIENT EN PREMIER, ET ELLE N'EST PAS
-           « FACULTATIVE » : c'est elle qui suffit (la règle de l'aide juste
-           au-dessus — chambre, OU nom et téléphone). La réception la
-           connaît d'emblée ; le nom et le numéro ne servent que sans elle. */
-        if(nomLabel) nomLabel.insertAdjacentElement('beforebegin',chambre);
-      } else {
-        if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
-        if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
-      }
+      /* AU COMPTOIR AUSSI, DEPUIS LE 11/10/2026 : la chambre ne suffit plus,
+         le lien de paiement part sur le téléphone du client. Elle reste
+         notée, facultative, sous le nom — comme côté client. */
+      if(nomLabel) nomLabel.insertAdjacentElement('afterend',chambre);
+      if(tCh){tCh.textContent='Chambre / Room (facultatif)';tCh.removeAttribute('data-t');}
       var aideCh=chambre.querySelector('.champ-aide');
       if(aideCh) aideCh.remove();
     }
@@ -377,9 +372,9 @@
      valeur que personne n'a regardée. Elles passent au vert dès qu'on les
      touche, au rouge si l'heure est passée ou trop proche.
 
-     LES RÈGLES SONT CELLES DU MOTEUR, pas d'autres : au comptoir la chambre
-     suffit, sinon il faut le nom et le téléphone ; côté client le nom et le
-     téléphone sont exigés, la chambre ne l'est pas. Un numéro commencé mais
+     LES RÈGLES SONT CELLES DU MOTEUR, pas d'autres : le nom et le
+     téléphone sont exigés partout, comptoir compris depuis le 11/10/2026
+     (le lien de paiement part sur ce numéro) ; la chambre ne l'est pas. Un numéro commencé mais
      trop court est rouge : un numéro faux fait croire qu'on peut joindre
      quelqu'un. Le moteur garde ses propres contrôles derrière — celui-ci
      les dit plus tôt, il ne les remplace pas. */
@@ -401,16 +396,15 @@
     pose('date', !val('date')?'manque':(touches.date||tentative)?'ok':'neutre');
     pose('heure', !val('heure')||heureKo?'manque':(touches.heure||tentative)?'ok':'neutre');
     ['vol','noteCourse'].forEach(function(id){pose(id,val(id)?'ok':'neutre');});
-    var parChambre=comptoir && !!ch;
-    pose('chambre', ch?'ok':(comptoir && !(nom&&tel))?'manque':'neutre');
+    /* Le comptoir paie par lien depuis le 11/10/2026 : le nom et le
+       téléphone du client sont exigés partout, la chambre ne suffit plus. */
+    var parChambre=false;
+    pose('chambre', ch?'ok':'neutre');
     pose('clientNom', nom?'ok':parChambre?'neutre':'manque');
     pose('clientTel', tel?(telOk(tel)?'ok':'manque'):parChambre?'neutre':'manque');
     if(comptoir){
       var liste=$('listeVehicules');
       if(vis(liste)) l.push([liste, document.querySelector('.veh-carte.choisi')?'ok':'manque']);
-      var pay=$('blocPaiement');
-      if(vis(pay)) l.push([pay.querySelector('.choix')?pay.querySelector('.choix').parentNode:pay,
-        document.querySelector('.choix[data-paiement][aria-pressed="true"]')?'ok':'manque']);
     }
     return l;
   }
@@ -424,7 +418,9 @@
       var identite=el.contains($('clientNom'))?'clientNom':el.contains($('clientTel'))?'clientTel':'';
       /* Un champ VIDE au comptoir : il n'est exigé que sans chambre. Un
          numéro COMMENCÉ mais trop court : il est à corriger, pas à remplir. */
-      el.classList.toggle('eh-sinon', comptoir && e==='manque' && !!identite && !val(identite));
+      /* « Si pas de chambre » n'a plus de sens depuis le 11/10/2026 : le nom
+         et le téléphone sont exigés au comptoir aussi. */
+      el.classList.toggle('eh-sinon', false);
       el.classList.toggle('eh-corriger', e==='manque' && identite==='clientTel' && !!val('clientTel'));
       if(e==='manque' && !premier) premier=el;
     });

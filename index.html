@@ -967,9 +967,10 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .paiement-regles li+li{margin-top:5px;}
 .paiement-tel{margin:10px 0 0;font-size:12.5px;color:var(--gris);}
 .paiement-tel a{color:var(--accent-encre);font-weight:600;white-space:nowrap;}
-body:not(.reception) #blocPaiement .choix-paiement,
-body:not(.reception) #blocPaiement [data-t="paiement_note"],
-body.reception #paiementLien{display:none;}
+/* Le comptoir aussi paie par lien depuis le 11/10/2026 (Barbaros) : les
+   boutons carte / espèces ne s'affichent plus nulle part. */
+#blocPaiement .choix-paiement,
+#blocPaiement [data-t="paiement_note"]{display:none;}
 /* UN NUMÉRO DE TÉLÉPHONE NE SE COUPE PAS. Écrit avec des espaces, il se
    scindait en « 06 12 34 56 » puis « 78 » : le client doit le relire d'un
    trait pour repérer un chiffre de travers, c'est tout l'intérêt de
@@ -988,8 +989,11 @@ body.reception #paiementLien{display:none;}
   font-weight:700;cursor:pointer;text-align:center;
   transition:border-color .14s,background .14s,color .14s;}
 .choix svg{flex:0 0 auto;}
-/* Quatre canaux sur deux rangées : à 390 px, quatre de front ne tiennent pas. */
+/* Deux canaux côte à côte (numéro étranger). Trois (numéro français) se
+   posent sur UNE rangée : en 2 + 1, le troisième restait seul et avait
+   l'air d'un oubli. Le compte vient de jugerContact(), jamais écrit ici. */
 .choix-envoi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+.choix-envoi.trois{grid-template-columns:repeat(3,minmax(0,1fr));}
 /* Le pictogramme à gauche, le nom à côté : on reconnaît l'application avant
    de lire son nom. Le choix retenu porte une coche, en plus du contour : la
    couleur ne dit jamais le sens toute seule. */
@@ -1006,6 +1010,13 @@ body.reception #paiementLien{display:none;}
 @media (max-width:360px){
   .choix-envoi{gap:8px;}
   .choix-envoi .choix{flex-direction:column;justify-content:center;gap:5px;
+    min-height:72px;padding:8px 6px;text-align:center;font-size:13.5px;}
+}
+/* Trois de front sur un téléphone : ~110 px chacun, le pictogramme passe
+   au-dessus du nom, comme à 320 px. */
+@media (max-width:599px){
+  .choix-envoi.trois{gap:8px;}
+  .choix-envoi.trois .choix{flex-direction:column;justify-content:center;gap:5px;
     min-height:72px;padding:8px 6px;text-align:center;font-size:13.5px;}
 }
 .choix-envoi .choix[aria-pressed="true"]{box-shadow:0 2px 10px rgba(14,111,199,.14);}
@@ -3597,8 +3608,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            confirmation. Plus de carte ni d'espèces à bord. Les trois règles
            sont écrites ICI, avant « Confirmer » : une règle de non-
            remboursement lue après le paiement ne protège personne.
-           LE COMPTOIR D'HÔTEL N'EST PAS CONCERNÉ (body.reception) : il garde
-           ses deux boutons tant que Barbaros n'a pas tranché pour lui. -->
+           LE COMPTOIR D'HÔTEL AUSSI, depuis le 11/10/2026 (Barbaros) : la
+           réception enregistre, Elatransfer envoie le lien au client. Les
+           deux anciens boutons restent dans la page, jamais affichés. -->
       <div class="paiement-lien" id="paiementLien">
         <p class="paiement-lien-tete">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -3699,10 +3711,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          clients, et la demande arrive de toute façon dans l'admin, annoncée
          par Telegram. Barbaros confirme ensuite par le moyen choisi ; sans
          réponse, aucun chauffeur ne part : un faux numéro ne coûte rien.
-         Numéro FRANÇAIS : appel / SMS ou WhatsApp, gratuits pour lui.
-         Numéro ÉTRANGER : WhatsApp, Telegram ou iMessage — un appel
-         international coûterait cher, une application ne coûte rien.
-         Masqué au comptoir d'un hôtel : la chambre y identifie le client.
+         Numéro FRANÇAIS : appel / SMS, WhatsApp ou Telegram (11/10/2026).
+         Numéro ÉTRANGER : WhatsApp ou Telegram — un appel international
+         coûterait cher, une application ne coûte rien.
+         Le comptoir d'un hôtel le pose aussi depuis le 11/10/2026 : le lien
+         de paiement part sur ce numéro, par ce moyen.
          PICTOGRAMMES : la marque de WhatsApp et de Telegram, employée comme
          partout pour dire « par là » ; pour iMessage une bulle générique,
          JAMAIS l'icône d'Apple, dont les règles interdisent la reprise. -->
@@ -6108,7 +6121,7 @@ window.ELA_TEXTES = {
     hotel_adresse_precise:"Adresse précise",
     reserver_prix:"Valider la réservation",
     client_titre:"Le client",
-    aide_identite:"Le numéro de chambre suffit : le chauffeur passe le prendre à l'hôtel. Sans chambre, indiquez son nom et son numéro.",
+    aide_identite:"Indiquez le nom et le téléphone du client : Elatransfer lui envoie la confirmation et le lien de paiement. La chambre aide le chauffeur à le trouver.",
     /* LE COMPTOIR SAISIT QUELQU'UN D'AUTRE : aucune phrase en « vous », aucun
        libellé doublé en deux langues — le sélecteur FR/EN fait ce travail. */
     nom_comptoir:"Nom du client", ph_nom_comptoir:"Nom du client", ph_tel_comptoir:"06 12 34 56 78",
@@ -6118,8 +6131,8 @@ window.ELA_TEXTES = {
     voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
     voir_bon_client:"Voir le bon du client",
     consigne_comptoir_titre:"À dire au client",
-    consigne_comptoir:"« Votre réservation sera confirmée par Elatransfer. » Vous verrez aussi la confirmation ici, dans les réservations de l'hôtel.",
-    err_identite:"Indiquez le numéro de chambre, ou le nom et le téléphone du client.",
+    consigne_comptoir:"« Elatransfer vous envoie la confirmation et le lien de paiement de votre chauffeur. » Vous verrez aussi la confirmation ici, dans les réservations de l'hôtel.",
+    err_identite:"Indiquez le nom et le téléphone du client : c'est là qu'Elatransfer envoie le lien de paiement.",
     btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
@@ -6350,7 +6363,7 @@ window.ELA_TEXTES = {
     hotel_adresse_precise:"Exact address",
     reserver_prix:"Confirm booking",
     client_titre:"The guest",
-    aide_identite:"The room number is enough: the chauffeur picks them up at the hotel. Without a room, give their name and number.",
+    aide_identite:"Enter the guest's name and phone number: Elatransfer sends them the confirmation and the payment link. The room number helps the chauffeur find them.",
     nom_comptoir:"Guest name", ph_nom_comptoir:"Guest name", ph_tel_comptoir:"+33 6 12 34 56 78",
     aide_tel_comptoir:"Foreign number: add the country code (+34, +44…).",
     bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
@@ -6358,8 +6371,8 @@ window.ELA_TEXTES = {
     voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
     voir_bon_client:"View the guest's voucher",
     consigne_comptoir_titre:"Tell the guest",
-    consigne_comptoir:"“Your booking will be confirmed by Elatransfer.” You will also see the confirmation here, in the hotel bookings.",
-    err_identite:"Enter the room number, or the guest's name and phone number.",
+    consigne_comptoir:"“Elatransfer will send you the confirmation and your chauffeur's payment link.” You will also see the confirmation here, in the hotel bookings.",
+    err_identite:"Enter the guest's name and phone number: that is where Elatransfer sends the payment link.",
     btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
@@ -8513,7 +8526,9 @@ window.ELA_TEXTES = {
       }
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
-      ["listeVehicules", "blocCoordonnees", "blocPaiement"].forEach(function(id){
+      /* « blocContact » depuis le 11/10/2026 : le comptoir paie par lien, et
+         Elatransfer l'envoie par le moyen choisi pour le client. */
+      ["listeVehicules", "blocCoordonnees", "blocContact", "blocPaiement"].forEach(function(id){
         var bloc = document.getElementById(id);
         if(!bloc) return;
         parent.insertBefore(bloc, apres.nextSibling);
@@ -10344,10 +10359,10 @@ window.ELA_TEXTES = {
     if(cle === "lien") return "Lien de paiement, avant le départ";
     return cle === "carte" ? "Carte bancaire" : "Espèces";
   }
-  /* Hors comptoir, le client ne choisit plus : c'est le lien du chauffeur,
-     avant le départ (10/10/2026). Le comptoir garde sa question. */
+  /* Plus personne ne choisit : c'est le lien du chauffeur, avant le départ
+     (10/10/2026), comptoir d'hôtel compris depuis le 11/10/2026. */
   function paiementDuBon(){
-    return recHotel ? paiementChoisi : "lien";
+    return "lien";
   }
 
   /* =====================================================================
@@ -10395,15 +10410,17 @@ window.ELA_TEXTES = {
   }
   var contactChoisi = null;
   var boutonsContact = Array.prototype.slice.call(document.querySelectorAll("[data-contact]"));
-  /* iMessage retiré le 11/10/2026 (Barbaros) : à l'étranger, WhatsApp ou Telegram. */
-  var CANAUX_FR = ["telephone", "whatsapp"], CANAUX_ETRANGER = ["whatsapp", "telegram"];
+  /* iMessage retiré le 11/10/2026 (Barbaros) : à l'étranger, WhatsApp ou
+     Telegram ; en France, Appel / SMS, WhatsApp ou Telegram. */
+  var CANAUX_FR = ["telephone", "whatsapp", "telegram"], CANAUX_ETRANGER = ["whatsapp", "telegram"];
   /* Tant que le numéro n'est pas complet, on propose le cas le plus courant
      du site — un numéro français. Il bascule dès que l'indicatif est lu. */
   function canauxProposes(){
     var tel = document.getElementById("clientTel").value.trim();
     return (telValide(tel) && telEtranger(tel)) ? CANAUX_ETRANGER : CANAUX_FR;
   }
-  function contactDemande(){ return !recHotel; }
+  /* Le comptoir aussi : c'est là qu'Elatransfer envoie le lien de paiement. */
+  function contactDemande(){ return true; }
   function jugerContact(){
     document.getElementById("blocContact").hidden = !contactDemande();
     var proposes = canauxProposes();
@@ -10414,6 +10431,7 @@ window.ELA_TEXTES = {
       b.hidden = proposes.indexOf(b.dataset.contact) < 0;
       b.setAttribute("aria-pressed", String(b.dataset.contact === contactChoisi));
     });
+    document.querySelector("#blocContact .choix-envoi").classList.toggle("trois", proposes.length === 3);
     document.getElementById("noteContactEtranger").hidden = proposes !== CANAUX_ETRANGER;
     var tel = document.getElementById("clientTel").value.trim();
     var relu = document.getElementById("telRelu");
@@ -10438,9 +10456,9 @@ window.ELA_TEXTES = {
     b.addEventListener("click", jugerContact);
   });
   /* Ce qui part sur le bon : la demande part toujours du site, et
-     « prefere » dit où confirmer. Vide au comptoir. */
+     « prefere » dit où confirmer — au comptoir aussi depuis le 11/10/2026. */
   function contactDuBon(){
-    return { envoi: "site", prefere: recHotel ? "" : (contactChoisi || "") };
+    return { envoi: "site", prefere: contactChoisi || "" };
   }
 
   document.getElementById("btnContinuer").addEventListener("click", function(){
@@ -10785,8 +10803,11 @@ window.ELA_TEXTES = {
   function chambreSaisie(){
     return blocChambre.hidden ? "" : champChambre.value.trim();
   }
+  /* LA CHAMBRE NE SUFFIT PLUS (11/10/2026) : le comptoir paie par lien, et
+     ce lien part sur le téléphone du client. Le nom et le numéro sont donc
+     exigés partout ; la chambre reste notée, pour le chauffeur. */
   function identifieParLaChambre(){
-    return !!recHotel && !!chambreSaisie();
+    return false;
   }
 
   document.getElementById("btnConfirmer").addEventListener("click", function(){
@@ -11421,7 +11442,9 @@ window.ELA_TEXTES = {
         var el = document.getElementById(id);
         if(el){ el.value = ""; el.dispatchEvent(new Event("input", { bubbles:true })); }
       });
+      /* Le moyen de confirmation est celui du client précédent : on l'oublie. */
       paiementChoisi = null; marquerPaiement();
+      contactChoisi = null; jugerContact();
       heureTouchee = false; poserDefautHeure(); jugerDelai();
     }
     ecran("ecran-accueil");

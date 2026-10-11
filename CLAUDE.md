@@ -379,8 +379,7 @@ contractuel. Ne pas y écrire de tarif chiffré.
   langue veut dire écrire ~110 phrases à la main ; pas de traduction
   automatique sur un site où le prix engage.
 - **Le client paie par lien, avant le départ** (10/10/2026) : voir « LE
-  CLIENT PAIE SON CHAUFFEUR PAR LIEN ». Seul le comptoir demande encore
-  carte ou espèces.
+  CLIENT PAIE SON CHAUFFEUR PAR LIEN ». Le comptoir aussi (11/10/2026).
 - **Le message WhatsApp fait neuf lignes**, et sa STRUCTURE compte autant
   que son texte : les deux premières valeurs « … : … » sont les adresses,
   le **dernier montant en euros est le prix** — d'où la ligne « Paiement »
@@ -1741,7 +1740,7 @@ tarifs dans la foulée** — voir juste en dessous.
 
 ### LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART
 10–11/10/2026 (Barbaros) : plus de carte ni d'espèces à bord ; Elatransfer envoie le lien du chauffeur avec la confirmation, le client paie, le chauffeur part. AUCUN délai ni écriteau « paiement attendu » : ne pas les remettre. Annulation client non remboursée ; course ratée de notre fait remboursée (CGV 5, 7).
-Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS ou WhatsApp (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Histoire : `memoire/paiement-lien.md`.
+Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS, WhatsApp ou Telegram (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Histoire : `memoire/paiement-lien.md`.
 
 ### L'ADRESSE DE L'EXPLOITANT EST « /exploitant/ »
 
@@ -2117,9 +2116,8 @@ est la MÊME page que celle du QR : les liens des cartes passent en
 sept prix, soit un quatrième endroit à tenir.
 - `hotel-engine-polish.js/.css` s'appliquent désormais aux deux entrées
   (`.hotel-enhanced`, plus `body.hotel:not(.reception)`).
-- **Au comptoir la chambre vient EN PREMIER et n'est pas « facultative »** :
-  la règle y est « chambre, OU nom et téléphone » (`identifieParLaChambre`).
-  Côté client elle reste sous le nom, facultative.
+- **Nom et téléphone exigés au comptoir aussi** (11/10/2026) : le lien de
+  paiement part sur ce numéro. La chambre, facultative, se range sous le nom.
 - **La photo de l'en-tête n'est pas reprise au comptoir** : elle est chargée
   depuis le site d'easyHotel (`cdn.easyhotel.com`, dans
   `hotel-engine-polish.css`), sans accord écrit, contre la règle « aucune

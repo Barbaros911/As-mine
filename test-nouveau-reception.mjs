@@ -699,8 +699,16 @@ check('les gammes, les coordonnées et le règlement sont sur la page de saisie'
   && (await dansFormulaire('blocPaiement')));
 check('et le titre ne dit plus « VOS coordonnées » : c\'est un autre qu\'on saisit',
   (await p.locator('#blocCoordonnees .bloc-titre').textContent()).trim() === 'Le client');
-check('la règle « la chambre suffit » est écrite là où elle s\'applique',
-  (await p.locator('[data-t="aide_identite"]').count()) === 1);
+/* LA CHAMBRE NE SUFFIT PLUS (11/10/2026, Barbaros) : le comptoir paie par
+   lien, et ce lien part sur le téléphone du client. La règle le dit. */
+check('la règle « nom et téléphone » est écrite là où elle s\'applique',
+  (await p.locator('[data-t="aide_identite"]').count()) === 1
+  && /téléphone/.test(await p.locator('[data-t="aide_identite"]').textContent())
+  && /lien de paiement/.test(await p.locator('[data-t="aide_identite"]').textContent()));
+check('plus de carte ni d\'espèces au comptoir : le paiement par lien est annoncé',
+  !(await p.locator('[data-paiement="especes"]').isVisible())
+  && !(await p.locator('[data-paiement="carte"]').isVisible())
+  && await p.locator('#paiementLien').isVisible());
 
 /* LE PRIX SE CALCULE TOUT SEUL — sans ça il faudrait deux boutons sur la
    même page, « Calculer » puis « Réserver », et on aurait reconstruit le
@@ -727,28 +735,34 @@ check('et elle porte la couleur du partenaire, pas celle d\'Elatransfer',
   (await p.locator('#listeVehicules .veh-carte.choisi').first()
      .evaluate(el => getComputedStyle(el).borderColor)).replace(/\s/g,'') === 'rgb(194,65,12)');
 
-await p.locator('[data-paiement="especes"]').click();
-await p.waitForTimeout(200);
-/* ═══ CHAMBRE OU NOM, ET SANS CHAMBRE IL FAUT LES DEUX ═══ */
+/* ═══ LE NOM ET LE TÉLÉPHONE SONT EXIGÉS, LA CHAMBRE NE SUFFIT PLUS ═══ */
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(500);
-check('sans chambre et sans nom, la course est refusée',
+check('sans nom ni téléphone, la course est refusée',
   !(await p.locator('#ecran-bon').isVisible()));
-check('et le refus dit la règle, pas « le nom est nécessaire » qui serait faux ici',
-  /chambre/i.test(await p.locator('#erreurCoordonnees').textContent()));
-/* UN NUMÉRO DONNÉ EST QUAND MÊME VÉRIFIÉ : un numéro faux est pire qu'un
-   numéro absent — il fait croire qu'on peut joindre quelqu'un.
-   ON ÉPROUVE LE CAS RÉEL : chambre remplie, donc le numéro devient
-   facultatif, ET un numéro faux tapé quand même. Le premier jet mettait le
-   numéro AVANT la chambre : le refus d'identité partait d'abord et le
-   contrôle n'atteignait jamais son sujet. */
+check('et le refus dit pourquoi : le lien de paiement part sur ce numéro',
+  /téléphone/i.test(await p.locator('#erreurCoordonnees').textContent())
+  && /lien de paiement/.test(await p.locator('#erreurCoordonnees').textContent()));
 await p.fill('#chambre','214');
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(500);
+check('LA CHAMBRE SEULE NE SUFFIT PLUS — il faut le téléphone du client',
+  !(await p.locator('#ecran-bon').isVisible()) && await p.locator('#erreurCoordonnees').isVisible());
+/* UN NUMÉRO DONNÉ EST VÉRIFIÉ : un numéro faux fait croire qu'on peut
+   joindre quelqu'un, et le lien de paiement partirait dans le vide. */
+await p.fill('#clientNom','Jean Martin');
 await p.fill('#clientTel','12345678');
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(400);
-check('un numéro faux est refusé même quand le numéro est facultatif',
+check('un numéro faux est refusé',
   !(await p.locator('#ecran-bon').isVisible()) && await p.locator('#erreurTel').isVisible());
-await p.fill('#clientTel','');
+await p.fill('#clientTel','06 12 34 56 78');
+await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(400);
+check('sans moyen de confirmation choisi, la course ne part pas',
+  !(await p.locator('#ecran-bon').isVisible()) && await p.locator('#erreurContact').isVisible());
+check('au comptoir, un numéro français propose Appel / SMS, WhatsApp et Telegram',
+  (await p.locator('#blocContact [data-contact]:visible').evaluateAll(l => l.map(b => b.dataset.contact))).join(',')
+  === 'telephone,whatsapp,telegram');
+await p.locator('#blocContact [data-contact="whatsapp"]').click();
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
-check('LA CHAMBRE SEULE SUFFIT — le chauffeur monte la chercher à l\'hôtel',
+check('nom, téléphone et moyen de confirmation : la course part',
   await p.locator('#ecran-bon').isVisible());
 check('le bon porte la chambre',
   /214/.test(await p.locator('#bonDepart').textContent()),
@@ -792,6 +806,9 @@ const posee = await p.evaluate(() =>
   (JSON.parse(localStorage.getItem('ela_courses') || '[]'))[0] || {});
 check('et la course entre EN ATTENTE, jamais confirmée d\'office',
   posee.statut === 'attente', String(posee.statut));
+check('réglée par lien, comme toute course, et confirmée sur WhatsApp',
+  posee.paiement === 'lien' && posee.contact && posee.contact.prefere === 'whatsapp',
+  posee.paiement + ' / ' + JSON.stringify(posee.contact));
 check('en se disant venue du comptoir, pas du téléphone d\'un client',
   posee.parReception === true && posee.provenanceCle === 'easyhotel-aeroville',
   posee.parReception + ' / ' + posee.provenanceCle);
@@ -859,8 +876,10 @@ await p.waitForTimeout(1100);
 await p.selectOption('#hotelDest','orly');
 await p.waitForTimeout(1700);
 await p.locator('#listeVehicules .veh-carte').first().click();
-await p.locator('[data-paiement="especes"]').click();
 await p.fill('#chambre','307');
+await p.fill('#clientNom','Paul Durand');
+await p.fill('#clientTel','06 98 76 54 32');
+await p.locator('#blocContact [data-contact="telephone"]').click();
 await p.locator('#btnVoirPrix').click();
 await p.waitForTimeout(1200);
 check('le dépôt aboutit et le bon le dit',
@@ -873,7 +892,7 @@ check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
    l'écran, pas une ligne grise. */
 check('après la réservation, la réception lit « À dire au client »',
   await p.locator('#consigneComptoir').isVisible()
-  && /Votre réservation sera confirmée par Elatransfer/.test(await p.locator('#consigneComptoir').textContent()),
+  && /Elatransfer vous envoie la confirmation et le lien de paiement/.test(await p.locator('#consigneComptoir').textContent()),
   await p.locator('#consigneComptoir').textContent().catch(() => 'absent'));
 const yConsigne = (await p.locator('#consigneComptoir').boundingBox() || {}).y;
 const yBon = (await p.locator('#ecran-bon .bon-tete').boundingBox() || {}).y;
@@ -886,8 +905,8 @@ check('« Voir le bon du client » remplace l\'ancien envoi',
 await p.locator('#btnNouvelleCourse').click();
 check('« Réserver une autre course » vide la chambre, le nom et le téléphone',
   await p.evaluate(() => ['chambre','clientNom','clientTel'].every(id => document.getElementById(id).value === '')));
-check('…et redemande le mode de règlement',
-  (await p.locator('[data-paiement][aria-pressed="true"]').count()) === 0);
+check('…et redemande le moyen de confirmation',
+  (await p.locator('#blocContact [aria-pressed="true"]').count()) === 0);
 /* ═══ LE CAS NORMAL : LA DEMANDE EST ARRIVÉE, IL N'Y A PLUS RIEN À ENVOYER ═══
    C'est ici, et seulement ici, que sa demande se mesure : sur un dépôt
    RÉUSSI. Le contrôle plus haut tourne sur un serveur injoignable, où le
