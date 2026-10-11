@@ -116,6 +116,21 @@ remboursée ? », et « la confirmation vous parvient sans frais, c'est bête »
   remboursement quand la course rate de notre fait reste écrit : c'est ce
   qui rend la clause équilibrée, donc non abusive. L'article 6 (pas de droit
   de rétractation, L221-2 9°) était déjà là.
+- **PLUS AUCUN RÈGLEMENT À BORD, COMPTOIR COMPRIS** (Barbaros : « il n'y a
+  plus de règlement à bord, des CGV en béton »). CGV entièrement réécrites,
+  17 articles : contrat définitif au paiement ; impayé = réservation levée
+  sans frais ; paiement contesté à la banque = prix toujours dû ; jamais de
+  coordonnées bancaires demandées par message ; absence et circonstances du
+  Client (vol annulé, papiers, santé) = prix dû ; remplacement du chauffeur
+  sans frais ; chauffeur absent ou trop en retard = remboursé ; passagers,
+  enfants, bagages, animaux (chiens guides toujours admis), tabac,
+  dégradations ; objets oubliés ; preuve par écrit ; version française qui
+  prévaut. Le barème 30 % / 50 % est parti avec le paiement à bord. Le temps
+  d'attente est passé à l'article 9. La référence de l'article 6 dit
+  « L. 221-2 » sans son alinéa : Légifrance n'était pas joignable pour
+  vérifier le « 9° » écrit jusque-là. Le bloc Professionnels disait encore
+  « réglé directement à bord » : corrigé. **L'écran du comptoir demandait
+  encore carte ou espèces** le jour de cette réécriture.
 - La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
   recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
   « sans frais » qui allait de soi.

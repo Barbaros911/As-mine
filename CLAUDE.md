@@ -1741,7 +1741,7 @@ tarifs dans la foulée** — voir juste en dessous.
 
 ### LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART
 10–11/10/2026 (Barbaros) : plus de carte ni d'espèces à bord ; Elatransfer envoie le lien du chauffeur avec la confirmation, le client paie, le chauffeur part. AUCUN délai ni écriteau « paiement attendu » : ne pas les remettre. Annulation client non remboursée ; course ratée de notre fait remboursée (CGV 5, 7).
-Comptoir d'hôtel : carte / espèces, non tranché. Confirmation : Appel/SMS ou WhatsApp (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Histoire : `memoire/paiement-lien.md`.
+Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS ou WhatsApp (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Histoire : `memoire/paiement-lien.md`.
 
 ### L'ADRESSE DE L'EXPLOITANT EST « /exploitant/ »
 
