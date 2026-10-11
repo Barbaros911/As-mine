@@ -264,7 +264,8 @@ async function jusquAuRecap(p){
   await p.locator('#btnContinuer').click({timeout:3000}).catch(()=>{});
   await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
-  await p.locator('[data-paiement="carte"]').click({timeout:3000}).catch(()=>{});
+  /* Côté client, plus de choix carte / espèces (10/10/2026) ; au comptoir, oui. */
+  if(await p.locator('[data-paiement="carte"]').isVisible()) await p.locator('[data-paiement="carte"]').click();
 }
 const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif') || {}).id || '');
 {
