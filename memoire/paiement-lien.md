@@ -75,6 +75,27 @@ Telegram : message copié à coller).
 
 ---
 
+## 11 octobre 2026, le soir — la règle d'annulation part avec le lien
+
+Barbaros : « On est pas obligé de dire qu'une annulation n'est pas
+remboursée ? », et « la confirmation vous parvient sans frais, c'est bête ».
+- **LE SITE NE DIT QUE LA GARANTIE** : « Si votre course n'a pas lieu de
+  notre fait, vous êtes remboursé en totalité. » Le non-remboursement d'une
+  annulation du client est dit **dans le message qui porte le lien de
+  paiement**, au moment où il engage de l'argent, et reste aux CGV (art. 7)
+  acceptées à l'envoi. C'est ce message qu'on montre à une banque si un
+  paiement est contesté. Le remboursement quand la course rate de notre fait
+  est dû de toute façon (c'est le chauffeur, qui a encaissé, qui rembourse).
+- **LA QUESTION FRÉQUENTE « Puis-je annuler ? » ANNONÇAIT ENCORE L'ANCIEN
+  BARÈME** (gratuit à plus de 24 h, 30 %, 50 %), sur l'accueil et les trois
+  pages de service, depuis le passage au paiement par lien. Réécrite : sans
+  frais tant que le client n'a pas payé, non remboursée après, remboursée en
+  totalité si la course n'a pas lieu de notre fait. Le barème ne vaut plus
+  qu'au comptoir, payé à bord (CGV art. 7).
+- La note des numéros étrangers dit ce qu'on y gagne (« Depuis l'étranger,
+  recevez votre confirmation sur WhatsApp ou Telegram. ») au lieu d'un
+  « sans frais » qui allait de soi.
+
 ## Avant le 10 octobre 2026 — la question « carte ou espèces »
 
 ### LE PAIEMENT AFFIRME AVANT DE DEMANDER

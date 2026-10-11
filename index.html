@@ -3611,7 +3611,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <ul class="paiement-regles">
           <li data-t="paiement_r1">Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.</li>
           <li data-t="paiement_r2">Vous payez, votre chauffeur se met en route.</li>
-          <li data-t="paiement_r3">Une annulation de votre part n'est pas remboursée. Si la course n'a pas lieu du fait d'Elatransfer ou du chauffeur, vous êtes remboursé en totalité.</li>
+          <li data-t="paiement_r3">Si votre course n'a pas lieu de notre fait, vous êtes remboursé en totalité.</li>
         </ul>
         <!-- Départ immédiat ou réservation de vive voix : le numéro est ICI, là
              où le client lit comment payer (11/10/2026, Barbaros). -->
@@ -3709,8 +3709,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          JAMAIS l'icône d'Apple, dont les règles interdisent la reprise. -->
     <div class="bloc" id="blocContact">
       <h2 class="bloc-titre" data-t="joindre_titre">Où souhaitez-vous recevoir votre confirmation ?</h2>
-      <p class="bloc-note" id="noteContactEtranger" hidden data-t="joindre_note">Numéro international :
-         choisissez votre application, la confirmation vous parvient sans frais.</p>
+      <p class="bloc-note" id="noteContactEtranger" hidden data-t="joindre_note">Depuis l'étranger, recevez votre confirmation sur WhatsApp ou Telegram.</p>
       <div class="choix-envoi">
         <button class="choix" type="button" data-contact="telephone" aria-pressed="false">
           <svg class="canal-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0E6FC7"/><path fill="#fff" d="M9.3 6.6c.3-.1.6 0 .8.3l1.1 2c.2.3.1.7-.1.9l-.8.8c.5 1.2 1.6 2.4 2.9 2.9l.8-.8c.2-.3.6-.3.9-.1l2 1.1c.3.2.4.5.3.8l-.5 1.5c-.2.5-.7.8-1.2.7-3.7-.5-6.6-3.4-7.1-7.1-.1-.5.2-1 .7-1.2l1.2-.8z"/></svg><span data-t="canal_telephone">Appel / SMS</span></button>
@@ -6147,7 +6146,7 @@ window.ELA_TEXTES = {
     faq_titre:"Questions fréquentes",
     faq1q:"Et si mon vol est en retard ?", faq1r:"Indiquez votre numéro de vol : nous suivons votre arrivée et le chauffeur vous attend jusqu'à 60 minutes après l'atterrissage réel, sans frais.",
     faq2q:"Comment je paie ?", faq2r:"Directement à votre chauffeur, par le lien de paiement qu'Elatransfer vous envoie avec la confirmation. Votre chauffeur se met en route dès que le paiement est reçu. Rien n'est payé à la réservation.",
-    faq3q:"Puis-je annuler ?", faq3r:"Oui. Une demande pas encore confirmée s'annule sans frais. Une course confirmée : gratuit plus de 24 h avant, 30 % entre 24 h et 3 h, 50 % à moins de 3 h.",
+    faq3q:"Puis-je annuler ?", faq3r:"Oui. Sans frais tant que vous n'avez pas payé, même une fois la course confirmée. Après le paiement, une annulation de votre part n'est pas remboursée. Si la course n'a pas lieu de notre fait, vous êtes remboursé en totalité.",
     faq4q:"Où m'attend le chauffeur ?", faq4r:"À l'adresse de départ indiquée. À l'aéroport ou en gare, vous pouvez choisir l'accueil avec un panneau à votre nom.",
     services:"Nos services", voir_tous:"Voir tous",
     srv1:"Aéroport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
@@ -6199,7 +6198,7 @@ window.ELA_TEXTES = {
     canal_telephone:"Appel / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
     canal_imessage:"iMessage",
     joindre_titre:"Où souhaitez-vous recevoir votre confirmation ?",
-    joindre_note:"Numéro international : choisissez votre application, la confirmation vous parvient sans frais.",
+    joindre_note:"Depuis l'étranger, recevez votre confirmation sur WhatsApp ou Telegram.",
     err_contact:"Indiquez où vous souhaitez recevoir votre confirmation.",
     suite_3:"Vous recevez la confirmation de votre course, qui s'affiche aussi ici, dans « Réservations ».",
     bon_sous:"Bon de réservation",
@@ -6275,7 +6274,7 @@ window.ELA_TEXTES = {
     paiement_r1:"Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.",
     paiement_r2:"Vous payez, votre chauffeur se met en route.",
     paiement_tel:"Départ immédiat ou réservation par téléphone :",
-    paiement_r3:"Une annulation de votre part n'est pas remboursée. Si la course n'a pas lieu du fait d'Elatransfer ou du chauffeur, vous êtes remboursé en totalité.",
+    paiement_r3:"Si votre course n'a pas lieu de notre fait, vous êtes remboursé en totalité.",
     paiement_especes:"Espèces",
     paiement_carte:"Carte bancaire",
     err_paiement:"Indiquez comment vous réglerez.",
@@ -6382,7 +6381,7 @@ window.ELA_TEXTES = {
     faq_titre:"Frequently asked questions",
     faq1q:"What if my flight is delayed?", faq1r:"Give us your flight number: we track your arrival and the chauffeur waits up to 60 minutes after the actual landing, at no charge.",
     faq2q:"How do I pay?", faq2r:"Directly to your chauffeur, through the payment link Elatransfer sends you with the confirmation. Your chauffeur sets off as soon as payment is received. Nothing is paid when you book.",
-    faq3q:"Can I cancel?", faq3r:"Yes. A request not yet confirmed can be cancelled free of charge. A confirmed ride: free more than 24 h before, 30% between 24 h and 3 h, 50% under 3 h.",
+    faq3q:"Can I cancel?", faq3r:"Yes. Free of charge until you pay, even once your ride is confirmed. After payment, a cancellation on your part is not refunded. If the ride does not take place because of us, you are refunded in full.",
     faq4q:"Where will the chauffeur meet me?", faq4r:"At the pick-up address you gave. At an airport or station, you can choose a meet-and-greet with a sign bearing your name.",
     services:"Our services", voir_tous:"See all",
     srv1:"Airport", srv1s:"Roissy-CDG · Orly · Beauvais · Le Bourget",
@@ -6434,7 +6433,7 @@ window.ELA_TEXTES = {
     canal_telephone:"Call / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
     canal_imessage:"iMessage",
     joindre_titre:"Where would you like to receive your confirmation?",
-    joindre_note:"International number: choose your app and receive your confirmation free of charge.",
+    joindre_note:"Calling from abroad? Get your confirmation on WhatsApp or Telegram.",
     err_contact:"Please choose where you would like to receive your confirmation.",
     suite_3:"You receive the confirmation of your transfer, which also appears here, under « Bookings ».",
     bon_sous:"Booking voucher",
@@ -6501,7 +6500,7 @@ window.ELA_TEXTES = {
     paiement_r1:"Elatransfer contacts you to confirm your ride and sends you your chauffeur's payment link.",
     paiement_r2:"You pay, your chauffeur sets off.",
     paiement_tel:"Immediate departure or booking by phone:",
-    paiement_r3:"A cancellation on your part is not refunded. If the ride does not take place because of Elatransfer or the chauffeur, you are refunded in full.",
+    paiement_r3:"If your ride does not take place because of us, you are refunded in full.",
     paiement_especes:"Cash",
     paiement_carte:"Card",
     err_paiement:"Tell us how you will pay.",
@@ -13694,6 +13693,11 @@ window.ELA_TEXTES = {
       l.push("Paiement à votre chauffeur" + (bon.prix && bon.prix.total > 0 ? " : " + eurosFR(bon.prix.total) : "")
              + ". Votre chauffeur se met en route dès réception.");
       l.push("Lien de paiement : " + bon.lienPaiement);
+      /* LA RÈGLE D'ANNULATION EST DITE ICI, au moment où le client paie
+         (11/10/2026) : c'est là qu'elle engage, et c'est ce message qu'on
+         montre à une banque si le paiement est contesté. Le site, lui, ne
+         dit que la garantie ; le contrat entier est aux CGV (art. 7). */
+      l.push("Annulation de votre part : non remboursée. Course non assurée de notre fait : remboursée en totalité.");
     }
     l.push("Votre bon : " + lien);
     return l.join("\n");
