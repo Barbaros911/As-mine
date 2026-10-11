@@ -3,17 +3,17 @@
    ---------------------------------------------------------------------
    DEPUIS LE 10 OCTOBRE 2026 LE CLIENT NE CHOISIT PLUS. Barbaros : « le
    client paie avant quoi qu'il arrive ». Il paie le CHAUFFEUR, par le lien
-   que celui-ci envoie et qu'Elatransfer transmet avec la confirmation, au
-   plus tard 2 h avant le départ (la veille avant 22 h avant 8 h). Une
-   annulation du client n'est pas remboursée. Le COMPTOIR d'hôtel garde sa
+   que celui-ci envoie et qu'Elatransfer transmet avec la confirmation ; le
+   chauffeur se met en route une fois le paiement reçu. Une annulation du
+   client n'est pas remboursée. Le COMPTOIR d'hôtel garde sa
    question carte / espèces : test-nouveau-reception l'éprouve.
    Ce qui est verrouillé ici, côté client : plus de boutons, les trois
    règles écrites AVANT « Confirmer », la course part sans choix, le bon et
    le message disent « lien », l'anglais suit. Côté exploitant : le lien
    collé part dans « Prévenir le client » avec le montant et l'heure
-   limite, un lien non https est refusé, un service inconnu est signalé,
-   « Payé » retire la ligne, et l'écriteau « Paiement attendu » s'allume
-   dans l'heure qui précède la limite — et pas avant.
+   un lien non https est refusé, un service inconnu est signalé, « Payé »
+   retire la ligne. Depuis le 11/10/2026 : AUCUNE heure limite ni écriteau
+   « Paiement attendu » — le chauffeur part une fois le paiement reçu.
 
    CE QUI SUIT EST L'HISTOIRE DE LA QUESTION D'AVANT (gardée pour le comptoir) :
    ---------------------------------------------------------------------
@@ -96,10 +96,16 @@ check('le bloc dit « par lien de paiement, avant le départ »',
   await p.locator('#paiementLien').isVisible()
   && /lien de paiement, avant le départ/i.test(await p.locator('#paiementLien').innerText()));
 const regles = await p.locator('#paiementLien li').allInnerTexts();
-check('les trois règles sont écrites : lien avec la confirmation, limite, remboursement',
-  regles.length === 3 && /confirmation/.test(regles[0]) && /2 h avant/.test(regles[1])
-  && /22 h/.test(regles[1]) && /annulée/.test(regles[1]) && /pas remboursée/.test(regles[2])
+check('les trois règles sont écrites : lien avec la confirmation, on paie puis le chauffeur part, remboursement',
+  regles.length === 3 && /confirmer/.test(regles[0]) && /lien de paiement/.test(regles[0])
+  && /se met en route/.test(regles[1]) && /pas remboursée/.test(regles[2])
   && /totalité/.test(regles[2]), regles.join(' | '));
+/* AUCUN DÉLAI (11/10/2026, Barbaros) : « tu commandes, je confirme avec le
+   lien, tu paies, le chauffeur arrive ». Ni heure limite, ni « 2 h ». */
+check('aucune heure limite n\'est annoncée au client',
+  !/\b2 h\b|22 h|au plus tard|heure limite/.test(regles.join(' ')), regles.join(' | '));
+check('le numéro pour un départ immédiat est dans le bloc, et il se compose',
+  (await p.locator('#paiementLien a[href="tel:+33759312433"]').count()) === 1);
 /* LA RÈGLE EST LUE AVANT LE BOUTON : une règle de non-remboursement lue
    après coup ne protège personne. On compare les positions à l'écran. */
 const posRegle = await p.evaluate(()=>({
@@ -162,7 +168,8 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 const blocEn = await p.locator('#blocPaiement').innerText();
 check('tout le bloc du paiement parle anglais',
-  !/[àéèêîôûç]/i.test(blocEn) && /payment link/i.test(blocEn) && /not refunded/i.test(blocEn),
+  !/[àéèêîôûç]/i.test(blocEn) && /payment link/i.test(blocEn) && /not refunded/i.test(blocEn)
+  && /sets off/i.test(blocEn) && /by phone/i.test(blocEn),
   blocEn.replace(/\n/g,' | '));
 await p.fill('#clientNom','John Smith'); await p.fill('#clientTel','+44 7700 900000');
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
@@ -194,21 +201,8 @@ const course = (ref, extra, co) => Object.assign({
 }, extra);
 const LIEN = { paiement:"lien", paiementNom:"Lien de paiement, avant le départ" };
 const CH = { chauffeur:{ nom:"Mehmet", telephone:"06 11 22 33 44" } };
-/* Bientôt : départ dans 2 h 30 → limite dans 30 min → l'écriteau s'allume.
-   Plus tard : départ demain 15:00 → limite à 13:00, loin → rien.
-   Tôt : départ demain 07:00 → limite LA VEILLE à 22:00. */
-/* L'HORLOGE EST FIGÉE à 12:00 aujourd'hui : sans ça, la suite dépendait de
-   l'heure où elle tourne (lancée à 23 h, « dans 2 h 30 » tombait avant 8 h
-   et changeait de règle). Les heures sont posées par rapport à MIDI. */
-const midi = new Date(); midi.setHours(12, 0, 0, 0);
-const aMidi = h => { const x = new Date(midi.getTime() + h*3600e3);
-  return { date: x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'),
-           heure: String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0') }; };
-const bientot = aMidi(2.5);               // 14:30 → limite 12:30, dans l'heure
-const derniere = aMidi(1.5);              // 13:30, demandée à midi → avant l'arrivée du chauffeur
 const ctx2 = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 const p2 = await ctx2.newPage();
-await p2.clock.setFixedTime(midi);
 p2.on('pageerror',e=>errs.push(e.message));
 await p2.route('**supabase.co/**', r => r.abort());
 await ctx2.addInitScript(()=>{ window.__liens = []; window.open = (u)=>{ window.__liens.push(u); return null; }; });
@@ -220,10 +214,7 @@ await ctx2.addInitScript((liste)=>{
   localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, [course("ELA-26-09-0001",{paiement:"carte", paiementNom:"Carte bancaire"}),
     course("ELA-26-09-0002",{}),
-    course("ELA-26-10-LIEN1",Object.assign({statut:"confirmee"},LIEN,CH),{date:bientot.date, heure:bientot.heure}),
-    course("ELA-26-10-LIEN2",Object.assign({statut:"confirmee"},LIEN,CH),{date:jourDans(1), heure:"15:00"}),
-    course("ELA-26-10-LIEN3",Object.assign({statut:"confirmee"},LIEN,CH),{date:jourDans(1), heure:"07:00"}),
-    course("ELA-26-10-LIEN4",Object.assign({statut:"confirmee"},LIEN,CH),{date:derniere.date, heure:derniere.heure})]);
+    course("ELA-26-10-LIEN1",Object.assign({statut:"confirmee"},LIEN,CH),{date:jourDans(1), heure:"15:00"})]);
 await p2.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
 await p2.waitForTimeout(700);
 /* Le bon se rouvre par la recherche du tableau de bord : c'est le geste réel. */
@@ -249,15 +240,12 @@ check('une course enregistrée avant le choix reste lisible : un tiret, pas une 
   await ouvrirBon("ELA-26-09-0002") && (await p2.locator('#bbPaiement').textContent())==='—',
   await p2.locator('#bbPaiement').textContent());
 
-// L'écriteau : allumé pour la course dont la limite tombe dans l'heure, et elle seule.
-await p2.locator('#btnRetourBord').click(); await p2.waitForTimeout(300);
-const ecriteau = await p2.locator('#bordPaiement').isVisible();
-const texteEc = ecriteau ? await p2.locator('#bordPaiement').textContent() : '';
-check('« Paiement attendu » s\'allume quand la limite tombe dans l\'heure', ecriteau && /Paiement attendu/.test(texteEc), texteEc);
-check('… pour cette course-là seulement (pas celle de demain)', !/courses/.test(texteEc), texteEc);
-await p2.locator('#bordPaiement').click(); await p2.waitForTimeout(300);
-check('l\'écriteau ouvre le bon de la course à relancer',
-  (await p2.locator('#bbRef').textContent())==='ELA-26-10-LIEN1', await p2.locator('#bbRef').textContent());
+/* PAS D'ÉCRITEAU « PAIEMENT ATTENDU » (11/10/2026, Barbaros : « chaque client
+   qui réserve paie »). Il ne doit plus exister. */
+check('aucun écriteau « Paiement attendu » sur le tableau de bord',
+  (await p2.locator('#bordPaiement').count()) === 0
+  && !/Paiement attendu/.test(await p2.locator('#ecran-bord').innerText()));
+check('le bon de la course payable par lien s\'ouvre', await ouvrirBon("ELA-26-10-LIEN1"));
 check('le bon montre le bloc « Paiement du client »', await p2.locator('#blocLienPaiement').isVisible());
 
 // Un lien non https est refusé, et rien ne part.
@@ -271,19 +259,17 @@ check('… et « Prévenir le client » n\'envoie rien', (await p2.evaluate(()=>
 await p2.fill('#bbLienPaiement', 'https://paie-moi.example/x');
 check('un service de paiement inconnu est signalé', await p2.locator('#bbLienAlerte').isVisible()
   && /inconnu/.test(await p2.locator('#bbLienAlerte').textContent()));
-// Le bon lien part, avec le montant et l'heure limite.
+// Le bon lien part, avec le montant.
 await p2.fill('#bbLienPaiement', 'https://pay.sumup.com/b2c/QWERTY');
 check('un lien SumUp ne déclenche aucune alerte', !(await p2.locator('#bbLienAlerte').isVisible()));
 await p2.evaluate(()=>{ window.__liens = []; });
 await p2.locator('#btnPrevenirClient').click(); await p2.waitForTimeout(300);
 const envoi = await p2.evaluate(()=>window.__liens[0] || '');
 const conf = decodeURIComponent(envoi.split('text=')[1] || '');
-const limAttendue = await p2.evaluate(o => { const x = new Date(new Date(o.date+'T'+o.heure).getTime() - 2*3600e3);
-  return 'avant ' + String(x.getHours()).padStart(2,'0') + ':' + String(x.getMinutes()).padStart(2,'0')
-    + ' le ' + String(x.getDate()).padStart(2,'0') + '/' + String(x.getMonth()+1).padStart(2,'0'); }, bientot);
 check('« Prévenir le client » écrit le lien de paiement', conf.includes('Lien de paiement : https://pay.sumup.com/b2c/QWERTY'), conf.replace(/\n/g,' | '));
-check('… avec le montant et l\'heure limite (2 h avant)',
-  conf.includes('Paiement à votre chauffeur : 70,00 €, ' + limAttendue), limAttendue + ' ⇢ ' + conf.split('\n').find(x=>x.startsWith('Paiement')));
+check('… avec le montant, et sans heure limite',
+  conf.includes('Paiement à votre chauffeur : 70,00 €. Votre chauffeur se met en route dès réception.')
+  && !/avant \d\d:\d\d|annulée/.test(conf), conf.split('\n').find(x=>x.startsWith('Paiement')));
 check('… et dit que l\'argent va au chauffeur, pas à Elatransfer', /Paiement à votre chauffeur/.test(conf));
 const lienGarde = await p2.evaluate(()=>{ const c = JSON.parse(localStorage.getItem('ela_bookings')||'[]').find(x=>x.ref==='ELA-26-10-LIEN1'); return c && c.lienPaiement; });
 check('le lien est enregistré sur la course', lienGarde === 'https://pay.sumup.com/b2c/QWERTY', String(lienGarde));
@@ -295,21 +281,6 @@ await p2.evaluate(()=>{ window.__liens = []; });
 await p2.locator('#btnPrevenirClient').click(); await p2.waitForTimeout(300);
 const conf2 = decodeURIComponent(((await p2.evaluate(()=>window.__liens[0])) || '').split('text=')[1] || '');
 check('une course payée ne réclame plus de paiement', conf2 && !/Lien de paiement/.test(conf2), conf2.replace(/\n/g,' | '));
-await p2.locator('#btnRetourBord').click(); await p2.waitForTimeout(300);
-check('payée, elle éteint l\'écriteau', !(await p2.locator('#bordPaiement').isVisible()));
-// Départ avant 8 h : limite la veille à 22:00.
-await ouvrirBon("ELA-26-10-LIEN3");
-const noteTot = await p2.locator('#bbLimitePaiement').textContent();
-const veille = await p2.evaluate(j => { const x = new Date(j+'T07:00'); x.setDate(x.getDate()-1);
-  return 'avant 22:00 le ' + String(x.getDate()).padStart(2,'0') + '/' + String(x.getMonth()+1).padStart(2,'0'); }, jourDans(1));
-check('départ avant 8 h : la limite est la veille à 22:00', noteTot.includes(veille), veille + ' ⇢ ' + noteTot);
-await ouvrirBon("ELA-26-10-LIEN4");
-check('demande de dernière minute (faite après sa limite) : avant l\'arrivée du chauffeur',
-  /avant l'arrivée du chauffeur/.test(await p2.locator('#bbLimitePaiement').textContent()),
-  await p2.locator('#bbLimitePaiement').textContent());
-await ouvrirBon("ELA-26-10-LIEN2");
-check('départ à 15:00 : la limite est 13:00', /avant 13:00 le/.test(await p2.locator('#bbLimitePaiement').textContent()),
-  await p2.locator('#bbLimitePaiement').textContent());
 check('aucun débordement horizontal dans l\'admin',
   (await p2.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth))===0);
 

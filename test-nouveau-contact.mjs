@@ -120,7 +120,8 @@ async function tunnel(options){
   const relu2 = (await p.locator('#telRelu').textContent()) || '';
   check('avec +44, il se relit « (Royaume-Uni) »', relu2.includes('+44') && relu2.includes('Royaume-Uni'), relu2);
   const visibles = await p.locator('#blocContact [data-contact]:visible').evaluateAll(l=>l.map(b=>b.dataset.contact));
-  check('numéro étranger : WhatsApp, Telegram ou iMessage', visibles.join(',') === 'whatsapp,telegram,messages', visibles.join(','));
+  /* iMessage retiré le 11/10/2026 (Barbaros) : WhatsApp ou Telegram. */
+  check('numéro étranger : WhatsApp ou Telegram, plus d\'iMessage', visibles.join(',') === 'whatsapp,telegram', visibles.join(','));
   check('« Appel / SMS », devenu invisible, est oublié — il ne partirait pas en douce',
     (await p.locator('#blocContact [aria-pressed="true"]').count()) === 0);
   check('la note explique pourquoi une application', await p.locator('#noteContactEtranger').isVisible());

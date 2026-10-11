@@ -51,6 +51,28 @@ de service, en français et en anglais.
 une alerte Telegram sur un paiement en retard (l'écriteau ne vit que dans
 l'admin ouvert).
 
+## 11 octobre 2026 — plus de délai, plus d'écriteau, plus d'iMessage
+
+Barbaros : « tu commandes, je confirme avec toi et le lien de paiement, tu
+paies, le chauffeur arrive » ; « non pas de paiement attendu, chaque client
+qui réserve paie ». La limite de 2 h (et sa variante « la veille à 22 h »,
+et la règle de dernière minute écrite pour elle) est retirée, l'écriteau
+« Paiement attendu » de l'admin aussi. Ce qui remplace : « votre chauffeur
+se met en route dès que le paiement est reçu » — au client, dans le message
+et dans les CGV (« un paiement tardif peut retarder la prise en charge »,
+qui protège d'un client payant dix minutes avant son vol). Conseillé : « vous
+contacte » plutôt que « vous appelle », pour ne pas promettre un appel à
+chaque client. Le numéro est écrit dans le bloc de paiement, pour un départ
+immédiat ou une réservation de vive voix.
+Moyens de confirmation : numéro français Appel/SMS ou WhatsApp ; étranger
+WhatsApp ou Telegram — **iMessage retiré** (oblige à écrire depuis un
+iPhone, et un voyageur étranger a presque toujours WhatsApp). La politique
+de confidentialité garde la mention d'iMessage : un SMS envoyé d'un iPhone
+peut passer par lui.
+Le lien du chauffeur arrive à Barbaros sur WhatsApp ; il le colle dans le bon
+et « Prévenir le client » l'envoie par le canal choisi (SMS pour « appel »,
+Telegram : message copié à coller).
+
 ---
 
 ## Avant le 10 octobre 2026 — la question « carte ou espèces »
