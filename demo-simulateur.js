@@ -336,7 +336,8 @@
     if(exemple) exemple.textContent = texte("Vos prix : ceux de votre flyer", "Your prices: the ones on your flyer");
     var photo = document.getElementById("demoPhotoTexte");
     if(photo){
-      photo.textContent = texte("Votre photo ici", "Your photo here");
+      var aPhoto = !!(lirePerso().photo || photoMemoire);
+      photo.textContent = aPhoto ? texte("Changer la photo", "Change the photo") : texte("Votre photo ici", "Your photo here");
       photo.parentNode.setAttribute("aria-label", texte("Choisir la photo de votre établissement", "Choose a photo of your business"));
     }
     traduire(document.getElementById("demoPerso"));
@@ -427,15 +428,16 @@
     if(rond) rond.textContent = initiales(nom);
     var c = couleurs(p.couleur);
     if(c) Object.keys(c).forEach(function(k){ racine.style.setProperty("--h-" + k, c[k]); });
+    /* La photo s'affiche dans le BANDEAU (la finition commune, comme chez
+       un partenaire) ; le cadre ne garde que son rôle de bouton. */
     var cadre = document.querySelector(".demo-photo");
     var photo = p.photo || photoMemoire;
-    if(cadre){
-      cadre.style.backgroundImage = photo ? "url(\"" + photo + "\")" : "";
-      cadre.classList.toggle("avec-photo", !!photo);
-    }
+    if(cadre) cadre.classList.toggle("avec-photo", !!photo);
+    var texteCadre = document.getElementById("demoPhotoTexte");
+    if(texteCadre) texteCadre.textContent = photo ? texte("Changer la photo", "Change the photo") : texte("Votre photo ici", "Your photo here");
     var msg = document.getElementById("demoMessage");
     if(msg){ msg.textContent = p.message || ""; msg.hidden = !p.message; }
-    try{ if(window.ELA_DEMO_PAGE) window.ELA_DEMO_PAGE.appliquer({ nom: p.nom, destinations: p.destinations, prix: p.prix }); }
+    try{ if(window.ELA_DEMO_PAGE) window.ELA_DEMO_PAGE.appliquer({ nom: p.nom, destinations: p.destinations, prix: p.prix, photo: photo }); }
     catch(e){ /* la page n'a pas d'hôtel ouvert : rien à repeindre */ }
     dessinerListeDest();
     dessinerPrix();
@@ -799,10 +801,11 @@
   };
 
   /* ═══ LA RÉCEPTION EN ANGLAIS (8 octobre 2026, à la demande de Barbaros) ═══
-     L'écran du comptoir est écrit en français dans le moteur. La vraie
-     réception easyHotel est traduite par SA finition (hotel-engine-polish.js),
-     que la démo ne charge pas : elle porte le nom et la photo d'easyHotel.
-     On traduit donc ici, à l'affichage, dans la démo seulement.
+     L'écran du comptoir est écrit en français dans le moteur. La finition
+     commune (hotel-engine-polish.js, chargée par la démo depuis le
+     11/10/2026) en traduit l'essentiel ; on traduit ici, à l'affichage, ce
+     qui est propre à la démo — les clients « (exemple) », le chauffeur
+     fictif, les lignes de détail.
      CHAQUE TEXTE GARDE SON FRANÇAIS D'ORIGINE (Map nœud → {fr, en}) : on
      rend l'anglais si la page est en anglais, le français sinon, et l'on
      n'écrit QUE si le texte change. Réécrire un texte identique est une
