@@ -239,10 +239,12 @@ function volDoiseauKm(a, b){
    et il s'en va. Quatre secondes chacun : au pire douze en tout avant le
    vol d'oiseau, ce qui reste tenable — et ce pire cas suppose les trois
    serveurs muets en même temps. */
-function fetchLimite(url, ms){
+function fetchLimite(url, ms, opts){
   var ctrl = new AbortController();
   var minuteur = setTimeout(function(){ ctrl.abort(); }, ms || 4000);
-  return fetch(url, { signal:ctrl.signal })
+  var o = { signal:ctrl.signal };
+  if(opts) for(var k in opts) o[k] = opts[k];
+  return fetch(url, o)
     .then(function(r){ clearTimeout(minuteur); return r; },
           function(e){ clearTimeout(minuteur); throw e; });
 }
@@ -255,8 +257,12 @@ function fetchLimite(url, ms){
    ailleurs : d'où son lecteur à part, juste en dessous. */
 function lireRoute(d, trafic){
   if(!(d && d.routes && d.routes[0])) throw new Error("route");
-  return { km:d.routes[0].distance/1000,
-           min:Math.round(d.routes[0].duration/60), estime:false,
+  var routes = [];
+  for(var i = 0; i < d.routes.length; i++){
+    var x = d.routes[i];
+    if(!x || typeof x.distance !== "number") continue;
+    routes.push({ km:x.distance/1000,
+           min:Math.round(x.duration/60), estime:false,
            /* Vrai seulement si la durée tient compte de la circulation.
               On ne l'affiche jamais « au cas où » : annoncer un temps de
               trajet « trafic pris en compte » alors qu'il ne l'est pas
@@ -265,7 +271,38 @@ function lireRoute(d, trafic){
            trafic:!!trafic,
            /* Le tracé est pris QUAND IL EST LÀ, et son absence n'est jamais
               une erreur : elle ne coûte que la carte, jamais le prix. */
-           trace:traceDepuisGeoJSON(d.routes[0].geometry) };
+           trace:traceDepuisGeoJSON(x.geometry) });
+  }
+  return choisirRoute(routes);
+}
+
+/* ═══ LA ROUTE FACTURÉE EST LA PLUS COURTE, PAS LA PLUS RAPIDE ═══
+   11/10/2026, capture de Barbaros : Argenteuil → Goussainville sorti à
+   40,7 km par Taverny et la Francilienne, pour 18 km à vol d'oiseau.
+   Les calculateurs rendent par défaut le trajet le plus RAPIDE ; or le
+   prix est un kilométrage. Le client payait donc 15 km de détour pour
+   gagner quelques minutes qu'il n'avait pas demandées. Sa décision :
+   « la plus courte, et avec autoroute, comme Waze ».
+   ON DEMANDE PLUSIEURS ROUTES ROUTIÈRES ET ON GARDE LA PLUS COURTE parmi
+   celles qui ne rallongent pas le trajet de plus de TOLERANCE_DUREE_MIN.
+   PAS le profil « shortest » d'ORS : il coupe par les petites rues et
+   les centres-villes — c'est la plus courte sur le papier, pas celle
+   qu'un chauffeur prend. Les routes proposées passent par les grands
+   axes ; la tolérance écarte celle qui gagnerait un kilomètre en
+   traversant tout Sarcelles. */
+var TOLERANCE_DUREE_MIN = 10;
+function choisirRoute(routes){
+  if(!routes || !routes.length) throw new Error("route");
+  var plusRapide = routes[0].min;
+  for(var i = 1; i < routes.length; i++)
+    if(routes[i].min < plusRapide) plusRapide = routes[i].min;
+  var retenue = null;
+  for(var j = 0; j < routes.length; j++){
+    var r = routes[j];
+    if(r.min > plusRapide + TOLERANCE_DUREE_MIN) continue;
+    if(!retenue || r.km < retenue.km) retenue = r;
+  }
+  return retenue;
 }
 
 /* Les services rendent le tracé en « lon, lat » ; Leaflet le veut en
@@ -283,17 +320,19 @@ function traceDepuisGeoJSON(g){
 }
 
 function lireRouteORS(d){
-  var s = d && d.features && d.features[0] && d.features[0].properties
-          && d.features[0].properties.summary;
-  /* Une réponse SANS résumé n'est pas une route de zéro kilomètre : c'est
-     une réponse qu'on n'a pas su lire. La laisser passer ferait un prix
-     au plancher sur un Paris → Roissy. */
-  if(!s || typeof s.distance !== "number") throw new Error("route");
-  /* ORS rend le tracé SANS QU'ON LE DEMANDE : il est dans la réponse
-     qu'on lit déjà, et on le jetait. La carte ne coûte donc aucun appel
-     supplémentaire sur le niveau qui sert aujourd'hui. */
-  return { km:s.distance/1000, min:Math.round(s.duration/60), estime:false,
-           trace:traceDepuisGeoJSON(d.features[0].geometry) };
+  var routes = [], f = (d && d.features) || [];
+  for(var i = 0; i < f.length; i++){
+    var s = f[i] && f[i].properties && f[i].properties.summary;
+    /* Une réponse SANS résumé n'est pas une route de zéro kilomètre :
+       c'est une réponse qu'on n'a pas su lire. La laisser passer ferait
+       un prix au plancher sur un Paris → Roissy. */
+    if(!s || typeof s.distance !== "number") continue;
+    /* ORS rend le tracé SANS QU'ON LE DEMANDE : il est dans la réponse
+       qu'on lit déjà. La carte ne coûte aucun appel supplémentaire. */
+    routes.push({ km:s.distance/1000, min:Math.round((s.duration||0)/60),
+                  estime:false, trace:traceDepuisGeoJSON(f[i].geometry) });
+  }
+  return choisirRoute(routes);
 }
 
 /* ═══ LE TRAFIC — CE QUI EST POSSIBLE, ET CE QUI NE L'EST PAS ═══
@@ -343,7 +382,7 @@ function itineraire(a, b, quand){
      complet pèse dix fois plus pour un trait identique à l'œil. */
   function parOSRM(){
     return fetchLimite("https://router.project-osrm.org/route/v1/driving/"
-                       + couple + "?overview=simplified&geometries=geojson")
+                       + couple + "?overview=simplified&geometries=geojson&alternatives=true")
       .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
       .then(lireRoute)
       .then(function(r){ r.source = "osrm"; return r; });
@@ -354,7 +393,7 @@ function itineraire(a, b, quand){
      dizaines de minutes, donc en clients qui ratent un vol. */
   function parMapbox(){
     var url = "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/"
-            + couple + "?overview=simplified&geometries=geojson&access_token="
+            + couple + "?overview=simplified&geometries=geojson&alternatives=true&access_token="
             + encodeURIComponent(CLE_MAPBOX);
     var at = quand ? departAt(quand.date, quand.heure) : "";
     if(at) url += "&depart_at=" + encodeURIComponent(at);
@@ -365,13 +404,34 @@ function itineraire(a, b, quand){
   /* ORS prend ses points en deux paramètres séparés, et « lon,lat » —
      l'ordre inverse de celui qu'on écrit d'habitude. Une inversion ici
      enverrait la course dans l'océan Indien sans le moindre message. */
-  function parORS(){
+  function parORSSimple(){
     return fetchLimite("https://api.openrouteservice.org/v2/directions/driving-car"
                        + "?api_key=" + encodeURIComponent(CLE_ORS)
                        + "&start=" + a.lon + "," + a.lat
                        + "&end="   + b.lon + "," + b.lat)
       .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
+      .then(lireRouteORS);
+  }
+  /* LES ROUTES ALTERNATIVES NE S'OBTIENNENT QU'EN POST chez ORS (le GET
+     n'en rend qu'une, la plus rapide). Même ordre « lon, lat », dans le
+     corps cette fois. ORS les refuse au-delà d'une certaine distance, et
+     ce service ne s'éprouve pas depuis la machine de travail : un refus
+     retombe donc sur l'appel d'avant, une seule route — jamais pire
+     qu'avant ce changement. */
+  function parORS(){
+    return fetchLimite("https://api.openrouteservice.org/v2/directions/driving-car/geojson"
+                       + "?api_key=" + encodeURIComponent(CLE_ORS), 4000, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+          coordinates:[[a.lon, a.lat], [b.lon, b.lat]],
+          instructions:false,
+          alternative_routes:{ target_count:3, weight_factor:1.6, share_factor:0.6 }
+        })
+      })
+      .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
       .then(lireRouteORS)
+      .catch(parORSSimple)
       .then(function(r){ r.source = "ors"; return r; });
   }
 
@@ -451,6 +511,7 @@ function prix(gamme, km){
     prix: prix,
     arrondiDizaine: arrondiDizaine,
     volDoiseauKm: volDoiseauKm,
+    choisirRoute: choisirRoute,
     departAt: departAt,
     depuisBAN: depuisBAN,
     depuisPhoton: depuisPhoton,
