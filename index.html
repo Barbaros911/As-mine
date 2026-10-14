@@ -3577,7 +3577,10 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     </div>
 
     <div class="bloc" id="blocPaiement">
-      <h2 class="bloc-titre" data-t="paiement_titre">Vous payez directement votre chauffeur</h2>
+      <!-- L'ancien titre (« vous payez … votre chauffeur ») se lisait comme
+           un paiement à bord (audit du 12/10/2026). Le titre nomme le sujet ;
+           la ligne juste en dessous dit la règle : par lien, avant le départ. -->
+      <h2 class="bloc-titre" data-t="paiement_titre">Paiement</h2>
       <!-- ═══ PAR LIEN, AVANT LE DÉPART (10 octobre 2026, Barbaros) ═══
            Le client ne choisit plus : il paie TOUJOURS avant le départ, par
            le lien de paiement du chauffeur qu'Elatransfer lui envoie avec la
@@ -6243,7 +6246,7 @@ window.ELA_TEXTES = {
     wa_msg1:"Bonjour, j'ai une question sur ma réservation.",
     wa_msg_ref:"Référence :",
     wa_msg2:"Bonjour, je voudrais des informations sur vos trajets.",
-    paiement_titre:"Vous payez directement votre chauffeur",
+    paiement_titre:"Paiement",
     paiement_lien_titre:"Par lien de paiement, avant le départ",
     paiement_lien_court:"Par lien, avant le départ",
     paiement_r1:"Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.",
@@ -6465,7 +6468,7 @@ window.ELA_TEXTES = {
     wa_msg1:"Hello, I have a question about my booking.",
     wa_msg_ref:"Reference:",
     wa_msg2:"Hello, I would like some information about your rides.",
-    paiement_titre:"You pay your chauffeur directly",
+    paiement_titre:"Payment",
     paiement_lien_titre:"By payment link, before departure",
     paiement_lien_court:"By link, before departure",
     paiement_r1:"Elatransfer contacts you to confirm your ride and sends you your chauffeur's payment link.",
