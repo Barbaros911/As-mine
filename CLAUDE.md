@@ -107,16 +107,13 @@ GitHub : les visiteurs voyaient la licorne rose de GitHub pendant que le site
 - **Cloudflare tombe aussi.** Plus rarement et moins longtemps, mais aucun
   hébergeur ne garantit 100 %. Ne pas le vendre comme une immunité.
 
-**NE JAMAIS CHANGER UN RÉGLAGE PAR DÉFAUT QU'ON NE PEUT PAS ÉPROUVER.**
-Règle posée le 4 septembre 2026, après une erreur. `html_handling` avait été
-mis à `"none"` pour que `/admin.html` garde son extension — une intuition,
-invérifiable depuis cette machine, qui n'a aucun accès réseau vers Cloudflare.
-`"none"` ne sert que les chemins **exacts** et supprime du même coup la
-résolution des **dossiers** : `/demos/` affichait le site de réservation à la
-place de la galerie, et la racine `/` ne fonctionnait que par le repli
-« adresse inconnue ». Barbaros l'a vu au premier essai.
-Le défaut (`auto-trailing-slash`) était correct. **Quand on ne peut pas
-tester, on garde le défaut** et on ne le change que sur un symptôme constaté.
+**NE JAMAIS CHANGER UN RÉGLAGE PAR DÉFAUT QU'ON NE PEUT PAS ÉPROUVER** : on
+garde le défaut, on ne le change que sur un symptôme constaté (`html_handling`
+à `"none"` avait cassé `/demos/` en 2026) — `memoire/hebergement.md`.
+
+**QUEL COMMIT EST EN LIGNE SE PROUVE** (14/10/2026) : `construire.sh` écrit
+`/version.json` ; le monitoring exige le dernier `main` (15 min de marge) et
+l'absence des textes de `.github/scripts/textes-interdits.mjs`, refusés aussi au build.
 
 **LES TROIS ADRESSES À ÉPROUVER APRÈS CHAQUE DÉPLOIEMENT CLOUDFLARE** — elles
 couvrent les trois mécanismes de service, et c'est la seule façon de voir une
@@ -1619,7 +1616,7 @@ tarifs dans la foulée** — voir juste en dessous.
 
 ### LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART
 10–11/10/2026 (Barbaros) : plus de carte ni d'espèces à bord ; Elatransfer envoie le lien du chauffeur avec la confirmation, le client paie, le chauffeur part. AUCUN délai ni écriteau « paiement attendu » : ne pas les remettre. Annulation client non remboursée ; course ratée de notre fait remboursée (CGV 5, 7).
-Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS, WhatsApp ou Telegram (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Histoire : `memoire/paiement-lien.md`.
+Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS, WhatsApp ou Telegram (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Les anciens boutons et textes sont RETIRÉS de la page, pas masqués (14/10). Histoire : `memoire/paiement-lien.md`.
 
 ### L'ADRESSE DE L'EXPLOITANT EST « /exploitant/ »
 

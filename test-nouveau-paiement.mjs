@@ -5,8 +5,9 @@
    client paie avant quoi qu'il arrive ». Il paie le CHAUFFEUR, par le lien
    que celui-ci envoie et qu'Elatransfer transmet avec la confirmation ; le
    chauffeur se met en route une fois le paiement reçu. Une annulation du
-   client n'est pas remboursée. Le COMPTOIR d'hôtel garde sa
-   question carte / espèces : test-nouveau-reception l'éprouve.
+   client n'est pas remboursée. Le COMPTOIR d'hôtel paie aussi par lien
+   depuis le 11/10/2026, et les boutons carte / espèces ne sont plus du tout
+   dans la page depuis le 14/10/2026 (textes-interdits.mjs).
    Ce qui est verrouillé ici, côté client : plus de boutons, les trois
    règles écrites AVANT « Confirmer », la course part sans choix, le bon et
    le message disent « lien », l'anglais suit. Côté exploitant : le lien

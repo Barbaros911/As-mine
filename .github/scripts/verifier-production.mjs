@@ -49,10 +49,20 @@
 
 import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
+import { chercher, exempte } from "./textes-interdits.mjs";
 
 const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || "https://elatransfer.com/").replace(/\/*$/, "/");
 const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[1] || "";
+/* LE COMMIT ATTENDU (14 octobre 2026) : « --commit=<sha> » exige que
+   /version.json, écrit par construire.sh, porte ce commit. « --attendre=N »
+   laisse N secondes à l'hébergeur pour finir sa construction : juste après
+   une fusion, Cloudflare construit encore, et un écart de quelques minutes
+   n'est pas une panne. Au-delà, si, et c'est exactement ce qu'aucun
+   contrôle ne voyait : une production restée sur un ancien commit répond
+   200 partout, avec les bons titres. */
+const COMMIT = ((args.find((a) => a.startsWith("--commit=")) || "").split("=")[1] || "").trim();
+const ATTENDRE = Number((args.find((a) => a.startsWith("--attendre=")) || "").split("=")[1] || 0);
 
 /* LES PORTES D'ENTRÉE, ET CHACUNE DOIT PROUVER QUI ELLE EST.
    `titre` n'est pas un confort : un code 200 ne dit pas QUELLE page a
@@ -159,6 +169,50 @@ for (const p of PAGES) {
     ko(`${p.quoi} (${url}) injoignable : ${e.message}`);
   }
 }
+
+/* ---- 1 bis. Le commit en ligne est-il celui qu'on attend ? ---------- */
+console.log("\nLa version en ligne :");
+async function lireVersion() {
+  try {
+    const r = await fetch(BASE + "version.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return { erreur: `r\u00e9pond ${r.status}` };
+    const brut = await r.text();
+    try { return JSON.parse(brut); } catch { return { erreur: "illisible (une autre page a r\u00e9pondu ?)" }; }
+  } catch (e) { return { erreur: `injoignable : ${e.message}` }; }
+}
+let version = await lireVersion();
+const limite = Date.now() + ATTENDRE * 1000;
+while (COMMIT && version.commit !== COMMIT && Date.now() < limite) {
+  console.log(`  \u2026 en ligne : ${version.commit || version.erreur} — attendu : ${COMMIT.slice(0, 12)} ; nouvel essai dans 30 s`);
+  await new Promise((f) => setTimeout(f, 30000));
+  version = await lireVersion();
+}
+rapport.version = version;
+if (version.erreur) ko(`/version.json ${version.erreur} \u2014 impossible de dire quel commit est en ligne`);
+else if (COMMIT && version.commit !== COMMIT) ko(`la production sert le commit ${version.commit} (construit le ${version.construit}) au lieu de ${COMMIT} \u2014 l'h\u00e9bergeur n'a pas publi\u00e9 le dernier main`);
+else ok(`commit en ligne : ${version.commit} \u00b7 cache ${version.cache} \u00b7 construit le ${version.construit}${COMMIT ? " \u2014 c'est bien le dernier main" : ""}`);
+
+/* ---- 1 ter. L'ancienne règle de paiement n'est pas en ligne ----------
+   On lit le HTML et les scripts tels que l'hébergeur les SERT, pas tels
+   que le dépôt les écrit : c'est la seule preuve de ce que reçoit un
+   client. Même liste que la construction (textes-interdits.mjs), mêmes
+   exemptions (l'admin relit des courses anciennes). */
+console.log("\nL'ancienne r\u00e8gle de paiement en ligne :");
+const PUBLICS = [...PAGES.map((p) => p.chemin), "chauffeur-prive-paris.html", "transfert-cdg-paris.html",
+  "transfert-orly-paris.html", "telephone.js", "itineraire-partage.js", "hotel-engine-polish.js", "sw.js",
+  "demo/demo-simulateur.js"].filter((c) => !exempte(c || "index.html"));
+let fautesTexte = 0;
+for (const c of PUBLICS) {
+  try {
+    const r = await fetch(BASE + c, { redirect: "follow" });
+    if (!r.ok) continue;
+    for (const x of chercher(await r.text())) {
+      fautesTexte++;
+      ko(`/${c} contient ${x.quoi} \u2014 \u2026 ${x.extrait} \u2026`);
+    }
+  } catch { /* une page injoignable est déjà signalée au point 1 */ }
+}
+if (!fautesTexte) ok(`aucune trace de l'ancienne r\u00e8gle dans les ${PUBLICS.length} pages et scripts publics servis`);
 
 /* ---- 2 à 4. La page d'accueil, vraiment ouverte --------------------- */
 const navigateur = await chromium.launch();

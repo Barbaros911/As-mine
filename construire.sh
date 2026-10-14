@@ -118,4 +118,21 @@ if [ "${ELA_AVEC_ADMIN_V2:-}" != "1" ]; then
   echo "Admin v2 retiré : /admin-v2.html renvoie vers /ela-admin/"
 fi
 
+# QUEL COMMIT EST EN LIGNE ? (14 octobre 2026). Rien ne permettait de le
+# prouver : la production pouvait avoir un ou dix commits de retard sans
+# qu'aucun contrôle ne le voie. Chaque construction écrit /version.json —
+# le commit construit et la version du cache du service worker — et le
+# contrôle de production (verifier-production.mjs --commit=…) le compare
+# au dernier main. La variable dépend de qui construit : GitHub Actions,
+# Cloudflare Workers Builds, Cloudflare Pages, sinon git lui-même.
+commit="${GITHUB_SHA:-${WORKERS_CI_COMMIT_SHA:-${CF_PAGES_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo inconnu)}}}"
+cache=$(sed -n 's/^const CACHE = "\([^"]*\)";.*/\1/p' sw.js)
+printf '{"commit":"%s","cache":"%s","construit":"%s"}\n' "$commit" "$cache" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > site/version.json
+
+# L'ANCIENNE RÈGLE DE PAIEMENT NE REPART JAMAIS EN LIGNE (14 octobre 2026) :
+# carte / espèces à bord, « aucun paiement en ligne », iMessage. Lu sur le
+# site construit, commentaires déjà retirés ; la liste est partagée avec le
+# contrôle de production (textes-interdits.mjs).
+node .github/scripts/verifier-textes-interdits.mjs site
+
 echo "site/ construit : $(find site -type f | wc -l) fichiers"
