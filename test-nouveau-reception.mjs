@@ -706,8 +706,7 @@ check('la règle « nom et téléphone » est écrite là où elle s\'applique',
   && /téléphone/.test(await p.locator('[data-t="aide_identite"]').textContent())
   && /lien de paiement/.test(await p.locator('[data-t="aide_identite"]').textContent()));
 check('plus de carte ni d\'espèces au comptoir : le paiement par lien est annoncé',
-  !(await p.locator('[data-paiement="especes"]').isVisible())
-  && !(await p.locator('[data-paiement="carte"]').isVisible())
+  (await p.locator('[data-paiement]').count()) === 0
   && await p.locator('#paiementLien').isVisible());
 
 /* LE PRIX SE CALCULE TOUT SEUL — sans ça il faudrait deux boutons sur la

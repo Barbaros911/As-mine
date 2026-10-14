@@ -264,9 +264,8 @@ async function jusquAuRecap(p){
   await p.locator('#btnContinuer').click({timeout:3000}).catch(()=>{});
   await p.waitForTimeout(300);
   await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
-  /* Plus de choix carte / espèces nulle part (comptoir compris depuis le
-     11/10/2026) ; le moyen de confirmation, lui, se choisit partout. */
-  if(await p.locator('[data-paiement="carte"]').isVisible()) await p.locator('[data-paiement="carte"]').click();
+  /* Plus de choix carte / espèces nulle part (retiré de la page le
+     12/10/2026) ; le moyen de confirmation, lui, se choisit partout. */
   if(!(await p.locator('#blocContact [aria-pressed="true"]').count())){
     const canal = p.locator('#blocContact [data-contact]:visible').first();
     if(await canal.count()) await canal.click({timeout:3000}).catch(()=>{});

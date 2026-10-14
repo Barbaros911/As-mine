@@ -959,8 +959,8 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .ligne.total{margin-top:2px;padding-top:11px;font-size:16px;}
 .ligne.total b{font-size:19px;font-weight:800;letter-spacing:-.02em;}
 .bloc-note{margin:11px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
-/* Le règlement par lien vaut pour le site et le flyer ; le comptoir
-   (body.reception) garde ses deux boutons, et eux seuls. */
+/* Le règlement par lien vaut partout : site, flyer et comptoir d'hôtel
+   (10–11/10/2026). Il n'y a plus de choix de règlement à faire. */
 .paiement-lien-tete{display:flex;align-items:center;gap:8px;margin:0;font-weight:600;font-size:14.5px;color:var(--encre);}
 .paiement-lien-tete svg{flex:0 0 auto;color:var(--accent);}
 .paiement-regles{margin:9px 0 0;padding:0 0 0 18px;font-size:12.5px;color:var(--gris);line-height:1.45;}
@@ -1058,7 +1058,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* Le message d'absence de choix reprend l'encadré rouge des refus : c'est le
    vocabulaire du site pour « il manque quelque chose ». En gris il se lisait
    comme une note de bas de bloc — vu à l'écran, on ne le remarquait pas. */
-.erreur-paiement{margin:12px 0 0;}
 
 /* ---------- LES DOCUMENTS LÉGAUX ---------- */
 .legal-lien{display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -3538,8 +3537,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        Le dernier écran avant l'envoi. Il porte le prix en toutes lettres et
        son détail HT / TVA : c'est le moment où le client accepte un montant
        ferme, il a le droit de savoir de quoi il est fait.
-       Aucun paiement en ligne, aucune donnée bancaire : le règlement se fait
-       au chauffeur, à bord.
+       Aucun paiement à cette étape : Elatransfer confirme, puis envoie le
+       lien de paiement du chauffeur, à régler avant le départ.
        ===================================================================== -->
   <section class="ecran" id="ecran-recap">
     <div class="trajet-tete">
@@ -3577,27 +3576,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            plus : elles font relire. -->
     </div>
 
-    <!-- LE MODE DE RÈGLEMENT SE DEMANDE AU CLIENT, PAS AU CHAUFFEUR.
-         Un chauffeur qui apprend en montant que le client paie par carte, et
-         qui n'a pas son terminal, se retrouve à chercher un distributeur avec
-         un client pressé. C'est UNE question, elle tient en deux boutons, et
-         elle évite exactement ça.
-         Le prix ne change pas d'un mode à l'autre : ce n'est pas un choix
-         commercial, c'est une information de préparation. -->
     <div class="bloc" id="blocPaiement">
-      <!-- ═══ LE TITRE AFFIRME, IL NE QUESTIONNE PLUS ═══
-           Septembre 2026, à sa demande : « pour un touriste étranger, je
-           simplifierais énormément ». « Comment réglerez-vous ? » posait une
-           question à quelqu'un qui se demandait encore s'il allait devoir
-           sortir sa carte sur un site inconnu. Le titre répond d'abord — on
-           paie le chauffeur, pas le site — et les deux boutons deviennent le
-           détail d'une chose déjà comprise.
-           LA CARTE EST ÉCRITE EN PREMIER, dans son ordre à lui : c'est ce
-           que cherche un client qui atterrit sans un euro sur lui.
-           PAS D'EMOJI, LES MÊMES DESSINS QU'AVANT. Un emoji change de forme
-           d'un téléphone à l'autre et grossit mal — la règle vaut ici comme
-           pour les voitures. Le résultat à l'écran est celui qu'il décrit. -->
-      <h2 class="bloc-titre" data-t="paiement_titre">Vous payez directement votre chauffeur</h2>
+      <!-- L'ancien titre (« vous payez … votre chauffeur ») se lisait comme
+           un paiement à bord (audit du 12/10/2026). Le titre nomme le sujet ;
+           la ligne juste en dessous dit la règle : par lien, avant le départ. -->
+      <h2 class="bloc-titre" data-t="paiement_titre">Paiement</h2>
       <!-- ═══ PAR LIEN, AVANT LE DÉPART (10 octobre 2026, Barbaros) ═══
            Le client ne choisit plus : il paie TOUJOURS avant le départ, par
            le lien de paiement du chauffeur qu'Elatransfer lui envoie avec la
@@ -3606,10 +3589,10 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            remboursement lue après le paiement ne protège personne.
            LE COMPTOIR D'HÔTEL AUSSI, depuis le 11/10/2026 (Barbaros) : la
            réception enregistre, Elatransfer envoie le lien au client. Les
-           anciens boutons carte / espèces et leur phrase « aucun paiement en
-           ligne » sont RETIRÉS de la page (14/10/2026) : masqués, ils
-           partaient encore dans le HTML publié, et quiconque lisait la
-           source croyait le site resté sur l'ancienne règle. -->
+           anciens boutons carte / espèces ont été RETIRÉS de la page le
+           12/10/2026 : cachés, ils restaient lisibles par tout outil qui lit
+           le code (audit, moteur de recherche) et faisaient croire à un
+           paiement à bord. -->
       <div class="paiement-lien" id="paiementLien">
         <p class="paiement-lien-tete">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -6259,7 +6242,7 @@ window.ELA_TEXTES = {
     wa_msg1:"Bonjour, j'ai une question sur ma réservation.",
     wa_msg_ref:"Référence :",
     wa_msg2:"Bonjour, je voudrais des informations sur vos trajets.",
-    paiement_titre:"Vous payez directement votre chauffeur",
+    paiement_titre:"Paiement",
     paiement_lien_titre:"Par lien de paiement, avant le départ",
     paiement_lien_court:"Par lien, avant le départ",
     paiement_r1:"Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.",
@@ -6477,7 +6460,7 @@ window.ELA_TEXTES = {
     wa_msg1:"Hello, I have a question about my booking.",
     wa_msg_ref:"Reference:",
     wa_msg2:"Hello, I would like some information about your rides.",
-    paiement_titre:"You pay your chauffeur directly",
+    paiement_titre:"Payment",
     paiement_lien_titre:"By payment link, before departure",
     paiement_lien_court:"By link, before departure",
     paiement_r1:"Elatransfer contacts you to confirm your ride and sends you your chauffeur's payment link.",
@@ -10321,13 +10304,10 @@ window.ELA_TEXTES = {
 /* =====================================================================
    COMMENT LE CLIENT RÈGLE
    ---------------------------------------------------------------------
-   Ce n'est pas une option commerciale : le prix est identique dans les
-   deux cas. C'est une information de PRÉPARATION pour le chauffeur —
-   avec la carte, il emporte son terminal ; sans, il ne s'encombre pas.
-   Rien n'est présélectionné, et c'est voulu. Cocher « Espèces » par
-   défaut donnerait une réponse que le client n'a pas donnée, et c'est
-   précisément le cas où le chauffeur arrive sans terminal devant
-   quelqu'un qui n'a pas un billet sur lui.
+   Toujours par le lien de paiement du chauffeur, avant le départ
+   (10/10/2026, comptoir d'hôtel compris depuis le 11/10/2026). Le client
+   ne choisit rien. « carte » et « espèces » ne sont plus lus que sur les
+   courses enregistrées avant cette date.
    ===================================================================== */
   /* Le libellé suit la langue du client à l'écran, mais celui qui part sur
      le bon et dans le message est en FRANÇAIS : c'est Barbaros et son
@@ -10811,7 +10791,7 @@ window.ELA_TEXTES = {
     erreurTel.hidden = true;
     /* Numéro étranger et demande envoyée par le site seul : sans
        l'application où le joindre, Barbaros n'aurait qu'un appel
-       international pour confirmer. Même geste que le règlement. */
+       international pour confirmer. */
     jugerContact();
     if(contactDemande() && !contactChoisi){
       var errC = document.getElementById("erreurContact");

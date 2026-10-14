@@ -227,8 +227,8 @@
       var vehicules=document.getElementById('listeVehicules');
       if(vehicules){
         var etape2=libelleEtape('receptionEtape2','2',
-          anglais?'VEHICLE & PAYMENT':'VÉHICULE & PAIEMENT',
-          anglais?'Choose the category, fixed price and payment method':'Choisissez la catégorie, le prix ferme et le règlement');
+          anglais?'VEHICLE & PRICE':'VÉHICULE & PRIX',
+          anglais?'Choose the category; the price is set in advance':'Choisissez la catégorie : le prix est annoncé à l\'avance');
         if(!etape2.parentNode) vehicules.parentNode.insertBefore(etape2,vehicules);
       }
     }
