@@ -94,7 +94,7 @@
       return { ref: ref, cree: Date.now() - 86400000, avance: 0, fixe: statut, destCle: destCle, gamme: gamme,
         bon: { ref: ref, statut: statut, provenanceCle: "demo-hotel", parReception: true,
           client: { nom: nom, telephone: "+33 6 39 98 00 1" + ref.slice(-1) },
-          paiement: "carte", paiementNom: "Carte bancaire",
+          paiement: "lien", paiementNom: "Lien de paiement, avant le départ",
           course: { date: jour(j), heure: heure, depart: adresse, departPublic: adresse,
                     arrivee: arrivee, vehicule: veh, chambre: chambre },
           prix: { total: 0 } } };
@@ -824,7 +824,7 @@
     "Client non nommé": "Unnamed guest", "Aucune réservation pour le moment.": "No booking yet.",
     "Aucune course à venir.": "No upcoming ride.", "Aucune course passée pour le moment.": "No past ride yet.",
     "Aucune course sur cette période.": "No ride in this period.",
-    "Berline": "Sedan", "Van": "Van", "Carte bancaire": "Card", "Carte": "Card", "Espèces": "Cash",
+    "Berline": "Sedan", "Van": "Van", "Lien de paiement, avant le départ": "Payment link, before departure",
     "Code de la réception": "Front desk code", "Ouvrir": "Open"
   };
   var JOURS_SEM = { lundi:"Monday", mardi:"Tuesday", mercredi:"Wednesday", jeudi:"Thursday",

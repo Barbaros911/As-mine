@@ -241,7 +241,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(500);
   const recEn = await p.evaluate(() => document.getElementById('ecran-reception').innerText);
   check('réception EN : les libellés passent en anglais', ['RECEPTION DESK', 'NEW RIDE', 'Something unexpected?', 'Find a ride', 'Upcoming', 'History', 'By date', 'Refresh', 'View voucher', 'Room 214', 'Ref. ELA-DEMO', 'Driver: '].every(m => recEn.includes(m)), recEn.slice(0, 300));
-  check('réception EN : les états et les jours passent en anglais', /CONFIRMED|Confirmed/.test(recEn) && /TOMORROW|Tomorrow/.test(recEn) && /Sedan · Card/.test(recEn));
+  check('réception EN : les états et les jours passent en anglais', /CONFIRMED|Confirmed/.test(recEn) && /TOMORROW|Tomorrow/.test(recEn) && /Sedan · Payment link, before departure/.test(recEn) && !/\b(Card|Cash)\b/.test(recEn));
   const restes = ['ESPACE RÉCEPTION', 'NOUVELLE COURSE', 'Retrouver une course', 'À venir', 'Historique', 'Actualiser', 'Voir le bon', 'Chambre ', 'Réf. ', 'Chauffeur : ', 'En attente', 'Réservation validée', 'Effectuée', 'Demain', "l'hôtel", 'Carte bancaire', '(exemple)'].filter(m => recEn.includes(m));
   check('réception EN : aucun libellé français ne reste', restes.length === 0, restes.join(' | '));
   check('réception EN : la recherche suit', (await p.getAttribute('#recRecherche', 'placeholder')) === 'Room, name, phone or reference');

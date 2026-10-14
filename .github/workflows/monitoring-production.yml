@@ -47,7 +47,7 @@ jobs:
   controler:
     name: le site en ligne répond-il
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     # Après une publication : seulement si elle a réussi. Contrôler
     # derrière une publication ratée mesurerait la version d'avant.
     if: >-
@@ -77,7 +77,20 @@ jobs:
           adresse="${{ github.event.inputs.adresse || 'https://elatransfer.com/' }}"
           echo "adresse=$adresse" >> "$GITHUB_OUTPUT"
 
+          # LE COMMIT ATTENDU EST LE DERNIER MAIN (14 octobre 2026), relu au
+          # moment du contrôle : après une fusion, c'est lui que l'hébergeur
+          # doit servir. Quinze minutes lui sont laissées pour construire ;
+          # au-delà, une production restée sur un ancien commit est une panne.
+          # Une adresse saisie à la main (un aperçu, une autre branche) n'est
+          # pas tenue au dernier main : on y lit le commit sans l'exiger.
+          attendu=""
+          if [ "$adresse" = "https://elatransfer.com/" ]; then
+            git fetch --quiet --depth=1 origin main && attendu=$(git rev-parse FETCH_HEAD)
+          fi
+          echo "Commit attendu : ${attendu:-(non exigé)}"
+
           node .github/scripts/verifier-production.mjs "$adresse" \
+            ${attendu:+--commit=$attendu --attendre=900} \
             --rapport="$RUNNER_TEMP/rapport.json" > "$RUNNER_TEMP/sortie.txt" 2>&1
           premier=$?
           cat "$RUNNER_TEMP/sortie.txt"
@@ -86,6 +99,7 @@ jobs:
             echo "::warning::Premier passage en échec — on réessaie une fois dans 60 s avant de déclarer un incident."
             sleep 60
             node .github/scripts/verifier-production.mjs "$adresse" \
+              ${attendu:+--commit=$attendu} \
               --rapport="$RUNNER_TEMP/rapport.json" > "$RUNNER_TEMP/sortie.txt" 2>&1
             second=$?
             cat "$RUNNER_TEMP/sortie.txt"
@@ -198,6 +212,8 @@ jobs:
               "- « sert une AUTRE page » → un réglage d'hébergeur, pas le code.",
               "- « fichier(s) du site manquent » → `construire.sh` ne publie pas ce fichier.",
               "- « on ne peut pas réserver » → la page est en ligne et ne sert à rien.",
+              "- « n'a pas publié le dernier main » ou « /version.json » → l'hébergeur (Cloudflare) sert un ancien commit : sa construction a échoué ou vise une autre branche.",
+              "- « contient … ancienne règle » → un texte de l'ancien paiement est servi en ligne.",
               "",
               "Aucune correction automatique n'est appliquée. Cette Issue se ferme d'elle-même dès qu'un contrôle repasse au vert.",
               "",

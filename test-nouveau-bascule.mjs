@@ -352,7 +352,7 @@ check('elle ne prétend plus déposer des cookies marketing',
   /n.active aucun outil de mesure d.audience publicitaire ou marketing/i.test(privacy)
   && !/cookies statistiques et marketing, uniquement/i.test(privacy));
 check('elle précise qu.aucune donnée bancaire n.est collectée',
-  /aucune donnée de carte bancaire/i.test(privacy));
+  /aucune donnée bancaire/i.test(privacy));
 
 // Un document se lit sur 390 px sans partir de côté.
 check('le document ne déborde pas en largeur',

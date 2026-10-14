@@ -51,6 +51,11 @@
 /sw.js
   Cache-Control: public, max-age=0, must-revalidate
 
+# Le commit publié (14/10/2026) : lu par le contrôle de production, il doit
+# dire ce qui est en ligne MAINTENANT, jamais ce qu'un cache a gardé.
+/version.json
+  Cache-Control: no-store
+
 # LA DÉMO DES PROFESSIONNELS (/demo/, octobre 2026) — isolée de la
 # production. Même règle que la balise <meta> de ses pages (test-demo-hotel
 # vérifie que les deux disent la même chose) : elle ne peut joindre que le

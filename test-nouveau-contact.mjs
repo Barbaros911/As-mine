@@ -150,9 +150,14 @@ async function tunnel(options){
 {
   const { ctx, p } = await tunnel({ tel:'06 12 34 56 78' });
   const pol = await p.evaluate(()=>({ fr: window.ELA_TEXTES.fr.legal_privacy_body, en: window.ELA_TEXTES.en.legal_privacy_body }));
-  check('la politique de confidentialité nomme Telegram et iMessage, en français',
-    pol.fr.includes('Telegram') && pol.fr.includes('iMessage') && pol.fr.includes('moyen de contact choisi'));
-  check('et en anglais', pol.en.includes('Telegram') && pol.en.includes('iMessage') && pol.en.includes('channel chosen'));
+  /* iMessage retiré le 11/10/2026 : la politique ne nomme plus que les
+     canaux réellement proposés (14/10/2026). */
+  check('la politique de confidentialité nomme Telegram, plus iMessage, en français',
+    pol.fr.includes('Telegram') && !pol.fr.includes('iMessage') && pol.fr.includes('moyen de contact choisi'));
+  check('et en anglais', pol.en.includes('Telegram') && !pol.en.includes('iMessage') && pol.en.includes('channel chosen'));
+  check('elle dit le paiement par lien, plus « règle actuellement le chauffeur »',
+    pol.fr.includes('lien de paiement du chauffeur') && !/actuellement le chauffeur/.test(pol.fr)
+    && pol.en.includes("driver's payment link") && !/currently pays/.test(pol.en));
   await ctx.close();
 }
 
