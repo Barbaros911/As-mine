@@ -17372,7 +17372,10 @@ window.ELA_TEXTES = {
     var PARAMS_ENTREE = ["aeroport", "sens", "vers", "src", "lang"];
     var params = new URLSearchParams(location.search);
     lireOrigine(params);
-    mesurerVisite("moteur_ouvert");
+    /* Un visiteur venu LIRE un document (« ?doc=cgv » depuis le pied d'une
+       page d'acquisition) n'a pas ouvert le moteur pour réserver : le
+       compter gonflerait l'entonnoir d'une page qui n'a rien produit. */
+    if(!params.has("doc")) mesurerVisite("moteur_ouvert");
     var code = (params.get("aeroport") || "").trim().toLowerCase();
     var sens = (params.get("sens") || "").trim().toLowerCase();
     var vers = (params.get("vers") || "").trim().toLowerCase();

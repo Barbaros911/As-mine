@@ -409,6 +409,18 @@ const DISNEY = { geometry: { coordinates: [2.7836, 48.8722] }, properties: { nam
   await hotel.ctx.close();
 }
 
+// 5f. Un lien légal d'une page anglaise ouvre le document EN ANGLAIS, et ne compte pas comme un moteur ouvert.
+{
+  const { ctx, p, mesures } = await moteur('/?lang=en&doc=cgv');
+  const v = await p.evaluate(() => ({ actif: document.getElementById('ecran-legal')?.classList.contains('actif'),
+    titre: document.getElementById('legalTitre')?.textContent, attendu: window.ELA_TEXTES.en.legal_cgv,
+    debut: (document.getElementById('legalCorps')?.textContent || '').slice(0, 40), adresse: location.search }));
+  check('lien légal : les conditions s\'ouvrent, en anglais', v.actif && v.titre === v.attendu && /^TERMS/.test(v.debut), JSON.stringify(v));
+  check('lien légal : « doc » reste lisible, « lang » est effacé', v.adresse === '?doc=cgv', v.adresse);
+  check('lien légal : pas compté comme un moteur ouvert', !mesures.some(m => m.p_evenement === 'moteur_ouvert'), JSON.stringify(mesures));
+  await ctx.close();
+}
+
 /* ═══ 6. LA MESURE DES PAGES D'ACQUISITION ═══ */
 {
   const { ctx, p, mesures, erreurs } = await moteur('/en/cdg-airport-transfer-paris/');
