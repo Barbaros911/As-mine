@@ -89,9 +89,29 @@ await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
 
 // ---- Plus de question : la règle, écrite avant « Confirmer » ----
-check('les boutons carte / espèces ne sont plus montrés au client',
-  !(await p.locator('[data-paiement="especes"]').isVisible())
-  && !(await p.locator('[data-paiement="carte"]').isVisible()));
+check('les boutons carte / espèces n\'existent plus dans la page',
+  (await p.locator('[data-paiement]').count()) === 0);
+/* CACHÉS NE SUFFIT PAS (12/10/2026) : un outil qui lit le code de la page
+   — un audit, un moteur de recherche — ne voit pas la règle CSS qui cache,
+   et lisait « Carte bancaire / Espèces / Aucun paiement en ligne » comme si
+   le site proposait encore de payer à bord. On lit donc la SOURCE servie. */
+const source = await (await p.request.get(p.url().split('?')[0])).text();
+const vieux = ['Aucun paiement en ligne', 'No online payment', 'data-paiement=', 'Indiquez comment vous réglerez', 'Tell us how you will pay']
+  .filter(m => source.includes(m));
+check('la page servie ne porte plus aucun texte de l\'ancien règlement à bord', vieux.length === 0, vieux.join(' · '));
+/* TROIS PHRASES QUI SE LISAIENT COMME UN PAIEMENT À BORD (12/10/2026) :
+   le titre du bloc, la note de la page du QR easyHotel et l'étape 2 du
+   comptoir. On lit les fichiers sources, deux langues comprises. */
+{ const { readFileSync } = await import('node:fs');
+  const lire = f => readFileSync(new URL('./' + f, import.meta.url), 'utf8');
+  const ambigus = [
+    ['index.html', /payez directement votre chauffeur|pay your chauffeur directly/i],
+    ['sites/easyhotel-client/index.html', /Paiement au chauffeur|Pay the driver/i],
+    ['hotel-engine-polish.js', /prix ferme et le règlement|fixed price and payment method/i],
+  ].filter(([f, re]) => re.test(lire(f))).map(([f]) => f);
+  check('plus aucune phrase qui laisse croire à un paiement à bord', ambigus.length === 0, ambigus.join(' · '));
+  check('le bloc de paiement s\'intitule « Paiement »',
+    (await p.locator('#blocPaiement .bloc-titre').textContent()).trim() === 'Paiement'); }
 check('le bloc dit « par lien de paiement, avant le départ »',
   await p.locator('#paiementLien').isVisible()
   && /lien de paiement, avant le départ/i.test(await p.locator('#paiementLien').innerText()));
@@ -133,7 +153,7 @@ await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56
 await p.evaluate(()=>{ if(document.querySelector('#blocContact [aria-pressed="true"]')) return; const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent); if(b) b.click(); });
 await p.locator('#btnConfirmer').click(); await p.waitForTimeout(800);
 check('la course part sans qu\'on demande un mode de règlement', await p.locator('#ecran-bon').isVisible());
-check('aucun refus « indiquez comment vous réglerez »', !(await p.locator('#erreurPaiement').isVisible()));
+check('aucun refus « indiquez comment vous réglerez »', (await p.locator('#erreurPaiement').count()) === 0);
 check('le bon dit « Par lien, avant le départ »',
   (await p.locator('#bonPaiement').textContent())==='Par lien, avant le départ',
   await p.locator('#bonPaiement').textContent());
