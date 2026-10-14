@@ -2468,9 +2468,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .forfait-nom{font-size:15px;font-weight:600;color:var(--encre);min-width:0}
 .forfait-ligne input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
 .forfait-ligne input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
-.page-ligne{grid-template-columns:1fr 64px 92px}
-.page-effet{font-size:12px;color:var(--gris);text-align:right;line-height:1.3}
-.page-ligne.forfait-tete span:last-child{text-align:right}
+.page-bloc{padding:10px 12px;border-top:1px solid var(--filet)}
+.page-bloc:first-child{border-top:0}
+.page-champs{display:grid;grid-template-columns:64px 1fr 1fr;gap:8px;margin-top:6px}
+.page-champs label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--gris);min-width:0}
+.page-champs input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
+.page-champs input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
+.page-champs input::placeholder{font-weight:500;color:#A3AFBB}
+.page-effet{display:block;margin-top:6px;font-size:12px;color:var(--gris);line-height:1.3}
 /* Centre de contrôle : des tableaux qui tiennent à 320 px. La première
    colonne prend le reste, les chiffres sont alignés à droite. */
 .cc-table{margin:10px 0 14px;border:1px solid var(--filet);border-radius:12px;overflow:hidden;background:var(--carte)}
@@ -4535,11 +4540,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 
       <!-- LE PRIX DES PAGES DÉDIÉES (14 octobre 2026, à sa demande : « pour
            les pages que l'on crée pour les touristes, afficher un prix plus
-           cher », réglable page par page). Un pourcentage ajouté au tarif au
-           kilomètre, pour un client arrivé de cette page. 0 = le prix du
-           site. Voir « majorationPage » pour l'arithmétique et ses limites. -->
+           cher », puis « modifier au km n'importe quelle page »). Par page :
+           un pourcentage ajouté au tarif du site, et/ou un tarif au km par
+           gamme, qui l'emporte. Rien de saisi = le prix du site. Voir
+           « reglePage » pour l'arithmétique et ses limites. -->
       <h3 class="bloc-titre" style="margin-top:18px">Prix des pages</h3>
-      <p class="bloc-note" id="pagesAide">Un pourcentage s'ajoute au tarif au kilomètre pour un client venu de la page. 0 = même prix que le site. Le minimum et les forfaits du flyer ne changent pas. Le client voit ce prix avant de réserver.</p>
+      <p class="bloc-note" id="pagesAide">Pour un client venu de la page : un pourcentage ajouté au tarif du site, ou un prix au km par gamme (il passe avant le pourcentage). Case vide ou 0 = prix du site. Le minimum et les forfaits du flyer ne changent pas. Le client voit ce prix avant de réserver.</p>
       <div id="tarifPages" class="forfaits-grille"></div>
       <button class="bouton" type="button" id="btnPagesEnregistrer">
         <span>Enregistrer les prix des pages</span>
@@ -9058,70 +9064,87 @@ window.ELA_TEXTES = {
       })
       .catch(function(){ clearTimeout(m2); /* repli : HOTELS garde ses valeurs */ });
 
-    /* LA MAJORATION DES PAGES — voir « majorationPage ». Une troisième vue,
-       qui ne rend que des pourcentages. Sans réponse, aucune majoration :
-       le repli est le prix du site, jamais un prix inventé. */
+    /* LE PRIX DES PAGES — voir « reglePage ». Une troisième vue, qui ne
+       rend que des pourcentages et des tarifs au km. Sans réponse, aucune
+       règle : le repli est le prix du site, jamais un prix inventé. */
     var t3 = new AbortController(), m3 = setTimeout(function(){ t3.abort(); }, 4000);
-    var l3 = fetch(SUPABASE_URL + "/rest/v1/majorations_pages_publiques?select=page,pourcentage",
+    var l3 = fetch(SUPABASE_URL + "/rest/v1/prix_pages_publics?select=page,pourcentage,berline_km_centimes,van_km_centimes",
           { signal:t3.signal, headers:{ apikey:SUPABASE_CLE } })
       .then(function(r){
         clearTimeout(m3);
-        majorationsLues = r.ok ? "ok" : (r.status === 404 ? "absente" : "panne");
+        prixPagesLus = r.ok ? "ok" : (r.status === 404 ? "absente" : "panne");
         return r.ok ? r.json() : null;
       })
       .then(function(lignes){
         if(!Array.isArray(lignes)) return;
         lignes.forEach(function(l){
-          var p = Number(l.pourcentage);
-          if(typeof l.page === "string" && p > 0 && p <= MAJORATION_MAX) MAJORATION_PAGES[l.page] = p;
+          if(typeof l.page !== "string") return;
+          var r = regleValide({ pourcentage: Number(l.pourcentage),
+            berline: Number(l.berline_km_centimes) / 100, van: Number(l.van_km_centimes) / 100 });
+          if(r) PRIX_PAGES[l.page] = r;
         });
       })
-      .catch(function(){ clearTimeout(m3); majorationsLues = "panne"; });
+      .catch(function(){ clearTimeout(m3); prixPagesLus = "panne"; });
     tarifsLus = Promise.all([l1, l2, l3]).then(function(){}, function(){});
   }
 
   /* ═══ LE PRIX D'UNE PAGE DÉDIÉE (14 octobre 2026) ═══
      Barbaros : « pour les pages que l'on crée pour les touristes, afficher
-     un prix plus cher », réglable page par page depuis l'admin
-     (Réglages → « Prix des pages »). C'est un POURCENTAGE ajouté au tarif
-     au kilomètre, pour un client arrivé d'une page de la liste ORIGINES.
-     0 PAR DÉFAUT : rien ne change tant qu'il ne l'a pas réglé, et on ne
-     devine pas un prix à sa place.
-     — Le tarif au km de la page est arrondi AU CENTIME (2,90 € + 20 % =
-       3,48 €/km) : un tarif est toujours un montant en centimes, et ça
-       évite qu'une poussière de virgule flottante fasse franchir le 5 pile
-       de l'arrondi à la dizaine.
-     — L'ORDRE NE CHANGE PAS : kilométrage → arrondi → plancher. La
-       majoration prend la place de l'ancienne majoration de nuit ; le
-       MINIMUM reste celui du site (une course de 5 km reste à 35 €).
+     un prix plus cher », puis « je dois pouvoir aussi modifier au km
+     n'importe quelle page ». Réglages → « Prix des pages » : pour chaque page
+     de la liste ORIGINES, un POURCENTAGE ajouté au tarif au km du site, et/ou
+     un TARIF AU KM par gamme. Le tarif au km saisi l'emporte sur le
+     pourcentage, gamme par gamme ; rien de saisi = le prix du site. Rien
+     n'est réglé par défaut : on ne devine pas un prix à sa place.
+     — Le tarif majoré est arrondi AU CENTIME (2,90 € + 20 % = 3,48 €/km) :
+       un tarif est toujours un montant en centimes.
+     — L'ORDRE NE CHANGE PAS : kilométrage → arrondi → plancher. Le MINIMUM
+       reste celui du site (une course de 5 km reste à 35 €).
      — Ni forfait de flyer, ni pancarte, ni course « tarif à confirmer » :
-       seul le kilométrage est majoré.
+       seul le kilométrage change.
      — LE PRIX AFFICHÉ EST LE PRIX FACTURÉ : tout passe par « prixGamme »,
        donc la liste des gammes, le récapitulatif, le bon et le message
        partent du même chiffre. Les CGV (art. 4) disent que le tarif peut
        différer selon la page — sans chiffre, comme toujours.
      — L'origine vit le temps de la page : un client qui recharge sans
-       « src » retrouve le prix du site. C'est en sa faveur, jamais contre. */
-  var MAJORATION_PAGES = {};
-  var MAJORATION_MAX = 100;
-  var majorationsLues = "attente";
-  function majorationPage(){
-    if(modeHotel() || !origineVisite) return 0;
-    var p = Number(MAJORATION_PAGES[origineVisite]);
-    return p > 0 ? p : 0;
+       « src » retrouve le prix du site. */
+  var PRIX_PAGES = {};
+  var POURCENTAGE_MAX = 100, KM_MIN = 0.5, KM_MAX = 20;
+  var prixPagesLus = "attente";
+  /* La seule porte d'une règle : ce qui sort des bornes n'existe pas. Rend
+     null quand il ne reste rien à appliquer. */
+  function regleValide(r){
+    var o = {};
+    if(r.pourcentage > 0 && r.pourcentage <= POURCENTAGE_MAX) o.pourcentage = r.pourcentage;
+    ["berline","van"].forEach(function(g){
+      if(r[g] >= KM_MIN && r[g] <= KM_MAX) o[g] = Math.round(r[g] * 100) / 100;
+    });
+    return Object.keys(o).length ? o : null;
+  }
+  function reglePage(){
+    if(modeHotel() || !origineVisite) return null;
+    return PRIX_PAGES[origineVisite] || null;
   }
   /* En CENTIMES, entiers : 2,30 × 105 vaut 241,4999… en virgule flottante,
      et l'arrondi au centime tomberait du mauvais côté (2,41 au lieu de
      2,42 €/km — 81 couples tarif × pourcentage sont dans ce cas, mesuré).
-     230 × 105 / 100 = 241,5 → 242 centimes, sans surprise. L'écran de
-     l'admin affiche le même calcul, par la même fonction. */
+     230 × 105 / 100 = 241,5 → 242 centimes, sans surprise. */
   function tarifKmMajore(parKm, p){
     return Math.round(Math.round(parKm * 100) * (100 + p) / 100) / 100;
   }
+  /* Le tarif au km d'une gamme sous une règle : celui saisi pour la page,
+     sinon le tarif du site majoré, sinon le tarif du site. L'écran de
+     l'admin l'affiche par la même fonction. */
+  function tarifKmPage(g, r){
+    if(!r) return g.parKm;
+    if(r[g.cle] > 0) return r[g.cle];
+    if(r.pourcentage > 0) return tarifKmMajore(g.parKm, r.pourcentage);
+    return g.parKm;
+  }
   function grillePage(g){
-    var p = majorationPage();
-    if(!p) return g;
-    return { cle:g.cle, nom:g.nom, places:g.places, mini:g.mini, parKm: tarifKmMajore(g.parKm, p) };
+    var r = reglePage();
+    if(!r) return g;
+    return { cle:g.cle, nom:g.nom, places:g.places, mini:g.mini, parKm: tarifKmPage(g, r) };
   }
   /* L'APPEL LUI-MÊME EST PLUS BAS, APRÈS « SUPABASE_URL »/« SUPABASE_CLE » :
      cette fonction est définie ici, mais tant que ces deux constantes ne
@@ -15571,16 +15594,17 @@ window.ELA_TEXTES = {
     GAMMES.forEach(function(g){
       zf.appendChild(ligneCc([g.nom, euros(g.parKm), eurosRond(g.mini)]));
     });
-    /* Les pages qui vendent plus cher que le site : une ligne chacune, et
-       rien si toutes sont à 0 — c'est le cas normal. */
-    var majorees = Object.keys(ORIGINES).filter(function(k){ return MAJORATION_PAGES[k] > 0; });
-    if(majorees.length){
-      zf.appendChild(ligneCc(["Prix des pages", "Majoration", "Berline au km"], "cc-tete"));
-      var berline = GAMMES.filter(function(g){ return g.cle === "berline"; })[0];
-      majorees.forEach(function(k){
-        var p = MAJORATION_PAGES[k];
-        zf.appendChild(ligneCc([ORIGINES[k], "+" + p + " %",
-          berline ? euros(tarifKmMajore(berline.parKm, p)) : "—"]));
+    /* Les pages qui ont leur propre prix : une ligne chacune, avec le tarif
+       au km qu'elles appliquent vraiment — et rien si aucune n'en a, c'est
+       le cas normal. */
+    var reglees = Object.keys(ORIGINES).filter(function(k){ return PRIX_PAGES[k]; });
+    if(reglees.length){
+      var gb = GAMMES.filter(function(g){ return g.cle === "berline"; })[0];
+      var gv = GAMMES.filter(function(g){ return g.cle === "van"; })[0];
+      zf.appendChild(ligneCc(["Prix des pages", "Berline €/km", "Van €/km"], "cc-tete"));
+      reglees.forEach(function(k){
+        var r = PRIX_PAGES[k];
+        zf.appendChild(ligneCc([ORIGINES[k], gb ? euros(tarifKmPage(gb, r)) : "—", gv ? euros(tarifKmPage(gv, r)) : "—"]));
       });
     }
     Object.keys(HOTELS).forEach(function(hk){
@@ -16035,49 +16059,87 @@ window.ELA_TEXTES = {
     dessinerPrixPages();
   }
 
-  /* LE PRIX DES PAGES : une ligne par page de la liste ORIGINES, le
-     pourcentage, et ce qu'il donne au kilomètre — un « +20 % » ne se
-     relit pas, « 3,48 €/km » si. Même mécanique que les forfaits : seul
-     ce qui a changé passe en bleu. */
+  /* LE PRIX DES PAGES : une carte par page de la liste ORIGINES, trois
+     cases (pourcentage, Berline €/km, Van €/km) et, dessous, le tarif au km
+     que la page applique VRAIMENT — calculé par « tarifKmPage », la fonction
+     du moteur. Un « +20 % » ne se relit pas, « 3,48 € » si. Même mécanique
+     que les forfaits : seul ce qui a changé passe en bleu, et part. */
+  function lireCasesPage(cle){
+    var v = function(id){ var e = document.getElementById(id); return e ? e.value.trim() : ""; };
+    return { pourcentage: v("pagePct_" + cle), berline: v("pageKm_" + cle + "_berline"), van: v("pageKm_" + cle + "_van") };
+  }
+  /* Une case vide ou à 0 ne règle rien ; sinon elle doit tenir dans ses
+     bornes — un tarif au km a au plus deux décimales. Rend le motif d'un
+     refus, ou rien. */
+  /* « 3,75 » comme « 3.75 » : un clavier français tape une virgule. */
+  function nombreSaisi(texte){ return Number(String(texte).trim().replace(",", ".")); }
+  function refusCase(champ, texte){
+    if(texte === "" || nombreSaisi(texte) === 0) return "";
+    var n = nombreSaisi(texte);
+    if(champ === "pourcentage")
+      return (n > 0 && n <= POURCENTAGE_MAX && Math.round(n) === n) ? "" : "un pourcentage entier de 0 à " + POURCENTAGE_MAX;
+    return (n >= KM_MIN && n <= KM_MAX && Math.abs(Math.round(n * 100) - n * 100) < 1e-6) ? ""
+      : "un prix au km de " + euros(KM_MIN) + " à " + euros(KM_MAX);
+  }
+  function regleDesCases(c){
+    return regleValide({ pourcentage: refusCase("pourcentage", c.pourcentage) ? 0 : nombreSaisi(c.pourcentage),
+      berline: refusCase("berline", c.berline) ? 0 : nombreSaisi(c.berline),
+      van: refusCase("van", c.van) ? 0 : nombreSaisi(c.van) });
+  }
   function dessinerPrixPages(){
     var zone = document.getElementById("tarifPages");
     if(!zone) return;
     while(zone.firstChild) zone.removeChild(zone.firstChild);
-    direPages(majorationsLues === "absente"
+    direPages(prixPagesLus === "absente"
       ? "Le serveur ne publie pas encore ces prix (migration 20261014010000 à appliquer) : tant que ce n'est pas fait, les pages gardent le prix du site."
-      : "", majorationsLues === "absente");
-    var tete = document.createElement("div"); tete.className = "forfait-ligne forfait-tete page-ligne";
-    ["Page","%","Au km"].forEach(function(t){
-      var c = document.createElement("span"); c.textContent = t; tete.appendChild(c);
-    });
-    zone.appendChild(tete);
+      : "", prixPagesLus === "absente");
     Object.keys(ORIGINES).forEach(function(cle){
-      var ligne = document.createElement("div"); ligne.className = "forfait-ligne page-ligne";
+      var r = PRIX_PAGES[cle] || {};
+      var bloc = document.createElement("div"); bloc.className = "page-bloc";
       var nom = document.createElement("span"); nom.className = "forfait-nom"; nom.textContent = ORIGINES[cle];
-      var input = document.createElement("input");
-      input.type = "number"; input.min = "0"; input.max = String(MAJORATION_MAX); input.step = "1";
-      input.inputMode = "numeric";
-      input.id = "majoration_" + cle;
-      input.setAttribute("aria-label", ORIGINES[cle] + " — majoration en pourcentage");
-      input.dataset.page = cle;
-      input.value = String(MAJORATION_PAGES[cle] || 0);
-      input.dataset.initial = input.value;
+      var champs = document.createElement("div"); champs.className = "page-champs";
       var effet = document.createElement("span"); effet.className = "page-effet";
       function ecrireEffet(){
-        var p = Number(input.value);
-        var ok = input.value !== "" && p >= 0 && p <= MAJORATION_MAX;
-        effet.textContent = ok ? GAMMES.map(function(g){
-          return euros(tarifKmMajore(g.parKm, p));
-        }).join(" · ") : "—";
+        var c = lireCasesPage(cle);
+        var faux = ["pourcentage","berline","van"].some(function(k){ return refusCase(k, c[k]); });
+        var regle = regleDesCases(c);
+        effet.textContent = faux ? "Valeur à corriger"
+          : (regle ? "Appliqué au km : " : "Prix du site : ") + GAMMES.map(function(g){
+              return g.nom + " " + euros(tarifKmPage(g, regle));
+            }).join(" · ");
+        effet.style.color = faux ? "#C9302F" : "";
       }
-      input.addEventListener("input", function(){
-        input.classList.toggle("modifie", input.value !== input.dataset.initial);
-        ecrireEffet();
-        direPages("", false);
+      [["pourcentage","%"],["berline","Berline €/km"],["van","Van €/km"]].forEach(function(c){
+        var label = document.createElement("label");
+        var titre = document.createElement("span"); titre.textContent = c[1];
+        var input = document.createElement("input");
+        if(c[0] === "pourcentage"){
+          input.type = "number"; input.min = "0";
+          input.id = "pagePct_" + cle; input.max = String(POURCENTAGE_MAX); input.step = "1";
+          input.inputMode = "numeric"; input.value = String(r.pourcentage || 0);
+          input.setAttribute("aria-label", ORIGINES[cle] + " — pourcentage ajouté au tarif du site");
+        } else {
+          var g = GAMMES.filter(function(x){ return x.cle === c[0]; })[0];
+          /* En texte, pas en nombre : la case garde la virgule française
+             (« 3,75 »), comme le prix au km écrit à côté. */
+          input.type = "text"; input.id = "pageKm_" + cle + "_" + c[0]; input.inputMode = "decimal";
+          input.value = r[c[0]] ? r[c[0]].toFixed(2).replace(".", ",") : "";
+          input.placeholder = g ? g.parKm.toFixed(2).replace(".", ",") : "";
+          input.setAttribute("aria-label", ORIGINES[cle] + " — " + (g ? g.nom : c[0]) + ", prix au km en euros");
+        }
+        input.dataset.page = cle; input.dataset.champ = c[0];
+        input.dataset.initial = input.value;
+        input.addEventListener("input", function(){
+          input.classList.toggle("modifie", input.value !== input.dataset.initial);
+          ecrireEffet();
+          direPages("", false);
+        });
+        label.appendChild(titre); label.appendChild(input);
+        champs.appendChild(label);
       });
+      bloc.appendChild(nom); bloc.appendChild(champs); bloc.appendChild(effet);
+      zone.appendChild(bloc);
       ecrireEffet();
-      ligne.appendChild(nom); ligne.appendChild(input); ligne.appendChild(effet);
-      zone.appendChild(ligne);
     });
   }
   function direPages(texte, erreur){
@@ -16202,44 +16264,69 @@ window.ELA_TEXTES = {
   });
 
   /* ON LIT AVANT D'ÉCRIRE : la valeur part en entier (une ligne
-     « majoration_pages »), et l'écran a pu se dessiner sur une lecture
-     publique ratée — tout à 0. Écrire ces zéros effacerait des réglages
-     faits ailleurs. On repart donc de la ligne du serveur et on n'y change
-     QUE les pages modifiées ici. */
+     « prix_pages »), et l'écran a pu se dessiner sur une lecture publique
+     ratée — tout vide. Écrire ce vide effacerait des réglages faits
+     ailleurs. On repart donc de la ligne du serveur et on n'y change QUE les
+     cases modifiées ici. Format : { "en-cdg": { "pourcentage": 20,
+     "par_km_centimes": { "berline": 350, "van": 590 } } }. */
+  function pagesDuServeur(actuel){
+    var v = {};
+    if(!actuel || typeof actuel !== "object" || Array.isArray(actuel)) return v;
+    Object.keys(actuel).forEach(function(k){
+      var o = actuel[k];
+      if(!Object.prototype.hasOwnProperty.call(ORIGINES, k) || !o || typeof o !== "object") return;
+      var n = {}, p = Number(o.pourcentage), km = o.par_km_centimes;
+      if(p > 0 && p <= POURCENTAGE_MAX) n.pourcentage = p;
+      if(km && typeof km === "object") ["berline","van"].forEach(function(g){
+        var c = Number(km[g]);
+        if(c >= KM_MIN * 100 && c <= KM_MAX * 100){ n.par_km_centimes = n.par_km_centimes || {}; n.par_km_centimes[g] = Math.round(c); }
+      });
+      if(Object.keys(n).length) v[k] = n;
+    });
+    return v;
+  }
   var btnPages = document.getElementById("btnPagesEnregistrer");
   if(btnPages) btnPages.addEventListener("click", function(){
     if(!nuage.connecte()){ direPages("Connectez-vous d'abord au serveur (bloc « Serveur » plus bas).", true); return; }
     var champs = Array.prototype.slice.call(document.querySelectorAll("#tarifPages input"))
       .filter(function(c){ return c.value !== c.dataset.initial; });
     if(!champs.length){ direPages("Aucun prix modifié.", false); return; }
-    var invalide = champs.filter(function(c){
-      var p = Number(c.value);
-      return c.value === "" || !(p >= 0 && p <= MAJORATION_MAX) || Math.round(p) !== p;
-    })[0];
-    if(invalide){
-      direPages("Pourcentage invalide (un nombre entier de 0 à " + MAJORATION_MAX + ") : "
-        + ORIGINES[invalide.dataset.page] + ".", true);
-      invalide.focus(); return;
+    var faux = champs.filter(function(c){ return refusCase(c.dataset.champ, c.value.trim()); })[0];
+    if(faux){
+      direPages("Valeur à corriger (" + refusCase(faux.dataset.champ, faux.value.trim()) + ") : "
+        + faux.getAttribute("aria-label") + ".", true);
+      faux.focus(); return;
     }
     direPages("Enregistrement…", false);
-    nuage.lireParametre("majoration_pages").then(function(actuel){
-      var valeur = {};
-      if(actuel && typeof actuel === "object" && !Array.isArray(actuel)){
-        Object.keys(actuel).forEach(function(k){
-          var p = Number(actuel[k]);
-          if(Object.prototype.hasOwnProperty.call(ORIGINES, k) && p >= 0 && p <= MAJORATION_MAX) valeur[k] = p;
-        });
-      }
-      champs.forEach(function(c){ valeur[c.dataset.page] = Number(c.value); });
-      return nuage.majParametre("majoration_pages", valeur).then(function(){ return valeur; });
+    nuage.lireParametre("prix_pages").then(function(actuel){
+      var valeur = pagesDuServeur(actuel);
+      champs.forEach(function(c){
+        var k = c.dataset.page, t = c.value.trim(), n = nombreSaisi(t);
+        var o = valeur[k] || {};
+        if(c.dataset.champ === "pourcentage"){
+          if(t === "" || n === 0) delete o.pourcentage; else o.pourcentage = n;
+        } else {
+          o.par_km_centimes = o.par_km_centimes || {};
+          if(t === "" || n === 0) delete o.par_km_centimes[c.dataset.champ];
+          else o.par_km_centimes[c.dataset.champ] = Math.round(n * 100);
+          if(!Object.keys(o.par_km_centimes).length) delete o.par_km_centimes;
+        }
+        if(Object.keys(o).length) valeur[k] = o; else delete valeur[k];
+      });
+      return nuage.majParametre("prix_pages", valeur).then(function(){ return valeur; });
     }).then(function(valeur){
-      Object.keys(valeur).forEach(function(k){
-        if(valeur[k] > 0) MAJORATION_PAGES[k] = valeur[k]; else delete MAJORATION_PAGES[k];
+      /* La mémoire de la page suit tout de suite : le centre de contrôle et
+         cet écran disent le prix enregistré, pas celui d'avant. */
+      Object.keys(ORIGINES).forEach(function(k){
+        var o = valeur[k], km = (o && o.par_km_centimes) || {};
+        var r = o ? regleValide({ pourcentage: Number(o.pourcentage),
+          berline: Number(km.berline) / 100, van: Number(km.van) / 100 }) : null;
+        if(r) PRIX_PAGES[k] = r; else delete PRIX_PAGES[k];
       });
       champs.forEach(function(c){ c.dataset.initial = c.value; c.classList.remove("modifie"); });
-      direPages(majorationsLues === "absente"
+      direPages(prixPagesLus === "absente"
         ? "Enregistré, mais pas encore appliqué : la migration 20261014010000 doit d'abord être appliquée."
-        : "Enregistré. S'applique aux visiteurs qui ouvrent la page à partir de maintenant.", majorationsLues === "absente");
+        : "Enregistré. S'applique aux visiteurs qui ouvrent la page à partir de maintenant.", prixPagesLus === "absente");
     }).catch(function(){
       direPages("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);
     });

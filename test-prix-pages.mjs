@@ -2,9 +2,10 @@
    TEST-PRIX-PAGES.MJS — le prix d'une page dédiée (14 octobre 2026)
    ---------------------------------------------------------------------
    Barbaros : « pour les pages que l'on crée pour les touristes, afficher un
-   prix plus cher », réglable page par page depuis l'admin. Un pourcentage
-   s'ajoute au tarif au kilomètre pour un client arrivé d'une page de la
-   liste ORIGINES (?src=…). 0 par défaut.
+   prix plus cher », puis « modifier au km n'importe quelle page ». Pour un
+   client arrivé d'une page de la liste ORIGINES (?src=…) : le tarif au km
+   réglé pour la page, sinon le tarif du site majoré du pourcentage de la
+   page, sinon le tarif du site. Rien de réglé par défaut.
    On éprouve le SITE CONSTRUIT, servi comme Cloudflare le sert, et on lit
    ce qui s'affiche ET ce qui part au serveur : le prix affiché doit être le
    prix facturé. Les montants attendus sont CALCULÉS À LA MAIN dans les
@@ -55,7 +56,7 @@ async function parcours(adresse, { vue = J([]), km = 48, envoyer = false, delai 
     if (u.startsWith(SITE)) return route.continue();
     if (d.includes('photon.komoot.io') || d.includes('api-adresse.data.gouv.fr')) return route.fulfill(J({ features: [] }));
     if (d.includes('router.project-osrm.org')) return route.fulfill(J({ routes: [{ distance: km * 1000, duration: 3000 }] }));
-    if (u.includes('/rest/v1/majorations_pages_publiques')) {
+    if (u.includes('/rest/v1/prix_pages_publics')) {
       if (delai) await new Promise(r => setTimeout(r, delai));
       return route.fulfill(vue);
     }
@@ -130,6 +131,25 @@ const MAJ = (lignes) => J(lignes);
   await r.ctx.close();
 }
 
+/* ═══ 2 bis. UN PRIX AU KM POUR LA PAGE ═══
+   Berline 3,75 €/km : 3,75 × 48 = 180 → 180 € ; Van 6,00 €/km : 6 × 48 = 288
+   → 290 €. Et c'est ce prix qui part avec la demande. */
+{
+  const r = await parcours(CDG_ORLY, { vue: MAJ([{ page: 'en-cdg-orly', berline_km_centimes: 375, van_km_centimes: 600 }]), envoyer: true });
+  check('prix au km de la page : 180 € en berline, 290 € en van', r.berline === 180 && r.van === 290, r.brut);
+  check('prix au km de la page : la demande part à 180 €', (r.depots[0] || {}).prix?.total === 180, JSON.stringify((r.depots[0] || {}).prix));
+  await r.ctx.close();
+}
+
+/* ═══ 2 ter. LE PRIX AU KM PASSE AVANT LE POURCENTAGE, GAMME PAR GAMME ═══
+   Page à +20 % avec une berline à 3,20 €/km : 3,20 × 48 = 153,60 → 150 € ; le
+   van n'a pas de prix au km, il prend les +20 % : 5,64 × 48 = 270,72 → 270 €. */
+{
+  const r = await parcours(CDG_ORLY, { vue: MAJ([{ page: 'en-cdg-orly', pourcentage: 20, berline_km_centimes: 320 }]) });
+  check('prix au km + pourcentage : berline au km (150 €), van au pourcentage (270 €)', r.berline === 150 && r.van === 270, r.brut);
+  await r.ctx.close();
+}
+
 /* ═══ 3. +15 % ═══
    290 × 115 / 100 = 333,5 → 334 c (3,34 €/km) ; 3,34 × 48 = 160,32 → 160 €.
    Van : 470 × 115 / 100 = 540,5 → 541 c ; 5,41 × 48 = 259,68 → 260 €. */
@@ -168,6 +188,10 @@ const MAJ = (lignes) => J(lignes);
   const r = await parcours(CDG_ORLY, { vue: MAJ([{ page: 'en-cdg-orly', pourcentage: 20 }]), km: 5 });
   check('court trajet : le minimum reste 35 € / 50 €, majoration ou pas', r.berline === 35 && r.van === 50, r.brut);
   await r.ctx.close();
+  /* Au km : 3,75 × 5 = 18,75 → 20 → 35 € ; 6 × 5 = 30 → 50 €. */
+  const km = await parcours(CDG_ORLY, { vue: MAJ([{ page: 'en-cdg-orly', berline_km_centimes: 375, van_km_centimes: 600 }]), km: 5 });
+  check('court trajet : le minimum reste aussi sous un prix au km de page', km.berline === 35 && km.van === 50, km.brut);
+  await km.ctx.close();
 }
 
 /* ═══ 5. CE QUI NE DOIT JAMAIS MAJORER ═══ */
@@ -185,9 +209,16 @@ const MAJ = (lignes) => J(lignes);
   const exces = await parcours(CDG_ORLY, { vue: MAJ([{ page: 'en-cdg-orly', pourcentage: 500 }, { page: 'en-cdg-orly', pourcentage: 'abc' }]) });
   check('un pourcentage hors bornes ne majore rien : 140 €', exces.berline === 140, exces.brut);
   await exces.ctx.close();
+  const horsKm = await parcours(CDG_ORLY, { vue: MAJ([{ page: 'en-cdg-orly', berline_km_centimes: 5000, van_km_centimes: 20 }]) });
+  check('un prix au km hors bornes (50 € ou 0,20 €) ne règle rien : 140 € / 230 €', horsKm.berline === 140 && horsKm.van === 230, horsKm.brut);
+  await horsKm.ctx.close();
 }
 
 /* ═══ 6. L'ADMIN RÈGLE LE PRIX DE CHAQUE PAGE ═══ */
+/* Égalité profonde, indépendante de l'ordre des clés. */
+const canon = v => v && typeof v === 'object'
+  ? '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}' : JSON.stringify(v);
+const egal = (x, y) => canon(x) === canon(y);
 async function admin(vue) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
   await ctx.addInitScript(() => localStorage.setItem('ela_nuage_session', JSON.stringify({ access_token: 'JETON', refresh_token: 'R' })));
@@ -199,10 +230,10 @@ async function admin(vue) {
     if (u.startsWith(SITE)) return route.continue();
     if (u.includes('supabase.co')) {
       if (u.includes('/rpc/est_exploitant') || u.includes('/rpc/est_admin')) return route.fulfill(J(true));
-      if (u.includes('/rest/v1/majorations_pages_publiques')) return route.fulfill(vue);
-      if (u.includes('/rest/v1/parametres_commerciaux?cle=eq.majoration_pages')) {
+      if (u.includes('/rest/v1/prix_pages_publics')) return route.fulfill(vue);
+      if (u.includes('/rest/v1/parametres_commerciaux?cle=eq.prix_pages')) {
         lectures.push(u);
-        return route.fulfill(J([{ valeur: { 'en-cdg': 20, 'fr-cdg': 10 } }]));
+        return route.fulfill(J([{ valeur: { 'en-cdg': { pourcentage: 20 }, 'fr-cdg': { pourcentage: 10, par_km_centimes: { berline: 350 } } } }]));
       }
       if (u.includes('/rest/v1/parametres_commerciaux?on_conflict=cle') && req.method() === 'POST') {
         envois.push(JSON.parse(req.postData() || '{}'));
@@ -217,39 +248,64 @@ async function admin(vue) {
   await p.waitForFunction(() => document.body.classList.contains('espace'), null, { timeout: 10000 });
   return { ctx, p, erreurs, envois, lectures };
 }
+const effetDe = (p, id) => p.$eval(id, e => e.closest('.page-bloc').querySelector('.page-effet').textContent);
 {
-  const { ctx, p, erreurs, envois, lectures } = await admin(MAJ([{ page: 'en-cdg', pourcentage: 20 }, { page: 'fr-cdg', pourcentage: 10 }]));
+  const { ctx, p, erreurs, envois, lectures } = await admin(MAJ([{ page: 'en-cdg', pourcentage: 20 },
+    { page: 'fr-cdg', pourcentage: 10, berline_km_centimes: 350 }]));
   try {
     await p.click('#btnReglages');
-    await p.waitForSelector('#tarifPages .page-ligne input', { timeout: 5000 });
-    const lignes = await p.$$eval('#tarifPages .page-ligne:not(.forfait-tete)', l => l.map(x => x.querySelector('.forfait-nom').textContent));
-    check('une ligne par page dédiée (les cinq anglaises, les trois françaises)', lignes.length === 8
-      && lignes.includes('Site anglais · CDG ↔ Paris') && lignes.includes('Page Chauffeur privé'), lignes.join(' | '));
-    check('la valeur réglée sur le serveur s\'affiche (en-cdg : 20)', await p.inputValue('#majoration_en-cdg') === '20');
-    check('… et une page non réglée est à 0', await p.inputValue('#majoration_en-orly') === '0');
-    const effet = await p.$eval('#majoration_en-cdg', e => e.closest('.page-ligne').querySelector('.page-effet').textContent);
-    check('l\'écran dit ce que donne +20 % au kilomètre (3,48 € · 5,64 €)', /3,48/.test(effet) && /5,64/.test(effet), effet);
+    await p.waitForSelector('#tarifPages .page-bloc input', { timeout: 5000 });
+    const pages = await p.$$eval('#tarifPages .page-bloc', l => l.map(x => x.querySelector('.forfait-nom').textContent));
+    check('une carte par page dédiée (les cinq anglaises, les trois françaises)', pages.length === 8
+      && pages.includes('Site anglais · CDG ↔ Paris') && pages.includes('Page Chauffeur privé'), pages.join(' | '));
+    const cases = await p.$$eval('#tarifPages .page-bloc', l => l.map(x => x.querySelectorAll('input').length));
+    check('trois cases par page : %, Berline €/km, Van €/km', cases.every(n => n === 3), cases.join(','));
+    check('les réglages du serveur s\'affichent (en-cdg 20 %, fr-cdg 10 % et 3,50 € en berline)',
+      await p.inputValue('#pagePct_en-cdg') === '20' && await p.inputValue('#pagePct_fr-cdg') === '10'
+      && await p.inputValue('#pageKm_fr-cdg_berline') === '3,50');
+    check('une page non réglée : 0 %, cases au km vides avec le prix du site en indication',
+      await p.inputValue('#pagePct_en-orly') === '0' && await p.inputValue('#pageKm_en-orly_berline') === ''
+      && await p.getAttribute('#pageKm_en-orly_berline', 'placeholder') === '2,90', await p.getAttribute('#pageKm_en-orly_berline', 'placeholder'));
+    const e1 = await effetDe(p, '#pagePct_en-cdg');
+    check('l\'écran dit ce que donne +20 % au km (3,48 € · 5,64 €)', /3,48/.test(e1) && /5,64/.test(e1), e1);
+    /* fr-cdg : berline 3,50 € (le prix au km passe avant les 10 %), van
+       470 × 110 / 100 = 517 c → 5,17 €. */
+    const e2 = await effetDe(p, '#pagePct_fr-cdg');
+    check('prix au km et pourcentage ensemble : Berline 3,50 €, Van 5,17 €', /Berline 3,50/.test(e2) && /Van 5,17/.test(e2), e2);
+    const e3 = await effetDe(p, '#pagePct_en-orly');
+    check('une page non réglée dit « Prix du site »', /Prix du site/.test(e3) && /2,90/.test(e3), e3);
     await p.click('#btnPagesEnregistrer'); await p.waitForTimeout(300);
     check('sans modification, rien ne part', envois.length === 0 && /Aucun prix modifié/.test(await p.textContent('#pagesEtat')));
-    await p.fill('#majoration_en-orly', '12.5');
+    await p.fill('#pagePct_en-orly', '12.5');
     await p.click('#btnPagesEnregistrer'); await p.waitForTimeout(300);
     check('un pourcentage non entier est refusé, la page est nommée', envois.length === 0
       && /Orly/.test(await p.textContent('#pagesEtat')), await p.textContent('#pagesEtat'));
-    await p.fill('#majoration_en-orly', '15');
-    const effet15 = await p.$eval('#majoration_en-orly', e => e.closest('.page-ligne').querySelector('.page-effet').textContent);
-    check('+15 % : 3,34 € au km en berline (calcul en centimes)', /3,34/.test(effet15), effet15);
-    check('la valeur modifiée est marquée', await p.$eval('#majoration_en-orly', e => e.classList.contains('modifie')));
+    await p.fill('#pagePct_en-orly', '15');
+    for (const faux of ['0.2', '25', '3.456']) {
+      await p.fill('#pageKm_en-orly_berline', faux);
+      await p.click('#btnPagesEnregistrer'); await p.waitForTimeout(250);
+      const t = await p.textContent('#pagesEtat');
+      check(`un prix au km faux (${faux}) est refusé, la case est nommée`, envois.length === 0 && /Orly/.test(t) && /Berline/.test(t), t);
+    }
+    await p.fill('#pageKm_en-orly_berline', '3,75'); // la virgule d'un clavier français
+    await p.fill('#pageKm_fr-cdg_berline', '');
+    const e4 = await effetDe(p, '#pagePct_en-orly');
+    check('+15 % et 3,75 € en berline : Berline 3,75 €, Van 5,41 € (calcul en centimes)', /Berline 3,75/.test(e4) && /Van 5,41/.test(e4), e4);
+    check('les cases modifiées sont marquées', await p.$eval('#pageKm_en-orly_berline', e => e.classList.contains('modifie'))
+      && await p.$eval('#pageKm_fr-cdg_berline', e => e.classList.contains('modifie')));
     await p.click('#btnPagesEnregistrer');
     await p.waitForFunction(() => /Enregistré/.test(document.getElementById('pagesEtat').textContent), null, { timeout: 5000 }).catch(() => {});
     check('on relit la ligne du serveur avant d\'écrire', lectures.length === 1, String(lectures.length));
     const e = envois[0] || {};
-    check('un seul envoi, sur la ligne « majoration_pages »', envois.length === 1 && e.cle === 'majoration_pages', JSON.stringify(envois));
-    check('l\'envoi garde les réglages du serveur et n\'ajoute que la page modifiée',
-      JSON.stringify(e.valeur) === JSON.stringify({ 'en-cdg': 20, 'fr-cdg': 10, 'en-orly': 15 }), JSON.stringify(e.valeur));
-    check('après l\'enregistrement, plus rien n\'est marqué', !(await p.$eval('#majoration_en-orly', x => x.classList.contains('modifie'))));
+    check('un seul envoi, sur la ligne « prix_pages »', envois.length === 1 && e.cle === 'prix_pages', JSON.stringify(envois));
+    const attendu = { 'en-cdg': { pourcentage: 20 }, 'fr-cdg': { pourcentage: 10 },
+      'en-orly': { pourcentage: 15, par_km_centimes: { berline: 375 } } };
+    check('l\'envoi garde le serveur, n\'y change que les cases modifiées (une case vidée retire son prix)',
+      egal(e.valeur, attendu), JSON.stringify(e.valeur));
+    check('après l\'enregistrement, plus rien n\'est marqué', !(await p.$eval('#pageKm_en-orly_berline', x => x.classList.contains('modifie'))));
     await p.click('#btnControle'); await p.waitForTimeout(400);
     const cc = await p.textContent('#ccTarifs');
-    check('le centre de contrôle montre les pages qui vendent plus cher', /Prix des pages/.test(cc) && /\+20 %/.test(cc) && /\+15 %/.test(cc), cc.slice(0, 300));
+    check('le centre de contrôle montre le prix au km de chaque page réglée', /Prix des pages/.test(cc) && /3,48/.test(cc) && /3,75/.test(cc), cc.slice(0, 400));
     check('admin : aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
   } catch (x) { ko.push('PLANTAGE (admin) — ' + x.message.split('\n')[0]); }
   await ctx.close();
@@ -258,7 +314,7 @@ async function admin(vue) {
   const { ctx, p, erreurs } = await admin({ status: 404, contentType: 'application/json', body: '{}' });
   try {
     await p.click('#btnReglages');
-    await p.waitForSelector('#tarifPages .page-ligne input', { timeout: 5000 });
+    await p.waitForSelector('#tarifPages .page-bloc input', { timeout: 5000 });
     const t = await p.textContent('#pagesEtat');
     check('vue absente : l\'admin dit qu\'une migration reste à appliquer', /20261014010000/.test(t), t);
     check('vue absente : aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));

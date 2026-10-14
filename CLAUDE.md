@@ -3640,17 +3640,17 @@ qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
 ## LE TARIF SE RÈGLE DEPUIS L'ADMIN — UN SEUL TARIF, SAUF LES PAGES DÉDIÉES
 
 Le serveur est la vérité : `chargerTarifsServeur()` lit `tarif_public`,
-`forfaits_partenaires_publics` et `majorations_pages_publiques` ; `GAMMES` et
+`forfaits_partenaires_publics` et `prix_pages_publics` ; `GAMMES` et
 `HOTELS` écrits en dur ne sont que le REPLI. « Voir mon prix » attend
 (`tarifsLus`, 4 s). Réglages → « Tarifs » (km, minimum), « Prix du flyer, par
 hôtel » (forfaits fixes), « Prix des pages ». Écriture : admin seul.
-- **Un seul tarif au km pour tout le site** (28/09, « tout le monde a le même
-  prix »), **sauf une page dédiée** (14/10/2026, Barbaros : « afficher un prix
-  plus cher » aux touristes) : un % par page d'`ORIGINES` (`majoration_pages`),
-  **0 par défaut**, sur le km seulement — jamais le minimum, un forfait, la
-  pancarte. Tarif arrondi au centime EN ENTIERS (`tarifKmMajore`). Prix
+- **Un seul tarif au km pour tout le site** (28/09), **sauf une page dédiée**
+  (14/10/2026, Barbaros : « plus cher » aux touristes, « modifier au km
+  n'importe quelle page ») : par page d'`ORIGINES` (`prix_pages`), un tarif au
+  km par gamme, sinon un % du tarif du site ; rien par défaut. Jamais le
+  minimum, un forfait, la pancarte. Centimes EN ENTIERS (`tarifKmMajore`). Prix
   affiché = prix facturé (`prixGamme`) ; sans `src` ou sans vue : le prix du
-  site. CGV art. 4 le disent, sans chiffre. `test-prix-pages`.
+  site. CGV art. 4, sans chiffre. `test-prix-pages`.
 - **Une vue ne s'écrit jamais** : toute vue créée perd ses droits d'écriture
   (`20261005000000`, ou la migration qui la crée — elle le vérifie).
 - `deposer-course` ne contrôle le km que par le bas. `verifier-tarif-hotel.mjs`

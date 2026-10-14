@@ -242,10 +242,11 @@ déjà prouvé).
   (à appliquer après la fusion), lu dans le registre de l'admin.
 - Contrôles : `test-seo-en.mjs`, `supabase/tests/mesure*.sql` (CI),
   `verifier-production.mjs` (dix portes de plus).
-- **Prix des pages** (demande de Barbaros après le lot 1) : un pourcentage par
-  page, réglé dans l'admin (Réglages → « Prix des pages »), ajouté au tarif au
-  kilomètre pour un client venu de cette page. 0 par défaut. Serveur :
-  `20261014010000_majoration_pages.sql` (à appliquer après la fusion) ; CGV
-  art. 4 FR/EN ; contrôle : `test-prix-pages.mjs`.
+- **Prix des pages** (demande de Barbaros après le lot 1) : pour chaque page,
+  réglé dans l'admin (Réglages → « Prix des pages »), un tarif au km par gamme
+  et/ou un pourcentage ajouté au tarif du site, pour un client venu de cette
+  page. Rien par défaut. Serveur : `20261014010000_prix_pages.sql` (à
+  appliquer après la fusion) ; CGV art. 4 FR/EN ; contrôle :
+  `test-prix-pages.mjs`.
 
 Détail, mesures et pièges : `memoire/seo-international.md`.

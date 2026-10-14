@@ -90,20 +90,32 @@ minuterie, format inattendu) ne touche à rien, le client garde le chiffre
 **La demande.** En validant les pages anglaises, Barbaros a écrit : « je veux
 pouvoir modifier aussi les prix de chaque page dédiée dans admin », puis, à la
 question posée : « pour les pages que l'on crée pour les touristes, afficher un
-prix plus cher ». La règle du 28 septembre (« tout le monde a le même prix
-quand il tape une adresse ») vaut donc toujours, SAUF pour un client arrivé
-d'une page dédiée dont il a réglé le prix.
+prix plus cher ». Le premier jet ne donnait qu'un pourcentage par page ; en
+voyant la capture, il a ajouté : « je dois pouvoir aussi modifier au km
+n'importe quelle page ». La règle du 28 septembre (« tout le monde a le même
+prix quand il tape une adresse ») vaut donc toujours, SAUF pour un client
+arrivé d'une page dédiée dont il a réglé le prix.
 
-**Le choix, et pourquoi.** Un pourcentage par page, pas une grille par page :
-un seul champ par page, qui suit tout seul un changement du tarif général, et
-qui se relit en clair à côté (« 3,48 € · 5,64 € » au kilomètre). Une grille
-complète par page aurait multiplié les tarifs à tenir à jour par huit.
-- **0 par défaut** : rien ne change en ligne tant qu'il ne l'a pas réglé, et
+**Ce qui vaut.** Par page de la liste `ORIGINES`, trois cases : un
+pourcentage ajouté au tarif du site, un tarif au km berline, un tarif au km van.
+Pour chaque gamme : le tarif au km de la page s'il est saisi, sinon le tarif du
+site majoré du pourcentage, sinon le tarif du site. Le « aussi » a été lu
+littéralement : le pourcentage reste (il suit tout seul un changement du tarif
+général), le tarif au km s'y ajoute et l'emporte, gamme par gamme. Sous les
+cases, l'écran écrit le tarif au km que la page applique VRAIMENT, calculé par
+la fonction du moteur (`tarifKmPage`) — une règle à deux étages ne se relit
+pas, un « Berline 3,75 € · Van 5,41 € » si.
+- **Rien par défaut** : rien ne change en ligne tant qu'il ne l'a pas réglé, et
   on ne choisit pas un prix à sa place (« ne pas deviner sur un prix »).
-- **Seul le tarif au kilomètre est majoré** : ni le minimum (une course de 5 km
+- **Seul le tarif au kilomètre change** : ni le minimum (une course de 5 km
   reste à 35 €), ni un forfait de flyer, ni la pancarte, ni une demande « tarif
-  à confirmer ». La majoration prend la place de l'ancienne majoration de nuit
-  dans l'ordre fixé : kilométrage → arrondi → plancher.
+  à confirmer ». La règle prend la place de l'ancienne majoration de nuit dans
+  l'ordre fixé : kilométrage → arrondi → plancher.
+- **Bornes** : pourcentage entier de 0 à 100, tarif au km de 0,50 € à 20 €
+  avec deux décimales au plus. Une case vide ou à 0 ne règle rien. Un tarif de
+  page PLUS BAS que celui du site est permis ; s'il descend sous la ligne
+  droite × le tarif du site, `deposer-course` marquera la demande « Prix à
+  vérifier » (il signale, il ne refuse jamais).
 - **Le tarif majoré est arrondi au centime EN ENTIERS** (`tarifKmMajore`) :
   2,3 × 105 vaut 241,4999… en virgule flottante, et donnait 2,41 au lieu de
   2,42 €/km — 81 couples tarif × pourcentage sont dans ce cas, mesuré. Le
@@ -112,22 +124,23 @@ complète par page aurait multiplié les tarifs à tenir à jour par huit.
 - **Le prix affiché est le prix facturé** : tout passe par `prixGamme`, donc la
   liste des gammes, le récapitulatif, le bon, le message et la demande.
 - **Les replis vont tous dans le sens du client** : sans `src` (rechargement,
-  lien partagé), vue absente (migration pas appliquée), panne, pourcentage hors
+  lien partagé), vue absente (migration pas appliquée), panne, valeur hors
   bornes : le prix du site. « Voir mon prix » attend la lecture (`tarifsLus`) :
   sans ça, un client rapide aurait vu 140 € puis payé 170 €.
-- **Le serveur ne vérifie le prix au kilomètre que par le bas**
-  (`prixSousLigneDroite`) : un prix majoré passe sans alerte, un client qui
-  retire `src` paie le prix du site, ce qui est son droit.
 
-**Le serveur.** L'admin écrit la ligne `majoration_pages` de
-`parametres_commerciaux` (déjà réservée à l'admin en écriture), en RELISANT
-d'abord la ligne : l'écran a pu se dessiner sur une lecture publique ratée,
-tout à 0, et réécrire ces zéros aurait effacé un réglage fait ailleurs. Le
-visiteur lit `majorations_pages_publiques` (migration `20261014010000`) : la
-page et le pourcentage, rien d'autre ; clé au format des pages, nombre dans
-]0 ; 100]. `jsonb_each` ne reçoit qu'un objet et le nombre est lu dans un CASE
-— sinon une ligne mal écrite faisait tomber la vue entière. Vue en lecture
-seule, vérifiée par la migration elle-même.
+**Le serveur.** L'admin écrit la ligne `prix_pages` de `parametres_commerciaux`
+(déjà réservée à l'admin en écriture) :
+`{"en-cdg": {"pourcentage": 20, "par_km_centimes": {"berline": 350}}}`. Il
+RELIT d'abord la ligne et n'y change que les cases modifiées : l'écran a pu se
+dessiner sur une lecture publique ratée, tout vide, et réécrire ce vide aurait
+effacé un réglage fait ailleurs. Une case vidée retire son prix. Le visiteur lit
+`prix_pages_publics` (`20261014010000_prix_pages.sql`) : la page, son
+pourcentage et ses deux tarifs au km, rien d'autre ; une valeur hors bornes
+vaut NULL, une page sans rien de valide n'a pas de ligne. `jsonb_each` ne
+reçoit qu'un objet et chaque nombre est lu dans un CASE — sinon une ligne mal
+écrite faisait tomber la vue entière. Vue en lecture seule, vérifiée par la
+migration elle-même. Le premier jet s'appelait `majoration_pages` /
+`majorations_pages_publiques` ; renommé avant toute mise en production.
 
 **Le droit.** Différencier le prix selon la page n'est pas interdit (le
 règlement européen sur le blocage géographique exclut les services de
@@ -136,9 +149,13 @@ Les CGV (art. 4, FR et EN) disent que le tarif kilométrique peut différer selo
 la page et que le prix affiché avant l'envoi s'applique — sans chiffre.
 
 **Épreuves.** `test-prix-pages` (site construit, montants calculés à la main)
-tombe sur cinq falsifications : majoration retirée du calcul, arrondi en
-virgule flottante, minimum majoré, écriture sans relecture, lecture non
-attendue par « Voir mon prix ». `supabase/tests/majoration-pages-apres.sql`
-tombe sur six migrations faussées (droits d'écriture laissés, conversion sans
-CASE, `jsonb_each` sur un tableau, `security_invoker`, bornes retirées, ligne
-désactivée lue).
+tombe sur neuf falsifications : règle retirée du calcul, arrondi en virgule
+flottante, minimum majoré, écriture sans relecture, lecture non attendue par
+« Voir mon prix », tarif au km de page ignoré, pourcentage passé avant le tarif
+au km, bornes du tarif au km retirées, case vidée qui garde son prix.
+`supabase/tests/prix-pages-apres.sql` tombe sur huit migrations faussées
+(droits d'écriture laissés, conversion sans CASE, `jsonb_each` sur un tableau,
+`security_invoker`, une borne retirée sur chacune des trois colonnes, ligne
+désactivée lue). Deux de ces falsifications passaient au premier jet de
+l'épreuve : il manquait une page où une valeur valide côtoie une valeur hors
+bornes.
