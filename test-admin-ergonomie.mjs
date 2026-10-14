@@ -69,6 +69,11 @@ const course = (ref, statut, [date, heure], extra = {}) => Object.assign({ ref, 
   client: { nom: 'Client ' + ref.slice(-5), telephone: '06 12 34 56 78' }, prix: { total: 70 }, langue: 'fr', paiementNom: 'Carte',
   securite: { empreinteDepot: 'e' } }, extra);
 const ALI = { nom: 'Ali Ben', telephone: '06 11 22 33 44' };
+/* « CETTE SEMAINE » COMMENCE LE LUNDI. Posées deux jours en arrière, les deux
+   réalisées tombaient dans la semaine précédente chaque lundi et chaque mardi,
+   et la suite rendait 0 € au lieu de 140 € sans que rien ne soit cassé. On
+   recule de deux jours au plus, sans jamais franchir le lundi. */
+const RECUL = -Math.min(2, (new Date(paris(0)[0] + 'T12:00:00Z').getUTCDay() + 6) % 7);
 /* N° 1021 à 1030, dans cet ordre. Deux réalisées cette semaine (140 €). */
 const JEU = [
   course('ELA-26-10-ATT01', 'attente', jour(0, '18:30'), { provenance: 'easyHotel Aéroville', provenanceCle: 'easyhotel-aeroville', client: { nom: 'Sarah Martin', telephone: '06 45 67 89 01' } }),
@@ -77,8 +82,8 @@ const JEU = [
   course('ELA-26-10-FUTUR', 'confirmee', jour(2, '10:00')),
   course('ELA-26-10-AVECC', 'confirmee', jour(3, '11:00'), { chauffeur: { nom: 'Mehmet Yilmaz', telephone: '06 98 76 54 32' } }),
   course('ELA-26-10-PASSE', 'confirmee', jour(-1, '09:00'), { chauffeur: ALI }),
-  course('ELA-26-10-FAITE', 'realisee', jour(-2, '08:00'), { chauffeur: ALI }),
-  course('ELA-26-10-FACTU', 'realisee', jour(-2, '15:00'), { chauffeur: ALI }),
+  course('ELA-26-10-FAITE', 'realisee', jour(RECUL, '08:00'), { chauffeur: ALI }),
+  course('ELA-26-10-FACTU', 'realisee', jour(RECUL, '15:00'), { chauffeur: ALI }),
   course('ELA-26-10-AAA01', 'realisee', jour(-30, '03:20'), { chauffeur: { nom: 'Aaa', telephone: '' }, prix: { total: 90 } }),
   course('ELA-26-10-REFUS', 'refusee', jour(-1, '12:00')),
 ];

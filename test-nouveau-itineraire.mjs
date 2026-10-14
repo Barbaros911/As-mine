@@ -62,11 +62,12 @@ const errs=[];
    sortie pour référence ne vérifie plus rien. */
 const KM = { mapbox:18000, ors:40000, osrm:24300 };
 
-async function course({ mapbox, ors, osrm, sansCles, jours }){
+async function course({ mapbox, ors, osrm, sansCles, jours, orsRep, osrmRep }){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
   const appels = [];
+  const corpsORS = [];
 
   /* LE FICHIER RÉÉCRIT AU VOL EST « itineraire-partage.js », PLUS LA PAGE.
      Les clés ont suivi le code qui les lit : la chaîne d'itinéraire est
@@ -102,13 +103,21 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
   /* ORS répond en GeoJSON : la mesure est ailleurs que chez les deux
      autres, et c'est précisément ce que son lecteur doit savoir lire. */
   await p.route('**://api.openrouteservice.org/**', route => {
-    appels.push(route.request().url());
+    const req = route.request();
+    appels.push(req.url());
+    if(req.method()==='POST') corpsORS.push(req.postData());
+    if(orsRep){
+      const rep = orsRep(req);
+      if(rep===null) return route.fulfill({status:400, body:'{}'});
+      return route.fulfill({contentType:'application/json', body:JSON.stringify(rep)});
+    }
     if(ors) return route.fulfill({contentType:'application/json',
       body:JSON.stringify({features:[{properties:{summary:{distance:KM.ors, duration:2700}}}]})});
     return route.abort();
   });
   await p.route('**://router.project-osrm.org/**', route => {
     appels.push(route.request().url());
+    if(osrmRep) return route.fulfill({contentType:'application/json', body:JSON.stringify(osrmRep)});
     if(osrm) return route.fulfill({contentType:'application/json',
       body:JSON.stringify({routes:[{distance:KM.osrm, duration:2040}]})});
     return route.abort();
@@ -134,7 +143,7 @@ async function course({ mapbox, ors, osrm, sansCles, jours }){
   const mesure = await p.locator('#resumeMesure').textContent();
   const detail = await p.locator('.veh-detail').first().textContent();
   await ctx.close();
-  return { prix, prixEstime: brut.startsWith('≈'), mesure, detail, appels,
+  return { prix, prixEstime: brut.startsWith('≈'), mesure, detail, appels, corpsORS,
            versMapbox: appels.filter(u=>u.includes('mapbox')),
            versORS:    appels.filter(u=>u.includes('openrouteservice')),
            versOSRM:   appels.filter(u=>u.includes('osrm')) };
@@ -149,9 +158,11 @@ check('la clé part en « api_key »',
 check('la course n\'est pas marquée « ≈ »', !r.mesure.includes('≈') && !r.prixEstime, r.mesure);
 /* ORS prend « lon,lat » — l'ordre inverse de l'habitude. Inversé, la
    course partirait dans l'océan Indien sans le moindre message. */
+const corps0 = r.corpsORS[0] ? JSON.parse(r.corpsORS[0]) : {};
 check('les points sont envoyés en lon,lat, dans le bon sens',
-  r.versORS[0] && r.versORS[0].includes('start=2.3376,48.8606')
-               && r.versORS[0].includes('end=2.2467,48.9478'), r.versORS[0]);
+  JSON.stringify(corps0.coordinates)==='[[2.3376,48.8606],[2.2467,48.9478]]', r.corpsORS[0]);
+check('et plusieurs routes sont demandées, pas seulement la plus rapide',
+  corps0.alternative_routes && corps0.alternative_routes.target_count>=2, r.corpsORS[0]);
 
 /* ═══ LA DURÉE ANNONCÉE PORTE UNE MARGE DE 5 À 10 MINUTES ═══
    À sa demande. Ce que rendent les calculateurs est un temps de ROULAGE :
@@ -178,6 +189,42 @@ check('l\'heure d\'arrivée de la carte porte la même fourchette',
    entre pas. Un client qui arrive plus tôt que l'estimation ne paie pas
    moins — c'est ce qui permet d'être prudent sur l'heure sans être
    malhonnête sur le montant. Le 90,00 € ci-dessus est le contrôle. */
+
+/* ═══ LA ROUTE FACTURÉE EST LA PLUS COURTE, PAS LA PLUS RAPIDE ═══
+   11/10/2026, capture de Barbaros : Argenteuil → Goussainville à 40,7 km
+   par la Francilienne, facturé 120 €, quand la route par l'A1 est bien
+   plus courte. Sa décision : « la plus courte, avec autoroute, comme
+   Waze ». ORS rend ici la plus rapide EN PREMIER (c'est son ordre) et
+   une alternative plus courte de 5 min plus lente : c'est elle qui doit
+   être facturée. 28 km × 2,90 = 81,20 → 80 €. Sur l'ancien code, le prix
+   restait 120 €. */
+const DEUX = (lente) => ({ features:[
+  { properties:{ summary:{ distance:40700, duration:2100 } } },
+  { properties:{ summary:{ distance:28000, duration:lente } } } ] });
+r = await course({ orsRep: req => req.method()==='POST' ? DEUX(2400) : null });
+check('la route plus courte est retenue, même si elle est un peu plus lente',
+  r.prix==='80,00€', r.prix);
+check('et la durée affichée est celle de la route retenue (40 min + marge)',
+  r.mesure.includes('28 km') && r.mesure.includes('45–50 min'), r.mesure);
+/* La tolérance a une borne : une route plus courte qui ferait perdre plus
+   de dix minutes (ici 15) traverse les centres-villes — un chauffeur ne
+   la prend pas. On garde alors la plus rapide. */
+r = await course({ orsRep: req => req.method()==='POST' ? DEUX(3000) : null });
+check('une route plus courte mais beaucoup plus lente est écartée',
+  r.prix==='120,00€', r.prix);
+/* ORS refuse les alternatives (trop loin, ou toute autre raison) : on
+   retombe sur l'appel d'avant, une seule route. Jamais pire qu'avant. */
+r = await course({ orsRep: req => req.method()==='POST' ? null
+  : { features:[{ properties:{ summary:{ distance:KM.ors, duration:2700 } } }] } });
+check('alternatives refusées par ORS : la route simple répond encore',
+  r.prix==='120,00€', r.prix);
+check('et OSRM n\'est pas dérangé pour autant', r.versOSRM.length===0, r.versOSRM.join(' '));
+/* Même règle sur OSRM, qui sert le jour où ORS tombe. */
+r = await course({ ors:false, osrmRep:{ routes:[
+  { distance:40700, duration:2100 }, { distance:28000, duration:2400 } ] } });
+check('OSRM aussi : la plus courte raisonnable est retenue', r.prix==='80,00€', r.prix);
+check('et les alternatives lui sont demandées',
+  r.versOSRM[0] && r.versOSRM[0].includes('alternatives=true'), r.versOSRM[0]);
 
 /* --- 2. LE RATTRAPAGE, le contrôle qui compte le plus.
    ORS tombe — quota épuisé, clé reprise par un tiers, panne. Le site NE
