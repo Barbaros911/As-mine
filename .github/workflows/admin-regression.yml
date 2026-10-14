@@ -81,6 +81,10 @@ jobs:
           # partenaire ajouté à HOTELS doit avoir la finition d'easyHotel, à ses
           # couleurs, sans une ligne de code de plus — et easyHotel ne bouge pas.
           suites="$suites test-finition-commune"
+          # LES PAGES D'ACQUISITION ET LEUR PRIX (14 octobre 2026) : les pages
+          # /en/, l'origine qui part avec la demande, et la majoration réglée
+          # page par page — un prix affiché qui ne serait pas le prix facturé.
+          suites="$suites test-seo-en test-prix-pages"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

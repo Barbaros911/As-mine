@@ -3637,83 +3637,25 @@ ne joint ni la BAN ni Photon) :
 dans l'ordre le plus défavorable ; sur l'ancien code il rend exactement ce
 qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
 
-## UN SEUL TARIF AU KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN
+## LE TARIF SE RÈGLE DEPUIS L'ADMIN — UN SEUL TARIF, SAUF LES PAGES DÉDIÉES
 
-28 septembre 2026, à sa demande : « je veux que tout le monde ait le même
-prix lorsqu'il tape une adresse sur le moteur de recherche, et je veux
-pouvoir modifier cela sur ma page admin, même les prix du flyer. »
-
-**IL Y AVAIT DEUX GRILLES AU KILOMÈTRE, ET ÇA NE SE VOYAIT PAS.** 2,90 €/km
-berline / 4,70 €/km van pour un client ordinaire ; une seconde, plus basse,
-injectée au moment de CONSTRUIRE le site pour une adresse hôtel hors flyer
-(« autre destination »), par .github/scripts/appliquer-regles-easyhotel.mjs
-(supprimé depuis).
-Deux clients tapant la même adresse depuis deux entrées différentes du site
-payaient donc un montant différent, sans qu'aucun des deux ne le sache — et
-le prix est ferme donc opposable. **Il n'y en a plus qu'une.** Le
-transformateur de construction a été **supprimé** — il n'avait plus rien à
-faire, l'unique grille suffit désormais partout — et retiré de
-`construire.sh`.
-
-**LE TARIF EST DÉSORMAIS LU SUR LE SERVEUR, PAS SEULEMENT ÉCRIT DANS LA
-PAGE.** C'était la seconde moitié de la demande : pouvoir changer un prix
-depuis un téléphone, sans republier le site. `GAMMES` (le tarif général) et
-`HOTELS[...].destinations[...].forfait` (les sept prix du flyer) restent
-écrits en dur dans `index.html` — **ce sont des REPLIS, plus la vérité** :
-au chargement, `chargerTarifsServeur()` interroge deux vues Supabase
-anonymes et **corrige ces valeurs en mémoire** si le serveur répond. Le
-repli est sacré, comme partout ailleurs sur ce site : un échec (hors ligne,
-minuterie, format inattendu) ne touche à rien, le client garde le chiffre
-écrit en dur, sans le moindre message.
-- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** Les tables restent
-  fermées (`parametres_commerciaux` porte aussi la commission) ; `anon` lit
-  `tarif_public` et `forfaits_partenaires_publics`, qui tournent avec les
-  droits de leur PROPRIÉTAIRE, donc SANS les policies.
-  **UNE VUE NE S'ÉCRIT JAMAIS** (audit du 4 octobre 2026) : Supabase donne
-  par défaut TOUS les droits à `anon` sur tout objet neuf, et une vue sur
-  une seule table est modifiable — un anonyme effaçait le tarif berline.
-  `20261005000000_vues_lecture_seule.sql` retire l'écriture à toute vue ;
-  la rejouer après toute vue créée (elle s'arrête si un droit survit).
-- **L'ÉCRITURE EXISTAIT DÉJÀ, IL NE MANQUAIT QUE L'ÉCRAN.** Les deux tables
-  ont depuis leur création une policy « authenticated + `est_exploitant()`
-  » en écriture — Admin v2 s'en sert déjà pour la commission. Le nouvel
-  écran (Réglages → « Tarifs », dans l'admin historique que Barbaros
-  utilise réellement, pas Admin v2) appelle donc `nuage.appel()` avec la
-  session déjà ouverte pour se connecter à l'espace — le même compte, la
-  même autorisation.
-- **LES FORFAITS DU FLYER RESTENT DES MONTANTS FIXES**, à sa demande
-  explicite (« rester des forfaits fixes, modifiables un par un ») — pas de
-  bascule au kilométrage. Chaque destination × gamme est un champ modifiable
-  à part.
-- **`nuage.majForfait` LIT AVANT D'ÉCRIRE** : `tarifs_partenaires` se filtre
-  par `partenaire_id`, pas par la clé lisible de l'hôtel. Écrire à
-  l'aveugle sur un identifiant supposé créerait une seconde ligne « active »
-  pour la même destination au lieu de corriger la première.
-- **LA MÉMOIRE DE LA PAGE EST CORRIGÉE AU MOMENT MÊME DE L'ENREGISTREMENT**,
-  pas seulement le serveur : sinon la grille rappelée sur « Nouvelle course »
-  (`ecrireGrille()`) resterait périmée jusqu'au prochain chargement complet
-  de la page — exactement le défaut déjà réglé pour le prix de la pancarte.
-- **`deposer-course` NE VÉRIFIE PAS CE TARIF CÔTÉ SERVEUR** — seuls les
-  forfaits du flyer le sont (`snapshotPartenaire`). Le kilométrage reste,
-  comme avant cette unification, un calcul fait confiance au client. Ce
-  n'est pas une régression : c'était déjà le cas pour les deux grilles
-  précédentes, et étendre cette vérification est un chantier à part.
-- **`verifier-tarif-hotel.mjs` REJOUE TOUTES LES MIGRATIONS, PAS UNE
-  SEULE.** Le tarif général est semé par une migration (INSERT) puis
-  corrigé par celle-ci (UPDATE) : lire uniquement la première aurait
-  comparé le repli du site à une valeur que la base ne porte plus. **Piège
-  rencontré en l'écrivant** : capturer séparément la clé et la valeur
-  laissait une fenêtre de correspondance sauter par-dessus le « where cle »
-  du van et lui attribuer par erreur la valeur de la berline — mesuré, pas
-  supposé (le premier jet rendait bien 2,9 €/km comme tarif serveur du
-  van). Chaque regex capture désormais la clé ET le JSON dans le MÊME
-  match, bornée par le `;` de fin d'instruction. `test-doc.mjs` porte le
-  même correctif pour son propre contrôle d'accord client/serveur.
-- Migration : `supabase/migrations/20260928120000_tarif_unifie.sql`. Comme
-  toujours, elle doit être **rejouée en production** (workflow « Appliquer
-  une migration Supabase ») pour que la base porte réellement 2,90/4,70 —
-  tant que ce n'est pas fait, le site s'appuie sur son repli, qui porte
-  déjà les mêmes chiffres.
+Le serveur est la vérité : `chargerTarifsServeur()` lit `tarif_public`,
+`forfaits_partenaires_publics` et `majorations_pages_publiques` ; `GAMMES` et
+`HOTELS` écrits en dur ne sont que le REPLI. « Voir mon prix » attend
+(`tarifsLus`, 4 s). Réglages → « Tarifs » (km, minimum), « Prix du flyer, par
+hôtel » (forfaits fixes), « Prix des pages ». Écriture : admin seul.
+- **Un seul tarif au km pour tout le site** (28/09, « tout le monde a le même
+  prix »), **sauf une page dédiée** (14/10/2026, Barbaros : « afficher un prix
+  plus cher » aux touristes) : un % par page d'`ORIGINES` (`majoration_pages`),
+  **0 par défaut**, sur le km seulement — jamais le minimum, un forfait, la
+  pancarte. Tarif arrondi au centime EN ENTIERS (`tarifKmMajore`). Prix
+  affiché = prix facturé (`prixGamme`) ; sans `src` ou sans vue : le prix du
+  site. CGV art. 4 le disent, sans chiffre. `test-prix-pages`.
+- **Une vue ne s'écrit jamais** : toute vue créée perd ses droits d'écriture
+  (`20261005000000`, ou la migration qui la crée — elle le vérifie).
+- `deposer-course` ne contrôle le km que par le bas. `verifier-tarif-hotel.mjs`
+  rejoue TOUTES les migrations. Migration `20261014010000` à appliquer après la
+  fusion. Histoire : `memoire/tarif-admin.md`.
 
 ## AUDIT DE SÉCURITÉ DU 28/09/2026 — DEUX FONCTIONS OUVERTES À TOUS
 
@@ -3849,7 +3791,7 @@ course », « un graphique des courses réalisées par les chauffeurs »).
 - **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
   compte que les courses réalisées.
 - **Les prix modifiables** avaient été écrits une seconde fois, en même
-  temps que « UN SEUL TARIF AU KILOMÈTRE » (autre session). Cette seconde
+  temps que « LE TARIF SE RÈGLE DEPUIS L'ADMIN » (autre session). Cette seconde
   version a été RETIRÉE avant fusion : deux systèmes de grille pour un
   prix ferme, c'est exactement la faute que ce fichier reproche partout.
 - **Deux trous bouchés dans le tarif serveur** (`test-tarifs-serveur`) :

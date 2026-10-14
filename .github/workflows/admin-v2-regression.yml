@@ -314,6 +314,21 @@ jobs:
             -f supabase/migrations/20261014000000_mesure_acquisition.sql \
             -f supabase/migrations/20261014000000_mesure_acquisition.sql \
             -f supabase/tests/mesure-apres.sql
+          # Le prix des pages dédiées (14 octobre 2026) : la vue publique des
+          # majorations, sur le décor des vues en lecture seule (tables fermées
+          # à anon, privilèges par défaut de Supabase), migration appliquée deux
+          # fois. Anon lit les seuls pourcentages valides et n'écrit rien ; une
+          # ligne mal écrite ne majore rien. Éprouvée contre six migrations
+          # faussées.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database majoration;'
+          psql -h 127.0.0.1 -U postgres -d majoration -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/vues-lecture-seule.sql \
+            -f supabase/migrations/20260928120000_tarif_unifie.sql \
+            -f supabase/migrations/20261005000000_vues_lecture_seule.sql \
+            -f supabase/migrations/20261014010000_majoration_pages.sql \
+            -f supabase/migrations/20261014010000_majoration_pages.sql \
+            -f supabase/tests/majoration-pages-apres.sql
 
       # LE PILOTAGE PAR LA PORTE DU NAVIGATEUR : PostgREST, le serveur que
       # Supabase place devant la base, avec de vrais jetons signés. La porte

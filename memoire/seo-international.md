@@ -81,7 +81,8 @@ inter-aéroports). Diagnostic d'abord, puis cinq pages au plus, mesurées.
 
 1. Barbaros relit les captures et valide (textes anglais, WhatsApp prérempli,
    lien « English » dans le pied, politique de confidentialité).
-2. Fusion, puis **appliquer la migration** `20261014000000_mesure_acquisition.sql`.
+2. Fusion, puis **appliquer les migrations** `20261014000000_mesure_acquisition.sql`
+   et `20261014010000_majoration_pages.sql` (prix des pages : `memoire/tarif-admin.md`).
 3. Search Console : soumettre le plan du site, demander l'indexation de `/en/`.
 4. Le monitoring (6 h) vérifie les dix nouvelles portes ; ChatGPT contrôle le
    site en ligne.
