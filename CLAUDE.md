@@ -372,7 +372,7 @@ contractuel. Ne pas y écrire de tarif chiffré.
   changent jamais : elles sont dans l'historique.
 - **Deux langues**, français et anglais. Le site public s'ouvre en
   français ; les pages d'hôtel suivent le navigateur, et l'anglais y est le
-  repli (voir « LE SITE SE PRÉSENTE PAR SA MARQUE »). Ajouter une
+  repli (voir « LA MARQUE ET GOOGLE »). Ajouter une
   langue veut dire écrire ~110 phrases à la main ; pas de traduction
   automatique sur un site où le prix engage.
 - **Le client paie par lien, avant le départ** (10/10/2026) : voir « LE
@@ -3637,83 +3637,25 @@ ne joint ni la BAN ni Photon) :
 dans l'ordre le plus défavorable ; sur l'ancien code il rend exactement ce
 qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
 
-## UN SEUL TARIF AU KILOMÈTRE, ET IL SE MODIFIE DEPUIS L'ADMIN
+## LE TARIF SE RÈGLE DEPUIS L'ADMIN — UN SEUL TARIF, SAUF LES PAGES DÉDIÉES
 
-28 septembre 2026, à sa demande : « je veux que tout le monde ait le même
-prix lorsqu'il tape une adresse sur le moteur de recherche, et je veux
-pouvoir modifier cela sur ma page admin, même les prix du flyer. »
-
-**IL Y AVAIT DEUX GRILLES AU KILOMÈTRE, ET ÇA NE SE VOYAIT PAS.** 2,90 €/km
-berline / 4,70 €/km van pour un client ordinaire ; une seconde, plus basse,
-injectée au moment de CONSTRUIRE le site pour une adresse hôtel hors flyer
-(« autre destination »), par .github/scripts/appliquer-regles-easyhotel.mjs
-(supprimé depuis).
-Deux clients tapant la même adresse depuis deux entrées différentes du site
-payaient donc un montant différent, sans qu'aucun des deux ne le sache — et
-le prix est ferme donc opposable. **Il n'y en a plus qu'une.** Le
-transformateur de construction a été **supprimé** — il n'avait plus rien à
-faire, l'unique grille suffit désormais partout — et retiré de
-`construire.sh`.
-
-**LE TARIF EST DÉSORMAIS LU SUR LE SERVEUR, PAS SEULEMENT ÉCRIT DANS LA
-PAGE.** C'était la seconde moitié de la demande : pouvoir changer un prix
-depuis un téléphone, sans republier le site. `GAMMES` (le tarif général) et
-`HOTELS[...].destinations[...].forfait` (les sept prix du flyer) restent
-écrits en dur dans `index.html` — **ce sont des REPLIS, plus la vérité** :
-au chargement, `chargerTarifsServeur()` interroge deux vues Supabase
-anonymes et **corrige ces valeurs en mémoire** si le serveur répond. Le
-repli est sacré, comme partout ailleurs sur ce site : un échec (hors ligne,
-minuterie, format inattendu) ne touche à rien, le client garde le chiffre
-écrit en dur, sans le moindre message.
-- **DEUX VUES, PAS DEUX TABLES OUVERTES À ANON.** Les tables restent
-  fermées (`parametres_commerciaux` porte aussi la commission) ; `anon` lit
-  `tarif_public` et `forfaits_partenaires_publics`, qui tournent avec les
-  droits de leur PROPRIÉTAIRE, donc SANS les policies.
-  **UNE VUE NE S'ÉCRIT JAMAIS** (audit du 4 octobre 2026) : Supabase donne
-  par défaut TOUS les droits à `anon` sur tout objet neuf, et une vue sur
-  une seule table est modifiable — un anonyme effaçait le tarif berline.
-  `20261005000000_vues_lecture_seule.sql` retire l'écriture à toute vue ;
-  la rejouer après toute vue créée (elle s'arrête si un droit survit).
-- **L'ÉCRITURE EXISTAIT DÉJÀ, IL NE MANQUAIT QUE L'ÉCRAN.** Les deux tables
-  ont depuis leur création une policy « authenticated + `est_exploitant()`
-  » en écriture — Admin v2 s'en sert déjà pour la commission. Le nouvel
-  écran (Réglages → « Tarifs », dans l'admin historique que Barbaros
-  utilise réellement, pas Admin v2) appelle donc `nuage.appel()` avec la
-  session déjà ouverte pour se connecter à l'espace — le même compte, la
-  même autorisation.
-- **LES FORFAITS DU FLYER RESTENT DES MONTANTS FIXES**, à sa demande
-  explicite (« rester des forfaits fixes, modifiables un par un ») — pas de
-  bascule au kilométrage. Chaque destination × gamme est un champ modifiable
-  à part.
-- **`nuage.majForfait` LIT AVANT D'ÉCRIRE** : `tarifs_partenaires` se filtre
-  par `partenaire_id`, pas par la clé lisible de l'hôtel. Écrire à
-  l'aveugle sur un identifiant supposé créerait une seconde ligne « active »
-  pour la même destination au lieu de corriger la première.
-- **LA MÉMOIRE DE LA PAGE EST CORRIGÉE AU MOMENT MÊME DE L'ENREGISTREMENT**,
-  pas seulement le serveur : sinon la grille rappelée sur « Nouvelle course »
-  (`ecrireGrille()`) resterait périmée jusqu'au prochain chargement complet
-  de la page — exactement le défaut déjà réglé pour le prix de la pancarte.
-- **`deposer-course` NE VÉRIFIE PAS CE TARIF CÔTÉ SERVEUR** — seuls les
-  forfaits du flyer le sont (`snapshotPartenaire`). Le kilométrage reste,
-  comme avant cette unification, un calcul fait confiance au client. Ce
-  n'est pas une régression : c'était déjà le cas pour les deux grilles
-  précédentes, et étendre cette vérification est un chantier à part.
-- **`verifier-tarif-hotel.mjs` REJOUE TOUTES LES MIGRATIONS, PAS UNE
-  SEULE.** Le tarif général est semé par une migration (INSERT) puis
-  corrigé par celle-ci (UPDATE) : lire uniquement la première aurait
-  comparé le repli du site à une valeur que la base ne porte plus. **Piège
-  rencontré en l'écrivant** : capturer séparément la clé et la valeur
-  laissait une fenêtre de correspondance sauter par-dessus le « where cle »
-  du van et lui attribuer par erreur la valeur de la berline — mesuré, pas
-  supposé (le premier jet rendait bien 2,9 €/km comme tarif serveur du
-  van). Chaque regex capture désormais la clé ET le JSON dans le MÊME
-  match, bornée par le `;` de fin d'instruction. `test-doc.mjs` porte le
-  même correctif pour son propre contrôle d'accord client/serveur.
-- Migration : `supabase/migrations/20260928120000_tarif_unifie.sql`. Comme
-  toujours, elle doit être **rejouée en production** (workflow « Appliquer
-  une migration Supabase ») pour que la base porte réellement 2,90/4,70 —
-  tant que ce n'est pas fait, le site s'appuie sur son repli, qui porte
-  déjà les mêmes chiffres.
+Le serveur est la vérité : `chargerTarifsServeur()` lit `tarif_public`,
+`forfaits_partenaires_publics` et `prix_pages_publics` ; `GAMMES` et
+`HOTELS` écrits en dur ne sont que le REPLI. « Voir mon prix » attend
+(`tarifsLus`, 4 s). Réglages → « Tarifs » (km, minimum), « Prix du flyer, par
+hôtel » (forfaits fixes), « Prix des pages ». Écriture : admin seul.
+- **Un seul tarif au km pour tout le site** (28/09), **sauf une page dédiée**
+  (14/10/2026, Barbaros : « plus cher » aux touristes, « modifier au km
+  n'importe quelle page ») : par page d'`ORIGINES` (`prix_pages`), un tarif au
+  km par gamme, sinon un % du tarif du site ; rien par défaut. Jamais le
+  minimum, un forfait, la pancarte. Centimes EN ENTIERS (`tarifKmMajore`). Prix
+  affiché = prix facturé (`prixGamme`) ; sans `src` ou sans vue : le prix du
+  site. CGV art. 4, sans chiffre. `test-prix-pages`.
+- **Une vue ne s'écrit jamais** : toute vue créée perd ses droits d'écriture
+  (`20261005000000`, ou la migration qui la crée — elle le vérifie).
+- `deposer-course` ne contrôle le km que par le bas. `verifier-tarif-hotel.mjs`
+  rejoue TOUTES les migrations. Migration `20261014010000` à appliquer après la
+  fusion. Histoire : `memoire/tarif-admin.md`.
 
 ## AUDIT DE SÉCURITÉ DU 28/09/2026 — DEUX FONCTIONS OUVERTES À TOUS
 
@@ -3849,7 +3791,7 @@ course », « un graphique des courses réalisées par les chauffeurs »).
 - **Le graphique** suit le choix Semaine / Mois / Année du registre et ne
   compte que les courses réalisées.
 - **Les prix modifiables** avaient été écrits une seconde fois, en même
-  temps que « UN SEUL TARIF AU KILOMÈTRE » (autre session). Cette seconde
+  temps que « LE TARIF SE RÈGLE DEPUIS L'ADMIN » (autre session). Cette seconde
   version a été RETIRÉE avant fusion : deux systèmes de grille pour un
   prix ferme, c'est exactement la faute que ce fichier reproche partout.
 - **Deux trous bouchés dans le tarif serveur** (`test-tarifs-serveur`) :
@@ -4695,26 +4637,28 @@ mémoire de POURQUOI c'est écrit ainsi.
   pendant ce travail, retirés ensuite à sa décision — voir « LES
   COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
 
-## LE SITE SE PRÉSENTE PAR SA MARQUE — « Elatransfer », PARTOUT
+## LA MARQUE ET GOOGLE — « Elatransfer », FRANÇAIS À LA RACINE, ANGLAIS SOUS /en/
 
-5 octobre 2026, Barbaros : « Elatransfer partout ». Un mot, un E majuscule,
-dans tout texte publié — titres, pages, admin, réception, manifestes, CGV.
-Le LOGO (image, et le mot-symbole « ELA TRANSFER » de l'affiche hôtel) ne
-change pas. Le titre mène avec la marque, puis dit ce qu'elle vend ; le
-dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
-- **Le site public s'ouvre en français pour tout le monde** : le robot de
-  Google se présente en anglais américain et lisait l'accueil en anglais
-  sous un titre français. L'anglais est à un appui et se mémorise. **Pas de
-  `hreflang`** tant que l'anglais n'a pas sa propre adresse. Les pages
-  d'hôtel (non indexées) gardent la détection : le flyer est scanné par des
-  voyageurs étrangers.
-- **Aucun lien public ne mène à `/application.html`** : c'est la page du
-  FLYER easyHotel (espace « hotel-client »). Les pages du sitemap réservent
-  vers `/?aeroport=…`. `test-nouveau-bascule` y appuie, sur le site construit.
-- `verifier-production.mjs` reconnaît une porte à son `data-ela-space`, plus
-  à la marque seule, qui est désormais partout.
-- L'histoire (titre du 4 octobre, Issue #300, aperçus en double) :
-  `memoire/marque-et-referencement.md`.
+« Elatransfer » en un mot, partout (5/10, Barbaros) ; le logo et les icônes ne
+bougent pas. Le titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
+- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; l'anglais
+  y est un bouton qui se mémorise. Les pages d'hôtel gardent la détection.
+- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques
+  (`en/`), liées par « English » dans le pied puis par `/en/`. **Le moteur reste
+  unique** : « Book » ouvre `/?lang=en&src=…` ; `vers=` écrit l'autre bout et
+  ouvre sa liste — le client choisit toujours. Diagnostic : `SEO-INTERNATIONAL.md`.
+- **hreflang seulement entre vrais équivalents, et réciproque** (`/`↔`/en/`,
+  CDG, Orly ; `x-default` → anglais). **Jamais de lien ni de canonique en
+  `.html`** : Cloudflare les redirige (307, mesuré avec `wrangler dev`).
+- **La page d'origine part avec la demande** (`provenance`, liste `ORIGINES`) ;
+  l'entonnoir est compté sans traceur (`ela_mesurer`, migration `20261014000000`
+  à appliquer après la fusion).
+- Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
+  données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
+  les réponses aux questions sont celles de l'accueil, dans la langue de la page.
+- Search Console : compte **orucburak001**. `www` ne répond pas (DNS, à Barbaros).
+- `test-seo-en`, `test-nouveau-bascule`. Histoire : `memoire/marque-et-referencement.md`,
+  `memoire/seo-international.md`.
 
 ## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
 
@@ -4751,26 +4695,6 @@ réception, puis gère chaque transport (B2B). Histoire et variantes écartées 
   « Votre réception réserve. Elatransfer gère tout le reste. »
 - `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
   code d'avant).
-
-## GOOGLE — UNE SEULE ENTREPRISE, ET DES PAGES DE SERVICE LIÉES
-
-- **Search Console** : propriété « domaine » du compte Google
-  **orucburak001**, pas `contact@`. Au 5/10/2026 : 4 pages au plan, 2
-  indexées ; CDG et Orly, que l'accueil ne liait pas, sont liées depuis son
-  pied et enrichies (faits du site et des CGV, aucun prix ni avis).
-- **Un seul graphe de données structurées**, dans `index.html`
-  (Organization `#organisation`, WebSite, Service) ; `seo-ela.mjs` n'en
-  ajoute plus, les pages de service désignent `#organisation`. Jamais
-  « VTC », jamais `LocalBusiness` sans adresse réelle.
-- Leurs réponses sont celles de l'accueil, mot pour mot : en changer une
-  veut dire changer les deux (`test-nouveau-bascule`).
-- **Lot P2 (6/10/2026)** : une seule série de partage, un manifeste, une
-  couleur ; aucune canonique sur une page `noindex` ; les fichiers des hôtels
-  hors de l'accueil ; vignettes en WebP 480 px (accueil 1 148 → 607 Ko).
-- **Le logo et les icônes ne bougent pas** : `test-nouveau-bascule` en garde
-  les empreintes et l'affichage. Image de partage 1200×630 : non décidée.
-- `www` ne répond pas : à régler par Barbaros dans le DNS Cloudflare.
-  Histoire : `memoire/marque-et-referencement.md`.
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 

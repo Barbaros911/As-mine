@@ -119,7 +119,14 @@ function remplacerEntreApres(html, apres, debut, fin, remplacement = '') {
    « c'est moi, l'adresse de référence de l'accueil » à la fois, deux
    consignes qui se contredisent. Seule la page publique la garde. */
 function sansCanonique(html) {
-  return html.replace(/<link\b[^>]*rel=["']canonical["'][^>]*>\s*/gi, '');
+  return sansHreflang(html.replace(/<link\b[^>]*rel=["']canonical["'][^>]*>\s*/gi, ''));
+}
+/* LES VERSIONS LINGUISTIQUES SONT CELLES DE L'ACCUEIL (14 octobre 2026, SEO
+   international) : « / » et « /en/ » se déclarent l'un l'autre. Une page
+   d'hôtel, la réception ou l'admin, construites depuis la même source,
+   n'ont pas d'équivalent anglais — elles ne gardent pas ces balises. */
+function sansHreflang(html) {
+  return html.replace(/<link\b[^>]*rel=["']alternate["'][^>]*hreflang=[^>]*>\s*/gi, '');
 }
 
 const sectionsAdmin = [
@@ -210,7 +217,7 @@ function publicEla() {
 }
 
 function client() {
-  let html = sansBonComptoir(sansReception(sansAdmin()));
+  let html = sansHreflang(sansBonComptoir(sansReception(sansAdmin())));
   html = injecterBootstrap(html, 'client');
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
   const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){${versReception}}}catch(e){}}());</script>`;
