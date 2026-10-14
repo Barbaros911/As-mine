@@ -41,6 +41,12 @@
       au formulaire et n'appelle pas le serveur. On n'exige JAMAIS qu'elle
       s'ouvre : c'est le serveur qui en décide, sur une session.
 
+   6. GOOGLE PEUT DÉCOUVRIR ET INDEXER LES PAGES (15 octobre 2026).
+      robots.txt et le plan du site sont de vrais fichiers, et chaque
+      adresse du plan répond 200 SANS redirection, indexable, permise,
+      canonique sur elle-même, hreflang réciproques. Même juge que sur le
+      site construit : seo-indexation.mjs.
+
    Lancer :
      node .github/scripts/verifier-production.mjs https://elatransfer.com/
      node .github/scripts/verifier-production.mjs http://127.0.0.1:8099/
@@ -50,6 +56,7 @@
 import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
 import { chercher, exempte } from "./textes-interdits.mjs";
+import { auditerIndexation, lecteurHttp } from "./seo-indexation.mjs";
 
 const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || "https://elatransfer.com/").replace(/\/*$/, "/");
@@ -202,6 +209,21 @@ rapport.version = version;
 if (version.erreur) ko(`/version.json ${version.erreur} \u2014 impossible de dire quel commit est en ligne`);
 else if (COMMIT && version.commit !== COMMIT) ko(`la production sert le commit ${version.commit} (construit le ${version.construit}) au lieu de ${COMMIT} \u2014 l'h\u00e9bergeur n'a pas publi\u00e9 le dernier main`);
 else ok(`commit en ligne : ${version.commit} \u00b7 cache ${version.cache} \u00b7 construit le ${version.construit}${COMMIT ? " \u2014 c'est bien le dernier main" : ""}`);
+
+/* ---- 1 quater. Ce que Google peut découvrir et indexer ---------------
+   15 octobre 2026 (Prompt 2). Le point 1 suit les redirections et ne lit
+   ni robots.txt ni le plan du site : une adresse du plan devenue une
+   redirection y restait verte, et un sitemap.xml absent rendrait l'ACCUEIL
+   en 200 chez Cloudflare. Le juge est le même que celui de test-seo-en sur
+   le site construit (seo-indexation.mjs) : il lit le HTML brut de chaque
+   adresse du plan, sans suivre les redirections. */
+console.log("\nCe que Google peut d\u00e9couvrir et indexer :");
+try {
+  const { controles } = await auditerIndexation(lecteurHttp(BASE));
+  for (const c of controles) (c.ok ? ok : ko)(c.m);
+} catch (e) {
+  ko(`contr\u00f4le d'indexation impossible : ${e.message}`);
+}
 
 /* ---- 1 ter. L'ancienne règle de paiement n'est pas en ligne ----------
    On lit le HTML et les scripts tels que l'hébergeur les SERT, pas tels

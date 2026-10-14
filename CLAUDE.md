@@ -4639,26 +4639,27 @@ mémoire de POURQUOI c'est écrit ainsi.
 
 ## LA MARQUE ET GOOGLE — « Elatransfer », FRANÇAIS À LA RACINE, ANGLAIS SOUS /en/
 
-« Elatransfer » en un mot, partout (5/10, Barbaros) ; le logo et les icônes ne
-bougent pas. Le titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
-- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; l'anglais
-  y est un bouton qui se mémorise. Les pages d'hôtel gardent la détection.
-- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques
-  (`en/`), liées par « English » dans le pied puis par `/en/`. **Le moteur reste
-  unique** : « Book » ouvre `/?lang=en&src=…` ; `vers=` écrit l'autre bout et
-  ouvre sa liste — le client choisit toujours. Diagnostic : `SEO-INTERNATIONAL.md`.
-- **hreflang seulement entre vrais équivalents, et réciproque** (`/`↔`/en/`,
-  CDG, Orly ; `x-default` → anglais). **Jamais de lien ni de canonique en
-  `.html`** : Cloudflare les redirige (307, mesuré avec `wrangler dev`).
-- **La page d'origine part avec la demande** (`provenance`, liste `ORIGINES`) ;
-  l'entonnoir est compté sans traceur (`ela_mesurer`, migration `20261014000000`
-  à appliquer après la fusion).
+« Elatransfer » en un mot, partout (5/10, Barbaros) ; logo et icônes fixes. Le
+titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
+- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; les
+  pages d'hôtel gardent la détection de langue.
+- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques, liées
+  par « English » dans le pied puis par `/en/`. **Le moteur reste unique** :
+  « Book » ouvre `/?lang=en&src=…`, le client choisit toujours (`SEO-INTERNATIONAL.md`).
+- **hreflang entre vrais équivalents, réciproque** (`/`↔`/en/`, CDG, Orly ;
+  `x-default` → anglais). **Jamais de lien, canonique ni `@id` en `.html`** :
+  Cloudflare les redirige (307).
+- **CE QUE GOOGLE LIT EST JUGÉ DEUX FOIS, PAR LE MÊME CODE** (15/10/2026,
+  `seo-indexation.mjs`) : site construit (`test-seo-en`) et en ligne (monitoring).
+  Toute page indexable va dans `sitemap.xml`, ou passe en `noindex`.
+- Origine de la demande (`provenance`) et entonnoir sans traceur (`ela_mesurer`,
+  appliqué le 14/10) : `memoire/seo-international.md`.
 - Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
   données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
-  les réponses aux questions sont celles de l'accueil, dans la langue de la page.
-- Search Console : compte **orucburak001**. `www` ne répond pas (DNS, à Barbaros).
-- `test-seo-en`, `test-nouveau-bascule`. Histoire : `memoire/marque-et-referencement.md`,
-  `memoire/seo-international.md`.
+  réponses aux questions = celles de l'accueil, dans la langue de la page.
+- Search Console : compte **orucburak001** — gestes à faire et attendus dans
+  `memoire/seo-indexation.md`. `www` ne répond pas (DNS, à Barbaros).
+- Histoire : `memoire/marque-et-referencement.md`.
 
 ## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
 
