@@ -246,13 +246,9 @@ l'application** gardent le reste.
 - **Ne pas diffuser à 800 inconnus par défaut.** Deux cercles : un noyau
   de 5 à 10 chauffeurs vérifiés qui reçoit la course en premier, et le
   grand groupe en réservoir si personne ne prend.
-- **Piste commerciale : les hôtels de la zone CDG.** Le numéro de chambre
-  existe pour eux. Coût zéro, testable en une semaine.
-  **easyHotel EST partenaire depuis septembre 2026** — confirmé par Barbaros.
-  La note précédente disait le contraire (« ce n'était qu'un cas de test de
-  recherche d'adresse ») : c'était vrai jusqu'à ce qu'il signe. **Une note de
-  ce fichier vieillit ; vérifier auprès de lui avant de s'en servir pour
-  refuser quelque chose.**
+- **Piste commerciale : les hôtels de la zone CDG.** easyHotel **n'est PAS
+  partenaire officiel** (14/10/2026) : autorisation d'exploiter depuis le 12/10,
+  aucun accord écrit, aucune réservation. Ne pas annoncer de partenariat.
 - **Ne pas promettre une marque précise** (« Mercedes Classe E ») : si un
   autre véhicule se présente, c'est trompeur. Dire « berline » ou, à la
   rigueur, « type … ou similaire ».
@@ -266,15 +262,17 @@ l'application** gardent le reste.
 et le taux de commission se règle désormais **par chauffeur**, dans le
 carnet — il n'y a plus de taux global à trancher dans le code.
 
-**Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
-point bloquant** · volume visé · clientèle cible (particuliers / hôtels /
-entreprises) · budget · règle du temps d'attente.
+**Le Programme Partenaire hôtels est arrêté (14/10/2026), en attente du
+SIRET** : trois niveaux, zéro frais, rémunération en € par transfert réalisé
+et payé, Elatransfer garde ≥ 50 % de sa commission et ≥ 4,50 €. Rien n'est
+affiché, promis ni codé avant le SIRET : `memoire/programme-partenaire.md`.
 
-**L'histoire de l'ancien site** — sa grille, ses packs, le délai de 3 h,
-les codes promo, tout ce qui a été essayé puis retiré entre août et
-septembre 2026 — est dans `memoire/ancien-site.md`, figée telle qu'elle
-était écrite. Ne l'ouvrir que si un sujet d'alors revient. Pour savoir ce
-que fait le site aujourd'hui, c'est la section « LE SITE » qui dit vrai.
+**Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
+point bloquant** · volume visé · budget.
+
+**L'ancien site** (grille, packs, délai de 3 h, codes promo, août–septembre
+2026) : `memoire/ancien-site.md`, à n'ouvrir que si un sujet d'alors revient ;
+pour aujourd'hui, c'est « LE SITE » qui dit vrai.
 
 ---
 
