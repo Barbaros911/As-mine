@@ -372,7 +372,7 @@ contractuel. Ne pas y écrire de tarif chiffré.
   changent jamais : elles sont dans l'historique.
 - **Deux langues**, français et anglais. Le site public s'ouvre en
   français ; les pages d'hôtel suivent le navigateur, et l'anglais y est le
-  repli (voir « LE SITE SE PRÉSENTE PAR SA MARQUE »). Ajouter une
+  repli (voir « LA MARQUE ET GOOGLE »). Ajouter une
   langue veut dire écrire ~110 phrases à la main ; pas de traduction
   automatique sur un site où le prix engage.
 - **Le client paie par lien, avant le départ** (10/10/2026) : voir « LE
@@ -4695,26 +4695,28 @@ mémoire de POURQUOI c'est écrit ainsi.
   pendant ce travail, retirés ensuite à sa décision — voir « LES
   COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
 
-## LE SITE SE PRÉSENTE PAR SA MARQUE — « Elatransfer », PARTOUT
+## LA MARQUE ET GOOGLE — « Elatransfer », FRANÇAIS À LA RACINE, ANGLAIS SOUS /en/
 
-5 octobre 2026, Barbaros : « Elatransfer partout ». Un mot, un E majuscule,
-dans tout texte publié — titres, pages, admin, réception, manifestes, CGV.
-Le LOGO (image, et le mot-symbole « ELA TRANSFER » de l'affiche hôtel) ne
-change pas. Le titre mène avec la marque, puis dit ce qu'elle vend ; le
-dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
-- **Le site public s'ouvre en français pour tout le monde** : le robot de
-  Google se présente en anglais américain et lisait l'accueil en anglais
-  sous un titre français. L'anglais est à un appui et se mémorise. **Pas de
-  `hreflang`** tant que l'anglais n'a pas sa propre adresse. Les pages
-  d'hôtel (non indexées) gardent la détection : le flyer est scanné par des
-  voyageurs étrangers.
-- **Aucun lien public ne mène à `/application.html`** : c'est la page du
-  FLYER easyHotel (espace « hotel-client »). Les pages du sitemap réservent
-  vers `/?aeroport=…`. `test-nouveau-bascule` y appuie, sur le site construit.
-- `verifier-production.mjs` reconnaît une porte à son `data-ela-space`, plus
-  à la marque seule, qui est désormais partout.
-- L'histoire (titre du 4 octobre, Issue #300, aperçus en double) :
-  `memoire/marque-et-referencement.md`.
+« Elatransfer » en un mot, partout (5/10, Barbaros) ; le logo et les icônes ne
+bougent pas. Le titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
+- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; l'anglais
+  y est un bouton qui se mémorise. Les pages d'hôtel gardent la détection.
+- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques
+  (`en/`), liées par « English » dans le pied puis par `/en/`. **Le moteur reste
+  unique** : « Book » ouvre `/?lang=en&src=…` ; `vers=` écrit l'autre bout et
+  ouvre sa liste — le client choisit toujours. Diagnostic : `SEO-INTERNATIONAL.md`.
+- **hreflang seulement entre vrais équivalents, et réciproque** (`/`↔`/en/`,
+  CDG, Orly ; `x-default` → anglais). **Jamais de lien ni de canonique en
+  `.html`** : Cloudflare les redirige (307, mesuré avec `wrangler dev`).
+- **La page d'origine part avec la demande** (`provenance`, liste `ORIGINES`) ;
+  l'entonnoir est compté sans traceur (`ela_mesurer`, migration `20261014000000`
+  à appliquer après la fusion).
+- Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
+  données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
+  les réponses aux questions sont celles de l'accueil, dans la langue de la page.
+- Search Console : compte **orucburak001**. `www` ne répond pas (DNS, à Barbaros).
+- `test-seo-en`, `test-nouveau-bascule`. Histoire : `memoire/marque-et-referencement.md`,
+  `memoire/seo-international.md`.
 
 ## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
 
@@ -4751,26 +4753,6 @@ réception, puis gère chaque transport (B2B). Histoire et variantes écartées 
   « Votre réception réserve. Elatransfer gère tout le reste. »
 - `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
   code d'avant).
-
-## GOOGLE — UNE SEULE ENTREPRISE, ET DES PAGES DE SERVICE LIÉES
-
-- **Search Console** : propriété « domaine » du compte Google
-  **orucburak001**, pas `contact@`. Au 5/10/2026 : 4 pages au plan, 2
-  indexées ; CDG et Orly, que l'accueil ne liait pas, sont liées depuis son
-  pied et enrichies (faits du site et des CGV, aucun prix ni avis).
-- **Un seul graphe de données structurées**, dans `index.html`
-  (Organization `#organisation`, WebSite, Service) ; `seo-ela.mjs` n'en
-  ajoute plus, les pages de service désignent `#organisation`. Jamais
-  « VTC », jamais `LocalBusiness` sans adresse réelle.
-- Leurs réponses sont celles de l'accueil, mot pour mot : en changer une
-  veut dire changer les deux (`test-nouveau-bascule`).
-- **Lot P2 (6/10/2026)** : une seule série de partage, un manifeste, une
-  couleur ; aucune canonique sur une page `noindex` ; les fichiers des hôtels
-  hors de l'accueil ; vignettes en WebP 480 px (accueil 1 148 → 607 Ko).
-- **Le logo et les icônes ne bougent pas** : `test-nouveau-bascule` en garde
-  les empreintes et l'affichage. Image de partage 1200×630 : non décidée.
-- `www` ne répond pas : à régler par Barbaros dans le DNS Cloudflare.
-  Histoire : `memoire/marque-et-referencement.md`.
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 

@@ -80,3 +80,56 @@ le site construit, jamais sur le dépôt : chaque défaut naissait d'une étape 
 - **`www.elatransfer.com` ne résout pas** (aucun enregistrement). Réglage
   Cloudflare, à faire par Barbaros, une action à la fois.
 
+
+---
+
+## Rangé le 14 octobre 2026 (mission « SEO international »)
+
+Les deux sections ci-dessous ont quitté `CLAUDE.md`, recopiées telles
+qu'elles étaient, quand l'anglais a reçu sa propre adresse (`/en/`). La règle
+qui vaut est dans `CLAUDE.md`, « LA MARQUE ET GOOGLE » ; le chantier de ce
+jour-là est dans `memoire/seo-international.md`. Une phrase ci-dessous est
+périmée : « Pas de `hreflang` tant que l'anglais n'a pas sa propre adresse »
+— il l'a.
+
+### LE SITE SE PRÉSENTE PAR SA MARQUE — « Elatransfer », PARTOUT
+
+5 octobre 2026, Barbaros : « Elatransfer partout ». Un mot, un E majuscule,
+dans tout texte publié — titres, pages, admin, réception, manifestes, CGV.
+Le LOGO (image, et le mot-symbole « ELA TRANSFER » de l'affiche hôtel) ne
+change pas. Le titre mène avec la marque, puis dit ce qu'elle vend ; le
+dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
+- **Le site public s'ouvre en français pour tout le monde** : le robot de
+  Google se présente en anglais américain et lisait l'accueil en anglais
+  sous un titre français. L'anglais est à un appui et se mémorise. **Pas de
+  `hreflang`** tant que l'anglais n'a pas sa propre adresse. Les pages
+  d'hôtel (non indexées) gardent la détection : le flyer est scanné par des
+  voyageurs étrangers.
+- **Aucun lien public ne mène à `/application.html`** : c'est la page du
+  FLYER easyHotel (espace « hotel-client »). Les pages du sitemap réservent
+  vers `/?aeroport=…`. `test-nouveau-bascule` y appuie, sur le site construit.
+- `verifier-production.mjs` reconnaît une porte à son `data-ela-space`, plus
+  à la marque seule, qui est désormais partout.
+- L'histoire (titre du 4 octobre, Issue #300, aperçus en double) :
+  `memoire/marque-et-referencement.md`.
+
+### GOOGLE — UNE SEULE ENTREPRISE, ET DES PAGES DE SERVICE LIÉES
+
+- **Search Console** : propriété « domaine » du compte Google
+  **orucburak001**, pas `contact@`. Au 5/10/2026 : 4 pages au plan, 2
+  indexées ; CDG et Orly, que l'accueil ne liait pas, sont liées depuis son
+  pied et enrichies (faits du site et des CGV, aucun prix ni avis).
+- **Un seul graphe de données structurées**, dans `index.html`
+  (Organization `#organisation`, WebSite, Service) ; `seo-ela.mjs` n'en
+  ajoute plus, les pages de service désignent `#organisation`. Jamais
+  « VTC », jamais `LocalBusiness` sans adresse réelle.
+- Leurs réponses sont celles de l'accueil, mot pour mot : en changer une
+  veut dire changer les deux (`test-nouveau-bascule`).
+- **Lot P2 (6/10/2026)** : une seule série de partage, un manifeste, une
+  couleur ; aucune canonique sur une page `noindex` ; les fichiers des hôtels
+  hors de l'accueil ; vignettes en WebP 480 px (accueil 1 148 → 607 Ko).
+- **Le logo et les icônes ne bougent pas** : `test-nouveau-bascule` en garde
+  les empreintes et l'affichage. Image de partage 1200×630 : non décidée.
+- `www` ne répond pas : à régler par Barbaros dans le DNS Cloudflare.
+  Histoire : `memoire/marque-et-referencement.md`.
+

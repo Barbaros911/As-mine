@@ -115,6 +115,17 @@ const PAGES = [
      n'a pas reçu l'accueil à sa place (le piège de `/demos/`). */
   { chemin: "professionnels/", quoi: "la page des professionnels", titre: "Elatransfer",
     marqueur: 'href="https://elatransfer.com/professionnels/"', robots: "index" },
+  /* LES PAGES D'ACQUISITION (14 octobre 2026, SEO international). Chacune
+     est reconnue à SA canonique : une adresse anglaise qui servirait
+     l'accueil (le repli « adresse inconnue » de Cloudflare) répondrait 200
+     avec la marque dans le titre. Les pages françaises sont visées à
+     l'adresse que Cloudflare sert, sans « .html ». */
+  ...["", "cdg-airport-transfer-paris/", "orly-airport-transfer-paris/", "disneyland-paris-airport-transfer/", "cdg-orly-transfer/"]
+    .map((c) => ({ chemin: "en/" + c, quoi: `la page anglaise /en/${c}`, titre: "Elatransfer",
+      marqueur: `<link rel="canonical" href="https://elatransfer.com/en/${c}">`, robots: "index" })),
+  ...["transfert-cdg-paris", "transfert-orly-paris", "chauffeur-prive-paris"]
+    .map((c) => ({ chemin: c, quoi: `la page fran\u00e7aise /${c}`, titre: "Elatransfer",
+      marqueur: `<link rel="canonical" href="https://elatransfer.com/${c}">`, robots: "index" })),
   { chemin: "demo/hotel/", quoi: "la d\u00e9mo h\u00f4tel (vue client)", titre: "D\u00e9monstration", espace: "demo",
     marqueur: "html.demo-attente body{visibility:hidden}", robots: "noindex" },
   { chemin: "demo/hotel/reception/", quoi: "la d\u00e9mo h\u00f4tel (vue r\u00e9ception)", titre: "D\u00e9monstration", espace: "demo",
@@ -198,8 +209,7 @@ else ok(`commit en ligne : ${version.commit} \u00b7 cache ${version.cache} \u00b
    client. Même liste que la construction (textes-interdits.mjs), mêmes
    exemptions (l'admin relit des courses anciennes). */
 console.log("\nL'ancienne r\u00e8gle de paiement en ligne :");
-const PUBLICS = [...PAGES.map((p) => p.chemin), "chauffeur-prive-paris.html", "transfert-cdg-paris.html",
-  "transfert-orly-paris.html", "telephone.js", "itineraire-partage.js", "hotel-engine-polish.js", "sw.js",
+const PUBLICS = [...PAGES.map((p) => p.chemin), "telephone.js", "mesure.js", "itineraire-partage.js", "hotel-engine-polish.js", "sw.js",
   "demo/demo-simulateur.js"].filter((c) => !exempte(c || "index.html"));
 let fautesTexte = 0;
 for (const c of PUBLICS) {

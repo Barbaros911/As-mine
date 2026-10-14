@@ -299,6 +299,21 @@ jobs:
                -f supabase/migrations/20261008000000_prospects.sql; then
             echo "La migration des prospects accepte une vue lisible par anon"; exit 1
           fi
+          # La mesure d'audience des pages d'acquisition (14 octobre 2026).
+          # Même décor (vraie est_admin(), privilèges par défaut de Supabase),
+          # migration appliquée deux fois. Puis : anon compte et ne fait rien
+          # d'autre, un appel invalide n'est pas compté, l'admin lit les
+          # totaux et l'agent non, 60 pages par jour au plus, fenêtre de
+          # lecture. Éprouvée contre six migrations faussées.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database mesure;'
+          psql -h 127.0.0.1 -U postgres -d mesure -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/mesure.sql \
+            -f supabase/migrations/20261014000000_mesure_acquisition.sql \
+            -f supabase/migrations/20261014000000_mesure_acquisition.sql \
+            -f supabase/tests/mesure-apres.sql
 
       # LE PILOTAGE PAR LA PORTE DU NAVIGATEUR : PostgREST, le serveur que
       # Supabase place devant la base, avec de vrais jetons signés. La porte

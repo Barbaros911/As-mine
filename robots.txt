@@ -18,4 +18,11 @@ Disallow: /*?reception=
 # La démo des professionnels : on y entre par le formulaire, jamais par Google.
 Disallow: /demo/
 
+# LE MOTEUR OUVERT DANS UNE AUTRE LANGUE (« /?lang=en&… », 14 octobre 2026).
+# Ce n'est pas une page : c'est l'accueil, canonique « / », affiché en
+# anglais pour un visiteur venu d'une page anglaise. Les pages anglaises,
+# elles, ont leur adresse : /en/.
+Disallow: /*?lang=
+Disallow: /*&lang=
+
 Sitemap: https://elatransfer.com/sitemap.xml
