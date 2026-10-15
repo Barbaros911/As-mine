@@ -93,7 +93,9 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
   const etat = await v.p.evaluate(() => ({ adresse: location.search,
     books: [...document.querySelectorAll('a[data-mesure="reserver"]')].map(a => a.getAttribute('href')),
     internes: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^\/en\//.test(h)),
-    ancres: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^#/.test(h) || /via=.*#|#.*via=/.test(h)),
+    ancres: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^#/.test(h)),
+    memePage: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => {
+      try { const u = new URL(h, location.href); return u.origin === location.origin && u.pathname === location.pathname && !!u.hash && /via=/.test(h); } catch { return false; } }),
     externes: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^(tel:|mailto:|https:\/\/wa\.me)/.test(h)) }));
   const vue = v.mesures.find(m => m.p_evenement === 'page_vue') || {};
   check('arrivée : la visite est comptée avec le code du partenaire', vue.p_page === 'en-cdg' && vue.p_source === 'hotel-exemple', JSON.stringify(vue));
@@ -103,7 +105,9 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
   /* Perdu au premier clic vers /en/ ou une autre page, le code ne verrait
      jamais la demande qui part de là (relecture du 15/10/2026). */
   check('arrivée : les autres liens du site (accueil anglais, autres pages) emmènent le code aussi', etat.internes.length >= 2 && etat.internes.every(h => /[?&]via=hotel-exemple(&|$|#)/.test(h)), etat.internes.join(' | '));
-  check('arrivée : une ancre de la même page reste une ancre (réécrite, elle rechargerait la page)', etat.ancres.length >= 1 && etat.ancres.every(h => /^#/.test(h)), etat.ancres.join(' | '));
+  /* « #faq » reste « #faq » ; « /en/#transfers », lui, est une autre page et
+     part avec le code — le test distingue les deux. */
+  check('arrivée : une ancre de la même page reste une ancre (réécrite, elle rechargerait la page)', etat.ancres.length >= 2 && etat.memePage.length === 0, JSON.stringify({ ancres: etat.ancres, memePage: etat.memePage }));
   check('arrivée : tel:, mailto: et WhatsApp ne sont pas touchés', etat.externes.length >= 3 && etat.externes.every(h => !/via=/.test(h)), etat.externes.join(' | '));
   /* On appuie vraiment : le moteur s'ouvre, compte avec le code, l'efface. */
   await v.p.locator('a[data-mesure="reserver"]').first().click();
