@@ -14,10 +14,16 @@
 <meta name="description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://elatransfer.com/">
-<!-- AUCUNE BALISE « hreflang » (5 octobre 2026). Cette adresse est en
-     français ; l'anglais n'y est qu'un bouton. Déclarer « fr » et « en » sur
-     la MÊME adresse ne veut rien dire pour Google. Le jour où l'anglais aura
-     sa propre adresse, les deux se déclareront l'une l'autre. -->
+<!-- L'ANGLAIS A SA PROPRE ADRESSE (14 octobre 2026, SEO international) :
+     « /en/ ». Les deux se déclarent l'une l'autre, comme prévu le 5 octobre
+     (« le jour où l'anglais aura sa propre adresse »). Cette adresse-ci
+     reste en français ; l'anglais n'y est qu'un bouton. « x-default » vise
+     l'anglais : un voyageur ni francophone ni anglophone lit mieux l'anglais.
+     Les pages d'hôtel, la réception et l'admin perdent ces balises à la
+     construction (construire-espaces-hotel.mjs, « sansHreflang »). -->
+<link rel="alternate" hreflang="fr" href="https://elatransfer.com/">
+<link rel="alternate" hreflang="en" href="https://elatransfer.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://elatransfer.com/en/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Elatransfer — Transferts privés &amp; réservation pour partenaires">
 <meta property="og:description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
@@ -881,6 +887,15 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .gc-detail{font-size:12px;color:var(--gris);margin-top:3px;}
 .reg-sous{display:block;font-size:11px;color:var(--gris);}
 .reg-vide{padding:6px 0;font-size:12px;color:var(--gris);}
+/* LES LIENS DES PARTENAIRES (15/10/2026) : la ligne du registre, plus un
+   bouton « Copier » de 44 px de haut — on copie au pouce, sur le téléphone. */
+.reg-lien{align-items:center;}
+.reg-lien .reg-val{display:flex;align-items:center;gap:10px;}
+.reg-lien .bouton-fantome{display:inline-block;width:auto;min-height:44px;
+  margin:0;padding:0 14px;font-size:13px;}
+.lien-copie{font-size:12.5px;color:var(--accent-encre);background:var(--accent-clair);
+  border-radius:10px;padding:9px 11px;margin:10px 0 0;overflow-wrap:anywhere;}
+.lien-nouveau{margin-top:14px;padding-top:12px;border-top:1px solid var(--filet);}
 
 /* ---------- L'AFFICHE D'HÔTEL ---------- */
 .affiche{margin:12px 0;padding:22px 18px;border:1px solid var(--filet);
@@ -2469,6 +2484,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .forfait-nom{font-size:15px;font-weight:600;color:var(--encre);min-width:0}
 .forfait-ligne input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
 .forfait-ligne input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
+.page-bloc{padding:10px 12px;border-top:1px solid var(--filet)}
+.page-bloc:first-child{border-top:0}
+.page-champs{display:grid;grid-template-columns:64px 1fr 1fr;gap:8px;margin-top:6px}
+.page-champs label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--gris);min-width:0}
+.page-champs input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
+.page-champs input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
+.page-champs input::placeholder{font-weight:500;color:#A3AFBB}
+.page-effet{display:block;margin-top:6px;font-size:12px;color:var(--gris);line-height:1.3}
 /* Centre de contrôle : des tableaux qui tiennent à 320 px. La première
    colonne prend le reste, les chiffres sont alignés à droite. */
 .cc-table{margin:10px 0 14px;border:1px solid var(--filet);border-radius:12px;overflow:hidden;background:var(--carte)}
@@ -2498,6 +2521,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
    ce qui attend une réponse. */
 .sauvegarde-bord{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:#EEF4FB;border:1px solid #C8DAEE;color:#123B63}
 .sauvegarde-bord p{margin:0 0 8px;font-size:14px;line-height:1.45}
+/* LE RAPPEL D'AVIS CÈDE LA PLACE (15/10/2026) : non urgent, il se masque dès
+   qu'un écriteau urgent le précède — le budget de l'écran (la première
+   demande entière à 844 px) est à eux. Une règle de style, pas un redessin :
+   elle suit l'état des écriteaux à l'instant même. Le son coupé et le rappel
+   de sauvegarde, qui ne sont pas urgents, ne le chassent pas. */
+#bordArrivee:not([hidden])~#bordAvis,#bordAlertes:not([hidden])~#bordAvis,
+#bordDettes:not([hidden])~#bordAvis,#bordHorsLigne:not([hidden])~#bordAvis,
+#bordSynchro:not([hidden])~#bordAvis,#bordConflit:not([hidden])~#bordAvis,
+#bordSansChauffeur:not([hidden])~#bordAvis{display:none}
 .sauvegarde-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
 /* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026) : bandeaux compacts, Actualiser,
@@ -3457,11 +3489,23 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          menait nulle part ailleurs : Google ne trouvait les pages CDG et Orly
          que par le plan du site, et en a laissé deux hors de son index. Un
          vrai lien <a href>, lisible sans JavaScript. -->
+    <!-- L'ADRESSE SERVIE, PAS LE NOM DU FICHIER (14 octobre 2026). Mesuré
+         sur le moteur d'hébergement de Cloudflare avec wrangler.jsonc :
+         « /transfert-cdg-paris.html » répond 307 vers « /transfert-cdg-paris ».
+         Lier la redirection, c'est donner à Google deux adresses pour une page. -->
     <nav class="pied-pages" aria-label="Nos transferts" data-t-aria="pied_pages">
-      <a href="/transfert-cdg-paris.html" data-t="pied_cdg">Transfert Roissy-CDG</a>
-      <a href="/transfert-orly-paris.html" data-t="pied_orly">Transfert Orly</a>
-      <a href="/chauffeur-prive-paris.html" data-t="pied_chauffeur">Chauffeur privé à Paris</a>
+      <a href="/transfert-cdg-paris" data-t="pied_cdg">Transfert Roissy-CDG</a>
+      <a href="/transfert-orly-paris" data-t="pied_orly">Transfert Orly</a>
+      <a href="/chauffeur-prive-paris" data-t="pied_chauffeur">Chauffeur privé à Paris</a>
+      <!-- L'ANGLAIS A SON ADRESSE (14 octobre 2026, SEO international) : un
+           seul lien, vers « /en/ », qui relie à son tour chaque page
+           anglaise. Une rangée de cinq liens cassait le pied sur une ligne
+           de l'ordinateur (test-public-ordinateur) ; c'est la page d'accueil
+           anglaise qui fait trouver les autres. Toujours en anglais, quelle
+           que soit la langue affichée : c'est une adresse anglaise. -->
+      <a href="/en/" hreflang="en" lang="en">English</a>
     </nav>
+
     <a class="pied-lien" href="#" data-ecran="ecran-contact" data-onglet="accueil"
        data-t="pied_legal">Nous joindre et informations légales</a>
   </footer>
@@ -4061,6 +4105,22 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          la relance ne vise que les demandes en attente. Comme les dettes,
          l'écriteau n'existe que s'il y a quelque chose à faire. -->
     <button class="sans-chauffeur-bord" type="button" id="bordSansChauffeur" hidden></button>
+    <!-- LES AVIS À DEMANDER (15 octobre 2026, SEO-AUTORITE.md § 11). Le bouton
+         « Demander un avis » est manuel, course par course : ne le proposer
+         qu'aux clients contents serait exactement le tri que Google et la loi
+         interdisent. Ce rappel compte les clients de la semaine qui n'ont rien
+         reçu. Il se tait tant qu'aucun lien d'avis n'est réglé : il n'y a
+         alors nulle part où laisser un avis, et un rappel qui ne mène à rien
+         est du bruit.
+         IL VIENT EN DERNIER ET CÈDE LA PLACE (relecture du 15/10) : non
+         urgent, et affiché presque chaque jour, il poussait la première
+         demande hors de l'écran (878 px sur 844, mesuré) dès que trois
+         écriteaux s'ajoutaient. Dès qu'un écriteau urgent est affiché, le
+         style le masque — sans attendre un redessin. -->
+    <div class="sauvegarde-bord" id="bordAvis" hidden>
+      <p id="bordAvisTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnBordAvis">Voir</button>
+    </div>
 
     <!-- ═══ LE BLOC A MAIGRI DE MOITIÉ ═══
          Septembre 2026, à sa demande : « ça prend beaucoup de place ». Il
@@ -4488,6 +4548,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         Le tarif au kilomètre s'applique à toute adresse tapée sur le
         moteur de recherche — sur le site comme pour une adresse hôtel
         hors flyer. Les forfaits du flyer sont des montants fixes, à part.
+        Une page dédiée peut le majorer (« Prix des pages », plus bas).
       </p>
       <div class="duo">
         <label class="champ" for="tarifBerlineKm">
@@ -4544,6 +4605,20 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span id="btnForfaitsTexte">Enregistrer les prix du flyer</span>
       </button>
       <p class="bloc-note" id="forfaitsEtat" hidden></p>
+
+      <!-- LE PRIX DES PAGES DÉDIÉES (14 octobre 2026, à sa demande : « pour
+           les pages que l'on crée pour les touristes, afficher un prix plus
+           cher », puis « modifier au km n'importe quelle page »). Par page :
+           un pourcentage ajouté au tarif du site, et/ou un tarif au km par
+           gamme, qui l'emporte. Rien de saisi = le prix du site. Voir
+           « reglePage » pour l'arithmétique et ses limites. -->
+      <h3 class="bloc-titre" style="margin-top:18px">Prix des pages</h3>
+      <p class="bloc-note" id="pagesAide">Pour un client venu de la page : un pourcentage ajouté au tarif du site, ou un prix au km par gamme (il passe avant le pourcentage). Case vide ou 0 = prix du site. Le minimum et les forfaits du flyer ne changent pas. Le client voit ce prix avant de réserver.</p>
+      <div id="tarifPages" class="forfaits-grille"></div>
+      <button class="bouton" type="button" id="btnPagesEnregistrer">
+        <span>Enregistrer les prix des pages</span>
+      </button>
+      <p class="bloc-note" id="pagesEtat" hidden></p>
     </div>
 
     <!-- LE SERVEUR EST CE QUI REND LE TABLEAU DE BORD UTILE SUR N'IMPORTE
@@ -4842,7 +4917,63 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <h2 class="bloc-titre">D'où viennent les clients</h2>
       <div id="regProvenance"></div>
       <p class="bloc-note" id="regProvenanceVide" hidden>Aucun client venu par une affiche
-         pour l'instant. Les courses réservées directement ne comptent pas ici.</p>
+         ou une page d'acquisition pour l'instant. Les courses réservées directement ne comptent pas ici.</p>
+    </div>
+
+    <!-- LES PAGES DU SITE (14 octobre 2026, SEO international). Ce que chaque
+         page d'acquisition produit AVANT la demande : vues, « Book », appels,
+         WhatsApp, moteur ouvert, formulaire commencé, demande arrivée. Un
+         compteur agrégé par jour sur le serveur, sans traceur ni donnée
+         personnelle (migration 20261014000000) — admin seul. Les DEMANDES
+         elles-mêmes sont au-dessus, dans « D'où viennent les clients ». -->
+    <div class="bloc" id="blocMesure">
+      <h2 class="bloc-titre">Pages du site — 30 derniers jours</h2>
+      <div id="regMesure"></div>
+      <p class="bloc-note" id="regMesureEtat">Lecture de la mesure…</p>
+    </div>
+
+    <!-- LES LIENS DES PARTENAIRES (15 octobre 2026, SEO-AUTORITE.md § 12).
+         Barbaros : « je veux un suivi ». Chaque partenaire — hôtel, office de
+         tourisme, annuaire, média — reçoit SON lien (« ?via=<code> ») ; ici on
+         le crée, on le copie, et on voit ce qu'il amène : vues, « Book »,
+         appels, demandes (compteur du serveur, sans traceur) puis courses
+         réalisées et argent encaissé (le registre). La liste n'est lisible
+         que par l'admin : elle nomme des partenariats pas forcément publics
+         (migration 20261015000000). -->
+    <div class="bloc" id="blocLiens">
+      <h2 class="bloc-titre">Liens des partenaires — 30 derniers jours</h2>
+      <p class="bloc-note">Donnez à chaque partenaire son propre lien : on voit ici
+         ce qu'il vous amène.</p>
+      <div class="champ">
+        <label for="lienPage">Le lien mène à</label>
+        <select id="lienPage">
+          <option value="/">Accueil (FR)</option>
+          <option value="/en/">Accueil (EN)</option>
+          <option value="/transfert-cdg-paris">CDG ↔ Paris (FR)</option>
+          <option value="/en/cdg-airport-transfer-paris/">CDG ↔ Paris (EN)</option>
+          <option value="/transfert-orly-paris">Orly ↔ Paris (FR)</option>
+          <option value="/en/orly-airport-transfer-paris/">Orly ↔ Paris (EN)</option>
+          <option value="/en/disneyland-paris-airport-transfer/">Disneyland (EN)</option>
+          <option value="/en/cdg-orly-transfer/">CDG ↔ Orly (EN)</option>
+          <option value="/chauffeur-prive-paris">Chauffeur privé (FR)</option>
+          <option value="/professionnels/">Professionnels (FR)</option>
+        </select>
+      </div>
+      <div id="regLiens"></div>
+      <p class="bloc-note" id="regLiensEtat">Lecture des liens…</p>
+      <p class="lien-copie" id="lienCopie" role="status" hidden></p>
+      <div class="lien-nouveau">
+        <div class="champ">
+          <label for="lienNom">Nom du partenaire</label>
+          <input id="lienNom" type="text" maxlength="80" autocomplete="off" placeholder="Ex. : Hôtel Exemple Roissy">
+        </div>
+        <div class="champ">
+          <label for="lienCode">Code dans le lien</label>
+          <input id="lienCode" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="hotel-exemple">
+        </div>
+        <button class="bouton-fantome" type="button" id="btnLienCreer">Créer le lien</button>
+        <p class="bloc-note" id="lienEtat" role="status" hidden></p>
+      </div>
     </div>
 
     <!-- LE REGISTRE NE VIT QUE DANS CE NAVIGATEUR tant que le serveur n'est
@@ -6300,10 +6431,10 @@ window.ELA_TEXTES = {
     legal_cgv:"Conditions générales de vente",
     legal_mentions:"Mentions légales",
     legal_privacy:"Politique de confidentialité",
-    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 11 octobre 2026\n\n1. Objet, champ d'application et acceptation\nLes présentes conditions générales de vente (les « CGV ») régissent l'utilisation du service Elatransfer (le « Service ») pour demander, organiser et réserver une course auprès d'un chauffeur professionnel indépendant, que la demande soit passée sur le site, par téléphone, par message ou depuis la page de réservation d'un établissement partenaire. Elatransfer est joignable à contact@elatransfer.com et au +33 7 59 31 24 33 ; ses informations légales figurent dans les mentions légales accessibles depuis le Service.\n\nLe « Client » est la personne qui demande la course, pour elle-même ou pour les passagers qu'elle désigne. Il informe ces passagers des présentes CGV. Une réservation passée par la réception d'un hôtel partenaire pour le compte d'un client de l'hôtel est soumise aux mêmes CGV, ce client ayant la qualité de Client.\n\nL'envoi d'une demande vaut acceptation des CGV par le Client. Les CGV applicables sont celles en vigueur à la date de la demande ; elles restent accessibles à tout moment depuis le Service et peuvent être enregistrées ou imprimées.\n\n2. Rôle d'Elatransfer\nElatransfer intervient comme intermédiaire entre le Client et le chauffeur : elle reçoit la demande, recherche un chauffeur professionnel disponible, transmet la confirmation et le lien de paiement, et coordonne les informations utiles jusqu'à la prise en charge.\n\nElatransfer ne possède pas les véhicules et n'exécute pas le transport. Le contrat de transport est conclu entre le Client et le chauffeur affecté à la course. La course est réalisée sous la responsabilité de ce chauffeur indépendant, qui demeure responsable de ses autorisations professionnelles, de son assurance, de son véhicule et de la bonne exécution du transport.\n\nLes mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service. Ils sont organisés par téléphone ou par message, et leur prix ainsi que leurs conditions sont communiqués au Client avant toute confirmation.\n\n3. Demande, confirmation et formation du contrat\nLe Client transmet une demande indiquant notamment les adresses de départ et d'arrivée, la date, l'heure, le nombre de passagers et de bagages, la catégorie de véhicule souhaitée, ses coordonnées et, le cas échéant, son numéro de vol ou de train. L'envoi de cette demande ne garantit pas la disponibilité d'un chauffeur et ne constitue pas une réservation ferme.\n\nLorsqu'un chauffeur a été affecté, Elatransfer adresse au Client une confirmation expresse rappelant le trajet, la date, l'heure de prise en charge, la catégorie de véhicule et le prix total, accompagnée du lien de paiement du chauffeur. L'identité ou les coordonnées utiles du chauffeur sont communiquées au Client au plus tard avant la prise en charge.\n\nLe contrat devient définitif à la réception du paiement. Tant que le paiement n'est pas reçu, aucune des parties n'est engagée et aucun frais n'est dû. Si le paiement n'intervient pas dans un délai permettant au chauffeur d'assurer la prise en charge à l'heure convenue, Elatransfer peut lever la réservation après en avoir informé le Client, sans frais pour quiconque.\n\nSi aucun chauffeur n'est disponible, Elatransfer en informe le Client dans les meilleurs délais et rien ne lui est dû.\n\nLe Client est responsable de l'exactitude des informations transmises et signale sans délai toute modification. Elatransfer et le chauffeur ne répondent pas d'un retard ou d'une impossibilité d'exécution résultant d'une information inexacte ou incomplète fournie par le Client.\n\n4. Prix\nLes prix sont indiqués en euros, toutes taxes comprises. Avant l'envoi de sa demande, le Client voit le prix total correspondant au trajet et à la catégorie de véhicule sélectionnée.\n\nPour un trajet dont le départ ou l'arrivée se situe à plus de 90 km de Paris, pour un groupe de plus de sept passagers nécessitant plusieurs véhicules, ou pour une adresse saisie sans être reconnue par le Service, aucun prix n'est affiché et la demande est transmise avec la mention « Tarif à confirmer ». Elatransfer communique alors au Client le prix total avant toute confirmation. Une telle demande n'engage le Client qu'une fois ce prix porté à sa connaissance et accepté.\n\nLe prix est calculé selon la distance estimée de l'itinéraire et le tarif kilométrique de la catégorie choisie. Le montant obtenu est arrondi à la dizaine d'euros la plus proche et un montant minimum s'applique à chaque course. Il ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié.\n\nLorsque la course relie un hôtel partenaire d'Elatransfer à l'une des destinations prévues par l'accord conclu avec cet hôtel, un prix forfaitaire propre à ce partenaire remplace le calcul kilométrique décrit ci-dessus. Ce forfait dépend de la destination et de la catégorie de véhicule retenues. Il n'est ni arrondi à la dizaine d'euros, ni soumis au montant minimum, et ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié. Il est affiché au Client avant l'envoi de sa demande. Toute autre destination, ainsi qu'une adresse située hors de la zone couverte par le forfait, revient au calcul kilométrique.\n\nLorsque le Client choisit l'option d'accueil avec un panneau à son nom, un supplément forfaitaire de 10 € s'ajoute au prix de la course. Cette option n'est proposée que pour une prise en charge en aéroport ou en gare et n'est jamais présélectionnée. Son montant s'ajoute après l'arrondi et après l'application du montant minimum : il n'est ni arrondi, ni majoré.\n\nLes tarifs kilométriques et les montants minimums applicables sont ceux affichés par le Service au moment de la demande.\n\nLe prix devient ferme à la confirmation. Il ne peut être modifié sans l'accord préalable du Client, sauf si celui-ci demande ensuite une modification du trajet, de l'horaire, de la catégorie de véhicule, du nombre de passagers ou de bagages, ou un arrêt supplémentaire ; le nouveau prix est alors communiqué et accepté avant d'être appliqué. Aucun frais de mise en relation n'est facturé au Client par Elatransfer.\n\n5. Paiement\nToute course est payée en totalité avant la prise en charge, par le lien de paiement du chauffeur transmis par Elatransfer avec la confirmation. Ce lien porte le prix confirmé. Aucun paiement n'est accepté à bord du véhicule, ni en espèces ni par carte.\n\nLe chauffeur se met en route une fois le paiement reçu : sans paiement, la course n'a pas lieu et aucun frais n'est dû par le Client. Un paiement tardif peut retarder la prise en charge.\n\nLe prix est encaissé par le chauffeur, au moyen de son propre prestataire de paiement. Elatransfer n'encaisse pas le prix de la course et ne collecte aucune donnée bancaire du Client. Le Client ne règle une course que par le lien reçu d'Elatransfer dans la conversation de sa réservation ; Elatransfer ne demande jamais de coordonnées bancaires par message ou par téléphone.\n\nLe chauffeur remet au Client, sur demande, la facture correspondant au transport. Elatransfer peut être rémunérée par le chauffeur pour son service d'intermédiaire, sans aucun supplément ajouté au prix confirmé au Client.\n\nLe prix reste dû lorsque la course a été exécutée ou lorsqu'elle n'a pas eu lieu du fait du Client. La contestation d'un tel paiement auprès d'une banque ou d'un prestataire de paiement ne libère pas le Client de cette somme, que le chauffeur peut recouvrer par toute voie de droit. Avant toute contestation, le Client est invité à adresser une réclamation à Elatransfer selon l'article 13.\n\n6. Absence de droit de rétractation\nConformément à l'article L. 221-2 du Code de la consommation, les contrats portant sur des services de transport de passagers sont exclus des règles relatives au droit de rétractation applicables aux contrats conclus à distance. Le délai de rétractation de quatorze jours ne s'applique donc pas aux courses réservées par l'intermédiaire du Service.\n\n7. Annulation, report et absence du Client\nTant que le prix n'a pas été payé, le Client peut renoncer à la course en prévenant Elatransfer : aucun frais n'est dû.\n\nLe paiement du prix par le lien de paiement vaut engagement ferme et définitif du Client. Dès sa réception, le chauffeur affecté réserve le créneau de la course, se tient à la disposition du Client et renonce à accepter d'autres courses sur la même période. En conséquence, une fois le prix payé, la course ne peut plus être annulée par le Client : une annulation, une demande de report ou une absence du Client ne donne lieu à aucun remboursement, ni total ni partiel. Toute modification de la course après paiement reste subordonnée à l'accord d'Elatransfer et du chauffeur, et ses conditions financières sont convenues avant qu'elle s'applique. Le présent article s'applique sans préjudice de l'absence de droit de rétractation rappelée à l'article 6.\n\nLe Client est considéré absent s'il ne se présente pas au point de rendez-vous et reste injoignable à l'issue du temps d'attente inclus défini à l'article 9. Le chauffeur peut alors quitter le lieu de prise en charge ; la course est due en totalité.\n\nIl en va de même lorsque la course ne peut avoir lieu en raison d'une circonstance propre au Client ou aux passagers, notamment un vol ou un train annulé, dérouté ou arrivé après le temps d'attente inclus, un document de voyage manquant, un état de santé, ou un refus de prise en charge fondé sur l'article 10. Elatransfer s'efforce alors de proposer un nouvel horaire, sous réserve de la disponibilité du chauffeur et sans obligation de résultat.\n\n8. Course non assurée du fait d'Elatransfer ou du chauffeur\nElatransfer peut remplacer le chauffeur affecté par un autre chauffeur professionnel, dans une catégorie de véhicule au moins équivalente, sans modification du prix ni frais pour le Client, qui en est informé avant la prise en charge.\n\nLorsque la course n'a pas lieu du fait d'Elatransfer ou du chauffeur, notamment faute de chauffeur disponible, en cas d'empêchement du chauffeur, ou lorsque le chauffeur ne se présente pas ou se présente avec un retard tel que le Client, après en avoir informé Elatransfer, a dû recourir à un autre moyen de transport, le Client est remboursé de la totalité du prix payé, par le chauffeur qui l'a encaissé, au plus tard dans les 14 jours. Elatransfer veille à ce remboursement.\n\n9. Exécution du transport\nLe transport est exécuté par le chauffeur indépendant confirmé au Client, sous ses autorisations professionnelles et son assurance. La catégorie réservée correspond à un niveau de capacité et de service, et non à la garantie d'un modèle précis.\n\nL'heure convenue est l'heure de prise en charge. Les durées de trajet indiquées par le Service sont des estimations, susceptibles de varier selon la circulation : il appartient au Client de prévoir une marge suffisante, notamment pour un vol ou un train. Le chauffeur choisit l'itinéraire adapté aux conditions de circulation ; un itinéraire imposé ou un arrêt non prévu demandé par le Client est soumis à son accord et peut modifier le prix dans les conditions de l'article 4.\n\nLe temps d'attente inclus est de 60 minutes après l'heure réelle d'atterrissage pour une prise en charge en aéroport lorsque le numéro de vol a été fourni et peut être suivi, et de 30 minutes après l'heure convenue dans les autres cas. Lorsque l'option a été choisie et confirmée, le chauffeur attend le Client avec un panneau à son nom au point de rendez-vous indiqué.\n\nLe Client reste joignable au numéro indiqué dans sa demande, se présente à l'heure au point de rendez-vous et informe Elatransfer sans délai de tout retard ou changement.\n\n10. Passagers, bagages et comportement à bord\nLe nombre de passagers ne peut dépasser la capacité de la catégorie réservée, et chaque passager occupe une place assise et attache sa ceinture. Le Client signale dans sa demande la présence d'enfants et leur âge, afin que le transport s'effectue dans des conditions de sécurité conformes à la réglementation.\n\nLes bagages doivent correspondre à ceux déclarés et tenir dans le véhicule réservé. Les animaux ne sont admis qu'avec l'accord préalable d'Elatransfer, à l'exception des chiens guides et d'assistance, toujours admis.\n\nIl est interdit de fumer ou de vapoter dans le véhicule, d'y transporter des objets dangereux ou illicites, et d'adopter un comportement violent, dangereux ou contraire à la sécurité. Le chauffeur peut refuser ou interrompre le transport lorsque la sécurité des personnes est en cause, lorsque les passagers ou les bagages excèdent ce qui a été déclaré sans pouvoir être transportés, ou en cas de manquement grave aux présentes règles ; la course est alors due en totalité.\n\nLe Client répond des dommages causés au véhicule par les passagers, y compris des frais de nettoyage exceptionnel, sur justificatif du chauffeur.\n\n11. Objets oubliés\nLe Client vérifie qu'il n'oublie rien à bord. Un objet oublié est signalé à Elatransfer, qui met le Client en relation avec le chauffeur pour organiser sa restitution ; les frais éventuels d'envoi sont à la charge du Client.\n\n12. Responsabilité et force majeure\nElatransfer répond de la bonne exécution de son service d'intermédiaire dans les conditions prévues par la loi. Le chauffeur répond de l'exécution du transport, de la sécurité des passagers, de son véhicule, de son assurance et du respect de ses obligations professionnelles.\n\nAucune partie n'est responsable d'un manquement causé par un événement de force majeure répondant aux critères légaux et rendant l'obligation impossible à exécuter. Les difficultés de circulation ordinaires ne constituent pas, à elles seules, un cas de force majeure.\n\nAucune clause des présentes CGV ne limite les droits impératifs du consommateur, ni la responsabilité qui ne peut être exclue par la loi.\n\n13. Réclamations et règlement des litiges\nToute réclamation est adressée à Elatransfer par email à contact@elatransfer.com ou par WhatsApp au +33 7 59 31 24 33, de préférence dans les 7 jours suivant la course, en indiquant la référence de la course et les éléments utiles. Elatransfer transmet au chauffeur les réclamations qui concernent l'exécution du transport et aide les parties à rechercher une solution amiable.\n\nAprès une réclamation écrite préalable restée sans solution, le Client consommateur conserve le droit de recourir gratuitement à un médiateur de la consommation compétent ainsi que d'exercer tout recours prévu par la loi.\n\n14. Preuve\nLa demande, la confirmation, le prix accepté et le paiement peuvent être établis par tout écrit, notamment les messages échangés par le site, SMS, WhatsApp, Telegram ou email, et les enregistrements du Service.\n\n15. Données personnelles\nLes traitements de données personnelles, leurs finalités, leurs destinataires et les droits du Client sont décrits dans la Politique de confidentialité accessible depuis le Service.\n\n16. Dispositions générales\nSi une clause des présentes CGV était déclarée nulle ou inapplicable, les autres clauses demeureraient en vigueur. En cas de différence entre la version française et une traduction, la version française prévaut.\n\n17. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français, sans priver le consommateur des protections impératives éventuellement applicables dans son pays de résidence. En cas de litige non résolu à l'amiable, les juridictions compétentes sont déterminées conformément aux règles impératives de procédure et de protection des consommateurs.",
+    legal_cgv_body:"CONDITIONS GÉNÉRALES DE VENTE — Elatransfer\n\nDernière mise à jour : 14 octobre 2026\n\n1. Objet, champ d'application et acceptation\nLes présentes conditions générales de vente (les « CGV ») régissent l'utilisation du service Elatransfer (le « Service ») pour demander, organiser et réserver une course auprès d'un chauffeur professionnel indépendant, que la demande soit passée sur le site, par téléphone, par message ou depuis la page de réservation d'un établissement partenaire. Elatransfer est joignable à contact@elatransfer.com et au +33 7 59 31 24 33 ; ses informations légales figurent dans les mentions légales accessibles depuis le Service.\n\nLe « Client » est la personne qui demande la course, pour elle-même ou pour les passagers qu'elle désigne. Il informe ces passagers des présentes CGV. Une réservation passée par la réception d'un hôtel partenaire pour le compte d'un client de l'hôtel est soumise aux mêmes CGV, ce client ayant la qualité de Client.\n\nL'envoi d'une demande vaut acceptation des CGV par le Client. Les CGV applicables sont celles en vigueur à la date de la demande ; elles restent accessibles à tout moment depuis le Service et peuvent être enregistrées ou imprimées.\n\n2. Rôle d'Elatransfer\nElatransfer intervient comme intermédiaire entre le Client et le chauffeur : elle reçoit la demande, recherche un chauffeur professionnel disponible, transmet la confirmation et le lien de paiement, et coordonne les informations utiles jusqu'à la prise en charge.\n\nElatransfer ne possède pas les véhicules et n'exécute pas le transport. Le contrat de transport est conclu entre le Client et le chauffeur affecté à la course. La course est réalisée sous la responsabilité de ce chauffeur indépendant, qui demeure responsable de ses autorisations professionnelles, de son assurance, de son véhicule et de la bonne exécution du transport.\n\nLes mises à disposition à l'heure et les déplacements sur mesure ne se réservent pas depuis le Service. Ils sont organisés par téléphone ou par message, et leur prix ainsi que leurs conditions sont communiqués au Client avant toute confirmation.\n\n3. Demande, confirmation et formation du contrat\nLe Client transmet une demande indiquant notamment les adresses de départ et d'arrivée, la date, l'heure, le nombre de passagers et de bagages, la catégorie de véhicule souhaitée, ses coordonnées et, le cas échéant, son numéro de vol ou de train. L'envoi de cette demande ne garantit pas la disponibilité d'un chauffeur et ne constitue pas une réservation ferme.\n\nLorsqu'un chauffeur a été affecté, Elatransfer adresse au Client une confirmation expresse rappelant le trajet, la date, l'heure de prise en charge, la catégorie de véhicule et le prix total, accompagnée du lien de paiement du chauffeur. L'identité ou les coordonnées utiles du chauffeur sont communiquées au Client au plus tard avant la prise en charge.\n\nLe contrat devient définitif à la réception du paiement. Tant que le paiement n'est pas reçu, aucune des parties n'est engagée et aucun frais n'est dû. Si le paiement n'intervient pas dans un délai permettant au chauffeur d'assurer la prise en charge à l'heure convenue, Elatransfer peut lever la réservation après en avoir informé le Client, sans frais pour quiconque.\n\nSi aucun chauffeur n'est disponible, Elatransfer en informe le Client dans les meilleurs délais et rien ne lui est dû.\n\nLe Client est responsable de l'exactitude des informations transmises et signale sans délai toute modification. Elatransfer et le chauffeur ne répondent pas d'un retard ou d'une impossibilité d'exécution résultant d'une information inexacte ou incomplète fournie par le Client.\n\n4. Prix\nLes prix sont indiqués en euros, toutes taxes comprises. Avant l'envoi de sa demande, le Client voit le prix total correspondant au trajet et à la catégorie de véhicule sélectionnée.\n\nPour un trajet dont le départ ou l'arrivée se situe à plus de 90 km de Paris, pour un groupe de plus de sept passagers nécessitant plusieurs véhicules, ou pour une adresse saisie sans être reconnue par le Service, aucun prix n'est affiché et la demande est transmise avec la mention « Tarif à confirmer ». Elatransfer communique alors au Client le prix total avant toute confirmation. Une telle demande n'engage le Client qu'une fois ce prix porté à sa connaissance et accepté.\n\nLe prix est calculé selon la distance estimée de l'itinéraire et le tarif kilométrique de la catégorie choisie. Le montant obtenu est arrondi à la dizaine d'euros la plus proche et un montant minimum s'applique à chaque course. Il ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié.\n\nLorsque la course relie un hôtel partenaire d'Elatransfer à l'une des destinations prévues par l'accord conclu avec cet hôtel, un prix forfaitaire propre à ce partenaire remplace le calcul kilométrique décrit ci-dessus. Ce forfait dépend de la destination et de la catégorie de véhicule retenues. Il n'est ni arrondi à la dizaine d'euros, ni soumis au montant minimum, et ne fait l'objet d'aucune majoration de nuit, de week-end ou de jour férié. Il est affiché au Client avant l'envoi de sa demande. Toute autre destination, ainsi qu'une adresse située hors de la zone couverte par le forfait, revient au calcul kilométrique.\n\nLorsque le Client choisit l'option d'accueil avec un panneau à son nom, un supplément forfaitaire de 10 € s'ajoute au prix de la course. Cette option n'est proposée que pour une prise en charge en aéroport ou en gare et n'est jamais présélectionnée. Son montant s'ajoute après l'arrondi et après l'application du montant minimum : il n'est ni arrondi, ni majoré.\n\nLes tarifs kilométriques et les montants minimums applicables sont ceux affichés par le Service au moment de la demande. Le tarif kilométrique peut différer selon la page du Service depuis laquelle la demande est commencée ; le prix total affiché avant l'envoi de la demande est celui qui s'applique.\n\nLe prix devient ferme à la confirmation. Il ne peut être modifié sans l'accord préalable du Client, sauf si celui-ci demande ensuite une modification du trajet, de l'horaire, de la catégorie de véhicule, du nombre de passagers ou de bagages, ou un arrêt supplémentaire ; le nouveau prix est alors communiqué et accepté avant d'être appliqué. Aucun frais de mise en relation n'est facturé au Client par Elatransfer.\n\n5. Paiement\nToute course est payée en totalité avant la prise en charge, par le lien de paiement du chauffeur transmis par Elatransfer avec la confirmation. Ce lien porte le prix confirmé. Aucun paiement n'est accepté à bord du véhicule, ni en espèces ni par carte.\n\nLe chauffeur se met en route une fois le paiement reçu : sans paiement, la course n'a pas lieu et aucun frais n'est dû par le Client. Un paiement tardif peut retarder la prise en charge.\n\nLe prix est encaissé par le chauffeur, au moyen de son propre prestataire de paiement. Elatransfer n'encaisse pas le prix de la course et ne collecte aucune donnée bancaire du Client. Le Client ne règle une course que par le lien reçu d'Elatransfer dans la conversation de sa réservation ; Elatransfer ne demande jamais de coordonnées bancaires par message ou par téléphone.\n\nLe chauffeur remet au Client, sur demande, la facture correspondant au transport. Elatransfer peut être rémunérée par le chauffeur pour son service d'intermédiaire, sans aucun supplément ajouté au prix confirmé au Client.\n\nLe prix reste dû lorsque la course a été exécutée ou lorsqu'elle n'a pas eu lieu du fait du Client. La contestation d'un tel paiement auprès d'une banque ou d'un prestataire de paiement ne libère pas le Client de cette somme, que le chauffeur peut recouvrer par toute voie de droit. Avant toute contestation, le Client est invité à adresser une réclamation à Elatransfer selon l'article 13.\n\n6. Absence de droit de rétractation\nConformément à l'article L. 221-2 du Code de la consommation, les contrats portant sur des services de transport de passagers sont exclus des règles relatives au droit de rétractation applicables aux contrats conclus à distance. Le délai de rétractation de quatorze jours ne s'applique donc pas aux courses réservées par l'intermédiaire du Service.\n\n7. Annulation, report et absence du Client\nTant que le prix n'a pas été payé, le Client peut renoncer à la course en prévenant Elatransfer : aucun frais n'est dû.\n\nLe paiement du prix par le lien de paiement vaut engagement ferme et définitif du Client. Dès sa réception, le chauffeur affecté réserve le créneau de la course, se tient à la disposition du Client et renonce à accepter d'autres courses sur la même période. En conséquence, une fois le prix payé, la course ne peut plus être annulée par le Client : une annulation, une demande de report ou une absence du Client ne donne lieu à aucun remboursement, ni total ni partiel. Toute modification de la course après paiement reste subordonnée à l'accord d'Elatransfer et du chauffeur, et ses conditions financières sont convenues avant qu'elle s'applique. Le présent article s'applique sans préjudice de l'absence de droit de rétractation rappelée à l'article 6.\n\nLe Client est considéré absent s'il ne se présente pas au point de rendez-vous et reste injoignable à l'issue du temps d'attente inclus défini à l'article 9. Le chauffeur peut alors quitter le lieu de prise en charge ; la course est due en totalité.\n\nIl en va de même lorsque la course ne peut avoir lieu en raison d'une circonstance propre au Client ou aux passagers, notamment un vol ou un train annulé, dérouté ou arrivé après le temps d'attente inclus, un document de voyage manquant, un état de santé, ou un refus de prise en charge fondé sur l'article 10. Elatransfer s'efforce alors de proposer un nouvel horaire, sous réserve de la disponibilité du chauffeur et sans obligation de résultat.\n\n8. Course non assurée du fait d'Elatransfer ou du chauffeur\nElatransfer peut remplacer le chauffeur affecté par un autre chauffeur professionnel, dans une catégorie de véhicule au moins équivalente, sans modification du prix ni frais pour le Client, qui en est informé avant la prise en charge.\n\nLorsque la course n'a pas lieu du fait d'Elatransfer ou du chauffeur, notamment faute de chauffeur disponible, en cas d'empêchement du chauffeur, ou lorsque le chauffeur ne se présente pas ou se présente avec un retard tel que le Client, après en avoir informé Elatransfer, a dû recourir à un autre moyen de transport, le Client est remboursé de la totalité du prix payé, par le chauffeur qui l'a encaissé, au plus tard dans les 14 jours. Elatransfer veille à ce remboursement.\n\n9. Exécution du transport\nLe transport est exécuté par le chauffeur indépendant confirmé au Client, sous ses autorisations professionnelles et son assurance. La catégorie réservée correspond à un niveau de capacité et de service, et non à la garantie d'un modèle précis.\n\nL'heure convenue est l'heure de prise en charge. Les durées de trajet indiquées par le Service sont des estimations, susceptibles de varier selon la circulation : il appartient au Client de prévoir une marge suffisante, notamment pour un vol ou un train. Le chauffeur choisit l'itinéraire adapté aux conditions de circulation ; un itinéraire imposé ou un arrêt non prévu demandé par le Client est soumis à son accord et peut modifier le prix dans les conditions de l'article 4.\n\nLe temps d'attente inclus est de 60 minutes après l'heure réelle d'atterrissage pour une prise en charge en aéroport lorsque le numéro de vol a été fourni et peut être suivi, et de 30 minutes après l'heure convenue dans les autres cas. Lorsque l'option a été choisie et confirmée, le chauffeur attend le Client avec un panneau à son nom au point de rendez-vous indiqué.\n\nLe Client reste joignable au numéro indiqué dans sa demande, se présente à l'heure au point de rendez-vous et informe Elatransfer sans délai de tout retard ou changement.\n\n10. Passagers, bagages et comportement à bord\nLe nombre de passagers ne peut dépasser la capacité de la catégorie réservée, et chaque passager occupe une place assise et attache sa ceinture. Le Client signale dans sa demande la présence d'enfants et leur âge, afin que le transport s'effectue dans des conditions de sécurité conformes à la réglementation.\n\nLes bagages doivent correspondre à ceux déclarés et tenir dans le véhicule réservé. Les animaux ne sont admis qu'avec l'accord préalable d'Elatransfer, à l'exception des chiens guides et d'assistance, toujours admis.\n\nIl est interdit de fumer ou de vapoter dans le véhicule, d'y transporter des objets dangereux ou illicites, et d'adopter un comportement violent, dangereux ou contraire à la sécurité. Le chauffeur peut refuser ou interrompre le transport lorsque la sécurité des personnes est en cause, lorsque les passagers ou les bagages excèdent ce qui a été déclaré sans pouvoir être transportés, ou en cas de manquement grave aux présentes règles ; la course est alors due en totalité.\n\nLe Client répond des dommages causés au véhicule par les passagers, y compris des frais de nettoyage exceptionnel, sur justificatif du chauffeur.\n\n11. Objets oubliés\nLe Client vérifie qu'il n'oublie rien à bord. Un objet oublié est signalé à Elatransfer, qui met le Client en relation avec le chauffeur pour organiser sa restitution ; les frais éventuels d'envoi sont à la charge du Client.\n\n12. Responsabilité et force majeure\nElatransfer répond de la bonne exécution de son service d'intermédiaire dans les conditions prévues par la loi. Le chauffeur répond de l'exécution du transport, de la sécurité des passagers, de son véhicule, de son assurance et du respect de ses obligations professionnelles.\n\nAucune partie n'est responsable d'un manquement causé par un événement de force majeure répondant aux critères légaux et rendant l'obligation impossible à exécuter. Les difficultés de circulation ordinaires ne constituent pas, à elles seules, un cas de force majeure.\n\nAucune clause des présentes CGV ne limite les droits impératifs du consommateur, ni la responsabilité qui ne peut être exclue par la loi.\n\n13. Réclamations et règlement des litiges\nToute réclamation est adressée à Elatransfer par email à contact@elatransfer.com ou par WhatsApp au +33 7 59 31 24 33, de préférence dans les 7 jours suivant la course, en indiquant la référence de la course et les éléments utiles. Elatransfer transmet au chauffeur les réclamations qui concernent l'exécution du transport et aide les parties à rechercher une solution amiable.\n\nAprès une réclamation écrite préalable restée sans solution, le Client consommateur conserve le droit de recourir gratuitement à un médiateur de la consommation compétent ainsi que d'exercer tout recours prévu par la loi.\n\n14. Preuve\nLa demande, la confirmation, le prix accepté et le paiement peuvent être établis par tout écrit, notamment les messages échangés par le site, SMS, WhatsApp, Telegram ou email, et les enregistrements du Service.\n\n15. Données personnelles\nLes traitements de données personnelles, leurs finalités, leurs destinataires et les droits du Client sont décrits dans la Politique de confidentialité accessible depuis le Service.\n\n16. Dispositions générales\nSi une clause des présentes CGV était déclarée nulle ou inapplicable, les autres clauses demeureraient en vigueur. En cas de différence entre la version française et une traduction, la version française prévaut.\n\n17. Droit applicable et juridiction\nLes présentes CGV sont soumises au droit français, sans priver le consommateur des protections impératives éventuellement applicables dans son pays de résidence. En cas de litige non résolu à l'amiable, les juridictions compétentes sont déterminées conformément aux règles impératives de procédure et de protection des consommateurs.",
     legal_mentions_body:"MENTIONS LÉGALES\n\nÉdition du site\nNom commercial : Elatransfer\nActivité : mise en relation entre des clients et des chauffeurs VTC indépendants, à Paris et en Île-de-France. Elatransfer n'exécute pas le transport : chaque course est assurée par un chauffeur professionnel sous sa propre licence, son assurance et sa carte professionnelle.\n\nHébergement du site\nCloudflare, Inc. — 101 Townsend Street, San Francisco, CA 94107, États-Unis — +1 888 993 5273 — cloudflare.com\nLe site est aussi publié par GitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — github.com\n\nContact\nTéléphone et WhatsApp : +33 7 59 31 24 33\nEmail : contact@elatransfer.com\n\nPropriété intellectuelle\nL'ensemble des éléments du site (textes, logo, structure, code) est la propriété d'Elatransfer, sauf mention contraire, et ne peut être reproduit sans autorisation préalable.\n\nAutorité de contrôle RGPD\nPour toute question relative au traitement des données personnelles, l'autorité de contrôle compétente en France est la Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     mesure_non:"Ne plus me compter", mesure_non_fait:"Vous n'êtes plus compté sur cet appareil.",
-    legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 15 octobre 2026\n\n1. Responsable du traitement et contact\nElatransfer détermine les finalités et les moyens des traitements réalisés par le Service. Pour toute question ou demande relative aux données personnelles : contact@elatransfer.com ou WhatsApp au +33 7 59 31 24 33. Les autres informations d'identification figurent dans les Mentions légales.\n\n2. Données traitées\nLe Service peut traiter :\n— les coordonnées du Client : nom, numéro de téléphone et moyen de contact choisi pour recevoir la confirmation ;\n— les données de course : adresses, coordonnées géographiques associées, date, heure, catégorie de véhicule, passagers, bagages, prix, moyen de paiement prévu, note facultative, terminal, numéro de vol ou de train et, dans le parcours hôtel, numéro de chambre ;\n— les données de suivi : référence, état de la demande, chauffeur affecté et échanges nécessaires à la confirmation ;\n— la position de l'appareil uniquement si le Client active « Me localiser » et accorde l'autorisation au navigateur ;\n— les données techniques nécessaires aux connexions : adresse IP, navigateur, appareil, horodatage et journaux de sécurité susceptibles d'être reçus par l'hébergeur et les prestataires techniques ;\n— des données de mesure d'audience anonymes : voir l'article 7.\n\nElatransfer ne collecte aucune donnée bancaire : le Client paie la course avant la prise en charge, par le lien de paiement du chauffeur qu'Elatransfer lui transmet avec la confirmation.\n\n3. Finalités et bases légales\nLes données sont utilisées pour :\n— afficher un itinéraire et un prix, répondre à une demande et rechercher un chauffeur : mesures précontractuelles demandées par le Client ;\n— confirmer, suivre et exécuter la réservation : exécution du contrat et coordination avec le chauffeur ;\n— prévenir les abus, sécuriser le Service, conserver la preuve des demandes et défendre des droits : intérêt légitime ;\n— respecter les obligations légales et comptables applicables : obligation légale ;\n— utiliser la position de l'appareil : permission déclenchée volontairement par le Client, révocable dans les réglages du navigateur.\n\nAucune prospection commerciale n'est effectuée à partir des données de réservation sans une base légale distincte et, lorsque la loi l'exige, sans consentement préalable.\n\n4. Destinataires et prestataires\nElatransfer et les personnes autorisées à gérer les demandes accèdent aux données dans la limite de leurs fonctions. Les informations nécessaires au transport sont communiquées au seul chauffeur finalement affecté.\n\nPour rechercher un chauffeur, une annonce limitée peut être diffusée au réseau de chauffeurs partenaires sans le nom, le téléphone ni le numéro de chambre du Client. Le chauffeur retenu reçoit ensuite les informations nécessaires à la prise en charge.\n\nLe fonctionnement du Service implique également :\n— Supabase, pour l'authentification de l'espace exploitant, la base de données et le stockage des demandes ;\n— la Base Adresse Nationale et Photon, auxquels le texte d'adresse saisi est transmis pour proposer des adresses ;\n— OpenRouteService et OSRM, auxquels les coordonnées de départ et d'arrivée sont transmises pour calculer l'itinéraire ;\n— WhatsApp, Telegram et l'opérateur téléphonique (appel ou SMS), uniquement pour contacter le Client par le moyen qu'il a choisi, ou lorsque le Client choisit d'envoyer un message, lequel peut contenir les informations de la demande ;\n— GitHub, pour l'hébergement du site, et Google Fonts, pour la fourniture des polices et les données techniques liées à leur chargement.\n\nAucune donnée personnelle n'est vendue. Elatransfer ne transmet aucune donnée à un prestataire de paiement : le Client paie sur la page du service de paiement du chauffeur, à partir du lien qui lui est envoyé, et y saisit lui-même ses informations.\n\n5. Transferts hors de l'Espace économique européen\nCertains prestataires, notamment GitHub, Google, WhatsApp ou Telegram, sont établis ou peuvent traiter des données hors de l'Espace économique européen. Ces traitements relèvent des garanties mises en place par chaque prestataire conformément au RGPD, telles qu'une décision d'adéquation ou des clauses contractuelles types lorsqu'elles sont requises. Des informations complémentaires peuvent être demandées à l'adresse de contact.\n\n6. Durées de conservation\nLes demandes et réservations sont conservées pendant la durée nécessaire à leur traitement, au suivi de la relation et à la preuve des opérations, puis supprimées ou archivées selon les délais de prescription applicables. Les pièces comptables effectivement émises sont conservées pendant leur durée légale ; une simple demande de réservation n'est pas automatiquement une facture.\n\nL'historique des courses, la langue choisie et certaines préférences sont aussi enregistrés dans le stockage local du navigateur jusqu'à leur suppression par l'utilisateur ou l'effacement des données du site. Les journaux techniques sont conservés selon les durées de sécurité propres aux prestataires concernés.\n\n7. Stockage local, cookies et services externes\nLe Service utilise le stockage local du navigateur pour mémoriser la langue, les références et l'historique des demandes sur l'appareil. L'espace exploitant utilise également un stockage local nécessaire à sa session et à ses fonctions de gestion.\n\nMesure d'audience. Elatransfer mesure lui-même, sans outil tiers ni publicité, la fréquentation de ses pages publiques pour savoir quelles pages sont consultées et lesquelles conduisent à une demande de prix, un appel, un message WhatsApp ou une réservation. Sont enregistrés : un identifiant aléatoire de visite (effacé à la fermeture de l'onglet) et un identifiant aléatoire d'appareil conservé 30 jours dans le stockage local, la page consultée (sans ses paramètres), la page d'entrée, le site d'où provient la visite (nom de domaine seulement), les paramètres de campagne éventuels, la langue, le type d'appareil (téléphone, tablette, ordinateur), le pays approximatif déduit de la connexion par l'hébergeur, et le type d'action effectuée. Lors d'une réservation, seule sa référence est associée à la visite. Ne sont jamais enregistrés à ce titre : l'adresse IP, le nom, le téléphone, les adresses du trajet, le prix ni le contenu des champs saisis. Ces données servent exclusivement à produire des statistiques agrégées, ne sont pas recoupées avec d'autres traitements ni partagées, et sont conservées 90 jours sous forme détaillée puis uniquement sous forme de totaux journaliers. Cette mesure, limitée à ce qui est strictement nécessaire à la production de statistiques, ne requiert pas de consentement préalable ; toute personne peut néanmoins s'y opposer sur son appareil en activant « Ne plus me compter » dans ce document, ou en écrivant à contact@elatransfer.com. Aucun autre traceur n'est déposé. Le chargement de services externes peut néanmoins transmettre aux prestataires des données techniques telles que l'adresse IP. Si un outil optionnel est ajouté, il devra être bloqué jusqu'au recueil du consentement lorsqu'il est requis et la présente politique devra être mise à jour.\n\n8. Sécurité\nElatransfer met en œuvre des mesures techniques et organisationnelles proportionnées aux risques, notamment des restrictions d'accès à la base de données et une authentification de l'espace exploitant. Aucun service en ligne ne pouvant garantir une sécurité absolue, tout incident avéré est traité conformément aux obligations applicables.\n\n9. Droits\nSelon les conditions prévues par le RGPD, toute personne dispose de droits d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité. Elle peut également retirer un consentement à tout moment lorsque le traitement repose sur celui-ci, sans remettre en cause les traitements antérieurs.\n\nCes droits s'exercent à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33. Une preuve d'identité peut être demandée uniquement en cas de doute raisonnable sur l'identité du demandeur.\n\n10. Caractère obligatoire et décision automatisée\nLes champs signalés comme nécessaires sont indispensables pour rechercher un chauffeur et confirmer la course. Sans eux, Elatransfer ne peut pas traiter la demande. Les autres champs sont facultatifs. Aucune décision produisant un effet juridique n'est prise exclusivement par un traitement automatisé : la réservation devient ferme après confirmation d'un chauffeur.\n\n11. Demandes de démonstration des professionnels\nLorsqu'un professionnel (hôtel, agence ou entreprise) demande une démonstration depuis la page Professionnels, Elatransfer traite : le type d'établissement, le nom de l'établissement, le prénom et le nom, la fonction si elle est indiquée, l'adresse e-mail, le numéro de téléphone et la langue choisie.\n\nCes données servent à donner accès à la démonstration et à recontacter le professionnel au sujet des services Elatransfer. Ce traitement repose sur l'intérêt légitime d'Elatransfer à présenter ses services à des professionnels (prospection entre professionnels). Un lien de confirmation peut être envoyé à l'adresse e-mail indiquée ; le prestataire d'envoi des e-mails reçoit alors cette adresse et le message.\n\nCes données sont destinées à Elatransfer seulement. Elles sont hébergées chez Supabase, et Elatransfer reçoit une alerte interne par Telegram, qui ne contient pas l'adresse e-mail. Elles ne sont ni vendues, ni louées, ni transmises à des tiers à des fins commerciales.\n\nElles sont conservées trois ans après le dernier contact, puis supprimées. L'accès à la démonstration est enregistré sur l'appareil du professionnel et reste valable sept jours.\n\nLe professionnel peut s'opposer à tout moment à ce traitement et à tout recontact, et exercer ses droits d'accès, de rectification et d'effacement, en écrivant à contact@elatransfer.com.\n\n12. Réclamation\nToute personne peut introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés, www.cnil.fr, ou auprès de l'autorité de contrôle compétente dans son pays de résidence.",
+    legal_privacy_body:"POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : 15 octobre 2026\n\n1. Responsable du traitement et contact\nElatransfer détermine les finalités et les moyens des traitements réalisés par le Service. Pour toute question ou demande relative aux données personnelles : contact@elatransfer.com ou WhatsApp au +33 7 59 31 24 33. Les autres informations d'identification figurent dans les Mentions légales.\n\n2. Données traitées\nLe Service peut traiter :\n— les coordonnées du Client : nom, numéro de téléphone et moyen de contact choisi pour recevoir la confirmation ;\n— les données de course : adresses, coordonnées géographiques associées, date, heure, catégorie de véhicule, passagers, bagages, prix, moyen de paiement prévu, note facultative, terminal, numéro de vol ou de train et, dans le parcours hôtel, numéro de chambre ;\n— les données de suivi : référence, état de la demande, chauffeur affecté, échanges nécessaires à la confirmation et, le cas échéant, la page du site depuis laquelle la demande a été commencée et, s'il y en a un, le lien d'un partenaire par lequel le visiteur est arrivé ;\n— la position de l'appareil uniquement si le Client active « Me localiser » et accorde l'autorisation au navigateur ;\n— les données techniques nécessaires aux connexions : adresse IP, navigateur, appareil, horodatage et journaux de sécurité susceptibles d'être reçus par l'hébergeur et les prestataires techniques.\n\nElatransfer ne collecte aucune donnée bancaire : le Client paie la course avant la prise en charge, par le lien de paiement du chauffeur qu'Elatransfer lui transmet avec la confirmation.\n\n3. Finalités et bases légales\nLes données sont utilisées pour :\n— afficher un itinéraire et un prix, répondre à une demande et rechercher un chauffeur : mesures précontractuelles demandées par le Client ;\n— confirmer, suivre et exécuter la réservation : exécution du contrat et coordination avec le chauffeur ;\n— prévenir les abus, sécuriser le Service, conserver la preuve des demandes et défendre des droits : intérêt légitime ;\n— respecter les obligations légales et comptables applicables : obligation légale ;\n— utiliser la position de l'appareil : permission déclenchée volontairement par le Client, révocable dans les réglages du navigateur.\n\nAucune prospection commerciale n'est effectuée à partir des données de réservation sans une base légale distincte et, lorsque la loi l'exige, sans consentement préalable.\n\n4. Destinataires et prestataires\nElatransfer et les personnes autorisées à gérer les demandes accèdent aux données dans la limite de leurs fonctions. Les informations nécessaires au transport sont communiquées au seul chauffeur finalement affecté.\n\nPour rechercher un chauffeur, une annonce limitée peut être diffusée au réseau de chauffeurs partenaires sans le nom, le téléphone ni le numéro de chambre du Client. Le chauffeur retenu reçoit ensuite les informations nécessaires à la prise en charge.\n\nLe fonctionnement du Service implique également :\n— Supabase, pour l'authentification de l'espace exploitant, la base de données et le stockage des demandes ;\n— la Base Adresse Nationale et Photon, auxquels le texte d'adresse saisi est transmis pour proposer des adresses ;\n— OpenRouteService et OSRM, auxquels les coordonnées de départ et d'arrivée sont transmises pour calculer l'itinéraire ;\n— WhatsApp, Telegram et l'opérateur téléphonique (appel ou SMS), uniquement pour contacter le Client par le moyen qu'il a choisi, ou lorsque le Client choisit d'envoyer un message, lequel peut contenir les informations de la demande ;\n— GitHub, pour l'hébergement du site, et Google Fonts, pour la fourniture des polices et les données techniques liées à leur chargement.\n\nAucune donnée personnelle n'est vendue. Elatransfer ne transmet aucune donnée à un prestataire de paiement : le Client paie sur la page du service de paiement du chauffeur, à partir du lien qui lui est envoyé, et y saisit lui-même ses informations.\n\n5. Transferts hors de l'Espace économique européen\nCertains prestataires, notamment GitHub, Google, WhatsApp ou Telegram, sont établis ou peuvent traiter des données hors de l'Espace économique européen. Ces traitements relèvent des garanties mises en place par chaque prestataire conformément au RGPD, telles qu'une décision d'adéquation ou des clauses contractuelles types lorsqu'elles sont requises. Des informations complémentaires peuvent être demandées à l'adresse de contact.\n\n6. Durées de conservation\nLes demandes et réservations sont conservées pendant la durée nécessaire à leur traitement, au suivi de la relation et à la preuve des opérations, puis supprimées ou archivées selon les délais de prescription applicables. Les pièces comptables effectivement émises sont conservées pendant leur durée légale ; une simple demande de réservation n'est pas automatiquement une facture.\n\nL'historique des courses, la langue choisie et certaines préférences sont aussi enregistrés dans le stockage local du navigateur jusqu'à leur suppression par l'utilisateur ou l'effacement des données du site. Les journaux techniques sont conservés selon les durées de sécurité propres aux prestataires concernés.\n\n7. Stockage local, cookies et services externes\nLe Service utilise le stockage local du navigateur pour mémoriser la langue, les références et l'historique des demandes sur l'appareil. L'espace exploitant utilise également un stockage local nécessaire à sa session et à ses fonctions de gestion.\n\nPour savoir quelles pages du site sont utiles, Elatransfer compte, par jour et par page, les affichages et l'usage de quelques boutons (réserver, appeler, WhatsApp, envoi d'une demande) ; lorsque le visiteur arrive par le lien d'un partenaire (un hôtel ou un annuaire, par exemple), le code de ce lien est compté avec eux. Ce comptage n'utilise ni cookie ni stockage sur l'appareil, n'enregistre ni adresse IP ni identifiant, et ne produit que des totaux anonymes.\n\nÀ la date de mise à jour, Elatransfer n'active aucun outil de mesure d'audience publicitaire ou marketing et ne dépose pas volontairement de traceur optionnel nécessitant un bandeau de consentement. Le chargement de services externes peut néanmoins transmettre aux prestataires des données techniques telles que l'adresse IP. Si un outil optionnel est ajouté, il devra être bloqué jusqu'au recueil du consentement lorsqu'il est requis et la présente politique devra être mise à jour.\n\n8. Sécurité\nElatransfer met en œuvre des mesures techniques et organisationnelles proportionnées aux risques, notamment des restrictions d'accès à la base de données et une authentification de l'espace exploitant. Aucun service en ligne ne pouvant garantir une sécurité absolue, tout incident avéré est traité conformément aux obligations applicables.\n\n9. Droits\nSelon les conditions prévues par le RGPD, toute personne dispose de droits d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité. Elle peut également retirer un consentement à tout moment lorsque le traitement repose sur celui-ci, sans remettre en cause les traitements antérieurs.\n\nCes droits s'exercent à contact@elatransfer.com ou via WhatsApp au +33 7 59 31 24 33. Une preuve d'identité peut être demandée uniquement en cas de doute raisonnable sur l'identité du demandeur.\n\n10. Caractère obligatoire et décision automatisée\nLes champs signalés comme nécessaires sont indispensables pour rechercher un chauffeur et confirmer la course. Sans eux, Elatransfer ne peut pas traiter la demande. Les autres champs sont facultatifs. Aucune décision produisant un effet juridique n'est prise exclusivement par un traitement automatisé : la réservation devient ferme après confirmation d'un chauffeur.\n\n11. Demandes de démonstration des professionnels\nLorsqu'un professionnel (hôtel, agence ou entreprise) demande une démonstration depuis la page Professionnels, Elatransfer traite : le type d'établissement, le nom de l'établissement, le prénom et le nom, la fonction si elle est indiquée, l'adresse e-mail, le numéro de téléphone et la langue choisie.\n\nCes données servent à donner accès à la démonstration et à recontacter le professionnel au sujet des services Elatransfer. Ce traitement repose sur l'intérêt légitime d'Elatransfer à présenter ses services à des professionnels (prospection entre professionnels). Un lien de confirmation peut être envoyé à l'adresse e-mail indiquée ; le prestataire d'envoi des e-mails reçoit alors cette adresse et le message.\n\nCes données sont destinées à Elatransfer seulement. Elles sont hébergées chez Supabase, et Elatransfer reçoit une alerte interne par Telegram, qui ne contient pas l'adresse e-mail. Elles ne sont ni vendues, ni louées, ni transmises à des tiers à des fins commerciales.\n\nElles sont conservées trois ans après le dernier contact, puis supprimées. L'accès à la démonstration est enregistré sur l'appareil du professionnel et reste valable sept jours.\n\nLe professionnel peut s'opposer à tout moment à ce traitement et à tout recontact, et exercer ses droits d'accès, de rectification et d'effacement, en écrivant à contact@elatransfer.com.\n\n12. Réclamation\nToute personne peut introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés, www.cnil.fr, ou auprès de l'autorité de contrôle compétente dans son pays de résidence.",
     etat_court:"En attente",
     courses_titre:"Mes réservations",
     courses_note:"Vos transferts à venir. L'état se met à jour tout seul dès qu'Elatransfer répond.",
@@ -6519,10 +6650,10 @@ window.ELA_TEXTES = {
     legal_cgv:"Terms and conditions",
     legal_mentions:"Legal notice",
     legal_privacy:"Privacy policy",
-    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 11 October 2026\n\n1. Purpose, scope and acceptance\nThese terms and conditions (the \"Terms\") govern the use of the Elatransfer service (the \"Service\") to request, arrange and book a journey with an independent professional driver, whether the request is made on the website, by phone, by message or from the booking page of a partner establishment. Elatransfer can be reached at contact@elatransfer.com and on +33 7 59 31 24 33; its legal information is set out in the legal notice available from the Service.\n\nThe \"Client\" is the person who requests the journey, for themselves or for the passengers they designate. The Client informs those passengers of these Terms. A booking made by the front desk of a partner hotel on behalf of a hotel guest is subject to the same Terms, that guest being the Client.\n\nSubmitting a request constitutes the Client's acceptance of these Terms. The applicable Terms are those in force on the date of the request; they remain available at all times from the Service and may be saved or printed.\n\n2. Elatransfer's role\nElatransfer acts as an intermediary between the Client and the driver: it receives the request, searches for an available professional driver, sends the confirmation and the payment link, and coordinates relevant information until pickup.\n\nElatransfer does not own the vehicles and does not perform the transport. The transport contract is entered into between the Client and the driver assigned to the journey. The journey is performed under the responsibility of that independent driver, who remains responsible for their professional authorisations, insurance, vehicle and proper performance of the transport.\n\nHourly hire and bespoke journeys cannot be booked through the Service. They are arranged by phone or by message, and their price and conditions are communicated to the Client before any confirmation.\n\n3. Request, confirmation and formation of the contract\nThe Client submits a request stating, in particular, the pickup and drop-off addresses, date, time, number of passengers and items of luggage, requested vehicle category, contact details and, where applicable, flight or train number. Submitting a request does not guarantee the availability of a driver and does not constitute a firm booking.\n\nOnce a driver has been assigned, Elatransfer sends the Client express confirmation stating the journey, date, pickup time, vehicle category and total price, together with the driver's payment link. The driver's identity or relevant contact details are communicated to the Client no later than before pickup.\n\nThe contract becomes final when payment is received. Until payment is received, neither party is bound and no fee is due. If payment is not made in time for the driver to carry out the pickup at the agreed time, Elatransfer may release the booking after informing the Client, at no cost to anyone.\n\nIf no driver is available, Elatransfer informs the Client as soon as reasonably possible and nothing is owed.\n\nThe Client is responsible for the accuracy of the information provided and reports any change without delay. Elatransfer and the driver are not liable for any delay or impossibility of performance resulting from inaccurate or incomplete information provided by the Client.\n\n4. Price\nPrices are stated in euros, including all taxes. Before submitting a request, the Client is shown the total price corresponding to the journey and selected vehicle category.\n\nFor a journey whose pickup or drop-off is more than 90 km from Paris, for a group of more than seven passengers requiring several vehicles, or for an address entered without being recognised by the Service, no price is shown and the request is sent marked \"Price to be confirmed\". Elatransfer then informs the Client of the total price before any confirmation. Such a request binds the Client only once that price has been communicated to and accepted by them.\n\nThe price is calculated according to the estimated route distance and the per-kilometre rate for the selected category. The resulting amount is rounded to the nearest ten euros and a minimum fare applies to every journey. No night-time, weekend or public-holiday surcharge applies.\n\nWhere the journey connects a hotel partnered with Elatransfer to one of the destinations set out in the agreement with that hotel, a flat fare specific to that partner replaces the per-kilometre calculation described above. That flat fare depends on the destination and the vehicle category selected. It is neither rounded to the nearest ten euros nor subject to the minimum fare, and no night-time, weekend or public-holiday surcharge applies to it. It is shown to the Client before the request is submitted. Any other destination, and any address outside the area covered by the flat fare, reverts to the per-kilometre calculation.\n\nWhere the Client selects the optional extra of a meet-and-greet with a sign bearing their name, a flat supplement of €10 is added to the fare. This optional extra is offered only for an airport or railway station pick-up and is never pre-selected. Its amount is added after rounding and after the minimum fare has been applied: it is neither rounded nor increased.\n\nThe applicable per-kilometre rates and minimum fares are those displayed by the Service when the request is submitted.\n\nThe price becomes firm upon confirmation. It cannot be changed without the Client's prior agreement unless the Client subsequently requests a change to the journey, time, vehicle category, number of passengers or items of luggage, or an additional stop; the new price is then communicated and accepted before it applies. Elatransfer does not charge the Client any intermediation fee.\n\n5. Payment\nEvery journey is paid in full before pickup, through the driver's payment link sent by Elatransfer with the confirmation. That link carries the confirmed price. No payment is accepted on board the vehicle, whether in cash or by card.\n\nThe driver sets off once payment has been received: without payment, the journey does not take place and no fee is owed by the Client. Late payment may delay the pickup.\n\nThe price is collected by the driver, through the driver's own payment provider. Elatransfer does not collect the journey price or any of the Client's banking data. The Client pays for a journey only through the link received from Elatransfer in the conversation relating to the booking; Elatransfer never asks for banking details by message or by phone.\n\nThe driver issues the Client, on request, an invoice for the transport. Elatransfer may be paid by the driver for its intermediation service, without any surcharge being added to the price confirmed to the Client.\n\nThe price remains due where the journey has been performed or has not taken place because of the Client. Disputing such a payment with a bank or payment provider does not release the Client from that amount, which the driver may recover by any lawful means. Before any such dispute, the Client is invited to send a complaint to Elatransfer under Article 13.\n\n6. No right of withdrawal\nUnder Article L. 221-2 of the French Consumer Code, contracts for passenger transport services are excluded from the rules on withdrawal rights applicable to distance contracts. The fourteen-day withdrawal period therefore does not apply to journeys booked through the Service.\n\n7. Cancellation, postponement and no-show by the Client\nUntil the price has been paid, the Client may withdraw from the journey by notifying Elatransfer: no fee is due.\n\nPayment of the price through the payment link constitutes a firm and final commitment by the Client. As soon as it is received, the assigned driver reserves the time slot of the journey, remains available to the Client and declines other journeys over the same period. Accordingly, once the price has been paid, the journey can no longer be cancelled by the Client: a cancellation, a request to postpone or a no-show by the Client gives rise to no refund, whether full or partial. Any change to the journey after payment is subject to the agreement of Elatransfer and the driver, and its financial terms are agreed before it applies. This article applies without prejudice to the absence of a right of withdrawal set out in Article 6.\n\nThe Client is considered a no-show if they do not attend the meeting point and cannot be reached once the included waiting time defined in Article 9 has elapsed. The driver may then leave the pickup location; the full price is due.\n\nThe same applies where the journey cannot take place because of a circumstance relating to the Client or the passengers, in particular a flight or train that is cancelled, diverted or arrives after the included waiting time, a missing travel document, a health condition, or a refusal to carry under Article 10. Elatransfer then endeavours to offer a new time, subject to the driver's availability and without any guarantee of result.\n\n8. Journey not provided because of Elatransfer or the driver\nElatransfer may replace the assigned driver with another professional driver, in a vehicle category at least equivalent, without any change to the price or cost to the Client, who is informed before pickup.\n\nWhere the journey does not take place because of Elatransfer or the driver, in particular because no driver is available, the driver is prevented from attending, or the driver does not turn up or arrives so late that the Client, having informed Elatransfer, had to use another means of transport, the Client is refunded the full price paid, by the driver who received it, within 14 days at the latest. Elatransfer ensures that this refund is made.\n\n9. Performance of the transport\nThe transport is performed by the independent driver confirmed to the Client, under that driver's professional authorisations and insurance. The booked category corresponds to a level of capacity and service and does not guarantee a specific vehicle model.\n\nThe agreed time is the pickup time. Journey durations shown by the Service are estimates that may vary with traffic: the Client is responsible for allowing a sufficient margin, in particular for a flight or train. The driver chooses the route suited to traffic conditions; a route imposed or an unplanned stop requested by the Client is subject to the driver's agreement and may change the price under Article 4.\n\nThe included waiting time is 60 minutes after the actual landing time for an airport pickup where a flight number was provided and can be tracked, and 30 minutes after the agreed time in all other cases. Where the option has been selected and confirmed, the driver waits with a sign bearing the Client's name at the stated meeting point.\n\nThe Client remains reachable on the number given in the request, attends the meeting point on time and informs Elatransfer without delay of any delay or change.\n\n10. Passengers, luggage and conduct on board\nThe number of passengers may not exceed the capacity of the booked category, and each passenger occupies a seat and wears a seatbelt. The Client states in the request whether children are travelling and their ages, so that the transport takes place in safety conditions that comply with the regulations.\n\nLuggage must match what was declared and fit in the booked vehicle. Animals are admitted only with Elatransfer's prior agreement, except guide and assistance dogs, which are always admitted.\n\nSmoking or vaping in the vehicle, carrying dangerous or unlawful items, and any violent, dangerous or unsafe conduct are prohibited. The driver may refuse or interrupt the transport where the safety of persons is at stake, where passengers or luggage exceed what was declared and cannot be carried, or in the event of a serious breach of these rules; the full price is then due.\n\nThe Client is liable for damage caused to the vehicle by the passengers, including exceptional cleaning costs, on the driver's supporting evidence.\n\n11. Lost property\nThe Client checks that nothing is left on board. Lost property is reported to Elatransfer, which puts the Client in touch with the driver to arrange its return; any shipping costs are borne by the Client.\n\n12. Liability and force majeure\nElatransfer is responsible for properly performing its intermediation service as required by law. The driver is responsible for performing the transport, passenger safety, the vehicle, insurance and compliance with professional duties.\n\nNo party is liable for a failure caused by a force majeure event meeting the legal criteria and making performance impossible. Ordinary traffic difficulties do not, in themselves, constitute force majeure.\n\nNothing in these Terms limits mandatory consumer rights or any liability that cannot lawfully be excluded.\n\n13. Complaints and dispute resolution\nComplaints are sent to Elatransfer by email at contact@elatransfer.com or by WhatsApp to +33 7 59 31 24 33, preferably within 7 days of the journey, quoting the booking reference and relevant supporting information. Elatransfer forwards complaints about the transport to the driver and helps the parties seek an amicable solution.\n\nAfter a prior written complaint remains unresolved, a consumer Client retains the right to use a competent consumer mediator free of charge and to exercise any remedy available by law.\n\n14. Evidence\nThe request, the confirmation, the accepted price and the payment may be established by any written record, in particular messages exchanged through the website, SMS, WhatsApp, Telegram or email, and the Service's records.\n\n15. Personal data\nPersonal-data processing, its purposes and recipients, and the Client's rights are described in the Privacy Policy available from the Service.\n\n16. General provisions\nIf any clause of these Terms is held void or unenforceable, the other clauses remain in force. In the event of any difference between the French version and a translation, the French version prevails.\n\n17. Governing law and jurisdiction\nThese Terms are governed by French law, without depriving consumers of mandatory protections that may apply in their country of residence. If a dispute is not resolved amicably, jurisdiction is determined under the mandatory rules of procedure and consumer protection.",
+    legal_cgv_body:"TERMS AND CONDITIONS — Elatransfer\n\nLast updated: 14 October 2026\n\n1. Purpose, scope and acceptance\nThese terms and conditions (the \"Terms\") govern the use of the Elatransfer service (the \"Service\") to request, arrange and book a journey with an independent professional driver, whether the request is made on the website, by phone, by message or from the booking page of a partner establishment. Elatransfer can be reached at contact@elatransfer.com and on +33 7 59 31 24 33; its legal information is set out in the legal notice available from the Service.\n\nThe \"Client\" is the person who requests the journey, for themselves or for the passengers they designate. The Client informs those passengers of these Terms. A booking made by the front desk of a partner hotel on behalf of a hotel guest is subject to the same Terms, that guest being the Client.\n\nSubmitting a request constitutes the Client's acceptance of these Terms. The applicable Terms are those in force on the date of the request; they remain available at all times from the Service and may be saved or printed.\n\n2. Elatransfer's role\nElatransfer acts as an intermediary between the Client and the driver: it receives the request, searches for an available professional driver, sends the confirmation and the payment link, and coordinates relevant information until pickup.\n\nElatransfer does not own the vehicles and does not perform the transport. The transport contract is entered into between the Client and the driver assigned to the journey. The journey is performed under the responsibility of that independent driver, who remains responsible for their professional authorisations, insurance, vehicle and proper performance of the transport.\n\nHourly hire and bespoke journeys cannot be booked through the Service. They are arranged by phone or by message, and their price and conditions are communicated to the Client before any confirmation.\n\n3. Request, confirmation and formation of the contract\nThe Client submits a request stating, in particular, the pickup and drop-off addresses, date, time, number of passengers and items of luggage, requested vehicle category, contact details and, where applicable, flight or train number. Submitting a request does not guarantee the availability of a driver and does not constitute a firm booking.\n\nOnce a driver has been assigned, Elatransfer sends the Client express confirmation stating the journey, date, pickup time, vehicle category and total price, together with the driver's payment link. The driver's identity or relevant contact details are communicated to the Client no later than before pickup.\n\nThe contract becomes final when payment is received. Until payment is received, neither party is bound and no fee is due. If payment is not made in time for the driver to carry out the pickup at the agreed time, Elatransfer may release the booking after informing the Client, at no cost to anyone.\n\nIf no driver is available, Elatransfer informs the Client as soon as reasonably possible and nothing is owed.\n\nThe Client is responsible for the accuracy of the information provided and reports any change without delay. Elatransfer and the driver are not liable for any delay or impossibility of performance resulting from inaccurate or incomplete information provided by the Client.\n\n4. Price\nPrices are stated in euros, including all taxes. Before submitting a request, the Client is shown the total price corresponding to the journey and selected vehicle category.\n\nFor a journey whose pickup or drop-off is more than 90 km from Paris, for a group of more than seven passengers requiring several vehicles, or for an address entered without being recognised by the Service, no price is shown and the request is sent marked \"Price to be confirmed\". Elatransfer then informs the Client of the total price before any confirmation. Such a request binds the Client only once that price has been communicated to and accepted by them.\n\nThe price is calculated according to the estimated route distance and the per-kilometre rate for the selected category. The resulting amount is rounded to the nearest ten euros and a minimum fare applies to every journey. No night-time, weekend or public-holiday surcharge applies.\n\nWhere the journey connects a hotel partnered with Elatransfer to one of the destinations set out in the agreement with that hotel, a flat fare specific to that partner replaces the per-kilometre calculation described above. That flat fare depends on the destination and the vehicle category selected. It is neither rounded to the nearest ten euros nor subject to the minimum fare, and no night-time, weekend or public-holiday surcharge applies to it. It is shown to the Client before the request is submitted. Any other destination, and any address outside the area covered by the flat fare, reverts to the per-kilometre calculation.\n\nWhere the Client selects the optional extra of a meet-and-greet with a sign bearing their name, a flat supplement of €10 is added to the fare. This optional extra is offered only for an airport or railway station pick-up and is never pre-selected. Its amount is added after rounding and after the minimum fare has been applied: it is neither rounded nor increased.\n\nThe applicable per-kilometre rates and minimum fares are those displayed by the Service when the request is submitted. The per-kilometre rate may differ depending on the page of the Service from which the request is started; the total price shown before the request is submitted is the one that applies.\n\nThe price becomes firm upon confirmation. It cannot be changed without the Client's prior agreement unless the Client subsequently requests a change to the journey, time, vehicle category, number of passengers or items of luggage, or an additional stop; the new price is then communicated and accepted before it applies. Elatransfer does not charge the Client any intermediation fee.\n\n5. Payment\nEvery journey is paid in full before pickup, through the driver's payment link sent by Elatransfer with the confirmation. That link carries the confirmed price. No payment is accepted on board the vehicle, whether in cash or by card.\n\nThe driver sets off once payment has been received: without payment, the journey does not take place and no fee is owed by the Client. Late payment may delay the pickup.\n\nThe price is collected by the driver, through the driver's own payment provider. Elatransfer does not collect the journey price or any of the Client's banking data. The Client pays for a journey only through the link received from Elatransfer in the conversation relating to the booking; Elatransfer never asks for banking details by message or by phone.\n\nThe driver issues the Client, on request, an invoice for the transport. Elatransfer may be paid by the driver for its intermediation service, without any surcharge being added to the price confirmed to the Client.\n\nThe price remains due where the journey has been performed or has not taken place because of the Client. Disputing such a payment with a bank or payment provider does not release the Client from that amount, which the driver may recover by any lawful means. Before any such dispute, the Client is invited to send a complaint to Elatransfer under Article 13.\n\n6. No right of withdrawal\nUnder Article L. 221-2 of the French Consumer Code, contracts for passenger transport services are excluded from the rules on withdrawal rights applicable to distance contracts. The fourteen-day withdrawal period therefore does not apply to journeys booked through the Service.\n\n7. Cancellation, postponement and no-show by the Client\nUntil the price has been paid, the Client may withdraw from the journey by notifying Elatransfer: no fee is due.\n\nPayment of the price through the payment link constitutes a firm and final commitment by the Client. As soon as it is received, the assigned driver reserves the time slot of the journey, remains available to the Client and declines other journeys over the same period. Accordingly, once the price has been paid, the journey can no longer be cancelled by the Client: a cancellation, a request to postpone or a no-show by the Client gives rise to no refund, whether full or partial. Any change to the journey after payment is subject to the agreement of Elatransfer and the driver, and its financial terms are agreed before it applies. This article applies without prejudice to the absence of a right of withdrawal set out in Article 6.\n\nThe Client is considered a no-show if they do not attend the meeting point and cannot be reached once the included waiting time defined in Article 9 has elapsed. The driver may then leave the pickup location; the full price is due.\n\nThe same applies where the journey cannot take place because of a circumstance relating to the Client or the passengers, in particular a flight or train that is cancelled, diverted or arrives after the included waiting time, a missing travel document, a health condition, or a refusal to carry under Article 10. Elatransfer then endeavours to offer a new time, subject to the driver's availability and without any guarantee of result.\n\n8. Journey not provided because of Elatransfer or the driver\nElatransfer may replace the assigned driver with another professional driver, in a vehicle category at least equivalent, without any change to the price or cost to the Client, who is informed before pickup.\n\nWhere the journey does not take place because of Elatransfer or the driver, in particular because no driver is available, the driver is prevented from attending, or the driver does not turn up or arrives so late that the Client, having informed Elatransfer, had to use another means of transport, the Client is refunded the full price paid, by the driver who received it, within 14 days at the latest. Elatransfer ensures that this refund is made.\n\n9. Performance of the transport\nThe transport is performed by the independent driver confirmed to the Client, under that driver's professional authorisations and insurance. The booked category corresponds to a level of capacity and service and does not guarantee a specific vehicle model.\n\nThe agreed time is the pickup time. Journey durations shown by the Service are estimates that may vary with traffic: the Client is responsible for allowing a sufficient margin, in particular for a flight or train. The driver chooses the route suited to traffic conditions; a route imposed or an unplanned stop requested by the Client is subject to the driver's agreement and may change the price under Article 4.\n\nThe included waiting time is 60 minutes after the actual landing time for an airport pickup where a flight number was provided and can be tracked, and 30 minutes after the agreed time in all other cases. Where the option has been selected and confirmed, the driver waits with a sign bearing the Client's name at the stated meeting point.\n\nThe Client remains reachable on the number given in the request, attends the meeting point on time and informs Elatransfer without delay of any delay or change.\n\n10. Passengers, luggage and conduct on board\nThe number of passengers may not exceed the capacity of the booked category, and each passenger occupies a seat and wears a seatbelt. The Client states in the request whether children are travelling and their ages, so that the transport takes place in safety conditions that comply with the regulations.\n\nLuggage must match what was declared and fit in the booked vehicle. Animals are admitted only with Elatransfer's prior agreement, except guide and assistance dogs, which are always admitted.\n\nSmoking or vaping in the vehicle, carrying dangerous or unlawful items, and any violent, dangerous or unsafe conduct are prohibited. The driver may refuse or interrupt the transport where the safety of persons is at stake, where passengers or luggage exceed what was declared and cannot be carried, or in the event of a serious breach of these rules; the full price is then due.\n\nThe Client is liable for damage caused to the vehicle by the passengers, including exceptional cleaning costs, on the driver's supporting evidence.\n\n11. Lost property\nThe Client checks that nothing is left on board. Lost property is reported to Elatransfer, which puts the Client in touch with the driver to arrange its return; any shipping costs are borne by the Client.\n\n12. Liability and force majeure\nElatransfer is responsible for properly performing its intermediation service as required by law. The driver is responsible for performing the transport, passenger safety, the vehicle, insurance and compliance with professional duties.\n\nNo party is liable for a failure caused by a force majeure event meeting the legal criteria and making performance impossible. Ordinary traffic difficulties do not, in themselves, constitute force majeure.\n\nNothing in these Terms limits mandatory consumer rights or any liability that cannot lawfully be excluded.\n\n13. Complaints and dispute resolution\nComplaints are sent to Elatransfer by email at contact@elatransfer.com or by WhatsApp to +33 7 59 31 24 33, preferably within 7 days of the journey, quoting the booking reference and relevant supporting information. Elatransfer forwards complaints about the transport to the driver and helps the parties seek an amicable solution.\n\nAfter a prior written complaint remains unresolved, a consumer Client retains the right to use a competent consumer mediator free of charge and to exercise any remedy available by law.\n\n14. Evidence\nThe request, the confirmation, the accepted price and the payment may be established by any written record, in particular messages exchanged through the website, SMS, WhatsApp, Telegram or email, and the Service's records.\n\n15. Personal data\nPersonal-data processing, its purposes and recipients, and the Client's rights are described in the Privacy Policy available from the Service.\n\n16. General provisions\nIf any clause of these Terms is held void or unenforceable, the other clauses remain in force. In the event of any difference between the French version and a translation, the French version prevails.\n\n17. Governing law and jurisdiction\nThese Terms are governed by French law, without depriving consumers of mandatory protections that may apply in their country of residence. If a dispute is not resolved amicably, jurisdiction is determined under the mandatory rules of procedure and consumer protection.",
     legal_mentions_body:"LEGAL NOTICE\n\nSite publisher\nTrading name: Elatransfer\nActivity: connecting clients with independent professional chauffeurs (VTC) in Paris and the Île-de-France region. Elatransfer does not carry out the transport itself: every ride is performed by a professional chauffeur under their own licence, insurance and professional card.\n\nHosting\nCloudflare, Inc. — 101 Townsend Street, San Francisco, CA 94107, USA — +1 888 993 5273 — cloudflare.com\nThe site is also published by GitHub, Inc. — 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA — github.com\n\nContact\nPhone and WhatsApp: +33 7 59 31 24 33\nEmail: contact@elatransfer.com\n\nIntellectual property\nAll elements of the site (text, logo, structure, code) are the property of Elatransfer unless stated otherwise, and may not be reproduced without prior authorisation.\n\nGDPR supervisory authority\nFor any question regarding personal data processing, the competent supervisory authority in France is the Commission Nationale de l'Informatique et des Libertés (CNIL) — www.cnil.fr.",
     mesure_non:"Do not count me", mesure_non_fait:"You are no longer counted on this device.",
-    legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 15 October 2026\n\n1. Controller and contact\nElatransfer determines the purposes and means of processing carried out through the Service. For questions or requests about personal data: contact@elatransfer.com or WhatsApp at +33 7 59 31 24 33. Other identifying information appears in the Legal Notice.\n\n2. Data processed\nThe Service may process:\n— Client contact details: name, phone number and the channel chosen to receive the confirmation;\n— journey data: addresses, related geographic coordinates, date, time, vehicle category, passengers, luggage, price, intended payment method, optional note, terminal, flight or train number and, in the hotel journey, room number;\n— tracking data: reference, request status, assigned driver and communications needed for confirmation;\n— device location only if the Client selects “Locate me” and grants browser permission;\n— connection data needed for technical operation: IP address, browser, device, timestamp and security logs that may be received by the host and technical providers;\n— anonymous audience-measurement data: see section 7.\n\nElatransfer does not collect any banking details: the Client pays for the ride before pick-up, through the driver's payment link that Elatransfer sends with the confirmation.\n\n3. Purposes and legal bases\nData is used to:\n— display a route and price, answer a request and search for a driver: steps requested by the Client before entering into a contract;\n— confirm, track and perform the booking: performance of the contract and coordination with the driver;\n— prevent abuse, secure the Service, retain evidence of requests and defend legal rights: legitimate interests;\n— comply with applicable legal and accounting duties: legal obligation;\n— use device location: permission voluntarily triggered by the Client and revocable in browser settings.\n\nBooking data is not used for direct marketing without a separate lawful basis and, where required, prior consent.\n\n4. Recipients and providers\nElatransfer and people authorised to manage requests access data only as required for their duties. Information required for transport is disclosed only to the driver ultimately assigned.\n\nTo find a driver, a limited notice may be shared with the partner-driver network without the Client's name, phone number or room number. The selected driver then receives the information needed for pickup.\n\nThe Service also relies on:\n— Supabase, for operator-area authentication, the database and storage of requests;\n— Base Adresse Nationale and Photon, which receive address text entered to suggest addresses;\n— OpenRouteService and OSRM, which receive pickup and drop-off coordinates to calculate the route;\n— WhatsApp, Telegram and the telephone carrier (call or SMS), only to contact the Client through the channel the Client chose, or when the Client chooses to send a message, which may contain request details;\n— GitHub, for site hosting, and Google Fonts, for fonts and technical data associated with loading them.\n\nPersonal data is not sold. Elatransfer does not send any data to a payment provider: the Client pays on the page of the driver's payment service, from the link sent to them, and enters their details there themselves.\n\n5. Transfers outside the European Economic Area\nSome providers, including GitHub, Google, WhatsApp or Telegram, are established or may process data outside the European Economic Area. Such processing is subject to the safeguards implemented by each provider under the GDPR, such as an adequacy decision or standard contractual clauses where required. Further information may be requested using the contact details above.\n\n6. Retention\nRequests and bookings are retained for as long as needed to handle them, manage the relationship and evidence transactions, then deleted or archived according to applicable limitation periods. Accounting records actually issued are retained for the statutory period; a booking request is not automatically an invoice.\n\nJourney history, selected language and certain preferences are also stored locally in the browser until the user removes them or clears site data. Technical logs are retained according to the relevant providers' security schedules.\n\n7. Local storage, cookies and external services\nThe Service uses browser local storage to remember language, references and request history on the device. The operator area also uses local storage required for its session and management features.\n\nAudience measurement. Elatransfer measures by itself, without any third-party tool or advertising, the use of its public pages, to know which pages are visited and which lead to a price request, a call, a WhatsApp message or a booking. Recorded: a random visit identifier (deleted when the tab closes) and a random device identifier kept for 30 days in local storage, the page viewed (without its parameters), the entry page, the site the visit came from (domain name only), any campaign parameters, the language, the device type (phone, tablet, computer), the approximate country inferred from the connection by the host, and the type of action performed. When a booking is made, only its reference is associated with the visit. Never recorded for this purpose: the IP address, name, phone number, journey addresses, price or the content of any field entered. This data is used solely to produce aggregated statistics, is not cross-referenced with other processing nor shared, and is kept for 90 days in detailed form and then only as daily totals. This measurement, limited to what is strictly necessary to produce statistics, does not require prior consent; anyone may nevertheless object on their device by activating “Do not count me” in this document, or by writing to contact@elatransfer.com. No other tracker is set. Loading external services may nevertheless disclose technical data such as an IP address to those providers. If an optional tool is added, it must be blocked until consent is collected where required and this policy must be updated.\n\n8. Security\nElatransfer implements technical and organisational measures proportionate to the risks, including database access restrictions and operator-area authentication. As no online service can guarantee absolute security, confirmed incidents are handled under applicable obligations.\n\n9. Rights\nSubject to the conditions in the GDPR, individuals have rights of access, rectification, erasure, restriction, objection and portability. Where processing relies on consent, consent may be withdrawn at any time without affecting earlier processing.\n\nRights may be exercised at contact@elatransfer.com or by WhatsApp at +33 7 59 31 24 33. Identity evidence may be requested only where there is reasonable doubt about the requester's identity.\n\n10. Required information and automated decisions\nFields marked as required are needed to search for a driver and confirm the journey. Without them, Elatransfer cannot process the request. Other fields are optional. No decision producing legal effects is made solely by automated processing: the booking becomes firm only after a driver is confirmed.\n\n11. Demo requests from businesses\nWhen a business (hotel, agency or company) requests a demonstration from the Businesses page, Elatransfer processes: the type of establishment, the establishment name, the first name and last name, the job title if given, the email address, the phone number and the selected language.\n\nThis data is used to give access to the demonstration and to contact the business again about Elatransfer's services. This processing relies on Elatransfer's legitimate interest in presenting its services to businesses (business-to-business prospecting). A confirmation link may be sent to the email address provided; the email delivery provider then receives that address and the message.\n\nThis data is intended for Elatransfer only. It is hosted by Supabase, and Elatransfer receives an internal alert via Telegram, which does not contain the email address. It is not sold, rented or passed on to third parties for marketing purposes.\n\nIt is retained for three years after the last contact, then deleted. Access to the demonstration is stored on the business's device and remains valid for seven days.\n\nThe business may object at any time to this processing and to any further contact, and exercise its rights of access, rectification and erasure, by writing to contact@elatransfer.com.\n\n12. Complaint\nIndividuals may lodge a complaint with the French data protection authority, the Commission Nationale de l'Informatique et des Libertés at www.cnil.fr, or with the competent authority in their country of residence.",
+    legal_privacy_body:"PRIVACY POLICY\n\nLast updated: 15 October 2026\n\n1. Controller and contact\nElatransfer determines the purposes and means of processing carried out through the Service. For questions or requests about personal data: contact@elatransfer.com or WhatsApp at +33 7 59 31 24 33. Other identifying information appears in the Legal Notice.\n\n2. Data processed\nThe Service may process:\n— Client contact details: name, phone number and the channel chosen to receive the confirmation;\n— journey data: addresses, related geographic coordinates, date, time, vehicle category, passengers, luggage, price, intended payment method, optional note, terminal, flight or train number and, in the hotel journey, room number;\n— tracking data: reference, request status, assigned driver, communications needed for confirmation and, where applicable, the page of the site from which the request was started and, if any, the partner link through which the visitor arrived;\n— device location only if the Client selects “Locate me” and grants browser permission;\n— connection data needed for technical operation: IP address, browser, device, timestamp and security logs that may be received by the host and technical providers.\n\nElatransfer does not collect any banking details: the Client pays for the ride before pick-up, through the driver's payment link that Elatransfer sends with the confirmation.\n\n3. Purposes and legal bases\nData is used to:\n— display a route and price, answer a request and search for a driver: steps requested by the Client before entering into a contract;\n— confirm, track and perform the booking: performance of the contract and coordination with the driver;\n— prevent abuse, secure the Service, retain evidence of requests and defend legal rights: legitimate interests;\n— comply with applicable legal and accounting duties: legal obligation;\n— use device location: permission voluntarily triggered by the Client and revocable in browser settings.\n\nBooking data is not used for direct marketing without a separate lawful basis and, where required, prior consent.\n\n4. Recipients and providers\nElatransfer and people authorised to manage requests access data only as required for their duties. Information required for transport is disclosed only to the driver ultimately assigned.\n\nTo find a driver, a limited notice may be shared with the partner-driver network without the Client's name, phone number or room number. The selected driver then receives the information needed for pickup.\n\nThe Service also relies on:\n— Supabase, for operator-area authentication, the database and storage of requests;\n— Base Adresse Nationale and Photon, which receive address text entered to suggest addresses;\n— OpenRouteService and OSRM, which receive pickup and drop-off coordinates to calculate the route;\n— WhatsApp, Telegram and the telephone carrier (call or SMS), only to contact the Client through the channel the Client chose, or when the Client chooses to send a message, which may contain request details;\n— GitHub, for site hosting, and Google Fonts, for fonts and technical data associated with loading them.\n\nPersonal data is not sold. Elatransfer does not send any data to a payment provider: the Client pays on the page of the driver's payment service, from the link sent to them, and enters their details there themselves.\n\n5. Transfers outside the European Economic Area\nSome providers, including GitHub, Google, WhatsApp or Telegram, are established or may process data outside the European Economic Area. Such processing is subject to the safeguards implemented by each provider under the GDPR, such as an adequacy decision or standard contractual clauses where required. Further information may be requested using the contact details above.\n\n6. Retention\nRequests and bookings are retained for as long as needed to handle them, manage the relationship and evidence transactions, then deleted or archived according to applicable limitation periods. Accounting records actually issued are retained for the statutory period; a booking request is not automatically an invoice.\n\nJourney history, selected language and certain preferences are also stored locally in the browser until the user removes them or clears site data. Technical logs are retained according to the relevant providers' security schedules.\n\n7. Local storage, cookies and external services\nThe Service uses browser local storage to remember language, references and request history on the device. The operator area also uses local storage required for its session and management features.\n\nTo know which pages of the site are useful, Elatransfer counts, per day and per page, page views and the use of a few buttons (book, call, WhatsApp, sending a request); when a visitor arrives through a partner's link (a hotel or a directory, for example), that link's code is counted with them. This count uses no cookie and no storage on the device, records no IP address or identifier, and produces only anonymous totals.\n\nAs of the update date, Elatransfer does not enable advertising or marketing analytics and does not intentionally set optional trackers requiring a consent banner. Loading external services may nevertheless disclose technical data such as an IP address to those providers. If an optional tool is added, it must be blocked until consent is collected where required and this policy must be updated.\n\n8. Security\nElatransfer implements technical and organisational measures proportionate to the risks, including database access restrictions and operator-area authentication. As no online service can guarantee absolute security, confirmed incidents are handled under applicable obligations.\n\n9. Rights\nSubject to the conditions in the GDPR, individuals have rights of access, rectification, erasure, restriction, objection and portability. Where processing relies on consent, consent may be withdrawn at any time without affecting earlier processing.\n\nRights may be exercised at contact@elatransfer.com or by WhatsApp at +33 7 59 31 24 33. Identity evidence may be requested only where there is reasonable doubt about the requester's identity.\n\n10. Required information and automated decisions\nFields marked as required are needed to search for a driver and confirm the journey. Without them, Elatransfer cannot process the request. Other fields are optional. No decision producing legal effects is made solely by automated processing: the booking becomes firm only after a driver is confirmed.\n\n11. Demo requests from businesses\nWhen a business (hotel, agency or company) requests a demonstration from the Businesses page, Elatransfer processes: the type of establishment, the establishment name, the first name and last name, the job title if given, the email address, the phone number and the selected language.\n\nThis data is used to give access to the demonstration and to contact the business again about Elatransfer's services. This processing relies on Elatransfer's legitimate interest in presenting its services to businesses (business-to-business prospecting). A confirmation link may be sent to the email address provided; the email delivery provider then receives that address and the message.\n\nThis data is intended for Elatransfer only. It is hosted by Supabase, and Elatransfer receives an internal alert via Telegram, which does not contain the email address. It is not sold, rented or passed on to third parties for marketing purposes.\n\nIt is retained for three years after the last contact, then deleted. Access to the demonstration is stored on the business's device and remains valid for seven days.\n\nThe business may object at any time to this processing and to any further contact, and exercise its rights of access, rectification and erasure, by writing to contact@elatransfer.com.\n\n12. Complaint\nIndividuals may lodge a complaint with the French data protection authority, the Commission Nationale de l'Informatique et des Libertés at www.cnil.fr, or with the competent authority in their country of residence.",
     etat_court:"Awaiting",
     courses_titre:"My bookings",
     courses_note:"Your upcoming transfers. The status updates on its own as soon as Elatransfer replies.",
@@ -6612,6 +6743,18 @@ window.ELA_TEXTES = {
   }
 
   function langueDuNavigateur(){
+    /* LA LANGUE DEMANDÉE PAR L'ADRESSE (14 octobre 2026, SEO international).
+       Une page anglaise (/en/…) envoie « Book » vers « /?lang=en » : sans
+       ça, le voyageur venu de Google en anglais tombait sur un moteur en
+       français. Elle se mémorise comme un appui sur « EN ». Deux valeurs
+       connues, rien d'autre. */
+    try{
+      var demandee = new URLSearchParams(location.search).get("lang");
+      if(demandee === "fr" || demandee === "en"){
+        try{ localStorage.setItem("ela_langue", demandee); }catch(e){}
+        return demandee;
+      }
+    }catch(e){ /* adresse illisible : on continue */ }
     try{
       var choisie = localStorage.getItem("ela_langue");
       if(choisie === "fr" || choisie === "en") return choisie;
@@ -7282,9 +7425,14 @@ window.ELA_TEXTES = {
       return pointConnu(choix[autre]) || pointConnu(hotel) || positionClient || null;
     };
   }
+  /* La suite d'un préremplissage venu d'une page d'acquisition (« vers= »,
+     voir « lirePrefillAeroport ») : une fois l'aéroport choisi, la liste de
+     l'autre bout s'ouvre. Nulle le reste du temps. */
+  var suitePrefill = null;
   var priseDepart = brancher(champDepart, document.getElementById("departList"), function(item){
     choix.depart = item; if(item) effacerErreurAdresse(champDepart);
     jugerChambre(); jugerVol(); jugerZone(); jugerForfait();
+    if(suitePrefill) suitePrefill("depart");
   }, contexteRecherche("arrivee"), { manuel:true });
   /* LA PRISE DE L'ARRIVÉE EST RETENUE ELLE AUSSI. Elle ne servait à rien
      tant qu'une seule fonction posait une adresse de l'extérieur (« me
@@ -7293,6 +7441,7 @@ window.ELA_TEXTES = {
   var priseArrivee = brancher(champArrivee, document.getElementById("arriveeList"), function(item){
     choix.arrivee = item; if(item) effacerErreurAdresse(champArrivee);
     jugerVol(); jugerZone(); jugerForfait();
+    if(suitePrefill) suitePrefill("arrivee");
   }, contexteRecherche("depart"), { manuel:true });
 
 /* =====================================================================
@@ -9040,7 +9189,88 @@ window.ELA_TEXTES = {
         });
       })
       .catch(function(){ clearTimeout(m2); /* repli : HOTELS garde ses valeurs */ });
-    tarifsLus = Promise.all([l1, l2]).then(function(){}, function(){});
+
+    /* LE PRIX DES PAGES — voir « reglePage ». Une troisième vue, qui ne
+       rend que des pourcentages et des tarifs au km. Sans réponse, aucune
+       règle : le repli est le prix du site, jamais un prix inventé. */
+    var t3 = new AbortController(), m3 = setTimeout(function(){ t3.abort(); }, 4000);
+    var l3 = fetch(SUPABASE_URL + "/rest/v1/prix_pages_publics?select=page,pourcentage,berline_km_centimes,van_km_centimes",
+          { signal:t3.signal, headers:{ apikey:SUPABASE_CLE } })
+      .then(function(r){
+        clearTimeout(m3);
+        prixPagesLus = r.ok ? "ok" : (r.status === 404 ? "absente" : "panne");
+        return r.ok ? r.json() : null;
+      })
+      .then(function(lignes){
+        if(!Array.isArray(lignes)) return;
+        lignes.forEach(function(l){
+          if(typeof l.page !== "string") return;
+          var r = regleValide({ pourcentage: Number(l.pourcentage),
+            berline: Number(l.berline_km_centimes) / 100, van: Number(l.van_km_centimes) / 100 });
+          if(r) PRIX_PAGES[l.page] = r;
+        });
+      })
+      .catch(function(){ clearTimeout(m3); prixPagesLus = "panne"; });
+    tarifsLus = Promise.all([l1, l2, l3]).then(function(){}, function(){});
+  }
+
+  /* ═══ LE PRIX D'UNE PAGE DÉDIÉE (14 octobre 2026) ═══
+     Barbaros : « pour les pages que l'on crée pour les touristes, afficher
+     un prix plus cher », puis « je dois pouvoir aussi modifier au km
+     n'importe quelle page ». Réglages → « Prix des pages » : pour chaque page
+     de la liste ORIGINES, un POURCENTAGE ajouté au tarif au km du site, et/ou
+     un TARIF AU KM par gamme. Le tarif au km saisi l'emporte sur le
+     pourcentage, gamme par gamme ; rien de saisi = le prix du site. Rien
+     n'est réglé par défaut : on ne devine pas un prix à sa place.
+     — Le tarif majoré est arrondi AU CENTIME (2,90 € + 20 % = 3,48 €/km) :
+       un tarif est toujours un montant en centimes.
+     — L'ORDRE NE CHANGE PAS : kilométrage → arrondi → plancher. Le MINIMUM
+       reste celui du site (une course de 5 km reste à 35 €).
+     — Ni forfait de flyer, ni pancarte, ni course « tarif à confirmer » :
+       seul le kilométrage change.
+     — LE PRIX AFFICHÉ EST LE PRIX FACTURÉ : tout passe par « prixGamme »,
+       donc la liste des gammes, le récapitulatif, le bon et le message
+       partent du même chiffre. Les CGV (art. 4) disent que le tarif peut
+       différer selon la page — sans chiffre, comme toujours.
+     — L'origine vit le temps de la page : un client qui recharge sans
+       « src » retrouve le prix du site. */
+  var PRIX_PAGES = {};
+  var POURCENTAGE_MAX = 100, KM_MIN = 0.5, KM_MAX = 20;
+  var prixPagesLus = "attente";
+  /* La seule porte d'une règle : ce qui sort des bornes n'existe pas. Rend
+     null quand il ne reste rien à appliquer. */
+  function regleValide(r){
+    var o = {};
+    if(r.pourcentage > 0 && r.pourcentage <= POURCENTAGE_MAX) o.pourcentage = r.pourcentage;
+    ["berline","van"].forEach(function(g){
+      if(r[g] >= KM_MIN && r[g] <= KM_MAX) o[g] = Math.round(r[g] * 100) / 100;
+    });
+    return Object.keys(o).length ? o : null;
+  }
+  function reglePage(){
+    if(modeHotel() || !origineVisite) return null;
+    return PRIX_PAGES[origineVisite] || null;
+  }
+  /* En CENTIMES, entiers : 2,30 × 105 vaut 241,4999… en virgule flottante,
+     et l'arrondi au centime tomberait du mauvais côté (2,41 au lieu de
+     2,42 €/km — 81 couples tarif × pourcentage sont dans ce cas, mesuré).
+     230 × 105 / 100 = 241,5 → 242 centimes, sans surprise. */
+  function tarifKmMajore(parKm, p){
+    return Math.round(Math.round(parKm * 100) * (100 + p) / 100) / 100;
+  }
+  /* Le tarif au km d'une gamme sous une règle : celui saisi pour la page,
+     sinon le tarif du site majoré, sinon le tarif du site. L'écran de
+     l'admin l'affiche par la même fonction. */
+  function tarifKmPage(g, r){
+    if(!r) return g.parKm;
+    if(r[g.cle] > 0) return r[g.cle];
+    if(r.pourcentage > 0) return tarifKmMajore(g.parKm, r.pourcentage);
+    return g.parKm;
+  }
+  function grillePage(g){
+    var r = reglePage();
+    if(!r) return g;
+    return { cle:g.cle, nom:g.nom, places:g.places, mini:g.mini, parKm: tarifKmPage(g, r) };
   }
   /* L'APPEL LUI-MÊME EST PLUS BAS, APRÈS « SUPABASE_URL »/« SUPABASE_CLE » :
      cette fonction est définie ici, mais tant que ces deux constantes ne
@@ -9063,7 +9293,7 @@ window.ELA_TEXTES = {
     if(tarifAConfirmer()) return 0;
     if(course.forfait && typeof course.forfait[g.cle] === "number")
       return course.forfait[g.cle];
-    return prix(g, course.km);
+    return prix(grillePage(g), course.km);
   }
 
   var OPTION_PANCARTE_EUR = 10;
@@ -9993,6 +10223,29 @@ window.ELA_TEXTES = {
       .then(function(ok){ clearTimeout(minuteur); return ok; });
     },
 
+    /* ═══ LA MESURE D'AUDIENCE, SANS TRACEUR (14 octobre 2026) ═══
+       Un compteur par jour, par page et par geste (ela_mesurer, migration
+       20261014000000). On n'envoie que deux mots d'une liste fermée : ni
+       identifiant, ni adresse, ni rien qui reste sur l'appareil. Elle n'est
+       JAMAIS attendue et ne peut rien faire échouer : un serveur muet, une
+       migration pas encore appliquée, et le visiteur ne voit rien.
+       Même appel que mesure.js (pages d'acquisition) : test-seo-en le
+       vérifie. */
+    mesurer: function(page, evenement, source){
+      if(!this.actif() || !page || !evenement) return;
+      try{
+        fetch(SUPABASE_URL + "/rest/v1/rpc/ela_mesurer", {
+          method: "POST",
+          keepalive: true,
+          headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
+          /* La source (le lien d'un partenaire) ne part que si elle existe :
+             une visite ordinaire envoie ce qu'elle envoyait avant. */
+          body: JSON.stringify(source ? { p_page: page, p_evenement: evenement, p_source: source }
+                                      : { p_page: page, p_evenement: evenement })
+        }).catch(function(){});
+      }catch(e){ /* navigateur sans fetch : rien à compter */ }
+    },
+
     /* ═══ LA RÉPONSE D'ELATRANSFER ARRIVE SUR LE SITE ═══
        Barbaros : « il faut que je puisse répondre aussi via le site ».
        « Mes réservations » n'affichait que ce qui dort dans ce téléphone,
@@ -10591,6 +10844,76 @@ window.ELA_TEXTES = {
     catch(e){ return ""; }
   }
 
+  /* ═══ LA PAGE D'ORIGINE (14 octobre 2026, SEO international) ═══
+     Une page d'acquisition (/en/…, les pages CDG / Orly / chauffeur) envoie
+     « Book » vers « /?src=<page> ». La demande part avec le libellé de cette
+     page dans « provenance » : il s'affiche dans « D'où viennent les
+     clients », sur le bon et dans l'alerte Telegram (« Vient de : … »).
+     C'est ce qui dit quelle page amène des clients, sans rien ajouter au
+     serveur. LISTE FERMÉE : une valeur inconnue est ignorée, rien de ce
+     qu'on tape dans l'adresse n'entre tel quel dans une course.
+     RIEN N'EST ÉCRIT SUR L'APPAREIL : l'origine vit le temps de la page.
+     Une affiche d'hôtel, elle, garde la priorité (« ela_provenance »).
+     Les clés sont aussi celles de la mesure d'audience (mesure.js) :
+     test-seo-en vérifie que les deux listes disent la même chose. */
+  var ORIGINES = {
+    "en-accueil":    "Site anglais · Transferts aéroport",
+    "en-cdg":        "Site anglais · CDG ↔ Paris",
+    "en-orly":       "Site anglais · Orly ↔ Paris",
+    "en-disneyland": "Site anglais · Disneyland",
+    "en-cdg-orly":   "Site anglais · CDG ↔ Orly",
+    "fr-cdg":        "Page Transfert CDG",
+    "fr-orly":       "Page Transfert Orly",
+    "fr-chauffeur":  "Page Chauffeur privé"
+  };
+  var origineVisite = "", viaVisite = "";
+  function lireOrigine(params){
+    var s = String((params && params.get("src")) || "").trim().toLowerCase();
+    if(Object.prototype.hasOwnProperty.call(ORIGINES, s)) origineVisite = s;
+    /* LE LIEN D'UN PARTENAIRE (« via », 15 octobre 2026) : format fermé, et
+       c'est le SERVEUR qui le reconnaît — la liste des partenaires n'est pas
+       lisible ici, elle nomme des partenariats qui ne sont pas forcément
+       publics. Un code inventé est ignoré là-bas (ela_mesurer,
+       deposer-course). Comme l'origine : vit le temps de la page. */
+    var v = String((params && params.get("via")) || "").trim();
+    if(/^[a-z0-9-]{2,40}$/.test(v)) viaVisite = v;
+  }
+  function provenanceDuBon(){
+    return provenanceVisite() || (origineVisite ? ORIGINES[origineVisite] : "");
+  }
+
+  /* ═══ LA MESURE D'AUDIENCE DU MOTEUR, SANS TRACEUR ═══
+     Trois moments : le moteur s'ouvre, le visiteur commence à remplir, la
+     demande est arrivée. Comptés par jour et par page d'origine sur le
+     serveur (ela_mesurer) — aucun cookie, rien sur l'appareil, aucun
+     identifiant. Seulement sur le site PUBLIC construit : ni la page d'un
+     hôtel, ni la réception, ni l'admin, ni la démo (où « nuage » est un
+     simulateur sans « mesurer »). Les robots ne comptent pas. */
+  function mesurerVisite(evenement){
+    try{
+      if(document.documentElement.getAttribute("data-ela-space") !== "public") return;
+      if(/bot|crawl|spider|slurp|lighthouse|headless|pagespeed|preview/i.test(navigator.userAgent || "")) return;
+      if(nuage && typeof nuage.mesurer === "function") nuage.mesurer(origineVisite || "accueil", evenement, viaVisite);
+    }catch(e){ /* la mesure ne fait jamais tomber la page */ }
+  }
+  (function(){
+    var carte = document.querySelector(".reserver");
+    if(!carte) return;
+    var vu = false;
+    /* « Commencer » = un vrai geste dans la carte de réservation. Le
+       préremplissage d'une page d'acquisition déclenche un « input »
+       synthétique : « isTrusted » le distingue d'un doigt. */
+    function geste(e){
+      if(vu || !e.isTrusted) return;
+      vu = true;
+      carte.removeEventListener("input", geste, true);
+      carte.removeEventListener("click", geste, true);
+      mesurerVisite("formulaire_commence");
+    }
+    carte.addEventListener("input", geste, true);
+    carte.addEventListener("click", geste, true);
+  })();
+
   /* UN BON N'ANNONCE JAMAIS « 0,00 € » : sans prix, il dit « Tarif à
      confirmer ». C'est le cas d'une demande longue distance, d'un groupe,
      d'une adresse saisie à la main — et de toute course reçue sans montant. */
@@ -10985,8 +11308,10 @@ window.ELA_TEXTES = {
       /* D'OÙ VIENT CE CLIENT : l'hôtel dont il a scanné l'affiche, s'il en a
          scanné une. C'est ce qui dit quelle affiche travaille et laquelle
          dort. Absent pour un client venu directement — et un champ vide se
-         lit « venue directe », pas « information perdue ». */
-      provenance: provenanceVisite(),
+         lit « venue directe », pas « information perdue ». Depuis le
+         14 octobre 2026, à défaut d'affiche : la page d'acquisition d'où il
+         vient (voir « ORIGINES »). */
+      provenance: provenanceDuBon(),
       /* LA CLÉ DE L'HÔTEL PARTENAIRE, à côté de son libellé — et c'est
          elle, pas le libellé, que le serveur interroge pour rendre à une
          réception SES courses. Un libellé est du texte destiné à un écran :
@@ -10997,6 +11322,11 @@ window.ELA_TEXTES = {
          sans grille négociée : le champ ne se lit pas « information
          perdue », il se lit « pas un partenaire ». */
       provenanceCle: hotel ? hotel.cle : "",
+      /* LE LIEN DU PARTENAIRE QUI A ENVOYÉ CE CLIENT (« ?via= », 15 octobre
+         2026). Le serveur le recroise avec sa liste et pose alors la
+         provenance « Lien · <nom> » ; un code inconnu y est ignoré. Une
+         affiche d'hôtel garde la priorité : on ne l'envoie pas avec. */
+      via: provenanceVisite() ? "" : viaVisite,
       /* ═══ LE COMPTOIR OU LE CLIENT ═══
          Les deux passent par la même page et portent la même provenance.
          Ce n'est pourtant pas la même course : celle du comptoir a été
@@ -11036,13 +11366,12 @@ window.ELA_TEXTES = {
        référence pendant que ça monte, au lieu d'un bouton qui tourne. */
     afficherEtatEnvoi(null);
     depot.then(function(ok){
-      if(ok){
-        /* La référence est la seule chose qui part à la mesure : l'admin
-           retrouve la course par elle, à la lecture, pour dire quelle source
-           fait des courses réalisées. */
-        if(window.ELA_MESURE) ELA_MESURE.evenement("booking_submitted", { ref: bonCourant.ref });
-        return afficherEtatEnvoi(true);
-      }
+      /* La demande est ARRIVÉE : c'est elle qu'on compte, pas le clic. La
+         référence est la seule chose qui part à la mesure : l'admin retrouve
+         la course par elle, à la lecture, pour dire quelle source fait des
+         courses réalisées. */
+      if(ok) mesurerVisite("demande_envoyee", { ref: bonCourant.ref });
+      if(ok) return afficherEtatEnvoi(true);
       /* ON NE CRIE PAS À L'ÉCHEC DEPUIS L'ARRIÈRE-PLAN. Voir
          « reprendreDepot » : tant que la page est cachée, un échec ne veut
          rien dire. */
@@ -11154,7 +11483,10 @@ window.ELA_TEXTES = {
       if(fait) return;
       fait = true;
       document.removeEventListener("visibilitychange", auRetour);
-      nuage.deposer(bon).then(afficherEtatEnvoi);
+      nuage.deposer(bon).then(function(ok){
+        if(ok) mesurerVisite("demande_envoyee");
+        return afficherEtatEnvoi(ok);
+      });
     }
     function auRetour(){ if(!document.hidden) reessayer(); }
     if(document.hidden){
@@ -12455,19 +12787,22 @@ window.ELA_TEXTES = {
   }
   /* Le message est COURT et il se lit sur un écran verrouillé : le nom de
      l'entreprise, la raison, le lien. Un paragraphe de remerciements
-     s'ouvre, se lit en diagonale et se ferme sans qu'on ait cliqué. */
+     s'ouvre, se lit en diagonale et se ferme sans qu'on ait cliqué.
+     IL NE DIT PLUS « si tout s'est bien passé » (15/10/2026) : cette
+     condition ne demandait l'avis qu'aux clients contents — le tri que
+     Google (« review gating ») et la loi interdisent. On demande à tous. */
   function messageAvis(c){
     var prenom = ((c.client && c.client.nom) || "").trim().split(/\s+/)[0];
     var lien = lienAvis();
     if((c.langue || "fr") === "en"){
       return (prenom ? "Hello " + prenom + ", " : "Hello, ")
         + "thank you for travelling with Elatransfer.\n"
-        + "If everything went well, a short review would help us a lot:\n"
+        + "Your review of this journey would help us a lot:\n"
         + lien;
     }
     return (prenom ? "Bonjour " + prenom + ", " : "Bonjour, ")
       + "merci d'avoir voyagé avec Elatransfer.\n"
-      + "Si tout s'est bien passé, un avis nous aiderait beaucoup :\n"
+      + "Votre avis sur ce trajet nous aiderait beaucoup :\n"
       + lien;
   }
   /* Sans lien, le message ne sert à rien : on emmène l'exploitant au champ
@@ -12606,6 +12941,7 @@ window.ELA_TEXTES = {
   function dessinerBord(){
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     if(typeof dessinerSauvegardeBord === "function") dessinerSauvegardeBord();
+    if(typeof dessinerAvisBord === "function") dessinerAvisBord();
     var liste = document.getElementById("listeBord");
     var vide  = document.getElementById("videBord");
     var tout  = registre();
@@ -15417,6 +15753,19 @@ window.ELA_TEXTES = {
     GAMMES.forEach(function(g){
       zf.appendChild(ligneCc([g.nom, euros(g.parKm), eurosRond(g.mini)]));
     });
+    /* Les pages qui ont leur propre prix : une ligne chacune, avec le tarif
+       au km qu'elles appliquent vraiment — et rien si aucune n'en a, c'est
+       le cas normal. */
+    var reglees = Object.keys(ORIGINES).filter(function(k){ return PRIX_PAGES[k]; });
+    if(reglees.length){
+      var gb = GAMMES.filter(function(g){ return g.cle === "berline"; })[0];
+      var gv = GAMMES.filter(function(g){ return g.cle === "van"; })[0];
+      zf.appendChild(ligneCc(["Prix des pages", "Berline €/km", "Van €/km"], "cc-tete"));
+      reglees.forEach(function(k){
+        var r = PRIX_PAGES[k];
+        zf.appendChild(ligneCc([ORIGINES[k], gb ? euros(tarifKmPage(gb, r)) : "—", gv ? euros(tarifKmPage(gv, r)) : "—"]));
+      });
+    }
     Object.keys(HOTELS).forEach(function(hk){
       var h = HOTELS[hk];
       zf.appendChild(ligneCc(["Flyer " + (h.court || h.nom), "Berline", "Van"], "cc-tete"));
@@ -15651,6 +16000,42 @@ window.ELA_TEXTES = {
     document.getElementById("btnSauver").click();
   });
 
+  /* LES AVIS À DEMANDER (15 octobre 2026, SEO-AUTORITE.md § 11) : les courses
+     RÉALISÉES de la semaine, avec un numéro où écrire, qui n'ont pas reçu de
+     demande. Sept jours, pas plus : « trois jours plus tard il ne répond
+     plus » (voir « demanderAvis ») — un rappel sur un trajet d'il y a un mois
+     pousserait à écrire pour rien. Une course d'essai ne compte pas. Rien
+     sans lien d'avis réglé : le bouton emmènerait au champ, pas au client. */
+  var JOURS_AVIS = 7;
+  function avisADemander(){
+    if(!lienAvis()) return [];
+    var depuis = dateLocale(new Date(Date.now() - JOURS_AVIS * 86400000));
+    return registre().filter(comptable).filter(function(c){
+      return c.statut === "realisee" && !c.avisDemande
+        && !!telWa(c.client && c.client.telephone)
+        && String((c.course && c.course.date) || "") >= depuis;
+    });
+  }
+  function dessinerAvisBord(){
+    var el = document.getElementById("bordAvis");
+    if(!el) return;
+    var n = avisADemander().length;
+    if(!n){ el.hidden = true; return; }
+    el.hidden = false;
+    document.getElementById("bordAvisTexte").textContent =
+      (n === 1 ? "1 client de la semaine sans demande d'avis"
+               : n + " clients de la semaine sans demande d'avis")
+      + "\u00a0: demandez à tous.";
+  }
+  (function(){
+    var b = document.getElementById("btnBordAvis");
+    if(b) b.addEventListener("click", function(){
+      filtreBord = "realisee"; dessinerBord();
+      var l = document.getElementById("listeBord");
+      if(l) l.scrollIntoView({ block:"start" });
+    });
+  })();
+
   /* LA RELANCE : un message au chauffeur, sur SON numéro, avec les courses
      concernées. Une relance qui dit « vous me devez 47 € » sans dire pour
      quoi appelle une discussion ; la liste la clôt. */
@@ -15772,8 +16157,227 @@ window.ELA_TEXTES = {
       b.classList.toggle("actif", b === quoi);
     });
   }
+  /* ═══ LES PAGES DU SITE — LA MESURE D'AUDIENCE (14 octobre 2026) ═══
+     Lue sur le serveur (ela_mesures_acquisition, admin seul) à chaque
+     ouverture du registre. Trois issues, trois phrases : pas de session,
+     mesure pas encore installée (migration à appliquer), serveur muet. On
+     ne dessine JAMAIS un zéro qu'on n'a pas lu : un « 0 vue » inventé se
+     lirait « cette page ne sert à rien ». */
+  var GESTES_MESURE = [
+    ["page_vue", "vue", "vues"], ["clic_reserver", "« Book »", "« Book »"],
+    ["clic_appel", "appel", "appels"], ["clic_whatsapp", "WhatsApp", "WhatsApp"],
+    ["moteur_ouvert", "moteur ouvert", "moteurs ouverts"],
+    ["formulaire_commence", "formulaire commencé", "formulaires commencés"]
+  ];
+  function libellePageMesure(cle){
+    if(cle === "accueil") return "Accueil (venue directe)";
+    if(cle === "pro") return "Page Professionnels";
+    return ORIGINES[cle] || cle;
+  }
+  function dessinerMesure(){
+    var etat = document.getElementById("regMesureEtat");
+    if(!etat || !document.getElementById("regMesure")) return;
+    if(!nuage.connecte()){
+      poser("regMesure", [], "");
+      etat.textContent = "Connectez-vous au serveur pour lire la mesure.";
+      return;
+    }
+    etat.textContent = "Lecture de la mesure…";
+    nuage.appel("/rest/v1/rpc/ela_mesures_acquisition", { method:"POST", body: JSON.stringify({ p_jours: 30 }) })
+      .then(function(lignes){
+        var parPage = {};
+        (Array.isArray(lignes) ? lignes : []).forEach(function(l){
+          if(!l || !l.page) return;
+          (parPage[l.page] = parPage[l.page] || {})[l.evenement] = Number(l.nombre) || 0;
+        });
+        var rangs = Object.keys(parPage).map(function(cle){
+          var m = parPage[cle];
+          var sous = GESTES_MESURE.filter(function(g){ return m[g[0]]; })
+            .map(function(g){ return m[g[0]] + " " + (m[g[0]] > 1 ? g[2] : g[1]); }).join(" · ");
+          var d = m.demande_envoyee || 0;
+          return { nom: libellePageMesure(cle), sous: sous || "—",
+                   val: d + (d > 1 ? " demandes" : " demande"),
+                   _n: (m.page_vue || 0) + (m.moteur_ouvert || 0) };
+        }).sort(function(x, y){ return y._n - x._n; });
+        poser("regMesure", rangs, "");
+        etat.textContent = rangs.length
+          ? "Comptés par jour et par page, sans cookie ni donnée personnelle. Les robots ne comptent pas."
+          : "Aucune visite comptée sur les 30 derniers jours.";
+      })
+      .catch(function(e){
+        poser("regMesure", [], "");
+        var m = String(e && e.message || "");
+        etat.textContent = /\b404\b/.test(m)
+          ? "La mesure n'est pas encore installée sur le serveur (migration 20261014000000 à appliquer)."
+          : /\b403\b/.test(m) ? "La mesure est réservée à l'admin."
+          : "Mesure illisible pour l'instant (" + m + ").";
+      });
+  }
+
+  /* ═══ LES LIENS DES PARTENAIRES (15 octobre 2026, SEO-AUTORITE.md § 12) ═══
+     Barbaros : « je veux un suivi ». Un hôtel, un office de tourisme ou un
+     annuaire reçoit SON lien (« ?via=<code> ») ; on voit ici ce qu'il amène.
+     DEUX SOURCES, DEUX QUESTIONS, comme « D'où viennent les clients » :
+     avant la demande, le compteur du serveur (vues, « Book », appels,
+     WhatsApp, moteur ouvert — ela_mesures_liens, admin seul) ; la demande et
+     l'argent, le REGISTRE (les courses portent « via », posé par le serveur
+     quand il reconnaît le code). On ne dessine JAMAIS un zéro qu'on n'a pas
+     lu : sans réponse du compteur, la ligne dit seulement ce que dit le
+     registre, et la note le signale.
+     LA LISTE VIENT DU SERVEUR (liens_suivi), lisible par l'admin seul : elle
+     nomme des partenariats pas forcément publics. Pas de suppression : un
+     lien a peut-être déjà amené des courses qui portent son code. */
+  var SITE_PUBLIC = "https://elatransfer.com";
+  function codeDuNom(nom){
+    return String(nom || "").toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+/, "").slice(0, 40).replace(/-+$/, "");
+  }
+  function lienDe(code){
+    var sel = document.getElementById("lienPage");
+    return SITE_PUBLIC + ((sel && sel.value) || "/") + "?via=" + encodeURIComponent(code);
+  }
+  function copierLien(code){
+    var url = lienDe(code);
+    var note = document.getElementById("lienCopie");
+    function dire(t){ if(note){ note.hidden = false; note.textContent = t; } }
+    /* Le lien est TOUJOURS écrit en clair : un presse-papiers refusé (vieux
+       navigateur, page pas au premier plan) ne doit pas laisser Barbaros
+       sans lien à donner. */
+    var copie;
+    try{ copie = navigator.clipboard.writeText(url); }catch(e){ copie = Promise.reject(e); }
+    Promise.resolve(copie).then(function(){ dire("Lien copié : " + url); },
+                                function(){ dire("Copiez ce lien : " + url); });
+  }
+  function dessinerLiens(){
+    var etat = document.getElementById("regLiensEtat");
+    var zone = document.getElementById("regLiens");
+    if(!etat || !zone) return;
+    if(!nuage.connecte()){
+      zone.innerHTML = "";
+      etat.textContent = "Connectez-vous au serveur pour lire et créer les liens.";
+      return;
+    }
+    etat.textContent = "Lecture des liens…";
+    var sansMesure = false;
+    /* UNE SEULE FENÊTRE POUR TOUT : 30 jours, comme le titre. Le compteur
+       (vues, « Book ») les lit déjà ; les demandes et l'argent sont pris sur
+       la date de la COURSE, et les demandes de démo sur leur date — sinon une
+       ligne disait « 12 vues · 40 demandes », deux périodes dans un chiffre
+       (relecture du 15/10/2026). */
+    var depuis = dateLocale(new Date(Date.now() - 30 * 86400000));
+    Promise.all([
+      nuage.appel("/rest/v1/liens_suivi?select=code,nom,cree_le&order=cree_le.asc"),
+      nuage.appel("/rest/v1/rpc/ela_mesures_liens", { method:"POST", body: JSON.stringify({ p_jours: 30 }) })
+        .catch(function(){ sansMesure = true; return []; }),
+      /* Les demandes de démo (page Professionnels, fiche papier) : la seule
+         conversion de cette page-là. Lisibles par l'admin seul ; muettes,
+         aucun chiffre inventé. */
+      nuage.appel("/rest/v1/prospects?select=via&via=not.is.null&cree_le=gte." + depuis)
+        .catch(function(){ return []; })
+    ]).then(function(r){
+      var liens = Array.isArray(r[0]) ? r[0] : [];
+      var mesure = {};
+      (Array.isArray(r[1]) ? r[1] : []).forEach(function(l){
+        if(!l || !l.source) return;
+        (mesure[l.source] = mesure[l.source] || {})[l.evenement] = Number(l.nombre) || 0;
+      });
+      var demos = {};
+      (Array.isArray(r[2]) ? r[2] : []).forEach(function(x){
+        if(x && x.via) demos[x.via] = (demos[x.via] || 0) + 1;
+      });
+      var courses = registre().filter(comptable).filter(function(c){
+        return String((c.course && c.course.date) || "") >= depuis;
+      });
+      zone.innerHTML = "";
+      liens.map(function(l){
+        var m = mesure[l.code] || {};
+        var siennes = courses.filter(function(c){ return c.via === l.code; });
+        var faites = siennes.filter(function(c){ return c.statut === "realisee"; });
+        var nd = demos[l.code] || 0;
+        var parts = GESTES_MESURE.filter(function(g){ return m[g[0]]; })
+          .map(function(g){ return m[g[0]] + " " + (m[g[0]] > 1 ? g[2] : g[1]); });
+        if(nd) parts.push(nd + (nd > 1 ? " demandes de démo" : " demande de démo"));
+        parts.push(siennes.length + (siennes.length > 1 ? " demandes" : " demande"));
+        parts.push(faites.length + " réalisée" + (faites.length > 1 ? "s" : ""));
+        return { lien:l, sous:parts.join(" · "), total:bilan(faites).total,
+                 _n:(siennes.length + nd) * 1000 + (m.page_vue || 0) + (m.moteur_ouvert || 0) };
+      }).sort(function(x, y){ return y._n - x._n; }).forEach(function(x){
+        var d = document.createElement("div");
+        d.className = "reg-ligne reg-lien";
+        var g = document.createElement("span"); g.className = "reg-nom";
+        g.textContent = x.lien.nom;
+        var s1 = document.createElement("span"); s1.className = "reg-sous"; s1.textContent = x.sous;
+        var s2 = document.createElement("span"); s2.className = "reg-sous"; s2.textContent = "Code : " + x.lien.code;
+        g.appendChild(s1); g.appendChild(s2);
+        var v = document.createElement("span"); v.className = "reg-val";
+        v.appendChild(document.createTextNode(eurosRond(x.total)));
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "bouton-fantome"; b.textContent = "Copier";
+        b.setAttribute("aria-label", "Copier le lien de " + x.lien.nom);
+        b.addEventListener("click", function(){ copierLien(x.lien.code); });
+        v.appendChild(b);
+        d.appendChild(g); d.appendChild(v);
+        zone.appendChild(d);
+      });
+      etat.textContent = (liens.length
+          ? "« Copier » donne le lien vers la page choisie au-dessus. Visites comptées sans cookie ni donnée personnelle ; l'argent ne compte que les courses réalisées."
+          : "Aucun lien pour l'instant : créez-en un ci-dessous.")
+        + (sansMesure ? " Les visites ne sont pas lisibles pour l'instant : seules les demandes s'affichent." : "");
+    }).catch(function(e){
+      zone.innerHTML = "";
+      var m = String(e && e.message || "");
+      etat.textContent = /\b404\b/.test(m)
+        ? "Les liens ne sont pas encore installés sur le serveur (migration 20261015000000 à appliquer)."
+        : /\b40[13]\b/.test(m) ? "Les liens des partenaires sont réservés à l'admin."
+        : "Liens illisibles pour l'instant (" + m + ").";
+    });
+  }
+  (function(){
+    var nom = document.getElementById("lienNom"), code = document.getElementById("lienCode");
+    var btn = document.getElementById("btnLienCreer"), etat = document.getElementById("lienEtat");
+    var page = document.getElementById("lienPage");
+    /* La page publique retire ces écrans à la construction : sans garde, la
+       première ligne arrêterait tout le script du site client. */
+    if(!nom || !code || !btn || !etat) return;
+    var codeTouche = false;
+    nom.addEventListener("input", function(){ if(!codeTouche) code.value = codeDuNom(nom.value); });
+    code.addEventListener("input", function(){ codeTouche = code.value.trim() !== ""; });
+    function dire(t){ etat.hidden = false; etat.textContent = t; }
+    btn.addEventListener("click", function(){
+      var n = nom.value.trim(), c = code.value.trim();
+      if(!n){ dire("Écrivez d'abord le nom du partenaire."); nom.focus(); return; }
+      if(!/^[a-z0-9-]{2,40}$/.test(c)){
+        dire("Le code : de 2 à 40 lettres minuscules, chiffres ou tirets, sans espace ni accent (ex. : hotel-exemple).");
+        code.focus(); return;
+      }
+      if(!nuage.connecte()){ dire("Connectez-vous au serveur pour créer un lien."); return; }
+      btn.disabled = true;
+      nuage.appel("/rest/v1/liens_suivi", { method:"POST", headers:{ Prefer:"return=representation" },
+                                            body: JSON.stringify({ code:c, nom:n }) })
+        .then(function(){
+          dire("Lien « " + n + " » créé. Choisissez la page, puis « Copier » à côté de son nom.");
+          nom.value = ""; code.value = ""; codeTouche = false;
+          dessinerLiens();
+        }, function(e){
+          var m = String(e && e.message || "");
+          dire(/\b409\b/.test(m) ? "Ce code existe déjà : choisissez-en un autre."
+             : /\b40[13]\b/.test(m) ? "La création d'un lien est réservée à l'admin."
+             : /\b404\b/.test(m) ? "Les liens ne sont pas encore installés sur le serveur (migration 20261015000000 à appliquer)."
+             : "Lien non créé (" + m + ").");
+        })
+        .then(function(){ btn.disabled = false; });
+    });
+    if(page) page.addEventListener("change", function(){
+      var note = document.getElementById("lienCopie");
+      if(note) note.hidden = true;
+    });
+  })();
+
   function ouvrirRegistre(){
     dessinerRegistre();
+    dessinerMesure();
+    dessinerLiens();
     /* ═══ L'ÉCRAN D'ABORD, LE DESSIN ENSUITE ═══
        Les quatre chiffres et les panneaux ont déménagé ici depuis le tableau
        de bord (septembre 2026). Leur dessin ne peut donc plus se faire au
@@ -15828,6 +16432,98 @@ window.ELA_TEXTES = {
     });
     if(choisi && HOTELS[choisi]) sel.value = choisi;
     dessinerForfaits(sel.value);
+    dessinerPrixPages();
+  }
+
+  /* LE PRIX DES PAGES : une carte par page de la liste ORIGINES, trois
+     cases (pourcentage, Berline €/km, Van €/km) et, dessous, le tarif au km
+     que la page applique VRAIMENT — calculé par « tarifKmPage », la fonction
+     du moteur. Un « +20 % » ne se relit pas, « 3,48 € » si. Même mécanique
+     que les forfaits : seul ce qui a changé passe en bleu, et part. */
+  function lireCasesPage(cle){
+    var v = function(id){ var e = document.getElementById(id); return e ? e.value.trim() : ""; };
+    return { pourcentage: v("pagePct_" + cle), berline: v("pageKm_" + cle + "_berline"), van: v("pageKm_" + cle + "_van") };
+  }
+  /* Une case vide ou à 0 ne règle rien ; sinon elle doit tenir dans ses
+     bornes — un tarif au km a au plus deux décimales. Rend le motif d'un
+     refus, ou rien. */
+  /* « 3,75 » comme « 3.75 » : un clavier français tape une virgule. */
+  function nombreSaisi(texte){ return Number(String(texte).trim().replace(",", ".")); }
+  function refusCase(champ, texte){
+    if(texte === "" || nombreSaisi(texte) === 0) return "";
+    var n = nombreSaisi(texte);
+    if(champ === "pourcentage")
+      return (n > 0 && n <= POURCENTAGE_MAX && Math.round(n) === n) ? "" : "un pourcentage entier de 0 à " + POURCENTAGE_MAX;
+    return (n >= KM_MIN && n <= KM_MAX && Math.abs(Math.round(n * 100) - n * 100) < 1e-6) ? ""
+      : "un prix au km de " + euros(KM_MIN) + " à " + euros(KM_MAX);
+  }
+  function regleDesCases(c){
+    return regleValide({ pourcentage: refusCase("pourcentage", c.pourcentage) ? 0 : nombreSaisi(c.pourcentage),
+      berline: refusCase("berline", c.berline) ? 0 : nombreSaisi(c.berline),
+      van: refusCase("van", c.van) ? 0 : nombreSaisi(c.van) });
+  }
+  function dessinerPrixPages(){
+    var zone = document.getElementById("tarifPages");
+    if(!zone) return;
+    while(zone.firstChild) zone.removeChild(zone.firstChild);
+    direPages(prixPagesLus === "absente"
+      ? "Le serveur ne publie pas encore ces prix (migration 20261014010000 à appliquer) : tant que ce n'est pas fait, les pages gardent le prix du site."
+      : "", prixPagesLus === "absente");
+    Object.keys(ORIGINES).forEach(function(cle){
+      var r = PRIX_PAGES[cle] || {};
+      var bloc = document.createElement("div"); bloc.className = "page-bloc";
+      var nom = document.createElement("span"); nom.className = "forfait-nom"; nom.textContent = ORIGINES[cle];
+      var champs = document.createElement("div"); champs.className = "page-champs";
+      var effet = document.createElement("span"); effet.className = "page-effet";
+      function ecrireEffet(){
+        var c = lireCasesPage(cle);
+        var faux = ["pourcentage","berline","van"].some(function(k){ return refusCase(k, c[k]); });
+        var regle = regleDesCases(c);
+        effet.textContent = faux ? "Valeur à corriger"
+          : (regle ? "Appliqué au km : " : "Prix du site : ") + GAMMES.map(function(g){
+              return g.nom + " " + euros(tarifKmPage(g, regle));
+            }).join(" · ");
+        effet.style.color = faux ? "#C9302F" : "";
+      }
+      [["pourcentage","%"],["berline","Berline €/km"],["van","Van €/km"]].forEach(function(c){
+        var label = document.createElement("label");
+        var titre = document.createElement("span"); titre.textContent = c[1];
+        var input = document.createElement("input");
+        if(c[0] === "pourcentage"){
+          input.type = "number"; input.min = "0";
+          input.id = "pagePct_" + cle; input.max = String(POURCENTAGE_MAX); input.step = "1";
+          input.inputMode = "numeric"; input.value = String(r.pourcentage || 0);
+          input.setAttribute("aria-label", ORIGINES[cle] + " — pourcentage ajouté au tarif du site");
+        } else {
+          var g = GAMMES.filter(function(x){ return x.cle === c[0]; })[0];
+          /* En texte, pas en nombre : la case garde la virgule française
+             (« 3,75 »), comme le prix au km écrit à côté. */
+          input.type = "text"; input.id = "pageKm_" + cle + "_" + c[0]; input.inputMode = "decimal";
+          input.value = r[c[0]] ? r[c[0]].toFixed(2).replace(".", ",") : "";
+          input.placeholder = g ? g.parKm.toFixed(2).replace(".", ",") : "";
+          input.setAttribute("aria-label", ORIGINES[cle] + " — " + (g ? g.nom : c[0]) + ", prix au km en euros");
+        }
+        input.dataset.page = cle; input.dataset.champ = c[0];
+        input.dataset.initial = input.value;
+        input.addEventListener("input", function(){
+          input.classList.toggle("modifie", input.value !== input.dataset.initial);
+          ecrireEffet();
+          direPages("", false);
+        });
+        label.appendChild(titre); label.appendChild(input);
+        champs.appendChild(label);
+      });
+      bloc.appendChild(nom); bloc.appendChild(champs); bloc.appendChild(effet);
+      zone.appendChild(bloc);
+      ecrireEffet();
+    });
+  }
+  function direPages(texte, erreur){
+    var e = document.getElementById("pagesEtat");
+    if(!e) return;
+    e.hidden = !texte;
+    e.textContent = texte || "";
+    e.style.color = erreur ? "#C9302F" : "";
   }
 
   /* UN HÔTEL À LA FOIS. Chaque champ garde sa valeur d'origine dans
@@ -15940,6 +16636,75 @@ window.ELA_TEXTES = {
       }
     }).catch(function(){
       direForfaits("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);
+    });
+  });
+
+  /* ON LIT AVANT D'ÉCRIRE : la valeur part en entier (une ligne
+     « prix_pages »), et l'écran a pu se dessiner sur une lecture publique
+     ratée — tout vide. Écrire ce vide effacerait des réglages faits
+     ailleurs. On repart donc de la ligne du serveur et on n'y change QUE les
+     cases modifiées ici. Format : { "en-cdg": { "pourcentage": 20,
+     "par_km_centimes": { "berline": 350, "van": 590 } } }. */
+  function pagesDuServeur(actuel){
+    var v = {};
+    if(!actuel || typeof actuel !== "object" || Array.isArray(actuel)) return v;
+    Object.keys(actuel).forEach(function(k){
+      var o = actuel[k];
+      if(!Object.prototype.hasOwnProperty.call(ORIGINES, k) || !o || typeof o !== "object") return;
+      var n = {}, p = Number(o.pourcentage), km = o.par_km_centimes;
+      if(p > 0 && p <= POURCENTAGE_MAX) n.pourcentage = p;
+      if(km && typeof km === "object") ["berline","van"].forEach(function(g){
+        var c = Number(km[g]);
+        if(c >= KM_MIN * 100 && c <= KM_MAX * 100){ n.par_km_centimes = n.par_km_centimes || {}; n.par_km_centimes[g] = Math.round(c); }
+      });
+      if(Object.keys(n).length) v[k] = n;
+    });
+    return v;
+  }
+  var btnPages = document.getElementById("btnPagesEnregistrer");
+  if(btnPages) btnPages.addEventListener("click", function(){
+    if(!nuage.connecte()){ direPages("Connectez-vous d'abord au serveur (bloc « Serveur » plus bas).", true); return; }
+    var champs = Array.prototype.slice.call(document.querySelectorAll("#tarifPages input"))
+      .filter(function(c){ return c.value !== c.dataset.initial; });
+    if(!champs.length){ direPages("Aucun prix modifié.", false); return; }
+    var faux = champs.filter(function(c){ return refusCase(c.dataset.champ, c.value.trim()); })[0];
+    if(faux){
+      direPages("Valeur à corriger (" + refusCase(faux.dataset.champ, faux.value.trim()) + ") : "
+        + faux.getAttribute("aria-label") + ".", true);
+      faux.focus(); return;
+    }
+    direPages("Enregistrement…", false);
+    nuage.lireParametre("prix_pages").then(function(actuel){
+      var valeur = pagesDuServeur(actuel);
+      champs.forEach(function(c){
+        var k = c.dataset.page, t = c.value.trim(), n = nombreSaisi(t);
+        var o = valeur[k] || {};
+        if(c.dataset.champ === "pourcentage"){
+          if(t === "" || n === 0) delete o.pourcentage; else o.pourcentage = n;
+        } else {
+          o.par_km_centimes = o.par_km_centimes || {};
+          if(t === "" || n === 0) delete o.par_km_centimes[c.dataset.champ];
+          else o.par_km_centimes[c.dataset.champ] = Math.round(n * 100);
+          if(!Object.keys(o.par_km_centimes).length) delete o.par_km_centimes;
+        }
+        if(Object.keys(o).length) valeur[k] = o; else delete valeur[k];
+      });
+      return nuage.majParametre("prix_pages", valeur).then(function(){ return valeur; });
+    }).then(function(valeur){
+      /* La mémoire de la page suit tout de suite : le centre de contrôle et
+         cet écran disent le prix enregistré, pas celui d'avant. */
+      Object.keys(ORIGINES).forEach(function(k){
+        var o = valeur[k], km = (o && o.par_km_centimes) || {};
+        var r = o ? regleValide({ pourcentage: Number(o.pourcentage),
+          berline: Number(km.berline) / 100, van: Number(km.van) / 100 }) : null;
+        if(r) PRIX_PAGES[k] = r; else delete PRIX_PAGES[k];
+      });
+      champs.forEach(function(c){ c.dataset.initial = c.value; c.classList.remove("modifie"); });
+      direPages(prixPagesLus === "absente"
+        ? "Enregistré, mais pas encore appliqué : la migration 20261014010000 doit d'abord être appliquée."
+        : "Enregistré. S'applique aux visiteurs qui ouvrent la page à partir de maintenant.", prixPagesLus === "absente");
+    }).catch(function(){
+      direPages("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);
     });
   });
 
@@ -17238,18 +18003,69 @@ window.ELA_TEXTES = {
      un terminal à la place du client : chaque terminal possède ses propres
      coordonnées et ce choix participe au calcul du prix. On lance donc la
      liste des terminaux CDG ou Orly dans le champ concerné. */
+  /* ═══ L'AUTRE BOUT DU TRAJET (« vers= », 14 octobre 2026) ═══
+     Une page d'acquisition sait souvent les DEUX bouts : CDG → Disneyland,
+     CDG → Orly. Le texte de l'autre bout est posé d'avance, et sa liste
+     s'ouvre une fois le terminal choisi — LE CLIENT CHOISIT LUI-MÊME, comme
+     pour le terminal : chaque lieu a ses coordonnées, et c'est ce choix qui
+     fait le prix. On ne choisit jamais une adresse à sa place. Le texte reste
+     modifiable : s'il le change, la suite ne s'ouvre pas.
+     Liste fermée : rien de ce qu'on tape dans l'adresse n'entre tel quel.
+     LES DEUX LISTES VIVENT DANS LA FONCTION, PAS À CÔTÉ : la page non
+     construite appelle « lirePrefillAeroport » plus HAUT dans le fichier
+     que l'endroit où elle est écrite. Une fonction déclarée est prête
+     d'avance, une variable non : posées à côté, elles valaient encore
+     « undefined » au premier appel, et l'erreur arrêtait tout le reste du
+     script (vu sur six suites, 14 octobre 2026). */
   function lirePrefillAeroport(){
+    var VERS_CONNUS = { cdg:"CDG", orly:"Orly", disneyland:"Disneyland Paris" };
+    /* Les paramètres d'entrée qu'on efface après lecture : un
+       rafraîchissement ne doit pas rejouer le préremplissage par-dessus ce
+       que le client a fait. Les autres (« doc », « ok »…) restent :
+       d'autres lecteurs suivent. */
+    var PARAMS_ENTREE = ["aeroport", "sens", "vers", "src", "lang", "via"];
     var params = new URLSearchParams(location.search);
+    lireOrigine(params);
+    /* Un visiteur venu LIRE un document (« ?doc=cgv » depuis le pied d'une
+       page d'acquisition) n'a pas ouvert le moteur pour réserver : le
+       compter gonflerait l'entonnoir d'une page qui n'a rien produit. */
+    if(!params.has("doc")) mesurerVisite("moteur_ouvert");
     var code = (params.get("aeroport") || "").trim().toLowerCase();
     var sens = (params.get("sens") || "").trim().toLowerCase();
-    if(["cdg", "orly"].indexOf(code) === -1) return false;
-    if(["depart", "arrivee"].indexOf(sens) === -1) return false;
+    var vers = (params.get("vers") || "").trim().toLowerCase();
+    var aNettoyer = PARAMS_ENTREE.some(function(k){ return params.has(k); });
+    function nettoyer(){
+      if(!aNettoyer) return;
+      PARAMS_ENTREE.forEach(function(k){ params.delete(k); });
+      var reste = params.toString();
+      try{ history.replaceState(null, "", location.pathname + (reste ? "?" + reste : "") + location.hash); }catch(e){}
+    }
+    if(["cdg", "orly"].indexOf(code) === -1 || ["depart", "arrivee"].indexOf(sens) === -1){
+      nettoyer();
+      return false;
+    }
 
     var champ = sens === "depart" ? champDepart : champArrivee;
     champ.value = code === "cdg" ? "CDG" : "Orly";
+    if(Object.prototype.hasOwnProperty.call(VERS_CONNUS, vers) && vers !== code){
+      var autre = sens === "depart" ? champArrivee : champDepart;
+      var prise = sens === "depart" ? priseArrivee : priseDepart;
+      var cleAutre = sens === "depart" ? "arrivee" : "depart";
+      var texte = VERS_CONNUS[vers];
+      autre.value = texte;
+      suitePrefill = function(cote){
+        if(cote !== sens) return;
+        suitePrefill = null;
+        if(choix[cleAutre] || autre.value.trim() !== texte) return;
+        /* Après le clic : le même clic referme les listes ouvertes
+           (écouteur sur le document), la liste ne s'ouvre qu'une fois
+           l'événement passé. */
+        setTimeout(function(){ autre.focus(); prise.rouvrir(); }, 60);
+      };
+    }
     champ.dispatchEvent(new Event("input", { bubbles:true }));
     champ.focus();
-    try{ history.replaceState(null, "", location.pathname); }catch(e){}
+    nettoyer();
     return true;
   }
 

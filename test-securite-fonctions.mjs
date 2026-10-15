@@ -315,6 +315,54 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(i9.status===201&&bi.course?.passagersNombre===12&&bi.course?.multiVehicules===true,'deposer-course : un groupe de 12 passe, marqué « plusieurs véhicules » ('+i9.status+')');
   globalThis.fetch=fetchAvant;
 }
+/* deposer-course : LE LIEN DE SUIVI D'UN PARTENAIRE (15 octobre 2026). Le
+   code n'est retenu que si la base le connaît ; il pose alors la provenance
+   « Lien · <nom> ». Un code inventé, mal formé ou une base muette ne
+   bloquent rien : la course part sans source. On lit le bon tel qu'il part
+   en base, et on COMPTE les lectures de « liens_suivi » : un code mal formé
+   ne doit même pas interroger la base. */
+{
+  const deposes=[]; let lectures=0, panne=false;
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')) return new Response('true');
+    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
+    if(url.includes('/rest/v1/liens_suivi')){
+      lectures++;
+      if(panne) return new Response('boom',{status:500});
+      return new Response(url.includes('code=eq.hotel-exemple')?JSON.stringify([{code:'hotel-exemple',nom:'Hôtel Exemple Roissy'}]):'[]');
+    }
+    if(url.includes('parametres_commerciaux')) return new Response('[]');
+    if(url.includes('/rpc/ela_deposer_course_serveur')){deposes.push(JSON.parse(init.body).p_bon);return new Response('"ok"');}
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bonVia=(ref,via,extra={})=>Object.assign({ref,course:{depart:'Terminal 2E',arrivee:'Paris',date:'2026-10-20',heure:'10:00',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'lien',provenance:'Site anglais · CDG ↔ Paris'},via===undefined?{}:{via},extra);
+  const dep=(bon)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.8','content-type':'application/json'},body:JSON.stringify({bon})}));
+  const r1=await dep(bonVia('ELA-26-10-LV1AA','hotel-exemple'));
+  const b1=deposes[0]||{};
+  ok(r1.status===201&&b1.via==='hotel-exemple'&&b1.viaNom==='Hôtel Exemple Roissy','deposer-course : un lien connu est retenu, avec le nom du partenaire ('+r1.status+', '+b1.via+')');
+  ok(b1.provenance==='Lien · Hôtel Exemple Roissy · Site anglais · CDG ↔ Paris','deposer-course : la provenance dit le partenaire ET garde la page d\'origine ('+b1.provenance+')');
+  const r2=await dep(bonVia('ELA-26-10-LV2BB','inconnu'));
+  const b2=deposes[1]||{};
+  ok(r2.status===201&&!('via' in b2)&&b2.provenance==='Site anglais · CDG ↔ Paris','deposer-course : un code inventé est ignoré, la provenance de la page reste');
+  const avant=lectures;
+  const r3=await dep(bonVia('ELA-26-10-LV3CC','<script>alert(1)</script>'));
+  ok(r3.status===201&&!('via' in (deposes[2]||{}))&&lectures===avant,'deposer-course : un code mal formé n\'interroge même pas la base ('+(lectures-avant)+' lecture)');
+  const r4=await dep(bonVia('ELA-26-10-LV4DD','hotel-exemple',{provenance:'easyHotel Aéroville',provenanceCle:'easyhotel-aeroville'}));
+  const b4=deposes[3]||{};
+  ok(r4.status===201&&b4.via==='hotel-exemple'&&b4.provenance==='easyHotel Aéroville','deposer-course : la provenance d\'un hôtel partenaire gagne toujours ('+b4.provenance+')');
+  const avant5=lectures;
+  const r5=await dep(bonVia('ELA-26-10-LV5EE',undefined));
+  ok(r5.status===201&&lectures===avant5&&!('via' in (deposes[4]||{})),'deposer-course : sans lien, aucune lecture de plus — une page ancienne dépose comme avant');
+  panne=true;
+  const r6=await dep(bonVia('ELA-26-10-LV6FF','hotel-exemple'));
+  ok(r6.status===201&&!('via' in (deposes[5]||{})),'deposer-course : base des liens muette, la course part quand même, sans source ('+r6.status+')');
+  globalThis.fetch=fetchAvant;
+}
 /* =====================================================================
    DEMANDE-DEMO (8 octobre 2026, démo professionnels, bloc 2). Déployée
    SANS vérification de JWT : tout ce qui protège est dans la fonction. On
@@ -344,6 +392,8 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     if(url.includes('/rpc/ela_prospect_confirmer')){const a=JSON.parse(init.body);const ok=F.jetons.has(a.p_empreinte);F.jetons.delete(a.p_empreinte);return new Response(JSON.stringify(ok));}
     if(url.includes('api.telegram.org')){if(F.tgPanne)throw new Error('réseau');F.tg.push(JSON.parse(init.body));return new Response('{}');}
     if(url.includes('api.resend.com')){F.mails.push(JSON.parse(init.body));return new Response('{}');}
+    if(url.includes('/rest/v1/liens_suivi')){F.liens=(F.liens||0)+1;return new Response(url.includes('code=eq.fiche-hotels')?JSON.stringify([{code:'fiche-hotels',nom:'Fiche papier remise aux hôtels'}]):'[]');}
+    if(url.includes('/rest/v1/prospects?id=eq.')&&init.method==='PATCH'){F.vias=(F.vias||[]);F.vias.push({url,corps:JSON.parse(init.body)});return new Response('',{status:204});}
     return new Response('?',{status:404});
   };
   const ENV={SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',DEMO_SESSION_SECRET:randomBytes(24).toString('hex'),
@@ -354,7 +404,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     email:'Direction@HotelDesLilas.fr',telephone:'06 12 34 56 78',langue:'fr',turnstile:'humain',site:'',duree:6000};
   const demande=(extra={},fn=dd,o)=>appel(fn,Object.assign({},base,extra),o);
   const rien=()=>F.crees.length===0&&F.tg.length===0&&F.mails.length===0;
-  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];F.sansPrenom=false;F.appelsCreer=0;};
+  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];F.sansPrenom=false;F.appelsCreer=0;F.liens=0;F.vias=[];};
 
   // Aucun secret possible (ni posé, ni clé service_role à dériver) : rien ne passe.
   {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{DEMO_SESSION_SECRET:'',SUPABASE_SERVICE_ROLE_KEY:''}));
@@ -419,6 +469,20 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   }
   raz();
   ok((await demande({action:'supprimer'})).status===400&&rien(),'demande-demo : action inconnue → 400');
+  // Le lien d'un partenaire (15/10/2026) : la fiche papier des hôtels mène ici avec « ?via=fiche-hotels ».
+  raz();
+  {const r=await demande({via:'fiche-hotels'});
+   ok(r.status===200&&F.crees.length===1&&F.vias.length===1&&F.vias[0].corps.via==='fiche-hotels'&&F.vias[0].url.includes('prospects?id=eq.')&&Object.keys(F.vias[0].corps).join()==='via','demande-demo : un lien connu est posé sur le prospect, après sa création, et rien d\'autre ('+JSON.stringify(F.vias)+')');
+   ok(F.tg.length===1&&/\nVenu par : Fiche papier remise aux hôtels$/.test(F.tg[0].text),'demande-demo : l\'alerte Telegram nomme le lien');
+   ok(!('via' in F.crees[0])&&!Object.keys(F.crees[0]).some(k=>/via/.test(k)),'demande-demo : le lien ne passe jamais par la porte de création');}
+  raz();
+  {const r=await demande({via:'inconnu'});
+   ok(r.status===200&&F.crees.length===1&&F.vias.length===0&&!/Venu par/.test(F.tg[0]?.text||''),'demande-demo : un code inconnu ne pose rien et ne se nomme pas');}
+  raz();
+  {const r=await demande({via:'Fiche Hotels<'});
+   ok(r.status===200&&F.crees.length===1&&F.liens===0&&F.vias.length===0,'demande-demo : un code mal formé ne fait aucune lecture');}
+  raz();
+  ok((await demande({})).status===200&&F.liens===0&&F.crees.length===1,'demande-demo : sans lien, aucune lecture de plus — une page ancienne demande comme avant');
   // Turnstile.
   raz();
   {const r=await demande({turnstile:''});ok(r.status===403&&(await r.json()).erreur==='robot'&&rien()&&F.turnstile===0,'demande-demo : Turnstile absent → 403 robot');}

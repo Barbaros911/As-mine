@@ -1,0 +1,165 @@
+/* =====================================================================
+   LANDING.CSS — les pages d'acquisition (/en/…, 14 octobre 2026)
+   ---------------------------------------------------------------------
+   Une seule feuille pour toutes les langues à venir (/es/, /de/…) : deux
+   copies d'une même charte divergent au premier changement.
+   LA CHARTE EST CELLE DU SITE PUBLIC : Figtree, bleu nuit, cyan, logo
+   négatif sur l'en-tête sombre (choix de Barbaros, 7/10/2026). Le bouton
+   principal est cyan, texte bleu nuit (8,3:1) — comme « Voir mon prix ».
+   AUCUNE IMAGE LOURDE : le plus grand élément de la page est le titre, il
+   s'affiche dès que la police arrive (display=swap).
+   Servie depuis la racine : le service worker la garde (cache d'abord).
+   La modifier = incrémenter CACHE dans sw.js.
+   ===================================================================== */
+:root{
+  --navy:#062f55; --navy-deep:#001f3b; --cyan:#20c4f4; --cyan-light:#6ee5ff;
+  --ink:#082f52; --muted:#5b6e80; --line:#dce8f0; --ice:#effaff; --fond:#f2f5f9;
+  --wa:#25d366;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-padding-top:80px;-webkit-text-size-adjust:100%;}
+body{margin:0;color:var(--ink);background:#fff;
+  font:16px/1.6 'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
+a{color:inherit;}
+img{max-width:100%;}
+/* Le lien d'évitement est rogné, pas repoussé hors de l'écran : un élément
+   posé à -9999 px compte comme un débordement pour les contrôles (et pour
+   certains lecteurs d'écran qui le suivent). */
+.saut{position:absolute;top:8px;left:8px;z-index:100;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+  padding:10px 14px;background:#fff;color:var(--navy);font-weight:700;}
+.saut:focus{width:auto;height:auto;clip-path:none;}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--cyan);outline-offset:3px;border-radius:6px;}
+
+/* ---- En-tête ---- */
+.tete{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:64px;padding:8px clamp(16px,5vw,72px);background:var(--navy-deep);}
+.tete-logo{display:block;line-height:0;flex:none;}
+.tete-logo img{height:36px;width:auto;}
+.tete-nav{display:flex;align-items:center;gap:6px;}
+.tete-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border-radius:10px;
+  color:#dcecf7;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;}
+.tete-nav a:hover{color:#fff;background:rgba(255,255,255,.06);}
+.tete-nav .tete-langue{border:1px solid rgba(110,229,255,.5);}
+.tete-nav .tete-cta{color:var(--navy-deep);background:var(--cyan);}
+.tete-nav .tete-cta:hover{color:var(--navy-deep);background:var(--cyan-light);}
+@media (max-width:760px){ .tete-nav .tete-large{display:none;} .tete-logo img{height:32px;} }
+
+/* ---- Bandeau ---- */
+.hero{padding:clamp(28px,6vw,80px) 16px clamp(28px,5vw,64px);color:#fff;
+  background:linear-gradient(120deg,var(--navy-deep),var(--navy));}
+.hero-in{width:min(1080px,100%);margin:0 auto;}
+.surtitre{margin:0 0 10px;color:var(--cyan-light);font-size:12.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+h1{max-width:860px;margin:0 0 12px;font-size:clamp(28px,5.2vw,56px);line-height:1.08;letter-spacing:-.02em;font-weight:800;}
+.lead{max-width:700px;margin:0;color:#e3f2fb;font-size:clamp(16px,2vw,19px);}
+.sens{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;max-width:720px;margin-top:20px;}
+.contact{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;max-width:720px;}
+.contact .bouton{flex:1 1 150px;}
+.notes{margin:12px 0 0;color:#cfe8f6;font-size:14px;font-weight:600;}
+
+/* ---- Boutons ---- */
+.bouton{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:52px;padding:10px 18px;
+  border:2px solid var(--cyan);border-radius:12px;color:var(--navy-deep);background:var(--cyan);
+  font:inherit;font-weight:800;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer;}
+.bouton:hover{background:var(--cyan-light);border-color:var(--cyan-light);}
+.bouton.creux{color:#fff;background:transparent;border-color:rgba(110,229,255,.6);}
+.bouton.creux:hover{background:rgba(110,229,255,.12);}
+.bouton.clair{color:var(--navy);background:#fff;border-color:var(--line);}
+.bouton.clair:hover{border-color:var(--cyan);}
+.bouton svg{width:20px;height:20px;flex:none;}
+.bouton .fleche{font-weight:800;}
+.ico-wa{color:var(--wa);}
+
+/* ---- Blocs ---- */
+main section.bloc{width:min(1080px,calc(100% - 32px));margin:0 auto;padding:48px 0 0;}
+.bloc > h2{margin:0 0 8px;color:var(--navy);font-size:clamp(23px,3vw,31px);line-height:1.2;letter-spacing:-.01em;}
+.bloc > .intro{margin:0 0 20px;color:var(--muted);max-width:740px;}
+.grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+.carte{padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(8,47,82,.07);}
+.carte h3{margin:0 0 6px;color:var(--navy);font-size:18px;line-height:1.3;}
+.carte p{margin:0;color:var(--muted);}
+.carte p + p{margin-top:8px;}
+a.carte{display:block;text-decoration:none;}
+a.carte:hover{border-color:var(--cyan);}
+.carte .suite{display:inline-block;margin-top:10px;color:#0a6fa0;font-weight:800;}
+.code{display:inline-grid;place-items:center;min-width:52px;height:34px;margin-bottom:10px;padding:0 10px;border-radius:9px;
+  color:#fff;background:var(--navy);font-size:14px;font-weight:800;letter-spacing:.06em;}
+.pastille{width:42px;height:42px;display:grid;place-items:center;margin-bottom:10px;border-radius:12px;color:var(--navy);background:var(--ice);}
+.pastille svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* « Inclus dans chaque course » : le bloc bleu nuit de l'accueil. */
+.inclus{margin-top:0;padding:24px;border-radius:18px;color:#fff;background:var(--navy-deep);}
+.inclus-tete{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:14px;}
+.inclus-tete h2{margin:0;color:#fff;font-size:clamp(20px,2.6vw,26px);}
+.inclus-tete span{color:var(--cyan-light);font-size:12px;font-weight:800;letter-spacing:.12em;}
+.inclus ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.inclus li{padding:14px 16px;border:1px solid rgba(110,229,255,.25);border-radius:14px;}
+.inclus b{display:block;color:#fff;font-size:16px;}
+.inclus li span{color:#cfe8f6;font-size:14px;}
+
+.etapes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+.etapes li{display:flex;gap:12px;align-items:flex-start;padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff;}
+.etapes .num{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--navy);font-weight:800;}
+.etapes h3{margin:2px 0 4px;color:var(--navy);font-size:17px;}
+.etapes p{margin:0;color:var(--muted);}
+
+.savoir{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+.savoir h3{margin:0 0 6px;color:var(--navy);font-size:18px;}
+.savoir p{margin:0;color:var(--ink);}
+.savoir div{padding:20px;border-radius:16px;background:var(--fond);}
+
+.faq details{padding:12px 0;border-bottom:1px solid var(--line);}
+.faq summary{display:flex;align-items:center;min-height:44px;color:var(--navy);font-weight:750;cursor:pointer;}
+.faq details p{margin:6px 0 0;color:var(--muted);}
+
+.liens{display:flex;flex-wrap:wrap;gap:8px 18px;}
+.liens a{display:inline-flex;align-items:center;min-height:44px;color:var(--navy);font-weight:750;}
+
+.final{margin-top:48px;padding:clamp(28px,5vw,48px) 16px;color:#fff;background:linear-gradient(120deg,var(--navy-deep),var(--navy));}
+.final-in{width:min(1080px,100%);margin:0 auto;}
+.final h2{margin:0 0 8px;font-size:clamp(23px,3vw,31px);line-height:1.2;}
+.final p{margin:0;color:#e3f2fb;max-width:720px;}
+
+footer{padding:28px 16px 32px;color:#dcecf7;background:var(--navy-deep);text-align:center;font-size:14px;}
+footer p{margin:0 0 8px;}
+footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;color:#fff;font-weight:700;}
+
+/* ---- La barre du pouce, sur téléphone seulement ----
+   Book · Call · WhatsApp à portée de pouce pendant qu'on lit. Elle ne
+   recouvre jamais rien : le corps réserve sa hauteur (test-seo-en mesure
+   qu'aucun bouton de la page ne passe dessous, page déroulée jusqu'en bas). */
+.barre{display:none;}
+@media (max-width:760px){
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+  .barre{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--navy-deep);
+    box-shadow:0 -6px 20px rgba(0,20,40,.25);}
+  .barre .bouton{min-height:52px;padding:8px 10px;font-size:15px;}
+  .barre .bouton.creux{flex-direction:column;gap:2px;font-size:12px;}
+  .barre .bouton.creux svg{width:20px;height:20px;}
+}
+@media (max-width:360px){
+  .contact .bouton{flex-basis:100%;}
+}
+
+/* ---- La carte du trajet, sur ordinateur seulement ----
+   Elle remplit la moitié droite du bandeau avec ce que la page vend : les
+   deux bouts du trajet et trois faits. Pas d'image : rien à charger, rien
+   dont on ne connaît pas l'auteur. Sur téléphone elle passe : les boutons
+   d'abord. */
+.hero-carte{display:none;}
+@media (min-width:980px){
+  .hero-in{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.9fr);gap:48px;align-items:center;}
+  .hero-carte{display:block;padding:24px;border:1px solid rgba(110,229,255,.3);border-radius:18px;background:rgba(255,255,255,.06);}
+  .tr-point{display:flex;align-items:center;gap:14px;}
+  .tr-point b{display:block;color:#fff;font-size:17px;}
+  .tr-point span{color:#cfe8f6;font-size:14px;}
+  .codes{display:flex;gap:6px;flex:none;}
+  .codes .code{margin:0;background:var(--cyan);color:var(--navy-deep);}
+  .tr-ligne{width:2px;height:28px;margin:8px 0 8px 26px;background:repeating-linear-gradient(var(--cyan-light) 0 5px,transparent 5px 10px);}
+  .hero-carte ul{margin:18px 0 0;padding:16px 0 0 18px;border-top:1px solid rgba(110,229,255,.2);color:#e3f2fb;font-size:15px;}
+  .hero-carte li{margin:0 0 6px;}
+}
+/* Trois boutons (la page d'accueil anglaise) : « Get my price » sur toute la
+   largeur, les deux aéroports côte à côte dessous — jamais un orphelin. */
+.sens.trois{grid-template-columns:1fr 1fr;}
+.sens.trois .bouton:first-child{grid-column:1/-1;}

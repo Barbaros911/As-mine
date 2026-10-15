@@ -41,6 +41,12 @@
       au formulaire et n'appelle pas le serveur. On n'exige JAMAIS qu'elle
       s'ouvre : c'est le serveur qui en décide, sur une session.
 
+   6. GOOGLE PEUT DÉCOUVRIR ET INDEXER LES PAGES (15 octobre 2026).
+      robots.txt et le plan du site sont de vrais fichiers, et chaque
+      adresse du plan répond 200 SANS redirection, indexable, permise,
+      canonique sur elle-même, hreflang réciproques. Même juge que sur le
+      site construit : seo-indexation.mjs.
+
    Lancer :
      node .github/scripts/verifier-production.mjs https://elatransfer.com/
      node .github/scripts/verifier-production.mjs http://127.0.0.1:8099/
@@ -50,6 +56,7 @@
 import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
 import { chercher, exempte } from "./textes-interdits.mjs";
+import { auditerIndexation, lecteurHttp } from "./seo-indexation.mjs";
 
 const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || "https://elatransfer.com/").replace(/\/*$/, "/");
@@ -115,6 +122,17 @@ const PAGES = [
      n'a pas reçu l'accueil à sa place (le piège de `/demos/`). */
   { chemin: "professionnels/", quoi: "la page des professionnels", titre: "Elatransfer",
     marqueur: 'href="https://elatransfer.com/professionnels/"', robots: "index" },
+  /* LES PAGES D'ACQUISITION (14 octobre 2026, SEO international). Chacune
+     est reconnue à SA canonique : une adresse anglaise qui servirait
+     l'accueil (le repli « adresse inconnue » de Cloudflare) répondrait 200
+     avec la marque dans le titre. Les pages françaises sont visées à
+     l'adresse que Cloudflare sert, sans « .html ». */
+  ...["", "cdg-airport-transfer-paris/", "orly-airport-transfer-paris/", "disneyland-paris-airport-transfer/", "cdg-orly-transfer/"]
+    .map((c) => ({ chemin: "en/" + c, quoi: `la page anglaise /en/${c}`, titre: "Elatransfer",
+      marqueur: `<link rel="canonical" href="https://elatransfer.com/en/${c}">`, robots: "index" })),
+  ...["transfert-cdg-paris", "transfert-orly-paris", "chauffeur-prive-paris"]
+    .map((c) => ({ chemin: c, quoi: `la page fran\u00e7aise /${c}`, titre: "Elatransfer",
+      marqueur: `<link rel="canonical" href="https://elatransfer.com/${c}">`, robots: "index" })),
   { chemin: "demo/hotel/", quoi: "la d\u00e9mo h\u00f4tel (vue client)", titre: "D\u00e9monstration", espace: "demo",
     marqueur: "html.demo-attente body{visibility:hidden}", robots: "noindex" },
   { chemin: "demo/hotel/reception/", quoi: "la d\u00e9mo h\u00f4tel (vue r\u00e9ception)", titre: "D\u00e9monstration", espace: "demo",
@@ -192,14 +210,28 @@ if (version.erreur) ko(`/version.json ${version.erreur} \u2014 impossible de dir
 else if (COMMIT && version.commit !== COMMIT) ko(`la production sert le commit ${version.commit} (construit le ${version.construit}) au lieu de ${COMMIT} \u2014 l'h\u00e9bergeur n'a pas publi\u00e9 le dernier main`);
 else ok(`commit en ligne : ${version.commit} \u00b7 cache ${version.cache} \u00b7 construit le ${version.construit}${COMMIT ? " \u2014 c'est bien le dernier main" : ""}`);
 
+/* ---- 1 quater. Ce que Google peut découvrir et indexer ---------------
+   15 octobre 2026 (Prompt 2). Le point 1 suit les redirections et ne lit
+   ni robots.txt ni le plan du site : une adresse du plan devenue une
+   redirection y restait verte, et un sitemap.xml absent rendrait l'ACCUEIL
+   en 200 chez Cloudflare. Le juge est le même que celui de test-seo-en sur
+   le site construit (seo-indexation.mjs) : il lit le HTML brut de chaque
+   adresse du plan, sans suivre les redirections. */
+console.log("\nCe que Google peut d\u00e9couvrir et indexer :");
+try {
+  const { controles } = await auditerIndexation(lecteurHttp(BASE));
+  for (const c of controles) (c.ok ? ok : ko)(c.m);
+} catch (e) {
+  ko(`contr\u00f4le d'indexation impossible : ${e.message}`);
+}
+
 /* ---- 1 ter. L'ancienne règle de paiement n'est pas en ligne ----------
    On lit le HTML et les scripts tels que l'hébergeur les SERT, pas tels
    que le dépôt les écrit : c'est la seule preuve de ce que reçoit un
    client. Même liste que la construction (textes-interdits.mjs), mêmes
    exemptions (l'admin relit des courses anciennes). */
 console.log("\nL'ancienne r\u00e8gle de paiement en ligne :");
-const PUBLICS = [...PAGES.map((p) => p.chemin), "chauffeur-prive-paris.html", "transfert-cdg-paris.html",
-  "transfert-orly-paris.html", "telephone.js", "itineraire-partage.js", "hotel-engine-polish.js", "sw.js",
+const PUBLICS = [...PAGES.map((p) => p.chemin), "telephone.js", "mesure.js", "itineraire-partage.js", "hotel-engine-polish.js", "sw.js",
   "demo/demo-simulateur.js"].filter((c) => !exempte(c || "index.html"));
 let fautesTexte = 0;
 for (const c of PUBLICS) {

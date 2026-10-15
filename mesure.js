@@ -1,185 +1,112 @@
 /* =====================================================================
-   MESURE.JS — le collecteur de la mesure du trafic (15 octobre 2026)
+   MESURE.JS — la mesure d'audience des pages d'acquisition, sans traceur
    ---------------------------------------------------------------------
-   Chargé par toutes les pages PUBLIQUES (accueil, pages de service,
-   /professionnels/, page du flyer d'un hôtel). Il envoie à la fonction
-   « mesure » les sept événements de la liste fermée — page vue, appui sur
-   « Voir mon prix », prix affiché, formulaire commencé, demande envoyée,
-   appui sur « Appeler », appui sur WhatsApp — et rien d'autre : ni
-   mouvement, ni défilement, ni frappe.
+   14 octobre 2026, mission « SEO international ». Barbaros veut savoir
+   quelle page amène des clients : affichage, « Book », appel, WhatsApp,
+   puis — dans le moteur — moteur ouvert, formulaire commencé, demande
+   envoyée. Chaque geste dit la page d'où il part.
 
-   CE QU'IL NE SAIT PAS. Il ne lit ni nom, ni téléphone, ni adresse, ni
-   prix : il n'a pas accès au formulaire, et ne le demande pas. Ce qu'il
-   envoie : deux identifiants tirés au sort (la session, qui meurt avec
-   l'onglet ; le visiteur, 30 jours), la page sans sa chaîne de requête, la
-   page d'entrée de la session, le domaine du référent de la PREMIÈRE page,
-   les UTM, le paramètre « src », la langue, l'appareil (trois valeurs), et
-   l'espace du site. Le pays, c'est le serveur qui le lit.
+   AUCUN TRACEUR, ET C'EST LA RÈGLE DU SITE (politique de confidentialité,
+   art. 7) : pas de cookie, rien d'écrit sur l'appareil, aucun identifiant,
+   aucun service tiers. On envoie DEUX MOTS d'une liste fermée — la page
+   et le geste — à un compteur agrégé par jour sur le serveur
+   (rpc/ela_mesurer, migration 20261014000000). Le serveur ne garde que
+   des totaux.
 
-   LA SOURCE NE CHANGE PAS EN COURS DE VISITE : référent, UTM et « src »
-   sont relevés à la première page et renvoyés tels quels ensuite. Une
-   réservation faite trois pages après l'arrivée depuis Google reste
-   « google ». C'est le serveur qui classe (une seule règle, éprouvée).
+   ELLE NE PEUT RIEN CASSER : jamais attendue, jamais bloquante. Serveur
+   muet, migration pas encore appliquée, bloqueur de publicité : le
+   visiteur ne voit rien, le lien part quand même. « keepalive » fait
+   survivre l'envoi au départ vers tel:, WhatsApp ou le moteur.
 
-   IL NE PEUT RIEN CASSER. Chaque envoi est un « fetch keepalive » lancé
-   sans attente, enveloppé : pas de réponse lue, pas d'erreur remontée. Le
-   type « text/plain » évite la requête préalable (OPTIONS) : un appel, pas
-   deux, et un appui sur WhatsApp n'attend jamais la mesure. Un stockage
-   refusé (navigation privée stricte) désactive simplement la mesure.
+   LE MÊME APPEL QUE LE MOTEUR (nuage.mesurer dans index.html) : même
+   adresse, même clé publique, mêmes noms de pages. test-seo-en vérifie
+   que les deux disent la même chose — deux recettes finissent toujours
+   par diverger.
 
-   OÙ IL SE TAIT : espace admin, réception, démo (data-ela-space), mode
-   exploitant (?exploitant=1), et si le visiteur a demandé à ne pas être
-   compté (localStorage « ela_mesure_non », lien dans la politique de
-   confidentialité). Les robots déclarés sont écartés par le serveur.
-
-   LES APPUIS SUR « APPELER » ET WHATSAPP SONT ÉCOUTÉS ICI, par délégation :
-   tout lien « tel: », tout lien « wa.me », et les choix de la feuille
-   WhatsApp du site (data-wa). Aucune page n'a à les déclarer un par un —
-   un bouton ajouté demain est compté d'office. Les quatre autres
-   événements sont émis par index.html (window.ELA_MESURE.evenement).
-
-   Servi « cache d'abord » par sw.js : toute modification ici DOIT monter
-   la constante CACHE (verifier-cache-sw.mjs le refuse sinon).
+   La page se déclare par <html data-ela-page="en-cdg">. Les liens
+   « Book » portent data-mesure="reserver" ; les liens tel: et WhatsApp
+   sont reconnus à leur adresse.
    ===================================================================== */
 (function(){
-  "use strict";
-  var URL_MESURE = "https://yyhzutnuhuytokarynaw.supabase.co/functions/v1/mesure";
-  var CLE_VISITEUR = "ela_visiteur", CLE_SESSION = "ela_session", CLE_REFUS = "ela_mesure_non";
-  var JOURS_VISITEUR = 30;
-  var ESPACES = { "public": 1, "hotel-client": 1, "pro": 1 };
+  var SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
+  var SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
+  var EVENEMENTS = ["page_vue", "clic_reserver", "clic_appel", "clic_whatsapp"];
 
-  function espace(){
-    var e = document.documentElement.getAttribute("data-ela-space") || "";
-    if(!e){
-      /* Le dépôt servi tel quel (serveur de test, aperçu local) ne porte pas
-         l'attribut : on le lit comme la page publique, sauf en mode
-         exploitant, qui est l'admin. */
-      if(/[?&]exploitant=1/.test(location.search)) return "";
-      if(/^\/professionnels\//.test(location.pathname)) return "pro";
-      return "public";
-    }
-    return ESPACES[e] ? e : "";
-  }
-  function refuse(){
-    try{ return localStorage.getItem(CLE_REFUS) === "1"; }catch(e){ return false; }
-  }
-  function alea(){
-    var n = 16, s = "", c = "abcdefghijklmnopqrstuvwxyz0123456789";
-    try{
-      var b = new Uint8Array(n); crypto.getRandomValues(b);
-      for(var i = 0; i < n; i++) s += c[b[i] % c.length];
-      return s;
-    }catch(e){
-      for(var j = 0; j < n; j++) s += c[Math.floor(Math.random() * c.length)];
-      return s;
-    }
-  }
-  function visiteur(){
-    var m = null;
-    try{ m = JSON.parse(localStorage.getItem(CLE_VISITEUR) || "null"); }catch(e){ m = null; }
-    var now = Date.now();
-    if(!m || typeof m.id !== "string" || !/^[a-z0-9]{8,32}$/.test(m.id) || !(m.exp > now)){
-      m = { id: alea(), exp: now + JOURS_VISITEUR * 86400000 };
-      try{ localStorage.setItem(CLE_VISITEUR, JSON.stringify(m)); }catch(e){ return ""; }
-    }
-    return m.id;
-  }
-  function chemin(){
-    var p = location.pathname || "/";
-    return p.length > 120 ? p.slice(0, 120) : p;
-  }
-  function domaine(ref){
-    try{
-      if(!ref) return "";
-      var u = new URL(ref);
-      if(u.hostname === location.hostname) return "";
-      return u.hostname.replace(/^www\./, "").toLowerCase().slice(0, 80);
-    }catch(e){ return ""; }
-  }
-  function session(){
-    var s = null;
-    try{ s = JSON.parse(sessionStorage.getItem(CLE_SESSION) || "null"); }catch(e){ s = null; }
-    if(s && typeof s.id === "string" && /^[a-z0-9]{8,32}$/.test(s.id)) return s;
-    var q;
-    try{ q = new URLSearchParams(location.search); }catch(e){ q = { get: function(){ return ""; } }; }
-    s = {
-      id: alea(),
-      landing: chemin(),
-      referent: domaine(document.referrer),
-      utm_source: (q.get("utm_source") || "").slice(0, 60),
-      utm_medium: (q.get("utm_medium") || "").slice(0, 60),
-      utm_campaign: (q.get("utm_campaign") || "").slice(0, 60),
-      src: (q.get("src") || "").slice(0, 20),
-      /* Un hôtel partenaire : la page du flyer, ou l'affiche QR (?h=). */
-      hotel: !!(q.get("h") || q.get("reception"))
-    };
-    try{ sessionStorage.setItem(CLE_SESSION, JSON.stringify(s)); }catch(e){ return null; }
-    return s;
-  }
-  function appareil(){
-    var l = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0);
-    var doigt = false;
-    try{ doigt = window.matchMedia && window.matchMedia("(pointer: coarse)").matches; }catch(e){}
-    if(l < 768) return "mobile";
-    if(doigt && l < 1100) return "tablette";
-    return "ordinateur";
-  }
-  function langue(){
-    var l = (document.documentElement.lang || navigator.language || "fr").slice(0, 2).toLowerCase();
-    return /^[a-z]{2}$/.test(l) ? l : "fr";
-  }
+  var page = document.documentElement.getAttribute("data-ela-page") || "";
+  if(!/^[a-z0-9-]{2,40}$/.test(page)) return;
+  /* Les robots ne sont pas des visiteurs : un robot qui exécute la page
+     compterait des affichages que personne n'a vus. */
+  if(/bot|crawl|spider|slurp|lighthouse|headless|pagespeed|preview/i.test(navigator.userAgent || "")) return;
 
-  var ESP = espace();
-  var actif = !!ESP && !refuse();
-  var sess = actif ? session() : null;
-  var vis = actif ? visiteur() : "";
-  if(!sess || !vis) actif = false;
+  /* LE LIEN D'UN PARTENAIRE (15 octobre 2026, « ?via=hotel-exemple ») : un
+     hôtel, un office de tourisme ou un annuaire reçoit SON lien, et chaque
+     geste compté dit par qui le visiteur est arrivé. Le code part tel quel
+     — format fermé — et c'est le SERVEUR qui le reconnaît : un code inventé
+     compte comme une visite sans source. Rien n'est écrit sur l'appareil.
+     Il est EFFACÉ de la barre d'adresse : partagée ensuite, l'adresse ne
+     doit pas attribuer au partenaire un visiteur qu'il n'a pas envoyé. Il
+     suit le visiteur sur TOUS les liens du site — « Book » vers le moteur,
+     mais aussi l'accueil anglais, les autres pages, le pied : un partenaire
+     qui envoie sur /en/ perdrait sinon son visiteur au premier clic, et ne
+     verrait jamais une demande (relecture du 15/10/2026). Une ancre de la
+     même page reste une ancre : réécrite, elle rechargerait la page. */
+  var via = "";
+  try{
+    var params = new URLSearchParams(location.search);
+    var lu = (params.get("via") || "").trim();
+    if(/^[a-z0-9-]{2,40}$/.test(lu)) via = lu;
+    if(params.has("via")){
+      params.delete("via");
+      var reste = params.toString();
+      history.replaceState(null, "", location.pathname + (reste ? "?" + reste : "") + location.hash);
+    }
+  }catch(e){ /* sans URLSearchParams : la visite compte, sans source */ }
+  function suivreJusquAuMoteur(){
+    if(!via) return;
+    document.querySelectorAll("a[href]").forEach(function(a){
+      try{
+        var u = new URL(a.getAttribute("href") || "", location.href);
+        if(u.origin !== location.origin) return;
+        if(u.hash && u.pathname === location.pathname && u.search === location.search) return;
+        u.searchParams.set("via", via);
+        a.setAttribute("href", u.pathname + u.search + u.hash);
+      }catch(e){}
+    });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", suivreJusquAuMoteur);
+  else suivreJusquAuMoteur();
 
-  function envoyer(evenement, detail){
-    if(!actif) return;
-    var corps = {
-      session: sess.id, visiteur: vis, evenement: evenement,
-      page: chemin(), landing: sess.landing, referent: sess.referent,
-      utm_source: sess.utm_source, utm_medium: sess.utm_medium, utm_campaign: sess.utm_campaign,
-      src: sess.src, hotel: sess.hotel,
-      langue: langue(), appareil: appareil(), espace: ESP,
-      detail: detail && typeof detail === "object" ? detail : {}
-    };
+  function envoyer(evenement){
+    if(EVENEMENTS.indexOf(evenement) === -1) return;
     try{
-      fetch(URL_MESURE, {
-        method: "POST", keepalive: true, mode: "cors", credentials: "omit",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(corps)
+      fetch(SUPABASE_URL + "/rest/v1/rpc/ela_mesurer", {
+        method: "POST",
+        keepalive: true,
+        headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
+        /* La source ne part que si elle existe : une visite ordinaire
+           envoie exactement ce qu'elle envoyait avant. */
+        body: JSON.stringify(via ? { p_page: page, p_evenement: evenement, p_source: via }
+                                 : { p_page: page, p_evenement: evenement })
       }).catch(function(){});
-    }catch(e){ /* la mesure ne casse rien */ }
+    }catch(e){ /* navigateur sans fetch : rien à compter */ }
   }
 
-  /* Les appuis, par délégation. « capture » : on voit le clic avant qu'un
-     gestionnaire de la page n'ouvre WhatsApp ou ne change d'écran — et on
-     ne retarde rien, l'envoi ne bloque pas. */
+  /* Ce que dit un lien, lu à son adresse ou à sa déclaration. */
+  function gesteDuLien(a){
+    var h = a.getAttribute("href") || "";
+    if(a.getAttribute("data-mesure") === "reserver") return "clic_reserver";
+    if(/^tel:/i.test(h)) return "clic_appel";
+    if(/^https:\/\/wa\.me\//i.test(h)) return "clic_whatsapp";
+    return "";
+  }
   document.addEventListener("click", function(e){
-    if(!actif || !e.target || !e.target.closest) return;
-    var a = e.target.closest("a[href], button[data-wa]");
+    var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
     if(!a) return;
-    var href = (a.getAttribute("href") || "").toLowerCase();
-    var wa = a.getAttribute("data-wa");
-    if(wa){
-      if(wa === "appel") envoyer("call_click", { choix_wa: wa });
-      else if(wa !== "reserver") envoyer("whatsapp_click", { choix_wa: wa });
-      return;
-    }
-    if(href.indexOf("tel:") === 0) envoyer("call_click");
-    else if(href.indexOf("wa.me") !== -1 || href.indexOf("whatsapp.com") !== -1) envoyer("whatsapp_click");
+    var g = gesteDuLien(a);
+    if(g) envoyer(g);
   }, true);
 
-  window.ELA_MESURE = {
-    actif: function(){ return actif; },
-    evenement: envoyer,
-    /* Pour la politique de confidentialité : ne plus être compté sur cet
-       appareil. Pas de retour en arrière automatique — c'est un choix. */
-    refuser: function(){ try{ localStorage.setItem(CLE_REFUS, "1"); }catch(e){} actif = false; }
-  };
-
-  /* La page vue, une fois le document prêt : dans « defer », il l'est. */
-  envoyer("page_view");
+  envoyer("page_vue");
+  /* Une prise pour les suites de test et la console, rien de plus. */
+  window.ELA_MESURE = { page: page, geste: gesteDuLien, via: via };
 })();

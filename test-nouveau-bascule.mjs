@@ -73,8 +73,15 @@ const serveur = createServer(async (req, res) => {
        bac à sable qui laisse sortir n'est pas un bac à sable. */
     chemin = normalize(chemin).replace(/^(\.\.[/\\])+/, '');
     let f = join(process.cwd(), 'site', chemin);
+    /* COMME CLOUDFLARE (« html_handling: auto-trailing-slash », mesuré le
+       14 octobre 2026 avec wrangler dev) : « /transfert-cdg-paris » sert
+       « transfert-cdg-paris.html ». Le plan du site donne cette adresse-là,
+       celle que sert l'hébergeur, plus le nom du fichier qui redirige. */
     try { if ((await stat(f)).isDirectory()) f = join(f, 'index.html'); }
-    catch { res.writeHead(404).end('non'); return; }
+    catch {
+      try { await stat(f + '.html'); f = f + '.html'; }
+      catch { res.writeHead(404).end('non'); return; }
+    }
     const corps = await readFile(f);
     res.writeHead(200, {'Content-Type': TYPES[extname(f)] || 'application/octet-stream'});
     res.end(corps);
@@ -143,14 +150,23 @@ check('l\'adresse canonique est la racine du domaine',
   (await p.getAttribute('link[rel=canonical]','href'))==='https://elatransfer.com/',
   await p.getAttribute('link[rel=canonical]','href'));
 
-/* AUCUN « hreflang » TANT QUE L'ANGLAIS N'A PAS SA PROPRE ADRESSE
-   (5 octobre 2026). Le premier jet déclarait « fr » et « en » sur la même
-   adresse : pour Google ça ne veut rien dire. Une langue déclarée doit
-   avoir une adresse à elle, différente de celle-ci. */
+/* UNE LANGUE DÉCLARÉE A SA PROPRE ADRESSE (5 octobre 2026). Le premier jet
+   déclarait « fr » et « en » sur la même adresse : pour Google ça ne veut
+   rien dire. Depuis le 14 octobre 2026 l'anglais a la sienne, « /en/ » :
+   l'accueil la déclare, et elle déclare l'accueil en retour (une
+   déclaration sans retour est ignorée par Google). */
 const hreflangs = await p.$$eval('link[rel=alternate][hreflang]', l=>l.map(x=>x.hreflang+'='+x.href));
 check('aucune langue déclarée sur la même adresse que la page',
   !hreflangs.some(h=>h.endsWith('=https://elatransfer.com/') && !h.startsWith('fr=') && !h.startsWith('x-default=')),
   hreflangs.join(', '));
+check('l\'accueil déclare son équivalent anglais, /en/',
+  hreflangs.includes('fr=https://elatransfer.com/') && hreflangs.includes('en=https://elatransfer.com/en/'),
+  hreflangs.join(', '));
+{
+  const en = await (await fetch(SITE + '/en/')).text();
+  check('/en/ déclare l\'accueil en retour (hreflang fr → /)',
+    /<link rel="alternate" hreflang="fr" href="https:\/\/elatransfer\.com\/">/.test(en));
+}
 
 /* UNE SEULE ENTREPRISE DANS LES DONNÉES STRUCTURÉES (5 octobre 2026).
    La page construite en déclarait trois sans lien entre elles
@@ -1088,16 +1104,31 @@ for (const large of [1024, 1280]) {
      le bouton de l'accueil mène au formulaire) est un vrai lien vers
      /professionnels/, et c'est ainsi que Google le lit. */
   const liensAccueil = await ps.$$eval('a[href]', l => l.map(a => a.getAttribute('href').split('#')[0]));
-  const reponses = await ps.evaluate(() => { const fr = (window.ELA_TEXTES || {}).fr || {};
-    return Object.keys(fr).filter(k => /^faq\d+r$/.test(k)).map(k => fr[k]); });
+  /* LES RÉPONSES DANS LA LANGUE DE LA PAGE (14 octobre 2026) : les pages
+     anglaises (/en/…) reprennent les réponses ANGLAISES de l'accueil, mot
+     pour mot — même règle, même source (ELA_TEXTES, qui reprend les CGV). */
+  const reponsesParLangue = await ps.evaluate(() => { const t = window.ELA_TEXTES || {};
+    const lire = d => Object.keys(d || {}).filter(k => /^faq\d+r$/.test(k)).map(k => d[k]);
+    return { fr: lire(t.fr), en: lire(t.en) }; });
+  const reponses = reponsesParLangue.fr;
   check('les réponses de l\'accueil se lisent (sinon le contrôle ne prouve rien)', reponses.length >= 1, String(reponses.length));
+  /* LES PAGES ANGLAISES PASSENT PAR « /en/ » (14 octobre 2026) : l'accueil
+     relie la page d'accueil anglaise (un lien « English » dans le pied, qui
+     doit tenir sur une ligne sur ordinateur), et c'est elle qui relie
+     chaque page anglaise. Deux clics depuis l'accueil, de vrais liens. */
+  await ps.goto(SITE + '/en/', { waitUntil: 'domcontentloaded' });
+  const liensEn = await ps.$$eval('a[href]', l => l.map(a => a.getAttribute('href').split('#')[0]));
+  await ps.goto(SITE + '/', { waitUntil: 'domcontentloaded' });
   for (const chemin of pagesSeo.filter(c => c !== '')) {
-    check(`${chemin} : liée depuis l'accueil par un vrai lien`, liensAccueil.includes('/' + chemin));
+    const sousEn = chemin.startsWith('en/') && chemin !== 'en/';
+    check(`${chemin} : liée ${sousEn ? 'depuis /en/' : 'depuis l\'accueil'} par un vrai lien`,
+      (sousEn ? liensEn : liensAccueil).includes('/' + chemin));
     await ps.goto(SITE + '/' + chemin, { waitUntil: 'domcontentloaded' });
     const lu = await ps.evaluate(() => ({
       tete: document.title + ' ' + (document.querySelector('meta[name=description]') || {}).content,
       ld: [...document.querySelectorAll('script[type="application/ld+json"]')].map(s => s.textContent),
       texte: document.body.innerText,
+      langue: document.documentElement.lang,
       faq: [...document.querySelectorAll('details p')].map(p => p.textContent.trim()) }));
     check(`${chemin} : jamais « VTC » dans le titre, la description ou les données`, !/VTC/.test(lu.tete + lu.ld.join(' ')));
     let prov = ''; try { prov = (JSON.parse(lu.ld[0]).provider || {})['@id']; } catch (e) {}
@@ -1112,7 +1143,7 @@ for (const large of [1024, 1280]) {
     const regleVol = (reponses.find(r => /numéro de vol/.test(r)) || '').replace(/^.*?(jusqu'à)/, '$1');
     const ecarts = chemin === 'professionnels/'
       ? (regleVol.length > 20 && lu.faq.some(r => r.endsWith(regleVol)) ? [] : ['règle « vol en retard » absente ou réécrite : ' + regleVol])
-      : lu.faq.filter(r => !reponses.includes(r));
+      : lu.faq.filter(r => !(reponsesParLangue[lu.langue === 'en' ? 'en' : 'fr'] || []).includes(r));
     check(`${chemin} : ses réponses sont celles de l'accueil, mot pour mot`, lu.faq.length >= 1 && ecarts.length === 0, ecarts.join(' | '));
   }
   await ps.close();

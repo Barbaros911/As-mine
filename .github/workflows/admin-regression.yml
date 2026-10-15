@@ -81,6 +81,14 @@ jobs:
           # partenaire ajouté à HOTELS doit avoir la finition d'easyHotel, à ses
           # couleurs, sans une ligne de code de plus — et easyHotel ne bouge pas.
           suites="$suites test-finition-commune"
+          # LES PAGES D'ACQUISITION ET LEUR PRIX (14 octobre 2026) : les pages
+          # /en/, l'origine qui part avec la demande, et la majoration réglée
+          # page par page — un prix affiché qui ne serait pas le prix facturé.
+          suites="$suites test-seo-en test-prix-pages"
+          # LES LIENS DES PARTENAIRES (15 octobre 2026) : le code d'un partenaire
+          # suit le visiteur de la page à la demande, l'admin lit ce que chaque
+          # lien amène, et le rappel d'avis compte les clients de la semaine.
+          suites="$suites test-liens-suivi"
           # LA MESURE DU TRAFIC (15 octobre 2026) : le collecteur sur le site
           # construit — de Google à la réservation, et une panne de la mesure
           # qui ne touche pas le dépôt. L'écran de l'admin est pris d'office

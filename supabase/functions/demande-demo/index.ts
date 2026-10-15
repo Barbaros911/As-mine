@@ -205,7 +205,7 @@ async function turnstileOk(jeton: string, req: Request): Promise<boolean | null>
    bas ferait rejeter tout le message par Telegram. Une panne ne fait
    JAMAIS échouer la demande. */
 export function messageTelegram(p: Record<string, any>, domainePro: boolean | null): string {
-  return [
+  const lignes = [
     "Nouveau prospect — démo " + (LIBELLE_TYPE[p.type] ?? p.type).toLowerCase(),
     "Établissement : " + p.etablissement,
     "Type : " + (LIBELLE_TYPE[p.type] ?? p.type),
@@ -214,7 +214,34 @@ export function messageTelegram(p: Record<string, any>, domainePro: boolean | nu
     "Téléphone : " + p.telephone,
     "Adresse e-mail : " + (domainePro === null ? "—" : domainePro ? "professionnelle" : "grand public"),
     "Langue : " + (p.langue === "en" ? "anglais" : "français"),
-  ].join("\n");
+  ];
+  /* Le lien par lequel il est arrivé (la fiche papier, un partenaire) : c'est
+     la question que pose chaque fiche distribuée. Absent, rien de plus. */
+  if (p.viaNom) lignes.push("Venu par : " + p.viaNom);
+  return lignes.join("\n");
+}
+
+/* ── LE LIEN D'UN PARTENAIRE (15 octobre 2026, SEO-AUTORITE.md § 12) ───
+   La fiche papier des hôtels et les liens donnés aux partenaires mènent à
+   /professionnels/ avec « ?via= » ; la page le transmet ici. Retenu
+   SEULEMENT s'il existe dans « liens_suivi » (la liste de l'admin,
+   illisible par le navigateur), il est posé sur le prospect APRÈS sa
+   création — par service_role, jamais par la page — et nommé dans
+   l'alerte. Rien de tout cela ne peut faire échouer la demande : code
+   inconnu, base muette, la demande part et la démo s'ouvre. Rend le nom
+   du lien, ou rien. */
+async function poserLien(id: string, via: unknown): Promise<string> {
+  if (typeof via !== "string" || !/^[a-z0-9-]{2,40}$/.test(via)) return "";
+  try {
+    const r = await base(`liens_suivi?code=eq.${encodeURIComponent(via)}&select=code,nom&limit=1`);
+    const l = r && r.ok ? (await r.json())?.[0] : null;
+    if (!l?.code) return "";
+    const p = await base(`prospects?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH", body: JSON.stringify({ via: l.code }), headers: { Prefer: "return=minimal" },
+    });
+    if (!p || !p.ok) console.warn("demande-demo : lien du prospect non posé", p?.status ?? "réseau");
+    return String(l.nom ?? "").slice(0, 80);
+  } catch (_e) { return ""; }
 }
 async function prevenirBarbaros(texteMessage: string): Promise<boolean> {
   if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT) {
@@ -362,8 +389,9 @@ async function demander(entree: any, req: Request, origin: string): Promise<Resp
   if (!ligne?.id) return reponse(503, { erreur: "indisponible" }, origin);
 
   const domainePro = typeof ligne.domaine_pro === "boolean" ? ligne.domaine_pro : null;
+  const viaNom = await poserLien(ligne.id, entree.via);
   await Promise.all([
-    prevenirBarbaros(messageTelegram({ type, etablissement, prenom, nom, fonction, telephone, langue }, domainePro)),
+    prevenirBarbaros(messageTelegram({ type, etablissement, prenom, nom, fonction, telephone, langue, viaNom }, domainePro)),
     envoyerEmail(mail, langue, LIEN_CONFIRMATION + jeton),
   ]).catch(() => null);
 
