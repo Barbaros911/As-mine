@@ -335,6 +335,9 @@ function demoiser(html, vue) {
   html = html.replace(/<script>\(function\(\)\{try\{var p=new URLSearchParams\(location\.search\);[\s\S]*?<\/script>/g, '');
   html = html.replace(/<script>\s*\(function\(\)\{\s*(?:\/\*[\s\S]*?\*\/\s*)?var m = document\.getElementById\("manifeste"\);[\s\S]*?<\/script>\s*/, '');
   html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
+  /* La démo ne mesure rien : pas de collecteur, donc pas d'appel au serveur
+     de la mesure (verifier-demo.mjs le refuserait de toute façon). */
+  html = html.replace(/<script\b[^>]*src=["']\/?mesure\.js["'][^>]*><\/script>\s*/gi, '');
   html = html.replace(/<base\b[^>]*>\s*/gi, '');
   html = html.replace(/<meta\b[^>]*name=["']apple-mobile-web-app-[^>]*>\s*/gi, '');
   html = html.replace(/<meta\b[^>]*name=["']mobile-web-app-capable["'][^>]*>\s*/gi, '');

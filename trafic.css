@@ -1,0 +1,116 @@
+/* =====================================================================
+   LE TRAFIC — L'ÉCRAN (15 octobre 2026)
+   ---------------------------------------------------------------------
+   Chargée par l'admin seulement : la construction retire ce lien des pages
+   publiques. Toutes les classes commencent par « trf- ».
+
+   MOBILE D'ABORD : à 390 px, le direct puis six tuiles de front (deux par
+   rangée), le funnel, la série, puis les tableaux en CARTES — chaque ligne
+   devient une carte où les colonnes s'écrivent avec leur libellé
+   (data-col). Au-delà de 900 px, de vraies colonnes et trois tuiles par
+   rangée. Un seul HTML, la feuille réorganise.
+
+   LES COULEURS SONT CELLES DE L'ADMIN. Le vert dit UN ÉTAT (la mesure est
+   fraîche), le gris dit « on ne sait pas » ; la barre de la série porte
+   l'accent, et le texte garde ses encres — jamais la couleur de la barre.
+   Contrastes : --accent-encre sur --accent-clair 7,6 · #166534 sur #DCFCE7
+   6,5 · #9B1C1C sur #FDECEC 7,3 · --gris sur --fond 4,9.
+   ===================================================================== */
+.trf{padding:2px 20px 36px;}
+.trf :focus-visible{outline:3px solid rgba(20,126,220,.45);outline-offset:2px;}
+
+.trf-tete{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:10px 0 0;}
+.trf-direct{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 14px;border-radius:999px;
+  font-size:15px;font-weight:650;}
+.trf-direct-ok{background:#DCFCE7;color:#166534;}
+.trf-direct-gris{background:#E6EDF4;color:#5A6A7B;}
+.trf-point{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none;}
+.trf-direct-ok .trf-point{animation:trf-pulse 2s ease-in-out infinite;}
+@keyframes trf-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.trf-direct-ok .trf-point{animation:none;}}
+.trf-direct-n{font-size:22px;font-weight:800;line-height:1;}
+.trf-fraicheur{flex:1 1 100%;margin:0;font-size:12.5px;color:var(--gris);}
+.trf-erreur{color:#9B1C1C;font-weight:650;}
+.trf-actualiser{flex:none;width:auto;min-height:44px;margin:0;padding:0 16px;}
+
+.trf-filtres{display:flex;gap:6px;margin:12px 0 0;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.trf-filtres::-webkit-scrollbar{display:none;}
+.trf-filtre{flex:none;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--filet);
+  background:var(--carte);color:var(--encre);font:inherit;font-size:14px;font-weight:650;cursor:pointer;}
+.trf-filtre.actif{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+.trf-bloc{margin:16px 0 0;}
+.trf-bloc-tete{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;}
+.trf-h2{margin:0 0 8px;font-size:15px;font-weight:800;color:var(--encre);}
+.trf-vide{margin:8px 0 0;padding:16px;border:1px dashed #cdd9e5;border-radius:14px;text-align:center;
+  color:var(--gris);font-size:14px;}
+.trf-note{margin:22px 0 0;font-size:12.5px;line-height:1.45;color:var(--gris);}
+.trf-erreur-bloc{margin:10px 0 0;padding:12px 14px;border-radius:12px;background:#FDECEC;color:#9B1C1C;
+  font-size:14px;font-weight:650;line-height:1.4;}
+.trf-erreur-aide{font-weight:500;}
+
+/* ---------- LES TUILES ---------- */
+.trf-tuiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.trf-tuile{display:flex;flex-direction:column;gap:2px;min-width:0;padding:12px 12px 10px;border-radius:14px;
+  background:var(--carte);border:1px solid var(--filet);}
+.trf-tuile-lib{font-size:12.5px;font-weight:700;color:var(--gris);}
+.trf-tuile-n{font-size:26px;font-weight:800;line-height:1.1;color:var(--encre);font-variant-numeric:tabular-nums;}
+.trf-tuile-sous{font-size:12px;color:var(--gris);overflow-wrap:anywhere;}
+.trf-courses{margin:8px 0 0;font-size:13px;color:var(--gris);}
+
+/* ---------- LE FUNNEL ---------- */
+.trf-funnel{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+.trf-etape{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;}
+.trf-etape-lib{font-size:13.5px;color:var(--encre);}
+.trf-etape-n{font-size:14px;font-weight:800;color:var(--encre);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.trf-etape-barre{grid-column:1 / -1;height:10px;border-radius:5px;background:var(--accent-clair);overflow:hidden;}
+.trf-etape-plein{height:100%;border-radius:5px;background:var(--accent);}
+.trf-funnel-note{margin:10px 0 0;font-size:13px;color:var(--gris);line-height:1.45;}
+
+/* ---------- LA SÉRIE ---------- */
+.trf-serie{display:block;width:100%;height:auto;max-height:180px;background:var(--carte);border:1px solid var(--filet);
+  border-radius:14px;padding:6px 4px 2px;box-sizing:border-box;}
+.trf-barre{fill:var(--accent);}
+.trf-barre-vide{fill:var(--filet);}
+.trf-serie-val{font-size:10px;font-weight:800;fill:var(--encre);}
+.trf-serie-res{font-size:9px;font-weight:700;fill:var(--accent-encre);}
+.trf-serie-axe{font-size:9px;fill:var(--gris);}
+.trf-serie-legende{margin:6px 0 0;font-size:12.5px;color:var(--gris);}
+
+/* ---------- LES TABLEAUX : cartes sur téléphone ---------- */
+.trf-tri{display:flex;gap:6px;flex-wrap:wrap;}
+.trf-tri-b{min-height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--filet);background:var(--carte);
+  color:var(--encre);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer;}
+.trf-tri-b.actif{background:var(--accent-clair);border-color:var(--accent-clair);color:var(--accent-encre);}
+.trf-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.trf-table thead{display:none;}
+.trf-table tbody{display:grid;gap:8px;}
+.trf-table tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px;padding:10px 12px;
+  border-radius:14px;background:var(--carte);border:1px solid var(--filet);}
+.trf-table td{display:flex;flex-direction:column;min-width:0;font-size:14px;font-weight:700;color:var(--encre);}
+.trf-table td::before{content:attr(data-col);font-size:11px;font-weight:650;color:var(--gris);}
+.trf-table td.trf-c-nom{grid-column:1 / -1;font-size:15px;font-weight:800;overflow-wrap:anywhere;}
+.trf-table td.trf-c-nom::before{display:none;}
+.trf-table td.trf-c-res{color:var(--accent-encre);}
+
+/* ---------- ORDINATEUR ---------- */
+@media (min-width:900px){
+  body.espace .trf{padding:2px 28px 44px;}
+  .trf-fraicheur{flex:1 1 auto;}
+  .trf-tuiles{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .trf-tuile-n{font-size:30px;}
+  .trf-deux{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+  .trf-serie{max-height:220px;}
+  .trf-table thead{display:table-header-group;}
+  .trf-table tbody{display:table-row-group;}
+  .trf-table tr{display:table-row;background:none;border:0;padding:0;}
+  .trf-table th,.trf-table td{display:table-cell;padding:9px 10px;border-bottom:1px solid var(--filet);
+    text-align:right;font-size:14px;font-weight:600;vertical-align:middle;}
+  .trf-table th{font-size:12px;font-weight:750;color:var(--gris);}
+  .trf-table th:first-child,.trf-table td.trf-c-nom{text-align:left;font-weight:750;}
+  .trf-table td::before{display:none;}
+  .trf-table tr:nth-child(even) td{background:var(--carte);}
+}
+@media (min-width:1200px){
+  .trf-tuiles{grid-template-columns:repeat(6,minmax(0,1fr));}
+}
