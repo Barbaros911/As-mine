@@ -23,6 +23,8 @@
 
    Lancer :  node test-liens-suivi.mjs   (elle construit et sert elle-même)
    ===================================================================== */
+/* La mesure brute envoyée et les appels à l'ancienne porte, sur toute la suite. */
+const bruts = [], anciens = [];
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -65,7 +67,13 @@ async function visiteur({ ua = UA_IPHONE, init } = {}) {
   await ctx.route('**/*', async route => {
     const req = route.request(), u = req.url(), d = decodeURIComponent(u).toLowerCase();
     if (u.startsWith(SITE)) return route.continue();
-    if (u.includes('/rpc/ela_mesurer')) { try { mesures.push(JSON.parse(req.postData())); } catch {} return route.fulfill({ status: 204, body: '' }); }
+    /* 15/10/2026 : la mesure passe par la fonction « mesure ». On la traduit
+       dans la forme du compteur (p_page, p_evenement, p_source) : chaque
+       contrôle de cette suite garde son sens. L'ancienne porte est comptée
+       à part — plus rien ne doit l'appeler — et le corps brut est gardé pour
+       vérifier qu'aucun identifiant ne part. */
+    if (u.includes('/functions/v1/mesure')) { try { const c = JSON.parse(req.postData()); bruts.push(c); mesures.push(Object.assign({ p_page: c.page, p_evenement: c.evenement }, c.lien ? { p_source: c.lien } : {})); } catch {} return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); }
+    if (u.includes('/rpc/ela_mesurer')) { anciens.push(req.postData()); return route.fulfill({ status: 204, body: '' }); }
     if (d.includes('api-adresse.data.gouv.fr') || d.includes('photon.komoot.io')) return route.fulfill(J({ features: [] }));
     if (d.includes('router.project-osrm.org')) return route.fulfill(J({ routes: [{ distance: 48000, duration: 3000 }] }));
     if (u.includes('supabase.co') && req.method() === 'POST') {
@@ -127,7 +135,7 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
   await v.p.goto(SITE + LANDING, { waitUntil: 'load' });
   await v.p.waitForTimeout(500);
   const vue = v.mesures.find(m => m.p_evenement === 'page_vue') || {};
-  check('sans lien : la page envoie exactement ce qu\'elle envoyait avant', JSON.stringify(Object.keys(vue).sort()) === '["p_evenement","p_page"]', JSON.stringify(vue));
+  check('sans lien : aucun code de partenaire ne part', JSON.stringify(Object.keys(vue).sort()) === '["p_evenement","p_page"]', JSON.stringify(vue));
   const books = await v.p.$$eval('a[data-mesure="reserver"]', l => l.map(a => a.getAttribute('href')));
   check('sans lien : « Book » ne porte aucun code', books.every(h => !/via=/.test(h)), books.join(' | '));
   await v.ctx.close();
@@ -434,6 +442,12 @@ try {
   serveur.close();
 }
 
+/* 15/10/2026 — LA MESURE N'A QU'UNE PORTE, ET RIEN NE LA DÉSIGNE QUI. */
+check('mesure : plus aucun appel à l\'ancienne porte (rpc/ela_mesurer)', anciens.length === 0, String(anciens.length));
+check('mesure : des gestes ont bien été envoyés (sinon rien ne serait éprouvé)', bruts.length > 0, String(bruts.length));
+check('mesure : aucun identifiant, cookie ni donnée personnelle dans ce qui part',
+  bruts.every(c => !['session', 'visiteur', 'id', 'nom', 'telephone', 'email', 'ip'].some(k => k in c)),
+  JSON.stringify(bruts.find(c => ['session', 'visiteur', 'id', 'nom', 'telephone', 'email', 'ip'].some(k => k in c)) || {}));
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
 ok.forEach(t => console.log('  ✓ ' + t));
 if (ko.length) {

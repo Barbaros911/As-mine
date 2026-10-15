@@ -36,8 +36,8 @@ const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
   check('0 aucun innerHTML (tout texte en textContent)', !/innerHTML|insertAdjacentHTML|outerHTML|document\.write/.test(src));
   check('0 rien sur l\'appareil', !/localStorage|sessionStorage/.test(src));
   check('0 il ne lit que les deux RPC agrégées, jamais la table', /ela_trafic_direct/.test(src) && /"ela_trafic"/.test(src) && !/evenements_site/.test(src));
-  const mig = readFileSync('supabase/migrations/20261015000000_mesure_trafic.sql', 'utf8');
-  const sources = /trafic_source_valide[\s\S]*?select p in \(([^)]*)\)/.exec(mig)[1].match(/'([a-z_]+)'/g).map(s => s.replace(/'/g, ''));
+  const mig = readFileSync('supabase/migrations/20261015010000_mesure_trafic.sql', 'utf8');
+  const sources = /trafic_source_valide[\s\S]*?p in \(([^)]*)\)/.exec(mig)[1].match(/'([a-z_]+)'/g).map(s => s.replace(/'/g, ''));
   const libelles = JSON.parse(readFileSync('trafic.js', 'utf8').match(/var SOURCES = (\{[\s\S]*?\});/)[1].replace(/(\w+):/g, '"$1":'));
   check('0 chaque source de la migration a son libellé à l\'écran', sources.every(s => libelles[s]), sources.filter(s => !libelles[s]).join(','));
 }
@@ -77,28 +77,29 @@ const J = (b, status = 200) => ({ status, contentType: 'application/json', body:
 const SESSION = { access_token: 'JETON-ADMIN', refresh_token: 'R', token_type: 'bearer', user: { id: 'u-barbaros' } };
 
 /* ═══ LE FAUX SERVEUR ═══ Les agrégats, comme la RPC les rend. */
-const totaux = o => Object.assign({ visiteurs: 0, sessions: 0, pages_vues: 0, prix: 0, prix_affiches: 0, formulaires: 0,
-  reservations: 0, appels: 0, whatsapp: 0, realisees: 0, confirmees: 0 }, o);
+const totaux = o => Object.assign({ visiteurs: 0, visites: 0, pages_vues: 0, prix: 0, prix_affiches: 0, formulaires: 0,
+  reservations: 0, reserver: 0, appels: 0, whatsapp: 0, realisees: 0, confirmees: 0 }, o);
 function fauxServeur() {
   const s = { requetes: [], mode: 'normal', whatsapp: 12, enLigne: 4 };
   s.histo = periode => ({
     periode, debut: '2026-10-15T00:00:00+02:00', fin: '2026-10-15T14:00:00+02:00', pas: periode === '7j' || periode === '30j' ? 'day' : 'hour',
-    totaux: totaux({ visiteurs: 127, sessions: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 12, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 }),
+    totaux: totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 }),
     pages: [
-      { valeur: '/transfert-cdg-paris.html', totaux: totaux({ visiteurs: 51, pages_vues: 60, prix: 17, whatsapp: 5, reservations: 3 }) },
-      { valeur: '/', totaux: totaux({ visiteurs: 37, pages_vues: 80, prix: 8, reservations: 1 }) },
-      { valeur: '/transfert-orly-paris.html', totaux: totaux({ visiteurs: 28, pages_vues: 30, prix: 9, whatsapp: 2, reservations: 2 }) },
-      { valeur: '/nouvelle-landing-demain.html', totaux: totaux({ visiteurs: 11, pages_vues: 12, prix: 5, reservations: 2 }) },
+      { valeur: 'fr-cdg', totaux: totaux({ visiteurs: 51, pages_vues: 60, prix: 17, whatsapp: 5, reservations: 3 }) },
+      { valeur: 'accueil', totaux: totaux({ visiteurs: 37, pages_vues: 80, prix: 8, reservations: 1 }) },
+      { valeur: 'fr-orly', totaux: totaux({ visiteurs: 28, pages_vues: 30, prix: 9, whatsapp: 2, reservations: 2 }) },
+      { valeur: 'fr-nouvelle-page', totaux: totaux({ visiteurs: 11, pages_vues: 12, prix: 5, reservations: 2 }) },
     ],
     sources: [
       { valeur: 'google', totaux: totaux({ visiteurs: 61, reservations: 5 }) },
       { valeur: 'direct', totaux: totaux({ visiteurs: 29, reservations: 2 }) },
-      { valeur: 'hotel', totaux: totaux({ visiteurs: 21, reservations: 4 }) },
+      { valeur: 'partenaire', totaux: totaux({ visiteurs: 21, reservations: 4 }) },
       { valeur: 'referent', totaux: totaux({ visiteurs: 3, reservations: 0 }) },
     ],
     langues: [{ valeur: 'fr', totaux: totaux({ visiteurs: 84, reservations: 5 }) }, { valeur: 'en', totaux: totaux({ visiteurs: 43, reservations: 3 }) }],
     pays: [{ valeur: 'FR', totaux: totaux({ visiteurs: 80 }) }, { valeur: 'US', totaux: totaux({ visiteurs: 20 }) }, { valeur: 'XX', totaux: totaux({ visiteurs: 2 }) }],
-    landings: [{ valeur: '/transfert-cdg-paris.html', totaux: totaux({ visiteurs: 51, reservations: 3 }) }, { valeur: '/', totaux: totaux({ visiteurs: 70, reservations: 5 }) }],
+    entrees: [{ valeur: 'fr-cdg', totaux: totaux({ visiteurs: 51, reservations: 3 }) }, { valeur: 'accueil', totaux: totaux({ visiteurs: 70, reservations: 5 }) }],
+    liens: [{ valeur: 'hotel-exemple', totaux: totaux({ visiteurs: 21, reservations: 4 }) }],
     appareils: [{ valeur: 'mobile', totaux: totaux({ visiteurs: 100 }) }, { valeur: 'ordinateur', totaux: totaux({ visiteurs: 27 }) }],
     serie: [{ t: '2026-10-15T08:00', visiteurs: 10, reservations: 1 }, { t: '2026-10-15T09:00', visiteurs: 30, reservations: 3 }, { t: '2026-10-15T13:00', visiteurs: 7, reservations: 0 }],
     mesure_le: new Date().toISOString(),
@@ -106,12 +107,12 @@ function fauxServeur() {
   s.direct = () => ({
     en_ligne: s.enLigne,
     actifs: [
-      { page: '/transfert-cdg-paris.html', pays: 'US', langue: 'en', appareil: 'mobile', source: 'google', dernier: 'price_click', depuis_s: 40 },
-      { page: '/', pays: 'FR', langue: 'fr', appareil: 'ordinateur', source: 'direct', dernier: 'page_view', depuis_s: 120 },
-      { page: '/easyhotel-client/', pays: 'XX', langue: 'en', appareil: 'tablette', source: 'hotel', dernier: 'whatsapp_click', depuis_s: 200 },
-      { page: '/', pays: 'GB', langue: 'en', appareil: 'mobile', source: 'social', dernier: 'booking_submitted', depuis_s: 290 },
+      { page: 'fr-cdg', pays: 'US', langue: 'en', appareil: 'mobile', source: 'google', dernier: 'prix_demande', depuis_s: 40 },
+      { page: 'accueil', pays: 'FR', langue: 'fr', appareil: 'ordinateur', source: 'direct', dernier: 'moteur_ouvert', depuis_s: 120 },
+      { page: 'en-cdg', pays: 'XX', langue: 'en', appareil: 'tablette', source: 'partenaire', dernier: 'clic_whatsapp', depuis_s: 200 },
+      { page: 'accueil', pays: 'GB', langue: 'en', appareil: 'mobile', source: 'social', dernier: 'demande_envoyee', depuis_s: 290 },
     ],
-    aujourdhui: totaux({ visiteurs: 127, sessions: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 12, reservations: 8, appels: 6, whatsapp: s.whatsapp }),
+    aujourdhui: totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp }),
     mesure_le: new Date().toISOString(),
   });
   s.repondre = (route, role) => {
@@ -217,15 +218,17 @@ try {
       (await tuile(p, 'Visiteurs')) === '127' && (await tuile(p, 'Pages vues')) === '221' && (await tuile(p, 'Prix demandés')) === '39'
       && (await tuile(p, 'Réservations')) === '8' && (await tuile(p, 'Appels')) === '6' && (await tuile(p, 'WhatsApp')) === '12');
     const zone = await texte(p, '#trfZone');
-    check('2 le visiteur est dit « estimation », les visites sont distinguées des pages vues', /estimation/.test(zone) && /140 visites/.test(zone));
+    check('2 le visiteur est dit « estimation, comptée une fois par jour », les visites sont distinguées des pages vues', /comptés par jour/.test(zone) && /estimation, comptée une fois par jour/.test(zone) && /140 visites/.test(zone));
     check('2 la conversion est calculée sur les visiteurs : 8 / 127 = 6,3 %', /6,3 %/.test(zone));
-    check('2 le funnel : 127 → 39 → 12 → 8', /Prix demandé\s*39 · 31 %/.test(zone.replace(/\n/g, ' ')) && /Réservation envoyée\s*8 · 6,3 %/.test(zone.replace(/\n/g, ' ')));
+    check('2 le funnel : 127 → 45 → 39 → 8', /Formulaire commencé\s*45 · 35 %/.test(zone.replace(/\n/g, ' ')) && /Prix demandé\s*39 · 31 %/.test(zone.replace(/\n/g, ' ')) && /Réservation envoyée\s*8 · 6,3 %/.test(zone.replace(/\n/g, ' ')));
     check('2 les courses confirmées et réalisées sont dites, d\'après les courses', /5 confirmée\(s\) et 2 réalisée\(s\)/.test(zone));
     check('2 les pages portent leur nom lisible, et une page inconnue son chemin',
-      /CDG → Paris/.test(zone) && /Orly → Paris/.test(zone) && /Accueil/.test(zone) && /\/nouvelle-landing-demain\.html/.test(zone));
-    check('2 les sources sont nommées en clair', /Google/.test(zone) && /Hôtel partenaire/.test(zone) && /Autre site/.test(zone) && /Direct/.test(zone));
+      /CDG → Paris/.test(zone) && /Orly → Paris/.test(zone) && /Accueil/.test(zone) && /fr-nouvelle-page/.test(zone));
+    check('2 les sources sont nommées en clair', /Google/.test(zone) && /Lien d'un partenaire/.test(zone) && /Autre site/.test(zone) && /Direct/.test(zone));
+    check('5 les liens des partenaires ont leur tableau, et les pages d\'entrée le leur', /Liens des partenaires/.test(zone) && /hotel-exemple/.test(zone) && /Pages d'entrée/.test(zone));
     check('2 les pays sont nommés, l\'inconnu aussi', /France/.test(zone) && /États-Unis/.test(zone) && /Inconnu/.test(zone));
-    check('2 la série du jour a ses barres et le chiffre du sommet', (await p.locator('.trf-serie rect.trf-barre').count()) === 3 && /30/.test(await texte(p, '.trf-serie-val')));
+    check('2 la série du jour a ses barres et le chiffre du sommet', (await p.locator('.trf-serie rect.trf-barre').count()) === 3 && /30/.test(await p.locator('.trf-serie-val').first().textContent().catch(() => '')),
+      (await p.locator('.trf-serie rect.trf-barre').count()) + ' barres · sommet « ' + (await p.locator('.trf-serie-val').first().textContent().catch(() => '')) + ' »');
     /* ── 3. LE TEMPS RÉEL ── */
     srv.whatsapp = 13; srv.enLigne = 5;
     await p.waitForFunction(() => {
@@ -256,7 +259,7 @@ try {
     await p.locator('.trf-filtre', { hasText: "Aujourd'hui" }).click(); await p.waitForTimeout(400);
     await p.locator('.trf-tri-b', { hasText: 'convertissent' }).click(); await p.waitForTimeout(200);
     const premiere = await p.evaluate(() => document.querySelector('#trfZone .trf-table td.trf-c-nom').textContent);
-    check('5 « qui convertissent le mieux » met la landing à 2/11 devant CDG à 8/51', premiere === '/nouvelle-landing-demain.html', premiere);
+    check('5 « qui convertissent le mieux » met la landing à 2/11 devant CDG à 8/51', premiere === 'fr-nouvelle-page', premiere);
     /* ── 6. LES ERREURS ── */
     srv.mode = 'panne';
     await p.locator('.trf-actualiser').click(); await p.waitForTimeout(600);
@@ -305,6 +308,11 @@ try {
     await ouvrir(p);
     const f = await deborde(p);
     check(`9 à ${l} px rien ne déborde`, f.length === 0, f.join(' · '));
+    const collees = await p.evaluate(() => {
+      const r = [...document.querySelectorAll('#trfZone .trf-serie-axe')].map(t => t.getBoundingClientRect()).sort((a, b) => a.left - b.left);
+      return r.slice(1).filter((x, i) => x.left < r[i].right + 2).length;
+    });
+    check(`9 à ${l} px les étiquettes de l'axe ne se touchent pas`, collees === 0, String(collees));
     const pb = await petitsBoutons(p);
     check(`9 à ${l} px tout bouton se touche (≥ 36 px)`, pb.length === 0, pb.join(' · '));
     if (l === 390) {

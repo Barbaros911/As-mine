@@ -4749,24 +4749,22 @@ partenaire.
 
 ## LA MESURE DU TRAFIC — L'ÉCRAN « TRAFIC » DE L'ADMIN
 
-15 octobre 2026, à sa demande (« analytics temps réel dans l'admin », « fais
-comme un expert »). Avant : AUCUNE mesure d'audience nulle part — ne jamais en
-créer une seconde. `mesure.js` (pages publiques seulement) → fonction
-`mesure` (origine stricte, liste fermée de 7 événements, robots écartés, quota
-100/h/IP haché, pays `cf-ipcountry`, **source classée côté serveur**) → RPC
-`ela_mesurer_evenement` (dédup : page vue 30 min/session, appui 10 s, réservation
-1/référence) → `evenements_site` (aucun droit `anon`/`authenticated`) → RPC
-`ela_trafic(periode)` / `ela_trafic_direct()` réservées à **`est_admin()`** →
-sonde de 10 s, écran ouvert et visible seulement. Pas de Realtime : une
-bibliothèque de plus, un message par page vue, pour 10 s de mieux.
-- **Jamais** : nom, téléphone, adresses, prix, IP, user-agent, texte libre ;
-  `detail` = 4 clés bornées, la référence sur `booking_submitted` seule, jointe
-  aux courses À LA LECTURE. « Visiteur » = estimation (identifiant 30 jours) ;
-  « Ne plus me compter » dans la politique de confidentialité (art. 7, FR/EN).
-- **Source gardée toute la session** (référent, UTM, `?src=` de la PREMIÈRE
-  page) ; `?src=gbp` sur le lien de la fiche Google, sinon c'est « google ».
-- La migration `20261015000000_mesure_trafic.sql` **s'applique à la main après
-  la fusion** ; avant, le site marche comme avant et l'écran le dit.
-  Rétention 90 j brut puis `trafic_journalier` (pg_cron 02:20 UTC).
-- Le menu de l'admin passe à neuf tuiles : voir `memoire/trafic.md` pour la
-  mesure du budget d'écran et les choix écartés.
+15 octobre 2026, à sa demande (« analytics temps réel », « fais comme un
+expert »). **Ce n'est pas une seconde mesure** : celle du 14/10 (mesure.js,
+`ela_mesurer`) a évolué. Pages (`data-ela-page`) et moteur postent à la
+fonction `mesure` (origine stricte, 9 gestes en liste fermée, robots écartés,
+100/h/IP haché, pays `cf-ipcountry`, **source classée côté serveur**), qui écrit
+par `ela_mesurer_evenement` au journal `evenements_site` (aucun droit
+`anon`/`authenticated`) ET au compteur d'origine. Lecture : `ela_trafic(periode)`
+/ `ela_trafic_direct()`, **`est_admin()`** seul ; sonde de 10 s, écran ouvert et
+visible. Pas de Realtime.
+- **Rien sur l'appareil, aucun identifiant envoyé** : le serveur hache
+  IP|navigateur, la base le mêle à une clé du jour détruite le lendemain.
+  « Visiteur » = estimation comptée PAR JOUR ; visite, entrée et source se
+  calculent à la lecture (30 min). Jamais nom, téléphone, adresse, prix, IP.
+  `detail` = 4 clés ; la référence, jointe aux courses à la lecture seulement.
+- Fiche Google = `utm_medium=gbp` sur son lien, sinon « google ». « Ne plus me
+  compter » : politique de confidentialité, FR/EN.
+- Migration `20261015010000` **à appliquer à la main après** `20261015000000` ;
+  d'ici là la fonction repasse les gestes au compteur du 14/10. Rétention 90 j.
+- Menu en 5 colonnes, choix écartés : `memoire/trafic.md`.

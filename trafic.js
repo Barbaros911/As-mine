@@ -15,11 +15,15 @@
    qu'on le quitte, elle s'arrête. L'historique (hier, 7 j, 30 j) se relit
    au changement de période et sur « Actualiser ».
 
-   LES MOTS COMPTENT. Un visiteur est une ESTIMATION (identifiant de 30
-   jours sur l'appareil), une page vue n'est pas une personne, une
-   session est une visite : les trois sont nommés et distingués, et le
-   visiteur porte sa note. Un taux se calcule sur les visiteurs. Sans
-   visiteur, aucun pourcentage — « 0 / 0 » ne veut rien dire.
+   LES MOTS COMPTENT. Un visiteur est une ESTIMATION, comptée une fois PAR
+   JOUR (le serveur n'a qu'une empreinte du jour, sans rien sur l'appareil) ;
+   une page vue n'est pas une personne ; une visite est une suite de gestes
+   sans pause de 30 min. Les trois sont nommés et distingués, et le visiteur
+   porte sa note. Un taux se calcule sur les visiteurs. Sans visiteur, aucun
+   pourcentage — « 0 / 0 » ne veut rien dire.
+   CE N'EST PAS UNE SECONDE MESURE : c'est le journal de celle du
+   14 octobre (mesure.js, le moteur), que le registre lit aussi en compteur
+   (« Les pages du site », « Liens des partenaires »).
 
    TOUT TEXTE PASSE PAR textContent. Le nom d'une page vient du serveur,
    celui d'une source d'une liste fermée ; aucun ne devient une balise.
@@ -47,24 +51,22 @@
   /* Les pages connues ont un nom lisible ; une page inconnue (une landing
      ajoutée demain) s'affiche par son chemin, elle n'est jamais perdue. */
   var PAGES = {
-    "/": "Accueil",
-    "/index.html": "Accueil",
-    "/transfert-cdg-paris.html": "CDG → Paris",
-    "/transfert-orly-paris.html": "Orly → Paris",
-    "/chauffeur-prive-paris.html": "Chauffeur privé Paris",
-    "/professionnels/": "Professionnels",
-    "/easyhotel-client/": "Flyer easyHotel",
-    "/application.html": "Moteur hôtel"
+    "accueil": "Accueil (venue directe)",
+    "fr-cdg": "CDG → Paris", "fr-orly": "Orly → Paris", "fr-chauffeur": "Chauffeur privé Paris",
+    "en-accueil": "Anglais · Accueil", "en-cdg": "Anglais · CDG → Paris", "en-orly": "Anglais · Orly → Paris",
+    "en-disneyland": "Anglais · Disneyland", "en-cdg-orly": "Anglais · CDG ↔ Orly",
+    "pro": "Professionnels"
   };
   var SOURCES = {
     google: "Google", google_business: "Fiche Google", direct: "Direct",
-    hotel: "Hôtel partenaire", whatsapp: "WhatsApp", social: "Réseaux sociaux",
+    partenaire: "Lien d'un partenaire", whatsapp: "WhatsApp", social: "Réseaux sociaux",
     referent: "Autre site", campagne: "Campagne", autre: "Autre moteur"
   };
   var APPAREILS = { mobile: "Téléphone", tablette: "Tablette", ordinateur: "Ordinateur" };
   var EVENEMENTS = {
-    page_view: "page vue", price_click: "prix demandé", price_displayed: "prix affiché",
-    booking_started: "formulaire", booking_submitted: "réservation", call_click: "appel", whatsapp_click: "WhatsApp"
+    page_vue: "page vue", moteur_ouvert: "moteur ouvert", clic_reserver: "« Book »",
+    formulaire_commence: "formulaire", prix_demande: "prix demandé", prix_affiche: "prix affiché",
+    demande_envoyee: "réservation", clic_appel: "appel", clic_whatsapp: "WhatsApp"
   };
   var noms;
   try{ noms = new Intl.DisplayNames(["fr"], { type: "region" }); }catch(e){ noms = null; }
@@ -179,8 +181,9 @@
     if(etat.periode === "direct") zone.appendChild(blocDirect());
     else zone.appendChild(blocHisto());
     zone.appendChild(el("p", "trf-note",
-      "Visiteur : estimation (un identifiant anonyme de 30 jours sur l'appareil). Page vue : une page affichée. "
-      + "Session : une visite. Aucun nom, téléphone ni adresse n'est mesuré."));
+      "Visiteur : estimation, comptée une fois par jour (rien n'est gardé sur l'appareil : sur 7 jours, quelqu'un venu "
+      + "trois jours compte trois fois). Page vue : une page affichée. Visite : des gestes sans pause de 30 min. "
+      + "Aucun nom, téléphone ni adresse n'est mesuré."));
   }
 
   function enTete(){
@@ -227,8 +230,8 @@
     if(titre) bloc.appendChild(el("h2", "trf-h2", titre));
     var grille = el("div", "trf-tuiles");
     [
-      ["Visiteurs", t.visiteurs, "estimation"],
-      ["Pages vues", t.pages_vues, nombre(t.sessions) + " visites"],
+      ["Visiteurs", t.visiteurs, "comptés par jour"],
+      ["Pages vues", t.pages_vues, nombre(t.visites) + " visites"],
       ["Prix demandés", t.prix, pct(t.prix, t.visiteurs) + " des visiteurs"],
       ["Réservations", t.reservations, pct(t.reservations, t.visiteurs) + " de conversion"],
       ["Appels", t.appels, pct(t.appels, t.visiteurs)],
@@ -286,12 +289,22 @@
     if(etat.chargement && !h){ frag.appendChild(el("p", "trf-vide", "Lecture…")); return frag; }
     if(!h){ if(!etat.histoErreur) frag.appendChild(el("p", "trf-vide", "Aucune donnée.")); return frag; }
     var t = h.totaux || {};
+    /* AUJOURD'HUI SUIT LA SONDE. Le direct relit les totaux du jour toutes
+       les 10 s (même calcul serveur) : s'ils sont plus récents que
+       l'historique, ils le remplacent — un appui sur WhatsApp se voit sans
+       relire tout le jour ni rafraîchir. */
+    var d = etat.direct;
+    if(etat.periode === "aujourdhui" && d && d.aujourdhui && typeof d.aujourdhui === "object"
+       && etat.directLu > (etat.histoLu.aujourdhui || 0)){
+      t = Object.assign({}, t, d.aujourdhui);
+    }
     frag.appendChild(tuiles(t, null));
     frag.appendChild(funnel(t));
     frag.appendChild(serie(h));
     frag.appendChild(tableau("Pages", h.pages, nomPage, true));
     frag.appendChild(tableau("Sources", h.sources, nomSource, false));
-    frag.appendChild(tableau("Pages d'entrée", h.landings, nomPage, false));
+    frag.appendChild(tableau("Pages d'entrée", h.entrees, nomPage, false));
+    if(Array.isArray(h.liens) && h.liens.length) frag.appendChild(tableau("Liens des partenaires", h.liens, function(v){ return v; }, false));
     frag.appendChild(tableau("Langues", h.langues, function(v){ return (v || "").toUpperCase(); }, false));
     frag.appendChild(tableau("Pays", h.pays, pays, false));
     frag.appendChild(tableau("Appareils", h.appareils, function(v){ return APPAREILS[v] || v; }, false));
@@ -301,7 +314,7 @@
   function funnel(t){
     var bloc = el("section", "trf-bloc");
     bloc.appendChild(el("h2", "trf-h2", "Du visiteur à la réservation"));
-    var etapes = [["Visiteurs", t.visiteurs], ["Prix demandé", t.prix], ["Formulaire commencé", t.formulaires], ["Réservation envoyée", t.reservations]];
+    var etapes = [["Visiteurs", t.visiteurs], ["Formulaire commencé", t.formulaires], ["Prix demandé", t.prix], ["Réservation envoyée", t.reservations]];
     var max = Math.max(1, Number(t.visiteurs) || 0);
     var ul = el("ol", "trf-funnel");
     etapes.forEach(function(e, i){
@@ -318,7 +331,7 @@
       ul.appendChild(li);
     });
     bloc.appendChild(ul);
-    bloc.appendChild(el("p", "trf-funnel-note", "À côté : " + nombre(t.appels) + " appel(s) et " + nombre(t.whatsapp) + " WhatsApp. "
+    bloc.appendChild(el("p", "trf-funnel-note", "À côté : " + nombre(t.reserver) + " « Book » sur les pages, " + nombre(t.appels) + " appel(s) et " + nombre(t.whatsapp) + " WhatsApp. "
       + "Après un prix affiché : " + pct(t.reservations, t.prix_affiches) + " de réservations."));
     return bloc;
   }
@@ -350,6 +363,17 @@
     s.appendChild(svg("title", {})).textContent = "Visiteurs " + (heure ? "par heure" : "par jour");
     var n = liste.length, pas = (L - 2) / n, larg = Math.max(2, pas - 2);
     var iMax = -1; liste.forEach(function(x, i){ if(x.v === max && iMax === -1) iMax = i; });
+    /* LES ÉTIQUETTES DE L'AXE NE SE CHEVAUCHENT PAS : la dernière barre
+       (l'heure en cours) garde la sienne, et une étiquette trop proche de la
+       précédente cède sa place — « 12 h » et « 13 h » côte à côte se
+       lisaient « 12 h13 h » (vu sur la capture à 1366 px). */
+    var ECART_AXE = 34, axe = [];
+    liste.forEach(function(x, i){
+      if(i === 0 || i === n - 1 || (heure ? x.d.getHours() % 6 === 0 : (n <= 7 || x.d.getDate() % 7 === 1))) axe.push(i);
+    });
+    if(axe.length > 1 && (axe[axe.length - 1] - axe[axe.length - 2]) * pas < ECART_AXE) axe.splice(axe.length - 2, 1);
+    var gardes = {}, dernierAxe = -Infinity;
+    axe.forEach(function(i){ if(i === n - 1 || (i - dernierAxe) * pas >= ECART_AXE){ gardes[i] = true; dernierAxe = i; } });
     liste.forEach(function(x, i){
       var hb = Math.round((x.v / max) * (H - marge - bas));
       var y = H - bas - hb, xpos = 1 + i * pas;
@@ -366,7 +390,7 @@
         var tr = svg("text", { x: xpos + larg / 2, y: H - bas + 11, "text-anchor": "middle", class: "trf-serie-res" });
         tr.textContent = String(x.r); s.appendChild(tr);
       }
-      if(i === 0 || i === n - 1 || (heure ? x.d.getHours() % 6 === 0 : (n <= 7 || x.d.getDate() % 7 === 1))){
+      if(gardes[i]){
         var ax = svg("text", { x: xpos + larg / 2, y: H - 2, "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle", class: "trf-serie-axe" });
         ax.textContent = etiquette(x.d, heure, true); s.appendChild(ax);
       }
@@ -420,7 +444,8 @@
     if(!lignes.length){ bloc.appendChild(el("p", "trf-vide", "Rien sur la période.")); return bloc; }
     var table = el("table", "trf-table");
     var thead = el("thead"), trh = el("tr");
-    [titre === "Pages" || titre === "Pages d'entrée" ? "Page" : titre.replace(/s$/, ""), "Visiteurs", "Vues", "Prix", "Appels", "WhatsApp", "Réserv.", "Conv."].forEach(function(c){
+    [({ "Pages": "Page", "Pages d'entrée": "Page", "Sources": "Source", "Langues": "Langue", "Pays": "Pays",
+       "Appareils": "Appareil", "Liens des partenaires": "Lien" })[titre] || titre, "Visiteurs", "Vues", "Prix", "Appels", "WhatsApp", "Réserv.", "Conv."].forEach(function(c){
       trh.appendChild(el("th", null, c));
     });
     thead.appendChild(trh); table.appendChild(thead);

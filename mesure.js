@@ -6,22 +6,29 @@
    puis — dans le moteur — moteur ouvert, formulaire commencé, demande
    envoyée. Chaque geste dit la page d'où il part.
 
+   15 OCTOBRE 2026, L'ÉCRAN « TRAFIC » DE L'ADMIN : la même mesure, pas une
+   seconde. Les gestes partent maintenant à la fonction « mesure », qui garde
+   un journal (visiteurs du jour, visites, source, pays, appareil) ET
+   incrémente le compteur d'origine (ela_mesurer). Ce fichier n'a gagné que
+   trois informations, toutes lues sur la page et jamais gardées : le
+   domaine du site d'où l'on arrive, les UTM de l'adresse, la langue et le
+   type d'appareil (trois valeurs).
+
    AUCUN TRACEUR, ET C'EST LA RÈGLE DU SITE (politique de confidentialité,
-   art. 7) : pas de cookie, rien d'écrit sur l'appareil, aucun identifiant,
-   aucun service tiers. On envoie DEUX MOTS d'une liste fermée — la page
-   et le geste — à un compteur agrégé par jour sur le serveur
-   (rpc/ela_mesurer, migration 20261014000000). Le serveur ne garde que
-   des totaux.
+   art. 7) : pas de cookie, rien d'écrit sur l'appareil, aucun identifiant
+   envoyé. Les visiteurs distincts d'un jour sont estimés par le SERVEUR,
+   avec une clé du jour détruite le lendemain. Seule exception, voulue : le
+   visiteur qui demande « Ne plus me compter » — on garde ce choix-là.
 
    ELLE NE PEUT RIEN CASSER : jamais attendue, jamais bloquante. Serveur
    muet, migration pas encore appliquée, bloqueur de publicité : le
    visiteur ne voit rien, le lien part quand même. « keepalive » fait
-   survivre l'envoi au départ vers tel:, WhatsApp ou le moteur.
+   survivre l'envoi au départ vers tel:, WhatsApp ou le moteur, et le corps
+   part en « text/plain » : une requête simple, sans requête préalable.
 
    LE MÊME APPEL QUE LE MOTEUR (nuage.mesurer dans index.html) : même
-   adresse, même clé publique, mêmes noms de pages. test-seo-en vérifie
-   que les deux disent la même chose — deux recettes finissent toujours
-   par diverger.
+   adresse, mêmes noms de pages, même corps. test-seo-en vérifie que les
+   deux disent la même chose — deux recettes finissent toujours par diverger.
 
    La page se déclare par <html data-ela-page="en-cdg">. Les liens
    « Book » portent data-mesure="reserver" ; les liens tel: et WhatsApp
@@ -29,7 +36,6 @@
    ===================================================================== */
 (function(){
   var SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
-  var SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
   var EVENEMENTS = ["page_vue", "clic_reserver", "clic_appel", "clic_whatsapp"];
 
   var page = document.documentElement.getAttribute("data-ela-page") || "";
@@ -37,6 +43,8 @@
   /* Les robots ne sont pas des visiteurs : un robot qui exécute la page
      compterait des affichages que personne n'a vus. */
   if(/bot|crawl|spider|slurp|lighthouse|headless|pagespeed|preview/i.test(navigator.userAgent || "")) return;
+  /* « Ne plus me compter » (politique de confidentialité, art. 7). */
+  try{ if(localStorage.getItem("ela_mesure_non") === "1") return; }catch(e){}
 
   /* LE LIEN D'UN PARTENAIRE (15 octobre 2026, « ?via=hotel-exemple ») : un
      hôtel, un office de tourisme ou un annuaire reçoit SON lien, et chaque
@@ -76,17 +84,43 @@
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", suivreJusquAuMoteur);
   else suivreJusquAuMoteur();
 
+  /* Ce qui accompagne chaque geste, lu sur la page et jamais gardé : le
+     site d'où l'on arrive (son domaine seulement, et jamais le nôtre), les
+     UTM de l'adresse, la langue de la page, le type d'appareil. */
+  function contexte(){
+    var c = { referent: "", utm_source: "", utm_medium: "", utm_campaign: "" };
+    try{
+      var r = document.referrer ? new URL(document.referrer) : null;
+      if(r && r.hostname !== location.hostname) c.referent = r.hostname;
+    }catch(e){}
+    try{
+      var q = new URLSearchParams(location.search);
+      c.utm_source = (q.get("utm_source") || "").slice(0, 60);
+      c.utm_medium = (q.get("utm_medium") || "").slice(0, 60);
+      c.utm_campaign = (q.get("utm_campaign") || "").slice(0, 60);
+    }catch(e){}
+    return c;
+  }
+  var CONTEXTE = contexte();
+  function appareil(){
+    var l = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0), doigt = false;
+    try{ doigt = window.matchMedia("(pointer: coarse)").matches; }catch(e){}
+    return l < 768 ? "mobile" : (doigt && l < 1100 ? "tablette" : "ordinateur");
+  }
   function envoyer(evenement){
     if(EVENEMENTS.indexOf(evenement) === -1) return;
     try{
-      fetch(SUPABASE_URL + "/rest/v1/rpc/ela_mesurer", {
+      var langue = (document.documentElement.lang || "fr").slice(0, 2).toLowerCase();
+      fetch(SUPABASE_URL + "/functions/v1/mesure", {
         method: "POST",
         keepalive: true,
-        headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
-        /* La source ne part que si elle existe : une visite ordinaire
-           envoie exactement ce qu'elle envoyait avant. */
-        body: JSON.stringify(via ? { p_page: page, p_evenement: evenement, p_source: via }
-                                 : { p_page: page, p_evenement: evenement })
+        credentials: "omit",
+        headers: { "Content-Type": "text/plain" },
+        /* Le lien d'un partenaire ne part que s'il existe : une visite
+           ordinaire n'en porte pas. */
+        body: JSON.stringify({ page: page, evenement: evenement, lien: via || null,
+          referent: CONTEXTE.referent, utm_source: CONTEXTE.utm_source, utm_medium: CONTEXTE.utm_medium,
+          utm_campaign: CONTEXTE.utm_campaign, langue: langue, appareil: appareil() })
       }).catch(function(){});
     }catch(e){ /* navigateur sans fetch : rien à compter */ }
   }
