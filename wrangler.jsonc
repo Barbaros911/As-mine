@@ -18,6 +18,22 @@
   "name": "as-mine",
   "compatibility_date": "2026-09-04",
 
+  // PAS D'ADRESSE D'APERÇU PAR BRANCHE (15 octobre 2026). Par défaut,
+  // Cloudflare construit chaque branche poussée et la sert à
+  // « <branche>-as-mine.<compte>.workers.dev » — et l'aperçu SURVIT à la
+  // suppression de la branche. Barbaros a retrouvé dans Safari, neuf jours
+  // après la fusion de la PR #328, un site figé au 6 octobre qui disait
+  // encore « une seule solution » et « solutions de mobilité », deux mots
+  // retirés depuis. Aucun contrôle ne regarde workers.dev : le monitoring
+  // ne lit qu'elatransfer.com. Le seul site qu'on montre est celui de
+  // « main », sur le domaine ; une vérification avant fusion se fait en
+  // local (construire.sh, puis les suites), jamais sur une adresse publique.
+  // Clé vérifiée dans le schéma de wrangler 4.151 (« preview_urls »,
+  // booléen). « workers_dev » n'est PAS touché : on ne sait pas d'ici
+  // comment le domaine est relié au Worker, et le couper pourrait couper
+  // le site.
+  "preview_urls": false,
+
   "assets": {
     "directory": "./site",
 
