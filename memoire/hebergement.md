@@ -43,3 +43,26 @@ règlement d'alors.
 La configuration Cloudflare (branche, commande) vit dans son tableau de bord,
 invisible d'ici : c'est `/version.json` qui dit, de l'extérieur, si elle
 publie bien `main`.
+
+## Les aperçus Cloudflare par branche sont coupés (15 octobre 2026)
+
+Barbaros a retapé « elatransfer » dans Safari et son historique lui a proposé
+`claude-elatransfer-desktop-audit-refonte-rtoaoo-as-mine.burak91oruc.workers.dev` :
+un site figé au 6 octobre, « Tous vos déplacements, une seule solution »,
+« solutions de mobilité » — deux mots retirés le 8 octobre. C'était l'aperçu
+que Cloudflare Workers fabrique pour chaque branche poussée, et il survit à la
+suppression de la branche (la PR #328 était fusionnée depuis neuf jours, la
+branche effacée). Aucun contrôle ne regarde `workers.dev` : le monitoring ne
+lit qu'`elatransfer.com`, les suites éprouvent le dépôt.
+- `wrangler.jsonc` porte désormais `"preview_urls": false` (clé lue dans le
+  schéma de wrangler 4.151, la documentation en ligne étant injoignable
+  d'ici). Il prend effet au premier déploiement de `main` qui suit : toutes les
+  adresses `<branche>-as-mine.…workers.dev` s'arrêtent, anciennes comprises.
+- `workers_dev` n'est pas touché : on ne voit pas d'ici comment le domaine est
+  relié au Worker, et le couper pourrait couper le site. À éprouver un jour
+  depuis le tableau de bord, jamais à l'aveugle.
+- Même jour, deux branches fusionnées et sans PR ouverte restaient sur
+  GitHub (`claude/elatransfer-seo-audit-g2e0gm`,
+  `claude/elatransfer-visual-redesign-0a0y3z`) : leur suppression depuis la
+  session a été refusée par la sécurité de l'environnement, elle se fait à la
+  main dans GitHub (onglet Branches). Rien ne les nomme dans le dépôt.
