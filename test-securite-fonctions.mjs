@@ -631,5 +631,71 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(r.status===429,'journal des dépôts : un journal injoignable ne change pas la réponse au client ('+r.status+')');
   globalThis.fetch=fetchAvant;
 }
+/* ═══ mesure : LA SEULE PORTE D'ÉCRITURE DE LA MESURE DU TRAFIC (15/10/2026) ═══
+   Origine stricte, liste fermée, robots écartés sans rien écrire, quota par
+   adresse hachée, source classée ICI (une seule règle), pays depuis l'en-tête
+   Cloudflare, et JAMAIS une donnée personnelle dans ce qui part en base. */
+{
+  const fetchAvant=globalThis.fetch;
+  let ecrits=[], quotaRefuse=false, rpcPanne=false, clesQuota=[];
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){clesQuota.push(JSON.parse(init.body));return new Response(quotaRefuse?'false':'true');}
+    if(url.includes('/rpc/ela_mesurer_evenement')){if(rpcPanne)return new Response('',{status:500});const p=JSON.parse(init.body).p;if(p.evenement==='booking_submitted'&&!p.detail.ref)return new Response('{"message":"evenement_invalide"}',{status:400});ecrits.push(p);return new Response('true');}
+    return fetchAvant(url,init);
+  };
+  const ms=await charger('mesure',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const base={session:'s1abcdefgh',visiteur:'v1abcdefgh',evenement:'page_view',page:'/transfert-cdg-paris.html?ok=XYZ#haut',landing:'/transfert-cdg-paris.html',espace:'public',appareil:'mobile',langue:'fr'};
+  const envoi=(corps,entetes={},origin='https://elatransfer.com')=>ms(new Request('http://x',{method:'POST',headers:{origin,'content-type':'application/json','user-agent':'Mozilla/5.0 (iPhone)','cf-ipcountry':'fr','cf-connecting-ip':'10.0.0.3',...entetes},body:typeof corps==='string'?corps:JSON.stringify(corps)}));
+  let r=await envoi({...base,referent:'https://www.google.com/search?q=elatransfer',nom:'Dupont',telephone:'0612345678'});
+  ok(r.status===200&&ecrits.length===1,'mesure : une page vue valide est écrite ('+r.status+')');
+  ok(ecrits[0]?.page==='/transfert-cdg-paris.html','mesure : la page est écrite SANS sa chaîne de requête ni son ancre ('+ecrits[0]?.page+')');
+  ok(ecrits[0]?.source==='google'&&ecrits[0]?.referent==='google.com','mesure : un référent Google donne la source google et le domaine nu');
+  ok(ecrits[0]?.pays==='FR','mesure : le pays vient de l\'en-tête Cloudflare, en majuscules');
+  const brut=JSON.stringify(ecrits[0]);
+  ok(!brut.includes('Dupont')&&!brut.includes('0612345678')&&!brut.includes('10.0.0.3')&&!brut.includes('Mozilla'),'mesure : ni nom, ni téléphone, ni adresse IP, ni user-agent ne partent en base');
+  ok(clesQuota[0]?.p_limite===100&&clesQuota[0]?.p_cle.length===64&&!clesQuota[0]?.p_cle.includes('10.0.0.3'),'mesure : quota de 100 par heure sur une clé hachée');
+  r=await envoi(base,{},'https://pirate.example');
+  ok(r.status===403&&ecrits.length===1,'mesure : une origine étrangère est refusée (403)');
+  r=await envoi(base,{'user-agent':'Mozilla/5.0 (compatible; Googlebot/2.1)'});
+  ok(r.status===204&&ecrits.length===1,'mesure : Googlebot reçoit 204 et rien n\'est écrit');
+  r=await envoi({...base,evenement:'mouse_move'});
+  ok(r.status===400&&ecrits.length===1,'mesure : un événement hors liste est refusé (400)');
+  r=await envoi({...base,espace:'admin'});
+  ok(r.status===400&&ecrits.length===1,'mesure : l\'espace admin n\'est jamais mesuré (400)');
+  r=await envoi({...base,session:'court'});
+  ok(r.status===400,'mesure : un identifiant de session trop court est refusé');
+  r=await envoi({...base,evenement:'booking_submitted'});
+  ok(r.status===400,'mesure : une demande envoyée sans référence est refusée');
+  r=await envoi({...base,evenement:'booking_submitted',detail:{ref:'ELA-26-10-AB12C',nom:'Dupont',chambre:'214'}});
+  ok(r.status===200&&ecrits[1]?.detail?.ref==='ELA-26-10-AB12C'&&!('nom' in (ecrits[1]?.detail||{}))&&!('chambre' in (ecrits[1]?.detail||{})),'mesure : la référence entre dans le détail, une clé inconnue (nom, chambre) est ignorée');
+  r=await envoi('x'.repeat(2100));
+  ok(r.status===413,'mesure : un corps de plus de 2 Ko est refusé (413)');
+  r=await envoi('{pas du json');
+  ok(r.status===400,'mesure : un corps illisible est refusé (400)');
+  quotaRefuse=true;r=await envoi(base);quotaRefuse=false;
+  ok(r.status===429&&ecrits.length===2,'mesure : au-delà du quota, 429 et rien d\'écrit');
+  rpcPanne=true;r=await envoi(base);rpcPanne=false;
+  ok(r.status===503,'mesure : une base en panne rend 503, jamais un faux succès');
+  r=await envoi({...base,referent:'https://m.facebook.com/x'});
+  ok(ecrits.at(-1)?.source==='social','mesure : Facebook est classé réseau social');
+  r=await envoi({...base,referent:'https://wa.me/33759312433'});
+  ok(ecrits.at(-1)?.source==='whatsapp','mesure : un lien WhatsApp est classé whatsapp');
+  r=await envoi({...base,referent:'',utm_source:'newsletter',utm_medium:'email'});
+  ok(ecrits.at(-1)?.source==='campagne'&&ecrits.at(-1)?.utm_source==='newsletter','mesure : des UTM sans Google sont une campagne, et les UTM sont gardés');
+  r=await envoi({...base,referent:'https://www.google.com/',src:'gbp'});
+  ok(ecrits.at(-1)?.source==='google_business','mesure : « ?src=gbp » distingue la fiche Google d\'une recherche');
+  r=await envoi({...base,referent:'https://www.google.com/',espace:'hotel-client'});
+  ok(ecrits.at(-1)?.source==='hotel','mesure : la page d\'un hôtel partenaire est classée hôtel, quel que soit le référent');
+  r=await envoi({...base,referent:'https://www.bing.com/search'});
+  ok(ecrits.at(-1)?.source==='autre','mesure : un autre moteur est classé « autre »');
+  r=await envoi({...base,referent:'https://blog.exemple.fr/article'});
+  ok(ecrits.at(-1)?.source==='referent'&&ecrits.at(-1)?.referent==='blog.exemple.fr','mesure : un site tiers est un référent, domaine seul');
+  r=await envoi({...base,referent:''});
+  ok(ecrits.at(-1)?.source==='direct','mesure : sans référent ni UTM, c\'est « direct »');
+  r=await envoi(base,{'cf-ipcountry':'XX'});
+  ok(ecrits.at(-1)?.pays==='XX','mesure : un pays inconnu de Cloudflare reste « XX »');
+  globalThis.fetch=fetchAvant;
+}
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

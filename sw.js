@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v173";
+const CACHE = "elatransfer-v174";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -47,6 +47,9 @@ const SHELL = ["./", "./index.html", "./application.html",
                "./itineraire-partage.js",
                /* Le juge du voyant des alertes, chargé par l'admin seul. */
                "./admin-sante.js",
+               /* La mesure du trafic : le collecteur des pages publiques et
+                  l'écran Trafic de l'admin (15/10/2026). */
+               "./mesure.js", "./trafic.js", "./trafic.css",
                "./application-facade.css", "./hotel-engine-polish.css", "./hotel-engine-polish.js",
                "./manifest.webmanifest", "./icon-180.png", "./icon-512.png",
                "./brand-logo.webp", "./brand-logo-negatif.webp", "./brand-logo-white.png"];

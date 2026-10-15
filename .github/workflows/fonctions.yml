@@ -145,6 +145,14 @@ jobs:
       - name: Déployer deposer-course
         run: supabase functions deploy deposer-course --no-verify-jwt --project-ref "$PROJET"
 
+      # « mesure » (15 octobre 2026) : la mesure du trafic. Appelée par le
+      # navigateur public sans aucune clé, comme deposer-course : CORS strict,
+      # liste fermée d'événements, quota par adresse, robots écartés, puis
+      # écriture par une RPC réservée à la clé de service. Une panne ici ne
+      # coûte qu'une mesure, jamais une réservation.
+      - name: Déployer mesure
+        run: supabase functions deploy mesure --no-verify-jwt --project-ref "$PROJET"
+
       # « demande-demo » (8 octobre 2026) : un professionnel demande la démo
       # depuis /professionnels/, puis la page /demo/hotel/ l'ouvre. Ni l'une ni
       # l'autre ne porte de clé Supabase : pas de JWT, comme telegram-bot. La

@@ -291,6 +291,22 @@ jobs:
             -f supabase/migrations/20261009010000_prospects_prenom.sql \
             -f supabase/migrations/20261009010000_prospects_prenom.sql \
             -f supabase/tests/prospects-prenom-apres.sql
+          # La mesure du trafic (15 octobre 2026) : même décor que les prospects
+          # (vraie est_admin(), privilèges par défaut de Supabase, service_role),
+          # migration appliquée deux fois. Puis : la table fermée au navigateur,
+          # l'écriture réservée à service_role avec déduplication, la lecture
+          # réservée à l'admin (l'agent et un anonyme refusés POUR LEUR RAISON),
+          # aucun identifiant ni référence dans ce qui sort, et la rétention.
+          # Éprouvée contre trois falsifications : elle tombe les trois fois.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database trafic;'
+          psql -h 127.0.0.1 -U postgres -d trafic -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/prospects.sql \
+            -f supabase/migrations/20261015000000_mesure_trafic.sql \
+            -f supabase/migrations/20261015000000_mesure_trafic.sql \
+            -f supabase/tests/trafic-apres.sql
           # Une vue sur les prospects, lisible par anon (privilèges par défaut) :
           # la migration rejouée DOIT s'arrêter.
           psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \

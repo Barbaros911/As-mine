@@ -81,6 +81,11 @@ jobs:
           # partenaire ajouté à HOTELS doit avoir la finition d'easyHotel, à ses
           # couleurs, sans une ligne de code de plus — et easyHotel ne bouge pas.
           suites="$suites test-finition-commune"
+          # LA MESURE DU TRAFIC (15 octobre 2026) : le collecteur sur le site
+          # construit — de Google à la réservation, et une panne de la mesure
+          # qui ne touche pas le dépôt. L'écran de l'admin est pris d'office
+          # (test-admin-trafic), la fonction par test-securite-fonctions.
+          suites="$suites test-mesure"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.
