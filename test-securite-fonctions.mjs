@@ -315,6 +315,54 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(i9.status===201&&bi.course?.passagersNombre===12&&bi.course?.multiVehicules===true,'deposer-course : un groupe de 12 passe, marqué « plusieurs véhicules » ('+i9.status+')');
   globalThis.fetch=fetchAvant;
 }
+/* deposer-course : LE LIEN DE SUIVI D'UN PARTENAIRE (15 octobre 2026). Le
+   code n'est retenu que si la base le connaît ; il pose alors la provenance
+   « Lien · <nom> ». Un code inventé, mal formé ou une base muette ne
+   bloquent rien : la course part sans source. On lit le bon tel qu'il part
+   en base, et on COMPTE les lectures de « liens_suivi » : un code mal formé
+   ne doit même pas interroger la base. */
+{
+  const deposes=[]; let lectures=0, panne=false;
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')) return new Response('true');
+    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
+    if(url.includes('/rest/v1/liens_suivi')){
+      lectures++;
+      if(panne) return new Response('boom',{status:500});
+      return new Response(url.includes('code=eq.nomad-roissy')?JSON.stringify([{code:'nomad-roissy',nom:'Nomad Hôtel Roissy'}]):'[]');
+    }
+    if(url.includes('parametres_commerciaux')) return new Response('[]');
+    if(url.includes('/rpc/ela_deposer_course_serveur')){deposes.push(JSON.parse(init.body).p_bon);return new Response('"ok"');}
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bonVia=(ref,via,extra={})=>Object.assign({ref,course:{depart:'Terminal 2E',arrivee:'Paris',date:'2026-10-20',heure:'10:00',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'lien',provenance:'Site anglais · CDG ↔ Paris'},via===undefined?{}:{via},extra);
+  const dep=(bon)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.8','content-type':'application/json'},body:JSON.stringify({bon})}));
+  const r1=await dep(bonVia('ELA-26-10-LV1AA','nomad-roissy'));
+  const b1=deposes[0]||{};
+  ok(r1.status===201&&b1.via==='nomad-roissy'&&b1.viaNom==='Nomad Hôtel Roissy','deposer-course : un lien connu est retenu, avec le nom du partenaire ('+r1.status+', '+b1.via+')');
+  ok(b1.provenance==='Lien · Nomad Hôtel Roissy','deposer-course : la provenance dit le partenaire, pas la page ('+b1.provenance+')');
+  const r2=await dep(bonVia('ELA-26-10-LV2BB','inconnu'));
+  const b2=deposes[1]||{};
+  ok(r2.status===201&&!('via' in b2)&&b2.provenance==='Site anglais · CDG ↔ Paris','deposer-course : un code inventé est ignoré, la provenance de la page reste');
+  const avant=lectures;
+  const r3=await dep(bonVia('ELA-26-10-LV3CC','<script>alert(1)</script>'));
+  ok(r3.status===201&&!('via' in (deposes[2]||{}))&&lectures===avant,'deposer-course : un code mal formé n\'interroge même pas la base ('+(lectures-avant)+' lecture)');
+  const r4=await dep(bonVia('ELA-26-10-LV4DD','nomad-roissy',{provenance:'easyHotel Aéroville',provenanceCle:'easyhotel-aeroville'}));
+  const b4=deposes[3]||{};
+  ok(r4.status===201&&b4.via==='nomad-roissy'&&b4.provenance==='easyHotel Aéroville','deposer-course : la provenance d\'un hôtel partenaire gagne toujours ('+b4.provenance+')');
+  const avant5=lectures;
+  const r5=await dep(bonVia('ELA-26-10-LV5EE',undefined));
+  ok(r5.status===201&&lectures===avant5&&!('via' in (deposes[4]||{})),'deposer-course : sans lien, aucune lecture de plus — une page ancienne dépose comme avant');
+  panne=true;
+  const r6=await dep(bonVia('ELA-26-10-LV6FF','nomad-roissy'));
+  ok(r6.status===201&&!('via' in (deposes[5]||{})),'deposer-course : base des liens muette, la course part quand même, sans source ('+r6.status+')');
+  globalThis.fetch=fetchAvant;
+}
 /* =====================================================================
    DEMANDE-DEMO (8 octobre 2026, démo professionnels, bloc 2). Déployée
    SANS vérification de JWT : tout ce qui protège est dans la fonction. On

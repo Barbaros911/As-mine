@@ -314,6 +314,23 @@ jobs:
             -f supabase/migrations/20261014000000_mesure_acquisition.sql \
             -f supabase/migrations/20261014000000_mesure_acquisition.sql \
             -f supabase/tests/mesure-apres.sql
+          # Les liens de suivi des partenaires (15 octobre 2026), sur le même
+          # décor, migration appliquée deux fois APRÈS celle de la mesure. Puis :
+          # la liste n'est lisible et modifiable que par l'admin (jamais anon,
+          # jamais l'agent, jamais effacée), une source n'est retenue que si le
+          # lien existe, l'ancienne fonction à deux paramètres a disparu, les
+          # totaux par page ne changent pas. Éprouvée contre cinq migrations
+          # faussées.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database liens;'
+          psql -h 127.0.0.1 -U postgres -d liens -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/mesure.sql \
+            -f supabase/migrations/20261014000000_mesure_acquisition.sql \
+            -f supabase/migrations/20261015000000_liens_suivi.sql \
+            -f supabase/migrations/20261015000000_liens_suivi.sql \
+            -f supabase/tests/liens-suivi-apres.sql
           # Le prix des pages dédiées (14 octobre 2026) : la vue publique des
           # prix de page (pourcentage, tarifs au km), sur le décor des vues en
           # lecture seule (tables fermées à anon, privilèges par défaut de

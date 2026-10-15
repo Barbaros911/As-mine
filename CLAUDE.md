@@ -2247,43 +2247,14 @@ la liste blanche « pour déboguer », plus rien ne tombe.
 
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
-Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
-écrit : « C'est pas grave invente comme les note et commentaire même faux
-sur la page public ». **Refusé, et c'est le seul point où on ne le suit
-pas.** Ce n'est pas de la prudence : publier des avis qu'on n'a pas reçus
-est une pratique commerciale trompeuse (L132-2 Code conso. — deux ans,
-300 000 €, portés à 10 % du chiffre d'affaires), et c'est **lui** qui est
-en première ligne, pas le site. Un concurrent n'a qu'un signalement à
-faire, et Google déréférence les pages d'avis fabriqués.
-**Ne pas rouvrir le sujet en croyant lui rendre service.**
-
-Ce qui a été fait à la place — la seule voie honnête, et elle marche :
-
-- **Un bouton « Demander un avis » sur chaque course RÉALISÉE** de la
-  liste du tableau de bord. Un appui, WhatsApp s'ouvre sur le numéro du
-  client avec un message de trois lignes.
-- **Sur les réalisées seulement.** On ne demande pas à quelqu'un ce qu'il
-  a pensé d'un trajet qu'il n'a pas encore fait.
-- **Le lien d'avis vit dans `localStorage` (`ela_lien_avis`), pas dans le
-  code.** C'est le sien, il peut le changer, et un identifiant de son
-  compte Google n'a rien à faire dans un dépôt public. Bloc « Demander des
-  avis » dans l'espace exploitant.
-- **Sans lien, RIEN NE PART.** Le message se terminerait dans le vide : on
-  emmène au champ et on le dit. Un contrôle vérifie qu'aucun WhatsApp ne
-  s'ouvre dans ce cas.
-- **La course garde `avisDemande`** et le bouton passe à « Avis demandé ».
-  Relancer un client qui a déjà répondu est la meilleure façon d'obtenir
-  un mauvais avis. Il reste cliquable — un client peut dire « oui oui » et
-  oublier.
-- **LE BON PORTE MAINTENANT `langue`.** La demande part des jours après la
-  course : écrire en français à quelqu'un qui a réservé en anglais, c'est
-  un message qu'il ne lira pas. Une course ancienne sans ce champ retombe
-  sur le français.
-- Le bouton est **en creux** (contour seul) : une course réalisée n'attend
-  plus personne, un second bouton plein y ferait deux actions qui crient.
-- **`.d-avis.fait`, pas `.d-avis.demande`** : `.demande` est déjà la classe
-  de la LIGNE entière, et la poser sur un bouton lui collerait la mise en
-  page d'une carte.
+**Jamais un avis inventé** (L132-2) — refusé à Barbaros en septembre 2026, ne
+pas rouvrir le sujet. « Demander un avis » sur chaque course RÉALISÉE ouvre
+WhatsApp dans la langue du client (`bon.langue`) avec le lien `ela_lien_avis`
+(réglé sur l'appareil, jamais dans le code) ; sans lien, rien ne part.
+**DEMANDER À TOUS, PAS AUX SEULS CONTENTS** (15/10/2026) : trier serait le
+« review gating » interdit par Google et par la loi. `#bordAvis` compte les
+clients de la semaine sans demande, et se tait sans lien d'avis réglé.
+Histoire et détails : `memoire/avis.md`.
 
 ## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
 
@@ -4654,6 +4625,9 @@ titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
   Toute page indexable va dans `sitemap.xml`, ou passe en `noindex`.
 - Origine de la demande (`provenance`) et entonnoir sans traceur (`ela_mesurer`,
   appliqué le 14/10) : `memoire/seo-international.md`.
+- **Lien d'un partenaire `?via=<code>`** (15/10) : code reconnu par le SERVEUR
+  seul (`liens_suivi`, admin seul ; migration `20261015000000` à appliquer),
+  provenance « Lien · nom » ; Registre → « Liens des partenaires ». `SEO-AUTORITE.md`.
 - Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
   données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
   réponses aux questions = celles de l'accueil, dans la langue de la page.

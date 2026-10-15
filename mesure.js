@@ -38,6 +38,40 @@
      compterait des affichages que personne n'a vus. */
   if(/bot|crawl|spider|slurp|lighthouse|headless|pagespeed|preview/i.test(navigator.userAgent || "")) return;
 
+  /* LE LIEN D'UN PARTENAIRE (15 octobre 2026, « ?via=nomad-roissy ») : un
+     hôtel, un office de tourisme ou un annuaire reçoit SON lien, et chaque
+     geste compté dit par qui le visiteur est arrivé. Le code part tel quel
+     — format fermé — et c'est le SERVEUR qui le reconnaît : un code inventé
+     compte comme une visite sans source. Rien n'est écrit sur l'appareil.
+     Il est EFFACÉ de la barre d'adresse : partagée ensuite, l'adresse ne
+     doit pas attribuer au partenaire un visiteur qu'il n'a pas envoyé. Il
+     suit le visiteur jusqu'au moteur par les seuls boutons « Book » : c'est
+     là que la demande naît, et c'est elle qui compte. */
+  var via = "";
+  try{
+    var params = new URLSearchParams(location.search);
+    var lu = (params.get("via") || "").trim();
+    if(/^[a-z0-9-]{2,40}$/.test(lu)) via = lu;
+    if(params.has("via")){
+      params.delete("via");
+      var reste = params.toString();
+      history.replaceState(null, "", location.pathname + (reste ? "?" + reste : "") + location.hash);
+    }
+  }catch(e){ /* sans URLSearchParams : la visite compte, sans source */ }
+  function suivreJusquAuMoteur(){
+    if(!via) return;
+    document.querySelectorAll('a[data-mesure="reserver"]').forEach(function(a){
+      try{
+        var u = new URL(a.getAttribute("href") || "", location.href);
+        if(u.origin !== location.origin) return;
+        u.searchParams.set("via", via);
+        a.setAttribute("href", u.pathname + u.search + u.hash);
+      }catch(e){}
+    });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", suivreJusquAuMoteur);
+  else suivreJusquAuMoteur();
+
   function envoyer(evenement){
     if(EVENEMENTS.indexOf(evenement) === -1) return;
     try{
@@ -45,7 +79,10 @@
         method: "POST",
         keepalive: true,
         headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_page: page, p_evenement: evenement })
+        /* La source ne part que si elle existe : une visite ordinaire
+           envoie exactement ce qu'elle envoyait avant. */
+        body: JSON.stringify(via ? { p_page: page, p_evenement: evenement, p_source: via }
+                                 : { p_page: page, p_evenement: evenement })
       }).catch(function(){});
     }catch(e){ /* navigateur sans fetch : rien à compter */ }
   }
@@ -67,5 +104,5 @@
 
   envoyer("page_vue");
   /* Une prise pour les suites de test et la console, rien de plus. */
-  window.ELA_MESURE = { page: page, geste: gesteDuLien };
+  window.ELA_MESURE = { page: page, geste: gesteDuLien, via: via };
 })();

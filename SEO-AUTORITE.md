@@ -368,10 +368,10 @@ seulement avec les clients contents, c'est exactement le tri interdit.
 ou le lendemain matin (le client est arrivé, l'expérience est fraîche), et
 jamais à une course refusée.
 
-**Évolution de code à proposer, pas faite** : un rappel « N courses réalisées
-sans demande d'avis » sur le tableau de bord, pour rendre le geste
-systématique. Le message reste envoyé par WhatsApp depuis le téléphone de
-Barbaros (pas d'API).
+**Construit le 15/10/2026 (à valider par Barbaros)** : sur le tableau de bord,
+« N clients de la semaine sans demande d'avis : demandez à tous » (`#bordAvis`), qui mène aux courses réalisées. Il se
+tait tant qu'aucun lien d'avis n'est réglé. Le message reste envoyé par
+WhatsApp depuis le téléphone de Barbaros (pas d'API).
 
 Destination du lien : la fiche Google une fois vérifiée ; d'ici là,
 Tripadvisor ou Trustpilot.
@@ -403,10 +403,21 @@ Tripadvisor ou Trustpilot.
 - `?src=` : liste fermée de 8 pages d'origine, comptée par `mesure.js`
   (affichage, clic Réserver, Appel, WhatsApp) et recopiée dans la course.
 
-**Ce qui manque** : savoir quel DOMAINE extérieur amène le visiteur. Proposé,
-**pas codé** (décision Barbaros) : un code `p-<partenaire>` par partenaire,
-ajouté à la liste fermée et transmis par la landing au moteur. Même règle de
-confidentialité : aucun cookie, liste fermée, totaux par jour.
+**Construit le 15/10/2026 (à valider par Barbaros) : le lien de chaque
+partenaire, `?via=<code>`.**
+- L'admin crée le lien (Registre → « Liens des partenaires » : nom, code,
+  page d'arrivée, « Copier ») et y lit ce qu'il amène : vues, « Book »,
+  appels, WhatsApp, moteur ouvert (compteur du serveur), puis demandes,
+  réalisées et argent encaissé (registre).
+- Le code suit le visiteur de la page jusqu'à la demande ; le serveur le
+  reconnaît dans sa liste (`liens_suivi`, lisible par l'admin seul) et pose
+  la provenance « Lien · nom ». Un code inventé est ignoré.
+- Aucun cookie, rien sur l'appareil ; la politique de confidentialité le dit
+  (FR/EN, mise à jour du 15/10). Migration `20261015000000` à appliquer après
+  la fusion.
+- La fiche papier des hôtels a déjà son code : `fiche-hotels`.
+- `/professionnels/` compte aussi ses visites (page « pro ») : c'est elle que
+  visent un office de tourisme, une CCI, un média hôtelier et la fiche papier.
 
 **Registre des liens** (à tenir à chaque changement d'état) :
 
@@ -462,10 +473,13 @@ entreprise immatriculée.** Le premier mois n'est donc pas un mois de liens.
 3. Search Console : plan du site, indexation des pages `/en/`. *(Barbaros)*
 4. easyHotel : accord écrit pour nommer le partenariat, et une ligne
    « transfert » dans le bloc « Getting here ». *(Barbaros)*
-5. Demande d'avis à **toutes** les courses réalisées. *(Barbaros ; rappel
-   dans l'admin à coder si validé)*
+5. Demande d'avis à **toutes** les courses réalisées. *(Barbaros ; le
+   rappel de la semaine est construit, à valider)*
 6. Une fiche d'une page pour les hôtels indépendants de Roissy (ce que
-   l'hôtel reçoit, gratuit, sans engagement). *(Claude prépare, Barbaros valide)*
+   l'hôtel reçoit, gratuit, sans engagement). *(préparée le 15/10 :
+   `commercial/fiche-hotels.html`, à valider par Barbaros)*
+7. Un lien `?via=` par partenaire dès le premier contact. *(construit,
+   à valider)*
 
 **31–60 jours — s'inscrire là où ça compte**
 7. Google Business (§ 7), puis Bing Places, PagesJaunes (fiche gratuite).
