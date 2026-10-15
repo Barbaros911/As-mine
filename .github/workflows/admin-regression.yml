@@ -85,6 +85,10 @@ jobs:
           # /en/, l'origine qui part avec la demande, et la majoration réglée
           # page par page — un prix affiché qui ne serait pas le prix facturé.
           suites="$suites test-seo-en test-prix-pages"
+          # LES LIENS DES PARTENAIRES (15 octobre 2026) : le code d'un partenaire
+          # suit le visiteur de la page à la demande, l'admin lit ce que chaque
+          # lien amène, et le rappel d'avis compte les clients de la semaine.
+          suites="$suites test-liens-suivi"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

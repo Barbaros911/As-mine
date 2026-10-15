@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-ela-page="pro">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -444,6 +444,12 @@
     });
   })();
   </script>
+  <!-- LA MESURE ET LE LIEN DES PARTENAIRES (15 octobre 2026) : la page des
+       professionnels est celle que visent un office de tourisme, une CCI, un
+       média hôtelier ou la fiche papier remise aux hôtels (« ?via= »). Sans
+       compteur, aucun de ces liens ne se mesurait. Même script, mêmes règles
+       que les pages d'acquisition : aucun cookie, rien sur l'appareil. -->
+  <script src="/mesure.js" defer></script>
   <script src="/telephone.js"></script>
   <script>
   /* LE FORMULAIRE DE DÉMONSTRATION — bloc 4 (memoire/demo-pro.md).
@@ -582,6 +588,10 @@
         email: v.email.trim(), telephone: v.telephone.trim(), langue: langue(),
         /* Toujours VIDE : c'est l'absence de robot que le serveur lit ici. */
         site: '' };
+      /* Le lien d'un partenaire (« ?via= », lu puis effacé de l'adresse par
+         mesure.js) : il ne part que s'il y en a un — sans lien, le corps est
+         exactement celui d'avant. C'est le serveur qui le reconnaît. */
+      if (window.ELA_MESURE && window.ELA_MESURE.via) corps.via = window.ELA_MESURE.via;
       var attente = Math.max(0, DUREE_MIN_MS - (Date.now() - debut));
       setTimeout(function(){
         corps.duree = Date.now() - debut;

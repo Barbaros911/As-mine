@@ -87,11 +87,11 @@ function messageAvis(bon){
   if((bon.langue || 'fr') === 'en'){
     return (p ? 'Hello ' + p + ', ' : 'Hello, ')
       + 'thank you for travelling with Elatransfer.\n'
-      + 'If everything went well, a short review would help us a lot:\n' + lien;
+      + 'Your review of this journey would help us a lot:\n' + lien;
   }
   return (p ? 'Bonjour ' + p + ', ' : 'Bonjour, ')
     + "merci d'avoir voyagé avec Elatransfer.\n"
-    + "Si tout s'est bien passé, un avis nous aiderait beaucoup :\n" + lien;
+    + "Votre avis sur ce trajet nous aiderait beaucoup :\n" + lien;
 }
 
 /* ═══ WhatsApp S'OUVRE DANS LE GESTE DU CLIC, SANS AUCUN « await » AVANT ═══
