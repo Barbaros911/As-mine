@@ -48,7 +48,7 @@ partie de ce commit. Aucune modification locale non validée au départ.
 | A-04 | P2 (CRO) | moteur, premier écran | Un touriste qui appuie sur « CDG → Paris » depuis `/en/` arrive sur le bandeau « Chauffeur transfers, organised end to end. Hotels, agencies, businesses: your own booking page… » avant le formulaire (la liste des terminaux est déjà ouverte sous le bandeau). | Le message B2B précède le geste B2C ; le positionnement est une décision de Barbaros (6–8/10). | [C] capture après « Book » | non corrigé : proposer, pour une arrivée avec `src=en-*`, de faire défiler jusqu'au formulaire ou de masquer la ligne B2B — à trancher | — |
 | A-05 | P2 (SEO) | hébergement Cloudflare | Anciennes adresses `.html` → 307 (temporaire) ; adresse inconnue → accueil en 200 (soft 404). | Signal faible pour Google ; connu depuis le Prompt 1, réglage par défaut gardé faute de symptôme. | [D] `memoire/seo-indexation.md` (mesuré avec `wrangler dev`) | aucune ; à revoir si Search Console garde les `.html` | — |
 | A-06 | P2 (SEO) | DNS | `www.elatransfer.com` ne résout pas. | Un partenaire qui écrit « www » fait un lien mort. | [D] `SEO-AUTORITE.md` ; non mesurable d'ici (DNS bloqué) | à Barbaros, Cloudflare DNS | — |
-| A-07 | P2 (doc) | `PROJECT_STATE.md` | « Seul le comptoir d'hôtel règle encore à bord » contredit CLAUDE.md (plus aucun règlement à bord, comptoir compris, 11/10). | Une note qui vieillit. | [D] `grep` | hors du périmètre des quatre prompts ; une ligne à corriger dans une PR de doc | — |
+| A-07 | P2 (doc) | `PROJECT_STATE.md` | « Seul le comptoir d'hôtel règle encore à bord » contredit CLAUDE.md (plus aucun règlement à bord, comptoir compris, 11/10). | Une note qui vieillit. | [D] `grep`, recoupé avec `CLAUDE.md` et `memoire/paiement-lien.md` | ligne corrigée | — |
 | A-08 | P2 (mesure) | `ela_mesurer` | Un robot qui exécute la page peut gonfler « vues » et « Book » d'un lien partenaire (clé publique). | Les chiffres AVANT la demande sont indicatifs ; les demandes et l'argent viennent des courses, reconnues côté serveur. | [D] migration (documenté et accepté) ; [C] `liens-suivi-apres.sql` | aucune ; la ligne du registre distingue déjà vues / demandes / réalisées / euros | — |
 
 Aucun P0.
@@ -223,6 +223,9 @@ P1 Search Console (plan, indexation des 7 adresses, puis « Liens ») ;
 P2 trancher A-04 (ligne B2B sur l'arrivée depuis `/en/`) ; P2 traduire les
 libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
 
+`test-parcours-en` tourne désormais en CI à chaque pull request
+(`admin-regression.yml`), à côté de `test-seo-en` et `test-liens-suivi`.
+
 ---
 
 ## F. Preuves techniques
@@ -260,7 +263,9 @@ libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
   `prixpages`, `prospects` — mêmes enchaînements que `admin-v2-regression.yml`.
 - **Fichiers modifiés sur cette branche** : `index.html`, `sw.js` (CACHE
   v177), `.github/scripts/textes-interdits.mjs`, `test-nouveau-serveur.mjs`,
-  `test-parcours-en.mjs` (nouveau), `memoire/contact-client.md`,
+  `test-parcours-en.mjs` (nouveau), `test-nouveau-bon.mjs`,
+  `memoire/contact-client.md`, `PROJECT_STATE.md` (A-07),
+  `.github/workflows/admin-regression.yml` (la nouvelle suite en CI),
   `AUDIT-4-PROMPTS.md`.
 - **Adresses de vérification** : les 10 du plan du site, plus
   `/version.json`, `/robots.txt`, `/sitemap.xml`.
@@ -292,5 +297,4 @@ libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
 6. **Bloqué** : indexation Google (accès), `www` (DNS), relecture des pages
    extérieures, actions d'autorité (SIRET).
 7. **Prochaines actions** : (P1) montrer les deux libellés à Barbaros,
-   fusionner, lire le monitoring ; (P1) Search Console ; (P2) A-04, A-03,
-   A-07 ; (P2) premier lien `?via=` réel et lecture du registre.
+   fusionner, lire le monitoring ; (P1) Search Console ; (P2) A-04, A-03 ; (P2) premier lien `?via=` réel et lecture du registre.

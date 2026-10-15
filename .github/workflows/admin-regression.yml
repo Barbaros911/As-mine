@@ -89,6 +89,12 @@ jobs:
           # suit le visiteur de la page à la demande, l'admin lit ce que chaque
           # lien amène, et le rappel d'avis compte les clients de la semaine.
           suites="$suites test-liens-suivi"
+          # LE VOYAGEUR ÉTRANGER DE BOUT EN BOUT (15 octobre 2026, audit des
+          # quatre prompts) : page /en/, « Book », moteur en anglais, prix,
+          # récapitulatif, envoi, bon — et les pannes (compteur muet, dépôt
+          # refusé). C'est elle qui a trouvé le bon qui disait « Demande reçue »
+          # au-dessus de « n'a pas pu nous être transmise ».
+          suites="$suites test-parcours-en"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.
