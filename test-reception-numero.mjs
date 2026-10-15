@@ -5,7 +5,11 @@
    il faut que tu me fasses quelque chose d'assez simple ». La base
    attribue 1001, 1002… (migration 20261006000000_numero_court.sql) ; les
    pages l'affichent PARTOUT où l'on se parle d'une course, et le
-   cherchent. La référence ELA-… reste la clé, écrite en petit à côté.
+   cherchent. La référence ELA-… reste la clé de la course.
+   16 octobre 2026, Barbaros : « il faut que les numéros de bon soient
+   partout pareils, courts ». Dès qu'un N° existe, il s'écrit SEUL — plus de
+   « · Réf. ELA-… » à côté ni dessous ; la référence ne s'écrit plus que là
+   où il n'y a pas encore de N°, et sur la fiche de l'admin.
 
    DEUX ÉTATS SONT ÉPROUVÉS, parce que les deux existeront en production :
    avec le N° (migration appliquée) et SANS (avant elle) — sans, rien ne
@@ -93,9 +97,13 @@ try {
      --------------------------------------------------------------- */
   {
     const { ctx, p } = await reception(1043);
-    const carte = ref => p.locator('.rec-course').filter({ hasText:ref }).first();
+    /* On retrouve une carte par sa clé (data-ref), plus par son texte : la
+       référence n'y est plus écrite dès que le N° existe. */
+    const carte = ref => p.locator('.rec-course[data-ref="' + ref + '"]').first();
     const ligne = await carte('ELA-26-10-K7QPM').locator('.rec-reference').innerText();
-    check('la carte écrit le N° court, puis la référence entière', ligne === 'N° 1042 · Réf. ELA-26-10-K7QPM', ligne);
+    check('la carte écrit le N° court, seul', ligne === 'N° 1042', ligne);
+    check('…et la référence ELA n\'apparaît nulle part sur la carte',
+      !(await carte('ELA-26-10-K7QPM').innerText()).includes('ELA-26-10-K7QPM'));
     const gras = await carte('ELA-26-10-K7QPM').locator('.rec-numero').evaluate(e => Number(getComputedStyle(e).fontWeight)).catch(() => 0);
     check('…le N° en gras', gras >= 700, String(gras));
     const sans = await carte('ELA-26-10-R3TXW').locator('.rec-reference').innerText();
@@ -111,7 +119,8 @@ try {
     await carte('ELA-26-10-K7QPM').locator('button', { hasText:'Voir le bon' }).click({ timeout:3000 }).catch(() => {});
     const bon = p.locator('#bonClient .ebon');
     check('le bon porte « N° 1042 » en gros', (await bon.locator('.ebon-ref').textContent().catch(() => '')) === 'N° 1042');
-    check('…et la référence en petit dessous', /Réf\. ELA-26-10-K7QPM/.test(await bon.locator('.ebon-ref-tech').textContent().catch(() => '')));
+    check('…et plus aucune référence ELA dessous',
+      await bon.locator('.ebon-ref-tech').count() === 0 && !(await bon.innerText().catch(() => 'ELA-26-10-K7QPM')).includes('ELA-26-10-K7QPM'));
     await p.keyboard.press('Escape');
     await carte('ELA-26-10-R3TXW').locator('button', { hasText:'Voir le bon' }).click({ timeout:3000 }).catch(() => {});
     check('sans N°, le bon garde la référence en gros', (await bon.locator('.ebon-ref').textContent().catch(() => '')) === 'ELA-26-10-R3TXW');
@@ -121,19 +130,21 @@ try {
     await p.locator('.langues button[data-langue="en"]').first().click({ timeout:3000 }).catch(() => {});
     await p.waitForTimeout(500);
     const enLigne = await carte('ELA-26-10-K7QPM').locator('.rec-reference').innerText().catch(() => '');
-    check('en anglais, « Ref. » est traduit et le N° en gras reste', enLigne === 'N° 1042 · Ref. ELA-26-10-K7QPM'
+    check('en anglais, le N° en gras reste seul', enLigne === 'N° 1042'
       && await carte('ELA-26-10-K7QPM').locator('.rec-numero').count() === 1, enLigne);
 
     await p.locator('.langues button[data-langue="fr"]').first().click({ timeout:3000 }).catch(() => {});
     await p.waitForTimeout(500);
-    check('…et revient en français', (await carte('ELA-26-10-K7QPM').locator('.rec-reference').innerText().catch(() => '')) === 'N° 1042 · Réf. ELA-26-10-K7QPM');
+    check('…et revient en français', (await carte('ELA-26-10-K7QPM').locator('.rec-reference').innerText().catch(() => '')) === 'N° 1042');
+    check('une course sans N° garde sa référence, traduite comme avant',
+      /^Réf\. ELA-26-10-R3TXW$/.test(await carte('ELA-26-10-R3TXW').locator('.rec-reference').innerText().catch(() => '')));
 
     /* Une réservation au comptoir : le N° rendu par le serveur arrive sur le bon. */
     await reserverAuComptoir(p);
     check('après une réservation, le bon porte le N° attribué par le serveur',
       (await p.locator('#bonRef').textContent()) === 'N° 1043', await p.locator('#bonRef').textContent());
-    check('…la référence technique reste écrite dessous',
-      await p.locator('#bonRefTech').isVisible() && /^Réf\. ELA-/.test(await p.locator('#bonRefTech').textContent()));
+    check('…seul : la référence ELA n\'est plus écrite dessous',
+      await p.locator('#bonRefTech').isHidden());
     /* CGV art. 3 et 4 : une demande en attente n'a pas de prix ferme. Le bon
        disait « Prix ferme » dès l'envoi (corrigé le 5 octobre 2026). */
     check('la demande en attente annonce son prix, elle ne le dit pas « ferme »',
@@ -197,12 +208,14 @@ try {
     await a.goto(BASE + '/ela-admin/');
     await a.waitForSelector('.demande', { timeout:15000 }).catch(() => {});
     await a.waitForTimeout(500);
-    const carte = a.locator('.demande').filter({ hasText:'ELA-26-10-K7QPM' }).first();
+    const carte = a.locator('.demande[data-ref="ELA-26-10-K7QPM"]').first();
     check(largeur + ' px — la carte de l\'admin porte « N° 1042 »', /^N° 1042\b/.test(await carte.locator('.d-num').textContent().catch(() => '')));
     check(largeur + ' px — …à côté de la référence, jamais dedans',
       (await carte.locator('.d-ref').textContent().catch(() => '')) === 'ELA-26-10-K7QPM', await carte.locator('.d-ref').textContent().catch(() => ''));
     check(largeur + ' px — une course sans N° n\'en affiche pas',
-      await a.locator('.demande').filter({ hasText:'ELA-26-10-R3TXW' }).first().locator('.d-num').count() === 0);
+      await a.locator('.demande[data-ref="ELA-26-10-R3TXW"]').first().locator('.d-num').count() === 0);
+    check(largeur + ' px — …et garde sa référence visible : c\'est son seul nom',
+      await a.locator('.demande[data-ref="ELA-26-10-R3TXW"]').first().locator('.d-ref').isVisible());
     const deborde = await carte.evaluate(c => {
       const h = c.querySelector('.d-haut'), b = c.getBoundingClientRect();
       return [...h.children].filter(x => { const r = x.getBoundingClientRect(); return r.width && (r.right > b.right + 1 || r.left < b.left - 1); }).map(x => x.className);
@@ -222,8 +235,8 @@ try {
       ligneHaut.ecart <= 6 && ligneHaut.coupes.length === 0, JSON.stringify(ligneHaut));
     check(largeur + ' px — le N° porte la durée d\'attente (le signal d\'urgence)',
       /^N° 1042 · depuis /.test(await carte.locator('.d-num').textContent().catch(() => '')), await carte.locator('.d-num').textContent().catch(() => ''));
-    check(largeur + ' px — la référence technique ' + (largeur > 600 ? 'reste visible' : 's\'efface (elle reste sur la fiche)'),
-      (await carte.locator('.d-ref').isVisible()) === (largeur > 600));
+    check(largeur + ' px — la référence technique s\'efface : le N° seul (elle reste sur la fiche)',
+      !(await carte.locator('.d-ref').isVisible()));
 
     if (largeur === 1366) {
       await carte.click({ timeout:3000 }).catch(() => {});

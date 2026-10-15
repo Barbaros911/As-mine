@@ -303,6 +303,22 @@ Suites relancées, toutes vertes : `test-nouveau-serveur` 97,
 `test-nouveau-whatsapp` 23, `test-nouveau-bascule` 315, `test-nouveau-langues`
 28, `test-reception-bon` 36, `test-doc` 259.
 
+## G''. Ajout du 16 octobre 2026 — le même N° court partout
+
+Demandé par Barbaros : dès qu'un N° existe, « N° 1042 » s'écrit seul sur le
+bon du client, sa liste, la réception, l'admin, les messages et la
+notification. La référence ELA-… ne reste écrite que sur la fiche de
+l'admin, à la fin de l'alerte Telegram et dans le message WhatsApp que le
+client renvoie lui-même (lu par « Coller une demande »). Une demande qui n'a
+pas atteint le serveur n'a pas encore de N° : elle garde sa référence, et
+le N° arrive tout seul sur le téléphone du client dès que le serveur la
+connaît. Suites vertes : `test-reception-numero` 43, `test-nouveau-confirmation`
+44, plus `test-nouveau-courses`, `-reception`, `-exploitant`, `-serveur`,
+`test-reception-bon`, `test-admin-*` (arrivée, gestes, registre, ergonomie,
+voyant, clôture, audit, hors ligne, contrôle, commission), `test-demo-hotel`,
+`test-easyhotel-client`, `test-nouveau-bascule`, `test-cloisonnement-hotel`.
+Neuf contrôles tombent sur l'ancien affichage.
+
 ## G. État final
 
 1. **Fonctionne, prouvé** : les cinq pages `/en/` et les trois françaises en

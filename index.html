@@ -671,8 +671,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    comme la référence seule (même règle que la pastille du chauffeur). */
 .d-num{font-size:13px;font-weight:800;color:inherit;
   font-variant-numeric:tabular-nums;white-space:nowrap;}
-.d-ref.d-ref-tech{font-weight:600;opacity:.78;margin-right:auto;}
-@media (max-width:600px){ .d-ref.d-ref-tech{display:none;} }
+/* Le N° seul sur la carte, à toutes les largeurs (16/10/2026) : la référence
+   reste sur la fiche, qui est l'écran technique. */
+.d-ref.d-ref-tech{display:none;}
 .d-prix{font-size:15px;font-weight:800;letter-spacing:-.02em;}
 .d-trajet{display:block;font-size:13.5px;font-weight:700;margin-top:3px;
   line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -8207,13 +8208,16 @@ window.ELA_TEXTES = {
         rf.className = "rec-reference";
         /* LE N° COURT D'ABORD (5 octobre 2026) : « N° 1042 » se dicte, une
            référence tirée au sort non. Elle reste à côté, entière. */
+        /* LE N° SEUL dès qu'il existe (16 octobre 2026, « partout pareil,
+           court ») : c'est lui que la réception dicte et que l'admin
+           cherche. La référence ne s'écrit que sur une course sans N°. */
         if(numeroDe(c)){
           var rn = document.createElement("b");
           rn.className = "rec-numero"; rn.textContent = "N° " + numeroDe(c);
           rf.appendChild(rn);
-          rf.appendChild(document.createTextNode(" · "));
+        } else {
+          rf.appendChild(document.createTextNode("Réf. " + c.ref));
         }
-        rf.appendChild(document.createTextNode("Réf. " + c.ref));
         d.appendChild(rf);
       }
 
@@ -10883,14 +10887,19 @@ window.ELA_TEXTES = {
   var bonAffiche = null;       // le bon actuellement dessiné à l'écran
   /* ═══ LE N° COURT (5 octobre 2026) ═══ « N° 1042 », attribué par le
      serveur au dépôt et rendu par « deposer-course » ou « etat-course ».
-     Il remplace la référence en gros sur le bon ; la référence reste
-     dessous, en petit — c'est elle la clé de la course. Sans N° (dépôt
-     raté, migration pas encore appliquée), le bon reste tel qu'avant. */
+     LE MÊME NUMÉRO PARTOUT, ET SEUL (16 octobre 2026, Barbaros : « il faut
+     que les numéros de bon soient partout pareils, courts »). La référence
+     ELA-… n'est plus écrite en petit dessous : elle reste la clé de la
+     course (liens, journal, lecteur de demandes) mais le client n'en a pas
+     l'usage. Sans N° — une demande qui n'a pas atteint le serveur n'en a
+     PAS ENCORE — la référence est le seul nom de la demande et reste
+     écrite ; le N° arrive tout seul dès que le serveur la connaît
+     (« rafraichirCourses »). */
   function ecrireRefBon(bon){
     var n = numeroDe(bon);
     document.getElementById("bonRef").textContent = n ? "N° " + n : bon.ref;
     var tech = document.getElementById("bonRefTech");
-    if(tech){ tech.hidden = !n; tech.textContent = n ? T("bon_ref_tech") + " " + bon.ref : ""; }
+    if(tech){ tech.hidden = true; tech.textContent = ""; }
   }
   function poserNumeroClient(bon, n){
     if(!bon || !(n > 0) || bon.numero === n) return;
@@ -11901,7 +11910,9 @@ window.ELA_TEXTES = {
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
       +   '<path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2" '
       +   'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      b.querySelector(".course-ref").textContent = numeroDe(bon) ? "N° " + numeroDe(bon) + " · " + bon.ref : bon.ref;
+      /* Le même N° que sur le bon, seul (16/10/2026) ; la référence seulement
+         tant que le serveur n'a pas numéroté la demande. */
+      b.querySelector(".course-ref").textContent = numeroDe(bon) ? "N° " + numeroDe(bon) : bon.ref;
       /* Une flèche plutôt que le mot « vers » : elle se lit dans les deux
          langues et ne prend pas de place sur un libellé déjà long. */
       b.querySelector(".course-trajet").textContent =
@@ -11924,7 +11935,7 @@ window.ELA_TEXTES = {
       pastille.classList.toggle("non",  et === "etat_refusee" || et === "etat_annulee");
       b.querySelector(".course-date").textContent = dateLisible(bon);
       b.querySelector(".course-prix").textContent = prixDuBon(bon);
-      b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
+      b.setAttribute("aria-label", T("voir_bon") + " " + (numeroDe(bon) ? "N° " + numeroDe(bon) : bon.ref));
       b.addEventListener("click", function(){
         bonCourant = bon;
         remplirBon(bon);
@@ -13951,7 +13962,7 @@ window.ELA_TEXTES = {
   function pousserNotification(bon){
     if(!bon || !nuage.connecte()) return;
     var ch = bon.chauffeur || {};
-    var titre = "Transfert confirmé — " + bon.ref;
+    var titre = "Transfert confirmé — " + refParlee(bon);
     var corps = [ch.nom, bon.course.vehicule, dateLisible(bon)]
                 .filter(Boolean).join(" · ");
     nuage.appel("/functions/v1/prevenir-client", {
@@ -14043,7 +14054,10 @@ window.ELA_TEXTES = {
    ===================================================================== */
   /* « N° 1042 (ELA-26-10-K7QPM) » : le N° pour se parler, la référence
      pour retrouver. Sans N°, la référence seule, comme avant. */
-  function refParlee(bon){ var n = numeroDe(bon); return n ? "N° " + n + " (" + bon.ref + ")" : bon.ref; }
+  /* Le N° seul dans les messages (16/10/2026) : le client le retrouve tel
+     quel sur son bon. Le lien « ?ok= » porte la référence, personne n'a à
+     la lire. */
+  function refParlee(bon){ var n = numeroDe(bon); return n ? "N° " + n : bon.ref; }
   function messageConfirmation(bon){
     var ch = bon.chauffeur || {};
     var lien = lienDuBon(bon);
@@ -15616,7 +15630,7 @@ window.ELA_TEXTES = {
     var qCompact = q.replace(/\s/g, "");
     var trouves = registre().filter(function(c){ return correspondCourse(c, q, qCompact); }).slice(0, 20);
     poser("regResultats", trouves.map(function(c){
-      return { nom: (numeroDe(c) ? "N° " + numeroDe(c) + " · " : "") + c.ref + " · " + ((c.client && c.client.nom) || "—"),
+      return { nom: (numeroDe(c) ? "N° " + numeroDe(c) : c.ref) + " · " + ((c.client && c.client.nom) || "—"),
                sous: (c.course.depart + " → " + c.course.arrivee) + " · " + libelleEtat(c.statut || "attente"),
                val: euros((c.prix && c.prix.total) || 0) };
     }), "Aucune course ne correspond.");
