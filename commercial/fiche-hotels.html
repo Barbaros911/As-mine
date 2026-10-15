@@ -1,0 +1,174 @@
+<!doctype html>
+<!-- =====================================================================
+     LA FICHE DES HÔTELS — une page A4 à remettre ou envoyer à un directeur
+     d'hôtel (15 octobre 2026, Prompt 3, SEO-AUTORITE.md § 6 et § 15).
+     ---------------------------------------------------------------------
+     CE N'EST PAS UNE PAGE DU SITE : « construire.sh » ne publie que ce qu'il
+     nomme, et ce dossier n'y est pas. On l'ouvre dans un navigateur et on
+     l'imprime (ou « Enregistrer en PDF ») — le PDF s'envoie par WhatsApp ou
+     par e-mail.
+     LES TEXTES SONT CEUX DE /professionnels/, déjà validés par Barbaros
+     (8/10/2026) : aucun chiffre, aucun client cité, « Déjà en service dans
+     UN hôtel » au singulier — à retirer si le partenariat cesse. La seule
+     ligne nouvelle est la liste des trajets desservis, qui dit le service et
+     ne promet rien sur l'hôtel.
+     LE QR MÈNE À LA DÉMO avec le code « fiche-hotels » (migration
+     20261015000000) : Registre → « Liens des partenaires » dira combien de
+     directeurs l'ont scanné. Il est dessiné par qr-affiche.js, l'encodeur du
+     site, éprouvé par un décodeur indépendant.
+     ===================================================================== -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Elatransfer — fiche hôtels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#062f55; --deep:#031c34; --bleu:#147edc; --cyan:#12c4ee;
+    --encre:#14344e; --gris:#5a6a7b; --filet:#dbe6ed; --doux:#f4f8fb;
+  }
+  @page{ size:A4; margin:0; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:#e9eef3; }
+  body{ font-family:'Figtree','Inter',-apple-system,'Segoe UI',sans-serif; color:var(--encre);
+        -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .feuille{ width:210mm; height:297mm; margin:0 auto; background:#fff; position:relative;
+            display:flex; flex-direction:column; overflow:hidden; }
+  @media screen{ .feuille{ margin:16px auto; box-shadow:0 10px 30px rgba(6,47,85,.18); } }
+  @media print{ html,body{ background:#fff; } .feuille{ margin:0; box-shadow:none; } }
+
+  .tete{ background:linear-gradient(135deg,var(--deep),var(--navy) 60%,#0b4a7d);
+         color:#fff; padding:10mm 15mm 8.5mm; position:relative; }
+  .tete::after{ content:""; position:absolute; left:15mm; right:15mm; bottom:0; height:3px;
+                background:linear-gradient(90deg,var(--cyan),rgba(18,196,238,0)); }
+  .marque{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6mm; }
+  .marque img{ height:12mm; width:auto; display:block; }
+  .pour{ font-size:9pt; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+         color:var(--cyan); border:1px solid rgba(18,196,238,.55); border-radius:999px; padding:1.6mm 4mm; }
+  h1{ font-size:22pt; line-height:1.12; font-weight:800; margin:0 0 3mm; letter-spacing:-.01em; max-width:160mm; }
+  .chapeau{ font-size:10.6pt; line-height:1.45; margin:0; color:rgba(255,255,255,.88); max-width:165mm; }
+  .puces{ display:flex; flex-wrap:wrap; gap:2.5mm; margin:4.5mm 0 0; padding:0; list-style:none; }
+  .puces li{ font-size:9pt; font-weight:700; background:rgba(255,255,255,.1);
+             border:1px solid rgba(255,255,255,.22); border-radius:999px; padding:1.5mm 3.6mm; }
+
+  .corps{ padding:6mm 15mm 0; display:flex; flex-direction:column; gap:4.8mm; }
+  .trajets{ margin:0; font-size:10pt; line-height:1.45; color:var(--gris); }
+  .trajets b{ color:var(--encre); }
+  h2{ font-size:10pt; font-weight:800; text-transform:uppercase; letter-spacing:.07em;
+      color:var(--bleu); margin:0 0 2.4mm; }
+  .trois{ display:grid; grid-template-columns:repeat(3,1fr); gap:4mm; }
+  .carte{ background:var(--doux); border:1px solid var(--filet); border-radius:3.5mm; padding:3.6mm 3.8mm 3.4mm; }
+  .carte h3{ font-size:10.8pt; margin:0 0 1.3mm; color:var(--navy); display:flex; align-items:center; gap:2mm; }
+  .carte p{ font-size:9.1pt; line-height:1.4; margin:0; color:var(--encre); }
+  .num{ display:inline-flex; align-items:center; justify-content:center; width:6mm; height:6mm; flex:none;
+        border-radius:50%; background:var(--navy); color:#fff; font-weight:800; font-size:9pt; }
+  .change{ display:grid; grid-template-columns:repeat(3,1fr); gap:4mm; }
+  .change div{ border-left:3px solid var(--cyan); padding:.5mm 0 .5mm 3.2mm; }
+  .change b{ display:block; font-size:9.6pt; color:var(--navy); margin-bottom:1mm; }
+  .change span{ font-size:9.1pt; line-height:1.4; }
+
+  .pied{ margin:auto 15mm 0; border:1.5px solid var(--navy); border-radius:4mm;
+         display:grid; grid-template-columns:1fr auto; gap:6mm; padding:4.5mm 6mm; align-items:center; }
+  .preuve{ font-size:9.8pt; font-weight:700; color:var(--navy); margin:0 0 2mm; }
+  .contact{ margin:0; padding:0; list-style:none; font-size:10pt; line-height:1.6; }
+  .contact b{ display:inline-block; min-width:21mm; color:var(--gris); font-weight:600; font-size:9.4pt; }
+  .qr{ text-align:center; }
+  .qr svg{ display:block; width:30mm; height:30mm; margin:0 auto 1.6mm; }
+  .qr span{ display:block; font-size:8.6pt; font-weight:700; color:var(--navy); max-width:46mm; line-height:1.3; }
+  .mention{ margin:3mm 15mm 6mm; font-size:7.6pt; color:#8a98a6; text-align:center; }
+</style>
+</head>
+<body>
+<div class="feuille">
+  <header class="tete">
+    <div class="marque">
+      <img src="../brand-logo-negatif.webp" alt="Elatransfer">
+      <span class="pour">Hôtels</span>
+    </div>
+    <h1>Votre réception réserve. Elatransfer gère tout le reste.</h1>
+    <p class="chapeau">Une page de réservation à votre nom, un QR code pour vos clients, un espace
+      pour votre équipe. Nous trouvons le chauffeur, confirmons au client et suivons le trajet
+      jusqu'au bout.</p>
+    <ul class="puces">
+      <li>Mise en place gratuite</li>
+      <li>Sans engagement</li>
+      <li>Tarifs négociés pour votre établissement</li>
+    </ul>
+  </header>
+
+  <main class="corps">
+    <p class="trajets"><b>Pour les trajets de vos clients</b>&nbsp;: Roissy-CDG, Orly, Beauvais,
+      Disneyland Paris, Paris, et les salons de Villepinte et du Bourget.</p>
+
+    <section>
+      <h2>Ce que nous créons pour vous</h2>
+      <div class="trois">
+        <div class="carte"><h3>Votre page</h3>
+          <p>Une page à votre nom, avec la photo de votre établissement et votre logo, que vous nous
+            confiez. Vos clients l'ouvrent par un lien ou en scannant un QR code.</p></div>
+        <div class="carte"><h3>Votre espace réception</h3>
+          <p>Votre équipe réserve par le numéro de chambre ou le nom du client, voit l'état de chaque
+            course et retrouve l'historique.</p></div>
+        <div class="carte"><h3>Notre prise en charge</h3>
+          <p>Nous vérifions chaque demande, plaçons un chauffeur professionnel, confirmons au client et
+            suivons le trajet jusqu'à l'arrivée.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Comment ça se passe</h2>
+      <div class="trois">
+        <div class="carte"><h3><span class="num">1</span>La demande</h3>
+          <p>Le client scanne le QR code, ou la réception saisit la demande pour lui.</p></div>
+        <div class="carte"><h3><span class="num">2</span>Elatransfer s'en occupe</h3>
+          <p>Nous vérifions la demande, plaçons un chauffeur professionnel et confirmons au client.</p></div>
+        <div class="carte"><h3><span class="num">3</span>La réception suit</h3>
+          <p>Elle voit la course passer à «&nbsp;confirmée&nbsp;», puis à «&nbsp;effectuée&nbsp;».</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Ce que ça change</h2>
+      <div class="change">
+        <div><b>Pour la direction</b><span>Un service en plus pour vos clients, sans personnel ni
+          véhicule à gérer.</span></div>
+        <div><b>Pour la réception</b><span>Plus d'appels à passer : la demande, la confirmation et
+          l'historique sont au même endroit.</span></div>
+        <div><b>Pour vos clients</b><span>Un prix annoncé à l'avance, réglé directement au chauffeur,
+          en français ou en anglais.</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <div>
+      <p class="preuve">Déjà en service dans un hôtel de la zone de Roissy-CDG.</p>
+      <ul class="contact">
+        <li><b>Téléphone</b>+33 7 59 31 24 33</li>
+        <li><b>WhatsApp</b>+33 7 59 31 24 33</li>
+        <li><b>E-mail</b>contact@elatransfer.com</li>
+        <li><b>Site</b>elatransfer.com/professionnels</li>
+      </ul>
+    </div>
+    <div class="qr" id="qr" data-lien="https://elatransfer.com/professionnels/?via=fiche-hotels">
+      <span>Voir la démo hôtel, à votre nom</span>
+    </div>
+  </footer>
+  <p class="mention">Les chauffeurs sont des professionnels indépendants, sous leur propre carte
+    professionnelle et leur assurance.</p>
+</div>
+<script src="../qr-affiche.js"></script>
+<script>
+  /* Le QR est dessiné à l'ouverture par l'encodeur du site : une seule
+     source, éprouvée par un décodeur indépendant. */
+  (function(){
+    var z = document.getElementById("qr");
+    if(!z || !window.ELA_QR) return;
+    z.insertAdjacentHTML("afterbegin", window.ELA_QR.svg(z.getAttribute("data-lien"), 200));
+  })();
+</script>
+</body>
+</html>

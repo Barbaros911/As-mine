@@ -2245,43 +2245,12 @@ la liste blanche « pour déboguer », plus rien ne tombe.
 
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
-Septembre 2026. En voyant le panneau d'avis vide du back-office, il a
-écrit : « C'est pas grave invente comme les note et commentaire même faux
-sur la page public ». **Refusé, et c'est le seul point où on ne le suit
-pas.** Ce n'est pas de la prudence : publier des avis qu'on n'a pas reçus
-est une pratique commerciale trompeuse (L132-2 Code conso. — deux ans,
-300 000 €, portés à 10 % du chiffre d'affaires), et c'est **lui** qui est
-en première ligne, pas le site. Un concurrent n'a qu'un signalement à
-faire, et Google déréférence les pages d'avis fabriqués.
-**Ne pas rouvrir le sujet en croyant lui rendre service.**
-
-Ce qui a été fait à la place — la seule voie honnête, et elle marche :
-
-- **Un bouton « Demander un avis » sur chaque course RÉALISÉE** de la
-  liste du tableau de bord. Un appui, WhatsApp s'ouvre sur le numéro du
-  client avec un message de trois lignes.
-- **Sur les réalisées seulement.** On ne demande pas à quelqu'un ce qu'il
-  a pensé d'un trajet qu'il n'a pas encore fait.
-- **Le lien d'avis vit dans `localStorage` (`ela_lien_avis`), pas dans le
-  code.** C'est le sien, il peut le changer, et un identifiant de son
-  compte Google n'a rien à faire dans un dépôt public. Bloc « Demander des
-  avis » dans l'espace exploitant.
-- **Sans lien, RIEN NE PART.** Le message se terminerait dans le vide : on
-  emmène au champ et on le dit. Un contrôle vérifie qu'aucun WhatsApp ne
-  s'ouvre dans ce cas.
-- **La course garde `avisDemande`** et le bouton passe à « Avis demandé ».
-  Relancer un client qui a déjà répondu est la meilleure façon d'obtenir
-  un mauvais avis. Il reste cliquable — un client peut dire « oui oui » et
-  oublier.
-- **LE BON PORTE MAINTENANT `langue`.** La demande part des jours après la
-  course : écrire en français à quelqu'un qui a réservé en anglais, c'est
-  un message qu'il ne lira pas. Une course ancienne sans ce champ retombe
-  sur le français.
-- Le bouton est **en creux** (contour seul) : une course réalisée n'attend
-  plus personne, un second bouton plein y ferait deux actions qui crient.
-- **`.d-avis.fait`, pas `.d-avis.demande`** : `.demande` est déjà la classe
-  de la LIGNE entière, et la poser sur un bouton lui collerait la mise en
-  page d'une carte.
+**Jamais un avis inventé** (L132-2 ; refusé en 09/2026, ne pas rouvrir) et
+**on demande à TOUS** (15/10) : trier = « review gating », interdit par Google
+et la loi — le message ne dit plus « si tout s'est bien passé ». « Demander
+un avis » : course RÉALISÉE, langue du client, lien `ela_lien_avis` réglé sur
+l'appareil (sans lien, rien ne part) ; `#bordAvis` compte la semaine, se tait
+sans lien et cède aux écriteaux urgents. Histoire : `memoire/avis.md`.
 
 ## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
 
@@ -4637,26 +4606,32 @@ mémoire de POURQUOI c'est écrit ainsi.
 
 ## LA MARQUE ET GOOGLE — « Elatransfer », FRANÇAIS À LA RACINE, ANGLAIS SOUS /en/
 
-« Elatransfer » en un mot, partout (5/10, Barbaros) ; le logo et les icônes ne
-bougent pas. Le titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
-- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; l'anglais
-  y est un bouton qui se mémorise. Les pages d'hôtel gardent la détection.
-- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques
-  (`en/`), liées par « English » dans le pied puis par `/en/`. **Le moteur reste
-  unique** : « Book » ouvre `/?lang=en&src=…` ; `vers=` écrit l'autre bout et
-  ouvre sa liste — le client choisit toujours. Diagnostic : `SEO-INTERNATIONAL.md`.
-- **hreflang seulement entre vrais équivalents, et réciproque** (`/`↔`/en/`,
-  CDG, Orly ; `x-default` → anglais). **Jamais de lien ni de canonique en
-  `.html`** : Cloudflare les redirige (307, mesuré avec `wrangler dev`).
-- **La page d'origine part avec la demande** (`provenance`, liste `ORIGINES`) ;
-  l'entonnoir est compté sans traceur (`ela_mesurer`, migration `20261014000000`
-  à appliquer après la fusion).
+« Elatransfer » en un mot, partout (5/10, Barbaros) ; logo et icônes fixes. Le
+titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
+- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; les
+  pages d'hôtel gardent la détection de langue.
+- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques, liées
+  par « English » dans le pied puis par `/en/`. **Le moteur reste unique** :
+  « Book » ouvre `/?lang=en&src=…`, le client choisit toujours (`SEO-INTERNATIONAL.md`).
+- **hreflang entre vrais équivalents, réciproque** (`/`↔`/en/`, CDG, Orly ;
+  `x-default` → anglais). **Jamais de lien, canonique ni `@id` en `.html`** :
+  Cloudflare les redirige (307).
+- **CE QUE GOOGLE LIT EST JUGÉ DEUX FOIS, PAR LE MÊME CODE** (15/10/2026,
+  `seo-indexation.mjs`) : site construit (`test-seo-en`) et en ligne (monitoring).
+  Toute page indexable va dans `sitemap.xml`, ou passe en `noindex`.
+- Origine de la demande (`provenance`) et entonnoir sans traceur (`ela_mesurer`,
+  appliqué le 14/10) : `memoire/seo-international.md`.
+- **Lien d'un partenaire `?via=<code>`** (15/10) : reconnu par le SERVEUR
+  seul (`liens_suivi`, admin ; migration `20261015000000` à appliquer dans la
+  foulée — `20261014000000` ne se rejoue plus après), sur la demande ET le
+  prospect de la démo ; provenance « Lien · nom · page » ; Registre →
+  « Liens des partenaires ». `SEO-AUTORITE.md`.
 - Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
   données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
-  les réponses aux questions sont celles de l'accueil, dans la langue de la page.
-- Search Console : compte **orucburak001**. `www` ne répond pas (DNS, à Barbaros).
-- `test-seo-en`, `test-nouveau-bascule`. Histoire : `memoire/marque-et-referencement.md`,
-  `memoire/seo-international.md`.
+  réponses aux questions = celles de l'accueil, dans la langue de la page.
+- Search Console : compte **orucburak001** — gestes à faire et attendus dans
+  `memoire/seo-indexation.md`. `www` ne répond pas (DNS, à Barbaros).
+- Histoire : `memoire/marque-et-referencement.md`.
 
 ## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
 

@@ -17,14 +17,17 @@
 //  · « Book » ouvre LE moteur, en anglais, prérempli, et la page d'origine
 //    part avec la demande ; « vers= » ouvre la liste de l'autre bout sans
 //    jamais choisir à la place du client ;
+//  · ce que Google peut découvrir et indexer (section 8, le juge partagé
+//    avec le contrôle de production), et le juge tombe sur chaque défaut ;
 //  · la mesure : les bons gestes, avec la bonne page, jamais chez un hôtel,
 //    jamais pour un robot — et mesure.js parle comme le moteur.
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, readdir } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
+import { auditerIndexation, controlerInventaire, lecteurHttp } from './.github/scripts/seo-indexation.mjs';
 
 execSync('sh construire.sh', { stdio: 'ignore' });
 const TYPES = {'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.json':'application/json',
@@ -457,6 +460,77 @@ const DISNEY = { geometry: { coordinates: [2.7836, 48.8722] }, properties: { nam
     /page du site depuis laquelle la demande a été commencée/.test(T.fr.legal_privacy_body) && /ni cookie ni stockage sur l'appareil/.test(T.fr.legal_privacy_body));
   check('confidentialité EN : la page d\'origine et le comptage anonyme sont dits',
     /page of the site from which the request was started/.test(T.en.legal_privacy_body) && /no cookie and no storage on the device/.test(T.en.legal_privacy_body));
+}
+
+/* ═══ 8. CE QUE GOOGLE PEUT DÉCOUVRIR ET INDEXER (15 octobre 2026, Prompt 2) ═══
+   Le juge est .github/scripts/seo-indexation.mjs, le MÊME que celui du
+   contrôle de production : ici sur le site construit, là-bas sur le site en
+   ligne. Il lit robots.txt, le plan du site, puis le HTML brut de chaque
+   adresse du plan, sans suivre les redirections. L'inventaire des fichiers
+   construits, lui, n'existe qu'ici : c'est lui qui voit une page indexable
+   oubliée dans le plan — que la section 2, qui part du plan, ne verrait pas. */
+{
+  const vrai = await auditerIndexation(lecteurHttp(SITE));
+  for (const c of vrai.controles) check('indexation : ' + c.m, c.ok);
+  check('indexation : le plan du site est lu (sinon le contrôle ne prouve rien)', vrai.plan.length >= 8, String(vrai.plan.length));
+  const fichiers = (await readdir('site', { recursive: true })).filter(f => f.endsWith('.html'));
+  const pages = await Promise.all(fichiers.map(async fichier => ({ fichier, html: await readFile(join('site', fichier), 'utf8') })));
+  for (const c of controlerInventaire(pages, vrai.plan)) check('indexation : ' + c.m, c.ok);
+
+  /* LE JUGE N'EST PAS AVEUGLE. Un contrôle qui ne peut pas tomber ne vérifie
+     rien : on lui sert le site construit, faussé d'un seul défaut à la fois,
+     et il doit tomber en NOMMANT ce défaut. Lus sur disque, comme Cloudflare
+     les sert (un dossier rend son index.html, « /x » rend « x.html »). */
+  const lecteur = (mods = {}) => async (chemin) => {
+    const c = chemin.split('?')[0], m = mods[c] || {};
+    if (m.reponse) return { status: 200, location: '', xrobots: '', type: '', texte: '', ...m.reponse };
+    let f = join('site', c);
+    try { if ((await stat(f)).isDirectory()) f = join(f, 'index.html'); }
+    catch { try { await stat(f + '.html'); f += '.html'; } catch { return { status: 404, location: '', xrobots: '', type: '', texte: '' }; } }
+    const brut = await readFile(f, 'utf8');
+    return { status: 200, location: '', xrobots: m.xrobots || '', type: '', texte: m.texte ? m.texte(brut) : brut };
+  };
+  const juger = async (mods) => {
+    const a = await auditerIndexation(lecteur(mods));
+    return [...a.controles, ...controlerInventaire(pages, a.plan)].filter(c => !c.ok).map(c => c.m);
+  };
+  const temoin = await juger({});
+  check('indexation, falsifications : le site construit non faussé passe', temoin.length === 0, temoin.join(' | '));
+  const titreCdg = (/<title>([^<]*)<\/title>/.exec(await readFile('site/en/cdg-airport-transfer-paris/index.html', 'utf8')) || [, ''])[1];
+  const accueil = await readFile('site/index.html', 'utf8');
+  const FAUX = [
+    ['une page anglaise oubliée dans le plan du site', /en\/disneyland-paris-airport-transfer\/index\.html.*absente du plan/,
+      { 'sitemap.xml': { texte: t => t.replace(/\s*<url><loc>[^<]*disneyland[^<]*<\/loc>.*?<\/url>/, '') } }],
+    ['le plan du site absent (Cloudflare sert alors l\'accueil en 200)', /sitemap\.xml n'est pas un plan du site/,
+      { 'sitemap.xml': { texte: () => accueil } }],
+    ['robots.txt absent (même repli)', /robots\.txt n'est pas un fichier robots/, { 'robots.txt': { texte: () => accueil } }],
+    ['robots.txt qui bloque /en/', /\/en\/cdg-airport-transfer-paris\/ :.*bloquée par robots\.txt/,
+      { 'robots.txt': { texte: t => t.replace(/^Allow: \/$/m, 'Allow: /\nDisallow: /en/') } }],
+    ['une page du plan en noindex', /\/en\/ :.*balise robots/,
+      { 'en/': { texte: t => t.replace(/<meta name="robots" content="[^"]*">/, '<meta name="robots" content="noindex,follow">') } }],
+    ['un en-tête X-Robots-Tag: noindex', /\/en\/orly-airport-transfer-paris\/ :.*X-Robots-Tag/,
+      { 'en/orly-airport-transfer-paris/': { xrobots: 'noindex' } }],
+    ['une adresse du plan devenue une redirection', /\/transfert-orly-paris répond 307/,
+      { 'transfert-orly-paris': { reponse: { status: 307, location: '/transfert-orly-paris/' } } }],
+    ['une canonique vers une page qui n\'existe pas', /\/en\/cdg-orly-transfer\/ :.*canonique « https:\/\/elatransfer\.com\/en\/n-existe-pas\/ »/,
+      { 'en/cdg-orly-transfer/': { texte: t => t.replace(/<link rel="canonical" href="[^"]*">/, '<link rel="canonical" href="https://elatransfer.com/en/n-existe-pas/">') } }],
+    ['une canonique absente', /\/en\/disneyland-paris-airport-transfer\/ :.*0 canonique/,
+      { 'en/disneyland-paris-airport-transfer/': { texte: t => t.replace(/<link rel="canonical" href="[^"]*">/, '') } }],
+    ['un hreflang non réciproque', /ne la déclare pas en retour/,
+      { 'transfert-cdg-paris': { texte: t => t.replace(/<link rel="alternate" hreflang="en"[^>]*>/, '') } }],
+    ['un hreflang vers une page absente', /\/en\/ hreflang :.*absente du plan/,
+      { 'en/': { texte: t => t.replace('hreflang="fr" href="https://elatransfer.com/"', 'hreflang="fr" href="https://elatransfer.com/fr/"') } }],
+    ['un titre en double', /titre en double/,
+      { 'en/cdg-orly-transfer/': { texte: t => t.replace(/<title>[^<]*<\/title>/, `<title>${titreCdg}</title>`) } }],
+    ['un H1 qui n\'existe qu\'après le JavaScript', /\/en\/orly-airport-transfer-paris\/ :.*aucun H1/,
+      { 'en/orly-airport-transfer-paris/': { texte: t => t.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/g, '') } }],
+    ['des données structurées qui visent une adresse en .html', /\/chauffeur-prive-paris :.*chauffeur-prive-paris\.html/,
+      { 'chauffeur-prive-paris': { texte: t => t.replace('/chauffeur-prive-paris#service', '/chauffeur-prive-paris.html#service') } }],
+  ];
+  for (const [quoi, attendu, mods] of FAUX) {
+    const fautes = await juger(mods);
+    check(`indexation, falsification « ${quoi} » : le juge tombe et la nomme`, fautes.some(m => attendu.test(m)), fautes.join(' | ') || 'aucune faute vue');
+  }
 }
 
 await b.close();
