@@ -259,6 +259,11 @@ libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
   attendu ; `test-parcours-en` ne démarre même pas : `construire.sh` refuse
   l'ancien texte (`textes-interdits.mjs`). Les correctifs rétablis, tout
   repasse au vert.
+- **Série complète** (`sh .claude/outils/tests.sh`, une seule fois, sur
+  `dc3e21f`) : 74 suites navigateur et 4 hors navigateur, toutes vertes.
+  `test-admin-affiche` était d'abord tombée faute du décodeur `jsqr` sur
+  cette machine (dépendance de banc, jamais dans le dépôt) ; relancée avec
+  `jsqr` posé dans le bac à sable : 27 contrôles verts.
 - **SQL** : PostgreSQL 16 local, port 5499, bases `mesure`, `liens`,
   `prixpages`, `prospects` — mêmes enchaînements que `admin-v2-regression.yml`.
 - **Fichiers modifiés sur cette branche** : `index.html`, `sw.js` (CACHE
