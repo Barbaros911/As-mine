@@ -588,6 +588,10 @@
         email: v.email.trim(), telephone: v.telephone.trim(), langue: langue(),
         /* Toujours VIDE : c'est l'absence de robot que le serveur lit ici. */
         site: '' };
+      /* Le lien d'un partenaire (« ?via= », lu puis effacé de l'adresse par
+         mesure.js) : il ne part que s'il y en a un — sans lien, le corps est
+         exactement celui d'avant. C'est le serveur qui le reconnaît. */
+      if (window.ELA_MESURE && window.ELA_MESURE.via) corps.via = window.ELA_MESURE.via;
       var attente = Math.max(0, DUREE_MIN_MS - (Date.now() - debut));
       setTimeout(function(){
         corps.duree = Date.now() - debut;

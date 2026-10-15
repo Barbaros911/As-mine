@@ -2247,14 +2247,12 @@ la liste blanche « pour déboguer », plus rien ne tombe.
 
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
-**Jamais un avis inventé** (L132-2) — refusé à Barbaros en septembre 2026, ne
-pas rouvrir le sujet. « Demander un avis » sur chaque course RÉALISÉE ouvre
-WhatsApp dans la langue du client (`bon.langue`) avec le lien `ela_lien_avis`
-(réglé sur l'appareil, jamais dans le code) ; sans lien, rien ne part.
-**DEMANDER À TOUS, PAS AUX SEULS CONTENTS** (15/10/2026) : trier serait le
-« review gating » interdit par Google et par la loi. `#bordAvis` compte les
-clients de la semaine sans demande, et se tait sans lien d'avis réglé.
-Histoire et détails : `memoire/avis.md`.
+**Jamais un avis inventé** (L132-2 ; refusé en 09/2026, ne pas rouvrir) et
+**on demande à TOUS** (15/10) : trier = « review gating », interdit par Google
+et la loi — le message ne dit plus « si tout s'est bien passé ». « Demander
+un avis » : course RÉALISÉE, langue du client, lien `ela_lien_avis` réglé sur
+l'appareil (sans lien, rien ne part) ; `#bordAvis` compte la semaine, se tait
+sans lien et cède aux écriteaux urgents. Histoire : `memoire/avis.md`.
 
 ## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
 
@@ -4625,9 +4623,11 @@ titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
   Toute page indexable va dans `sitemap.xml`, ou passe en `noindex`.
 - Origine de la demande (`provenance`) et entonnoir sans traceur (`ela_mesurer`,
   appliqué le 14/10) : `memoire/seo-international.md`.
-- **Lien d'un partenaire `?via=<code>`** (15/10) : code reconnu par le SERVEUR
-  seul (`liens_suivi`, admin seul ; migration `20261015000000` à appliquer),
-  provenance « Lien · nom » ; Registre → « Liens des partenaires ». `SEO-AUTORITE.md`.
+- **Lien d'un partenaire `?via=<code>`** (15/10) : reconnu par le SERVEUR
+  seul (`liens_suivi`, admin ; migration `20261015000000` à appliquer dans la
+  foulée — `20261014000000` ne se rejoue plus après), sur la demande ET le
+  prospect de la démo ; provenance « Lien · nom · page » ; Registre →
+  « Liens des partenaires ». `SEO-AUTORITE.md`.
 - Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
   données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
   réponses aux questions = celles de l'accueil, dans la langue de la page.

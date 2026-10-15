@@ -299,6 +299,14 @@ jobs:
                -f supabase/migrations/20261008000000_prospects.sql; then
             echo "La migration des prospects accepte une vue lisible par anon"; exit 1
           fi
+          # Le lien d'un prospect (15 octobre 2026) : la colonne « via » que la
+          # migration des liens pose SI la table des prospects existe. Posée par
+          # service_role, au format fermé, lue par l'admin seul, jamais réécrite.
+          psql -h 127.0.0.1 -U postgres -d prospects -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261014000000_mesure_acquisition.sql \
+            -f supabase/migrations/20261015000000_liens_suivi.sql \
+            -f supabase/migrations/20261015000000_liens_suivi.sql \
+            -f supabase/tests/prospects-via-apres.sql
           # La mesure d'audience des pages d'acquisition (14 octobre 2026).
           # Même décor (vraie est_admin(), privilèges par défaut de Supabase),
           # migration appliquée deux fois. Puis : anon compte et ne fait rien
@@ -328,9 +336,20 @@ jobs:
             -f supabase/migrations/20260929030000_role_agent_serveur.sql \
             -f supabase/tests/mesure.sql \
             -f supabase/migrations/20261014000000_mesure_acquisition.sql \
+            -c "insert into public.mesures_acquisition (jour, page, evenement, nombre) values ((now() at time zone 'Europe/Paris')::date, 'avant-migration', 'page_vue', 5);" \
             -f supabase/migrations/20261015000000_liens_suivi.sql \
             -f supabase/migrations/20261015000000_liens_suivi.sql \
             -f supabase/tests/liens-suivi-apres.sql
+          # Rejouer 20261014000000 APRÈS 20261015000000 doit être REFUSÉ, avant
+          # d'avoir rien écrit : elle recréerait ela_mesurer à deux paramètres
+          # et le serveur refuserait tout appel (« fonction non unique ») —
+          # plus une visite comptée (relecture du 15 octobre 2026).
+          if psql -h 127.0.0.1 -U postgres -d liens -X -q -v ON_ERROR_STOP=1 \
+               -f supabase/migrations/20261014000000_mesure_acquisition.sql >/dev/null 2>&1; then
+            echo "20261014000000 rejouée après 20261015000000 : elle devait s'arrêter"; exit 1
+          fi
+          psql -h 127.0.0.1 -U postgres -d liens -X -q -v ON_ERROR_STOP=1 -At \
+            -c "select case when to_regprocedure('public.ela_mesurer(text,text)') is null then 'OK' else 'KO' end" | grep -qx OK
           # Le prix des pages dédiées (14 octobre 2026) : la vue publique des
           # prix de page (pourcentage, tarifs au km), sur le décor des vues en
           # lecture seule (tables fermées à anon, privilèges par défaut de

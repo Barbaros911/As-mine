@@ -34,10 +34,15 @@
 --
 -- REJOUABLE : « if not exists », « create or replace », droits retirés
 -- puis rendus, clé primaire refaite seulement si elle n'a pas la bonne
--- forme. À APPLIQUER EN PRODUCTION après la fusion (workflow « Appliquer
--- une migration Supabase », ce fichier), APRÈS 20261014000000. Avant, un
--- « via » est simplement ignoré : la visite compte, sans source.
--- Épreuves : supabase/tests/mesure.sql (décor) puis liens-suivi-apres.sql.
+-- forme. À APPLIQUER EN PRODUCTION DANS LA FOULÉE DE LA FUSION (workflow
+-- « Appliquer une migration Supabase », ce fichier), APRÈS 20261014000000
+-- — qui, elle, NE SE REJOUE PLUS ensuite (elle recréerait l'ancienne
+-- fonction à deux paramètres). Entre la publication et ce fichier, un
+-- appel qui porte « via » est REFUSÉ par le serveur (fonction introuvable
+-- avec trois paramètres) et cette visite n'est pas comptée ; les pages
+-- sans lien comptent comme avant. D'où « dans la foulée ».
+-- Épreuves : supabase/tests/mesure.sql (décor) puis liens-suivi-apres.sql ;
+-- la colonne des prospects : prospects-via-apres.sql.
 -- =====================================================================
 
 do $$ begin
@@ -74,6 +79,34 @@ create policy "liens_suivi admin cree" on public.liens_suivi
 insert into public.liens_suivi (code, nom)
 values ('fiche-hotels', 'Fiche papier remise aux hôtels')
 on conflict (code) do nothing;
+
+-- ── LE PROSPECT DE LA DÉMO PORTE SON LIEN ──────────────────────────────
+-- La fiche papier mène à /professionnels/, dont la seule conversion est une
+-- demande de démo : sans cette colonne, la fiche ne pourrait JAMAIS montrer
+-- une demande (relecture du 15/10/2026). Posée par « demande-demo » (service
+-- role) juste après la création du prospect, jamais par le navigateur ; lue
+-- par l'admin avec le reste de la fiche, sous la RLS déjà en place. Même
+-- format fermé que le code d'un lien. Conditionnelle : la table n'existe
+-- que si 20261008000000 est passée — en production, oui.
+do $$ begin
+  if to_regclass('public.prospects') is not null then
+    alter table public.prospects add column if not exists via text;
+    if not exists (select 1 from pg_constraint
+                    where conrelid = 'public.prospects'::regclass
+                      and conname = 'prospects_via_format') then
+      alter table public.prospects add constraint prospects_via_format
+        check (via is null or via ~ '^[a-z0-9-]{2,40}$');
+    end if;
+    -- Les droits de la table sont PAR COLONNE (20261008000000) : une colonne
+    -- neuve n'est lisible par personne tant qu'on ne le dit pas. L'admin la
+    -- lit (sous la RLS), ne l'écrit pas ; anon rien ; la pose vient de
+    -- service_role — même règle que le prénom (20261009010000).
+    revoke insert (via), update (via), references (via) on table public.prospects
+      from public, anon, authenticated;
+    revoke select (via) on table public.prospects from public, anon;
+    grant select (via) on table public.prospects to authenticated;
+  end if;
+end $$;
 
 -- ── LE COMPTEUR APPREND LA SOURCE ──────────────────────────────────────
 alter table public.mesures_acquisition

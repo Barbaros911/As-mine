@@ -28,16 +28,26 @@
 -- Les chiffres qui comptent vraiment — les demandes — sont les COURSES,
 -- avec leur « provenance » : elles ne passent pas par ce compteur.
 --
--- REJOUABLE : « if not exists », « create or replace », droits retirés puis
--- rendus. Aucune donnée créée. À APPLIQUER EN PRODUCTION après la fusion
--- (workflow « Appliquer une migration Supabase », ce fichier). Avant, les
--- appels des pages échouent sans aucun effet sur le visiteur.
+-- REJOUABLE TANT QUE 20261015000000 N'EST PAS PASSÉE : « if not exists »,
+-- « create or replace », droits retirés puis rendus. Aucune donnée créée.
+-- À APPLIQUER EN PRODUCTION après la fusion (workflow « Appliquer une
+-- migration Supabase », ce fichier). Avant, les appels des pages échouent
+-- sans aucun effet sur le visiteur.
+-- ENSUITE, CE FICHIER NE SE REJOUE PLUS (relecture du 15 octobre 2026) :
+-- 20261015000000 remplace « ela_mesurer » par une version à trois
+-- paramètres ; rejoué après elle, ce fichier recréerait celle à deux, et
+-- le serveur refuserait TOUT appel (« fonction non unique ») — plus une
+-- seule visite comptée, sans un mot. La garde ci-dessous s'arrête à la
+-- première ligne, avant d'avoir rien touché.
 -- Épreuves : supabase/tests/mesure.sql puis mesure-apres.sql.
 -- =====================================================================
 
 do $$ begin
   if to_regprocedure('public.est_admin()') is null then
     raise exception 'est_admin() absente : appliquer 20260929030000_role_agent_serveur.sql avant ce fichier';
+  end if;
+  if to_regprocedure('public.ela_mesurer(text,text,text)') is not null then
+    raise exception '20261015000000_liens_suivi.sql est déjà appliquée : ce fichier ne se rejoue plus (il recréerait ela_mesurer à deux paramètres, et plus aucune visite ne serait comptée)';
   end if;
 end $$;
 

@@ -59,7 +59,7 @@ const b = await chromium.launch();
 async function visiteur({ ua = UA_IPHONE, init } = {}) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, locale: 'en-US',
     timezoneId: 'Europe/Paris', userAgent: ua });
-  const mesures = [], depots = [];
+  const mesures = [], depots = [], demos = [];
   await ctx.addInitScript(() => { window.open = () => null; });
   if (init) await ctx.addInitScript(init);
   await ctx.route('**/*', async route => {
@@ -71,13 +71,17 @@ async function visiteur({ ua = UA_IPHONE, init } = {}) {
     if (u.includes('supabase.co') && req.method() === 'POST') {
       let c = {}; try { c = JSON.parse(req.postData() || '{}'); } catch {}
       if (c.bon) { depots.push(c.bon); return route.fulfill(J({ ok: true }, 201)); }
+      if (u.includes('/functions/v1/demande-demo')) {
+        demos.push(c);
+        return route.fulfill(J({ session: 'S.S', expire: new Date(Date.now() + 36e5).toISOString(), etablissement: c.etablissement || '' }));
+      }
     }
     if (u.includes('supabase.co')) return route.fulfill(J([]));
     return route.abort();
   });
   const p = await ctx.newPage();
   const erreurs = []; p.on('pageerror', e => erreurs.push(e.message));
-  return { ctx, p, mesures, depots, erreurs };
+  return { ctx, p, mesures, depots, demos, erreurs };
 }
 const LANDING = '/en/cdg-airport-transfer-paris/';
 
@@ -87,12 +91,20 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
   await v.p.goto(SITE + LANDING + '?via=hotel-exemple', { waitUntil: 'load' });
   await v.p.waitForTimeout(500);
   const etat = await v.p.evaluate(() => ({ adresse: location.search,
-    books: [...document.querySelectorAll('a[data-mesure="reserver"]')].map(a => a.getAttribute('href')) }));
+    books: [...document.querySelectorAll('a[data-mesure="reserver"]')].map(a => a.getAttribute('href')),
+    internes: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^\/en\//.test(h)),
+    ancres: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^#/.test(h) || /via=.*#|#.*via=/.test(h)),
+    externes: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => /^(tel:|mailto:|https:\/\/wa\.me)/.test(h)) }));
   const vue = v.mesures.find(m => m.p_evenement === 'page_vue') || {};
   check('arrivée : la visite est comptée avec le code du partenaire', vue.p_page === 'en-cdg' && vue.p_source === 'hotel-exemple', JSON.stringify(vue));
   check('arrivée : le code est effacé de la barre d\'adresse', etat.adresse === '', etat.adresse);
   check('arrivée : chaque « Book » emmène le code', etat.books.length >= 3 && etat.books.every(h => /[?&]via=hotel-exemple(&|$|#)/.test(h)), etat.books.join(' | '));
   check('arrivée : « Book » garde sa page d\'origine et son aéroport', etat.books.every(h => /src=en-cdg/.test(h) && /aeroport=cdg/.test(h)), etat.books.join(' | '));
+  /* Perdu au premier clic vers /en/ ou une autre page, le code ne verrait
+     jamais la demande qui part de là (relecture du 15/10/2026). */
+  check('arrivée : les autres liens du site (accueil anglais, autres pages) emmènent le code aussi', etat.internes.length >= 2 && etat.internes.every(h => /[?&]via=hotel-exemple(&|$|#)/.test(h)), etat.internes.join(' | '));
+  check('arrivée : une ancre de la même page reste une ancre (réécrite, elle rechargerait la page)', etat.ancres.length >= 1 && etat.ancres.every(h => /^#/.test(h)), etat.ancres.join(' | '));
+  check('arrivée : tel:, mailto: et WhatsApp ne sont pas touchés', etat.externes.length >= 3 && etat.externes.every(h => !/via=/.test(h)), etat.externes.join(' | '));
   /* On appuie vraiment : le moteur s'ouvre, compte avec le code, l'efface. */
   await v.p.locator('a[data-mesure="reserver"]').first().click();
   await v.p.waitForURL(u => u.pathname === '/', { timeout: 8000 }).catch(() => {});
@@ -145,7 +157,30 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
   const vue = v.mesures.find(m => m.p_evenement === 'page_vue') || {};
   check('professionnels : la visite est comptée, page « pro », avec le code de la fiche', vue.p_page === 'pro' && vue.p_source === 'fiche-hotels', JSON.stringify(vue));
   check('professionnels : le code est effacé de la barre d\'adresse', await v.p.evaluate(() => location.search) === '');
+  /* La seule conversion de cette page est une demande de démo : sans le
+     code dessus, la fiche papier ne pourrait jamais montrer une demande
+     (relecture du 15/10/2026). */
+  await v.p.click('.types label:nth-child(1)');
+  await v.p.fill('#fEtablissement', 'Hôtel Exemple Roissy'); await v.p.fill('#fPrenom', 'Marie'); await v.p.fill('#fNom', 'Dupont');
+  await v.p.fill('#fEmail', 'direction@exemple.fr'); await v.p.fill('#fTelephone', '06 12 34 56 78');
+  await v.p.click('#fEnvoyer');
+  await v.p.waitForFunction(() => false, null, { timeout: 3500 }).catch(() => {});
+  const demo = v.demos[0] || {};
+  check('professionnels : la demande de démo part avec le code de la fiche', demo.action === 'demander' && demo.via === 'fiche-hotels', JSON.stringify({ via: demo.via, action: demo.action }));
   check('professionnels : aucune erreur JavaScript', v.erreurs.length === 0, v.erreurs.join(' | '));
+  await v.ctx.close();
+}
+{
+  const v = await visiteur();
+  await v.p.goto(SITE + '/professionnels/', { waitUntil: 'load' });
+  await v.p.waitForTimeout(300);
+  await v.p.click('.types label:nth-child(1)');
+  await v.p.fill('#fEtablissement', 'Hôtel Exemple Roissy'); await v.p.fill('#fPrenom', 'Marie'); await v.p.fill('#fNom', 'Dupont');
+  await v.p.fill('#fEmail', 'direction@exemple.fr'); await v.p.fill('#fTelephone', '06 12 34 56 78');
+  await v.p.click('#fEnvoyer');
+  await v.p.waitForFunction(() => false, null, { timeout: 3500 }).catch(() => {});
+  const demo = v.demos[0] || {};
+  check('professionnels sans lien : la demande de démo part sans « via », exactement comme avant', demo.action === 'demander' && !('via' in demo), JSON.stringify(Object.keys(demo)));
   await v.ctx.close();
 }
 
@@ -246,6 +281,7 @@ async function admin({ lienAvis = 'https://g.page/r/exemple/review', mesureEnPan
       return route.fulfill(J([l], 201));
     }
     if (u.includes('/rest/v1/liens_suivi')) return route.fulfill(J(LIENS));
+    if (u.includes('/rest/v1/prospects')) return route.fulfill(J([{ via: 'fiche-hotels' }, { via: 'fiche-hotels' }]));
     if (u.includes('/rest/v1/courses?select=ref&') || u.includes('/rest/v1/courses?select=ref,version&')) return route.fulfill(J([{ ref: COURSES[0].ref }]));
     if (u.includes('/rest/v1/courses')) return route.fulfill(J(COURSES.map(bon => ({ bon, statut: bon.statut }))));
     if (u.includes('/rest/v1/')) return route.fulfill(J([]));
@@ -272,6 +308,26 @@ try {
        LC3CC est une course d'essai, LB2BB n'est pas réalisée. */
     check('avis : le rappel compte les 2 clients de la semaine sans demande', avis.vu && /^2 clients de la semaine sans demande d'avis/.test(avis.texte), JSON.stringify(avis));
     check('avis : il dit la règle — demander à tous, et le « : » ne part jamais seul en début de ligne', /\u00a0: demandez à tous\.$/.test(avis.texte), avis.texte);
+    /* LE BUDGET DE L'ÉCRAN (relecture du 15/10/2026, mesuré : 878 px sur 844
+       quand il s'ajoutait à trois écriteaux). Avec le son coupé et le rappel
+       de sauvegarde affichés, la première demande en attente finit dans
+       l'écran ; dès qu'un écriteau urgent apparaît, le rappel s'efface. */
+    const budget = await p.evaluate(() => {
+      const montre = id => { const e = document.getElementById(id); e.hidden = false; if (!e.textContent.trim()) e.textContent = 'écriteau'; };
+      montre('sonCoupe'); montre('bordSauvegarde');
+      const avis = document.getElementById('bordAvis');
+      const visible = () => getComputedStyle(avis).display !== 'none' && avis.getClientRects().length > 0;
+      const carte = document.querySelector('#listeBord .demande.attente');
+      const r = carte && carte.getBoundingClientRect();
+      const avant = { visible: visible(), bas: r ? Math.round(r.bottom) : null, vue: innerHeight };
+      montre('bordSansChauffeur');
+      const pendant = visible();
+      document.getElementById('bordSansChauffeur').hidden = true;
+      return { avant, pendant, apres: visible() };
+    });
+    check('avis : avec le son coupé et le rappel de sauvegarde, il reste affiché et la première demande en attente finit dans l\'écran', budget.avant.visible && budget.avant.bas !== null && budget.avant.bas <= budget.avant.vue, JSON.stringify(budget.avant));
+    check('avis : dès qu\'un écriteau urgent s\'affiche (« sans chauffeur »), le rappel s\'efface — et revient quand il disparaît', budget.pendant === false && budget.apres === true, JSON.stringify(budget));
+    await p.evaluate(() => { document.getElementById('sonCoupe').hidden = true; document.getElementById('bordSauvegarde').hidden = true; });
     await p.click('#btnBordAvis');
     await p.waitForTimeout(400);
     const filtre = await p.evaluate(() => [...document.querySelectorAll('#listeBord .demande')].length);
@@ -306,7 +362,7 @@ try {
     check('liens : l\'argent ne compte que la réalisée (80 €, pas 999)', /^80\s?€$/.test(exemple.val || ''), exemple.val);
     check('liens : le code est écrit sous le nom', exemple.sous[1] === 'Code : hotel-exemple', exemple.sous[1]);
     const fiche = ls.find(l => l.nom === 'Fiche papier remise aux hôtels') || { sous: [] };
-    check('liens : un lien sans visite ne s\'invente pas de chiffres', /^0 demande · 0 réalisée$/.test(fiche.sous[0] || ''), fiche.sous[0]);
+    check('liens : la fiche papier compte ses demandes de démo, et ne s\'invente pas de vues', fiche.sous[0] === '2 demandes de démo · 0 demande · 0 réalisée', fiche.sous[0]);
 
     /* Copier le lien de la page choisie. */
     await p.selectOption('#lienPage', '/en/cdg-airport-transfer-paris/');

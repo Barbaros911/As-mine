@@ -45,8 +45,11 @@
      compte comme une visite sans source. Rien n'est écrit sur l'appareil.
      Il est EFFACÉ de la barre d'adresse : partagée ensuite, l'adresse ne
      doit pas attribuer au partenaire un visiteur qu'il n'a pas envoyé. Il
-     suit le visiteur jusqu'au moteur par les seuls boutons « Book » : c'est
-     là que la demande naît, et c'est elle qui compte. */
+     suit le visiteur sur TOUS les liens du site — « Book » vers le moteur,
+     mais aussi l'accueil anglais, les autres pages, le pied : un partenaire
+     qui envoie sur /en/ perdrait sinon son visiteur au premier clic, et ne
+     verrait jamais une demande (relecture du 15/10/2026). Une ancre de la
+     même page reste une ancre : réécrite, elle rechargerait la page. */
   var via = "";
   try{
     var params = new URLSearchParams(location.search);
@@ -60,10 +63,11 @@
   }catch(e){ /* sans URLSearchParams : la visite compte, sans source */ }
   function suivreJusquAuMoteur(){
     if(!via) return;
-    document.querySelectorAll('a[data-mesure="reserver"]').forEach(function(a){
+    document.querySelectorAll("a[href]").forEach(function(a){
       try{
         var u = new URL(a.getAttribute("href") || "", location.href);
         if(u.origin !== location.origin) return;
+        if(u.hash && u.pathname === location.pathname && u.search === location.search) return;
         u.searchParams.set("via", via);
         a.setAttribute("href", u.pathname + u.search + u.hash);
       }catch(e){}

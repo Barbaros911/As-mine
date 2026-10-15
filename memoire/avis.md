@@ -45,3 +45,26 @@ Ce qui a été fait à la place — la seule voie honnête, et elle marche :
   de la LIGNE entière, et la poser sur un bouton lui collerait la mise en
   page d'une carte.
 
+
+## 15 octobre 2026 — le rappel, et la relecture qui l'a corrigé
+
+- **`#bordAvis`** (tableau de bord) compte les clients de la semaine dont la
+  course RÉALISÉE n'a pas reçu la demande d'avis (`avisADemander`,
+  `JOURS_AVIS = 7`, numéro présent, course d'essai exclue). Il se tait sans
+  lien d'avis réglé : il mènerait au champ, pas au client.
+- **Il vient en DERNIER et cède la place aux écriteaux urgents** (relecture
+  indépendante, mesuré : 878 px sur 844 quand il s'ajoutait au son coupé, au
+  rappel de sauvegarde et à « sans chauffeur » — la première demande sortait
+  de l'écran). C'est une règle de STYLE (`#bordSansChauffeur:not([hidden])
+  ~ #bordAvis{display:none}` et ses sœurs), pas un redessin : elle suit
+  l'état des écriteaux à l'instant même. Le son coupé et le rappel de
+  sauvegarde, non urgents, ne le chassent pas ; `test-liens-suivi` mesure
+  les deux cas.
+- **Le message ne dit plus « si tout s'est bien passé »** (FR/EN, admin et
+  Admin v2) : la condition ne demandait l'avis qu'aux clients contents —
+  exactement le tri (« review gating ») que la règle « demander à tous »
+  interdit. Trouvé par la relecture, hors du diff.
+- Un vrai hôtel (« Nomad ») servait d'exemple dans l'admin et les jeux de
+  test : remplacé par « Hôtel Exemple Roissy ». Dans un dépôt public, un
+  exemple qui nomme un hôtel réel avec des courses inventées se lit comme
+  un partenariat.

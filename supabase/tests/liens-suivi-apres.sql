@@ -37,6 +37,13 @@ begin
     raise exception 'ECHEC 1 : le lien de la fiche papier n''existe pas'; end if;
   if (select count(*) from public.liens_suivi where code = 'fiche-hotels') <> 1 then
     raise exception 'ECHEC 1 : migration rejouée, lien en double'; end if;
+  -- La table n'était pas vide : le workflow y a compté une page AVANT la
+  -- migration. La clé primaire refaite sur une table pleine garde la ligne,
+  -- avec une source vide (relecture du 15/10/2026 : ce cas n'était pas éprouvé).
+  if not exists (select 1 from public.mesures_acquisition
+                  where page = 'avant-migration' and evenement = 'page_vue'
+                    and source = '' and nombre = 5) then
+    raise exception 'ECHEC 1 : la ligne comptée avant la migration a disparu ou changé'; end if;
 end $$;
 
 -- ── 2. L'ADMIN CRÉE ET LIT ; L'AGENT ET L'ANONYME NON ───────────────────

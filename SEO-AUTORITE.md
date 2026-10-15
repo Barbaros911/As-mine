@@ -409,13 +409,16 @@ partenaire, `?via=<code>`.**
   page d'arrivée, « Copier ») et y lit ce qu'il amène : vues, « Book »,
   appels, WhatsApp, moteur ouvert (compteur du serveur), puis demandes,
   réalisées et argent encaissé (registre).
-- Le code suit le visiteur de la page jusqu'à la demande ; le serveur le
-  reconnaît dans sa liste (`liens_suivi`, lisible par l'admin seul) et pose
-  la provenance « Lien · nom ». Un code inventé est ignoré.
+- Le code suit le visiteur sur tous les liens du site jusqu'à la demande ;
+  le serveur le reconnaît dans sa liste (`liens_suivi`, lisible par l'admin
+  seul) et pose la provenance « Lien · nom · page d'origine ». Un code
+  inventé est ignoré. Une demande de démo (page Professionnels) le porte
+  aussi (`prospects.via`) : c'est la seule conversion de cette page.
 - Aucun cookie, rien sur l'appareil ; la politique de confidentialité le dit
   (FR/EN, mise à jour du 15/10). Migration `20261015000000` à appliquer après
   la fusion.
-- La fiche papier des hôtels a déjà son code : `fiche-hotels`.
+- La fiche papier des hôtels a déjà son code : `fiche-hotels` — ses visites
+  et ses demandes de démo se lisent sur sa ligne.
 - `/professionnels/` compte aussi ses visites (page « pro ») : c'est elle que
   visent un office de tourisme, une CCI, un média hôtelier et la fiche papier.
 

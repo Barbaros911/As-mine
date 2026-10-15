@@ -345,7 +345,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const r1=await dep(bonVia('ELA-26-10-LV1AA','hotel-exemple'));
   const b1=deposes[0]||{};
   ok(r1.status===201&&b1.via==='hotel-exemple'&&b1.viaNom==='Hôtel Exemple Roissy','deposer-course : un lien connu est retenu, avec le nom du partenaire ('+r1.status+', '+b1.via+')');
-  ok(b1.provenance==='Lien · Hôtel Exemple Roissy','deposer-course : la provenance dit le partenaire, pas la page ('+b1.provenance+')');
+  ok(b1.provenance==='Lien · Hôtel Exemple Roissy · Site anglais · CDG ↔ Paris','deposer-course : la provenance dit le partenaire ET garde la page d\'origine ('+b1.provenance+')');
   const r2=await dep(bonVia('ELA-26-10-LV2BB','inconnu'));
   const b2=deposes[1]||{};
   ok(r2.status===201&&!('via' in b2)&&b2.provenance==='Site anglais · CDG ↔ Paris','deposer-course : un code inventé est ignoré, la provenance de la page reste');
@@ -392,6 +392,8 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     if(url.includes('/rpc/ela_prospect_confirmer')){const a=JSON.parse(init.body);const ok=F.jetons.has(a.p_empreinte);F.jetons.delete(a.p_empreinte);return new Response(JSON.stringify(ok));}
     if(url.includes('api.telegram.org')){if(F.tgPanne)throw new Error('réseau');F.tg.push(JSON.parse(init.body));return new Response('{}');}
     if(url.includes('api.resend.com')){F.mails.push(JSON.parse(init.body));return new Response('{}');}
+    if(url.includes('/rest/v1/liens_suivi')){F.liens=(F.liens||0)+1;return new Response(url.includes('code=eq.fiche-hotels')?JSON.stringify([{code:'fiche-hotels',nom:'Fiche papier remise aux hôtels'}]):'[]');}
+    if(url.includes('/rest/v1/prospects?id=eq.')&&init.method==='PATCH'){F.vias=(F.vias||[]);F.vias.push({url,corps:JSON.parse(init.body)});return new Response('',{status:204});}
     return new Response('?',{status:404});
   };
   const ENV={SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',DEMO_SESSION_SECRET:randomBytes(24).toString('hex'),
@@ -402,7 +404,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     email:'Direction@HotelDesLilas.fr',telephone:'06 12 34 56 78',langue:'fr',turnstile:'humain',site:'',duree:6000};
   const demande=(extra={},fn=dd,o)=>appel(fn,Object.assign({},base,extra),o);
   const rien=()=>F.crees.length===0&&F.tg.length===0&&F.mails.length===0;
-  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];F.sansPrenom=false;F.appelsCreer=0;};
+  const raz=()=>{F.quota=true;F.turnstile=0;F.crees=[];F.tg=[];F.mails=[];F.ouverts=[];F.tgPanne=false;F.quotaCles=[];F.sansPrenom=false;F.appelsCreer=0;F.liens=0;F.vias=[];};
 
   // Aucun secret possible (ni posé, ni clé service_role à dériver) : rien ne passe.
   {raz();const fn=await charger('demande-demo',Object.assign({},ENV,{DEMO_SESSION_SECRET:'',SUPABASE_SERVICE_ROLE_KEY:''}));
@@ -467,6 +469,20 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   }
   raz();
   ok((await demande({action:'supprimer'})).status===400&&rien(),'demande-demo : action inconnue → 400');
+  // Le lien d'un partenaire (15/10/2026) : la fiche papier des hôtels mène ici avec « ?via=fiche-hotels ».
+  raz();
+  {const r=await demande({via:'fiche-hotels'});
+   ok(r.status===200&&F.crees.length===1&&F.vias.length===1&&F.vias[0].corps.via==='fiche-hotels'&&F.vias[0].url.includes('prospects?id=eq.')&&Object.keys(F.vias[0].corps).join()==='via','demande-demo : un lien connu est posé sur le prospect, après sa création, et rien d\'autre ('+JSON.stringify(F.vias)+')');
+   ok(F.tg.length===1&&/\nVenu par : Fiche papier remise aux hôtels$/.test(F.tg[0].text),'demande-demo : l\'alerte Telegram nomme le lien');
+   ok(!('via' in F.crees[0])&&!Object.keys(F.crees[0]).some(k=>/via/.test(k)),'demande-demo : le lien ne passe jamais par la porte de création');}
+  raz();
+  {const r=await demande({via:'inconnu'});
+   ok(r.status===200&&F.crees.length===1&&F.vias.length===0&&!/Venu par/.test(F.tg[0]?.text||''),'demande-demo : un code inconnu ne pose rien et ne se nomme pas');}
+  raz();
+  {const r=await demande({via:'Fiche Hotels<'});
+   ok(r.status===200&&F.crees.length===1&&F.liens===0&&F.vias.length===0,'demande-demo : un code mal formé ne fait aucune lecture');}
+  raz();
+  ok((await demande({})).status===200&&F.liens===0&&F.crees.length===1,'demande-demo : sans lien, aucune lecture de plus — une page ancienne demande comme avant');
   // Turnstile.
   raz();
   {const r=await demande({turnstile:''});ok(r.status===403&&(await r.json()).erreur==='robot'&&rien()&&F.turnstile===0,'demande-demo : Turnstile absent → 403 robot');}

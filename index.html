@@ -2514,6 +2514,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
    ce qui attend une réponse. */
 .sauvegarde-bord{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:#EEF4FB;border:1px solid #C8DAEE;color:#123B63}
 .sauvegarde-bord p{margin:0 0 8px;font-size:14px;line-height:1.45}
+/* LE RAPPEL D'AVIS CÈDE LA PLACE (15/10/2026) : non urgent, il se masque dès
+   qu'un écriteau urgent le précède — le budget de l'écran (la première
+   demande entière à 844 px) est à eux. Une règle de style, pas un redessin :
+   elle suit l'état des écriteaux à l'instant même. Le son coupé et le rappel
+   de sauvegarde, qui ne sont pas urgents, ne le chassent pas. */
+#bordArrivee:not([hidden])~#bordAvis,#bordAlertes:not([hidden])~#bordAvis,
+#bordDettes:not([hidden])~#bordAvis,#bordHorsLigne:not([hidden])~#bordAvis,
+#bordSynchro:not([hidden])~#bordAvis,#bordConflit:not([hidden])~#bordAvis,
+#bordSansChauffeur:not([hidden])~#bordAvis{display:none}
 .sauvegarde-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
 /* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026) : bandeaux compacts, Actualiser,
@@ -4063,17 +4072,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p id="bordSauvegardeTexte"></p>
       <button class="bouton-fantome" type="button" id="btnBordSauver">Sauvegarder</button>
     </div>
-    <!-- LES AVIS À DEMANDER (15 octobre 2026, SEO-AUTORITE.md § 11). Le bouton
-         « Demander un avis » est manuel, course par course : ne le proposer
-         qu'aux clients contents serait exactement le tri que Google et la loi
-         interdisent. Ce rappel compte les clients de la semaine qui n'ont rien
-         reçu. Il se tait tant qu'aucun lien d'avis n'est réglé : il n'y a
-         alors nulle part où laisser un avis, et un rappel qui ne mène à rien
-         est du bruit. -->
-    <div class="sauvegarde-bord" id="bordAvis" hidden>
-      <p id="bordAvisTexte"></p>
-      <button class="bouton-fantome" type="button" id="btnBordAvis">Voir</button>
-    </div>
     <div class="hors-ligne" id="bordHorsLigne" hidden>
       <p id="bordHorsLigneTexte">Vous ne recevez pas les demandes de vos clients
          sur cet appareil : vous ne voyez que les courses saisies ici.</p>
@@ -4093,6 +4091,22 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          la relance ne vise que les demandes en attente. Comme les dettes,
          l'écriteau n'existe que s'il y a quelque chose à faire. -->
     <button class="sans-chauffeur-bord" type="button" id="bordSansChauffeur" hidden></button>
+    <!-- LES AVIS À DEMANDER (15 octobre 2026, SEO-AUTORITE.md § 11). Le bouton
+         « Demander un avis » est manuel, course par course : ne le proposer
+         qu'aux clients contents serait exactement le tri que Google et la loi
+         interdisent. Ce rappel compte les clients de la semaine qui n'ont rien
+         reçu. Il se tait tant qu'aucun lien d'avis n'est réglé : il n'y a
+         alors nulle part où laisser un avis, et un rappel qui ne mène à rien
+         est du bruit.
+         IL VIENT EN DERNIER ET CÈDE LA PLACE (relecture du 15/10) : non
+         urgent, et affiché presque chaque jour, il poussait la première
+         demande hors de l'écran (878 px sur 844, mesuré) dès que trois
+         écriteaux s'ajoutaient. Dès qu'un écriteau urgent est affiché, le
+         style le masque — sans attendre un redessin. -->
+    <div class="sauvegarde-bord" id="bordAvis" hidden>
+      <p id="bordAvisTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnBordAvis">Voir</button>
+    </div>
 
     <!-- ═══ LE BLOC A MAIGRI DE MOITIÉ ═══
          Septembre 2026, à sa demande : « ça prend beaucoup de place ». Il
@@ -12711,19 +12725,22 @@ window.ELA_TEXTES = {
   }
   /* Le message est COURT et il se lit sur un écran verrouillé : le nom de
      l'entreprise, la raison, le lien. Un paragraphe de remerciements
-     s'ouvre, se lit en diagonale et se ferme sans qu'on ait cliqué. */
+     s'ouvre, se lit en diagonale et se ferme sans qu'on ait cliqué.
+     IL NE DIT PLUS « si tout s'est bien passé » (15/10/2026) : cette
+     condition ne demandait l'avis qu'aux clients contents — le tri que
+     Google (« review gating ») et la loi interdisent. On demande à tous. */
   function messageAvis(c){
     var prenom = ((c.client && c.client.nom) || "").trim().split(/\s+/)[0];
     var lien = lienAvis();
     if((c.langue || "fr") === "en"){
       return (prenom ? "Hello " + prenom + ", " : "Hello, ")
         + "thank you for travelling with Elatransfer.\n"
-        + "If everything went well, a short review would help us a lot:\n"
+        + "Your review of this journey would help us a lot:\n"
         + lien;
     }
     return (prenom ? "Bonjour " + prenom + ", " : "Bonjour, ")
       + "merci d'avoir voyagé avec Elatransfer.\n"
-      + "Si tout s'est bien passé, un avis nous aiderait beaucoup :\n"
+      + "Votre avis sur ce trajet nous aiderait beaucoup :\n"
       + lien;
   }
   /* Sans lien, le message ne sert à rien : on emmène l'exploitant au champ
@@ -16162,10 +16179,21 @@ window.ELA_TEXTES = {
     }
     etat.textContent = "Lecture des liens…";
     var sansMesure = false;
+    /* UNE SEULE FENÊTRE POUR TOUT : 30 jours, comme le titre. Le compteur
+       (vues, « Book ») les lit déjà ; les demandes et l'argent sont pris sur
+       la date de la COURSE, et les demandes de démo sur leur date — sinon une
+       ligne disait « 12 vues · 40 demandes », deux périodes dans un chiffre
+       (relecture du 15/10/2026). */
+    var depuis = dateLocale(new Date(Date.now() - 30 * 86400000));
     Promise.all([
       nuage.appel("/rest/v1/liens_suivi?select=code,nom,cree_le&order=cree_le.asc"),
       nuage.appel("/rest/v1/rpc/ela_mesures_liens", { method:"POST", body: JSON.stringify({ p_jours: 30 }) })
-        .catch(function(){ sansMesure = true; return []; })
+        .catch(function(){ sansMesure = true; return []; }),
+      /* Les demandes de démo (page Professionnels, fiche papier) : la seule
+         conversion de cette page-là. Lisibles par l'admin seul ; muettes,
+         aucun chiffre inventé. */
+      nuage.appel("/rest/v1/prospects?select=via&via=not.is.null&cree_le=gte." + depuis)
+        .catch(function(){ return []; })
     ]).then(function(r){
       var liens = Array.isArray(r[0]) ? r[0] : [];
       var mesure = {};
@@ -16173,18 +16201,26 @@ window.ELA_TEXTES = {
         if(!l || !l.source) return;
         (mesure[l.source] = mesure[l.source] || {})[l.evenement] = Number(l.nombre) || 0;
       });
-      var courses = registre().filter(comptable);
+      var demos = {};
+      (Array.isArray(r[2]) ? r[2] : []).forEach(function(x){
+        if(x && x.via) demos[x.via] = (demos[x.via] || 0) + 1;
+      });
+      var courses = registre().filter(comptable).filter(function(c){
+        return String((c.course && c.course.date) || "") >= depuis;
+      });
       zone.innerHTML = "";
       liens.map(function(l){
         var m = mesure[l.code] || {};
         var siennes = courses.filter(function(c){ return c.via === l.code; });
         var faites = siennes.filter(function(c){ return c.statut === "realisee"; });
+        var nd = demos[l.code] || 0;
         var parts = GESTES_MESURE.filter(function(g){ return m[g[0]]; })
           .map(function(g){ return m[g[0]] + " " + (m[g[0]] > 1 ? g[2] : g[1]); });
+        if(nd) parts.push(nd + (nd > 1 ? " demandes de démo" : " demande de démo"));
         parts.push(siennes.length + (siennes.length > 1 ? " demandes" : " demande"));
         parts.push(faites.length + " réalisée" + (faites.length > 1 ? "s" : ""));
         return { lien:l, sous:parts.join(" · "), total:bilan(faites).total,
-                 _n:siennes.length * 1000 + (m.page_vue || 0) + (m.moteur_ouvert || 0) };
+                 _n:(siennes.length + nd) * 1000 + (m.page_vue || 0) + (m.moteur_ouvert || 0) };
       }).sort(function(x, y){ return y._n - x._n; }).forEach(function(x){
         var d = document.createElement("div");
         d.className = "reg-ligne reg-lien";
