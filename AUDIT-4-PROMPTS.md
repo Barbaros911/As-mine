@@ -80,7 +80,14 @@ Source : monitoring n° 192 du 15/10/2026 sur `f6fb64a` [P], recoupé avec
 - Les données structurées ne portent ni note, ni avis, ni prix, ni adresse
   postale — rien d'inventé [D].
 - **Google** : la colonne « non prouvé » le restera tant que personne n'ouvre
-  Search Console (compte `orucburak001`). Gestes et attendus :
+  Search Console (compte `orucburak001`).
+  **Mise à jour du 15/10/2026, 22 h 14 (captures de Barbaros)** : Sitemaps →
+  « Traitement du sitemap réussi », dernière lecture 15/10/2026, **10 pages
+  découvertes** (le compte du plan). Historique d'inspection : les deux pages
+  françaises CDG et Orly et quatre pages `/en/` visibles ; `/en/` elle-même
+  n'apparaît pas sur la capture, coupée en haut, donc non prouvée. Une
+  demande d'indexation n'est pas une indexation : la colonne reste « non
+  prouvé » jusqu'au rapport « Pages ». Gestes et attendus :
   `memoire/seo-indexation.md`. Une recherche `site:` n'est pas une preuve.
 - **Performance** (laboratoire, site construit, réseau 1,6 Mbit/s + 150 ms,
   processeur ×4, iPhone 390 px, polices et serveur coupés) [C] :
@@ -293,9 +300,10 @@ libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
 3. **Supabase** : rien à appliquer. Interdit : rejouer `20261014000000`.
    Facultatif : un SQL de lecture seule pour voir les premières lignes de
    `mesures_acquisition` avec une source.
-4. **Search Console** (Barbaros) : soumettre `sitemap.xml` (10 URL) ; demander
-   l'indexation de `/en/` ×5, `/transfert-cdg-paris`, `/transfert-orly-paris` ;
-   surveiller « Pages non indexées » et « Liens ».
+4. **Search Console** (Barbaros) : plan du site soumis et traité le 15/10
+   (10 pages découvertes) ; indexation demandée pour au moins six des sept
+   adresses — vérifier `/en/`. Reste : surveiller « Pages » dans quelques
+   jours, puis « Liens ».
 5. **Corrigé** : A-01, A-02 ; verrou des deux phrases dans
    `textes-interdits.mjs` ; +4 contrôles dans `test-nouveau-serveur` ;
    nouvelle suite de 85 contrôles.
