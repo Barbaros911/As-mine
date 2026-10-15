@@ -3939,12 +3939,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          Quand le dépôt a ÉCHOUÉ, ce bouton devient le seul chemin par lequel
          sa demande peut nous parvenir : il passe en or. -->
     <div class="veh-action" id="actionsBon">
-      <!-- La note n'est plus cachée : le renvoi sert dans les DEUX cas
-           maintenant, puisque le message WhatsApp part à chaque
-           réservation. Un client qui a fermé l'onglet sans appuyer sur
-           envoyer doit pouvoir le refaire d'ici. -->
-      <p class="rassure" id="noteRenvoi" data-t="renvoi_note">Si WhatsApp ne s'est pas ouvert, ou si vous
-         n'avez pas appuyé sur envoyer, renvoyez-le d'ici.</p>
+      <!-- LA NOTE NE DÉCRIT PLUS L'OUVERTURE DE WHATSAPP (15 octobre 2026,
+           audit des quatre prompts). Elle disait « Si WhatsApp ne s'est pas
+           ouvert, ou si vous n'avez pas appuyé sur envoyer » — un mécanisme
+           retiré le 4 octobre 2026 (option A : plus aucune application ne
+           s'ouvre au clic). Un libellé qui décrit un mécanisme retiré est
+           pire qu'un libellé absent. La note reste visible dans les deux
+           états : WhatsApp est le second chemin par lequel la demande
+           arrive, et le seul si le dépôt a échoué. -->
+      <p class="rassure" id="noteRenvoi" data-t="renvoi_note">Vous pouvez aussi nous envoyer votre demande sur WhatsApp.</p>
       <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
         Renvoyer ma demande sur WhatsApp
       </button>
@@ -6315,7 +6318,9 @@ window.ELA_TEXTES = {
        WhatsApp : il vient d'y envoyer sa demande, le lui répéter n'apprend
        rien et ressemble à une consigne de plus. */
     bon_etat:"Demande reçue",
+    bon_etat_ko:"Demande non transmise",
     bon_note:"Nous vérifions la disponibilité d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.",
+    bon_note_ko:"Votre demande ne nous est pas encore parvenue.",
     bon_etat_ok:"Transfert confirmé",
     bon_note_ok:"Votre chauffeur vous attend à l'heure convenue. Gardez ce bon : il porte votre référence.",
     confirme_titre:"Transfert confirmé",
@@ -6323,7 +6328,7 @@ window.ELA_TEXTES = {
     appeler_chauffeur:"Appeler le chauffeur",
     etat_confirme:"Confirmé",
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme", prix_annonce:"Prix annoncé",
-    renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
+    renvoi_note:"Vous pouvez aussi nous envoyer votre demande sur WhatsApp.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
@@ -6538,7 +6543,9 @@ window.ELA_TEXTES = {
     bon_sous:"Booking voucher",
     bon_ref_tech:"Ref.",
     bon_etat:"Request received",
+    bon_etat_ko:"Request not sent",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
+    bon_note_ko:"Your request has not reached us yet.",
     bon_etat_ok:"Transfer confirmed",
     bon_note_ok:"Your chauffeur will be there at the agreed time. Keep this voucher: it carries your reference.",
     confirme_titre:"Transfer confirmed",
@@ -6546,7 +6553,7 @@ window.ELA_TEXTES = {
     appeler_chauffeur:"Call your chauffeur",
     etat_confirme:"Confirmed",
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price", prix_annonce:"Quoted price",
-    renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
+    renvoi_note:"You can also send us your request on WhatsApp.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
@@ -10864,6 +10871,7 @@ window.ELA_TEXTES = {
     return euros(t);
   }
   var bonCourant = null;
+  var bonAffiche = null;       // le bon actuellement dessiné à l'écran
   /* ═══ LE N° COURT (5 octobre 2026) ═══ « N° 1042 », attribué par le
      serveur au dépôt et rendu par « deposer-course » ou « etat-course ».
      Il remplace la référence en gros sur le bon ; la référence reste
@@ -10920,17 +10928,12 @@ window.ELA_TEXTES = {
     document.getElementById("noteRenvoi").hidden  = !renvoyable;
     document.getElementById("btnRenvoyer").hidden = !renvoyable;
     if(!renvoyable) document.getElementById("etatEnvoi").hidden = true;
-    var etat = document.getElementById("bonEtat");
-    etat.textContent = T(confirme ? "bon_etat_ok" : "bon_etat");
-    etat.setAttribute("data-t", confirme ? "bon_etat_ok" : "bon_etat");
-    etat.classList.toggle("confirme", confirme);
-    var note = document.getElementById("bonNote");
-    /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
-       la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
-       de l'hôtel. */
-    var cleNote = confirme ? "bon_note_ok" : (recHotel ? "bon_note_comptoir" : "bon_note");
-    note.textContent = T(cleNote);
-    note.setAttribute("data-t", cleNote);
+    document.getElementById("bonEtat").classList.toggle("confirme", confirme);
+    /* L'état et la phrase de tête sont écrits par « jugerTeteBon » : ils
+       dépendent aussi du DÉPÔT (une demande qui n'est pas arrivée ne se dit
+       pas « reçue »), et le dépôt change après l'affichage du bon. */
+    bonAffiche = bon;
+    jugerTeteBon();
     /* « PRIX FERME » SEULEMENT UNE FOIS LA COURSE CONFIRMÉE (CGV art. 3 et
        4) — 5 octobre 2026. En attente, le bon disait déjà « Prix ferme »
        alors que la demande n'était acceptée par personne : il dit « Prix
@@ -11351,6 +11354,7 @@ window.ELA_TEXTES = {
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
+    jugerTeteBon();
     jugerRenvoiComptoir();
     /* Le bloc des notifications suit l'état de l'envoi : il n'a de sens que
        si la demande est bien arrivée sur le serveur. */
@@ -11358,6 +11362,40 @@ window.ELA_TEXTES = {
     /* La note reste visible quel que soit l'état : le message WhatsApp part
        dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
        cas aussi. */
+  }
+
+  /* ═══ LE BON NE DIT PAS « DEMANDE REÇUE » QUAND LE DÉPÔT A ÉCHOUÉ ═══
+     15 octobre 2026, audit des quatre prompts. Mesuré sur le site construit :
+     dépôt refusé (503), le bon affichait « Demande reçue — Nous vérifions
+     la disponibilité d'un chauffeur » en tête, et l'écriteau rouge « votre
+     demande n'a pas pu nous être transmise » dix lignes plus bas. Deux
+     phrases contraires sur le même écran, à l'endroit du site où mentir
+     coûte le plus (CLAUDE.md, « une panne inventée »).
+     LA TÊTE DU BON SUIT LE DÉPÔT : tant qu'on ne sait pas, et dès qu'elle est
+     arrivée, « Demande reçue » ; quand le dépôt a échoué, « Demande non
+     transmise » et une phrase courte — la consigne (WhatsApp côté client,
+     appel au comptoir) est déjà dans l'écriteau rouge, on ne la répète pas.
+     Seul le bon de la demande EN COURS peut être « non transmise » : un bon
+     rouvert depuis « Mes courses » garde ses libellés d'attente. Un bon
+     confirmé ne passe jamais par là. L'attribut « data-t » est réécrit, pas
+     seulement le texte : un changement de langue le relit. */
+  function jugerTeteBon(){
+    var bon = bonAffiche;
+    var etat = document.getElementById("bonEtat"), note = document.getElementById("bonNote");
+    if(!bon || !etat || !note) return;
+    var confirme = (bon.statut === "confirmee");
+    var ko = envoiEtat === false && bon === bonCourant && !confirme && !bon.partiel;
+    var cleEtat = ko ? "bon_etat_ko" : (confirme ? "bon_etat_ok" : "bon_etat");
+    /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
+       la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
+       de l'hôtel. */
+    var cleNote = ko ? "bon_note_ko"
+                : confirme ? "bon_note_ok"
+                : (recHotel ? "bon_note_comptoir" : "bon_note");
+    etat.textContent = T(cleEtat);
+    etat.setAttribute("data-t", cleEtat);
+    note.textContent = T(cleNote);
+    note.setAttribute("data-t", cleNote);
   }
 
   /* ═══ AU COMPTOIR, IL N'Y A PLUS AUCUN BOUTON WHATSAPP ═══

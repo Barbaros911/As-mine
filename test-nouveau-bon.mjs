@@ -155,8 +155,14 @@ check('plus aucune référence ASM n\'est créée', !ref.startsWith('ASM'), ref)
    ce qui se passe maintenant — jusqu'à ce qu'un chauffeur soit attribué.
    Laisser croire à une place réservée qui n'existe pas, c'est un client qui
    attend une voiture à 5 h du matin. */
-check('le bon dit « Demande reçue », jamais « confirmé »',
-  (await p.locator('.bon-etat').textContent())==='Demande reçue'
+/* SERVEUR COUPÉ, LA TÊTE DU BON LE DIT (15 octobre 2026, audit des quatre
+   prompts) : « Demande non transmise » — jamais « Demande reçue », jamais
+   « confirmé ». Avant, cette suite exigeait « Demande reçue » ici même,
+   c'est-à-dire au-dessus de l'écriteau rouge « n'a pas pu nous être
+   transmise » : deux phrases contraires sur le même écran. */
+check('le bon ne se dit ni « reçu » ni « confirmé » quand la demande n\'est pas passée',
+  !/re[çc]ue/i.test(await p.locator('.bon-etat').textContent())
+  && !/confirm/i.test(await p.locator('.bon-etat').textContent())
   && !(await p.locator('.bon-etat').getAttribute('class')).includes('confirme'),
   await p.locator('.bon-etat').textContent());
 check('et le bloc du chauffeur n\'existe pas encore',
@@ -171,8 +177,12 @@ check('et se nomme pour ce qu\'il est',
 /* La phrase dit ce qui se passe MAINTENANT — on cherche un chauffeur —
    plutôt que de renvoyer le client vers WhatsApp : il vient d'y envoyer sa
    demande, le lui répéter n'apprend rien. */
-check('le bon dit ce qu\'on est en train de faire pour lui',
-  (await p.locator('.bon-note').textContent()).includes('disponibilité d\'un chauffeur'),
+/* Et sa phrase dit la vérité du moment : la demande n'est pas parvenue. Le
+   chemin nominal (« nous vérifions la disponibilité d'un chauffeur ») est
+   éprouvé par test-nouveau-serveur.mjs, dépôt réussi. */
+check('le bon dit que la demande n\'est pas parvenue, pas qu\'on cherche un chauffeur',
+  /pas (encore )?parvenue/i.test(await p.locator('.bon-note').textContent())
+  && !(await p.locator('.bon-note').textContent()).includes('disponibilité'),
   await p.locator('.bon-note').textContent());
 
 // Le message WhatsApp doit rester lisible par « Coller une demande ».

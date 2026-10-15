@@ -293,6 +293,23 @@ check('le renvoi WhatsApp devient l\'action principale',
   await p.locator('#btnRenvoyer').getAttribute('class'));
 check('la course reste enregistrée sur l\'appareil',
   (await p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').length))===1);
+/* LA TÊTE DU BON DIT LA MÊME CHOSE QUE L'ÉCRITEAU (15 octobre 2026, audit
+   des quatre prompts). Mesuré avant : « Demande reçue — Nous vérifions la
+   disponibilité d'un chauffeur » en tête, et « n'a pas pu nous être
+   transmise » en rouge dix lignes plus bas. On cherche la RÈGLE — l'état
+   ne dit plus « reçue », la phrase dit « pas parvenue » — pas le libellé. */
+check('la tête du bon ne dit plus « Demande reçue » quand le dépôt a échoué',
+  !/re[çc]ue/i.test(await p.locator('#bonEtat').textContent()),
+  await p.locator('#bonEtat').textContent());
+check('et sa phrase dit que la demande n\'est pas parvenue',
+  /pas (encore )?parvenue/i.test(await p.locator('#bonNote').textContent()),
+  await p.locator('#bonNote').textContent());
+/* L'OUVERTURE AUTOMATIQUE DE WHATSAPP A ÉTÉ RETIRÉE LE 4 OCTOBRE 2026 :
+   la note sous le bon ne peut plus dire « si WhatsApp ne s'est pas ouvert ».
+   Un libellé qui décrit un mécanisme retiré est pire qu'un libellé absent. */
+check('la note du renvoi ne parle plus d\'une ouverture de WhatsApp',
+  !/ouvert/i.test(await p.locator('#noteRenvoi').textContent()),
+  await p.locator('#noteRenvoi').textContent());
 /* PAS DE LIGNE SUR LE SERVEUR, PAS DE NOTIFICATION POSSIBLE. La fonction
    qui prévient cherche l'abonnement par la référence de la course : sans
    course déposée, elle ne trouvera jamais rien. Proposer « Soyez prévenu »
@@ -344,6 +361,11 @@ await ctx.close();
   check('le renvoi WhatsApp redevient une action en retrait',
     (await r.p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome',
     await r.p.locator('#btnRenvoyer').getAttribute('class'));
+  /* Et la tête du bon REDEVIENT « Demande reçue » : l'échec du premier
+     dépôt ne doit laisser aucune trace une fois la demande arrivée. */
+  check('et la tête du bon redit « Demande reçue » une fois la demande arrivée',
+    /re[çc]ue/i.test(await r.p.locator('#bonEtat').textContent()),
+    await r.p.locator('#bonEtat').textContent());
   /* UNE SEULE REPRISE. Une boucle transformerait un vrai refus du serveur
      en appels sans fin sur le forfait du client. */
   await r.p.waitForTimeout(1500);
