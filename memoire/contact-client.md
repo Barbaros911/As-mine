@@ -119,3 +119,19 @@ en français et en anglais, dépôt refusé (503) par un faux serveur :
 - Contrôles : `test-nouveau-serveur.mjs` (quatre contrôles de plus, qui
   tombent sur l'ancien code) ; `test-parcours-en.mjs` (le parcours anglais
   de bout en bout, écrit par l'audit).
+
+## « Nous appeler » sur un envoi raté (16 octobre 2026)
+
+Barbaros, en voyant les captures : « on peut ajouter appeler directement
+aussi ». Sur un dépôt raté, le bon du client porte maintenant un bouton
+« Nous appeler · 07 59 31 24 33 » (`#btnAppelerBon`, `tel:+33759312433`),
+sous « Renvoyer ma demande sur WhatsApp » ; l'écriteau rouge dit « Envoyez-la
+sur WhatsApp ou appelez-nous » au lieu de « c'est le seul moyen ».
+- **Seulement sur un échec**, jugé dans `jugerTeteBon()` avec la tête du
+  bon : demande arrivée, appeler n'apporte rien.
+- **Le numéro est écrit dans le bouton** : un ordinateur ne compose rien.
+- **Jamais au comptoir** : son écriteau porte déjà le numéro.
+- **Sur un échec, la petite note se tait**, comme au comptoir : l'écriteau et
+  les deux boutons disent déjà quoi faire.
+- Contrôles : `test-nouveau-serveur` (échec, succès, reprise),
+  `test-nouveau-reception` (comptoir), `test-parcours-en` (anglais).

@@ -3951,6 +3951,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
         Renvoyer ma demande sur WhatsApp
       </button>
+      <!-- APPELER DIRECTEMENT (16 octobre 2026, Barbaros : « on peut ajouter
+           appeler directement aussi »). Seulement quand le dépôt a ÉCHOUÉ : la
+           demande n'est alors nulle part, et un client sans WhatsApp n'avait
+           aucun autre geste. Le numéro est ÉCRIT dans le bouton : sur un
+           ordinateur, qui ne compose rien, il se lit. Jamais au comptoir —
+           l'écriteau rouge y porte déjà le numéro (« jugerTeteBon »). -->
+      <a class="bouton-fantome" id="btnAppelerBon" href="tel:+33759312433" data-t="bon_appeler" hidden>Nous appeler · 07 59 31 24 33</a>
       <button class="bouton-fantome" type="button" id="btnNouvelleCourse" data-t="autre_course">
         Réserver une autre course
       </button>
@@ -6367,7 +6374,8 @@ window.ELA_TEXTES = {
     notif_rate:"L'inscription n'a pas abouti. La confirmation vous parviendra par le moyen choisi.",
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
-    envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
+    envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp ou appelez-nous : elle ne nous parviendra pas autrement.",
+    bon_appeler:"Nous appeler · 07 59 31 24 33",
     envoi_ko_comptoir:"Votre demande n'a pas pu nous être transmise. Appelez Elatransfer au 07 59 31 24 33 pour la confirmer.",
     wa_titre:"Comment pouvons-nous vous aider ?",
     wa_c1:"J'ai une question sur ma réservation",
@@ -6587,7 +6595,8 @@ window.ELA_TEXTES = {
     notif_rate:"Sign-up did not go through. The confirmation will reach you through the channel you chose.",
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
-    envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
+    envoi_ko:"Your request could not reach us. Send it on WhatsApp or call us: it will not reach us any other way.",
+    bon_appeler:"Call us · +33 7 59 31 24 33",
     envoi_ko_comptoir:"Your request could not reach us. Please call Elatransfer on +33 7 59 31 24 33 to confirm it.",
     wa_titre:"How can we help?",
     wa_c1:"I have a question about my booking",
@@ -11396,6 +11405,17 @@ window.ELA_TEXTES = {
     etat.setAttribute("data-t", cleEtat);
     note.textContent = T(cleNote);
     note.setAttribute("data-t", cleNote);
+    /* « Nous appeler » suit le même échec, et lui seul : sur une demande
+       arrivée, appeler ne sert à rien ; au comptoir, l'écriteau porte déjà
+       le numéro et le bouton WhatsApp y est retiré. */
+    var appel = document.getElementById("btnAppelerBon");
+    if(appel) appel.hidden = !ko || !!recHotel;
+    /* SUR UN ÉCHEC, LA NOTE SE TAIT, comme au comptoir : l'écriteau rouge et
+       le bouton juste dessous disent déjà « WhatsApp ou appel ». Ailleurs
+       elle suit la même règle que le bouton de renvoi (« remplirBon »). Le
+       comptoir la masque toujours (« jugerRenvoiComptoir », appelé après). */
+    var noteR = document.getElementById("noteRenvoi");
+    if(noteR && !recHotel) noteR.hidden = ko || confirme || !!bon.partiel;
   }
 
   /* ═══ AU COMPTOIR, IL N'Y A PLUS AUCUN BOUTON WHATSAPP ═══

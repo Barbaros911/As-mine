@@ -292,6 +292,17 @@ libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
 
 ---
 
+## G'. Ajout du 16 octobre 2026 — « Nous appeler »
+
+Demandé par Barbaros en voyant les captures : sur un envoi raté, le bon
+offre « Nous appeler · 07 59 31 24 33 » sous le renvoi WhatsApp, et
+l'écriteau rouge dit « WhatsApp ou appelez-nous ». Jamais sur une demande
+arrivée, jamais au comptoir. Sur un échec, la petite note du renvoi se tait.
+Suites relancées, toutes vertes : `test-nouveau-serveur` 97,
+`test-nouveau-reception` 158, `test-parcours-en` 87, `test-nouveau-bon` 41,
+`test-nouveau-whatsapp` 23, `test-nouveau-bascule` 315, `test-nouveau-langues`
+28, `test-reception-bon` 36, `test-doc` 259.
+
 ## G. État final
 
 1. **Fonctionne, prouvé** : les cinq pages `/en/` et les trois françaises en

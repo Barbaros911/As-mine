@@ -183,6 +183,7 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
   note('parcours : UNE seule demande part malgré un double appui', v.depots.length - nbDepotsAvant === 1, String(v.depots.length - nbDepotsAvant));
   note('parcours : le bon s\'affiche, en anglais, avec sa référence', bon.ecran === 'ecran-bon' && /ELA-\d\d-\d\d-/.test(bon.texte) && /received/i.test(bon.etat), JSON.stringify({ etat: bon.etat, ref: bon.ref }));
   note('parcours : le bon dit que la demande est arrivée et ce qui se passe ensuite', /received|confirm/i.test(bon.texte), bon.texte.slice(0, 300));
+  note('parcours : demande arrivée, pas de bouton « Call us »', await v.p.locator('#btnAppelerBon').isHidden());
   const d = v.depots[0] || {};
   note('demande : provenance = page CDG anglaise, langue en, pas de via', d.provenance === 'Site anglais · CDG ↔ Paris' && d.langue === 'en' && !d.via, JSON.stringify({ p: d.provenance, l: d.langue, via: d.via }));
   note('demande : adresses et prix cohérents (Terminal 2E → Orly, prix > 0)', /Terminal 2E/.test(d.course?.depart || '') && /Orly/.test(d.course?.arrivee || '') && (d.prix?.total || 0) > 0, JSON.stringify({ dep: d.course?.depart, arr: d.course?.arrivee, prix: d.prix?.total }));
@@ -224,11 +225,13 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
   await v.p.locator('#btnConfirmer').click(); await v.p.waitForTimeout(2500);
   const bon = await v.p.evaluate(() => ({ texte: document.querySelector('#ecran-bon')?.innerText.replace(/\s+/g, ' ').slice(0, 1500),
     etat: document.getElementById('bonEtat')?.textContent.trim(), tete: document.getElementById('bonNote')?.textContent.trim(),
-    note: document.getElementById('noteRenvoi')?.textContent.trim(), renvoyer: document.getElementById('btnRenvoyer')?.className }));
+    note: document.getElementById('noteRenvoi')?.textContent.trim(), renvoyer: document.getElementById('btnRenvoyer')?.className,
+    appel: (() => { const a = document.getElementById('btnAppelerBon'); return a ? { visible: !!a.offsetParent, href: a.getAttribute('href'), texte: a.textContent.trim() } : null; })() }));
   note('dépôt refusé : l\'écriteau dit que la demande n\'est pas arrivée et nomme WhatsApp', /could not reach us/i.test(bon.texte) && /WhatsApp/.test(bon.texte), bon.texte.slice(0, 400));
   note('dépôt refusé : la tête du bon ne dit pas « received », elle dit « not reached »', !/received/i.test(bon.etat) && /not reached/i.test(bon.tete), JSON.stringify({ etat: bon.etat, tete: bon.tete }));
   note('dépôt refusé : le renvoi WhatsApp devient l\'action principale', bon.renvoyer === 'bouton', bon.renvoyer);
   note('dépôt refusé : la note ne décrit plus une ouverture de WhatsApp (retirée le 4/10/2026)', !/did not open|open/i.test(bon.note), bon.note);
+  note('dépôt refusé : « Call us » est offert, compose le numéro du site et l\'écrit en format international', !!bon.appel && bon.appel.visible && bon.appel.href === 'tel:+33759312433' && /\+33 7 59 31 24 33/.test(bon.appel.texte) && /call/i.test(bon.texte), JSON.stringify(bon.appel));
   await v.ctx.close();
 }
 

@@ -237,6 +237,9 @@ check('aucune autorisation n\'a été demandée d\'elle-même',
    proposer de s'abonner serait une promesse en l'air. */
 check('le bloc « Être prévenu » s\'affiche une fois la demande déposée',
   await p.locator('#blocNotif').isVisible());
+/* Demande arrivée : appeler n'apporte rien, le bouton n'apparaît pas. */
+check('demande arrivée : pas de bouton « Nous appeler »',
+  await p.locator('#btnAppelerBon').isHidden());
 /* WHATSAPP EST ANNONCÉ D'ABORD, ET IL EST CERTAIN. La notification demande
    au client d'installer le site sur un iPhone — presque personne ne le
    fait. Sans cette ligne, ce client-là lisait « Être prévenu » et repartait
@@ -285,9 +288,24 @@ await ctx.close();
 ({ p, ctx, depots } = await reserver(false));
 await p.waitForTimeout(1500);
 check('le bon s\'affiche quand même', await p.locator('#ecran-bon').isVisible());
-check('on dit clairement que la demande n\'est pas passée',
-  (await p.locator('#envoiTexte').textContent()).includes('seul moyen'),
+/* Le message d'échec nomme LES DEUX gestes qui restent (16 octobre 2026,
+   Barbaros : « on peut ajouter appeler directement aussi »). On cherche la
+   règle — « pas pu », WhatsApp, appeler — pas la phrase entière. */
+check('on dit clairement que la demande n\'est pas passée, et par où la faire passer',
+  /pas pu/.test(await p.locator('#envoiTexte').textContent())
+  && /WhatsApp/.test(await p.locator('#envoiTexte').textContent())
+  && /appel/i.test(await p.locator('#envoiTexte').textContent()),
   await p.locator('#envoiTexte').textContent());
+check('le bouton « Nous appeler » est là, et compose le numéro du site',
+  await p.locator('#btnAppelerBon').isVisible()
+  && (await p.locator('#btnAppelerBon').getAttribute('href')) === 'tel:+33759312433',
+  await p.locator('#btnAppelerBon').getAttribute('href'));
+/* Le numéro est ÉCRIT : un ordinateur ne compose rien, il doit se lire. */
+check('la petite note se tait : l\'écriteau et les boutons disent déjà quoi faire',
+  await p.locator('#noteRenvoi').isHidden());
+check('et le numéro est écrit dans le bouton',
+  /07 59 31 24 33/.test(await p.locator('#btnAppelerBon').textContent()),
+  await p.locator('#btnAppelerBon').textContent());
 check('le renvoi WhatsApp devient l\'action principale',
   (await p.locator('#btnRenvoyer').getAttribute('class'))==='bouton',
   await p.locator('#btnRenvoyer').getAttribute('class'));
@@ -345,7 +363,7 @@ await ctx.close();
   const r = await reserver('reprise', false, true);
   await r.p.waitForTimeout(1500);
   check('pendant que le client est sur WhatsApp, aucune panne n\'est annoncée',
-    !(await r.p.locator('#envoiTexte').textContent()).includes('seul moyen'),
+    !/pas pu/.test(await r.p.locator('#envoiTexte').textContent()),
     await r.p.locator('#envoiTexte').textContent());
   check('et le premier dépôt a bien échoué', r.depots.length===1,
     String(r.depots.length));
@@ -356,7 +374,7 @@ await ctx.close();
   check('à son retour, la demande est déposée pour de bon',
     r.depots.length===2, r.depots.length+' dépôts');
   check('et le bon dit qu\'elle est arrivée, pas qu\'elle a échoué',
-    !(await r.p.locator('#envoiTexte').textContent()).includes('seul moyen'),
+    !/pas pu/.test(await r.p.locator('#envoiTexte').textContent()),
     await r.p.locator('#envoiTexte').textContent());
   check('le renvoi WhatsApp redevient une action en retrait',
     (await r.p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome',
@@ -366,6 +384,8 @@ await ctx.close();
   check('et la tête du bon redit « Demande reçue » une fois la demande arrivée',
     /re[çc]ue/i.test(await r.p.locator('#bonEtat').textContent()),
     await r.p.locator('#bonEtat').textContent());
+  check('et « Nous appeler » disparaît : la demande est arrivée',
+    await r.p.locator('#btnAppelerBon').isHidden());
   /* UNE SEULE REPRISE. Une boucle transformerait un vrai refus du serveur
      en appels sans fin sur le forfait du client. */
   await r.p.waitForTimeout(1500);
