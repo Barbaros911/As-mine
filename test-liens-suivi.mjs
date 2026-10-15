@@ -212,7 +212,7 @@ async function reserver(p) {
   await reserver(v.p);
   const bon = v.depots[0] || {};
   check('demande : elle part avec le code du partenaire', bon.via === 'hotel-exemple', JSON.stringify({ via: bon.via, ref: bon.ref }));
-  check('demande : la page d\'origine reste dans « provenance » (le serveur la remplace s\'il reconnaît le code)', bon.provenance === 'Site anglais · CDG ↔ Orly', String(bon.provenance));
+  check('demande : la page d\'origine reste dans « provenance » (le serveur écrit le partenaire devant s\'il reconnaît le code)', bon.provenance === 'Site anglais · CDG ↔ Orly', String(bon.provenance));
   const gestes = v.mesures.filter(m => m.p_source === 'hotel-exemple').map(m => m.p_evenement);
   check('mesure : ouvert, commencé et envoyé — chacun avec le code',
     ['moteur_ouvert', 'formulaire_commence', 'demande_envoyee'].every(e => gestes.includes(e)), gestes.join(', '));
@@ -254,6 +254,10 @@ const COURSES = [
   course('ELA-26-10-LD4DD', 'realisee', 60),
   course('ELA-26-10-LE5EE', 'realisee', 70, { avisDemande: new Date().toISOString() }),
   course('ELA-26-10-LF6FF', 'realisee', 50, { course: { depart: 'Orly', arrivee: 'Paris', date: ilYa(10), heure: '10:00', vehicule: 'Berline' } }),
+  /* Venue par le lien il y a 40 jours : hors des « 30 derniers jours », elle
+     ne compte ni dans les demandes, ni dans l'argent de la ligne. */
+  course('ELA-26-10-LG7GG', 'realisee', 300, { via: 'hotel-exemple', viaNom: 'Hôtel Exemple Roissy', provenance: 'Lien · Hôtel Exemple Roissy',
+    course: { depart: 'Terminal 2E', arrivee: 'Paris 8e', date: ilYa(40), heure: '10:00', vehicule: 'Berline', vehiculeCle: 'berline', passagers: '2 passagers' } }),
 ];
 let LIENS = [{ code: 'fiche-hotels', nom: 'Fiche papier remise aux hôtels', cree_le: '2026-10-15T00:00:00Z' },
              { code: 'hotel-exemple', nom: 'Hôtel Exemple Roissy', cree_le: '2026-10-15T01:00:00Z' }];
@@ -362,8 +366,8 @@ try {
     const exemple = ls.find(l => l.nom === 'Hôtel Exemple Roissy') || { sous: [] };
     check('liens : les deux liens du serveur s\'affichent, le plus utile en tête', ls.length === 2 && ls[0].nom === 'Hôtel Exemple Roissy', JSON.stringify(ls));
     check('liens : le compteur AVANT la demande (12 vues, 3 « Book », 1 appel)', /12 vues/.test(exemple.sous[0]) && /3 « Book »/.test(exemple.sous[0]) && /1 appel/.test(exemple.sous[0]), exemple.sous[0]);
-    check('liens : 2 demandes, 1 réalisée — la course d\'essai ne compte pas', /2 demandes/.test(exemple.sous[0]) && /1 réalisée/.test(exemple.sous[0]), exemple.sous[0]);
-    check('liens : l\'argent ne compte que la réalisée (80 €, pas 999)', /^80\s?€$/.test(exemple.val || ''), exemple.val);
+    check('liens : 2 demandes, 1 réalisée — ni la course d\'essai, ni celle d\'il y a 40 jours', /2 demandes/.test(exemple.sous[0]) && /1 réalisée/.test(exemple.sous[0]), exemple.sous[0]);
+    check('liens : l\'argent ne compte que la réalisée des 30 jours (80 €, ni 999, ni 300)', /^80\s?€$/.test(exemple.val || ''), exemple.val);
     check('liens : le code est écrit sous le nom', exemple.sous[1] === 'Code : hotel-exemple', exemple.sous[1]);
     const fiche = ls.find(l => l.nom === 'Fiche papier remise aux hôtels') || { sous: [] };
     check('liens : la fiche papier compte ses demandes de démo, et ne s\'invente pas de vues', fiche.sous[0] === '2 demandes de démo · 0 demande · 0 réalisée', fiche.sous[0]);
