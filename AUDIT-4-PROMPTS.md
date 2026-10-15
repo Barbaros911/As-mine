@@ -67,7 +67,7 @@ Source : monitoring n° 192 du 15/10/2026 sur `f6fb64a` [P], recoupé avec
 | `/transfert-orly-paris` | 200 | oui | elle-même | fr, en, x-default | unique | unique | unique | Service | oui | ✓ | non prouvé |
 | `/chauffeur-prive-paris` | 200 | oui | elle-même | aucun (pas d'équivalent) | unique | unique | unique | Service | oui | ✓ | non prouvé |
 | `/professionnels/` | 200 | oui | elle-même | aucun | unique | unique | unique | lisibles | oui | ✓ | non prouvé |
-| `/en/` | 200 | oui | elle-même | en, fr, x-default | « Paris Airport Transfers with a Private Chauffeur » | unique | « Private airport transfers in Paris » | lisibles | oui | ✓ | non prouvé |
+| `/en/` | 200 | oui | elle-même | en, fr, x-default | « Paris Airport Transfers with a Private Chauffeur » | unique | « Private airport transfers in Paris » | lisibles | oui | ✓ | **indexée** (inspection d'URL, 16/10/2026 01 h 03) |
 | `/en/cdg-airport-transfer-paris/` | 200 | oui | elle-même | en, fr, x-default | « CDG Airport Transfer to Paris – Private Chauffeur » | unique | « Private transfer between CDG Airport and Paris » | Service (Airport CDG, City Paris) + fil d'Ariane | oui | ✓ | non prouvé |
 | `/en/orly-airport-transfer-paris/` | 200 | oui | elle-même | en, fr, x-default | « Orly Airport Transfer to Paris – Private Chauffeur » | unique | « Private transfer between Orly Airport and Paris » | Service + fil d'Ariane | oui | ✓ | non prouvé |
 | `/en/disneyland-paris-airport-transfer/` | 200 | oui | elle-même | aucun (pas d'équivalent FR) | « Disneyland Paris Transfer from CDG or Orly » | unique | « Private transfer to Disneyland Paris from CDG or Orly » | Service + fil d'Ariane | oui | ✓ | non prouvé |
@@ -87,7 +87,11 @@ Source : monitoring n° 192 du 15/10/2026 sur `f6fb64a` [P], recoupé avec
   françaises CDG et Orly et quatre pages `/en/` visibles ; `/en/` elle-même
   n'apparaît pas sur la capture, coupée en haut, donc non prouvée. Une
   demande d'indexation n'est pas une indexation : la colonne reste « non
-  prouvé » jusqu'au rapport « Pages ». Gestes et attendus :
+  prouvé » jusqu'au rapport « Pages ».
+  **16/10/2026, 01 h 03 (capture de Barbaros)** : inspection de
+  `https://elatransfer.com/en/` → « Cette URL est sur Google », « La page est
+  indexée ». Première indexation prouvée ; les six autres adresses restent à
+  relire dans « Pages ». Gestes et attendus :
   `memoire/seo-indexation.md`. Une recherche `site:` n'est pas une preuve.
 - **Performance** (laboratoire, site construit, réseau 1,6 Mbit/s + 150 ms,
   processeur ×4, iPhone 390 px, polices et serveur coupés) [C] :
@@ -301,9 +305,9 @@ libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
    Facultatif : un SQL de lecture seule pour voir les premières lignes de
    `mesures_acquisition` avec une source.
 4. **Search Console** (Barbaros) : plan du site soumis et traité le 15/10
-   (10 pages découvertes) ; indexation demandée pour au moins six des sept
-   adresses — vérifier `/en/`. Reste : surveiller « Pages » dans quelques
-   jours, puis « Liens ».
+   (10 pages découvertes) ; indexation demandée pour les six autres
+   adresses ; `/en/` **indexée** (16/10, 01 h 03). Reste : surveiller « Pages »
+   dans quelques jours, puis « Liens ».
 5. **Corrigé** : A-01, A-02 ; verrou des deux phrases dans
    `textes-interdits.mjs` ; +4 contrôles dans `test-nouveau-serveur` ;
    nouvelle suite de 85 contrôles.
