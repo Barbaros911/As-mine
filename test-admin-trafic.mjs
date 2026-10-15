@@ -100,6 +100,7 @@ function fauxServeur() {
     pays: [{ valeur: 'FR', totaux: totaux({ visiteurs: 80 }) }, { valeur: 'US', totaux: totaux({ visiteurs: 20 }) }, { valeur: 'XX', totaux: totaux({ visiteurs: 2 }) }],
     entrees: [{ valeur: 'fr-cdg', totaux: totaux({ visiteurs: 51, reservations: 3 }) }, { valeur: 'accueil', totaux: totaux({ visiteurs: 70, reservations: 5 }) }],
     liens: [{ valeur: 'hotel-exemple', totaux: totaux({ visiteurs: 21, reservations: 4 }) }],
+    campagnes: [{ valeur: 'ete-2026', totaux: totaux({ visiteurs: 9, reservations: 1 }) }],
     appareils: [{ valeur: 'mobile', totaux: totaux({ visiteurs: 100 }) }, { valeur: 'ordinateur', totaux: totaux({ visiteurs: 27 }) }],
     serie: [{ t: '2026-10-15T08:00', visiteurs: 10, reservations: 1 }, { t: '2026-10-15T09:00', visiteurs: 30, reservations: 3 }, { t: '2026-10-15T13:00', visiteurs: 7, reservations: 0 }],
     mesure_le: new Date().toISOString(),
@@ -226,6 +227,7 @@ try {
       /CDG → Paris/.test(zone) && /Orly → Paris/.test(zone) && /Accueil/.test(zone) && /fr-nouvelle-page/.test(zone));
     check('2 les sources sont nommées en clair', /Google/.test(zone) && /Lien d'un partenaire/.test(zone) && /Autre site/.test(zone) && /Direct/.test(zone));
     check('5 les liens des partenaires ont leur tableau, et les pages d\'entrée le leur', /Liens des partenaires/.test(zone) && /hotel-exemple/.test(zone) && /Pages d'entrée/.test(zone));
+    check('5 les campagnes UTM ont leur tableau', /Campagnes \(UTM\)/.test(zone) && /ete-2026/.test(zone));
     check('2 les pays sont nommés, l\'inconnu aussi', /France/.test(zone) && /États-Unis/.test(zone) && /Inconnu/.test(zone));
     check('2 la série du jour a ses barres et le chiffre du sommet', (await p.locator('.trf-serie rect.trf-barre').count()) === 3 && /30/.test(await p.locator('.trf-serie-val').first().textContent().catch(() => '')),
       (await p.locator('.trf-serie rect.trf-barre').count()) + ' barres · sommet « ' + (await p.locator('.trf-serie-val').first().textContent().catch(() => '')) + ' »');

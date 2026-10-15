@@ -46,7 +46,7 @@ set role service_role;
 do $$
 declare ok boolean; a text := repeat('a', 64); b text := repeat('b', 64);
 begin
-  ok := public.ela_mesurer_evenement('{"evenement":"page_vue","page":"fr-cdg","source":"google","referent":"google.com","langue":"fr","appareil":"mobile","pays":"fr"}', a);
+  ok := public.ela_mesurer_evenement('{"evenement":"page_vue","page":"fr-cdg","source":"google","referent":"google.com","utm_source":"google","utm_campaign":"ete-2026","langue":"fr","appareil":"mobile","pays":"fr"}', a);
   if not ok then raise exception 'ECHEC 2 : une page vue valide est refusée'; end if;
   if (select pays from public.evenements_site limit 1) is distinct from 'FR' then raise exception 'ECHEC 2 : pays pas en majuscules'; end if;
   -- La même page vue dans la demi-heure ne compte pas…
@@ -145,6 +145,11 @@ begin
   if s is null or (s->'totaux'->>'reservations')::int <> 1 then raise exception 'ECHEC 3 : la page d''entrée ne porte pas la réservation'; end if;
   select x into s from jsonb_array_elements(r->'liens') x where x->>'valeur' = 'hotel-exemple';
   if s is null or (s->'totaux'->>'visiteurs')::int <> 1 then raise exception 'ECHEC 3 : le lien du partenaire n''a pas son visiteur'; end if;
+  -- LA CAMPAGNE EST CELLE DE LA VISITE, comme la source ; une visite sans
+  -- UTM ne crée pas de ligne.
+  select x into s from jsonb_array_elements(r->'campagnes') x where x->>'valeur' = 'ete-2026';
+  if s is null or (s->'totaux'->>'reservations')::int <> 1 then raise exception 'ECHEC 3 : la campagne de la visite ne porte pas la réservation (%)', r->'campagnes'; end if;
+  if jsonb_array_length(r->'campagnes') <> 1 then raise exception 'ECHEC 3 : une visite sans UTM crée une campagne (%)', r->'campagnes'; end if;
   if (select count(*) from jsonb_array_elements(r->'langues') x where x->>'valeur' in ('fr','en')) <> 2 then
     raise exception 'ECHEC 3 : les deux langues ne sont pas distinguées'; end if;
   if jsonb_array_length(r->'serie') < 1 or r->>'pas' <> 'hour' then raise exception 'ECHEC 3 : la série horaire du jour manque'; end if;

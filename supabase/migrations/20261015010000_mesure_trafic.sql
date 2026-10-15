@@ -267,7 +267,8 @@ end $$;
 -- pas couper en deux une visite commencée juste avant.
 create or replace function public.trafic_lignes(p_debut timestamptz, p_fin timestamptz)
 returns table(cree_le timestamptz, visiteur text, visite text, evenement text, page text,
-              entree text, source text, lien text, langue text, appareil text, pays text, ref text)
+              entree text, source text, lien text, langue text, appareil text, pays text, ref text,
+              campagne text)
 language sql stable security definer set search_path = public, pg_temp as $$
   with e as (
     select x.*, lag(x.cree_le) over (partition by x.visiteur order by x.cree_le, x.id) as avant
@@ -279,11 +280,13 @@ language sql stable security definer set search_path = public, pg_temp as $$
     from e
   ), v as (
     select n.*, first_value(n.page) over w as p0, first_value(n.source) over w as s0,
-           first_value(n.lien) over w as l0
+           first_value(n.lien) over w as l0,
+           -- La campagne de la visite : son « utm_campaign », sinon sa « utm_source ».
+           first_value(coalesce(nullif(n.utm_campaign, ''), nullif(n.utm_source, ''))) over w as c0
     from n window w as (partition by n.visiteur, n.numero order by n.cree_le, n.id)
   )
   select v.cree_le, v.visiteur, v.visiteur || '-' || v.numero, v.evenement, v.page, v.p0, v.s0, v.l0,
-         v.langue, v.appareil, coalesce(v.pays, 'XX'), v.detail->>'ref'
+         v.langue, v.appareil, coalesce(v.pays, 'XX'), v.detail->>'ref', v.c0
   from v where v.cree_le >= p_debut;
 $$;
 revoke all on function public.trafic_lignes(timestamptz, timestamptz) from public, anon, authenticated;
@@ -296,7 +299,7 @@ returns jsonb language sql stable security definer set search_path = public, pg_
   with l as (
     select t.*, case p_dim when 'page' then t.page when 'source' then t.source when 'entree' then t.entree
                            when 'langue' then t.langue when 'pays' then t.pays when 'appareil' then t.appareil
-                           when 'lien' then t.lien else 'tout' end as valeur
+                           when 'lien' then t.lien when 'campagne' then t.campagne else 'tout' end as valeur
     from public.trafic_lignes(p_debut, p_fin) t
   ), r as (
     select l.valeur,
@@ -352,6 +355,7 @@ begin
     'sources', public.trafic_agreger(b.debut, b.fin, 'source'),
     'entrees', public.trafic_agreger(b.debut, b.fin, 'entree'),
     'liens', public.trafic_agreger(b.debut, b.fin, 'lien'),
+    'campagnes', public.trafic_agreger(b.debut, b.fin, 'campagne'),
     'langues', public.trafic_agreger(b.debut, b.fin, 'langue'),
     'pays', public.trafic_agreger(b.debut, b.fin, 'pays'),
     'appareils', public.trafic_agreger(b.debut, b.fin, 'appareil'),

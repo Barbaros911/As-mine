@@ -305,6 +305,9 @@
     frag.appendChild(tableau("Sources", h.sources, nomSource, false));
     frag.appendChild(tableau("Pages d'entrée", h.entrees, nomPage, false));
     if(Array.isArray(h.liens) && h.liens.length) frag.appendChild(tableau("Liens des partenaires", h.liens, function(v){ return v; }, false));
+    /* Les campagnes : « utm_campaign » (sinon « utm_source ») de la visite.
+       Le nom vient d'une adresse — textContent, comme tout le reste. */
+    if(Array.isArray(h.campagnes) && h.campagnes.length) frag.appendChild(tableau("Campagnes (UTM)", h.campagnes, function(v){ return v; }, false));
     frag.appendChild(tableau("Langues", h.langues, function(v){ return (v || "").toUpperCase(); }, false));
     frag.appendChild(tableau("Pays", h.pays, pays, false));
     frag.appendChild(tableau("Appareils", h.appareils, function(v){ return APPAREILS[v] || v; }, false));
@@ -445,7 +448,7 @@
     var table = el("table", "trf-table");
     var thead = el("thead"), trh = el("tr");
     [({ "Pages": "Page", "Pages d'entrée": "Page", "Sources": "Source", "Langues": "Langue", "Pays": "Pays",
-       "Appareils": "Appareil", "Liens des partenaires": "Lien" })[titre] || titre, "Visiteurs", "Vues", "Prix", "Appels", "WhatsApp", "Réserv.", "Conv."].forEach(function(c){
+       "Appareils": "Appareil", "Liens des partenaires": "Lien", "Campagnes (UTM)": "Campagne" })[titre] || titre, "Visiteurs", "Vues", "Prix", "Appels", "WhatsApp", "Réserv.", "Conv."].forEach(function(c){
       trh.appendChild(el("th", null, c));
     });
     thead.appendChild(trh); table.appendChild(thead);

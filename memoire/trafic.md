@@ -82,6 +82,36 @@ page — sinon le registre cesserait de compter. Les deux gestes de prix, qu'il
 ne connaît pas, attendent la migration. `ela_mesurer` reste ouvert à `anon` :
 les pages gardées en cache l'appellent encore.
 
+## Les campagnes
+
+Le tableau « Campagnes (UTM) » range les visites par leur `utm_campaign`,
+sinon leur `utm_source`, lues sur le PREMIER geste de la visite, comme la
+source. Une visite sans UTM ne crée pas de ligne : le tableau n'apparaît que
+s'il a quelque chose à dire. Ajouté à la relecture finale : la mission
+demandait les UTM, l'écran ne les montrait que fondus dans les sources.
+
+## Revenir en arrière
+
+Dans l'ordre, et rien ne se perd des réservations :
+1. `git revert` du commit : les pages reviennent à l'appel direct de
+   `rpc/ela_mesurer`, l'écran « Trafic » disparaît. La fonction `mesure`
+   reste déployée mais plus personne ne l'appelle.
+2. Si la migration a été appliquée, elle peut rester : le journal ne reçoit
+   plus rien et la rétention le vide en 90 jours. Pour l'effacer tout de
+   suite (workflow des migrations, un fichier neuf) :
+   `select cron.unschedule('ela-trafic-retention');` puis
+   `drop function public.ela_trafic(text), public.ela_trafic_direct(),
+   public.trafic_totaux(timestamptz, timestamptz),
+   public.trafic_agreger(timestamptz, timestamptz, text),
+   public.trafic_lignes(timestamptz, timestamptz),
+   public.trafic_bornes(text), public.ela_mesurer_evenement(jsonb, text),
+   public.ela_trafic_retention(), public.trafic_evenement_valide(text),
+   public.trafic_source_valide(text), public.trafic_detail_valide(jsonb);
+   drop table public.evenements_site, public.trafic_sels;`
+   Vérifier les noms dans `pg_proc` avant : on ne droppe pas un nom lu dans
+   une note (la leçon de « depot client »).
+3. Le compteur du 14 octobre (`mesures_acquisition`) n'est jamais touché.
+
 ## Le budget d'écran : le menu en cinq colonnes
 
 Le menu de l'admin tenait en deux rangées (`auto-fit, minmax(78px,1fr)`),
