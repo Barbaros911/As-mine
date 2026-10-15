@@ -89,6 +89,11 @@ jobs:
           # suit le visiteur de la page à la demande, l'admin lit ce que chaque
           # lien amène, et le rappel d'avis compte les clients de la semaine.
           suites="$suites test-liens-suivi"
+          # LA MESURE DU TRAFIC (15 octobre 2026) : le collecteur sur le site
+          # construit — de Google à la réservation, et une panne de la mesure
+          # qui ne touche pas le dépôt. L'écran de l'admin est pris d'office
+          # (test-admin-trafic), la fonction par test-securite-fonctions.
+          suites="$suites test-mesure"
           # LE VOYAGEUR ÉTRANGER DE BOUT EN BOUT (15 octobre 2026, audit des
           # quatre prompts) : page /en/, « Book », moteur en anglais, prix,
           # récapitulatif, envoi, bon — et les pannes (compteur muet, dépôt

@@ -43,3 +43,29 @@ règlement d'alors.
 La configuration Cloudflare (branche, commande) vit dans son tableau de bord,
 invisible d'ici : c'est `/version.json` qui dit, de l'extérieur, si elle
 publie bien `main`.
+
+## Les aperçus Cloudflare par branche sont coupés (15 octobre 2026)
+
+Barbaros a retapé « elatransfer » dans Safari et son historique lui a proposé
+`claude-elatransfer-desktop-audit-refonte-rtoaoo-as-mine.burak91oruc.workers.dev` :
+un site figé au 6 octobre, « Tous vos déplacements, une seule solution »,
+« solutions de mobilité » — deux mots retirés le 8 octobre. C'était l'aperçu
+que Cloudflare Workers fabrique pour chaque branche poussée, et il survit à la
+suppression de la branche (la PR #328 était fusionnée depuis neuf jours, la
+branche effacée). Aucun contrôle ne regarde `workers.dev` : le monitoring ne
+lit qu'`elatransfer.com`, les suites éprouvent le dépôt.
+- `wrangler.jsonc` porte désormais `"preview_urls": false` (clé lue dans le
+  schéma de wrangler 4.151, la documentation en ligne étant injoignable
+  d'ici). Il prend effet au premier déploiement de `main` qui suit : toutes les
+  adresses `<branche>-as-mine.…workers.dev` s'arrêtent, anciennes comprises.
+- `workers_dev` n'est pas touché : on ne voit pas d'ici comment le domaine est
+  relié au Worker, et le couper pourrait couper le site. À éprouver un jour
+  depuis le tableau de bord, jamais à l'aveugle.
+- Même jour, ménage : deux branches fusionnées sans PR à elles (donc jamais
+  supprimées par `branche-apres-fusion.yml`) sont inscrites dans
+  `.github/branches-a-supprimer.txt`, avec leur dernier commit — zéro commit
+  absent de main, diff vide. Barbaros lance « Nettoyage des branches » en
+  tapant SUPPRIMER. Retirés aussi : le plan d'août de la refonte « façon
+  Uber » de l'ancien site et trois scripts de capture d'Admin v2 qu'aucun
+  test ni workflow n'appelait. Preuve que rien ne change en ligne : le site
+  construit avant et après est identique, fichier par fichier.

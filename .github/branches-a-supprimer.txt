@@ -1,3 +1,9 @@
-# Troisième ménage du 4 octobre 2026, à la demande de Barbaros : ce projet
-# client vit désormais dans son propre dépôt privé (copie vérifiée).
-claude/point-cloture-test-client-q1wzbn ec6f2446c3cfc75d4f942c6f8f134ec7dcd6a295
+# Quatrième ménage, 15 octobre 2026, à la demande de Barbaros (« supprimer
+# toutes les anciennes choses qui n'ont plus lieu d'exister »).
+# Deux branches fusionnées SANS PR à elles, donc jamais supprimées par
+# « branche-apres-fusion.yml ». Vérifié le 15/10 : zéro commit absent de
+# main et « git diff main...branche » vide — les supprimer ne perd rien.
+# Le numéro après le nom est leur dernier commit : si l'une a bougé depuis,
+# le workflow refuse d'y toucher.
+claude/elatransfer-seo-audit-g2e0gm a1473154712ec2e0c7bd146d49b40353224f1f4a
+claude/elatransfer-visual-redesign-0a0y3z 95f220fa6ef4d4b6bfbe525c2b0b786e95b826bb

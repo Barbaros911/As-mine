@@ -21,6 +21,8 @@
 //    avec le contrôle de production), et le juge tombe sur chaque défaut ;
 //  · la mesure : les bons gestes, avec la bonne page, jamais chez un hôtel,
 //    jamais pour un robot — et mesure.js parle comme le moteur.
+/* La mesure brute envoyée et les appels à l'ancienne porte, sur toute la suite. */
+const bruts = [], anciens = [];
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -56,7 +58,7 @@ const b = await chromium.launch();
 /* ═══ 0. LES SOURCES ═══ */
 const index = readFileSync('index.html', 'utf8');
 const mesureJs = readFileSync('mesure.js', 'utf8');
-const migration = readFileSync('supabase/migrations/20261014000000_mesure_acquisition.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/20261015010000_mesure_trafic.sql', 'utf8');
 const sitemap = await (await fetch(SITE + '/sitemap.xml')).text();
 const locs = [...sitemap.matchAll(/<loc>https:\/\/elatransfer\.com\/([^<]*)<\/loc>/g)].map(m => m[1]);
 const pagesEn = locs.filter(l => l.startsWith('en/'));
@@ -70,17 +72,21 @@ check('le moteur déclare ses pages d\'origine (liste fermée)', ORIGINES.length
   const url = s => (new RegExp('var SUPABASE_URL = "([^"]+)"').exec(s) || [, ''])[1];
   const cle = s => (new RegExp('var SUPABASE_CLE = "([^"]+)"').exec(s) || [, ''])[1];
   check('mesure.js vise le même serveur que le moteur', url(mesureJs) && url(mesureJs) === url(index), url(mesureJs));
-  check('mesure.js présente la même clé publique que le moteur', cle(mesureJs) && cle(mesureJs) === cle(index));
-  check('les deux appellent la même porte (rpc/ela_mesurer)', mesureJs.includes('/rest/v1/rpc/ela_mesurer') && index.includes('/rest/v1/rpc/ela_mesurer'));
-  const sqlEvenements = new Set([...((/p_evenement not in \(([\s\S]*?)\)/.exec(migration) || [, ''])[1]).matchAll(/'([a-z_]+)'/g)].map(m => m[1]));
+  /* 15/10/2026 : la porte est la fonction « mesure », sans clé (déployée
+     sans JWT, comme deposer-course) et sans aucun identifiant. */
+  check('mesure.js n\'envoie aucune clé : la fonction se passe de JWT', !cle(mesureJs));
+  check('les deux appellent la même porte (functions/v1/mesure)', mesureJs.includes('/functions/v1/mesure') && index.includes('/functions/v1/mesure')
+    && !mesureJs.includes('/rest/v1/rpc/ela_mesurer') && !index.includes('/rest/v1/rpc/ela_mesurer'));
+  const sqlEvenements = new Set([...((/trafic_evenement_valide[\s\S]*?p in \(([\s\S]*?)\)/.exec(migration) || [, ''])[1]).matchAll(/'([a-z_]+)'/g)].map(m => m[1]));
   const evPages = [...((/var EVENEMENTS = \[([^\]]*)\]/.exec(mesureJs) || [, ''])[1]).matchAll(/"([a-z_]+)"/g)].map(m => m[1]);
-  const evMoteur = [...index.matchAll(/mesurerVisite\("([a-z_]+)"\)/g)].map(m => m[1]);
+  const evMoteur = [...index.matchAll(/mesurerVisite\("([a-z_]+)"[,)]/g)].map(m => m[1]);
   const inconnus = [...evPages, ...evMoteur].filter(e => !sqlEvenements.has(e));
   check('chaque geste envoyé est accepté par le serveur', evPages.length >= 4 && evMoteur.length >= 3 && inconnus.length === 0,
     inconnus.join(', ') || [...evPages, ...evMoteur].join(', '));
-  const demandes = ['page_vue', 'clic_reserver', 'clic_appel', 'clic_whatsapp', 'moteur_ouvert', 'formulaire_commence', 'demande_envoyee'];
+  const demandes = ['page_vue', 'clic_reserver', 'clic_appel', 'clic_whatsapp', 'moteur_ouvert', 'formulaire_commence',
+    'prix_demande', 'prix_affiche', 'demande_envoyee'];
   const manquants = demandes.filter(e => ![...evPages, ...evMoteur].includes(e));
-  check('les sept gestes demandés sont tous mesurés', manquants.length === 0, manquants.join(', '));
+  check('les neuf gestes demandés sont tous mesurés', manquants.length === 0, manquants.join(', '));
 }
 
 /* ═══ 2. CHAQUE PAGE ANGLAISE, LUE COMME GOOGLE LA LIT ═══ */
@@ -302,7 +308,13 @@ async function moteur(adresse, { ua = UA_IPHONE, lieux = {} } = {}) {
     }
     if (d.includes('api-adresse.data.gouv.fr')) return route.fulfill(J({ features: [] }));
     if (d.includes('router.project-osrm.org')) return route.fulfill(J({ routes: [{ distance: 48000, duration: 3000 }] }));
-    if (u.includes('/rpc/ela_mesurer')) { try { mesures.push(JSON.parse(req.postData())); } catch {} return route.fulfill({ status: 204, body: '' }); }
+    /* 15/10/2026 : la mesure passe par la fonction « mesure ». On la traduit
+       dans la forme du compteur (p_page, p_evenement, p_source) : chaque
+       contrôle de cette suite garde son sens. L'ancienne porte est comptée
+       à part — plus rien ne doit l'appeler — et le corps brut est gardé pour
+       vérifier qu'aucun identifiant ne part. */
+    if (u.includes('/functions/v1/mesure')) { try { const c = JSON.parse(req.postData()); bruts.push(c); mesures.push(Object.assign({ p_page: c.page, p_evenement: c.evenement }, c.lien ? { p_source: c.lien } : {})); } catch {} return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); }
+    if (u.includes('/rpc/ela_mesurer')) { anciens.push(req.postData()); return route.fulfill({ status: 204, body: '' }); }
     if (u.includes('supabase.co') && req.method() === 'POST') {
       let c = {}; try { c = JSON.parse(req.postData() || '{}'); } catch {}
       if (c.bon) { depots.push(c.bon); return route.fulfill({ status: 201, contentType: 'application/json', body: '{"ok":true}' }); }
@@ -533,6 +545,12 @@ const DISNEY = { geometry: { coordinates: [2.7836, 48.8722] }, properties: { nam
   }
 }
 
+/* 15/10/2026 — LA MESURE N'A QU'UNE PORTE, ET RIEN NE LA DÉSIGNE QUI. */
+check('mesure : plus aucun appel à l\'ancienne porte (rpc/ela_mesurer)', anciens.length === 0, String(anciens.length));
+check('mesure : des gestes ont bien été envoyés (sinon rien ne serait éprouvé)', bruts.length > 0, String(bruts.length));
+check('mesure : aucun identifiant, cookie ni donnée personnelle dans ce qui part',
+  bruts.every(c => !['session', 'visiteur', 'id', 'nom', 'telephone', 'email', 'ip'].some(k => k in c)),
+  JSON.stringify(bruts.find(c => ['session', 'visiteur', 'id', 'nom', 'telephone', 'email', 'ip'].some(k => k in c)) || {}));
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS (' + ok.length + ') ==='); ok.forEach(t => console.log('  ✔ ' + t));

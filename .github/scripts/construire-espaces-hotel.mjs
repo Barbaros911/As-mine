@@ -132,15 +132,15 @@ function sansHreflang(html) {
 const sectionsAdmin = [
   'ecran-verrou', 'ecran-bord', 'ecran-reglages', 'ecran-creer',
   'ecran-registre', 'ecran-chauffeurs', 'ecran-facture', 'ecran-bord-bon',
-  'ecran-controle', 'ecran-pilotage', 'ecran-prospects',
+  'ecran-controle', 'ecran-pilotage', 'ecran-prospects', 'ecran-trafic',
 ];
 
 function sansAdmin() {
   let html = source;
   html = retirerNavigationAdmin(html);
   for (const id of sectionsAdmin) html = retirerElementParId(html, 'section', id);
-  html = html.replace(/<script\b[^>]*src=["'](?:intake-demande|qr-affiche|admin-sante|pilotage|pilotage-ecran|prospects)\.js["'][^>]*><\/script>\s*/gi, '');
-  html = html.replace(/<link\b[^>]*href=["'](?:pilotage|prospects)\.css["'][^>]*>\s*/gi, '');
+  html = html.replace(/<script\b[^>]*src=["'](?:intake-demande|qr-affiche|admin-sante|pilotage|pilotage-ecran|prospects|trafic)\.js["'][^>]*><\/script>\s*/gi, '');
+  html = html.replace(/<link\b[^>]*href=["'](?:pilotage|prospects|trafic)\.css["'][^>]*>\s*/gi, '');
   html = html.replace(/<style\b[^>]*id=["']ela-role-style["'][^>]*>[\s\S]*?<\/style>\s*/gi, '');
   html = retirerScriptsContenant(html, ['nuage.roleOperateur=', 'presencesOperateurs=function']);
 
@@ -232,6 +232,8 @@ function reception(cle) {
   const h = HOTELS[cle];
   const adresse = `/reception/${cle}/`;
   let html = sansAdmin();
+  /* Le comptoir n'est pas un visiteur : pas de collecteur (15/10/2026). */
+  html = html.replace(/<script\b[^>]*src=["']\/?mesure\.js["'][^>]*><\/script>\s*/gi, '');
   html = injecterBootstrap(html, 'reception');
   html = html.replace('<html lang="fr">', `<html lang="fr" data-ela-space="hotel-reception" data-ela-hotel="${cle}">`);
   /* SON PROPRE MANIFESTE (29/09/2026). La page héritait de celui du site
@@ -294,6 +296,8 @@ function admin() {
   html = retirerElementParClasse(html, 'header', 'entete');
   html = retirerElementParClasse(html, 'nav', 'barre');
   html = retirerElementParId(html, 'div', 'feuilleWa');
+  /* L'admin n'est jamais mesuré : pas de collecteur (15/10/2026). */
+  html = html.replace(/<script\b[^>]*src=["']\/?mesure\.js["'][^>]*><\/script>\s*/gi, '');
   html = html.replace(/<script\b[^>]*src=["']\/hotel-engine-polish\.js["'][^>]*><\/script>\s*/gi, '');
   html = html.replace(/<link\b[^>]*href=["']\/hotel-engine-polish\.css["'][^>]*>\s*/gi, '');
   html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
@@ -339,15 +343,17 @@ const interditsClient = [
   'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes', 'pilotage.js', 'ELA_PILOTAGE', 'pilotage_cartes',
   'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
   'prospects.js', 'prospects.css', 'ELA_PROSPECTS', 'id="ecran-prospects"', 'btnProspects', '/rest/v1/prospects',
+  'trafic.js', 'trafic.css', 'ELA_TRAFIC', 'id="ecran-trafic"', 'btnTrafic', 'ela_trafic',
 ];
 for (const interdit of interditsClient) {
   if (clientHtml.includes(interdit)) throw new Error(`fuite Client : ${interdit}`);
 }
 const interditsReception = [
-  'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
+  'src="mesure.js"', 'id="ecran-chauffeurs"', 'id="ecran-facture"', 'id="ecran-reglages"', 'id="ecran-controle"',
   'CODE_EXPLOITANT', 'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes', 'pilotage.js', 'ELA_PILOTAGE', 'pilotage_cartes',
   'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
   'prospects.js', 'prospects.css', 'ELA_PROSPECTS', 'id="ecran-prospects"', 'btnProspects', '/rest/v1/prospects',
+  'trafic.js', 'trafic.css', 'ELA_TRAFIC', 'id="ecran-trafic"', 'btnTrafic', 'ela_trafic',
 ];
 for (const [cle, receptionHtml] of Object.entries(receptions)) {
   for (const interdit of interditsReception) {
@@ -360,12 +366,13 @@ const interditsPublic = [
   'coursesHotel: function', 'nuage.roleOperateur', 'class="admin-nav"', 'admin-sante.js', 'ela_sante_alertes', 'pilotage.js', 'ELA_PILOTAGE', 'pilotage_cartes',
   'pilotage-ecran.js', 'pilotage.css', 'id="ecran-pilotage"', 'btnPilotage',
   'prospects.js', 'prospects.css', 'ELA_PROSPECTS', 'id="ecran-prospects"', 'btnProspects', '/rest/v1/prospects',
+  'trafic.js', 'trafic.css', 'ELA_TRAFIC', 'id="ecran-trafic"', 'btnTrafic', 'ela_trafic',
 ];
 for (const interdit of interditsPublic) {
   if (publicHtml.includes(interdit)) throw new Error(`fuite Public : ${interdit}`);
 }
 const interditsAdmin = [
-  'id="ecran-accueil"', 'id="ecran-vehicules"', 'id="ecran-recap"',
+  'src="mesure.js"', 'id="ecran-accueil"', 'id="ecran-vehicules"', 'id="ecran-recap"',
   'id="ecran-bon"', 'id="ecran-reception"', 'class="barre"',
 ];
 for (const interdit of interditsAdmin) {

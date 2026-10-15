@@ -55,6 +55,7 @@ const serveur = createServer(async (req, res) => {
 });
 await new Promise(r => serveur.listen(8145, '127.0.0.1', r));
 const SITE = 'http://127.0.0.1:8145';
+const anciens = [];
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const J = (b, s = 200) => ({ status: s, contentType: 'application/json', body: JSON.stringify(b) });
 const b = await chromium.launch();
@@ -67,7 +68,12 @@ async function visiteur({ viewport = { width: 390, height: 844 }, ua = UA, depot
     const req = route.request(), u = req.url(), d = decodeURIComponent(u).toLowerCase();
     if (u.startsWith(SITE)) return route.continue();
     requetes.push(req.method() + ' ' + u.slice(0, 120));
-    if (u.includes('/rpc/ela_mesurer')) { try { mesures.push(JSON.parse(req.postData())); } catch {} return panneMesure ? route.fulfill({ status: 500, body: 'x' }) : route.fulfill({ status: 204, body: '' }); }
+    /* 15/10/2026 (PR #358) : la mesure passe par la fonction « mesure ». On
+       la ramène à la forme du compteur (p_page, p_evenement) — même
+       traduction que test-liens-suivi — et la panne simulée vise cette porte.
+       L'ancienne porte reste écoutée : plus rien ne doit l'appeler. */
+    if (u.includes('/functions/v1/mesure')) { try { const c = JSON.parse(req.postData()); mesures.push(Object.assign({ p_page: c.page, p_evenement: c.evenement }, c.lien ? { p_source: c.lien } : {})); } catch {} return panneMesure ? route.fulfill({ status: 500, body: 'x' }) : route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); }
+    if (u.includes('/rpc/ela_mesurer')) { anciens.push(u); return route.fulfill({ status: 204, body: '' }); }
     if (d.includes('api-adresse.data.gouv.fr') || d.includes('photon.komoot.io')) return route.fulfill(J({ features: [] }));
     if (d.includes('router.project-osrm.org')) return route.fulfill(J({ routes: [{ distance: 48000, duration: 3000 }] }));
     if (u.includes('supabase.co') && req.method() === 'POST') {
@@ -181,7 +187,9 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
   const bon = await v.p.evaluate(() => ({ ecran: document.querySelector('.ecran.actif')?.id, etat: document.getElementById('bonEtat')?.textContent.trim(), ref: document.getElementById('bonRef')?.textContent.trim(),
     texte: document.querySelector('#ecran-bon')?.innerText.replace(/\s+/g, ' ').slice(0, 1200) }));
   note('parcours : UNE seule demande part malgré un double appui', v.depots.length - nbDepotsAvant === 1, String(v.depots.length - nbDepotsAvant));
-  note('parcours : le bon s\'affiche, en anglais, avec sa référence', bon.ecran === 'ecran-bon' && /ELA-\d\d-\d\d-/.test(bon.texte) && /received/i.test(bon.etat), JSON.stringify({ etat: bon.etat, ref: bon.ref }));
+  /* Le N° court SEUL (16/10/2026, « partout pareil, court ») : le serveur
+     a rendu 1042, le bon l'écrit et n'écrit plus la référence ELA-…. */
+  note('parcours : le bon s\'affiche, en anglais, avec son N° court seul', bon.ecran === 'ecran-bon' && bon.ref === 'N° 1042' && !/ELA-\d\d-\d\d-/.test(bon.texte) && /received/i.test(bon.etat), JSON.stringify({ etat: bon.etat, ref: bon.ref }));
   note('parcours : le bon dit que la demande est arrivée et ce qui se passe ensuite', /received|confirm/i.test(bon.texte), bon.texte.slice(0, 300));
   note('parcours : demande arrivée, pas de bouton « Call us »', await v.p.locator('#btnAppelerBon').isHidden());
   const d = v.depots[0] || {};
@@ -283,6 +291,7 @@ for (const [q, attendu] of [['', 'rien'], ['?lang=xx&src=inconnu&aeroport=mars&s
 }
 
 
+note('mesure : plus aucun appel à l\'ancienne porte (rpc/ela_mesurer)', anciens.length === 0, String(anciens.length));
 await b.close();
 serveur.close();
 console.log('\n=== RÉUSSIS (' + ok.length + ') ===');
