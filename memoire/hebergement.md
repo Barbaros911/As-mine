@@ -61,8 +61,11 @@ lit qu'`elatransfer.com`, les suites éprouvent le dépôt.
 - `workers_dev` n'est pas touché : on ne voit pas d'ici comment le domaine est
   relié au Worker, et le couper pourrait couper le site. À éprouver un jour
   depuis le tableau de bord, jamais à l'aveugle.
-- Même jour, deux branches fusionnées et sans PR ouverte restaient sur
-  GitHub (`claude/elatransfer-seo-audit-g2e0gm`,
-  `claude/elatransfer-visual-redesign-0a0y3z`) : leur suppression depuis la
-  session a été refusée par la sécurité de l'environnement, elle se fait à la
-  main dans GitHub (onglet Branches). Rien ne les nomme dans le dépôt.
+- Même jour, ménage : deux branches fusionnées sans PR à elles (donc jamais
+  supprimées par `branche-apres-fusion.yml`) sont inscrites dans
+  `.github/branches-a-supprimer.txt`, avec leur dernier commit — zéro commit
+  absent de main, diff vide. Barbaros lance « Nettoyage des branches » en
+  tapant SUPPRIMER. Retirés aussi : le plan d'août de la refonte « façon
+  Uber » de l'ancien site et trois scripts de capture d'Admin v2 qu'aucun
+  test ni workflow n'appelait. Preuve que rien ne change en ligne : le site
+  construit avant et après est identique, fichier par fichier.
