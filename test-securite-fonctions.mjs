@@ -332,7 +332,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     if(url.includes('/rest/v1/liens_suivi')){
       lectures++;
       if(panne) return new Response('boom',{status:500});
-      return new Response(url.includes('code=eq.nomad-roissy')?JSON.stringify([{code:'nomad-roissy',nom:'Nomad Hôtel Roissy'}]):'[]');
+      return new Response(url.includes('code=eq.hotel-exemple')?JSON.stringify([{code:'hotel-exemple',nom:'Hôtel Exemple Roissy'}]):'[]');
     }
     if(url.includes('parametres_commerciaux')) return new Response('[]');
     if(url.includes('/rpc/ela_deposer_course_serveur')){deposes.push(JSON.parse(init.body).p_bon);return new Response('"ok"');}
@@ -342,24 +342,24 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const bonVia=(ref,via,extra={})=>Object.assign({ref,course:{depart:'Terminal 2E',arrivee:'Paris',date:'2026-10-20',heure:'10:00',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},
     client:{nom:'Client',telephone:'0612345678'},prix:{total:90},paiement:'lien',provenance:'Site anglais · CDG ↔ Paris'},via===undefined?{}:{via},extra);
   const dep=(bon)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.8','content-type':'application/json'},body:JSON.stringify({bon})}));
-  const r1=await dep(bonVia('ELA-26-10-LV1AA','nomad-roissy'));
+  const r1=await dep(bonVia('ELA-26-10-LV1AA','hotel-exemple'));
   const b1=deposes[0]||{};
-  ok(r1.status===201&&b1.via==='nomad-roissy'&&b1.viaNom==='Nomad Hôtel Roissy','deposer-course : un lien connu est retenu, avec le nom du partenaire ('+r1.status+', '+b1.via+')');
-  ok(b1.provenance==='Lien · Nomad Hôtel Roissy','deposer-course : la provenance dit le partenaire, pas la page ('+b1.provenance+')');
+  ok(r1.status===201&&b1.via==='hotel-exemple'&&b1.viaNom==='Hôtel Exemple Roissy','deposer-course : un lien connu est retenu, avec le nom du partenaire ('+r1.status+', '+b1.via+')');
+  ok(b1.provenance==='Lien · Hôtel Exemple Roissy','deposer-course : la provenance dit le partenaire, pas la page ('+b1.provenance+')');
   const r2=await dep(bonVia('ELA-26-10-LV2BB','inconnu'));
   const b2=deposes[1]||{};
   ok(r2.status===201&&!('via' in b2)&&b2.provenance==='Site anglais · CDG ↔ Paris','deposer-course : un code inventé est ignoré, la provenance de la page reste');
   const avant=lectures;
   const r3=await dep(bonVia('ELA-26-10-LV3CC','<script>alert(1)</script>'));
   ok(r3.status===201&&!('via' in (deposes[2]||{}))&&lectures===avant,'deposer-course : un code mal formé n\'interroge même pas la base ('+(lectures-avant)+' lecture)');
-  const r4=await dep(bonVia('ELA-26-10-LV4DD','nomad-roissy',{provenance:'easyHotel Aéroville',provenanceCle:'easyhotel-aeroville'}));
+  const r4=await dep(bonVia('ELA-26-10-LV4DD','hotel-exemple',{provenance:'easyHotel Aéroville',provenanceCle:'easyhotel-aeroville'}));
   const b4=deposes[3]||{};
-  ok(r4.status===201&&b4.via==='nomad-roissy'&&b4.provenance==='easyHotel Aéroville','deposer-course : la provenance d\'un hôtel partenaire gagne toujours ('+b4.provenance+')');
+  ok(r4.status===201&&b4.via==='hotel-exemple'&&b4.provenance==='easyHotel Aéroville','deposer-course : la provenance d\'un hôtel partenaire gagne toujours ('+b4.provenance+')');
   const avant5=lectures;
   const r5=await dep(bonVia('ELA-26-10-LV5EE',undefined));
   ok(r5.status===201&&lectures===avant5&&!('via' in (deposes[4]||{})),'deposer-course : sans lien, aucune lecture de plus — une page ancienne dépose comme avant');
   panne=true;
-  const r6=await dep(bonVia('ELA-26-10-LV6FF','nomad-roissy'));
+  const r6=await dep(bonVia('ELA-26-10-LV6FF','hotel-exemple'));
   ok(r6.status===201&&!('via' in (deposes[5]||{})),'deposer-course : base des liens muette, la course part quand même, sans source ('+r6.status+')');
   globalThis.fetch=fetchAvant;
 }

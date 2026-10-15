@@ -84,23 +84,23 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
 /* ═══ 1. LA PAGE D'ARRIVÉE ═══ */
 {
   const v = await visiteur();
-  await v.p.goto(SITE + LANDING + '?via=nomad-roissy', { waitUntil: 'load' });
+  await v.p.goto(SITE + LANDING + '?via=hotel-exemple', { waitUntil: 'load' });
   await v.p.waitForTimeout(500);
   const etat = await v.p.evaluate(() => ({ adresse: location.search,
     books: [...document.querySelectorAll('a[data-mesure="reserver"]')].map(a => a.getAttribute('href')) }));
   const vue = v.mesures.find(m => m.p_evenement === 'page_vue') || {};
-  check('arrivée : la visite est comptée avec le code du partenaire', vue.p_page === 'en-cdg' && vue.p_source === 'nomad-roissy', JSON.stringify(vue));
+  check('arrivée : la visite est comptée avec le code du partenaire', vue.p_page === 'en-cdg' && vue.p_source === 'hotel-exemple', JSON.stringify(vue));
   check('arrivée : le code est effacé de la barre d\'adresse', etat.adresse === '', etat.adresse);
-  check('arrivée : chaque « Book » emmène le code', etat.books.length >= 3 && etat.books.every(h => /[?&]via=nomad-roissy(&|$|#)/.test(h)), etat.books.join(' | '));
+  check('arrivée : chaque « Book » emmène le code', etat.books.length >= 3 && etat.books.every(h => /[?&]via=hotel-exemple(&|$|#)/.test(h)), etat.books.join(' | '));
   check('arrivée : « Book » garde sa page d\'origine et son aéroport', etat.books.every(h => /src=en-cdg/.test(h) && /aeroport=cdg/.test(h)), etat.books.join(' | '));
   /* On appuie vraiment : le moteur s'ouvre, compte avec le code, l'efface. */
   await v.p.locator('a[data-mesure="reserver"]').first().click();
   await v.p.waitForURL(u => u.pathname === '/', { timeout: 8000 }).catch(() => {});
   await v.p.waitForTimeout(800);
   const clic = v.mesures.find(m => m.p_evenement === 'clic_reserver') || {};
-  check('arrivée : l\'appui sur « Book » est compté avec le code', clic.p_source === 'nomad-roissy', JSON.stringify(clic));
+  check('arrivée : l\'appui sur « Book » est compté avec le code', clic.p_source === 'hotel-exemple', JSON.stringify(clic));
   const ouvert = v.mesures.find(m => m.p_evenement === 'moteur_ouvert') || {};
-  check('moteur : « ouvert » est compté pour la page ET le partenaire', ouvert.p_page === 'en-cdg' && ouvert.p_source === 'nomad-roissy', JSON.stringify(ouvert));
+  check('moteur : « ouvert » est compté pour la page ET le partenaire', ouvert.p_page === 'en-cdg' && ouvert.p_source === 'hotel-exemple', JSON.stringify(ouvert));
   const adr = await v.p.evaluate(() => location.search);
   check('moteur : le code est effacé de la barre d\'adresse', !/via=/.test(adr), adr);
   check('arrivée et moteur : aucune erreur JavaScript', v.erreurs.length === 0, v.erreurs.join(' | '));
@@ -118,7 +118,7 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
 }
 {
   const v = await visiteur();
-  await v.p.goto(SITE + LANDING + '?via=' + encodeURIComponent('Nomad Roissy<script>'), { waitUntil: 'load' });
+  await v.p.goto(SITE + LANDING + '?via=' + encodeURIComponent('Hôtel Exemple<script>'), { waitUntil: 'load' });
   await v.p.waitForTimeout(500);
   const vue = v.mesures.find(m => m.p_evenement === 'page_vue') || {};
   const etat = await v.p.evaluate(() => ({ adresse: location.search, books: [...document.querySelectorAll('a[data-mesure="reserver"]')].map(a => a.getAttribute('href')) }));
@@ -128,7 +128,7 @@ const LANDING = '/en/cdg-airport-transfer-paris/';
 }
 {
   const v = await visiteur({ ua: UA_ROBOT });
-  await v.p.goto(SITE + LANDING + '?via=nomad-roissy', { waitUntil: 'load' });
+  await v.p.goto(SITE + LANDING + '?via=hotel-exemple', { waitUntil: 'load' });
   await v.p.waitForTimeout(500);
   const books = await v.p.$$eval('a[data-mesure="reserver"]', l => l.map(a => a.getAttribute('href')));
   check('robot : rien n\'est compté', v.mesures.length === 0, JSON.stringify(v.mesures));
@@ -168,13 +168,13 @@ async function reserver(p) {
 }
 {
   const v = await visiteur();
-  await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&aeroport=cdg&sens=depart&vers=orly&via=nomad-roissy', { waitUntil: 'load' });
+  await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&aeroport=cdg&sens=depart&vers=orly&via=hotel-exemple', { waitUntil: 'load' });
   await v.p.waitForTimeout(700);
   await reserver(v.p);
   const bon = v.depots[0] || {};
-  check('demande : elle part avec le code du partenaire', bon.via === 'nomad-roissy', JSON.stringify({ via: bon.via, ref: bon.ref }));
+  check('demande : elle part avec le code du partenaire', bon.via === 'hotel-exemple', JSON.stringify({ via: bon.via, ref: bon.ref }));
   check('demande : la page d\'origine reste dans « provenance » (le serveur la remplace s\'il reconnaît le code)', bon.provenance === 'Site anglais · CDG ↔ Orly', String(bon.provenance));
-  const gestes = v.mesures.filter(m => m.p_source === 'nomad-roissy').map(m => m.p_evenement);
+  const gestes = v.mesures.filter(m => m.p_source === 'hotel-exemple').map(m => m.p_evenement);
   check('mesure : ouvert, commencé et envoyé — chacun avec le code',
     ['moteur_ouvert', 'formulaire_commence', 'demande_envoyee'].every(e => gestes.includes(e)), gestes.join(', '));
   check('demande : aucune erreur JavaScript', v.erreurs.length === 0, v.erreurs.join(' | '));
@@ -183,7 +183,7 @@ async function reserver(p) {
 {
   /* Une affiche d'hôtel (provenance de la visite) garde la priorité. */
   const v = await visiteur({ init: () => { try { sessionStorage.setItem('ela_provenance', 'Affiche · Hôtel du Parc'); } catch (e) {} } });
-  await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&aeroport=cdg&sens=depart&vers=orly&via=nomad-roissy', { waitUntil: 'load' });
+  await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&aeroport=cdg&sens=depart&vers=orly&via=hotel-exemple', { waitUntil: 'load' });
   await v.p.waitForTimeout(700);
   await reserver(v.p);
   const bon = v.depots[0] || {};
@@ -209,18 +209,18 @@ const course = (ref, statut, prix, extra = {}) => Object.assign({ ref, statut, c
   client: { nom: 'Client ' + ref.slice(-2), telephone: '06 12 34 56 78' }, prix: { total: prix },
   chauffeur: { nom: 'Ali', telephone: '0600000002' } }, extra);
 const COURSES = [
-  course('ELA-26-10-LA1AA', 'realisee', 80, { via: 'nomad-roissy', viaNom: 'Nomad Hôtel Roissy', provenance: 'Lien · Nomad Hôtel Roissy' }),
-  course('ELA-26-10-LB2BB', 'attente', 120, { via: 'nomad-roissy', viaNom: 'Nomad Hôtel Roissy', provenance: 'Lien · Nomad Hôtel Roissy', chauffeur: undefined }),
-  course('ELA-26-10-LC3CC', 'realisee', 999, { via: 'nomad-roissy', essai: true }),
+  course('ELA-26-10-LA1AA', 'realisee', 80, { via: 'hotel-exemple', viaNom: 'Hôtel Exemple Roissy', provenance: 'Lien · Hôtel Exemple Roissy' }),
+  course('ELA-26-10-LB2BB', 'attente', 120, { via: 'hotel-exemple', viaNom: 'Hôtel Exemple Roissy', provenance: 'Lien · Hôtel Exemple Roissy', chauffeur: undefined }),
+  course('ELA-26-10-LC3CC', 'realisee', 999, { via: 'hotel-exemple', essai: true }),
   course('ELA-26-10-LD4DD', 'realisee', 60),
   course('ELA-26-10-LE5EE', 'realisee', 70, { avisDemande: new Date().toISOString() }),
   course('ELA-26-10-LF6FF', 'realisee', 50, { course: { depart: 'Orly', arrivee: 'Paris', date: ilYa(10), heure: '10:00', vehicule: 'Berline' } }),
 ];
 let LIENS = [{ code: 'fiche-hotels', nom: 'Fiche papier remise aux hôtels', cree_le: '2026-10-15T00:00:00Z' },
-             { code: 'nomad-roissy', nom: 'Nomad Hôtel Roissy', cree_le: '2026-10-15T01:00:00Z' }];
-const MESURE = [{ source: 'nomad-roissy', evenement: 'page_vue', nombre: 12 },
-                { source: 'nomad-roissy', evenement: 'clic_reserver', nombre: 3 },
-                { source: 'nomad-roissy', evenement: 'clic_appel', nombre: 1 }];
+             { code: 'hotel-exemple', nom: 'Hôtel Exemple Roissy', cree_le: '2026-10-15T01:00:00Z' }];
+const MESURE = [{ source: 'hotel-exemple', evenement: 'page_vue', nombre: 12 },
+                { source: 'hotel-exemple', evenement: 'clic_reserver', nombre: 3 },
+                { source: 'hotel-exemple', evenement: 'clic_appel', nombre: 1 }];
 const crees = [];
 async function admin({ lienAvis = 'https://g.page/r/exemple/review', mesureEnPanne = false } = {}) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris' });
@@ -299,20 +299,20 @@ try {
     await p.click('#btnRegistre');
     await p.waitForFunction(() => document.querySelectorAll('#regLiens .reg-lien').length >= 2, null, { timeout: 8000 }).catch(() => {});
     const ls = await lignesLiens(p);
-    const nomad = ls.find(l => l.nom === 'Nomad Hôtel Roissy') || { sous: [] };
-    check('liens : les deux liens du serveur s\'affichent, le plus utile en tête', ls.length === 2 && ls[0].nom === 'Nomad Hôtel Roissy', JSON.stringify(ls));
-    check('liens : le compteur AVANT la demande (12 vues, 3 « Book », 1 appel)', /12 vues/.test(nomad.sous[0]) && /3 « Book »/.test(nomad.sous[0]) && /1 appel/.test(nomad.sous[0]), nomad.sous[0]);
-    check('liens : 2 demandes, 1 réalisée — la course d\'essai ne compte pas', /2 demandes/.test(nomad.sous[0]) && /1 réalisée/.test(nomad.sous[0]), nomad.sous[0]);
-    check('liens : l\'argent ne compte que la réalisée (80 €, pas 999)', /^80\s?€$/.test(nomad.val || ''), nomad.val);
-    check('liens : le code est écrit sous le nom', nomad.sous[1] === 'Code : nomad-roissy', nomad.sous[1]);
+    const exemple = ls.find(l => l.nom === 'Hôtel Exemple Roissy') || { sous: [] };
+    check('liens : les deux liens du serveur s\'affichent, le plus utile en tête', ls.length === 2 && ls[0].nom === 'Hôtel Exemple Roissy', JSON.stringify(ls));
+    check('liens : le compteur AVANT la demande (12 vues, 3 « Book », 1 appel)', /12 vues/.test(exemple.sous[0]) && /3 « Book »/.test(exemple.sous[0]) && /1 appel/.test(exemple.sous[0]), exemple.sous[0]);
+    check('liens : 2 demandes, 1 réalisée — la course d\'essai ne compte pas', /2 demandes/.test(exemple.sous[0]) && /1 réalisée/.test(exemple.sous[0]), exemple.sous[0]);
+    check('liens : l\'argent ne compte que la réalisée (80 €, pas 999)', /^80\s?€$/.test(exemple.val || ''), exemple.val);
+    check('liens : le code est écrit sous le nom', exemple.sous[1] === 'Code : hotel-exemple', exemple.sous[1]);
     const fiche = ls.find(l => l.nom === 'Fiche papier remise aux hôtels') || { sous: [] };
     check('liens : un lien sans visite ne s\'invente pas de chiffres', /^0 demande · 0 réalisée$/.test(fiche.sous[0] || ''), fiche.sous[0]);
 
     /* Copier le lien de la page choisie. */
     await p.selectOption('#lienPage', '/en/cdg-airport-transfer-paris/');
-    await p.locator('#regLiens .reg-lien', { hasText: 'Nomad' }).locator('button').click();
+    await p.locator('#regLiens .reg-lien', { hasText: 'Exemple' }).locator('button').click();
     await p.waitForTimeout(300);
-    const attendu = 'https://elatransfer.com/en/cdg-airport-transfer-paris/?via=nomad-roissy';
+    const attendu = 'https://elatransfer.com/en/cdg-airport-transfer-paris/?via=hotel-exemple';
     const note = await p.textContent('#lienCopie');
     const presse = await p.evaluate(() => navigator.clipboard.readText().catch(() => ''));
     check('copier : le lien de la page choisie est écrit en clair', note.includes(attendu), note);
@@ -346,7 +346,7 @@ try {
     await p.fill('#lienNom', 'Agence X'); await p.fill('#lienCode', 'Agence X');
     await p.click('#btnLienCreer'); await p.waitForTimeout(300);
     check('créer : un code avec espace ou majuscule est refusé AVANT le serveur', crees.length === n0 && /minuscules/.test(await p.textContent('#lienEtat')), await p.textContent('#lienEtat'));
-    await p.fill('#lienCode', 'nomad-roissy');
+    await p.fill('#lienCode', 'hotel-exemple');
     await p.click('#btnLienCreer'); await p.waitForTimeout(500);
     check('créer : un code déjà pris est dit tel quel', /existe déjà/.test(await p.textContent('#lienEtat')), await p.textContent('#lienEtat'));
     check('admin : aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
@@ -359,9 +359,9 @@ try {
     await p.click('#btnRegistre');
     await p.waitForFunction(() => document.querySelectorAll('#regLiens .reg-lien').length >= 1, null, { timeout: 8000 }).catch(() => {});
     const ls = await lignesLiens(p);
-    const nomad = ls.find(l => l.nom === 'Nomad Hôtel Roissy') || { sous: [] };
+    const exemple = ls.find(l => l.nom === 'Hôtel Exemple Roissy') || { sous: [] };
     const etat = await p.textContent('#regLiensEtat');
-    check('compteur muet : la liste reste, sans vues inventées', ls.length >= 2 && !/vue/.test(nomad.sous[0]) && /2 demandes/.test(nomad.sous[0]), JSON.stringify(nomad));
+    check('compteur muet : la liste reste, sans vues inventées', ls.length >= 2 && !/vue/.test(exemple.sous[0]) && /2 demandes/.test(exemple.sous[0]), JSON.stringify(exemple));
     check('compteur muet : la note le dit', /pas lisibles pour l'instant/.test(etat), etat);
     await ctx.close();
   }

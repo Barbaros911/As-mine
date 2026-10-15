@@ -38,7 +38,7 @@
      compterait des affichages que personne n'a vus. */
   if(/bot|crawl|spider|slurp|lighthouse|headless|pagespeed|preview/i.test(navigator.userAgent || "")) return;
 
-  /* LE LIEN D'UN PARTENAIRE (15 octobre 2026, « ?via=nomad-roissy ») : un
+  /* LE LIEN D'UN PARTENAIRE (15 octobre 2026, « ?via=hotel-exemple ») : un
      hôtel, un office de tourisme ou un annuaire reçoit SON lien, et chaque
      geste compté dit par qui le visiteur est arrivé. Le code part tel quel
      — format fermé — et c'est le SERVEUR qui le reconnaît : un code inventé

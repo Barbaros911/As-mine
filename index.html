@@ -4917,11 +4917,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div class="lien-nouveau">
         <div class="champ">
           <label for="lienNom">Nom du partenaire</label>
-          <input id="lienNom" type="text" maxlength="80" autocomplete="off" placeholder="Ex. : Nomad Hôtel Roissy">
+          <input id="lienNom" type="text" maxlength="80" autocomplete="off" placeholder="Ex. : Hôtel Exemple Roissy">
         </div>
         <div class="champ">
           <label for="lienCode">Code dans le lien</label>
-          <input id="lienCode" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="nomad-roissy">
+          <input id="lienCode" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="hotel-exemple">
         </div>
         <button class="bouton-fantome" type="button" id="btnLienCreer">Créer le lien</button>
         <p class="bloc-note" id="lienEtat" role="status" hidden></p>
@@ -16231,7 +16231,7 @@ window.ELA_TEXTES = {
       var n = nom.value.trim(), c = code.value.trim();
       if(!n){ dire("Écrivez d'abord le nom du partenaire."); nom.focus(); return; }
       if(!/^[a-z0-9-]{2,40}$/.test(c)){
-        dire("Le code : de 2 à 40 lettres minuscules, chiffres ou tirets, sans espace ni accent (ex. : nomad-roissy).");
+        dire("Le code : de 2 à 40 lettres minuscules, chiffres ou tirets, sans espace ni accent (ex. : hotel-exemple).");
         code.focus(); return;
       }
       if(!nuage.connecte()){ dire("Connectez-vous au serveur pour créer un lien."); return; }

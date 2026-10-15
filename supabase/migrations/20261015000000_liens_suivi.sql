@@ -5,7 +5,7 @@
 -- veux un suivi ». La mesure du 14/10 dit QUELLE PAGE travaille ; elle ne
 -- dit pas QUI a envoyé le visiteur. Un hôtel, un office de tourisme ou un
 -- annuaire qui pose un lien vers le site reçoit maintenant SON lien :
--- « …/en/cdg-airport-transfer-paris/?via=nomad-roissy ».
+-- « …/en/cdg-airport-transfer-paris/?via=hotel-exemple ».
 --
 -- UN CODE PAR PARTENAIRE, UNE LISTE FERMÉE TENUE PAR L'ADMIN. Le code ne
 -- compte que s'il existe dans « liens_suivi » : un code inventé dans une

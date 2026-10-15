@@ -42,14 +42,14 @@ end $$;
 -- ── 2. L'ADMIN CRÉE ET LIT ; L'AGENT ET L'ANONYME NON ───────────────────
 set role authenticated;
 select set_config('test.uid', 'aaaaaaaa-0000-0000-0000-000000000001', false);
-insert into public.liens_suivi (code, nom) values ('nomad-roissy', 'Nomad Hôtel Roissy');
+insert into public.liens_suivi (code, nom) values ('hotel-exemple', 'Hôtel Exemple Roissy');
 do $$ begin
   if (select count(*) from public.liens_suivi) <> 2 then
     raise exception 'ECHEC 2 : l''admin ne lit pas les deux liens'; end if;
 end $$;
-select epreuve.refus('2a code mal formé', 'insert into public.liens_suivi (code, nom) values (''Nomad Roissy'', ''x'')', '23514');
+select epreuve.refus('2a code mal formé', 'insert into public.liens_suivi (code, nom) values (''Hotel Exemple'', ''x'')', '23514');
 select epreuve.refus('2b nom vide', 'insert into public.liens_suivi (code, nom) values (''vide'', ''  '')', '23514');
-select epreuve.refus('2c l''admin efface un lien', 'delete from public.liens_suivi where code = ''nomad-roissy''', '42501');
+select epreuve.refus('2c l''admin efface un lien', 'delete from public.liens_suivi where code = ''hotel-exemple''', '42501');
 select epreuve.refus('2d l''admin renomme un lien', 'update public.liens_suivi set nom = ''x''', '42501');
 select set_config('test.uid', 'aaaaaaaa-0000-0000-0000-000000000002', false);
 do $$ begin
@@ -67,28 +67,28 @@ reset role;
 -- ── 3. UN ANONYME COMPTE, ET LA SOURCE N'EST RETENUE QUE SI ELLE EXISTE ──
 delete from public.mesures_acquisition;
 set role anon;
-select public.ela_mesurer('en-cdg', 'page_vue', 'nomad-roissy');
-select public.ela_mesurer('en-cdg', 'page_vue', 'nomad-roissy');
-select public.ela_mesurer('en-cdg', 'clic_reserver', 'nomad-roissy');
+select public.ela_mesurer('en-cdg', 'page_vue', 'hotel-exemple');
+select public.ela_mesurer('en-cdg', 'page_vue', 'hotel-exemple');
+select public.ela_mesurer('en-cdg', 'clic_reserver', 'hotel-exemple');
 select public.ela_mesurer('en-cdg', 'page_vue', 'inconnu');          -- inventé : sans source
-select public.ela_mesurer('en-cdg', 'page_vue', 'Nomad-Roissy');     -- mal formé : sans source
+select public.ela_mesurer('en-cdg', 'page_vue', 'Hotel-Exemple');     -- mal formé : sans source
 select public.ela_mesurer('en-cdg', 'page_vue', repeat('a', 41));    -- trop long : sans source
 select public.ela_mesurer('en-cdg', 'page_vue');                     -- ancienne page en cache
 select public.ela_mesurer('accueil', 'demande_envoyee', 'fiche-hotels');
-select public.ela_mesurer('en-cdg', 'clic_inconnu', 'nomad-roissy'); -- geste inconnu : rien
+select public.ela_mesurer('en-cdg', 'clic_inconnu', 'hotel-exemple'); -- geste inconnu : rien
 reset role;
 do $$
 declare v_avec int; v_sans int; v_total int;
 begin
   select nombre into v_avec from public.mesures_acquisition
-   where page = 'en-cdg' and evenement = 'page_vue' and source = 'nomad-roissy';
+   where page = 'en-cdg' and evenement = 'page_vue' and source = 'hotel-exemple';
   select nombre into v_sans from public.mesures_acquisition
    where page = 'en-cdg' and evenement = 'page_vue' and source = '';
   if v_avec is distinct from 2 then raise exception 'ECHEC 3 : % vues avec la source au lieu de 2', v_avec; end if;
   if v_sans is distinct from 4 then raise exception 'ECHEC 3 : % vues sans source au lieu de 4', v_sans; end if;
   select count(*) into v_total from public.mesures_acquisition;
   if v_total <> 4 then raise exception 'ECHEC 3 : % lignes au lieu de 4', v_total; end if;
-  if exists (select 1 from public.mesures_acquisition where source not in ('', 'nomad-roissy', 'fiche-hotels')) then
+  if exists (select 1 from public.mesures_acquisition where source not in ('', 'hotel-exemple', 'fiche-hotels')) then
     raise exception 'ECHEC 3 : une source inventée a été retenue'; end if;
 end $$;
 
@@ -99,7 +99,7 @@ do $$
 declare n bigint;
 begin
   select l.nombre into n from public.ela_mesures_liens(30) l
-   where l.source = 'nomad-roissy' and l.evenement = 'page_vue';
+   where l.source = 'hotel-exemple' and l.evenement = 'page_vue';
   if n is distinct from 2 then raise exception 'ECHEC 4 : le lien lit % vues au lieu de 2', n; end if;
   if exists (select 1 from public.ela_mesures_liens(30) l where l.source = '') then
     raise exception 'ECHEC 4 : les visites sans lien sortent dans les totaux par lien'; end if;
@@ -120,14 +120,14 @@ insert into public.mesures_acquisition(jour, page, evenement, nombre)
 select (now() at time zone 'Europe/Paris')::date, 'sonde-' || g, 'page_vue', 1
   from generate_series(1, 58) g;
 set role anon;
-select public.ela_mesurer('page-de-trop', 'page_vue', 'nomad-roissy');
-select public.ela_mesurer('en-cdg', 'page_vue', 'nomad-roissy');
+select public.ela_mesurer('page-de-trop', 'page_vue', 'hotel-exemple');
+select public.ela_mesurer('en-cdg', 'page_vue', 'hotel-exemple');
 reset role;
 do $$ begin
   if exists (select 1 from public.mesures_acquisition where page = 'page-de-trop') then
     raise exception 'ECHEC 5 : une 61e page a été comptée'; end if;
   if (select nombre from public.mesures_acquisition
-       where page = 'en-cdg' and evenement = 'page_vue' and source = 'nomad-roissy') <> 3 then
+       where page = 'en-cdg' and evenement = 'page_vue' and source = 'hotel-exemple') <> 3 then
     raise exception 'ECHEC 5 : une page déjà vue ne compte plus avec sa source'; end if;
 end $$;
 
