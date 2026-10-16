@@ -855,6 +855,10 @@ check('et il porte le numéro du site, pas un numéro recopié à la main',
 /* La note se tait : deux phrases pour une même consigne font relire. */
 check('la note se tait plutôt que de répéter l\'écriteau',
   await p.locator('#noteRenvoi').isHidden());
+/* Le bouton « Nous appeler » du client n'apparaît pas au comptoir : l'écriteau
+   rouge porte déjà le numéro, deux fois la même consigne fait relire. */
+check('au comptoir, pas de bouton « Nous appeler » en plus de l\'écriteau',
+  await p.locator('#btnAppelerBon').isHidden());
 check('et rien n\'est parti sur WhatsApp tout seul',
   (await p.evaluate(() => window.__wa.length)) === 0);
 

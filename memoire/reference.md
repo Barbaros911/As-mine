@@ -59,3 +59,28 @@ l'écriture de la ligne, et le N° revient au client dans la réponse de
   client. Un lien envoyé avant s'ouvre comme avant.
 - Des trous sont possibles (une écriture refusée consomme un numéro) : ce
   n'est pas un numéro de facture.
+
+## 16 octobre 2026 — le même N°, partout, et seul
+
+Barbaros, en voyant les captures du bon : « il faut aussi que les numéros de
+bon soient partout pareils, courts ». Le N° existait partout, mais pas sous
+la même forme : « N° 1042 · ELA-… » (« Mes courses », réception, registre),
+« N° 1042 (ELA-…) » (messages au client et au groupe), « N° 1042 » + « Réf.
+ELA-… » en petit (bons), et la seule référence dans le titre de la
+notification au client.
+- **Dès qu'un N° existe, il s'écrit seul** : bon du client, « Mes
+  courses », liste et bon de la réception, carte et registre de l'admin,
+  « Prévenir le client », « Accuser réception », « Course à placer », titre
+  de la notification.
+- **La référence reste la clé et s'écrit encore à trois endroits, exprès** :
+  la fiche de l'admin (ligne « Référence », l'écran technique), la fin du
+  message Telegram, et le message WhatsApp que le client renvoie lui-même —
+  c'est elle que « Coller une demande » lit pour retrouver la course.
+- **Une demande sans N° garde sa référence** : une demande qui n'a pas
+  atteint le serveur n'a PAS ENCORE de numéro (c'est la base qui numérote).
+  Renvoyée par WhatsApp puis collée dans l'admin, elle garde sa référence,
+  le serveur la numérote, et le téléphone du client récupère le N° tout seul
+  (`rafraichirCourses` → `etat-course`).
+- Contrôles : `test-reception-numero` (réécrite, retrouve les cartes par
+  `data-ref`), `test-nouveau-confirmation` (message « N° 1042 » sans ELA) ;
+  neuf contrôles tombent sur l'ancien affichage.

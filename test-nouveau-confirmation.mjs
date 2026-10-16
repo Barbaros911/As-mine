@@ -116,6 +116,39 @@ check('sans numéro de client, le bouton reste caché : il n\'enverrait rien',
   await pe.locator('#btnPrevenirClient').isHidden());
 await ctxE.close();
 
+/* ============ LE MÊME N° PARTOUT, ET SEUL (16 octobre 2026) ============
+   Barbaros : « il faut que les numéros de bon soient partout pareils,
+   courts ». Une course numérotée par le serveur : le message au client
+   porte « N° 1042 », exactement ce qui est écrit sur son bon — plus la
+   référence ELA-… entre parenthèses. Le lien du bon, lui, la porte encodée :
+   personne n'a à la lire. */
+{
+  const ctxN = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
+  const pn = await ctxN.newPage();
+  pn.on('pageerror',e=>errs.push(e.message));
+  await pn.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
+  await ctxN.addInitScript((a)=>{
+    localStorage.setItem('ela_bookings', JSON.stringify([a]));
+    localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
+    window.__liens = [];
+    window.open = (u)=>{ window.__liens.push(u); return null; };
+  }, course("ELA-26-10-K7QPM", { numero:1042 }));
+  await pn.goto('http://127.0.0.1:8099/?exploitant=1',{waitUntil:'domcontentloaded'});
+  await pn.waitForTimeout(600);
+  await pn.locator('.demande').first().click(); await pn.waitForTimeout(300);
+  await pn.fill('#bbChauffeurNom','Mehmet');
+  await pn.fill('#bbChauffeurTel','06 98 76 54 32');
+  await pn.locator('#btnConfirmerCourse').click(); await pn.waitForTimeout(350);
+  await pn.locator('#btnPrevenirClient').click(); await pn.waitForTimeout(250);
+  const urlN = await pn.evaluate(()=>window.__liens[0]) || '';
+  const LN = decodeURIComponent(urlN.split('text=')[1] || '').split('\n');
+  check('avec un N°, le message dit « Transfert confirmé — N° 1042 », seul',
+    LN[0]==='Transfert confirmé — N° 1042', LN[0]);
+  check('et la référence ELA-… n\'y est écrite nulle part',
+    !LN.join('\n').includes('ELA-26-10-K7QPM'), LN.join(' | '));
+  await ctxN.close();
+}
+
 /* ============ CÔTÉ CLIENT : le bon avant et après ============ */
 const ctxC = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 const pc = await ctxC.newPage();

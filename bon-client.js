@@ -142,7 +142,8 @@
     tete.appendChild(el("span", "ebon-etat " + statut, L.etats[statut] || L.etats.attente));
     tete.appendChild(el("p", "ebon-titre", L.titre));
     tete.appendChild(el("p", "ebon-ref", b.numero ? "N° " + b.numero : (b.ref || "")));
-    if(b.numero && b.ref) tete.appendChild(el("p", "ebon-ref-tech", L.ref + " " + b.ref));
+    /* Le N° seul, comme sur le bon du client (16/10/2026, « partout pareil,
+       court ») : plus de référence ELA-… écrite dessous. */
     bon.appendChild(tete);
 
     /* LE CLIENT EN PREMIER, ET EN GROS : c'est ce que la réception cherche
