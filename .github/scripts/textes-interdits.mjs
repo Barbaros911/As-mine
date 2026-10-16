@@ -32,6 +32,13 @@ export const INTERDITS = [
   { motif: /\bpaiement_(?:carte|especes)\b/, quoi: "libellé de paiement carte / espèces" },
   { motif: /data-contact="messages"/, quoi: "bouton de confirmation iMessage" },
   { motif: /paiement(?:Nom)?\s*:\s*"(?:carte|especes|Carte bancaire|Esp[èe]ces)"/, quoi: "course enregistrée en carte / espèces (donnée d'exemple)" },
+  /* L'OUVERTURE AUTOMATIQUE DE WHATSAPP (retirée le 4 octobre 2026, option A).
+     Le bon disait encore « Si WhatsApp ne s'est pas ouvert, ou si vous n'avez
+     pas appuyé sur envoyer » — trouvé en ligne le 15/10/2026 par l'audit des
+     quatre prompts. Un libellé qui décrit un mécanisme retiré est pire qu'un
+     libellé absent. */
+  { motif: /WhatsApp ne s'est pas ouvert/i, quoi: "« Si WhatsApp ne s'est pas ouvert » (ouverture automatique retirée le 4/10/2026)" },
+  { motif: /WhatsApp did not open/i, quoi: "« If WhatsApp did not open » (ouverture automatique retirée le 4/10/2026)" },
 ];
 
 /* CE QUI N'EST PAS LU PAR UN CLIENT, ET POURQUOI — chemins relatifs au site.

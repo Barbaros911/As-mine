@@ -33,7 +33,8 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   du chauffeur** (10/10/2026, Barbaros) — transmis par Elatransfer avec la
   confirmation, au plus tard 2 h avant. **C'est ce que fait le site et ce que
   disent les CGV** (art. 5 et 7). L'argent ne passe jamais par Elatransfer.
-  Seul le comptoir d'hôtel règle encore à bord. L'empreinte Stripe (voir
+  Le comptoir d'hôtel aussi, depuis le 11/10 : plus aucun règlement à bord
+  (corrigé le 15/10, cette ligne disait encore l'inverse). L'empreinte Stripe (voir
   plus bas) reste construite en test et **pas active** ; elle demande le
   SIRET. Détail : `memoire/paiement-lien.md`.
 - **Le prix est ferme**, arrêté à la réservation, donc **opposable**.

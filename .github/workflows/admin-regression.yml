@@ -94,6 +94,12 @@ jobs:
           # qui ne touche pas le dépôt. L'écran de l'admin est pris d'office
           # (test-admin-trafic), la fonction par test-securite-fonctions.
           suites="$suites test-mesure"
+          # LE VOYAGEUR ÉTRANGER DE BOUT EN BOUT (15 octobre 2026, audit des
+          # quatre prompts) : page /en/, « Book », moteur en anglais, prix,
+          # récapitulatif, envoi, bon — et les pannes (compteur muet, dépôt
+          # refusé). C'est elle qui a trouvé le bon qui disait « Demande reçue »
+          # au-dessus de « n'a pas pu nous être transmise ».
+          suites="$suites test-parcours-en"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

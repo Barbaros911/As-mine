@@ -671,8 +671,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    comme la référence seule (même règle que la pastille du chauffeur). */
 .d-num{font-size:13px;font-weight:800;color:inherit;
   font-variant-numeric:tabular-nums;white-space:nowrap;}
-.d-ref.d-ref-tech{font-weight:600;opacity:.78;margin-right:auto;}
-@media (max-width:600px){ .d-ref.d-ref-tech{display:none;} }
+/* Le N° seul sur la carte, à toutes les largeurs (16/10/2026) : la référence
+   reste sur la fiche, qui est l'écran technique. */
+.d-ref.d-ref-tech{display:none;}
 .d-prix{font-size:15px;font-weight:800;letter-spacing:-.02em;}
 .d-trajet{display:block;font-size:13.5px;font-weight:700;margin-top:3px;
   line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -3953,15 +3954,25 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          Quand le dépôt a ÉCHOUÉ, ce bouton devient le seul chemin par lequel
          sa demande peut nous parvenir : il passe en or. -->
     <div class="veh-action" id="actionsBon">
-      <!-- La note n'est plus cachée : le renvoi sert dans les DEUX cas
-           maintenant, puisque le message WhatsApp part à chaque
-           réservation. Un client qui a fermé l'onglet sans appuyer sur
-           envoyer doit pouvoir le refaire d'ici. -->
-      <p class="rassure" id="noteRenvoi" data-t="renvoi_note">Si WhatsApp ne s'est pas ouvert, ou si vous
-         n'avez pas appuyé sur envoyer, renvoyez-le d'ici.</p>
+      <!-- LA NOTE NE DÉCRIT PLUS L'OUVERTURE DE WHATSAPP (15 octobre 2026,
+           audit des quatre prompts). Elle disait « Si WhatsApp ne s'est pas
+           ouvert, ou si vous n'avez pas appuyé sur envoyer » — un mécanisme
+           retiré le 4 octobre 2026 (option A : plus aucune application ne
+           s'ouvre au clic). Un libellé qui décrit un mécanisme retiré est
+           pire qu'un libellé absent. La note reste visible dans les deux
+           états : WhatsApp est le second chemin par lequel la demande
+           arrive, et le seul si le dépôt a échoué. -->
+      <p class="rassure" id="noteRenvoi" data-t="renvoi_note">Vous pouvez aussi nous envoyer votre demande sur WhatsApp.</p>
       <button class="bouton-fantome" type="button" id="btnRenvoyer" data-t="renvoyer">
         Renvoyer ma demande sur WhatsApp
       </button>
+      <!-- APPELER DIRECTEMENT (16 octobre 2026, Barbaros : « on peut ajouter
+           appeler directement aussi »). Seulement quand le dépôt a ÉCHOUÉ : la
+           demande n'est alors nulle part, et un client sans WhatsApp n'avait
+           aucun autre geste. Le numéro est ÉCRIT dans le bouton : sur un
+           ordinateur, qui ne compose rien, il se lit. Jamais au comptoir —
+           l'écriteau rouge y porte déjà le numéro (« jugerTeteBon »). -->
+      <a class="bouton-fantome" id="btnAppelerBon" href="tel:+33759312433" data-t="bon_appeler" hidden>Nous appeler · 07 59 31 24 33</a>
       <button class="bouton-fantome" type="button" id="btnNouvelleCourse" data-t="autre_course">
         Réserver une autre course
       </button>
@@ -6357,7 +6368,9 @@ window.ELA_TEXTES = {
        WhatsApp : il vient d'y envoyer sa demande, le lui répéter n'apprend
        rien et ressemble à une consigne de plus. */
     bon_etat:"Demande reçue",
+    bon_etat_ko:"Demande non transmise",
     bon_note:"Nous vérifions la disponibilité d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.",
+    bon_note_ko:"Votre demande ne nous est pas encore parvenue.",
     bon_etat_ok:"Transfert confirmé",
     bon_note_ok:"Votre chauffeur vous attend à l'heure convenue. Gardez ce bon : il porte votre référence.",
     confirme_titre:"Transfert confirmé",
@@ -6365,7 +6378,7 @@ window.ELA_TEXTES = {
     appeler_chauffeur:"Appeler le chauffeur",
     etat_confirme:"Confirmé",
     depart:"Départ", arrivee:"Arrivée", prix_ferme:"Prix ferme", prix_annonce:"Prix annoncé",
-    renvoi_note:"Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici.",
+    renvoi_note:"Vous pouvez aussi nous envoyer votre demande sur WhatsApp.",
     renvoyer:"Renvoyer ma demande sur WhatsApp", autre_course:"Réserver une autre course",
     renvoi_note_comptoir:"Elatransfer est prévenu automatiquement. Vous n'avez rien d'autre à faire.",
     nav_accueil:"Accueil", nav_courses:"Réservations", nav_trajets:"Trajets",
@@ -6404,7 +6417,8 @@ window.ELA_TEXTES = {
     notif_rate:"L'inscription n'a pas abouti. La confirmation vous parviendra par le moyen choisi.",
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
-    envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp : c'est le seul moyen qu'elle nous parvienne.",
+    envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp ou appelez-nous : elle ne nous parviendra pas autrement.",
+    bon_appeler:"Nous appeler · 07 59 31 24 33",
     envoi_ko_comptoir:"Votre demande n'a pas pu nous être transmise. Appelez Elatransfer au 07 59 31 24 33 pour la confirmer.",
     wa_titre:"Comment pouvons-nous vous aider ?",
     wa_c1:"J'ai une question sur ma réservation",
@@ -6581,7 +6595,9 @@ window.ELA_TEXTES = {
     bon_sous:"Booking voucher",
     bon_ref_tech:"Ref.",
     bon_etat:"Request received",
+    bon_etat_ko:"Request not sent",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
+    bon_note_ko:"Your request has not reached us yet.",
     bon_etat_ok:"Transfer confirmed",
     bon_note_ok:"Your chauffeur will be there at the agreed time. Keep this voucher: it carries your reference.",
     confirme_titre:"Transfer confirmed",
@@ -6589,7 +6605,7 @@ window.ELA_TEXTES = {
     appeler_chauffeur:"Call your chauffeur",
     etat_confirme:"Confirmed",
     depart:"Pick-up", arrivee:"Drop-off", prix_ferme:"Firm price", prix_annonce:"Quoted price",
-    renvoi_note:"If WhatsApp did not open, or you did not press send, send it again from here.",
+    renvoi_note:"You can also send us your request on WhatsApp.",
     renvoyer:"Send my request again on WhatsApp", autre_course:"Book another ride",
     renvoi_note_comptoir:"Elatransfer is alerted automatically. There is nothing else to do.",
     nav_accueil:"Home", nav_courses:"Bookings", nav_trajets:"Rides",
@@ -6623,7 +6639,8 @@ window.ELA_TEXTES = {
     notif_rate:"Sign-up did not go through. The confirmation will reach you through the channel you chose.",
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
-    envoi_ko:"Your request could not reach us. Send it on WhatsApp: that is the only way it will get to us.",
+    envoi_ko:"Your request could not reach us. Send it on WhatsApp or call us: it will not reach us any other way.",
+    bon_appeler:"Call us · +33 7 59 31 24 33",
     envoi_ko_comptoir:"Your request could not reach us. Please call Elatransfer on +33 7 59 31 24 33 to confirm it.",
     wa_titre:"How can we help?",
     wa_c1:"I have a question about my booking",
@@ -8235,13 +8252,16 @@ window.ELA_TEXTES = {
         rf.className = "rec-reference";
         /* LE N° COURT D'ABORD (5 octobre 2026) : « N° 1042 » se dicte, une
            référence tirée au sort non. Elle reste à côté, entière. */
+        /* LE N° SEUL dès qu'il existe (16 octobre 2026, « partout pareil,
+           court ») : c'est lui que la réception dicte et que l'admin
+           cherche. La référence ne s'écrit que sur une course sans N°. */
         if(numeroDe(c)){
           var rn = document.createElement("b");
           rn.className = "rec-numero"; rn.textContent = "N° " + numeroDe(c);
           rf.appendChild(rn);
-          rf.appendChild(document.createTextNode(" · "));
+        } else {
+          rf.appendChild(document.createTextNode("Réf. " + c.ref));
         }
-        rf.appendChild(document.createTextNode("Réf. " + c.ref));
         d.appendChild(rf);
       }
 
@@ -10969,16 +10989,22 @@ window.ELA_TEXTES = {
     return euros(t);
   }
   var bonCourant = null;
+  var bonAffiche = null;       // le bon actuellement dessiné à l'écran
   /* ═══ LE N° COURT (5 octobre 2026) ═══ « N° 1042 », attribué par le
      serveur au dépôt et rendu par « deposer-course » ou « etat-course ».
-     Il remplace la référence en gros sur le bon ; la référence reste
-     dessous, en petit — c'est elle la clé de la course. Sans N° (dépôt
-     raté, migration pas encore appliquée), le bon reste tel qu'avant. */
+     LE MÊME NUMÉRO PARTOUT, ET SEUL (16 octobre 2026, Barbaros : « il faut
+     que les numéros de bon soient partout pareils, courts »). La référence
+     ELA-… n'est plus écrite en petit dessous : elle reste la clé de la
+     course (liens, journal, lecteur de demandes) mais le client n'en a pas
+     l'usage. Sans N° — une demande qui n'a pas atteint le serveur n'en a
+     PAS ENCORE — la référence est le seul nom de la demande et reste
+     écrite ; le N° arrive tout seul dès que le serveur la connaît
+     (« rafraichirCourses »). */
   function ecrireRefBon(bon){
     var n = numeroDe(bon);
     document.getElementById("bonRef").textContent = n ? "N° " + n : bon.ref;
     var tech = document.getElementById("bonRefTech");
-    if(tech){ tech.hidden = !n; tech.textContent = n ? T("bon_ref_tech") + " " + bon.ref : ""; }
+    if(tech){ tech.hidden = true; tech.textContent = ""; }
   }
   function poserNumeroClient(bon, n){
     if(!bon || !(n > 0) || bon.numero === n) return;
@@ -11025,17 +11051,12 @@ window.ELA_TEXTES = {
     document.getElementById("noteRenvoi").hidden  = !renvoyable;
     document.getElementById("btnRenvoyer").hidden = !renvoyable;
     if(!renvoyable) document.getElementById("etatEnvoi").hidden = true;
-    var etat = document.getElementById("bonEtat");
-    etat.textContent = T(confirme ? "bon_etat_ok" : "bon_etat");
-    etat.setAttribute("data-t", confirme ? "bon_etat_ok" : "bon_etat");
-    etat.classList.toggle("confirme", confirme);
-    var note = document.getElementById("bonNote");
-    /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
-       la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
-       de l'hôtel. */
-    var cleNote = confirme ? "bon_note_ok" : (recHotel ? "bon_note_comptoir" : "bon_note");
-    note.textContent = T(cleNote);
-    note.setAttribute("data-t", cleNote);
+    document.getElementById("bonEtat").classList.toggle("confirme", confirme);
+    /* L'état et la phrase de tête sont écrits par « jugerTeteBon » : ils
+       dépendent aussi du DÉPÔT (une demande qui n'est pas arrivée ne se dit
+       pas « reçue »), et le dépôt change après l'affichage du bon. */
+    bonAffiche = bon;
+    jugerTeteBon();
     /* « PRIX FERME » SEULEMENT UNE FOIS LA COURSE CONFIRMÉE (CGV art. 3 et
        4) — 5 octobre 2026. En attente, le bon disait déjà « Prix ferme »
        alors que la demande n'était acceptée par personne : il dit « Prix
@@ -11459,6 +11480,7 @@ window.ELA_TEXTES = {
     /* Le bouton change de POIDS, pas de place : le déplacer ferait chercher
        au client un bouton qu'il vient de voir ailleurs. */
     btnRenvoyer.className = (etat === false) ? "bouton" : "bouton-fantome";
+    jugerTeteBon();
     jugerRenvoiComptoir();
     /* Le bloc des notifications suit l'état de l'envoi : il n'a de sens que
        si la demande est bien arrivée sur le serveur. */
@@ -11466,6 +11488,51 @@ window.ELA_TEXTES = {
     /* La note reste visible quel que soit l'état : le message WhatsApp part
        dans les deux cas, et il peut n'avoir pas été envoyé dans les deux
        cas aussi. */
+  }
+
+  /* ═══ LE BON NE DIT PAS « DEMANDE REÇUE » QUAND LE DÉPÔT A ÉCHOUÉ ═══
+     15 octobre 2026, audit des quatre prompts. Mesuré sur le site construit :
+     dépôt refusé (503), le bon affichait « Demande reçue — Nous vérifions
+     la disponibilité d'un chauffeur » en tête, et l'écriteau rouge « votre
+     demande n'a pas pu nous être transmise » dix lignes plus bas. Deux
+     phrases contraires sur le même écran, à l'endroit du site où mentir
+     coûte le plus (CLAUDE.md, « une panne inventée »).
+     LA TÊTE DU BON SUIT LE DÉPÔT : tant qu'on ne sait pas, et dès qu'elle est
+     arrivée, « Demande reçue » ; quand le dépôt a échoué, « Demande non
+     transmise » et une phrase courte — la consigne (WhatsApp côté client,
+     appel au comptoir) est déjà dans l'écriteau rouge, on ne la répète pas.
+     Seul le bon de la demande EN COURS peut être « non transmise » : un bon
+     rouvert depuis « Mes courses » garde ses libellés d'attente. Un bon
+     confirmé ne passe jamais par là. L'attribut « data-t » est réécrit, pas
+     seulement le texte : un changement de langue le relit. */
+  function jugerTeteBon(){
+    var bon = bonAffiche;
+    var etat = document.getElementById("bonEtat"), note = document.getElementById("bonNote");
+    if(!bon || !etat || !note) return;
+    var confirme = (bon.statut === "confirmee");
+    var ko = envoiEtat === false && bon === bonCourant && !confirme && !bon.partiel;
+    var cleEtat = ko ? "bon_etat_ko" : (confirme ? "bon_etat_ok" : "bon_etat");
+    /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
+       la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
+       de l'hôtel. */
+    var cleNote = ko ? "bon_note_ko"
+                : confirme ? "bon_note_ok"
+                : (recHotel ? "bon_note_comptoir" : "bon_note");
+    etat.textContent = T(cleEtat);
+    etat.setAttribute("data-t", cleEtat);
+    note.textContent = T(cleNote);
+    note.setAttribute("data-t", cleNote);
+    /* « Nous appeler » suit le même échec, et lui seul : sur une demande
+       arrivée, appeler ne sert à rien ; au comptoir, l'écriteau porte déjà
+       le numéro et le bouton WhatsApp y est retiré. */
+    var appel = document.getElementById("btnAppelerBon");
+    if(appel) appel.hidden = !ko || !!recHotel;
+    /* SUR UN ÉCHEC, LA NOTE SE TAIT, comme au comptoir : l'écriteau rouge et
+       le bouton juste dessous disent déjà « WhatsApp ou appel ». Ailleurs
+       elle suit la même règle que le bouton de renvoi (« remplirBon »). Le
+       comptoir la masque toujours (« jugerRenvoiComptoir », appelé après). */
+    var noteR = document.getElementById("noteRenvoi");
+    if(noteR && !recHotel) noteR.hidden = ko || confirme || !!bon.partiel;
   }
 
   /* ═══ AU COMPTOIR, IL N'Y A PLUS AUCUN BOUTON WHATSAPP ═══
@@ -11951,7 +12018,9 @@ window.ELA_TEXTES = {
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
       +   '<path d="M9 6l6 6-6 6" stroke="#8494A3" stroke-width="2" '
       +   'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      b.querySelector(".course-ref").textContent = numeroDe(bon) ? "N° " + numeroDe(bon) + " · " + bon.ref : bon.ref;
+      /* Le même N° que sur le bon, seul (16/10/2026) ; la référence seulement
+         tant que le serveur n'a pas numéroté la demande. */
+      b.querySelector(".course-ref").textContent = numeroDe(bon) ? "N° " + numeroDe(bon) : bon.ref;
       /* Une flèche plutôt que le mot « vers » : elle se lit dans les deux
          langues et ne prend pas de place sur un libellé déjà long. */
       b.querySelector(".course-trajet").textContent =
@@ -11974,7 +12043,7 @@ window.ELA_TEXTES = {
       pastille.classList.toggle("non",  et === "etat_refusee" || et === "etat_annulee");
       b.querySelector(".course-date").textContent = dateLisible(bon);
       b.querySelector(".course-prix").textContent = prixDuBon(bon);
-      b.setAttribute("aria-label", T("voir_bon") + " " + bon.ref);
+      b.setAttribute("aria-label", T("voir_bon") + " " + (numeroDe(bon) ? "N° " + numeroDe(bon) : bon.ref));
       b.addEventListener("click", function(){
         bonCourant = bon;
         remplirBon(bon);
@@ -14001,7 +14070,7 @@ window.ELA_TEXTES = {
   function pousserNotification(bon){
     if(!bon || !nuage.connecte()) return;
     var ch = bon.chauffeur || {};
-    var titre = "Transfert confirmé — " + bon.ref;
+    var titre = "Transfert confirmé — " + refParlee(bon);
     var corps = [ch.nom, bon.course.vehicule, dateLisible(bon)]
                 .filter(Boolean).join(" · ");
     nuage.appel("/functions/v1/prevenir-client", {
@@ -14093,7 +14162,10 @@ window.ELA_TEXTES = {
    ===================================================================== */
   /* « N° 1042 (ELA-26-10-K7QPM) » : le N° pour se parler, la référence
      pour retrouver. Sans N°, la référence seule, comme avant. */
-  function refParlee(bon){ var n = numeroDe(bon); return n ? "N° " + n + " (" + bon.ref + ")" : bon.ref; }
+  /* Le N° seul dans les messages (16/10/2026) : le client le retrouve tel
+     quel sur son bon. Le lien « ?ok= » porte la référence, personne n'a à
+     la lire. */
+  function refParlee(bon){ var n = numeroDe(bon); return n ? "N° " + n : bon.ref; }
   function messageConfirmation(bon){
     var ch = bon.chauffeur || {};
     var lien = lienDuBon(bon);
@@ -15666,7 +15738,7 @@ window.ELA_TEXTES = {
     var qCompact = q.replace(/\s/g, "");
     var trouves = registre().filter(function(c){ return correspondCourse(c, q, qCompact); }).slice(0, 20);
     poser("regResultats", trouves.map(function(c){
-      return { nom: (numeroDe(c) ? "N° " + numeroDe(c) + " · " : "") + c.ref + " · " + ((c.client && c.client.nom) || "—"),
+      return { nom: (numeroDe(c) ? "N° " + numeroDe(c) : c.ref) + " · " + ((c.client && c.client.nom) || "—"),
                sous: (c.course.depart + " → " + c.course.arrivee) + " · " + libelleEtat(c.statut || "attente"),
                val: euros((c.prix && c.prix.total) || 0) };
     }), "Aucune course ne correspond.");

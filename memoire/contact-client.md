@@ -92,3 +92,46 @@ le numéro par « Partager mon numéro » et envoie la confirmation tout seul.
 
 Suites : `test-nouveau-contact.mjs`, `test-securite-fonctions.mjs`,
 `test-nouveau-whatsapp.mjs` (le message, par le repli du bon).
+
+## Le bon disait encore « si WhatsApp ne s'est pas ouvert » (15 octobre 2026)
+
+Audit final des quatre prompts internationaux, mesuré sur le site construit,
+en français et en anglais, dépôt refusé (503) par un faux serveur :
+- **La note sous le bon** (`renvoi_note`) disait « Si WhatsApp ne s'est pas
+  ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici » —
+  l'ouverture automatique est retirée depuis le 4 octobre (option A). Onze
+  jours en ligne, sur chaque bon, dans les deux langues ; aucune suite ne la
+  lisait, et `textes-interdits.mjs` ne la connaissait pas. Elle dit
+  maintenant « Vous pouvez aussi nous envoyer votre demande sur WhatsApp »,
+  vraie dans les deux états, et la phrase retirée est dans la liste des
+  textes interdits (construction et production).
+- **La tête du bon disait « Demande reçue — Nous vérifions la disponibilité
+  d'un chauffeur »** pendant que l'écriteau rouge, dix lignes plus bas,
+  disait « votre demande n'a pas pu nous être transmise ». `jugerTeteBon()`
+  écrit l'état et la phrase de tête d'après le dépôt : « Demande non
+  transmise — Votre demande ne nous est pas encore parvenue » sur un échec,
+  et « Demande reçue » revient dès que la reprise aboutit. Seul le bon de la
+  demande en cours est concerné ; un bon rouvert depuis « Mes courses »
+  garde ses libellés. Les libellés sont à valider par Barbaros.
+- Ce que l'audit n'a pas changé : un bon jamais déposé reste « en attente »
+  dans « Mes courses » après un rechargement (le serveur ne le connaît pas,
+  `nuage.etat()` ne peut rien en dire). À décider.
+- Contrôles : `test-nouveau-serveur.mjs` (quatre contrôles de plus, qui
+  tombent sur l'ancien code) ; `test-parcours-en.mjs` (le parcours anglais
+  de bout en bout, écrit par l'audit).
+
+## « Nous appeler » sur un envoi raté (16 octobre 2026)
+
+Barbaros, en voyant les captures : « on peut ajouter appeler directement
+aussi ». Sur un dépôt raté, le bon du client porte maintenant un bouton
+« Nous appeler · 07 59 31 24 33 » (`#btnAppelerBon`, `tel:+33759312433`),
+sous « Renvoyer ma demande sur WhatsApp » ; l'écriteau rouge dit « Envoyez-la
+sur WhatsApp ou appelez-nous » au lieu de « c'est le seul moyen ».
+- **Seulement sur un échec**, jugé dans `jugerTeteBon()` avec la tête du
+  bon : demande arrivée, appeler n'apporte rien.
+- **Le numéro est écrit dans le bouton** : un ordinateur ne compose rien.
+- **Jamais au comptoir** : son écriteau porte déjà le numéro.
+- **Sur un échec, la petite note se tait**, comme au comptoir : l'écriteau et
+  les deux boutons disent déjà quoi faire.
+- Contrôles : `test-nouveau-serveur` (échec, succès, reprise),
+  `test-nouveau-reception` (comptoir), `test-parcours-en` (anglais).
