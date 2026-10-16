@@ -130,6 +130,10 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
   const etat1 = await v.p.evaluate(() => ({ url: location.pathname + location.search, lang: document.documentElement.lang,
     depart: document.getElementById('depart')?.value, arrivee: document.getElementById('arrivee')?.value,
     listeOuverte: !!document.querySelector('#departList [role=option], #arriveeList [role=option]'),
+    options: [...document.querySelectorAll('#departList [role=option], #arriveeList [role=option]')].map(o => o.textContent.trim()),
+    boite: (() => { const l = [...document.querySelectorAll('.suggest-list')].find(x => !x.hidden); const b = document.querySelector('nav.barre');
+      return l ? { bas: Math.round(l.getBoundingClientRect().bottom), barre: b && b.getClientRects().length ? Math.round(b.getBoundingClientRect().top) : innerHeight,
+        haut: Math.round(document.getElementById('blocDepart').getBoundingClientRect().top) } : null; })(),
     titreBouton: document.getElementById('btnVoirPrix')?.textContent.trim(), h1: [...document.querySelectorAll('h1')].find(h => h.offsetParent)?.textContent.trim(),
     stockLang: localStorage.getItem('ela_langue') }));
   return { v, books, etat1 };
@@ -139,11 +143,22 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
   note('parcours : « Book » vise le moteur avec lang=en, src, aeroport, sens', books.every(h => /lang=en/.test(h) && /src=en-cdg/.test(h)), books[0]);
   note('parcours : le moteur s\'ouvre en anglais, paramètres effacés', etat1.lang === 'en' && !/lang=|src=|aeroport=/.test(etat1.url), JSON.stringify(etat1));
   note('parcours : le départ est prérempli « CDG » et la liste des terminaux s\'ouvre', etat1.depart === 'CDG' && etat1.listeOuverte, JSON.stringify({ d: etat1.depart, l: etat1.listeOuverte }));
+  /* A-03 (16/10/2026) : le nom de l'aéroport suit la langue du client ;
+     le nom du terminal, lui, ne change pas (c'est ce que lit le site). */
+  note('parcours : les terminaux sont nommés en anglais (« Paris-Charles de Gaulle Airport »), aucun « Aéroport »',
+    etat1.options.length >= 9 && etat1.options.every(o => /Paris-Charles de Gaulle Airport/.test(o)) && !etat1.options.some(o => /Aéroport/.test(o)), etat1.options.slice(0, 2).join(' | '));
+  /* A-04 : la boîte des terminaux se ferme AU-DESSUS de la barre du bas, et
+     le haut du formulaire reste à l'écran. */
+  note('parcours : la liste des terminaux tient au-dessus de la barre du bas, le formulaire reste visible',
+    !!etat1.boite && etat1.boite.bas <= etat1.boite.barre && etat1.boite.haut >= 0, JSON.stringify(etat1.boite));
   note('parcours : la langue est mémorisée (ela_langue=en)', etat1.stockLang === 'en', String(etat1.stockLang));
   note('parcours : « moteur ouvert » compté pour en-cdg', v.mesures.some(m => m.p_evenement === 'moteur_ouvert' && m.p_page === 'en-cdg'));
   /* Terminal, puis arrivée à la main (BAN muette → on tape une adresse ; la recherche rend rien → voir ce que dit la page). */
   await v.p.locator('#departList [role=option]', { hasText: 'Terminal 2E' }).first().click({ timeout: 5000 }).catch(() => {});
   await v.p.waitForTimeout(400);
+  const apresTerminal = await v.p.evaluate(() => ({ depart: document.getElementById('depart').value, vol: !document.getElementById('blocVol').hidden }));
+  note('parcours : le terminal anglais ouvre le champ « numéro de vol » (le site reconnaît le terminal)',
+    apresTerminal.vol && /^Terminal 2E — Paris-Charles de Gaulle Airport$/.test(apresTerminal.depart), JSON.stringify(apresTerminal));
   await v.p.fill('#arrivee', 'Hotel Lutetia Paris');
   await v.p.waitForTimeout(900);
   const liste = await v.p.evaluate(() => ({ n: document.querySelectorAll('#arriveeList [role=option]').length, txt: document.querySelector('#arriveeList')?.textContent.trim().slice(0, 160) }));
@@ -194,7 +209,7 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
   note('parcours : demande arrivée, pas de bouton « Call us »', await v.p.locator('#btnAppelerBon').isHidden());
   const d = v.depots[0] || {};
   note('demande : provenance = page CDG anglaise, langue en, pas de via', d.provenance === 'Site anglais · CDG ↔ Paris' && d.langue === 'en' && !d.via, JSON.stringify({ p: d.provenance, l: d.langue, via: d.via }));
-  note('demande : adresses et prix cohérents (Terminal 2E → Orly, prix > 0)', /Terminal 2E/.test(d.course?.depart || '') && /Orly/.test(d.course?.arrivee || '') && (d.prix?.total || 0) > 0, JSON.stringify({ dep: d.course?.depart, arr: d.course?.arrivee, prix: d.prix?.total }));
+  note('demande : adresses et prix cohérents (Terminal 2E → Orly, prix > 0)', /Terminal 2E — Paris-Charles de Gaulle Airport/.test(d.course?.depart || '') && /Orly/.test(d.course?.arrivee || '') && (d.prix?.total || 0) > 0, JSON.stringify({ dep: d.course?.depart, arr: d.course?.arrivee, prix: d.prix?.total }));
   note('mesure : demande_envoyee comptée pour en-cdg', v.mesures.some(m => m.p_evenement === 'demande_envoyee' && m.p_page === 'en-cdg'));
   note('parcours : aucune erreur JS', v.erreurs.length === 0, v.erreurs.join(' | '));
   await v.ctx.close();
@@ -244,6 +259,37 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
 }
 
 /* ═══ E. Paramètres absents / inconnus / invalides ═══ */
+/* A-04, sens « arrivée » : le cas qui débordait le plus (boîte finie à
+   841 px pour une barre à 782, avant le 16/10/2026). */
+{
+  const v = await visiteur();
+  await v.p.goto(SITE + '/?lang=en&src=en-cdg&aeroport=cdg&sens=arrivee', { waitUntil: 'load' });
+  await v.p.waitForTimeout(900);
+  const m = await v.p.evaluate(() => { const l = document.getElementById('arriveeList'); const b = document.querySelector('nav.barre');
+    return { ouverte: !l.hidden, bas: Math.round(l.getBoundingClientRect().bottom), barre: Math.round(b.getBoundingClientRect().top),
+      haut: Math.round(document.getElementById('blocDepart').getBoundingClientRect().top) }; });
+  note('arrivée à CDG : la liste des terminaux tient au-dessus de la barre, le lieu de départ reste visible',
+    m.ouverte && m.bas <= m.barre && m.haut >= 0, JSON.stringify(m));
+  /* Beauvais n'a qu'un terminal : sa forme anglaise est la seule qui diffère. */
+  await v.p.fill('#depart', 'Beauvais');
+  await v.p.waitForTimeout(700);
+  await v.p.locator('#departList [role=option]', { hasText: 'Single terminal' }).first().click({ timeout: 5000 }).catch(() => {});
+  await v.p.waitForTimeout(300);
+  const bv = await v.p.evaluate(() => ({ depart: document.getElementById('depart').value, vol: !document.getElementById('blocVol').hidden }));
+  note('Beauvais en anglais : « Single terminal — Paris-Beauvais Airport », et le champ du vol s\'ouvre',
+    bv.depart === 'Single terminal — Paris-Beauvais Airport' && bv.vol, JSON.stringify(bv));
+  note('arrivée à CDG : aucune erreur JS', v.erreurs.length === 0, v.erreurs.join(' | '));
+  await v.ctx.close();
+}
+/* Le français ne bouge pas : même libellé qu'avant le 16/10/2026. */
+{
+  const v = await visiteur();
+  await v.p.goto(SITE + '/?lang=fr&aeroport=cdg&sens=depart', { waitUntil: 'load' });
+  await v.p.waitForTimeout(900);
+  const o = await v.p.$$eval('#departList [role=option]', l => l.map(x => x.textContent.trim()));
+  note('en français, les terminaux gardent « Aéroport Roissy-Charles de Gaulle »', o.length >= 9 && o.every(x => /Aéroport Roissy-Charles de Gaulle/.test(x)), o.slice(0, 2).join(' | '));
+  await v.ctx.close();
+}
 for (const [q, attendu] of [['', 'rien'], ['?lang=xx&src=inconnu&aeroport=mars&sens=bof&via=%3Cscript%3E', 'ignoré'], ['?lang=en', 'anglais seul'], ['?src=en-orly', 'origine sans lang']]) {
   const v = await visiteur();
   await v.p.goto(SITE + '/' + q, { waitUntil: 'load' }); await v.p.waitForTimeout(700);
