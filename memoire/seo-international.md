@@ -86,3 +86,15 @@ inter-aéroports). Diagnostic d'abord, puis cinq pages au plus, mesurées.
 3. Search Console : soumettre le plan du site, demander l'indexation de `/en/`.
 4. Le monitoring (6 h) vérifie les dix nouvelles portes ; ChatGPT contrôle le
    site en ligne.
+
+## Le moteur en anglais nomme les aéroports en anglais (16/10/2026)
+
+Audit des quatre prompts, A-03 et A-04. `libelleTerminal()` (index.html) écrit
+« Terminal 2E — Paris-Charles de Gaulle Airport » pour un client anglophone ;
+le nom du terminal ne change pas, c'est lui seul que lit `terminalDuLibelle`
+(« Single terminal » reconnu en plus de « Terminal unique »). `amenerListe()`
+fait glisser la page à l'arrivée depuis une page d'aéroport pour que la liste
+des terminaux tienne au-dessus de la barre du bas, sans monter le haut du
+formulaire hors de l'écran. Pièges : un élément `position:fixed` n'a pas
+d'`offsetParent` ; `scroll-behavior:smooth` interrompt un `scrollBy` lancé
+pendant l'ouverture de la liste. `test-parcours-en` verrouille les deux.

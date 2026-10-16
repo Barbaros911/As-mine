@@ -6917,19 +6917,34 @@ window.ELA_TEXTES = {
      commençant toutes par « Aéroport Roissy-Charles de… » se ressemblent
      une fois tronquées, et le client ne peut plus choisir le sien. */
   var AEROPORTS = {
-    cdg: { nom:"Aéroport Roissy-Charles de Gaulle",
+    cdg: { nom:"Aéroport Roissy-Charles de Gaulle", nomEn:"Paris-Charles de Gaulle Airport",
       mots:["cdg","roissy","charles","gaulle"],
       terminaux:{ "Terminal 1":[49.0067,2.5479], "Terminal 2A":[49.0053,2.5695],
         "Terminal 2B":[49.0037,2.5695], "Terminal 2C":[49.0025,2.5715],
         "Terminal 2D":[49.0013,2.5715], "Terminal 2E":[48.9998,2.5740],
         "Terminal 2F":[48.9985,2.5740], "Terminal 2G":[48.9970,2.5760],
         "Terminal 3":[49.0102,2.5450] } },
-    orly: { nom:"Aéroport de Paris-Orly", mots:["orly"],
+    orly: { nom:"Aéroport de Paris-Orly", nomEn:"Paris-Orly Airport", mots:["orly"],
       terminaux:{ "Orly 1":[48.7233,2.3794], "Orly 2":[48.7228,2.3805],
         "Orly 3":[48.7218,2.3815], "Orly 4":[48.7289,2.3592] } },
-    beauvais: { nom:"Aéroport de Beauvais-Tillé", mots:["beauvais","tille"],
+    beauvais: { nom:"Aéroport de Beauvais-Tillé", nomEn:"Paris-Beauvais Airport", mots:["beauvais","tille"],
       terminaux:{ "Terminal unique":[49.4544,2.1128] } }
   };
+  /* LE LIBELLÉ D'UN TERMINAL SUIT LA LANGUE DU CLIENT (audit des quatre
+     prompts, 16 octobre 2026). Le voyageur venu de /en/ lisait
+     « Terminal 2E — Aéroport Roissy-Charles de Gaulle » dans un moteur
+     anglais. Photon rend déjà ses lieux dans la langue du client : un
+     terminal fait pareil. Ce que lisent les autres parties du site ne
+     change pas — « terminalDuLibelle » ne cherche que le NOM DU TERMINAL
+     (« Terminal 2E », « Orly 3 »), identique dans les deux langues ; seul
+     « Terminal unique » a une forme anglaise, qu'il reconnaît aussi. Les
+     noms anglais sont ceux des pages /en/. */
+  var TERMINAL_EN = { "Terminal unique":"Single terminal" };
+  function libelleTerminal(cle, t){
+    var ap = AEROPORTS[cle];
+    if(LANGUE === "en") return (TERMINAL_EN[t] || t) + " — " + (ap.nomEn || ap.nom);
+    return t + " — " + ap.nom;
+  }
   /* Un mot ENTIER, jamais un début de mot : « ro » déclencherait Roissy
      sur « Rouen », qui est à 112 km et hors zone. */
   /* UNE FAUTE DE FRAPPE N'ÉTEINT PLUS LES TERMINAUX (4 octobre 2026) :
@@ -6953,7 +6968,7 @@ window.ELA_TEXTES = {
       if(!touche) return;
       Object.keys(ap.terminaux).forEach(function(t){
         var p = ap.terminaux[t];
-        sortie.push({ label:t+" — "+ap.nom, lat:p[0], lon:p[1],
+        sortie.push({ label:libelleTerminal(cle, t), lat:p[0], lon:p[1],
                       icon:"✈️", categorie:"aeroport", lieuNomme:true,
                       source:"elatransfer", sourceId:"aeroport:"+cle+":"+t });
       });
@@ -6965,7 +6980,8 @@ window.ELA_TEXTES = {
     var trouve = null;
     Object.keys(AEROPORTS).forEach(function(cle){
       Object.keys(AEROPORTS[cle].terminaux).forEach(function(t){
-        if(!trouve && label.indexOf(t) !== -1) trouve = t;
+        if(!trouve && (label.indexOf(t) !== -1
+                       || (TERMINAL_EN[t] && label.indexOf(TERMINAL_EN[t]) !== -1))) trouve = t;
       });
     });
     return trouve;
@@ -7512,7 +7528,7 @@ window.ELA_TEXTES = {
          cette forme-là, et c'est elle qui ouvre le champ « numéro de vol »
          et l'option pancarte. Un libellé écrit autrement les éteindrait
          tous les deux sans le moindre message. */
-      return { label:terminal + " — " + ap.nom, lat:pt[0], lon:pt[1],
+      return { label:libelleTerminal(dest.aeroport, terminal), lat:pt[0], lon:pt[1],
                icon:"✈️", categorie:"aeroport", lieuNomme:true,
                source:"elatransfer", sourceId:"aeroport:" + dest.aeroport + ":" + terminal };
     }
@@ -18183,8 +18199,45 @@ window.ELA_TEXTES = {
     }
     champ.dispatchEvent(new Event("input", { bubbles:true }));
     champ.focus();
+    amenerListe(sens === "depart" ? "departList" : "arriveeList");
     nettoyer();
     return true;
+  }
+
+  /* LA LISTE DES TERMINAUX ÉTAIT COUPÉE PAR LE BAS DE L'ÉCRAN (audit des
+     quatre prompts, 16 octobre 2026). Venu d'une page d'aéroport, le client
+     tombe sur le champ prérempli et la liste ouverte — mais sous le bandeau
+     d'accueil : à 390 × 844, la liste de CDG finissait à 1059 px et cinq
+     terminaux sur neuf seulement étaient à l'écran. On fait glisser la page
+     de CE QUI DÉBORDE, sans jamais monter le haut du formulaire (le lieu de
+     départ et son titre) hors de l'écran : le client doit encore voir ce
+     qu'il a à remplir. Rien ne bouge si la liste tient déjà (ordinateur). */
+  function amenerListe(idListe){
+    var liste = document.getElementById(idListe);
+    var haut = document.getElementById("blocDepart");
+    if(!liste || !haut) return;
+    var essais = 0;
+    (function voir(){
+      if(liste.hidden || !liste.querySelector('[role="option"]')){
+        if(++essais < 12) setTimeout(voir, 50);
+        return;
+      }
+      var bas = window.innerHeight;
+      /* La barre est en position fixe : elle n'a jamais d'offsetParent, on
+         regarde donc si elle occupe une place à l'écran. */
+      var barre = document.querySelector("nav.barre");
+      if(barre && barre.getClientRects().length){
+        var rb = barre.getBoundingClientRect();
+        if(rb.top > 0 && rb.top < bas) bas = rb.top;
+      }
+      var deborde = liste.getBoundingClientRect().bottom + 12 - bas;
+      var marge = haut.getBoundingClientRect().top - 12;
+      var dy = Math.min(deborde, marge);
+      /* « instant » : la page porte scroll-behavior:smooth, et l'animation
+         était interrompue par la liste qui s'ouvre — mesuré, 9 px parcourus
+         sur 71. */
+      if(dy > 0) window.scrollTo({ top: window.scrollY + dy, behavior: "instant" });
+    })();
   }
 
   /* Basculer de langue réécrit aussi ce qui a déjà été calculé : sans ça, un

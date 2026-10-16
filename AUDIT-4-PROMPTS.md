@@ -44,8 +44,8 @@ partie de ce commit. Aucune modification locale non validée au départ.
 |---|---|---|---|---|---|---|---|
 | A-01 | **P1** | `index.html` (`renvoi_note`, FR et EN), en ligne depuis le 4/10 | La note sous chaque bon disait « Si WhatsApp ne s'est pas ouvert, ou si vous n'avez pas appuyé sur envoyer, renvoyez-le d'ici » / « If WhatsApp did not open… ». Plus aucune application ne s'ouvre au clic depuis le 4/10/2026 (option A). | Le client cherche une application qui n'est jamais venue ; un libellé qui décrit un mécanisme retiré. Aucune suite ne le lisait, `textes-interdits.mjs` ne le connaissait pas. | [C] capture du bon FR/EN sur le site construit ; `grep` sur `site/` : présent dans 7 pages publiées | Texte : « Vous pouvez aussi nous envoyer votre demande sur WhatsApp. » / « You can also send us your request on WhatsApp. » ; les deux anciennes phrases entrent dans `textes-interdits.mjs` (construction ET production) | [C] `test-nouveau-serveur` +1 contrôle ; `test-parcours-en` ; construction verte (32 fichiers publics sans texte interdit) |
 | A-02 | **P1** | `index.html` (`remplirBon`, `afficherEtatEnvoi`) | Dépôt refusé par le serveur : la tête du bon disait « Demande reçue — Nous vérifions la disponibilité d'un chauffeur… » pendant que l'écriteau rouge disait « votre demande n'a pas pu nous être transmise ». | Deux phrases contraires sur l'écran où le site a déjà « inventé une panne » (CLAUDE.md) ; le client anglais lit « REQUEST RECEIVED » et ferme la page. | [C] capture et lecture DOM, FR et EN, dépôt 503 simulé | `jugerTeteBon()` : « Demande non transmise — Votre demande ne nous est pas encore parvenue. » / « Request not sent — Your request has not reached us yet. » tant que le dépôt a échoué ; « Demande reçue » revient dès que la reprise aboutit ; seul le bon de la demande en cours est concerné. **Libellés à valider par Barbaros.** | [C] `test-nouveau-serveur` +3 contrôles (échec, reprise réussie) ; `test-parcours-en` |
-| A-03 | P2 | moteur `?lang=en` | Les lieux connus gardent leur libellé français (« Terminal 2E — Aéroport Roissy-Charles de Gaulle », « Orly 4 — Aéroport de Paris-Orly ») sur l'écran des prix, le récapitulatif et le bon anglais. | Compréhensible (noms propres), mais le bon anglais mélange les langues. | [C] captures de `test-parcours-en` | non corrigé : table `AEROPORTS` à traduire, décision d'écriture | — |
-| A-04 | P2 (CRO) | moteur, premier écran | Un touriste qui appuie sur « CDG → Paris » depuis `/en/` arrive sur le bandeau « Chauffeur transfers, organised end to end. Hotels, agencies, businesses: your own booking page… » avant le formulaire (la liste des terminaux est déjà ouverte sous le bandeau). | Le message B2B précède le geste B2C ; le positionnement est une décision de Barbaros (6–8/10). | [C] capture après « Book » | non corrigé : proposer, pour une arrivée avec `src=en-*`, de faire défiler jusqu'au formulaire ou de masquer la ligne B2B — à trancher | — |
+| A-03 | P2 | moteur `?lang=en` | Les lieux connus gardaient leur libellé français (« Terminal 2E — Aéroport Roissy-Charles de Gaulle ») sur l'écran des prix, le récapitulatif et le bon anglais. | Le bon anglais mélangeait les langues. | [C] `test-parcours-en` | **corrigé le 16/10** : `libelleTerminal()` nomme l'aéroport dans la langue du client (« Paris-Charles de Gaulle Airport », noms des pages /en/) ; le nom du terminal, seul lu par `terminalDuLibelle`, ne change pas (« Terminal unique » ↔ « Single terminal » reconnus tous deux). Français inchangé. 5 contrôles tombent sur l'ancien code. | — |
+| A-04 | P2 (CRO) | moteur, premier écran | Arrivé de `/en/` sur « Book », le touriste voyait la liste des terminaux ouverte SOUS le bandeau : à 390 × 844, dans le sens « arrivée », la boîte finissait à 841 px pour une barre du bas à 782 (59 px cachés, des terminaux inatteignables) ; sur ordinateur elle sortait par le bas de l'écran. | Le premier geste du client était gêné. | [C] mesure sur le site construit | **corrigé le 16/10, sans toucher au texte du bandeau** (le positionnement reste sa décision) : `amenerListe()` fait glisser la page de ce qui déborde, jamais au-delà du haut du formulaire ; rien ne bouge quand la liste tient. Mesuré après : boîte 430–770 pour une barre à 782, lieu de départ visible. | — |
 | A-05 | P2 (SEO) | hébergement Cloudflare | Anciennes adresses `.html` → 307 (temporaire) ; adresse inconnue → accueil en 200 (soft 404). | Signal faible pour Google ; connu depuis le Prompt 1, réglage par défaut gardé faute de symptôme. | [D] `memoire/seo-indexation.md` (mesuré avec `wrangler dev`) | aucune ; à revoir si Search Console garde les `.html` | — |
 | A-06 | P2 (SEO) | DNS | `www.elatransfer.com` ne résout pas. | Un partenaire qui écrit « www » fait un lien mort. | [D] `SEO-AUTORITE.md` ; non mesurable d'ici (DNS bloqué) | à Barbaros, Cloudflare DNS | — |
 | A-07 | P2 (doc) | `PROJECT_STATE.md` | « Seul le comptoir d'hôtel règle encore à bord » contredit CLAUDE.md (plus aucun règlement à bord, comptoir compris, 11/10). | Une note qui vieillit. | [D] `grep`, recoupé avec `CLAUDE.md` et `memoire/paiement-lien.md` | ligne corrigée | — |
@@ -209,7 +209,7 @@ course, un montant demandé jamais un encaissement.
 8. **Paramètres absents / inconnus / mal formés** : moteur utilisable,
    adresse nettoyée, français par défaut, anglais sur `?lang=en`.
 
-**Frictions constatées** : A-01, A-02 (corrigées), A-03, A-04 (décisions).
+**Frictions constatées** : A-01, A-02, A-03, A-04 (toutes corrigées ; A-03 et A-04 le 16/10).
 Côté commercial, lu à la place d'un touriste : le service, la destination, le
 moment du prix (« before you book »), la réservation, le contact et l'étape
 suivante sont dits au premier écran de chaque page ; aucun prix n'est affiché
@@ -231,8 +231,7 @@ comme un encaissement.
 
 **Recommandations, par priorité** : P1 valider et publier A-01/A-02 ;
 P1 Search Console (plan, indexation des 7 adresses, puis « Liens ») ;
-P2 trancher A-04 (ligne B2B sur l'arrivée depuis `/en/`) ; P2 traduire les
-libellés d'aéroports (A-03) ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
+A-03 et A-04 corrigés le 16/10 ; P2 `www` (A-06) ; P2 observer les 307 (A-05).
 
 `test-parcours-en` tourne désormais en CI à chaque pull request
 (`admin-regression.yml`), à côté de `test-seo-en` et `test-liens-suivi`.
@@ -341,4 +340,29 @@ Neuf contrôles tombent sur l'ancien affichage.
 6. **Bloqué** : indexation Google (accès), `www` (DNS), relecture des pages
    extérieures, actions d'autorité (SIRET).
 7. **Prochaines actions** : (P1) montrer les deux libellés à Barbaros,
-   fusionner, lire le monitoring ; (P1) Search Console ; (P2) A-04, A-03 ; (P2) premier lien `?via=` réel et lecture du registre.
+   fusionner, lire le monitoring ; (P1) Search Console ; (P2) premier lien `?via=` réel et lecture du registre.
+
+## G'''. Les deux frictions restantes, corrigées (16 octobre 2026)
+
+À la demande de Barbaros (« fait comme expert tout »), après la fusion de #361.
+
+- **A-03 — le nom de l'aéroport suit la langue du client.** En anglais :
+  « Terminal 2E — Paris-Charles de Gaulle Airport », « Orly 4 — Paris-Orly
+  Airport », « Single terminal — Paris-Beauvais Airport » (les noms des pages
+  `/en/`). Mesuré avant : rien ne lit le nom de l'aéroport — ni le serveur, ni
+  le lecteur de demandes, ni le forfait d'un hôtel (qui mesure une distance).
+  Seul `terminalDuLibelle` lit le libellé, et il n'y cherche que le nom du
+  terminal, identique dans les deux langues ; « Single terminal » y est ajouté.
+  Le champ du vol et l'option pancarte s'ouvrent comme avant (éprouvé sur CDG
+  et Beauvais). Le français est inchangé (contrôle dédié).
+- **A-04 — la liste des terminaux tient à l'écran.** Sans toucher au bandeau
+  (son texte reste la décision du 6–8/10) : la page glisse de ce qui déborde,
+  jamais au-delà du haut du formulaire. Deux pièges trouvés par la mesure : la
+  barre du bas est en `position:fixed`, donc sans `offsetParent` (ignorée au
+  premier jet) ; et le `scroll-behavior:smooth` de la page interrompait le
+  glissement (9 px parcourus sur 71) — il est immédiat.
+- `test-parcours-en` : 95 contrôles ; 5 tombent sur l'ancien code.
+- Migration « trafic » (`20261015010000`, PR #358) : **appliquée** le 15/10 à
+  23 h 43 (workflow des migrations, run n° 38, HTTP 201). Rien à faire.
+- Restent hors code : A-06 (`www`, DNS chez Cloudflare, à Barbaros), A-05
+  (observer les 307 dans Search Console → Pages).
