@@ -1235,6 +1235,40 @@ for (const large of [1024, 1280]) {
   }
 }
 
+/* TOUTE PAGE PUBLIQUE DIT SON ICÔNE, ET LES DEUX ADRESSES PAR DÉFAUT EXISTENT
+   (15 octobre 2026, capture de Barbaros). « Chauffeur privé à Paris » et les
+   deux pages de transfert ne déclaraient aucune icône : Safari ressortait
+   celle de septembre, gardée en mémoire, et rien ne la remplaçait. Il
+   demande aussi /apple-touch-icon.png et /favicon.ico d'office ; absents,
+   Cloudflare y servait une page HTML. On lit le site CONSTRUIT : c'est lui
+   qui part en ligne. Une page qui redirige aussitôt n'a pas à le dire. */
+{
+  const sansIcone = [];
+  const pages = [];
+  for (const dossier of ['', 'en', 'professionnels']) {
+    const visiter = async (d) => {
+      for (const e of await readdir(join('site', d), { withFileTypes: true })) {
+        const rel = d ? d + '/' + e.name : e.name;
+        if (e.isDirectory()) { if (dossier) await visiter(rel); }
+        else if (e.name.endsWith('.html')) pages.push(rel);
+      }
+    };
+    await visiter(dossier);
+  }
+  for (const f of [...new Set(pages)]) {
+    const h = await readFile(join('site', f), 'utf8');
+    if (/http-equiv=["']refresh|location\.replace\(/i.test(h)) continue;
+    if (!/<link[^>]+rel=["']apple-touch-icon["']/i.test(h)) sansIcone.push(f);
+  }
+  check('toute page publique déclare son icône (sinon Safari garde l\'ancienne)',
+    pages.length > 5 && sansIcone.length === 0, sansIcone.join(', ') || pages.length + ' pages');
+  let ico = Buffer.alloc(0), pomme = Buffer.alloc(0), ref = Buffer.alloc(1);
+  try { ico = await readFile('site/favicon.ico'); } catch {}
+  try { pomme = await readFile('site/apple-touch-icon.png'); ref = await readFile('icon-180.png'); } catch {}
+  check('/favicon.ico est un vrai fichier d\'icône, publié', ico.length > 22 && ico.readUInt32BE(0) === 0x00000100);
+  check('/apple-touch-icon.png est publié, copie exacte de icon-180.png', pomme.length > 0 && pomme.equals(ref));
+}
+
 /* LE LOGO NE BOUGE PAS (6 octobre 2026, règle absolue de Barbaros). Ni ses
    fichiers, ni son affichage sur l'accueil. Les empreintes sont celles de
    main au 6 octobre 2026 : changer le logo est SA décision, et la prise

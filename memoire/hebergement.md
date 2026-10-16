@@ -69,3 +69,23 @@ lit qu'`elatransfer.com`, les suites éprouvent le dépôt.
   Uber » de l'ancien site et trois scripts de capture d'Admin v2 qu'aucun
   test ni workflow n'appelait. Preuve que rien ne change en ligne : le site
   construit avant et après est identique, fichier par fichier.
+
+## L'ancienne icône dans Safari (15–16 octobre 2026)
+
+Capture de Barbaros : la suggestion « Chauffeur privé à Paris… elatransfer.com »
+portait encore le rond sombre de septembre, alors que tous les fichiers
+d'icône du dépôt sont le logo bleu. Les trois pages françaises de référencement
+(`chauffeur-prive-paris`, `transfert-cdg-paris`, `transfert-orly-paris`) ne
+déclaraient aucune icône, et `/favicon.ico` comme `/apple-touch-icon.png`
+n'existaient pas : Cloudflare y servait l'accueil en HTML (règle
+« single-page-application »). Safari n'avait donc rien de neuf à lire et
+gardait son image en mémoire.
+- Les trois pages déclarent `/icon-32.png` et `/icon-180.png`, comme les pages
+  `/en/`. `favicon.ico` (16, 32, 48 px) est fabriqué une fois depuis
+  `icon-180.png` et versionné ; `apple-touch-icon.png` est une copie faite
+  par `construire.sh`. Aucun second dessin : le logo ne bouge pas.
+- `test-nouveau-bascule` exige qu'une page publique non redirigée déclare son
+  icône et que les deux adresses par défaut soient de vrais fichiers ; sur
+  l'ancien code, trois contrôles tombent en nommant les trois pages.
+- Le téléphone garde son ancienne image jusqu'à sa prochaine visite de la
+  page. Rien ne peut l'effacer à distance.
