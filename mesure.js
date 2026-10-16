@@ -102,6 +102,11 @@
     return c;
   }
   var CONTEXTE = contexte();
+  /* Le fuseau horaire de l'appareil (« Europe/Paris ») : le serveur en
+     déduit le PAYS, puis l'oublie. Rien n'est gardé ici. */
+  function fuseau(){
+    try{ return String(Intl.DateTimeFormat().resolvedOptions().timeZone || "").slice(0, 60); }catch(e){ return ""; }
+  }
   function appareil(){
     var l = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0), doigt = false;
     try{ doigt = window.matchMedia("(pointer: coarse)").matches; }catch(e){}
@@ -120,7 +125,7 @@
            ordinaire n'en porte pas. */
         body: JSON.stringify({ page: page, evenement: evenement, lien: via || null,
           referent: CONTEXTE.referent, utm_source: CONTEXTE.utm_source, utm_medium: CONTEXTE.utm_medium,
-          utm_campaign: CONTEXTE.utm_campaign, langue: langue, appareil: appareil() })
+          utm_campaign: CONTEXTE.utm_campaign, langue: langue, appareil: appareil(), fuseau: fuseau() })
       }).catch(function(){});
     }catch(e){ /* navigateur sans fetch : rien à compter */ }
   }

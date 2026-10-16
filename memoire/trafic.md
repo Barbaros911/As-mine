@@ -137,6 +137,30 @@ client. Le journal ne porte que la référence ; la jointure avec `courses` se
 fait dans `ela_trafic()` à la lecture, par un admin. Si un jour on veut zéro
 lien, on retire `ref` et on perd « quelle source fait des courses réalisées ».
 
+## Le pays : mesuré « Inconnu » en production, déduit du fuseau horaire
+
+16 octobre 2026, première vraie visite de Barbaros : visiteur, prix et
+réservation comptés, mais le pays à « Inconnu ». La fonction lisait
+`cf-ipcountry`, que Cloudflare pose d'habitude — or l'appel part du
+navigateur vers `*.supabase.co`, et Supabase ne transmet pas cet en-tête à
+la fonction. C'était le point écrit « à vérifier en production » : il l'a été,
+et il ne tenait pas.
+
+La correction ne devine rien. Le navigateur connaît son fuseau horaire
+(`Intl.DateTimeFormat().resolvedOptions().timeZone`, « Europe/Paris ») ; la
+base officielle des fuseaux (IANA, tzdata) dit à quel pays il appartient.
+`.github/scripts/fabriquer-fuseaux.mjs` recopie `zone.tab` et les anciens noms
+de `tzdata.zi` dans `supabase/functions/mesure/fuseaux.js` (542 entrées,
+tzdata 2026c). L'en-tête de Cloudflare reste prioritaire s'il arrive un jour ;
+un fuseau sans pays (« UTC ») ou inventé reste inconnu. **Seul le pays est
+gardé, jamais le fuseau.**
+
+La limite, dite franchement : c'est le pays de l'HORLOGE du téléphone, pas de
+son réseau. Un téléphone se règle seul sur le fuseau où il se trouve : un
+Américain déjà à Paris compte « France », le même qui réserve depuis New York
+compte « États-Unis ». Pour savoir d'où viennent les visiteurs, c'est ce qu'on
+veut.
+
 ## Les pièges rencontrés
 
 - Le Chromium de test se déclare « HeadlessChrome » : la page l'écarte comme

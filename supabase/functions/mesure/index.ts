@@ -30,6 +30,7 @@
    réponse. Une panne ici = un geste non compté, jamais une réservation perdue.
    ===================================================================== */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { FUSEAU_PAYS } from "./fuseaux.js";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -125,8 +126,18 @@ Deno.serve(async (req: Request) => {
   const referent = domaine(e.referent);
   const utm_source = utm(e.utm_source), utm_medium = utm(e.utm_medium), utm_campaign = utm(e.utm_campaign);
   const source = classerSource({ referent, utm_source, utm_medium, utm_campaign });
+  /* LE PAYS. L'en-tête de Cloudflare d'abord, s'il arrive un jour ; en
+     production le serveur Supabase ne le transmet pas (mesuré le
+     16/10/2026 : « Inconnu » à l'écran). À défaut, le FUSEAU HORAIRE du
+     navigateur, relu dans la base officielle des fuseaux (fuseaux.js,
+     fabriqué depuis tzdata) : « Europe/Paris » → FR. Un fuseau inconnu ou
+     sans pays (« UTC ») reste inconnu — on ne devine pas. Seul le pays est
+     gardé, jamais le fuseau. */
   const paysBrut = (req.headers.get("cf-ipcountry") ?? "").toUpperCase();
-  const pays = /^[A-Z]{2}$/.test(paysBrut) ? paysBrut : null;
+  const fuseau = texte(e.fuseau, 60);
+  const paysFuseau = /^[A-Za-z0-9_+\/-]{1,60}$/.test(fuseau) && Object.prototype.hasOwnProperty.call(FUSEAU_PAYS, fuseau)
+    ? (FUSEAU_PAYS as Record<string, string>)[fuseau] : "";
+  const pays = /^[A-Z]{2}$/.test(paysBrut) && paysBrut !== "XX" ? paysBrut : (paysFuseau || (paysBrut === "XX" ? "XX" : null));
   const ip = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "inconnue").split(",")[0].trim();
 
   /* LE QUOTA : 100 gestes par heure et par adresse, sur une clé hachée.
