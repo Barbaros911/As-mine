@@ -766,6 +766,22 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(dernier().pays==='XX','mesure : un pays inconnu de Cloudflare reste « XX »');
   await envoi(base,{'cf-ipcountry':''});
   ok(dernier().pays===null,'mesure : sans en-tête Cloudflare, aucun pays inventé');
+  /* LE PAYS PAR LE FUSEAU (16/10/2026) : en production, Supabase ne
+     transmet pas « cf-ipcountry » ; le fuseau du navigateur le remplace,
+     relu dans la table officielle. */
+  await envoi({...base,fuseau:'Europe/Paris'},{'cf-ipcountry':''});
+  ok(dernier().pays==='FR','mesure : sans en-tête Cloudflare, « Europe/Paris » donne FR');
+  await envoi({...base,fuseau:'America/New_York'},{'cf-ipcountry':'XX'});
+  ok(dernier().pays==='US','mesure : un en-tête « XX » cède au fuseau (New York → US)');
+  await envoi({...base,fuseau:'Europe/Kiev'},{'cf-ipcountry':''});
+  ok(dernier().pays==='UA','mesure : un ancien nom de fuseau est reconnu (Europe/Kiev → UA)');
+  await envoi({...base,fuseau:'Europe/Paris'},{'cf-ipcountry':'de'});
+  ok(dernier().pays==='DE','mesure : l\'en-tête de Cloudflare, quand il arrive, passe avant le fuseau');
+  await envoi({...base,fuseau:'UTC'},{'cf-ipcountry':''});
+  ok(dernier().pays===null,'mesure : un fuseau sans pays (UTC) ne fabrique pas de pays');
+  await envoi({...base,fuseau:'Paris/<script>'},{'cf-ipcountry':''});
+  ok(dernier().pays===null&&!JSON.stringify(ecrits.at(-1)).includes('script'),'mesure : un fuseau inventé est ignoré, et le fuseau lui-même ne part jamais en base');
+  ok(!JSON.stringify(ecrits).includes('Europe/Paris'),'mesure : seul le pays est gardé, jamais le fuseau');
   globalThis.fetch=fetchAvant;
 }
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));

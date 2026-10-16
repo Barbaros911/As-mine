@@ -89,3 +89,11 @@ gardait son image en mémoire.
   l'ancien code, trois contrôles tombent en nommant les trois pages.
 - Le téléphone garde son ancienne image jusqu'à sa prochaine visite de la
   page. Rien ne peut l'effacer à distance.
+- **Le 16 octobre, l'accueil montrait encore le rond** (capture de 3 h 50).
+  La vraie cause : avant le 4 octobre, `icon-180.png` CONTENAIT le rond de
+  septembre ; il a été remplacé par le logo bleu **à la même adresse**, et
+  Safari garde l'image d'une adresse sans la redemander. Les pages publiques
+  et le manifeste déclarent désormais `icone-ela-32/180/512.png`, copies
+  exactes sous un nom neuf. Les anciens `icon-*.png` restent (partage, service
+  worker, notifications). **Changer une icône = changer son NOM de fichier**,
+  jamais seulement son contenu.

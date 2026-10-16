@@ -1280,6 +1280,7 @@ for (const large of [1024, 1280]) {
     'brand-logo.svg': '72ad55c6e0fdaf20', 'brand-logo.webp': '8ed02e907b782ae5',
     'brand-logo-negatif.webp': '99513c72c79b8f00',
     'icon-180.png': '4244c5cb988282a2', 'icon-32.png': 'febfba43bb9da37c', 'icon-512.png': '6822a0401f373c1b',
+    'icone-ela-180.png': '4244c5cb988282a2', 'icone-ela-32.png': 'febfba43bb9da37c', 'icone-ela-512.png': '6822a0401f373c1b',
     'icon-maskable.svg': '6262e8f0ec8accec', 'icon.svg': '6262e8f0ec8accec',
     'icones/admin-180.png': '4f682716b7e063bf', 'icones/admin-32.png': 'f585c56905212222', 'icones/admin-512.png': '01508f0a878f2934',
     'icones/reception-180.png': 'cd29e78b3f0a9270', 'icones/reception-32.png': '3fbafe02c6b81132', 'icones/reception-512.png': '706cc5b56ca3a31b',
@@ -1309,7 +1310,12 @@ for (const large of [1024, 1280]) {
      test-public-formulaire qui le vérifie. */
   const LOGO_ACCUEIL = 'brand-logo-negatif.webp';
   const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 50 } };
-  const ICONES = ['icon icon-32.png 32x32', 'apple-touch-icon icon-180.png ', 'icon /icon-180.png ', 'apple-touch-icon /icon-180.png 180x180'];
+  /* L'ADRESSE DES ICÔNES A CHANGÉ, PAS LEUR CONTENU (16 octobre 2026,
+     Barbaros : « il faut qu'il affiche le logo bleu sur fond blanc »).
+     icon-180.png portait le rond de septembre avant le 4 octobre ; Safari
+     garde l'image d'une adresse et ne la redemande pas. icone-ela-*.png sont
+     des copies exactes, sous un nom que Safari n'a jamais vu. */
+  const ICONES = ['icon icone-ela-32.png 32x32', 'apple-touch-icon icone-ela-180.png ', 'icon /icone-ela-180.png ', 'apple-touch-icon /icone-ela-180.png 180x180'];
   for (const [largeur, attendu] of Object.entries(AFFICHAGE)) {
     const pl = await b.newPage({ viewport: { width: +largeur, height: 844 }, locale: 'fr-FR' });
     await pl.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());

@@ -133,11 +133,13 @@ try {
     check('1 la page de service envoie sa page vue, avec le domaine de Google et les UTM',
       pv.evenement === 'page_vue' && pv.page === 'fr-cdg' && pv.referent === 'www.google.com' && pv.utm_medium === 'gbp' && pv.langue === 'fr' && pv.appareil === 'mobile',
       JSON.stringify(pv));
+    check('1 la page de service envoie le fuseau horaire (le serveur en déduit le pays)', pv.fuseau === 'Europe/Paris', JSON.stringify(pv.fuseau));
     check('1 l\'envoi part en text/plain, sans clé', /text\/plain/.test(mesures[0]?.type || '') && !mesures[0]?.cle, mesures[0]?.type);
     await p.locator('a[data-mesure="reserver"]').first().click();
     await p.waitForURL(/aeroport=cdg/); await p.waitForTimeout(900);
     check('1 « Book » puis le moteur ouvert, pour la page d\'origine fr-cdg', gestes(mesures).slice(1, 3).join(' ') === 'fr-cdg:clic_reserver fr-cdg:moteur_ouvert', gestes(mesures).join(' '));
     const mo = mesures.find(m => m.corps?.evenement === 'moteur_ouvert')?.corps || {};
+    check('1 le moteur envoie aussi le fuseau horaire', mo.fuseau === 'Europe/Paris', JSON.stringify(mo.fuseau));
     check('1 le moteur, ouvert depuis notre page, n\'a pas de référent : la visite garde celui de Google (serveur)', !mo.referent, JSON.stringify(mo));
     await adresse(p, 'arrivee', 'argenteuil', 'Argenteuil');
     if (!(await p.inputValue('#depart'))) await adresse(p, 'depart', 'vendome', 'Vendôme');

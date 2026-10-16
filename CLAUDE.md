@@ -4751,7 +4751,8 @@ partenaire.
 expert »). **Ce n'est pas une seconde mesure** : celle du 14/10 (mesure.js,
 `ela_mesurer`) a évolué. Pages (`data-ela-page`) et moteur postent à la
 fonction `mesure` (origine stricte, 9 gestes en liste fermée, robots écartés,
-100/h/IP haché, pays `cf-ipcountry`, **source classée côté serveur**), qui écrit
+100/h/IP haché, pays par le FUSEAU de l'appareil — Supabase ne transmet pas
+`cf-ipcountry` (mesuré le 16/10) —, **source classée côté serveur**), qui écrit
 par `ela_mesurer_evenement` au journal `evenements_site` (aucun droit
 `anon`/`authenticated`) ET au compteur d'origine. Lecture : `ela_trafic(periode)`
 / `ela_trafic_direct()`, **`est_admin()`** seul ; sonde de 10 s, écran ouvert et
