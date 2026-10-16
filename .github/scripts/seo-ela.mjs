@@ -19,8 +19,8 @@ html = html.replace(/<meta\s+name=["']description["'][^>]*>/i, `<meta name="desc
    on n'y touche pas sans Barbaros. Même chose pour le style .brandReal. */
 const extra = `
 <!-- ELA SEO / identité -->
-<link rel="icon" href="/icon-180.png" type="image/png">
-<link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180">
+<link rel="icon" href="/icone-ela-180.png" type="image/png">
+<link rel="apple-touch-icon" href="/icone-ela-180.png" sizes="180x180">
 <style>
 .brandReal{display:block;width:182px;height:auto;max-height:64px;object-fit:contain}
 .drawer .brandReal{width:190px}
