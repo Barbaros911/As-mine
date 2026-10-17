@@ -141,7 +141,7 @@ COMMITS** : « deux commits d'avance » cachait une branche qui aurait effacé l
 site. Toute branche nommée ici doit exister (`test-doc.mjs`). `memoire/branches.md`.
 
 - **Une tâche = une branche courte partie du dernier `main`**, PR vers `main`,
-  jamais directement sur `main` ; plus d'`ai-dev` (gelée le 5/10/2026). Le
+  jamais directement sur `main` ; plus d'`ai-dev` (retirée le 17/10/2026). Le
   chemin complet est dans `TEAM_RULES.md` §2.
 - **`main` est protégée par un ruleset GitHub** (9/10/2026, importé depuis
   `.github/ruleset-main.json`) : pull request obligatoire, fusion seulement si

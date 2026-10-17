@@ -2,7 +2,7 @@ name: ELA Quality Gate
 
 on:
   pull_request:
-    branches: [main, ai-dev]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

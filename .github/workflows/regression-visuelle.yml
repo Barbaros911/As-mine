@@ -32,7 +32,7 @@ name: Régression visuelle
 
 on:
   pull_request:
-    branches: [main, ai-dev]
+    branches: [main]
     # Des MOTIFS, jamais une liste de noms : une liste survit au fichier
     # qu'on ajoute, et c'est le piège que ce dépôt a déjà payé sur le
     # filtre de la CI et sur la barre du bas figée à quatre onglets.

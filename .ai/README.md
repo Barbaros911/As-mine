@@ -1,4 +1,4 @@
-> **Règle normative :** `TEAM_RULES.md` reste le fichier maître. Ce document décrit son exécution pour les agents IA. En cas de contradiction, `TEAM_RULES.md` prévaut. `main` est la source du code validé et la seule branche publiée ; `ai-dev` n'est plus utilisée (gelée depuis le 5 octobre 2026).
+> **Règle normative :** `TEAM_RULES.md` reste le fichier maître. Ce document décrit son exécution pour les agents IA. En cas de contradiction, `TEAM_RULES.md` prévaut. `main` est la source du code validé et la seule branche publiée ; il n'y a plus de branche d'intégration (`ai-dev` est retirée depuis le 17 octobre 2026).
 
 # Équipe IA ELA Transfer
 

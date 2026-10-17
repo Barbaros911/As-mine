@@ -5,10 +5,15 @@
 # main et « git diff main...branche » vide — les supprimer ne perd rien.
 # Le numéro après le nom est leur dernier commit : si l'une a bougé depuis,
 # le workflow refuse d'y toucher.
-# FAIT le 15/10/2026 à 23 h 45 (exécution sur 3fcca8e) : les deux sont absentes
-# du dépôt (vérifié le 17/10) ; relancé, le workflow les passe (« déjà
-# absente »). Aucune suppression en attente au 17/10/2026. Ne pas les mettre
-# en note : une liste sans aucune ligne active fait échouer l'étape
-# « Afficher la liste relue » (grep sans résultat).
-claude/elatransfer-seo-audit-g2e0gm a1473154712ec2e0c7bd146d49b40353224f1f4a
-claude/elatransfer-visual-redesign-0a0y3z 95f220fa6ef4d4b6bfbe525c2b0b786e95b826bb
+# Fait le 15/10/2026 (exécution sur 3fcca8e), absentes depuis :
+# claude/elatransfer-seo-audit-g2e0gm a1473154712ec2e0c7bd146d49b40353224f1f4a
+# claude/elatransfer-visual-redesign-0a0y3z 95f220fa6ef4d4b6bfbe525c2b0b786e95b826bb
+#
+# Cinquième ménage, 17 octobre 2026, décidé par Barbaros (« Oui fait ») après
+# l'audit de gouvernance. Rien n'est perdu, mesuré :
+# - ai-dev : tout son historique reste joignable par la tête de la PR #319,
+#   que GitHub garde ; son seul commit propre (3467f00) a le même contenu
+#   que main au commit 84a04a4.
+# - la branche des sites vitrines : sa tête est un ancêtre de main.
+ai-dev 3467f0078173fe4c65167079a34f7b09112ea77b
+claude/session-creation-without-asmine-to9axd 8ef0c6629cc1fab53c6d94cb37c620702a0d8afb

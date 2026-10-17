@@ -23,8 +23,8 @@ esac
   exit 1
 }
 
-# Toujours depuis le dernier main : ai-dev est gelée depuis le 5 octobre 2026
-# (TEAM_RULES.md §2) et partir d'elle ferait travailler en retard.
+# Toujours depuis le dernier main : il n'y a plus de branche d'intégration
+# (TEAM_RULES.md §2), et partir d'une autre branche ferait travailler en retard.
 git -C "$ROOT" fetch origin main
 git -C "$ROOT" worktree add -b "$BRANCH" "$WORKTREE" origin/main
 echo "Branche : $BRANCH (depuis origin/main $(git -C "$ROOT" rev-parse --short origin/main))"

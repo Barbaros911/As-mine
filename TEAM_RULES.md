@@ -78,13 +78,13 @@ dernier main → une branche courte par tâche → PR vers main
 - **Après la fusion**, `branche-apres-fusion.yml` supprime la branche, sauf
   celles de `.github/branches-a-garder.txt`.
 
-**`ai-dev` n'est plus utilisée** (gelée depuis le 5 octobre 2026, constat de
-l'audit du 17 octobre). Elle servait d'étape entre les agents et `main` ; sa
-dernière promotion date du 24 septembre, et ce qui y est entré ensuite a dû
-être republié à part. Sans règle GitHub, sans publication, sans contenu propre
-et plus de 200 commits en retard au 17/10 : **ne jamais partir d'elle ni lui
-adresser une PR.** Elle reste, gelée, jusqu'à ce que Barbaros décide de la
-supprimer. Histoire : `memoire/branches.md`.
+**`ai-dev` est retirée** (gelée le 5 octobre 2026 ; suppression décidée par
+Barbaros le 17 octobre, par « Nettoyage des branches »). Elle servait d'étape
+entre les agents et `main` ; sa dernière promotion date du 24 septembre, et ce
+qui y est entré ensuite a dû être republié à part. Sans règle GitHub, sans
+publication et sans contenu propre : **ne pas la recréer**, et ne remettre
+aucune branche d'intégration entre les agents et `main`. Histoire :
+`memoire/branches.md`.
 
 **Avant de commencer quoi que ce soit :** lire le dernier `main`, les PR
 ouvertes, les Issues `[TEAM]` et les branches actives sur la zone.

@@ -65,7 +65,7 @@ Si une tâche active touche déjà la même zone ou le même fichier, ne pas lan
 Le chemin complet est dans `TEAM_RULES.md` §2. Ce qui se vérifie à chaque tâche :
 
 - Ne jamais travailler directement sur `main` (le ruleset GitHub le refuse de toute façon).
-- Créer chaque branche depuis le dernier `main`, jamais depuis une branche de travail ancienne — ni depuis `ai-dev`, gelée depuis le 5 octobre 2026.
+- Créer chaque branche depuis le dernier `main`, jamais depuis une branche de travail ancienne. Il n'y a plus de branche d'intégration (`ai-dev`, retirée le 17 octobre 2026).
 - Une branche = une tâche clairement définie.
 - Nom : celui que donne la session (`claude/<sujet>-<suffixe>`), sinon `ela/<numero-ou-sujet-court>` ou `fix/<sujet-court>`.
 - Une PR cible `main` et ne fusionne jamais automatiquement : rien n'est fusionné avant l'accord explicite de Barbaros.

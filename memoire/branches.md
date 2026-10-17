@@ -39,8 +39,12 @@ aurait **supprimé** les photos, les suites de tests et les corrections de
   GitHub (ni PR obligatoire ni contrôle exigé — mesuré le 17/10), alors que
   `main` en a ; chaque tâche se fusionnait deux fois et se rattrapait deux
   fois ; et ce qui y entrait sans être promu devait être refait.
-- Audit du 17/10/2026 : modèle retiré des règles, branche gardée gelée
-  (tête 3467f00, aucun contenu propre) jusqu'à la décision de Barbaros.
+- Audit du 17/10/2026 : modèle retiré des règles ; Barbaros décide la
+  suppression le jour même (« Oui fait »). Mesuré avant : tout l'historique
+  d'`ai-dev` reste joignable par la tête de la PR #319 (38ff768), sauf son
+  dernier commit 3467f00, dont l'arbre est celui de `main` au commit 84a04a4.
+  Une étiquette d'archive n'a pas pu être poussée (l'accès git de la session
+  n'accepte que sa branche) : elle n'était pas nécessaire.
 
 ## Les autres noms qui visaient le vide (17 octobre 2026)
 
@@ -50,4 +54,5 @@ aurait **supprimé** les photos, les suites de tests et les corrections de
 - La branche des sites vitrines (claude/session-creation-without-asmine-to9axd,
   tête 8ef0c66 du 21/08) n'a **aucun** commit absent de `main` et 976 de
   retard : la suivre faisait repartir d'août. `CLAUDE.md` ne la nomme plus
-  comme lieu de travail ; elle reste gardée jusqu'à la décision de Barbaros.
+  comme lieu de travail ; supprimée avec `ai-dev`, sa tête étant un ancêtre de
+  `main`.

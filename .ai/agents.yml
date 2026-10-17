@@ -41,7 +41,7 @@ execution:
 regles:
   code_valide_source_de_verite: main
   coordination_source_de_verite: github-issues-et-pr
-  # Plus de branche d'intégration : ai-dev est gelée depuis le 2026-10-05
+  # Plus de branche d'intégration : ai-dev est retirée depuis le 2026-10-17
   # (TEAM_RULES.md §2). Chaque tâche part du dernier main et y revient par PR.
   branche_integration: aucune
   branche_production: main
