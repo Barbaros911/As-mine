@@ -8,8 +8,14 @@ reçu : `$ARGUMENTS` — le nom du client et si possible son secteur d'activité
 vague, demander le nom du client, son secteur, et si des informations
 réelles ont été fournies (adresse, téléphone, logo...) avant de continuer.
 
-Suivre `CLAUDE.md` à la lettre, notamment la règle absolue de ne jamais
-toucher aux fichiers d'As-mine, et la section « Créer un nouveau site ».
+**AVANT TOUT : depuis le 4 octobre 2026, les sites de clients ne vivent plus
+dans ce dépôt** (décision de Barbaros, `PROJECT_STATE.md`). Lui demander de
+confirmer qu'il veut vraiment ce site ICI ; sans sa confirmation, ne rien
+créer.
+
+S'il confirme, suivre `memoire/sites-vitrines.md` à la lettre, notamment la
+règle absolue de ne jamais toucher aux fichiers d'As-mine, et la section
+« Créer un nouveau site ».
 
 Étapes :
 

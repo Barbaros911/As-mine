@@ -1,13 +1,22 @@
-# Ajouter un nouveau site
+# Le dossier `sites/`
 
-Chaque sous-dossier de `sites/` est un **site indépendant**, publié à sa propre
-adresse. En créer un ne touche ni les autres, ni As-mine.
+> **Relu le 17 octobre 2026.** Depuis le 4 octobre 2026, les sites de clients
+> (vitrines de commerçants) **ne vivent plus dans ce dépôt**, à la demande de
+> Barbaros (`PROJECT_STATE.md`). `sites/` ne porte plus que des entrées
+> d'Elatransfer — `easyhotel-client/`, et trois redirections que `construire.sh`
+> remplace par les vrais espaces (`ela-admin/`, `ela-public/`,
+> `easyhotel-reception/`). Le reste de
+> ce fichier décrit le mécanisme, toujours en place ; n'y ajouter un site de
+> client que si Barbaros le redemande (`memoire/sites-vitrines.md`).
+
+Chaque sous-dossier de `sites/` est publié à sa propre adresse. En créer un ne
+touche ni les autres, ni le site de réservation.
 
 | Dossier | Adresse publiée |
 |---|---|
-| *(racine du dépôt)* | https://barbaros911.github.io/As-mine/ — **As-mine, à ne pas toucher** |
-| `sites/mon-site/` | https://barbaros911.github.io/As-mine/mon-site/ |
-| *(construite toute seule)* | https://barbaros911.github.io/As-mine/demos/ — la liste des sites |
+| *(racine du dépôt)* | https://elatransfer.com/ — **le site de réservation, à ne pas toucher** |
+| `sites/mon-site/` | https://elatransfer.com/mon-site/ |
+| *(construite toute seule)* | https://elatransfer.com/demos/ — la galerie « Démonstrations » |
 
 ## En trois étapes
 

@@ -32,54 +32,11 @@ Il évite de redemander les mêmes règles à chaque fois.
 > **Ne jamais lire `index.html` d'un bloc** (900 Ko, deux fois ce mémo) :
 > chercher dedans, quelques lignes de contexte à la fois.
 
-Ce dépôt sert à **deux activités distinctes**. Lire d'abord laquelle est
-demandée :
-
-| Activité | Fichiers | Branche |
-|---|---|---|
-| **Asmine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | la branche de travail de la session |
-| **Sites vitrines** pour des commerçants | `sites/<client>/` | une branche courte partie du dernier `main` |
-
-## La règle absolue : ne jamais toucher Asmine *en travaillant sur un autre site*
-
-`index.html`, `sw.js`, `manifest.webmanifest`, `icon.svg`,
-`icon-maskable.svg`, `robots.txt`, `sitemap.xml` à la racine sont
-l'application de réservation. Ne jamais les modifier pour créer ou tester
-un autre site. Toute vérification se fait par comparaison de hachage
-(`md5sum`) avant/après.
-
-Cette règle ne s'applique évidemment pas quand la demande porte sur
-Asmine lui-même — voir la section dédiée en fin de fichier.
-
-## Créer un nouveau site
-
-1. Copier `sites/_modele/` vers `sites/<nom-du-client>/` (minuscules,
-   tirets, pas d'espaces ni d'accents dans le nom du dossier).
-2. Tout ce que le site utilise (images, styles, scripts) reste **dans ce
-   dossier**, appelé en chemin relatif (`./photo.jpg`), jamais absolu.
-3. Mettre `<meta name="robots" content="noindex, nofollow">` tant que le
-   client n'a pas validé — la page contient souvent ses vraies coordonnées
-   et ne doit pas sortir dans Google à sa place. Le retirer une fois
-   validé.
-4. Ne jamais inventer d'avis clients ni de chiffres commerciaux : les
-   marquer « à compléter » ou laisser l'emplacement vide. Publier de faux
-   avis est une pratique commerciale trompeuse, sanctionnée par la loi.
-5. Tester avant d'annoncer que c'est prêt — voir plus bas.
-6. L'adresse publiée sera `.../As-mine/<nom-du-client>/`. La page
-   `.../As-mine/demos/` liste tous les sites automatiquement ; rien à
-   faire pour ça.
-
-## Tester avant de dire qu'un site est prêt
-
-Utiliser la compétence `webapp-testing` : lancer un serveur local, vérifier
-avec Playwright sur ordinateur (1280px) et sur téléphone (390px) :
-- aucun débordement horizontal
-- aucune erreur JavaScript
-- les boutons/menus cliquables sont vraiment cliquables (attention aux
-  éléments qui se superposent en mobile)
-- les liens de contact (tel:, WhatsApp) sont corrects
-
-Ne pas se contenter de lire le code : ouvrir vraiment la page.
+**CE DÉPÔT SERT À ASMINE (ELATRANSFER), ET À LUI SEUL.** Les sites vitrines de
+commerçants n'y vivent plus depuis le 4/10/2026, à sa demande
+(`PROJECT_STATE.md`) ; `sites/` ne porte plus que des entrées d'Elatransfer.
+Les anciennes règles pour en créer un : `memoire/sites-vitrines.md`, à
+n'ouvrir que s'il redemande un site de client ici.
 
 ## Comment le site est construit et hébergé
 
@@ -370,13 +327,11 @@ contractuel. Ne pas y écrire de tarif chiffré.
   que son texte : les deux premières valeurs « … : … » sont les adresses,
   le **dernier montant en euros est le prix** — d'où la ligne « Paiement »
   placée AVANT « Prix » — et la dernière ligne est « nom — téléphone ».
-- **Pas de documents légaux pour l'instant**, à sa demande. La LCEN les
-  impose : le nouveau site ne peut pas prendre la racine sans eux.
 - Référence `ELA-AA-MM-XXXXX`, jamais `ASM` : ASM venait du nom du dépôt,
   pas de la marque. **Cinq signes TIRÉS AU SORT depuis le 29/09/2026**, plus
   un compteur : voir « LA RÉFÉRENCE EST TIRÉE AU SORT » en fin de fichier.
 
-**LA BARRE DU BAS N'A QUE TROIS ONGLETS** — Accueil, Mes courses, Contact
+**PLUS D'ONGLET « RÉSERVER »** (la barre en a quatre depuis : « QUATRE ONGLETS »)
 (septembre 2026, à sa demande : « Enleve l'icône réserver elle ne sert a
 rien »). « Réserver » ouvrait EXACTEMENT le même écran qu'« Accueil », à
 la seule différence qu'il posait le curseur dans le champ de départ. Deux
@@ -1108,8 +1063,8 @@ un besoin que les fonctions ne couvrent pas.
 **Ce qui est écrit** : `supabase/functions/nouvelle-demande/` (la fonction
 et son message), `test-notification.mjs` (34 contrôles, sous Node, sans
 réseau), `NOTIFICATION.md` (la marche à suivre).
-**Ce qui manque** : le déploiement, qui exige SON compte. Tant qu'il ne
-l'a pas fait, **le site se comporte exactement comme avant**.
+**Déployée et branchée depuis le 11 septembre 2026** (« Ce qui reste à
+faire », point 3).
 
 **IL TRAVAILLE DEPUIS UN TÉLÉPHONE — la marche à suivre en tient compte**
 (septembre 2026 : « je bosse depuis un tel »). L'ancienne étape 4 demandait
@@ -1644,14 +1599,9 @@ au client comme une partie du site public », et sa solution — deux adresses,
   `construire.sh` (un site vitrine ainsi nommé écraserait le raccourci) et
   dans `NOS_DOSSIERS` de `sw.js` (sinon le service worker le traite comme un
   site voisin et ne le garde jamais).
-- **CE QUI RESTE À FAIRE, ET QU'IL FAUT LUI MONTRER AVANT** : la vraie
-  séparation, où `construire.sh` **retire** les écrans exploitant du
-  `index.html` publié aux clients et sert le fichier entier sous
-  `/exploitant/`. Une seule source, deux sorties — pas deux fichiers à
-  tenir. Ce n'est pas un travail de nuit : la saisie de course de
-  l'exploitant partage le calcul du prix avec le client, et **deux calculs
-  de prix qui divergent ne se voient pas** — on le découvre le jour où un
-  client compare, sur un prix ferme donc opposable.
+- **LA VRAIE SÉPARATION EST FAITE** (cloisonnement du 28/09) : une seule
+  source, deux sorties — `construire.sh` retire les écrans exploitant des
+  pages publiques et publie l'admin à part, sous `/ela-admin/`.
 
 ### LE TABLEAU DE BORD NE SERT PLUS QU'À TRAITER ET À CRÉER
 
@@ -2403,8 +2353,8 @@ canal rapide.
   touche pas au site, `construire.sh` reste la seule recette de publication.
   Un seul secret GitHub à poser : `SUPABASE_ACCESS_TOKEN`.
 - **LES DEUX FONCTIONS SONT DÉPLOYÉES** depuis le 8 septembre 2026, et la
-  table `abonnements` existe avec sa policy INSERT pour `anon`. Ce qui manque
-  encore à `nouvelle-demande` : son webhook et ses propres secrets Telegram.
+  table `abonnements` existe avec sa policy INSERT pour `anon`.
+  `nouvelle-demande` a reçu son webhook et ses secrets le 11/09.
 - **UN JETON D'ACCÈS NE SE COLLE PAS DANS UNE CONVERSATION.** C'est arrivé —
   jeton révoqué et refait dans la minute. Il ne va que dans les secrets
   GitHub. Le redire si ça se represente, sans en faire un sermon.
@@ -3148,16 +3098,8 @@ dépendances extérieures tombent — le cas réel d'un client dans un parking
 d'aéroport. Ne pas retirer ce coupe-circuit pour « tester en conditions
 réelles » : un test qui dépend d'Internet ne prouve rien.
 
-Trois pièges déjà rencontrés quand une suite échoue :
-- **le numéro de chambre.** Un départ dans un hôtel est refusé sans lui.
-  Une suite qui réserve depuis l'Ibis doit remplir `#roomPickup`.
-- **quatre gammes, pas deux.** Ela One, Ela First, Van, Van Premium — les
-  versions haut de gamme sont revenues en août 2026. Une suite qui compte
-  les véhicules doit tenir compte des places : à 4 passagers, Ela First
-  (3 places) sort et il en reste trois ; à 5 ou 6, seuls les deux vans.
-- **l'écran de confirmation n'a plus de repli `<details>`.** Les trois
-  moyens d'envoi sont visibles d'emblée, et c'est voulu : tant que le
-  client n'a pas appuyé, la demande n'est arrivée nulle part.
+*(Les trois pièges qui figuraient ici — `#roomPickup`, quatre gammes, repli
+`<details>` — visaient l'ancien site : il y a deux gammes, Berline et Van.)*
 
 ## LA MISE EN LIGNE EST ENFIN CONTRÔLÉE, ET L'ASPECT AUSSI
 
@@ -3328,7 +3270,7 @@ ne pas y renvoyer Barbaros.
   J'avais lu « tu peux utiliser la couleur noir et blanc » comme une consigne
   pour tout l'espace : en-tête, boutons, colonne, graphiques du registre.
   Réponse : « partout c'est noir et blanc, je veux juste le logo en noir et
-  blanc ». Tout est revenu à la marine et au céladon ; le logo est passé en
+  blanc ». Tout est revenu à la marine (céladon retiré le 4/10) ; le logo est passé en
   **blanc** (`filter:brightness(0) invert(1)`) sur l'aplat marine. **Une
   demande sur un élément ne s'étend pas à toute la page** — demander avant
   de repeindre un écran entier. Le bloc vit en fin de style d'`index.html`.
@@ -3559,7 +3501,7 @@ hôtel » (forfaits fixes), « Prix des pages ». Écriture : admin seul.
 la clé publique du site (lisible dans la page) le franchit — c'est même
 comme ça que `etat-course` et `courses-hotel` sont appelées. Toute fonction
 qui agit au nom de Barbaros doit donc vérifier elle-même `est_exploitant()`
-avec le jeton de l'appelant (modèle : `capturer-paiement`).
+avec le jeton de l'appelant (modèle : `prevenir-client` ; `est_admin()` pour l'argent).
 - **`prevenir-client`** n'avait aucun autre contrôle : n'importe qui pouvait
   envoyer à un client abonné une fausse « Transfert confirmé » avec le texte
   et le LIEN de son choix, sur des références qui se devinent en comptant.
@@ -3585,9 +3527,9 @@ avec le jeton de l'appelant (modèle : `capturer-paiement`).
     **La migration ne part pas toute seule** : workflow « Appliquer une
     migration Supabase », ce fichier. Épreuve SQL en CI, qui repose l'état
     d'origine et exige qu'il laisse passer avant d'exiger le refus.
-- **Reste ouvert, à trancher avec Barbaros** : le rôle `agent_reservation`
-  n'est limité QUE par l'écran (CSS) — côté serveur `est_exploitant()` lui
-  donne tout ; `role_operateur` n'est défini dans aucune migration du dépôt.
+- **Le rôle `agent_reservation` est borné côté serveur depuis le 29/09**
+  (« LE RÔLE AGENT EST IMPOSÉ PAR LE SERVEUR ») ; `role_operateur` n'est
+  toujours défini dans aucune migration du dépôt.
 
 ## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE
 
@@ -3701,7 +3643,7 @@ course », « un graphique des courses réalisées par les chauffeurs »).
   un `getElementById(...).addEventListener` sur un élément absent arrêtait
   tout le script du site client. Trouvé par la suite, pas en relisant.
 - **LA CLÉ PUBLIQUE DES NOTIFICATIONS VIENT DU SERVEUR** (fonction
-  `cle-notifications`), plus de `CLE_VAPID` écrit dans la page. La paire a
+  `cle-notifications`) ; `CLE_VAPID`, resté dans la page, ne sert plus à s'abonner. La paire a
   été fabriquée sur son téléphone et posée dans les secrets ; la lui faire
   recopier a échoué deux fois (il a collé le NOM, puis l'EMPREINTE que
   Supabase affiche — Supabase ne remontre jamais une valeur). Sans réponse
