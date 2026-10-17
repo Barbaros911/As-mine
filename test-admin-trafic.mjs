@@ -113,7 +113,10 @@ function fauxServeur() {
       { page: 'en-cdg', pays: 'XX', langue: 'en', appareil: 'tablette', source: 'partenaire', dernier: 'clic_whatsapp', depuis_s: 200 },
       { page: 'accueil', pays: 'GB', langue: 'en', appareil: 'mobile', source: 'social', dernier: 'demande_envoyee', depuis_s: 290 },
     ],
-    aujourdhui: totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp }),
+    /* Le vrai serveur rend ici le MÊME trafic_totaux que l'historique du jour,
+       courses comprises : sans elles, le direct arrivé en dernier les effaçait
+       de l'écran, et la suite dépendait de l'ordre des réponses. */
+    aujourdhui: totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 }),
     mesure_le: new Date().toISOString(),
   });
   s.repondre = (route, role) => {
