@@ -112,7 +112,7 @@ Cloudflare donne une adresse temporaire du type
 `as-mine.pages.dev`. **Le vrai domaine n'a pas encore bougé : le site
 public continue de tourner normalement pendant tout ce temps.**
 
-**Les trois adresses à éprouver en premier.** Elles couvrent les trois
+**Les adresses à éprouver en premier.** Elles couvrent les
 mécanismes de service, et c'est ainsi qu'on voit une erreur de configuration
 depuis l'extérieur — une seule d'entre elles suffit à la révéler :
 
@@ -121,10 +121,13 @@ depuis l'extérieur — une seule d'entre elles suffit à la révéler :
 | `/` | la racine | le site de réservation |
 | `/admin.html` | un fichier exact | renvoie vers la connexion de `/ela-admin/` |
 | `/demos/` | **un dossier** | la galerie « Démonstrations » |
+| `/n-existe-pas` | une adresse inconnue | « Page introuvable », code **404** |
 
-Si `/demos/` affiche le site de réservation, c'est le réglage
-`html_handling` de `wrangler.jsonc` qui est en cause — pas la galerie.
-C'est arrivé le 4 septembre 2026.
+Si `/demos/` n'affiche pas la galerie, c'est le réglage `html_handling` de
+`wrangler.jsonc` qui est en cause — pas la galerie (arrivé le 4 septembre
+2026 : il affichait alors l'accueil, il rendrait aujourd'hui une 404). Si
+une adresse inconnue affiche l'accueil, c'est `not_found_handling`, qui doit
+valoir `404-page` depuis le 18 octobre 2026 (`memoire/hebergement.md`).
 
 Puis, sur cette même adresse temporaire :
 
