@@ -19,7 +19,8 @@
       absente est dite en clair ; la fraîcheur passe au gris ;
    7. l'agent ne voit ni l'entrée ni l'écran ; aucune page publique ne les porte ;
    8. rien de personnel : la liste en direct n'écrit ni identifiant ni référence ;
-   9. 320, 375, 390, 430, 768, 1366, 1440 px : rien ne déborde, tout se touche.
+   9. 320, 375, 390, 430, 768, 1366, 1440 px : rien ne déborde, tout se touche ;
+  10. l'ordre d'arrivée du direct et du jour ne change rien à l'écran.
    Port 8172, propre à cette suite. Lancer : node test-admin-trafic.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
@@ -40,6 +41,21 @@ const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
   const sources = /trafic_source_valide[\s\S]*?p in \(([^)]*)\)/.exec(mig)[1].match(/'([a-z_]+)'/g).map(s => s.replace(/'/g, ''));
   const libelles = JSON.parse(readFileSync('trafic.js', 'utf8').match(/var SOURCES = (\{[\s\S]*?\});/)[1].replace(/(\w+):/g, '"$1":'));
   check('0 chaque source de la migration a son libellé à l\'écran', sources.every(s => libelles[s]), sources.filter(s => !libelles[s]).join(','));
+  /* LE FAUX SERVEUR REND LES MÊMES TOTAUX DU JOUR PAR SES DEUX RPC PARCE QUE
+     LE VRAI LE FAIT. On le lit dans la dernière migration qui définit chaque
+     RPC : le jour où le serveur cesse de le faire, ce contrôle tombe et le
+     faux serveur doit suivre — sinon la suite éprouverait un serveur qui
+     n'existe pas, et l'ordre des réponses redeviendrait un tirage. */
+  const definition = nom => {
+    const motif = new RegExp('function public\\.' + nom + '\\s*\\([\\s\\S]*?\\$\\$;');
+    const f = readdirSync('supabase/migrations').filter(n => n.endsWith('.sql')).sort().reverse()
+      .find(n => motif.test(readFileSync('supabase/migrations/' + n, 'utf8')));
+    return f ? motif.exec(readFileSync('supabase/migrations/' + f, 'utf8'))[0] : '';
+  };
+  const rpcJour = definition('ela_trafic'), rpcDirect = definition('ela_trafic_direct');
+  check('0 le serveur rend les totaux du jour par la même fonction dans le direct et dans l\'historique',
+    /'totaux',\s*public\.trafic_totaux\(b\.debut,\s*b\.fin\)/.test(rpcJour)
+    && /trafic_bornes\('aujourdhui'\)/.test(rpcDirect) && /'aujourdhui',\s*public\.trafic_totaux\(b\.debut,\s*b\.fin\)/.test(rpcDirect));
 }
 
 execSync('sh construire.sh', { stdio: 'ignore' });
@@ -76,14 +92,26 @@ const BASE = 'http://127.0.0.1:8172';
 const J = (b, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(b) });
 const SESSION = { access_token: 'JETON-ADMIN', refresh_token: 'R', token_type: 'bearer', user: { id: 'u-barbaros' } };
 
-/* ═══ LE FAUX SERVEUR ═══ Les agrégats, comme la RPC les rend. */
+/* ═══ LE FAUX SERVEUR ═══ Les agrégats, comme la RPC les rend.
+   LES TOTAUX DU JOUR SONT FAITS UNE FOIS ET RENDUS PAR LES DEUX RPC, comme
+   sur le vrai serveur : ela_trafic('aujourdhui').totaux et
+   ela_trafic_direct().aujourdhui sortent tous deux de trafic_totaux(),
+   confirmées et réalisées comprises (contrôle « 0 » ci-dessous). Le faux
+   direct en avait sa propre copie, sans elles : l'écran prend les totaux de
+   la réponse arrivée la dernière, et la suite tombait chaque fois que le
+   coureur de la CI servait le direct en second (17 octobre 2026).
+   « retenu » garde une réponse jusqu'à « liberer() », pour forcer l'ordre
+   d'arrivée sans dépendre d'aucune durée (partie 10). */
 const totaux = o => Object.assign({ visiteurs: 0, visites: 0, pages_vues: 0, prix: 0, prix_affiches: 0, formulaires: 0,
   reservations: 0, reserver: 0, appels: 0, whatsapp: 0, realisees: 0, confirmees: 0 }, o);
 function fauxServeur() {
-  const s = { requetes: [], mode: 'normal', whatsapp: 12, enLigne: 4 };
+  const s = { requetes: [], mode: 'normal', whatsapp: 12, enLigne: 4, retenu: null };
+  let lacher; const lache = new Promise(r => { lacher = r; });
+  s.liberer = () => lacher();
+  s.jour = () => totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 });
   s.histo = periode => ({
     periode, debut: '2026-10-15T00:00:00+02:00', fin: '2026-10-15T14:00:00+02:00', pas: periode === '7j' || periode === '30j' ? 'day' : 'hour',
-    totaux: totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 }),
+    totaux: s.jour(),
     pages: [
       { valeur: 'fr-cdg', totaux: totaux({ visiteurs: 51, pages_vues: 60, prix: 17, whatsapp: 5, reservations: 3 }) },
       { valeur: 'accueil', totaux: totaux({ visiteurs: 37, pages_vues: 80, prix: 8, reservations: 1 }) },
@@ -113,24 +141,28 @@ function fauxServeur() {
       { page: 'en-cdg', pays: 'XX', langue: 'en', appareil: 'tablette', source: 'partenaire', dernier: 'clic_whatsapp', depuis_s: 200 },
       { page: 'accueil', pays: 'GB', langue: 'en', appareil: 'mobile', source: 'social', dernier: 'demande_envoyee', depuis_s: 290 },
     ],
-    /* Le vrai serveur rend ici le MÊME trafic_totaux que l'historique du jour,
-       courses comprises : sans elles, le direct arrivé en dernier les effaçait
-       de l'écran, et la suite dépendait de l'ordre des réponses. */
-    aujourdhui: totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 }),
+    aujourdhui: s.jour(),
     mesure_le: new Date().toISOString(),
   });
-  s.repondre = (route, role) => {
+  /* La réponse est faite à l'arrivée de la requête, comme le serveur la
+     calcule ; seule sa livraison attend. null = coupure réseau. */
+  s.reponse = (u, corps, role) => {
+    if (role !== 'admin') return J({ code: 'P0001', message: 'acces_refuse' }, 400);
+    if (s.mode === 'panne') return J({ message: 'panne' }, 500);
+    if (s.mode === 'reseau') return null;
+    if (s.mode === 'absente') return J({ code: 'PGRST202', message: 'Could not find the function public.ela_trafic' }, 404);
+    if (s.mode === 'illisible') return J({ pas: 'un objet attendu' });
+    if (u.includes('ela_trafic_direct')) return J(s.direct());
+    if (!['aujourdhui', 'hier', '7j', '30j'].includes(corps.p_periode)) return J({ message: 'periode_invalide' }, 400);
+    return J(s.histo(corps.p_periode));
+  };
+  s.repondre = async (route, role) => {
     const req = route.request(), u = req.url();
     const corps = req.postData() ? JSON.parse(req.postData()) : {};
     s.requetes.push({ url: u, corps, auth: req.headers()['authorization'] || '' });
-    if (role !== 'admin') return route.fulfill(J({ code: 'P0001', message: 'acces_refuse' }, 400));
-    if (s.mode === 'panne') return route.fulfill(J({ message: 'panne' }, 500));
-    if (s.mode === 'reseau') return route.abort();
-    if (s.mode === 'absente') return route.fulfill(J({ code: 'PGRST202', message: 'Could not find the function public.ela_trafic' }, 404));
-    if (s.mode === 'illisible') return route.fulfill(J({ pas: 'un objet attendu' }));
-    if (u.includes('ela_trafic_direct')) return route.fulfill(J(s.direct()));
-    if (!['aujourdhui', 'hier', '7j', '30j'].includes(corps.p_periode)) return route.fulfill(J({ message: 'periode_invalide' }, 400));
-    return route.fulfill(J(s.histo(corps.p_periode)));
+    const r = s.reponse(u, corps, role);
+    if (s.retenu === (u.includes('ela_trafic_direct') ? 'direct' : 'histo')) await lache;
+    return r ? route.fulfill(r) : route.abort();
   };
   s.directs = () => s.requetes.filter(r => r.url.includes('ela_trafic_direct'));
   s.histos = () => s.requetes.filter(r => !r.url.includes('ela_trafic_direct'));
@@ -170,13 +202,20 @@ async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv
   return { ctx, p, erreurs };
 }
 const texte = (p, sel) => p.locator(sel).first().innerText().catch(() => '');
+/* DÈS QU'UNE RÉPONSE DU SERVEUR EST EN JEU, ON ATTEND UN ÉTAT, JAMAIS UNE
+   DURÉE : une durée fixe passe avant une réponse lente, et le contrôle lit
+   alors l'écran d'avant (partie 10). Si l'état ne vient pas, le contrôle qui
+   suit lit ce qui est affiché et tombe. Les durées qui restent prouvent une
+   ABSENCE (la sonde arrêtée, l'écran refusé) : là, il n'y a rien à attendre. */
+const attendre = (p, fn, arg) => p.waitForFunction(fn, arg, { timeout: 6000 }).catch(() => {});
 async function ouvrir(p) {
+  const avant = await p.evaluate(() => { const e = window.ELA_TRAFIC._etat; return { d: e.directLu, h: e.histoLu[e.periode] || 0 }; });
   await p.click('#btnTrafic');
-  await p.waitForFunction(() => {
-    const t = document.querySelector('#trfZone .trf-tuile-n');
-    return t && t.textContent.trim() !== '' && !/Lecture/.test(document.querySelector('#trfZone').textContent);
-  }, null, { timeout: 6000 }).catch(() => {});
-  await p.waitForTimeout(300);
+  /* Les DEUX réponses lues et dessinées, quel que soit leur ordre d'arrivée. */
+  await attendre(p, a => {
+    const e = window.ELA_TRAFIC._etat;
+    return (e.directLu > a.d || !!e.directErreur) && ((e.histoLu[e.periode] || 0) > a.h || !!e.histoErreur) && !e.chargement;
+  }, avant);
 }
 const tuile = (p, lib) => p.evaluate(l => {
   const t = [...document.querySelectorAll('#trfZone .trf-tuile')].find(x => x.querySelector('.trf-tuile-lib').textContent === l);
@@ -242,6 +281,8 @@ try {
     }, null, { timeout: 15000 }).catch(() => {});
     check('3 un client appuie sur WhatsApp : l\'écran passe de 12 à 13 en moins de 15 s, sans rafraîchir', (await tuile(p, 'WhatsApp')) === '13', String(await tuile(p, 'WhatsApp')));
     check('3 …et le direct passe à 5', /5/.test(await texte(p, '.trf-direct-n')));
+    check('3 …et les totaux venus du direct disent encore les courses confirmées et réalisées',
+      /5 confirmée\(s\) et 2 réalisée\(s\)/.test(await texte(p, '#trfZone')));
     check('3 la sonde n\'a relu QUE le direct, pas l\'historique', srv.histos().length === 1 && srv.directs().length >= 2, JSON.stringify({ d: srv.directs().length, h: srv.histos().length }));
     /* ── 4. LA SONDE S'ARRÊTE ── */
     await p.click('#btnRetourTrafic'); await p.waitForTimeout(300);
@@ -253,29 +294,37 @@ try {
     await ouvrir(p);
     for (const [lib, cle] of [['Hier', 'hier'], ['7 jours', '7j'], ['30 jours', '30j']]) {
       const n = srv.histos().length;
-      await p.locator('.trf-filtre', { hasText: lib }).click(); await p.waitForTimeout(500);
+      await p.locator('.trf-filtre', { hasText: lib }).click();
+      await attendre(p, c => { const e = window.ELA_TRAFIC._etat; return !!e.histo[c] && !e.chargement; }, cle);
       check(`5 « ${lib} » relit la période « ${cle} »`, srv.histos().length === n + 1 && srv.histos().at(-1).corps.p_periode === cle, JSON.stringify(srv.histos().at(-1)?.corps));
     }
     check('5 sur 30 jours, la série est par jour', /par jour/.test(await texte(p, '#trfZone')));
-    await p.locator('.trf-filtre', { hasText: 'En direct' }).click(); await p.waitForTimeout(400);
+    await p.locator('.trf-filtre', { hasText: 'En direct' }).click();
+    await attendre(p, () => !!document.querySelector('#trfZone .trf-actifs'));
     const direct = await texte(p, '#trfZone');
     check('5 « En direct » liste les actifs : page, pays, langue, appareil, source, dernier geste', /CDG → Paris/.test(direct) && /États-Unis · EN · Téléphone · Google/.test(direct) && /prix demandé/.test(direct));
     check('8 la liste en direct n\'écrit ni identifiant ni référence', !/[a-z0-9]{16}/.test(direct.replace(/[A-Za-zÀ-ÿ'’ ·\n→:0-9%(),.-]/g, 'x').replace(/x+/g, '')) && !/ELA-/.test(direct));
-    await p.locator('.trf-filtre', { hasText: "Aujourd'hui" }).click(); await p.waitForTimeout(400);
+    await p.locator('.trf-filtre', { hasText: "Aujourd'hui" }).click();
+    await attendre(p, () => !window.ELA_TRAFIC._etat.chargement && !!document.querySelector('#trfZone .trf-tri-b'));
     await p.locator('.trf-tri-b', { hasText: 'convertissent' }).click(); await p.waitForTimeout(200);
     const premiere = await p.evaluate(() => document.querySelector('#trfZone .trf-table td.trf-c-nom').textContent);
     check('5 « qui convertissent le mieux » met la landing à 2/11 devant CDG à 8/51', premiere === 'fr-nouvelle-page', premiere);
-    /* ── 6. LES ERREURS ── */
+    /* ── 6. LES ERREURS ── On attend que le direct (sous la pastille) ET le
+       jour (au-dessus des chiffres) aient tous deux dit la nouvelle erreur. */
+    const relu = re => attendre(p, s => {
+      const z = document.querySelector('#trfZone'), f = z.querySelector('.trf-fraicheur'), b = z.querySelector('.trf-erreur-bloc');
+      return !window.ELA_TRAFIC._etat.chargement && !!f && !!b && new RegExp(s).test(f.textContent) && new RegExp(s).test(b.textContent);
+    }, re.source);
     srv.mode = 'panne';
-    await p.locator('.trf-actualiser').click(); await p.waitForTimeout(600);
+    await p.locator('.trf-actualiser').click(); await relu(/n'a pas répondu/);
     const z6 = await texte(p, '#trfZone');
     check('6 une panne est DITE, et les derniers chiffres restent', /n'a pas répondu/.test(z6) && /dernière lecture réussie/.test(z6) && (await tuile(p, 'Visiteurs')) === '127');
     check('6 le direct passe au gris et le dit', (await p.locator('.trf-direct-gris').count()) === 1 || /n'a pas répondu/.test(await texte(p, '.trf-fraicheur')));
     srv.mode = 'absente';
-    await p.locator('.trf-actualiser').click(); await p.waitForTimeout(600);
+    await p.locator('.trf-actualiser').click(); await relu(/pas encore installée/);
     check('6 la migration absente est dite en clair', /pas encore installée/.test(await texte(p, '#trfZone')));
     srv.mode = 'illisible';
-    await p.locator('.trf-actualiser').click(); await p.waitForTimeout(600);
+    await p.locator('.trf-actualiser').click(); await relu(/réponse illisible/);
     check('6 une réponse illisible n\'affiche pas un faux zéro', (await tuile(p, 'Visiteurs')) === '127' && /n'a pas répondu/.test(await texte(p, '#trfZone')));
     srv.mode = 'normal';
     check('aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
@@ -325,6 +374,40 @@ try {
       check('9 à 390 px, le direct et les six chiffres du jour tiennent dans l\'écran', y <= 844, String(Math.round(y)));
     }
     if (l >= 900) check(`9 à ${l} px les tableaux ont de vraies colonnes`, await p.evaluate(() => getComputedStyle(document.querySelector('#trfZone .trf-table thead')).display !== 'none'));
+    await ctx.close();
+  });
+
+  /* ── 10. L'ORDRE DES DEUX RÉPONSES NE CHANGE RIEN ──
+     À l'ouverture, l'écran lit le direct et le jour en même temps, et les
+     totaux du jour viennent de la réponse arrivée la dernière. Les deux
+     sortent de la même fonction serveur : l'écran doit dire la même chose
+     dans les deux ordres. En CI, l'ordre tombait au hasard du coureur, et la
+     suite avec (17 octobre 2026). On force chaque ordre PAR CONSTRUCTION,
+     sans durée : la réponse retenue ne part qu'une fois l'autre lue et
+     dessinée. Un retard de 400 ms ne suffisait pas — sous un réseau plus
+     lent d'un côté, l'ordre s'inversait. Et on vérifie qu'on a bien obtenu
+     l'ordre annoncé : sinon le scénario ne prouverait rien. */
+  for (const [nom, retenu] of [['le direct arrive après le jour', 'direct'],
+    ['le jour arrive après le direct', 'histo'], ['les deux sans retenue', null]]) await partie('10 ' + nom, async () => {
+    const srv = fauxServeur();
+    srv.retenu = retenu;
+    const { ctx, p } = await contexte(nav, { srv });
+    if (!retenu) await ouvrir(p);
+    else {
+      await p.click('#btnTrafic');
+      await attendre(p, r => {
+        const e = window.ELA_TRAFIC._etat;
+        return r === 'direct' ? (e.histoLu.aujourdhui || 0) > 0 && !e.chargement : e.directLu > 0;
+      }, retenu);
+      srv.liberer();
+      await attendre(p, () => { const e = window.ELA_TRAFIC._etat; return e.directLu > 0 && (e.histoLu.aujourdhui || 0) > 0 && !e.chargement; });
+      const ecart = await p.evaluate(() => { const e = window.ELA_TRAFIC._etat; return e.directLu - (e.histoLu.aujourdhui || 0); });
+      check(`10 ${nom} : c'est bien l'ordre obtenu`, retenu === 'direct' ? ecart > 0 : ecart < 0, `direct − jour = ${ecart} ms`);
+    }
+    const chiffres = [];
+    for (const l of ['Visiteurs', 'Pages vues', 'Prix demandés', 'Réservations', 'Appels', 'WhatsApp']) chiffres.push(await tuile(p, l));
+    check(`10 ${nom} : les six chiffres du jour sont ceux du serveur`, chiffres.join(' ') === '127 221 39 8 6 12', chiffres.join(' '));
+    check(`10 ${nom} : les courses confirmées et réalisées sont dites`, /5 confirmée\(s\) et 2 réalisée\(s\)/.test(await texte(p, '#trfZone')));
     await ctx.close();
   });
 } finally {

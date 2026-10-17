@@ -74,14 +74,24 @@ jobs:
 
       - uses: actions/checkout@v7.0.1
 
-      - uses: supabase/setup-cli@v1
+      # LA CLI EST ÉPINGLÉE, ET L'ACTION QUI L'INSTALLE AUSSI (17 octobre
+      # 2026). Avec « @v1 » et « latest », le même commit ne déployait pas
+      # avec le même outil d'un jour à l'autre — mesuré dans les journaux :
+      # CLI 2.120.0 aux déploiements n° 41 et 46 (8 et 11/10), 2.121.0 aux
+      # n° 48 et 49 (15 et 16/10), sans qu'aucun commit touche ces lignes ; et
+      # « @v1 » désignait le SHA ab058987… en septembre, 1dedf2c6… en
+      # octobre. Ce job porte le jeton de production : rien n'y change sans
+      # une PR. Les deux valeurs ci-dessous sont celles du déploiement vert
+      # n° 49 (16/10/2026), pas des numéros devinés. La CLI fixe aussi
+      # l'image qui empaquette les fonctions (edge-runtime v1.77.4 ce jour-là).
+      # METTRE À JOUR : une PR qui change le numéro, puis, après la fusion,
+      # lire « Version de la CLI Supabase » et le déploiement au vert dans le
+      # journal. Dependabot peut déplacer le SHA de l'action ; le numéro de
+      # la CLI, jamais — test-doc.mjs refuse qu'il redevienne « latest ».
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
         with:
-          version: latest
+          version: 2.121.0
 
-      # « latest » n'est pas épinglé, faute de savoir d'ici quelle version
-      # tourne aujourd'hui (on ne devine pas un numéro). Le journal la dit
-      # désormais : le jour où une mise à jour de la CLI casse le
-      # déploiement, on lit ici la dernière qui marchait et on l'épingle.
       - name: Version de la CLI Supabase
         run: supabase --version
 

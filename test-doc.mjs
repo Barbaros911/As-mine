@@ -554,6 +554,44 @@ for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
   }
 }
 
+/* LA PRODUCTION NE SE DÉPLOIE AVEC AUCUN OUTIL QUI CHANGE TOUT SEUL
+   (17 octobre 2026). fonctions.yml installait la CLI Supabase « latest »
+   par l'action « supabase/setup-cli@v1 » : les mêmes lignes ont déployé
+   avec la CLI 2.120.0 le 11 octobre et 2.121.0 le 15, sans un commit, et
+   l'étiquette « v1 » a changé de SHA entre septembre et octobre. Dans tout
+   workflow qui entre dans l'environnement « production » — c'est lui qui
+   porte le jeton — une action qui n'est pas de GitHub (« actions/… ») est
+   épinglée par son SHA complet, rien ne s'installe en « latest », et toute
+   entrée « version: » est un numéro exact. On lit TOUS les workflows de
+   production, pas une liste : le prochain y entre d'office. Les
+   commentaires sont retirés avant lecture — un « latest » dans une phrase
+   d'explication n'installe rien. */
+{
+  const dossier = ".github/workflows";
+  const prod = readdirSync(dossier).filter(f => /\.ya?ml$/.test(f))
+    .map(f => [f, readFileSync(dossier + "/" + f, "utf8").split("\n")
+      .filter(l => !/^\s*#/.test(l)).map(l => l.replace(/\s+#.*$/, ""))])
+    .filter(([, lignes]) => lignes.some(l => /^\s*environment:\s*production\s*$/.test(l)));
+  verifier("des workflows entrent dans l'environnement « production »", prod.length > 0,
+    "aucun trouvé : le jeton de production n'est plus rangé dans l'environnement, ou ce contrôle ne sait plus le lire.");
+  for(const [f, lignes] of prod){
+    for(const l of lignes){
+      const m = /uses:\s*([^\s@]+)@(\S+)/.exec(l);
+      if(m && !/^actions\//.test(m[1])){
+        verifier(`${f} : l'action « ${m[1]} » est épinglée par son SHA`, /^[0-9a-f]{40}$/.test(m[2]),
+          "trouvé « @" + m[2] + " » : une étiquette se déplace sans commit, dans un job qui porte le jeton de production.");
+      }
+      const v = /^\s*version:\s*["']?([^"'\s]+)/.exec(l);
+      if(v){
+        verifier(`${f} : la version « ${v[1]} » est un numéro exact`, /^\d+\.\d+\.\d+$/.test(v[1]),
+          "un numéro flottant fait déployer le même commit avec un autre outil d'un jour à l'autre.");
+      }
+    }
+    const flottant = lignes.filter(l => !/^\s*runs-on:/.test(l) && /(:\s*["']?latest["']?\s*$|@latest\b)/.test(l));
+    verifier(`${f} n'installe rien en « latest »`, flottant.length === 0, flottant.map(l => l.trim()).join(" · "));
+  }
+}
+
 /* --------------------------------------------------------------- */
 console.log("");
 if(echecs.length){
