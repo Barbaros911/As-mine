@@ -198,6 +198,7 @@ session ne le reprenne en croyant combler un oubli.
 | Context7 / MCP projet | Même raison. Aucune tâche récente n'a échoué faute de documentation de dépendance. |
 | Playwright — refonte | Déjà reproductible et verrouillé depuis #210. Un `playwright.config` commun serait du confort. |
 | Supabase preview | Touche une zone critique et coûte peut-être de l'argent. **Aucune activation sans accord explicite de Barbaros**, et le coût reste à documenter GRATUIT / PAYANT / OPTIONNEL. |
+| Remplacer l'action gitleaks par son binaire | Mesuré le 17/10/2026 : 6 échecs sur 300 exécutions. Les 4 sur des PR étaient de **vraies fuites attrapées** ; un seul faux échec (licence réclamée après un appel GitHub raté), sur un push de `main`, qui ne bloque rien. Réécrire un contrôle de sécurité exigé coûte plus que ce qu'il évite. À rouvrir le jour où une PR est bloquée pour cette raison : une relance suffit d'ici là. |
 | Scanners de sécurité en plus | gitleaks **plus** le scanner maison à empreintes couvrent déjà. Installer CodeQL, Semgrep et Trivy ferait quatre outils pour un même travail — exactement le doublon que le mandat interdit. |
 | Mesure des tokens | Aucune infrastructure ne la rend fiable aujourd'hui ; un chiffre inventé sur un tableau de bord finit par servir à décider. |
 
@@ -209,12 +210,10 @@ parce qu'une liste les nomme.
 
 | Quoi | Qui | Où c'est suivi |
 |---|---|---|
-| Garde-fou Playwright mobile 390×844 + desktop 1280×800 | QA/DevOps | #213/#215 · PR #210 |
-| Test contrôlé réel de la chaîne multi-agents | Équipe | #200/#215 |
 | Pilotage Produit + Opérations (distinct du board de traitement des courses) — bloc 1/3 (base, sécurité, module de données) fusionné et migration appliquée en production le 6/10 ; bloc 2/3 (écran mobile d'abord) codé et testé, à valider ; bloc 3 à venir | Admin/Produit | #197 |
 | Sécurité finale : ancien INSERT anon fermé le 03/10/2026 (policy « depot client » supprimée) — reste un dépôt de contrôle depuis le site | Security | #190 |
 | Paiement Stripe à empreinte/capture, Live désactivé jusqu'à validation | Booking/Security | #173 |
-| Alerte avant expiration du jeton Supabase (13/09/2027) | Claude | à ouvrir |
+| Alerte avant expiration du jeton Supabase `github-production` (1er octobre 2027, posé le 4/10/2026) | Claude | à ouvrir |
 
 ## Ce qui bloque, et par qui
 
@@ -242,8 +241,6 @@ parce qu'une liste les nomme.
   adresse morte en croyant avoir saisi un recours.
 - **Mapbox est repoussé**, à sa demande — il n'a pas voulu donner sa carte
   bancaire. Ne pas le relancer. Le site tourne sur ORS, OSRM en filet.
-- **Cloudflare est en attente** : ne pas déplacer les serveurs de noms, son
-  email en dépend. Marche à suivre dans `CLOUDFLARE.md`.
 
 ## Comment tenir ce fichier
 
