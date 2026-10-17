@@ -181,9 +181,11 @@ veut.
   phrase « Dont 5 confirmée(s)… » disparaissait. **Le produit était juste,
   c'est le faux serveur qui mentait.** Reproduit en retardant le direct de
   400 ms ; sous des délais tirés de 0 à 600 ms, l'ancienne suite tombait 4 fois
-  sur 6. Corrigé à la source : le faux serveur fait les totaux du jour une
-  fois et les rend par ses deux RPC, un contrôle lit dans la migration que le
-  vrai fait toujours de même, et la partie 10 force les deux ordres. Les
+  sur 6. Corrigé à la source (#369 a d'abord recopié les deux valeurs dans le
+  faux direct ; #370 a retiré la copie) : le faux serveur fait les totaux du
+  jour une fois et les rend par ses deux RPC, un contrôle lit dans la
+  migration que le vrai fait toujours de même, et la partie 10 force les deux
+  ordres. Les
   attentes fixes qui couraient contre une réponse (« En direct » à 400 ms, les
   erreurs à 600 ms) attendent désormais l'état.
 
