@@ -7,10 +7,10 @@ ELA Transfer est une plateforme de réservation et de gestion de courses avec ch
 ## Architecture actuelle
 
 - **Façade publique et réservation** : `index.html`.
-- **Entrée exploitant historique** : `admin.html`, qui redirige vers le mode exploitant du cœur commun.
-- **Admin v2** : `admin-v2.html` et les modules `admin-v2-*.js`.
+- **Admin (espace exploitant)** : publié sous `/ela-admin/`, document construit à partir d'`index.html` par `construire.sh`. Connexion Supabase (e-mail + mot de passe) puis contrôle serveur des droits ; il n'y a plus de code d'accès. `admin.html`, `/exploitant/` et `?exploitant=1` y mènent. Voir `COMPTES.md`.
+- **Admin v2** (`admin-v2.html`, `admin-v2-*.js`) : **plus publié depuis le 3 octobre 2026** — `/admin-v2.html` renvoie vers `/ela-admin/`. Le code reste dans le dépôt pour les fichiers qu'il partage.
 - **Client easyHotel** : `sites/easyhotel-client/`.
-- **Réception easyHotel** : `sites/easyhotel-reception/`, entrée vers le cœur commun avec le contexte réception.
+- **Réception d'hôtel** : `/reception/<clé>/` (une page par hôtel, construite par `construire.sh`) ; `/easyhotel-reception/` reste servie pour les anciens favoris.
 - **Supabase** : `supabase/` pour les migrations, fonctions serveur et règles de données.
 - **PWA** : `manifest.webmanifest`, `sw.js` et les icônes.
 - **Construction** : `construire.sh` est l’unique recette qui fabrique `site/`.
@@ -31,7 +31,8 @@ Le workflow GitHub Pages exécute notamment les contrôles documentaires et de f
 | Mémoire technique et historique | `CLAUDE.md` |
 | Build publié | `construire.sh` |
 | Façade/réservation principale | `index.html` |
-| Admin v2 | `admin-v2.html` + `admin-v2-*.js` |
+| Admin publié | `/ela-admin/`, construit depuis `index.html` |
+| Comptes, accès et secrets | `COMPTES.md` |
 | Fonctions et données serveur | `supabase/` |
 
 En cas de contradiction entre une ancienne note et le code actuel, vérifier `main` et les tests avant de décider. Une note historique ne doit jamais remplacer une mesure du dépôt courant.
@@ -52,13 +53,13 @@ Les workflows de `.github/workflows/` exécutent aussi les contrôles spécialis
 
 Les tarifs sont une donnée métier sensible : ne jamais modifier un montant dans un seul écran ou un seul script. Les contrôles du dépôt vérifient notamment l’accord entre la grille client et la source tarifaire serveur.
 
-Le modèle actuellement affiché au client reste celui décrit dans `PROJECT_STATE.md`. Le projet prévoit une évolution vers l’empreinte bancaire Stripe, mais **Stripe Live ne doit jamais être présenté comme actif tant que cette bascule n’a pas réellement été effectuée et vérifiée**.
+Le client paie **le chauffeur**, avant le départ, par le lien de paiement que lui transmet Elatransfer avec la confirmation (décision du 10 octobre 2026, CGV art. 5). Aucun paiement en ligne n'est actif : le code d'empreinte Stripe de **test** reste dans `supabase/functions/`, sans aucune page qui l'appelle, et l'empreinte n'est plus le modèle prévu. **Stripe Live ne doit jamais être présenté comme actif.** Le détail, brique par brique, est dans `PROJECT_STATE.md`.
 
 Les réservations et l’Admin utilisent désormais des composants serveur/Supabase : le projet ne doit plus être décrit comme une simple page statique sans serveur.
 
 ## Projets dans `sites/`
 
-Les dossiers ELA/easyHotel servent d’entrées ou d’interfaces du produit. Les autres projets clients peuvent rester versionnés dans le même dépôt sans être intégrés à la publication ELA.
+Les dossiers ELA/easyHotel servent d’entrées ou d’interfaces du produit. Les projets d’autres clients ne vivent plus dans ce dépôt (décision du 4 octobre 2026).
 
 Le modèle `sites/_modele/` est interne et n’est pas publié.
 

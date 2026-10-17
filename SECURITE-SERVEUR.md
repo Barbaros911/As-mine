@@ -9,7 +9,7 @@ Le navigateur n'est jamais une barrière de sécurité. Cacher un bouton, une se
 - Les données `courses` et `abonnements` restent protégées par RLS.
 - L'espace exploitant doit utiliser une session Supabase Auth valide pour toute lecture ou modification de données privées.
 - Aucun secret, mot de passe, service-role key ou code d'accès réel ne doit être publié dans HTML/JS/documentation publique.
-- Le suivi client public ne retourne que `statut` et le prénom/nom du chauffeur pour une paire référence + jeton valide.
+- Le suivi client public (fonction `etat-course`) n'exige que la paire référence + téléphone du client, et ne retourne que le statut et, sur une course confirmée ou réalisée, le prénom et le téléphone du chauffeur, le véhicule et l'heure — jamais les adresses, le nom du client ni le prix.
 - Le rôle anonyme ne doit jamais pouvoir lister les courses.
 - Les opérations administratives ne doivent jamais être autorisées uniquement par un paramètre d'URL ou par `localStorage`.
 - Toute nouvelle table contenant des données privées doit activer RLS avant exposition API.

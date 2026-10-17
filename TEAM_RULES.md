@@ -193,7 +193,8 @@ branche et une PR ; il ne se fait jamais directement sur `main`.
 ## 9. Se parler
 
 **L'Issue `[TEAM]` est le canal de TRANSMISSION ENTRE ASSISTANTS.**
-#164 pour la coordination, #165 pour l'Admin, et une Issue dédiée par sujet.
+#164 pour la coordination, et une Issue dédiée par sujet (#165, ancien canal
+de l'Admin, est fermée depuis le 6 octobre 2026).
 **Ça ne retire rien à la conversation de Barbaros**, qui reste la source de
 ses demandes et de ses décisions : ce qu'il dit à l'un ou à l'autre fait
 foi, et c'est à l'assistant qui l'a reçu de le porter ici. *Précisé le
