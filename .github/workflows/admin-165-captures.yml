@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '20'
       - name: Installer Playwright pour la prévisualisation
-        run: npm install --no-save --no-package-lock playwright
+        run: npm install --no-save --no-package-lock playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Générer les rendus réels
         run: node capture-admin-165.mjs
