@@ -37,11 +37,22 @@
   "assets": {
     "directory": "./site",
 
-    // Un site à écrans multiples servi par des chemins simples : toute
-    // adresse inconnue rend index.html plutôt qu'une page d'erreur. Sans
-    // ça, un client qui ouvre un lien mal recopié tombe sur un 404 de
-    // Cloudflare au lieu du site.
-    "not_found_handling": "single-page-application",
+    // UNE ADRESSE INCONNUE REND UNE VRAIE 404 (18 octobre 2026).
+    // C'était « single-page-application » : toute adresse inconnue rendait
+    // index.html EN 200. Mesuré sur wrangler 4.151 : /page-inexistante,
+    // /en/…, /ela-admin/…, et même /photos/x.jpg ou /x.js recevaient
+    // l'accueil, indexable, canonique « / ». Deux torts : Google voyait une
+    // copie de l'accueil par lien mal recopié (« soft 404 »), et un fichier
+    // oublié par construire.sh répondait 200 — le contrôle de production,
+    // qui guette les réponses ≥ 400, ne pouvait plus le voir.
+    // Ce repli ne servait à rien d'autre : le site ne route JAMAIS par le
+    // chemin (écrans et espaces passent par des paramètres, ?h=, ?ok=,
+    // ?reception=…), chaque espace est un vrai fichier publié.
+    // « 404-page » sert le 404.html LE PLUS PROCHE, avec le code 404 :
+    // /404.html en français, /en/404.html sous /en/. Le client garde une
+    // sortie (réserver, appeler) au lieu d'une page d'erreur nue.
+    // Les anciennes adresses connues sont redirigées par _redirects.
+    "not_found_handling": "404-page",
 
     /* « auto-trailing-slash », et surtout PAS « none ».
        Première tentative : « none », pour que « /admin.html » garde son

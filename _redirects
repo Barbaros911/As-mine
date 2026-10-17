@@ -1,0 +1,8 @@
+# ANCIENNES ADRESSES CONNUES — lues par Cloudflare (18 octobre 2026).
+# Une adresse inconnue rend une vraie 404 (wrangler.jsonc). Seules les
+# adresses qui ont réellement été publiées puis retirées sont renvoyées
+# ici, et vers la page qui les a remplacées — jamais un « attrape-tout ».
+# nouveau.html : le nouveau site avant la bascule du 6 septembre 2026, où
+# il est devenu l'accueil. Des liens ont circulé pendant ces jours-là.
+/nouveau.html / 301
+/nouveau / 301
