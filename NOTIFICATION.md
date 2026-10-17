@@ -52,6 +52,11 @@ Le client attend une réponse.
 https://barbaros911.github.io/As-mine/admin.html
 ```
 
+*Exemple de septembre 2026, gardé pour la forme. Aujourd'hui le message
+porte le N° court en tête et un lien vers `elatransfer.com/ela-admin/`, et
+le règlement à bord n'existe plus. Le texte exact est fabriqué par
+`supabase/functions/nouvelle-demande/message.js`.*
+
 La première ligne est celle qui s'affiche sur l'écran verrouillé : elle
 porte le trajet et l'heure, de quoi décider sans déverrouiller.
 

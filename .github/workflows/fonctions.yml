@@ -21,8 +21,8 @@ name: Déployer les fonctions Supabase
 
 on:
   push:
-    # La branche de travail y est aussi : sans elle, il faudrait fusionner
-    # vers main avant d'avoir pu éprouver le déploiement une seule fois.
+    # Seule main déploie (garde du job, jeton dans l'environnement
+    # « production ») : une branche de travail ne déploie jamais.
     branches: [main]
     paths:
       - "supabase/functions/**"

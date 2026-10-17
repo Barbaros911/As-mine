@@ -1,12 +1,20 @@
 # Brancher le serveur — 15 minutes
 
-Aujourd'hui le site ne peut rien transmettre : le client doit envoyer son
-récapitulatif sur WhatsApp, et Barbaros doit le recoller de l'autre côté.
+> **C'EST LE GUIDE D'INSTALLATION DE SEPTEMBRE 2026, ET LE SERVEUR EST
+> BRANCHÉ DEPUIS.** Le projet Supabase `yyhzutnuhuytokarynaw` tourne en
+> production : les demandes y arrivent, les alertes partent, les fonctions se
+> déploient seules depuis `main` quand leur code change (`fonctions.yml`). Ce guide
+> ne sert plus qu'à refaire un projet de zéro. Les passages devenus faux ont
+> été corrigés le 17 octobre 2026 (connexion à l'admin, changement de
+> téléphone, notifications) ; le reste garde la forme de l'époque.
+> **L'état réel de la base se lit, il ne se recopie pas** : migration en
+> lecture seule `20261003010000_inventaire_schema.sql`, par le workflow
+> « Appliquer une migration Supabase ». Les comptes et les secrets :
+> `COMPTES.md`.
 
-Une fois ces étapes faites, le client appuie sur « Confirmer » et **c'est
-fini pour lui** : la demande arrive directement dans le tableau de bord,
-sur n'importe quel appareil. Les trois boutons d'envoi disparaissent de son
-écran.
+Le client appuie sur « Confirmer » et **c'est fini pour lui** : la demande
+arrive directement dans le tableau de bord, sur n'importe quel appareil, par
+la fonction `deposer-course`.
 
 Tout est gratuit. Le palier gratuit de Supabase est très au-dessus du
 volume d'Asmine.
@@ -84,6 +92,11 @@ create policy "l exploitant depose aussi"
   with check (true);
 ```
 
+⚠️ **« Connecté » ne suffit plus depuis `20260915_operator_auth_server.sql`** :
+les policies exploitant exigent `est_exploitant()`, c'est-à-dire une ligne
+active dans la table `operateurs` pour le compte connecté. Le `using (true)`
+ci-dessus est la forme de septembre, pas celle de la base.
+
 **Si le projet a été créé avant septembre 2026**, cette dernière policy
 n'existe pas : la coller seule dans le **SQL Editor** et faire **Run**. Rien
 d'autre ne change, et rien ne peut casser — une policy en plus n'ouvre que
@@ -128,9 +141,10 @@ qui passe au-dessus de toutes les règles et ne quitte jamais Supabase.
 ## 3. Créer le compte de Barbaros
 
 **Authentication** → **Users** → **Add user** → *Create new user*.
-Mettre une vraie adresse e-mail et **un vrai mot de passe** — celui-ci ouvre
-les données réelles des clients, ce n'est pas le code d'exploitant de
-l'appareil.
+Mettre une vraie adresse e-mail et **un vrai mot de passe** — c'est lui qui
+ouvre l'admin (`elatransfer.com/ela-admin/`) et les données réelles des
+clients. Il n'y a plus de code d'accès sur l'appareil. Le compte doit ensuite
+être inscrit dans la table `operateurs`, côté serveur, jamais depuis la page.
 
 ⚠️ **COCHER « Auto Confirm User ».** Elle ne l'est pas d'office, et c'est le
 piège le plus coûteux de cette page : sans elle le compte est créé, le mot
@@ -173,8 +187,8 @@ lire toutes les courses.
 
 | Dans Supabase | Dans `index.html` |
 |---|---|
-| *Project URL* | `const SUPABASE_URL = "https://xxxx.supabase.co";` |
-| *Project API keys* → **`anon` `public`** | `const SUPABASE_CLE = "eyJ...";` |
+| *Project URL* | `var SUPABASE_URL = "https://xxxx.supabase.co";` |
+| *Project API keys* → **clé publique** (`anon` / `sb_publishable_…`) | `var SUPABASE_CLE = "...";` |
 
 ⚠️ **Prendre la clé `anon public`, jamais la `service_role`.** La
 `service_role` contourne toutes les règles de sécurité ci-dessus ; dans une
@@ -186,8 +200,10 @@ règles de l'étape 2.
 
 ## 5. Se connecter
 
-Sur le site, en mode exploitant : entrée **Serveur** dans la colonne de
-gauche → l'e-mail et le mot de passe de l'étape 3.
+Ouvrir **`elatransfer.com/ela-admin/`** : l'écran de connexion demande
+l'e-mail et le mot de passe de l'étape 3, puis le serveur vérifie le compte
+dans `operateurs` (`est_exploitant()`). `admin.html` et `/exploitant/` mènent
+au même endroit.
 
 La connexion **se renouvelle toute seule** : le jeton d'accès de Supabase ne
 vit qu'une heure, et le site le remplace sans rien demander. Si l'écriteau
@@ -200,24 +216,22 @@ renouvellement lui-même a été refusé — il faut alors se reconnecter ici.
 
 C'est la raison d'être du serveur, et voici la manœuvre exacte :
 
-1. Sur le **nouveau** téléphone, ouvrir `elatransfer.com/admin.html`, saisir
-   le code d'accès de l'appareil.
-2. **Registre** → bloc **Serveur** → l'e-mail et le mot de passe de l'étape 3.
-3. **Actualiser**. Toutes les courses redescendent.
+1. Sur le **nouveau** téléphone, ouvrir `elatransfer.com/ela-admin/` et se
+   connecter avec l'e-mail et le mot de passe de l'étape 3.
+2. Les courses redescendent toutes seules ; « Actualiser » les relit.
 
-Rien à exporter, rien à recopier. L'ancien téléphone peut être éteint,
-perdu ou vendu.
+Les **courses** ne se perdent pas en changeant d'appareil. **Ce qui vit
+seulement sur le téléphone, en revanche, se perd sans sauvegarde** : le
+carnet des chauffeurs, leurs paiements de commission, les factures et leur
+numérotation, l'identité de l'émetteur et le lien d'avis. Faire une
+sauvegarde depuis l'ancien téléphone et la restaurer sur le nouveau (Registre
+→ sauvegarde) ; le tableau de bord rappelle de la faire tous les 7 jours.
 
-**Deux précautions quand même :**
-
-- Le serveur ne remonte que ce qui y est monté. Une course saisie pendant
-  que la connexion au serveur était rompue reste locale jusqu'à ce que son
-  bon soit rouvert ou modifié. L'écriteau de sauvegarde du tableau de bord
-  reste donc utile : c'est la ceinture, le serveur est les bretelles.
-- La fusion **AJOUTE et n'écrase jamais**. Une course déjà présente sur
-  l'appareil garde son état local — c'est voulu : elle peut avoir avancé
-  depuis (chauffeur attribué, course réalisée) et l'écraser avec une version
-  plus ancienne effacerait le travail de la soirée.
+**Depuis le 2 octobre 2026, le serveur est la seule vérité** : une course
+modifiée ailleurs remplace la copie du téléphone, et un geste fait sans
+réseau attend dans une file d'envoi (`ela_file`) puis part au retour du
+réseau. Si la course a changé entre-temps, le serveur gagne et l'écran le
+dit. Seule la restauration d'une sauvegarde **ajoute** sans rien écraser.
 
 ## Vérifier que ça marche
 
@@ -226,9 +240,8 @@ perdu ou vendu.
    sans aucun bouton WhatsApp.
 3. Sur le téléphone de Barbaros : **Registre → Actualiser**. La course est là.
 
-Si ça ne marche pas, le site retombe **tout seul** sur l'ancien
-fonctionnement : le client revoit ses trois boutons d'envoi. Aucune
-réservation n'est perdue en route.
+Si le dépôt échoue, le bon du client le dit et lui propose « Renvoyer par
+WhatsApp ». Aucune réservation n'est perdue en route.
 
 ---
 
@@ -245,11 +258,11 @@ Tout cela était impossible sans lui. Rien ne l'est plus.
 
 ## Pour être prévenu sur son téléphone
 
-**C'est écrit, il reste à le déployer.** Une fonction Supabase envoie une
-alerte — Telegram et/ou e-mail — dès qu'une course est déposée, avec le
-trajet, l'heure, le véhicule et le prix. La marche à suivre complète est
-dans **`NOTIFICATION.md`** ; il faut vingt minutes et l'accès au compte
-Supabase.
+**Elle tourne depuis le 11 septembre 2026.** La fonction `nouvelle-demande`
+envoie une alerte — Telegram, et l'e-mail si ses secrets sont posés — dès
+qu'une course est déposée, avec le trajet, l'heure, le véhicule et le prix,
+puis des rappels tant qu'elle n'est pas vue. La marche à suivre de l'époque
+est dans **`NOTIFICATION.md`**.
 
 Deux points qui ne se devinent pas :
 
@@ -275,15 +288,16 @@ s'il a fermé la page. **Ça ne remplace pas le message WhatsApp** — les deux
 partent, et c'est voulu : la notification arrive tout de suite mais peut
 être refusée ou effacée d'un geste ; le message WhatsApp, lui, reste.
 
-**Tout est écrit et éprouvé hors ligne** (`node test-push.mjs`, 21
-contrôles, dont le déchiffrement du message par une bibliothèque écrite par
-quelqu'un d'autre). Il ne manque que ce qui exige le compte : poser les
-trois secrets et coller la fonction. Vingt minutes, depuis un téléphone.
+**C'est déployé depuis le 8 septembre 2026** (`prevenir-client`, par
+`fonctions.yml`) et éprouvé hors ligne (`node test-push.mjs`, dont le
+déchiffrement du message par une bibliothèque écrite par quelqu'un d'autre).
+Ce qui suit dit comment c'était posé, et comment refaire la paire de clés.
 
 ### 1. La paire de clés VAPID
 
-Elle existe déjà. La **publique** est dans `index.html` (`CLE_VAPID`) — elle
-est publique par construction, le navigateur la reçoit de toute façon. La
+Elle existe déjà. La **publique** est donnée au navigateur par la fonction
+`cle-notifications`, depuis le secret `VAPID_PUBLIQUE` (depuis le 29/09/2026 ;
+`CLE_VAPID`, encore écrite dans `index.html`, ne sert plus à s'abonner). La
 **privée** ne doit **jamais** entrer dans le dépôt : elle est le seul
 secret qui empêche un tiers d'envoyer des notifications au nom
 d'Elatransfer. Elle a été remise à Barbaros à part.
@@ -312,7 +326,7 @@ simplement qu'elle n'est pas configurée.
 
 | Nom | Valeur |
 |---|---|
-| `VAPID_PUBLIQUE` | la clé publique, celle de `CLE_VAPID` |
+| `VAPID_PUBLIQUE` | la clé publique, celle que rend `cle-notifications` |
 | `VAPID_PRIVEE` | la clé privée, remise à part |
 | `VAPID_SUJET` | `mailto:contact@elatransfer.com` |
 
@@ -320,7 +334,11 @@ simplement qu'elle n'est pas configurée.
 pose lui-même. **Ne jamais recopier la `service_role` ailleurs** — elle
 passe au-dessus de toutes les règles de sécurité.
 
-### 3. Coller la fonction
+### 3. Coller la fonction — seulement en secours
+
+**Le déploiement normal est automatique** : `fonctions.yml` déploie les
+fonctions depuis `main` dès qu'une fusion touche `supabase/functions/`. Le
+collage ci-dessous ne sert que le jour où cette automatisation tombe.
 
 **Edge Functions → Deploy a new function → via Editor**. Nom exact :
 `prevenir-client`. Ouvrir
@@ -384,8 +402,9 @@ fonction est la seule porte : elle lit avec la clé de service, qui ne sort
 jamais du serveur, et ne rend qu'une course à la fois.
 
 **Ce qui fait office de clé : la référence ET le téléphone.** La référence
-seule ne protégerait rien — elle est séquentielle (`ELA-26-09-0007`), il
-suffirait de compter pour lire les courses des autres. Le numéro du client
+seule ne suffirait pas — elle était séquentielle à l'époque (`ELA-26-09-0007`),
+elle est tirée au sort depuis le 29/09/2026, et elle circule dans les
+messages. Le numéro du client
 ne sort jamais de son téléphone ; les deux ensemble, c'est ce que lui seul
 possède.
 
