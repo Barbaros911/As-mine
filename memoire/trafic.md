@@ -172,6 +172,22 @@ veut.
   falsification « compteur oublié » passait. `coalesce` et `is distinct from`.
 - `innerText` n'existe pas sur un texte SVG : le contrôle de la série lisait
   une chaîne vide.
+- **`test-admin-trafic` tombait en CI une fois sur quelques-unes** (17/10/2026,
+  PR #368, une PR qui ne touchait qu'une ligne de documentation). À
+  l'ouverture, l'écran lit le direct et le jour en même temps, et prend les
+  totaux du jour de la réponse arrivée la dernière. Le vrai serveur les rend
+  par la même fonction (`trafic_totaux`) ; le faux direct de la suite en avait
+  sa propre copie, sans confirmées ni réalisées. Direct servi en second : la
+  phrase « Dont 5 confirmée(s)… » disparaissait. **Le produit était juste,
+  c'est le faux serveur qui mentait.** Reproduit en retardant le direct de
+  400 ms ; sous des délais tirés de 0 à 600 ms, l'ancienne suite tombait 4 fois
+  sur 6. Corrigé à la source (#369 a d'abord recopié les deux valeurs dans le
+  faux direct ; #370 a retiré la copie) : le faux serveur fait les totaux du
+  jour une fois et les rend par ses deux RPC, un contrôle lit dans la
+  migration que le vrai fait toujours de même, et la partie 10 force les deux
+  ordres. Les
+  attentes fixes qui couraient contre une réponse (« En direct » à 400 ms, les
+  erreurs à 600 ms) attendent désormais l'état.
 
 ## Les suites
 
@@ -182,5 +198,6 @@ veut.
 - `test-securite-fonctions.mjs` : la fonction `mesure`, dont le repli.
 - `test-mesure.mjs` : le collecteur sur le site construit, de Google à la
   réservation ; panne sans effet sur le dépôt ; « Ne plus me compter ».
-- `test-admin-trafic.mjs` : l'écran, la sonde 12 → 13, sept largeurs, l'agent.
+- `test-admin-trafic.mjs` : l'écran, la sonde 12 → 13, sept largeurs, l'agent,
+  et l'ordre d'arrivée du direct et du jour, forcé dans les deux sens.
 - `test-seo-en.mjs`, `test-liens-suivi.mjs` : plus rien par l'ancienne porte.
