@@ -121,8 +121,8 @@ erreur de configuration depuis l'extérieur :
 | Adresse | Ce qu'elle éprouve | Attendu |
 |---|---|---|
 | `/` | la racine | le site de réservation |
-| `/admin.html` | un fichier exact | demande le code |
-| `/demos/` | **un dossier** | la galerie des trois sites vitrines |
+| `/admin.html` | un fichier exact | renvoie vers la connexion de `/ela-admin/` |
+| `/demos/` | **un dossier** | la galerie « Démonstrations » |
 Si `/demos/` affiche le site de réservation, c'est `html_handling` qui est en
 cause — pas la galerie.
 
@@ -1385,7 +1385,7 @@ Android lisent le manifeste de la page qu'on ajoute, pas son adresse**. Une
 icône posée depuis `?exploitant=1` aurait donc rouvert **le site client** —
 et rien à l'écran n'aurait expliqué pourquoi.
 
-- `manifest-exploitant.webmanifest`, `start_url: "./index.html?exploitant=1"`,
+- `manifest-exploitant.webmanifest`, `start_url: "/ela-admin/"`,
   **mêmes icônes** : un jeu à moitié changé est pire qu'un ancien cohérent.
 - **L'ÉCHANGE SE FAIT EN TÊTE DE PAGE**, dans un script placé juste après le
   `<link rel="manifest" id="manifeste">`. Posé plus bas, le manifeste
@@ -1625,7 +1625,7 @@ au client comme une partie du site public », et sa solution — deux adresses,
   Ce n'est pas une fuite de données (les courses sont sur le serveur,
   derrière la RLS) mais c'est du poids et une mauvaise impression.
 - **`/exploitant/` EST UN RACCOURCI, PAS UN SECOND SITE.** `exploitant/index.html`
-  redirige vers `index.html?exploitant=1`, exactement comme `admin.html`.
+  mène à `/ela-admin/`, comme `admin.html`.
   **Ne jamais dupliquer `index.html`** : un second exemplaire divergerait au
   premier correctif. `admin.html` reste valide — des liens sont déjà partis
   avec.
@@ -1934,7 +1934,7 @@ Le Bourget berline à 35 € contredisait sa propre mission (45 €) : il l'a
 - **TROIS ENDROITS, UN SEUL PRIX, ET UN CONTRÔLE QUI L'EXIGE.** `HOTELS` dans
   `index.html`, la source serveur (`20260916100000_current_tariff_source.sql`),
   et les cartes de la page du QR. `verifier-tarif-hotel.mjs` exige l'accord des
-  trois à chaque construction et **nomme** la destination et les trois valeurs.
+  trois à chaque PR de prix et **nomme** la destination et les trois valeurs.
 - **LE SERVEUR REMPLACE LE PRIX DU CLIENT** (`deposer-course`, `snapshotPartenaire`).
   Tant que la source serveur n'est pas **rejouée en production** (workflow
   « Appliquer une migration Supabase », fichier
@@ -3318,9 +3318,9 @@ passe, puis `est_exploitant()`). Le vrai accès admin est donc ce mot de passe.
 23 septembre 2026, Barbaros : « le nouvel admin est moins fonctionnel que le
 premier, il y a des blocages, des incohérences, on ne peut pas faire retour »
 — puis « on garde l'ancien, on adapte visuellement ». **L'espace historique
-(`admin.html` → `application.html?exploitant=1`) est l'admin retenu.** Admin v2
-reste publié mais n'est plus la porte : ne pas y renvoyer Barbaros.
-- **L'alerte Telegram vise `admin.html`** (défaut de `ADRESSE_ADMIN` dans
+(`/ela-admin/`) est l'admin retenu.** Admin v2 n'est plus publié (3/10) :
+ne pas y renvoyer Barbaros.
+- **L'alerte Telegram vise `/ela-admin/`** (défaut de `ADRESSE_ADMIN` dans
   `nouvelle-demande`), et `?ref=` y ouvre directement le bon de la course.
   `test-admin-arrivee.mjs` éprouve, sur le site construit, qu'une demande
   déposée par un client arrive et est annoncée **sans passer par WhatsApp**.

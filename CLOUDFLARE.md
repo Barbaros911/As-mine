@@ -1,5 +1,14 @@
 # Passer elatransfer.com sur Cloudflare Pages
 
+> **LA BASCULE EST FAITE — CE GUIDE EST L'HISTOIRE DE SEPTEMBRE 2026.**
+> Le site est servi par Cloudflare, et le domaine y est entier : les
+> serveurs de noms d'elatransfer.com ont été mesurés chez Cloudflare le
+> 5 octobre 2026 (`memoire/cloudflare-dns.md`). C'est donc la voie B qui est
+> en place, pas la voie A recommandée plus bas. Ce qui reste vrai : **le
+> courrier passe toujours par IONOS — ne jamais toucher les lignes MX et SPF
+> d'IONOS**, ni `google-site-verification`. Les trois adresses à éprouver
+> après un déploiement sont toujours celles du tableau plus bas.
+
 Décidé le 1ᵉʳ septembre 2026, après une panne de GitHub : les visiteurs
 d'elatransfer.com voyaient la page d'erreur de GitHub — une licorne rose —
 pendant que le site, lui, était intact.
@@ -110,8 +119,8 @@ depuis l'extérieur — une seule d'entre elles suffit à la révéler :
 | Adresse | Ce qu'elle éprouve | Attendu |
 |---|---|---|
 | `/` | la racine | le site de réservation |
-| `/admin.html` | un fichier exact | demande le code |
-| `/demos/` | **un dossier** | la galerie des trois sites vitrines |
+| `/admin.html` | un fichier exact | renvoie vers la connexion de `/ela-admin/` |
+| `/demos/` | **un dossier** | la galerie « Démonstrations » |
 
 Si `/demos/` affiche le site de réservation, c'est le réglage
 `html_handling` de `wrangler.jsonc` qui est en cause — pas la galerie.
@@ -124,8 +133,8 @@ Puis, sur cette même adresse temporaire :
 - [ ] le prix s'affiche sur l'écran des véhicules
 - [ ] Lille → Marseille est bien refusé (écriteau rouge)
 - [ ] les six offres et leurs photos s'affichent
-- [ ] `/admin.html` demande le code
-- [ ] la galerie `/demos/` liste les trois sites vitrines
+- [ ] `/admin.html` mène à la connexion de `/ela-admin/` (e-mail + mot de passe)
+- [ ] la galerie `/demos/` s'affiche (titre « Démonstrations »)
 
 **Ne passer à l'étape 3 que si tout est coché.**
 

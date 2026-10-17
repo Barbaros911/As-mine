@@ -31,12 +31,15 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   réservation (Code des transports L3142-1), pas un transporteur.
 - **Le client paie le chauffeur, AVANT le départ, par le lien de paiement
   du chauffeur** (10/10/2026, Barbaros) — transmis par Elatransfer avec la
-  confirmation, au plus tard 2 h avant. **C'est ce que fait le site et ce que
-  disent les CGV** (art. 5 et 7). L'argent ne passe jamais par Elatransfer.
-  Le comptoir d'hôtel aussi, depuis le 11/10 : plus aucun règlement à bord
-  (corrigé le 15/10, cette ligne disait encore l'inverse). L'empreinte Stripe (voir
-  plus bas) reste construite en test et **pas active** ; elle demande le
-  SIRET. Détail : `memoire/paiement-lien.md`.
+  confirmation ; le chauffeur part une fois le paiement reçu. **Aucun délai
+  imposé** : la limite « 2 h avant » a été retirée le 11/10 (corrigé le
+  17/10, cette ligne la portait encore). **C'est ce que fait le site et ce que
+  disent les CGV** (art. 3, 5 et 7). L'argent ne passe jamais par Elatransfer.
+  Le comptoir d'hôtel aussi, depuis le 11/10 : plus aucun règlement à bord.
+  L'empreinte Stripe n'est **plus le modèle retenu** : son code de test existe
+  côté serveur, aucune page ne l'appelle, Stripe Live est éteint — voir
+  « Paiement Stripe — ce qui existe vraiment » plus bas. Détail :
+  `memoire/paiement-lien.md`.
 - **Le prix est ferme**, arrêté à la réservation, donc **opposable**.
   Conséquence de tout : toucher à la grille veut dire toucher aux CGV, dans
   les deux langues.
@@ -65,6 +68,12 @@ raison d'être de ce fichier.
 Le détail et les nuances restent dans #164 et #173 ; ce qui suit est ce qu'on
 ne doit pas enfreindre sans le rouvrir.
 
+**PLUSIEURS DE CES DÉCISIONS ONT ÉTÉ REMPLACÉES DEPUIS PAR BARBAROS**
+(relu contre le code et les CGV le 17 octobre 2026). Chaque point remplacé
+porte la mention **REMPLACÉ** ou **NON APPLIQUÉ**, avec ce qui vaut
+aujourd'hui. Ne pas réappliquer la version du 16 septembre sans le rouvrir
+avec lui : ce qui fait foi, c'est le code de `main` et les CGV publiées.
+
 ### Architecture
 - **Quatre espaces séparés** : Public ELA · Client easyHotel · Réception
   easyHotel · Admin ELA — avec **un seul cœur de réservation**.
@@ -81,11 +90,19 @@ ne doit pas enfreindre sans le rouvrir.
   deux alimentent le même Admin, avec la source identifiable.
 
 ### Cycle de la réservation
-`Demande reçue → Empreinte autorisée → Réservation confirmée → Chauffeur
-attribué → Réalisée`
-- **Confirmer ≠ nommer le chauffeur.** ELA doit pouvoir confirmer sans
-  chauffeur attribué : état « **Confirmée — chauffeur à attribuer** »,
-  prioritaire à l'approche du départ.
+~~`Demande reçue → Empreinte autorisée → Réservation confirmée → Chauffeur
+attribué → Réalisée`~~ — **REMPLACÉ** par le paiement par lien (10–11/10).
+Aujourd'hui : `attente` (demande reçue) → `confirmee` (un chauffeur est
+affecté, la confirmation part avec SON lien de paiement) → `realisee`, plus
+`refusee` et `annulee`. Le paiement est une case « Payé » sur la course,
+pas un statut. Aucune empreinte.
+- ~~**Confirmer ≠ nommer le chauffeur.**~~ — **NON APPLIQUÉ.** Dans l'admin,
+  « Confirmer la course » exige un chauffeur, et les CGV (art. 3) disent que
+  la confirmation part « lorsqu'un chauffeur a été affecté », avec son lien
+  de paiement. Seule exception : une course **saisie au téléphone** par
+  l'exploitant peut rester confirmée sans chauffeur (décision du 3/10) ; elle
+  porte alors la pastille « Sans chauffeur ». Revenir à la règle du 16/09
+  serait une décision de Barbaros, pas une correction.
 - Une demande immédiate reste **soumise à disponibilité**. Aucune promesse de
   10/20/30 minutes, aucun « réserver 2 h avant = chauffeur garanti ».
 - Une demande immédiate **ne reste pas indéfiniment en attente** : si aucun
@@ -95,7 +112,12 @@ attribué → Réalisée`
 - **Admin ELA = centre de commande et source de vérité.** Aucune action
   métier canonique ne dépend de Telegram.
 - **WhatsApp = communication humaine** client et chauffeur.
-- **Telegram = alertes internes uniquement.** Ne pas le proposer aux clients.
+- **Telegram = les alertes internes de Barbaros** (bot, rappels, « ✅ Vu »).
+  ~~Ne pas le proposer aux clients.~~ — **REMPLACÉ le 11/10/2026** (PR #351) :
+  le client choisit où recevoir sa confirmation — appel/SMS, WhatsApp ou
+  Telegram pour un numéro français, WhatsApp ou Telegram pour un numéro
+  étranger — et le bon de la réception affiche `@elatransfer`. Ce sont des
+  conversations humaines ; le bot d'alerte reste interne.
 
 ### Cloisonnement de la réception
 La réception ne voit **jamais** : commission ou marge ELA, montant chauffeur,
@@ -104,68 +126,87 @@ commerciaux, réservations des autres partenaires. Elle ne capture ni n'annule
 un paiement, ne modifie aucune règle tarifaire, ne clôt rien financièrement.
 **Ne pas en faire un mini-Admin.**
 
-### Paiement — CE QUI REMPLACE « AUCUN PAIEMENT EN LIGNE »
-C'est un renversement d'une décision fondatrice, autorisé par Barbaros
-(« mets-le en place, je vais créer au moins une auto/micro-entreprise »).
-- **Empreinte bancaire Stripe** puis **capture manuelle** à la confirmation.
-  Si ELA n'assure pas la course : libérer, ne pas capturer.
-- **Apple Pay / Google Pay / Link en priorité**, carte en secours. Le client
-  ne saisit **jamais** sa carte dans un formulaire maison.
+### Paiement — L'EMPREINTE STRIPE DU 16/09 EST REMPLACÉE PAR LE LIEN DU CHAUFFEUR
+Le 16/09, Barbaros avait autorisé une empreinte bancaire Stripe puis une
+capture manuelle. **Le 10/10/2026 il a retenu autre chose** : le client paie
+le chauffeur par le lien de paiement de celui-ci, avant le départ (voir plus
+haut et `memoire/paiement-lien.md`). L'empreinte n'est plus le modèle prévu ;
+elle ne reviendrait que sur sa décision, et pas avant le SIRET.
+Les principes ci-dessous **restent la règle si Stripe revient un jour** :
+- **Aucune donnée carte chez ELA. Aucun secret Stripe dans le dépôt.** Les
+  CGV (art. 5) le disent : Elatransfer ne collecte aucune donnée bancaire.
+- Le client ne saisit **jamais** sa carte dans un formulaire maison.
 - Le montant est **calculé et verrouillé côté serveur**, jamais accepté du
   navigateur. Le webhook signé est la vérité de l'état Stripe.
-- **Aucune donnée carte chez ELA. Aucun secret Stripe dans le dépôt.**
 - **Une empreinte n'est PAS du chiffre d'affaires encaissé.**
 - **Stripe Live reste éteint** tant que Barbaros n'a pas son statut réel.
   Ne jamais afficher « paiement réel actif » sans l'avoir vérifié.
 
-### Annulation (remplace le barème de l'ancien site)
-Plus de 24 h : gratuit, et l'empreinte non capturée est **libérée** · moins de
-24 h et no-show : facturable selon des CGV clairement acceptées · **annulation
-du fait d'ELA : aucune pénalité et restitution intégrale**.
-**Ne pas modifier les CGV sur ce point avant le lot d'implémentation validé.**
+### Paiement Stripe — ce qui existe vraiment (relu dans le code le 17/10/2026)
+
+| Brique | État réel | Preuve |
+|---|---|---|
+| PaymentIntent TEST, `capture_method=manual` | codé, déployé, **aucun appelant** | `supabase/functions/creer-empreinte` ; refuse toute clé autre que `sk_test_` |
+| Capture, libération | codées, déployées ; seul Admin v2 les appelait, **retiré de la publication le 3/10** | `capturer-paiement`, `annuler-empreinte`, `admin-v2-actions.js` |
+| Webhook signé (HMAC, tolérance 300 s) | codé, déployé ; répond 503 sans `STRIPE_WEBHOOK_SECRET` | `stripe-webhook` |
+| Tables `paiements`, `snapshots_financiers`, `stripe_evenements` | dans les migrations ; présence en production **non vérifiée** (aucun registre des migrations) | `20260916070000`, `20260916070100` |
+| Snapshot financier | écrit par le serveur pour un **forfait partenaire** seulement ; un drapeau `verrouille`, sans déclencheur qui l'empêche de changer | `deposer-course` (`snapshotPartenaire`), `20260916093000` |
+| Codes promo | table et écran Admin v2 ; **jamais appliqués** à une course | `20260916064000` |
+| Payment Element, Apple Pay, Google Pay, Link | **absents** : aucune page ne charge Stripe.js | — |
+| Réautorisation, remboursement, reversement chauffeur, Stripe Connect | **absents** (un statut prévu dans la table, aucun code) | — |
+| Parcours complet de bout en bout | **aucun test** ; la CI ne fait que des recherches de texte | `stripe-test-regression.yml` |
+| Stripe Live | **éteint** : les trois fonctions qui appellent Stripe refusent toute clé hors `sk_test_` ; la CI refuse `sk_live_` dans le code | — |
+
+Les secrets `STRIPE_*` en production et un point d'arrivée de webhook
+enregistré chez Stripe ne sont **pas prouvés** depuis le dépôt. Les défauts
+à corriger **avant** toute réactivation sont listés dans #173.
+
+### Annulation — REMPLACÉ PAR LES CGV DU 14/10/2026 (art. 7 et 8)
+~~Plus de 24 h gratuit, empreinte libérée · moins de 24 h et no-show
+facturables~~. Aujourd'hui : **tant que le prix n'est pas payé**, le client
+renonce sans frais ; **une fois payé**, une annulation, un report ou une
+absence ne donnent lieu à aucun remboursement ; **une course non assurée du
+fait d'Elatransfer ou du chauffeur** est remboursée en totalité par le
+chauffeur qui a encaissé, sous 14 jours. Barbaros a maintenu cette règle
+contre le conseil d'un délai de 24 h (`memoire/paiement-lien.md`).
 
 ### Ce qui reste réservé à Barbaros, et qu'on n'invente jamais
-Activation Stripe Live · reversement réel aux chauffeurs · commission de 20 %
-· tarifs · politique d'annulation · conditions contractuelles · rôle juridique
+Activation Stripe Live · reversement réel aux chauffeurs · commission (20 %
+au lancement ; depuis le 30/09 elle se règle par canal et par chauffeur dans
+l'admin, « Centre de contrôle », aucun taux n'est écrit dans le code) ·
+tarifs · politique d'annulation · conditions contractuelles · rôle juridique
 · identité et logo · engagement envers un partenaire.
 **Ne jamais présenter easyHotel comme « partenaire officiel » sans accord
 formalisé** — dire « tarifs au départ de easyHotel Aéroville ».
 
-### Qui tient quoi — TRANCHÉ LE 16 SEPTEMBRE
+### Qui tient quoi — ce qui reste du 16 septembre
 **Deux sessions Claude ont travaillé ce dépôt en parallèle le 16 septembre**,
-et leurs commits sont arrivés sous les pieds l'un de l'autre. #173 (paiement)
-et #165 (finition Admin) avaient été pris par l'autre session — #176 à #185
-sont fusionnées.
+et leurs commits sont arrivés sous les pieds l'un de l'autre. C'est de là que
+vient la règle d'une seule implémentation par sujet (`TEAM_RULES` §3).
 
-**ChatGPT a tranché le 16 à 12 h 41** (#165, « DÉMARRAGE CONSTRUCTION ADMIN ») :
-l'autre session est à l'arrêt (« pendant ton indisponibilité »), et **#165 est
-à cette session-ci**. #173 (paiement) vient **après** la bascule Admin, dans
-l'ordre écrit sur #173 le 16 à 12 h 57.
+**LE RELAIS** : la règle posée le 16/09 (« c'est Barbaros qui dit qui prend le
+relais ») a été remplacée le 4/10/2026 (PR #317) par `TEAM_RULES` §3 : un
+relais **traçable** — handoff signé dans l'Issue, un seul repreneur — et
+**révocable par Barbaros**. En cas de doute, c'est `TEAM_RULES` qui dit vrai.
 
-**ET LA RÈGLE QUI EN DÉCOULE, POSÉE PAR BARBAROS LE 16** : en cas
-d'indisponibilité de l'un, **c'est lui qui dit qui prend le relais** — jamais
-les assistants entre eux. Un assistant à l'arrêt ne libère pas son chantier :
-on le signale et on attend. Voir `TEAM_RULES` §3.
+**UN SEUL ESPACE EXPLOITANT : `/ela-admin/`** (relu le 17/10/2026).
+- C'est l'interface historique, retenue par Barbaros le 23/09 (« on garde
+  l'ancien »). `construire.sh` la publie comme un document à part ;
+  `admin.html`, `/exploitant/` et `?exploitant=1` y mènent tous.
+- On y entre par une connexion Supabase (e-mail + mot de passe) puis un
+  contrôle serveur (`est_exploitant()`, `est_admin()` pour l'argent) : voir
+  `COMPTES.md`. **Il n'y a plus de code d'accès.**
+- **Admin v2 n'est plus publié** depuis le 3/10/2026 (`/admin-v2.html`
+  renvoie vers `/ela-admin/`). Son code reste dans le dépôt parce que des
+  fichiers sont partagés ; ne pas y renvoyer Barbaros.
+- #165 (refonte Admin) est **fermée** depuis le 6/10 et #192 est dépassée
+  (#218, #219) : aucune n'est un chantier. Toute correction repart de l'admin
+  de `main`, sans seconde interface.
 
-**LA CIBLE RESTE UN SEUL ESPACE EXPLOITANT**, pas deux tenus en parallèle.
-La parité fonctionnelle d'Admin v2, y compris la chaîne partagée
-itinéraire/prix, a été fusionnée dans **#191**. Admin v2 reste publié en
-préversion : l'interface historique explicitement retenue par l'exploitant est
-extraite dans l'entrée dédiée `/ela-admin/`. L'ancien mode `?exploitant=1` ne
-porte plus l'interface et redirige vers cette entrée canonique.
-
-La refonte responsive Admin historique de #165/#192 a été dépassée par les
-intégrations validées et fusionnées dans **#218 puis #219**. Le suivi ne doit
-plus présenter #192 comme chantier actif de référence. L'Admin courant sur
-`main` est la base unique à conserver : toute correction future repart de
-l'état réel de `main`, sans recréer une seconde interface ni réintroduire une
-ancienne branche. #165 doit servir d'historique/coordination jusqu'à sa mise à
-jour ou sa clôture, pas de source technique concurrente.
-
-La branche `claude/page-directe-0finaj` a été supprimée le 4 octobre 2026 :
-les prix se règlent depuis l'admin, elle n'avait plus rien à apporter. Le détail historique des briques et de leurs pièges
-reste dans `CLAUDE.md`. `/etat` signale en rouge quand `main` a bougé
-pendant la session.
+La branche « page-directe » a été supprimée le 4 octobre 2026 : les prix se
+règlent depuis l'admin. Le détail historique des briques et de leurs pièges
+reste dans `CLAUDE.md` et `memoire/admin-v2.md`. `/etat` signale en rouge
+quand `main` a bougé pendant la session.
 
 ## Le mandat « STACK IA / DEVOPS MULTI-AGENTS V2 » — deux briques sur dix, décidé
 
@@ -210,9 +251,8 @@ parce qu'une liste les nomme.
 
 | Quoi | Qui | Où c'est suivi |
 |---|---|---|
-| Pilotage Produit + Opérations (distinct du board de traitement des courses) — bloc 1/3 (base, sécurité, module de données) fusionné et migration appliquée en production le 6/10 ; bloc 2/3 (écran mobile d'abord) codé et testé, à valider ; bloc 3 à venir | Admin/Produit | #197 |
-| Sécurité finale : ancien INSERT anon fermé le 03/10/2026 (policy « depot client » supprimée) — reste un dépôt de contrôle depuis le site | Security | #190 |
-| Paiement Stripe à empreinte/capture, Live désactivé jusqu'à validation | Booking/Security | #173 |
+| Pilotage Produit + Opérations (distinct du traitement des courses) — **blocs 1, 2 et 3 FUSIONNÉS et DÉPLOYÉS le 6/10/2026** (PR #327, #329, #330 ; migration `20261006010000_pilotage.sql` appliquée en production, exécution n° 30). **Reste : VÉRIFIÉ EN PRODUCTION** — ouvrir « Pilotage » dans `/ela-admin/` sur téléphone et ordinateur et y créer une première vraie carte ; aucune trace de ce contrôle dans #197 au 17/10. Un bloc 4 seulement si le besoin se voit (`memoire/pilotage.md`) | Barbaros (vérification), ChatGPT (contrôle en ligne) | #197 |
+| Paiement Stripe — **plus prévu** : le modèle retenu le 10/10 est le lien de paiement du chauffeur. Le code d'empreinte TEST reste dans le dépôt, sans appelant, Live éteint (voir « Paiement Stripe — ce qui existe vraiment »). À rouvrir seulement sur décision de Barbaros, après le SIRET | Barbaros | #173 |
 | Alerte avant expiration du jeton Supabase `github-production` (1er octobre 2027, posé le 4/10/2026) | Claude | à ouvrir |
 | Protection de `main`, à finir depuis un ordinateur (l'enregistrement échoue sur iPhone) : cocher « Require branches to be up to date before merging » et « Require conversation resolution before merging » dans la règle « Protéger main », et « Always suggest updating pull request branches » dans Settings → General ; puis aligner `.github/ruleset-main.json` sur la règle en ligne | Barbaros, puis Claude | audit du 17/10/2026 · PR #366 |
 
