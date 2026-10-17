@@ -16,10 +16,11 @@
 // verte. C'est exactement le défaut que le Prompt 1 a trouvé (la canonique
 // des pages françaises visait une adresse en .html, redirigée en 307).
 //
-// POURQUOI LE PLAN DU SITE EST VÉRIFIÉ COMME UN FICHIER. Chez Cloudflare, une
-// adresse inconnue rend l'ACCUEIL en 200 (« not_found_handling »). Un
-// sitemap.xml absent ne rendrait donc pas une erreur : il rendrait la page
-// d'accueil, et un contrôle de code HTTP resterait vert.
+// POURQUOI LE PLAN DU SITE EST VÉRIFIÉ COMME UN FICHIER. Jusqu'au 18/10/2026,
+// chez Cloudflare, une adresse inconnue rendait l'ACCUEIL en 200. Un
+// sitemap.xml absent ne rendait donc pas une erreur, et un contrôle de code
+// HTTP restait vert. Elle rend maintenant une vraie 404 ; la vérification
+// du contenu reste, au cas où le réglage reviendrait.
 //
 // Aucune dépendance : des expressions régulières sur nos propres pages, que
 // nous écrivons. Ce n'est pas un analyseur HTML universel.

@@ -37,11 +37,11 @@ puis ce qui a été construit. Il dit ce qui a été **mesuré** et ce qui est
    Search Console le 5/10. *Limite : la production elle-même est injoignable
    d'ici ; la mesure porte sur le même code d'hébergement et la même
    configuration.*
-4. **Toute adresse inconnue rend l'accueil en 200** (`not_found_handling:
-   single-page-application`, mesuré : `/n-existe-pas/` → 200). Pour Google,
-   ce sont des « soft 404 ». Sans gravité tant qu'aucun lien ne pointe vers
-   une adresse fausse, mais une faute de frappe dans un lien interne ne se
-   verrait pas.
+4. ~~**Toute adresse inconnue rend l'accueil en 200**~~ — **corrigé le
+   18/10/2026** : `not_found_handling: 404-page`, une adresse inconnue rend
+   `/404.html` (ou `/en/404.html` sous `/en/`) avec le code **404**, noindex.
+   `test-routage.mjs` résout chaque lien du site construit avant publication ;
+   le contrôle de production exige la 404 en ligne.
 5. **Aucune mesure** : on ne sait pas quelle page amène des demandes. La
    politique de confidentialité exclut toute mesure publicitaire ; le site
    n'a aucun traceur.

@@ -21,8 +21,8 @@ inter-aéroports). Diagnostic d'abord, puis cinq pages au plus, mesurées.
 - `/en/x` → 307 → `/en/x/` ; `/en/x/` → 200 : les pages anglaises sont des
   dossiers, servis sans redirection.
 - `/n-importe-quoi/` → 200 (l'accueil) : `not_found_handling:
-  single-page-application`. Soft 404 connu, laissé tel quel (réglage
-  d'hébergement qu'on ne change pas sans symptôme).
+  single-page-application`. Soft 404 connu, laissé tel quel ce jour-là.
+  **Corrigé le 18/10/2026** (voir `memoire/hebergement.md`) : vraie 404.
 - Le contrôle de production (`verifier-production.mjs`) a tourné, vert, contre
   le site construit servi par `wrangler dev`.
 

@@ -124,7 +124,7 @@ const PAGES = [
     marqueur: 'href="https://elatransfer.com/professionnels/"', robots: "index" },
   /* LES PAGES D'ACQUISITION (14 octobre 2026, SEO international). Chacune
      est reconnue à SA canonique : une adresse anglaise qui servirait
-     l'accueil (le repli « adresse inconnue » de Cloudflare) répondrait 200
+     l'accueil (le repli « adresse inconnue » de Cloudflare jusqu'au 18/10) répondrait 200
      avec la marque dans le titre. Les pages françaises sont visées à
      l'adresse que Cloudflare sert, sans « .html ». */
   ...["", "cdg-airport-transfer-paris/", "orly-airport-transfer-paris/", "disneyland-paris-airport-transfer/", "cdg-orly-transfer/"]
