@@ -12,9 +12,8 @@
 #
 # ET IL FAIT MIEUX QUE LE RÉGLAGE, sur un point qui compte ici : le
 # réglage de GitHub supprime TOUTE branche fusionnée, sans exception.
-# Or ce dépôt en a deux qu'il ne faut pas perdre — « mini-van » est
-# nommée dans « fonctions.yml », et la branche des sites vitrines l'est
-# dans « CLAUDE.md ». Elles sont protégées par « branches-a-garder.txt ».
+# Or ce dépôt garde des branches qu'il ne faut pas perdre sans décision :
+# elles sont listées, avec leur raison, dans « branches-a-garder.txt ».
 #
 # C'EST LA LEÇON DES 53 BRANCHES : la fusion en « squash » laisse la
 # branche éternellement « non fusionnée » aux yeux de git. Sans

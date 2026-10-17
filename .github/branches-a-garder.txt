@@ -1,3 +1,11 @@
-mini-van
+# Branches que ni « branche-apres-fusion.yml » ni « nettoyage-branches.yml »
+# ne suppriment. Une ligne = un nom exact ; « # » = une note.
+# Audit du 17/10/2026 : « mini-van » retirée (absente du dépôt, plus nommée
+# par aucun workflow). Les deux suivantes n'ont AUCUN commit absent de main ;
+# elles restent gardées, gelées, jusqu'à ce que Barbaros décide de les supprimer
+# (retirer la ligne ici, l'inscrire avec son numéro de commit dans
+# branches-a-supprimer.txt, puis lancer « Nettoyage des branches »).
+# - ai-dev : ancienne branche d'intégration, gelée depuis le 5/10/2026.
+# - la branche des sites vitrines : tête du 21/08/2026, entièrement dans main.
 claude/session-creation-without-asmine-to9axd
 ai-dev

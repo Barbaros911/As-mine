@@ -17,8 +17,9 @@ adresse. En créer un ne touche ni les autres, ni As-mine.
    images, feuilles de style, scripts — doit rester **dans son dossier**, et
    être appelé par un chemin relatif (`./photo.jpg`), jamais par un chemin
    absolu (`/photo.jpg`), qui pointerait en dehors du site.
-3. Pousser sur `main`. La publication et la mise à jour de la liste sont
-   automatiques.
+3. Ouvrir une pull request vers `main` (on ne pousse jamais directement sur
+   `main`, protégée). Une fois fusionnée, la publication et la mise à jour de
+   la liste sont automatiques.
 
 ## Conventions
 

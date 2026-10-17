@@ -1,4 +1,4 @@
-> **Règle normative :** `TEAM_RULES.md` reste le fichier maître. Ce document décrit son exécution pour les agents IA. En cas de contradiction, `TEAM_RULES.md` prévaut. `main` reste la source du code validé ; `ai-dev` est une branche d'intégration non déployable.
+> **Règle normative :** `TEAM_RULES.md` reste le fichier maître. Ce document décrit son exécution pour les agents IA. En cas de contradiction, `TEAM_RULES.md` prévaut. `main` est la source du code validé et la seule branche publiée ; `ai-dev` n'est plus utilisée (gelée depuis le 5 octobre 2026).
 
 # Équipe IA ELA Transfer
 
@@ -8,9 +8,9 @@ supérieure.
 
 ## Chaîne obligatoire
 
-`main → ai-dev → branche/worktree agent → tests → review croisée → PR vers ai-dev → validation Burak → PR de promotion vers main`
+`dernier main → branche/worktree de la tâche → tests → review croisée → PR vers main → validation Burak → fusion`
 
-- aucune écriture directe sur `main` ou `ai-dev` ;
+- aucune écriture directe sur `main` (le ruleset GitHub la refuse) ;
 - aucune fusion ou publication automatique ;
 - une branche et un worktree par tâche ;
 - une seule tâche active par zone critique ;

@@ -62,16 +62,15 @@ Si une tâche active touche déjà la même zone ou le même fichier, ne pas lan
 
 ## Branches et PR
 
-- Ne jamais travailler directement sur `main` ou `ai-dev` pour une évolution normale.
-- Vérifier d'abord que `ai-dev` intègre le dernier `main` validé.
-- Créer chaque branche d'agent depuis `ai-dev`, jamais depuis une branche de travail ancienne.
-- Un correctif humain urgent hors workflow IA peut partir de `main` si son Issue le décide explicitement ; ne pas retargeter rétroactivement une PR existante.
+Le chemin complet est dans `TEAM_RULES.md` §2. Ce qui se vérifie à chaque tâche :
+
+- Ne jamais travailler directement sur `main` (le ruleset GitHub le refuse de toute façon).
+- Créer chaque branche depuis le dernier `main`, jamais depuis une branche de travail ancienne — ni depuis `ai-dev`, gelée depuis le 5 octobre 2026.
 - Une branche = une tâche clairement définie.
-- Nom recommandé : `ela/<numero-ou-sujet-court>` ou `fix/<sujet-court>`.
-- Une PR d'agent cible `ai-dev` et ne fusionne jamais automatiquement.
-- La promotion de `ai-dev` vers `main` utilise une PR séparée après tests, revue croisée et validation explicite de Barbaros.
-- Avant toute fusion, comparer avec le dernier `main` et vérifier qu’aucun changement plus récent ne sera écrasé.
-- Si `main` change pendant le travail, synchroniser `ai-dev`, puis réconcilier la branche avant fusion.
+- Nom : celui que donne la session (`claude/<sujet>-<suffixe>`), sinon `ela/<numero-ou-sujet-court>` ou `fix/<sujet-court>`.
+- Une PR cible `main` et ne fusionne jamais automatiquement : rien n'est fusionné avant l'accord explicite de Barbaros.
+- Si `main` change pendant le travail, fusionner `main` dans la branche (sans réécrire une branche déjà poussée) et attendre les contrôles verts sur ce nouveau commit avant de demander la fusion.
+- Avant toute fusion, comparer avec le dernier `main` par `git diff main...branche` — pas par un compte de commits — et vérifier qu’aucun changement plus récent ne sera écrasé.
 - Fusionner une seule PR à la fois sur une même zone critique.
 
 ## Publication
