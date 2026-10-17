@@ -2,7 +2,7 @@ name: ELA Guardrails
 
 on:
   pull_request:
-    branches: [main, ai-dev]
+    branches: [main]
   push:
     branches: [main]
 

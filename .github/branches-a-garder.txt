@@ -1,3 +1,6 @@
-mini-van
-claude/session-creation-without-asmine-to9axd
-ai-dev
+# Branches que ni « branche-apres-fusion.yml » ni « nettoyage-branches.yml »
+# ne suppriment. Une ligne = un nom exact ; « # » = une note.
+# Aucune au 17/10/2026. « mini-van » (absente du dépôt) est retirée ; ai-dev
+# et la branche des sites vitrines, qui n'avaient aucun contenu absent de
+# main, passent dans branches-a-supprimer.txt, à la décision de Barbaros
+# (17/10/2026, « Oui fait »). Histoire : memoire/branches.md.

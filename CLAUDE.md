@@ -38,7 +38,7 @@ demandée :
 | Activité | Fichiers | Branche |
 |---|---|---|
 | **Asmine**, l'application de réservation VTC | racine (`index.html`, `sw.js`…) | la branche de travail de la session |
-| **Sites vitrines** pour des commerçants | `sites/<client>/` | `claude/session-creation-without-asmine-to9axd` |
+| **Sites vitrines** pour des commerçants | `sites/<client>/` | une branche courte partie du dernier `main` |
 
 ## La règle absolue : ne jamais toucher Asmine *en travaillant sur un autre site*
 
@@ -136,21 +136,13 @@ vaut aussi pour ce qui est « visible par un client » : c'est justement ce
 qui mérite d'être vu avant, pas après. Ne jamais lire l'urgence d'un lien à
 envoyer comme une autorisation de fusionner.
 
-**LA BRANCHE « VESTIGE » A ÉTÉ SUPPRIMÉE** (audit du 15 septembre 2026, 53
-branches ramenées à 15). Ce paragraphe a nommé pendant des jours une branche
-qui n'existait plus, dans un tableau qui disait où travailler : une consigne
-qui vise le vide fait repartir d'un endroit quelconque. `test-doc.mjs`
-vérifie désormais que toute branche nommée ici existe encore.
-**LA LEÇON, ELLE, N'A PAS D'ÂGE.** `git log main..branche` montrait deux
-commits d'avance et trompait — c'est `git diff main branche` qu'il fallait
-lire : la branche avait divergé AVANT tout le nouveau site, et la fusionner
-aurait **supprimé** les photos, les suites de tests et les corrections de
-`construire.sh`. Un compte de commits ne dit pas ce qu'une fusion ferait.
-Et la règle qui vaut pour tout ce fichier : **vérifier avant de croire une
-note d'ici**. Elle a mis des mois à s'écrire, elle vieillit en un soir.
+**UNE FUSION SE JUGE SUR `git diff main...branche`, JAMAIS SUR UN COMPTE DE
+COMMITS** : « deux commits d'avance » cachait une branche qui aurait effacé le
+site. Toute branche nommée ici doit exister (`test-doc.mjs`). `memoire/branches.md`.
 
-- Développer sur la branche `claude/session-creation-without-asmine-to9axd`,
-  jamais directement sur `main`.
+- **Une tâche = une branche courte partie du dernier `main`**, PR vers `main`,
+  jamais directement sur `main` ; plus d'`ai-dev` (retirée le 17/10/2026). Le
+  chemin complet est dans `TEAM_RULES.md` §2.
 - **`main` est protégée par un ruleset GitHub** (9/10/2026, importé depuis
   `.github/ruleset-main.json`) : pull request obligatoire, fusion seulement si
   `admin`, `guardrails`, `build-mobile-desktop`, `secrets-publics` et
@@ -164,9 +156,8 @@ note d'ici**. Elle a mis des mois à s'écrire, elle vieillit en un soir.
 - Ne jamais committer et pousser dans le même appel : les faire l'un après
   l'autre. Un appel qui mélange les deux a déjà été bloqué par le
   classificateur de sécurité.
-- `.claude/` (compétences, config) n'a aucun effet sur le site publié : le
-  workflow `.github/workflows/pages.yml` ne copie que les fichiers qu'il
-  énumère explicitement.
+- `.claude/` (compétences, config) n'a aucun effet sur le site publié :
+  `construire.sh` ne copie que les fichiers qu'il nomme.
 
 ## Le dossier .claude/skills/
 

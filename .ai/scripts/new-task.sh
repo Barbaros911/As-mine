@@ -23,13 +23,10 @@ esac
   exit 1
 }
 
-git -C "$ROOT" fetch origin main ai-dev
-git -C "$ROOT" show-ref --verify --quiet refs/remotes/origin/ai-dev || {
-  echo "La branche distante ai-dev manque." >&2
-  exit 1
-}
-
-git -C "$ROOT" worktree add -b "$BRANCH" "$WORKTREE" origin/ai-dev
-echo "Branche : $BRANCH"
+# Toujours depuis le dernier main : il n'y a plus de branche d'intégration
+# (TEAM_RULES.md §2), et partir d'une autre branche ferait travailler en retard.
+git -C "$ROOT" fetch origin main
+git -C "$ROOT" worktree add -b "$BRANCH" "$WORKTREE" origin/main
+echo "Branche : $BRANCH (depuis origin/main $(git -C "$ROOT" rev-parse --short origin/main))"
 echo "Worktree : $WORKTREE"
-echo "Publier ensuite la branche et ouvrir une PR vers ai-dev, jamais vers main directement."
+echo "Publier ensuite la branche et ouvrir une PR vers main ; la fusion attend l'accord de Burak."

@@ -17,7 +17,7 @@ tu choisis automatiquement l'agent, le rôle, la branche et les contrôles.
 6. Si l'exécutant s'arrête, publier immédiatement le handoff complet puis
    désigner un seul repreneur selon `.ai/agents.yml`.
 7. Faire relire le diff par Claude ou ChatGPT, jamais par son auteur seul.
-8. Ouvrir une PR vers `ai-dev`, publier les preuves et attendre Burak.
+8. Ouvrir une PR vers `main`, publier les preuves et attendre Burak.
 
 Interdictions absolues : fusion automatique, écriture directe sur `main`,
 déploiement production, secret dans le dépôt ou les logs, migration destructive.

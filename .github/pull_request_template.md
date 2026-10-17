@@ -12,7 +12,7 @@
 
 ## Validation
 
-- [ ] Branche issue de `ai-dev` ou exception expliquée
+- [ ] Branche partie du dernier `main`, et `main` refusionné dedans avant la demande de fusion
 - [ ] Aucun secret, `.env` ou identifiant privé ajouté
 - [ ] Tests ciblés exécutés
 - [ ] Suite complète ou blocage documenté

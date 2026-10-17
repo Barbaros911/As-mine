@@ -43,25 +43,51 @@ n'est pas un confort : c'est la carte des accès réels.
   précédente disait qu'il « ne lit pas les journaux de construction », ce
   qui était trop absolu et lui retirait un contrôle qu'il exerce vraiment.*
 
-## 2. La source de vérité et la branche d'intégration
+## 2. La source de vérité et le chemin jusqu'à la production
 
-**`main` est l'unique source de vérité du code validé et destiné à la
-production.** Les Issues et Pull Requests GitHub sont la source de vérité de
+**`main` est l'unique source de vérité du code validé, et la seule branche
+publiée.** Les Issues et Pull Requests GitHub sont la source de vérité de
 l'état du travail. Ni une conversation, ni une branche de travail, ni la mémoire
 de qui que ce soit ne remplace ces preuves.
 
-**`ai-dev` est uniquement la branche d'intégration de l'équipe IA et n'est
-jamais déployée en production.** Elle doit
-être synchronisée avec `main` avant une nouvelle série de travaux. Les branches
-des agents partent de `ai-dev` et leurs PR ciblent `ai-dev`. La promotion vers
-`main` passe ensuite par une PR séparée, revue, testée et validée explicitement
-par Barbaros. Aucune fusion ou publication automatique. Une PR de promotion
-peut regrouper plusieurs tâches déjà validées sur `ai-dev`, mais elle n'ajoute
-aucun développement nouveau.
+**Un seul chemin, pour tous** — Barbaros, Claude, ChatGPT, l'Agent local :
 
-**Avant de commencer quoi que ce soit :** lire le dernier `main`, vérifier que
-`ai-dev` n'est pas en retard, puis lire les PR ouvertes, les Issues `[TEAM]`
-et les branches actives sur la zone.
+```
+dernier main → une branche courte par tâche → PR vers main
+→ contrôles exigés au vert → accord explicite de Barbaros → fusion
+→ publication automatique (GitHub Pages, Cloudflare) → vérification en ligne
+```
+
+- **Une tâche = une branche, créée depuis le `main` du moment**, jamais depuis
+  une autre branche de travail. Nom : celui que donne la session
+  (`claude/<sujet>-<suffixe>`), sinon `ela/<sujet>` ou `fix/<sujet>`.
+- **Avant de demander la fusion, la branche intègre le dernier `main`** (on y
+  fusionne `main`, on ne réécrit pas une branche poussée) et ses contrôles sont
+  verts **sur ce commit-là**. Deux PR vertes chacune ne prouvent rien sur leur somme.
+- **Plusieurs IA en même temps** : chacune sa branche et sa PR, une seule tâche
+  à la fois par zone critique (`AGENTS.md`), et celle qui fusionne en second se
+  remet d'abord à jour. Aucune fusion ni publication automatique.
+- **Ce qui l'impose** : le ruleset « Protéger main » (`.github/ruleset-main.json`
+  en est le miroir) — PR obligatoire ; `admin`, `guardrails`,
+  `build-mobile-desktop`, `secrets-publics` et `gitleaks` au vert ; ni
+  force-push ni suppression ; personne d'exempté. **Zéro approbation exigée,
+  et c'est voulu** : les PR sont ouvertes sous le compte de Barbaros, qui ne
+  peut pas approuver la sienne ; son accord se donne dans la conversation, et
+  rien n'est fusionné avant. Fonctions Supabase et migrations ne partent que de
+  `main` (garde dans chaque workflow, jeton dans l'environnement `production`).
+- **Après la fusion**, `branche-apres-fusion.yml` supprime la branche, sauf
+  celles de `.github/branches-a-garder.txt`.
+
+**`ai-dev` est retirée** (gelée le 5 octobre 2026 ; suppression décidée par
+Barbaros le 17 octobre, par « Nettoyage des branches »). Elle servait d'étape
+entre les agents et `main` ; sa dernière promotion date du 24 septembre, et ce
+qui y est entré ensuite a dû être republié à part. Sans règle GitHub, sans
+publication et sans contenu propre : **ne pas la recréer**, et ne remettre
+aucune branche d'intégration entre les agents et `main`. Histoire :
+`memoire/branches.md`.
+
+**Avant de commencer quoi que ce soit :** lire le dernier `main`, les PR
+ouvertes, les Issues `[TEAM]` et les branches actives sur la zone.
 
 *(15/09 — Claude a travaillé 83 commits en retard. Fusionner à l'aveugle aurait
 supprimé le travail de sécurité de ChatGPT.)*

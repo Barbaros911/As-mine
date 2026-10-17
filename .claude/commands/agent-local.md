@@ -42,7 +42,7 @@ après avoir confirmé qu'au moins 12 GiB de RAM et 10 GiB de stockage sont
 disponibles. Ne jamais installer dans GitHub Actions pour contourner cette
 exigence.
 
-Créer une branche/worktree depuis `ai-dev` avec :
+Créer une branche/worktree depuis le dernier `main` avec :
 
 ```sh
 sh .ai/scripts/new-task.sh <issue> local <sujet-court>
@@ -58,9 +58,9 @@ sh .ai/scripts/ai-local.sh aider
 
 - tests ciblés puis suite/build proportionnés ;
 - revue par un autre agent ou Claude ;
-- PR vers `ai-dev` ;
+- PR vers `main` ;
 - commentaire signé dans l'Issue :
   `## Agent local ELA → Équipe — sujet` ;
 - arrêt en attente de validation humaine.
 
-Ne jamais fusionner vers `ai-dev` ou `main`, ni déployer, dans cette commande.
+Ne jamais fusionner vers `main`, ni déployer, dans cette commande.
