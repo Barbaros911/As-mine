@@ -15,5 +15,9 @@
 #   que GitHub garde ; son seul commit propre (3467f00) a le même contenu
 #   que main au commit 84a04a4.
 # - la branche des sites vitrines : sa tête est un ancêtre de main.
+# FAIT le 17/10/2026 à 16 h 21 (exécution 39049030040) : « Supprimées : 2 —
+# écartées : 0 ». Relancé, le workflow les passe (« déjà absente ») ; les
+# lignes restent actives, une liste sans ligne active fait échouer l'étape
+# « Afficher la liste relue ».
 ai-dev 3467f0078173fe4c65167079a34f7b09112ea77b
 claude/session-creation-without-asmine-to9axd 8ef0c6629cc1fab53c6d94cb37c620702a0d8afb

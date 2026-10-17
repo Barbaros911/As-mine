@@ -44,7 +44,9 @@ aurait **supprimé** les photos, les suites de tests et les corrections de
   d'`ai-dev` reste joignable par la tête de la PR #319 (38ff768), sauf son
   dernier commit 3467f00, dont l'arbre est celui de `main` au commit 84a04a4.
   Une étiquette d'archive n'a pas pu être poussée (l'accès git de la session
-  n'accepte que sa branche) : elle n'était pas nécessaire.
+  n'accepte que sa branche) : elle n'était pas nécessaire. Supprimée le
+  17/10 à 16 h 21 par « Nettoyage des branches », après la fusion de #366 ;
+  `main` est depuis la seule branche du dépôt.
 
 ## Les autres noms qui visaient le vide (17 octobre 2026)
 
