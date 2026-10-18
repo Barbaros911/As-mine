@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const file = process.argv[2] || 'site/index.html';
 let html = fs.readFileSync(file, 'utf8');
 
-const title = 'Elatransfer — Transferts privés & réservation pour partenaires';
-const description = 'Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.';
+const title = 'Elatransfer — Transferts aéroport et chauffeur privé à Paris';
+const description = "Elatransfer organise vos transferts avec chauffeur entre Paris, Roissy-CDG, Orly, Beauvais, gares et hôtels. Prix annoncé à l’avance, réglé au chauffeur.";
 
 html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
 html = html.replace(/<meta\s+name=["']description["'][^>]*>/i, `<meta name="description" content="${description}">`);

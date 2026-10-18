@@ -68,3 +68,42 @@ Ce qui a été fait à la place — la seule voie honnête, et elle marche :
   test : remplacé par « Hôtel Exemple Roissy ». Dans un dépôt public, un
   exemple qui nomme un hôtel réel avec des courses inventées se lit comme
   un partenariat.
+
+## 18 octobre 2026 — la note Google s'affiche, depuis un seul fichier
+
+Audit de l'architecture commerciale : le rapport proposait d'afficher la note
+(5,0, 25 avis) à condition que Barbaros confirme que les avis viennent tous de
+clients d'Elatransfer. Sa réponse : « note Google oui ».
+
+- **Une source, `avis-google.json`** (note, nombre, lien, date du relevé,
+  `afficher`), jamais publiée. Les pages ne portent qu'un repère vide
+  (`<p class="note-google" data-avis-google="fr en" hidden>`) que
+  `.github/scripts/avis-google.mjs` remplit à la construction.
+- **Où** : sous les horaires du bandeau de l'accueil ; sous le texte d'entrée
+  des trois pages aéroport françaises et des cinq pages anglaises ; sous
+  « Déjà en service… » de la page Professionnels, en phrase : « Nos clients
+  voyageurs nous notent ★ … sur Google (N avis). » Pas dans la carte du
+  formulaire, pas sur la page d'un hôtel, sa réception, l'admin ni la démo.
+- **Une étoile, pas cinq** : cinq étoiles dessinées deviennent fausses à 4,8.
+  Jamais d'arrondi vers le haut (4,86 → 4,8).
+- **Elle s'éteint seule** : `afficher` à false (fiche suspendue), relevé de
+  plus de 60 jours, donnée mal formée. La construction continue — une note
+  absente ne doit jamais bloquer une correction urgente. Le délai est aussi
+  écrit sur la page (`data-expire`) : un site qu'on ne reconstruit pas
+  pendant deux mois retire sa note chez le visiteur.
+- **Jamais dans les données structurées** (`aggregateRating`) : Google
+  n'affiche pas d'étoiles pour une entreprise qui se note elle-même.
+- **Le lien** est la recherche Google Maps documentée
+  (`google.com/maps/search/?api=1&query=Elatransfer`) : aucun identifiant de
+  son compte dans le dépôt, et rien qu'on ait dû deviner. Le lien `g.page/r/…/review`
+  qu'il a donné ouvre le formulaire d'avis : c'est celui de « Demander un
+  avis », réglé sur son appareil. À essayer sur son téléphone ; s'il
+  n'ouvre pas la fiche, son lien « Partager » le remplace en une ligne.
+- **« Voir mon prix » ne bouge pas** : la ligne prend ~24 px, repris sur la
+  marge basse du bandeau (`:has`), seulement quand elle est là. Mesuré : 612
+  sans, 612 avec (à 0,2 px près), à 320, 360 et 390 px comme sur ordinateur.
+- **Mentions légales** (L111-7-2) : d'où vient la note, son relevé, ni
+  contrôle ni tri. Voir `memoire/documents-legaux.md`.
+- **Mise à jour** : il envoie « 27 avis, 4,9 », on change deux nombres et la
+  date. `test-public-avis-google` ne fige aucun chiffre, il lit le fichier.
+

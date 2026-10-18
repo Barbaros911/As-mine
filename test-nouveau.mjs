@@ -172,14 +172,17 @@ check('« Voir mon prix » est entier au-dessus de la barre du bas',
 check('et un doigt posé au milieu tombe bien sur lui',
   boutonPrix.recoit, 'reçoit : ' + boutonPrix.dessus);
 
-/* LE BOUTON EST DANS LE PREMIER ÉCRAN, ET C'EST TOUT L'INTÉRÊT DU
-   BANDEAU. Un bandeau plus haut repousse le formulaire ; s'il ne rend pas
-   une action en échange, il a seulement éloigné la réservation. */
-const cta = await p7.locator('#btnHeroReserver').boundingBox();
-check('le bouton du bandeau tient dans le premier écran',
-  !!cta && cta.y + cta.height <= 844, cta ? Math.round(cta.y+cta.height)+' px' : 'absent');
-check('le bouton du bandeau est assez grand pour le doigt',
-  !!cta && cta.height >= 44, cta ? Math.round(cta.height)+' px' : 'absent');
+/* LE BANDEAU NE PORTE PLUS DE BOUTON (18 octobre 2026, Barbaros). Le
+   premier geste est le champ de départ, déjà à l'écran : un bouton qui ne
+   fait que descendre jusqu'à lui coûtait 111 px et poussait « Voir mon
+   prix » sous la barre à 360 × 740. On vérifie la règle — le champ est là,
+   sans défiler — pas l'absence d'un identifiant. */
+check('le bandeau ne porte plus de bouton qui fait doublon avec le formulaire',
+  await p7.evaluate(() => document.querySelectorAll('.hero button, #btnHeroReserver').length === 0));
+const departAuChargement = await p7.locator('#depart').boundingBox();
+check('le champ de départ est dans le premier écran, sans défiler',
+  !!departAuChargement && departAuChargement.y >= 0 && departAuChargement.y + departAuChargement.height <= boutonPrix.barre,
+  departAuChargement ? Math.round(departAuChargement.y)+' px' : 'absent');
 
 /* LA LISTE DU BANDEAU TIENT SUR UNE LIGNE : cassée en deux, elle se lit
    comme deux listes. Ce contrôle visait le sous-titre tant qu'il était la
@@ -206,22 +209,9 @@ const dedans = await p7.evaluate(()=>{
 });
 check('rien ne sort du bandeau par le bas', dedans);
 
-/* LE BOUTON MÈNE AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART. Sans
-   ça, c'est une image de bouton : le client appuie, rien ne bouge, et il
-   en conclut que le site est cassé — exactement ce qui avait fait retirer
-   l'onglet « Réserver ». */
-await p7.click('#btnHeroReserver');
-await p7.waitForTimeout(900);
-check('le bouton du bandeau pose le curseur dans le départ',
-  await p7.evaluate(()=>document.activeElement && document.activeElement.id === 'depart'));
-const champVisible = await p7.locator('#depart').boundingBox();
-check('le champ de départ est alors à l\'écran',
-  !!champVisible && champVisible.y >= 0 && champVisible.y < 844,
-  champVisible ? Math.round(champVisible.y)+' px' : 'absent');
-
-/* Il ne remplit rien et ne devine rien : une adresse posée d'office
+/* Rien n'est rempli d'office : une adresse posée à la place du client
    enverrait le chauffeur au mauvais endroit. */
-check('le bouton du bandeau ne remplit aucune adresse',
+check('le départ s\'ouvre vide, rien n\'est deviné',
   (await p7.inputValue('#depart')) === '');
 
 /* 320 px — un iPhone SE. Le titre y casserait en quatre lignes à sa

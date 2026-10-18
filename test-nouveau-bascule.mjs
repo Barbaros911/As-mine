@@ -820,12 +820,14 @@ for (const [entree, adresse] of [['site client', '/'],
    un pouce dans le bas du bouton ouvrait un onglet. On mesure ce que reçoit
    le doigt en quatre points du bouton, pas seulement le rectangle : une
    marge transparente qui avale l'appui ne se voit pas sur un rectangle.
-   390 × 844 seulement, et c'est délibéré : sur un écran plus court le bouton
-   est SOUS le premier écran — le client fait défiler, il ne voit rien de
-   coupé. Le défaut, c'est un bouton visible à moitié. FR et EN : les deux
-   langues n'ont pas la même hauteur de bandeau. */
-for (const langue of ['fr-FR', 'en-US']) {
-  const cx = await b.newContext({viewport:{width:390,height:844}, locale:langue});
+   390 × 844, et 360 × 740 depuis le 18 octobre 2026 : le bouton du bandeau
+   retiré, il y tient entier (612–668 pour une barre à 678), et c'est
+   l'Android le plus courant. Plus court encore (375 × 667), il est SOUS le
+   premier écran — le client fait défiler, il ne voit rien de coupé. Le
+   défaut, c'est un bouton visible à moitié. FR et EN : les deux langues
+   n'ont pas la même hauteur de bandeau. */
+for (const [langue, largeur, hauteur] of [['fr-FR', 390, 844], ['en-US', 390, 844], ['fr-FR', 360, 740]]) {
+  const cx = await b.newContext({viewport:{width:largeur,height:hauteur}, locale:langue});
   const pw = await cx.newPage();
   await pw.route('**/*', r => r.request().url().startsWith(SITE) ? r.continue() : r.abort());
   await pw.goto(SITE + '/', {waitUntil:'domcontentloaded'});
@@ -847,10 +849,10 @@ for (const langue of ['fr-FR', 'en-US']) {
     });
     return { haut: Math.round(r.top), bas: Math.round(r.bottom), limite: Math.round(limite), doigts };
   });
-  check(`site publié (${langue}) : « Voir mon prix » est entier au-dessus de la barre du bas`,
+  check(`site publié (${langue}, ${largeur} × ${hauteur}) : « Voir mon prix » est entier au-dessus de la barre du bas`,
     !m.absent && m.bas <= m.limite,
     m.absent ? 'bouton absent' : 'bouton ' + m.haut + '–' + m.bas + ' · barre à ' + m.limite);
-  check(`site publié (${langue}) : un doigt posé sur le bouton tombe bien sur lui`,
+  check(`site publié (${langue}, ${largeur} × ${hauteur}) : un doigt posé sur le bouton tombe bien sur lui`,
     !m.absent && m.doigts.every(Boolean), m.absent ? 'bouton absent' : JSON.stringify(m.doigts));
   await cx.close();
 }

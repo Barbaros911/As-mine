@@ -124,6 +124,14 @@ const restees = await p.evaluate(()=>{
   return [...document.querySelectorAll('.hero-texte > *')].map(e => {
     const cle = e.getAttribute('data-t') || e.getAttribute('data-t-html');
     const texte = e.textContent.replace(/\s+/g, ' ').trim();
+    /* LA NOTE GOOGLE (18 octobre 2026) n'a pas de clé : elle porte ses deux
+       langues elle-même (<span lang="fr">, <span lang="en">), remplies à la
+       construction depuis avis-google.json. Dans le dépôt, son repère est
+       vide et caché ; construite, seule sa version anglaise doit se voir.
+       test-public-avis-google l'éprouve sur le site construit. */
+    if (e.hidden) return null;
+    const en = cle ? null : e.querySelector(':scope > [lang="en"]');
+    if (en) return e.innerText.replace(/\s+/g, ' ').trim() === en.textContent.replace(/\s+/g, ' ').trim() ? null : 'en français : ligne sans clé';
     if (!cle) return 'sans clé : ' + texte;
     return brut(fr[cle]) === texte ? 'en français : ' + cle : null;
   }).filter(Boolean);

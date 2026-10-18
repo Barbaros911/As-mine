@@ -5,6 +5,17 @@
 > Ce fichier porte l'offre telle qu'elle a été arrêtée, et pourquoi, pour le
 > jour où le SIRET existe et où un hôtel demande des conditions. Ne l'ouvrir
 > que si le sujet revient.
+>
+> **18 octobre 2026 — le programme est ANNONCÉ, sans montant.** Barbaros :
+> « J'ai pas de siret met le en place c'est pas grave ». Conseil donné avant :
+> attendre le SIRET (sans société, aucune rémunération ne peut être facturée
+> ni versée, et un directeur le demande au premier rendez-vous). Ce qui est en
+> ligne : le bloc « Devenez partenaire Elatransfer » de `/professionnels/`,
+> avec les textes de la section 7 (« rémunéré sur chaque transfert réalisé »,
+> « aucun abonnement, aucun frais », « vos conditions évoluent… »). Rien
+> d'autre n'est construit : ni page de conditions, ni PDF, ni simulateur, ni
+> relevé. Hôtels et agences oui ; entreprises jamais (on ne paie pas un client
+> pour qu'il achète).
 
 ## Ce que Barbaros a dit, et ce qui en découle
 
