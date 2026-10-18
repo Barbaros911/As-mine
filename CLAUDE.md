@@ -206,10 +206,10 @@ l'application** gardent le reste.
 et le taux de commission se règle désormais **par chauffeur**, dans le
 carnet — il n'y a plus de taux global à trancher dans le code.
 
-**Le Programme Partenaire est annoncé, sans montant (18/10/2026, sans SIRET,
-sa décision)** : « Devenez partenaire » sur `/professionnels/`, « rémunéré sur
-chaque transfert réalisé », jamais « commission » ni « gagnez ». La grille (en €,
-≥ 50 % et ≥ 4,50 € gardés) se remet en rendez-vous : `memoire/programme-partenaire.md`.
+**Programme Partenaire : annoncé, sans montant ni promesse (18/10/2026, sans
+SIRET, sa décision)** : le bloc de `/professionnels/` est au conditionnel, jamais
+« commission » ni « gagnez » (`test-pro-page`) ; la grille (en €) se remet en
+rendez-vous : `memoire/programme-partenaire.md`.
 
 **Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
 point bloquant** · volume visé · budget.
