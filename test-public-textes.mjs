@@ -10,9 +10,10 @@
 //    devient ;
 //  · la confirmation part par le moyen que le CLIENT choisit : aucun texte
 //    ne promet « WhatsApp ou SMS » (faux depuis le 4 octobre) ;
-//  · rien sous le logo, et le grand titre et le sous-titre ne portent aucun
-//    lieu : la marque ne s'enferme pas dans une ville ; les lieux restent
-//    dans ce qui décrit le service d'aujourd'hui (cartes, pages CDG/Orly) ;
+//  · rien sous le logo, et le grand titre ne porte aucun lieu : la marque ne
+//    s'enferme pas dans une ville. Le sous-titre, lui, dit où le service
+//    marche et parle au VOYAGEUR (18 octobre 2026, Barbaros : l'accueil est
+//    aux particuliers, l'offre pro vit sur /professionnels/) ;
 //  · une carte de service ne porte pas le nom d'une entrée du menu ;
 //  · la pancarte dit les deux lieux où l'option existe (CGV art. 4) ;
 //  · en anglais, aucun libellé de lecteur d'écran ne reste en français.
@@ -119,11 +120,14 @@ for (const langue of ['fr', 'en']) {
     .filter(([k, v]) => typeof v === 'string' && !k.startsWith('legal_') && /WhatsApp (ou|or) SMS/i.test(v)).map(([k]) => k);
   check(`${langue.toUpperCase()} : aucun texte ne promet « WhatsApp ou SMS » pour la confirmation`, canalFige.length === 0, canalFige.join(', '));
 
-  // 4. Rien sous le logo, et pas de lieu dans le grand titre ni le sous-titre.
+  // 4. Rien sous le logo, pas de lieu dans le grand titre, et un sous-titre
+  //    qui parle au voyageur, jamais à l'hôtel (18 octobre 2026).
   check(`${langue.toUpperCase()} : rien n'est écrit sous le logo (le logo dit déjà la marque)`, tete.logo === '' && !tete.cle, JSON.stringify(tete));
   const lieux = /Paris|Île-de-France|Ile-de-France|France|Roissy|Orly/i;
-  check(`${langue.toUpperCase()} : le grand titre et le sous-titre ne portent aucun lieu`,
-    !lieux.test(bandeau.h1 + ' ' + bandeau.sous), bandeau.h1 + ' / ' + bandeau.sous);
+  check(`${langue.toUpperCase()} : le grand titre ne porte aucun lieu`, !lieux.test(bandeau.h1), bandeau.h1);
+  const auxPros = langue === 'fr' ? /agences?|entreprises?|QR|votre nom|réception/i : /agenc(y|ies)|business|QR|your own|front desk/i;
+  check(`${langue.toUpperCase()} : le sous-titre parle au voyageur, pas aux professionnels`,
+    !auxPros.test(bandeau.sous), bandeau.sous);
   check(`${langue.toUpperCase()} : le grand titre dit le métier`,
     (langue === 'fr' ? /transfert|chauffeur/i : /transfer|chauffeur/i).test(bandeau.h1), bandeau.h1);
   if (langue === 'fr') check('FR : le sous-titre tient sous 125 caractères (règle du positionnement)', bandeau.sous.length <= 125, String(bandeau.sous.length));

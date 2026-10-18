@@ -67,6 +67,11 @@ node .github/scripts/construire-espaces-hotel.mjs site/index.html site
 # vérifiée tout en bas, APRÈS le retrait des commentaires.
 node .github/scripts/construire-demo.mjs site
 node .github/scripts/galerie.mjs
+# LA NOTE GOOGLE (18 octobre 2026) : une seule source, avis-google.json,
+# qui n'est pas publié. Posée ici sur toutes les pages déjà assemblées, avant
+# le retrait des commentaires ; éteinte, sans jamais bloquer la publication,
+# si le relevé a plus de 60 jours (voir le script).
+node .github/scripts/avis-google.mjs site
 
 # LES COMMENTAIRES DE TRAVAIL NE PARTENT JAMAIS EN LIGNE — septembre 2026.
 # index.html seul en portait 145 (~68 Ko) : la mémoire du projet, utile aux

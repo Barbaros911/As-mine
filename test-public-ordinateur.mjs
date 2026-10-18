@@ -88,7 +88,7 @@ for (const [w, h] of ORDIS) {
       const r = s => document.querySelector(s).getBoundingClientRect();
       return { sw: document.documentElement.scrollWidth, carte: r('.reserver'),
         logo: r('.logo-image'), pied: r('.pied'), titre: r('.hero h1'), langues: r('.langues'),
-        hero: r('.hero'), cta: getComputedStyle(document.getElementById('btnHeroReserver')).display };
+        hero: r('.hero'), cta: document.querySelectorAll('.hero button, #btnHeroReserver').length };
     });
     /* LA COLONNE : 1180 px au plus, 24 px de marge au moins. Tout s'y aligne —
        logo à gauche, FR/EN à droite, et le pied. Le formulaire en occupe toute
@@ -120,10 +120,10 @@ for (const [w, h] of ORDIS) {
         m.carte.top >= m.hero.top && m.carte.bottom <= m.hero.bottom && m.carte.top >= m.titre.bottom + 8
         && Math.abs(m.carte.left - m.titre.left) <= 2,
         `carte ${Math.round(m.carte.left)},${Math.round(m.carte.top)}–${Math.round(m.carte.bottom)} · titre →${Math.round(m.titre.right)} · bandeau ${Math.round(m.hero.top)}–${Math.round(m.hero.bottom)}`);
-      check(`${tag} : un seul bouton principal — « Réserver mon trajet » s'efface`, m.cta === 'none', m.cta);
+      check(`${tag} : un seul bouton principal — le bandeau n'en porte aucun`, m.cta === 0, m.cta + ' bouton(s)');
     } else {
       check(`${tag} : le formulaire prend toute la colonne`, Math.abs(m.carte.left - col.left) <= 2, `carte ${Math.round(m.carte.left)}`);
-      check(`${tag} : « Réserver mon trajet » reste (le formulaire est sous le bandeau)`, m.cta !== 'none', m.cta);
+      check(`${tag} : un seul bouton principal — le bandeau n'en porte aucun (18/10/2026)`, m.cta === 0, m.cta + ' bouton(s)');
       // Date/Heure et Passagers/Bagages sur UNE ligne : la ligne du dessous
       // laissait un trou d'une demi-largeur et repoussait le bouton.
       const lignes = await p.evaluate(() => {
@@ -297,8 +297,10 @@ for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
     const auBout = scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
     return (auBout && r.top >= 0 && r.top < innerHeight / 2) ? 0 : Math.round(r.top);
   }, id);
-  // Les trois blocs de l'accueil.
-  for (const [lien, bloc] of [['services', 'services'], ['modele', 'modele'], ['questions', 'questions']]) {
+  // Les deux blocs de l'accueil ; « Professionnels » mène à sa page (18/10/2026).
+  check('menu « Professionnels » : mène à la page des professionnels',
+    await p.evaluate(() => [...document.querySelectorAll('.entete-nav a')].some(a => a.getAttribute('href') === '/professionnels/' && /Professionnels|For business/.test(a.textContent))));
+  for (const [lien, bloc] of [['services', 'services'], ['questions', 'questions']]) {
     await p.click(`.entete-nav [data-defiler="${lien}"]`); await p.waitForTimeout(900);
     const t = await haut(bloc);
     check(`menu « ${lien} » : descend au bloc`, (await actif()) === 'ecran-accueil' && t >= -2 && t < 120, `haut du bloc ${t}`);
@@ -459,7 +461,7 @@ for (const [w, h, langue] of [[320, 700, 'fr'], [390, 844, 'fr'], [390, 844, 'en
     enDesordre.length === 0, o.hauts.map(([s, y]) => s.replace('#ecran-accueil ', '') + '=' + y).join(' '));
   check(`${w} px ${langue} ordre : les trois étapes sont le premier bloc sous le formulaire`, o.premier === 'comment', o.premier);
   check(`${w} px ${langue} ordre : une seule suite numérotée 1 · 2 · 3 à l'écran`, o.suites === 1 && o.etapesDansComment, String(o.suites));
-  check(`${w} px ${langue} ordre : « Professionnels » mène à l'encart des professionnels, sans les étapes`, o.proSansEtapes && o.lienPro === '#modele', o.lienPro);
+  check(`${w} px ${langue} ordre : « Professionnels » mène à leur page, et leur encart n'a pas les étapes`, o.proSansEtapes && o.lienPro === '/professionnels/', o.lienPro);
   check(`${w} px ${langue} ordre : le suivi du vol n'est plus dit deux fois de suite`, !o.promesse && !o.retard);
   check(`${w} px ${langue} ordre : aucune erreur JavaScript`, p._errs.length === 0, p._errs.join(' | '));
   await p.context().close();

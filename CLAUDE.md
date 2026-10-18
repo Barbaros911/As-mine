@@ -206,10 +206,10 @@ l'application** gardent le reste.
 et le taux de commission se règle désormais **par chauffeur**, dans le
 carnet — il n'y a plus de taux global à trancher dans le code.
 
-**Le Programme Partenaire hôtels est arrêté (14/10/2026), en attente du
-SIRET** : trois niveaux, zéro frais, rémunération en € par transfert réalisé
-et payé, Elatransfer garde ≥ 50 % de sa commission et ≥ 4,50 €. Rien n'est
-affiché, promis ni codé avant le SIRET : `memoire/programme-partenaire.md`.
+**Le Programme Partenaire est annoncé, sans montant (18/10/2026, sans SIRET,
+sa décision)** : « Devenez partenaire » sur `/professionnels/`, « rémunéré sur
+chaque transfert réalisé », jamais « commission » ni « gagnez ». La grille (en €,
+≥ 50 % et ≥ 4,50 € gardés) se remet en rendez-vous : `memoire/programme-partenaire.md`.
 
 **Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
 point bloquant** · volume visé · budget.
@@ -485,47 +485,13 @@ départ, et la provenance reste.
 
 ## Les documents légaux
 
-Trois documents, en français et en anglais, accessibles depuis **Contact**
-sans compte et hors du mode exploitant — la LCEN l'impose, et c'est aussi
-ce qu'un client regarde avant de confier un trajet à un inconnu :
-conditions générales de vente, mentions légales, politique de
-confidentialité.
-
-- Ils viennent de l'ancien site, **adaptés** : la formation du prix y
-  décrit la grille réelle (tarif kilométrique, majoration, arrondi à la
-  dizaine, montant minimum), la mise à disposition y est dite **non
-  réservable en ligne**, et le mode de règlement déclaré par le client y
-  engage Elatransfer à envoyer un chauffeur en mesure de l'accepter.
-  **Des CGV qui décrivent une autre formation du prix que celle appliquée
-  sont pires qu'aucunes CGV** : le prix est ferme donc opposable, et le
-  client y trouverait un argument contre nous. Toucher à la grille veut
-  dire toucher aux CGV, dans les deux langues.
-- Le corps est posé en `textContent`, jamais en `innerHTML` : ce sont de
-  longs textes qu'on éditera à la main, parfois copiés d'un document
-  d'avocat, et un chevron perdu dedans ne doit pas devenir une balise.
-- **Le mandat de facturation n'a pas été repris** : c'est un document
-  entre Elatransfer et le chauffeur, il n'a rien à faire côté client.
-
-**PLUS AUCUN TROU, ET C'EST UNE RÈGLE** (6 septembre 2026, à sa demande :
-« Enleve les mention legal non complète ou a compléter je ne veux pas de
-trous d'incohérence »). Les documents portaient 35 « [À compléter] »
-hérités de l'ancien site. Un document qui dit ça à un client ne fait pas
-l'effet d'un brouillon : il fait l'effet d'une société qui ne sait pas
-qui elle est. **Un document court et vrai vaut mieux qu'un formulaire
-vide.** Un contrôle de `test-nouveau-bascule.mjs` cherche le CROCHET dans
-les six textes — la forme survit à une reformulation, pas la formule.
-- **Les mentions légales ont été réécrites**, pas rapiécées : sur onze
-  lignes, neuf étaient des trous. Il ne reste que le vérifiable — nom
-  commercial, activité, hébergeur (Cloudflare ; GitHub, qui publie aussi), contact, propriété
-  intellectuelle, CNIL.
-- **Aucun médiateur de la consommation n'est nommé** tant qu'aucun n'est
-  désigné : le client écrirait à une adresse morte en croyant avoir saisi
-  un recours. La voie de réclamation, elle, reste écrite.
-- **CE QUI MANQUE ENCORE, et que seul Barbaros peut donner** : raison
-  sociale, forme juridique, **SIRET**, adresse du siège, directeur de la
-  publication, et le médiateur (obligatoire, L616-1 Code conso.). Ne pas
-  remettre de champs vides en attendant — les ajouter le jour où il donne
-  les vraies valeurs, et pas avant.
+CGV, mentions légales et confidentialité, FR et EN, sans compte, depuis le
+pied de l'accueil (LCEN) ; corps en `textContent`. **Toucher au prix veut dire
+toucher aux CGV, dans les deux langues, sans y écrire un chiffre.** **Aucun
+trou** (`test-nouveau-bascule` cherche le crochet) : raison sociale, SIRET,
+siège, directeur de la publication et médiateur (L616-1) s'ajoutent le jour
+où il les donne, pas avant. Les mentions disent d'où vient la note Google
+(L111-7-2). Histoire : `memoire/documents-legaux.md`.
 
 ## LA PAGE HÔTEL — L'ANALYSE QUI A PRÉCÉDÉ
 
@@ -2184,10 +2150,14 @@ la liste blanche « pour déboguer », plus rien ne tombe.
 
 **Jamais un avis inventé** (L132-2 ; refusé en 09/2026, ne pas rouvrir) et
 **on demande à TOUS** (15/10) : trier = « review gating », interdit par Google
-et la loi — le message ne dit plus « si tout s'est bien passé ». « Demander
-un avis » : course RÉALISÉE, langue du client, lien `ela_lien_avis` réglé sur
-l'appareil (sans lien, rien ne part) ; `#bordAvis` compte la semaine, se tait
-sans lien et cède aux écriteaux urgents. Histoire : `memoire/avis.md`.
+et la loi. « Demander un avis » : course RÉALISÉE, langue du client, lien
+`ela_lien_avis` réglé sur l'appareil (sans lien, rien ne part) ; `#bordAvis`
+compte la semaine, se tait sans lien et cède aux écriteaux urgents.
+**LA NOTE GOOGLE NE S'ÉCRIT QUE DANS `avis-google.json`** (18/10/2026 : les
+25 avis viennent tous de clients, sa réponse). `.github/scripts/avis-google.mjs`
+la pose à la construction (accueil, pages aéroport FR/EN, Professionnels) et
+l'éteint si `afficher` est faux ou le relevé a plus de 60 jours ; jamais
+arrondie vers le haut, ni dans les données structurées. Histoire : `memoire/avis.md`.
 
 ## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
 
@@ -4500,41 +4470,31 @@ titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
   `memoire/seo-indexation.md`. `www` ne répond pas (DNS, à Barbaros).
 - Histoire : `memoire/marque-et-referencement.md`.
 
-## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
+## LE POSITIONNEMENT — UNE MARQUE, DEUX ESPACES
 
-Bloc 1 (6/10/2026) puis audit éditorial (8/10), chaque point tranché par
-Barbaros. Elatransfer organise des transferts avec chauffeur (B2C) ET crée
-pour chaque partenaire sa page de réservation, son QR code et son espace
-réception, puis gère chaque transport (B2B). Histoire et variantes écartées :
-`memoire/textes-publics.md` ; ancien emplacement du bloc pro :
+Elatransfer organise des transferts avec chauffeur (B2C) et crée pour chaque
+partenaire sa page, son QR code et son espace réception (B2B). **Depuis le
+18/10/2026 l'accueil est aux voyageurs, l'offre pro vit sur `/professionnels/`**
+(audit du 18/10, ses décisions). Histoire : `memoire/textes-publics.md`,
 `memoire/accueil-pro.md`.
-- **Le grand titre dit le métier** (« Transferts avec chauffeur, organisés de
-  A à Z. »), le sous-titre parle aux pros. **Aucun lieu dans l'un ni l'autre**
-  (« il ne faut pas se fixer en France ») ; les lieux restent dans ce qui
-  décrit le service. Ni « Europe » ni « monde » : le prix en ligne s'arrête à
-  90 km.
+- **Le grand titre dit le métier, sans lieu** ; le sous-titre parle au voyageur
+  et nomme les aéroports. Ni « Europe » ni « monde ».
 - **Jamais « solution », « mobilité », « plateforme », « conciergerie »,
-  « canal »** sur une page publique : on nomme ce qu'on crée et ce qu'on fait
-  après. « Suivi » = humain, jamais « temps réel ».
-- **« Prix ferme » ne vend plus** : « Prix annoncé à l'avance ». « Ferme »
-  reste au contrat : étiquette du bon confirmé, phrase avant « Confirmer »,
-  CGV. **Rien sous le logo.**
+  « canal »** ; « suivi » = humain. **« Prix annoncé à l'avance » pour vendre** ;
+  « ferme » reste au contrat (bon confirmé, « Confirmer », CGV). Rien sous le logo.
 - Le chauffeur est « professionnel indépendant, sous sa propre carte
-  professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni
-  « VTC » côté client, et aucun contrôle de papiers promis. La confirmation
-  part par le moyen choisi par le client, jamais « WhatsApp ou SMS ».
-- **Le premier écran reste au client qui réserve** : une ligne (`.pro-bloc`)
-  mène à `#modele` ; ordre de l'accueil verrouillé (`test-public-ordinateur`) ;
-  sous-titre ≤ 125 caractères, services sur une ligne à 390 px.
-- « Mise en place gratuite » est vraie (confirmé le 8/10) : la retirer le jour
-  où un hôtel paie. Aucun client cité, aucun chiffre, aucun délai promis.
-- **LA FICHE GOOGLE N'A PAS ÉTÉ TOUCHÉE** (à sa demande, 8/10) : titre et
-  description disent encore « Transferts privés » et « prix ferme ». Ils
-  vivent à DEUX endroits (`index.html`, `seo-ela.mjs`), identiques.
-- `contact@elatransfer.com` : pied, bloc pro, « Nous joindre ». Promesse B2B :
-  « Votre réception réserve. Elatransfer gère tout le reste. »
-- `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
-  code d'avant).
+  professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni « VTC »,
+  aucun contrôle de papiers promis, jamais « WhatsApp ou SMS ».
+- **Accueil** : aucun bouton dans le bandeau ; le menu « Professionnels » et la
+  ligne `.pro-bloc` mènent à `/professionnels/` ; `#modele` n'est qu'une
+  passerelle. Ni sélecteur « Particuliers | Pro », ni « Elatransfer Pro » tant
+  qu'aucun compte pro n'existe.
+- **Titre et description Google de l'accueil** : dans `index.html` ET
+  `seo-ela.mjs`, identiques, sans apostrophe droite (le test les coupe là).
+- « Mise en place gratuite » est vraie : la retirer le jour où un hôtel paie.
+  Aucun client cité, aucun chiffre promis. `contact@elatransfer.com` : pied,
+  bloc pro, « Nous joindre ».
+- `test-public-textes.mjs` verrouille ces règles.
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 
@@ -4611,8 +4571,8 @@ Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fai
 Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.
 
 ## LE FORMULAIRE PUBLIC — BLEU NUIT, UN SEUL BOUTON PRINCIPAL (Bloc 3)
-7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), « Réserver mon trajet » en contour, deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
-Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. L'en-tête est bleu nuit avec la VERSION NÉGATIVE du logo (`brand-logo-negatif.webp`, lettres blanches, courbe cyan, sa décision) posée par `publicEla()` : l'original y disparaît (1,1:1), le cartouche blanc a été refusé ; les espaces à en-tête clair gardent l'original. Budget : bouton ≤ 751 et rassurance ≤ 779 à 390×844 (barre à 782). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
+7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), aucun bouton dans le bandeau (18/10), deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
+Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. L'en-tête est bleu nuit avec la VERSION NÉGATIVE du logo (`brand-logo-negatif.webp`, lettres blanches, courbe cyan, sa décision) posée par `publicEla()` : l'original y disparaît (1,1:1), le cartouche blanc a été refusé ; les espaces à en-tête clair gardent l'original. Budget : « Voir mon prix » entier au-dessus de la barre à 390×844 et 360×740 (612–668 le 18/10). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
 Histoire, mesures, pièges : `memoire/formulaire-public.md`.
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)

@@ -22,6 +22,10 @@ a { color: inherit; }
 .eyebrow { margin: 0 0 15px; color: var(--cyan-light); font-size: 12px; font-weight: 850; letter-spacing: 2.8px; text-transform: uppercase; }
 h1 { max-width: 780px; margin: 0 0 22px; font-size: clamp(40px, 5.5vw, 68px); line-height: 1.02; letter-spacing: -2px; }
 .lead { max-width: 680px; margin: 0; color: #eef8fe; font-size: clamp(17px, 2vw, 20px); }
+/* La note Google (18/10/2026) : posée à la construction depuis avis-google.json, jamais écrite ici. */
+.note-google { margin: 14px 0 0; color: #fff; font-size: 15px; font-weight: 750; }
+.note-google a { color: inherit; text-decoration-color: rgba(255, 255, 255, .45); text-underline-offset: 3px; }
+.note-google-etoile { color: #fbbc04; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 13px 20px; border: 2px solid var(--cyan); border-radius: 11px; color: #fff; background: linear-gradient(120deg, var(--cyan), #159fd9); box-shadow: 0 9px 22px rgba(32, 196, 244, .22); font-weight: 850; text-decoration: none; }
 .button.secondary { color: #fff; background: rgba(0, 31, 59, .56); border-color: var(--cyan-light); }
