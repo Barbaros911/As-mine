@@ -48,40 +48,36 @@ un fichier que l'autre a oublié. La liste des fichiers copiés y est
 **explicite** — un `cp *` publierait un jour les suites de tests ou le
 classeur de suivi. `site/` est ignoré par git : il se reconstruit.
 
-**Bascule vers Cloudflare Pages** (septembre 2026, décidée après une panne de
-GitHub : les visiteurs voyaient la licorne rose de GitHub pendant que le site
-était intact). Marche à suivre complète dans `CLOUDFLARE.md`.
-- Réglages Cloudflare : branche `main`, commande `sh construire.sh`, dossier
-  de sortie `site`.
-- **`_headers` ne sert QUE sur Cloudflare.** GitHub Pages ne sait pas définir
-  d'en-têtes HTTP — c'est pour ça que `frame-ancestors` ne pouvait pas être
-  appliqué : les navigateurs l'ignorent dans une balise `<meta>`.
-- **LE DOMAINE EST DÉJÀ CHEZ CLOUDFLARE** (mesuré le 5/10/2026 : serveurs
-  de noms `jill`/`jarred.ns.cloudflare.com`). Le courrier reste chez IONOS
-  (MX `mx00`/`mx01.ionos.fr`, SPF IONOS) : **ne jamais toucher ces lignes**,
-  ni `google-site-verification`. L'ancienne consigne « ne pas déplacer les
-  serveurs de noms » est caduque : `memoire/cloudflare-dns.md`.
-- **Cloudflare tombe aussi.** Plus rarement et moins longtemps, mais aucun
-  hébergeur ne garantit 100 %. Ne pas le vendre comme une immunité.
+**Cloudflare sert le site** (Workers, `wrangler.jsonc` ; branche `main`,
+`sh construire.sh`, dossier `site`), après une panne de GitHub en septembre
+2026 : `CLOUDFLARE.md`. `_headers` et `_redirects` n'agissent que là.
+- **LE DOMAINE EST DÉJÀ CHEZ CLOUDFLARE** (5/10/2026). Le courrier reste chez
+  IONOS (MX `mx00`/`mx01.ionos.fr`, SPF) : **ne jamais toucher ces lignes**,
+  ni `google-site-verification` — `memoire/cloudflare-dns.md`.
+- **Cloudflare tombe aussi**, plus rarement : ne pas le vendre comme une immunité.
 
 **NE JAMAIS CHANGER UN RÉGLAGE PAR DÉFAUT QU'ON NE PEUT PAS ÉPROUVER** : on
 garde le défaut, on ne le change que sur un symptôme constaté (`html_handling`
 à `"none"` avait cassé `/demos/` en 2026) — `memoire/hebergement.md`.
 
+**UNE ADRESSE INCONNUE REND UNE VRAIE 404** (18/10/2026, `404-page`) : plus
+jamais l'accueil en 200. Ne pas remettre `single-page-application` ; une
+ancienne adresse se redirige dans `_redirects`, jamais par un attrape-tout.
+`test-routage.mjs` refuse tout lien du site qui finirait en 404.
+
 **QUEL COMMIT EST EN LIGNE SE PROUVE** (14/10/2026) : `construire.sh` écrit
 `/version.json` ; le monitoring exige le dernier `main` (15 min de marge) et
 l'absence des textes de `.github/scripts/textes-interdits.mjs`, refusés aussi au build.
 
-**LES TROIS ADRESSES À ÉPROUVER APRÈS CHAQUE DÉPLOIEMENT CLOUDFLARE** — elles
-couvrent les trois mécanismes de service, et c'est la seule façon de voir une
-erreur de configuration depuis l'extérieur :
+**LES ADRESSES À ÉPROUVER APRÈS CHAQUE DÉPLOIEMENT CLOUDFLARE** — une par
+mécanisme de service (le monitoring les vérifie toutes les 6 h) :
 | Adresse | Ce qu'elle éprouve | Attendu |
 |---|---|---|
 | `/` | la racine | le site de réservation |
 | `/admin.html` | un fichier exact | renvoie vers la connexion de `/ela-admin/` |
 | `/demos/` | **un dossier** | la galerie « Démonstrations » |
-Si `/demos/` affiche le site de réservation, c'est `html_handling` qui est en
-cause — pas la galerie.
+| `/n-existe-pas` | une adresse inconnue | « Page introuvable », code 404 |
+Si `/demos/` rend une 404, c'est `html_handling` qui est en cause.
 
 ## Git et publication
 

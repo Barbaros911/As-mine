@@ -37,6 +37,7 @@ jobs:
         run: |
           npm run test:docs
           npm run test:unified
+          node test-routage.mjs
 
       - name: Installer Chromium Playwright
         run: npx playwright install --with-deps chromium

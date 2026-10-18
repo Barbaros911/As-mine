@@ -124,7 +124,7 @@ const PAGES = [
     marqueur: 'href="https://elatransfer.com/professionnels/"', robots: "index" },
   /* LES PAGES D'ACQUISITION (14 octobre 2026, SEO international). Chacune
      est reconnue à SA canonique : une adresse anglaise qui servirait
-     l'accueil (le repli « adresse inconnue » de Cloudflare) répondrait 200
+     l'accueil (le repli « adresse inconnue » de Cloudflare jusqu'au 18/10) répondrait 200
      avec la marque dans le titre. Les pages françaises sont visées à
      l'adresse que Cloudflare sert, sans « .html ». */
   ...["", "cdg-airport-transfer-paris/", "orly-airport-transfer-paris/", "disneyland-paris-airport-transfer/", "cdg-orly-transfer/"]
@@ -185,6 +185,36 @@ for (const p of PAGES) {
     }
   } catch (e) {
     ko(`${p.quoi} (${url}) injoignable : ${e.message}`);
+  }
+}
+
+/* ---- 1 quinquies. Une adresse inconnue rend une VRAIE 404 -------------
+   18 octobre 2026. Jusque-là Cloudflare rendait l'accueil en 200 à toute
+   adresse inconnue (« single-page-application ») : une copie de l'accueil
+   par lien mal recopié pour Google, et un fichier oublié par la recette qui
+   répondait 200 — le guet des réponses ≥ 400 plus bas ne pouvait pas le
+   voir. wrangler.jsonc est passé à « 404-page » ; seul ce contrôle prouve
+   que le réglage est bien celui qui sert le domaine. Le suffixe est tiré au
+   sort : aucune page ne pourra jamais être publiée à cette adresse. */
+console.log("\nUne adresse inconnue rend une vraie 404 :");
+const hasard = Math.random().toString(36).slice(2, 10);
+for (const [chemin, quoi, langue] of [
+  [`page-inexistante-${hasard}`, "une adresse inconnue", "introuvable"],
+  [`en/page-inexistante-${hasard}`, "une adresse anglaise inconnue", "not found"],
+  [`ela-admin/inexistante-${hasard}`, "une adresse inconnue sous l'admin", "introuvable"],
+  [`inexistant-${hasard}.js`, "un fichier inconnu", null],
+]) {
+  const url = BASE + chemin;
+  try {
+    const r = await fetch(url, { redirect: "manual" });
+    const html = await r.text();
+    if (r.status !== 404) { ko(`${quoi} (${url}) répond ${r.status} au lieu de 404 — le repli « single-page-application » est-il revenu ?`); continue; }
+    const titre = (html.match(/<title>([^<]*)<\/title>/i) || [, ""])[1];
+    if (langue && !titre.toLowerCase().includes(langue)) ko(`${quoi} répond 404 mais pas avec notre page — titre lu : « ${titre.trim() || "(aucun)"} »`);
+    else if (indexable(html, r.headers.get("x-robots-tag"))) ko(`${quoi} répond 404 avec une page INDEXABLE`);
+    else ok(`${quoi} — 404${langue ? `, « ${titre.trim()} », noindex` : ""}`);
+  } catch (e) {
+    ko(`${quoi} (${url}) injoignable : ${e.message}`);
   }
 }
 

@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v181";
+const CACHE = "elatransfer-v182";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -132,8 +132,12 @@ self.addEventListener("fetch", (event) => {
   if(url.protocol!=="http:"&&url.protocol!=="https:")return;
   if(NO_CACHE_HOSTS.includes(url.hostname)||serveurDeDonnees(url)||siteVoisin(url))return;
   function estLApplication(u){const reste=u.pathname.slice(BASE.length);return reste===""||reste==="index.html"||reste==="application.html";}
+  /* UNE PAGE N'EST GARDÉE QUE SI ELLE A ÉTÉ SERVIE (18 octobre 2026). Le site
+     rend désormais une vraie 404 à toute adresse inconnue : sans « res.ok »,
+     une 404 ou une 500 passagère sur /ela-admin/ aurait REMPLACÉ dans le
+     cache la bonne copie de l'admin, celle qui sert hors ligne. */
   if(req.mode==="navigate"||(req.headers.get("accept")||"").includes("text/html")){
-    event.respondWith(fetch(req).then((res)=>{const copy=res.clone();caches.open(CACHE).then((c)=>c.put(req,copy)).catch(()=>{});return res;})
+    event.respondWith(fetch(req).then((res)=>{if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then((c)=>c.put(req,copy)).catch(()=>{});}return res;})
       .catch(()=>caches.match(req).then((r)=>{if(r)return r;if(estLApplication(url))return caches.match("./index.html").then((f)=>f||Response.error());return Response.error();})));
     return;
   }
