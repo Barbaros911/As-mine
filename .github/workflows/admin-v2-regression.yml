@@ -347,6 +347,8 @@ jobs:
           # sans la clé du jour, détruite le lendemain ; le compteur d'origine
           # qui suit ; la source de la VISITE, pas du geste ; la lecture
           # réservée à l'admin. Éprouvée contre quatre falsifications.
+          # Puis (18/10/2026) : une réservation ne compte que si la course existe
+          # — un « demande_envoyee » inventé tombe (20261018000000).
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database trafic;'
           psql -h 127.0.0.1 -U postgres -d trafic -X -q -v ON_ERROR_STOP=1 \
             -f supabase/tests/socle.sql \
@@ -358,7 +360,10 @@ jobs:
             -f supabase/tests/trafic.sql \
             -f supabase/migrations/20261015010000_mesure_trafic.sql \
             -f supabase/migrations/20261015010000_mesure_trafic.sql \
-            -f supabase/tests/trafic-apres.sql
+            -f supabase/tests/trafic-apres.sql \
+            -f supabase/migrations/20261018000000_trafic_reservations_serveur.sql \
+            -f supabase/migrations/20261018000000_trafic_reservations_serveur.sql \
+            -f supabase/tests/trafic-reservations.sql
           # Rejouer 20261014000000 APRÈS 20261015000000 doit être REFUSÉ, avant
           # d'avoir rien écrit : elle recréerait ela_mesurer à deux paramètres
           # et le serveur refuserait tout appel (« fonction non unique ») —
