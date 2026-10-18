@@ -489,47 +489,13 @@ départ, et la provenance reste.
 
 ## Les documents légaux
 
-Trois documents, en français et en anglais, accessibles depuis **Contact**
-sans compte et hors du mode exploitant — la LCEN l'impose, et c'est aussi
-ce qu'un client regarde avant de confier un trajet à un inconnu :
-conditions générales de vente, mentions légales, politique de
-confidentialité.
-
-- Ils viennent de l'ancien site, **adaptés** : la formation du prix y
-  décrit la grille réelle (tarif kilométrique, majoration, arrondi à la
-  dizaine, montant minimum), la mise à disposition y est dite **non
-  réservable en ligne**, et le mode de règlement déclaré par le client y
-  engage Elatransfer à envoyer un chauffeur en mesure de l'accepter.
-  **Des CGV qui décrivent une autre formation du prix que celle appliquée
-  sont pires qu'aucunes CGV** : le prix est ferme donc opposable, et le
-  client y trouverait un argument contre nous. Toucher à la grille veut
-  dire toucher aux CGV, dans les deux langues.
-- Le corps est posé en `textContent`, jamais en `innerHTML` : ce sont de
-  longs textes qu'on éditera à la main, parfois copiés d'un document
-  d'avocat, et un chevron perdu dedans ne doit pas devenir une balise.
-- **Le mandat de facturation n'a pas été repris** : c'est un document
-  entre Elatransfer et le chauffeur, il n'a rien à faire côté client.
-
-**PLUS AUCUN TROU, ET C'EST UNE RÈGLE** (6 septembre 2026, à sa demande :
-« Enleve les mention legal non complète ou a compléter je ne veux pas de
-trous d'incohérence »). Les documents portaient 35 « [À compléter] »
-hérités de l'ancien site. Un document qui dit ça à un client ne fait pas
-l'effet d'un brouillon : il fait l'effet d'une société qui ne sait pas
-qui elle est. **Un document court et vrai vaut mieux qu'un formulaire
-vide.** Un contrôle de `test-nouveau-bascule.mjs` cherche le CROCHET dans
-les six textes — la forme survit à une reformulation, pas la formule.
-- **Les mentions légales ont été réécrites**, pas rapiécées : sur onze
-  lignes, neuf étaient des trous. Il ne reste que le vérifiable — nom
-  commercial, activité, hébergeur (Cloudflare ; GitHub, qui publie aussi), contact, propriété
-  intellectuelle, CNIL.
-- **Aucun médiateur de la consommation n'est nommé** tant qu'aucun n'est
-  désigné : le client écrirait à une adresse morte en croyant avoir saisi
-  un recours. La voie de réclamation, elle, reste écrite.
-- **CE QUI MANQUE ENCORE, et que seul Barbaros peut donner** : raison
-  sociale, forme juridique, **SIRET**, adresse du siège, directeur de la
-  publication, et le médiateur (obligatoire, L616-1 Code conso.). Ne pas
-  remettre de champs vides en attendant — les ajouter le jour où il donne
-  les vraies valeurs, et pas avant.
+CGV, mentions légales et confidentialité, FR et EN, sans compte, depuis le
+pied de l'accueil (LCEN) ; corps en `textContent`. **Toucher au prix veut dire
+toucher aux CGV, dans les deux langues, sans y écrire un chiffre.** **Aucun
+trou** (`test-nouveau-bascule` cherche le crochet) : raison sociale, SIRET,
+siège, directeur de la publication et médiateur (L616-1) s'ajoutent le jour
+où il les donne, pas avant. Les mentions disent d'où vient la note Google
+(L111-7-2). Histoire : `memoire/documents-legaux.md`.
 
 ## LA PAGE HÔTEL — L'ANALYSE QUI A PRÉCÉDÉ
 
@@ -2188,10 +2154,14 @@ la liste blanche « pour déboguer », plus rien ne tombe.
 
 **Jamais un avis inventé** (L132-2 ; refusé en 09/2026, ne pas rouvrir) et
 **on demande à TOUS** (15/10) : trier = « review gating », interdit par Google
-et la loi — le message ne dit plus « si tout s'est bien passé ». « Demander
-un avis » : course RÉALISÉE, langue du client, lien `ela_lien_avis` réglé sur
-l'appareil (sans lien, rien ne part) ; `#bordAvis` compte la semaine, se tait
-sans lien et cède aux écriteaux urgents. Histoire : `memoire/avis.md`.
+et la loi. « Demander un avis » : course RÉALISÉE, langue du client, lien
+`ela_lien_avis` réglé sur l'appareil (sans lien, rien ne part) ; `#bordAvis`
+compte la semaine, se tait sans lien et cède aux écriteaux urgents.
+**LA NOTE GOOGLE NE S'ÉCRIT QUE DANS `avis-google.json`** (18/10/2026 : les
+25 avis viennent tous de clients, sa réponse). `.github/scripts/avis-google.mjs`
+la pose à la construction (accueil, pages aéroport FR/EN, Professionnels) et
+l'éteint si `afficher` est faux ou le relevé a plus de 60 jours ; jamais
+arrondie vers le haut, ni dans les données structurées. Histoire : `memoire/avis.md`.
 
 ## LES DEMANDES ARRIVENT TOUTES SEULES DANS LE TABLEAU DE BORD
 

@@ -508,3 +508,23 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-lien:hover, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu[open] > summary{background:rgba(255,255,255,.09); color:#fff;}
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .entete-menu.actif > summary{color:var(--ela-cyan);}
 }
+
+/* LA NOTE GOOGLE NE DÉPLACE PAS « VOIR MON PRIX » (18 octobre 2026). La ligne
+   « ★ note sur Google · nombre d'avis » (posée à la construction, voir
+   avis-google.mjs) prend ~24 px dans le bandeau ; sans compensation, mesuré,
+   « Voir mon prix » passait de 612–668 à 638–694 et se cachait sous la barre
+   du bas à 360 × 740. On reprend exactement cette hauteur sur la marge basse
+   du bandeau et l'écart au-dessus des horaires — seulement quand la note est
+   là (:has) : éteinte, le bandeau redevient celui d'avant, au pixel. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .note-google{margin-top:6px;font-size:12px}
+@media(max-width:899px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:65px}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google) .hero-notes{margin-top:6px}
+}
+@media(min-width:900px) and (max-width:1099px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:84px}
+}
+@media(min-width:1100px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .note-google{margin-top:8px;font-size:13px}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:394px}
+}
