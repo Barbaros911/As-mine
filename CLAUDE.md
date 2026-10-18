@@ -4352,11 +4352,10 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   trouvé ouvert sur 8099, enraciné sur une ancienne copie de travail,
   répondait 200 : `tests.sh` le réutilisait sans regarder. Il compare
   maintenant la page servie à `index.html` et refuse de démarrer sinon
-  (éprouvé avec un serveur posé sur l'ancien code). Le serveur restait ouvert
-  parce que `npx` le lance en ENFANT : la fin de série arrête aussi ses
-  enfants (`pkill -P`). Et pour fermer un serveur à la main, viser son
-  numéro, jamais `pgrep -f "http.server"` : le motif attrape aussi la
-  commande qui le tape — vu une fois de plus ce jour-là.
+  (éprouvé). `npx` lance le serveur en PETIT-ENFANT : la fin de série
+  descend toute la lignée (`arreter_lignee`, 18/10 ; `pkill -P` en laissait
+  un orphelin). À la main, viser son numéro, jamais `pkill -f` : le motif
+  attrape la commande qui le tape — revu le 18/10.
 - **Le chien de garde qui ne passe que six fois en 21 h (P1-10) est
   tranché** : un voyant dans l'admin. Voir la section suivante.
 
