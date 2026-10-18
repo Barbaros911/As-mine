@@ -37,3 +37,6 @@ site/
 secrets/
 *.pem
 *.key
+
+# Le moteur Cloudflare lancé en local (« wrangler dev ») y range son état.
+.wrangler/

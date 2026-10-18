@@ -13,6 +13,8 @@
       envoi ne porte le nom, le téléphone, une adresse ni un prix ;
    3. appel et WhatsApp depuis le moteur, par délégation ;
    4. une panne de la mesure (réseau coupé, 503) ne touche pas la réservation ;
+      4 bis : une demande REFUSÉE par le serveur n'envoie aucune
+      « demande_envoyee » ;
    5. « Ne plus me compter » : le bouton de la politique de confidentialité,
       puis plus rien ne part, ni du moteur ni des pages ;
    6. ni l'admin, ni la réception, ni la démo, ni la page d'un hôtel
@@ -61,7 +63,7 @@ const erreurs = [];
    page écarte à raison tout robot. Téléphone sous 768 px, ordinateur au-delà. */
 const UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const UA_PC = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
-async function client({ largeur = 390, hauteur = 844, mode = 'ok', initial } = {}) {
+async function client({ largeur = 390, hauteur = 844, mode = 'ok', depot = 'ok', initial } = {}) {
   const ctx = await nav.newContext({ viewport: { width: largeur, height: hauteur }, deviceScaleFactor: 1, locale: 'fr-FR', timezoneId: 'Europe/Paris',
     userAgent: largeur < 768 ? UA_IPHONE : UA_PC });
   const mesures = [], depots = [];
@@ -89,6 +91,7 @@ async function client({ largeur = 390, hauteur = 844, mode = 'ok', initial } = {
     if (u.includes('/functions/v1/deposer-course') || (u.includes('/rest/v1/courses') && req.method() === 'POST')) {
       let c = {}; try { c = JSON.parse(req.postData() || '{}'); } catch {}
       if (c.bon) depots.push(c.bon);
+      if (depot === 'refuse') return route.fulfill({ status: 400, contentType: 'application/json', body: '{"erreur":"refusé"}' });
       return route.fulfill({ status: 201, contentType: 'application/json', body: '{"ok":true}' });
     }
     if (u.includes('supabase.co')) return route.fulfill(J([]));
@@ -196,6 +199,21 @@ try {
     await p.goto(BASE + '/'); await p.waitForTimeout(500);
     await reserver(p);
     check('4 (' + mode + ') la demande PART et le bon dit « reçue »', depots.length === 1 && (await p.locator('.envoi.ok').count()) === 1, String(depots.length));
+    await ctx.close();
+  });
+
+  /* ── 4 bis. UNE DEMANDE REFUSÉE N'EST PAS UNE RÉSERVATION (18/10/2026) ─
+     « demande_envoyee » ne part qu'après le « oui » du serveur. Rien ne
+     l'éprouvait : un envoi au clic aurait gonflé les réservations du trafic
+     de chaque demande refusée (quota, contrôle, panne). */
+  await partie('4 bis', async () => {
+    const { ctx, p, mesures, depots } = await client({ depot: 'refuse' });
+    await p.goto(BASE + '/'); await p.waitForTimeout(500);
+    await reserver(p); await p.waitForTimeout(1000);
+    const envoyees = mesures.filter(m => m.corps?.evenement === 'demande_envoyee');
+    check('4 bis le serveur refuse la demande : elle a bien été tentée', depots.length >= 1, String(depots.length));
+    check('4 bis une demande refusée n\'envoie aucune « demande_envoyee »', envoyees.length === 0, JSON.stringify(envoyees.map(m => m.corps)));
+    check('4 bis la demande refusée garde ses gestes d\'avant (le prix affiché est compté)', mesures.some(m => m.corps?.evenement === 'prix_affiche'));
     await ctx.close();
   });
 

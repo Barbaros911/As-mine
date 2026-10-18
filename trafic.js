@@ -317,7 +317,15 @@
   function funnel(t){
     var bloc = el("section", "trf-bloc");
     bloc.appendChild(el("h2", "trf-h2", "Du visiteur à la réservation"));
-    var etapes = [["Visiteurs", t.visiteurs], ["Formulaire commencé", t.formulaires], ["Prix demandé", t.prix], ["Réservation envoyée", t.reservations]];
+    /* L'ENTONNOIR OFFICIEL, UN SEUL (18 octobre 2026). Les quatre premières
+       étapes sont des gestes du visiteur ; les trois dernières sont des
+       FAITS DU SERVEUR : une réservation n'est comptée que si sa course est
+       sur le serveur (20261018000000), puis selon l'état de cette course.
+       Un geste refusé ou inventé n'atteint jamais « Réservation envoyée ».
+       Chaque taux est rapporté aux visiteurs, comme les tuiles. */
+    var etapes = [["Visiteurs", t.visiteurs], ["Formulaire commencé", t.formulaires], ["Prix demandé", t.prix],
+      ["Prix affiché", t.prix_affiches], ["Réservation envoyée", t.reservations],
+      ["Confirmée", t.confirmees], ["Réalisée", t.realisees]];
     var max = Math.max(1, Number(t.visiteurs) || 0);
     var ul = el("ol", "trf-funnel");
     etapes.forEach(function(e, i){

@@ -46,8 +46,9 @@ monitoring les juge toutes les 6 h.
 **Trois réserves, non bloquantes mais à régler AVANT les citations** :
 1. `www.elatransfer.com` ne résout pas : tout annuaire ou hôtel qui écrit
    « www » ferait un lien mort. DNS Cloudflare, à Barbaros.
-2. Une adresse inconnue rend l'accueil en 200 (soft 404) : un lien mal copié
-   tombe sur l'accueil plutôt que sur une erreur. Réglage d'hébergement.
+2. ~~Une adresse inconnue rend l'accueil en 200 (soft 404)~~ — **réglé le
+   18/10/2026** : vraie 404 (`/404.html`, `/en/404.html`), avec une sortie
+   vers la réservation. Un lien mal copié se voit dans Search Console.
 3. Les anciennes adresses `.html` redirigent en 307 (temporaire). Ne jamais
    donner une adresse en `.html` à un partenaire.
 

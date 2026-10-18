@@ -31,8 +31,8 @@ vient des journaux GitHub, lus un par un :
 - **Les redirections sont des 307** (temporaires) : réglage par défaut de
   Cloudflare, gardé faute de symptôme. À revoir seulement si Search Console
   garde les anciennes adresses `.html` dans l'index.
-- **Une adresse inconnue rend l'accueil en 200** (soft 404), canonique `/`.
-  Connu depuis le Prompt 1, laissé : réglage d'hébergement.
+- ~~**Une adresse inconnue rend l'accueil en 200** (soft 404)~~ — **corrigé
+  le 18/10/2026** : vraie 404, `memoire/hebergement.md`.
 - Performance mobile, réseau lent simulé et processeur ×4 : pages `/en/`
   0,5 s pour le contenu principal, CLS 0, 51 Ko ; pages françaises 0,75 s ;
   accueil 2,6 s (la photo), CLS 0. Rien à corriger.

@@ -97,3 +97,44 @@ gardait son image en mémoire.
   exactes sous un nom neuf. Les anciens `icon-*.png` restent (partage, service
   worker, notifications). **Changer une icône = changer son NOM de fichier**,
   jamais seulement son contenu.
+
+## Une adresse inconnue rend une vraie 404 (18 octobre 2026)
+
+`not_found_handling` valait `single-page-application`, posé à la main (le
+défaut de Cloudflare est `none`). Mesuré sur `wrangler dev` 4.151, même
+moteur (workerd) et même `wrangler.jsonc` : toute adresse inconnue —
+`/page-inexistante`, `/en/…`, `/ela-admin/…`, et même `/photos/x.jpg` ou
+`/x.js` — recevait l'accueil **en 200**, indexable, canonique `/`.
+- **Deux torts.** Une copie de l'accueil par lien mal recopié (soft 404,
+  signalé dans `SEO-AUTORITE.md` comme à régler avant les citations) ; et un
+  fichier oublié par `construire.sh` répondait 200 — le contrôle de
+  production, qui guette les réponses ≥ 400, était aveugle en ligne.
+- **Le repli ne servait à rien** : le site ne route jamais par le chemin,
+  chaque espace est un vrai fichier publié, les écrans passent par des
+  paramètres (`?h=`, `?ok=`, `?reception=`…).
+- **La règle du 4 septembre n'est pas enfreinte** : le symptôme est mesuré,
+  le réglage n'était pas un défaut, et il a été éprouvé sur le moteur de
+  Cloudflare avant d'être changé. Le retour en arrière est une ligne.
+- **Retenu** : `404-page`, qui sert le `404.html` le plus proche avec le code
+  404 (`/404.html` en français, `/en/404.html` sous `/en/`) — une sortie vers
+  la réservation et le téléphone, noindex, chemins absolus (servie à toute
+  profondeur). Écartés : `none` (une page vide, sans sortie, pour un client
+  qui a tapé une adresse de travers) ; un Worker qui trierait les chemins
+  (du code serveur pour rien, le site est statique).
+- **Anciennes adresses** : `_redirects` ne renvoie que celles qui ont
+  réellement été publiées puis retirées (`/nouveau.html`, devenu l'accueil le
+  6/09), en 301, jamais un attrape-tout. Les vitrines de commerçants sorties
+  du dépôt le 4/10 rendent une 404 : afficher l'accueil d'Elatransfer à leur
+  place trompait leurs clients.
+- **Ce qui le garde** : `test-routage.mjs` (dans `build-mobile-desktop`)
+  résout chaque lien, icône, manifeste, fichier du service worker, URL du
+  plan et redirection du site construit selon les règles de Cloudflare — un
+  lien cassé ne recevait plus l'accueil en cachette, il deviendrait une
+  panne du client. `verifier-production.mjs` exige la 404 en ligne.
+- **Le service worker ne garde plus qu'une page servie** (`res.ok`) : une
+  404 passagère sur `/ela-admin/` aurait écrasé la copie hors ligne.
+- **Piège de mesure** : `wrangler dev` relit `site/` pendant que
+  `construire.sh` le vide — il garde alors un inventaire à moitié vide et
+  rend 404 sur de vraies pages. Construire d'abord, lancer ensuite. Et
+  `pgrep -f "wrangler.*dev"` se trouve lui-même dans la ligne de commande :
+  arrêter par numéro (`[w]orkerd`).

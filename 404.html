@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Page introuvable | Elatransfer</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#001f3b">
+  <link rel="icon" href="/icone-ela-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/icone-ela-180.png">
+  <link rel="stylesheet" href="/landing.css">
+  <!-- LA VRAIE PAGE 404 — 18 octobre 2026. Cloudflare la sert, avec le code
+       404, à toute adresse qui ne correspond à aucun fichier publié
+       (wrangler.jsonc, « not_found_handling »: « 404-page »). Avant, une
+       adresse inconnue rendait l'accueil en 200 : Google voyait autant de
+       copies de l'accueil que de liens mal recopiés, et un fichier oublié
+       par construire.sh répondait 200 au lieu de se signaler.
+       TOUS LES CHEMINS SONT ABSOLUS : cette page peut être servie à
+       /a/b/c/, et un chemin relatif y chercherait sa feuille de style dans
+       un dossier qui n'existe pas. Pas de canonique, pas de mesure, noindex :
+       ce n'est pas une page, c'est une réponse. -->
+</head>
+<body>
+  <header class="tete">
+    <a class="tete-logo" href="/" aria-label="Elatransfer — accueil"><img src="/brand-logo-negatif.webp" alt="Elatransfer" width="82" height="36"></a>
+    <nav class="tete-nav" aria-label="Principal">
+      <a class="tete-langue" href="/en/" hreflang="en" lang="en">English</a>
+      <a class="tete-cta" href="/">Réserver</a>
+    </nav>
+  </header>
+  <main id="contenu">
+    <section class="final" style="margin-top:0" aria-labelledby="t-404">
+      <div class="final-in">
+        <h1 id="t-404">Cette page n'existe pas</h1>
+        <p>L'adresse a peut-être été mal recopiée, ou la page a changé de place. Votre trajet, lui, se réserve toujours depuis l'accueil : le prix s'affiche avant tout envoi.</p>
+        <div class="sens">
+          <a class="bouton" href="/">Voir mon prix <span class="fleche" aria-hidden="true">→</span></a>
+        </div>
+        <div class="contact">
+          <a class="bouton creux" href="tel:+33759312433">Appeler le +33 7 59 31 24 33</a>
+        </div>
+      </div>
+    </section>
+    <section class="bloc" aria-labelledby="t-pages">
+      <h2 id="t-pages">Les pages les plus demandées</h2>
+      <p class="liens">
+        <a href="/transfert-cdg-paris">Transfert Roissy-CDG ↔ Paris</a>
+        <a href="/transfert-orly-paris">Transfert Orly ↔ Paris</a>
+        <a href="/chauffeur-prive-paris">Chauffeur privé à Paris</a>
+        <a href="/professionnels/">Hôtels et professionnels</a>
+      </p>
+    </section>
+  </main>
+  <footer>
+    <p>Elatransfer · Transferts privés avec chauffeur à Paris</p>
+    <a href="tel:+33759312433">+33 7 59 31 24 33</a>
+    <a href="mailto:contact@elatransfer.com">contact@elatransfer.com</a><br>
+    <a href="/?doc=cgv">CGV</a>
+    <a href="/?doc=privacy">Confidentialité</a>
+    <a href="/?doc=mentions">Mentions légales</a>
+  </footer>
+</body>
+</html>

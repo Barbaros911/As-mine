@@ -264,6 +264,12 @@ try {
     check('2 le visiteur est dit « estimation, comptée une fois par jour », les visites sont distinguées des pages vues', /comptés par jour/.test(zone) && /estimation, comptée une fois par jour/.test(zone) && /140 visites/.test(zone));
     check('2 la conversion est calculée sur les visiteurs : 8 / 127 = 6,3 %', /6,3 %/.test(zone));
     check('2 le funnel : 127 → 45 → 39 → 8', /Formulaire commencé\s*45 · 35 %/.test(zone.replace(/\n/g, ' ')) && /Prix demandé\s*39 · 31 %/.test(zone.replace(/\n/g, ' ')) && /Réservation envoyée\s*8 · 6,3 %/.test(zone.replace(/\n/g, ' ')));
+    /* L'entonnoir officiel va jusqu'à la course faite, dans l'ordre (18/10/2026). */
+    const etapesLues = await p.$$eval('.trf-funnel .trf-etape-lib', l => l.map(e => e.textContent.trim()));
+    check('2 l\'entonnoir officiel a ses sept étapes, dans l\'ordre, jusqu\'à « Réalisée »',
+      etapesLues.join('|') === 'Visiteurs|Formulaire commencé|Prix demandé|Prix affiché|Réservation envoyée|Confirmée|Réalisée', etapesLues.join(' → '));
+    check('2 l\'entonnoir porte le prix affiché, les confirmées et les réalisées : 35 → 5 → 2',
+      /Prix affiché\s*35 · 28 %/.test(zone.replace(/\n/g, ' ')) && /Confirmée\s*5 · 3,9 %/.test(zone.replace(/\n/g, ' ')) && /Réalisée\s*2 · 1,6 %/.test(zone.replace(/\n/g, ' ')));
     check('2 les courses confirmées et réalisées sont dites, d\'après les courses', /5 confirmée\(s\) et 2 réalisée\(s\)/.test(zone));
     check('2 les pages portent leur nom lisible, et une page inconnue son chemin',
       /CDG → Paris/.test(zone) && /Orly → Paris/.test(zone) && /Accueil/.test(zone) && /fr-nouvelle-page/.test(zone));
