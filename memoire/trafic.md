@@ -189,9 +189,47 @@ veut.
   attentes fixes qui couraient contre une réponse (« En direct » à 400 ms, les
   erreurs à 600 ms) attendent désormais l'état.
 
+## Une réservation n'est comptée que si la course existe (18/10/2026)
+
+Audit de la consolidation finale. **Le collecteur était juste** : la page
+n'envoie `demande_envoyee` qu'après le « oui » du serveur (`if(ok)`, deux
+chemins qui s'excluent — dépôt, ou une seule reprise). **La lecture ne
+l'était pas** : `trafic_agreger` comptait chaque `demande_envoyee` du journal
+sans regarder `courses`, alors que confirmées et réalisées y étaient déjà
+croisées. Le geste est déclaré par un navigateur, l'en-tête Origin se
+fabrique en une ligne de curl, et la référence n'est validée qu'en format :
+un geste inventé gonflait « Réservations », la courbe et tous les taux.
+Prouvé sur PostgreSQL : « 3 réservations au lieu de 2 ».
+- `20261018000000_trafic_reservations_serveur.sql` : même code, plus
+  `exists (… courses c where c.ref = l.ref)` sur les réservations et la
+  courbe. L'attribution (visite, page d'entrée, source) ne change pas.
+  **À appliquer en production après la fusion** (workflow des migrations).
+- **L'entonnoir officiel est unique** et va jusqu'au bout : Visiteurs →
+  Formulaire commencé → Prix demandé → Prix affiché → Réservation envoyée →
+  Confirmée → Réalisée. Les trois dernières sont des faits du serveur, les
+  quatre premières des gestes. Taux rapportés aux visiteurs, comme les tuiles.
+  Le formulaire vient AVANT le prix : sur ce site, on remplit les adresses
+  pour obtenir le prix, puis on confirme.
+- **Ce que les réservations du trafic ne sont PAS** : le nombre de demandes
+  du site. Une demande dont le geste s'est perdu (bloqueur, « Ne plus me
+  compter », réseau coupé au retour) est une course sans attribution. Le
+  compte exact des demandes est dans le registre ; le trafic dit d'où elles
+  viennent.
+- **La règle d'attribution**, écrite une fois (`classerSource`, fonction
+  `mesure`) : lien d'un partenaire (`?via=` reconnu par la base) > fiche
+  Google (`utm_medium`/`utm_campaign`/`utm_source` = `gbp`) > UTM (Google
+  payant = campagne, Google, WhatsApp, réseaux sociaux, sinon campagne) >
+  référent (Google, WhatsApp, réseaux, autres moteurs, autre site) > direct.
+  Elle vaut pour la VISITE (premier geste, 30 min de silence la ferment) :
+  une demande faite trois pages après l'arrivée depuis Google est à Google.
+  Les pages d'hôtel, la réception et l'admin ne mesurent rien : un client
+  d'hôtel s'attribue par la provenance de la course (registre).
+- `test-mesure.mjs` partie 4 bis : une demande REFUSÉE par le serveur
+  n'envoie aucun `demande_envoyee` (tombe si l'envoi part au clic).
+
 ## Les suites
 
-- `supabase/tests/trafic.sql` + `trafic-apres.sql` (vrai PostgreSQL, CI) :
+- `supabase/tests/trafic.sql` + `trafic-apres.sql` + `trafic-reservations.sql` (vrai PostgreSQL, CI) :
   droits, écriture et dédup par service_role, compteur d'origine incrémenté,
   attribution de la visite, clé du jour qui change, lecture admin / agent
   refusé / anonyme refusé, rétention. Quatre falsifications : elle tombe.

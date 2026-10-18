@@ -4693,6 +4693,5 @@ visible. Pas de Realtime.
   `detail` = 4 clés ; la référence, jointe aux courses à la lecture seulement.
 - Fiche Google = `utm_medium=gbp` sur son lien, sinon « google ». « Ne plus me
   compter » : politique de confidentialité, FR/EN.
-- Migration `20261015010000` **à appliquer à la main après** `20261015000000` ;
-  d'ici là la fonction repasse les gestes au compteur du 14/10. Rétention 90 j.
-- Menu en 5 colonnes, choix écartés : `memoire/trafic.md`.
+- **Une réservation ne compte que si sa course existe** (18/10, `20261018000000`) ;
+  entonnoir unique jusqu'à « Réalisée ». Rétention 90 j. `memoire/trafic.md`.
