@@ -528,3 +528,278 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .note-google{margin-top:8px;font-size:13px}
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:394px}
 }
+
+/* ═══ FINITION VISUELLE (19 octobre 2026) ════════════════════════════════════
+   À la demande de Barbaros : « plus premium, plus simple, plus crédible, plus
+   orienté réservation », SANS refonte. Rien ne change dans le HTML ni dans la
+   logique : mêmes textes, mêmes identifiants, même ordre des blocs. Ce bloc
+   pose trois choses, et rien d'autre :
+   1. UNE ÉCHELLE. Sur-titre 12 px, titre de section 26 px (32 sur
+      ordinateur), intertitre 17 px, texte 15 px, texte secondaire 14 px.
+      Avant : six titres de section au même poids que les intertitres des
+      cartes, et un sous-titre de bandeau à 12,5 px — le texte le plus petit
+      de l'écran, posé sur une photo.
+   2. UNE RECETTE DE CARTE. 16 px d'arrondi, un filet, une ombre douce ; les
+      grands blocs (« Inclus », l'encart pro) 20 px. Avant : 14, 15, 16, 17,
+      18 et 22 px, et trois ombres différentes.
+   3. DU RYTHME. 48 px entre deux sections sur téléphone, 80 sur ordinateur.
+   Le site public seulement (mêmes portées que le Bloc 3) : la page d'un
+   hôtel, la réception et l'admin ne voient rien passer.
+   test-public-finition.mjs mesure ces règles sur le site construit. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant){
+  --t-sur:12px; --t-h2:26px; --t-h3:17px; --t-corps:15px; --t-second:14px;
+  --c-titre:#0B2440; --c-texte:#253646; --c-second:#5A6A7B; --c-filet:#E1E8EF; --c-fond-doux:#F4F7FA;
+  --c-accent:#0E6FC7; --c-accent-encre:#0A4F91; --c-accent-clair:#E8F2FD;
+  --r-carte:16px; --r-bloc:20px; --r-ctrl:12px;
+  --o-carte:0 1px 2px rgba(6,47,85,.04),0 8px 24px rgba(6,47,85,.06);
+  --esp-section:48px;
+}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant){--t-h2:32px; --esp-section:80px;}
+}
+
+/* ---------- Le haut de l'écran ---------- */
+/* LA LIGNE DES SERVICES DEVIENT LE SUR-TITRE DU GRAND TITRE. En cyan gras sous
+   le sous-titre, elle se lisait comme quatre liens et ajoutait un quatrième
+   style de texte à la colonne. Au-dessus du titre, en petites capitales, elle
+   dit OÙ avant que le titre dise QUOI. Elle reste un seul élément, dans le
+   même ordre pour un lecteur d'écran (seul l'affichage la remonte). */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{
+  order:-1; margin:0 0 8px; font-size:var(--t-sur); line-height:16px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; color:#7FDCF6; white-space:nowrap;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{margin-top:0; margin-bottom:0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{
+  margin:12px 0 0; max-width:34em; font-size:15px; line-height:1.45; font-weight:500; color:rgba(255,255,255,.92);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-notes{
+  margin:12px 0 0; font-size:12.5px; line-height:18px; font-weight:500; color:rgba(255,255,255,.8);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .note-google{
+  margin:4px 0 0; font-size:12.5px; line-height:18px; font-weight:700;
+}
+/* TÉLÉPHONE : la note Google sous les horaires, comme avant, et sans déplacer
+   « Voir mon prix » — elle prend 22 px (18 + 4), repris sur la marge basse.
+   Le bandeau suit maintenant son contenu (plus de hauteur minimale) : c'est
+   ce qui rend la compensation exacte, et ce qui remonte le formulaire. */
+@media(max-width:899px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{min-height:0;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{padding-top:20px; padding-bottom:84px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:62px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google) .hero-notes{margin-top:12px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{max-width:none;}
+}
+@media(max-width:360px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{letter-spacing:.05em; font-size:11.5px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{font-size:14.5px;}
+}
+/* ORDINATEUR : les horaires et la note sur UNE ligne, séparés d'un point. La
+   note ne change donc plus la hauteur du bandeau : plus de compensation.
+   Une grille et non une rangée qui passe à la ligne : le titre et le
+   sous-titre ont une largeur maximale, et dans une rangée ils se posaient
+   côte à côte (vu au premier essai). */
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{display:grid; grid-template-columns:auto minmax(0,1fr); justify-items:start; align-content:center;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte > *{grid-column:1 / -1;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte > .hero-notes{grid-column:1;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte > .note-google{grid-column:2;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte > .hero-notes,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte > .note-google{margin-top:16px; font-size:13.5px; line-height:20px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .note-google::before{content:"·"; margin:0 10px; color:rgba(255,255,255,.5); font-weight:400;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-sous{font-size:17px; line-height:1.45;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-prix{font-size:12.5px; margin-bottom:14px;}
+}
+@media(min-width:900px) and (max-width:1099px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:96px;}
+}
+/* Au-delà de 1100 px : le titre gagne un cran, et la carte du formulaire se
+   pose 36 px sous la promesse au lieu de flotter 95 px plus bas — le bandeau
+   raccourcit d'autant, et « Voir mon prix » remonte dans l'écran d'un
+   portable. Son ombre ne déborde plus du bandeau sur le blanc de la page
+   (elle y faisait une tache grise sous la photo). */
+@media(min-width:1100px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte{align-content:flex-start; padding-top:48px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero h1{font-size:48px; line-height:1.04; letter-spacing:-.03em; margin-bottom:0;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero-texte:has(> .note-google){padding-bottom:340px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil.actif > .reserver{margin-bottom:48px;
+    box-shadow:0 12px 32px rgba(2,12,28,.32),inset 0 1px 0 rgba(255,255,255,.07);}
+}
+
+/* LE MOT AUX PROFESSIONNELS, SOUS LE FORMULAIRE : une ligne, plus une carte.
+   Le premier écran appartient au voyageur ; la carte à filet bleu se lisait
+   comme une seconde action à côté de « Voir mon prix ». Elle reste (le lien
+   vers /professionnels/ est le seul du premier écran sur téléphone, où il
+   n'y a pas de menu), mais à voix basse. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pro-bloc{
+  margin:14px 16px 0; padding:0; border:0; border-radius:0; background:none; text-align:center;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pro-lien{
+  display:inline-flex; flex-wrap:wrap; justify-content:center; gap:0 6px; align-items:center; min-height:44px;
+  font-size:13.5px; line-height:1.4; color:var(--c-second);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pro-lien b{font-weight:600; color:var(--c-second);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pro-lien span{color:var(--c-accent-encre); font-weight:700;}
+
+/* ---------- Les sections : une échelle, un rythme ---------- */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .section{padding-top:var(--esp-section);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .section > h2,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .services-tete h2,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .inclus > h2,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .modele-pro-h{
+  font-size:var(--t-h2); line-height:1.12; font-weight:800; letter-spacing:-.025em; color:var(--c-titre); margin:0 0 20px;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .inclus > h2{color:#fff; margin-bottom:12px;}
+/* Les sur-titres : un seul dessin, partout. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-sur,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-sur{
+  margin:0 0 8px; font-size:var(--t-sur); line-height:16px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-sur{color:var(--c-accent);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-sur{color:#7FDCF6;}
+
+/* COMMENT ÇA MARCHE : une frise, plus trois cartes. Trois boîtes pour trois
+   phrases, juste sous la boîte du formulaire et au-dessus de la boîte bleue
+   d'« Inclus », c'était une page de boîtes. Les chiffres reliés par un trait
+   disent « dans l'ordre » sans un mot de plus. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-intro{
+  max-width:62ch; margin:0 0 24px; font-size:var(--t-corps); line-height:1.6; color:var(--c-texte);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes{gap:0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes li{
+  position:relative; gap:14px; padding:0 0 22px; border:0; border-radius:0; background:none;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes li:last-child{padding-bottom:0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes li:not(:last-child)::before{
+  content:""; position:absolute; left:16px; top:38px; bottom:4px; width:2px; border-radius:2px; background:var(--c-filet);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-n{
+  width:34px; height:34px; font-size:15px; background:var(--c-accent-clair); color:var(--c-accent-encre); box-shadow:inset 0 0 0 1.5px rgba(14,111,199,.28);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes b{margin-top:6px; font-size:var(--t-h3); line-height:1.3; color:var(--c-titre);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes span[data-t]{margin-top:3px; font-size:var(--t-second); line-height:1.5; color:var(--c-second);}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes{gap:32px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes li{flex-direction:column; gap:10px; padding:0;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes li:not(:last-child)::before{left:46px; right:-24px; top:17px; bottom:auto; width:auto; height:2px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes b{margin-top:4px;}
+}
+
+/* INCLUS : le bloc plein garde sa place et son bleu ; il prend l'arrondi des
+   grands blocs et la même pastille que « Au-delà du trajet ». */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus{border-radius:var(--r-bloc); padding:26px 20px 12px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-l{gap:14px; padding:14px 0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-ic,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-icone{width:40px; height:40px; border-radius:var(--r-ctrl);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-ic svg *,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-icone svg *{stroke-width:1.75;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-l b{font-size:15.5px; line-height:1.3;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus-l span[data-t]{margin-top:2px; font-size:13.5px; line-height:1.45; color:#B4CBE0;}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .inclus{padding:36px 36px 34px; column-gap:32px;}
+}
+
+/* LES CARTES : une seule recette. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte{
+  border:1px solid var(--c-filet); border-radius:var(--r-carte); background:#fff; box-shadow:var(--o-carte);
+  transition:box-shadow .18s ease, border-color .18s ease, transform .18s ease;
+}
+@media(hover:hover){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:hover,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte:hover{
+    border-color:#C9D7E4; box-shadow:0 1px 2px rgba(6,47,85,.05),0 14px 32px rgba(6,47,85,.10); transform:translateY(-2px);
+  }
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service b,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte > b{color:var(--c-titre); font-weight:800;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service b{font-size:15px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service-corps > span:not(.service-icone){font-size:13px; line-height:1.4; color:var(--c-second);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte{padding:18px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte > b{font-size:var(--t-h3); line-height:1.3;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-texte{font-size:var(--t-second); line-height:1.5; color:var(--c-second);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-action{color:var(--c-accent-encre); font-size:14px;}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-cartes{gap:16px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte{padding:24px;}
+}
+
+/* L'ENCART DES PROFESSIONNELS : UN bouton. La démo et l'e-mail restent, en
+   liens : trois actions de même poids sous la question, c'était trois portes
+   pour une seule pièce — et un second bloc qui criait aussi fort que le
+   formulaire. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro{
+  display:flex; flex-direction:column; align-items:flex-start; padding:26px 20px; border-radius:var(--r-bloc);
+  background:var(--c-fond-doux); border:1px solid var(--c-filet);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .modele-pro-h{font-size:22px; margin-bottom:8px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro-s{margin:0 0 18px; font-size:var(--t-corps); line-height:1.55; color:var(--c-texte);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-offre{
+  align-self:stretch; margin:0; min-height:50px; padding:0 22px; border-radius:var(--r-ctrl); background:var(--ela-navy,#062f55); color:#fff; font-weight:700;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-offre::after{content:"→"; margin-left:8px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-cta,
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-mail{
+  display:inline-flex; align-items:center; min-height:44px; margin:6px 0 0; padding:0; border:0; border-radius:0; background:none;
+  font-size:14px; font-weight:700; color:var(--c-accent-encre); text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1px;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-mail{font-weight:600; color:var(--c-second);}
+@media(max-width:899px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro{flex-direction:row; flex-wrap:wrap; column-gap:22px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro > *{flex:0 0 100%;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro > .modele-cta,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro > .modele-mail{flex:0 0 auto; margin-top:8px;}
+}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:40px; row-gap:0; align-items:center; padding:36px 40px;
+  }
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) #ecran-accueil .modele-pro-h{grid-column:1; grid-row:1; font-size:28px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-pro-s{grid-column:1; grid-row:2; margin:0;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-offre{grid-column:2; grid-row:1; align-self:end;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-cta{grid-column:2; grid-row:2; justify-self:center; margin-top:8px;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-mail{grid-column:2; grid-row:3; justify-self:center;}
+}
+
+/* LES QUESTIONS : des filets, plus des boîtes. Une FAQ en cartes faisait une
+   quatrième famille de cadres ; séparées d'un trait, les questions se lisent
+   comme une liste, et le « + » suffit à dire qu'elles s'ouvrent. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq-q{
+  margin:0; border:0; border-bottom:1px solid var(--c-filet); border-radius:0; background:none;
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq > h2 + .faq-q{border-top:1px solid var(--c-filet);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq-q summary{
+  min-height:58px; padding:17px 44px 17px 2px; font-size:15.5px; font-weight:700; color:var(--c-titre);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq-q summary::after{right:6px; width:22px; height:22px; line-height:22px; text-align:center; transform:translateY(-55%); color:var(--c-accent); font-size:22px; font-weight:400;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq-q summary:focus-visible{outline-offset:-2px; border-radius:8px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .faq-q p{padding:0 44px 18px 2px; font-size:var(--t-second); line-height:1.6; color:var(--c-second);}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service,
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .plus-carte{transition:none; transform:none!important;}
+}
+
+/* LES CARTES DES SERVICES MÈNENT AU FORMULAIRE : une flèche le dit. Elles ont
+   toutes la hauteur de la plus longue (« Salons & expositions »), et sans elle
+   les autres finissaient sur un vide de 40 px. Une flèche, pas un mot : elle
+   n'a pas à être traduite. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service{display:flex; flex-direction:column;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service::after{content:""; display:block; flex:none; width:18px; height:18px; margin:auto 0 2px 13px;
+  background:var(--c-accent); -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%2012h14M13%206l6%206-6%206%22%2F%3E%3C%2Fsvg%3E") center/18px 18px no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%2012h14M13%206l6%206-6%206%22%2F%3E%3C%2Fsvg%3E") center/18px 18px no-repeat;
+  transition:transform .18s ease;}
+@media(hover:hover){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .service:hover::after{transform:translateX(3px);} }
+
+/* LE PIED : plus de vert. Le téléphone et l'e-mail étaient encore en
+   #17636A, le céladon d'avant le 4 octobre ; ils prennent l'encre des titres,
+   leurs dessins l'accent. Le filet du haut disparaît : la dernière question
+   en porte déjà un, juste au-dessus, et deux traits parallèles à 40 px l'un
+   de l'autre faisaient brouillon. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied{border-top:0; margin-top:40px;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied-tel{color:var(--c-titre); font-weight:700;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied-tel svg{color:var(--c-accent);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied-pages a{color:var(--c-accent-encre);}
+@media(min-width:900px){ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pied{border-top:1px solid var(--c-filet); margin-top:var(--esp-section);} }
