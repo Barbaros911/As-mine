@@ -9396,6 +9396,15 @@ window.ELA_TEXTES = {
   function dureeAnnoncee(min){
     return { bas:min + MARGE_DUREE_MIN, haut:min + MARGE_DUREE_MAX };
   }
+  /* AU-DELÀ D'UNE HEURE, EN HEURES (19 octobre 2026). Depuis que le prix se
+     calcule à toutes les distances, un Paris → Lyon s'affichait
+     « 284–289 min » : juste, et illisible. « 4 h 44–4 h 49 » se lit d'un
+     coup d'œil ; sous l'heure, rien ne change (« 50–55 min »). */
+  function fourchetteDuree(dv){
+    if(dv.haut < 60) return dv.bas + "–" + dv.haut + " " + T("min");
+    var h = function(m){ return m < 60 ? m + " " + T("min") : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"); };
+    return h(dv.bas) + "–" + h(dv.haut);
+  }
 
 
 /* =====================================================================
@@ -10077,7 +10086,7 @@ window.ELA_TEXTES = {
       var dv = dureeAnnoncee(r.min);
       document.getElementById("resumeMesure").textContent = r.manuel ? T("mesure_manuelle") :
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
-        + " km · " + dv.bas + "–" + dv.haut + " " + T("min")
+        + " km · " + fourchetteDuree(dv)
         + (r.trafic ? " · " + T("trafic") : "");
       dessinerGammes();
       var lignePeages = document.getElementById("resumePeages");

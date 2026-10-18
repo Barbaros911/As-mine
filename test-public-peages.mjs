@@ -135,6 +135,10 @@ try {
     check('péage vu : « Péages non compris » avant le choix du véhicule', l.vue && /^Péages non compris/.test(l.texte) && /lien de paiement/.test(l.texte), JSON.stringify(l));
     const prix = await p.locator('.veh-carte .veh-prix').allInnerTexts();
     check('péage vu : le prix du véhicule reste un vrai montant (220 km × 2,90 € = 640 €)', prix.some(t => /^640,00\s*€$/.test(t.trim())), prix.join(' | '));
+    /* 220 km rendus en 8 800 s (147 min, plus la marge de 5 à 10 min) :
+       la page parle en heures — « 2 h 32–2 h 37 », jamais « 152–157 min ». */
+    const mesure = await p.locator('#resumeMesure').innerText().catch(() => '');
+    check('au-delà d\'une heure, la durée se lit en heures', /2 h 32–2 h 37/.test(mesure) && !/152/.test(mesure), mesure);
     await jusquAuRecap(p);
     const total = await p.locator('#recapTotal').innerText().catch(() => '');
     check('péage vu : le total dit « 640,00 € + péages »', /640,00\s*€\s*\+ péages/.test(total), total);
