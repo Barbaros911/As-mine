@@ -10,8 +10,8 @@
      disent ici, `.github/scripts/seo-ela.mjs` le réécrit À L'IDENTIQUE dans
      le site construit : changer l'un sans l'autre fait diverger le dépôt et
      le site publié sans un mot. -->
-<title>Elatransfer — Transferts privés &amp; réservation pour partenaires</title>
-<meta name="description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
+<title>Elatransfer — Transferts aéroport et chauffeur privé à Paris</title>
+<meta name="description" content="Elatransfer organise vos transferts avec chauffeur entre Paris, Roissy-CDG, Orly, Beauvais, gares et hôtels. Prix annoncé à l’avance, réglé au chauffeur.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://elatransfer.com/">
 <!-- L'ANGLAIS A SA PROPRE ADRESSE (14 octobre 2026, SEO international) :
@@ -25,8 +25,8 @@
 <link rel="alternate" hreflang="en" href="https://elatransfer.com/en/">
 <link rel="alternate" hreflang="x-default" href="https://elatransfer.com/en/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Elatransfer — Transferts privés &amp; réservation pour partenaires">
-<meta property="og:description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
+<meta property="og:title" content="Elatransfer — Transferts aéroport et chauffeur privé à Paris">
+<meta property="og:description" content="Elatransfer organise vos transferts avec chauffeur entre Paris, Roissy-CDG, Orly, Beauvais, gares et hôtels. Prix annoncé à l’avance, réglé au chauffeur.">
 <meta property="og:site_name" content="Elatransfer">
 <meta property="og:url" content="https://elatransfer.com/">
 <meta property="og:locale" content="fr_FR">
@@ -36,8 +36,8 @@
      ferait avec le logo : décision de Barbaros, non prise à ce jour. -->
 <meta property="og:image" content="https://elatransfer.com/icon-180.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Elatransfer — Transferts privés &amp; réservation pour partenaires">
-<meta name="twitter:description" content="Transferts privés à Paris et aéroports, prix ferme. Hôtels, agences, entreprises : votre page client et espace réception, Elatransfer gère chaque transport.">
+<meta name="twitter:title" content="Elatransfer — Transferts aéroport et chauffeur privé à Paris">
+<meta name="twitter:description" content="Elatransfer organise vos transferts avec chauffeur entre Paris, Roissy-CDG, Orly, Beauvais, gares et hôtels. Prix annoncé à l’avance, réglé au chauffeur.">
 <meta name="geo.region" content="FR-IDF">
 <meta name="geo.placename" content="Paris">
 <meta name="theme-color" content="#16232B">
@@ -112,7 +112,7 @@
       "url": "https://elatransfer.com/",
       "logo": {"@type": "ImageObject", "url": "https://elatransfer.com/brand-logo.webp"},
       "image": "https://elatransfer.com/brand-logo.webp",
-      "description": "Elatransfer organise des transferts avec chauffeur à Paris et en Île-de-France (aéroports Roissy-Charles de Gaulle, Orly et Beauvais, gares, hôtels, événements) et crée pour les hôtels, agences et entreprises une page de réservation à leur nom et un espace réception, puis gère chaque transport. Prix ferme annoncé avant la réservation, réglé au chauffeur.",
+      "description": "Elatransfer organise des transferts avec chauffeur à Paris et en Île-de-France (aéroports Roissy-Charles de Gaulle, Orly et Beauvais, gares, hôtels, événements) et crée pour les hôtels, agences et entreprises une page de réservation à leur nom et un espace réception, puis gère chaque transport. Prix annoncé à l’avance, réglé au chauffeur.",
       "telephone": "+33759312433",
       "email": "contact@elatransfer.com",
       "areaServed": [
@@ -148,15 +148,6 @@
         {"@type": "Airport", "name": "Aéroport de Beauvais-Tillé", "iataCode": "BVA"},
         {"@type": "AdministrativeArea", "name": "Île-de-France"}
       ]
-    },
-    {
-      "@type": "Service",
-      "@id": "https://elatransfer.com/#partenaires",
-      "name": "Canal de réservation pour partenaires",
-      "serviceType": "Page de réservation au nom de l'établissement, espace réception, lien et QR code ; Elatransfer organise et suit chaque transport",
-      "provider": {"@id": "https://elatransfer.com/#organisation"},
-      "audience": {"@type": "BusinessAudience", "audienceType": "Hôtels, agences et entreprises"},
-      "areaServed": {"@type": "AdministrativeArea", "name": "Île-de-France"}
     }
   ]
 }
@@ -313,15 +304,6 @@ img{display:block;max-width:100%;}
 .hero-prix{margin:7px 0 0;font-size:14px;line-height:1.4;
   color:var(--accent-vif);font-weight:700;
   text-shadow:0 1px 10px rgba(0,0,0,.75);}
-/* Le bouton ne prend PAS toute la largeur : la carte « Réserver » en porte
-   déjà un, pleine largeur, seize pixels plus bas. Deux barres identiques
-   l'une sur l'autre se lisent comme un doublon ; un bouton d'affiche, calé à
-   gauche sous le titre, se lit comme une invitation. */
-.hero-cta{margin:19px 0 0;min-height:50px;padding:0 26px;
-  border:0;border-radius:14px;background:var(--accent);color:#fff;
-  font:inherit;font-size:15.5px;font-weight:800;letter-spacing:.01em;
-  cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.34);}
-.hero-cta:active{transform:translateY(1px);}
 .hero-notes{margin:11px 0 0;font-size:12.5px;line-height:1.4;
   color:rgba(255,255,255,.8);
   text-shadow:0 1px 8px rgba(0,0,0,.7);}
@@ -2275,25 +2257,24 @@ body.espace #panneauProvenance{display:none;}
 .modele-etapes span[data-t]{display:block;font-size:13.5px;line-height:1.4;color:var(--gris,#5A6A7B);}
 .modele-pro{margin-top:14px;border-radius:18px;padding:18px 16px;background:var(--accent-clair,#E8F2FD);}
 .modele-pro:first-child{margin-top:0;}
-.modele-pro-t{margin:0;font-weight:800;font-size:17px;color:var(--accent-encre,#0A4F91);}
-.modele-pro-h{margin:6px 0 8px;font-size:21px;line-height:1.2;font-weight:800;color:var(--encre,#151C22);}
-.modele-pro-s{margin:4px 0 10px;font-size:14px;color:var(--encre,#151C22);}
-.modele-pro-promesse{margin:2px 0 12px;font-size:15px;font-weight:800;color:var(--accent-encre,#0A4F91);}
+.modele-pro-h{margin:0 0 6px;font-size:21px;line-height:1.2;font-weight:800;color:var(--encre,#151C22);}
+.modele-pro-s{margin:0 0 14px;font-size:14px;color:var(--encre,#151C22);}
 .modele-mail{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:4px;
   font-size:14px;font-weight:700;color:var(--accent-encre,#0A4F91);text-decoration:underline;}
-.modele-pro ul{margin:0 0 14px;padding:0;list-style:none;}
-.modele-pro li{position:relative;padding:6px 0 6px 24px;font-size:14px;color:var(--encre,#151C22);}
-.modele-pro li::before{content:"";position:absolute;left:2px;top:10px;width:12px;height:7px;
-  border-left:2.2px solid var(--accent,#0E6FC7);border-bottom:2.2px solid var(--accent,#0E6FC7);transform:rotate(-45deg);}
-.modele-cta{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:12px;
-  background:var(--ela-navy,#16232B);color:#fff;font-weight:700;font-size:15px;text-decoration:none;}
+/* L'offre d'abord, en plein ; la démo en contour : deux boutons pleins l'un
+   sous l'autre se disputeraient le doigt. */
+.modele-offre,.modele-cta{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:12px;
+  font-weight:700;font-size:15px;text-decoration:none;}
+.modele-offre{margin-bottom:10px;background:var(--ela-navy,#16232B);color:#fff;}
+.modele-cta{border:1.5px solid var(--ela-navy,#16232B);color:var(--ela-navy,#16232B);}
 @media (min-width:900px){
   .modele-etapes{grid-template-columns:repeat(3,1fr);}
   .modele-intro{max-width:760px;}
-  .modele-pro{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;padding:24px 28px;}
-  .modele-pro > :not(ul){grid-column:1;} .modele-pro ul{grid-column:2;grid-row:1/9;margin:0;}
-  .modele-pro-h{font-size:26px;}
-  .modele-cta{align-self:start;max-width:320px;} .modele-mail{justify-content:flex-start;}
+  .modele-pro{display:grid;grid-template-columns:minmax(0,1fr) 300px;column-gap:28px;align-items:center;padding:24px 28px;}
+  .modele-pro-h{grid-column:1;grid-row:1;font-size:26px;}
+  .modele-pro-s{grid-column:1;grid-row:2;margin:0;}
+  .modele-offre{grid-column:2;grid-row:1;} .modele-cta{grid-column:2;grid-row:2;}
+  .modele-mail{grid-column:2;grid-row:3;}
 }
 body.hotel .modele{display:none;}
 /* AU-DELÀ DU TRAJET — des cartes à pictogramme, pas à photo : on ne pose
@@ -2584,7 +2565,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          « href » : sans script, ils descendent quand même au bloc. -->
     <nav class="entete-nav" aria-label="Navigation principale" data-t-aria="nav_aria">
       <a class="entete-lien" href="#services" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="services" data-t="nav_services">Services</a>
-      <a class="entete-lien" href="#modele" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="modele" data-t="nav_pros">Professionnels</a>
+      <a class="entete-lien" href="/professionnels/" data-t="nav_pros">Professionnels</a>
       <a class="entete-lien" href="#questions" data-ecran="ecran-accueil" data-onglet="accueil" data-defiler="questions" data-t="nav_questions">Questions</a>
       <details class="entete-menu" data-onglets="courses trajets">
         <summary class="entete-lien" data-t="nav_mes_courses">Mes courses</summary>
@@ -2805,14 +2786,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="hero-image"></div>
     <div class="hero-texte">
       <h1 data-t-html="hero_titre">Transferts avec chauffeur, organisés de A à Z.</h1>
-      <p class="hero-sous" data-t="hero_sous">Hôtels, agences, entreprises : une page de réservation à votre nom, un QR code, et nous gérons le reste.</p>
+      <p class="hero-sous" data-t="hero_sous">Roissy-CDG, Orly et Beauvais : prix annoncé à l'avance, chauffeur confirmé par Elatransfer.</p>
       <p class="hero-prix" data-t="hero_prix">Aéroports · Gares · Hôtels · Salons</p>
-      <!-- LE BOUTON DESCEND AU FORMULAIRE ET POSE LE CURSEUR DANS LE DÉPART.
-           Sans lui, un bandeau plus haut ne ferait que repousser le
-           formulaire hors du premier écran : l'accroche coûterait le geste
-           qu'elle est censée provoquer. -->
-      <button class="hero-cta" type="button" id="btnHeroReserver"
-              data-t="hero_cta">Réserver mon trajet</button>
+      <!-- PLUS DE BOUTON « RÉSERVER MON TRAJET » ICI (18 octobre 2026, à la
+           demande de Barbaros). Il ne faisait que descendre au formulaire,
+           qui commence 65 px plus bas, et ses 111 px poussaient « Voir mon
+           prix » sous la barre du bas à 360 × 740. Le premier geste est le
+           champ de départ, déjà à l'écran. -->
       <p class="hero-notes" data-t="hero_notes">Réservation 24 h/24 · Assistance 5 h–22 h</p>
     </div>
   </section>
@@ -3196,9 +3176,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        un hôtel ou une agence qui fait défiler le lit tout de suite.
        DEPUIS LE 5 OCTOBRE 2026 CE N'EST PLUS QU'UNE LIGNE qui descend à
        l'encart des professionnels (#modele) : le pavé de 70 mots qui était
-       ici a été retiré à sa demande, son contenu vit là-bas, structuré. -->
+       ici a été retiré à sa demande, son contenu vit là-bas, structuré.
+       DEPUIS LE 18 OCTOBRE 2026 ELLE MÈNE DROIT À /professionnels/ : l'encart
+       n'est plus qu'une passerelle, et descendre jusqu'à lui ferait un détour. -->
   <div class="pro-bloc">
-    <a href="#modele" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrir l'offre professionnels</span></a>
+    <a href="/professionnels/" class="pro-lien"><b data-t="pro_lien_t">Hôtel, agence, entreprise ?</b> <span data-t="pro_lien_s">Découvrir l'offre professionnels</span></a>
   </div>
 
   <!-- COMMENT ÇA MARCHE, JUSTE SOUS LE FORMULAIRE (6 octobre 2026, à sa
@@ -3413,23 +3395,18 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        transporte. Aucune promesse qui ne soit vraie aujourd'hui.
        DEPUIS LE 6 OCTOBRE 2026 NE RESTE ICI QUE L'ENCART DES PROFESSIONNELS :
        le titre, le modèle et ses trois étapes sont montés sous le formulaire
-       (#comment). « Professionnels » du menu et la ligne sous le formulaire
-       mènent donc ici, à ce qui leur parle. -->
+       (#comment). Le menu « Professionnels » et la ligne sous le formulaire
+       mènent, depuis le 18 octobre 2026, directement à /professionnels/. -->
   <section class="section modele" id="modele">
+    <!-- UNE PASSERELLE, PLUS UN ARGUMENTAIRE (18 octobre 2026, à la demande de
+         Barbaros) : l'accueil parle au voyageur, l'offre se lit sur
+         /professionnels/. Le bloc faisait 665 px à 390 px de large. Restent la
+         question, une phrase, la porte vers l'offre, la démo (que la session
+         d'un prospect ouvre directement) et l'e-mail. -->
     <div class="modele-pro">
-      <p class="modele-pro-t" data-t="modele_pro_t">Hôtels · Agences · Entreprises</p>
-      <h2 class="modele-pro-h" data-t="modele_pro_h">Proposez des transferts à vos clients, sans rien organiser vous-même.</h2>
-      <p class="modele-pro-s" data-t="modele_pro_s">Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace réception où votre équipe réserve pour eux et suit chaque course.</p>
-      <p class="modele-pro-s" data-t="modele_pro_s2">Ensuite nous prenons le relais : vérification, chauffeur, confirmation au client et suivi jusqu'à la réalisation du trajet.</p>
-      <p class="modele-pro-promesse" data-t="modele_pro_promesse">Votre réception réserve. Elatransfer gère tout le reste.</p>
-      <ul>
-        <li data-t="modele_p1">Page à votre nom</li>
-        <li data-t="modele_p3">Espace réception</li>
-        <li data-t="modele_p2">Lien et QR code</li>
-        <li data-t="modele_p5">Organisation complète des trajets</li>
-        <li data-t="modele_p0">Mise en place gratuite</li>
-        <li data-t="modele_p4">Tarifs négociés pour votre établissement</li>
-      </ul>
+      <h2 class="modele-pro-h" data-t="modele_pro_h">Vous êtes un hôtel, une agence ou une entreprise ?</h2>
+      <p class="modele-pro-s" data-t="modele_pro_s">Proposez nos transferts à vos clients, sans rien organiser vous-même.</p>
+      <a class="modele-offre" href="/professionnels/" data-t="modele_offre">Découvrir l'offre professionnels</a>
       <a class="modele-cta" href="/professionnels/#demo" data-t="modele_cta">Voir la démo hôtel</a>
       <a class="modele-mail" href="mailto:contact@elatransfer.com">contact@elatransfer.com</a>
     </div>
@@ -4508,7 +4485,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <p class="affiche-titre">Votre chauffeur privé</p>
           <div class="affiche-qr" id="afficheQr"></div>
           <p class="affiche-hotel" id="afficheNom">Votre hôtel</p>
-          <p class="affiche-mode">Scannez · Réservez en 2 minutes · Prix ferme</p>
+          <p class="affiche-mode">Scannez · Réservez · Prix annoncé à l'avance</p>
           <p class="affiche-tel">+33 7 59 31 24 33</p>
         </div>
         <p class="bloc-note" id="afficheLien"></p>
@@ -6228,9 +6205,8 @@ window.ELA_TEXTES = {
   fr:{
     langue_aria:"Langue", sugg_depart:"Suggestions de départ", sugg_arrivee:"Suggestions d'arrivée",
     hero_titre:"Transferts avec chauffeur, organisés de A à Z.",
-    hero_sous:"Hôtels, agences, entreprises : une page de réservation à votre nom, un QR code, et nous gérons le reste.",
+    hero_sous:"Roissy-CDG, Orly et Beauvais : prix annoncé à l'avance, chauffeur confirmé par Elatransfer.",
     hero_prix:"Aéroports · Gares · Hôtels · Salons",
-    hero_cta:"Réserver mon trajet",
     hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
     longue_titre:"Trajet longue distance",
     longue_note:"Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
@@ -6326,15 +6302,10 @@ window.ELA_TEXTES = {
     modele_e1:"Vous demandez", modele_e1s:"En ligne, au comptoir de votre hôtel ou par téléphone.",
     modele_e2:"Nous confirmons", modele_e2s:"Votre demande est vérifiée, puis confirmée par appel ou message, selon votre choix, avec le nom de votre chauffeur.",
     modele_e3:"Votre chauffeur vous conduit", modele_e3s:"À l'heure convenue, au prix annoncé, payé à l'avance par lien.",
-    modele_pro_t:"Hôtels · Agences · Entreprises",
-    modele_pro_h:"Proposez des transferts à vos clients, sans rien organiser vous-même.",
-    modele_pro_s:"Elatransfer crée pour votre établissement une page à votre nom et à vos couleurs, que vos clients ouvrent par un lien ou un QR code, et un espace réception où votre équipe réserve pour eux et suit chaque course.",
-    modele_pro_s2:"Ensuite nous prenons le relais : vérification, chauffeur, confirmation au client et suivi jusqu'à la réalisation du trajet.",
-    modele_pro_promesse:"Votre réception réserve. Elatransfer gère tout le reste.",
-    modele_p0:"Mise en place gratuite", modele_p1:"Page à votre nom",
-    contact_mail_t:"E-mail · devis et partenariats", modele_p2:"Lien et QR code",
-    modele_p3:"Espace réception", modele_p4:"Tarifs négociés pour votre établissement",
-    modele_p5:"Organisation complète des trajets",
+    modele_pro_h:"Vous êtes un hôtel, une agence ou une entreprise ?",
+    modele_pro_s:"Proposez nos transferts à vos clients, sans rien organiser vous-même.",
+    modele_offre:"Découvrir l'offre professionnels",
+    contact_mail_t:"E-mail · devis et partenariats",
     modele_cta:"Voir la démo hôtel",
     tva_note:"Prix TTC, TVA 10 % incluse. Annoncé à l'avance : il n'est pas recalculé à l'arrivée.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
@@ -6468,9 +6439,8 @@ window.ELA_TEXTES = {
   en:{
     langue_aria:"Language", sugg_depart:"Pick-up suggestions", sugg_arrivee:"Drop-off suggestions",
     hero_titre:"Chauffeur transfers, organised end to end.",
-    hero_sous:"Hotels, agencies, businesses: your own booking page and QR code, and we handle the rest.",
+    hero_sous:"Roissy-CDG, Orly and Beauvais: price agreed in advance, chauffeur confirmed by Elatransfer.",
     hero_prix:"Airports · Stations · Hotels · Trade fairs",
-    hero_cta:"Book my ride",
     hero_notes:"Book 24/7 · Support 5 am–10 pm",
     longue_titre:"Long-distance journey",
     longue_note:"You can send your request: Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
@@ -6557,15 +6527,10 @@ window.ELA_TEXTES = {
     modele_e1:"You request", modele_e1s:"Online, at your hotel's front desk or by phone.",
     modele_e2:"We confirm", modele_e2s:"Your request is checked, then confirmed by call or message — your choice — with your chauffeur's name.",
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the agreed time and the quoted price, paid in advance by link.",
-    modele_pro_t:"Hotels · Agencies · Businesses",
-    modele_pro_h:"Offer your guests chauffeur transfers, without organising anything yourself.",
-    modele_pro_s:"Elatransfer sets up a booking page with your name and colours, which your guests open from a link or QR code, and a front-desk space where your team books for them and follows every ride.",
-    modele_pro_s2:"From there, we take over: checking the request, assigning the chauffeur, confirming with the guest and following the journey through to completion.",
-    modele_pro_promesse:"Your front desk books. Elatransfer takes care of everything else.",
-    modele_p0:"Free set-up", modele_p1:"Your own booking page",
-    contact_mail_t:"Email · quotes and partnerships", modele_p2:"Link and QR code",
-    modele_p3:"Front-desk space", modele_p4:"Negotiated rates for your establishment",
-    modele_p5:"Full transport handling",
+    modele_pro_h:"Are you a hotel, an agency or a business?",
+    modele_pro_s:"Offer our transfers to your guests, without organising anything yourself.",
+    modele_offre:"See what we offer businesses",
+    contact_mail_t:"Email · quotes and partnerships",
     modele_cta:"See the hotel demo",
     tva_note:"Prices include 10% VAT. Agreed in advance: it is not recalculated on arrival.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
@@ -9987,28 +9952,6 @@ window.ELA_TEXTES = {
      l'a laissé une heure plus tôt. */
   document.addEventListener("visibilitychange", function(){
     if(!document.hidden){ poserDefautHeure(); jugerDelai(); }
-  });
-
-  /* ═══ LE BOUTON DU BANDEAU MÈNE AU FORMULAIRE, IL NE RÉSERVE RIEN ═══
-     Il n'y a rien à réserver tant qu'on ne sait pas d'où à où : ce bouton
-     descend à la carte « Réserver » et pose le curseur dans le champ de
-     départ, c'est-à-dire exactement le geste suivant.
-     LE DÉFILEMENT EST « smooth » ET LE FOCUS ARRIVE APRÈS. Poser le focus
-     d'abord ferait sauter la page d'un coup — le navigateur amène de force
-     un champ focalisé à l'écran, et l'animation qu'on vient de lancer n'a
-     plus lieu. 380 ms est la durée du défilement natif ; le focus arrivé
-     trop tôt annule le mouvement, arrivé trop tard laisse un temps mort où
-     le client appuie une deuxième fois.
-     On ne remplit rien et on ne devine rien : la liste d'adresses ne
-     s'ouvre que sur une saisie. */
-  var heroCta = document.getElementById("btnHeroReserver");
-  if(heroCta) heroCta.addEventListener("click", function(){
-    var carte = document.querySelector(".reserver");
-    if(carte && carte.scrollIntoView) carte.scrollIntoView({ behavior:"smooth", block:"start" });
-    setTimeout(function(){
-      var depart = document.getElementById("depart");
-      if(depart) depart.focus();
-    }, 380);
   });
 
   /* ═══ LE MÊME CHEMIN, DEUX SORTIES ═══

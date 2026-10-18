@@ -94,3 +94,68 @@ où le sujet revient :
   trop longue (245 car.) et sans voyageur pour l'accueil.
 - Le contrôle de `test-nouveau-bascule` exige « transfert » dans le titre :
   à adapter (« dit le métier ») si le titre change un jour.
+
+## 18 octobre 2026 — l'accueil rendu aux voyageurs
+
+Audit de l'architecture commerciale du site public, demandé par Barbaros
+(« une marque, Particuliers / Elatransfer Pro ? »). Le rapport a recommandé une
+marque, deux espaces, **sans sélecteur** en tête de site et **sans
+« Elatransfer Pro »** tant qu'aucun compte pro n'existe : le voyageur d'affaires
+se croirait « pro » et tomberait sur une page sans moteur, et les prospects
+pros arrivent par démarchage (fiche, WhatsApp, visite), pas par l'accueil.
+
+Ses réponses : sous-titre avec la zone, titre et description Google recentrés
+sur le voyageur, et « Professionnels » gardé — « ton avis expert » ; bouton
+« Réserver mon trajet » du bandeau retiré — « oui » ; « votre logo » remplacé
+par « nous la personnalisons nous-mêmes ». Notes données, actuel → proposé :
+titre de l'accueil 4 → 8, description 4 → 8, sous-titre 3 → 8.
+
+- **Le sous-titre ne répète pas la ligne d'en dessous** : la première version
+  (« …, gares et hôtels : … ») doublait « Aéroports · Gares · Hôtels · Salons ».
+  Il ne nomme plus que Roissy-CDG, Orly et Beauvais.
+- **Mesuré sur le site construit** : sans le bouton (111 px avec ses marges),
+  « Voir mon prix » passe de 695–751 à 612–668. Il tient entier à 360 × 740
+  (barre à 678) et sur tous les formats courants ; à 375 × 667 (iPhone SE et 8)
+  il reste sous la barre, à 7 px près — caché, jamais coupé.
+- **Le bloc pro de l'accueil passe de 665 à 331 px** (390 px de large).
+- **Piège attrapé avant la CI** : `test-nouveau-bascule` lit la description
+  publiée avec `[^"']*` ; une apostrophe droite la coupait (« … à l »). Les
+  descriptions prennent l'apostrophe typographique, comme les pages aéroport.
+- La section de `CLAUDE.md` qu'elle remplace, telle qu'elle était :
+
+> ## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
+>
+> Bloc 1 (6/10/2026) puis audit éditorial (8/10), chaque point tranché par
+> Barbaros. Elatransfer organise des transferts avec chauffeur (B2C) ET crée
+> pour chaque partenaire sa page de réservation, son QR code et son espace
+> réception, puis gère chaque transport (B2B). Histoire et variantes écartées :
+> `memoire/textes-publics.md` ; ancien emplacement du bloc pro :
+> `memoire/accueil-pro.md`.
+> - **Le grand titre dit le métier** (« Transferts avec chauffeur, organisés de
+>   A à Z. »), le sous-titre parle aux pros. **Aucun lieu dans l'un ni l'autre**
+>   (« il ne faut pas se fixer en France ») ; les lieux restent dans ce qui
+>   décrit le service. Ni « Europe » ni « monde » : le prix en ligne s'arrête à
+>   90 km.
+> - **Jamais « solution », « mobilité », « plateforme », « conciergerie »,
+>   « canal »** sur une page publique : on nomme ce qu'on crée et ce qu'on fait
+>   après. « Suivi » = humain, jamais « temps réel ».
+> - **« Prix ferme » ne vend plus** : « Prix annoncé à l'avance ». « Ferme »
+>   reste au contrat : étiquette du bon confirmé, phrase avant « Confirmer »,
+>   CGV. **Rien sous le logo.**
+> - Le chauffeur est « professionnel indépendant, sous sa propre carte
+>   professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni
+>   « VTC » côté client, et aucun contrôle de papiers promis. La confirmation
+>   part par le moyen choisi par le client, jamais « WhatsApp ou SMS ».
+> - **Le premier écran reste au client qui réserve** : une ligne (`.pro-bloc`)
+>   mène à `#modele` ; ordre de l'accueil verrouillé (`test-public-ordinateur`) ;
+>   sous-titre ≤ 125 caractères, services sur une ligne à 390 px.
+> - « Mise en place gratuite » est vraie (confirmé le 8/10) : la retirer le jour
+>   où un hôtel paie. Aucun client cité, aucun chiffre, aucun délai promis.
+> - **LA FICHE GOOGLE N'A PAS ÉTÉ TOUCHÉE** (à sa demande, 8/10) : titre et
+>   description disent encore « Transferts privés » et « prix ferme ». Ils
+>   vivent à DEUX endroits (`index.html`, `seo-ela.mjs`), identiques.
+> - `contact@elatransfer.com` : pied, bloc pro, « Nous joindre ». Promesse B2B :
+>   « Votre réception réserve. Elatransfer gère tout le reste. »
+> - `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
+>   code d'avant).
+

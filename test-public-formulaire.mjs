@@ -284,11 +284,13 @@ for (const [w, h] of [[390, 844], [1440, 900]]) {
   await p.context().close();
 }
 
-// ── 7. Un seul bouton principal : « Réserver mon trajet » passe en contour.
+// ── 7. Un seul bouton principal : le bandeau n'en porte plus aucun (18 octobre
+//    2026, Barbaros). « Réserver mon trajet » ne faisait que descendre au
+//    formulaire, et poussait « Voir mon prix » sous la barre à 360 × 740.
 {
   const p = await ouvrir(390, 844);
-  const s = await p.evaluate(() => { const c = getComputedStyle(document.getElementById('btnHeroReserver')); return { image: c.backgroundImage, bord: c.borderTopWidth }; });
-  check('« Réserver mon trajet » n\'est plus un bouton plein', s.image === 'none' && parseFloat(s.bord) >= 1, JSON.stringify(s));
+  const n = await p.evaluate(() => document.querySelectorAll('.hero button, .hero a.bouton, #btnHeroReserver').length);
+  check('le bandeau ne porte plus de bouton : « Voir mon prix » est le seul bouton principal', n === 0, n + ' bouton(s)');
   await p.context().close();
 }
 

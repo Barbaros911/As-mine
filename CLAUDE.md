@@ -210,10 +210,10 @@ l'application** gardent le reste.
 et le taux de commission se règle désormais **par chauffeur**, dans le
 carnet — il n'y a plus de taux global à trancher dans le code.
 
-**Le Programme Partenaire hôtels est arrêté (14/10/2026), en attente du
-SIRET** : trois niveaux, zéro frais, rémunération en € par transfert réalisé
-et payé, Elatransfer garde ≥ 50 % de sa commission et ≥ 4,50 €. Rien n'est
-affiché, promis ni codé avant le SIRET : `memoire/programme-partenaire.md`.
+**Le Programme Partenaire est annoncé, sans montant (18/10/2026, sans SIRET,
+sa décision)** : « Devenez partenaire » sur `/professionnels/`, « rémunéré sur
+chaque transfert réalisé », jamais « commission » ni « gagnez ». La grille (en €,
+≥ 50 % et ≥ 4,50 € gardés) se remet en rendez-vous : `memoire/programme-partenaire.md`.
 
 **Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
 point bloquant** · volume visé · budget.
@@ -4504,41 +4504,31 @@ titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
   `memoire/seo-indexation.md`. `www` ne répond pas (DNS, à Barbaros).
 - Histoire : `memoire/marque-et-referencement.md`.
 
-## LE POSITIONNEMENT — DEUX ACTIVITÉS, UN SEUL SITE
+## LE POSITIONNEMENT — UNE MARQUE, DEUX ESPACES
 
-Bloc 1 (6/10/2026) puis audit éditorial (8/10), chaque point tranché par
-Barbaros. Elatransfer organise des transferts avec chauffeur (B2C) ET crée
-pour chaque partenaire sa page de réservation, son QR code et son espace
-réception, puis gère chaque transport (B2B). Histoire et variantes écartées :
-`memoire/textes-publics.md` ; ancien emplacement du bloc pro :
+Elatransfer organise des transferts avec chauffeur (B2C) et crée pour chaque
+partenaire sa page, son QR code et son espace réception (B2B). **Depuis le
+18/10/2026 l'accueil est aux voyageurs, l'offre pro vit sur `/professionnels/`**
+(audit du 18/10, ses décisions). Histoire : `memoire/textes-publics.md`,
 `memoire/accueil-pro.md`.
-- **Le grand titre dit le métier** (« Transferts avec chauffeur, organisés de
-  A à Z. »), le sous-titre parle aux pros. **Aucun lieu dans l'un ni l'autre**
-  (« il ne faut pas se fixer en France ») ; les lieux restent dans ce qui
-  décrit le service. Ni « Europe » ni « monde » : le prix en ligne s'arrête à
-  90 km.
+- **Le grand titre dit le métier, sans lieu** ; le sous-titre parle au voyageur
+  et nomme les aéroports. Ni « Europe » ni « monde ».
 - **Jamais « solution », « mobilité », « plateforme », « conciergerie »,
-  « canal »** sur une page publique : on nomme ce qu'on crée et ce qu'on fait
-  après. « Suivi » = humain, jamais « temps réel ».
-- **« Prix ferme » ne vend plus** : « Prix annoncé à l'avance ». « Ferme »
-  reste au contrat : étiquette du bon confirmé, phrase avant « Confirmer »,
-  CGV. **Rien sous le logo.**
+  « canal »** ; « suivi » = humain. **« Prix annoncé à l'avance » pour vendre** ;
+  « ferme » reste au contrat (bon confirmé, « Confirmer », CGV). Rien sous le logo.
 - Le chauffeur est « professionnel indépendant, sous sa propre carte
-  professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni
-  « VTC » côté client, et aucun contrôle de papiers promis. La confirmation
-  part par le moyen choisi par le client, jamais « WhatsApp ou SMS ».
-- **Le premier écran reste au client qui réserve** : une ligne (`.pro-bloc`)
-  mène à `#modele` ; ordre de l'accueil verrouillé (`test-public-ordinateur`) ;
-  sous-titre ≤ 125 caractères, services sur une ligne à 390 px.
-- « Mise en place gratuite » est vraie (confirmé le 8/10) : la retirer le jour
-  où un hôtel paie. Aucun client cité, aucun chiffre, aucun délai promis.
-- **LA FICHE GOOGLE N'A PAS ÉTÉ TOUCHÉE** (à sa demande, 8/10) : titre et
-  description disent encore « Transferts privés » et « prix ferme ». Ils
-  vivent à DEUX endroits (`index.html`, `seo-ela.mjs`), identiques.
-- `contact@elatransfer.com` : pied, bloc pro, « Nous joindre ». Promesse B2B :
-  « Votre réception réserve. Elatransfer gère tout le reste. »
-- `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
-  code d'avant).
+  professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni « VTC »,
+  aucun contrôle de papiers promis, jamais « WhatsApp ou SMS ».
+- **Accueil** : aucun bouton dans le bandeau ; le menu « Professionnels » et la
+  ligne `.pro-bloc` mènent à `/professionnels/` ; `#modele` n'est qu'une
+  passerelle. Ni sélecteur « Particuliers | Pro », ni « Elatransfer Pro » tant
+  qu'aucun compte pro n'existe.
+- **Titre et description Google de l'accueil** : dans `index.html` ET
+  `seo-ela.mjs`, identiques, sans apostrophe droite (le test les coupe là).
+- « Mise en place gratuite » est vraie : la retirer le jour où un hôtel paie.
+  Aucun client cité, aucun chiffre promis. `contact@elatransfer.com` : pied,
+  bloc pro, « Nous joindre ».
+- `test-public-textes.mjs` verrouille ces règles.
 
 ## LE MOTEUR DE RECHERCHE DE LIEUX — FAIRE ÉVOLUER, PAS REFAIRE
 
@@ -4615,8 +4605,8 @@ Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fai
 Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.
 
 ## LE FORMULAIRE PUBLIC — BLEU NUIT, UN SEUL BOUTON PRINCIPAL (Bloc 3)
-7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), « Réserver mon trajet » en contour, deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
-Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. L'en-tête est bleu nuit avec la VERSION NÉGATIVE du logo (`brand-logo-negatif.webp`, lettres blanches, courbe cyan, sa décision) posée par `publicEla()` : l'original y disparaît (1,1:1), le cartouche blanc a été refusé ; les espaces à en-tête clair gardent l'original. Budget : bouton ≤ 751 et rassurance ≤ 779 à 390×844 (barre à 782). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
+7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), aucun bouton dans le bandeau (18/10), deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
+Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. L'en-tête est bleu nuit avec la VERSION NÉGATIVE du logo (`brand-logo-negatif.webp`, lettres blanches, courbe cyan, sa décision) posée par `publicEla()` : l'original y disparaît (1,1:1), le cartouche blanc a été refusé ; les espaces à en-tête clair gardent l'original. Budget : « Voir mon prix » entier au-dessus de la barre à 390×844 et 360×740 (612–668 le 18/10). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
 Histoire, mesures, pièges : `memoire/formulaire-public.md`.
 
 ## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)
