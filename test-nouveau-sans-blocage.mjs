@@ -66,7 +66,11 @@ async function client() {
       const k = Object.keys(LIEUX).find(k => q.includes(k.slice(0, 5)));
       return route.fulfill(J({ features: k ? [LIEUX[k]] : [] }));
     }
-    if (d.includes('photon.komoot.io')) return route.fulfill(J({ features: [] }));
+    /* L'ÉTRANGER ne vient que de Photon (la BAN ne couvre que la France) :
+       Bruxelles y porte son pays, comme la vraie réponse. */
+    if (d.includes('photon.komoot.io')) return route.fulfill(J({ features: d.includes('q=bruxel') ? [
+      { geometry:{ coordinates:[4.3517,50.8503] }, properties:{ name:'Bruxelles', countrycode:'BE', country:'Belgique', osm_key:'place', osm_value:'city', type:'city' } }
+    ] : [] }));
     if (d.includes('router.project-osrm.org')) return route.fulfill(J({ routes:[{ distance:24300, duration:2040 }] }));
     if (u.includes('supabase.co') && req.method() === 'POST') {
       let c = {}; try { c = JSON.parse(req.postData() || '{}'); } catch {}
@@ -105,24 +109,63 @@ const prixVeh = p => p.locator('.veh-carte .veh-prix').allInnerTexts().catch(() 
 const demain = () => new Date(Date.now() + 864e5).toLocaleString('sv-SE', { timeZone:'Europe/Paris' }).slice(0, 10);
 
 try {
-  /* 1. LONGUE DISTANCE : Paris → Lille. */
+  /* 1. LONGUE DISTANCE EN FRANCE : Paris → Lille A UN PRIX (19/10/2026, B2,
+     décision de Barbaros : le prix se calcule à toutes les distances, péages
+     en plus). Le faux OSRM ne dit rien des péages et Lille est à plus de
+     90 km : la page doit dire « péages éventuels non compris ». */
   {
     const { ctx, p, depots } = await client();
     await adresse(p, 'depart', 'vendome', 'Vendôme');
     await adresse(p, 'arrivee', 'lille', 'Lille');
     await p.fill('#date', demain()); await p.fill('#heure', '10:00'); await p.waitForTimeout(200);
-    check('longue distance : l\'écriteau informe', await p.locator('#infoLongue').isVisible());
-    check('longue distance : le bouton du prix reste ALLUMÉ', !(await p.locator('#btnVoirPrix').isDisabled()));
+    check('Paris → Lille : plus d\'écriteau « à confirmer » (le prix se calcule en France)', !(await p.locator('#infoLongue').isVisible()));
+    check('Paris → Lille : le bouton du prix est allumé', !(await p.locator('#btnVoirPrix').isDisabled()));
     await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
     const prix = await prixVeh(p);
-    check('longue distance : la liste s\'ouvre, sans montant inventé', prix.length > 0 && prix.every(t => /confirmer/i.test(t) && !/\d+,\d{2}\s*€/.test(t)), prix.join(' | '));
+    check('Paris → Lille : chaque véhicule a un vrai montant', prix.length > 0 && prix.every(t => /\d+,\d{2}\s*€/.test(t) && !/confirmer/i.test(t)), prix.join(' | '));
+    const peages = await p.locator('#resumePeages').innerText().catch(() => '');
+    check('Paris → Lille : « péages éventuels non compris » est écrit avant le choix du véhicule',
+      await p.locator('#resumePeages').isVisible() && /péages éventuels non compris/i.test(peages) && /lien de paiement/i.test(peages), peages);
+    await p.locator('.veh-carte').first().click().catch(() => {});
+    await p.locator('#btnContinuer').click().catch(() => {}); await p.waitForTimeout(300);
+    const total = await p.locator('#recapTotal').innerText().catch(() => '');
+    check('Paris → Lille : le total du récapitulatif dit « + péages »', /\d+,\d{2}\s*€\s*\+ péages/.test(total), total);
+    check('Paris → Lille : la note des péages est sur le récapitulatif', await p.locator('#recapPeages').isVisible());
+    await p.goto(BASE + '/'); await p.waitForTimeout(400);
+    await adresse(p, 'depart', 'vendome', 'Vendôme');
+    await adresse(p, 'arrivee', 'lille', 'Lille');
+    await p.fill('#date', demain()); await p.fill('#heure', '10:00'); await p.waitForTimeout(200);
+    await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
     await jusquAuBon(p);
     const b = depots[0] || {};
-    check('longue distance : la demande PART', depots.length === 1, String(depots.length));
-    check('longue distance : elle part « tarif à confirmer », motif « longue », prix 0',
+    check('Paris → Lille : la demande part AVEC son prix, sans « tarif à confirmer »',
+      depots.length === 1 && b.course?.tarifAConfirmer === false && b.prix?.total > 0,
+      JSON.stringify({ n: depots.length, t: b.course?.tarifAConfirmer, p: b.prix?.total }));
+    check('Paris → Lille : la demande dit à l\'admin ce que le client a lu (« possible »)', b.course?.peages === 'possible', String(b.course?.peages));
+    await ctx.close();
+  }
+
+  /* 1 bis. L'ÉTRANGER RESTE SUR DEVIS : Paris → Bruxelles (décision du 30/09,
+     gardée le 19/10). Le pays vient du lieu choisi, pas de la distance. */
+  {
+    const { ctx, p, depots } = await client();
+    await adresse(p, 'depart', 'vendome', 'Vendôme');
+    await adresse(p, 'arrivee', 'bruxelles', 'Bruxelles');
+    await p.fill('#date', demain()); await p.fill('#heure', '10:00'); await p.waitForTimeout(200);
+    check('Paris → Bruxelles : l\'écriteau « Destination hors de France » informe', await p.locator('#infoLongue').isVisible()
+      && /hors de France/i.test(await p.locator('#infoLongue').innerText()));
+    check('Paris → Bruxelles : le bouton du prix reste ALLUMÉ', !(await p.locator('#btnVoirPrix').isDisabled()));
+    await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1200);
+    const prix = await prixVeh(p);
+    check('Paris → Bruxelles : la liste s\'ouvre, sans montant inventé', prix.length > 0 && prix.every(t => /confirmer/i.test(t) && !/\d+,\d{2}\s*€/.test(t)), prix.join(' | '));
+    check('Paris → Bruxelles : aucune mention de péages sur une demande sans prix', !(await p.locator('#resumePeages').isVisible()));
+    await jusquAuBon(p);
+    const b = depots[0] || {};
+    check('Paris → Bruxelles : la demande PART', depots.length === 1, String(depots.length));
+    check('Paris → Bruxelles : elle part « tarif à confirmer », motif « longue », prix 0',
       b.course?.tarifAConfirmer === true && JSON.stringify(b.course?.motifsTarif) === '["longue"]' && !(b.prix?.total > 0),
       JSON.stringify({ t: b.course?.tarifAConfirmer, m: b.course?.motifsTarif, p: b.prix?.total }));
-    check('longue distance : le bon du client dit « tarif à confirmer »', /confirmer/i.test(await p.locator('#bonPrix').innerText().catch(() => '')),
+    check('Paris → Bruxelles : le bon du client dit « tarif à confirmer »', /confirmer/i.test(await p.locator('#bonPrix').innerText().catch(() => '')),
       await p.locator('#bonPrix').innerText().catch(() => ''));
     await ctx.close();
   }

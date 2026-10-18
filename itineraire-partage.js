@@ -205,9 +205,11 @@ function depuisPhoton(q, ctx){
       /* PLUS DE FILTRE « FRANCE SEULEMENT » (30/09/2026, à sa demande :
          « amst doit montrer la rue d'Amsterdam à Paris mais aussi Amsterdam
          aux Pays-Bas »). Le classement par distance (bonusDistance, dans la
-         page) fait descendre l'étranger sans le cacher ; et la zone des
-         90 km s'applique toujours au moment du CHOIX : on ne vend pas en
-         ligne un Paris → Amsterdam au prix du kilomètre. */
+         page) fait descendre l'étranger sans le cacher. L'ÉTRANGER RESTE SUR
+         DEVIS (19/10/2026) : le prix se calcule partout en France, plus
+         au-delà — on ne vend pas en ligne un Paris → Amsterdam au prix du
+         kilomètre. D'où le pays gardé sur le lieu (« pays »), que la page lit
+         au moment du CHOIX ; la BAN, elle, ne couvre que la France. */
       return d.features.map(function(f){
         var p = f.properties, r = libellePhoton(p);
         var cat = categorieDuLieu(p.osm_key, p.osm_value, p.type);
@@ -219,6 +221,7 @@ function depuisPhoton(q, ctx){
                  /* « N123 », « W456 » : l'objet OpenStreetMap exact. */
                  source:"photon",
                  sourceId:(p.osm_type && p.osm_id) ? String(p.osm_type) + p.osm_id : "",
+                 pays:String(p.countrycode || "").toUpperCase(),
                  nom:r.lieuNomme ? p.name : "" };
       }).filter(function(r){ return r.label; });
     });
@@ -319,6 +322,30 @@ function traceDepuisGeoJSON(g){
   return out.length > 1 ? out : null;
 }
 
+/* ═══ LES PÉAGES NE SONT PAS COMPRIS DANS LE PRIX (19/10/2026) ═══
+   Barbaros : « péage non inclus ». Le prix reste un kilométrage ; quand la
+   route emprunte une autoroute à péage, la page le DIT à côté du prix, et
+   le montant est ajouté au lien de paiement avant le départ (CGV art. 4).
+   ORS sait le dire : « extra_info: tollways » range, pour chaque route, les
+   tronçons à péage (valeur 1) et sans (valeur 0). Trois réponses, jamais
+   deux : true (péage sur la route), false (ORS a répondu, aucun péage),
+   null (on ne sait pas — OSRM, vol d'oiseau, réponse sans ce détail).
+   « On ne sait pas » n'est jamais lu comme « pas de péage » : c'est la page
+   qui décide quoi dire (voir mentionPeages, dans index.html).
+   Ce format n'a pas pu être éprouvé contre le vrai ORS depuis la machine de
+   travail : il est lu tel que la documentation d'ORS le décrit, et une
+   réponse qui ne le porte pas rend null, jamais une erreur. */
+function peageORS(props){
+  var t = props && props.extras && props.extras.tollways;
+  var resume = t && t.summary;
+  if(!Array.isArray(resume)) return null;
+  for(var i = 0; i < resume.length; i++){
+    var x = resume[i];
+    if(x && x.value === 1 && (x.distance || 0) > 0) return true;
+  }
+  return false;
+}
+
 function lireRouteORS(d){
   var routes = [], f = (d && d.features) || [];
   for(var i = 0; i < f.length; i++){
@@ -330,7 +357,8 @@ function lireRouteORS(d){
     /* ORS rend le tracé SANS QU'ON LE DEMANDE : il est dans la réponse
        qu'on lit déjà. La carte ne coûte aucun appel supplémentaire. */
     routes.push({ km:s.distance/1000, min:Math.round((s.duration||0)/60),
-                  estime:false, trace:traceDepuisGeoJSON(f[i].geometry) });
+                  estime:false, trace:traceDepuisGeoJSON(f[i].geometry),
+                  peage:peageORS(f[i].properties) });
   }
   return choisirRoute(routes);
 }
@@ -418,6 +446,24 @@ function itineraire(a, b, quand){
      ce service ne s'éprouve pas depuis la machine de travail : un refus
      retombe donc sur l'appel d'avant, une seule route — jamais pire
      qu'avant ce changement. */
+  /* UNE SEULE ROUTE, MAIS AVEC LES PÉAGES (19/10/2026). Les longs trajets
+     sont justement ceux où ORS refuse les routes alternatives, et ceux qui
+     passent par l'autoroute : l'appel de repli garde donc « tollways ». Le
+     GET d'avant reste le dernier filet — il ne dit rien des péages. */
+  function parORSUneRoute(){
+    return fetchLimite("https://api.openrouteservice.org/v2/directions/driving-car/geojson"
+                       + "?api_key=" + encodeURIComponent(CLE_ORS), 4000, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+          coordinates:[[a.lon, a.lat], [b.lon, b.lat]],
+          instructions:false,
+          extra_info:["tollways"]
+        })
+      })
+      .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
+      .then(lireRouteORS);
+  }
   function parORS(){
     return fetchLimite("https://api.openrouteservice.org/v2/directions/driving-car/geojson"
                        + "?api_key=" + encodeURIComponent(CLE_ORS), 4000, {
@@ -426,11 +472,13 @@ function itineraire(a, b, quand){
         body:JSON.stringify({
           coordinates:[[a.lon, a.lat], [b.lon, b.lat]],
           instructions:false,
+          extra_info:["tollways"],
           alternative_routes:{ target_count:3, weight_factor:1.6, share_factor:0.6 }
         })
       })
       .then(function(r){ if(!r.ok) throw new Error("route"); return r.json(); })
       .then(lireRouteORS)
+      .catch(parORSUneRoute)
       .catch(parORSSimple)
       .then(function(r){ r.source = "ors"; return r; });
   }

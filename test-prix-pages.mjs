@@ -332,8 +332,11 @@ const effetDe = (p, id) => p.$eval(id, e => e.closest('.page-bloc').querySelecto
   check('CGV FR : le tarif peut différer selon la page, le prix affiché s\'applique', /page du Service/.test(fr) && /prix total affiché/.test(fr), fr);
   check('CGV EN : même phrase en anglais', /page of the Service/.test(en) && /total price shown/.test(en), en);
   check('CGV : aucun chiffre dans ces phrases (pas de tarif écrit au contrat)', fr && en && !/\d/.test(fr + en), fr + ' / ' + en);
-  check('CGV : la date de mise à jour a suivi', /Dernière mise à jour : 14 octobre 2026/.test(T.fr.legal_cgv_body)
-    && /Last updated: 14 October 2026/.test(T.en.legal_cgv_body));
+  /* La date a suivi de nouveau le 19/10/2026 (B2 : prix à toutes les
+     distances, péages non compris) : un contrôle de date garde la PLUS
+     RÉCENTE modification des CGV, pas la sienne. */
+  check('CGV : la date de mise à jour a suivi', /Dernière mise à jour : 19 octobre 2026/.test(T.fr.legal_cgv_body)
+    && /Last updated: 19 October 2026/.test(T.en.legal_cgv_body));
 }
 
 await b.close();
