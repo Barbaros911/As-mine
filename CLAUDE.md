@@ -303,8 +303,9 @@ contractuel. Ne pas y écrire de tarif chiffré.
   dizaine ; majorer après le plancher ferait payer 42 € une course
   annoncée à 35 €. Le plancher a le dernier mot.
 - **IL N'Y A PLUS DE MAJORATION DU TOUT** (septembre 2026) — voir la
-  section dédiée plus bas. Le reste inchangé : TVA 10 % incluse, prix ferme,
-  zone de 90 km autour de Paris.
+  section dédiée plus bas. Le reste inchangé : TVA 10 % incluse, prix ferme ;
+  le prix vaut partout en France, péages en plus (« PLUS AUCUNE DEMANDE
+  BLOQUÉE »).
 - Barbaros écrit souvent **« van » là où il veut dire « berline »** — trois
   fois de suite sur cette grille. Ne pas deviner sur un prix : demander.
 
@@ -1195,7 +1196,7 @@ le moment où l'on perd une réservation.
 - **On invite à VÉRIFIER l'adresse.** Le GPS d'un téléphone se trompe
   couramment de plusieurs dizaines de mètres, donc de numéro dans la rue —
   et le chauffeur va à l'adresse écrite.
-- **La zone des 90 km s'applique**, sans rien de spécial à écrire :
+- **La règle du lieu s'applique**, sans rien de spécial à écrire :
   `poser()` appelle le même `quand()` que la liste, donc `jugerZone()`. Un
   test l'éprouve depuis Lille — pas de porte dérobée.
 - **`data-t-aria` a été ajouté à `appliquerLangue()`.** Un bouton dont le
@@ -3370,10 +3371,9 @@ fréquente du site — n'en portait AUCUN. `depuisBAN()` porte maintenant le
 même biais.
 - **CE N'EST PAS UNE EXCLUSION, ET C'EST VOULU.** `&lat=` / `&lon=`
   RAPPROCHENT sans jamais retirer un résultat : un client qui part
-  vraiment de Bordeaux garde sa rue dans la liste, elle descend juste. La
-  vraie interdiction (la zone des 90 km) reste au moment du CHOIX
-  (`horsZone`), pas à la recherche — chercher et réserver sont deux
-  moments différents.
+  vraiment de Bordeaux garde sa rue dans la liste, elle descend juste. Ce
+  qui se décide (le prix, l'étranger sur devis) se juge au moment du CHOIX,
+  pas à la recherche — chercher et réserver sont deux moments différents.
 - **LE CLASSEMENT DE `chercher()` (index.html) TENAIT COMPTE DU TEXTE,
   JAMAIS DE LA DISTANCE.** Deux rues homonymes arrivaient donc à égalité
   de score, et c'était l'ordre brut renvoyé par le serveur qui décidait —
@@ -3434,9 +3434,9 @@ ne joint ni la BAN ni Photon) :
   retiré de la liste, l'ordre seul change.
 - **Photon était filtré sur la France.** Le filtre est retiré : l'étranger
   apparaît, plus bas (`bonusDistance`), avec son pays écrit (« Amsterdam,
-  Pays-Bas »). **La zone des 90 km tient au moment du CHOIX** : choisir
-  Amsterdam affiche « hors zone » avec appel et WhatsApp — décidé, on ne vend
-  pas un Paris → Amsterdam en ligne au prix du kilomètre.
+  Pays-Bas »). **L'étranger se juge au moment du CHOIX** : Amsterdam affiche
+  « Destination hors de France » et part sur devis — décidé, on ne vend pas
+  un Paris → Amsterdam en ligne au prix du kilomètre.
 `test-nouveau-recherche.mjs` rejoue ses trois exemples, réponses données
 dans l'ordre le plus défavorable ; sur l'ancien code il rend exactement ce
 qu'il voyait (le bar en tête, l'hôtel avant l'avenue, pas d'Amsterdam).
@@ -4531,39 +4531,27 @@ texte (mapbox.com est bloqué d'ici) : à relire avant de rouvrir le sujet.
 - Reste (P2, à lui) : clé Mapbox Directions ; un second fournisseur de lieux
   qui autorise le stockage ; validation serveur complète ; lien GPS sur le bon.
 
-## PLUS AUCUN BLOCAGE COMMERCIAL — UNE DEMANDE RÉELLE PART TOUJOURS
+## PLUS AUCUNE DEMANDE BLOQUÉE — ET LE PRIX À TOUTES LES DISTANCES
 
-4 octobre 2026, à sa demande (« un client avec une demande réelle doit
-toujours disposer d'une sortie »). Vingt règles auditées AVANT de coder.
-- **Préavis de 15 min supprimé.** Seule l'heure réellement passée est
-  refusée, avec la sortie « Partir dès que possible ».
-- **« Dès que possible »** : plus de lien « Maintenant » dans la case Date
-  (8/10/2026, Barbaros : « le supprimer de partout ») ; on y entre par
-  « Partir dès que possible » (heure passée). Un encadré (`#blocAsap`) de même
-  hauteur remplace date et heure. `course.immediat`, jamais un blocage.
-- **« TARIF À CONFIRMER »** (`tarifAConfirmer`, `motifsTarif` parmi
-  `longue`/`groupe`/`adresse`) : la demande PART sans aucun montant affiché —
-  au-delà de 90 km (`#infoLongue` ; `RAYON_ZONE_KM` est devenu le seuil du
-  PRIX AUTOMATIQUE), plus de 7 passagers (« Plusieurs véhicules »), adresse
-  introuvable envoyée telle quelle (`adresseAVerifier`, sans coordonnées).
-  **Piège attrapé par le test** : le client envoyait `longue_distance`, le
-  serveur attendait `longue` — toute longue distance aurait été refusée.
-- **`deposer-course`** force le prix à 0 sur une demande à confirmer, exige
-  sinon un prix positif (le 0 € passait), accepte 60 passagers et 5 000 km.
-- **Admin** : pastilles Immédiat / Tarif à confirmer / Adresse à vérifier /
-  Plusieurs véhicules (ligne du bas de la carte), « À confirmer » au lieu de
-  0 €. **« Confirmer » refusé tant que le prix n'est pas fixé** (un VTC
-  annonce son prix avant le départ). « Modifier la course » fixe le prix et
-  pose `prixFixeApres` : « Prévenir le client » l'annonce, `?ok=` le porte.
-- **`nouvelle-demande`** : une demande immédiate a pour référence création +
-  30 min. Comptée sur sa date, elle recevait aussitôt « DÉPART PASSÉ » puis
-  le silence.
-- **CGV art. 4** (FR/EN) décrivent les demandes sans prix affiché.
-- Toujours refusés : heure passée, départ = arrivée, coordonnées d'une
-  adresse modifiée, identité/téléphone, règlement, quotas, doublons.
-- Suites : `test-nouveau-sans-blocage.mjs` (site construit, client + admin),
-  `test-nouveau-preavis.mjs` (verrouille l'ABSENCE du préavis),
-  `test-securite-fonctions.mjs`, `test-relance-alertes.mjs`.
+4 octobre 2026 : une demande réelle part toujours (seule l'heure passée est
+refusée, avec « Partir dès que possible », `course.immediat`). **19 octobre
+2026, B2** (Barbaros : « je choisi b2 », « péage non inclus ») : la grille au
+km vaut pour **toute la France** ; restent « tarif à confirmer », sans aucun
+montant : l'**étranger** (`lieuEtranger()`, pays venu de Photon, motif
+`longue` gardé : le serveur le connaît), plus de 7 passagers, une adresse
+tapée sans être reconnue. L'admin refuse « Confirmer » tant que le prix n'est
+pas fixé (« Modifier la course »).
+- **PÉAGES NON COMPRIS** (CGV art. 4) : ORS les dit (`extra_info: tollways`,
+  `peageORS`, même dans le repli à une route) ; `mentionPeages()` rend « oui »,
+  « possible » (calcul muet et plus de 90 km autour de Paris) ou rien — ni sur
+  un forfait (il les comprend), ni sur une demande sans prix. Le client paie
+  AVANT le départ : Barbaros ajoute le péage au prix ; `#bbPeages` et la
+  pastille « Péages en plus » le rappellent. Format d'ORS lu dans sa doc, pas
+  éprouvé contre le vrai service.
+- `deposer-course` : prix forcé à 0 sur une demande à confirmer, prix positif
+  exigé sinon ; garde `peages`. Suites : `test-public-peages`,
+  `test-nouveau-sans-blocage`, `test-nouveau-preavis`. Histoire :
+  `memoire/prix-toutes-distances.md`.
 
 ## LE SITE SUR ORDINATEUR — UN MENU EN HAUT, LE FORMULAIRE DANS LE BANDEAU
 Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire À GAUCHE sous la promesse (Bloc 2), un seul bouton principal. Le téléphone ne bouge pas.

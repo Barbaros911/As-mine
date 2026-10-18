@@ -313,6 +313,16 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const i9=await dep(bonKm('ELA-26-10-LI9II',0,{tarifAConfirmer:true,motifsTarif:['groupe'],passagers:'12 passagers · 14 bagages'}));
   const bi=deposes[deposes.length-1]||{};
   ok(i9.status===201&&bi.course?.passagersNombre===12&&bi.course?.multiVehicules===true,'deposer-course : un groupe de 12 passe, marqué « plusieurs véhicules » ('+i9.status+')');
+  /* LES PÉAGES NON COMPRIS (19 octobre 2026, B2) : la demande garde ce que
+     le client a LU à côté du prix (« oui », « possible »), pour que l'admin
+     l'ajoute au lien de paiement. Une valeur inconnue est vidée, et une
+     demande sans prix n'a rien à en dire. */
+  const p1=await dep(bonKm('ELA-26-10-LP1PP',70,{peages:'oui'}));
+  ok(p1.status===201&&(deposes[deposes.length-1]||{}).course?.peages==='oui','deposer-course : « péages : oui » est gardé ('+p1.status+')');
+  const p2=await dep(bonKm('ELA-26-10-LP2PP',70,{peages:'<b>tout</b>'}));
+  ok(p2.status===201&&(deposes[deposes.length-1]||{}).course?.peages==='','deposer-course : une mention de péages inconnue est vidée');
+  const p3=await dep(bonKm('ELA-26-10-LP3PP',0,{tarifAConfirmer:true,motifsTarif:['longue'],peages:'possible'}));
+  ok(p3.status===201&&(deposes[deposes.length-1]||{}).course?.peages==='','deposer-course : une demande « à confirmer » ne porte pas de mention de péages');
   globalThis.fetch=fetchAvant;
 }
 /* deposer-course : LE LIEN DE SUIVI D'UN PARTENAIRE (15 octobre 2026). Le
