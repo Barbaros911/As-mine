@@ -232,6 +232,19 @@ masqué sur ordinateur, et son contrôle « cinq étapes sur une ligne » ne
 compte plus que ce qui est AFFICHÉ — des boutons masqués ont tous un « top »
 nul et passaient le contrôle sans rien prouver.
 
+## Vérifié en production (18 octobre 2026)
+
+Sur le téléphone de Barbaros, dans `/ela-admin/` : une carte créée (« À faire »,
+proposer les offres aux professionnels), relue après avoir fermé et rouvert
+l'admin, sa priorité changée (P0 → P1, « Tout est enregistré. »), puis
+« Voir l'historique » : « Carte créée à l'étape « À faire » » à 02 h 22 et
+« Priorité P0 → P1 » à 02 h 24, heure de Paris. Création, relecture,
+modification sous version et journal tournent donc sur la vraie base. Rien
+de cela ne se voit d'ici : le réseau de la machine de travail ne joint pas
+Supabase, et le Pilotage n'est lisible qu'avec le compte admin — d'où la
+capture. La vue ordinateur (cinq colonnes) n'a été vue que sur le site
+construit, en CI. #197 fermée.
+
 ## Ce qui reste
 
 **Bloc 4, seulement si le besoin se voit** : recherche dans les archives
