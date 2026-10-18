@@ -106,8 +106,13 @@ pros arrivent par démarchage (fiche, WhatsApp, visite), pas par l'accueil.
 
 Ses réponses : sous-titre avec la zone, titre et description Google recentrés
 sur le voyageur, et « Professionnels » gardé — « ton avis expert » ; bouton
-« Réserver mon trajet » du bandeau retiré — « oui » ; « votre logo » remplacé
-par « nous la personnalisons nous-mêmes ». Notes données, actuel → proposé :
+« Réserver mon trajet » du bandeau retiré — « oui » ; et le logo : « on ne
+personnalise pas leur logo, on ajoute leur logo s'il le souhaite ». La page
+dit « et votre logo, si vous le souhaitez » (carte « Votre page ») et « Votre
+logo aussi, si vous souhaitez qu'il figure sur votre page » (question « Que
+faut-il vous fournir ? ») : c'est l'hôtel qui le fournit, et c'est ce qui en
+autorise l'usage. Aucun champ « logo » dans le code : on le pose à la main
+quand un hôtel l'envoie. Notes données, actuel → proposé :
 titre de l'accueil 4 → 8, description 4 → 8, sous-titre 3 → 8.
 
 - **Le sous-titre ne répète pas la ligne d'en dessous** : la première version
