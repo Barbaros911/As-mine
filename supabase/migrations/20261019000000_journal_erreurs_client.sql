@@ -24,14 +24,12 @@
 -- sur la RPC absente et la page ne lit pas la réponse ; l'admin ne montre
 -- rien. Rejouable : « if not exists » et « or replace » partout.
 -- =====================================================================
--- Hors Supabase (l'épreuve SQL de la CI tourne sur un PostgreSQL nu), le rôle
--- « service_role » n'existe pas : on le pose, sans effet en production où il
--- est déjà là.
-do $$ begin
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then
-    create role service_role nologin;
-  end if;
-end $$;
+-- Cette migration ne crée AUCUN rôle : « service_role » existe en production,
+-- et sur le PostgreSQL nu de la CI c'est le décor (erreurs-client-avant.sql)
+-- qui le pose, avec « bypassrls » comme chez Supabase. Un rôle est commun à
+-- tout le cluster : une première version le créait ici sans « bypassrls »,
+-- et l'épreuve des prospects, jouée ensuite, tombait sur un UPDATE qui ne
+-- touchait plus aucune ligne.
 
 create table if not exists public.journal_erreurs_client (
   id bigint generated always as identity primary key,

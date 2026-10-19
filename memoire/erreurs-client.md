@@ -40,9 +40,14 @@ nulle part tant qu'un client n'appelait pas.
 - **Le crochet vit après la définition de `nuage`** dans `index.html` : la
   démo remplace ce bloc par un `nuage` vide, `SUPABASE_URL` y est vide et
   `nuage.actif()` faux — rien ne part de la démo (`verifier-demo` l'exige).
-- **La migration pose le rôle `service_role` s'il manque** : l'épreuve SQL de
-  la CI tourne sur un PostgreSQL nu, où il n'existe pas ; en production il est
-  là et la clause ne fait rien.
+- **La migration ne crée aucun rôle ; c'est le décor `erreurs-client-avant.sql`
+  qui pose `service_role` sur le PostgreSQL nu de la CI**, avec `bypassrls`
+  comme chez Supabase. Le premier jet le créait DANS la migration, sans
+  `bypassrls` : un rôle est commun au cluster, et l'épreuve des prospects,
+  jouée après dans sa propre base, faisait un UPDATE sous ce rôle que la RLS
+  laissait passer sur zéro ligne — son quota par e-mail tombait (CI du
+  19/10, « quota_email »). Reproduit en local dans le même ordre, corrigé,
+  rejoué : les deux blocs passent. Ne jamais créer un rôle dans une migration.
 
 ## Éprouvé
 

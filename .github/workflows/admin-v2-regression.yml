@@ -220,6 +220,7 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database erreurs;'
           psql -h 127.0.0.1 -U postgres -d erreurs -X -q -v ON_ERROR_STOP=1 \
             -f supabase/tests/socle.sql \
+            -f supabase/tests/erreurs-client-avant.sql \
             -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
             -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
             -f supabase/tests/erreurs-client-apres.sql
