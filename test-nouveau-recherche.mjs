@@ -106,7 +106,7 @@ const longue = await p.evaluate(() => {
   const e = document.getElementById('infoLongue');
   return !!e && !e.hidden && e.offsetParent !== null;
 });
-check('choisir Amsterdam affiche « longue distance » : tarif à confirmer à 430 km', longue);
+check('choisir Amsterdam affiche « hors de France » : l\'étranger reste sur devis', longue);
 check('…et le bouton du prix reste ALLUMÉ : on ne bloque plus', !(await p.locator('#btnVoirPrix').isDisabled()));
 
 check('aucune erreur JavaScript', errs.length === 0, errs.join(' | '));
