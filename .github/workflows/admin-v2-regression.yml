@@ -224,6 +224,16 @@ jobs:
             -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
             -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
             -f supabase/tests/erreurs-client-apres.sql
+          # Le secret de la relance (19 octobre 2026) : fabriqué dans le coffre,
+          # lu par la seule clé de service, envoyé par pg_cron sans jamais être
+          # écrit dans la tâche. Vault, pg_cron et pg_net sont des doublures.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database relance;'
+          psql -h 127.0.0.1 -U postgres -d relance -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/relance-secret-avant.sql \
+            -f supabase/migrations/20261019010000_relance_secret.sql \
+            -f supabase/migrations/20261019010000_relance_secret.sql \
+            -f supabase/tests/relance-secret-apres.sql
           # Le diagnostic qui suit la correction en production : il doit
           # s'exécuter, et ne sortir aucune adresse e-mail (journal public).
           psql -h 127.0.0.1 -U postgres -d vues -X -q -v ON_ERROR_STOP=1 \

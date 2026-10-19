@@ -35,7 +35,7 @@ async function charger(dir, env){
   let h; globalThis.Deno={env:{get:k=>env[k]},serve:f=>{h=f}};
   await import(tmp+'/index.mjs?'+Math.random()); return h;
 }
-let journal=[], tg=[], rows={};
+let journal=[], tg=[], rows={}, secretRelance=null;
 let quotaAppels=0,quotaLimite=60,listeHotel=[],ecritures=[];
 globalThis.fetch=async(url,init={})=>{
   url=String(url);
@@ -44,6 +44,8 @@ globalThis.fetch=async(url,init={})=>{
   if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon')) return new Response(JSON.stringify(listeHotel));
   if(init.method==='PATCH'||init.method==='POST'&&url.includes('/rest/v1/courses')){ecritures.push(url);return new Response('');}
   if(url.includes('/rpc/est_exploitant')) return new Response(JSON.stringify(init.headers.Authorization==='Bearer ADMIN'));
+  /* Le secret de la relance, lu dans la base par la clé de service (19/10/2026) : null = pas de verrou. */
+  if(url.includes('/rpc/ela_relance_secret')) return new Response(JSON.stringify(secretRelance));
   /* La relance relit les demandes en attente : ici il n'y en a aucune. */
   if(url.includes('/rest/v1/courses?select=ref,bon,cree_le&statut=eq.attente')) return new Response('[]');
   if(url.includes('/rest/v1/courses?')){const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(rows[ref]?[rows[ref]]:[]));}
@@ -70,18 +72,21 @@ await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-01-0001'}});
 ok(tg.length===1,'course ancienne : pas d\'alerte');
 await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-09-0008'}});
 ok(tg.length===1,'saisie de l\'exploitant (sans empreinte de dépôt) : aucune alerte');
-/* LE SECRET DE LA RELANCE (19/10/2026, P2). Sans RELANCE_SECRET, RELANCE et
-   INSTALLER_TELEGRAM passent comme avant (la relance est l'alerte : un secret
-   manquant ne la coupe pas). Avec, l'en-tête « x-ela-relance » est exigé, à
-   l'octet près ; le webhook INSERT, lui, n'en a jamais besoin. */
+/* LE SECRET DE LA RELANCE (19/10/2026, P2). La fonction lit le secret attendu
+   dans la base (RPC ela_relance_secret, clé de service) : null = pas de verrou,
+   RELANCE et INSTALLER_TELEGRAM passent comme avant (la relance est l'alerte).
+   Posé, l'en-tête « x-ela-relance » est exigé à l'octet près ; le webhook
+   INSERT, lui, n'en a jamais besoin. RELANCE_SECRET (secret de fonction) reste
+   un repli manuel qui l'emporte. */
 {
   let r=await post({type:'RELANCE'});
-  ok(r.status===200,'relance SANS secret posé : passe comme avant (HTTP '+r.status+')');
-  const hs=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RELANCE_SECRET:'relance-0123456789-abcdef'});
+  ok(r.status===200,'relance SANS secret dans la base : passe comme avant (HTTP '+r.status+')');
+  secretRelance='relance-0123456789-abcdef';
+  const hs=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c'});
   const postS=(b,hdr)=>hs(new Request('http://x',{method:'POST',headers:hdr||{},body:JSON.stringify(b)}));
   const avantTg=tg.length;
   r=await postS({type:'RELANCE'});
-  ok(r.status===401,'relance avec secret posé, sans en-tête : 401 (HTTP '+r.status+')');
+  ok(r.status===401,'relance avec secret dans la base, sans en-tête : 401 (HTTP '+r.status+')');
   r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdeF'});
   ok(r.status===401,'relance : en-tête faux d\'un seul signe : 401 (HTTP '+r.status+')');
   r=await postS({type:'INSTALLER_TELEGRAM'});
@@ -93,6 +98,17 @@ ok(tg.length===1,'saisie de l\'exploitant (sans empreinte de dépôt) : aucune a
   tg.length=avantTg;
   r=await postS({type:'INSERT',table:'courses',record:{ref:'ELA-26-01-0001'}});
   ok(r.status===200,'le webhook INSERT n\'a pas besoin de l\'en-tête (HTTP '+r.status+')');
+  /* Le secret a tourné dans la base : la fonction relit sur un désaccord, sans attendre les 5 min. */
+  secretRelance='tourne-9876543210-fedcba';
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'tourne-9876543210-fedcba'});
+  ok(r.status===200,'secret tourné dans la base : la fonction relit et accepte la nouvelle valeur (HTTP '+r.status+')');
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdef'});
+  ok(r.status===401,'secret tourné : l\'ancienne valeur est refusée (HTTP '+r.status+')');
+  /* Le repli manuel : RELANCE_SECRET posé l'emporte sur la base. */
+  const he=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RELANCE_SECRET:'manuel-0123456789'});
+  r=await he(new Request('http://x',{method:'POST',headers:{'x-ela-relance':'manuel-0123456789'},body:JSON.stringify({type:'RELANCE'})}));
+  ok(r.status===200,'RELANCE_SECRET posé : il l\'emporte sur la base (HTTP '+r.status+')');
+  secretRelance=null;
 }
 const p=await charger('prevenir-client',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',SUPABASE_ANON_KEY:'A',VAPID_PUBLIQUE:'x',VAPID_PRIVEE:'y'});
 const pp=(auth)=>p(new Request('http://x',{method:'POST',headers:auth?{authorization:auth}:{},body:JSON.stringify({ref:'ELA-26-09-0007',url:'https://pirate.example'})}));

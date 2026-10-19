@@ -3433,9 +3433,9 @@ muette : le code décide) ; `etat-course` refuse une référence mal formée san
 lecture ; `prevenir-client` n'accepte plus `github.io`. **Le Registre compte
 depuis l'appareil, plafonné à 1 000 courses** (dix jours à 100 demandes/jour) :
 il le DIT (`#registreTronque`) tant que ses chiffres ne viennent pas du
-serveur. RELANCE/INSTALLER_TELEGRAM exigent `x-ela-relance` =
-`RELANCE_SECRET` (Vault `ela_relance_secret`, `20261019010000`, ordre : Vault →
-migration → secret) ; sans secret posé, ouvertes comme avant. Histoire :
+serveur. RELANCE/INSTALLER_TELEGRAM exigent `x-ela-relance` : secret fabriqué
+dans Vault par `20261019010000`, lu des deux côtés (RPC `ela_relance_secret`) ;
+sans migration, ouvertes comme avant. Histoire :
 `memoire/reference.md`, `memoire/erreurs-client.md`, `memoire/alertes-relance.md`.
 
 ## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE

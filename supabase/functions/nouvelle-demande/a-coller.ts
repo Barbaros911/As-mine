@@ -149,21 +149,40 @@ const ADMIN=Deno.env.get("ADRESSE_ADMIN")??"https://elatransfer.com/ela-admin/";
    site : appeler la relance en boucle (du bruit sur la base, jamais un
    message de plus, la cadence vient du journal) ou reposer le webhook du
    bot en boucle (Telegram ralentit alors le bot, et le bouton « Vu » avec).
-   pg_cron envoie maintenant l'en-tête « x-ela-relance » lu dans le coffre
-   (Vault, secret « ela_relance_secret ») ; la fonction le compare à
-   RELANCE_SECRET, à temps constant. SANS RELANCE_SECRET POSÉ, RIEN NE CHANGE :
-   la relance est l'alerte, on ne la coupe pas pour un secret manquant — le
-   verrou s'arme quand les deux côtés portent la même valeur. S'ils divergent,
-   la relance tombe en 401 et le voyant de l'admin le dit en 5 min
-   (« relance absente ou muette »). Le webhook INSERT n'est pas concerné. */
+   pg_cron envoie maintenant l'en-tête « x-ela-relance », lu dans le coffre
+   (Vault, secret « ela_relance_secret ») à chaque appel. LA FONCTION LIT LA
+   MÊME VALEUR DANS LA BASE (RPC ela_relance_secret, réservée à la clé de
+   service) : le secret est FABRIQUÉ par la migration, ne sort jamais de
+   Supabase, et personne n'a rien à coller (Barbaros : « Fais-le toi-même »).
+   RELANCE_SECRET (secret de fonction) reste un repli manuel : posé, il
+   l'emporte. SANS SECRET NULLE PART (migration pas appliquée, RPC absente),
+   RIEN NE CHANGE : la relance est l'alerte, on ne la coupe pas pour un
+   verrou manquant. Lu une fois par 5 min, relu sur un désaccord (le secret
+   a pu tourner) ; comparaison à temps constant. Le webhook INSERT n'est pas
+   concerné. */
 const RELANCE_SECRET=Deno.env.get("RELANCE_SECRET")??"";
-function relanceAutorisee(req:Request):boolean{
-  if(!RELANCE_SECRET)return true;
-  const recu=req.headers.get("x-ela-relance")??"";
-  const a=new TextEncoder().encode(recu),b=new TextEncoder().encode(RELANCE_SECRET);
+let secretRelanceCache={valeur:"",lu:0};
+async function secretRelanceAttendu(force=false):Promise<string>{
+  if(RELANCE_SECRET)return RELANCE_SECRET;
+  if(!force&&secretRelanceCache.lu&&Date.now()-secretRelanceCache.lu<300000)return secretRelanceCache.valeur;
+  let valeur="";
+  try{const r=await db("rpc/ela_relance_secret",{method:"POST",body:"{}"});if(r.ok){const v=await r.json();if(typeof v==="string")valeur=v;}}catch{valeur="";}
+  secretRelanceCache={valeur,lu:Date.now()};
+  return valeur;
+}
+function memeSecret(recu:string,attendu:string):boolean{
+  const a=new TextEncoder().encode(recu),b=new TextEncoder().encode(attendu);
   if(a.length!==b.length)return false;
   let d=0;for(let i=0;i<a.length;i++)d|=a[i]^b[i];
   return d===0;
+}
+async function relanceAutorisee(req:Request):Promise<boolean>{
+  let attendu=await secretRelanceAttendu();
+  if(!attendu)return true;
+  const recu=req.headers.get("x-ela-relance")??"";
+  if(memeSecret(recu,attendu))return true;
+  attendu=await secretRelanceAttendu(true);
+  return !attendu||memeSecret(recu,attendu);
 }
 
 type Resultat={ok:boolean;detail:string;statut?:"envoye"|"echec"|"indisponible"|"aucun_abonne"};
@@ -431,7 +450,7 @@ async function relancer():Promise<string>{
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
   if(charge.type==="RELANCE"||charge.type==="INSTALLER_TELEGRAM"){
-    if(!relanceAutorisee(req))return new Response("relance refusée : en-tête x-ela-relance absent ou faux",{status:401});
+    if(!(await relanceAutorisee(req)))return new Response("relance refusée : en-tête x-ela-relance absent ou faux",{status:401});
     if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
     /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
        le rappeler ne fait que reposer la même adresse. */

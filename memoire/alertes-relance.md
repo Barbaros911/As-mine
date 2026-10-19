@@ -34,29 +34,36 @@ efface le précédent), la notification ELA est l'alarme (20 s). Le 9/10, les
   fonctions ; la fonction ne voit rien qui distingue pg_cron d'un inconnu.
   Il faut une valeur connue des deux : le **coffre** (Vault) côté base, lu
   dans la commande de la tâche à chaque appel (`(select decrypted_secret from
-  vault.decrypted_secrets where name = 'ela_relance_secret')`), et
-  `RELANCE_SECRET` côté fonction. La valeur n'est écrite ni dans le dépôt
-  (public), ni dans `cron.job` (la commande ne porte que le NOM du secret).
-  Le motif est celui que documente Supabase pour appeler une fonction depuis
-  pg_cron ; une table ordinaire aurait fait la même chose en moins propre, et
-  le secret dérivé du jeton du bot n'était pas lisible côté base.
-- **Le verrou ne s'arme que quand les deux côtés portent la valeur.** Sans
-  `RELANCE_SECRET`, la fonction accepte comme avant : la relance EST l'alerte,
-  un secret manquant ne doit pas la couper. La migration, elle, **refuse**
-  de s'appliquer sans secret dans le coffre (ou trop court) : sinon la tâche
-  enverrait un en-tête vide et, la fonction armée, plus aucun rappel ne
-  partirait. L'ordre sûr est donc : Vault → migration → `RELANCE_SECRET`.
-  Si les deux divergent, la relance tombe en 401 et le voyant de l'admin le
-  dit en 5 min (« relance absente ou muette ») : la panne se voit.
+  vault.decrypted_secrets where name = 'ela_relance_secret')`), motif que
+  documente Supabase pour appeler une fonction depuis pg_cron.
+- **Premier jet : la fonction lisait `RELANCE_SECRET` posé à la main**, et
+  Barbaros aurait collé la même valeur dans Vault et dans les secrets des
+  fonctions (une valeur générée ici, montrée dans la conversation — sans
+  danger, elle n'ouvrait que ce qui était déjà ouvert). Il a répondu
+  « Fais-le toi-même ». D'où le second jet : **la migration FABRIQUE le
+  secret** dans le coffre (deux `gen_random_uuid()`, 64 signes, gardé si
+  rejouée) et pose la RPC `ela_relance_secret()` (security definer, exécution
+  à la seule `service_role`) ; **la fonction lit la valeur attendue dans la
+  base** par cette RPC, la garde 5 min, et la relit sur un désaccord (le
+  secret a pu tourner). Le secret ne quitte jamais Supabase, personne ne
+  colle rien. `RELANCE_SECRET` reste un repli manuel qui l'emporte.
+- **Le verrou ne s'arme que quand la migration est passée.** Sans RPC (404)
+  ou base muette, la fonction accepte comme avant : la relance EST l'alerte,
+  un verrou manquant ne doit pas la couper. L'ordre fonction/migration est
+  indifférent : une tâche qui envoie l'en-tête à une fonction qui ne l'exige
+  pas ne gêne rien. Si les deux divergent, la relance tombe en 401 et le
+  voyant de l'admin le dit en 5 min (« relance absente ou muette »).
 - **Comparaison à temps constant**, longueur comprise ; le webhook INSERT
   (la demande qui arrive, déclenché par la base) n'est pas concerné.
-- **Éprouvé** : `test-securite-fonctions` (sept contrôles : sans secret tout
+- **Éprouvé** : `test-securite-fonctions` (dix contrôles : sans secret tout
   passe ; avec, 401 sans en-tête, 401 à un signe près, INSTALLER sans appel à
-  Telegram, passage avec le bon en-tête, INSERT libre) — garde retiré, quatre
-  tombent. Migration rejouée sur PostgreSQL 16 avec des doublures de Vault,
-  pg_cron et pg_net : deux refus qui laissent la tâche d'origine intacte, puis
-  passage ; l'appel INSTALLER porte la valeur lue dans le coffre, et la
-  commande de la tâche ne la contient pas. `a-coller.ts` réassemblé
+  Telegram, passage avec le bon en-tête, INSERT libre, secret tourné relu,
+  ancienne valeur refusée, repli manuel) — garde retiré, cinq tombent.
+  `supabase/tests/relance-secret-{avant,apres}.sql` (CI, doublures de Vault,
+  pg_cron et pg_net qui ENREGISTRENT) : migration jouée deux fois, un seul
+  secret de 64 signes, RPC fermée à `anon` et `authenticated`, tâche unique
+  qui porte l'en-tête et le NOM du secret mais jamais sa valeur, deux appels
+  INSTALLER avec la vraie valeur. `a-coller.ts` réassemblé
   (`test-notification`, 34).
 - **Le faux serveur de `test-securite-fonctions` ne connaissait pas la liste
   « en attente »** que relit la relance : première exécution tombée sur le
