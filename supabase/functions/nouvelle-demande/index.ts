@@ -8,6 +8,46 @@ const VAPID_PUBLIQUE=Deno.env.get("VAPID_PUBLIQUE")??"",VAPID_PRIVEE=Deno.env.ge
 /* L'ESPACE HISTORIQUE EST L'ADMIN RETENU (23/09/2026, choix de Barbaros :
    « on garde l'ancien »). Admin v2 reste en ligne mais n'est plus la porte. */
 const ADMIN=Deno.env.get("ADRESSE_ADMIN")??"https://elatransfer.com/ela-admin/";
+/* LE SECRET DE LA RELANCE (19 octobre 2026, audit, P2). RELANCE et
+   INSTALLER_TELEGRAM étaient joignables par quiconque a la clé publique du
+   site : appeler la relance en boucle (du bruit sur la base, jamais un
+   message de plus, la cadence vient du journal) ou reposer le webhook du
+   bot en boucle (Telegram ralentit alors le bot, et le bouton « Vu » avec).
+   pg_cron envoie maintenant l'en-tête « x-ela-relance », lu dans le coffre
+   (Vault, secret « ela_relance_secret ») à chaque appel. LA FONCTION LIT LA
+   MÊME VALEUR DANS LA BASE (RPC ela_relance_secret, réservée à la clé de
+   service) : le secret est FABRIQUÉ par la migration, ne sort jamais de
+   Supabase, et personne n'a rien à coller (Barbaros : « Fais-le toi-même »).
+   RELANCE_SECRET (secret de fonction) reste un repli manuel : posé, il
+   l'emporte. SANS SECRET NULLE PART (migration pas appliquée, RPC absente),
+   RIEN NE CHANGE : la relance est l'alerte, on ne la coupe pas pour un
+   verrou manquant. Lu une fois par 5 min, relu sur un désaccord (le secret
+   a pu tourner) ; comparaison à temps constant. Le webhook INSERT n'est pas
+   concerné. */
+const RELANCE_SECRET=Deno.env.get("RELANCE_SECRET")??"";
+let secretRelanceCache={valeur:"",lu:0};
+async function secretRelanceAttendu(force=false):Promise<string>{
+  if(RELANCE_SECRET)return RELANCE_SECRET;
+  if(!force&&secretRelanceCache.lu&&Date.now()-secretRelanceCache.lu<300000)return secretRelanceCache.valeur;
+  let valeur="";
+  try{const r=await db("rpc/ela_relance_secret",{method:"POST",body:"{}"});if(r.ok){const v=await r.json();if(typeof v==="string")valeur=v;}}catch{valeur="";}
+  secretRelanceCache={valeur,lu:Date.now()};
+  return valeur;
+}
+function memeSecret(recu:string,attendu:string):boolean{
+  const a=new TextEncoder().encode(recu),b=new TextEncoder().encode(attendu);
+  if(a.length!==b.length)return false;
+  let d=0;for(let i=0;i<a.length;i++)d|=a[i]^b[i];
+  return d===0;
+}
+async function relanceAutorisee(req:Request):Promise<boolean>{
+  let attendu=await secretRelanceAttendu();
+  if(!attendu)return true;
+  const recu=req.headers.get("x-ela-relance")??"";
+  if(memeSecret(recu,attendu))return true;
+  attendu=await secretRelanceAttendu(true);
+  return !attendu||memeSecret(recu,attendu);
+}
 
 type Resultat={ok:boolean;detail:string;statut?:"envoye"|"echec"|"indisponible"|"aucun_abonne"};
 async function envoyer(url:string,init:RequestInit,ms=8000):Promise<Resultat>{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),ms);try{const r=await fetch(url,{...init,signal:ctrl.signal});return{ok:r.ok,detail:r.ok?"":`${r.status} ${await r.text()}`};}catch(e){return{ok:false,detail:String(e)}}finally{clearTimeout(timer)}}
@@ -273,10 +313,13 @@ async function relancer():Promise<string>{
 
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
-  if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
-  /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
-     le rappeler ne fait que reposer la même adresse. */
-  if(charge.type==="INSTALLER_TELEGRAM")return new Response(await installerTelegram(),{status:200});
+  if(charge.type==="RELANCE"||charge.type==="INSTALLER_TELEGRAM"){
+    if(!(await relanceAutorisee(req)))return new Response("relance refusée : en-tête x-ela-relance absent ou faux",{status:401});
+    if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
+    /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
+       le rappeler ne fait que reposer la même adresse. */
+    return new Response(await installerTelegram(),{status:200});
+  }
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
   const recu=(charge.record??{}) as Record<string,any>;
   const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));

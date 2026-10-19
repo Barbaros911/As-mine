@@ -158,10 +158,36 @@ retenu** :
 | `RESEND_CLE` | `re_...` |
 | `EMAIL_EXPEDITEUR` | `onboarding@resend.dev` |
 | `EMAIL_DESTINATAIRE` | `contact@elatransfer.com` |
+| `RELANCE_SECRET` | **facultatif** — repli manuel du secret de la relance (voir plus bas) ; normalement rien à poser |
 
 **Les noms s'écrivent exactement comme ici**, en majuscules. Un secret mal
 nommé n'est pas une erreur visible : la fonction ne le trouve pas, croit
 que le canal n'est pas configuré, et répond « aucun canal configuré ».
+
+### Le secret de la relance (19 octobre 2026) — rien à poser
+
+La relance toutes les 20 s et la pose du webhook (« RELANCE »,
+« INSTALLER_TELEGRAM ») étaient joignables par quiconque a la clé publique
+du site. Désormais pg_cron se présente avec un en-tête `x-ela-relance`, lu
+dans le **coffre** de Supabase (Vault) à chaque appel, et la fonction
+compare cet en-tête à **la même valeur, lue dans la base** (RPC
+`ela_relance_secret`, réservée à la clé de service).
+
+**Le secret est fabriqué par la migration `20261019010000_relance_secret.sql`**
+(64 signes, dans le coffre, gardé si elle est rejouée). Il ne quitte jamais
+Supabase : ni le dépôt, ni le journal du workflow (qui n'en montre que la
+longueur), ni une conversation. **Personne n'a rien à coller** : le workflow
+« Appliquer une migration Supabase » avec ce fichier suffit, dans n'importe
+quel ordre par rapport au déploiement de la fonction.
+
+Tant que la migration n'est pas appliquée, rien ne change : la fonction qui
+ne trouve pas la RPC accepte comme avant, parce que la relance EST l'alerte.
+`RELANCE_SECRET` (Edge Functions → Secrets) reste un repli manuel : posé, il
+l'emporte sur la base — à n'utiliser que si le coffre devait disparaître. Si
+les deux côtés divergeaient un jour, la relance tomberait en 401 : le voyant
+de l'admin passe « Alertes en panne » (« relance absente ou muette ») en
+5 min, et le chien de garde ouvre une Issue. Le webhook INSERT (la demande
+qui arrive) n'a jamais besoin de cet en-tête.
 
 ### Depuis un ordinateur, si l'occasion se présente
 
