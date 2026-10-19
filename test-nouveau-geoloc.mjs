@@ -176,21 +176,22 @@ check('et le champ n\'est pas rempli avec des coordonnées nues',
   await p.locator('#depart').inputValue());
 await ctx.close();
 
-/* --- 6. LA ZONE DES 90 KM : MÊME RÈGLE QUE LA LISTE, SANS PORTE DÉROBÉE.
-   Depuis le 4 octobre 2026 elle ne bloque plus : se localiser à Lille
-   affiche « longue distance », exactement comme une adresse choisie, et
-   la demande partira « tarif à confirmer ». ------------------------------ */
+/* --- 6. LOIN DE PARIS, MÊME RÈGLE QUE LA LISTE, SANS PORTE DÉROBÉE.
+   Depuis le 19 octobre 2026 (B2) le prix se calcule partout en France :
+   se localiser à Lille ne déclenche plus « à confirmer », exactement comme
+   une adresse lilloise choisie dans la liste. Seul l'étranger reste sur
+   devis, et la Base Adresse Nationale ne rend que la France. ------------ */
 ({ ctx, p } = await page({
   position:{latitude:50.6292, longitude:3.0573},
   reverse:{ lat:50.6292, lon:3.0573, label:"Place du Général de Gaulle, 59000 Lille" }}));
 await p.locator('#btnGeoloc').click();
 await p.waitForTimeout(1500);
-check('une position à plus de 90 km est traitée comme une adresse lointaine',
-  !(await p.locator('#infoLongue').isHidden()));
-check('et l\'écriteau nomme le lieu, pour qu\'on comprenne pourquoi',
-  (await p.locator('#infoLongueLieu').textContent()).includes('Lille'),
-  await p.locator('#infoLongueLieu').textContent());
-check('et le bouton du prix reste allumé : plus de blocage',
+check('une position à Lille remplit le départ comme une adresse choisie',
+  (await p.locator('#depart').inputValue()).includes('Lille'),
+  await p.locator('#depart').inputValue());
+check('et elle n\'est pas traitée en « hors de France » : pas d\'écriteau',
+  await p.locator('#infoLongue').isHidden());
+check('et le bouton du prix reste allumé',
   !(await p.locator('#btnVoirPrix').isDisabled()));
 await ctx.close();
 
