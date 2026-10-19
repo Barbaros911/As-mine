@@ -206,10 +206,10 @@ l'application** gardent le reste.
 et le taux de commission se règle désormais **par chauffeur**, dans le
 carnet — il n'y a plus de taux global à trancher dans le code.
 
-**Le Programme Partenaire est annoncé, sans montant (18/10/2026, sans SIRET,
-sa décision)** : « Devenez partenaire » sur `/professionnels/`, « rémunéré sur
-chaque transfert réalisé », jamais « commission » ni « gagnez ». La grille (en €,
-≥ 50 % et ≥ 4,50 € gardés) se remet en rendez-vous : `memoire/programme-partenaire.md`.
+**Programme Partenaire : annoncé, sans montant ni promesse (18/10/2026, sans
+SIRET, sa décision)** : le bloc de `/professionnels/` est au conditionnel, jamais
+« commission » ni « gagnez » (`test-pro-page`) ; la grille (en €) se remet en
+rendez-vous : `memoire/programme-partenaire.md`.
 
 **Pas décidé** : statut juridique et **SIRET de Barbaros — À CRÉER, c'est le
 point bloquant** · volume visé · budget.
@@ -4352,11 +4352,10 @@ l'ouverture sans réseau). Ce que le lot change, et pourquoi.
   trouvé ouvert sur 8099, enraciné sur une ancienne copie de travail,
   répondait 200 : `tests.sh` le réutilisait sans regarder. Il compare
   maintenant la page servie à `index.html` et refuse de démarrer sinon
-  (éprouvé avec un serveur posé sur l'ancien code). Le serveur restait ouvert
-  parce que `npx` le lance en ENFANT : la fin de série arrête aussi ses
-  enfants (`pkill -P`). Et pour fermer un serveur à la main, viser son
-  numéro, jamais `pgrep -f "http.server"` : le motif attrape aussi la
-  commande qui le tape — vu une fois de plus ce jour-là.
+  (éprouvé). `npx` lance le serveur en PETIT-ENFANT : la fin de série
+  descend toute la lignée (`arreter_lignee`, 18/10 ; `pkill -P` en laissait
+  un orphelin). À la main, viser son numéro, jamais `pkill -f` : le motif
+  attrape la commande qui le tape — revu le 18/10.
 - **Le chien de garde qui ne passe que six fois en 21 h (P1-10) est
   tranché** : un voyant dans l'admin. Voir la section suivante.
 

@@ -3,8 +3,8 @@ set -e
 rm -rf site
 mkdir -p site
 cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css prospects.js prospects.css trafic.js trafic.css mesure.js manifest.webmanifest sw.js \
-   icon.svg icon-maskable.svg icon-32.png icon-32.png icon-180.png icon-512.png icone-ela-32.png icone-ela-180.png icone-ela-512.png favicon.ico brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml \
-   seo-pages.css landing.css mesure.js application-facade.css hotel-engine-polish.css hotel-engine-polish.js chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html 404.html site/
+   icon.svg icon-maskable.svg icon-32.png icon-180.png icon-512.png icone-ela-32.png icone-ela-180.png icone-ela-512.png favicon.ico brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml \
+   seo-pages.css landing.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html 404.html site/
 # LES DEUX ADRESSES QUE NAVIGATEURS ET MOTEURS DEMANDENT D'OFFICE (15/10/2026).
 # Safari cherche /apple-touch-icon.png, Google et les navigateurs /favicon.ico,
 # même sur une page qui déclare son icône. Absentes, elles tombaient sur la

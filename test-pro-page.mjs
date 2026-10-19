@@ -125,6 +125,7 @@ for (const langue of ['fr', 'en']) {
   textes[langue] = await p.evaluate(() => { document.querySelectorAll('details').forEach(d => d.open = true);
     return { corps: document.body.innerText, titre: document.title, lang: document.documentElement.lang,
       desc: document.querySelector('meta[name=description]').content,
+      partenaire: (document.getElementById('partenaire') || {}).innerText || '',
       aria: [...document.querySelectorAll('[aria-label]')].map(e => e.getAttribute('aria-label')) }; });
   await p.context().close();
 }
@@ -147,6 +148,18 @@ for (const l of ['fr', 'en']) {
     .replace(/valable 7 jours sur cet appareil|valid for 7 days on this device/g, '')
     .replace(/Roissy-CDG/g, '').match(/\d+\s*(%|€|jours?|days?|heures?|hours?|min)/i);
   check(`${l.toUpperCase()} : aucun chiffre ni délai promis`, !chiffres, chiffres ? chiffres[0] : '');
+  // « DEVENEZ PARTENAIRE » NE PROMET AUCUN REVENU (18/10/2026, consigne de Barbaros).
+  // Sans SIRET, aucune rémunération ne peut être facturée ni versée : la phrase qui en
+  // parle reste au conditionnel, sans montant ni mot de gain. Le jour où le programme
+  // est activé (SIRET, contrat), cette règle se rouvre avec lui — pas avant.
+  const part = textes[l].partenaire;
+  check(`${l.toUpperCase()} : le bloc « Devenez partenaire » existe`, part.length > 40, part.slice(0, 60));
+  const gain = part.match(l === 'fr' ? /gagn|commission|cashback|\bprimes?\b|parrainage|revenu garanti|\d/i
+                                     : /\bearn|commission|cashback|\bbonus|referral|guaranteed|\d/i);
+  check(`${l.toUpperCase()} : le bloc partenaire ne porte ni montant ni mot de gain`, !gain, gain ? gain[0] : '');
+  const remun = part.split('\n').filter(s => (l === 'fr' ? /rémunér/i : /remunerat|\bpaid\b/i).test(s));
+  check(`${l.toUpperCase()} : la rémunération partenaire est dite au conditionnel, jamais promise`,
+    remun.length >= 1 && remun.every(s => (l === 'fr' ? /\bpeut\b|\bpourra\b/ : /\bmay\b|\bcan\b/).test(s)), remun.join(' | '));
 }
 
 // 5. L'accueil y mène, depuis l'encart des professionnels seulement.
