@@ -81,32 +81,32 @@ ok(tg.length===1,'saisie de l\'exploitant (sans empreinte de dépôt) : aucune a
 {
   let r=await post({type:'RELANCE'});
   ok(r.status===200,'relance SANS secret dans la base : passe comme avant (HTTP '+r.status+')');
-  secretRelance='relance-0123456789-abcdef';
+  secretRelance='relance-test-aaaa-bbbb-cccc';
   const hs=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c'});
   const postS=(b,hdr)=>hs(new Request('http://x',{method:'POST',headers:hdr||{},body:JSON.stringify(b)}));
   const avantTg=tg.length;
   r=await postS({type:'RELANCE'});
   ok(r.status===401,'relance avec secret dans la base, sans en-tête : 401 (HTTP '+r.status+')');
-  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdeF'});
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-test-aaaa-bbbb-cccC'});
   ok(r.status===401,'relance : en-tête faux d\'un seul signe : 401 (HTTP '+r.status+')');
   r=await postS({type:'INSTALLER_TELEGRAM'});
   ok(r.status===401&&tg.length===avantTg,'INSTALLER_TELEGRAM sans en-tête : 401, aucun appel à Telegram');
-  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdef'});
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-test-aaaa-bbbb-cccc'});
   ok(r.status===200&&(await r.text()).startsWith('relance'),'relance avec le bon en-tête : passe (HTTP '+r.status+')');
-  r=await postS({type:'INSTALLER_TELEGRAM'},{'x-ela-relance':'relance-0123456789-abcdef'});
+  r=await postS({type:'INSTALLER_TELEGRAM'},{'x-ela-relance':'relance-test-aaaa-bbbb-cccc'});
   ok(r.status===200&&tg.length===avantTg+1,'INSTALLER_TELEGRAM avec le bon en-tête : le webhook est posé');
   tg.length=avantTg;
   r=await postS({type:'INSERT',table:'courses',record:{ref:'ELA-26-01-0001'}});
   ok(r.status===200,'le webhook INSERT n\'a pas besoin de l\'en-tête (HTTP '+r.status+')');
   /* Le secret a tourné dans la base : la fonction relit sur un désaccord, sans attendre les 5 min. */
-  secretRelance='tourne-9876543210-fedcba';
-  r=await postS({type:'RELANCE'},{'x-ela-relance':'tourne-9876543210-fedcba'});
+  secretRelance='tourne-test-dddd-eeee-ffff';
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'tourne-test-dddd-eeee-ffff'});
   ok(r.status===200,'secret tourné dans la base : la fonction relit et accepte la nouvelle valeur (HTTP '+r.status+')');
-  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdef'});
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-test-aaaa-bbbb-cccc'});
   ok(r.status===401,'secret tourné : l\'ancienne valeur est refusée (HTTP '+r.status+')');
   /* Le repli manuel : RELANCE_SECRET posé l'emporte sur la base. */
-  const he=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RELANCE_SECRET:'manuel-0123456789'});
-  r=await he(new Request('http://x',{method:'POST',headers:{'x-ela-relance':'manuel-0123456789'},body:JSON.stringify({type:'RELANCE'})}));
+  const he=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RELANCE_SECRET:'repli-manuel'});
+  r=await he(new Request('http://x',{method:'POST',headers:{'x-ela-relance':'repli-manuel'},body:JSON.stringify({type:'RELANCE'})}));
   ok(r.status===200,'RELANCE_SECRET posé : il l\'emporte sur la base (HTTP '+r.status+')');
   secretRelance=null;
 }

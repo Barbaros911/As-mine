@@ -5,3 +5,14 @@
 # restent scannés.
 e182d15af1385ef3c9e2ced79ed0e7fb612e2863:sites/easyhotel-client/index.html:generic-api-key:286
 5b699059aa6b655637bdd7cdcf36ae28e5368688:test-securite-fonctions.mjs:generic-api-key:84
+
+# Fausses valeurs de TEST du secret de la relance (PR #384, 19/10/2026) :
+# « relance-0123456789-abcdef », « tourne-9876543210-fedcba »,
+# « manuel-0123456789 » — des chaînes inventées pour éprouver le 401, prises
+# pour des secrets à cause de leurs chiffres. Remplacées au commit suivant par
+# des valeurs à faible entropie. Empreintes exactes : une autre ligne ou un
+# autre commit restent scannés.
+b7ced39df1ff271f81385766f6fbe619c87ae9bc:test-securite-fonctions.mjs:generic-api-key:80
+d5549d45a821c14f1b7da45a820a6b1b499d4ff8:test-securite-fonctions.mjs:generic-api-key:84
+d5549d45a821c14f1b7da45a820a6b1b499d4ff8:test-securite-fonctions.mjs:generic-api-key:102
+d5549d45a821c14f1b7da45a820a6b1b499d4ff8:test-securite-fonctions.mjs:generic-api-key:108
