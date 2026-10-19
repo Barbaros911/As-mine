@@ -3433,9 +3433,10 @@ muette : le code décide) ; `etat-course` refuse une référence mal formée san
 lecture ; `prevenir-client` n'accepte plus `github.io`. **Le Registre compte
 depuis l'appareil, plafonné à 1 000 courses** (dix jours à 100 demandes/jour) :
 il le DIT (`#registreTronque`) tant que ses chiffres ne viennent pas du
-serveur. Reste (P2) : RELANCE/INSTALLER_TELEGRAM joignables avec la clé
-publique (pg_cron l'utilise). Histoire : `memoire/reference.md`,
-`memoire/erreurs-client.md`.
+serveur. RELANCE/INSTALLER_TELEGRAM exigent `x-ela-relance` =
+`RELANCE_SECRET` (Vault `ela_relance_secret`, `20261019010000`, ordre : Vault →
+migration → secret) ; sans secret posé, ouvertes comme avant. Histoire :
+`memoire/reference.md`, `memoire/erreurs-client.md`, `memoire/alertes-relance.md`.
 
 ## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE
 
@@ -3732,10 +3733,8 @@ Berline / Van. C'était une liste à plat de quatorze champs.
 30 septembre 2026, à sa demande : « recevoir toutes les courses de tous les
 sites en temps et en heure sur admin et Telegram… une alerte sonore,
 visuelle, notification, tout ce qui est possible ».
-- **MESURÉ AVANT (diagnostic du 29/09, run #10 du workflow des migrations)** :
-  clic du client → serveur en 0 à 2 s, serveur → Telegram en 0 à 2 s, sur les
-  dix dernières courses. **Le serveur n'est pas lent.** Push était encore
-  « indisponible » ce jour-là (clés VAPID pas encore posées).
+- **MESURÉ AVANT (diagnostic du 29/09)** : client → serveur 0 à 2 s, serveur →
+  Telegram 0 à 2 s. **Le serveur n'est pas lent.** `memoire/alertes-relance.md`.
 - **LE BIP DE L'ADMIN NE SONNAIT PROBABLEMENT JAMAIS SUR UN TÉLÉPHONE.** Il
   créait un lecteur de son hors de tout geste ; iPhone et Android le laissent
   suspendu, sans erreur. Un seul lecteur maintenant, débloqué au premier appui
@@ -3753,9 +3752,9 @@ visuelle, notification, tout ce qui est possible ».
   `nouvelle-demande` avec `{type:"RELANCE"}`
   (`20260930000000_relance_alertes.sql`, schedule `'20 seconds'`). Demande en
   attente depuis plus d'1 min sans AUCUNE alerte réussie → annoncée.
-  **La cadence suit l'urgence** (ChatGPT, 30/09/2026, validé par Barbaros,
-  puis resserrée le soir même à sa demande : « tout sonne plusieurs fois par
-  minute ») : les **10 premières minutes** d'une demande non vue, et tout
+  **La cadence suit l'urgence** (30/09/2026, resserrée le soir même à sa
+  demande ; histoire : `memoire/alertes-relance.md`) : les **10 premières
+  minutes** d'une demande non vue, et tout
   départ dans 30 min ou moins → Telegram ET notification **à chaque tour de
   20 s** (seuil 15 s : pg_cron ne tombe jamais pile) ;
   entre 30 min et 2 h → toutes les 10 min ; plus de 2 h → aucun rappel avant
@@ -3765,9 +3764,9 @@ visuelle, notification, tout ce qui est possible ».
   `telegram-bot`, déployée sans JWT, qui vérifie l'en-tête secret du webhook
   et que l'appui vient de `TELEGRAM_CHAT`), ou la course ouverte dans l'admin
   (`signalerVue()` → RPC `ela_marquer_vue`). Les deux écrivent `vue` au
-  journal. Le secret du webhook est dérivé du jeton du bot (SHA-256 de
-  « jeton:webhook-ela ») : aucun secret de plus. Le webhook est posé par
-  `{type:"INSTALLER_TELEGRAM"}`, appelé par la même migration.
+  journal. Secret du webhook dérivé du jeton du bot (SHA-256 de
+  « jeton:webhook-ela »). Webhook posé par `INSTALLER_TELEGRAM` (même
+  migration) ; pg_cron se présente avec `x-ela-relance` depuis le 19/10.
   **LA FENÊTRE DE 6 H SE COMPTE DEPUIS LE DÉPART, PAS DEPUIS LA CRÉATION.**
   Comptée depuis la création, elle écartait toute demande faite plus de 6 h
   avant le départ (un hôtel qui réserve la veille : le cas le plus courant) —

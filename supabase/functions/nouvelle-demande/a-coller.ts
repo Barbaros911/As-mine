@@ -144,6 +144,27 @@ const VAPID_PUBLIQUE=Deno.env.get("VAPID_PUBLIQUE")??"",VAPID_PRIVEE=Deno.env.ge
 /* L'ESPACE HISTORIQUE EST L'ADMIN RETENU (23/09/2026, choix de Barbaros :
    « on garde l'ancien »). Admin v2 reste en ligne mais n'est plus la porte. */
 const ADMIN=Deno.env.get("ADRESSE_ADMIN")??"https://elatransfer.com/ela-admin/";
+/* LE SECRET DE LA RELANCE (19 octobre 2026, audit, P2). RELANCE et
+   INSTALLER_TELEGRAM étaient joignables par quiconque a la clé publique du
+   site : appeler la relance en boucle (du bruit sur la base, jamais un
+   message de plus, la cadence vient du journal) ou reposer le webhook du
+   bot en boucle (Telegram ralentit alors le bot, et le bouton « Vu » avec).
+   pg_cron envoie maintenant l'en-tête « x-ela-relance » lu dans le coffre
+   (Vault, secret « ela_relance_secret ») ; la fonction le compare à
+   RELANCE_SECRET, à temps constant. SANS RELANCE_SECRET POSÉ, RIEN NE CHANGE :
+   la relance est l'alerte, on ne la coupe pas pour un secret manquant — le
+   verrou s'arme quand les deux côtés portent la même valeur. S'ils divergent,
+   la relance tombe en 401 et le voyant de l'admin le dit en 5 min
+   (« relance absente ou muette »). Le webhook INSERT n'est pas concerné. */
+const RELANCE_SECRET=Deno.env.get("RELANCE_SECRET")??"";
+function relanceAutorisee(req:Request):boolean{
+  if(!RELANCE_SECRET)return true;
+  const recu=req.headers.get("x-ela-relance")??"";
+  const a=new TextEncoder().encode(recu),b=new TextEncoder().encode(RELANCE_SECRET);
+  if(a.length!==b.length)return false;
+  let d=0;for(let i=0;i<a.length;i++)d|=a[i]^b[i];
+  return d===0;
+}
 
 type Resultat={ok:boolean;detail:string;statut?:"envoye"|"echec"|"indisponible"|"aucun_abonne"};
 async function envoyer(url:string,init:RequestInit,ms=8000):Promise<Resultat>{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),ms);try{const r=await fetch(url,{...init,signal:ctrl.signal});return{ok:r.ok,detail:r.ok?"":`${r.status} ${await r.text()}`};}catch(e){return{ok:false,detail:String(e)}}finally{clearTimeout(timer)}}
@@ -409,10 +430,13 @@ async function relancer():Promise<string>{
 
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
-  if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
-  /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
-     le rappeler ne fait que reposer la même adresse. */
-  if(charge.type==="INSTALLER_TELEGRAM")return new Response(await installerTelegram(),{status:200});
+  if(charge.type==="RELANCE"||charge.type==="INSTALLER_TELEGRAM"){
+    if(!relanceAutorisee(req))return new Response("relance refusée : en-tête x-ela-relance absent ou faux",{status:401});
+    if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
+    /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
+       le rappeler ne fait que reposer la même adresse. */
+    return new Response(await installerTelegram(),{status:200});
+  }
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
   const recu=(charge.record??{}) as Record<string,any>;
   const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));

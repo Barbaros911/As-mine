@@ -44,6 +44,8 @@ globalThis.fetch=async(url,init={})=>{
   if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon')) return new Response(JSON.stringify(listeHotel));
   if(init.method==='PATCH'||init.method==='POST'&&url.includes('/rest/v1/courses')){ecritures.push(url);return new Response('');}
   if(url.includes('/rpc/est_exploitant')) return new Response(JSON.stringify(init.headers.Authorization==='Bearer ADMIN'));
+  /* La relance relit les demandes en attente : ici il n'y en a aucune. */
+  if(url.includes('/rest/v1/courses?select=ref,bon,cree_le&statut=eq.attente')) return new Response('[]');
   if(url.includes('/rest/v1/courses?')){const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(rows[ref]?[rows[ref]]:[]));}
   if(url.includes('journal_notifications_admin?select')){const ref=decodeURIComponent(url.match(/course_ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(journal.filter(j=>j.course_ref===ref)));}
   if(url.includes('journal_notifications_admin')){journal.push(JSON.parse(init.body));return new Response('');}
@@ -68,6 +70,30 @@ await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-01-0001'}});
 ok(tg.length===1,'course ancienne : pas d\'alerte');
 await post({type:'INSERT',table:'courses',record:{ref:'ELA-26-09-0008'}});
 ok(tg.length===1,'saisie de l\'exploitant (sans empreinte de dépôt) : aucune alerte');
+/* LE SECRET DE LA RELANCE (19/10/2026, P2). Sans RELANCE_SECRET, RELANCE et
+   INSTALLER_TELEGRAM passent comme avant (la relance est l'alerte : un secret
+   manquant ne la coupe pas). Avec, l'en-tête « x-ela-relance » est exigé, à
+   l'octet près ; le webhook INSERT, lui, n'en a jamais besoin. */
+{
+  let r=await post({type:'RELANCE'});
+  ok(r.status===200,'relance SANS secret posé : passe comme avant (HTTP '+r.status+')');
+  const hs=await charger('nouvelle-demande',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c',RELANCE_SECRET:'relance-0123456789-abcdef'});
+  const postS=(b,hdr)=>hs(new Request('http://x',{method:'POST',headers:hdr||{},body:JSON.stringify(b)}));
+  const avantTg=tg.length;
+  r=await postS({type:'RELANCE'});
+  ok(r.status===401,'relance avec secret posé, sans en-tête : 401 (HTTP '+r.status+')');
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdeF'});
+  ok(r.status===401,'relance : en-tête faux d\'un seul signe : 401 (HTTP '+r.status+')');
+  r=await postS({type:'INSTALLER_TELEGRAM'});
+  ok(r.status===401&&tg.length===avantTg,'INSTALLER_TELEGRAM sans en-tête : 401, aucun appel à Telegram');
+  r=await postS({type:'RELANCE'},{'x-ela-relance':'relance-0123456789-abcdef'});
+  ok(r.status===200&&(await r.text()).startsWith('relance'),'relance avec le bon en-tête : passe (HTTP '+r.status+')');
+  r=await postS({type:'INSTALLER_TELEGRAM'},{'x-ela-relance':'relance-0123456789-abcdef'});
+  ok(r.status===200&&tg.length===avantTg+1,'INSTALLER_TELEGRAM avec le bon en-tête : le webhook est posé');
+  tg.length=avantTg;
+  r=await postS({type:'INSERT',table:'courses',record:{ref:'ELA-26-01-0001'}});
+  ok(r.status===200,'le webhook INSERT n\'a pas besoin de l\'en-tête (HTTP '+r.status+')');
+}
 const p=await charger('prevenir-client',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',SUPABASE_ANON_KEY:'A',VAPID_PUBLIQUE:'x',VAPID_PRIVEE:'y'});
 const pp=(auth)=>p(new Request('http://x',{method:'POST',headers:auth?{authorization:auth}:{},body:JSON.stringify({ref:'ELA-26-09-0007',url:'https://pirate.example'})}));
 ok((await pp()).status===403,'prevenir-client sans jeton : 403');
