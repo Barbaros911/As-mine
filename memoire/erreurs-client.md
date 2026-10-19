@@ -34,6 +34,16 @@ nulle part tant qu'un client n'appelait pas.
   `ela_erreurs_client_recentes` : comptes sur 24 h et 1 h, cinq messages les
   plus fréquents avec leur espace. Un non-exploitant est refusé par la
   fonction elle-même.
+  **Le garde `current_user not in ('service_role','postgres')` du premier jet
+  était inerte** (relecture indépendante, 19/10) : dans une fonction
+  `security definer`, `current_user` est le propriétaire, donc toujours
+  `postgres` ; `session_user` ne vaut pas mieux (PostgREST entre en
+  `authenticator`). Retiré : la seule frontière est le droit d'exécution,
+  et le bloc final de la migration la vérifie. Le même motif inerte traîne
+  dans `20260916103000_hotel_server_pricing.sql` et
+  `20260916104500_hotel_snapshot_origin_fix.sql` (`… and auth.role() <>
+  'service_role'`) : là aussi, c'est le `grant execute` qui garde — à ne pas
+  lire comme une seconde défense.
 - **Dans l'admin, une ligne sous le voyant**, cachée tant qu'il n'y a rien
   ou que la migration manque : « 0 erreur » tous les jours ne se lirait plus.
   Lue au rythme du voyant (40 s), jamais plus.

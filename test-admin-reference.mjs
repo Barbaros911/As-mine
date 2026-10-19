@@ -73,10 +73,22 @@ COLLEE.statut = 'attente'; delete COLLEE.chauffeur; delete COLLEE.canal;
 const COLLEE_SERVEUR = JSON.parse(JSON.stringify(COLLEE));
 COLLEE_SERVEUR.cree = new Date(Date.now() - 900e3).toISOString(); COLLEE_SERVEUR.securite = { empreinteDepot: 'abc' };
 COLLEE_SERVEUR.client.telephone = '+33 6 44 55 66 77'; /* le serveur a le numéro tel que tapé par le client */
+/* LA COURSE MODIFIÉE PENDANT LE REPORT (second passage de la relecture
+   indépendante, 19/10/2026) : le POST de « Saisir par téléphone » a ABOUTI
+   côté serveur (keepalive) mais la réponse s'est perdue (abandon à 8 s) ; la
+   course est restée en file, sans version, et Barbaros a corrigé l'heure
+   (10:00 → 11:00) avant le tour suivant. Même « cree » des deux côtés : c'est
+   NOTRE ligne. Attendu : le serveur gagne (conflit, dit à l'écran), jamais une
+   référence neuve — comparée au contenu seul, l'heure différente en faisait
+   « une autre course » et la course partait EN DOUBLE. */
+const MODIFIEE = course('ELA-26-10-MODI1', 'M. Modifie Pendant Report', '06 55 44 33 22', IL_Y_A_UNE_HEURE);
+const MODIFIEE_SERVEUR = JSON.parse(JSON.stringify(MODIFIEE));
+MODIFIEE.course.heure = '11:00';
 const base = {
   'ELA-26-10-COLL1': { bon: JSON.parse(JSON.stringify(INCONNU)), statut: 'attente', version: 3 },
   'ELA-26-10-PERD1': { bon: JSON.parse(JSON.stringify(ACCUSE_PERDU)), statut: 'confirmee', version: 1 },
   'ELA-26-10-COLL2': { bon: COLLEE_SERVEUR, statut: 'attente', version: 2 },
+  'ELA-26-10-MODI1': { bon: MODIFIEE_SERVEUR, statut: 'confirmee', version: 1 },
 };
 const ecritures = []; const erreurs = [];
 let grosServeur = false;
@@ -90,7 +102,7 @@ await ctx.addInitScript(({ c, file }) => {
   localStorage.setItem('ela_nuage_session', JSON.stringify({ access_token: 'JETON', refresh_token: 'R', user: { id: 'u-barbaros' } }));
   localStorage.setItem('ela_bookings', JSON.stringify(c));
   localStorage.setItem('ela_file', JSON.stringify(file));
-}, { c: [SAISIE, ACCUSE_PERDU, COLLEE], file: { 'ELA-26-10-COLL1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-PERD1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-COLL2': { depuis: Date.now(), essais: 0, gen: 1 } } });
+}, { c: [SAISIE, ACCUSE_PERDU, COLLEE, MODIFIEE], file: { 'ELA-26-10-COLL1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-PERD1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-COLL2': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-MODI1': { depuis: Date.now(), essais: 0, gen: 1 } } });
 /* Les deux courses en file se vident l'une après l'autre et le même écriteau
    (#bordConflit) sert aux deux : on relève CHAQUE phrase qu'il a affichée,
    pas seulement la dernière. */
@@ -165,7 +177,7 @@ try {
 
   const posts = ecritures.filter(e => !e.patch);
   const pourColl = posts.filter(e => e.ref === 'ELA-26-10-COLL1');
-  const neuves = posts.filter(e => !['ELA-26-10-COLL1', 'ELA-26-10-PERD1', 'ELA-26-10-COLL2'].includes(e.ref));
+  const neuves = posts.filter(e => !['ELA-26-10-COLL1', 'ELA-26-10-PERD1', 'ELA-26-10-COLL2', 'ELA-26-10-MODI1'].includes(e.ref));
   check('collision : la course saisie part UNE fois sous sa référence d\'origine', pourColl.length === 1, pourColl.length + ' envoi(s)');
   check('collision : puis UNE fois sous une référence neuve', neuves.length === 1, neuves.map(e => e.ref).join(','));
   const neuve = neuves[0] && neuves[0].ref;
@@ -205,6 +217,21 @@ try {
   check('demande collée : la copie locale adopte la ligne du serveur (version, empreinte de dépôt)',
     !!coll2 && coll2._v === 2 && coll2.securite && coll2.securite.empreinteDepot === 'abc', JSON.stringify(coll2 && { _v: coll2._v, s: coll2.securite }));
   check('demande collée : le serveur n\'a pas été réécrit', base['ELA-26-10-COLL2'].version === 2);
+  /* LA COURSE MODIFIÉE PENDANT LE REPORT : même « cree », heure différente →
+     c'est la nôtre, le serveur gagne. Une seule écriture, aucune référence
+     neuve, la copie locale reprend l'heure du serveur et sa version, et
+     l'écran dit que la course a été mise à jour. */
+  const pourModi = posts.filter(e => e.ref === 'ELA-26-10-MODI1');
+  check('modifiée pendant le report : une seule écriture, aucune référence neuve (pas de course en double)', pourModi.length === 1 && neuves.length === 1, pourModi.length + ' / ' + neuves.length);
+  const modi = registre.find(c => c.ref === 'ELA-26-10-MODI1');
+  check('modifiée pendant le report : la copie locale adopte la ligne du serveur (heure 10:00, version 1)',
+    !!modi && modi._v === 1 && modi.course.heure === '10:00', JSON.stringify(modi && { _v: modi._v, heure: modi.course.heure }));
+  check('modifiée pendant le report : une seule course de ce client sur l\'appareil',
+    registre.filter(c => c.client && c.client.nom === 'M. Modifie Pendant Report').length === 1);
+  check('modifiée pendant le report : le serveur n\'a pas été réécrit', base['ELA-26-10-MODI1'].version === 1 && base['ELA-26-10-MODI1'].bon.course.heure === '10:00');
+  check('modifiée pendant le report : l\'écran dit que la course a été mise à jour, pas qu\'une référence a changé',
+    ecriteaux.some(t => t.includes('ELA-26-10-MODI1') && /mise à jour|modifiée/.test(t)) && !ecriteaux.some(t => t.includes('ELA-26-10-MODI1') && /déjà prise/.test(t)),
+    ecriteaux.filter(t => t.includes('MODI1')).map(t => t.slice(0, 70)).join(' | '));
   const file = await p.evaluate(() => localStorage.getItem('ela_file'));
   check('la file est vide à la fin', !file || file === '{}', file);
 
@@ -221,7 +248,7 @@ try {
   check('erreurs du site : RPC absente (migration pas appliquée) → la ligne reste cachée', await p2.evaluate(() => { const e = document.getElementById('adminErreurs'); return !e || e.hidden; }));
   /* LA LIMITE DES 1000 COURSES SE DIT (19/10/2026). Trois courses : rien. */
   await p2.click('#btnRegistre'); await p2.waitForTimeout(600);
-  check('registre : avec trois courses, aucun écriteau de troncature', await p2.evaluate(() => { const e = document.getElementById('registreTronque'); return !!e && e.hidden; }));
+  check('registre : avec quatre courses, aucun écriteau de troncature', await p2.evaluate(() => { const e = document.getElementById('registreTronque'); return !!e && e.hidden; }));
   await p2.close();
   grosServeur = true;
   const p3 = await ctx.newPage();
