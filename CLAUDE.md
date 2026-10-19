@@ -4518,20 +4518,19 @@ l'agent). Tout, et pourquoi : `memoire/demo-pro.md`.
 
 ## LA FINITION DES PAGES D'HÔTEL EST COMMUNE À TOUS LES PARTENAIRES
 
-11/10/2026 (« fait le comme un expert »). `hotel-engine-polish.*` ne nomme plus
-aucun hôtel : nom, adresse, page du QR, photo (`photoEntete`) et couleurs
+11/10/2026. `hotel-engine-polish.*` ne nomme plus aucun hôtel : nom, adresse, page du QR, photo (`photoEntete`) et couleurs
 viennent de la fiche `HOTELS` (`window.ELA_HOTEL_ACTIF`, événement `ela:hotel`).
 Une page de comptoir par hôtel, `/reception/<clé>/` ; `?reception=` se résout
-par clé, nom ou alias. La démo la charge : le prospect voit ce que voit un
-partenaire.
+par clé, nom ou alias.
 - **Ne jamais réécrire un nom, une adresse ou une couleur d'hôtel dans la
   finition** : `verifier-demo.mjs` refuse la construction, et
-  `test-finition-commune` (un second partenaire fictif, construit et ouvert)
-  tombe — 27 contrôles sur l'ancien code, qui lui affichait le nom, la photo
-  et l'orange d'easyHotel.
-- easyHotel n'a pas bougé d'un pixel (mesuré) : ses quatre clés `finition*`
-  gardent son dégradé. Ajouter un partenaire, ce qui reste à faire, et
-  pourquoi : `memoire/finition-commune.md`.
+  `test-finition-commune` (un second partenaire fictif) tombe.
+- **Le premier dessin est le bon** (19/10/2026) : la page construite d'un
+  partenaire porte `hotel hotel-enhanced` dès `<body>` et un voile
+  (`html.hotel-avance`) que le script lève ; CLS 0,56 → 0,04 en 4G lente
+  (`test-easyhotel-client`). Clé exacte seulement ; la démo retire ce script.
+- easyHotel n'a pas bougé d'un pixel (mesuré). Suite et histoire :
+  `memoire/finition-commune.md`.
 
 ## LA MESURE DU TRAFIC — L'ÉCRAN « TRAFIC » DE L'ADMIN
 

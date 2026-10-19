@@ -8620,6 +8620,11 @@ window.ELA_TEXTES = {
     hotelDest = h.destinations[0];
     libreAutoRempli = false;
     document.body.classList.add("hotel");
+    /* La page construite d'un partenaire arrive voilée (html.hotel-avance,
+       posé par construire-espaces-hotel.mjs avant le premier dessin) : on
+       lève le voile ici, et tout ce qui suit dans ce script s'applique avant
+       le prochain dessin. Sans effet ailleurs. */
+    document.documentElement.classList.remove("hotel-avance");
     /* Les couleurs passent par des variables CSS posées sur la page : le
        CSS ne connaît aucun partenaire, il ne connaît que des rôles. C'est
        la même leçon que « --accent » qui ne s'appelle plus « --or ». */

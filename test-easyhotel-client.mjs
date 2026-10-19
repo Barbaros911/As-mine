@@ -287,6 +287,42 @@ const etatsEH = p => p.evaluate(()=>({
     check(`${page} : aucune fonction appelée sans être définie`, manque.length===0, manque.join(', '));
   }
 }
+/* LE PREMIER DESSIN EST LE BON (19/10/2026, audit). Mesuré avant : la
+   page d'un partenaire s'affichait d'abord comme l'accueil public, puis le
+   mode hôtel la remplaçait en deux temps — CLS 0,56 en 4G lente. Le site
+   construit pose maintenant les classes du corps dès sa première ligne et
+   voile l'écran (html.hotel-avance) jusqu'au script. ON RALENTIT LE RÉSEAU
+   ET LE PROCESSEUR : sur un serveur local, la page arrive d'un bloc et le
+   défaut n'existe pas — un contrôle sans ralentissement passerait au vert
+   sur l'ancien code. Et on vérifie le voile levé : une page qui ne
+   bougerait plus parce qu'elle reste invisible ne vaut rien. */
+{ const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2});
+  await ctx.route(/photon|data\.gouv|openrouteservice|osrm|supabase\.co|openstreetmap|easyhotel\.com|\/cdn\./,r=>r.abort());
+  const p=await ctx.newPage(); p.errs=[]; p.on('pageerror',e=>p.errs.push(e.message));
+  const cdp=await ctx.newCDPSession(p);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:1.6*1024*1024/8,uploadThroughput:750*1024/8});
+  await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+  await p.addInitScript(()=>{ window.__cls=0; window.__sauts=[];
+    new PerformanceObserver(l=>{for(const e of l.getEntries()) if(!e.hadRecentInput){window.__cls+=e.value;window.__sauts.push(Math.round(e.value*1000)/1000);}}).observe({type:'layout-shift',buffered:true}); });
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville',{waitUntil:'load'});
+  await p.waitForTimeout(2500);
+  const m=await p.evaluate(()=>({cls:Math.round(window.__cls*1000)/1000, sauts:window.__sauts,
+    voile:document.documentElement.classList.contains('hotel-avance'),
+    hotel:document.body.classList.contains('hotel'), fini:document.body.classList.contains('hotel-enhanced'),
+    visible:getComputedStyle(document.getElementById('ecran-accueil')).visibility,
+    tete:document.getElementById('hotelTete')&&!document.getElementById('hotelTete').hidden}));
+  check('partenaire : la page ne saute pas en se chargeant (CLS < 0,1)', m.cls<0.1, 'CLS '+m.cls+' ('+m.sauts.join(', ')+')');
+  check('partenaire : le voile est levé, l’écran est visible', !m.voile && m.visible==='visible', JSON.stringify(m));
+  check('partenaire : mode hôtel et finition posés', m.hotel && m.fini && m.tete, JSON.stringify(m));
+  check('partenaire : aucune erreur JavaScript', p.errs.length===0, p.errs.join(' ; '));
+  /* Un hôtel inconnu garde l'accueil public : aucune classe posée d'office. */
+  await p.goto(BASE+'/application.html?h=Hotel%20Inconnu%20CDG',{waitUntil:'load'});
+  await p.waitForTimeout(800);
+  const inconnu=await p.evaluate(()=>({hotel:document.body.classList.contains('hotel'), voile:document.documentElement.classList.contains('hotel-avance'),
+    hero:document.querySelector('.hero')?getComputedStyle(document.querySelector('.hero')).display:'absent', depart:(document.getElementById('depart')||{}).value}));
+  check('hôtel inconnu : l’accueil public, sans voile ni mode hôtel', !inconnu.hotel && !inconnu.voile && inconnu.hero!=='none', JSON.stringify(inconnu));
+  await ctx.close(); }
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('=== RÉUSSIS ('+ok.length+') ===');

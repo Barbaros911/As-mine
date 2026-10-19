@@ -333,6 +333,11 @@ function demoiser(html, vue) {
   // 2. La tête : plus de redirection par paramètre, plus de manifeste,
   //    plus des fichiers du partenaire réel. On pose les nôtres.
   html = html.replace(/<script>\(function\(\)\{try\{var p=new URLSearchParams\(location\.search\);[\s\S]*?<\/script>/g, '');
+  /* Le mode hôtel posé en avance (19/10/2026) nomme la clé du partenaire
+     réel : la démo s'ouvre sur sa propre fiche, après le serveur, elle n'en
+     a pas l'usage — et verifier-demo.mjs refuserait la clé. */
+  html = html.replace(/<script id="elaHotelAvance">[\s\S]*?<\/script>/, '');
+  html = html.replace(/<style id="elaHotelAvanceStyle">[\s\S]*?<\/style>/, '');
   html = html.replace(/<script>\s*\(function\(\)\{\s*(?:\/\*[\s\S]*?\*\/\s*)?var m = document\.getElementById\("manifeste"\);[\s\S]*?<\/script>\s*/, '');
   html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
   /* La démo ne mesure rien : pas de collecteur, donc pas d'appel au serveur

@@ -100,3 +100,40 @@ d'easyHotel. 27 contrôles tombent sur l'ancien code.
    le menu des destinations est déjà là.
 5. **Les icônes de comptoir** (`icones/reception-*`) sont l'ELA orange
    d'easyHotel : communes à tous les comptoirs pour l'instant.
+
+## Le premier dessin est le bon (19/10/2026, audit)
+
+(La finition commune du 11/10 avait été demandée par « fait le comme un expert » ; la démo charge la même finition : le prospect voit ce que voit un partenaire.)
+
+Mesuré sur le site construit, 4G lente et processeur ralenti ×4
+(`/application.html?h=easyhotel-aeroville`, 390 × 844) : la page arrivait
+d'abord comme l'accueil public — en-tête de 62 px, bandeau, sections — puis
+le script de fin de page posait `body.hotel` (en-tête à 94 px, accueil
+masqué), puis la finition posait `hotel-enhanced` (76 px). Deux sauts sous
+le doigt, CLS 0,56 ; l'accueil, lui, est à 0,001.
+
+- **Première version, éprouvée et rejetée** : poser seulement les deux
+  classes du corps dès `<body>`. L'accueil disparaissait bien du premier
+  dessin, mais le bandeau de l'hôtel, les destinations et les champs
+  n'arrivent qu'au script : le formulaire descendait de 316 px — CLS 0,81,
+  pire qu'avant. *Un état posé à moitié bouge plus qu'un état posé tard.*
+- **Ce qui tient** : les classes, ET un voile `html.hotel-avance` qui rend
+  `.ecran` invisible (`visibility`, pas `display` : la place est prise,
+  rien ne saute) jusqu'à `ouvrirModeHotel()`, qui le retire ; tout ce qui
+  suit dans le script s'applique avant le prochain dessin. Filet de 5 s si
+  le script ne venait pas : la page publique plutôt qu'une page blanche.
+  Résultat : 0,04 — ce qui reste est la finition qui remonte le bloc
+  « Client » dans l'ordre du tunnel, à la tâche suivante.
+- **La décision se prend sur la clé exacte** (`?h=easyhotel-aeroville`,
+  en minuscules) : le script reconnaît aussi le nom et les alias après
+  normalisation, et recopier cette normalisation dans le script d'avance en
+  ferait une seconde recette. Une clé reconnue en avance l'est forcément
+  par le script ; un nom ou un alias garde le comportement d'avant.
+- **La démo retire le script** (`construire-demo.mjs`) : il nomme la clé
+  d'un partenaire réel, que `verifier-demo.mjs` refuse — c'est lui qui a
+  arrêté la première construction.
+- **Le contrôle ralentit réseau et processeur** (`test-easyhotel-client`) :
+  sur un serveur local la page arrive d'un bloc et le défaut n'existe pas.
+  Il vérifie aussi que le voile est levé et qu'un hôtel inconnu garde
+  l'accueil public, sans classe ni voile.
+
