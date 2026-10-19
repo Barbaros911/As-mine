@@ -1292,6 +1292,8 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 .admin-erreurs{display:flex;width:max-content;color:#fcd34d;}
 .admin-erreurs .admin-point{background:#f59e0b;}
 .admin-erreurs.recente{font-weight:700;}
+.registre-tronque{margin:12px 0 0;padding:10px 14px;background:var(--carte);border:1px solid var(--filet);border-left:3px solid #f59e0b;border-radius:12px;}
+.registre-tronque .bloc-note{margin:0;color:var(--encre);font-size:12.5px;}
 .admin-alertes.ko .admin-point{background:#f87171;}
 /* QUITTER ET SE DÉCONNECTER VIVENT ICI, SOUS L'ÉTAT DU COMPTE, et plus dans
    les tuiles du menu (10/10/2026) : deux actions sur le compte, à côté de ce
@@ -4876,6 +4878,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </svg>
       </button>
       <h1 class="ecran-titre">Registre</h1>
+    </div>
+
+    <!-- LA LIMITE DES 1000 COURSES SE DIT (19 octobre 2026, audit). L'admin
+         ne relit du serveur que les 1000 courses les plus récentes, et
+         l'appareil n'en garde pas plus : au-delà, les chiffres du Registre
+         sur le mois et l'année ne couvrent plus les plus anciennes — en
+         silence. À cent demandes par jour, c'est dix jours. Tant que les
+         chiffres ne viennent pas du serveur, on le DIT ici, à l'endroit où
+         ils se lisent. Caché tant que la liste n'est pas pleine. -->
+    <div class="registre-tronque" id="registreTronque" role="status" hidden>
+      <p class="bloc-note" id="registreTronqueTexte"></p>
     </div>
 
     <!-- LA RECHERCHE EN TÊTE (9 octobre 2026) : quand un client rappelle,
@@ -12479,6 +12492,17 @@ window.ELA_TEXTES = {
      foi sur celui du JSON — c'est la colonne que lisent la relance et la
      réception. Un serveur d'avant la migration ne rend pas de version :
      « _v » reste alors absent et on retombe sur l'ancien comportement. */
+  /* Vrai dès que la dernière lecture serveur a rendu ses 1000 lignes : la
+     liste est alors coupée, et le Registre le dit (jugerTronque). */
+  var listeTronquee = false;
+  function jugerTronque(){
+    var el = document.getElementById("registreTronque"), txt = document.getElementById("registreTronqueTexte");
+    if(!el || !txt) return;
+    el.hidden = !listeTronquee;
+    if(listeTronquee) txt.textContent = "Le serveur garde plus de 1 000 courses : cet appareil ne relit que les "
+      + "1 000 plus récentes. Les chiffres de ce Registre ne couvrent pas les courses plus anciennes, "
+      + "et la recherche ne les trouve pas. Pour un bilan complet, exportez le CSV régulièrement.";
+  }
   function reconcilier(distantes){
     var local = registre();
     var parRef = {};
@@ -12514,6 +12538,7 @@ window.ELA_TEXTES = {
     var presentes = {};
     distantes.forEach(function(d){ if(d && d.ref) presentes[d.ref] = true; });
     var tronquee = distantes.length >= 1000;
+    listeTronquee = tronquee;
     var resultat = [];
     Object.keys(parRef).forEach(function(ref){
       var c = parRef[ref];
@@ -13319,6 +13344,7 @@ window.ELA_TEXTES = {
     return !(c.chauffeur && String(c.chauffeur.nom || "").trim());
   }
   function dessinerBord(){
+    if(typeof jugerTronque === "function") jugerTronque();
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     if(typeof dessinerSauvegardeBord === "function") dessinerSauvegardeBord();
     if(typeof dessinerAvisBord === "function") dessinerAvisBord();
@@ -16871,6 +16897,7 @@ window.ELA_TEXTES = {
        trajet. On affiche, PUIS on dessine. */
     ecran("ecran-registre");
     dessinerBord();
+    jugerTronque();
     allumerAdmin(document.getElementById("btnRegistre"));
   }
   document.getElementById("btnRegistre").addEventListener("click", ouvrirRegistre);

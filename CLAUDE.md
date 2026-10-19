@@ -3427,11 +3427,13 @@ avec le jeton de l'appelant (modèle : `prevenir-client` ; `est_admin()` pour l'
 ## AUDIT DU 19/10/2026 — AVANT L'EXPLOITATION À PLUSIEURS HÔTELS
 
 Aucun P0. Corrigé : collision de référence (section « LA RÉFÉRENCE EST TIRÉE
-AU SORT »), `deposer-course` vérifie « déjà déposée ? » AVANT le quota (un
-rejeu ne coûte rien), `courses-hotel` refuse un partenaire `actif = false`
-(fiche absente ou table muette : le code décide), `etat-course` refuse une
-référence mal formée sans lecture, `prevenir-client` n'accepte plus
-`github.io`. Reste (P2) : RELANCE/INSTALLER_TELEGRAM joignables avec la clé
+AU SORT ») ; `deposer-course` vérifie « déjà déposée ? » AVANT le quota ;
+`courses-hotel` refuse un partenaire `actif = false` (fiche absente ou table
+muette : le code décide) ; `etat-course` refuse une référence mal formée sans
+lecture ; `prevenir-client` n'accepte plus `github.io`. **Le Registre compte
+depuis l'appareil, plafonné à 1 000 courses** (dix jours à 100 demandes/jour) :
+il le DIT (`#registreTronque`) tant que ses chiffres ne viennent pas du
+serveur. Reste (P2) : RELANCE/INSTALLER_TELEGRAM joignables avec la clé
 publique (pg_cron l'utilise). Histoire : `memoire/reference.md`,
 `memoire/erreurs-client.md`.
 
@@ -3868,16 +3870,8 @@ entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
   l'ouverture et ce passage attendait le tour de fond. Trouvé par le test.
 - **Les suites qui simulent le serveur** (`test-admin-arrivee`, `-alertes`,
   `-controle`) reconnaissent les deux formes de la sonde.
-- `test-admin-arrivee` bloc 4, cinq scènes, toutes contre un faux serveur à
-  versions : changée ailleurs → ici en moins de 15 s ; panne → en file, témoin,
-  repart seule ; copie périmée → refusée, serveur gagne, écran le dit ;
-  supprimée ailleurs → disparaît ; serveur d'avant la migration → lu et écrit
-  à l'ancienne. **Éprouvé contre l'ancien code : six contrôles tombent.**
-- **PIÈGE DE CAPTURE, QUATRIÈME FOIS** : les premières captures montraient
-  l'ANCIEN admin sans témoin — la falsification (`git stash`) avait
-  reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
-  rien. `sh construire.sh` avant toute capture, toujours.
-- `sw.js` CACHE v120.
+- Les cinq scènes de `test-admin-arrivee` (bloc 4) et le piège de capture
+  après un `git stash` : `memoire/synchronisation-admin.md`.
 
 ## UN CANAL QUI INSISTE, UN CANAL QUI INFORME — LA CADENCE DES ALERTES
 

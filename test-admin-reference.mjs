@@ -79,6 +79,7 @@ const base = {
   'ELA-26-10-COLL2': { bon: COLLEE_SERVEUR, statut: 'attente', version: 2 },
 };
 const ecritures = []; const erreurs = [];
+let grosServeur = false;
 let erreursSite = { n24h: 3, n1h: 1, derniere: new Date().toISOString(), messages: [{ message: 'TypeError: x is undefined', espace: 'public', n: 2 }, { message: 'promesse perdue', espace: 'hotel', n: 1 }] };
 
 const nav = await chromium.launch();
@@ -123,7 +124,11 @@ await ctx.route('**/*', async route => {
   if (!u.includes('/rest/v1/courses')) return route.fulfill(J([]));
   const ref = decodeURIComponent((u.match(/ref=eq\.([^&]+)/) || [])[1] || '');
   if (m === 'GET') {
-    const lignes = Object.values(base).map(l => ({ bon: l.bon, statut: l.statut, version: l.version, modifie_le: '2026-10-19T08:00:00Z', cree_le: l.bon.cree }));
+    let lignes = Object.values(base).map(l => ({ bon: l.bon, statut: l.statut, version: l.version, modifie_le: '2026-10-19T08:00:00Z', cree_le: l.bon.cree }));
+    /* LE GROS SERVEUR (19/10/2026) : mille courses, la limite de la relecture. */
+    if (grosServeur && !ref && !u.includes('select=ref')) {
+      lignes = Array.from({ length: 1000 }, (_, i) => { const r = 'ELA-26-10-G' + String(i).padStart(4, '0'); const c = course(r, 'Client ' + i, '06 00 00 ' + String(i).padStart(4, '0').replace(/(\d\d)(\d\d)/, '$1 $2'), new Date(Date.now() - i * 3600e3).toISOString()); return { bon: c, statut: 'realisee', version: 1, modifie_le: '2026-10-19T08:00:00Z', cree_le: c.cree }; });
+    }
     if (u.includes('select=ref')) return route.fulfill(J(lignes.slice(0, 1).map(l => ({ ref: l.bon.ref, version: l.version }))));
     if (ref) return route.fulfill(J(lignes.filter(l => l.bon.ref === ref)));
     return route.fulfill(J(lignes));
@@ -214,7 +219,22 @@ try {
   await p2.waitForFunction(() => document.body.classList.contains('espace'), null, { timeout: 15000 });
   await p2.waitForTimeout(1500);
   check('erreurs du site : RPC absente (migration pas appliquée) → la ligne reste cachée', await p2.evaluate(() => { const e = document.getElementById('adminErreurs'); return !e || e.hidden; }));
+  /* LA LIMITE DES 1000 COURSES SE DIT (19/10/2026). Trois courses : rien. */
+  await p2.click('#btnRegistre'); await p2.waitForTimeout(600);
+  check('registre : avec trois courses, aucun écriteau de troncature', await p2.evaluate(() => { const e = document.getElementById('registreTronque'); return !!e && e.hidden; }));
   await p2.close();
+  grosServeur = true;
+  const p3 = await ctx.newPage();
+  await p3.goto(BASE + '/ela-admin/');
+  await p3.waitForFunction(() => document.body.classList.contains('espace'), null, { timeout: 15000 });
+  await p3.waitForTimeout(2500);
+  await p3.click('#btnRegistre'); await p3.waitForTimeout(800);
+  const tronque = await p3.evaluate(() => { const e = document.getElementById('registreTronque'); return e && !e.hidden ? e.textContent : ''; });
+  check('registre : mille courses lues du serveur → l\'écriteau dit que les chiffres ne couvrent pas tout', /1 000 plus récentes/.test(tronque) && /CSV/.test(tronque), tronque.slice(0, 80));
+  const garde = await p3.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]').length);
+  check('registre : l\'appareil garde au plus 1000 courses', garde === 1000, String(garde));
+  grosServeur = false;
+  await p3.close();
   check('aucune erreur JavaScript', erreurs.length === 0, erreurs.slice(0, 3).join(' | '));
 } catch (e) {
   ko.push('PLANTAGE : ' + (e && e.message ? e.message.split('\n')[0] : e));

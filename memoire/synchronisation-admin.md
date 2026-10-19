@@ -77,3 +77,16 @@ essaie, ça marche ; il faut attendre une heure pour la rencontrer.
   vérifie que **la course finit par apparaître** après le renouvellement. Un
   contrôle qui dirait seulement « rafraichir a été appelé » ne prouverait
   rien.
+
+## 2 octobre 2026 — ce que la suite éprouve, et le piège de capture (rangé le 19/10/2026)
+
+- `test-admin-arrivee` bloc 4, cinq scènes, toutes contre un faux serveur à
+  versions : changée ailleurs → ici en moins de 15 s ; panne → en file, témoin,
+  repart seule ; copie périmée → refusée, serveur gagne, écran le dit ;
+  supprimée ailleurs → disparaît ; serveur d'avant la migration → lu et écrit
+  à l'ancienne. **Éprouvé contre l'ancien code : six contrôles tombent.**
+- **PIÈGE DE CAPTURE, QUATRIÈME FOIS** : les premières captures montraient
+  l'ANCIEN admin sans témoin — la falsification (`git stash`) avait
+  reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
+  rien. `sh construire.sh` avant toute capture, toujours.
+- `sw.js` est passé en CACHE v120 ce jour-là.
