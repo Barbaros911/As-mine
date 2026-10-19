@@ -132,6 +132,16 @@ async function quotaOk(req: Request): Promise<boolean | null> {
   } catch (_e) { return null; }
 }
 
+async function partenaireDesactive(cle: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/partenaires?cle=eq.${encodeURIComponent(cle)}&select=actif&limit=1`,
+      { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
+    if (!r.ok) return false;
+    const l = await r.json();
+    return Array.isArray(l) && l.length > 0 && l[0] && l[0].actif === false;
+  } catch (_e) { return false; }
+}
+
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin") ?? "";
   if (req.method === "OPTIONS") {
@@ -207,6 +217,18 @@ Deno.serve(async (req: Request) => {
        cette serrure en coffre — on peut paralléliser — mais elle rend un
        essai en force nettement plus coûteux qu'une boucle sur un fichier
        téléchargé, ce qu'est le code de l'espace exploitant. */
+    await attendre(700);
+    return new Response(JSON.stringify({ refuse: true }),
+      { status: 401, headers: entetes(origin) });
+  }
+  /* UN PARTENAIRE DÉSACTIVÉ NE LIT PLUS RIEN (audit du 19 octobre 2026).
+     Le code et la session ne regardaient que le secret : décocher « actif »
+     sur un hôtel dans l'admin ne fermait pas son comptoir tant que le secret
+     restait posé. On relit la fiche : une ligne qui dit « actif = false »
+     refuse, avec la MÊME réponse qu'un code faux. Pas de ligne, ou table
+     muette : le secret décide, comme avant — on ne ferme pas un comptoir sur
+     un doute, et une hôtel d'avant la table des partenaires reste servi. */
+  if (await partenaireDesactive(cle)) {
     await attendre(700);
     return new Response(JSON.stringify({ refuse: true }),
       { status: 401, headers: entetes(origin) });

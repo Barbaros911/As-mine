@@ -163,6 +163,14 @@ jobs:
       - name: Déployer mesure
         run: supabase functions deploy mesure --no-verify-jwt --project-ref "$PROJET"
 
+      # « erreur-client » (19 octobre 2026, audit) : les erreurs JavaScript
+      # du site, masquées, comptées dans l'admin. Même porte que « mesure » :
+      # appelée sans clé en « text/plain », CORS strict, quota par adresse,
+      # écriture par une RPC réservée à la clé de service. Une panne ici ne
+      # coûte qu'une erreur non comptée, jamais une réservation.
+      - name: Déployer erreur-client
+        run: supabase functions deploy erreur-client --no-verify-jwt --project-ref "$PROJET"
+
       # « demande-demo » (8 octobre 2026) : un professionnel demande la démo
       # depuis /professionnels/, puis la page /demo/hotel/ l'ouvre. Ni l'une ni
       # l'autre ne porte de clé Supabase : pas de JWT, comme telegram-bot. La

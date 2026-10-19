@@ -836,6 +836,70 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const refus=r13.filter(r=>r.status===429).length;
   ok(refus===1&&r13.filter(r=>r.status===201).length===12,'charge : 13 dépôts d\'une même adresse dans l\'heure → 12 passent, le 13e lit 429 ('+refus+' refus)');
   ok(ecrits===Object.keys(table).length,'charge : chaque écriture réussie correspond à une ligne, aucun doublon ('+ecrits+')');
+  const total=Object.values(compteurs).reduce((a,b)=>a+b,0);
+  ok(total===5+2+15+13,'charge : un rejeu et une référence déjà prise ne consomment PAS le quota (35 unités attendues, '+total+')');
+  globalThis.fetch=fetchAvant;
+}
+/* ═══ ERREUR-CLIENT — une erreur du site remonte, sans donnée personnelle
+   (audit du 19 octobre 2026) ═══ On lit ce qui PART à la base. */
+{
+  const fetchAvant=globalThis.fetch;const ecrits=[];let quota=0,rpcAbsente=false;
+  globalThis.fetch=async(url,init={})=>{url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){quota++;const {p_limite}=JSON.parse(init.body);return new Response(JSON.stringify(quota<=p_limite));}
+    if(url.includes('/rpc/ela_erreur_client_ecrire')){if(rpcAbsente)return new Response('{"code":"PGRST202"}',{status:404});ecrits.push(JSON.parse(init.body).p);return new Response('true');}
+    return new Response('?',{status:404});};
+  const ec=await charger('erreur-client',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const envoi=(corps,entetes={})=>ec(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.7','user-agent':'Mozilla/5.0 iPhone',...entetes},body:typeof corps==='string'?corps:JSON.stringify(corps)}));
+  const base={espace:'public',chemin:'/',ecran:'ecran-recap',message:"TypeError: Cannot read properties of undefined (reading 'label') — client 06 12 34 56 78 <jean.dupont@exemple.fr> https://elatransfer.com/?ok=abc&tel=0612345678",source:'https://elatransfer.com/index.html?v=3:11420',appareil:'mobile',langue:'fr'};
+  let r=await envoi(base);
+  ok(r.status===204&&ecrits.length===1,'erreur-client : une erreur valide est écrite et rend 204 ('+r.status+')');
+  const e=ecrits[0]||{};
+  ok(!/\d{6}/.test(e.message||'')&&!/0612345678|06 12 34 56 78/.test(e.message||''),'erreur-client : le téléphone est masqué dans le message');
+  ok(!/@/.test(e.message||''),'erreur-client : l\'adresse e-mail est masquée');
+  ok(!/\?ok=|tel=/.test(e.message||'')&&(e.message||'').includes('https://elatransfer.com/'),'erreur-client : une adresse complète perd sa requête (« ?ok=… »), garde son chemin');
+  ok((e.message||'').includes('TypeError')&&(e.message||'').length<=200,'erreur-client : le message utile reste, borné à 200 signes');
+  ok(e.source==='https://elatransfer.com/index.html'||e.source==='https://elatransfer.com/index.html:11420'||/index\.html/.test(e.source||''),'erreur-client : la source garde fichier et ligne ('+e.source+')');
+  ok(e.espace==='public'&&e.ecran==='ecran-recap'&&e.appareil==='mobile'&&e.langue==='fr'&&e.chemin==='/','erreur-client : espace, écran, appareil, langue, chemin passent');
+  ok(!JSON.stringify(e).includes('10.0.0.7')&&!JSON.stringify(e).includes('iPhone'),'erreur-client : ni l\'adresse IP ni le navigateur ne partent en base');
+  r=await envoi(base,{origin:'https://pirate.example'});
+  ok(r.status===403&&ecrits.length===1,'erreur-client : une origine étrangère est refusée');
+  r=await envoi(base,{'user-agent':'Googlebot/2.1'});
+  ok(r.status===204&&ecrits.length===1,'erreur-client : un robot reçoit 204 et rien n\'est écrit');
+  r=await envoi({...base,espace:'frigo'});
+  ok(r.status===400&&ecrits.length===1,'erreur-client : un espace hors liste est refusé');
+  r=await envoi({...base,ecran:'<script>'});
+  ok(r.status===400,'erreur-client : un écran mal formé est refusé');
+  r=await envoi({...base,message:''});
+  ok(r.status===400,'erreur-client : un message vide est refusé');
+  r=await envoi('x'.repeat(3001));
+  ok(r.status===413,'erreur-client : un corps de 3 Ko est refusé');
+  r=await envoi({...base,message:'m'.repeat(900)});
+  ok(r.status===204&&(ecrits.at(-1).message||'').length===200,'erreur-client : un message de 900 signes est tronqué à 200');
+  quota=29;r=await envoi(base);ok(r.status===204,'erreur-client : la 30e erreur de l\'heure passe');
+  r=await envoi(base);ok(r.status===429,'erreur-client : la 31e lit 429 — une page qui boucle s\'arrête là');
+  quota=0;rpcAbsente=true;r=await envoi(base);
+  ok(r.status===503,'erreur-client : RPC absente (migration pas appliquée) → 503, jamais 200');
+  globalThis.fetch=fetchAvant;
+}
+/* ═══ COURSES-HOTEL — un partenaire DÉSACTIVÉ ne lit plus rien (audit du
+   19 octobre 2026) ; une fiche absente ou une table muette laissent le code
+   décider, comme avant. ═══ */
+{
+  const fetchAvant=globalThis.fetch;let fiche=null;
+  globalThis.fetch=async(url,init={})=>{url=String(url);
+    if(url.includes('/rest/v1/partenaires?')){if(fiche==='panne')return new Response('x',{status:500});return new Response(JSON.stringify(fiche===null?[]:[{actif:fiche}]));}
+    return fetchAvant(url,init);};
+  /* « charger » remplace l'environnement Deno à chaque fonction chargée : on
+     recharge courses-hotel avec SON secret, sinon tout rend 401 pour une
+     raison qui n'a rien à voir. */
+  const hc2=await charger('courses-hotel',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',HOTEL_EASYHOTEL_AEROVILLE_CODE:'easyhotel-9F3K2Q'});
+  const hp2=(code)=>hc2(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.5'},body:JSON.stringify({hotel:'easyhotel-aeroville',code})}));
+  quotaAppels=0;quotaLimite=60;
+  fiche=true;let r=await hp2('easyhotel-9F3K2Q');ok(r.status===200,'réception : partenaire actif, bon code → la liste ('+r.status+')');
+  fiche=false;r=await hp2('easyhotel-9F3K2Q');ok(r.status===401&&(await r.json()).refuse===true,'réception : partenaire DÉSACTIVÉ, bon code → refusé, même réponse qu\'un code faux');
+  fiche=null;r=await hp2('easyhotel-9F3K2Q');ok(r.status===200,'réception : pas de fiche partenaire → le code décide (servi)');
+  fiche='panne';r=await hp2('easyhotel-9F3K2Q');ok(r.status===200,'réception : table des partenaires muette → le code décide (servi), on ne ferme pas un comptoir sur un doute');
+  fiche=true;r=await hp2('mauvais');ok(r.status===401,'réception : partenaire actif, code faux → refusé (le contrôle du partenaire ne remplace pas le code)');
   globalThis.fetch=fetchAvant;
 }
 /* ═══ ETAT-COURSE NE VA PAS EN BASE POUR UNE RÉFÉRENCE MAL FORMÉE (audit

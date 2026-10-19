@@ -79,6 +79,7 @@ const base = {
   'ELA-26-10-COLL2': { bon: COLLEE_SERVEUR, statut: 'attente', version: 2 },
 };
 const ecritures = []; const erreurs = [];
+let erreursSite = { n24h: 3, n1h: 1, derniere: new Date().toISOString(), messages: [{ message: 'TypeError: x is undefined', espace: 'public', n: 2 }, { message: 'promesse perdue', espace: 'hotel', n: 1 }] };
 
 const nav = await chromium.launch();
 const ctx = await nav.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris' });
@@ -94,17 +95,29 @@ await ctx.addInitScript(({ c, file }) => {
    pas seulement la dernière. */
 await ctx.addInitScript(() => {
   window.__ecriteaux = [];
-  setInterval(() => {
+  const noter = () => {
     const e = document.getElementById('bordConflit');
     const t = e && !e.hidden ? e.textContent : '';
     if (t && window.__ecriteaux[window.__ecriteaux.length - 1] !== t) window.__ecriteaux.push(t);
-  }, 40);
+  };
+  /* Un observateur de mutations voit CHAQUE écriture, même deux à quelques
+     millisecondes d'écart ; un simple minuteur en manquait une. */
+  const observer = new MutationObserver(noter);
+  const brancher = () => { if (document.documentElement) observer.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true }); else setTimeout(brancher, 0); };
+  brancher();
+  setInterval(noter, 40);
 });
 await ctx.route('**/*', async route => {
   const req = route.request(), u = req.url(), m = req.method();
   if (u.startsWith(BASE)) return route.continue();
   if (!u.includes('supabase.co')) return route.abort();
   if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
+  /* Les erreurs du site (19/10/2026) : trois en 24 h dont une dans l'heure,
+     ou une RPC absente (migration pas encore appliquée). */
+  if (u.includes('/rpc/ela_erreurs_client_recentes')) {
+    if (!erreursSite) return route.fulfill({ status: 404, contentType: 'application/json', body: '{"code":"PGRST202"}' });
+    return route.fulfill(J(erreursSite));
+  }
   if (u.includes('/rpc/role_operateur')) return route.fulfill(J('admin'));
   if (u.includes('/rpc/') || u.includes('/functions/v1/')) return route.fulfill(J([]));
   if (!u.includes('/rest/v1/courses')) return route.fulfill(J([]));
@@ -189,6 +202,19 @@ try {
   check('demande collée : le serveur n\'a pas été réécrit', base['ELA-26-10-COLL2'].version === 2);
   const file = await p.evaluate(() => localStorage.getItem('ela_file'));
   check('la file est vide à la fin', !file || file === '{}', file);
+
+  /* LES ERREURS DU SITE SOUS LE VOYANT (19/10/2026) : comptées quand il y en
+     a, cachées quand la RPC manque — jamais un « 0 » qui ne se lirait plus. */
+  const ligneErreurs = await p.evaluate(() => { const e = document.getElementById('adminErreurs'); return e && !e.hidden ? { texte: e.textContent.trim(), titre: e.title, recente: e.classList.contains('recente') } : null; });
+  check('erreurs du site : la ligne compte 3 en 24 h et 1 dans l\'heure', !!ligneErreurs && /3 erreurs du site en 24 h \(1 dans l'heure\)/.test(ligneErreurs.texte), ligneErreurs && ligneErreurs.texte);
+  check('erreurs du site : les messages les plus fréquents sont dans l\'infobulle, avec leur espace', !!ligneErreurs && /2 × \[public\] TypeError/.test(ligneErreurs.titre) && ligneErreurs.recente, ligneErreurs && ligneErreurs.titre);
+  erreursSite = null;
+  const p2 = await ctx.newPage();
+  await p2.goto(BASE + '/ela-admin/');
+  await p2.waitForFunction(() => document.body.classList.contains('espace'), null, { timeout: 15000 });
+  await p2.waitForTimeout(1500);
+  check('erreurs du site : RPC absente (migration pas appliquée) → la ligne reste cachée', await p2.evaluate(() => { const e = document.getElementById('adminErreurs'); return !e || e.hidden; }));
+  await p2.close();
   check('aucune erreur JavaScript', erreurs.length === 0, erreurs.slice(0, 3).join(' | '));
 } catch (e) {
   ko.push('PLANTAGE : ' + (e && e.message ? e.message.split('\n')[0] : e));

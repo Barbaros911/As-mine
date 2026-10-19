@@ -1289,6 +1289,9 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 #adminAlertesTexte::after{content:"Alertes : non vérifiées";font-weight:700;
   height:0;overflow:hidden;visibility:hidden;}
 .admin-alertes.ko{color:#fca5a5;font-weight:700;}
+.admin-erreurs{display:flex;width:max-content;color:#fcd34d;}
+.admin-erreurs .admin-point{background:#f59e0b;}
+.admin-erreurs.recente{font-weight:700;}
 .admin-alertes.ko .admin-point{background:#f87171;}
 /* QUITTER ET SE DÉCONNECTER VIVENT ICI, SOUS L'ÉTAT DU COMPTE, et plus dans
    les tuiles du menu (10/10/2026) : deux actions sur le compte, à côté de ce
@@ -2653,6 +2656,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
              serait pire que pas de voyant. -->
         <span class="admin-etat admin-alertes" id="adminAlertes">
           <i class="admin-point"></i><span id="adminAlertesTexte">Alertes : non vérifiées</span>
+        </span>
+        <!-- LES ERREURS DU SITE (19 octobre 2026) : ce que les clients ont
+             rencontré sans appeler. Caché tant qu'il n'y en a aucune en 24 h,
+             ou tant que la migration n'est pas appliquée : une ligne qui dirait
+             « 0 » tous les jours ne se lirait plus. -->
+        <span class="admin-etat admin-erreurs" id="adminErreurs" hidden>
+          <i class="admin-point"></i><span id="adminErreursTexte"></span>
         </span>
         <!-- QUITTER ET SE DÉCONNECTER SONT DEUX LIENS SOUS L'ÉTAT DU COMPTE,
              PLUS DEUX TUILES (10/10/2026, Barbaros : « Corrige tout »). Avec
@@ -10412,6 +10422,62 @@ window.ELA_TEXTES = {
      l'admin. On lui donne une prise explicite plutôt qu'une variable
      globale supposée. */
   window.ELA_NUAGE = nuage;
+  /* ═══ LES ERREURS DU SITE REMONTENT, SANS DONNÉE PERSONNELLE (19 octobre
+     2026, audit — observabilité) ═══ Une exception dans le tunnel ne se voyait
+     que si un client appelait : rien côté serveur n'atteint le voyant avant le
+     dépôt. Chaque erreur JavaScript non rattrapée part à la fonction
+     « erreur-client », détachée et sans réponse lue : l'espace, le chemin,
+     l'écran actif, le message, la source (fichier:ligne), l'appareil et la
+     langue. JAMAIS le nom, le téléphone, la référence : les suites de six
+     chiffres et les e-mails sont masqués ICI et à nouveau sur le serveur.
+     Au plus cinq messages distincts par chargement, un seul envoi par message :
+     une page qui boucle ne noie personne. « nuage.actif() » faux (démo,
+     test) : rien ne part. Ce bloc ne peut pas casser la page : tout est
+     enveloppé, et une erreur dans la remontée elle-même est avalée. */
+  (function(){
+    var envoyees = {}, nb = 0, MAX_ERREURS = 5;
+    function espaceErreur(){
+      var b = document.body, c = b ? b.classList : null;
+      if(!c) return "autre";
+      if(c.contains("espace") || c.contains("exploitant") || /ela-admin|admin/.test(location.pathname)) return "admin";
+      if(c.contains("reception")) return "reception";
+      if(c.contains("hotel")) return "hotel";
+      return "public";
+    }
+    function masquerErreur(t){
+      return String(t || "").replace(/\s+/g, " ")
+        .replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, "…")
+        .replace(/\d(?:[\s.-]?\d){5,}/g, "…")
+        .trim();
+    }
+    function signalerErreur(message, source){
+      try{
+        if(!nuage.actif() || !message) return;
+        var m = masquerErreur(message).slice(0, 200);
+        if(!m || envoyees[m] || nb >= MAX_ERREURS) return;
+        envoyees[m] = true; nb++;
+        var actif = document.querySelector(".ecran.actif");
+        fetch(SUPABASE_URL + "/functions/v1/erreur-client", {
+          method: "POST", keepalive: true, credentials: "omit",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            espace: espaceErreur(), chemin: String(location.pathname || "/").slice(0, 120),
+            ecran: actif ? actif.id : "", message: m, source: masquerErreur(source).slice(0, 160),
+            appareil: (typeof appareilMesure === "function" ? appareilMesure() : ""),
+            langue: (typeof LANGUE === "string" ? LANGUE : "")
+          })
+        }).catch(function(){});
+      }catch(e){ /* la remontée ne doit jamais casser la page */ }
+    }
+    window.addEventListener("error", function(e){
+      var src = e && e.filename ? String(e.filename).replace(/[?#].*$/, "").split("/").pop() + ":" + (e.lineno || 0) : "";
+      signalerErreur((e && (e.message || (e.error && e.error.message))) || "erreur", src);
+    });
+    window.addEventListener("unhandledrejection", function(e){
+      var r = e && e.reason;
+      signalerErreur((r && (r.message || String(r))) || "promesse rejetée", "");
+    });
+  })();
 /* =====================================================================
    LE RÉCAPITULATIF, PUIS LE BON
    ===================================================================== */
@@ -15263,8 +15329,32 @@ window.ELA_TEXTES = {
       sessionPerdue();
     }).then(function(){ sante.enCours = false; jugerAlertes(); });
   }
+  /* LES ERREURS DU SITE, lues au même rythme que le voyant et jamais plus
+     souvent. Une RPC absente (migration pas encore appliquée), un refus, un
+     réseau muet : la ligne reste cachée — on ne dit rien plutôt que faux. */
+  var erreursSite = { essai:0, enCours:false };
+  function lireErreursSite(){
+    if(erreursSite.enCours || !nuage.connecte()) return;
+    if(Date.now() - erreursSite.essai < SANTE_PAS_MS) return;
+    erreursSite.essai = Date.now(); erreursSite.enCours = true;
+    nuage.appel("/rest/v1/rpc/ela_erreurs_client_recentes", { method:"POST", body:"{}" }).then(function(m){
+      if(typeof m === "string"){ try{ m = JSON.parse(m); }catch(e){ m = null; } }
+      var n = m && Number(m.n24h), n1 = m && Number(m.n1h);
+      var ligne = document.getElementById("adminErreurs"), txt = document.getElementById("adminErreursTexte");
+      if(!ligne || !txt) return;
+      if(!(n > 0)){ ligne.hidden = true; return; }
+      ligne.hidden = false;
+      ligne.classList.toggle("recente", n1 > 0);
+      txt.textContent = n + " erreur" + (n > 1 ? "s" : "") + " du site en 24 h" + (n1 > 0 ? " (" + n1 + " dans l'heure)" : "");
+      var detail = (Array.isArray(m.messages) ? m.messages : []).map(function(x){ return (x.n || 1) + " × [" + (x.espace || "?") + "] " + String(x.message || "").slice(0, 120); });
+      ligne.title = detail.join("\n");
+    }).catch(function(){
+      var ligne = document.getElementById("adminErreurs"); if(ligne) ligne.hidden = true;
+    }).then(function(){ erreursSite.enCours = false; });
+  }
   function jugerAlertes(){
     if(!sante) return;
+    lireErreursSite();
     var ligne = document.getElementById("adminAlertes");
     var txt = document.getElementById("adminAlertesTexte");
     /* GRIS FAUTE DE SESSION OU DE SERVEUR : l'ancien verdict est OUBLIÉ, et
