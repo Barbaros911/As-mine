@@ -69,6 +69,22 @@ async function reserver(serveurRepond, sansPush, cachee, doubleClic){
       if(depots.length === 1) await route.abort();
       else await route.fulfill({status:201, body:''});
     }
+    /* MODE « course » : le PREMIER dépôt rend 409 — la ligne vient d'être
+       écrite par un envoi « keepalive » abandonné à 8 s qui a fini par
+       aboutir —, le second passe (le serveur reconnaît la même empreinte).
+       MODE « collision » : la référence tirée est déjà prise par UNE AUTRE
+       course : 409 tant que la page garde cette référence, 201 dès qu'elle
+       en tire une neuve. */
+    else if(route.request().method()!=='POST') await route.fulfill({status:201, body:''});
+    else if(serveurRepond === 'course'){
+      if(depots.length === 1) await route.fulfill({status:409, contentType:'application/json', body:'{"erreur":"référence déjà utilisée"}'});
+      else await route.fulfill({status:201, body:''});
+    }
+    else if(serveurRepond === 'collision'){
+      const ref = depots[depots.length-1].corps.ref;
+      if(ref === depots[0].corps.ref) await route.fulfill({status:409, contentType:'application/json', body:'{"erreur":"référence déjà utilisée"}'});
+      else await route.fulfill({status:201, body:''});
+    }
     else if(serveurRepond) await route.fulfill({status:201, body:''});
     else await route.abort();
   });
@@ -822,6 +838,44 @@ for(const cas of [
   const courses = await r.p.evaluate(()=>{ try{ return JSON.parse(localStorage.getItem('ela_courses')||'[]').length; }catch(e){ return -1; } });
   check('et ne garde qu\'une seule course sur l\'appareil', courses===1, courses+' course(s)');
   check('le bon est affiché après le double clic', await r.p.locator('#ecran-bon').isVisible());
+  await r.ctx.close();
+}
+/* ═══ UNE RÉFÉRENCE DÉJÀ PRISE N'EST PAS UNE DEMANDE PERDUE (audit du
+   19 octobre 2026) ═══
+   La référence est tirée au sort : 28 millions de valeurs par mois. À cent
+   demandes par jour, deux tirages identiques dans le mois ne sont plus rares
+   (~15 % de risque par mois) — et le serveur rend 409 aussi quand le dépôt
+   « keepalive » abandonné à 8 s a fini par écrire la ligne juste avant la
+   reprise. Avant : « votre demande n'a pas pu nous être transmise », sans
+   alerte, pour une course qui était soit déjà enregistrée, soit refusée pour
+   une référence qui n'était pas la sienne. On éprouve les deux causes, et on
+   lit ce qui PART au serveur plutôt que l'état interne. */
+{
+  const r = await reserver('course');
+  await r.p.waitForTimeout(1500);
+  check('course de course (409 puis 201) : le même bon est redéposé une fois, à l\'identique',
+    r.depots.length===2 && r.depots[0].corps.ref===r.depots[1].corps.ref, r.depots.map(d=>d.corps.ref).join(' / '));
+  check('course de course : le bon dit que la demande est arrivée', await r.p.locator('#etatEnvoi.ok').isVisible());
+  const refs = await r.p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').map(c=>c.ref));
+  check('course de course : une seule course sur l\'appareil, la même référence', refs.length===1 && refs[0]===r.depots[0].corps.ref, refs.join(','));
+  await r.ctx.close();
+}
+{
+  const r = await reserver('collision');
+  await r.p.waitForTimeout(1500);
+  const refs = r.depots.map(d=>d.corps.ref);
+  check('collision : deux essais à l\'identique, puis UNE référence neuve', r.depots.length===3 && refs[0]===refs[1] && refs[2]!==refs[0], refs.join(' / '));
+  check('collision : la référence neuve a la forme d\'une référence du site', /^ELA-\d\d-\d\d-[23456789A-HJKMNP-Z]{5}$/.test(refs[2]||''), refs[2]);
+  check('collision : le bon redéposé est la MÊME demande (client, trajet, prix)',
+    !!r.depots[2] && JSON.stringify({...r.depots[2].corps.bon, ref:null}) === JSON.stringify({...r.depots[0].corps.bon, ref:null}));
+  check('collision : le bon dit que la demande est arrivée', await r.p.locator('#etatEnvoi.ok').isVisible());
+  const local = await r.p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').map(c=>c.ref));
+  check('collision : l\'appareil garde UNE course, sous la référence neuve', local.length===1 && local[0]===refs[2], local.join(','));
+  check('collision : le bon affiche la référence neuve', (await r.p.locator('#bonRef').textContent()).trim()===refs[2], await r.p.locator('#bonRef').textContent());
+  /* Le repli WhatsApp parle de la course telle qu'elle est enregistrée. */
+  await r.p.locator('#btnRenvoyer').click();
+  const lien = await r.p.evaluate(()=>window.__liens[window.__liens.length-1]||'');
+  check('collision : le message WhatsApp de secours porte la référence neuve', decodeURIComponent(lien).includes(refs[2]) && !decodeURIComponent(lien).includes(refs[0]));
   await r.ctx.close();
 }
 await b.close();

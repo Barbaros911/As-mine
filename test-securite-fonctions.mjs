@@ -794,5 +794,27 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(!JSON.stringify(ecrits).includes('Europe/Paris'),'mesure : seul le pays est gardé, jamais le fuseau');
   globalThis.fetch=fetchAvant;
 }
+/* ═══ ETAT-COURSE NE VA PAS EN BASE POUR UNE RÉFÉRENCE MAL FORMÉE (audit
+   du 19 octobre 2026) ═══ Ouverte à tous, sans plafond : chaque appel
+   coûtait une lecture, quelle que soit la référence. On compte les lectures
+   et on vérifie que la réponse reste celle d'une course introuvable. */
+{
+  const fetchAvant=globalThis.fetch;let lectures=0;
+  globalThis.fetch=async(url,init={})=>{url=String(url);if(url.includes('/rest/v1/courses?select=statut,bon')){lectures++;const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(rows[ref]?[{statut:'confirmee',bon:rows[ref].bon}]:[]));}return fetchAvant(url,init);};
+  const e=await charger('etat-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const et=(ref,tel)=>e(new Request('http://x',{method:'POST',body:JSON.stringify({ref,tel})}));
+  rows['ELA-26-10-K7QPM']={ref:'ELA-26-10-K7QPM',bon:{ref:'ELA-26-10-K7QPM',client:{telephone:'+33 7 59 31 24 33'},course:{vehicule:'Berline',date:'2026-10-20',heure:'10:00'},chauffeur:{nom:'Ali',telephone:'06'}}};
+  let r=await et('ELA-26-10-K7QPM','0759312433');
+  ok(r.status===200&&(await r.json()).statut==='confirmee','etat-course : une vraie référence et le bon téléphone rendent l\'état');
+  r=await et('ELA-26-09-0007','0759312433');
+  ok(r.status===404&&lectures===2,'etat-course : l\'ancienne forme (quatre chiffres) va en base et rend « inconnue »');
+  r=await et("ela' or 1=1 --",'0759312433');
+  ok(r.status===404&&(await r.json()).inconnue===true&&lectures===2,'etat-course : une référence mal formée rend « inconnue » SANS lecture en base');
+  r=await et('X'.repeat(300),'0759312433');
+  ok(r.status===404&&lectures===2,'etat-course : une référence de 300 signes non plus');
+  r=await et('ELA-26-10-K7QPM','0600000000');
+  ok(r.status===404&&(await r.json()).inconnue===true,'etat-course : un mauvais téléphone rend la MÊME réponse qu\'une course introuvable');
+  globalThis.fetch=fetchAvant;
+}
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

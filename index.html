@@ -10286,6 +10286,17 @@ window.ELA_TEXTES = {
          réponse vide ou illisible n'est PAS un échec : la demande est
          arrivée, seul le N° manque. */
       .then(function(r){
+        /* 409 : LA RÉFÉRENCE EST DÉJÀ PRISE SUR LE SERVEUR (19 octobre 2026,
+           audit). Deux causes, une seule réponse : une course de course (le
+           dépôt « keepalive » abandonné à 8 s a fini par écrire la ligne
+           pendant que la reprise arrivait) ou une vraie collision (deux
+           appareils ont tiré les mêmes cinq signes — 28 millions de tirages
+           par mois, ~15 % de risque par mois à 100 demandes par jour). Ce
+           n'est NI un succès NI une panne : « deposerDemande » rejoue une
+           fois à l'identique (une course de course rend alors « rejoue »),
+           puis tire une autre référence. Avant, le client lisait « non
+           transmise » et la demande était perdue sans alerte. */
+        if(r.status === 409) return "reference";
         if(!r.ok) return false;
         return r.json().then(function(j){
           if(j && Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
@@ -11481,7 +11492,7 @@ window.ELA_TEXTES = {
        avec « keepalive » (voir « nuage.deposer ») et « reprendreDepot »
        réessaie une fois au retour sur l'onglet. Histoire de l'ancienne
        ouverture automatique de WhatsApp : memoire/contact-client.md. */
-    var depot = nuage.deposer(bonCourant);
+    var depot = deposerDemande(bonCourant);
     /* ═══ PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC (4 octobre 2026) ═══
        Option A, décidée par Barbaros. Le dépôt suffit : la demande arrive
        dans l'admin et Telegram l'annonce, le client reste sur son bon. Le
@@ -11655,13 +11666,53 @@ window.ELA_TEXTES = {
      vient jamais : certains navigateurs ne l'émettent pas si la page n'a
      pas été réellement masquée. Sans lui, un vrai échec resterait affiché
      en « envoi en cours » pour toujours. */
+  /* ═══ UNE RÉFÉRENCE DÉJÀ PRISE N'EST PAS UNE DEMANDE PERDUE (19 octobre
+     2026, audit avant l'exploitation à plusieurs hôtels) ═══
+     « deposer » rend « reference » quand le serveur répond 409. Ici on
+     décide : (1) rejouer UNE fois à l'identique — si c'était une course de
+     course avec le premier envoi, la ligne existe maintenant avec la même
+     empreinte et le serveur rend « rejoue », donc vrai ; (2) si le 409
+     persiste, la référence est prise par UNE AUTRE course : on en tire une
+     neuve, on la pose sur le bon, dans le stockage et à l'écran, et on
+     redépose. Deux tirages au plus : au-delà, ce n'est plus le hasard, c'est
+     une panne, et le repli WhatsApp reprend la main comme avant.
+     La référence change AVANT que le client la lise comme définitive : le
+     bon affiche « N° … » dès que le serveur l'a attribué, et ce N° vient
+     avec la réponse du dépôt réussi. */
+  function retirerReference(bon){
+    var ancienne = bon.ref, neuve = referenceSuivante();
+    if(!neuve || neuve === ancienne) return false;
+    bon.ref = neuve;
+    delete bon.numero;
+    try{
+      var l = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ancienne){ l[i].ref = neuve; delete l[i].numero; }
+      localStorage.setItem("ela_courses", JSON.stringify(l));
+    }catch(e){ /* stockage refusé : le bon à l'écran porte la bonne référence */ }
+    if(bonAffiche === bon) ecrireRefBon(bon);
+    return true;
+  }
+  function deposerDemande(bon, tirages){
+    tirages = tirages || 0;
+    return nuage.deposer(bon).then(function(res){
+      if(res !== "reference") return res;
+      if(tirages === 0){
+        return nuage.deposer(bon).then(function(res2){
+          if(res2 !== "reference") return res2;
+          return retirerReference(bon) ? deposerDemande(bon, 1) : false;
+        });
+      }
+      if(tirages < 2 && retirerReference(bon)) return deposerDemande(bon, tirages + 1);
+      return false;
+    });
+  }
   function reprendreDepot(bon){
     var fait = false;
     function reessayer(){
       if(fait) return;
       fait = true;
       document.removeEventListener("visibilitychange", auRetour);
-      nuage.deposer(bon).then(function(ok){
+      deposerDemande(bon).then(function(ok){
         if(ok) mesurerVisite("demande_envoyee", { ref: bon.ref });
         return afficherEtatEnvoi(ok);
       });
@@ -12703,6 +12754,17 @@ window.ELA_TEXTES = {
       if(Array.isArray(r) && r.length === 0){
         return relire().then(function(ligne){
           if(!ligne) return "attendre";
+          /* ═══ UNE AUTRE COURSE PORTE DÉJÀ CETTE RÉFÉRENCE (19 octobre 2026,
+             audit) ═══ « Le serveur gagne » valait pour NOTRE course relue
+             d'ailleurs. Mais la référence est tirée au sort (28 millions par
+             mois) : à cent demandes par jour, deux tirages identiques dans le
+             mois ne sont plus rares. La course saisie au téléphone était
+             alors REMPLACÉE en silence par celle d'un client inconnu, et le
+             message disait « modifiée sur un autre appareil ». On compare
+             d'abord la date de création (puis le téléphone) : une autre
+             course, c'est une collision — on retire une référence, jamais la
+             course. */
+          if(autreCourse(ligne, b)) return "reference";
           return conflit(ligne);
         });
       }
@@ -12714,6 +12776,45 @@ window.ELA_TEXTES = {
       return "ok";
     });
   };
+
+  /* La ligne du serveur est-elle UNE AUTRE course que la nôtre ? La date de
+     création est posée par l'appareil qui crée le bon (client ou admin) et
+     recopiée telle quelle : deux courses distinctes n'ont pas la même, à la
+     milliseconde. Sans date des deux côtés (très vieux bon), le téléphone
+     du client tranche ; sans rien, on suppose que c'est la nôtre, comme
+     avant. */
+  function autreCourse(ligne, b){
+    var d = (ligne && ligne.bon) || {};
+    if(d.cree && b.cree) return d.cree !== b.cree;
+    var t1 = d.client && d.client.telephone, t2 = b.client && b.client.telephone;
+    return !!(t1 && t2 && t1 !== t2);
+  }
+  /* La course garde tout, seule sa référence change : dans le registre, dans
+     la file (même rang, mêmes essais) et sur le bon ouvert. Le N° court, lui,
+     est celui du serveur : la course n'en a pas encore. */
+  function changerReferenceLocale(ancienne){
+    var neuve = referenceSuivante();
+    if(!neuve || neuve === ancienne) return "";
+    var l = registre(), trouve = false;
+    for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ancienne){ l[i].ref = neuve; delete l[i].numero; trouve = true; }
+    if(!trouve) return "";
+    ecrireRegistre(l);
+    var f = fileAttente();
+    if(f[ancienne]){ f[neuve] = f[ancienne]; delete f[ancienne]; ecrireFile(f); }
+    if(bonBord && bonBord.ref === ancienne){ bonBord.ref = neuve; delete bonBord.numero; }
+    return neuve;
+  }
+  function direReference(ancienne, neuve){
+    var phrase = "La référence " + ancienne + " était déjà prise par une autre course sur le serveur : "
+               + "votre course a reçu la référence " + neuve + ". Rien d'autre n'a changé.";
+    var el = document.getElementById("bordConflit");
+    if(el){ el.hidden = false; el.textContent = phrase; }
+    var note = document.getElementById("bbModifNote");
+    if(note && bonBord && bonBord.ref === neuve){
+      note.hidden = false; note.textContent = phrase;
+      try{ note.scrollIntoView({ block:"center", behavior:"smooth" }); }catch(e){}
+    }
+  }
 
   /* LA FILE SE VIDE UNE COURSE À LA FOIS, dans l'ordre d'entrée, et
      réessaie avec un délai qui s'allonge (3 s, 6, 12… 60 s au plus). Elle
@@ -12750,6 +12851,17 @@ window.ELA_TEXTES = {
         /* Le bon d'abord (il remet ses notes à zéro), le message ensuite. */
         if(bonBord && bonBord.ref === ref) ouvrirBonBord(ref);
         direConflit(ref);
+      } else if(res === "reference"){
+        /* Collision de référence : la course est intacte sous une référence
+           neuve, toujours en file — elle part au tour suivant, tout de
+           suite. Un tirage impossible (même signe) se traite comme un
+           report. */
+        var neuve = changerReferenceLocale(ref);
+        if(neuve){
+          dessinerBord();
+          if(bonBord && bonBord.ref === neuve) ouvrirBonBord(neuve);
+          direReference(ref, neuve);
+        } else reporter(ref);
       } else {
         reporter(ref);
       }

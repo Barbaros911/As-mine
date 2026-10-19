@@ -84,3 +84,57 @@ notification au client.
 - Contrôles : `test-reception-numero` (réécrite, retrouve les cartes par
   `data-ref`), `test-nouveau-confirmation` (message « N° 1042 » sans ELA) ;
   neuf contrôles tombent sur l'ancien affichage.
+
+## 19 octobre 2026 — une référence déjà prise n'est plus une demande perdue
+
+Audit avant l'exploitation à plusieurs hôtels. Le tirage au sort du 29/09
+(31 signes, cinq positions : 28,6 millions par mois) suffisait à douze
+demandes par semaine ; à **cent demandes par jour**, la probabilité qu'au
+moins deux demandes du mois tirent la même référence est d'environ **15 %**
+(3 000 × 2 999 / 2 / 28,6 M). Ce que ça produisait, lu dans le code :
+- **Côté client**, `deposer-course` rend 409 « référence déjà utilisée » ;
+  `nuage.deposer` le lisait comme un échec ordinaire, `reprendreDepot`
+  réessayait une fois à l'identique, puis le bon disait « votre demande n'a
+  pas pu nous être transmise » — pour une référence qui n'était pas la
+  sienne. Le journal des dépôts refusés comptait un motif « reference »,
+  mais personne n'y lisait une perte de client.
+- **Le même 409 couvrait une course de course** : le dépôt `keepalive`
+  abandonné à 8 s par la page continue sur le serveur ; si la reprise
+  arrive pendant qu'il écrit, la seconde requête passe la vérification
+  « déjà déposée ? » avant l'insertion de la première, et la RPC rend 409.
+  La course était enregistrée et le client lisait « non transmise ».
+- **Côté admin**, une course saisie au téléphone part en POST
+  `ignore-duplicates`. Référence déjà prise : rien n'est rendu, l'admin relit
+  la ligne et appliquait « le serveur gagne » — la course de l'inconnu
+  REMPLAÇAIT la course saisie, et l'écran disait « modifiée sur un autre
+  appareil ». Une course perdue, un message faux.
+
+Ce qui vaut maintenant :
+- `nuage.deposer` rend `"reference"` sur un 409 ; `deposerDemande(bon)`
+  rejoue UNE fois à l'identique (une course de course trouve alors la ligne
+  avec la même empreinte : le serveur rend « rejoue », donc vrai), puis
+  `retirerReference(bon)` tire une référence neuve, la pose sur le bon, dans
+  `ela_courses` et sur l'écran (`ecrireRefBon`), et redépose. Deux tirages au
+  plus : au-delà c'est une panne, et le repli WhatsApp reprend la main.
+  `reprendreDepot` passe par le même chemin.
+- `nuage.envoyerCourse` : sur un doublon d'une course jamais lue du serveur,
+  `autreCourse(ligne, bon)` compare la date de création (`cree`, posée par
+  l'appareil qui crée le bon), puis le téléphone. Une autre course rend
+  `"reference"` : `changerReferenceLocale` renomme la course dans le registre,
+  déplace son entrée de file (même rang, mêmes essais) et le bon ouvert ;
+  `direReference` le dit sur le tableau de bord et sur le bon. La même course
+  (accusé perdu) garde le chemin « le serveur gagne ».
+- **Le format de la référence ne change pas** : c'est une décision produit
+  (dictée au téléphone par le N° court, la référence reste technique), et
+  une sixième position aurait touché tous les lecteurs (`intake-demande.js`,
+  le bot Telegram, les motifs des fonctions). Retirer est moins cher que
+  rallonger, et ne laisse aucune ancienne référence illisible.
+- Éprouvé : `test-nouveau-serveur` (course de course, collision — le bon
+  redéposé est la même demande, le bon et le message WhatsApp de secours
+  portent la référence neuve) et `test-admin-reference` (collision et accusé
+  perdu, sur le site construit). Contre l'ancien code, les contrôles de
+  collision tombent : un seul dépôt, « non transmise » ; côté admin, la
+  course saisie disparaît du registre.
+- `etat-course` refuse désormais une référence mal formée AVANT toute
+  lecture (même réponse qu'une course introuvable) : cette fonction est
+  ouverte à tous et sans plafond, chaque appel coûtait une lecture.

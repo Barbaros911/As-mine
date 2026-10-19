@@ -3554,16 +3554,17 @@ course », « un graphique des courses réalisées par les chauffeurs »).
 ## LA RÉFÉRENCE EST TIRÉE AU SORT — ET LE N° COURT VIENT DU SERVEUR
 
 La référence `ELA-AA-MM-XXXXX` est tirée au sort sur l'appareil
-(`referenceSuivante()`), et elle reste LA clé d'une course. **Ne jamais revenir
-à un compteur local** : chaque appareil repartait à 0001 et le serveur
-refusait la demande (29/09/2026). Le **N° court** (« N° 1042 », dès 1001) est
-attribué par la **base** à l'écriture (`20261006000000_numero_court.sql`),
-immuable, et **recopié dans le bon** (`bon.numero`) : c'est là que tout le
-monde le lit. **Il tient seul la tête de toute alerte** (notification ELA,
-rappels, dernier message, annonce Telegram) et du message WhatsApp du client
-(9/10/2026, Barbaros : « tous les numéros pareils ») ; la référence longue
-n'est plus qu'en fin de message Telegram, clé technique des liens et du journal. Ne pas nommer la colonne dans une lecture, ni passer à
-`select=*` (perd le garde-fou de `version`). Histoire : `memoire/reference.md`.
+(`referenceSuivante()`) et reste LA clé d'une course. **Ne jamais revenir à un
+compteur local** (29/09/2026). Le **N° court** (« N° 1042 ») est attribué par la
+**base** à l'écriture (`20261006000000_numero_court.sql`), immuable, recopié
+dans `bon.numero`, et tient seul la tête de toute alerte et du message WhatsApp
+(9/10/2026) ; la référence reste la clé technique. Ne pas nommer la colonne dans une lecture, ni
+passer à `select=*` (perd le garde-fou de `version`).
+**UN 409 AU DÉPÔT N'EST PAS UNE DEMANDE PERDUE** (19/10/2026 ; 28 M de tirages
+par mois, ~15 % de collision mensuelle à 100 demandes/jour) : le site rejoue
+une fois puis **tire une autre référence** (`deposerDemande`) ; l'admin aussi
+quand la ligne distante est une AUTRE course (`autreCourse`), au lieu de
+l'adopter. Histoire : `memoire/reference.md`.
 
 ## « ENVOYER MA DEMANDE » NE PARTAIT PLUS — LE CLOISONNEMENT AVAIT EMPORTÉ `telValide`
 
