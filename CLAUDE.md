@@ -3558,13 +3558,13 @@ La référence `ELA-AA-MM-XXXXX` est tirée au sort sur l'appareil
 compteur local** (29/09/2026). Le **N° court** (« N° 1042 ») est attribué par la
 **base** à l'écriture (`20261006000000_numero_court.sql`), immuable, recopié
 dans `bon.numero`, et tient seul la tête de toute alerte et du message WhatsApp
-(9/10/2026) ; la référence reste la clé technique. Ne pas nommer la colonne dans une lecture, ni
-passer à `select=*` (perd le garde-fou de `version`).
+(9/10/2026) ; la référence reste la clé technique. Ne jamais nommer la colonne
+ni passer à `select=*` (garde-fou de `version`).
 **UN 409 AU DÉPÔT N'EST PAS UNE DEMANDE PERDUE** (19/10/2026 ; 28 M de tirages
 par mois, ~15 % de collision mensuelle à 100 demandes/jour) : le site rejoue
-une fois puis **tire une autre référence** (`deposerDemande`) ; l'admin aussi
-quand la ligne distante est une AUTRE course (`autreCourse`), au lieu de
-l'adopter. Histoire : `memoire/reference.md`.
+deux fois puis **tire une autre référence** (`deposerDemande`) ; l'admin aussi
+si la ligne distante est une AUTRE demande (`autreCourse` : téléphone, date,
+heure — jamais `cree`). Histoire : `memoire/reference.md`.
 
 ## « ENVOYER MA DEMANDE » NE PARTAIT PLUS — LE CLOISONNEMENT AVAIT EMPORTÉ `telValide`
 

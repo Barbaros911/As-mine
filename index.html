@@ -11692,17 +11692,23 @@ window.ELA_TEXTES = {
     if(bonAffiche === bon) ecrireRefBon(bon);
     return true;
   }
-  function deposerDemande(bon, tirages){
-    tirages = tirages || 0;
+  /* ON REJOUE DEUX FOIS À L'IDENTIQUE, APRÈS UNE PAUSE, AVANT DE RETIRER
+     (relecture du 19/10/2026) : sur un serveur lent, le premier envoi
+     abandonné à 8 s peut n'avoir pas encore ÉCRIT la ligne quand le rejeu
+     arrive — il passerait lui aussi la vérification « déjà déposée ? » à
+     vide, prendrait un 409, et un retirage ferait DEUX courses pour une
+     demande. 1,5 s de pause et deux rejeux ferment cette fenêtre : la ligne
+     a le temps d'exister, et le rejeu la reconnaît. */
+  var PAUSE_REJEU_MS = 1500, REJEUX_IDENTIQUES = 2, TIRAGES_MAX = 2;
+  function deposerDemande(bon, tirages, rejeux){
+    tirages = tirages || 0; rejeux = rejeux || 0;
     return nuage.deposer(bon).then(function(res){
       if(res !== "reference") return res;
-      if(tirages === 0){
-        return nuage.deposer(bon).then(function(res2){
-          if(res2 !== "reference") return res2;
-          return retirerReference(bon) ? deposerDemande(bon, 1) : false;
-        });
+      if(rejeux < REJEUX_IDENTIQUES){
+        return new Promise(function(r){ setTimeout(r, PAUSE_REJEU_MS); })
+          .then(function(){ return deposerDemande(bon, tirages, rejeux + 1); });
       }
-      if(tirages < 2 && retirerReference(bon)) return deposerDemande(bon, tirages + 1);
+      if(tirages < TIRAGES_MAX && retirerReference(bon)) return deposerDemande(bon, tirages + 1, 0);
       return false;
     });
   }
@@ -12777,17 +12783,32 @@ window.ELA_TEXTES = {
     });
   };
 
-  /* La ligne du serveur est-elle UNE AUTRE course que la nôtre ? La date de
-     création est posée par l'appareil qui crée le bon (client ou admin) et
-     recopiée telle quelle : deux courses distinctes n'ont pas la même, à la
-     milliseconde. Sans date des deux côtés (très vieux bon), le téléphone
-     du client tranche ; sans rien, on suppose que c'est la nôtre, comme
-     avant. */
+  /* La ligne du serveur est-elle UNE AUTRE course que la nôtre ? ON COMPARE
+     LE CONTENU, JAMAIS LA DATE DE CRÉATION : « deposer-course » réécrit
+     « cree » à l'heure du serveur, et une demande COLLÉE depuis le message
+     WhatsApp du client garde SA référence (intake-demande.js) avec une date
+     de lecture — les deux dates ne sont jamais égales alors que c'est la
+     même demande (le client a lu « non transmise » pour un dépôt qui avait
+     abouti, puis renvoyé par WhatsApp). Trouvé par la relecture
+     indépendante du 19/10/2026 : le premier jet comparait « cree » et aurait
+     créé une course EN DOUBLE exactement dans le cas qu'il voulait réparer.
+     Même demande = même téléphone (neuf derniers chiffres), même date, même
+     heure ; sans téléphone (comptoir identifié par la chambre), le trajet
+     tranche. Deux clients distincts tirés au même signe n'ont pas le même
+     numéro à la même heure. */
+  function chiffresTel(t){ var c = String(t || "").replace(/\D/g, ""); return c.length > 9 ? c.slice(-9) : c; }
+  function memeDemande(d, b){
+    var cd = d.course || {}, cb = b.course || {};
+    if(String(cd.date || "") !== String(cb.date || "") || String(cd.heure || "") !== String(cb.heure || "")) return false;
+    var td = chiffresTel(d.client && d.client.telephone), tb = chiffresTel(b.client && b.client.telephone);
+    if(td && tb) return td === tb;
+    return String(cd.departPublic || cd.depart || "") === String(cb.departPublic || cb.depart || "")
+        && String(cd.arrivee || "") === String(cb.arrivee || "");
+  }
   function autreCourse(ligne, b){
-    var d = (ligne && ligne.bon) || {};
-    if(d.cree && b.cree) return d.cree !== b.cree;
-    var t1 = d.client && d.client.telephone, t2 = b.client && b.client.telephone;
-    return !!(t1 && t2 && t1 !== t2);
+    var d = ligne && ligne.bon;
+    if(!d || typeof d !== "object") return false;
+    return !memeDemande(d, b);
   }
   /* La course garde tout, seule sa référence change : dans le registre, dans
      la file (même rang, mêmes essais) et sur le bon ouvert. Le N° court, lui,

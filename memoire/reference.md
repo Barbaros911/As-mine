@@ -111,19 +111,27 @@ moins deux demandes du mois tirent la même référence est d'environ **15 %**
 
 Ce qui vaut maintenant :
 - `nuage.deposer` rend `"reference"` sur un 409 ; `deposerDemande(bon)`
-  rejoue UNE fois à l'identique (une course de course trouve alors la ligne
-  avec la même empreinte : le serveur rend « rejoue », donc vrai), puis
+  rejoue DEUX fois à l'identique, après 1,5 s de pause chacune (une course de
+  course trouve alors la ligne avec la même empreinte : le serveur rend
+  « rejoue », donc vrai ; la pause laisse à un serveur lent le temps d'écrire
+  la ligne du premier envoi — sans elle, le rejeu immédiat pouvait lui aussi
+  prendre un 409 et un retirage aurait fait deux courses), puis
   `retirerReference(bon)` tire une référence neuve, la pose sur le bon, dans
   `ela_courses` et sur l'écran (`ecrireRefBon`), et redépose. Deux tirages au
   plus : au-delà c'est une panne, et le repli WhatsApp reprend la main.
   `reprendreDepot` passe par le même chemin.
 - `nuage.envoyerCourse` : sur un doublon d'une course jamais lue du serveur,
-  `autreCourse(ligne, bon)` compare la date de création (`cree`, posée par
-  l'appareil qui crée le bon), puis le téléphone. Une autre course rend
-  `"reference"` : `changerReferenceLocale` renomme la course dans le registre,
-  déplace son entrée de file (même rang, mêmes essais) et le bon ouvert ;
-  `direReference` le dit sur le tableau de bord et sur le bon. La même course
-  (accusé perdu) garde le chemin « le serveur gagne ».
+  `autreCourse(ligne, bon)` compare le CONTENU — téléphone (neuf derniers
+  chiffres), date, heure ; sans téléphone, le trajet. **Jamais la date de
+  création** : la relecture indépendante du 19/10 a montré que le premier jet
+  la comparait, alors que `deposer-course` la réécrit à l'heure du serveur et
+  qu'une demande COLLÉE garde la référence du client avec sa date de lecture —
+  le cas « non transmise à tort, renvoyée par WhatsApp, collée » aurait fait
+  une course en double. Une autre course rend `"reference"` :
+  `changerReferenceLocale` renomme la course dans le registre, déplace son
+  entrée de file (même rang, mêmes essais) et le bon ouvert ; `direReference`
+  le dit sur le tableau de bord et sur le bon. La même demande (accusé perdu,
+  demande collée) garde le chemin « le serveur gagne ».
 - **Le format de la référence ne change pas** : c'est une décision produit
   (dictée au téléphone par le N° court, la référence reste technique), et
   une sixième position aurait touché tous les lecteurs (`intake-demande.js`,

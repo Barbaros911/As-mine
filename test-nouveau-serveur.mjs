@@ -850,9 +850,12 @@ for(const cas of [
    alerte, pour une course qui était soit déjà enregistrée, soit refusée pour
    une référence qui n'était pas la sienne. On éprouve les deux causes, et on
    lit ce qui PART au serveur plutôt que l'état interne. */
+/* Le mode « course » est une NON-RÉGRESSION : l'ancien code le passait aussi
+   (sa reprise réessayait une fois à l'identique). Il garde ce chemin tel
+   quel ; ce sont les contrôles « collision » qui tombent sur l'ancien code. */
 {
   const r = await reserver('course');
-  await r.p.waitForTimeout(1500);
+  await r.p.waitForTimeout(4000);
   check('course de course (409 puis 201) : le même bon est redéposé une fois, à l\'identique',
     r.depots.length===2 && r.depots[0].corps.ref===r.depots[1].corps.ref, r.depots.map(d=>d.corps.ref).join(' / '));
   check('course de course : le bon dit que la demande est arrivée', await r.p.locator('#etatEnvoi.ok').isVisible());
@@ -862,20 +865,22 @@ for(const cas of [
 }
 {
   const r = await reserver('collision');
-  await r.p.waitForTimeout(1500);
+  /* Deux rejeux à 1,5 s d'écart avant le retirage : on laisse le temps. */
+  await r.p.waitForTimeout(7000);
   const refs = r.depots.map(d=>d.corps.ref);
-  check('collision : deux essais à l\'identique, puis UNE référence neuve', r.depots.length===3 && refs[0]===refs[1] && refs[2]!==refs[0], refs.join(' / '));
-  check('collision : la référence neuve a la forme d\'une référence du site', /^ELA-\d\d-\d\d-[23456789A-HJKMNP-Z]{5}$/.test(refs[2]||''), refs[2]);
+  const neuve = refs[3];
+  check('collision : TROIS essais à l\'identique (pause entre chacun), puis UNE référence neuve', r.depots.length===4 && refs[0]===refs[1] && refs[1]===refs[2] && neuve!==refs[0], refs.join(' / '));
+  check('collision : la référence neuve a la forme d\'une référence du site', /^ELA-\d\d-\d\d-[23456789A-HJKMNP-Z]{5}$/.test(neuve||''), neuve);
   check('collision : le bon redéposé est la MÊME demande (client, trajet, prix)',
-    !!r.depots[2] && JSON.stringify({...r.depots[2].corps.bon, ref:null}) === JSON.stringify({...r.depots[0].corps.bon, ref:null}));
+    !!r.depots[3] && JSON.stringify({...r.depots[3].corps.bon, ref:null}) === JSON.stringify({...r.depots[0].corps.bon, ref:null}));
   check('collision : le bon dit que la demande est arrivée', await r.p.locator('#etatEnvoi.ok').isVisible());
   const local = await r.p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').map(c=>c.ref));
-  check('collision : l\'appareil garde UNE course, sous la référence neuve', local.length===1 && local[0]===refs[2], local.join(','));
-  check('collision : le bon affiche la référence neuve', (await r.p.locator('#bonRef').textContent()).trim()===refs[2], await r.p.locator('#bonRef').textContent());
+  check('collision : l\'appareil garde UNE course, sous la référence neuve', local.length===1 && local[0]===neuve, local.join(','));
+  check('collision : le bon affiche la référence neuve', (await r.p.locator('#bonRef').textContent()).trim()===neuve, await r.p.locator('#bonRef').textContent());
   /* Le repli WhatsApp parle de la course telle qu'elle est enregistrée. */
   await r.p.locator('#btnRenvoyer').click();
   const lien = await r.p.evaluate(()=>window.__liens[window.__liens.length-1]||'');
-  check('collision : le message WhatsApp de secours porte la référence neuve', decodeURIComponent(lien).includes(refs[2]) && !decodeURIComponent(lien).includes(refs[0]));
+  check('collision : le message WhatsApp de secours porte la référence neuve', !!neuve && decodeURIComponent(lien).includes(neuve) && !decodeURIComponent(lien).includes(refs[0]));
   await r.ctx.close();
 }
 await b.close();

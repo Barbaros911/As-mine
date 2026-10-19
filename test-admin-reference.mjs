@@ -60,9 +60,23 @@ const ACCUSE_PERDU = course('ELA-26-10-PERD1', 'M. Accuse Perdu', '06 98 76 54 3
    signe ; PERD1 est NOTRE course, déjà écrite, dont l'accusé s'est perdu. */
 const INCONNU = course('ELA-26-10-COLL1', 'Client Inconnu Du Site', '07 00 00 00 00', new Date(Date.now() - 7200e3).toISOString());
 INCONNU.statut = 'attente'; delete INCONNU.chauffeur; INCONNU.securite = { empreinteDepot: 'e' };
+/* LA DEMANDE COLLÉE (relecture indépendante du 19/10/2026) : le client a lu
+   « non transmise » pour un dépôt qui avait ABOUTI, il a renvoyé son message
+   WhatsApp, Barbaros l'a collé. La course collée garde la référence du client
+   (intake-demande.js) et porte sa propre date de lecture ; sur le serveur, la
+   ligne porte la date du serveur et l'empreinte de dépôt. Même téléphone, même
+   date, même heure : c'est LA MÊME demande — le serveur doit gagner, jamais une
+   référence neuve (ce serait une course en double). Le premier jet comparait
+   la date de création et aurait doublé. */
+const COLLEE = course('ELA-26-10-COLL2', 'Mme Collee Depuis Whatsapp', '06 44 55 66 77', new Date(Date.now() - 600e3).toISOString());
+COLLEE.statut = 'attente'; delete COLLEE.chauffeur; delete COLLEE.canal;
+const COLLEE_SERVEUR = JSON.parse(JSON.stringify(COLLEE));
+COLLEE_SERVEUR.cree = new Date(Date.now() - 900e3).toISOString(); COLLEE_SERVEUR.securite = { empreinteDepot: 'abc' };
+COLLEE_SERVEUR.client.telephone = '+33 6 44 55 66 77'; /* le serveur a le numéro tel que tapé par le client */
 const base = {
   'ELA-26-10-COLL1': { bon: JSON.parse(JSON.stringify(INCONNU)), statut: 'attente', version: 3 },
   'ELA-26-10-PERD1': { bon: JSON.parse(JSON.stringify(ACCUSE_PERDU)), statut: 'confirmee', version: 1 },
+  'ELA-26-10-COLL2': { bon: COLLEE_SERVEUR, statut: 'attente', version: 2 },
 };
 const ecritures = []; const erreurs = [];
 
@@ -74,7 +88,7 @@ await ctx.addInitScript(({ c, file }) => {
   localStorage.setItem('ela_nuage_session', JSON.stringify({ access_token: 'JETON', refresh_token: 'R', user: { id: 'u-barbaros' } }));
   localStorage.setItem('ela_bookings', JSON.stringify(c));
   localStorage.setItem('ela_file', JSON.stringify(file));
-}, { c: [SAISIE, ACCUSE_PERDU], file: { 'ELA-26-10-COLL1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-PERD1': { depuis: Date.now(), essais: 0, gen: 1 } } });
+}, { c: [SAISIE, ACCUSE_PERDU, COLLEE], file: { 'ELA-26-10-COLL1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-PERD1': { depuis: Date.now(), essais: 0, gen: 1 }, 'ELA-26-10-COLL2': { depuis: Date.now(), essais: 0, gen: 1 } } });
 /* Les deux courses en file se vident l'une après l'autre et le même écriteau
    (#bordConflit) sert aux deux : on relève CHAQUE phrase qu'il a affichée,
    pas seulement la dernière. */
@@ -133,7 +147,7 @@ try {
 
   const posts = ecritures.filter(e => !e.patch);
   const pourColl = posts.filter(e => e.ref === 'ELA-26-10-COLL1');
-  const neuves = posts.filter(e => e.ref !== 'ELA-26-10-COLL1' && e.ref !== 'ELA-26-10-PERD1');
+  const neuves = posts.filter(e => !['ELA-26-10-COLL1', 'ELA-26-10-PERD1', 'ELA-26-10-COLL2'].includes(e.ref));
   check('collision : la course saisie part UNE fois sous sa référence d\'origine', pourColl.length === 1, pourColl.length + ' envoi(s)');
   check('collision : puis UNE fois sous une référence neuve', neuves.length === 1, neuves.map(e => e.ref).join(','));
   const neuve = neuves[0] && neuves[0].ref;
@@ -165,6 +179,14 @@ try {
   check('accusé perdu : une seule écriture, aucune référence neuve', pourPerd.length === 1 && neuves.length === 1, pourPerd.length + ' / ' + neuves.length);
   const perd = registre.find(c => c.ref === 'ELA-26-10-PERD1');
   check('accusé perdu : la copie locale adopte la version du serveur', !!perd && perd._v === 1 && perd.client.nom === 'M. Accuse Perdu', JSON.stringify(perd && { _v: perd._v }));
+  /* LA DEMANDE COLLÉE : même téléphone (écrit autrement), même date, même
+     heure, autre date de création → c'est la nôtre, le serveur gagne. */
+  const pourColl2 = posts.filter(e => e.ref === 'ELA-26-10-COLL2');
+  check('demande collée : une seule écriture, aucune référence neuve (pas de course en double)', pourColl2.length === 1 && neuves.length === 1, pourColl2.length + ' / ' + neuves.length);
+  const coll2 = registre.find(c => c.ref === 'ELA-26-10-COLL2');
+  check('demande collée : la copie locale adopte la ligne du serveur (version, empreinte de dépôt)',
+    !!coll2 && coll2._v === 2 && coll2.securite && coll2.securite.empreinteDepot === 'abc', JSON.stringify(coll2 && { _v: coll2._v, s: coll2.securite }));
+  check('demande collée : le serveur n\'a pas été réécrit', base['ELA-26-10-COLL2'].version === 2);
   const file = await p.evaluate(() => localStorage.getItem('ela_file'));
   check('la file est vide à la fin', !file || file === '{}', file);
   check('aucune erreur JavaScript', erreurs.length === 0, erreurs.slice(0, 3).join(' | '));
