@@ -4918,6 +4918,20 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div id="regResultat"></div>
     </div>
 
+    <!-- LE DÉLAI DE CONFIRMATION (19 octobre 2026, à sa demande). Le client
+         ne paie qu'après la confirmation : chaque minute d'attente est un
+         client qui peut réserver ailleurs. On mesure, pour les demandes
+         DÉPOSÉES PAR LE SITE (accueil, page d'hôtel, comptoir), le temps
+         entre leur arrivée et « Confirmer ». Les courses saisies ou collées
+         par l'exploitant n'ont attendu personne. Suit le choix Semaine /
+         Mois / Année du bloc « Résultat », sur la période EN COURS. -->
+    <div class="bloc" id="blocDelai">
+      <h2 class="bloc-titre">Délai de confirmation</h2>
+      <div id="regDelai"></div>
+      <p class="bloc-note">Du dépôt d'une demande par le site jusqu'à votre « Confirmer ».
+        Compté depuis le 19 octobre 2026 : les courses confirmées avant n'ont pas d'heure de confirmation.</p>
+    </div>
+
     <!-- QUI ROULE, ET COMBIEN IL A RAPPORTÉ. C'est le tableau qui sert à
          décider à qui confier la prochaine course. -->
     <div class="bloc">
@@ -13624,8 +13638,17 @@ window.ELA_TEXTES = {
     var i = -1;
     for(var k=0;k<liste.length;k++) if(liste[k].ref === ref) i = k;
     if(i < 0) return null;
+    var avant = liste[i].statut || "attente";
     liste[i].statut = statut;
     if(extra) Object.keys(extra).forEach(function(k){ liste[i][k] = extra[k]; });
+    /* L'HEURE DE LA CONFIRMATION (19/10/2026, à sa demande : le délai de
+       réponse au registre). Posée UNE fois, au premier passage d'« en
+       attente » à « confirmée » : une course rouverte depuis « réalisée »
+       a été confirmée bien avant, et une course saisie au téléphone entre
+       confirmée d'office — ni l'une ni l'autre n'a attendu de réponse. Elle
+       part sur le serveur avec le bon : tous les appareils la voient. */
+    if(statut === "confirmee" && avant === "attente" && !liste[i].confirmeeLe)
+      liste[i].confirmeeLe = new Date().toISOString();
     /* LA COMMISSION SE FIGE QUAND LA COURSE EST FAITE (30/09/2026). C'est à
        cet instant que le chauffeur contracte sa dette ; changer un taux de
        canal ou de carnet le mois suivant ne doit pas réécrire ce qu'il
@@ -15657,6 +15680,60 @@ window.ELA_TEXTES = {
     });
   }
 
+  /* LE DÉLAI DE CONFIRMATION (19/10/2026, à sa demande). Mesuré sur les
+     seules demandes DÉPOSÉES PAR LE SITE — celles qui portent l'empreinte
+     posée par « deposer-course » (accueil, page d'hôtel, comptoir) : un
+     client y attend une réponse. Une course saisie au téléphone ou collée
+     depuis WhatsApp n'en porte pas, et n'a attendu personne. Le départ est
+     l'heure d'ARRIVÉE de la demande (« cree », posé par le serveur), la fin
+     le premier « Confirmer » (« confirmeeLe », posé par majCourse). La
+     MÉDIANE, pas la moyenne : une seule demande oubliée une nuit ne doit pas
+     cacher que les neuf autres ont eu leur réponse en cinq minutes. Comme le
+     graphique des chauffeurs, la période EN COURS seulement. */
+  var DELAI_CIBLE_MIN = 15;
+  function dureeLisible(ms){
+    var min = Math.round(ms / 60000);
+    if(min < 1) return "moins d'1 min";
+    if(min < 60) return min + " min";
+    var h = Math.floor(min / 60), m = min % 60;
+    if(h >= 48) return Math.round(h / 24) + " jours";
+    return h + " h" + (m ? " " + String(m).padStart(2, "0") : "");
+  }
+  function dessinerDelai(){
+    if(!document.getElementById("regDelai")) return;
+    var auj = new Date(), debut;
+    if(periodeReg === "annee") debut = new Date(auj.getFullYear(), 0, 1);
+    else if(periodeReg === "mois") debut = new Date(auj.getFullYear(), auj.getMonth(), 1);
+    else debut = lundiDe(auj);
+    var periode = { semaine: "cette semaine", mois: "ce mois-ci", annee: "cette année" }[periodeReg] || "";
+    var delais = [], enAttente = 0;
+    registre().filter(comptable).forEach(function(c){
+      if(!(c.securite && c.securite.empreinteDepot)) return;
+      var t0 = Date.parse(c.cree || c._cree || "");
+      if(isNaN(t0) || t0 < debut.getTime()) return;
+      if((c.statut || "attente") === "attente"){ enAttente++; return; }
+      var t1 = Date.parse(c.confirmeeLe || "");
+      if(!isNaN(t1)) delais.push({ ms: Math.max(0, t1 - t0), c: c });
+    });
+    var lignes = [];
+    if(delais.length){
+      delais.sort(function(a, b){ return a.ms - b.ms; });
+      var n = delais.length, mi = Math.floor(n / 2);
+      var mediane = n % 2 ? delais[mi].ms : (delais[mi - 1].ms + delais[mi].ms) / 2;
+      var vite = delais.filter(function(x){ return x.ms < DELAI_CIBLE_MIN * 60000; }).length;
+      var pire = delais[n - 1];
+      lignes.push({ nom: "Délai médian", sous: "la moitié des demandes est confirmée plus vite · sur " + n
+                     + (n > 1 ? " demandes confirmées " : " demande confirmée ") + periode, val: dureeLisible(mediane) });
+      lignes.push({ nom: "Confirmées en moins de " + DELAI_CIBLE_MIN + " min", sous: "", val: vite + " sur " + n });
+      lignes.push({ nom: "La plus longue", sous: numeroDe(pire.c) ? "N° " + numeroDe(pire.c) : pire.c.ref, val: dureeLisible(pire.ms) });
+    } else if(enAttente){
+      lignes.push({ nom: "Délai médian", sous: "aucune demande du site confirmée " + periode, val: "—" });
+    }
+    if(enAttente) lignes.push({ nom: "Encore en attente", sous: "demandes du site arrivées " + periode + ", sans réponse",
+                                val: String(enAttente) });
+    poser("regDelai", lignes, "Aucune demande du site " + periode + ".");
+  }
+
   function dessinerRegistre(){
     var faites = realisees();
     var maintenant = new Date();
@@ -15700,6 +15777,7 @@ window.ELA_TEXTES = {
       return { nom:nom, sous:v.n + (v.n > 1 ? " courses" : " course"), val:eurosRond(v.total) };
     });
     poser("regResultat", lignes, "Aucune course réalisée pour l'instant.");
+    dessinerDelai();
 
     /* Les chauffeurs, du plus rapporteur au moins : c'est le tableau qui
        sert à décider à qui confier la prochaine course. */

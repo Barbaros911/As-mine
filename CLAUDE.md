@@ -394,40 +394,25 @@ plutôt que de relire le CSS.
 
 ## Le registre et « Coller une demande »
 
-**COLLER UNE DEMANDE**, en haut du tableau de bord. Quand un client écrit
-sur WhatsApp plutôt que de passer par le site, sa demande n'existe nulle
-part : le presse-papiers est le transport.
-- `lireDemandeCollee()` **ne devine rien aux libellés, il lit la PLACE des
-  choses** : la référence en tête, une date en JJ/MM/AAAA HH:MM, les deux
-  premières valeurs « … : … » pour les adresses, le **dernier** montant en
-  euros pour le prix, la dernière ligne « nom — téléphone ». Un test le
-  vérifie avec un message aux libellés anglais.
-  **Changer la forme du message client oblige à changer ce lecteur**, et
-  inversement — les deux se lisent ensemble.
-- **La course entre TOUJOURS en `attente`**, jamais confirmée d'office.
-- **Une minuterie de 1,2 s ouvre le champ de repli** : certains navigateurs
-  rejettent la lecture du presse-papiers (le `catch` suffit), d'autres
-  laissent la promesse **en attente indéfiniment** — sans minuterie, le
-  bouton ne fait alors rien du tout, sans un mot.
-- Le champ **reste ouvert** après un ajout, vidé : les demandes arrivent
-  par trois ou quatre d'affilée.
+**COLLER UNE DEMANDE** (haut du tableau de bord) : une demande écrite sur
+WhatsApp n'existe nulle part, le presse-papiers est le transport.
+`lireDemandeCollee()` lit la PLACE des choses, jamais les libellés (référence
+en tête, date JJ/MM/AAAA HH:MM, deux premières valeurs « … : … » = adresses,
+DERNIER montant = prix, dernière ligne « nom — téléphone ») : **changer le
+message client oblige à changer ce lecteur**. La course entre TOUJOURS en
+`attente` ; une minuterie de 1,2 s ouvre le repli (une lecture du
+presse-papiers peut rester pendante) ; le champ reste ouvert, vidé.
 
-**LE REGISTRE** (bouton « Registre et résultats ») : la semaine en cours
-avec la précédente en rappel, le résultat par semaine / mois / année, le
-tableau des chauffeurs, la recherche libre, la sauvegarde JSON, l'export
-CSV et la restauration.
-- **Les chiffres ne comptent QUE les courses `realisee`.** Une course
-  confirmée n'est pas une course faite : la compter ferait prendre des
-  promesses pour de l'argent encaissé.
-- **La date retenue est celle de la COURSE**, pas de la saisie, sinon les
-  semaines se décalent au fil des oublis.
-- **La recherche porte sur TOUT le registre**, pas seulement les
-  réalisées : quand un client rappelle, c'est sa course à venir qu'on
-  cherche.
-- **Le CSV est en point-virgule avec un BOM** : Excel français lit le CSV
-  au séparateur de sa locale, et une virgule met tout dans une colonne.
-- **La restauration AJOUTE et n'écrase jamais** — une course d'ici peut
-  avoir avancé depuis la sauvegarde.
+**LE REGISTRE** : semaine, résultat par période, chauffeurs, recherche,
+sauvegarde JSON, CSV, restauration.
+- **Les chiffres ne comptent QUE les `realisee`**, à la date de la COURSE ;
+  la recherche porte sur TOUT le registre.
+- **CSV en point-virgule avec un BOM** (Excel français) ; la restauration
+  AJOUTE, n'écrase jamais.
+- **Délai de confirmation** (19/10/2026) : médiane, du dépôt par le site
+  (`securite.empreinteDepot`) au premier « Confirmer » (`confirmeeLe`, posé
+  par `majCourse` depuis « attente » seulement) ; ni saisie, ni collée, ni
+  essai. `test-admin-delai`. Histoire : `memoire/registre.md`.
 
 ## L'affiche des hôtels, et l'encodeur QR
 
