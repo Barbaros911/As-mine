@@ -222,6 +222,38 @@ function client() {
   html = html.replace('<html lang="fr">', '<html lang="fr" data-ela-space="hotel-client">');
   const redirection = `<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('exploitant')==='1'){p.delete('exploitant');var a=p.toString();location.replace('/ela-admin/'+(a?'?'+a:'')+location.hash);return}if(p.get('reception')){${versReception}}}catch(e){}}());</script>`;
   html = html.replace('</head>', redirection + '</head>');
+  /* LE MODE HÔTEL EST POSÉ AVANT LE PREMIER DESSIN (19/10/2026, audit).
+     Mesuré sur le site construit, 4G lente : la page d'un partenaire
+     s'affichait d'abord comme l'accueil public (en-tête de 62 px, bandeau,
+     sections), puis le script de fin de page posait « body.hotel » (en-tête
+     à 94 px, accueil masqué), puis la finition posait « hotel-enhanced »
+     (76 px) — deux sauts sous le doigt, CLS 0,56.
+     Les deux feuilles qui dessinent l'état final sont déjà dans l'en-tête :
+     le corps porte donc ses deux classes dès sa première ligne, et l'en-tête
+     sort juste du premier coup. Le reste de l'écran (bandeau de l'hôtel,
+     champs, menu des destinations) ne sait son état qu'au script : il reste
+     INVISIBLE (visibility, pas display — la place est prise, rien ne saute)
+     sous « html.hotel-avance », que le script retire en ouvrant le mode
+     hôtel. Un filet de 5 s le retire quand même si le script ne venait pas :
+     mieux vaut la page publique qu'une page blanche.
+     Première version éprouvée et REJETÉE : les classes seules, sans le voile.
+     L'accueil disparaissait bien du premier dessin, mais le bandeau de
+     l'hôtel arrivait ensuite et poussait le formulaire de 316 px : CLS 0,81,
+     pire qu'avant. Un état posé à moitié bouge plus qu'un état posé tard.
+     ON NE DEVINE QUE SUR LA CLÉ EXACTE : le script reconnaît aussi le nom et
+     les alias, après normalisation ; recopier cette normalisation ici en
+     ferait une seconde recette. Une clé reconnue ici l'est forcément par le
+     script (la clé est dans sa liste de noms) ; un nom ou un alias garde
+     simplement le comportement d'avant, correct mais avec le saut. Un hôtel
+     inconnu n'a aucune classe : son QR garde l'accueil public. La démo
+     retire ce script (construire-demo.mjs) : il nomme la clé d'un
+     partenaire réel. */
+  const cles = JSON.stringify(Object.keys(HOTELS).map((k) => k.toLowerCase()));
+  const voile = `<style id="elaHotelAvanceStyle">html.hotel-avance .ecran{visibility:hidden}</style>`;
+  const avance = `<script id="elaHotelAvance">(function(){try{var h=(new URLSearchParams(location.search).get('h')||'').trim().toLowerCase();if(h&&${cles}.indexOf(h)!==-1){var r=document.documentElement;document.body.classList.add('hotel','hotel-enhanced');r.classList.add('hotel-avance');setTimeout(function(){r.classList.remove('hotel-avance');},5000);}}catch(e){}}());</script>`;
+  if (!html.includes('<body>')) throw new Error('client : balise <body> introuvable, le mode hôtel ne peut pas être posé avant le dessin');
+  html = html.replace('</head>', voile + '</head>');
+  html = html.replace('<body>', '<body>' + avance);
   return html;
 }
 
