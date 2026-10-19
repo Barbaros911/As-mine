@@ -1289,6 +1289,11 @@ body.espace .admin-nav{display:block;background:var(--noir);color:#fff;
 #adminAlertesTexte::after{content:"Alertes : non vérifiées";font-weight:700;
   height:0;overflow:hidden;visibility:hidden;}
 .admin-alertes.ko{color:#fca5a5;font-weight:700;}
+.admin-erreurs{display:flex;width:max-content;color:#fcd34d;}
+.admin-erreurs .admin-point{background:#f59e0b;}
+.admin-erreurs.recente{font-weight:700;}
+.registre-tronque{margin:12px 0 0;padding:10px 14px;background:var(--carte);border:1px solid var(--filet);border-left:3px solid #f59e0b;border-radius:12px;}
+.registre-tronque .bloc-note{margin:0;color:var(--encre);font-size:12.5px;}
 .admin-alertes.ko .admin-point{background:#f87171;}
 /* QUITTER ET SE DÉCONNECTER VIVENT ICI, SOUS L'ÉTAT DU COMPTE, et plus dans
    les tuiles du menu (10/10/2026) : deux actions sur le compte, à côté de ce
@@ -2653,6 +2658,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
              serait pire que pas de voyant. -->
         <span class="admin-etat admin-alertes" id="adminAlertes">
           <i class="admin-point"></i><span id="adminAlertesTexte">Alertes : non vérifiées</span>
+        </span>
+        <!-- LES ERREURS DU SITE (19 octobre 2026) : ce que les clients ont
+             rencontré sans appeler. Caché tant qu'il n'y en a aucune en 24 h,
+             ou tant que la migration n'est pas appliquée : une ligne qui dirait
+             « 0 » tous les jours ne se lirait plus. -->
+        <span class="admin-etat admin-erreurs" id="adminErreurs" hidden>
+          <i class="admin-point"></i><span id="adminErreursTexte"></span>
         </span>
         <!-- QUITTER ET SE DÉCONNECTER SONT DEUX LIENS SOUS L'ÉTAT DU COMPTE,
              PLUS DEUX TUILES (10/10/2026, Barbaros : « Corrige tout »). Avec
@@ -4866,6 +4878,17 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </svg>
       </button>
       <h1 class="ecran-titre">Registre</h1>
+    </div>
+
+    <!-- LA LIMITE DES 1000 COURSES SE DIT (19 octobre 2026, audit). L'admin
+         ne relit du serveur que les 1000 courses les plus récentes, et
+         l'appareil n'en garde pas plus : au-delà, les chiffres du Registre
+         sur le mois et l'année ne couvrent plus les plus anciennes — en
+         silence. À cent demandes par jour, c'est dix jours. Tant que les
+         chiffres ne viennent pas du serveur, on le DIT ici, à l'endroit où
+         ils se lisent. Caché tant que la liste n'est pas pleine. -->
+    <div class="registre-tronque" id="registreTronque" role="status" hidden>
+      <p class="bloc-note" id="registreTronqueTexte"></p>
     </div>
 
     <!-- LA RECHERCHE EN TÊTE (9 octobre 2026) : quand un client rappelle,
@@ -10286,6 +10309,17 @@ window.ELA_TEXTES = {
          réponse vide ou illisible n'est PAS un échec : la demande est
          arrivée, seul le N° manque. */
       .then(function(r){
+        /* 409 : LA RÉFÉRENCE EST DÉJÀ PRISE SUR LE SERVEUR (19 octobre 2026,
+           audit). Deux causes, une seule réponse : une course de course (le
+           dépôt « keepalive » abandonné à 8 s a fini par écrire la ligne
+           pendant que la reprise arrivait) ou une vraie collision (deux
+           appareils ont tiré les mêmes cinq signes — 28 millions de tirages
+           par mois, ~15 % de risque par mois à 100 demandes par jour). Ce
+           n'est NI un succès NI une panne : « deposerDemande » rejoue une
+           fois à l'identique (une course de course rend alors « rejoue »),
+           puis tire une autre référence. Avant, le client lisait « non
+           transmise » et la demande était perdue sans alerte. */
+        if(r.status === 409) return "reference";
         if(!r.ok) return false;
         return r.json().then(function(j){
           if(j && Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
@@ -10401,6 +10435,62 @@ window.ELA_TEXTES = {
      l'admin. On lui donne une prise explicite plutôt qu'une variable
      globale supposée. */
   window.ELA_NUAGE = nuage;
+  /* ═══ LES ERREURS DU SITE REMONTENT, SANS DONNÉE PERSONNELLE (19 octobre
+     2026, audit — observabilité) ═══ Une exception dans le tunnel ne se voyait
+     que si un client appelait : rien côté serveur n'atteint le voyant avant le
+     dépôt. Chaque erreur JavaScript non rattrapée part à la fonction
+     « erreur-client », détachée et sans réponse lue : l'espace, le chemin,
+     l'écran actif, le message, la source (fichier:ligne), l'appareil et la
+     langue. JAMAIS le nom, le téléphone, la référence : les suites de six
+     chiffres et les e-mails sont masqués ICI et à nouveau sur le serveur.
+     Au plus cinq messages distincts par chargement, un seul envoi par message :
+     une page qui boucle ne noie personne. « nuage.actif() » faux (démo,
+     test) : rien ne part. Ce bloc ne peut pas casser la page : tout est
+     enveloppé, et une erreur dans la remontée elle-même est avalée. */
+  (function(){
+    var envoyees = {}, nb = 0, MAX_ERREURS = 5;
+    function espaceErreur(){
+      var b = document.body, c = b ? b.classList : null;
+      if(!c) return "autre";
+      if(c.contains("espace") || c.contains("exploitant") || /ela-admin|admin/.test(location.pathname)) return "admin";
+      if(c.contains("reception")) return "reception";
+      if(c.contains("hotel")) return "hotel";
+      return "public";
+    }
+    function masquerErreur(t){
+      return String(t || "").replace(/\s+/g, " ")
+        .replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, "…")
+        .replace(/\d(?:[\s.-]?\d){5,}/g, "…")
+        .trim();
+    }
+    function signalerErreur(message, source){
+      try{
+        if(!nuage.actif() || !message) return;
+        var m = masquerErreur(message).slice(0, 200);
+        if(!m || envoyees[m] || nb >= MAX_ERREURS) return;
+        envoyees[m] = true; nb++;
+        var actif = document.querySelector(".ecran.actif");
+        fetch(SUPABASE_URL + "/functions/v1/erreur-client", {
+          method: "POST", keepalive: true, credentials: "omit",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            espace: espaceErreur(), chemin: String(location.pathname || "/").slice(0, 120),
+            ecran: actif ? actif.id : "", message: m, source: masquerErreur(source).slice(0, 160),
+            appareil: (typeof appareilMesure === "function" ? appareilMesure() : ""),
+            langue: (typeof LANGUE === "string" ? LANGUE : "")
+          })
+        }).catch(function(){});
+      }catch(e){ /* la remontée ne doit jamais casser la page */ }
+    }
+    window.addEventListener("error", function(e){
+      var src = e && e.filename ? String(e.filename).replace(/[?#].*$/, "").split("/").pop() + ":" + (e.lineno || 0) : "";
+      signalerErreur((e && (e.message || (e.error && e.error.message))) || "erreur", src);
+    });
+    window.addEventListener("unhandledrejection", function(e){
+      var r = e && e.reason;
+      signalerErreur((r && (r.message || String(r))) || "promesse rejetée", "");
+    });
+  })();
 /* =====================================================================
    LE RÉCAPITULATIF, PUIS LE BON
    ===================================================================== */
@@ -11481,7 +11571,7 @@ window.ELA_TEXTES = {
        avec « keepalive » (voir « nuage.deposer ») et « reprendreDepot »
        réessaie une fois au retour sur l'onglet. Histoire de l'ancienne
        ouverture automatique de WhatsApp : memoire/contact-client.md. */
-    var depot = nuage.deposer(bonCourant);
+    var depot = deposerDemande(bonCourant);
     /* ═══ PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC (4 octobre 2026) ═══
        Option A, décidée par Barbaros. Le dépôt suffit : la demande arrive
        dans l'admin et Telegram l'annonce, le client reste sur son bon. Le
@@ -11655,13 +11745,59 @@ window.ELA_TEXTES = {
      vient jamais : certains navigateurs ne l'émettent pas si la page n'a
      pas été réellement masquée. Sans lui, un vrai échec resterait affiché
      en « envoi en cours » pour toujours. */
+  /* ═══ UNE RÉFÉRENCE DÉJÀ PRISE N'EST PAS UNE DEMANDE PERDUE (19 octobre
+     2026, audit avant l'exploitation à plusieurs hôtels) ═══
+     « deposer » rend « reference » quand le serveur répond 409. Ici on
+     décide : (1) rejouer UNE fois à l'identique — si c'était une course de
+     course avec le premier envoi, la ligne existe maintenant avec la même
+     empreinte et le serveur rend « rejoue », donc vrai ; (2) si le 409
+     persiste, la référence est prise par UNE AUTRE course : on en tire une
+     neuve, on la pose sur le bon, dans le stockage et à l'écran, et on
+     redépose. Deux tirages au plus : au-delà, ce n'est plus le hasard, c'est
+     une panne, et le repli WhatsApp reprend la main comme avant.
+     La référence change AVANT que le client la lise comme définitive : le
+     bon affiche « N° … » dès que le serveur l'a attribué, et ce N° vient
+     avec la réponse du dépôt réussi. */
+  function retirerReference(bon){
+    var ancienne = bon.ref, neuve = referenceSuivante();
+    if(!neuve || neuve === ancienne) return false;
+    bon.ref = neuve;
+    delete bon.numero;
+    try{
+      var l = JSON.parse(localStorage.getItem("ela_courses") || "[]");
+      for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ancienne){ l[i].ref = neuve; delete l[i].numero; }
+      localStorage.setItem("ela_courses", JSON.stringify(l));
+    }catch(e){ /* stockage refusé : le bon à l'écran porte la bonne référence */ }
+    if(bonAffiche === bon) ecrireRefBon(bon);
+    return true;
+  }
+  /* ON REJOUE DEUX FOIS À L'IDENTIQUE, APRÈS UNE PAUSE, AVANT DE RETIRER
+     (relecture du 19/10/2026) : sur un serveur lent, le premier envoi
+     abandonné à 8 s peut n'avoir pas encore ÉCRIT la ligne quand le rejeu
+     arrive — il passerait lui aussi la vérification « déjà déposée ? » à
+     vide, prendrait un 409, et un retirage ferait DEUX courses pour une
+     demande. 1,5 s de pause et deux rejeux ferment cette fenêtre : la ligne
+     a le temps d'exister, et le rejeu la reconnaît. */
+  var PAUSE_REJEU_MS = 1500, REJEUX_IDENTIQUES = 2, TIRAGES_MAX = 2;
+  function deposerDemande(bon, tirages, rejeux){
+    tirages = tirages || 0; rejeux = rejeux || 0;
+    return nuage.deposer(bon).then(function(res){
+      if(res !== "reference") return res;
+      if(rejeux < REJEUX_IDENTIQUES){
+        return new Promise(function(r){ setTimeout(r, PAUSE_REJEU_MS); })
+          .then(function(){ return deposerDemande(bon, tirages, rejeux + 1); });
+      }
+      if(tirages < TIRAGES_MAX && retirerReference(bon)) return deposerDemande(bon, tirages + 1, 0);
+      return false;
+    });
+  }
   function reprendreDepot(bon){
     var fait = false;
     function reessayer(){
       if(fait) return;
       fait = true;
       document.removeEventListener("visibilitychange", auRetour);
-      nuage.deposer(bon).then(function(ok){
+      deposerDemande(bon).then(function(ok){
         if(ok) mesurerVisite("demande_envoyee", { ref: bon.ref });
         return afficherEtatEnvoi(ok);
       });
@@ -12356,6 +12492,17 @@ window.ELA_TEXTES = {
      foi sur celui du JSON — c'est la colonne que lisent la relance et la
      réception. Un serveur d'avant la migration ne rend pas de version :
      « _v » reste alors absent et on retombe sur l'ancien comportement. */
+  /* Vrai dès que la dernière lecture serveur a rendu ses 1000 lignes : la
+     liste est alors coupée, et le Registre le dit (jugerTronque). */
+  var listeTronquee = false;
+  function jugerTronque(){
+    var el = document.getElementById("registreTronque"), txt = document.getElementById("registreTronqueTexte");
+    if(!el || !txt) return;
+    el.hidden = !listeTronquee;
+    if(listeTronquee) txt.textContent = "Le serveur garde plus de 1 000 courses : cet appareil ne relit que les "
+      + "1 000 plus récentes. Les chiffres de ce Registre ne couvrent pas les courses plus anciennes, "
+      + "et la recherche ne les trouve pas. Pour un bilan complet, exportez le CSV régulièrement.";
+  }
   function reconcilier(distantes){
     var local = registre();
     var parRef = {};
@@ -12391,6 +12538,7 @@ window.ELA_TEXTES = {
     var presentes = {};
     distantes.forEach(function(d){ if(d && d.ref) presentes[d.ref] = true; });
     var tronquee = distantes.length >= 1000;
+    listeTronquee = tronquee;
     var resultat = [];
     Object.keys(parRef).forEach(function(ref){
       var c = parRef[ref];
@@ -12703,6 +12851,17 @@ window.ELA_TEXTES = {
       if(Array.isArray(r) && r.length === 0){
         return relire().then(function(ligne){
           if(!ligne) return "attendre";
+          /* ═══ UNE AUTRE COURSE PORTE DÉJÀ CETTE RÉFÉRENCE (19 octobre 2026,
+             audit) ═══ « Le serveur gagne » valait pour NOTRE course relue
+             d'ailleurs. Mais la référence est tirée au sort (28 millions par
+             mois) : à cent demandes par jour, deux tirages identiques dans le
+             mois ne sont plus rares. La course saisie au téléphone était
+             alors REMPLACÉE en silence par celle d'un client inconnu, et le
+             message disait « modifiée sur un autre appareil ». On compare
+             d'abord la date de création (puis le téléphone) : une autre
+             course, c'est une collision — on retire une référence, jamais la
+             course. */
+          if(autreCourse(ligne, b)) return "reference";
           return conflit(ligne);
         });
       }
@@ -12714,6 +12873,60 @@ window.ELA_TEXTES = {
       return "ok";
     });
   };
+
+  /* La ligne du serveur est-elle UNE AUTRE course que la nôtre ? ON COMPARE
+     LE CONTENU, JAMAIS LA DATE DE CRÉATION : « deposer-course » réécrit
+     « cree » à l'heure du serveur, et une demande COLLÉE depuis le message
+     WhatsApp du client garde SA référence (intake-demande.js) avec une date
+     de lecture — les deux dates ne sont jamais égales alors que c'est la
+     même demande (le client a lu « non transmise » pour un dépôt qui avait
+     abouti, puis renvoyé par WhatsApp). Trouvé par la relecture
+     indépendante du 19/10/2026 : le premier jet comparait « cree » et aurait
+     créé une course EN DOUBLE exactement dans le cas qu'il voulait réparer.
+     Même demande = même téléphone (neuf derniers chiffres), même date, même
+     heure ; sans téléphone (comptoir identifié par la chambre), le trajet
+     tranche. Deux clients distincts tirés au même signe n'ont pas le même
+     numéro à la même heure. */
+  function chiffresTel(t){ var c = String(t || "").replace(/\D/g, ""); return c.length > 9 ? c.slice(-9) : c; }
+  function memeDemande(d, b){
+    var cd = d.course || {}, cb = b.course || {};
+    if(String(cd.date || "") !== String(cb.date || "") || String(cd.heure || "") !== String(cb.heure || "")) return false;
+    var td = chiffresTel(d.client && d.client.telephone), tb = chiffresTel(b.client && b.client.telephone);
+    if(td && tb) return td === tb;
+    return String(cd.departPublic || cd.depart || "") === String(cb.departPublic || cb.depart || "")
+        && String(cd.arrivee || "") === String(cb.arrivee || "");
+  }
+  function autreCourse(ligne, b){
+    var d = ligne && ligne.bon;
+    if(!d || typeof d !== "object") return false;
+    return !memeDemande(d, b);
+  }
+  /* La course garde tout, seule sa référence change : dans le registre, dans
+     la file (même rang, mêmes essais) et sur le bon ouvert. Le N° court, lui,
+     est celui du serveur : la course n'en a pas encore. */
+  function changerReferenceLocale(ancienne){
+    var neuve = referenceSuivante();
+    if(!neuve || neuve === ancienne) return "";
+    var l = registre(), trouve = false;
+    for(var i=0;i<l.length;i++) if(l[i] && l[i].ref === ancienne){ l[i].ref = neuve; delete l[i].numero; trouve = true; }
+    if(!trouve) return "";
+    ecrireRegistre(l);
+    var f = fileAttente();
+    if(f[ancienne]){ f[neuve] = f[ancienne]; delete f[ancienne]; ecrireFile(f); }
+    if(bonBord && bonBord.ref === ancienne){ bonBord.ref = neuve; delete bonBord.numero; }
+    return neuve;
+  }
+  function direReference(ancienne, neuve){
+    var phrase = "La référence " + ancienne + " était déjà prise par une autre course sur le serveur : "
+               + "votre course a reçu la référence " + neuve + ". Rien d'autre n'a changé.";
+    var el = document.getElementById("bordConflit");
+    if(el){ el.hidden = false; el.textContent = phrase; }
+    var note = document.getElementById("bbModifNote");
+    if(note && bonBord && bonBord.ref === neuve){
+      note.hidden = false; note.textContent = phrase;
+      try{ note.scrollIntoView({ block:"center", behavior:"smooth" }); }catch(e){}
+    }
+  }
 
   /* LA FILE SE VIDE UNE COURSE À LA FOIS, dans l'ordre d'entrée, et
      réessaie avec un délai qui s'allonge (3 s, 6, 12… 60 s au plus). Elle
@@ -12750,6 +12963,17 @@ window.ELA_TEXTES = {
         /* Le bon d'abord (il remet ses notes à zéro), le message ensuite. */
         if(bonBord && bonBord.ref === ref) ouvrirBonBord(ref);
         direConflit(ref);
+      } else if(res === "reference"){
+        /* Collision de référence : la course est intacte sous une référence
+           neuve, toujours en file — elle part au tour suivant, tout de
+           suite. Un tirage impossible (même signe) se traite comme un
+           report. */
+        var neuve = changerReferenceLocale(ref);
+        if(neuve){
+          dessinerBord();
+          if(bonBord && bonBord.ref === neuve) ouvrirBonBord(neuve);
+          direReference(ref, neuve);
+        } else reporter(ref);
       } else {
         reporter(ref);
       }
@@ -13120,6 +13344,7 @@ window.ELA_TEXTES = {
     return !(c.chauffeur && String(c.chauffeur.nom || "").trim());
   }
   function dessinerBord(){
+    if(typeof jugerTronque === "function") jugerTronque();
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     if(typeof dessinerSauvegardeBord === "function") dessinerSauvegardeBord();
     if(typeof dessinerAvisBord === "function") dessinerAvisBord();
@@ -15130,8 +15355,32 @@ window.ELA_TEXTES = {
       sessionPerdue();
     }).then(function(){ sante.enCours = false; jugerAlertes(); });
   }
+  /* LES ERREURS DU SITE, lues au même rythme que le voyant et jamais plus
+     souvent. Une RPC absente (migration pas encore appliquée), un refus, un
+     réseau muet : la ligne reste cachée — on ne dit rien plutôt que faux. */
+  var erreursSite = { essai:0, enCours:false };
+  function lireErreursSite(){
+    if(erreursSite.enCours || !nuage.connecte()) return;
+    if(Date.now() - erreursSite.essai < SANTE_PAS_MS) return;
+    erreursSite.essai = Date.now(); erreursSite.enCours = true;
+    nuage.appel("/rest/v1/rpc/ela_erreurs_client_recentes", { method:"POST", body:"{}" }).then(function(m){
+      if(typeof m === "string"){ try{ m = JSON.parse(m); }catch(e){ m = null; } }
+      var n = m && Number(m.n24h), n1 = m && Number(m.n1h);
+      var ligne = document.getElementById("adminErreurs"), txt = document.getElementById("adminErreursTexte");
+      if(!ligne || !txt) return;
+      if(!(n > 0)){ ligne.hidden = true; return; }
+      ligne.hidden = false;
+      ligne.classList.toggle("recente", n1 > 0);
+      txt.textContent = n + " erreur" + (n > 1 ? "s" : "") + " du site en 24 h" + (n1 > 0 ? " (" + n1 + " dans l'heure)" : "");
+      var detail = (Array.isArray(m.messages) ? m.messages : []).map(function(x){ return (x.n || 1) + " × [" + (x.espace || "?") + "] " + String(x.message || "").slice(0, 120); });
+      ligne.title = detail.join("\n");
+    }).catch(function(){
+      var ligne = document.getElementById("adminErreurs"); if(ligne) ligne.hidden = true;
+    }).then(function(){ erreursSite.enCours = false; });
+  }
   function jugerAlertes(){
     if(!sante) return;
+    lireErreursSite();
     var ligne = document.getElementById("adminAlertes");
     var txt = document.getElementById("adminAlertesTexte");
     /* GRIS FAUTE DE SESSION OU DE SERVEUR : l'ancien verdict est OUBLIÉ, et
@@ -16648,6 +16897,7 @@ window.ELA_TEXTES = {
        trajet. On affiche, PUIS on dessine. */
     ecran("ecran-registre");
     dessinerBord();
+    jugerTronque();
     allumerAdmin(document.getElementById("btnRegistre"));
   }
   document.getElementById("btnRegistre").addEventListener("click", ouvrirRegistre);

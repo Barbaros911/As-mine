@@ -45,8 +45,10 @@ const VAPID_SUJET = Deno.env.get("VAPID_SUJET") ?? "mailto:contact@elatransfer.c
 const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 /* Les seules adresses vers lesquelles une notification peut emmener. */
-const ORIGINES = new Set(["https://elatransfer.com", "https://www.elatransfer.com",
-  "https://barbaros911.github.io"]);
+/* « barbaros911.github.io » en est sorti le 19/10/2026 : le site n'est plus
+   servi par GitHub Pages depuis septembre, et une notification ne doit mener
+   qu'au site. */
+const ORIGINES = new Set(["https://elatransfer.com", "https://www.elatransfer.com"]);
 function lienSur(brut: unknown): string {
   try {
     const u = new URL(String(brut ?? ""));

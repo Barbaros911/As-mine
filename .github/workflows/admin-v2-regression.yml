@@ -213,6 +213,17 @@ jobs:
             -f supabase/migrations/20261005000000_vues_lecture_seule.sql \
             -f supabase/migrations/20261005000000_vues_lecture_seule.sql \
             -f supabase/tests/vues-lecture-seule-apres.sql
+          # Le journal des erreurs du site (19 octobre 2026) : anon ne lit ni
+          # n'écrit, un compte connecté lit seulement, la clé de service écrit
+          # avec ses bornes, la purge à 30 jours tourne, l'admin compte juste et
+          # un non-exploitant est refusé. La migration est appliquée DEUX fois.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database erreurs;'
+          psql -h 127.0.0.1 -U postgres -d erreurs -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/erreurs-client-avant.sql \
+            -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
+            -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
+            -f supabase/tests/erreurs-client-apres.sql
           # Le diagnostic qui suit la correction en production : il doit
           # s'exécuter, et ne sortir aucune adresse e-mail (journal public).
           psql -h 127.0.0.1 -U postgres -d vues -X -q -v ON_ERROR_STOP=1 \

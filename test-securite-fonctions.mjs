@@ -794,5 +794,135 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(!JSON.stringify(ecrits).includes('Europe/Paris'),'mesure : seul le pays est gardé, jamais le fuseau');
   globalThis.fetch=fetchAvant;
 }
+/* ═══ DEPOSER-COURSE SOUS LA CHARGE (audit du 19 octobre 2026) ═══
+   Cinq, puis quinze dépôts qui arrivent EN MÊME TEMPS, et deux dépôts
+   identiques en course l'un contre l'autre. Le faux serveur tient une table
+   avec une référence UNIQUE (l'index de production) et un quota atomique par
+   clé, et il répond avec un délai : les deux dépôts identiques passent donc
+   tous deux la vérification « déjà déposée ? » avant la première écriture,
+   exactement la fenêtre de la course réelle. Ce qu'on prouve : aucune ligne
+   en double, un seul des deux gagne, et le REJEU du perdant est reconnu
+   (200 « rejoue ») — c'est le chemin que prend maintenant le site. */
+{
+  const fetchAvant=globalThis.fetch;
+  const table={},compteurs={};let ecrits=0;
+  const dormir=ms=>new Promise(r=>setTimeout(r,ms));
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){const {p_cle,p_limite}=JSON.parse(init.body);compteurs[p_cle]=(compteurs[p_cle]||0)+1;return new Response(JSON.stringify(compteurs[p_cle]<=p_limite));}
+    if(url.includes('/rpc/ela_deposer_course_serveur')){const {p_ref,p_bon}=JSON.parse(init.body);await dormir(30);if(table[p_ref])return new Response('{"code":"23505"}',{status:409});table[p_ref]={bon:p_bon};ecrits++;return new Response('"ok"');}
+    if(url.includes('/rest/v1/courses?ref=eq.')){const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);await dormir(20);return new Response(JSON.stringify(table[ref]?[table[ref]]:[]));}
+    if(url.includes('partenaires?')||url.includes('liens_suivi?')||url.includes('parametres_commerciaux?'))return new Response('[]');
+    if(url.includes('journal_depots'))return new Response('');
+    return new Response('?',{status:404});
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bon=(ref,tel)=>({ref,course:{depart:'Place Vendôme, Paris',arrivee:'Orly',date:'2026-10-25',heure:'09:00',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},client:{nom:'Client '+ref.slice(-5),telephone:tel||'0612345678'},prix:{total:90},paiement:'lien',provenanceCle:'',parReception:false});
+  const depot=(ref,ip,tel)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':ip||'10.0.0.1','content-type':'application/json'},body:JSON.stringify({bon:bon(ref,tel)})}));
+  const refs5=['ELA-26-10-S1AAA','ELA-26-10-S2BBB','ELA-26-10-S3CCC','ELA-26-10-S4DDD','ELA-26-10-S5EEE'];
+  const r5=await Promise.all(refs5.map(r=>depot(r,'10.0.0.1')));
+  ok(r5.every(r=>r.status===201)&&Object.keys(table).length===5,'charge : 5 dépôts simultanés depuis la même adresse → 5 lignes, 5 × 201 ('+r5.map(r=>r.status).join(',')+')');
+  const [a,b]=await Promise.all([depot('ELA-26-10-DBLE1','10.0.0.2'),depot('ELA-26-10-DBLE1','10.0.0.2')]);
+  const codes=[a.status,b.status].sort().join('/');
+  ok(codes==='201/409'&&Object.keys(table).length===6,'charge : deux dépôts IDENTIQUES en même temps → une seule ligne, un 201 et un 409 ('+codes+')');
+  const rejeu=await depot('ELA-26-10-DBLE1','10.0.0.2');
+  ok(rejeu.status===200&&(await rejeu.json()).rejoue===true&&Object.keys(table).length===6,'charge : le perdant qui REJOUE à l\'identique est reconnu (200 « rejoue »), aucune ligne de plus');
+  const autre=await depot('ELA-26-10-DBLE1','10.0.0.3','0699999999');
+  ok(autre.status===409&&Object.keys(table).length===6,'charge : une AUTRE course sur la même référence est refusée (409), la première n\'est pas écrasée');
+  const refs15=Array.from({length:15},(_,i)=>'ELA-26-10-U'+String(i).padStart(2,'0')+'ZZ'.slice(0,2)+String.fromCharCode(65+i));
+  const r15=await Promise.all(refs15.map((r,i)=>depot(r,'10.0.1.'+(i%3))));
+  ok(r15.every(r=>r.status===201)&&Object.keys(table).length===21,'charge : 15 visiteurs simultanés depuis trois adresses → 15 lignes, aucune perte');
+  const r13=await Promise.all(Array.from({length:13},(_,i)=>depot('ELA-26-10-Q'+String(i).padStart(2,'0')+'KK','10.0.2.1')));
+  const refus=r13.filter(r=>r.status===429).length;
+  ok(refus===1&&r13.filter(r=>r.status===201).length===12,'charge : 13 dépôts d\'une même adresse dans l\'heure → 12 passent, le 13e lit 429 ('+refus+' refus)');
+  ok(ecrits===Object.keys(table).length,'charge : chaque écriture réussie correspond à une ligne, aucun doublon ('+ecrits+')');
+  const total=Object.values(compteurs).reduce((a,b)=>a+b,0);
+  ok(total===5+2+15+13,'charge : un rejeu et une référence déjà prise ne consomment PAS le quota (35 unités attendues, '+total+')');
+  globalThis.fetch=fetchAvant;
+}
+/* ═══ ERREUR-CLIENT — une erreur du site remonte, sans donnée personnelle
+   (audit du 19 octobre 2026) ═══ On lit ce qui PART à la base. */
+{
+  const fetchAvant=globalThis.fetch;const ecrits=[];let quota=0,rpcAbsente=false;
+  globalThis.fetch=async(url,init={})=>{url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){quota++;const {p_limite}=JSON.parse(init.body);return new Response(JSON.stringify(quota<=p_limite));}
+    if(url.includes('/rpc/ela_erreur_client_ecrire')){if(rpcAbsente)return new Response('{"code":"PGRST202"}',{status:404});ecrits.push(JSON.parse(init.body).p);return new Response('true');}
+    return new Response('?',{status:404});};
+  const ec=await charger('erreur-client',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const envoi=(corps,entetes={})=>ec(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.7','user-agent':'Mozilla/5.0 iPhone',...entetes},body:typeof corps==='string'?corps:JSON.stringify(corps)}));
+  const base={espace:'public',chemin:'/',ecran:'ecran-recap',message:"TypeError: Cannot read properties of undefined (reading 'label') — client 06 12 34 56 78 <jean.dupont@exemple.fr> https://elatransfer.com/?ok=abc&tel=0612345678",source:'https://elatransfer.com/index.html?v=3:11420',appareil:'mobile',langue:'fr'};
+  let r=await envoi(base);
+  ok(r.status===204&&ecrits.length===1,'erreur-client : une erreur valide est écrite et rend 204 ('+r.status+')');
+  const e=ecrits[0]||{};
+  ok(!/\d{6}/.test(e.message||'')&&!/0612345678|06 12 34 56 78/.test(e.message||''),'erreur-client : le téléphone est masqué dans le message');
+  ok(!/@/.test(e.message||''),'erreur-client : l\'adresse e-mail est masquée');
+  ok(!/\?ok=|tel=/.test(e.message||'')&&(e.message||'').includes('https://elatransfer.com/'),'erreur-client : une adresse complète perd sa requête (« ?ok=… »), garde son chemin');
+  ok((e.message||'').includes('TypeError')&&(e.message||'').length<=200,'erreur-client : le message utile reste, borné à 200 signes');
+  ok(e.source==='https://elatransfer.com/index.html'||e.source==='https://elatransfer.com/index.html:11420'||/index\.html/.test(e.source||''),'erreur-client : la source garde fichier et ligne ('+e.source+')');
+  ok(e.espace==='public'&&e.ecran==='ecran-recap'&&e.appareil==='mobile'&&e.langue==='fr'&&e.chemin==='/','erreur-client : espace, écran, appareil, langue, chemin passent');
+  ok(!JSON.stringify(e).includes('10.0.0.7')&&!JSON.stringify(e).includes('iPhone'),'erreur-client : ni l\'adresse IP ni le navigateur ne partent en base');
+  r=await envoi(base,{origin:'https://pirate.example'});
+  ok(r.status===403&&ecrits.length===1,'erreur-client : une origine étrangère est refusée');
+  r=await envoi(base,{'user-agent':'Googlebot/2.1'});
+  ok(r.status===204&&ecrits.length===1,'erreur-client : un robot reçoit 204 et rien n\'est écrit');
+  r=await envoi({...base,espace:'frigo'});
+  ok(r.status===400&&ecrits.length===1,'erreur-client : un espace hors liste est refusé');
+  r=await envoi({...base,ecran:'<script>'});
+  ok(r.status===400,'erreur-client : un écran mal formé est refusé');
+  r=await envoi({...base,message:''});
+  ok(r.status===400,'erreur-client : un message vide est refusé');
+  r=await envoi('x'.repeat(3001));
+  ok(r.status===413,'erreur-client : un corps de 3 Ko est refusé');
+  r=await envoi({...base,message:'m'.repeat(900)});
+  ok(r.status===204&&(ecrits.at(-1).message||'').length===200,'erreur-client : un message de 900 signes est tronqué à 200');
+  quota=29;r=await envoi(base);ok(r.status===204,'erreur-client : la 30e erreur de l\'heure passe');
+  r=await envoi(base);ok(r.status===429,'erreur-client : la 31e lit 429 — une page qui boucle s\'arrête là');
+  quota=0;rpcAbsente=true;r=await envoi(base);
+  ok(r.status===503,'erreur-client : RPC absente (migration pas appliquée) → 503, jamais 200');
+  globalThis.fetch=fetchAvant;
+}
+/* ═══ COURSES-HOTEL — un partenaire DÉSACTIVÉ ne lit plus rien (audit du
+   19 octobre 2026) ; une fiche absente ou une table muette laissent le code
+   décider, comme avant. ═══ */
+{
+  const fetchAvant=globalThis.fetch;let fiche=null;
+  globalThis.fetch=async(url,init={})=>{url=String(url);
+    if(url.includes('/rest/v1/partenaires?')){if(fiche==='panne')return new Response('x',{status:500});return new Response(JSON.stringify(fiche===null?[]:[{actif:fiche}]));}
+    return fetchAvant(url,init);};
+  /* « charger » remplace l'environnement Deno à chaque fonction chargée : on
+     recharge courses-hotel avec SON secret, sinon tout rend 401 pour une
+     raison qui n'a rien à voir. */
+  const hc2=await charger('courses-hotel',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',HOTEL_EASYHOTEL_AEROVILLE_CODE:'easyhotel-9F3K2Q'});
+  const hp2=(code)=>hc2(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.5'},body:JSON.stringify({hotel:'easyhotel-aeroville',code})}));
+  quotaAppels=0;quotaLimite=60;
+  fiche=true;let r=await hp2('easyhotel-9F3K2Q');ok(r.status===200,'réception : partenaire actif, bon code → la liste ('+r.status+')');
+  fiche=false;r=await hp2('easyhotel-9F3K2Q');ok(r.status===401&&(await r.json()).refuse===true,'réception : partenaire DÉSACTIVÉ, bon code → refusé, même réponse qu\'un code faux');
+  fiche=null;r=await hp2('easyhotel-9F3K2Q');ok(r.status===200,'réception : pas de fiche partenaire → le code décide (servi)');
+  fiche='panne';r=await hp2('easyhotel-9F3K2Q');ok(r.status===200,'réception : table des partenaires muette → le code décide (servi), on ne ferme pas un comptoir sur un doute');
+  fiche=true;r=await hp2('mauvais');ok(r.status===401,'réception : partenaire actif, code faux → refusé (le contrôle du partenaire ne remplace pas le code)');
+  globalThis.fetch=fetchAvant;
+}
+/* ═══ ETAT-COURSE NE VA PAS EN BASE POUR UNE RÉFÉRENCE MAL FORMÉE (audit
+   du 19 octobre 2026) ═══ Ouverte à tous, sans plafond : chaque appel
+   coûtait une lecture, quelle que soit la référence. On compte les lectures
+   et on vérifie que la réponse reste celle d'une course introuvable. */
+{
+  const fetchAvant=globalThis.fetch;let lectures=0;
+  globalThis.fetch=async(url,init={})=>{url=String(url);if(url.includes('/rest/v1/courses?select=statut,bon')){lectures++;const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);return new Response(JSON.stringify(rows[ref]?[{statut:'confirmee',bon:rows[ref].bon}]:[]));}return fetchAvant(url,init);};
+  const e=await charger('etat-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const et=(ref,tel)=>e(new Request('http://x',{method:'POST',body:JSON.stringify({ref,tel})}));
+  rows['ELA-26-10-K7QPM']={ref:'ELA-26-10-K7QPM',bon:{ref:'ELA-26-10-K7QPM',client:{telephone:'+33 7 59 31 24 33'},course:{vehicule:'Berline',date:'2026-10-20',heure:'10:00'},chauffeur:{nom:'Ali',telephone:'06'}}};
+  let r=await et('ELA-26-10-K7QPM','0759312433');
+  ok(r.status===200&&(await r.json()).statut==='confirmee','etat-course : une vraie référence et le bon téléphone rendent l\'état');
+  r=await et('ELA-26-09-0007','0759312433');
+  ok(r.status===404&&lectures===2,'etat-course : l\'ancienne forme (quatre chiffres) va en base et rend « inconnue »');
+  r=await et("ela' or 1=1 --",'0759312433');
+  ok(r.status===404&&(await r.json()).inconnue===true&&lectures===2,'etat-course : une référence mal formée rend « inconnue » SANS lecture en base');
+  r=await et('X'.repeat(300),'0759312433');
+  ok(r.status===404&&lectures===2,'etat-course : une référence de 300 signes non plus');
+  r=await et('ELA-26-10-K7QPM','0600000000');
+  ok(r.status===404&&(await r.json()).inconnue===true,'etat-course : un mauvais téléphone rend la MÊME réponse qu\'une course introuvable');
+  globalThis.fetch=fetchAvant;
+}
 console.log('=== RÉUSSIS ('+reussis.length+') ===');reussis.forEach(x=>console.log('  ✓ '+x));
 if(echecs.length){console.log('=== ÉCHECS ('+echecs.length+') ===');echecs.forEach(x=>console.log('  ✗ '+x));process.exit(1);}

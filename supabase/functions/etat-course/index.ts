@@ -81,11 +81,22 @@ Deno.serve(async (req: Request) => {
 
   let corps: any = {};
   try { corps = await req.json(); } catch (_e) { corps = {}; }
-  const ref = String(corps.ref ?? "").trim();
+  const ref = String(corps.ref ?? "").trim().slice(0, 32);
   const tel = empreinteTel(corps.tel);
   if (!ref || !tel) {
     return new Response(JSON.stringify({ erreur: "référence ou téléphone manquant" }),
       { status: 400, headers: entetes });
+  }
+  /* UNE RÉFÉRENCE MAL FORMÉE NE VA PAS JUSQU'À LA BASE (19 octobre 2026,
+     audit). Cette fonction est ouverte à tous, sans plafond : chaque appel
+     coûtait une lecture, quoi qu'on lui envoie. Une référence qui n'a pas
+     la forme d'une référence d'Elatransfer (« ELA-26-10-K7QPM », ou
+     l'ancienne « ELA-26-09-0007 ») reçoit la même réponse qu'une course
+     introuvable — on ne dit rien de plus à qui essaie au hasard — sans
+     toucher au serveur. Même motif que nouvelle-demande et telegram-bot. */
+  if (!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref)) {
+    return new Response(JSON.stringify({ inconnue: true }),
+      { status: 404, headers: entetes });
   }
 
   const r = await fetch(

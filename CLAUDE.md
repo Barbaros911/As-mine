@@ -3424,6 +3424,19 @@ avec le jeton de l'appelant (modèle : `prevenir-client` ; `est_admin()` pour l'
   (« LE RÔLE AGENT EST IMPOSÉ PAR LE SERVEUR ») ; `role_operateur` n'est
   toujours défini dans aucune migration du dépôt.
 
+## AUDIT DU 19/10/2026 — AVANT L'EXPLOITATION À PLUSIEURS HÔTELS
+
+Aucun P0. Corrigé : collision de référence (section « LA RÉFÉRENCE EST TIRÉE
+AU SORT ») ; `deposer-course` vérifie « déjà déposée ? » AVANT le quota ;
+`courses-hotel` refuse un partenaire `actif = false` (fiche absente ou table
+muette : le code décide) ; `etat-course` refuse une référence mal formée sans
+lecture ; `prevenir-client` n'accepte plus `github.io`. **Le Registre compte
+depuis l'appareil, plafonné à 1 000 courses** (dix jours à 100 demandes/jour) :
+il le DIT (`#registreTronque`) tant que ses chiffres ne viennent pas du
+serveur. Reste (P2) : RELANCE/INSTALLER_TELEGRAM joignables avec la clé
+publique (pg_cron l'utilise). Histoire : `memoire/reference.md`,
+`memoire/erreurs-client.md`.
+
 ## LES DEMANDES ARRIVENT EN 8 SECONDES, PLUS EN 45 — ET LA MINUTE TELEGRAM SE MESURE
 
 29 septembre 2026, Barbaros : « je reçois les demandes sur admin et les
@@ -3554,16 +3567,17 @@ course », « un graphique des courses réalisées par les chauffeurs »).
 ## LA RÉFÉRENCE EST TIRÉE AU SORT — ET LE N° COURT VIENT DU SERVEUR
 
 La référence `ELA-AA-MM-XXXXX` est tirée au sort sur l'appareil
-(`referenceSuivante()`), et elle reste LA clé d'une course. **Ne jamais revenir
-à un compteur local** : chaque appareil repartait à 0001 et le serveur
-refusait la demande (29/09/2026). Le **N° court** (« N° 1042 », dès 1001) est
-attribué par la **base** à l'écriture (`20261006000000_numero_court.sql`),
-immuable, et **recopié dans le bon** (`bon.numero`) : c'est là que tout le
-monde le lit. **Il tient seul la tête de toute alerte** (notification ELA,
-rappels, dernier message, annonce Telegram) et du message WhatsApp du client
-(9/10/2026, Barbaros : « tous les numéros pareils ») ; la référence longue
-n'est plus qu'en fin de message Telegram, clé technique des liens et du journal. Ne pas nommer la colonne dans une lecture, ni passer à
-`select=*` (perd le garde-fou de `version`). Histoire : `memoire/reference.md`.
+(`referenceSuivante()`) et reste LA clé d'une course. **Ne jamais revenir à un
+compteur local** (29/09/2026). Le **N° court** (« N° 1042 ») est attribué par la
+**base** à l'écriture (`20261006000000_numero_court.sql`), immuable, recopié
+dans `bon.numero`, et tient seul la tête de toute alerte et du message WhatsApp
+(9/10/2026) ; la référence reste la clé technique. Ne jamais nommer la colonne
+ni passer à `select=*` (garde-fou de `version`).
+**UN 409 AU DÉPÔT N'EST PAS UNE DEMANDE PERDUE** (19/10/2026 ; 28 M de tirages
+par mois, ~15 % de collision mensuelle à 100 demandes/jour) : le site rejoue
+deux fois puis **tire une autre référence** (`deposerDemande`) ; l'admin aussi
+si la ligne distante est une AUTRE demande (`autreCourse` : téléphone, date,
+heure — jamais `cree`). Histoire : `memoire/reference.md`.
 
 ## « ENVOYER MA DEMANDE » NE PARTAIT PLUS — LE CLOISONNEMENT AVAIT EMPORTÉ `telValide`
 
@@ -3856,16 +3870,8 @@ entier). Se déconnecter ne vidait pas la liste locale : « ça revient ».
   l'ouverture et ce passage attendait le tour de fond. Trouvé par le test.
 - **Les suites qui simulent le serveur** (`test-admin-arrivee`, `-alertes`,
   `-controle`) reconnaissent les deux formes de la sonde.
-- `test-admin-arrivee` bloc 4, cinq scènes, toutes contre un faux serveur à
-  versions : changée ailleurs → ici en moins de 15 s ; panne → en file, témoin,
-  repart seule ; copie périmée → refusée, serveur gagne, écran le dit ;
-  supprimée ailleurs → disparaît ; serveur d'avant la migration → lu et écrit
-  à l'ancienne. **Éprouvé contre l'ancien code : six contrôles tombent.**
-- **PIÈGE DE CAPTURE, QUATRIÈME FOIS** : les premières captures montraient
-  l'ANCIEN admin sans témoin — la falsification (`git stash`) avait
-  reconstruit `site/` avec l'ancien code, et le `stash pop` ne reconstruit
-  rien. `sh construire.sh` avant toute capture, toujours.
-- `sw.js` CACHE v120.
+- Les cinq scènes de `test-admin-arrivee` (bloc 4) et le piège de capture
+  après un `git stash` : `memoire/synchronisation-admin.md`.
 
 ## UN CANAL QUI INSISTE, UN CANAL QUI INFORME — LA CADENCE DES ALERTES
 
@@ -4327,45 +4333,17 @@ l'admin, seule la sonnerie s'arrête**. C'est la phrase que dit le bandeau.
 - `test-admin-voyant.mjs` (52 contrôles, site construit),
   `supabase/tests/sante-alertes*.sql` (CI, vrai PostgreSQL).
 
-### CE QUE LA RELECTURE A TROUVÉ AVANT LA PUBLICATION
-
-Une relecture indépendante en quatre angles, chaque constat reproduit par un
-second relecteur avant d'être corrigé. Tout est réparé ; ce qui suit est la
-mémoire de POURQUOI c'est écrit ainsi.
-- **« VU » N'EST PAS UN ENVOI.** Ouvrir une course dans l'admin
-  (`ela_marquer_vue`) ou appuyer sur « Vu » dans Telegram écrit au journal
-  canal `telegram`, statut `envoye`, type `vue`. Compté comme un envoi
-  réussi, il faisait passer le voyant au VERT pendant une panne de
-  Telegram — le geste même qu'on fait en regardant l'admin. Le chien de
-  garde avait le même angle mort depuis le 2 octobre.
-- **« indisponible » EST UN ÉCHEC** : c'est ce que journalise un secret
-  Telegram absent ou mal nommé. Non compté, Telegram non configuré donnait
-  « Alertes OK ».
-- **L'ÉPREUVE SQL POSE LES PRIVILÈGES PAR DÉFAUT DE SUPABASE.** Un PostgreSQL
-  nu n'accorde l'exécution qu'à PUBLIC ; Supabase l'accorde à `anon` et
-  `authenticated`. Sans cette ligne, une migration qui n'ôterait que PUBLIC
-  passait l'épreuve et un anonyme lisait les mesures en production.
-- **UNE COMPARAISON AVEC NULL NE TOMBE JAMAIS** — `null not between 5 and
-  60` vaut NULL. Même famille que `<>` sur une valeur NULL, déjà consignée.
-- **LE BANDEAU REMPLACE « Son des alertes coupé »** quand les deux
-  s'affichent : empilés, ils faisaient sortir de l'écran (390 × 844) la
-  demande en attente qu'ils disent de surveiller. Il dit la PREMIÈRE panne
-  et le nombre des autres ; la liste entière reste sur le voyant.
-- **IL N'EST RÉÉCRIT QUE S'IL CHANGE** : c'est une région « alert », un
-  lecteur d'écran relisait la même panne trois fois par minute.
-- **UN ANCIEN VERDICT NE REVIENT PAS** après une coupure ou une
-  reconnexion : il est oublié dès que le voyant passe au gris faute de
-  session ou de serveur, et la prochaine relecture mesure aussitôt.
-- **UNE SESSION PERDUE PENDANT LA SONDE SE DIT** (`sessionPerdue()`). Défaut
-  antérieur au voyant : un mot de passe changé sur un autre appareil
-  arrêtait l'écoute, et la pastille restait « Serveur connecté ».
-- **L'EN-TÊTE NE SAUTE PLUS** : la ligne du voyant garde la largeur de son
-  état le plus long.
-- Contre le code d'avant ces corrections, 18 des 52 contrôles tombent ; neuf
-  falsifications de la fonction serveur tombent toutes.
-- **Les commentaires de l'admin et de la réception publiés** : constatés
-  pendant ce travail, retirés ensuite à sa décision — voir « LES
-  COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
+- **La relecture indépendante d'avant publication** (« vu » n'est pas un envoi,
+  « indisponible » est un échec, privilèges par défaut de Supabase dans
+  l'épreuve, NULL qui ne tombe jamais…) : `memoire/voyant.md`.
+- **LES ERREURS DU SITE SONT COMPTÉES SOUS LE VOYANT** (19/10/2026, audit) :
+  toute erreur JavaScript non rattrapée part à la fonction `erreur-client`
+  (masquée : six chiffres, e-mails, requêtes d'URL ; 5 par chargement, 30/h
+  par adresse), écrite par `ela_erreur_client_ecrire` (clé de service, purge
+  30 j) ; l'admin lit `ela_erreurs_client_recentes` (exploitant). Jamais nom,
+  téléphone, référence, IP. Migration `20261019000000` à appliquer après la
+  fusion ; sans elle, la ligne reste cachée. `test-public-erreurs`,
+  `test-admin-reference`. Histoire : `memoire/erreurs-client.md`.
 
 ## LA MARQUE ET GOOGLE — « Elatransfer », FRANÇAIS À LA RACINE, ANGLAIS SOUS /en/
 
