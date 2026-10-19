@@ -794,6 +794,50 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(!JSON.stringify(ecrits).includes('Europe/Paris'),'mesure : seul le pays est gardé, jamais le fuseau');
   globalThis.fetch=fetchAvant;
 }
+/* ═══ DEPOSER-COURSE SOUS LA CHARGE (audit du 19 octobre 2026) ═══
+   Cinq, puis quinze dépôts qui arrivent EN MÊME TEMPS, et deux dépôts
+   identiques en course l'un contre l'autre. Le faux serveur tient une table
+   avec une référence UNIQUE (l'index de production) et un quota atomique par
+   clé, et il répond avec un délai : les deux dépôts identiques passent donc
+   tous deux la vérification « déjà déposée ? » avant la première écriture,
+   exactement la fenêtre de la course réelle. Ce qu'on prouve : aucune ligne
+   en double, un seul des deux gagne, et le REJEU du perdant est reconnu
+   (200 « rejoue ») — c'est le chemin que prend maintenant le site. */
+{
+  const fetchAvant=globalThis.fetch;
+  const table={},compteurs={};let ecrits=0;
+  const dormir=ms=>new Promise(r=>setTimeout(r,ms));
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){const {p_cle,p_limite}=JSON.parse(init.body);compteurs[p_cle]=(compteurs[p_cle]||0)+1;return new Response(JSON.stringify(compteurs[p_cle]<=p_limite));}
+    if(url.includes('/rpc/ela_deposer_course_serveur')){const {p_ref,p_bon}=JSON.parse(init.body);await dormir(30);if(table[p_ref])return new Response('{"code":"23505"}',{status:409});table[p_ref]={bon:p_bon};ecrits++;return new Response('"ok"');}
+    if(url.includes('/rest/v1/courses?ref=eq.')){const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);await dormir(20);return new Response(JSON.stringify(table[ref]?[table[ref]]:[]));}
+    if(url.includes('partenaires?')||url.includes('liens_suivi?')||url.includes('parametres_commerciaux?'))return new Response('[]');
+    if(url.includes('journal_depots'))return new Response('');
+    return new Response('?',{status:404});
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bon=(ref,tel)=>({ref,course:{depart:'Place Vendôme, Paris',arrivee:'Orly',date:'2026-10-25',heure:'09:00',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:30},client:{nom:'Client '+ref.slice(-5),telephone:tel||'0612345678'},prix:{total:90},paiement:'lien',provenanceCle:'',parReception:false});
+  const depot=(ref,ip,tel)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':ip||'10.0.0.1','content-type':'application/json'},body:JSON.stringify({bon:bon(ref,tel)})}));
+  const refs5=['ELA-26-10-S1AAA','ELA-26-10-S2BBB','ELA-26-10-S3CCC','ELA-26-10-S4DDD','ELA-26-10-S5EEE'];
+  const r5=await Promise.all(refs5.map(r=>depot(r,'10.0.0.1')));
+  ok(r5.every(r=>r.status===201)&&Object.keys(table).length===5,'charge : 5 dépôts simultanés depuis la même adresse → 5 lignes, 5 × 201 ('+r5.map(r=>r.status).join(',')+')');
+  const [a,b]=await Promise.all([depot('ELA-26-10-DBLE1','10.0.0.2'),depot('ELA-26-10-DBLE1','10.0.0.2')]);
+  const codes=[a.status,b.status].sort().join('/');
+  ok(codes==='201/409'&&Object.keys(table).length===6,'charge : deux dépôts IDENTIQUES en même temps → une seule ligne, un 201 et un 409 ('+codes+')');
+  const rejeu=await depot('ELA-26-10-DBLE1','10.0.0.2');
+  ok(rejeu.status===200&&(await rejeu.json()).rejoue===true&&Object.keys(table).length===6,'charge : le perdant qui REJOUE à l\'identique est reconnu (200 « rejoue »), aucune ligne de plus');
+  const autre=await depot('ELA-26-10-DBLE1','10.0.0.3','0699999999');
+  ok(autre.status===409&&Object.keys(table).length===6,'charge : une AUTRE course sur la même référence est refusée (409), la première n\'est pas écrasée');
+  const refs15=Array.from({length:15},(_,i)=>'ELA-26-10-U'+String(i).padStart(2,'0')+'ZZ'.slice(0,2)+String.fromCharCode(65+i));
+  const r15=await Promise.all(refs15.map((r,i)=>depot(r,'10.0.1.'+(i%3))));
+  ok(r15.every(r=>r.status===201)&&Object.keys(table).length===21,'charge : 15 visiteurs simultanés depuis trois adresses → 15 lignes, aucune perte');
+  const r13=await Promise.all(Array.from({length:13},(_,i)=>depot('ELA-26-10-Q'+String(i).padStart(2,'0')+'KK','10.0.2.1')));
+  const refus=r13.filter(r=>r.status===429).length;
+  ok(refus===1&&r13.filter(r=>r.status===201).length===12,'charge : 13 dépôts d\'une même adresse dans l\'heure → 12 passent, le 13e lit 429 ('+refus+' refus)');
+  ok(ecrits===Object.keys(table).length,'charge : chaque écriture réussie correspond à une ligne, aucun doublon ('+ecrits+')');
+  globalThis.fetch=fetchAvant;
+}
 /* ═══ ETAT-COURSE NE VA PAS EN BASE POUR UNE RÉFÉRENCE MAL FORMÉE (audit
    du 19 octobre 2026) ═══ Ouverte à tous, sans plafond : chaque appel
    coûtait une lecture, quelle que soit la référence. On compte les lectures
