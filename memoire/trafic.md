@@ -265,8 +265,9 @@ seulement (`trafic.js`, `trafic.css`), aucune migration, aucune donnée de plus.
   perte attendue, et il ne disait rien du paiement : la phrase n'arrivait que
   sous le dernier bouton, deux écrans plus loin. Trois formules déjà validées,
   aucune promesse nouvelle. Tue au comptoir (`body.reception`), dont l'écran
-  est compté au pixel. `test-parcours-en` l'exige en anglais, sous les cartes et
-  jamais recouverte ; `test-nouveau-reception`, dite au flyer et tue au comptoir.
+  est compté au pixel. `test-parcours-en` l'exige en anglais, sous les cartes, dans
+  la gouttière de 20 px et jamais recouverte (à 320 px, `.rassure`, écrite plus
+  bas, reprenait la marge : d'où la double classe) ; `test-nouveau-reception`, dite au flyer et tue au comptoir.
 - Détails sortis du mémo au passage : la fonction `mesure` exige l'origine du
   site, connaît 9 gestes, plafonne à 100 gestes par heure et par adresse IP
   (hachée), et le pays vient du fuseau (voir plus haut).

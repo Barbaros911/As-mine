@@ -186,10 +186,11 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
     e.scrollIntoView({ block: 'center' });
     const r = e.getBoundingClientRect(), bas = cartes.length ? cartes[cartes.length - 1].getBoundingClientRect().bottom : 0;
     const dessus = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-    return { texte: e.textContent.trim(), visible: !!e.offsetParent && r.height > 0, sousLesCartes: r.top >= bas - 0.5, libre: dessus === e || e.contains(dessus) };
+    return { texte: e.textContent.trim(), visible: !!e.offsetParent && r.height > 0, sousLesCartes: r.top >= bas - 0.5, libre: dessus === e || e.contains(dessus),
+      gouttiere: r.left >= 16 && r.right <= innerWidth - 16 };
   });
-  note('parcours : sous les prix, « No payment now », en anglais, sous les cartes et jamais recouvert',
-    !!rassure && rassure.visible && /^No payment now/.test(rassure.texte) && !/Aucun paiement/.test(rassure.texte) && rassure.sousLesCartes && rassure.libre, JSON.stringify(rassure));
+  note('parcours : sous les prix, « No payment now », en anglais, sous les cartes, dans la gouttière et jamais recouvert',
+    !!rassure && rassure.visible && /^No payment now/.test(rassure.texte) && !/Aucun paiement/.test(rassure.texte) && rassure.sousLesCartes && rassure.libre && rassure.gouttiere, JSON.stringify(rassure));
   await v.p.locator('.veh-carte').first().click();
   await v.p.locator('#btnContinuer').click();
   await v.p.waitForTimeout(400);

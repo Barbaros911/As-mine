@@ -515,7 +515,9 @@ body.exploitant .note-google{display:none;}
 /* « Aucun paiement maintenant », dit sous les prix (19/10/2026) : c'est
    l'écran où le client décide. Pas au comptoir : la réception n'en a pas
    besoin, et son écran est compté au pixel. */
-.veh-rassure{margin:12px 20px 0;text-align:center;line-height:1.4;}
+/* « .rassure » est écrite plus bas et reprendrait la marge : la double classe
+   garde la gouttière de 20 px (vu à 320 px, la ligne touchait les bords). */
+.rassure.veh-rassure{margin:12px 20px 0;text-align:center;line-height:1.4;}
 body.reception .veh-rassure{display:none;}
 .veh-carte{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
   background:var(--carte);border:1px solid var(--filet);border-radius:16px;
