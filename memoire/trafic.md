@@ -227,6 +227,52 @@ Prouvé sur PostgreSQL : « 3 réservations au lieu de 2 ».
 - `test-mesure.mjs` partie 4 bis : une demande REFUSÉE par le serveur
   n'envoie aucun `demande_envoyee` (tombe si l'envoi part au clic).
 
+## L'entonnoir dit où l'on perd, et qui apporte des courses (19/10/2026)
+
+Audit des priorités demandé par Barbaros (« quelle source m'apporte
+réellement des courses ? », « où les utilisateurs abandonnent ? »). **Rien à
+reconstruire côté serveur** : `trafic_agreger` rendait déjà, pour chaque
+page, source, entrée, langue, pays, appareil, lien et campagne, les prix
+affichés, les confirmées et les réalisées (`20261018000000`, appliquée le
+18/10, exécution n° 39). L'écran ne les montrait pas. Changement d'écran
+seulement (`trafic.js`, `trafic.css`), aucune migration, aucune donnée de plus.
+- **Chaque étape de l'entonnoir dit son taux sur l'étape d'avant** et combien
+  s'arrêtent. Le taux sur les visiteurs dit combien vont jusque-là ; celui sur
+  l'étape d'avant dit OÙ l'on perd — c'est lui qu'on lit pour corriger.
+- **La plus grosse perte est nommée en une phrase**, jugée entre le formulaire
+  commencé et la réservation seulement : un visiteur venu lire le numéro
+  n'abandonne rien, et confirmée / réalisée dépendent d'Elatransfer et du
+  calendrier. **Sous 5 personnes à une étape, elle ne juge pas** et le dit.
+- **« Ce qui vous apporte des courses »** : les sources rangées par réalisées,
+  puis confirmées, puis réservations — pas par visiteurs. Une source sans
+  réservation n'y prend pas de ligne. Les tableaux portent maintenant prix vus,
+  réservations, confirmées, réalisées (les pages vues et les prix DEMANDÉS
+  restent dans les tuiles et l'entonnoir).
+- **L'écran dit ce qu'il ne compte pas** : les pages d'hôtel, le comptoir et
+  les saisies au téléphone ne mesurent rien ; leurs courses sont au Centre de
+  contrôle (« Résultats par canal »), et un bouton y mène. Taire cette limite
+  ferait croire que le site public est la seule source.
+- **« Confirmée » et « Réalisée » suivent l'état des courses à la lecture** :
+  une réservation pour un trajet de demain n'est pas encore réalisée. C'est
+  écrit sous l'entonnoir, sinon le dernier taux se lirait comme un échec.
+- **Ce qui a été écarté** : mesurer le trajet ou le prix de chaque abandon. À
+  quelques dizaines de prix vus par semaine, une ventilation par trajet ne dit
+  rien, et elle ajouterait au journal des données proches du client. Le jour où
+  le volume la rend lisible, une **tranche de distance** (pas d'adresse, pas de
+  montant) suffirait : une clé de `detail` et une migration.
+- **Sur le site : « Aucun paiement maintenant » sous les prix** (`#vehRassure`,
+  clé `prix_rassure`, FR/EN). L'écran des prix est celui de la plus grosse
+  perte attendue, et il ne disait rien du paiement : la phrase n'arrivait que
+  sous le dernier bouton, deux écrans plus loin. Trois formules déjà validées,
+  aucune promesse nouvelle. Tue au comptoir (`body.reception`), dont l'écran
+  est compté au pixel. `test-parcours-en` l'exige en anglais, sous les cartes et
+  jamais recouverte ; `test-nouveau-reception`, dite au flyer et tue au comptoir.
+- Détails sortis du mémo au passage : la fonction `mesure` exige l'origine du
+  site, connaît 9 gestes, plafonne à 100 gestes par heure et par adresse IP
+  (hachée), et le pays vient du fuseau (voir plus haut).
+- `test-admin-trafic` partie 11 (13 contrôles, attendus recalculés à la main) ;
+  contre l'ancien écran, 10 tombent.
+
 ## Les suites
 
 - `supabase/tests/trafic.sql` + `trafic-apres.sql` + `trafic-reservations.sql` (vrai PostgreSQL, CI) :

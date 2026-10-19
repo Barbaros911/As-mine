@@ -66,6 +66,23 @@
 .trf-etape-barre{grid-column:1 / -1;height:10px;border-radius:5px;background:var(--accent-clair);overflow:hidden;}
 .trf-etape-plein{height:100%;border-radius:5px;background:var(--accent);}
 .trf-funnel-note{margin:10px 0 0;font-size:13px;color:var(--gris);line-height:1.45;}
+/* D'une étape à l'autre, et la phrase qui dit où l'on perd le plus : du
+   texte, jamais une couleur seule (19/10/2026). */
+/* Sur la ligne du chiffre, à sa gauche : « order » change la place, pas la
+   lecture (le texte reste « Prix demandé 39 · 31 % » pour un lecteur d'écran). */
+.trf-etape-pas{order:1;font-size:12px;color:var(--gris);font-variant-numeric:tabular-nums;}
+.trf-etape-n{order:2;}
+.trf-perte{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--accent-clair);color:var(--accent-encre);
+  font-size:13.5px;font-weight:650;line-height:1.4;}
+
+/* ---------- CE QUI APPORTE DES COURSES ---------- */
+.trf-apport{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+.trf-apport-l{display:flex;flex-direction:column;gap:2px;min-width:0;padding:10px 12px;border-radius:14px;
+  background:var(--carte);border:1px solid var(--filet);}
+.trf-apport-nom{font-size:15px;font-weight:800;color:var(--encre);}
+.trf-apport-n{font-size:14px;font-weight:700;color:var(--accent-encre);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.trf-apport-sous{font-size:12.5px;color:var(--gris);overflow-wrap:anywhere;}
+.trf-vers-controle{width:auto;min-height:44px;margin:10px 0 0;padding:0 16px;}
 
 /* ---------- LA SÉRIE ---------- */
 .trf-serie{display:block;width:100%;height:auto;max-height:180px;background:var(--carte);border:1px solid var(--filet);
@@ -101,6 +118,7 @@
   .trf-tuile-n{font-size:30px;}
   .trf-deux{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
   .trf-serie{max-height:220px;}
+  .trf-apport{grid-template-columns:repeat(2,minmax(0,1fr));}
   .trf-table thead{display:table-header-group;}
   .trf-table tbody{display:table-row-group;}
   .trf-table tr{display:table-row;background:none;border:0;padding:0;}

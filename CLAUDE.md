@@ -4572,22 +4572,21 @@ partenaire.
 
 ## LA MESURE DU TRAFIC — L'ÉCRAN « TRAFIC » DE L'ADMIN
 
-15 octobre 2026, à sa demande (« analytics temps réel », « fais comme un
-expert »). **Ce n'est pas une seconde mesure** : celle du 14/10 (mesure.js,
-`ela_mesurer`) a évolué. Pages (`data-ela-page`) et moteur postent à la
-fonction `mesure` (origine stricte, 9 gestes en liste fermée, robots écartés,
-100/h/IP haché, pays par le FUSEAU de l'appareil — Supabase ne transmet pas
-`cf-ipcountry` (mesuré le 16/10) —, **source classée côté serveur**), qui écrit
-par `ela_mesurer_evenement` au journal `evenements_site` (aucun droit
-`anon`/`authenticated`) ET au compteur d'origine. Lecture : `ela_trafic(periode)`
-/ `ela_trafic_direct()`, **`est_admin()`** seul ; sonde de 10 s, écran ouvert et
-visible. Pas de Realtime.
-- **Rien sur l'appareil, aucun identifiant envoyé** : le serveur hache
-  IP|navigateur, la base le mêle à une clé du jour détruite le lendemain.
-  « Visiteur » = estimation comptée PAR JOUR ; visite, entrée et source se
-  calculent à la lecture (30 min). Jamais nom, téléphone, adresse, prix, IP.
-  `detail` = 4 clés ; la référence, jointe aux courses à la lecture seulement.
-- Fiche Google = `utm_medium=gbp` sur son lien, sinon « google ». « Ne plus me
-  compter » : politique de confidentialité, FR/EN.
-- **Une réservation ne compte que si sa course existe** (18/10, `20261018000000`) ;
-  entonnoir unique jusqu'à « Réalisée ». Rétention 90 j. `memoire/trafic.md`.
+15/10/2026. **Pas une seconde mesure** : celle du 14/10 (mesure.js, `ela_mesurer`)
+a évolué. Pages (`data-ela-page`) et moteur postent à la fonction `mesure`
+(gestes en liste fermée, robots écartés, pays par le fuseau, **source classée
+côté serveur**), qui écrit au journal `evenements_site` (aucun droit
+`anon`/`authenticated`) ET au compteur d'origine.
+Lecture : `ela_trafic(periode)` / `ela_trafic_direct()`, **`est_admin()`** seul ;
+sonde de 10 s, écran ouvert et visible. Pas de Realtime.
+- **Rien sur l'appareil, aucun identifiant envoyé** : IP|navigateur haché, mêlé
+  à une clé du jour détruite le lendemain. « Visiteur » = estimation PAR JOUR ;
+  visite, entrée et source se calculent à la lecture (30 min). Jamais nom,
+  téléphone, adresse, prix, IP ; `detail` = 4 clés, la référence jointe à la lecture.
+- Fiche Google = `utm_medium=gbp` sur son lien. « Ne plus me compter » : FR/EN.
+- **Une réservation ne compte que si sa course existe** (18/10, `20261018000000`).
+  Entonnoir unique jusqu'à « Réalisée » ; chaque étape dit son taux sur l'étape
+  d'avant, la plus grosse perte est nommée, jamais sous 5 personnes (19/10).
+  « Ce qui vous apporte des courses » range les sources par réalisées ; hôtels et
+  téléphone : Centre de contrôle. Sous les prix, « Aucun paiement maintenant »
+  (`#vehRassure`, tu au comptoir). Rétention 90 j. `memoire/trafic.md`.

@@ -300,6 +300,7 @@
     }
     frag.appendChild(tuiles(t, null));
     frag.appendChild(funnel(t));
+    frag.appendChild(apport(h.sources));
     frag.appendChild(serie(h));
     frag.appendChild(tableau("Pages", h.pages, nomPage, true));
     frag.appendChild(tableau("Sources", h.sources, nomSource, false));
@@ -322,7 +323,8 @@
        FAITS DU SERVEUR : une réservation n'est comptée que si sa course est
        sur le serveur (20261018000000), puis selon l'état de cette course.
        Un geste refusé ou inventé n'atteint jamais « Réservation envoyée ».
-       Chaque taux est rapporté aux visiteurs, comme les tuiles. */
+       Le chiffre en gras est rapporté aux visiteurs, comme les tuiles ; la
+       ligne grise, à l'étape d'avant (pasEtape, 19/10/2026). */
     var etapes = [["Visiteurs", t.visiteurs], ["Formulaire commencé", t.formulaires], ["Prix demandé", t.prix],
       ["Prix affiché", t.prix_affiches], ["Réservation envoyée", t.reservations],
       ["Confirmée", t.confirmees], ["Réalisée", t.realisees]];
@@ -337,14 +339,96 @@
       ajout(li, [
         el("span", "trf-etape-lib", e[0]),
         barre,
-        el("b", "trf-etape-n", nombre(e[1]) + (i ? " · " + pct(e[1], t.visiteurs) : ""))
+        el("b", "trf-etape-n", nombre(e[1]) + (i ? " · " + pct(e[1], t.visiteurs) : "")),
+        i ? el("span", "trf-etape-pas", pasEtape(e[1], etapes[i - 1][1])) : null
       ]);
       ul.appendChild(li);
     });
     bloc.appendChild(ul);
+    bloc.appendChild(el("p", "trf-perte", plusGrossePerte(etapes)));
     bloc.appendChild(el("p", "trf-funnel-note", "À côté : " + nombre(t.reserver) + " « Book » sur les pages, " + nombre(t.appels) + " appel(s) et " + nombre(t.whatsapp) + " WhatsApp. "
-      + "Après un prix affiché : " + pct(t.reservations, t.prix_affiches) + " de réservations."));
+      + "Après un prix affiché : " + pct(t.reservations, t.prix_affiches) + " de réservations"
+      + (Number(t.prix_affiches) > Number(t.reservations) ? ", " + nombre(t.prix_affiches - t.reservations) + " prix vu(s) sans réservation." : ".")
+      + " « Confirmée » et « Réalisée » suivent l'état des courses aujourd'hui : une réservation pour un trajet à venir n'est pas encore réalisée."));
     return bloc;
+  }
+  /* « QUELLE SOURCE M'APPORTE VRAIMENT DES COURSES ? » (19 octobre 2026,
+     Barbaros). La réponse en premier, avant les tableaux : les sources
+     rangées par courses réalisées, puis confirmées, puis réservations — pas
+     par visiteurs. Une source qui n'a rien réservé ne prend pas de ligne :
+     elle est dans le tableau « Sources », plus bas.
+     LES HÔTELS NE SONT PAS ICI, ET L'ÉCRAN LE DIT. Les pages d'hôtel, le
+     comptoir et les saisies au téléphone ne passent pas par cette mesure :
+     leurs courses sont comptées par canal au Centre de contrôle. Taire cette
+     limite ferait croire que le site public est la seule source. */
+  function apport(sources){
+    var bloc = el("section", "trf-bloc");
+    bloc.appendChild(el("h2", "trf-h2", "Ce qui vous apporte des courses"));
+    var lignes = (Array.isArray(sources) ? sources : []).filter(function(l){ return l && l.totaux && Number(l.totaux.reservations) > 0; });
+    lignes.sort(function(a, b){
+      var ta = a.totaux, tb = b.totaux;
+      return (tb.realisees - ta.realisees) || (tb.confirmees - ta.confirmees) || (tb.reservations - ta.reservations) || (tb.visiteurs - ta.visiteurs);
+    });
+    if(!lignes.length) bloc.appendChild(el("p", "trf-vide", "Aucune réservation venue du site sur la période."));
+    else {
+      var ol = el("ol", "trf-apport");
+      lignes.forEach(function(l){
+        var t = l.totaux, li = el("li", "trf-apport-l");
+        ajout(li, [
+          el("b", "trf-apport-nom", nomSource(l.valeur)),
+          el("span", "trf-apport-n", nombre(t.realisees) + " réalisée(s) · " + nombre(t.confirmees) + " confirmée(s) · "
+            + nombre(t.reservations) + " réservation(s)"),
+          el("span", "trf-apport-sous", "sur " + nombre(t.visiteurs) + " visiteur(s) · " + pct(t.reservations, t.visiteurs)
+            + " de conversion" + (Number(t.prix_affiches) ? " · " + pct(t.reservations, t.prix_affiches) + " des prix vus" : ""))
+        ]);
+        ol.appendChild(li);
+      });
+      bloc.appendChild(ol);
+    }
+    var hors = el("p", "trf-funnel-note", "Les courses des hôtels (QR et comptoir) et celles saisies au téléphone ne passent pas par "
+      + "cette mesure : elles sont comptées par canal au Centre de contrôle, « Résultats par canal ».");
+    bloc.appendChild(hors);
+    var btn = document.getElementById("btnControle");
+    if(btn){
+      var aller = el("button", "bouton-fantome trf-vers-controle", "Ouvrir le Centre de contrôle");
+      aller.type = "button";
+      aller.addEventListener("click", function(){ arreterSonde(); btn.click(); });
+      bloc.appendChild(aller);
+    }
+    return bloc;
+  }
+  /* D'UNE ÉTAPE À L'AUTRE (19 octobre 2026). Le taux sur les visiteurs dit
+     combien vont jusque-là ; celui sur l'étape d'avant dit OÙ l'on perd du
+     monde — c'est lui qu'on lit pour savoir quoi corriger. Une étape vide
+     n'a pas de taux ; un compte supérieur à l'étape d'avant (deux demandes
+     dans une même visite) est dit tel quel, sans « de moins ». */
+  function pasEtape(n, avant){
+    n = Number(n) || 0; avant = Number(avant) || 0;
+    if(!avant) return "";
+    return pct(n, avant) + " de l'étape d'avant" + (avant > n ? " · " + nombre(avant - n) + " de moins" : "");
+  }
+  /* OÙ L'ON PERD LE PLUS, en une phrase. On ne juge que le parcours de
+     ceux qui ont COMMENCÉ le formulaire : un visiteur venu lire le numéro
+     n'abandonne rien. Confirmée et réalisée dépendent d'Elatransfer et du
+     calendrier, pas du client : elles n'entrent pas dans ce jugement. Une
+     étape qui compte moins de MIN_JUGE ne juge rien : on ne désigne pas une
+     perte au hasard de deux visites, et on le dit. */
+  var MIN_JUGE = 5;
+  function plusGrossePerte(etapes){
+    var pire = null, juge = 0;
+    for(var i = 2; i <= 4; i++){
+      var avant = Number(etapes[i - 1][1]) || 0, n = Number(etapes[i][1]) || 0;
+      if(avant < MIN_JUGE) continue;
+      juge++;
+      if(n > avant) continue;
+      var part = (avant - n) / avant;
+      if(!pire || part > pire.part) pire = { de: etapes[i - 1][0], a: etapes[i][0], perdus: avant - n, avant: avant, part: part };
+    }
+    if(!juge) return "Pas encore assez de données pour dire où l'on perd des clients (moins de " + MIN_JUGE
+      + " personnes à chaque étape du formulaire).";
+    if(!pire || !pire.perdus) return "Aucune perte entre le formulaire et la réservation sur la période.";
+    return "Plus grosse perte après le début du formulaire : entre « " + pire.de + " » et « " + pire.a + " » — "
+      + nombre(pire.perdus) + " sur " + nombre(pire.avant) + " s'arrêtent (" + pct(pire.perdus, pire.avant) + ").";
   }
 
   /* La série : des barres fines, une seule mesure (les visiteurs), le
@@ -455,8 +539,16 @@
     if(!lignes.length){ bloc.appendChild(el("p", "trf-vide", "Rien sur la période.")); return bloc; }
     var table = el("table", "trf-table");
     var thead = el("thead"), trh = el("tr");
+    /* DU TRAFIC JUSQU'À LA COURSE FAITE (19 octobre 2026). Le serveur rend,
+       pour chaque ligne, les prix affichés, les confirmées et les réalisées
+       (trafic_agreger) ; l'écran ne les montrait pas. « Quelle source
+       m'apporte des courses » se lit maintenant sur chaque tableau : prix vus
+       → réservations → confirmées → réalisées, et ce qui part au téléphone
+       ou sur WhatsApp à côté. Les pages vues et les prix DEMANDÉS restent
+       dans les tuiles et l'entonnoir : le prix VU est l'étape où l'on décide. */
     [({ "Pages": "Page", "Pages d'entrée": "Page", "Sources": "Source", "Langues": "Langue", "Pays": "Pays",
-       "Appareils": "Appareil", "Liens des partenaires": "Lien", "Campagnes (UTM)": "Campagne" })[titre] || titre, "Visiteurs", "Vues", "Prix", "Appels", "WhatsApp", "Réserv.", "Conv."].forEach(function(c){
+       "Appareils": "Appareil", "Liens des partenaires": "Lien", "Campagnes (UTM)": "Campagne" })[titre] || titre,
+     "Visiteurs", "Prix vus", "Réserv.", "Confirm.", "Réalisées", "Conv.", "Appels", "WhatsApp"].forEach(function(c){
       trh.appendChild(el("th", null, c));
     });
     thead.appendChild(trh); table.appendChild(thead);
@@ -464,12 +556,12 @@
     lignes.forEach(function(l){
       var t = l.totaux || {}, tr = el("tr");
       var cellules = [
-        [nom(l.valeur), "trf-c-nom", "Page"], [t.visiteurs, "", "Visiteurs"], [t.pages_vues, "", "Vues"], [t.prix, "", "Prix"],
-        [t.appels, "", "Appels"], [t.whatsapp, "", "WhatsApp"], [t.reservations, "trf-c-res", "Réserv."],
-        [pct(t.reservations, t.visiteurs), "trf-c-conv", "Conv."]
+        [nom(l.valeur), "trf-c-nom", "Page"], [t.visiteurs, "", "Visiteurs"], [t.prix_affiches, "", "Prix vus"],
+        [t.reservations, "trf-c-res", "Réserv."], [t.confirmees, "", "Confirm."], [t.realisees, "trf-c-res", "Réalisées"],
+        [pct(t.reservations, t.visiteurs), "trf-c-conv", "Conv."], [t.appels, "", "Appels"], [t.whatsapp, "", "WhatsApp"]
       ];
       cellules.forEach(function(c, i){
-        var td = el("td", c[1], i === 0 || i === 7 ? c[0] : nombre(c[0]));
+        var td = el("td", c[1], i === 0 || i === 6 ? c[0] : nombre(c[0]));
         td.setAttribute("data-col", c[2]);
         tr.appendChild(td);
       });

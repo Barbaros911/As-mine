@@ -137,6 +137,12 @@ check('protection 2 : le CSS le masque aussi hors du mode réception',
   }));
 check('les onglets du client restent sur SON téléphone',
   await p.locator('.onglet[data-onglet="courses"]').isVisible());
+/* « Aucun paiement maintenant » sous les prix (19/10/2026) : dit au client
+   du flyer, tu au comptoir (contrôlé plus bas). On lit le style CALCULÉ de
+   la ligne elle-même : l'écran des prix est caché ici, pas la règle. */
+check('sous les prix du flyer, « Aucun paiement maintenant » est dit au client',
+  await p.evaluate(()=>{ const e = document.getElementById('vehRassure');
+    return !!e && getComputedStyle(e).display !== 'none' && /^Aucun paiement maintenant/.test(e.textContent.trim()); }));
 
 await p.goto('http://127.0.0.1:8099/index.html',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(600);
@@ -166,6 +172,8 @@ check('l\'adresse de la réception ouvre le mode hôtel ET le comptoir',
                     && document.body.classList.contains('reception')));
 check('elle réserve aussi : le menu des destinations est là',
   await p.locator('#hotelDest').isVisible());
+check('au comptoir, la ligne « Aucun paiement maintenant » des prix est tue — l\'écran est compté au pixel',
+  await p.evaluate(()=>{ const e = document.getElementById('vehRassure'); return !!e && getComputedStyle(e).display === 'none'; }));
 check('les deux listes de l\'appareil disparaissent — la tablette est PARTAGÉE',
   await p.locator('.onglet[data-onglet="courses"]').isHidden()
   && await p.locator('.onglet[data-onglet="trajets"]').isHidden());
