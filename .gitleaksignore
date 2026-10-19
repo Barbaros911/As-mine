@@ -16,3 +16,11 @@ b7ced39df1ff271f81385766f6fbe619c87ae9bc:test-securite-fonctions.mjs:generic-api
 d5549d45a821c14f1b7da45a820a6b1b499d4ff8:test-securite-fonctions.mjs:generic-api-key:84
 d5549d45a821c14f1b7da45a820a6b1b499d4ff8:test-securite-fonctions.mjs:generic-api-key:102
 d5549d45a821c14f1b7da45a820a6b1b499d4ff8:test-securite-fonctions.mjs:generic-api-key:108
+
+# Clé Supabase PUBLIABLE (sb_publishable_…) dans la migration du secret de la
+# relance (PR #384), la même que dans 20260930000000_relance_alertes.sql et
+# dans index.html : la tâche pg_cron doit franchir la porte de Supabase avec
+# elle, et elle est faite pour partir dans la page. gitleaks 8.24 la classe
+# « generic-api-key » (entropie 4,8). Empreintes exactes.
+b7ced39df1ff271f81385766f6fbe619c87ae9bc:supabase/migrations/20261019010000_relance_secret.sql:generic-api-key:55
+b7ced39df1ff271f81385766f6fbe619c87ae9bc:supabase/migrations/20261019010000_relance_secret.sql:generic-api-key:70
