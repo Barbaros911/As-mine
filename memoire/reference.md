@@ -121,13 +121,21 @@ Ce qui vaut maintenant :
   plus : au-delà c'est une panne, et le repli WhatsApp reprend la main.
   `reprendreDepot` passe par le même chemin.
 - `nuage.envoyerCourse` : sur un doublon d'une course jamais lue du serveur,
-  `autreCourse(ligne, bon)` compare le CONTENU — téléphone (neuf derniers
-  chiffres), date, heure ; sans téléphone, le trajet. **Jamais la date de
-  création** : la relecture indépendante du 19/10 a montré que le premier jet
-  la comparait, alors que `deposer-course` la réécrit à l'heure du serveur et
-  qu'une demande COLLÉE garde la référence du client avec sa date de lecture —
-  le cas « non transmise à tort, renvoyée par WhatsApp, collée » aurait fait
-  une course en double. Une autre course rend `"reference"` :
+  `autreCourse(ligne, bon)` juge en deux temps. **Même `cree` = notre ligne**,
+  écrite par cet appareil (le POST de l'admin envoie la date de création telle
+  quelle) : second passage de la relecture indépendante du 19/10 — un POST
+  qui aboutit (keepalive) sans que la réponse revienne laisse la course en
+  file sans version, la réconciliation l'ignore tant qu'elle y est, et une
+  heure ou un téléphone corrigés pendant le report faisaient de notre propre
+  ligne « une autre course » : référence neuve, re-POST, **course en double**,
+  l'ancienne restant confirmée avec l'heure fausse. Le cas rend « conflit »,
+  comme avant le 19/10 (le serveur gagne, l'écran le dit). **Sinon le
+  CONTENU** — téléphone (neuf derniers chiffres), date, heure ; sans
+  téléphone, le trajet — et pas la date seule : le premier passage de la même
+  relecture avait montré que `deposer-course` réécrit `cree` à l'heure du
+  serveur et qu'une demande COLLÉE garde la référence du client avec sa date
+  de lecture — le cas « non transmise à tort, renvoyée par WhatsApp, collée »
+  aurait fait une course en double. Une autre course rend `"reference"` :
   `changerReferenceLocale` renomme la course dans le registre, déplace son
   entrée de file (même rang, mêmes essais) et le bon ouvert ; `direReference`
   le dit sur le tableau de bord et sur le bon. La même demande (accusé perdu,
@@ -140,9 +148,20 @@ Ce qui vaut maintenant :
 - Éprouvé : `test-nouveau-serveur` (course de course, collision — le bon
   redéposé est la même demande, le bon et le message WhatsApp de secours
   portent la référence neuve) et `test-admin-reference` (collision et accusé
-  perdu, sur le site construit). Contre l'ancien code, les contrôles de
-  collision tombent : un seul dépôt, « non transmise » ; côté admin, la
-  course saisie disparaît du registre.
+  perdu, demande collée, course modifiée pendant le report — sur le site
+  construit). Contre l'ancien code, les contrôles de collision tombent : un
+  seul dépôt, « non transmise » ; côté admin, la course saisie disparaît du
+  registre. Contre le code du matin du 19/10 (contenu seul), la course
+  modifiée pendant le report part sous une seconde référence : six
+  contrôles tombent.
+- **Résidu connu, P3, laissé tel quel** : `deposer-course` répond au
+  « déjà déposée ? » AVANT le quota (voulu : un rejeu ne coûte rien au
+  client). Un 409 « référence déjà utilisée » est donc gratuit, et chaque
+  refus s'écrit dans `journal_depots` (compté dans `depots_refuses_1h`, voyant
+  en panne à 10/h). Rien de neuf : un corps invalide (400) était déjà gratuit
+  et compté pareil, et une référence seule ne donne rien sans le téléphone.
+  Si ça devient bruyant : motif à part non compté, ou clé de quota propre
+  (« ref409|ip|heure », large).
 - `etat-course` refuse désormais une référence mal formée AVANT toute
   lecture (même réponse qu'une course introuvable) : cette fonction est
   ouverte à tous et sans plafond, chaque appel coûtait une lecture.

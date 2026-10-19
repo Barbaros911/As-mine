@@ -12879,19 +12879,31 @@ window.ELA_TEXTES = {
     });
   };
 
-  /* La ligne du serveur est-elle UNE AUTRE course que la nôtre ? ON COMPARE
-     LE CONTENU, JAMAIS LA DATE DE CRÉATION : « deposer-course » réécrit
-     « cree » à l'heure du serveur, et une demande COLLÉE depuis le message
-     WhatsApp du client garde SA référence (intake-demande.js) avec une date
-     de lecture — les deux dates ne sont jamais égales alors que c'est la
-     même demande (le client a lu « non transmise » pour un dépôt qui avait
-     abouti, puis renvoyé par WhatsApp). Trouvé par la relecture
-     indépendante du 19/10/2026 : le premier jet comparait « cree » et aurait
-     créé une course EN DOUBLE exactement dans le cas qu'il voulait réparer.
-     Même demande = même téléphone (neuf derniers chiffres), même date, même
-     heure ; sans téléphone (comptoir identifié par la chambre), le trajet
-     tranche. Deux clients distincts tirés au même signe n'ont pas le même
-     numéro à la même heure. */
+  /* La ligne du serveur est-elle UNE AUTRE course que la nôtre ? DEUX
+     PREUVES, DANS CET ORDRE (relecture indépendante du 19/10/2026, deux
+     passages) :
+     1. MÊME « cree » = NOTRE ligne, écrite par cet appareil. Une course
+        saisie ici part en POST avec sa date de création telle quelle
+        (bonPourEnvoi ne retire que _v et _cree). Si le POST a abouti sans
+        que la réponse revienne (keepalive, 4G lente, abandon à 8 s), la
+        course reste en file sans _v, et la réconciliation l'ignore tant
+        qu'elle y est. Barbaros corrige l'heure ou le téléphone pendant le
+        report : comparée au CONTENU seul, la ligne du serveur devenait
+        « une autre course », on tirait une référence neuve et on repostait
+        — une course EN DOUBLE, l'ancienne restant confirmée avec l'heure
+        fausse. Avant le 19/10, ce cas rendait « conflit » (le serveur gagne,
+        le geste est redit à l'écran) : c'est ce qu'il doit rendre.
+     2. Sinon, LE CONTENU : « deposer-course » réécrit « cree » à l'heure
+        du serveur, et une demande COLLÉE depuis le message WhatsApp du
+        client garde SA référence (intake-demande.js) avec une date de
+        lecture — les deux dates diffèrent alors que c'est la même demande
+        (le client a lu « non transmise » pour un dépôt qui avait abouti,
+        puis renvoyé par WhatsApp). Même demande = même téléphone (neuf
+        derniers chiffres), même date, même heure ; sans téléphone (comptoir
+        identifié par la chambre), le trajet tranche. Deux clients distincts
+        tirés au même signe n'ont pas le même numéro à la même heure.
+     Une date égale à la milliseconde entre deux courses distinctes n'arrive
+     pas ; une date absente d'un côté passe au contenu. */
   function chiffresTel(t){ var c = String(t || "").replace(/\D/g, ""); return c.length > 9 ? c.slice(-9) : c; }
   function memeDemande(d, b){
     var cd = d.course || {}, cb = b.course || {};
@@ -12904,6 +12916,7 @@ window.ELA_TEXTES = {
   function autreCourse(ligne, b){
     var d = ligne && ligne.bon;
     if(!d || typeof d !== "object") return false;
+    if(d.cree && b && b.cree && String(d.cree) === String(b.cree)) return false;
     return !memeDemande(d, b);
   }
   /* La course garde tout, seule sa référence change : dans le registre, dans

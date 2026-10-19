@@ -51,17 +51,22 @@ drop policy if exists "exploitant lit journal erreurs" on public.journal_erreurs
 create policy "exploitant lit journal erreurs" on public.journal_erreurs_client
   for select to authenticated using ((select public.est_exploitant()));
 
--- L'écriture : la clé de service seule. Les bornes sont refaites ici — la
--- fonction les pose déjà, mais une RPC qui croit son appelant n'est pas une
--- frontière. La purge se fait au passage : une erreur par écriture, et la
--- table ne grossit jamais au-delà d'un mois.
+-- L'écriture : la clé de service seule. LA SEULE FRONTIÈRE EST LE DROIT
+-- D'EXÉCUTION (revoke/grant plus bas, vérifiés par le bloc final). Un premier
+-- jet posait en plus « if current_user not in ('service_role','postgres') » :
+-- dans une fonction SECURITY DEFINER, current_user est le PROPRIÉTAIRE
+-- (postgres), jamais l'appelant — le test passait toujours, il ne gardait
+-- rien (relecture indépendante du 19/10/2026). Et session_user ne vaut pas
+-- mieux : PostgREST entre toujours en « authenticator ». Un garde qui ne peut
+-- pas tomber ne vérifie rien : il est retiré plutôt que de faire croire à une
+-- seconde défense. Les bornes sont refaites ici — la fonction appelante les
+-- pose déjà, mais une RPC qui croit son appelant n'est pas une frontière. La
+-- purge se fait au passage : une erreur par écriture, et la table ne grossit
+-- jamais au-delà d'un mois.
 create or replace function public.ela_erreur_client_ecrire(p jsonb)
 returns boolean language plpgsql security definer
 set search_path = public, pg_temp as $$
 begin
-  if current_user not in ('service_role','postgres') then
-    raise exception 'acces_refuse' using errcode = '42501';
-  end if;
   if p is null or jsonb_typeof(p) <> 'object' then
     raise exception 'erreur_invalide' using errcode = '22023';
   end if;
