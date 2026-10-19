@@ -14,7 +14,8 @@
      les paramètres effacés de l'adresse, « moteur ouvert » compté ;
    · une recherche d'adresse muette dit quelque chose au client ;
    · l'écran des prix et le récapitulatif sont en anglais, le paiement par
-     lien y est expliqué, ni e-mail ni carte demandés ;
+     lien y est expliqué, ni e-mail ni carte demandés ; « No payment now »
+     est dit sous les prix, jamais recouvert ;
    · confirmer sans nom ni téléphone est refusé avec un message VISIBLE ;
    · un numéro étranger n'offre que WhatsApp / Telegram ;
    · UNE seule demande part sur un double appui ; le bon s'affiche avec sa
@@ -176,6 +177,20 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
     recap: document.querySelector('#ecran-vehicules')?.innerText.replace(/\s+/g, ' ').slice(0, 400) }));
   note('parcours : l\'écran des prix s\'ouvre avec des gammes et des montants en €', prix.ecran === 'ecran-vehicules' && prix.cartes.length >= 2 && prix.cartes.every(c => /€/.test(c)), JSON.stringify(prix.cartes));
   note('parcours : l\'écran des prix est en anglais (« Berline/Van », « passengers »)', /passenger/i.test(prix.recap) && !/passagers/i.test(prix.recap), prix.recap.slice(0, 200));
+  /* « Aucun paiement maintenant », dit sous les prix (19/10/2026) : c'est
+     l'écran où l'on décide. Dans la langue du client, sous les cartes, et
+     jamais recouvert par le bouton collant de l'écran. */
+  const rassure = await v.p.evaluate(() => {
+    const e = document.getElementById('vehRassure'), cartes = [...document.querySelectorAll('#listeVehicules .veh-carte')];
+    if (!e) return null;
+    e.scrollIntoView({ block: 'center' });
+    const r = e.getBoundingClientRect(), bas = cartes.length ? cartes[cartes.length - 1].getBoundingClientRect().bottom : 0;
+    const dessus = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { texte: e.textContent.trim(), visible: !!e.offsetParent && r.height > 0, sousLesCartes: r.top >= bas - 0.5, libre: dessus === e || e.contains(dessus),
+      gouttiere: r.left >= 16 && r.right <= innerWidth - 16 };
+  });
+  note('parcours : sous les prix, « No payment now », en anglais, sous les cartes, dans la gouttière et jamais recouvert',
+    !!rassure && rassure.visible && /^No payment now/.test(rassure.texte) && !/Aucun paiement/.test(rassure.texte) && rassure.sousLesCartes && rassure.libre && rassure.gouttiere, JSON.stringify(rassure));
   await v.p.locator('.veh-carte').first().click();
   await v.p.locator('#btnContinuer').click();
   await v.p.waitForTimeout(400);

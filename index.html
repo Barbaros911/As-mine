@@ -512,6 +512,13 @@ body.exploitant .note-google{display:none;}
 .trajet-peages{margin:6px 20px 0;font-size:12.5px;line-height:1.4;font-weight:600;color:var(--encre);}
 
 .veh-liste{padding:16px 20px 0;display:flex;flex-direction:column;gap:10px;}
+/* « Aucun paiement maintenant », dit sous les prix (19/10/2026) : c'est
+   l'écran où le client décide. Pas au comptoir : la réception n'en a pas
+   besoin, et son écran est compté au pixel. */
+/* « .rassure » est écrite plus bas et reprendrait la marge : la double classe
+   garde la gouttière de 20 px (vu à 320 px, la ligne touchait les bords). */
+.rassure.veh-rassure{margin:12px 20px 0;text-align:center;line-height:1.4;}
+body.reception .veh-rassure{display:none;}
 .veh-carte{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
   background:var(--carte);border:1px solid var(--filet);border-radius:16px;
   padding:13px 14px;font-family:inherit;cursor:pointer;min-width:0;
@@ -3538,6 +3545,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 
     <div class="veh-liste" id="listeVehicules"></div>
 
+    <!-- AUCUN PAIEMENT MAINTENANT, DIT LÀ OÙ L'ON DÉCIDE (19 octobre 2026,
+         audit des priorités). L'écran « Trafic » mesure la plus grosse perte
+         entre « prix affiché » et « réservation envoyée » ; or cet écran ne
+         disait rien du paiement, et « Aucun paiement maintenant » n'arrivait
+         que sous le dernier bouton, deux écrans plus loin. Une seule ligne,
+         faite de trois phrases déjà validées (récapitulatif, « Inclus »,
+         ligne sous « Voir mon prix ») : aucune promesse nouvelle. -->
+    <p class="rassure veh-rassure" id="vehRassure" data-t="prix_rassure">Aucun paiement maintenant · prix annoncé à l'avance, réglé au chauffeur par lien après confirmation.</p>
+
     <!-- Le prix est ferme : on le dit là où le client le lit, pas dans les
          CGV. Il n'y a plus aucune majoration sur le site depuis septembre
          2026 — même prix à toute heure et tous les jours ; la ligne
@@ -6345,6 +6361,7 @@ window.ELA_TEXTES = {
     err_tel:"Ce numéro ne semble pas valable. Relisez-le, avec l'indicatif si vous êtes à l'étranger : c'est par là que nous vous confirmons la course.",
     confirmer:"Envoyer ma demande",
     confirmer_note:"Aucun paiement maintenant. Votre réservation devient ferme uniquement après confirmation d’Elatransfer.",
+    prix_rassure:"Aucun paiement maintenant · prix annoncé à l'avance, réglé au chauffeur par lien après confirmation.",
     legal_accept_prefix:"En envoyant ma demande, j’accepte les", legal_accept_cgv:"CGV",
     legal_accept_join:"et je reconnais avoir lu la", legal_accept_privacy:"politique de confidentialité",
     suite_titre:"Ce qui se passe ensuite",
@@ -6573,6 +6590,7 @@ window.ELA_TEXTES = {
     err_tel:"This number does not look valid. Please check it, with your country code if you are abroad: it is how we confirm your transfer.",
     confirmer:"Send my request",
     confirmer_note:"No payment now. Your booking becomes firm only after confirmation from Elatransfer.",
+    prix_rassure:"No payment now · price set in advance, paid to the driver by link after confirmation.",
     legal_accept_prefix:"By sending my request, I accept the", legal_accept_cgv:"terms and conditions",
     legal_accept_join:"and acknowledge that I have read the", legal_accept_privacy:"privacy policy",
     suite_titre:"What happens next",

@@ -20,7 +20,10 @@
    7. l'agent ne voit ni l'entrée ni l'écran ; aucune page publique ne les porte ;
    8. rien de personnel : la liste en direct n'écrit ni identifiant ni référence ;
    9. 320, 375, 390, 430, 768, 1366, 1440 px : rien ne déborde, tout se touche ;
-  10. l'ordre d'arrivée du direct et du jour ne change rien à l'écran.
+  10. l'ordre d'arrivée du direct et du jour ne change rien à l'écran ;
+  11. chaque étape dit son taux sur l'étape d'avant, la plus grosse perte
+      est nommée (et tue sous cinq personnes), les sources sont rangées par
+      courses réalisées, et l'écran renvoie au Centre de contrôle.
    Port 8172, propre à cette suite. Lancer : node test-admin-trafic.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
@@ -111,7 +114,9 @@ function fauxServeur() {
   s.jour = () => totaux({ visiteurs: 127, visites: 140, pages_vues: 221, prix: 39, prix_affiches: 35, formulaires: 45, reservations: 8, appels: 6, whatsapp: s.whatsapp, realisees: 2, confirmees: 5 });
   s.histo = periode => ({
     periode, debut: '2026-10-15T00:00:00+02:00', fin: '2026-10-15T14:00:00+02:00', pas: periode === '7j' || periode === '30j' ? 'day' : 'hour',
-    totaux: s.jour(),
+    /* « Hier » est une petite journée : sous cinq personnes à chaque étape
+       du formulaire, l'écran ne désigne aucune perte (partie 11). */
+    totaux: periode === 'hier' ? totaux({ visiteurs: 9, visites: 9, pages_vues: 12, formulaires: 3, prix: 2, prix_affiches: 2, reservations: 1 }) : s.jour(),
     pages: [
       { valeur: 'fr-cdg', totaux: totaux({ visiteurs: 51, pages_vues: 60, prix: 17, whatsapp: 5, reservations: 3 }) },
       { valeur: 'accueil', totaux: totaux({ visiteurs: 37, pages_vues: 80, prix: 8, reservations: 1 }) },
@@ -119,9 +124,12 @@ function fauxServeur() {
       { valeur: 'fr-nouvelle-page', totaux: totaux({ visiteurs: 11, pages_vues: 12, prix: 5, reservations: 2 }) },
     ],
     sources: [
-      { valeur: 'google', totaux: totaux({ visiteurs: 61, reservations: 5 }) },
-      { valeur: 'direct', totaux: totaux({ visiteurs: 29, reservations: 2 }) },
-      { valeur: 'partenaire', totaux: totaux({ visiteurs: 21, reservations: 4 }) },
+      /* Google apporte le plus de visiteurs et de réservations, le lien du
+         partenaire le plus de courses RÉALISÉES : c'est lui qui doit sortir
+         en tête de « Ce qui vous apporte des courses » (partie 11). */
+      { valeur: 'google', totaux: totaux({ visiteurs: 61, prix_affiches: 20, reservations: 5, confirmees: 2, realisees: 0 }) },
+      { valeur: 'direct', totaux: totaux({ visiteurs: 29, prix_affiches: 9, reservations: 2, confirmees: 1, realisees: 0 }) },
+      { valeur: 'partenaire', totaux: totaux({ visiteurs: 21, prix_affiches: 6, reservations: 4, confirmees: 3, realisees: 2 }) },
       { valeur: 'referent', totaux: totaux({ visiteurs: 3, reservations: 0 }) },
     ],
     langues: [{ valeur: 'fr', totaux: totaux({ visiteurs: 84, reservations: 5 }) }, { valeur: 'en', totaux: totaux({ visiteurs: 43, reservations: 3 }) }],
@@ -358,6 +366,58 @@ try {
     await p.evaluate(() => document.getElementById('btnTrafic').click()); await p.waitForTimeout(400);
     check('7 un clic forcé n\'ouvre pas l\'écran', !(await p.evaluate(() => document.getElementById('ecran-trafic').classList.contains('actif'))));
     check('7 et s\'il appelait quand même, le serveur refuserait (acces_refuse)', srv.requetes.length === 0 || true);
+    await ctx.close();
+  });
+
+  /* ── 11. OÙ L'ON PERD, ET CE QUI APPORTE DES COURSES (19/10/2026) ──
+     Les attendus sont recalculés à la main depuis le faux serveur, jamais
+     relus sur l'écran : 39 / 45 = 87 %, 35 / 39 = 90 %, 8 / 35 = 23 %,
+     5 / 8 = 63 %, 2 / 5 = 40 %. */
+  await partie('11', async () => {
+    const srv = fauxServeur();
+    const { ctx, p, erreurs } = await contexte(nav, { srv });
+    await ouvrir(p);
+    const pas = await p.$$eval('.trf-funnel .trf-etape', l => l.map(e => (e.querySelector('.trf-etape-pas') || {}).textContent || ''));
+    check('11 chaque étape dit son taux sur l\'étape d\'avant, et combien s\'arrêtent',
+      pas[0] === '' && pas[1] === '35 % de l\'étape d\'avant · 82 de moins' && pas[2] === '87 % de l\'étape d\'avant · 6 de moins'
+      && pas[3] === '90 % de l\'étape d\'avant · 4 de moins' && pas[4] === '23 % de l\'étape d\'avant · 27 de moins'
+      && pas[5] === '63 % de l\'étape d\'avant · 3 de moins' && pas[6] === '40 % de l\'étape d\'avant · 3 de moins', pas.join(' | '));
+    const perte = await texte(p, '.trf-perte');
+    check('11 la plus grosse perte est nommée : entre le prix affiché et la réservation, 27 sur 35',
+      /entre « Prix affiché » et « Réservation envoyée »/.test(perte) && /27 sur 35 s'arrêtent \(77 %\)/.test(perte), perte);
+    const zone = await texte(p, '#trfZone');
+    check('11 les prix vus sans réservation sont comptés', /27 prix vu\(s\) sans réservation/.test(zone));
+    check('11 confirmée et réalisée sont dites suivre l\'état des courses', /suivent l'état des courses/.test(zone));
+    const apport = await p.$$eval('.trf-apport .trf-apport-nom', l => l.map(e => e.textContent));
+    check('11 « Ce qui vous apporte des courses » range les sources par courses réalisées, pas par visiteurs',
+      apport.join('|') === "Lien d'un partenaire|Google|Direct", apport.join(' → '));
+    check('11 une source sans réservation n\'y prend pas de ligne', !apport.includes('Autre site'));
+    const tete = await texte(p, '.trf-apport .trf-apport-l');
+    check('11 la première ligne dit réalisées, confirmées, réservations, et la conversion sur les prix vus',
+      /2 réalisée\(s\) · 3 confirmée\(s\) · 4 réservation\(s\)/.test(tete) && /sur 21 visiteur\(s\)/.test(tete) && /67 % des prix vus/.test(tete), tete);
+    check('11 l\'écran dit que les hôtels et le téléphone sont comptés au Centre de contrôle', /comptées par canal au Centre de contrôle/.test(zone));
+    const colonnes = await p.evaluate(() => {
+      const t = [...document.querySelectorAll('#trfZone .trf-bloc')].find(b => (b.querySelector('.trf-h2') || {}).textContent === 'Sources');
+      const ligne = t && [...t.querySelectorAll('tbody tr')].find(tr => tr.querySelector('.trf-c-nom').textContent === "Lien d'un partenaire");
+      if (!ligne) return null;
+      const o = {}; ligne.querySelectorAll('td').forEach(td => { o[td.getAttribute('data-col')] = td.textContent; });
+      return o;
+    });
+    check('11 le tableau des sources porte prix vus, réservations, confirmées, réalisées',
+      !!colonnes && colonnes['Prix vus'] === '6' && colonnes['Réserv.'] === '4' && colonnes['Confirm.'] === '3' && colonnes['Réalisées'] === '2', JSON.stringify(colonnes));
+    /* Une petite journée : aucune perte désignée au hasard de deux visites. */
+    await p.locator('.trf-filtre', { hasText: 'Hier' }).click();
+    await attendre(p, () => { const e = window.ELA_TRAFIC._etat; return !!e.histo.hier && !e.chargement; });
+    check('11 sous cinq personnes à chaque étape, l\'écran ne désigne aucune perte, et le dit',
+      /Pas encore assez de données/.test(await texte(p, '.trf-perte')), await texte(p, '.trf-perte'));
+    await p.locator('.trf-filtre', { hasText: "Aujourd'hui" }).click();
+    await attendre(p, () => !!document.querySelector('#trfZone .trf-vers-controle'));
+    const d0 = srv.directs().length;
+    await p.locator('.trf-vers-controle').click();
+    check('11 « Ouvrir le Centre de contrôle » y mène', await p.evaluate(() => document.getElementById('ecran-controle').classList.contains('actif')));
+    await p.waitForTimeout(11000);
+    check('11 …et la sonde du trafic s\'arrête', srv.directs().length === d0, `${d0} → ${srv.directs().length}`);
+    check('11 aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
     await ctx.close();
   });
 
