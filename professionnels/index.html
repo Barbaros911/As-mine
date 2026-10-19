@@ -180,6 +180,43 @@
       .tete-logo img{height:34px;}
       .actions .bouton,.partenaire .bouton{width:100%;}
     }
+    /* ═══ FINITION VISUELLE (19 octobre 2026) — la même grammaire que l'accueil
+       (application-facade.css, « FINITION VISUELLE ») : une recette de carte,
+       des étapes en frise, 20 px d'arrondi pour les grands blocs. Aucun texte,
+       aucun lien, aucun comportement ne change.
+       « CE QUE VIT VOTRE RÉCEPTION » N'EST PLUS UNE RANGÉE DE PAVÉS GRIS : trois
+       aplats sans dessin se lisaient comme une maquette pas finie. Ce sont trois
+       phrases entendues au comptoir — elles prennent des guillemets. */
+    .carte{border-radius:16px;box-shadow:0 1px 2px rgba(6,47,85,.04),0 8px 24px rgba(6,47,85,.06);}
+    .vecu .carte{position:relative;padding:22px 22px 22px 52px;background:#fff;border-color:var(--line);
+      box-shadow:0 1px 2px rgba(6,47,85,.04),0 8px 24px rgba(6,47,85,.06);}
+    .vecu .carte::before{content:"\201C";position:absolute;left:16px;top:12px;color:var(--cyan);font:700 46px/1 Georgia,"Times New Roman",serif;}
+    .vecu .carte p{color:var(--navy);font-size:17px;font-weight:600;line-height:1.5;}
+    .pastille{width:40px;height:40px;background:#E8F2FD;color:#0A4F91;}
+    .pastille svg{stroke-width:1.75;}
+    .carte h3{font-size:18px;}
+    .etapes{gap:32px;}
+    .etapes li{position:relative;flex-direction:column;gap:10px;padding:0;border:0;border-radius:0;background:none;}
+    .etapes li:not(:last-child)::before{content:"";position:absolute;left:46px;right:-24px;top:17px;height:2px;border-radius:2px;background:var(--line);}
+    .num{color:#0A4F91;background:#E8F2FD;box-shadow:inset 0 0 0 1.5px rgba(14,111,199,.28);}
+    .etapes b{display:block;color:var(--navy);font-size:18px;line-height:1.3;}
+    .etapes p{margin:4px 0 0;color:var(--muted);}
+    .partenaire-carte{border-radius:20px;}
+    .formulaire,.reprise{border-radius:20px;}
+    .moyen{border-radius:16px;transition:border-color .18s ease,box-shadow .18s ease;}
+    @media (hover:hover){ .moyen:hover{border-color:#b9cbd9;box-shadow:0 8px 24px rgba(6,47,85,.08);} }
+    @media (max-width:700px){
+      main section.bloc{padding-top:48px;}
+      .carte{padding:20px;}
+      .vecu .carte{padding:18px 18px 18px 48px;}
+      .vecu .carte::before{left:15px;top:8px;}
+      .etapes{gap:0;}
+      .etapes li{flex-direction:row;gap:14px;padding:0 0 22px;}
+      .etapes li:last-child{padding-bottom:0;}
+      .etapes li:not(:last-child)::before{left:16px;right:auto;top:40px;bottom:4px;width:2px;height:auto;}
+      .etapes b{margin-top:5px;}
+    }
+    @media (prefers-reduced-motion:reduce){ .moyen{transition:none;} }
   </style>
 </head>
 <body>
