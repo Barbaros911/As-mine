@@ -260,7 +260,7 @@ try {
    que le dépôt les écrit : c'est la seule preuve de ce que reçoit un
    client. Même liste que la construction (textes-interdits.mjs), mêmes
    exemptions (l'admin relit des courses anciennes). */
-console.log("\nL'ancienne r\u00e8gle de paiement en ligne :");
+console.log("\nLes textes retir\u00e9s (ancien paiement, promesse partenaire) en ligne :");
 const PUBLICS = [...PAGES.map((p) => p.chemin), "telephone.js", "mesure.js", "itineraire-partage.js", "hotel-engine-polish.js", "sw.js",
   "demo/demo-simulateur.js"].filter((c) => !exempte(c || "index.html"));
 let fautesTexte = 0;
@@ -274,7 +274,7 @@ for (const c of PUBLICS) {
     }
   } catch { /* une page injoignable est déjà signalée au point 1 */ }
 }
-if (!fautesTexte) ok(`aucune trace de l'ancienne r\u00e8gle dans les ${PUBLICS.length} pages et scripts publics servis`);
+if (!fautesTexte) ok(`aucun texte retir\u00e9 (ancien paiement, promesse partenaire) dans les ${PUBLICS.length} pages et scripts publics servis`);
 
 /* ---- 2 à 4. La page d'accueil, vraiment ouverte --------------------- */
 const navigateur = await chromium.launch();

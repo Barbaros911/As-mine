@@ -16,6 +16,19 @@
 > d'autre n'est construit : ni page de conditions, ni PDF, ni simulateur, ni
 > relevé. Hôtels et agences oui ; entreprises jamais (on ne paie pas un client
 > pour qu'il achète).
+>
+> **18 octobre 2026, le soir — la phrase passe au CONDITIONNEL** (sa consigne
+> de la mission de réconciliation : « aucune promesse de revenu », formulation
+> « une rémunération peut être prévue pour chaque transfert réalisé selon les
+> conditions convenues avec l'établissement »). « Votre établissement est
+> rémunéré sur chaque transfert réalisé » promettait ce que, sans SIRET, on ne
+> peut ni facturer ni verser. Ce que dit le bloc : « Une rémunération peut être
+> prévue pour chaque transfert réalisé, selon les conditions convenues avec
+> votre établissement » · « Aucun abonnement, aucun frais pour votre
+> établissement » · « Les conditions peuvent évoluer avec votre activité,
+> trimestre après trimestre » (et l'anglais). `test-pro-page` tombe sur un
+> montant, un mot de gain ou une phrase de rémunération affirmative. Le jour
+> du SIRET et du contrat, la règle se rouvre avec lui.
 
 ## Ce que Barbaros a dit, et ce qui en découle
 

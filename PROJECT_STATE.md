@@ -55,7 +55,15 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   uniquement des redirections vers l'entrée canonique.
 - **`construire.sh` est la seule recette de publication**, partagée par GitHub
   Actions et Cloudflare Pages.
-- **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé.
+- **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé. **La note
+  Google s'affiche** (18/10/2026, Barbaros : les 25 avis viennent tous de
+  clients) depuis le seul `avis-google.json`, jamais arrondie vers le haut,
+  jamais en données structurées, éteinte seule au-delà de 60 jours.
+- **Une marque, deux entrées** (18/10/2026, ses décisions) : l'accueil parle au
+  voyageur et ne porte plus de bouton dans le bandeau ; l'offre aux hôtels,
+  agences et entreprises vit sur `/professionnels/`, avec un bloc « Devenez
+  partenaire » **sans montant et au conditionnel** tant qu'il n'y a ni SIRET ni
+  contrat. Un seul moteur de réservation.
 - **Aucune photo ni aucun logo dont on ne détient pas les droits.**
 
 ## Décisions produit validées par Barbaros avec ChatGPT (16 septembre 2026)
@@ -253,6 +261,7 @@ parce qu'une liste les nomme.
 |---|---|---|
 | Pilotage Produit + Opérations (distinct du traitement des courses) — **blocs 1, 2 et 3 FUSIONNÉS et DÉPLOYÉS le 6/10/2026** (PR #327, #329, #330 ; migration `20261006010000_pilotage.sql` appliquée en production, exécution n° 30). **VÉRIFIÉ EN PRODUCTION le 18/10/2026** sur le téléphone de Barbaros : première vraie carte créée, relue après fermeture de l'admin, priorité modifiée, historique lu (deux lignes, heure de Paris). La vue ordinateur n'est éprouvée que sur le site construit, en CI. Un bloc 4 seulement si le besoin se voit (`memoire/pilotage.md`) | Barbaros | #197 (fermée) |
 | Paiement Stripe — **plus prévu** : le modèle retenu le 10/10 est le lien de paiement du chauffeur. Le code d'empreinte TEST reste dans le dépôt, sans appelant, Live éteint (voir « Paiement Stripe — ce qui existe vraiment »). À rouvrir seulement sur décision de Barbaros, après le SIRET | Barbaros | #173 |
+| Note Google : relever note et nombre dans `avis-google.json` avant le 17/12/2026 (sinon elle s'éteint seule, sans casser le site) ; y mettre le lien « Partager » de la fiche, plus sûr que la recherche `query=Elatransfer` posée aujourd'hui | Barbaros, puis Claude | `memoire/avis.md` |
 | Alerte avant expiration du jeton Supabase `github-production` (1er octobre 2027, posé le 4/10/2026) | Claude | à ouvrir |
 | Protection de `main`, à finir depuis un ordinateur (l'enregistrement échoue sur iPhone) : cocher « Require branches to be up to date before merging » et « Require conversation resolution before merging » dans la règle « Protéger main », et « Always suggest updating pull request branches » dans Settings → General ; puis aligner `.github/ruleset-main.json` sur la règle en ligne | Barbaros, puis Claude | audit du 17/10/2026 · PR #366 |
 

@@ -12,10 +12,10 @@ Deux PR étaient ouvertes sur l'accueil, `/professionnels/` et la note Google
 (#375, et #376 qui la reprend en entier plus une correction du bloc
 partenaire). L'audit a été fait sans rien écrire ; le travail a commencé sur la
 tête de #376, puis, #375 fusionnée entre-temps, il a été **reposé sur le `main`
-du moment** (seul son commit, rien de #376). Ce qui reste de #376 touche le
-texte du bloc partenaire, pas ce dessin ; les seules lignes communes sont le
-numéro de `CACHE` (`sw.js`) et le plafond de `test-doc.mjs` : celle qui fusionne
-en second prend le plus grand `CACHE` et le plus petit plafond.
+du moment** (seul son commit, rien de #376). #376 a fusionné avant celle-ci :
+elle touchait le texte du bloc partenaire, pas ce dessin ; les seules lignes
+communes étaient le numéro de `CACHE` (`sw.js`, monté à v187 au-dessus de son
+v186) et le plafond de `test-doc.mjs` (la taille réelle du mémo après fusion).
 
 ## Le diagnostic (mesuré sur le site construit, 320 → 1920 px)
 

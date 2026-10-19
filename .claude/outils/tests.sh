@@ -49,7 +49,13 @@ trap 'exit 130' INT TERM
 if ! curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null; then
   npx --yes http-server . -s -p 8099 >/tmp/asmine-serveur.log 2>&1 &
   SERVEUR=$!
-  trap 'c=$?; rm -f "$VERROU"; pkill -P $SERVEUR 2>/dev/null; kill $SERVEUR 2>/dev/null; exit $c' EXIT
+  # ET C'EST UN PETIT-ENFANT, PAS UN ENFANT (18 octobre 2026) : npm exec →
+  # sh -c → http-server. « pkill -P $SERVEUR » ne tuait que « sh -c » ; le
+  # vrai serveur restait orphelin après CHAQUE série, encore ouvert sur 8099
+  # et enraciné sur le dépôt — une vérification suivante l'a pris pour le
+  # site construit. On descend donc toute la lignée, petits-enfants d'abord.
+  arreter_lignee(){ for e in $(pgrep -P "$1" 2>/dev/null); do arreter_lignee "$e"; done; kill "$1" 2>/dev/null; }
+  trap 'c=$?; rm -f "$VERROU"; arreter_lignee $SERVEUR; exit $c' EXIT
   i=0; while [ $i -lt 15 ]; do
     curl -s -o /dev/null http://127.0.0.1:8099/ 2>/dev/null && break
     i=$((i+1)); sleep 1

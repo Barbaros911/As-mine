@@ -38,7 +38,7 @@ if (lus === 0) {
   process.exit(1);
 }
 if (fautes.length) {
-  console.error(`ERREUR : l'ancienne règle de paiement revient dans le site construit (${fautes.length}) :`);
+  console.error(`ERREUR : un texte retiré (ancienne règle de paiement, promesse partenaire) revient dans le site construit (${fautes.length}) :`);
   for (const x of fautes) console.error(`  ${x.chemin} — ${x.quoi}\n      … ${x.extrait} …`);
   process.exit(1);
 }

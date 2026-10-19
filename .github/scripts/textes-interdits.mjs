@@ -39,6 +39,15 @@ export const INTERDITS = [
      libellé absent. */
   { motif: /WhatsApp ne s'est pas ouvert/i, quoi: "« Si WhatsApp ne s'est pas ouvert » (ouverture automatique retirée le 4/10/2026)" },
   { motif: /WhatsApp did not open/i, quoi: "« If WhatsApp did not open » (ouverture automatique retirée le 4/10/2026)" },
+  /* LA PROMESSE DE RÉMUNÉRATION PARTENAIRE (18 octobre 2026, consigne de
+     Barbaros). « Votre établissement est rémunéré sur chaque transfert
+     réalisé » a été en ligne quelques heures sur /professionnels/ : sans
+     SIRET, on ne peut ni facturer ni verser cette rémunération. La phrase est
+     passée au conditionnel ; elle ne revient pas, ni à la construction, ni en
+     ligne — c'est le monitoring qui prouve qu'elle n'est plus servie.
+     test-pro-page garde la règle générale (aucun montant, aucun mot de gain). */
+  { motif: /est rémunéré sur chaque transfert/i, quoi: "« Votre établissement est rémunéré sur chaque transfert » (promesse de revenu, retirée le 18/10/2026)" },
+  { motif: /is paid on every completed transfer/i, quoi: "« Your establishment is paid on every completed transfer » (promesse de revenu, retirée le 18/10/2026)" },
 ];
 
 /* CE QUI N'EST PAS LU PAR UN CLIENT, ET POURQUOI — chemins relatifs au site.
