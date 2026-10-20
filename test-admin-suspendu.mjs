@@ -10,7 +10,7 @@
    Ce qu'on éprouve, sur le site construit (la connexion par e-mail n'existe
    que là) :
    - mot de passe accepté, serveur qui refuse, ligne « actif = false » →
-     le bloc « Accès agent suspendu » est visible, l'espace ne s'ouvre pas,
+     le bloc « Espace agent temporairement fermé » est visible, l'espace ne s'ouvre pas,
      la session est effacée, le message ordinaire est caché ;
    - même refus sans ligne lisible → le message ordinaire, pas le bloc ;
    - une session déjà ouverte que le serveur ferme → même bloc, espace fermé ;
@@ -105,7 +105,7 @@ async function seConnecter(p) {
   const { ctx, p } = await ouvrir({ etat });
   await seConnecter(p);
   const texte = await bloc(p);
-  check('1a. compte suspendu : le bloc « Accès agent suspendu » est visible', /Accès agent suspendu/.test(texte), texte || '(caché)');
+  check('1a. compte suspendu : le bloc « Espace agent temporairement fermé » est visible', /Espace agent temporairement fermé/.test(texte), texte || '(caché)');
   check('1b. il dit la vraie raison : le cloisonnement des données clients', /cloisonnement des données clients/.test(texte) && /pas encore terminé/.test(texte));
   check('1c. il ne met personne en cause : ni nom, ni « votre faute », ni argent', !/Barbaros|faute|payer|abonnement|€/i.test(texte));
   check('1d. le message ordinaire « vérifiez vos identifiants » est caché', (await ordinaire(p)) === '', await ordinaire(p));
@@ -138,7 +138,7 @@ for (const [nom, ligne] of [['aucune ligne', []], ['ligne active (un autre motif
   const etat0 = { exploitant: false, ligne: [{ actif: false }] };
   const { ctx: c0, p: p0 } = await ouvrir({ session: SESSION(), acces: 'u-ami', etat: etat0 });
   await p0.waitForFunction(() => { const b = document.getElementById('accesSuspendu'); return b && !b.hidden; }, null, { timeout: 8000 }).catch(() => {});
-  check('3-0a. session gardée, serveur qui refuse à l\'ouverture : le bloc suspendu', /Accès agent suspendu/.test(await bloc(p0)), (await bloc(p0)) || (await ordinaire(p0)));
+  check('3-0a. session gardée, serveur qui refuse à l\'ouverture : le bloc suspendu', /Espace agent temporairement fermé/.test(await bloc(p0)), (await bloc(p0)) || (await ordinaire(p0)));
   check('3-0b. l\'espace ne s\'ouvre pas et la session est effacée', !(await espace(p0)) && (await session(p0)) === null);
   await c0.close();
 }
@@ -153,7 +153,7 @@ for (const [nom, ligne] of [['aucune ligne', []], ['ligne active (un autre motif
   await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await p.waitForFunction(() => !document.body.classList.contains('espace'), null, { timeout: 20000 }).catch(() => {});
   check('3b. le serveur refuse : l\'espace se ferme', !(await espace(p)));
-  check('3c. l\'écran de connexion dit « Accès agent suspendu », pas « session expirée »', /Accès agent suspendu/.test(await bloc(p)) && !/expiré/.test(await ordinaire(p)), (await bloc(p)) || (await ordinaire(p)));
+  check('3c. l\'écran de connexion dit « Espace agent temporairement fermé », pas « session expirée »', /Espace agent temporairement fermé/.test(await bloc(p)) && !/expiré/.test(await ordinaire(p)), (await bloc(p)) || (await ordinaire(p)));
   check('3d. la marque « accès déjà vérifié » est oubliée', (await p.evaluate(() => localStorage.getItem('ela_acces_verifie'))) === null);
   await ctx.close();
 }

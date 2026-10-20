@@ -58,7 +58,7 @@ vérifie (dépôt public, services gratuits), et il existe une raison
 technique VRAIE qui bloque honnêtement — la limite ci-dessus. Le message
 affiché :
 
-> Accès agent suspendu. Le cloisonnement des données clients côté serveur
+> Espace agent temporairement fermé. Le cloisonnement des données clients côté serveur
 > n'est pas encore terminé : un compte agent peut aujourd'hui voir plus
 > que ce qu'il devrait. Par sécurité, l'accès est fermé jusqu'à la fin de
 > cette étape. Rien à faire de votre côté.
