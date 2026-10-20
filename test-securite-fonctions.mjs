@@ -42,7 +42,7 @@ globalThis.fetch=async(url,init={})=>{
   if(url.includes('api.telegram.org')){tg.push(JSON.parse(init.body).text);return new Response('{}');}
   if(url.includes('/rpc/consommer_quota_reservation')){quotaAppels++;return new Response(JSON.stringify(quotaAppels<=quotaLimite));}
   if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon')) return new Response(JSON.stringify(listeHotel));
-  if(init.method==='PATCH'||init.method==='POST'&&url.includes('/rest/v1/courses')){ecritures.push(url);return new Response('');}
+  if(init.method==='PATCH'||init.method==='DELETE'||init.method==='POST'&&url.includes('/rest/v1/courses')){ecritures.push(url);return new Response('');}
   if(url.includes('/rpc/est_exploitant')) return new Response(JSON.stringify(init.headers.Authorization==='Bearer ADMIN'));
   /* Le secret de la relance, lu dans la base par la clé de service (19/10/2026) : null = pas de verrou. */
   if(url.includes('/rpc/ela_relance_secret')) return new Response(JSON.stringify(secretRelance));
@@ -184,6 +184,16 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     body:JSON.stringify({hotel:'easyhotel-aeroville',code:'easyhotel-9F3K2Q',action:'annulation',ref:'H2'})}));
   ok(r.status===403,'réception : l\'action « annulation » est refusée (403)');
   ok(ecritures.length===0,'réception : et rien n\'est écrit sur la course');
+}
+/* NI DE SUPPRIMER (20/10/2026, Barbaros : « c'est seulement moi qui peut
+   supprimer »). Un bouton absent n'empêche pas un appel direct : la fonction
+   doit refuser, et ne rien écrire ni effacer. */
+{
+  quotaAppels=0; ecritures=[];
+  const r=await hc(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},
+    body:JSON.stringify({hotel:'easyhotel-aeroville',code:'easyhotel-9F3K2Q',action:'supprimer',ref:'H2'})}));
+  ok(r.status===403,'réception : l\'action « supprimer » est refusée (403)');
+  ok(ecritures.length===0,'réception : et rien n\'est écrit ni effacé');
 }
 
 /* cle-notifications : elle rend la clé PUBLIQUE, bien formée, et rien d'autre. */
