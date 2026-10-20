@@ -113,6 +113,26 @@ try {
     tuiles && tuiles.href === 'tel:+33759312433' && /DÉPART IMMÉDIAT/.test(tuiles.texte) && /\+33 7 59 31 24 33/.test(tuiles.texte), tuiles && tuiles.texte);
   check('elle n\'est pas rouge (le rouge dit « en attente »)', tuiles && !/rgb\(2(0[0-9]|1[0-9]|2[0-9]), ?(3[0-9]|4[0-9]|5[0-9]), ?(4[0-9]|5[0-9])\)/.test(tuiles.fond), tuiles && tuiles.fond);
 
+  /* LE FORMULAIRE DU COMPTOIR NE PARLE PLUS AU CLIENT (20/10/2026, Barbaros :
+     « trop de choses destinées au client »). Ce qui ne sert qu'au client est
+     masqué ; ce qui sert est réécrit pour la réception. Mesuré à l'écran. */
+  await p.click('#btnRecReserver'); await p.waitForTimeout(800);
+  const form = await p.evaluate(() => {
+    const vu = sel => [...document.querySelectorAll(sel)].some(e => e.getBoundingClientRect().height > 0);
+    const txt = sel => (document.querySelector(sel) || {}).textContent || '';
+    return { aideVol: vu('#aideVol'), regle: vu('[data-t="regle_contact"]'), regles: vu('#paiementLien .paiement-regles'),
+             telBas: vu('#paiementLien .paiement-tel'), contact: txt('#blocContact .bloc-titre').trim(),
+             paiement: vu('#blocPaiement'), telegram: vu('#blocContact [data-contact="telegram"]'),
+             tel: txt('#blocContact [data-contact="telephone"]').trim(), boutonValider: vu('#ecran-accueil .bouton, #btnConfirmer') };
+  });
+  check('formulaire du comptoir : plus d\'aide du vol, de « gardez votre téléphone », ni de bloc paiement',
+    !form.aideVol && !form.regle && !form.regles && !form.telBas && !form.paiement, JSON.stringify(form));
+  check('formulaire du comptoir : « Le client sera confirmé par : » Téléphone ou WhatsApp, sans Telegram',
+    form.contact === 'Le client sera confirmé par :' && form.tel === 'Téléphone' && !form.telegram, JSON.stringify(form));
+  await p.goto(BASE + '/reception/easyhotel-aeroville/', { waitUntil:'domcontentloaded' });
+  await p.waitForSelector('#recListe .rec-course', { timeout:8000 }).catch(() => {});
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(300);
+
   /* LA PHOTO DU COMPTOIR (20/10/2026, Barbaros : la réception seulement).
      Collée à droite du bandeau, vraiment chargée, et le bandeau ne grandit
      pas : au comptoir, la place est celle de la liste. */

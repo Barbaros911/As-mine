@@ -713,9 +713,13 @@ check('la règle « nom et téléphone » est écrite là où elle s\'applique',
   (await p.locator('[data-t="aide_identite"]').count()) === 1
   && /téléphone/.test(await p.locator('[data-t="aide_identite"]').textContent())
   && /lien de paiement/.test(await p.locator('[data-t="aide_identite"]').textContent()));
-check('plus de carte ni d\'espèces au comptoir : le paiement par lien est annoncé',
+/* Le bloc paiement ne s'affiche plus au comptoir (20/10/2026, Barbaros :
+   « enlève le paiement lien ») : la règle du lien reste écrite sous
+   « Le client » (contrôle précédent), et la course part toujours en
+   paiement par lien. Toujours aucun bouton carte / espèces. */
+check('plus de carte ni d\'espèces au comptoir, et plus de bloc paiement affiché',
   (await p.locator('[data-paiement]').count()) === 0
-  && await p.locator('#paiementLien').isVisible());
+  && await p.locator('#blocPaiement').isHidden());
 
 /* LE PRIX SE CALCULE TOUT SEUL — sans ça il faudrait deux boutons sur la
    même page, « Calculer » puis « Réserver », et on aurait reconstruit le
@@ -764,9 +768,12 @@ await p.fill('#clientTel','06 12 34 56 78');
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(400);
 check('sans moyen de confirmation choisi, la course ne part pas',
   !(await p.locator('#ecran-bon').isVisible()) && await p.locator('#erreurContact').isVisible());
-check('au comptoir, un numéro français propose Appel / SMS, WhatsApp et Telegram',
+/* DEUX CANAUX AU COMPTOIR (20/10/2026, Barbaros : « juste téléphone et
+   WhatsApp ») ; le bouton dit « Téléphone », pas « Appel / SMS ». */
+check('au comptoir, un numéro français propose Téléphone et WhatsApp, sans Telegram',
   (await p.locator('#blocContact [data-contact]:visible').evaluateAll(l => l.map(b => b.dataset.contact))).join(',')
-  === 'telephone,whatsapp,telegram');
+  === 'telephone,whatsapp'
+  && (await p.locator('#blocContact [data-contact="telephone"]').innerText()).trim() === 'Téléphone');
 await p.locator('#blocContact [data-contact="whatsapp"]').click();
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 check('nom, téléphone et moyen de confirmation : la course part',
