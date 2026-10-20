@@ -21,3 +21,9 @@
 # « Afficher la liste relue ».
 ai-dev 3467f0078173fe4c65167079a34f7b09112ea77b
 claude/session-creation-without-asmine-to9axd 8ef0c6629cc1fab53c6d94cb37c620702a0d8afb
+#
+# Sixième ménage, 20 octobre 2026, demandé par Barbaros (mission de
+# finalisation : « si son travail est entièrement intégré dans main… →
+# supprimer la branche »). Mesuré : sa tête 215a0f4 est la fusion de la PR
+# #384, ancêtre de main ; « git diff main...branche » vide ; aucune PR ouverte.
+claude/elatransfer-audit-security-se0bzt 215a0f40cb2e507c8b96ad02a10637df89865b5a

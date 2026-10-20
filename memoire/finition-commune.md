@@ -137,3 +137,14 @@ le doigt, CLS 0,56 ; l'accueil, lui, est à 0,001.
   Il vérifie aussi que le voile est levé et qu'un hôtel inconnu garde
   l'accueil public, sans classe ni voile.
 
+
+## 20/10/2026 — la photo distante d'easyHotel est retirée
+
+Barbaros, mission de finalisation : plus aucune image venue d'un autre site.
+`photoEntete` d'easyHotel est vidée (elle venait de `cdn.easyhotel.com`, sans
+accord écrit) ; la page du QR prend l'aplat marine. Mesuré en le faisant : la
+finition posait `eh-sans-photo` au script, le bandeau sautait de sa hauteur de
+photo à l'aplat — CLS 0,245 (`test-easyhotel-client`). `construire-espaces-hotel.mjs`
+pose désormais cette classe avant le premier dessin pour tout hôtel sans photo.
+`test-finition-commune` refuse toute photo de `HOTELS` en `http` et toute image
+extérieure sur la page d'easyHotel.

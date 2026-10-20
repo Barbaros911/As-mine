@@ -58,6 +58,11 @@ const fiche = `    "${ESSAI.cle}": {
     },
 `;
 const page = readFileSync(join(tmp, 'index.html'), 'utf8');
+/* AUCUNE PHOTO D'HÔTEL N'EST UNE ADRESSE D'UN AUTRE SITE (20/10/2026) : une
+   image dont on ne détient pas l'accord écrit, ou un CDN qui tombe, casse la
+   page du QR. Une photo se sert depuis le dépôt (« /photos/… »). */
+const photoDistante = page.match(/\bphoto(?:Entete|Comptoir)?\s*:\s*"https?:[^"]*"/);
+check('aucune photo de HOTELS ne vient d\'un autre site', !photoDistante, photoDistante ? photoDistante[0].slice(0, 100) : '');
 if (page.split('var HOTELS = {\n').length !== 2) throw new Error('repère « var HOTELS = { » introuvable ou ambigu');
 writeFileSync(join(tmp, 'index.html'), page.replace('var HOTELS = {\n', 'var HOTELS = {\n' + fiche));
 let construit = true;
@@ -118,7 +123,9 @@ async function ouvrir(chemin, { w = 390, h = 844 } = {}) {
   await ctx.route('**/*', r => {
     const u = r.request().url();
     if (u.startsWith(BASE)) return r.continue();
-    if (/easyhotel\.com/.test(u)) { p.photos.push(u); return r.abort(); }
+    /* Toute image venue d'un autre site que le nôtre (les tuiles de la
+       carte mises à part : elles ne sont pas une photo de la page). */
+    if (/easyhotel\.com/.test(u) || (r.request().resourceType() === 'image' && !/tile\.openstreetmap\.org/.test(u))) { p.photos.push(u); return r.abort(); }
     if (u.includes('/functions/v1/courses-hotel')) {
       let hotel = ''; try { hotel = JSON.parse(r.request().postData() || '{}').hotel || ''; } catch {}
       p.hotelsDemandes.push(hotel);
@@ -228,7 +235,11 @@ try {
       photo: getComputedStyle(document.getElementById('hotelTete')).backgroundImage }));
     check('easyHotel : sa pastille « easyHotel / Aéroville »', e.court === 'easyHotel' && e.reste === 'Aéroville', `${e.court} / ${e.reste}`);
     check('easyHotel : son logo ramène à la page du QR', e.logo === '/easyhotel-client/', e.logo);
-    check('easyHotel : sa photo de bandeau est toujours posée', !e.sansPhoto && /easyhotel\.com/.test(e.photo) && p.photos.length > 0, e.photo.slice(0, 80));
+    /* 20/10/2026 : la photo venait du site d'easyHotel, sans accord écrit.
+       Vidée à la demande de Barbaros : le bandeau passe en aplat, et aucune
+       image de la page ne vient d'un autre site que le nôtre. */
+    check('easyHotel : sans photo, son bandeau passe en aplat', e.sansPhoto && !/url\(/.test(e.photo), e.photo.slice(0, 80));
+    check('easyHotel : aucune image de sa page ne vient d\'un autre site', p.photos.length === 0, p.photos.join(', ').slice(0, 160));
     check('easyHotel : « Voir mon prix » garde son dégradé orange', (await fond(p, '#btnVoirPrix')).includes(ORANGE));
     await ctx.close();
   }
