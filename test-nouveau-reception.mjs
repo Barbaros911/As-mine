@@ -16,12 +16,6 @@
       plus de bouton de demande : la réception appelle, Barbaros annule.
       Une course annulée à 5 h du matin libère un chauffeur déjà engagé,
       et Barbaros seul peut le rappeler.
-      MAIS ELLE SUPPRIME DE SA LISTE (20/10/2026, à sa demande : « supprimer
-      les courses effectuées ou non… la réception aussi ») : deux appuis,
-      l'action « supprimer » part au serveur, la carte ne s'efface qu'après
-      son accord, et un refus laisse tout en place. Le serveur MARQUE la
-      course, il ne l'efface pas — c'est test-securite-fonctions qui
-      l'éprouve ; ici on éprouve l'écran.
 
    4. CE QU'UNE RÉSERVATION PORTE, à sa demande : la chambre ou le nom, LE
       NUMÉRO du client, le trajet, LE PRIX (tant que la course est à
@@ -66,7 +60,6 @@ await ctx.route('**://*/**', r => r.request().url().startsWith('http://127.0.0.1
   ? r.continue() : r.abort());
 
 let appels = [];
-let supprimees = new Set(), refuserSuppr = false;   // ce que la réception a retiré, et une panne simulée
 let etat0043 = 'attente';
 let tel0043 = '06 98 76 54 32';   // Barbaros la validera en cours de suite
 let heure0042 = '06:00', modif0042 = '';   // … puis la modifiera depuis son admin
@@ -110,13 +103,8 @@ await ctx.route('**/functions/v1/courses-hotel', r => {
     return r.fulfill({status:401, contentType:'application/json', body:'{"refuse":true}'});
   if(c.action === 'annulation')
     return r.fulfill({contentType:'application/json', body:JSON.stringify({ok:true, ref:c.ref, session:SESSION})});
-  if(c.action === 'supprimer'){
-    if(refuserSuppr) return r.fulfill({status:502, contentType:'application/json', body:'{"erreur":"écriture refusée"}'});
-    supprimees.add(c.ref);
-    return r.fulfill({contentType:'application/json', body:JSON.stringify({ok:true, ref:c.ref, session:SESSION})});
-  }
   return r.fulfill({contentType:'application/json',
-    body:JSON.stringify({ hotel:c.hotel, courses:COURSES().filter(x => !supprimees.has(x.ref)), session:SESSION })});
+    body:JSON.stringify({ hotel:c.hotel, courses:COURSES(), session:SESSION })});
 });
 
 /* ---------------------------------------------------------------------
@@ -350,8 +338,8 @@ const faite = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0020' });
 check('une course effectuée n\'affiche AUCUN montant, même si on le lui envoie',
   !/80|€/.test(await faite.textContent()) && (await faite.locator('.rec-prix').count()) === 0,
   await faite.textContent());
-check('…et ne porte que « Voir le bon » et « Supprimer » (ni renvoi, ni annulation)',
-  JSON.stringify(await faite.locator('button').allTextContents()) === '["Voir le bon","Supprimer"]',
+check('…et ne porte que « Voir le bon » (ni renvoi, ni annulation)',
+  JSON.stringify(await faite.locator('button').allTextContents()) === '["Voir le bon"]',
   JSON.stringify(await faite.locator('button').allTextContents()));
 /* Son bon s'ouvre SANS prix : le serveur ne l'envoie plus pour une course
    finie, et la page n'en dessine pas même s'il arrivait. */
@@ -378,51 +366,6 @@ await p.fill('#recRecherche', jj(jour(-3)));
 check('par DATE « JJ/MM » : on retrouve la course de ce jour-là, et elle seule',
   JSON.stringify(await refsVisibles()) === '["ELA-26-09-0020"]', JSON.stringify(await refsVisibles()));
 await p.fill('#recRecherche', '');
-
-/* ═══ SUPPRIMER DE SA LISTE, FINIE OU NON (20/10/2026) ═══
-   Deux appuis, 700 ms au moins ; rien ne part au premier ; la carte ne
-   s'efface qu'après l'accord du serveur ; un refus laisse tout en place. */
-{
-  const carteDe = ref => p.locator('.rec-course').filter({ hasText: ref });
-  const supprDe = ref => carteDe(ref).locator('.rec-supprimer');
-  await p.click('.rec-vues button[data-vue="passees"]'); await p.waitForTimeout(200);
-  check('une course EFFECTUÉE porte « Supprimer »', await supprDe('ELA-26-09-0020').isVisible());
-  await p.click('.rec-vues button[data-vue="avenir"]'); await p.waitForTimeout(200);
-  check('une course À VENIR aussi', await supprDe('ELA-26-09-0043').isVisible());
-  const avantSuppr = appels.length;
-  await supprDe('ELA-26-09-0043').dblclick(); await p.waitForTimeout(300);
-  check('un double appui ne supprime RIEN', appels.slice(avantSuppr).every(a => a.action !== 'supprimer'));
-  check('le premier appui change le libellé et explique',
-    /Confirmer la suppression/.test(await supprDe('ELA-26-09-0043').textContent())
-    && /Elatransfer en garde la trace/.test(await carteDe('ELA-26-09-0043').textContent()));
-  /* La liste se redessine seule toutes les 30 s : l'armement doit y survivre. */
-  await p.click('#btnRecActualiser'); await p.waitForTimeout(500);
-  check('l\'armement survit à une relecture de la liste',
-    /Confirmer la suppression/.test(await supprDe('ELA-26-09-0043').textContent()));
-  refuserSuppr = true;
-  await p.waitForTimeout(500);
-  await supprDe('ELA-26-09-0043').click(); await p.waitForTimeout(600);
-  const envoye = appels.slice(avantSuppr).filter(a => a.action === 'supprimer');
-  check('le second appui envoie « supprimer » avec la référence et la SESSION, jamais le code',
-    envoye.length === 1 && envoye[0].ref === 'ELA-26-09-0043' && envoye[0].session === SESSION && !envoye[0].code,
-    JSON.stringify(envoye));
-  check('un refus du serveur n\'efface RIEN sur l\'écran', (await carteDe('ELA-26-09-0043').count()) === 1);
-  check('et il le dit', /refusé/.test(await p.locator('#recSupprInfo').textContent()));
-  check('le bouton est redevenu « Supprimer »', (await supprDe('ELA-26-09-0043').textContent()).trim() === 'Supprimer');
-  refuserSuppr = false;
-  await p.click('.rec-vues button[data-vue="passees"]'); await p.waitForTimeout(200);
-  await supprDe('ELA-26-09-0020').click(); await p.waitForTimeout(800);
-  await supprDe('ELA-26-09-0020').click(); await p.waitForTimeout(600);
-  check('une course EFFECTUÉE se supprime : elle a quitté la liste',
-    (await carteDe('ELA-26-09-0020').count()) === 0 && supprimees.has('ELA-26-09-0020'));
-  check('et la liste le dit en tête', /retirée de votre liste/.test(await p.locator('#recSupprInfo').textContent()));
-  await p.click('#btnRecActualiser'); await p.waitForTimeout(500);
-  check('elle ne revient pas à la relecture', (await carteDe('ELA-26-09-0020').count()) === 0);
-  /* On remet le serveur dans son état pour la suite. */
-  supprimees.clear();
-  await p.click('#btnRecActualiser'); await p.waitForTimeout(500);
-  await p.click('.rec-vues button[data-vue="avenir"]'); await p.waitForTimeout(200);
-}
 
 /* ═══ ACTUALISER EST EN HAUT, ET IL DIT QUAND (30/09/2026) ═══ Il était en bas
    d'une liste qui s'allonge : personne ne le trouvait. On le MESURE à l'arrêt,
@@ -646,9 +589,8 @@ await p.locator('.rec-vues button[data-vue="passees"]').click();
 const annulee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0043' });
 check('la course annulée dit « Annulée », pas « Non prise »',
   (await annulee.locator('.rec-etat').textContent()).trim() === 'Annulée');
-check('…sans aucun prix, ni aucun bouton sauf « Supprimer » (20/10/2026)',
-  !/120|€/.test(await annulee.textContent())
-  && JSON.stringify(await annulee.locator('button').allTextContents()) === '["Supprimer"]',
+check('…sans aucun prix, ni aucun bouton',
+  !/120|€/.test(await annulee.textContent()) && (await annulee.locator('button').count()) === 0,
   await annulee.textContent());
 await p.locator('.rec-vues button[data-vue="avenir"]').click();
 const modifiee = p.locator('.rec-course').filter({ hasText:'ELA-26-09-0042' });

@@ -730,20 +730,6 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    alors à 320 px. C'est au nom seul de céder. */
 .d-ch-manque{flex:none;padding:1px 8px;border-radius:999px;
   background:#FEF3C7;color:#92400E;font-weight:700;}
-/* « Supprimée par la réception » : rouge pâle, comme un état à traiter —
-   ni l'ambre du chauffeur manquant, ni l'orange d'un partenaire. */
-.d-suppr-rec{flex:none;margin-left:auto;padding:1px 8px;border-radius:999px;font-size:12px;
-  white-space:nowrap;background:#FDECEC;color:#9B1C1C;font-weight:700;}
-.demande.supprimee-rec{opacity:.82;}
-/* LA PASTILLE PREND SA PROPRE LIGNE, À TOUTE LARGEUR, avec le nom du
-   chauffeur : posée sur la première, elle réduisait « Mehmet Yilmaz » à
-   « M » (vu sur la capture du 20/10). Même mécanique que le saut de ligne
-   sous 390 px : « ::after » casse la ligne, « order » range. */
-.d-haut:has(> .d-suppr-rec){flex-wrap:wrap;row-gap:3px;}
-.d-haut:has(> .d-suppr-rec)::after{content:"";order:2;flex-basis:100%;height:0;}
-.d-haut:has(> .d-suppr-rec) > .d-ch, .d-haut:has(> .d-suppr-rec) > .d-ch-manque,
-.d-haut:has(> .d-suppr-rec) > .d-suppr-rec{order:3;}
-.d-haut:has(> .d-suppr-rec) > .d-prix{order:1;}
 /* SOUS 390 px, LE CHAUFFEUR PASSE SOUS LA RÉFÉRENCE (relecture du 4 octobre
    2026). Posé entre la référence et le prix, il les faisait passer chacun
    sur deux lignes (« ELA-26-10- » / « K7M3Q », « 70,00 » / « € ») sur la
@@ -753,9 +739,9 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    le saut de ligne ; « :has » le réserve à ces cartes — un navigateur qui
    ne le connaît pas ignore la règle et garde la mise en page d'avant. */
 @media (max-width:389px){
-  .d-haut:has(> .d-ch, > .d-ch-manque, > .d-suppr-rec){flex-wrap:wrap;row-gap:3px;}
-  .d-haut:has(> .d-ch, > .d-ch-manque, > .d-suppr-rec)::after{content:"";order:2;flex-basis:100%;height:0;}
-  .d-haut > .d-ch, .d-haut > .d-ch-manque, .d-haut > .d-suppr-rec{order:3;}
+  .d-haut:has(> .d-ch, > .d-ch-manque){flex-wrap:wrap;row-gap:3px;}
+  .d-haut:has(> .d-ch, > .d-ch-manque)::after{content:"";order:2;flex-basis:100%;height:0;}
+  .d-haut > .d-ch, .d-haut > .d-ch-manque{order:3;}
   .d-haut > .d-prix{order:1;}
 }
 .sans-chauffeur-bord{display:block;width:calc(100% - 40px);margin:12px 20px 0;min-height:44px;
@@ -2129,19 +2115,6 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   font-size:12.5px;font-weight:700;color:#0B4F8C;}
 .rec-etat.annulee{background:transparent;color:var(--gris);text-decoration:line-through;}
 .rec-course .bouton-fantome{margin-top:8px;min-height:38px;font-size:13.5px;}
-/* « Supprimer » SUR CHAQUE CARTE, DISCRET ET À DROITE (20 octobre 2026, à sa
-   demande : « supprimer les courses effectuées ou non… la réception
-   aussi »). Un bouton rouge pleine largeur sur vingt cartes crierait plus
-   fort que l'état ; ici un petit bouton cerclé au bout de la carte, deux
-   appuis, et l'explication sous lui tant qu'il est armé. */
-.rec-suppr{display:flex;justify-content:flex-end;margin-top:6px;}
-.rec-suppr .bouton-fantome{width:auto;margin:0;min-height:36px;padding:0 12px;font-size:12.5px;}
-.rec-suppr .bouton-fantome[disabled]{opacity:.6;}
-.rec-suppr-etat{margin:6px 0 0;font-size:12.5px;line-height:1.35;color:#8f2220;}
-.rec-suppr-etat.calme{color:var(--gris);}
-/* Ce qu'on vient de retirer, dit en haut de la liste quelques secondes. */
-.rec-suppr-info{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:var(--fond);
-  color:var(--encre);font-size:13px;font-weight:700;}
 body:not(.reception) .hotel-acces{display:none;}
 
 /* ═══ SUR L'ADRESSE DE LA RÉCEPTION, LES DEUX LISTES DU CLIENT PARTENT ═══
@@ -2567,8 +2540,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 #bordDettes:not([hidden])~#bordAvis,#bordHorsLigne:not([hidden])~#bordAvis,
 #bordSynchro:not([hidden])~#bordAvis,#bordConflit:not([hidden])~#bordAvis,
 #bordSansChauffeur:not([hidden])~#bordAvis{display:none}
-#bordSupprRec:not([hidden])~#bordAvis{display:none}
-#bordSupprRec{background:#FDECEC;color:#9B1C1C;border-color:#F0A8A8;}
 .sauvegarde-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
 /* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026) : bandeaux compacts, Actualiser,
@@ -4167,12 +4138,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          la relance ne vise que les demandes en attente. Comme les dettes,
          l'écriteau n'existe que s'il y a quelque chose à faire. -->
     <button class="sans-chauffeur-bord" type="button" id="bordSansChauffeur" hidden></button>
-    <!-- UNE COURSE À VENIR SUPPRIMÉE PAR LA RÉCEPTION (20 octobre 2026) :
-         l'hôtel l'a retirée de sa liste, elle reste ici, marquée. Un
-         chauffeur est peut-être engagé : à lui de le rappeler, puis
-         d'annuler ou d'effacer. Une course finie ne s'annonce pas ici,
-         elle porte seulement sa pastille. -->
-    <button class="sans-chauffeur-bord" type="button" id="bordSupprRec" hidden></button>
     <!-- LES AVIS À DEMANDER (15 octobre 2026, SEO-AUTORITE.md § 11). Le bouton
          « Demander un avis » est manuel, course par course : ne le proposer
          qu'aux clients contents serait exactement le tri que Google et la loi
@@ -5679,9 +5644,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton-fantome" type="button" id="btnMdFermer">Fermer sans modifier</button>
     </div>
     <p class="bloc-note" id="bbModifNote" hidden></p>
-    <!-- La réception l'a retirée de sa liste (20/10/2026) : elle est restée
-         ici exprès. Le geste suivant est écrit. -->
-    <p class="bloc-note" id="bbSupprRec" hidden></p>
 
     <div class="veh-action" id="bbActions">
       <!-- ACCUSER RÉCEPTION — le message qui manquait.
@@ -5937,7 +5899,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </button>
       </div>
 
-      <p class="rec-suppr-info" id="recSupprInfo" hidden role="status"></p>
       <p class="rec-vide" id="recVide" hidden>Aucune réservation pour le moment.</p>
       <div id="recListe"></div>
 
@@ -8062,10 +8023,8 @@ window.ELA_TEXTES = {
   var ETATS_REC = { attente:"En attente", confirmee:"Réservation validée",
                     realisee:"Effectuée", refusee:"Non prise", annulee:"Annulée" };
   /* Une course FINIE n'attend plus rien : faite, non prise, ou annulée par
-     Elatransfer (30/09/2026 — la réception n'annule pas, elle appelle, et
-     Barbaros annule depuis son admin ; depuis le 20/10/2026 elle peut en
-     revanche SUPPRIMER une course de sa liste, finie ou non — voir
-     « supprimerRec »). */
+     Elatransfer (30/09/2026 — la réception ne peut plus annuler, elle
+     appelle, et Barbaros annule depuis son admin). */
   function statutFini(st){ return st === "realisee" || st === "refusee" || st === "annulee"; }
 
   /* ═══ GROUPÉ PAR JOUR, ET « EN RETARD » N'EST PAS UN JOUR ═══
@@ -8444,98 +8403,7 @@ window.ELA_TEXTES = {
         }
         d.appendChild(rang);
       }
-      /* ═══ « SUPPRIMER », SUR TOUTES LES CARTES (20 octobre 2026) ═══
-         À sa demande : « supprimer les courses effectuées ou non… la
-         réception aussi ». Deux appuis, 700 ms au moins entre les deux,
-         comme dans l'admin ; l'armement vit HORS du bouton (« recSupprArme »)
-         parce que la liste se redessine toute seule toutes les 30 s — gardé
-         sur le bouton, il retombait sous le doigt (leçon de « cloreArme »).
-         CE QUE LE SERVEUR FAIT N'EST PAS UN EFFACEMENT : il MARQUE la course,
-         elle quitte la liste de l'hôtel, Elatransfer la garde et la voit
-         marquée ; une course encore à venir lui est annoncée sur Telegram.
-         L'explication le dit en clair avant le second appui. */
-      var sup = document.createElement("div");
-      sup.className = "rec-suppr";
-      var bs = document.createElement("button");
-      bs.type = "button"; bs.className = "bouton-fantome rouge rec-supprimer";
-      var armee = recSupprArme && recSupprArme.ref === c.ref;
-      var enS = recEnAnglais();
-      bs.dataset.fr = armee ? "Confirmer la suppression" : "Supprimer";
-      bs.textContent = armee ? (enS ? "Confirm deletion" : "Confirmer la suppression") : (enS ? "Delete" : "Supprimer");
-      bs.addEventListener("click", function(){ supprimerRec(c, bs); });
-      sup.appendChild(bs);
-      d.appendChild(sup);
-      if(armee){
-        var es = document.createElement("p");
-        es.className = "rec-suppr-etat";
-        es.textContent = enS
-          ? "It leaves your list for good. Elatransfer keeps a record and is notified."
-          : "Elle quitte votre liste définitivement. Elatransfer en garde la trace et est prévenu.";
-        d.appendChild(es);
-      }
       liste.appendChild(d);
-    });
-  }
-
-  /* L'armement de « Supprimer » : une seule course à la fois, 8 s, puis il
-     retombe seul — une tablette reprise dix minutes plus tard ne doit pas
-     effacer au premier contact. */
-  var recSupprArme = null, recSupprMinuteur = null;
-  function desarmerSupprRec(redessiner){
-    recSupprArme = null;
-    if(recSupprMinuteur){ clearTimeout(recSupprMinuteur); recSupprMinuteur = null; }
-    if(redessiner !== false) dessinerReception();
-  }
-  function direSupprInfo(texte){
-    var e = document.getElementById("recSupprInfo");
-    if(!e) return;
-    e.hidden = !texte; e.textContent = texte || "";
-    if(texte) setTimeout(function(){ if(e.textContent === texte) e.hidden = true; }, 6000);
-  }
-  function supprimerRec(c, bouton){
-    if(!recHotel || !c || !c.ref) return;
-    var en = recEnAnglais();
-    if(!recSupprArme || recSupprArme.ref !== c.ref){
-      recSupprArme = { ref:c.ref, a:Date.now() };
-      if(recSupprMinuteur) clearTimeout(recSupprMinuteur);
-      recSupprMinuteur = setTimeout(function(){ desarmerSupprRec(); }, 8000);
-      dessinerReception();
-      return;
-    }
-    if(Date.now() - recSupprArme.a < 700) return;
-    if(recSupprMinuteur){ clearTimeout(recSupprMinuteur); recSupprMinuteur = null; }
-    bouton.disabled = true;
-    bouton.textContent = en ? "Deleting…" : "Suppression…";
-    var autorisation = codeRetenu(recHotel.cle);
-    var corps = (autorisation && autorisation.indexOf(".") > 0) ? { session:autorisation } : { code:autorisation };
-    corps.action = "supprimer"; corps.ref = c.ref;
-    var ref = c.ref, libelle = numeroDe(c) ? "N° " + numeroDe(c) : c.ref;
-    nuage.coursesHotel(recHotel.cle, corps).then(function(d){
-      if(d && d.session) retenirCode(recHotel.cle, d.session);
-      /* ON NE RETIRE DE L'ÉCRAN QUE CE QUE LE SERVEUR A MARQUÉ : retirer
-         d'abord ferait revenir la course à la relecture suivante, trente
-         secondes plus tard, sans que personne comprenne. */
-      recCourses = recCourses.filter(function(x){ return x.ref !== ref; });
-      if(recEtatsConnus) delete recEtatsConnus[ref];
-      delete recNouveaux[ref];
-      desarmerSupprRec(false);
-      dessinerReception();
-      direSupprInfo((en ? "Ride " : "Course ") + libelle + (en ? " removed from your list." : " retirée de votre liste."));
-    }).catch(function(err){
-      var raison = String(err && err.message);
-      desarmerSupprRec(false);
-      if(raison === "code"){
-        /* Le jeton est périmé ou le code a changé : même chemin que la
-           liste, on redemande le code, rien n'a été retiré. */
-        oublierCode(recHotel.cle);
-        recEtatsConnus = null;
-        montrerVerrou(true);
-        direRec("La session de 30 jours est terminée, ou le code a changé. Saisissez à nouveau le code de la réception.");
-        return;
-      }
-      dessinerReception();
-      direSupprInfo(en ? "The server refused: nothing was removed. Try again, or call Elatransfer."
-                       : "Le serveur a refusé : rien n'a été retiré. Réessayez, ou appelez Elatransfer.");
     });
   }
 
@@ -8701,7 +8569,7 @@ window.ELA_TEXTES = {
     if(!recHotel) return;
     oublierCode(recHotel.cle);
     recCourses = [];
-    recEtatsConnus = null; recNouveaux = {}; desarmerSupprRec(false);
+    recEtatsConnus = null; recNouveaux = {};
     recVue = "avenir"; recRecherche = ""; document.getElementById("recRecherche").value = "";
     recCurseur = null; recEchelle = "jour"; recLuA = null;
     document.getElementById("recPeriode").hidden = true;
@@ -13513,14 +13381,6 @@ window.ELA_TEXTES = {
     jugerSon();
     document.querySelector('.compteur[data-filtre="attente"]')
             .classList.toggle("urgent", parEtat.attente > 0);
-    var nbSupprRec = tout.filter(supprimeeParReceptionAVenir).length;
-    var ecSupprRec = document.getElementById("bordSupprRec");
-    if(ecSupprRec){
-      ecSupprRec.hidden = !nbSupprRec;
-      ecSupprRec.textContent = nbSupprRec === 1
-        ? "1 course à venir a été supprimée par la réception — la voir"
-        : nbSupprRec + " courses à venir ont été supprimées par la réception — les voir";
-    }
     var nbSansCh = tout.filter(sansChauffeur).length;
     var ecSansCh = document.getElementById("bordSansChauffeur");
     if(ecSansCh){
@@ -13636,17 +13496,6 @@ window.ELA_TEXTES = {
         if(sansChauffeur(c)){ dch.className = "d-ch-manque"; dch.textContent = "Sans chauffeur"; }
         else if(c.chauffeur && c.chauffeur.nom){ dch.className = "d-ch"; dch.textContent = c.chauffeur.nom; }
         if(dch.className) el.querySelector(".d-haut").insertBefore(dch, el.querySelector(".d-prix"));
-      }
-      /* SUPPRIMÉE PAR LA RÉCEPTION (20 octobre 2026) : l'hôtel l'a retirée
-         de SA liste, le serveur l'a marquée, elle reste ici. La pastille est
-         à côté de la référence, jamais dedans (même règle que « Sans
-         chauffeur »). Sur une course à venir, l'écriteau du tableau de bord
-         la compte : un chauffeur engagé est peut-être à rappeler. */
-      if(c.supprimeeReception){
-        var dsr = document.createElement("span");
-        dsr.className = "d-suppr-rec"; dsr.textContent = "Supprimée par la réception";
-        el.querySelector(".d-haut").insertBefore(dsr, el.querySelector(".d-prix"));
-        el.classList.add("supprimee-rec");
       }
       /* ═══ D'OÙ VIENT CETTE DEMANDE, VU D'UN COUP D'ŒIL ═══
          À sa demande : « l'adresse easyHotel, tu peux mettre un code
@@ -14318,18 +14167,6 @@ window.ELA_TEXTES = {
     desarmerAnnul();
     fermerModif();
     document.getElementById("bbModifNote").hidden = true;
-    var noteSR = document.getElementById("bbSupprRec");
-    if(noteSR){
-      noteSR.hidden = !c.supprimeeReception;
-      if(c.supprimeeReception){
-        var dSR = new Date(c.supprimeeReception), zSR = function(x){ return String(x).padStart(2, "0"); };
-        var quandSR = isNaN(dSR.getTime()) ? "" : " le " + zSR(dSR.getDate()) + "/" + zSR(dSR.getMonth() + 1)
-                      + " à " + zSR(dSR.getHours()) + ":" + zSR(dSR.getMinutes());
-        noteSR.textContent = "Supprimée de la liste de la réception" + quandSR + ". Elle reste ici exprès : "
-          + (finie ? "rien à faire, sauf l'effacer si vous le souhaitez."
-                   : "prévenez le chauffeur s'il est engagé, puis « Annuler » ou « Supprimer cette course ».");
-      }
-    }
     /* L'accusé de réception ne vaut QUE pour une demande pas encore
        tranchée : une fois la course confirmée, c'est « Prévenir le client »
        qui parle, et lui dit bien plus. Deux messages coup sur coup diraient
@@ -15416,23 +15253,7 @@ window.ELA_TEXTES = {
       var l = document.getElementById("listeBord");
       if(l) l.scrollIntoView({ block:"start" });
     });
-    /* L'écriteau emmène à la première course à venir que la réception a
-       retirée : le filtre suit SON état (attente ou confirmée). */
-    var r = document.getElementById("bordSupprRec");
-    if(r) r.addEventListener("click", function(){
-      var premiere = registre().filter(supprimeeParReceptionAVenir)[0];
-      if(premiere) filtreBord = premiere.statut || "attente";
-      dessinerBord();
-      var carte = document.querySelector("#listeBord .demande.supprimee-rec") || document.getElementById("listeBord");
-      if(carte) carte.scrollIntoView({ block:"start" });
-    });
   })();
-  /* Une course que l'hôtel a retirée de sa liste ET qui n'est pas finie :
-     c'est la seule qui demande un geste (rappeler un chauffeur, annuler). */
-  function supprimeeParReceptionAVenir(c){
-    var st = (c && c.statut) || "attente";
-    return !!(c && c.supprimeeReception) && (st === "attente" || st === "confirmee");
-  }
   document.querySelectorAll(".compteur").forEach(function(b){
     b.addEventListener("click", function(){ filtreBord = b.dataset.filtre; dessinerBord(); });
   });

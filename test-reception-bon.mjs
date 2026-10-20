@@ -167,8 +167,8 @@ try {
       const l = document.getElementById('recListe').getBoundingClientRect();
       return a.bottom <= l.top && l.top - a.bottom < 120;
     }));
-  check('une course non prise n\'a pas de bon à montrer (seul « Supprimer » reste, 20/10/2026)',
-    await carte('ELA-26-10-VEILL').locator('button', { hasText:'Voir le bon' }).count() === 0);
+  check('une course non prise n\'a pas de bon à montrer',
+    await carte('ELA-26-10-VEILL').locator('button').count() === 0);
   await carte('ELA-26-10-SOIR1').locator('button', { hasText:'Voir le bon' }).click({ timeout:3000 }).catch(() => {});
   check('le bon d\'une course effectuée ne porte aucun prix',
     await p.locator('#bonClient .ebon-prix').count() === 0 && !/€/.test(await bon.textContent()));

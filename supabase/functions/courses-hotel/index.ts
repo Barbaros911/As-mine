@@ -57,19 +57,12 @@
    qui reste vrai : ces données ne sortent jamais de l'hôtel qui les a
    saisies, et le code protège l'accès.
 
-   ═══ LA RÉCEPTION SUPPRIME DE SA LISTE, ELATRANSFER GARDE LA TRACE ═══
-   20 octobre 2026, Barbaros : « il faut que je puisse supprimer les
-   courses, effectuées ou non, sur admin et la réception aussi ». Jusque-là
-   cette fonction ne faisait que lire (depuis le 30/09, plus même de
-   demande d'annulation). L'action « supprimer » retire une course de la
-   liste de l'hôtel, finie ou non — mais elle N'EFFACE PAS la ligne : elle
-   la MARQUE (« bon.supprimeeReception »). Une course réalisée est de
-   l'argent dû par un chauffeur et une preuve (L3142-1) ; une course à
-   venir a peut-être un chauffeur déjà engagé, que seul Barbaros peut
-   rappeler. L'admin voit la marque, est prévenu par Telegram quand la
-   course était encore à venir, et c'est lui qui efface pour de bon, ou
-   pas. Seule la course DE CET HÔTEL se marque : la clé de la session
-   borne la recherche. Toute autre action reste refusée.
+   ═══ RIEN NE S'ANNULE DEPUIS UNE TABLETTE D'HÔTEL ═══
+   Une course annulée à 5 h du matin libère un chauffeur que Barbaros a
+   déjà engagé, et il est le seul à pouvoir le rappeler. Depuis le
+   30/09/2026 la réception ne peut même plus le DEMANDER par un bouton :
+   elle appelle, et Barbaros annule depuis son admin. Cette fonction ne
+   fait que lire ; toute autre action est refusée.
    ===================================================================== */
 
 import {
@@ -147,74 +140,6 @@ async function partenaireDesactive(cle: string): Promise<boolean> {
     const l = await r.json();
     return Array.isArray(l) && l.length > 0 && l[0] && l[0].actif === false;
   } catch (_e) { return false; }
-}
-
-/* ═══ MARQUER UNE COURSE « SUPPRIMÉE PAR LA RÉCEPTION » ═══
-   Lecture bornée à l'hôtel, écriture sous condition de version, un seul
-   nouvel essai sur conflit. Rend « ok », « deja », « introuvable »,
-   « conflit » ou « panne ». La ligne n'est jamais effacée ici. */
-const EN_TETES_SERVICE = { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` };
-async function marquerSupprimee(cle: string, ref: string): Promise<string> {
-  for (let essai = 0; essai < 2; essai++) {
-    let ligne: any = null;
-    try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=ref,statut,version,bon`
-        + `&ref=eq.${encodeURIComponent(ref)}&bon->>provenanceCle=eq.${encodeURIComponent(cle)}&limit=1`,
-        { headers: EN_TETES_SERVICE });
-      if (!r.ok) return "panne";
-      const l = await r.json();
-      ligne = Array.isArray(l) && l.length ? l[0] : null;
-    } catch (_e) { return "panne"; }
-    if (!ligne) return "introuvable";
-    const bon = (ligne.bon && typeof ligne.bon === "object") ? ligne.bon : {};
-    if (bon.supprimeeReception) return "deja";
-    const statut = String(ligne.statut || bon.statut || "attente");
-    const nouveau = { ...bon, supprimeeReception: new Date().toISOString(), supprimeeReceptionPar: cle };
-    const version = Number(ligne.version);
-    const condition = Number.isFinite(version) ? `&version=eq.${version}` : "";
-    try {
-      const w = await fetch(`${SUPABASE_URL}/rest/v1/courses?ref=eq.${encodeURIComponent(ref)}${condition}`,
-        { method: "PATCH",
-          headers: { ...EN_TETES_SERVICE, "Content-Type": "application/json", Prefer: "return=representation" },
-          body: JSON.stringify({ bon: nouveau }) });
-      if (!w.ok) return "panne";
-      const t = await w.text();
-      let ecrites: any = [];
-      try { ecrites = JSON.parse(t || "[]"); } catch (_e) { ecrites = []; }
-      /* Zéro ligne rendue : la version a bougé sous nous. On relit. */
-      if (!Array.isArray(ecrites) || !ecrites.length) continue;
-    } catch (_e) { return "panne"; }
-    /* Prévenir Barbaros SEULEMENT si la course était encore à venir : c'est
-       là qu'un chauffeur engagé est peut-être à rappeler. Une course finie
-       ne demande rien, elle porte sa marque dans l'admin. Jamais le nom, le
-       téléphone ni la chambre du client (RGPD 5.1.c) ; jamais de parse_mode. */
-    if (statut === "attente" || statut === "confirmee") {
-      await prevenirSuppression(cle, ref, statut, bon).catch(() => {});
-    }
-    return "ok";
-  }
-  return "conflit";
-}
-async function prevenirSuppression(cle: string, ref: string, statut: string, bon: any): Promise<void> {
-  const token = Deno.env.get("TELEGRAM_TOKEN") ?? "", chat = Deno.env.get("TELEGRAM_CHAT") ?? "";
-  if (!token || !chat) return;
-  const co = bon.course || {}, ch = bon.chauffeur || {};
-  const numero = Number(bon.numero) > 0 ? `N° ${Number(bon.numero)}` : ref;
-  const lignes = [
-    `Course ${numero} supprimée par la réception (${cle})`,
-    `${String(co.date || "")} ${String(co.heure || "")} · ${String(co.departPublic || co.depart || "").slice(0, 60)} → ${String(co.arrivee || "").slice(0, 60)}`,
-    statut === "confirmee"
-      ? `Elle était confirmée${ch.nom ? ", chauffeur " + String(ch.nom).slice(0, 40) : ""} : à prévenir s'il est engagé.`
-      : "Elle était en attente.",
-    "Elle reste dans votre admin, marquée « Supprimée par la réception » : à vous d'effacer, ou non."
-  ];
-  const ctrl = new AbortController(), minuteur = setTimeout(() => ctrl.abort(), 5000);
-  try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, signal: ctrl.signal,
-      body: JSON.stringify({ chat_id: chat, text: lignes.join("\n"), disable_web_page_preview: true })
-    });
-  } finally { clearTimeout(minuteur); }
 }
 
 Deno.serve(async (req: Request) => {
@@ -310,35 +235,13 @@ Deno.serve(async (req: Request) => {
   }
   const sessionCourante = sessionValide ? session : await creerSessionHotel(cle, attendu);
 
-  /* ---- Supprimer de la liste de l'hôtel (20/10/2026) ----------------
-     Voir l'en-tête : on MARQUE, on n'efface pas. L'écriture est faite sous
-     condition de version — même règle que l'admin : si Barbaros a touché la
-     course entre la lecture et l'écriture, on relit et on réessaie une
-     fois, jamais on n'écrase. Le déclencheur de la base monte « version »
-     et « modifie_le » : la sonde de l'admin voit la marque en 8 s. */
-  if (action === "supprimer") {
-    const ref = String(corps.ref ?? "").trim();
-    if (!/^[A-Za-z0-9-]{4,40}$/.test(ref)) {
-      return new Response(JSON.stringify({ erreur: "référence manquante" }),
-        { status: 400, headers: entetes(origin) });
-    }
-    const issue = await marquerSupprimee(cle, ref);
-    if (issue === "introuvable") {
-      /* « introuvable » vaut aussi pour la course d'un AUTRE hôtel : on ne
-         dit pas à un comptoir qu'une référence existe ailleurs. */
-      return new Response(JSON.stringify({ erreur: "course introuvable" }),
-        { status: 404, headers: entetes(origin) });
-    }
-    if (issue === "conflit" || issue === "panne") {
-      return new Response(JSON.stringify({ erreur: issue === "conflit"
-        ? "course modifiée entre-temps, réessayez" : "écriture refusée" }),
-        { status: issue === "conflit" ? 409 : 502, headers: entetes(origin) });
-    }
-    return new Response(JSON.stringify({ ok: true, ref: ref, session: sessionCourante }),
-      { headers: entetes(origin) });
-  }
-  /* Toute autre action est REFUSÉE ici, en plus de l'écran — un bouton
-     absent n'empêche pas un appel direct. */
+  /* ---- La réception ne fait QUE lire ------------------------------
+     (30/09/2026, à la demande de Barbaros : « la réception ne peut
+     annuler »). Il y avait ici une action « annulation » qui posait un
+     drapeau sur le bon. Elle est retirée : pour annuler, la réception
+     appelle, et c'est Barbaros qui annule depuis son admin. Toute action
+     autre que la liste est REFUSÉE ici, en plus du bouton retiré de la
+     page — un bouton retiré n'empêche pas un appel direct. */
   if (action !== "liste") {
     return new Response(JSON.stringify({ erreur: "action non autorisée" }),
       { status: 403, headers: entetes(origin) });
@@ -352,9 +255,6 @@ Deno.serve(async (req: Request) => {
   const url = `${SUPABASE_URL}/rest/v1/courses`
     + `?select=ref,statut,cree_le,bon`
     + `&bon->>provenanceCle=eq.${encodeURIComponent(cle)}`
-    /* Une course que la réception a supprimée ne lui revient plus (20/10) :
-       le filtre est ici ET dans la composition plus bas — deux défenses. */
-    + `&bon->>supprimeeReception=is.null`
     /* 500 et plus 200 (30/09/2026) : la réception retrouve maintenant son
        HISTORIQUE (onglet « Passées », recherche). 200 couvrait quelques
        semaines d'un hôtel actif ; 500 couvre des mois, pour quelques
@@ -377,9 +277,7 @@ Deno.serve(async (req: Request) => {
     return m ? m[1].trim() : "";
   }
 
-  const courses = (Array.isArray(lignes) ? lignes : [])
-    .filter((l: any) => !(l && l.bon && l.bon.supprimeeReception))
-    .map((l: any) => {
+  const courses = (Array.isArray(lignes) ? lignes : []).map((l: any) => {
     const bon = l.bon || {};
     const co = bon.course || {};
     const ch = bon.chauffeur || {};
