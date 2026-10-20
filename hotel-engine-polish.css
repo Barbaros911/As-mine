@@ -391,6 +391,32 @@ body.hotel.reception-premium #ecran-reception{max-width:900px;margin:0 auto;padd
 /* Le titre de la liste est un BANDEAU : son texte est sombre (l'encre de
    l'hôtel), il prend donc le fond « bandeau », jamais celui des actions. */
 body.hotel.reception-premium #ecran-reception .trajet-tete{background:linear-gradient(120deg,var(--eh-bandeau),var(--eh-bandeau2))!important;box-shadow:0 10px 24px rgba(11,49,83,.16)!important;box-shadow:0 10px 24px color-mix(in srgb,var(--eh-bandeau) 16%,transparent)!important}
+/* LA PHOTO DU COMPTOIR (« photoComptoir » de la fiche, 20/10/2026, à la
+   demande de Barbaros : la réception seulement, en fond du bandeau sur
+   toute sa largeur — choisi sur maquette contre la vignette et le fond
+   d'écran de toute la page, qui brouillait la liste). Un voile sombre
+   garantit le blanc du texte quelle que soit l'image ; l'orange de l'hôtel
+   reste sur la pastille du titre. 176 px de haut (« trop petite, on voit
+   rien » à 90 px) : c'est le plus haut qui laisse la première course à
+   l'écran d'un PC 1366×768 (test-reception-bon). Cadrée en bas : le
+   comptoir « bonjour » plutôt que les lampes (son choix, sur maquette,
+   contre un bandeau de 240 px qui repoussait la liste). Sous 600 px, l'aplat
+   orange reste. Sans photo, rien ne change. */
+@media(min-width:600px){
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete{
+    min-height:176px;align-items:flex-end;
+    background:linear-gradient(0deg,rgba(10,20,30,.62) 0%,rgba(10,20,30,0) 62%),
+      linear-gradient(90deg,rgba(10,20,30,.72) 0%,rgba(10,20,30,.38) 42%,rgba(10,20,30,0) 72%),
+      var(--h-photo-comptoir) center 100%/cover no-repeat,#16232B!important;
+    box-shadow:0 10px 24px rgba(10,20,30,.22)!important;
+  }
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete .trajet-corps{padding-bottom:14px}
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete .rec-titre{
+    display:inline-block;padding:1px 10px;border-radius:999px;background:var(--eh-bandeau);color:#1B1B1B!important;
+    font-size:13px!important;letter-spacing:.06em}
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete .rec-hotel{color:#fff!important;opacity:1}
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete .rec-adresse{color:rgba(255,255,255,.88)!important}
+}
 body.hotel.reception-premium #ecran-reception .rec-titre{font-size:18px;font-weight:950}
 body.hotel.reception-premium #ecran-reception .rec-hotel{font-size:14px;font-weight:800;opacity:.9}
 body.hotel.reception-premium #ecran-reception .rec-adresse{margin:3px 0 0;color:rgba(8,47,82,.78);font-size:11px;line-height:1.3}

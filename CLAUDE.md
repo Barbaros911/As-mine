@@ -1823,11 +1823,10 @@ sept prix, soit un quatrième endroit à tenir.
   (`.hotel-enhanced`, plus `body.hotel:not(.reception)`).
 - **Nom et téléphone exigés au comptoir aussi** (11/10/2026) : le lien de
   paiement part sur ce numéro. La chambre, facultative, se range sous le nom.
-- **La photo de l'en-tête n'est pas reprise au comptoir** : elle est chargée
-  depuis le site d'easyHotel (`cdn.easyhotel.com`, champ `photoEntete` de sa
-  fiche `HOTELS`), sans accord écrit, contre la règle « aucune
-  photo ni logo d'easyHotel » de la section du thème partenaire. Côté client
-  elle est EN LIGNE ; signalé à Barbaros le 23/09/2026, à lui de trancher.
+- **Photo client** (`photoEntete`) : chargée depuis `cdn.easyhotel.com`, sans
+  accord écrit — signalé le 23/09/2026, à lui de trancher. **Comptoir**
+  (`photoComptoir`, 20/10/2026) : SA photo, bandeau de 176 px sous un voile
+  (6,5:1), ordinateur et tablette ; jamais de fond de page (`test-reception-bon`).
 
 **VERT = REMPLI, ROUGE = IL MANQUE** (23/09/2026, à sa demande), sur les deux
 entrées easyHotel, dans `hotel-engine-polish.js/.css` (classes `eh-ok`,
