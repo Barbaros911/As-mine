@@ -154,7 +154,21 @@ const vu = async sel => a.evaluate(s => { const e = document.querySelector(s);
 check('agent : le bon s\'ouvre (il traite les courses)', await vu('#ecran-bord-bon'));
 check('agent : la commission du bon est cachée', !(await vu('#blocCommission')));
 check('agent : le registre et les factures sont hors de portée', !(await vu('#btnRegistre')) && !(await vu('#btnFactures')));
+/* SEUL L'ADMIN SUPPRIME (20/10/2026, Barbaros : « c'est seulement moi qui
+   peut supprimer »). Le bouton est caché ET un appui forcé ne l'arme pas :
+   le serveur refuse de toute façon (supabase/tests/suppression-admin.sql),
+   l'écran ne doit pas promettre un geste qui ne passera pas. */
+check('agent : « Supprimer cette course » est caché', !(await vu('#btnSupprimerCourse')));
+await a.evaluate(() => document.getElementById('btnSupprimerCourse').click());
+await a.waitForTimeout(150);
+check('agent : un appui forcé ne l\'arme pas', (await a.textContent('#btnSupprimerCourse')).trim() === 'Supprimer cette course',
+  await a.textContent('#btnSupprimerCourse'));
 await a.click('#btnRetourBord');
+await a.evaluate(() => document.getElementById('btnBordSelection').click());
+await a.waitForTimeout(200);
+check('agent : la sélection garde « Marquer réalisées », sans « Supprimer »',
+  (await vu('#bordSelectionBarre')) && !(await vu('#btnBordSupprimerSel')));
+await a.evaluate(() => document.getElementById('btnBordSelection').click());
 const reste = await a.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings')).find(c => c.ref === 'ELA-26-09-0002').commission);
 check('agent : enregistrer le bon ne touche pas la commission cachée (25 %)', reste && reste.mode === 'pct' && reste.valeur === 25, JSON.stringify(reste));
 await a.evaluate(() => document.getElementById('btnChauffeurs').click());

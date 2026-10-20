@@ -115,6 +115,12 @@ ton admin (« Annuler la course », « Modifier la course ») ; elle voit
 annulée à 5 h du matin libère un chauffeur que tu as déjà engagé, et toi seul
 peux le rappeler.
 
+**Elle ne supprime rien non plus** (20/10/2026, ta décision). Toi seul
+supprimes une course, effectuée ou non, depuis ton admin : « Supprimer cette
+course » sur le bon, ou « Sélectionner » puis « Supprimer » pour plusieurs.
+Une course que tu supprimes disparaît de la liste de la réception sous
+30 secondes.
+
 ---
 
 ## Si ça ne marche pas

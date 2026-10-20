@@ -187,6 +187,19 @@ jobs:
             -f supabase/tests/role-agent-avant.sql \
             -f supabase/migrations/20260929030000_role_agent_serveur.sql \
             -f supabase/tests/role-agent.sql
+          # Seul l'admin supprime une course (20/10/2026, Barbaros : « c'est
+          # seulement moi qui peut supprimer »). L'état d'avant est reposé ET
+          # exigé (l'agent supprime, une attribution bloque) ; après la
+          # migration l'agent est refusé, l'admin efface en attente, réalisée
+          # et attribuée, un compte suspendu ne supprime plus.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database suppression;'
+          psql -h 127.0.0.1 -U postgres -d suppression -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/suppression-admin-avant.sql \
+            -f supabase/migrations/20261020020000_suppression_course_admin.sql \
+            -f supabase/tests/suppression-admin.sql
           # Le voyant des alertes (4 octobre 2026) : un anonyme ne lit rien,
           # un non-exploitant est refusé par la fonction elle-même, et les
           # mesures disent vrai. Le schéma « cron » n'existe que chez
