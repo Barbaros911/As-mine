@@ -356,7 +356,7 @@
         if(!en && m && MOIS_EN[m[3].toLowerCase()]) en=JOURS_EN[m[1].toLowerCase()]+' '+m[2]+' '+MOIS_EN[m[3].toLowerCase()];
         trad(j,en);
       });
-      var boutons={'Appeler Elatransfer':'Call Elatransfer','Voir le bon':'View voucher'};
+      var boutons={'Appeler Elatransfer':'Call Elatransfer','Voir le bon':'View voucher','Supprimer':'Delete','Confirmer la suppression':'Confirm deletion','Suppression…':'Deleting…'};
       document.querySelectorAll('#recListe .bouton-fantome').forEach(function(x){
         trad(x,boutons[(x.dataset.fr||x.textContent).trim()]);
       });

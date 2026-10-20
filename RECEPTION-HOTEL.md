@@ -115,6 +115,17 @@ ton admin (« Annuler la course », « Modifier la course ») ; elle voit
 annulée à 5 h du matin libère un chauffeur que tu as déjà engagé, et toi seul
 peux le rappeler.
 
+**Elle peut SUPPRIMER une course de sa liste, effectuée ou non** (depuis le
+20/10/2026, à ta demande). Chaque carte porte « Supprimer » : un premier appui
+arme et explique, un second confirme. La course quitte sa liste pour de bon —
+mais **chez toi elle reste** : marquée « Supprimée par la réception » sur la
+carte et sur la fiche, comptée dans un écriteau rouge du tableau de bord si
+elle était encore à venir, et tu reçois un message Telegram dans ce cas (avec
+le chauffeur s'il y en a un, jamais le nom ni le numéro du client). C'est toi
+qui décides ensuite : prévenir le chauffeur, « Annuler », ou « Supprimer cette
+course » pour l'effacer vraiment. Une course réalisée ainsi retirée garde sa
+place dans ton registre et dans ce que te doit le chauffeur.
+
 ---
 
 ## Si ça ne marche pas

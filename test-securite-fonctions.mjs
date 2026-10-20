@@ -186,6 +186,78 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(ecritures.length===0,'réception : et rien n\'est écrit sur la course');
 }
 
+/* LA RÉCEPTION SUPPRIME DE SA LISTE, LE SERVEUR MARQUE SANS EFFACER
+   (20/10/2026). On lit ce qui PART à la base : une écriture PATCH sous
+   condition de version qui pose « supprimeeReception », jamais un DELETE ;
+   un hôtel ne marque que SA course ; Telegram n'est prévenu que sur une
+   course encore à venir, sans nom, téléphone ni chambre du client. */
+{
+  const table={
+    'ELA-R1':{ref:'ELA-R1',statut:'confirmee',version:7,bon:{provenanceCle:'easyhotel-aeroville',numero:1042,course:{date:'2026-10-21',heure:'08:00',departPublic:'easyHotel Aéroville',depart:'easyHotel Aéroville (ch. 214)',arrivee:'Orly 1',chambre:'214'},client:{nom:'Mme Durand',telephone:'0655443322'},chauffeur:{nom:'Mehmet',telephone:'0612345678'},prix:{total:90}}},
+    'ELA-R2':{ref:'ELA-R2',statut:'realisee',version:3,bon:{provenanceCle:'easyhotel-aeroville',course:{date:'2026-10-18',heure:'10:00',arrivee:'CDG'},client:{nom:'M. Petit',telephone:'0611223344'},prix:{total:35}}},
+    'ELA-R3':{ref:'ELA-R3',statut:'attente',version:1,bon:{provenanceCle:'autre-hotel',course:{date:'2026-10-22',heure:'09:00'},client:{nom:'X'},prix:{total:50}}},
+  };
+  const patchs=[],dels=[];let versionBougee=false;
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('api.telegram.org')){tg.push(JSON.parse(init.body).text);return new Response('{}');}
+    if(init.method==='DELETE'){dels.push(url);return new Response('[]');}
+    if(init.method==='PATCH'){
+      const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);
+      const v=Number((url.match(/version=eq\.(\d+)/)||[])[1]);
+      patchs.push({ref,version:v,bon:JSON.parse(init.body).bon});
+      if(versionBougee){versionBougee=false;table[ref].version++;return new Response('[]');}
+      if(!table[ref]||table[ref].version!==v)return new Response('[]');
+      table[ref].bon=JSON.parse(init.body).bon;table[ref].version++;
+      return new Response(JSON.stringify([{ref}]));
+    }
+    if(url.includes('/rest/v1/courses?select=ref,statut,version,bon&ref=eq.')){
+      const ref=decodeURIComponent(url.match(/ref=eq\.([^&]+)/)[1]);
+      const cle=decodeURIComponent(url.match(/provenanceCle=eq\.([^&]+)/)[1]);
+      const l=table[ref];return new Response(JSON.stringify(l&&l.bon.provenanceCle===cle?[l]:[]));
+    }
+    if(url.includes('/rest/v1/courses?select=ref,statut,cree_le,bon&bon'))
+      return new Response(JSON.stringify(Object.values(table).filter(l=>l.bon.provenanceCle==='easyhotel-aeroville'&&(url.includes('supprimeeReception=is.null')?!l.bon.supprimeeReception:true))));
+    return fetchAvant(url,init);
+  };
+  const hcT=await charger('courses-hotel',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S',HOTEL_EASYHOTEL_AEROVILLE_CODE:'easyhotel-9F3K2Q',TELEGRAM_TOKEN:'t',TELEGRAM_CHAT:'c'});
+  const sup=(ref)=>hcT(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},
+    body:JSON.stringify({hotel:'easyhotel-aeroville',code:'easyhotel-9F3K2Q',action:'supprimer',ref})}));
+  quotaAppels=0;tg.length=0;
+  let r=await sup('ELA-R3');
+  ok(r.status===404&&patchs.length===0,'réception : la course d\'un AUTRE hôtel est « introuvable », rien n\'est écrit');
+  r=await sup('ELA-R1');
+  ok(r.status===200&&(await r.json()).ok===true,'réception : « supprimer » sur sa course à venir rend ok');
+  ok(dels.length===0,'réception : AUCUN DELETE ne part — la ligne reste');
+  ok(patchs.length===1&&patchs[0].ref==='ELA-R1'&&patchs[0].version===7,'réception : une écriture PATCH, sous condition de la version lue');
+  ok(typeof patchs[0].bon.supprimeeReception==='string'&&patchs[0].bon.supprimeeReceptionPar==='easyhotel-aeroville'&&patchs[0].bon.chauffeur.nom==='Mehmet',
+    'réception : le bon est MARQUÉ (supprimeeReception, par qui), le reste du bon intact');
+  ok(tg.length===1&&/1042/.test(tg[0])&&/Mehmet/.test(tg[0])&&/Orly/.test(tg[0]),'réception : Barbaros est prévenu sur Telegram (N°, chauffeur, trajet) pour une course à venir',tg[0]);
+  ok(tg.length===1&&!/Durand|0655|214/.test(tg[0]),'réception : le message ne porte ni le nom, ni le téléphone, ni la chambre du client',tg[0]);
+  r=await sup('ELA-R1');
+  ok(r.status===200&&patchs.length===1,'réception : rejouée, la suppression constate et n\'écrit plus');
+  tg.length=0;
+  r=await sup('ELA-R2');
+  ok(r.status===200&&patchs.length===2&&patchs[1].ref==='ELA-R2','réception : une course RÉALISÉE se supprime aussi (marquée, pas effacée)');
+  ok(tg.length===0,'réception : une course finie ne prévient personne — rien à rappeler');
+  const liste=await (await hcT(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},
+    body:JSON.stringify({hotel:'easyhotel-aeroville',code:'easyhotel-9F3K2Q'})}))).json();
+  ok(Array.isArray(liste.courses)&&liste.courses.length===0,'réception : les courses marquées ne reviennent plus dans sa liste');
+  /* Un conflit de version : la base a bougé entre la lecture et l'écriture.
+     On relit et on réécrit UNE fois ; jamais d'écrasement sans condition. */
+  table['ELA-R4']={ref:'ELA-R4',statut:'attente',version:2,bon:{provenanceCle:'easyhotel-aeroville',course:{date:'2026-10-23',heure:'11:00'},prix:{total:40}}};
+  versionBougee=true;tg.length=0;const avant=patchs.length;
+  r=await sup('ELA-R4');
+  ok(r.status===200&&patchs.length===avant+2&&patchs[avant].version===2&&patchs[avant+1].version===3&&table['ELA-R4'].bon.supprimeeReception,
+    'réception : la version a bougé → on relit et on réécrit une fois, sous la nouvelle version');
+  ok(dels.length===0,'réception : toujours aucun DELETE, sur toute la séquence');
+  r=await hcT(new Request('http://x',{method:'POST',headers:{'x-forwarded-for':'1.2.3.4'},
+    body:JSON.stringify({hotel:'easyhotel-aeroville',code:'easyhotel-9F3K2Q',action:'supprimer',ref:'../x'})}));
+  ok(r.status===400,'réception : une référence mal formée est refusée avant toute lecture');
+  globalThis.fetch=fetchAvant;
+}
+
 /* cle-notifications : elle rend la clé PUBLIQUE, bien formée, et rien d'autre. */
 {
   const {generateKeyPairSync}=await import('node:crypto');

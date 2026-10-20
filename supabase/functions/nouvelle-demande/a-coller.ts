@@ -380,6 +380,12 @@ async function relancer():Promise<string>{
     const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
     const bon=(l.bon??{}) as Record<string,any>;if(!bon.ref)bon.ref=ref;
     if(saisieExploitant(bon))continue;
+    /* Une demande que la RÉCEPTION a retirée de sa liste (20/10/2026,
+       « bon.supprimeeReception », posée par courses-hotel) ne se rappelle
+       plus : Barbaros a reçu le message de suppression, la course l'attend
+       marquée dans son admin. La relancer dix minutes serait la panne
+       « trop d'alertes » qu'il a déjà fait corriger. */
+    if(bon.supprimeeReception)continue;
     /* UNE DEMANDE IMMÉDIATE N'A PAS DE RENDEZ-VOUS : son « départ » est
        l'instant même où elle a été faite. Comptée sur lui, elle recevait au
        tour suivant le message final « départ passé », puis le silence — la
