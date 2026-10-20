@@ -228,6 +228,22 @@ async function reserver(p) {
   await v.ctx.close();
 }
 {
+  /* LE CODE SURVIT À UN RECHARGEMENT (20/10/2026) : il est effacé de
+     l'adresse dès l'arrivée ; sans « sessionStorage », un client qui
+     revenait sur le moteur réservait sans lui, et le partenaire perdait la
+     course. Seconde page SANS « via » dans l'adresse, même onglet. */
+  const v = await visiteur();
+  await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&via=hotel-exemple', { waitUntil: 'load' });
+  await v.p.waitForTimeout(500);
+  check('rechargement : le code a bien quitté la barre d\'adresse', !/via=/.test(v.p.url()), v.p.url());
+  await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&aeroport=cdg&sens=depart&vers=orly', { waitUntil: 'load' });
+  await v.p.waitForTimeout(700);
+  await reserver(v.p);
+  const bon = v.depots[0] || {};
+  check('rechargement : la demande part ENCORE avec le code du partenaire', bon.via === 'hotel-exemple', JSON.stringify({ via: bon.via }));
+  await v.ctx.close();
+}
+{
   /* Une affiche d'hôtel (provenance de la visite) garde la priorité. */
   const v = await visiteur({ init: () => { try { sessionStorage.setItem('ela_provenance', 'Affiche · Hôtel du Parc'); } catch (e) {} } });
   await v.p.goto(SITE + '/?lang=en&src=en-cdg-orly&aeroport=cdg&sens=depart&vers=orly&via=hotel-exemple', { waitUntil: 'load' });
@@ -273,7 +289,7 @@ const MESURE = [{ source: 'hotel-exemple', evenement: 'page_vue', nombre: 12 },
                 { source: 'hotel-exemple', evenement: 'clic_reserver', nombre: 3 },
                 { source: 'hotel-exemple', evenement: 'clic_appel', nombre: 1 }];
 const crees = [];
-async function admin({ lienAvis = 'https://g.page/r/exemple/review', mesureEnPanne = false } = {}) {
+async function admin({ lienAvis = 'https://g.page/r/exemple/review', mesureEnPanne = false, liensServeur = null } = {}) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris' });
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: SITE });
   await ctx.addInitScript(([lien]) => {
@@ -290,6 +306,9 @@ async function admin({ lienAvis = 'https://g.page/r/exemple/review', mesureEnPan
     if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
     if (u.includes('/rpc/role_operateur')) return route.fulfill(J('admin'));
     if (u.includes('/rpc/ela_mesures_liens')) return mesureEnPanne ? route.fulfill(J({ message: 'absente' }, 404)) : route.fulfill(J(MESURE));
+    /* La vérité serveur des liens (20/10/2026) : absente par défaut (migration
+       pas appliquée → l'appareil compte), posée par le bloc qui l'éprouve. */
+    if (u.includes('/rpc/ela_liens_resultats')) return liensServeur ? route.fulfill(J(liensServeur)) : route.fulfill(J({ message: 'absente' }, 404));
     if (u.includes('/rest/v1/liens_suivi') && m === 'POST') {
       const c = JSON.parse(req.postData() || '{}'); crees.push(c);
       if (LIENS.some(l => l.code === c.code)) return route.fulfill(J({ code: '23505' }, 409));
@@ -375,10 +394,31 @@ try {
     check('liens : les deux liens du serveur s\'affichent, le plus utile en tête', ls.length === 2 && ls[0].nom === 'Hôtel Exemple Roissy', JSON.stringify(ls));
     check('liens : le compteur AVANT la demande (12 vues, 3 « Book », 1 appel)', /12 vues/.test(exemple.sous[0]) && /3 « Book »/.test(exemple.sous[0]) && /1 appel/.test(exemple.sous[0]), exemple.sous[0]);
     check('liens : 2 demandes, 1 réalisée — ni la course d\'essai, ni celle d\'il y a 40 jours', /2 demandes/.test(exemple.sous[0]) && /1 réalisée/.test(exemple.sous[0]), exemple.sous[0]);
+    check('liens : sans la fonction du serveur, l\'écran dit que l\'appareil a compté', /calculés sur cet appareil/.test(await p.textContent('#regLiensEtat')));
     check('liens : l\'argent ne compte que la réalisée des 30 jours (80 €, ni 999, ni 300)', /^80\s?€$/.test(exemple.val || ''), exemple.val);
     check('liens : le code est écrit sous le nom', exemple.sous[1] === 'Code : hotel-exemple', exemple.sous[1]);
     const fiche = ls.find(l => l.nom === 'Fiche papier remise aux hôtels') || { sous: [] };
-    check('liens : la fiche papier compte ses demandes de démo, et ne s\'invente pas de vues', fiche.sous[0] === '2 demandes de démo · 0 demande · 0 réalisée', fiche.sous[0]);
+    check('liens : la fiche papier compte ses demandes de démo, et ne s\'invente pas de vues', fiche.sous[0] === '2 demandes de démo · 0 demande · 0 confirmée · 0 réalisée', fiche.sous[0]);
+
+    /* LA VÉRITÉ SERVEUR (20/10/2026) : le serveur compte 5 demandes, 3
+       confirmées, 2 réalisées pour 170 € — l'appareil n'en connaît que 2 et 80 €.
+       L'écran doit dire ce que dit le serveur. */
+    {
+      const s2 = await admin({ liensServeur: [{ code: 'hotel-exemple', demandes: 5, confirmees: 3, realisees: 2, chiffre: 170 }] });
+      await s2.p.click('#btnRegistre');
+      await s2.p.waitForFunction(() => /comptés sur le serveur/.test(document.getElementById('regLiensEtat').textContent), null, { timeout: 8000 }).catch(() => {});
+      const ls2 = await lignesLiens(s2.p);
+      const ex2 = ls2.find(l => l.nom === 'Hôtel Exemple Roissy') || { sous: [] };
+      check('liens (serveur) : 5 demandes · 3 confirmées · 2 réalisées, pas les 2 demandes de l\'appareil',
+        /5 demandes · 3 confirmées · 2 réalisées/.test(ex2.sous[0] || ''), ex2.sous[0]);
+      check('liens (serveur) : l\'argent est celui du serveur (170 €)', /^170\s?€$/.test(ex2.val || ''), ex2.val);
+      check('liens (serveur) : un lien que le serveur ne cite pas vaut zéro, pas le chiffre de l\'appareil',
+        /0 demande · 0 confirmée · 0 réalisée/.test((ls2.find(l => l.nom === 'Fiche papier remise aux hôtels') || { sous: [''] }).sous[0]));
+      check('liens (serveur) : la note distingue estimations et vérité serveur',
+        /Vues et clics : estimations/.test(await s2.p.textContent('#regLiensEtat')));
+      check('liens (serveur) : aucune erreur JavaScript', s2.erreurs.length === 0, s2.erreurs.join(' | '));
+      await s2.ctx.close();
+    }
 
     /* Copier le lien de la page choisie. */
     await p.selectOption('#lienPage', '/en/cdg-airport-transfer-paris/');

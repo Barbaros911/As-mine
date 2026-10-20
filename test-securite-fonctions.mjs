@@ -257,6 +257,50 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   globalThis.fetch=fetchAvant;
   ok(r5.status===201&&clesQuota[4]?.p_limite===12&&clesQuota[4]?.p_cle===clesQuota[0]?.p_cle,'deposer-course : une clé d\'hôtel inconnue reste comptée comme un anonyme ordinaire (12, même compteur)');
 }
+/* deposer-course : LA SONDE DU MONITORING (20 octobre 2026). Elle suit tout
+   le chemin d'une demande — forme, champs, base lue, quota, prix — et
+   S'ARRÊTE avant l'écriture : aucun appel à ela_deposer_course_serveur, donc
+   ni course, ni alerte. Les deux côtés : une sonde mal formée est refusée
+   comme une demande, une référence « SONDE- » SANS le drapeau aussi (une
+   version qui ignorerait la sonde la refuserait de même), et un vrai dépôt
+   n'est pas changé. */
+{
+  const appels=[];
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url); appels.push(url);
+    if(url.includes('/rpc/consommer_quota_reservation')){appels.push('quota:'+init.body);return new Response('true');}
+    if(url.includes('/rest/v1/partenaires')) return new Response('[]');
+    if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
+    if(url.includes('/rest/v1/parametres_commerciaux')) return new Response('[{"valeur":{"par_km_centimes":290,"minimum_centimes":3500}}]');
+    if(url.includes('/rest/v1/journal_depots')) return new Response('',{status:201});
+    if(url.includes('/rpc/ela_deposer_course_serveur')) return new Response('"ok"');
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const lieu=(lat,lon)=>({nom:'x',adresse:'x',latitude:lat,longitude:lon,provider:'ban'});
+  const bon=(ref,total)=>({ref,course:{depart:'Place Vendôme, Paris',arrivee:'Aéroport CDG',date:'2026-12-01',heure:'10:00',vehicule:'Berline',vehiculeCle:'berline',passagers:'1 passager',distanceKm:30,
+    departLieu:lieu(48.8676,2.3294),arriveeLieu:lieu(49.0097,2.5479)},client:{nom:'Sonde Monitoring',telephone:'0600000000'},prix:{total},paiement:'lien'});
+  const envoyer=(corps)=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.7','content-type':'application/json'},body:JSON.stringify(corps)}));
+  let r=await envoyer({sonde:true,bon:bon('SONDE-MONITOR-0001',80)}), j=await r.json();
+  ok(r.status===200&&j.sonde===true&&j.ok===true,'sonde : le chemin complet répond 200 « sonde » ('+r.status+')');
+  ok(!appels.some(u=>u.includes('ela_deposer_course_serveur')),'sonde : AUCUNE course écrite (ela_deposer_course_serveur jamais appelé)');
+  ok(appels.some(u=>u.includes('/rest/v1/courses?ref=eq.SONDE'))&&appels.some(u=>u.includes('/rpc/consommer_quota_reservation')),'sonde : la base est lue et le quota écrit — le serveur est vraiment éprouvé');
+  ok(appels.some(u=>u.startsWith('quota:')&&u.includes('"p_limite":12')),'sonde : son quota est borné (12 par heure)');
+  const {createHash}=await import('node:crypto');
+  const heure=new Date().toISOString().slice(0,13);
+  ok(appels.some(u=>u.startsWith('quota:')&&u.includes(createHash('sha256').update('sonde|10.0.0.7|'+heure).digest('hex'))),'sonde : son compteur est le sien, jamais celui des clients');
+  r=await envoyer({sonde:true,bon:bon('SONDE-MONITOR-0002',5)}); j=await r.json();
+  ok(r.status===200&&j.prixAVerifier===true,'sonde : le contrôle du prix au kilomètre tourne (5 € sur Paris → CDG signalé)');
+  appels.length=0;
+  r=await envoyer({bon:bon('SONDE-MONITOR-0003',80)});
+  ok(r.status===400&&!appels.some(u=>u.includes('ela_deposer_course_serveur')),'sonde : une référence « SONDE- » sans le drapeau est refusée, jamais écrite');
+  r=await envoyer({sonde:true,bon:{...bon('SONDE-MONITOR-0004',80),client:{nom:'',telephone:''}}});
+  ok(r.status===400,'sonde : une sonde mal formée est refusée comme une demande');
+  r=await envoyer({sonde:true,bon:bon('ELA-26-10-SONDE',80)});
+  ok(r.status===201&&appels.some(u=>u.includes('ela_deposer_course_serveur')),'sonde : le drapeau seul ne détourne pas un vrai dépôt (référence ELA- : écrite, comme avant)');
+  globalThis.fetch=fetchAvant;
+}
 /* deposer-course : LE N° COURT REVIENT AU CLIENT (5 octobre 2026). La base
    l'attribue à l'écriture et le recopie dans le bon ; la fonction le relit
    et le rend. AVANT la migration le bon n'en porte pas : le dépôt passe

@@ -172,6 +172,12 @@ check('et le bloc du chauffeur n\'existe pas encore',
 check('le bon porte le vrai logo Elatransfer',
   (await p.locator('.bon-logo').getAttribute('alt')) === 'Elatransfer'
   && /brand-logo\.webp$/.test(await p.locator('.bon-logo').getAttribute('src')));
+/* Le logo est chargé PARESSEUSEMENT (20/10/2026) : il ne pèse rien sur
+   l'accueil, mais il doit bien s'afficher sur le bon une fois montré. */
+await p.waitForFunction(() => { const i = document.querySelector('.bon-logo'); return i && i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).catch(() => {});
+check('le logo du bon est chargé paresseusement, et s\'affiche bien sur le bon',
+  (await p.locator('.bon-logo').getAttribute('loading')) === 'lazy'
+  && await p.evaluate(() => { const i = document.querySelector('.bon-logo'); return i.complete && i.naturalWidth > 0; }));
 check('et se nomme pour ce qu\'il est',
   (await p.locator('.bon-sous').textContent()).toLowerCase().includes('bon de réservation'));
 /* La phrase dit ce qui se passe MAINTENANT — on cherche un chauffeur —
