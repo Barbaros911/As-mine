@@ -96,10 +96,10 @@ site. Toute branche nommée ici doit exister (`test-doc.mjs`). `memoire/branches
 - **Une tâche = une branche courte partie du dernier `main`**, PR vers `main`,
   jamais directement sur `main` ; plus d'`ai-dev` (retirée le 17/10/2026). Le
   chemin complet est dans `TEAM_RULES.md` §2.
-- **`main` est protégée par un ruleset GitHub** (9/10/2026, importé depuis
-  `.github/ruleset-main.json`) : pull request obligatoire, fusion seulement si
-  `admin`, `guardrails`, `build-mobile-desktop`, `secrets-publics` et
-  `gitleaks` sont verts, personne d'exempté. Compter ~22 min de CI par PR.
+- **`main` est protégée par un ruleset GitHub** dont `.github/ruleset-main.json`
+  est la CIBLE (PR, cinq contrôles verts, branche à jour, conversations
+  résolues, personne d'exempté) ; `protections-main.yml` compare chaque jour et
+  ouvre une Issue sur écart. Compter ~22 min de CI par PR.
 - Toujours vérifier `git branch --show-current` avant un `git push` — déjà
   fait l'erreur de pousser vers le mauvais nom de branche une fois.
 - Une fois l'accord donné : ouvrir la pull request **et la fusionner** —
@@ -1823,8 +1823,8 @@ sept prix, soit un quatrième endroit à tenir.
   (`.hotel-enhanced`, plus `body.hotel:not(.reception)`).
 - **Nom et téléphone exigés au comptoir aussi** (11/10/2026) : le lien de
   paiement part sur ce numéro. La chambre, facultative, se range sous le nom.
-- **Photo client** (`photoEntete`) : chargée depuis `cdn.easyhotel.com`, sans
-  accord écrit — signalé le 23/09/2026, à lui de trancher. **Comptoir**
+- **Photo client** (`photoEntete`) : vidée le 20/10/2026 (CDN d'easyHotel, sans
+  accord) ; jamais une adresse `http`, seulement `/photos/…`. **Comptoir**
   (`photoComptoir`, 20/10/2026) : SA photo, bandeau de 176 px sous un voile
   (6,5:1), ordinateur et tablette ; jamais de fond de page (`test-reception-bon`).
 

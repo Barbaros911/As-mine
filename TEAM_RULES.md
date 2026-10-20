@@ -68,9 +68,11 @@ dernier main → une branche courte par tâche → PR vers main
   à la fois par zone critique (`AGENTS.md`), et celle qui fusionne en second se
   remet d'abord à jour. Aucune fusion ni publication automatique.
 - **Ce qui l'impose** : le ruleset « Protéger main » (`.github/ruleset-main.json`
-  en est le miroir) — PR obligatoire ; `admin`, `guardrails`,
-  `build-mobile-desktop`, `secrets-publics` et `gitleaks` au vert ; ni
-  force-push ni suppression ; personne d'exempté. **Zéro approbation exigée,
+  en est la cible, et `protections-main.yml` compare chaque jour la règle en
+  ligne à ce fichier, Issue à l'appui sur écart) — PR obligatoire ; `admin`,
+  `guardrails`, `build-mobile-desktop`, `secrets-publics` et `gitleaks` au
+  vert sur une branche à jour ; conversations résolues ; ni force-push ni
+  suppression ; personne d'exempté. **Zéro approbation exigée,
   et c'est voulu** : les PR sont ouvertes sous le compte de Barbaros, qui ne
   peut pas approuver la sienne ; son accord se donne dans la conversation, et
   rien n'est fusionné avant. Fonctions Supabase et migrations ne partent que de
