@@ -88,6 +88,10 @@ async function ouvrir({ session = SESSION, etat, largeur = 390, hauteur = 844, h
       if (typeof s === 'number') return route.fulfill(J({ code: 'PGRST202', message: 'Could not find the function' }, s));
       return route.fulfill(J(s));
     }
+    if (u.includes('/rest/v1/journal_notifications_admin')) {
+      if (typeof etat.journal === 'number') return route.fulfill(J({ message: 'refus' }, etat.journal));
+      return route.fulfill(J(etat.journal || []));
+    }
     if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
     if (u.includes('/rpc/role_operateur')) return route.fulfill(J('admin'));
     if (u.includes('/rpc/presences_operateurs')) return route.fulfill(J([]));
@@ -145,6 +149,42 @@ try {
     });
     check('A. 390 px : le voyant tient sur une ligne', mesure.h <= 16, JSON.stringify(mesure));
     check('A. 390 px : rien ne déborde', mesure.page <= mesure.vue && mesure.droite <= mesure.vue, JSON.stringify(mesure));
+    await ctx.close();
+  }
+  /* L. L'ÉTAT DU SYSTÈME, DANS LES RÉGLAGES (20 octobre 2026). Chaque ligne
+     dit une mesure du serveur ; une mesure absente se dit « non mesuré »,
+     jamais « OK ». */
+  {
+    const il2h = new Date(Date.now() - 2 * 3600e3).toISOString(), il3m = new Date(Date.now() - 3 * 60e3).toISOString();
+    const SITE = Object.assign({}, ATTENTE, { cree: il2h, securite: { empreinteDepot: 'e'.repeat(64) } });
+    const etat = { sante: { ...SAIN, depots_indisponibles_1h: 0, depots_quota_1h: 0, depots_refuses_1h: 1 }, courses: [SITE],
+                   journal: [{ cree_le: il3m, canal: 'telegram' }] };
+    const { ctx, p } = await ouvrir({ etat });
+    await attendreVoyant(p, '^Alertes OK$');
+    await p.click('#btnReglages');
+    await p.waitForTimeout(800);
+    const lignes = await p.$$eval('#etatSysteme .reg-ligne', l => l.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
+    const ligne = n => lignes.find(x => x.startsWith(n)) || '';
+    check('L. le bloc « État du système » est dans les Réglages', lignes.length >= 6, lignes.join(' | '));
+    check('L. alertes : OK', /Alertes.*OK$/.test(ligne('Alertes')), ligne('Alertes'));
+    check('L. réservations (1 h) : OK, avec le nombre de refus', /OK$/.test(ligne('Réservations')) && /1 refusée\(s\) en tout/.test(ligne('Réservations')), ligne('Réservations'));
+    check('L. notifications (1 h) : 3 Telegram parties', /3 Telegram parties/.test(ligne('Notifications')), ligne('Notifications'));
+    check('L. la dernière demande du site : il y a 2 h', /il y a 2 h$/.test(ligne('Dernière demande')), ligne('Dernière demande'));
+    check('L. la dernière alerte partie : il y a 3 min, par Telegram', /telegram/.test(ligne('Dernière alerte')) && /il y a 3 min$/.test(ligne('Dernière alerte')), ligne('Dernière alerte'));
+    check('L. la note dit d\'où vient la mesure', /Mesuré sur le serveur/.test(await p.textContent('#etatSystemeNote')));
+    await ctx.close();
+  }
+  {
+    const etat = { sante: { ...SAIN, depots_indisponibles_1h: 2, depots_quota_1h: 0, depots_refuses_1h: 2 }, journal: 500 };
+    const { ctx, p } = await ouvrir({ etat });
+    await attendreVoyant(p, 'Alertes');
+    await p.click('#btnReglages');
+    await p.waitForTimeout(800);
+    const lignes = await p.$$eval('#etatSysteme .reg-ligne', l => l.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
+    const ligne = n => lignes.find(x => x.startsWith(n)) || '';
+    check('L. deux demandes refusées faute de serveur : réservations EN PANNE', /en panne$/.test(ligne('Réservations')) && /2 refusée\(s\) faute de serveur/.test(ligne('Réservations')), ligne('Réservations'));
+    check('L. journal illisible : la dernière alerte est « non mesuré », jamais « aucune »', /non mesuré$/.test(ligne('Dernière alerte')), ligne('Dernière alerte'));
+    check('L. aucune demande du site sur l\'appareil : « aucune »', /aucune$/.test(ligne('Dernière demande')), ligne('Dernière demande'));
     await ctx.close();
   }
 

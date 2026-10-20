@@ -100,6 +100,10 @@ jobs:
           # refusé). C'est elle qui a trouvé le bon qui disait « Demande reçue »
           # au-dessus de « n'a pas pu nous être transmise ».
           suites="$suites test-parcours-en"
+          # LA SONDE DU MONITORING (20 octobre 2026) : le monitoring réserve pour
+          # de vrai sur le site en ligne ; une sonde qui se tromperait
+          # enregistrerait une fausse course. Éprouvée ici, hors ligne.
+          suites="$suites test-monitoring-sonde"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.
@@ -112,6 +116,11 @@ jobs:
           # sans navigateur, et aucun autre workflow ne le lançait.
           echo "::group::test-chien-de-garde"
           if node test-chien-de-garde.mjs; then echo "test-chien-de-garde : au vert"; else echo "::error::test-chien-de-garde est tombé"; echecs="$echecs test-chien-de-garde"; fi
+          echo "::endgroup::"
+          # Le comparateur des protections de main (20/10/2026) : sans
+          # navigateur ni réseau, il doit nommer chaque écart — ni plus, ni moins.
+          echo "::group::test-protections"
+          if node test-protections.mjs; then echo "test-protections : au vert"; else echo "::error::test-protections est tombé"; echecs="$echecs test-protections"; fi
           echo "::endgroup::"
           if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
           echo "Toutes les suites de l'admin retenu sont au vert."

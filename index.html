@@ -900,6 +900,11 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .gc-detail{font-size:12px;color:var(--gris);margin-top:3px;}
 .reg-sous{display:block;font-size:11px;color:var(--gris);}
 .reg-vide{padding:6px 0;font-size:12px;color:var(--gris);}
+.reg-filtres{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.reg-filtres .champ[hidden]{display:none;}
+#regResultatsCompte{margin:10px 0 0;}
+#regPlus{margin-top:10px;width:100%;}
+.reg-source{margin:10px 0 0;}
 /* LES LIENS DES PARTENAIRES (15/10/2026) : la ligne du registre, plus un
    bouton « Copier » de 44 px de haut — on copie au pouce, sur le téléphone. */
 .reg-lien{align-items:center;}
@@ -3877,7 +3882,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            c'est LUI qui émettra la facture, sous son SIRET. Mêler les deux
            ferait d'Elatransfer un transporteur, ce qu'elle n'est pas. -->
       <div class="bon-marque">
-        <img class="bon-logo" src="brand-logo.webp" width="1038" height="457" alt="Elatransfer">
+        <!-- « loading=lazy » (20/10/2026, mesuré) : l'écran du bon est caché
+             au chargement, mais une image ordinaire se télécharge quand même —
+             141 Ko pris à CHAQUE visite de l'accueil, sur le forfait du
+             client, pour un logo qu'il ne verra qu'après « Confirmer ». -->
+        <img class="bon-logo" src="brand-logo.webp" width="1038" height="457" alt="Elatransfer" loading="lazy" decoding="async">
       </div>
       <!-- LE BON A DEUX VISAGES, et un seul est vrai à la fois.
            En attente, il dit ce qui se passe maintenant : on cherche un
@@ -4514,6 +4523,19 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </details>
     </div>
 
+    <!-- L'ÉTAT DU SYSTÈME (20 octobre 2026, mission de finalisation) : savoir
+         si Elatransfer MARCHE, pas seulement si le site répond. Une ligne par
+         question, lue sur le serveur au rythme du voyant (40 s) : les
+         alertes partent-elles, les demandes arrivent-elles, combien
+         d'erreurs, quand est arrivée la dernière demande et quand est partie
+         la dernière alerte. Rien n'y est deviné : une mesure absente se dit
+         « non mesuré », jamais « OK ». -->
+    <div class="bloc" id="blocEtatSysteme">
+      <h2 class="bloc-titre">État du système</h2>
+      <div id="etatSysteme"></div>
+      <p class="bloc-note" id="etatSystemeNote">Lecture du serveur…</p>
+    </div>
+
 
 
     <!-- L'AFFICHE POUR UN COMPTOIR D'HÔTEL. Le concierge n'appelle pas : il
@@ -4897,10 +4919,19 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="registre-tronque" id="registreTronque" role="status" hidden>
       <p class="bloc-note" id="registreTronqueTexte"></p>
     </div>
+    <!-- D'OÙ VIENNENT LES CHIFFRES DE CET ÉCRAN : du serveur (toutes les
+         courses) ou de l'appareil seulement. Un chiffre dont on ignore la
+         source finit par servir à décider. -->
+    <p class="bloc-note reg-source" id="regSource" hidden></p>
 
     <!-- LA RECHERCHE EN TÊTE (9 octobre 2026) : quand un client rappelle,
          c'est la première chose qu'on fait ici. Elle était après les
          graphiques, au milieu d'une page de cinq écrans. -->
+    <!-- RECHERCHER, FILTRER, PAGINER SUR LE SERVEUR (20 octobre 2026). La
+         recherche ne lisait que les 1 000 courses de l'appareil : une course
+         plus ancienne « n'existait pas ». Elle interroge maintenant TOUTE la
+         base (ela_registre_courses), avec le vrai total et 20 lignes à la
+         fois ; sans serveur, elle reste sur l'appareil et le dit. -->
     <div class="bloc">
       <h2 class="bloc-titre">Rechercher</h2>
       <label class="champ" for="regRecherche">
@@ -4909,7 +4940,71 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <input id="regRecherche" type="search" autocomplete="off" placeholder="Martin, Roissy, 1024…">
         </span>
       </label>
+      <div class="reg-filtres">
+        <label class="champ" for="regFStatut">
+          <span class="champ-corps">
+            <span class="champ-titre">Statut</span>
+            <select id="regFStatut">
+              <option value="">Tous</option>
+              <option value="attente">En attente</option>
+              <option value="confirmee">Confirmées</option>
+              <option value="realisee">Réalisées</option>
+              <option value="refusee">Refusées</option>
+              <option value="annulee">Annulées</option>
+            </select>
+          </span>
+        </label>
+        <label class="champ" for="regFPeriode">
+          <span class="champ-corps">
+            <span class="champ-titre">Période</span>
+            <select id="regFPeriode">
+              <option value="">Toutes les dates</option>
+              <option value="mois">Ce mois-ci</option>
+              <option value="mois-1">Le mois dernier</option>
+              <option value="annee">Cette année</option>
+              <option value="annee-1">L'an dernier</option>
+              <option value="un-mois">Un mois précis…</option>
+              <option value="dates">Entre deux dates…</option>
+            </select>
+          </span>
+        </label>
+        <label class="champ" for="regFChauffeur">
+          <span class="champ-corps">
+            <span class="champ-titre">Chauffeur</span>
+            <select id="regFChauffeur"><option value="">Tous</option></select>
+          </span>
+        </label>
+        <label class="champ" for="regFSource">
+          <span class="champ-corps">
+            <span class="champ-titre">Hôtel ou source</span>
+            <select id="regFSource">
+              <option value="">Toutes</option>
+              <option value="(direct)">Venue directe</option>
+            </select>
+          </span>
+        </label>
+        <label class="champ" for="regFMois" id="regFMoisChamp" hidden>
+          <span class="champ-corps">
+            <span class="champ-titre">Mois</span>
+            <input id="regFMois" type="month">
+          </span>
+        </label>
+        <label class="champ" for="regFDu" id="regFDuChamp" hidden>
+          <span class="champ-corps">
+            <span class="champ-titre">Du</span>
+            <input id="regFDu" type="date">
+          </span>
+        </label>
+        <label class="champ" for="regFAu" id="regFAuChamp" hidden>
+          <span class="champ-corps">
+            <span class="champ-titre">Au</span>
+            <input id="regFAu" type="date">
+          </span>
+        </label>
+      </div>
+      <p class="bloc-note" id="regResultatsCompte" hidden></p>
       <div id="regResultats"></div>
+      <button class="bouton-fantome" type="button" id="regPlus" hidden>Afficher les suivantes</button>
     </div>
 
 
@@ -9184,12 +9279,12 @@ window.ELA_TEXTES = {
          Poser ici un chemin relatif, par exemple "photos/easyhotel.jpg". */
       photo:"",
       /* LA PHOTO DU BANDEAU DE LA PAGE CLIENT (la finition), jamais reprise
-         au comptoir. Elle était écrite en dur dans hotel-engine-polish.css :
-         elle vit désormais avec l'hôtel, comme ses couleurs, et un hôtel
-         sans photo a un bandeau en aplat. ELLE VIENT DU SITE D'EASYHOTEL,
-         SANS ACCORD ÉCRIT : signalé à Barbaros le 23/09/2026, à lui de
-         trancher — la retirer, c'est vider cette ligne. */
-      photoEntete:"https://www.easyhotel.com/cdn-cgi/image/width=1200,height=800,format=auto/https://cdn.easyhotel.com/1_easy_Hotel_CDG_1067422f0b.png",
+         au comptoir. Un hôtel sans photo a un bandeau en aplat. VIDÉE LE
+         20/10/2026 (Barbaros, mission de finalisation) : elle venait du site
+         d'easyHotel, sans accord écrit, et un CDN étranger pouvait casser la
+         page du QR. Une photo ne s'y pose plus que servie par le dépôt
+         (chemin commençant par « / »), jamais une adresse « http ». */
+      photoEntete:"",
       /* LA PHOTO DE L'EN-TÊTE DU COMPTOIR (?reception=), et du comptoir
          seulement (20/10/2026, Barbaros). C'est la sienne, prise à cette
          réception, servie depuis le dépôt ; l'écran publicitaire et les deux
@@ -11121,6 +11216,15 @@ window.ELA_TEXTES = {
        deposer-course). Comme l'origine : vit le temps de la page. */
     var v = String((params && params.get("via")) || "").trim();
     if(/^[a-z0-9-]{2,40}$/.test(v)) viaVisite = v;
+    /* IL SURVIT À UN RECHARGEMENT (20/10/2026). Le code est effacé de la
+       barre d'adresse dès l'arrivée : un client qui rechargeait la page, ou
+       revenait en arrière, réservait sans lui — la course n'était plus
+       attribuée au partenaire qui l'avait amené. Comme la provenance d'une
+       affiche : « sessionStorage », le temps de CETTE visite seulement. */
+    try{
+      if(viaVisite) sessionStorage.setItem("ela_via", viaVisite);
+      else { var gv = String(sessionStorage.getItem("ela_via") || ""); if(/^[a-z0-9-]{2,40}$/.test(gv)) viaVisite = gv; }
+    }catch(e){}
     /* L'aéroport de la page d'entrée, pour la mesure : le moteur efface
        « ?aeroport= » de l'adresse dès l'arrivée, il faut le lire ici. */
     var a = String((params && params.get("aeroport")) || "").trim().toLowerCase();
@@ -12550,10 +12654,14 @@ window.ELA_TEXTES = {
   function jugerTronque(){
     var el = document.getElementById("registreTronque"), txt = document.getElementById("registreTronqueTexte");
     if(!el || !txt) return;
-    el.hidden = !listeTronquee;
-    if(listeTronquee) txt.textContent = "Le serveur garde plus de 1 000 courses : cet appareil ne relit que les "
-      + "1 000 plus récentes. Les chiffres de ce Registre ne couvrent pas les courses plus anciennes, "
-      + "et la recherche ne les trouve pas. Pour un bilan complet, exportez le CSV régulièrement.";
+    /* Depuis le 20/10/2026 les chiffres et la recherche viennent du serveur
+       (ela_registre_resume, ela_registre_courses) : l'avertissement ne vaut
+       plus que tant que le serveur n'a pas répondu (migration absente, pas
+       de réseau). */
+    el.hidden = !listeTronquee || !!registreServeur;
+    if(!el.hidden) txt.textContent = "Le serveur garde plus de 1 000 courses : cet appareil ne relit que les "
+      + "1 000 plus récentes. Tant que le serveur ne répond pas, les chiffres de ce Registre ne couvrent pas "
+      + "les courses plus anciennes, et la recherche ne les trouve pas. Exportez le CSV régulièrement.";
   }
   function reconcilier(distantes){
     var local = registre();
@@ -15414,7 +15522,7 @@ window.ELA_TEXTES = {
       var juge = window.ELA_SANTE;
       if(!juge) throw new Error("juge absent");
       if(!juge.mesuresLisibles(m)) throw new Error("réponse illisible");
-      sante.verdict = juge.juger(m); sante.lu = Date.now(); sante.erreur = "";
+      sante.verdict = juge.juger(m); sante.lu = Date.now(); sante.erreur = ""; sante.mesures = m;
     }).catch(function(e){
       sante.verdict = null; sante.erreur = String((e && e.message) || e);
       sessionPerdue();
@@ -15432,6 +15540,7 @@ window.ELA_TEXTES = {
       if(typeof m === "string"){ try{ m = JSON.parse(m); }catch(e){ m = null; } }
       var n = m && Number(m.n24h), n1 = m && Number(m.n1h);
       var ligne = document.getElementById("adminErreurs"), txt = document.getElementById("adminErreursTexte");
+      erreursSite.m = m && isFinite(n) ? { n24h: n, n1h: n1 || 0 } : null;
       if(!ligne || !txt) return;
       if(!(n > 0)){ ligne.hidden = true; return; }
       ligne.hidden = false;
@@ -15441,11 +15550,73 @@ window.ELA_TEXTES = {
       ligne.title = detail.join("\n");
     }).catch(function(){
       var ligne = document.getElementById("adminErreurs"); if(ligne) ligne.hidden = true;
-    }).then(function(){ erreursSite.enCours = false; });
+    }).then(function(){ erreursSite.enCours = false; dessinerEtatSysteme(); });
+  }
+  /* LA DERNIÈRE ALERTE PARTIE, lue dans le journal des notifications (que
+     l'exploitant lit déjà, policy du 16/09/2026), au rythme du voyant. Les
+     « vu » (bouton Telegram) n'en sont pas : ce ne sont pas des envois. */
+  var derniereAlerte = { essai:0, enCours:false, quand:null, canal:"" };
+  function lireDerniereAlerte(){
+    if(!derniereAlerte || derniereAlerte.enCours || !nuage.connecte()) return;
+    if(Date.now() - derniereAlerte.essai < SANTE_PAS_MS) return;
+    derniereAlerte.essai = Date.now(); derniereAlerte.enCours = true;
+    nuage.appel("/rest/v1/journal_notifications_admin?select=cree_le,canal&statut=eq.envoye&type_evenement=neq.vue&order=cree_le.desc&limit=1")
+      .then(function(r){
+        var x = Array.isArray(r) && r[0];
+        derniereAlerte.quand = x && x.cree_le ? Date.parse(x.cree_le) : null;
+        derniereAlerte.canal = (x && x.canal) || "";
+        derniereAlerte.lu = true;
+      }).catch(function(){ derniereAlerte.lu = false; })
+      .then(function(){ derniereAlerte.enCours = false; dessinerEtatSysteme(); });
+  }
+  function ilYa(t){
+    if(!isFinite(t)) return "";
+    var min = Math.max(0, Math.round((Date.now() - t) / 60000));
+    if(min < 1) return "à l'instant";
+    if(min < 60) return "il y a " + min + " min";
+    var h = Math.round(min / 60);
+    if(h < 48) return "il y a " + h + " h";
+    return "il y a " + Math.round(h / 24) + " jours";
+  }
+  function dessinerEtatSysteme(){
+    var zone = document.getElementById("etatSysteme"), note = document.getElementById("etatSystemeNote");
+    if(!zone || !note || !sante || !erreursSite || !derniereAlerte) return;
+    var m = sante.mesures, frais = !!sante.verdict && (Date.now() - sante.lu < SANTE_PERIME_MS);
+    var lignes = [];
+    var etat = sante.etat === "ok" ? "OK" : sante.etat === "ko" ? "en panne" : "non vérifiées";
+    lignes.push({ nom: "Alertes", sous: sante.etat === "ko" && sante.verdict ? sante.verdict.simples.join(" ") : "", val: etat });
+    if(frais && m){
+      var ind = +m.depots_indisponibles_1h || 0, quo = +m.depots_quota_1h || 0, ref = +m.depots_refuses_1h || 0;
+      var mesure = ("depots_indisponibles_1h" in m);
+      lignes.push({ nom: "Réservations (1 h)", sous: mesure ? (ind ? ind + " refusée(s) faute de serveur · " : "") + (quo ? quo + " au plafond · " : "")
+                     + ref + " refusée(s) en tout" : "le journal des dépôts n'est pas installé",
+                    val: !mesure ? "non mesuré" : ind ? "en panne" : "OK" });
+      lignes.push({ nom: "Notifications (1 h)", sous: (+m.telegram_ok_1h || 0) + " Telegram parties · " + (+m.telegram_echecs_1h || 0) + " en échec",
+                    val: (+m.telegram_echecs_1h || 0) > 0 && !(+m.telegram_ok_1h) ? "en panne" : "OK" });
+      lignes.push({ nom: "Demandes du site (24 h)", sous: "", val: String(+m.demandes_24h || 0) });
+    }
+    var es = erreursSite.m;
+    lignes.push({ nom: "Erreurs du site", sous: es ? es.n1h + " dans l'heure" : "", val: es ? es.n24h + " en 24 h" : "non mesuré" });
+    var dern = null;
+    registre().forEach(function(c){
+      if(!(c && c.securite && c.securite.empreinteDepot)) return;
+      var t = Date.parse(c._cree || c.cree || "");
+      if(isFinite(t) && (!dern || t > dern)) dern = t;
+    });
+    lignes.push({ nom: "Dernière demande du site", sous: dern ? new Date(dern).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "",
+                  val: dern ? ilYa(dern) : "aucune" });
+    lignes.push({ nom: "Dernière alerte partie", sous: derniereAlerte.quand ? new Date(derniereAlerte.quand).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
+                    + (derniereAlerte.canal ? " · " + derniereAlerte.canal : "") : "",
+                  val: derniereAlerte.lu ? (derniereAlerte.quand ? ilYa(derniereAlerte.quand) : "aucune") : "non mesuré" });
+    poser("etatSysteme", lignes, "");
+    note.textContent = !nuage.connecte() ? "Connectez-vous au serveur pour lire l'état du système."
+      : frais ? "Mesuré sur le serveur " + ilYa(sante.lu) + ". Une demande arrive toujours sur le serveur et dans cet écran, même quand une alerte ne part plus."
+      : "Le serveur n'a pas encore rendu ses mesures (" + (sante.erreur || "lecture en cours") + ").";
   }
   function jugerAlertes(){
     if(!sante) return;
     lireErreursSite();
+    lireDerniereAlerte();
     var ligne = document.getElementById("adminAlertes");
     var txt = document.getElementById("adminAlertesTexte");
     /* GRIS FAUTE DE SESSION OU DE SERVEUR : l'ancien verdict est OUBLIÉ, et
@@ -15471,6 +15642,7 @@ window.ELA_TEXTES = {
     if(txt) txt.textContent = etat === "ok" ? "Alertes OK"
       : etat === "ko" ? "Alertes en panne" : "Alertes : non vérifiées";
     dessinerBandeauAlertes();
+    dessinerEtatSysteme();
     jugerSon();
   }
   /* LE BANDEAU ROUGE. Trois règles, toutes venues de la relecture :
@@ -15949,24 +16121,196 @@ window.ELA_TEXTES = {
     return Math.round(n).toLocaleString("fr-FR") + " €";
   }
 
-  /* Le graphique ne regarde que la période EN COURS (cette semaine, ce mois,
-     cette année) : c'est la question qu'on se pose — qui roule en ce moment. */
-  function dessinerGraphChauffeurs(faites){
-    var el = document.getElementById("regGraphChauffeurs");
-    var auj = new Date(), debut;
-    if(periodeReg === "annee") debut = new Date(auj.getFullYear(), 0, 1);
-    else if(periodeReg === "mois") debut = new Date(auj.getFullYear(), auj.getMonth(), 1);
-    else debut = lundiDe(auj);
-    var par = {};
+  /* ═══ LES CHIFFRES DU REGISTRE VIENNENT DU SERVEUR (20 octobre 2026) ═══
+     L'appareil ne garde que les 1 000 courses les plus récentes : calculés
+     ici, le mois et l'année devenaient faux en silence au-delà de dix jours
+     d'activité soutenue. « ela_registre_resume » compte TOUTES les courses
+     sur le serveur, avec les règles de cet écran (réalisées seulement, date
+     de la course, semaine du lundi, essais exclus).
+     UN SEUL DESSIN, DEUX SOURCES : « agregatsLocaux() » fabrique exactement
+     la forme que rend le serveur, et « dessinerChiffres() » ne connaît
+     qu'elle. L'écran se dessine d'abord sur l'appareil (tout de suite, et
+     hors ligne), puis le serveur le remplace dès qu'il répond. Une réponse
+     qui n'a pas la bonne forme (fonction pas encore installée, faux serveur
+     d'une suite) est ignorée : on garde l'appareil, et « regSource » le dit.
+     La commission que le serveur ne peut pas connaître (un taux qui ne vit
+     que dans le carnet de l'appareil) n'est pas mise à zéro en silence :
+     elle est comptée à part (« sans_commission »). */
+  var registreServeur = null, registreJeton = 0;
+  function debutPeriodeReg(){
+    var auj = new Date();
+    if(periodeReg === "annee") return new Date(auj.getFullYear(), 0, 1);
+    if(periodeReg === "mois") return new Date(auj.getFullYear(), auj.getMonth(), 1);
+    return lundiDe(auj);
+  }
+  function agregatsLocaux(){
+    var faites = realisees();
+    var maintenant = new Date();
+    var l0 = lundiDe(maintenant);
+    var l1 = new Date(l0); l1.setDate(l1.getDate() - 7);
+    var semaine = function(liste){ var v = bilan(liste); return { n: v.n, total: v.total }; };
+    var cles = {};
+    faites.forEach(function(c){
+      var d = dateCourse(c); if(!d) return;
+      var k;
+      if(periodeReg === "annee") k = String(d.getFullYear());
+      else if(periodeReg === "mois") k = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+      else { var l = lundiDe(d);
+             k = l.getFullYear() + "-" + String(l.getMonth()+1).padStart(2,"0") + "-" + String(l.getDate()).padStart(2,"0"); }
+      (cles[k] = cles[k] || []).push(c);
+    });
+    var parCh = {};
+    faites.forEach(function(c){
+      var nom = (c.chauffeur && c.chauffeur.nom || "").trim();
+      if(nom) (parCh[nom] = parCh[nom] || []).push(c);
+    });
+    var debut = debutPeriodeReg(), parChP = {};
     faites.forEach(function(c){
       var d = dateCourse(c), nom = (c.chauffeur && c.chauffeur.nom || "").trim();
       if(!d || d < debut || !nom) return;
       var cle = nom.toLowerCase();
-      var v = par[cle] = par[cle] || { nom: nom, n: 0, total: 0, com: 0 };
-      v.n++; v.total += (c.prix && c.prix.total) || 0; v.com += commissionDe(c).montant;
+      var v = parChP[cle] = parChP[cle] || { nom: nom, n: 0, total: 0, commission: 0, sans_commission: 0 };
+      v.n++; v.total += (c.prix && c.prix.total) || 0; v.commission += commissionDe(c).montant;
     });
-    var l = Object.keys(par).map(function(k){ return par[k]; })
-             .sort(function(a, b){ return b.n - a.n || b.total - a.total; });
+    var parProv = {};
+    registre().filter(comptable).forEach(function(c){
+      var p = (c.provenance || "").trim();
+      if(p) (parProv[p] = parProv[p] || []).push(c);
+    });
+    /* Le délai : les seules demandes DÉPOSÉES PAR LE SITE (empreinte posée
+       par deposer-course), arrivées sur la période en cours. */
+    var delais = [], enAttente = 0;
+    registre().filter(comptable).forEach(function(c){
+      if(!(c.securite && c.securite.empreinteDepot)) return;
+      var t0 = Date.parse(c.cree || c._cree || "");
+      if(isNaN(t0) || t0 < debut.getTime()) return;
+      if((c.statut || "attente") === "attente"){ enAttente++; return; }
+      var t1 = Date.parse(c.confirmeeLe || "");
+      if(!isNaN(t1)) delais.push({ ms: Math.max(0, t1 - t0), c: c });
+    });
+    delais.sort(function(a, b){ return a.ms - b.ms; });
+    var n = delais.length, mi = Math.floor(n / 2), pire = n ? delais[n - 1] : null;
+    return {
+      source: "appareil",
+      total: registre().filter(comptable).length,
+      semaine: semaine(faites.filter(function(c){ var d = dateCourse(c); return d && d >= l0; })),
+      semaine_avant: semaine(faites.filter(function(c){ var d = dateCourse(c); return d && d >= l1 && d < l0; })),
+      periodes: Object.keys(cles).sort().reverse().slice(0, 12).map(function(k){
+        var v = bilan(cles[k]); return { cle: k, n: v.n, total: v.total }; }),
+      chauffeurs: Object.keys(parCh).map(function(nom){
+        var v = bilan(parCh[nom]);
+        return { nom: nom, n: v.n, total: v.total, sans_commission: 0,
+                 commission: parCh[nom].reduce(function(s, c){ return s + commissionDe(c).montant; }, 0) };
+      }).sort(function(x, y){ return y.total - x.total; }),
+      chauffeurs_periode: Object.keys(parChP).map(function(k){ return parChP[k]; })
+        .sort(function(a, b){ return b.n - a.n || b.total - a.total; }),
+      provenances: Object.keys(parProv).map(function(nom){
+        var tout = parProv[nom], f = tout.filter(function(c){ return c.statut === "realisee"; });
+        return { nom: nom, demandes: tout.length, realisees: f.length, total: bilan(f).total };
+      }).sort(function(x, y){ return y.demandes - x.demandes; }),
+      delai: { n: n, vite: delais.filter(function(x){ return x.ms < DELAI_CIBLE_MIN * 60000; }).length,
+               mediane_ms: n ? (n % 2 ? delais[mi].ms : (delais[mi - 1].ms + delais[mi].ms) / 2) : null,
+               en_attente: enAttente,
+               pire: pire ? { ref: pire.c.ref, numero: numeroDe(pire.c), ms: pire.ms } : null },
+      options: optionsLocales()
+    };
+  }
+  function optionsLocales(){
+    var ch = {}, src = {}, an = {};
+    registre().forEach(function(c){
+      var n = (c.chauffeur && c.chauffeur.nom || "").trim(); if(n) ch[n] = 1;
+      var p = (c.provenance || "").trim(); if(p) src[p] = 1;
+      var d = dateCourse(c); if(d) an[d.getFullYear()] = 1;
+    });
+    return { chauffeurs: Object.keys(ch).sort(), sources: Object.keys(src).sort(),
+             annees: Object.keys(an).map(Number).sort(function(a, b){ return b - a; }) };
+  }
+  /* La forme exacte qu'on attend : un faux serveur qui rend « {ok:true} » à
+     toute fonction, ou une fonction absente, ne doit jamais écrire « 0 € ». */
+  function resumeLisible(r){
+    return !!r && typeof r === "object" && !Array.isArray(r) && isFinite(r.total)
+      && r.semaine && isFinite(r.semaine.n) && r.semaine_avant && Array.isArray(r.periodes)
+      && Array.isArray(r.chauffeurs) && Array.isArray(r.chauffeurs_periode)
+      && Array.isArray(r.provenances) && r.delai && typeof r.delai === "object" && r.options;
+  }
+  function dessinerChiffres(g){
+    var a = { n: +g.semaine.n || 0, total: +g.semaine.total || 0 },
+        b = { n: +g.semaine_avant.n || 0, total: +g.semaine_avant.total || 0 };
+    a.moyen = a.n ? a.total / a.n : 0; b.moyen = b.n ? b.total / b.n : 0;
+    document.getElementById("regCourses").textContent = a.n;
+    document.getElementById("regCA").textContent      = eurosRond(a.total);
+    document.getElementById("regMoyen").textContent   = eurosRond(a.moyen);
+    document.getElementById("regCoursesAvant").textContent = b.n + " la semaine dernière";
+    document.getElementById("regCAAvant").textContent      = eurosRond(b.total) + " la semaine dernière";
+    document.getElementById("regMoyenAvant").textContent   = eurosRond(b.moyen) + " la semaine dernière";
+
+    /* Le résultat par période : un mois sans course n'apparaît pas, et c'est
+       voulu — une ligne à zéro n'apprend rien. */
+    poser("regResultat", g.periodes.map(function(x){
+      var k = String(x.cle), nom = k, n = +x.n || 0;
+      if(periodeReg === "semaine"){
+        var p = k.split("-");
+        nom = "Semaine du " + p[2] + "/" + p[1] + "/" + p[0];
+      } else if(periodeReg === "mois"){
+        var q = k.split("-");
+        nom = ["janvier","février","mars","avril","mai","juin","juillet","août",
+               "septembre","octobre","novembre","décembre"][+q[1]-1] + " " + q[0];
+      }
+      return { nom:nom, sous:n + (n > 1 ? " courses" : " course"), val:eurosRond(+x.total || 0) };
+    }), "Aucune course réalisée pour l'instant.");
+    dessinerDelai(g.delai || {});
+
+    /* Les chauffeurs, du plus rapporteur au moins : c'est le tableau qui
+       sert à décider à qui confier la prochaine course. */
+    var chauff = g.chauffeurs.map(function(x){
+      var n = +x.n || 0, sans = +x.sans_commission || 0;
+      return { nom:x.nom, sous:n + (n > 1 ? " courses" : " course") + " · commission " + euros(+x.commission || 0)
+                 + (sans ? " · " + sans + (sans > 1 ? " sans commission figée" : " sans commission figée") : ""),
+               val:eurosRond(+x.total || 0) };
+    });
+    document.getElementById("regChauffeursVide").hidden = chauff.length > 0;
+    dessinerGraphChauffeurs(g.chauffeurs_periode);
+    poser("regChauffeurs", chauff, "");
+
+    /* D'OÙ VIENNENT LES CLIENTS : les DEMANDES (tout statut) disent si une
+       affiche travaille ; l'argent ne compte que les réalisées. */
+    var prov = g.provenances.map(function(x){
+      var d = +x.demandes || 0, f = +x.realisees || 0;
+      return { nom: x.nom, sous: d + (d > 1 ? " demandes" : " demande") + " · " + f + " réalisée" + (f > 1 ? "s" : ""),
+               val: eurosRond(+x.total || 0) };
+    });
+    document.getElementById("regProvenanceVide").hidden = prov.length > 0;
+    poser("regProvenance", prov, "");
+    remplirFiltres(g.options || {});
+
+    var src = document.getElementById("regSource");
+    if(src){
+      src.hidden = false;
+      src.textContent = g.source === "serveur"
+        ? "Chiffres lus sur le serveur : toutes les courses (" + (+g.total).toLocaleString("fr-FR") + " hors essais)."
+        : "Chiffres calculés sur cet appareil" + (nuage.connecte() ? ", le serveur ne les a pas encore rendus." : " (serveur non connecté).");
+    }
+    /* L'avertissement des 1 000 courses ne vaut que pour l'appareil. */
+    var tr = document.getElementById("registreTronque");
+    if(tr && g.source === "serveur") tr.hidden = true;
+  }
+  function lireResumeServeur(){
+    if(!nuage.connecte()) return;
+    var jeton = ++registreJeton, periode = periodeReg;
+    nuage.appel("/rest/v1/rpc/ela_registre_resume", { method:"POST", body: JSON.stringify({ p_periode: periode }) })
+      .then(function(r){
+        if(jeton !== registreJeton || periode !== periodeReg || !resumeLisible(r)) return;
+        r.source = "serveur";
+        registreServeur = r;
+        dessinerChiffres(r);
+      }).catch(function(){ /* on garde l'appareil ; « regSource » le dit déjà */ });
+  }
+
+  /* Le graphique ne regarde que la période EN COURS (cette semaine, ce mois,
+     cette année) : c'est la question qu'on se pose — qui roule en ce moment. */
+  function dessinerGraphChauffeurs(liste){
+    var el = document.getElementById("regGraphChauffeurs");
+    var l = (liste || []).filter(function(x){ return x && x.nom && +x.n > 0; });
     el.innerHTML = "";
     var t = document.createElement("p"); t.className = "graph-ch-titre";
     t.textContent = "Courses réalisées " + ({ semaine: "cette semaine", mois: "ce mois-ci",
@@ -15977,7 +16321,7 @@ window.ELA_TEXTES = {
       v.textContent = "Aucune course réalisée avec un chauffeur sur cette période.";
       el.appendChild(v); return;
     }
-    var max = l[0].n;
+    var max = +l[0].n;
     l.forEach(function(x){
       var d = document.createElement("div"); d.className = "gc-ligne";
       var tete = document.createElement("div"); tete.className = "gc-tete";
@@ -15988,7 +16332,7 @@ window.ELA_TEXTES = {
       var i = document.createElement("i"); i.style.width = Math.max(4, Math.round(x.n / max * 100)) + "%";
       barre.appendChild(i);
       var det = document.createElement("div"); det.className = "gc-detail";
-      det.textContent = eurosRond(x.total) + " de courses · commission " + euros(x.com);
+      det.textContent = eurosRond(+x.total || 0) + " de courses · commission " + euros(+x.commission || 0);
       d.appendChild(tete); d.appendChild(barre); d.appendChild(det);
       el.appendChild(d);
     });
@@ -16003,7 +16347,8 @@ window.ELA_TEXTES = {
      le premier « Confirmer » (« confirmeeLe », posé par majCourse). La
      MÉDIANE, pas la moyenne : une seule demande oubliée une nuit ne doit pas
      cacher que les neuf autres ont eu leur réponse en cinq minutes. Comme le
-     graphique des chauffeurs, la période EN COURS seulement. */
+     graphique des chauffeurs, la période EN COURS seulement. Le calcul est
+     dans « agregatsLocaux » et, sur le serveur, dans « ela_registre_resume ». */
   var DELAI_CIBLE_MIN = 15;
   function dureeLisible(ms){
     var min = Math.round(ms / 60000);
@@ -16013,33 +16358,17 @@ window.ELA_TEXTES = {
     if(h >= 48) return Math.round(h / 24) + " jours";
     return h + " h" + (m ? " " + String(m).padStart(2, "0") : "");
   }
-  function dessinerDelai(){
+  function dessinerDelai(dl){
     if(!document.getElementById("regDelai")) return;
-    var auj = new Date(), debut;
-    if(periodeReg === "annee") debut = new Date(auj.getFullYear(), 0, 1);
-    else if(periodeReg === "mois") debut = new Date(auj.getFullYear(), auj.getMonth(), 1);
-    else debut = lundiDe(auj);
     var periode = { semaine: "cette semaine", mois: "ce mois-ci", annee: "cette année" }[periodeReg] || "";
-    var delais = [], enAttente = 0;
-    registre().filter(comptable).forEach(function(c){
-      if(!(c.securite && c.securite.empreinteDepot)) return;
-      var t0 = Date.parse(c.cree || c._cree || "");
-      if(isNaN(t0) || t0 < debut.getTime()) return;
-      if((c.statut || "attente") === "attente"){ enAttente++; return; }
-      var t1 = Date.parse(c.confirmeeLe || "");
-      if(!isNaN(t1)) delais.push({ ms: Math.max(0, t1 - t0), c: c });
-    });
+    var n = +dl.n || 0, enAttente = +dl.en_attente || 0;
     var lignes = [];
-    if(delais.length){
-      delais.sort(function(a, b){ return a.ms - b.ms; });
-      var n = delais.length, mi = Math.floor(n / 2);
-      var mediane = n % 2 ? delais[mi].ms : (delais[mi - 1].ms + delais[mi].ms) / 2;
-      var vite = delais.filter(function(x){ return x.ms < DELAI_CIBLE_MIN * 60000; }).length;
-      var pire = delais[n - 1];
+    if(n && dl.mediane_ms !== null && dl.mediane_ms !== undefined){
       lignes.push({ nom: "Délai médian", sous: "la moitié des demandes est confirmée plus vite · sur " + n
-                     + (n > 1 ? " demandes confirmées " : " demande confirmée ") + periode, val: dureeLisible(mediane) });
-      lignes.push({ nom: "Confirmées en moins de " + DELAI_CIBLE_MIN + " min", sous: "", val: vite + " sur " + n });
-      lignes.push({ nom: "La plus longue", sous: numeroDe(pire.c) ? "N° " + numeroDe(pire.c) : pire.c.ref, val: dureeLisible(pire.ms) });
+                     + (n > 1 ? " demandes confirmées " : " demande confirmée ") + periode, val: dureeLisible(+dl.mediane_ms) });
+      lignes.push({ nom: "Confirmées en moins de " + DELAI_CIBLE_MIN + " min", sous: "", val: (+dl.vite || 0) + " sur " + n });
+      if(dl.pire) lignes.push({ nom: "La plus longue", sous: +dl.pire.numero > 0 ? "N° " + (+dl.pire.numero) : dl.pire.ref,
+                                val: dureeLisible(+dl.pire.ms || 0) });
     } else if(enAttente){
       lignes.push({ nom: "Délai médian", sous: "aucune demande du site confirmée " + periode, val: "—" });
     }
@@ -16047,94 +16376,13 @@ window.ELA_TEXTES = {
                                 val: String(enAttente) });
     poser("regDelai", lignes, "Aucune demande du site " + periode + ".");
   }
-
   function dessinerRegistre(){
-    var faites = realisees();
-    var maintenant = new Date();
-    var l0 = lundiDe(maintenant);
-    var l1 = new Date(l0); l1.setDate(l1.getDate() - 7);
-
-    var cette = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l0; });
-    var avant = faites.filter(function(c){ var d = dateCourse(c); return d && d >= l1 && d < l0; });
-    var a = bilan(cette), b = bilan(avant);
-    document.getElementById("regCourses").textContent = a.n;
-    document.getElementById("regCA").textContent      = eurosRond(a.total);
-    document.getElementById("regMoyen").textContent   = eurosRond(a.moyen);
-    document.getElementById("regCoursesAvant").textContent = b.n + " la semaine dernière";
-    document.getElementById("regCAAvant").textContent      = eurosRond(b.total) + " la semaine dernière";
-    document.getElementById("regMoyenAvant").textContent   = eurosRond(b.moyen) + " la semaine dernière";
-
-    /* Le résultat par période : on regroupe sur la CLÉ de la période plutôt
-       que de boucler sur les dates — un mois sans course n'apparaît pas, et
-       c'est voulu : une ligne à zéro n'apprend rien. */
-    var cles = {};
-    faites.forEach(function(c){
-      var d = dateCourse(c); if(!d) return;
-      var k;
-      if(periodeReg === "annee") k = String(d.getFullYear());
-      else if(periodeReg === "mois") k = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
-      else { var l = lundiDe(d);
-             k = l.getFullYear() + "-" + String(l.getMonth()+1).padStart(2,"0") + "-" + String(l.getDate()).padStart(2,"0"); }
-      (cles[k] = cles[k] || []).push(c);
-    });
-    var lignes = Object.keys(cles).sort().reverse().slice(0, 12).map(function(k){
-      var v = bilan(cles[k]);
-      var nom = k;
-      if(periodeReg === "semaine"){
-        var p = k.split("-");
-        nom = "Semaine du " + p[2] + "/" + p[1] + "/" + p[0];
-      } else if(periodeReg === "mois"){
-        var q = k.split("-");
-        nom = ["janvier","février","mars","avril","mai","juin","juillet","août",
-               "septembre","octobre","novembre","décembre"][+q[1]-1] + " " + q[0];
-      }
-      return { nom:nom, sous:v.n + (v.n > 1 ? " courses" : " course"), val:eurosRond(v.total) };
-    });
-    poser("regResultat", lignes, "Aucune course réalisée pour l'instant.");
-    dessinerDelai();
-
-    /* Les chauffeurs, du plus rapporteur au moins : c'est le tableau qui
-       sert à décider à qui confier la prochaine course. */
-    var parCh = {};
-    faites.forEach(function(c){
-      var nom = (c.chauffeur && c.chauffeur.nom || "").trim();
-      if(!nom) return;
-      (parCh[nom] = parCh[nom] || []).push(c);
-    });
-    var chauff = Object.keys(parCh).map(function(nom){
-      var v = bilan(parCh[nom]);
-      var com = parCh[nom].reduce(function(s, c){ return s + commissionDe(c).montant; }, 0);
-      return { nom:nom, sous:v.n + (v.n > 1 ? " courses" : " course")
-                          + " · commission " + euros(com),
-               val:eurosRond(v.total), _t:v.total, n:v.n, com:com };
-    }).sort(function(x,y){ return y._t - x._t; });
-    document.getElementById("regChauffeursVide").hidden = chauff.length > 0;
-    dessinerGraphChauffeurs(faites);
-    poser("regChauffeurs", chauff, "");
-
-    /* D'OÙ VIENNENT LES CLIENTS. Ici on part de TOUT le registre, pas des
-       seules réalisées : une demande venue d'une affiche prouve que
-       l'affiche travaille, même si la course a fini par ne pas se faire.
-       L'argent, lui, ne compte que les réalisées — les deux chiffres
-       répondent à deux questions différentes. */
-    var parProv = {};
-    registre().filter(comptable).forEach(function(c){
-      var p = (c.provenance || "").trim();
-      if(!p) return;
-      (parProv[p] = parProv[p] || []).push(c);
-    });
-    var prov = Object.keys(parProv).map(function(nom){
-      var tout = parProv[nom];
-      var faites = tout.filter(function(c){ return c.statut === "realisee"; });
-      var v = bilan(faites);
-      return { nom:nom,
-               sous: tout.length + (tout.length > 1 ? " demandes" : " demande")
-                     + " · " + faites.length + " réalisée" + (faites.length > 1 ? "s" : ""),
-               val: eurosRond(v.total), _n: tout.length };
-    }).sort(function(x,y){ return y._n - x._n; });
-    document.getElementById("regProvenanceVide").hidden = prov.length > 0;
-    poser("regProvenance", prov, "");
-
+    var g = agregatsLocaux();
+    /* Le serveur a déjà répondu pour cette période : on ne repeint pas avec
+       l'appareil le temps qu'il réponde de nouveau. */
+    if(registreServeur && registreServeur.periode === periodeReg) dessinerChiffres(registreServeur);
+    else dessinerChiffres(g);
+    lireResumeServeur();
     chercherRegistre();
   }
   function poser(id, lignes, vide){
@@ -16188,17 +16436,140 @@ window.ELA_TEXTES = {
     return champs.indexOf(q) >= 0
         || (!!qCompact && champs.replace(/\s/g, "").indexOf(qCompact) >= 0);
   }
-  function chercherRegistre(){
-    var q = sansAccents(document.getElementById("regRecherche").value);
-    if(!q){ poser("regResultats", [], ""); return; }
-    var qCompact = q.replace(/\s/g, "");
-    var trouves = registre().filter(function(c){ return correspondCourse(c, q, qCompact); }).slice(0, 20);
-    poser("regResultats", trouves.map(function(c){
-      return { nom: (numeroDe(c) ? "N° " + numeroDe(c) : c.ref) + " · " + ((c.client && c.client.nom) || "—"),
-               sous: (c.course.depart + " → " + c.course.arrivee) + " · " + libelleEtat(c.statut || "attente"),
-               val: euros((c.prix && c.prix.total) || 0) };
-    }), "Aucune course ne correspond.");
+  /* ═══ RECHERCHER, FILTRER, PAGINER SUR TOUT LE REGISTRE (20/10/2026) ═══
+     La recherche ne lisait que la copie de l'appareil (1 000 courses) : une
+     course plus ancienne « n'existait pas » pendant qu'un client attendait
+     au téléphone. Elle interroge maintenant le serveur
+     (« ela_registre_courses ») : texte, statut, chauffeur, hôtel ou source,
+     période, VRAI total, vingt lignes à la fois.
+     L'APPAREIL RÉPOND D'ABORD, LE SERVEUR ENSUITE : chaque frappe dessine
+     tout de suite ce que l'appareil connaît (et c'est tout ce qu'on a hors
+     ligne), puis la réponse du serveur, demandée après 250 ms de calme,
+     remplace la liste. Le compteur dit d'où vient la liste. Une réponse
+     arrivée après une autre frappe est jetée (jeton). Le serveur ne rend que
+     ce que la ligne affiche : ni téléphone, ni chambre. */
+  var PAGE_REG = 20, rechercheJeton = 0, rechercheVue = [], rechercheTotal = 0, rechercheSource = "";
+  function remplirChoix(id, valeurs, tous, extra){
+    var sel = document.getElementById(id); if(!sel) return;
+    var garde = sel.value;
+    sel.innerHTML = "";
+    var ajouter = function(v, t){ var o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
+    ajouter("", tous);
+    (extra || []).forEach(function(e){ ajouter(e[0], e[1]); });
+    (valeurs || []).forEach(function(v){ if(v) ajouter(v, v); });
+    if(garde && ![].some.call(sel.options, function(o){ return o.value === garde; })) ajouter(garde, garde);
+    sel.value = garde;
   }
+  function remplirFiltres(o){
+    remplirChoix("regFChauffeur", o.chauffeurs, "Tous");
+    remplirChoix("regFSource", o.sources, "Toutes", [["(direct)", "Venue directe"]]);
+  }
+  function bornesFiltre(){
+    var v = document.getElementById("regFPeriode").value, auj = new Date();
+    var an = auj.getFullYear(), mo = auj.getMonth();
+    document.getElementById("regFMoisChamp").hidden = v !== "un-mois";
+    document.getElementById("regFDuChamp").hidden = v !== "dates";
+    document.getElementById("regFAuChamp").hidden = v !== "dates";
+    if(v === "mois") return [dateLocale(new Date(an, mo, 1)), dateLocale(new Date(an, mo + 1, 0))];
+    if(v === "mois-1") return [dateLocale(new Date(an, mo - 1, 1)), dateLocale(new Date(an, mo, 0))];
+    if(v === "annee") return [an + "-01-01", an + "-12-31"];
+    if(v === "annee-1") return [(an - 1) + "-01-01", (an - 1) + "-12-31"];
+    if(v === "un-mois"){
+      var mm = document.getElementById("regFMois").value;
+      if(!/^\d{4}-\d{2}$/.test(mm)) return [null, null];
+      return [mm + "-01", dateLocale(new Date(+mm.slice(0, 4), +mm.slice(5, 7), 0))];
+    }
+    if(v === "dates") return [document.getElementById("regFDu").value || null, document.getElementById("regFAu").value || null];
+    return [null, null];
+  }
+  function filtresRegistre(){
+    var b = bornesFiltre();
+    return { q: document.getElementById("regRecherche").value.trim(),
+             statut: document.getElementById("regFStatut").value,
+             chauffeur: document.getElementById("regFChauffeur").value,
+             source: document.getElementById("regFSource").value,
+             debut: b[0], fin: b[1] };
+  }
+  /* L'appareil, avec les MÊMES règles que le serveur (texte sans accents,
+     téléphone tapé d'une traite, chauffeur sans casse, « Venue directe »). */
+  function chercherSurAppareil(f){
+    var q = sansAccents(f.q), qc = q.replace(/\s/g, "");
+    var ch = (f.chauffeur || "").trim().toLowerCase();
+    var jour = function(c){ return (c.course && c.course.date) || (c.cree || "").slice(0, 10); };
+    return registre().filter(function(c){
+      if(f.statut && (c.statut || "attente") !== f.statut) return false;
+      if(ch && ((c.chauffeur && c.chauffeur.nom) || "").trim().toLowerCase() !== ch) return false;
+      var pr = (c.provenance || "").trim();
+      if(f.source === "(direct)" ? pr !== "" : (f.source && pr !== f.source)) return false;
+      var d = jour(c);
+      if(f.debut && !(d && d >= f.debut)) return false;
+      if(f.fin && !(d && d <= f.fin)) return false;
+      return !q || correspondCourse(c, q, qc);
+    }).sort(function(a, b){
+      var x = jour(b) + " " + ((b.course && b.course.heure) || ""), y = jour(a) + " " + ((a.course && a.course.heure) || "");
+      return x < y ? -1 : x > y ? 1 : 0;
+    }).map(function(c){
+      return { ref: c.ref, numero: numeroDe(c), statut: c.statut || "attente", date: c.course && c.course.date,
+               client: c.client && c.client.nom, depart: c.course && c.course.depart, arrivee: c.course && c.course.arrivee,
+               prix: (c.prix && c.prix.total) || 0, essai: !!c.essai };
+    });
+  }
+  function ligneTrouvee(c){
+    var d = /^\d{4}-\d{2}-\d{2}$/.test(c.date || "") ? c.date.slice(8, 10) + "/" + c.date.slice(5, 7) + "/" + c.date.slice(0, 4) : "";
+    return { nom: (+c.numero > 0 ? "N° " + (+c.numero) : c.ref) + " · " + (c.client || "—") + (c.essai ? " · essai" : ""),
+             sous: (c.depart || "—") + " → " + (c.arrivee || "—") + " · " + libelleEtat(c.statut || "attente") + (d ? " · " + d : ""),
+             val: euros(+c.prix || 0) };
+  }
+  function montrerRecherche(){
+    poser("regResultats", rechercheVue.map(ligneTrouvee), "Aucune course ne correspond.");
+    var compte = document.getElementById("regResultatsCompte");
+    compte.hidden = false;
+    compte.textContent = rechercheTotal.toLocaleString("fr-FR") + (rechercheTotal > 1 ? " courses trouvées" : " course trouvée")
+      + (rechercheSource === "serveur" ? " sur le serveur" : " sur cet appareil" + (nuage.connecte() ? "" : " (serveur non connecté)"))
+      + (rechercheVue.length < rechercheTotal ? " · " + rechercheVue.length + " affichées" : "") + ".";
+    document.getElementById("regPlus").hidden = rechercheVue.length >= rechercheTotal;
+  }
+  function lirePageServeur(f, decalage, jeton){
+    return nuage.appel("/rest/v1/rpc/ela_registre_courses", { method:"POST", body: JSON.stringify({
+        p_q: f.q || null, p_statut: f.statut || null, p_chauffeur: f.chauffeur || null, p_source: f.source || null,
+        p_debut: f.debut || null, p_fin: f.fin || null, p_limite: PAGE_REG, p_decalage: decalage }) })
+      .then(function(r){
+        if(jeton !== rechercheJeton) return false;
+        if(!r || typeof r !== "object" || !isFinite(r.total) || !Array.isArray(r.courses)) return false;
+        rechercheVue = decalage ? rechercheVue.concat(r.courses) : r.courses;
+        rechercheTotal = +r.total; rechercheSource = "serveur";
+        montrerRecherche();
+        return true;
+      }).catch(function(){ return false; });
+  }
+  var chercherServeurPlusTard = retarder(function(){
+    var f = filtresRegistre(), jeton = rechercheJeton;
+    if(nuage.connecte() && (f.q || f.statut || f.chauffeur || f.source || f.debut || f.fin)) lirePageServeur(f, 0, jeton);
+  }, 250);
+  function chercherRegistre(){
+    var f = filtresRegistre();
+    rechercheJeton++;
+    if(!(f.q || f.statut || f.chauffeur || f.source || f.debut || f.fin)){
+      rechercheVue = []; rechercheTotal = 0;
+      poser("regResultats", [], "");
+      document.getElementById("regResultatsCompte").hidden = true;
+      document.getElementById("regPlus").hidden = true;
+      return;
+    }
+    var tout = chercherSurAppareil(f);
+    rechercheVue = tout.slice(0, PAGE_REG); rechercheTotal = tout.length; rechercheSource = "appareil";
+    montrerRecherche();
+    chercherServeurPlusTard();
+  }
+  document.getElementById("regPlus").addEventListener("click", function(){
+    var f = filtresRegistre();
+    if(rechercheSource === "serveur"){ lirePageServeur(f, rechercheVue.length, rechercheJeton); return; }
+    rechercheVue = chercherSurAppareil(f).slice(0, rechercheVue.length + PAGE_REG);
+    montrerRecherche();
+  });
+  ["regFStatut", "regFChauffeur", "regFSource", "regFPeriode", "regFMois", "regFDu", "regFAu"].forEach(function(id){
+    document.getElementById(id).addEventListener("change", chercherRegistre);
+  });
 
   var periodeReg = "semaine";
   /* « [data-periode] » : le centre de contrôle a ses propres boutons de
@@ -16848,7 +17219,14 @@ window.ELA_TEXTES = {
          conversion de cette page-là. Lisibles par l'admin seul ; muettes,
          aucun chiffre inventé. */
       nuage.appel("/rest/v1/prospects?select=via&via=not.is.null&cree_le=gte." + depuis)
-        .catch(function(){ return []; })
+        .catch(function(){ return []; }),
+      /* LA VÉRITÉ SERVEUR (20/10/2026) : demandes, confirmées, réalisées et
+         argent, comptés sur TOUTES les courses dont le code « via » a été posé
+         par deposer-course — pas sur la copie de l'appareil (1 000 courses),
+         et jamais sur la provenance en texte libre, qu'un client peut écrire.
+         Sans la fonction (migration absente), on retombe sur l'appareil. */
+      nuage.appel("/rest/v1/rpc/ela_liens_resultats", { method:"POST", body: JSON.stringify({ p_jours: 30 }) })
+        .catch(function(){ return null; })
     ]).then(function(r){
       var liens = Array.isArray(r[0]) ? r[0] : [];
       var mesure = {};
@@ -16860,22 +17238,37 @@ window.ELA_TEXTES = {
       (Array.isArray(r[2]) ? r[2] : []).forEach(function(x){
         if(x && x.via) demos[x.via] = (demos[x.via] || 0) + 1;
       });
+      var serveur = null;
+      if(Array.isArray(r[3]) && r[3].every(function(x){ return x && typeof x.code === "string" && isFinite(x.demandes); })){
+        serveur = {};
+        r[3].forEach(function(x){ serveur[x.code] = x; });
+      }
       var courses = registre().filter(comptable).filter(function(c){
         return String((c.course && c.course.date) || "") >= depuis;
       });
+      var compter = function(code){
+        if(serveur){
+          var x = serveur[code] || {};
+          return { d: +x.demandes || 0, c: +x.confirmees || 0, f: +x.realisees || 0, total: +x.chiffre || 0 };
+        }
+        var siennes = courses.filter(function(c){ return c.via === code; });
+        var faites = siennes.filter(function(c){ return c.statut === "realisee"; });
+        return { d: siennes.length, f: faites.length, total: bilan(faites).total,
+                 c: siennes.filter(function(c){ return c.statut === "confirmee" || c.statut === "realisee"; }).length };
+      };
       zone.innerHTML = "";
       liens.map(function(l){
         var m = mesure[l.code] || {};
-        var siennes = courses.filter(function(c){ return c.via === l.code; });
-        var faites = siennes.filter(function(c){ return c.statut === "realisee"; });
+        var v = compter(l.code);
         var nd = demos[l.code] || 0;
         var parts = GESTES_MESURE.filter(function(g){ return m[g[0]]; })
           .map(function(g){ return m[g[0]] + " " + (m[g[0]] > 1 ? g[2] : g[1]); });
         if(nd) parts.push(nd + (nd > 1 ? " demandes de démo" : " demande de démo"));
-        parts.push(siennes.length + (siennes.length > 1 ? " demandes" : " demande"));
-        parts.push(faites.length + " réalisée" + (faites.length > 1 ? "s" : ""));
-        return { lien:l, sous:parts.join(" · "), total:bilan(faites).total,
-                 _n:(siennes.length + nd) * 1000 + (m.page_vue || 0) + (m.moteur_ouvert || 0) };
+        parts.push(v.d + (v.d > 1 ? " demandes" : " demande"));
+        parts.push(v.c + " confirmée" + (v.c > 1 ? "s" : ""));
+        parts.push(v.f + " réalisée" + (v.f > 1 ? "s" : ""));
+        return { lien:l, sous:parts.join(" · "), total:v.total,
+                 _n:(v.d + nd) * 1000 + (m.page_vue || 0) + (m.moteur_ouvert || 0) };
       }).sort(function(x, y){ return y._n - x._n; }).forEach(function(x){
         var d = document.createElement("div");
         d.className = "reg-ligne reg-lien";
@@ -16895,7 +17288,10 @@ window.ELA_TEXTES = {
         zone.appendChild(d);
       });
       etat.textContent = (liens.length
-          ? "« Copier » donne le lien vers la page choisie au-dessus. Visites comptées sans cookie ni donnée personnelle ; l'argent ne compte que les courses réalisées."
+          ? "« Copier » donne le lien vers la page choisie au-dessus. Vues et clics : estimations, sans cookie ni donnée personnelle. "
+            + (serveur ? "Demandes, confirmées, réalisées et argent : comptés sur le serveur, toutes courses, 30 jours."
+                       : "Demandes et argent : calculés sur cet appareil (le serveur ne les a pas rendus).")
+            + " L'argent ne compte que les courses réalisées."
           : "Aucun lien pour l'instant : créez-en un ci-dessous.")
         + (sansMesure ? " Les visites ne sont pas lisibles pour l'instant : seules les demandes s'affichent." : "");
     }).catch(function(e){
@@ -17287,6 +17683,7 @@ window.ELA_TEXTES = {
     ecran("ecran-reglages");
     allumerAdmin(document.getElementById("btnReglages"));
     dessinerTarifs();
+    dessinerEtatSysteme();
     if(window.__jugerPushAdmin) window.__jugerPushAdmin();
     if(vers){
       var cible = document.getElementById(vers);

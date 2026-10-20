@@ -12,7 +12,7 @@
    passer la panne. C'est aussi ce qui le rend éprouvable depuis une
    machine sans réseau : on le fait tourner contre `site/`.
 
-   CE QU'IL ÉPROUVE, ET POURQUOI CES CINQ-LÀ :
+   CE QU'IL ÉPROUVE, ET POURQUOI CEUX-LÀ :
 
    1. LES PAGES CRITIQUES RÉPONDENT. Le site a dix portes d'entrée et
       une seule est sur la page d'accueil. Une redirection cassée ne se
@@ -47,6 +47,19 @@
       canonique sur elle-même, hreflang réciproques. Même juge que sur le
       site construit : seo-indexation.mjs.
 
+   7. UNE RÉSERVATION PASSE, DE BOUT EN BOUT, SANS RIEN ENREGISTRER
+      (20 octobre 2026). Les six points ci-dessus prouvaient que la page
+      s'ouvre ; aucun ne prouvait qu'on peut RÉSERVER. Le contrôleur remplit
+      le formulaire, obtient un prix, choisit une gamme, confirme — et la
+      demande part au vrai serveur marquée « sonde », référence « SONDE- » :
+      deposer-course fait tout le chemin (champs, base, quota, prix) et
+      s'arrête avant d'écrire la course. Ni ligne, ni Telegram. Toute autre
+      écriture vers le serveur est COUPÉE : si la page changeait de porte,
+      la sonde tomberait, elle n'enregistrerait pas. Une fonction pas encore
+      à jour refuse « SONDE- » (400) : c'est un échec, jamais une course.
+      Aussi : le cache du service worker servi est celui de /version.json.
+      « --sans-sonde » saute ce point (machine sans réseau).
+
    Lancer :
      node .github/scripts/verifier-production.mjs https://elatransfer.com/
      node .github/scripts/verifier-production.mjs http://127.0.0.1:8099/
@@ -57,6 +70,7 @@ import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
 import { chercher, exempte } from "./textes-interdits.mjs";
 import { auditerIndexation, lecteurHttp } from "./seo-indexation.mjs";
+import { sonderReservation } from "./sonde-reservation.mjs";
 
 const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || "https://elatransfer.com/").replace(/\/*$/, "/");
@@ -70,6 +84,7 @@ const RAPPORT = (args.find((a) => a.startsWith("--rapport=")) || "").split("=")[
    200 partout, avec les bons titres. */
 const COMMIT = ((args.find((a) => a.startsWith("--commit=")) || "").split("=")[1] || "").trim();
 const ATTENDRE = Number((args.find((a) => a.startsWith("--attendre=")) || "").split("=")[1] || 0);
+const SANS_SONDE = args.includes("--sans-sonde");
 
 /* LES PORTES D'ENTRÉE, ET CHACUNE DOIT PROUVER QUI ELLE EST.
    `titre` n'est pas un confort : un code 200 ne dit pas QUELLE page a
@@ -239,6 +254,19 @@ rapport.version = version;
 if (version.erreur) ko(`/version.json ${version.erreur} \u2014 impossible de dire quel commit est en ligne`);
 else if (COMMIT && version.commit !== COMMIT) ko(`la production sert le commit ${version.commit} (construit le ${version.construit}) au lieu de ${COMMIT} \u2014 l'h\u00e9bergeur n'a pas publi\u00e9 le dernier main`);
 else ok(`commit en ligne : ${version.commit} \u00b7 cache ${version.cache} \u00b7 construit le ${version.construit}${COMMIT ? " \u2014 c'est bien le dernier main" : ""}`);
+/* LE SERVICE WORKER SERVI EST CELUI DE CETTE VERSION (20 octobre 2026). Un
+   « sw.js » resté en cache chez l'hébergeur garderait les téléphones qui ont
+   installé l'application sur l'ancien site, pendant que tout le reste est
+   neuf : c'est la panne « j'ai publié et je ne vois rien changer ». */
+if (!version.erreur && version.cache) {
+  try {
+    const r = await fetch(BASE + "sw.js?t=" + Date.now(), { cache: "no-store" });
+    const cache = ((await r.text()).match(/const CACHE\s*=\s*"([^"]+)"/) || [])[1] || "";
+    if (!r.ok) ko(`/sw.js r\u00e9pond ${r.status} \u2014 l'application install\u00e9e ne se met plus \u00e0 jour`);
+    else if (cache !== version.cache) ko(`/sw.js sert le cache \u00ab ${cache || "?"} \u00bb au lieu de \u00ab ${version.cache} \u00bb \u2014 les t\u00e9l\u00e9phones qui ont install\u00e9 le site gardent l'ancienne version`);
+    else ok(`le service worker servi est celui de cette version (${cache})`);
+  } catch (e) { ko(`/sw.js injoignable : ${e.message}`); }
+}
 
 /* ---- 1 quater. Ce que Google peut découvrir et indexer ---------------
    15 octobre 2026 (Prompt 2). Le point 1 suit les redirections et ne lit
@@ -335,6 +363,16 @@ if (ouverte) {
   );
   if (trop > 1) ko(`la page déborde de ${trop} px à 390 px`);
   else ok("aucun débordement horizontal à 390 px");
+}
+
+/* ---- 7. Une réservation de bout en bout, sans rien enregistrer -------
+   Voir l'en-tête. Départ et arrivée viennent de la liste des aéroports que
+   la page porte elle-même : la sonde ne dépend pas de la Base Adresse
+   Nationale. Le prix, lui, passe par le calculateur d'itinéraire réel, et
+   tombe sur la ligne droite s'il est muet : il y a toujours un prix. */
+if (!SANS_SONDE) {
+  console.log("\nUne r\u00e9servation de bout en bout (sonde, rien d'enregistr\u00e9) :");
+  rapport.sonde = await sonderReservation({ navigateur, base: BASE, ok, ko });
 }
 
 /* ---- 5. La démo reste fermée sans session ---------------------------

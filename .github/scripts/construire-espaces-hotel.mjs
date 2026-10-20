@@ -249,8 +249,13 @@ function client() {
      retire ce script (construire-demo.mjs) : il nomme la clé d'un
      partenaire réel. */
   const cles = JSON.stringify(Object.keys(HOTELS).map((k) => k.toLowerCase()));
+  /* UN HÔTEL SANS PHOTO A SON APLAT DÈS LE PREMIER DESSIN (20/10/2026).
+     Mesuré quand la photo d'easyHotel a été retirée : la finition posait
+     « eh-sans-photo » au script, le bandeau passait de sa hauteur de photo à
+     l'aplat sous le doigt — CLS 0,245. Le même état, posé ici. */
+  const sansPhoto = JSON.stringify(Object.keys(HOTELS).filter((k) => !HOTELS[k].photoEntete).map((k) => k.toLowerCase()));
   const voile = `<style id="elaHotelAvanceStyle">html.hotel-avance .ecran{visibility:hidden}</style>`;
-  const avance = `<script id="elaHotelAvance">(function(){try{var h=(new URLSearchParams(location.search).get('h')||'').trim().toLowerCase();if(h&&${cles}.indexOf(h)!==-1){var r=document.documentElement;document.body.classList.add('hotel','hotel-enhanced');r.classList.add('hotel-avance');setTimeout(function(){r.classList.remove('hotel-avance');},5000);}}catch(e){}}());</script>`;
+  const avance = `<script id="elaHotelAvance">(function(){try{var h=(new URLSearchParams(location.search).get('h')||'').trim().toLowerCase();if(h&&${cles}.indexOf(h)!==-1){var r=document.documentElement;document.body.classList.add('hotel','hotel-enhanced');if(${sansPhoto}.indexOf(h)!==-1)document.body.classList.add('eh-sans-photo');r.classList.add('hotel-avance');setTimeout(function(){r.classList.remove('hotel-avance');},5000);}}catch(e){}}());</script>`;
   if (!html.includes('<body>')) throw new Error('client : balise <body> introuvable, le mode hôtel ne peut pas être posé avant le dessin');
   html = html.replace('</head>', voile + '</head>');
   html = html.replace('<body>', '<body>' + avance);
