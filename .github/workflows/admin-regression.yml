@@ -100,6 +100,10 @@ jobs:
           # refusé). C'est elle qui a trouvé le bon qui disait « Demande reçue »
           # au-dessus de « n'a pas pu nous être transmise ».
           suites="$suites test-parcours-en"
+          # LA SONDE DU MONITORING (20 octobre 2026) : le monitoring réserve pour
+          # de vrai sur le site en ligne ; une sonde qui se tromperait
+          # enregistrerait une fausse course. Éprouvée ici, hors ligne.
+          suites="$suites test-monitoring-sonde"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.

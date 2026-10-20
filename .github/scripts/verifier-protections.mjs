@@ -103,6 +103,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const reelle = trouvee ? await lire(`${api}/rulesets/${trouvee.id}`) : null;
     const reglages = await lire(api);
     const ecarts = comparer(cible, reelle, reglages);
+    /* Le jeton des Actions ne lit pas tous les réglages du dépôt (mesuré le
+       20/10/2026 : « allow_update_branch » absent de la réponse). Un réglage
+       illisible n'est ni un écart ni un « OK » : on le dit. */
+    const illisibles = Object.entries(REGLAGES_DEPOT).filter(([cle]) => !(cle in reglages)).map(([, r]) => r.geste);
     if (!ecarts.length) {
       console.log(`OK — la règle « ${cible.name} » en ligne est celle de .github/ruleset-main.json, et les réglages du dépôt sont posés.`);
     } else {
@@ -110,6 +114,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       for (const e of ecarts) console.log(' - ' + e);
       process.exitCode = 1;
     }
+    for (const g of illisibles) console.log(`À VÉRIFIER À LA MAIN (illisible avec ce jeton) : ${g}`);
   } catch (e) {
     // Une lecture impossible n'est pas un écart : on le dit, sans conclure.
     console.log('LECTURE IMPOSSIBLE — ' + e.message);

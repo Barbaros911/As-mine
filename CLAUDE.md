@@ -66,8 +66,9 @@ ancienne adresse se redirige dans `_redirects`, jamais par un attrape-tout.
 `test-routage.mjs` refuse tout lien du site qui finirait en 404.
 
 **QUEL COMMIT EST EN LIGNE SE PROUVE** (14/10/2026) : `construire.sh` écrit
-`/version.json` ; le monitoring exige le dernier `main` (15 min de marge) et
-l'absence des textes de `.github/scripts/textes-interdits.mjs`, refusés aussi au build.
+`/version.json` ; le monitoring exige le dernier `main` (15 min de marge),
+l'absence des textes de `.github/scripts/textes-interdits.mjs`, refusés aussi au
+build, et RÉSERVE de bout en bout : sonde `SONDE-`, jamais écrite (20/10).
 
 **LES ADRESSES À ÉPROUVER APRÈS CHAQUE DÉPLOIEMENT CLOUDFLARE** — une par
 mécanisme de service (le monitoring les vérifie toutes les 6 h) :
@@ -404,9 +405,10 @@ message client oblige à changer ce lecteur**. La course entre TOUJOURS en
 presse-papiers peut rester pendante) ; le champ reste ouvert, vidé.
 
 **LE REGISTRE** : semaine, résultat par période, chauffeurs, recherche,
-sauvegarde JSON, CSV, restauration.
-- **Les chiffres ne comptent QUE les `realisee`**, à la date de la COURSE ;
-  la recherche porte sur TOUT le registre.
+sauvegarde JSON, CSV, restauration. **Chiffres, recherche paginée et liens
+partenaires viennent du SERVEUR** (20/10/2026, `20261020040000`) ; l'appareil
+ne sert que de repli, et `#regSource` le dit.
+- **Les chiffres ne comptent QUE les `realisee`**, à la date de la COURSE.
 - **CSV en point-virgule avec un BOM** (Excel français) ; la restauration
   AJOUTE, n'écrase jamais.
 - **Délai de confirmation** (19/10/2026) : médiane, du dépôt par le site
@@ -3370,10 +3372,8 @@ Aucun P0. Corrigé : collision de référence (section « LA RÉFÉRENCE EST TIR
 AU SORT ») ; `deposer-course` vérifie « déjà déposée ? » AVANT le quota ;
 `courses-hotel` refuse un partenaire `actif = false` (fiche absente ou table
 muette : le code décide) ; `etat-course` refuse une référence mal formée sans
-lecture ; `prevenir-client` n'accepte plus `github.io`. **Le Registre compte
-depuis l'appareil, plafonné à 1 000 courses** (dix jours à 100 demandes/jour) :
-il le DIT (`#registreTronque`) tant que ses chiffres ne viennent pas du
-serveur. RELANCE/INSTALLER_TELEGRAM exigent `x-ela-relance` : secret fabriqué
+lecture ; `prevenir-client` n'accepte plus `github.io`. Registre : voir « LE
+REGISTRE ». RELANCE/INSTALLER_TELEGRAM exigent `x-ela-relance` : secret fabriqué
 dans Vault par `20261019010000`, lu des deux côtés (RPC `ela_relance_secret`) ;
 sans migration, ouvertes comme avant. Histoire :
 `memoire/reference.md`, `memoire/erreurs-client.md`, `memoire/alertes-relance.md`.

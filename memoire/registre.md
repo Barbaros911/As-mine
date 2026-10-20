@@ -79,3 +79,33 @@ savait combien de temps les réponses prenaient. Barbaros : « Oui ».
   exige 700 ms qu'une horloge figée ne laisse jamais passer). Trois
   falsifications tombent : heure jamais posée (2 contrôles), garde
   « depuis attente » retirée (1), filtre « demandes du site » retiré (6).
+
+## 20/10/2026 — le Registre compte sur le serveur
+
+Mission de finalisation (« des dizaines de milliers de courses »). La copie de
+l'appareil s'arrête à 1 000 courses ; le Registre y calculait tout.
+`20261020040000_registre_serveur.sql` pose trois fonctions, lecture seule :
+`ela_registre_resume(periode)` (admin : semaine, résultat par période,
+chauffeurs, provenance, délai, listes des filtres), `ela_registre_courses(…)`
+(exploitant : texte, statut, chauffeur, source, dates, 20 lignes, vrai total ;
+ni téléphone ni chambre rendus), `ela_liens_resultats(jours)` (admin : par
+code `via`, demandes / confirmées / réalisées / argent).
+- **Un seul dessin, deux sources** : `agregatsLocaux()` fabrique la forme du
+  serveur ; l'écran se dessine sur l'appareil puis le serveur le remplace.
+  Une réponse sans la bonne forme (fonction absente, faux serveur qui rend
+  `{ok:true}`) est ignorée — jamais « 0 € ».
+- **La commission inconnue du serveur** (taux du carnet, sur l'appareil) est
+  comptée à part (« sans commission figée »), jamais mise à zéro.
+- **Pièges payés en l'écrivant** : une fonction PL/pgSQL avec bloc
+  d'exception marquée « parallel safe » plante sous un plan parallèle — les
+  outils de date sont en SQL pur, CASE emboîtés ; un `set search_path` sur un
+  petit outil SQL l'empêche d'être déplié (0,3 s → 1,1 s) ; une CTE non
+  matérialisée recalculait la fiche de recherche plusieurs fois par ligne.
+- Mesuré (PostgreSQL 16 local) : 25 000 courses, résumé 0,2 s, recherche
+  0,5 s ; 100 000, résumé 0,8 s, recherche par texte 2,1 s. Au-delà de
+  50 000, le geste sera une colonne de recherche et un index trigramme.
+- Le code `via` survit à un rechargement (`sessionStorage`, la visite
+  seulement). Une provenance « Lien · … » écrite à la main ne compte pour
+  aucun lien : seul le `via` posé par `deposer-course` compte.
+- Épreuves : `supabase/tests/registre-serveur.sql` (CI, vrai PostgreSQL),
+  `test-admin-registre-serveur`, `test-liens-suivi`.

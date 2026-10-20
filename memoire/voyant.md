@@ -44,3 +44,18 @@ mémoire de POURQUOI c'est écrit ainsi.
   pendant ce travail, retirés ensuite à sa décision — voir « LES
   COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE ».
 
+
+## 20/10/2026 — l'état du système et la sonde de réservation
+
+Réglages → « État du système » : alertes, réservations (1 h), notifications
+(1 h), demandes du site (24 h), erreurs du site, dernière demande reçue,
+dernière alerte partie (journal des notifications). Une mesure absente se dit
+« non mesuré », jamais « OK ». `test-admin-voyant` (bloc L).
+Le monitoring de production RÉSERVE de bout en bout
+(`.github/scripts/sonde-reservation.mjs`) : la demande part au vrai
+`deposer-course` marquée `sonde`, référence `SONDE-` ; la fonction fait tout
+le chemin (champs, base, quota à part, prix) et s'arrête avant l'écriture.
+Une version qui ignorerait la sonde la refuse (format `ELA-` exigé) ; toute
+autre écriture de la page vers le serveur est coupée. Il vérifie aussi que
+`sw.js` servi porte le cache de `/version.json`. `test-monitoring-sonde`,
+`test-securite-fonctions`.

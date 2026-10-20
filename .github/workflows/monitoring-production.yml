@@ -214,6 +214,8 @@ jobs:
               "- « on ne peut pas réserver » → la page est en ligne et ne sert à rien.",
               "- « n'a pas publié le dernier main » ou « /version.json » → l'hébergeur (Cloudflare) sert un ancien commit : sa construction a échoué ou vise une autre branche.",
               "- « contient … ancienne règle » → un texte de l'ancien paiement est servi en ligne.",
+              "- « réservation de bout en bout » ou « le dépôt répond » → le moteur ou le serveur ne prend plus de demande : c'est l'incident le plus grave. La sonde n'enregistre jamais rien (référence SONDE-).",
+              "- « le service worker servi » → les téléphones qui ont installé le site gardent l'ancienne version.",
               "",
               "Aucune correction automatique n'est appliquée. Cette Issue se ferme d'elle-même dès qu'un contrôle repasse au vert.",
               "",
