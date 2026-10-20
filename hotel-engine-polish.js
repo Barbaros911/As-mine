@@ -144,6 +144,40 @@
      aucune donnée et ne remplace aucun contrôle : elle hiérarchise les deux
      actions, regroupe visuellement le tunnel et précise les catégories de
      véhicule. */
+  /* ═══ « DÉPART IMMÉDIAT » : UNE TUILE À CÔTÉ DE « NOUVELLE COURSE » ═══
+     20/10/2026, à la demande de Barbaros (« pour une réservation immédiate,
+     appeler Elatransfer », choisie sur maquette parmi trois). Une demande en
+     ligne attend qu'on trouve un chauffeur ; un appel le cherche pendant
+     qu'on parle. Les deux gestes sont donc côte à côte, au moment où la
+     réception décide : réserver pour plus tard, ou appeler maintenant.
+     Noire et non rouge : le rouge dit « en attente » dans la liste. Le
+     numéro est repris du bloc d'aide de la page, jamais recopié ici. Sur un
+     petit écran, le numéro ne tient pas : la tuile dit « Appuyez pour
+     appeler », le doigt suffit. */
+  var ICONE_TEL='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.6 3.5h2.6l1.5 4-2 1.4a11 11 0 0 0 6.4 6.4l1.4-2 4 1.5v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>';
+  function tuileAppel(actions,anglais){
+    var tel=document.querySelector('.rec-aide-tel');
+    if(!actions || !tel) return;
+    var a=document.getElementById('recAppelImmediat');
+    if(!a){
+      a=document.createElement('a');a.id='recAppelImmediat';a.className='reception-action eh-appel';
+      a.innerHTML='<span class="reception-action-icon" aria-hidden="true">'+ICONE_TEL+'</span>'
+        +'<span class="reception-action-copy"><b></b><small><span class="eh-long"></span><span class="eh-court"></span></small></span>';
+    }
+    if(a.parentNode!==actions) actions.appendChild(a);
+    document.body.classList.add('eh-avec-appel');
+    if(a.getAttribute('href')!==tel.getAttribute('href')) a.setAttribute('href',tel.getAttribute('href'));
+    var titre=anglais?'LEAVING NOW':'DÉPART IMMÉDIAT';
+    var long=(anglais?'Call ':'Appelez le ')+tel.textContent;
+    var court=anglais?'Tap to call us':'Appuyez pour appeler';
+    function ecrire(el,v){if(el && el.textContent!==v) el.textContent=v;}
+    ecrire(a.querySelector('b'),titre);
+    ecrire(a.querySelector('.eh-long'),long);
+    ecrire(a.querySelector('.eh-court'),court);
+    var label=titre+' — '+long;
+    if(a.getAttribute('aria-label')!==label) a.setAttribute('aria-label',label);
+  }
+
   function receptionPremium(){
     if(!comptoir || !hotelActif()) return;
     document.body.classList.add('reception-premium');
@@ -189,8 +223,8 @@
         if(adresse) adresse.insertAdjacentElement('afterend',horaires);
       }
       texte(horaires,anglais
-        ? 'Human assistance 5 am–10 pm · Immediate requests subject to availability'
-        : 'Assistance humaine 5 h–22 h · Demandes immédiates selon disponibilité');
+        ? 'Human assistance 5 am–10 pm · Leaving now? Call us, it is the fastest way'
+        : 'Assistance humaine 5 h–22 h · Départ immédiat ? Appelez-nous, c\'est le plus rapide');
 
       var actions=document.getElementById('receptionActions');
       var liste=document.getElementById('btnReception');
@@ -283,6 +317,7 @@
         }
         habillerAction(btnReserver,'＋',anglais?'NEW RIDE':'NOUVELLE COURSE',
           anglais?'Book a transfer for a guest':'Réserver un transfert pour un client');
+        tuileAppel(actionsRec,anglais);
         if(chiffres){
           var titreCourses=document.getElementById('recListeTitre');
           if(!titreCourses){titreCourses=document.createElement('div');titreCourses.id='recListeTitre';titreCourses.className='rec-liste-titre';
