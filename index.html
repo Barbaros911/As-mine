@@ -8637,6 +8637,9 @@ window.ELA_TEXTES = {
     Object.keys(m).forEach(function(k){ racine.style.setProperty("--h-" + k, m[k]); });
     if(h.photoEntete) racine.style.setProperty("--h-photo-entete", 'url("' + h.photoEntete + '")');
     else racine.style.removeProperty("--h-photo-entete");
+    if(h.photoComptoir) racine.style.setProperty("--h-photo-comptoir", 'url("' + h.photoComptoir + '")');
+    else racine.style.removeProperty("--h-photo-comptoir");
+    document.body.classList.toggle("eh-photo-comptoir", !!h.photoComptoir);
     var photo = document.getElementById("hotelPhoto");
     /* Sans photo, le cadre n'est pas vide : il est simplement uni. Un bloc
        gris « image manquante » ferait plus de mal que pas d'image du tout. */
@@ -9161,6 +9164,13 @@ window.ELA_TEXTES = {
          SANS ACCORD ÉCRIT : signalé à Barbaros le 23/09/2026, à lui de
          trancher — la retirer, c'est vider cette ligne. */
       photoEntete:"https://www.easyhotel.com/cdn-cgi/image/width=1200,height=800,format=auto/https://cdn.easyhotel.com/1_easy_Hotel_CDG_1067422f0b.png",
+      /* LA PHOTO DE L'EN-TÊTE DU COMPTOIR (?reception=), et du comptoir
+         seulement (20/10/2026, Barbaros). C'est la sienne, prise à cette
+         réception, servie depuis le dépôt ; l'écran publicitaire et les deux
+         tableaux sont floutés (une offre de l'hôtel qui expire, des œuvres
+         qui ne sont pas à nous). Chemin ABSOLU : la page vit sous
+         /easyhotel-reception/ et /reception/<clé>/. */
+      photoComptoir:"/photos/easyhotel-aeroville-reception.webp",
       /* La page du QR de l'hôtel, où ramène le logo de sa page client. */
       pageClient:"/easyhotel-client/",
       /* MAIS L'ADRESSE POSTALE COMPLÈTE PART CHEZ LE CHAUFFEUR. Plusieurs

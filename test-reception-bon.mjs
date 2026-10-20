@@ -96,6 +96,46 @@ try {
     reserve: getComputedStyle(document.body).paddingBottom }));
   check('sur un PC, pas de barre du bas, ni de place réservée pour elle', !bas.barre && bas.reserve === '0px', JSON.stringify(bas));
 
+  /* LA PHOTO DU COMPTOIR (20/10/2026, Barbaros : la réception seulement).
+     Collée à droite du bandeau, vraiment chargée, et le bandeau ne grandit
+     pas : au comptoir, la place est celle de la liste. */
+  const bandeau = await p.evaluate(async () => {
+    const t = document.querySelector('#ecran-reception .trajet-tete');
+    const url = /url\("([^"]+)"\)/.exec(getComputedStyle(t).backgroundImage)?.[1] || '';
+    const charge = await new Promise(ok => { const i = new Image(); i.onload = () => ok(i.naturalWidth); i.onerror = () => ok(0); i.src = url; });
+    return { url, charge, h: Math.round(t.getBoundingClientRect().height) };
+  });
+  check('sur un PC, le bandeau du comptoir porte la photo de la réception, chargée',
+    /\/photos\/easyhotel-aeroville-reception\.webp$/.test(bandeau.url) && bandeau.charge > 0, JSON.stringify(bandeau));
+  check('le bandeau photo reste assez bas pour que la liste suive', bandeau.h <= 190, bandeau.h + ' px');
+  /* LE TEXTE BLANC SE LIT SUR LA PHOTO : on cache le texte, on photographie
+     ce qu'il y a derrière, et on prend le pixel le PLUS CLAIR de cette zone
+     (le pire cas). Mesuré sur les pixels rendus, pas déduit du CSS. */
+  const zones = await p.evaluate(() => {
+    const t = document.querySelector('#ecran-reception .trajet-tete');
+    const els = [...t.querySelectorAll('.rec-hotel, .rec-adresse')].filter(e => e.getBoundingClientRect().height > 0);
+    const r = els.map(e => e.getBoundingClientRect());
+    const x = Math.min(...r.map(q => q.left)), y = Math.min(...r.map(q => q.top));
+    const blanc = els.every(e => /^rgba?\(255, 255, 255/.test(getComputedStyle(e).color));
+    t.querySelector('.trajet-corps').style.visibility = 'hidden';
+    return { x, y, w: Math.max(...r.map(q => q.right)) - x, h: Math.max(...r.map(q => q.bottom)) - y, blanc };
+  });
+  const fondPng = (await p.screenshot({ clip: { x: zones.x, y: zones.y, width: zones.w, height: zones.h } })).toString('base64');
+  const pire = await p.evaluate(async b64 => {
+    const i = new Image(); i.src = 'data:image/png;base64,' + b64; await i.decode();
+    const c = document.createElement('canvas'); c.width = i.width; c.height = i.height;
+    const g = c.getContext('2d'); g.drawImage(i, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height).data;
+    const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+    let max = 0;
+    for (let k = 0; k < d.length; k += 4) max = Math.max(max, 0.2126 * lin(d[k]) + 0.7152 * lin(d[k + 1]) + 0.0722 * lin(d[k + 2]));
+    document.querySelector('#ecran-reception .trajet-corps').style.visibility = '';
+    return max;
+  }, fondPng);
+  const contraste = 1.05 / (pire + 0.05);
+  check('le texte du bandeau est blanc, et se lit sur la photo (≥ 4,5:1 au pixel le plus clair)',
+    zones.blanc && contraste >= 4.5, contraste.toFixed(2) + ':1');
+
   /* Le nom et le téléphone sur la carte : en noir et en gras, plus en gris. */
   const qui = await p.locator('.rec-qui').first().evaluate(e => {
     const s = getComputedStyle(e); return { taille:parseFloat(s.fontSize), gras:Number(s.fontWeight), couleur:s.color };
@@ -266,7 +306,24 @@ try {
     check('page publique ' + chemin + ' : pas de bon de comptoir chargé',
       await pp.evaluate(() => typeof window.ELA_BON === 'undefined'));
   }
+  /* La photo du comptoir est au COMPTOIR seulement : la page des clients de
+     l'hôtel ne la demande pas. */
+  const demandees = [];
+  pp.on('request', r => { if (r.url().includes('easyhotel-aeroville-reception')) demandees.push(r.url()); });
+  await pp.goto(BASE + '/application.html?h=easyhotel-aeroville', { waitUntil:'networkidle' });
+  check('la page client de l\'hôtel ne charge pas la photo du comptoir', demandees.length === 0, demandees.join(' '));
   await ctxP.close();
+
+  /* Sur un téléphone, le texte du bandeau prend toute la largeur : l'aplat
+     reste, sans photo. */
+  const ctxM = await nav.newContext({ viewport:{ width:390, height:844 }, locale:'fr-FR', timezoneId:'Europe/Paris' });
+  await ctxM.route('**/*', r => r.request().url().startsWith(BASE) ? r.continue() : r.abort());
+  const m = await ctxM.newPage();
+  await m.goto(BASE + '/reception/easyhotel-aeroville/', { waitUntil:'domcontentloaded' });
+  await m.waitForTimeout(700);
+  const fondTel = await m.evaluate(() => getComputedStyle(document.querySelector('#ecran-reception .trajet-tete')).backgroundImage);
+  check('sur un téléphone, le bandeau du comptoir reste sans photo', !/url\(/.test(fondTel), fondTel.slice(0, 120));
+  await ctxM.close();
 } finally {
   await nav.close();
   serveur.close();
