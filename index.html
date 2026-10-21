@@ -2174,11 +2174,15 @@ body.reception .onglet[data-onglet="trajets"]{display:none;}
    Deux boutons partent : celui d'« Un imprévu ? » et celui du bon (« Une
    question ? »). La LIGNE ÉCRITE du bon (« Appel, WhatsApp — Telegram »)
    reste : le client la lit sur l'écran et s'en sert depuis son téléphone.
+   21/10/2026 : « Appeler » et « Telegram » suivent, pour la même raison —
+   un PC ne compose pas, et Telegram y ouvrirait le compte de quelqu'un.
+   Sur un PC, le bon n'a donc plus de boutons : le numéro et l'identifiant
+   sont écrits en gros, c'est ce que le client recopie.
    L'onglet WhatsApp de la barre n'est pas à retirer ici : la réception n'a
    déjà plus de barre (« reception-premium », hotel-engine-polish.css). */
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
   body.reception #recAideWa,
-  body.reception .ebon-canal.wa{display:none;}
+  body.reception .ebon-contact-liens{display:none;}
 }
 
 .hotel-forfait{margin:6px 2px 14px;font-size:13px;font-weight:700;
@@ -9934,7 +9938,7 @@ window.ELA_TEXTES = {
       b.className = "veh-carte";
       b.dataset.cle = g.cle;
       var heureArrivee = (isNaN(arrBas.getTime()) || !(course.km > 0)) ? "" :
-        (" · " + T("arrivee_h") + " " + hhmmLoc(arrBas) + "–" + hhmmLoc(arrHaut));
+        ("\u00a0· " + T("arrivee_h") + " " + hhmmLoc(arrBas) + "–" + hhmmLoc(arrHaut));
       b.innerHTML = '<span class="veh-corps">'
         +   '<span class="veh-nom"></span>'
         +   '<span class="veh-detail"></span>'
@@ -11387,7 +11391,7 @@ window.ELA_TEXTES = {
     var versHotel = recHotel && (arrivee || "").indexOf(recHotel.nom) === 0;
     return versHotel
       ? ((depart || "—").split(",")[0] + "  →  l'hôtel")
-      : ("l'hôtel  →  " + (arrivee || "—"));
+      : ("L'hôtel  →  " + (arrivee || "—"));
   }
   function remplirBon(bon){
     ecrireRefBon(bon);
@@ -12343,6 +12347,10 @@ window.ELA_TEXTES = {
       /* Le moyen de confirmation est celui du client précédent : on l'oublie. */
       contactChoisi = null; jugerContact();
       heureTouchee = false; poserDefautHeure(); jugerDelai();
+      /* Le véhicule aussi (21/10/2026, mesuré) : la Berline du client
+         précédent restait cochée, et un groupe de cinq pouvait partir avec.
+         « dessinerGammes » redessine les mêmes prix, sans choix. */
+      if(document.getElementById("listeVehicules").children.length) dessinerGammes();
     }
     ecran("ecran-accueil");
   });

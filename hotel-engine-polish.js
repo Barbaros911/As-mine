@@ -547,9 +547,17 @@
     var l=[], nom=val('clientNom'), tel=val('clientTel'), ch=val('chambre');
     function pose(id,etat){var e=$(id);if(vis(e))l.push([cadre(e),etat]);}
     /* « Autre destination » a une valeur VIDE dans le menu : c'est un choix,
-       pas un oubli — c'est l'adresse en dessous qui doit être remplie. */
-    pose('hotelDest','ok');
-    ['depart','hotelTerminal','passagers','bagages'].forEach(function(id){pose(id,val(id)?'ok':'manque');});
+       pas un oubli — c'est l'adresse en dessous qui doit être remplie.
+       AU COMPTOIR, CE QUE PERSONNE N'A CHOISI N'EST PAS VERT (21/10/2026) :
+       la destination s'ouvre sur la première de la grille (CDG), le
+       terminal, les passagers et les bagages sur leur première valeur. Une
+       coche d'office disait « vérifié » sur un CDG que la réception n'avait
+       pas regardé — même règle que la date et l'heure ci-dessous. Côté
+       client, la destination vient de la carte touchée : elle est choisie. */
+    function choisi(id){return !comptoir || touches[id] || tentative;}
+    pose('hotelDest', choisi('hotelDest')?'ok':'neutre');
+    pose('depart', val('depart')?'ok':'manque');
+    ['hotelTerminal','passagers','bagages'].forEach(function(id){pose(id,!val(id)?'manque':choisi(id)?'ok':'neutre');});
     if(vis($('arrivee'))) pose('arrivee',val('arrivee')?'ok':'manque');
     var heureKo=vis($('heurePassee'));
     pose('date', !val('date')?'manque':(touches.date||tentative)?'ok':'neutre');
@@ -603,11 +611,21 @@
     ['input','change'].forEach(function(t){
       document.addEventListener(t,function(ev){
         var id=ev.target && ev.target.id;
-        if(id==='date'||id==='heure') touches[id]=true;
+        if(/^(date|heure|hotelDest|hotelTerminal|passagers|bagages)$/.test(id||'')) touches[id]=true;
         setTimeout(peindre,0);
       },true);
     });
     document.addEventListener('click',function(){setTimeout(peindre,0);},false);
+    /* « RÉSERVER UNE AUTRE COURSE » : LE CLIENT SUIVANT REPART DE ZÉRO
+       (21/10/2026, mesuré) : l'essai de validation du client précédent
+       restait armé, et le formulaire vide s'ouvrait avec le nom et le
+       téléphone déjà en rouge « Obligatoire » ; ses choix restaient verts.
+       Pris en capture : remis à zéro avant que le moteur ne vide les champs. */
+    document.addEventListener('click',function(ev){
+      if(!ev.target.closest || !ev.target.closest('#btnNouvelleCourse')) return;
+      tentative=false; touches={};
+      setTimeout(peindre,0);
+    },true);
     /* L'APPUI EST ATTRAPÉ AVANT LE MOTEUR (phase de capture) : s'il manque
        quelque chose, le moteur ne part pas vers l'écran des prix — ou, au
        comptoir, ne tente pas d'envoyer. */

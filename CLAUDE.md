@@ -1838,8 +1838,8 @@ entrées easyHotel, dans `hotel-engine-polish.js/.css` (classes `eh-ok`,
   loin, les contrôlait et affichait son erreur sur la page CACHÉE. Mesuré :
   le client appuyait, rien ne bougeait. Le contrôle se fait maintenant à
   « Voir mon prix », avant de quitter la page des champs.
-- **La date et l'heure ne sont pas vertes d'office** : pré-remplies à
-  maintenant + 15 min, personne ne les a choisies. Vertes dès qu'on y touche.
+- **Rien de pré-rempli n'est vert d'office** (date, heure ; au comptoir aussi
+  destination, terminal, passagers, bagages) : vert dès qu'on y touche.
 - **Au comptoir le bouton est grisé** tant qu'aucune gamme n'est choisie ; un
   bouton grisé ne reçoit pas le clic. On écoute le doigt posé sur sa surface
   (`pointerup`) pour montrer quand même ce qui manque.
@@ -3573,9 +3573,8 @@ statut `annulee` — est dans `memoire/reception.md`.
   Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
   boutons : au comptoir, le client lit l'écran du PC.
 - **Sur un ordinateur (large ET à la souris), aucun bouton WhatsApp à la
-  réception** (9/10/2026, Barbaros) — ni sur le bon, ni dans « Un imprévu ? » :
-  il n'ouvrirait que WhatsApp Web. La ligne écrite reste ; une tablette au
-  doigt garde le bouton. La réception n'a pas de barre du bas, ni sa place.
+  réception** (9/10/2026) ni dans « Un imprévu ? », et **aucun bouton sur le
+  bon** (21/10) : tout y est écrit. Une tablette au doigt garde ses boutons.
 - **Après une réservation, une carte pour LA RÉCEPTION** (21/10/2026) :
   titre selon le dépôt, N°, client, trajet, prix ; ni bon du client ni
   « À dire au client » (`memoire/reception.md`).
