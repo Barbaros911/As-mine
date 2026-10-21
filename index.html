@@ -6515,7 +6515,7 @@ window.ELA_TEXTES = {
     suite_1:"Votre demande nous parvient immédiatement, directement depuis le site.",
     suite_2:"Nous vérifions la disponibilité d'un chauffeur professionnel pour votre trajet.",
     regle_contact:"Elatransfer vous contacte rapidement pour confirmer votre réservation. Gardez votre téléphone à portée de main.",
-    tel_relu:"Nous vous contacterons au",
+    tel_relu:"Nous vous contacterons au", tel_relu_comptoir:"Le client sera contacté au",
     canal_telephone:"Appel / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
     joindre_titre:"Où souhaitez-vous recevoir votre confirmation ?",
     joindre_note:"Depuis l'étranger, recevez votre confirmation sur WhatsApp ou Telegram.",
@@ -6748,7 +6748,7 @@ window.ELA_TEXTES = {
     suite_1:"Your request reaches us instantly, directly from the website.",
     suite_2:"We check the availability of a professional chauffeur for your journey.",
     regle_contact:"Elatransfer will contact you shortly to confirm your booking. Please keep your phone close by.",
-    tel_relu:"We will contact you on",
+    tel_relu:"We will contact you on", tel_relu_comptoir:"The guest will be contacted on",
     canal_telephone:"Call / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
     joindre_titre:"Where would you like to receive your confirmation?",
     joindre_note:"Calling from abroad? Get your confirmation on WhatsApp or Telegram.",
@@ -11031,7 +11031,9 @@ window.ELA_TEXTES = {
     relu.hidden = !telValide(tel);
     relu.textContent = "";
     if(!relu.hidden){
-      relu.appendChild(document.createTextNode(T("tel_relu") + " "));
+      /* Au comptoir, la réception tape le numéro d'un AUTRE : « nous vous
+         contacterons » lui parlait comme au client (21/10/2026). */
+      relu.appendChild(document.createTextNode(T(recHotel ? "tel_relu_comptoir" : "tel_relu") + " "));
       var b = document.createElement("b");
       b.textContent = telLisible(tel);
       relu.appendChild(b);

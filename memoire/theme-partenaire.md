@@ -37,6 +37,21 @@ et il a demandé de **garder la photo du comptoir** qu'il avait posée.
   hôtel sans cette clé garde le blanc. La pastille de l'hôtel suit la même
   règle (elle était blanche sur la maquette).
 
+### Ce que Barbaros a fait corriger en voyant le site réel (21/10/2026)
+
+À sa question « est-ce 10/10 partout ? », la réponse a été non, avec la liste ;
+il a dit « corrige, mais pas besoin que la page réception soit en anglais »
+(les textes du moteur restent donc en français en mode EN, c'est voulu).
+- **« Nous vous contacterons au … »** parlait à la réception comme au client :
+  au comptoir c'est « Le client sera contacté au … » (`tel_relu_comptoir`).
+- **L'écran du bon après réservation** tenait sur 1180 px (« Départ » et sa
+  valeur à un mètre l'un de l'autre) : une colonne de 720 px, l'action de
+  l'hôtel en tête, « Voir le bon du client » et « Réserver une autre course »
+  côte à côte. Le bon garde ses couleurs fixes.
+- **Sur téléphone, les deux tuiles de la liste** centraient leur contenu :
+  une phrase de trois lignes à côté d'une de deux décalait les titres. Ils
+  sont alignés en haut.
+
 ### Les pièges rencontrés en l'implémentant
 
 - **Le moteur rallumait « Départ / Arrivée » en cherchant ses boutons dans

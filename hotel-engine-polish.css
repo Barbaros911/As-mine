@@ -777,10 +777,37 @@ body.hotel.reception-premium .reception-step-copy small{margin:1px 0 0!important
 body.hotel.reception-premium #receptionEtape1{align-items:center!important}
 body.hotel.reception-premium #receptionEtape1 .reception-step-num{margin-top:0}
 body.hotel.reception-premium #ecran-bon #receptionEtape3{max-width:780px;margin:14px auto 10px!important;padding:0 14px!important}
-/* Le bon du comptoir : il respire sous la barre bleu nuit, et son bouton
-   orange suit la règle de la V2 (l'encre de l'hôtel sur son action). */
-body.hotel.reception-premium #ecran-bon{padding-top:20px!important}
-body.hotel.reception-premium #ecran-bon .bouton{color:var(--v2-sur-action)!important}
+/* LE BON APRÈS UNE RÉSERVATION AU COMPTOIR : une colonne de 720 px au
+   centre (sur 1180, « Départ » et sa valeur étaient à un mètre l'un de
+   l'autre), et les gestes de la V2 — l'action de l'hôtel en tête, les deux
+   autres côte à côte. Le bon lui-même garde ses couleurs : il est le même
+   partout (CLAUDE.md, « UN SEUL BON »). */
+body.hotel.reception-premium #ecran-bon{padding-top:20px!important;padding-bottom:40px!important}
+body.hotel.reception-premium #ecran-bon > *{box-sizing:border-box;width:min(720px,calc(100% - 32px))!important;max-width:none!important;margin-left:auto!important;margin-right:auto!important}
+body.hotel.reception-premium #ecran-bon .consigne-comptoir{margin-bottom:16px!important;padding:16px 20px!important;border-radius:16px!important;background:var(--v2-marine)!important;box-shadow:var(--v2-ombre)}
+body.hotel.reception-premium #ecran-bon .consigne-titre{color:#7FDDF6;opacity:1}
+body.hotel.reception-premium #ecran-bon #actionsBon{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;position:static!important;margin-top:20px!important;padding:0!important;background:none!important;box-shadow:none!important;border:0!important}
+body.hotel.reception-premium #ecran-bon #actionsBon > *{grid-column:1/-1;margin:0!important}
+body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVersReception{order:-1}
+body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVoirClient,
+body.hotel.reception-premium #ecran-bon #actionsBon > #btnNouvelleCourse{grid-column:span 1}
+body.hotel.reception-premium #ecran-bon .bouton{
+  display:flex;align-items:center;justify-content:center;min-height:56px!important;border-radius:14px!important;
+  background:var(--v2-action)!important;color:var(--v2-sur-action)!important;font-size:16px!important;font-weight:800!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px rgba(11,49,83,.5)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px color-mix(in srgb,var(--eh-action) 75%,transparent)!important;
+}
+body.hotel.reception-premium #ecran-bon .bouton-fantome{
+  min-height:48px!important;border:1px solid var(--v2-filet)!important;border-radius:14px!important;background:#fff!important;
+  color:var(--v2-titre)!important;font-size:15px!important;font-weight:750!important;box-shadow:none!important;
+}
+body.hotel.reception-premium #ecran-bon .bouton-fantome:hover{border-color:var(--v2-filet-survol)!important;background:#F7FAFD!important}
+body.hotel.reception-premium #ecran-bon .bouton:focus-visible,
+body.hotel.reception-premium #ecran-bon .bouton-fantome:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--v2-bleu)!important}
+@media(max-width:600px){
+  body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVoirClient,
+  body.hotel.reception-premium #ecran-bon #actionsBon > #btnNouvelleCourse{grid-column:1/-1}
+}
 
 /* Départ ou arrivée de l'hôtel : le choix actif prend l'action de l'hôtel. */
 body.hotel.reception-premium #receptionEtape1 .hotel-sens{
@@ -852,7 +879,7 @@ body.hotel.reception-premium .rec-client #telRelu:not([hidden]){
 body.hotel.reception-premium .rec-client #telRelu::before{content:"";position:absolute;left:0;top:2px;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%231E8449'/%3E%3Cpath d='M8 12.3l2.6 2.6L16 9.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 body.hotel.reception-premium .rec-client #telRelu b{font-weight:800}
 /* Par où le client sera confirmé : deux (ou trois) choix égaux. */
-body.hotel.reception-premium .rec-client #blocContact{margin-top:20px!important}
+body.hotel.reception-premium #ecran-accueil .rec-client #blocContact{margin-top:20px!important}
 body.hotel.reception-premium .rec-client #blocContact .bloc-titre{margin:0 2px 10px!important;font-size:14px!important;line-height:20px!important;font-weight:800!important;color:var(--v2-titre)!important;text-transform:none!important;letter-spacing:0!important}
 body.hotel.reception-premium .rec-client #blocContact .bloc-note{margin:0 2px 10px!important;font-size:13px;color:var(--v2-gris)}
 body.hotel.reception-premium .rec-client .choix-envoi{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important;max-width:520px;margin:0!important}
@@ -1161,7 +1188,9 @@ body.hotel.reception-premium #recCorps #btnRecFermer{
 }
 /* Sous 420 px, deux tuiles côte à côte n'ont plus la place d'une icône. */
 @media(max-width:420px){
-  body.hotel.reception-premium #recDashboardActions .reception-action{min-height:76px!important;justify-content:center!important}
+  /* Titres alignés en haut : centrées, une phrase de trois lignes à côté
+     d'une de deux décalait les deux titres. */
+  body.hotel.reception-premium #recDashboardActions .reception-action{min-height:76px!important;justify-content:flex-start!important}
   body.hotel.reception-premium #recDashboardActions .reception-action-icon{display:none!important}
 }
 /* UN ÉLÉMENT CACHÉ PAR LE MOTEUR RESTE CACHÉ (« hidden »), quelle que soit
