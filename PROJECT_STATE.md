@@ -263,7 +263,6 @@ parce qu'une liste les nomme.
 | Paiement Stripe — **plus prévu** : le modèle retenu le 10/10 est le lien de paiement du chauffeur. Le code d'empreinte TEST reste dans le dépôt, sans appelant, Live éteint (voir « Paiement Stripe — ce qui existe vraiment »). À rouvrir seulement sur décision de Barbaros, après le SIRET | Barbaros | #173 |
 | Note Google : relever note et nombre dans `avis-google.json` avant le 17/12/2026 (sinon elle s'éteint seule, sans casser le site) ; y mettre le lien « Partager » de la fiche, plus sûr que la recherche `query=Elatransfer` posée aujourd'hui | Barbaros, puis Claude | `memoire/avis.md` |
 | Alerte avant expiration du jeton Supabase `github-production` (1er octobre 2027, posé le 4/10/2026) | Claude | à ouvrir |
-| Protection de `main`, à finir depuis un ordinateur (l'enregistrement échoue sur iPhone) : cocher « Require branches to be up to date before merging » et « Require conversation resolution before merging » dans la règle « Protéger main », et « Always suggest updating pull request branches » dans Settings → General. **Le miroir `.github/ruleset-main.json` porte déjà la cible** (20/10/2026) ; `protections-main.yml` la compare chaque jour à la règle en ligne et tient une Issue `[PROTECTIONS]` ouverte tant que les trois cases ne sont pas cochées — elle se ferme seule ensuite | Barbaros | audit du 17/10/2026 · PR #366 · Issue `[PROTECTIONS]` |
 
 ## Ce qui bloque, et par qui
 
