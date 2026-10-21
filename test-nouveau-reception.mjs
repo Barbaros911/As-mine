@@ -778,14 +778,19 @@ await p.locator('#blocContact [data-contact="whatsapp"]').click();
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 check('nom, téléphone et moyen de confirmation : la course part',
   await p.locator('#ecran-bon').isVisible());
-check('le bon porte la chambre',
-  /214/.test(await p.locator('#bonDepart').textContent()),
-  await p.locator('#bonDepart').textContent());
-/* Ici le serveur est INJOIGNABLE : rien n'est encore à confirmer, et
-   l'écriteau rouge dit d'appeler. La consigne « confirmé par Elatransfer »
-   se tait — elle mentirait. */
-check('dépôt échoué : pas de « À dire au client »',
-  await p.locator('#consigneComptoir').isHidden());
+check('l\'écran de la réception porte la chambre et le nom du client',
+  await p.locator('#bonClientComptoir').isVisible()
+  && /Chambre 214 · Jean Martin/.test(await p.locator('#bonClientComptoir').textContent()),
+  await p.locator('#bonClientComptoir').textContent().catch(() => 'absent'));
+/* Ici le serveur est INJOIGNABLE : la carte ne dit pas « enregistrée » —
+   ce serait la panne inventée à l'envers — et l'écriteau rouge, juste
+   dessous, dit d'appeler. */
+await p.waitForSelector('#bonComptoir.ko', { timeout: 10000 }).catch(() => {});
+check('dépôt échoué : la carte dit « non transmise », jamais « enregistrée »',
+  (await p.locator('#bcTitre').textContent()) === 'Réservation non transmise'
+  && await p.locator('#bonComptoir.ko').isVisible()
+  && await p.locator('#bcPastille').isHidden(),
+  await p.locator('#bcTitre').textContent().catch(() => 'absent'));
 
 /* =====================================================================
    10. LA RÉCEPTION VALIDE SUR LE SITE — WHATSAPP NE S'OUVRE PLUS
@@ -905,18 +910,31 @@ check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi').textContent());
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
-/* ═══ « BIEN DIRE AU CLIENT QUE LA CONFIRMATION SE FAIT PAR ELATRANSFER »
-   (5 octobre 2026, à sa demande) ═══ Un encadré en tête du bon, à
-   l'écran, pas une ligne grise. */
-check('après la réservation, la réception lit « À dire au client »',
-  await p.locator('#consigneComptoir').isVisible()
-  && /Elatransfer vous envoie la confirmation et le lien de paiement/.test(await p.locator('#consigneComptoir').textContent()),
-  await p.locator('#consigneComptoir').textContent().catch(() => 'absent'));
-const yConsigne = (await p.locator('#consigneComptoir').boundingBox() || {}).y;
-const yBon = (await p.locator('#ecran-bon .bon-tete').boundingBox() || {}).y;
-check('…au-dessus du bon, là où l\'œil arrive', yConsigne < yBon, yConsigne + ' / ' + yBon);
-check('« Voir le bon du client » remplace l\'ancien envoi',
-  await p.locator('#btnBonVoirClient').isVisible()
+/* ═══ APRÈS UNE RÉSERVATION, L'ÉCRAN PARLE À LA RÉCEPTION (21/10/2026) ═══
+   Barbaros : « trop d'information destinée au client, c'est inutile ». La
+   carte dit ce que la réception vérifie ; le bon du client, sa ligne de
+   règlement, « À dire au client » et « Voir le bon du client » sont partis
+   de cet écran (le bon reste dans la liste, « Voir le bon »). On regarde ce
+   qui SE VOIT, pas ce que le HTML contient. */
+check('après la réservation, la carte dit « Réservation enregistrée » et « En attente d\'un chauffeur »',
+  (await p.locator('#bcTitre').textContent()) === 'Réservation enregistrée'
+  && await p.locator('#bonComptoir.ok').isVisible()
+  && (await p.locator('#bcPastille').textContent()) === "En attente d'un chauffeur"
+  && await p.locator('#bcPastille').isVisible(),
+  await p.locator('#bcTitre').textContent().catch(() => 'absent'));
+check('…avec « rien d\'autre à faire » pour la réception',
+  /^Rien d'autre à faire : Elatransfer prévient le client/.test((await p.locator('#bonComptoir #etatEnvoi').textContent()).trim()),
+  (await p.locator('#etatEnvoi').textContent()).trim());
+check('le trajet est écrit comme dans la liste : l\'hôtel → la destination',
+  /^l'hôtel\s+→\s+.*Orly/.test(await p.locator('#bonTrajetComptoir').textContent()),
+  await p.locator('#bonTrajetComptoir').textContent());
+check('rien de ce qui est destiné au client ne s\'affiche : ni le bon, ni « À dire au client », ni le règlement',
+  await p.evaluate(() => [...document.querySelectorAll('#ecran-bon .bon-tete, #ecran-bon .bon-logo, #ecran-bon .bon-sous, #consigneComptoir')]
+      .every(e => !e.offsetParent))
+  && await p.locator('#bonPaiement').isHidden()
+  && await p.locator('#bonDepart').isHidden() && await p.locator('#bonArrivee').isHidden());
+check('ni « Voir le bon du client » ni l\'ancien envoi sur cet écran',
+  await p.locator('#btnBonVoirClient').count() === 0
   && await p.locator('#btnBonEnvoyerClient').count() === 0);
 /* LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT : la chambre 307 ne doit
    pas rester posée pour le client suivant. */

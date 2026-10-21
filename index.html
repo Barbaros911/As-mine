@@ -2015,12 +2015,33 @@ body.reception #ecran-reception .rec-hotel{color:var(--h-charbon, var(--noir));o
   color:var(--gris);font-variant-numeric:tabular-nums;}
 .rec-course .rec-appel{display:flex;align-items:center;justify-content:center;
   text-decoration:none;}
-/* « À dire au client » : la consigne de la réception après une réservation.
-   Un aplat sombre, pas une ligne grise : c'est la phrase à prononcer. */
-.consigne-comptoir{margin:0 20px 14px;padding:14px 16px;border-radius:14px;background:#062f55;color:#fff;}
-.consigne-comptoir[hidden]{display:none;}
-.consigne-titre{margin:0;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.8;}
-.consigne-texte{margin:6px 0 0;font-size:16px;line-height:1.4;font-weight:700;}
+/* Après une réservation au comptoir : une carte pour la RÉCEPTION, plus le
+   bon du client (21/10/2026, « trop d'information destinée au client »).
+   Le titre suit le dépôt : vert « enregistrée », rouge « non transmise »,
+   neutre pendant l'envoi. Le N°, l'écriteau de l'envoi et le détail sont
+   ceux du bon, déplacés dans la carte. */
+#ecran-bon.bon-au-comptoir > .bon-tete{display:none;}
+.bon-comptoir{margin:16px 20px 0;padding:20px 20px 16px;border-radius:18px;
+  background:var(--carte);border:1px solid var(--filet);}
+.bon-comptoir .bc-masque{display:none;}
+.bc-tete{display:flex;align-items:center;gap:14px;}
+.bc-icone{flex:none;width:44px;height:44px;border-radius:50%;
+  background:#EEF2F6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236C8096' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 8v4.5l3 2'/%3E%3C/svg%3E") center/22px no-repeat;}
+.bon-comptoir.ok .bc-icone{background-color:#E8F5EE;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E8449' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");}
+.bon-comptoir.ko .bc-icone{background-color:#FBEAEA;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C9302F' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 6.5v7M12 17.5v.01'/%3E%3C/svg%3E");}
+.bc-texte{min-width:0;}
+.bc-titre{margin:0;font-size:21px;line-height:26px;font-weight:800;letter-spacing:-.01em;color:#062f55;}
+.bon-comptoir.ko .bc-titre{color:#9E1F1E;}
+.bc-sous{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:4px;}
+.bc-sous .bon-ref{margin:0;font-size:15px;line-height:22px;letter-spacing:0;color:var(--encre);}
+.bc-pastille{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;
+  background:#EEF2F6;color:#3E4F63;font-size:12px;font-weight:800;}
+.bc-pastille[hidden]{display:none;}
+.bon-comptoir .envoi{margin:14px 0 0;border:0;background:#F2F5F9;}
+.bon-comptoir .envoi p{font-size:14px;line-height:1.45;color:#3E4F63;font-weight:500;}
+.bon-comptoir .envoi.ko{background:rgba(201,48,47,.06);box-shadow:inset 0 0 0 1px #E8B4B3;}
+.bon-comptoir .envoi.ko p{color:#9E1F1E;font-weight:600;}
+.bon-comptoir #bonDetail{margin:14px 0 0;padding:0;border:0;background:none;box-shadow:none;}
 #btnBbVoirBon{margin:0 0 12px;width:100%;}
 /* Les gestes d'une carte : voir le bon, appeler. */
 .rec-actions{display:flex;gap:8px;margin-top:10px;}
@@ -6429,11 +6450,11 @@ window.ELA_TEXTES = {
     nom_comptoir:"Nom du client", ph_nom_comptoir:"Nom du client", ph_tel_comptoir:"06 12 34 56 78",
     aide_tel_comptoir:"Numéro étranger : ajoutez l'indicatif (+34, +44…).",
     bon_note_comptoir:"Nous cherchons un chauffeur. La course passera à « Réservation validée » dans les réservations de l'hôtel dès qu'il est attribué.",
-    envoi_ok_comptoir:"Demande bien reçue. Elatransfer est prévenu automatiquement : rien d'autre à faire.",
+    envoi_ok_comptoir:"Rien d'autre à faire : Elatransfer prévient le client et cherche un chauffeur. La course passera à «\u00a0Réservation validée\u00a0» dans la liste de l'hôtel.",
     voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
-    voir_bon_client:"Voir le bon du client",
-    consigne_comptoir_titre:"À dire au client",
-    consigne_comptoir:"« Elatransfer vous envoie la confirmation et le lien de paiement de votre chauffeur. » Vous verrez aussi la confirmation ici, dans les réservations de l'hôtel.",
+    bc_titre_ok:"Réservation enregistrée", bc_titre_cours:"Envoi de la réservation…",
+    bc_titre_ko:"Réservation non transmise", bc_attente:"En attente d'un chauffeur",
+    bc_client:"Client", bc_trajet:"Trajet",
     err_identite:"Indiquez le nom et le téléphone du client : c'est là qu'Elatransfer envoie le lien de paiement.",
     btn_prix_attente:"Valider la réservation",
     note_titre:"Précision pour le chauffeur",
@@ -6669,11 +6690,11 @@ window.ELA_TEXTES = {
     nom_comptoir:"Guest name", ph_nom_comptoir:"Guest name", ph_tel_comptoir:"+33 6 12 34 56 78",
     aide_tel_comptoir:"Foreign number: add the country code (+34, +44…).",
     bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
-    envoi_ok_comptoir:"Request received. Elatransfer is alerted automatically: nothing else to do.",
+    envoi_ok_comptoir:"Nothing else to do: Elatransfer notifies the guest and looks for a chauffeur. The ride will show as “Confirmed” in the hotel bookings.",
     voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
-    voir_bon_client:"View the guest's voucher",
-    consigne_comptoir_titre:"Tell the guest",
-    consigne_comptoir:"“Elatransfer will send you the confirmation and your chauffeur's payment link.” You will also see the confirmation here, in the hotel bookings.",
+    bc_titre_ok:"Booking recorded", bc_titre_cours:"Sending the booking…",
+    bc_titre_ko:"Booking not sent", bc_attente:"Waiting for a chauffeur",
+    bc_client:"Guest", bc_trajet:"Route",
     err_identite:"Enter the guest's name and phone number: that is where Elatransfer sends the payment link.",
     btn_prix_attente:"Confirm booking",
     note_titre:"Note for the chauffeur",
@@ -7958,6 +7979,15 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var recHotel = null;         // l'hôtel dont on tient le comptoir
   var recCourses = [];
+  /* LE TRAJET VU DU COMPTOIR, écrit d'une seule façon pour la liste et pour
+     l'écran qui suit une réservation : l'hôtel n'est pas répété, le sens
+     reste écrit (voir « ON NE RÉPÈTE PAS L'HÔTEL » dans la liste). */
+  function trajetComptoir(depart, arrivee){
+    var versHotel = recHotel && (arrivee || "").indexOf(recHotel.nom) === 0;
+    return versHotel
+      ? ((depart || "—").split(",")[0] + "  →  l'hôtel")
+      : ("l'hôtel  →  " + (arrivee || "—"));
+  }
   /* ═══ LA SESSION TIENT 12 HEURES SUR L'APPAREIL (30/09/2026) ═══
      À la demande de Barbaros. Elle vivait dans le sessionStorage de
      l'onglet : fermer l'onglet — ou la tablette qui le fait toute seule —
@@ -8397,10 +8427,7 @@ window.ELA_TEXTES = {
          qui se trompe de sens envoie une voiture pour rien. */
       var ou = document.createElement("p");
       ou.className = "rec-ou";
-      var versHotel = recHotel && (c.arrivee || "").indexOf(recHotel.nom) === 0;
-      ou.textContent = versHotel
-        ? ((c.depart || "—").split(",")[0] + "  →  l'hôtel")
-        : ("l'hôtel  →  " + (c.arrivee || "—"));
+      ou.textContent = trajetComptoir(c.depart, c.arrivee);
       d.appendChild(ou);
 
       /* LE PRIX EST LE CHIFFRE QUE LA RÉCEPTION A ANNONCÉ AU CLIENT : il
@@ -8863,36 +8890,63 @@ window.ELA_TEXTES = {
         });
         var actionsBon = document.getElementById("actionsBon");
         actionsBon.insertBefore(versRec, document.getElementById("btnNouvelleCourse"));
-        /* LE BON S'AFFICHE, IL NE PART PLUS (5 octobre 2026) : le même que
-           dans la liste et dans l'admin (bon-client.js). */
-        var envBon = document.createElement("button");
-        envBon.type = "button"; envBon.className = "bouton-fantome";
-        envBon.id = "btnBonVoirClient"; envBon.hidden = true;
-        envBon.setAttribute("data-t", "voir_bon_client");
-        envBon.textContent = T("voir_bon_client");
-        envBon.addEventListener("click", function(){
-          if(!bonCourant || !window.ELA_BON) return;
-          window.ELA_BON.ouvrir(window.ELA_BON.depuisRegistre(bonCourant), LANGUE === "en" ? "en" : "fr");
-        });
-        actionsBon.insertBefore(envBon, versRec);
-        /* ═══ CE QU'IL FAUT DIRE AU CLIENT (5 octobre 2026, à sa demande) ═══
-           « une fois la réservation faite par l'hôtel, bien dire au client
-           que la confirmation se fait par Elatransfer ». Un encadré en tête
-           du bon, pas une ligne grise : c'est la consigne de la réception.
-           Il se tait si le dépôt échoue — l'écriteau rouge dit alors
-           d'appeler, et rien n'est encore à confirmer. */
-        var consigne = document.createElement("div");
-        consigne.id = "consigneComptoir"; consigne.className = "consigne-comptoir";
-        consigne.setAttribute("role", "note");
-        var cTitre = document.createElement("p");
-        cTitre.className = "consigne-titre"; cTitre.setAttribute("data-t", "consigne_comptoir_titre");
-        cTitre.textContent = T("consigne_comptoir_titre");
-        var cTexte = document.createElement("p");
-        cTexte.className = "consigne-texte"; cTexte.setAttribute("data-t", "consigne_comptoir");
-        cTexte.textContent = T("consigne_comptoir");
-        consigne.appendChild(cTitre); consigne.appendChild(cTexte);
+        /* ═══ APRÈS UNE RÉSERVATION, L'ÉCRAN PARLE À LA RÉCEPTION ═══
+           21 octobre 2026, Barbaros, en voyant l'écran : « trop d'information
+           destinée au client, c'est inutile » (il a choisi la version A).
+           Il portait le bon du CLIENT — logo, « Bon de réservation », ligne
+           de règlement — sous un encadré « À dire au client », et un bouton
+           « Voir le bon du client ». Il ne reste que ce que la réception
+           vérifie : enregistrée ou non, le N°, le client, le trajet, la
+           date, la gamme et le prix. Le bon du client est toujours à un
+           appui, dans la liste (« Voir le bon »).
+           LES ÉLÉMENTS DU BON SONT DÉPLACÉS DANS LA CARTE, JAMAIS RECOPIÉS :
+           le N°, l'écriteau de l'envoi et le détail restent écrits par
+           « remplirBon » et « afficherEtatEnvoi », comme sur le site. Le
+           titre, lui, suit le DÉPÔT (« jugerTeteBon ») : « Réservation
+           enregistrée » sur une demande que le serveur n'a pas reçue serait
+           la panne inventée à l'envers. */
         var ecranBon = document.getElementById("ecran-bon");
-        ecranBon.insertBefore(consigne, ecranBon.firstElementChild);
+        var detail = document.getElementById("bonDetail");
+        var carte = document.createElement("div");
+        carte.id = "bonComptoir"; carte.className = "bon-comptoir";
+        var tete = document.createElement("div");
+        tete.className = "bc-tete";
+        var icone = document.createElement("span");
+        icone.className = "bc-icone"; icone.setAttribute("aria-hidden", "true");
+        var texte = document.createElement("div");
+        texte.className = "bc-texte";
+        var titre = document.createElement("p");
+        titre.id = "bcTitre"; titre.className = "bc-titre";
+        var sous = document.createElement("div");
+        sous.className = "bc-sous";
+        var pastille = document.createElement("span");
+        pastille.id = "bcPastille"; pastille.className = "bc-pastille";
+        pastille.setAttribute("data-t", "bc_attente");
+        pastille.textContent = T("bc_attente");
+        sous.appendChild(document.getElementById("bonRef"));
+        sous.appendChild(pastille);
+        texte.appendChild(titre); texte.appendChild(sous);
+        tete.appendChild(icone); tete.appendChild(texte);
+        carte.appendChild(tete);
+        ecranBon.insertBefore(carte, detail);
+        ecranBon.classList.add("bon-au-comptoir");
+        carte.appendChild(document.getElementById("etatEnvoi"));
+        carte.appendChild(detail);
+        /* Le départ, l'arrivée et le règlement cèdent la place à deux
+           lignes : le client, puis le trajet écrit comme dans la liste. */
+        ["bonDepart", "bonArrivee", "bonPaiement"].forEach(function(id){
+          document.getElementById(id).parentNode.classList.add("bc-masque");
+        });
+        [["bc_trajet", "bonTrajetComptoir"], ["bc_client", "bonClientComptoir"]].forEach(function(l){
+          var ligne = document.createElement("div");
+          ligne.className = "ligne";
+          var lib = document.createElement("span");
+          lib.setAttribute("data-t", l[0]); lib.textContent = T(l[0]);
+          var val = document.createElement("b");
+          val.id = l[1];
+          ligne.appendChild(lib); ligne.appendChild(val);
+          detail.insertBefore(ligne, detail.firstElementChild);
+        });
       }
       var apres = document.getElementById("blocNote");
       var parent = apres.parentNode;
@@ -11348,6 +11402,16 @@ window.ELA_TEXTES = {
     document.getElementById("lignePrecision").hidden = !note;
     document.getElementById("bonPrecision").textContent = note;
     document.getElementById("bonPrix").textContent     = prixDuBon(bon);
+    /* Au comptoir, deux lignes de tête (« APRÈS UNE RÉSERVATION, L'ÉCRAN
+       PARLE À LA RÉCEPTION ») : le client tel que la liste l'écrit, et le
+       trajet sans répéter l'hôtel. */
+    var cliComptoir = document.getElementById("bonClientComptoir");
+    if(cliComptoir){
+      var cc = bon.course || {};
+      cliComptoir.textContent = [cc.chambre ? T("chambre_court") + " " + cc.chambre : "",
+                                 (bon.client && bon.client.nom) || ""].filter(Boolean).join(" · ") || "—";
+      document.getElementById("bonTrajetComptoir").textContent = trajetComptoir(cc.depart, cc.arrivee);
+    }
     var noteAsapBon = document.getElementById("bonAsap");
     if(noteAsapBon) noteAsapBon.hidden = !(bon.course && bon.course.immediat) || bon.statut === "confirmee"
                                          || bon.statut === "realisee" || bon.statut === "refusee" || bon.statut === "annulee";
@@ -11843,6 +11907,21 @@ window.ELA_TEXTES = {
     etat.setAttribute("data-t", cleEtat);
     note.textContent = T(cleNote);
     note.setAttribute("data-t", cleNote);
+    /* Au comptoir, le titre de la carte suit le même dépôt : « enregistrée »
+       seulement quand le serveur l'a reçue, « non transmise » sur un échec
+       (l'écriteau rouge, juste dessous, dit d'appeler), « envoi » entre les
+       deux. La pastille « en attente d'un chauffeur » n'a de sens que sur
+       une réservation arrivée et pas encore attribuée. */
+    var carteComptoir = document.getElementById("bonComptoir");
+    if(carteComptoir){
+      var arrivee = envoiEtat === true || confirme;
+      var cleTitre = ko ? "bc_titre_ko" : arrivee ? "bc_titre_ok" : "bc_titre_cours";
+      var titreComptoir = document.getElementById("bcTitre");
+      titreComptoir.textContent = T(cleTitre);
+      titreComptoir.setAttribute("data-t", cleTitre);
+      carteComptoir.className = "bon-comptoir" + (ko ? " ko" : arrivee ? " ok" : "");
+      document.getElementById("bcPastille").hidden = !arrivee || confirme;
+    }
     /* « Nous appeler » suit le même échec, et lui seul : sur une demande
        arrivée, appeler ne sert à rien ; au comptoir, l'écriteau porte déjà
        le numéro et le bouton WhatsApp y est retiré. */
@@ -11881,10 +11960,6 @@ window.ELA_TEXTES = {
   function jugerRenvoiComptoir(){
     if(!recHotel) return;
     btnRenvoyer.hidden = true;
-    var envBon = document.getElementById("btnBonVoirClient");
-    if(envBon) envBon.hidden = !bonCourant;
-    var consigne = document.getElementById("consigneComptoir");
-    if(consigne) consigne.hidden = envoiEtat === false;
     /* SUR UN ÉCHEC, LA NOTE SE TAIT — elle ne se remplace pas. L'écriteau
        rouge posé juste au-dessus porte déjà la consigne et le numéro ;
        deux phrases pour une même chose, c'est le doublon qu'on vient de
