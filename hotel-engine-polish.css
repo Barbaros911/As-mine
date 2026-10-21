@@ -718,6 +718,10 @@ body.hotel.reception-premium #ecran-reception .champ input{
   width:100%;margin:0;padding:0;border:0;outline:0;background:transparent!important;
   font-size:16px!important;line-height:22px;font-weight:550!important;color:var(--v2-encre)!important;text-overflow:ellipsis;
 }
+/* Le cadre entier s'allume au focus (anneau bleu ci-dessous) : le contour
+   du navigateur, à l'intérieur, faisait un cadre dans le cadre. */
+body.hotel.reception-premium #ecran-accueil .champ :is(input,select,textarea):is(:focus,:focus-visible),
+body.hotel.reception-premium #ecran-reception .champ input:is(:focus,:focus-visible){outline:none!important;box-shadow:none!important}
 body.hotel.reception-premium #ecran-accueil .champ input::placeholder,
 body.hotel.reception-premium #ecran-accueil .champ textarea::placeholder,
 body.hotel.reception-premium #ecran-reception .champ input::placeholder{color:#8696A7;font-weight:450}
@@ -773,6 +777,10 @@ body.hotel.reception-premium .reception-step-copy small{margin:1px 0 0!important
 body.hotel.reception-premium #receptionEtape1{align-items:center!important}
 body.hotel.reception-premium #receptionEtape1 .reception-step-num{margin-top:0}
 body.hotel.reception-premium #ecran-bon #receptionEtape3{max-width:780px;margin:14px auto 10px!important;padding:0 14px!important}
+/* Le bon du comptoir : il respire sous la barre bleu nuit, et son bouton
+   orange suit la règle de la V2 (l'encre de l'hôtel sur son action). */
+body.hotel.reception-premium #ecran-bon{padding-top:20px!important}
+body.hotel.reception-premium #ecran-bon .bouton{color:var(--v2-sur-action)!important}
 
 /* Départ ou arrivée de l'hôtel : le choix actif prend l'action de l'hôtel. */
 body.hotel.reception-premium #receptionEtape1 .hotel-sens{
