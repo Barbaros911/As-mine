@@ -777,20 +777,17 @@ body.hotel.reception-premium .reception-step-copy small{margin:1px 0 0!important
 body.hotel.reception-premium #receptionEtape1{align-items:center!important}
 body.hotel.reception-premium #receptionEtape1 .reception-step-num{margin-top:0}
 body.hotel.reception-premium #ecran-bon #receptionEtape3{max-width:780px;margin:14px auto 10px!important;padding:0 14px!important}
-/* LE BON APRÈS UNE RÉSERVATION AU COMPTOIR : une colonne de 720 px au
-   centre (sur 1180, « Départ » et sa valeur étaient à un mètre l'un de
-   l'autre), et les gestes de la V2 — l'action de l'hôtel en tête, les deux
-   autres côte à côte. Le bon lui-même garde ses couleurs : il est le même
-   partout (CLAUDE.md, « UN SEUL BON »). */
+/* APRÈS UNE RÉSERVATION AU COMPTOIR : une colonne de 720 px au centre (sur
+   1180, un libellé et sa valeur étaient à un mètre l'un de l'autre), la
+   carte de la réception (index.html, « bon-comptoir ») — plus le bon du
+   client depuis le 21/10/2026 —, puis l'action de l'hôtel en tête et
+   « Réserver une autre course » dessous. */
 body.hotel.reception-premium #ecran-bon{padding-top:20px!important;padding-bottom:40px!important}
 body.hotel.reception-premium #ecran-bon > *{box-sizing:border-box;width:min(720px,calc(100% - 32px))!important;max-width:none!important;margin-left:auto!important;margin-right:auto!important}
-body.hotel.reception-premium #ecran-bon .consigne-comptoir{margin-bottom:16px!important;padding:16px 20px!important;border-radius:16px!important;background:var(--v2-marine)!important;box-shadow:var(--v2-ombre)}
-body.hotel.reception-premium #ecran-bon .consigne-titre{color:#7FDDF6;opacity:1}
+body.hotel.reception-premium #ecran-bon .bon-comptoir{margin-top:0!important;padding:22px 24px 18px!important;border-color:#E1E8EF!important;box-shadow:var(--v2-ombre)}
 body.hotel.reception-premium #ecran-bon #actionsBon{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;position:static!important;margin-top:20px!important;padding:0!important;background:none!important;box-shadow:none!important;border:0!important}
 body.hotel.reception-premium #ecran-bon #actionsBon > *{grid-column:1/-1;margin:0!important}
 body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVersReception{order:-1}
-body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVoirClient,
-body.hotel.reception-premium #ecran-bon #actionsBon > #btnNouvelleCourse{grid-column:span 1}
 body.hotel.reception-premium #ecran-bon .bouton{
   display:flex;align-items:center;justify-content:center;min-height:56px!important;border-radius:14px!important;
   background:var(--v2-action)!important;color:var(--v2-sur-action)!important;font-size:16px!important;font-weight:800!important;
@@ -804,10 +801,6 @@ body.hotel.reception-premium #ecran-bon .bouton-fantome{
 body.hotel.reception-premium #ecran-bon .bouton-fantome:hover{border-color:var(--v2-filet-survol)!important;background:#F7FAFD!important}
 body.hotel.reception-premium #ecran-bon .bouton:focus-visible,
 body.hotel.reception-premium #ecran-bon .bouton-fantome:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--v2-bleu)!important}
-@media(max-width:600px){
-  body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVoirClient,
-  body.hotel.reception-premium #ecran-bon #actionsBon > #btnNouvelleCourse{grid-column:1/-1}
-}
 
 /* Départ ou arrivée de l'hôtel : le choix actif prend l'action de l'hôtel. */
 body.hotel.reception-premium #receptionEtape1 .hotel-sens{
@@ -1075,8 +1068,12 @@ body.hotel.reception-premium #recListe .rec-etat.realisee{border-color:#DCE4ED;b
 body.hotel.reception-premium #recListe .rec-etat.refusee,
 body.hotel.reception-premium #recListe .rec-etat.annulee{border-color:#F0C2C1;background:#FFF5F5;color:#A12727}
 body.hotel.reception-premium #recListe .rec-actions{grid-area:actions;display:flex;flex-direction:column;gap:6px;margin:0!important}
+/* « width:auto » : le bouton du site porte « width:100% ». En colonne c'est
+   pareil, mais côte à côte (tablette en portrait, 761–1100 px) chacun prenait
+   toute la colonne — mesuré à 768 px, « Appeler Elatransfer » sortait de
+   l'écran de 238 px. */
 body.hotel.reception-premium #recListe .rec-actions .bouton-fantome{
-  flex:none!important;display:inline-flex;align-items:center;justify-content:center;min-height:40px!important;height:40px;margin:0!important;padding:0 14px!important;
+  flex:none!important;width:auto!important;display:inline-flex;align-items:center;justify-content:center;min-height:40px!important;height:40px;margin:0!important;padding:0 14px!important;
   border:1px solid var(--v2-filet)!important;border-radius:10px!important;background:#fff!important;color:var(--v2-titre)!important;
   font-size:14px!important;font-weight:750!important;white-space:nowrap;text-decoration:none;
 }
