@@ -71,10 +71,10 @@ dernier main → une branche courte par tâche → PR vers main
   en est la cible, et `protections-main.yml` compare chaque jour la règle en
   ligne à ce fichier, Issue à l'appui sur écart) — PR obligatoire ; `admin`,
   `guardrails`, `build-mobile-desktop`, `secrets-publics` et `gitleaks` au
-  vert sur une branche à jour ; conversations résolues ; ni force-push ni
-  suppression ; personne d'exempté. **Zéro approbation exigée,
-  et c'est voulu** : les PR sont ouvertes sous le compte de Barbaros, qui ne
-  peut pas approuver la sienne ; son accord se donne dans la conversation, et
+  vert sur une branche à jour ; conversations résolues ; fusion en « Merge »
+  seulement ; ni force-push ni suppression ; personne d'exempté. **Zéro
+  approbation exigée, et c'est voulu** : les PR sont ouvertes sous le compte
+  de Barbaros, qui ne peut pas approuver la sienne ; son accord se donne dans la conversation, et
   rien n'est fusionné avant. Fonctions Supabase et migrations ne partent que de
   `main` (garde dans chaque workflow, jeton dans l'environnement `production`).
 - **Après la fusion**, `branche-apres-fusion.yml` supprime la branche, sauf
