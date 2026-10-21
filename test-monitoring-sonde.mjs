@@ -71,6 +71,12 @@ try {
     check('4 un 400 fait tomber la sonde, avec la raison', msgs.ko.some(m => /refuse la sonde \(400\)/.test(m)), msgs.ko.join(' | '));
   }
   {
+    /* Le serveur ne répond pas dans le délai : on le DIT comme tel, pas
+       « rien n'est parti ». Le faux serveur répond après le délai de la sonde. */
+    const { msgs } = await tourner(() => new Promise(r => setTimeout(() => r({ status: 200, corps: { ok: true, sonde: true } }), 48000)));
+    check('4 un serveur muet est dit « n\'a pas répondu », jamais « rien n\'est parti »', msgs.ko.some(m => /n'a pas répondu en 45 s/.test(m)) && !msgs.ko.some(m => /aucune demande n'est partie/.test(m)), msgs.ko.join(' | '));
+  }
+  {
     const { msgs } = await tourner(() => ({ status: 503, corps: { erreur: 'service indisponible' } }));
     check('4 un 503 fait tomber la sonde (« on ne peut plus réserver »)', msgs.ko.some(m => /503/.test(m) && /plus réserver/.test(m)), msgs.ko.join(' | '));
   }
