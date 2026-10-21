@@ -164,3 +164,22 @@ titre de l'accueil 4 → 8, description 4 → 8, sous-titre 3 → 8.
 > - `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
 >   code d'avant).
 
+
+## Les horaires : réservation 24 h/24, assistance humaine 7 h–22 h (21/10/2026)
+
+Barbaros : « réservation 24/24, assistance humaine 7/22, écrit partout comme un
+expert ». C'était « Assistance 5 h–22 h », écrit à quatre endroits qui ne se
+lisaient pas entre eux (bandeau de l'accueil, réception, cinq pages anglaises,
+phrase de nuit du « Dès que possible »).
+- **Une seule phrase**, `hero_notes` (« Réservation 24 h/24 · Assistance
+  humaine 7 h–22 h ») : le bandeau ET le pied d'accueil (même clé, à côté du
+  numéro). « Nous joindre » et le bon du client (« Une question ? ») disent les
+  mêmes heures en toutes lettres.
+- **La nuit va de 22 h à 7 h** : « Entre 22 h et 7 h, la réponse peut être plus
+  lente » s'affiche sous « Dès que possible » dans cette fenêtre (`h < 7`).
+- **Espaces insécables** dans « 24 h/24 », « 7 h–22 h », « 7 am–10 pm » : une
+  heure coupée en fin de ligne ne se relit plus.
+- **Les contrôles lisent l'accueil, ils ne recopient plus l'heure** :
+  `test-seo-en` tirait « 5 am–10 pm » en dur ; il lit maintenant `hero_notes`.
+  `test-reception-bon` exige que la ligne du comptoir soit `hero_notes` mot pour
+  mot, et que le bon dise « Assistance humaine de 7 h à 22 h ».

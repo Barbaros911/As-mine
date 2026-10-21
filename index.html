@@ -854,6 +854,8 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .pied{margin:26px 20px 0;padding:18px 0 4px;border-top:1px solid var(--filet);
   display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
 .pied-contact{display:flex;flex-direction:column;align-items:center;}
+.pied-horaires{margin:4px 0 0;font-size:13px;line-height:18px;color:var(--gris);text-align:center;}
+@media (min-width:900px){.pied-horaires{text-align:left;}}
 @media (min-width:900px){.pied-contact{align-items:flex-start;}}
 .pied-tel{display:inline-flex;align-items:center;gap:8px;min-height:44px;
   color:var(--accent-encre);font-size:14px;font-weight:700;text-decoration:none;}
@@ -2865,7 +2867,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            qui commence 65 px plus bas, et ses 111 px poussaient « Voir mon
            prix » sous la barre du bas à 360 × 740. Le premier geste est le
            champ de départ, déjà à l'écran. -->
-      <p class="hero-notes" data-t="hero_notes">Réservation 24 h/24 · Assistance 5 h–22 h</p>
+      <p class="hero-notes" data-t="hero_notes">Réservation 24&nbsp;h/24 · Assistance humaine 7&nbsp;h–22&nbsp;h</p>
       <p class="note-google" data-avis-google="fr en" hidden></p>
     </div>
   </section>
@@ -3533,6 +3535,10 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       </svg>
       <span>contact@elatransfer.com</span>
     </a>
+    <!-- LES HORAIRES À CÔTÉ DU NUMÉRO (21/10/2026, Barbaros) : on les cherche
+         là où l'on cherche le téléphone. Même clé que le bandeau : une seule
+         phrase à tenir, jamais deux horaires différents sur la même page. -->
+    <p class="pied-horaires" data-t="hero_notes">Réservation 24&nbsp;h/24 · Assistance humaine 7&nbsp;h–22&nbsp;h</p>
     </div>
     <!-- LES PAGES DE SERVICE, LIÉES D'ICI (5 octobre 2026). L'accueil ne
          menait nulle part ailleurs : Google ne trouvait les pages CDG et Orly
@@ -6083,7 +6089,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        ===================================================================== -->
   <section class="ecran" id="ecran-contact">
     <h1 class="ecran-titre" data-t="contact_titre">Nous joindre</h1>
-    <p class="ecran-note" data-t="contact_note">Une question, un changement d'heure, une course pour tout de suite : appelez, c'est le plus rapide.</p>
+    <p class="ecran-note" data-t="contact_note">Réservation en ligne 24&nbsp;h/24. Assistance humaine de 7&nbsp;h à 22&nbsp;h : pour une question, un changement d'heure ou une course immédiate, appelez, c'est le plus rapide.</p>
     <div class="bloc">
       <a class="contact-lien" href="tel:+33759312433">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -6413,12 +6419,12 @@ window.ELA_TEXTES = {
     hero_titre:"Transferts avec chauffeur, organisés de A à Z.",
     hero_sous:"Roissy-CDG, Orly et Beauvais : prix annoncé à l'avance, chauffeur confirmé par Elatransfer.",
     hero_prix:"Aéroports · Gares · Hôtels · Salons",
-    hero_notes:"Réservation 24 h/24 · Assistance 5 h–22 h",
+    hero_notes:"Réservation 24\u00a0h/24 · Assistance humaine 7\u00a0h–22\u00a0h",
     longue_titre:"Destination hors de France",
     longue_note:"Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
     quand_prog:"Programmer",
     asap_note:"Soumise à disponibilité, sans délai garanti.",
-    asap_nuit:"Réponse plus lente de 22 h à 5 h.",
+    asap_nuit:"Entre 22\u00a0h et 7\u00a0h, la réponse peut être plus lente.",
     asap_libelle:"Dès que possible", partir_asap:"Partir dès que possible",
     tarif_a_confirmer:"Tarif à confirmer",
     tarif_note:"Le tarif vous sera communiqué par Elatransfer avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
@@ -6643,7 +6649,7 @@ window.ELA_TEXTES = {
     courses_vide:"Aucune réservation en cours.",
     courses_vide_cta:"Réserver un trajet",
     contact_titre:"Nous joindre",
-    contact_note:"Une question, un changement d'heure, une course pour tout de suite : appelez, c'est le plus rapide.",
+    contact_note:"Réservation en ligne 24\u00a0h/24. Assistance humaine de 7\u00a0h à 22\u00a0h : pour une question, un changement d'heure ou une course immédiate, appelez, c'est le plus rapide.",
     contact_wa:"Écrivez-nous, on répond vite",
     voir_bon:"Voir le bon",
     recherche:"Recherche…", aucune_adresse:"Aucune adresse trouvée",
@@ -6655,12 +6661,12 @@ window.ELA_TEXTES = {
     hero_titre:"Chauffeur transfers, organised end to end.",
     hero_sous:"Roissy-CDG, Orly and Beauvais: price agreed in advance, chauffeur confirmed by Elatransfer.",
     hero_prix:"Airports · Stations · Hotels · Trade fairs",
-    hero_notes:"Book 24/7 · Support 5 am–10 pm",
+    hero_notes:"Book 24/7 · Human support 7\u00a0am–10\u00a0pm",
     longue_titre:"Destination outside France",
     longue_note:"You can send your request: Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
     quand_prog:"Schedule",
     asap_note:"Subject to availability, no pickup time guaranteed.",
-    asap_nuit:"Slower reply from 10 pm to 5 am.",
+    asap_nuit:"Between 10\u00a0pm and 7\u00a0am, replies may be slower.",
     asap_libelle:"As soon as possible", partir_asap:"Leave as soon as possible",
     tarif_a_confirmer:"Fare to be confirmed",
     tarif_note:"Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
@@ -6867,7 +6873,7 @@ window.ELA_TEXTES = {
     courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
     contact_titre:"Contact us",
-    contact_note:"A question, a new time, a ride right now? Calling is fastest.",
+    contact_note:"Online booking 24/7. Human support from 7\u00a0am to 10\u00a0pm: for a question, a new time or a ride right now, calling is fastest.",
     contact_wa:"Message us, we answer quickly",
     voir_bon:"View voucher",
     recherche:"Searching…", aucune_adresse:"No address found",
@@ -10159,7 +10165,7 @@ window.ELA_TEXTES = {
   }
   function ecrireNoteAsap(){
     var h = new Date().getHours();
-    noteAsap.textContent = T("asap_note") + ((h >= 22 || h < 5) ? " " + T("asap_nuit") : "");
+    noteAsap.textContent = T("asap_note") + ((h >= 22 || h < 7) ? " " + T("asap_nuit") : "");
   }
   function choisirQuand(asap){
     quandAsap = !!asap;
