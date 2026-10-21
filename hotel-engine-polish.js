@@ -27,7 +27,7 @@
      dédiée (data-ela-space), ou quand le moteur a ouvert la réception
      (body.reception — c'est le cas de la démo, qui s'ouvre plus tard, après
      la réponse du serveur des démonstrations). */
-  var comptoir=false;
+  var comptoir=false, placeSuivie=false;
   function estComptoir(){return espace==='hotel-reception'||!!(document.body&&document.body.classList.contains('reception'));}
 
   function enhanceHotel(){
@@ -210,6 +210,30 @@
       btn.setAttribute('aria-label',titre+' — '+sousTitre);
     }
 
+    /* LA RÉCEPTION V2 (21/10/2026, maquette validée par Barbaros) : un
+       bandeau bleu nuit commun aux écrans du comptoir. Le logo d'origine y
+       disparaît (lettres bleu nuit sur bleu nuit) : c'est la version
+       négative, celle de l'en-tête public. On n'écrit que si elle diffère —
+       l'observateur se rappellerait lui-même. */
+    var logoImg=document.querySelector('.entete .logo-image');
+    if(logoImg && logoImg.getAttribute('src')!=='/brand-logo-negatif.webp') logoImg.setAttribute('src','/brand-logo-negatif.webp');
+    /* « Assistance humaine » en gras, le reste en clair, et une icône : la
+       même ligne sous le nom de l'hôtel, sur le formulaire ET sur la liste. */
+    function assistance(el){
+      if(!el) return;
+      if(!el.querySelector('.reception-hours-copy')){
+        el.textContent='';
+        var ic=document.createElement('span');ic.className='reception-hours-icon';ic.setAttribute('aria-hidden','true');
+        var c=document.createElement('span');c.className='reception-hours-copy';
+        c.appendChild(document.createElement('b'));c.appendChild(document.createElement('span'));
+        el.appendChild(ic);el.appendChild(c);
+      }
+      texte(el.querySelector('.reception-hours-copy b'),anglais?'Human assistance 5 am–10 pm':'Assistance humaine 5 h–22 h');
+      texte(el.querySelector('.reception-hours-copy span'),anglais
+        ? ' · Leaving now? Call us, it is the fastest way'
+        : ' · Départ immédiat ? Appelez-nous, c’est le plus rapide');
+    }
+
     var tete=document.getElementById('hotelTete');
     var sur=tete&&tete.querySelector('.hotel-sur');
     texte(sur,anglais?'RECEPTION DESK':'ESPACE RÉCEPTION');
@@ -222,9 +246,7 @@
         var adresse=tete.querySelector('.hotel-adresse');
         if(adresse) adresse.insertAdjacentElement('afterend',horaires);
       }
-      texte(horaires,anglais
-        ? 'Human assistance 5 am–10 pm · Leaving now? Call us, it is the fastest way'
-        : 'Assistance humaine 5 h–22 h · Départ immédiat ? Appelez-nous, c\'est le plus rapide');
+      assistance(horaires);
 
       var actions=document.getElementById('receptionActions');
       var liste=document.getElementById('btnReception');
@@ -238,32 +260,79 @@
         tete.appendChild(actions);
       }
       habillerAction(liste,'≡',
-        anglais?'HOTEL BOOKINGS':'RÉSERVATIONS DE L’HÔTEL',
+        anglais?'Hotel bookings':'Réservations de l’hôtel',
         anglais?'View and track bookings':'Voir et suivre les réservations');
+      /* SA PLACE SUIT L'ÉCRAN (V2, 21/10/2026) : dans la barre du haut à
+         partir de 600 px, à côté de FR/EN ; sous le nom de l'hôtel sur un
+         téléphone, où la barre n'a plus la place. Le même bouton, déplacé —
+         jamais recopié : son écouteur reste celui du moteur. */
+      var large=!window.matchMedia||window.matchMedia('(min-width:600px)').matches;
+      var barreHaut=document.querySelector('.entete-actions');
+      if(large && barreHaut){
+        if(actions.parentNode!==barreHaut) barreHaut.insertBefore(actions,barreHaut.querySelector('.langues'));
+      } else if(actions.parentNode!==tete) tete.appendChild(actions);
+      if(window.matchMedia && !placeSuivie){
+        placeSuivie=true;
+        var mq=window.matchMedia('(min-width:600px)');
+        if(mq.addEventListener) mq.addEventListener('change',receptionPremium); else if(mq.addListener) mq.addListener(receptionPremium);
+      }
     }
 
     var formulaire=document.querySelector('#ecran-accueil .reserver');
     if(formulaire){
       var etape1=libelleEtape('receptionEtape1','1',
-        anglais?'TRIP & GUEST':'TRAJET & CLIENT',
-        anglais?'Trip details and guest identification':'Informations du trajet et identification du client');
+        anglais?'Trip':'Trajet',
+        anglais?'Trip details':'Informations du trajet');
       if(!etape1.parentNode) formulaire.insertBefore(etape1,formulaire.firstElementChild);
+      /* Départ ou arrivée de l'hôtel : c'est le premier choix du TRAJET, il
+         se fait dans sa carte, à droite de son titre (V2). Le moteur
+         rallume ses boutons là où ils sont (index.html). */
+      var sens=document.querySelector('.hotel-sens');
+      if(sens && sens.parentNode!==etape1) etape1.appendChild(sens);
 
       /* La chambre / identité appartient au trajet, avant le véhicule. Les
          éléments sont déplacés, jamais dupliqués : les écouteurs et les
          contrôles du moteur restent ceux d'origine. */
       var coord=document.getElementById('blocCoordonnees');
       var note=document.getElementById('blocNote');
+      /* « Chambre / Room » sert au client qui scanne le QR ; au comptoir la
+         langue se choisit en haut, et le libellé tient sur une ligne. */
+      var titreChambre=document.querySelector('label[for="chambre"] .champ-titre');
+      if(titreChambre){titreChambre.removeAttribute('data-t');texte(titreChambre,anglais?'Room (optional)':'Chambre (facultatif)');}
       if(document.body.classList.contains('compte-unique') && coord && note && !coord.dataset.receptionOrdre){
         formulaire.insertBefore(coord,note);coord.dataset.receptionOrdre='1';
       }
 
       var vehicules=document.getElementById('listeVehicules');
       if(vehicules){
-        var etape2=libelleEtape('receptionEtape2','2',
-          anglais?'VEHICLE & PRICE':'VÉHICULE & PRIX',
-          anglais?'Choose the category; the price is set in advance':'Choisissez la catégorie : le prix est annoncé à l\'avance');
+        var etape2=libelleEtape('receptionEtape2','3',
+          anglais?'Vehicle & price':'Véhicule & prix',
+          anglais?'The price is set in advance':'Le prix est annoncé à l’avance');
         if(!etape2.parentNode) vehicules.parentNode.insertBefore(etape2,vehicules);
+      }
+
+      /* DEUX COLONNES (V2, 21/10/2026) : à gauche ce qu'on SAISIT (le
+         trajet, puis le client sur un fond à part), à droite ce qu'on
+         DÉCIDE (la gamme, le prix, « Valider »), qui reste à l'écran sur un
+         ordinateur. Les blocs sont DÉPLACÉS une seule fois, jamais recopiés :
+         écouteurs, contrôles et textes restent ceux du moteur. Seulement au
+         comptoir en une page (compte-unique), quand tout est là. */
+      if(!document.getElementById('recSaisie') && document.body.classList.contains('compte-unique')
+         && etape1.parentNode===formulaire && vehicules && coord && note && document.getElementById('btnVoirPrix')){
+        var saisie=document.createElement('div');saisie.id='recSaisie';saisie.className='rec-saisie';
+        var client=document.createElement('div');client.id='recClient';client.className='rec-client';
+        var decision=document.createElement('div');decision.id='recDecision';decision.className='rec-decision';
+        var versClient=['blocCoordonnees','blocContact','blocNote'];
+        var versDecision=['receptionEtape2','listeVehicules','blocPaiement','btnVoirPrix'];
+        Array.prototype.slice.call(formulaire.children).forEach(function(el){
+          if(versClient.indexOf(el.id)!==-1) return;
+          if(versDecision.indexOf(el.id)!==-1 || el.classList.contains('rassure') || el.classList.contains('etapes-ligne')) decision.appendChild(el);
+          else saisie.appendChild(el);
+        });
+        versClient.forEach(function(id){var b=document.getElementById(id);if(b) client.appendChild(b);});
+        saisie.appendChild(client);
+        formulaire.appendChild(saisie);formulaire.appendChild(decision);
+        formulaire.classList.add('rec-deux-colonnes');
       }
     }
 
@@ -284,8 +353,8 @@
 
     var bon=document.querySelector('#ecran-bon .bon');
     if(bon){
-      var etape3=libelleEtape('receptionEtape3','3',
-        anglais?'CONFIRMATION':'CONFIRMATION',
+      var etape3=libelleEtape('receptionEtape3','4',
+        'Confirmation',
         anglais?'Request received and reference created':'Demande reçue et référence créée');
       if(!etape3.parentNode) bon.parentNode.insertBefore(etape3,bon);
     }
@@ -301,6 +370,10 @@
         if(hotelListe) hotelListe.insertAdjacentElement('afterend',adresseRec);}
       var hRec=hotelActif();
       texte(adresseRec,hRec&&hRec.adresse||'');
+      var assistRec=document.getElementById('recAssistance');
+      if(!assistRec){assistRec=document.createElement('p');assistRec.id='recAssistance';assistRec.className='reception-hours';
+        adresseRec.insertAdjacentElement('afterend',assistRec);}
+      assistance(assistRec);
 
       var corpsRec=document.getElementById('recCorps');
       var chiffres=document.querySelector('.rec-chiffres');
@@ -318,6 +391,17 @@
         habillerAction(btnReserver,'＋',anglais?'NEW RIDE':'NOUVELLE COURSE',
           anglais?'Book a transfer for a guest':'Réserver un transfert pour un client');
         tuileAppel(actionsRec,anglais);
+        /* V2 (21/10/2026) : « Un imprévu ? » est la troisième tuile de la
+           rangée, toujours la DERNIÈRE ; « Actualiser » rejoint la recherche
+           et les onglets, sur leur ligne. Déplacés, jamais recopiés : le
+           moteur les retrouve par leurs identifiants. */
+        var aideRec=corpsRec.querySelector('.rec-aide');
+        if(aideRec && (aideRec.parentNode!==actionsRec || aideRec.nextElementSibling)) actionsRec.appendChild(aideRec);
+        var outilsRec=corpsRec.querySelector('.rec-outils'), majRec=corpsRec.querySelector('.rec-maj');
+        if(outilsRec && majRec && majRec.parentNode!==outilsRec){
+          var periodeRec=document.getElementById('recPeriode');
+          outilsRec.insertBefore(majRec,periodeRec&&periodeRec.parentNode===outilsRec?periodeRec:null);
+        }
         if(chiffres){
           var titreCourses=document.getElementById('recListeTitre');
           if(!titreCourses){titreCourses=document.createElement('div');titreCourses.id='recListeTitre';titreCourses.className='rec-liste-titre';

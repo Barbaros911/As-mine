@@ -7911,7 +7911,10 @@ window.ELA_TEXTES = {
     b.addEventListener("click", function(){
       if(hotelSens === b.dataset.sens) return;
       hotelSens = b.dataset.sens;
-      chaque(hotelTete.querySelectorAll(".hotel-sens-btn"), function(x){
+      /* Les boutons sont cherchés LÀ OÙ ILS SONT (21/10/2026) : au comptoir,
+         la finition range ce choix dans la carte du trajet, hors du bandeau.
+         Cherchés dans le bandeau, aucun ne se rallumait. */
+      chaque(b.parentNode.querySelectorAll(".hotel-sens-btn"), function(x){
         var on = x.dataset.sens === hotelSens;
         x.classList.toggle("actif", on);
         x.setAttribute("aria-pressed", String(on));
@@ -9270,7 +9273,12 @@ window.ELA_TEXTES = {
                    easyHotel : un hôtel qui ne les porte pas prend ses
                    actions sur « bouton » et ses bandeaux sur « vif ». */
                 finition:"#ff5a0a", finition2:"#ff761b",
-                finitionPale:"#fff0e7", finitionEncre:"#9a3500" },
+                finitionPale:"#fff0e7", finitionEncre:"#9a3500",
+                /* SUR SON ORANGE, LE TEXTE EST NOIR (21/10/2026, choix de
+                   Barbaros sur maquette) : #1B1B1B lit à 5,5:1 sur
+                   #ff5a0a, le blanc à 3,1:1. Un hôtel sans cette clé garde
+                   le blanc sur ses actions. */
+                texteAction:"#1B1B1B" },
       /* LA PHOTO DE L'HÔTEL — vide tant qu'il ne l'a pas fournie, et
          l'en-tête est dessiné pour tenir sans elle. On ne va PAS la
          chercher sur Internet : une photo appartient à son photographe ou
