@@ -68,6 +68,11 @@ il a dit « corrige, mais pas besoin que la page réception soit en anglais »
 - **Sur téléphone, les tuiles passaient SOUS le bandeau** qu'elles
   chevauchent : un bandeau positionné se peint au-dessus d'un frère qui ne
   l'est pas. Les cartes portent `position:relative; z-index:1`.
+- **À 320 px, deux choix côte à côte débordaient** (mesuré juste avant la
+  publication, après son accord) : « Arrivée à l'hôtel » sortait de l'écran
+  de 5 px, « Historique 1 » sortait de son onglet. Sous 360 px seulement :
+  colonnes qui ne grandissent plus, sans la flèche, onglets à leur largeur.
+  Rien ne change à 390 px et au-delà.
 - **Une règle d'avant, plus précise, gagnait encore** (taille de la
   pastille, ombre du bandeau photo, cadre des champs du client) : le bloc V2
   reprend les mêmes sélecteurs, plus précis, en fin de fichier.

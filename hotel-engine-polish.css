@@ -1193,6 +1193,19 @@ body.hotel.reception-premium #recCorps #btnRecFermer{
   body.hotel.reception-premium #recDashboardActions .reception-action{min-height:76px!important;justify-content:flex-start!important}
   body.hotel.reception-premium #recDashboardActions .reception-action-icon{display:none!important}
 }
+/* Sous 360 px, « Départ de l'hôtel » et « Arrivée à l'hôtel » ne tiennent plus
+   côte à côte avec leur flèche : mesuré à 320 px, le second sortait de
+   l'écran de 5 px. Colonnes égales qui ne grandissent plus, sans la flèche. */
+@media(max-width:360px){
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn{padding:0 4px!important;font-size:13px!important}
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn::before{display:none}
+  /* Même mesure sur la liste : en trois tiers égaux, « Historique 1 » sortait
+     de son onglet et collait « Par date ». Chaque onglet prend sa largeur. */
+  body.hotel.reception-premium #recCorps .rec-vues{grid-template-columns:auto auto auto}
+  body.hotel.reception-premium #recCorps .rec-vues button{padding:0 4px!important;font-size:12.5px!important}
+  body.hotel.reception-premium #recDashboardActions .rec-aide-lien{padding:0 8px!important;font-size:13px!important}
+}
 /* UN ÉLÉMENT CACHÉ PAR LE MOTEUR RESTE CACHÉ (« hidden »), quelle que soit
    la règle de mise en page ci-dessus : mesuré, « .champ{display:flex} »
    faisait réapparaître « Dès que possible » à côté de la date. Posé en
