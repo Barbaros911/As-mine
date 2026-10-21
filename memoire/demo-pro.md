@@ -51,7 +51,8 @@ alerte Telegram.
 
 - Page autonome (styles et textes dedans), **indexable**, canonique
   `https://elatransfer.com/professionnels/`, au plan du site. Bleu nuit,
-  cyan, blanc, logo négatif du site, aucune autre image. Français écrit dans
+  cyan, blanc, logo négatif du site. Aucune autre image jusqu'au 21/10/2026 ;
+  depuis, deux captures de la démo (« À quoi ça ressemble », plus bas). Français écrit dans
   la page (c'est lui que lit Google), anglais au bouton EN, mémorisé sous
   `ela_langue` ; `?lang=en` force l'anglais.
 - Le bloc pro de l'accueil (`#modele`) mène à `/professionnels/#demo`.
@@ -366,9 +367,9 @@ L'écran Prospects n'a pas de recherche : il n'y avait rien à étendre.
 Mission de Barbaros : auditer, garder ce qui est excellent, renforcer le
 reste, sans rien ajouter « pour faire différent ». Fait sur le site construit,
 `professionnels/index.html` seul (ni accueil, ni tarifs, ni moteur, ni
-serveur). Note donnée : 7/10 avant, 9/10 après ; le dernier point dépend de
-choses que le code ne produit pas (SIRET, un second hôtel, la vraie note
-Google).
+serveur). Note donnée : 7/10 avant, 9,5/10 après ; le reste dépend de choses
+que le code ne produit pas (SIRET, un second hôtel, une phrase signée de
+l'hôtel en service, avec son accord écrit).
 
 - **Gardé tel quel** : le titre « Votre réception réserve. Elatransfer gère
   tout le reste. », « Ce que vit votre réception », les trois étapes, le
@@ -391,6 +392,18 @@ Google).
   partenaire (inchangé, devenu un `h3`, `#partenaire` sur la carte). Son
   bouton devient secondaire (`.bouton.contour`) : un seul bouton plein par
   écran, la démonstration.
+- **« À quoi ça ressemble »** (même jour, Barbaros : « fais tout comme un
+  expert ») : le directeur voit le produit sans donner son e-mail. Deux
+  captures de la DÉMO, pas d'un vrai hôtel : « Hôtel Exemple Roissy », clients
+  « (exemple) », « Karim — chauffeur fictif », prix « à fixer », et la légende
+  le dit. Fabriquées depuis le site construit avec un faux `demande-demo`, le
+  bandeau, les onglets et les consignes de la démo masqués, l'horloge fixée à
+  10 h (sans elle, une course d'exemple s'affichait « En retard »). Client
+  390 px ×2, réception 1280 px ; WebP ≈ 45 Ko chacune, une par langue
+  (`data-src-en`), chargement différé. `test-pro-page` n'accepte que le logo et
+  `professionnels/apercu-*-fr|en.webp`, et exige qu'elles s'affichent et
+  changent de langue. **Refaire les captures si la démo change d'aspect.**
+  Reste : dans la démo anglaise, le trajet s'écrit encore « L'hôtel → Orly ».
 - **La démo se présente comme une preuve** : sur-titre « La démo hôtel, à
   votre nom » (le texte du bouton qui y mène), titre « Voyez ce que verraient
   vos clients et votre réception », et le parcours réel du simulateur jusqu'à
@@ -413,5 +426,5 @@ Google).
   demandes de démo et leurs ouvertures sont dans « Prospects ». Pas comptés :
   le clic e-mail et « Recevoir nos conditions ». Rien ajouté.
 - Mesuré : aucun débordement de 320 à 1366 px (FR et EN), « Voir la démo
-  hôtel » dans le premier écran partout (320×640 : 524–578). Page +20 % de
-  hauteur sur téléphone, +1,6 Ko compressés, aucune image ni script ajouté.
+  hôtel » dans le premier écran partout (320×640 : 524–578). HTML +2 Ko
+  compressés ; deux images par langue, ≈ 95 Ko, chargées à la demande.

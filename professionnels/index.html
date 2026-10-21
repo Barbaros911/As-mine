@@ -231,8 +231,18 @@
     .direction .partenaire-carte{margin-top:18px;}
     .partenaire-carte h3{font-size:clamp(21px,2.6vw,26px);}
     .bouton.contour{color:var(--navy);background:transparent;border-color:var(--navy);}
+    .apercu-grille{display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:start;margin-top:22px;}
+    .apercu figure{margin:0;min-width:0;}
+    .apercu img{display:block;width:100%;height:auto;background:var(--fond);
+      box-shadow:0 1px 2px rgba(6,47,85,.05),0 14px 36px rgba(6,47,85,.12);}
+    .apercu-tel img{border:6px solid var(--navy-deep);border-radius:30px;}
+    .apercu-ecran img{border:1px solid var(--line);border-radius:14px;}
+    .apercu figcaption{margin-top:12px;color:var(--navy);font-size:15px;font-weight:700;line-height:1.4;}
+    .apercu-note{margin:18px 0 0;color:var(--muted);font-size:14px;}
+    .apercu-note a{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;color:#0a5f8f;font-weight:700;}
     @media (max-width:700px){
-      .sans-liste,.grille.deux{grid-template-columns:1fr;}
+      .sans-liste,.grille.deux,.apercu-grille{grid-template-columns:1fr;}
+      .apercu-tel{width:min(260px,72%);margin:0 auto;}
       .sans-liste li{font-size:16px;}
     }
   </style>
@@ -314,6 +324,34 @@
           <p data-t="cree3">Nous vérifions chaque demande, choisissons un chauffeur professionnel, confirmons au client et suivons le trajet jusqu'à l'arrivée. Votre réception a un interlocuteur Elatransfer.</p>
         </article>
       </div>
+    </section>
+
+    <!-- À QUOI ÇA RESSEMBLE (21 octobre 2026, mission « page pro 10/10 »,
+         Barbaros : « fais tout comme un expert »). Le 8/10 la page n'avait
+         « aucune image hors du logo » ; un directeur devait donc remplir le
+         formulaire pour voir le produit. Deux captures de la DÉMO, données
+         fictives (« Hôtel Exemple Roissy », clients « (exemple) », « Karim —
+         chauffeur fictif »), horloge fixée à 10 h pour qu'aucune course ne
+         s'affiche « en retard ». Aucun vrai hôtel, aucune vraie course, aucun
+         prix (« à fixer »). Une version par langue (data-src-en), chargées
+         seulement quand on y arrive. Refaire les captures si la démo change
+         d'aspect : memoire/demo-pro.md. -->
+    <section class="bloc apercu" aria-labelledby="t-apercu">
+      <h2 id="t-apercu" data-t="apercu_titre">À quoi ça ressemble</h2>
+      <div class="apercu-grille">
+        <figure class="apercu-tel">
+          <img src="/professionnels/apercu-client-fr.webp" data-src-en="/professionnels/apercu-client-en.webp" width="540" height="1052" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple : le nom de l'hôtel, puis les destinations Aéroport CDG, Orly et Le Bourget, avec des prix à fixer par l'établissement." data-t-alt="apercu_client_alt">
+          <figcaption data-t="apercu_client">La page de vos clients, ouverte par un lien ou un QR code.</figcaption>
+        </figure>
+        <figure class="apercu-ecran">
+          <img src="/professionnels/apercu-reception-fr.webp" data-src-en="/professionnels/apercu-reception-en.webp" width="1280" height="760" loading="lazy" decoding="async"
+            alt="Espace réception d'un hôtel d'exemple : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="apercu_reception_alt">
+          <figcaption data-t="apercu_reception">L'espace de votre réception : chaque demande et où elle en est.</figcaption>
+        </figure>
+      </div>
+      <p class="apercu-note"><span data-t="apercu_note">Captures de la démonstration, avec des données fictives.</span>
+        <a href="#demo" data-t="apercu_lien">Essayer avec le nom de votre établissement</a></p>
     </section>
 
     <section class="bloc" aria-labelledby="t-comment">
@@ -523,6 +561,13 @@
       cree1_t:"Your page", cree1:"A page with your name and colours, with your photo and your logo if you would like to send it to us. Your guests open it from a link or a QR code and book by themselves, from their room, without taking up your team's time.",
       cree2_t:"Your front-desk space", cree2:"Your team books by room number or guest name, sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
       cree3_t:"What we take care of", cree3:"We check every request, choose a professional chauffeur, confirm with the guest and follow the journey through to arrival. Your front desk has an Elatransfer contact.",
+      apercu_titre:"What it looks like",
+      apercu_client:"Your guests' page, opened from a link or a QR code.",
+      apercu_client_alt:"Booking page of an example hotel: the hotel's name, then the destinations CDG Airport, Orly and Le Bourget, with prices to be set by the establishment.",
+      apercu_reception:"Your front-desk space: every request and where it stands.",
+      apercu_reception_alt:"Front-desk space of an example hotel: two upcoming rides, one pending, the other confirmed with its driver's name and number.",
+      apercu_note:"Screenshots from the demonstration, with fictitious data.",
+      apercu_lien:"Try it with your establishment's name",
       comment_titre:"How it works",
       comment_intro:"Not just another driver's number: every request follows the same path, from booking to arrival.",
       etape1_t:"The request", etape1:"The guest scans the QR code, or the front desk enters the request for them.",
@@ -579,6 +624,8 @@
       FR._description = document.querySelector('meta[name=description]').getAttribute('content');
       document.querySelectorAll('[data-t]').forEach(function(e){ FR[e.getAttribute('data-t')] = e.textContent; });
       document.querySelectorAll('[data-t-aria]').forEach(function(e){ FR[e.getAttribute('data-t-aria')] = e.getAttribute('aria-label'); });
+      document.querySelectorAll('[data-t-alt]').forEach(function(e){ FR[e.getAttribute('data-t-alt')] = e.getAttribute('alt'); });
+      document.querySelectorAll('img[data-src-en]').forEach(function(e){ e.setAttribute('data-src-fr', e.getAttribute('src')); });
     }
     function appliquer(l){
       var T = l === 'en' ? EN : FR;
@@ -587,6 +634,9 @@
       document.querySelector('meta[name=description]').setAttribute('content', T._description);
       document.querySelectorAll('[data-t]').forEach(function(e){ var k = e.getAttribute('data-t'); if (T[k] != null) e.textContent = T[k]; });
       document.querySelectorAll('[data-t-aria]').forEach(function(e){ var k = e.getAttribute('data-t-aria'); if (T[k] != null) e.setAttribute('aria-label', T[k]); });
+      document.querySelectorAll('[data-t-alt]').forEach(function(e){ var k = e.getAttribute('data-t-alt'); if (T[k] != null) e.setAttribute('alt', T[k]); });
+      /* Une capture par langue : la page anglaise ne montre pas un écran en français. */
+      document.querySelectorAll('img[data-src-en]').forEach(function(e){ e.setAttribute('src', e.getAttribute(l === 'en' ? 'data-src-en' : 'data-src-fr')); });
       var b = document.getElementById('langue');
       b.textContent = l === 'en' ? 'FR' : 'EN';
       b.setAttribute('aria-label', l === 'en' ? 'Lire en français' : 'Read in English');
