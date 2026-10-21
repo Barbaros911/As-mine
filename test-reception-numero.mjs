@@ -149,9 +149,14 @@ try {
        disait « Prix ferme » dès l'envoi (corrigé le 5 octobre 2026). */
     check('la demande en attente annonce son prix, elle ne le dit pas « ferme »',
       (await p.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)')) === 'Prix annoncé', await p.locator('#bonPrixLib').textContent({ timeout:3000 }).catch(() => '(absent)'));
-    await p.click('#btnBonVoirClient', { timeout:3000 }).catch(() => {});
-    check('« Voir le bon du client » montre le même N°',
-      (await p.locator('#bonClient .ebon-ref').textContent().catch(() => '')) === 'N° 1043');
+    /* Depuis le 21/10/2026 cet écran parle à la réception : le N° est en tête
+       de sa carte, et le bon du client n'est plus ouvert d'ici (il reste dans
+       la liste, éprouvé plus haut avec « N° 1042 »). */
+    check('le N° est en tête de la carte de la réception, à l\'écran',
+      await p.locator('#bonComptoir #bonRef').isVisible()
+      && (await p.locator('#bonComptoir #bonRef').textContent()) === 'N° 1043');
+    check('« Voir le bon du client » n\'est plus sur cet écran',
+      await p.locator('#btnBonVoirClient').count() === 0);
     await ctx.close();
   }
   /* Avant la migration : le serveur ne rend pas de N°. Le bon reste celui d'avant. */

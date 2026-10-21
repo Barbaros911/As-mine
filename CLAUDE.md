@@ -3576,9 +3576,9 @@ statut `annulee` — est dans `memoire/reception.md`.
   réception** (9/10/2026, Barbaros) — ni sur le bon, ni dans « Un imprévu ? » :
   il n'ouvrirait que WhatsApp Web. La ligne écrite reste ; une tablette au
   doigt garde le bouton. La réception n'a pas de barre du bas, ni sa place.
-- **Après une réservation au comptoir, « À dire au client » : « Votre
-  réservation sera confirmée par Elatransfer. »** Il se tait si le dépôt
-  échoue — l'écriteau rouge dit alors d'appeler.
+- **Après une réservation, une carte pour LA RÉCEPTION** (21/10/2026) :
+  titre selon le dépôt, N°, client, trajet, prix ; ni bon du client ni
+  « À dire au client » (`memoire/reception.md`).
 - Plus de trois chiffres (sur un PC 1366×768 la 1re course était à y = 723),
   plus d'onglet « Toutes » ; « Passées » s'appelle « Historique », du plus
   récent au plus ancien heure comprise ; « Actualiser » est au-dessus de la

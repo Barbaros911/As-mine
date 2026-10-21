@@ -168,3 +168,29 @@ le défaut était ailleurs — des doublons et des phrases écrites pour un clie
 - **Pas encore fait, décidé pour un second temps** : changer ou couper le code
   de la réception depuis l'admin (le code vit dans les secrets Supabase).
 
+
+## APRÈS UNE RÉSERVATION AU COMPTOIR, UNE CARTE POUR LA RÉCEPTION (21/10/2026)
+
+Ajouté après l'archive. Barbaros, en voyant l'écran qui suit une réservation
+au comptoir : « trop d'information destinée au client, c'est inutile ». Il
+portait le bon du CLIENT (logo, « Bon de réservation », ligne de règlement)
+sous l'encadré « À dire au client » du 5 octobre, plus un bouton « Voir le
+bon du client ». Deux versions lui ont été montrées ; il a choisi la **A**.
+- **Une carte** : titre, N°, pastille « En attente d'un chauffeur », la
+  phrase de l'envoi (« Rien d'autre à faire : Elatransfer prévient le client
+  et cherche un chauffeur… »), puis Client (chambre · nom), Trajet (écrit
+  comme dans la liste, `trajetComptoir`), Date, Véhicule, Prix annoncé.
+  « Voir les réservations de l'hôtel » et « Réserver une autre course ».
+- **Le titre suit le DÉPÔT**, comme la tête du bon depuis le 15/10 :
+  « Réservation enregistrée » seulement quand le serveur l'a reçue,
+  « Réservation non transmise » en rouge sur un échec (l'écriteau dit
+  d'appeler, avec le numéro), « Envoi de la réservation… » entre les deux.
+  La maquette mettait « enregistrée » d'office : ç'aurait été la panne
+  inventée à l'envers.
+- **Rien n'est recopié** : le N° (`#bonRef`), l'écriteau de l'envoi
+  (`#etatEnvoi`) et le détail (`#bonDetail`) sont DÉPLACÉS dans la carte ;
+  départ, arrivée et règlement y sont masqués (`bc-masque`). Le site client
+  n'a pas bougé.
+- **Retirés** : « À dire au client » (`consigne_comptoir*`) et « Voir le bon
+  du client » de cet écran. Le bon du client reste dans la liste (« Voir le
+  bon ») et sur la fiche de l'admin.
