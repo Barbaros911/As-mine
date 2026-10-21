@@ -194,3 +194,29 @@ bon du client ». Deux versions lui ont été montrées ; il a choisi la **A**.
 - **Retirés** : « À dire au client » (`consigne_comptoir*`) et « Voir le bon
   du client » de cet écran. Le bon du client reste dans la liste (« Voir le
   bon ») et sur la fiche de l'admin.
+
+## « JE VEUX 10/10 » — L'AUDIT DU 21/10/2026, ÉTAPE PAR ÉTAPE
+
+Barbaros a noté le parcours 8/10 et demandé « corrige tout comme un expert ».
+Chaque étape a été rejouée sur le site construit, à cinq largeurs (1366,
+1024, 768, 390, 360), mesures à l'appui. Ce qui a été trouvé, et fait :
+- **« Valider » sans véhicule n'était PAS mort**, contrairement à ce que je lui
+  avais dit en lisant une capture : l'appui encadre Berline/Van de rouge. Mais
+  la couleur portait le sens seule. Le cadre dit maintenant « Choisissez le
+  véhicule ». Le bouton reste actif à l'œil : un bouton qui dit ce qui manque
+  vaut mieux qu'un bouton grisé muet.
+- **CDG, Terminal 1, 1 passager, 1 bagage étaient verts d'office** au comptoir :
+  « vérifié » sur ce que personne n'avait regardé. Ils restent neutres jusqu'à
+  ce qu'on y touche (même règle que la date et l'heure) ; côté client, la
+  destination vient de la carte touchée, elle reste verte.
+- **« Réserver une autre course » gardait l'essai de validation** du client
+  précédent : nom et téléphone déjà rouges « Obligatoire », et sa Berline
+  toujours cochée. Remis à zéro (`tentative`, `touches`, `dessinerGammes()`).
+- **Sur un PC, le bon n'a plus de boutons** (Appeler, WhatsApp, Telegram) :
+  un PC ne compose pas. Tout est écrit ; une tablette au doigt garde les trois.
+- **À 768 px, le formulaire restait en deux colonnes** : « Nom du client »
+  à 80 px (trois lignes, valeur « M… »), date coupée. Une colonne jusqu'à
+  900 px. Et la date était coupée à toutes les tailles dès qu'elle passait au
+  vert (12 px réservés à droite pour la coche, qui est posée en haut).
+- Typographie : « L'hôtel → … » prend sa capitale en début de ligne, et
+  « · arrivée » ne commence plus une ligne.
