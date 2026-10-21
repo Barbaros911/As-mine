@@ -519,6 +519,13 @@ body.exploitant .note-google{display:none;}
    garde la gouttière de 20 px (vu à 320 px, la ligne touchait les bords). */
 .rassure.veh-rassure{margin:12px 20px 0;text-align:center;line-height:1.4;}
 body.reception .veh-rassure{display:none;}
+/* Au comptoir, ce qui ne parle qu'au client ne s'affiche pas (20/10/2026) :
+   l'aide sous le numéro de vol, « gardez votre téléphone », le détail du
+   paiement et le numéro du bas (la tuile « Départ immédiat » le porte). */
+body.reception #aideVol,
+body.reception #blocCoordonnees [data-t="regle_contact"],
+body.reception #blocContact [data-contact="telegram"],
+body.reception #blocPaiement{display:none;}
 .veh-carte{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
   background:var(--carte);border:1px solid var(--filet);border-radius:16px;
   padding:13px 14px;font-family:inherit;cursor:pointer;min-width:0;
@@ -6412,7 +6419,11 @@ window.ELA_TEXTES = {
     hotel_adresse_precise:"Adresse précise",
     reserver_prix:"Valider la réservation",
     client_titre:"Le client",
-    aide_identite:"Indiquez le nom et le téléphone du client : Elatransfer lui envoie la confirmation et le lien de paiement. La chambre aide le chauffeur à le trouver.",
+    aide_identite:"Nom et téléphone du client : Elatransfer lui envoie la confirmation et le lien de paiement.",
+    joindre_titre_comptoir:"Le client sera confirmé par :", joindre_note_comptoir:"Client étranger : WhatsApp.",
+    canal_telephone_comptoir:"Téléphone",
+    err_contact_comptoir:"Choisissez par où Elatransfer confirme au client.",
+    paiement_lien_titre_comptoir:"Le client reçoit un lien de paiement avant le départ.",
     /* LE COMPTOIR SAISIT QUELQU'UN D'AUTRE : aucune phrase en « vous », aucun
        libellé doublé en deux langues — le sélecteur FR/EN fait ce travail. */
     nom_comptoir:"Nom du client", ph_nom_comptoir:"Nom du client", ph_tel_comptoir:"06 12 34 56 78",
@@ -6650,7 +6661,11 @@ window.ELA_TEXTES = {
     hotel_adresse_precise:"Exact address",
     reserver_prix:"Confirm booking",
     client_titre:"The guest",
-    aide_identite:"Enter the guest's name and phone number: Elatransfer sends them the confirmation and the payment link. The room number helps the chauffeur find them.",
+    aide_identite:"Guest name and phone: Elatransfer sends them the confirmation and the payment link.",
+    joindre_titre_comptoir:"The guest will be confirmed by:", joindre_note_comptoir:"Foreign guest: WhatsApp.",
+    canal_telephone_comptoir:"Phone",
+    err_contact_comptoir:"Choose how Elatransfer confirms to the guest.",
+    paiement_lien_titre_comptoir:"The guest receives a payment link before departure.",
     nom_comptoir:"Guest name", ph_nom_comptoir:"Guest name", ph_tel_comptoir:"+33 6 12 34 56 78",
     aide_tel_comptoir:"Foreign number: add the country code (+34, +44…).",
     bon_note_comptoir:"We are looking for a chauffeur. The ride will show as “Confirmed” in the hotel bookings as soon as one is assigned.",
@@ -8813,7 +8828,18 @@ window.ELA_TEXTES = {
       [["label[for='clientNom'] .champ-titre", "data-t", "nom_comptoir"],
        ["#clientNom", "data-t-ph", "ph_nom_comptoir"],
        ["#clientTel", "data-t-ph", "ph_tel_comptoir"],
-       ["[data-t='aide_tel']", "data-t", "aide_tel_comptoir"]].forEach(function(r){
+       ["[data-t='aide_tel']", "data-t", "aide_tel_comptoir"],
+       /* ═══ LE FORMULAIRE NE GARDE QUE CE QUI SERT AU COMPTOIR (20/10/2026,
+          Barbaros : « trop de choses destinées au client ») ═══
+          Les phrases qui parlent AU client (« votre confirmation », « vous
+          payez ») sont réécrites pour la réception ; celles qui ne servent
+          qu'au client (aide du vol, règle de contact, détail du paiement,
+          numéro du bas) sont masquées en CSS (body.reception). */
+       ["#blocContact .bloc-titre", "data-t", "joindre_titre_comptoir"],
+       ["#noteContactEtranger", "data-t", "joindre_note_comptoir"],
+       ["#erreurContact", "data-t", "err_contact_comptoir"],
+       ["[data-t='canal_telephone']", "data-t", "canal_telephone_comptoir"],
+       ["[data-t='paiement_lien_titre']", "data-t", "paiement_lien_titre_comptoir"]].forEach(function(r){
         var el = document.querySelector(r[0]);
         if(!el) return;
         el.setAttribute(r[1], r[2]);
@@ -10967,9 +10993,16 @@ window.ELA_TEXTES = {
   var CANAUX_FR = ["telephone", "whatsapp", "telegram"], CANAUX_ETRANGER = ["whatsapp", "telegram"];
   /* Tant que le numéro n'est pas complet, on propose le cas le plus courant
      du site — un numéro français. Il bascule dès que l'indicatif est lu. */
+  /* AU COMPTOIR, DEUX CANAUX SEULEMENT (20/10/2026, Barbaros : « mets juste
+     téléphone et WhatsApp ») : pas de Telegram pour un client d'hôtel saisi
+     par la réception. Un numéro étranger n'y laisse que WhatsApp. */
+  var CANAUX_COMPTOIR = ["telephone", "whatsapp"], CANAUX_COMPTOIR_ETRANGER = ["whatsapp"];
   function canauxProposes(){
     var tel = document.getElementById("clientTel").value.trim();
-    return (telValide(tel) && telEtranger(tel)) ? CANAUX_ETRANGER : CANAUX_FR;
+    var comptoir = document.body.classList.contains("compte-unique");
+    var etranger = telValide(tel) && telEtranger(tel);
+    if(comptoir) return etranger ? CANAUX_COMPTOIR_ETRANGER : CANAUX_COMPTOIR;
+    return etranger ? CANAUX_ETRANGER : CANAUX_FR;
   }
   /* Le comptoir aussi : c'est là qu'Elatransfer envoie le lien de paiement. */
   function contactDemande(){ return true; }
@@ -10984,7 +11017,7 @@ window.ELA_TEXTES = {
       b.setAttribute("aria-pressed", String(b.dataset.contact === contactChoisi));
     });
     document.querySelector("#blocContact .choix-envoi").classList.toggle("trois", proposes.length === 3);
-    document.getElementById("noteContactEtranger").hidden = proposes !== CANAUX_ETRANGER;
+    document.getElementById("noteContactEtranger").hidden = !(proposes === CANAUX_ETRANGER || proposes === CANAUX_COMPTOIR_ETRANGER);
     var tel = document.getElementById("clientTel").value.trim();
     var relu = document.getElementById("telRelu");
     relu.hidden = !telValide(tel);

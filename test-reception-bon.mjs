@@ -96,6 +96,43 @@ try {
     reserve: getComputedStyle(document.body).paddingBottom }));
   check('sur un PC, pas de barre du bas, ni de place réservée pour elle', !bas.barre && bas.reserve === '0px', JSON.stringify(bas));
 
+  /* « DÉPART IMMÉDIAT » (20/10/2026, Barbaros, version A choisie sur
+     maquette) : une tuile d'appel à côté de « Nouvelle course », de même
+     taille, sur la même ligne, avec le numéro en clair et un vrai lien
+     d'appel. Mesuré à l'écran, pas relu dans le CSS. */
+  const tuiles = await p.evaluate(() => {
+    const n = document.getElementById('btnRecReserver'), a = document.getElementById('recAppelImmediat');
+    if (!n || !a) return null;
+    const rn = n.getBoundingClientRect(), ra = a.getBoundingClientRect();
+    return { href: a.getAttribute('href'), texte: a.innerText, memeLigne: Math.abs(rn.top - ra.top) < 2,
+             memeHauteur: Math.abs(rn.height - ra.height) < 2, cote: ra.left > rn.right, fond: getComputedStyle(a).backgroundColor };
+  });
+  check('sur un PC, la tuile « Départ immédiat » est à côté de « Nouvelle course », même taille',
+    tuiles && tuiles.memeLigne && tuiles.memeHauteur && tuiles.cote, JSON.stringify(tuiles));
+  check('elle appelle Elatransfer et écrit le numéro en clair',
+    tuiles && tuiles.href === 'tel:+33759312433' && /DÉPART IMMÉDIAT/.test(tuiles.texte) && /\+33 7 59 31 24 33/.test(tuiles.texte), tuiles && tuiles.texte);
+  check('elle n\'est pas rouge (le rouge dit « en attente »)', tuiles && !/rgb\(2(0[0-9]|1[0-9]|2[0-9]), ?(3[0-9]|4[0-9]|5[0-9]), ?(4[0-9]|5[0-9])\)/.test(tuiles.fond), tuiles && tuiles.fond);
+
+  /* LE FORMULAIRE DU COMPTOIR NE PARLE PLUS AU CLIENT (20/10/2026, Barbaros :
+     « trop de choses destinées au client »). Ce qui ne sert qu'au client est
+     masqué ; ce qui sert est réécrit pour la réception. Mesuré à l'écran. */
+  await p.click('#btnRecReserver'); await p.waitForTimeout(800);
+  const form = await p.evaluate(() => {
+    const vu = sel => [...document.querySelectorAll(sel)].some(e => e.getBoundingClientRect().height > 0);
+    const txt = sel => (document.querySelector(sel) || {}).textContent || '';
+    return { aideVol: vu('#aideVol'), regle: vu('[data-t="regle_contact"]'), regles: vu('#paiementLien .paiement-regles'),
+             telBas: vu('#paiementLien .paiement-tel'), contact: txt('#blocContact .bloc-titre').trim(),
+             paiement: vu('#blocPaiement'), telegram: vu('#blocContact [data-contact="telegram"]'),
+             tel: txt('#blocContact [data-contact="telephone"]').trim(), boutonValider: vu('#ecran-accueil .bouton, #btnConfirmer') };
+  });
+  check('formulaire du comptoir : plus d\'aide du vol, de « gardez votre téléphone », ni de bloc paiement',
+    !form.aideVol && !form.regle && !form.regles && !form.telBas && !form.paiement, JSON.stringify(form));
+  check('formulaire du comptoir : « Le client sera confirmé par : » Téléphone ou WhatsApp, sans Telegram',
+    form.contact === 'Le client sera confirmé par :' && form.tel === 'Téléphone' && !form.telegram, JSON.stringify(form));
+  await p.goto(BASE + '/reception/easyhotel-aeroville/', { waitUntil:'domcontentloaded' });
+  await p.waitForSelector('#recListe .rec-course', { timeout:8000 }).catch(() => {});
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(300);
+
   /* LA PHOTO DU COMPTOIR (20/10/2026, Barbaros : la réception seulement).
      Collée à droite du bandeau, vraiment chargée, et le bandeau ne grandit
      pas : au comptoir, la place est celle de la liste. */
@@ -317,10 +354,22 @@ try {
   /* Sur un téléphone, le texte du bandeau prend toute la largeur : l'aplat
      reste, sans photo. */
   const ctxM = await nav.newContext({ viewport:{ width:390, height:844 }, locale:'fr-FR', timezoneId:'Europe/Paris' });
-  await ctxM.route('**/*', r => r.request().url().startsWith(BASE) ? r.continue() : r.abort());
+  await ctxM.route('**/*', r => {
+    const u = r.request().url();
+    if (u.startsWith(BASE)) return r.continue();
+    if (u.includes('/functions/v1/courses-hotel'))
+      return r.fulfill(J({ hotel:'easyhotel-aeroville', courses:LISTE, session:'s.sig', expire:Date.now() + 864e5 }));
+    return r.abort();
+  });
   const m = await ctxM.newPage();
   await m.goto(BASE + '/reception/easyhotel-aeroville/', { waitUntil:'domcontentloaded' });
   await m.waitForTimeout(700);
+  await m.fill('#recCode', 'code-de-test'); await m.click('#btnRecEntrer');
+  await m.waitForSelector('#recAppelImmediat', { timeout:8000 }).catch(() => {});
+  const tuileTel = await m.evaluate(() => { const a = document.getElementById('recAppelImmediat'); const r = a && a.getBoundingClientRect();
+    return a ? { texte: a.innerText, dedans: r.right <= window.innerWidth && r.width > 100 } : null; });
+  check('sur un téléphone, la tuile dit « Appuyez pour appeler » et tient dans l\'écran',
+    tuileTel && /Appuyez pour appeler/.test(tuileTel.texte) && !/\+33/.test(tuileTel.texte) && tuileTel.dedans, JSON.stringify(tuileTel));
   const fondTel = await m.evaluate(() => getComputedStyle(document.querySelector('#ecran-reception .trajet-tete')).backgroundImage);
   check('sur un téléphone, le bandeau du comptoir reste sans photo', !/url\(/.test(fondTel), fondTel.slice(0, 120));
   await ctxM.close();

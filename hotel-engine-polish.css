@@ -474,3 +474,24 @@ body.hotel.reception-premium #recDashboardActions .reception-action-copy small{f
 /* La carte qui vient d'être validée s'éclaire aussi au comptoir : l'ombre
    de la carte, plus haut, recouvrait le filet vert. */
 body.hotel.reception-premium .rec-course.rec-nouveau{border-color:#25A06A;box-shadow:0 0 0 2px #25A06A,0 6px 16px rgba(8,47,82,.045)}
+
+/* « DÉPART IMMÉDIAT » (20/10/2026) : la tuile d'appel à côté de « Nouvelle
+   course » (créée par hotel-engine-polish.js). Deux tuiles, deux colonnes,
+   à toutes les largeurs : elles se lisent comme un choix. Noire : le rouge
+   est celui de l'attente, l'orange celui de l'action de réserver. */
+body.hotel.reception-premium.eh-avec-appel #recDashboardActions{grid-template-columns:1fr 1fr}
+body.hotel.reception-premium #recAppelImmediat{background:#1B1B1B!important;color:#fff!important;text-decoration:none!important}
+body.hotel.reception-premium #recAppelImmediat .reception-action-icon{display:grid;place-items:center;background:var(--eh-action)!important;color:#fff}
+body.hotel.reception-premium #recAppelImmediat .eh-long{white-space:nowrap}
+body.hotel.reception-premium #recAppelImmediat .eh-court{display:none}
+@media(max-width:600px){
+  body.hotel.reception-premium #recAppelImmediat .eh-long{display:none}
+  body.hotel.reception-premium #recAppelImmediat .eh-court{display:inline}
+}
+/* Sous 420 px, deux tuiles côte à côte n'ont plus la place d'une icône :
+   mesuré à 320 px, « IMMÉDIAT » sortait de l'écran. Le texte passe d'abord. */
+@media(max-width:420px){
+  body.hotel.reception-premium.eh-avec-appel #recDashboardActions .reception-action-icon{display:none!important}
+  body.hotel.reception-premium.eh-avec-appel #recDashboardActions .reception-action{padding:12px!important}
+  body.hotel.reception-premium.eh-avec-appel #recDashboardActions .reception-action-copy{min-width:0}
+}
