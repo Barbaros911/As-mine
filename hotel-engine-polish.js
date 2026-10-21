@@ -233,8 +233,8 @@
         ? 'Book 24/7 · Human support 7\u00a0am–10\u00a0pm'
         : 'Réservation 24\u00a0h/24 · Assistance humaine 7\u00a0h–22\u00a0h');
       texte(el.querySelector('.reception-hours-copy span'),anglais
-        ? ' · Leaving now? Call us, it is the fastest way'
-        : ' · Départ immédiat ? Appelez-nous, c’est le plus rapide');
+        ? ' · Leaving now? Call us'
+        : ' · Départ immédiat ? Appelez-nous');
     }
 
     var tete=document.getElementById('hotelTete');
