@@ -1308,7 +1308,8 @@ for (const large of [1024, 1280]) {
      (« ça casse le visuel »). L'accueil porte donc la VERSION NÉGATIVE
      (lettres blanches, courbe cyan), ajoutée à la table ci-dessus, même
      silhouette au pixel près. Place, taille, filtre et opacité : inchangés.
-     La page d'un hôtel, la réception et l'admin gardent l'original : c'est
+     La page d'un hôtel et l'admin gardent l'original ; la réception, bleu
+     nuit depuis sa V2 (21/10/2026), porte la négative : c'est
      test-public-formulaire qui le vérifie. */
   const LOGO_ACCUEIL = 'brand-logo-negatif.webp';
   const AFFICHAGE = { 390: { w: 116, h: 51.1, x: 14 }, 1280: { w: 128, h: 56.3, x: 50 } };

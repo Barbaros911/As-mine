@@ -336,14 +336,23 @@ for (const [nom, chemin] of [['page easyHotel', 'application.html?h=easyhotel-ae
     const logos = [...document.querySelectorAll('img')].map(i => i.getAttribute('src') || '').filter(x => x.includes('brand-logo'));
     const e = document.querySelector('.entete');
     const entete = e ? getComputedStyle(e).backgroundColor : null;
-    const c = document.querySelector('.reserver'); if (!c) return { absente: true, logos, entete };
+    const logoEntete = (document.querySelector('.entete .logo-image') || {}).getAttribute?.('src') || null;
+    const c = document.querySelector('.reserver'); if (!c) return { absente: true, logos, entete, logoEntete };
     const st = getComputedStyle(c);
     return { image: st.backgroundImage, pas: [...document.querySelectorAll('.pas-btn')].filter(x => getComputedStyle(x).display !== 'none').length,
-      chevrons: [...c.querySelectorAll('.fleche')].length, logos, entete };
+      chevrons: [...c.querySelectorAll('.fleche')].length, logos, entete, logoEntete };
   });
   check(`${nom} : la carte n'est pas en bleu nuit, les « − / + » n'y apparaissent pas`, s.absente || (!s.image.includes('gradient') && s.pas === 0), JSON.stringify(s));
-  check(`${nom} : le logo reste l'original (la version négative est réservée à l'en-tête public)`,
-    !s.logos.some(x => x.includes('negatif')) && s.entete !== 'rgb(4, 26, 49)', JSON.stringify({ logos: s.logos, entete: s.entete }));
+  /* LA RÉCEPTION V2 (21/10/2026, maquette validée par Barbaros) : le comptoir
+     a son propre bandeau bleu nuit (#062F55, pas celui du public), où le logo
+     d'origine disparaîtrait (1,1:1). Il porte donc la version négative ; la
+     page d'un hôtel et l'admin gardent l'original. */
+  if (nom === 'réception')
+    check('réception : la version négative du logo sur SON bandeau bleu nuit (V2), pas celui du public',
+      s.logoEntete === '/brand-logo-negatif.webp' && s.entete === 'rgb(6, 47, 85)', JSON.stringify({ logo: s.logoEntete, entete: s.entete }));
+  else
+    check(`${nom} : le logo reste l'original (la version négative est réservée à l'en-tête public)`,
+      !s.logos.some(x => x.includes('negatif')) && s.entete !== 'rgb(4, 26, 49)', JSON.stringify({ logos: s.logos, entete: s.entete }));
   await p.context().close();
 }
 

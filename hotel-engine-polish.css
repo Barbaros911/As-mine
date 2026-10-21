@@ -495,3 +495,719 @@ body.hotel.reception-premium #recAppelImmediat .eh-court{display:none}
   body.hotel.reception-premium.eh-avec-appel #recDashboardActions .reception-action{padding:12px!important}
   body.hotel.reception-premium.eh-avec-appel #recDashboardActions .reception-action-copy{min-width:0}
 }
+
+/* ==========================================================================
+   RÉCEPTION V2 — 21/10/2026, maquette validée par Barbaros (« version 3 »,
+   texte noir sur l'orange, la photo du comptoir gardée).
+   UN BANDEAU BLEU NUIT COMMUN aux trois écrans du comptoir (code, liste,
+   nouvelle course), la photo du comptoir à droite à partir de 600 px ; puis
+   des cartes blanches sur le fond ELA. Le formulaire passe en DEUX COLONNES :
+   ce qu'on saisit à gauche (le trajet, puis le client sur un fond à part),
+   ce qu'on décide à droite (la gamme, le prix, « Valider »), qui reste à
+   l'écran sur un ordinateur.
+   Rien de nouveau dans la page : les mêmes champs, déplacés une seule fois
+   par hotel-engine-polish.js. Les couleurs de l'hôtel arrivent par ses
+   variables (--eh-action, --eh-pale…, et --h-texteAction pour l'encre posée
+   sur son action : sans elle, le blanc). Le bleu nuit, les gris et le vert
+   des champs remplis sont ceux d'Elatransfer. Posé en fin de fichier : il
+   passe devant la finition de comptoir d'avant, qu'il remplace.
+   ========================================================================== */
+body.hotel.reception-premium{
+  --v2-page:#F2F5F9;--v2-section:#EEF3F9;--v2-section-filet:#DCE6F1;
+  --v2-filet:#D6DFE9;--v2-filet-survol:#B4C3D3;
+  --v2-encre:#0F2A44;--v2-titre:#062F55;--v2-gris:#53647A;--v2-icone:#6C8096;
+  --v2-marine:#062F55;--v2-bleu:#147EDC;
+  --v2-vert:#1E8449;--v2-vert-filet:#BFE0CC;--v2-vert-fond:#FBFEFC;
+  --v2-action:linear-gradient(120deg,var(--eh-action),var(--eh-action2));
+  --v2-sur-action:var(--h-texteAction,#fff);
+  /* La gouttière : 24 px, ou ce qu'il faut pour une colonne de 1180 px. Le
+     « 100 % » est la largeur de l'élément qui s'en sert — toujours un
+     élément pleine largeur (barre, bandeau). */
+  --v2-g:max(24px,calc((100% - 1180px) / 2));
+  --v2-colonne:min(1180px,calc(100% - 48px));
+  --v2-decision:396px;
+  --v2-ombre:0 1px 2px rgba(6,47,85,.06),0 14px 34px -14px rgba(6,47,85,.22);
+  --v2-focus:0 0 0 4px rgba(20,126,220,.18);
+  /* LA PHOTO PASSE SOUS LA BARRE ET SOUS LE BANDEAU SANS COUTURE : même
+     taille, même bord droit, et le bandeau la reprend 64 px plus bas. */
+  --v2-photo-h:280px;--v2-photo-y:-44px;--v2-photo-x:0px;
+  background:var(--v2-page)!important;
+}
+body.hotel.reception-premium .page{max-width:none!important;background:var(--v2-page)!important}
+/* Les écrans qui n'ont pas de bandeau (le bon, les mentions) gardent la
+   colonne de 1180 px qu'ils avaient. */
+body.hotel.reception-premium .page > .ecran:not(#ecran-accueil):not(#ecran-reception){max-width:1180px;margin-left:auto;margin-right:auto}
+
+/* ---------- LA BARRE DU HAUT ---------- */
+body.hotel.reception-premium .entete{
+  position:relative!important;top:auto!important;z-index:20!important;
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;
+  height:64px!important;min-height:64px!important;padding:0 var(--v2-g)!important;
+  background:var(--v2-marine)!important;color:#fff!important;border:0!important;
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,.09)!important;
+}
+body.hotel.reception-premium .entete .logo{
+  order:1;display:flex!important;align-items:center!important;height:30px;margin:0!important;
+  padding:0 14px 0 0!important;border:0!important;border-right:1px solid rgba(255,255,255,.22)!important;border-radius:0!important;background:none!important;
+}
+body.hotel.reception-premium .entete .logo-image{width:auto!important;height:30px!important;max-height:none!important;filter:none!important}
+body.hotel.reception-premium .hotel-partner-chip{
+  order:2;display:inline-flex!important;flex-direction:column!important;justify-content:center!important;align-self:center!important;
+  height:38px;max-width:200px;margin:0!important;padding:0 12px!important;border:0!important;border-radius:9px!important;
+  background:var(--v2-action)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);line-height:1;color:var(--v2-sur-action)!important;
+}
+body.hotel.reception-premium .hotel-partner-chip b{font-size:17px!important;line-height:1!important;font-weight:800!important;letter-spacing:-.01em;color:inherit!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.hotel.reception-premium .hotel-partner-chip span{display:block!important;margin-top:3px!important;font-size:10px!important;line-height:1.1!important;font-weight:700!important;color:inherit!important;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.hotel.reception-premium .hotel-partner-chip.eh-chip-long b{font-size:14px!important}
+body.hotel.reception-premium .entete-actions{order:3;display:flex!important;align-items:center!important;gap:10px!important;margin-left:auto!important;padding:0!important}
+body.hotel.reception-premium .entete .langues{
+  display:inline-flex!important;padding:3px!important;border:0!important;border-radius:999px!important;overflow:visible!important;
+  background:rgba(255,255,255,.10)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)!important;
+}
+body.hotel.reception-premium .entete .langues button{
+  height:30px!important;min-height:30px!important;min-width:40px!important;padding:0 8px!important;border:0!important;border-radius:999px!important;
+  background:transparent!important;color:rgba(255,255,255,.78)!important;font-size:12px!important;font-weight:800!important;letter-spacing:.04em;
+}
+body.hotel.reception-premium .entete .langues button[aria-pressed="true"]{background:#fff!important;color:var(--v2-marine)!important}
+body.hotel.reception-premium .entete .langues button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* « Réservations de l'hôtel » : dans la barre à partir de 600 px, seulement
+   quand le formulaire est à l'écran — sur la liste, on y est déjà. */
+body.hotel.reception-premium .entete #receptionActions{display:block!important;margin:0!important}
+body.hotel.reception-premium:not(:has(#ecran-accueil.actif)) .entete #receptionActions{display:none!important}
+body.hotel.reception-premium #receptionActions #btnReception:not([hidden]){
+  display:inline-flex!important;align-items:center!important;gap:8px!important;width:auto!important;
+  height:40px!important;min-height:40px!important;margin:0!important;padding:0 14px 0 12px!important;
+  border:0!important;border-radius:12px!important;background:#fff!important;color:var(--v2-marine)!important;
+  box-shadow:0 6px 16px -8px rgba(0,0,0,.5)!important;cursor:pointer;
+}
+body.hotel.reception-premium #receptionActions #btnReception:hover{background:#EEF5FD!important}
+body.hotel.reception-premium #receptionActions #btnReception:focus-visible{outline:2px solid #fff;outline-offset:2px}
+body.hotel.reception-premium #btnReception .reception-action-icon{
+  flex:0 0 18px!important;width:18px!important;height:18px!important;border-radius:0!important;font-size:0!important;
+  background:currentColor!important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Crect x='3.5' y='4' width='17' height='16' rx='3'/%3E%3Cpath d='M7.5 9h9M7.5 12.5h9M7.5 16h5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Crect x='3.5' y='4' width='17' height='16' rx='3'/%3E%3Cpath d='M7.5 9h9M7.5 12.5h9M7.5 16h5.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium #btnReception .reception-action-copy b{font-size:13px!important;line-height:1!important;font-weight:800!important;letter-spacing:0!important;white-space:nowrap}
+body.hotel.reception-premium #btnReception .reception-action-copy small{display:none!important}
+
+/* ---------- LE BANDEAU : le nom de l'hôtel, son adresse, l'assistance ---------- */
+body.hotel.reception-premium #ecran-accueil.ecran.actif{display:block!important;padding:0!important;max-width:none!important}
+body.hotel.reception-premium #ecran-reception{max-width:none!important;margin:0!important;padding:0 0 40px!important}
+body.hotel.reception-premium .hotel-tete,
+body.hotel.reception-premium #ecran-reception .trajet-tete{
+  position:relative!important;display:block!important;min-height:0!important;height:auto!important;margin:0!important;
+  padding:22px var(--v2-g) 56px!important;border:0!important;border-radius:0!important;overflow:visible!important;color:#fff!important;
+  background:radial-gradient(900px 320px at 85% 140%,rgba(20,126,220,.34),transparent 62%),linear-gradient(180deg,var(--v2-marine) 0%,#073660 100%)!important;
+  box-shadow:none!important;
+}
+body.hotel.reception-premium #ecran-reception .trajet-tete .trajet-corps{padding:0!important;margin:0!important}
+body.hotel.reception-premium .hotel-tete .hotel-sur,
+body.hotel.reception-premium #ecran-reception .trajet-tete .rec-titre{
+  display:inline-flex!important;align-items:center!important;height:22px;margin:0!important;padding:0 10px!important;border:0!important;border-radius:999px!important;
+  background:var(--eh-action)!important;color:var(--v2-sur-action)!important;opacity:1!important;
+  font-size:11px!important;line-height:1!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase;
+}
+body.hotel.reception-premium .hotel-tete .hotel-nom,
+body.hotel.reception-premium #ecran-reception .trajet-tete .rec-hotel{
+  margin:10px 0 4px!important;font-size:30px!important;line-height:36px!important;font-weight:800!important;letter-spacing:-.02em!important;
+  color:#fff!important;opacity:1!important;text-shadow:none!important;
+}
+body.hotel.reception-premium .hotel-tete .hotel-adresse,
+body.hotel.reception-premium #ecran-reception .trajet-tete .rec-adresse{
+  margin:0!important;font-size:14px!important;line-height:20px!important;color:rgba(255,255,255,.76)!important;opacity:1!important;text-shadow:none!important;
+}
+body.hotel.reception-premium .reception-hours{
+  display:flex!important;align-items:flex-start;gap:8px;margin:8px 0 0!important;
+  font-size:13px!important;line-height:18px!important;font-weight:400!important;color:rgba(255,255,255,.80)!important;
+}
+body.hotel.reception-premium .reception-hours b{font-weight:700;color:#fff}
+body.hotel.reception-premium .reception-hours-icon{flex:none;width:20px;height:20px;margin-top:-1px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='8' fill='%2312C4EE' fill-opacity='.16'/%3E%3Cpath d='M8 15v-1.5a6 6 0 0 1 12 0V15' fill='none' stroke='%237FDDF6' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='6.8' y='14.5' width='3.2' height='5' rx='1.4' fill='%237FDDF6'/%3E%3Crect x='18' y='14.5' width='3.2' height='5' rx='1.4' fill='%237FDDF6'/%3E%3Cpath d='M19.6 19.5c0 1.6-1.6 2.5-4.6 2.5' fill='none' stroke='%237FDDF6' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/20px no-repeat}
+
+/* LA PHOTO DU COMPTOIR (« photoComptoir » de la fiche) : ordinateur et
+   tablette, sur le bandeau du formulaire comme sur celui de la liste. Le
+   voile bleu nuit est PLEIN sous le texte (à gauche) et s'ouvre à droite :
+   le blanc se lit quelle que soit l'image (test-reception-bon le mesure au
+   pixel). La barre la reprend, assombrie, tant qu'un de ces écrans est
+   ouvert. Sous 600 px : l'aplat, sans photo. */
+@media(min-width:600px){
+  body.hotel.reception-premium.eh-photo-comptoir .hotel-tete,
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete{
+    padding-bottom:30px!important;
+    background:
+      linear-gradient(90deg,var(--v2-marine) 0,var(--v2-marine) calc(var(--v2-g) + 540px),rgba(6,47,85,.55) calc(var(--v2-g) + 700px),rgba(6,47,85,.12) calc(var(--v2-g) + 860px),rgba(6,47,85,.06) 100%),
+      var(--h-photo-comptoir) right var(--v2-photo-x) top calc(var(--v2-photo-y) - 64px)/auto var(--v2-photo-h) no-repeat,
+      var(--v2-marine)!important;
+  }
+  body.hotel.reception-premium.eh-photo-comptoir:has(#ecran-accueil.actif) .entete,
+  body.hotel.reception-premium.eh-photo-comptoir:has(#ecran-reception.actif) .entete{
+    background:
+      linear-gradient(90deg,var(--v2-marine) 0,var(--v2-marine) calc(var(--v2-g) + 540px),rgba(6,47,85,.55) calc(var(--v2-g) + 700px),rgba(6,47,85,.12) calc(var(--v2-g) + 860px),rgba(6,47,85,.06) 100%),
+      linear-gradient(180deg,rgba(3,28,52,.55) 0,rgba(3,28,52,.08) 64px),
+      var(--h-photo-comptoir) right var(--v2-photo-x) top var(--v2-photo-y)/auto var(--v2-photo-h) no-repeat,
+      var(--v2-marine)!important;
+  }
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete{box-shadow:none!important}
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete .rec-titre{display:inline-flex!important;padding:0 10px!important;background:var(--eh-action)!important;color:var(--v2-sur-action)!important;font-size:11px!important;letter-spacing:.08em!important}
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-tete .rec-adresse{color:rgba(255,255,255,.76)!important}
+  body.hotel.reception-premium.eh-photo-comptoir .hotel-tete > *,
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-reception .trajet-corps{max-width:560px}
+  body.hotel.reception-premium.eh-photo-comptoir .entete .langues{background:rgba(3,28,52,.66)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20)!important}
+}
+
+/* ---------- LES CARTES : posées sur le bandeau sans photo, sous lui avec ---------- */
+body.hotel.reception-premium #ecran-accueil .reserver,
+body.hotel.reception-premium #recCorps{position:relative;z-index:1;width:var(--v2-colonne)!important;max-width:none!important;margin:-36px auto 0!important;padding:0 0 40px!important}
+body.hotel.reception-premium #recVerrou{
+  position:relative;z-index:1;width:min(480px,calc(100% - 32px))!important;max-width:none!important;margin:-36px auto 40px!important;padding:28px!important;
+  background:#fff!important;border:1px solid rgba(6,47,85,.06)!important;border-radius:20px!important;box-shadow:var(--v2-ombre)!important;
+}
+@media(min-width:600px){
+  body.hotel.reception-premium.eh-photo-comptoir #ecran-accueil .reserver,
+  body.hotel.reception-premium.eh-photo-comptoir #recCorps{margin-top:20px!important}
+  body.hotel.reception-premium.eh-photo-comptoir #recVerrou{margin-top:28px!important}
+}
+
+/* ---------- L'ÉCRAN DU CODE ---------- */
+body.hotel.reception-premium #recVerrou .rec-intro{margin:0 0 18px!important;font-size:14px!important;line-height:20px!important;color:var(--v2-gris)!important}
+body.hotel.reception-premium #ecran-reception #recVerrou .champ{padding-left:44px!important}
+body.hotel.reception-premium #recVerrou #btnRecEntrer{
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:10px;width:100%;
+  height:58px!important;min-height:58px!important;margin:14px 0 0!important;padding:0 18px!important;border:0!important;border-radius:14px!important;
+  background:var(--v2-action)!important;color:var(--v2-sur-action)!important;font-size:16px!important;font-weight:800!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px rgba(11,49,83,.5)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px color-mix(in srgb,var(--eh-action) 75%,transparent)!important;
+}
+body.hotel.reception-premium #recVerrou #btnRecEntrer::after{
+  content:"";flex:none;width:18px;height:18px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2'%3E%3Cpath d='M5 12h13M13 6.5l5.5 5.5-5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2'%3E%3Cpath d='M5 12h13M13 6.5l5.5 5.5-5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium #recVerrou #btnRecEntrer:hover{filter:brightness(.96)}
+body.hotel.reception-premium #recVerrou #btnRecEntrer:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--v2-bleu)!important}
+body.hotel.reception-premium #recVerrou .champ::before{
+  content:"";position:absolute;left:14px;top:50%;width:18px;height:18px;margin-top:-9px;background:var(--v2-icone);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.9'%3E%3Crect x='5' y='10.5' width='14' height='10' rx='2.5'/%3E%3Cpath d='M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.9'%3E%3Crect x='5' y='10.5' width='14' height='10' rx='2.5'/%3E%3Cpath d='M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium #recVerrou .refus{margin:10px 0 0}
+
+/* ---------- LES CHAMPS (formulaire et écran du code) ---------- */
+body.hotel.reception-premium #ecran-accueil .champ,
+body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ,
+body.hotel.reception-premium #ecran-reception .champ{
+  position:relative!important;display:flex!important;align-items:center!important;gap:10px!important;
+  height:60px!important;min-height:60px!important;margin:0!important;padding:0 14px!important;
+  background:#fff!important;border:1px solid var(--v2-filet)!important;border-radius:12px!important;box-shadow:none!important;
+  transition:border-color .15s,box-shadow .15s;
+}
+body.hotel.reception-premium #ecran-accueil .champ:hover,
+body.hotel.reception-premium #ecran-reception .champ:hover{border-color:var(--v2-filet-survol)!important}
+body.hotel.reception-premium #ecran-accueil .champ > svg{flex:none;color:var(--v2-icone)}
+body.hotel.reception-premium #ecran-accueil .champ > svg:first-child{width:18px;height:18px}
+/* Les icônes des champs sont grises : l'orange est réservé à ce qu'on
+   choisit et à l'action. */
+body.hotel.reception-premium #ecran-accueil .champ > svg [stroke="#0E6FC7"]{stroke:var(--v2-icone)}
+body.hotel.reception-premium #ecran-accueil .champ > svg [fill="#0E6FC7"]{fill:var(--v2-icone)}
+body.hotel.reception-premium #ecran-accueil .champ-corps,
+body.hotel.reception-premium #ecran-reception .champ-corps{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+body.hotel.reception-premium #ecran-accueil .champ-titre,
+body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ-titre,
+body.hotel.reception-premium #ecran-reception .champ-titre{font-size:12px!important;line-height:16px!important;font-weight:650!important;color:var(--v2-gris)!important;letter-spacing:0!important;text-transform:none!important}
+body.hotel.reception-premium #ecran-accueil .champ input,
+body.hotel.reception-premium #ecran-accueil .champ select,
+body.hotel.reception-premium #ecran-accueil .champ textarea,
+body.hotel.reception-premium #ecran-reception .champ input{
+  width:100%;margin:0;padding:0;border:0;outline:0;background:transparent!important;
+  font-size:16px!important;line-height:22px;font-weight:550!important;color:var(--v2-encre)!important;text-overflow:ellipsis;
+}
+/* Le cadre entier s'allume au focus (anneau bleu ci-dessous) : le contour
+   du navigateur, à l'intérieur, faisait un cadre dans le cadre. */
+body.hotel.reception-premium #ecran-accueil .champ :is(input,select,textarea):is(:focus,:focus-visible),
+body.hotel.reception-premium #ecran-reception .champ input:is(:focus,:focus-visible){outline:none!important;box-shadow:none!important}
+body.hotel.reception-premium #ecran-accueil .champ input::placeholder,
+body.hotel.reception-premium #ecran-accueil .champ textarea::placeholder,
+body.hotel.reception-premium #ecran-reception .champ input::placeholder{color:#8696A7;font-weight:450}
+/* Rempli = vert, avec sa coche ; il manque = rouge, avec sa mention. */
+body.hotel.reception-premium #ecran-accueil .champ.eh-ok,
+body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ.eh-ok{border-color:var(--v2-vert-filet)!important;background:var(--v2-vert-fond)!important;box-shadow:none!important}
+body.hotel.reception-premium .champ.eh-ok::after{
+  content:""!important;top:8px!important;right:9px!important;width:14px;height:14px;border-radius:50%;font-size:0!important;
+  background:var(--v2-vert) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M4 7.2l2 2 4-4.4' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;
+}
+body.hotel.reception-premium #ecran-accueil .champ.eh-ok > .champ-corps{padding-right:12px}
+body.hotel.reception-premium #ecran-accueil .champ.eh-ok > svg:last-child:not(:first-child){margin-top:10px}
+body.hotel.reception-premium #ecran-accueil .champ.eh-manque,
+body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ.eh-manque{border-color:#E7A3A2!important;background:#FFF6F6!important;box-shadow:none!important}
+body.hotel.reception-premium #ecran-accueil .champ:focus-within,
+body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ:focus-within,
+body.hotel.reception-premium #ecran-reception .champ:focus-within{border-color:var(--v2-bleu)!important;box-shadow:var(--v2-focus)!important;background:#fff!important}
+body.hotel.reception-premium #ecran-accueil .champ.fige:not(.eh-ok){background:#F7F9FC!important}
+body.hotel.reception-premium #ecran-accueil .champ.champ-note{height:auto!important;min-height:76px!important;align-items:flex-start!important;padding-top:12px!important;padding-bottom:10px!important}
+body.hotel.reception-premium #ecran-accueil .champ.champ-note > svg:first-child{margin-top:9px}
+body.hotel.reception-premium #ecran-accueil .champ textarea{resize:none;height:40px;min-height:40px}
+
+/* ---------- LE FORMULAIRE : deux colonnes ---------- */
+body.hotel.reception-premium #ecran-accueil .reserver{
+  position:relative;z-index:1;display:grid!important;grid-template-columns:minmax(0,1fr) var(--v2-decision);gap:20px;align-items:start;
+  background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+body.hotel.reception-premium .rec-saisie,
+body.hotel.reception-premium .rec-decision{
+  min-width:0;padding:24px;background:#fff;border:1px solid rgba(6,47,85,.06);border-radius:20px;box-shadow:var(--v2-ombre);
+}
+body.hotel.reception-premium .rec-decision{position:sticky;top:16px}
+/* La saisie est une grille de quatre : départ et destination en entier,
+   terminal et vol par moitié, puis date, heure, passagers, bagages. */
+body.hotel.reception-premium .rec-saisie{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+body.hotel.reception-premium .rec-saisie > *{grid-column:1/-1;min-width:0;margin:0!important}
+body.hotel.reception-premium .rec-saisie > .duo{display:contents!important}
+body.hotel.reception-premium .rec-saisie > .duo > *{grid-column:span 1;min-width:0}
+body.hotel.reception-premium .rec-saisie > #blocTerminal,
+body.hotel.reception-premium .rec-saisie > #blocVol{grid-column:span 2}
+body.hotel.reception-premium .rec-saisie:has(> #blocTerminal[hidden]) > #blocVol,
+body.hotel.reception-premium .rec-saisie:has(> #blocVol[hidden]) > #blocTerminal{grid-column:1/-1}
+body.hotel.reception-premium .rec-saisie > #receptionEtape1{margin-bottom:4px!important}
+body.hotel.reception-premium .rec-saisie > .refus,
+body.hotel.reception-premium .rec-saisie > .info-douce{margin:0!important}
+
+/* Les titres d'étape : un numéro, un titre, une phrase. */
+body.hotel.reception-premium .reception-step{display:flex!important;align-items:flex-start!important;gap:12px!important;min-height:40px;margin:0!important;padding:0!important;color:var(--v2-titre)}
+body.hotel.reception-premium .reception-step-num{flex:0 0 28px!important;width:28px!important;height:28px!important;margin-top:-3px;border-radius:9px!important;background:var(--v2-marine)!important;color:#fff!important;font-size:13px!important;font-weight:800!important}
+body.hotel.reception-premium .reception-step-copy{flex:1;min-width:0}
+body.hotel.reception-premium .reception-step-copy b{font-size:17px!important;line-height:22px!important;font-weight:800!important;letter-spacing:-.005em!important;text-transform:none!important;color:var(--v2-titre)}
+body.hotel.reception-premium .reception-step-copy small{margin:1px 0 0!important;font-size:13px!important;line-height:18px!important;color:var(--v2-gris)!important}
+body.hotel.reception-premium #receptionEtape1{align-items:center!important}
+body.hotel.reception-premium #receptionEtape1 .reception-step-num{margin-top:0}
+body.hotel.reception-premium #ecran-bon #receptionEtape3{max-width:780px;margin:14px auto 10px!important;padding:0 14px!important}
+/* LE BON APRÈS UNE RÉSERVATION AU COMPTOIR : une colonne de 720 px au
+   centre (sur 1180, « Départ » et sa valeur étaient à un mètre l'un de
+   l'autre), et les gestes de la V2 — l'action de l'hôtel en tête, les deux
+   autres côte à côte. Le bon lui-même garde ses couleurs : il est le même
+   partout (CLAUDE.md, « UN SEUL BON »). */
+body.hotel.reception-premium #ecran-bon{padding-top:20px!important;padding-bottom:40px!important}
+body.hotel.reception-premium #ecran-bon > *{box-sizing:border-box;width:min(720px,calc(100% - 32px))!important;max-width:none!important;margin-left:auto!important;margin-right:auto!important}
+body.hotel.reception-premium #ecran-bon .consigne-comptoir{margin-bottom:16px!important;padding:16px 20px!important;border-radius:16px!important;background:var(--v2-marine)!important;box-shadow:var(--v2-ombre)}
+body.hotel.reception-premium #ecran-bon .consigne-titre{color:#7FDDF6;opacity:1}
+body.hotel.reception-premium #ecran-bon #actionsBon{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;position:static!important;margin-top:20px!important;padding:0!important;background:none!important;box-shadow:none!important;border:0!important}
+body.hotel.reception-premium #ecran-bon #actionsBon > *{grid-column:1/-1;margin:0!important}
+body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVersReception{order:-1}
+body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVoirClient,
+body.hotel.reception-premium #ecran-bon #actionsBon > #btnNouvelleCourse{grid-column:span 1}
+body.hotel.reception-premium #ecran-bon .bouton{
+  display:flex;align-items:center;justify-content:center;min-height:56px!important;border-radius:14px!important;
+  background:var(--v2-action)!important;color:var(--v2-sur-action)!important;font-size:16px!important;font-weight:800!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px rgba(11,49,83,.5)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px color-mix(in srgb,var(--eh-action) 75%,transparent)!important;
+}
+body.hotel.reception-premium #ecran-bon .bouton-fantome{
+  min-height:48px!important;border:1px solid var(--v2-filet)!important;border-radius:14px!important;background:#fff!important;
+  color:var(--v2-titre)!important;font-size:15px!important;font-weight:750!important;box-shadow:none!important;
+}
+body.hotel.reception-premium #ecran-bon .bouton-fantome:hover{border-color:var(--v2-filet-survol)!important;background:#F7FAFD!important}
+body.hotel.reception-premium #ecran-bon .bouton:focus-visible,
+body.hotel.reception-premium #ecran-bon .bouton-fantome:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--v2-bleu)!important}
+@media(max-width:600px){
+  body.hotel.reception-premium #ecran-bon #actionsBon > #btnBonVoirClient,
+  body.hotel.reception-premium #ecran-bon #actionsBon > #btnNouvelleCourse{grid-column:1/-1}
+}
+
+/* Départ ou arrivée de l'hôtel : le choix actif prend l'action de l'hôtel. */
+body.hotel.reception-premium #receptionEtape1 .hotel-sens{
+  display:inline-grid!important;grid-template-columns:1fr 1fr;gap:0!important;flex:none;margin:0!important;padding:4px!important;
+  border:0!important;border-radius:12px!important;background:#EDF1F6!important;box-shadow:inset 0 0 0 1px #E1E8F0!important;
+}
+body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px;
+  height:40px!important;min-height:40px!important;padding:0 16px!important;border:0!important;border-radius:9px!important;
+  background:transparent!important;color:var(--v2-gris)!important;box-shadow:none!important;
+  font-size:14px!important;font-weight:700!important;white-space:nowrap;cursor:pointer;
+}
+body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn:hover{color:var(--v2-encre)!important}
+body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn::before{
+  content:"";flex:none;width:16px;height:16px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath d='M14 4h5v16h-5M4 12h11M11 8l4 4-4 4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath d='M14 4h5v16h-5M4 12h11M11 8l4 4-4 4'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn[data-sens="vers"]::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath d='M10 4H5v16h5M21 12H11M14.5 8l-4 4 4 4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath d='M10 4H5v16h5M21 12H11M14.5 8l-4 4 4 4'/%3E%3C/svg%3E")}
+body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn.actif{
+  background:var(--v2-action)!important;color:var(--v2-sur-action)!important;
+  box-shadow:0 2px 8px rgba(11,49,83,.2)!important;box-shadow:0 2px 8px color-mix(in srgb,var(--eh-action) 35%,transparent)!important;
+}
+body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--v2-bleu)!important}
+
+/* Le forfait de la destination : une pastille, l'encre pâle de l'hôtel. */
+body.hotel.reception-premium #destForfait:not([hidden]){
+  display:inline-flex!important;align-items:center;gap:8px;height:28px;margin:8px 2px 0!important;padding:0 10px!important;border-radius:999px;
+  background:var(--eh-pale)!important;color:var(--eh-pale-encre)!important;font-size:13px!important;font-weight:750!important;
+}
+body.hotel.reception-premium #destForfait::before{
+  content:"";flex:none;width:14px;height:14px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Cpath d='M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z'/%3E%3Cpath d='M14 7.5v9' stroke-dasharray='2 2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Cpath d='M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z'/%3E%3Cpath d='M14 7.5v9' stroke-dasharray='2 2'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* LE CLIENT : un fond à part dans la carte, numéroté 2. */
+body.hotel.reception-premium .rec-client{margin-top:12px!important;padding:20px;border-radius:16px;background:var(--v2-section);border:1px solid var(--v2-section-filet)}
+body.hotel.reception-premium #ecran-accueil .rec-client .bloc,
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early{margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early{display:grid!important;grid-template-columns:minmax(0,1.25fr) 200px minmax(0,1fr);column-gap:12px;row-gap:0}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > *{grid-column:1/-1;min-width:0}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > .bloc-titre{
+  position:relative;margin:0!important;padding:4px 0 0 40px!important;font-size:17px!important;line-height:22px!important;font-weight:800!important;
+  letter-spacing:-.005em!important;text-transform:none!important;color:var(--v2-titre)!important;
+}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > .bloc-titre::before{
+  content:"2";position:absolute;left:0;top:1px;display:grid;place-items:center;width:28px;height:28px;border-radius:9px;
+  background:var(--v2-marine);color:#fff;font-size:13px;font-weight:800;letter-spacing:0;
+}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > .bloc-titre + .champ-aide{margin:1px 0 0!important;padding-left:40px;font-size:13px!important;line-height:18px!important;color:var(--v2-gris)!important}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ,
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > #blocChambre{margin-top:14px!important}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ:first-of-type{grid-column:1}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > #blocChambre{grid-column:2;margin-bottom:0!important}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ:last-of-type{grid-column:3}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early:has(> #blocChambre[hidden]) > label.champ:last-of-type{grid-column:2/-1}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early .champ{padding-left:40px!important}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early .champ::before{
+  content:"";position:absolute;left:14px;top:50%;width:18px;height:18px;margin-top:-9px;background:var(--v2-icone);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Ccircle cx='12' cy='8.5' r='3.6'/%3E%3Cpath d='M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Ccircle cx='12' cy='8.5' r='3.6'/%3E%3Cpath d='M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early .champ > svg{display:none!important}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early #blocChambre .champ::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Cpath d='M6 20V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v15M4 20h16'/%3E%3Ccircle cx='14.5' cy='12.5' r='1' fill='black' stroke='none'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'%3E%3Cpath d='M6 20V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v15M4 20h16'/%3E%3Ccircle cx='14.5' cy='12.5' r='1' fill='black' stroke='none'/%3E%3C/svg%3E")}
+body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ:last-of-type::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.7'%3E%3Cpath d='M8.6 3.8l1.7 3.6c.3.6.1 1.3-.4 1.7l-1.4 1.1a10.5 10.5 0 0 0 5.3 5.3l1.1-1.4c.4-.5 1.1-.7 1.7-.4l3.6 1.7c.6.3.9 1 .7 1.6l-.6 2c-.3.9-1.1 1.5-2 1.4C10.7 19.9 4.1 13.3 3.6 5.7c-.1-.9.5-1.7 1.4-2l2-.6c.6-.2 1.3.1 1.6.7z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.7'%3E%3Cpath d='M8.6 3.8l1.7 3.6c.3.6.1 1.3-.4 1.7l-1.4 1.1a10.5 10.5 0 0 0 5.3 5.3l1.1-1.4c.4-.5 1.1-.7 1.7-.4l3.6 1.7c.6.3.9 1 .7 1.6l-.6 2c-.3.9-1.1 1.5-2 1.4C10.7 19.9 4.1 13.3 3.6 5.7c-.1-.9.5-1.7 1.4-2l2-.6c.6-.2 1.3.1 1.6.7z'/%3E%3C/svg%3E")}
+body.hotel.reception-premium .rec-client .champ-aide{margin:6px 2px 0!important;font-size:13px!important;line-height:18px!important;color:var(--v2-gris)!important}
+body.hotel.reception-premium .rec-client #telRelu:not([hidden]){
+  display:block;position:relative;margin:10px 2px 0!important;padding:0 0 0 24px!important;background:none!important;border:0!important;
+  font-size:14px!important;line-height:20px!important;color:var(--v2-encre)!important;
+}
+body.hotel.reception-premium .rec-client #telRelu::before{content:"";position:absolute;left:0;top:2px;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%231E8449'/%3E%3Cpath d='M8 12.3l2.6 2.6L16 9.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+body.hotel.reception-premium .rec-client #telRelu b{font-weight:800}
+/* Par où le client sera confirmé : deux (ou trois) choix égaux. */
+body.hotel.reception-premium #ecran-accueil .rec-client #blocContact{margin-top:20px!important}
+body.hotel.reception-premium .rec-client #blocContact .bloc-titre{margin:0 2px 10px!important;font-size:14px!important;line-height:20px!important;font-weight:800!important;color:var(--v2-titre)!important;text-transform:none!important;letter-spacing:0!important}
+body.hotel.reception-premium .rec-client #blocContact .bloc-note{margin:0 2px 10px!important;font-size:13px;color:var(--v2-gris)}
+body.hotel.reception-premium .rec-client .choix-envoi{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important;max-width:520px;margin:0!important}
+body.hotel.reception-premium .rec-client .choix-envoi.trois{grid-template-columns:repeat(3,minmax(0,1fr));max-width:none}
+body.hotel.reception-premium .rec-client .choix{
+  position:relative;align-items:center!important;justify-content:flex-start!important;gap:10px!important;height:52px!important;min-height:52px!important;
+  margin:0!important;padding:0 14px!important;border:1px solid var(--v2-filet)!important;border-radius:12px!important;background:#fff!important;
+  box-shadow:none!important;font-size:15px!important;font-weight:700!important;color:var(--v2-encre)!important;text-align:left;cursor:pointer;
+}
+body.hotel.reception-premium .rec-client .choix:hover{border-color:var(--v2-filet-survol)!important}
+body.hotel.reception-premium .rec-client .choix > svg{flex:none;width:24px!important;height:24px!important}
+body.hotel.reception-premium .rec-client .choix[aria-pressed="true"]{
+  border:2px solid var(--eh-action)!important;padding:0 13px!important;background:var(--eh-pale)!important;
+  box-shadow:0 0 0 3px rgba(11,49,83,.10)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--eh-action) 14%,transparent)!important;
+}
+body.hotel.reception-premium .rec-client .choix[aria-pressed="true"]::after{
+  content:"";margin-left:auto;flex:none;width:20px;height:20px;border-radius:50%;
+  background:var(--eh-action) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.2l2.2 2.2 4.6-4.8' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat;
+}
+body.hotel.reception-premium .rec-client #blocNote{margin-top:16px!important}
+
+/* LA DÉCISION : la gamme, le prix, « Valider la réservation ». */
+body.hotel.reception-premium .rec-decision > *{margin-left:0!important;margin-right:0!important}
+/* Retirés du comptoir le 20/10/2026 (#392) : ils ont changé de place, pas
+   de statut. */
+body.hotel.reception-premium .rec-decision > .rassure,
+body.hotel.reception-premium .rec-decision > .etapes-ligne{display:none!important}
+body.hotel.reception-premium .rec-decision #listeVehicules{display:grid!important;grid-template-columns:1fr;gap:10px!important;margin:16px 0 0!important;padding:0!important}
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte{
+  position:relative;display:grid!important;grid-template-columns:22px minmax(0,1fr) auto;
+  grid-template-areas:"radio nom prix" ". detail detail" ". exemple exemple";
+  align-items:start!important;align-content:start;gap:4px 12px;min-height:0!important;width:100%;margin:0!important;padding:14px 16px!important;
+  border:1px solid var(--v2-filet)!important;border-radius:14px!important;background:#fff!important;box-shadow:none!important;
+  text-align:left;color:var(--v2-encre);cursor:pointer;
+}
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte:hover{border-color:var(--v2-filet-survol)!important}
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte::before{
+  content:"";grid-area:radio;align-self:center;box-sizing:border-box;width:22px;height:22px;border-radius:50%;border:2px solid #B4C3D3;background:#fff;
+}
+body.hotel.reception-premium .rec-decision .veh-corps{display:contents!important}
+body.hotel.reception-premium .rec-decision .veh-nom{grid-area:nom;align-self:center;font-size:17px!important;line-height:22px!important;font-weight:800!important;color:var(--v2-titre)!important}
+body.hotel.reception-premium .rec-decision .veh-prix{
+  grid-area:prix;justify-self:end;margin:0!important;font-size:22px!important;line-height:24px!important;font-weight:800!important;
+  letter-spacing:-.01em;color:var(--v2-titre)!important;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:left!important;
+}
+body.hotel.reception-premium .rec-decision .veh-detail{grid-area:detail;text-wrap:balance;margin:0!important;font-size:13px!important;line-height:18px!important;font-weight:650!important;color:#3E516A!important;white-space:normal!important}
+body.hotel.reception-premium .rec-decision .veh-exemple{grid-area:exemple;margin:0!important;font-size:12.5px!important;line-height:17px!important;color:var(--v2-gris)!important}
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte.choisi,
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte[aria-pressed="true"]{
+  border:2px solid var(--eh-action)!important;padding:13px 15px!important;background:var(--eh-pale)!important;
+  box-shadow:0 0 0 3px rgba(11,49,83,.10)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--eh-action) 14%,transparent)!important;
+}
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte.choisi::before,
+body.hotel.reception-premium .rec-decision #listeVehicules .veh-carte[aria-pressed="true"]::before{border-color:var(--eh-action);background:var(--eh-action);box-shadow:inset 0 0 0 4px #fff}
+body.hotel.reception-premium .rec-decision #btnVoirPrix{
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;width:100%!important;
+  height:58px!important;min-height:58px!important;margin:16px 0 0!important;padding:0 18px!important;border:0!important;border-radius:14px!important;
+  background:var(--v2-action)!important;color:var(--v2-sur-action)!important;font-size:16px!important;font-weight:800!important;letter-spacing:.005em!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px rgba(11,49,83,.5)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 22px -10px color-mix(in srgb,var(--eh-action) 75%,transparent)!important;
+  transition:filter .15s,transform .05s;
+}
+body.hotel.reception-premium .rec-decision #btnVoirPrix:hover{filter:brightness(.96)}
+body.hotel.reception-premium .rec-decision #btnVoirPrix:active{transform:translateY(1px)}
+body.hotel.reception-premium .rec-decision #btnVoirPrix:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--v2-bleu)!important}
+body.hotel.reception-premium .rec-decision #btnVoirPrix:disabled{color:var(--v2-sur-action)!important}
+body.hotel.reception-premium .rec-decision #btnVoirPrix svg{width:18px;height:18px}
+body.hotel.reception-premium .rec-decision #btnVoirPrix svg path{stroke:currentColor}
+
+/* Berline et Van l'une sous l'autre, le prix à droite du nom, à toutes les
+   largeurs : côte à côte (la maquette), la ligne « Jusqu'à 4 passagers ·
+   arrivée … » du moteur passait sur trois lignes dans 140 px. Empilées,
+   les deux prix restent alignés, et « Valider » remonte. */
+@media(max-width:1100px){
+  body.hotel.reception-premium{--v2-decision:340px;--v2-colonne:calc(100% - 40px);--v2-photo-x:-190px}
+  body.hotel.reception-premium .rec-saisie{padding:20px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.hotel.reception-premium .rec-saisie > #blocTerminal,
+  body.hotel.reception-premium .rec-saisie > #blocVol{grid-column:span 1}
+  body.hotel.reception-premium .rec-decision{padding:16px;top:12px}
+  body.hotel.reception-premium #receptionEtape1{flex-wrap:wrap}
+  body.hotel.reception-premium .hotel-tete .hotel-nom,
+  body.hotel.reception-premium #ecran-reception .trajet-tete .rec-hotel{font-size:26px!important;line-height:32px!important}
+  body.hotel.reception-premium .rec-client{padding:16px}
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early{grid-template-columns:minmax(0,1fr) 200px}
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ:last-of-type,
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early:has(> #blocChambre[hidden]) > label.champ:last-of-type{grid-column:1/-1}
+  body.hotel.reception-premium .rec-client .choix{padding:0 10px!important;gap:8px!important;font-size:14px!important}
+  body.hotel.reception-premium .rec-client .choix[aria-pressed="true"]{padding:0 9px!important}
+  body.hotel.reception-premium .rec-decision #listeVehicules{margin-top:12px!important}
+  body.hotel.reception-premium .rec-decision #btnVoirPrix{margin-top:14px!important}
+}
+
+/* ---------- LA LISTE DES RÉSERVATIONS : un poste de travail ---------- */
+/* Trois tuiles de même hauteur : réserver, appeler, « Un imprévu ? ». */
+body.hotel.reception-premium #recDashboardActions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important;margin:0!important}
+body.hotel.reception-premium.eh-avec-appel #recDashboardActions{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+body.hotel.reception-premium #recDashboardActions .reception-action{
+  min-height:76px!important;gap:14px!important;padding:14px 18px!important;border-radius:16px!important;box-shadow:var(--v2-ombre)!important;
+}
+body.hotel.reception-premium #recDashboardActions .reception-action-icon{display:grid!important;place-items:center;flex:0 0 42px!important;width:42px!important;height:42px!important;border-radius:12px!important}
+body.hotel.reception-premium #recDashboardActions .reception-action-copy b{font-size:15px!important;line-height:20px!important;font-weight:800!important;letter-spacing:.03em!important;text-transform:uppercase}
+body.hotel.reception-premium #recDashboardActions .reception-action-copy small{margin-top:2px;font-size:13px!important;line-height:18px!important;font-weight:600!important;opacity:1!important}
+body.hotel.reception-premium #recDashboardActions #btnRecReserver{background:var(--v2-action)!important;color:var(--v2-sur-action)!important}
+body.hotel.reception-premium #recDashboardActions #btnRecReserver .reception-action-icon{background:rgba(255,255,255,.92)!important;color:var(--v2-sur-action)!important;font-size:26px!important;font-weight:500}
+body.hotel.reception-premium #recDashboardActions #recAppelImmediat .reception-action-icon{background:var(--eh-action)!important;color:var(--v2-sur-action)!important}
+body.hotel.reception-premium #recDashboardActions #recAppelImmediat small{color:rgba(255,255,255,.82)}
+body.hotel.reception-premium #recDashboardActions .reception-action:hover{filter:brightness(.97)}
+body.hotel.reception-premium #recDashboardActions .reception-action:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--v2-bleu)!important}
+body.hotel.reception-premium #recDashboardActions .rec-aide{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"titre tel wa" "texte tel wa";align-items:center;column-gap:8px;row-gap:0;
+  min-height:76px;margin:0!important;padding:14px 16px!important;border-radius:16px!important;background:var(--eh-pale)!important;
+  box-shadow:inset 0 0 0 1px rgba(11,49,83,.10);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--eh-action) 22%,transparent);
+}
+body.hotel.reception-premium #recDashboardActions .rec-aide-titre{grid-area:titre;margin:0!important;font-size:14px!important;line-height:19px!important;font-weight:800!important;color:var(--eh-pale-encre)!important}
+body.hotel.reception-premium #recDashboardActions .rec-aide-texte{grid-area:texte;margin:0!important;font-size:13px!important;line-height:18px!important;color:var(--eh-pale-encre)!important;opacity:.9}
+body.hotel.reception-premium #recDashboardActions .rec-aide-lien{
+  align-items:center;height:40px;min-height:40px!important;padding:0 12px!important;border-radius:10px!important;
+  font-size:14px!important;font-weight:800!important;text-decoration:none;white-space:nowrap;
+}
+body.hotel.reception-premium #recDashboardActions .rec-aide-tel{grid-area:tel;background:#fff!important;color:var(--eh-pale-encre)!important;box-shadow:inset 0 0 0 1px rgba(11,49,83,.12);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--eh-action) 28%,transparent)}
+body.hotel.reception-premium #recDashboardActions #recAideWa{grid-area:wa;gap:6px;background:#25D366!important;color:#fff!important}
+
+/* La recherche, les trois onglets et « Actualiser » sur une seule ligne. */
+body.hotel.reception-premium #recCorps .rec-outils{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;gap:12px!important;align-items:center;margin:20px 0 0!important}
+body.hotel.reception-premium #recCorps .rec-outils > #recPeriode{grid-column:1/-1}
+body.hotel.reception-premium #recCorps .rec-recherche{height:56px!important;min-height:56px!important;padding-left:44px!important}
+body.hotel.reception-premium #recCorps .rec-recherche::before{
+  content:"";position:absolute;left:14px;top:50%;width:18px;height:18px;margin-top:-9px;background:var(--v2-icone);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.9'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.9'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium #recCorps .rec-vues{display:inline-grid!important;grid-auto-flow:column;gap:0!important;padding:4px!important;border-radius:12px!important;background:#E6ECF3!important;box-shadow:inset 0 0 0 1px #DCE4ED}
+body.hotel.reception-premium #recCorps .rec-vues button{height:40px;min-height:40px!important;padding:0 16px!important;border-radius:9px!important;background:transparent!important;color:var(--v2-gris)!important;font-size:14px!important;font-weight:750!important;white-space:nowrap}
+body.hotel.reception-premium #recCorps .rec-vues button b{margin-left:6px;font-weight:800;color:inherit;opacity:.75}
+body.hotel.reception-premium #recCorps .rec-vues button.actif{background:var(--v2-marine)!important;color:#fff!important;box-shadow:0 2px 6px rgba(6,47,85,.25)}
+body.hotel.reception-premium #recCorps .rec-vues button:focus-visible{outline:2px solid var(--v2-bleu);outline-offset:1px}
+body.hotel.reception-premium #recCorps .rec-maj{
+  position:relative;display:inline-flex!important;align-items:center;justify-content:flex-start!important;gap:0!important;height:48px;margin:0!important;padding:0 14px!important;
+  border:1px solid var(--v2-filet);border-radius:12px;background:#fff;white-space:nowrap;
+}
+body.hotel.reception-premium #recCorps .rec-maj:hover{border-color:var(--v2-filet-survol)}
+body.hotel.reception-premium #recCorps .rec-maj #btnRecActualiser{
+  order:-1;display:inline-flex;align-items:center;gap:8px;min-height:0!important;height:auto;padding:0!important;border:0!important;background:none!important;
+  color:var(--v2-titre)!important;font-size:14px!important;font-weight:750!important;
+}
+/* Tout le cadre appelle « Actualiser » : un appui sur l'heure aussi. */
+body.hotel.reception-premium #recCorps .rec-maj #btnRecActualiser::after{content:"";position:absolute;inset:0;border-radius:12px}
+body.hotel.reception-premium #recCorps .rec-maj #btnRecActualiser:focus-visible{outline:none}
+body.hotel.reception-premium #recCorps .rec-maj:has(#btnRecActualiser:focus-visible){box-shadow:0 0 0 3px #fff,0 0 0 5px var(--v2-bleu)}
+body.hotel.reception-premium #recCorps #recMaj{margin-left:6px;font-size:12.5px;color:var(--v2-gris)}
+body.hotel.reception-premium #recCorps #recMaj:not(:empty)::before{content:"· "}
+
+/* Une réservation = une ligne de travail : l'heure, qui, où, combien,
+   l'état, le bon. */
+body.hotel.reception-premium .rec-jour{margin:22px 4px 10px!important;font-size:12px!important;line-height:16px;font-weight:800!important;letter-spacing:.08em!important;color:var(--v2-gris)}
+body.hotel.reception-premium .rec-jour.retard{color:#C9302F}
+body.hotel.reception-premium #recListe .rec-course{
+  display:grid;align-items:center;gap:2px 20px;margin:0 0 10px!important;padding:14px 18px!important;
+  background:#fff;border:1px solid rgba(6,47,85,.08)!important;border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(6,47,85,.05),0 6px 16px -8px rgba(6,47,85,.14)!important;
+  grid-template-columns:64px minmax(0,1.15fr) minmax(0,1.35fr) 96px 176px auto;
+  grid-template-areas:
+    "heure qui   ou        prix etat actions"
+    "heure tel   detail    prix etat actions"
+    "heure ref   chauffeur prix etat actions"
+    "heure note  note      prix etat actions"
+    "heure modif modif     prix etat actions";
+}
+body.hotel.reception-premium #recListe .rec-course.rec-nouveau{border-color:#25A06A!important;box-shadow:0 0 0 2px #25A06A,0 6px 16px -8px rgba(6,47,85,.14)!important}
+body.hotel.reception-premium #recListe .rec-ligne1,
+body.hotel.reception-premium #recListe .rec-bas{display:contents!important}
+body.hotel.reception-premium #recListe .rec-course p{margin:0!important}
+body.hotel.reception-premium #recListe .rec-heure{grid-area:heure;align-self:start;font-size:22px!important;line-height:28px;font-weight:800!important;color:var(--v2-titre);font-variant-numeric:tabular-nums}
+body.hotel.reception-premium #recListe .rec-qui{grid-area:qui;font-size:15px!important;line-height:20px;font-weight:800!important;color:var(--v2-encre)!important}
+body.hotel.reception-premium #recListe .rec-tel{grid-area:tel;font-size:14px!important;line-height:20px;font-weight:700!important}
+body.hotel.reception-premium #recListe .rec-tel a{display:inline-flex;align-items:center;gap:6px;min-height:0;padding:0;color:var(--v2-titre)!important;font-weight:700;text-decoration:none}
+body.hotel.reception-premium #recListe .rec-tel a::before{
+  content:"";flex:none;width:14px;height:14px;background:var(--v2-icone);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.7'%3E%3Cpath d='M8.6 3.8l1.7 3.6c.3.6.1 1.3-.4 1.7l-1.4 1.1a10.5 10.5 0 0 0 5.3 5.3l1.1-1.4c.4-.5 1.1-.7 1.7-.4l3.6 1.7c.6.3.9 1 .7 1.6l-.6 2c-.3.9-1.1 1.5-2 1.4C10.7 19.9 4.1 13.3 3.6 5.7c-.1-.9.5-1.7 1.4-2l2-.6c.6-.2 1.3.1 1.6.7z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.7'%3E%3Cpath d='M8.6 3.8l1.7 3.6c.3.6.1 1.3-.4 1.7l-1.4 1.1a10.5 10.5 0 0 0 5.3 5.3l1.1-1.4c.4-.5 1.1-.7 1.7-.4l3.6 1.7c.6.3.9 1 .7 1.6l-.6 2c-.3.9-1.1 1.5-2 1.4C10.7 19.9 4.1 13.3 3.6 5.7c-.1-.9.5-1.7 1.4-2l2-.6c.6-.2 1.3.1 1.6.7z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.hotel.reception-premium #recListe .rec-tel a:hover{text-decoration:underline}
+body.hotel.reception-premium #recListe .rec-reference{grid-area:ref;font-size:12.5px!important;line-height:18px;font-weight:600!important;color:var(--v2-gris)!important}
+body.hotel.reception-premium #recListe .rec-numero{font-size:13px;color:var(--v2-encre)}
+body.hotel.reception-premium #recListe .rec-ou{grid-area:ou;font-size:14px!important;line-height:20px;font-weight:650;color:var(--v2-encre)!important}
+body.hotel.reception-premium #recListe .rec-detail{grid-area:detail;font-size:13px!important;line-height:18px;color:var(--v2-gris)!important}
+body.hotel.reception-premium #recListe .rec-note{grid-area:note;font-size:13px;line-height:18px;color:var(--v2-encre)}
+body.hotel.reception-premium #recListe .rec-modif{grid-area:modif;font-size:12.5px;line-height:18px;font-weight:700;color:#865000}
+body.hotel.reception-premium #recListe .rec-chauffeur{grid-area:chauffeur;justify-self:start;margin-top:4px!important;padding:2px 8px!important;border-radius:7px!important;background:#EEF7FD!important;color:#0B527D!important;font-size:12.5px!important;line-height:18px;font-weight:700!important}
+body.hotel.reception-premium #recListe .rec-chauffeur a{min-height:0;padding:0;color:inherit;text-decoration:none}
+body.hotel.reception-premium #recListe .rec-chauffeur a:hover{text-decoration:underline}
+body.hotel.reception-premium #recListe .rec-prix{grid-area:prix;justify-self:end;font-size:18px!important;line-height:24px;font-weight:800!important;color:var(--v2-titre);font-variant-numeric:tabular-nums;white-space:nowrap}
+body.hotel.reception-premium #recListe .rec-etat{grid-area:etat;justify-self:start;display:inline-flex;align-items:center;height:28px;padding:0 10px!important;border-radius:999px;border:1px solid;font-size:11.5px!important;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+body.hotel.reception-premium #recListe .rec-etat.realisee{border-color:#DCE4ED;background:#F4F7FA;color:#4A5B6E}
+body.hotel.reception-premium #recListe .rec-etat.refusee,
+body.hotel.reception-premium #recListe .rec-etat.annulee{border-color:#F0C2C1;background:#FFF5F5;color:#A12727}
+body.hotel.reception-premium #recListe .rec-actions{grid-area:actions;display:flex;flex-direction:column;gap:6px;margin:0!important}
+body.hotel.reception-premium #recListe .rec-actions .bouton-fantome{
+  flex:none!important;display:inline-flex;align-items:center;justify-content:center;min-height:40px!important;height:40px;margin:0!important;padding:0 14px!important;
+  border:1px solid var(--v2-filet)!important;border-radius:10px!important;background:#fff!important;color:var(--v2-titre)!important;
+  font-size:14px!important;font-weight:750!important;white-space:nowrap;text-decoration:none;
+}
+body.hotel.reception-premium #recListe .rec-actions .bouton-fantome:hover{border-color:var(--v2-filet-survol)!important;background:#F7FAFD!important}
+body.hotel.reception-premium #recCorps .rec-vide{margin:28px 2px!important;font-size:14px;color:var(--v2-gris)}
+body.hotel.reception-premium #recCorps .rec-barre{justify-content:center;margin:24px 0 0!important}
+body.hotel.reception-premium #recCorps #btnRecFermer{
+  flex:none!important;width:auto!important;min-height:44px!important;height:44px;padding:0 18px!important;border:1px solid var(--v2-filet)!important;border-radius:12px!important;
+  background:transparent!important;color:var(--v2-gris)!important;font-size:14px!important;font-weight:700!important;
+}
+/* Sur un écran tactile, les numéros se touchent au doigt : 44 px. */
+@media(pointer:coarse){
+  body.hotel.reception-premium #recListe .rec-tel a{min-height:44px}
+}
+@media(max-width:1100px){
+  body.hotel.reception-premium #recDashboardActions,
+  body.hotel.reception-premium.eh-avec-appel #recDashboardActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.hotel.reception-premium #recDashboardActions .rec-aide{grid-column:1/-1;min-height:0}
+  body.hotel.reception-premium #recCorps .rec-outils{grid-template-columns:minmax(0,1fr) auto}
+  body.hotel.reception-premium #recCorps .rec-outils > .rec-recherche{grid-column:1/-1}
+  body.hotel.reception-premium #recListe .rec-course{
+    grid-template-columns:56px minmax(0,1fr) auto;gap:2px 14px;
+    grid-template-areas:"heure qui etat" "heure tel prix" "heure ou ou" "heure detail detail" "heure note note" "heure modif modif" "heure ref actions" "heure chauffeur actions";
+  }
+  body.hotel.reception-premium #recListe .rec-prix,
+  body.hotel.reception-premium #recListe .rec-etat{justify-self:end}
+  body.hotel.reception-premium #recListe .rec-actions{justify-self:end;align-self:end;flex-direction:row}
+}
+
+/* ---------- TÉLÉPHONE (≤ 760 px) : une colonne, le même ordre ---------- */
+@media(max-width:760px){
+  body.hotel.reception-premium{--v2-colonne:calc(100% - 32px);--v2-g:16px}
+  body.hotel.reception-premium .entete{height:56px!important;min-height:56px!important;gap:10px!important}
+  body.hotel.reception-premium .entete .logo{height:24px;padding-right:10px!important}
+  body.hotel.reception-premium .entete .logo-image{height:24px!important}
+  body.hotel.reception-premium .hotel-partner-chip{height:32px;max-width:132px;padding:0 9px!important;border-radius:8px!important}
+  body.hotel.reception-premium .hotel-partner-chip b{font-size:14px!important}
+  body.hotel.reception-premium .hotel-partner-chip span{font-size:9px!important;margin-top:2px!important}
+  body.hotel.reception-premium .entete .langues button{height:28px!important;min-height:28px!important;min-width:36px!important}
+  body.hotel.reception-premium .hotel-tete,
+  body.hotel.reception-premium #ecran-reception .trajet-tete{padding:12px var(--v2-g) 40px!important}
+  body.hotel.reception-premium .hotel-tete .hotel-sur,
+  body.hotel.reception-premium #ecran-reception .trajet-tete .rec-titre{height:20px;font-size:10px!important}
+  body.hotel.reception-premium .hotel-tete .hotel-nom,
+  body.hotel.reception-premium #ecran-reception .trajet-tete .rec-hotel{margin:6px 0 2px!important;font-size:22px!important;line-height:27px!important}
+  body.hotel.reception-premium .hotel-tete .hotel-adresse,
+  body.hotel.reception-premium #ecran-reception .trajet-tete .rec-adresse{font-size:13px!important;line-height:18px!important}
+  body.hotel.reception-premium .reception-hours{align-items:flex-start!important;font-size:12.5px!important}
+  /* Sur un téléphone, « Réservations de l'hôtel » quitte la barre : un
+     bouton pleine largeur sous le nom de l'hôtel. */
+  body.hotel.reception-premium .hotel-tete #receptionActions{display:block!important;margin:10px 0 0!important;max-width:none}
+  body.hotel.reception-premium .hotel-tete #receptionActions #btnReception:not([hidden]){width:100%!important;height:44px!important;min-height:44px!important;justify-content:flex-start!important;padding:0 14px!important;gap:10px!important}
+  body.hotel.reception-premium .hotel-tete #btnReception .reception-action-copy{flex:1}
+  body.hotel.reception-premium .hotel-tete #btnReception .reception-action-copy b{font-size:14px!important}
+  body.hotel.reception-premium .hotel-tete #btnReception::after{
+    content:"";flex:none;width:16px;height:16px;background:currentColor;opacity:.6;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2'%3E%3Cpath d='M5 12h13M13 6.5l5.5 5.5-5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2'%3E%3Cpath d='M5 12h13M13 6.5l5.5 5.5-5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  body.hotel.reception-premium #ecran-accueil .reserver{grid-template-columns:1fr;gap:12px;margin-top:-28px!important}
+  body.hotel.reception-premium #recCorps{margin-top:-28px!important}
+  body.hotel.reception-premium #recVerrou{margin-top:-28px!important;padding:20px!important}
+  body.hotel.reception-premium .rec-saisie,
+  body.hotel.reception-premium .rec-decision{padding:16px;border-radius:18px}
+  body.hotel.reception-premium .rec-decision{position:static}
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens{display:grid!important;width:100%;flex-basis:100%;margin-top:4px!important}
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn{padding:0 8px!important}
+  body.hotel.reception-premium .rec-saisie > #blocTerminal,
+  body.hotel.reception-premium .rec-saisie > #blocVol{grid-column:1/-1}
+  body.hotel.reception-premium #ecran-accueil .champ{padding:0 12px!important;gap:8px!important}
+  body.hotel.reception-premium .rec-saisie > .duo > .champ > svg:first-child{display:none}
+  body.hotel.reception-premium .rec-client{margin:12px -4px 0!important;padding:14px}
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early{grid-template-columns:1fr}
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ:first-of-type,
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > #blocChambre,
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early > label.champ:last-of-type{grid-column:1/-1}
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early .champ{padding-left:38px!important}
+  body.hotel.reception-premium .rec-client #blocCoordonnees.hotel-guest-early .champ::before{left:12px}
+  body.hotel.reception-premium .rec-client .choix-envoi{gap:8px!important}
+  body.hotel.reception-premium .rec-client .choix{padding:0 12px!important}
+  body.hotel.reception-premium .rec-client .choix[aria-pressed="true"]{padding:0 11px!important}
+  body.hotel.reception-premium .rec-decision .veh-prix{font-size:20px!important}
+  body.hotel.reception-premium #recDashboardActions,
+  body.hotel.reception-premium.eh-avec-appel #recDashboardActions{gap:10px!important}
+  body.hotel.reception-premium #recDashboardActions .reception-action{flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;gap:8px!important;min-height:96px!important;padding:12px!important}
+  body.hotel.reception-premium #recDashboardActions .reception-action-icon{flex-basis:34px!important;width:34px!important;height:34px!important}
+  body.hotel.reception-premium #recDashboardActions .reception-action-copy b{font-size:13px!important;line-height:17px!important}
+  body.hotel.reception-premium #recDashboardActions .reception-action-copy small{font-size:12px!important;line-height:16px!important}
+  body.hotel.reception-premium #recDashboardActions .rec-aide{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"titre titre" "texte texte" "tel wa";row-gap:2px;padding:12px!important}
+  body.hotel.reception-premium #recDashboardActions .rec-aide-lien{justify-content:center;height:44px;min-height:44px!important;margin-top:8px}
+  body.hotel.reception-premium #recDashboardActions .rec-aide-tel{grid-column:1/-1}
+  body.hotel.reception-premium #recDashboardActions .rec-aide:has(#recAideWa:not([hidden])) .rec-aide-tel{grid-column:auto}
+  body.hotel.reception-premium #recCorps .rec-outils{grid-template-columns:minmax(0,1fr) 48px;gap:10px!important}
+  body.hotel.reception-premium #recCorps .rec-vues{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;width:100%}
+  body.hotel.reception-premium #recCorps .rec-vues button{padding:0 4px!important;font-size:13.5px!important}
+  body.hotel.reception-premium #recCorps .rec-vues button b{margin-left:4px}
+  /* « Actualiser » devient une icône : le mot et l'heure restent lus par le
+     lecteur d'écran. */
+  body.hotel.reception-premium #recCorps .rec-maj{width:48px;justify-content:center!important;padding:0!important}
+  body.hotel.reception-premium #recCorps .rec-maj #btnRecActualiser span,
+  body.hotel.reception-premium #recCorps #recMaj{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap;margin:0}
+  body.hotel.reception-premium #recListe .rec-course{
+    padding:14px!important;grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"heure etat" "qui qui" "tel tel" "ou ou" "detail prix" "note note" "modif modif" "ref ref" "chauffeur chauffeur" "actions actions";
+  }
+  body.hotel.reception-premium #recListe .rec-heure{font-size:20px!important}
+  body.hotel.reception-premium #recListe .rec-tel a{min-height:44px}
+  body.hotel.reception-premium #recListe .rec-actions{justify-self:stretch;flex-direction:row;margin-top:8px!important}
+  body.hotel.reception-premium #recListe .rec-actions .bouton-fantome{flex:1 1 0!important;height:44px;min-height:44px!important}
+}
+/* Sous 420 px, deux tuiles côte à côte n'ont plus la place d'une icône. */
+@media(max-width:420px){
+  /* Titres alignés en haut : centrées, une phrase de trois lignes à côté
+     d'une de deux décalait les deux titres. */
+  body.hotel.reception-premium #recDashboardActions .reception-action{min-height:76px!important;justify-content:flex-start!important}
+  body.hotel.reception-premium #recDashboardActions .reception-action-icon{display:none!important}
+}
+/* Sous 360 px, « Départ de l'hôtel » et « Arrivée à l'hôtel » ne tiennent plus
+   côte à côte avec leur flèche : mesuré à 320 px, le second sortait de
+   l'écran de 5 px. Colonnes égales qui ne grandissent plus, sans la flèche. */
+@media(max-width:360px){
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn{padding:0 4px!important;font-size:13px!important}
+  body.hotel.reception-premium #receptionEtape1 .hotel-sens-btn::before{display:none}
+  /* Même mesure sur la liste : en trois tiers égaux, « Historique 1 » sortait
+     de son onglet et collait « Par date ». Chaque onglet prend sa largeur. */
+  body.hotel.reception-premium #recCorps .rec-vues{grid-template-columns:auto auto auto}
+  body.hotel.reception-premium #recCorps .rec-vues button{padding:0 4px!important;font-size:12.5px!important}
+  body.hotel.reception-premium #recDashboardActions .rec-aide-lien{padding:0 8px!important;font-size:13px!important}
+}
+/* UN ÉLÉMENT CACHÉ PAR LE MOTEUR RESTE CACHÉ (« hidden »), quelle que soit
+   la règle de mise en page ci-dessus : mesuré, « .champ{display:flex} »
+   faisait réapparaître « Dès que possible » à côté de la date. Posé en
+   dernier, et plus précis que toutes les règles de ce bloc. */
+body.hotel.reception-premium :is(#ecran-accueil,#ecran-reception,#ecran-bon,.entete) [hidden][hidden][hidden]{display:none!important}

@@ -6515,7 +6515,7 @@ window.ELA_TEXTES = {
     suite_1:"Votre demande nous parvient immédiatement, directement depuis le site.",
     suite_2:"Nous vérifions la disponibilité d'un chauffeur professionnel pour votre trajet.",
     regle_contact:"Elatransfer vous contacte rapidement pour confirmer votre réservation. Gardez votre téléphone à portée de main.",
-    tel_relu:"Nous vous contacterons au",
+    tel_relu:"Nous vous contacterons au", tel_relu_comptoir:"Le client sera contacté au",
     canal_telephone:"Appel / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
     joindre_titre:"Où souhaitez-vous recevoir votre confirmation ?",
     joindre_note:"Depuis l'étranger, recevez votre confirmation sur WhatsApp ou Telegram.",
@@ -6748,7 +6748,7 @@ window.ELA_TEXTES = {
     suite_1:"Your request reaches us instantly, directly from the website.",
     suite_2:"We check the availability of a professional chauffeur for your journey.",
     regle_contact:"Elatransfer will contact you shortly to confirm your booking. Please keep your phone close by.",
-    tel_relu:"We will contact you on",
+    tel_relu:"We will contact you on", tel_relu_comptoir:"The guest will be contacted on",
     canal_telephone:"Call / SMS", canal_whatsapp:"WhatsApp", canal_telegram:"Telegram",
     joindre_titre:"Where would you like to receive your confirmation?",
     joindre_note:"Calling from abroad? Get your confirmation on WhatsApp or Telegram.",
@@ -7911,7 +7911,10 @@ window.ELA_TEXTES = {
     b.addEventListener("click", function(){
       if(hotelSens === b.dataset.sens) return;
       hotelSens = b.dataset.sens;
-      chaque(hotelTete.querySelectorAll(".hotel-sens-btn"), function(x){
+      /* Les boutons sont cherchés LÀ OÙ ILS SONT (21/10/2026) : au comptoir,
+         la finition range ce choix dans la carte du trajet, hors du bandeau.
+         Cherchés dans le bandeau, aucun ne se rallumait. */
+      chaque(b.parentNode.querySelectorAll(".hotel-sens-btn"), function(x){
         var on = x.dataset.sens === hotelSens;
         x.classList.toggle("actif", on);
         x.setAttribute("aria-pressed", String(on));
@@ -9270,7 +9273,12 @@ window.ELA_TEXTES = {
                    easyHotel : un hôtel qui ne les porte pas prend ses
                    actions sur « bouton » et ses bandeaux sur « vif ». */
                 finition:"#ff5a0a", finition2:"#ff761b",
-                finitionPale:"#fff0e7", finitionEncre:"#9a3500" },
+                finitionPale:"#fff0e7", finitionEncre:"#9a3500",
+                /* SUR SON ORANGE, LE TEXTE EST NOIR (21/10/2026, choix de
+                   Barbaros sur maquette) : #1B1B1B lit à 5,5:1 sur
+                   #ff5a0a, le blanc à 3,1:1. Un hôtel sans cette clé garde
+                   le blanc sur ses actions. */
+                texteAction:"#1B1B1B" },
       /* LA PHOTO DE L'HÔTEL — vide tant qu'il ne l'a pas fournie, et
          l'en-tête est dessiné pour tenir sans elle. On ne va PAS la
          chercher sur Internet : une photo appartient à son photographe ou
@@ -11023,7 +11031,9 @@ window.ELA_TEXTES = {
     relu.hidden = !telValide(tel);
     relu.textContent = "";
     if(!relu.hidden){
-      relu.appendChild(document.createTextNode(T("tel_relu") + " "));
+      /* Au comptoir, la réception tape le numéro d'un AUTRE : « nous vous
+         contacterons » lui parlait comme au client (21/10/2026). */
+      relu.appendChild(document.createTextNode(T(recHotel ? "tel_relu_comptoir" : "tel_relu") + " "));
       var b = document.createElement("b");
       b.textContent = telLisible(tel);
       relu.appendChild(b);

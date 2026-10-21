@@ -1827,8 +1827,8 @@ sept prix, soit un quatrième endroit à tenir.
   paiement part sur ce numéro. La chambre, facultative, se range sous le nom.
 - **Photo client** (`photoEntete`) : vidée le 20/10/2026 (CDN d'easyHotel, sans
   accord) ; jamais une adresse `http`, seulement `/photos/…`. **Comptoir**
-  (`photoComptoir`, 20/10/2026) : SA photo, bandeau de 176 px sous un voile
-  (6,5:1), ordinateur et tablette ; jamais de fond de page (`test-reception-bon`).
+  (`photoComptoir`, 20/10/2026) : SA photo, dans le bandeau bleu nuit (≤ 190 px,
+  voile plein sous le texte), dès 600 px ; jamais de fond de page (`test-reception-bon`).
 
 **VERT = REMPLI, ROUGE = IL MANQUE** (23/09/2026, à sa demande), sur les deux
 entrées easyHotel, dans `hotel-engine-polish.js/.css` (classes `eh-ok`,
@@ -1952,69 +1952,16 @@ la liste blanche « pour déboguer », plus rien ne tombe.
 
 `test-nouveau-reception.mjs` passe de 83 à **89 contrôles**.
 
-### LE THÈME D'UN PARTENAIRE — L'ORANGE easyHotel
+### LE THÈME D'UN PARTENAIRE — ET LA RÉCEPTION V2 (21/10/2026)
 
-- **LES COULEURS SONT RANGÉES SUR L'HÔTEL** (`HOTELS[x].marque`), pas dans
-  le CSS, exactement comme sa grille : le partenaire suivant sera peut-être
-  bleu. Le CSS ne connaît que des rôles, et tout est sous `body.hotel` — le
-  site public ne change pas d'un pixel. Un contrôle mesure la couleur
-  **calculée** du bouton public : une règle trop large se voit à l'écran,
-  pas dans la feuille de style.
-- **LES VALEURS SONT MESURÉES (WCAG), PAS CHOISIES À L'ŒIL.** Du blanc sur
-  l'orange du logo `#FF6600` donne **2,94 : illisible**. Les boutons portent
-  donc `#C2410C` (blanc à 5,18) ; l'orange vif tient les **bandeaux**, où le
-  texte est en charbon (5,87). Le bloc d'aide est en `#FFF1E8` / `#7C2D12`
-  (8,48).
-- **TOUS LES BOUTONS SONT ORANGE, SAUF CEUX QUI VIVENT DANS UN BANDEAU**
-  (septembre 2026, à sa demande : « fait en orange les parties noires
-  dédiées à easyHotel »). Ils étaient charbon, au motif qu'un bouton orange
-  sous un bandeau orange efface la hiérarchie — il n'en a pas voulu, et la
-  règle qui reste est une **mesure**, pas un goût : `#C2410C` sur le fond
-  clair donne 5,18 avec du blanc, mais **posé SUR l'orange vif il tombe à
-  1,76** et disparaît. D'où le partage — le sens du trajet et l'accès aux
-  réservations, qui sont DANS le bandeau, restent charbon.
-- **LA RÈGLE VISE `.bouton`, PAS QUATRE IDENTIFIANTS.** C'était une liste
-  d'identifiants, donc la liste des boutons qui existaient le jour où elle a
-  été écrite : « Confirmer » n'y était déjà pas, et le suivant n'y serait pas
-  non plus. Même famille que la barre du bas figée sur quatre onglets.
-- **LA TÊTE DE L'ÉCRAN RÉCEPTION PORTE LE BANDEAU DU PARTENAIRE.** Elle était
-  grise comme n'importe quel écran du site : une réception qui ouvre cette
-  page vingt fois par jour doit reconnaître la sienne du premier regard.
-- **PIÈGE RENCONTRÉ : `class="carte"` N'EXISTE DANS AUCUNE RÈGLE DE CE
-  SITE.** L'écran du code la portait — héritée de l'ancien site — donc ni
-  fond, ni marge : le texte et le bouton « Ouvrir » touchaient les deux
-  bords. Une classe morte ne se voit pas en relisant le HTML, et elle
-  ramassera un jour une règle écrite pour autre chose (le piège `.arrivee`,
-  déjà rencontré ici). La gouttière du site est de **20 px**, mesurée sur
-  `.ecran-titre`.
-- **L'ORANGE NE DESCEND PAS DANS LA LISTE.** Il est à **24° de teinte** du
-  rouge de l'attente (`#C9302F`) : côte à côte, les deux se disputeraient
-  l'attention et plus rien ne crierait. Il tient le cadre, l'action et
-  l'aide.
-- **« CONFIRMÉE » EST RESTÉE VERTE**, et c'est la correction d'une erreur
-  commise ici même : passée à l'orange du partenaire, la pastille disait la
-  **marque** et non plus l'**état** — même couleur que le bouton, le bloc
-  d'aide et le filet. Une couleur d'état ne se négocie pas avec une charte.
-  Même faute, à l'envers, que le jour où l'attente et la confirmation ont
-  fini de la même couleur sur le bon du client.
-- **AUCUNE PHOTO NI LOGO D'easyHotel N'EST POSÉ.** Barbaros en a envoyé
-  cinq : trois sur quatre étaient des **vignettes** de résultats de
-  recherche (275 × 182 pour 23 Ko…), et il a confirmé que la seule
-  exploitable venait d'Internet. Il n'a pas non plus l'accord pour le logo.
-  Une photo appartient à son photographe (L335-2 CPI) ; un logo est une
-  **marque déposée**, et c'est ce qu'un siège fait retirer en premier.
-  « C'est seulement pour la réception » ne change rien : la page a une
-  adresse publique, et ce qui est reproché est la reproduction.
-  **Ce qui reste licite et suffit** : leur orange, qui n'appartient à
-  personne, et leur nom écrit — nommer un partenaire pour dire qu'on le
-  dessert est un usage descriptif. L'en-tête porte un lavis d'orange en
-  diagonale pour avoir l'air voulu plutôt qu'en manque d'image ; le champ
-  `photo` attend celle qu'easyHotel fournira, et elle se posera par-dessus,
-  sous un voile opaque à 62 % — un titre posé sur une image non maîtrisée
-  n'a aucun contraste garanti.
-  **À lui demander** : leurs photos de presse et leur logo, en un message à
-  son contact. Ou, gratuit tout de suite, sa propre photo d'une berline
-  devant l'entrée.
+- **Les couleurs vivent sur l'hôtel** (`HOTELS[x].marque` → `--h-*`), jamais
+  dans `hotel-engine-polish.*` (`test-finition-commune`) ; valeurs mesurées.
+- **Réception V2** (maquette validée, « version 3 ») : bandeau bleu nuit
+  commun, logo négatif, SA photo à droite dès 600 px ; formulaire en deux
+  colonnes. **Texte noir sur l'orange** (`texteAction`) ; sans elle, blanc.
+- **L'orange ne descend pas dans la liste, « confirmée » reste verte** ; ni
+  photo ni logo d'un partenaire sans accord écrit (L335-2 CPI).
+Histoire et pièges : `memoire/theme-partenaire.md`.
 
 ## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
 
