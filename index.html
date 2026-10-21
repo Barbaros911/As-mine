@@ -7979,15 +7979,6 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var recHotel = null;         // l'hôtel dont on tient le comptoir
   var recCourses = [];
-  /* LE TRAJET VU DU COMPTOIR, écrit d'une seule façon pour la liste et pour
-     l'écran qui suit une réservation : l'hôtel n'est pas répété, le sens
-     reste écrit (voir « ON NE RÉPÈTE PAS L'HÔTEL » dans la liste). */
-  function trajetComptoir(depart, arrivee){
-    var versHotel = recHotel && (arrivee || "").indexOf(recHotel.nom) === 0;
-    return versHotel
-      ? ((depart || "—").split(",")[0] + "  →  l'hôtel")
-      : ("l'hôtel  →  " + (arrivee || "—"));
-  }
   /* ═══ LA SESSION TIENT 12 HEURES SUR L'APPAREIL (30/09/2026) ═══
      À la demande de Barbaros. Elle vivait dans le sessionStorage de
      l'onglet : fermer l'onglet — ou la tablette qui le fait toute seule —
@@ -11386,6 +11377,17 @@ window.ELA_TEXTES = {
       localStorage.setItem("ela_courses", JSON.stringify(l));
     }catch(e){ /* stockage refusé : le N° reste affiché sur ce bon */ }
     if(bonCourant && bonCourant.ref === bon.ref){ bonCourant.numero = n; ecrireRefBon(bonCourant); }
+  }
+  /* LE TRAJET VU DU COMPTOIR, écrit d'une seule façon pour la liste et pour
+     l'écran qui suit une réservation : l'hôtel n'est pas répété, le sens
+     reste écrit (voir « ON NE RÉPÈTE PAS L'HÔTEL » dans la liste). Hors du
+     bloc de la réception : « remplirBon » est aussi celui des pages
+     publiques, d'où ce bloc est retiré à la construction. */
+  function trajetComptoir(depart, arrivee){
+    var versHotel = recHotel && (arrivee || "").indexOf(recHotel.nom) === 0;
+    return versHotel
+      ? ((depart || "—").split(",")[0] + "  →  l'hôtel")
+      : ("l'hôtel  →  " + (arrivee || "—"));
   }
   function remplirBon(bon){
     ecrireRefBon(bon);

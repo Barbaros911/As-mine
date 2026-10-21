@@ -73,6 +73,11 @@ il a dit « corrige, mais pas besoin que la page réception soit en anglais »
   de 5 px, « Historique 1 » sortait de son onglet. Sous 360 px seulement :
   colonnes qui ne grandissent plus, sans la flèche, onglets à leur largeur.
   Rien ne change à 390 px et au-delà.
+- **Sur une tablette en portrait (761–1100 px), « Appeler Elatransfer »
+  sortait de l'écran de 238 px** (trouvé le 21/10/2026 par
+  `test-demo-hotel`, après la publication de la V2) : côte à côte, chaque
+  bouton de la carte gardait le `width:100%` du site. `width:auto` ; rien ne
+  change sur ordinateur, où ils sont l'un sous l'autre.
 - **Une règle d'avant, plus précise, gagnait encore** (taille de la
   pastille, ombre du bandeau photo, cadre des champs du client) : le bloc V2
   reprend les mêmes sélecteurs, plus précis, en fin de fichier.

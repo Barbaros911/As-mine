@@ -1068,8 +1068,12 @@ body.hotel.reception-premium #recListe .rec-etat.realisee{border-color:#DCE4ED;b
 body.hotel.reception-premium #recListe .rec-etat.refusee,
 body.hotel.reception-premium #recListe .rec-etat.annulee{border-color:#F0C2C1;background:#FFF5F5;color:#A12727}
 body.hotel.reception-premium #recListe .rec-actions{grid-area:actions;display:flex;flex-direction:column;gap:6px;margin:0!important}
+/* « width:auto » : le bouton du site porte « width:100% ». En colonne c'est
+   pareil, mais côte à côte (tablette en portrait, 761–1100 px) chacun prenait
+   toute la colonne — mesuré à 768 px, « Appeler Elatransfer » sortait de
+   l'écran de 238 px. */
 body.hotel.reception-premium #recListe .rec-actions .bouton-fantome{
-  flex:none!important;display:inline-flex;align-items:center;justify-content:center;min-height:40px!important;height:40px;margin:0!important;padding:0 14px!important;
+  flex:none!important;width:auto!important;display:inline-flex;align-items:center;justify-content:center;min-height:40px!important;height:40px;margin:0!important;padding:0 14px!important;
   border:1px solid var(--v2-filet)!important;border-radius:10px!important;background:#fff!important;color:var(--v2-titre)!important;
   font-size:14px!important;font-weight:750!important;white-space:nowrap;text-decoration:none;
 }
