@@ -67,6 +67,8 @@ try {
     if (u.startsWith(BASE)) return r.continue();
     if (u.includes('/functions/v1/courses-hotel'))
       return r.fulfill(J({ hotel:'easyhotel-aeroville', courses:LISTE, session:'s.sig', expire:Date.now() + 864e5 }));
+    if (u.includes('/functions/v1/deposer-course'))
+      return r.fulfill({ status:201, contentType:'application/json', body:JSON.stringify({ ok:true, numero:1042 }) });
     return r.abort();
   });
   const p = await ctx.newPage();
@@ -129,6 +131,43 @@ try {
     !form.aideVol && !form.regle && !form.regles && !form.telBas && !form.paiement, JSON.stringify(form));
   check('formulaire du comptoir : « Le client sera confirmé par : » Téléphone ou WhatsApp, sans Telegram',
     form.contact === 'Le client sera confirmé par :' && form.tel === 'Téléphone' && !form.telegram, JSON.stringify(form));
+
+  /* ═══ CE QUE PERSONNE N'A CHOISI N'EST PAS VERT (21/10/2026) ═══
+     Le formulaire s'ouvre sur CDG, Terminal 1, 1 passager, 1 bagage : une
+     coche d'office disait « vérifié » sur un CDG que la réception n'avait
+     pas regardé. Seul le départ (l'hôtel lui-même) est vert. */
+  const etatsEH = () => p.evaluate(() => ({
+    ok: [...document.querySelectorAll('#ecran-accueil .eh-ok')].map(e => (e.querySelector('input,select,textarea') || e).id),
+    manque: [...document.querySelectorAll('#ecran-accueil .eh-manque')].map(e => (e.querySelector('input,select,textarea') || e).id),
+    choisi: !!document.querySelector('#listeVehicules .veh-carte.choisi') }));
+  let eh = await etatsEH();
+  check('formulaire neuf : la destination, le terminal, les passagers et les bagages ne sont pas verts d\'office',
+    eh.ok.join(',') === 'depart' && eh.manque.length === 0, JSON.stringify(eh));
+  await p.selectOption('#hotelDest', 'orly'); await p.waitForTimeout(600);
+  eh = await etatsEH();
+  check('…et la destination passe au vert dès qu\'on la choisit', eh.ok.includes('hotelDest'), JSON.stringify(eh));
+  /* « Valider » sans véhicule : on reste, et le cadre rouge DIT ce qui
+     manque — la couleur ne porte jamais le sens seule. */
+  await p.fill('#clientNom', 'M. Dupont'); await p.fill('#chambre', '214'); await p.fill('#clientTel', '06 12 34 56 78');
+  await p.locator('#blocContact [data-contact="whatsapp"]').click();
+  await p.locator('#btnVoirPrix').click({ force:true }); await p.waitForTimeout(700);
+  const sansGamme = await p.evaluate(() => {
+    const l = document.getElementById('listeVehicules');
+    return { ecran: document.querySelector('.ecran.actif')?.id, rouge: l.classList.contains('eh-manque'),
+             phrase: getComputedStyle(l, '::before').content };
+  });
+  check('« Valider » sans véhicule : on reste, et le cadre rouge dit « Choisissez le véhicule »',
+    sansGamme.ecran === 'ecran-accueil' && sansGamme.rouge && sansGamme.phrase === '"Choisissez le véhicule"', JSON.stringify(sansGamme));
+  await p.locator('#listeVehicules .veh-carte').first().click();
+  await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1500);
+  check('avec le véhicule, la réservation part', (await p.locator('#bcTitre').textContent().catch(() => '')) === 'Réservation enregistrée');
+  /* « Réserver une autre course » : le client suivant repart de zéro. Mesuré
+     avant : nom et téléphone déjà rouges « Obligatoire », véhicule du client
+     précédent toujours coché. */
+  await p.click('#btnNouvelleCourse'); await p.waitForTimeout(800);
+  eh = await etatsEH();
+  check('« Réserver une autre course » : rien en rouge, aucun véhicule coché, rien de vert d\'office',
+    eh.manque.length === 0 && !eh.choisi && eh.ok.join(',') === 'depart', JSON.stringify(eh));
   await p.goto(BASE + '/reception/easyhotel-aeroville/', { waitUntil:'domcontentloaded' });
   await p.waitForSelector('#recListe .rec-course', { timeout:8000 }).catch(() => {});
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(300);
@@ -201,15 +240,18 @@ try {
   check('le bon écrit le numéro d\'Elatransfer en clair, en gros',
     (await contact.locator('.ebon-contact-num').textContent().catch(() => '')) === '+33 7 59 31 24 33'
     && (await contact.locator('.ebon-contact-num').evaluate(e => parseFloat(getComputedStyle(e).fontSize)).catch(() => 0)) >= 20);
-  /* Sur le PC de la réception, le bouton WhatsApp du bon part ; la ligne
-     ÉCRITE reste : le client la lit et s'en sert depuis son téléphone. */
-  check('…avec Appeler en bouton ; sur un PC, WhatsApp n\'est plus un bouton mais reste écrit',
-    (await contact.locator('a.ebon-canal.tel').getAttribute('href').catch(() => '')) === 'tel:+33759312433'
-    && await contact.locator('a.ebon-canal.tel').isVisible()
+  /* SUR LE PC DE LA RÉCEPTION, LE BON N'A PLUS DE BOUTONS (21/10/2026) :
+     un PC ne compose pas, et WhatsApp ou Telegram y ouvriraient le compte de
+     quelqu'un. Le numéro et l'identifiant sont ÉCRITS : le client les
+     recopie sur son téléphone. Les liens restent dans la page (tablette). */
+  check('sur un PC, ni Appeler, ni WhatsApp, ni Telegram en bouton : tout est écrit',
+    await contact.locator('a.ebon-canal.tel').isHidden()
     && await contact.locator('a.ebon-canal.wa').isHidden()
-    && /WhatsApp/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => '')));
-  check('…et Telegram, l\'identifiant écrit en clair et le bouton',
+    && await contact.locator('a.ebon-canal.tg').isHidden()
+    && /Appel, WhatsApp/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => '')));
+  check('…l\'identifiant Telegram écrit en clair, et les liens toujours justes',
     /Telegram @elatransfer/.test(await contact.locator('.ebon-contact-canaux').textContent().catch(() => ''))
+    && (await contact.locator('a.ebon-canal.tel').getAttribute('href').catch(() => '')) === 'tel:+33759312433'
     && (await contact.locator('a.ebon-canal.tg').getAttribute('href').catch(() => '')) === 'https://t.me/elatransfer');
   /* L'en-tête collant de la page passait PAR-DESSUS la fenêtre : FR/EN et
      « Fermer » ne recevaient plus le clic. On mesure ce que reçoit le doigt. */
@@ -324,7 +366,10 @@ try {
   check('sur une tablette (au doigt), « Un imprévu ? » garde son bouton WhatsApp',
     await t.locator('#recAideWa').isVisible() && /wa\.me/.test(await t.locator('#recAideWa').getAttribute('href')));
   await t.locator('.rec-course').first().locator('button', { hasText:'Voir le bon' }).click({ timeout:3000 }).catch(() => {});
-  check('…et le bon garde son bouton WhatsApp', await t.locator('#bonClient a.ebon-canal.wa').isVisible().catch(() => false));
+  check('…et le bon garde ses boutons Appeler, WhatsApp et Telegram',
+    await t.locator('#bonClient a.ebon-canal.tel').isVisible().catch(() => false)
+    && await t.locator('#bonClient a.ebon-canal.wa').isVisible().catch(() => false)
+    && await t.locator('#bonClient a.ebon-canal.tg').isVisible().catch(() => false));
   await t.keyboard.press('Escape');
   /* La réception n'a pas de barre du bas (« reception-premium ») : elle ne
      réserve donc plus 80 px de vide sous la page, sur aucun écran. */

@@ -306,6 +306,11 @@ html[lang="en"] body.hotel.hotel-enhanced .champ.eh-manque.eh-corriger::after{co
 /* Au comptoir : la liste des gammes et le règlement se choisissent sur la
    même page ; sans choix, c'est le bloc entier qui s'encadre. */
 body.hotel.hotel-enhanced #listeVehicules.eh-manque,body.hotel.hotel-enhanced .eh-manque:not(.champ){outline:2px solid #DC2626;outline-offset:4px;border-radius:14px}
+/* …et le cadre DIT ce qui manque (21/10/2026) : sans la phrase, « Valider »
+   n'encadrait que de rouge, et la couleur portait le sens seule. #B91C1C sur
+   blanc : 6,5:1. Une ligne de grille à elle (la liste est en grille). */
+body.hotel.hotel-enhanced #listeVehicules.eh-manque::before{content:"Choisissez le véhicule";display:block;grid-column:1/-1;margin:2px 0 4px 6px;font-size:13px;line-height:18px;font-weight:800;color:#B91C1C}
+html[lang="en"] body.hotel.hotel-enhanced #listeVehicules.eh-manque::before{content:"Choose the vehicle"}
 
 /* ==========================================================================
    RÉCEPTION PREMIUM — l'outil de comptoir de chaque hôtel partenaire
@@ -732,7 +737,9 @@ body.hotel.reception-premium .champ.eh-ok::after{
   content:""!important;top:8px!important;right:9px!important;width:14px;height:14px;border-radius:50%;font-size:0!important;
   background:var(--v2-vert) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M4 7.2l2 2 4-4.4' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;
 }
-body.hotel.reception-premium #ecran-accueil .champ.eh-ok > .champ-corps{padding-right:12px}
+/* Pas de marge à droite du contenu pour la coche : elle est posée en haut,
+   au niveau du libellé, jamais de la valeur. Ces 12 px coupaient la date à
+   « 21/10/202 » dès qu'elle passait au vert (mesuré, 21/10/2026). */
 body.hotel.reception-premium #ecran-accueil .champ.eh-ok > svg:last-child:not(:first-child){margin-top:10px}
 body.hotel.reception-premium #ecran-accueil .champ.eh-manque,
 body.hotel.reception-premium #blocCoordonnees.hotel-guest-early .champ.eh-manque{border-color:#E7A3A2!important;background:#FFF6F6!important;box-shadow:none!important}
@@ -963,6 +970,15 @@ body.hotel.reception-premium .rec-decision #btnVoirPrix svg path{stroke:currentC
   body.hotel.reception-premium .rec-client .choix[aria-pressed="true"]{padding:0 9px!important}
   body.hotel.reception-premium .rec-decision #listeVehicules{margin-top:12px!important}
   body.hotel.reception-premium .rec-decision #btnVoirPrix{margin-top:14px!important}
+}
+/* ---------- TABLETTE EN PORTRAIT (≤ 900 px) : une colonne ----------
+   Mesuré à 768 px (21/10/2026) : à deux colonnes, la saisie ne gardait que
+   368 px — « Nom du client » tombait à 80 px (trois lignes, valeur « M… »),
+   la date était coupée et la coche de WhatsApp mordait son libellé. Comme
+   sur téléphone : le trajet, le client, puis le véhicule et « Valider ». */
+@media(max-width:900px){
+  body.hotel.reception-premium #ecran-accueil .reserver{grid-template-columns:minmax(0,1fr)}
+  body.hotel.reception-premium .rec-decision{position:static}
 }
 
 /* ---------- LA LISTE DES RÉSERVATIONS : un poste de travail ---------- */

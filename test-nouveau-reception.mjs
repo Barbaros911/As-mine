@@ -236,7 +236,7 @@ const texte = await carte.textContent();
 check('la chambre et le nom du client', /Chambre 214/.test(texte) && /Dupont/.test(texte), texte);
 check('LE NUMÉRO du client, et il est cliquable',
   (await carte.locator('.rec-tel a').getAttribute('href')) === 'tel:06 12 34 56 78');
-check('le trajet, avec le SENS écrit', /l'hôtel\s+→\s+Orly 1/.test(texte), texte);
+check('le trajet, avec le SENS écrit', /L'hôtel\s+→\s+Orly 1/.test(texte), texte);
 check('LE PRIX annoncé', /100,00/.test(await carte.locator('.rec-prix').textContent()));
 check('LE MODE DE PAIEMENT', /Espèces/.test(texte));
 check('le véhicule et la référence', /Berline/.test(texte) && /ELA-26-09-0042/.test(texte));
@@ -926,7 +926,7 @@ check('…avec « rien d\'autre à faire » pour la réception',
   /^Rien d'autre à faire : Elatransfer prévient le client/.test((await p.locator('#bonComptoir #etatEnvoi').textContent()).trim()),
   (await p.locator('#etatEnvoi').textContent()).trim());
 check('le trajet est écrit comme dans la liste : l\'hôtel → la destination',
-  /^l'hôtel\s+→\s+.*Orly/.test(await p.locator('#bonTrajetComptoir').textContent()),
+  /^L'hôtel\s+→\s+.*Orly/.test(await p.locator('#bonTrajetComptoir').textContent()),
   await p.locator('#bonTrajetComptoir').textContent());
 check('rien de ce qui est destiné au client ne s\'affiche : ni le bon, ni « À dire au client », ni le règlement',
   await p.evaluate(() => [...document.querySelectorAll('#ecran-bon .bon-tete, #ecran-bon .bon-logo, #ecran-bon .bon-sous, #consigneComptoir')]
