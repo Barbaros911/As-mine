@@ -360,3 +360,58 @@ L'écran Prospects n'a pas de recherche : il n'y avait rien à étendre.
   fois en nommant le défaut.
 - Réception en anglais et cadre photo : sans la traduction, six contrôles de
   `test-demo-hotel` tombent ; sans le cadre cliquable, un.
+
+## 21 octobre 2026 — la page devient un outil de vente (mission « page pro 10/10 »)
+
+Mission de Barbaros : auditer, garder ce qui est excellent, renforcer le
+reste, sans rien ajouter « pour faire différent ». Fait sur le site construit,
+`professionnels/index.html` seul (ni accueil, ni tarifs, ni moteur, ni
+serveur). Note donnée : 7/10 avant, 9/10 après ; le dernier point dépend de
+choses que le code ne produit pas (SIRET, un second hôtel, la vraie note
+Google).
+
+- **Gardé tel quel** : le titre « Votre réception réserve. Elatransfer gère
+  tout le reste. », « Ce que vit votre réception », les trois étapes, le
+  texte du programme partenaire (règle du 18/10), la question du vol en
+  retard (mot pour mot l'accueil), « Déjà en service… » au singulier.
+- **Le sous-titre dit d'abord ce qu'est Elatransfer** : « réserve et
+  coordonne les transferts de vos clients », puis ce que l'établissement
+  reçoit. Pas « centrale de réservation » dans le haut de page : le mot est
+  exact (CGV art. 2, L3142-1) mais il est dans la FAQ, où il répond à « qui
+  assure le transport ? ».
+- **Second bouton du haut : « Parler de mon établissement » → #contact**, au
+  lieu de « Nous appeler » (`tel:`). Sur un ordinateur, un `tel:` n'ouvre
+  rien d'utile ; #contact donne les trois moyens en clair, et les appels qui
+  en partent restent comptés (`clic_appel`).
+- **« Ce que vous n'avez plus à organiser »** : un panneau, six lignes, toutes
+  vraies aujourd'hui, et la phrase « Votre réception transmet la demande.
+  Elatransfer coordonne le reste. »
+- **« Ce que ça change » est remplacé par « Pour la direction »** : ce que
+  l'établissement n'a pas à porter, ce que gagne son client, puis le bloc
+  partenaire (inchangé, devenu un `h3`, `#partenaire` sur la carte). Son
+  bouton devient secondaire (`.bouton.contour`) : un seul bouton plein par
+  écran, la démonstration.
+- **La démo se présente comme une preuve** : sur-titre « La démo hôtel, à
+  votre nom » (le texte du bouton qui y mène), titre « Voyez ce que verraient
+  vos clients et votre réception », et le parcours réel du simulateur jusqu'à
+  « Effectuée ». Bouton : « Ouvrir ma démonstration ».
+- **FAQ, dans l'ordre d'un directeur** : coût, engagement, qui assure le
+  transport (« centrale de réservation », jamais transporteur), « Et si aucun
+  chauffeur n'est disponible ? » (vécu 3 posait la peur sans y répondre),
+  tarifs, vol, données, mise en place (absorbe « Que faut-il vous
+  fournir ? »). « Que doit faire votre équipe ? » a été écrite puis retirée :
+  elle redisait « Rien à installer » et les étapes.
+- **Refusé dans la consigne, et pourquoi** : « solution », « mobilité »,
+  « infrastructure de mobilité » et « VTC » (mots interdits par ses décisions
+  des 8 et 18/10, `test-pro-page`) ; aucun délai (« 48 h ») ni chiffre ;
+  l'accueil n'a pas été touché (passerelle décidée le 18/10, et la PR #398
+  modifie `index.html` et `sw.js` en même temps).
+- **La note Google reste à 25 avis** : la mission parle de 30, mais personne
+  ici ne peut le lire sur Google. `avis-google.json` change le jour où
+  Barbaros donne le nombre et la note relevés.
+- **Mesure** : `page_vue`, `clic_appel`, `clic_whatsapp` sont comptés ; les
+  demandes de démo et leurs ouvertures sont dans « Prospects ». Pas comptés :
+  le clic e-mail et « Recevoir nos conditions ». Rien ajouté.
+- Mesuré : aucun débordement de 320 à 1366 px (FR et EN), « Voir la démo
+  hôtel » dans le premier écran partout (320×640 : 524–578). Page +20 % de
+  hauteur sur téléphone, +1,6 Ko compressés, aucune image ni script ajouté.

@@ -244,7 +244,7 @@ for (const [conf, attendu, efface] of [['ok', 'Adresse e-mail confirmée, merci.
 {
   const p = await ouvrir({ langue: 'en', reponse: 'quota' });
   const t = await p.evaluate(() => document.getElementById('demo').innerText);
-  check('EN : la section est en anglais', /See the hotel demo/.test(t) && /valid for 7 days on this device/.test(t) && /Business email/.test(t) && /First name/.test(t) && /Last name/.test(t) && !/Nom complet|Prénom|Téléphone|facultatif/.test(t), t.slice(0, 200));
+  check('EN : la section est en anglais', /hotel demo/i.test(t) && /valid for 7 days on this device/.test(t) && /Business email/.test(t) && /First name/.test(t) && /Last name/.test(t) && !/Nom complet|Prénom|Téléphone|facultatif/.test(t), t.slice(0, 200));
   check('EN : la phrase de données personnelles est en anglais', /You can object at any time/.test(t));
   await remplir(p); await p.click('#fEnvoyer');
   await p.waitForFunction(() => !document.getElementById('fMessage').hidden && document.getElementById('fMessage').classList.contains('ko'), null, { timeout: 8000 }).catch(() => {});
