@@ -230,11 +230,11 @@
         el.appendChild(ic);el.appendChild(c);
       }
       texte(el.querySelector('.reception-hours-copy b'),anglais
-        ? 'Book 24/7 · Human support 7\u00a0am–10\u00a0pm'
-        : 'Réservation 24\u00a0h/24 · Assistance humaine 7\u00a0h–22\u00a0h');
+        ? 'Book\u00a024/7 · Live\u00a0support\u00a07\u00a0am–\u206010\u00a0pm'
+        : 'Réservation\u00a024\u00a0h/24 · Assistance\u00a0humaine\u00a07\u00a0h–\u206022\u00a0h');
       texte(el.querySelector('.reception-hours-copy span'),anglais
         ? ' · Leaving now? Call us'
-        : ' · Départ immédiat ? Appelez-nous');
+        : ' · Départ immédiat\u00a0? Appelez-nous');
     }
 
     var tete=document.getElementById('hotelTete');

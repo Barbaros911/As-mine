@@ -55,7 +55,7 @@
           aConfirmer:"To be confirmed", payeChauffeur:"Paid directly to the driver",
           confirmation:"Your confirmation will be sent by Elatransfer.",
           question:"Questions? Elatransfer is here to help", canaux:"Call and WhatsApp",
-          canauxTg:"Call, WhatsApp — Telegram ", horaires:"Human support from 7\u00a0am to 10\u00a0pm", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
+          canauxTg:"Call, WhatsApp — Telegram ", horaires:"Live support from 7\u00a0am to 10\u00a0pm (Paris time)", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
           etats:{ attente:"Request received", confirmee:"Confirmed", realisee:"Completed",
                   refusee:"Not taken", annulee:"Cancelled" } }
   };

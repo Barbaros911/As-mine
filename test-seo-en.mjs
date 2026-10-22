@@ -184,9 +184,12 @@ for (const chemin of pagesEn) {
   /* LES HEURES SE LISENT DANS L'ACCUEIL, JAMAIS RECOPIÉES ICI (21/10/2026) :
      figées dans le test (« 5 am–10 pm »), elles auraient survécu au
      changement d'horaires et fait tomber la suite le jour où il était juste. */
-  const heures = ((EN.hero_notes || '').match(/\d+\s(?:am|pm)–\d+\s(?:am|pm)/) || [''])[0].replace(/\s/g, ' ');
+  /* Le U+2060 posé après le tiret empêche la coupure « 7 am– / 10 pm » : il
+     est invisible, on l'ôte des deux côtés avant de comparer. */
+  const sansJoint = t => (t || '').replace(/\u2060/g, '').replace(/\s/g, ' ');
+  const heures = (sansJoint(EN.hero_notes).match(/\d+ (?:am|pm)–\d+ (?:am|pm)/) || [''])[0];
   check(`${chemin} : les heures d'assistance sont celles de l'accueil (${heures || 'introuvables'})`,
-    !!heures && lu.texte.replace(/\s/g, ' ').includes(heures), heures);
+    !!heures && sansJoint(lu.texte).includes(heures), heures);
   blocsCommuns.push(lu.etapes + '\n' + lu.savoir);
 
   // Les gestes.

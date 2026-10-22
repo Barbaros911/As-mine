@@ -940,6 +940,7 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 .affiche-hotel{margin:16px 0 0;font-size:17px;font-weight:800;overflow-wrap:anywhere;}
 .affiche-mode{margin:8px 0 0;font-size:12px;color:var(--gris);}
 .affiche-tel{margin:12px 0 0;font-size:16px;font-weight:800;letter-spacing:.02em;}
+.affiche-horaires{margin:4px 0 0;font-size:12px;font-weight:600;}
 /* À L'IMPRESSION, SEULE L'AFFICHE SORT. Sans cette règle, le tableau de bord
    et les demandes en attente — noms et téléphones de clients — partiraient
    sur le papier posé au comptoir d'un hôtel. */
@@ -2878,7 +2879,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            qui commence 65 px plus bas, et ses 111 px poussaient « Voir mon
            prix » sous la barre du bas à 360 × 740. Le premier geste est le
            champ de départ, déjà à l'écran. -->
-      <p class="hero-notes" data-t="hero_notes">Réservation 24&nbsp;h/24 · Assistance humaine 7&nbsp;h–22&nbsp;h</p>
+      <p class="hero-notes" data-t="hero_notes">Réservation&nbsp;24&nbsp;h/24 · Assistance&nbsp;humaine&nbsp;7&nbsp;h–&#8288;22&nbsp;h</p>
       <p class="note-google" data-avis-google="fr en" hidden></p>
     </div>
   </section>
@@ -3549,7 +3550,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <!-- LES HORAIRES À CÔTÉ DU NUMÉRO (21/10/2026, Barbaros) : on les cherche
          là où l'on cherche le téléphone. Même clé que le bandeau : une seule
          phrase à tenir, jamais deux horaires différents sur la même page. -->
-    <p class="pied-horaires" data-t="hero_notes">Réservation 24&nbsp;h/24 · Assistance humaine 7&nbsp;h–22&nbsp;h</p>
+    <p class="pied-horaires" data-t="hero_notes">Réservation&nbsp;24&nbsp;h/24 · Assistance&nbsp;humaine&nbsp;7&nbsp;h–&#8288;22&nbsp;h</p>
     </div>
     <!-- LES PAGES DE SERVICE, LIÉES D'ICI (5 octobre 2026). L'accueil ne
          menait nulle part ailleurs : Google ne trouvait les pages CDG et Orly
@@ -3743,7 +3744,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </ul>
         <!-- Départ immédiat ou réservation de vive voix : le numéro est ICI, là
              où le client lit comment payer (11/10/2026, Barbaros). -->
-        <p class="paiement-tel"><span data-t="paiement_tel">Départ immédiat ou réservation par téléphone :</span>
+        <p class="paiement-tel"><span data-t="paiement_tel">Départ immédiat ou réservation par téléphone, de 7&nbsp;h à 22&nbsp;h&nbsp;:</span>
            <a href="tel:+33759312433">+33 7 59 31 24 33</a></p>
       </div>
     </div>
@@ -3943,7 +3944,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.</p>
       <!-- Une demande immédiate ne promet aucun délai, et ne laisse pas le
            client attendre sans recours : le numéro est là. -->
-      <p class="bon-note-asap" id="bonAsap" hidden><span data-t="bon_asap">Demande immédiate, soumise à disponibilité. Pour une réponse plus rapide, appelez-nous.</span>
+      <p class="bon-note-asap" id="bonAsap" hidden><span data-t="bon_asap">Demande immédiate, soumise à disponibilité. Pour une réponse plus rapide, appelez-nous de 7&nbsp;h à 22&nbsp;h.</span>
          <a href="tel:+33759312433" data-t="appeler">Appeler</a></p>
     </div>
 
@@ -4603,6 +4604,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <p class="affiche-hotel" id="afficheNom">Votre hôtel</p>
           <p class="affiche-mode">Scannez · Réservez · Prix annoncé à l'avance</p>
           <p class="affiche-tel">+33 7 59 31 24 33</p>
+          <p class="affiche-horaires">Réservation 24&nbsp;h/24 · Assistance&nbsp;humaine&nbsp;7&nbsp;h–&#8288;22&nbsp;h</p>
         </div>
         <p class="bloc-note" id="afficheLien"></p>
         <button class="bouton" type="button" id="btnImprimer"><span>Imprimer l'affiche</span></button>
@@ -6118,7 +6120,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         </svg>
         <span class="contact-corps">
           <b>WhatsApp</b>
-          <span class="contact-detail" data-t="contact_wa">Écrivez-nous, on répond vite</span>
+          <span class="contact-detail" data-t="contact_wa">Écrivez-nous à toute heure, réponse de 7&nbsp;h à 22&nbsp;h</span>
         </span>
       </a>
       <!-- L'E-MAIL (octobre 2026, à sa demande) : un hôtel ou une entreprise
@@ -6430,7 +6432,7 @@ window.ELA_TEXTES = {
     hero_titre:"Transferts avec chauffeur, organisés de A à Z.",
     hero_sous:"Roissy-CDG, Orly et Beauvais : prix annoncé à l'avance, chauffeur confirmé par Elatransfer.",
     hero_prix:"Aéroports · Gares · Hôtels · Salons",
-    hero_notes:"Réservation 24\u00a0h/24 · Assistance humaine 7\u00a0h–22\u00a0h",
+    hero_notes:"Réservation\u00a024\u00a0h/24 · Assistance\u00a0humaine\u00a07\u00a0h–\u206022\u00a0h",
     longue_titre:"Destination hors de France",
     longue_note:"Votre demande peut être envoyée : Elatransfer vous communique le tarif avant la course. Rien n'est dû tant que vous ne l'avez pas accepté.",
     quand_prog:"Programmer",
@@ -6446,7 +6448,7 @@ window.ELA_TEXTES = {
     adresse_manuelle:"Mon adresse n'est pas dans la liste — l'envoyer telle quelle",
     adresse_verifier:"Adresse à vérifier par Elatransfer : pas de prix automatique.",
     mesure_manuelle:"Distance calculée par Elatransfer",
-    bon_asap:"Demande immédiate, soumise à disponibilité. Pour une réponse plus rapide, appelez-nous.",
+    bon_asap:"Demande immédiate, soumise à disponibilité. Pour une réponse plus rapide, appelez-nous de 7\u00a0h à 22\u00a0h.",
     appeler:"Appeler",
     lieu_depart:"Lieu de départ", lieu_arrivee:"Lieu d'arrivée",
     ph_adresse:"Adresse, aéroport, hôtel…",
@@ -6636,7 +6638,7 @@ window.ELA_TEXTES = {
     paiement_lien_court:"Par lien, avant le départ",
     paiement_r1:"Elatransfer vous contacte pour confirmer votre course et vous envoie le lien de paiement de votre chauffeur.",
     paiement_r2:"Vous payez, votre chauffeur se met en route.",
-    paiement_tel:"Départ immédiat ou réservation par téléphone :",
+    paiement_tel:"Départ immédiat ou réservation par téléphone, de 7\u00a0h à 22\u00a0h\u00a0:",
     paiement:"Paiement",
     legal_titre:"Informations légales",
     legal_note:"Ces documents sont ceux qui vous engagent avec Elatransfer. Ils sont accessibles à tout moment, sans compte ni recherche.",
@@ -6661,7 +6663,7 @@ window.ELA_TEXTES = {
     courses_vide_cta:"Réserver un trajet",
     contact_titre:"Nous joindre",
     contact_note:"Réservation en ligne 24\u00a0h/24. Assistance humaine de 7\u00a0h à 22\u00a0h : pour une question, un changement d'heure ou une course immédiate, appelez, c'est le plus rapide.",
-    contact_wa:"Écrivez-nous, on répond vite",
+    contact_wa:"Écrivez-nous à toute heure, réponse de 7\u00a0h à 22\u00a0h",
     voir_bon:"Voir le bon",
     recherche:"Recherche…", aucune_adresse:"Aucune adresse trouvée",
     recherche_indispo:"Recherche momentanément indisponible — vérifiez votre connexion, puis retapez l'adresse.",
@@ -6672,12 +6674,12 @@ window.ELA_TEXTES = {
     hero_titre:"Chauffeur transfers, organised end to end.",
     hero_sous:"Roissy-CDG, Orly and Beauvais: price agreed in advance, chauffeur confirmed by Elatransfer.",
     hero_prix:"Airports · Stations · Hotels · Trade fairs",
-    hero_notes:"Book 24/7 · Human support 7\u00a0am–10\u00a0pm",
+    hero_notes:"Book\u00a024/7 · Live\u00a0support\u00a07\u00a0am–\u206010\u00a0pm (Paris\u00a0time)",
     longue_titre:"Destination outside France",
     longue_note:"You can send your request: Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
     quand_prog:"Schedule",
     asap_note:"Subject to availability, no pickup time guaranteed.",
-    asap_nuit:"Between 10\u00a0pm and 7\u00a0am, replies may be slower.",
+    asap_nuit:"Between 10\u00a0pm and 7\u00a0am (Paris time), replies may be slower.",
     asap_libelle:"As soon as possible", partir_asap:"Leave as soon as possible",
     tarif_a_confirmer:"Fare to be confirmed",
     tarif_note:"Elatransfer will give you the fare before the journey. Nothing is due until you accept it.",
@@ -6688,7 +6690,7 @@ window.ELA_TEXTES = {
     adresse_manuelle:"My address is not in the list — send it as typed",
     adresse_verifier:"Address to be checked by Elatransfer: no automatic fare.",
     mesure_manuelle:"Distance worked out by Elatransfer",
-    bon_asap:"Immediate request, subject to availability. For a faster answer, call us.",
+    bon_asap:"Immediate request, subject to availability. For a faster answer, call us from 7\u00a0am to 10\u00a0pm (Paris time).",
     appeler:"Call",
     lieu_depart:"Pick-up location", lieu_arrivee:"Drop-off location",
     ph_adresse:"Address, airport, hotel…",
@@ -6860,7 +6862,7 @@ window.ELA_TEXTES = {
     paiement_lien_court:"By link, before departure",
     paiement_r1:"Elatransfer contacts you to confirm your ride and sends you your chauffeur's payment link.",
     paiement_r2:"You pay, your chauffeur sets off.",
-    paiement_tel:"Immediate departure or booking by phone:",
+    paiement_tel:"Immediate departure or booking by phone, 7\u00a0am–\u206010\u00a0pm (Paris time):",
     paiement:"Payment",
     legal_titre:"Legal information",
     legal_note:"These documents set out your agreement with Elatransfer. You can read them at any time, no account needed.",
@@ -6884,8 +6886,8 @@ window.ELA_TEXTES = {
     courses_vide:"No booking in progress.",
     courses_vide_cta:"Book a ride",
     contact_titre:"Contact us",
-    contact_note:"Online booking 24/7. Human support from 7\u00a0am to 10\u00a0pm: for a question, a new time or a ride right now, calling is fastest.",
-    contact_wa:"Message us, we answer quickly",
+    contact_note:"Online booking 24/7. Live support from 7\u00a0am to 10\u00a0pm, Paris time: for a question, a change of time or a ride right now, calling is quickest.",
+    contact_wa:"Message us any time, we reply 7\u00a0am–\u206010\u00a0pm",
     voir_bon:"View voucher",
     recherche:"Searching…", aucune_adresse:"No address found",
     recherche_indispo:"Search temporarily unavailable — check your connection, then type the address again.",
@@ -10191,6 +10193,11 @@ window.ELA_TEXTES = {
     var h = heureParis();
     noteAsap.textContent = T("asap_note") + ((h >= 22 || h < 7) ? " " + T("asap_nuit") : "");
   }
+  /* La phrase n'a pas de data-t : sans ce rappel, un client qui passe en
+     anglais garderait la note de nuit en français. */
+  document.querySelectorAll(".langues button").forEach(function(b){
+    b.addEventListener("click", function(){ if(quandAsap) ecrireNoteAsap(); });
+  });
   function choisirQuand(asap){
     quandAsap = !!asap;
     btnQuandProg.setAttribute("aria-pressed", String(!quandAsap));

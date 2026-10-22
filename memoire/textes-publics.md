@@ -201,3 +201,32 @@ phrase de nuit du « Dès que possible »).
   suites au vert. Vu par la capture, pas par les tests. `formatToParts` ;
   `test-nouveau-preavis` pose l'horloge à Paris et le fuseau ailleurs (Tokyo,
   Honolulu) et tombe sur ce défaut (2 contrôles).
+- **La relecture indépendante (22/10/2026) a trouvé ce que les suites ne
+  voyaient pas** : une heure coupée après le tiret (« 7 h– » / « 22 h » à
+  320 px, mais seulement SANS la police du site — avec elle la ligne tenait),
+  le numéro coupé sur les pages anglaises, et sept endroits où le numéro restait
+  seul (404 FR et EN, « Besoin d'aide ? » du QR easyHotel, pied des pages
+  anglaises, « Départ immédiat ou réservation par téléphone », le bon d'une
+  demande immédiate, « WhatsApp : on répond vite »), plus « WhatsApp any time »
+  qui contredisait « WhatsApp de 7 h à 22 h ». Corrigé : U+2060 après le tiret
+  et insécables dans « Assistance humaine 7 h–22 h » (la ligne ne se coupe plus
+  qu'après « · ») ; « on écrit à toute heure, on répond de 7 h à 22 h » ;
+  « Live support » en anglais (« Human support » sentait la traduction), avec
+  « (Paris time) » pour qui lit depuis l'étranger.
+- **Ce qui n'a pas été touché, et pourquoi** : les CGV et les mentions légales
+  (des heures écrites au contrat deviendraient une obligation) ; le bouton
+  « Nous appeler » du bon (la phrase juste au-dessus donne les heures) ;
+  « très vite » / « rapidement » après une demande (la phrase de nuit dit déjà
+  que la réponse peut être plus lente).
+- **Ce qui le garde** : `test-public-horaires` (en CI par son préfixe) — le
+  numéro jamais seul sur quatorze pages, aucune coupure sur 84 blocs de 320 à
+  1366 px sans la police, la même phrase au bandeau et au pied, Google à
+  07:00–22:00 et 00:00–23:59. Éprouvé : horaires retirés de la 404 et ancienne
+  écriture remise, deux contrôles tombent en nommant la page. Les anciennes
+  formes (« 5 h–22 h », « de 22 h à 5 h », « 5 am–10 pm ») sont dans
+  `textes-interdits.mjs` : la construction et la surveillance de production
+  les refusent.
+- **La fiche Google** (Business Profile) : « Ouvert 24 h/24 », à sa demande —
+  c'est juste, le service (réservation, courses de nuit) tourne 24 h/24 ; seul
+  le téléphone s'arrête de 22 h à 7 h, et le site le dit. Elle se règle chez
+  Google, pas d'ici.
