@@ -306,11 +306,11 @@ await p.waitForTimeout(1500);
 check('le bon s\'affiche quand même', await p.locator('#ecran-bon').isVisible());
 /* Le message d'échec nomme LES DEUX gestes qui restent (16 octobre 2026,
    Barbaros : « on peut ajouter appeler directement aussi »). On cherche la
-   règle — « pas pu », WhatsApp, appeler — pas la phrase entière. */
-check('on dit clairement que la demande n\'est pas passée, et par où la faire passer',
-  /pas pu/.test(await p.locator('#envoiTexte').textContent())
+   règle — réception incertaine, WhatsApp, téléphone — pas la phrase entière. */
+check('on dit que la réception reste à vérifier, avec les deux moyens de contact',
+  /non vérifiée/.test(await p.locator('#envoiTexte').textContent())
   && /WhatsApp/.test(await p.locator('#envoiTexte').textContent())
-  && /appel/i.test(await p.locator('#envoiTexte').textContent()),
+  && /téléphone/i.test(await p.locator('#envoiTexte').textContent()),
   await p.locator('#envoiTexte').textContent());
 check('le bouton « Nous appeler » est là, et compose le numéro du site',
   await p.locator('#btnAppelerBon').isVisible()
@@ -379,7 +379,7 @@ await ctx.close();
   const r = await reserver('reprise', false, true);
   await r.p.waitForTimeout(1500);
   check('pendant que le client est sur WhatsApp, aucune panne n\'est annoncée',
-    !/pas pu/.test(await r.p.locator('#envoiTexte').textContent()),
+    !/non vérifiée/.test(await r.p.locator('#envoiTexte').textContent()),
     await r.p.locator('#envoiTexte').textContent());
   check('et le premier dépôt a bien échoué', r.depots.length===1,
     String(r.depots.length));
@@ -390,7 +390,7 @@ await ctx.close();
   check('à son retour, la demande est déposée pour de bon',
     r.depots.length===2, r.depots.length+' dépôts');
   check('et le bon dit qu\'elle est arrivée, pas qu\'elle a échoué',
-    !/pas pu/.test(await r.p.locator('#envoiTexte').textContent()),
+    !/non vérifiée/.test(await r.p.locator('#envoiTexte').textContent()),
     await r.p.locator('#envoiTexte').textContent());
   check('le renvoi WhatsApp redevient une action en retrait',
     (await r.p.locator('#btnRenvoyer').getAttribute('class'))==='bouton-fantome',
