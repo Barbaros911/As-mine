@@ -84,7 +84,8 @@ Histoire : `memoire/methode-de-travail.md`.
   **Tout fichier que la page charge doit y être nommé** : oublié, il marche en
   local et rend une 404 en ligne (arrivé avec `carte/`, `exploitant/`, les
   manifestes). Les contrôles de la recette lisent ses lignes de commande,
-  jamais ses commentaires.
+  jamais ses commentaires. Les scripts de construction n'utilisent que les
+  modules de Node : `pages.yml` n'installe rien avant `construire.sh`.
 - **Cloudflare sert le site** (`wrangler.jsonc`, branche `main`,
   `sh construire.sh`, dossier `site`) : `CLOUDFLARE.md`. `_headers` et
   `_redirects` n'agissent que là. Cloudflare tombe aussi : ne pas le vendre
@@ -211,6 +212,11 @@ recopier aucune règle de l'ancien site sans qu'il la redemande.
   Réglages → « Tarifs ». « Voir mon prix » attend la lecture (`tarifsLus`,
   4 s au plus). `test-doc.mjs` compare ce tableau à `GAMMES`, et `GAMMES` à la
   source serveur : un écart empêche la publication.
+- **LE REPLI DOIT SUIVRE LA PRODUCTION, et aucun contrôle ne lit la
+  production.** Si la lecture du serveur échoue, Réglages → Tarifs se remplit
+  depuis `GAMMES`, et « Enregistrer » réécrirait l'ancien prix, en silence.
+  Quand Barbaros change un prix dans l'admin, ce tableau, `GAMMES` et la source
+  serveur du dépôt (une migration conditionnelle) suivent.
 - **Le minimum berline est 35 €** (sa décision, 4/10) : tout trajet de
   12,06 km ou moins coûte 35 €. Ne pas le « corriger ».
 - **L'arrondi est le sien** : à la dizaine, et **le 5 pile DESCEND** (`>`,
@@ -228,8 +234,8 @@ recopier aucune règle de l'ancien site sans qu'il la redemande.
   empêché les erreurs de grille de devenir contractuelles), et leur date de
   mise à jour change avec elles.
 - **Un tarif au km par page dédiée** (`prix_pages`, 14/10/2026) : par page
-  d'`ORIGINES`, rien par défaut, jamais sur le minimum, un forfait ni la
-  pancarte ; centimes en entiers (`tarifKmMajore`) ; prix affiché = prix
+  d'`ORIGINES`, un tarif au km ou un % du tarif du site, rien par défaut,
+  jamais sur le minimum, un forfait ni la pancarte ; centimes en entiers (`tarifKmMajore`) ; prix affiché = prix
   facturé (`prixGamme`). `test-prix-pages.mjs`.
 - L'étiquette de « Nouvelle course » est fabriquée depuis `GAMMES`
   (`ecrireGrille()`), jamais écrite en dur.
@@ -286,8 +292,6 @@ Histoire : `memoire/prix-toutes-distances.md`.
 - **La ligne sous le bouton dit « Prix annoncé à l'avance · Réglé au
   chauffeur »** : jamais « prix ferme » pour vendre, ni annulation gratuite,
   ni « WhatsApp ou SMS ». « Ferme » reste au contrat (bon confirmé, CGV).
-- **Le nom et le téléphone se contrôlent à « Voir mon prix »**, pas à
-  « Confirmer » (dont l'erreur s'affichait sur une page cachée).
 - **Trois lignes numérotées au-dessus de « Confirmer »** disent ce qui va se
   passer : une phrase sous un bouton se lit trop tard.
 - **AUCUNE APPLICATION NE S'OUVRE AU CLIC** (4/10, option A) : le client dit où
@@ -297,14 +301,16 @@ Histoire : `memoire/prix-toutes-distances.md`.
   avant un `window.open` (Safari bloque une fenêtre ouverte après une
   attente). `reprendreDepot()` ne crie jamais à l'échec depuis l'arrière-plan :
   il réessaie **une fois** au retour sur l'onglet.
-- **`telValide` et `telWa` vivent dans `telephone.js`**, chargé par tous les
-  espaces **avant** `intake-demande.js` : le cloisonnement les avait emportés
-  et plus aucun client ne pouvait envoyer. Toute fonction appelée par une page
-  publique doit y être définie (`test-easyhotel-client.mjs`).
+- **`telValide` et `telWa` restent HORS du bloc exploitant** (le cloisonnement
+  les avait emportés et plus aucun client ne pouvait envoyer) ; leur contrôle
+  vit dans `telephone.js`, chargé par tous les espaces **avant**
+  `intake-demande.js`. Toute fonction appelée par une page publique doit y être
+  définie (`test-easyhotel-client.mjs`).
 - **« Inclus dans chaque course »** (bloc bleu nuit) n'annonce que des faits
   tenus par les CGV ; les trois étapes sont sous le formulaire ; les questions
   fréquentes reprennent les CGV — en changer une, c'est relire le contrat.
-  Jamais « VTC » à l'affichage.
+  Jamais « VTC » à l'affichage. Pas de second « Voir mon prix » plus bas
+  (refusé).
 
 Histoire : `memoire/tunnel-client.md`, `memoire/formulaire-public.md`.
 
@@ -421,6 +427,9 @@ Histoire : `memoire/itineraire.md`.
   de plus) ; la notification ne porte ni nom, ni téléphone, ni adresse, ni
   chambre ; elle ne peut jamais faire échouer une confirmation ; le clic
   ramène sur le bon. Sur iPhone, il faut le site installé : le bouton le dit.
+  **Tout push reçu affiche quelque chose** (`userVisibleOnly`) : traité en
+  silence, le navigateur révoque l'abonnement sans prévenir — d'où le titre
+  par défaut de `sw.js`.
 - **Le chiffrement push est éprouvé par un tiers** : `test-push.mjs` fait
   déchiffrer par `http_ece` et vérifier la signature par `node:crypto`. Ne pas
   le remplacer par un contrôle maison.
@@ -463,6 +472,16 @@ Histoire : `memoire/confirmation-client.md`.
   terminal, `rayonKm` par destination), jamais un mot ni un code postal. Hors
   zone : kilométrage, et on le dit. La destination reconnue part sur la course
   (`destHotelRetenue()`).
+- **« Autre destination » passe `?dest=autre`**, que `hotel-engine-polish.js`
+  traduit en l'option VIDE du moteur : sans cette traduction, le moteur
+  ouvrait sur CDG au forfait (un Versailles à 35 €). Le bloc « Destinations
+  populaires » du moteur est retiré : ne pas le remettre.
+- **Sur la page client d'un hôtel, nom et téléphone se contrôlent à « Voir mon
+  prix »**, avant de quitter la page des champs (l'erreur de « Confirmer »
+  s'affichait sur une page cachée). Les pages d'hôtel suivent la langue du
+  navigateur, l'anglais en repli.
+- **Sujets clos** : le numéro du flyer est le bon (une erreur de lecture
+  d'image) ; Le Bourget en berline à 35 €, confirmé par lui.
 - Le forfait vaut dans les deux sens (échange réel des champs) ; la chambre ne
   s'ouvre que sur un hôtel au départ ; les terminaux viennent de `AEROPORTS` ;
   les coordonnées de l'hôtel viennent de la BAN, `HOTELS` n'est qu'un secours.
@@ -543,7 +562,8 @@ Histoire : `memoire/affiche-qr.md`.
   le plus probable : « Auto Confirm User ». Le mot de passe se change dans
   Réglages (les autres appareils sont déconnectés). **NE JAMAIS CONSEILLER DE
   SUPPRIMER ET RECRÉER LE COMPTE** : `operateurs` le désigne par son
-  `user_id`.
+  `user_id`. Ni « Reset password » de Supabase : le site ne sait pas recevoir
+  ce lien.
 - **`body.espace`, jamais `body.exploitant`**, pour tout ce qui est admin.
   Colonne au-delà de 900 px, tuiles sur téléphone, même HTML. Seul le logo est
   en blanc ; les couleurs restent.
@@ -559,7 +579,9 @@ Histoire : `memoire/affiche-qr.md`.
   une demande » / « Saisir par téléphone », trois filtres, la liste groupée
   par jour (« en retard » est un avertissement rouge, sauf sur les
   réalisées). Les chiffres, courbes et provenances sont au **Registre**.
-  « Papiers à surveiller » n'apparaît que si quelque chose cloche.
+  **Les infos des chauffeurs ont quitté le tableau de bord** (sa demande) :
+  « Papiers à surveiller » vit en tête de l'écran Chauffeurs, et n'apparaît que
+  si quelque chose cloche.
 - **Coller une demande** : la course entre `attente`. **Saisir par
   téléphone** : elle entre `confirmee`, le prix se calcule **par le même chemin
   que le client** (égalité au centime testée), les adresses retenues sont
@@ -632,7 +654,8 @@ Histoire : `memoire/synchronisation-admin.md`.
 - **La facture de commission** : **pas de SIRET, pas de facture** (L441-9) ; le
   rang `F-AAAA-NNNN` est consommé à l'émission et ne recule jamais ; une course
   n'est facturée qu'une fois (`factureNum`), seulement réalisée ; la facture
-  est **figée** à l'émission ; TVA éteinte par défaut (art. 293 B du CGI) ;
+  est **figée** à l'émission ; TVA éteinte par défaut (art. 293 B du CGI),
+  et à 20 % si elle s'allume (l'intermédiation n'est pas du transport) ;
   mentions L441-10 et D441-5 ; à l'impression, seule la facture sort.
 - **La commission** : `commissionDe(course)` est le seul calcul — montant posé
   sur la course, sinon taux du chauffeur (% ou €), sinon taux du canal, sinon
@@ -656,7 +679,9 @@ Histoire : `memoire/chauffeurs-et-commission.md`.
   nom, ni téléphone, ni chambre (`departPublic`) ; le titre (trajet et heure)
   tient sous 90 caractères ; **aucun `parse_mode`** chez Telegram ; rien de
   configuré rend une **erreur**, jamais un 200. Les saisies de l'exploitant ne
-  sont ni annoncées ni relancées (sa demande).
+  sont ni annoncées ni relancées (sa demande). **Pas de serveur loué** : les
+  fonctions Supabase suffisent, ne pas y revenir sans un besoin qu'elles ne
+  couvrent pas.
 - **`a-coller.ts` est fabriqué par `assembler.mjs`**, jamais écrit à la main :
   c'est le déploiement de secours au téléphone. Le déploiement normal passe par
   `fonctions.yml`.
@@ -699,10 +724,21 @@ Histoire : `memoire/alertes-notifications.md`.
   « production », jamais dans le dépôt, un test ou une conversation. `CLE_ORS`
   et la clé publique VAPID sont dans la page parce que le navigateur en a
   besoin. La clé publique des notifications vient du serveur
-  (`cle-notifications`) ; ne jamais s'abonner avec `CLE_VAPID`.
+  (`cle-notifications`) ; ne jamais s'abonner avec `CLE_VAPID`. L'outil
+  « Fabriquer les clés » reste caché tant que le serveur a une clé (une paire
+  recollée couperait tous les abonnements). Écrire soi-même dans ses secrets a
+  été refusé par la sécurité de l'environnement : ne pas retenter.
+- **Le webhook INSERT sur `courses` porte la clé PUBLIQUE**, jamais un jeton
+  `service_role` (le tableau de bord Supabase remplit l'en-tête tout seul, et
+  c'est ainsi que le secret s'y était retrouvé ; corrigé par
+  `20261003030000_webhook_cle_publique.sql`). Après toute réinstallation du
+  webhook, rejouer cette migration : elle remplace l'en-tête, et ne fait rien
+  s'il est déjà bon.
 - **Seule `main` publie, déploie et migre** (garde dans chaque workflow, jeton
   dans l'environnement « production », **il expire le 1er octobre 2027 : le
-  refaire avant**). Les actions y sont épinglées par SHA, rien en `latest`.
+  refaire avant**). Dans ces workflows, toute action qui n'est pas de GitHub
+  est épinglée par son SHA, toute version est un numéro exact, rien en
+  `latest` (`test-doc.mjs`).
 - **Les migrations n'ont pas de registre** : avant de toucher un objet
   existant, lancer `20261003010000_inventaire_schema.sql`. **On supprime un nom
   lu dans `pg_policies`, jamais un nom lu dans une doc.** Une vue créée perd
@@ -710,7 +746,9 @@ Histoire : `memoire/alertes-notifications.md`.
   pas toute seule (workflow « Appliquer une migration Supabase »).
 - **Ne jamais rejouer `20260916100000_current_tariff_source.sql` ni
   `20260928120000_tarif_unifie.sql`** : ils écraseraient les prix réglés dans
-  l'admin. Toute migration de tarif est **conditionnelle**, sur le modèle de
+  l'admin. **Ni `20261014000000`** (mesure) : elle recréerait l'ancienne
+  `ela_mesurer` à deux paramètres, et les liens `?via=` ne seraient plus
+  comptés. Toute migration de tarif est **conditionnelle**, sur le modèle de
   `20261004000000_minimum_berline_35.sql`.
 - **Un SQL s'éprouve avant d'être poussé** : PostgreSQL 16 est installé ici
   (`/usr/lib/postgresql/16/bin`, sous l'utilisateur `postgres`, dans `/tmp`).
@@ -759,21 +797,26 @@ partenaire. `memoire/palette.md`.
 - **Une marque, deux espaces** : l'accueil est aux voyageurs, l'offre pro vit
   sur `/professionnels/`. Le grand titre dit le métier ; jamais « solution »,
   « mobilité », « plateforme », « conciergerie », « canal » ; « Prix annoncé à
-  l'avance » pour vendre ; le chauffeur est « professionnel indépendant »,
-  jamais « taxi » ni « VTC » ; aucun client cité, aucun chiffre promis ; « Mise
-  en place gratuite » à retirer le jour où un hôtel paie.
+  l'avance » pour vendre ; le chauffeur est « professionnel indépendant, sous
+  sa propre carte professionnelle et son assurance », jamais « taxi » ni
+  « VTC », et **aucun contrôle de ses papiers n'est promis** (ils avertissent,
+  ils ne bloquent plus) ; aucun client cité, aucun chiffre promis ; « Mise en
+  place gratuite » à retirer le jour où un hôtel paie. Ni sélecteur
+  « Particuliers | Pro », ni « Elatransfer Pro » tant qu'aucun compte pro
+  n'existe.
   `test-public-textes.mjs`. `memoire/textes-publics.md`, `memoire/accueil-pro.md`,
   `memoire/ordre-accueil.md`.
 - **Les cinq services de l'accueil** : une carte mène au formulaire si et
   seulement si elle annonce une adresse ; ni emoji, ni pack.
   `memoire/services-accueil.md`.
-- **Sur ordinateur** (au-delà de 900 px) : un menu en haut, le formulaire à
-  gauche sous la promesse, plus de barre du bas, un seul bouton principal. Ne
+- **Sur ordinateur** : au-delà de 900 px, un menu en haut et plus de barre du
+  bas ; au-delà de 1100 px, le formulaire à gauche sous la promesse ; un seul
+  bouton principal. Ne
   jamais promettre un service qu'il ne fait pas. `test-public-ordinateur.mjs`,
   `memoire/ordinateur.md`.
 - **Le formulaire public** : carte bleu nuit, « Voir mon prix » cyan texte
   bleu nuit, aucun bouton dans le bandeau, en-tête bleu nuit avec la version
-  négative du logo. « Voir mon prix » reste entier au-dessus de la barre à
+  négative du logo (le cartouche blanc a été refusé). « Voir mon prix » reste entier au-dessus de la barre à
   390×844. **Toujours capturer à 844 px de haut.** `test-public-formulaire.mjs`.
 - **La finition** : une échelle de titres, une recette de carte, un seul bouton
   plein par encart ; pas d'exception « pour ce bloc-là ».
@@ -795,11 +838,15 @@ partenaire. `memoire/palette.md`.
   `memoire/pilotage.md`.
 - **La démo Professionnels** (`/professionnels/` → `/demo/hotel/`) **n'atteint
   jamais la production** (CSP, `verifier-demo.mjs`, `deposer-course` refuse tout
-  « demo ») ; elle ne promet que le vrai ; ni robot ni humain bloqué sans
-  Turnstile ; l'accès dure 7 jours. `memoire/demo-pro.md`.
-- **La mesure du trafic** : rien sur l'appareil, aucun identifiant envoyé ;
-  lecture réservée à l'admin ; une réservation ne compte que si sa course
-  existe ; jamais une étape sous 5 personnes. `memoire/trafic.md`.
+  « demo ») ; elle ne promet que le vrai — « Déjà en service dans un hôtel de
+  la zone de Roissy-CDG », au singulier, jamais « nos partenaires », **à retirer
+  si ce partenariat cesse** ; ni robot ni humain bloqué sans Turnstile ;
+  l'accès dure 7 jours. `memoire/demo-pro.md`.
+- **La mesure du trafic** : rien sur l'appareil, aucun identifiant envoyé
+  (adresse et navigateur hachés avec une clé du jour détruite le lendemain) ;
+  jamais nom, téléphone, adresse, prix ni IP ; conservée 90 jours ; lecture
+  réservée à l'admin ; une réservation ne compte que si sa course existe ;
+  jamais une étape sous 5 personnes. `memoire/trafic.md`.
 
 ## Tests
 

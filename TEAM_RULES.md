@@ -53,8 +53,9 @@ dernier main → une branche courte par tâche → PR vers main
   second se remet à jour d'abord.
 - **GitHub impose le chemin** : ruleset « Protéger main »
   (`.github/ruleset-main.json`, comparé chaque jour à la règle en ligne par
-  `protections-main.yml`) — PR obligatoire, cinq contrôles verts sur une
-  branche à jour, conversations résolues, fusion en « Merge » seulement, ni
+  `protections-main.yml`) — PR obligatoire ; `admin`, `guardrails`,
+  `build-mobile-desktop`, `secrets-publics` et `gitleaks` verts sur une
+  branche à jour ; conversations résolues, fusion en « Merge » seulement, ni
   force-push ni suppression, personne d'exempté. Fonctions Supabase et
   migrations ne partent que de `main`.
 - **L'accord de Barbaros, lui, n'est PAS imposé par GitHub.** Zéro
@@ -112,8 +113,8 @@ l'ancienne version pendant vingt minutes.)*
 - **Une suite muette est un échec**, pas une suite « pas concernée ».
 - **Un test rouge qui révèle un problème produit, commercial ou juridique
   remonte comme décision** ; il ne se corrige pas en silence.
-- Quand la production diffère des sources, **les contrôles s'exécutent sur le
-  résultat de `construire.sh`**.
+- Quand la production diffère des sources, **les contrôles s'exécutent aussi
+  sur le résultat de `construire.sh`**.
 
 *(15/09 — un test figé sur `elatransfer-v80` a bloqué toute publication ; une
 suite plantait depuis 85 commits sans rien afficher.)*
