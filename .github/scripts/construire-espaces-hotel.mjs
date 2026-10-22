@@ -177,8 +177,10 @@ function sansReception(html) {
 
 function injecterBootstrap(html, role) {
   const bootstraps = {
-    public: `/* Entrée Publique dédiée : aucun mode Hôtel, Réception ou Admin. */\n  if(!lireConfirmation()) lirePrefillAeroport();\n\n`,
-    client: `/* Entrée Client hôtel : aucune fonction Réception ou Admin. */\n  if(!lireConfirmation() && !lireHotel()) lirePrefillAeroport();\n\n`,
+    /* La reprise d'un dépôt incertain (« reprendreDepotIncertain ») suit le lien
+       « ?ok= », qui passe avant ; au comptoir elle attend l'ouverture de la session. */
+    public: `/* Entrée Publique dédiée : aucun mode Hôtel, Réception ou Admin. */\n  if(!lireConfirmation()){ lirePrefillAeroport(); reprendreDepotIncertain(); }\n\n`,
+    client: `/* Entrée Client hôtel : aucune fonction Réception ou Admin. */\n  if(!lireConfirmation()){ if(!lireHotel()) lirePrefillAeroport(); reprendreDepotIncertain(); }\n\n`,
     reception: `/* Entrée Réception dédiée : authentification avant le comptoir. */\n  lireHotel();\n  ouvrirReception();\n\n`,
   };
   const bootstrap = bootstraps[role];
