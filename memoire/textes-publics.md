@@ -195,4 +195,9 @@ phrase de nuit du « Dès que possible »).
   horaires, réglés par Barbaros chez Google : y mettre 7 h–22 h, pas 24 h/24,
   sinon les clients appellent la nuit.
 - **La phrase de nuit suit l'heure de Paris** (`heureParis()`), plus celle du
-  téléphone : un voyageur garde parfois l'heure de chez lui.
+  téléphone : un voyageur garde parfois l'heure de chez lui. **Piège payé** :
+  le premier jet lisait l'heure par `format` en français, qui écrit « 06 h » —
+  `Number("06 h")` vaut NaN et la phrase ne sortait plus JAMAIS, toutes les
+  suites au vert. Vu par la capture, pas par les tests. `formatToParts` ;
+  `test-nouveau-preavis` pose l'horloge à Paris et le fuseau ailleurs (Tokyo,
+  Honolulu) et tombe sur ce défaut (2 contrôles).

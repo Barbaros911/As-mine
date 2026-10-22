@@ -10179,9 +10179,13 @@ window.ELA_TEXTES = {
      parfois l'heure de chez lui. Repli sur l'heure de l'appareil si le
      navigateur ne connaît pas les fuseaux. */
   function heureParis(){
+    /* formatToParts et pas format : en français, l'heure seule s'écrit
+       « 06 h », et Number("06 h") vaut NaN — la phrase ne sortait jamais. */
     try {
-      return Number(new Intl.DateTimeFormat("fr-FR", { timeZone:"Europe/Paris", hour:"2-digit", hourCycle:"h23" }).format(new Date()));
-    } catch(e){ return new Date().getHours(); }
+      var parts = new Intl.DateTimeFormat("en-GB", { timeZone:"Europe/Paris", hour:"2-digit", hourCycle:"h23" }).formatToParts(new Date());
+      for (var i = 0; i < parts.length; i++) if (parts[i].type === "hour") { var h = parseInt(parts[i].value, 10); if (!isNaN(h)) return h % 24; }
+    } catch(e){}
+    return new Date().getHours();
   }
   function ecrireNoteAsap(){
     var h = heureParis();
