@@ -87,6 +87,28 @@ une boîte englobante dont le centre tombe *entre* ses deux lignes ;
 crie à tort. Mesurer sur `getClientRects()[0]`, ou ne viser que des boutons
 (c'est ce que fait `test-seo-en`).
 
+**Deuxième passe le même soir, sur sa capture : « beaucoup trop de blanc,
+trop vide, trop de texte ».** Vu sur l'ordinateur : le bandeau vide à
+droite, des cartes qui flottent sur du blanc, un paragraphe par bloc.
+Corrigé dans `seo-pages.css` et les trois pages, qui sortent maintenant d'un
+seul squelette (`generer-pages-fr.py`, hors dépôt, dans le bac à sable) :
+- **le bandeau porte la carte du trajet à droite** dès 980 px (CDG → PAR,
+  trois faits), comme les pages anglaises ; rien à charger ;
+- **les blocs sont des bandes qui alternent** blanc, bleu glacé, bleu nuit
+  (`.band`, `.band.ice`, `.band.navy`), chacune avec sa colonne `.in` : un
+  bloc = un fond, pas un paragraphe de plus ;
+- **les textes sont coupés** : une phrase par carte, quatre étapes d'une
+  ligne, « Bon à savoir » en quatre tuiles courtes, le paragraphe « Qui est
+  Elatransfer » retiré (le fond est dans « Qui vous conduit », les liens
+  légaux dans le pied) ;
+- marges resserrées (`.band` 34 px, 26 px sur téléphone ; cartes 18 px).
+Mesuré : page CDG de 4 265 à 3 017 px de haut à 1366 px, de 7 256 à 5 552 px à
+390 px, pour le même contenu utile. Les 98 contrôles de `verif-fr.mjs`
+passent (contraste de `.intro` relevé à #58697b sur le bleu glacé : 4,4 → 5,2).
+**Piège de mesure** : un fond en `linear-gradient` a un `backgroundColor`
+transparent ; un calcul de contraste qui remonte les parents croit lire du
+blanc sous du texte blanc.
+
 ## Ce qui n'a pas été fait, et pourquoi
 
 - **L'accueil (`index.html`)** : zone de Codex (#399) pendant cette mission,
