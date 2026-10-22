@@ -45,7 +45,7 @@
           aConfirmer:"À confirmer", payeChauffeur:"Réglé directement au chauffeur",
           confirmation:"La confirmation vous sera envoyée par Elatransfer.",
           question:"Une question ? Elatransfer vous répond", canaux:"Appel et WhatsApp",
-          canauxTg:"Appel, WhatsApp — Telegram ", appeler:"Appeler", fermer:"Fermer", sansNom:"Client non nommé", a:" à ",
+          canauxTg:"Appel, WhatsApp — Telegram ", horaires:"Assistance humaine de 7\u00a0h à 22\u00a0h", appeler:"Appeler", fermer:"Fermer", sansNom:"Client non nommé", a:" à ",
           etats:{ attente:"Demande reçue", confirmee:"Confirmé", realisee:"Effectuée",
                   refusee:"Non prise", annulee:"Annulée" } },
     en: { titre:"Booking voucher", ref:"Ref.", client:"Guest", chambre:"Room",
@@ -55,7 +55,7 @@
           aConfirmer:"To be confirmed", payeChauffeur:"Paid directly to the driver",
           confirmation:"Your confirmation will be sent by Elatransfer.",
           question:"Questions? Elatransfer is here to help", canaux:"Call and WhatsApp",
-          canauxTg:"Call, WhatsApp — Telegram ", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
+          canauxTg:"Call, WhatsApp — Telegram ", horaires:"Live support from 7\u00a0am to 10\u00a0pm (Paris time)", appeler:"Call", fermer:"Close", sansNom:"Unnamed guest", a:" at ",
           etats:{ attente:"Request received", confirmee:"Confirmed", realisee:"Completed",
                   refusee:"Not taken", annulee:"Cancelled" } }
   };
@@ -203,6 +203,9 @@
     /* L'identifiant Telegram est ÉCRIT, comme le numéro : sur le PC de
        l'hôtel le client le recopie, il ne clique pas. */
     pied.appendChild(el("p", "ebon-contact-canaux", TELEGRAM_ELA ? L.canauxTg + TELEGRAM_NOM : L.canaux));
+    /* LES HORAIRES SOUS LE NUMÉRO (21/10/2026) : le client qui lit le numéro
+       doit savoir quand quelqu'un décroche. */
+    pied.appendChild(el("p", "ebon-contact-horaires", L.horaires));
     var liens = el("div", "ebon-contact-liens");
     function canal(texte, href, classe){
       var a = el("a", "ebon-canal " + classe, texte); a.href = href;
@@ -261,6 +264,7 @@
     + ".ebon-contact-titre{margin:0;font-size:13px;font-weight:700;color:#5A6A7B;}"
     + ".ebon-contact-num{margin:4px 0 0;font-size:22px;font-weight:800;color:#062f55;letter-spacing:.02em;}"
     + ".ebon-contact-canaux{margin:2px 0 0;font-size:13px;color:#5A6A7B;}"
+    + ".ebon-contact-horaires{margin:2px 0 0;font-size:13px;font-weight:700;color:#151C22;}"
     + ".ebon-contact-liens{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:8px 0 0;}"
     + ".ebon-canal{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;"
     +   "border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#0E5FA8;}"

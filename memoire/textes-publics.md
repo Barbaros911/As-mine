@@ -164,3 +164,69 @@ titre de l'accueil 4 → 8, description 4 → 8, sous-titre 3 → 8.
 > - `test-public-textes.mjs` verrouille ces règles (21 contrôles tombent sur le
 >   code d'avant).
 
+
+## Les horaires : réservation 24 h/24, assistance humaine 7 h–22 h (21/10/2026)
+
+Barbaros : « réservation 24/24, assistance humaine 7/22, écrit partout comme un
+expert ». C'était « Assistance 5 h–22 h », écrit à quatre endroits qui ne se
+lisaient pas entre eux (bandeau de l'accueil, réception, cinq pages anglaises,
+phrase de nuit du « Dès que possible »).
+- **Une seule phrase**, `hero_notes` (« Réservation 24 h/24 · Assistance
+  humaine 7 h–22 h ») : le bandeau ET le pied d'accueil (même clé, à côté du
+  numéro). « Nous joindre » et le bon du client (« Une question ? ») disent les
+  mêmes heures en toutes lettres.
+- **La nuit va de 22 h à 7 h** : « Entre 22 h et 7 h, la réponse peut être plus
+  lente » s'affiche sous « Dès que possible » dans cette fenêtre (`h < 7`).
+- **Espaces insécables** dans « 24 h/24 », « 7 h–22 h », « 7 am–10 pm » : une
+  heure coupée en fin de ligne ne se relit plus.
+- **Les contrôles lisent l'accueil, ils ne recopient plus l'heure** :
+  `test-seo-en` tirait « 5 am–10 pm » en dur ; il lit maintenant `hero_notes`.
+  `test-reception-bon` exige que la ligne du comptoir soit `hero_notes` mot pour
+  mot, et que le bon dise « Assistance humaine de 7 h à 22 h ».
+- **La règle qui tranche « partout »** (22/10/2026, « fait tout 10/10 ») :
+  partout où le numéro est écrit, les horaires l'accompagnent. D'où le pied
+  des trois pages françaises (CDG, Orly, Chauffeur privé, qui ne les disaient
+  pas alors que leurs sœurs anglaises le faisaient) et la page Professionnels
+  (« Parlons de votre établissement », « Vous préférez nous parler ? »).
+- **Google** : `contactPoint` porte deux points de contact — le service client
+  (téléphone, e-mail) de 07:00 à 22:00, et les réservations (le site) de 00:00
+  à 23:59, tous les jours. C'est la seule façon de dire « 24 h/24 » à Google
+  sans mentir sur le téléphone. La fiche Google (Business Profile) a ses propres
+  horaires, réglés par Barbaros chez Google : y mettre 7 h–22 h, pas 24 h/24,
+  sinon les clients appellent la nuit.
+- **La phrase de nuit suit l'heure de Paris** (`heureParis()`), plus celle du
+  téléphone : un voyageur garde parfois l'heure de chez lui. **Piège payé** :
+  le premier jet lisait l'heure par `format` en français, qui écrit « 06 h » —
+  `Number("06 h")` vaut NaN et la phrase ne sortait plus JAMAIS, toutes les
+  suites au vert. Vu par la capture, pas par les tests. `formatToParts` ;
+  `test-nouveau-preavis` pose l'horloge à Paris et le fuseau ailleurs (Tokyo,
+  Honolulu) et tombe sur ce défaut (2 contrôles).
+- **La relecture indépendante (22/10/2026) a trouvé ce que les suites ne
+  voyaient pas** : une heure coupée après le tiret (« 7 h– » / « 22 h » à
+  320 px, mais seulement SANS la police du site — avec elle la ligne tenait),
+  le numéro coupé sur les pages anglaises, et sept endroits où le numéro restait
+  seul (404 FR et EN, « Besoin d'aide ? » du QR easyHotel, pied des pages
+  anglaises, « Départ immédiat ou réservation par téléphone », le bon d'une
+  demande immédiate, « WhatsApp : on répond vite »), plus « WhatsApp any time »
+  qui contredisait « WhatsApp de 7 h à 22 h ». Corrigé : U+2060 après le tiret
+  et insécables dans « Assistance humaine 7 h–22 h » (la ligne ne se coupe plus
+  qu'après « · ») ; « on écrit à toute heure, on répond de 7 h à 22 h » ;
+  « Live support » en anglais (« Human support » sentait la traduction), avec
+  « (Paris time) » pour qui lit depuis l'étranger.
+- **Ce qui n'a pas été touché, et pourquoi** : les CGV et les mentions légales
+  (des heures écrites au contrat deviendraient une obligation) ; le bouton
+  « Nous appeler » du bon (la phrase juste au-dessus donne les heures) ;
+  « très vite » / « rapidement » après une demande (la phrase de nuit dit déjà
+  que la réponse peut être plus lente).
+- **Ce qui le garde** : `test-public-horaires` (en CI par son préfixe) — le
+  numéro jamais seul sur quatorze pages, aucune coupure sur 84 blocs de 320 à
+  1366 px sans la police, la même phrase au bandeau et au pied, Google à
+  07:00–22:00 et 00:00–23:59. Éprouvé : horaires retirés de la 404 et ancienne
+  écriture remise, deux contrôles tombent en nommant la page. Les anciennes
+  formes (« 5 h–22 h », « de 22 h à 5 h », « 5 am–10 pm ») sont dans
+  `textes-interdits.mjs` : la construction et la surveillance de production
+  les refusent.
+- **La fiche Google** (Business Profile) : « Ouvert 24 h/24 », à sa demande —
+  c'est juste, le service (réservation, courses de nuit) tourne 24 h/24 ; seul
+  le téléphone s'arrête de 22 h à 7 h, et le site le dit. Elle se règle chez
+  Google, pas d'ici.

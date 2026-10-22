@@ -217,8 +217,9 @@
        l'observateur se rappellerait lui-même. */
     var logoImg=document.querySelector('.entete .logo-image');
     if(logoImg && logoImg.getAttribute('src')!=='/brand-logo-negatif.webp') logoImg.setAttribute('src','/brand-logo-negatif.webp');
-    /* « Assistance humaine » en gras, le reste en clair, et une icône : la
-       même ligne sous le nom de l'hôtel, sur le formulaire ET sur la liste. */
+    /* Les horaires en gras (réservation 24 h/24, assistance humaine 7 h–22 h,
+       21/10/2026), le reste en clair, et une icône : la même ligne sous le nom
+       de l'hôtel, sur le formulaire ET sur la liste. */
     function assistance(el){
       if(!el) return;
       if(!el.querySelector('.reception-hours-copy')){
@@ -228,10 +229,12 @@
         c.appendChild(document.createElement('b'));c.appendChild(document.createElement('span'));
         el.appendChild(ic);el.appendChild(c);
       }
-      texte(el.querySelector('.reception-hours-copy b'),anglais?'Human assistance 5 am–10 pm':'Assistance humaine 5 h–22 h');
+      texte(el.querySelector('.reception-hours-copy b'),anglais
+        ? 'Book\u00a024/7 · Live\u00a0support\u00a07\u00a0am–\u206010\u00a0pm'
+        : 'Réservation\u00a024\u00a0h/24 · Assistance\u00a0humaine\u00a07\u00a0h–\u206022\u00a0h');
       texte(el.querySelector('.reception-hours-copy span'),anglais
-        ? ' · Leaving now? Call us, it is the fastest way'
-        : ' · Départ immédiat ? Appelez-nous, c’est le plus rapide');
+        ? ' · Leaving now? Call us'
+        : ' · Départ immédiat\u00a0? Appelez-nous');
     }
 
     var tete=document.getElementById('hotelTete');

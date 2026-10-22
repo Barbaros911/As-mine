@@ -60,4 +60,5 @@ footer { padding: 28px 22px; color: #dcecf7; background: var(--navy-deep); text-
 .faq summary { min-height: 28px; color: var(--navy); font-weight: 750; cursor: pointer; }
 .faq details p { margin: 8px 0 0; color: var(--muted); }
 footer a { color: #fff; font-weight: 750; }
+footer a[href^="tel:"], footer a[href^="mailto:"] { white-space: nowrap; }
 @media (max-width: 760px) { .grid.deux { grid-template-columns: 1fr; } }
