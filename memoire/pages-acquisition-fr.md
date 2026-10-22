@@ -87,53 +87,20 @@ une boîte englobante dont le centre tombe *entre* ses deux lignes ;
 crie à tort. Mesurer sur `getClientRects()[0]`, ou ne viser que des boutons
 (c'est ce que fait `test-seo-en`).
 
-**Deuxième passe le même soir, sur sa capture : « beaucoup trop de blanc,
-trop vide, trop de texte ».** Vu sur l'ordinateur : le bandeau vide à
-droite, des cartes qui flottent sur du blanc, un paragraphe par bloc.
-Corrigé dans `seo-pages.css` et les trois pages, qui sortent maintenant d'un
-seul squelette (`generer-pages-fr.py`, hors dépôt, dans le bac à sable) :
-- **le bandeau porte la carte du trajet à droite** dès 980 px (CDG → PAR,
-  trois faits), comme les pages anglaises ; rien à charger ;
-- **les blocs sont des bandes qui alternent** blanc, bleu glacé, bleu nuit
-  (`.band`, `.band.ice`, `.band.navy`), chacune avec sa colonne `.in` : un
-  bloc = un fond, pas un paragraphe de plus ;
-- **les textes sont coupés** : une phrase par carte, quatre étapes d'une
-  ligne, « Bon à savoir » en quatre tuiles courtes, le paragraphe « Qui est
-  Elatransfer » retiré (le fond est dans « Qui vous conduit », les liens
-  légaux dans le pied) ;
-- marges resserrées (`.band` 34 px, 26 px sur téléphone ; cartes 18 px).
-Mesuré : page CDG de 4 265 à 3 017 px de haut à 1366 px, de 7 256 à 5 552 px à
-390 px, pour le même contenu utile. Les 98 contrôles de `verif-fr.mjs`
-passent (contraste de `.intro` relevé à #58697b sur le bleu glacé : 4,4 → 5,2).
-**Piège de mesure** : un fond en `linear-gradient` a un `backgroundColor`
-transparent ; un calcul de contraste qui remonte les parents croit lire du
-blanc sous du texte blanc.
-
-**Troisième passe, même soir : « même les cadres sont tous blancs, fais
-comme un designer artistique expert, 10/10 ».** La deuxième passe avait
-alterné les fonds mais gardé des cartes blanches à bord gris. Direction
-artistique retenue, dans la marque et sans rien à acheter :
-- **le bandeau porte la photo de la marque** (`accueil-paris-nuit*.webp`,
-  celle de l'accueil, acceptée par Barbaros), voile bleu nuit qui part de la
-  gauche, titre avec un mot en cyan, carte du trajet en verre à droite ;
-- **les trois atouts sont posés à cheval sur le bas du bandeau** : cartes
-  bleu nuit, icône dans un disque cyan ;
-- **la prise en charge est une liste numérotée 01–05 avec une photo** dans
-  un cadre décalé cyan (`service-aeroport.webp` ; `champs-depuis-arc.jpg`
-  sur la page chauffeur, photo à gauche). `height:auto` sur l'image : sans
-  lui, l'attribut `height` du HTML l'emportait sur `aspect-ratio` et la
-  photo des Champs sortait en portrait ;
-- **les étapes sont une route pointillée avec de grands chiffres en
-  contour**, pas des boîtes ; **berline et van : deux cartes bleu nuit avec
-  le nombre de places en filigrane** (jamais un dessin de voiture) ;
-- **« Bon à savoir » : tuiles bleu glacé à filet cyan** ; questions avec un
-  « + » cyan ; **appel final sur la tour Eiffel de jour** (libre de droits,
-  contrairement à la nuit) sous un voile bleu nuit.
-- Sur-titres « — PRISE EN CHARGE » à chaque bande, en-tête collant sur
-  ordinateur seulement (sur téléphone, avec la barre du pouce, il mangeait
-  146 px de 568).
-Images : préchargement du bandeau ; les autres en `loading="lazy"`. Pages de
-14 à 15 Ko ; images déjà dans le dépôt, rien d'ajouté à `photos/`.
+**Deux passes visuelles le même soir, essayées puis RETIRÉES à sa demande.**
+Sur une capture, Barbaros a d'abord trouvé « beaucoup trop de blanc, trop de
+texte » (deuxième passe : bandes de fond qui alternent, textes coupés, carte
+du trajet dans le bandeau), puis « même les cadres sont tous blancs, fais
+comme un designer artistique » (troisième passe : cartes bleu nuit à cheval
+sur le bandeau, photos du dépôt, chiffres en contour, filigranes). Il a
+ensuite tranché : **« oublie les modifs visuelles, fais ce que tu faisais de
+base »** et il fournira lui-même de nouvelles photos. Les deux passes sont
+dans l'historique (`7b8f049`, `ebc8e74`, annulées par le commit suivant) :
+ne pas les remettre sans qu'il le redemande. Ce qui en reste utile le jour où
+il envoie ses photos : un bandeau avec la photo de la marque et la carte du
+trajet, une liste numérotée avec photo, des étapes sans boîtes — à lui de
+choisir sur captures. Piège retenu : l'attribut `height` d'une `<img>`
+l'emporte sur `aspect-ratio` ; poser `height:auto`.
 
 ## Ce qui n'a pas été fait, et pourquoi
 
