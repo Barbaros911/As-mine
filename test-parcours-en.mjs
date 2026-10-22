@@ -265,8 +265,9 @@ async function parcours(opts = {}, entree = '/en/cdg-airport-transfer-paris/', c
     etat: document.getElementById('bonEtat')?.textContent.trim(), tete: document.getElementById('bonNote')?.textContent.trim(),
     note: document.getElementById('noteRenvoi')?.textContent.trim(), renvoyer: document.getElementById('btnRenvoyer')?.className,
     appel: (() => { const a = document.getElementById('btnAppelerBon'); return a ? { visible: !!a.offsetParent, href: a.getAttribute('href'), texte: a.textContent.trim() } : null; })() }));
-  note('dépôt refusé : l\'écriteau dit que la demande n\'est pas arrivée et nomme WhatsApp', /could not reach us/i.test(bon.texte) && /WhatsApp/.test(bon.texte), bon.texte.slice(0, 400));
-  note('dépôt refusé : la tête du bon ne dit pas « received », elle dit « not reached »', !/received/i.test(bon.etat) && /not reached/i.test(bon.tete), JSON.stringify({ etat: bon.etat, tete: bon.tete }));
+  /* Depuis #402 (22/10/2026), sans accusé le bon dit « receipt not verified » : une écriture a pu avoir lieu, « could not reach us » l'affirmait à tort. On cherche la RÈGLE — l'écriteau dit que la réception n'est pas vérifiée et nomme WhatsApp ; la tête ne dit pas « received » — pas le libellé du jour. */
+  note('dépôt refusé : l\'écriteau dit que la réception n\'est pas vérifiée et nomme WhatsApp', /not verified|cannot verify|could not reach us/i.test(bon.texte) && /WhatsApp/.test(bon.texte), bon.texte.slice(0, 400));
+  note('dépôt refusé : la tête du bon ne dit pas « received », elle dit « to verify »', !/received/i.test(bon.etat) && /verify|not reached/i.test(bon.tete), JSON.stringify({ etat: bon.etat, tete: bon.tete }));
   note('dépôt refusé : le renvoi WhatsApp devient l\'action principale', bon.renvoyer === 'bouton', bon.renvoyer);
   note('dépôt refusé : la note ne décrit plus une ouverture de WhatsApp (retirée le 4/10/2026)', !/did not open|open/i.test(bon.note), bon.note);
   note('dépôt refusé : « Call us » est offert, compose le numéro du site et l\'écrit en format international', !!bon.appel && bon.appel.visible && bon.appel.href === 'tel:+33759312433' && /\+33 7 59 31 24 33/.test(bon.appel.texte) && /call/i.test(bon.texte), JSON.stringify(bon.appel));

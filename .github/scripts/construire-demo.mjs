@@ -403,7 +403,7 @@ function demoiser(html, vue) {
 
   // 9. Le démarrage : plus aucun paramètre d'adresse n'est lu.
   if (vue === 'client') {
-    html = remplacerUne(html, 'if(!lireConfirmation() && !lireHotel()) lirePrefillAeroport();', bootstrap('client'), 'bootstrap client');
+    html = remplacerUne(html, 'if(!lireConfirmation()){ if(!lireHotel()) lirePrefillAeroport(); reprendreDepotIncertain(); }', bootstrap('client'), 'bootstrap client');
   } else {
     html = remplacerUne(html, 'lireHotel();\n  ouvrirReception();', bootstrap('reception'), 'bootstrap réception');
     html = html.replace(/<script\b([^>]*)src=["']\/?bon-client\.js["']/gi, '<script$1src="/demo/bon-client.js"');

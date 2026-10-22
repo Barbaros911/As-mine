@@ -63,7 +63,8 @@ async function reception(numeroDepot) {
     if (u.includes('/functions/v1/courses-hotel'))
       return r.fulfill(J({ hotel:'easyhotel-aeroville', courses:LISTE, session:'s.sig', expire:Date.now() + 864e5 }));
     if (u.includes('/functions/v1/deposer-course'))
-      return r.fulfill(J(numeroDepot ? { ok:true, ref:'x', numero:numeroDepot } : { ok:true, ref:'x' }, 201));
+      /* Le vrai serveur rend LA référence déposée, et la page (depuis #402) refuse un accusé qui en porte une autre : le faux serveur la relit dans la demande, comme le vrai. */
+      return r.fulfill(J((refDeposee => numeroDepot ? { ok:true, ref:refDeposee, numero:numeroDepot } : { ok:true, ref:refDeposee })((() => { try { return r.request().postDataJSON().bon.ref; } catch (e) { return 'x'; } })()), 201));
     if (u.includes('/functions/v1/') || u.includes('/rest/v1/')) return r.fulfill(J([]));
     return r.abort();
   });
