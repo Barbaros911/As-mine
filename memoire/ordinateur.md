@@ -138,3 +138,19 @@ il changeait d'écran, sans le moindre message.
   sur une page déjà défilée : il lisait 365 px là où le client voit 774. Un
   contrôle de position se mesure **à l'arrêt, avant tout geste**. Éprouvé
   ensuite contre l'ancien code : il rend « reçoit : onglet ».
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LA BARRE DU BAS NE DOIT JAMAIS COUVRIR « VOIR MON PRIX »
+Ce qui est toujours là ne se remarque plus : on MESURE (`elementFromPoint`),
+à l'arrêt, avant tout geste — `force:true` clique à côté sans rien dire.
+Histoire (septembre puis octobre 2026, sur ordinateur) : `memoire/ordinateur.md`.
+
+## LE SITE SUR ORDINATEUR — UN MENU EN HAUT, LE FORMULAIRE DANS LE BANDEAU
+Au-delà de 900 px : en-tête « Services · Professionnels · Questions · Mes courses · Contact », plus de barre du bas ni de bande « Hôtel, agence » ; au-delà de 1100 px, formulaire À GAUCHE sous la promesse (Bloc 2), un seul bouton principal. Le téléphone ne bouge pas.
+Ne jamais remettre la barre sur ordinateur, ni promettre un service qu'il ne fait pas (« conciergerie » retirée, accueil = pancarte, pas « VIP »). `test-public-ordinateur.mjs`.
+Pourquoi, et ce qui a été mesuré (1366×768 = 657 px utiles) : `memoire/ordinateur.md`.

@@ -230,3 +230,35 @@ phrase de nuit du « Dès que possible »).
   c'est juste, le service (réservation, courses de nuit) tourne 24 h/24 ; seul
   le téléphone s'arrête de 22 h à 7 h, et le site le dit. Elle se règle chez
   Google, pas d'ici.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LE POSITIONNEMENT — UNE MARQUE, DEUX ESPACES
+
+Elatransfer organise des transferts avec chauffeur (B2C) et crée pour chaque
+partenaire sa page, son QR code et son espace réception (B2B). **Depuis le
+18/10/2026 l'accueil est aux voyageurs, l'offre pro vit sur `/professionnels/`**
+(audit du 18/10, ses décisions). Histoire : `memoire/textes-publics.md`,
+`memoire/accueil-pro.md`.
+- **Le grand titre dit le métier, sans lieu** ; le sous-titre parle au voyageur
+  et nomme les aéroports. Ni « Europe » ni « monde ».
+- **Jamais « solution », « mobilité », « plateforme », « conciergerie »,
+  « canal »** ; « suivi » = humain. **« Prix annoncé à l'avance » pour vendre** ;
+  « ferme » reste au contrat (bon confirmé, « Confirmer », CGV). Rien sous le logo.
+- Le chauffeur est « professionnel indépendant, sous sa propre carte
+  professionnelle et son assurance » (CGV art. 8) : jamais « taxi » ni « VTC »,
+  aucun contrôle de papiers promis, jamais « WhatsApp ou SMS ».
+- **Accueil** : aucun bouton dans le bandeau ; le menu « Professionnels » et la
+  ligne `.pro-bloc` mènent à `/professionnels/` ; `#modele` n'est qu'une
+  passerelle. Ni sélecteur « Particuliers | Pro », ni « Elatransfer Pro » tant
+  qu'aucun compte pro n'existe.
+- **Titre et description Google de l'accueil** : dans `index.html` ET
+  `seo-ela.mjs`, identiques, sans apostrophe droite (le test les coupe là).
+- « Mise en place gratuite » est vraie : la retirer le jour où un hôtel paie.
+  Aucun client cité, aucun chiffre promis. `contact@elatransfer.com` : pied,
+  bloc pro, « Nous joindre ».
+- `test-public-textes.mjs` verrouille ces règles.

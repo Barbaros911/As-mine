@@ -77,3 +77,31 @@ sur devis (décision du 30/09 gardée).
 - Ce qui n'a pas pu être vérifié d'ici : le vrai format de la réponse
   d'ORS avec `tollways`, lu dans sa documentation. Une réponse qui ne le
   porte pas rend « on ne sait pas », jamais une erreur.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## PLUS AUCUNE DEMANDE BLOQUÉE — ET LE PRIX À TOUTES LES DISTANCES
+
+4 octobre 2026 : une demande réelle part toujours (seule l'heure passée est
+refusée, avec « Partir dès que possible », `course.immediat`). **19 octobre
+2026, B2** (Barbaros : « je choisi b2 », « péage non inclus ») : la grille au
+km vaut pour **toute la France** ; restent « tarif à confirmer », sans aucun
+montant : l'**étranger** (`lieuEtranger()`, pays venu de Photon, motif
+`longue` gardé : le serveur le connaît), plus de 7 passagers, une adresse
+tapée sans être reconnue. L'admin refuse « Confirmer » tant que le prix n'est
+pas fixé (« Modifier la course »).
+- **PÉAGES NON COMPRIS** (CGV art. 4) : ORS les dit (`extra_info: tollways`,
+  `peageORS`, même dans le repli à une route) ; `mentionPeages()` rend « oui »,
+  « possible » (calcul muet et plus de 90 km autour de Paris) ou rien — ni sur
+  un forfait (il les comprend), ni sur une demande sans prix. Le client paie
+  AVANT le départ : Barbaros ajoute le péage au prix ; `#bbPeages` et la
+  pastille « Péages en plus » le rappellent. Format d'ORS lu dans sa doc, pas
+  éprouvé contre le vrai service.
+- `deposer-course` : prix forcé à 0 sur une demande à confirmer, prix positif
+  exigé sinon ; garde `peages`. Suites : `test-public-peages`,
+  `test-nouveau-sans-blocage`, `test-nouveau-preavis`. Histoire :
+  `memoire/prix-toutes-distances.md`.

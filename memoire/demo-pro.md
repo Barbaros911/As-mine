@@ -428,3 +428,30 @@ l'hôtel en service, avec son accord écrit).
 - Mesuré : aucun débordement de 320 à 1366 px (FR et EN), « Voir la démo
   hôtel » dans le premier écran partout (320×640 : 524–578). HTML +2 Ko
   compressés ; deux images par langue, ≈ 95 Ko, chargées à la demande.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LA DÉMO PROFESSIONNELS
+
+Livrée le 8/10/2026 : `/professionnels/` (indexable) → formulaire →
+`demande-demo` → `/demo/hotel/` (client et réception, simulateur local) ; les
+demandes arrivent dans l'admin, écran « Prospects » (admin seul, rien pour
+l'agent). Tout, et pourquoi : `memoire/demo-pro.md`.
+- **La démo n'atteint jamais la production** : CSP, `verifier-demo.mjs` à la
+  construction, `test-demo-hotel` ; `deposer-course` refuse tout « demo ».
+  Elle arrive FERMÉE et ne s'ouvre que sur une session du serveur : le
+  contrôle de production n'exige jamais qu'elle s'ouvre.
+- **Le texte ne promet que le vrai** : coût zéro, sans engagement, « Déjà en
+  service dans un hôtel de la zone de Roissy-CDG » au singulier (jamais « nos
+  partenaires » ; à retirer si le partenariat cesse). Aucun prix proposé,
+  aucune photo envoyée, des initiales au lieu d'un logo, le nom du prospect
+  venu du serveur et jamais de l'adresse.
+- **Ni robot ni humain bloqué** : pas de Turnstile (option B ;
+  `TURNSTILE_SECRET` + `CLE_TURNSTILE` le réactivent), champ piège, délai
+  minimum attendu par la page, 5 demandes/h/IP et 3/jour/e-mail. L'accès dure
+  7 jours, et c'est écrit partout. Aucun secret à poser : celui des sessions
+  se dérive de la clé service_role (`DEMO_SESSION_SECRET` posé l'emporte).

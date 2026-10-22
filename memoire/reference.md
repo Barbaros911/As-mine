@@ -165,3 +165,24 @@ Ce qui vaut maintenant :
 - `etat-course` refuse désormais une référence mal formée AVANT toute
   lecture (même réponse qu'une course introuvable) : cette fonction est
   ouverte à tous et sans plafond, chaque appel coûtait une lecture.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LA RÉFÉRENCE EST TIRÉE AU SORT — ET LE N° COURT VIENT DU SERVEUR
+
+La référence `ELA-AA-MM-XXXXX` est tirée au sort sur l'appareil
+(`referenceSuivante()`) et reste LA clé d'une course. **Ne jamais revenir à un
+compteur local** (29/09/2026). Le **N° court** (« N° 1042 ») est attribué par la
+**base** à l'écriture (`20261006000000_numero_court.sql`), immuable, recopié
+dans `bon.numero`, et tient seul la tête de toute alerte et du message WhatsApp
+(9/10/2026) ; la référence reste la clé technique. Ne jamais nommer la colonne
+ni passer à `select=*` (garde-fou de `version`).
+**UN 409 AU DÉPÔT N'EST PAS UNE DEMANDE PERDUE** (19/10/2026 ; 28 M de tirages
+par mois, ~15 % de collision mensuelle à 100 demandes/jour) : le site rejoue
+deux fois puis **tire une autre référence** (`deposerDemande`) ; l'admin aussi
+si la ligne distante est une AUTRE demande (`autreCourse` : téléphone, date,
+heure — jamais `cree`). Histoire : `memoire/reference.md`.

@@ -86,3 +86,23 @@ bouton, et la réassurance.
 - **DISNEYLAND EST UNE DESTINATION, PAS UNE OFFRE.** Le nommer est un usage
   descriptif — on dit où l'on conduit. **Ne pas en refaire un « pack »** : il
   a été retiré à sa demande, c'était le premier des deux.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LE TITRE ET LE BANDEAU D'ACCUEIL — L'HISTOIRE EST ARCHIVÉE
+
+Le titre « qui, quoi, où » de septembre et l'accroche en cinq lignes sont dans
+`memoire/bandeau-accueil.md`. Ce qui vaut aujourd'hui : le bandeau n'a pas de
+hauteur fixe, le bouton reste dans les 844 px, le titre se règle à la taille
+sous 360 px — et son TEXTE est fixé par « LE POSITIONNEMENT — DEUX ACTIVITÉS,
+UN SEUL SITE » en fin de fichier.
+**LA PHOTO EST « PARIS LA NUIT »** (Bloc 2, 7/10/2026, image fournie par
+Barbaros, tour illuminée acceptée par lui en connaissance de cause) : trois
+WebP dans `photos/accueil-paris-nuit*.webp`, un recadrage par écran, voile
+local et jamais de rideau ; sur ordinateur le formulaire est À GAUCHE sous
+la promesse, la scène à droite. La source PNG (3 Mo) reste hors dépôt.
+Histoire, mesures et choix écartés : `memoire/bandeau-photo.md`.

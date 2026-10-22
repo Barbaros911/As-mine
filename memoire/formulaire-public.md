@@ -115,3 +115,14 @@ avec cartouche blanc) : il a d'abord choisi C, puis l'a refusé une fois posé
   réglages de l'environnement avant de le régler sur de vraies requêtes.
 - **Les sélecteurs natifs de date et d'heure sur iPhone** ne s'éprouvent pas
   ici (Chromium seulement) : à regarder sur un vrai téléphone.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LE FORMULAIRE PUBLIC — BLEU NUIT, UN SEUL BOUTON PRINCIPAL (Bloc 3)
+7/10/2026 : carte bleu nuit, « Voir mon prix » cyan texte bleu nuit (8,3:1), aucun bouton dans le bandeau (18/10), deux rangées dès 600 px, « − / + » (mêmes bornes, mêmes événements), message SOUS le champ si une adresse manque, pictogrammes au trait au lieu des emojis.
+Tout est dans la façade, sous `html[data-ela-space="public"]` : la page d'un hôtel, la réception et l'admin portent la même carte et ne doivent jamais changer. L'en-tête est bleu nuit avec la VERSION NÉGATIVE du logo (`brand-logo-negatif.webp`, lettres blanches, courbe cyan, sa décision) posée par `publicEla()` : l'original y disparaît (1,1:1), le cartouche blanc a été refusé ; les espaces à en-tête clair gardent l'original. Budget : « Voir mon prix » entier au-dessus de la barre à 390×844 et 360×740 (612–668 le 18/10). `test-public-formulaire.mjs` mesure les contrastes sur les pixels rendus.
+Histoire, mesures, pièges : `memoire/formulaire-public.md`.

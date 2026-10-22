@@ -64,3 +64,19 @@ selon les règles de Google, sans contrôle, tri ni modification d'Elatransfer ;
 Elatransfer demande un avis à ses clients sans faire de tri entre eux
 (« review gating » interdit, voir `memoire/avis.md`). `test-public-avis-google`
 vérifie que ces mots y restent.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## Les documents légaux
+
+CGV, mentions légales et confidentialité, FR et EN, sans compte, depuis le
+pied de l'accueil (LCEN) ; corps en `textContent`. **Toucher au prix veut dire
+toucher aux CGV, dans les deux langues, sans y écrire un chiffre.** **Aucun
+trou** (`test-nouveau-bascule` cherche le crochet) : raison sociale, SIRET,
+siège, directeur de la publication et médiateur (L616-1) s'ajoutent le jour
+où il les donne, pas avant. Les mentions disent d'où vient la note Google
+(L111-7-2). Histoire : `memoire/documents-legaux.md`.

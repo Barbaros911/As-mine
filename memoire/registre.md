@@ -109,3 +109,32 @@ code `via`, demandes / confirmées / réalisées / argent).
   aucun lien : seul le `via` posé par `deposer-course` compte.
 - Épreuves : `supabase/tests/registre-serveur.sql` (CI, vrai PostgreSQL),
   `test-admin-registre-serveur`, `test-liens-suivi`.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## Le registre et « Coller une demande »
+
+**COLLER UNE DEMANDE** (haut du tableau de bord) : une demande écrite sur
+WhatsApp n'existe nulle part, le presse-papiers est le transport.
+`lireDemandeCollee()` lit la PLACE des choses, jamais les libellés (référence
+en tête, date JJ/MM/AAAA HH:MM, deux premières valeurs « … : … » = adresses,
+DERNIER montant = prix, dernière ligne « nom — téléphone ») : **changer le
+message client oblige à changer ce lecteur**. La course entre TOUJOURS en
+`attente` ; une minuterie de 1,2 s ouvre le repli (une lecture du
+presse-papiers peut rester pendante) ; le champ reste ouvert, vidé.
+
+**LE REGISTRE** : semaine, résultat par période, chauffeurs, recherche,
+sauvegarde JSON, CSV, restauration. **Chiffres, recherche paginée et liens
+partenaires viennent du SERVEUR** (20/10/2026, `20261020040000`) ; l'appareil
+ne sert que de repli, et `#regSource` le dit.
+- **Les chiffres ne comptent QUE les `realisee`**, à la date de la COURSE.
+- **CSV en point-virgule avec un BOM** (Excel français) ; la restauration
+  AJOUTE, n'écrase jamais.
+- **Délai de confirmation** (19/10/2026) : médiane, du dépôt par le site
+  (`securite.empreinteDepot`) au premier « Confirmer » (`confirmeeLe`, posé
+  par `majCourse` depuis « attente » seulement) ; ni saisie, ni collée, ni
+  essai. `test-admin-delai`. Histoire : `memoire/registre.md`.
