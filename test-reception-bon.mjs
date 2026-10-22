@@ -184,6 +184,18 @@ try {
   check('sur un PC, le bandeau du comptoir porte la photo de la réception, chargée',
     /\/photos\/easyhotel-aeroville-reception\.webp$/.test(bandeau.url) && bandeau.charge > 0, JSON.stringify(bandeau));
   check('le bandeau photo reste assez bas pour que la liste suive', bandeau.h <= 190, bandeau.h + ' px');
+  /* LES HORAIRES DU COMPTOIR SONT CEUX DE L'ACCUEIL (21/10/2026) : la ligne
+     est écrite dans la finition, la phrase de l'accueil dans la page. Lue des
+     deux côtés plutôt que recopiée ici : deux horaires qui divergent ne se
+     voient pas, et c'est la réception qui le répète au client. */
+  const horaires = await p.evaluate(() => {
+    const b = document.querySelector('#recAssistance .reception-hours-copy b, #receptionHoraires .reception-hours-copy b');
+    const t = (window.ELA_TEXTES || {}).fr || {};
+    return { comptoir: b ? b.textContent : '', accueil: t.hero_notes || '' };
+  });
+  check('le comptoir annonce les horaires de l\'accueil (réservation 24 h/24, assistance humaine)',
+    !!horaires.accueil && horaires.comptoir === horaires.accueil && /Assistance\shumaine/.test(horaires.comptoir),
+    JSON.stringify(horaires));
   /* LE TEXTE BLANC SE LIT SUR LA PHOTO : on cache le texte, on photographie
      ce qu'il y a derrière, et on prend le pixel le PLUS CLAIR de cette zone
      (le pire cas). Mesuré sur les pixels rendus, pas déduit du CSS. */
@@ -240,6 +252,9 @@ try {
   check('le bon écrit le numéro d\'Elatransfer en clair, en gros',
     (await contact.locator('.ebon-contact-num').textContent().catch(() => '')) === '+33 7 59 31 24 33'
     && (await contact.locator('.ebon-contact-num').evaluate(e => parseFloat(getComputedStyle(e).fontSize)).catch(() => 0)) >= 20);
+  const horairesBon = await contact.locator('.ebon-contact-horaires').textContent().catch(() => '');
+  check('sous le numéro, le bon dit quand quelqu\'un décroche (assistance humaine de 7 h à 22 h)',
+    /^Assistance humaine de 7\s?h à 22\s?h$/.test(horairesBon), horairesBon);
   /* SUR LE PC DE LA RÉCEPTION, LE BON N'A PLUS DE BOUTONS (21/10/2026) :
      un PC ne compose pas, et WhatsApp ou Telegram y ouvriraient le compte de
      quelqu'un. Le numéro et l'identifiant sont ÉCRITS : le client les

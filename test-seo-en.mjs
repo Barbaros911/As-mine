@@ -181,7 +181,15 @@ for (const chemin of pagesEn) {
   const reponsesEn = Object.keys(EN).filter(k => /^faq\d+r$/.test(k)).map(k => EN[k]);
   check(`${chemin} : ses réponses sont celles de l'accueil anglais, mot pour mot`,
     lu.faq.length >= 3 && lu.faq.every(r => reponsesEn.includes(r)), lu.faq.filter(r => !reponsesEn.includes(r)).join(' | '));
-  check(`${chemin} : les heures d'assistance sont celles de l'accueil (5 am–10 pm)`, /5 am–10 pm/.test(EN.hero_notes) && /5 am–10 pm/.test(lu.texte));
+  /* LES HEURES SE LISENT DANS L'ACCUEIL, JAMAIS RECOPIÉES ICI (21/10/2026) :
+     figées dans le test (« 5 am–10 pm »), elles auraient survécu au
+     changement d'horaires et fait tomber la suite le jour où il était juste. */
+  /* Le U+2060 posé après le tiret empêche la coupure « 7 am– / 10 pm » : il
+     est invisible, on l'ôte des deux côtés avant de comparer. */
+  const sansJoint = t => (t || '').replace(/\u2060/g, '').replace(/\s/g, ' ');
+  const heures = (sansJoint(EN.hero_notes).match(/\d+ (?:am|pm)–\d+ (?:am|pm)/) || [''])[0];
+  check(`${chemin} : les heures d'assistance sont celles de l'accueil (${heures || 'introuvables'})`,
+    !!heures && sansJoint(lu.texte).includes(heures), heures);
   blocsCommuns.push(lu.etapes + '\n' + lu.savoir);
 
   // Les gestes.
