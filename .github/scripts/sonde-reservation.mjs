@@ -52,17 +52,27 @@ export async function sonderReservation({ navigateur, base, ok, ko, envoyer = nu
       return route.abort();
     }
     corps.sonde = true;
+    const refPage = corps.bon.ref;
     corps.bon.ref = corps.bon.ref.replace(/^ELA-/, "SONDE-");
     etat.envoyee = true;
+    /* LA PAGE VÉRIFIE L'ACCUSÉ (#402, 22/10/2026) : « ok: true » et, si le
+       serveur rend une référence, LA SIENNE. Le serveur répond « SONDE-… »
+       — la référence qu'on lui a envoyée — et la page, qui n'a jamais vu ce
+       nom, tenait l'accusé pour un échec et REDÉPOSAIT : « deux demandes
+       parties » à chaque passage. On rend donc à la page la référence
+       qu'elle a émise ; l'état lu par la sonde garde celle du serveur. */
+    const pourLaPage = (j) => (j && typeof j === "object" && typeof j.ref === "string" && /^SONDE-/.test(j.ref))
+      ? { ...j, ref: refPage } : j;
     try {
       if (envoyer) {
         const r = await envoyer(corps);
         etat.depot = { status: r.status, corps: r.corps };
-        return route.fulfill({ status: r.status, contentType: "application/json", body: JSON.stringify(r.corps) });
+        return route.fulfill({ status: r.status, contentType: "application/json", body: JSON.stringify(pourLaPage(r.corps)) });
       }
       const rep = await route.fetch({ postData: JSON.stringify(corps) });
       let j = null; try { j = await rep.json(); } catch { j = null; }
       etat.depot = { status: rep.status(), corps: j };
+      if (j && typeof j === "object") return route.fulfill({ status: rep.status(), headers: rep.headers(), contentType: "application/json", body: JSON.stringify(pourLaPage(j)) });
       return route.fulfill({ response: rep });
     } catch (e) {
       etat.depot = { status: 0, raison: e.message };
