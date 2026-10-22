@@ -30,5 +30,17 @@ const nouveauCorps = `headers: { apikey: SUPABASE_CLE, "Content-Type": "applicat
 if (!html.includes(ancienCorps)) throw new Error('corps du dépôt public introuvable : transformation refusée');
 html = html.replace(ancienCorps, nouveauCorps);
 
+// La REST historique rendait un corps vide ; l’Edge Function rend un accusé JSON.
+// Une page de proxy, un objet vide ou une autre référence ne prouvent aucun dépôt.
+const accuseHistorique = `return r.json().then(function(j){
+          if(j && Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
+          return true;
+        }, function(){ return true; });`;
+if (!html.includes(accuseHistorique)) throw new Error('accusé du dépôt introuvable');
+html = html.replace(accuseHistorique, `return r.json().then(function(j){
+          if(!j || j.ok !== true || (j.ref && j.ref !== bon.ref)) return false;
+          if(Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
+          return true;
+        }, function(){ return false; });`);
 fs.writeFileSync(fichier, html);
 console.log('Dépôt public routé vers /functions/v1/deposer-course avec contexte partenaire');

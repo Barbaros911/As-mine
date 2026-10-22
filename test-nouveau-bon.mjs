@@ -183,11 +183,11 @@ check('et se nomme pour ce qu\'il est',
 /* La phrase dit ce qui se passe MAINTENANT — on cherche un chauffeur —
    plutôt que de renvoyer le client vers WhatsApp : il vient d'y envoyer sa
    demande, le lui répéter n'apprend rien. */
-/* Et sa phrase dit la vérité du moment : la demande n'est pas parvenue. Le
+/* Et sa phrase dit la vérité du moment : la réception ne peut pas être vérifiée. Le
    chemin nominal (« nous vérifions la disponibilité d'un chauffeur ») est
    éprouvé par test-nouveau-serveur.mjs, dépôt réussi. */
-check('le bon dit que la demande n\'est pas parvenue, pas qu\'on cherche un chauffeur',
-  /pas (encore )?parvenue/i.test(await p.locator('.bon-note').textContent())
+check('le bon dit que la réception reste à vérifier, pas qu\'on cherche un chauffeur',
+  /ne pouvons pas vérifier.*réception/i.test(await p.locator('.bon-note').textContent())
   && !(await p.locator('.bon-note').textContent()).includes('disponibilité'),
   await p.locator('.bon-note').textContent());
 

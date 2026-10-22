@@ -331,12 +331,12 @@ check('la course reste enregistrée sur l\'appareil',
    des quatre prompts). Mesuré avant : « Demande reçue — Nous vérifions la
    disponibilité d'un chauffeur » en tête, et « n'a pas pu nous être
    transmise » en rouge dix lignes plus bas. On cherche la RÈGLE — l'état
-   ne dit plus « reçue », la phrase dit « pas parvenue » — pas le libellé. */
+   ne dit plus « reçue », la phrase dit « réception non vérifiée » — pas le libellé. */
 check('la tête du bon ne dit plus « Demande reçue » quand le dépôt a échoué',
   !/re[çc]ue/i.test(await p.locator('#bonEtat').textContent()),
   await p.locator('#bonEtat').textContent());
-check('et sa phrase dit que la demande n\'est pas parvenue',
-  /pas (encore )?parvenue/i.test(await p.locator('#bonNote').textContent()),
+check('et sa phrase dit que la réception reste à vérifier',
+  /ne pouvons pas vérifier.*réception/i.test(await p.locator('#bonNote').textContent()),
   await p.locator('#bonNote').textContent());
 /* L'OUVERTURE AUTOMATIQUE DE WHATSAPP A ÉTÉ RETIRÉE LE 4 OCTOBRE 2026 :
    la note sous le bon ne peut plus dire « si WhatsApp ne s'est pas ouvert ».

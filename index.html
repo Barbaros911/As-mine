@@ -3973,6 +3973,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          n'existe pas. -->
     <div class="envoi" id="etatEnvoi" hidden>
       <p id="envoiTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnReessayerDepot" data-t="envoi_reessayer" hidden>Réessayer cet envoi</button>
     </div>
 
     <!-- ÊTRE PRÉVENU DE LA CONFIRMATION.
@@ -6457,7 +6458,7 @@ window.ELA_TEXTES = {
     envoi_ok_comptoir:"Rien d'autre à faire : Elatransfer prévient le client et cherche un chauffeur. La course passera à «\u00a0Réservation validée\u00a0» dans la liste de l'hôtel.",
     voir_reservations_hotel:"Voir les réservations de l'hôtel", appeler_elatransfer:"Appeler Elatransfer",
     bc_titre_ok:"Réservation enregistrée", bc_titre_cours:"Envoi de la réservation…",
-    bc_titre_ko:"Réservation non transmise", bc_attente:"En attente d'un chauffeur",
+    bc_titre_ko:"Envoi à vérifier", bc_attente:"En attente d'un chauffeur",
     bc_client:"Client", bc_trajet:"Trajet",
     err_identite:"Indiquez le nom et le téléphone du client : c'est là qu'Elatransfer envoie le lien de paiement.",
     btn_prix_attente:"Valider la réservation",
@@ -6553,9 +6554,9 @@ window.ELA_TEXTES = {
        WhatsApp : il vient d'y envoyer sa demande, le lui répéter n'apprend
        rien et ressemble à une consigne de plus. */
     bon_etat:"Demande reçue",
-    bon_etat_ko:"Demande non transmise",
+    bon_etat_ko:"Envoi à vérifier",
     bon_note:"Nous vérifions la disponibilité d'un chauffeur professionnel. Vous recevrez la confirmation de votre transfert.",
-    bon_note_ko:"Votre demande ne nous est pas encore parvenue.",
+    bon_note_ko:"Nous ne pouvons pas vérifier la réception de votre demande.",
     bon_etat_ok:"Transfert confirmé",
     bon_note_ok:"Votre chauffeur vous attend à l'heure convenue. Gardez ce bon : il porte votre référence.",
     confirme_titre:"Transfert confirmé",
@@ -6600,11 +6601,12 @@ window.ELA_TEXTES = {
     notif_ios:"Sur iPhone, ajoutez d'abord ce site à votre écran d'accueil : bouton Partager, puis « Sur l'écran d'accueil ». Vous pourrez alors être prévenu.",
     notif_non:"Votre navigateur ne sait pas recevoir de notification. La confirmation vous parviendra par le moyen choisi.",
     notif_rate:"L'inscription n'a pas abouti. La confirmation vous parviendra par le moyen choisi.",
+    envoi_reessayer:"Réessayer cet envoi",
     envoi_cours:"Envoi de votre demande…",
     envoi_ok:"Votre demande nous est bien parvenue. Nous vérifions la disponibilité d'un chauffeur et vous répondons très vite.",
-    envoi_ko:"Votre demande n'a pas pu nous être transmise. Envoyez-la sur WhatsApp ou appelez-nous : elle ne nous parviendra pas autrement.",
+    envoi_ko:"Réception non vérifiée. Contactez-nous sur WhatsApp ou par téléphone avec cette référence avant de créer une autre demande.",
     bon_appeler:"Nous appeler · 07 59 31 24 33",
-    envoi_ko_comptoir:"Votre demande n'a pas pu nous être transmise. Appelez Elatransfer au 07 59 31 24 33 pour la confirmer.",
+    envoi_ko_comptoir:"Réception non vérifiée. Appelez Elatransfer au 07 59 31 24 33 avec cette référence avant de créer une autre demande.",
     wa_titre:"Comment pouvons-nous vous aider ?",
     wa_c1:"J'ai une question sur ma réservation",
     wa_c2:"Je voudrais des informations",
@@ -6697,7 +6699,7 @@ window.ELA_TEXTES = {
     envoi_ok_comptoir:"Nothing else to do: Elatransfer notifies the guest and looks for a chauffeur. The ride will show as “Confirmed” in the hotel bookings.",
     voir_reservations_hotel:"View hotel bookings", appeler_elatransfer:"Call Elatransfer",
     bc_titre_ok:"Booking recorded", bc_titre_cours:"Sending the booking…",
-    bc_titre_ko:"Booking not sent", bc_attente:"Waiting for a chauffeur",
+    bc_titre_ko:"Submission to verify", bc_attente:"Waiting for a chauffeur",
     bc_client:"Guest", bc_trajet:"Route",
     err_identite:"Enter the guest's name and phone number: that is where Elatransfer sends the payment link.",
     btn_prix_attente:"Confirm booking",
@@ -6782,9 +6784,9 @@ window.ELA_TEXTES = {
     bon_sous:"Booking voucher",
     bon_ref_tech:"Ref.",
     bon_etat:"Request received",
-    bon_etat_ko:"Request not sent",
+    bon_etat_ko:"Submission to verify",
     bon_note:"We are checking the availability of a professional chauffeur. You will receive the confirmation of your transfer.",
-    bon_note_ko:"Your request has not reached us yet.",
+    bon_note_ko:"We cannot verify that your request was received.",
     bon_etat_ok:"Transfer confirmed",
     bon_note_ok:"Your chauffeur will be there at the agreed time. Keep this voucher: it carries your reference.",
     confirme_titre:"Transfer confirmed",
@@ -6824,11 +6826,12 @@ window.ELA_TEXTES = {
     notif_ios:"On iPhone, first add this site to your home screen: Share button, then « Add to Home Screen ». You will then be able to get notified.",
     notif_non:"Your browser cannot receive notifications. The confirmation will reach you through the channel you chose.",
     notif_rate:"Sign-up did not go through. The confirmation will reach you through the channel you chose.",
+    envoi_reessayer:"Retry this submission",
     envoi_cours:"Sending your request…",
     envoi_ok:"We have received your request. We are checking a driver's availability and will come back to you shortly.",
-    envoi_ko:"Your request could not reach us. Send it on WhatsApp or call us: it will not reach us any other way.",
+    envoi_ko:"Receipt not verified. Contact us on WhatsApp or by phone with this reference before creating another request.",
     bon_appeler:"Call us · +33 7 59 31 24 33",
-    envoi_ko_comptoir:"Your request could not reach us. Please call Elatransfer on +33 7 59 31 24 33 to confirm it.",
+    envoi_ko_comptoir:"Receipt not verified. Call Elatransfer on +33 7 59 31 24 33 with this reference before creating another request.",
     wa_titre:"How can we help?",
     wa_c1:"I have a question about my booking",
     wa_c2:"I would like some information",
@@ -8693,6 +8696,10 @@ window.ELA_TEXTES = {
      d'abord et le curseur arrive après, sinon le navigateur ramène de
      force le champ à l'écran et annule le mouvement. */
   document.getElementById("btnRecReserver").addEventListener("click", function(){
+    if(bonSoumis){
+      if(envoiEtat === null){ ecran("ecran-bon"); return; }
+      document.getElementById("btnNouvelleCourse").click();
+    }
     ecran("ecran-accueil");
     setTimeout(function(){
       var dest = document.getElementById("hotelDest");
@@ -11355,6 +11362,7 @@ window.ELA_TEXTES = {
     return euros(t);
   }
   var bonCourant = null;
+  var bonSoumis = null; // Conservé jusqu’au geste explicite « nouvelle course ».
   var bonAffiche = null;       // le bon actuellement dessiné à l'écran
   /* ═══ LE N° COURT (5 octobre 2026) ═══ « N° 1042 », attribué par le
      serveur au dépôt et rendu par « deposer-course » ou « etat-course ».
@@ -11602,6 +11610,12 @@ window.ELA_TEXTES = {
   }
 
   document.getElementById("btnConfirmer").addEventListener("click", function(){
+    // Le changement d’écran seul ne bloque pas des événements déjà en file.
+    if(bonSoumis){
+      if(envoiEtat === false){ afficherEtatEnvoi(null); reprendreDepot(bonSoumis); }
+      ecran("ecran-bon");
+      return;
+    }
     var nom = champNom.value.trim(), tel = champTel.value.trim();
     var parChambre = identifieParLaChambre();
     if(!parChambre && (!nom || !tel)){
@@ -11807,7 +11821,8 @@ window.ELA_TEXTES = {
        avec « keepalive » (voir « nuage.deposer ») et « reprendreDepot »
        réessaie une fois au retour sur l'onglet. Histoire de l'ancienne
        ouverture automatique de WhatsApp : memoire/contact-client.md. */
-    var depot = deposerDemande(bonCourant);
+    bonSoumis = bonCourant;
+    var depot = deposerDemande(bonSoumis);
     /* ═══ PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC (4 octobre 2026) ═══
        Option A, décidée par Barbaros. Le dépôt suffit : la demande arrive
        dans l'admin et Telegram l'annonce, le client reste sur son bon. Le
@@ -11847,9 +11862,9 @@ window.ELA_TEXTES = {
            n'existe pas.
    true  : la demande est dans le tableau de bord de Barbaros. Le client
            n'a plus rien à faire, et le renvoi reste en retrait.
-   false : elle n'est nulle part. Le renvoi par WhatsApp devient alors le
-           SEUL chemin par lequel elle peut nous parvenir : il passe en or
-           et la phrase le dit sans détour. Ne jamais retirer ce repli —
+   false : l'accusé manque ; une écriture peut avoir eu lieu. Réessayer
+           conserve la référence. Le renvoi WhatsApp et l'appel permettent
+           de vérifier avec l'exploitant avant une nouvelle demande. Ne jamais retirer ce repli —
            un « Confirmer » qui ne confirme rien, c'est un client qui
            attend une voiture à 5 h du matin pendant que personne ne sait
            rien.
@@ -11859,8 +11874,14 @@ window.ELA_TEXTES = {
   var noteRenvoi  = document.getElementById("noteRenvoi");
   var btnRenvoyer = document.getElementById("btnRenvoyer");
   var envoiEtat   = null;
+  document.getElementById("btnReessayerDepot").addEventListener("click", function(){
+    if(bonSoumis && envoiEtat === false) document.getElementById("btnConfirmer").click();
+  });
   function afficherEtatEnvoi(etat){
     envoiEtat = etat;
+    document.getElementById("btnReessayerDepot").hidden = etat !== false;
+    document.getElementById("btnConfirmer").disabled = etat !== false;
+    document.getElementById("btnNouvelleCourse").disabled = etat === null;
     blocEnvoi.hidden = false;
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
     /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
@@ -11888,9 +11909,9 @@ window.ELA_TEXTES = {
      demande n'a pas pu nous être transmise » dix lignes plus bas. Deux
      phrases contraires sur le même écran, à l'endroit du site où mentir
      coûte le plus (CLAUDE.md, « une panne inventée »).
-     LA TÊTE DU BON SUIT LE DÉPÔT : tant qu'on ne sait pas, et dès qu'elle est
-     arrivée, « Demande reçue » ; quand le dépôt a échoué, « Demande non
-     transmise » et une phrase courte — la consigne (WhatsApp côté client,
+     LA TÊTE DU BON SUIT LE DÉPÔT : « Envoi en cours » avant l’accusé,
+     « Demande reçue » après ; sans accusé, « Envoi à vérifier »
+     et une phrase courte — la consigne (WhatsApp côté client,
      appel au comptoir) est déjà dans l'écriteau rouge, on ne la répète pas.
      Seul le bon de la demande EN COURS peut être « non transmise » : un bon
      rouvert depuis « Mes courses » garde ses libellés d'attente. Un bon
@@ -11902,11 +11923,12 @@ window.ELA_TEXTES = {
     if(!bon || !etat || !note) return;
     var confirme = (bon.statut === "confirmee");
     var ko = envoiEtat === false && bon === bonCourant && !confirme && !bon.partiel;
-    var cleEtat = ko ? "bon_etat_ko" : (confirme ? "bon_etat_ok" : "bon_etat");
+    var attenteDepot = envoiEtat === null && bon === bonCourant && !confirme && !bon.partiel;
+    var cleEtat = attenteDepot ? "envoi_cours" : ko ? "bon_etat_ko" : (confirme ? "bon_etat_ok" : "bon_etat");
     /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
        la confirmation n'arrive pas « chez vous », elle apparaît dans la liste
        de l'hôtel. */
-    var cleNote = ko ? "bon_note_ko"
+    var cleNote = attenteDepot ? "envoi_cours" : ko ? "bon_note_ko"
                 : confirme ? "bon_note_ok"
                 : (recHotel ? "bon_note_comptoir" : "bon_note");
     etat.textContent = T(cleEtat);
@@ -12334,13 +12356,16 @@ window.ELA_TEXTES = {
                 + encodeURIComponent(messageDemande(bonCourant)), "_blank");
   });
   document.getElementById("btnNouvelleCourse").addEventListener("click", function(){
+    if(bonSoumis && envoiEtat === null) return;
+    bonSoumis = null;
+    document.getElementById("btnConfirmer").disabled = false;
     /* ═══ AU COMPTOIR, LA COURSE SUIVANTE EST CELLE D'UN AUTRE CLIENT
        (30/09/2026) ═══ La chambre, le nom et le téléphone du précédent
        restaient remplis : réservé à la chaîne, le client suivant partait
        avec la chambre d'un autre — et son numéro recevait le bon d'un
        inconnu. Côté client, on garde : c'est le même voyageur. */
     if(recHotel){
-      ["chambre", "clientNom", "clientTel", "vol", "pancarteNom"].forEach(function(id){
+      ["chambre", "clientNom", "clientTel", "vol", "pancarteNom", "noteCourse"].forEach(function(id){
         var el = document.getElementById(id);
         if(el){ el.value = ""; el.dispatchEvent(new Event("input", { bubbles:true })); }
       });
