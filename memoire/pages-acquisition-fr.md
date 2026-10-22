@@ -109,6 +109,32 @@ passent (contraste de `.intro` relevé à #58697b sur le bleu glacé : 4,4 → 5
 transparent ; un calcul de contraste qui remonte les parents croit lire du
 blanc sous du texte blanc.
 
+**Troisième passe, même soir : « même les cadres sont tous blancs, fais
+comme un designer artistique expert, 10/10 ».** La deuxième passe avait
+alterné les fonds mais gardé des cartes blanches à bord gris. Direction
+artistique retenue, dans la marque et sans rien à acheter :
+- **le bandeau porte la photo de la marque** (`accueil-paris-nuit*.webp`,
+  celle de l'accueil, acceptée par Barbaros), voile bleu nuit qui part de la
+  gauche, titre avec un mot en cyan, carte du trajet en verre à droite ;
+- **les trois atouts sont posés à cheval sur le bas du bandeau** : cartes
+  bleu nuit, icône dans un disque cyan ;
+- **la prise en charge est une liste numérotée 01–05 avec une photo** dans
+  un cadre décalé cyan (`service-aeroport.webp` ; `champs-depuis-arc.jpg`
+  sur la page chauffeur, photo à gauche). `height:auto` sur l'image : sans
+  lui, l'attribut `height` du HTML l'emportait sur `aspect-ratio` et la
+  photo des Champs sortait en portrait ;
+- **les étapes sont une route pointillée avec de grands chiffres en
+  contour**, pas des boîtes ; **berline et van : deux cartes bleu nuit avec
+  le nombre de places en filigrane** (jamais un dessin de voiture) ;
+- **« Bon à savoir » : tuiles bleu glacé à filet cyan** ; questions avec un
+  « + » cyan ; **appel final sur la tour Eiffel de jour** (libre de droits,
+  contrairement à la nuit) sous un voile bleu nuit.
+- Sur-titres « — PRISE EN CHARGE » à chaque bande, en-tête collant sur
+  ordinateur seulement (sur téléphone, avec la barre du pouce, il mangeait
+  146 px de 568).
+Images : préchargement du bandeau ; les autres en `loading="lazy"`. Pages de
+14 à 15 Ko ; images déjà dans le dépôt, rien d'ajouté à `photos/`.
+
 ## Ce qui n'a pas été fait, et pourquoi
 
 - **L'accueil (`index.html`)** : zone de Codex (#399) pendant cette mission,
