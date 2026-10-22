@@ -26,7 +26,10 @@ import { extname, join, normalize } from 'node:path';
 import { juger, appliquer, JOURS_MAX } from './.github/scripts/avis-google.mjs';
 
 const ok = [], ko = []; const check = (n, c, d = '') => (c ? ok : ko).push(n + (d ? ' — ' + d : ''));
-const SOURCE = JSON.parse(fs.readFileSync('avis-google.json', 'utf8'));
+// Le fichier tel quel décide si la note est en ligne ; les contrôles de forme
+// et de rendu l'éprouvent allumée, pour rester utiles quand elle est éteinte.
+const FICHIER = JSON.parse(fs.readFileSync('avis-google.json', 'utf8'));
+const SOURCE = { ...FICHIER, afficher: true };
 const PAGES = ['index.html', 'transfert-cdg-paris.html', 'transfert-orly-paris.html', 'chauffeur-prive-paris.html',
   'professionnels/index.html', 'en/index.html', ...fs.readdirSync('en', { withFileTypes: true })
     .filter(e => e.isDirectory()).map(e => `en/${e.name}/index.html`)];
@@ -38,7 +41,7 @@ const plusJours = (iso, n) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 8640
 // une note périmée s'éteint, elle ne bloque pas une correction urgente.)
 const j0 = juger(SOURCE, SOURCE.releve_le);
 check('avis-google.json est bien formé (note, nombre, lien Google, date)', j0.ok, j0.raison || '');
-const jAuj = juger(SOURCE);
+const jAuj = juger(FICHIER);
 console.log(`(note du fichier : ${jAuj.ok ? 'affichée, relevée il y a ' + jAuj.age + ' j' : 'éteinte — ' + jAuj.raison})`);
 
 // ─── 2. Le dépôt n'écrit le chiffre nulle part ──────────────────────────
