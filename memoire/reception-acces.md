@@ -74,3 +74,18 @@ filtrée sur l'hôtel.
   avalait les appels — et la suite mesurait une panne réseau en croyant
   mesurer un refus de code.
 
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LA PAGE DE LA RÉCEPTION — DEUX ADRESSES, UN CODE SERVEUR, AUCUNE SUPPRESSION
+
+`?h=` est le flyer (les clients), `?reception=` le comptoir. Le code vit dans
+les secrets Supabase (`HOTEL_<CLE>_CODE`), jamais dans la page ; `courses-hotel`
+est la seule porte, elle ne fait que LIRE (liste blanche, filtre sur
+`provenanceCle`, jamais le libellé) et refuse toute autre action. **La
+réception n'annule rien (30/09) et ne supprime rien (20/10)** : elle appelle.
+Marche à suivre : `RECEPTION-HOTEL.md`. Histoire et pièges :
+`memoire/reception-acces.md`.

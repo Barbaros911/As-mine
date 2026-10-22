@@ -58,3 +58,15 @@ Fabriquées par Chromium (canvas, lissage « high », qualité 0,82) : aucune
 dépendance ajoutée. `test-nouveau-bascule` exige moins de 60 Ko par vignette,
 au moins deux fois sa largeur affichée en pixels réels, et que chaque original
 reste dans le dépôt.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LES PHOTOS DE L'ACCUEIL — ON N'EN SUPPRIME AUCUNE
+
+`photos/` est le travail de Barbaros : rien ne s'y supprime sans lui. Les
+vignettes publiées sont des **copies allégées** (`-480.webp`) posées à côté
+des originaux. Histoire (photos perdues le 18/09, contrôle) : `memoire/photos-accueil.md`.

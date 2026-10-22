@@ -122,3 +122,30 @@ réalisée, refusée ou annulée est laissée telle quelle.
 course supprimée ou réalisée dans l'admin change chez eux à la relecture
 suivante (30 s). La règle du 30/09 (« la réception ne peut annuler ») tient.
 `test-admin-ergonomie` (bloc 2 bis).
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## L'ADMIN ERGONOMIQUE (9–10/10/2026) — RECHERCHE, SÉLECTION, ESSAI, MENU EN DEUX RANGÉES
+
+Mesuré sur le site construit à 390 × 844 ; histoire, mesures et détour de CI
+dans `memoire/admin-ergonomie.md`. Ce qui vaut :
+- **Trois icônes en tête, pas une rangée de plus** : loupe (recherche,
+  `correspondCourse`), **« Sélectionner » visible** (10/10 : derrière la loupe
+  il ne l'avait pas trouvé) → « Marquer réalisées » ou « Supprimer », deux appuis,
+  700 ms ; Actualiser. La réception reste en lecture (sa décision).
+- **Le menu tient en deux rangées** (10/10, « Corrige tout ») : sur téléphone
+  « Nouvelle course » n'est plus une tuile (elle vit sous le titre), « Quitter »
+  et « Se déconnecter » sont deux liens sous l'état du compte (`.admin-sortie`,
+  mêmes identifiants), et **« Équipe » ne s'affiche qu'avec un compte agent**.
+- **Le budget est mesuré, pas deviné** : bandeau d'alerte affiché, la première
+  demande finit à 729 px sur 844 (`test-admin-voyant`, K) ; trois bandeaux
+  affichés, à 812 (`test-admin-ergonomie`). Sur la ligne du bas d'une carte,
+  on cède la ligne grise, puis la pastille de l'hôtel, jamais les boutons.
+- **« Course d'essai »** (`bon.essai`, exclue de tout ce qui compte de l'argent :
+  `comptable()`). Registre : recherche en tête ; Réglages : notifications en
+  tête ; Chauffeurs : la liste d'abord. Les trois boutons négatifs de la fiche
+  restent (`test-admin-arrivee` les fige).

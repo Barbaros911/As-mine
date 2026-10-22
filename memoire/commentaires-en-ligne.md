@@ -95,3 +95,22 @@ pour qui cherche une faille, sans même un mot de passe à deviner.
   public n'a PAS été fait** : les données restent protégées côté serveur
   (RLS, `est_exploitant()`), seul le code fuyait. C'est un chantier plus
   gros, mis de côté à sa demande pour l'instant.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LES COMMENTAIRES DE TRAVAIL NE PARTENT PLUS EN LIGNE
+
+`.github/scripts/masquer-commentaires.mjs` les retire de la copie posée dans
+`site/`, en DERNIÈRE étape de `construire.sh` — jamais du dépôt, qui garde la
+mémoire. Ils disaient en clair comment l'espace exploitant est protégé.
+- **Toute page ou tout script publié ajouté à la recette entre dans sa liste**
+  (l'admin et la réception l'avaient manquée : 841 blocs en ligne) ; les
+  feuilles passent par le motif `site/*.css`. `test-nouveau-bascule` le
+  prouve sur le site construit, en CI.
+- Aucune dépendance : `pages.yml` n'installe rien avant de construire.
+  `_headers` et `carte/` (licence de Leaflet) restent tels quels.
+- Histoire, pièges du CSS et de `robots.txt` : `memoire/commentaires-en-ligne.md`.

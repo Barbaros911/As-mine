@@ -2,7 +2,7 @@
 
 ELA Transfer est une plateforme de réservation et de gestion de courses avec chauffeur privé. Ce dépôt contient la façade publique, le moteur de réservation partagé, les accès easyHotel, l’espace exploitant/Admin, les fonctions serveur Supabase, les migrations, les tests et la recette de publication.
 
-> La source de vérité technique est `main`. Les règles communes de travail sont dans `TEAM_RULES.md`, les décisions produit dans `PROJECT_STATE.md`, les zones critiques dans `AGENTS.md` et l’historique technique détaillé dans `CLAUDE.md`.
+> La source de vérité technique est `main`. Les règles communes de travail sont dans `TEAM_RULES.md`, les décisions produit dans `PROJECT_STATE.md`, les zones critiques dans `AGENTS.md`, les règles produit en vigueur dans `CLAUDE.md` et leur historique détaillé dans `memoire/`.
 
 ## Architecture actuelle
 
@@ -28,7 +28,7 @@ Le workflow GitHub Pages exécute notamment les contrôles documentaires et de f
 | Règles de collaboration et sécurité | `TEAM_RULES.md` |
 | Décisions produit et blocages | `PROJECT_STATE.md` |
 | Zones critiques / coordination agents | `AGENTS.md` |
-| Mémoire technique et historique | `CLAUDE.md` |
+| Règles produit en vigueur (leur historique : `memoire/`) | `CLAUDE.md` |
 | Build publié | `construire.sh` |
 | Façade/réservation principale | `index.html` |
 | Admin publié | `/ela-admin/`, construit depuis `index.html` |
@@ -73,4 +73,4 @@ Le modèle `sites/_modele/` est interne et n’est pas publié.
 6. Ne jamais mettre de secret dans le dépôt.
 7. Après fusion, vérifier le workflow de publication puis la production.
 
-Pour les détails et les raisons historiques de ces règles, lire `TEAM_RULES.md` et `CLAUDE.md`.
+Pour les détails et les raisons historiques de ces règles, lire `TEAM_RULES.md`, `CLAUDE.md` et `memoire/`.

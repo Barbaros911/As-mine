@@ -184,3 +184,12 @@ bas, le bloc qui pose la question.
   terminal du chauffeur — du texte mort, écrasé au chargement par la
   traduction, mais **c'est par là que revient une formule retirée**.
 
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART
+10–11/10/2026 (Barbaros) : plus de carte ni d'espèces à bord ; Elatransfer envoie le lien du chauffeur avec la confirmation, le client paie, le chauffeur part. AUCUN délai ni écriteau « paiement attendu » : ne pas les remettre. Annulation client non remboursée ; course ratée de notre fait remboursée (CGV 5, 7).
+Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS, WhatsApp ou Telegram (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Les anciens boutons et textes sont RETIRÉS de la page, pas masqués (14/10). Histoire : `memoire/paiement-lien.md`.

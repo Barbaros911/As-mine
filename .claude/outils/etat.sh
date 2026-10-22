@@ -98,7 +98,7 @@ n=$(git log origin/main --since="3 days ago" --oneline | wc -l)
 [ "$n" -gt 12 ] && printf '  … et %s de plus\n' "$((n - 12))"
 
 titre "À LIRE AVANT DE CODER"
-echo "  TEAM_RULES.md      les règles communes — une page"
+echo "  TEAM_RULES.md      les règles communes — courtes"
 echo "  PROJECT_STATE.md   les décisions prises et ce qui est prévu"
 echo "  CLAUDE.md          la mémoire du produit — vérifier avant de s'en servir"
 echo

@@ -127,3 +127,20 @@ il a dit « corrige, mais pas besoin que la page réception soit en anglais »
   rien : la page a une adresse publique. Ce qui reste licite et suffit : leur
   orange et leur nom écrit (usage descriptif). La photo du comptoir posée le
   20/10/2026 est la SIENNE.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LE THÈME D'UN PARTENAIRE — ET LA RÉCEPTION V2 (21/10/2026)
+
+- **Les couleurs vivent sur l'hôtel** (`HOTELS[x].marque` → `--h-*`), jamais
+  dans `hotel-engine-polish.*` (`test-finition-commune`) ; valeurs mesurées.
+- **Réception V2** (maquette validée, « version 3 ») : bandeau bleu nuit
+  commun, logo négatif, SA photo à droite dès 600 px ; formulaire en deux
+  colonnes. **Texte noir sur l'orange** (`texteAction`) ; sans elle, blanc.
+- **L'orange ne descend pas dans la liste, « confirmée » reste verte** ; ni
+  photo ni logo d'un partenaire sans accord écrit (L335-2 CPI).
+Histoire et pièges : `memoire/theme-partenaire.md`.

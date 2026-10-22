@@ -133,3 +133,37 @@ dépôt et `seo-ela.mjs` disent la même chose (`test-nouveau-bascule`).
 - `www` ne répond pas : à régler par Barbaros dans le DNS Cloudflare.
   Histoire : `memoire/marque-et-referencement.md`.
 
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LA MARQUE ET GOOGLE — « Elatransfer », FRANÇAIS À LA RACINE, ANGLAIS SOUS /en/
+
+« Elatransfer » en un mot, partout (5/10, Barbaros) ; logo et icônes fixes. Le
+titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
+- **L'accueil s'ouvre en français** (Googlebot se présente en anglais) ; les
+  pages d'hôtel gardent la détection de langue.
+- **L'ANGLAIS A SON ADRESSE, `/en/`** (14/10/2026) : cinq pages statiques, liées
+  par « English » dans le pied puis par `/en/`. **Le moteur reste unique** :
+  « Book » ouvre `/?lang=en&src=…`, le client choisit toujours (`SEO-INTERNATIONAL.md`).
+- **hreflang entre vrais équivalents, réciproque** (`/`↔`/en/`, CDG, Orly ;
+  `x-default` → anglais). **Jamais de lien, canonique ni `@id` en `.html`** :
+  Cloudflare les redirige (307).
+- **CE QUE GOOGLE LIT EST JUGÉ DEUX FOIS, PAR LE MÊME CODE** (15/10/2026,
+  `seo-indexation.mjs`) : site construit (`test-seo-en`) et en ligne (monitoring).
+  Toute page indexable va dans `sitemap.xml`, ou passe en `noindex`.
+- Origine de la demande (`provenance`) et entonnoir sans traceur (`ela_mesurer`,
+  appliqué le 14/10) : `memoire/seo-international.md`.
+- **Lien d'un partenaire `?via=<code>`** (15/10) : reconnu par le SERVEUR
+  seul (`liens_suivi`, admin ; migration `20261015000000` à appliquer dans la
+  foulée — `20261014000000` ne se rejoue plus après), sur la demande ET le
+  prospect de la démo ; provenance « Lien · nom · page » ; Registre →
+  « Liens des partenaires ». `SEO-AUTORITE.md`.
+- Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
+  données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
+  réponses aux questions = celles de l'accueil, dans la langue de la page.
+- Search Console : compte **orucburak001** — gestes à faire et attendus dans
+  `memoire/seo-indexation.md`. `www` ne répond pas (DNS, à Barbaros).
+- Histoire : `memoire/marque-et-referencement.md`.

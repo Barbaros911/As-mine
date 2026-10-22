@@ -88,3 +88,17 @@ serveur, la provenance, le délai — et **la grille hôtel vit à un seul
 endroit**, à côté de l'autre. Une page autonome voudrait dire un second
 logo, un second jeu de couleurs et une seconde grille à tenir, plus une
 ligne de plus dans `construire.sh` sous peine de 404.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LA PAGE HÔTEL — L'ANALYSE QUI A PRÉCÉDÉ
+
+L'analyse de septembre (cahier des charges easyHotel, grille comparée au site,
+ce qui manquait) : `memoire/page-hotel-analyse.md`. Ce qui en reste vrai : le
+libellé est « easyHotel Aéroville », mais l'**adresse postale complète** part
+chez le chauffeur ; le van moins cher que le site est un **prix d'appel voulu**
+— ne jamais l'« aligner » ; la grille est **par hôtel**.
