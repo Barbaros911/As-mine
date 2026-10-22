@@ -220,3 +220,119 @@ Chaque étape a été rejouée sur le site construit, à cinq largeurs (1366,
   vert (12 px réservés à droite pour la coche, qui est posée en haut).
 - Typographie : « L'hôtel → … » prend sa capitale en début de ligne, et
   « · arrivée » ne commence plus une ligne.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+### LA RÉCEPTION VALIDE SUR LE SITE — WHATSAPP NE S'OUVRE PLUS AU COMPTOIR
+
+Septembre 2026, à sa demande : « pour la confirmation laisse les valider sur
+le site, je reçois la notification, whatsapp télégramme facultatif », puis,
+sur les deux questions posées : **« en attente, comme aujourd'hui »** et
+**« il ne s'ouvre plus, un bouton reste »**.
+
+- **CE QUI REND CE RETRAIT POSSIBLE, C'EST TELEGRAM, ET RIEN D'AUTRE.**
+  L'alerte part de `nouvelle-demande`, déclenchée par le SERVEUR à
+  l'écriture de la ligne — donc sans rien demander au navigateur du
+  comptoir, ni à WhatsApp. Elle tourne depuis le 11 septembre 2026,
+  éprouvée sur une vraie réservation. La règle écrite depuis des semaines
+  (« ne pas supprimer l'ouverture automatique avant que le webhook Telegram
+  fonctionne ») est donc **remplie**, pas enfreinte. **Si l'alerte Telegram
+  tombe un jour, c'est cette décision-ci qu'il faut rouvrir en premier** :
+  sans elle, une demande du comptoir n'avertit plus personne.
+- **LE RETRAIT EST DEVENU GLOBAL LE 4 OCTOBRE 2026** (option A) : le client
+  et le flyer `?h=` n'ouvrent plus WhatsApp non plus, ils disent où recevoir
+  leur confirmation. `memoire/contact-client.md`.
+- **AU COMPTOIR, PLUS AUCUN BOUTON WHATSAPP DE SECOURS** (Barbaros : « ils
+  auront déjà mon numéro »). Si le dépôt échoue, l'écriteau rouge dit
+  d'APPELER et porte le numéro. Côté client, le repli reste sacré.
+- **SA PHRASE A CHANGÉ AVEC SON SUJET.** « Si WhatsApp ne s'est pas
+  ouvert… » enverrait une réception chercher une application qui n'est
+  jamais venue, et lui ferait croire sa réservation restée en route. Elle
+  dit maintenant qu'Elatransfer est prévenu automatiquement, et que le
+  bouton ne sert qu'à écrire un message. **Un libellé qui décrit un
+  mécanisme retiré est pire qu'un libellé absent.**
+- **LA COURSE ENTRE EN `attente`, comme celle d'un client.** Elle a beau
+  être convenue de vive voix avec la personne au comptoir, elle n'a été
+  convenue avec **aucun chauffeur** : l'afficher confirmée promettrait une
+  voiture que personne n'a acceptée, et la réception le répéterait au
+  client devant elle. C'est déjà le défaut du code — un contrôle le
+  **verrouille** désormais, avec `parReception` et `provenanceCle`.
+- **« ÊTRE PRÉVENU » NE S'AFFICHE PAS AU COMPTOIR.** Ce bloc promet la
+  confirmation sur LE WhatsApp du client et propose une notification sur
+  CET appareil : au comptoir les deux sont faux — le numéro est celui de
+  quelqu'un qui n'a pas la tablette en main, et l'abonnement push resterait
+  posé sur l'appareil de l'hôtel, à sonner pour la course d'un autre client
+  à chaque fois. **Le test le fait vraiment apparaître pour l'éprouver**
+  (faux serveur rendant 201) : sans dépôt réussi il est caché de toute
+  façon, et le contrôle serait passé au vert sans rien vérifier.
+
+### CE QUE LE COMPTOIR NE DOIT JAMAIS VOIR — RIEN NE LE VERROUILLAIT
+
+17 septembre 2026, demandé par ChatGPT (#165, point 8) : la réception ne doit
+exposer ni la commission ou la marge d'Elatransfer, ni le montant versé au
+chauffeur, ni rien de Stripe, ni le carnet de chauffeurs, ni les données d'un
+AUTRE partenaire.
+
+**LE CODE N'EN EXPOSAIT AUCUN — ET AUCUN CONTRÔLE NE L'EMPÊCHAIT DEMAIN.**
+`courses-hotel` compose une **liste blanche** (référence, statut, prix, client,
+chambre, paiement, et le chauffeur seulement sur une course confirmée). C'est
+la vraie frontière, et elle était déjà là. Mais un filtre serveur et un écran
+sont **deux défenses**, et *une défense en profondeur demande autant de
+contrôles que de défenses* — la leçon du bouton d'accès, protégé deux fois et
+éprouvé deux fois. Ici il n'y en avait **aucun** : le jour où quelqu'un élargit
+la liste blanche « pour déboguer », plus rien ne tombe.
+
+- **LE FAUX SERVEUR INJECTE LES INTERNES EXPRÈS** sur une course, et l'écran ne
+  doit en afficher aucun. On éprouve donc la défense de l'écran, pas la
+  politesse du serveur.
+- **ON CHERCHE LES VALEURS, PAS LES LIBELLÉS.** Chercher le mot « commission »
+  passerait au vert avec le montant écrit juste à côté — même règle que le
+  message d'alerte Telegram.
+- **ON REGARDE TOUT L'ÉCRAN**, pas la seule carte : une ligne de total, un pied
+  de liste ou une infobulle compteraient autant.
+- **LE DOUTE EST LEVÉ** : un écran qui n'afficherait RIEN passerait les cinq
+  contrôles au vert sans rien prouver. Un sixième vérifie qu'il montre bien la
+  chambre, le prix et le paiement — même famille que « une RPC qui refuserait
+  tout rendrait exactement les mêmes erreurs ».
+- **Éprouvé** en faisant fuiter la commission dans la ligne grise du comptoir :
+  le contrôle tombe et **nomme la valeur** (« trouvé : 25 % »).
+
+`test-nouveau-reception.mjs` passe de 83 à **89 contrôles**.
+
+## LA RÉCEPTION AFFICHE LE BON, ELLE NE L'ENVOIE PLUS
+
+5 octobre 2026, à la demande de Barbaros (« la réception n'a pas besoin
+d'envoyer de bons, on peut juste afficher un bon »). L'histoire de la page —
+l'audit du 30/09, la session de 30 jours, la recherche, « Par date », le
+statut `annulee` — est dans `memoire/reception.md`.
+- **Le bon s'affiche (« Voir le bon »), rien ne part** : ni image, ni
+  WhatsApp, ni partage. C'est Elatransfer qui confirme au client.
+- **UN SEUL DESSIN : `bon-client.js`**, chargé par la réception et l'admin
+  (« Voir le bon du client » sur la fiche), retiré des pages publiques. Les
+  deux voient le même bon ; ne jamais en refaire un second.
+- **Le nom et le téléphone du client en tête, en gros** — sur un bon AFFICHÉ.
+  Le lien `?ok=` ne les porte toujours pas.
+- « Prix annoncé » en attente, « Prix ferme » une fois confirmé (CGV art. 3
+  et 4) — le bon du site client aussi (`#bonPrixLib`). Course finie au
+  comptoir : aucun prix, même s'il arrivait (seconde défense).
+- **« Une question ? » sur le bon : le numéro EN CLAIR, Appel, WhatsApp et
+  Telegram `@elatransfer`** (donné par Barbaros) — écrits, pas seulement en
+  boutons : au comptoir, le client lit l'écran du PC.
+- **Sur un ordinateur (large ET à la souris), aucun bouton WhatsApp à la
+  réception** (9/10/2026) ni dans « Un imprévu ? », et **aucun bouton sur le
+  bon** (21/10) : tout y est écrit. Une tablette au doigt garde ses boutons.
+- **Après une réservation, une carte pour LA RÉCEPTION** (21/10/2026) :
+  titre selon le dépôt, N°, client, trajet, prix ; ni bon du client ni
+  « À dire au client » (`memoire/reception.md`).
+- Plus de trois chiffres (sur un PC 1366×768 la 1re course était à y = 723),
+  plus d'onglet « Toutes » ; « Passées » s'appelle « Historique », du plus
+  récent au plus ancien heure comprise ; « Actualiser » est au-dessus de la
+  liste ; « Un imprévu ? » écrit le numéro en clair (un PC ne compose pas).
+- **La fenêtre du bon est à `z-index:1000`** : l'en-tête collant de la page
+  (100) passait par-dessus, FR/EN et « Fermer » ne recevaient plus le clic.
+- `test-reception-bon.mjs` (site construit, 1366×768, admin compris) ;
+  `test-nouveau-reception` et `test-easyhotel-client` tournent en CI.

@@ -107,3 +107,21 @@ clients d'Elatransfer. Sa réponse : « note Google oui ».
 - **Mise à jour** : il envoie « 27 avis, 4,9 », on change deux nombres et la
   date. `test-public-avis-google` ne fige aucun chiffre, il lit le fichier.
 
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LES AVIS — ON EN DEMANDE, ON N'EN INVENTE PAS
+
+**Jamais un avis inventé** (L132-2 ; refusé en 09/2026, ne pas rouvrir) et
+**on demande à TOUS** (15/10) : trier = « review gating », interdit par Google
+et la loi. « Demander un avis » : course RÉALISÉE, langue du client, lien
+`ela_lien_avis` réglé sur l'appareil (sans lien, rien ne part) ; `#bordAvis`
+compte la semaine, se tait sans lien et cède aux écriteaux urgents.
+**LA NOTE GOOGLE NE S'ÉCRIT QUE DANS `avis-google.json`** (18/10/2026 : les
+25 avis viennent tous de clients, sa réponse). `.github/scripts/avis-google.mjs`
+la pose à la construction (accueil, pages aéroport FR/EN, Professionnels) et
+l'éteint si `afficher` est faux ou le relevé a plus de 60 jours ; jamais
+arrondie vers le haut, ni dans les données structurées. Histoire : `memoire/avis.md`.

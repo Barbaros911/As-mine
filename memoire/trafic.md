@@ -286,3 +286,30 @@ seulement (`trafic.js`, `trafic.css`), aucune migration, aucune donnée de plus.
 - `test-admin-trafic.mjs` : l'écran, la sonde 12 → 13, sept largeurs, l'agent,
   et l'ordre d'arrivée du direct et du jour, forcé dans les deux sens.
 - `test-seo-en.mjs`, `test-liens-suivi.mjs` : plus rien par l'ancienne porte.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LA MESURE DU TRAFIC — L'ÉCRAN « TRAFIC » DE L'ADMIN
+
+15/10/2026. **Pas une seconde mesure** : celle du 14/10 (mesure.js, `ela_mesurer`)
+a évolué. Pages (`data-ela-page`) et moteur postent à la fonction `mesure`
+(gestes en liste fermée, robots écartés, pays par le fuseau, **source classée
+côté serveur**), qui écrit au journal `evenements_site` (aucun droit
+`anon`/`authenticated`) ET au compteur d'origine.
+Lecture : `ela_trafic(periode)` / `ela_trafic_direct()`, **`est_admin()`** seul ;
+sonde de 10 s, écran ouvert et visible. Pas de Realtime.
+- **Rien sur l'appareil, aucun identifiant envoyé** : IP|navigateur haché, mêlé
+  à une clé du jour détruite le lendemain. « Visiteur » = estimation PAR JOUR ;
+  visite, entrée et source se calculent à la lecture (30 min). Jamais nom,
+  téléphone, adresse, prix, IP ; `detail` = 4 clés, la référence jointe à la lecture.
+- Fiche Google = `utm_medium=gbp` sur son lien. « Ne plus me compter » : FR/EN.
+- **Une réservation ne compte que si sa course existe** (18/10, `20261018000000`).
+  Entonnoir unique jusqu'à « Réalisée » ; chaque étape dit son taux sur l'étape
+  d'avant, la plus grosse perte est nommée, jamais sous 5 personnes (19/10).
+  « Ce qui vous apporte des courses » range les sources par réalisées ; hôtels et
+  téléphone : Centre de contrôle. Sous les prix, « Aucun paiement maintenant »
+  (`#vehRassure`, tu au comptoir). Rétention 90 j. `memoire/trafic.md`.

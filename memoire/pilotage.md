@@ -254,3 +254,30 @@ base le jour où plusieurs personnes écrivent ; dépendances visibles
 
 **Toujours** : toute modification publiée de `pilotage.js`,
 `pilotage-ecran.js` ou `pilotage.css` exige de monter `CACHE` dans `sw.js`.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LE PILOTAGE — LE COCKPIT INTERNE (Issue #197)
+
+Entrée « Pilotage » de l'admin ; blocs 1 à 3 faits le 6/10/2026.
+- `pilotage_cartes` + `pilotage_journal` (`20261006010000_pilotage.sql`,
+  **appliquée en production le 6/10**). **Ce n'est pas le tableau des
+  courses** : aucune donnée commune, aucune alerte, rien n'est lu au
+  chargement de l'admin.
+- **Admin seul** (`est_admin()`, entrée cachée à l'agent), rien pour `anon`,
+  **jamais de suppression** (on archive). Les règles sont DANS la base ;
+  `pilotage.js` en est le miroir, l'écran les dit avant d'envoyer.
+- Seuls les champs changés partent, sous condition de version, avec la
+  saisie en cours ; changée ailleurs, le serveur gagne. Tout en `textContent`.
+- **Cinq colonnes au-delà de 1 200 px**, une étape en dessous (un seul
+  dessin) ; on déplace par la fiche, jamais en glissant. Recherche et
+  filtres : aucune requête, rien sur l'appareil, **jamais une alerte
+  cachée**. L'historique (à la demande) ne dit qu'une LISTE FERMÉE de champs.
+- Fichiers servis cache d'abord : les modifier = monter `CACHE`. Leurs noms
+  hors de l'espace exploitant font refuser la page à la construction.
+- Une carte RÉFÉRENCE une Issue, elle n'en suit pas l'état. Suite :
+  `memoire/pilotage.md`.

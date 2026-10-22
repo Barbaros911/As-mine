@@ -1138,3 +1138,35 @@ des clients et une seconde adresse où se tromper d'outil.
   `ela_attribuer_chauffeur`, donc la règle des papiers n'y est qu'un
   AVERTISSEMENT d'écran (et plus un refus depuis le 4 octobre 2026, à sa
   demande), pas une frontière serveur.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## ADMIN V2 — CONSTRUIT, ÉCARTÉ, ARCHIVÉ
+
+Un second espace exploitant, côté serveur, construit en septembre 2026 par
+une autre session puis porté à parité en sept briques. Barbaros l'a essayé
+le 23 septembre (« on garde l'ancien ») et l'a fait **retirer de la
+publication le 3 octobre** — voir « ADMIN V2 N'EST PLUS PUBLIÉ » plus bas,
+qui dit ce qui vaut aujourd'hui. Ce qu'il a laissé à l'admin retenu : les
+fichiers **partagés** (`intake-demande.js`, `itineraire-partage.js`,
+`qr-affiche.js`, `telephone.js`) et les règles serveur (papiers des
+chauffeurs, facture sans trou ni doublon). Toute son histoire — les briques,
+les audits, les pièges de test — est dans `memoire/admin-v2.md`. Ne l'ouvrir
+que s'il est redemandé.
+
+## ADMIN V2 N'EST PLUS PUBLIÉ
+
+3 octobre 2026, Barbaros : « retire ». **Retiré de la PUBLICATION, pas du
+dépôt** : `construire.sh` le retire de `site/` et `/admin-v2.html` renvoie
+vers `/ela-admin/`, jamais un 404.
+- **LE RETRAIT EST LA RÈGLE PAR DÉFAUT** : Cloudflare construit aussi ce dépôt,
+  avec une commande invisible d'ici. Seul `ELA_AVEC_ADMIN_V2=1` le garde, posé
+  par les seules suites qui l'éprouvent ; `test-doc.mjs` refuse qu'une
+  configuration de publication le pose. Un oubli ne peut que retirer.
+- Son code, ses suites, ses migrations et ses fonctions restent (fichiers
+  partagés avec l'admin retenu). La règle des papiers n'est donc, dans l'admin
+  retenu, qu'un avertissement d'écran. Histoire : `memoire/admin-v2.md`.

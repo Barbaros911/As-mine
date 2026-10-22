@@ -20,9 +20,33 @@ supérieure.
   et continue la branche/PR existante lorsque c'est possible ;
 - Burak peut changer une attribution, et reste seul à valider une fusion.
 
-Toute tâche interrompue reçoit un handoff dans son Issue `[TEAM]` : état exact,
-branche/worktree, fichiers, tests, blocage et prochaine action. Le nouvel agent
-répond `REPRIS PAR <agent>` dans le même fil. Aucun silence ne libère une tâche.
+## Le relais (handoff) — automatique, traçable, révocable par Burak
+
+Quand ChatGPT, Claude Code ou l'Agent local ELA ne termine pas une tâche, il
+écrit dans l'Issue `[TEAM]` de cette tâche un bloc signé contenant :
+
+- l'état exact : demandé, attribué, en cours, codé, testé ou bloqué ;
+- la branche, le worktree et la PR éventuelle ;
+- les fichiers modifiés et ceux qu'il reste à traiter ;
+- les tests réellement exécutés, leurs résultats, et ce qui n'a pas été testé ;
+- le blocage ou la prochaine action précise ;
+- le repreneur choisi selon la matrice `.ai/agents.yml`.
+
+L'orchestrateur désigne **un seul** repreneur dans la même Issue ; celui-ci
+répond `REPRIS PAR <agent>` dans le même fil et continue la branche/PR
+existante, sans jamais créer une seconde implémentation. Aucun arrêt, silence
+ou expiration de session ne vaut transfert. Les tâches P0, paiements, secrets,
+permissions, migrations ou production restent à Claude/ChatGPT avec validation
+humaine : l'Agent local ne les reçoit pas.
+
+États communs : `DEMANDÉ → ATTRIBUÉ → EN COURS → CODÉ → TESTÉ → À VALIDER →
+FUSIONNÉ → DÉPLOYÉ → VÉRIFIÉ EN PRODUCTION`.
+
+Ce que chacun dépose dans les Issues `[TEAM]` : ChatGPT les spécifications,
+audits de production et demandes de correction ; Claude les statuts, preuves
+techniques, branches et PR, et une Issue quand une décision produit est
+nécessaire ; l'Agent local signe `## Agent local ELA → Équipe — sujet`, annonce
+sa branche/worktree et laisse tests, diff, limites et reste à faire.
 
 ## Outils retenus
 

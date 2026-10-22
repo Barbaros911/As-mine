@@ -97,3 +97,37 @@ Chaque phrase est vraie ; aucun nom, aucune faute, aucun montant
   mesure de rectangle sur un élément absent attendait 30 s — un délai de
   2 s et un repli à `null`.
 - `sw.js` CACHE v193 (`/ela-admin/` est dans le SHELL).
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## SEUL BARBAROS SUPPRIME UNE COURSE, QUEL QUE SOIT SON ÉTAT
+
+20/10/2026, Barbaros : « supprimer les courses effectuées ou non », puis « c'est
+seulement moi qui peut supprimer ». `20261020020000` réserve le DELETE sur
+`courses` à `est_admin()` (toutes les anciennes policies lues dans
+`pg_policies`) et passe `attributions_chauffeur` (Admin v2) en cascade : elle
+bloquait l'effacement d'une course attribuée. **À appliquer après la fusion.**
+Ni l'agent ni la réception ne suppriment ; ne pas le rouvrir sans lui.
+`supabase/tests/suppression-admin.sql`, `test-admin-commission`.
+
+## LE RÔLE AGENT EST IMPOSÉ PAR LE SERVEUR — ET L'ACCÈS AGENT EST SUSPENDU
+
+`est_admin()` (`20260929030000_role_agent_serveur.sql`) réserve à l'admin
+l'écriture des prix, les factures, les paiements, les finances et la
+restauration ; l'agent garde ce qui traite une course, SAUF la suppression.
+L'écran cache le reste par `window.ELA_NUAGE` et l'événement
+`ela:espace` (`agent-role-ui.mjs`). **La limite, dite franchement** : l'agent
+lit les courses, donc leurs prix ; le cloisonnement serveur n'est pas fini.
+**L'ACCÈS AGENT EST SUSPENDU** (20/10/2026, Barbaros : peu de courses, et
+il ne veut pas que son ami voie celles qu'il a réalisées) :
+`20261020000000_suspendre_acces_agent.sql` passe le compte à `actif = false`
+— le seul verrou, `est_exploitant()` le refuse partout — **à appliquer après
+la fusion**. L'écran de connexion lit sa propre ligne `operateurs` et dit la
+vraie raison (cloisonnement des données clients pas terminé), **jamais une
+histoire d'argent** ; un espace déjà ouvert est revérifié au retour sur
+l'onglet. Rouvrir : `20261020000001_rouvrir_acces_agent.sql`.
+`test-admin-suspendu`. Histoire : `memoire/role-agent.md`.

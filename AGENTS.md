@@ -4,7 +4,7 @@
 >
 > **Les règles communes — qui décide quoi, la source de vérité, la chaîne
 > jusqu'à la production, les tests, les secrets, la communication entre
-> intervenants — sont dans `TEAM_RULES.md`. Une page. En cas de contradiction
+> intervenants — sont dans `TEAM_RULES.md`. Court exprès. En cas de contradiction
 > avec ce fichier-ci, c'est `TEAM_RULES.md` qui dit vrai.**
 >
 > Ce fichier garde ce qui lui est propre : **les zones critiques du dépôt et

@@ -249,6 +249,13 @@ la seule vraie façon de casser ce système.
 Supabase ajoute tout seul l'en-tête d'autorisation. La fonction n'est donc
 pas appelable par n'importe qui depuis l'extérieur.
 
+**⚠️ Cet en-tête automatique est un jeton `service_role` — un secret**, lisible
+par quiconque a un accès SQL (constaté le 3 octobre 2026). Après toute
+création ou réinstallation du webhook, rejouer
+`supabase/migrations/20261003030000_webhook_cle_publique.sql` (workflow
+« Appliquer une migration Supabase ») : elle remplace l'en-tête par la clé
+publique, qui suffit, et ne fait rien s'il est déjà bon.
+
 ---
 
 ## Étape 6 — Vérifier

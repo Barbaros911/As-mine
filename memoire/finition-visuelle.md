@@ -99,3 +99,16 @@ tache sous la photo, titres de section tous égaux et dominants, une seule
 recette de carte, un seul bouton plein dans l'encart pro, pied à l'encre des
 titres, étapes sans cadre et reliées (accueil et page pro), guillemets, et
 **aucun jeton** sur la page d'un hôtel, son comptoir et l'admin.
+
+---
+
+## Archivé de CLAUDE.md le 22/10/2026
+
+> **Archivé de `CLAUDE.md` le 22 octobre 2026** (rangement général). Texte tel qu'il y figurait, mot pour mot : c'est de l'**histoire**, datée, pas une consigne. Des chiffres et des noms y ont changé depuis. Ce qui vaut aujourd'hui est dans `CLAUDE.md`.
+
+## LA FINITION VISUELLE — UNE ÉCHELLE, UNE CARTE (19/10/2026)
+Site public seulement, dans la façade (« FINITION VISUELLE ») : sur-titre 12 px,
+titres de section tous égaux (26/32 px), une recette de carte (16 px, filet,
+ombre douce), un seul bouton plein par encart. Ne pas réintroduire une taille,
+un arrondi ou une ombre « pour ce bloc-là » : c'est ce qui faisait amateur.
+`test-public-finition.mjs` ; histoire et mesures : `memoire/finition-visuelle.md`.
