@@ -119,14 +119,25 @@
         {"@type": "City", "name": "Paris"},
         {"@type": "AdministrativeArea", "name": "Île-de-France"}
       ],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+33759312433",
-        "email": "contact@elatransfer.com",
-        "contactType": "customer service",
-        "areaServed": "FR",
-        "availableLanguage": ["French", "English"]
-      }
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+33759312433",
+          "email": "contact@elatransfer.com",
+          "contactType": "customer service",
+          "areaServed": "FR",
+          "availableLanguage": ["French", "English"],
+          "hoursAvailable": {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "07:00", "closes": "22:00"}
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "reservations",
+          "url": "https://elatransfer.com/",
+          "areaServed": "FR",
+          "availableLanguage": ["French", "English"],
+          "hoursAvailable": {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "00:00", "closes": "23:59"}
+        }
+      ]
     },
     {
       "@type": "WebSite",
@@ -10163,8 +10174,17 @@ window.ELA_TEXTES = {
     champDate.value = dateLocale(d);
     champHeure.value = hhmm(d);
   }
+  /* L'HEURE DE PARIS, PAS CELLE DU TÉLÉPHONE (22/10/2026) : les horaires
+     d'assistance sont ceux de Paris, et un client arrivé de l'étranger garde
+     parfois l'heure de chez lui. Repli sur l'heure de l'appareil si le
+     navigateur ne connaît pas les fuseaux. */
+  function heureParis(){
+    try {
+      return Number(new Intl.DateTimeFormat("fr-FR", { timeZone:"Europe/Paris", hour:"2-digit", hourCycle:"h23" }).format(new Date()));
+    } catch(e){ return new Date().getHours(); }
+  }
   function ecrireNoteAsap(){
-    var h = new Date().getHours();
+    var h = heureParis();
     noteAsap.textContent = T("asap_note") + ((h >= 22 || h < 7) ? " " + T("asap_nuit") : "");
   }
   function choisirQuand(asap){

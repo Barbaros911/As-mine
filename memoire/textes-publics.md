@@ -183,3 +183,16 @@ phrase de nuit du « Dès que possible »).
   `test-seo-en` tirait « 5 am–10 pm » en dur ; il lit maintenant `hero_notes`.
   `test-reception-bon` exige que la ligne du comptoir soit `hero_notes` mot pour
   mot, et que le bon dise « Assistance humaine de 7 h à 22 h ».
+- **La règle qui tranche « partout »** (22/10/2026, « fait tout 10/10 ») :
+  partout où le numéro est écrit, les horaires l'accompagnent. D'où le pied
+  des trois pages françaises (CDG, Orly, Chauffeur privé, qui ne les disaient
+  pas alors que leurs sœurs anglaises le faisaient) et la page Professionnels
+  (« Parlons de votre établissement », « Vous préférez nous parler ? »).
+- **Google** : `contactPoint` porte deux points de contact — le service client
+  (téléphone, e-mail) de 07:00 à 22:00, et les réservations (le site) de 00:00
+  à 23:59, tous les jours. C'est la seule façon de dire « 24 h/24 » à Google
+  sans mentir sur le téléphone. La fiche Google (Business Profile) a ses propres
+  horaires, réglés par Barbaros chez Google : y mettre 7 h–22 h, pas 24 h/24,
+  sinon les clients appellent la nuit.
+- **La phrase de nuit suit l'heure de Paris** (`heureParis()`), plus celle du
+  téléphone : un voyageur garde parfois l'heure de chez lui.
