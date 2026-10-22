@@ -11447,12 +11447,14 @@ window.ELA_TEXTES = {
     }catch(e){ /* stockage refusé : le N° reste affiché sur ce bon */ }
     if(bonCourant && bonCourant.ref === bon.ref){ bonCourant.numero = n; ecrireRefBon(bonCourant); }
   }
-  /* L'ÉTAT DU DÉPÔT SUR LA COPIE LOCALE : « encours » (aucun accusé),
-     « recu » (le serveur a répondu, ou le site l'y a retrouvée), « laisse »
-     (le client a volontairement commencé une autre course sans accusé : on
-     ne la lui repropose plus, elle reste dans sa liste « à vérifier »). Une
-     donnée locale n'est jamais une preuve d'enregistrement : seul « recu »
-     vient du serveur. */
+  /* L'ÉTAT DU DÉPÔT SUR LA COPIE LOCALE : « encours » (aucun verdict lu :
+     page rechargée pendant l'envoi), « vu » (le client a lu « réception non
+     vérifiée » et sa consigne), « laisse » (il a volontairement commencé une
+     autre course), « recu » (le serveur a répondu, ou le site l'y a
+     retrouvée). Seul « encours » est repris au chargement ; tout ce qui n'est
+     pas « recu » reste « à vérifier » dans « Mes courses ». Une donnée locale
+     n'est jamais une preuve d'enregistrement : seul « recu » vient du
+     serveur. */
   function marquerDepot(bon, etat){
     if(!bon || !bon.ref || bon.depot === etat) return;
     bon.depot = etat;
@@ -11976,6 +11978,10 @@ window.ELA_TEXTES = {
     document.getElementById("btnConfirmer").disabled = etat === null;
     document.getElementById("btnNouvelleCourse").disabled = etat === null;
     if(etat === true) marquerDepot(bonSoumis || bonCourant, "recu");
+    /* Le client a LU le verdict : il a la consigne et le bouton « Réessayer ».
+       On ne lui rouvrira pas ce bon au prochain chargement — seule une page
+       rechargée AVANT le verdict (« encours ») est reprise. */
+    if(etat === false) marquerDepot(bonSoumis || bonCourant, "vu");
     blocEnvoi.hidden = false;
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
     /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
@@ -12198,7 +12204,10 @@ window.ELA_TEXTES = {
      rejoue LE MÊME bon — même référence, même contenu, le serveur reconnaît
      un rejeu. RIEN NE REPART TOUT SEUL : une seule lecture au chargement,
      jamais un dépôt. Un lien « ?ok= » passe avant. Une seule fois par
-     chargement. */
+     chargement. ON NE REPREND QUE CE QUI N'A JAMAIS EU DE VERDICT : un
+     client qui a lu « réception non vérifiée » et revient par le QR d'un
+     hôtel veut le formulaire, pas son ancien bon (test-nouveau-hotel l'a
+     montré) ; sa demande reste « à vérifier » dans « Mes courses ». */
   var REPRISE_MAX_MS = 12 * 3600 * 1000, repriseTentee = false;
   function bonAReprendre(){
     var l;
