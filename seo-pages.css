@@ -67,6 +67,7 @@ footer .pied-liens a { display: inline-flex; align-items: center; min-height: 44
 .faq summary { min-height: 28px; color: var(--navy); font-weight: 750; cursor: pointer; }
 .faq details p { margin: 8px 0 0; color: var(--muted); }
 footer a { color: #fff; font-weight: 750; }
+footer a[href^="tel:"], footer a[href^="mailto:"] { white-space: nowrap; }
 @media (max-width: 760px) { .grid.deux { grid-template-columns: 1fr; } }
 /* Le contenu des pages de service, suite (22 octobre 2026) : une
    introduction par bloc, « Bon à savoir » et la barre du pouce. */

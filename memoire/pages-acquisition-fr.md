@@ -102,6 +102,12 @@ trajet, une liste numérotée avec photo, des étapes sans boîtes — à lui de
 choisir sur captures. Piège retenu : l'attribut `height` d'une `<img>`
 l'emporte sur `aspect-ratio` ; poser `height:auto`.
 
+**Fusion de `main` le même soir (après #400 et #401)** : la règle des
+horaires a changé pendant la mission — « Assistance humaine 7 h–22 h »,
+plus « 5 h », insécables et U+2060 après le tiret, horaires à côté de chaque
+numéro (`test-public-horaires`, sur le site construit). Les trois pages ont
+été alignées à la fusion : bandeau, tuile « Nous joindre », pied.
+
 ## Ce qui n'a pas été fait, et pourquoi
 
 - **L'accueil (`index.html`)** : zone de Codex (#399) pendant cette mission,

@@ -48,6 +48,15 @@ export const INTERDITS = [
      test-pro-page garde la règle générale (aucun montant, aucun mot de gain). */
   { motif: /est rémunéré sur chaque transfert/i, quoi: "« Votre établissement est rémunéré sur chaque transfert » (promesse de revenu, retirée le 18/10/2026)" },
   { motif: /is paid on every completed transfer/i, quoi: "« Your establishment is paid on every completed transfer » (promesse de revenu, retirée le 18/10/2026)" },
+  /* LES ANCIENS HORAIRES (22 octobre 2026, Barbaros : « réservation 24/24,
+     assistance humaine 7/22 »). « Assistance 5 h–22 h » était écrit à quatre
+     endroits qui ne se lisaient pas entre eux ; un seul oublié, et le site
+     promet une assistance à 5 h que personne n'assure. L'espace peut être
+     ordinaire, insécable (&nbsp; dans le HTML, \u00a0 dans le JS) ou absente. */
+  { motif: /\b5(?:\s|&nbsp;|\\u00a0)?h(?:\s|&nbsp;|\\u00a0)?[–-](?:&#8288;|\\u2060|\u2060)?(?:\s|&nbsp;|\\u00a0)?22(?:\s|&nbsp;|\\u00a0)?h\b/i, quoi: "« 5 h–22 h » (anciens horaires, 7 h–22 h depuis le 22/10/2026)" },
+  { motif: /de 22(?:\s|&nbsp;|\\u00a0)?h à 5(?:\s|&nbsp;|\\u00a0)?h/i, quoi: "« de 22 h à 5 h » (anciens horaires)" },
+  { motif: /\b5(?:\s|&nbsp;|\\u00a0)?am(?:\s|&nbsp;|\\u00a0)?[–-](?:&#8288;|\\u2060|\u2060)?(?:\s|&nbsp;|\\u00a0)?10(?:\s|&nbsp;|\\u00a0)?pm/i, quoi: "« 5 am–10 pm » (anciens horaires)" },
+  { motif: /\bfrom 5(?:\s|&nbsp;|\\u00a0)?am to 10(?:\s|&nbsp;|\\u00a0)?pm|10(?:\s|&nbsp;|\\u00a0)?pm to 5(?:\s|&nbsp;|\\u00a0)?am/i, quoi: "« 5 am to 10 pm » / « 10 pm to 5 am » (anciens horaires)" },
 ];
 
 /* CE QUI N'EST PAS LU PAR UN CLIENT, ET POURQUOI — chemins relatifs au site.

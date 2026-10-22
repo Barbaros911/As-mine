@@ -401,6 +401,29 @@ check('le pas est bien de 5 minutes', pas && pas[1] === '5', pas ? pas[1] : '');
 check('plus de constante de préavis dans la page', !/var DELAI_MINIMUM_MIN/.test(src));
 check('plus de phrase de préavis (tot_note) dans la page', !/tot_note:/.test(src));
 
+/* --- LA PHRASE DE NUIT SUIT L'HEURE DE PARIS (22/10/2026) ---------------
+   L'assistance humaine va de 7 h à 22 h, heure de Paris. Le téléphone d'un
+   voyageur garde parfois l'heure de chez lui : on pose donc l'horloge à un
+   instant de Paris et le fuseau AILLEURS. Le premier jet lisait l'heure par
+   « format » en français (« 06 h », donc NaN) : la phrase ne sortait jamais,
+   et aucune suite ne l'a vu — celle-ci tombe sur ce défaut-là aussi. */
+for (const [nom, fuseau, instant, attendu] of [
+  ['Paris 23 h 30, téléphone à l\'heure de Tokyo (7 h 30)', 'Asia/Tokyo', '2026-10-22T21:30:00Z', true],
+  ['Paris 12 h, téléphone à l\'heure d\'Honolulu (minuit)', 'Pacific/Honolulu', '2026-10-22T10:00:00Z', false],
+  ['Paris 6 h 30, téléphone à Paris', 'Europe/Paris', '2026-10-22T04:30:00Z', true],
+  ['Paris 7 h, téléphone à Paris', 'Europe/Paris', '2026-10-22T05:00:00Z', false]]) {
+  const ctx = await b.newContext({ viewport:{width:390,height:844}, locale:'fr-FR', timezoneId:fuseau });
+  const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
+  await p.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  await p.clock.setFixedTime(new Date(instant));
+  await p.goto('http://127.0.0.1:8099/index.html', { waitUntil:'domcontentloaded' }); await p.waitForTimeout(400);
+  await p.evaluate(() => document.getElementById('btnPasseAsap').click()); await p.waitForTimeout(200);
+  const note = await p.locator('#noteAsap').innerText();
+  check(`${nom} : la phrase de nuit ${attendu ? 's\'affiche' : 'ne s\'affiche pas'}`,
+    /22\s?h et 7\s?h/.test(note) === attendu, note);
+  await ctx.close();
+}
+
 await b.close();
 console.log('\n=== RÉUSSIS ('+ok.length+') ==='); ok.forEach(t=>console.log('  ✔ '+t));
 if(ko.length){console.log('\n=== ÉCHECS ('+ko.length+') ==='); ko.forEach(t=>console.log('  ✘ '+t));}

@@ -112,9 +112,20 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   check('l\'e-mail est contact@elatransfer.com', liens.includes('mailto:contact@elatransfer.com'));
   const contact = await p.evaluate(() => document.getElementById('contact').innerText);
   check('#contact écrit le numéro et l\'e-mail en clair', /\+33 7 59 31 24 33/.test(contact) && /contact@elatransfer\.com/.test(contact));
-  // Aucune image dont on ne connaît pas la source : seul le logo du site.
+  // Aucune image dont on ne connaît pas la source : le logo du site, et depuis le
+  // 21/10/2026 les captures de NOTRE démonstration (données fictives), rangées
+  // dans professionnels/ sous le nom apercu-… — jamais une photo d'ailleurs.
   const imgs = await p.$$eval('img', l => l.map(i => i.getAttribute('src')));
-  check('aucune image hors du logo du site', imgs.every(s => /^\/brand-logo/.test(s)), imgs.join(', '));
+  check('aucune image hors du logo du site et des captures de la démo', imgs.every(s => /^\/brand-logo|^\/professionnels\/apercu-[a-z]+-(fr|en)\.webp$/.test(s)), imgs.join(', '));
+  // Les captures : dimensions déclarées (la page ne saute pas), chargement
+  // différé, un texte de remplacement qui décrit, et elles s'affichent vraiment.
+  await p.evaluate(() => document.querySelector('.apercu').scrollIntoView());
+  await p.waitForFunction(() => [...document.querySelectorAll('.apercu img')].every(i => i.complete), null, { timeout: 5000 }).catch(() => {});
+  const ap = await p.$$eval('.apercu img', l => l.map(i => ({ src: i.getAttribute('src'), w: i.getAttribute('width'), h: i.getAttribute('height'),
+    lazy: i.loading === 'lazy', alt: i.alt.length, vu: i.naturalWidth })));
+  check('deux captures de la démo, chacune avec dimensions, chargement différé et texte de remplacement',
+    ap.length === 2 && ap.every(i => i.w && i.h && i.lazy && i.alt >= 60), JSON.stringify(ap));
+  check('les deux captures s\'affichent', ap.length === 2 && ap.every(i => i.vu > 0), JSON.stringify(ap));
   await p.context().close();
 }
 
@@ -126,7 +137,9 @@ for (const langue of ['fr', 'en']) {
     return { corps: document.body.innerText, titre: document.title, lang: document.documentElement.lang,
       desc: document.querySelector('meta[name=description]').content,
       partenaire: (document.getElementById('partenaire') || {}).innerText || '',
-      aria: [...document.querySelectorAll('[aria-label]')].map(e => e.getAttribute('aria-label')) }; });
+      aria: [...document.querySelectorAll('[aria-label]')].map(e => e.getAttribute('aria-label')),
+      images: [...document.querySelectorAll('.apercu img')].map(i => i.getAttribute('src')),
+      alts: [...document.querySelectorAll('.apercu img')].map(i => i.alt) }; });
   await p.context().close();
 }
 check('FR : la page dit « Votre réception réserve. Elatransfer gère tout le reste. »', textes.fr.corps.includes('Votre réception réserve. Elatransfer gère tout le reste.'));
@@ -134,6 +147,9 @@ check('EN : la page passe en anglais (lang, titre, description)', textes.en.lang
 const lignesFr = new Set(textes.fr.corps.split('\n').map(s => s.trim()).filter(s => s.length > 12 && !/@|\+33/.test(s)));
 const restes = textes.en.corps.split('\n').map(s => s.trim()).filter(s => lignesFr.has(s));
 check('EN : aucune ligne ne reste en français', restes.length === 0, restes.join(' | '));
+check('EN : les captures de la démo passent en anglais (image et texte de remplacement)',
+  textes.en.images.length === 2 && textes.en.images.every((s, i) => /-en\.webp$/.test(s) && textes.en.alts[i] !== textes.fr.alts[i])
+  && textes.fr.images.every(s => /-fr\.webp$/.test(s)), JSON.stringify([textes.fr.images, textes.en.images]));
 check('EN : aucun libellé de lecteur d\'écran ne reste en français', !textes.en.aria.some(a => /accueil|Lire en/.test(a) && !/français/.test(a)), textes.en.aria.join(' | '));
 const INTERDITS = {
   fr: /\bsolutions?\b|plateformes?\b|mobilité|conciergerie|\bcanal\b|\bcanaux\b|\bVTC\b|\btaxis?\b|prix ferme|\bferme\b|temps réel|nos partenaires|easyhotel/i,
