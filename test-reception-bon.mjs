@@ -194,7 +194,7 @@ try {
     return { comptoir: b ? b.textContent : '', accueil: t.hero_notes || '' };
   });
   check('le comptoir annonce les horaires de l\'accueil (réservation 24 h/24, assistance humaine)',
-    !!horaires.accueil && horaires.comptoir === horaires.accueil && /Assistance humaine/.test(horaires.comptoir),
+    !!horaires.accueil && horaires.comptoir === horaires.accueil && /Assistance\shumaine/.test(horaires.comptoir),
     JSON.stringify(horaires));
   /* LE TEXTE BLANC SE LIT SUR LA PHOTO : on cache le texte, on photographie
      ce qu'il y a derrière, et on prend le pixel le PLUS CLAIR de cette zone
