@@ -4233,19 +4233,19 @@ titre mène avec la marque ; dépôt et `seo-ela.mjs` disent pareil.
 - **CE QUE GOOGLE LIT EST JUGÉ DEUX FOIS, PAR LE MÊME CODE** (15/10/2026,
   `seo-indexation.mjs`) : site construit (`test-seo-en`) et en ligne (monitoring).
   Toute page indexable va dans `sitemap.xml`, ou passe en `noindex`.
-- Origine de la demande (`provenance`) et entonnoir sans traceur (`ela_mesurer`,
-  appliqué le 14/10) : `memoire/seo-international.md`.
 - **Lien d'un partenaire `?via=<code>`** (15/10) : reconnu par le SERVEUR
   seul (`liens_suivi`, admin ; migration `20261015000000` à appliquer dans la
   foulée — `20261014000000` ne se rejoue plus après), sur la demande ET le
   prospect de la démo ; provenance « Lien · nom · page » ; Registre →
   « Liens des partenaires ». `SEO-AUTORITE.md`.
-- Aucun lien public vers `/application.html` (le flyer). Un seul graphe de
-  données (`#organisation`), jamais « VTC » ni `LocalBusiness` sans adresse ;
-  réponses aux questions = celles de l'accueil, dans la langue de la page.
-- Search Console : compte **orucburak001** — gestes à faire et attendus dans
-  `memoire/seo-indexation.md`. `www` ne répond pas (DNS, à Barbaros).
-- Histoire : `memoire/marque-et-referencement.md`.
+- Un seul graphe (`#organisation`), jamais « VTC » ; aucun lien public vers
+  `/application.html` ; réponses aux questions = celles de l'accueil.
+- **Pages françaises CDG, Orly, chauffeur** (22/10/2026) : bénéfices, « Bon à
+  savoir », liens légaux, barre du pouce ; ni prix chiffré ni commentaire HTML.
+  `memoire/pages-acquisition-fr.md`.
+- Search Console : **orucburak001**, `memoire/seo-indexation.md` ; `www` muet
+  (DNS, à Barbaros). Histoire : `memoire/marque-et-referencement.md`,
+  `memoire/seo-international.md` (provenance, entonnoir).
 
 ## LE POSITIONNEMENT — UNE MARQUE, DEUX ESPACES
 
