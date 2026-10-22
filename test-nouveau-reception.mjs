@@ -786,8 +786,13 @@ check('l\'écran de la réception porte la chambre et le nom du client',
    ce serait la panne inventée à l'envers — et l'écriteau rouge, juste
    dessous, dit d'appeler. */
 await p.waitForSelector('#bonComptoir.ko', { timeout: 10000 }).catch(() => {});
-check('dépôt échoué : la carte dit « non transmise », jamais « enregistrée »',
-  (await p.locator('#bcTitre').textContent()) === 'Réservation non transmise'
+/* Depuis #402 (22/10/2026), sans accusé la carte dit « Envoi à vérifier » :
+   une écriture a pu avoir lieu, « non transmise » l'affirmait à tort. On
+   cherche la RÈGLE — jamais « enregistrée », la carte en rouge, pas de
+   pastille d'attente — pas le libellé du jour. */
+check('dépôt échoué : la carte dit « à vérifier », jamais « enregistrée »',
+  !/enregistr/i.test(await p.locator('#bcTitre').textContent())
+  && /vérifier|non transmise/i.test(await p.locator('#bcTitre').textContent())
   && await p.locator('#bonComptoir.ko').isVisible()
   && await p.locator('#bcPastille').isHidden(),
   await p.locator('#bcTitre').textContent().catch(() => 'absent'));

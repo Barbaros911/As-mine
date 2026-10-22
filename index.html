@@ -12016,8 +12016,14 @@ window.ELA_TEXTES = {
     var etat = document.getElementById("bonEtat"), note = document.getElementById("bonNote");
     if(!bon || !etat || !note) return;
     var confirme = (bon.statut === "confirmee");
-    var ko = envoiEtat === false && bon === bonCourant && !confirme && !bon.partiel;
-    var attenteDepot = envoiEtat === null && bon === bonCourant && !confirme && !bon.partiel;
+    /* SEUL LE BON SOUMIS DEPUIS CETTE PAGE a un envoi « en cours » ou « à
+       vérifier » : « envoiEtat » vaut null tant que rien n'a été déposé, et
+       un bon rouvert depuis « Mes courses » lisait « Envoi de votre
+       demande… » sur une course partie la veille (régression de #402,
+       test-nouveau-confirmation). On compare à « bonSoumis », jamais au seul
+       bon affiché. */
+    var ko = envoiEtat === false && bon === bonSoumis && !confirme && !bon.partiel;
+    var attenteDepot = envoiEtat === null && bon === bonSoumis && !confirme && !bon.partiel;
     var cleEnvoi = envoiVerif ? "envoi_verif" : "envoi_cours";
     var cleEtat = attenteDepot ? cleEnvoi : ko ? "bon_etat_ko" : (confirme ? "bon_etat_ok" : "bon_etat");
     /* Au comptoir, la phrase d'attente parle à la réception, pas au client :
