@@ -826,9 +826,14 @@ partenaire. `memoire/palette.md`.
   réciproque entre vrais équivalents ; **jamais de lien, canonique ni `@id` en
   `.html`** ; toute page indexable va dans le sitemap ou passe en `noindex`
   (`seo-indexation.mjs`, sur le site construit et en ligne). Titre et
-  description de l'accueil identiques dans `index.html` et `seo-ela.mjs`.
+  description de l'accueil identiques dans `index.html` et `seo-ela.mjs`. Un
+  seul graphe de données (`#organisation`), jamais `LocalBusiness` sans
+  adresse ; aucun lien public vers `/application.html`.
   `memoire/marque-et-referencement.md`, `memoire/seo-international.md`,
   `memoire/seo-indexation.md`.
+- **Les pages françaises CDG, Orly et chauffeur** (22/10/2026) : bénéfices,
+  « Bon à savoir », liens légaux, barre du pouce ; ni prix chiffré ni
+  commentaire HTML. `memoire/pages-acquisition-fr.md`.
 
 ## Les outils internes : pilotage, démo, trafic
 

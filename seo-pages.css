@@ -22,6 +22,10 @@ a { color: inherit; }
 .eyebrow { margin: 0 0 15px; color: var(--cyan-light); font-size: 12px; font-weight: 850; letter-spacing: 2.8px; text-transform: uppercase; }
 h1 { max-width: 780px; margin: 0 0 22px; font-size: clamp(40px, 5.5vw, 68px); line-height: 1.02; letter-spacing: -2px; }
 .lead { max-width: 680px; margin: 0; color: #eef8fe; font-size: clamp(17px, 2vw, 20px); }
+.hero-notes { margin: 18px 0 0; color: #cfe8f6; font-size: 14px; }
+.hero-notes a { color: #fff; font-weight: 750; text-decoration-color: rgba(255, 255, 255, .45); text-underline-offset: 3px; }
+.saut { position: absolute; left: -9999px; top: 8px; padding: 10px 14px; border-radius: 8px; color: #fff; background: var(--navy); font-weight: 750; z-index: 40; }
+.saut:focus { left: 8px; }
 /* La note Google (18/10/2026) : posée à la construction depuis avis-google.json, jamais écrite ici. */
 .note-google { margin: 14px 0 0; color: #fff; font-size: 15px; font-weight: 750; }
 .note-google a { color: inherit; text-decoration-color: rgba(255, 255, 255, .45); text-underline-offset: 3px; }
@@ -33,6 +37,7 @@ h1 { max-width: 780px; margin: 0 0 22px; font-size: clamp(40px, 5.5vw, 68px); li
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .card { padding: 26px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 10px 30px rgba(8, 47, 82, .08); }
 .card .icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; color: var(--navy); background: var(--ice); font-size: 20px; }
+.card .icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 h2 { margin: 15px 0 8px; color: var(--navy); font-size: 21px; line-height: 1.25; }
 .card p { margin: 0; color: var(--muted); }
 .booking-strip { margin-top: 28px; padding: 28px; border-radius: 18px; color: #fff; background: linear-gradient(120deg, var(--navy-deep), var(--navy)); }
@@ -41,6 +46,8 @@ h2 { margin: 15px 0 8px; color: var(--navy); font-size: 21px; line-height: 1.25;
 .links { display: flex; flex-wrap: wrap; gap: 14px 22px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
 .links a { color: var(--navy); font-weight: 750; }
 footer { padding: 28px 22px; color: #dcecf7; background: var(--navy-deep); text-align: center; font-size: 13px; }
+footer p { margin: 0 0 6px; }
+footer .pied-liens a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }
 @media (max-width: 760px) {
   .topbar { min-height: 82px; }
   .nav a:not(.nav-cta) { display: none; }
@@ -62,3 +69,25 @@ footer { padding: 28px 22px; color: #dcecf7; background: var(--navy-deep); text-
 footer a { color: #fff; font-weight: 750; }
 footer a[href^="tel:"], footer a[href^="mailto:"] { white-space: nowrap; }
 @media (max-width: 760px) { .grid.deux { grid-template-columns: 1fr; } }
+/* Le contenu des pages de service, suite (22 octobre 2026) : une
+   introduction par bloc, « Bon à savoir » et la barre du pouce. */
+.intro { margin: 0 0 18px; color: var(--muted); max-width: 740px; }
+.bloc h2 + .intro { margin-top: -4px; }
+.savoir { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.savoir div { padding: 20px; border-radius: 16px; background: var(--ice); }
+.savoir h3 { margin: 0 0 6px; color: var(--navy); font-size: 18px; }
+.savoir p { margin: 0; color: var(--ink); }
+.savoir a { color: var(--navy); font-weight: 750; }
+.bloc .intro a { color: var(--navy); font-weight: 750; }
+.button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.button .ico-wa { fill: currentColor; stroke: none; }
+/* La barre du pouce, sur téléphone seulement : « Voir mon prix », Appeler,
+   WhatsApp restent à portée pendant qu'on lit. Le corps réserve sa hauteur,
+   elle ne recouvre jamais le pied de page. */
+.barre { display: none; }
+@media (max-width: 760px) {
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .barre { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--navy-deep); box-shadow: 0 -6px 20px rgba(0, 20, 40, .25); }
+  .barre .button { width: auto; min-height: 52px; padding: 8px 10px; font-size: 15px; box-shadow: none; }
+  .barre .button.secondary { flex-direction: column; gap: 2px; font-size: 12px; background: rgba(255, 255, 255, .06); border-color: rgba(110, 229, 255, .55); }
+}
