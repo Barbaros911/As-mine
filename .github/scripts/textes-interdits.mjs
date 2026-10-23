@@ -57,6 +57,13 @@ export const INTERDITS = [
   { motif: /de 22(?:\s|&nbsp;|\\u00a0)?h à 5(?:\s|&nbsp;|\\u00a0)?h/i, quoi: "« de 22 h à 5 h » (anciens horaires)" },
   { motif: /\b5(?:\s|&nbsp;|\\u00a0)?am(?:\s|&nbsp;|\\u00a0)?[–-](?:&#8288;|\\u2060|\u2060)?(?:\s|&nbsp;|\\u00a0)?10(?:\s|&nbsp;|\\u00a0)?pm/i, quoi: "« 5 am–10 pm » (anciens horaires)" },
   { motif: /\bfrom 5(?:\s|&nbsp;|\\u00a0)?am to 10(?:\s|&nbsp;|\\u00a0)?pm|10(?:\s|&nbsp;|\\u00a0)?pm to 5(?:\s|&nbsp;|\\u00a0)?am/i, quoi: "« 5 am to 10 pm » / « 10 pm to 5 am » (anciens horaires)" },
+  /* LA PREUVE QUI SITUAIT LE PARTENAIRE (23 octobre 2026, consigne de
+     Barbaros : ni nombre ni lieu précis d'un partenaire). « Déjà en service
+     dans un hôtel de la zone de Roissy-CDG » comptait l'hôtel et le
+     désignait presque ; devenue « Déjà en service dans l'hôtellerie, en
+     Île-de-France ». Le monitoring prouve que l'ancienne n'est plus servie. */
+  { motif: /dans un hôtel de la zone de Roissy/i, quoi: "« Déjà en service dans un hôtel de la zone de Roissy-CDG » (lieu du partenaire, retiré le 23/10/2026)" },
+  { motif: /in a hotel in the Roissy-CDG area/i, quoi: "« Already running in a hotel in the Roissy-CDG area » (lieu du partenaire, retiré le 23/10/2026)" },
 ];
 
 /* CE QUI N'EST PAS LU PAR UN CLIENT, ET POURQUOI — chemins relatifs au site.

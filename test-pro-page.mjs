@@ -96,7 +96,12 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   const recu = await p.evaluate(() => { const e = document.querySelector('.hero a.bouton'); const r = e.getBoundingClientRect();
     return { bas: r.bottom, ok: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e }; });
   check('390×844 : « Voir la démo hôtel » est à l\'écran et reçoit l\'appui', recu.ok && recu.bas <= 844, JSON.stringify(recu));
-  await p.click('.hero a.bouton'); await p.waitForTimeout(700);
+  await p.click('.hero a.bouton');
+  // LE DÉFILEMENT EST DOUX (scroll-behavior:smooth) : sa durée croît avec la
+  // distance. On lit la position une fois qu'il s'est ARRÊTÉ, plus à 700 ms
+  // fixes — la page s'est allongée le 23/10/2026 et la lecture tombait en
+  // plein mouvement (905 px à 700 ms, 84 px à l'arrêt). La règle ne change pas.
+  for (let i = 0, y = -1; i < 50; i++) { await p.waitForTimeout(100); const z = await p.evaluate(() => scrollY); if (z === y) break; y = z; }
   const haut = await p.evaluate(() => Math.round(document.getElementById('demo').getBoundingClientRect().top));
   check('un appui amène à la section #demo, sous l\'en-tête collant', haut >= 0 && haut < 200, String(haut));
   // Rien de mort : chaque lien mène quelque part.

@@ -150,8 +150,12 @@ for (const [w, h] of [[390, 844], [1366, 768]]) for (const [chemin, sel] of [[''
     return { cadre: c.borderTopWidth !== '0px' || (c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'rgb(255, 255, 255)'),
       trait: a.content !== 'none' && a.content !== '' };
   }), sel);
-  check(`${chemin || 'accueil'} ${w} px : trois étapes, sans cadre de carte`, e.length === 3 && e.every(x => !x.cadre), JSON.stringify(e));
-  check(`${chemin || 'accueil'} ${w} px : un trait relie chaque étape à la suivante`, e.length === 3 && e[0].trait && e[1].trait && !e[2].trait, JSON.stringify(e));
+  // UNE FRISE, PAS UN COMPTE (23 octobre 2026) : la page Professionnels est
+  // passée à quatre étapes pour montrer la recherche et l'attribution du
+  // chauffeur. La règle est « des chiffres reliés, sans boîte », pas « trois ».
+  check(`${chemin || 'accueil'} ${w} px : au moins trois étapes, sans cadre de carte`, e.length >= 3 && e.every(x => !x.cadre), JSON.stringify(e));
+  check(`${chemin || 'accueil'} ${w} px : un trait relie chaque étape à la suivante, pas la dernière`,
+    e.length >= 3 && e.slice(0, -1).every(x => x.trait) && !e[e.length - 1].trait, JSON.stringify(e));
   await p.context().close();
 }
 {

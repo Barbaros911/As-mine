@@ -312,7 +312,12 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
 // 10. Le bouton du haut mène au formulaire.
 {
   const p = await ouvrir({ w: 390, h: 844 });
-  await p.click('.hero a.bouton'); await p.waitForTimeout(700);
+  await p.click('.hero a.bouton');
+  // LE DÉFILEMENT EST DOUX (scroll-behavior:smooth) : sa durée croît avec la
+  // distance. On lit la position une fois qu'il s'est ARRÊTÉ, plus à 700 ms
+  // fixes — la page s'est allongée le 23/10/2026 et la lecture tombait en
+  // plein mouvement (905 px à 700 ms, 84 px à l'arrêt). La règle ne change pas.
+  for (let i = 0, y = -1; i < 50; i++) { await p.waitForTimeout(100); const z = await p.evaluate(() => scrollY); if (z === y) break; y = z; }
   const r = await p.evaluate(() => { const f = document.getElementById('formDemo').getBoundingClientRect(); return { haut: Math.round(document.getElementById('demo').getBoundingClientRect().top), form: f.height }; });
   check('« Voir la démo hôtel » amène au formulaire (#demo)', r.haut >= 0 && r.haut < 200 && r.form > 200, JSON.stringify(r));
   await p.context().close();

@@ -72,6 +72,11 @@ node .github/scripts/galerie.mjs
 # le retrait des commentaires ; éteinte, sans jamais bloquer la publication,
 # si le relevé a plus de 60 jours (voir le script).
 node .github/scripts/avis-google.mjs site
+# « ELATRANSFER EN CHIFFRES » (23 octobre 2026) : même principe, une seule
+# source, chiffres.json, qui n'est pas publiée. Tant que « afficher » n'est pas
+# à true, ou qu'aucun chiffre n'a sa source, le bloc est retiré ; la
+# publication continue toujours.
+node .github/scripts/chiffres.mjs site
 
 # LES COMMENTAIRES DE TRAVAIL NE PARTENT JAMAIS EN LIGNE — septembre 2026.
 # index.html seul en portait 145 (~68 Ko) : la mémoire du projet, utile aux

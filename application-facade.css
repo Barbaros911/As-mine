@@ -680,6 +680,24 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
 }
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes b{margin-top:6px; font-size:var(--t-h3); line-height:1.3; color:var(--c-titre);}
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes span[data-t]{margin-top:3px; font-size:var(--t-second); line-height:1.5; color:var(--c-second);}
+/* LES PILIERS DE LA CENTRALE (23 octobre 2026) : ce qu'on est, avant
+   comment ça marche. Un seul panneau doux, pas trois cartes : la frise
+   des étapes reste juste dessous, sans boîte. */
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers{
+  margin:0 0 28px; padding:4px 18px; border-radius:var(--r-bloc); background:var(--c-fond-doux); border:1px solid var(--c-filet);
+}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers li{gap:14px; padding:14px 0;}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers li + li{border-top:1px solid var(--c-filet);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .pilier-ic{width:40px; height:40px; border-radius:var(--r-ctrl); background:var(--c-accent-clair); color:var(--c-accent);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers b{font-size:var(--t-h3); line-height:1.3; color:var(--c-titre);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers span[data-t]{margin-top:3px; font-size:var(--t-second); line-height:1.5; color:var(--c-second);}
+@media(min-width:900px){
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers{
+    display:grid; grid-template-columns:repeat(3,1fr); column-gap:32px; padding:22px 26px; margin-bottom:40px;
+  }
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers li{flex-direction:column; gap:12px; padding:0;}
+  html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .piliers li + li{border-top:0;}
+}
 @media(min-width:900px){
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes{gap:32px;}
   html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .modele-etapes li{flex-direction:column; gap:10px; padding:0;}
