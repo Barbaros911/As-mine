@@ -242,11 +242,10 @@ déjà prouvé).
   (à appliquer après la fusion), lu dans le registre de l'admin.
 - Contrôles : `test-seo-en.mjs`, `supabase/tests/mesure*.sql` (CI),
   `verifier-production.mjs` (dix portes de plus).
-- **Prix des pages** (demande de Barbaros après le lot 1) : pour chaque page,
-  réglé dans l'admin (Réglages → « Prix des pages »), un tarif au km par gamme
-  et/ou un pourcentage ajouté au tarif du site, pour un client venu de cette
-  page. Rien par défaut. Serveur : `20261014010000_prix_pages.sql` (à
-  appliquer après la fusion) ; CGV art. 4 FR/EN ; contrôle :
-  `test-prix-pages.mjs`.
+- **Prix des pages** (demande de Barbaros après le lot 1) : RETIRÉ le
+  23 octobre 2026 (« oui désactive ») avec la grille par tranches du site
+  public — une page d'acquisition ne change plus le prix. La vue serveur
+  `prix_pages_publics` reste, sans lecteur ; le garde est dans
+  `test-grille-publique.mjs`.
 
 Détail, mesures et pièges : `memoire/seo-international.md`.
