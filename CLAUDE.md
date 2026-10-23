@@ -527,13 +527,12 @@ Histoire : `memoire/mode-hotel.md`, `memoire/page-hotel-analyse.md`,
   lien de paiement part dessus), chambre facultative.
 - **Le bon s'affiche, rien ne part.** Nom et téléphone du client en tête ;
   « Une question ? » avec le numéro en clair et Telegram `@elatransfer` ; sur un
-  ordinateur à la souris, aucun bouton WhatsApp ni bouton sur le bon. Après une
-  réservation, une carte pour la réception, pas le bon du client. La fenêtre du
-  bon est au-dessus de l'en-tête collant.
+  ordinateur à la souris, aucun bouton WhatsApp ni bouton sur le bon.
+- **Une course saisie dans l'admin au départ de l'hôtel est à lui** (23/10) :
+  départ choisi à 250 m du point BAN → `provenanceCle` (`#crHotel`, modifiable),
+  canal « admin ». `test-admin-hotel-depart.mjs`.
 - **Quotas de dépôt** : anonyme 12/h par IP ; client d'un partenaire réel
   (vérifié dans `partenaires`) 30/h ; réception à session vérifiée 60/h.
-- Sa photo (`photoComptoir`) va dans le bandeau bleu nuit, jamais en fond de
-  page.
 
 Histoire : `memoire/reception.md`.
 
