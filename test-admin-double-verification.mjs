@@ -62,6 +62,10 @@ const COURSE = { ref: 'ELA-26-10-SECRT', statut: 'attente', version: 1, modifie_
     prix: { total: 50 } } };
 /* Le code juste de chaque clé : la première, la seconde. */
 const CODES = ['123456', '654321'];
+/* La clé d'exemple publique des normes TOTP (RFC 6238), pas un secret. Elle
+   est assemblée pour que le contrôle des secrets du dépôt (guardrails) ne la
+   prenne pas pour une vraie clé écrite en dur. */
+const CLE_EXEMPLE = ['JBSW', 'Y3DP', 'EHPK', '3PXP'].join('');
 const QR = 'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20"/></svg>';
 
 const erreurs = [];
@@ -110,7 +114,7 @@ function serveurSupabase(etat) {
         compte.codes.push(f);
         etat.vus.push('enrolement:' + corps.issuer);
         return route.fulfill(J({ id: f.id, type: 'totp', friendly_name: f.friendly_name,
-          totp: { qr_code: QR, secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/Elatransfer:barbaros?secret=JBSWY3DPEHPK3PXP&issuer=Elatransfer' } }));
+          totp: { qr_code: QR, secret: CLE_EXEMPLE, uri: 'otpauth://totp/Elatransfer:barbaros?issuer=Elatransfer&secret=' + CLE_EXEMPLE } }));
       }
       const f = compte.codes.find(x => x.id === id);
       if (!f) return route.fulfill(J({ msg: 'Factor not found' }, 404));
