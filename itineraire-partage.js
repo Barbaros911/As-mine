@@ -525,9 +525,8 @@ function arrondiDizaine(p){
    DERNIER mot : c'est un montant plancher, pas une base de calcul, et
    l'arrondir ensuite ferait payer 30 € une course annoncée à 35 € (le
    minimum berline depuis le 4/10/2026) — le 5 pile descend.
-   LA MAJORATION A DISPARU DE CETTE FONCTION (septembre 2026) — voir le
-   commentaire plus haut. Le paramètre n'est plus accepté du tout, et
-   c'est délibéré : laissé en place mais ignoré, il aurait laissé croire
+   LA MAJORATION A DISPARU DE CETTE FONCTION (septembre 2026). Le
+   paramètre n'est plus accepté du tout, et c'est délibéré : laissé en place mais ignoré, il aurait laissé croire
    à un appelant qu'il majore quelque chose. */
 function prix(gamme, km){
   return Math.max(arrondiDizaine(gamme.parKm * km), gamme.mini);
