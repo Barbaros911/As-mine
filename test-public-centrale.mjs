@@ -65,7 +65,7 @@ const REGLES = {
     partenaires: new RegExp(`\\b\\d+${ESP}*(?:hôtels?|partenaires?|établissements?|entreprises? partenaires?)\\b|plusieurs hôtels partenaires|nos partenaires|dizaines d.hôtels|nombreux hôtels`, 'i'),
     chauffeurs: new RegExp(`\\b\\d[\\d${ESP.slice(1, -1)}]*${ESP}*chauffeurs\\b|milliers de chauffeurs|centaines de chauffeurs`, 'i'),
     garantie: /disponibilité garantie|garantie de disponibilité|toujours disponible|chauffeur garanti|à coup sûr un chauffeur|zéro refus/i,
-    arrivee: /(?:sui[tv]\w*|coordonn\w*)[^.]{0,80}jusqu.(?:à|a) (?:votre |l.)arrivée/i,
+    arrivee: /(?:sui[tv]\w*|coordonn\w*)[^.]{0,80}jusqu.(?:(?:à|a) (?:votre |l.)arrivée|au bout)/i,
     denigre: /peu fiables?|pas fiables?|non fiables?|amateurs?|au noir|clandestins?/i,
   },
   en: {
@@ -77,7 +77,7 @@ const REGLES = {
   },
 };
 const NOMS = { partenaires: 'aucun nombre de partenaires', chauffeurs: 'aucun nombre de chauffeurs', garantie: 'aucune disponibilité garantie',
-  arrivee: 'aucun suivi promis « jusqu\'à l\'arrivée » (CGV art. 2 : jusqu\'à la prise en charge)', denigre: 'aucun mot qui dénigre un chauffeur' };
+  arrivee: 'aucun suivi promis « jusqu\'à l\'arrivée » ni « jusqu\'au bout » (CGV art. 2 : jusqu\'à la prise en charge)', denigre: 'aucun mot qui dénigre un chauffeur' };
 
 for (const [chemin, langue] of PAGES) {
   const t = await lire(chemin, langue);
@@ -97,6 +97,38 @@ for (const [chemin, langue] of PAGES) {
     check(`${nom} : la preuve d'activité existe`, t.reference.trim().length > 15, t.reference);
     const precis = /Roissy|CDG|Orly|Tremblay|Villepinte|Bourget|zone|\bun hôtel\b|\bun seul\b|premier|\bfirst\b|\ba hotel\b|\bone hotel\b|\barea\b/i;
     check(`${nom} : la preuve ne nomme ni un lieu précis ni un compte`, !precis.test(t.reference), t.reference);
+  }
+}
+
+// LA FICHE PAPIER DES HÔTELS (commercial/fiche-hotels.html, 23/10/2026).
+// Elle n'est pas publiée, mais c'est elle qu'on envoie aux directeurs en PDF :
+// elle disait encore « suivons le trajet jusqu'au bout » et « confirmée » quand
+// le site était corrigé — aucun contrôle ne la lisait. Mêmes règles que les
+// pages, plus les siennes : le numéro jamais sans ses horaires (règle du
+// 22/10/2026), le programme partenaire au conditionnel et sans montant.
+{
+  const ctx = await b.newContext({ viewport: { width: 794, height: 1123 } });
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  await p.setContent(await readFile('commercial/fiche-hotels.html', 'utf8'), { waitUntil: 'load' });
+  const f = await p.evaluate(() => ({ corps: document.body.innerText, preuve: (document.querySelector('.preuve') || {}).innerText || '',
+    pied: (document.querySelector('.pied') || {}).innerText || '', partenaire: (document.querySelector('.partenaire') || {}).innerText || '' }));
+  await ctx.close();
+  check('fiche hôtels : elle est lue (sinon les règles ne prouvent rien)', f.corps.length > 800, f.corps.length + ' caractères');
+  for (const [cle, re] of Object.entries(REGLES.fr)) {
+    const m = f.corps.match(re);
+    check(`fiche hôtels : ${NOMS[cle]}`, !m, m ? f.corps.slice(Math.max(0, m.index - 40), m.index + m[0].length + 20).replace(/\s+/g, ' ') : '');
+  }
+  check('fiche hôtels : elle dit le réseau', /réseau/i.test(f.corps));
+  const precis = /Roissy|CDG|Orly|Tremblay|Villepinte|Bourget|zone|\bun hôtel\b|\bun seul\b|premier/i;
+  check('fiche hôtels : la preuve ne nomme ni un lieu précis ni un compte', f.preuve.trim().length > 15 && !precis.test(f.preuve), f.preuve);
+  check('fiche hôtels : le numéro est accompagné des horaires', /\+33 7 59 31 24 33/.test(f.pied) && /7\s*h[–-]\u2060?\s*22\s*h/.test(f.pied), f.pied.replace(/\s+/g, ' '));
+  const etats = (f.corps.match(/«\s*([^»]+?)\s*»/g) || []).map(x => x.replace(/[«»\s]+/g, ' ').trim().toLowerCase());
+  check('fiche hôtels : les états cités sont ceux de l\'espace réception', etats.length > 0 && etats.every(e => ['réservation validée', 'effectuée'].includes(e)), etats.join(', '));
+  if (f.partenaire) {
+    const gain = f.partenaire.match(/gagn|commission|cashback|\bprimes?\b|\d/i);
+    check('fiche hôtels : le programme partenaire est au conditionnel, sans montant ni mot de gain',
+      !gain && /\bpeut\b|\bpourra\b/.test(f.partenaire), gain ? gain[0] : f.partenaire);
   }
 }
 

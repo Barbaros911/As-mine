@@ -125,6 +125,27 @@ non, sur trois points, puis « Corrige tout sauf les notes Google » :
   (art. 8) — c'est une promesse qu'il tient à chaque course, et l'anglais dit
   « we look for another », jamais « we find another ».
 
+## La fiche papier des hôtels (même jour, après la fusion de #410)
+
+Barbaros : « Le PDF est sur le site ? » — non : `commercial/fiche-hotels.html`
+n'est pas publiée, on l'imprime en PDF pour un directeur. Montrée entière, elle
+gardait deux défauts que la PR #410 n'avait pas vus, faute de contrôle sur
+elle : « suivons le trajet **jusqu'au bout** » (contraire aux CGV art. 2) et
+« confirmée » là où l'espace réception affiche « **Réservation validée** ».
+Puis « Corrige tout comme un expert, inspiré de mes exemples concurrents » —
+le comparatif du dépôt (`memoire/programme-partenaire.md` § 10) :
+- **Le levier des concurrents** (Welcome Pickups, Transfeero : « gratuit pour
+  l'hôtel + une rémunération par transfert », sans contrat) entre sur la
+  fiche avec la phrase validée de la page pro, au conditionnel, sans montant.
+- **Ce qui nous distingue d'eux** est dit : le réseau dans le chapeau, la
+  relève dans l'espace réception, « Plus aucun chauffeur à chercher », et un
+  humain joignable — les horaires à côté du numéro, qui manquaient (règle du
+  22/10).
+- « Plus d'appels à passer » se lisait dans les deux sens : réécrit.
+- Mesuré : A4 tenue (marge libre 4,3 mm au-dessus du cadre), rien ne
+  déborde, QR intact. `test-public-centrale` lit maintenant la fiche (11
+  contrôles) ; sur l'ancienne, 3 tombent en citant la phrase.
+
 ## « Elatransfer en chiffres » — prêt, éteint
 
 `chiffres.json` (non publié) + `.github/scripts/chiffres.mjs`, appelé par
