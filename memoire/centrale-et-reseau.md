@@ -166,6 +166,18 @@ hôtels mais aussi aux professionnels en tout genre ! »
   aux hôtels (réception, relève) ; son titre est verrouillé par
   `test-pro-page`.
 
+**Le paiement, même soir.** Barbaros proposait de ne plus faire payer par
+lien (réception : payer le chauffeur à bord ; page client : payer en ligne).
+Avis donné : (1) ne plus VENDRE le mécanisme — « réglé directement au
+chauffeur, avant le départ », toujours vrai, aux CGV inchangées ; (2) ne pas
+revenir au paiement à bord pour la réception, la raison du 11/10 tient (un
+client absent à 5 h, un chauffeur venu pour rien) ; (3) le paiement en ligne
+sur la page est la vraie cible (Welcome Pickups, Transfeero), mais il faut la
+société et Stripe Connect — à moitié construit, bloqué par le SIRET. Il a dit
+oui à (1) et (3) plus tard. Fait : page Professionnels (FR/EN) et fiche ;
+l'accueil, le tunnel, les CGV et le message au client gardent « par lien » —
+c'est là que le client en a besoin. `test-public-centrale` le garde.
+
 ## « Elatransfer en chiffres » — prêt, éteint
 
 `chiffres.json` (non publié) + `.github/scripts/chiffres.mjs`, appelé par

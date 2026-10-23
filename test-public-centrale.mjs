@@ -97,6 +97,11 @@ for (const [chemin, langue] of PAGES) {
     check(`${nom} : la preuve d'activité existe`, t.reference.trim().length > 15, t.reference);
     const precis = /Roissy|CDG|Orly|Tremblay|Villepinte|Bourget|zone|\bun hôtel\b|\bun seul\b|premier|\bfirst\b|\ba hotel\b|\bone hotel\b|\barea\b/i;
     check(`${nom} : la preuve ne nomme ni un lieu précis ni un compte`, !precis.test(t.reference), t.reference);
+    // LE MÉCANISME DU LIEN NE SE VEND PAS (23/10/2026, Barbaros) : le client
+    // règle « directement au chauffeur, avant le départ » ; « par lien » reste
+    // au client qui réserve, aux CGV et au message qui porte le lien.
+    const lien = t.corps.match(langue === 'fr' ? /par lien|lien de paiement/i : /by (payment )?link|payment link/i);
+    check(`${nom} : la page ne parle pas du lien de paiement`, !lien, lien ? lien[0] : '');
   }
 }
 
@@ -131,6 +136,7 @@ for (const [chemin, langue] of PAGES) {
   check('fiche : les états cités sont ceux de l\'espace réception', etats.length > 0 && etats.every(e => ['réservation validée', 'effectuée'].includes(e)), etats.join(', '));
   // ELLE PARLE À TOUS LES PROFESSIONNELS, ET ELLE SE CLIQUE (23/10/2026) : envoyée
   // par e-mail, elle se lit sur un écran où l'on ne scanne pas un QR.
+  check('fiche : elle ne parle pas du lien de paiement', !/par lien|lien de paiement/i.test(f.corps));
   check('fiche : elle s\'adresse aux agences et aux entreprises, pas qu\'aux hôtels', /agences?/i.test(f.corps) && /entreprises?/i.test(f.corps));
   check('fiche : téléphone, WhatsApp, e-mail et site sont de vrais liens',
     f.liens.includes('tel:+33759312433') && f.liens.includes('https://wa.me/33759312433') && f.liens.includes('mailto:contact@elatransfer.com')
