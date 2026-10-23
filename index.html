@@ -17202,8 +17202,9 @@ window.ELA_TEXTES = {
    plus anciennes (comme un relevé bancaire). Ce qui reste dû sur une
    course de plus de 30 jours est « en retard » — le délai de paiement par
    défaut entre professionnels (L441-10 Code de commerce).
-   LES PAIEMENTS VIVENT SUR CET APPAREIL, comme le carnet et les factures,
-   et partent dans la sauvegarde. Le dire plutôt que le cacher.
+   LES PAIEMENTS VIVENT SUR LE SERVEUR depuis le 24 octobre 2026, comme le
+   carnet et les factures (« LES DONNÉES MÉTIER VIVENT SUR LE SERVEUR ») ;
+   l'appareil en garde une copie, qui part aussi dans la sauvegarde.
    ===================================================================== */
   var DELAI_COMMISSION_J = 30;
   var CLE_PAIEMENTS = "ela_paiements_chauffeurs";
@@ -17293,7 +17294,9 @@ window.ELA_TEXTES = {
     document.getElementById("bordSauvegardeTexte").textContent =
       (jours === null ? "Aucune sauvegarde sur ce téléphone."
                       : "Dernière sauvegarde il y a " + jours + " jours.")
-      + " Chauffeurs, paiements et factures ne vivent qu'ici.";
+      /* Une fois l'appareil basculé, la phrase d'avant mentirait. */
+      + (metierActif() ? " Vos chauffeurs, paiements et factures sont sur le serveur ; la sauvegarde en garde un double hors ligne."
+                       : " Chauffeurs, paiements et factures ne vivent qu'ici.");
   }
   document.getElementById("btnBordSauver").addEventListener("click", function(){
     document.getElementById("btnSauver").click();
