@@ -144,6 +144,10 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   check('390 px : l\'aperçu s\'ouvre sur le téléphone, et sur lui seul', e0.presse.join() === 'telephone' && e0.visibles.join() === 'telephone', JSON.stringify(e0));
   for (const ecran of ['tablette', 'ordinateur', 'telephone']) {
     const bouton = p.locator(`.ecrans button[data-ecran="${ecran}"]`);
+    if (!(await bouton.count())) { check(`« ${ecran} » : un bouton pour cet écran`, false, 'absent'); continue; }
+    // Au milieu de l'écran, d'un coup : la page défile en douceur (scroll-behavior),
+    // et une lecture faite pendant le mouvement trouve le bouton encore hors de l'écran.
+    await p.evaluate(() => document.querySelector('.ecrans').scrollIntoView({ block: 'center', behavior: 'instant' }));
     const recoit = await bouton.evaluate(e => { const r = e.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e; });
     await bouton.click();
     await p.waitForFunction(() => [...document.querySelectorAll('.apercu-grille[data-ecran] img')].filter(i => i.offsetHeight > 0).every(i => i.complete && i.naturalWidth > 0), null, { timeout: 5000 }).catch(() => {});
