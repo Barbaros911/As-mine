@@ -2561,6 +2561,10 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 .forfait-nom{font-size:15px;font-weight:600;color:var(--encre);min-width:0}
 .forfait-ligne input{width:100%;min-height:44px;border:1px solid var(--filet);border-radius:10px;text-align:center;font-size:16px;font-weight:700;background:var(--fond);color:var(--encre)}
 .forfait-ligne input.modifie{border-color:#1C7FE0;background:#E8F2FD;color:#0B4F94}
+/* La limite d'une tranche se règle dans la première colonne (« Jusqu'à [12] km ») :
+   sans cette largeur, la case prenait toute la colonne et repoussait « km ». */
+.grille-limite{display:flex;align-items:center;gap:6px;font-size:14px}
+.forfait-ligne .grille-limite input{width:56px;flex:0 0 56px;min-height:40px;font-size:15px}
 .page-bloc{padding:10px 12px;border-top:1px solid var(--filet)}
 .page-bloc:first-child{border-top:0}
 .page-champs{display:grid;grid-template-columns:64px 1fr 1fr;gap:8px;margin-top:6px}
