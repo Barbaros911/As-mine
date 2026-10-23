@@ -12,8 +12,13 @@
    3. Un choix fait à la main n'est pas défait par la détection.
    4. Le canal reste « Saisie au téléphone » (commission inchangée), et le
       tableau de bord la marque « easyHotel ».
-   5. Les courses déjà saisies : le bloc les compte, un appui les rattache,
-      celle d'ailleurs reste telle quelle, le bloc disparaît.
+   5. Les courses déjà saisies : le bloc les compte (départ OU arrivée à
+      l'hôtel), un appui les rattache, celle d'ailleurs reste telle quelle,
+      le bloc disparaît.
+   6. Une arrivée choisie à l'hôtel le choisit aussi.
+   7. Le bon rattache à la main une course sans coordonnées
+      (adresse tapée, demande collée), réalisée : elle reste réalisée et
+      garde son canal (site public).
 
    Lancer :  npx http-server -p 8099 -s .
              node test-admin-hotel-depart.mjs
@@ -73,8 +78,9 @@ async function choisir(p, champ, q, texte){
 const val = (p, sel) => p.inputValue(sel, {timeout:2000}).catch(() => '(absent)');
 const texte = (p, sel) => p.locator(sel).textContent({timeout:2000}).catch(() => '(absent)');
 const lieu = (lat, lon, adresse) => ({ nom:'', adresse, latitude:lat, longitude:lon, provider:'photon', categorie:'hotel' });
-const ancienne = (ref, l) => ({ ref, statut:'realisee', cree:'2026-10-15T10:00:00.000Z', canal:'admin',
-  course:{ depart:l.adresse, arrivee:'Orly', departPublic:l.adresse, arriveePublic:'Orly', departLieu:l,
+const ancienne = (ref, l, a = null) => ({ ref, statut:'realisee', cree:'2026-10-15T10:00:00.000Z', canal:'admin',
+  course:{ depart:l.adresse, arrivee:a ? a.adresse : 'Orly', departPublic:l.adresse, arriveePublic:a ? a.adresse : 'Orly',
+           departLieu:l, arriveeLieu:a,
            date:'2026-10-16', heure:'08:00', vehicule:'Berline', vehiculeCle:'berline', passagers:'1 passager' },
   client:{ nom:'Client Ancien', telephone:'06 12 34 56 78' }, prix:{ total:90, ht:81.82, tva:8.18 } });
 
@@ -82,9 +88,17 @@ const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFac
 const p = await ctx.newPage();
 await brancherFaux(p);
 await p.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
-await p.evaluate(([a, b]) => localStorage.setItem('ela_bookings', JSON.stringify([a, b])), [
+/* Une demande COLLÉE, réalisée, aux adresses tapées : aucune coordonnée,
+   aucun canal. Rien ne peut la reconnaître ; elle se rattache à la main. */
+const collee = { ref:'ELA-26-10-TAPE1', statut:'realisee', cree:'2026-10-14T10:00:00.000Z',
+  course:{ depart:'easyhotel tremblay', arrivee:'cdg 2', departPublic:'easyhotel tremblay', arriveePublic:'cdg 2',
+           date:'2026-10-14', heure:'06:00', vehicule:'Berline', vehiculeCle:'berline', passagers:'1 passager' },
+  client:{ nom:'Client Tapé', telephone:'06 12 34 56 79' }, prix:{ total:35, ht:31.82, tva:3.18 } };
+await p.evaluate((l) => localStorage.setItem('ela_bookings', JSON.stringify(l)), [
   ancienne('ELA-26-10-HOTA1', lieu(48.9677, 2.5481, 'easyHotel Paris CDG Aéroville')),
-  ancienne('ELA-26-10-LOIN1', lieu(48.9766, 2.5480, 'Novotel Paris Nord'))]);
+  ancienne('ELA-26-10-ARRI1', lieu(48.7262, 2.3652, 'Aéroport d\'Orly'), lieu(48.9675, 2.5479, 'easyHotel Paris CDG Aéroville')),
+  ancienne('ELA-26-10-LOIN1', lieu(48.9766, 2.5480, 'Novotel Paris Nord')),
+  collee]);
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1', {waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
 await p.fill('#codeExploitant', '12345678');
@@ -93,15 +107,18 @@ await p.locator('#btnSaisirCourse').click(); await p.waitForTimeout(800);
 
 /* 5. Les courses déjà saisies. */
 const bloc = p.locator('#crRattacher');
-check('le bloc compte UNE ancienne course au départ de l\'hôtel (pas celle d\'à côté)',
-  await bloc.isVisible() && /^1 course/.test(await texte(p, '#crRattacherTexte')),
+check('le bloc compte DEUX anciennes courses (départ et arrivée à l\'hôtel, pas celle d\'à côté ni la tapée)',
+  await bloc.isVisible() && /^2 courses/.test(await texte(p, '#crRattacherTexte')),
   await texte(p, '#crRattacherTexte'));
 await p.locator('#btnRattacher').click({timeout:2000}).catch(()=>{}); await p.waitForTimeout(400);
 let l = await p.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]'));
-const hA = l.find(c => c.ref === 'ELA-26-10-HOTA1'), lo = l.find(c => c.ref === 'ELA-26-10-LOIN1');
+const hA = l.find(c => c.ref === 'ELA-26-10-HOTA1'), lo = l.find(c => c.ref === 'ELA-26-10-LOIN1'),
+      ar = l.find(c => c.ref === 'ELA-26-10-ARRI1');
 check('un appui la rattache : elle porte la clé de l\'hôtel et son nom',
   hA && hA.provenanceCle === 'easyhotel-aeroville' && hA.provenance === 'easyHotel Aéroville' && hA.canal === 'admin',
   JSON.stringify(hA && { k:hA.provenanceCle, p:hA.provenance, c:hA.canal }));
+check('…celle qui ARRIVE à l\'hôtel aussi, toujours réalisée',
+  ar && ar.provenanceCle === 'easyhotel-aeroville' && ar.statut === 'realisee', JSON.stringify(ar && { k:ar.provenanceCle, s:ar.statut }));
 check('la course d\'à côté (1 km) reste sans hôtel', lo && !lo.provenanceCle, JSON.stringify(lo && lo.provenanceCle));
 check('le bloc disparaît une fois tout rattaché', await bloc.count() > 0 && await bloc.isHidden());
 
@@ -136,7 +153,32 @@ const carte = p.locator('#listeBord .demande', {hasText:'Client Hôtel'}).first(
 const prov = await carte.locator('.d-prov').textContent({timeout:2000}).catch(()=> '');
 check('le tableau de bord la marque « easyHotel »', /^easyHotel$/.test((prov || '').trim()), prov);
 
+/* 6. Une arrivée à l'hôtel. */
+await p.locator('#btnSaisirCourse').click(); await p.waitForTimeout(500);
+await choisir(p, '#crDepart', 'vendome', 'Vendôme');
+await choisir(p, '#crArrivee', 'easyhotel', 'easyHotel');
+await p.waitForTimeout(300);
+check('une arrivée choisie à l\'hôtel le choisit tout seul',
+  (await val(p, '#crHotel')) === 'easyhotel-aeroville', await val(p, '#crHotel'));
+
+/* 7. Modifier la course : rattacher à la main une course tapée. */
+await p.locator('#btnAdminBord').click().catch(()=>{}); await p.waitForTimeout(400);
+await p.locator('.compteur[data-filtre="realisee"]').click({timeout:2000}).catch(()=>{}); await p.waitForTimeout(300);
+await p.locator('#listeBord .demande', {hasText:'Client Tapé'}).first().click({timeout:2000}).catch(()=>{});
+await p.waitForTimeout(400);
+check('le bon d\'une course réalisée propose l\'hôtel, vide pour une course qui n\'est à personne',
+  await p.locator('#bbHotel').isVisible() && (await val(p, '#bbHotelChoix')) === '', await val(p, '#bbHotelChoix'));
+await p.selectOption('#bbHotelChoix', 'easyhotel-aeroville', {timeout:2000}).catch(()=>{});
+await p.waitForTimeout(400);
+l = await p.evaluate(() => JSON.parse(localStorage.getItem('ela_bookings') || '[]'));
+const tp = l.find(c => c.ref === 'ELA-26-10-TAPE1');
+check('la course tapée est rattachée à la main, et reste réalisée',
+  tp && tp.provenanceCle === 'easyhotel-aeroville' && tp.provenance === 'easyHotel Aéroville'
+  && tp.rattacheeHotel === true && tp.statut === 'realisee',
+  JSON.stringify(tp && { k:tp.provenanceCle, r:tp.rattacheeHotel, s:tp.statut }));
+
 /* 3. Un choix à la main n'est pas défait. */
+await p.locator('#btnAdminBord').click().catch(()=>{}); await p.waitForTimeout(400);
 await p.locator('#btnSaisirCourse').click(); await p.waitForTimeout(500);
 check('le formulaire rouvre sans hôtel', (await val(p, '#crHotel')) === '');
 await p.selectOption('#crHotel', 'easyhotel-aeroville', {timeout:2000}).catch(()=>{});
@@ -153,6 +195,8 @@ const corps = src.slice(src.indexOf('function canalDe(c){'), src.indexOf('}', sr
 const canalDe = new Function('return ' + corps)();
 check('canalDe : une saisie au téléphone rattachée à l\'hôtel reste « admin »',
   canalDe({ canal:'admin', provenanceCle:'easyhotel-aeroville' }) === 'admin');
+check('canalDe : une demande du site rattachée à la main reste « site public »',
+  canalDe({ provenanceCle:'easyhotel-aeroville', rattacheeHotel:true }) === 'public');
 check('canalDe : le flyer reste « hotel », le comptoir « reception »',
   canalDe({ provenanceCle:'easyhotel-aeroville' }) === 'hotel'
   && canalDe({ parReception:true, provenanceCle:'easyhotel-aeroville' }) === 'reception');
