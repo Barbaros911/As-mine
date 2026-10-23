@@ -1,0 +1,12 @@
+{
+  "afficher": false,
+  "releve_le": "",
+  "chiffres": [
+    { "cle": "courses", "valeur": null, "fr": "courses réalisées", "en": "rides completed",
+      "source": "Registre de l'admin : courses à l'état « réalisée », depuis l'ouverture" },
+    { "cle": "confirmation", "valeur": null, "unite": "%", "fr": "des demandes confirmées", "en": "of requests confirmed",
+      "source": "Registre de l'admin : courses confirmées ou réalisées ÷ demandes reçues, sur la période" },
+    { "cle": "destinations", "valeur": null, "fr": "destinations desservies", "en": "destinations served",
+      "source": "Registre de l'admin : destinations distinctes des courses réalisées" }
+  ]
+}
