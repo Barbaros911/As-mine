@@ -336,3 +336,31 @@ statut `annulee` — est dans `memoire/reception.md`.
   (100) passait par-dessus, FR/EN et « Fermer » ne recevaient plus le clic.
 - `test-reception-bon.mjs` (site construit, 1366×768, admin compris) ;
   `test-nouveau-reception` et `test-easyhotel-client` tournent en CI.
+
+## Les courses de l'admin au départ de l'hôtel (23 octobre 2026)
+
+Barbaros : « lorsque j'enregistre des courses depuis mon admin et que
+l'adresse de départ est l'hôtel easyHotel Tremblay, il faut qu'elles soient
+enregistrées dans la réception ». La réception ne lit que les courses dont le
+bon porte `provenanceCle` (`courses-hotel`) ; « Saisir par téléphone » ne la
+posait jamais.
+
+- « Nouvelle course » a un bloc « Hôtel partenaire » (`#crHotel`) : choisi
+  tout seul quand le départ CHOISI tombe à 250 m (`RAYON_HOTEL_KM`) du point
+  que la BAN donne pour l'adresse de la fiche (`HOTELS[x].lat/lon` seulement
+  hors ligne) ; un choix fait à la main n'est jamais défait. Un départ tapé
+  sans être choisi n'a pas de coordonnées : l'hôtel se choisit à la main.
+- La course garde `canal: "admin"` : `canalDe()` lit le canal AVANT la clé
+  d'hôtel, la commission reste celle de la saisie au téléphone.
+- Les courses déjà saisies (canal admin, départ choisi à l'hôtel) : un bloc
+  en tête de « Nouvelle course » les compte et un appui les rattache, sous
+  condition de version comme tout geste. Il disparaît à zéro.
+- La réception en voit ce qu'elle voit de ses clients, nom et téléphone
+  compris (accord de Barbaros, 23/10).
+- L'étiquette du tableau de bord reste « easyHotel » : « easyHotel ·
+  téléphone » écrasait la ligne « Confirmée · heure · … » à 390 px (mesuré).
+
+Retirés de CLAUDE.md le même jour, pour faire la place, et toujours vrais :
+après une réservation, la réception voit une carte pour elle, pas le bon du
+client ; la fenêtre du bon est au-dessus de l'en-tête collant ; sa photo
+(`photoComptoir`) va dans le bandeau bleu nuit, jamais en fond de page.

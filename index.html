@@ -4817,6 +4817,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <h1 class="ecran-titre">Nouvelle course</h1>
     </div>
 
+    <!-- LES COURSES DÉJÀ SAISIES AU DÉPART D'UN HÔTEL (23 octobre 2026) :
+         n'apparaît que s'il en reste à rattacher, et rien ne part sans cet
+         appui. -->
+    <div class="bloc" id="crRattacher" hidden>
+      <p class="bloc-note" id="crRattacherTexte"></p>
+      <button class="bouton-fantome" type="button" id="btnRattacher">Les rendre visibles par la réception</button>
+    </div>
+
     <div class="bloc">
       <h2 class="bloc-titre">Client</h2>
       <label class="champ" for="crNom">
@@ -4904,6 +4912,22 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            téléphone. Même règle que le prix de la pancarte : ce qui
            s'affiche sort de la constante qui calcule. -->
       <p class="bloc-note" id="crGrille"></p>
+    </div>
+
+    <!-- UNE COURSE SAISIE AU DÉPART D'UN HÔTEL PARTENAIRE EST AUSSI LA
+         SIENNE (23 octobre 2026, à sa demande) : sa réception la voit dans
+         sa liste, comme une course prise au comptoir. Le choix se fait tout
+         seul quand le départ CHOISI tombe sur l'hôtel (une distance, jamais
+         un mot), et reste modifiable. -->
+    <div class="bloc">
+      <h2 class="bloc-titre">Hôtel partenaire</h2>
+      <label class="champ" for="crHotel">
+        <span class="champ-corps">
+          <span class="champ-titre">Visible par la réception de</span>
+          <select id="crHotel"><option value="">Aucun hôtel</option></select>
+        </span>
+      </label>
+      <p class="bloc-note" id="crHotelNote">Choisi tout seul quand le départ est l'hôtel. Sa réception verra la course : client, trajet et chauffeur.</p>
     </div>
 
     <!-- LE CHAUFFEUR EST FACULTATIF, et c'est voulu : un hôtel appelle, on
@@ -14693,8 +14717,10 @@ window.ELA_TEXTES = {
   function canalDe(c){
     if(!c) return "public";
     if(c.parReception) return "reception";
-    if(c.provenanceCle) return "hotel";
+    /* AVANT la clé d'hôtel : une saisie au téléphone rattachée à un hôtel
+       (pour que sa réception la voie) reste une saisie au téléphone. */
     if(c.canal === "admin") return "admin";
+    if(c.provenanceCle) return "hotel";
     return "public";
   }
   /* LES TAUX PAR CANAL VIVENT SUR LE SERVEUR (parametres_commerciaux,
@@ -18023,7 +18049,7 @@ window.ELA_TEXTES = {
   var crChoix = { depart:null, arrivee:null }, crMesure = null;
   var priseCrDepart = brancher(document.getElementById("crDepart"),
     document.getElementById("crDepartList"),
-    function(item){ crChoix.depart = item; crMesure = null; },
+    function(item){ crChoix.depart = item; crMesure = null; jugerHotelCreer(); },
     function(){ return pointConnu(crChoix.arrivee); });
   var priseCrArrivee = brancher(document.getElementById("crArrivee"),
     document.getElementById("crArriveeList"),
@@ -18036,8 +18062,106 @@ window.ELA_TEXTES = {
     });
     crChoix = { depart:null, arrivee:null }; crMesure = null;
     document.getElementById("crVehicule").value = "berline";
+    var sh = document.getElementById("crHotel");
+    if(sh){ sh.value = ""; crHotelTouche = false; }
     direCreer("");
   }
+
+  /* ═══ LE DÉPART EST-IL UN HÔTEL PARTENAIRE ? (23 octobre 2026) ═══
+     À sa demande : une course saisie ici au départ de l'easyHotel de
+     Tremblay doit apparaître chez sa réception. Elle y entre par la même
+     clé que les courses du comptoir (« provenanceCle »), seule chose que
+     « courses-hotel » filtre.
+     ON MESURE UNE DISTANCE, JAMAIS UN MOT : les coordonnées de l'hôtel
+     viennent de la BAN (son adresse sur la fiche), celles de « HOTELS »
+     ne servent que hors ligne. 250 m couvrent l'écart entre le point de
+     l'adresse et celui du bâtiment, sans atteindre l'hôtel d'à côté — et
+     le choix reste visible et modifiable avant d'enregistrer. Un départ
+     tapé sans être choisi n'a pas de coordonnées : on ne devine pas,
+     l'hôtel se choisit alors à la main. */
+  var RAYON_HOTEL_KM = 0.25, pointsHotels = {}, crHotelTouche = false;
+  function pointHotel(cle){
+    var h = HOTELS[cle];
+    if(pointsHotels[cle]) return pointsHotels[cle];
+    return h && typeof h.lat === "number" && typeof h.lon === "number" ? { lat:h.lat, lon:h.lon } : null;
+  }
+  function lirePointsHotels(){
+    return Promise.all(Object.keys(HOTELS).map(function(cle){
+      if(pointsHotels[cle] || !HOTELS[cle].adresse) return null;
+      return depuisBAN(HOTELS[cle].adresse).then(function(r){
+        if(r && r.length && typeof r[0].lat === "number" && typeof r[0].lon === "number")
+          pointsHotels[cle] = { lat:r[0].lat, lon:r[0].lon };
+      }).catch(function(){ /* hors ligne : le point de secours suffit */ });
+    }));
+  }
+  function hotelDuPoint(pt){
+    if(!pt || typeof pt.lat !== "number" || typeof pt.lon !== "number") return "";
+    var trouve = "";
+    Object.keys(HOTELS).forEach(function(cle){
+      var p = pointHotel(cle);
+      if(!trouve && p && volDoiseauKm(pt, p) <= RAYON_HOTEL_KM) trouve = cle;
+    });
+    return trouve;
+  }
+  function remplirHotelsCreer(){
+    var sh = document.getElementById("crHotel");
+    if(!sh || sh.options.length > 1) return;
+    Object.keys(HOTELS).forEach(function(cle){
+      var o = document.createElement("option");
+      o.value = cle; o.textContent = HOTELS[cle].nom;
+      sh.appendChild(o);
+    });
+    sh.addEventListener("change", function(){ crHotelTouche = true; });
+  }
+  /* Un choix fait à la main n'est jamais défait par la détection. */
+  function jugerHotelCreer(){
+    var sh = document.getElementById("crHotel");
+    if(!sh) return;
+    lirePointsHotels().then(function(){
+      if(crHotelTouche) return;
+      sh.value = hotelDuPoint(pointConnu(crChoix.depart));
+    });
+  }
+  /* Les courses saisies avant cette règle : celles dont le départ choisi
+     tombe sur un hôtel, et qui ne sont pas encore à lui. */
+  function coursesARattacher(){
+    return registre().filter(function(c){
+      var l = c && c.course && c.course.departLieu;
+      return c && c.canal === "admin" && !c.provenanceCle && l
+        && !!hotelDuPoint({ lat:l.latitude, lon:l.longitude });
+    });
+  }
+  function jugerRattacher(){
+    var bloc = document.getElementById("crRattacher");
+    if(!bloc) return;
+    lirePointsHotels().then(function(){
+      var n = coursesARattacher().length;
+      bloc.hidden = !n;
+      document.getElementById("crRattacherTexte").textContent = n
+        ? (n === 1 ? "1 course déjà saisie part" : n + " courses déjà saisies partent")
+          + " d'un hôtel partenaire sans être visible" + (n === 1 ? "" : "s") + " par sa réception."
+        : "";
+      if(n) document.getElementById("btnRattacher").textContent = n === 1
+        ? "La rendre visible par la réception" : "Les rendre visibles par la réception";
+    });
+  }
+  var btnRattacher = document.getElementById("btnRattacher");
+  if(btnRattacher) btnRattacher.addEventListener("click", function(){
+    var refs = {};
+    coursesARattacher().forEach(function(c){ refs[c.ref] = true; });
+    var liste = registre(), derniere = null;
+    liste.forEach(function(c){
+      if(!c || !refs[c.ref]) return;
+      var l = c.course.departLieu, cle = hotelDuPoint({ lat:l.latitude, lon:l.longitude });
+      c.provenanceCle = cle;
+      c.provenance = HOTELS[cle].nom;
+      derniere = c;
+      mettreEnFile(c.ref);
+    });
+    ecrireRegistre(liste);
+    if(derniere) nuage.pousser(derniere);
+    jugerRattacher();
+  });
   /* ═══ L'ÉTIQUETTE DE LA GRILLE SORT DE LA GRILLE ═══
      Elle était écrite en dur sous le bouton « Calculer le prix » — et c'est
      l'étiquette sur laquelle Barbaros annonce un montant au téléphone. Un
@@ -18068,6 +18192,8 @@ window.ELA_TEXTES = {
        retaperait « Mehmet » à la main, avec une majuscule différente à
        chaque fois. C'est exactement ce qui rend l'historique illisible. */
     dessinerChauffeurs();
+    remplirHotelsCreer();
+    jugerRattacher();
     ecran("ecran-creer");
     allumerAdmin(document.getElementById("btnCreerNav"));
   }
@@ -18247,6 +18373,13 @@ window.ELA_TEXTES = {
       dateMsg: date.split("-").reverse().join("/") + " " + heure
     };
     if(chNom || chTel) c.chauffeur = { nom:chNom, telephone:chTel };
+    /* Rattachée à un hôtel : sa réception la voit. Le canal reste
+       « admin » (la commission est celle de la saisie au téléphone). */
+    var crH = document.getElementById("crHotel");
+    if(crH && crH.value && HOTELS[crH.value]){
+      c.provenanceCle = crH.value;
+      c.provenance = HOTELS[crH.value].nom;
+    }
 
     var liste = registre();
     liste.unshift(c);
