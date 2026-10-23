@@ -404,6 +404,18 @@ l'hôtel en service, avec son accord écrit).
   `professionnels/apercu-*-fr|en.webp`, et exige qu'elles s'affichent et
   changent de langue. **Refaire les captures si la démo change d'aspect.**
   Reste : dans la démo anglaise, le trajet s'écrit encore « L'hôtel → Orly ».
+- **Trois écrans** (23/10/2026, Barbaros : « qu'ils puissent voir la version
+  ordinateur, téléphone, tablette ») : six captures par langue
+  (`apercu-<client|equipe>-<telephone|tablette|ordinateur>-<fr|en>.webp`,
+  390 px ×2 ramenés à 540, 820 px, 1280 px ; 38 à 46 Ko), un bouton par écran,
+  un seul écran visible, ouverture sur celui du visiteur (< 600 téléphone,
+  < 1024 tablette). Fabriquées comme avant, en masquant `#demoBandeau`,
+  `#demoCadre`, `#demoCartesAide` et `#demoCartesFlyer`, horloge à 10 h.
+  **Trouvé en les faisant** : sur ordinateur, les cartes de destination de la
+  démo passaient à trois colonnes de 243 px dans 780 px, et « Aéroport » se
+  coupait en « Aéro / rt » ; `demo.css` pose maintenant des colonnes d'au moins
+  320 px. `test-pro-page` appuie sur chaque bouton et exige ses deux captures,
+  et elles seules.
 - **La démo se présente comme une preuve** : sur-titre « La démo hôtel, à
   votre nom » (le texte du bouton qui y mène), titre « Voyez ce que verraient
   vos clients et votre réception », et le parcours réel du simulateur jusqu'à

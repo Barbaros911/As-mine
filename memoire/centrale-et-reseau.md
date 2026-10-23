@@ -189,6 +189,20 @@ Le `<title>` garde « hôtel » (Google et `test-pro-page`). Garde :
 `test-public-centrale` exige un titre sans « réception » et une page qui nomme
 agences et entreprises (FR et EN) ; il tombe sur la page d'avant.
 
+**Les termes du métier (même soir).** « Utilise de vrais termes commerciaux,
+10/10, partout » : les titres et boutons parlent comme les pages B2B du
+secteur, sans les mots refusés (« solution », « plateforme », « mobilité »…).
+Page pro, encart de l'accueil et fiche : « Essayer la démo », « Demander une
+proposition », « Vos défis au quotidien », « Ce que vous n'avez plus à
+gérer », « Une offre clé en main » (page de réservation, espace équipe,
+« Un interlocuteur unique »), « Comment ça marche », « Vos avantages »,
+« Démo personnalisée et gratuite », « Accéder à ma démo », « Questions
+fréquentes », « Demandez votre proposition ». Chaque mot reste tenu : « clé en
+main » = rien à installer, mise en place faite par nous ; « un seul numéro » =
+le +33 7 59 31 24 33 ; la démo s'ouvre sur les trois écrans (mesuré, aucun
+débordement). Les tests ne figent plus le libellé du bouton : ils exigent
+qu'il nomme la démo sans la réserver aux hôtels.
+
 ## « Elatransfer en chiffres » — prêt, éteint
 
 `chiffres.json` (non publié) + `.github/scripts/chiffres.mjs`, appelé par
