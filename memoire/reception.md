@@ -364,3 +364,27 @@ Retirés de CLAUDE.md le même jour, pour faire la place, et toujours vrais :
 après une réservation, la réception voit une carte pour elle, pas le bon du
 client ; la fenêtre du bon est au-dessus de l'en-tête collant ; sa photo
 (`photoComptoir`) va dans le bandeau bleu nuit, jamais en fond de page.
+
+### Suite du même jour : l'arrivée, et le rattachement à la main
+
+Barbaros : six courses réalisées depuis l'admin (la réception l'avait
+appelé) devaient apparaître dans l'historique de la réception, « ainsi que
+ceux à venir aussi au départ et à l'arrivée ».
+
+- La détection juge le départ PUIS l'arrivée (`hotelDuTrajet`), dans
+  « Nouvelle course » comme pour les anciennes courses.
+- Une course sans coordonnées (adresse tapée, demande collée) ou déjà
+  réalisée se rattache à la main sur le bon (`#bbHotel`, visible quel que
+  soit l'état, absent sur une course du comptoir). « Modifier la course »
+  ne convenait pas : il est masqué sur une course finie.
+- `rattacheeHotel: true` marque une course donnée à l'hôtel par l'admin :
+  `canalDe()` ne la fait pas passer en « Flyer hôtel » (une demande collée
+  reste « site public »). La lui reprendre pose `rattacheeHotel: false`, et
+  le bloc des anciennes courses ne la repropose plus.
+- Chez la réception, « À venir » montre attente et confirmée ; « Historique »
+  montre réalisée, refusée et annulée (`statutFini`). Une course passe en
+  historique quand Barbaros appuie sur « Terminée ».
+
+Retiré de CLAUDE.md pour faire la place, et toujours vrai : le quota de 30
+dépôts par heure d'un client de partenaire vaut pour un partenaire réel,
+VÉRIFIÉ dans la table `partenaires` (`deposer-course`).
