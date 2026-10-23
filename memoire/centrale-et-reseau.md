@@ -162,9 +162,8 @@ hôtels mais aussi aux professionnels en tout genre ! »
 - `test-public-centrale` : la fiche vise agences et entreprises, ses liens et
   son QR sont cliquables, le PDF les garde (4 contrôles, tous tombent sur la
   fiche d'avant).
-- **Pas touché, à décider** : la page Professionnels parle encore surtout
-  aux hôtels (réception, relève) ; son titre est verrouillé par
-  `test-pro-page`.
+- **Pas touché ce jour-là** : la page Professionnels (faite le soir même,
+  plus bas).
 
 **Le paiement, même soir.** Barbaros proposait de ne plus faire payer par
 lien (réception : payer le chauffeur à bord ; page client : payer en ligne).
@@ -177,6 +176,18 @@ société et Stripe Connect — à moitié construit, bloqué par le SIRET. Il a
 oui à (1) et (3) plus tard. Fait : page Professionnels (FR/EN) et fiche ;
 l'accueil, le tunnel, les CGV et le message au client gardent « par lien » —
 c'est là que le client en a besoin. `test-public-centrale` le garde.
+
+**La page Professionnels pour tous (même soir).** « 1 oui 2 on attend » :
+oui à l'ouverture de la page aux autres professionnels, le paiement en ligne
+attend le SIRET. Même vocabulaire que la fiche : surtitre « Hôtels · Agences
+· Entreprises · Événements », titre « Votre équipe réserve. Elatransfer gère
+tout le reste. », « Votre espace équipe », « Votre structure », « clients,
+collaborateurs et invités » ; boutons « Voir la démo » (page et encart de
+l'accueil), « La démo, à votre nom ». L'hôtel reste un cas nommé (numéro de
+chambre, maquette « Hôtel Exemple »), la preuve reste « dans l'hôtellerie ».
+Le `<title>` garde « hôtel » (Google et `test-pro-page`). Garde :
+`test-public-centrale` exige un titre sans « réception » et une page qui nomme
+agences et entreprises (FR et EN) ; il tombe sur la page d'avant.
 
 ## « Elatransfer en chiffres » — prêt, éteint
 

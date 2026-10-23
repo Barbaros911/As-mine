@@ -51,7 +51,7 @@ async function ouvrir(w, h = 900, langue = 'fr', url = PAGE) {
 
 // 1. La page publiée existe, et elle est indexable.
 const brut = await (await fetch(PAGE)).text();
-check('la page est publiée par construire.sh', /Votre réception réserve/.test(brut), brut.slice(0, 60));
+check('la page est publiée par construire.sh', /Elatransfer gère tout le reste/.test(brut), brut.slice(0, 60));
 check('le titre nomme la marque et le public', /<title>[^<]*Elatransfer[^<]*(hôtel|Hôtel)/.test(brut));
 check('elle a une description', /<meta name="description" content="[^"]{80,}"/.test(brut));
 check('elle est indexable', /<meta name="robots" content="index/.test(brut) && !/noindex/i.test(brut));
@@ -91,11 +91,13 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
     ctaTexte: (document.querySelector('.hero a.bouton') || {}).textContent }));
   check('l\'ancre #demo existe', a.demo);
   check('l\'ancre #contact existe', a.contact);
-  check('le bouton principal est « Voir la démo hôtel » et mène à #demo', a.cta === '#demo' && /démo hôtel/.test(a.ctaTexte), a.cta + ' / ' + a.ctaTexte);
+  // « Voir la démo », plus « Voir la démo hôtel » (23/10/2026, Barbaros : la page parle à tous
+  // les professionnels, et la démo s'adapte à une agence ou à une entreprise).
+  check('le bouton principal ouvre la démo et mène à #demo', a.cta === '#demo' && /^Voir la démo/.test(a.ctaTexte.trim()), a.cta + ' / ' + a.ctaTexte);
   // Le bouton est visible sans défiler, et c'est bien lui qui reçoit le doigt.
   const recu = await p.evaluate(() => { const e = document.querySelector('.hero a.bouton'); const r = e.getBoundingClientRect();
     return { bas: r.bottom, ok: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e }; });
-  check('390×844 : « Voir la démo hôtel » est à l\'écran et reçoit l\'appui', recu.ok && recu.bas <= 844, JSON.stringify(recu));
+  check('390×844 : « Voir la démo » est à l\'écran et reçoit l\'appui', recu.ok && recu.bas <= 844, JSON.stringify(recu));
   await p.click('.hero a.bouton');
   // LE DÉFILEMENT EST DOUX (scroll-behavior:smooth) : sa durée croît avec la
   // distance. On lit la position une fois qu'il s'est ARRÊTÉ, plus à 700 ms
@@ -147,7 +149,7 @@ for (const langue of ['fr', 'en']) {
       alts: [...document.querySelectorAll('.apercu img')].map(i => i.alt) }; });
   await p.context().close();
 }
-check('FR : la page dit « Votre réception réserve. Elatransfer gère tout le reste. »', textes.fr.corps.includes('Votre réception réserve. Elatransfer gère tout le reste.'));
+check('FR : la page dit « Votre équipe réserve. Elatransfer gère tout le reste. »', textes.fr.corps.includes('Votre équipe réserve. Elatransfer gère tout le reste.'));
 check('EN : la page passe en anglais (lang, titre, description)', textes.en.lang === 'en' && textes.en.titre !== textes.fr.titre && textes.en.desc !== textes.fr.desc);
 const lignesFr = new Set(textes.fr.corps.split('\n').map(s => s.trim()).filter(s => s.length > 12 && !/@|\+33/.test(s)));
 const restes = textes.en.corps.split('\n').map(s => s.trim()).filter(s => lignesFr.has(s));
@@ -188,8 +190,8 @@ for (const langue of ['fr', 'en']) {
   const p = await ouvrir(390, 844, langue, SITE);
   const cta = await p.evaluate(() => { const a = document.querySelector('#modele .modele-cta');
     return a ? { href: a.getAttribute('href'), texte: a.textContent.trim(), mail: !!document.querySelector('#modele a[href="mailto:contact@elatransfer.com"]') } : null; });
-  check(`accueil ${langue.toUpperCase()} : le bouton de l'encart est « ${langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'} » vers le formulaire /professionnels/#demo`,
-    cta && cta.href === '/professionnels/#demo' && cta.texte === (langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'), JSON.stringify(cta));
+  check(`accueil ${langue.toUpperCase()} : le bouton de l'encart est « ${langue === 'fr' ? 'Voir la démo' : 'See the demo'} » vers le formulaire /professionnels/#demo`,
+    cta && cta.href === '/professionnels/#demo' && cta.texte === (langue === 'fr' ? 'Voir la démo' : 'See the demo'), JSON.stringify(cta));
   check(`accueil ${langue.toUpperCase()} : l'encart garde son lien e-mail`, cta && cta.mail);
   if (langue === 'fr') {
     await p.evaluate(() => document.querySelector('#modele').scrollIntoView());

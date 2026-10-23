@@ -148,7 +148,7 @@ const lire = (p, k) => p.evaluate(k => localStorage.getItem(k), k);
     form: document.getElementById('formDemo').hidden, reprise: document.getElementById('demoReprise').hidden,
     texte: document.getElementById('repriseTexte').textContent }));
   const jj = ('0' + exp.getDate()).slice(-2) + '/' + ('0' + (exp.getMonth() + 1)).slice(-2);
-  check('revenu : « Voir la démo hôtel » mène directement à /demo/hotel/', e.cta === '/demo/hotel/', e.cta);
+  check('revenu : « Voir la démo » mène directement à /demo/hotel/', e.cta === '/demo/hotel/', e.cta);
   check('revenu : le formulaire est remplacé par « Votre démonstration est ouverte »', e.form && !e.reprise, JSON.stringify(e));
   check('revenu : l\'échéance est dite (« jusqu\'au ' + jj + ' »)', e.texte.includes(jj) && /sur cet appareil/.test(e.texte), e.texte);
   await p.click('.hero a.bouton'); await p.waitForURL(SITE + 'demo/hotel/', { timeout: 4000 }).catch(() => {});
@@ -169,10 +169,10 @@ const lire = (p, k) => p.evaluate(k => localStorage.getItem(k), k);
   await p3.context().close();
   // L'accueil : directement la démo si elle est ouverte, sinon le formulaire.
   const p4 = await ouvrir({ url: SITE, stock: { ela_demo_session: 'abc.def', ela_demo_expire: exp.toISOString() } });
-  check('accueil, démo ouverte : « Voir la démo hôtel » mène à /demo/hotel/', await p4.evaluate(() => document.querySelector('#modele .modele-cta').getAttribute('href')) === '/demo/hotel/');
+  check('accueil, démo ouverte : « Voir la démo » mène à /demo/hotel/', await p4.evaluate(() => document.querySelector('#modele .modele-cta').getAttribute('href')) === '/demo/hotel/');
   await p4.context().close();
   const p5 = await ouvrir({ url: SITE });
-  check('accueil, sans démo : « Voir la démo hôtel » mène au formulaire (/professionnels/#demo)', await p5.evaluate(() => document.querySelector('#modele .modele-cta').getAttribute('href')) === '/professionnels/#demo');
+  check('accueil, sans démo : « Voir la démo » mène au formulaire (/professionnels/#demo)', await p5.evaluate(() => document.querySelector('#modele .modele-cta').getAttribute('href')) === '/professionnels/#demo');
   await p5.context().close();
 }
 
@@ -244,7 +244,7 @@ for (const [conf, attendu, efface] of [['ok', 'Adresse e-mail confirmée, merci.
 {
   const p = await ouvrir({ langue: 'en', reponse: 'quota' });
   const t = await p.evaluate(() => document.getElementById('demo').innerText);
-  check('EN : la section est en anglais', /hotel demo/i.test(t) && /valid for 7 days on this device/.test(t) && /Business email/.test(t) && /First name/.test(t) && /Last name/.test(t) && !/Nom complet|Prénom|Téléphone|facultatif/.test(t), t.slice(0, 200));
+  check('EN : la section est en anglais', /The demo, with your name/i.test(t) && /valid for 7 days on this device/.test(t) && /Business email/.test(t) && /First name/.test(t) && /Last name/.test(t) && !/Nom complet|Prénom|Téléphone|facultatif/.test(t), t.slice(0, 200));
   check('EN : la phrase de données personnelles est en anglais', /You can object at any time/.test(t));
   await remplir(p); await p.click('#fEnvoyer');
   await p.waitForFunction(() => !document.getElementById('fMessage').hidden && document.getElementById('fMessage').classList.contains('ko'), null, { timeout: 8000 }).catch(() => {});
@@ -319,7 +319,7 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   // plein mouvement (905 px à 700 ms, 84 px à l'arrêt). La règle ne change pas.
   for (let i = 0, y = -1; i < 50; i++) { await p.waitForTimeout(100); const z = await p.evaluate(() => scrollY); if (z === y) break; y = z; }
   const r = await p.evaluate(() => { const f = document.getElementById('formDemo').getBoundingClientRect(); return { haut: Math.round(document.getElementById('demo').getBoundingClientRect().top), form: f.height }; });
-  check('« Voir la démo hôtel » amène au formulaire (#demo)', r.haut >= 0 && r.haut < 200 && r.form > 200, JSON.stringify(r));
+  check('« Voir la démo » amène au formulaire (#demo)', r.haut >= 0 && r.haut < 200 && r.form > 200, JSON.stringify(r));
   await p.context().close();
 }
 

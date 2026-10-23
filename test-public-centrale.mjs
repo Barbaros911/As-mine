@@ -49,7 +49,7 @@ async function lire(chemin, langue) {
     const txt = s => { const e = document.querySelector(s); return e ? e.innerText : ''; };
     const accueil = document.getElementById('ecran-accueil');
     return { corps: (accueil || document.body).innerText + '\n' + txt('footer'), lang: document.documentElement.lang,
-      comment: txt('#comment'), lead: txt('.hero .lead'), reference: txt('.hero .reference') };
+      comment: txt('#comment'), lead: txt('.hero .lead'), reference: txt('.hero .reference'), titre: txt('h1') };
   });
   await ctx.close();
   return { ...t, errs };
@@ -94,6 +94,11 @@ for (const [chemin, langue] of PAGES) {
   }
   if (chemin === 'professionnels/') {
     check(`${nom} : le bandeau dit le réseau`, langue === 'fr' ? /réseau/i.test(t.lead) : /network/i.test(t.lead), t.lead);
+    // POUR TOUS LES PROFESSIONNELS (23/10/2026, Barbaros) : la promesse ne parle
+    // plus à la seule réception d'un hôtel, et la page nomme agences et entreprises.
+    check(`${nom} : la promesse parle à tous les professionnels, pas à la seule réception`,
+      !(langue === 'fr' ? /réception/i : /front desk/i).test(t.titre) && (langue === 'fr' ? /agences?/i.test(t.corps) && /entreprises?/i.test(t.corps)
+        : /agenc(y|ies)/i.test(t.corps) && /business/i.test(t.corps)), t.titre);
     check(`${nom} : la preuve d'activité existe`, t.reference.trim().length > 15, t.reference);
     const precis = /Roissy|CDG|Orly|Tremblay|Villepinte|Bourget|zone|\bun hôtel\b|\bun seul\b|premier|\bfirst\b|\ba hotel\b|\bone hotel\b|\barea\b/i;
     check(`${nom} : la preuve ne nomme ni un lieu précis ni un compte`, !precis.test(t.reference), t.reference);
