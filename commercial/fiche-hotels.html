@@ -24,6 +24,15 @@
      Ce qui nous distingue d'eux reste ce que l'hôtel ne fait plus : une page
      à son nom, un espace réception, un humain joignable — d'où les horaires
      à côté du numéro, comme partout sur le site.
+     ELLE PARLE À TOUS LES PROFESSIONNELS (23/10/2026, Barbaros : « ce n'est
+     pas destiné seulement aux hôtels ») : hôtels, agences, entreprises,
+     événements — comme le formulaire de la démo (Hôtel · Agence ·
+     Entreprise), dont l'espace s'appelle « votre équipe » hors hôtellerie.
+     Le nom du fichier et le code « fiche-hotels » restent : le code est
+     enregistré côté serveur et compte les scans depuis le 15/10.
+     ELLE EST CLIQUABLE : envoyée en PDF par e-mail, elle se lit sur un
+     écran où l'on ne scanne pas. Téléphone, WhatsApp, e-mail, site et le QR
+     lui-même sont de vrais liens ; le PDF imprimé par Chromium les garde.
      LE QR MÈNE À LA DÉMO avec le code « fiche-hotels » (migration
      20261015000000) : Registre → « Liens des partenaires » dira combien de
      directeurs l'ont scanné. Il est dessiné par qr-affiche.js, l'encodeur du
@@ -34,7 +43,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Elatransfer — fiche hôtels</title>
+<title>Elatransfer — fiche professionnels</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -87,7 +96,9 @@
   .preuve{ font-size:9.8pt; font-weight:700; color:var(--navy); margin:0 0 2mm; }
   .contact{ margin:0; padding:0; list-style:none; font-size:10pt; line-height:1.6; }
   .contact b{ display:inline-block; min-width:21mm; color:var(--gris); font-weight:600; font-size:9.4pt; }
-  .qr{ text-align:center; }
+  .qr{ display:block; text-align:center; color:inherit; text-decoration:none; }
+  .contact a{ color:inherit; text-decoration:underline; text-decoration-color:rgba(20,126,220,.45);
+              text-underline-offset:2px; }
   .qr svg{ display:block; width:30mm; height:30mm; margin:0 auto 1.6mm; }
   .qr span{ display:block; font-size:8.6pt; font-weight:700; color:var(--navy); max-width:46mm; line-height:1.3; }
   .mention{ margin:2.5mm 15mm 5mm; font-size:7.6pt; color:#8a98a6; text-align:center; }
@@ -102,33 +113,33 @@
   <header class="tete">
     <div class="marque">
       <img src="../brand-logo-negatif.webp" alt="Elatransfer">
-      <span class="pour">Hôtels</span>
+      <span class="pour">Professionnels</span>
     </div>
-    <h1>Votre réception réserve. Elatransfer gère tout le reste.</h1>
-    <p class="chapeau">Une page de réservation à votre nom, un QR code pour vos clients, un espace
-      pour votre réception. Nous cherchons le chauffeur dans un large réseau de professionnels,
-      confirmons au client et coordonnons chaque course jusqu'à la prise en charge.</p>
+    <h1>Votre équipe réserve.<br>Elatransfer gère tout le reste.</h1>
+    <p class="chapeau">Hôtels, agences, entreprises, événements&nbsp;: une page de réservation à votre
+      nom, un QR code pour vos clients ou vos invités, un espace pour votre équipe. Nous cherchons le
+      chauffeur dans un large réseau de professionnels, confirmons et coordonnons chaque course
+      jusqu'à la prise en charge.</p>
     <ul class="puces">
       <li>Mise en place gratuite</li>
       <li>Sans engagement</li>
-      <li>Tarifs négociés pour votre établissement</li>
+      <li>Tarifs négociés avec vous</li>
     </ul>
   </header>
 
   <main class="corps">
-    <p class="trajets"><b>Destinations</b>&nbsp;: Roissy-CDG, Orly, Beauvais, Disneyland Paris, Paris,
-      salons de Villepinte et du Bourget.</p>
+    <p class="trajets"><b>Destinations</b>&nbsp;: Roissy-CDG, Orly, Beauvais, gares, Paris, Disneyland
+      Paris, salons de Villepinte et du Bourget.</p>
 
     <section>
       <h2>Ce que nous créons pour vous</h2>
       <div class="trois">
         <div class="carte"><h3>Votre page</h3>
-          <p>Une page à votre nom, avec la photo de votre établissement et votre logo, que vous nous
-            confiez. Vos clients l'ouvrent par un lien ou en scannant un QR code.</p></div>
-        <div class="carte"><h3>Votre espace réception</h3>
-          <p>Votre équipe réserve par le numéro de chambre ou le nom du client, voit l'état de chaque
-            course et retrouve l'historique. À chaque relève, l'équipe suivante reprend sans repartir
-            de zéro.</p></div>
+          <p>Une page à votre nom, avec votre photo et votre logo, que vous nous confiez. Vos
+            clients, collaborateurs ou invités l'ouvrent par un lien ou en scannant un QR code.</p></div>
+        <div class="carte"><h3>Votre espace équipe</h3>
+          <p>Votre équipe réserve au nom d'un client (ou par le numéro de chambre, à l'hôtel), voit
+            l'état de chaque course et retrouve l'historique, d'une équipe à l'autre.</p></div>
         <div class="carte"><h3>Notre coordination</h3>
           <p>Nous vérifions chaque demande, cherchons dans notre réseau le chauffeur qui convient,
             l'attribuons et confirmons au client. Un seul interlocuteur&nbsp;: Elatransfer.</p></div>
@@ -139,11 +150,11 @@
       <h2>Comment ça se passe</h2>
       <div class="trois">
         <div class="carte"><h3><span class="num">1</span>La demande</h3>
-          <p>Le client scanne le QR code, ou la réception saisit la demande pour lui.</p></div>
+          <p>Votre client scanne le QR code, ou votre équipe saisit la demande pour lui.</p></div>
         <div class="carte"><h3><span class="num">2</span>La recherche</h3>
           <p>Nous cherchons dans notre réseau un chauffeur disponible, l'attribuons et confirmons
             au client.</p></div>
-        <div class="carte"><h3><span class="num">3</span>La réception suit</h3>
+        <div class="carte"><h3><span class="num">3</span>Votre équipe suit</h3>
           <p>Elle voit la course passer à «&nbsp;Réservation validée&nbsp;», puis à
             «&nbsp;Effectuée&nbsp;».</p></div>
       </div>
@@ -153,8 +164,8 @@
       <h2>Ce que ça change</h2>
       <div class="change">
         <div><b>Pour la direction</b><span>Un service de plus, sans véhicule ni chauffeur à gérer.
-          Votre établissement n'est jamais transporteur.</span></div>
-        <div><b>Pour la réception</b><span>Plus aucun chauffeur à chercher&nbsp;: la demande, la
+          Vous n'êtes jamais transporteur.</span></div>
+        <div><b>Pour votre équipe</b><span>Plus aucun chauffeur à chercher&nbsp;: la demande, la
           confirmation et l'historique sont au même endroit.</span></div>
         <div><b>Pour vos clients</b><span>Un prix annoncé à l'avance, réglé au chauffeur par lien
           avant le départ, en français ou en anglais.</span></div>
@@ -164,7 +175,7 @@
     <!-- LE PROGRAMME PARTENAIRE, mot pour mot la page Professionnels
          (18/10/2026) : au conditionnel, sans montant. -->
     <p class="partenaire"><b>Devenez partenaire Elatransfer.</b> Une rémunération peut être prévue
-      pour chaque transfert réalisé, selon les conditions convenues avec votre établissement.
+      pour chaque transfert réalisé, selon les conditions convenues avec vous.
       Aucun abonnement, aucun frais.</p>
   </main>
 
@@ -172,16 +183,17 @@
     <div>
       <p class="preuve">Déjà en service dans l'hôtellerie, en Île-de-France.</p>
       <ul class="contact">
-        <li><b>Téléphone</b>+33 7 59 31 24 33</li>
-        <li><b>WhatsApp</b>+33 7 59 31 24 33</li>
-        <li><b>E-mail</b>contact@elatransfer.com</li>
-        <li><b>Site</b>elatransfer.com/professionnels</li>
+        <li><b>Téléphone</b><a href="tel:+33759312433">+33 7 59 31 24 33</a></li>
+        <li><b>WhatsApp</b><a href="https://wa.me/33759312433">+33 7 59 31 24 33</a></li>
+        <li><b>E-mail</b><a href="mailto:contact@elatransfer.com">contact@elatransfer.com</a></li>
+        <li><b>Site</b><a href="https://elatransfer.com/professionnels/?via=fiche-hotels">elatransfer.com/professionnels</a></li>
       </ul>
       <p class="horaires">Réservation&nbsp;24&nbsp;h/24 · Assistance&nbsp;humaine&nbsp;7&nbsp;h–&#8288;22&nbsp;h</p>
     </div>
-    <div class="qr" id="qr" data-lien="https://elatransfer.com/professionnels/?via=fiche-hotels">
-      <span>Voir la démo hôtel, à votre nom</span>
-    </div>
+    <a class="qr" id="qr" href="https://elatransfer.com/professionnels/?via=fiche-hotels"
+       data-lien="https://elatransfer.com/professionnels/?via=fiche-hotels">
+      <span>Voir la démo, à votre nom</span>
+    </a>
   </footer>
   <p class="mention">Les chauffeurs sont des professionnels indépendants, sous leur propre carte
     professionnelle et leur assurance.</p>

@@ -146,6 +146,26 @@ le comparatif du dépôt (`memoire/programme-partenaire.md` § 10) :
   déborde, QR intact. `test-public-centrale` lit maintenant la fiche (11
   contrôles) ; sur l'ancienne, 3 tombent en citant la phrase.
 
+Puis, même soirée : « Rends-la cliquable… ce n'est pas destiné seulement aux
+hôtels mais aussi aux professionnels en tout genre ! »
+- **Cliquable** : mesuré d'abord, le PDF ne portait AUCUN lien (zéro
+  annotation `/URI`) — un directeur qui le lit par e-mail sur un ordinateur ne
+  pouvait rien ouvrir. Téléphone (`tel:`), WhatsApp, e-mail, site et le QR
+  lui-même sont de vrais liens ; Chromium les garde dans le PDF (4 adresses).
+- **Pour tous les professionnels** : badge « Professionnels », titre « Votre
+  équipe réserve. Elatransfer gère tout le reste. », « Hôtels, agences,
+  entreprises, événements » dans le chapeau, « Votre espace équipe » (le nom
+  que la démo donne déjà à l'espace d'une agence ou d'une entreprise), le
+  numéro de chambre gardé comme cas de l'hôtel. La preuve reste « dans
+  l'hôtellerie » : c'est là qu'elle est vraie. Le fichier et le code
+  `fiche-hotels` gardent leur nom (le code est enregistré côté serveur).
+- `test-public-centrale` : la fiche vise agences et entreprises, ses liens et
+  son QR sont cliquables, le PDF les garde (4 contrôles, tous tombent sur la
+  fiche d'avant).
+- **Pas touché, à décider** : la page Professionnels parle encore surtout
+  aux hôtels (réception, relève) ; son titre est verrouillé par
+  `test-pro-page`.
+
 ## « Elatransfer en chiffres » — prêt, éteint
 
 `chiffres.json` (non publié) + `.github/scripts/chiffres.mjs`, appelé par
