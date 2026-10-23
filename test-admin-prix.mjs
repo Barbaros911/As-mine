@@ -328,9 +328,8 @@ const actions = await readFile('admin-v2-actions.js', 'utf8');
 check('la chaîne d’itinéraire vit dans « itineraire-partage.js »',
   /function itineraire\(/.test(partage) && /function arrondiDizaine\(/.test(partage)
   && /function prix\(/.test(partage));
-/* LE SITE NE LA RÉÉCRIT PAS. « prix » y reste une fonction — c'est l'ancre
-   de la règle tarifaire du partenaire hôtel — mais elle DÉLÈGUE : la seule
-   arithmétique est dans le fichier partagé. */
+/* LE SITE NE LA RÉÉCRIT PAS. « prix » y reste une fonction, mais elle
+   DÉLÈGUE : la seule arithmétique est dans le fichier partagé. */
 check('le site ne garde aucune copie de la chaîne',
   !/function itineraire\(a, b, quand\)\{/.test(page)
   && !/function arrondiDizaine\(/.test(page)
