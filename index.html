@@ -3621,11 +3621,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          ligne sous « Voir mon prix ») : aucune promesse nouvelle. -->
     <p class="rassure veh-rassure" id="vehRassure" data-t="prix_rassure">Aucun paiement maintenant · prix annoncé à l'avance, réglé au chauffeur par lien après confirmation.</p>
 
-    <!-- Le prix est ferme : on le dit là où le client le lit, pas dans les
-         CGV. Il n'y a plus aucune majoration sur le site depuis septembre
-         2026 — même prix à toute heure et tous les jours ; la ligne
-         ci-dessus ne parle plus que du tarif nuit d'un flyer partenaire, et
-         elle n'apparaît que quand il s'applique. -->
     <!-- L'OPTION EST SOUS LA SÉLECTION DU VÉHICULE, à sa demande : c'est
          l'écran où l'on choisit ce qu'on achète, et une option découverte
          deux écrans plus loin ressemble à un supplément glissé au dernier
@@ -3654,10 +3649,6 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p class="bloc-note opt-attente" data-t="pancarte_attente_air">60 minutes d'attente
          offertes après l'atterrissage, même si votre vol a du retard.</p>
     </div>
-
-    <!-- Il n'y a plus de majoration sur le site : cette ligne ne parle plus
-         que du tarif nuit d'un flyer partenaire, et elle reste donc cachée
-         sur toute course ordinaire. -->
 
     <div class="veh-action">
       <button class="bouton" type="button" id="btnContinuer" disabled>
@@ -9286,20 +9277,8 @@ window.ELA_TEXTES = {
     { cle:"van",     nom:"Van",     parKm:4.70, mini:50, places:7 }
   ];
 
-  /* ═══ POURQUOI « prix » RESTE UNE FONCTION DE CETTE PAGE ═══
-     Elle ne calcule plus rien : tout est dans « itineraire-partage.js »,
-     et c'est bien le but — une seule arithmétique pour les deux espaces.
-     Mais elle est l'ANCRE de la règle tarifaire du partenaire hôtel, que
-     « .github/scripts/appliquer-regles-easyhotel.mjs » applique au moment
-     de CONSTRUIRE le site. Cette règle a besoin de « modeHotel() » et de
-     « course », qui vivent dans cette page et nulle part ailleurs : la
-     faire porter par le fichier partagé l'obligerait à connaître le mode
-     hôtel, que l'espace exploitant n'a pas. Le partenaire reste ici, le
-     calcul est là-bas.
-     À DIRE PLUTÔT QU'À TAIRE : cette règle est une SECONDE grille, posée
-     à la construction et donc invisible pour toute suite qui éprouve le
-     dépôt. C'est une décision de Barbaros, pas un défaut à corriger en
-     passant — mais elle doit être lue comme telle. */
+  /* « prix » NE CALCULE RIEN : tout est dans « itineraire-partage.js »,
+     et c'est bien le but — une seule arithmétique pour les deux espaces. */
   function prix(gamme, km){
     return window.ELA_ROUTE.prix(gamme, km);
   }
@@ -9315,9 +9294,8 @@ window.ELA_TEXTES = {
      l'arrondi le ferait disparaître une fois sur deux — 10 € ajoutés à
      42 € s'arrondissent à 50, mais ajoutés à 46 € ils donnent 56 € qui
      redescend à 60 : le client paierait 14 € une option annoncée à 10.
-     ELLE N'EST MAJORÉE NULLE PART. C'est un service à prix fixe : ni le
-     tarif nuit d'un flyer partenaire ni quoi que ce soit d'autre ne s'y
-     applique. Le site n'a plus aucune majoration depuis septembre 2026, et
+     ELLE N'EST MAJORÉE NULLE PART. C'est un service à prix fixe : rien ne
+     s'y applique. Le site n'a plus aucune majoration depuis septembre 2026, et
      le jour où l'on en réintroduirait une, elle ne devrait toujours pas
      toucher cette option — une pancarte affichée 10 € se paie 10 €.
      LE PRIX AFFICHÉ SORT DE LA CONSTANTE, il n'est écrit nulle part à la
@@ -9342,14 +9320,9 @@ window.ELA_TEXTES = {
    Barbaros. C'est exactement le genre de chose qu'une prochaine session
    prendrait pour un défaut.
 
-   LE TARIF NUIT DU FLYER EST LA SEULE MAJORATION QUI SUBSISTE DANS TOUT
-   LE PROJET. Le site n'en a plus aucune depuis septembre 2026 : son prix
-   est le même à toute heure et tous les jours. Le flyer, lui, est imprimé
-   et porte deux colonnes — +5 € de 21 h à 6 h, et rien sur le week-end.
-   Les deux règles n'ont donc RIEN à voir et ne se remplacent pas : le jour
-   où quelqu'un lira « il n'y a plus de majoration » dans ce projet, cette
-   grille-ci n'est pas concernée. Un samedi midi reste au tarif de jour ;
-   un mardi à 22 h reste au tarif de nuit.
+   UN FORFAIT VAUT LE MÊME PRIX À TOUTE HEURE ET TOUS LES JOURS : le tarif
+   nuit du flyer a été retiré le 22/09/2026, comme toutes les majorations
+   du site. Histoire : memoire/grille-et-majoration.md.
 
    LA GRILLE EST PAR HÔTEL, jamais globale : deux partenaires ne se
    négocient pas au même prix. D'où cet objet indexé par hôtel plutôt
@@ -9629,10 +9602,6 @@ window.ELA_TEXTES = {
      sont pas encore affectées (elles le sont plus loin dans ce même
      script), les lire donnerait « undefined/rest/v1/… ». Une définition
      de fonction ne s'exécute qu'à l'appel — seul l'APPEL doit attendre. */
-
-  /* LA NUIT DU FLYER : 21 h – 6 h, ET RIEN D'AUTRE. Pas de week-end.
-     Voir le commentaire de « HOTELS » : c'est la différence qui coûte le
-     plus cher si on l'oublie, et elle ne se voit pas à la relecture. */
 
   /* LE PRIX D'UNE GAMME A DEUX SOURCES ET UNE SEULE PORTE.
      Au kilométrage pour tout le site ; au forfait quand la course relie un
