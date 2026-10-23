@@ -18153,8 +18153,8 @@ window.ELA_TEXTES = {
     bonBord = majCourse(bonBord.ref, bonBord.statut || "attente", rattachement(cle)) || bonBord;
     var note = document.getElementById("bbHotelNote");
     note.textContent = HOTELS[cle]
-      ? "La réception de " + HOTELS[cle].nom + " la verra sous 30 secondes."
-      : "Elle n'est plus visible par aucune réception.";
+      ? "Enregistré. La réception de " + HOTELS[cle].nom + " la verra sous 30 secondes."
+      : "Enregistré. Elle n'est plus visible par aucune réception.";
     note.hidden = false;
   });
   /* L'hôtel d'un trajet : celui du départ, sinon celui de l'arrivée. */
