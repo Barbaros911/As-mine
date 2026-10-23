@@ -268,7 +268,9 @@ const calc = await p.locator('#crCalcul').textContent();
 check('le prix part de l\'Ibis CHOISI (Orly), lu dans l\'URL du calculateur d\'itinéraire',
   /2\.365,48\.73;2\.3292,48\.8675/.test(derniere(urlsOsrm)), derniere(urlsOsrm));
 check('un lieu choisi ne porte pas l\'avertissement « pris d\'office »', !/prise d'office/.test(calc), calc);
-check('le prix est calculé (18 km en berline)', (await p.inputValue('#crPrix')) === '50', await p.inputValue('#crPrix'));
+/* Depuis le 23 octobre 2026 : l'Ibis CHOISI est à Orly, dans la zone du
+   forfait Paris ↔ Orly (55 € en berline) — un hôtel, donc sans accueil. */
+check('le prix est calculé (forfait Paris ↔ Orly, 55 € en berline)', (await p.inputValue('#crPrix')) === '55', await p.inputValue('#crPrix'));
 
 /* Un texte tapé sans choisir : le premier trouvé, comme avant, MAIS dit. */
 await p.fill('#crDepart', 'ibis');
