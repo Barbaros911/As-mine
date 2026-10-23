@@ -231,9 +231,11 @@
     .direction .partenaire-carte{margin-top:18px;}
     .partenaire-carte h3{font-size:clamp(21px,2.6vw,26px);}
     .bouton.contour{color:var(--navy);background:transparent;border-color:var(--navy);}
-    .ecrans{display:inline-flex;flex-wrap:wrap;gap:4px;margin-top:18px;padding:4px;border:1px solid var(--line);border-radius:999px;background:#fff;max-width:100%;}
+    .ecrans{display:inline-grid;grid-template-columns:repeat(3,auto);gap:4px;margin-top:18px;padding:4px;border:1px solid var(--line);border-radius:999px;background:#fff;max-width:100%;}
     .ecrans button{min-height:44px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--navy);font:inherit;font-size:15px;font-weight:700;cursor:pointer;}
     .ecrans button[aria-pressed="true"]{background:var(--navy);color:#fff;}
+    /* Petit téléphone : les trois boutons se partagent la largeur, sur une seule ligne. */
+    @media (max-width:420px){ .ecrans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;} .ecrans button{padding:0 4px;font-size:14px;} }
     .ecrans button:focus-visible{outline:3px solid #12C4EE;outline-offset:2px;}
     .apercu-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,4vw,40px);align-items:start;margin-top:22px;}
     .apercu-grille[hidden]{display:none;}
