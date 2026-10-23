@@ -627,11 +627,11 @@ Histoire : `memoire/espace-exploitant.md`, `memoire/pilotage.md`.
   réseau » ou « Serveur injoignable » (`jugerReception`).
 - « Retour » n'écrit que ce qui a changé ; tout chauffeur saisi passe par
   `refusAttribution` ; un numéro du carnet donne le nom (`completerChauffeur`).
-- **Ne vivent QUE sur l'appareil** : le carnet, les paiements des chauffeurs,
-  les factures et leur numérotation, l'identité de l'émetteur, le lien d'avis.
-  D'où le rappel de sauvegarde (`#bordSauvegarde`, 7 jours). La sauvegarde
-  (`{format:"elatransfer-1"}`) se restaure en AJOUTANT, garde le plus grand
-  rang de facture, et lit encore l'ancien format.
+- **Carnet, règlements, factures (numéro compris), émetteur, lien d'avis :
+  sur le serveur** (24/10, `20261024010000`) ; l'appareil garde une copie et
+  une file (`ela_metier_file`). Il bascule une fois : import, relecture,
+  vérification ; rien n'est effacé. La sauvegarde (`elatransfer-1`) se
+  restaure en AJOUTANT et part au serveur. `memoire/donnees-serveur.md`.
 
 Histoire : `memoire/synchronisation-admin.md`.
 
@@ -895,8 +895,7 @@ Histoire : `memoire/tests-et-controles.md`.
    rende le site non conforme, et le seul qui dépend de lui seul.
 2. **Les vraies fiches des chauffeurs** dans le carnet, avec les copies de
    leurs papiers.
-3. **Une sauvegarde par semaine** de l'admin (ce qui ne vit que sur
-   l'appareil).
+3. **Une sauvegarde par semaine** de l'admin (un double hors serveur).
 4. **Fermer puis rouvrir l'admin** sur chaque appareil après une mise en ligne
    qui le touche.
 5. La clé Mapbox reste un confort, pas un manque (voir plus haut).
