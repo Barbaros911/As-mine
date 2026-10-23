@@ -72,8 +72,9 @@ réellement affecté. Il a demandé un mini-audit d'abord, puis les modification
   il parle à son lecteur : l'encart pro de l'accueil (« Déjà en service dans
   l'hôtellerie ») et la page pro. Pour un voyageur, « qui me répond s'il y a
   un problème » rassure plus qu'un hôtel qu'il ne connaît pas.
-  Mesuré : le bloc passe de 579 à ~930 px sur téléphone, de 392 à 594 px sur
-  ordinateur ; « Voir mon prix » ne bouge pas.
+  Mesuré : le bloc passe de 579 à 974 px sur téléphone (832 après la
+  relecture, plus bas), de 392 à 594 px sur ordinateur ; « Voir mon prix » ne
+  bouge pas.
 - **Page Professionnels** : « Comment ça se passe » devient **« Plus qu'un
   numéro de chauffeur »** : deux colonnes de même poids (« Un chauffeur en
   direct » : un numéro, ses disponibilités, un empêchement à gérer, un suivi
@@ -93,6 +94,36 @@ réellement affecté. Il a demandé un mini-audit d'abord, puis les modification
   conduit » dit « Elatransfer, centrale de réservation, … cherche le chauffeur
   dans un large réseau de professionnels ». **La fiche hôtels** (non publiée)
   suit la page pro.
+
+## La relecture « 10/10 ? » (même jour) — ce qui a été resserré
+
+Barbaros : « Ta tout fait comme un expert 10/10 ? » La réponse honnête était
+non, sur trois points, puis « Corrige tout sauf les notes Google » :
+- **Une redite sur l'accueil** : le pilier « Confirmée avec un chauffeur
+  attribué » et l'étape 2 disaient la même chose, et le bloc faisait 974 px
+  sur téléphone. L'étape 2 ne dit plus que COMMENT on est prévenu (« Par appel
+  ou message, selon votre choix ») ; le pilier devient « Confirmée avec son
+  chauffeur » (une ligne) ; l'introduction n'annonce plus ce que les étapes
+  disent (« une seule demande, et nous organisons le reste ») ; l'étape 1 tient
+  sur une ligne. **974 → 832 px**, aucune information perdue.
+- **Une redite sur la page pro** : la colonne « Un chauffeur en direct »
+  redisait « Ce que vous n'avez plus à organiser », juste au-dessus. Deux
+  lignes en face de trois ; l'introduction devient « Elatransfer ne remplace
+  pas le chauffeur : elle organise tout ce qu'il y a autour de la course »
+  (respect du chauffeur, sans redire la colonne). **1 476 → 1 266 px**.
+- **« pick-up » coupé en fin de ligne** en anglais : U+2060 après le trait
+  d'union, la même parade que « 7 h–22 h » (`memoire/textes-publics.md`).
+- **La description Google de l'accueil** dit maintenant « Elatransfer,
+  centrale de réservation de transferts avec chauffeur : … » (144 caractères,
+  entière dans Google), dans les quatre copies de `index.html` et dans
+  `seo-ela.mjs`. **Pas dans le titre**, et c'est voulu : le titre porte les mots
+  que les gens tapent (« transferts aéroport », « chauffeur privé », « Paris »),
+  personne ne cherche « centrale de réservation ».
+- **Laissé, et dit** : la note Google reste éteinte (sa décision, #407) ; les
+  mentions légales attendent la société (SIRET, raison sociale, siège) ; le
+  remplaçant « au même prix » reste, parce que les CGV le prévoient déjà
+  (art. 8) — c'est une promesse qu'il tient à chaque course, et l'anglais dit
+  « we look for another », jamais « we find another ».
 
 ## « Elatransfer en chiffres » — prêt, éteint
 
