@@ -60,11 +60,16 @@ Comment l'admin décide qui entre :
 2. **Le droit** : après la connexion, le serveur vérifie que ce compte est
    inscrit, actif, dans la table `operateurs` (`est_exploitant()`). Un compte
    absent de cette table est refusé, même avec le bon mot de passe.
-3. **Le rôle** : `admin` voit tout — prix, réglages, factures, commissions,
+3. **Le code à 6 chiffres** (depuis le 24 octobre 2026) : un compte qui a
+   activé sa double vérification n'est reconnu qu'avec mot de passe **et**
+   code — le serveur le vérifie à chaque requête. Activation, appareil de
+   secours, téléphone perdu : `SECURITE-ADMIN-MFA.md`.
+4. **Le rôle** : `admin` voit tout — prix, réglages, factures, commissions,
    Pilotage, Trafic (`est_admin()`). `agent_reservation` ne fait que traiter
    les courses. C'est le serveur qui l'impose, pas l'écran.
-4. **La session** reste sur l'appareil et se renouvelle toute seule. Changer
-   le mot de passe dans l'admin déconnecte les autres appareils.
+5. **La session** reste sur l'appareil et se renouvelle toute seule. Changer
+   le mot de passe dans l'admin déconnecte les autres appareils. « Se
+   déconnecter » révoque aussi la session chez Supabase.
 
 **Ne jamais supprimer puis recréer le compte exploitant** : la table
 `operateurs` le désigne par son identifiant, effacé avec le compte. Un compte

@@ -7,7 +7,7 @@ ELA Transfer est une plateforme de réservation et de gestion de courses avec ch
 ## Architecture actuelle
 
 - **Façade publique et réservation** : `index.html`.
-- **Admin (espace exploitant)** : publié sous `/ela-admin/`, document construit à partir d'`index.html` par `construire.sh`. Connexion Supabase (e-mail + mot de passe) puis contrôle serveur des droits ; il n'y a plus de code d'accès. `admin.html`, `/exploitant/` et `?exploitant=1` y mènent. Voir `COMPTES.md`.
+- **Admin (espace exploitant)** : publié sous `/ela-admin/`, document construit à partir d'`index.html` par `construire.sh`. Connexion Supabase (e-mail + mot de passe + code à 6 chiffres une fois la double vérification activée, `SECURITE-ADMIN-MFA.md`) puis contrôle serveur des droits ; il n'y a plus de code d'accès. `admin.html`, `/exploitant/` et `?exploitant=1` y mènent. Voir `COMPTES.md`.
 - **Admin v2** (`admin-v2.html`, `admin-v2-*.js`) : **plus publié depuis le 3 octobre 2026** — `/admin-v2.html` renvoie vers `/ela-admin/`. Le code reste dans le dépôt pour les fichiers qu'il partage.
 - **Client easyHotel** : `sites/easyhotel-client/`.
 - **Réception d'hôtel** : `/reception/<clé>/` (une page par hôtel, construite par `construire.sh`) ; `/easyhotel-reception/` reste servie pour les anciens favoris.
