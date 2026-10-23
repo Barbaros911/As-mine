@@ -4927,7 +4927,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
           <select id="crHotel"><option value="">Aucun hôtel</option></select>
         </span>
       </label>
-      <p class="bloc-note" id="crHotelNote">Choisi tout seul quand le départ est l'hôtel. Sa réception verra la course : client, trajet et chauffeur.</p>
+      <p class="bloc-note" id="crHotelNote">Choisi tout seul quand le départ ou l'arrivée est l'hôtel. Sa réception verra la course : client, trajet et chauffeur.</p>
     </div>
 
     <!-- LE CHAUFFEUR EST FACULTATIF, et c'est voulu : un hôtel appelle, on
@@ -5815,6 +5815,20 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <button class="bouton-fantome" type="button" id="btnMdFermer">Fermer sans modifier</button>
     </div>
     <p class="bloc-note" id="bbModifNote" hidden></p>
+
+    <!-- RATTACHER UNE COURSE À UN HÔTEL, À LA MAIN (23 octobre 2026, à sa
+         demande) : une course déjà réalisée, ou dont l'adresse a été tapée
+         sans être choisie (aucune coordonnée, rien ne peut la reconnaître),
+         se donne ici à l'hôtel. Sur le bon et pas dans « Modifier la
+         course », masqué une fois la course finie. Absent sur une course
+         prise au comptoir : elle est déjà à lui. -->
+    <div class="bloc" id="bbHotel" hidden>
+      <h2 class="bloc-titre">Hôtel partenaire</h2>
+      <label class="champ" for="bbHotelChoix"><span class="champ-corps">
+        <span class="champ-titre">Visible par la réception de</span>
+        <select id="bbHotelChoix"><option value="">Aucun hôtel</option></select></span></label>
+      <p class="bloc-note" id="bbHotelNote" hidden></p>
+    </div>
 
     <div class="veh-action" id="bbActions">
       <!-- ACCUSER RÉCEPTION — le message qui manquait.
@@ -14635,6 +14649,13 @@ window.ELA_TEXTES = {
     desarmerAnnul();
     fermerModif();
     document.getElementById("bbModifNote").hidden = true;
+    var bh = document.getElementById("bbHotel"), bhc = document.getElementById("bbHotelChoix");
+    if(bh && bhc){
+      remplirHotels(bhc);
+      bhc.value = HOTELS[c.provenanceCle] ? c.provenanceCle : "";
+      bh.hidden = !!c.parReception;
+      document.getElementById("bbHotelNote").hidden = true;
+    }
     /* L'accusé de réception ne vaut QUE pour une demande pas encore
        tranchée : une fois la course confirmée, c'est « Prévenir le client »
        qui parle, et lui dit bien plus. Deux messages coup sur coup diraient
@@ -14718,9 +14739,10 @@ window.ELA_TEXTES = {
     if(!c) return "public";
     if(c.parReception) return "reception";
     /* AVANT la clé d'hôtel : une saisie au téléphone rattachée à un hôtel
-       (pour que sa réception la voie) reste une saisie au téléphone. */
+       (pour que sa réception la voie) reste une saisie au téléphone, et une
+       demande du site rattachée après coup reste du site public. */
     if(c.canal === "admin") return "admin";
-    if(c.provenanceCle) return "hotel";
+    if(c.provenanceCle && !c.rattacheeHotel) return "hotel";
     return "public";
   }
   /* LES TAUX PAR CANAL VIVENT SUR LE SERVEUR (parametres_commerciaux,
@@ -18053,7 +18075,7 @@ window.ELA_TEXTES = {
     function(){ return pointConnu(crChoix.arrivee); });
   var priseCrArrivee = brancher(document.getElementById("crArrivee"),
     document.getElementById("crArriveeList"),
-    function(item){ crChoix.arrivee = item; crMesure = null; },
+    function(item){ crChoix.arrivee = item; crMesure = null; jugerHotelCreer(); },
     function(){ return pointConnu(crChoix.depart); });
   function videCreer(){
     ["crNom","crTel","crDepart","crArrivee","crDate","crHeure","crPrix",
@@ -18068,8 +18090,8 @@ window.ELA_TEXTES = {
   }
 
   /* ═══ LE DÉPART EST-IL UN HÔTEL PARTENAIRE ? (23 octobre 2026) ═══
-     À sa demande : une course saisie ici au départ de l'easyHotel de
-     Tremblay doit apparaître chez sa réception. Elle y entre par la même
+     À sa demande : une course saisie ici au départ OU À L'ARRIVÉE de
+     l'easyHotel de Tremblay doit apparaître chez sa réception. Elle y entre par la même
      clé que les courses du comptoir (« provenanceCle »), seule chose que
      « courses-hotel » filtre.
      ON MESURE UNE DISTANCE, JAMAIS UN MOT : les coordonnées de l'hôtel
@@ -18103,32 +18125,62 @@ window.ELA_TEXTES = {
     });
     return trouve;
   }
-  function remplirHotelsCreer(){
-    var sh = document.getElementById("crHotel");
+  function remplirHotels(sh){
     if(!sh || sh.options.length > 1) return;
     Object.keys(HOTELS).forEach(function(cle){
       var o = document.createElement("option");
       o.value = cle; o.textContent = HOTELS[cle].nom;
       sh.appendChild(o);
     });
+  }
+  function remplirHotelsCreer(){
+    var sh = document.getElementById("crHotel");
+    if(!sh || sh.options.length > 1) return;
+    remplirHotels(sh);
     sh.addEventListener("change", function(){ crHotelTouche = true; });
   }
+  /* Les champs qui donnent une course à un hôtel (ou la lui reprennent).
+     « rattacheeHotel » garde le canal d'origine pour la commission. */
+  function rattachement(cle){
+    return HOTELS[cle]
+      ? { provenanceCle: cle, provenance: HOTELS[cle].nom, rattacheeHotel: true }
+      : { provenanceCle: "", provenance: "", rattacheeHotel: false };
+  }
+  var bbHotelChoix = document.getElementById("bbHotelChoix");
+  if(bbHotelChoix) bbHotelChoix.addEventListener("change", function(){
+    if(!bonBord) return;
+    var cle = this.value;
+    bonBord = majCourse(bonBord.ref, bonBord.statut || "attente", rattachement(cle)) || bonBord;
+    var note = document.getElementById("bbHotelNote");
+    note.textContent = HOTELS[cle]
+      ? "La réception de " + HOTELS[cle].nom + " la verra sous 30 secondes."
+      : "Elle n'est plus visible par aucune réception.";
+    note.hidden = false;
+  });
+  /* L'hôtel d'un trajet : celui du départ, sinon celui de l'arrivée. */
+  function hotelDuTrajet(a, b){ return hotelDuPoint(a) || hotelDuPoint(b); }
+  function pointLieu(l){ return l ? { lat:l.latitude, lon:l.longitude } : null; }
   /* Un choix fait à la main n'est jamais défait par la détection. */
   function jugerHotelCreer(){
     var sh = document.getElementById("crHotel");
     if(!sh) return;
     lirePointsHotels().then(function(){
       if(crHotelTouche) return;
-      sh.value = hotelDuPoint(pointConnu(crChoix.depart));
+      sh.value = hotelDuTrajet(pointConnu(crChoix.depart), pointConnu(crChoix.arrivee));
     });
   }
-  /* Les courses saisies avant cette règle : celles dont le départ choisi
-     tombe sur un hôtel, et qui ne sont pas encore à lui. */
+  /* Les courses saisies avant cette règle : celles dont le départ ou
+     l'arrivée choisis tombent sur un hôtel, et qui ne sont pas encore à
+     lui. Une course qu'on lui a reprise à la main (« rattacheeHotel »
+     faux) n'est plus proposée. */
+  function hotelDeCourse(c){
+    var co = c && c.course;
+    return co ? hotelDuTrajet(pointLieu(co.departLieu), pointLieu(co.arriveeLieu)) : "";
+  }
   function coursesARattacher(){
     return registre().filter(function(c){
-      var l = c && c.course && c.course.departLieu;
-      return c && c.canal === "admin" && !c.provenanceCle && l
-        && !!hotelDuPoint({ lat:l.latitude, lon:l.longitude });
+      return c && c.canal === "admin" && !c.provenanceCle && c.rattacheeHotel !== false
+        && !!hotelDeCourse(c);
     });
   }
   function jugerRattacher(){
@@ -18138,8 +18190,9 @@ window.ELA_TEXTES = {
       var n = coursesARattacher().length;
       bloc.hidden = !n;
       document.getElementById("crRattacherTexte").textContent = n
-        ? (n === 1 ? "1 course déjà saisie part" : n + " courses déjà saisies partent")
-          + " d'un hôtel partenaire sans être visible" + (n === 1 ? "" : "s") + " par sa réception."
+        ? (n === 1 ? "1 course déjà saisie part d'un hôtel partenaire ou y arrive sans être visible"
+                   : n + " courses déjà saisies partent d'un hôtel partenaire ou y arrivent sans être visibles")
+          + " par sa réception."
         : "";
       if(n) document.getElementById("btnRattacher").textContent = n === 1
         ? "La rendre visible par la réception" : "Les rendre visibles par la réception";
@@ -18152,9 +18205,7 @@ window.ELA_TEXTES = {
     var liste = registre(), derniere = null;
     liste.forEach(function(c){
       if(!c || !refs[c.ref]) return;
-      var l = c.course.departLieu, cle = hotelDuPoint({ lat:l.latitude, lon:l.longitude });
-      c.provenanceCle = cle;
-      c.provenance = HOTELS[cle].nom;
+      Object.assign(c, rattachement(hotelDeCourse(c)));
       derniere = c;
       mettreEnFile(c.ref);
     });
@@ -18376,10 +18427,7 @@ window.ELA_TEXTES = {
     /* Rattachée à un hôtel : sa réception la voit. Le canal reste
        « admin » (la commission est celle de la saisie au téléphone). */
     var crH = document.getElementById("crHotel");
-    if(crH && crH.value && HOTELS[crH.value]){
-      c.provenanceCle = crH.value;
-      c.provenance = HOTELS[crH.value].nom;
-    }
+    if(crH && crH.value && HOTELS[crH.value]) Object.assign(c, rattachement(crH.value));
 
     var liste = registre();
     liste.unshift(c);
