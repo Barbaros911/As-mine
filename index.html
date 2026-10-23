@@ -2334,6 +2334,14 @@ body.espace #panneauProvenance{display:none;}
   background:var(--accent,#0E6FC7);color:#fff;font-weight:800;font-size:14px;}
 .modele-etapes b{display:block;font-size:15px;color:var(--encre,#151C22);}
 .modele-etapes span[data-t]{display:block;font-size:13.5px;line-height:1.4;color:var(--gris,#5A6A7B);}
+/* Les trois piliers de la centrale : un seul panneau, jamais numérotés. */
+.piliers{list-style:none;margin:0 0 22px;padding:4px 16px;border-radius:16px;background:var(--fond,#F2F5F9);}
+.piliers li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;}
+.piliers li + li{border-top:1px solid var(--filet,#E1E8EF);}
+.pilier-ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:var(--accent-clair,#E8F2FD);color:var(--accent,#0E6FC7);}
+.piliers b{display:block;font-size:15px;color:var(--encre,#151C22);}
+.piliers span[data-t]{display:block;font-size:13.5px;line-height:1.45;color:var(--gris,#5A6A7B);}
 .modele-pro{margin-top:14px;border-radius:18px;padding:18px 16px;background:var(--accent-clair,#E8F2FD);}
 .modele-pro:first-child{margin-top:0;}
 .modele-pro-h{margin:0 0 6px;font-size:21px;line-height:1.2;font-weight:800;color:var(--encre,#151C22);}
@@ -3281,13 +3289,43 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
        Le bandeau « Vol ou train en retard ? » qui était ici est retiré : il
        disait mot pour mot la carte « Suivi du vol ou du train » posée juste
        en dessous, et la question fréquente le redit. -->
+  <!-- UNE CENTRALE, UN RÉSEAU (23 octobre 2026, à la demande de Barbaros :
+       « ElaTransfer n'est pas simplement un chauffeur »). Le bloc dit ce
+       qu'on est AVANT de dire comment ça marche : une centrale de
+       réservation qui cherche le chauffeur dans un large réseau. Trois
+       piliers dans UN panneau (pas trois boîtes de plus), chacun tenu par
+       les CGV : le chauffeur indépendant sous sa carte et son assurance
+       (art. 2 et 9), la confirmation seulement avec un chauffeur affecté et
+       rien de dû sinon (art. 3), le remplaçant au même prix (art. 8).
+       « Large réseau », jamais un nombre : le groupe de chauffeurs n'est pas
+       un registre de chauffeurs mobilisables (memoire/centrale-et-reseau.md).
+       Les piliers ne sont PAS numérotés : une seule suite 1 · 2 · 3 à
+       l'écran (test-public-ordinateur). -->
   <section class="section modele" id="comment">
     <p class="modele-sur" data-t="modele_sur">QUI SOMMES-NOUS</p>
-    <h2 data-t="modele_titre">Vous réservez, nous organisons tout.</h2>
-    <p class="modele-intro" data-t="modele_intro">Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel indépendant, sous sa propre carte professionnelle et son assurance.</p>
+    <h2 data-t="modele_titre">Vous réservez, nous trouvons votre chauffeur.</h2>
+    <p class="modele-intro" data-t="modele_intro">Elatransfer est une centrale de réservation : nous recevons votre demande, cherchons le chauffeur qui convient et vous confirmons la course.</p>
+    <ul class="piliers">
+      <li><span class="pilier-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="5" cy="5.6" r="2" stroke="currentColor" stroke-width="1.7"/><circle cx="19" cy="5.6" r="2" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="5" cy="18.4" r="2" stroke="currentColor" stroke-width="1.7"/><circle cx="19" cy="18.4" r="2" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M6.6 7l3.3 3M17.4 7l-3.3 3M6.6 17l3.3-3M17.4 17l-3.3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <div><b data-t="pilier1">Un large réseau de chauffeurs</b><span data-t="pilier1s">Des professionnels indépendants, chacun sous sa propre carte professionnelle et son assurance.</span></div></li>
+      <li><span class="pilier-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.1" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M8 12.3l2.7 2.7L16.2 9.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div><b data-t="pilier2">Confirmée avec un chauffeur attribué</b><span data-t="pilier2s">Vous recevez son nom. Si aucun n'est disponible, nous vous le disons, et vous ne devez rien.</span></div></li>
+      <li><span class="pilier-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4.5 14v-2a7.5 7.5 0 0115 0v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <rect x="3.2" y="13" width="3.6" height="5.6" rx="1.4" stroke="currentColor" stroke-width="1.7"/>
+          <rect x="17.2" y="13" width="3.6" height="5.6" rx="1.4" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M19 18.6c0 1.6-1.6 2.6-4.2 2.6H13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <div><b data-t="pilier3">Un seul interlocuteur</b><span data-t="pilier3s">Elatransfer, de votre demande à la prise en charge. Si votre chauffeur a un empêchement, nous en cherchons un autre, au même prix.</span></div></li>
+    </ul>
     <ol class="modele-etapes">
       <li><span class="modele-n">1</span><div><b data-t="modele_e1">Vous demandez</b><span data-t="modele_e1s">En ligne, au comptoir de votre hôtel ou par téléphone.</span></div></li>
-      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Votre demande est vérifiée, puis confirmée par appel ou message, selon votre choix, avec le nom de votre chauffeur.</span></div></li>
+      <li><span class="modele-n">2</span><div><b data-t="modele_e2">Nous confirmons</b><span data-t="modele_e2s">Nous cherchons un chauffeur disponible, puis vous confirmons la course par appel ou message, selon votre choix.</span></div></li>
       <li><span class="modele-n">3</span><div><b data-t="modele_e3">Votre chauffeur vous conduit</b><span data-t="modele_e3s">À l'heure convenue, au prix annoncé, payé à l'avance par lien.</span></div></li>
     </ol>
   </section>
@@ -3490,7 +3528,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          d'un prospect ouvre directement) et l'e-mail. -->
     <div class="modele-pro">
       <h2 class="modele-pro-h" data-t="modele_pro_h">Vous êtes un hôtel, une agence ou une entreprise ?</h2>
-      <p class="modele-pro-s" data-t="modele_pro_s">Proposez nos transferts à vos clients, sans rien organiser vous-même.</p>
+      <p class="modele-pro-s" data-t="modele_pro_s">Votre réception transmet la demande, Elatransfer trouve le chauffeur et coordonne le reste. Déjà en service dans l'hôtellerie.</p>
       <a class="modele-offre" href="/professionnels/" data-t="modele_offre">Découvrir l'offre professionnels</a>
       <a class="modele-cta" href="/professionnels/#demo" data-t="modele_cta">Voir la démo hôtel</a>
       <a class="modele-mail" href="mailto:contact@elatransfer.com">contact@elatransfer.com</a>
@@ -6554,13 +6592,16 @@ window.ELA_TEXTES = {
     plus3:"Accueil personnalisé", plus3s:"À l'aéroport ou en gare, votre chauffeur vous attend avec une pancarte à votre nom.",
     plus3_option:"En option à la réservation :",
     pro_lien_t:"Hôtel, agence, entreprise ?", pro_lien_s:"Découvrir l'offre professionnels",
-    modele_sur:"QUI SOMMES-NOUS", modele_titre:"Vous réservez, nous organisons tout.",
-    modele_intro:"Elatransfer reçoit votre demande, choisit le chauffeur, confirme la course et la suit jusqu'à votre arrivée. Le trajet est assuré par un chauffeur professionnel indépendant, sous sa propre carte professionnelle et son assurance.",
+    modele_sur:"QUI SOMMES-NOUS", modele_titre:"Vous réservez, nous trouvons votre chauffeur.",
+    modele_intro:"Elatransfer est une centrale de réservation : nous recevons votre demande, cherchons le chauffeur qui convient et vous confirmons la course.",
+    pilier1:"Un large réseau de chauffeurs", pilier1s:"Des professionnels indépendants, chacun sous sa propre carte professionnelle et son assurance.",
+    pilier2:"Confirmée avec un chauffeur attribué", pilier2s:"Vous recevez son nom. Si aucun n'est disponible, nous vous le disons, et vous ne devez rien.",
+    pilier3:"Un seul interlocuteur", pilier3s:"Elatransfer, de votre demande à la prise en charge. Si votre chauffeur a un empêchement, nous en cherchons un autre, au même prix.",
     modele_e1:"Vous demandez", modele_e1s:"En ligne, au comptoir de votre hôtel ou par téléphone.",
-    modele_e2:"Nous confirmons", modele_e2s:"Votre demande est vérifiée, puis confirmée par appel ou message, selon votre choix, avec le nom de votre chauffeur.",
+    modele_e2:"Nous confirmons", modele_e2s:"Nous cherchons un chauffeur disponible, puis vous confirmons la course par appel ou message, selon votre choix.",
     modele_e3:"Votre chauffeur vous conduit", modele_e3s:"À l'heure convenue, au prix annoncé, payé à l'avance par lien.",
     modele_pro_h:"Vous êtes un hôtel, une agence ou une entreprise ?",
-    modele_pro_s:"Proposez nos transferts à vos clients, sans rien organiser vous-même.",
+    modele_pro_s:"Votre réception transmet la demande, Elatransfer trouve le chauffeur et coordonne le reste. Déjà en service dans l'hôtellerie.",
     modele_offre:"Découvrir l'offre professionnels",
     contact_mail_t:"E-mail · devis et partenariats",
     modele_cta:"Voir la démo hôtel",
@@ -6789,13 +6830,16 @@ window.ELA_TEXTES = {
     plus3:"Personal meet & greet", plus3s:"At the airport or station, your chauffeur waits for you with a sign bearing your name.",
     plus3_option:"Optional when booking:",
     pro_lien_t:"Hotel, agency, business?", pro_lien_s:"See what we offer businesses",
-    modele_sur:"WHO WE ARE", modele_titre:"You book, we organise everything.",
-    modele_intro:"Elatransfer receives your request, chooses the chauffeur, confirms the ride and follows it until you arrive. The journey is carried out by an independent professional chauffeur, under their own licence and insurance.",
+    modele_sur:"WHO WE ARE", modele_titre:"You book, we find your chauffeur.",
+    modele_intro:"Elatransfer is a booking and dispatch service: we receive your request, look for the right chauffeur and confirm your ride.",
+    pilier1:"A wide network of chauffeurs", pilier1s:"Independent professionals, each under their own licence and insurance.",
+    pilier2:"Confirmed once a chauffeur is assigned", pilier2s:"You receive their name. If none is available, we tell you, and you owe nothing.",
+    pilier3:"One point of contact", pilier3s:"Elatransfer, from your request to pick-up. If your chauffeur cannot make it, we look for another, at the same price.",
     modele_e1:"You request", modele_e1s:"Online, at your hotel's front desk or by phone.",
-    modele_e2:"We confirm", modele_e2s:"Your request is checked, then confirmed by call or message — your choice — with your chauffeur's name.",
+    modele_e2:"We confirm", modele_e2s:"We look for an available chauffeur, then confirm your ride by call or message — your choice.",
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the agreed time and the quoted price, paid in advance by link.",
     modele_pro_h:"Are you a hotel, an agency or a business?",
-    modele_pro_s:"Offer our transfers to your guests, without organising anything yourself.",
+    modele_pro_s:"Your front desk passes on the request; Elatransfer finds the chauffeur and coordinates the rest. Already in use in the hotel sector.",
     modele_offre:"See what we offer businesses",
     contact_mail_t:"Email · quotes and partnerships",
     modele_cta:"See the hotel demo",

@@ -343,9 +343,10 @@ un hôtel partenaire qui accepte d'être cité** — avec son accord écrit.
 | Presse locale (Le Parisien 95/93, actu.fr, Gazette du Val d'Oise, Contact Entreprises) | non vérifié | — | probablement la plus réaliste, à mesurer |
 
 **Interdits de récit** : leader, milliers de clients, dizaines d'hôtels,
-technologie brevetée, couverture nationale. Une phrase vraie : « déjà en
-service dans un hôtel de la zone de Roissy-CDG » — au singulier, et à retirer
-si le partenariat cesse.
+technologie brevetée, couverture nationale, nombre de partenaires, nombre de
+chauffeurs. Une phrase vraie : « déjà en service dans l'hôtellerie, en
+Île-de-France » — sans compte ni lieu précis (23/10/2026,
+`memoire/centrale-et-reseau.md`), et à retirer si ce service cesse.
 
 ---
 

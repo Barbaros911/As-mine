@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Elatransfer — Transferts pour hôtels, agences, entreprises</title>
-  <meta name="description" content="Mise en place gratuite : une page de réservation à votre nom, un QR code pour vos clients, un espace pour votre réception. Elatransfer organise chaque trajet.">
+  <meta name="description" content="Votre page de réservation, un QR code et un espace réception, mis en place gratuitement. Elatransfer trouve le chauffeur et coordonne chaque transfert.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://elatransfer.com/professionnels/">
   <meta name="theme-color" content="#062f55">
@@ -245,6 +245,37 @@
       .apercu-tel{width:min(260px,72%);margin:0 auto;}
       .sans-liste li{font-size:16px;}
     }
+    /* ═══ PLUS QU'UN NUMÉRO DE CHAUFFEUR (23 octobre 2026) — deux colonnes de
+       même poids, sans couleur de mise en garde à gauche : on compare une
+       organisation, on ne juge pas un chauffeur. La colonne d'Elatransfer
+       prend l'accent clair, comme le programme partenaire. Puis la frise,
+       passée à quatre étapes : en ligne au-delà de 1000 px, en colonne
+       en dessous (quatre étapes sur 700 px se lisaient serrées). */
+    .versus{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px;}
+    .versus-col{padding:clamp(20px,3vw,28px);border:1px solid var(--line);border-radius:16px;background:#fff;}
+    .versus-col h3{margin:0 0 10px;color:var(--navy);font-size:18px;line-height:1.3;}
+    .versus-ela{background:#E8F2FD;border-color:rgba(14,111,199,.28);}
+    .versus .coches,.tirets{margin:0;padding:0;list-style:none;}
+    .tirets li{position:relative;padding:5px 0 5px 26px;color:var(--muted);}
+    .tirets li::before{content:"";position:absolute;left:4px;top:16px;width:10px;height:2px;border-radius:2px;background:#9fb2c3;}
+    .parcours-titre{margin:40px 0 0;color:var(--navy);font-size:19px;line-height:1.3;}
+    .etapes{grid-template-columns:repeat(4,1fr);}
+    @media (max-width:1000px){
+      .etapes{grid-template-columns:1fr;gap:0;}
+      .etapes li{flex-direction:row;gap:14px;padding:0 0 22px;}
+      .etapes li:last-child{padding-bottom:0;}
+      .etapes li:not(:last-child)::before{left:16px;right:auto;top:40px;bottom:4px;width:2px;height:auto;}
+      .etapes b{margin-top:5px;}
+    }
+    @media (max-width:700px){
+      .versus{grid-template-columns:1fr;gap:12px;}
+    }
+    /* En chiffres : une rangée de nombres, sans carte autour de chacun. */
+    .chiffres-liste{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin:18px 0 0;padding:0;list-style:none;}
+    .chiffres-liste li{padding:18px 0 0;border-top:2px solid var(--line);}
+    .chiffres-liste b{display:block;color:var(--navy);font-size:clamp(30px,4vw,40px);line-height:1.1;font-weight:800;}
+    .chiffres-liste span{display:block;margin-top:4px;color:var(--muted);}
+    .chiffres-note{margin:14px 0 0;color:var(--muted);font-size:14px;}
   </style>
 </head>
 <body>
@@ -264,15 +295,25 @@
       <div class="hero-in">
         <p class="surtitre" data-t="surtitre">Hôtels · Agences · Entreprises</p>
         <h1 data-t="titre">Votre réception réserve. Elatransfer gère tout le reste.</h1>
-        <p class="lead" data-t="sous_titre">Elatransfer réserve et coordonne les transferts de vos clients. Vous recevez votre page de réservation, votre QR code et votre espace réception ; nous trouvons le chauffeur, confirmons au client et suivons chaque trajet.</p>
+        <p class="lead" data-t="sous_titre">Elatransfer réserve et coordonne les transferts de vos clients. Vous recevez votre page de réservation, votre QR code et votre espace réception ; nous cherchons le chauffeur dans un large réseau de professionnels, confirmons au client et coordonnons chaque course.</p>
         <div class="actions">
           <a class="bouton" href="#demo" data-t="cta_demo">Voir la démo hôtel</a>
           <a class="bouton creux" href="#contact" data-t="cta_parler">Parler de mon établissement</a>
         </div>
         <p class="points" data-t="points">Mise en place gratuite · Sans engagement · Tarifs négociés pour votre établissement</p>
-        <p class="reference" data-t="reference">Déjà en service dans un hôtel de la zone de Roissy-CDG.</p>
+        <p class="reference" data-t="reference">Déjà en service dans l'hôtellerie, en Île-de-France.</p>
         <p class="note-google" data-avis-google="fr en" data-forme="pro" hidden></p>
       </div>
+    </section>
+
+    <!-- ELATRANSFER EN CHIFFRES (23 octobre 2026) : un repère VIDE, que
+         .github/scripts/chiffres.mjs remplit à la construction depuis
+         chiffres.json, ou retire. Aujourd'hui il est retiré : aucun chiffre
+         n'est assez établi pour être publié. Jamais un chiffre écrit ici à la
+         main, jamais le nombre de partenaires. -->
+    <section class="bloc chiffres" id="chiffres" aria-labelledby="t-chiffres" data-chiffres hidden>
+      <h2 id="t-chiffres" data-t="chiffres_titre">Elatransfer en chiffres</h2>
+      <ul class="chiffres-liste"></ul>
     </section>
 
     <section class="bloc vecu" aria-labelledby="t-vecu">
@@ -320,8 +361,8 @@
         </article>
         <article class="carte">
           <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></div>
-          <h3 data-t="cree3_t">Notre prise en charge</h3>
-          <p data-t="cree3">Nous vérifions chaque demande, choisissons un chauffeur professionnel, confirmons au client et suivons le trajet jusqu'à l'arrivée. Votre réception a un interlocuteur Elatransfer.</p>
+          <h3 data-t="cree3_t">Notre coordination</h3>
+          <p data-t="cree3">Nous vérifions chaque demande, cherchons dans notre réseau le chauffeur professionnel qui convient, l'attribuons et confirmons au client. Votre réception a un seul interlocuteur : Elatransfer.</p>
         </article>
       </div>
     </section>
@@ -354,13 +395,45 @@
         <a href="#demo" data-t="apercu_lien">Essayer avec le nom de votre établissement</a></p>
     </section>
 
+    <!-- PLUS QU'UN NUMÉRO DE CHAUFFEUR (23 octobre 2026, à la demande de
+         Barbaros : « ElaTransfer = une demande centralisée + recherche dans un
+         réseau + coordination »). Remplace « Comment ça se passe », dont il
+         garde la frise, passée de trois à quatre étapes pour montrer la
+         recherche et l'attribution. La comparaison ne dénigre personne : un
+         chauffeur en direct, c'est un contact et ses disponibilités, rien de
+         plus n'est dit sur lui. Chaque ligne d'Elatransfer est tenue : un
+         interlocuteur, un large réseau (jamais un nombre), un remplaçant au
+         même prix (CGV art. 8 : « peut remplacer », d'où « nous cherchons »),
+         l'état de chaque demande dans l'espace réception. -->
     <section class="bloc" aria-labelledby="t-comment">
-      <h2 id="t-comment" data-t="comment_titre">Comment ça se passe</h2>
-      <p class="intro" data-t="comment_intro">Ce n'est pas un numéro de chauffeur de plus : chaque demande suit le même parcours, de la réservation à l'arrivée.</p>
+      <h2 id="t-comment" data-t="comment_titre">Plus qu'un numéro de chauffeur</h2>
+      <p class="intro" data-t="comment_intro">Un chauffeur en direct, c'est un contact et ses disponibilités. Elatransfer met derrière chaque demande un large réseau de chauffeurs professionnels et une coordination, de la réservation à la prise en charge.</p>
+      <div class="versus">
+        <div class="versus-col versus-direct">
+          <h3 data-t="vs_direct_t">Un chauffeur en direct</h3>
+          <ul class="tirets">
+            <li data-t="vs_direct1">Un numéro à joindre.</li>
+            <li data-t="vs_direct2">Ses propres disponibilités.</li>
+            <li data-t="vs_direct3">S'il a un empêchement, la réception cherche quelqu'un d'autre.</li>
+            <li data-t="vs_direct4">Un suivi par téléphone et par message.</li>
+          </ul>
+        </div>
+        <div class="versus-col versus-ela">
+          <h3 data-t="vs_ela_t">Avec Elatransfer</h3>
+          <ul class="coches">
+            <li data-t="vs_ela1">Un seul interlocuteur, pour toutes vos demandes.</li>
+            <li data-t="vs_ela2">Un large réseau de chauffeurs professionnels, sollicité pour vous.</li>
+            <li data-t="vs_ela3">S'il a un empêchement, nous cherchons un autre chauffeur, au même prix.</li>
+            <li data-t="vs_ela4">L'état de chaque demande, dans votre espace réception.</li>
+          </ul>
+        </div>
+      </div>
+      <h3 class="parcours-titre" data-t="parcours_titre">Le parcours d'une demande</h3>
       <ol class="etapes">
-        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou la réception saisit la demande pour lui.</p></div></li>
-        <li><span class="num">2</span><div><b data-t="etape2_t">Elatransfer s'en occupe</b><p data-t="etape2">Nous vérifions la demande, plaçons un chauffeur professionnel et confirmons au client.</p></div></li>
-        <li><span class="num">3</span><div><b data-t="etape3_t">La réception suit</b><p data-t="etape3">Elle voit la course passer à « Réservation validée », puis à « Effectuée ».</p></div></li>
+        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou votre réception saisit la demande pour lui. Elle arrive chez Elatransfer.</p></div></li>
+        <li><span class="num">2</span><div><b data-t="etape2_t">La recherche</b><p data-t="etape2">Nous vérifions la demande et cherchons dans notre réseau un chauffeur professionnel disponible.</p></div></li>
+        <li><span class="num">3</span><div><b data-t="etape3_t">La confirmation</b><p data-t="etape3">Une fois le chauffeur attribué, le client reçoit la confirmation ; votre réception voit « Réservation validée ».</p></div></li>
+        <li><span class="num">4</span><div><b data-t="etape4_t">La prise en charge</b><p data-t="etape4">Le chauffeur vient à l'heure convenue, payé par lien avant le départ. La course passe à « Effectuée ».</p></div></li>
       </ol>
     </section>
 
@@ -501,7 +574,8 @@
       <h2 id="t-faq" data-t="faq_titre">Les questions des professionnels</h2>
       <details><summary data-t="q1">Combien ça coûte à l'établissement ?</summary><p data-t="r1">Rien. La mise en place est gratuite, et chaque client paie son trajet avant le départ, directement au chauffeur, par lien de paiement.</p></details>
       <details><summary data-t="q6">Y a-t-il un engagement ?</summary><p data-t="r6">Non. Sans engagement : vous arrêtez quand vous voulez, sans frais.</p></details>
-      <details><summary data-t="q2">Qui assure le transport ?</summary><p data-t="r2">Des chauffeurs professionnels indépendants, qui conduisent sous leur propre carte professionnelle et leur assurance. Elatransfer intervient comme centrale de réservation : nous choisissons le chauffeur, confirmons la course et la suivons. Votre établissement n'est jamais transporteur.</p></details>
+      <details><summary data-t="q2">Qui assure le transport ?</summary><p data-t="r2">Des chauffeurs professionnels indépendants, qui conduisent sous leur propre carte professionnelle et leur assurance. Elatransfer intervient comme centrale de réservation : nous cherchons le chauffeur, confirmons la course et la coordonnons jusqu'à la prise en charge. Votre établissement n'est jamais transporteur.</p></details>
+      <details><summary data-t="q9">Comment trouvez-vous le chauffeur ?</summary><p data-t="r9">Elatransfer s'appuie sur un large réseau de chauffeurs professionnels indépendants. À chaque demande, nous cherchons celui qui est disponible pour l'horaire, le lieu et le véhicule demandés, et la course n'est confirmée qu'une fois ce chauffeur attribué. S'il a ensuite un empêchement, nous cherchons un autre chauffeur, au même prix.</p></details>
       <details><summary data-t="q8">Et si aucun chauffeur n'est disponible ?</summary><p data-t="r8">Une demande n'est confirmée qu'une fois un chauffeur affecté : le client reçoit alors son nom, son véhicule et l'heure. Si aucun chauffeur n'est disponible, nous le disons clairement, au client comme à votre réception, plutôt que de laisser attendre une voiture qui ne viendra pas.</p></details>
       <details><summary data-t="q3">Peut-on avoir nos propres tarifs ?</summary><p data-t="r3">Oui. Les tarifs sont négociés pour votre établissement et affichés sur votre page : votre client voit le prix avant de réserver.</p></details>
       <details><summary data-t="q4">Et si le vol d'un client est en retard ?</summary><p data-t="r4">Votre client indique son numéro de vol : nous suivons son arrivée et le chauffeur l'attend jusqu'à 60 minutes après l'atterrissage réel, sans frais.</p></details>
@@ -536,15 +610,16 @@
   (function(){
     var EN = {
       _titre_page:"Elatransfer — Transfers for hotels, agencies and businesses",
-      _description:"Free set-up: a booking page with your name, a QR code for your guests, a space for your front desk. Elatransfer organises every transfer.",
+      _description:"Your booking page, a QR code and a front-desk space, set up free of charge. Elatransfer finds the chauffeur and coordinates every transfer.",
       aria_accueil:"Elatransfer — home", aria_nav:"Navigation", aria_langue:"Lire en français",
       nav_reserver:"Book a ride", nav_questions:"FAQ", nav_contact:"Contact",
       surtitre:"Hotels · Agencies · Businesses",
       titre:"Your front desk books. Elatransfer takes care of everything else.",
-      sous_titre:"Elatransfer books and coordinates your guests' transfers. You get your own booking page, QR code and front-desk space; we find the chauffeur, confirm with the guest and follow every journey.",
+      sous_titre:"Elatransfer books and coordinates your guests' transfers. You get your own booking page, QR code and front-desk space; we find the chauffeur in a wide network of professionals, confirm with the guest and coordinate every ride.",
       cta_demo:"See the hotel demo", cta_parler:"Talk to us about your property",
       points:"Free set-up · No commitment · Rates negotiated for your establishment",
-      reference:"Already running in a hotel in the Roissy-CDG area.",
+      reference:"Already in use in the hotel sector, in the Paris region.",
+      chiffres_titre:"Elatransfer in numbers",
       vecu_titre:"What your front desk goes through",
       vecu1:"A guest has to be at Roissy at 7 am. They ask at 5 am.",
       vecu2:"Someone looks for a number, calls back, and nobody knows whether the car will come.",
@@ -560,7 +635,7 @@
       cree_titre:"What we set up for you",
       cree1_t:"Your page", cree1:"A page with your name and colours, with your photo and your logo if you would like to send it to us. Your guests open it from a link or a QR code and book by themselves, from their room, without taking up your team's time.",
       cree2_t:"Your front-desk space", cree2:"Your team books by room number or guest name, sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
-      cree3_t:"What we take care of", cree3:"We check every request, choose a professional chauffeur, confirm with the guest and follow the journey through to arrival. Your front desk has an Elatransfer contact.",
+      cree3_t:"Our coordination", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. Your front desk has a single point of contact: Elatransfer.",
       apercu_titre:"What it looks like",
       apercu_client:"Your guests' page, opened from a link or a QR code.",
       apercu_client_alt:"Booking page of an example hotel: the hotel's name, then the destinations CDG Airport, Orly and Le Bourget, with prices to be set by the establishment.",
@@ -568,11 +643,23 @@
       apercu_reception_alt:"Front-desk space of an example hotel: two upcoming rides, one pending, the other confirmed with its driver's name and number.",
       apercu_note:"Screenshots from the demonstration, with fictitious data.",
       apercu_lien:"Try it with your establishment's name",
-      comment_titre:"How it works",
-      comment_intro:"Not just another driver's number: every request follows the same path, from booking to arrival.",
-      etape1_t:"The request", etape1:"The guest scans the QR code, or the front desk enters the request for them.",
-      etape2_t:"Elatransfer takes over", etape2:"We check the request, assign a professional chauffeur and confirm with the guest.",
-      etape3_t:"The front desk follows", etape3:"It sees the ride move to “booking confirmed”, then to “completed”.",
+      comment_titre:"More than a driver's number",
+      comment_intro:"A driver you call directly is one contact and their own availability. Elatransfer puts a wide network of professional chauffeurs and a coordination behind every request, from booking to pick-up.",
+      vs_direct_t:"A driver you call directly",
+      vs_direct1:"One number to reach.",
+      vs_direct2:"Their own availability.",
+      vs_direct3:"If they can't make it, the front desk looks for someone else.",
+      vs_direct4:"Follow-up by phone and by message.",
+      vs_ela_t:"With Elatransfer",
+      vs_ela1:"A single point of contact, for all your requests.",
+      vs_ela2:"A wide network of professional chauffeurs, called on for you.",
+      vs_ela3:"If the chauffeur can't make it, we look for another, at the same price.",
+      vs_ela4:"The status of every request, in your front-desk space.",
+      parcours_titre:"How a request is handled",
+      etape1_t:"The request", etape1:"The guest scans the QR code, or your front desk enters the request for them. It reaches Elatransfer.",
+      etape2_t:"The search", etape2:"We check the request and look in our network for an available professional chauffeur.",
+      etape3_t:"The confirmation", etape3:"Once the chauffeur is assigned, the guest receives the confirmation; your front desk sees “booking confirmed”.",
+      etape4_t:"The pick-up", etape4:"The chauffeur arrives at the agreed time, paid by link before departure. The ride moves to “completed”.",
       dir_titre:"For management",
       dir_intro:"A transfer service offered to your guests, under your name, without adding anything to your organisation.",
       dir_etab_t:"Your establishment",
@@ -605,7 +692,8 @@
       f_rgpd_lien:"Privacy policy", f_piege:"Leave empty", aria_fermer:"Close",
       faq_titre:"Questions from businesses",
       q1:"What does it cost the establishment?", r1:"Nothing. Set-up is free, and each guest pays for their ride before departure, directly to the chauffeur, by payment link.",
-      q2:"Who actually provides the transport?", r2:"Independent professional chauffeurs, driving under their own professional licence and insurance. Elatransfer acts as the booking intermediary: we choose the chauffeur, confirm the ride and follow it. Your establishment is never the carrier.",
+      q2:"Who actually provides the transport?", r2:"Independent professional chauffeurs, driving under their own professional licence and insurance. Elatransfer acts as the booking intermediary: we find the chauffeur, confirm the ride and coordinate it until pick-up. Your establishment is never the carrier.",
+      q9:"How do you find the chauffeur?", r9:"Elatransfer relies on a wide network of independent professional chauffeurs. For each request, we look for one who is available for the time, place and vehicle requested, and the ride is only confirmed once that chauffeur is assigned. If they then can't make it, we look for another chauffeur, at the same price.",
       q3:"Can we have our own rates?", r3:"Yes. Rates are negotiated for your establishment and shown on your page: your guest sees the price before booking.",
       q4:"What if a guest's flight is delayed?", r4:"Your guest gives their flight number: we track their arrival and the chauffeur waits up to 60 minutes after the actual landing, at no charge.",
       q5:"Who sees our guests' data?", r5:"Your front-desk space only shows your establishment's rides. The information needed for the journey is shared only with the assigned chauffeur, and no data is sold.",
@@ -637,6 +725,8 @@
       document.querySelectorAll('[data-t-alt]').forEach(function(e){ var k = e.getAttribute('data-t-alt'); if (T[k] != null) e.setAttribute('alt', T[k]); });
       /* Une capture par langue : la page anglaise ne montre pas un écran en français. */
       document.querySelectorAll('img[data-src-en]').forEach(function(e){ e.setAttribute('src', e.getAttribute(l === 'en' ? 'data-src-en' : 'data-src-fr')); });
+      /* Les textes posés à la construction (« en chiffres ») portent leurs deux langues. */
+      document.querySelectorAll('[data-texte-en]').forEach(function(e){ e.textContent = e.getAttribute(l === 'en' ? 'data-texte-en' : 'data-texte-fr'); });
       var b = document.getElementById('langue');
       b.textContent = l === 'en' ? 'FR' : 'EN';
       b.setAttribute('aria-label', l === 'en' ? 'Lire en français' : 'Read in English');

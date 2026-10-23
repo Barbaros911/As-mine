@@ -306,11 +306,9 @@ Histoire : `memoire/prix-toutes-distances.md`.
   vit dans `telephone.js`, chargé par tous les espaces **avant**
   `intake-demande.js`. Toute fonction appelée par une page publique doit y être
   définie (`test-easyhotel-client.mjs`).
-- **« Inclus dans chaque course »** (bloc bleu nuit) n'annonce que des faits
-  tenus par les CGV ; les trois étapes sont sous le formulaire ; les questions
-  fréquentes reprennent les CGV — en changer une, c'est relire le contrat.
-  Jamais « VTC » à l'affichage. Pas de second « Voir mon prix » plus bas
-  (refusé).
+- **« Qui sommes-nous », « Inclus » et les questions** n'annoncent que des
+  faits tenus par les CGV : en changer un, c'est relire le contrat. Jamais
+  « VTC » ; pas de second « Voir mon prix ».
 
 Histoire : `memoire/tunnel-client.md`, `memoire/formulaire-public.md`.
 
@@ -793,29 +791,31 @@ partenaire. `memoire/palette.md`.
   les vignettes publiées sont des copies allégées. La photo est « Paris la
   nuit », un recadrage par écran, un voile local. `memoire/photos-accueil.md`,
   `memoire/bandeau-photo.md`, `memoire/bandeau-accueil.md`.
-- **Une marque, deux espaces** : l'accueil est aux voyageurs, l'offre pro vit
-  sur `/professionnels/`. Le grand titre dit le métier ; jamais « solution »,
+- **Une marque, deux espaces** : l'accueil aux voyageurs, l'offre pro sur
+  `/professionnels/`. Le titre dit le métier ; jamais « solution »,
   « mobilité », « plateforme », « conciergerie », « canal » ; « Prix annoncé à
-  l'avance » pour vendre ; le chauffeur est « professionnel indépendant, sous
-  sa propre carte professionnelle et son assurance », jamais « taxi » ni
-  « VTC », et **aucun contrôle de ses papiers n'est promis** (ils avertissent,
-  ils ne bloquent plus) ; aucun client cité, aucun chiffre promis ; « Mise en
-  place gratuite » à retirer le jour où un hôtel paie. Ni sélecteur
-  « Particuliers | Pro », ni « Elatransfer Pro » tant qu'aucun compte pro
-  n'existe.
-  `test-public-textes.mjs`. `memoire/textes-publics.md`, `memoire/accueil-pro.md`,
-  `memoire/ordre-accueil.md`.
+  l'avance » pour vendre ; le chauffeur, « professionnel indépendant, sous sa
+  propre carte professionnelle et son assurance », jamais « taxi » ni « VTC »,
+  **sans contrôle de papiers promis** ; aucun client cité ; « Mise en place
+  gratuite » tant qu'aucun hôtel ne paie ; ni « Elatransfer Pro » ni sélecteur
+  sans compte pro. `test-public-textes.mjs`. `memoire/textes-publics.md`,
+  `memoire/accueil-pro.md`, `memoire/ordre-accueil.md`.
+- **Une centrale, un large réseau** (23/10) : « un large réseau » de
+  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà en
+  service dans l'hôtellerie, en Île-de-France », à retirer s'il cesse) ;
+  aucune disponibilité garantie ; suivi « jusqu'à la prise en charge » (CGV
+  art. 2) ; `chiffres.json` éteint tant qu'un chiffre n'a pas sa source.
+  `test-public-centrale.mjs`, `memoire/centrale-et-reseau.md`.
 - **Les cinq services de l'accueil** : une carte mène au formulaire si et
   seulement si elle annonce une adresse ; ni emoji, ni pack.
   `memoire/services-accueil.md`.
 - **Sur ordinateur** : au-delà de 900 px, un menu en haut et plus de barre du
   bas ; au-delà de 1100 px, le formulaire à gauche sous la promesse ; un seul
-  bouton principal. Ne
-  jamais promettre un service qu'il ne fait pas. `test-public-ordinateur.mjs`,
+  bouton principal ; jamais un service qu'il ne fait pas. `test-public-ordinateur.mjs`,
   `memoire/ordinateur.md`.
 - **Le formulaire public** : carte bleu nuit, « Voir mon prix » cyan texte
   bleu nuit, aucun bouton dans le bandeau, en-tête bleu nuit avec la version
-  négative du logo (le cartouche blanc a été refusé). « Voir mon prix » reste entier au-dessus de la barre à
+  négative du logo. « Voir mon prix » reste entier au-dessus de la barre à
   390×844. **Toujours capturer à 844 px de haut.** `test-public-formulaire.mjs`.
 - **La finition** : une échelle de titres, une recette de carte, un seul bouton
   plein par encart ; pas d'exception « pour ce bloc-là ».
@@ -842,10 +842,8 @@ partenaire. `memoire/palette.md`.
   `memoire/pilotage.md`.
 - **La démo Professionnels** (`/professionnels/` → `/demo/hotel/`) **n'atteint
   jamais la production** (CSP, `verifier-demo.mjs`, `deposer-course` refuse tout
-  « demo ») ; elle ne promet que le vrai — « Déjà en service dans un hôtel de
-  la zone de Roissy-CDG », au singulier, jamais « nos partenaires », **à retirer
-  si ce partenariat cesse** ; ni robot ni humain bloqué sans Turnstile ;
-  l'accès dure 7 jours. `memoire/demo-pro.md`.
+  « demo ») ; elle ne promet que le vrai, jamais « nos partenaires » ; ni robot
+  ni humain bloqué sans Turnstile ; l'accès dure 7 jours. `memoire/demo-pro.md`.
 - **La mesure du trafic** : rien sur l'appareil, aucun identifiant envoyé
   (adresse et navigateur hachés avec une clé du jour détruite le lendemain) ;
   jamais nom, téléphone, adresse, prix ni IP ; conservée 90 jours ; lecture
