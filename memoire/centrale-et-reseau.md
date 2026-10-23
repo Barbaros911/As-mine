@@ -125,6 +125,59 @@ non, sur trois points, puis « Corrige tout sauf les notes Google » :
   (art. 8) — c'est une promesse qu'il tient à chaque course, et l'anglais dit
   « we look for another », jamais « we find another ».
 
+## La fiche papier des hôtels (même jour, après la fusion de #410)
+
+Barbaros : « Le PDF est sur le site ? » — non : `commercial/fiche-hotels.html`
+n'est pas publiée, on l'imprime en PDF pour un directeur. Montrée entière, elle
+gardait deux défauts que la PR #410 n'avait pas vus, faute de contrôle sur
+elle : « suivons le trajet **jusqu'au bout** » (contraire aux CGV art. 2) et
+« confirmée » là où l'espace réception affiche « **Réservation validée** ».
+Puis « Corrige tout comme un expert, inspiré de mes exemples concurrents » —
+le comparatif du dépôt (`memoire/programme-partenaire.md` § 10) :
+- **Le levier des concurrents** (Welcome Pickups, Transfeero : « gratuit pour
+  l'hôtel + une rémunération par transfert », sans contrat) entre sur la
+  fiche avec la phrase validée de la page pro, au conditionnel, sans montant.
+- **Ce qui nous distingue d'eux** est dit : le réseau dans le chapeau, la
+  relève dans l'espace réception, « Plus aucun chauffeur à chercher », et un
+  humain joignable — les horaires à côté du numéro, qui manquaient (règle du
+  22/10).
+- « Plus d'appels à passer » se lisait dans les deux sens : réécrit.
+- Mesuré : A4 tenue (marge libre 4,3 mm au-dessus du cadre), rien ne
+  déborde, QR intact. `test-public-centrale` lit maintenant la fiche (11
+  contrôles) ; sur l'ancienne, 3 tombent en citant la phrase.
+
+Puis, même soirée : « Rends-la cliquable… ce n'est pas destiné seulement aux
+hôtels mais aussi aux professionnels en tout genre ! »
+- **Cliquable** : mesuré d'abord, le PDF ne portait AUCUN lien (zéro
+  annotation `/URI`) — un directeur qui le lit par e-mail sur un ordinateur ne
+  pouvait rien ouvrir. Téléphone (`tel:`), WhatsApp, e-mail, site et le QR
+  lui-même sont de vrais liens ; Chromium les garde dans le PDF (4 adresses).
+- **Pour tous les professionnels** : badge « Professionnels », titre « Votre
+  équipe réserve. Elatransfer gère tout le reste. », « Hôtels, agences,
+  entreprises, événements » dans le chapeau, « Votre espace équipe » (le nom
+  que la démo donne déjà à l'espace d'une agence ou d'une entreprise), le
+  numéro de chambre gardé comme cas de l'hôtel. La preuve reste « dans
+  l'hôtellerie » : c'est là qu'elle est vraie. Le fichier et le code
+  `fiche-hotels` gardent leur nom (le code est enregistré côté serveur).
+- `test-public-centrale` : la fiche vise agences et entreprises, ses liens et
+  son QR sont cliquables, le PDF les garde (4 contrôles, tous tombent sur la
+  fiche d'avant).
+- **Pas touché, à décider** : la page Professionnels parle encore surtout
+  aux hôtels (réception, relève) ; son titre est verrouillé par
+  `test-pro-page`.
+
+**Le paiement, même soir.** Barbaros proposait de ne plus faire payer par
+lien (réception : payer le chauffeur à bord ; page client : payer en ligne).
+Avis donné : (1) ne plus VENDRE le mécanisme — « réglé directement au
+chauffeur, avant le départ », toujours vrai, aux CGV inchangées ; (2) ne pas
+revenir au paiement à bord pour la réception, la raison du 11/10 tient (un
+client absent à 5 h, un chauffeur venu pour rien) ; (3) le paiement en ligne
+sur la page est la vraie cible (Welcome Pickups, Transfeero), mais il faut la
+société et Stripe Connect — à moitié construit, bloqué par le SIRET. Il a dit
+oui à (1) et (3) plus tard. Fait : page Professionnels (FR/EN) et fiche ;
+l'accueil, le tunnel, les CGV et le message au client gardent « par lien » —
+c'est là que le client en a besoin. `test-public-centrale` le garde.
+
 ## « Elatransfer en chiffres » — prêt, éteint
 
 `chiffres.json` (non publié) + `.github/scripts/chiffres.mjs`, appelé par
