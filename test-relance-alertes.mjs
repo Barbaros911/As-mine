@@ -31,7 +31,7 @@ let maintenant = Date.parse('2026-09-30T10:00:00Z');
 const DateReel = Date; Date.now = () => maintenant;
 const iso = (ms) => new DateReel(ms).toISOString();
 
-let courses = [], journal = [], tg = [], tgCorps = [], tgAutres = [];
+let courses = [], journal = [], tg = [], tgCorps = [], tgAutres = [], lecturePrevenirKo = false;
 globalThis.fetch = async (url, init = {}) => {
   url = String(url);
   if (url.includes('api.telegram.org/bott/sendMessage')) { const c = JSON.parse(init.body); tg.push(c.text); tgCorps.push(c); return new Response(JSON.stringify({ ok: true, result: { message_id: tg.length } })); }
@@ -40,9 +40,23 @@ globalThis.fetch = async (url, init = {}) => {
     const depuis = Date.parse(decodeURIComponent(url.match(/cree_le=gte\.([^&]+)/)[1]));
     return new Response(JSON.stringify(courses.filter(c => c.statut === 'attente' && Date.parse(c.cree_le) >= depuis)));
   }
+  /* Les courses dont le client reste à prévenir (24/10/2026) : le faux
+     serveur applique les mêmes filtres que PostgREST. */
+  if (url.includes('/rest/v1/courses?select=ref,statut,bon&statut=in.(confirmee,refusee,annulee)')) {
+    if (lecturePrevenirKo) return new Response('panne', { status: 500 });
+    const depuisJour = (url.match(/bon->course->>date=gte\.([^&]+)/) || [])[1] || '';
+    if (!/bon->>aPrevenir=not\.is\.null/.test(url)) return new Response('filtre manquant', { status: 400 });
+    return new Response(JSON.stringify(courses.filter(c => ['confirmee', 'refusee', 'annulee'].includes(c.statut)
+      && c.bon && c.bon.aPrevenir && String(c.bon.course?.date || '') >= depuisJour)
+      .map(c => ({ ref: c.ref, statut: c.statut, bon: c.bon }))));
+  }
   if (url.includes('journal_notifications_admin?select')) {
     const ref = decodeURIComponent(url.match(/course_ref=eq\.([^&]+)/)[1]);
-    return new Response(JSON.stringify(journal.filter(j => j.course_ref === ref)));
+    const type = (url.match(/type_evenement=eq\.([^&]+)/) || [])[1];
+    const depuis = (url.match(/cree_le=gte\.([^&]+)/) || [])[1];
+    return new Response(JSON.stringify(journal.filter(j => j.course_ref === ref
+      && (!type || j.type_evenement === decodeURIComponent(type))
+      && (!depuis || Date.parse(j.cree_le) >= Date.parse(decodeURIComponent(depuis))))));
   }
   if (url.includes('journal_notifications_admin')) { journal.push({ ...JSON.parse(init.body), cree_le: iso(maintenant) }); return new Response(''); }
   if (url.includes('abonnements_admin')) return new Response('[]');
@@ -356,6 +370,95 @@ try {
     check('le bouton « Vu » disparaît du message', tgAutres.some(x => x.methode === 'editMessageReplyMarkup' && !JSON.stringify(x.corps.reply_markup).includes('vu:')));
     const n5 = tg.length; maintenant += 30000; await relance();
     check('et la course CCCC3 n\'est plus relancée', !tg.slice(n5).some(t => t.includes('CCCC3')), String(tg.length - n5));
+  }
+  /* 14. LE CLIENT PAS ENCORE PRÉVENU (24 octobre 2026, Barbaros : « un
+     pense-bête qui m'empêche d'oublier »). L'admin pose « aPrevenir » sur
+     une course confirmée, refusée, annulée ou modifiée ; tant qu'il reste,
+     Telegram le rappelle : à 15 min, puis une dernière fois à H-3 — deux au
+     plus, jamais après le départ, jamais quand le client a payé. */
+  {
+    const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    const paris = (ms) => { const [d, h] = fmt.format(new DateReel(ms)).split(' '); return { date: d, heure: h }; };
+    const aPrev = (ref, statut, type, departDans, plus = {}) => {
+      const { date, heure } = paris(maintenant + departDans);
+      return { ref, statut, cree_le: iso(maintenant - 2 * 86400000), bon: { ref, numero: 700, securite: { empreinteDepot: 'e' },
+        client: { nom: 'Jeanne Martin', telephone: '06 12 34 56 78' },
+        course: { departPublic: 'Gare de Lyon, Paris', arriveePublic: 'Orly', date, heure, vehicule: 'Berline' },
+        prix: { total: 60 }, aPrevenir: { type, depuis: iso(maintenant) }, ...plus } };
+    };
+    const rappels = (ref) => journal.filter(j => j.course_ref === ref && j.type_evenement === 'client_a_prevenir');
+    const corpsDe = (ref) => tgCorps.filter(c => rappels(ref).length && c.text.includes('N° 700') && c.text.includes('CLIENT PAS PRÉVENU'));
+    journal = []; tg = []; tgCorps = [];
+    courses = [aPrev('ELA-26-10-PREV1', 'confirmee', 'confirmation', 6 * 3600000)];
+    let rep = await relance();
+    check('client pas prévenu : rien à la minute du geste', rappels('ELA-26-10-PREV1').length === 0, rep);
+    minutes(10); await relance();
+    check('client pas prévenu : rien à 10 min — Barbaros est sans doute en train de le faire', rappels('ELA-26-10-PREV1').length === 0);
+    minutes(5); rep = await relance();
+    check('client pas prévenu : un rappel Telegram à 15 min', rappels('ELA-26-10-PREV1').length === 1, rep);
+    check('le bilan de la relance le compte', /1 rappel\(s\) « client pas prévenu »/.test(rep), rep);
+    const premier = tgCorps.at(-1) || { text: '' };
+    check('le titre dit le risque, avec le N° et l\'heure du rendez-vous', /^CLIENT PAS PRÉVENU — N° 700, \d{2}\/\d{2} \d{2}:\d{2}/.test(premier.text), premier.text.split('\n')[0]);
+    check('le corps dit le bouton à toucher', premier.text.includes('« Prévenir le client »') && premier.text.includes('lien de paiement'), premier.text.replace(/\n/g, ' | '));
+    check('ni le nom ni le téléphone du client dans le message (RGPD 5.1.c)', !/Jeanne|Martin|06 12|0612/.test(premier.text));
+    const clavier = JSON.stringify(premier.reply_markup || {});
+    check('un seul bouton, « Ouvrir la course » — pas de « Vu », qui arrête les rappels des demandes en attente', clavier.includes('Ouvrir la course') && !clavier.includes('vu:'), clavier);
+    minutes(5); await relance(); minutes(40); await relance();
+    check('pas de rafale : rien de plus avant H-3', rappels('ELA-26-10-PREV1').length === 1, String(rappels('ELA-26-10-PREV1').length));
+    maintenant += 3 * 3600000 - 59 * 60000; await relance();   // départ dans ~2 h 59
+    check('un dernier rappel à H-3', rappels('ELA-26-10-PREV1').length === 2, String(rappels('ELA-26-10-PREV1').length));
+    check('il se dit le dernier', /^DERNIER RAPPEL — CLIENT PAS PRÉVENU/.test((tgCorps.at(-1) || {}).text || ''), ((tgCorps.at(-1) || {}).text || '').split('\n')[0]);
+    minutes(60); await relance(); minutes(60); await relance();
+    check('deux au plus : plus rien ensuite', rappels('ELA-26-10-PREV1').length === 2, String(rappels('ELA-26-10-PREV1').length));
+
+    /* Un nouveau geste repart de zéro ; un message ouvert éteint tout. */
+    courses[0].bon.aPrevenir = { type: 'confirmation', depuis: iso(maintenant) };
+    minutes(16); await relance();
+    check('un NOUVEAU geste (nouveau chauffeur) repart de zéro : nouveau rappel à 15 min', rappels('ELA-26-10-PREV1').length === 3, String(rappels('ELA-26-10-PREV1').length));
+
+    /* Ce qui ne doit JAMAIS sonner. */
+    journal = []; tgCorps = [];
+    courses = [
+      aPrev('ELA-26-10-PAYE1', 'confirmee', 'confirmation', 5 * 3600000, { paye: '2026-10-24T08:00:00Z' }),
+      aPrev('ELA-26-10-INCO1', 'refusee', 'confirmation', 5 * 3600000),
+      aPrev('ELA-26-10-SANS1', 'refusee', 'refus', 5 * 3600000, { client: { nom: 'X' } }),
+      aPrev('ELA-26-10-PASS1', 'annulee', 'annulation', 10 * 60000),
+      aPrev('ELA-26-10-REAL1', 'realisee', 'confirmation', 5 * 3600000),
+    ];
+    minutes(20); await relance();
+    check('un client qui a PAYÉ a reçu son lien : aucun rappel', rappels('ELA-26-10-PAYE1').length === 0);
+    check('un pense-bête qui ne correspond plus à l\'état (confirmation sur une course refusée) : aucun rappel', rappels('ELA-26-10-INCO1').length === 0);
+    check('sans téléphone, personne à prévenir : aucun rappel', rappels('ELA-26-10-SANS1').length === 0);
+    check('départ passé : aucun rappel', rappels('ELA-26-10-PASS1').length === 0);
+    check('une course réalisée n\'est même pas lue', rappels('ELA-26-10-REAL1').length === 0);
+
+    /* Le refus dit qu'un client attend peut-être une voiture. */
+    journal = []; tgCorps = [];
+    courses = [aPrev('ELA-26-10-REFU1', 'refusee', 'refus', 4 * 3600000)];
+    minutes(16); await relance();
+    const tRefus = (tgCorps.at(-1) || {}).text || '';
+    check('un refus pas encore dit : rappel « il attend peut-être une voiture »', rappels('ELA-26-10-REFU1').length === 1 && /refusée/.test(tRefus) && /attend peut-être une voiture/.test(tRefus) && tRefus.includes('« Prévenir le client du refus »'), tRefus.replace(/\n/g, ' | '));
+
+    /* Une demande immédiate n'a pas de rendez-vous : 15 min, puis 45 min. */
+    journal = []; tgCorps = [];
+    courses = [aPrev('ELA-26-10-IMME1', 'confirmee', 'confirmation', 0)];
+    courses[0].bon.course.immediat = true;
+    minutes(16); await relance();
+    check('demande immédiate : premier rappel à 15 min (son « départ » est déjà passé, il ne compte pas)', rappels('ELA-26-10-IMME1').length === 1);
+    check('…et le titre dit IMMÉDIAT', /CLIENT PAS PRÉVENU — N° 700, IMMÉDIAT/.test((tgCorps.at(-1) || {}).text || ''));
+    minutes(20); await relance();
+    check('demande immédiate : rien entre les deux', rappels('ELA-26-10-IMME1').length === 1);
+    minutes(10); await relance();
+    check('demande immédiate : le dernier à 45 min', rappels('ELA-26-10-IMME1').length === 2);
+
+    /* Les deux tâches sont indépendantes. */
+    lecturePrevenirKo = true;
+    const att = { ref: 'ELA-26-10-ATTE9', statut: 'attente', cree_le: iso(maintenant - 2 * 60000), bon: bon('ELA-26-10-ATTE9', '23:00') };
+    courses = [att];
+    const avantTg = tg.length; rep = await relance();
+    check('une lecture refusée du côté « client pas prévenu » est dite dans le bilan', /client pas prévenu : lecture refusée \(500\)/.test(rep), rep);
+    check('…et n\'empêche pas la relance des demandes en attente', tg.length > avantTg && tg.slice(avantTg).some(x => x.includes('ATTE9') || /Nouvelle demande/.test(x)), rep);
+    lecturePrevenirKo = false;
   }
 } catch (x) { ko.push('PLANTAGE — ' + x.message); }
 

@@ -381,9 +381,9 @@ Histoire : `memoire/itineraire.md`.
   au dépôt n'est pas une demande perdue** : on rejoue deux fois puis on tire
   une autre référence (`deposerDemande`, `autreCourse` côté admin).
   `memoire/reference.md`.
-- **Un seul bon, identique partout** (modèle B, 24/09) : le vrai logo, la
-  pastille d'état, **jamais la couleur d'un partenaire** ; attente = pastille
-  grise, confirmé = verte pleine ; « Prix annoncé » en attente, « Prix ferme »
+- **Un seul bon, identique partout** : le vrai logo, la pastille d'état,
+  **jamais la couleur d'un partenaire** ; attente = pastille grise, confirmé =
+  verte pleine ; « Prix annoncé » en attente, « Prix ferme »
   confirmé. Réception et admin le dessinent avec `bon-client.js`, jamais un
   second dessin.
 - **C'est le lien `?ok=` qui porte la réponse au client** (la lecture anonyme
@@ -394,10 +394,10 @@ Histoire : `memoire/itineraire.md`.
   faux).
 - **`etat-course` est la seule porte de lecture** : clé = référence +
   téléphone ; elle ne rend que ce que porte `?ok=`, le chauffeur seulement sur
-  une course confirmée ou réalisée. **Un appel qui échoue ne fait jamais
-  reculer un état** (`nuage.etat()` rend `null`). On n'interroge que ce qui
-  peut encore changer.
-- **LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART** (10–11/10) : plus
+  une course confirmée ou réalisée ; le bon suit sa date et son heure. **Un
+  appel qui échoue ne fait jamais reculer un état** (`nuage.etat()` rend
+  `null`). On n'interroge que ce qui peut encore changer.
+- **LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART** : plus
   aucun règlement à bord, comptoir compris ; aucun délai ni écriteau
   « paiement attendu ». Annulation du client après paiement non remboursée ;
   course ratée de notre fait remboursée (CGV art. 5, 7 et 8). Les anciens
@@ -417,20 +417,16 @@ Histoire : `memoire/itineraire.md`.
   pré-rempli : « Réserver un trajet » ramène au formulaire, « Nous appeler »
   ouvre `tel:`, la référence de la course en cours entre dans le message
   (`derniereReference()`).
-- **La notification au client complète WhatsApp, elle ne le remplace pas** :
-  WhatsApp est annoncé d'abord et comme certain. L'autorisation ne se demande
-  qu'au clic (un refus est définitif) ; le bloc n'apparaît que si la demande
-  est arrivée sur le serveur ; bloc et bouton se jugent séparément ;
-  l'abonnement va dans sa propre table (`abonnements`, anon y dépose et rien
-  de plus) ; la notification ne porte ni nom, ni téléphone, ni adresse, ni
-  chambre ; elle ne peut jamais faire échouer une confirmation ; le clic
-  ramène sur le bon. Sur iPhone, il faut le site installé : le bouton le dit.
-  **Tout push reçu affiche quelque chose** (`userVisibleOnly`) : traité en
-  silence, le navigateur révoque l'abonnement sans prévenir — d'où le titre
-  par défaut de `sw.js`.
-- **Le chiffrement push est éprouvé par un tiers** : `test-push.mjs` fait
-  déchiffrer par `http_ece` et vérifier la signature par `node:crypto`. Ne pas
-  le remplacer par un contrôle maison.
+- **La notification au client complète le message, elle ne le remplace pas** :
+  le moyen choisi est annoncé d'abord, comme certain. Autorisation au clic
+  seulement (un refus est définitif) ; bloc visible si la demande est sur le
+  serveur, bloc et bouton jugés à part ; table à part (`abonnements`, anon y
+  dépose, rien de plus) ; ni nom, ni téléphone, ni adresse, ni chambre ;
+  jamais bloquante ; le clic ramène au bon ; sur iPhone, site installé (le
+  bouton le dit). **Tout push reçu affiche quelque chose** (`userVisibleOnly`),
+  sinon le navigateur révoque l'abonnement — d'où le titre par défaut de `sw.js`.
+- **Le chiffrement push est éprouvé par un tiers** (`test-push.mjs` :
+  `http_ece`, `node:crypto`) : jamais un contrôle maison.
 
 Histoire : `memoire/confirmation-client.md`.
 
@@ -443,8 +439,8 @@ Histoire : `memoire/confirmation-client.md`.
   Google (L111-7-2). Un document légal qui change change aussi de date.
   `memoire/documents-legaux.md`.
 - **Jamais un avis inventé, et on demande à TOUS** (trier est interdit).
-  « Demander un avis » : course réalisée, langue du client, lien
-  `ela_lien_avis` réglé sur l'appareil (sans lien, rien ne part).
+  « Demander un avis » : course réalisée, langue et moyen choisi du client,
+  lien `ela_lien_avis` réglé sur l'appareil (sans lien, rien ne part).
 - **La note Google ne s'écrit que dans `avis-google.json`** ;
   `.github/scripts/avis-google.mjs` la pose à la construction et l'éteint si
   `afficher` est faux ou le relevé a plus de 60 jours ; jamais arrondie vers le
@@ -567,15 +563,14 @@ Histoire : `memoire/affiche-qr.md`.
   pages publiques retirent ces écrans, et un `getElementById` nul arrêtait tout
   le site client.
 - **L'écran d'abord, le dessin ensuite** : un cadre masqué mesure zéro (courbe
-  plate, carte grise). Troisième fois que ce projet y tombe.
+  plate, carte grise).
 - **Son propre manifeste** (`manifest-exploitant.webmanifest`,
-  `start_url: "/ela-admin/"`), déclaré aussi sur les pages de redirection. Une
-  icône posée avant le 8/09/2026 rouvre le site client : la refaire.
+  `start_url: "/ela-admin/"`), déclaré aussi sur les pages de redirection.
 - **Le tableau de bord sert à traiter et à créer** : état du serveur, « Coller
   une demande » / « Saisir par téléphone », trois filtres, la liste groupée
   par jour (« en retard » est un avertissement rouge, sauf sur les
   réalisées). Les chiffres, courbes et provenances sont au **Registre**.
-  **Les infos des chauffeurs ont quitté le tableau de bord** (sa demande) :
+  **Les infos des chauffeurs ont quitté le tableau de bord** :
   « Papiers à surveiller » vit en tête de l'écran Chauffeurs, et n'apparaît que
   si quelque chose cloche.
 - **Coller une demande** : la course entre `attente`. **Saisir par
@@ -593,11 +588,14 @@ Histoire : `memoire/affiche-qr.md`.
   n'apparaît que sur une course confirmée, avec un numéro et un chauffeur ; son
   message fait six lignes, sans trajet ni prix. « Accuser réception » n'existe
   qu'en attente : ni chauffeur ni véhicule, dans la langue du client.
+- **Un message au client laisse sa trace, « ouvert », jamais « envoyé »**
+  (`messagesClient`). **`aPrevenir`**, posé par chaque geste qui doit se dire
+  (`armerPrevenir`), s'éteint par le message prêt ou « Déjà prévenu » (deux
+  appuis). `memoire/messages-client.md`.
 - **« Terminée » avant l'heure demande deux appuis** (`cloreArme`, gardé hors
-  du bouton) ; 700 ms de garde après une fermeture (un double appui fermait
-  deux courses) ; « Remettre en confirmée » en deux appuis, jamais sur une
-  course facturée ; « Sans chauffeur » est une pastille ambre à côté de la
-  référence, jamais dedans.
+  du bouton) ; 700 ms de garde après une fermeture ; « Remettre en confirmée »
+  en deux appuis, jamais sur une course facturée ; « Sans chauffeur » est une
+  pastille ambre à côté de la référence, jamais dedans.
 - Recherche, « Sélectionner » visible, menu en deux rangées, « Équipe »
   seulement avec un compte agent ; une **course d'essai** (`bon.essai`) ne
   compte jamais dans l'argent. `memoire/admin-ergonomie.md`.
@@ -687,6 +685,7 @@ Histoire : `memoire/chauffeurs-et-commission.md`.
   et tout s'arrête dès que la course est **vue** (bouton « ✅ Vu » ou course
   ouverte dans l'admin, `signalerVue()`), confirmée ou refusée. Les délais se
   comptent depuis l'annonce. Cadence exacte : `memoire/alertes-relance.md`.
+  Un `aPrevenir` resté 15 min : un rappel Telegram, un dernier à H-3.
 - **Dans l'admin ouvert** : un seul lecteur de son, débloqué au premier appui
   (`#sonCoupe` le dit) ; l'alarme se répète jusqu'à un appui ; pastille sur
   l'icône. **Admin fermé**, seuls la notification, Telegram et la pastille
