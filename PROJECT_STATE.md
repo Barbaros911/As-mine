@@ -201,7 +201,8 @@ relais **traçable** — handoff signé dans l'Issue, un seul repreneur — et
 - C'est l'interface historique, retenue par Barbaros le 23/09 (« on garde
   l'ancien »). `construire.sh` la publie comme un document à part ;
   `admin.html`, `/exploitant/` et `?exploitant=1` y mènent tous.
-- On y entre par une connexion Supabase (e-mail + mot de passe) puis un
+- On y entre par une connexion Supabase (e-mail + mot de passe, plus un
+  code à 6 chiffres depuis le 24/10/2026 : `SECURITE-ADMIN-MFA.md`) puis un
   contrôle serveur (`est_exploitant()`, `est_admin()` pour l'argent) : voir
   `COMPTES.md`. **Il n'y a plus de code d'accès.**
 - **Admin v2 n'est plus publié** depuis le 3/10/2026 (`/admin-v2.html`
