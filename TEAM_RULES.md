@@ -214,9 +214,10 @@ une anomalie mesurée · un impact commercial plausible et nommé · une dette
 technique au coût concret · un risque sécurité, juridique ou données · une
 nouvelle décision de Barbaros. Elle ne s'applique pas aux domaines du P0.
 
-*(24/10/2026 — 122 commits sur `main` en trois jours, surtout des icônes et des
-couleurs, pendant que le P0 #399, fiabilité de la réservation, n'avait plus
-ni branche ni PR.)*
+*(24/10/2026, à la demande de Barbaros : éviter de disperser le développement
+sur des améliorations secondaires pendant que des sujets plus importants
+restent ouverts. Le même jour, `/etat` affichait une liste d'Issues vide alors
+que deux étaient ouvertes.)*
 
 ---
 
