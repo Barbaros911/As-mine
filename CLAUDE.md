@@ -201,49 +201,52 @@ recopier aucune règle de l'ancien site sans qu'il la redemande.
 
 ## La grille
 
-| Gamme | Au kilomètre | Minimum |
+**Le site public** (23/10/2026, sa décision) : forfait Paris, sinon tranche,
+puis accueil. Les pages des hôtels gardent le kilométrage.
+
+| Site public | Berline | Van |
+|---|---|---|
+| Jusqu'à 12 / 22 / 32 / 42 km | 35 / 50 / 70 / 90 € | 50 / 80 / 110 / 130 € |
+| Au-delà, par km | +2,50 € | +3,80 € |
+| Paris ↔ Orly / Roissy-CDG / Disneyland | 55 / 70 / 90 € | 80 / 110 / 130 € |
+| Accueil (départ aéroport, grande gare) | +10 € | +10 € |
+
+| Pages des hôtels | Au kilomètre | Minimum |
 |---|---|---|
 | Berline (4 places) | 2,90 € | 35 € |
 | Van (7 places) | 4,70 € | 50 € |
 
-- **Le serveur est la vérité** : `chargerTarifsServeur()` lit `tarif_public`,
-  `forfaits_partenaires_publics` et `prix_pages_publics` ; `GAMMES` et `HOTELS`
-  écrits dans la page ne sont que le **repli**. Barbaros règle tout dans
-  Réglages → « Tarifs ». « Voir mon prix » attend la lecture (`tarifsLus`,
-  4 s au plus). `test-doc.mjs` compare ce tableau à `GAMMES`, et `GAMMES` à la
-  source serveur : un écart empêche la publication.
-- **LE REPLI DOIT SUIVRE LA PRODUCTION, et aucun contrôle ne lit la
-  production.** Si la lecture du serveur échoue, Réglages → Tarifs se remplit
-  depuis `GAMMES`, et « Enregistrer » réécrirait l'ancien prix, en silence.
-  Quand Barbaros change un prix dans l'admin, ce tableau, `GAMMES` et la source
-  serveur du dépôt (une migration conditionnelle) suivent.
-- **Le minimum berline est 35 €** (sa décision, 4/10) : tout trajet de
-  12,06 km ou moins coûte 35 €. Ne pas le « corriger ».
-- **L'arrondi est le sien** : à la dizaine, et **le 5 pile DESCEND** (`>`,
-  jamais `>=` ; 45 → 40). Par division entière, jamais par modulo.
-- **L'ordre est fixé** : kilométrage → arrondi → plancher (il a le dernier
-  mot) → options à prix fixe (la pancarte) en tout dernier.
-- **IL N'Y A PLUS DE MAJORATION**, de nuit, de week-end ni de jour férié,
-  nulle part — ni au kilomètre, ni sur un forfait. Ne pas en réintroduire la
-  moitié. Le champ `majoration` des courses enregistrées reste, toujours faux :
-  l'historique en dépend.
-- TVA 10 % incluse. Le prix est **annoncé avant** et devient **ferme à la
-  confirmation**, donc opposable.
+- **Le serveur est la vérité** : `chargerTarifsServeur()` lit `grille_publique`,
+  `tarif_public` (hôtels) et `forfaits_partenaires_publics` ; `GRILLE_PUBLIQUE`,
+  `FORFAITS_PUBLICS`, `ACCUEIL_EUR`, `GAMMES` et `HOTELS` ne sont que le
+  **repli**, qui doit suivre la production. Réglages → « Tarifs ». Une grille
+  serveur qui ne passe pas `grilleValide` n'est pas appliquée, en entier.
+  « Voir mon prix » attend la lecture (`tarifsLus`, 4 s). `test-doc.mjs`
+  compare ces tableaux au code.
+- **La tranche se juge sur la distance affichée** (au dixième : 12,04 km =
+  35 €) ; au-delà de 42 km, on repart de la dernière tranche, jamais du km plein.
+- **Paris, c'est la commune** (code postal 75…, lu dans les champs de la
+  source), jamais un rayon ; les forfaits valent dans les deux sens.
+- **L'arrondi est le sien** : à la dizaine, **le 5 pile DESCEND** (`>`, jamais
+  `>=`), par division entière, après passage en centimes.
+- **L'accueil s'ajoute en dernier**, seulement au DÉPART d'un aéroport (lieu
+  choisi comme tel) ou d'une des neuf grandes gares (`GRANDES_GARES`) ; jamais
+  sur une dépose, un hôtel voisin ou une petite gare.
+- **IL N'Y A PLUS DE MAJORATION**, nulle part. Le champ `majoration` des
+  courses reste, toujours faux : l'historique en dépend.
+- TVA 10 % incluse. Le prix est **annoncé avant**, **ferme à la confirmation**.
 - **TOUCHER AU PRIX VEUT DIRE TOUCHER AUX CGV**, dans les deux langues, **sans
-  jamais y écrire un chiffre** (elles décrivent la mécanique ; c'est ce qui a
-  empêché les erreurs de grille de devenir contractuelles), et leur date de
-  mise à jour change avec elles.
-- **Un tarif au km par page dédiée** (`prix_pages`, 14/10/2026) : par page
-  d'`ORIGINES`, un tarif au km ou un % du tarif du site, rien par défaut,
-  jamais sur le minimum, un forfait ni la pancarte ; centimes en entiers (`tarifKmMajore`) ; prix affiché = prix
-  facturé (`prixGamme`). `test-prix-pages.mjs`.
-- L'étiquette de « Nouvelle course » est fabriquée depuis `GAMMES`
-  (`ecrireGrille()`), jamais écrite en dur.
-- `deposer-course` ne contrôle le km que par le bas : minimum = ligne droite ×
-  tarif serveur ; en dessous, il **signale** (`prixSousLigneDroite`, « Prix à
-  vérifier » sur le bon), il ne refuse jamais.
+  y écrire un chiffre**, et leur date change avec elles.
+- **Plus de prix par page** (`prix_pages`, retiré le 23/10) : une page
+  d'acquisition ne change pas le prix.
+- `prixSitePublic()` sert le client ET « Saisir par téléphone » ; l'étiquette
+  de « Nouvelle course » vient de la grille (`ecrireGrille()`).
+- `deposer-course` ne contrôle que par le bas (tranche de la ligne droite ;
+  km pour un hôtel) et **signale** (`prixSousLigneDroite`), sans refuser.
+  `test-grille-publique.mjs`.
 
-Histoire : `memoire/grille-et-majoration.md`, `memoire/tarif-admin.md`.
+Histoire : `memoire/grille-tranches-forfaits.md`, `memoire/grille-et-majoration.md`,
+`memoire/tarif-admin.md`.
 
 ## Le prix à toutes les distances, et les péages
 
@@ -278,11 +281,10 @@ Histoire : `memoire/prix-toutes-distances.md`.
 - **LA DATE DU JOUR SE COMPOSE EN LOCAL** (`dateLocale()`), jamais avec
   `toISOString` : entre minuit et 2 h, l'UTC rend la veille. La borne se
   rafraîchit au focus et au retour sur l'onglet.
-- **LA PANCARTE EST UNE OPTION À 10 €** (`OPTION_PANCARTE_EUR`), proposée
-  seulement en aéroport ou en gare, **jamais cochée d'avance** (L224-76),
-  ajoutée après l'arrondi et le plancher, reprise si le départ n'y a plus
-  droit. Deux commandes pour un seul état (classes `.opt-*`,
-  `jugerPancarte()` appelée depuis `dessinerGammes()`).
+- **Site public : l'accueil avec pancarte est COMPRIS** au départ d'un aéroport
+  ou d'une grande gare, sans case à cocher. **Pages des hôtels : LA PANCARTE
+  EST UNE OPTION À 10 €** (`OPTION_PANCARTE_EUR`), jamais cochée d'avance
+  (L224-76). Les deux dans `jugerPancarte()`.
 - **Un seul champ pour le vol ou le train**, dont le libellé change ;
   `estGare()` lit le type du lieu (`railway=station`), jamais le mot « gare »
   dans l'adresse. La course porte `train`.
