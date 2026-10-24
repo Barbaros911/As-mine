@@ -948,7 +948,7 @@ for (const large of [1024, 1280]) {
     ['/easyhotel-reception/', 'data-ela-space="hotel-reception"'],
     ['/reception/easyhotel-aeroville/', 'data-ela-space="hotel-reception"'],
     ['/exploitant/', 'Espace exploitant</title>'],
-    ['/easyhotel-client/', 'easyHotel Aéroville × Elatransfer</title>'],
+    ['/easyhotel-client/', 'easyHotel Aéroville — Elatransfer</title>'],
     ['/', 'data-ela-space="public"'],
     ['/application.html', 'data-ela-space="hotel-client"'],
   ];

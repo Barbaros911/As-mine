@@ -256,8 +256,12 @@ function client() {
      « eh-sans-photo » au script, le bandeau passait de sa hauteur de photo à
      l'aplat sous le doigt — CLS 0,245. Le même état, posé ici. */
   const sansPhoto = JSON.stringify(Object.keys(HOTELS).filter((k) => !HOTELS[k].photoEntete).map((k) => k.toLowerCase()));
+  /* UN HÔTEL SANS CO-MARQUAGE A SON EN-TÊTE DÈS LE PREMIER DESSIN
+     (24/10/2026) : posé au script, « eh-sans-pastille » faisait glisser notre
+     logo du milieu vers la gauche sous le doigt — CLS 0,126. */
+  const sansPastille = JSON.stringify(Object.keys(HOTELS).filter((k) => !HOTELS[k].coMarquage).map((k) => k.toLowerCase()));
   const voile = `<style id="elaHotelAvanceStyle">html.hotel-avance .ecran{visibility:hidden}</style>`;
-  const avance = `<script id="elaHotelAvance">(function(){try{var h=(new URLSearchParams(location.search).get('h')||'').trim().toLowerCase();if(h&&${cles}.indexOf(h)!==-1){var r=document.documentElement;document.body.classList.add('hotel','hotel-enhanced');if(${sansPhoto}.indexOf(h)!==-1)document.body.classList.add('eh-sans-photo');r.classList.add('hotel-avance');setTimeout(function(){r.classList.remove('hotel-avance');},5000);}}catch(e){}}());</script>`;
+  const avance = `<script id="elaHotelAvance">(function(){try{var h=(new URLSearchParams(location.search).get('h')||'').trim().toLowerCase();if(h&&${cles}.indexOf(h)!==-1){var r=document.documentElement;document.body.classList.add('hotel','hotel-enhanced');if(${sansPhoto}.indexOf(h)!==-1)document.body.classList.add('eh-sans-photo');if(${sansPastille}.indexOf(h)!==-1)document.body.classList.add('eh-sans-pastille');r.classList.add('hotel-avance');setTimeout(function(){r.classList.remove('hotel-avance');},5000);}}catch(e){}}());</script>`;
   if (!html.includes('<body>')) throw new Error('client : balise <body> introuvable, le mode hôtel ne peut pas être posé avant le dessin');
   html = html.replace('</head>', voile + '</head>');
   html = html.replace('<body>', '<body>' + avance);

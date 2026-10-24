@@ -47,8 +47,11 @@ const ESSAI = {
   cle: 'hotel-essai', nom: 'Hôtel Essai Gare', court: 'Hôtel Essai', adresse: '1 place de la Gare, 77000 Melun',
   bouton: '#6B2E8F', vif: '#E9DDF2',
 };
+/* Ce partenaire-ci a accepté par écrit d'être associé à nous (coMarquage) :
+   il éprouve la pastille et « Tarifs partenaires ». easyHotel, qui a refusé
+   (24/10/2026), éprouve leur absence. */
 const fiche = `    "${ESSAI.cle}": {
-      nom:"${ESSAI.nom}", court:"${ESSAI.court}",
+      nom:"${ESSAI.nom}", court:"${ESSAI.court}", coMarquage:true,
       marque: { charbon:"#2B1A33", vif:"${ESSAI.vif}", bouton:"${ESSAI.bouton}", pale:"#F4ECF8", paleEncre:"#4A1F63" },
       photo:"", adresse:"${ESSAI.adresse}", lat:48.527, lon:2.655, alias:["essai"],
       destinations:[
@@ -154,9 +157,10 @@ try {
       sansPhoto: document.body.classList.contains('eh-sans-photo'),
       court: document.querySelector('.hotel-partner-chip b')?.textContent, reste: document.querySelector('.hotel-partner-chip span')?.textContent,
       nom: document.getElementById('hotelTeteNom')?.textContent, tot: document.querySelector('#blocCoordonnees.hotel-guest-early') !== null,
-      texte: document.body.innerText }));
+      sur: document.querySelector('.hotel-tete .hotel-sur')?.textContent, texte: document.body.innerText }));
     check('client : la finition habille le nouveau partenaire', etat.fini);
     check('client : sa pastille dit SON nom (court, puis le reste)', etat.court === 'Hôtel Essai' && etat.reste === 'Gare', `${etat.court} / ${etat.reste}`);
+    check('client : avec son accord écrit, « Tarifs partenaires » en tête', etat.sur === 'Tarifs partenaires', etat.sur);
     check('client : son nom en tête', etat.nom === ESSAI.nom, etat.nom);
     check('client : le nom et le téléphone sont sur la première page, comme chez easyHotel', etat.tot);
     check('client : le mot « easyHotel » n\'apparaît nulle part sur sa page', !/easy\s*hotel/i.test(etat.texte));
@@ -230,10 +234,15 @@ try {
   /* ── easyHotel n'a pas bougé ── */
   {
     const { ctx, p } = await ouvrir('/application.html?h=easyhotel-aeroville&dest=orly');
-    const e = await p.evaluate(() => ({ court: document.querySelector('.hotel-partner-chip b')?.textContent, reste: document.querySelector('.hotel-partner-chip span')?.textContent,
+    const e = await p.evaluate(() => ({ pastille: !!document.querySelector('.hotel-partner-chip'),
+      sur: document.querySelector('.hotel-tete .hotel-sur')?.textContent, nom: document.getElementById('hotelTeteNom')?.textContent,
       logo: document.querySelector('.entete .logo')?.getAttribute('href'), sansPhoto: document.body.classList.contains('eh-sans-photo'),
       photo: getComputedStyle(document.getElementById('hotelTete')).backgroundImage }));
-    check('easyHotel : sa pastille « easyHotel / Aéroville »', e.court === 'easyHotel' && e.reste === 'Aéroville', `${e.court} / ${e.reste}`);
+    /* 24/10/2026 : easyHotel refuse d'être cité pour l'instant. Sa page dit
+       d'où l'on part, pas avec qui l'on travaille. */
+    check('easyHotel : aucune pastille à son nom dans l\'en-tête (pas d\'accord écrit)', !e.pastille);
+    check('easyHotel : « Prix fixes » en tête, pas « Tarifs partenaires »', e.sur === 'Prix fixes', e.sur);
+    check('easyHotel : son nom reste en tête, comme lieu de départ', e.nom === 'easyHotel Aéroville', e.nom);
     check('easyHotel : son logo ramène à la page du QR', e.logo === '/easyhotel-client/', e.logo);
     /* 20/10/2026 : la photo venait du site d'easyHotel, sans accord écrit.
        Vidée à la demande de Barbaros : le bandeau passe en aplat, et aucune
@@ -252,6 +261,7 @@ try {
     check('easyHotel : son comptoir garde son adresse', (await p.evaluate(() => document.getElementById('recAdresseHotel')?.textContent)) === '10 rue de la Belle Borne, 93410 Tremblay-en-France');
     check('easyHotel : sa tuile garde son orange', (await fond(p, '#btnRecReserver')).includes(ORANGE));
     check('easyHotel : son logo ramène à son comptoir', (await p.evaluate(() => document.querySelector('.entete .logo')?.getAttribute('href'))) === '/reception/easyhotel-aeroville/');
+    check('easyHotel : au comptoir non plus, aucune pastille à son nom à côté de notre logo', !(await p.evaluate(() => !!document.querySelector('.hotel-partner-chip'))));
     await ctx.close();
   }
   check('aucune erreur JavaScript', erreurs.length === 0, erreurs.slice(0, 3).join(' | '));
