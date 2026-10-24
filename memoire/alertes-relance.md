@@ -120,3 +120,8 @@ garde jugent la tâche pg_cron, « réussie » dès que l'appel est mis en file 
 personne ne lit la réponse de la fonction. Corrigé dans `NOTIFICATION.md` ;
 la mesure qui manque (un battement écrit par la relance elle-même) est
 l'étape 2.
+
+**Décision du 25/10/2026 : ouvrir la course dans l'admin RESTE un « Vu ».**
+Proposé : que seuls les boutons « ✅ Vu » (Telegram, et un nouveau sur le bon)
+arrêtent l'alarme, l'ouverture ne suffisant plus. Barbaros : « non ». Ne pas
+le reproposer sans un incident qui le demande.
