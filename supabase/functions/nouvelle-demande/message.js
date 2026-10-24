@@ -119,3 +119,35 @@ export function corps(bon, adresseAdmin) {
   l.push(adresseAdmin);
   return l.join("\n");
 }
+
+/* ═══ LE CLIENT PAS ENCORE PRÉVENU (24 octobre 2026) ═══
+   Barbaros : « un pense-bête qui m'empêche d'oublier ». Le geste est fait
+   dans l'admin — course confirmée, refusée, annulée ou modifiée — mais
+   rien n'a été ouvert pour le client depuis 15 minutes. Le titre dit le
+   risque, le corps dit le bouton à toucher. Ni nom, ni téléphone : même
+   règle que l'alerte, ils sont dans l'admin.
+   L'heure vient de la course (date et heure), pas de « dateMsg » : ce texte
+   d'origine ne suit pas « Modifier la course », et ce rappel vise justement
+   les courses qu'on vient de toucher. */
+function rendezVous(bon) {
+  const c = bon.course ?? {};
+  if (c.immediat) return "IMMÉDIAT";
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(c.date ?? ""));
+  const h = String(c.heure ?? "").trim();
+  return d ? (d[3] + "/" + d[2] + " " + h).trim() : (h || "—");
+}
+
+export function titreAPrevenir(bon, etiquette, dernier) {
+  return (dernier ? "DERNIER RAPPEL — " : "") + "CLIENT PAS PRÉVENU — " + etiquette + ", " + rendezVous(bon);
+}
+
+export function corpsAPrevenir(type, etiquette) {
+  const quoi = {
+    confirmation: [etiquette + " est confirmée, mais le client n'a reçu ni sa confirmation ni son lien de paiement : sans paiement, le chauffeur ne part pas.", "« Prévenir le client »"],
+    refus: [etiquette + " est refusée, mais le client ne le sait pas : il attend peut-être une voiture.", "« Prévenir le client du refus »"],
+    annulation: [etiquette + " est annulée, mais le client ne le sait pas.", "« Prévenir le client de l'annulation »"],
+    modification: [etiquette + " a été modifiée, mais le client ne connaît pas le changement.", "« Prévenir le client du changement »"],
+  }[type];
+  if (!quoi) return "";
+  return quoi[0] + "\nOuvrez la course et appuyez sur " + quoi[1] + ", ou sur « Déjà prévenu autrement » si c'est fait.";
+}

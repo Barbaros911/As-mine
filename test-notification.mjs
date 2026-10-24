@@ -27,7 +27,7 @@
      un vol d'oiseau, il est ferme quand même, et il faut qu'il le sache
      AVANT de confier la course.
    ===================================================================== */
-import { titre, corps, euros, court } from
+import { titre, corps, euros, court, titreAPrevenir, corpsAPrevenir } from
   './supabase/functions/nouvelle-demande/message.js';
 
 const ok = [], ko = [];
@@ -141,6 +141,26 @@ check('court ne coupe pas au milieu d\'un mot',
 check('un mot unique très long est tranché, pas effacé',
   court('Roissy-Charles-de-Gaulle-Terminal-2E', 20) === 'Roissy-Charles-de-Ga…',
   court('Roissy-Charles-de-Gaulle-Terminal-2E', 20));
+
+/* --- LE CLIENT PAS ENCORE PRÉVENU (24 octobre 2026) ------------------
+   Le rappel qui dit qu'un geste de l'admin n'a pas encore été dit au
+   client. Même règles que l'alerte : un titre court, lu sur l'écran
+   verrouillé, ni nom ni téléphone ; l'heure vient de la course (« dateMsg »
+   ne suit pas « Modifier la course »). */
+{
+  const b = { numero: 1042, ref: 'ELA-26-10-K7QPM', dateMsg: '25/10/2026 09:00',
+    client: { nom: 'Jeanne Martin', telephone: '0612345678' },
+    course: { date: '2026-10-25', heure: '10:30', departPublic: 'Gare de Lyon', arriveePublic: 'Orly' } };
+  const tA = titreAPrevenir(b, 'N° 1042', false), tD = titreAPrevenir(b, 'Réf. ELA-26-10-K7QPM', true);
+  check('client pas prévenu : le titre dit le N° et l\'heure de la COURSE, pas celle d\'origine', tA === 'CLIENT PAS PRÉVENU — N° 1042, 25/10 10:30', tA);
+  check('client pas prévenu : le dernier rappel se dit le dernier, et tient sous 90 caractères', tD.startsWith('DERNIER RAPPEL — ') && tD.length <= 90, tD.length + ' : ' + tD);
+  for (const type of ['confirmation', 'refus', 'annulation', 'modification']) {
+    const c = corpsAPrevenir(type, 'N° 1042');
+    check('client pas prévenu (' + type + ') : le corps nomme le bouton à toucher, sans nom ni téléphone',
+      /« Prévenir le client[^»]*»/.test(c) && c.includes('« Déjà prévenu autrement »') && !/Jeanne|0612/.test(c), c.replace(/\n/g, ' | '));
+  }
+  check('client pas prévenu : un type inconnu ne fabrique pas de message', corpsAPrevenir('autre', 'N° 1') === '');
+}
 
 /* --- LE FICHIER À COLLER EST-IL LA MÊME FONCTION ? -------------------
    « a-coller.ts » est la fonction en un seul morceau, pour être collée

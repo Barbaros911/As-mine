@@ -694,8 +694,12 @@ for(const cas of [
     !/chauffeur\s*:/i.test(msg) && !/Berline|Van/.test(msg), msg.replace(/\n/g,' | '));
   check('la course garde qu\'un accusé est parti',
     await pg.evaluate(()=>JSON.parse(localStorage.getItem('ela_bookings'))[0].accuse !== undefined));
-  check('et le bouton le dit',
-    (await pg.locator('#btnAccuserReception').textContent()).includes('envoyé'),
+  /* « Ouvert », plus « envoyé » (24/10/2026, Barbaros : un message préparé
+     n'est pas un message envoyé) : l'admin ouvre WhatsApp, il ne voit
+     jamais si l'on a appuyé sur « envoyer ». */
+  check('et le bouton le dit — « ouvert », jamais « envoyé »',
+    /ouvert/.test(await pg.locator('#btnAccuserReception').textContent())
+    && !/envoyé/.test(await pg.locator('#btnAccuserReception').textContent()),
     await pg.locator('#btnAccuserReception').textContent());
 
   /* Une fois la course confirmée, c'est « Prévenir le client » qui parle :
