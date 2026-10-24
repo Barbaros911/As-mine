@@ -184,8 +184,10 @@ body.demo-choix #demoRetourCartes{display:none}
 .demo-cartes-titre{margin:4px 0 4px;font-size:22px;font-weight:800;color:#151C22}
 .demo-cartes-cap{margin:0 0 12px;color:#5A6A7B;font-size:14px}
 .demo-grille{display:grid;grid-template-columns:1fr;gap:10px;margin:0;padding:0;list-style:none}
-@media (min-width:600px){.demo-grille{grid-template-columns:1fr 1fr}}
-@media (min-width:1000px){.demo-grille{grid-template-columns:1fr 1fr 1fr}}
+/* Une carte ne descend jamais sous 320 px : à trois colonnes dans 780 px, le
+   nom n'avait plus que 65 px et « Aéroport » se coupait en « Aéro / rt »
+   (vu sur ordinateur, 23/10/2026). Les colonnes suivent la place réelle. */
+@media (min-width:600px){.demo-grille{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}
 .demo-carte{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;border:1px solid var(--demo-filet);
   border-radius:14px;background:#fff;color:#151C22;font:inherit;text-align:left;cursor:pointer;box-shadow:0 2px 8px rgba(6,47,85,.05)}
 .demo-carte:hover{border-color:var(--h-bouton,var(--demo-bleu))}
