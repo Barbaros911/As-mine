@@ -53,6 +53,9 @@ const HOTELS_DEMO = `var HOTELS = {
     "demo-hotel": {
       nom:"Hôtel Démo · Roissy",
       court:"Hôtel Démo",
+      /* La démo montre la page d'un hôtel qui a accepté d'être associé à
+         nous : sa pastille dans l'en-tête, « Tarifs partenaires ». */
+      coMarquage:true,
       marque: { charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7",
                 pale:"#E8F2FD", paleEncre:"#0A4F91" },
       photo:"",
