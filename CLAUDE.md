@@ -166,9 +166,9 @@ groupe WhatsApp de plus de 800 chauffeurs. Ne plus lui redemander.
 
 - **Deux cercles** : un noyau de 5 à 10 chauffeurs vérifiés d'abord, le grand
   groupe en réservoir.
-- **easyHotel n'est PAS partenaire officiel** (14/10/2026) : autorisation
-  d'exploiter depuis le 12/10, aucun accord écrit. Ne pas annoncer de
-  partenariat.
+- **easyHotel n'est PAS partenaire officiel** : autorisation d'exploiter
+  (12/10/2026), aucun accord écrit, et il refuse d'être cité (24/10). Ne pas
+  annoncer de partenariat ; lui redemander, chiffres en main.
 - **Jamais une marque de voiture promise** : « berline », au plus « type … ou
   similaire ».
 - **Jamais d'illustration, d'emoji ni de pictogramme de voiture** : refusé cinq
@@ -489,18 +489,16 @@ Histoire : `memoire/confirmation-client.md`.
   fiche (`window.ELA_HOTEL_ACTIF`, événement `ela:hotel`). La page construite
   porte ses classes dès `<body>` (le premier dessin est le bon). **Un
   observateur n'écrit que si le texte diffère** : réécrire un texte identique
-  est une mutation, et le moteur easyHotel s'est figé ainsi en ligne.
+  est une mutation, qui a figé le moteur en ligne.
 - **Les couleurs d'un partenaire vivent sur sa fiche** (`HOTELS[x].marque`) ;
   texte noir sur l'orange ; l'orange ne descend pas dans la liste ;
   « confirmée » reste verte. Photos seulement `/photos/…`, jamais une adresse
-  `http`.
+  `http`. **Son co-marquage aussi** (`coMarquage`), jamais sans accord écrit.
 - **Vert = rempli, rouge = il manque** (`eh-ok`, `eh-manque`) ; rien de
   pré-rempli n'est vert d'office ; une mention écrite accompagne toujours la
   couleur.
-- **Aucun identifiant en double dans la page** (`hotelNom`,
-  `btnNouvelleCourse` étaient pris deux fois) : un contrôle les cherche tous.
-- Chaque entrée a son manifeste et son icône (portée `/`) ; jamais le logo
-  easyHotel sans leur accord.
+- **Aucun identifiant en double dans la page** : un contrôle les cherche tous.
+- Chaque entrée a son manifeste et son icône (portée `/`).
 
 Histoire : `memoire/mode-hotel.md`, `memoire/page-hotel-analyse.md`,
 `memoire/finition-commune.md`, `memoire/theme-partenaire.md`.

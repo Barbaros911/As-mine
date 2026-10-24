@@ -239,6 +239,12 @@ body.hotel.hotel-enhanced .barre-bas .onglet.actif{
   body.hotel.hotel-enhanced .langues button{min-width:30px!important;padding:0 6px!important}
 }
 
+/* SANS PASTILLE — aucun co-marquage sans accord écrit (24/10/2026) : notre
+   logo prend sa place, à gauche, au lieu de rester au milieu d'un en-tête à
+   moitié vide. Le comptoir a sa propre barre (plus bas). */
+body.hotel.hotel-enhanced.eh-sans-pastille:not(.reception-premium) .entete .logo{grid-column:1!important;justify-self:start!important;margin-left:15px!important}
+@media(max-width:760px){body.hotel.hotel-enhanced.eh-sans-pastille:not(.reception-premium) .entete .logo{margin-left:0!important}}
+
 /* UN NOM COURT LONG NE DÉBORDE PAS DE LA PASTILLE (11/10/2026). « easyHotel »
    tient en 27 px ; « Le Relais de Roissy » non. Au-delà de douze signes
    (le script pose .eh-chip-long), plus petit et deux lignes au plus. */
@@ -556,6 +562,8 @@ body.hotel.reception-premium .entete .logo{
   padding:0 14px 0 0!important;border:0!important;border-right:1px solid rgba(255,255,255,.22)!important;border-radius:0!important;background:none!important;
 }
 body.hotel.reception-premium .entete .logo-image{width:auto!important;height:30px!important;max-height:none!important;filter:none!important}
+/* Le filet séparait notre logo de la pastille : sans elle, il ne sépare rien. */
+body.hotel.reception-premium.eh-sans-pastille .entete .logo{padding-right:0!important;border-right:0!important}
 body.hotel.reception-premium .hotel-partner-chip{
   order:2;display:inline-flex!important;flex-direction:column!important;justify-content:center!important;align-self:center!important;
   height:38px;max-width:200px;margin:0!important;padding:0 12px!important;border:0!important;border-radius:9px!important;
