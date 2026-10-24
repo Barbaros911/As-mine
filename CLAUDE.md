@@ -206,7 +206,7 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
 
 | Site public | Berline | Van |
 |---|---|---|
-| Jusqu'à 12 / 22 / 32 / 42 km | 35 / 50 / 70 / 90 € | 50 / 80 / 110 / 130 € |
+| Jusqu'à 12 / 22 / 27 / 32 / 42 km | 35 / 50 / 60 / 70 / 90 € | 50 / 80 / 95 / 110 / 130 € |
 | Au-delà, par km | +2,50 € | +3,80 € |
 | Paris ↔ Orly / Roissy-CDG / Disneyland | 55 / 70 / 90 € | 80 / 110 / 130 € |
 | Accueil (départ aéroport, grande gare) | +10 € | +10 € |
@@ -220,7 +220,7 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
   `tarif_public` (hôtels) et `forfaits_partenaires_publics` ; `GRILLE_PUBLIQUE`,
   `FORFAITS_PUBLICS`, `ACCUEIL_EUR`, `GAMMES` et `HOTELS` ne sont que le
   **repli**, qui doit suivre la production. Réglages → « Tarifs ». Une grille
-  serveur qui ne passe pas `grilleValide` n'est pas appliquée, en entier.
+  serveur refusée par `grilleValide` n'est pas appliquée, en entier.
   « Voir mon prix » attend la lecture (`tarifsLus`, 4 s). `test-doc.mjs`
   compare ces tableaux au code.
 - **La tranche se juge sur la distance affichée** (au dixième : 12,04 km =
@@ -237,8 +237,8 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
 - TVA 10 % incluse. Le prix est **annoncé avant**, **ferme à la confirmation**.
 - **TOUCHER AU PRIX VEUT DIRE TOUCHER AUX CGV**, dans les deux langues, **sans
   y écrire un chiffre**, et leur date change avec elles.
-- **Plus de prix par page** (`prix_pages`, retiré le 23/10) : une page
-  d'acquisition ne change pas le prix.
+- **Plus de prix par page** (`prix_pages`, retiré le 23/10) : une page ne
+  change pas le prix.
 - `prixSitePublic()` sert le client ET « Saisir par téléphone » ; l'étiquette
   de « Nouvelle course » vient de la grille (`ecrireGrille()`).
 - `deposer-course` ne contrôle que par le bas (tranche de la ligne droite ;

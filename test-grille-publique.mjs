@@ -3,8 +3,9 @@
    ---------------------------------------------------------------------
    Décision de Barbaros, prix ferme donc opposable. Ce qui est verrouillé :
 
-   — LES TRANCHES : 35 / 50 / 70 / 90 € en berline, 50 / 80 / 110 / 130 € en
-     van, jusqu'à 12 / 22 / 32 / 42 km, jugées sur la distance AFFICHÉE au
+   — LES TRANCHES : 35 / 50 / 60 / 70 / 90 € en berline, 50 / 80 / 95 / 110 /
+     130 € en van, jusqu'à 12 / 22 / 27 / 32 / 42 km (la marche à 27 km date
+     du 24 octobre), jugées sur la distance AFFICHÉE au
      dixième (12,04 km se lit « 12 km » et coûte 35 €) ; au-delà, la
      dernière tranche + 2,50 €/km (berline) ou 3,80 €/km (van), arrondie à
      la dizaine, le 5 pile descend. Les prix attendus sont écrits À LA MAIN.
@@ -126,13 +127,14 @@ try {
   {
     const { ctx, p } = await client();
     const r = await p.evaluate(() => {
-      const G = { berline:{ tranches:[{km:12,prix:35},{km:22,prix:50},{km:32,prix:70},{km:42,prix:90}], auDela:2.5 },
-                  van:{ tranches:[{km:12,prix:50},{km:22,prix:80},{km:32,prix:110},{km:42,prix:130}], auDela:3.8 } };
+      const G = { berline:{ tranches:[{km:12,prix:35},{km:22,prix:50},{km:27,prix:60},{km:32,prix:70},{km:42,prix:90}], auDela:2.5 },
+                  van:{ tranches:[{km:12,prix:50},{km:22,prix:80},{km:27,prix:95},{km:32,prix:110},{km:42,prix:130}], auDela:3.8 } };
       const f = window.ELA_ROUTE.prixTranches, o = {};
-      [5, 12, 12.04, 12.06, 22, 22.1, 32, 32.1, 42, 42.1, 44, 44.1, 60, 100, 220].forEach(km => { o[km] = f(G.berline, km) + '/' + f(G.van, km); });
+      [5, 12, 12.04, 12.06, 22, 22.1, 24, 27, 27.1, 32, 32.1, 42, 42.1, 44, 44.1, 60, 100, 220].forEach(km => { o[km] = f(G.berline, km) + '/' + f(G.van, km); });
       return o;
     });
-    const attendu = { 5:'35/50', 12:'35/50', 12.04:'35/50', 12.06:'50/80', 22:'50/80', 22.1:'70/110', 32:'70/110', 32.1:'90/130',
+    const attendu = { 5:'35/50', 12:'35/50', 12.04:'35/50', 12.06:'50/80', 22:'50/80', 22.1:'60/95', 24:'60/95', 27:'60/95',
+      27.1:'70/110', 32:'70/110', 32.1:'90/130',
       42:'90/130', 42.1:'90/130', 44:'90/140', 44.1:'100/140', 60:'130/200', 100:'230/350', 220:'530/810' };
     Object.keys(attendu).forEach(km => check(`tranche à ${km} km : ${attendu[km]} €`, r[km] === attendu[km], r[km]));
     await ctx.close();
@@ -159,10 +161,10 @@ try {
     check('Boulogne n\'est pas Paris : Boulogne → Roissy à 35 km paie la tranche (90 € / 130 €), sans forfait',
       r.berline === 90 && r.van === 130 && !r.forfait, JSON.stringify(r));
     r = await trajet(c, 25, ['gare de lyon', 'Gare de Lyon'], ['versailles', 'Versailles']);
-    check('Gare de Lyon → Versailles (25 km) : 70 + 10 = 80 € / 120 €', r.berline === 80 && r.van === 120, JSON.stringify(r));
+    check('Gare de Lyon → Versailles (25 km, marche « 27 km ») : 60 + 10 = 70 € / 105 €', r.berline === 70 && r.van === 105, JSON.stringify(r));
     check('grande gare : l\'accueil dit « à l\'arrivée de votre train »', /arrivée de votre train/.test(r.accueil), r.accueil);
     r = await trajet(c, 25, ['juvisy', 'Juvisy'], ['versailles', 'Versailles']);
-    check('une petite gare n\'a pas d\'accueil : 70 € / 110 €', r.berline === 70 && r.van === 110 && !r.accueil, JSON.stringify(r));
+    check('une petite gare n\'a pas d\'accueil : 60 € / 95 €', r.berline === 60 && r.van === 95 && !r.accueil, JSON.stringify(r));
     r = await trajet(c, 27, ['hilton', 'Hilton'], OPERA);
     check('un hôtel collé au terminal : forfait Roissy (70 €), mais pas d\'accueil', r.berline === 70 && !r.accueil, JSON.stringify(r));
     r = await trajet(c, 14, ['bourget', 'Bourget'], OPERA);
@@ -176,7 +178,7 @@ try {
     r = await trajet(c, 25, ['gare de lyon', 'Gare de Lyon'], ['versailles', 'Versailles']);
     await c.p.locator('.veh-carte').first().click();
     await c.p.locator('#btnContinuer').click(); await c.p.waitForTimeout(350);
-    check('récapitulatif : total 80 €', nombre(await c.p.locator('#recapTotal').innerText()) === 80, await c.p.locator('#recapTotal').innerText());
+    check('récapitulatif : total 70 €', nombre(await c.p.locator('#recapTotal').innerText()) === 70, await c.p.locator('#recapTotal').innerText());
     check('récapitulatif : la phrase « accueil compris » remplace la case à cocher',
       await c.p.locator('#accueilNote').isVisible() && !(await c.p.locator('#ecran-recap .opt-pancarte').isVisible()));
     check('récapitulatif : l\'aperçu de la pancarte est montré d\'office', await c.p.locator('#apercuPancarte').isVisible());
@@ -188,15 +190,15 @@ try {
     await c.p.locator('#btnConfirmer').click().catch(() => {});
     await c.p.waitForTimeout(1200);
     const b = c.depots[0] || {};
-    check('la demande part avec 80 €, « pancarte » et « accueil »',
-      b.prix?.total === 80 && b.course?.pancarte === true && b.course?.accueil === true && b.course?.forfaitPublic === '',
+    check('la demande part avec 70 €, « pancarte » et « accueil »',
+      b.prix?.total === 70 && b.course?.pancarte === true && b.course?.accueil === true && b.course?.forfaitPublic === '',
       JSON.stringify({ t:b.prix?.total, p:b.course?.pancarte, a:b.course?.accueil, f:b.course?.forfaitPublic }));
     /* Le message, tel que « Renvoyer par WhatsApp » le compose. */
     const message = await c.p.evaluate(() => { document.getElementById('btnRenvoyer').click();
       const u = window.__liens[window.__liens.length - 1] || ''; return decodeURIComponent((u.split('text=')[1] || '')); });
     const lignes = message.split('\n'), iA = lignes.findIndex(l => /^Accueil : /.test(l)), iP = lignes.findIndex(l => /^Prix : /.test(l));
     check('le message porte la ligne d\'accueil, AVANT le prix et sans montant', iA > -1 && iA < iP && !/€/.test(lignes[iA]), lignes.join(' / '));
-    check('le dernier montant du message est le prix total, 80 €', /^Prix : 80,00\s€$/.test(lignes[iP] || ''), lignes[iP]);
+    check('le dernier montant du message est le prix total, 70 €', /^Prix : 70,00\s€$/.test(lignes[iP] || ''), lignes[iP]);
     await c.ctx.close();
   }
 
@@ -233,7 +235,7 @@ try {
       return route.fulfill(J([{ page:'en-cdg', pourcentage:50, berline_km_centimes:600, van_km_centimes:900 }])); });
     await s.p.goto(BASE + '/?src=en-cdg'); await s.p.waitForTimeout(500);
     const r = await trajet(s, 25, ['juvisy', 'Juvisy'], ['versailles', 'Versailles']);
-    check('venu de /en/ (src=en-cdg) : le prix du site, 70 €', r.berline === 70, JSON.stringify(r));
+    check('venu de /en/ (src=en-cdg) : le prix du site, 60 €', r.berline === 60, JSON.stringify(r));
     check('le site ne lit plus « prix_pages_publics »', lus.length === 0, lus.join(' | '));
     await s.ctx.close();
   }

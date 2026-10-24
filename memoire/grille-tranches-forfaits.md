@@ -84,10 +84,36 @@ les décisions de Barbaros, une à une, le 23 octobre 2026 :
   départ ; le kilométrage et l'option pancarte « sur la page de réservation
   d'un hôtel partenaire » ; le surclassement possible, sans modèle garanti.
 
+## La marche à 27 km (24 octobre 2026)
+
+Après la fusion, Barbaros : « Tu penses que c'est 10/10, et le client lambda
+qui fait 24 km ? ». Mesuré avec `prixTranches` et l'ancien `prix` : à 24 km,
+la berline coûtait 70 €, exactement l'ancien prix au km, mais 20 € de plus
+qu'à 22 km et autant qu'à 32 km. Proposé : une marche à 27 km, berline 60 €,
+van 95 €. Sa réponse : « si tu penses que c'est bien, j'accepte ». 24 km
+coûte désormais 60 €.
+
+- **Migration 20261024120000**, un seul geste quel que soit l'état de la
+  base : elle pose la grille entière et la vue si 20261023120000 n'a jamais
+  été appliquée, ajoute la marche si les tranches sont encore celles du
+  23 octobre, et ne touche à rien si elles ont été réglées depuis l'admin.
+  Seules les tranches sont réécrites (jamais un forfait ni l'accueil).
+  Épreuve : `supabase/tests/grille-27km-apres.sql`, trois bases en CI ;
+  elle tombe sur une migration qui écrase et sur une migration sans la vue.
+- **Les CGV ne changent pas** : elles disent « une tranche, à laquelle
+  correspond un prix fixe », sans en donner le nombre.
+- **Écarté pour l'instant** : le saut du van à 12 km (50 → 80 €), le plus
+  fort de la grille ; il n'a pas été demandé.
+- **L'aéroport reste à +10 €** (sa décision, le même jour), après la
+  comparaison avec les forfaits des taxis parisiens pour 2026 (Roissy 56 /
+  65 €, Orly 45 / 36 €, + 7 € pour une réservation à l'avance, chiffres de
+  service-public relayés par la presse) : « le chauffeur attend à l'arrivée
+  le client avec son nom ». Ne pas rouvrir sans chiffres de conversion.
+
 ## Ce qui reste
 
-- Appliquer la migration 20261023120000 après la fusion.
+- Appliquer la migration 20261024120000 après la fusion (elle suffit seule).
 - Étape 2 : les forfaits affichés sur les pages CDG, Orly et Disney.
-- Dans 4 à 6 semaines, au Registre : les courses autour de 12 / 22 / 32 km,
+- Dans 4 à 6 semaines, au Registre : les courses autour de 12 / 22 / 27 / 32 km,
   la vitesse à laquelle les chauffeurs prennent les courses, la part des
   arrivées confirmées (Orly → Paris 65 €, au-dessus de la file de taxis).
