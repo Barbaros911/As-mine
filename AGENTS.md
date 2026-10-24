@@ -35,6 +35,10 @@ Avant toute modification, annoncer un seul statut parmi :
 
 Si la tâche est `EN COURS AILLEURS`, ne pas créer une seconde implémentation concurrente.
 
+Et, avant d'engager une nouvelle tâche qui produira du code, sa **priorité**
+P0 à P3, comparée aux priorités actives (étiquettes des Issues ouvertes) :
+`TEAM_RULES.md` §11.
+
 ## Vérifications obligatoires avant de modifier
 
 1. Lire `AGENTS.md`.
@@ -85,7 +89,7 @@ Avant publication :
 - ne jamais annoncer `TERMINÉ` avant vérification réelle.
 
 Après publication :
-- mettre à jour `PROJECT_STATE.md` ;
+- mettre à jour `PROJECT_STATE.md` seulement si une décision ou un plan a changé (il ne tient pas l’état du dépôt : `/etat` le demande) ;
 - marquer la tâche comme terminée ;
 - indiquer clairement au user : `TERMINÉ`, `BLOQUÉ` ou `PARTIELLEMENT FAIT`.
 

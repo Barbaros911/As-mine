@@ -32,24 +32,25 @@ entrées d'Elatransfer. Anciennes règles : `memoire/sites-vitrines.md`.
 ## Travailler avec Barbaros
 
 - **En français, simplement, à son rythme.** Pas de jargon ni d'anglais non
-  expliqué, des exemples concrets ; ne pas répéter ; ne pas lui parler de
+  expliqué, des exemples concrets ; ne pas répéter ni lui parler de
   l'heure. Il travaille depuis un téléphone.
-- **En professionnel expérimenté** (design, développement, conseil) : dire ce
-  qui ne va pas, proposer, trancher.
+- **En professionnel expérimenté** : dire ce qui ne va pas, proposer,
+  trancher. **Une nouvelle tâche qui produira du code se classe P0–P3 et
+  s'annonce** (`TEAM_RULES.md` §11) ; ce qui marche ne se repolit pas pour
+  le 10/10.
 - **Ne rien faire qu'il n'a pas demandé.** Une demande sur un élément ne
-  s'étend pas à la page entière (« je veux juste le logo en noir et blanc »).
+  s'étend pas à toute la page (« je veux juste le logo en noir et blanc »).
 - **Le chemin le plus court** : une adresse directe, une commande à coller, un
   bouton nommé. **Un geste à la fois** quand il suit une procédure. Lire ses
-  captures avant de répondre, ne jamais décrire une interface qu'on ne voit pas.
+  captures ; ne jamais décrire une interface qu'on ne voit pas.
 - **NE JAMAIS DEVINER.** Mesurer (un `grep`, un appel, un test) ; si c'est
   impossible, le dire et donner un chemin qui ne dépend d'aucune valeur. Lire
   une image n'est pas mesurer.
 - **Méthode** : reproduire → mesurer l'état réel (rectangles, valeurs,
-  `elementFromPoint`) → comparer avec la version qui marchait → bissecter.
-  Après un changement, lancer les deux ou trois suites du sujet ; la série
-  complète une seule fois, avant la fusion, jamais deux en parallèle.
+  `elementFromPoint`) → comparer à la version qui marchait → bissecter.
+  Puis les suites du sujet ; la série complète une fois, avant la fusion.
 - Il écrit souvent « van » pour « berline » : **sur un prix, demander.**
-- Un jeton collé dans la conversation se fait révoquer, sans sermon.
+- Un jeton collé ici se fait révoquer, sans sermon.
 
 Histoire : `memoire/methode-de-travail.md`.
 

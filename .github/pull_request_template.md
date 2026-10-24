@@ -1,9 +1,11 @@
 ## Tâche
 
+- Problème résolu :
+- Priorité : P0 / P1 / P2 / P3 — pourquoi (`TEAM_RULES.md` §11)
+- Critère de fin :
 - Issue :
 - Agent exécutant :
 - Agent reviewer :
-- Priorité : P0 / P1 / P2 / P3
 - Zone verrouillée :
 
 ## Changements

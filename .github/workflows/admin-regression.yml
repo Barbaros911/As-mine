@@ -124,5 +124,11 @@ jobs:
           echo "::group::test-protections"
           if node test-protections.mjs; then echo "test-protections : au vert"; else echo "::error::test-protections est tombé"; echecs="$echecs test-protections"; fi
           echo "::endgroup::"
+          # /etat et le crochet de début de session (24/10/2026) : les
+          # priorités (TEAM_RULES §11) s'y lisent, et un GitHub muet doit
+          # s'écrire en toutes lettres. Faux « gh », ni réseau ni navigateur.
+          echo "::group::test-etat"
+          if node test-etat.mjs; then echo "test-etat : au vert"; else echo "::error::test-etat est tombé"; echecs="$echecs test-etat"; fi
+          echo "::endgroup::"
           if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
           echo "Toutes les suites de l'admin retenu sont au vert."
