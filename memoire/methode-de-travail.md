@@ -86,3 +86,17 @@ première tourne.
 — ni réussite ni échec — dans trois séries d'affilée, et je l'ai lue comme
 « pas concernée ». La boucle de lancement le signale maintenant en toutes
 lettres (`!!! MUETTE — PLANTAGE`) et recopie les dernières lignes.
+
+## Resserré le 24 octobre 2026 (règle des priorités)
+
+Pour faire entrer dans `CLAUDE.md` la ligne des priorités (`TEAM_RULES.md`
+§11) sans relever son plafond, la section « Travailler avec Barbaros » a été
+resserrée. Ce qui en est sorti, mot pour mot :
+
+- « En professionnel expérimenté (design, développement, conseil) » — les
+  trois domaines entre parenthèses.
+- « Après un changement, lancer les deux ou trois suites du sujet ; la série
+  complète une seule fois, avant la fusion, jamais deux en parallèle. » — la
+  dernière clause est tenue par le verrou de `.claude/outils/tests.sh`, qui
+  n'en lance jamais deux à la fois.
+- « Un jeton collé dans la conversation » est devenu « collé ici ».

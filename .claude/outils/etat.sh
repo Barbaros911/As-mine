@@ -19,12 +19,42 @@
 # PRÉVU. Ça, ça s'écrit — dans PROJECT_STATE.md et les Issues [TEAM].
 #
 # Usage :  sh .claude/outils/etat.sh
+#          sh .claude/outils/etat.sh --court   (au démarrage d'une session)
+#
+# --COURT est lancé par le crochet SessionStart de .claude/settings.json :
+# les priorités actives, les PR et le retard sur main, en quelques lignes
+# et deux secondes, sans un test. Il note aussi le main vu à l'ouverture,
+# ce qui rend fiable le signal « MAIN A BOUGÉ » plus bas.
 # =====================================================================
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
+COURT=""; [ "$1" = "--court" ] && COURT=1
 titre() { printf '\n\033[1m── %s\033[0m\n' "$1"; }
 
-git fetch -q --prune origin 2>/dev/null || echo "  (réseau indisponible : les chiffres peuvent dater)"
+# Un réseau lent ne doit jamais tenir une session ouverte : 8 s au plus.
+if command -v timeout >/dev/null 2>&1; then
+  timeout 8 git fetch -q --prune origin 2>/dev/null
+else
+  git fetch -q --prune origin 2>/dev/null
+fi || echo "  (réseau indisponible : les chiffres peuvent dater)"
+
+# LES PRIORITÉS, LES ISSUES ET LES PR viennent de GitHub par etat-github.mjs
+# (API REST). Ce script les demandait par « gh issue list », qui passe par
+# GraphQL : refusé dans les sessions cloud, l'erreur partait dans
+# /dev/null et la liste s'affichait VIDE alors que des Issues étaient
+# ouvertes. Une absence de réponse s'écrit maintenant en toutes lettres.
+if [ -n "$COURT" ]; then
+  node .claude/outils/etat-github.mjs --court
+  retard=$(git rev-list --count HEAD..origin/main 2>/dev/null)
+  [ -n "$retard" ] && [ "$retard" != "0" ] \
+    && echo "  EN RETARD DE $retard COMMIT(S) SUR MAIN — repartir du dernier main"
+  REPERE="${TMPDIR:-/tmp}/asmine-main-$(git rev-parse --show-toplevel | md5sum | cut -c1-8)"
+  MAINTENANT=$(git rev-parse origin/main 2>/dev/null)
+  [ -n "$MAINTENANT" ] && echo "$MAINTENANT" > "$REPERE"
+  echo "  Avant une nouvelle tâche qui produit du code : la classer P0–P3 et"
+  echo "  l'annoncer en quatre lignes (TEAM_RULES.md §11). /etat pour le reste."
+  exit 0
+fi
 
 titre "PRODUCTION"
 printf '  dernier main   %s\n' "$(git log origin/main -1 --format='%h  %ad  %s' --date=short)"
@@ -41,18 +71,7 @@ else
   echo "  publication    à vérifier sur GitHub → Actions → « Publier le site »"
 fi
 
-titre "CE QUI ATTEND UNE RÉPONSE"
-if command -v gh >/dev/null 2>&1; then
-  echo "  Issues [TEAM] ouvertes :"
-  gh issue list --state open --search "[TEAM] in:title" \
-      --json number,title,updatedAt \
-      --jq '.[] | "    #\(.number)  \(.updatedAt[:10])  \(.title)"' 2>/dev/null
-  echo "  PR ouvertes :"
-  gh pr list --state open --json number,title,headRefName \
-      --jq '.[] | "    #\(.number)  \(.title)  ← \(.headRefName)"' 2>/dev/null
-else
-  echo "  → lire les Issues [TEAM] et les PR ouvertes sur GitHub AVANT de coder"
-fi
+node .claude/outils/etat-github.mjs
 
 titre "LE DÉPÔT"
 printf '  branches vivantes   %s\n' \
@@ -98,7 +117,7 @@ n=$(git log origin/main --since="3 days ago" --oneline | wc -l)
 [ "$n" -gt 12 ] && printf '  … et %s de plus\n' "$((n - 12))"
 
 titre "À LIRE AVANT DE CODER"
-echo "  TEAM_RULES.md      les règles communes — courtes"
+echo "  TEAM_RULES.md      les règles communes — courtes, et les priorités (§11)"
 echo "  PROJECT_STATE.md   les décisions prises et ce qui est prévu"
 echo "  CLAUDE.md          la mémoire du produit — vérifier avant de s'en servir"
 echo

@@ -96,7 +96,8 @@ humaine avant toute fusion. Burak n'a jamais à recopier un message entre agents
 2. Vérifier les Issues `[TEAM]`, PR ouvertes et branches de la zone.
 3. Créer une Issue depuis le modèle « Tâche agent IA ».
 4. Créer le worktree avec `.ai/scripts/new-task.sh`.
-5. Dans l'Issue, annoncer agent, branche, worktree, fichiers et priorité.
+5. Dans l'Issue, annoncer agent, branche, worktree et fichiers ; la priorité
+   est son étiquette P0 à P3 (`TEAM_RULES.md` §11).
 6. Développer, tester, faire relire par un autre agent, ouvrir une PR.
 7. Attendre la validation humaine. Ne jamais fusionner automatiquement.
 

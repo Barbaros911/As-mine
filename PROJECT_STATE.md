@@ -65,6 +65,11 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
   partenaire » **sans montant et au conditionnel** tant qu'il n'y a ni SIRET ni
   contrat. Un seul moteur de réservation.
 - **Aucune photo ni aucun logo dont on ne détient pas les droits.**
+- **Les priorités du développement sont les étiquettes des Issues GitHub**
+  (24/10/2026, Barbaros ; `TEAM_RULES.md` §11). Le projet GitHub « ELA
+  Transfer — Équipe IA », ouvert par ChatGPT le 21/09, n'est plus suivi :
+  ne pas y reporter de tâches. Le Pilotage de l'admin reste son tableau
+  pour ce qui ne se code pas (SIRET, assurance, partenaires).
 
 ## Décisions produit validées par Barbaros avec ChatGPT (16 septembre 2026)
 

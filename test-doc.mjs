@@ -341,7 +341,7 @@ if(refs){
    du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
    Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
    PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
-const PLAFOND_MEMO = 55061; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet)
+const PLAFOND_MEMO = 55060; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée)
 {
   const taille = Buffer.byteLength(doc, "utf8");
   verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",
@@ -631,6 +631,70 @@ for(const f of readdirSync(".").filter(n => /^admin-v2-.*\.js$/.test(n))){
     const flottant = lignes.filter(l => !/^\s*runs-on:/.test(l) && /(:\s*["']?latest["']?\s*$|@latest\b)/.test(l));
     verifier(`${f} n'installe rien en « latest »`, flottant.length === 0, flottant.map(l => l.trim()).join(" · "));
   }
+}
+
+/* ═══ 9. LA RÈGLE DES PRIORITÉS RESTE COMMUNE, ET SE LIT SUR GITHUB ═══
+   24 octobre 2026. Barbaros dispersait le développement sur des retouches
+   pendant qu'un P0 restait ouvert. La règle (TEAM_RULES.md §11) doit rester
+   là où TOUS les agents la lisent — ChatGPT ne lit pas .claude/ — et
+   l'état des priorités doit rester sur GitHub (étiquettes P0…P3), jamais
+   dans un fichier recopié à la main : PROJECT_STATE.md a montré, le
+   16 septembre, ce que devient un état écrit.
+   On verrouille les ANCRES DURABLES de la règle (les quatre niveaux, le
+   plafond, le 8/10, la décision de Barbaros, l'urgence jamais retardée),
+   pas une formulation du jour. Le comportement de /etat est éprouvé à part,
+   par test-etat.mjs. */
+if (reglesTexte !== null) {
+  const debut = reglesTexte.search(/^## \d+\. Les priorités/m);
+  const fin = debut < 0 ? -1 : reglesTexte.indexOf("\n## ", debut + 4);
+  const p11 = debut < 0 ? "" : reglesTexte.slice(debut, fin < 0 ? undefined : fin);
+  verifier("TEAM_RULES.md porte la section « Les priorités »", p11.length > 500,
+    "la règle commune de priorisation a disparu de TEAM_RULES.md : ChatGPT et les autres agents ne la liront plus nulle part.");
+  if (p11) {
+    for (const n of ["P0", "P1", "P2", "P3"])
+      verifier("TEAM_RULES §priorités définit " + n, new RegExp("^\\|\\s*\\*\\*" + n + "\\*\\*", "m").test(p11),
+        "la ligne « | **" + n + "** … | » du tableau des niveaux manque.");
+    verifier("TEAM_RULES §priorités : la priorité est l'ÉTIQUETTE de l'Issue, pas un fichier",
+      /étiquette/i.test(p11) && /jamais dans un fichier/i.test(p11),
+      "l'état des priorités doit se lire sur GitHub ; un fichier recopié à la main finit faux.");
+    const plafond = (p11.match(/\*\*(un|deux|trois|quatre|cinq) au plus\*\*/) || [])[1];
+    const enChiffre = { un: 1, deux: 2, trois: 3, quatre: 4, cinq: 5 }[plafond];
+    const outil = existsSync(".claude/outils/etat-github.mjs")
+      ? readFileSync(".claude/outils/etat-github.mjs", "utf8") : "";
+    const code = Number((outil.match(/ACTIVES_MAX\s*=\s*(\d+)/) || [])[1]);
+    verifier("le plafond écrit dans TEAM_RULES est celui que /etat applique",
+      enChiffre && enChiffre === code,
+      "TEAM_RULES dit « " + plafond + " au plus », etat-github.mjs compte ACTIVES_MAX = " + code + ".");
+    verifier("TEAM_RULES §priorités : Barbaros décide, et une urgence n'attend pas",
+      /décision de Barbaros/.test(p11) && /P0 s'annonce en une ligne/.test(p11),
+      "la règle ne doit ni retirer la décision à Barbaros, ni retarder un P0.");
+    verifier("TEAM_RULES §priorités : la règle du 8/10, hors domaines critiques",
+      /8\/10/.test(p11) && /ne s'applique pas aux domaines du P0/.test(p11), "");
+  }
+  for (const f of ["CLAUDE.md", "AGENTS.md", ".github/copilot-instructions.md"]) {
+    const t = existsSync(f) ? readFileSync(f, "utf8") : "";
+    verifier(f + " renvoie à la règle des priorités", /TEAM_RULES\.md`?\s*§11/.test(t),
+      "chaque porte d'entrée d'un agent doit mener à TEAM_RULES §11.");
+  }
+  const etat = existsSync(".claude/outils/etat.sh") ? readFileSync(".claude/outils/etat.sh", "utf8")
+    .split("\n").filter(l => !/^\s*#/.test(l)).join("\n") : "";
+  verifier("etat.sh lit les priorités par etat-github.mjs", /etat-github\.mjs/.test(etat), "");
+  verifier("etat.sh n'appelle plus « gh issue list » ni « gh pr list » (GraphQL, refusé dans le cloud)",
+    !/gh\s+(issue|pr)\s+list/.test(etat),
+    "ces commandes échouent en silence dans une session cloud : la liste s'affiche vide alors que des Issues sont ouvertes.");
+  const formulaire = existsSync(".github/ISSUE_TEMPLATE/ai-task.yml")
+    ? readFileSync(".github/ISSUE_TEMPLATE/ai-task.yml", "utf8") : "";
+  verifier("le modèle d'Issue ne recrée pas un menu « Priorité » à côté des étiquettes",
+    !/^\s*id:\s*priority\s*$/m.test(formulaire),
+    "deux sources pour la même priorité finissent par se contredire : la priorité est l'étiquette.");
+  const modelePr = existsSync(".github/pull_request_template.md")
+    ? readFileSync(".github/pull_request_template.md", "utf8") : "";
+  verifier("le modèle de PR demande problème, priorité et critère de fin",
+    /Problème résolu/.test(modelePr) && /Priorité/.test(modelePr) && /Critère de fin/.test(modelePr), "");
+  const etatProjet = existsSync("PROJECT_STATE.md") ? readFileSync("PROJECT_STATE.md", "utf8") : "";
+  verifier("PROJECT_STATE.md ne tient pas de liste de priorités P0…P3",
+    !/^\s*(?:[-*|]|\d+\.).*\bP[0-3]\b/m.test(etatProjet),
+    "les priorités du moment sont les étiquettes des Issues (TEAM_RULES §11), jamais un état recopié.");
 }
 
 /* --------------------------------------------------------------- */

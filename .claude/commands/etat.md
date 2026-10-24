@@ -20,7 +20,13 @@ Ce qu'il rend, et ce que ça veut dire :
   fois le 15 septembre, Barbaros a essayé l'ancienne version pendant vingt
   minutes pendant que je disais que c'était en ligne. Si cette ligne n'est
   pas verte, **rien n'est en ligne**, quoi qu'en dise l'historique.
+- **PRIORITÉS** — les Issues ouvertes étiquetées P0, P1, P2 (trois au plus)
+  et le parking P3 (`TEAM_RULES.md` §11). Avant d'engager une nouvelle tâche
+  qui produira du code : la classer, la comparer à cette liste, l'annoncer
+  en quatre lignes. Une version courte s'affiche seule au début de chaque
+  session (crochet SessionStart, `etat.sh --court`).
 - **CE QUI ATTEND UNE RÉPONSE** — les Issues `[TEAM]` et les PR ouvertes.
+  « GitHub n'a pas répondu » n'est **pas** « rien en cours » : aller voir.
   À lire **avant** d'écrire une ligne de code : une question posée à
   ChatGPT ou à Barbaros et restée sans réponse est un travail qu'on
   recommencerait pour rien.

@@ -50,6 +50,10 @@ quelconque, ni un `javascript:`). Aucune synchronisation, aucun jeton GitHub.
 Recommandé, à trancher par Barbaros : le projet GitHub pour les agents, le
 Pilotage pour lui.
 
+**Tranché le 24 octobre 2026** : le projet GitHub n'est plus suivi ; les
+priorités du développement sont les étiquettes des Issues (`TEAM_RULES.md`
+§11), le Pilotage reste à Barbaros pour ce qui ne se code pas.
+
 ## Le tableau des courses n'est pas touché
 
 Le seul vrai Kanban de courses est dans Admin v2 (`COLONNES`, non publié
