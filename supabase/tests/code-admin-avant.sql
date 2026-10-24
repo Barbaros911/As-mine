@@ -1,12 +1,12 @@
 -- ============================================================================
--- LA DOUBLE VÉRIFICATION — le décor, posé AVANT la migration (24/10/2026)
+-- LE CODE ADMIN — le décor, posé AVANT la migration (24/10/2026)
 -- On repose ce que Supabase fournit et que la migration lit : auth.uid(),
--- auth.jwt() (le jeton de l'appel, d'où vient « aal »), auth.mfa_factors
--- (les codes enrôlés), et les deux portes TELLES QUE LE DÉPÔT LES DÉCRIT
+-- auth.jwt() (le jeton de l'appel, d'où vient « session_id »), pgcrypto dans
+-- « extensions », et les deux portes TELLES QUE LE DÉPÔT LES DÉCRIT
 -- (20260915_operator_auth_server, 20260929030000_role_agent_serveur), sous
 -- la vraie RLS d'« operateurs ». Puis on exige que LE TROU SE REPRODUISE :
--- un admin qui a un code vérifié entre avec un jeton « aal1 » (mot de passe
--- seul). Sans cette preuve, l'épreuve d'après ne prouverait rien.
+-- un admin entre au mot de passe seul. Sans cette preuve, l'épreuve d'après
+-- ne prouverait rien.
 -- ============================================================================
 create schema if not exists auth;
 do $$ begin
@@ -22,21 +22,8 @@ create or replace function auth.jwt() returns jsonb language sql stable as $$
 create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif((select auth.jwt()) ->> 'sub', '')::uuid $$;
 
-do $$ begin
-  if not exists (select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace
-                 where n.nspname = 'auth' and t.typname = 'factor_status') then
-    create type auth.factor_status as enum ('unverified', 'verified');
-  end if;
-end $$;
-create table if not exists auth.mfa_factors(
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  friendly_name text,
-  factor_type text not null default 'totp',
-  status auth.factor_status not null,
-  created_at timestamptz not null default now());
--- Chez Supabase, un compte connecté ne lit pas cette table.
-revoke all on auth.mfa_factors from public, anon, authenticated;
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.operateurs(
   user_id uuid primary key,
@@ -49,21 +36,15 @@ grant select on public.operateurs to authenticated;
 create policy "lire son propre droit" on public.operateurs
   for select to authenticated using (user_id = (select auth.uid()));
 
--- Les comptes : 1 admin avec code · 2 agent avec code · 3 admin sans code ·
--- 4 un compte connecté qui n'est pas opérateur · 5 admin suspendu avec code ·
--- 6 admin dont le code est en cours d'activation (non vérifié).
+-- Les comptes : 1 admin (aura un code) · 2 agent (aura un code) · 3 admin
+-- sans code · 4 un compte connecté qui n'est pas opérateur · 5 admin
+-- suspendu (aura un code) · 6 admin sans code.
 insert into public.operateurs(user_id, role, actif) values
   ('aaaaaaaa-0000-0000-0000-000000000001', 'admin', true),
   ('aaaaaaaa-0000-0000-0000-000000000002', 'agent_reservation', true),
   ('aaaaaaaa-0000-0000-0000-000000000003', 'admin', true),
   ('aaaaaaaa-0000-0000-0000-000000000005', 'admin', false),
   ('aaaaaaaa-0000-0000-0000-000000000006', 'admin', true);
-insert into auth.mfa_factors(user_id, status) values
-  ('aaaaaaaa-0000-0000-0000-000000000001', 'verified'),
-  ('aaaaaaaa-0000-0000-0000-000000000002', 'verified'),
-  ('aaaaaaaa-0000-0000-0000-000000000005', 'verified'),
-  ('aaaaaaaa-0000-0000-0000-000000000006', 'unverified');
-
 -- Les deux portes, comme dans le dépôt.
 create or replace function public.est_exploitant() returns boolean
 language sql stable security invoker set search_path = public as $$
@@ -99,16 +80,17 @@ end $$;
 revoke all on function public.sonde_admin() from public, anon;
 grant execute on function public.sonde_admin() to authenticated;
 
--- Un appel = un jeton. « essai_jeton » pose ses claims, comme PostgREST.
-create or replace function public.essai_jeton(p_uid text, p_aal text) returns void
+-- Un appel = un jeton. « essai_jeton » pose ses claims, comme PostgREST :
+-- le compte et la session de connexion (« session_id » chez Supabase).
+create or replace function public.essai_jeton(p_uid text, p_session text) returns void
 language sql as $$
   select set_config('request.jwt.claims',
     case when p_uid is null then '{}' else
-      jsonb_build_object('sub', p_uid, 'aal', p_aal, 'role', 'authenticated')::text end, false); $$;
+      jsonb_strip_nulls(jsonb_build_object('sub', p_uid, 'session_id', p_session, 'role', 'authenticated'))::text end, false); $$;
 grant execute on function public.essai_jeton(text, text) to anon, authenticated;
 
--- LE TROU, AVANT LA MIGRATION : l'admin 1 a un code, et entre sans lui.
-select public.essai_jeton('aaaaaaaa-0000-0000-0000-000000000001', 'aal1');
+-- LE TROU, AVANT LA MIGRATION : l'admin 1 entre au mot de passe seul.
+select public.essai_jeton('aaaaaaaa-0000-0000-0000-000000000001', 'mdp');
 set role authenticated;
 do $$ begin
   if not public.est_exploitant() then

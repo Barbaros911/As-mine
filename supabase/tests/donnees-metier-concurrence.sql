@@ -24,7 +24,7 @@ set role authenticated;
 do $$ declare n text; begin
   n := public.ela_facture_emettre(public.essai_doc('00000000-0000-0000-0000-0000000000b1', array['ELA-26-10-R0004']))->>'num';
   perform set_config('essai.num_a', n, false);
-  perform dblink_exec('conc', 'set request.jwt.claims = ''{"sub":"aaaaaaaa-0000-0000-0000-000000000001","aal":"aal2","role":"authenticated"}''');
+  perform dblink_exec('conc', 'set request.jwt.claims = ''{"sub":"aaaaaaaa-0000-0000-0000-000000000001","session_id":"aal2","role":"authenticated"}''');
   perform dblink_exec('conc', 'set role authenticated');
   perform dblink_send_query('conc', 'select public.ela_facture_emettre(public.essai_doc(''00000000-0000-0000-0000-0000000000b2'', array[''ELA-26-10-R0004'']))->>''num''');
 end $$;
@@ -45,7 +45,7 @@ set role authenticated;
 do $$ declare n text; begin
   n := public.ela_facture_emettre(public.essai_doc('00000000-0000-0000-0000-0000000000c1', array['ELA-26-10-R0005']))->>'num';
   perform set_config('essai.num_b1', n, false);
-  perform dblink_exec('conc', 'set request.jwt.claims = ''{"sub":"aaaaaaaa-0000-0000-0000-000000000001","aal":"aal2","role":"authenticated"}''');
+  perform dblink_exec('conc', 'set request.jwt.claims = ''{"sub":"aaaaaaaa-0000-0000-0000-000000000001","session_id":"aal2","role":"authenticated"}''');
   perform dblink_exec('conc', 'set role authenticated');
   perform dblink_send_query('conc', 'select public.ela_facture_emettre(public.essai_doc(''00000000-0000-0000-0000-0000000000c2'', array[''ELA-26-10-R0007'']))->>''num''');
 end $$;

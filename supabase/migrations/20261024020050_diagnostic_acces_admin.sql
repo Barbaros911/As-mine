@@ -1,17 +1,17 @@
 -- =====================================================================
 -- DIAGNOSTIC DE L'ACCÈS ADMIN — lecture seule, 24 octobre 2026
 -- ---------------------------------------------------------------------
--- Mesure l'état RÉEL avant et après la double vérification
--- (20261024000000) : ce que le dépôt ne peut pas voir. Il ne modifie RIEN.
+-- Mesure l'état RÉEL avant et après le code admin à 6 chiffres
+-- (20261024020000) : ce que le dépôt ne peut pas voir. Il ne modifie RIEN.
 -- Le journal GitHub est PUBLIC : des nombres et des noms d'objets, jamais
 -- une adresse e-mail, un identifiant de compte ni une donnée de course.
 --
 -- Comment lire :
 --   operateurs        : pour chaque rôle, combien d'actifs et combien
---                       d'actifs AVEC un code vérifié. Avant le cliquet
---                       (20261024000100), « actifs_sans_code » doit être 0.
+--                       d'actifs AVEC un code. Avant le cliquet
+--                       (20261024020100), « actifs_sans_code » doit être 0.
 --   portes            : « niveau_de_session » vrai pour les deux, une fois
---                       20261024000000 appliquée ; « exigee_pour_tous » dit
+--                       20261024020000 appliquée ; « exigee_pour_tous » dit
 --                       si le cliquet est levé.
 --   definer_public    : chaque fonction « definer » du schéma public, qui
 --                       peut l'exécuter, et si son code appelle une garde.
@@ -30,9 +30,10 @@ select 'operateurs' as quoi,
   from (select o.role,
                count(*) filter (where o.actif) as actifs,
                count(*) filter (where not o.actif) as inactifs,
-               count(*) filter (where o.actif and exists (
-                 select 1 from auth.mfa_factors f
-                  where f.user_id = o.user_id and f.status = 'verified')) as avec_code
+               count(*) filter (where o.actif and to_regclass('public.codes_admin') is not null
+                 and (xpath('/row/n/text()', query_to_xml(format(
+                   'select count(*) as n from public.codes_admin where user_id = %L', o.user_id),
+                   false, true, '')))[1]::text::int > 0) as avec_code
           from public.operateurs o group by o.role) x
 union all
 select 'portes',
@@ -43,10 +44,14 @@ select 'portes',
            position('ela_session_suffisante' in pg_get_functiondef('public.est_admin()'::regprocedure)) > 0,
          'exigee_pour_tous',
            case when to_regclass('public.securite_admin') is null then null
-                else (select to_jsonb(s) -> 'double_verification_exigee'
-                        from public.securite_admin s limit 1) end,
-         'comptes_avec_code_non_verifie',
-           (select count(distinct f.user_id) from auth.mfa_factors f where f.status <> 'verified'))
+                else (xpath('/row/n/text()', query_to_xml(
+                  'select double_verification_exigee as n from public.securite_admin limit 1',
+                  false, true, '')))[1]::text::boolean end,
+         'comptes_bloques_par_essais',
+           case when to_regclass('public.codes_admin') is null then null
+                else (xpath('/row/n/text()', query_to_xml(
+                  'select count(*) as n from public.codes_admin where bloque_jusqua > now()',
+                  false, true, '')))[1]::text::int end)
 union all
 select 'definer_public',
        coalesce(jsonb_agg(jsonb_build_object(

@@ -3,8 +3,7 @@
 # LES DONNÉES MÉTIER DE L'ADMIN SUR LE SERVEUR, ÉPROUVÉES SUR UN VRAI
 # POSTGRESQL. Lancé par la CI (admin-v2-regression.yml) et à la main :
 #   PGHOST=127.0.0.1 PGUSER=postgres PGPASSWORD=postgres sh supabase/tests/donnees-metier.sh
-# Le décor est celui de la double vérification (les portes avec le niveau
-# de session) ; la migration est appliquée deux fois (elle doit se rejouer).
+# Le décor est celui du code admin (les portes avec le juge de session) ; la migration est appliquée deux fois (elle doit se rejouer).
 # =====================================================================
 set -eu
 cd "$(dirname "$0")/../.."
@@ -13,8 +12,9 @@ T=supabase/tests
 PSQL="psql -X -q -v ON_ERROR_STOP=1"
 DB=donneesmetier
 $PSQL -d postgres -c "drop database if exists $DB;" -c "create database $DB;"
-$PSQL -d $DB -f $T/double-verification-avant.sql
-$PSQL -d $DB -1 -f $M/20261024000000_double_verification_admin.sql
+$PSQL -d $DB -f $T/code-admin-avant.sql
+$PSQL -d $DB -1 -f $M/20261024020000_code_admin.sql
+$PSQL -d $DB -f $T/code-admin-codes.sql
 $PSQL -d $DB -1 -f $M/20261002000000_courses_version.sql
 $PSQL -d $DB -f $T/donnees-metier-avant.sql
 $PSQL -d $DB -1 -f $M/20261024010000_donnees_metier_serveur.sql
@@ -33,8 +33,9 @@ echo "DONNÉES MÉTIER : toutes les épreuves tiennent."
 echo "── base sans les tables d'Admin v2 (leur présence en production n'est pas prouvée)"
 DB2=donneesmetiervide
 $PSQL -d postgres -c "drop database if exists $DB2;" -c "create database $DB2;"
-$PSQL -d $DB2 -f $T/double-verification-avant.sql
-$PSQL -d $DB2 -1 -f $M/20261024000000_double_verification_admin.sql
+$PSQL -d $DB2 -f $T/code-admin-avant.sql
+$PSQL -d $DB2 -1 -f $M/20261024020000_code_admin.sql
+$PSQL -d $DB2 -f $T/code-admin-codes.sql
 $PSQL -d $DB2 -c "create table public.parametres_commerciaux(cle text primary key, valeur jsonb not null, actif boolean not null default true, date_effet timestamptz not null default now(), modifie_le timestamptz not null default now());"
 $PSQL -d $DB2 -1 -f $M/20261024010000_donnees_metier_serveur.sql
 $PSQL -d $DB2 -1 -f $M/20261024010000_donnees_metier_serveur.sql

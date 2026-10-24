@@ -1,6 +1,6 @@
 -- ============================================================================
 -- LES DONNÉES MÉTIER SUR LE SERVEUR — le décor, AVANT la migration (24/10/2026)
--- Posé APRÈS double-verification-avant.sql et 20261024000000 (les portes avec
+-- Posé APRÈS code-admin-avant.sql et 20261024020000 (les portes avec
 -- le niveau de session) et 20261002000000 (la version des courses).
 -- On repose l'état « Admin v2 » tel que le dépôt le décrit : la table
 -- « chauffeurs » écrite par tout opérateur, un compteur de factures déjà
