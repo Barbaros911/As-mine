@@ -274,6 +274,51 @@ seulement (`trafic.js`, `trafic.css`), aucune migration, aucune donnée de plus.
 - `test-admin-trafic` partie 11 (13 contrôles, attendus recalculés à la main) ;
   contre l'ancien écran, 10 tombent.
 
+## « Ne pas compter cet appareil » (24/10/2026)
+
+Barbaros, 24 octobre : « Je veux que mes propres visites et tests
+n'apparaissent plus dans les statistiques. » Un avis d'architecte d'abord,
+puis « Si c'est sans risque sans souci, fais comme un expert ».
+
+**Pas un second système.** Le refus existait : `ela_mesure_non = "1"`, écrit
+par « Ne plus me compter » sous la politique de confidentialité, lu par
+`mesure.js` et par le moteur (`mesureRefusee()`). Admin → Trafic l'écrit et
+l'efface, rien de plus : un bloc « Vos propres visites », avec un état écrit
+(« Cet appareil est exclu des statistiques » / « … est compté… »), un bouton
+en creux pour exclure, « Compter à nouveau cet appareil » en lien discret.
+Rien ne part au serveur ; aucune liste d'adresses IP (une IP de téléphone
+change, et une box est partagée). Le code vit dans le bloc exploitant
+d'`index.html` (`dessinerAppareilTrafic`), retiré des pages publiques ;
+`trafic.js` reste sans aucun stockage (son contrôle « 0 » le garde).
+
+- **Sous les chiffres, pas au-dessus.** Mesuré à 390×844 : en haut, la carte
+  repoussait le bas des six tuiles de 799 à 1010 px, et `test-admin-trafic`
+  exige qu'elles tiennent dans l'écran. Elle est sous la zone que la sonde
+  redessine toutes les 10 s, donc jamais effacée par elle.
+- **Le choix est relu après l'écriture** : un navigateur qui refuse d'écrire
+  (navigation privée) le dit, l'écran ne déclare pas l'appareil exclu.
+- **L'iPhone** : l'admin installé (`display: standalone`) n'a pas le stockage
+  de Safari. Dans l'application (`navigator.standalone`), l'écran dit de
+  refaire le réglage dans Safari, sur elatransfer.com/ela-admin/. À vérifier
+  sur son téléphone : exclure dans Safari, puis lire l'état dans l'application.
+  De même, `www.` et l'adresse nue sont deux stockages si les deux servent
+  le site (non mesuré : le site n'était pas joignable depuis la session) ;
+  l'aide nomme l'adresse où le réglage vaut.
+
+**Écarté pour l'instant : effacer les gestes du jour déjà comptés.** Faisable
+proprement : la fonction `mesure` recalculerait l'empreinte de la requête
+(jamais fournie par le navigateur), exigerait `est_admin()`, et une RPC
+réservée à `service_role` effacerait, avec la clé du jour seulement, les
+lignes de ce visiteur depuis minuit (Paris) ET retirerait les mêmes gestes
+de `mesures_acquisition`, dans la même transaction. Le compte serait exact :
+le compteur reçoit +1 par ligne du journal, sauf les deux gestes de prix et
+une page refusée au-delà de 60 par jour (qui n'a alors aucune ligne au
+compteur). Mais ce serait la première écriture À LA BAISSE dans le compteur
+historique, une migration à appliquer à la main, pour une seule journée par
+appareil, et seulement depuis la même connexion (une IP 4G change). Barbaros
+a demandé « sans risque » : pas fait. Les jours passés ne se nettoient pas,
+par construction (clé détruite).
+
 ## Les suites
 
 - `supabase/tests/trafic.sql` + `trafic-apres.sql` + `trafic-reservations.sql` (vrai PostgreSQL, CI) :
@@ -284,7 +329,11 @@ seulement (`trafic.js`, `trafic.css`), aucune migration, aucune donnée de plus.
 - `test-mesure.mjs` : le collecteur sur le site construit, de Google à la
   réservation ; panne sans effet sur le dépôt ; « Ne plus me compter ».
 - `test-admin-trafic.mjs` : l'écran, la sonde 12 → 13, sept largeurs, l'agent,
-  et l'ordre d'arrivée du direct et du jour, forcé dans les deux sens.
+  et l'ordre d'arrivée du direct et du jour, forcé dans les deux sens ;
+  partie 12, « Ne pas compter cet appareil » : compté avant, plus rien du
+  site après (pages et moteur), ni après rechargement ; un autre visiteur
+  compté ; réactivation ; écriture refusée ; iPhone installé. Contre une
+  clé mal écrite, 9 contrôles tombent ; sans l'effacement, 3.
 - `test-seo-en.mjs`, `test-liens-suivi.mjs` : plus rien par l'ancienne porte.
 
 ---
