@@ -51,7 +51,7 @@ async function ouvrir(w, h = 900, langue = 'fr', url = PAGE) {
 
 // 1. La page publiée existe, et elle est indexable.
 const brut = await (await fetch(PAGE)).text();
-check('la page est publiée par construire.sh', /Votre réception réserve/.test(brut), brut.slice(0, 60));
+check('la page est publiée par construire.sh', /Elatransfer gère tout le reste/.test(brut), brut.slice(0, 60));
 check('le titre nomme la marque et le public', /<title>[^<]*Elatransfer[^<]*(hôtel|Hôtel)/.test(brut));
 check('elle a une description', /<meta name="description" content="[^"]{80,}"/.test(brut));
 check('elle est indexable', /<meta name="robots" content="index/.test(brut) && !/noindex/i.test(brut));
@@ -91,11 +91,13 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
     ctaTexte: (document.querySelector('.hero a.bouton') || {}).textContent }));
   check('l\'ancre #demo existe', a.demo);
   check('l\'ancre #contact existe', a.contact);
-  check('le bouton principal est « Voir la démo hôtel » et mène à #demo', a.cta === '#demo' && /démo hôtel/.test(a.ctaTexte), a.cta + ' / ' + a.ctaTexte);
+  // Son libellé nomme la démo, sans la réserver aux hôtels (23/10/2026, Barbaros : la
+  // page parle à tous les professionnels ; le mot exact, lui, peut changer).
+  check('le bouton principal ouvre la démo et mène à #demo', a.cta === '#demo' && /démo/i.test(a.ctaTexte) && !/hôtel/i.test(a.ctaTexte), a.cta + ' / ' + a.ctaTexte);
   // Le bouton est visible sans défiler, et c'est bien lui qui reçoit le doigt.
   const recu = await p.evaluate(() => { const e = document.querySelector('.hero a.bouton'); const r = e.getBoundingClientRect();
     return { bas: r.bottom, ok: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e }; });
-  check('390×844 : « Voir la démo hôtel » est à l\'écran et reçoit l\'appui', recu.ok && recu.bas <= 844, JSON.stringify(recu));
+  check('390×844 : le bouton de la démo est à l\'écran et reçoit l\'appui', recu.ok && recu.bas <= 844, JSON.stringify(recu));
   await p.click('.hero a.bouton');
   // LE DÉFILEMENT EST DOUX (scroll-behavior:smooth) : sa durée croît avec la
   // distance. On lit la position une fois qu'il s'est ARRÊTÉ, plus à 700 ms
@@ -120,17 +122,41 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   // Aucune image dont on ne connaît pas la source : le logo du site, et depuis le
   // 21/10/2026 les captures de NOTRE démonstration (données fictives), rangées
   // dans professionnels/ sous le nom apercu-… — jamais une photo d'ailleurs.
+  // Depuis le 23/10/2026, sur trois écrans : apercu-<client|equipe>-<écran>-<langue>.
   const imgs = await p.$$eval('img', l => l.map(i => i.getAttribute('src')));
-  check('aucune image hors du logo du site et des captures de la démo', imgs.every(s => /^\/brand-logo|^\/professionnels\/apercu-[a-z]+-(fr|en)\.webp$/.test(s)), imgs.join(', '));
+  check('aucune image hors du logo du site et des captures de la démo', imgs.every(s => /^\/brand-logo|^\/professionnels\/apercu-(client|equipe)-(telephone|tablette|ordinateur)-(fr|en)\.webp$/.test(s)), imgs.join(', '));
   // Les captures : dimensions déclarées (la page ne saute pas), chargement
-  // différé, un texte de remplacement qui décrit, et elles s'affichent vraiment.
-  await p.evaluate(() => document.querySelector('.apercu').scrollIntoView());
-  await p.waitForFunction(() => [...document.querySelectorAll('.apercu img')].every(i => i.complete), null, { timeout: 5000 }).catch(() => {});
+  // différé, un texte de remplacement qui décrit.
   const ap = await p.$$eval('.apercu img', l => l.map(i => ({ src: i.getAttribute('src'), w: i.getAttribute('width'), h: i.getAttribute('height'),
-    lazy: i.loading === 'lazy', alt: i.alt.length, vu: i.naturalWidth })));
-  check('deux captures de la démo, chacune avec dimensions, chargement différé et texte de remplacement',
-    ap.length === 2 && ap.every(i => i.w && i.h && i.lazy && i.alt >= 60), JSON.stringify(ap));
-  check('les deux captures s\'affichent', ap.length === 2 && ap.every(i => i.vu > 0), JSON.stringify(ap));
+    lazy: i.loading === 'lazy', alt: i.alt.length })));
+  check('six captures de la démo (page client et espace équipe, sur trois écrans), chacune avec dimensions, chargement différé et texte de remplacement',
+    ap.length === 6 && ap.every(i => i.w && i.h && i.lazy && i.alt >= 60), JSON.stringify(ap));
+  // TROIS ÉCRANS (23/10/2026, Barbaros : « qu'ils puissent voir la version
+  // ordinateur, téléphone, tablette ») : un bouton par écran, un seul écran
+  // visible à la fois, et chaque bouton montre SES deux captures, qui
+  // s'affichent vraiment. Sur un téléphone, on ouvre sur le téléphone.
+  await p.evaluate(() => document.querySelector('.apercu').scrollIntoView());
+  const etat = () => p.evaluate(() => ({
+    presse: [...document.querySelectorAll('.ecrans button[aria-pressed="true"]')].map(b => b.dataset.ecran),
+    visibles: [...document.querySelectorAll('.apercu-grille[data-ecran]')].filter(g => g.offsetHeight > 0).map(g => g.dataset.ecran),
+    imgs: [...document.querySelectorAll('.apercu-grille[data-ecran] img')].filter(i => i.offsetHeight > 0).map(i => ({ src: i.getAttribute('src'), vu: i.naturalWidth })) }));
+  const e0 = await etat();
+  check('390 px : l\'aperçu s\'ouvre sur le téléphone, et sur lui seul', e0.presse.join() === 'telephone' && e0.visibles.join() === 'telephone', JSON.stringify(e0));
+  for (const ecran of ['tablette', 'ordinateur', 'telephone']) {
+    const bouton = p.locator(`.ecrans button[data-ecran="${ecran}"]`);
+    if (!(await bouton.count())) { check(`« ${ecran} » : un bouton pour cet écran`, false, 'absent'); continue; }
+    // Au milieu de l'écran, d'un coup : la page défile en douceur (scroll-behavior),
+    // et une lecture faite pendant le mouvement trouve le bouton encore hors de l'écran.
+    await p.evaluate(() => document.querySelector('.ecrans').scrollIntoView({ block: 'center', behavior: 'instant' }));
+    const recoit = await bouton.evaluate(e => { const r = e.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e; });
+    await bouton.click();
+    await p.waitForFunction(() => [...document.querySelectorAll('.apercu-grille[data-ecran] img')].filter(i => i.offsetHeight > 0).every(i => i.complete && i.naturalWidth > 0), null, { timeout: 5000 }).catch(() => {});
+    const e = await etat();
+    check(`« ${ecran} » : le bouton reçoit l'appui, et seules ses deux captures s'affichent`,
+      recoit && e.presse.join() === ecran && e.visibles.join() === ecran && e.imgs.length === 2
+      && e.imgs.every(i => i.vu > 0 && i.src.includes(`-${ecran}-`)), JSON.stringify(e));
+  }
+  check('390 px : aucun débordement horizontal avec l\'aperçu', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await p.context().close();
 }
 
@@ -143,17 +169,19 @@ for (const langue of ['fr', 'en']) {
       desc: document.querySelector('meta[name=description]').content,
       partenaire: (document.getElementById('partenaire') || {}).innerText || '',
       aria: [...document.querySelectorAll('[aria-label]')].map(e => e.getAttribute('aria-label')),
+      ecran: (document.querySelector('.ecrans [aria-pressed="true"]') || {}).dataset?.ecran,
       images: [...document.querySelectorAll('.apercu img')].map(i => i.getAttribute('src')),
       alts: [...document.querySelectorAll('.apercu img')].map(i => i.alt) }; });
   await p.context().close();
 }
-check('FR : la page dit « Votre réception réserve. Elatransfer gère tout le reste. »', textes.fr.corps.includes('Votre réception réserve. Elatransfer gère tout le reste.'));
+check('FR : la page dit « Votre équipe réserve. Elatransfer gère tout le reste. »', textes.fr.corps.includes('Votre équipe réserve. Elatransfer gère tout le reste.'));
+check('1280 px : l\'aperçu s\'ouvre sur l\'ordinateur', textes.fr.ecran === 'ordinateur' && textes.en.ecran === 'ordinateur', textes.fr.ecran + ' / ' + textes.en.ecran);
 check('EN : la page passe en anglais (lang, titre, description)', textes.en.lang === 'en' && textes.en.titre !== textes.fr.titre && textes.en.desc !== textes.fr.desc);
 const lignesFr = new Set(textes.fr.corps.split('\n').map(s => s.trim()).filter(s => s.length > 12 && !/@|\+33/.test(s)));
 const restes = textes.en.corps.split('\n').map(s => s.trim()).filter(s => lignesFr.has(s));
 check('EN : aucune ligne ne reste en français', restes.length === 0, restes.join(' | '));
 check('EN : les captures de la démo passent en anglais (image et texte de remplacement)',
-  textes.en.images.length === 2 && textes.en.images.every((s, i) => /-en\.webp$/.test(s) && textes.en.alts[i] !== textes.fr.alts[i])
+  textes.en.images.length === 6 && textes.en.images.every((s, i) => /-en\.webp$/.test(s) && textes.en.alts[i] !== textes.fr.alts[i])
   && textes.fr.images.every(s => /-fr\.webp$/.test(s)), JSON.stringify([textes.fr.images, textes.en.images]));
 check('EN : aucun libellé de lecteur d\'écran ne reste en français', !textes.en.aria.some(a => /accueil|Lire en/.test(a) && !/français/.test(a)), textes.en.aria.join(' | '));
 const INTERDITS = {
@@ -188,8 +216,8 @@ for (const langue of ['fr', 'en']) {
   const p = await ouvrir(390, 844, langue, SITE);
   const cta = await p.evaluate(() => { const a = document.querySelector('#modele .modele-cta');
     return a ? { href: a.getAttribute('href'), texte: a.textContent.trim(), mail: !!document.querySelector('#modele a[href="mailto:contact@elatransfer.com"]') } : null; });
-  check(`accueil ${langue.toUpperCase()} : le bouton de l'encart est « ${langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'} » vers le formulaire /professionnels/#demo`,
-    cta && cta.href === '/professionnels/#demo' && cta.texte === (langue === 'fr' ? 'Voir la démo hôtel' : 'See the hotel demo'), JSON.stringify(cta));
+  check(`accueil ${langue.toUpperCase()} : le bouton de l'encart mène au formulaire de la démo (/professionnels/#demo), sans la réserver aux hôtels`,
+    cta && cta.href === '/professionnels/#demo' && /d[ée]mo/i.test(cta.texte) && !/h[ôo]tel/i.test(cta.texte), JSON.stringify(cta));
   check(`accueil ${langue.toUpperCase()} : l'encart garde son lien e-mail`, cta && cta.mail);
   if (langue === 'fr') {
     await p.evaluate(() => document.querySelector('#modele').scrollIntoView());

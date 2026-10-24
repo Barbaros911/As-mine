@@ -144,3 +144,57 @@ il a dit « corrige, mais pas besoin que la page réception soit en anglais »
 - **L'orange ne descend pas dans la liste, « confirmée » reste verte** ; ni
   photo ni logo d'un partenaire sans accord écrit (L335-2 CPI).
 Histoire et pièges : `memoire/theme-partenaire.md`.
+
+---
+
+## 24 octobre 2026 — easyHotel refuse d'être cité : plus de co-marquage sans accord écrit
+
+Barbaros, après l'audit d'autorité : easyHotel ne veut pas, pour l'instant,
+qu'on dise qu'il travaille avec Elatransfer. Sa consigne : « aucune chose qui
+montrerait qu'il y a un partenariat officiel entre easyHotel et ELA sur leur
+page client hôtel et réception ».
+
+**Ce qui le montrait, relevé sur le site construit (texte visible, titres,
+manifestes), FR et EN :**
+- page du QR (`/easyhotel-client/`) : une pastille orange « easyHotel » × notre
+  logo en tête — leur orange, leur nom en blanc, c'est presque leur logo ;
+  « Transferts opérés par Elatransfer » (faux en plus : la centrale n'exécute
+  pas le transport) ; l'onglet et l'icône « easyHotel Aéroville × Elatransfer » ;
+  une icône d'écran d'accueil nommée « easyHotel », comme leur application ;
+- moteur (`?h=`) : « Tarifs partenaires » au-dessus du nom, la pastille de
+  l'hôtel dans l'en-tête ;
+- comptoir : la même pastille, collée à notre logo par un filet.
+
+**Ce qui a été fait :**
+- **Le co-marquage vit sur la fiche** (`HOTELS[x].coMarquage`), comme les
+  couleurs : sans lui, ni pastille (`hotel-engine-polish.js` ne la pose pas,
+  la retire si elle est là, et pose `eh-sans-pastille`), ni « Tarifs
+  partenaires » (le moteur dit « Prix fixes » / « Fixed prices », les mots
+  déjà écrits sur la page du QR). easyHotel : `coMarquage:false`. La démo des
+  professionnels : `true` — elle montre la page d'un hôtel qui a accepté, et
+  ses captures (PR #415) ne bougent pas.
+- **Le premier dessin est le bon** : posée au script, la classe faisait
+  glisser notre logo du milieu vers la gauche — CLS 0,126, mesuré par
+  `test-easyhotel-client`. `construire-espaces-hotel.mjs` la pose dès `<body>`,
+  comme `eh-sans-photo`.
+- Page du QR : notre logo seul ; « Transferts réservés et coordonnés par
+  Elatransfer » ; titre et manifeste « Transfert depuis easyHotel Aéroville —
+  Elatransfer », icône « Elatransfer ».
+- `test-easyhotel-client` (page du QR et moteur, FR et EN) et
+  `test-finition-commune` (moteur et comptoir) refusent tout signe de
+  partenariat sur ses pages ; l'hôtel d'essai, lui, a `coMarquage:true` et
+  éprouve la pastille. Sur l'ancien code, 13 contrôles tombent en nommant ce
+  qu'ils trouvent (« × », « PARTENAIRES », « easyHotel / easyHotel »).
+
+**Ce qui reste, et pourquoi :**
+- **Son nom et son adresse** : c'est le lieu d'où l'on part, un usage
+  descriptif. Le chauffeur en a besoin.
+- **Son orange** : posé à la demande de Barbaros (septembre), texte noir
+  dessus (21/10). À lui de dire s'il passe au bleu d'Elatransfer.
+- **La photo du comptoir** : la sienne (20/10).
+- **Les CGV** parlent d'« hôtel partenaire » et de « l'accord conclu avec cet
+  hôtel », sans nommer personne. Les toucher, c'est relire le contrat : à lui.
+
+Deux phrases d'histoire ont quitté `CLAUDE.md` pour lui faire de la place :
+le moteur « figé » et les identifiants `hotelNom` / `btnNouvelleCourse`
+pris deux fois. Leur récit complet est dans `memoire/mode-hotel.md`.

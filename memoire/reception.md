@@ -388,3 +388,27 @@ ceux à venir aussi au départ et à l'arrivée ».
 Retiré de CLAUDE.md pour faire la place, et toujours vrai : le quota de 30
 dépôts par heure d'un client de partenaire vaut pour un partenaire réel,
 VÉRIFIÉ dans la table `partenaires` (`deposer-course`).
+
+## Le véhicule choisi survit au calcul du prix (24 octobre 2026)
+
+Trouvé par la CI de la PR #415 : `test-public-depot-fiable` tombait deux fois
+sur trois au même endroit (« réception, réponse perdue » : `#btnVoirPrix`
+jamais actif). Reproduit hors CI, processeur ralenti ×6 : 5 échecs sur 6 sur
+`main`. Cause : choisir la destination lance `calculerAuComptoir()` (450 ms
+d'anti-rebond), puis `allerAuxPrix(true)` → `dessinerGammes()`, qui remet
+`course.gamme = null` et redessine la liste. Un véhicule touché pendant ce
+délai était décoché, et « Valider la réservation » restait éteint : une
+réception rapide sur un poste lent le revoyait choisir.
+
+Correctif (Barbaros : « Fais tout comme un expert ») : au comptoir seulement
+(`surPlace`), le véhicule choisi est recoché après le redessin, comme au
+changement de langue (`__redessiner`). Sa carte porte le prix à jour ;
+« Réserver une autre course » repart toujours sans véhicule (son redessin ne
+passe pas par le calcul). Le parcours du client ne change pas : il choisit
+après le calcul. Sur la page d'un partenaire, le bouton dit « Valider la
+réservation » sans prix (`hotel-engine-polish.js`) : le prix se lit sur la
+carte.
+
+Garde : `test-reception-choix.mjs`, où le calcul du trajet répond exprès
+1,5 s plus tard, pour que le cas se produise à chaque fois. Sur l'ancien code,
+les contrôles 1 à 4 tombent. Ralenti ×6 : 6 sur 6 au vert.
