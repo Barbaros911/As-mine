@@ -104,7 +104,7 @@ function depot() {
 function demander(chemin) {
   try {
     const sortie = execFileSync("gh", ["api", chemin],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 8000 });
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 5000 });
     const json = JSON.parse(sortie);
     return Array.isArray(json) ? json : null;
   } catch { return null; }
