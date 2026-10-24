@@ -70,7 +70,7 @@ rattrapant le précédent :
 
 ## La route la plus courte (11 octobre 2026)
 
-Capture de Barbaros à 23 h 57 : Argenteuil (58 rue des Bourguignons) →
+Capture de Barbaros à 23 h 57 : une adresse d'Argenteuil →
 Goussainville (bd Paul-Vaillant-Couturier), 40,7 km par Taverny, la forêt
 de Montmorency et Domont, 120 € en berline — pour environ 18 km à vol
 d'oiseau. ORS rendait sa route par défaut, la plus RAPIDE : à minuit la
