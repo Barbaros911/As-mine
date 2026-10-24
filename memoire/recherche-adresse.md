@@ -235,6 +235,9 @@ sur ses captures et sur le site construit :
   gare ; la rue n'est plus une route (refusée dans les icônes) mais un panneau
   de direction. La ligne « Mon adresse n'est pas dans la liste » a une pastille
   vide, au liseré.
+  **Remplacé le même jour** (voir `memoire/palette.md`, « Les icônes ») : les
+  dessins faits main ont laissé place à ceux de Material Symbols, et la
+  pastille neutre à un carré pastel, une couleur par type de lieu.
 - **Le nom et l'adresse étaient collés sur une ligne.** `deuxLignes()` coupe le
   libellé au tiret long des terminaux, puis au code postal et à la ville de la
   BAN, puis à la première virgule : le nom en gras, l'adresse dessous, plus

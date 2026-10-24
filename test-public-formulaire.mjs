@@ -188,7 +188,7 @@ for (const [w, h] of [[390, 844], [1440, 900]]) {
     cat: i.getAttribute('data-cat'), taille: getComputedStyle(i).fontSize,
     masque: getComputedStyle(i, '::before').webkitMaskImage || getComputedStyle(i, '::before').maskImage })));
   check('les suggestions portent leur catégorie', icones.length >= 3 && icones.every(i => i.cat), JSON.stringify(icones.map(i => i.cat)));
-  check('les suggestions n\'affichent plus d\'emoji : un pictogramme au trait le remplace',
+  check('les suggestions n\'affichent plus d\'emoji : un pictogramme le remplace',
     icones.every(i => i.taille === '0px' && /svg/.test(i.masque)), JSON.stringify(icones.map(i => i.taille)));
   await p.context().close();
 }
