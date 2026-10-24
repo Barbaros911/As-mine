@@ -49,7 +49,7 @@ async function ouvrir(photon){
     body:JSON.stringify(/argenteuil/i.test(r.request().url()) ? ARGENTEUIL : VERSAILLES)}));
   /* ORS coupé, OSRM simulé : sans ça, la suite interrogerait le vrai
      service, avec une vraie distance, et les prix vérifiés au centime
-     tomberaient à côté. 24,3 km : la tranche « jusqu'à 32 km », 70 €. */
+     tomberaient à côté. 24,3 km : la tranche « jusqu'à 27 km », 60 €. */
   await p.route('**://api.openrouteservice.org/**', r=>r.abort());
   await p.route('**://router.project-osrm.org/**', r=>r.fulfill({contentType:'application/json',
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
@@ -86,7 +86,7 @@ let avec = 0;
   const acc = await p.locator('#resumeAccueil').isVisible() ? await p.locator('#resumeAccueil').innerText() : '';
   check('écran des prix : « Accueil compris », à l\'arrivée du train', /^Accueil compris/.test(acc) && /arrivée de votre train/.test(acc), acc);
   const prixBerline = nombre(await p.locator('.veh-carte .veh-prix').first().innerText());
-  check('le prix montré comprend déjà l\'accueil : 70 + 10 = 80 €', prixBerline === 80, String(prixBerline));
+  check('le prix montré comprend déjà l\'accueil : 60 + 10 = 70 €', prixBerline === 70, String(prixBerline));
   await p.locator('.veh-carte').first().click();
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(350);
   check('récapitulatif : le bloc « À votre arrivée » est là', !(await p.locator(RECAP).isHidden()));
@@ -94,7 +94,7 @@ let avec = 0;
     await p.locator(RECAP+' .opt-pancarte').isHidden() && await p.locator('#accueilNote').isVisible());
   check('récapitulatif : l\'aperçu de la pancarte est montré', !(await p.locator('#apercuPancarte').isHidden()));
   avec = nombre(await p.locator('#recapTotal').innerText());
-  check('le total est celui de l\'écran des prix, 80 €', avec === 80, String(avec));
+  check('le total est celui de l\'écran des prix, 70 €', avec === 70, String(avec));
   check('aucune ligne d\'option n\'encombre le récapitulatif', await p.locator('#ligneOption').isHidden());
 
   await p.fill('#clientNom','Jean Martin'); await p.waitForTimeout(200);
@@ -187,7 +187,7 @@ let avec = 0;
   await p.locator('#btnContinuer').click(); await p.waitForTimeout(350);
   check("…ni au récapitulatif", await p.locator(RECAP).isHidden());
   const total = nombre(await p.locator('#recapTotal').innerText());
-  check("le total ne porte donc aucun supplément", total === 70, String(total));
+  check("le total ne porte donc aucun supplément", total === 60, String(total));
   await ctx.close();
 }
 

@@ -450,6 +450,34 @@ jobs:
             -c "update public.parametres_commerciaux set valeur = jsonb_set(valeur, '{accueil_centimes}', '1500') where cle = 'grille_publique';" \
             -f supabase/migrations/20261023120000_grille_publique.sql \
             -f supabase/tests/grille-publique-apres.sql
+          # La marche à 27 km (24 octobre 2026), sur trois bases : jamais
+          # migrée (la grille entière est posée, avec la vue), migrée puis
+          # réglée hors des tranches (la marche s'ajoute, les réglages
+          # restent), tranches réglées depuis l'admin (rien ne bouge).
+          # Éprouvée contre une migration qui écrase et une sans la vue.
+          for cas in neuve apres23 reglee; do
+            psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c "create database grille27_$cas;"
+            psql -h 127.0.0.1 -U postgres -d "grille27_$cas" -X -q -v ON_ERROR_STOP=1 \
+              -f supabase/tests/socle.sql \
+              -f supabase/tests/vues-lecture-seule.sql \
+              -f supabase/migrations/20260928120000_tarif_unifie.sql \
+              -f supabase/migrations/20261005000000_vues_lecture_seule.sql
+          done
+          psql -h 127.0.0.1 -U postgres -d grille27_neuve -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261024120000_grille_marche_27km.sql \
+            -f supabase/migrations/20261024120000_grille_marche_27km.sql \
+            -v cas=neuve -f supabase/tests/grille-27km-apres.sql
+          psql -h 127.0.0.1 -U postgres -d grille27_apres23 -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261023120000_grille_publique.sql \
+            -c "update public.parametres_commerciaux set valeur = jsonb_set(jsonb_set(valeur, '{accueil_centimes}', '1500'), '{berline,au_dela_km_centimes}', '300') where cle = 'grille_publique';" \
+            -f supabase/migrations/20261024120000_grille_marche_27km.sql \
+            -f supabase/migrations/20261024120000_grille_marche_27km.sql \
+            -v cas=apres23 -f supabase/tests/grille-27km-apres.sql
+          psql -h 127.0.0.1 -U postgres -d grille27_reglee -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261023120000_grille_publique.sql \
+            -c "update public.parametres_commerciaux set valeur = jsonb_set(valeur, '{berline,tranches_centimes}', '[4000,5000,7000,9000]') where cle = 'grille_publique';" \
+            -f supabase/migrations/20261024120000_grille_marche_27km.sql \
+            -v cas=reglee -f supabase/tests/grille-27km-apres.sql
 
       # LE PILOTAGE PAR LA PORTE DU NAVIGATEUR : PostgREST, le serveur que
       # Supabase place devant la base, avec de vrais jetons signés. La porte
