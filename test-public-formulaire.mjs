@@ -183,7 +183,10 @@ for (const [w, h] of [[390, 844], [1440, 900]]) {
   check('390 px : les suggestions se lisent', r.length >= 3 && faibles.length === 0,
     faibles.map(x => `« ${x.nom} » ${x.ratio}:1`).join(' · ') || r.length + ' textes');
   const icones = await p.evaluate(() => [...document.querySelectorAll('#departList .ico')].map(i => ({
-    cat: i.getAttribute('data-cat'), taille: getComputedStyle(i).fontSize, masque: getComputedStyle(i).webkitMaskImage || getComputedStyle(i).maskImage })));
+    /* Depuis le 24/10/2026, le pictogramme est dessiné DANS la pastille
+       (« ::before ») : c'est là qu'on lit son masque. */
+    cat: i.getAttribute('data-cat'), taille: getComputedStyle(i).fontSize,
+    masque: getComputedStyle(i, '::before').webkitMaskImage || getComputedStyle(i, '::before').maskImage })));
   check('les suggestions portent leur catégorie', icones.length >= 3 && icones.every(i => i.cat), JSON.stringify(icones.map(i => i.cat)));
   check('les suggestions n\'affichent plus d\'emoji : un pictogramme au trait le remplace',
     icones.every(i => i.taille === '0px' && /svg/.test(i.masque)), JSON.stringify(icones.map(i => i.taille)));

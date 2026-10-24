@@ -111,7 +111,14 @@ var ICONES = { sante:"🏥", restauration:"🍽️", hotel:"🏨", culture:"🏛
 
 function libellePhoton(p){
   var morceaux = [];
-  var nomme = !!p.name && p.osm_key!=="highway" && p.type!=="house" && p.type!=="street";
+  /* UN LIEU QUI A UNE ADRESSE GARDE SON NOM (24 octobre 2026). Photon range
+     dans le type « house » tout objet posé sur une adresse : un simple
+     numéro de rue (osm_key « place »), mais aussi un hôtel ou une gare. On
+     jetait le nom de tous : « easyHotel » s'affichait « 10 Rue de la Belle
+     Borne », la gare du Nord « 18 Rue de Dunkerque ». Seul le numéro de rue
+     n'a pas de nom à montrer. */
+  var nomme = !!p.name && p.osm_key!=="highway" && p.type!=="street"
+              && !(p.type==="house" && p.osm_key==="place");
   if(nomme) morceaux.push(p.name);
   var rue = [p.housenumber, p.street || (!nomme ? p.name : null)].filter(Boolean).join(" ");
   if(rue) morceaux.push(rue);

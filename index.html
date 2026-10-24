@@ -7725,6 +7725,17 @@ window.ELA_TEXTES = {
       });
       return l;
     }
+    /* Où couper un libellé en « nom » et « adresse » : le tiret long des
+       terminaux, puis le code postal et la ville de la BAN, puis la première
+       virgule (Photon : « Gare du Nord, 18 Rue de Dunkerque, 75010 Paris »). */
+    function deuxLignes(item){
+      var l = String(item.label || ""), i;
+      if((i = l.indexOf(" — ")) > 0) return [l.slice(0, i), " — ", l.slice(i + 3)];
+      var fin = item.source === "ban" && item.codePostal && item.ville ? " " + item.codePostal + " " + item.ville : "";
+      if(fin && l.length > fin.length && l.slice(-fin.length) === fin) return [l.slice(0, -fin.length), " ", fin.slice(1)];
+      if((i = l.indexOf(", ")) > 0) return [l.slice(0, i), ", ", l.slice(i + 2)];
+      return [l, "", ""];
+    }
     function dessiner(items){
       liste.innerHTML = "";
       if(!items.length){
@@ -7745,7 +7756,19 @@ window.ELA_TEXTES = {
              pictogramme au trait à la place de l'emoji (Bloc 3). */
           i.setAttribute("data-cat", item.categorie || "adresse");
           var t = document.createElement("span");
-          t.textContent = item.label;
+          t.className = "suggest-texte";
+          /* DEUX LIGNES, LE NOM PUIS L'ADRESSE (24 octobre 2026). Le libellé
+             reste entier et identique : le séparateur retiré est gardé dans
+             un « sep » que la façade cache, si bien que le texte de la ligne
+             EST le libellé, caractère pour caractère — celui qu'on écrit dans
+             le champ, sur le bon et dans le message. */
+          var morceaux = deuxLignes(item);
+          [["suggest-titre", morceaux[0]], ["suggest-sep", morceaux[1]], ["suggest-sous", morceaux[2]]].forEach(function(m){
+            if(!m[1]) return;
+            var e = document.createElement("span");
+            e.className = m[0]; e.textContent = m[1];
+            t.appendChild(e);
+          });
           l.appendChild(i); l.appendChild(t);
           function prendre(){
             champ.value = item.label;
