@@ -68,3 +68,55 @@ efface le précédent), la notification ELA est l'alarme (20 s). Le 9/10, les
 - **Le faux serveur de `test-securite-fonctions` ne connaissait pas la liste
   « en attente »** que relit la relance : première exécution tombée sur le
   motif de référence d'une autre URL. Une réponse vide ajoutée.
+
+## Plus aucun silence avant le « Vu » (25/10/2026, P0)
+
+**Le constat de Barbaros.** Depuis le 12/10 : 6 courses de la réception
+easyHotel, 5 transmises par téléphone et organisées en moins de 15 min, une
+seule passée par l'outil — vue avec plus de 30 min de retard.
+
+**Mesuré avant de toucher.** Le diagnostic `20260929000000` (exécution n° 53
+du workflow des migrations) : les deux demandes du site depuis le 12/10
+(12/10 15 h 46 et 20/10 9 h 42) ont eu leur annonce Telegram ET leur
+notification « envoyée » en 2 à 11 s. L'annonce partait ; c'est la SUITE qui
+se taisait. Une simulation sur ce code (horloge avancée de 20 s en 20 s) :
+une demande de la réception à 14 h pour le lendemain 7 h, jamais vue,
+recevait la notification les 10 premières minutes, Telegram à +25, +40,
++55 min, puis **rien pendant 14 h**, jusqu'à H-2. Les suites le disaient
+déjà (« passé 10 min, départ à plus de 2 h : la notification se tait »).
+
+**Sa décision** : la nuit aussi, le téléphone continue jusqu'au « Vu »
+(« oui »). D'où :
+- **non vue** : 0–10 min inchangé (notification 20 s, Telegram 90 s) ;
+  10–30 min, palier critique « 🔴 NON VUE » (notification 2 min, Telegram
+  5 min) ; ensuite notification 5 min et Telegram 15 min, **quel que soit le
+  départ** ; H-30 inchangé. Au plus 4 Telegram par heure, un seul visible.
+- **« Vu » arrête l'alarme, pas le suivi** : avant, il coupait tout jusqu'au
+  départ, message final compris. Maintenant : « VUE, PAS CONFIRMÉE » 30 min
+  après, à H-2, à H-30 (jamais deux à moins de 20 min), puis le final.
+- **Rattrapage jusqu'au départ** (avant : 6 h, après quoi la demande n'était
+  plus jamais annoncée et le voyant cessait de la compter).
+- **Un seul tour à la fois** et **une annonce par demande**, même appelés en
+  même temps (verrous en mémoire, par instance de la fonction) ; 8 s au plus
+  par appareil pour la notification (sans délai, un service muet retenait
+  tout le tour, qui chevauchait le suivant).
+
+**Le piège trouvé par le test** : « reste » se compte à la minute près ; le
+départ calculé flotte donc d'un tour à l'autre. Sans marge d'une minute, le
+rappel de H-2 se croyait non fait et repartait 20 min plus tard (cinq rappels
+« vue, pas confirmée » au lieu de trois).
+
+**Éprouvé** : `test-relance-alertes` (141), dont un bloc « P0 » qui reprend
+ses scénarios un par un (Telegram en panne puis revenu, admin fermé toute une
+nuit, cinq demandes simultanées, quinze relances en parallèle, redémarrage du
+serveur au milieu, aucun « vu » écrit par le serveur, rien de personnel).
+Contre le code d'avant, 24 contrôles tombent, chacun en nommant le défaut
+(905 min sans Telegram, 950 sans notification, 30 envois pour 15 relances
+simultanées, deux annonces pour une demande).
+
+**Ce qui était faux plus haut** : « si les deux côtés divergent, la relance
+tombe en 401 et le voyant le dit en 5 min ». Non : le voyant et le chien de
+garde jugent la tâche pg_cron, « réussie » dès que l'appel est mis en file ;
+personne ne lit la réponse de la fonction. Corrigé dans `NOTIFICATION.md` ;
+la mesure qui manque (un battement écrit par la relance elle-même) est
+l'étape 2.

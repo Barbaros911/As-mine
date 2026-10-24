@@ -65,6 +65,35 @@ export function titreRappel(bon, minutes) {
     + ", " + quand(bon);
 }
 
+/* UNE DURÉE QUI SE LIT D'UN COUP D'ŒIL (25 octobre 2026) : une demande non
+   vue sonne désormais jusqu'au « Vu », parfois toute une nuit. « 9 h 05 » se
+   lit, « 545 min » non. */
+export function duree(minutes) {
+  const m = Math.max(0, Math.round(Number(minutes) || 0));
+  return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0");
+}
+
+/* NON VUE APRÈS 10 MINUTES (25 octobre 2026, P0). La fenêtre d'alarme est
+   passée sans un « Vu » : le titre le dit d'abord, en rouge, pour qu'il ne
+   se confonde ni avec une nouvelle demande ni avec le premier rappel. */
+export function titreNonVue(bon, minutes) {
+  const c = bon.course ?? {};
+  return "🔴 NON VUE " + duree(minutes) + " — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
+/* VUE, MAIS TOUJOURS EN ATTENTE (25 octobre 2026, P0). « Vu » arrête
+   l'alarme, pas le suivi : un coup d'œil n'est pas une course confiée. */
+export function titreVuePasConfirmee(bon) {
+  const c = bon.course ?? {};
+  return "VUE, PAS CONFIRMÉE — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
 /* LE DERNIER MESSAGE, à l'heure du départ : il dit que c'est fini, pas
    « rappel ». Après lui, plus rien ne part — une course oubliée se clôt dans
    l'admin, elle ne sonne pas six heures. */
