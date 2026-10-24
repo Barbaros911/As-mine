@@ -146,6 +146,32 @@ for(const doc of ['mentions','privacy']){ const {ctx,p}=await nouveau();
   await p.locator('.lang[data-lang="fr"]').click();
   check('bascule FR', /Où souhaitez-vous/.test(await p.locator('#destinations > h2').innerText()));
   await ctx.close(); }
+/* 4 bis. AUCUN PARTENARIAT ANNONCÉ SANS ACCORD ÉCRIT (24/10/2026). easyHotel
+   refuse d'être cité pour l'instant : ni pastille « easyHotel × », ni
+   « partenaire », ni « opéré par » (Elatransfer n'exécute pas le transport),
+   ni co-marquage dans le nom de l'onglet ou de l'icône. Son nom reste : c'est
+   le lieu d'où l'on part. */
+const SIGNES=/partenai|partner|×|opéré|operated|officiel|official/i;
+const trouve=(t)=>(String(t).match(SIGNES)||[''])[0];
+for(const langue of ['fr-FR','en-US']){
+  { const {ctx,p}=await nouveau(langue);
+    await p.goto(BASE+'/easyhotel-client/',{waitUntil:'load'});
+    const s=await p.evaluate(async()=>{const l=document.querySelector('link[rel="manifest"]');
+      const m=l?await (await fetch(l.href)).json():{};
+      return {texte:document.body.innerText,titre:document.title,
+        pomme:document.querySelector('meta[name="apple-mobile-web-app-title"]')?.content||'',nom:m.name||'',court:m.short_name||''};});
+    check(`${langue} page du QR : aucun signe de partenariat à l'écran`, !SIGNES.test(s.texte), trouve(s.texte));
+    check(`${langue} page du QR : ni dans le titre, ni dans le nom de l'icône`, ![s.titre,s.pomme,s.nom,s.court].some(x=>SIGNES.test(x)), [s.titre,s.nom].join(' | '));
+    check(`${langue} page du QR : l'icône ne s'appelle pas comme l'hôtel`, !/easy\s*hotel/i.test(s.pomme+' '+s.court), s.pomme+' / '+s.court);
+    check(`${langue} page du QR : le nom de l'hôtel reste, comme lieu de départ`, /easyHotel Aéroville/.test(s.texte));
+    await ctx.close(); }
+  { const {ctx,p}=await nouveau(langue);
+    await p.goto(BASE+'/application.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'}); await p.waitForTimeout(1500);
+    const s=await p.evaluate(()=>({texte:document.body.innerText,pastille:!!document.querySelector('.hotel-partner-chip')}));
+    check(`${langue} moteur easyHotel : aucun signe de partenariat à l'écran`, !SIGNES.test(s.texte), trouve(s.texte));
+    check(`${langue} moteur easyHotel : pas de pastille à son nom dans l'en-tête`, !s.pastille);
+    await ctx.close(); }
+}
 // 5. largeurs : débordement, zones tactiles, recouvrements, liens contact
 for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024],[1024,768],[1280,800]]){
   const {ctx,p}=await nouveau('fr-FR',w,h);

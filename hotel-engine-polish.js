@@ -42,7 +42,12 @@
     var head=document.querySelector('.entete');
     var actions=document.querySelector('.entete-actions');
     var chip=document.querySelector('.hotel-partner-chip');
-    if(head && actions && !chip){
+    /* LA PASTILLE ASSOCIE SA MARQUE À LA NÔTRE : seulement avec son accord
+       écrit (h.coMarquage, 24/10/2026). Sans lui, son nom reste dans le
+       bandeau, comme le lieu d'où l'on part, et l'en-tête n'est qu'à nous. */
+    if(chip && !h.coMarquage){chip.remove();chip=null;}
+    document.body.classList.toggle('eh-sans-pastille',!h.coMarquage);
+    if(head && actions && !chip && h.coMarquage){
       chip=document.createElement('div');
       chip.className='hotel-partner-chip';
       chip.appendChild(document.createElement('b'));
